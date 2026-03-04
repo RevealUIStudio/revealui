@@ -4,7 +4,7 @@ Marketing and landing pages for RevealUI - White-Label CMS for Digital Agencies.
 
 ## Features
 
-- ✅ Modern, responsive design built with Next.js 14 and Tailwind CSS
+- ✅ Modern, responsive design built with Next.js 16 and Tailwind CSS v4
 - ✅ Compelling headline: "White-Label CMS for Digital Agencies"
 - ✅ Value propositions highlighting source code access, AI features, and multi-tenant architecture
 - ✅ Social proof section with testimonials (placeholders for now)

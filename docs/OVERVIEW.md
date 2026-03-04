@@ -136,11 +136,23 @@ revealui/
 │   └── studio/        # Desktop companion (Tauri 2)
 ├── packages/
 │   ├── core/          # Core CMS engine
-│   ├── db/            # Database adapters
 │   ├── contracts/     # Type contracts & validation
+│   ├── db/            # Database (Drizzle ORM)
 │   ├── auth/          # Authentication
-│   ├── ai/            # AI integrations (Pro)
-│   └── [9+ more]      # Additional packages
+│   ├── presentation/  # UI components (50+)
+│   ├── router/        # File-based router
+│   ├── config/        # Type-safe env config
+│   ├── utils/         # Logger, DB helpers
+│   ├── cli/           # create-revealui scaffolding
+│   ├── setup/         # Environment setup
+│   ├── sync/          # ElectricSQL real-time sync
+│   ├── dev/           # Shared configs (Biome, TS, Tailwind)
+│   ├── test/          # E2E specs, fixtures, mocks
+│   ├── ai/            # AI agents (Pro)
+│   ├── mcp/           # MCP servers (Pro)
+│   ├── editors/       # Editor daemon (Pro)
+│   ├── services/      # Stripe + Supabase (Pro)
+│   └── harnesses/     # AI harness adapters (Pro)
 └── scripts/           # CLI tools, automation, CI gates
 ```
 
@@ -184,8 +196,8 @@ RevealUI integrates with best-in-class services:
 | **Resend** | Transactional email | `RESEND_API_KEY` |
 | **Sentry** | Error tracking | `SENTRY_DSN` |
 | **PostHog** | Analytics | `NEXT_PUBLIC_POSTHOG_KEY` |
-| **OpenAI** | AI features | `OPENAI_API_KEY` |
 | **Anthropic** | Claude AI | `ANTHROPIC_API_KEY` |
+| **GROQ** | LLM inference | `GROQ_API_KEY` |
 
 → **See [ENVIRONMENT_VARIABLES_GUIDE.md](./ENVIRONMENT_VARIABLES_GUIDE.md)** for complete configuration
 
@@ -267,6 +279,6 @@ RevealUI supports multiple development environments:
 
 ---
 
-**Last Updated**: 2026-02-01
+**Last Updated**: 2026-03-04
 **Consolidated**: Trimmed from 4,194 lines to ~400 lines
 **Maintainer**: RevealUI Framework Team

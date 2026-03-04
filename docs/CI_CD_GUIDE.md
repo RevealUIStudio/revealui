@@ -1,7 +1,7 @@
 # RevealUI CI/CD Deployment Guide
 
-**Last Updated**: January 31, 2026
-**Status**: Setup Guide (Project Not Yet Production Ready)
+**Last Updated**: March 2026
+**Status**: Deployment Guide (Production — live at cms.revealui.com and api.revealui.com)
 
 ---
 
@@ -815,8 +815,8 @@ To reduce need for rollbacks:
 
 ## Deployment Runbook
 
-**Last Updated**: January 2, 2026
-**Status**: Deployment Guide (Project Not Yet Production Ready)
+**Last Updated**: March 2026
+**Status**: Deployment Guide (Production)
 
 ### Pre-Deployment Checklist
 
@@ -1104,13 +1104,13 @@ vercel deploy --prod
 # CMS (Next.js)
 docker build -f apps/cms/Dockerfile -t revealui-cms:latest .
 
-# Web (Vite + nginx)
-docker build -f apps/mainframe/Dockerfile -t revealui-web:latest .
+# Mainframe (Hono SSR + React)
+docker build -f apps/mainframe/Dockerfile -t revealui-mainframe:latest .
 
 # Docs (Vite + nginx)
 docker build -f apps/docs/Dockerfile -t revealui-docs:latest .
 
-# Landing (Next.js)
+# Marketing (Next.js)
 docker build -f apps/marketing/Dockerfile -t revealui-marketing:latest .
 ```
 
@@ -1137,10 +1137,7 @@ docker-compose -f infrastructure/docker-compose/production.yml down -v
 # CMS health check
 curl http://localhost:4000/api/health
 
-# Web health check
-curl http://localhost:8000/health
-
-# Electric health check
+# Mainframe health check
 curl http://localhost:3001/health
 
 # Postgres health check
@@ -1151,9 +1148,8 @@ docker exec revealui-postgres pg_isready -U revealui
 ```bash
 # View container logs
 docker logs revealui-cms
-docker logs revealui-web
+docker logs revealui-mainframe
 docker logs revealui-postgres
-docker logs revealui-electric
 
 # Inspect image
 docker inspect revealui-cms:latest
@@ -2226,6 +2222,6 @@ These archives are preserved for historical reference and troubleshooting.
 
 ---
 
-**Status:** Setup Guide (Project Not Yet Production Ready)
-**Last Verified:** January 31, 2026
+**Status:** Deployment Guide (Production)
+**Last Verified:** March 2026
 **Consolidated:** January 31, 2026 (5 files → 1 file)

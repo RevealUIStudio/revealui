@@ -43,7 +43,7 @@ import type { Database } from '@revealui/core/generated/types/supabase'
 
 ## Migration
 
-If you're migrating from `@revealui/types` or `@revealui/generated`, see the [Migration Guide](../../docs/migrations/PACKAGE_MERGE_MIGRATION_GUIDE.md).
+The former `@revealui/types` and `@revealui/generated` packages were merged into `@revealui/core`. Update imports to use `@revealui/core/types` and `@revealui/core/generated`.
 
 ## Available Exports
 

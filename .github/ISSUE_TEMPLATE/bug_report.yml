@@ -84,7 +84,7 @@ body:
         Provide your environment details.
       value: |
         - OS: [e.g., macOS 15, Ubuntu 24.04, Windows 11]
-        - Node.js: [e.g., 24.12.0]
+        - Node.js: [e.g., 24.13.0]
         - pnpm: [e.g., 10.x]
         - Browser: [e.g., Chrome 130, Firefox 133]
     validations:

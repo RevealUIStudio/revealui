@@ -39,7 +39,7 @@ Options:
 
 ## Requirements
 
-- Node.js 24.12.0 or higher
+- Node.js 24.13.0 or higher
 - pnpm 10.28.2 or higher
 
 ## What Gets Created

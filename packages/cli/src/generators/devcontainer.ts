@@ -127,7 +127,7 @@ This directory contains the Dev Container configuration for RevealUI.
 
 ## What's Included
 
-- Node.js 24.12.0
+- Node.js 24.13.0
 - pnpm package manager
 - PostgreSQL 16 with pgvector
 - VS Code extensions:

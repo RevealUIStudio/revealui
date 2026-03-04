@@ -38,70 +38,67 @@ Comprehensive guide to AI agent capabilities, configurations, and workflows in t
 
 **Purpose**: Entry point for AI agents working on RevealUI Framework
 
-### Current State (2025-01-27)
+### Current State (2026-03-03)
 
 **Project Overview**
-- **Framework**: RevealUI - Enterprise React 19 + Next.js 16 CMS Framework
-- **Package Count**: 11 packages (reduced from 13 after merge)
-- **Package Merge**: `@revealui/types` + `@revealui/generated` → `@revealui/core` (completed 2025-01-27)
-- **Test Status**: 211/211 tests passing ✅
-- **Build Status**: All packages build successfully ✅
+- **Framework**: RevealUI — Full-stack React 19 + Next.js 16 CMS Framework
+- **Package Count**: 18 packages (13 OSS + 5 Pro)
+- **Test Status**: 307+ test files, all packages build and typecheck ✅
+- **Build Status**: All 24 workspaces build successfully ✅
 
 **Package Structure**
 ```
 packages/
-├── revealui/     # Core CMS framework (includes types/ and generated/)
-├── db/           # Database (Drizzle ORM)
-├── ai/           # AI system (memory, LLM, orchestration)
-├── schema/       # Zod schemas (contract layer)
-├── auth/         # Authentication system
-├── services/     # External services (Stripe, Supabase)
-├── sync/         # ElectricSQL client
-├── presentation/ # UI components
-├── config/       # Environment config
-├── dev/          # Dev tooling
-└── test/         # Test utilities
+├── core/           # CMS framework (includes types/ and generated/)
+├── contracts/      # Zod schemas & TypeScript types
+├── db/             # Database (Drizzle ORM, 41 tables)
+├── auth/           # Authentication system
+├── presentation/   # 43+ UI components (Tailwind v4)
+├── router/         # File-based router with SSR
+├── config/         # Type-safe env config (Zod)
+├── utils/          # Logger, DB helpers, validation
+├── cli/            # create-revealui scaffolding
+├── setup/          # Environment setup utilities
+├── sync/           # ElectricSQL real-time sync
+├── dev/            # Shared configs (Biome, TS, Tailwind)
+├── test/           # E2E specs, fixtures, mocks
+├── ai/             # AI agents, CRDT memory (Pro)
+├── mcp/            # MCP servers (Pro)
+├── editors/        # Editor daemon (Pro)
+├── services/       # Stripe + Supabase (Pro)
+└── harnesses/      # AI harness adapters (Pro)
 ```
 
 ### Key Files to Read First
 
 **1. Package Structure**
 - [Package Conventions](../packages/PACKAGE-CONVENTIONS.md) - How packages are organized
-- [Package Merge Migration Guide](./migrations/PACKAGE_MERGE_MIGRATION_GUIDE.md) - Recent package changes
 
 **2. Current Status**
-- [Documentation Status](./STATUS.md) - Current project state
-- [Package Merge Assessment](./assessments/PACKAGE_MERGE_ASSESSMENT.md) - Package structure analysis
+- [Master Plan](./MASTER_PLAN.md) - Current phase, priorities, session history
+- [Architecture](./ARCHITECTURE.md) - System architecture and patterns
 
-**3. Architecture**
-- [Unified Backend Architecture](./architecture/UNIFIED_BACKEND_ARCHITECTURE.md) - System architecture
+**3. Code Conventions**
+- [Code Standards](./STANDARDS.md) - Code style, linting, module resolution
 - [Package Conventions](../packages/PACKAGE-CONVENTIONS.md) - Package organization
-
-**4. Code Conventions**
-- [Code Style Guide](./development/LLM_CODE_STYLE_GUIDE.md) - AI-assisted development guidelines
-- [Root .cursorrules](../.cursorrules) - Project-specific rules
 
 ### Common Tasks & Documentation
 
 **Adding a New Feature**
 1. Review [Package Conventions](../packages/PACKAGE-CONVENTIONS.md)
-2. Check [Code Style Guide](./development/LLM_CODE_STYLE_GUIDE.md)
-3. Follow [Testing Strategy](./development/testing/TESTING_STRATEGY.md)
+2. Check [Code Standards](./STANDARDS.md)
+3. Follow [Testing Guide](./testing/TESTING.md)
 
 **Working with Types**
-1. [Type Generation Guide](./reference/database/TYPE_GENERATION_GUIDE.md)
-2. [Package Merge Migration Guide](./migrations/PACKAGE_MERGE_MIGRATION_GUIDE.md)
-3. [Package Conventions - Types Section](../packages/PACKAGE-CONVENTIONS.md#types-and-generated-code)
+1. [Package Conventions - Types Section](../packages/PACKAGE-CONVENTIONS.md#types-and-generated-code)
+2. Types live in `@revealui/contracts` (Zod schemas) and `@revealui/core/types` (CMS types)
 
 **Database Operations**
-1. [Database Types Reference](./reference/database/DATABASE_TYPES_REFERENCE.md)
-2. [Drizzle Guide](./development/DRIZZLE_GUIDE.md)
-3. [Fresh Database Setup](./reference/database/FRESH_DATABASE_SETUP.md)
+1. [Database Guide](./DATABASE.md) - Schema, migrations, queries
+2. Schemas in `packages/db/src/schema/` — Drizzle ORM
 
 **Authentication**
-1. [Auth System Design](./reference/auth/AUTH_SYSTEM_DESIGN.md)
-2. [Auth Usage Examples](./guides/auth/AUTH_USAGE_EXAMPLES.md)
-3. [Auth Migration Guide](./guides/auth/AUTH_MIGRATION_GUIDE.md)
+1. [Auth Guide](./AUTH.md) - System design, usage, migration
 
 **Deployment**
 1. [Deployment Runbook](./guides/deployment/DEPLOYMENT_RUNBOOK.md)
@@ -130,15 +127,12 @@ packages/
 
 ```
 docs/
-├── README.md                    # Main documentation index
-├── AGENT_QUICK_START.md         # Agent entry point (merged here)
-├── STATUS.md                    # Current state dashboard
-├── guides/                      # User guides
-├── reference/                   # Reference documentation
+├── INDEX.md                    # Master documentation index
+├── MASTER_PLAN.md              # Single source of truth for planning
+├── ARCHITECTURE.md             # System architecture
+├── STANDARDS.md                # Code standards
+├── testing/                    # Testing guides
 ├── development/                # Development guides
-├── assessments/                # Project assessments
-├── migrations/                  # Migration guides
-├── architecture/               # Architecture docs
 └── archive/                    # Historical docs
 ```
 
@@ -2409,8 +2403,7 @@ All integrations can leverage the configured MCP servers:
 - [Environment Variables Guide](./ENVIRONMENT_VARIABLES_GUIDE.md)
 
 ### Cohesion & Quality
-- `STATUS.md` - Implementation status
-- `DEVELOPER_EXPERIENCE_COHESION_ANALYSIS.md` - Generated assessment (validated)
+- [Master Plan](./MASTER_PLAN.md) - Current phase and implementation status
 - `scripts/cohesion/` - Implementation files
 
-**Last Updated**: January 2026
+**Last Updated**: March 2026

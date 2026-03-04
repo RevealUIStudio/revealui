@@ -481,8 +481,7 @@ Tests run automatically on:
 7. Archive test results
 
 **Matrix Testing:**
-- Node.js 18
-- Node.js 20
+- Node.js 24
 
 ### Integration Tests in CI
 
@@ -491,7 +490,7 @@ Integration tests run with PostgreSQL service:
 ```yaml
 services:
   postgres:
-    image: postgres:15
+    image: postgres:16
     env:
       POSTGRES_USER: test
       POSTGRES_PASSWORD: test

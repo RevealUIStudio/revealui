@@ -70,14 +70,14 @@ This is the comprehensive index of all RevealUI Framework documentation, organiz
 
 | Document | Type | Audience | Description |
 |----------|------|----------|-------------|
-| [Testing Guide](./testing/testing/TESTING.md) | Guide | Developers | Comprehensive testing guide (includes load, penetration, verification testing, and strategy) |
+| [Testing Guide](./testing/TESTING.md) | Guide | Developers | Comprehensive testing guide (includes load, penetration, verification testing, and strategy) |
 | [Performance Testing](./PERFORMANCE.md) | Guide | Developers | Performance and load testing (includes auth performance benchmarks) |
 
 ### 🛠️ Development & Tooling
 
 | Document | Type | Audience | Description |
 |----------|------|----------|-------------|
-| [Development Guide](./README.md) | Guide | Developers | Development navigation hub with links to CI environment, database management, module resolution, and TypeScript migration |
+| [Development Guide](./DEVELOPMENT_GUIDE.md) | Guide | Developers | Development navigation hub with links to CI environment, database management, module resolution, and TypeScript migration |
 
 ### 📝 CMS & Content
 
@@ -143,13 +143,13 @@ This is the comprehensive index of all RevealUI Framework documentation, organiz
 - [Environment Variables Guide](./ENVIRONMENT_VARIABLES_GUIDE.md) - Complete configuration guide
 - [Database Guide](./DATABASE.md) - Complete database setup, migrations, contract integration, and Drizzle ORM
 - [Auth Guide](./AUTH.md) - Complete authentication (system design, usage patterns, and migration)
-- [Testing Guide](./testing/testing/TESTING.md) - Comprehensive testing guide
+- [Testing Guide](./testing/TESTING.md) - Comprehensive testing guide
 - [Code Standards](./STANDARDS.md) - Complete code standards, style, linting, module resolution, and observability
 - [CMS Guide](./CMS_GUIDE.md) - Complete CMS documentation
 - [Overview](./OVERVIEW.md) - High-level framework overview with links
 - [MCP Guide](./MCP.md) - Complete MCP integration guide
 - [Security Guide](./SECURITY.md) - Security best practices
-- [Development Guide](./README.md) - Development navigation hub (CI environment, database management, module resolution, TypeScript migration)
+- [Development Guide](./DEVELOPMENT_GUIDE.md) - Development navigation hub (CI environment, database management, module resolution, TypeScript migration)
 - [Performance Guide](./PERFORMANCE.md) - Performance and load testing
 - [Governance](./GOVERNANCE.md) - Code of conduct and documentation standards
 
@@ -187,14 +187,14 @@ This is the comprehensive index of all RevealUI Framework documentation, organiz
 - [Environment Variables Guide](./ENVIRONMENT_VARIABLES_GUIDE.md)
 - [Database Guide](./DATABASE.md)
 - [CI/CD Guide](./CI_CD_GUIDE.md)
-- [Testing Guide](./testing/testing/TESTING.md)
+- [Testing Guide](./testing/TESTING.md)
 - [Code Standards](./STANDARDS.md)
 
 ### For Contributors
 
 - [Code Standards](./STANDARDS.md)
 - [Governance](./GOVERNANCE.md)
-- [Testing Guide](./testing/testing/TESTING.md)
+- [Testing Guide](./testing/TESTING.md)
 
 ---
 
@@ -211,7 +211,7 @@ This master index provides comprehensive navigation by topic, task, audience, an
 - **Understand the codebase**: [Overview](./OVERVIEW.md) + [Architecture Overview](./ARCHITECTURE.md)
 - **Work with authentication**: [Auth Guide](./AUTH.md)
 - **Work with database**: [Database Guide](./DATABASE.md)
-- **Run tests**: [Testing Guide](./testing/testing/TESTING.md)
+- **Run tests**: [Testing Guide](./testing/TESTING.md)
 - **Set up AI automation**: [Automation Guide](./AUTOMATION.md) + [MCP Guide](./MCP.md)
 
 ---

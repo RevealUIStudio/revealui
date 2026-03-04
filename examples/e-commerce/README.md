@@ -172,21 +172,20 @@ import type { Product } from '@revealui/core/types/cms'
 import { ProductCard } from '@revealui/core/generated/components'
 ```
 
-**Note**: If you're migrating from older versions, see the [Package Merge Migration Guide](../../docs/migrations/PACKAGE_MERGE_MIGRATION_GUIDE.md).
+**Note**: The former `@revealui/types` and `@revealui/generated` packages were merged into `@revealui/core`. Use `@revealui/core/types` and `@revealui/core/generated` for imports.
 
 ## Learn More
 
-- [RevealUI Documentation](https://revealui.com/docs)
+- [RevealUI Documentation](https://docs.revealui.com)
 - [Stripe Integration Guide](https://stripe.com/docs)
-- [RevealUI CMS E-commerce](https://revealui.com/docs/e-commerce)
-- [Package Merge Migration Guide](../../docs/migrations/PACKAGE_MERGE_MIGRATION_GUIDE.md)
+- [RevealUI CMS E-commerce](https://docs.revealui.com)
 - [Next.js E-commerce](https://nextjs.org/docs)
 
 ## Support
 
 - [GitHub Issues](https://github.com/RevealUIStudio/revealui/issues)
 - [Discord Community](https://discord.gg/revealui)
-- [Documentation](https://revealui.com/docs)
+- [Documentation](https://docs.revealui.com)
 
 ---
 

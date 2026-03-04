@@ -35,8 +35,8 @@ If applicable, add screenshots to help explain your problem.
 
 **Environment:**
 - OS: [e.g., macOS 14.0, Windows 11, Ubuntu 22.04]
-- Node.js version: [e.g., 24.12.0]
-- pnpm version: [e.g., 9.14.2]
+- Node.js version: [e.g., 24.13.0]
+- pnpm version: [e.g., 10.x]
 - Browser (if applicable): [e.g., Chrome 120, Firefox 121]
 
 **Deployment:**

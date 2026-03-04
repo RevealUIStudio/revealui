@@ -1,8 +1,8 @@
 # RevealUI Component Catalog
 
-**Last Updated:** 2025-01-30
+**Last Updated:** 2026-03-03
 **Packages:** `@revealui/presentation`, `@revealui/core`
-**Total Components:** 59
+**Total Components:** 64
 
 ---
 
@@ -1446,20 +1446,20 @@ Components like Dialog, Combobox, and Listbox use native RevealUI hooks for buil
 
 ## Component Summary by Package
 
-### @revealui/presentation (41 components)
+### @revealui/presentation (43 components)
 - 6 Primitives (Box, Flex, Grid, Text, Heading, Slot)
 - 13 Form Controls (Button, Input, Textarea, Select, Checkbox, Radio, etc.)
 - 8 Data Display (Card, Table, Avatar, Badge, etc.)
 - 4 Navigation (Link, Navbar, Sidebar, Pagination)
-- 3 Feedback (Alert, Dialog)
-- 4 Layout (auth-layout, sidebar-layout, stacked-layout)
+- 3 Feedback (Alert, Dialog, Toast)
+- 4 Layout (auth-layout, sidebar-layout, stacked-layout, empty-state)
 - 5 Headless variants
 
-### @revealui/core (18 components)
+### @revealui/core (21 components)
 - 3 Admin Components (AdminDashboard, CollectionList, DocumentForm)
 - 8 CMS UI Components (TextInput, Button, SelectInput, Textarea, Checkbox, FieldLabel, ModalProvider, FieldsDrawer)
 - 7 Rich Text Editor (RichTextEditor, ImageNode, ImageNodeComponent, ImageUploadButton, ToolbarPlugin, FloatingToolbarPlugin, ImagePlugin)
-- 2 Form Hooks (useFormFields, useField, useModal)
+- 3 Form Hooks (useFormFields, useField, useModal)
 
 ---
 
@@ -1473,6 +1473,6 @@ Components like Dialog, Combobox, and Listbox use native RevealUI hooks for buil
 
 ---
 
-**Last Updated:** 2025-01-30
-**Packages:** `@revealui/presentation` (41 components), `@revealui/core` (18 components)
-**Total Components:** 59 components
+**Last Updated:** 2026-03-03
+**Packages:** `@revealui/presentation` (43 components), `@revealui/core` (21 components)
+**Total Components:** 64 components

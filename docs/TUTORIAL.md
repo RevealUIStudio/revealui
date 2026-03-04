@@ -103,24 +103,21 @@ nano .env.development.local  # Nano
 For local development, you need:
 
 ```env
-# Database (required)
-DATABASE_URL="postgresql://user:password@localhost:5432/revealui"
-
-# Or use NeonDB (free tier)
-# DATABASE_URL="postgresql://user:password@ep-xxx.neon.tech/revealui?sslmode=require"
+# Database (required — get from neon.tech dashboard)
+POSTGRES_URL="postgresql://user:password@ep-xxx.neon.tech/revealui?sslmode=require"
 
 # Vercel Blob (required for CMS media)
 BLOB_READ_WRITE_TOKEN="vercel_blob_..."
 
-# RevealUI (required)
-PAYLOAD_SECRET="your-secret-here-min-32-chars"
+# Session secret (required)
+REVEALUI_SECRET="your-secret-here-min-32-chars"
 ```
 
 **Get NeonDB credentials** (free):
 1. Visit https://console.neon.tech
 2. Create account (free)
 3. Create new project
-4. Copy connection string → `DATABASE_URL`
+4. Copy connection string → `POSTGRES_URL`
 
 **Get Vercel Blob** (free):
 1. Visit https://vercel.com/dashboard
@@ -129,11 +126,11 @@ PAYLOAD_SECRET="your-secret-here-min-32-chars"
 4. Settings → Storage → Create Blob Store
 5. Copy token → `BLOB_READ_WRITE_TOKEN`
 
-**Generate PayloadSecret:**
+**Generate secret:**
 ```bash
 # Generate random 32+ character string
 node -e "console.log(require('crypto').randomBytes(32).toString('hex'))"
-# Copy output → PAYLOAD_SECRET
+# Copy output → REVEALUI_SECRET
 ```
 
 ### Step 4: Initialize Database
@@ -168,8 +165,8 @@ pnpm db:status
 **Should show:**
 ```
 ✅ Database connected
-📊 Tables: 15
-📝 Migrations: 8 applied
+📊 Tables: 41
+📝 Migrations: applied
 ```
 
 ### Step 5: Start Development Server
@@ -181,14 +178,17 @@ pnpm dev
 **Expected output:**
 ```
 @revealui/cms:dev: ready started server on 0.0.0.0:4000
-@revealui/web:dev: ready started server on 0.0.0.0:3000
-@revealui/dashboard:dev: ready started server on 0.0.0.0:3002
+@revealui/api:dev: ready started server on 0.0.0.0:3004
+@revealui/docs:dev: ready started server on 0.0.0.0:3002
+@revealui/mainframe:dev: ready started server on 0.0.0.0:3001
+@revealui/marketing:dev: ready started server on 0.0.0.0:3000
 ```
 
 **Open in browser:**
 - CMS: http://localhost:4000/admin
-- Web: http://localhost:3000
-- Dashboard: http://localhost:3002
+- API: http://localhost:3004/health
+- Docs: http://localhost:3002
+- Marketing: http://localhost:3000
 
 **Create admin user:**
 1. Go to http://localhost:4000/admin
@@ -209,19 +209,21 @@ pnpm dev
 ```
 revealui/
 ├── apps/                   # Applications
-│   ├── cms/               # RevealUI CMS (port 4000)
-│   ├── web/               # Main website (port 3000)
-│   ├── dashboard/         # Admin dashboard (port 3002)
-│   ├── docs/              # Documentation site
-│   └── landing/           # Landing page
+│   ├── api/               # Hono REST API (port 3004)
+│   ├── cms/               # Next.js 16 headless CMS (port 4000)
+│   ├── docs/              # Documentation site (port 3002)
+│   ├── mainframe/         # Hono SSR + React demo (port 3001)
+│   ├── marketing/         # Marketing + waitlist (port 3000)
+│   └── studio/            # Desktop companion (Tauri 2)
 │
-├── packages/              # Shared packages
-│   ├── core/             # Core utilities
-│   ├── auth/             # Authentication
-│   ├── db/               # Database layer
-│   ├── ai/               # AI integrations
-│   ├── sync/             # Data synchronization
-│   └── services/         # Third-party services
+├── packages/              # Shared packages (18 total)
+│   ├── core/             # CMS engine, REST API, plugins
+│   ├── contracts/        # Zod schemas + TypeScript types
+│   ├── db/               # Drizzle ORM (41 tables)
+│   ├── auth/             # Session auth, rate limiting
+│   ├── presentation/     # 43+ UI components (Tailwind v4)
+│   ├── router/           # File-based router with SSR
+│   └── ...               # config, utils, cli, setup, sync, dev, test
 │
 ├── scripts/               # Development scripts
 │   ├── cli/              # CLI tools

@@ -8,7 +8,7 @@
 Brief one-sentence description of what this package does.
 
 <!-- Optional: Add badges or links -->
-📚 [Docs](https://revealui.com)
+📚 [Docs](https://docs.revealui.com)
 ⚙️  [Source code](https://github.com/RevealUIStudio/revealui/tree/main/packages/[package-name])
 📦 [npm package](https://npmjs.com/package/@revealui/[package-name]) <!-- Only for published packages -->
 
@@ -154,7 +154,7 @@ import { NewExport } from '@revealui/[package-name]'
 import { NewExport2 } from '@revealui/[package-name]/new-submodule'
 ```
 
-**See**: [Migration Guide](../../docs/migrations/[MIGRATION_GUIDE_NAME].md) for detailed migration instructions.
+<!-- Migration guides were consolidated. Include inline migration notes here if needed. -->
 
 ## API Reference
 
@@ -330,9 +330,9 @@ packages/[package-name]/
 <!-- Cross-reference relevant framework documentation -->
 
 ### Framework Docs
-- **[Architecture Guide](../../docs/architecture/ARCHITECTURE.md)** - System architecture overview
+- **[Architecture Guide](../../docs/ARCHITECTURE.md)** - System architecture overview
 - **[Testing Guide](../../docs/testing/TESTING.md)** - Testing patterns and best practices
-- **[Development Guide](../../docs/development/README.md)** - Development setup and workflows
+- **[Development Guide](../../docs/DEVELOPMENT_GUIDE.md)** - Development setup and workflows
 
 ### Package Docs
 - **[Package Conventions](../PACKAGE-CONVENTIONS.md)** - Monorepo package structure conventions
@@ -340,7 +340,7 @@ packages/[package-name]/
 - **[Related Package 2](../related-package-2/README.md)** - Description
 
 ### Other Resources
-- **[API Documentation](https://revealui.com/docs/api/[package-name])** - Full API reference
+- **[API Documentation](https://docs.revealui.com)** - Full API reference
 - **[Examples](../../examples/[package-name])** - Working examples and demos
 - **[Changelog](./CHANGELOG.md)** - Version history and updates
 

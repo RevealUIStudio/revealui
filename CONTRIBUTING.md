@@ -121,7 +121,7 @@ revealui/
 │   ├── config/         # Type-safe env config (Zod)
 │   ├── contracts/      # Zod schemas + TypeScript types
 │   ├── core/           # CMS engine, REST API, plugins
-│   ├── db/             # Drizzle ORM schema (36 tables, dual-DB)
+│   ├── db/             # Drizzle ORM schema (41 tables, dual-DB)
 │   ├── dev/            # Shared configs (Biome, TS, Tailwind)
 │   ├── presentation/   # 50+ UI components (Tailwind v4)
 │   ├── router/         # File-based router with SSR
@@ -396,7 +396,7 @@ The dependency system provides:
 - **CI Integration**: Automatically validates on PRs
 - **Pre-commit Hook**: Checks modified scripts before commit
 
-See [Dependency Management Guide](docs/DEPENDENCY_MANAGEMENT.md) for complete details.
+See [Script Standards](scripts/STANDARDS.md) for complete details.
 
 ## Branch Strategy
 

@@ -6,7 +6,7 @@ import { createLogger } from '@revealui/setup/utils'
 
 const logger = createLogger({ prefix: 'Setup' })
 
-const REQUIRED_NODE_VERSION = '24.12.0'
+const REQUIRED_NODE_VERSION = '24.13.0'
 
 export function validateNodeVersion(): boolean {
   const currentVersion = process.version.slice(1) // Remove 'v' prefix
