@@ -1,6 +1,6 @@
 # RevealUI Monorepo
 
-Full-stack React framework with CMS, auth, DB, UI components, and AI agents.
+Open-source business infrastructure for software companies. Users, content, products, payments, and AI — pre-wired and ready to deploy.
 
 ## Master Plan
 All priorities and sequencing live in `docs/MASTER_PLAN.md`. Check it before starting work.

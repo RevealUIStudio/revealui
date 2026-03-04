@@ -2,7 +2,7 @@
  * Auto-generated Zod schemas from Drizzle
  *
  * DO NOT EDIT - Regenerate with: pnpm generate:all
- * Generated: 2026-03-03T19:09:50.447Z
+ * Generated: 2026-03-04T22:23:13.738Z
  *
  * This file provides Zod schemas for all database tables, generated
  * directly from Drizzle table definitions using drizzle-zod.
@@ -559,6 +559,32 @@ export type NodeIdMappingsRow = z.infer<typeof NodeIdMappingsSelectSchema>
  * TypeScript type for nodeIdMappings insert
  */
 export type NodeIdMappingsInsert = z.infer<typeof NodeIdMappingsInsertSchema>
+
+// =============================================================================
+// OauthAccounts Schemas
+// =============================================================================
+
+/**
+ * Zod schema for selecting oauthAccounts rows from database
+ * Generated from Drizzle table definition: tables.oauthAccounts
+ */
+export const OauthAccountsSelectSchema = createSelectSchema(tables.oauthAccounts)
+
+/**
+ * Zod schema for inserting oauthAccounts rows to database
+ * Generated from Drizzle table definition: tables.oauthAccounts
+ */
+export const OauthAccountsInsertSchema = createInsertSchema(tables.oauthAccounts)
+
+/**
+ * TypeScript type for oauthAccounts row (Select)
+ */
+export type OauthAccountsRow = z.infer<typeof OauthAccountsSelectSchema>
+
+/**
+ * TypeScript type for oauthAccounts insert
+ */
+export type OauthAccountsInsert = z.infer<typeof OauthAccountsInsertSchema>
 
 // =============================================================================
 // PageRevisions Schemas

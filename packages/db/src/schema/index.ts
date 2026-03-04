@@ -39,6 +39,7 @@ import { codeProvenance, codeReviews } from './code-provenance.js'
 import { collabEdits } from './collab-edits.js'
 import { errorEvents } from './error-events.js'
 import { licenses } from './licenses.js'
+import { oauthAccounts } from './oauth-accounts.js'
 import { pageRevisions, pages } from './pages.js'
 import { passwordResetTokens } from './password-reset-tokens.js'
 import { siteCollaborators, sites } from './sites.js'
@@ -62,6 +63,15 @@ export const usersRelations = relations(users, ({ many }) => ({
   conversations: many(conversations),
   apiKeys: many(userApiKeys),
   providerConfigs: many(tenantProviderConfigs),
+  oauthAccounts: many(oauthAccounts),
+}))
+
+// OAuth account relations
+export const oauthAccountsRelations = relations(oauthAccounts, ({ one }) => ({
+  user: one(users, {
+    fields: [oauthAccounts.userId],
+    references: [users.id],
+  }),
 }))
 
 // BYOK API key relations

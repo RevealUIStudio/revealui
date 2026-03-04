@@ -1,0 +1,89 @@
+/**
+ * GitHub OAuth Provider
+ *
+ * Uses native fetch — no additional npm dependencies.
+ * Scopes: read:user user:email
+ *
+ * Note: GitHub may return null email if user has set it private.
+ * In that case we fetch from /user/emails and pick the primary verified one.
+ */
+
+import type { ProviderUser } from '../oauth.js'
+
+export function buildAuthUrl(clientId: string, redirectUri: string, state: string): string {
+  const url = new URL('https://github.com/login/oauth/authorize')
+  url.searchParams.set('client_id', clientId)
+  url.searchParams.set('redirect_uri', redirectUri)
+  url.searchParams.set('scope', 'read:user user:email')
+  url.searchParams.set('state', state)
+  return url.toString()
+}
+
+export async function exchangeCode(code: string, redirectUri: string): Promise<string> {
+  const response = await fetch('https://github.com/login/oauth/access_token', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/x-www-form-urlencoded',
+      Accept: 'application/json',
+    },
+    body: new URLSearchParams({
+      code,
+      client_id: process.env.GITHUB_CLIENT_ID ?? '',
+      client_secret: process.env.GITHUB_CLIENT_SECRET ?? '',
+      redirect_uri: redirectUri,
+    }),
+  })
+
+  if (!response.ok) {
+    throw new Error(`GitHub token exchange failed: ${response.status}`)
+  }
+
+  const data = (await response.json()) as { access_token: string; error?: string }
+  if (data.error) {
+    throw new Error(`GitHub token exchange error: ${data.error}`)
+  }
+  return data.access_token
+}
+
+export async function fetchUser(accessToken: string): Promise<ProviderUser> {
+  const headers = {
+    Authorization: `Bearer ${accessToken}`,
+    Accept: 'application/vnd.github+json',
+  }
+
+  const userResponse = await fetch('https://api.github.com/user', { headers })
+  if (!userResponse.ok) {
+    throw new Error(`GitHub user fetch failed: ${userResponse.status}`)
+  }
+
+  const user = (await userResponse.json()) as {
+    id: number
+    login: string
+    name?: string | null
+    email?: string | null
+    avatar_url?: string
+  }
+
+  let email: string | null = user.email ?? null
+
+  // Fetch emails if not public
+  if (!email) {
+    const emailsResponse = await fetch('https://api.github.com/user/emails', { headers })
+    if (emailsResponse.ok) {
+      const emails = (await emailsResponse.json()) as Array<{
+        email: string
+        primary: boolean
+        verified: boolean
+      }>
+      const primary = emails.find((e) => e.primary && e.verified)
+      email = primary?.email ?? null
+    }
+  }
+
+  return {
+    id: String(user.id),
+    email,
+    name: user.name ?? user.login,
+    avatarUrl: user.avatar_url ?? null,
+  }
+}

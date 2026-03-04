@@ -20,6 +20,15 @@ export {
   SessionError,
   TokenError,
 } from './errors.js'
+export {
+  buildAuthUrl,
+  exchangeCode,
+  fetchProviderUser,
+  generateOAuthState,
+  type ProviderUser,
+  upsertOAuthUser,
+  verifyOAuthState,
+} from './oauth.js'
 export type { PasswordResetResult, PasswordResetToken } from './password-reset.js'
 export {
   generatePasswordResetToken,

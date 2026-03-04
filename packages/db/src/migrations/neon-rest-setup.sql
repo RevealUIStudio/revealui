@@ -335,3 +335,21 @@ COMMENT ON TABLE "conversations" IS 'Conversation storage for agent interactions
 COMMENT ON TABLE "agent_actions" IS 'Agent action tracking for tool execution';
 COMMENT ON TABLE "rate_limits" IS 'Distributed rate limiting storage';
 COMMENT ON TABLE "failed_attempts" IS 'Brute force protection tracking';
+
+-- OAuth accounts table (linked provider identities per user)
+CREATE TABLE IF NOT EXISTS "oauth_accounts" (
+	"id" text PRIMARY KEY NOT NULL,
+	"user_id" text NOT NULL,
+	"provider" text NOT NULL,
+	"provider_user_id" text NOT NULL,
+	"provider_email" text,
+	"provider_name" text,
+	"provider_avatar_url" text,
+	"created_at" timestamp with time zone DEFAULT now() NOT NULL,
+	"updated_at" timestamp with time zone DEFAULT now() NOT NULL,
+	CONSTRAINT "oauth_accounts_user_id_fkey" FOREIGN KEY ("user_id") REFERENCES "users"("id") ON DELETE CASCADE
+);
+
+CREATE UNIQUE INDEX IF NOT EXISTS "oauth_accounts_provider_user_idx" ON "oauth_accounts"("provider", "provider_user_id");
+CREATE INDEX IF NOT EXISTS "oauth_accounts_user_id_idx" ON "oauth_accounts"("user_id");
+COMMENT ON TABLE "oauth_accounts" IS 'OAuth provider account links — maps provider identities to local users';

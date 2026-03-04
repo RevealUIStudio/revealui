@@ -98,6 +98,27 @@ export default function LoginPage() {
               </Link>
             </p>
           </form>
+
+          <div className="relative my-4">
+            <div className="absolute inset-0 flex items-center">
+              <span className="w-full border-t border-border" />
+            </div>
+            <div className="relative flex justify-center text-xs uppercase">
+              <span className="bg-background px-2 text-muted-foreground">Or continue with</span>
+            </div>
+          </div>
+
+          <div className="flex flex-col gap-2">
+            <Button variant="outline" className="w-full" asChild>
+              <a href="/api/auth/github">Sign in with GitHub</a>
+            </Button>
+            <Button variant="outline" className="w-full" asChild>
+              <a href="/api/auth/google">Sign in with Google</a>
+            </Button>
+            <Button variant="outline" className="w-full" asChild>
+              <a href="/api/auth/vercel">Sign in with Vercel</a>
+            </Button>
+          </div>
         </CardContent>
       </Card>
     </AuthLayout>
