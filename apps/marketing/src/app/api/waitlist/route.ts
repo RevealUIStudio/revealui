@@ -40,6 +40,21 @@ async function checkRateLimit(
   return { allowed: total < RATE_LIMIT_MAX, remaining, resetAt }
 }
 
+async function notifyFounder(email: string, source: string): Promise<void> {
+  const apiKey = process.env.RESEND_API_KEY
+  if (!apiKey) return
+  await fetch('https://api.resend.com/emails', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${apiKey}` },
+    body: JSON.stringify({
+      from: 'RevealUI Waitlist <noreply@revealui.com>',
+      to: 'founder@revealui.com',
+      subject: `New waitlist signup: ${email}`,
+      text: `New waitlist signup\n\nEmail: ${email}\nSource: ${source}\nTime: ${new Date().toISOString()}`,
+    }),
+  })
+}
+
 const WaitlistSchema = z.object({
   email: z.string().email('Invalid email address').max(255),
   source: z.string().max(100).optional(),
@@ -126,6 +141,9 @@ export async function POST(request: NextRequest) {
       email: `${email.substring(0, 3)}***`,
       source: source || 'landing-page',
     })
+
+    // Notify founder — fire-and-forget, never blocks the response
+    notifyFounder(email, source || 'landing-page').catch(() => {})
 
     return NextResponse.json(
       {

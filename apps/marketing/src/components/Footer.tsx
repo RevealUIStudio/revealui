@@ -8,8 +8,8 @@ export function Footer() {
           <div className="lg:col-span-2">
             <div className="text-2xl font-bold text-white mb-4">RevealUI</div>
             <p className="text-gray-400 mb-4">
-              The white-label CMS platform built for digital agencies. Deploy professional, scalable
-              solutions with full source code access.
+              The open-source React framework for content-driven products. Ship faster with a native
+              CMS, AI agents, real-time sync, and full source code access.
             </p>
             <div className="flex space-x-4">
               <a
