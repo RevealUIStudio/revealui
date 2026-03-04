@@ -8,8 +8,8 @@ export function Footer() {
           <div className="lg:col-span-2">
             <div className="text-2xl font-bold text-white mb-4">RevealUI</div>
             <p className="text-gray-400 mb-4">
-              The open-source React framework for content-driven products. Ship faster with a native
-              CMS, AI agents, real-time sync, and full source code access.
+              Open-source business infrastructure for software companies. Users, content, products,
+              payments, and AI — pre-wired and ready to deploy.
             </p>
             <div className="flex space-x-4">
               <a
@@ -89,8 +89,8 @@ export function Footer() {
                 </Link>
               </li>
               <li>
-                <Link href="/#careers" className="hover:text-white transition-colors">
-                  Careers
+                <Link href="/sponsor" className="hover:text-white transition-colors">
+                  Sponsor
                 </Link>
               </li>
               <li>
