@@ -18,22 +18,30 @@
 
 ## Introduction
 
-RevealUI is a modern, full-stack React framework that combines:
+RevealUI is open-source business infrastructure for software companies. It ships the five things every software business needs — pre-wired and production-tested:
+
+| Primitive | What RevealUI ships |
+|-----------|-------------------|
+| **Users** | Session auth, bcrypt, RBAC, rate limiting, brute force protection |
+| **Content** | Collections, rich text (Lexical), relationships, media, draft/live, REST API |
+| **Products** | Product catalog, pricing tiers, license keys |
+| **Payments** | Stripe checkout, subscriptions, webhooks, billing portal |
+| **Intelligence** | AI agents, MCP server integrations, BYOK support *(Pro)* |
+
+**Tech stack:**
 
 - ⚡ **React 19** with Server Components and React Compiler
-- 🎨 **Tailwind CSS v4** for styling (10-100x faster builds)
-- 📦 **Native CMS** - A headless CMS built directly into the framework
-- 🔥 **Next.js 16** for server-side rendering
+- 🎨 **Tailwind CSS v4** for styling
 - 🗄️ **NeonDB + Drizzle ORM** for database management
 - 🌐 **Vercel-optimized** for easy deployment
 - 🎯 **TypeScript** throughout for type safety
 
 ### Perfect For
 
-- 🏢 **Agencies** building client websites
-- 🚀 **Startups** needing rapid development
-- 💼 **Enterprises** requiring scalability
-- 👨‍💻 **Developers** wanting modern developer experience
+- 🚀 **Founders** who want to ship a product, not assemble infrastructure
+- 🏢 **Agencies** building client businesses faster
+- 💼 **Enterprises** requiring scalability and auditability
+- 👨‍💻 **Developers** who want the boring parts already solved
 
 ### Current Status
 
@@ -43,9 +51,9 @@ RevealUI is a modern, full-stack React framework that combines:
 
 ## Core Features
 
-### CMS Features
+### Content & Collections
 
-RevealUI includes a powerful headless CMS with:
+RevealUI includes a built-in content system with:
 
 **Collections & Content:**
 - Collections system for content types

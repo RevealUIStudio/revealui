@@ -629,7 +629,7 @@ pnpm db:restore backup.json
 
 ## Related Documentation
 
-- [Database Guide](../database/DATABASE.md) - Complete database setup and migrations
+- [Database Guide](./DATABASE.md) - Schema, architecture, Drizzle ORM queries, dual-DB setup
 - [CI Environment](./CI_ENVIRONMENT.md) - CI/CD environment specifications
 - [Development Overview](./README.md) - Development navigation hub
 - [Master Index](../INDEX.md) - Complete documentation index

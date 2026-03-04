@@ -35,6 +35,7 @@ This is the comprehensive index of all RevealUI Framework documentation, organiz
 | Document | Type | Audience | Description |
 |----------|------|----------|-------------|
 | [Automation Guide](./AUTOMATION.md) | Guide | Agents | Complete automation guide for AI agents and developers (includes agents, automation guides, integrations, cohesion) |
+| [Build Your Business](./BUILD_YOUR_BUSINESS.md) | Tutorial | Users | End-to-end: scaffold → collections → billing → deploy (45 min) |
 | [Developer Quick Start](./QUICK_START.md) | Guide | Developers | 5-minute setup guide |
 | [Master Plan](./MASTER_PLAN.md) | Reference | All | Current phase, priorities, session history — single source of truth |
 | [CI/CD Guide](./CI_CD_GUIDE.md) | Guide | Developers | Complete CI/CD setup (includes monitoring, deployment runbook, rollback procedures, and Docker security) |

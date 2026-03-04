@@ -453,3 +453,5 @@ const temp: { id: string } = getTempData()
 **Last Updated**: 2026-02-04
 **Enforced By**: All code reviews, automated tooling, CI/CD
 **Questions**: See `CONTRIBUTING.md` or ask in #dev-standards
+
+**See also**: [Type System Architecture](./TYPE_SYSTEM.md) — how the auto-generation pipeline works
