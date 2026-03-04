@@ -18,7 +18,8 @@ export function HeroSection() {
           </h1>
           <p className="mx-auto mt-6 max-w-2xl text-lg leading-8 text-gray-600">
             Users, content, products, payments, and AI — everything a software business needs,
-            pre-wired and ready to deploy. Open source. Full source code. Yours entirely.
+            pre-wired and ready to deploy. Start fresh or add what your existing product is missing.
+            Open source. Full source code. Yours entirely.
           </p>
           <div className="mt-10 flex flex-col sm:flex-row items-center justify-center gap-4">
             <a

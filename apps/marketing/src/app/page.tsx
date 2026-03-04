@@ -1,3 +1,4 @@
+import { Audiences } from '@/components/Audiences'
 import { Footer } from '@/components/Footer'
 import { HeroSection } from '@/components/HeroSection'
 import { LeadCapture } from '@/components/LeadCapture'
@@ -9,6 +10,7 @@ export default function Home() {
     <div className="min-h-screen bg-white">
       <HeroSection />
       <ValueProposition />
+      <Audiences />
       <SocialProof />
       <LeadCapture />
       <Footer />
