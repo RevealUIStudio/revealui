@@ -1,50 +1,157 @@
-# `@revealui/core`
+# @revealui/core
 
-The core RevealUI framework package containing types, generated code, and framework functionality.
+The core CMS engine for RevealUI — collections, admin UI, rich text, security, observability, and plugins.
 
-📚 [Docs](https://revealui.com)  
-⚙️  [Source code](https://github.com/RevealUIStudio/revealui/tree/main/packages/core)  
-📦 [npm package](https://npmjs.com/package/@revealui/core)
+## Features
 
-## Package Structure
+- **Collections & CRUD** — Define content types with field hooks, access control, and validation
+- **Admin Dashboard** — Ready-to-use React admin UI (collection browser, document editor, global forms)
+- **Rich Text** — Lexical-based editor with 20+ features (bold, headings, lists, links, images, blocks)
+- **Security** — CORS, CSP, HSTS, RBAC/ABAC policy engine, encryption (AES-256-GCM), audit logging
+- **GDPR Compliance** — Consent management, data export, deletion, anonymization, breach reporting
+- **Observability** — Structured logging, process health monitoring, alert system, graceful shutdown
+- **Plugins** — Extensible plugin system (form builder, nested docs, redirects)
+- **Feature Gating** — Tier-based licensing (free, pro, enterprise) with JWT license keys
+- **Database** — PostgreSQL adapters (NeonDB + PGlite for testing), connection pooling, SSL/TLS
+- **Storage** — Pluggable storage interface (Vercel Blob adapter included)
 
-This package consolidates:
-- **Types**: All RevealUI types (previously `@revealui/types`)
-- **Generated Code**: Auto-generated types, components, hooks, etc. (previously `@revealui/generated`)
-- **Core Framework**: Main framework functionality
+## Installation
 
-## Import Paths
-
-### Types
-
-```typescript
-// Unified types export
-import type { Config, Page, Post } from '@revealui/core/types'
-
-// Specific type categories
-import type { Post } from '@revealui/core/types/cms'
-import type { User } from '@revealui/core/types/schema'
-import type { RevealConfig } from '@revealui/core/types/core'
+```bash
+pnpm add @revealui/core
 ```
 
-### Generated Code
+## Usage
+
+### Configuration
 
 ```typescript
-// Generated components
-import { PostCard } from '@revealui/core/generated/components'
+import { buildConfig } from '@revealui/core/config'
 
-// Generated hooks
-import { usePost } from '@revealui/core/generated/hooks'
-
-// Generated types
-import type { Config } from '@revealui/core/generated/types/cms'
-import type { Database } from '@revealui/core/generated/types/supabase'
+const config = buildConfig({
+  collections: [Posts, Categories, Users],
+  globals: [Settings, Navigation],
+  plugins: [formBuilder(), nestedDocs()],
+})
 ```
 
-## Migration
+### Collections
 
-The former `@revealui/types` and `@revealui/generated` packages were merged into `@revealui/core`. Update imports to use `@revealui/core/types` and `@revealui/core/generated`.
+```typescript
+import type { RevealUICollection } from '@revealui/core'
 
-## Available Exports
+const Posts: RevealUICollection = {
+  slug: 'posts',
+  fields: [
+    { name: 'title', type: 'text', required: true },
+    { name: 'content', type: 'richText' },
+    { name: 'status', type: 'select', options: ['draft', 'published'] },
+  ],
+  hooks: {
+    beforeChange: [({ data }) => ({ ...data, updatedAt: new Date() })],
+  },
+  access: {
+    read: () => true,
+    create: ({ req }) => !!req.user,
+  },
+}
+```
 
-See [package.json](./package.json) for the complete list of export paths.  
+### Server-Side API
+
+```typescript
+import { revealui } from '@revealui/core/server'
+
+// Create, read, update, delete
+const post = await revealui.create({ collection: 'posts', data: { title: 'Hello' } })
+const posts = await revealui.find({ collection: 'posts', where: { status: { equals: 'published' } } })
+```
+
+### Admin UI (React)
+
+```typescript
+import { AdminDashboard } from '@revealui/core/admin'
+
+// Full admin interface with collection browser, document editor, global forms
+function App() {
+  return <AdminDashboard />
+}
+```
+
+### Rich Text
+
+```typescript
+import { RichTextEditor, BoldFeature, HeadingFeature, ListFeature } from '@revealui/core/richtext/client'
+
+<RichTextEditor
+  features={[BoldFeature(), HeadingFeature(), ListFeature()]}
+  onChange={(json) => console.log(json)}
+/>
+```
+
+### Feature Gating
+
+```typescript
+import { isLicensed, isFeatureEnabled } from '@revealui/core/features'
+
+if (isLicensed('pro')) {
+  // Pro-tier feature
+}
+
+if (isFeatureEnabled('ai')) {
+  // AI features enabled
+}
+```
+
+## Exports
+
+| Subpath | Purpose |
+|---------|---------|
+| `@revealui/core` | Main entry (RevealUI instance) |
+| `@revealui/core/server` | Server-side CRUD API |
+| `@revealui/core/client` | Client-side React hooks and utilities |
+| `@revealui/core/config` | Configuration builder |
+| `@revealui/core/admin` | Admin dashboard components |
+| `@revealui/core/richtext` | Rich text server utilities |
+| `@revealui/core/richtext/client` | Lexical editor React components |
+| `@revealui/core/richtext/html` | HTML serialization |
+| `@revealui/core/richtext/rsc` | React Server Component support |
+| `@revealui/core/security` | Security infrastructure |
+| `@revealui/core/auth` | Auth utilities |
+| `@revealui/core/database` | Database adapters |
+| `@revealui/core/storage` | Storage adapters |
+| `@revealui/core/plugins` | Plugin system |
+| `@revealui/core/features` | Feature flags |
+| `@revealui/core/license` | License validation |
+| `@revealui/core/monitoring` | Health monitoring |
+| `@revealui/core/observability/logger` | Structured logging |
+| `@revealui/core/types` | TypeScript type definitions |
+| `@revealui/core/nextjs` | Next.js integration middleware |
+| `@revealui/core/utils/*` | Utilities (cache, deep-clone, errors) |
+
+## Development
+
+```bash
+# Build
+pnpm build
+
+# Type check
+pnpm typecheck
+
+# Run tests
+pnpm test
+
+# Watch mode
+pnpm dev
+```
+
+## Related
+
+- [Contracts Package](../contracts/README.md) — Zod schemas and TypeScript types
+- [DB Package](../db/README.md) — Drizzle ORM schema
+- [Auth Package](../auth/README.md) — Authentication system
+- [Architecture Guide](../../docs/ARCHITECTURE.md)
+
+## License
+
+MIT
