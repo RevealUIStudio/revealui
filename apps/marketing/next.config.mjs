@@ -23,6 +23,20 @@ const nextConfig = {
     '@revealui/db',
     '@revealui/utils',
   ],
+  async redirects() {
+    return [
+      {
+        source: '/docs',
+        destination: 'https://docs.revealui.com',
+        permanent: true,
+      },
+      {
+        source: '/docs/:path*',
+        destination: 'https://docs.revealui.com/:path*',
+        permanent: true,
+      },
+    ]
+  },
   async headers() {
     return [
       {
