@@ -177,3 +177,11 @@ result-*
 .claude/skills/tailwind-4-docs/references/docs/
 .claude/skills/tailwind-4-docs/references/docs-index.tsx
 .claude/skills/tailwind-4-docs/references/docs-source.txt
+
+# Internal business documents (kept in revealui-jv)
+business/
+docs/MASTER_PLAN.md
+docs/PRICE_COLLECTION.md
+docs/PRODUCT_COLLECTION.md
+docs/launch-announcement.md
+docs/SECRETS-MANAGEMENT.md
