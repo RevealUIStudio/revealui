@@ -1,4 +1,7 @@
 #!/bin/bash
+# Scan for hardcoded secrets before committing
+pnpm secrets:scan
+
 # Run lint-staged for formatting checks
 pnpm lint-staged
 

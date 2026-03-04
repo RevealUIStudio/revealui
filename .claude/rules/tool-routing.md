@@ -21,6 +21,6 @@ Professional and personal work use **separate Claude Code instances** with separ
 
 ## Personal Projects (Windows ONLY)
 
-For personal projects (`C:\Users\joshu\projects\portfolio`, etc.):
+For personal projects (Windows `%USERPROFILE%\projects\`, etc.):
 - Claude Code (Windows PowerShell/Git Bash) is the primary tool
 - Windows Claude Code does NOT touch RevealUI files

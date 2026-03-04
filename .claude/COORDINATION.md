@@ -27,4 +27,4 @@ _(empty — add your active files here while working)_
 | `RevealUIStudio/revealui-jv` | Private | Full pre-cleanup history, business/, internal docs |
 
 ## Naming Convention
-Internal/private versions use `{project}-{initials}` suffix (e.g., `revealui-jv` for Joshua Vaughn).
+Internal/private versions use `{project}-{initials}` suffix (e.g., `revealui-jv` for the founder's initials).
