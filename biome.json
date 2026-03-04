@@ -32,7 +32,8 @@
       "!apps/docs/public/docs/reference",
       "!playwright-report",
       "!test-results",
-      "!e2e/.auth"
+      "!e2e/.auth",
+      "!apps/mainframe/public/assets"
     ],
     "ignoreUnknown": true
   },
