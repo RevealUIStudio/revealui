@@ -56,7 +56,7 @@ RevealUI is a modular monorepo. Use what you need:
 | [`@revealui/router`](packages/router) | Lightweight file-based router |
 | [`@revealui/config`](packages/config) | Configuration management |
 | [`@revealui/utils`](packages/utils) | Logger, database helpers, validation |
-| [`@revealui/cli`](packages/cli) | Project scaffolding tool (not yet published to npm) |
+| [`@revealui/cli`](packages/cli) | Project scaffolding tool (`create-revealui`) |
 | [`@revealui/setup`](packages/setup) | Environment setup utilities |
 | [`@revealui/sync`](packages/sync) | ElectricSQL real-time sync |
 

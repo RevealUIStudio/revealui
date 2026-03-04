@@ -11,7 +11,7 @@ Create the following structure at `packages/<name>/`:
    - exports, main, types pointing to `dist/`
    - scripts: build, dev, lint, test, typecheck
    - publishConfig.access: `public` (or `"private": true` for Pro packages)
-   - engines.node: `>=24.12.0`
+   - engines.node: `>=24.13.0`
 
 2. `tsconfig.json` extending `@revealui/dev/tsconfig`
 

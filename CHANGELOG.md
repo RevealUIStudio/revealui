@@ -9,9 +9,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Breaking Changes
 
-- **Node.js Requirement**: Now requires Node.js 24.12.0+ (previously 18.20.2+ or 20.9.0+)
+- **Node.js Requirement**: Now requires Node.js 24.13.0+ (previously 18.20.2+ or 20.9.0+)
   - Update your Node.js version before upgrading
-  - Verify with: `node --version` (should be v24.12.0 or higher)
+  - Verify with: `node --version` (should be v24.13.0 or higher)
 
 - **ESM Only**: All CommonJS (`require`/`module.exports`) removed — codebase is now ESM-only
   - All imports must use ESM syntax: `import` instead of `require()`

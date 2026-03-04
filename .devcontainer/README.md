@@ -8,7 +8,7 @@ This directory contains the Dev Container configuration for RevealUI, enabling d
 - ✅ Are on **Windows or Mac** (Docker works everywhere)
 - ✅ Use **GitHub Codespaces** (native support)
 - ✅ Prefer **VS Code** as your primary editor
-- ✅ Need **Node.js 24.12.0 exactly** (matches CI)
+- ✅ Need **Node.js 24.13.0 exactly** (matches CI)
 - ✅ Want a **familiar Docker-based** workflow
 - ✅ Work on a **team with mixed operating systems**
 
@@ -24,7 +24,7 @@ This directory contains the Dev Container configuration for RevealUI, enabling d
 
 **✅ Perfect for this project because:**
 - Works on **all platforms** (Windows, Mac, Linux)
-- **Exact Node.js 24.12.0** (matches CI environment)
+- **Exact Node.js 24.13.0** (matches CI environment)
 - **Native VS Code integration** (seamless experience)
 - **GitHub Codespaces ready** (cloud development)
 - **Service orchestration** (PostgreSQL, ElectricSQL, etc.)
@@ -59,7 +59,7 @@ This directory contains the Dev Container configuration for RevealUI, enabling d
 ## What's Included
 
 ### Tools & Runtimes
-- **Node.js 24.12.0** - Latest LTS with modern features
+- **Node.js 24.13.0** - Latest LTS with modern features
 - **pnpm 10.28.2** - Fast, disk-efficient package manager
 - **PostgreSQL 16 with pgvector** - Database with vector search
 - **Electric SQL** - Real-time sync service
@@ -186,7 +186,7 @@ pnpm db:studio    # Open Prisma Studio
 Services:
 ┌─────────────────────────────────────┐
 │ app (Dev Container)                 │
-│ - Node.js 24.12.0                   │
+│ - Node.js 24.13.0                   │
 │ - pnpm 10.28.2                      │
 │ - VS Code extensions                │
 │ - Your workspace mounted            │

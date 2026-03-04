@@ -104,13 +104,12 @@ import type { Post } from '@revealui/core/types/cms'
 import { PostCard } from '@revealui/core/generated/components'
 ```
 
-**Note**: If you're migrating from older versions, see the [Package Merge Migration Guide](../../docs/migrations/PACKAGE_MERGE_MIGRATION_GUIDE.md).
+**Note**: The former `@revealui/types` and `@revealui/generated` packages were merged into `@revealui/core`. Use `@revealui/core/types` and `@revealui/core/generated` for imports.
 
 ## Learn More
 
-- [RevealUI Documentation](https://revealui.com/docs)
-- [RevealUI CMS Guide](https://revealui.com/docs/cms)
-- [Package Merge Migration Guide](../../docs/migrations/PACKAGE_MERGE_MIGRATION_GUIDE.md)
+- [RevealUI Documentation](https://docs.revealui.com)
+- [RevealUI CMS Guide](https://docs.revealui.com)
 - [Next.js Documentation](https://nextjs.org/docs)
 - [Tailwind CSS](https://tailwindcss.com/docs)
 
@@ -118,7 +117,7 @@ import { PostCard } from '@revealui/core/generated/components'
 
 - [GitHub Issues](https://github.com/RevealUIStudio/revealui/issues)
 - [Discord Community](https://discord.gg/revealui)
-- [Documentation](https://revealui.com/docs)
+- [Documentation](https://docs.revealui.com)
 
 ---
 

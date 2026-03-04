@@ -2,27 +2,39 @@
 
 This document describes the conventions for organizing packages in the RevealUI monorepo.
 
-**Current Package Count**: 11 packages (as of 2025-01-27)
-
-> **Note**: The `@revealui/types` and `@revealui/generated` packages were merged into `@revealui/core` on 2025-01-27. See the [Package Merge Migration Guide](../../docs/migrations/PACKAGE_MERGE_MIGRATION_GUIDE.md) for details.
+**Current Package Count**: 18 packages (as of 2026-03-03)
 
 ## Current Packages
 
-The monorepo currently contains 11 packages:
+The monorepo currently contains 18 packages (13 OSS + 5 Pro):
+
+### OSS Packages (MIT)
 
 | Package | Purpose | Structure |
 |---------|---------|-----------|
 | `@revealui/core` | CMS framework | `core/` + `client/` + `types/` + `generated/` |
-| `@revealui/db` | Database (Drizzle ORM) | `core/` + `client/` |
-| `@revealui/ai` | AI system | `memory/` + `client/` |
 | `@revealui/contracts` | Zod schemas & types | Domain-organized |
-| `@revealui/presentation` | UI components | `client/` |
-| `services` | External services | `core/` + `client/` |
-| `auth` | Authentication | Server + React hooks |
-| `sync` | ElectricSQL client | Client-side |
-| `config` | Environment config | Single module |
-| `dev` | Dev tooling | Tooling-only |
-| `test` | Test utilities | Test-only |
+| `@revealui/db` | Database (Drizzle ORM, 41 tables) | `core/` + `client/` |
+| `@revealui/auth` | Authentication | Server + React hooks |
+| `@revealui/presentation` | UI components (43+ components) | `client/` |
+| `@revealui/router` | File-based router with SSR | Server + client |
+| `@revealui/config` | Type-safe env config (Zod) | Single module |
+| `@revealui/utils` | Logger, DB helpers, validation | Utility module |
+| `@revealui/cli` | `create-revealui` scaffolding | CLI tool |
+| `@revealui/setup` | Environment setup utilities | Scripts |
+| `@revealui/sync` | ElectricSQL real-time sync | Client-side |
+| `@revealui/dev` | Shared configs (Biome, TS, Tailwind) | Tooling-only |
+| `@revealui/test` | E2E specs, fixtures, mocks | Test-only |
+
+### Pro Packages (Commercial)
+
+| Package | Purpose | Structure |
+|---------|---------|-----------|
+| `@revealui/ai` | AI agents, CRDT memory, LLM providers | `memory/` + `client/` |
+| `@revealui/mcp` | MCP servers (Stripe, Supabase, Neon, etc.) | Server configs |
+| `@revealui/editors` | Editor daemon (Zed, VS Code, Neovim) | Adapters |
+| `@revealui/services` | Stripe + Supabase integrations | `core/` + `client/` |
+| `@revealui/harnesses` | AI harness adapters, daemon, coordination | Multi-module |
 
 ---
 
@@ -37,16 +49,14 @@ packages/package-name/src/
 └── index.ts       # Main entry point (re-exports from core and client)
 ```
 
-## Package Merge (2025-01-27)
+## Package Merge History (2025-01-27)
 
-On 2025-01-27, two packages were merged into `@revealui/core` to simplify the framework structure:
+Two packages were merged into `@revealui/core` early in development:
 
 - **`@revealui/types`** → Merged into `@revealui/core/types`
 - **`@revealui/generated`** → Merged into `@revealui/core/generated`
 
-This reduced the package count from 13 to 11 packages. All types and generated code are now available through `@revealui/core` exports.
-
-**Migration**: If you're using the old packages, see the [Package Merge Migration Guide](../../docs/migrations/PACKAGE_MERGE_MIGRATION_GUIDE.md) for import path updates.
+All types and generated code are available through `@revealui/core` exports.
 
 ---
 
@@ -70,10 +80,10 @@ These packages provide both server-side and client-side functionality:
   - `memory/` - CRDT implementations, memory management, vector search
   - `client/` - React hooks for AI operations
   
-- **services** - Shared service integrations (library only)
+- **@revealui/services** - Shared service integrations (library only)
   - `core/` - Server-side API routes, Stripe, Supabase server client
   - `client/` - Browser client creation functions
-  - Note: This is a library package, not a runnable app. Demo files have been removed.
+  - Note: This is a library package, not a runnable app.
 
 ### 2. Client-Only Packages
 
@@ -87,7 +97,7 @@ These packages are primarily client-side but follow similar organization:
 
 These packages provide only type definitions and validation schemas:
 
-- **@revealui/schema** - Zod schemas and TypeScript types
+- **@revealui/contracts** - Zod schemas and TypeScript types
   - No `core/` or `client/` - schema-only package
   - Exports organized by domain (core, blocks, agents, cms)
 
@@ -144,14 +154,14 @@ The `@revealui/core` package includes additional exports for types and generated
 ```typescript
 import { getClient } from '@revealui/db/schema'
 import { createRevealUI } from '@revealui/core'
-import { createServerClient } from 'services/server'
+import { createServerClient } from '@revealui/services/server'
 ```
 
 ### Client-side (React Components, Browser)
 ```typescript
 import { useRevealUI } from '@revealui/core/client'
 import { useMemory } from '@revealui/ai/client'
-import { createBrowserClient } from 'services/client'
+import { createBrowserClient } from '@revealui/services/client'
 ```
 
 ### Full Package (when both server and client needed)
@@ -182,7 +192,7 @@ import { GeneratedComponent } from '@revealui/core/generated/components'
 import { useGeneratedHook } from '@revealui/core/generated/hooks'
 ```
 
-> **Migration Note**: If you're migrating from `@revealui/types` or `@revealui/generated`, see the [Package Merge Migration Guide](../../docs/migrations/PACKAGE_MERGE_MIGRATION_GUIDE.md) for detailed migration instructions.
+> **Migration Note**: The former `@revealui/types` and `@revealui/generated` packages were merged into `@revealui/core`. Update imports to use `@revealui/core/types` and `@revealui/core/generated`.
 
 ## Benefits of This Convention
 
@@ -206,7 +216,7 @@ To verify package exports are working correctly:
    ```bash
    pnpm --filter @revealui/db test imports
    pnpm --filter @revealui/ai test imports
-   pnpm --filter services test imports
+   pnpm --filter @revealui/services test imports
    ```
 
 3. **Full monorepo verification:**

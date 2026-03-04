@@ -199,21 +199,20 @@ import type { Project } from '@revealui/core/types/cms'
 import { ProjectCard } from '@revealui/core/generated/components'
 ```
 
-**Note**: If you're migrating from older versions, see the [Package Merge Migration Guide](../../docs/migrations/PACKAGE_MERGE_MIGRATION_GUIDE.md).
+**Note**: The former `@revealui/types` and `@revealui/generated` packages were merged into `@revealui/core`. Use `@revealui/core/types` and `@revealui/core/generated` for imports.
 
 ## Learn More
 
-- [RevealUI Documentation](https://revealui.com/docs)
+- [RevealUI Documentation](https://docs.revealui.com)
 - [Next.js Portfolio Guide](https://nextjs.org/docs)
-- [RevealUI CMS Content](https://revealui.com/docs/content)
-- [Package Merge Migration Guide](../../docs/migrations/PACKAGE_MERGE_MIGRATION_GUIDE.md)
+- [RevealUI CMS Content](https://docs.revealui.com)
 - [Tailwind CSS](https://tailwindcss.com/docs)
 
 ## Support
 
 - [GitHub Issues](https://github.com/RevealUIStudio/revealui/issues)
 - [Discord Community](https://discord.gg/revealui)
-- [Documentation](https://revealui.com/docs)
+- [Documentation](https://docs.revealui.com)
 
 ---
 

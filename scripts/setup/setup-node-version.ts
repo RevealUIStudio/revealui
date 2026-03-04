@@ -37,7 +37,7 @@ async function setupNodeVersion() {
 
     // Check required version from package.json
     const packageJson = require(`${projectRoot}/package.json`)
-    const requiredVersion = packageJson.engines?.node || '>=24.12.0'
+    const requiredVersion = packageJson.engines?.node || '>=24.13.0'
     logger.info(`Required Node version: ${requiredVersion}`)
 
     // Check if nvm is available
@@ -61,7 +61,7 @@ async function setupNodeVersion() {
           logger.success(`Switched to Node ${newVersion}`)
         } catch (_error) {
           logger.warn(`Could not switch to Node ${nvmrcVersion} using nvm`)
-          logger.warn('Make sure the version is installed: nvm install 24.12.0')
+          logger.warn('Make sure the version is installed: nvm install 24.13.0')
         }
       } else {
         logger.warn('No .nvmrc file found')
@@ -76,13 +76,13 @@ async function setupNodeVersion() {
     if (versionMatch) {
       const [major, minor, patch] = versionMatch.slice(1).map(Number)
       const current = major * 10000 + minor * 100 + patch
-      const required = 24 * 10000 + 12 * 100 + 0 // 24.12.0
+      const required = 24 * 10000 + 13 * 100 + 0 // 24.13.0
 
       if (current >= required) {
         logger.success(`✅ Node version ${currentVersion} meets requirements`)
       } else {
         logger.error(`❌ Node version ${currentVersion} is too old`)
-        logger.error(`Required: Node.js >=24.12.0`)
+        logger.error(`Required: Node.js >=24.13.0`)
         logger.error('Please upgrade Node.js or use nvm to switch versions')
         process.exit(ErrorCode.CONFIG_ERROR)
       }
