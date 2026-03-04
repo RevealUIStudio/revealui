@@ -17,20 +17,20 @@ Complete API reference for all RevealUI packages.
 
 | Package | Description | Reference |
 |---------|-------------|-----------|
-| `@revealui/presentation` | 50+ native UI components (zero external deps) | [→ presentation](/api/presentation) |
-| `@revealui/router` | Lightweight file-based router with SSR | [→ router](/api/router) |
+| `@revealui/presentation` | 50+ native UI components (zero external deps) | [→ presentation](/reference/presentation) |
+| `@revealui/router` | Lightweight file-based router with SSR | [→ router](/reference/router) |
 
 ### Infrastructure
 
 | Package | Description | Reference |
 |---------|-------------|-----------|
-| `@revealui/config` | Type-safe env config with Zod + lazy Proxy | [→ config](/api/config) |
-| `@revealui/utils` | Logger, DB helpers, validation utilities | [→ utils](/api/utils) |
-| `@revealui/cli` | `create-revealui` scaffolding tool | [→ cli](/api/cli) |
-| `@revealui/setup` | Environment setup utilities | [→ setup](/api/setup) |
-| `@revealui/sync` | ElectricSQL real-time sync | [→ sync](/api/sync) |
-| `@revealui/dev` | Shared configs (Biome, TypeScript, Tailwind) | [→ dev](/api/dev) |
-| `@revealui/test` | Playwright E2E specs, Vitest fixtures, mocks | [→ test](/api/test) |
+| `@revealui/config` | Type-safe env config with Zod + lazy Proxy | [→ config](/reference/config) |
+| `@revealui/utils` | Logger, DB helpers, validation utilities | [→ utils](/reference/utils) |
+| `@revealui/cli` | `create-revealui` scaffolding tool | [→ cli](/reference/cli) |
+| `@revealui/setup` | Environment setup utilities | — |
+| `@revealui/sync` | ElectricSQL real-time sync | — |
+| `@revealui/dev` | Shared configs (Biome, TypeScript, Tailwind) | — |
+| `@revealui/test` | Playwright E2E specs, Vitest fixtures, mocks | — |
 
 ## Pro Packages
 
