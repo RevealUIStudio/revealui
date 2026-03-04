@@ -4,7 +4,7 @@ The core RevealUI framework package containing types, generated code, and framew
 
 📚 [Docs](https://revealui.com)  
 ⚙️  [Source code](https://github.com/RevealUIStudio/revealui/tree/main/packages/core)  
-📦 [npm package](https://npmjs.com/package/revealui)
+📦 [npm package](https://npmjs.com/package/@revealui/core)
 
 ## Package Structure
 

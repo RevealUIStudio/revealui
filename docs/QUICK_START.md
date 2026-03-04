@@ -1,17 +1,13 @@
 # Quick Start Guide
 
-> **⚠️ IMPORTANT:** RevealUI is NOT production ready. This is for development and exploration only.
-> Current Status: C+ (6.5/10) | Estimated 6-8 weeks to production readiness
-> See [Project Status](PROJECT_STATUS.md) for details.
-
-Get RevealUI Framework up and running in 5 minutes for development and testing.
+Get RevealUI Framework up and running in 5 minutes.
 
 ## Prerequisites
 
 Before you begin, ensure you have:
 
 - **Node.js** 24.13.0+ installed
-- **pnpm** 9.14.2+ installed ([Install pnpm](https://pnpm.io/installation))
+- **pnpm** 10+ installed ([Install pnpm](https://pnpm.io/installation))
 - Accounts for:
   - [NeonDB](https://neon.tech) (for database)
   - [Vercel](https://vercel.com) (for storage and deployment)
@@ -21,8 +17,8 @@ Before you begin, ensure you have:
 
 ```bash
 # Clone the repository
-git clone https://github.com/RevealUIStudio/reveal.git
-cd reveal
+git clone https://github.com/RevealUIStudio/revealui.git
+cd revealui
 
 # Install dependencies
 pnpm install
@@ -76,12 +72,12 @@ node -e "console.log(require('crypto').randomBytes(32).toString('hex'))"
 ## Step 3: Start Development Server (1 minute)
 
 ```bash
-# Start all services (CMS + Web)
+# Start all services
 pnpm dev
 
 # Or start individually:
-# pnpm start:cms  # CMS on http://localhost:4000
-# pnpm start:web  # Web on http://localhost:3000
+# pnpm dev:cms  # CMS on http://localhost:4000
+# pnpm dev:api  # API on http://localhost:3004
 ```
 
 ## Step 4: Create Your First Admin User

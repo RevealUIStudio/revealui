@@ -48,7 +48,7 @@ Options:
 my-project/
 ├── apps/
 │   ├── cms/              # CMS application
-│   └── web/              # Frontend application
+│   └── mainframe/        # Frontend application
 ├── packages/
 │   └── ...               # Shared packages
 ├── .devcontainer/        # Dev Container configuration

@@ -566,7 +566,7 @@ Or add path exemption to `.revealui/code-standards.json`.
 - [Code Standards](../STANDARDS.md) - Overall coding standards
 - [MCP Guide](../MCP.md) - MCP server configuration
 - [Git Hooks](../../scripts/git-hooks/README.md) - Git hooks documentation
-- [Project Status](../PROJECT_STATUS.md) - Current technical debt metrics
+- [Master Plan](../MASTER_PLAN.md) - Current project status and roadmap
 
 ---
 

@@ -1280,7 +1280,6 @@ When ready to scale horizontally, migrate in-memory stores:
 
 - [CSRF Protection](../security/CSRF_PROTECTION.md) - CSRF protection strategy
 - [Security Testing](../testing/PENETRATION_TESTING_GUIDE.md) - Security testing guide
-- [Project Status](../PROJECT_STATUS.md) - Overall project status
 - [Database Setup](../DATABASE_SETUP.md) - Database configuration and setup
 
 ---

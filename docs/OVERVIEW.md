@@ -37,11 +37,7 @@ RevealUI is a modern, full-stack React framework that combines:
 
 ### Current Status
 
-**Status**: 🔴 **Active Development - NOT Production Ready**
-
-Before using in production, please review:
-- [Project Status](./PROJECT_STATUS.md) - Current project state
-- [Project Roadmap](./PROJECT_ROADMAP.md) - Development roadmap
+**Status**: 🟢 **Production Ready** — live at [cms.revealui.com](https://cms.revealui.com) and [api.revealui.com](https://api.revealui.com)
 
 ---
 
@@ -132,17 +128,20 @@ RevealUI uses a modern monorepo architecture with clear separation of concerns:
 ```
 revealui/
 ├── apps/
-│   ├── cms/           # CMS application (Next.js 16)
-│   ├── dashboard/     # Admin dashboard
-│   └── landing/       # Marketing site
+│   ├── api/           # REST API (Hono)
+│   ├── cms/           # Headless CMS (Next.js 16)
+│   ├── docs/          # Documentation site (Vite/React)
+│   ├── mainframe/     # Demo/showcase app (Hono SSR)
+│   ├── marketing/     # Marketing + waitlist (Next.js)
+│   └── studio/        # Desktop companion (Tauri 2)
 ├── packages/
 │   ├── core/          # Core CMS engine
 │   ├── db/            # Database adapters
 │   ├── contracts/     # Type contracts & validation
 │   ├── auth/          # Authentication
-│   ├── ai/            # AI integrations
-│   └── [12+ more]     # Additional packages
-└── infrastructure/    # Deployment configs
+│   ├── ai/            # AI integrations (Pro)
+│   └── [9+ more]      # Additional packages
+└── scripts/           # CLI tools, automation, CI gates
 ```
 
 ### Key Architectural Patterns
@@ -255,7 +254,6 @@ RevealUI supports multiple development environments:
 ### Reference
 
 - **[INDEX.md](./INDEX.md)** - Master documentation index
-- **[PROJECT_STATUS.md](./PROJECT_STATUS.md)** - Current project state
 - **[ENVIRONMENT_VARIABLES_GUIDE.md](./ENVIRONMENT_VARIABLES_GUIDE.md)** - Configuration reference
 - **[COMPONENT_CATALOG.md](./COMPONENT_CATALOG.md)** - Component reference
 

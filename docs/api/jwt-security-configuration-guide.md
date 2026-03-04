@@ -9,7 +9,7 @@
 
 ## Overview
 
-This guide addresses the critical JWT security issues identified in the [Production Readiness Assessment](../PRODUCTION_READINESS.md). Before deploying RevealUI to production, you **must** configure JWT security properly to achieve a production-ready security posture.
+Before deploying RevealUI to production, you **must** configure JWT security properly to achieve a production-ready security posture.
 
 ### Critical Issues This Guide Resolves
 
@@ -251,7 +251,6 @@ openssl rand -base64 64
 
 ## Related Documentation
 
-- [Production Readiness](../PRODUCTION_READINESS.md) - Overall production status
 - [Security Audit Summary](../testing/SECURITY_AUDIT_SUMMARY.md) - Complete security findings
 - [Authentication Guide](../AUTH.md) - General authentication concepts
 - [Environment Variables Guide](../ENVIRONMENT_VARIABLES_GUIDE.md) - All environment configuration

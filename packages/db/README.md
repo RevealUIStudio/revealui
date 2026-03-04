@@ -1,9 +1,5 @@
 # @revealui/db
 
-**Status:** 🟡 Active Development | ⚠️ NOT Production Ready
-
-See [Project Status](../../docs/PROJECT_STATUS.md) for framework readiness.
-
 Database schemas and Drizzle ORM integration for RevealUI.
 
 > **Test Coverage:** ~60% (best coverage in project, but still needs improvement)
