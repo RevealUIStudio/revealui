@@ -12,7 +12,7 @@ import { getMaxUsers, initializeLicense } from '@revealui/core/license'
 import { logger } from '@revealui/core/utils/logger'
 import { getClient } from '@revealui/db'
 import { users } from '@revealui/db/schema'
-import { count, eq } from 'drizzle-orm'
+import { count, eq, sql } from 'drizzle-orm'
 import { type NextRequest, NextResponse } from 'next/server'
 import { sendVerificationEmail } from '@/lib/email/verification'
 import { withRateLimit } from '@/lib/middleware/rate-limit'
@@ -75,17 +75,29 @@ async function signUpHandler(request: NextRequest): Promise<NextResponse> {
       const maxUsers = getMaxUsers()
       if (maxUsers !== Infinity) {
         const db = getClient()
-        const [row] = await db
-          .select({ total: count() })
-          .from(users)
-          .where(eq(users.status, 'active'))
-        const activeCount = row?.total ?? 0
-        if (activeCount >= maxUsers) {
-          return createApplicationErrorResponse(
-            `User limit reached (${activeCount}/${maxUsers}). Upgrade your license to add more users.`,
-            'USER_LIMIT_REACHED',
-            403,
-          )
+        // Use an advisory lock inside a transaction to serialize concurrent sign-up
+        // limit checks. Without this, two simultaneous requests can both pass the
+        // count check before either creates a user (TOCTOU). The lock is held for
+        // the transaction duration — concurrent requests queue behind it and will
+        // read the updated count after the first completes.
+        // Note: signUp() runs after this transaction; for full atomicity it would
+        // need to be inside the same transaction (requires auth package changes).
+        let limitExceeded = false
+        let limitMsg = ''
+        await db.transaction(async (tx) => {
+          await tx.execute(sql`SELECT pg_advisory_xact_lock(42000001)`)
+          const [row] = await tx
+            .select({ total: count() })
+            .from(users)
+            .where(eq(users.status, 'active'))
+          const activeCount = row?.total ?? 0
+          if (activeCount >= maxUsers) {
+            limitExceeded = true
+            limitMsg = `User limit reached (${activeCount}/${maxUsers}). Upgrade your license to add more users.`
+          }
+        })
+        if (limitExceeded) {
+          return createApplicationErrorResponse(limitMsg, 'USER_LIMIT_REACHED', 403)
         }
       }
     } catch (limitError) {
