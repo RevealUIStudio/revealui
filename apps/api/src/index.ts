@@ -190,8 +190,8 @@ app.doc('/openapi.json', {
   },
   servers: [
     {
-      url: 'http://localhost:3004',
-      description: 'Development server',
+      url: process.env.NEXT_PUBLIC_API_URL ?? process.env.API_URL ?? 'http://localhost:3004',
+      description: process.env.NODE_ENV === 'production' ? 'Production' : 'Development server',
     },
   ],
 })
