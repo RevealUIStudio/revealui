@@ -1,21 +1,11 @@
 'use client'
-import { useChat } from '@ai-sdk/react'
 import type React from 'react'
-import { useEffect, useState } from 'react'
+import { useCallback, useRef, useState } from 'react'
 
 interface ChatMessage {
   id: string
   role: 'user' | 'assistant' | 'system'
   content: string
-}
-
-interface UseChatReturn {
-  messages: ChatMessage[]
-  input: string
-  handleInputChange: (event: React.ChangeEvent<HTMLTextAreaElement>) => void
-  handleSubmit: (event: React.FormEvent<HTMLFormElement>) => void
-  isLoading: boolean
-  error: Error | null
 }
 
 // Web Speech API type definitions (custom types to avoid conflicts)
@@ -56,17 +46,59 @@ interface CustomSpeechRecognitionInstance extends EventTarget {
 
 type CustomSpeechRecognition = new () => CustomSpeechRecognitionInstance
 
-const ChatGPTAssistant: React.FC = () => {
-  const { messages, input, handleInputChange, handleSubmit, isLoading, error } = useChat({
-    api: '/api/chat',
-  } as never) as unknown as UseChatReturn
+let messageCounter = 0
+function nextId() {
+  return `msg-${++messageCounter}`
+}
 
-  const [transcript, setTranscript] = useState<string>('')
+const ChatGPTAssistant: React.FC = () => {
+  const [messages, setMessages] = useState<ChatMessage[]>([])
+  const [input, setInput] = useState('')
+  const [isLoading, setIsLoading] = useState(false)
+  const [error, setError] = useState<Error | null>(null)
   const [isListening, setIsListening] = useState(false)
+  const transcriptRef = useRef('')
+
+  const handleSubmit = useCallback(
+    async (e: React.FormEvent<HTMLFormElement>) => {
+      e.preventDefault()
+      const content = input.trim()
+      if (!content || isLoading) return
+
+      const userMessage: ChatMessage = { id: nextId(), role: 'user', content }
+      const nextMessages = [...messages, userMessage]
+      setMessages(nextMessages)
+      setInput('')
+      setIsLoading(true)
+      setError(null)
+
+      try {
+        const res = await fetch('/api/chat', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            messages: nextMessages.map(({ role, content: c }) => ({ role, content: c })),
+          }),
+        })
+
+        if (!res.ok) {
+          const text = await res.text()
+          throw new Error(`Chat request failed: ${res.status} ${text}`)
+        }
+
+        const data = (await res.json()) as { content: string }
+        setMessages((prev) => [...prev, { id: nextId(), role: 'assistant', content: data.content }])
+      } catch (err) {
+        setError(err instanceof Error ? err : new Error(String(err)))
+      } finally {
+        setIsLoading(false)
+      }
+    },
+    [input, isLoading, messages],
+  )
 
   const handleVoiceStart = () => {
     if ('webkitSpeechRecognition' in window || 'SpeechRecognition' in window) {
-      // SpeechRecognition API not fully typed in TypeScript, accessing via window with proper interface
       type WindowWithSpeechRecognition = Window & {
         // biome-ignore lint/style/useNamingConvention: SpeechRecognition matches the Web Speech API browser property name
         SpeechRecognition?: CustomSpeechRecognition
@@ -84,13 +116,16 @@ const ChatGPTAssistant: React.FC = () => {
         const current = event.resultIndex
         const result = event.results[current]
         if (result?.[0]) {
-          const transcriptText = result[0].transcript
-          setTranscript(transcriptText)
+          transcriptRef.current = result[0].transcript
         }
       }
 
       recognition.onend = () => {
         setIsListening(false)
+        if (transcriptRef.current) {
+          setInput(transcriptRef.current)
+          transcriptRef.current = ''
+        }
       }
 
       recognition.start()
@@ -100,63 +135,37 @@ const ChatGPTAssistant: React.FC = () => {
 
   const handleVoiceStop = () => {
     if (isListening) {
-      // Stop recognition will be handled by onend event
       setIsListening(false)
-      if (transcript) {
-        // Set the transcript as input
-        handleInputChange({
-          target: { value: transcript },
-        } as React.ChangeEvent<HTMLTextAreaElement>)
-        setTranscript('')
-      }
     }
   }
 
-  useEffect(() => {
-    const scanCodebase = async () => {
-      try {
-        const response = await fetch('/api/scan-codebase')
-        const data: { summary: string } = await response.json()
-        // Send initial message with codebase summary
-        handleInputChange({
-          target: { value: `Codebase scanned: \n${data.summary}` },
-        } as React.ChangeEvent<HTMLTextAreaElement>)
-      } catch (_error) {
-        // Error scanning codebase - silently fail
-        // Component will still work without initial scan
-      }
-    }
-
-    scanCodebase()
-  }, [handleInputChange])
-
   return (
-    <div className="flex flex-col h-96 border border-gray-300 rounded-lg p-4 bg-white dark:bg-black shadow-md">
-      <div className="flex-1 overflow-y-auto space-y-4 p-2 border-b border-gray-200">
+    <div className="flex h-96 flex-col rounded-lg border border-gray-300 bg-white p-4 shadow-md dark:bg-black">
+      <div className="flex-1 space-y-4 overflow-y-auto border-b border-gray-200 p-2">
         {messages.length === 0 && (
-          <div className="text-gray-500 text-center py-4">
+          <div className="py-4 text-center text-gray-500">
             Start a conversation by typing a message below
           </div>
         )}
         {messages.map((msg: ChatMessage) => (
           <div
             key={msg.id}
-            className={`p-2 rounded-md text-white ${
+            className={`rounded-md p-2 text-white ${
               msg.role === 'user'
-                ? 'bg-blue-500 text-right self-end ml-auto max-w-[80%]'
-                : 'bg-gray-600 text-left self-start max-w-[80%]'
+                ? 'ml-auto max-w-[80%] self-end bg-blue-500 text-right'
+                : 'max-w-[80%] self-start bg-gray-600 text-left'
             }`}
           >
             {msg.content}
           </div>
         ))}
         {isLoading && (
-          <div className="p-2 rounded-md bg-gray-600 text-white text-left self-start max-w-[80%]">
+          <div className="max-w-[80%] self-start rounded-md bg-gray-600 p-2 text-left text-white">
             Thinking...
           </div>
         )}
         {error && (
-          <div className="p-2 rounded-md bg-red-500 text-white text-left self-start max-w-[80%]">
+          <div className="max-w-[80%] self-start rounded-md bg-red-500 p-2 text-left text-white">
             Error: {error.message}
           </div>
         )}
@@ -164,9 +173,9 @@ const ChatGPTAssistant: React.FC = () => {
 
       <form onSubmit={handleSubmit} className="mt-4 flex flex-col space-y-2 bg-white dark:bg-black">
         <textarea
-          className="w-full p-2 border rounded-md border-gray-300 dark:border-gray-50 focus:outline-none focus:ring-2 focus:ring-blue-500"
+          className="w-full rounded-md border border-gray-300 p-2 focus:outline-none focus:ring-2 focus:ring-blue-500 dark:border-gray-50"
           value={input}
-          onChange={handleInputChange}
+          onChange={(e) => setInput(e.target.value)}
           rows={3}
           placeholder="Type your message..."
           disabled={isLoading}
@@ -175,14 +184,14 @@ const ChatGPTAssistant: React.FC = () => {
         <div className="flex space-x-2">
           <button
             type="submit"
-            className="flex-1 bg-blue-500 text-white py-2 px-4 rounded-md hover:bg-blue-600 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+            className="flex-1 rounded-md bg-blue-500 px-4 py-2 text-white transition-colors hover:bg-blue-600 disabled:cursor-not-allowed disabled:opacity-50"
             disabled={isLoading || !input.trim()}
           >
             {isLoading ? 'Sending...' : 'Send'}
           </button>
           <button
             type="button"
-            className="flex-1 bg-green-500 text-white py-2 px-4 rounded-md hover:bg-green-600 transition-colors disabled:opacity-50"
+            className="flex-1 rounded-md bg-green-500 px-4 py-2 text-white transition-colors hover:bg-green-600 disabled:opacity-50"
             onClick={handleVoiceStart}
             disabled={isListening || isLoading}
           >
@@ -190,7 +199,7 @@ const ChatGPTAssistant: React.FC = () => {
           </button>
           <button
             type="button"
-            className="flex-1 bg-red-500 text-white py-2 px-4 rounded-md hover:bg-red-600 transition-colors disabled:opacity-50"
+            className="flex-1 rounded-md bg-red-500 px-4 py-2 text-white transition-colors hover:bg-red-600 disabled:opacity-50"
             onClick={handleVoiceStop}
             disabled={!isListening}
           >
