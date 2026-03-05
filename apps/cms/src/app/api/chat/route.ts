@@ -10,6 +10,7 @@ import {
   type GlobalMetadata,
 } from '@revealui/ai/tools/cms'
 import { ToolRegistry } from '@revealui/ai/tools/registry'
+import { getSession } from '@revealui/auth/server'
 import { ChatRequestContract } from '@revealui/contracts'
 import { apiClient } from '@revealui/core/admin/utils/apiClient'
 import { logger } from '@revealui/core/utils/logger/server'
@@ -94,6 +95,21 @@ export async function POST(request: NextRequest) {
   const rateLimitResponse = await limiter(request)
   if (rateLimitResponse) {
     return rateLimitResponse
+  }
+
+  // Require authenticated admin session — this route has full CMS CRUD access
+  const authSession = await getSession(request.headers)
+  if (!authSession) {
+    return new Response(JSON.stringify({ error: 'Unauthorized' }), {
+      status: 401,
+      headers: { 'Content-Type': 'application/json' },
+    })
+  }
+  if (authSession.user.role !== 'admin') {
+    return new Response(JSON.stringify({ error: 'Forbidden' }), {
+      status: 403,
+      headers: { 'Content-Type': 'application/json' },
+    })
   }
 
   try {

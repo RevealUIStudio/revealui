@@ -66,13 +66,14 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
       )
     }
 
-    if (queryEmbedding.length !== 1536) {
+    const expectedDim = Number(process.env.EMBEDDING_DIMENSIONS ?? 1536)
+    if (queryEmbedding.length !== expectedDim) {
       return createValidationErrorResponse(
-        `queryEmbedding must have 1536 dimensions, got ${queryEmbedding.length}`,
+        `queryEmbedding must have ${expectedDim} dimensions, got ${queryEmbedding.length}`,
         'queryEmbedding',
         queryEmbedding.length,
         {
-          expected: 1536,
+          expected: expectedDim,
           actual: queryEmbedding.length,
         },
       )
