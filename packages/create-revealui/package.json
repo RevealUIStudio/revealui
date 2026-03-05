@@ -1,0 +1,31 @@
+{
+  "name": "create-revealui",
+  "version": "0.2.0",
+  "description": "Create a new RevealUI project",
+  "type": "module",
+  "bin": {
+    "create-revealui": "./bin/create-revealui.js"
+  },
+  "files": [
+    "bin"
+  ],
+  "dependencies": {
+    "@revealui/cli": "0.2.0"
+  },
+  "license": "MIT",
+  "publishConfig": {
+    "access": "public",
+    "registry": "https://registry.npmjs.org"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/RevealUIStudio/revealui.git",
+    "directory": "packages/create-revealui"
+  },
+  "keywords": [
+    "revealui",
+    "create-revealui",
+    "scaffolding",
+    "cli"
+  ]
+}

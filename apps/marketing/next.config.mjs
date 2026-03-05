@@ -36,6 +36,11 @@ const nextConfig = {
         destination: 'https://docs.revealui.com/:path*',
         permanent: true,
       },
+      {
+        source: '/pro',
+        destination: '/pricing',
+        permanent: false,
+      },
     ]
   },
   async headers() {

@@ -36,6 +36,9 @@
   "engines": {
     "node": ">=24.13.0"
   },
+  "exports": {
+    ".": "./dist/cli.js"
+  },
   "files": [
     "bin",
     "dist",
