@@ -12,13 +12,19 @@ import { beforeEach, describe, expect, it, vi } from 'vitest'
 
 const mockConstructEvent = vi.fn()
 const mockSubscriptionsUpdate = vi.fn()
+const mockSubscriptionsRetrieve = vi.fn()
+const mockSubscriptionsList = vi.fn()
 
 vi.mock('stripe', () => ({
   default: vi.fn().mockImplementation(
     // Must use a class — webhooks.ts calls `new Stripe(key)`
     class {
       webhooks = { constructEvent: mockConstructEvent }
-      subscriptions = { update: mockSubscriptionsUpdate }
+      subscriptions = {
+        update: mockSubscriptionsUpdate,
+        retrieve: mockSubscriptionsRetrieve,
+        list: mockSubscriptionsList,
+      }
     } as unknown as (...args: unknown[]) => unknown,
   ),
 }))
@@ -39,7 +45,7 @@ vi.mock('@revealui/core/observability/logger', () => ({
 
 const mockAuditAppend = vi.fn()
 
-const mockDbSelectChain = { from: vi.fn(), where: vi.fn(), limit: vi.fn() }
+const mockDbSelectChain = { from: vi.fn(), where: vi.fn(), orderBy: vi.fn(), limit: vi.fn() }
 const mockDbInsertChain = { values: vi.fn() }
 const mockDbUpdateChain = { set: vi.fn(), where: vi.fn() }
 
@@ -102,12 +108,15 @@ describe('POST /stripe webhook', () => {
     vi.mocked(featuresModule.isFeatureEnabled).mockReturnValue(false) // audit off
     vi.mocked(licenseModule.generateLicenseKey).mockResolvedValue('rv-license-key-test-123')
     mockSubscriptionsUpdate.mockResolvedValue({})
+    mockSubscriptionsRetrieve.mockResolvedValue({ status: 'active', trial_end: null })
+    mockSubscriptionsList.mockResolvedValue({ data: [] })
     mockAuditAppend.mockResolvedValue(undefined)
 
     // Re-wire fluent chain mocks
     mockDbSelectChain.from.mockReturnValue(mockDbSelectChain)
     mockDbSelectChain.where.mockReturnValue(mockDbSelectChain)
-    mockDbSelectChain.limit.mockResolvedValue([]) // default: user not found
+    mockDbSelectChain.orderBy.mockReturnValue(mockDbSelectChain)
+    mockDbSelectChain.limit.mockResolvedValue([]) // default: not found
     mockDbInsertChain.values.mockResolvedValue(undefined)
     mockDbUpdateChain.set.mockReturnValue(mockDbUpdateChain)
     mockDbUpdateChain.where.mockResolvedValue({ rowCount: 1 })
@@ -345,6 +354,61 @@ describe('POST /stripe webhook', () => {
       )
     })
 
+    it('creates license with trialing status when subscription is in trial', async () => {
+      const trialEnd = Math.floor(Date.now() / 1000) + 7 * 24 * 60 * 60 // +7 days
+      mockSubscriptionsRetrieve.mockResolvedValueOnce({ status: 'trialing', trial_end: trialEnd })
+
+      const event = {
+        id: 'evt_checkout_trial_1',
+        type: 'checkout.session.completed',
+        data: {
+          object: {
+            mode: 'subscription',
+            subscription: 'sub_trialing',
+            customer: 'cus_trial',
+            metadata: { tier: 'pro', revealui_user_id: 'user_trial' },
+          },
+        },
+      }
+      mockConstructEvent.mockReturnValueOnce(event)
+
+      const app = createApp()
+      const res = await app.request(postStripe(event))
+
+      expect(res.status).toBe(200)
+      expect(mockDb.insert).toHaveBeenCalledOnce()
+      const insertValues = mockDbInsertChain.values.mock.calls[0]?.[0] as Record<string, unknown>
+      expect(insertValues.status).toBe('trialing')
+      expect(insertValues.expiresAt).toBeInstanceOf(Date)
+    })
+
+    it('creates active license when subscription retrieve fails (graceful fallback)', async () => {
+      mockSubscriptionsRetrieve.mockRejectedValueOnce(new Error('Stripe timeout'))
+
+      const event = {
+        id: 'evt_checkout_retrieve_fail_1',
+        type: 'checkout.session.completed',
+        data: {
+          object: {
+            mode: 'subscription',
+            subscription: 'sub_test',
+            customer: 'cus_test',
+            metadata: { tier: 'pro', revealui_user_id: 'user_abc' },
+          },
+        },
+      }
+      mockConstructEvent.mockReturnValueOnce(event)
+
+      const app = createApp()
+      const res = await app.request(postStripe(event))
+
+      expect(res.status).toBe(200)
+      expect(mockDb.insert).toHaveBeenCalledOnce()
+      const insertValues = mockDbInsertChain.values.mock.calls[0]?.[0] as Record<string, unknown>
+      // Falls back to active when retrieve fails
+      expect(insertValues.status).toBe('active')
+    })
+
     it('creates license when userId is provided in metadata', async () => {
       const event = {
         id: 'evt_checkout_success_2',
@@ -370,6 +434,107 @@ describe('POST /stripe webhook', () => {
       expect(insertValues.status).toBe('active')
       expect(insertValues.tier).toBe('pro')
       expect(insertValues.userId).toBe('user_abc')
+    })
+  })
+
+  describe('invoice.payment_succeeded', () => {
+    function makePaymentSucceededEvent(id: string, customerId = 'cus_recovery') {
+      return {
+        id,
+        type: 'invoice.payment_succeeded',
+        data: {
+          object: {
+            id: `inv_${id}`,
+            customer: customerId,
+            customer_email: null,
+          },
+        },
+      }
+    }
+
+    it('re-activates expired license when active subscription is found', async () => {
+      mockSubscriptionsList.mockResolvedValueOnce({
+        data: [{ id: 'sub_recovery', metadata: { tier: 'pro' } }],
+      })
+      mockDbSelectChain.limit.mockResolvedValueOnce([{ id: 'lic_expired', status: 'expired' }])
+
+      const event = makePaymentSucceededEvent('evt_payment_succeeded_1')
+      mockConstructEvent.mockReturnValueOnce(event)
+
+      const app = createApp()
+      const res = await app.request(postStripe(event))
+
+      expect(res.status).toBe(200)
+      expect(mockDb.update).toHaveBeenCalledOnce()
+      const setCall = mockDbUpdateChain.set.mock.calls[0]?.[0] as Record<string, unknown>
+      expect(setCall.status).toBe('active')
+    })
+
+    it('re-activates revoked license when active subscription is found', async () => {
+      mockSubscriptionsList.mockResolvedValueOnce({
+        data: [{ id: 'sub_recovery', metadata: { tier: 'pro' } }],
+      })
+      mockDbSelectChain.limit.mockResolvedValueOnce([{ id: 'lic_revoked', status: 'revoked' }])
+
+      const event = makePaymentSucceededEvent('evt_payment_succeeded_revoked_1')
+      mockConstructEvent.mockReturnValueOnce(event)
+
+      const app = createApp()
+      const res = await app.request(postStripe(event))
+
+      expect(res.status).toBe(200)
+      expect(mockDb.update).toHaveBeenCalledOnce()
+      const setCall = mockDbUpdateChain.set.mock.calls[0]?.[0] as Record<string, unknown>
+      expect(setCall.status).toBe('active')
+    })
+
+    it('skips re-activation when license is already active', async () => {
+      mockSubscriptionsList.mockResolvedValueOnce({
+        data: [{ id: 'sub_recovery', metadata: { tier: 'pro' } }],
+      })
+      mockDbSelectChain.limit.mockResolvedValueOnce([{ id: 'lic_active', status: 'active' }])
+
+      const event = makePaymentSucceededEvent('evt_payment_succeeded_already_active_1')
+      mockConstructEvent.mockReturnValueOnce(event)
+
+      const app = createApp()
+      const res = await app.request(postStripe(event))
+
+      expect(res.status).toBe(200)
+      expect(mockDb.update).not.toHaveBeenCalled()
+    })
+
+    it('skips when no active subscription is found after payment', async () => {
+      mockSubscriptionsList.mockResolvedValueOnce({ data: [] })
+
+      const event = makePaymentSucceededEvent('evt_payment_succeeded_no_sub_1')
+      mockConstructEvent.mockReturnValueOnce(event)
+
+      const app = createApp()
+      const res = await app.request(postStripe(event))
+
+      expect(res.status).toBe(200)
+      expect(mockDb.update).not.toHaveBeenCalled()
+    })
+
+    it('writes license.reactivated.payment_recovery audit entry when auditLog enabled', async () => {
+      vi.mocked(featuresModule.isFeatureEnabled).mockReturnValue(true)
+      mockSubscriptionsList.mockResolvedValueOnce({
+        data: [{ id: 'sub_recovery', metadata: { tier: 'pro' } }],
+      })
+      mockDbSelectChain.limit.mockResolvedValueOnce([{ id: 'lic_expired', status: 'expired' }])
+
+      const event = makePaymentSucceededEvent('evt_payment_succeeded_audit_1')
+      mockConstructEvent.mockReturnValueOnce(event)
+
+      const app = createApp()
+      const res = await app.request(postStripe(event))
+
+      expect(res.status).toBe(200)
+      expect(mockAuditAppend).toHaveBeenCalledOnce()
+      const entry = mockAuditAppend.mock.calls[0]?.[0] as Record<string, unknown>
+      expect(entry.eventType).toBe('license.reactivated.payment_recovery')
+      expect(entry.severity).toBe('info')
     })
   })
 })

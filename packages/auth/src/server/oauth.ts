@@ -69,14 +69,12 @@ export function verifyOAuthState(
   const secret = process.env.REVEALUI_SECRET ?? ''
   const expectedHmac = crypto.createHmac('sha256', secret).update(state).digest('hex')
 
-  // Constant-time comparison to prevent timing attacks
+  // Both are hex-encoded SHA-256 HMACs — must be exactly 64 hex characters.
+  // Reject wrong-length inputs immediately; do NOT pad (padding enables forged matches
+  // where a short storedHmac is zero-padded to collide with the expected hash).
+  if (storedHmac.length !== 64 || expectedHmac.length !== 64) return null
   try {
-    if (
-      !crypto.timingSafeEqual(
-        Buffer.from(storedHmac.padEnd(64, '0'), 'hex'),
-        Buffer.from(expectedHmac.padEnd(64, '0'), 'hex'),
-      )
-    ) {
+    if (!crypto.timingSafeEqual(Buffer.from(storedHmac, 'hex'), Buffer.from(expectedHmac, 'hex'))) {
       return null
     }
   } catch {
