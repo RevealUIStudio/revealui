@@ -223,6 +223,8 @@ app.delete('/api/rag/*', requireRole('admin'))
 
 // Write-protect mutation endpoints — these require authentication
 const writeProtected = authMiddleware({ required: true })
+app.post('/api/collab/*', writeProtected)
+app.post('/api/collab/agent/*', writeProtected)
 app.post('/api/tickets/*', writeProtected)
 app.patch('/api/tickets/*', writeProtected)
 app.delete('/api/tickets/*', writeProtected)

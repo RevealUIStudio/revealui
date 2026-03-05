@@ -32,6 +32,10 @@ const app = new Hono<{ Variables: Variables }>()
 app.post('/workspaces/:workspaceId/index/:collection', async (c) => {
   const { workspaceId, collection } = c.req.param()
 
+  if (!/^[a-zA-Z0-9_-]+$/.test(collection)) {
+    return c.json({ success: false, error: 'Invalid collection name' }, 400)
+  }
+
   // CMS API client — requires NEXT_PUBLIC_CMS_URL or CMS_URL
   const cmsBaseUrl =
     process.env.CMS_URL ?? process.env.NEXT_PUBLIC_CMS_URL ?? 'http://localhost:4000'

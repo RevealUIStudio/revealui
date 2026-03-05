@@ -244,7 +244,10 @@ app.openapi(generateRoute, async (c) => {
   const paddedB = Buffer.alloc(maxLen)
   a.copy(paddedA)
   b.copy(paddedB)
-  if (!timingSafeEqual(paddedA, paddedB) || a.length !== b.length) {
+  // Evaluate both comparisons unconditionally to prevent timing side-channels
+  const contentMatch = timingSafeEqual(paddedA, paddedB)
+  const lengthMatch = a.length === b.length
+  if (!(contentMatch && lengthMatch)) {
     throw new HTTPException(401, { message: 'Unauthorized' })
   }
 

@@ -13,6 +13,7 @@ import { slugField } from '@/lib/fields/slug/index'
 import { hero } from '@/lib/heros/config'
 import { populatePublishedAt } from '@/lib/hooks/populatePublishedAt'
 import { generatePreviewPath } from '@/lib/utilities/generatePreviewPath'
+import { indexPage } from './hooks/indexPage'
 import { revalidatePage } from './hooks/revalidatePage'
 export const Pages: RevealCollectionConfig<Page> = {
   slug: 'pages',
@@ -93,7 +94,7 @@ export const Pages: RevealCollectionConfig<Page> = {
     ...slugField(),
   ],
   hooks: {
-    afterChange: [revalidatePage],
+    afterChange: [revalidatePage, indexPage],
     beforeChange: [populatePublishedAt],
   },
   versions: {

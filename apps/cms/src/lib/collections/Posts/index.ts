@@ -15,6 +15,7 @@ import { Code } from '@/lib/blocks/Code/config'
 import { MediaBlock } from '@/lib/blocks/MediaBlock/config'
 import { slugField } from '@/lib/fields/slug'
 import { generatePreviewPath } from '@/lib/utilities/generatePreviewPath'
+import { indexPost } from './hooks/indexPost'
 import { populateAuthors } from './hooks/populateAuthors'
 import { revalidatePost } from './hooks/revalidatePost'
 
@@ -177,7 +178,7 @@ export const Posts: RevealCollectionConfig<Post> = {
     ...slugField(),
   ],
   hooks: {
-    afterChange: [revalidatePost],
+    afterChange: [revalidatePost, indexPost],
     afterRead: [populateAuthors],
   },
   versions: {
