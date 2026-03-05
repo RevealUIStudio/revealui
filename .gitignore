@@ -39,6 +39,8 @@ apps/mainframe/public/assets/
 # Misc
 .DS_Store
 *.pem
+*.key
+*.age
 
 # Debug
 npm-debug.log*
@@ -71,6 +73,12 @@ lint-output.txt
 # Vercel — ignore build output but commit project.json (needed for CI deploys)
 .vercel/output
 .vercel/cache
+
+# Vite artifacts
+vite.config.ts.timestamp-*.mjs
+
+# Generated quality reports
+CODE-QUALITY-REPORT.json
 
 # TypeScript
 *.tsbuildinfo
@@ -143,6 +151,7 @@ apps/docs/dist/docs/
 # Claude Code session files (local only)
 .claude/SESSION_*.md
 .claude/workboard.md
+.claude/agent-state.md
 .claude/events.jsonl
 .claude/workboard.lock
 
