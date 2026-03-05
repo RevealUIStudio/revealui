@@ -137,7 +137,7 @@ export function validateInput<TInput extends ZodType>(
     if (error instanceof z.ZodError) {
       return {
         success: false,
-        errors: error.errors.map((err) => ({
+        errors: error.issues.map((err) => ({
           path: err.path.map(String),
           message: err.message,
           code: err.code,
@@ -176,7 +176,7 @@ export function validateOutput<TOutput extends ZodType>(
     if (error instanceof z.ZodError) {
       return {
         success: false,
-        errors: error.errors.map((err) => ({
+        errors: error.issues.map((err) => ({
           path: err.path.map(String),
           message: err.message,
           code: err.code,

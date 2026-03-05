@@ -8,7 +8,7 @@
  * - scripts/lib/database/connection.ts - Database connection interface
  */
 
-import { createLogger, isCI, type Logger, confirm as promptConfirm } from '../../../lib/index.js'
+import { createLogger, isCI, type Logger, confirm as promptConfirm } from '../index.js'
 import type { DatabaseConnection } from './connection.js'
 
 export interface SafetyCheckResult {
