@@ -8,10 +8,8 @@ SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 REPO_ROOT="$(cd "$SCRIPT_DIR/../../.." && pwd)"
 SOURCE_DOCS="$REPO_ROOT/docs"
 TARGET_DOCS="$REPO_ROOT/apps/docs/public/docs"
-SOURCE_PRO="$REPO_ROOT/docs/pro"
-TARGET_PRO="$REPO_ROOT/apps/docs/public/docs-pro"
 
-echo "📚 Copying documentation from source to docs app..."
+echo "Copying documentation from source to docs app..."
 echo "   Source: $SOURCE_DOCS"
 echo "   Target: $TARGET_DOCS"
 
@@ -26,27 +24,14 @@ fi
 
 # Internal-only files that must never be served publicly
 INTERNAL_FILES=(
-  "MASTER_PLAN.md"
-  "GOVERNANCE.md"
-  "AI-AGENT-RULES.md"
   "AUTOMATION.md"
-  "CI_ENVIRONMENT.md"
-  "PRICE_COLLECTION.md"
-  "PRODUCT_COLLECTION.md"
-  "SECRETS-MANAGEMENT.md"
-  "launch-announcement.md"
-  "LAUNCH_ANNOUNCEMENT.md"
-  "PRODUCTION_READINESS_CHECKLIST.md"
+  "GOVERNANCE.md"
+  "STANDARDS.md"
+  "CODE_VALIDATION.md"
+  "SCRIPT_MANAGEMENT.md"
 )
 
-# Internal-only guide files (workflow docs for contributors, not users)
-INTERNAL_GUIDES=(
-  "guides/DOCUMENTATION_QUICK_START.md"
-  "guides/DOCUMENTATION_WORKFLOW_GUIDE.md"
-  "guides/VERCEL_SKILLS.md"
-)
-
-# Copy all documentation
+# Copy all documentation (flat structure — no subdirectories)
 echo "   Copying files..."
 cp -r "$SOURCE_DOCS" "$TARGET_DOCS"
 
@@ -60,38 +45,11 @@ for FILE in "${INTERNAL_FILES[@]}"; do
   fi
 done
 
-# Remove internal-only guide files
-echo "   Removing internal guides..."
-for FILE in "${INTERNAL_GUIDES[@]}"; do
-  INTERNAL_PATH="$TARGET_DOCS/$FILE"
-  if [ -f "$INTERNAL_PATH" ]; then
-    rm "$INTERNAL_PATH"
-    echo "   Excluded: $FILE"
-  fi
-done
-
-# Also exclude the archive/ subdirectory
-rm -rf "$TARGET_DOCS/archive"
-
-# Copy Pro documentation to a separate target (accessed via /pro route with license gate)
-echo "   Copying Pro docs..."
-if [ -d "$SOURCE_PRO" ]; then
-  if [ -d "$TARGET_PRO" ]; then
-    rm -rf "$TARGET_PRO"
-  fi
-  cp -r "$SOURCE_PRO" "$TARGET_PRO"
-  PRO_COUNT=$(find "$TARGET_PRO" -type f -name "*.md" | wc -l)
-  echo "   Pro docs copied: $PRO_COUNT markdown files"
-else
-  echo "   No Pro docs found at $SOURCE_PRO — skipping."
-fi
-
 # Count files copied
 FILE_COUNT=$(find "$TARGET_DOCS" -type f -name "*.md" | wc -l)
 
-echo "✅ Documentation copied successfully!"
+echo "Documentation copied successfully!"
 echo "   Files copied: $FILE_COUNT markdown files (public)"
 echo ""
-echo "📝 Note: docs/public/docs/ is a build artifact."
+echo "Note: docs/public/docs/ is a build artifact."
 echo "   Edit files in /docs/ (repo root), not in apps/docs/public/docs/"
-echo "   Pro docs: edit in /docs/pro/, served from /docs-pro/ behind license gate."

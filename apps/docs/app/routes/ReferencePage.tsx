@@ -14,7 +14,7 @@ export function ReferencePage() {
       try {
         // Use shared path resolution utility for index
         const resolved = resolveDocPath({
-          section: 'reference',
+          section: 'docs',
           routePath: null,
         })
 
