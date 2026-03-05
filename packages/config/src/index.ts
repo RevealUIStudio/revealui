@@ -75,6 +75,16 @@ let cachedConfig: Config | null = null
  * Check if we're in a build-time context where full validation isn't required
  */
 function isBuildTime(): boolean {
+  if (
+    process.env.SKIP_ENV_VALIDATION === 'true' &&
+    process.env.NODE_ENV === 'production' &&
+    process.env.NEXT_PHASE !== 'phase-production-build'
+  ) {
+    throw new Error(
+      'SKIP_ENV_VALIDATION=true must not be set in a production runtime. ' +
+        'Remove it from your production environment variables.',
+    )
+  }
   return (
     process.env.NEXT_PHASE === 'phase-production-build' ||
     process.env.NEXT_PHASE === 'phase-development-build' ||

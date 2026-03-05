@@ -31,25 +31,25 @@ export interface OptionalConfig {
 
 export function getSupabaseConfig(env: EnvConfig): SupabaseConfig {
   return {
-    url: env.NEXT_PUBLIC_SUPABASE_URL || '',
-    anonKey: env.NEXT_PUBLIC_SUPABASE_ANON_KEY || '',
-    serviceRoleKey: env.SUPABASE_SERVICE_ROLE_KEY || '',
-    databaseUri: env.SUPABASE_DATABASE_URI || '',
+    url: env.NEXT_PUBLIC_SUPABASE_URL || undefined,
+    anonKey: env.NEXT_PUBLIC_SUPABASE_ANON_KEY || undefined,
+    serviceRoleKey: env.SUPABASE_SERVICE_ROLE_KEY || undefined,
+    databaseUri: env.SUPABASE_DATABASE_URI || undefined,
   }
 }
 
 export function getSentryConfig(env: EnvConfig): SentryConfig {
   return {
-    dsn: env.NEXT_PUBLIC_SENTRY_DSN || '',
-    authToken: env.SENTRY_AUTH_TOKEN || '',
-    org: env.SENTRY_ORG || '',
-    project: env.SENTRY_PROJECT || '',
+    dsn: env.NEXT_PUBLIC_SENTRY_DSN || undefined,
+    authToken: env.SENTRY_AUTH_TOKEN || undefined,
+    org: env.SENTRY_ORG || undefined,
+    project: env.SENTRY_PROJECT || undefined,
   }
 }
 
 export function getDevToolsConfig(env: EnvConfig): DevToolsConfig {
   return {
-    neonApiKey: env.NEON_API_KEY || '',
+    neonApiKey: env.NEON_API_KEY || undefined,
     skipOnInit: env.SKIP_ONINIT === 'true',
   }
 }

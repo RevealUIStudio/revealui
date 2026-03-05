@@ -8,6 +8,7 @@
 import { createRoute, OpenAPIHono, z } from '@hono/zod-openapi'
 import type { DatabaseClient } from '@revealui/db/client'
 import * as provenanceQueries from '@revealui/db/queries/code-provenance'
+import { HTTPException } from 'hono/http-exception'
 
 type Variables = {
   db: DatabaseClient
@@ -347,6 +348,11 @@ app.openapi(
   async (c) => {
     const db = c.get('db')
     const { id } = c.req.valid('param')
+    // Provenance records have no userId — restrict deletion to admin role only
+    const user = c.get('user') as { role?: string } | undefined
+    if (user?.role !== 'admin') {
+      throw new HTTPException(403, { message: 'Admin role required to delete provenance entries' })
+    }
     await provenanceQueries.deleteProvenance(db, id)
     return c.json({ success: true as const, message: 'Provenance entry deleted' })
   },

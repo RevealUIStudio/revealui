@@ -24,9 +24,9 @@ export function getRevealConfig(env: EnvConfig): RevealConfig {
     : undefined
 
   const config: RevealConfig = {
-    secret: env.REVEALUI_SECRET || '',
-    serverURL: env.NEXT_PUBLIC_SERVER_URL || '',
-    publicServerURL: env.REVEALUI_PUBLIC_SERVER_URL || '',
+    secret: env.REVEALUI_SECRET,
+    serverURL: env.NEXT_PUBLIC_SERVER_URL ?? '',
+    publicServerURL: env.REVEALUI_PUBLIC_SERVER_URL ?? '',
     corsOrigins: corsOrigins || [],
     whitelistOrigins: whitelistOrigins || [],
   }

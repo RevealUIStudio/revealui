@@ -24,7 +24,6 @@ const ErrorPayloadSchema = z.object({
   context: z.string().max(50).optional(),
   environment: z.string().max(50).optional(),
   url: z.string().max(2000).optional(),
-  userId: z.string().max(255).optional(),
   requestId: z.string().max(255).optional(),
   metadata: z.record(z.string(), z.unknown()).optional(),
 })
@@ -42,17 +41,7 @@ app.post('/', async (c) => {
     return c.json({ success: false, error: 'Invalid payload' }, 400)
   }
 
-  const {
-    level,
-    message,
-    stack,
-    app: appName,
-    context,
-    url,
-    userId,
-    requestId,
-    metadata,
-  } = parsed.data
+  const { level, message, stack, app: appName, context, url, requestId, metadata } = parsed.data
   const environment = parsed.data.environment ?? process.env.NODE_ENV ?? 'production'
 
   // Fire-and-forget — never fail the caller if DB write fails
@@ -68,7 +57,7 @@ app.post('/', async (c) => {
         context,
         environment,
         url,
-        userId,
+        userId: null, // userId is not accepted from untrusted clients
         requestId,
         metadata: metadata ?? null,
       })

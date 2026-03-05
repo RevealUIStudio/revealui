@@ -5,11 +5,11 @@
 import type { EnvConfig } from '../schema'
 
 export interface StorageConfig {
-  blobToken: string
+  blobToken: string | undefined
 }
 
 export function getStorageConfig(env: EnvConfig): StorageConfig {
   return {
-    blobToken: env.BLOB_READ_WRITE_TOKEN ?? '',
+    blobToken: env.BLOB_READ_WRITE_TOKEN,
   }
 }

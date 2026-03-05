@@ -22,7 +22,6 @@ const LogPayloadSchema = z.object({
   app: z.string().max(50),
   environment: z.string().max(50).optional(),
   requestId: z.string().max(255).optional(),
-  userId: z.string().max(255).optional(),
   data: z.record(z.string(), z.unknown()).optional(),
 })
 
@@ -64,7 +63,7 @@ app.openapi(logRoute, async (c) => {
       app: payload.app,
       environment: payload.environment ?? process.env.NODE_ENV ?? 'production',
       requestId: payload.requestId ?? null,
-      userId: payload.userId ?? null,
+      userId: null, // userId is not accepted from untrusted clients
       data: payload.data ?? null,
     })
   })().catch(() => {

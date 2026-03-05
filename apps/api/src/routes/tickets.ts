@@ -15,10 +15,12 @@ import * as boardQueries from '@revealui/db/queries/boards'
 import * as commentQueries from '@revealui/db/queries/ticket-comments'
 import * as labelQueries from '@revealui/db/queries/ticket-labels'
 import * as ticketQueries from '@revealui/db/queries/tickets'
+import { HTTPException } from 'hono/http-exception'
 
 type Variables = {
   db: DatabaseClient
   tenant?: { id: string }
+  user?: { id: string; role: string }
 }
 
 // biome-ignore lint/style/useNamingConvention: Hono requires Variables key
@@ -290,6 +292,12 @@ app.openapi(
   async (c) => {
     const db = c.get('db')
     const { id } = c.req.valid('param')
+    const board = await boardQueries.getBoardById(db, id)
+    if (!board) throw new HTTPException(404, { message: 'Board not found' })
+    const user = c.get('user')
+    if (board.ownerId && board.ownerId !== user?.id) {
+      throw new HTTPException(403, { message: 'Forbidden' })
+    }
     await boardQueries.deleteBoard(db, id)
     return c.json({ success: true as const, message: 'Board deleted' })
   },
@@ -643,6 +651,13 @@ app.openapi(
   async (c) => {
     const db = c.get('db')
     const { id } = c.req.valid('param')
+    const ticket = await ticketQueries.getTicketById(db, id)
+    if (!ticket) throw new HTTPException(404, { message: 'Ticket not found' })
+    const board = await boardQueries.getBoardById(db, ticket.boardId)
+    const user = c.get('user')
+    if (board?.ownerId && board.ownerId !== user?.id) {
+      throw new HTTPException(403, { message: 'Forbidden' })
+    }
     await ticketQueries.deleteTicket(db, id)
     return c.json({ success: true as const, message: 'Ticket deleted' })
   },
