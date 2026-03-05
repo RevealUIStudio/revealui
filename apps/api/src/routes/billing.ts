@@ -360,4 +360,78 @@ app.openapi(upgradeRoute, async (c) => {
   return c.json({ success: true, subscriptionId: subscription.id }, 200)
 })
 
+// POST /api/billing/downgrade — Downgrade to free tier (cancel subscription)
+const DowngradeResponseSchema = z.object({
+  success: z.boolean(),
+  effectiveAt: z.string().openapi({ description: 'When the downgrade takes effect (ISO 8601)' }),
+})
+
+const downgradeRoute = createRoute({
+  method: 'post',
+  path: '/downgrade',
+  tags: ['billing'],
+  summary: 'Downgrade to free tier',
+  description:
+    'Cancels the active subscription at the end of the current billing period. The user retains Pro/Enterprise access until then.',
+  responses: {
+    200: {
+      content: { 'application/json': { schema: DowngradeResponseSchema } },
+      description: 'Subscription scheduled for cancellation at end of billing period',
+    },
+    400: {
+      content: { 'application/json': { schema: ErrorSchema } },
+      description: 'No active subscription found',
+    },
+    401: {
+      content: { 'application/json': { schema: ErrorSchema } },
+      description: 'Not authenticated',
+    },
+  },
+})
+
+app.openapi(downgradeRoute, async (c) => {
+  const user = c.get('user')
+  if (!user) {
+    throw new HTTPException(401, { message: 'Authentication required' })
+  }
+
+  const db = getClient()
+  const [dbUser] = await db
+    .select({ stripeCustomerId: users.stripeCustomerId })
+    .from(users)
+    .where(eq(users.id, user.id))
+
+  if (!dbUser?.stripeCustomerId) {
+    throw new HTTPException(400, {
+      message: 'No billing account found.',
+    })
+  }
+
+  const stripe = getStripeClient()
+
+  const subscriptionList = await stripe.subscriptions.list({
+    customer: dbUser.stripeCustomerId,
+    status: 'active',
+    limit: 1,
+  })
+
+  const subscription = subscriptionList.data[0]
+  if (!subscription) {
+    throw new HTTPException(400, { message: 'No active subscription found to downgrade.' })
+  }
+
+  // Cancel at period end so the customer retains access until their billing cycle ends
+  await stripe.subscriptions.update(subscription.id, {
+    cancel_at_period_end: true,
+  })
+
+  // cancel_at is populated by Stripe when cancel_at_period_end is set
+  const cancelAt = subscription.cancel_at
+  const effectiveDate = cancelAt
+    ? new Date(cancelAt * 1000).toISOString()
+    : new Date().toISOString()
+
+  return c.json({ success: true, effectiveAt: effectiveDate }, 200)
+})
+
 export default app

@@ -134,12 +134,24 @@ export function getLicensePayload(): LicensePayload | null {
 
 /**
  * Checks whether the current license is at least the given tier.
+ * Also validates that the license has not expired (checks JWT exp claim).
  */
 export function isLicensed(requiredTier: LicenseTier): boolean {
   const tierRank: Record<LicenseTier, number> = {
     free: 0,
     pro: 1,
     enterprise: 2,
+  }
+
+  // Free tier is always available
+  if (requiredTier === 'free') return true
+
+  // Check expiration if present
+  if (cachedState.payload?.exp) {
+    const nowSeconds = Math.floor(Date.now() / 1000)
+    if (cachedState.payload.exp < nowSeconds) {
+      return false
+    }
   }
 
   return tierRank[cachedState.tier] >= tierRank[requiredTier]

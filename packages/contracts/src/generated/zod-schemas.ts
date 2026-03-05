@@ -2,7 +2,7 @@
  * Auto-generated Zod schemas from Drizzle
  *
  * DO NOT EDIT - Regenerate with: pnpm generate:all
- * Generated: 2026-03-04T22:23:13.738Z
+ * Generated: 2026-03-05T03:24:35.582Z
  *
  * This file provides Zod schemas for all database tables, generated
  * directly from Drizzle table definitions using drizzle-zod.
@@ -689,6 +689,32 @@ export type PostsRow = z.infer<typeof PostsSelectSchema>
  * TypeScript type for posts insert
  */
 export type PostsInsert = z.infer<typeof PostsInsertSchema>
+
+// =============================================================================
+// ProcessedWebhookEvents Schemas
+// =============================================================================
+
+/**
+ * Zod schema for selecting processedWebhookEvents rows from database
+ * Generated from Drizzle table definition: tables.processedWebhookEvents
+ */
+export const ProcessedWebhookEventsSelectSchema = createSelectSchema(tables.processedWebhookEvents)
+
+/**
+ * Zod schema for inserting processedWebhookEvents rows to database
+ * Generated from Drizzle table definition: tables.processedWebhookEvents
+ */
+export const ProcessedWebhookEventsInsertSchema = createInsertSchema(tables.processedWebhookEvents)
+
+/**
+ * TypeScript type for processedWebhookEvents row (Select)
+ */
+export type ProcessedWebhookEventsRow = z.infer<typeof ProcessedWebhookEventsSelectSchema>
+
+/**
+ * TypeScript type for processedWebhookEvents insert
+ */
+export type ProcessedWebhookEventsInsert = z.infer<typeof ProcessedWebhookEventsInsertSchema>
 
 // =============================================================================
 // RateLimits Schemas
