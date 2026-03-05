@@ -45,6 +45,10 @@ export const users = pgTable(
     emailVerificationToken: text('email_verification_token'),
     emailVerifiedAt: timestamp('email_verified_at', { withTimezone: true }),
 
+    // Terms of Service acceptance (required for legal compliance)
+    tosAcceptedAt: timestamp('tos_accepted_at', { withTimezone: true }),
+    tosVersion: text('tos_version'), // e.g. '2026-03-01' — version accepted at signup
+
     // Stripe integration
     stripeCustomerId: text('stripe_customer_id'),
 

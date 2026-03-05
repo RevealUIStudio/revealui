@@ -24,13 +24,19 @@ export default function SignupPage() {
   const [name, setName] = useState('')
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
+  const [tosAccepted, setTosAccepted] = useState(false)
   const [error, setError] = useState<string | null>(null)
 
   const handleSubmit = async (e: FormEvent) => {
     e.preventDefault()
     setError(null)
 
-    const result = await signUp({ email, password, name })
+    if (!tosAccepted) {
+      setError('You must accept the Terms of Service to create an account.')
+      return
+    }
+
+    const result = await signUp({ email, password, name, tosAccepted: true })
     if (result.success) {
       if (plan === 'pro') {
         router.push('/account/billing?upgrade=pro')
@@ -115,7 +121,37 @@ export default function SignupPage() {
               <p className="text-xs text-zinc-500">Minimum 8 characters</p>
             </div>
 
-            <Button type="submit" disabled={isLoading} className="w-full">
+            <div className="flex items-start gap-2">
+              <input
+                id="tos"
+                type="checkbox"
+                checked={tosAccepted}
+                onChange={(e) => setTosAccepted(e.target.checked)}
+                disabled={isLoading}
+                required
+                className="mt-0.5 h-4 w-4 rounded border-zinc-300 text-blue-600"
+              />
+              <label htmlFor="tos" className="text-sm text-zinc-600 dark:text-zinc-400">
+                I agree to the{' '}
+                <Link
+                  href="/legal/terms"
+                  className="text-blue-600 hover:underline dark:text-blue-400"
+                  target="_blank"
+                >
+                  Terms of Service
+                </Link>{' '}
+                and{' '}
+                <Link
+                  href="/legal/privacy"
+                  className="text-blue-600 hover:underline dark:text-blue-400"
+                  target="_blank"
+                >
+                  Privacy Policy
+                </Link>
+              </label>
+            </div>
+
+            <Button type="submit" disabled={isLoading || !tosAccepted} className="w-full">
               {isLoading ? 'Creating account...' : 'Create account'}
             </Button>
           </form>

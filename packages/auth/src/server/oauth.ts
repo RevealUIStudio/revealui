@@ -238,7 +238,7 @@ export async function upsertOAuthUser(provider: string, providerUser: ProviderUs
       email: providerUser.email,
       avatarUrl: providerUser.avatarUrl,
       password: null,
-      role: 'admin',
+      role: 'user',
       status: 'active',
     })
   }

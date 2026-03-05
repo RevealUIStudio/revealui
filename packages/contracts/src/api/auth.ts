@@ -32,6 +32,9 @@ export const SignUpRequestSchema = z.object({
         .trim()
         .replace(/\s+/g, ' '),
     ),
+  tosAccepted: z.literal(true, {
+    error: 'You must accept the Terms of Service to create an account.',
+  }),
 })
 
 export type SignUpRequest = z.infer<typeof SignUpRequestSchema>

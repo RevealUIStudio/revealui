@@ -4,7 +4,7 @@ import { OpenAPIHono } from '@hono/zod-openapi'
 import { initializeLicense } from '@revealui/core/license'
 import { logger } from '@revealui/core/observability/logger'
 import { SecurityHeaders, SecurityPresets } from '@revealui/core/security'
-import { getClient } from '@revealui/db'
+import { closeAllPools, getClient } from '@revealui/db'
 import { createDbLogHandler } from '@revealui/db/log-transport'
 import { licenses } from '@revealui/db/schema'
 import { desc, eq } from 'drizzle-orm'
@@ -50,6 +50,24 @@ process.on('unhandledRejection', (reason: unknown) => {
   const error = reason instanceof Error ? reason : new Error(String(reason))
   logger.error('Unhandled promise rejection', error)
 })
+
+// Graceful shutdown — close database connection pools before exit
+async function gracefulShutdown(signal: string): Promise<void> {
+  logger.info(`${signal} received — closing database pools`)
+  try {
+    await closeAllPools()
+    logger.info('Database pools closed')
+  } catch (err) {
+    logger.error(
+      'Error closing database pools',
+      err instanceof Error ? err : new Error(String(err)),
+    )
+  }
+  process.exit(0)
+}
+
+process.once('SIGTERM', () => gracefulShutdown('SIGTERM'))
+process.once('SIGINT', () => gracefulShutdown('SIGINT'))
 
 /**
  * Parse and validate CORS origins from environment variable.

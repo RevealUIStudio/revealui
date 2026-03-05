@@ -178,8 +178,17 @@ app.openapi(
   }),
   async (c) => {
     const db = c.get('db')
+    const user = c.get('user')
+    if (!user) throw new HTTPException(401, { message: 'Authentication required' })
     const { status, authorId, limit, offset } = c.req.valid('query')
-    const data = await postQueries.getAllPosts(db, { status, authorId, limit, offset })
+    // Non-admin users can only read their own posts
+    const effectiveAuthorId = user.role === 'admin' ? authorId : user.id
+    const data = await postQueries.getAllPosts(db, {
+      status,
+      authorId: effectiveAuthorId,
+      limit,
+      offset,
+    })
     return c.json({ success: true as const, data }, 200)
   },
 )
@@ -250,9 +259,14 @@ app.openapi(
   }),
   async (c) => {
     const db = c.get('db')
+    const user = c.get('user')
+    if (!user) throw new HTTPException(401, { message: 'Authentication required' })
     const { id } = c.req.valid('param')
     const post = await postQueries.getPostById(db, id)
     if (!post) return c.json({ success: false as const, error: 'Post not found' }, 404)
+    if (user.role !== 'admin' && post.authorId !== user.id) {
+      throw new HTTPException(403, { message: 'Forbidden' })
+    }
     return c.json({ success: true as const, data: post }, 200)
   },
 )
@@ -277,9 +291,14 @@ app.openapi(
   }),
   async (c) => {
     const db = c.get('db')
+    const user = c.get('user')
+    if (!user) throw new HTTPException(401, { message: 'Authentication required' })
     const { slug } = c.req.valid('param')
     const post = await postQueries.getPostBySlug(db, slug)
     if (!post) return c.json({ success: false as const, error: 'Post not found' }, 404)
+    if (user.role !== 'admin' && post.authorId !== user.id) {
+      throw new HTTPException(403, { message: 'Forbidden' })
+    }
     return c.json({ success: true as const, data: post }, 200)
   },
 )
@@ -400,6 +419,8 @@ app.openapi(
   }),
   async (c) => {
     const db = c.get('db')
+    const user = c.get('user')
+    if (!user) throw new HTTPException(401, { message: 'Authentication required' })
     const { mimeType, limit, offset } = c.req.valid('query')
     const data = await mediaQueries.getAllMedia(db, { mimeType, limit, offset })
     return c.json({ success: true as const, data }, 200)
@@ -428,9 +449,14 @@ app.openapi(
   }),
   async (c) => {
     const db = c.get('db')
+    const user = c.get('user')
+    if (!user) throw new HTTPException(401, { message: 'Authentication required' })
     const { id } = c.req.valid('param')
     const item = await mediaQueries.getMediaById(db, id)
     if (!item) return c.json({ success: false as const, error: 'Media not found' }, 404)
+    if (user.role !== 'admin' && item.uploadedBy !== user.id) {
+      throw new HTTPException(403, { message: 'Forbidden' })
+    }
     return c.json({ success: true as const, data: item }, 200)
   },
 )
@@ -537,8 +563,9 @@ app.openapi(
   async (c) => {
     const db = c.get('db')
     const user = c.get('user')
+    if (!user) throw new HTTPException(401, { message: 'Authentication required' })
     const { status, limit, offset } = c.req.valid('query')
-    const data = await siteQueries.getAllSites(db, { ownerId: user?.id, status, limit, offset })
+    const data = await siteQueries.getAllSites(db, { ownerId: user.id, status, limit, offset })
     return c.json({ success: true as const, data }, 200)
   },
 )
@@ -610,9 +637,14 @@ app.openapi(
   }),
   async (c) => {
     const db = c.get('db')
+    const user = c.get('user')
+    if (!user) throw new HTTPException(401, { message: 'Authentication required' })
     const { id } = c.req.valid('param')
     const site = await siteQueries.getSiteById(db, id)
     if (!site) return c.json({ success: false as const, error: 'Site not found' }, 404)
+    if (user.role !== 'admin' && site.ownerId !== user.id) {
+      throw new HTTPException(403, { message: 'Forbidden' })
+    }
     return c.json({ success: true as const, data: site }, 200)
   },
 )
@@ -730,10 +762,15 @@ app.openapi(
   }),
   async (c) => {
     const db = c.get('db')
+    const user = c.get('user')
+    if (!user) throw new HTTPException(401, { message: 'Authentication required' })
     const { siteId } = c.req.valid('param')
     const { status } = c.req.valid('query')
     const site = await siteQueries.getSiteById(db, siteId)
     if (!site) return c.json({ success: false as const, error: 'Site not found' }, 404)
+    if (user.role !== 'admin' && site.ownerId !== user.id) {
+      throw new HTTPException(403, { message: 'Forbidden' })
+    }
     const data = await pageQueries.getPagesBySite(db, siteId, { status })
     return c.json({ success: true as const, data }, 200)
   },
@@ -814,9 +851,17 @@ app.openapi(
   }),
   async (c) => {
     const db = c.get('db')
+    const user = c.get('user')
+    if (!user) throw new HTTPException(401, { message: 'Authentication required' })
     const { id } = c.req.valid('param')
     const page = await pageQueries.getPageById(db, id)
     if (!page) return c.json({ success: false as const, error: 'Page not found' }, 404)
+    if (user.role !== 'admin') {
+      const site = await siteQueries.getSiteById(db, page.siteId)
+      if (!site || site.ownerId !== user.id) {
+        throw new HTTPException(403, { message: 'Forbidden' })
+      }
+    }
     return c.json({ success: true as const, data: page }, 200)
   },
 )

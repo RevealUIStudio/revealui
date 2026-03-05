@@ -10,6 +10,7 @@
  * Feature gate: available at all tiers (BYOK is a free feature per MASTER_PLAN)
  */
 
+import crypto from 'node:crypto'
 import { createRoute, OpenAPIHono, z } from '@hono/zod-openapi'
 import { getClient } from '@revealui/db'
 import { encryptApiKey, redactApiKey } from '@revealui/db/crypto'
@@ -39,7 +40,7 @@ function requireUser(c: Context): UserContext {
 }
 
 function generateId(): string {
-  return `key_${Date.now()}_${Math.random().toString(36).slice(2, 10)}`
+  return `key_${crypto.randomUUID().replace(/-/g, '')}`
 }
 
 // ─── Schemas ──────────────────────────────────────────────────────────────────

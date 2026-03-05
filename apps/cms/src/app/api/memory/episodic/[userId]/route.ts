@@ -8,6 +8,7 @@
 
 import { CRDTPersistence } from '@revealui/ai/memory/persistence'
 import { EpisodicMemory } from '@revealui/ai/memory/stores'
+import { getSession } from '@revealui/auth/server'
 import { AgentMemoryContract } from '@revealui/contracts'
 import { logger } from '@revealui/core/observability/logger'
 import { getClient } from '@revealui/db/client'
@@ -23,12 +24,17 @@ export const runtime = 'nodejs'
  * Gets all episodic memories for a user.
  */
 export async function GET(
-  _request: NextRequest,
+  request: NextRequest,
   { params }: { params: Promise<{ userId: string }> },
 ): Promise<NextResponse> {
   let userId: string | undefined
 
   try {
+    const authSession = await getSession(request.headers)
+    if (!authSession) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+    }
+
     const paramsResolved = await params
     userId = paramsResolved.userId
 
@@ -77,6 +83,11 @@ export async function POST(
   let userId: string | undefined
 
   try {
+    const authSession = await getSession(request.headers)
+    if (!authSession) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+    }
+
     const paramsResolved = await params
     userId = paramsResolved.userId
 
