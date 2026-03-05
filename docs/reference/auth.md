@@ -10,9 +10,9 @@ npm install @revealui/auth
 
 | Import path | Environment | Purpose |
 |-------------|-------------|---------|
-| `@revealui/auth` | Both | Types + React hooks |
-| `@revealui/auth/server` | Server only | Auth logic, sessions, rate limiting |
-| `@revealui/auth/react` | Client | React hooks and components |
+| `@revealui/auth` | Both | Re-exports server + react + types |
+| `@revealui/auth/server` | Server only | Auth, sessions, password reset, rate limiting, OAuth |
+| `@revealui/auth/react` | Client only | `useSession`, `useSignIn`, `useSignOut`, `useSignUp` |
 
 ---
 
@@ -209,6 +209,215 @@ Increments the failed-attempt counter. Called automatically by `signIn()`.
 
 Resets the failed-attempt counter after a successful sign-in.
 
+### `getFailedAttemptCount(email: string): Promise<number>`
+
+Returns the current number of consecutive failed sign-in attempts for an email address.
+
+---
+
+## OAuth (SSO)
+
+Import from `@revealui/auth/server`. Supports Google, GitHub, and Vercel providers.
+
+**Required environment variables:**
+```
+GOOGLE_CLIENT_ID / GOOGLE_CLIENT_SECRET
+GITHUB_CLIENT_ID / GITHUB_CLIENT_SECRET
+VERCEL_CLIENT_ID / VERCEL_CLIENT_SECRET
+REVEALUI_SECRET   # used for HMAC state signing
+```
+
+### `generateOAuthState(provider, redirectTo): { state: string; cookieValue: string }`
+
+Generates a signed OAuth state token for CSRF protection. The `cookieValue` should be stored as a short-lived HttpOnly cookie; `state` is passed as the OAuth `state` query parameter.
+
+```ts
+import { generateOAuthState } from '@revealui/auth/server'
+
+const { state, cookieValue } = generateOAuthState('google', '/dashboard')
+// Set-Cookie: oauth_state=<cookieValue>; HttpOnly; Secure; SameSite=Lax; Max-Age=600
+// Redirect to: buildAuthUrl('google', redirectUri, state)
+```
+
+### `verifyOAuthState(state, cookieValue): { provider: string; redirectTo: string } | null`
+
+Verifies the OAuth state on the callback. Returns the decoded provider and `redirectTo` if valid, `null` if the HMAC check fails or the values don't match. Uses constant-time comparison to prevent timing attacks.
+
+```ts
+const verified = verifyOAuthState(
+  searchParams.get('state'),
+  req.cookies.get('oauth_state')?.value ?? null,
+)
+if (!verified) return new Response('Invalid state', { status: 400 })
+const { provider, redirectTo } = verified
+```
+
+### `buildAuthUrl(provider, redirectUri, state): string`
+
+Constructs the provider's authorization URL. Supported providers: `'google'`, `'github'`, `'vercel'`.
+
+```ts
+import { buildAuthUrl, generateOAuthState } from '@revealui/auth/server'
+
+const { state, cookieValue } = generateOAuthState('github', '/dashboard')
+const authUrl = buildAuthUrl('github', 'https://yourapp.com/auth/callback/github', state)
+return Response.redirect(authUrl)
+```
+
+### `exchangeCode(provider, code, redirectUri): Promise<string>`
+
+Exchanges the OAuth authorization code for an access token. Returns the access token string.
+
+### `fetchProviderUser(provider, accessToken): Promise<ProviderUser>`
+
+Fetches the user profile from the OAuth provider using an access token.
+
+```ts
+interface ProviderUser {
+  id: string
+  email: string | null
+  name: string
+  avatarUrl: string | null
+}
+```
+
+### `upsertOAuthUser(provider, providerUser): Promise<User>`
+
+Finds or creates a local user for the given OAuth identity. Links OAuth accounts to existing users by email if a match is found. New users are created with `role: 'admin'`.
+
+**Full OAuth callback flow:**
+```ts
+import {
+  buildAuthUrl, exchangeCode, fetchProviderUser,
+  generateOAuthState, upsertOAuthUser, verifyOAuthState,
+} from '@revealui/auth/server'
+
+// Step 1 — Initiate (GET /auth/oauth/:provider)
+const { state, cookieValue } = generateOAuthState(provider, redirectTo)
+const authUrl = buildAuthUrl(provider, callbackUrl, state)
+// Set cookie + redirect to authUrl
+
+// Step 2 — Callback (GET /auth/callback/:provider)
+const verified = verifyOAuthState(searchParams.get('state'), oauthStateCookie)
+if (!verified) return error(400)
+const accessToken = await exchangeCode(provider, searchParams.get('code')!, callbackUrl)
+const providerUser = await fetchProviderUser(provider, accessToken)
+const user = await upsertOAuthUser(provider, providerUser)
+const { token } = await createSession(user.id)
+// Set session cookie + redirect to verified.redirectTo
+```
+
+---
+
+## React Hooks
+
+Import from `@revealui/auth` or `@revealui/auth/react`. All hooks are client-only (`'use client'`).
+
+### `useSession(): UseSessionResult`
+
+Fetches the current session from `GET /api/auth/session` on mount. Automatically aborts in-flight requests on unmount.
+
+```tsx
+import { useSession } from '@revealui/auth'
+
+function Header() {
+  const { data: session, isLoading, error, refetch } = useSession()
+
+  if (isLoading) return <Spinner />
+  if (!session) return <Link href="/login">Sign in</Link>
+
+  return <span>Hello, {session.user.name}</span>
+}
+```
+
+**Returns:**
+```ts
+interface UseSessionResult {
+  data: AuthSession | null  // null when not signed in
+  isLoading: boolean
+  error: Error | null
+  refetch: () => Promise<void>  // manually refresh
+}
+```
+
+---
+
+### `useSignIn(): UseSignInResult`
+
+Calls `POST /api/auth/sign-in` with email and password.
+
+```tsx
+import { useSignIn } from '@revealui/auth'
+
+function SignInForm() {
+  const { signIn, isLoading } = useSignIn()
+
+  const handleSubmit = async (e: FormEvent) => {
+    e.preventDefault()
+    const result = await signIn({ email, password })
+    if (result.success) router.push('/dashboard')
+    else setError(result.error)
+  }
+}
+```
+
+**Returns:**
+```ts
+interface UseSignInResult {
+  signIn: (input: { email: string; password: string }) =>
+    Promise<{ success: boolean; user?: User; error?: string }>
+  isLoading: boolean
+  error: Error | null
+}
+```
+
+---
+
+### `useSignUp(): UseSignUpResult`
+
+Calls `POST /api/auth/sign-up` with email, password, and name.
+
+```tsx
+import { useSignUp } from '@revealui/auth'
+
+const { signUp, isLoading } = useSignUp()
+const result = await signUp({ email, password, name: 'Jane Smith' })
+```
+
+**Returns:**
+```ts
+interface UseSignUpResult {
+  signUp: (input: { email: string; password: string; name: string }) =>
+    Promise<{ success: boolean; user?: User; error?: string }>
+  isLoading: boolean
+  error: Error | null
+}
+```
+
+---
+
+### `useSignOut(): UseSignOutResult`
+
+Calls `POST /api/auth/sign-out` and redirects to `/login` on success.
+
+```tsx
+import { useSignOut } from '@revealui/auth'
+
+function SignOutButton() {
+  const { signOut, isLoading } = useSignOut()
+  return <button onClick={signOut} disabled={isLoading}>Sign out</button>
+}
+```
+
+**Returns:**
+```ts
+interface UseSignOutResult {
+  signOut: () => Promise<void>
+  isLoading: boolean
+  error: Error | null
+}
+```
+
 ---
 
 ## Types
@@ -256,6 +465,7 @@ import { AuthError, AuthenticationError, SessionError, TokenError } from '@revea
 | `AuthenticationError` | Invalid credentials, locked account |
 | `SessionError` | Invalid or expired session |
 | `TokenError` | Invalid or expired reset token |
+| `DatabaseError` | Underlying DB query failed |
 
 ---
 
