@@ -12,7 +12,7 @@
 
 import { mkdir, readdir, readFile, unlink, writeFile } from 'node:fs/promises'
 import { join } from 'node:path'
-import { createLogger, getProjectRoot, type Logger, listTables } from '../../../lib/index.js'
+import { createLogger, getProjectRoot, type Logger, listTables } from '../index.js'
 import type { DatabaseConnection } from './connection.js'
 
 export interface BackupOptions {

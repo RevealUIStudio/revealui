@@ -78,7 +78,7 @@ export function validateConditional<T>(
     if (error instanceof z.ZodError) {
       return {
         success: false,
-        errors: error.errors.map((err) => ({
+        errors: error.issues.map((err) => ({
           path: err.path.map(String),
           message: err.message,
           code: err.code,
@@ -137,7 +137,7 @@ export function validateOneOf<T>(schemas: z.ZodType<T>[], value: unknown): Valid
     } catch (error) {
       if (error instanceof z.ZodError) {
         allErrors.push(
-          ...error.errors.map((err) => ({
+          ...error.issues.map((err) => ({
             path: err.path.map(String),
             message: err.message,
             code: err.code,
@@ -271,6 +271,6 @@ export function extendSchema<T extends z.ZodRawShape, U extends z.ZodRawShape>(
 export function createDiscriminatedUnion<T extends string, U extends z.ZodTypeAny[]>(
   discriminator: T,
   options: U,
-): z.ZodDiscriminatedUnion<T, U> {
+) {
   return z.discriminatedUnion(discriminator, options)
 }

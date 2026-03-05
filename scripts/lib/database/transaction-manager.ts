@@ -10,7 +10,7 @@
  */
 
 import type { PoolClient } from 'pg'
-import { createLogger, type Logger } from '../../../lib/index.js'
+import { createLogger, type Logger } from '../index.js'
 import type { DatabaseConnection } from './connection.js'
 
 export interface TransactionOptions {
