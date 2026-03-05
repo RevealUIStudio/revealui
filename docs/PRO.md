@@ -1026,3 +1026,319 @@ export default defineEditorConfig({
 ## Workboard coordination
 
 The editor daemon reads and writes the agent workboard, allowing multiple editor instances to coordinate on shared work. See [coordination rules](/pro) for details.
+
+---
+
+# @revealui/harnesses
+
+AI harness adapters, workboard coordination, and JSON-RPC server. Integrates Claude Code, Cursor, and Copilot into the RevealUI development workflow.
+
+## Overview
+
+`@revealui/harnesses` connects AI coding tools to each other and to your project's shared workboard. Multiple AI sessions — across editors, terminals, and CI — register themselves and claim file ownership to prevent conflicts.
+
+**Requires a Pro or Enterprise license** (`isFeatureEnabled('harnesses')`).
+
+## Quick start
+
+```typescript
+import { HarnessCoordinator } from '@revealui/harnesses'
+
+const coordinator = new HarnessCoordinator({
+  projectRoot: '/path/to/your/project',
+  socketPath: '/tmp/revealui-harness.sock',
+  task: 'Implement auth middleware',
+})
+
+await coordinator.start()
+// ... your agent work ...
+await coordinator.stop()
+```
+
+`start()` auto-detects installed harnesses, registers this session in `.claude/workboard.md`, and opens a JSON-RPC socket. `stop()` cleans up the session and closes the socket.
+
+## Adapters
+
+### ClaudeCodeAdapter
+
+Adapter for Claude Code running in a terminal or Zed ACP session.
+
+```typescript
+import { ClaudeCodeAdapter } from '@revealui/harnesses'
+
+const adapter = new ClaudeCodeAdapter({
+  workboardPath: process.env.REVEALUI_WORKBOARD_PATH,
+})
+```
+
+**Actual capabilities:**
+
+| Capability | Supported |
+|-----------|-----------|
+| `applyEdit` | ✅ |
+| `readWorkboard` | ✅ (when `REVEALUI_WORKBOARD_PATH` is set) |
+| `writeWorkboard` | ✅ (when `REVEALUI_WORKBOARD_PATH` is set) |
+| `generateCode` | ❌ (delegates to the model) |
+| `analyzeCode` | ❌ (delegates to the model) |
+| `applyConfig` | ❌ |
+
+**Commands:**
+
+```typescript
+// Read the current workboard state
+await adapter.execute({ type: 'read-workboard' })
+
+// Update your session row
+await adapter.execute({
+  type: 'update-workboard',
+  sessionId: 'zed-1',
+  task: 'Add rate limiting to API routes',
+  files: ['apps/api/src/routes/auth.ts'],
+})
+
+// Get Claude Code status
+await adapter.execute({ type: 'get-status' })
+```
+
+### CopilotAdapter
+
+Adapter for GitHub Copilot. Capability detection only — Copilot does not expose a programmatic API for code generation.
+
+```typescript
+import { CopilotAdapter } from '@revealui/harnesses'
+const adapter = new CopilotAdapter()
+```
+
+## Workboard
+
+The workboard is a markdown file at `.claude/workboard.md` that tracks active sessions, claimed files, and recent events.
+
+```typescript
+import { WorkboardManager } from '@revealui/harnesses'
+
+const wb = new WorkboardManager('/path/to/.claude/workboard.md')
+
+// Read current state
+const state = await wb.readAsync()
+
+// Register a session
+wb.registerSession({
+  id: 'zed-1',
+  env: 'Zed/ACP',
+  started: new Date().toISOString().slice(0, 16) + 'Z',
+  task: 'Add OAuth flow',
+  files: '',
+  updated: new Date().toISOString().slice(0, 16) + 'Z',
+})
+
+// Claim file ownership (prevents conflicts with other sessions)
+wb.claimFiles('zed-1', ['apps/cms/src/lib/auth.ts'])
+
+// Check for conflicts before editing
+const result = wb.checkConflicts('zed-1', ['apps/cms/src/lib/auth.ts'])
+if (!result.clean) {
+  console.warn('File conflict:', result.conflicts)
+}
+
+// Release claims when done
+wb.releaseFiles('zed-1')
+
+// Detect stale sessions (inactive > 4h)
+const stale = wb.detectStale()
+```
+
+**Sync vs async:** `read()`/`write()` are sync (safe for CLI scripts); `readAsync()`/`writeAsync()` use `fs/promises` (preferred in server contexts).
+
+## JSON-RPC server
+
+`RpcServer` exposes harness operations over a Unix domain socket. The socket protocol is JSON-RPC 2.0 with newline-delimited messages.
+
+```typescript
+import { HarnessRegistry, RpcServer } from '@revealui/harnesses'
+
+const registry = new HarnessRegistry()
+registry.register('claude-code', new ClaudeCodeAdapter())
+
+const server = new RpcServer(registry, '/tmp/harness.sock')
+await server.start()
+```
+
+**Available methods:**
+
+| Method | Params | Returns |
+|--------|--------|---------|
+| `harness.list` | — | `HarnessInfo[]` |
+| `harness.info` | `{ harnessId }` | `HarnessInfo` |
+| `harness.execute` | `{ harnessId, command }` | `HarnessCommandResult` |
+| `harness.listRunning` | `{ harnessId }` | `HarnessProcessInfo[]` |
+| `harness.syncConfig` | `{ harnessId, direction }` | `ConfigSyncResult` |
+| `harness.diffConfig` | `{ harnessId }` | `ConfigDiffEntry` |
+
+**Example call:**
+
+```bash
+echo '{"jsonrpc":"2.0","id":1,"method":"harness.list","params":{}}' \
+  | nc -U /tmp/harness.sock
+```
+
+## Process detection
+
+```typescript
+import { findHarnessProcesses, autoDetectHarnesses } from '@revealui/harnesses'
+
+// Find running Claude Code processes
+const procs = await findHarnessProcesses('claude-code')
+// [{ pid: 12345, command: 'claude ...', harnessId: 'claude-code' }]
+
+// Auto-populate a registry from what's actually installed
+const registry = new HarnessRegistry()
+await autoDetectHarnesses(registry)
+```
+
+## Config sync
+
+Sync harness configuration between the local project and an external SSD/DevBox:
+
+```typescript
+import { syncConfig, diffConfig } from '@revealui/harnesses'
+
+// See what differs
+const diff = diffConfig('claude-code')
+// { harnessId, localExists, ssdExists, identical }
+
+// Pull config from SSD to local
+syncConfig('claude-code', 'pull')
+
+// Push local config to SSD
+syncConfig('claude-code', 'push')
+```
+
+---
+
+# @revealui/services
+
+Stripe payment processing and Supabase client integrations for RevealUI Pro.
+
+## Overview
+
+`@revealui/services` provides pre-wired Stripe and Supabase integrations with auth-aware clients, webhook handlers, and billing flow helpers.
+
+**Requires a Pro or Enterprise license** (`isFeatureEnabled('payments')`).
+
+## Stripe
+
+### Client
+
+```typescript
+import { protectedStripe, getStripe } from '@revealui/services'
+
+// Server-side: authenticated Stripe client (throws if STRIPE_SECRET_KEY missing)
+const stripe = protectedStripe()
+const customer = await stripe.customers.retrieve(customerId)
+
+// Client-side: load Stripe.js (lazy singleton)
+const stripe = await getStripe()
+const { error } = await stripe.redirectToCheckout({ sessionId })
+```
+
+### Billing handlers
+
+Pre-built Next.js route handlers for the complete billing flow:
+
+```typescript
+import {
+  createCheckoutSession,
+  createPortalLink,
+  updatePrice,
+  updateProduct,
+  webhooks,
+  createPaymentIntent,
+} from '@revealui/services'
+
+// apps/api/src/routes/billing.ts
+app.post('/checkout', createCheckoutSession)
+app.post('/portal',   createPortalLink)
+app.post('/webhooks/stripe', webhooks)
+```
+
+**`createCheckoutSession`** — Creates a Stripe Checkout session. Expects `{ priceId, userId, successUrl, cancelUrl }` in the request body.
+
+**`createPortalLink`** — Returns a Stripe Customer Portal URL for subscription management. Expects `{ customerId, returnUrl }`.
+
+**`webhooks`** — Handles `checkout.session.completed`, `customer.subscription.deleted`, and `customer.subscription.updated`. Verifies the Stripe webhook signature and updates the license record in the database.
+
+**`createPaymentIntent`** — Creates a PaymentIntent for one-time charges.
+
+### Webhook environment
+
+```bash
+STRIPE_SECRET_KEY=sk_live_...
+STRIPE_WEBHOOK_SECRET=whsec_...
+STRIPE_PRICE_ID=price_...       # Your Pro tier price
+```
+
+## Supabase
+
+### Server client (Next.js App Router)
+
+```typescript
+import { createServerClient } from '@revealui/services'
+import { cookies } from 'next/headers'
+
+// In a Server Component or Route Handler
+const supabase = createServerClient(cookies())
+const { data } = await supabase.from('profiles').select('*')
+```
+
+### Browser client
+
+```typescript
+import { createBrowserClient } from '@revealui/services'
+
+// In a Client Component
+const supabase = createBrowserClient()
+const { data: { session } } = await supabase.auth.getSession()
+```
+
+### Request client (Hono / Edge)
+
+```typescript
+import { createServerClientFromRequest } from '@revealui/services'
+
+// In a Hono handler
+app.get('/me', async (c) => {
+  const supabase = createServerClientFromRequest(c.req.raw)
+  const { data: { user } } = await supabase.auth.getUser()
+  return c.json({ user })
+})
+```
+
+### Resilience wrapper
+
+Wraps any Supabase operation with automatic retry on transient errors:
+
+```typescript
+import { withSupabaseResilience } from '@revealui/services'
+
+const data = await withSupabaseResilience(() =>
+  supabase.from('posts').select('*').limit(10)
+)
+```
+
+## Environment configuration
+
+```bash
+# Stripe
+STRIPE_SECRET_KEY=sk_live_...
+STRIPE_WEBHOOK_SECRET=whsec_...
+STRIPE_PUBLISHABLE_KEY=pk_live_...
+
+# Supabase (new API keys, recommended)
+SUPABASE_URL=https://xxx.supabase.co
+SUPABASE_PUBLISHABLE_KEY=sb_publishable_...
+SUPABASE_SECRET_KEY=sb_secret_...
+
+# Supabase (legacy JWT keys, deprecated Nov 2025)
+SUPABASE_ANON_KEY=eyJ...
+SUPABASE_SERVICE_ROLE_KEY=eyJ...
+```
