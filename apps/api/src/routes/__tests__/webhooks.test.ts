@@ -35,6 +35,7 @@ vi.mock('@revealui/core/features', () => ({
 
 vi.mock('@revealui/core/license', () => ({
   generateLicenseKey: vi.fn(),
+  resetLicenseState: vi.fn(),
 }))
 
 vi.mock('@revealui/core/observability/logger', () => ({
@@ -53,6 +54,7 @@ const mockDb = {
   select: vi.fn(),
   insert: vi.fn(),
   update: vi.fn(),
+  transaction: vi.fn(),
 }
 
 vi.mock('@revealui/db', () => ({
@@ -123,6 +125,10 @@ describe('POST /stripe webhook', () => {
     mockDb.select.mockReturnValue(mockDbSelectChain)
     mockDb.insert.mockReturnValue(mockDbInsertChain)
     mockDb.update.mockReturnValue(mockDbUpdateChain)
+    // transaction: execute callback immediately with the same mock db as `tx`
+    mockDb.transaction.mockImplementation(async (cb: (tx: typeof mockDb) => Promise<unknown>) =>
+      cb(mockDb),
+    )
 
     process.env.STRIPE_SECRET_KEY = 'sk_test_placeholder'
     process.env.STRIPE_WEBHOOK_SECRET = 'whsec_placeholder'
@@ -149,7 +155,7 @@ describe('POST /stripe webhook', () => {
       const res = await app.request(postStripe({}, 'bad-sig'))
       expect(res.status).toBe(400)
       const body = (await res.json()) as Record<string, unknown>
-      expect(body.error as string).toContain('Webhook signature verification failed')
+      expect(body.error as string).toContain('Invalid webhook signature')
     })
 
     it('returns 200 for irrelevant event types', async () => {
@@ -175,13 +181,16 @@ describe('POST /stripe webhook', () => {
 
       const app = createApp()
 
-      // First request — processes normally
+      // First request — processes normally (idempotency insert succeeds)
       const res1 = await app.request(postStripe(event))
       expect(res1.status).toBe(200)
       const body1 = (await res1.json()) as Record<string, unknown>
       expect(body1.duplicate).toBeUndefined()
 
-      // Second request with same event ID — deduplicated
+      // Second request with same event ID — idempotency insert throws unique constraint
+      mockDbInsertChain.values.mockRejectedValueOnce(
+        new Error('duplicate key value violates unique constraint "processed_webhook_events_pkey"'),
+      )
       const res2 = await app.request(postStripe(event))
       expect(res2.status).toBe(200)
       const body2 = (await res2.json()) as Record<string, unknown>
@@ -321,10 +330,11 @@ describe('POST /stripe webhook', () => {
       const app = createApp()
       const res = await app.request(postStripe(event))
       expect(res.status).toBe(200)
-      expect(mockDb.insert).not.toHaveBeenCalled()
+      // Only the idempotency insert fires — no license insert for non-subscription checkout
+      expect(mockDb.insert).toHaveBeenCalledTimes(1)
     })
 
-    it('logs error and skips when no user can be resolved', async () => {
+    it('logs error and returns 500 when no user can be resolved', async () => {
       // No userId in metadata and no user found in DB
       mockDbSelectChain.limit.mockResolvedValueOnce([])
 
@@ -345,8 +355,8 @@ describe('POST /stripe webhook', () => {
       const app = createApp()
       const res = await app.request(postStripe(event))
 
-      expect(res.status).toBe(200)
-      expect(mockDb.insert).not.toHaveBeenCalled()
+      // Handler throws when user can't be resolved so Stripe retries
+      expect(res.status).toBe(500)
       expect(vi.mocked(loggerModule.logger).error).toHaveBeenCalledWith(
         expect.stringContaining('Cannot resolve user'),
         undefined,
@@ -357,6 +367,8 @@ describe('POST /stripe webhook', () => {
     it('creates license with trialing status when subscription is in trial', async () => {
       const trialEnd = Math.floor(Date.now() / 1000) + 7 * 24 * 60 * 60 // +7 days
       mockSubscriptionsRetrieve.mockResolvedValueOnce({ status: 'trialing', trial_end: trialEnd })
+      // Transaction's inner user-existence check must find a matching user
+      mockDbSelectChain.limit.mockResolvedValueOnce([{ id: 'user_trial' }])
 
       const event = {
         id: 'evt_checkout_trial_1',
@@ -376,14 +388,17 @@ describe('POST /stripe webhook', () => {
       const res = await app.request(postStripe(event))
 
       expect(res.status).toBe(200)
-      expect(mockDb.insert).toHaveBeenCalledOnce()
-      const insertValues = mockDbInsertChain.values.mock.calls[0]?.[0] as Record<string, unknown>
+      // calls[0] = idempotency insert; calls[1] = license insert
+      expect(mockDb.insert).toHaveBeenCalledTimes(2)
+      const insertValues = mockDbInsertChain.values.mock.calls[1]?.[0] as Record<string, unknown>
       expect(insertValues.status).toBe('trialing')
       expect(insertValues.expiresAt).toBeInstanceOf(Date)
     })
 
     it('creates active license when subscription retrieve fails (graceful fallback)', async () => {
       mockSubscriptionsRetrieve.mockRejectedValueOnce(new Error('Stripe timeout'))
+      // Transaction's inner user-existence check must find a matching user
+      mockDbSelectChain.limit.mockResolvedValueOnce([{ id: 'user_abc' }])
 
       const event = {
         id: 'evt_checkout_retrieve_fail_1',
@@ -403,13 +418,16 @@ describe('POST /stripe webhook', () => {
       const res = await app.request(postStripe(event))
 
       expect(res.status).toBe(200)
-      expect(mockDb.insert).toHaveBeenCalledOnce()
-      const insertValues = mockDbInsertChain.values.mock.calls[0]?.[0] as Record<string, unknown>
+      expect(mockDb.insert).toHaveBeenCalledTimes(2)
+      const insertValues = mockDbInsertChain.values.mock.calls[1]?.[0] as Record<string, unknown>
       // Falls back to active when retrieve fails
       expect(insertValues.status).toBe('active')
     })
 
     it('creates license when userId is provided in metadata', async () => {
+      // Transaction's inner user-existence check must find a matching user
+      mockDbSelectChain.limit.mockResolvedValueOnce([{ id: 'user_abc' }])
+
       const event = {
         id: 'evt_checkout_success_2',
         type: 'checkout.session.completed',
@@ -429,8 +447,9 @@ describe('POST /stripe webhook', () => {
 
       expect(res.status).toBe(200)
       expect(licenseModule.generateLicenseKey).toHaveBeenCalledOnce()
-      expect(mockDb.insert).toHaveBeenCalledOnce()
-      const insertValues = mockDbInsertChain.values.mock.calls[0]?.[0] as Record<string, unknown>
+      // calls[0] = idempotency insert; calls[1] = license insert
+      expect(mockDb.insert).toHaveBeenCalledTimes(2)
+      const insertValues = mockDbInsertChain.values.mock.calls[1]?.[0] as Record<string, unknown>
       expect(insertValues.status).toBe('active')
       expect(insertValues.tier).toBe('pro')
       expect(insertValues.userId).toBe('user_abc')

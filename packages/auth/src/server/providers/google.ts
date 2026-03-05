@@ -35,7 +35,10 @@ export async function exchangeCode(code: string, redirectUri: string): Promise<s
     throw new Error(`Google token exchange failed: ${response.status}`)
   }
 
-  const data = (await response.json()) as { access_token: string }
+  const data = (await response.json()) as { access_token?: string }
+  if (!data.access_token || typeof data.access_token !== 'string') {
+    throw new Error('Google token exchange returned no access_token')
+  }
   return data.access_token
 }
 
