@@ -441,12 +441,12 @@ app.openapi(downgradeRoute, async (c) => {
   }
 
   // Cancel at period end so the customer retains access until their billing cycle ends
-  await stripe.subscriptions.update(subscription.id, {
+  const updated = await stripe.subscriptions.update(subscription.id, {
     cancel_at_period_end: true,
   })
 
   // cancel_at is populated by Stripe when cancel_at_period_end is set
-  const cancelAt = subscription.cancel_at
+  const cancelAt = updated.cancel_at
   const effectiveDate = cancelAt
     ? new Date(cancelAt * 1000).toISOString()
     : new Date().toISOString()
