@@ -5,17 +5,7 @@
 /**
  * Type-safe documentation section paths
  */
-export type DocSection =
-  | 'docs'
-  | 'guides'
-  | 'api'
-  | 'architecture'
-  | 'deployment'
-  | 'development'
-  | 'testing'
-  | 'security'
-  | 'ai'
-  | 'reference'
+export type DocSection = 'docs' | 'guides' | 'api'
 
 /**
  * Options for resolving documentation paths

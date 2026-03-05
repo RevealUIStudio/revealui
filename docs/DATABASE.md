@@ -1,2253 +1,1202 @@
-# RevealUI Database Documentation
+# Database Management Guide
 
-**Last Updated:** 2025-01-31
-**Supported Providers:** Neon, Supabase, Vercel Postgres
+This guide describes the database management scripts available in RevealUI and their usage across different development environments.
+
+**Last Updated:** 2026-01-31
 
 ---
 
 ## Table of Contents
 
 1. [Overview](#overview)
-2. [Quick Start](#quick-start)
-3. [Database Management Operations](#database-management-operations)
-   - [Available Commands](#available-commands)
-   - [Command Details](#command-details)
-   - [Environment Variables](#environment-variables)
-   - [Common Workflows](#common-workflows)
-4. [Provider Setup](#provider-setup)
-   - [Neon Database](#neon-database)
-   - [Supabase Database](#supabase-database)
-   - [Vercel Postgres](#vercel-postgres)
-5. [Database Types](#database-types)
-   - [Type Generation](#type-generation)
-   - [Type Structure](#type-structure)
-   - [Type Utilities](#type-utilities)
-   - [Usage Examples](#usage-examples)
-6. [Provider-Specific Features](#provider-specific-features)
-   - [ElectricSQL Setup](#electricsql-setup)
-   - [Supabase Networking](#supabase-networking)
-7. [Troubleshooting](#troubleshooting)
-8. [Best Practices](#best-practices)
-9. [Migrations](#migrations)
-   - [Switching Database Providers](#switching-database-providers)
-   - [Table Rename Migration](#table-rename-migration)
-10. [Related Documentation](#related-documentation)
+2. [Available Commands](#available-commands)
+3. [Command Details](#command-details)
+4. [Environment Variables](#environment-variables)
+5. [Environment-Specific Usage](#environment-specific-usage)
+6. [Database Locations](#database-locations)
+7. [Common Workflows](#common-workflows)
+8. [Troubleshooting](#troubleshooting)
+9. [Best Practices](#best-practices)
 
 ---
 
 ## Overview
 
-RevealUI uses a universal PostgreSQL adapter that automatically detects your provider and handles connection management. This guide covers setting up a RevealUI database using **Neon**, **Supabase**, or **Vercel Postgres**, as well as working with generated TypeScript types for full type safety.
+RevealUI provides a **unified interface** for database operations through pnpm scripts. These work consistently across all development environments (Nix, Dev Containers, Manual setup).
 
-### Why Fresh Database?
+## Available Commands
 
-- ✅ RevealUI automatically creates tables with correct names (`revealui_*` instead of legacy `payload_*`)
-- ✅ No migration complexity
-- ✅ Clean slate for new projects
-- ✅ Zero downtime approach
+### Core Database Commands
 
-### Key Features
+| Command | Description | File | Environment Variables Required |
+|---------|-------------|------|-------------------------------|
+| `pnpm db:init` | Initialize database connection and verify setup | `scripts/setup/database.ts` | `POSTGRES_URL`, `DATABASE_URL`, or `SUPABASE_DATABASE_URI` |
+| `pnpm db:migrate` | Run Drizzle migrations | `scripts/setup/migrations.ts` | `POSTGRES_URL` or `DATABASE_URL` |
+| `pnpm db:reset` | Drop all tables and recreate schema | `scripts/setup/reset-database.ts` | Same as init |
+| `pnpm db:seed` | Seed database with sample data | `scripts/setup/seed-sample-content.ts` | Same as init |
+| `pnpm db:backup` | Create JSON backup of all tables | `scripts/commands/database/backup.ts` | Same as init |
+| `pnpm db:restore` | Restore from backup file | `scripts/commands/database/restore.ts` | Same as init |
+| `pnpm db:status` | Check database connection and table count | `scripts/commands/database/status.ts` | Same as init |
+| `pnpm db:setup-test` | Setup test database | `scripts/dev-tools/test-database.ts` | Test-specific vars |
 
-- **Full type safety** for all database operations
-- **Autocomplete** for table names, columns, and relationships
-- **Type inference** for Row, Insert, and Update operations
-- **Universal adapter** - One adapter works with all three providers
-- **Auto-detection** - Provider detected automatically from connection string
-- **Feature parity** with Supabase's Database type
+## Command Details
 
----
+### `pnpm db:init`
 
-## Quick Start
+**Purpose:** Verify database connection and initialize RevealUI tables.
 
-**New to RevealUI?** Complete the [5-minute Quick Start Guide](./QUICK_START.md) first, then return here for database-specific configuration.
+**What it does:**
+1. Detects database provider (Neon, Supabase, Vercel, Generic)
+2. Tests connection with `SELECT NOW()` query
+3. Checks PostgreSQL version
+4. Verifies RevealUI system tables exist:
+   - `revealui_locked_documents`
+   - `revealui_locked_documents_rels`
+   - `revealui_preferences`
+   - `revealui_preferences_rels`
+   - `revealui_migrations`
+5. Lists all RevealUI tables found
 
-### 1. Choose Your Database Provider
+**Environment Variables (priority order):**
+- `DATABASE_URL` (primary)
+- `POSTGRES_URL` (fallback)
+- `SUPABASE_DATABASE_URI` (Supabase-specific)
 
-| Provider | Best For | Pricing | Connection Limit | Connection String Format |
-|----------|----------|---------|------------------|--------------------------|
-| **Neon** | Serverless, branching, edge functions | Free tier, pay-as-you-go | Auto-scaling | `postgresql://...@ep-xxx.neon.tech/...` |
-| **Supabase** | Full-featured backend, auth included | Free tier, fixed plans | Connection pooling | `postgresql://...@xxx.supabase.co/...` |
-| **Vercel Postgres** | Vercel deployments, seamless integration | Free tier, fixed plans | Managed by Vercel | `postgres://...` (auto-configured) |
-
-**Note:** Vercel Postgres is deprecated. Prefer Neon for new projects.
-
-### 2. Set Environment Variable
-
-```bash
-# .env.local
-DATABASE_URL=your_connection_string_here
-
-# Or use provider-specific variable names
-POSTGRES_URL=... # Neon/Vercel
-SUPABASE_DATABASE_URI=... # Supabase
-```
-
-### 3. Update RevealUI Config
-
-RevealUI uses a **universal PostgreSQL adapter** that automatically detects your provider:
-
-```typescript
-// apps/cms/revealui.config.ts
-import { universalPostgresAdapter } from '@revealui/core/database'
-
-export default buildConfig({
-  db: universalPostgresAdapter({
-    // Auto-detected from DATABASE_URL, POSTGRES_URL, or SUPABASE_DATABASE_URI
-    // Or explicitly set:
-    connectionString: process.env.DATABASE_URL,
-    provider: 'neon', // Optional: 'neon' | 'supabase' | 'vercel'
-  }),
-  // ... rest of config
-})
-```
-
-### 4. Initialize Database
-
-```bash
-# Verify connection and check tables
-pnpm db:init
-
-# Start development server (tables created automatically)
-pnpm dev
-
-
----
-
-## Database Management Operations
-
-RevealUI provides a unified interface for database operations through pnpm scripts. These work consistently across all development environments (Nix, Dev Containers, Manual setup).
-
-For complete operational documentation, see [DATABASE_MANAGEMENT.md](./DATABASE_MANAGEMENT.md).
-
-### Available Commands
-
-#### Core Database Commands
-
-| Command | Description | Usage |
-|---------|-------------|-------|
-| `pnpm db:init` | Initialize database connection and verify setup | First-time setup, verify connection |
-| `pnpm db:migrate` | Run Drizzle migrations | Apply schema changes |
-| `pnpm db:reset` | Drop all tables and recreate schema | Reset to clean state |
-| `pnpm db:seed` | Seed database with sample data | Add test content |
-| `pnpm db:backup` | Create JSON backup of all tables | Before major changes |
-| `pnpm db:restore` | Restore from backup file | Recover from backup |
-| `pnpm db:status` | Check database connection and table count | Health check |
-| `pnpm db:setup-test` | Setup test database | Test environment |
-
-→ **See [DATABASE_MANAGEMENT.md](./DATABASE_MANAGEMENT.md#command-details)** for detailed command documentation, environment variables, and workflows.
-
-### Quick Command Examples
-
+**Usage:**
 ```bash
 # First-time setup
-pnpm db:init              # Initialize connection
-pnpm db:migrate           # Run migrations
-pnpm db:seed              # Seed sample data
-
-# Daily operations
-pnpm db:status            # Check status
-pnpm db:backup            # Create backup
-pnpm db:reset --confirm   # Reset database
-
-# Troubleshooting
-pnpm db:reset --confirm --no-backup  # Quick reset
-```
-
-### Environment Variables Required
-
-Database commands require one of these environment variables:
-- `POSTGRES_URL` (Neon, Vercel)
-- `DATABASE_URL` (Generic PostgreSQL)
-- `SUPABASE_DATABASE_URI` (Supabase)
-
-See [Environment Variables Guide](./ENVIRONMENT_VARIABLES_GUIDE.md#database-1-required) for detailed database configuration.
-
----
-
-# Visit admin panel
-# http://localhost:4000/admin
-```
-
----
-
-## Provider Setup
-
-### Neon Database
-
-#### Step 1: Create Neon Database
-
-1. Sign up at [neon.tech](https://neon.tech)
-2. Create a new project
-3. Copy your connection string:
-   ```
-   postgresql://user:password@ep-xxx.us-east-1.aws.neon.tech/neondb?sslmode=require
-   ```
-
-#### Step 2: Configure Environment
-
-```bash
-# .env.local or .env.production
-DATABASE_URL=postgresql://user:password@ep-xxx.us-east-1.aws.neon.tech/neondb?sslmode=require
-```
-
-Or explicitly:
-```bash
-POSTGRES_URL=postgresql://user:password@ep-xxx.us-east-1.aws.neon.tech/neondb?sslmode=require
-```
-
-#### Step 3: Install Dependencies
-
-Neon uses `@neondatabase/serverless` (already included if using `@revealui/db`):
-
-```bash
-pnpm add @neondatabase/serverless
-```
-
-#### Step 4: Update RevealUI Config
-
-```typescript
-// apps/cms/revealui.config.ts
-import { universalPostgresAdapter } from '@revealui/core/database'
-
-export default buildConfig({
-  db: universalPostgresAdapter({
-    provider: 'neon', // Optional: auto-detected from connection string
-  }),
-  // ... rest of config
-})
-```
-
-#### Step 5: Initialize Database
-
-```bash
-# Start development server
-pnpm dev
-
-# Or run initialization script
 pnpm db:init
+
+# Check what gets initialized
+# (Safe to run multiple times - idempotent)
 ```
 
-RevealUI will automatically create tables on first run.
+**Exit codes:**
+- `0` - Success
+- `1` - Configuration error (no connection string)
+- `2` - Execution error (connection failed)
 
----
+### `pnpm db:migrate`
 
-### Supabase Database
+**Purpose:** Run Drizzle schema migrations to update database structure.
 
-#### Step 1: Create Supabase Project
+**What it does:**
+1. Checks for `POSTGRES_URL` or `DATABASE_URL`
+2. Generates new migrations if schema changed (`pnpm db:generate`)
+3. Pushes schema changes to database (`pnpm db:push`)
+4. Verifies migration success:
+   - Checks `node_id_mappings` table exists
+   - Checks `embedding_metadata` column in `agent_memories`
 
-1. Sign up at [supabase.com](https://supabase.com)
-2. Create a new project
-3. Go to **Settings** → **Database**
-4. Copy your connection string (use **Session mode** for serverless):
-   ```
-   postgresql://postgres:password@xxx.supabase.co:5432/postgres
-   ```
+**Interactive:** Yes (prompts before modifying database)
 
-#### Step 2: Configure Environment
+**Usage:**
+```bash
+# Run migrations interactively
+pnpm db:migrate
+
+# In CI (auto-confirm)
+CI=true pnpm db:migrate
+```
+
+**Safety:**
+- Shows warning before modifying database
+- Requires confirmation unless in CI
+- Uses transactions (rollback on error)
+
+### `pnpm db:reset`
+
+**Purpose:** Complete database reset (drop all tables, recreate schema).
+
+**What it does:**
+1. Validates database connections
+2. Creates backup (unless `--no-backup`)
+3. Drops all tables and custom types (enums)
+4. Runs migrations to recreate schema
+5. Optionally seeds sample data (`--seed`)
+
+**Flags:**
+- `--confirm` / `-y` - Skip confirmation prompt
+- `--no-backup` - Skip backup creation
+- `--seed` - Seed sample data after reset
+- `--database=rest` - Reset only REST database (Neon)
+- `--database=vector` - Reset only Vector database (Supabase)
+- `--force` - Allow in CI environment
+
+**Safety Features:**
+- **Interactive confirmation** (unless `--confirm`)
+- **Automatic backups** to `.revealui/backups/` (unless `--no-backup`)
+- **Transaction support** (rollback on error)
+- **CI protection** (requires `--force` in CI)
+- **Keeps last 5 backups** (auto-cleanup)
+
+**Usage:**
+```bash
+# Interactive reset (safest)
+pnpm db:reset
+
+# Quick reset with backup
+pnpm db:reset --confirm
+
+# Reset without backup (faster)
+pnpm db:reset --confirm --no-backup
+
+# Reset and seed sample data
+pnpm db:reset --seed
+
+# Reset only REST database
+pnpm db:reset --database=rest
+```
+
+**Backup location:**
+```
+.revealui/backups/db-backup-2026-01-30T12-34-56.json
+```
+
+### `pnpm db:seed`
+
+**Purpose:** Populate database with sample content for development.
+
+**What it does:**
+- Seeds sample users, posts, pages, media, etc.
+- Creates test data for all collections
+- Uses realistic sample content
+
+**Usage:**
+```bash
+# Seed database
+pnpm db:seed
+
+# Often combined with reset
+pnpm db:reset --seed
+```
+
+### `pnpm db:backup`
+
+**Purpose:** Create JSON backup of all database tables.
+
+**What it does:**
+1. Connects to database
+2. Exports all tables to JSON format
+3. Saves to `.revealui/backups/` directory
+4. Cleans up old backups (keeps last 5)
+
+**Usage:**
+```bash
+# Create backup
+pnpm db:backup
+
+# Backups saved to:
+# .revealui/backups/db-backup-<timestamp>.json
+```
+
+### `pnpm db:restore`
+
+**Purpose:** Restore database from backup file.
+
+**Usage:**
+```bash
+# Restore from specific backup
+pnpm db:restore .revealui/backups/db-backup-2026-01-30T12-34-56.json
+```
+
+### `pnpm db:status`
+
+**Purpose:** Check database connection and current state.
+
+**What it does:**
+- Tests database connection
+- Shows PostgreSQL version
+- Lists table count
+- Shows database provider (Neon, Supabase, etc.)
+
+**Usage:**
+```bash
+# Quick health check
+pnpm db:status
+```
+
+## Environment Variables
+
+### Required Variables
+
+**Primary:** (at least one required)
+- `DATABASE_URL` - PostgreSQL connection string
+- `POSTGRES_URL` - Alternative name (Neon convention)
+- `SUPABASE_DATABASE_URI` - Supabase-specific
+
+**Format:**
+```bash
+# Standard PostgreSQL
+postgresql://user:password@host:port/database
+
+# Neon (serverless)
+postgresql://user:password@host.neon.tech/database?sslmode=require
+
+# Supabase (connection pooling)
+postgresql://postgres:password@db.project.supabase.co:5432/postgres
+```
+
+### Optional Variables
+
+- `NODE_ENV` - Affects logging level (`development`, `production`, `test`)
+- `CI` - Skips interactive prompts when set to `true`
+
+## Environment-Specific Usage
+
+### Pure Nix Environment
+
+**Server control** (Nix-specific helpers):
+```bash
+db-init     # Initialize PostgreSQL data directory
+db-start    # Start PostgreSQL server
+db-stop     # Stop PostgreSQL server
+db-status   # Check if server running
+db-reset    # Delete data directory and reinitialize
+db-psql     # Connect with psql client
+```
+
+**Application-level** (use pnpm scripts):
+```bash
+pnpm db:init      # Verify connection, check tables
+pnpm db:migrate   # Run schema migrations
+pnpm db:seed      # Seed sample data
+pnpm db:reset     # Reset database
+```
+
+**Typical workflow:**
+```bash
+# 1. Start PostgreSQL (Nix helper)
+db-start
+
+# 2. Initialize database (pnpm script)
+pnpm db:init
+
+# 3. Run migrations (pnpm script)
+pnpm db:migrate
+
+# 4. Seed data (pnpm script)
+pnpm db:seed
+```
+
+### Dev Containers
+
+**Server control** (Docker Compose):
+```bash
+# PostgreSQL runs automatically in container
+# No manual start/stop needed
+
+# If needed:
+docker-compose restart db
+docker-compose logs db
+```
+
+**Application-level** (use pnpm scripts):
+```bash
+pnpm db:init      # Same as Nix
+pnpm db:migrate   # Same as Nix
+pnpm db:seed      # Same as Nix
+pnpm db:reset     # Same as Nix
+```
+
+**Connection string:**
+```bash
+# In Dev Container, database host is "db" (service name)
+DATABASE_URL=postgresql://postgres@db:5432/revealui
+```
+
+### Manual Setup
+
+**Server control** (OS-specific):
+```bash
+# macOS (Homebrew)
+brew services start postgresql@16
+brew services stop postgresql@16
+
+# Linux (systemd)
+sudo systemctl start postgresql
+sudo systemctl stop postgresql
+
+# Windows (manual)
+pg_ctl -D "C:\Program Files\PostgreSQL\16\data" start
+pg_ctl -D "C:\Program Files\PostgreSQL\16\data" stop
+```
+
+**Application-level** (use pnpm scripts):
+```bash
+pnpm db:init      # Same as other environments
+pnpm db:migrate   # Same as other environments
+pnpm db:seed      # Same as other environments
+pnpm db:reset     # Same as other environments
+```
+
+## Database Locations
+
+### Local Development
+
+| Environment | PostgreSQL Data Directory | Gitignored? |
+|-------------|---------------------------|-------------|
+| **Nix** | `.pgdata/` | ✅ Yes |
+| **Dev Containers** | Docker volume (unnamed) | N/A (container) |
+| **Manual** | System-dependent | N/A (outside project) |
+
+**Backups** (all environments):
+- Directory: `.revealui/backups/`
+- Format: `db-backup-<timestamp>.json`
+- Retention: Last 5 backups kept
+- Gitignored: ✅ Yes (via `.revealui/`)
+
+## Common Workflows
+
+### First-Time Setup
 
 ```bash
-# .env.local
-DATABASE_URL=postgresql://postgres:password@xxx.supabase.co:5432/postgres
-```
+# 1. Ensure PostgreSQL is running
+# (Nix: db-start, Docker: automatic, Manual: OS-specific)
 
-Or use Supabase-specific variable:
-```bash
-SUPABASE_DATABASE_URI=postgresql://postgres:password@xxx.supabase.co:5432/postgres
-```
+# 2. Initialize database
+pnpm db:init
 
-#### Step 3: Configure IP Allowlist
+# 3. Run migrations
+pnpm db:migrate
 
-**Important:** Supabase requires IP allowlist configuration for external connections.
+# 4. (Optional) Seed sample data
+pnpm db:seed
 
-1. Go to **Project Settings** → **Database** → **Network**
-2. Add your development machine's IP address
-3. For production, add your server's IP or use connection pooling
-
-**For serverless deployments:**
-- Use Supabase's connection pooling (port 6543)
-- Enable **Session mode** for better compatibility
-
-#### Step 4: Install Dependencies
-
-```bash
-pnpm add pg @types/pg
-```
-
-#### Step 5: Update RevealUI Config
-
-```typescript
-// apps/cms/revealui.config.ts
-import { universalPostgresAdapter } from '@revealui/core/database'
-
-export default buildConfig({
-  db: universalPostgresAdapter({
-    provider: 'supabase', // Optional: auto-detected
-  }),
-  // ... rest of config
-})
-```
-
-#### Step 6: Initialize Database
-
-```bash
+# 5. Start development
 pnpm dev
 ```
 
-Tables will be created automatically.
-
----
-
-### Vercel Postgres
-
-**Note:** Vercel Postgres is deprecated. Use Neon for new projects.
-
-#### Step 1: Create Vercel Postgres Database
-
-1. Go to your Vercel project
-2. Navigate to **Storage** tab
-3. Create a new Postgres database
-4. Copy connection string
-
-#### Step 2: Configure Environment
-
-Vercel automatically sets environment variables:
-- `POSTGRES_URL` - Connection string
-- `POSTGRES_PRISMA_URL` - Prisma-specific URL
-- `POSTGRES_URL_NON_POOLING` - Direct connection URL
-
-For local development:
-```bash
-# .env.local
-DATABASE_URL=$POSTGRES_URL
-```
-
-#### Step 3: Install Dependencies
+### Reset to Clean State
 
 ```bash
-pnpm add @neondatabase/serverless pg
+# Interactive (safest)
+pnpm db:reset
+
+# Quick reset (no prompts, with backup)
+pnpm db:reset --confirm
+
+# Full reset with sample data
+pnpm db:reset --confirm --seed
 ```
 
-Note: Vercel Postgres uses Neon under the hood, so we use `@neondatabase/serverless`.
-
-#### Step 4: Update RevealUI Config
-
-```typescript
-// apps/cms/revealui.config.ts
-import { universalPostgresAdapter } from '@revealui/core/database'
-
-export default buildConfig({
-  db: universalPostgresAdapter({
-    provider: 'vercel', // Or let it auto-detect
-  }),
-  // ... rest of config
-})
-```
-
-#### Step 5: Initialize Database
+### Before Testing
 
 ```bash
+# Reset database to known state
+pnpm db:reset --confirm --no-backup
+
+# Run tests
+pnpm test
+```
+
+### Before Deployment
+
+```bash
+# Backup production-like data
+pnpm db:backup
+
+# Verify migrations work
+pnpm db:migrate
+
+# Test with production-like data
 pnpm dev
 ```
-
----
-
-## Database Types
-
-### Type Generation
-
-RevealUI generates TypeScript types from Drizzle ORM schemas, creating a centralized `Database` type that matches Supabase's structure.
-
-#### Generating Types
-
-Generate types from Drizzle schemas:
-
-```bash
-# Generate types in @revealui/db package
-pnpm --filter @revealui/db generate:types
-
-# Or use the root script (generates and copies to generated package)
-pnpm generate:neon-types
-```
-
-#### What Gets Generated
-
-The generator creates `packages/db/src/types/database.ts` with:
-
-1. **Individual table types**: `UsersRow`, `UsersInsert`, `UsersUpdate`, etc.
-2. **Centralized Database type**: Matching Supabase structure
-3. **Type utilities**: `TableRow`, `TableInsert`, `TableUpdate`, etc.
-4. **Relationships**: Foreign key relationships for each table
-5. **Enums**: Database enum types (when defined)
-
-**Note**: Types are automatically copied to `packages/core/src/core/generated/types/neon.ts` when using `pnpm generate:neon-types`.
-
-#### When to Regenerate
-
-Regenerate types when:
-
-- ✅ Adding new tables to Drizzle schemas
-- ✅ Modifying table structures (columns, types)
-- ✅ Adding or changing relationships
-- ✅ Before deploying to production
-- ✅ After database migrations
-
----
-
-### Type Structure
-
-The `Database` type matches Supabase's structure for feature parity:
-
-```typescript
-type Database = {
-  public: {
-    Tables: {
-      [tableName]: {
-        Row: InferredSelectType
-        Insert: InferredInsertType
-        Update: Partial<InferredInsertType>
-        Relationships: RelationType[]
-      }
-    }
-    Enums: {
-      [enumName]: string
-    }
-  }
-}
-```
-
-#### Row Type
-
-The `Row` type represents data returned from SELECT queries:
-
-```typescript
-import type { Database } from '@revealui/db/types'
-
-type User = Database['public']['Tables']['users']['Row']
-// User has all columns from users table with their actual types
-```
-
-#### Insert Type
-
-The `Insert` type represents data for INSERT operations:
-
-```typescript
-import type { Database } from '@revealui/db/types'
-
-type NewUser = Database['public']['Tables']['users']['Insert']
-// NewUser has all columns, with optional fields for defaults/auto-generated
-```
-
-#### Update Type
-
-The `Update` type represents data for UPDATE operations:
-
-```typescript
-import type { Database } from '@revealui/db/types'
-
-type UserUpdate = Database['public']['Tables']['users']['Update']
-// UserUpdate has all columns as optional (Partial<Insert>)
-```
-
-#### Relationships
-
-The `Relationships` array contains foreign key relationships:
-
-```typescript
-import type { Database } from '@revealui/db/types'
-
-type UserRelationships = Database['public']['Tables']['users']['Relationships']
-// Array of relationship definitions with foreignKeyName, columns, etc.
-```
-
----
-
-### Type Utilities
-
-#### TableRow
-
-Extract Row type for a table:
-
-```typescript
-import type { TableRow } from '@revealui/db/types'
-
-type User = TableRow<'users'>
-// Equivalent to: Database['public']['Tables']['users']['Row']
-```
-
-#### TableInsert
-
-Extract Insert type for a table:
-
-```typescript
-import type { TableInsert } from '@revealui/db/types'
-
-type NewUser = TableInsert<'users'>
-// Equivalent to: Database['public']['Tables']['users']['Insert']
-```
-
-#### TableUpdate
-
-Extract Update type for a table:
-
-```typescript
-import type { TableUpdate } from '@revealui/db/types'
-
-type UserUpdate = TableUpdate<'users'>
-// Equivalent to: Database['public']['Tables']['users']['Update']
-```
-
-#### TableRelationships
-
-Extract Relationships for a table:
-
-```typescript
-import type { TableRelationships } from '@revealui/db/types'
-
-type UserRelationships = TableRelationships<'users'>
-// Equivalent to: Database['public']['Tables']['users']['Relationships']
-```
-
----
-
-### Usage Examples
-
-#### Importing the Database Type
-
-```typescript
-import type { Database } from '@revealui/db/types'
-
-// Or from the core package (merged from @revealui/generated)
-import type { Database } from '@revealui/core/generated/types/neon'
-```
-
-#### Query Operations
-
-```typescript
-import { getClient } from '@revealui/db/client'
-import type { Database } from '@revealui/db/types'
-import { users } from '@revealui/db/core'
-
-const db = getClient()
-
-// Find many - returns Row[]
-const allUsers: Database['public']['Tables']['users']['Row'][] =
-  await db.query.users.findMany()
-
-// Find first - returns Row | undefined
-const user: Database['public']['Tables']['users']['Row'] | undefined =
-  await db.query.users.findFirst()
-```
-
-#### Insert Operations
-
-```typescript
-import { getClient } from '@revealui/db/client'
-import type { Database } from '@revealui/db/types'
-import { users } from '@revealui/db/core'
-
-const db = getClient()
-
-// Type-safe insert
-const newUser: Database['public']['Tables']['users']['Insert'] = {
-  id: 'user-123',
-  email: 'user@example.com',
-  name: 'Test User',
-  // Optional fields can be omitted (they have defaults)
-}
-
-const [inserted] = await db.insert(users).values(newUser).returning()
-// inserted is typed as Row
-```
-
-#### Update Operations
-
-```typescript
-import { getClient } from '@revealui/db/client'
-import type { Database } from '@revealui/db/types'
-import { users } from '@revealui/db/core'
-import { eq } from 'drizzle-orm'
-
-const db = getClient()
-
-// Type-safe update
-const updateData: Database['public']['Tables']['users']['Update'] = {
-  name: 'Updated Name',
-  // Only include fields to update
-}
-
-const [updated] = await db
-  .update(users)
-  .set(updateData)
-  .where(eq(users.id, 'user-123'))
-  .returning()
-// updated is typed as Row
-```
-
-#### Working with Enums
-
-When enums are defined in the database schema, they're included in the `Enums` type:
-
-```typescript
-import type { Database } from '@revealui/db/types'
-
-// Access enum values
-type StatusEnum = Database['public']['Enums']['status_enum']
-// StatusEnum is a union of string literals
-```
-
----
-
-## Provider-Specific Features
-
-### ElectricSQL Setup
-
-ElectricSQL Electrification Migrations enable tables to be synchronized to client applications.
-
-**What is Electrification?**
-- Enables tables to be synchronized to client applications
-- Each table needs to be explicitly electrified with appropriate sync rules
-- Should be run via ElectricSQL CLI or service after setting up the service
-
-#### Electrification Commands
-
-```sql
--- Electrify agent_contexts table
--- Syncs contexts filtered by agent_id and optional session_id
-ALTER TABLE agent_contexts ENABLE ELECTRIC;
-
--- Electrify agent_memories table
--- Syncs memories filtered by agent_id and optional site_id
-ALTER TABLE agent_memories ENABLE ELECTRIC;
-
--- Electrify conversations table
--- Syncs conversations filtered by user_id and optional agent_id
-ALTER TABLE conversations ENABLE ELECTRIC;
-
--- Electrify agent_actions table
--- Syncs actions filtered by agent_id and optional conversation_id
-ALTER TABLE agent_actions ENABLE ELECTRIC;
-```
-
-#### Row Level Security (RLS) Policies
-
-Row Level Security policies should be configured in PostgreSQL to enforce data filtering at the database level. The sync shapes in the client code work in conjunction with RLS policies to ensure only authorized data is synced.
-
-**Example RLS policies** (should be created in your database migrations):
-
-```sql
--- Agent contexts policy
-CREATE POLICY sync_agent_contexts_policy ON agent_contexts
-  FOR SELECT
-  USING (
-    agent_id = current_setting('app.agent_id', true)::text
-    AND (
-      session_id = current_setting('app.session_id', true)::text
-      OR current_setting('app.session_id', true) IS NULL
-    )
-  );
-
--- Agent memories policy
-CREATE POLICY sync_agent_memories_policy ON agent_memories
-  FOR SELECT
-  USING (
-    agent_id = current_setting('app.agent_id', true)::text
-    AND (
-      site_id = current_setting('app.site_id', true)::text
-      OR current_setting('app.site_id', true) IS NULL
-    )
-  );
-
--- Conversations policy
-CREATE POLICY sync_conversations_policy ON conversations
-  FOR SELECT
-  USING (
-    user_id = current_setting('app.user_id', true)::text
-    AND (
-      agent_id = current_setting('app.agent_id', true)::text
-      OR current_setting('app.agent_id', true) IS NULL
-    )
-  );
-
--- Agent actions policy
-CREATE POLICY sync_agent_actions_policy ON agent_actions
-  FOR SELECT
-  USING (
-    agent_id = current_setting('app.agent_id', true)::text
-    AND (
-      conversation_id = current_setting('app.conversation_id', true)::text
-      OR current_setting('app.conversation_id', true) IS NULL
-    )
-  );
-```
-
----
-
-### Supabase Networking
-
-#### IPv4/IPv6 Compatibility
-
-Supabase databases use **IPv6 addresses by default**. This section explains what this means and when you might need the IPv4 add-on.
-
-**Understanding the Protocols:**
-- **IPv6**: Modern internet protocol (most modern networks support it)
-- **IPv4**: Older internet protocol (still widely used, especially in corporate networks)
-
-#### Do You Need the IPv4 Add-On?
-
-**✅ You Probably DON'T Need It If:**
-
-1. You're on a modern network (most home/office networks support IPv6)
-2. Your development environment works (if connections are working, you're fine)
-3. You're using Supabase's Session Pooler (which handles IPv4/IPv6 automatically)
-
-**⚠️ You MIGHT Need It If:**
-
-1. You're on a corporate network that blocks IPv6
-2. You're getting connection errors when trying to connect
-3. You're deploying to a server that only supports IPv4
-4. You're using direct database connections (not Session Pooler)
-
-#### Session Pooler (Recommended)
-
-**Session Pooler** is Supabase's connection pooling service that:
-- ✅ Handles IPv4/IPv6 compatibility automatically
-- ✅ Provides better connection management
-- ✅ Is **free** to use
-- ✅ Uses a different connection string format
-
-**Standard connection string:**
-```
-postgresql://postgres:password@db.xxx.supabase.co:5432/postgres
-```
-
-**Session Pooler connection string:**
-```
-postgresql://postgres:password@db.xxx.supabase.co:6543/postgres
-```
-
-Notice: Port **6543** instead of **5432** (this is the Session Pooler port)
-
-#### Cost Comparison
-
-- **Session Pooler**: ✅ **FREE** (recommended)
-- **IPv4 Add-On**: 💰 **~$4/month** (only if needed)
-
-#### Recommendation
-
-**For most users**: You don't need the IPv4 add-on. The Supabase client library works with both IPv4 and IPv6 automatically.
-
-**Only enable IPv4 add-on if:**
-- You're getting actual connection errors
-- You're on a network that blocks IPv6
-- You need direct PostgreSQL connections
-
----
 
 ## Troubleshooting
 
-### Connection Issues
-
-**Problem:** Cannot connect to database
-
-**Solutions:**
-- Check connection string format
-- Verify IP allowlist (for Supabase)
-- Ensure SSL is enabled: `?sslmode=require`
-- Check database permissions
-- Verify network connectivity
-
-### Tables Not Created
-
-**Problem:** RevealUI doesn't create tables automatically
-
-**Solutions:**
-- Check database permissions (user must have CREATE TABLE permission)
-- Verify RevealUI config loads correctly
-- Check application logs for errors
-- Try running `pnpm db:init` manually
-
-### Wrong Provider Detected
-
-**Problem:** Universal adapter detects wrong provider
+### "No database connection string found"
 
 **Solution:**
-Explicitly set provider in config:
-```typescript
-db: universalPostgresAdapter({
-  provider: 'neon', // Force specific provider
-})
+```bash
+# Check environment variables
+echo $DATABASE_URL
+echo $POSTGRES_URL
+
+# Create .env.development.local if missing
+cp .env.template .env.development.local
+
+# Edit with your database URL
+code .env.development.local
 ```
 
-### Connection Pool Exhausted
+### "Connection refused" or "Connection timeout"
 
-**Problem:** "Too many connections" error
+**Nix:**
+```bash
+# Check if PostgreSQL is running
+db-status
 
-**Solutions:**
-- Use connection pooling (Supabase port 6543)
-- Reduce concurrent connections
-- Use Neon's auto-scaling connections
-- Configure connection limits in adapter
+# Start if not running
+db-start
 
-### SSL/TLS Errors
+# Check logs
+cat .pgdata/logfile
+```
 
-**Problem:** SSL connection errors
+**Dev Containers:**
+```bash
+# Check database container
+docker-compose ps
+
+# View logs
+docker-compose logs db
+
+# Restart if needed
+docker-compose restart db
+```
+
+**Manual:**
+```bash
+# Check if PostgreSQL is running
+# macOS:
+brew services list
+
+# Linux:
+sudo systemctl status postgresql
+
+# Windows:
+pg_ctl status -D "C:\Program Files\PostgreSQL\16\data"
+```
+
+### "Permission denied" on tables
+
+**Cause:** User doesn't have permissions on tables
 
 **Solution:**
-Add SSL parameters to connection string:
-```
-postgresql://...?sslmode=require
-```
-
-For Neon:
-```
-postgresql://...?sslmode=require&sslrootcert=/path/to/cert.pem
+```bash
+# Reset database with proper permissions
+pnpm db:reset --confirm
 ```
 
-### Types Not Updating
+### "Database already exists" during migration
 
-**Problem:** Changes to schemas not reflected in generated types.
+**Cause:** Migrations already applied
 
 **Solution:**
-1. Ensure you've saved all schema files
-2. Run `pnpm --filter @revealui/db generate:types`
-3. Check that `packages/db/src/types/database.ts` was updated
-4. Restart TypeScript server in your IDE
+```bash
+# Check migration status
+pnpm db:status
 
-### Missing Tables
+# If needed, reset and migrate
+pnpm db:reset --confirm
+pnpm db:migrate
+```
 
-**Problem:** Some tables not appearing in Database type.
-
-**Solution:**
-1. Verify table is exported from `packages/db/src/core/index.ts`
-2. Check table name matches database table name (snake_case)
-3. Regenerate types: `pnpm generate:neon-types`
-
-### Import Errors
-
-**Problem:** Cannot import Database type.
+### Backup restoration fails
 
 **Solution:**
-1. Ensure `@revealui/db` package is built: `pnpm --filter @revealui/db build`
-2. Check import path: `@revealui/db/types` or `@revealui/core/generated/types/neon`
-3. Verify types are exported in `packages/db/src/types/index.ts`
+```bash
+# Reset database first
+pnpm db:reset --confirm --no-backup
 
----
+# Then restore
+pnpm db:restore .revealui/backups/db-backup-<timestamp>.json
+```
 
 ## Best Practices
 
-### Type Safety
+### DO ✅
 
-#### Use Type Utilities
-
-Prefer type utilities over manual extraction:
-
-```typescript
-// ✅ Good - concise and readable
-import type { TableRow } from '@revealui/db/types'
-type User = TableRow<'users'>
-
-// ❌ Less readable - but functionally equivalent
-type User = Database['public']['Tables']['users']['Row']
+**Use pnpm scripts** for consistency across environments
+```bash
+pnpm db:init      # ✅ Works everywhere
+pnpm db:migrate   # ✅ Works everywhere
 ```
 
-#### Type-Safe Inserts
-
-Always type your insert data:
-
-```typescript
-// ✅ Good - type-safe
-const newUser: Database['public']['Tables']['users']['Insert'] = {
-  id: 'user-123',
-  name: 'User',
-}
-
-// ❌ Bad - no type safety
-const newUser = {
-  id: 'user-123',
-  name: 'User',
-}
+**Back up before destructive operations**
+```bash
+pnpm db:backup
+pnpm db:reset
 ```
 
-#### Use Drizzle's Native API
-
-Drizzle provides excellent type safety out of the box:
-
-```typescript
-// ✅ Good - Drizzle's native API is fully type-safe
-const users = await db.query.users.findMany()
-
-// ❌ Avoid - loses type safety
-const users = await db.execute(sql`SELECT * FROM users`)
+**Test migrations before deployment**
+```bash
+pnpm db:backup
+pnpm db:migrate
+# Test thoroughly
+pnpm db:restore backup.json  # If issues found
 ```
 
-### Type Generation
-
-- **After schema changes**: Run `pnpm generate:neon-types`
-- **Before deployment**: Ensure types match production schema
-- **Commit generated files**: Include `database.ts` in version control
-
-### Validation
-
-Use contracts to validate database data:
-
-```typescript
-import { dbRowToContract } from '@revealui/contracts/database'
-import { UserSchema } from '@revealui/contracts'
-
-const dbUser = await db.query.users.findFirst()
-const validatedUser = dbRowToContract(UserSchema, dbUser)
-```
-
----
-
-## What Gets Created Automatically
-
-When RevealUI starts, it automatically creates:
-
-### System Tables
-
-- ✅ `revealui_locked_documents` - Document locking for concurrent editing
-- ✅ `revealui_locked_documents_rels` - Relationship junctions
-- ✅ `revealui_preferences` - User/system preferences
-- ✅ `revealui_preferences_rels` - Preference relationships
-- ✅ `revealui_migrations` - Migration tracking
-
-### Collection Tables
-
-- ✅ One table per collection in your config
-- ✅ Junction tables (`*_rels`) for relationships
-- ✅ All with correct `revealui_*` naming (not legacy `payload_*`)
-
----
-
-## Universal Adapter Features
-
-The universal PostgreSQL adapter (`packages/core/src/cms/database/universal-postgres.ts`) provides:
-
-- ✅ **Auto-detection:** Automatically detects provider from connection string
-- ✅ **Parameterized Queries:** Handles parameter formatting for all providers
-- ✅ **Connection Pooling:** Supports connection pooling where available
-- ✅ **Fallback Mechanisms:** Graceful degradation for compatibility
-- ✅ **Type Safety:** Full TypeScript support
-
----
-
-## Comparison with Supabase
-
-The Database type structure is identical to Supabase's:
-
-| Feature | Supabase | NeonDB (RevealUI) |
-|---------|----------|------------------|
-| Type Generation | `supabase gen types` | `pnpm generate:neon-types` |
-| Database Type | `Database` from types.ts | `Database` from `@revealui/db/types` |
-| Table Access | `Database['public']['Tables']['users']` | `Database['public']['Tables']['users']` |
-| Row Type | `Database['public']['Tables']['users']['Row']` | `Database['public']['Tables']['users']['Row']` |
-| Insert Type | `Database['public']['Tables']['users']['Insert']` | `Database['public']['Tables']['users']['Insert']` |
-| Update Type | `Database['public']['Tables']['users']['Update']` | `Database['public']['Tables']['users']['Update']` |
-| Relationships | Included | Included |
-| Enums | Included | Included (when defined) |
-
-**Migration Example:**
-
-```typescript
-// Both Supabase billing types and NeonDB types use the same Database structure
-import type { Database } from '@revealui/db/types'
-type User = Database['public']['Tables']['users']['Row']
-```
-
-This ensures:
-- ✅ Same developer experience
-- ✅ Same type safety level
-- ✅ Easy migration between providers
-- ✅ Consistent patterns across codebase
-
----
-
-## Key Benefits
-
-✅ **No Migration Needed** - Fresh databases create correct table names automatically
-✅ **Universal Adapter** - One adapter works with all three providers
-✅ **Auto-Detection** - Provider detected automatically from connection string
-✅ **Type Safety** - Full TypeScript support with Supabase-compatible types
-⚠️ **Production Capability** - Designed for connection pooling, SSL, and edge functions (Pending verification)
-
----
-
-## Next Steps
-
-1. ✅ Choose your provider (Neon, Supabase, or Vercel Postgres)
-2. ✅ Get connection string from provider dashboard
-3. ✅ Set `DATABASE_URL` environment variable
-4. ✅ Run `pnpm db:init` to verify connection
-5. ✅ Start development: `pnpm dev`
-6. ✅ Visit `http://localhost:4000/admin`
-7. ✅ Create your first admin user
-8. ✅ Generate types: `pnpm generate:neon-types`
-
----
-
-## Contract Integration
-
-Guide to integrating Database types with the Contracts system for end-to-end type safety.
-
-### Overview
-
-The Contracts system bridges Database types (from `@revealui/db`) with Zod schemas (from `@revealui/contracts`), ensuring type safety across all layers:
-
-```
-Database (Postgres)
-    ↓
-Drizzle Schemas (@revealui/db)
-    ↓
-Database Types (Database['public']['Tables'])
-    ↓
-Contracts (@revealui/contracts/database)
-    ↓
-RevealUI Types (@revealui/core)
-```
-
-### Database Contract Bridge
-
-#### Converting Database Rows to Contracts
-
-Use `dbRowToContract` to validate database data against contracts:
-
-```typescript
-import { dbRowToContract } from '@revealui/contracts/database'
-import { UserSchema } from '@revealui/contracts'
-import type { Database } from '@revealui/db/types'
-
-const db = getClient()
-const dbUser = await db.query.users.findFirst()
-
-if (dbUser) {
-  // Validate and convert to contract type
-  const validatedUser = dbRowToContract(UserSchema, dbUser)
-  // validatedUser is now validated and typed according to UserSchema
-}
-```
-
-#### Safe Conversion (No Throw)
-
-Use `safeDbRowToContract` for error handling:
-
-```typescript
-import { safeDbRowToContract } from '@revealui/contracts/database'
-import { UserSchema } from '@revealui/contracts'
-
-const result = safeDbRowToContract(UserSchema, dbUser)
-if (result.success) {
-  // result.data is fully typed and validated
-  console.log(result.data.email)
-} else {
-  // Handle validation errors
-  console.error(result.errors.issues)
-}
-```
-
-#### Converting Contracts to Database Inserts
-
-Use `contractToDbInsert` to convert validated data for insertion:
-
-```typescript
-import { contractToDbInsert } from '@revealui/contracts/database'
-import { createUser } from '@revealui/contracts'
-import type { Database } from '@revealui/db/types'
-
-// Create user using contract factory
-const newUser = createUser('user-123', {
-  email: 'user@example.com',
-  name: 'Test User',
-})
-
-// Convert to database insert type
-const dbInsert: Database['public']['Tables']['users']['Insert'] =
-  contractToDbInsert(newUser)
-
-// Insert into database
-await db.insert(users).values(dbInsert)
-```
-
-### Type Bridge Utilities
-
-#### Creating Mappers
-
-Create reusable mappers for type conversion:
-
-```typescript
-import { createDbRowMapper, createContractToDbMapper } from '@revealui/contracts/database'
-import { UserSchema } from '@revealui/contracts'
-
-// Map database rows to contracts
-const userMapper = createDbRowMapper(UserSchema)
-
-const dbUsers = await db.query.users.findMany()
-const validatedUsers = dbUsers.map(userMapper)
-
-// Map contracts to database inserts
-const insertMapper = createContractToDbMapper<User, Database['public']['Tables']['users']['Insert']>()
-
-const newUser = createUser('user-123', { email: 'user@example.com', name: 'User' })
-const dbInsert = insertMapper(newUser)
-```
-
-#### Batch Conversion
-
-Convert multiple rows at once:
-
-```typescript
-import { batchDbRowsToContract, batchContractToDbInsert } from '@revealui/contracts/database'
-
-// Batch convert database rows
-const dbUsers = await db.query.users.findMany()
-const validatedUsers = batchDbRowsToContract(UserSchema, dbUsers)
-
-// Batch convert contracts to inserts
-const newUsers = [createUser('1', {...}), createUser('2', {...})]
-const dbInserts = batchContractToDbInsert(newUsers)
-await db.insert(users).values(dbInserts)
-```
-
-#### Type Guards
-
-Use type guards for runtime type checking:
-
-```typescript
-import { isDbRowMatchingContract, isDbRowAndContract } from '@revealui/contracts/database'
-
-const dbUser = await db.query.users.findFirst()
-
-if (isDbRowMatchingContract(UserSchema, dbUser)) {
-  // dbUser is now typed as User (from contract)
-  console.log(dbUser.email)
-}
-```
-
-### Table Contract Registry
-
-Register contracts for automatic validation:
-
-```typescript
-import { databaseContractRegistry } from '@revealui/contracts/database'
-import { UserSchema, SiteSchema } from '@revealui/contracts'
-
-// Register contracts for tables
-databaseContractRegistry.register('users', UserSchema)
-databaseContractRegistry.register('sites', SiteSchema)
-
-// Validate rows automatically
-const dbUser = await db.query.users.findFirst()
-const result = databaseContractRegistry.validateRow('users', dbUser)
-if (result?.success) {
-  // result.data is validated and typed
-}
-```
-
-#### Creating Type-Safe Registries
-
-Use `createTableContractRegistry` for type-safe table-to-contract mapping:
-
-```typescript
-import { createTableContractRegistry } from '@revealui/contracts/database'
-import type { Database } from '@revealui/db/types'
-import { UserSchema, SiteSchema } from '@revealui/contracts'
-
-const registry = createTableContractRegistry<Database>({
-  users: UserSchema as any, // Type assertion needed due to contract variance
-  sites: SiteSchema as any,
-})
-
-// Type-safe validation
-const dbUser = await db.query.users.findFirst()
-if (dbUser) {
-  const result = registry.validate('users', dbUser)
-  if (result?.success) {
-    // Fully typed and validated
+**Use `--confirm` in scripts**
+```json
+{
+  "scripts": {
+    "db:fresh": "pnpm db:reset --confirm --seed"
   }
 }
 ```
 
-### Type Conversion Patterns
+### DON'T ❌
 
-#### Pattern 1: Query → Validate → Use
-
-```typescript
-import { safeDbRowToContract } from '@revealui/contracts/database'
-import { UserSchema } from '@revealui/contracts'
-
-const dbUser = await db.query.users.findFirst()
-if (!dbUser) return
-
-const result = safeDbRowToContract(UserSchema, dbUser)
-if (result.success) {
-  // Use validated user
-  processUser(result.data)
-} else {
-  // Handle validation errors
-  logValidationErrors(result.errors)
-}
-```
-
-#### Pattern 2: Contract → Insert
-
-```typescript
-import { contractToDbInsert } from '@revealui/contracts/database'
-import { createUser } from '@revealui/contracts'
-import type { Database } from '@revealui/db/types'
-
-const newUser = createUser('user-123', {
-  email: 'user@example.com',
-  name: 'Test User',
-})
-
-const dbInsert: Database['public']['Tables']['users']['Insert'] =
-  contractToDbInsert(newUser)
-
-await db.insert(users).values(dbInsert)
-```
-
-#### Pattern 3: Batch Processing
-
-```typescript
-import { batchDbRowsToContract } from '@revealui/contracts/database'
-
-// Fetch and validate in batch
-const dbUsers = await db.query.users.findMany()
-const validatedUsers = batchDbRowsToContract(UserSchema, dbUsers)
-
-// Process validated users
-validatedUsers.forEach((user) => {
-  // user is fully typed and validated
-  processUser(user)
-})
-```
-
-### Contract Integration Best Practices
-
-#### 1. Validate at Boundaries
-
-Always validate database data when crossing layer boundaries:
-
-```typescript
-// ✅ Good - validate at API boundary
-export async function getUser(id: string) {
-  const dbUser = await db.query.users.findFirst({ where: eq(users.id, id) })
-  if (!dbUser) return null
-
-  const result = safeDbRowToContract(UserSchema, dbUser)
-  if (!result.success) {
-    throw new Error('Invalid user data')
-  }
-
-  return result.data // Fully validated
-}
-```
-
-#### 2. Use Contracts for Inserts
-
-Create data using contract factories, then convert:
-
-```typescript
-// ✅ Good - use contract factory
-const newUser = createUser('user-123', {
-  email: 'user@example.com',
-  name: 'User',
-})
-const dbInsert = contractToDbInsert(newUser)
-await db.insert(users).values(dbInsert)
-
-// ❌ Avoid - bypassing contracts
-await db.insert(users).values({
-  id: 'user-123',
-  email: 'user@example.com',
-  name: 'User',
-})
-```
-
-#### 3. Register Contracts Early
-
-Register contracts at application startup:
-
-```typescript
-// In your app initialization
-import { databaseContractRegistry } from '@revealui/contracts/database'
-import { UserSchema, SiteSchema, PageSchema } from '@revealui/contracts'
-
-databaseContractRegistry.register('users', UserSchema)
-databaseContractRegistry.register('sites', SiteSchema)
-databaseContractRegistry.register('pages', PageSchema)
-```
-
-#### 4. Type Safety First
-
-Leverage TypeScript's type system:
-
-```typescript
-// ✅ Good - full type safety
-type User = Database['public']['Tables']['users']['Row']
-const user: User = await db.query.users.findFirst()
-
-// ✅ Better - validated type
-const validatedUser = dbRowToContract(UserSchema, user)
-// validatedUser is both typed AND validated
-```
-
-### Contract Error Handling
-
-#### Validation Errors
-
-Contracts provide detailed validation errors:
-
-```typescript
-import { safeDbRowToContract } from '@revealui/contracts/database'
-import { ConfigValidationError } from '@revealui/contracts/cms'
-
-const result = safeDbRowToContract(UserSchema, dbUser)
-if (!result.success) {
-  // Access detailed errors
-  result.errors.issues.forEach((issue) => {
-    console.error(`${issue.path.join('.')}: ${issue.message}`)
-  })
-}
-```
-
-#### Type Mismatches
-
-Type mismatches are caught at compile time:
-
-```typescript
-// TypeScript will error if types don't match
-const dbInsert: Database['public']['Tables']['users']['Insert'] =
-  contractToDbInsert(someInvalidData) // ❌ Type error
-```
-
-### Advanced Contract Patterns
-
-#### Custom Mappers
-
-Create custom mappers for complex transformations:
-
-```typescript
-const userMapper = createDbRowMapper(UserSchema, (row) => ({
-  ...row,
-  // Transform data before validation
-  email: row.email?.toLowerCase(),
-  name: row.name.trim(),
-}))
-```
-
-#### Relationship Handling
-
-Handle relationships when converting:
-
-```typescript
-// Fetch user with related data
-const dbUser = await db.query.users.findFirst({
-  with: { sessions: true },
-})
-
-// Convert user (sessions handled separately)
-const user = dbRowToContract(UserSchema, dbUser)
-// Note: relationships may need separate validation
-```
-
----
-
-## Drizzle ORM Guide
-
-### Overview
-
-This section covers Drizzle ORM integration with Neon HTTP, including connection patterns, compatibility issues, and best practices.
-
-**Key Topics**:
-- ✅ Official Drizzle ORM connection patterns
-- ✅ Known compatibility issues with Neon HTTP driver
-- ✅ Implementation fixes and best practices
-- ✅ Workarounds for query builder limitations
-
-**Key Finding**: The Drizzle query builder has compatibility issues with Neon HTTP driver. This is a known limitation, not a code bug.
-
-### Connection Pattern
-
-#### Official Pattern (Recommended)
-
-According to [Drizzle ORM - Connect Neon](https://orm.drizzle.team/docs/connect-neon):
-
-```typescript
-import { neon } from '@neondatabase/serverless'
-import { drizzle } from 'drizzle-orm/neon-http'
-
-const sql = neon(process.env.DATABASE_URL!)
-const db = drizzle({ client: sql })
-```
-
-#### RevealUI Implementation
-
-**File**: `packages/db/src/client/index.ts`
-
-```typescript
-import { neon } from '@neondatabase/serverless'
-import { drizzle } from 'drizzle-orm/neon-http'
-
-export function createClient(config: DatabaseConfig): Database {
-  const sql = neon(config.connectionString)
-
-  return drizzle({
-    client: sql,
-    schema,
-    logger: config.logger ?? false,
-  })
-}
-```
-
-✅ **Status**: Matches official pattern
-
-### Known Compatibility Issues
-
-#### Query Builder Limitations
-
-**Problem**: Drizzle query builder (`db.query.table.findFirst()`) has compatibility problems with Neon HTTP driver.
-
-**Root Cause**:
-- Neon HTTP driver translates queries to HTTP requests
-- Some Drizzle query patterns don't translate correctly
-- Prepared statements aren't supported (which Drizzle relies on)
-
-**Affected Queries**:
-- `db.query.nodeIdMappings.findFirst()`
-- `db.query.agentMemories.findFirst()`
-- Any relational query using `findFirst()`
-
-**Symptoms**:
-- Queries timeout or fail with "Failed query" errors
-- Retry logic triggers but queries never succeed
-- Direct SQL queries work (verified via `psql`)
-
-**Status**: Library-level issue, not fixable in our code
-
-#### Workarounds
-
-##### Option 1: Use Raw SQL (Recommended)
-
-For queries that fail with query builder, use raw SQL:
-
-```typescript
-import { sql } from 'drizzle-orm'
-
-const result = await db.execute(
-  sql`SELECT * FROM node_id_mappings WHERE id = ${hash} LIMIT 1`
-)
-```
-
-##### Option 2: Use Direct Postgres Driver for Local Testing
-
-For local development and testing, consider using direct PostgreSQL driver:
-
-```typescript
-// For local testing only
-import { drizzle } from 'drizzle-orm/node-postgres'
-import { Pool } from 'pg'
-
-const pool = new Pool({ connectionString: config.connectionString })
-return drizzle({ client: pool, schema })
-```
-
-##### Option 3: Hybrid Approach
-
-Use query builder where it works, raw SQL where it doesn't:
-
-```typescript
-// Try query builder first
-try {
-  const result = await db.query.table.findFirst({ where: ... })
-  return result
-} catch (error) {
-  // Fallback to raw SQL
-  return await db.execute(sql`SELECT * FROM table WHERE ... LIMIT 1`)
-}
-```
-
-### Drizzle Best Practices
-
-#### 1. Driver Selection
-
-| Driver | Use Case | Status |
-|--------|----------|--------|
-| `drizzle-orm/neon-http` | HTTP connections (serverless) | ✅ Recommended |
-| `drizzle-orm/neon-serverless` | WebSocket connections (transactions) | ⚠️ Use if transactions needed |
-| `drizzle-orm/node-postgres` | Direct Postgres (local testing) | 💡 Alternative for testing |
-
-#### 2. Connection Pooling
-
-- ⚠️ **Avoid with Drizzle**: Neon's connection pooling (PgBouncer) doesn't support prepared statements
-- ✅ **Use direct connections**: Or Neon HTTP driver (which we are)
-
-#### 3. Initialize Clients Correctly
-
-- Use the official pattern: `drizzle({ client: neon(connectionString) })`
-- Pass schema and logger in the config object
-- Don't use old pattern: `drizzle(sql, { schema, logger })` ❌
-
-#### 4. Handle Transactions
-
-- Neon HTTP driver doesn't support true transactions
-- Use `@neondatabase/serverless` Pool for transaction support if needed
-
-### Testing Status
-
-#### What Works ✅
-
-- Database connection: Working
-- Migrations: Applied successfully
-- CRDT persistence tests: 4/4 passing
-- Connection pattern: Matches official docs
-- Direct SQL queries: Working
-
-#### What Doesn't Work ❌
-
-- Integration tests: 8/8 failing (query builder compatibility)
-- Performance tests: Failing (same issue)
-- Relational queries: Fail with Neon HTTP driver
-
-**Note**: Failures are due to library-level compatibility, not our code.
-
-### Implementation History
-
-#### Changes Applied (2025-01-27)
-
-1. ✅ **Updated connection pattern** to match official Drizzle documentation
-2. ✅ **Fixed test setup issues** (constructor parameters, method names)
-3. ✅ **Documented known compatibility issues** with Neon HTTP driver
-4. ✅ **Identified library-level limitations** that require workarounds
-
-#### Files Updated
-
-- `packages/db/src/client/index.ts` - Updated connection pattern
-- `packages/ai/src/memory/__tests__/integration/automated-validation.test.ts` - Fixed test setup
-
-### Recommendations
-
-#### Immediate Actions
-
-1. ✅ **Keep current implementation** - Connection pattern is correct
-2. ✅ **Document limitations** - Team knows about query builder issues
-3. ⏳ **Use workarounds** - Use raw SQL for failing queries if needed
-
-#### Long-term Strategy
-
-1. **Monitor library updates** - Watch for Drizzle/Neon compatibility fixes
-2. **Alternative for local testing** - Use direct Postgres driver for integration tests
-3. **Hybrid approach** - Use query builder where it works, raw SQL where it doesn't
-
-#### For Production
-
-1. **Test thoroughly** - Verify all queries work in production environment
-2. **Have fallbacks** - Know how to use raw SQL if query builder fails
-3. **Monitor errors** - Track query failures and adjust accordingly
-
-### References
-
-#### Official Documentation
-
-- [Drizzle ORM - Connect Neon](https://orm.drizzle.team/docs/connect-neon)
-- [Drizzle ORM - Tutorial with Neon](https://orm.drizzle.team/docs/tutorials/drizzle-with-neon)
-- [Drizzle ORM - Upgrade to v1.0](https://orm.drizzle.team/docs/upgrade-v1)
-- [Drizzle ORM - Relations v1 to v2](https://orm.drizzle.team/docs/relations-v1-v2)
-- [Neon Serverless Driver](https://neon.tech/docs/serverless/serverless-driver)
-
-#### Related Issues
-
-- GitHub: Drizzle ORM compatibility issues with Neon
-- Known limitation: Prepared statements with connection pooling
-
----
-
-## Migrations
-
-### Overview
-
-This section covers database migration scenarios:
-
-1. **Switching Database Providers** - Moving between Neon, Supabase, and Vercel Postgres
-2. **Table Rename Migration** - Migrating from legacy `payload_*` tables to `revealui_*` tables
-
----
-
-### Switching Database Providers
-
-#### Quick Switch
-
-The universal adapter automatically detects the provider from your connection string:
-
-- **Neon**: Connection string contains `.neon.tech`
-- **Supabase**: Connection string contains `.supabase.co`
-- **Vercel Postgres**: `POSTGRES_URL` env var is set (or connection string contains `vercel`)
-
-You can also explicitly set the provider:
-
-```typescript
-import { universalPostgresAdapter } from '@revealui/core/database'
-
-export default buildConfig({
-  db: universalPostgresAdapter({
-    // Provider is auto-detected, but you can explicitly set it:
-    provider: 'neon' | 'supabase' | 'vercel'
-  }),
-  // ... rest of config
-})
-```
-
----
-
-#### Switch to Neon
-
-**1. Get Neon Connection String**
-
-```
-postgresql://user:password@ep-xxx.us-east-1.aws.neon.tech/dbname?sslmode=require
-```
-
-**2. Update Environment**
-
+**Don't use environment-specific commands in shared scripts**
 ```bash
-# .env.local
-DATABASE_URL=postgresql://user:password@ep-xxx.us-east-1.aws.neon.tech/dbname?sslmode=require
+# ❌ Bad (Nix-specific)
+db-start && pnpm dev
+
+# ✅ Good (environment-agnostic)
+pnpm dev
 ```
 
-**3. Install Dependencies**
-
+**Don't skip backups in production-like environments**
 ```bash
-pnpm add @neondatabase/serverless
+# ❌ Dangerous
+pnpm db:reset --no-backup
+
+# ✅ Safer
+pnpm db:reset  # Creates backup automatically
 ```
 
-**4. Update Config (Optional)**
-
+**Don't hardcode connection strings**
 ```typescript
-db: universalPostgresAdapter({
-  provider: 'neon', // Explicit (optional - auto-detected)
-})
+// ❌ Bad
+const db = postgres('postgresql://postgres@localhost:5432/revealui');
+
+// ✅ Good
+const db = postgres(process.env.DATABASE_URL!);
 ```
 
-**Provider-Specific Features:**
-- ✅ Serverless/edge functions
-- ✅ Branching (copy database)
-- ✅ Auto-scaling
-- ⚠️ No built-in auth
+### CI/CD Integration
 
----
+**GitHub Actions:**
+```yaml
+- name: Setup database
+  run: |
+    pnpm db:init
+    pnpm db:migrate
+  env:
+    DATABASE_URL: ${{ secrets.DATABASE_URL }}
 
-#### Switch to Supabase
-
-**1. Get Supabase Connection String**
-
-Pooling (Recommended):
-```
-postgresql://postgres.xxx:password@aws-0-us-east-1.pooler.supabase.com:6543/postgres?sslmode=require
+- name: Run tests
+  run: pnpm test
 ```
 
-**2. Update Environment**
+**Docker Compose (CI):**
+```yaml
+services:
+  db:
+    image: pgvector/pgvector:pg16
+    environment:
+      POSTGRES_DB: revealui_test
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
 
+  app:
+    depends_on:
+      - db
+    environment:
+      DATABASE_URL: postgresql://postgres:postgres@db:5432/revealui_test
+    command: |
+      pnpm db:init
+      pnpm db:migrate
+      pnpm test
+```
+
+### Migration Path
+
+**From Devbox → Pure Nix:**
 ```bash
-# .env.local
-DATABASE_URL=postgresql://postgres.xxx:password@aws-0-us-east-1.pooler.supabase.com:6543/postgres?sslmode=require
+# 1. Export from Devbox
+devbox shell
+pg_dump -d revealui > backup.sql
+exit
 
-# Optional: Supabase client credentials
-SUPABASE_URL=https://xxx.supabase.co
-SUPABASE_ANON_KEY=eyJ...
-SUPABASE_SERVICE_ROLE_KEY=eyJ...
+# 2. Switch to Nix
+rm -rf .devbox/
+direnv allow
+
+# 3. Import to Nix
+db-start
+pnpm db:init
+psql -d revealui < backup.sql
 ```
 
-**3. Install Dependencies**
-
+**Between Environments:**
 ```bash
-pnpm add pg @types/pg
+# 1. Export from old environment
+pnpm db:backup
+# Or: pg_dump -d revealui > backup.sql
+
+# 2. Setup new environment
+# (follow environment-specific setup)
+
+# 3. Import to new environment
+pnpm db:restore backup.json
+# Or: psql -d revealui < backup.sql
 ```
-
-**4. Update Config (Optional)**
-
-```typescript
-db: universalPostgresAdapter({
-  provider: 'supabase', // Explicit (optional - auto-detected)
-})
-```
-
-**Provider-Specific Features:**
-- ✅ Full-featured backend
-- ✅ Built-in auth
-- ✅ Real-time subscriptions
-- ✅ Storage
-- ⚠️ Fixed connection limits
-
----
-
-#### Switch to Vercel Postgres
-
-**Note:** Vercel Postgres is deprecated. Use Neon for new projects.
-
-**1. Create Vercel Postgres Database**
-
-In Vercel Dashboard → Storage → Create Database → Postgres
-
-**2. Environment Auto-Configured**
-
-Vercel automatically sets:
-- `POSTGRES_URL`
-- `POSTGRES_PRISMA_URL`
-- `POSTGRES_URL_NON_POOLING`
-
-**3. Install Dependencies**
-
-```bash
-pnpm add @vercel/postgres
-```
-
-**4. Update Config (Optional)**
-
-```typescript
-db: universalPostgresAdapter({
-  provider: 'vercel', // Explicit (optional - auto-detected)
-  envVar: 'POSTGRES_URL', // Default
-})
-```
-
-**Provider-Specific Features:**
-- ✅ Seamless Vercel integration
-- ✅ Automatic environment setup
-- ✅ Managed connections
-- ⚠️ Vercel-only deployments
-
----
-
-#### Data Migration Between Providers
-
-**Data Export**
-
-```bash
-# Export from current database
-pg_dump $OLD_DATABASE_URL > backup.sql
-```
-
-**Data Import**
-
-```bash
-# Import to new database
-psql $NEW_DATABASE_URL < backup.sql
-```
-
-**Or Use Supabase CLI**
-
-```bash
-# Export
-supabase db dump -f backup.sql
-
-# Import
-supabase db reset -f backup.sql
-```
-
----
-
-#### Provider Switching Troubleshooting
-
-**"Module not found"**
-
-Install provider-specific dependency:
-```bash
-# Neon
-pnpm add @neondatabase/serverless
-
-# Supabase
-pnpm add pg @types/pg
-
-# Vercel
-pnpm add @vercel/postgres
-```
-
-**"Connection refused"**
-
-- Check IP allowlist (Supabase)
-- Verify connection string format
-- Ensure SSL is enabled: `?sslmode=require`
-
-**Wrong provider detected**
-
-Explicitly set provider:
-```typescript
-db: universalPostgresAdapter({
-  provider: 'neon', // Force specific provider
-})
-```
-
----
-
-### Table Rename Migration
-
-#### Executive Summary
-
-**Status**: ⚠️ **CRITICAL MIGRATION REQUIRED**
-**Risk Level**: **HIGH** - Production downtime possible
-**Estimated Downtime**: 30-60 minutes (depending on data volume)
-**Complexity**: **MODERATE** - Requires careful coordination
-
-This section outlines the plan to rename database tables from `payload_*` prefix to `revealui_*` prefix to complete the branding migration from Payload CMS to RevealUI.
-
----
-
-#### Current State Analysis
-
-**Tables Requiring Rename**
-
-1. **`payload_locked_documents`** → `revealui_locked_documents`
-   - Stores document locking information for concurrent editing
-   - **Relationships**: Self-referential (parent_id), links to all collections
-
-2. **`payload_locked_documents_rels`** → `revealui_locked_documents_rels`
-   - Junction table for locked document relationships
-   - **Foreign Keys**: 20+ FKs to various collections (users, pages, products, etc.)
-
-3. **`payload_preferences`** → `revealui_preferences`
-   - Stores user/global preferences as JSON
-   - **Relationships**: Links to users via `payload_preferences_rels`
-
-4. **`payload_preferences_rels`** → `revealui_preferences_rels`
-   - Junction table for preference relationships
-   - **Foreign Keys**: `parent_id`, `users_id`
-
-5. **`payload_migrations`** → `revealui_migrations`
-   - Tracks database migration history
-   - **No relationships**: Standalone table
-
-**Database Schema Impact**
-
-- **Total Tables**: 5 tables + their relationships
-- **Foreign Key Constraints**: ~25 FK constraints requiring updates
-- **Indexes**: All indexes will be automatically renamed (PostgreSQL behavior)
-- **Sequences**: Primary key sequences will be renamed automatically
-- **Triggers/Functions**: May exist and require updates
-
----
-
-#### Migration Strategy Assessment
-
-**Option 1: Fresh Database (RECOMMENDED for Development)**
-
-**Best For**: Development environments, new projects, non-production data
-
-**Pros**:
-- ✅ Clean slate - no migration complexity
-- ✅ Zero risk of data loss
-- ✅ Instant - no downtime
-- ✅ Can test RevealUI from scratch
-- ✅ Simpler rollback (just use old DB)
-
-**Cons**:
-- ❌ **All data is lost** (not viable for production)
-- ❌ Requires data export/import if data needs to be preserved
-
-**Implementation**:
-```bash
-# 1. Drop existing Supabase database
-# 2. Create new database with RevealUI
-# 3. Run initial migrations
-# 4. Regenerate Supabase types
-```
-
-**Option 2: ALTER TABLE RENAME (PRODUCTION APPROACH)**
-
-**Best For**: Production environments with existing data
-
-**Pros**:
-- ✅ Preserves all data
-- ✅ No data migration needed
-- ✅ Atomic operation (PostgreSQL)
-
-**Cons**:
-- ❌ Requires application downtime
-- ❌ Complex FK constraint updates
-- ❌ Must update all application code simultaneously
-- ❌ Higher risk if not executed perfectly
-
-**PostgreSQL Behavior**:
-- `ALTER TABLE ... RENAME` is atomic and fast
-- Foreign keys are automatically updated in PostgreSQL 9.2+
-- Indexes are automatically renamed
-- Sequences are automatically renamed
-- **However**: Any hardcoded table names in code must be updated first
-
-**Option 3: Dual-Write Period (SAFEST for Production)**
-
-**Best For**: Zero-downtime production migrations
-
-**Pros**:
-- ✅ Zero downtime
-- ✅ Gradual migration
-- ✅ Easy rollback
-- ✅ Can test in production
-
-**Cons**:
-- ❌ Most complex implementation
-- ❌ Requires code changes for dual-write
-- ❌ Longer timeline
-- ❌ More testing required
-
----
-
-#### Recommended Approach: HYBRID STRATEGY
-
-**Phase 1: Development/Staging (Option 1 - Fresh DB)**
-Use fresh database for development and staging environments.
-
-**Phase 2: Production (Option 2 - ALTER TABLE)**
-Use ALTER TABLE RENAME for production with planned maintenance window.
-
----
-
-#### Detailed Migration Plan
-
-**Phase 1: Pre-Migration Preparation**
-
-Step 1.1: Audit and Backup
-
-```sql
--- 1. Create full database backup
-pg_dump -h <host> -U <user> -d <database> -F c -f backup_before_migration.dump
-
--- 2. Document current schema
-\dt payload_*  -- List all payload tables
-\d+ payload_locked_documents  -- Inspect table structure
-\d+ payload_locked_documents_rels  -- Inspect relationships
-
--- 3. Check for hardcoded references
-SELECT routine_name, routine_definition
-FROM information_schema.routines
-WHERE routine_definition LIKE '%payload_locked_documents%';
-```
-
-Step 1.2: Update Codebase First
-
-**CRITICAL**: Update code to use new table names BEFORE running migration.
-
-1. Find all database queries using old table names
-2. Update to use new table names OR use collection slugs (better approach)
-3. Ensure RevealUI uses collection slugs (`revealui-locked-documents`) not table names
-4. Update Supabase type generation configuration
-
-Step 1.3: Verify Application Can Handle New Names
-
-1. Update Supabase types file (or regenerate)
-2. Run type checks: `pnpm typecheck:all`
-3. Update any raw SQL queries
-
-**Phase 2: Migration Execution**
-
-Step 2.1: Maintenance Window Preparation
-
-```bash
-# Set application to maintenance mode
-# Stop accepting new requests
-# Wait for existing requests to complete
-```
-
-Step 2.2: Execute Rename Operations
-
-```sql
-BEGIN;
-
--- Rename main tables
-ALTER TABLE payload_locked_documents
-  RENAME TO revealui_locked_documents;
-
-ALTER TABLE payload_preferences
-  RENAME TO revealui_preferences;
-
-ALTER TABLE payload_migrations
-  RENAME TO revealui_migrations;
-
--- Rename junction tables
-ALTER TABLE payload_locked_documents_rels
-  RENAME TO revealui_locked_documents_rels;
-
-ALTER TABLE payload_preferences_rels
-  RENAME TO revealui_preferences_rels;
-
--- Verify all constraints are intact
-SELECT
-  conname AS constraint_name,
-  conrelid::regclass AS table_name,
-  confrelid::regclass AS referenced_table
-FROM pg_constraint
-WHERE confrelid::regclass::text LIKE '%revealui%'
-   OR conrelid::regclass::text LIKE '%revealui%';
-
-COMMIT;
-```
-
-**Expected Duration**: 5-10 seconds (even for large tables)
-
-Step 2.3: Post-Migration Verification
-
-```sql
--- 1. Verify table names
-SELECT tablename FROM pg_tables
-WHERE schemaname = 'public'
-  AND tablename LIKE '%revealui%';
-
--- 2. Verify foreign keys
-SELECT
-  tc.constraint_name,
-  tc.table_name,
-  kcu.column_name,
-  ccu.table_name AS foreign_table_name,
-  ccu.column_name AS foreign_column_name
-FROM information_schema.table_constraints AS tc
-JOIN information_schema.key_column_usage AS kcu
-  ON tc.constraint_name = kcu.constraint_name
-JOIN information_schema.constraint_column_usage AS ccu
-  ON ccu.constraint_name = tc.constraint_name
-WHERE tc.constraint_type = 'FOREIGN KEY'
-  AND (tc.table_name LIKE '%revealui%' OR ccu.table_name LIKE '%revealui%');
-
--- 3. Verify data integrity
-SELECT COUNT(*) FROM revealui_locked_documents;
-SELECT COUNT(*) FROM revealui_preferences;
-SELECT COUNT(*) FROM revealui_migrations;
-
--- 4. Test application queries
--- (Run your application's standard queries)
-```
-
-**Phase 3: Post-Migration**
-
-Step 3.1: Regenerate Database Types
-
-```bash
-# Regenerate types for new table names
-pnpm generate:neon-types
-
-# Or for Supabase:
-supabase gen types typescript --local > packages/services/src/supabase/types.ts
-
-# For production:
-supabase gen types typescript --project-id <project-id> > packages/services/src/supabase/types.ts
-```
-
-Step 3.2: Application Deployment
-
-1. Deploy updated code (must happen AFTER migration)
-2. Verify application functionality
-3. Monitor error logs for 24 hours
-4. Remove maintenance mode
-
-Step 3.3: Cleanup (Optional)
-
-```sql
--- After 30 days of successful operation, can drop old backup
--- (Keep backup for at least 90 days for compliance)
-```
-
----
-
-#### Rollback Plan
-
-If migration fails or issues are discovered:
-
-**Immediate Rollback (Within 5 minutes)**
-
-```sql
-BEGIN;
-
-ALTER TABLE revealui_locked_documents
-  RENAME TO payload_locked_documents;
-
-ALTER TABLE revealui_preferences
-  RENAME TO payload_preferences;
-
-ALTER TABLE revealui_migrations
-  RENAME TO payload_migrations;
-
-ALTER TABLE revealui_locked_documents_rels
-  RENAME TO payload_locked_documents_rels;
-
-ALTER TABLE revealui_preferences_rels
-  RENAME TO payload_preferences_rels;
-
-COMMIT;
-```
-
-**Rollback Time**: < 10 seconds
-
-**Full Restore (If rollback fails)**
-
-```bash
-# Restore from backup
-pg_restore -h <host> -U <user> -d <database> -c backup_before_migration.dump
-```
-
----
-
-#### Risk Assessment
-
-**High Risk Items**
-
-1. **Application Code References**
-   - **Risk**: If code still references `payload_*` tables, application will break
-   - **Mitigation**: Update ALL code references BEFORE migration
-   - **Verification**: `grep -r "payload_locked_documents\|payload_preferences\|payload_migrations"`
-
-2. **Raw SQL Queries**
-   - **Risk**: Any raw SQL using old table names will fail
-   - **Mitigation**: Audit all SQL queries, prefer ORM/query builder
-   - **Verification**: Search codebase for `sql\`payload_`
-
-3. **Database Type Mismatches**
-   - **Risk**: TypeScript types won't match actual database schema
-   - **Mitigation**: Regenerate types immediately after migration
-   - **Verification**: `pnpm typecheck:all` after regeneration
-
-4. **Foreign Key Constraints**
-   - **Risk**: PostgreSQL handles this automatically, but verify
-   - **Mitigation**: Test on staging first
-   - **Verification**: Run FK verification queries
-
-5. **Cached Queries/Views**
-   - **Risk**: Views or materialized views may cache old names
-   - **Mitigation**: Refresh/recreate views
-   - **Verification**: `\dv` to list views
-
-**Medium Risk Items**
-
-1. **Third-party Tools**
-   - Supabase Studio, Database GUI tools may cache schema
-   - **Mitigation**: Refresh tools after migration
-
-2. **Monitoring/Logging**
-   - May reference old table names in alerts
-   - **Mitigation**: Update monitoring configs
-
-3. **Documentation**
-   - Internal docs may reference old names
-   - **Mitigation**: Update documentation in same PR
-
----
-
-#### Testing Plan
-
-**Development Environment Test**
-
-1. **Setup Test Database**
-   ```bash
-   # Create test Supabase instance
-   supabase start
-   ```
-
-2. **Populate Test Data**
-   ```sql
-   -- Insert sample data into payload_* tables
-   INSERT INTO payload_preferences (key, value) VALUES ('test', '{"key": "value"}');
-   INSERT INTO payload_locked_documents (global_slug) VALUES ('test-slug');
-   ```
-
-3. **Execute Migration**
-   - Run rename SQL
-   - Verify data integrity
-
-4. **Test Application**
-   - Run all tests: `pnpm test`
-   - Test CRUD operations on renamed tables
-   - Verify foreign key relationships work
-
-**Staging Environment Test**
-
-1. Copy production schema to staging
-2. Execute full migration procedure
-3. Run full test suite
-4. Load test application
-5. Verify no performance degradation
-
----
-
-#### Timeline Estimate
-
-| Phase | Duration | Notes |
-|-------|----------|-------|
-| Pre-Migration Prep | 2-4 hours | Code updates, testing |
-| Backup & Verification | 30 minutes | Database backup |
-| Migration Execution | 10-30 minutes | Actual rename + verification |
-| Post-Migration | 1-2 hours | Type regeneration, deployment |
-| **Total Downtime** | **30-60 minutes** | Maintenance window |
-| **Total Project Time** | **4-8 hours** | Including prep & verification |
-
----
-
-#### Alternative: Fresh Database for New Projects
-
-**If starting fresh or data loss is acceptable:**
-
-**Development Workflow**
-
-```bash
-# 1. Drop existing local database
-supabase db reset
-
-# 2. Update RevealUI config to use new collection names (already done)
-
-# 3. Initialize RevealUI - it will create tables with correct names
-# (assuming RevealUI uses collection slugs for table naming)
-
-# 4. Regenerate database types
-pnpm generate:neon-types
-```
-
-**Key Question**: Does RevealUI automatically create these tables with the correct names based on collection slugs?
-
-**Answer**:
-
-✅ RevealUI uses collection slugs (`revealui-locked-documents`) → converts to snake_case (`revealui_locked_documents`)
-✅ Existing `payload_*` tables are **legacy from Payload CMS**
-✅ New RevealUI installations will create `revealui_*` tables automatically
-⚠️ **Production databases need migration** if they have existing `payload_*` tables
-
----
-
-#### Recommended Next Steps
-
-1. **Immediate** (Today):
-   - ✅ Audit codebase for `payload_*` table references
-   - ✅ Determine if RevealUI creates these tables or they're legacy
-   - ✅ Check table naming logic in RevealUI
-
-2. **Short-term** (This Week):
-   - Create migration SQL script
-   - Test on development database
-   - Update all code references
-   - Prepare rollback plan
-
-3. **Pre-Production** (Before Deploy):
-   - Test migration on staging
-   - Schedule maintenance window
-   - Prepare team communication
-
-4. **Production** (Scheduled):
-   - Execute migration in maintenance window
-   - Verify application functionality
-   - Monitor for 24-48 hours
 
 ---
 
 ## Related Documentation
 
-- [Unified Backend Architecture](../architecture/UNIFIED_BACKEND_ARCHITECTURE.md) - System architecture
-
-### External Resources
-
-- [Drizzle ORM Documentation](https://orm.drizzle.team) - Official Drizzle documentation
-- [Supabase Type Generation](https://supabase.com/docs/guides/api/generating-types) - Supabase comparison reference
-- [Neon Documentation](https://neon.tech/docs) - Neon PostgreSQL documentation
-- [PostgreSQL Documentation](https://www.postgresql.org/docs/) - PostgreSQL reference
-- [PostgreSQL ALTER TABLE Documentation](https://www.postgresql.org/docs/current/sql-altertable.html)
-- [Supabase Migrations Guide](https://supabase.com/docs/guides/cli/local-development#database-migrations)
-- [Zero-Downtime Database Migrations](https://www.braintreepayments.com/blog/safe-operations-for-high-volume-postgresql/)
+- [Database Guide](./DATABASE.md) - Schema, architecture, Drizzle ORM queries, dual-DB setup
+- [CI Environment](./CI_ENVIRONMENT.md) - CI/CD environment specifications
+- [Development Overview](./README.md) - Development navigation hub
+- [Master Index](../INDEX.md) - Complete documentation index
 
 ---
 
-**Last Updated:** 2025-01-31
-**Status:** Production-ready with caveats (see troubleshooting)
+**Last Updated:** 2026-01-31
+**Part of:** Development Guide consolidation
+
+---
+
+# Database Query Optimization Guide
+
+Comprehensive guide to database performance optimization for RevealUI.
+
+## Table of Contents
+
+- [Overview](#overview)
+- [Query Monitoring](#query-monitoring)
+- [Indexing Strategy](#indexing-strategy)
+- [N+1 Query Elimination](#n1-query-elimination)
+- [Query Caching](#query-caching)
+- [Connection Pooling](#connection-pooling)
+- [Performance Benchmarks](#performance-benchmarks)
+- [Best Practices](#best-practices)
+- [Troubleshooting](#troubleshooting)
+
+## Overview
+
+Database performance is critical for application speed. This guide covers:
+
+- **Query Monitoring** - Track slow queries and performance metrics
+- **Indexes** - Strategic indexing for fast lookups
+- **N+1 Elimination** - Optimize relationship queries
+- **Caching** - Redis caching layer for query results
+- **Connection Pool** - Optimized pool configuration
+
+### Performance Targets
+
+- Query time: < 20ms (p95)
+- Connection pool utilization: < 80%
+- Cache hit rate: > 80%
+- No N+1 queries
+- All foreign keys indexed
+
+## Query Monitoring
+
+### Enable Slow Query Logging
+
+```typescript
+import { monitorQuery, logSlowQuery } from '@revealui/core/monitoring/query-monitor'
+
+// Wrap queries with monitoring
+const users = await monitorQuery('getUsersWithPosts', async () => {
+  return db.query('SELECT * FROM users')
+})
+
+// Log slow query manually
+logSlowQuery(
+  'SELECT * FROM posts WHERE author_id = $1',
+  150, // 150ms duration
+  ['user-123']
+)
+```
+
+### View Query Statistics
+
+```typescript
+import { getQueryStats, getQueryReport } from '@revealui/core/monitoring/query-monitor'
+
+// Get summary stats
+const stats = getQueryStats()
+console.log({
+  totalQueries: stats.totalQueries,
+  avgDuration: stats.avgDuration,
+  p95: stats.p95,
+  slowQueries: stats.slowQueries,
+})
+
+// Get full report
+const report = getQueryReport()
+console.log(report)
+```
+
+### Query Percentiles
+
+```typescript
+import { getQueryPercentiles } from '@revealui/core/monitoring/query-monitor'
+
+const percentiles = getQueryPercentiles()
+console.log({
+  p50: percentiles.p50, // Median
+  p95: percentiles.p95, // 95th percentile
+  p99: percentiles.p99, // 99th percentile
+})
+```
+
+## Indexing Strategy
+
+### Analyze Missing Indexes
+
+```sql
+-- Find foreign keys without indexes
+SELECT
+  tc.table_name,
+  kcu.column_name
+FROM information_schema.table_constraints tc
+JOIN information_schema.key_column_usage kcu
+  ON tc.constraint_name = kcu.constraint_name
+WHERE tc.constraint_type = 'FOREIGN KEY'
+  AND NOT EXISTS (
+    SELECT 1 FROM pg_indexes
+    WHERE tablename = tc.table_name
+      AND indexdef LIKE '%' || kcu.column_name || '%'
+  );
+```
+
+### Create Strategic Indexes
+
+```sql
+-- User email lookup (authentication)
+CREATE INDEX CONCURRENTLY idx_users_email ON users(email);
+
+-- Post slug lookup (public URLs)
+CREATE INDEX CONCURRENTLY idx_posts_slug ON posts(slug);
+
+-- Published posts sorted by date
+CREATE INDEX CONCURRENTLY idx_posts_published_at
+ON posts(published_at DESC)
+WHERE published_at IS NOT NULL;
+
+-- Composite index for common query
+CREATE INDEX CONCURRENTLY idx_posts_author_status
+ON posts(author_id, status);
+```
+
+### Partial Indexes
+
+```sql
+-- Index only published posts
+CREATE INDEX CONCURRENTLY idx_posts_published
+ON posts(published_at DESC)
+WHERE status = 'published';
+
+-- Index only verified users
+CREATE INDEX CONCURRENTLY idx_users_verified
+ON users(email_verified_at)
+WHERE email_verified_at IS NOT NULL;
+```
+
+### Full-Text Search Index
+
+```sql
+-- GIN index for full-text search
+CREATE INDEX CONCURRENTLY idx_posts_search
+ON posts USING gin(
+  to_tsvector('english', coalesce(title, '') || ' ' || coalesce(content, ''))
+);
+
+-- Query using full-text search
+SELECT * FROM posts
+WHERE to_tsvector('english', coalesce(title, '') || ' ' || coalesce(content, ''))
+  @@ plainto_tsquery('english', 'optimization')
+ORDER BY ts_rank(
+  to_tsvector('english', coalesce(title, '') || ' ' || coalesce(content, '')),
+  plainto_tsquery('english', 'optimization')
+) DESC;
+```
+
+### Monitor Index Usage
+
+```sql
+-- Check index usage statistics
+SELECT
+  schemaname,
+  tablename,
+  indexname,
+  idx_scan as scans,
+  idx_tup_read as tuples_read,
+  idx_tup_fetch as tuples_fetched
+FROM pg_stat_user_indexes
+ORDER BY idx_scan DESC;
+
+-- Find unused indexes
+SELECT
+  schemaname,
+  tablename,
+  indexname,
+  idx_scan
+FROM pg_stat_user_indexes
+WHERE idx_scan = 0
+  AND indexname NOT LIKE 'pg_toast%'
+ORDER BY tablename;
+```
+
+## N+1 Query Elimination
+
+### Problem: N+1 Queries
+
+```typescript
+// ❌ BAD: N+1 query pattern
+const posts = await db.query('SELECT * FROM posts')
+
+for (const post of posts.rows) {
+  // Additional query for each post
+  const author = await db.query('SELECT * FROM users WHERE id = $1', [post.author_id])
+  post.author = author.rows[0]
+}
+```
+
+### Solution 1: JOIN
+
+```typescript
+// ✅ GOOD: Single query with JOIN
+const posts = await db.query(`
+  SELECT
+    p.*,
+    json_build_object(
+      'id', u.id,
+      'name', u.name,
+      'email', u.email
+    ) as author
+  FROM posts p
+  LEFT JOIN users u ON u.id = p.author_id
+`)
+```
+
+### Solution 2: Batch Loading
+
+```typescript
+// ✅ GOOD: Batch load in single query
+async function getUsersByIds(ids: string[]) {
+  return db.query('SELECT * FROM users WHERE id = ANY($1)', [ids])
+}
+```
+
+### Solution 3: JSON Aggregation
+
+```typescript
+// ✅ GOOD: Aggregate related data
+const query = `
+  SELECT
+    u.id,
+    u.name,
+    COALESCE(
+      json_agg(
+        json_build_object(
+          'id', p.id,
+          'title', p.title
+        )
+        ORDER BY p.published_at DESC
+      ) FILTER (WHERE p.id IS NOT NULL),
+      '[]'
+    ) as posts
+  FROM users u
+  LEFT JOIN posts p ON p.author_id = u.id
+  GROUP BY u.id
+`
+```
+
+## Query Caching
+
+### Basic Caching
+
+```typescript
+import { cacheQuery } from '@revealui/core/cache/query-cache'
+
+// Cache for 5 minutes
+const users = await cacheQuery(
+  'users:all',
+  () => db.query('SELECT * FROM users'),
+  { ttl: 300 }
+)
+```
+
+### List Caching
+
+```typescript
+import { cacheList } from '@revealui/core/cache/query-cache'
+
+const posts = await cacheList(
+  'posts',
+  { status: 'published', limit: 20 },
+  () => getPublishedPosts(),
+  300
+)
+```
+
+### Item Caching
+
+```typescript
+import { cacheItem } from '@revealui/core/cache/query-cache'
+
+const user = await cacheItem(
+  'users',
+  userId,
+  () => getUserById(userId),
+  300
+)
+```
+
+### Cache Invalidation
+
+```typescript
+import {
+  invalidateCache,
+  invalidateCachePattern,
+  invalidateResource,
+} from '@revealui/core/cache/query-cache'
+
+// Invalidate specific key
+await invalidateCache('users:all')
+
+// Invalidate by pattern
+await invalidateCachePattern('posts:*')
+
+// Invalidate entire resource
+await invalidateResource('users')
+```
+
+### Stale-While-Revalidate
+
+```typescript
+import { cacheSWR } from '@revealui/core/cache/query-cache'
+
+// Return stale data immediately, revalidate in background
+const data = await cacheSWR(
+  'expensive-query',
+  () => runExpensiveQuery(),
+  {
+    ttl: 300,      // Fresh for 5 minutes
+    staleTime: 60, // Stale data valid for 1 minute
+  }
+)
+```
+
+## Connection Pooling
+
+### Pool Configuration
+
+```typescript
+import { Pool } from 'pg'
+
+const pool = new Pool({
+  max: 20,                      // Maximum pool size
+  min: 5,                       // Minimum pool size
+  idleTimeoutMillis: 30000,     // 30 seconds
+  connectionTimeoutMillis: 5000, // 5 seconds
+  statement_timeout: 10000,     // 10 seconds
+  query_timeout: 10000,         // 10 seconds
+})
+```
+
+### Monitor Pool Health
+
+```typescript
+import { getPoolStats, checkDatabaseHealth } from '@revealui/db/pool'
+
+// Get pool statistics
+const stats = getPoolStats()
+console.log({
+  totalCount: stats.totalCount,
+  idleCount: stats.idleCount,
+  utilization: stats.utilization,
+})
+
+// Check health
+const health = await checkDatabaseHealth()
+console.log(health)
+```
+
+### Warmup Pool
+
+```typescript
+import { warmupPool } from '@revealui/db/pool'
+
+// Pre-warm connections on startup
+await warmupPool()
+```
+
+## Performance Benchmarks
+
+### Run Benchmarks
+
+```bash
+# Run all query benchmarks
+pnpm benchmark:queries
+
+# View results
+cat benchmark-results.json
+```
+
+### Benchmark Custom Query
+
+```typescript
+import { benchmarkQuery } from '@/scripts/performance/benchmark-queries'
+
+const result = await benchmarkQuery(
+  'My Custom Query',
+  () => db.query('SELECT * FROM posts LIMIT 100'),
+  100 // iterations
+)
+
+console.log({
+  avgDuration: result.avgDuration,
+  p95: result.p95,
+  qps: result.queriesPerSecond,
+})
+```
+
+## Best Practices
+
+### 1. Always Use Indexes
+
+```sql
+-- ✅ Index foreign keys
+CREATE INDEX idx_posts_author_id ON posts(author_id);
+
+-- ✅ Index frequently filtered columns
+CREATE INDEX idx_posts_status ON posts(status);
+
+-- ✅ Index sort columns
+CREATE INDEX idx_posts_published_at ON posts(published_at DESC);
+```
+
+### 2. Avoid SELECT *
+
+```sql
+-- ❌ BAD: Fetches unnecessary data
+SELECT * FROM users
+
+-- ✅ GOOD: Fetch only needed columns
+SELECT id, name, email FROM users
+```
+
+### 3. Use EXPLAIN ANALYZE
+
+```sql
+-- Analyze query performance
+EXPLAIN ANALYZE
+SELECT * FROM posts
+WHERE status = 'published'
+ORDER BY published_at DESC
+LIMIT 20;
+```
+
+### 4. Batch Operations
+
+```typescript
+// ❌ BAD: Individual inserts
+for (const user of users) {
+  await db.query('INSERT INTO users (name, email) VALUES ($1, $2)', [user.name, user.email])
+}
+
+// ✅ GOOD: Batch insert
+const values = users.map((u, i) => `($${i * 2 + 1}, $${i * 2 + 2})`).join(',')
+const params = users.flatMap(u => [u.name, u.email])
+await db.query(`INSERT INTO users (name, email) VALUES ${values}`, params)
+```
+
+### 5. Limit Result Sets
+
+```sql
+-- Always use LIMIT for large result sets
+SELECT * FROM posts
+WHERE status = 'published'
+ORDER BY published_at DESC
+LIMIT 20;
+```
+
+### 6. Use Transactions
+
+```typescript
+const client = await pool.connect()
+try {
+  await client.query('BEGIN')
+
+  await client.query('INSERT INTO users (name) VALUES ($1)', ['Alice'])
+  await client.query('INSERT INTO posts (title, author_id) VALUES ($1, $2)', ['Post', 1])
+
+  await client.query('COMMIT')
+} catch (error) {
+  await client.query('ROLLBACK')
+  throw error
+} finally {
+  client.release()
+}
+```
+
+## Troubleshooting
+
+### Slow Queries
+
+```sql
+-- Enable slow query log
+ALTER SYSTEM SET log_min_duration_statement = 100; -- Log queries > 100ms
+SELECT pg_reload_conf();
+
+-- View slow queries
+SELECT * FROM pg_stat_statements
+ORDER BY mean_exec_time DESC
+LIMIT 10;
+```
+
+### Missing Indexes
+
+```sql
+-- Find tables with sequential scans
+SELECT
+  schemaname,
+  tablename,
+  seq_scan,
+  seq_tup_read,
+  idx_scan
+FROM pg_stat_user_tables
+WHERE seq_scan > 1000
+ORDER BY seq_scan DESC;
+```
+
+### Lock Contention
+
+```sql
+-- View blocking queries
+SELECT
+  blocked.pid AS blocked_pid,
+  blocking.pid AS blocking_pid,
+  blocked.query AS blocked_query,
+  blocking.query AS blocking_query
+FROM pg_stat_activity blocked
+JOIN pg_stat_activity blocking
+  ON blocking.pid = ANY(pg_blocking_pids(blocked.pid))
+WHERE blocked.wait_event_type = 'Lock';
+```
+
+### Connection Pool Exhaustion
+
+```typescript
+// Monitor pool stats
+import { getPoolStats } from '@revealui/db/pool'
+
+setInterval(() => {
+  const stats = getPoolStats()
+  if (stats.utilization > 80) {
+    console.warn('High pool utilization:', stats)
+  }
+  if (stats.waitingCount > 5) {
+    console.warn('Many waiting requests:', stats.waitingCount)
+  }
+}, 60000)
+```
+
+## Tools
+
+- **pg_stat_statements** - Query performance statistics
+- **EXPLAIN ANALYZE** - Query execution plan
+- **pgAdmin** - Database administration
+- **PgHero** - Performance dashboard
+- **Grafana** - Metrics visualization
+
+## Resources
+
+- [PostgreSQL Performance](https://www.postgresql.org/docs/current/performance-tips.html)
+- [Indexing Best Practices](https://www.postgresql.org/docs/current/indexes.html)
+- [Connection Pooling Guide](https://node-postgres.com/features/pooling)
+- [Query Optimization](https://www.postgresql.org/docs/current/sql-explain.html)
+
+---
+
+**Last Updated**: February 2026
+**Version**: 1.0.0
