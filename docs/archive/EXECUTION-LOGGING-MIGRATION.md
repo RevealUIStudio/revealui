@@ -198,7 +198,6 @@ See what ran and when for compliance/security.
 ### Phase 2: High-Priority Standalone Scripts (Optional)
 Scripts run frequently or critical to operations:
 - `scripts/generate/generate-types.ts`
-- `scripts/generate/supabase-types.ts`
 - `scripts/setup/seed-sample-content.ts`
 - `scripts/setup/reset-database.ts`
 

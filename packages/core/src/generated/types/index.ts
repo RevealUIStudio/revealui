@@ -13,15 +13,6 @@
 // Re-export all generated types
 export * from './cms.js'
 
-// Re-export Supabase types
-// Note: Using namespace export to avoid Database type conflict with Neon
-// Access Database type: import { SupabaseNS } from '@revealui/core/generated/types'; type DB = SupabaseNS.Database
-// Or use alias: import { SupabaseDatabase } from '@revealui/core/generated/types'
-// Or import directly: import type { Database } from '@revealui/core/generated/types/supabase'
-import * as SupabaseNS from './supabase.js'
-export { SupabaseNS }
-export type { Database as SupabaseDatabase } from './supabase.js'
-
 // Re-export Neon types
 // Note: neon.ts re-exports types from @revealui/contracts/generated to break circular dependencies
 // Using namespace export to avoid Database type conflict with Supabase

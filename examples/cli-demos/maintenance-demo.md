@@ -49,7 +49,6 @@ Available commands:
   fix-imports         Fix missing .js extensions in import statements
   fix-lint            Auto-fix linting errors (Biome + ESLint)
   fix-types           Fix common TypeScript errors
-  fix-supabase        Update Supabase database types
   audit-scripts       Audit package.json scripts for duplicates
   validate-scripts    Validate scripts against templates
   fix-scripts         Auto-fix package scripts
@@ -350,24 +349,6 @@ pnpm maintain:fix-types --auto-fix
 #   • Added return type annotations: 5
 #   • Fixed implicit any: 4
 #   • Added type assertions: 3
-```
-
-### Database Type Updates
-
-```bash
-# Update Supabase types
-pnpm maintain:fix-supabase
-
-# Expected output:
-# 🔄 Fetching latest Supabase schema...
-# ✅ Downloaded schema
-# ✅ Generated TypeScript types
-# ✅ Updated packages/db/src/types/supabase.ts
-#
-# Changes:
-#   • Added 3 new tables
-#   • Updated 5 table definitions
-#   • Added 12 new type exports
 ```
 
 ### Batch Operations

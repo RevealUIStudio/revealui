@@ -79,14 +79,6 @@ describe('OpsCLI', () => {
       expect(fixTypes?.description).toContain('TypeScript')
     })
 
-    it('should define fix-supabase command', () => {
-      const commands = cli.defineCommands()
-      const fixSupabase = commands.find((c) => c.name === 'fix-supabase')
-
-      expect(fixSupabase).toBeTruthy()
-      expect(fixSupabase?.description).toContain('Supabase')
-    })
-
     it('should define audit-scripts command', () => {
       const commands = cli.defineCommands()
       const auditScripts = commands.find((c) => c.name === 'audit-scripts')
@@ -212,7 +204,6 @@ describe('OpsCLI', () => {
       expect(commandMap['fix-imports']).toContain('fix-import-extensions.ts')
       expect(commandMap['fix-lint']).toContain('fix-linting-errors.ts')
       expect(commandMap['fix-types']).toContain('fix-typescript-errors.ts')
-      expect(commandMap['fix-supabase']).toContain('fix-supabase-types.ts')
     })
 
     it('should map database commands to correct scripts', () => {
@@ -288,7 +279,6 @@ describe('OpsCLI', () => {
         'fix-imports',
         'fix-lint',
         'fix-types',
-        'fix-supabase',
         'audit-scripts',
         'validate-scripts',
         'fix-scripts',
