@@ -19,7 +19,6 @@ vi.mock('@revealui/db/client', () => ({
 }))
 
 vi.mock('@revealui/ai/memory/persistence', () => {
-  // biome-ignore lint/style/useNamingConvention: mocked module export uses PascalCase
   class CRDTPersistence {
     loadCompositeState = vi.fn().mockResolvedValue(new Map())
     saveCompositeState = vi.fn().mockResolvedValue(undefined)
@@ -28,7 +27,6 @@ vi.mock('@revealui/ai/memory/persistence', () => {
 })
 
 vi.mock('@revealui/ai/memory/stores', () => {
-  // biome-ignore lint/style/useNamingConvention: mocked module export uses PascalCase
   class WorkingMemory {
     load = vi.fn().mockResolvedValue(undefined)
     save = vi.fn().mockResolvedValue(undefined)
@@ -41,7 +39,6 @@ vi.mock('@revealui/ai/memory/stores', () => {
     addAgent = vi.fn()
     removeAgentById = vi.fn()
   }
-  // biome-ignore lint/style/useNamingConvention: mocked module export uses PascalCase
   class EpisodicMemory {
     load = vi.fn().mockResolvedValue(undefined)
     save = vi.fn().mockResolvedValue(undefined)
@@ -56,7 +53,6 @@ vi.mock('@revealui/ai/memory/stores', () => {
 })
 
 vi.mock('@revealui/ai/memory/agent', () => {
-  // biome-ignore lint/style/useNamingConvention: mocked module export uses PascalCase
   class AgentContextManager {
     load = vi.fn().mockResolvedValue(undefined)
     save = vi.fn().mockResolvedValue(undefined)
