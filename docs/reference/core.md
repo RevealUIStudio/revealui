@@ -492,7 +492,7 @@ import {
 
 ## Related
 
-- [`@revealui/auth`](/api/auth) — Session auth, sign in/up, rate limiting
-- [`@revealui/db`](/api/db) — Drizzle ORM schema and NeonDB client
-- [`@revealui/contracts`](/api/contracts) — Zod schemas and TypeScript types
-- [REST API reference](/api/rest) — Full HTTP endpoint documentation
+- [`@revealui/auth`](/reference/auth) — Session auth, sign in/up, rate limiting
+- [`@revealui/db`](/reference/db) — Drizzle ORM schema and NeonDB client
+- [`@revealui/contracts`](/reference/contracts) — Zod schemas and TypeScript types
+- [REST API reference](https://api.revealui.com/swagger) — Interactive OpenAPI documentation
