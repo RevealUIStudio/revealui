@@ -276,7 +276,7 @@ describe('Config Integration Tests', () => {
       const keys = Object.keys(config)
       expect(keys).toContain('database')
       expect(keys).toContain('stripe')
-      expect(keys.length).toBe(6) // All known properties
+      expect(keys.length).toBe(7) // All known properties: database, stripe, storage, reveal, branding, optional, env
     })
 
     it('should handle unknown property checks', () => {
