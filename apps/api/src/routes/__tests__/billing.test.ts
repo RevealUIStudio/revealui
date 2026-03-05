@@ -81,7 +81,7 @@ const mockDbSelectChain = {
 
 const mockDbUpdateChain = { set: vi.fn(), where: vi.fn() }
 
-const mockDb = { select: vi.fn(), update: vi.fn() }
+const mockDb = { select: vi.fn(), update: vi.fn(), transaction: vi.fn() }
 
 vi.mock('@revealui/db', () => ({
   getClient: vi.fn(() => mockDb),
@@ -137,6 +137,9 @@ function resetChains() {
   mockDbUpdateChain.where.mockResolvedValue({ rowCount: 1 })
   mockDb.select.mockReturnValue(mockDbSelectChain)
   mockDb.update.mockReturnValue(mockDbUpdateChain)
+  mockDb.transaction.mockImplementation(async (cb: (tx: typeof mockDb) => Promise<unknown>) =>
+    cb(mockDb),
+  )
   // Default subscription list — empty (no active subscription)
   mockSubscriptionsList.mockResolvedValue({ data: [] })
   mockSubscriptionsUpdate.mockResolvedValue({})
