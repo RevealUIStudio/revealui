@@ -38,10 +38,10 @@ Pro packages require a [RevealUI Pro license](https://revealui.com/pricing).
 
 | Package | Description | Reference |
 |---------|-------------|-----------|
-| `@revealui/ai` | AI agents, LLM providers, CRDT memory, A2A protocol | [→ ai](/api/ai) |
-| `@revealui/mcp` | MCP servers (Stripe, Supabase, Neon, Vercel, Playwright) | [→ mcp](/api/mcp) |
-| `@revealui/editors` | Editor daemon (Zed, VS Code, Neovim adapters) | [→ editors](/api/editors) |
-| `@revealui/services` | Stripe + Supabase integrations | [→ services](/api/services) |
+| `@revealui/ai` | AI agents, LLM providers, CRDT memory, A2A protocol | docs coming soon |
+| `@revealui/mcp` | MCP servers (Stripe, Supabase, Neon, Vercel, Playwright) | docs coming soon |
+| `@revealui/editors` | Editor daemon (Zed, VS Code, Neovim adapters) | docs coming soon |
+| `@revealui/services` | Stripe + Supabase integrations | docs coming soon |
 
 ## REST API
 
@@ -52,6 +52,6 @@ The RevealUI API server (`apps/api`) exposes a REST API at `https://api.revealui
 
 ## Related
 
-- [Architecture overview](/architecture/ARCHITECTURE)
+- [Architecture overview](/docs/ARCHITECTURE)
 - [Database schema](/docs/DATABASE)
 - [Authentication reference](/docs/AUTH)

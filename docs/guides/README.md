@@ -6,22 +6,24 @@ Step-by-step guides for building with RevealUI.
 
 - [Quick Start](/guides/quick-start) — Create your first RevealUI app in 5 minutes
 - [Examples](/guides/examples) — Three complete example projects: blog, SaaS starter, and storefront
-- [Tutorial](/guides/tutorial) — Build a complete blog with collections, auth, and components
 
-## Core Workflows
+## API Reference
 
-- [Collections](/guides/collections) — Define content types with fields, validation, and access control
-- [Authentication](/guides/authentication) — Add sign-up, sign-in, and session management
-- [Database](/guides/database) — Write type-safe queries with Drizzle ORM and NeonDB
-- [Components](/guides/components) — Use and customize the 50+ native UI components
+Full function signatures, parameters, and usage examples:
 
-## Deployment
+- [Core](/reference/core) — `buildConfig`, `defineCollection`, `isLicensed`, feature flags, rich text
+- [Auth](/reference/auth) — `signIn`, `signUp`, `getSession`, rate limiting
+- [Database](/reference/db) — Drizzle schema, NeonDB client, dual-DB setup
+- [Presentation](/reference/presentation) — 50+ UI components (Button, Dialog, Input, etc.)
+- [Config](/reference/config) — Type-safe env config
+- [Contracts](/reference/contracts) — Zod schemas and TypeScript types
+- [Router](/reference/router) — File-based routing with SSR
+- [Utils](/reference/utils) — Logger, validation helpers
+- [CLI](/reference/cli) — `create-revealui` scaffolding tool
 
-- [Deploy to Vercel](/guides/deploy-vercel) — Deploy your RevealUI app to Vercel in minutes
-- [Environment Variables](/guides/environment-variables) — Configure your app for production
+## Coming Soon
 
-## Pro Features
-
-- [AI Agents](/guides/ai-agents) — Add AI agents to your CMS (Pro)
-- [BYOK](/guides/byok) — Bring your own API keys for AI providers (Pro)
-- [Real-Time Sync](/guides/sync) — Add ElectricSQL real-time sync (Pro)
+- Collections guide — Define content types with fields, validation, and access control
+- Deployment guide — Deploy to Vercel with environment variables and migrations
+- Components guide — Customize and compose the 50+ native UI components
+- AI Agents guide — Add AI agents to your CMS (Pro)

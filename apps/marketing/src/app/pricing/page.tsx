@@ -24,7 +24,7 @@ const tiers = [
     id: 'pro',
     price: '$49',
     period: '/month',
-    description: 'For agencies building professional client sites.',
+    description: 'For software companies building production products.',
     features: [
       'Unlimited CMS collections',
       'Up to 5 sites',
@@ -46,7 +46,7 @@ const tiers = [
     id: 'enterprise',
     price: '$299',
     period: '/month',
-    description: 'For large agencies with advanced requirements.',
+    description: 'For teams with advanced scale and compliance requirements.',
     features: [
       'Unlimited CMS collections',
       'Unlimited sites',
