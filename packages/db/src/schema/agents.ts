@@ -267,7 +267,7 @@ export const agentActions = pgTable('agent_actions', {
 
 export const registeredAgents = pgTable('registered_agents', {
   id: text('id').primaryKey(),
-  definition: jsonb('definition').$type<Record<string, unknown>>().notNull(),
+  definition: jsonb('definition').$type<unknown>().notNull(),
   createdAt: timestamp('created_at', { withTimezone: true }).defaultNow().notNull(),
   updatedAt: timestamp('updated_at', { withTimezone: true }).defaultNow().notNull(),
 })

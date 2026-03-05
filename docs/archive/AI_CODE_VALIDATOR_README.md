@@ -67,7 +67,7 @@ Add to `~/.config/claude-code/mcp_config.json`:
     "revealui-code-validator": {
       "command": "tsx",
       "args": ["./packages/mcp/src/servers/code-validator.ts"],
-      "cwd": "/home/joshua-v-dev/projects/RevealUI",
+      "cwd": ".",
       "enabled": true
     }
   }

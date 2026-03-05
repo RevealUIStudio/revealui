@@ -95,7 +95,7 @@ export default defineEditorConfig({
     systemPrompt: 'You are a helpful coding assistant working in this codebase.',
   },
   workboard: {
-    path: '~/projects/revealui-jv/.claude/workboard.md',
+    path: '.claude/workboard.md',
   },
 })
 ```

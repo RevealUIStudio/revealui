@@ -19,12 +19,8 @@
 
 _(empty — add your active files here while working)_
 
-## Repo Layout (Post-Split)
+## Repo Layout
 
 | Repo | Visibility | Contains |
 |------|-----------|---------|
-| `RevealUIStudio/revealui` | Public (after owner flip) | All packages, all apps, public docs |
-| `RevealUIStudio/revealui-jv` | Private | Full pre-cleanup history, business/, internal docs |
-
-## Naming Convention
-Internal/private versions use `{project}-{initials}` suffix (e.g., `revealui-jv` for the founder's initials).
+| `RevealUIStudio/revealui` | Public | All packages, all apps, public docs |

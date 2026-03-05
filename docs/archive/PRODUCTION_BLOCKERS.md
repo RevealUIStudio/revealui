@@ -486,7 +486,7 @@ Node 24 is still in development (not LTS). This limits deployment options and ma
 
 The console/any numbers were from grepping for literal "any" which captured false positives like "company", "many", comments, etc.
 
-**See:** [Memory/MEMORY.md](../.claude/projects/-home-joshua-v-dev-projects-RevealUI/memory/MEMORY.md) for audit details.
+**See:** [Memory/MEMORY.md](../../.claude/memory/MEMORY.md) for audit details.
 
 ---
 

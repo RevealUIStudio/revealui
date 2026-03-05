@@ -243,7 +243,7 @@ Your turbo.json configuration with `"dependsOn": ["^build"]` is **optimal** and 
 
 ## Additional Files Reference
 
-- **turbo.json** - `/mnt/wsl-dev/home/joshua-v-dev/projects/RevealUI/turbo.json`
+- **turbo.json** - `turbo.json`
 - **Root package.json** - Check workspace configuration
 - **Individual packages** - See `packages/*/package.json` and `apps/*/package.json`
 

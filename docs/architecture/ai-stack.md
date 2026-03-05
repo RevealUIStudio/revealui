@@ -11,7 +11,7 @@ Three phases from zero-cost remote inference today to fully sovereign local GPU 
 | Embeddings | HuggingFace free API (`sentence-transformers/all-MiniLM-L6-v2`) |
 | Setup | `GROQ_API_KEY` env var, no local install required |
 | Free limits | 6,000 TPM / 500,000 TPD for Llama 3.3 70B — sufficient for dev/testing |
-| Status | Implemented (Session 40, 2026-03-02) |
+| Status | Implemented |
 
 ```env
 GROQ_API_KEY=gsk_...
