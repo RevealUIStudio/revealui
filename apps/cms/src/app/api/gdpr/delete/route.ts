@@ -81,7 +81,30 @@ async function gdprDeleteHandler(request: NextRequest) {
           },
     )
 
-    // Delete the user record itself
+    // Abort if any cascade failed — orphaned PII is worse than a retry
+    const failedCascades = cascadeResults.filter((r) => r.status === 'rejected')
+    if (failedCascades.length > 0) {
+      await writeGDPRAuditEntry(revealui, {
+        action: 'delete',
+        userId: userIdToDelete,
+        requestedBy: session.user.email ?? session.user.id,
+        collections: ['users', ...CASCADED_COLLECTIONS],
+        timestamp: new Date().toISOString(),
+        metadata: { cascadeSummary, aborted: true },
+      })
+
+      return NextResponse.json(
+        {
+          success: false,
+          error:
+            'Cascade deletion partially failed — user record preserved to prevent orphaned data',
+          cascadeSummary,
+        },
+        { status: 500 },
+      )
+    }
+
+    // Delete the user record itself (only after all cascades succeeded)
     await revealui.delete({
       collection: 'users',
       id: userIdToDelete,
