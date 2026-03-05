@@ -40,6 +40,11 @@ export const users = pgTable(
     agentCapabilities: jsonb('agent_capabilities').$type<string[]>(),
     agentConfig: jsonb('agent_config'),
 
+    // Email verification (grace period — login allowed, reminders shown)
+    emailVerified: boolean('email_verified').default(false).notNull(),
+    emailVerificationToken: text('email_verification_token'),
+    emailVerifiedAt: timestamp('email_verified_at', { withTimezone: true }),
+
     // Stripe integration
     stripeCustomerId: text('stripe_customer_id'),
 

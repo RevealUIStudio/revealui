@@ -14,6 +14,7 @@ import { getClient } from '@revealui/db'
 import { users } from '@revealui/db/schema'
 import { count, eq } from 'drizzle-orm'
 import { type NextRequest, NextResponse } from 'next/server'
+import { sendVerificationEmail } from '@/lib/email/verification'
 import { withRateLimit } from '@/lib/middleware/rate-limit'
 import {
   createApplicationErrorResponse,
@@ -110,6 +111,18 @@ async function signUpHandler(request: NextRequest): Promise<NextResponse> {
       )
     }
 
+    // Send verification email (fire-and-forget — don't block signup)
+    if (result.user?.email && result.user?.emailVerificationToken) {
+      sendVerificationEmail(result.user.email, result.user.emailVerificationToken).catch(
+        (emailError) => {
+          logger.warn('Failed to send verification email', {
+            userId: result.user?.id,
+            error: emailError,
+          })
+        },
+      )
+    }
+
     // Create response with user data
     const response = NextResponse.json({
       user: {
@@ -118,6 +131,7 @@ async function signUpHandler(request: NextRequest): Promise<NextResponse> {
         name: result.user?.name,
         avatarUrl: result.user?.avatarUrl,
         role: result.user?.role,
+        emailVerified: result.user?.emailVerified ?? false,
       },
     })
 

@@ -30,6 +30,7 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
         avatarUrl: session.user.avatarUrl,
         role: session.user.role,
         status: session.user.status,
+        emailVerified: session.user.emailVerified ?? false,
       },
     })
   } catch (error) {

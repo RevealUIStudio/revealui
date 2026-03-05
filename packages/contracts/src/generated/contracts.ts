@@ -2,7 +2,7 @@
  * Auto-generated Contract wrappers
  *
  * DO NOT EDIT - Regenerate with: pnpm generate:all
- * Generated: 2026-03-05T03:24:37.598Z
+ * Generated: 2026-03-05T03:25:26.345Z
  *
  * This file provides Contract wrappers for all database tables.
  * Contracts combine TypeScript types, Zod schemas, and runtime validation

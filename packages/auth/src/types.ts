@@ -23,6 +23,9 @@ export interface User {
   agentModel: string | null
   agentCapabilities: string[] | null
   agentConfig: unknown
+  emailVerified: boolean
+  emailVerificationToken: string | null
+  emailVerifiedAt: Date | null
   preferences: unknown
   createdAt: Date
   updatedAt: Date
