@@ -15,7 +15,7 @@
 import { join } from 'node:path'
 import { PGlite } from '@electric-sql/pglite'
 import { ErrorCode, ScriptError } from '../errors.js'
-import { type DeprecationInfo, getDeprecationManager } from '../versioning/deprecation-manager.js'
+import { type Deprecation, getDeprecationManager } from '../versioning/deprecation-manager.js'
 import { getVersionManager, type VersionInfo } from '../versioning/script-version.js'
 
 /**
@@ -96,7 +96,7 @@ export interface VersionComparison {
     migration: string
   }>
   newFeatures: string[]
-  deprecations: DeprecationInfo[]
+  deprecations: Deprecation[]
   changelog: string[]
 }
 
@@ -417,7 +417,7 @@ export class MigrationHelper {
     })
 
     // Extract new features from changelog (simplified)
-    const changelog = to.changelog ? to.changelog.split('\n').filter(Boolean) : []
+    const changelog = to.changelog ? to.changelog.filter(Boolean) : []
     const newFeatures = changelog.filter(
       (line) => !breakingChanges.some((bc) => line.includes(bc.what)),
     )

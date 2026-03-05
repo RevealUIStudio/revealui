@@ -14,7 +14,7 @@
  *
  * @dependencies
  * - node:child_process - Process spawning for MCP servers
- * - @revealui/scripts-lib - Logger utilities
+ * - @revealui/scripts - Logger utilities
  *
  * @requires
  * - Scripts: pnpm playwright test
@@ -22,7 +22,7 @@
 
 import type { ChildProcess } from 'node:child_process'
 import { spawn } from 'node:child_process'
-import { createLogger } from '@revealui/scripts-lib'
+import { createLogger } from '@revealui/scripts'
 
 const logger = createLogger()
 

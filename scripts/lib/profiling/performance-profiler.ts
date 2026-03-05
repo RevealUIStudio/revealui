@@ -402,7 +402,7 @@ export class PerformanceProfiler {
       return null
     }
 
-    return this.mapRowToProfile(result.rows[0])
+    return this.mapRowToProfile(result.rows[0] as unknown as ProfileRow)
   }
 
   /**
@@ -424,7 +424,7 @@ export class PerformanceProfiler {
       [scriptName, limit],
     )
 
-    return result.rows.map((row) => this.mapRowToProfile(row))
+    return result.rows.map((row) => this.mapRowToProfile(row as unknown as ProfileRow))
   }
 
   /**
