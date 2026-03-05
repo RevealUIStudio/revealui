@@ -1018,6 +1018,12 @@ importers:
         specifier: ^4.0.18
         version: 4.0.18(@edge-runtime/vm@3.2.0)(@opentelemetry/api@1.9.0)(@types/node@25.3.0)(@vitest/ui@4.0.18)(jiti@2.6.1)(jsdom@27.4.0)(lightningcss@1.31.1)(sass@1.97.3)(terser@5.46.0)(tsx@4.21.0)(yaml@2.8.2)
 
+  packages/create-revealui:
+    dependencies:
+      '@revealui/cli':
+        specifier: 0.2.0
+        version: 0.2.0(@types/node@25.3.0)
+
   packages/db:
     dependencies:
       '@neondatabase/serverless':
@@ -4066,6 +4072,18 @@ packages:
   '@renovatebot/pep440@4.2.1':
     resolution: {integrity: sha512-2FK1hF93Fuf1laSdfiEmJvSJPVIDHEUTz68D3Fi9s0IZrrpaEcj6pTFBTbYvsgC5du4ogrtf5re7yMMvrKNgkw==}
     engines: {node: ^20.9.0 || ^22.11.0 || ^24, pnpm: ^10.0.0}
+
+  '@revealui/cli@0.2.0':
+    resolution: {integrity: sha512-T/hAYpIBoHbQ7f/0mReYI69U6zyhKjdSN9STLWiWbfUt96njBrECT3zM9uLt+n/6KuwE4sD8DAavTroxtZm9Ag==}
+    engines: {node: '>=24.12.0'}
+    hasBin: true
+
+  '@revealui/config@0.2.0':
+    resolution: {integrity: sha512-ky2igiIVm62YB7J+LqlAaFHwh2RPodidYCLTrGUCLNBjvJx6UdHOEDFFFsE5mBYkMtLAsfOl/eZXFpuB+aL+aQ==}
+
+  '@revealui/setup@0.2.0':
+    resolution: {integrity: sha512-/usnOcgIDcE2ME7CE6e/axSO3Hw9zBZZba4tSnidY7u4XVZNcLyxKn5OwRl2Wl0SGtaRh6/KA1K2mRhdCuqyBQ==}
+    engines: {node: '>=24.12.0'}
 
   '@rolldown/binding-android-arm64@1.0.0-rc.1':
     resolution: {integrity: sha512-He6ZoCfv5D7dlRbrhNBkuMVIHd0GDnjJwbICE1OWpG7G3S2gmJ+eXkcNLJjzjNDpeI2aRy56ou39AJM9AD8YFA==}
@@ -14843,6 +14861,33 @@ snapshots:
       '@types/react': 19.2.14
 
   '@renovatebot/pep440@4.2.1': {}
+
+  '@revealui/cli@0.2.0(@types/node@25.3.0)':
+    dependencies:
+      '@revealui/config': 0.2.0
+      '@revealui/setup': 0.2.0(@types/node@25.3.0)
+      commander: 13.1.0
+      execa: 9.6.1
+      inquirer: 12.11.1(@types/node@25.3.0)
+      ora: 8.2.0
+    transitivePeerDependencies:
+      - '@types/node'
+
+  '@revealui/config@0.2.0':
+    dependencies:
+      dotenv: 17.2.4
+      zod: 4.3.6
+
+  '@revealui/setup@0.2.0(@types/node@25.3.0)':
+    dependencies:
+      '@revealui/config': 0.2.0
+      chalk: 5.6.2
+      execa: 9.6.1
+      inquirer: 12.11.1(@types/node@25.3.0)
+      ora: 8.2.0
+      zod: 4.3.6
+    transitivePeerDependencies:
+      - '@types/node'
 
   '@rolldown/binding-android-arm64@1.0.0-rc.1':
     optional: true
