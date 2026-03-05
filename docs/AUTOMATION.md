@@ -1572,7 +1572,7 @@ EOF
 
 import { execSync } from 'child_process';
 
-const REPO = process.env.GITHUB_REPOSITORY || 'joshua-v-dev/RevealUI';
+const REPO = process.env.GITHUB_REPOSITORY || 'RevealUIStudio/revealui';
 const BRANCH = 'main';
 
 console.log(`🔍 Verifying branch protection for ${REPO}:${BRANCH}\n`);

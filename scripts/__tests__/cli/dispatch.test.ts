@@ -5,6 +5,7 @@
  * to external scripts while maintaining JSON mode compatibility.
  */
 
+import path from 'node:path'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import type { ParsedArgs } from '../../lib/args.js'
 
@@ -70,7 +71,7 @@ describe('CLI Dispatch Mechanism', () => {
       process.argv = ['node', 'db.ts', 'reset', '--json']
 
       const mockImport = vi.fn().mockResolvedValue({})
-      vi.doMock('/home/joshua-v-dev/projects/RevealUI/scripts/db/reset.ts', () => mockImport)
+      vi.doMock(path.resolve(process.cwd(), 'scripts/db/reset.ts'), () => mockImport)
 
       try {
         // This would normally execute the CLI, but we're testing the dispatch pattern

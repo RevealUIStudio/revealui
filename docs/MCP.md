@@ -584,7 +584,7 @@ Complete automated setup with error detection and fixing.
 ### "Missing API key" Error
 
 **Solution:** Ensure your `.env` file has the required environment variables:
-- Check file location: `/home/joshua-v-dev/projects/RevealUI/.env`
+- Check file location: `<your-project-root>/.env`
 - Verify variable names match exactly (case-sensitive)
 - Restart the MCP server after adding variables
 

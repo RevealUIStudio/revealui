@@ -1531,7 +1531,7 @@ grep -A 5 "describe.*findGlobal" packages/core/src/core/__tests__/findGlobal.tes
 **1. Verify "All Tests Passing" Claim:**
 
 ```bash
-cd /home/joshua-v-dev/projects/RevealUI
+cd <your-project-root>
 pnpm test checkDependencies findGlobal fieldTraversal --filter @revealui/core
 ```
 

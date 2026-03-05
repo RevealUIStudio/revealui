@@ -2,26 +2,22 @@
 title: "Master Documentation Index"
 type: "index"
 status: "active"
-last_updated: "2026-02-23"
+last_updated: "2026-03-05"
 tags: ["index", "navigation", "reference"]
-related: ["MASTER_PLAN.md", "README.md"]
+related: ["README.md"]
 ---
 
 # Master Documentation Index
 
-**Last Updated**: 2026-02-23
+**Last Updated**: 2026-03-05
 **Status**: ✅ Active
 
-> **Single source of truth for planning:** `docs/MASTER_PLAN.md`
-> All priorities, phase tracking, and session history live there — not here.
-
-This is the comprehensive index of all RevealUI Framework documentation, organized by multiple dimensions for easy discovery.
+This is the comprehensive index of all RevealUI documentation, organized by multiple dimensions for easy discovery.
 
 ---
 
 ## 📚 Quick Navigation
 
-- **[Master Plan](./MASTER_PLAN.md)** - Current phase, priorities, completed work (start here)
 - **[For Developers](./QUICK_START.md)** - 5-minute setup guide
 - **[For AI Agents](./AUTOMATION.md)** - Automation rules and agent conventions
 - **[Master Index](./INDEX.md)** - Comprehensive navigation (you are here)
@@ -37,7 +33,6 @@ This is the comprehensive index of all RevealUI Framework documentation, organiz
 | [Automation Guide](./AUTOMATION.md) | Guide | Agents | Complete automation guide for AI agents and developers (includes agents, automation guides, integrations, cohesion) |
 | [Build Your Business](./BUILD_YOUR_BUSINESS.md) | Tutorial | Users | End-to-end: scaffold → collections → billing → deploy (45 min) |
 | [Developer Quick Start](./QUICK_START.md) | Guide | Developers | 5-minute setup guide |
-| [Master Plan](./MASTER_PLAN.md) | Reference | All | Current phase, priorities, session history — single source of truth |
 | [CI/CD Guide](./CI_CD_GUIDE.md) | Guide | Developers | Complete CI/CD setup (includes monitoring, deployment runbook, rollback procedures, and Docker security) |
 | [Environment Variables Guide](./ENVIRONMENT_VARIABLES_GUIDE.md) | Guide | Developers | Complete configuration guide with quick reference tables |
 | [Overview](./OVERVIEW.md) | Reference | Developers | Complete framework overview (includes CMS guide, environment setup, features, integrations, and more) |
@@ -156,7 +151,6 @@ This is the comprehensive index of all RevealUI Framework documentation, organiz
 
 ### Reference (Quick Lookup)
 
-- [Master Plan](./MASTER_PLAN.md) - Current phase, priorities, session history
 - [Environment Variables Guide](./ENVIRONMENT_VARIABLES_GUIDE.md) - Quick reference tables
 - [Component Catalog](./COMPONENT_CATALOG.md) - Complete component reference
 - [Architecture Guide](./ARCHITECTURE.md) - Complete architecture overview with component mapping
@@ -176,7 +170,6 @@ This is the comprehensive index of all RevealUI Framework documentation, organiz
 ### For AI Agents
 
 - [Automation Guide](./AUTOMATION.md) - **Start here**
-- [Master Plan](./MASTER_PLAN.md) - Current phase and priorities
 - [Code Standards](./STANDARDS.md)
 - [Architecture Overview](./ARCHITECTURE.md)
 
@@ -229,7 +222,6 @@ This master index provides comprehensive navigation by topic, task, audience, an
 ## Related Documentation
 
 - [Master Index](./INDEX.md) - Comprehensive navigation (you are here)
-- [Master Plan](./MASTER_PLAN.md) - Current phase, priorities, session history
 - [Automation Guide](./AUTOMATION.md) - For AI agents and automation
 
 ---
