@@ -500,29 +500,6 @@ export class MigrationHelper {
   private capitalizeFirst(str: string): string {
     return str.charAt(0).toUpperCase() + str.slice(1)
   }
-
-  /**
-   * Detect usage patterns (placeholder for future AST analysis)
-   */
-  async detectUsagePatterns(
-    _scriptName: string,
-    _feature: string,
-  ): Promise<Array<{ file: string; line: number; code: string }>> {
-    // Placeholder for future implementation using AST analysis
-    // Would scan codebase for usage of deprecated features
-    return []
-  }
-
-  /**
-   * Auto-migrate patterns (placeholder for future code transformation)
-   */
-  async autoMigratePatterns(
-    _patterns: Array<{ file: string; line: number; code: string }>,
-    _transformation: (code: string) => string,
-  ): Promise<void> {
-    // Placeholder for future implementation
-    // Would apply code transformations automatically
-  }
 }
 
 let migrationHelperInstance: MigrationHelper | null = null
