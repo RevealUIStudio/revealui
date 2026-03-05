@@ -151,6 +151,11 @@ app.use(
   '/api/logs',
   rateLimitMiddleware({ maxRequests: 200, windowMs: 60_000, keyPrefix: 'log-ingest' }),
 )
+// API keys manage long-lived credentials — tight limits to slow enumeration/abuse
+app.use(
+  '/api/api-keys/*',
+  rateLimitMiddleware({ maxRequests: 20, windowMs: 60_000, keyPrefix: 'api-keys' }),
+)
 // Billing endpoints create Stripe objects — tighter limits to prevent abuse
 app.use(
   '/api/billing/checkout',
@@ -270,7 +275,13 @@ function validateStartup(): void {
 
   // In production, additional vars are required
   if (process.env.NODE_ENV === 'production') {
-    const prodRequired = ['REVEALUI_SECRET']
+    const prodRequired = [
+      'REVEALUI_SECRET',
+      'STRIPE_SECRET_KEY',
+      'STRIPE_WEBHOOK_SECRET',
+      'REVEALUI_LICENSE_PRIVATE_KEY',
+      'CORS_ORIGIN',
+    ]
     const missingProd = prodRequired.filter((key) => !process.env[key])
     if (missingProd.length > 0) {
       throw new Error(

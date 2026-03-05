@@ -94,6 +94,8 @@ app.openapi(
         authorType: z.string().optional().openapi({ example: 'ai_generated' }),
         reviewStatus: z.string().optional().openapi({ example: 'unreviewed' }),
         filePathPrefix: z.string().optional().openapi({ example: 'packages/core' }),
+        limit: z.coerce.number().int().min(1).max(500).optional().openapi({ example: 100 }),
+        offset: z.coerce.number().int().min(0).optional().openapi({ example: 0 }),
       }),
     },
     responses: {
@@ -109,9 +111,9 @@ app.openapi(
   }),
   async (c) => {
     const db = c.get('db')
-    const filters = c.req.valid('query')
-    const entries = await provenanceQueries.getAllProvenance(db, filters)
-    return c.json({ success: true as const, data: entries })
+    const { limit, offset, ...filters } = c.req.valid('query')
+    const entries = await provenanceQueries.getAllProvenance(db, { ...filters, limit, offset })
+    return c.json({ success: true as const, data: entries }, 200)
   },
 )
 
