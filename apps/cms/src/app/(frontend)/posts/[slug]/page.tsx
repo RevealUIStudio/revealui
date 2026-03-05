@@ -24,9 +24,6 @@ export default async function PostPage({ params }: { params: Promise<{ slug: str
 
   if (!result) return <RevealUIRedirects url={url} />
 
-  // Cast to Post type after null check
-  const post = result as unknown as Post
-
   return (
     <article className="pt-16 pb-16">
       <PageClient />
@@ -34,21 +31,21 @@ export default async function PostPage({ params }: { params: Promise<{ slug: str
       {/* Allows redirects for valid pages too */}
       <RevealUIRedirects disableNotFound url={url} />
 
-      <PostHero post={post} />
+      <PostHero post={result} />
 
       <div className="flex flex-col items-center gap-4 pt-8">
         <div className="container lg:mx-0 lg:grid lg:grid-cols-[1fr_48rem_1fr] grid-rows-[1fr]">
           <RichText
             className="lg:grid lg:grid-cols-subgrid col-start-1 col-span-3 grid-rows-[1fr]"
-            content={post.content}
+            content={result.content}
             enableGutter={false}
           />
         </div>
 
-        {post.relatedPosts && post.relatedPosts.length > 0 && (
+        {result.relatedPosts && result.relatedPosts.length > 0 && (
           <RelatedPosts
             className="mt-12"
-            docs={post.relatedPosts.filter(
+            docs={result.relatedPosts.filter(
               (relatedPost): relatedPost is Post =>
                 typeof relatedPost === 'object' && relatedPost !== null,
             )}
@@ -70,12 +67,12 @@ export async function generateMetadata({
   return generateMeta({ doc: post })
 }
 
-const queryPostBySlug = cache(async ({ slug }: { slug: string }) => {
+const queryPostBySlug = cache(async ({ slug }: { slug: string }): Promise<Post | null> => {
   const { isEnabled: draft } = await draftMode()
 
   const revealui = await getRevealUIInstance()
 
-  const result = await revealui.find({
+  const result = await revealui.find<Post>({
     collection: 'posts',
     draft,
     limit: 1,
@@ -87,5 +84,5 @@ const queryPostBySlug = cache(async ({ slug }: { slug: string }) => {
     },
   })
 
-  return result.docs?.[0] || null
+  return result.docs?.[0] ?? null
 })

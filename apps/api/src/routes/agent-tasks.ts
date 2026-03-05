@@ -378,12 +378,15 @@ function buildCMSClient(baseUrl: string | undefined) {
         headers: headers(),
       })
       if (!res.ok) throw new Error(`CMS find failed: ${res.statusText}`)
-      return res.json() as Promise<{
-        docs?: unknown[]
-        totalDocs?: number
-        page?: number
-        totalPages?: number
-      }>
+      const body: unknown = await res.json()
+      const data =
+        body !== null && typeof body === 'object' ? (body as Record<string, unknown>) : {}
+      return {
+        docs: Array.isArray(data['docs']) ? (data['docs'] as unknown[]) : undefined,
+        totalDocs: typeof data['totalDocs'] === 'number' ? data['totalDocs'] : undefined,
+        page: typeof data['page'] === 'number' ? data['page'] : undefined,
+        totalPages: typeof data['totalPages'] === 'number' ? data['totalPages'] : undefined,
+      }
     },
 
     async findById(collection: string, id: string) {

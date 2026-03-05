@@ -32,14 +32,35 @@ export function TaskHistory({ agentId, refreshKey }: TaskHistoryProps) {
 
   // biome-ignore lint/correctness/useExhaustiveDependencies: refreshKey is an intentional re-fetch trigger passed from parent
   useEffect(() => {
+    let cancelled = false
     setLoading(true)
-    fetch(`${apiUrl}/a2a/agents/${encodeURIComponent(agentId)}/tasks`, {
-      credentials: 'include',
-    })
-      .then((r) => (r.ok ? (r.json() as Promise<{ tasks: AgentActionRow[] }>) : { tasks: [] }))
-      .then((data) => setRows(data.tasks))
-      .catch(() => setRows([]))
-      .finally(() => setLoading(false))
+    ;(async () => {
+      try {
+        const r = await fetch(`${apiUrl}/a2a/agents/${encodeURIComponent(agentId)}/tasks`, {
+          credentials: 'include',
+        })
+        if (!r.ok) {
+          if (!cancelled) setRows([])
+          return
+        }
+        const data: unknown = await r.json()
+        const tasks =
+          data !== null &&
+          typeof data === 'object' &&
+          'tasks' in data &&
+          Array.isArray((data as { tasks: unknown }).tasks)
+            ? (data as { tasks: AgentActionRow[] }).tasks
+            : []
+        if (!cancelled) setRows(tasks)
+      } catch {
+        if (!cancelled) setRows([])
+      } finally {
+        if (!cancelled) setLoading(false)
+      }
+    })()
+    return () => {
+      cancelled = true
+    }
   }, [agentId, apiUrl, refreshKey])
 
   if (loading) {
