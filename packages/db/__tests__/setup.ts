@@ -179,6 +179,7 @@ export async function seedTestDatabase(data?: {
         continue
       }
       // biome-ignore lint/suspicious/noExplicitAny: test utility uses dynamic table types
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       await db.insert(table as any).values(rows as any)
     }
 

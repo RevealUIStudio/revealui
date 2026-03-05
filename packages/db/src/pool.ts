@@ -100,25 +100,27 @@ pool.on('error', (err) => {
   )
 })
 
-pool.on('connect', async (client) => {
+pool.on('connect', (client) => {
   const pid = (client as PoolClientWithPID).processID
   logger.info(`Database connection established (PID: ${pid})`)
 
-  try {
-    // Set timezone
-    await client.query("SET timezone TO 'UTC'")
+  void (async () => {
+    try {
+      // Set timezone
+      await client.query("SET timezone TO 'UTC'")
 
-    // Set statement timeout
-    await client.query(`SET statement_timeout TO ${poolConfig.statement_timeout || 10000}`)
+      // Set statement timeout
+      await client.query(`SET statement_timeout TO ${poolConfig.statement_timeout || 10000}`)
 
-    // Enable query statistics
-    await client.query('SET track_io_timing = on')
-  } catch (error) {
-    logger.error(
-      'Error initializing database client',
-      error instanceof Error ? error : new Error(String(error)),
-    )
-  }
+      // Enable query statistics
+      await client.query('SET track_io_timing = on')
+    } catch (error) {
+      logger.error(
+        'Error initializing database client',
+        error instanceof Error ? error : new Error(String(error)),
+      )
+    }
+  })()
 })
 
 pool.on('acquire', (client) => {

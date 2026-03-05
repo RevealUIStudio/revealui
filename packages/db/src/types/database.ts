@@ -531,9 +531,7 @@ export const yjsDocumentsRelationships: readonly Relationship[] = []
  * Database enums (currently none, but structure ready for future enums)
  * When enums are added to Drizzle schemas, they will be included here
  */
-export interface DatabaseEnums {
-  // Enums will be added here as they are defined in the schema
-}
+export type DatabaseEnums = Record<string, never>
 
 // =============================================================================
 // Main Database Type (Supabase-compatible structure)
