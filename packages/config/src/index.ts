@@ -118,7 +118,7 @@ function createConfig(strict: boolean = true): Config {
   if (!strict && isBuild) {
     // For builds, create config with fallbacks - validation happens at runtime
     const partialEnv = {
-      REVEALUI_SECRET: envVars.REVEALUI_SECRET || 'build-time-secret-not-for-runtime',
+      REVEALUI_SECRET: envVars.REVEALUI_SECRET || '__BUILD_PLACEHOLDER_NOT_FOR_RUNTIME__',
       REVEALUI_PUBLIC_SERVER_URL: envVars.REVEALUI_PUBLIC_SERVER_URL || 'http://localhost:4000',
       NEXT_PUBLIC_SERVER_URL:
         envVars.NEXT_PUBLIC_SERVER_URL ||

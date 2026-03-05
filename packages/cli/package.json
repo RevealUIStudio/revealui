@@ -25,6 +25,7 @@
     "commander": "^13.0.0",
     "execa": "^9.0.0",
     "inquirer": "^12.0.0",
+    "jose": "^6.1.3",
     "ora": "^8.0.1"
   },
   "devDependencies": {
