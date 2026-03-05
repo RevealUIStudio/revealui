@@ -4,7 +4,11 @@
  * Provides health and readiness checks for the application
  */
 
+import { execFile } from 'node:child_process'
+import { promisify } from 'node:util'
 import { logger } from './logger.js'
+
+const execFileAsync = promisify(execFile)
 
 export type HealthStatus = 'healthy' | 'degraded' | 'unhealthy'
 
@@ -250,17 +254,47 @@ export function createMemoryHealthCheck(thresholdPercent: number = 90): HealthCh
 /**
  * Disk health check
  */
-export function createDiskHealthCheck(_thresholdPercent: number = 90): HealthCheck {
+export function createDiskHealthCheck(thresholdPercent: number = 90): HealthCheck {
   return {
     name: 'disk',
     critical: false,
     timeout: 2000,
-    check: async () => {
-      // This would require a native module or fs stats
-      // Placeholder implementation
-      return {
-        status: 'healthy',
-        message: 'Disk check not implemented',
+    check: async (): Promise<HealthCheckResult> => {
+      try {
+        const { stdout } = await execFileAsync('df', ['-P', '/'])
+        // df -P output: "Filesystem  1024-blocks  Used  Available  Capacity%  Mounted"
+        const lines = stdout.trim().split('\n')
+        const dataLine = lines[1]
+        if (!dataLine) throw new Error('Unexpected df output format')
+
+        const parts = dataLine.split(/\s+/)
+        const usedPercent = Number.parseInt(parts[4] ?? '0', 10)
+        const availableKb = Number.parseInt(parts[3] ?? '0', 10)
+        const availableMb = Math.round(availableKb / 1024)
+
+        const status: HealthStatus =
+          usedPercent >= thresholdPercent
+            ? 'unhealthy'
+            : usedPercent >= thresholdPercent - 10
+              ? 'degraded'
+              : 'healthy'
+
+        return {
+          status,
+          message:
+            status === 'healthy'
+              ? `Disk usage ${usedPercent}% (${availableMb} MB free)`
+              : `Disk usage ${usedPercent}% exceeds threshold ${thresholdPercent}% (${availableMb} MB free)`,
+          details: { usedPercent, availableMb, thresholdPercent },
+        }
+      } catch (err) {
+        logger.warn('Disk health check failed', {
+          error: err instanceof Error ? err.message : String(err),
+        })
+        return {
+          status: 'degraded',
+          message: 'Disk check unavailable',
+        }
       }
     },
   }
