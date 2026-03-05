@@ -14,7 +14,6 @@ export type DocSection =
   | 'development'
   | 'testing'
   | 'security'
-  | 'optimization'
   | 'ai'
   | 'reference'
 
