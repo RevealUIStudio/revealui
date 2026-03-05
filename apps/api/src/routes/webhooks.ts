@@ -10,7 +10,7 @@
  */
 
 import { isFeatureEnabled } from '@revealui/core/features'
-import { generateLicenseKey } from '@revealui/core/license'
+import { generateLicenseKey, resetLicenseState } from '@revealui/core/license'
 import { logger } from '@revealui/core/observability/logger'
 import { DrizzleAuditStore, getClient } from '@revealui/db'
 import type { Database } from '@revealui/db/client'
@@ -229,19 +229,39 @@ app.post('/stripe', async (c) => {
         const normalizedKey = privateKey.replace(/\\n/g, '\n')
         const licenseKey = await generateLicenseKey({ tier, customerId }, normalizedKey)
 
-        // Store license in NeonDB
+        // Store license in NeonDB (transactional)
         const licenseId = crypto.randomUUID()
-        await db.insert(licenses).values({
-          id: licenseId,
-          userId: resolvedUserId,
-          licenseKey,
-          tier,
-          subscriptionId,
-          customerId,
-          status: 'active',
-          createdAt: new Date(),
-          updatedAt: new Date(),
+        await db.transaction(async (tx) => {
+          // Verify user exists before creating license
+          const [userRow] = await tx
+            .select({ id: users.id })
+            .from(users)
+            .where(eq(users.stripeCustomerId, customerId))
+            .limit(1)
+
+          if (!userRow) {
+            logger.error('Customer has no matching user in DB — license not created', undefined, {
+              customerId,
+              subscriptionId,
+            })
+            return
+          }
+
+          await tx.insert(licenses).values({
+            id: licenseId,
+            userId: resolvedUserId,
+            licenseKey,
+            tier,
+            subscriptionId,
+            customerId,
+            status: 'active',
+            createdAt: new Date(),
+            updatedAt: new Date(),
+          })
         })
+
+        // Invalidate in-process license cache so subsequent requests see the new tier
+        resetLicenseState()
 
         // Best-effort: also store in Stripe subscription metadata for easy retrieval.
         // Non-critical — license is already persisted in NeonDB above.
@@ -289,6 +309,8 @@ app.post('/stripe', async (c) => {
           .set({ status: 'revoked', updatedAt: new Date() })
           .where(eq(licenses.customerId, customerId))
 
+        resetLicenseState()
+
         logger.info('License revoked on subscription deletion', {
           customerId,
           subscriptionId: subscription.id,
@@ -316,6 +338,7 @@ app.post('/stripe', async (c) => {
             customerId,
             subscriptionStatus: subscription.status,
           })
+          resetLicenseState()
           auditLicenseEvent(db, 'license.expired', 'warn', {
             customerId,
             subscriptionId: subscription.id,
@@ -355,6 +378,7 @@ app.post('/stripe', async (c) => {
               .where(eq(licenses.customerId, customerId))
           }
 
+          resetLicenseState()
           auditLicenseEvent(db, 'license.reactivated', 'info', {
             customerId,
             subscriptionId: subscription.id,

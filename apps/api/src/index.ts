@@ -143,6 +143,19 @@ app.use(
   '/api/logs',
   rateLimitMiddleware({ maxRequests: 200, windowMs: 60_000, keyPrefix: 'log-ingest' }),
 )
+// Billing endpoints create Stripe objects — tighter limits to prevent abuse
+app.use(
+  '/api/billing/checkout',
+  rateLimitMiddleware({ maxRequests: 10, windowMs: 15 * 60_000, keyPrefix: 'billing-checkout' }),
+)
+app.use(
+  '/api/billing/upgrade',
+  rateLimitMiddleware({ maxRequests: 5, windowMs: 15 * 60_000, keyPrefix: 'billing-upgrade' }),
+)
+app.use(
+  '/api/billing/downgrade',
+  rateLimitMiddleware({ maxRequests: 5, windowMs: 15 * 60_000, keyPrefix: 'billing-downgrade' }),
+)
 
 // Populate session if present (non-blocking — sets user context for all API routes)
 app.use('/api/*', authMiddleware({ required: false }))

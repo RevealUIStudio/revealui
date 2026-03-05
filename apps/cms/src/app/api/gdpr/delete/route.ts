@@ -1,14 +1,11 @@
 export const runtime = 'nodejs'
 
-import { GDPRDeleteRequestContract } from '@revealui/contracts'
+import { getSession } from '@revealui/auth/server'
 import { type NextRequest, NextResponse } from 'next/server'
+import { withRateLimit } from '@/lib/middleware/rate-limit'
 import { writeGDPRAuditEntry } from '@/lib/utilities/gdpr-audit'
 import { getRevealUIInstance } from '@/lib/utilities/revealui-singleton'
-import {
-  createApplicationErrorResponse,
-  createErrorResponse,
-  createValidationErrorResponse,
-} from '@/lib/utils/error-response'
+import { createApplicationErrorResponse, createErrorResponse } from '@/lib/utils/error-response'
 
 export const dynamic = 'force-dynamic'
 
@@ -18,58 +15,23 @@ const CASCADED_COLLECTIONS = ['conversations', 'orders', 'subscriptions', 'event
 /**
  * GDPR Right to Deletion Endpoint
  *
- * Deletes the user record **and** all personally-identifiable data held in
- * related collections (cascade delete). Writes an audit entry on completion.
+ * Deletes the authenticated user's record **and** all personally-identifiable
+ * data held in related collections (cascade delete).
+ * Requires session auth — users can only delete their own data.
+ * Writes an audit entry on completion.
  */
-export async function POST(request: NextRequest) {
+async function gdprDeleteHandler(request: NextRequest) {
   try {
-    let body: unknown
-    try {
-      body = await request.json()
-    } catch (jsonError) {
-      return createValidationErrorResponse('Invalid JSON in request body', 'body', null, {
-        parseError: jsonError instanceof Error ? jsonError.message : 'Malformed JSON',
-      })
+    // Require authentication
+    const session = await getSession(request.headers)
+    if (!session) {
+      return createApplicationErrorResponse('Authentication required', 'UNAUTHORIZED', 401)
     }
-
-    // Validate request body using contract
-    const validationResult = GDPRDeleteRequestContract.validate(body)
-
-    if (!validationResult.success) {
-      const firstIssue = validationResult.errors.issues[0]
-      return createValidationErrorResponse(
-        firstIssue?.message || 'Validation failed',
-        firstIssue?.path?.join('.') || 'body',
-        body,
-        {
-          issues: validationResult.errors.issues.map((issue) => ({
-            path: issue.path.join('.'),
-            message: issue.message,
-          })),
-        },
-      )
-    }
-
-    const { userId, email } = validationResult.data
 
     const revealui = await getRevealUIInstance()
 
-    // Find user by ID or email
-    const user = await revealui.find({
-      collection: 'users',
-      where: userId ? { id: { equals: userId } } : { email: { equals: email } },
-      limit: 1,
-    })
-
-    const foundUser = user.docs[0]
-    if (!foundUser) {
-      return createApplicationErrorResponse('User not found', 'USER_NOT_FOUND', 404, {
-        userId,
-        email,
-      })
-    }
-
-    const userIdToDelete = String(foundUser.id)
+    // Users can only delete their own account
+    const userIdToDelete = session.user.id
 
     // -------------------------------------------------------------------------
     // Cascade delete: remove related records before removing the user row so
@@ -111,7 +73,7 @@ export async function POST(request: NextRequest) {
     await writeGDPRAuditEntry(revealui, {
       action: 'delete',
       userId: userIdToDelete,
-      requestedBy: email ?? userId,
+      requestedBy: session.user.email ?? session.user.id,
       collections: ['users', ...CASCADED_COLLECTIONS],
       timestamp: new Date().toISOString(),
       metadata: { cascadeSummary },
@@ -133,3 +95,10 @@ export async function POST(request: NextRequest) {
     })
   }
 }
+
+// Rate-limited deletion: 2 requests per hour (destructive operation)
+export const POST = withRateLimit(gdprDeleteHandler, {
+  maxAttempts: 2,
+  windowMs: 60 * 60 * 1000,
+  keyPrefix: 'gdpr-delete',
+})
