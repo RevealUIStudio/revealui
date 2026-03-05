@@ -30,7 +30,7 @@ const tiers = [
       'Up to 5 sites',
       'Up to 25 users/editors',
       'Session-based auth',
-      '1 AI agent with LLM provider',
+      'AI agents (BYOK — bring your own LLM key)',
       'AI working memory',
       'Built-in Stripe payments',
       'Full real-time sync',
@@ -38,7 +38,7 @@ const tiers = [
       'Full source code access',
     ],
     cta: 'Start Free Trial',
-    ctaHref: `${process.env.NEXT_PUBLIC_CMS_URL || ''}/signup?plan=pro`,
+    ctaHref: `${process.env.NEXT_PUBLIC_CMS_URL || 'https://cms.revealui.com'}/signup?plan=pro`,
     featured: true,
   },
   {
@@ -86,7 +86,7 @@ const faqs = [
   {
     question: 'What AI providers are supported?',
     answer:
-      'Pro tier includes one LLM provider (OpenAI, Anthropic, or Google). Enterprise tier includes all providers plus custom model endpoints and fine-tuned models.',
+      'RevealUI uses BYOK (bring your own key) — you connect your own API key from any supported provider: Anthropic, OpenAI, Groq, Ollama (local), or Vultr. You pay the provider directly; RevealUI adds no markup.',
   },
   {
     question: 'What does "full source code access" mean?',
