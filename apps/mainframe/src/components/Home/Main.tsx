@@ -93,12 +93,11 @@ const HomeMain: React.FC = () => {
     () => [
       {
         id: 1,
-        title: 'Scrapyard',
-        subtitle: 'Welcome to the Scrapyard',
+        title: 'Open-Source Business Infrastructure',
+        subtitle: 'Everything your software business needs',
         description:
-          'The Scrapyard is a place where you can find all the latest news and updates from the Streetbeefs community.',
-        image:
-          'https://res.cloudinary.com/dpytkhyme/image/upload/v1699245361/STREETBEEFS%20SCRAPYARD/yardday_zkkuvn.jpg',
+          'Users, content, products, payments, and AI — pre-wired and ready to deploy. Start on day one with a real running business, not a blank slate.',
+        image: '/placeholder-main.jpg',
       },
     ],
     [],

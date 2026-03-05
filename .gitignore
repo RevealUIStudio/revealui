@@ -69,6 +69,8 @@ lint-output.txt
 
 # Template file is committed (.env.template)
 # .envrc is committed (direnv config, no secrets)
+# .envrc.local is gitignored (machine-specific overrides, e.g. CLAUDE_AGENT_ROLE)
+.envrc.local
 
 # Vercel — ignore build output but commit project.json (needed for CI deploys)
 .vercel/output

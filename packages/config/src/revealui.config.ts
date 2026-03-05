@@ -41,7 +41,8 @@ export const sharedConfig = {
   /**
    * Secret key - used by CMS for encryption
    */
-  secret: process.env.REVEALUI_SECRET || 'dev-secret-change-in-production',
+  secret:
+    process.env.REVEALUI_SECRET || 'INSECURE-DEV-ONLY-CHANGE-ME-SET-REVEALUI_SECRET-IN-PRODUCTION',
 
   /**
    * Base Reveal configuration

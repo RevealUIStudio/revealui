@@ -67,8 +67,8 @@ interface MottoProps {
 
 const Motto = ({ className }: MottoProps) => (
   <div className={className}>
-    <h1 style={{ fontSize: '3rem', fontWeight: 'bold' }}>STREETBEEFS</h1>
-    <p style={{ fontSize: '1.5rem' }}>SCRAPYARD</p>
+    <h1 style={{ fontSize: '3rem', fontWeight: 'bold' }}>RevealUI</h1>
+    <p style={{ fontSize: '1.5rem' }}>Build your business, not your boilerplate.</p>
   </div>
 )
 
@@ -85,11 +85,10 @@ const HomeHero = (): React.ReactElement => {
     () => [
       {
         id: 1,
-        image:
-          'https://res.cloudinary.com/dpytkhyme/image/upload/v1686557282/STREETBEEFS%20SCRAPYARD/firechicken_animated_photo_fj1xej.jpg',
-        altText: 'Firechicken animated photo',
-        href: 'https://www.youtube.com/@streetbeefsScrapyard',
-        videos: 'https://www.youtube.com/@streetbeefsScrapyard',
+        image: '/placeholder-hero.jpg',
+        altText: 'RevealUI demo app',
+        href: 'https://revealui.com',
+        videos: '',
       },
     ],
     [],

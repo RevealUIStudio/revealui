@@ -57,11 +57,10 @@ type CardData = {
 const HomeCard: React.FC = () => {
   const initialData: CardData = useMemo(
     () => ({
-      name: 'Scrapyard Records',
-      image:
-        'https://res.cloudinary.com/dpytkhyme/image/upload/v1686377854/STREETBEEFS%20SCRAPYARD/received_379940754080520_hzf7q1.jpg',
-      label: 'ScrapRecords Label',
-      cta: 'Check out all Media',
+      name: 'RevealUI Demo',
+      image: '/placeholder-card.jpg',
+      label: 'Open Source',
+      cta: 'Learn More',
       href: '/',
       loading: 'eager',
     }),

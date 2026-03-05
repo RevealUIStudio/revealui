@@ -41,7 +41,7 @@ describe('HomeMain', () => {
     // The component uses useMemo for initial data, so it should render immediately
     // or show a loading skeleton
     await waitFor(() => {
-      const content = screen.queryByText(/loading/i) || screen.queryByText(/streetbeefs/i)
+      const content = screen.queryByText(/loading/i) || screen.queryByText(/revealui/i)
       // Either loading or content should be visible
       expect(content !== null || document.body.textContent!.length > 0).toBe(true)
     })

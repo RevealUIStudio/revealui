@@ -98,18 +98,17 @@ interface BannerProps {
 const HomeContent: React.FC = () => {
   const stats = useMemo(
     () => [
-      { label: 'Subscribers', value: '476K', id: 1 },
-      { label: 'Videos', value: '1.9k', id: 2 },
-      { label: 'Views', value: '180,430,351', id: 3 },
-      { label: 'Fighters', value: '500+', id: 4 },
+      { label: 'Packages', value: '18', id: 1 },
+      { label: 'Apps', value: '6', id: 2 },
+      { label: 'Tables', value: '41', id: 3 },
+      { label: 'Components', value: '50+', id: 4 },
     ],
     [],
   )
   const initialBanner: BannerProps = useMemo(
     () => ({
-      image:
-        'https://res.cloudinary.com/dpytkhyme/image/upload/v1691668068/STREETBEEFS%20SCRAPYARD/website%20new/non%20fight%20pictures/yard/FB_IMG_1666183588935_zkdfmv.jpg',
-      alt: 'Streetbeefs Scrapyard banner image',
+      image: '/placeholder-banner.jpg',
+      alt: 'RevealUI banner',
       heading: 'Welcome!',
       subheading: 'Discover More',
       description: 'Check out the latest stats',

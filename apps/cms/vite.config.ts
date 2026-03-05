@@ -29,17 +29,17 @@ export default defineConfig({
 //     port: 4000,
 //     proxy: {
 //       // '/': {
-//       //   target: 'https://admin.streetbeefsscrapyard.com', // RevealUI CMS production URL
+//       //   target: 'https://cms.revealui.com', // RevealUI CMS production URL
 //       //   changeOrigin: true,
 //       //   rewrite: (path) => path.replace(/^\/admin/, '/admin'),
 //       // },
 //       // '/admin': {
-//       //   target: 'https://admin.streetbeefsscrapyard.com', // RevealUI CMS production URL
+//       //   target: 'https://cms.revealui.com', // RevealUI CMS production URL
 //       //   changeOrigin: true,
 //       //   rewrite: (path) => path.replace(/^\/admin/, '/admin'),
 //       // },
 //       "/api": {
-//         target: "https://admin.streetbeefsscrapyard.com", // RevealUI CMS production URL
+//         target: "https://cms.revealui.com", // RevealUI CMS production URL
 //         changeOrigin: true,
 //         rewrite: (path) => path.replace(/^\/api/, "/api"),
 //       },
