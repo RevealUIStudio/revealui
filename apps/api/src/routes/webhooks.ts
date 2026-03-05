@@ -139,7 +139,7 @@ app.post('/stripe', async (c) => {
   } catch (err) {
     const msg = err instanceof Error ? err.message : 'Unknown error'
     logger.error('Webhook signature verification failed', undefined, { detail: msg })
-    return c.json({ error: `Webhook signature verification failed: ${msg}` }, 400)
+    return c.json({ error: 'Invalid webhook signature' }, 400)
   }
 
   if (isAlreadyProcessed(event.id)) {
@@ -338,7 +338,7 @@ app.post('/stripe', async (c) => {
   } catch (err) {
     const msg = err instanceof Error ? err.message : 'Unknown error'
     logger.error('Webhook handler error', undefined, { detail: msg, eventType: event.type })
-    return c.json({ error: `Webhook handler failed: ${msg}` }, 500)
+    return c.json({ error: 'Webhook processing failed' }, 500)
   }
 
   return c.json({ received: true }, 200)

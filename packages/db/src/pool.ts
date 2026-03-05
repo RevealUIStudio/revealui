@@ -30,6 +30,15 @@ function getPoolSSLConfig(): PoolConfig['ssl'] {
 /**
  * Connection pool configuration optimized for performance
  */
+if (
+  process.env.NODE_ENV === 'production' &&
+  !process.env.DATABASE_HOST &&
+  !process.env.DATABASE_URL &&
+  !process.env.POSTGRES_URL
+) {
+  throw new Error('DATABASE_HOST (or DATABASE_URL / POSTGRES_URL) must be set in production')
+}
+
 const poolConfig: PoolConfig = {
   // Connection details
   host: process.env.DATABASE_HOST || 'localhost',
