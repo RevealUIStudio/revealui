@@ -9,7 +9,7 @@
 import { CRDTPersistence } from '@revealui/ai/memory/persistence'
 import { EpisodicMemory } from '@revealui/ai/memory/stores'
 import { AgentMemoryContract } from '@revealui/contracts'
-import { logger } from '@revealui/core/utils/logger'
+import { logger } from '@revealui/core/observability/logger'
 import { getClient } from '@revealui/db/client'
 import { type NextRequest, NextResponse } from 'next/server'
 import { getNodeIdFromUser } from '@/lib/utilities/nodeId'
@@ -33,9 +33,10 @@ export async function GET(
     userId = paramsResolved.userId
 
     if (!userId || typeof userId !== 'string' || userId.trim().length === 0) {
-      return NextResponse.json(
-        { error: 'Invalid userId: must be a non-empty string' },
-        { status: 400 },
+      return createValidationErrorResponse(
+        'Invalid userId: must be a non-empty string',
+        'userId',
+        userId,
       )
     }
 

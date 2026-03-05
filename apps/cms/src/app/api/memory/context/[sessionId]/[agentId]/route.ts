@@ -8,7 +8,7 @@
 
 import { AgentContextManager } from '@revealui/ai/memory/agent'
 import { CRDTPersistence } from '@revealui/ai/memory/persistence'
-import { logger } from '@revealui/core/utils/logger'
+import { logger } from '@revealui/core/observability/logger'
 import { getClient } from '@revealui/db/client'
 import { type NextRequest, NextResponse } from 'next/server'
 import { getNodeIdFromSession } from '@/lib/utilities/nodeId'

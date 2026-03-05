@@ -7,7 +7,7 @@
 
 import { CRDTPersistence } from '@revealui/ai/memory/persistence'
 import { WorkingMemory } from '@revealui/ai/memory/stores'
-import { logger } from '@revealui/core/utils/logger'
+import { logger } from '@revealui/core/observability/logger'
 import { getClient } from '@revealui/db/client'
 import { type NextRequest, NextResponse } from 'next/server'
 import { getNodeIdFromSession } from '@/lib/utilities/nodeId'

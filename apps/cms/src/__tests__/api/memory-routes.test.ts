@@ -120,7 +120,7 @@ describe('Memory API Routes', () => {
       const data = await response.json()
 
       expect(response.status).toBe(400)
-      expect(data.error).toContain('Invalid sessionId')
+      expect(data.message).toContain('Invalid sessionId')
     })
   })
 
@@ -150,7 +150,7 @@ describe('Memory API Routes', () => {
       const data = await response.json()
 
       expect(response.status).toBe(400)
-      expect(data.error).toContain('Invalid sessionId')
+      expect(data.message).toContain('Invalid sessionId')
     })
   })
 
@@ -178,7 +178,7 @@ describe('Memory API Routes', () => {
       const data = await response.json()
 
       expect(response.status).toBe(400)
-      expect(data.error).toContain('Invalid userId')
+      expect(data.message).toContain('Invalid userId')
     })
   })
 
@@ -235,7 +235,7 @@ describe('Memory API Routes', () => {
       const data = await response.json()
 
       expect(response.status).toBe(400)
-      expect(data.error).toContain('Invalid JSON')
+      expect(data.message).toContain('Invalid JSON')
     })
 
     it('returns 400 for empty userId', async () => {
@@ -249,7 +249,7 @@ describe('Memory API Routes', () => {
       const data = await response.json()
 
       expect(response.status).toBe(400)
-      expect(data.error).toContain('Invalid userId')
+      expect(data.message).toContain('Invalid userId')
     })
   })
 
@@ -277,7 +277,7 @@ describe('Memory API Routes', () => {
       const data = await response.json()
 
       expect(response.status).toBe(400)
-      expect(data.error).toContain('Invalid userId')
+      expect(data.message).toContain('Invalid userId')
     })
 
     it('returns 400 for empty memoryId', async () => {
@@ -290,7 +290,7 @@ describe('Memory API Routes', () => {
       const data = await response.json()
 
       expect(response.status).toBe(400)
-      expect(data.error).toContain('Invalid memoryId')
+      expect(data.message).toContain('Invalid memoryId')
     })
   })
 
@@ -318,7 +318,7 @@ describe('Memory API Routes', () => {
       const data = await response.json()
 
       expect(response.status).toBe(400)
-      expect(data.error).toContain('Invalid sessionId')
+      expect(data.message).toContain('Invalid sessionId')
     })
 
     it('returns 400 for empty agentId', async () => {
@@ -329,7 +329,7 @@ describe('Memory API Routes', () => {
       const data = await response.json()
 
       expect(response.status).toBe(400)
-      expect(data.error).toContain('Invalid agentId')
+      expect(data.message).toContain('Invalid agentId')
     })
   })
 
@@ -375,7 +375,7 @@ describe('Memory API Routes', () => {
       const data = await response.json()
 
       expect(response.status).toBe(400)
-      expect(data.error).toContain('Invalid JSON')
+      expect(data.message).toContain('Invalid JSON')
     })
 
     it('returns 400 for non-object body', async () => {
@@ -389,7 +389,7 @@ describe('Memory API Routes', () => {
       const data = await response.json()
 
       expect(response.status).toBe(400)
-      expect(data.error).toContain('must be a JSON object')
+      expect(data.message).toContain('must be a JSON object')
     })
 
     it('returns 400 for empty sessionId', async () => {
@@ -403,7 +403,7 @@ describe('Memory API Routes', () => {
       const data = await response.json()
 
       expect(response.status).toBe(400)
-      expect(data.error).toContain('Invalid sessionId')
+      expect(data.message).toContain('Invalid sessionId')
     })
 
     it('returns 400 for empty agentId', async () => {
@@ -417,7 +417,7 @@ describe('Memory API Routes', () => {
       const data = await response.json()
 
       expect(response.status).toBe(400)
-      expect(data.error).toContain('Invalid agentId')
+      expect(data.message).toContain('Invalid agentId')
     })
   })
 
@@ -447,7 +447,7 @@ describe('Memory API Routes', () => {
       const data = await response.json()
 
       expect(response.status).toBe(400)
-      expect(data.error).toContain('Missing or invalid key')
+      expect(data.message).toContain('Missing or invalid key')
     })
 
     it('returns 400 when body is absent', async () => {
@@ -460,7 +460,7 @@ describe('Memory API Routes', () => {
       const data = await response.json()
 
       expect(response.status).toBe(400)
-      expect(data.error).toContain('Missing or invalid key')
+      expect(data.message).toContain('Missing or invalid key')
     })
 
     it('returns 400 for empty sessionId', async () => {
@@ -474,7 +474,7 @@ describe('Memory API Routes', () => {
       const data = await response.json()
 
       expect(response.status).toBe(400)
-      expect(data.error).toContain('Invalid sessionId')
+      expect(data.message).toContain('Invalid sessionId')
     })
   })
 })
