@@ -53,22 +53,23 @@ const LicenseGenerateRequestSchema = z.object({
     example: 'cus_abc123',
   }),
   domains: z
-    .array(z.string())
+    .array(z.string().max(253))
+    .max(100)
     .optional()
     .openapi({
       description: 'Licensed domains (optional)',
       example: ['example.com', 'app.example.com'],
     }),
-  maxSites: z.number().int().positive().optional().openapi({
+  maxSites: z.number().int().positive().max(10_000).optional().openapi({
     description: 'Maximum sites (defaults: Pro=5, Enterprise=unlimited)',
     example: 5,
   }),
-  maxUsers: z.number().int().positive().optional().openapi({
+  maxUsers: z.number().int().positive().max(1_000_000).optional().openapi({
     description: 'Maximum users (defaults: Pro=25, Enterprise=unlimited)',
     example: 25,
   }),
-  expiresInDays: z.number().int().positive().optional().openapi({
-    description: 'License duration in days (default: 365)',
+  expiresInDays: z.number().int().positive().max(3650).optional().openapi({
+    description: 'License duration in days (default: 365, max: 10 years)',
     example: 365,
   }),
 })

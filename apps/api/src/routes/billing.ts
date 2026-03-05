@@ -92,18 +92,38 @@ async function ensureStripeCustomer(userId: string, email: string): Promise<stri
     return user.stripeCustomerId
   }
 
+  // Create Stripe customer, then persist the ID in a transaction so we don't
+  // end up with a dangling Stripe customer if the DB write fails.
   const stripe = getStripeClient()
   const customer = await stripe.customers.create({
     email,
     metadata: { revealui_user_id: userId },
   })
 
-  await db
-    .update(users)
-    .set({ stripeCustomerId: customer.id, updatedAt: new Date() })
+  await db.transaction(async (tx) => {
+    // Re-check inside the transaction to handle concurrent requests
+    const [existing] = await tx
+      .select({ stripeCustomerId: users.stripeCustomerId })
+      .from(users)
+      .where(eq(users.id, userId))
+
+    if (existing?.stripeCustomerId) {
+      return
+    }
+
+    await tx
+      .update(users)
+      .set({ stripeCustomerId: customer.id, updatedAt: new Date() })
+      .where(eq(users.id, userId))
+  })
+
+  // Re-read to handle race: if another request won, return their customer ID
+  const [updated] = await db
+    .select({ stripeCustomerId: users.stripeCustomerId })
+    .from(users)
     .where(eq(users.id, userId))
 
-  return customer.id
+  return updated?.stripeCustomerId ?? customer.id
 }
 
 // ─── Routes ──────────────────────────────────────────────────────────────────

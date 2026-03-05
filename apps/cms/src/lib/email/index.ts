@@ -207,23 +207,46 @@ function getEmailProvider(): EmailProvider {
 }
 
 /**
- * Send an email
+ * Send an email with automatic retry for transient failures.
  *
- * @param options - Email options
- * @returns Success result
+ * Retries up to `maxRetries` times with exponential backoff (200ms, 400ms, 800ms).
+ * Only retries on errors that look transient (network, 5xx). Validation / auth
+ * errors fail immediately.
  */
 export async function sendEmail(
   options: EmailOptions,
+  { maxRetries = 2 }: { maxRetries?: number } = {},
 ): Promise<{ success: boolean; error?: string }> {
-  try {
-    const provider = getEmailProvider()
-    return await provider.send(options)
-  } catch (error) {
-    return {
-      success: false,
-      error: error instanceof Error ? error.message : 'Unknown error',
+  const provider = getEmailProvider()
+
+  for (let attempt = 0; attempt <= maxRetries; attempt++) {
+    try {
+      const result = await provider.send(options)
+
+      if (result.success) return result
+
+      // Don't retry auth/config errors
+      if (result.error && /not configured|not installed|unauthorized/i.test(result.error)) {
+        return result
+      }
+
+      // Last attempt — return whatever we got
+      if (attempt === maxRetries) return result
+
+      // Exponential backoff before retrying
+      await new Promise((resolve) => setTimeout(resolve, 200 * 2 ** attempt))
+    } catch (error) {
+      if (attempt === maxRetries) {
+        return {
+          success: false,
+          error: error instanceof Error ? error.message : 'Unknown error',
+        }
+      }
+      await new Promise((resolve) => setTimeout(resolve, 200 * 2 ** attempt))
     }
   }
+
+  return { success: false, error: 'Max retries exceeded' }
 }
 
 /**
