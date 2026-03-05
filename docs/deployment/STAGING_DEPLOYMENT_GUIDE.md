@@ -41,7 +41,7 @@
 
 - [ ] **Production Build**
   ```bash
-  cd /home/joshua-v-dev/projects/RevealUI
+  cd <your-project-root>
   pnpm --filter cms build
   ```
 
@@ -85,7 +85,7 @@
 
 ```bash
 # Navigate to CMS app
-cd /home/joshua-v-dev/projects/RevealUI/apps/cms
+cd <your-project-root>/apps/cms
 
 # Deploy to staging
 vercel --prod=false
@@ -392,7 +392,7 @@ Deployment is successful when:
 # Quick Reference - Staging Deployment
 
 # 1. Build for production
-cd /home/joshua-v-dev/projects/RevealUI
+cd <your-project-root>
 pnpm --filter cms build
 
 # 2. Deploy to Vercel staging
