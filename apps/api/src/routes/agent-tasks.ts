@@ -166,23 +166,27 @@ app.openapi(
 
     // Persist agent outcome to agent_memories for traceability and future retrieval
     if (result.output) {
-      await db.insert(agentMemories).values({
-        id: crypto.randomUUID(),
-        content: result.output,
-        type: 'decision',
-        source: {
-          type: 'agent',
-          id: `ticket-agent-${ticket.id}`,
-          confidence: result.success ? 1 : 0.5,
-        },
-        agentId: `ticket-agent-${ticket.id}`,
-        metadata: {
-          ticketId: ticket.id,
-          success: result.success,
-          executionTime: result.metadata?.executionTime,
-          tokensUsed: result.metadata?.tokensUsed,
-        },
-      })
+      try {
+        await db.insert(agentMemories).values({
+          id: crypto.randomUUID(),
+          content: result.output,
+          type: 'decision',
+          source: {
+            type: 'agent',
+            id: `ticket-agent-${ticket.id}`,
+            confidence: result.success ? 1 : 0.5,
+          },
+          agentId: `ticket-agent-${ticket.id}`,
+          metadata: {
+            ticketId: ticket.id,
+            success: result.success,
+            executionTime: result.metadata?.executionTime,
+            tokensUsed: result.metadata?.tokensUsed,
+          },
+        })
+      } catch {
+        // Memory persistence is best-effort — don't fail the request
+      }
     }
 
     // Re-fetch final ticket state
@@ -308,23 +312,27 @@ app.openapi(
 
     // Persist agent outcome to agent_memories
     if (result.output) {
-      await db.insert(agentMemories).values({
-        id: crypto.randomUUID(),
-        content: result.output,
-        type: 'decision',
-        source: {
-          type: 'agent',
-          id: `ticket-agent-${ticketId}`,
-          confidence: result.success ? 1 : 0.5,
-        },
-        agentId: `ticket-agent-${ticketId}`,
-        metadata: {
-          ticketId,
-          success: result.success,
-          executionTime: result.metadata?.executionTime,
-          tokensUsed: result.metadata?.tokensUsed,
-        },
-      })
+      try {
+        await db.insert(agentMemories).values({
+          id: crypto.randomUUID(),
+          content: result.output,
+          type: 'decision',
+          source: {
+            type: 'agent',
+            id: `ticket-agent-${ticketId}`,
+            confidence: result.success ? 1 : 0.5,
+          },
+          agentId: `ticket-agent-${ticketId}`,
+          metadata: {
+            ticketId,
+            success: result.success,
+            executionTime: result.metadata?.executionTime,
+            tokensUsed: result.metadata?.tokensUsed,
+          },
+        })
+      } catch {
+        // Memory persistence is best-effort — don't fail the request
+      }
     }
 
     const finalTicket = await ticketQueries.getTicketById(db, ticketId)

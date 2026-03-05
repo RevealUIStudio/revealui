@@ -6,6 +6,7 @@ import { beforeEach, describe, expect, it, vi } from 'vitest'
 // ---------------------------------------------------------------------------
 vi.mock('@revealui/db', () => ({
   getClient: vi.fn(),
+  getPoolMetrics: vi.fn().mockReturnValue([]),
 }))
 
 import { getClient } from '@revealui/db'

@@ -226,6 +226,7 @@ describe('Boards', () => {
   })
 
   it('DELETE /boards/:id — deletes board', async () => {
+    mb.getBoardById.mockResolvedValue(makeBoard() as never)
     mb.deleteBoard.mockResolvedValue(undefined as never)
     const app = createApp()
     const res = await app.request('/boards/board-1', { method: 'DELETE' })
@@ -287,6 +288,7 @@ describe('Columns', () => {
 
 describe('Tickets', () => {
   it('GET /boards/:boardId/tickets — returns ticket list', async () => {
+    mb.getBoardById.mockResolvedValue(makeBoard() as never)
     mt.getTicketsByBoard.mockResolvedValue([makeTicket()] as never)
     const app = createApp()
     const res = await app.request('/boards/board-1/tickets')
@@ -325,6 +327,8 @@ describe('Tickets', () => {
   })
 
   it('PATCH /tickets/:id — updates ticket', async () => {
+    mt.getTicketById.mockResolvedValue(makeTicket() as never)
+    mb.getBoardById.mockResolvedValue(makeBoard() as never)
     mt.updateTicket.mockResolvedValue(makeTicket({ status: 'closed' }) as never)
     const app = createApp()
     const res = await app.request('/tickets/ticket-1', patch({ status: 'closed' }))
@@ -339,6 +343,8 @@ describe('Tickets', () => {
   })
 
   it('DELETE /tickets/:id — deletes ticket', async () => {
+    mt.getTicketById.mockResolvedValue(makeTicket() as never)
+    mb.getBoardById.mockResolvedValue(makeBoard() as never)
     mt.deleteTicket.mockResolvedValue(undefined as never)
     const app = createApp()
     const res = await app.request('/tickets/ticket-1', { method: 'DELETE' })
