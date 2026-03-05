@@ -93,5 +93,5 @@ The full text of each license can be found in the respective package's `node_mod
 
 ---
 
-**Last Updated**: $(Get-Date -Format "yyyy-MM-dd")
+**Last Updated**: 2026-03-05
 **Audit Command**: `pnpm licenses list --prod --json`

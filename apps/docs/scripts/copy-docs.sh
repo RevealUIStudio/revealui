@@ -35,6 +35,8 @@ INTERNAL_FILES=(
   "PRODUCT_COLLECTION.md"
   "SECRETS-MANAGEMENT.md"
   "launch-announcement.md"
+  "LAUNCH_ANNOUNCEMENT.md"
+  "PRODUCTION_READINESS_CHECKLIST.md"
 )
 
 # Internal-only guide files (workflow docs for contributors, not users)
