@@ -363,67 +363,31 @@ export class ConsoleErrorReporter implements ErrorReporter {
 }
 
 /**
- * Sentry-compatible error reporter
+ * Logging-only error reporter (development / no external service)
+ *
+ * Logs errors via the internal logger. Replace with a real Sentry or
+ * Datadog integration when an external error-tracking service is needed.
  */
-export class SentryErrorReporter implements ErrorReporter {
-  private dsn: string
-
-  constructor(dsn: string) {
-    this.dsn = dsn
-  }
-
+export class LoggingErrorReporter implements ErrorReporter {
   captureError(error: Error, context?: Partial<ErrorReport>): void {
-    // This would integrate with Sentry SDK
-    // For now, just log in development
-    if (process.env.NODE_ENV === 'development') {
-      logger.debug('[Sentry] Would report error', {
-        error: error.message,
-        ...context,
-      })
-    }
-
-    // In production, use actual Sentry SDK:
-    // Sentry.captureException(error, {
-    //   contexts: context?.context,
-    //   tags: context?.tags,
-    //   user: context?.user,
-    //   extra: context?.extra,
-    // })
+    logger.debug('[ErrorReporter] Error captured', {
+      error: error.message,
+      ...context,
+    })
   }
 
   captureMessage(message: string, level?: ErrorLevel, context?: Partial<ErrorReport>): void {
-    if (process.env.NODE_ENV === 'development') {
-      logger.debug('[Sentry] Would report message', {
-        message,
-        level,
-        ...context,
-      })
-    }
-
-    // Sentry.captureMessage(message, level)
+    logger.debug('[ErrorReporter] Message captured', {
+      message,
+      level,
+      ...context,
+    })
   }
 
-  setUser(_user: UserContext | null): void {
-    // Sentry.setUser(user)
-  }
-
-  setContext(_context: Partial<ErrorContext>): void {
-    // Sentry.setContext('custom', context)
-  }
-
-  setTag(_key: string, _value: string): void {
-    // Sentry.setTag(key, value)
-  }
-
-  addBreadcrumb(_breadcrumb: Breadcrumb): void {
-    // Sentry.addBreadcrumb({
-    //   timestamp: breadcrumb.timestamp,
-    //   level: breadcrumb.level,
-    //   category: breadcrumb.category,
-    //   message: breadcrumb.message,
-    //   data: breadcrumb.data,
-    // })
-  }
+  setUser(_user: UserContext | null): void {}
+  setContext(_context: Partial<ErrorContext>): void {}
+  setTag(_key: string, _value: string): void {}
+  addBreadcrumb(_breadcrumb: Breadcrumb): void {}
 }
 
 /**
@@ -542,7 +506,7 @@ export function initializeErrorReporting(config: {
   }
 
   if (config.dsn) {
-    errorReporter.addReporter(new SentryErrorReporter(config.dsn))
+    errorReporter.addReporter(new LoggingErrorReporter())
   }
 
   // Set up global error handlers

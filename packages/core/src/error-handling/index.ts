@@ -64,7 +64,7 @@ export {
   errorReporter,
   HTTPErrorReporter,
   initializeErrorReporting,
-  SentryErrorReporter,
+  LoggingErrorReporter,
   trackAction,
   trackAPICall,
   trackNavigation,

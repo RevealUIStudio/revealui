@@ -299,16 +299,6 @@ function calculateMetrics(
   }
 }
 
-async function analyzeTrends(): Promise<void> {
-  logger.header('Analyzing Documentation Trends')
-
-  // This would analyze trends over time
-  // For now, provide basic analysis
-  logger.info('Trend analysis would show documentation growth over time...')
-  logger.info('Trend analysis would identify most active documentation areas...')
-  logger.success('Documentation trend analysis completed (placeholder)')
-}
-
 async function main() {
   try {
     const command = process.argv[2]
@@ -322,13 +312,9 @@ async function main() {
         await analyzeQualityMetrics()
         break
 
-      case 'trends':
-        await analyzeTrends()
-        break
-
       default:
         logger.error('Usage: analyze-quality.ts <command>')
-        logger.info('Commands: coverage, metrics, trends')
+        logger.info('Commands: coverage, metrics')
         process.exit(ErrorCode.CONFIG_ERROR)
     }
 
