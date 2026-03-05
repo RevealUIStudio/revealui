@@ -12,7 +12,10 @@
     "declaration": false,
     "resolveJsonModule": true,
     "isolatedModules": true,
-    "verbatimModuleSyntax": false
+    "verbatimModuleSyntax": false,
+    "paths": {
+      "@revealui/core/*": ["../../packages/core/src/*.ts", "../../packages/core/src/*/index.ts"]
+    }
   },
   "include": ["./**/*.ts"],
   "exclude": ["node_modules"]

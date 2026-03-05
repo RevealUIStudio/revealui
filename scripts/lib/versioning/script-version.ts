@@ -240,7 +240,7 @@ export class ScriptVersionManager {
       return null
     }
 
-    return this.mapRowToVersionInfo(result.rows[0])
+    return this.mapRowToVersionInfo(result.rows[0] as unknown as VersionRow)
   }
 
   /**
@@ -254,7 +254,7 @@ export class ScriptVersionManager {
       [scriptName],
     )
 
-    return result.rows.map((row) => this.mapRowToVersionInfo(row))
+    return result.rows.map((row) => this.mapRowToVersionInfo(row as unknown as VersionRow))
   }
 
   /**
@@ -272,7 +272,7 @@ export class ScriptVersionManager {
       return null
     }
 
-    return this.mapRowToVersionInfo(result.rows[0])
+    return this.mapRowToVersionInfo(result.rows[0] as unknown as VersionRow)
   }
 
   /**
@@ -367,7 +367,7 @@ export class ScriptVersionManager {
       'SELECT * FROM script_versions ORDER BY script_name, release_date DESC',
     )
 
-    return result.rows.map((row) => this.mapRowToVersionInfo(row))
+    return result.rows.map((row) => this.mapRowToVersionInfo(row as unknown as VersionRow))
   }
 
   /**

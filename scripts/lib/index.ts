@@ -1,11 +1,11 @@
 /**
- * @revealui/scripts-lib
+ * @revealui/scripts
  *
  * Shared utilities for RevealUI scripts.
  *
  * @example
  * ```typescript
- * import { createLogger, execCommand, getProjectRoot } from '@revealui/scripts-lib'
+ * import { createLogger, execCommand, getProjectRoot } from '@revealui/scripts'
  *
  * const logger = createLogger({ prefix: 'MyScript' })
  * const root = await getProjectRoot(import.meta.url)

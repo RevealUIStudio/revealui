@@ -261,16 +261,16 @@ export function makePartial<T extends z.ZodRawShape>(
 export function extendSchema<T extends z.ZodRawShape, U extends z.ZodRawShape>(
   base: z.ZodObject<T>,
   extension: U,
-): z.ZodObject<T & U> {
+) {
   return base.extend(extension)
 }
 
 /**
  * Create a discriminated union schema
  */
-export function createDiscriminatedUnion<T extends string, U extends z.ZodTypeAny[]>(
-  discriminator: T,
-  options: U,
-) {
+export function createDiscriminatedUnion<
+  T extends string,
+  U extends readonly [z.core.$ZodTypeDiscriminable, ...z.core.$ZodTypeDiscriminable[]],
+>(discriminator: T, options: U) {
   return z.discriminatedUnion(discriminator, options)
 }

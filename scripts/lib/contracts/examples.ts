@@ -46,7 +46,7 @@ export const DatabaseMigrationContract = defineScriptContract({
   examples: [
     {
       name: 'Run all pending migrations',
-      input: { direction: 'up' as const },
+      input: { direction: 'up' as const, dryRun: false, force: false },
       expectedOutput: {
         success: true,
         migrationsRun: 3,
@@ -55,7 +55,7 @@ export const DatabaseMigrationContract = defineScriptContract({
     },
     {
       name: 'Rollback last migration',
-      input: { direction: 'down' as const, steps: 1 },
+      input: { direction: 'down' as const, steps: 1, dryRun: false, force: false },
     },
   ],
 })

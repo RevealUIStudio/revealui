@@ -205,11 +205,11 @@ export function matchExports(content: string, type: ExportType = 'all'): ExportM
   }
 
   // Select patterns based on type filter
-  const selectedPatterns =
+  const selectedPatterns: [string, RegExp | undefined][] =
     type === 'all' ? Object.entries(patterns) : [[type, patterns[type as keyof typeof patterns]]]
 
   for (const [exportType, pattern] of selectedPatterns) {
-    if (!pattern) continue
+    if (!(pattern instanceof RegExp)) continue
 
     let match: RegExpExecArray | null
     const regex = new RegExp(pattern.source, pattern.flags)

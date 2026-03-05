@@ -68,6 +68,18 @@ export interface Deprecation {
   addedAt?: Date
 }
 
+// Internal DB row type
+interface DeprecationRow {
+  script_name: string
+  feature: string
+  version: string
+  reason: string
+  alternative: string
+  removal_version: string
+  severity: string
+  added_at: number
+}
+
 // =============================================================================
 // Deprecation Manager Class
 // =============================================================================
@@ -146,8 +158,8 @@ export class DeprecationManager {
   async addDeprecation(deprecation: Deprecation): Promise<void> {
     if (!this.db) throw new ScriptError('Database not initialized', ErrorCode.INVALID_STATE)
 
-    await this.db.exec({
-      query: `
+    await this.db.query(
+      `
         INSERT INTO deprecations (
           script_name, feature, version, reason, alternative,
           removal_version, severity, added_at
@@ -159,7 +171,7 @@ export class DeprecationManager {
           removal_version = EXCLUDED.removal_version,
           severity = EXCLUDED.severity
       `,
-      params: [
+      [
         deprecation.scriptName,
         deprecation.feature,
         deprecation.version,
@@ -169,7 +181,7 @@ export class DeprecationManager {
         deprecation.severity,
         Date.now(),
       ],
-    })
+    )
   }
 
   /**
@@ -183,7 +195,7 @@ export class DeprecationManager {
       [scriptName],
     )
 
-    return result.rows.map((row) => this.mapRowToDeprecation(row))
+    return result.rows.map((row) => this.mapRowToDeprecation(row as unknown as DeprecationRow))
   }
 
   /**
@@ -197,7 +209,7 @@ export class DeprecationManager {
       [scriptName, version],
     )
 
-    return result.rows.map((row) => this.mapRowToDeprecation(row))
+    return result.rows.map((row) => this.mapRowToDeprecation(row as unknown as DeprecationRow))
   }
 
   /**
@@ -210,7 +222,7 @@ export class DeprecationManager {
       'SELECT * FROM deprecations ORDER BY script_name, added_at DESC',
     )
 
-    return result.rows.map((row) => this.mapRowToDeprecation(row))
+    return result.rows.map((row) => this.mapRowToDeprecation(row as unknown as DeprecationRow))
   }
 
   /**
@@ -269,16 +281,7 @@ export class DeprecationManager {
   /**
    * Map database row to Deprecation
    */
-  private mapRowToDeprecation(row: {
-    script_name: string
-    feature: string
-    version: string
-    reason: string
-    alternative: string
-    removal_version: string
-    severity: string
-    added_at: number
-  }): Deprecation {
+  private mapRowToDeprecation(row: DeprecationRow): Deprecation {
     return {
       scriptName: row.script_name,
       feature: row.feature,

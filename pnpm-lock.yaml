@@ -1174,6 +1174,9 @@ importers:
       '@revealui/core':
         specifier: workspace:*
         version: link:../core
+      '@revealui/scripts':
+        specifier: workspace:*
+        version: link:../../scripts/lib
       dotenv:
         specifier: ^17.2.4
         version: 17.2.4
