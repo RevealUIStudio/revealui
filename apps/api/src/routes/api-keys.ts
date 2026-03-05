@@ -156,7 +156,7 @@ app.openapi(postRoute, async (c) => {
         .where(eq(tenantProviderConfigs.id, existingConfig[0].id))
     } else {
       await db.insert(tenantProviderConfigs).values({
-        id: `cfg_${Date.now()}_${Math.random().toString(36).slice(2, 10)}`,
+        id: `cfg_${crypto.randomUUID()}`,
         userId: user.id,
         provider,
         isDefault: true,

@@ -170,7 +170,7 @@ describe('POST / — fire-and-forget DB write', () => {
     expect(insertArgs.message).toBe('API timeout')
     expect(insertArgs.app).toBe('api')
     expect(insertArgs.environment).toBe('staging')
-    expect(insertArgs.userId).toBe('u-1')
+    expect(insertArgs.userId).toBeNull() // userId is not accepted from untrusted clients
     expect(insertArgs.requestId).toBe('req-2')
     expect(typeof insertArgs.id).toBe('string') // crypto.randomUUID()
   })

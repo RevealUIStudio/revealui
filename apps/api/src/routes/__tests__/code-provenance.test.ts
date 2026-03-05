@@ -72,10 +72,11 @@ function makeReview(overrides = {}) {
 // App factory
 // ---------------------------------------------------------------------------
 
-function createApp() {
-  const app = new Hono<{ Variables: { db: DatabaseClient } }>()
+function createApp(user?: { id: string; role: string }) {
+  const app = new Hono<{ Variables: { db: DatabaseClient; user?: { id: string; role: string } } }>()
   app.use('*', async (c, next) => {
     c.set('db', {} as DatabaseClient)
+    if (user) c.set('user', user)
     await next()
   })
   app.route('/', provenanceApp)
@@ -232,7 +233,7 @@ describe('PATCH /:id — update entry', () => {
 describe('DELETE /:id', () => {
   it('deletes an entry and returns success message', async () => {
     mq.deleteProvenance.mockResolvedValue(undefined as never)
-    const app = createApp()
+    const app = createApp({ id: 'admin-1', role: 'admin' })
     const res = await app.request('/prov-1', { method: 'DELETE' })
     expect(res.status).toBe(200)
     const body = await parseBody(res)
