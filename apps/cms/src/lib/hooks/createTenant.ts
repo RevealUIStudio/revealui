@@ -30,7 +30,6 @@ export const createTenant: CollectionAfterChangeHook<UserWithTenantID> = async (
 
   try {
     // Lookup an existing tenant by email
-    // @ts-expect-error - RevealHookContext type is incomplete, missing API methods
     const existingTenant = await req.revealui.find({
       collection: 'tenants',
       where: {
@@ -50,7 +49,6 @@ export const createTenant: CollectionAfterChangeHook<UserWithTenantID> = async (
     }
 
     // If no existing tenant, create a new tenant
-    // @ts-expect-error - RevealHookContext type is incomplete, missing API methods
     const newTenant = await req.revealui.create({
       collection: 'tenants',
       data: {
@@ -68,7 +66,6 @@ export const createTenant: CollectionAfterChangeHook<UserWithTenantID> = async (
     }
   } catch (error: unknown) {
     // Log error and return data as-is to avoid breaking execution
-    // @ts-expect-error - RevealHookContext type is incomplete, missing logger property
     req?.revealui?.logger?.error(`Error creating Tenant: ${error}`)
     return doc
   }

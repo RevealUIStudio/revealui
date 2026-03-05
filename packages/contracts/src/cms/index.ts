@@ -188,6 +188,7 @@ export type {
   GlobalBeforeChangeHook,
   GlobalBeforeReadHook,
   GlobalHooksConfig,
+  RevealCMSInstance,
   RevealRequest,
   Where,
 } from './functions.js'
