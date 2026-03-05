@@ -67,7 +67,7 @@ export function Footer() {
               </li>
               <li>
                 <Link
-                  href="https://docs.revealui.com/api"
+                  href="https://docs.revealui.com/reference/core"
                   className="hover:text-white transition-colors"
                 >
                   API Reference
@@ -80,7 +80,7 @@ export function Footer() {
             <ul className="space-y-2 text-gray-400">
               <li>
                 <Link
-                  href="https://github.com/RevealUIStudio/revealui"
+                  href="https://github.com/RevealUIStudio"
                   className="hover:text-white transition-colors"
                 >
                   GitHub

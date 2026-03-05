@@ -7,6 +7,7 @@ export function LeadCapture() {
   const [email, setEmail] = useState('')
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [isSubmitted, setIsSubmitted] = useState(false)
+  const [errorMessage, setErrorMessage] = useState<string | null>(null)
 
   const extractErrorMessage = (payload: unknown): string | null => {
     if (!payload || typeof payload !== 'object' || Array.isArray(payload)) {
@@ -18,6 +19,7 @@ export function LeadCapture() {
 
   const submitWaitlist = async () => {
     setIsSubmitting(true)
+    setErrorMessage(null)
 
     try {
       const response = await fetch('/api/waitlist', {
@@ -42,7 +44,7 @@ export function LeadCapture() {
         'Waitlist signup error',
         error instanceof Error ? error : new Error(String(error)),
       )
-      alert('Failed to join waitlist. Please try again.')
+      setErrorMessage('Failed to join waitlist. Please try again.')
     } finally {
       setIsSubmitting(false)
     }
@@ -109,6 +111,11 @@ export function LeadCapture() {
               </button>
             </div>
           </form>
+          {errorMessage && (
+            <p className="mt-4 text-sm text-red-200" role="alert">
+              {errorMessage}
+            </p>
+          )}
           <p className="mt-6 text-sm leading-6 text-blue-200">
             No spam, ever. Unsubscribe at any time.
           </p>
