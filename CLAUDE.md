@@ -3,9 +3,9 @@
 Open-source business infrastructure for software companies. Users, content, products, payments, and AI — pre-wired and ready to deploy.
 
 ## Master Plan
-All priorities and sequencing live in `docs/MASTER_PLAN.md`. Check it before starting work.
+All priorities and sequencing live in `~/projects/revealui-jv/docs/MASTER_PLAN.md` (private repo). Check it before starting work.
 Current phase: **Phase 3 — Launch Preparation** (docs, OSS prep, marketing, Pro distribution).
-See `.claude/rules/priorities.md` for scope freeze rules.
+See `~/projects/revealui-jv/.claude/rules/priorities.md` for scope freeze rules.
 
 ## Stack
 - React 19, Next.js 16, Node 24, TypeScript 5.9
