@@ -60,6 +60,8 @@ export async function getAllProvenance(
     authorType?: string
     reviewStatus?: string
     filePathPrefix?: string
+    limit?: number
+    offset?: number
   },
 ) {
   const conditions = []
@@ -74,13 +76,20 @@ export async function getAllProvenance(
     conditions.push(like(codeProvenance.filePath, `${filters.filePathPrefix}%`))
   }
 
+  const cap = Math.min(filters?.limit ?? 100, 500)
+  const off = filters?.offset ?? 0
+
   const query = db.select().from(codeProvenance)
 
   if (conditions.length > 0) {
-    return query.where(and(...conditions)).orderBy(desc(codeProvenance.createdAt))
+    return query
+      .where(and(...conditions))
+      .orderBy(desc(codeProvenance.createdAt))
+      .limit(cap)
+      .offset(off)
   }
 
-  return query.orderBy(desc(codeProvenance.createdAt))
+  return query.orderBy(desc(codeProvenance.createdAt)).limit(cap).offset(off)
 }
 
 export async function createProvenance(
