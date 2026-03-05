@@ -222,7 +222,7 @@ describe('Memory API Routes', () => {
       const params = Promise.resolve({ userId: 'user-123' })
 
       const response = await postEpisodicMemory(request as never, { params })
-      const data = await response.json()
+      await response.json()
 
       expect(response.status).toBe(400)
     })
