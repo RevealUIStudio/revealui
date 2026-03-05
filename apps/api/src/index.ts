@@ -11,7 +11,7 @@ import { desc, eq } from 'drizzle-orm'
 import { bodyLimit } from 'hono/body-limit'
 import { cors } from 'hono/cors'
 import { logger as honoLogger } from 'hono/logger'
-import { authMiddleware } from './middleware/auth.js'
+import { authMiddleware, requireRole } from './middleware/auth.js'
 import { dbMiddleware } from './middleware/db.js'
 import { errorHandler } from './middleware/error.js'
 import { checkLicenseStatus, requireFeature } from './middleware/license.js'
@@ -214,6 +214,12 @@ app.use('/api/agent-stream', requireFeature('ai'))
 app.use('/api/rag/*', requireFeature('ai'))
 app.use('/api/collab/agent/*', requireFeature('ai'))
 app.use('/api/provenance/*', requireFeature('dashboard'))
+
+// Role-based access — admin-only operations
+// RAG index writes and deletes are administrative operations (rebuilding/managing the vector index).
+// Any authenticated user can read RAG query results, but only admins can modify index contents.
+app.use('/api/rag/*/index/*', requireRole('admin'))
+app.delete('/api/rag/*', requireRole('admin'))
 
 // Write-protect mutation endpoints — these require authentication
 const writeProtected = authMiddleware({ required: true })

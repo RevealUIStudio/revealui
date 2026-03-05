@@ -13,6 +13,32 @@ export const dynamic = 'force-dynamic'
 const CASCADED_COLLECTIONS = ['conversations', 'orders', 'subscriptions', 'events'] as const
 
 /**
+ * Delete all documents in a collection belonging to a user.
+ * Fetches page 1 repeatedly until no more matching docs remain — deleted records
+ * drop out of the result set so the next fetch naturally advances the window.
+ */
+async function deleteAllUserDocs(
+  revealui: Awaited<ReturnType<typeof getRevealUIInstance>>,
+  collection: string,
+  userId: string,
+): Promise<number> {
+  let totalDeleted = 0
+  // Batch size: large enough to be efficient, small enough to avoid memory spikes.
+  const Batch = 100
+  while (true) {
+    const found = await revealui.find({
+      collection,
+      where: { user: { equals: userId } },
+      limit: Batch,
+    })
+    if (found.docs.length === 0) break
+    await Promise.all(found.docs.map((doc) => revealui.delete({ collection, id: String(doc.id) })))
+    totalDeleted += found.docs.length
+  }
+  return totalDeleted
+}
+
+/**
  * GDPR Right to Deletion Endpoint
  *
  * Deletes the authenticated user's record **and** all personally-identifiable
@@ -36,22 +62,14 @@ async function gdprDeleteHandler(request: NextRequest) {
     // -------------------------------------------------------------------------
     // Cascade delete: remove related records before removing the user row so
     // foreign-key constraints are satisfied and no orphaned PII remains.
+    // Paginated: loops until no more matching records exist — handles users
+    // with more than 100 records in any collection (no 1000-record cap).
     // -------------------------------------------------------------------------
     const cascadeResults = await Promise.allSettled(
-      CASCADED_COLLECTIONS.map((collection) =>
-        revealui
-          .find({
-            collection,
-            where: { user: { equals: userIdToDelete } },
-            limit: 1000,
-          })
-          .then(async (found) => {
-            await Promise.all(
-              found.docs.map((doc) => revealui.delete({ collection, id: String(doc.id) })),
-            )
-            return { collection, deleted: found.docs.length }
-          }),
-      ),
+      CASCADED_COLLECTIONS.map(async (collection) => {
+        const deleted = await deleteAllUserDocs(revealui, collection, userIdToDelete)
+        return { collection, deleted }
+      }),
     )
 
     const cascadeSummary = cascadeResults.map((r, i) =>
