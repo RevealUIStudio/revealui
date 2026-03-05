@@ -89,8 +89,14 @@ async function signUpHandler(request: NextRequest): Promise<NextResponse> {
         }
       }
     } catch (limitError) {
-      // Non-fatal — if limit check fails, allow signup to proceed
-      logger.warn('User limit check failed during sign-up', { error: limitError })
+      logger.error('User limit check failed during sign-up', {
+        error: limitError instanceof Error ? limitError.message : String(limitError),
+      })
+      return createApplicationErrorResponse(
+        'Unable to verify account limits. Please try again.',
+        'LIMIT_CHECK_FAILED',
+        503,
+      )
     }
 
     // Get user agent and IP address for session tracking

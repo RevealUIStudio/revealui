@@ -49,7 +49,7 @@ app.post('/', async (c) => {
     name: 'Stream Agent',
     instructions: `You are a helpful AI assistant for RevealUI workspace ${workspaceId}. Complete the user's request accurately and concisely.`,
     tools: [],
-    memory: undefined as unknown as Agent['memory'],
+    memory: undefined,
     getContext: () => ({ agentId: 'stream-agent' }),
   }
 

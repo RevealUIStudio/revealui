@@ -46,6 +46,10 @@ export async function GET(
       )
     }
 
+    if (authSession.user.id !== userId && authSession.user.role !== 'admin') {
+      return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
+    }
+
     const db = getClient()
     const persistence = new CRDTPersistence(db)
     const nodeId = await getNodeIdFromUser(userId, db)
@@ -97,6 +101,10 @@ export async function POST(
         'userId',
         userId,
       )
+    }
+
+    if (authSession.user.id !== userId && authSession.user.role !== 'admin') {
+      return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
     }
 
     let body: unknown

@@ -63,6 +63,10 @@ export async function PUT(
       )
     }
 
+    if (authSession.user.id !== userId && authSession.user.role !== 'admin') {
+      return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
+    }
+
     // Parse request body
     let body: Partial<AgentMemory>
     try {
@@ -228,6 +232,10 @@ export async function DELETE(
         'memoryId',
         memoryId,
       )
+    }
+
+    if (authSession.user.id !== userId && authSession.user.role !== 'admin') {
+      return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
     }
 
     const db: Database = getClient()
