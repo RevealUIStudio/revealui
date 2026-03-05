@@ -2,7 +2,7 @@
  * Auto-generated Contract wrappers
  *
  * DO NOT EDIT - Regenerate with: pnpm generate:all
- * Generated: 2026-03-05T03:25:26.345Z
+ * Generated: 2026-03-05T05:36:55.512Z
  *
  * This file provides Contract wrappers for all database tables.
  * Contracts combine TypeScript types, Zod schemas, and runtime validation
@@ -715,6 +715,84 @@ export const ProcessedWebhookEventsInsertContract = createContract({
   version: '1',
   description: 'Database insert contract for processed_webhook_events table',
   schema: Schemas.ProcessedWebhookEventsInsertSchema,
+})
+
+// =============================================================================
+// RagChunks Contracts
+// =============================================================================
+
+/**
+ * Contract for ragChunks row (Select)
+ * Database table: rag_chunks
+ */
+export const RagChunksRowContract = createContract({
+  name: 'RagChunksRow',
+  version: '1',
+  description: 'Database row contract for rag_chunks table',
+  schema: Schemas.RagChunksSelectSchema,
+})
+
+/**
+ * Contract for ragChunks insert
+ * Database table: rag_chunks
+ */
+export const RagChunksInsertContract = createContract({
+  name: 'RagChunksInsert',
+  version: '1',
+  description: 'Database insert contract for rag_chunks table',
+  schema: Schemas.RagChunksInsertSchema,
+})
+
+// =============================================================================
+// RagDocuments Contracts
+// =============================================================================
+
+/**
+ * Contract for ragDocuments row (Select)
+ * Database table: rag_documents
+ */
+export const RagDocumentsRowContract = createContract({
+  name: 'RagDocumentsRow',
+  version: '1',
+  description: 'Database row contract for rag_documents table',
+  schema: Schemas.RagDocumentsSelectSchema,
+})
+
+/**
+ * Contract for ragDocuments insert
+ * Database table: rag_documents
+ */
+export const RagDocumentsInsertContract = createContract({
+  name: 'RagDocumentsInsert',
+  version: '1',
+  description: 'Database insert contract for rag_documents table',
+  schema: Schemas.RagDocumentsInsertSchema,
+})
+
+// =============================================================================
+// RagWorkspaces Contracts
+// =============================================================================
+
+/**
+ * Contract for ragWorkspaces row (Select)
+ * Database table: rag_workspaces
+ */
+export const RagWorkspacesRowContract = createContract({
+  name: 'RagWorkspacesRow',
+  version: '1',
+  description: 'Database row contract for rag_workspaces table',
+  schema: Schemas.RagWorkspacesSelectSchema,
+})
+
+/**
+ * Contract for ragWorkspaces insert
+ * Database table: rag_workspaces
+ */
+export const RagWorkspacesInsertContract = createContract({
+  name: 'RagWorkspacesInsert',
+  version: '1',
+  description: 'Database insert contract for rag_workspaces table',
+  schema: Schemas.RagWorkspacesInsertSchema,
 })
 
 // =============================================================================

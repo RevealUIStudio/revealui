@@ -2,7 +2,7 @@
  * Auto-generated Zod schemas from Drizzle
  *
  * DO NOT EDIT - Regenerate with: pnpm generate:all
- * Generated: 2026-03-05T03:25:24.571Z
+ * Generated: 2026-03-05T05:36:53.229Z
  *
  * This file provides Zod schemas for all database tables, generated
  * directly from Drizzle table definitions using drizzle-zod.
@@ -715,6 +715,84 @@ export type ProcessedWebhookEventsRow = z.infer<typeof ProcessedWebhookEventsSel
  * TypeScript type for processedWebhookEvents insert
  */
 export type ProcessedWebhookEventsInsert = z.infer<typeof ProcessedWebhookEventsInsertSchema>
+
+// =============================================================================
+// RagChunks Schemas
+// =============================================================================
+
+/**
+ * Zod schema for selecting ragChunks rows from database
+ * Generated from Drizzle table definition: tables.ragChunks
+ */
+export const RagChunksSelectSchema = createSelectSchema(tables.ragChunks)
+
+/**
+ * Zod schema for inserting ragChunks rows to database
+ * Generated from Drizzle table definition: tables.ragChunks
+ */
+export const RagChunksInsertSchema = createInsertSchema(tables.ragChunks)
+
+/**
+ * TypeScript type for ragChunks row (Select)
+ */
+export type RagChunksRow = z.infer<typeof RagChunksSelectSchema>
+
+/**
+ * TypeScript type for ragChunks insert
+ */
+export type RagChunksInsert = z.infer<typeof RagChunksInsertSchema>
+
+// =============================================================================
+// RagDocuments Schemas
+// =============================================================================
+
+/**
+ * Zod schema for selecting ragDocuments rows from database
+ * Generated from Drizzle table definition: tables.ragDocuments
+ */
+export const RagDocumentsSelectSchema = createSelectSchema(tables.ragDocuments)
+
+/**
+ * Zod schema for inserting ragDocuments rows to database
+ * Generated from Drizzle table definition: tables.ragDocuments
+ */
+export const RagDocumentsInsertSchema = createInsertSchema(tables.ragDocuments)
+
+/**
+ * TypeScript type for ragDocuments row (Select)
+ */
+export type RagDocumentsRow = z.infer<typeof RagDocumentsSelectSchema>
+
+/**
+ * TypeScript type for ragDocuments insert
+ */
+export type RagDocumentsInsert = z.infer<typeof RagDocumentsInsertSchema>
+
+// =============================================================================
+// RagWorkspaces Schemas
+// =============================================================================
+
+/**
+ * Zod schema for selecting ragWorkspaces rows from database
+ * Generated from Drizzle table definition: tables.ragWorkspaces
+ */
+export const RagWorkspacesSelectSchema = createSelectSchema(tables.ragWorkspaces)
+
+/**
+ * Zod schema for inserting ragWorkspaces rows to database
+ * Generated from Drizzle table definition: tables.ragWorkspaces
+ */
+export const RagWorkspacesInsertSchema = createInsertSchema(tables.ragWorkspaces)
+
+/**
+ * TypeScript type for ragWorkspaces row (Select)
+ */
+export type RagWorkspacesRow = z.infer<typeof RagWorkspacesSelectSchema>
+
+/**
+ * TypeScript type for ragWorkspaces insert
+ */
+export type RagWorkspacesInsert = z.infer<typeof RagWorkspacesInsertSchema>
 
 // =============================================================================
 // RateLimits Schemas
