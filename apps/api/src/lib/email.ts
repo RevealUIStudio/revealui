@@ -16,8 +16,11 @@ interface EmailOptions {
 
 export async function sendEmail(options: EmailOptions): Promise<void> {
   const apiKey = process.env.RESEND_API_KEY
-  const fromEmail =
-    process.env.RESEND_FROM_EMAIL || process.env.EMAIL_FROM || 'noreply@revealui.com'
+  const fromEmail = process.env.RESEND_FROM_EMAIL ?? process.env.EMAIL_FROM
+  if (!fromEmail && process.env.NODE_ENV !== 'development') {
+    logger.warn('RESEND_FROM_EMAIL is not set — emails will use noreply@revealui.com as sender')
+  }
+  const resolvedFrom = fromEmail ?? 'noreply@revealui.com'
 
   if (!apiKey) {
     if (process.env.NODE_ENV === 'development') {
@@ -42,7 +45,7 @@ export async function sendEmail(options: EmailOptions): Promise<void> {
       'Content-Type': 'application/json',
     },
     body: JSON.stringify({
-      from: fromEmail,
+      from: resolvedFrom,
       to: options.to,
       subject: options.subject,
       html: options.html,
