@@ -147,37 +147,7 @@ export async function PUT(
     // Update access count and accessedAt when updating
     updateData.accessedAt = new Date().toISOString()
 
-    // Use EpisodicMemory's incrementAccess to update access count
-    // Then use VectorMemoryService via EpisodicMemory for the actual update
-    // Since EpisodicMemory doesn't have an update method, we need to use VectorMemoryService directly
-    const { VectorMemoryService } = await import('@revealui/ai/memory/vector')
-    const vectorService = new VectorMemoryService()
-
-    // Get current memory to preserve fields not being updated
-    const currentMemory = await memory.get(memoryId)
-    if (!currentMemory) {
-      return createApplicationErrorResponse('Memory not found', 'MEMORY_NOT_FOUND', 404, {
-        userId,
-        memoryId,
-      })
-    }
-
-    // Merge updates with current memory
-    const updatedMemoryData: AgentMemory = {
-      ...currentMemory,
-      ...updateData,
-      id: memoryId, // Ensure ID is preserved
-    }
-
-    // Update via VectorMemoryService
-    const updatedMemory = await vectorService.update(memoryId, updatedMemoryData)
-
-    // Clear cache in EpisodicMemory
-    const memoryInstance = memory as unknown as {
-      memoryCache: Map<string, AgentMemory>
-    }
-    memoryInstance.memoryCache.delete(memoryId)
-    memoryInstance.memoryCache.set(memoryId, updatedMemory)
+    const updatedMemory = await memory.update(memoryId, updateData)
 
     return NextResponse.json({
       success: true,
