@@ -143,6 +143,8 @@ apps/docs/dist/docs/
 # Claude Code session files (local only)
 .claude/SESSION_*.md
 .claude/workboard.md
+.claude/events.jsonl
+.claude/workboard.lock
 
 # RevealUI cache files (PGlite database)
 .revealui/cache/
