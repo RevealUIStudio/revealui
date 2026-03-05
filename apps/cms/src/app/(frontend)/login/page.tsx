@@ -13,15 +13,26 @@ import {
   InputCVA as Input,
 } from '@revealui/presentation/server'
 import Link from 'next/link'
-import { useRouter } from 'next/navigation'
+import { useRouter, useSearchParams } from 'next/navigation'
 import { type FormEvent, useState } from 'react'
+
+const OAUTH_ERROR_MESSAGES: Record<string, string> = {
+  access_denied: 'You cancelled the sign-in. Please try again.',
+  provider_error: 'The sign-in provider returned an error. Please try again.',
+  invalid_state: 'The sign-in request expired. Please try again.',
+  email_conflict: 'An account with this email already exists. Sign in with your password instead.',
+}
 
 export default function LoginPage() {
   const router = useRouter()
+  const searchParams = useSearchParams()
   const { signIn, isLoading } = useSignIn()
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
-  const [error, setError] = useState<string | null>(null)
+  const oauthError = searchParams.get('error')
+  const [error, setError] = useState<string | null>(
+    oauthError ? (OAUTH_ERROR_MESSAGES[oauthError] ?? 'Sign-in failed. Please try again.') : null,
+  )
 
   const handleSubmit = async (e: FormEvent) => {
     e.preventDefault()
