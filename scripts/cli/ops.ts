@@ -3,14 +3,12 @@
 /**
  * Operations CLI
  *
- * Consolidated CLI for all operations and maintenance tasks.
- * Replaces: maintain.ts, migrate.ts, db.ts, setup.ts, rollback.ts
+ * Consolidated CLI for operations and maintenance tasks.
  *
  * Commands:
  *   fix-imports       Fix missing .js extensions in imports
  *   fix-lint          Fix common linting errors
  *   fix-types         Fix TypeScript errors
- *   fix-node16        Fix Node16 module resolution imports
  *   fix-validation    Fix validation issues
  *   fix-test          Fix test errors
  *   audit-scripts     Audit package.json scripts for issues
@@ -20,29 +18,20 @@
  *   migrate:plan      Generate migration plan between versions
  *   migrate:execute   Execute migration plan
  *   migrate:compare   Compare two versions
- *   db:seed           Seed database with sample content
  *   db:reset          Reset database
- *   db:backup         Backup database
- *   db:restore        Restore database from backup
- *   setup:env         Setup environment variables
- *   setup:deps        Install dependencies
  *   rollback          Rollback to previous state
  *
  * Usage:
  *   pnpm ops <command> [options]
  *   pnpm ops fix-imports --dry-run
- *   pnpm ops db:seed --verbose
  *   pnpm ops migrate:plan --script=auth --from=1.0 --to=2.0
  *
  * @dependencies
  * - scripts/cli/_base.ts - Base CLI classes (DispatcherCLI, runCLI)
  * - scripts/lib/args.ts - Argument parsing types (ParsedArgs)
- * - scripts/lib/audit/execution-logger.ts - Execution tracking (via base class)
- * - scripts/lib/cli/dispatch.ts - Command dispatching utilities
  * - scripts/commands/fix/* - Fix command implementations
  * - scripts/commands/maintain/* - Maintenance command implementations
- * - scripts/commands/db/* - Database operation commands
- * - scripts/setup/* - Setup and seed scripts
+ * - scripts/commands/ops/* - Rollback commands
  *
  * @requires
  * - Scripts: Individual command scripts in commandMap (dispatched at runtime)
@@ -60,11 +49,10 @@ class OpsCLI extends DispatcherCLI {
   protected enableExecutionLogging = true
 
   protected commandMap = {
-    // Maintenance commands (from maintain.ts)
+    // Maintenance commands
     'fix-imports': 'scripts/commands/fix/fix-import-extensions.ts',
     'fix-lint': 'scripts/commands/fix/fix-linting-errors.ts',
     'fix-types': 'scripts/commands/fix/fix-typescript-errors.ts',
-    'fix-node16': 'scripts/gates/ops/fix-node16-imports.ts',
     'fix-validation': 'scripts/validate/fix-validation-issues.ts',
     'fix-test': 'scripts/commands/fix/fix-test-errors.ts',
     'audit-scripts': 'scripts/commands/maintain/audit-scripts.ts',
@@ -72,15 +60,8 @@ class OpsCLI extends DispatcherCLI {
     'validate-scripts': 'scripts/commands/maintain/validate-scripts.ts',
     'fix-scripts': 'scripts/commands/maintain/fix-scripts.ts',
 
-    // Database commands (from db.ts)
-    'db:seed': 'scripts/setup/seed-sample-content.ts',
+    // Database commands
     'db:reset': 'scripts/setup/reset-database.ts',
-    'db:backup': 'scripts/commands/db/backup.ts',
-    'db:restore': 'scripts/commands/db/restore.ts',
-
-    // Setup commands (from setup.ts)
-    'setup:env': 'scripts/setup/setup-env.ts',
-    'setup:deps': 'scripts/setup/install-dependencies.ts',
 
     // Rollback commands
     'rollback:list': 'scripts/commands/ops/rollback-list.ts',
@@ -122,11 +103,6 @@ class OpsCLI extends DispatcherCLI {
         name: 'fix-types',
         description: 'Fix TypeScript errors',
         handler: async (args) => this.dispatchCommand('fix-types', args),
-      },
-      {
-        name: 'fix-node16',
-        description: 'Fix Node16 module resolution imports',
-        handler: async (args) => this.dispatchCommand('fix-node16', args),
       },
       {
         name: 'fix-validation',
@@ -283,38 +259,10 @@ class OpsCLI extends DispatcherCLI {
 
       // Database Commands
       {
-        name: 'db:seed',
-        description: 'Seed database with sample content',
-        handler: async (args) => this.dispatchCommand('db:seed', args),
-      },
-      {
         name: 'db:reset',
         description: 'Reset database (destructive)',
         confirmPrompt: 'This will delete all data. Continue?',
         handler: async (args) => this.dispatchCommand('db:reset', args),
-      },
-      {
-        name: 'db:backup',
-        description: 'Backup database',
-        handler: async (args) => this.dispatchCommand('db:backup', args),
-      },
-      {
-        name: 'db:restore',
-        description: 'Restore database from backup',
-        confirmPrompt: 'This will restore from backup. Continue?',
-        handler: async (args) => this.dispatchCommand('db:restore', args),
-      },
-
-      // Setup Commands
-      {
-        name: 'setup:env',
-        description: 'Setup environment variables',
-        handler: async (args) => this.dispatchCommand('setup:env', args),
-      },
-      {
-        name: 'setup:deps',
-        description: 'Install dependencies',
-        handler: async (args) => this.dispatchCommand('setup:deps', args),
       },
 
       // Rollback Command
