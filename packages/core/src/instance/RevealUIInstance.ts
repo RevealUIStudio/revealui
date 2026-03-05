@@ -33,66 +33,61 @@ import { update } from './methods/update.js'
 export async function createRevealUIInstance(config: RevealConfig): Promise<RevealUIInstance> {
   const logger = createLogger()
 
-  // Database connection is now lazy - only connect on first query
+  // Database connection is lazy — only connect on first query.
+  // A single shared promise guards against concurrent init from multiple requests.
   let dbConnected = false
+  let dbInitPromise: Promise<void> | null = null
+
   const ensureDbConnected = async () => {
-    if (dbConnected) {
-      return
+    if (dbConnected) return
+
+    if (!dbInitPromise && config.db) {
+      const db = config.db // capture to satisfy narrowing inside async IIFE
+      dbInitPromise = (async () => {
+        await db.init?.()
+
+        // Queue table creation BEFORE connect()
+        // createTable() pushes promises to a queue that connect() will await
+        if (config.collections && db.createTable) {
+          for (const collection of config.collections) {
+            const fields = collection.fields || []
+            const tableFields: Field[] = fields
+              .filter((field: RevealUIField) => field.name && !isJsonFieldType(field))
+              .map((field: RevealUIField) => ({
+                name: field.name || '',
+                type: field.type || 'text',
+                required: field.required,
+                unique: field.unique,
+              }))
+            db.createTable(collection.slug, tableFields)
+          }
+        }
+
+        // Queue global table creation BEFORE connect()
+        if (config.globals && db.createGlobalTable) {
+          for (const global of config.globals) {
+            const fields = global.fields || []
+            const jsonTypes = ['array', 'group', 'blocks', 'richText']
+            const tableFields: Field[] = fields
+              .filter((field: RevealUIField) => field.name && !jsonTypes.includes(field.type || ''))
+              .map((field: RevealUIField) => ({
+                name: field.name || '',
+                type: field.type || 'text',
+                required: field.required,
+                unique: field.unique,
+              }))
+            db.createGlobalTable(global.slug, tableFields)
+          }
+        }
+
+        // Now connect() will wait for all queued table creation promises
+        await db.connect?.()
+        dbConnected = true
+      })()
     }
 
-    if (!dbConnected && config.db) {
-      await config.db.init?.()
-
-      // Queue table creation BEFORE connect()
-      // createTable() pushes promises to a queue that connect() will await
-      if (config.collections && config.db?.createTable) {
-        for (const collection of config.collections) {
-          // Extract fields from collection config
-          const fields = collection.fields || []
-          // Convert RevealUIField to Field format for createTable
-          // Only include top-level fields that should be stored as columns
-          // Complex types (array, group, blocks) are stored as JSON
-          const tableFields: Field[] = fields
-            .filter((field: RevealUIField) => {
-              // Filter out fields that should be stored as JSON
-              return field.name && !isJsonFieldType(field)
-            })
-            .map((field: RevealUIField) => ({
-              name: field.name || '',
-              type: field.type || 'text',
-              required: field.required,
-              unique: field.unique,
-            }))
-          config.db.createTable(collection.slug, tableFields)
-        }
-      }
-
-      // Queue global table creation BEFORE connect()
-      if (config.globals && config.db?.createGlobalTable) {
-        for (const global of config.globals) {
-          // Extract fields from global config
-          const fields = global.fields || []
-          // Convert RevealUIField to Field format for createGlobalTable
-          // Only include top-level fields that should be stored as columns
-          const tableFields: Field[] = fields
-            .filter((field: RevealUIField) => {
-              // Filter out fields that should be stored as JSON
-              const jsonTypes = ['array', 'group', 'blocks', 'richText']
-              return field.name && !jsonTypes.includes(field.type || '')
-            })
-            .map((field: RevealUIField) => ({
-              name: field.name || '',
-              type: field.type || 'text',
-              required: field.required,
-              unique: field.unique,
-            }))
-          config.db.createGlobalTable(global.slug, tableFields)
-        }
-      }
-
-      // Now connect() will wait for all queued table creation promises
-      await config.db.connect?.()
-      dbConnected = true
+    if (dbInitPromise) {
+      await dbInitPromise
     }
   }
 

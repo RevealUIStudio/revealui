@@ -75,21 +75,26 @@ let cachedConfig: Config | null = null
  * Check if we're in a build-time context where full validation isn't required
  */
 function isBuildTime(): boolean {
-  if (
-    process.env.SKIP_ENV_VALIDATION === 'true' &&
-    process.env.NODE_ENV === 'production' &&
-    process.env.NEXT_PHASE !== 'phase-production-build'
-  ) {
+  // Recognized build-time contexts — env vars are not yet populated.
+  const isNextBuild =
+    process.env.NEXT_PHASE === 'phase-production-build' ||
+    process.env.NEXT_PHASE === 'phase-development-build'
+  const isTestEnv = process.env.NODE_ENV === 'test'
+
+  // SKIP_ENV_VALIDATION is only valid when a recognized build context is active
+  // or when running tests.  If it appears in any other context (production runtime,
+  // Hono API server, Docker containers) the build-time fallback secrets would be
+  // used at runtime — e.g. REVEALUI_SECRET='build-time-secret-not-for-runtime'
+  // can be found in this source file, making all JWTs trivially forgeable.
+  if (process.env.SKIP_ENV_VALIDATION === 'true' && !isNextBuild && !isTestEnv) {
     throw new Error(
-      'SKIP_ENV_VALIDATION=true must not be set in a production runtime. ' +
-        'Remove it from your production environment variables.',
+      'SKIP_ENV_VALIDATION=true is only valid during Next.js build phases (NEXT_PHASE) or ' +
+        'in test environments (NODE_ENV=test). Remove it from all other environments — ' +
+        'using it at runtime exposes build-time fallback secrets in production.',
     )
   }
-  return (
-    process.env.NEXT_PHASE === 'phase-production-build' ||
-    process.env.NEXT_PHASE === 'phase-development-build' ||
-    process.env.SKIP_ENV_VALIDATION === 'true'
-  )
+
+  return isNextBuild || process.env.SKIP_ENV_VALIDATION === 'true'
 }
 
 /**
