@@ -2,7 +2,7 @@
  * Auto-generated Contract wrappers
  *
  * DO NOT EDIT - Regenerate with: pnpm generate:all
- * Generated: 2026-03-04T22:23:15.736Z
+ * Generated: 2026-03-05T03:24:37.598Z
  *
  * This file provides Contract wrappers for all database tables.
  * Contracts combine TypeScript types, Zod schemas, and runtime validation
@@ -689,6 +689,32 @@ export const PostsInsertContract = createContract({
   version: '1',
   description: 'Database insert contract for posts table',
   schema: Schemas.PostsInsertSchema,
+})
+
+// =============================================================================
+// ProcessedWebhookEvents Contracts
+// =============================================================================
+
+/**
+ * Contract for processedWebhookEvents row (Select)
+ * Database table: processed_webhook_events
+ */
+export const ProcessedWebhookEventsRowContract = createContract({
+  name: 'ProcessedWebhookEventsRow',
+  version: '1',
+  description: 'Database row contract for processed_webhook_events table',
+  schema: Schemas.ProcessedWebhookEventsSelectSchema,
+})
+
+/**
+ * Contract for processedWebhookEvents insert
+ * Database table: processed_webhook_events
+ */
+export const ProcessedWebhookEventsInsertContract = createContract({
+  name: 'ProcessedWebhookEventsInsert',
+  version: '1',
+  description: 'Database insert contract for processed_webhook_events table',
+  schema: Schemas.ProcessedWebhookEventsInsertSchema,
 })
 
 // =============================================================================

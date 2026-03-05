@@ -4,6 +4,9 @@
  * Replaces the Supabase-dependent webhook in packages/services.
  * Writes license records to the NeonDB licenses table via Drizzle,
  * handles subscription lifecycle events, and triggers license revocation.
+ *
+ * Idempotency is DB-backed via processed_webhook_events table to prevent
+ * duplicate processing across Vercel multi-region deployments.
  */
 
 import { isFeatureEnabled } from '@revealui/core/features'
@@ -11,7 +14,7 @@ import { generateLicenseKey } from '@revealui/core/license'
 import { logger } from '@revealui/core/observability/logger'
 import { DrizzleAuditStore, getClient } from '@revealui/db'
 import type { Database } from '@revealui/db/client'
-import { licenses, users } from '@revealui/db/schema'
+import { licenses, processedWebhookEvents, users } from '@revealui/db/schema'
 import { eq } from 'drizzle-orm'
 import { Hono } from 'hono'
 import Stripe from 'stripe'
@@ -38,27 +41,33 @@ function getWebhookSecret(): string {
   return secret
 }
 
-/** In-memory idempotency tracking to prevent duplicate processing */
-const processedEvents = new Map<string, number>()
-const IDEMPOTENCY_TTL_MS = 5 * 60 * 1000
-
-function isAlreadyProcessed(eventId: string): boolean {
-  const ts = processedEvents.get(eventId)
-  if (!ts) return false
-  if (Date.now() - ts > IDEMPOTENCY_TTL_MS) {
-    processedEvents.delete(eventId)
-    return false
-  }
-  return true
-}
-
-function markProcessed(eventId: string): void {
-  processedEvents.set(eventId, Date.now())
-  if (processedEvents.size % 100 === 0) {
-    const now = Date.now()
-    for (const [id, ts] of processedEvents) {
-      if (now - ts > IDEMPOTENCY_TTL_MS) processedEvents.delete(id)
+/**
+ * DB-backed idempotency check. Returns true if the event was already processed.
+ * Uses INSERT with ON CONFLICT to atomically check + mark in one query.
+ */
+async function checkAndMarkProcessed(
+  db: Database,
+  eventId: string,
+  eventType: string,
+): Promise<boolean> {
+  try {
+    await db.insert(processedWebhookEvents).values({
+      id: eventId,
+      eventType,
+      processedAt: new Date(),
+    })
+    return false // Not a duplicate — insert succeeded
+  } catch (err) {
+    // Unique constraint violation = already processed
+    if (err instanceof Error && err.message.includes('duplicate key')) {
+      return true
     }
+    // For any other DB error, log and allow processing (fail open for webhooks)
+    logger.warn('Idempotency check failed, allowing event processing', {
+      eventId,
+      error: err instanceof Error ? err.message : 'unknown',
+    })
+    return false
   }
 }
 
@@ -113,6 +122,18 @@ function auditLicenseEvent(
     })
 }
 
+/**
+ * Look up user email by Stripe customer ID for sending notification emails.
+ */
+async function findUserEmailByCustomerId(db: Database, customerId: string): Promise<string | null> {
+  const [user] = await db
+    .select({ email: users.email })
+    .from(users)
+    .where(eq(users.stripeCustomerId, customerId))
+    .limit(1)
+  return user?.email ?? null
+}
+
 // ─── Webhook Endpoint ────────────────────────────────────────────────────────
 
 const relevantEvents = new Set([
@@ -120,6 +141,8 @@ const relevantEvents = new Set([
   'customer.subscription.created',
   'customer.subscription.updated',
   'customer.subscription.deleted',
+  'invoice.payment_failed',
+  'customer.subscription.trial_will_end',
 ])
 
 app.post('/stripe', async (c) => {
@@ -142,15 +165,16 @@ app.post('/stripe', async (c) => {
     return c.json({ error: 'Invalid webhook signature' }, 400)
   }
 
-  if (isAlreadyProcessed(event.id)) {
-    return c.json({ received: true, duplicate: true }, 200)
-  }
-
   if (!relevantEvents.has(event.type)) {
     return c.json({ received: true }, 200)
   }
 
   const db = getClient()
+
+  // DB-backed idempotency check
+  if (await checkAndMarkProcessed(db, event.id, event.type)) {
+    return c.json({ received: true, duplicate: true }, 200)
+  }
 
   try {
     switch (event.type) {
@@ -240,6 +264,17 @@ app.post('/stripe', async (c) => {
           subscriptionId,
           userId: resolvedUserId,
         })
+
+        // Send license activation email
+        const userEmail =
+          session.customer_email ?? (await findUserEmailByCustomerId(db, customerId))
+        if (userEmail) {
+          sendLicenseActivatedEmail(userEmail, tier).catch((err) => {
+            logger.warn('Failed to send license activation email', {
+              error: err instanceof Error ? err.message : 'unknown',
+            })
+          })
+        }
         break
       }
 
@@ -286,12 +321,19 @@ app.post('/stripe', async (c) => {
             subscriptionId: subscription.id,
             subscriptionStatus: subscription.status,
           })
+
+          // Send payment failed email
+          const email = await findUserEmailByCustomerId(db, customerId)
+          if (email) {
+            sendPaymentFailedEmail(email).catch((err) => {
+              logger.warn('Failed to send payment failed email', {
+                error: err instanceof Error ? err.message : 'unknown',
+              })
+            })
+          }
         }
 
         // If subscription is active, sync tier + status (covers reactivations and tier upgrades).
-        // Tier is read from subscription.metadata so an upgrade endpoint can set it before
-        // Stripe fires this event. If REVEALUI_LICENSE_PRIVATE_KEY is available the license
-        // JWT is regenerated to match the new tier.
         if (subscription.status === 'active') {
           const newTier = resolveTier(subscription.metadata as Record<string, string>)
           const privateKey = process.env.REVEALUI_LICENSE_PRIVATE_KEY
@@ -332,9 +374,53 @@ app.post('/stripe', async (c) => {
         })
         break
       }
-    }
 
-    markProcessed(event.id)
+      case 'invoice.payment_failed': {
+        const invoice = event.data.object as Stripe.Invoice
+        const customerId = resolveCustomerId(invoice.customer)
+        if (!customerId) break
+
+        logger.warn('Invoice payment failed', {
+          customerId,
+          invoiceId: invoice.id,
+          attemptCount: invoice.attempt_count,
+        })
+
+        // Send payment failed email
+        const email = invoice.customer_email ?? (await findUserEmailByCustomerId(db, customerId))
+        if (email) {
+          sendPaymentFailedEmail(email).catch((err) => {
+            logger.warn('Failed to send payment failed email', {
+              error: err instanceof Error ? err.message : 'unknown',
+            })
+          })
+        }
+        break
+      }
+
+      case 'customer.subscription.trial_will_end': {
+        const subscription = event.data.object as Stripe.Subscription
+        const customerId = resolveCustomerId(subscription.customer)
+        if (!customerId) break
+
+        logger.info('Trial ending soon', {
+          customerId,
+          subscriptionId: subscription.id,
+          trialEnd: subscription.trial_end,
+        })
+
+        // Send trial ending reminder email
+        const email = await findUserEmailByCustomerId(db, customerId)
+        if (email) {
+          sendTrialEndingEmail(email, subscription.trial_end).catch((err) => {
+            logger.warn('Failed to send trial ending email', {
+              error: err instanceof Error ? err.message : 'unknown',
+            })
+          })
+        }
+        break
+      }
+    }
   } catch (err) {
     const msg = err instanceof Error ? err.message : 'Unknown error'
     logger.error('Webhook handler error', undefined, { detail: msg, eventType: event.type })
@@ -343,5 +429,99 @@ app.post('/stripe', async (c) => {
 
   return c.json({ received: true }, 200)
 })
+
+// ─── Email Templates ─────────────────────────────────────────────────────────
+// These are imported dynamically to avoid coupling the webhook handler
+// to the CMS email system at the module level. On Vercel serverless,
+// the API and CMS run as separate deployments — the email system may
+// not be available. Emails are fire-and-forget with error logging.
+
+async function sendLicenseActivatedEmail(to: string, tier: string): Promise<void> {
+  const { sendEmail } = await import('../lib/email.js')
+  await sendEmail({
+    to,
+    subject: `Your RevealUI ${tier === 'enterprise' ? 'Enterprise' : 'Pro'} license is active`,
+    html: `
+      <!DOCTYPE html>
+      <html>
+        <head><meta charset="utf-8"><title>License Activated</title></head>
+        <body style="font-family: Arial, sans-serif; line-height: 1.6; color: #333; max-width: 600px; margin: 0 auto; padding: 20px;">
+          <h1 style="color: #2563eb;">Your License is Active</h1>
+          <p>Your RevealUI <strong>${tier === 'enterprise' ? 'Enterprise' : 'Pro'}</strong> license has been activated.</p>
+          <p>You now have access to all ${tier === 'enterprise' ? 'Enterprise' : 'Pro'} features including${tier === 'enterprise' ? ' multi-tenant architecture, white-label branding, SSO, and' : ''} AI agents, advanced sync, and built-in payments.</p>
+          <p style="text-align: center; margin: 30px 0;">
+            <a href="${process.env.CMS_URL || process.env.NEXT_PUBLIC_SERVER_URL || 'https://cms.revealui.com'}/admin" style="background-color: #2563eb; color: white; padding: 12px 24px; text-decoration: none; border-radius: 6px; display: inline-block;">
+              Go to Dashboard
+            </a>
+          </p>
+          <p style="color: #666; font-size: 14px;">If you have questions, reply to this email or contact founder@revealui.com.</p>
+        </body>
+      </html>
+    `,
+    text: `Your RevealUI ${tier === 'enterprise' ? 'Enterprise' : 'Pro'} license is now active. Go to your dashboard to explore your new features.`,
+  })
+}
+
+async function sendPaymentFailedEmail(to: string): Promise<void> {
+  const { sendEmail } = await import('../lib/email.js')
+  const portalUrl = `${process.env.CMS_URL || process.env.NEXT_PUBLIC_SERVER_URL || 'https://cms.revealui.com'}/account/billing`
+  await sendEmail({
+    to,
+    subject: 'Action required: RevealUI payment failed',
+    html: `
+      <!DOCTYPE html>
+      <html>
+        <head><meta charset="utf-8"><title>Payment Failed</title></head>
+        <body style="font-family: Arial, sans-serif; line-height: 1.6; color: #333; max-width: 600px; margin: 0 auto; padding: 20px;">
+          <h1 style="color: #dc2626;">Payment Failed</h1>
+          <p>We were unable to process your RevealUI subscription payment. Your Pro features may be restricted until payment is resolved.</p>
+          <p>Please update your payment method to continue using Pro features:</p>
+          <p style="text-align: center; margin: 30px 0;">
+            <a href="${portalUrl}" style="background-color: #2563eb; color: white; padding: 12px 24px; text-decoration: none; border-radius: 6px; display: inline-block;">
+              Update Payment Method
+            </a>
+          </p>
+          <p style="color: #666; font-size: 14px;">If you believe this is an error, contact founder@revealui.com.</p>
+        </body>
+      </html>
+    `,
+    text: `Your RevealUI subscription payment failed. Please update your payment method at ${portalUrl} to continue using Pro features.`,
+  })
+}
+
+async function sendTrialEndingEmail(to: string, trialEnd: number | null): Promise<void> {
+  const { sendEmail } = await import('../lib/email.js')
+  const endDate = trialEnd
+    ? new Date(trialEnd * 1000).toLocaleDateString('en-US', {
+        month: 'long',
+        day: 'numeric',
+        year: 'numeric',
+      })
+    : 'soon'
+  const portalUrl = `${process.env.CMS_URL || process.env.NEXT_PUBLIC_SERVER_URL || 'https://cms.revealui.com'}/account/billing`
+  await sendEmail({
+    to,
+    subject: 'Your RevealUI Pro trial ends soon',
+    html: `
+      <!DOCTYPE html>
+      <html>
+        <head><meta charset="utf-8"><title>Trial Ending</title></head>
+        <body style="font-family: Arial, sans-serif; line-height: 1.6; color: #333; max-width: 600px; margin: 0 auto; padding: 20px;">
+          <h1 style="color: #2563eb;">Your Trial Ends ${endDate}</h1>
+          <p>Your RevealUI Pro free trial is ending ${endDate}. After the trial, your subscription will automatically continue at $49/month.</p>
+          <p>If you'd like to continue with Pro features, no action is needed — your subscription will start automatically.</p>
+          <p>If you'd like to cancel or change your plan, you can do so from your billing page:</p>
+          <p style="text-align: center; margin: 30px 0;">
+            <a href="${portalUrl}" style="background-color: #2563eb; color: white; padding: 12px 24px; text-decoration: none; border-radius: 6px; display: inline-block;">
+              Manage Subscription
+            </a>
+          </p>
+          <p style="color: #666; font-size: 14px;">Questions? Contact founder@revealui.com.</p>
+        </body>
+      </html>
+    `,
+    text: `Your RevealUI Pro trial ends ${endDate}. Your subscription will automatically continue at $49/month. Manage your subscription at ${portalUrl}.`,
+  })
+}
 
 export default app
