@@ -1759,8 +1759,8 @@ Frontend application components.
    - **HomeHeader** (`Header.tsx`)
      - **Schema**: `Video` type
    - **HomeMain** (`Main.tsx`)
-     - **Business Logic**: `fetchMainInfos()` from `revealui/core/targets/http/fetchMainInfos`
-     - **Schema**: `MainInfo`, `ContentSectionProps` from `revealui/types/interfaces/app`
+     - **Business Logic**: `fetchMainInfos()` (local stub)
+     - **Schema**: `MainInfo`, `ContentSectionProps`
    - **HomeSection** (`Section.tsx`)
      - **Schema**: `Event` type
    - **HomeHero** (`Hero.tsx`)
