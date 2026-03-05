@@ -119,20 +119,45 @@ app.openapi(
       )
     }
 
-    // Dispatch and await — agent runs the agentic loop, calls CMS tools, updates ticket
+    // Dispatch and await — agent runs the agentic loop, calls CMS tools, updates ticket.
+    // A timeout guard prevents requests from hanging indefinitely.  On timeout, the ticket
+    // is marked blocked and a 504 is returned so the caller can retry or escalate.
     const AgentTimeoutMs = 120_000 // 2 minutes
-    const result = await Promise.race([
-      dispatcher.dispatch({
-        id: ticket.id,
-        title: ticket.title,
-        description: ticket.description,
-        type: ticket.type,
-        priority: ticket.priority,
-      }),
-      new Promise<never>((_, reject) =>
-        setTimeout(() => reject(new Error('Agent dispatch timed out')), AgentTimeoutMs),
-      ),
-    ])
+    let timeoutHandle: ReturnType<typeof setTimeout> | undefined
+    const timeoutPromise = new Promise<never>((_, reject) => {
+      timeoutHandle = setTimeout(
+        () => reject(new Error('Agent dispatch timed out')),
+        AgentTimeoutMs,
+      )
+    })
+
+    let result: Awaited<ReturnType<typeof dispatcher.dispatch>>
+    try {
+      result = await Promise.race([
+        dispatcher
+          .dispatch({
+            id: ticket.id,
+            title: ticket.title,
+            description: ticket.description,
+            type: ticket.type,
+            priority: ticket.priority,
+          })
+          .finally(() => clearTimeout(timeoutHandle)),
+        timeoutPromise,
+      ])
+    } catch (dispatchErr) {
+      clearTimeout(timeoutHandle)
+      await ticketQueries.updateTicket(db, ticket.id, { status: 'blocked' })
+      const isTimeout =
+        dispatchErr instanceof Error && dispatchErr.message === 'Agent dispatch timed out'
+      return c.json(
+        {
+          success: false as const,
+          error: isTimeout ? 'Agent timed out after 2 minutes' : 'Agent dispatch failed',
+        },
+        503,
+      )
+    }
 
     // If agent didn't update the ticket status itself, mark it done/blocked based on result
     if (!result.success) {
@@ -241,18 +266,41 @@ app.openapi(
     await ticketQueries.updateTicket(db, ticketId, { status: 'in_progress' })
 
     const AgentTimeoutMs = 120_000 // 2 minutes
-    const result = await Promise.race([
-      dispatcher.dispatch({
-        id: ticket.id,
-        title: ticket.title,
-        description: ticket.description,
-        type: ticket.type,
-        priority: ticket.priority,
-      }),
-      new Promise<never>((_, reject) =>
-        setTimeout(() => reject(new Error('Agent dispatch timed out')), AgentTimeoutMs),
-      ),
-    ])
+    let timeoutHandle2: ReturnType<typeof setTimeout> | undefined
+    const timeoutPromise2 = new Promise<never>((_, reject) => {
+      timeoutHandle2 = setTimeout(
+        () => reject(new Error('Agent dispatch timed out')),
+        AgentTimeoutMs,
+      )
+    })
+
+    let result: Awaited<ReturnType<typeof dispatcher.dispatch>>
+    try {
+      result = await Promise.race([
+        dispatcher
+          .dispatch({
+            id: ticket.id,
+            title: ticket.title,
+            description: ticket.description,
+            type: ticket.type,
+            priority: ticket.priority,
+          })
+          .finally(() => clearTimeout(timeoutHandle2)),
+        timeoutPromise2,
+      ])
+    } catch (dispatchErr) {
+      clearTimeout(timeoutHandle2)
+      await ticketQueries.updateTicket(db, ticketId, { status: 'blocked' })
+      const isTimeout =
+        dispatchErr instanceof Error && dispatchErr.message === 'Agent dispatch timed out'
+      return c.json(
+        {
+          success: false as const,
+          error: isTimeout ? 'Agent timed out after 2 minutes' : 'Agent dispatch failed',
+        },
+        503,
+      )
+    }
 
     if (!result.success) {
       await ticketQueries.updateTicket(db, ticketId, { status: 'blocked' })

@@ -41,7 +41,9 @@ export async function callHooks(
         result = hookResult as RevealDocument
       }
     } catch (error) {
-      revealui.logger.error(`Hook execution failed: ${error}`)
+      const msg = error instanceof Error ? error.message : String(error)
+      revealui.logger.error(`Hook execution failed: ${msg}`)
+      throw error
     }
   }
 
