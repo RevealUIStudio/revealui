@@ -398,23 +398,37 @@ export async function getServiceWorkerState(): Promise<{
   }
 }
 
+export interface ServiceWorkerHook {
+  register: () => Promise<ServiceWorkerRegistration | null>
+  unregister: () => Promise<boolean>
+  update: () => Promise<void>
+  skipWaitingAndActivate: () => Promise<void>
+  state: Promise<{
+    registered: boolean
+    installing: boolean
+    waiting: boolean
+    active: boolean
+    controller: boolean
+  }>
+}
+
 /**
  * React hook for service worker
  */
-export function useServiceWorker(config?: ServiceWorkerConfig) {
+export function useServiceWorker(config?: ServiceWorkerConfig): ServiceWorkerHook {
   if (typeof window === 'undefined') {
     return {
       register: async () => null,
       unregister: async () => false,
       update: async () => {},
       skipWaitingAndActivate: async () => {},
-      state: {
+      state: Promise.resolve({
         registered: false,
         installing: false,
         waiting: false,
         active: false,
         controller: false,
-      },
+      }),
     }
   }
 
