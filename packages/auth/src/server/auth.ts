@@ -271,6 +271,9 @@ export async function signUp(
       }
     }
 
+    // Generate email verification token
+    const emailVerificationToken = crypto.randomUUID()
+
     // Create user
     let user: User | undefined
     try {
@@ -281,6 +284,8 @@ export async function signUp(
           email,
           name,
           password: hashedPassword,
+          emailVerified: false,
+          emailVerificationToken,
         })
         .returning()
       user = result[0] as User | undefined
