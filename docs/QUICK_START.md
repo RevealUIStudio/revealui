@@ -135,7 +135,7 @@ For detailed solutions → [Troubleshooting Guide](./TROUBLESHOOTING.md)
 Now that you're up and running:
 
 - 📖 Read the [Full Documentation](../README.md)
-- 🎨 Explore the [Component Library](../../packages/core/README.md)
+- 🎨 Explore the [Component Library](./COMPONENT_CATALOG.md)
 - 🚀 Check out [Example Projects](../../examples/)
 - 📚 Review [Deployment Guide](./CI_CD_GUIDE.md)
 - 🤝 Read [Contributing Guidelines](../../CONTRIBUTING.md)
@@ -165,8 +165,8 @@ See [CI/CD Guide](./CI_CD_GUIDE.md) for detailed instructions.
 - [CI/CD Guide](./CI_CD_GUIDE.md) - Deployment and production configuration
 
 ### Advanced
-- [Framework Overview](./OVERVIEW.md) - Complete framework introduction
-- [Master Index](../INDEX.md) - Complete documentation index
+- [Architecture](./ARCHITECTURE.md) - System design and architecture
+- [Package Reference](./REFERENCE.md) - Complete package reference
 
 ---
 

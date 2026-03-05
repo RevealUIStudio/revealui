@@ -53,7 +53,7 @@ packages/
 ├── contracts/      # Zod schemas & TypeScript types
 ├── db/             # Database (Drizzle ORM, 41 tables)
 ├── auth/           # Authentication system
-├── presentation/   # 43+ UI components (Tailwind v4)
+├── presentation/   # 50+ UI components (Tailwind v4)
 ├── router/         # File-based router with SSR
 ├── config/         # Type-safe env config (Zod)
 ├── utils/          # Logger, DB helpers, validation
@@ -75,7 +75,6 @@ packages/
 - [Package Conventions](../packages/PACKAGE-CONVENTIONS.md) - How packages are organized
 
 **2. Current Status**
-- [Master Plan](./MASTER_PLAN.md) - Current phase, priorities, session history
 - [Architecture](./ARCHITECTURE.md) - System architecture and patterns
 
 **3. Code Conventions**
@@ -128,11 +127,10 @@ packages/
 ```
 docs/
 ├── INDEX.md                    # Master documentation index
-├── MASTER_PLAN.md              # Single source of truth for planning
 ├── ARCHITECTURE.md             # System architecture
 ├── STANDARDS.md                # Code standards
-├── testing/                    # Testing guides
-├── development/                # Development guides
+├── TESTING.md                  # Testing guide
+├── REFERENCE.md                # Package reference
 └── archive/                    # Historical docs
 ```
 
@@ -2402,7 +2400,6 @@ All integrations can leverage the configured MCP servers:
 - [Environment Variables Guide](./ENVIRONMENT_VARIABLES_GUIDE.md)
 
 ### Cohesion & Quality
-- [Master Plan](./MASTER_PLAN.md) - Current phase and implementation status
 - `scripts/cohesion/` - Implementation files
 
 **Last Updated**: March 2026

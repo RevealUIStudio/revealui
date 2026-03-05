@@ -689,7 +689,7 @@ pnpm db:status
 
 - [Vitest Documentation](https://vitest.dev/)
 - [Testing Library](https://testing-library.com/)
-- [Test Coverage Guide](./docs/development/testing/coverage.md)
+- [CI/CD Guide](./CI_CD_GUIDE.md)
 - [CI/CD Pipeline](./.github/workflows/test.yml)
 - [Test Utilities](./packages/core/src/__tests__/utils/test-helpers.ts)
 - [Test Fixtures](./packages/db/__tests__/fixtures/)
