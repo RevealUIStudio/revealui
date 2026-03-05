@@ -1,4 +1,4 @@
-import type { CollectionAfterChangeHook, RevealHookContext } from '@revealui/core'
+import type { CollectionAfterChangeHook, RevealHookContext, RevealUIInstance } from '@revealui/core'
 import type { User } from '@revealui/core/types/cms'
 import { Role } from '@/lib/access/permissions/roles'
 
@@ -23,6 +23,9 @@ export const createTenant: CollectionAfterChangeHook<UserWithTenantID> = async (
     return doc
   }
 
+  // contracts RevealRequest.revealui is typed as unknown; cast to the known instance type
+  const revealui = req.revealui as RevealUIInstance
+
   const ctx = context as unknown as CreateTenantContext | undefined
   if (!ctx?.email) {
     return doc
@@ -30,7 +33,7 @@ export const createTenant: CollectionAfterChangeHook<UserWithTenantID> = async (
 
   try {
     // Lookup an existing tenant by email
-    const existingTenant = await req.revealui.find({
+    const existingTenant = await revealui.find({
       collection: 'tenants',
       where: {
         email: {
@@ -40,16 +43,17 @@ export const createTenant: CollectionAfterChangeHook<UserWithTenantID> = async (
     })
 
     if (existingTenant.totalDocs > 0 && existingTenant.docs[0]) {
-      // If tenant exists, assign TenantID to the user
+      // If tenant exists, assign TenantID to the user.
+      // find() returns unknown for the id field; cast to satisfy UserWithTenantID.
       return {
         ...doc,
         // biome-ignore lint/style/useNamingConvention: PascalCase matches database schema
-        TenantID: existingTenant.docs[0].id,
-      }
+        TenantID: existingTenant.docs[0].id as string | number,
+      } as UserWithTenantID
     }
 
     // If no existing tenant, create a new tenant
-    const newTenant = await req.revealui.create({
+    const newTenant = await revealui.create({
       collection: 'tenants',
       data: {
         email: ctx.email,
@@ -58,15 +62,16 @@ export const createTenant: CollectionAfterChangeHook<UserWithTenantID> = async (
       },
     })
 
-    // Assign the new TenantID to the user
+    // Assign the new TenantID to the user.
+    // create() returns unknown for the id field; cast to satisfy UserWithTenantID.
     return {
       ...doc,
       // biome-ignore lint/style/useNamingConvention: PascalCase matches database schema
-      TenantID: newTenant.id,
-    }
+      TenantID: newTenant.id as string | number,
+    } as UserWithTenantID
   } catch (error: unknown) {
     // Log error and return data as-is to avoid breaking execution
-    req?.revealui?.logger?.error(`Error creating Tenant: ${error}`)
+    revealui.logger.error(`Error creating Tenant: ${error}`)
     return doc
   }
 }
