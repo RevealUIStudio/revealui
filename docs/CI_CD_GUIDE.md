@@ -79,7 +79,7 @@ POSTGRES_URL="your-neondb-url" pnpm db:init
 POSTGRES_URL="your-neondb-url" pnpm db:migrate
 ```
 
-See [Database Management Guide](./DATABASE_MANAGEMENT.md) for all database commands and operations.
+See [Database Guide](./DATABASE.md) for all database commands and operations.
 
 ---
 
@@ -2212,9 +2212,8 @@ These archives are preserved for historical reference and troubleshooting.
 - [Quick Start Guide](./QUICK_START.md) - 5-minute setup guide
 
 ### Reference
-- [Development Guide](./README.md) - Development tools and configuration
-- [Testing Guide](../testing/TESTING.md) - Comprehensive testing guide
-- [Master Index](../INDEX.md) - Complete documentation index
+- [Testing Guide](./TESTING.md) - Comprehensive testing guide
+- [Standards](./STANDARDS.md) - Code standards and conventions
 
 ### Docker
 - [Docker Hardened Images](https://docs.docker.com/dhi/) - Official DHI documentation

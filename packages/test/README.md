@@ -5,7 +5,7 @@ Comprehensive testing infrastructure for the RevealUI Framework.
 ## Documentation
 
 **For complete testing guide, patterns, and best practices, see:**
-- **[Framework Testing Guide](../../docs/testing/TESTING.md)** - Comprehensive testing documentation with patterns, load testing, penetration testing, and verification procedures
+- **[Framework Testing Guide](../../docs/TESTING.md)** - Comprehensive testing documentation with patterns, load testing, penetration testing, and verification procedures
 
 This README focuses on package-specific utilities and quick reference.
 
@@ -211,7 +211,7 @@ pnpm --filter test test:coverage
 
 - [Unit Tests Guide](./src/units/README.md)
 - [Load Testing Guide](./load-tests/README.md)
-- [Framework Testing Guide](../../docs/testing/TESTING.md) - Comprehensive testing patterns and examples
+- [Framework Testing Guide](../../docs/TESTING.md) - Comprehensive testing patterns and examples
 
 ## Scripts
 
@@ -245,4 +245,4 @@ When adding new tests:
 5. **Fixtures** go in `src/fixtures/`
 6. **Mocks** go in `src/mocks/`
 7. Follow existing patterns and naming conventions
-8. See [Framework Testing Guide](../../docs/testing/TESTING.md) for patterns and examples
+8. See [Framework Testing Guide](../../docs/TESTING.md) for patterns and examples

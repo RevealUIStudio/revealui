@@ -80,7 +80,7 @@ Comprehensive troubleshooting guide for common RevealUI issues.
    - Look for errors during startup
    - Check for connection timeouts
 
-**See Also**: [Database Management](./DATABASE_MANAGEMENT.md#pnpm-dbinit)
+**See Also**: [Database Guide](./DATABASE.md)
 
 ---
 
@@ -105,7 +105,7 @@ Comprehensive troubleshooting guide for common RevealUI issues.
    - Check `packages/db/migrations/` for SQL files
    - Apply manually via database console if needed
 
-**See Also**: [Database Management - Migrations](./DATABASE_MANAGEMENT.md#pnpm-dbmigrate)
+**See Also**: [Database Guide](./DATABASE.md)
 
 ---
 

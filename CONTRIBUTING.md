@@ -465,9 +465,8 @@ pnpm dashboard              # Performance dashboard
 ```
 
 **See also:**
-- [Complete Scripts Reference](docs/development/SCRIPTS.md) - All 100+ available commands
+- [CI/CD Guide](docs/CI_CD_GUIDE.md) - Pipelines, deployment, and script reference
 - [Script Standards](scripts/STANDARDS.md) - Package.json script guidelines
-- [CLI Demos](examples/cli-demos/README.md) - Interactive tutorials
 
 ## Financial Contributions
 
