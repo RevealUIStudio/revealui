@@ -12,6 +12,7 @@
 
 import crypto from 'node:crypto'
 import { createRoute, OpenAPIHono, z } from '@hono/zod-openapi'
+import { validateProviderKey } from '@revealui/ai/llm/key-validator'
 import { getClient } from '@revealui/db'
 import { encryptApiKey, redactApiKey } from '@revealui/db/crypto'
 import { tenantProviderConfigs, userApiKeys } from '@revealui/db/schema'
@@ -110,6 +111,14 @@ app.openapi(postRoute, async (c) => {
   if (!parsed.success) throw new HTTPException(400, { message: 'Invalid request body' })
 
   const { provider, apiKey, label, setAsDefault, model } = parsed.data
+
+  // Validate the key against the provider before storing (best-effort; network
+  // failures are treated as valid so outages don't block key storage).
+  const validation = await validateProviderKey(provider, apiKey)
+  if (!validation.valid) {
+    throw new HTTPException(400, { message: validation.error })
+  }
+
   const db = getClient()
   const id = generateId()
   const encrypted = encryptApiKey(apiKey)
