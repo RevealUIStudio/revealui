@@ -57,7 +57,8 @@ export const createTenant: CollectionAfterChangeHook<UserWithTenantID> = async (
       collection: 'tenants',
       data: {
         email: ctx.email,
-        password: ctx.password,
+        // password may be undefined; RevealValue requires a defined value, skip if absent
+        ...(ctx.password !== undefined ? { password: ctx.password } : {}),
         roles: [Role.TenantAdmin],
       },
     })
