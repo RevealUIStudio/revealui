@@ -25,7 +25,10 @@ const app = new OpenAPIHono()
 
 const LogPayloadSchema = z.object({
   level: z.enum(['warn', 'error', 'fatal']),
-  message: z.string().max(2000),
+  message: z
+    .string()
+    .max(2000)
+    .transform((s) => s.replace(/[\r\n]/g, ' ')),
   app: z.string().max(50),
   environment: z.string().max(50).optional(),
   requestId: z.string().max(255).optional(),
