@@ -629,10 +629,8 @@ pnpm db:restore backup.json
 
 ## Related Documentation
 
-- [Database Guide](./DATABASE.md) - Schema, architecture, Drizzle ORM queries, dual-DB setup
-- [CI Environment](./CI_ENVIRONMENT.md) - CI/CD environment specifications
-- [Development Overview](./README.md) - Development navigation hub
-- [Master Index](../INDEX.md) - Complete documentation index
+- [CI/CD Guide](./CI_CD_GUIDE.md) - CI/CD pipeline and deployment
+- [Architecture](./ARCHITECTURE.md) - System architecture overview
 
 ---
 

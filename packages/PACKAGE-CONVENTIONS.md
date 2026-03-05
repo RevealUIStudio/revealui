@@ -1,119 +1,26 @@
 # Package Conventions
 
-This document describes the conventions for organizing packages in the RevealUI monorepo.
+Conventions for organizing packages in the RevealUI monorepo.
 
-**Current Package Count**: 18 packages (as of 2026-03-03)
+See [CLAUDE.md](../CLAUDE.md) for the full package map and [docs/REFERENCE.md](../docs/REFERENCE.md) for API reference.
 
-## Current Packages
+## Directory Structure
 
-The monorepo currently contains 18 packages (13 OSS + 5 Pro):
-
-### OSS Packages (MIT)
-
-| Package | Purpose | Structure |
-|---------|---------|-----------|
-| `@revealui/core` | CMS framework | `core/` + `client/` + `types/` + `generated/` |
-| `@revealui/contracts` | Zod schemas & types | Domain-organized |
-| `@revealui/db` | Database (Drizzle ORM, 41 tables) | `core/` + `client/` |
-| `@revealui/auth` | Authentication | Server + React hooks |
-| `@revealui/presentation` | UI components (43+ components) | `client/` |
-| `@revealui/router` | File-based router with SSR | Server + client |
-| `@revealui/config` | Type-safe env config (Zod) | Single module |
-| `@revealui/utils` | Logger, DB helpers, validation | Utility module |
-| `@revealui/cli` | `create-revealui` scaffolding | CLI tool |
-| `@revealui/setup` | Environment setup utilities | Scripts |
-| `@revealui/sync` | ElectricSQL real-time sync | Client-side |
-| `@revealui/dev` | Shared configs (Biome, TS, Tailwind) | Tooling-only |
-| `@revealui/test` | E2E specs, fixtures, mocks | Test-only |
-
-### Pro Packages (Commercial)
-
-| Package | Purpose | Structure |
-|---------|---------|-----------|
-| `@revealui/ai` | AI agents, CRDT memory, LLM providers | `memory/` + `client/` |
-| `@revealui/mcp` | MCP servers (Stripe, Supabase, Neon, etc.) | Server configs |
-| `@revealui/editors` | Editor daemon (Zed, VS Code, Neovim) | Adapters |
-| `@revealui/services` | Stripe + Supabase integrations | `core/` + `client/` |
-| `@revealui/harnesses` | AI harness adapters, daemon, coordination | Multi-module |
-
----
-
-## Directory Structure Convention
-
-All packages that provide both server-side and client-side functionality should follow the `core/` + `client/` convention:
+Packages with both server-side and client-side code follow `core/` + `client/`:
 
 ```
-packages/package-name/src/
-├── core/          # Server-side code (Node.js, Edge Functions, API routes)
-├── client/        # Client-side code (React components, browser hooks, UI)
-└── index.ts       # Main entry point (re-exports from core and client)
+packages/<name>/src/
+├── core/          # Server-side (Node.js, Edge, API routes)
+├── client/        # Client-side (React components, hooks, browser)
+└── index.ts       # Main entry (re-exports from core and client)
 ```
 
-## Package Merge History (2025-01-27)
-
-Two packages were merged into `@revealui/core` early in development:
-
-- **`@revealui/types`** → Merged into `@revealui/core/types`
-- **`@revealui/generated`** → Merged into `@revealui/core/generated`
-
-All types and generated code are available through `@revealui/core` exports.
-
----
-
-## Package Categories
-
-### 1. Full-Stack Packages (core/ + client/)
-
-These packages provide both server-side and client-side functionality:
-
-- **@revealui/core** - CMS framework with server API and admin UI
-  - `core/` - Server-side CMS logic, API routes, database adapters
-  - `client/` - Admin UI components, React hooks, browser client
-  - `core/types/` - Unified type exports (merged from `@revealui/types`)
-  - `core/generated/` - Auto-generated code (merged from `@revealui/generated`)
-  
-- **@revealui/db** - Database package with Drizzle ORM
-  - `core/` - Database schemas and server-side client
-  - `client/` - Browser-safe database utilities (if needed)
-  
-- **@revealui/ai** - AI system (memory, LLM, orchestration, tools)
-  - `memory/` - CRDT implementations, memory management, vector search
-  - `client/` - React hooks for AI operations
-  
-- **@revealui/services** - Shared service integrations (library only)
-  - `core/` - Server-side API routes, Stripe, Supabase server client
-  - `client/` - Browser client creation functions
-  - Note: This is a library package, not a runnable app.
-
-### 2. Client-Only Packages
-
-These packages are primarily client-side but follow similar organization:
-
-- **@revealui/presentation** - UI component library
-  - All code is client-side (React components)
-  - Exports via `./client` for consistency
-
-### 3. Schema/Type Packages
-
-These packages provide only type definitions and validation schemas:
-
-- **@revealui/contracts** - Zod schemas and TypeScript types
-  - No `core/` or `client/` - schema-only package
-  - Exports organized by domain (core, blocks, agents, cms)
-
-### 4. Tooling Packages
-
-These packages are development/build tools:
-
-- **dev** - Development tooling (Vite configs, ESLint, Tailwind)
-  - No `core/` or `client/` - tooling-only package
-  
-- **test** - Testing utilities
-  - No `core/` or `client/` - test utilities package
+**Exceptions:**
+- Schema-only packages (`contracts`) — organized by domain, no core/client split
+- Tooling packages (`dev`, `test`) — no core/client split
+- Client-only packages (`presentation`) — all client code, exports via `./client`
 
 ## Package.json Exports
-
-All packages should use the `exports` field in `package.json` to expose their API:
 
 ```json
 {
@@ -125,103 +32,84 @@ All packages should use the `exports` field in `package.json` to expose their AP
 }
 ```
 
-### Special Exports: @revealui/core
-
-The `@revealui/core` package includes additional exports for types and generated code:
-
-```json
-{
-  "exports": {
-    ".": "./src/index.ts",
-    "./core": "./src/core/index.ts",
-    "./client": "./src/client/index.ts",
-    "./types": "./src/core/types/index.ts",
-    "./types/core": "./src/core/types/core.ts",
-    "./types/schema": "./src/core/types/schema.ts",
-    "./types/cms": "./src/core/types/cms.ts",
-    "./generated": "./src/core/generated/index.ts",
-    "./generated/types": "./src/core/generated/types/index.ts",
-    "./generated/components": "./src/core/generated/components/index.ts",
-    "./generated/hooks": "./src/core/generated/hooks/index.ts"
-  }
-}
-```
-
-
 ## Import Patterns
 
-### Server-side (Node.js, Edge Functions, API Routes)
 ```typescript
-import { getClient } from '@revealui/db/schema'
+// Server-side
 import { createRevealUI } from '@revealui/core'
-import { createServerClient } from '@revealui/services/server'
-```
+import { db } from '@revealui/db'
 
-### Client-side (React Components, Browser)
-```typescript
+// Client-side
 import { useRevealUI } from '@revealui/core/client'
-import { useMemory } from '@revealui/ai/client'
-import { createBrowserClient } from '@revealui/services/client'
+import { Button } from '@revealui/presentation/client'
+
+// Types
+import type { Config } from '@revealui/core/types'
+
+// Schemas
+import { userSchema } from '@revealui/contracts'
 ```
 
-### Full Package (when both server and client needed)
-```typescript
-import { getClient, users } from '@revealui/db'
-import { createRevealUI, useRevealUI } from '@revealui/core'
+## Creating a New Package
+
+1. Create `packages/<name>/` with `package.json`, `tsconfig.json`, `tsup.config.ts`
+2. Name: `@revealui/<name>`
+3. Add `workspace:*` references from consuming packages
+4. Include: `build`, `dev`, `lint`, `test`, `typecheck` scripts
+5. Build output: `dist/` via tsup
+6. Source in `src/`, tests in `src/__tests__/` or `__tests__/`
+7. Entry point: `src/index.ts` → `dist/index.js`
+8. Include `files: ["dist", "README.md"]` for publishing
+9. OSS: `publishConfig.access: "public"`, MIT license
+10. Pro: `"private": true`
+
+## README Template
+
+Each package README should follow this structure:
+
+```markdown
+# @revealui/<name>
+
+Brief one-sentence description.
+
+## Overview
+
+What the package does and how it fits into RevealUI.
+
+## Installation
+
+\`\`\`bash
+pnpm add @revealui/<name>
+\`\`\`
+
+## Quick Start
+
+\`\`\`typescript
+import { mainFunction } from '@revealui/<name>'
+const result = await mainFunction({ option: 'value' })
+\`\`\`
+
+## API Reference
+
+Document exported functions, classes, and types.
+
+## Development
+
+\`\`\`bash
+pnpm --filter @revealui/<name> typecheck
+pnpm --filter @revealui/<name> test
+pnpm --filter @revealui/<name> build
+\`\`\`
+
+## License
+
+MIT (OSS) or Commercial (Pro)
 ```
-
-### Types and Generated Code
-
-Types and generated code are now part of `@revealui/core`:
-
-```typescript
-// Unified type exports
-import type { Config, CollectionConfig, Field } from '@revealui/core/types'
-
-// Specific type categories
-import type { Config } from '@revealui/core/types/cms'
-import type { User, Site } from '@revealui/core/types/schema'
-import type { RevealConfig } from '@revealui/core/types/core'
-
-// Generated types (CMS, Supabase, Neon)
-import type { Database } from '@revealui/core/generated/types/supabase'
-import type { Database as NeonDatabase } from '@revealui/core/generated/types/neon'
-
-// Generated components, hooks, functions
-import { GeneratedComponent } from '@revealui/core/generated/components'
-import { useGeneratedHook } from '@revealui/core/generated/hooks'
-```
-
-> **Migration Note**: The former `@revealui/types` and `@revealui/generated` packages were merged into `@revealui/core`. Update imports to use `@revealui/core/types` and `@revealui/core/generated`.
-
-## Benefits of This Convention
-
-1. **Clear Separation** - Easy to identify server vs client code
-2. **Tree-shaking** - Bundlers can exclude unused code
-3. **Type Safety** - Shared types between server and client
-4. **Version Sync** - Server and client stay in sync
-5. **Better DX** - Clear import paths show intent
-6. **Verifiable** - Automated tests ensure exports work correctly
 
 ## Verification
 
-To verify package exports are working correctly:
-
-1. **Run verification script:**
-   ```bash
-   pnpm tsx scripts/verify-package-exports.ts
-   ```
-
-2. **Run import tests:**
-   ```bash
-   pnpm --filter @revealui/db test imports
-   pnpm --filter @revealui/ai test imports
-   pnpm --filter @revealui/services test imports
-   ```
-
-3. **Full monorepo verification:**
-   ```bash
-   pnpm typecheck:all  # Type checking
-   pnpm build          # Full build
-   pnpm test           # Test suite
-   ```
+```bash
+pnpm typecheck:all  # Type checking across all packages
+pnpm build          # Full build
+pnpm test           # Test suite
+```

@@ -56,7 +56,6 @@ vercel deploy --prod --archive=tgz
 
 ## Related
 
-- [Documentation Guide](./DOCUMENTATION.md)
 - [Architecture Guide](../../docs/ARCHITECTURE.md)
 
 ## License

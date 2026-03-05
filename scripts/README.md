@@ -826,6 +826,6 @@ throw new ScriptError('Database connection failed', ErrorCode.EXECUTION_ERROR, {
 ## 📚 Additional Resources
 
 - [CONTRIBUTING.md](../../CONTRIBUTING.md) - Development guidelines
-- [Architecture Docs](../../docs/architecture/) - System architecture
-- [API Reference](../../docs/api/) - Package API docs
+- [Architecture](../../docs/ARCHITECTURE.md) - System architecture
+- [Package Reference](../../docs/REFERENCE.md) - Package API docs
 

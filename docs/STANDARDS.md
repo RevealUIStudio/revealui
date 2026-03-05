@@ -927,10 +927,8 @@ transpilePackages: ['@revealui/core', '@revealui/db', '@revealui/contracts', '@r
 
 ## Related Documentation
 
-- [OBSERVABILITY.md](./OBSERVABILITY.md) - Error handling and logging standards
-- [DOCUMENTATION_STANDARDS.md](./DOCUMENTATION_STANDARDS.md) - Documentation guidelines
 - [Package Conventions](../../packages/PACKAGE-CONVENTIONS.md) - Package structure and conventions
-- [Testing Strategy](../testing/TESTING_STRATEGY.md) - Testing requirements
+- [Testing](./TESTING.md) - Testing requirements
 - [ESLint Config](../../packages/dev/src/eslint/eslint.config.js) - Shared ESLint configuration
 - [Biome Config](../../biome.json) - Biome configuration
 
@@ -1555,7 +1553,7 @@ RevealUI uses a **simplified safeguard system** (20% of original complexity) foc
 
 ## Related Documentation
 
-- [CODE_STYLE.md](./CODE_STYLE.md) - Code style and formatting standards
+- [Architecture](./ARCHITECTURE.md) - System architecture and design
 
 ---
 
@@ -2126,8 +2124,7 @@ Or add path exemption to `.revealui/code-standards.json`.
 
 - [Code Standards](../STANDARDS.md) - Overall coding standards
 - [MCP Guide](../MCP.md) - MCP server configuration
-- [Git Hooks](../../scripts/git-hooks/README.md) - Git hooks documentation
-- [Master Plan](../MASTER_PLAN.md) - Current project status and roadmap
+- [CI/CD Guide](./CI_CD_GUIDE.md) - CI pipelines and deployment
 
 ---
 
@@ -2636,7 +2633,7 @@ export const UserSchema = UsersSelectSchema.merge(DualEntitySchema).extend({
 
 **Status:** ✅ 6 entity contracts complete (3,626 lines, 243+ helper functions)
 
-Entity contracts provide comprehensive business logic, validation, and helper functions for core entities. See [`MIGRATION_STATUS.md`](./MIGRATION_STATUS.md) for detailed migration status.
+Entity contracts provide comprehensive business logic, validation, and helper functions for core entities.
 
 ### Available Entity Contracts
 
@@ -3361,7 +3358,5 @@ For questions or issues:
 
 ## Related Documentation
 
-- [Type System Rules](./TYPE-SYSTEM-RULES.md) — Enforcement rules and hard requirements for using the type system
 - [Database Schema Guide](./DATABASE.md)
-- [Contract System](./CONTRACTS.md)
-- [Type Safety Strategy](./TYPE_SAFETY.md)
+- [Package Reference](./REFERENCE.md)

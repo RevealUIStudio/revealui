@@ -751,12 +751,8 @@ All MCP servers are **completely free**:
 
 ## Related Documentation
 
-- [MCP Fixes 2025](./MCP_FIXES_2025.md) - Recent MCP updates and fixes
-- [Next.js DevTools Demo](./NEXTJS_DEVTOOLS_MCP_DEMO.md) - Demo and examples
-- [MCP Demo Interaction](./demo-mcp-interaction.md) - Interaction examples
-- [Neon API Key Setup](./ENVIRONMENT_VARIABLES_GUIDE.md) - Detailed Neon setup
-- [Supabase IPv4/IPv6](./DATABASE.md) - Network compatibility
 - [Environment Variables Guide](./ENVIRONMENT_VARIABLES_GUIDE.md) - Configuration
+- [Database](./DATABASE.md) - Database setup and network compatibility
 - [Master Index](../INDEX.md) - Complete documentation index
 
 ---
