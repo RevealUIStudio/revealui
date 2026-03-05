@@ -51,7 +51,7 @@ const tiers = [
       'Unlimited CMS collections',
       'Unlimited sites',
       'Unlimited users/editors',
-      'Session + SSO/SAML auth',
+      'Session-based auth + OAuth',
       'All AI providers',
       'Full AI memory (working + episodic + vector)',
       'Stripe payments + invoicing',
@@ -76,12 +76,12 @@ const faqs = [
   {
     question: 'What happens after the free trial ends?',
     answer:
-      "The Pro tier includes a 14-day free trial. After the trial ends, you'll be charged $49/month. You can cancel anytime during the trial without being charged.",
+      "The Pro tier includes a 7-day free trial. After the trial ends, you'll be charged $49/month. You can cancel anytime during the trial without being charged.",
   },
   {
     question: 'Can I upgrade or downgrade my plan?',
     answer:
-      "Yes, you can upgrade or downgrade your plan at any time. When upgrading, you'll be charged the prorated amount immediately. When downgrading, the change takes effect at the end of your current billing period.",
+      "Yes, you can upgrade your plan at any time — you'll be charged the prorated amount immediately. To downgrade, visit your billing portal or contact founder@revealui.com.",
   },
   {
     question: 'What AI providers are supported?',
