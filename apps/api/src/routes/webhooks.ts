@@ -142,6 +142,7 @@ const relevantEvents = new Set([
   'customer.subscription.updated',
   'customer.subscription.deleted',
   'invoice.payment_failed',
+  'payment_intent.payment_failed',
   'customer.subscription.trial_will_end',
   'charge.dispute.closed',
   'charge.dispute.created',
@@ -510,6 +511,23 @@ app.post('/stripe', async (c) => {
             })
           })
         }
+        break
+      }
+
+      case 'payment_intent.payment_failed': {
+        const paymentIntent = event.data.object as Stripe.PaymentIntent
+        logger.warn('Payment intent failed', {
+          paymentIntentId: paymentIntent.id,
+          amount: paymentIntent.amount,
+          currency: paymentIntent.currency,
+          lastPaymentError: paymentIntent.last_payment_error?.message ?? 'unknown',
+        })
+        // Stripe retries automatically per the retry schedule — no action required here.
+        // Audit for ops visibility.
+        auditLicenseEvent(db, 'payment.intent.failed', 'warn', {
+          paymentIntentId: paymentIntent.id,
+          amount: paymentIntent.amount,
+        })
         break
       }
 
