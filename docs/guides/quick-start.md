@@ -16,7 +16,7 @@ cd my-app
 ```
 
 The CLI prompts for:
-- **Template** — `basic-blog` (free) or `e-commerce` / `portfolio` (Pro license required)
+- **Template** — `basic-blog`, `e-commerce`, or `portfolio`
 - **Database**, **storage**, and **payment** configuration
 
 The CLI writes a `.env.local` file with your answers pre-filled. Any values you skipped will contain placeholder comments.
