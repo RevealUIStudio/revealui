@@ -367,7 +367,6 @@ If you see hundreds of issues:
 
 ## Related Documentation
 
-- [Documentation Accuracy Audit Report](../../tmp/claude-1000/-home-joshua-v-dev-projects-RevealUI/c98be5c0-91b1-4979-b5c0-d635e5c9e0c2/scratchpad/DOCUMENTATION_ACCURACY_AUDIT.md) - Full audit findings
 - [Contributing to Documentation](../../docs/standards/CONTRIBUTING_DOCS.md) - Documentation guidelines
 - [Root Documentation Policy](../../docs/standards/ROOT_DOCS_POLICY.md) - Where to put docs
 

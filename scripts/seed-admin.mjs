@@ -11,9 +11,13 @@ if (!POSTGRES_URL) {
   process.exit(1)
 }
 
-const email = 'founder@revealui.com'
-const password = 'ewDV1GawgWL97XjBbcFeGXYMiwVoIui'
-const name = 'Admin User'
+const email = process.env.ADMIN_EMAIL || 'admin@example.com'
+const password = process.env.ADMIN_PASSWORD
+if (!password) {
+  console.error('ADMIN_PASSWORD is required (set via environment variable)')
+  process.exit(1)
+}
+const name = process.env.ADMIN_NAME || 'Admin User'
 
 const client = new Client({ connectionString: POSTGRES_URL })
 

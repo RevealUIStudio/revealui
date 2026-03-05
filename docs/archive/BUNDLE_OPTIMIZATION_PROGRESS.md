@@ -31,10 +31,10 @@
 
 #### 3. Verified Server-Side Only Imports ✅
 **Checked:** All `stripe` imports in CMS are type-only
-- `/home/joshua-v-dev/projects/RevealUI/apps/cms/src/lib/hooks/customersProxy.ts`
-- `/home/joshua-v-dev/projects/RevealUI/apps/cms/src/lib/hooks/productsProxy.ts`
-- `/home/joshua-v-dev/projects/RevealUI/apps/cms/src/lib/collections/Products/hooks/beforeChange.ts`
-- `/home/joshua-v-dev/projects/RevealUI/apps/cms/src/__tests__/utils/stripe-test-utils.ts`
+- `apps/cms/src/lib/hooks/customersProxy.ts`
+- `apps/cms/src/lib/hooks/productsProxy.ts`
+- `apps/cms/src/lib/collections/Products/hooks/beforeChange.ts`
+- `apps/cms/src/__tests__/utils/stripe-test-utils.ts`
 
 All use `import type Stripe from 'stripe'` (types only, no runtime impact) ✅
 
