@@ -12,6 +12,7 @@ import { HTTPException } from 'hono/http-exception'
 
 type Variables = {
   db: DatabaseClient
+  user?: { id: string; role: string }
 }
 
 // biome-ignore lint/style/useNamingConvention: Hono requires Variables key
@@ -349,7 +350,7 @@ app.openapi(
     const db = c.get('db')
     const { id } = c.req.valid('param')
     // Provenance records have no userId — restrict deletion to admin role only
-    const user = c.get('user') as { role?: string } | undefined
+    const user = c.get('user')
     if (user?.role !== 'admin') {
       throw new HTTPException(403, { message: 'Admin role required to delete provenance entries' })
     }
