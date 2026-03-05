@@ -482,7 +482,7 @@ Feel free to open a GitHub Discussion or reach out to the maintainers.
 Contributors will be recognized in:
 - Our README.md contributors section
 - Release notes for significant contributions
-- Our documentation site (coming soon)
+- Our [documentation site](https://docs.revealui.com)
 
 Thank you for contributing to RevealUI! 🎉
 

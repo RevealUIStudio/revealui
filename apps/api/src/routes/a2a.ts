@@ -230,7 +230,7 @@ a2a.put('/agents/:id', requireFeature('ai'), async (c) => {
         await db
           .update(registeredAgents)
           .set({
-            definition: updatedDef as unknown as Record<string, unknown>,
+            definition: updatedDef,
             updatedAt: new Date(),
           })
           .where(eq(registeredAgents.id, agentId))
@@ -304,7 +304,7 @@ a2a.post('/agents', async (c) => {
     const db = getClient()
     await db.insert(registeredAgents).values({
       id: def.id,
-      definition: def as unknown as Record<string, unknown>,
+      definition: def,
     })
   } catch {
     // Non-fatal — agent is registered in-memory for this server instance

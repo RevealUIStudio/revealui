@@ -18,53 +18,56 @@ vi.mock('@revealui/db/client', () => ({
   getClient: vi.fn(() => ({})),
 }))
 
-vi.mock('@revealui/ai/memory/persistence', () => ({
+vi.mock('@revealui/ai/memory/persistence', () => {
   // biome-ignore lint/style/useNamingConvention: mocked module export uses PascalCase
-  CRDTPersistence: vi.fn().mockImplementation(() => ({
-    loadCompositeState: vi.fn().mockResolvedValue(new Map()),
-    saveCompositeState: vi.fn().mockResolvedValue(undefined),
-  })),
-}))
+  class CRDTPersistence {
+    loadCompositeState = vi.fn().mockResolvedValue(new Map())
+    saveCompositeState = vi.fn().mockResolvedValue(undefined)
+  }
+  return { CRDTPersistence }
+})
 
-vi.mock('@revealui/ai/memory/stores', () => ({
+vi.mock('@revealui/ai/memory/stores', () => {
   // biome-ignore lint/style/useNamingConvention: mocked module export uses PascalCase
-  WorkingMemory: vi.fn().mockImplementation(() => ({
-    load: vi.fn().mockResolvedValue(undefined),
-    save: vi.fn().mockResolvedValue(undefined),
-    getSessionId: vi.fn().mockReturnValue('session-123'),
-    getContext: vi.fn().mockReturnValue({ userId: 'user-1' }),
-    getSessionState: vi.fn().mockReturnValue({ active: true }),
-    getActiveAgents: vi.fn().mockReturnValue([]),
-    setContext: vi.fn(),
-    updateSessionState: vi.fn(),
-    addAgent: vi.fn(),
-    removeAgentById: vi.fn(),
-  })),
+  class WorkingMemory {
+    load = vi.fn().mockResolvedValue(undefined)
+    save = vi.fn().mockResolvedValue(undefined)
+    getSessionId = vi.fn().mockReturnValue('session-123')
+    getContext = vi.fn().mockReturnValue({ userId: 'user-1' })
+    getSessionState = vi.fn().mockReturnValue({ active: true })
+    getActiveAgents = vi.fn().mockReturnValue([])
+    setContext = vi.fn()
+    updateSessionState = vi.fn()
+    addAgent = vi.fn()
+    removeAgentById = vi.fn()
+  }
   // biome-ignore lint/style/useNamingConvention: mocked module export uses PascalCase
-  EpisodicMemory: vi.fn().mockImplementation(() => ({
-    load: vi.fn().mockResolvedValue(undefined),
-    save: vi.fn().mockResolvedValue(undefined),
-    getAll: vi.fn().mockResolvedValue([]),
-    get: vi.fn().mockResolvedValue(null),
-    add: vi.fn().mockResolvedValue('tag-123'),
-    removeById: vi.fn().mockResolvedValue(1),
-    getUserId: vi.fn().mockReturnValue('user-123'),
-    getAccessCount: vi.fn().mockReturnValue(0),
-  })),
-}))
+  class EpisodicMemory {
+    load = vi.fn().mockResolvedValue(undefined)
+    save = vi.fn().mockResolvedValue(undefined)
+    getAll = vi.fn().mockResolvedValue([])
+    get = vi.fn().mockResolvedValue(null)
+    add = vi.fn().mockResolvedValue('tag-123')
+    removeById = vi.fn().mockResolvedValue(1)
+    getUserId = vi.fn().mockReturnValue('user-123')
+    getAccessCount = vi.fn().mockReturnValue(0)
+  }
+  return { WorkingMemory, EpisodicMemory }
+})
 
-vi.mock('@revealui/ai/memory/agent', () => ({
+vi.mock('@revealui/ai/memory/agent', () => {
   // biome-ignore lint/style/useNamingConvention: mocked module export uses PascalCase
-  AgentContextManager: vi.fn().mockImplementation(() => ({
-    load: vi.fn().mockResolvedValue(undefined),
-    save: vi.fn().mockResolvedValue(undefined),
-    getSessionId: vi.fn().mockReturnValue('session-123'),
-    getAgentId: vi.fn().mockReturnValue('agent-456'),
-    getAllContext: vi.fn().mockReturnValue({ theme: 'dark' }),
-    updateContext: vi.fn(),
-    removeContext: vi.fn(),
-  })),
-}))
+  class AgentContextManager {
+    load = vi.fn().mockResolvedValue(undefined)
+    save = vi.fn().mockResolvedValue(undefined)
+    getSessionId = vi.fn().mockReturnValue('session-123')
+    getAgentId = vi.fn().mockReturnValue('agent-456')
+    getAllContext = vi.fn().mockReturnValue({ theme: 'dark' })
+    updateContext = vi.fn()
+    removeContext = vi.fn()
+  }
+  return { AgentContextManager }
+})
 
 vi.mock('@/lib/utilities/nodeId', () => ({
   getNodeIdFromSession: vi.fn().mockResolvedValue('node-session-123'),
