@@ -313,10 +313,6 @@ Update your components to import from the new location:
 **In `apps/mainframe/src/components/Home/Main.tsx`**:
 
 ```typescript
-// Change from:
-import fetchMainInfos from "revealui/core/targets/http/fetchMainInfos";
-
-// To:
 import fetchMainInfos from "@/lib/api/fetchMainInfos";
 // Or using relative paths:
 import fetchMainInfos from "../../lib/api/fetchMainInfos";
