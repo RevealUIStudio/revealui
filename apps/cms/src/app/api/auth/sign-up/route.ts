@@ -143,7 +143,10 @@ async function signUpHandler(request: NextRequest): Promise<NextResponse> {
         sameSite: 'lax',
         path: '/',
         maxAge: 60 * 60 * 24 * 7, // 7 days
-        domain: process.env.NODE_ENV === 'production' ? '.revealui.com' : undefined,
+        domain:
+          process.env.NODE_ENV === 'production'
+            ? process.env.SESSION_COOKIE_DOMAIN || '.revealui.com'
+            : undefined,
       })
     }
 
