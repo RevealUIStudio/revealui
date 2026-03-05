@@ -165,8 +165,8 @@ app.openapi(checkoutRoute, async (c) => {
   const customerId = await ensureStripeCustomer(user.id, user.email ?? '')
 
   const stripe = getStripeClient()
-  const cmsUrl =
-    process.env.CMS_URL || process.env.NEXT_PUBLIC_SERVER_URL || 'http://localhost:4000'
+  const cmsUrl = process.env.CMS_URL || process.env.NEXT_PUBLIC_SERVER_URL
+  if (!cmsUrl) throw new HTTPException(500, { message: 'CMS_URL is not configured' })
 
   const session = await stripe.checkout.sessions.create({
     customer: customerId,
@@ -228,8 +228,8 @@ app.openapi(portalRoute, async (c) => {
   }
 
   const stripe = getStripeClient()
-  const cmsUrl =
-    process.env.CMS_URL || process.env.NEXT_PUBLIC_SERVER_URL || 'http://localhost:4000'
+  const cmsUrl = process.env.CMS_URL || process.env.NEXT_PUBLIC_SERVER_URL
+  if (!cmsUrl) throw new HTTPException(500, { message: 'CMS_URL is not configured' })
 
   const session = await stripe.billingPortal.sessions.create({
     customer: dbUser.stripeCustomerId,

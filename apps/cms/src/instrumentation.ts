@@ -55,8 +55,22 @@ export async function register() {
       logger.addLogHandler((entry) => {
         if (entry.level !== 'warn' && entry.level !== 'error' && entry.level !== 'fatal') return
         const data: Record<string, unknown> = {}
-        if (entry.context && Object.keys(entry.context).length > 0)
-          Object.assign(data, entry.context)
+        if (entry.context && Object.keys(entry.context).length > 0) {
+          // Copy only safe keys — never forward credentials or prototype-poisoning keys
+          const BlockedKeys = new Set([
+            'password',
+            'secret',
+            'token',
+            'apiKey',
+            'api_key',
+            '__proto__',
+            'constructor',
+            'prototype',
+          ])
+          for (const [k, v] of Object.entries(entry.context)) {
+            if (!BlockedKeys.has(k)) data[k] = v
+          }
+        }
         if (entry.error) data.error = entry.error
         fetch(`${apiUrl}/api/logs`, {
           method: 'POST',
@@ -79,13 +93,20 @@ export async function register() {
       process.on('unhandledRejection', (reason: unknown) => {
         const err = reason instanceof Error ? reason : new Error(String(reason))
         logger.error('Unhandled rejection in CMS server', err)
+        // Sanitize stack trace — strip absolute file paths before sending to the API
+        const sanitizedStack = err.stack
+          ? err.stack
+              .split('\n')
+              .map((line) => line.replace(/\s+at .+[\\/]revealui[\\/]/gi, ' at <app>/'))
+              .join('\n')
+          : undefined
         fetch(`${apiUrl}/api/errors`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
             level: 'error',
             message: err.message,
-            stack: err.stack,
+            stack: sanitizedStack,
             app: 'cms',
             context: 'server',
             environment: process.env.NODE_ENV ?? 'production',

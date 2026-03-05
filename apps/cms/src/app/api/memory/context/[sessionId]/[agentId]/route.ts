@@ -125,15 +125,22 @@ export async function POST(
     const updates: Partial<Record<string, unknown>> = {}
     const keys = Object.keys(body)
 
+    // Deny prototype-poisoning keys before assigning any values
+    const BlockedKeys = new Set(['__proto__', 'constructor', 'prototype'])
+
     if (keys.length === 1) {
       const key = keys[0]
-      if (key && key !== 'context') {
+      if (key && key !== 'context' && !BlockedKeys.has(key)) {
         // Single key-value update (e.g., { theme: 'dark' })
         updates[key] = body[key]
       }
     } else {
-      // Partial context update (e.g., { theme: 'dark', language: 'en' } or { context: {...} })
-      Object.assign(updates, body)
+      // Partial context update — copy key-by-key, skipping prototype-poisoning keys
+      for (const key of keys) {
+        if (!BlockedKeys.has(key)) {
+          updates[key] = body[key]
+        }
+      }
     }
 
     const db = getClient()
