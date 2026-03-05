@@ -17,6 +17,40 @@
  */
 
 // ============================================
+// CMS INSTANCE TYPE
+// ============================================
+
+/**
+ * Minimal RevealUI CMS instance interface for hook context.
+ *
+ * Kept in contracts (not core) to avoid a circular dependency.
+ * Describes the subset of RevealUIInstance that hook authors need:
+ * find(), create(), and the logger. The full RevealUIInstance type
+ * in @revealui/core extends this shape with additional methods.
+ */
+export interface RevealCMSInstance {
+  find(options: {
+    collection: string
+    where?: Record<string, unknown>
+    limit?: number
+    page?: number
+    depth?: number
+    [key: string]: unknown
+  }): Promise<{ docs: Array<{ id: string | number; [key: string]: unknown }>; totalDocs: number }>
+  create(options: {
+    collection: string
+    data: Record<string, unknown>
+    depth?: number
+    [key: string]: unknown
+  }): Promise<{ id: string | number; [key: string]: unknown }>
+  logger?: {
+    error(message: string, ...args: unknown[]): void
+    warn?(message: string, ...args: unknown[]): void
+    info?(message: string, ...args: unknown[]): void
+  }
+}
+
+// ============================================
 // CMS REQUEST TYPE
 // ============================================
 
@@ -26,7 +60,7 @@
 export interface RevealRequest<TUser = unknown> {
   user?: TUser | null
   /** The RevealUI CMS instance */
-  revealui?: unknown
+  revealui?: RevealCMSInstance
   locale?: string
   fallbackLocale?: string
   context?: Record<string, unknown>
