@@ -163,6 +163,20 @@ export default function BillingPage() {
     <div className="mx-auto max-w-2xl space-y-6 py-12">
       <h1 className="text-2xl font-bold">Billing</h1>
 
+      {subscription?.status === 'trialing' && subscription.expiresAt && (
+        <div className="rounded-md border border-blue-200 bg-blue-50 p-4 text-sm text-blue-800 dark:border-blue-800 dark:bg-blue-900/20 dark:text-blue-300">
+          Your Pro trial ends on{' '}
+          <strong>
+            {new Date(subscription.expiresAt).toLocaleDateString('en-US', {
+              month: 'long',
+              day: 'numeric',
+              year: 'numeric',
+            })}
+          </strong>
+          . After that, you&apos;ll be charged $49/month. Cancel anytime before then.
+        </div>
+      )}
+
       {success && (
         <div className="rounded-md bg-green-50 p-4 text-sm text-green-700 dark:bg-green-900/20 dark:text-green-400">
           Subscription activated! Your Pro features are now available.
@@ -248,18 +262,38 @@ export default function BillingPage() {
                 >
                   {actionLoading ? 'Opening portal...' : 'Manage Billing'}
                 </Button>
+                <button
+                  type="button"
+                  onClick={handleManageBilling}
+                  disabled={actionLoading}
+                  title="Cancels at the end of your current billing period. You keep access until then."
+                  className="w-full text-sm text-zinc-400 underline hover:text-zinc-600 disabled:cursor-not-allowed dark:text-zinc-500 dark:hover:text-zinc-300"
+                >
+                  Cancel subscription
+                </button>
               </div>
             )}
 
             {tier === 'enterprise' && (
-              <Button
-                onClick={handleManageBilling}
-                disabled={actionLoading}
-                variant="outline"
-                className="w-full"
-              >
-                {actionLoading ? 'Opening portal...' : 'Manage Billing'}
-              </Button>
+              <div className="space-y-3">
+                <Button
+                  onClick={handleManageBilling}
+                  disabled={actionLoading}
+                  variant="outline"
+                  className="w-full"
+                >
+                  {actionLoading ? 'Opening portal...' : 'Manage Billing'}
+                </Button>
+                <button
+                  type="button"
+                  onClick={handleManageBilling}
+                  disabled={actionLoading}
+                  title="Cancels at the end of your current billing period. You keep access until then."
+                  className="w-full text-sm text-zinc-400 underline hover:text-zinc-600 disabled:cursor-not-allowed dark:text-zinc-500 dark:hover:text-zinc-300"
+                >
+                  Cancel subscription
+                </button>
+              </div>
             )}
           </div>
         </CardContent>
