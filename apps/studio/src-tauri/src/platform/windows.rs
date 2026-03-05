@@ -33,7 +33,8 @@ impl WindowsPlatform {
     }
 
     fn git_sync_c(&self, repo_path: &str) -> SyncResult {
-        let full_path = format!("C:\\Users\\joshu\\{}", repo_path);
+        let user_profile = std::env::var("USERPROFILE").unwrap_or_else(|_| "C:\\Users\\user".to_string());
+        let full_path = format!("{}\\{}", user_profile, repo_path);
         let branch = self.git_branch(&full_path);
 
         // Check if repo exists
@@ -168,48 +169,6 @@ impl WindowsPlatform {
                 c_path: ".revealui".to_string(),
                 e_path: "professional\\devkit".to_string(),
                 identity: "professional".to_string(),
-            },
-            RepoEntry {
-                name: "portfolio".to_string(),
-                c_path: "projects\\portfolio".to_string(),
-                e_path: "personal\\portfolio".to_string(),
-                identity: "personal".to_string(),
-            },
-            RepoEntry {
-                name: "joshua-v-dev".to_string(),
-                c_path: "projects\\joshua-v-dev".to_string(),
-                e_path: "personal\\joshua-v-dev".to_string(),
-                identity: "personal".to_string(),
-            },
-            RepoEntry {
-                name: "off-set-designs".to_string(),
-                c_path: "projects\\off-set-designs".to_string(),
-                e_path: "personal\\off-set-designs".to_string(),
-                identity: "personal".to_string(),
-            },
-            RepoEntry {
-                name: "angler-adventures".to_string(),
-                c_path: "projects\\angler-adventures".to_string(),
-                e_path: "personal\\angler-adventures".to_string(),
-                identity: "personal".to_string(),
-            },
-            RepoEntry {
-                name: "supaturbo".to_string(),
-                c_path: "projects\\supaturbo".to_string(),
-                e_path: "personal\\supaturbo".to_string(),
-                identity: "personal".to_string(),
-            },
-            RepoEntry {
-                name: "flow".to_string(),
-                c_path: "projects\\flow".to_string(),
-                e_path: "personal\\flow".to_string(),
-                identity: "personal".to_string(),
-            },
-            RepoEntry {
-                name: "igotmaps".to_string(),
-                c_path: "projects\\igotmaps".to_string(),
-                e_path: "personal\\igotmaps".to_string(),
-                identity: "personal".to_string(),
             },
         ]
     }
@@ -394,7 +353,7 @@ impl PlatformOps for WindowsPlatform {
             .args([
                 "-NoProfile",
                 "-Command",
-                r#"$disk = Get-Disk | Where-Object { $_.SerialNumber -match 'WXB2A91FA77H' }; if ($disk) { wsl.exe --unmount "\\.\PHYSICALDRIVE$($disk.Number)" } else { Write-Error 'Studio drive not found' }"#,
+                r#"$serial = $env:REVEALUI_DEVBOX_SERIAL; if (-not $serial) { Write-Error 'REVEALUI_DEVBOX_SERIAL not set'; exit 1 }; $disk = Get-Disk | Where-Object { $_.SerialNumber -match $serial }; if ($disk) { wsl.exe --unmount "\\.\PHYSICALDRIVE$($disk.Number)" } else { Write-Error 'Studio drive not found' }"#,
             ])
             .output()
             .map_err(|e| format!("Failed to start pwsh.exe: {e}"))?;

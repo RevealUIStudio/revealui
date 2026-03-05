@@ -35,7 +35,7 @@ pub fn vault_is_initialized() -> Result<bool, String> {
     let candidates = [
         home.join(".revealui/passage-store"),
         PathBuf::from("/mnt/c/Users")
-            .join(std::env::var("WINDOWS_USERNAME").unwrap_or_else(|_| "joshu".into()))
+            .join(std::env::var("WINDOWS_USERNAME").unwrap_or_else(|_| "user".into()))
             .join(".revealui/passage-store"),
     ];
 
