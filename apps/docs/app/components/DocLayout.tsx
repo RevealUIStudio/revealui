@@ -15,48 +15,34 @@ const navigation: NavItem[] = [
   { label: 'Home', path: '/' },
   {
     label: 'Getting Started',
-    path: '/guides/quick-start',
+    path: '/docs/QUICK_START',
     children: [
-      { label: 'Quick Start', path: '/guides/quick-start' },
-      { label: 'Examples', path: '/guides/examples' },
+      { label: 'Quick Start', path: '/docs/QUICK_START' },
+      { label: 'Build Your Business', path: '/docs/BUILD_YOUR_BUSINESS' },
+      { label: 'Examples', path: '/docs/examples' },
     ],
   },
   {
-    label: 'Core Concepts',
+    label: 'Core Guides',
     path: '/docs/CMS_GUIDE',
     children: [
       { label: 'CMS Guide', path: '/docs/CMS_GUIDE' },
       { label: 'Authentication', path: '/docs/AUTH' },
       { label: 'Database', path: '/docs/DATABASE' },
-      { label: 'Components', path: '/docs/COMPONENT_CATALOG' },
-    ],
-  },
-  {
-    label: 'Package Reference',
-    path: '/reference',
-    children: [
-      { label: 'Core', path: '/reference/core' },
-      { label: 'Auth', path: '/reference/auth' },
-      { label: 'Database', path: '/reference/db' },
-      { label: 'Contracts', path: '/reference/contracts' },
-      { label: 'Presentation', path: '/reference/presentation' },
-      { label: 'Config', path: '/reference/config' },
-      { label: 'Utils', path: '/reference/utils' },
-      { label: 'Router', path: '/reference/router' },
-      { label: 'CLI', path: '/reference/cli' },
-    ],
-  },
-  { label: 'REST API', path: '/api' },
-  {
-    label: 'Deployment',
-    path: '/deployment',
-    children: [
-      { label: 'Deployment Guide', path: '/deployment/DEPLOYMENT' },
+      { label: 'CI/CD & Deployment', path: '/docs/CI_CD_GUIDE' },
       { label: 'Environment Variables', path: '/docs/ENVIRONMENT_VARIABLES_GUIDE' },
-      { label: 'CI/CD Guide', path: '/docs/CI_CD_GUIDE' },
     ],
   },
-  { label: 'Pro (AI, MCP, BYOK)', path: '/pro' },
+  {
+    label: 'Reference',
+    path: '/docs/REFERENCE',
+    children: [
+      { label: 'Package Reference', path: '/docs/REFERENCE' },
+      { label: 'Component Catalog', path: '/docs/COMPONENT_CATALOG' },
+      { label: 'AI', path: '/docs/AI' },
+    ],
+  },
+  { label: 'Pro (AI, MCP, BYOK)', path: '/docs/PRO' },
 ]
 
 function NavLink({ item, depth = 0 }: { item: NavItem; depth?: number }) {
