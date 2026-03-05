@@ -15,9 +15,9 @@
  * ─── REQUIRED FOR STRIPE CHECKOUT TESTS ─────────────────────────────────────
  *   STRIPE_SECRET_KEY     sk_test_...  (Stripe test key — not charged)
  *
- * ─── OPTIONAL ────────────────────────────────────────────────────────────────
- *   STRIPE_PRO_PRICE_ID       price_... (default: from Stripe dashboard)
- *   STRIPE_ENTERPRISE_PRICE_ID price_...
+ * ─── REQUIRED FOR PRICE ID TESTS ────────────────────────────────────────────
+ *   STRIPE_PRO_PRICE_ID       price_... (your Stripe test Pro price ID)
+ *   STRIPE_ENTERPRISE_PRICE_ID price_... (your Stripe test Enterprise price ID)
  *
  * Stripe test card: 4242 4242 4242 4242 | exp 12/30 | CVC 123
  *
@@ -53,9 +53,8 @@ const API_BASE = (process.env.API_BASE_URL || 'http://localhost:3004').replace(/
 const ADMIN_EMAIL = process.env.CMS_ADMIN_EMAIL || ''
 const ADMIN_PASSWORD = process.env.CMS_ADMIN_PASSWORD || ''
 const STRIPE_KEY = process.env.STRIPE_SECRET_KEY || ''
-const PRO_PRICE_ID = process.env.STRIPE_PRO_PRICE_ID || 'price_1T4YLE2Y57LKzXU73IX1OU0G'
-const ENTERPRISE_PRICE_ID =
-  process.env.STRIPE_ENTERPRISE_PRICE_ID || 'price_1T4YLF2Y57LKzXU7zG4xPGLy'
+const PRO_PRICE_ID = process.env.STRIPE_PRO_PRICE_ID
+const ENTERPRISE_PRICE_ID = process.env.STRIPE_ENTERPRISE_PRICE_ID
 
 const hasCredentials = !!ADMIN_EMAIL && !!ADMIN_PASSWORD
 const hasStripeKey = STRIPE_KEY.startsWith('sk_test_')
