@@ -16,7 +16,7 @@ export function NavBar() {
             Pricing
           </Link>
           <Link
-            href="https://github.com/RevealUIStudio"
+            href="https://github.com/RevealUIStudio/revealui"
             className="hover:text-gray-900 transition-colors"
           >
             GitHub

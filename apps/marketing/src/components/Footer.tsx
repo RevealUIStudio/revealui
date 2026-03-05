@@ -33,7 +33,7 @@ export function Footer() {
                 </svg>
               </a>
               <a
-                href="https://github.com/RevealUIStudio"
+                href="https://github.com/RevealUIStudio/revealui"
                 className="text-gray-400 hover:text-white transition-colors"
                 aria-label="RevealUI on GitHub"
               >
@@ -80,7 +80,7 @@ export function Footer() {
             <ul className="space-y-2 text-gray-400">
               <li>
                 <Link
-                  href="https://github.com/RevealUIStudio"
+                  href="https://github.com/RevealUIStudio/revealui"
                   className="hover:text-white transition-colors"
                 >
                   GitHub
