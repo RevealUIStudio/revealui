@@ -6,8 +6,8 @@
  * to maintain proper CRDT semantics.
  */
 
+import { randomUUID } from 'node:crypto'
 import { cookies } from 'next/headers'
-import { v4 as uuidv4 } from 'uuid'
 
 const NODE_ID_COOKIE_NAME = 'revealui-node-id'
 const NODE_ID_HEADER_NAME = 'x-revealui-node-id'
@@ -41,7 +41,7 @@ export async function getNodeId(request?: Request): Promise<string> {
   }
 
   // Generate new node ID and set cookie
-  const newNodeId = uuidv4()
+  const newNodeId = randomUUID()
   cookieStore.set(NODE_ID_COOKIE_NAME, newNodeId, {
     httpOnly: true,
     secure: process.env.NODE_ENV === 'production',
