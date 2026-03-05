@@ -6,7 +6,7 @@ export function SocialProof() {
         'Schema-first collections with rich text (Lexical), media, relationships, and lifecycle hooks. Define once, works everywhere via REST API.',
     },
     {
-      title: '64 Native UI Components',
+      title: '50+ Native UI Components',
       description:
         'Tailwind v4, zero external UI dependencies. Buttons, forms, tables, modals, sidebars — all styled to your brand with CVA variants.',
     },
