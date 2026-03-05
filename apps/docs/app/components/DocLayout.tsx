@@ -19,7 +19,6 @@ const navigation: NavItem[] = [
     children: [
       { label: 'Quick Start', path: '/guides/quick-start' },
       { label: 'Examples', path: '/guides/examples' },
-      { label: 'Development Guide', path: '/docs/DEVELOPMENT_GUIDE' },
     ],
   },
   {
@@ -30,11 +29,10 @@ const navigation: NavItem[] = [
       { label: 'Authentication', path: '/docs/AUTH' },
       { label: 'Database', path: '/docs/DATABASE' },
       { label: 'Components', path: '/docs/COMPONENT_CATALOG' },
-      { label: 'Performance', path: '/docs/PERFORMANCE' },
     ],
   },
   {
-    label: 'Reference',
+    label: 'Package Reference',
     path: '/reference',
     children: [
       { label: 'Core', path: '/reference/core' },
@@ -50,66 +48,15 @@ const navigation: NavItem[] = [
   },
   { label: 'REST API', path: '/api' },
   {
-    label: 'Architecture',
-    path: '/docs/ARCHITECTURE',
-    children: [
-      { label: 'Overview', path: '/docs/ARCHITECTURE' },
-      { label: 'Database Optimization', path: '/architecture/DATABASE_OPTIMIZATION' },
-    ],
-  },
-  {
     label: 'Deployment',
     path: '/deployment',
     children: [
       { label: 'Deployment Guide', path: '/deployment/DEPLOYMENT' },
-      { label: 'CI/CD Guide', path: '/docs/CI_CD_GUIDE' },
       { label: 'Environment Variables', path: '/docs/ENVIRONMENT_VARIABLES_GUIDE' },
+      { label: 'CI/CD Guide', path: '/docs/CI_CD_GUIDE' },
     ],
   },
-  {
-    label: 'Testing',
-    path: '/testing',
-    children: [
-      { label: 'Overview', path: '/docs/TESTING' },
-      { label: 'Component Testing', path: '/testing/COMPONENT_TESTING' },
-      { label: 'Integration Testing', path: '/testing/INTEGRATION_TESTING' },
-      { label: 'E2E Testing', path: '/testing/E2E_TESTING' },
-    ],
-  },
-  {
-    label: 'Development',
-    path: '/development',
-    children: [
-      { label: 'API Optimization', path: '/development/API_OPTIMIZATION' },
-      { label: 'Bundle Optimization', path: '/development/BUNDLE_OPTIMIZATION' },
-      { label: 'Caching Strategy', path: '/development/CACHING_STRATEGY' },
-    ],
-  },
-  {
-    label: 'Security',
-    path: '/docs/SECURITY',
-    children: [
-      { label: 'Security Policy', path: '/docs/SECURITY' },
-      { label: 'Security Audit', path: '/security/SECURITY_AUDIT' },
-    ],
-  },
-  {
-    label: 'AI',
-    path: '/ai',
-    children: [
-      { label: 'Prompt Caching', path: '/ai/PROMPT_CACHING' },
-      { label: 'Response Caching', path: '/ai/RESPONSE_CACHING' },
-      { label: 'Semantic Caching', path: '/ai/SEMANTIC_CACHING' },
-    ],
-  },
-  {
-    label: 'Guides',
-    path: '/guides',
-    children: [
-      { label: 'Troubleshooting', path: '/docs/TROUBLESHOOTING' },
-      { label: 'Migration Guide', path: '/docs/MIGRATION_GUIDE' },
-    ],
-  },
+  { label: 'Pro (AI, MCP, BYOK)', path: '/pro' },
 ]
 
 function NavLink({ item, depth = 0 }: { item: NavItem; depth?: number }) {
@@ -160,6 +107,25 @@ export function DocLayout({ children }: DocLayoutProps) {
             <NavLink key={`${item.label}-${item.path}`} item={item} />
           ))}
         </ul>
+        <div style={{ marginTop: '2rem', paddingTop: '1rem', borderTop: '1px solid #e5e7eb' }}>
+          <a
+            href="https://github.com/RevealUIStudio/revealui"
+            style={{
+              display: 'flex',
+              alignItems: 'center',
+              gap: '0.5rem',
+              color: '#6b7280',
+              textDecoration: 'none',
+              fontSize: '0.875rem',
+            }}
+          >
+            <svg height="16" width="16" viewBox="0 0 16 16" fill="currentColor" aria-hidden="true">
+              <title>GitHub</title>
+              <path d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.013 8.013 0 0016 8c0-4.42-3.58-8-8-8z" />
+            </svg>
+            GitHub
+          </a>
+        </div>
       </nav>
       <main className="docs-content">{children}</main>
     </div>
