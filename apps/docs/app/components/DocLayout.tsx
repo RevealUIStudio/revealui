@@ -15,10 +15,10 @@ const navigation: NavItem[] = [
   { label: 'Home', path: '/' },
   {
     label: 'Getting Started',
-    path: '/docs/QUICK_START',
+    path: '/guides/quick-start',
     children: [
-      { label: 'Quick Start', path: '/docs/QUICK_START' },
-      { label: 'Tutorial', path: '/docs/TUTORIAL' },
+      { label: 'Quick Start', path: '/guides/quick-start' },
+      { label: 'Examples', path: '/guides/examples' },
       { label: 'Development Guide', path: '/docs/DEVELOPMENT_GUIDE' },
     ],
   },
@@ -33,7 +33,22 @@ const navigation: NavItem[] = [
       { label: 'Performance', path: '/docs/PERFORMANCE' },
     ],
   },
-  { label: 'API Reference', path: '/api' },
+  {
+    label: 'Reference',
+    path: '/reference',
+    children: [
+      { label: 'Core', path: '/reference/core' },
+      { label: 'Auth', path: '/reference/auth' },
+      { label: 'Database', path: '/reference/db' },
+      { label: 'Contracts', path: '/reference/contracts' },
+      { label: 'Presentation', path: '/reference/presentation' },
+      { label: 'Config', path: '/reference/config' },
+      { label: 'Utils', path: '/reference/utils' },
+      { label: 'Router', path: '/reference/router' },
+      { label: 'CLI', path: '/reference/cli' },
+    ],
+  },
+  { label: 'REST API', path: '/api' },
   {
     label: 'Architecture',
     path: '/docs/ARCHITECTURE',
@@ -48,7 +63,6 @@ const navigation: NavItem[] = [
     children: [
       { label: 'Deployment Guide', path: '/deployment/DEPLOYMENT' },
       { label: 'CI/CD Guide', path: '/docs/CI_CD_GUIDE' },
-      { label: 'Staging', path: '/deployment/STAGING_DEPLOYMENT_GUIDE' },
       { label: 'Environment Variables', path: '/docs/ENVIRONMENT_VARIABLES_GUIDE' },
     ],
   },
@@ -77,7 +91,6 @@ const navigation: NavItem[] = [
     children: [
       { label: 'Security Policy', path: '/docs/SECURITY' },
       { label: 'Security Audit', path: '/security/SECURITY_AUDIT' },
-      { label: 'Secrets Management', path: '/docs/SECRETS-MANAGEMENT' },
     ],
   },
   {
@@ -93,10 +106,8 @@ const navigation: NavItem[] = [
     label: 'Guides',
     path: '/guides',
     children: [
-      { label: 'Documentation Workflow', path: '/guides/DOCUMENTATION_WORKFLOW_GUIDE' },
-      { label: 'Migration Guide', path: '/docs/MIGRATION_GUIDE' },
       { label: 'Troubleshooting', path: '/docs/TROUBLESHOOTING' },
-      { label: 'Governance', path: '/docs/GOVERNANCE' },
+      { label: 'Migration Guide', path: '/docs/MIGRATION_GUIDE' },
     ],
   },
 ]
