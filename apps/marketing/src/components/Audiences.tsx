@@ -101,10 +101,10 @@ export function Audiences() {
                 for a developer.
               </p>
               <a
-                href="https://cms.revealui.com"
+                href="https://docs.revealui.com/docs/CMS_GUIDE"
                 className="mt-4 inline-flex items-center gap-1.5 text-sm font-medium text-green-700 hover:text-green-600"
               >
-                See the dashboard →
+                See the CMS guide →
               </a>
             </div>
 

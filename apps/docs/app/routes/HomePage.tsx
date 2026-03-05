@@ -24,7 +24,6 @@ See the [Quick Start guide](/guides/quick-start) for the full walkthrough, or br
 ### Getting Started
 - [Quick Start](/guides/quick-start) - Get running in 5 minutes
 - [Examples](/guides/examples) - Blog, SaaS starter, e-commerce storefront
-- [Development Guide](/docs/DEVELOPMENT_GUIDE) - Development workflow
 
 ### Core Concepts
 - [CMS Guide](/docs/CMS_GUIDE) - Collections, fields, access control, rich text
@@ -36,19 +35,20 @@ See the [Quick Start guide](/guides/quick-start) for the full walkthrough, or br
 - [Core](/reference/core) - CMS engine, collections, auth, REST handlers
 - [Auth](/reference/auth) - Session auth, sign in/up, rate limiting
 - [Database](/reference/db) - Drizzle schema, client factory, migrations
-- [Presentation](/reference/presentation) - UI components API
+- [Presentation](/reference/presentation) - 50+ UI components API
 - [Config](/reference/config) - Type-safe env config
 - [CLI](/reference/cli) - \`create-revealui\` scaffolding tool
-- [Full Reference →](/reference)
+- [Full reference →](/reference)
 
 ### REST API
 - [REST API Reference](/api) - OpenAPI-documented endpoints for all services
 
-### Operations
-- [Deployment](/deployment) - Deploy to Vercel, Railway, or self-host
-- [CI/CD Guide](/docs/CI_CD_GUIDE) - GitHub Actions workflows
-- [Testing](/docs/TESTING) - Testing strategy and guides
-- [Security](/docs/SECURITY) - Security policy and audit
+### Deployment
+- [Deployment Guide](/deployment/DEPLOYMENT) - Deploy to Vercel, Railway, or self-host
+- [Environment Variables](/docs/ENVIRONMENT_VARIABLES_GUIDE) - All env var reference
+
+### Pro (AI, MCP, BYOK)
+- [Pro documentation](/pro) - AI agents, MCP servers, BYOK, The Creator
 
 ## Contributing
 

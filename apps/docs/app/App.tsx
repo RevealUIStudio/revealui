@@ -113,11 +113,25 @@ export function App() {
             <SectionPage
               section="reference"
               title="Reference"
-              fallbackIndex={`# Reference
+              fallbackIndex={`# Package Reference
 
-Technical reference documentation for RevealUI.
+Technical reference for all RevealUI packages.
 
-See the [API Reference](/api) for package-level API docs.
+## OSS Packages (MIT)
+
+- [Core](/reference/core) — CMS engine, collections, access control, REST handlers, license, plugins
+- [Auth](/reference/auth) — Session auth, sign in/up, password reset, OAuth, rate limiting
+- [Database](/reference/db) — Drizzle ORM schema, client factory, migrations, AES-256 encryption
+- [Contracts](/reference/contracts) — Zod schemas and TypeScript types (single source of truth)
+- [Presentation](/reference/presentation) — 50+ native UI components (Tailwind v4, no external UI deps)
+- [Config](/reference/config) — Type-safe env config with Zod validation and lazy Proxy
+- [Utils](/reference/utils) — Logger, validation helpers, shared utilities
+- [Router](/reference/router) — Lightweight file-based router with SSR support
+- [CLI](/reference/cli) — \`create-revealui\` scaffolding tool
+
+## Pro Packages
+
+See the [Pro documentation](/pro) for AI agents, MCP servers, BYOK, and more.
 `}
             />
           }
