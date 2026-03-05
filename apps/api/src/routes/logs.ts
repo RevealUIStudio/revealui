@@ -14,6 +14,13 @@ import { appLogs } from '@revealui/db/schema'
 import { HTTPException } from 'hono/http-exception'
 import { z } from 'zod/v4'
 
+// Minimal stderr fallback — avoids importing the full logger bundle in this hot path
+function logTransportError(err: unknown): void {
+  process.stderr.write(
+    `[log-ingest] failed to persist log entry: ${err instanceof Error ? err.message : String(err)}\n`,
+  )
+}
+
 const app = new OpenAPIHono()
 
 const LogPayloadSchema = z.object({
@@ -66,8 +73,10 @@ app.openapi(logRoute, async (c) => {
       userId: null, // userId is not accepted from untrusted clients
       data: payload.data ?? null,
     })
-  })().catch(() => {
-    /* fire-and-forget — never propagate log transport errors to callers */
+  })().catch((err: unknown) => {
+    // Fire-and-forget — never propagate log transport errors to callers,
+    // but do record the failure so it surfaces in process monitoring.
+    logTransportError(err)
   })
 
   return c.json({ received: true }, 202)

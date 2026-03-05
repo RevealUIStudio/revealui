@@ -26,6 +26,20 @@ type Variables = {
 // biome-ignore lint/style/useNamingConvention: Hono requires Variables key
 const app = new OpenAPIHono<{ Variables: Variables }>()
 
+/**
+ * Enforce tenant isolation on a board: if a tenant context is present in the
+ * request and the board belongs to a *different* tenant, reject with 403.
+ * Single-tenant deployments (no X-Tenant-ID header) are not affected.
+ */
+function assertBoardTenantAccess(
+  board: { tenantId?: string | null },
+  tenant: { id: string } | undefined,
+): void {
+  if (tenant && board.tenantId && board.tenantId !== tenant.id) {
+    throw new HTTPException(403, { message: 'Access denied for this tenant' })
+  }
+}
+
 // =============================================================================
 // Schema Definitions
 // =============================================================================
@@ -486,6 +500,9 @@ app.openapi(
     const db = c.get('db')
     const { boardId } = c.req.valid('param')
     const filters = c.req.valid('query')
+    const board = await boardQueries.getBoardById(db, boardId)
+    if (!board) throw new HTTPException(404, { message: 'Board not found' })
+    assertBoardTenantAccess(board, c.get('tenant'))
     const tickets = await ticketQueries.getTicketsByBoard(db, boardId, filters)
     return c.json({ success: true as const, data: tickets })
   },
@@ -571,6 +588,8 @@ app.openapi(
     const { id } = c.req.valid('param')
     const ticket = await ticketQueries.getTicketById(db, id)
     if (!ticket) return c.json({ success: false as const, error: 'Ticket not found' }, 404)
+    const board = await boardQueries.getBoardById(db, ticket.boardId)
+    assertBoardTenantAccess(board ?? {}, c.get('tenant'))
     return c.json({ success: true as const, data: ticket }, 200)
   },
 )
@@ -620,6 +639,10 @@ app.openapi(
     const db = c.get('db')
     const { id } = c.req.valid('param')
     const body = c.req.valid('json')
+    const existing = await ticketQueries.getTicketById(db, id)
+    if (!existing) return c.json({ success: false as const, error: 'Ticket not found' }, 404)
+    const board = await boardQueries.getBoardById(db, existing.boardId)
+    assertBoardTenantAccess(board ?? {}, c.get('tenant'))
     const ticket = await ticketQueries.updateTicket(db, id, {
       ...body,
       dueDate: body.dueDate === null ? null : body.dueDate ? new Date(body.dueDate) : undefined,
