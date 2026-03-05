@@ -793,7 +793,7 @@ Before creating posts, you may want to set up categories:
 
 ### Content Examples
 
-Ready-to-use content examples for each collection. Copy and paste these into your CMS admin panel.
+Ready-to-use content examples for each collection. Copy and paste these into your CMS admin panel and replace the placeholder text with your own content.
 
 **Contents Collection Examples**
 
@@ -801,32 +801,32 @@ Ready-to-use content examples for each collection. Copy and paste these into you
 
 **Name**:
 ```
-Scrapyard
+Welcome
 ```
 
 **Description**:
 ```
-Welcome to the Scrapyard. The Scrapyard is a place where you can find all the latest news and updates from the Streetbeefs community. Join us for exciting events, watch amazing fights, and connect with fighters from around the world.
+Welcome to [Your Site Name]. Discover our latest news, updates, and community highlights. We're glad you're here.
 ```
 
 **Image**:
-- Upload to Media first: `yardday_zkkuvn.jpg` or similar hero image
+- Upload to Media first: a hero or welcome image
 - Link the uploaded media here
 
 **Entry 2: About Section**
 
 **Name**:
 ```
-About Streetbeefs
+About Us
 ```
 
 **Description**:
 ```
-Streetbeefs is a community-driven platform for fighters and fans. We provide a safe space for combat sports enthusiasts to connect, compete, and grow. Whether you're a fighter or a spectator, experience the warrior's courage.
+[Your Site Name] is built on RevealUI — open-source business infrastructure for software companies. Users, content, products, payments, and AI, pre-wired and ready to deploy.
 ```
 
 **Image**:
-- Upload to Media first: Community or about image
+- Upload to Media first: an about or team image
 - Link the uploaded media here
 
 **Entry 3: Community Section**
@@ -838,92 +838,57 @@ Join Our Community
 
 **Description**:
 ```
-Connect with thousands of fighters and fans worldwide. Share your journey, learn from others, and be part of something bigger. Together we build a stronger combat sports community.
+Connect with our growing community. Share your journey, learn from others, and be part of something bigger.
 ```
 
 **Image**:
-- Upload to Media first: Community gathering image
+- Upload to Media first: a community or team gathering image
 - Link the uploaded media here
 
 **Cards Collection Examples**
 
-**Entry 1: Media Card**
+**Entry 1: Feature Card**
 
-**Name**: `Scrapyard Records`
-**Label**: `ScrapRecords Label`
-**CTA**: `Check out all Media`
-**Href**: `/media`
+**Name**: `[Feature Name]`
+**Label**: `[Category]`
+**CTA**: `Learn More`
+**Href**: `/features`
 **Loading**: `eager`
-**Image**: Upload `received_379940754080520_hzf7q1.jpg` or similar
+**Image**: Upload a feature or product image
 
-**Entry 2: Events Card**
+**Entry 2: News Card**
 
-**Name**: `Upcoming Events`
-**Label**: `Fight Night`
-**CTA**: `View Schedule`
-**Href**: `/events`
+**Name**: `Latest Updates`
+**Label**: `News`
+**CTA**: `Read More`
+**Href**: `/news`
 **Loading**: `lazy`
-**Image**: Upload event or fight night image
+**Image**: Upload a news or blog image
 
-**Entry 3: Fighters Card**
+**Entry 3: Community Card**
 
-**Name**: `Meet the Fighters`
-**Label**: `Top Competitors`
-**CTA**: `Browse Fighters`
-**Href**: `/fighters`
+**Name**: `Join the Community`
+**Label**: `Community`
+**CTA**: `Get Started`
+**Href**: `/community`
 **Loading**: `lazy`
-**Image**: Upload fighter profile or action image
-
-**Entry 4: Videos Card**
-
-**Name**: `Watch Fights`
-**Label**: `Latest Videos`
-**CTA**: `View Channel`
-**Href**: `/videos`
-**Loading**: `lazy`
-**Image**: Upload video thumbnail or YouTube channel image
+**Image**: Upload a community image
 
 **Heros Collection Examples**
 
 **Entry 1: Main Hero**
 
-**Href**: `https://www.youtube.com/@streetbeefsScrapyard`
-**Alt Text**: `Firechicken animated photo`
-**Video**: `https://www.youtube.com/@streetbeefsScrapyard`
-**Image**: Upload `firechicken_animated_photo_fj1xej.jpg` or similar hero image
+**Href**: `https://your-site.com`
+**Alt Text**: `[Descriptive alt text for hero image]`
+**Video**: *(leave blank or add a video URL)*
+**Image**: Upload a hero image (recommended: 1200×600px or wider)
 
-**Entry 2: Featured Video Hero**
+**Entry 2: Featured Content Hero**
 
-**Href**: `https://www.youtube.com/@streetbeefsScrapyard`
-**Alt Text**: `Featured fight video thumbnail`
-**Video**: `https://www.youtube.com/watch?v=VIDEO_ID`
-**Image**: Upload video thumbnail image
-
-**Events Collection Examples**
-
-**Entry 1: Monthly Events**
-
-**Title**: `EVENTS`
-**Name**: `New Events Monthly`
-**Description**: `Whether you are a fighter or a spectator, experience the warrior's courage. Join us every month for exciting fight nights, tournaments, and special events. Don't miss out on the action!`
-**Alt**: `Monthly fight events`
-**Image**: Upload `received_379940754080520_hzf7q1.jpg` or event image
-
-**Entry 2: Championship Tournament**
-
-**Title**: `TOURNAMENT`
-**Name**: `Championship Series`
-**Description**: `The biggest tournament of the year. Watch top fighters compete for the championship title. Don't miss out on this epic showdown. Experience the intensity, the passion, and the raw talent.`
-**Alt**: `Championship tournament`
-**Image**: Upload tournament or championship image
-
-**Entry 3: Fight Night**
-
-**Title**: `FIGHT NIGHT`
-**Name**: `Weekly Matches`
-**Description**: `Every Friday night, witness incredible matchups between skilled fighters. Experience the intensity, the passion, and the raw talent. Join us for an unforgettable evening of combat sports.`
-**Alt**: `Weekly fight night`
-**Image**: Upload fight night or ring image
+**Href**: `https://your-site.com/featured`
+**Alt Text**: `[Descriptive alt text]`
+**Video**: *(optional video URL)*
+**Image**: Upload a featured content image
 
 **Banners Collection Examples**
 
@@ -931,39 +896,35 @@ Connect with thousands of fighters and fans worldwide. Share your journey, learn
 
 **Heading**: `Welcome!`
 **Subheading**: `Discover More`
-**Description**: `Check out the latest stats and join our growing community of fighters and fans. Connect with thousands of members and be part of the action.`
-**CTA**: `Join Now`
-**Highlight**: `here is the highlight`
+**Description**: `Explore everything [Your Site Name] has to offer. Join our community and get started today.`
+**CTA**: `Get Started`
+**Highlight**: `today`
 **Punctuation**: `.`
-**Alt**: `Streetbeefs Scrapyard banner image`
+**Alt**: `[Site name] welcome banner`
 **Link - Href**: `/about`
 **Link - Text**: `Learn More`
 **Stats**:
-- Label: Subscribers, Value: 476K
-- Label: Videos, Value: 1.9k
-- Label: Views, Value: 180,430,351
-- Label: Fighters, Value: 500+
+- Label: Members, Value: [X]
+- Label: Posts, Value: [X]
 
-**Image**: Upload `FB_IMG_1666183588935_zkdfmv.jpg` or banner image
+**Image**: Upload a banner image
 
 **Entry 2: Community Banner**
 
 **Heading**: `Join the Community`
 **Subheading**: `Connect Today`
-**Description**: `Connect with thousands of fighters and fans. Watch exclusive content and participate in events. Be part of something bigger.`
+**Description**: `Connect with other members. Share ideas, get help, and be part of something bigger.`
 **CTA**: `Sign Up`
-**Highlight**: `join thousands`
+**Highlight**: `something bigger`
 **Punctuation**: `!`
 **Alt**: `Community banner`
 **Link - Href**: `/join`
 **Link - Text**: `Get Started`
 **Stats**:
-- Label: Members, Value: 50K+
-- Label: Events, Value: 200+
-- Label: Fights, Value: 5K+
-- Label: Countries, Value: 50+
+- Label: Members, Value: [X]
+- Label: Countries, Value: [X]
 
-**Image**: Upload community or gathering image
+**Image**: Upload a community image
 
 **Quick Copy-Paste Templates**
 

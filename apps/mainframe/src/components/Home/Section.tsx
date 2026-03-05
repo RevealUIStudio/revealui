@@ -98,12 +98,11 @@ const HomeSection = (): React.ReactElement => {
     () => [
       {
         id: 1,
-        title: 'EVENTS',
-        name: 'New Events Monthly',
-        description: "Whether you are a fighter or a spectator, experience the warrior's courage.",
-        image:
-          'https://res.cloudinary.com/dpytkhyme/image/upload/v1686377854/STREETBEEFS%20SCRAPYARD/received_379940754080520_hzf7q1.jpg',
-        alt: 'Event',
+        title: 'FEATURES',
+        name: 'What RevealUI Includes',
+        description: 'Users, content, products, payments, and AI — pre-wired and ready to deploy.',
+        image: '/placeholder-section.jpg',
+        alt: 'RevealUI features',
       },
     ],
     [],

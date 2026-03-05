@@ -77,12 +77,12 @@ export default buildConfig({
       },
     },
     meta: {
-      titleSuffix: '- Streetbeefs Scrapyard',
+      titleSuffix: '- RevealUI',
       icons: [
         {
-          url: 'https://res.cloudinary.com/dpytkhyme/image/upload/v1717457061/STREETBEEFS%20SCRAPYARD/streetbeefs-scrapyard-logo-1_jnrb9t.webp',
+          url: '/favicon.ico',
           sizes: '32x32',
-          type: 'image/webp',
+          type: 'image/x-icon',
         },
       ],
     },

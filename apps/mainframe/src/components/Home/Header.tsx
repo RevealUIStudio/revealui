@@ -66,7 +66,7 @@ const HomeHeader: React.FC = () => {
   const initialData = useMemo(
     () => [
       {
-        url: 'https://res.cloudinary.com/dpytkhyme/video/upload/v1699245369/STREETBEEFS%20SCRAPYARD/Drone_intro_r6tlny.mp4',
+        url: '',
       },
     ],
     [],
