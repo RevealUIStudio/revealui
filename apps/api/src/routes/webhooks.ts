@@ -15,7 +15,7 @@ import { logger } from '@revealui/core/observability/logger'
 import { DrizzleAuditStore, getClient } from '@revealui/db'
 import type { Database } from '@revealui/db/client'
 import { licenses, processedWebhookEvents, users } from '@revealui/db/schema'
-import { eq } from 'drizzle-orm'
+import { desc, eq } from 'drizzle-orm'
 import { Hono } from 'hono'
 import Stripe from 'stripe'
 
@@ -143,6 +143,7 @@ const relevantEvents = new Set([
   'customer.subscription.updated',
   'customer.subscription.deleted',
   'invoice.payment_failed',
+  'invoice.payment_succeeded',
   'payment_intent.payment_failed',
   'customer.subscription.trial_will_end',
   'charge.dispute.closed',
@@ -238,6 +239,25 @@ app.post('/stripe', async (c) => {
         const normalizedKey = privateKey.replace(/\\n/g, '\n')
         const licenseKey = await generateLicenseKey({ tier, customerId }, normalizedKey)
 
+        // Retrieve subscription to detect trialing state and trial_end date.
+        // All new checkouts start as trialing (7-day trial configured in billing.ts).
+        let checkoutSubscription: Stripe.Subscription | null = null
+        try {
+          checkoutSubscription = await stripe.subscriptions.retrieve(subscriptionId)
+        } catch (err) {
+          logger.warn('Failed to retrieve subscription status at checkout — defaulting to active', {
+            subscriptionId,
+            error: err instanceof Error ? err.message : 'unknown',
+          })
+        }
+
+        const isTrialing = checkoutSubscription?.status === 'trialing'
+        const licenseStatus = isTrialing ? 'trialing' : 'active'
+        const licenseExpiresAt =
+          isTrialing && checkoutSubscription?.trial_end
+            ? new Date(checkoutSubscription.trial_end * 1000)
+            : null
+
         // Store license in NeonDB (transactional)
         const licenseId = crypto.randomUUID()
         await db.transaction(async (tx) => {
@@ -263,7 +283,8 @@ app.post('/stripe', async (c) => {
             tier,
             subscriptionId,
             customerId,
-            status: 'active',
+            status: licenseStatus,
+            expiresAt: licenseExpiresAt,
             createdAt: new Date(),
             updatedAt: new Date(),
           })
@@ -405,6 +426,90 @@ app.post('/stripe', async (c) => {
           subscriptionId: subscription.id,
           status: subscription.status,
         })
+        break
+      }
+
+      case 'invoice.payment_succeeded': {
+        // Payment recovery — re-activate a license that was expired/revoked due to prior payment failure.
+        // Only re-activate if the customer has an active subscription after payment.
+        const invoice = event.data.object as Stripe.Invoice
+        const customerId = resolveCustomerId(invoice.customer)
+        if (!customerId) break
+
+        // Fetch the customer's active subscriptions to confirm payment actually restored access.
+        // We don't read invoice.subscription directly — that field is not typed in this SDK version.
+        let recoveredSubscription: Stripe.Subscription | null = null
+        try {
+          const subList = await stripe.subscriptions.list({
+            customer: customerId,
+            status: 'active',
+            limit: 1,
+          })
+          recoveredSubscription = subList.data[0] ?? null
+        } catch (err) {
+          logger.warn('Failed to list subscriptions for invoice.payment_succeeded', {
+            customerId,
+            error: err instanceof Error ? err.message : 'unknown',
+          })
+          break
+        }
+
+        if (!recoveredSubscription) break
+
+        const [existingLicense] = await db
+          .select({ id: licenses.id, status: licenses.status })
+          .from(licenses)
+          .where(eq(licenses.customerId, customerId))
+          .orderBy(desc(licenses.updatedAt))
+          .limit(1)
+
+        if (!existingLicense) break
+
+        // Only re-activate if license was expired/revoked due to payment failure
+        if (existingLicense.status !== 'expired' && existingLicense.status !== 'revoked') break
+
+        const recoveredTier = resolveTier(recoveredSubscription.metadata as Record<string, string>)
+        const privateKey = process.env.REVEALUI_LICENSE_PRIVATE_KEY
+
+        if (privateKey) {
+          const normalizedKey = privateKey.replace(/\\n/g, '\n')
+          const licenseKey = await generateLicenseKey(
+            { tier: recoveredTier, customerId },
+            normalizedKey,
+          )
+          await db
+            .update(licenses)
+            .set({ status: 'active', tier: recoveredTier, licenseKey, updatedAt: new Date() })
+            .where(eq(licenses.customerId, customerId))
+        } else {
+          await db
+            .update(licenses)
+            .set({ status: 'active', tier: recoveredTier, updatedAt: new Date() })
+            .where(eq(licenses.customerId, customerId))
+        }
+
+        resetLicenseState()
+
+        logger.info('License re-activated after payment recovery', {
+          customerId,
+          subscriptionId: recoveredSubscription.id,
+          tier: recoveredTier,
+        })
+        auditLicenseEvent(db, 'license.reactivated.payment_recovery', 'info', {
+          customerId,
+          subscriptionId: recoveredSubscription.id,
+          tier: recoveredTier,
+        })
+
+        const recoveryEmail =
+          invoice.customer_email ?? (await findUserEmailByCustomerId(db, customerId))
+        if (recoveryEmail) {
+          sendPaymentRecoveredEmail(recoveryEmail).catch((err) => {
+            logger.warn('Failed to send payment recovered email', {
+              error: err instanceof Error ? err.message : 'unknown',
+            })
+          })
+        }
         break
       }
 
@@ -696,6 +801,32 @@ async function sendTrialEndingEmail(to: string, trialEnd: number | null): Promis
       </html>
     `,
     text: `Your RevealUI Pro trial ends ${endDate}. Your subscription will automatically continue at $49/month. Manage your subscription at ${portalUrl}.`,
+  })
+}
+
+async function sendPaymentRecoveredEmail(to: string): Promise<void> {
+  const { sendEmail } = await import('../lib/email.js')
+  const portalUrl = `${process.env.CMS_URL || process.env.NEXT_PUBLIC_SERVER_URL || 'https://cms.revealui.com'}/account/billing`
+  await sendEmail({
+    to,
+    subject: 'Your RevealUI access has been restored',
+    html: `
+      <!DOCTYPE html>
+      <html>
+        <head><meta charset="utf-8"><title>Access Restored</title></head>
+        <body style="font-family: Arial, sans-serif; line-height: 1.6; color: #333; max-width: 600px; margin: 0 auto; padding: 20px;">
+          <h1 style="color: #16a34a;">Payment Received — Access Restored</h1>
+          <p>Your RevealUI subscription payment was successfully processed. Your Pro access has been fully restored.</p>
+          <p style="text-align: center; margin: 30px 0;">
+            <a href="${portalUrl}" style="background-color: #2563eb; color: white; padding: 12px 24px; text-decoration: none; border-radius: 6px; display: inline-block;">
+              Go to Billing
+            </a>
+          </p>
+          <p style="color: #666; font-size: 14px;">If you have questions, contact founder@revealui.com.</p>
+        </body>
+      </html>
+    `,
+    text: `Your RevealUI payment was received and your access has been restored. Manage your subscription at ${portalUrl}.`,
   })
 }
 
