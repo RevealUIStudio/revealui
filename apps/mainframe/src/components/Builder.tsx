@@ -2,6 +2,7 @@
 
 import type { JSX } from 'react'
 import { useState } from 'react'
+import { BuilderAIPanel } from './BuilderAIPanel.js'
 
 interface Component {
   id: string
@@ -165,6 +166,12 @@ export function Builder(): JSX.Element {
     })
   }
 
+  const deployToVercel = () => {
+    // Download the project JSON so the user has it, then open vercel.com/new
+    exportProject()
+    window.open('https://vercel.com/new', '_blank', 'noopener,noreferrer')
+  }
+
   const exportProject = () => {
     const projectData = {
       components,
@@ -240,11 +247,10 @@ export function Builder(): JSX.Element {
           </button>
           <button
             type="button"
-            disabled
-            title="Vercel deployment coming soon"
-            className="w-full btn bg-orange-600/40 text-lg font-semibold cursor-not-allowed opacity-60"
+            onClick={deployToVercel}
+            className="w-full btn bg-orange-600 hover:bg-orange-700 text-lg font-semibold"
           >
-            🚀 Deploy to Vercel (coming soon)
+            🚀 Deploy to Vercel
           </button>
         </div>
       </div>
@@ -340,14 +346,10 @@ export function Builder(): JSX.Element {
         </div>
 
         {showAI ? (
-          <div className="mb-4 border border-purple-200 rounded-lg p-4 bg-purple-50">
-            <h3 className="text-sm font-semibold text-purple-800 mb-2">RevealUI AI Assistant</h3>
-            <p className="text-sm text-purple-700 mb-2">
-              🤖 AI features coming soon! Configure your API key to enable intelligent assistance.
-            </p>
-            <div className="bg-white border border-purple-300 rounded p-3 text-center">
-              <p className="text-sm text-gray-600">AI chat interface will be available here</p>
-            </div>
+          <div className="mb-4">
+            <BuilderAIPanel
+              buildContext={`Builder canvas with ${components.length} component(s)`}
+            />
           </div>
         ) : null}
 
