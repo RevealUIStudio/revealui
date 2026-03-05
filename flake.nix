@@ -43,6 +43,9 @@
             # Shell utilities
             direnv
             nix-direnv
+
+            # Workboard live viewer: `wb` alias renders workboard.md every 3s
+            glow
           ];
 
           shellHook = ''
@@ -222,6 +225,11 @@ PGHBA
 
             echo -e "''${GREEN}✨ Environment ready!''${NC} Happy coding! 🎉"
             echo ""
+
+            # Live workboard watcher — renders .claude/workboard.md every 3 s
+            # Usage: wb
+            wb() { watch -n3 "glow '$PWD/.claude/workboard.md' 2>/dev/null || cat '$PWD/.claude/workboard.md'"; }
+            export -f wb
           '';
 
           # Environment variables
