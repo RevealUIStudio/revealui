@@ -143,6 +143,8 @@ const relevantEvents = new Set([
   'customer.subscription.deleted',
   'invoice.payment_failed',
   'customer.subscription.trial_will_end',
+  'charge.dispute.closed',
+  'charge.dispute.created',
 ])
 
 app.post('/stripe', async (c) => {
@@ -444,6 +446,91 @@ app.post('/stripe', async (c) => {
         }
         break
       }
+
+      case 'charge.dispute.closed': {
+        // A dispute has been resolved. Only revoke the license if the dispute
+        // was lost — won/warning_closed disputes leave the payment intact.
+        const dispute = event.data.object as Stripe.Dispute
+        if (dispute.status !== 'lost') break
+
+        // A chargeback was decided against us. Revoke the customer's license
+        // immediately to prevent continued access after the disputed payment
+        // is returned to the cardholder.
+        const chargeId = typeof dispute.charge === 'string' ? dispute.charge : dispute.charge.id
+
+        // Retrieve the charge to resolve the customer ID
+        let disputeCustomerId: string | null = null
+        try {
+          const charge = await stripe.charges.retrieve(chargeId)
+          disputeCustomerId = resolveCustomerId(charge.customer)
+        } catch (err) {
+          logger.error('Failed to retrieve charge for lost dispute', undefined, {
+            chargeId,
+            disputeId: dispute.id,
+            error: err instanceof Error ? err.message : 'unknown',
+          })
+          break
+        }
+
+        if (!disputeCustomerId) {
+          logger.warn('Dispute charge has no customer — cannot revoke license', {
+            chargeId,
+            disputeId: dispute.id,
+          })
+          break
+        }
+
+        // Revoke all licenses for this customer
+        await db
+          .update(licenses)
+          .set({ status: 'revoked', updatedAt: new Date() })
+          .where(eq(licenses.customerId, disputeCustomerId))
+
+        resetLicenseState()
+
+        logger.warn('License revoked: chargeback dispute lost', {
+          customerId: disputeCustomerId,
+          chargeId,
+          disputeId: dispute.id,
+          amount: dispute.amount,
+        })
+        auditLicenseEvent(db, 'license.revoked.chargeback', 'critical', {
+          customerId: disputeCustomerId,
+          chargeId,
+          disputeId: dispute.id,
+          amount: dispute.amount,
+        })
+
+        // Send notification email (best-effort)
+        const disputeEmail = await findUserEmailByCustomerId(db, disputeCustomerId)
+        if (disputeEmail) {
+          sendDisputeLostEmail(disputeEmail).catch((err) => {
+            logger.warn('Failed to send dispute lost email', {
+              error: err instanceof Error ? err.message : 'unknown',
+            })
+          })
+        }
+        break
+      }
+
+      case 'charge.dispute.created': {
+        // A dispute (chargeback) has been opened. Log it for monitoring.
+        // We do not revoke the license here — wait for charge.dispute.closed with status 'lost'.
+        const dispute = event.data.object as Stripe.Dispute
+        const chargeId = typeof dispute.charge === 'string' ? dispute.charge : dispute.charge.id
+        logger.warn('Chargeback dispute opened', {
+          disputeId: dispute.id,
+          chargeId,
+          amount: dispute.amount,
+          reason: dispute.reason,
+        })
+        auditLicenseEvent(db, 'license.dispute.opened', 'warn', {
+          disputeId: dispute.id,
+          chargeId,
+          amount: dispute.amount,
+        })
+        break
+      }
     }
   } catch (err) {
     const msg = err instanceof Error ? err.message : 'Unknown error'
@@ -545,6 +632,33 @@ async function sendTrialEndingEmail(to: string, trialEnd: number | null): Promis
       </html>
     `,
     text: `Your RevealUI Pro trial ends ${endDate}. Your subscription will automatically continue at $49/month. Manage your subscription at ${portalUrl}.`,
+  })
+}
+
+async function sendDisputeLostEmail(to: string): Promise<void> {
+  const { sendEmail } = await import('../lib/email.js')
+  const portalUrl = `${process.env.CMS_URL || process.env.NEXT_PUBLIC_SERVER_URL || 'https://cms.revealui.com'}/account/billing`
+  await sendEmail({
+    to,
+    subject: 'Your RevealUI license has been suspended',
+    html: `
+      <!DOCTYPE html>
+      <html>
+        <head><meta charset="utf-8"><title>License Suspended</title></head>
+        <body style="font-family: Arial, sans-serif; line-height: 1.6; color: #333; max-width: 600px; margin: 0 auto; padding: 20px;">
+          <h1 style="color: #dc2626;">License Suspended</h1>
+          <p>Your RevealUI Pro/Enterprise license has been suspended following a chargeback decision on a recent payment.</p>
+          <p>To restore access, please contact us at <a href="mailto:founder@revealui.com">founder@revealui.com</a> to resolve the dispute and arrange a new payment.</p>
+          <p style="text-align: center; margin: 30px 0;">
+            <a href="${portalUrl}" style="background-color: #2563eb; color: white; padding: 12px 24px; text-decoration: none; border-radius: 6px; display: inline-block;">
+              Manage Billing
+            </a>
+          </p>
+          <p style="color: #666; font-size: 14px;">If you believe this is an error, please reply to this email immediately.</p>
+        </body>
+      </html>
+    `,
+    text: `Your RevealUI Pro/Enterprise license has been suspended following a chargeback decision. Contact founder@revealui.com to resolve this. Manage your billing at ${portalUrl}.`,
   })
 }
 
