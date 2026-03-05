@@ -9,6 +9,7 @@ AI agents, LLM providers, CRDT memory, and the A2A protocol for RevealUI Pro.
 - **Agents** — long-running task agents with persistent state
 - **Memory** — four-store cognitive memory (episodic, working, semantic, procedural)
 - **LLM providers** — GROQ, Ollama, and BYOK support
+- **Streaming** — SSE-based token streaming via `StreamingAgentRuntime` and `useAgentStream`
 - **Orchestration** — multi-agent coordination with the A2A protocol
 - **MCP integration** — tool use via Model Context Protocol
 
@@ -96,6 +97,117 @@ const llm = await createLLMClientForUser(userId, db)
 ```
 
 See the [BYOK guide](/pro/byok) for full configuration details.
+
+## Streaming
+
+By default, `AgentRuntime.executeTask()` waits for the full LLM response before returning.
+`StreamingAgentRuntime` extends this to yield typed `AgentStreamChunk` events as they arrive,
+suitable for SSE delivery to the browser.
+
+### StreamingAgentRuntime
+
+```typescript
+import { StreamingAgentRuntime } from '@revealui/ai/orchestration'
+import type { AgentStreamChunk } from '@revealui/ai/orchestration'
+
+const runtime = new StreamingAgentRuntime({ maxIterations: 10 })
+
+for await (const chunk of runtime.streamTask(agent, task, llmClient)) {
+  if (chunk.type === 'text') process.stdout.write(chunk.content ?? '')
+  if (chunk.type === 'tool_call_start') console.log('calling', chunk.toolCall?.name)
+  if (chunk.type === 'done') console.log('finished in', chunk.metadata?.executionTime, 'ms')
+  if (chunk.type === 'error') console.error(chunk.error)
+}
+```
+
+**Chunk types:**
+
+| Type | Fields | Description |
+|------|--------|-------------|
+| `text` | `content` | Incremental token text |
+| `tool_call_start` | `toolCall.name`, `toolCall.arguments` | Agent is about to call a tool |
+| `tool_call_result` | `toolResult` | Tool execution result |
+| `error` | `error` | Stream error or abort |
+| `done` | `content`, `metadata.executionTime` | Task complete; `content` is the full accumulated output |
+
+**Abort support:** pass an `AbortSignal` as the fourth argument. On abort, a `{ type: 'error', error: 'interrupted' }` chunk is emitted and the generator stops.
+
+```typescript
+const controller = new AbortController()
+const gen = runtime.streamTask(agent, task, llmClient, controller.signal)
+
+// Cancel from UI
+cancelButton.onclick = () => controller.abort()
+```
+
+**Deduplication:** identical tool calls within a single task run are automatically deduplicated — the second call returns the cached result without re-executing.
+
+### `/api/agent-stream` SSE endpoint
+
+The API exposes `POST /api/agent-stream` which returns a `text/event-stream` response.
+Each `AgentStreamChunk` is serialised as one SSE event:
+
+```
+data: {"type":"text","content":"Here is"}
+data: {"type":"text","content":" the answer"}
+data: {"type":"done","content":"Here is the answer","metadata":{"executionTime":1234}}
+```
+
+**Request body:**
+
+```typescript
+{
+  instruction: string     // Required
+  boardId?: string        // Target board for ticket-based agents
+  workspaceId?: string    // Workspace for RAG context
+  priority?: 'low' | 'medium' | 'high' | 'critical'
+}
+```
+
+Rate limited: 10 requests/minute. Requires the `ai` feature flag.
+
+### `useAgentStream` React hook
+
+Client-side hook for consuming the SSE stream. Uses `fetch + ReadableStream` (not `EventSource`,
+which does not support POST).
+
+```typescript
+import { useAgentStream } from '@revealui/ai/client'
+
+function AgentChat() {
+  const { text, chunks, isStreaming, error, start, abort, reset } = useAgentStream()
+
+  return (
+    <>
+      <button onClick={() => start({ instruction: 'Summarise open tickets' })}>
+        Run
+      </button>
+      <button onClick={abort} disabled={!isStreaming}>
+        Stop
+      </button>
+      <pre>{text}</pre>
+      {error && <p className="text-red-500">{error}</p>}
+    </>
+  )
+}
+```
+
+**State:**
+
+| Field | Type | Description |
+|-------|------|-------------|
+| `text` | `string` | Accumulated text from all `text` chunks |
+| `chunks` | `AgentStreamChunk[]` | All received chunks in order |
+| `isStreaming` | `boolean` | `true` while the stream is open |
+| `error` | `string \| null` | Last error message, if any |
+
+**Methods:**
+
+| Method | Signature | Description |
+|--------|-----------|-------------|
+| `start` | `(request, apiBase?) => Promise<void>` | Open the stream; cancels any in-flight stream first |
+| `abort` | `() => void` | Cancel the current stream; `isStreaming` → `false` |
+| `reset` | `() => void` | Clear all state and cancel any stream |
 
 ---
 
