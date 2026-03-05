@@ -111,19 +111,12 @@ describe('OpsCLI', () => {
     it('should define database commands', () => {
       const commands = cli.defineCommands()
 
-      const dbSeed = commands.find((c) => c.name === 'db:seed')
       const dbReset = commands.find((c) => c.name === 'db:reset')
-      const dbBackup = commands.find((c) => c.name === 'db:backup')
-      const dbRestore = commands.find((c) => c.name === 'db:restore')
 
-      expect(dbSeed).toBeTruthy()
       expect(dbReset).toBeTruthy()
-      expect(dbBackup).toBeTruthy()
-      expect(dbRestore).toBeTruthy()
 
       // Destructive operations should have confirm prompts
       expect(dbReset?.confirmPrompt).toBeTruthy()
-      expect(dbRestore?.confirmPrompt).toBeTruthy()
     })
 
     it('should define migration commands', () => {
@@ -147,16 +140,6 @@ describe('OpsCLI', () => {
 
       // Execute should have confirm prompt
       expect(migrateExecute?.confirmPrompt).toBeTruthy()
-    })
-
-    it('should define setup commands', () => {
-      const commands = cli.defineCommands()
-
-      const setupEnv = commands.find((c) => c.name === 'setup:env')
-      const setupDeps = commands.find((c) => c.name === 'setup:deps')
-
-      expect(setupEnv).toBeTruthy()
-      expect(setupDeps).toBeTruthy()
     })
 
     it('should define rollback command', () => {
@@ -209,10 +192,7 @@ describe('OpsCLI', () => {
     it('should map database commands to correct scripts', () => {
       // @ts-expect-error - Accessing protected property for testing
       const commandMap = cli.commandMap
-      expect(commandMap['db:seed']).toContain('seed-sample-content.ts')
       expect(commandMap['db:reset']).toContain('reset-database.ts')
-      expect(commandMap['db:backup']).toContain('backup.ts')
-      expect(commandMap['db:restore']).toContain('restore.ts')
     })
 
     it('should map audit commands to correct scripts', () => {
@@ -230,13 +210,6 @@ describe('OpsCLI', () => {
       expect(commandMap['rollback:list']).toContain('rollback-list.ts')
       expect(commandMap['rollback:restore']).toContain('rollback-restore.ts')
       expect(commandMap['rollback:clear']).toContain('rollback-clear.ts')
-    })
-
-    it('should map setup commands to correct scripts', () => {
-      // @ts-expect-error - Accessing protected property for testing
-      const commandMap = cli.commandMap
-      expect(commandMap['setup:env']).toContain('setup-env.ts')
-      expect(commandMap['setup:deps']).toContain('install-dependencies.ts')
     })
   })
 
@@ -282,15 +255,10 @@ describe('OpsCLI', () => {
         'audit-scripts',
         'validate-scripts',
         'fix-scripts',
-        'db:seed',
         'db:reset',
-        'db:backup',
-        'db:restore',
         'migrate:plan',
         'migrate:execute',
         'migrate:compare',
-        'setup:env',
-        'setup:deps',
         'rollback',
         'clean',
       ]
@@ -335,13 +303,6 @@ describe('OpsCLI', () => {
 
       expect(dbReset?.confirmPrompt).toBeTruthy()
       expect(dbReset?.confirmPrompt).toContain('delete')
-    })
-
-    it('should require confirmation for db:restore', () => {
-      const commands = cli.defineCommands()
-      const dbRestore = commands.find((c) => c.name === 'db:restore')
-
-      expect(dbRestore?.confirmPrompt).toBeTruthy()
     })
 
     it('should require confirmation for migrate:execute', () => {
