@@ -24,8 +24,8 @@
     "typescript": "^5.0.0"
   },
   "scripts": {
-    "build": "tsup",
-    "dev": "tsup --watch",
+    "build": "echo 'Source-only package — consumed via tsconfig paths, no build needed'",
+    "dev": "echo 'Source-only package — no watch mode needed'",
     "lint": "biome check .",
     "typecheck": "tsc --noEmit",
     "test": "vitest run"
