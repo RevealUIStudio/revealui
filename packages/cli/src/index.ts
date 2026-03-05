@@ -8,6 +8,7 @@ import { readFileSync } from 'node:fs'
 import { homedir } from 'node:os'
 import { join } from 'node:path'
 import { createLogger } from '@revealui/setup/utils'
+import { importSPKI, jwtVerify } from 'jose'
 import { type CliOptions, createCli } from './cli.js'
 import { validateNodeVersion } from './validators/node-version.js'
 
@@ -27,10 +28,11 @@ const PRO_TEMPLATES = new Set<string>(['e-commerce', 'portfolio'])
  * Lightweight Pro license check for the CLI.
  *
  * Reads REVEALUI_LICENSE_KEY env var or ~/.revealui/license.json.
- * Decodes the JWT payload without signature verification (server validates on use).
+ * Verifies the JWT signature when REVEALUI_LICENSE_PUBLIC_KEY is set.
+ * Always checks the expiry claim (exp) to reject expired licenses.
  * Returns true if the license tier is 'pro' or 'enterprise'.
  */
-function checkProLicense(): boolean {
+async function checkProLicense(): Promise<boolean> {
   let key: string | undefined = process.env.REVEALUI_LICENSE_KEY
 
   if (!key) {
@@ -45,11 +47,30 @@ function checkProLicense(): boolean {
 
   if (!key) return false
 
+  const publicKeyPem = process.env.REVEALUI_LICENSE_PUBLIC_KEY
+  if (publicKeyPem) {
+    // Full signature + expiry verification when public key is available
+    try {
+      const publicKey = await importSPKI(publicKeyPem, 'RS256')
+      const { payload } = await jwtVerify(key, publicKey)
+      const tier = (payload as { tier?: string }).tier ?? 'free'
+      return tier === 'pro' || tier === 'enterprise'
+    } catch {
+      return false
+    }
+  }
+
+  // Fallback: decode payload and check tier + expiry without signature verification.
+  // Signature is validated server-side on first Pro feature use.
   try {
     const parts = key.split('.')
-    if (parts.length < 2) return false
-    const payload = JSON.parse(Buffer.from(parts[1] ?? '', 'base64').toString('utf8')) as {
+    if (parts.length < 3) return false
+    const payload = JSON.parse(Buffer.from(parts[1] ?? '', 'base64url').toString('utf8')) as {
       tier?: string
+      exp?: number
+    }
+    if (payload.exp !== undefined && payload.exp < Math.floor(Date.now() / 1000)) {
+      return false // expired
     }
     const tier = payload.tier ?? 'free'
     return tier === 'pro' || tier === 'enterprise'
@@ -75,7 +96,7 @@ export async function run(projectName: string | undefined, _options: CliOptions)
 
     // Step 2b: License check for Pro templates
     if (PRO_TEMPLATES.has(projectConfig.template)) {
-      if (!checkProLicense()) {
+      if (!(await checkProLicense())) {
         logger.error(`The "${projectConfig.template}" template requires a RevealUI Pro license.`)
         logger.info('Get Pro at https://revealui.com/pricing')
         logger.info('Set your license key: export REVEALUI_LICENSE_KEY=<your-key>')

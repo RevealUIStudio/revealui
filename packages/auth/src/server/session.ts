@@ -262,7 +262,7 @@ function extractSessionToken(cookieHeader: string): string | null {
     return null
   }
 
-  return sessionCookie.substring('revealui-session='.length)
+  return decodeURIComponent(sessionCookie.substring('revealui-session='.length))
 }
 
 /**
