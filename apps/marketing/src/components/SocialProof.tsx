@@ -1,14 +1,14 @@
 export function SocialProof() {
   const features = [
     {
-      title: '20-Collection CMS Engine',
+      title: 'Headless CMS Engine',
       description:
-        'Schema-first collections with rich text (Lexical), media, relationships, and lifecycle hooks. Define once, works everywhere.',
+        'Schema-first collections with rich text (Lexical), media, relationships, and lifecycle hooks. Define once, works everywhere via REST API.',
     },
     {
-      title: '50+ Native UI Components',
+      title: '64 Native UI Components',
       description:
-        'Tailwind v4, zero external UI dependencies. Buttons, forms, tables, modals — all styled to your brand with CVA variants.',
+        'Tailwind v4, zero external UI dependencies. Buttons, forms, tables, modals, sidebars — all styled to your brand with CVA variants.',
     },
     {
       title: 'Real-Time Sync',
@@ -16,14 +16,14 @@ export function SocialProof() {
         'ElectricSQL keeps editors, clients, and agents in sync instantly — no polling, no manual refresh, no conflicts.',
     },
     {
-      title: 'TypeScript End-to-End',
+      title: 'AI Agents (Pro)',
       description:
-        'Zod schemas flow from database to API to UI. No `any` types, no runtime surprises, complete IDE autocomplete.',
+        'A2A protocol agent system with CRDT memory, tool execution, and BYOK LLM providers. Agents work in the background on structured tasks.',
     },
     {
       title: 'Stripe Billing Built In',
       description:
-        'Pro tier checkout, webhook handling, license JWTs, and billing portal — wired end-to-end and verified in production.',
+        'Checkout, subscriptions, webhook handling, license JWTs, and billing portal — wired end-to-end and verified in production.',
     },
     {
       title: 'Multi-Tenant by Design',

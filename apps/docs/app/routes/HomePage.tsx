@@ -3,23 +3,27 @@ import { renderMarkdown } from '../utils/markdown'
 export function HomePage() {
   const content = `# RevealUI Documentation
 
-Welcome to the RevealUI framework documentation. RevealUI is a full-stack React framework with a native headless CMS, authentication, database, UI components, and real-time sync.
+Open-source business infrastructure for software companies. Users, content, products, payments, and AI — pre-wired and ready to deploy.
 
 ## Quick Start
 
 \`\`\`bash
 npx create-revealui@latest my-app
 cd my-app
+cp .env.example .env
+pnpm db:migrate
 pnpm dev
 \`\`\`
 
 Open [http://localhost:4000/admin](http://localhost:4000/admin) to see the CMS dashboard.
 
+See the [Quick Start guide](/guides/quick-start) for the full walkthrough, or browse the [Examples](/guides/examples) for complete project starters.
+
 ## Documentation Sections
 
 ### Getting Started
-- [Quick Start](/docs/QUICK_START) - Get running in 5 minutes
-- [Tutorial](/docs/TUTORIAL) - Hands-on tutorial
+- [Quick Start](/guides/quick-start) - Get running in 5 minutes
+- [Examples](/guides/examples) - Blog, SaaS starter, e-commerce storefront
 - [Development Guide](/docs/DEVELOPMENT_GUIDE) - Development workflow
 
 ### Core Concepts
@@ -28,34 +32,23 @@ Open [http://localhost:4000/admin](http://localhost:4000/admin) to see the CMS d
 - [Database](/docs/DATABASE) - Drizzle ORM, migrations, type-safe queries
 - [Component Catalog](/docs/COMPONENT_CATALOG) - 50+ production-ready UI components
 
-### API & Reference
-- [API Reference](/api) - REST API documentation for all packages
-- [Architecture](/docs/ARCHITECTURE) - System design and patterns
+### Package Reference
+- [Core](/reference/core) - CMS engine, collections, auth, REST handlers
+- [Auth](/reference/auth) - Session auth, sign in/up, rate limiting
+- [Database](/reference/db) - Drizzle schema, client factory, migrations
+- [Presentation](/reference/presentation) - UI components API
+- [Config](/reference/config) - Type-safe env config
+- [CLI](/reference/cli) - \`create-revealui\` scaffolding tool
+- [Full Reference →](/reference)
+
+### REST API
+- [REST API Reference](/api) - OpenAPI-documented endpoints for all services
 
 ### Operations
 - [Deployment](/deployment) - Deploy to Vercel, Railway, or self-host
 - [CI/CD Guide](/docs/CI_CD_GUIDE) - GitHub Actions workflows
 - [Testing](/docs/TESTING) - Testing strategy and guides
 - [Security](/docs/SECURITY) - Security policy and audit
-
-### Advanced
-- [Development](/development) - Performance optimization, caching, bundle analysis
-- [AI](/ai) - Prompt caching, response caching, semantic caching
-
-## Packages
-
-| Package | Description |
-|---------|-------------|
-| \`@revealui/core\` | CMS framework, collections, fields, access control, rich text |
-| \`@revealui/contracts\` | Zod schemas, type contracts, block types |
-| \`@revealui/db\` | Drizzle ORM schema, migrations, client factory |
-| \`@revealui/auth\` | Session-based auth, sign in/up, rate limiting |
-| \`@revealui/presentation\` | UI component library (50+ components) |
-| \`@revealui/router\` | Lightweight file-based router |
-| \`@revealui/config\` | Configuration management |
-| \`@revealui/utils\` | Logger, database helpers, validation |
-| \`@revealui/cli\` | \`create-revealui\` scaffolding tool |
-| \`@revealui/sync\` | ElectricSQL real-time sync |
 
 ## Contributing
 
