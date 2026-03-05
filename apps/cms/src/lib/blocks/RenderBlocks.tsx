@@ -190,9 +190,7 @@ export const RenderBlocks: React.FC<{
                 if (!isBlockType<ArchiveBlockProps>(block, 'archive')) return null
                 const normalizedArchive = normalizeArchiveBlockProps(
                   block,
-                ) as unknown as ArchiveBlockProps
-                // @ts-expect-error - Generated types and component props have structural differences
-                // (null vs undefined, number vs string IDs) but are runtime-compatible
+                ) as unknown as React.ComponentProps<typeof ArchiveBlock>
                 return <ArchiveBlock {...normalizedArchive} />
               }
               case 'content': {
@@ -215,9 +213,9 @@ export const RenderBlocks: React.FC<{
               }
               case 'formBlock': {
                 if (!isBlockType<FormBlockProps>(block, 'formBlock')) return null
-                const normalizedForm = normalizeFormBlockProps(block) as unknown as FormBlockProps
-                // @ts-expect-error - Generated types and component props have structural differences
-                // (form: number | Form vs form: FormType) but are runtime-compatible
+                const normalizedForm = normalizeFormBlockProps(
+                  block,
+                ) as unknown as React.ComponentProps<typeof FormBlock>
                 return <FormBlock {...normalizedForm} />
               }
               case 'mediaBlock': {
