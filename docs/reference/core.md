@@ -42,6 +42,18 @@ import config from './revealui.config'
 const revealui = await createRevealUI(config)
 ```
 
+### `getRevealUI(options: { config: AcceptedConfig }): Promise<RevealUIInstance>`
+
+Singleton alternative to `createRevealUI`. Returns the same instance on subsequent calls — safe to call at module scope in serverless functions where cold-start re-initialization would be wasteful.
+
+```ts
+import { getRevealUI } from '@revealui/core'
+import config from './revealui.config'
+
+// Safe to call multiple times — returns cached instance after first call
+const revealui = await getRevealUI({ config })
+```
+
 ---
 
 ## Collections & Fields
@@ -386,6 +398,38 @@ const hit = cache.get('user:1')
 ### `deepMerge<T>(a: object, b: object): T`
 
 Recursively merges two objects. Arrays are replaced (not concatenated).
+
+---
+
+## Rich Text
+
+Import from `@revealui/core/richtext` or the main entry.
+
+### `serializeLexicalState(data: SerializedEditorState | null | undefined, options?: SerializeOptions): JSX.Element | null`
+
+Converts a stored Lexical editor state (JSON) into a React element tree for server-side rendering. Returns `null` for empty or missing states.
+
+```ts
+import { serializeLexicalState } from '@revealui/core'
+
+// In a React Server Component:
+export default function Post({ post }: { post: { body: SerializedEditorState } }) {
+  return (
+    <article>
+      <h1>{post.title}</h1>
+      {serializeLexicalState(post.body)}
+    </article>
+  )
+}
+```
+
+**`SerializeOptions`:**
+```ts
+interface SerializeOptions {
+  /** Custom renderers per node type */
+  customRenderers?: Record<string, (node: SerializedLexicalNode) => JSX.Element | null>
+}
+```
 
 ---
 

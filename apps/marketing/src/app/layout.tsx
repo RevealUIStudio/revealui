@@ -13,15 +13,23 @@ const geistMono = Geist_Mono({
 })
 
 export const metadata: Metadata = {
-  title: 'RevealUI - White-Label CMS for Digital Agencies',
+  title: 'RevealUI — Open-Source Business Infrastructure',
   description:
-    'Build client websites faster with source code access, AI-powered content management, and enterprise-grade features. Deploy white-label solutions that scale.',
-  keywords: ['CMS', 'white-label', 'digital agency', 'AI', 'content management', 'multi-tenant'],
-  authors: [{ name: 'RevealUI Team' }],
+    'Users, content, products, payments, and AI — pre-wired and ready to deploy. Open-source business infrastructure for software companies.',
+  keywords: [
+    'open source',
+    'business infrastructure',
+    'SaaS',
+    'CMS',
+    'AI agents',
+    'Stripe',
+    'TypeScript',
+  ],
+  authors: [{ name: 'RevealUI Studio' }],
   openGraph: {
-    title: 'RevealUI - White-Label CMS for Digital Agencies',
+    title: 'RevealUI — Build your business, not your boilerplate.',
     description:
-      'Deploy professional, scalable CMS solutions with full source code access and AI features.',
+      'Users, content, products, payments, and AI — pre-wired and ready to deploy. Open-source business infrastructure for software companies.',
     type: 'website',
   },
 }

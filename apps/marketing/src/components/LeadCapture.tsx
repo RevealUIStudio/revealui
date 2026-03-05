@@ -87,8 +87,8 @@ export function LeadCapture() {
             Get Early Access to RevealUI
           </h2>
           <p className="mt-6 text-lg leading-8 text-blue-100">
-            Be among the first agencies to deploy white-label CMS solutions. Join our exclusive beta
-            program and get 6 months free.
+            Be among the first to ship a complete business stack without building it from scratch.
+            Join the waitlist and get 3 months of Pro free at launch.
           </p>
           <form onSubmit={handleSubmit} className="mt-10">
             <div className="flex max-w-md mx-auto gap-x-4">

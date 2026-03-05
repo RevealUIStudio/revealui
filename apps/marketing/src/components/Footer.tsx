@@ -48,12 +48,12 @@ export function Footer() {
             <h3 className="text-white font-semibold mb-4">Product</h3>
             <ul className="space-y-2 text-gray-400">
               <li>
-                <Link href="/#features" className="hover:text-white transition-colors">
+                <Link href="/" className="hover:text-white transition-colors">
                   Features
                 </Link>
               </li>
               <li>
-                <Link href="/#pricing" className="hover:text-white transition-colors">
+                <Link href="/pricing" className="hover:text-white transition-colors">
                   Pricing
                 </Link>
               </li>
@@ -79,13 +79,11 @@ export function Footer() {
             <h3 className="text-white font-semibold mb-4">Company</h3>
             <ul className="space-y-2 text-gray-400">
               <li>
-                <Link href="/#about" className="hover:text-white transition-colors">
-                  About
-                </Link>
-              </li>
-              <li>
-                <Link href="/#blog" className="hover:text-white transition-colors">
-                  Blog
+                <Link
+                  href="https://github.com/RevealUIStudio/revealui"
+                  className="hover:text-white transition-colors"
+                >
+                  GitHub
                 </Link>
               </li>
               <li>
@@ -94,7 +92,10 @@ export function Footer() {
                 </Link>
               </li>
               <li>
-                <Link href="/#contact" className="hover:text-white transition-colors">
+                <Link
+                  href="mailto:founder@revealui.com"
+                  className="hover:text-white transition-colors"
+                >
                   Contact
                 </Link>
               </li>
