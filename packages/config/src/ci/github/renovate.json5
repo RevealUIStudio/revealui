@@ -10,7 +10,7 @@
   ],
   labels: ["dependencies"],
   rangeStrategy: "bump",
-  assignees: ["joshua-v-dev"],
+  assignees: ["RevealUIStudio"],
   ignoreDeps: [
     // manually bumping
     "node",

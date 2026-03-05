@@ -8,7 +8,7 @@
   ],
   "labels": ["dependencies"],
   "rangeStrategy": "bump",
-  "assignees": ["joshua-v-dev"],
+  "assignees": ["RevealUIStudio"],
   "ignoreDeps": [
     "node",
     "@types/node",
