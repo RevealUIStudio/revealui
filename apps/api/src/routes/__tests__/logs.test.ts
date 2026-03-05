@@ -145,7 +145,7 @@ describe('POST / — fire-and-forget DB write', () => {
     expect(insertArgs.app).toBe('api')
     expect(insertArgs.environment).toBe('staging')
     expect(insertArgs.requestId).toBe('req-abc')
-    expect(insertArgs.userId).toBe('u-999')
+    expect(insertArgs.userId).toBeNull() // userId is not accepted from untrusted clients
     expect(insertArgs.data).toEqual({ code: 1 })
   })
 
