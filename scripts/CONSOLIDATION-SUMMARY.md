@@ -67,7 +67,6 @@ Successfully consolidated the RevealUI scripts directory, removing **1,930+ line
 - Moved 5 scripts from `analyze/` to `commands/fix/`:
   - `fix-import-extensions.ts`
   - `fix-linting-errors.ts`
-  - `fix-supabase-types.ts`
   - `fix-test-errors.ts`
   - `fix-typescript-errors.ts`
 
@@ -149,7 +148,6 @@ scripts/
 │   └── fix/                    # ✨ NEW
 │       ├── fix-import-extensions.ts
 │       ├── fix-linting-errors.ts
-│       ├── fix-supabase-types.ts
 │       ├── fix-test-errors.ts
 │       └── fix-typescript-errors.ts
 │
@@ -303,7 +301,6 @@ await dispatchCommand(scriptPath, {
 - `lib/cli/index.ts`
 - `commands/fix/fix-import-extensions.ts` (moved)
 - `commands/fix/fix-linting-errors.ts` (moved)
-- `commands/fix/fix-supabase-types.ts` (moved)
 - `commands/fix/fix-test-errors.ts` (moved)
 - `commands/fix/fix-typescript-errors.ts` (moved)
 

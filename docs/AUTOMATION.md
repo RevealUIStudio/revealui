@@ -231,7 +231,6 @@ The agent enforces these RevealUI-specific conventions:
 #### Type Generation Scripts
 
 - **RevealUI Types**: `pnpm generate:revealui-types` - Generate CMS types
-- **Supabase Types**: `pnpm generate:supabase-types` - Generate Supabase types
 - **Neon Types**: `pnpm generate:neon-types` - Generate database types
 - **OpenAPI Spec**: `pnpm generate:openapi` - Generate API documentation
 

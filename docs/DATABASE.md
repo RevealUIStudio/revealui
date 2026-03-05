@@ -950,11 +950,7 @@ The Database type structure is identical to Supabase's:
 **Migration Example:**
 
 ```typescript
-// Supabase
-import type { Database } from './supabase-types'
-type User = Database['public']['Tables']['users']['Row']
-
-// NeonDB (RevealUI) - Same structure!
+// Both Supabase billing types and NeonDB types use the same Database structure
 import type { Database } from '@revealui/db/types'
 type User = Database['public']['Tables']['users']['Row']
 ```

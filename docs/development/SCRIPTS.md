@@ -105,7 +105,6 @@ pnpm maintain                   # Show maintain CLI help
 pnpm maintain:fix-imports       # Fix missing .js extensions
 pnpm maintain:fix-lint          # Fix linting errors
 pnpm maintain:fix-types         # Fix TypeScript errors
-pnpm maintain:fix-supabase      # Update Supabase types
 pnpm maintain:audit-scripts     # Audit package.json scripts
 pnpm maintain:validate-scripts  # Validate scripts against templates
 pnpm maintain:fix-scripts       # Auto-fix package scripts

@@ -193,7 +193,6 @@ scanDirectorySync(dir, options)  // Sync array
 - `fix-import-extensions.ts`
 - `fix-linting-errors.ts`
 - `fix-typescript-errors.ts`
-- `fix-supabase-types.ts`
 - `fix-test-errors.ts`
 
 **Organization:** Moved from `analyze/` to proper location
