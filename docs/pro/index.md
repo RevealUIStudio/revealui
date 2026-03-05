@@ -9,7 +9,7 @@ RevealUI Pro adds AI, MCP servers, and editor integrations on top of the open-so
 | [`@revealui/ai`](/pro/ai) | AI agents, LLM providers, CRDT memory, A2A protocol |
 | [`@revealui/mcp`](/pro/mcp) | MCP servers (Stripe, Supabase, Neon, Vercel, Playwright) |
 | [`@revealui/editors`](/pro/editors) | Editor daemon (Zed, VS Code, Neovim adapters) |
-| [`@revealui/services`](/pro/services) | Stripe + Supabase service integrations |
+| `@revealui/services` | Stripe + Supabase service integrations |
 | BYOK | Bring Your Own Key — use your own LLM API keys |
 
 ## License

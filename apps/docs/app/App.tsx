@@ -22,7 +22,7 @@ export function App() {
               title="Architecture"
               fallbackIndex={`# Architecture
 
-- [Architecture Overview](/architecture/ARCHITECTURE)
+- [Architecture Overview](/docs/ARCHITECTURE)
 - [Database Optimization](/architecture/DATABASE_OPTIMIZATION)
 - [ElectricSQL API Verification](/architecture/ELECTRICSQL_API_VERIFICATION)
 `}
@@ -88,21 +88,6 @@ export function App() {
               fallbackIndex={`# Security
 
 - [Security Audit](/security/SECURITY_AUDIT)
-`}
-            />
-          }
-        />
-        <Route
-          path="/optimization/*"
-          element={
-            <SectionPage
-              section="optimization"
-              title="Optimization"
-              fallbackIndex={`# Optimization
-
-- [Bundle Optimization](/optimization/BUNDLE_OPTIMIZATION)
-- [Bundle Optimization Lessons](/optimization/BUNDLE_OPTIMIZATION_LESSONS)
-- [Size Limit Update](/optimization/SIZE_LIMIT_UPDATE)
 `}
             />
           }

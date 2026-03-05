@@ -40,10 +40,10 @@ DATABASE_URL=            # NeonDB connection string (waitlist storage)
 ## Routes
 
 - `/` — Landing page
-- `/pro` — Pro tier detail
+- `/pricing` — Pro/Enterprise pricing tiers
 - `/sponsor` — Sponsorship tiers
-- `/docs` → redirect to https://docs.revealui.com (permanent 308)
-- `/docs/:path*` → redirect to https://docs.revealui.com/:path*
+- `/privacy` — Privacy policy
+- `/terms` — Terms of service
 
 ## Key Components
 
