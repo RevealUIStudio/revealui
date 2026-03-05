@@ -78,6 +78,15 @@ pnpm mcp:playwright
 pnpm mcp:next-devtools
 ```
 
+Add `--restart` to any launcher to enable automatic restart with exponential backoff (up to 3 attempts: 2s → 4s → 8s):
+
+```bash
+pnpm mcp:stripe -- --restart
+pnpm mcp:neon   -- --restart
+```
+
+This is useful in long-running environments (CI, staging) where transient network errors or package crashes should not require manual intervention.
+
 ---
 
 ## MCP Servers
@@ -476,6 +485,18 @@ MCP servers are configured in `.cursor/mcp-config.json`:
 
 **Note:** Restart Cursor after configuration changes.
 
+To enable automatic restart in the Cursor-managed process, add `"--", "--restart"` to the args:
+
+```json
+"stripe": {
+  "command": "pnpm",
+  "args": ["mcp:stripe", "--", "--restart"],
+  "env": { "STRIPE_SECRET_KEY": "${STRIPE_SECRET_KEY}" }
+}
+```
+
+Restart applies to Stripe, Neon, Supabase, and Vercel launchers. Playwright and Next.js DevTools do not support `--restart` (managed by their own upstream packages).
+
 ---
 
 ## Usage Examples
@@ -580,6 +601,24 @@ Complete automated setup with error detection and fixing.
 ---
 
 ## Troubleshooting
+
+### MCP Server Exits Unexpectedly
+
+**Solution:** Enable automatic restart with exponential backoff:
+
+```bash
+pnpm mcp:stripe -- --restart   # retries up to 3× (2s → 4s → 8s)
+```
+
+Or in `.cursor/mcp-config.json`:
+
+```json
+"args": ["mcp:stripe", "--", "--restart"]
+```
+
+Each launcher will log the exit code and delay before retrying. After 3 failed attempts it exits permanently. Check logs to diagnose the root cause (missing env var, network error, upstream package crash).
+
+---
 
 ### "Missing API key" Error
 
