@@ -5,6 +5,7 @@ Step-by-step guides for building with RevealUI.
 ## Getting Started
 
 - [Quick Start](/guides/quick-start) — Create your first RevealUI app in 5 minutes
+- [Examples](/guides/examples) — Three complete example projects: blog, SaaS starter, and storefront
 - [Tutorial](/guides/tutorial) — Build a complete blog with collections, auth, and components
 
 ## Core Workflows
