@@ -8,6 +8,7 @@
 
 import { AgentContextManager } from '@revealui/ai/memory/agent'
 import { CRDTPersistence } from '@revealui/ai/memory/persistence'
+import { getSession } from '@revealui/auth/server'
 import { logger } from '@revealui/core/observability/logger'
 import { getClient } from '@revealui/db/client'
 import { type NextRequest, NextResponse } from 'next/server'
@@ -22,13 +23,18 @@ export const runtime = 'nodejs'
  * Gets agent context for a session and agent.
  */
 export async function GET(
-  _request: NextRequest,
+  request: NextRequest,
   { params }: { params: Promise<{ sessionId: string; agentId: string }> },
 ): Promise<NextResponse> {
   let sessionId: string | undefined
   let agentId: string | undefined
 
   try {
+    const authSession = await getSession(request.headers)
+    if (!authSession) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+    }
+
     const paramsResolved = await params
     sessionId = paramsResolved.sessionId
     agentId = paramsResolved.agentId
@@ -87,6 +93,11 @@ export async function POST(
   let agentId: string | undefined
 
   try {
+    const authSession = await getSession(request.headers)
+    if (!authSession) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+    }
+
     const paramsResolved = await params
     sessionId = paramsResolved.sessionId
     agentId = paramsResolved.agentId
@@ -187,6 +198,11 @@ export async function DELETE(
   let agentId: string | undefined
 
   try {
+    const authSession = await getSession(request.headers)
+    if (!authSession) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+    }
+
     const paramsResolved = await params
     sessionId = paramsResolved.sessionId
     agentId = paramsResolved.agentId

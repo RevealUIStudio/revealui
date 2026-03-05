@@ -198,6 +198,8 @@ export async function signUp(
   options?: {
     userAgent?: string
     ipAddress?: string
+    tosAcceptedAt?: Date
+    tosVersion?: string
   },
 ): Promise<SignUpResult> {
   try {
@@ -286,6 +288,8 @@ export async function signUp(
           password: hashedPassword,
           emailVerified: false,
           emailVerificationToken,
+          tosAcceptedAt: options?.tosAcceptedAt ?? null,
+          tosVersion: options?.tosVersion ?? null,
         })
         .returning()
       user = result[0] as User | undefined

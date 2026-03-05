@@ -57,6 +57,8 @@ async function signUpHandler(request: NextRequest): Promise<NextResponse> {
 
     // Contract automatically sanitizes email (lowercase, trim) and name (trim, normalize spaces)
     const { email: sanitizedEmail, password, name: sanitizedName } = validationResult.data
+    const tosAcceptedAt = new Date()
+    const tosVersion = process.env.TOS_VERSION ?? '2026-03-01'
 
     // Check signup whitelist before proceeding
     if (!isSignupAllowed(sanitizedEmail)) {
@@ -101,6 +103,8 @@ async function signUpHandler(request: NextRequest): Promise<NextResponse> {
     const result = await signUp(sanitizedEmail, password, sanitizedName, {
       userAgent,
       ipAddress,
+      tosAcceptedAt,
+      tosVersion,
     })
 
     if (!result.success) {

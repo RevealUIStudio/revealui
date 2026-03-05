@@ -7,6 +7,7 @@
 
 import { CRDTPersistence } from '@revealui/ai/memory/persistence'
 import { WorkingMemory } from '@revealui/ai/memory/stores'
+import { getSession } from '@revealui/auth/server'
 import { logger } from '@revealui/core/observability/logger'
 import { getClient } from '@revealui/db/client'
 import { type NextRequest, NextResponse } from 'next/server'
@@ -21,12 +22,17 @@ export const runtime = 'nodejs'
  * Gets working memory for a session.
  */
 export async function GET(
-  _request: NextRequest,
+  request: NextRequest,
   { params }: { params: Promise<{ sessionId: string }> },
 ): Promise<NextResponse> {
   let sessionId: string | undefined
 
   try {
+    const authSession = await getSession(request.headers)
+    if (!authSession) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+    }
+
     const paramsResolved = await params
     sessionId = paramsResolved.sessionId
 
@@ -74,6 +80,11 @@ export async function POST(
   let sessionId: string | undefined
 
   try {
+    const authSession = await getSession(request.headers)
+    if (!authSession) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+    }
+
     const paramsResolved = await params
     sessionId = paramsResolved.sessionId
 

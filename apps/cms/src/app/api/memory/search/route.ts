@@ -7,6 +7,7 @@
  */
 
 import { VectorMemoryService } from '@revealui/ai/memory/vector'
+import { getSession } from '@revealui/auth/server'
 import { logger } from '@revealui/core/observability/logger'
 import { type NextRequest, NextResponse } from 'next/server'
 import { createErrorResponse, createValidationErrorResponse } from '@/lib/utils/error-response'
@@ -33,6 +34,11 @@ export const runtime = 'nodejs'
  */
 export async function POST(request: NextRequest): Promise<NextResponse> {
   try {
+    const authSession = await getSession(request.headers)
+    if (!authSession) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+    }
+
     let body: unknown
     try {
       body = await request.json()
