@@ -50,7 +50,7 @@ export const Posts = defineCollection({
       name: 'content',
       type: 'richText',
       editor: lexicalEditor({
-        features: [HeadingFeature({ headingLevels: [2, 3] }), BlocksFeature()],
+        features: [HeadingFeature({ enabledHeadingSizes: ['h2', 'h3'] }), BlocksFeature()],
       }),
     },
     { name: 'coverImage', type: 'upload', relationTo: 'media' },
