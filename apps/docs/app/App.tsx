@@ -3,6 +3,7 @@ import { DocLayout } from './components/DocLayout'
 import { ApiPage } from './routes/ApiPage'
 import { GuidesPage } from './routes/GuidesPage'
 import { HomePage } from './routes/HomePage'
+import { ProPage } from './routes/ProPage'
 import { SectionPage } from './routes/SectionPage'
 
 export function App() {
@@ -136,6 +137,7 @@ See the [API Reference](/api) for package-level API docs.
             />
           }
         />
+        <Route path="/pro/*" element={<ProPage />} />
       </Routes>
     </DocLayout>
   )
