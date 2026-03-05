@@ -72,7 +72,7 @@ const queryPostBySlug = cache(async ({ slug }: { slug: string }): Promise<Post |
 
   const revealui = await getRevealUIInstance()
 
-  const result = await revealui.find<Post>({
+  const result = await revealui.find({
     collection: 'posts',
     draft,
     limit: 1,
@@ -84,5 +84,7 @@ const queryPostBySlug = cache(async ({ slug }: { slug: string }): Promise<Post |
     },
   })
 
-  return result.docs?.[0] ?? null
+  // revealui.find() returns RevealDocument (generic CMS type). Post is the generated
+  // type for this collection — cast at the typed boundary is the correct pattern here.
+  return (result.docs?.[0] ?? null) as unknown as Post | null
 })

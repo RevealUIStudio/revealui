@@ -1,47 +1,25 @@
-import { describe, expect, it } from 'vitest'
-
-// Skip this test file entirely - API route files don't exist yet
-describe.skip('Memory API Routes', () => {
-  it.skip('placeholder test', () => {
-    expect(true).toBe(true)
-  })
-})
-
-/*
-// Route imports commented out until API routes are implemented
+import { afterEach, describe, expect, it, vi } from 'vitest'
 import {
   DELETE as deleteAgentContext,
   GET as getAgentContext,
   POST as postAgentContext,
-} from '../../../app/api/memory/context/[sessionId]/[agentId]/route'
-import { DELETE as deleteEpisodicMemory } from '../../../app/api/memory/episodic/[userId]/[memoryId]/route'
+} from '../../app/api/memory/context/[sessionId]/[agentId]/route'
+import { DELETE as deleteEpisodicMemory } from '../../app/api/memory/episodic/[userId]/[memoryId]/route'
 import {
   GET as getEpisodicMemory,
   POST as postEpisodicMemory,
-} from '../../../app/api/memory/episodic/[userId]/route'
+} from '../../app/api/memory/episodic/[userId]/route'
 import {
   GET as getWorkingMemory,
   POST as postWorkingMemory,
-} from '../../../app/api/memory/working/[sessionId]/route'
+} from '../../app/api/memory/working/[sessionId]/route'
 
-*/
-
-/* Mocks commented out until API routes are implemented
 vi.mock('@revealui/db/client', () => ({
-  getClient: vi.fn(() => ({
-    query: {
-      agentContexts: { findFirst: vi.fn() },
-      agentMemories: { findFirst: vi.fn(), findMany: vi.fn() },
-      nodeIdMappings: { findFirst: vi.fn() },
-    },
-    insert: vi.fn().mockReturnValue({ values: vi.fn() }),
-    update: vi.fn().mockReturnValue({ set: vi.fn().mockReturnValue({ where: vi.fn() }) }),
-    delete: vi.fn().mockReturnValue({ where: vi.fn() }),
-  })),
+  getClient: vi.fn(() => ({})),
 }))
 
 vi.mock('@revealui/ai/memory/persistence', () => ({
-  // biome-ignore lint/style/useNamingConvention: mocked module export uses PascalCase.
+  // biome-ignore lint/style/useNamingConvention: mocked module export uses PascalCase
   CRDTPersistence: vi.fn().mockImplementation(() => ({
     loadCompositeState: vi.fn().mockResolvedValue(new Map()),
     saveCompositeState: vi.fn().mockResolvedValue(undefined),
@@ -49,20 +27,20 @@ vi.mock('@revealui/ai/memory/persistence', () => ({
 }))
 
 vi.mock('@revealui/ai/memory/stores', () => ({
-  // biome-ignore lint/style/useNamingConvention: mocked module export uses PascalCase.
+  // biome-ignore lint/style/useNamingConvention: mocked module export uses PascalCase
   WorkingMemory: vi.fn().mockImplementation(() => ({
     load: vi.fn().mockResolvedValue(undefined),
     save: vi.fn().mockResolvedValue(undefined),
     getSessionId: vi.fn().mockReturnValue('session-123'),
-    getContext: vi.fn().mockReturnValue({}),
-    getSessionState: vi.fn().mockReturnValue({}),
+    getContext: vi.fn().mockReturnValue({ userId: 'user-1' }),
+    getSessionState: vi.fn().mockReturnValue({ active: true }),
     getActiveAgents: vi.fn().mockReturnValue([]),
     setContext: vi.fn(),
     updateSessionState: vi.fn(),
     addAgent: vi.fn(),
     removeAgentById: vi.fn(),
   })),
-  // biome-ignore lint/style/useNamingConvention: mocked module export uses PascalCase.
+  // biome-ignore lint/style/useNamingConvention: mocked module export uses PascalCase
   EpisodicMemory: vi.fn().mockImplementation(() => ({
     load: vi.fn().mockResolvedValue(undefined),
     save: vi.fn().mockResolvedValue(undefined),
@@ -76,46 +54,69 @@ vi.mock('@revealui/ai/memory/stores', () => ({
 }))
 
 vi.mock('@revealui/ai/memory/agent', () => ({
-  // biome-ignore lint/style/useNamingConvention: mocked module export uses PascalCase.
+  // biome-ignore lint/style/useNamingConvention: mocked module export uses PascalCase
   AgentContextManager: vi.fn().mockImplementation(() => ({
     load: vi.fn().mockResolvedValue(undefined),
     save: vi.fn().mockResolvedValue(undefined),
     getSessionId: vi.fn().mockReturnValue('session-123'),
     getAgentId: vi.fn().mockReturnValue('agent-456'),
-    getAllContext: vi.fn().mockReturnValue({}),
+    getAllContext: vi.fn().mockReturnValue({ theme: 'dark' }),
     updateContext: vi.fn(),
     removeContext: vi.fn(),
   })),
 }))
 
-vi.mock('@/lib/utils/nodeId', () => ({
+vi.mock('@/lib/utilities/nodeId', () => ({
   getNodeIdFromSession: vi.fn().mockResolvedValue('node-session-123'),
   getNodeIdFromUser: vi.fn().mockResolvedValue('node-user-123'),
 }))
-*/
 
-/* Tests commented out until API routes are implemented
-describe('Memory API Routes (Skipped - Routes Not Implemented)', () => {
+vi.mock('@revealui/contracts', () => ({
+  AgentMemoryContract: {
+    validate: vi.fn((body: unknown) => {
+      if (body && typeof body === 'object' && 'id' in body && 'content' in body && 'type' in body) {
+        return { success: true, data: body, errors: { issues: [] } }
+      }
+      return {
+        success: false,
+        data: null,
+        errors: { issues: [{ message: 'Invalid memory', path: ['body'] }] },
+      }
+    }),
+  },
+}))
+
+function makeRequest(url: string, options?: RequestInit): Request {
+  return new Request(url, options)
+}
+
+describe('Memory API Routes', () => {
+  afterEach(() => {
+    vi.clearAllMocks()
+  })
+
+  // ─── Working Memory ────────────────────────────────────────────────────────
+
   describe('GET /api/memory/working/:sessionId', () => {
-    it('should return working memory for valid sessionId', async () => {
-      const request = new NextRequest('http://localhost/api/memory/working/session-123')
+    it('returns working memory for valid sessionId', async () => {
+      const request = makeRequest('http://localhost/api/memory/working/session-123')
       const params = Promise.resolve({ sessionId: 'session-123' })
 
-      const response = await getWorkingMemory(request, { params })
+      const response = await getWorkingMemory(request as never, { params })
       const data = await response.json()
 
       expect(response.status).toBe(200)
-      expect(data).toHaveProperty('sessionId')
+      expect(data).toHaveProperty('sessionId', 'session-123')
       expect(data).toHaveProperty('context')
       expect(data).toHaveProperty('sessionState')
       expect(data).toHaveProperty('activeAgents')
     })
 
-    it('should return 400 for invalid sessionId', async () => {
-      const request = new NextRequest('http://localhost/api/memory/working/')
+    it('returns 400 for empty sessionId', async () => {
+      const request = makeRequest('http://localhost/api/memory/working/')
       const params = Promise.resolve({ sessionId: '' })
 
-      const response = await getWorkingMemory(request, { params })
+      const response = await getWorkingMemory(request as never, { params })
       const data = await response.json()
 
       expect(response.status).toBe(400)
@@ -124,30 +125,28 @@ describe('Memory API Routes (Skipped - Routes Not Implemented)', () => {
   })
 
   describe('POST /api/memory/working/:sessionId', () => {
-    it('should update working memory', async () => {
-      const request = new NextRequest('http://localhost/api/memory/working/session-123', {
+    it('updates working memory', async () => {
+      const request = makeRequest('http://localhost/api/memory/working/session-123', {
         method: 'POST',
-        body: JSON.stringify({
-          context: { userId: 'user-1' },
-          sessionState: { active: true },
-        }),
+        body: JSON.stringify({ context: { userId: 'user-1' }, sessionState: { active: true } }),
       })
       const params = Promise.resolve({ sessionId: 'session-123' })
 
-      const response = await postWorkingMemory(request, { params })
+      const response = await postWorkingMemory(request as never, { params })
       const data = await response.json()
 
       expect(response.status).toBe(200)
       expect(data.success).toBe(true)
     })
 
-    it('should return 400 for invalid sessionId', async () => {
-      const request = new NextRequest('http://localhost/api/memory/working/', {
+    it('returns 400 for empty sessionId', async () => {
+      const request = makeRequest('http://localhost/api/memory/working/', {
         method: 'POST',
+        body: JSON.stringify({}),
       })
       const params = Promise.resolve({ sessionId: '' })
 
-      const response = await postWorkingMemory(request, { params })
+      const response = await postWorkingMemory(request as never, { params })
       const data = await response.json()
 
       expect(response.status).toBe(400)
@@ -155,25 +154,27 @@ describe('Memory API Routes (Skipped - Routes Not Implemented)', () => {
     })
   })
 
+  // ─── Episodic Memory ───────────────────────────────────────────────────────
+
   describe('GET /api/memory/episodic/:userId', () => {
-    it('should return episodic memories for valid userId', async () => {
-      const request = new NextRequest('http://localhost/api/memory/episodic/user-123')
+    it('returns episodic memories for valid userId', async () => {
+      const request = makeRequest('http://localhost/api/memory/episodic/user-123')
       const params = Promise.resolve({ userId: 'user-123' })
 
-      const response = await getEpisodicMemory(request, { params })
+      const response = await getEpisodicMemory(request as never, { params })
       const data = await response.json()
 
       expect(response.status).toBe(200)
       expect(data).toHaveProperty('userId')
       expect(data).toHaveProperty('memories')
-      expect(data).toHaveProperty('accessCount')
+      expect(Array.isArray(data.memories)).toBe(true)
     })
 
-    it('should return 400 for invalid userId', async () => {
-      const request = new NextRequest('http://localhost/api/memory/episodic/')
+    it('returns 400 for empty userId', async () => {
+      const request = makeRequest('http://localhost/api/memory/episodic/')
       const params = Promise.resolve({ userId: '' })
 
-      const response = await getEpisodicMemory(request, { params })
+      const response = await getEpisodicMemory(request as never, { params })
       const data = await response.json()
 
       expect(response.status).toBe(400)
@@ -182,108 +183,110 @@ describe('Memory API Routes (Skipped - Routes Not Implemented)', () => {
   })
 
   describe('POST /api/memory/episodic/:userId', () => {
-    it('should add memory with valid embedding', async () => {
-      const request = new NextRequest('http://localhost/api/memory/episodic/user-123', {
+    const validMemory = {
+      id: 'mem-1',
+      content: 'Test memory content',
+      type: 'episodic',
+      source: 'test',
+      embedding: null,
+      metadata: {},
+      verified: false,
+      createdAt: new Date().toISOString(),
+      accessedAt: new Date().toISOString(),
+      accessCount: 0,
+    }
+
+    it('adds a valid memory', async () => {
+      const request = makeRequest('http://localhost/api/memory/episodic/user-123', {
         method: 'POST',
-        body: JSON.stringify({
-          id: 'mem-1',
-          content: 'Test memory',
-          type: 'fact',
-          source: { type: 'user', id: 'user-123', confidence: 1 },
-          embedding: {
-            model: 'openai-text-embedding-3-small',
-            vector: Array(1536).fill(0.1),
-            dimension: 1536,
-            generatedAt: new Date().toISOString(),
-          },
-        }),
+        body: JSON.stringify(validMemory),
       })
       const params = Promise.resolve({ userId: 'user-123' })
 
-      const response = await postEpisodicMemory(request, { params })
+      const response = await postEpisodicMemory(request as never, { params })
       const data = await response.json()
 
       expect(response.status).toBe(200)
       expect(data.success).toBe(true)
+      expect(data).toHaveProperty('tag')
     })
 
-    it('should return 422 for invalid embedding structure', async () => {
-      const request = new NextRequest('http://localhost/api/memory/episodic/user-123', {
+    it('returns 400 for invalid memory schema', async () => {
+      const request = makeRequest('http://localhost/api/memory/episodic/user-123', {
         method: 'POST',
-        body: JSON.stringify({
-          id: 'mem-1',
-          content: 'Test memory',
-          type: 'fact',
-          source: { type: 'user', id: 'user-123', confidence: 1 },
-          embedding: {
-            model: 'invalid',
-            vector: [1, 2, 3], // Wrong dimension
-            dimension: 1536,
-            generatedAt: new Date().toISOString(),
-          },
-        }),
+        body: JSON.stringify({ bad: 'data' }),
       })
       const params = Promise.resolve({ userId: 'user-123' })
 
-      const response = await postEpisodicMemory(request, { params })
-      const data = await response.json()
-
-      expect(response.status).toBe(422)
-      expect(data.error).toContain('embedding')
-    })
-
-    it('should return 400 for missing required fields', async () => {
-      const request = new NextRequest('http://localhost/api/memory/episodic/user-123', {
-        method: 'POST',
-        body: JSON.stringify({
-          content: 'Test memory',
-          // Missing id, type, source
-        }),
-      })
-      const params = Promise.resolve({ userId: 'user-123' })
-
-      const response = await postEpisodicMemory(request, { params })
+      const response = await postEpisodicMemory(request as never, { params })
       const data = await response.json()
 
       expect(response.status).toBe(400)
-      expect(data.error).toContain('id, content, type, and source')
+    })
+
+    it('returns 400 for invalid JSON', async () => {
+      const request = makeRequest('http://localhost/api/memory/episodic/user-123', {
+        method: 'POST',
+        body: '{bad',
+      })
+      const params = Promise.resolve({ userId: 'user-123' })
+
+      const response = await postEpisodicMemory(request as never, { params })
+      const data = await response.json()
+
+      expect(response.status).toBe(400)
+      expect(data.error).toContain('Invalid JSON')
+    })
+
+    it('returns 400 for empty userId', async () => {
+      const request = makeRequest('http://localhost/api/memory/episodic/', {
+        method: 'POST',
+        body: JSON.stringify(validMemory),
+      })
+      const params = Promise.resolve({ userId: '' })
+
+      const response = await postEpisodicMemory(request as never, { params })
+      const data = await response.json()
+
+      expect(response.status).toBe(400)
+      expect(data.error).toContain('Invalid userId')
     })
   })
 
   describe('DELETE /api/memory/episodic/:userId/:memoryId', () => {
-    it('should delete memory for valid IDs', async () => {
-      const request = new NextRequest('http://localhost/api/memory/episodic/user-123/mem-1', {
+    it('removes a memory', async () => {
+      const request = makeRequest('http://localhost/api/memory/episodic/user-123/mem-1', {
         method: 'DELETE',
       })
       const params = Promise.resolve({ userId: 'user-123', memoryId: 'mem-1' })
 
-      const response = await deleteEpisodicMemory(request, { params })
+      const response = await deleteEpisodicMemory(request as never, { params })
       const data = await response.json()
 
       expect(response.status).toBe(200)
       expect(data.success).toBe(true)
     })
 
-    it('should return 400 for invalid userId', async () => {
-      const request = new NextRequest('http://localhost/api/memory/episodic//mem-1', {
+    it('returns 400 for empty userId', async () => {
+      const request = makeRequest('http://localhost/api/memory/episodic//mem-1', {
         method: 'DELETE',
       })
       const params = Promise.resolve({ userId: '', memoryId: 'mem-1' })
 
-      const response = await deleteEpisodicMemory(request, { params })
+      const response = await deleteEpisodicMemory(request as never, { params })
       const data = await response.json()
 
       expect(response.status).toBe(400)
       expect(data.error).toContain('Invalid userId')
     })
 
-    it('should return 400 for invalid memoryId', async () => {
-      const request = new NextRequest('http://localhost/api/memory/episodic/user-123/', {
+    it('returns 400 for empty memoryId', async () => {
+      const request = makeRequest('http://localhost/api/memory/episodic/user-123/', {
         method: 'DELETE',
       })
       const params = Promise.resolve({ userId: 'user-123', memoryId: '' })
 
-      const response = await deleteEpisodicMemory(request, { params })
+      const response = await deleteEpisodicMemory(request as never, { params })
       const data = await response.json()
 
       expect(response.status).toBe(400)
@@ -291,15 +294,14 @@ describe('Memory API Routes (Skipped - Routes Not Implemented)', () => {
     })
   })
 
-  describe('GET /api/memory/context/:sessionId/:agentId', () => {
-    it('should return agent context for valid IDs', async () => {
-      const request = new NextRequest('http://localhost/api/memory/context/session-123/agent-456')
-      const params = Promise.resolve({
-        sessionId: 'session-123',
-        agentId: 'agent-456',
-      })
+  // ─── Agent Context ─────────────────────────────────────────────────────────
 
-      const response = await getAgentContext(request, { params })
+  describe('GET /api/memory/context/:sessionId/:agentId', () => {
+    it('returns agent context for valid params', async () => {
+      const request = makeRequest('http://localhost/api/memory/context/session-123/agent-456')
+      const params = Promise.resolve({ sessionId: 'session-123', agentId: 'agent-456' })
+
+      const response = await getAgentContext(request as never, { params })
       const data = await response.json()
 
       expect(response.status).toBe(200)
@@ -308,22 +310,22 @@ describe('Memory API Routes (Skipped - Routes Not Implemented)', () => {
       expect(data).toHaveProperty('context')
     })
 
-    it('should return 400 for invalid sessionId', async () => {
-      const request = new NextRequest('http://localhost/api/memory/context//agent-456')
+    it('returns 400 for empty sessionId', async () => {
+      const request = makeRequest('http://localhost/api/memory/context//agent-456')
       const params = Promise.resolve({ sessionId: '', agentId: 'agent-456' })
 
-      const response = await getAgentContext(request, { params })
+      const response = await getAgentContext(request as never, { params })
       const data = await response.json()
 
       expect(response.status).toBe(400)
       expect(data.error).toContain('Invalid sessionId')
     })
 
-    it('should return 400 for invalid agentId', async () => {
-      const request = new NextRequest('http://localhost/api/memory/context/session-123/')
+    it('returns 400 for empty agentId', async () => {
+      const request = makeRequest('http://localhost/api/memory/context/session-123/')
       const params = Promise.resolve({ sessionId: 'session-123', agentId: '' })
 
-      const response = await getAgentContext(request, { params })
+      const response = await getAgentContext(request as never, { params })
       const data = await response.json()
 
       expect(response.status).toBe(400)
@@ -332,17 +334,14 @@ describe('Memory API Routes (Skipped - Routes Not Implemented)', () => {
   })
 
   describe('POST /api/memory/context/:sessionId/:agentId', () => {
-    it('should update agent context with single key-value', async () => {
-      const request = new NextRequest('http://localhost/api/memory/context/session-123/agent-456', {
+    it('updates context with single key-value', async () => {
+      const request = makeRequest('http://localhost/api/memory/context/session-123/agent-456', {
         method: 'POST',
         body: JSON.stringify({ theme: 'dark' }),
       })
-      const params = Promise.resolve({
-        sessionId: 'session-123',
-        agentId: 'agent-456',
-      })
+      const params = Promise.resolve({ sessionId: 'session-123', agentId: 'agent-456' })
 
-      const response = await postAgentContext(request, { params })
+      const response = await postAgentContext(request as never, { params })
       const data = await response.json()
 
       expect(response.status).toBe(200)
@@ -351,79 +350,70 @@ describe('Memory API Routes (Skipped - Routes Not Implemented)', () => {
       expect(data.agentId).toBe('agent-456')
     })
 
-    it('should update agent context with multiple keys', async () => {
-      const request = new NextRequest('http://localhost/api/memory/context/session-123/agent-456', {
+    it('updates context with multiple keys', async () => {
+      const request = makeRequest('http://localhost/api/memory/context/session-123/agent-456', {
         method: 'POST',
         body: JSON.stringify({ theme: 'dark', language: 'en' }),
       })
-      const params = Promise.resolve({
-        sessionId: 'session-123',
-        agentId: 'agent-456',
-      })
+      const params = Promise.resolve({ sessionId: 'session-123', agentId: 'agent-456' })
 
-      const response = await postAgentContext(request, { params })
+      const response = await postAgentContext(request as never, { params })
       const data = await response.json()
 
       expect(response.status).toBe(200)
       expect(data.success).toBe(true)
     })
 
-    it('should return 400 for invalid JSON', async () => {
-      const request = new NextRequest('http://localhost/api/memory/context/session-123/agent-456', {
+    it('returns 400 for invalid JSON', async () => {
+      const request = makeRequest('http://localhost/api/memory/context/session-123/agent-456', {
         method: 'POST',
         body: 'invalid json{',
       })
-      const params = Promise.resolve({
-        sessionId: 'session-123',
-        agentId: 'agent-456',
-      })
+      const params = Promise.resolve({ sessionId: 'session-123', agentId: 'agent-456' })
 
-      const response = await postAgentContext(request, { params })
+      const response = await postAgentContext(request as never, { params })
       const data = await response.json()
 
       expect(response.status).toBe(400)
       expect(data.error).toContain('Invalid JSON')
     })
 
-    it('should return 400 for non-object body', async () => {
-      const request = new NextRequest('http://localhost/api/memory/context/session-123/agent-456', {
+    it('returns 400 for non-object body', async () => {
+      const request = makeRequest('http://localhost/api/memory/context/session-123/agent-456', {
         method: 'POST',
         body: JSON.stringify('not an object'),
       })
-      const params = Promise.resolve({
-        sessionId: 'session-123',
-        agentId: 'agent-456',
-      })
+      const params = Promise.resolve({ sessionId: 'session-123', agentId: 'agent-456' })
 
-      const response = await postAgentContext(request, { params })
+      const response = await postAgentContext(request as never, { params })
       const data = await response.json()
 
       expect(response.status).toBe(400)
       expect(data.error).toContain('must be a JSON object')
     })
 
-    it('should return 400 for invalid sessionId', async () => {
-      const request = new NextRequest('http://localhost/api/memory/context//agent-456', {
+    it('returns 400 for empty sessionId', async () => {
+      const request = makeRequest('http://localhost/api/memory/context//agent-456', {
         method: 'POST',
         body: JSON.stringify({ theme: 'dark' }),
       })
       const params = Promise.resolve({ sessionId: '', agentId: 'agent-456' })
 
-      const response = await postAgentContext(request, { params })
+      const response = await postAgentContext(request as never, { params })
       const data = await response.json()
 
       expect(response.status).toBe(400)
       expect(data.error).toContain('Invalid sessionId')
     })
 
-    it('should return 400 for invalid agentId', async () => {
-      const request = new NextRequest('http://localhost/api/memory/context/session-123/', {
+    it('returns 400 for empty agentId', async () => {
+      const request = makeRequest('http://localhost/api/memory/context/session-123/', {
         method: 'POST',
         body: JSON.stringify({ theme: 'dark' }),
       })
       const params = Promise.resolve({ sessionId: 'session-123', agentId: '' })
 
-      const response = await postAgentContext(request, { params })
+      const response = await postAgentContext(request as never, { params })
       const data = await response.json()
 
       expect(response.status).toBe(400)
@@ -432,64 +422,55 @@ describe('Memory API Routes (Skipped - Routes Not Implemented)', () => {
   })
 
   describe('DELETE /api/memory/context/:sessionId/:agentId', () => {
-    it('should remove context key', async () => {
-      const request = new NextRequest('http://localhost/api/memory/context/session-123/agent-456', {
+    it('removes a context key', async () => {
+      const request = makeRequest('http://localhost/api/memory/context/session-123/agent-456', {
         method: 'DELETE',
         body: JSON.stringify({ key: 'theme' }),
       })
-      const params = Promise.resolve({
-        sessionId: 'session-123',
-        agentId: 'agent-456',
-      })
+      const params = Promise.resolve({ sessionId: 'session-123', agentId: 'agent-456' })
 
-      const response = await deleteAgentContext(request, { params })
+      const response = await deleteAgentContext(request as never, { params })
       const data = await response.json()
 
       expect(response.status).toBe(200)
       expect(data.success).toBe(true)
     })
 
-    it('should return 400 for missing key', async () => {
-      const request = new NextRequest('http://localhost/api/memory/context/session-123/agent-456', {
+    it('returns 400 for missing key', async () => {
+      const request = makeRequest('http://localhost/api/memory/context/session-123/agent-456', {
         method: 'DELETE',
         body: JSON.stringify({}),
       })
-      const params = Promise.resolve({
-        sessionId: 'session-123',
-        agentId: 'agent-456',
-      })
+      const params = Promise.resolve({ sessionId: 'session-123', agentId: 'agent-456' })
 
-      const response = await deleteAgentContext(request, { params })
+      const response = await deleteAgentContext(request as never, { params })
       const data = await response.json()
 
       expect(response.status).toBe(400)
       expect(data.error).toContain('Missing or invalid key')
     })
 
-    it('should handle missing body gracefully', async () => {
-      const request = new NextRequest('http://localhost/api/memory/context/session-123/agent-456', {
+    it('returns 400 when body is absent', async () => {
+      const request = makeRequest('http://localhost/api/memory/context/session-123/agent-456', {
         method: 'DELETE',
       })
-      const params = Promise.resolve({
-        sessionId: 'session-123',
-        agentId: 'agent-456',
-      })
+      const params = Promise.resolve({ sessionId: 'session-123', agentId: 'agent-456' })
 
-      const response = await deleteAgentContext(request, { params })
+      const response = await deleteAgentContext(request as never, { params })
       const data = await response.json()
 
       expect(response.status).toBe(400)
       expect(data.error).toContain('Missing or invalid key')
     })
 
-    it('should return 400 for invalid sessionId', async () => {
-      const request = new NextRequest('http://localhost/api/memory/context//agent-456', {
+    it('returns 400 for empty sessionId', async () => {
+      const request = makeRequest('http://localhost/api/memory/context//agent-456', {
         method: 'DELETE',
         body: JSON.stringify({ key: 'theme' }),
       })
       const params = Promise.resolve({ sessionId: '', agentId: 'agent-456' })
 
-      const response = await deleteAgentContext(request, { params })
+      const response = await deleteAgentContext(request as never, { params })
       const data = await response.json()
 
       expect(response.status).toBe(400)
@@ -497,4 +478,3 @@ describe('Memory API Routes (Skipped - Routes Not Implemented)', () => {
     })
   })
 })
-*/

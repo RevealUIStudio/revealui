@@ -1,3 +1,13 @@
+# =============================================================================
+# RevealUI Docker Compose — Local Development Stack
+# =============================================================================
+# Status: Work-in-progress. Production deploys use Vercel (see vercel.json in each app).
+# This compose file is for local self-hosted development and testing.
+#
+# Missing Dockerfiles: Only Dockerfile.base and Dockerfile.cms exist currently.
+# The mainframe, grafana provisioning, and conf.d directories are not yet created.
+# =============================================================================
+
 version: '3.9'
 
 services:
@@ -101,37 +111,25 @@ services:
       - revealui-network
     restart: unless-stopped
 
-  # Dashboard Application
-  dashboard:
-    build:
-      context: .
-      dockerfile: infrastructure/docker/Dockerfile.dashboard
-      target: runner
-    container_name: revealui-dashboard
-    environment:
-      NODE_ENV: ${NODE_ENV:-production}
-      DATABASE_URL: postgresql://${POSTGRES_USER:-postgres}:${POSTGRES_PASSWORD:-postgres}@postgres:5432/${POSTGRES_DB:-revealui}
-      REDIS_URL: redis://:${REDIS_PASSWORD:-redis}@redis:6379
-      JWT_SECRET: ${JWT_SECRET:-change-this-secret}
-      API_URL: ${API_URL:-http://cms:3000}
-    ports:
-      - "${DASHBOARD_PORT:-3001}:3001"
-    depends_on:
-      postgres:
-        condition: service_healthy
-      redis:
-        condition: service_healthy
-      cms:
-        condition: service_healthy
-    healthcheck:
-      test: ["CMD", "node", "-e", "require('http').get('http://localhost:3001/api/health', (r) => {process.exit(r.statusCode === 200 ? 0 : 1)})"]
-      interval: 30s
-      timeout: 10s
-      retries: 3
-      start_period: 40s
-    networks:
-      - revealui-network
-    restart: unless-stopped
+  # Mainframe Application (Hono SSR + React demo/showcase)
+  # NOTE: Dockerfile.mainframe does not exist yet — create before using.
+  # mainframe:
+  #   build:
+  #     context: .
+  #     dockerfile: infrastructure/docker/Dockerfile.mainframe
+  #     target: runner
+  #   container_name: revealui-mainframe
+  #   environment:
+  #     NODE_ENV: ${NODE_ENV:-production}
+  #     API_URL: ${API_URL:-http://cms:3000}
+  #   ports:
+  #     - "${MAINFRAME_PORT:-3001}:3001"
+  #   depends_on:
+  #     cms:
+  #       condition: service_healthy
+  #   networks:
+  #     - revealui-network
+  #   restart: unless-stopped
 
   # Nginx Reverse Proxy
   nginx:
@@ -145,7 +143,6 @@ services:
       - "${NGINX_HTTPS_PORT:-443}:443"
     depends_on:
       - cms
-      - dashboard
     healthcheck:
       test: ["CMD", "wget", "--quiet", "--tries=1", "--spider", "http://localhost/health"]
       interval: 30s
