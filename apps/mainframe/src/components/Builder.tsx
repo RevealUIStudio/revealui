@@ -1,6 +1,5 @@
 'use client'
 
-import { logger } from '@revealui/core/utils/logger'
 import type { JSX } from 'react'
 import { useState } from 'react'
 
@@ -183,17 +182,6 @@ export function Builder(): JSX.Element {
     URL.revokeObjectURL(url)
   }
 
-  const deployToVercel = () => {
-    // NOTE: This is an experimental/prototype feature
-    // For production, implement actual Vercel API integration
-    logger.warn('Deploy functionality is not yet implemented. This is a prototype feature.')
-    // TODO: Implement Vercel API integration
-    // - Authenticate with Vercel
-    // - Create project
-    // - Deploy components
-    // - Return deployment URL
-  }
-
   const selectedComp =
     components.find((c) => c.id === selectedComponent) ||
     components.flatMap((c) => c.children || []).find((c) => c.id === selectedComponent)
@@ -252,12 +240,11 @@ export function Builder(): JSX.Element {
           </button>
           <button
             type="button"
-            onClick={() => {
-              deployToVercel()
-            }}
-            className="w-full btn bg-orange-600 hover:bg-orange-700 text-lg font-semibold"
+            disabled
+            title="Vercel deployment coming soon"
+            className="w-full btn bg-orange-600/40 text-lg font-semibold cursor-not-allowed opacity-60"
           >
-            🚀 Deploy to Vercel
+            🚀 Deploy to Vercel (coming soon)
           </button>
         </div>
       </div>
