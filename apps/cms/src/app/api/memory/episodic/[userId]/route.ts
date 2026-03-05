@@ -55,7 +55,9 @@ export async function GET(
       accessCount: memory.getAccessCount(),
     })
   } catch (error) {
-    logger.error('Error getting episodic memory', { error, userId })
+    logger.error('Error getting episodic memory', error instanceof Error ? error : undefined, {
+      userId,
+    })
     return createErrorResponse(error, {
       endpoint: '/api/memory/episodic/:userId',
       operation: 'episodic_memory_get',
@@ -132,7 +134,9 @@ export async function POST(
       memoryId: memoryData.id,
     })
   } catch (error) {
-    logger.error('Error adding episodic memory', { error, userId })
+    logger.error('Error adding episodic memory', error instanceof Error ? error : undefined, {
+      userId,
+    })
     return createErrorResponse(error, {
       endpoint: '/api/memory/episodic/:userId',
       operation: 'episodic_memory_post',

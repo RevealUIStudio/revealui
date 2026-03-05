@@ -96,7 +96,7 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
       query: query.substring(0, 100), // Return truncated query for debugging
     })
   } catch (error) {
-    logger.error('Error in text-based memory search', { error })
+    logger.error('Error in text-based memory search', error instanceof Error ? error : undefined)
     return createErrorResponse(error, {
       endpoint: '/api/memory/search-text',
       operation: 'memory_search_text',
