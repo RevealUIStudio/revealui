@@ -85,6 +85,10 @@
       "types": "./dist/schema/vector.d.ts",
       "import": "./dist/schema/vector.js"
     },
+    "./schema/rag": {
+      "types": "./dist/schema/rag.d.ts",
+      "import": "./dist/schema/rag.js"
+    },
     "./generated/zod-schemas": {
       "types": "./dist/generated/zod-schemas.d.ts",
       "import": "./dist/generated/zod-schemas.js"
