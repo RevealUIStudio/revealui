@@ -772,3 +772,222 @@ All MCP servers are **completely free**:
 
 **Last Updated:** January 2025
 **Maintained by:** RevealUI Team
+
+---
+
+# BYOK — Bring Your Own Key
+
+Use your own LLM API keys with RevealUI Pro. Keys are stored encrypted per-user and swapped in automatically at inference time.
+
+## Overview
+
+BYOK lets each user (or tenant) supply their own API keys for LLM providers. RevealUI stores them encrypted with AES-256-GCM envelope encryption.
+
+**Supported providers:**
+- GROQ
+- OpenAI (via user-supplied key only — not used for RevealUI-side inference)
+- Anthropic (via user-supplied key only)
+- Any OpenAI-compatible endpoint
+
+## How it works
+
+1. User provides their API key via the API or CMS settings UI
+2. RevealUI encrypts the key with a per-user data key (AES-256-GCM)
+3. The data key is wrapped with a master key stored in `BYOK_MASTER_KEY`
+4. At inference time, `createLLMClientForUser()` decrypts and uses the key
+
+## API endpoints
+
+### Store a key
+
+```http
+POST /api/user/api-keys
+Authorization: Bearer <session-token>
+Content-Type: application/json
+
+{
+  "provider": "groq",
+  "apiKey": "gsk_...",
+  "label": "My GROQ key"
+}
+```
+
+### List keys (masked)
+
+```http
+GET /api/user/api-keys
+Authorization: Bearer <session-token>
+```
+
+Returns keys with the value masked: `gsk_****...****`.
+
+### Delete a key
+
+```http
+DELETE /api/user/api-keys/:id
+Authorization: Bearer <session-token>
+```
+
+### Rotate a key
+
+```http
+PUT /api/user/api-keys/:id/rotate
+Authorization: Bearer <session-token>
+Content-Type: application/json
+
+{ "apiKey": "gsk_new_key_here" }
+```
+
+## Server-side usage
+
+```typescript
+import { createLLMClientForUser } from '@revealui/ai/byok'
+import { db } from '@revealui/db'
+
+// Automatically uses the user's stored key for their preferred provider.
+// Falls back to the server's default provider if no user key is configured.
+const llm = await createLLMClientForUser(userId, db)
+
+const response = await llm.chat([
+  { role: 'user', content: 'Hello!' },
+])
+```
+
+## Environment configuration
+
+```bash
+# Required for BYOK to work
+BYOK_MASTER_KEY=<32-byte hex key>   # openssl rand -hex 32
+
+# Optional: default provider when no user key exists
+DEFAULT_LLM_PROVIDER=groq
+GROQ_API_KEY=gsk_...
+```
+
+## Security notes
+
+- Keys are never stored in plaintext
+- Master key rotation re-encrypts all user data keys
+- Keys are never returned in full via the API
+- Rate limiting applies to key verification endpoints
+- Admin-level access cannot read user keys — only re-wrap them during rotation
+
+## Tenant-level keys
+
+For multi-tenant deployments, you can also configure provider keys at the tenant level:
+
+```typescript
+import { createLLMClientForTenant } from '@revealui/ai/byok'
+
+const llm = await createLLMClientForTenant(tenantId, db)
+```
+
+User keys take precedence over tenant keys; tenant keys take precedence over server defaults.
+
+---
+
+# @revealui/editors
+
+Editor daemon and adapter integrations for Zed, VS Code, and Neovim. Brings RevealUI AI capabilities directly into your editor workflow.
+
+## Overview
+
+`@revealui/editors` runs a local daemon that connects your editor to the RevealUI agent system:
+
+- **Zed** — ACP (Agent Control Protocol) integration
+- **VS Code** — Language server extension
+- **Neovim** — Lua plugin via JSON-RPC
+
+## Installation
+
+Requires a RevealUI Pro license.
+
+```bash
+pnpm add -g @revealui/editors
+```
+
+## Starting the daemon
+
+```bash
+revealui-editor-daemon --port 3030
+```
+
+Or add to your shell profile for automatic startup:
+
+```bash
+# ~/.bashrc or ~/.zshrc
+revealui-editor-daemon --port 3030 &
+```
+
+## Zed integration
+
+The Zed adapter connects via ACP (Agent Control Protocol).
+
+```json
+// ~/.config/zed/settings.json
+{
+  "assistant": {
+    "version": "2",
+    "provider": {
+      "name": "revealui",
+      "endpoint": "http://localhost:3030"
+    }
+  }
+}
+```
+
+## VS Code integration
+
+Install the RevealUI extension from the marketplace, or manually:
+
+```bash
+code --install-extension revealui.revealui-vscode
+```
+
+Configure in VS Code settings:
+
+```json
+{
+  "revealui.daemon.endpoint": "http://localhost:3030",
+  "revealui.agent.model": "groq/llama-3.3-70b-versatile"
+}
+```
+
+## Neovim integration
+
+```lua
+-- init.lua
+require('revealui').setup({
+  endpoint = 'http://localhost:3030',
+  keymaps = {
+    chat = '<leader>ai',
+    complete = '<C-space>',
+  },
+})
+```
+
+## Daemon configuration
+
+```typescript
+// revealui.config.ts
+import { defineEditorConfig } from '@revealui/editors'
+
+export default defineEditorConfig({
+  daemon: {
+    port: 3030,
+    logLevel: 'info',
+  },
+  agent: {
+    provider: 'groq',
+    model: 'llama-3.3-70b-versatile',
+    systemPrompt: 'You are a helpful coding assistant working in this codebase.',
+  },
+  workboard: {
+    path: '.claude/workboard.md',
+  },
+})
+```
+
+## Workboard coordination
+
+The editor daemon reads and writes the agent workboard, allowing multiple editor instances to coordinate on shared work. See [coordination rules](/pro) for details.

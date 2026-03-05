@@ -1,1897 +1,2547 @@
-# Testing Guide for RevealUI Framework
+# Testing Guide
 
-## Overview
-
-This comprehensive testing guide covers all aspects of testing for the RevealUI Framework, including unit and integration testing, load testing, penetration testing, and verification procedures. The goal is to ensure the system is secure, performant, and reliable before production deployment.
-
----
+Comprehensive guide to testing in the RevealUI monorepo.
 
 ## Table of Contents
 
-1. [Testing Strategy](#testing-strategy)
-2. [Testing Infrastructure](#testing-infrastructure)
-3. [Test Coverage Requirements](#test-coverage-requirements)
-4. [Unit and Integration Testing](#unit-and-integration-testing)
-5. [End-to-End Testing](#end-to-end-testing)
-6. [Load Testing](#load-testing)
-7. [Penetration Testing](#penetration-testing)
-8. [Verification Procedures](#verification-procedures)
-9. [Tools and Frameworks](#tools-and-frameworks)
-10. [Best Practices](#best-practices)
+- [Overview](#overview)
+- [Test Infrastructure](#test-infrastructure)
+- [Running Tests](#running-tests)
+- [Test Utilities](#test-utilities)
+- [Test Fixtures](#test-fixtures)
+- [Writing Tests](#writing-tests)
+- [Coverage](#coverage)
+- [CI/CD](#cicd)
+- [Best Practices](#best-practices)
 
----
+## Overview
 
-## Testing Strategy
+RevealUI uses **Vitest** as the primary testing framework across all packages and applications. This provides a fast, modern testing experience with built-in TypeScript support.
 
-### Testing Infrastructure
+### Current Test Coverage
 
-**Tools & Frameworks:**
-- **Unit/Integration Testing**: Vitest
-- **E2E Testing**: Playwright
-- **Coverage Reporting**: @vitest/coverage-v8
-- **Testing Library**: @testing-library/react
-- **Load Testing**: k6, Artillery
-- **Security Testing**: OWASP ZAP, Nuclei, Burp Suite
+- **Total Tests:** 130+
+- **Coverage:** ~70%
+- **Test Types:**
+  - Unit Tests: 70+
+  - Integration Tests: 50+
+  - Component Tests: 10+
+  - E2E Tests: Planned
 
-**Test Locations:**
-```
-apps/cms/src/__tests__/          # CMS unit/integration tests
-apps/mainframe/src/__tests__/           # Web app unit/integration tests
-packages/test/src/                # Shared test utilities and E2E tests
-packages/test/load-tests/         # Load testing scripts
-```
+## Test Infrastructure
 
----
+### Test Utilities (`packages/core/src/__tests__/utils/test-helpers.ts`)
 
-## Test Coverage Requirements
+Reusable test utilities for common testing patterns:
 
-### Priority 1: Critical Security Paths
-
-1. **Authentication & Authorization**
-   - [x] Health check endpoint
-   - [ ] User login flow
-   - [ ] User logout and JWT invalidation
-   - [ ] Session management
-   - [ ] Password validation
-   - [ ] Multi-tenant isolation
-
-2. **Access Control**
-   - [ ] Role-based access control (RBAC)
-   - [ ] User-level permissions
-   - [ ] Tenant-level permissions
-   - [ ] Collection-level access rules
-
-3. **Payment Processing**
-   - [ ] Stripe webhook signature verification
-   - [ ] Payment intent creation
-   - [ ] Checkout session handling
-   - [ ] Subscription management
-
-### Priority 2: Core Functionality
-
-4. **Form Submissions**
-   - [x] Form data validation (Zod schemas)
-   - [ ] Form submission endpoint
-   - [ ] Error handling
-
-5. **API Endpoints**
-   - [x] Health check endpoint
-   - [ ] Custom API routes
-   - [ ] CORS handling
-   - [ ] Rate limiting (when implemented)
-
-6. **Data Validation**
-   - [x] Email validation
-   - [x] Password strength validation
-   - [x] URL validation
-   - [x] Slug validation
-
-### Priority 3: Performance & Reliability
-
-7. **Load Testing**
-   - [ ] Authentication endpoints under load
-   - [ ] API endpoint response times
-   - [ ] Database query performance
-   - [ ] Concurrent user handling
-
-8. **Security Testing**
-   - [ ] Penetration testing
-   - [ ] SQL injection prevention
-   - [ ] XSS prevention
-   - [ ] CSRF protection
-
----
-
-## Unit and Integration Testing
-
-### Test Structure
-
-**Unit Tests Example:**
 ```typescript
-// Example: apps/cms/src/__tests__/validation.test.ts
-import { describe, it, expect } from "vitest"
-import { emailSchema, passwordSchema } from "../lib/validation/schemas"
+import {
+  waitFor,
+  sleep,
+  mockDate,
+  createMockContext,
+  createMockRequest,
+  createTimestampedSpy,
+  mockConsole,
+  createDeferred,
+  withTimeout,
+  retry,
+  createMockError,
+  createMockDbError,
+  assertDefined,
+  range,
+  shuffle,
+} from '@revealui/core/__tests__/utils/test-helpers'
+```
 
-describe("Email Validation", () => {
-  it("should accept valid email addresses", () => {
-    const result = emailSchema.safeParse("user@example.com")
-    expect(result.success).toBe(true)
-  })
+**Key Utilities:**
 
-  it("should reject invalid email addresses", () => {
-    const result = emailSchema.safeParse("invalid-email")
-    expect(result.success).toBe(false)
-  })
+#### waitFor - Wait for async conditions
+```typescript
+await waitFor(() => value === true, { timeout: 5000 })
+```
+
+#### mockDate - Mock Date for time-based tests
+```typescript
+const restore = mockDate('2024-01-01')
+// Tests run with fixed date
+restore() // Cleanup
+```
+
+#### createMockContext - Create request context for tests
+```typescript
+const context = createMockContext({
+  userId: 'test-user',
+  path: '/api/test',
 })
 ```
 
-**Integration Tests Example:**
+#### mockConsole - Capture console output
 ```typescript
-// Example: Test authentication flow
-describe("Authentication Integration", () => {
-  it("should login and receive valid JWT", async () => {
-    // Test implementation
-  })
-
-  it("should invalidate JWT on logout", async () => {
-    // Test implementation
-  })
-})
+const mock = mockConsole()
+console.log('test')
+expect(mock.log).toContain('test')
+mock.restore()
 ```
 
-### Testing Patterns
+### Test Fixtures (`packages/db/__tests__/fixtures/`)
 
-This section provides comprehensive patterns and examples for common testing scenarios.
+Pre-defined test data and factory functions:
 
-#### React Component Testing
-
-**Basic Component Rendering:**
 ```typescript
-import { render, screen } from '@testing-library/react'
-import { Button } from './Button'
-
-it('should render component', () => {
-  render(<Button label="Click me" onClick={() => {}} />)
-  expect(screen.getByRole('button')).toBeInTheDocument()
-})
+import {
+  userFixtures,
+  createUserFixture,
+  createUsersFixture,
+  postFixtures,
+  createPostFixture,
+  createPostsFixture,
+  resetAllCounters,
+} from '@revealui/db/__tests__/fixtures'
 ```
 
-**User Interactions:**
+**Predefined Fixtures:**
+
 ```typescript
-import userEvent from '@testing-library/user-event'
+// Users
+userFixtures.admin    // Admin user with email verified
+userFixtures.user     // Regular user
+userFixtures.guest    // Guest user (unverified)
+userFixtures.premium  // Premium user with image
 
-it('should handle click events', async () => {
-  const user = userEvent.setup()
-  const handleClick = vi.fn()
-
-  render(<Button label="Click me" onClick={handleClick} />)
-  await user.click(screen.getByRole('button'))
-
-  expect(handleClick).toHaveBeenCalled()
-})
+// Posts
+postFixtures.published // Published post
+postFixtures.draft     // Draft post
+postFixtures.archived  // Archived post
+postFixtures.featured  // Featured post with image
 ```
 
-**Async State Updates:**
+**Factory Functions:**
+
 ```typescript
-import { waitFor } from '@testing-library/react'
+// Create unique users
+const user1 = createUserFixture()
+const user2 = createUserFixture({ role: 'admin' })
 
-it('should handle async updates', async () => {
-  render(<AsyncComponent />)
+// Create multiple
+const users = createUsersFixture(5, { role: 'user' })
 
-  await waitFor(() => {
-    expect(screen.getByText('Loaded')).toBeInTheDocument()
-  })
-})
+// Create posts for author
+const posts = createPostsForAuthor('author-123', 10)
+
+// Reset counters between tests
+beforeEach(() => resetAllCounters())
 ```
 
-#### API Route Testing
+### Test Database Setup (`packages/db/__tests__/setup.ts`)
 
-**GET Requests:**
+Database utilities for integration tests:
+
 ```typescript
-import { NextRequest } from 'next/server'
-import { GET } from './route'
-
-it('should handle GET requests', async () => {
-  const request = new NextRequest('http://localhost:3000/api/test')
-  const response = await GET(request)
-  const data = await response.json()
-
-  expect(response.status).toBe(200)
-  expect(data).toBeDefined()
-})
+import {
+  setupTestDatabase,
+  teardownTestDatabase,
+  resetTestDatabase,
+  seedTestDatabase,
+  withTestTransaction,
+} from '@revealui/db/__tests__/setup'
 ```
 
-**POST Requests with Body:**
+**Usage:**
+
 ```typescript
-it('should handle POST requests', async () => {
-  const body = { name: 'Test' }
-  const request = new NextRequest('http://localhost:3000/api/test', {
-    method: 'POST',
-    body: JSON.stringify(body),
-  })
-
-  const response = await POST(request)
-  expect(response.status).toBe(200)
-})
-```
-
-#### Database Query Testing
-
-**Query Execution:**
-```typescript
-import { setupTestDatabase, teardownTestDatabase } from '../utils/test-database'
-
-let db: DatabaseAdapter
-
-beforeEach(async () => {
-  db = await setupTestDatabase()
+// In test setup
+beforeAll(async () => {
+  await setupTestDatabase()
 })
 
-afterEach(async () => {
+afterAll(async () => {
   await teardownTestDatabase()
 })
 
-it('should execute queries', async () => {
-  const result = await db.query('SELECT * FROM users')
-  expect(result.rows).toBeDefined()
+// Between tests
+beforeEach(async () => {
+  await resetTestDatabase()
+})
+
+// Seed data
+await seedTestDatabase({
+  users: [userFixtures.admin, userFixtures.user],
+  posts: [postFixtures.published],
+})
+
+// Run in transaction (auto-rollback)
+await withTestTransaction(async () => {
+  // Test code that modifies database
+  // Automatically rolled back after test
 })
 ```
-
-**Transactions:**
-```typescript
-it('should handle transactions', async () => {
-  await db.transaction(async () => {
-    await db.query('INSERT INTO users (id, email) VALUES (?, ?)', ['1', 'test@example.com'])
-  })
-
-  const result = await db.query('SELECT * FROM users WHERE id = ?', ['1'])
-  expect(result.rows).toHaveLength(1)
-})
-```
-
-#### Authentication Testing
-
-**Login Flow:**
-```typescript
-import { getTestRevealUI } from '../utils/integration-helpers'
-
-it('should complete login flow', async () => {
-  const revealui = await getTestRevealUI()
-
-  const loginResult = await revealui.login({
-    collection: 'users',
-    data: { email: 'test@example.com', password: 'password' },
-  })
-
-  expect(loginResult.token).toBeDefined()
-  expect(loginResult.user).toBeDefined()
-})
-```
-
-**JWT Validation:**
-```typescript
-it('should validate JWT token', async () => {
-  const loginResult = await revealui.login({ ... })
-
-  // Use token for authenticated requests
-  const req = { user: loginResult.user } as any
-  const result = await revealui.find({ collection: 'users', req })
-
-  expect(result.docs).toBeDefined()
-})
-```
-
-#### Payment Testing
-
-**Stripe Integration:**
-```typescript
-// Requires Stripe test keys
-it('should create payment intent', async () => {
-  const paymentIntent = await stripe.paymentIntents.create({
-    amount: 1000,
-    currency: 'usd',
-  })
-
-  expect(paymentIntent.id).toBeDefined()
-})
-```
-
-**Webhook Handling:**
-```typescript
-it('should verify webhook signature', async () => {
-  const event = stripe.webhooks.constructEvent(
-    payload,
-    signature,
-    webhookSecret
-  )
-
-  expect(event.type).toBe('payment_intent.succeeded')
-})
-```
-
-#### Multi-Tenant Testing
-
-**Tenant Isolation:**
-```typescript
-it('should isolate data by tenant', async () => {
-  const user1 = await revealui.create({
-    collection: 'users',
-    data: {
-      email: 'user1@example.com',
-      tenants: [{ tenant: 1 }],
-    },
-  })
-
-  const user2 = await revealui.create({
-    collection: 'users',
-    data: {
-      email: 'user2@example.com',
-      tenants: [{ tenant: 2 }],
-    },
-  })
-
-  // Verify isolation
-  expect(user1.tenants[0].tenant).toBe(1)
-  expect(user2.tenants[0].tenant).toBe(2)
-})
-```
-
-**Cross-Tenant Access Prevention:**
-```typescript
-it('should prevent cross-tenant access', async () => {
-  const req = {
-    user: { tenants: [{ tenant: 2 }] },
-    tenant: { id: 2 },
-  } as any
-
-  // Should not return tenant 1 data
-  const results = await revealui.find({
-    collection: 'users',
-    where: { tenant: { equals: 1 } },
-    req,
-  })
-
-  expect(results.docs.length).toBe(0)
-})
-```
-
-#### Pattern Best Practices
-
-1. **Use Test Fixtures:**
-   ```typescript
-   import { createTestUser } from '../fixtures/users'
-
-   const user = createTestUser({ role: 'admin' })
-   ```
-
-2. **Clean Up Test Data:**
-   ```typescript
-   afterEach(async () => {
-     await cleanupTestData()
-   })
-   ```
-
-3. **Use Page Objects for E2E Tests:**
-   ```typescript
-   import { LoginPage } from '../e2e/page-objects/LoginPage'
-
-   const loginPage = new LoginPage(page)
-   await loginPage.login(email, password)
-   ```
-
-4. **Isolate Tests:**
-   ```typescript
-   const context = await setupTestIsolation(page)
-   // ... test code ...
-   await cleanupTestData(context, page)
-   ```
-
-5. **Mock External Services:**
-   ```typescript
-   import { createMockDatabase } from '../mocks/database'
-
-   const mockDb = createMockDatabase()
-   ```
-
-#### Common Pitfalls to Avoid
-
-1. **Not Cleaning Up Test Data**: Tests interfere with each other due to leftover data
-   - **Solution**: Always clean up test data in `afterEach` or `afterAll`
-
-2. **Hardcoded Test Data**: Tests break when data changes
-   - **Solution**: Use fixtures and factories to generate test data
-
-3. **Fragile Selectors in E2E Tests**: Tests break when UI changes
-   - **Solution**: Use page objects with robust selectors and fallbacks
-
-4. **Not Isolating Tests**: Tests depend on execution order
-   - **Solution**: Use test isolation utilities and unique test IDs
-
-5. **Missing Error Handling**: Tests fail with unclear errors
-   - **Solution**: Add proper error handling and meaningful error messages
-
-#### Test Templates
-
-**Unit Test Template:**
-```typescript
-import { describe, it, expect } from 'vitest'
-
-describe('FeatureName', () => {
-  it('should do something', () => {
-    // Arrange
-    const input = 'test'
-
-    // Act
-    const result = functionToTest(input)
-
-    // Assert
-    expect(result).toBe('expected')
-  })
-})
-```
-
-**Integration Test Template:**
-```typescript
-import { describe, it, expect, beforeAll, afterAll } from 'vitest'
-import { getTestRevealUI, trackTestData } from '../utils/integration-helpers'
-
-describe('Feature Integration', () => {
-  let revealui: RevealUIInstance
-
-  beforeAll(async () => {
-    revealui = await getTestRevealUI()
-  })
-
-  afterAll(async () => {
-    await cleanupTestData()
-  })
-
-  it('should test feature', async () => {
-    // Test implementation
-  })
-})
-```
-
-**E2E Test Template:**
-```typescript
-import { test, expect } from '@playwright/test'
-import { LoginPage } from './page-objects/LoginPage'
-import { setupTestIsolation, cleanupTestData } from './utils/test-isolation'
-
-test('feature test', async ({ page }) => {
-  const context = await setupTestIsolation(page)
-
-  try {
-    const loginPage = new LoginPage(page)
-    await loginPage.login(email, password)
-
-    // Test implementation
-  } finally {
-    await cleanupTestData(context, page)
-  }
-})
-```
-
-### Integration Tests for Development Package
-
-**Location**: `packages/dev/src/__tests__/integration/configs.integration.test.ts`
-
-#### What These Tests Cover
-
-1. **Tailwind Config**
-   - Config can be imported
-   - `createTailwindConfig` helper works
-   - Configs have correct structure (content, plugins, theme)
-   - Deep merging of theme.extend works correctly
-
-2. **PostCSS Config**
-   - Config can be imported
-   - Required plugins are present
-
-3. **Vite Config**
-   - Config can be imported
-   - Build configuration is present
-   - Resolve aliases are configured
-
-4. **ESLint Config**
-   - Config can be imported
-   - Proper config structure (array format)
-
-5. **Biome Config**
-   - Config can be imported
-   - Formatter configuration is present
-
-6. **TypeScript Configs**
-   - JSON config files exist (base.json, nextjs.json, revealui.json)
-
-7. **App Config Integration**
-   - All main exports are accessible
-   - Configs can be used in app context
-
-#### Running Integration Tests
-
-```bash
-# Run all tests
-pnpm --filter dev test
-
-# Run in watch mode
-pnpm --filter dev test:watch
-
-# Run integration tests only
-pnpm --filter dev test:integration
-
-# Run with UI
-pnpm --filter dev test:ui
-```
-
-#### Verification Script
-
-**Location**: `scripts/validation/verify-dev-package-imports.ts`
-
-Automatically verifies that all config files use correct `dev/...` import paths and don't have:
-- Relative paths to `packages/dev/src/...`
-- Incorrect package names (`@revealui/dev/...`)
-- Legacy path mappings
-
-**Running Verification:**
-```bash
-# From root
-pnpm verify:dev-imports
-
-# From dev package
-pnpm --filter dev verify:imports
-```
-
-**Benefits:**
-- Prevents import path regressions
-- Automated verification in CI/CD
-- Fast feedback for developers
-- Comprehensive coverage of all config types
-
-### Test Data Management
-
-**Test Database:**
-- Use separate test database (configure via `DATABASE_URL_TEST`)
-- Seed with minimal required data
-- Reset between test runs
-
-**Test Users:**
-```typescript
-// Test user credentials (for testing only)
-const TEST_USERS = {
-  superAdmin: {
-    email: "test-superadmin@example.com",
-    password: "Test1234!",
-    roles: ["user-super-admin"],
-  },
-  admin: {
-    email: "test-admin@example.com",
-    password: "Test1234!",
-    roles: ["user-admin"],
-  },
-  user: {
-    email: "test-user@example.com",
-    password: "Test1234!",
-    roles: [],
-  },
-}
-```
-
-### Mocking Strategy
-
-**External Services:**
-- **Stripe**: Use Stripe test mode and webhook fixtures
-- **Supabase**: Mock database calls in unit tests, use test DB for integration
-- **External APIs**: Mock HTTP responses
-
-**Example Mock:**
-```typescript
-import { vi } from "vitest"
-
-vi.mock("stripe", () => ({
-  default: vi.fn().mockImplementation(() => ({
-    webhooks: {
-      constructEvent: vi.fn().mockReturnValue({
-        type: "payment_intent.succeeded",
-        data: { object: {} },
-      }),
-    },
-  })),
-}))
-```
-
-### Coverage Goals
-
-**Minimum Coverage Targets:**
-- **Statements**: 70%
-- **Branches**: 60%
-- **Functions**: 70%
-- **Lines**: 70%
-
-**Critical Path Coverage:**
-- Authentication/Authorization: **90%+**
-- Payment Processing: **90%+**
-- Access Control: **85%+**
-- Data Validation: **95%+**
-
----
-
-## End-to-End Testing
-
-### E2E Test Example
-
-```typescript
-// Example: packages/test/src/e2e/auth.spec.ts
-import { test, expect } from "@playwright/test"
-
-test("user can login to admin panel", async ({ page }) => {
-  await page.goto("http://localhost:4000/admin")
-  await page.fill('input[name="email"]', "admin@example.com")
-  await page.fill('input[name="password"]', "password")
-  await page.click('button[type="submit"]')
-  await expect(page).toHaveURL(/.*admin/)
-})
-```
-
----
-
-## Load Testing
-
-→ **For comprehensive performance testing, see [PERFORMANCE.md](./PERFORMANCE.md)** - Complete performance testing strategy, budgets, metrics, optimization recommendations, and CI/CD integration.
-
-### Quick Load Testing with k6
-
-This section provides quick start examples. For detailed performance testing documentation, see PERFORMANCE.md.
-
-### Load Testing Tools
-
-**Recommended: k6**
-
-**Installation:**
-```bash
-# Windows (via Chocolatey)
-choco install k6
-
-# macOS (via Homebrew)
-brew install k6
-
-# Or download from https://k6.io/
-```
-
-**Alternative: Artillery**
-```bash
-pnpm add -D artillery
-```
-
-### Test Scenarios
-
-#### 1. Authentication Load Test
-
-**Scenario**: Concurrent user logins
-
-```javascript
-// packages/test/load-tests/auth-login.js
-import http from 'k6/http';
-import { check, sleep } from 'k6';
-
-export const options = {
-  stages: [
-    { duration: '30s', target: 10 },   // Ramp up to 10 users
-    { duration: '1m', target: 50 },    // Ramp up to 50 users
-    { duration: '2m', target: 50 },    // Stay at 50 users
-    { duration: '30s', target: 0 },    // Ramp down
-  ],
-  thresholds: {
-    http_req_duration: ['p(95)<2000'], // 95% of requests under 2s
-    http_req_failed: ['rate<0.01'],    // Less than 1% failures
-  },
-};
-
-export default function () {
-  const payload = JSON.stringify({
-    email: 'test-user@example.com',
-    password: 'Test1234!',
-  });
-
-  const params = {
-    headers: {
-      'Content-Type': 'application/json',
-    },
-  };
-
-  const res = http.post(
-    'http://localhost:4000/api/users/login',
-    payload,
-    params
-  );
-
-  check(res, {
-    'status is 200': (r) => r.status === 200,
-    'has JWT token': (r) => JSON.parse(r.body).token !== undefined,
-  });
-
-  sleep(1);
-}
-```
-
-**Run:**
-```bash
-# From packages/test directory
-k6 run load-tests/auth-login.js
-
-# Or using pnpm script from project root
-pnpm --filter test test:load:auth
-```
-
-#### 2. API Endpoint Load Test
-
-**Scenario**: High traffic on public API endpoints
-
-```javascript
-// packages/test/load-tests/api-pages.js
-import http from 'k6/http';
-import { check, sleep } from 'k6';
-
-export const options = {
-  stages: [
-    { duration: '1m', target: 100 },   // Ramp up to 100 users
-    { duration: '3m', target: 100 },   // Stay at 100 users
-    { duration: '1m', target: 200 },   // Spike to 200 users
-    { duration: '2m', target: 200 },   // Stay at 200 users
-    { duration: '1m', target: 0 },     // Ramp down
-  ],
-  thresholds: {
-    http_req_duration: ['p(95)<1000'], // 95% under 1s
-    http_req_failed: ['rate<0.05'],    // Less than 5% failures
-  },
-};
-
-export default function () {
-  const res = http.get('http://localhost:4000/api/pages?limit=10');
-
-  check(res, {
-    'status is 200': (r) => r.status === 200,
-    'has data': (r) => JSON.parse(r.body).docs !== undefined,
-  });
-
-  sleep(Math.random() * 2); // Random sleep 0-2s
-}
-```
-
-#### 3. Payment Flow Load Test
-
-**Scenario**: Concurrent checkout sessions
-
-```javascript
-// packages/test/load-tests/checkout.js
-import http from 'k6/http';
-import { check, sleep } from 'k6';
-
-export const options = {
-  stages: [
-    { duration: '2m', target: 20 },    // Ramp up to 20 concurrent checkouts
-    { duration: '3m', target: 20 },    // Maintain load
-    { duration: '1m', target: 0 },     // Ramp down
-  ],
-  thresholds: {
-    http_req_duration: ['p(95)<3000'], // 95% under 3s (payment APIs slower)
-    http_req_failed: ['rate<0.01'],    // Less than 1% failures
-  },
-};
-
-export default function () {
-  // Login first to get token
-  const loginRes = http.post(
-    'http://localhost:4000/api/users/login',
-    JSON.stringify({
-      email: 'test-user@example.com',
-      password: 'Test1234!',
-    }),
-    { headers: { 'Content-Type': 'application/json' } }
-  );
-
-  const token = JSON.parse(loginRes.body).token;
-
-  // Create checkout session
-  const checkoutRes = http.post(
-    'http://localhost:4000/api/create-checkout-session',
-    JSON.stringify({
-      price: { id: 'price_test_123' },
-      quantity: 1,
-    }),
-    {
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': `Bearer ${token}`,
-      },
-    }
-  );
-
-  check(checkoutRes, {
-    'status is 200': (r) => r.status === 200,
-    'has session ID': (r) => JSON.parse(r.body).sessionId !== undefined,
-  });
-
-  sleep(3);
-}
-```
-
-#### 4. Database Query Load Test
-
-**Scenario**: Heavy read operations
-
-```javascript
-// packages/test/load-tests/database-queries.js
-import http from 'k6/http';
-import { check } from 'k6';
-
-export const options = {
-  vus: 50,                    // 50 virtual users
-  duration: '5m',             // Run for 5 minutes
-  thresholds: {
-    http_req_duration: ['p(95)<500'],   // Database queries should be fast
-    http_req_failed: ['rate<0.01'],
-  },
-};
-
-export default function () {
-  // Test various queries
-  const queries = [
-    '/api/pages?limit=10&sort=-createdAt',
-    '/api/posts?where[status][equals]=published',
-    '/api/products?limit=20',
-    '/api/media?limit=10',
-  ];
-
-  const query = queries[Math.floor(Math.random() * queries.length)];
-  const res = http.get(`http://localhost:4000${query}`);
-
-  check(res, {
-    'status is 200': (r) => r.status === 200,
-  });
-}
-```
-
-### Performance Targets
-
-**Response Time Targets:**
-
-| Endpoint Type | p50 | p95 | p99 |
-|--------------|-----|-----|-----|
-| Health Check | <100ms | <200ms | <500ms |
-| Public APIs | <300ms | <1000ms | <2000ms |
-| Auth Endpoints | <500ms | <1500ms | <3000ms |
-| Payment APIs | <1000ms | <3000ms | <5000ms |
-
-**Throughput Targets:**
-- **Public APIs**: 100+ req/sec
-- **Auth Endpoints**: 10+ req/sec
-- **Webhook Processing**: 50+ req/sec
-
-**Resource Limits:**
-- **CPU**: < 80% under normal load
-- **Memory**: < 70% of available
-- **Database Connections**: < 80% of pool size
-
-### Running Load Tests
-
-**Local Environment:**
-```bash
-# Start application
-pnpm dev
-
-# In another terminal, run load test
-cd packages/test
-k6 run load-tests/auth-login.js
-
-# Or using pnpm script from project root
-pnpm --filter test test:load:auth
-
-# With output to InfluxDB (optional)
-k6 run --out influxdb=http://localhost:8086/k6 load-tests/auth-login.js
-```
-
-**Staging Environment:**
-```bash
-# Update test URLs to staging (from packages/test directory)
-cd packages/test
-k6 run -e BASE_URL=https://staging.your-domain.com load-tests/auth-login.js
-
-# Run all tests
-for test in load-tests/*.js; do
-  k6 run -e BASE_URL=https://staging.your-domain.com "$test"
-done
-```
-
-**Cloud Load Testing:**
-
-Use k6 Cloud for distributed load testing:
-```bash
-# Upload and run in cloud (from packages/test directory)
-cd packages/test
-k6 cloud load-tests/auth-login.js
-```
-
-### Analyzing Load Test Results
-
-**Key Metrics:**
-
-1. **Response Time Distribution**
-   - Review p50, p95, p99 percentiles
-   - Identify slow endpoints
-
-2. **Error Rate**
-   - Acceptable: < 1% error rate
-   - Investigate any 5xx errors
-
-3. **Throughput**
-   - Requests per second
-   - Data transferred
-
-4. **Virtual User Performance**
-   - How many concurrent users can system handle?
-   - At what point does performance degrade?
-
-**k6 Output Example:**
-```
-     ✓ status is 200
-     ✓ has JWT token
-
-     checks.........................: 100.00% ✓ 2000      ✗ 0
-     data_received..................: 1.2 MB  20 kB/s
-     data_sent......................: 500 kB  8.3 kB/s
-     http_req_blocked...............: avg=1.2ms    min=0s       med=0s      max=15ms     p(90)=2ms     p(95)=3ms
-     http_req_duration..............: avg=250ms    min=100ms    med=200ms   max=2s       p(90)=450ms   p(95)=850ms
-     http_req_failed................: 0.00%   ✓ 0         ✗ 1000
-     http_reqs......................: 1000    16.666667/s
-     iteration_duration.............: avg=1.25s    min=1.1s     med=1.2s    max=3s       p(90)=1.45s   p(95)=1.85s
-     iterations.....................: 1000    16.666667/s
-     vus............................: 50      min=10      max=50
-     vus_max........................: 50      min=50      max=50
-```
-
-### Stress Testing
-
-**Purpose**: Find the breaking point of the system.
-
-**Stress Test Configuration:**
-```javascript
-export const options = {
-  stages: [
-    { duration: '2m', target: 100 },    // Normal load
-    { duration: '5m', target: 100 },
-    { duration: '2m', target: 200 },    // 2x normal load
-    { duration: '5m', target: 200 },
-    { duration: '2m', target: 300 },    // 3x normal load
-    { duration: '5m', target: 300 },
-    { duration: '10m', target: 0 },     // Recovery
-  ],
-};
-```
-
-**What to Monitor:**
-
-1. **System Resources**
-   - CPU utilization
-   - Memory usage
-   - Database connections
-   - Network bandwidth
-
-2. **Application Metrics**
-   - Response time degradation
-   - Error rate increase
-   - Queue depths
-   - Database query times
-
-3. **Recovery**
-   - How quickly system recovers after load removed
-   - Any lingering effects
-
-### Soak Testing
-
-**Purpose**: Verify system stability over extended periods.
-
-**Configuration:**
-```javascript
-export const options = {
-  vus: 50,                    // Constant 50 users
-  duration: '4h',             // Run for 4 hours
-};
-```
-
-**What to Look For:**
-- Memory leaks (increasing memory over time)
-- Connection pool exhaustion
-- Gradual performance degradation
-- Resource leak indicators
-
-### Load Test Scenarios
-
-**Scenario 1: Normal Business Day**
-- **Users**: 100-500 concurrent
-- **Duration**: 8 hours
-- **Pattern**: Gradual ramp-up, steady load, evening drop-off
-
-**Scenario 2: Marketing Campaign**
-- **Users**: Spike from 100 to 1000 in 10 minutes
-- **Duration**: 2 hours elevated load
-- **Pattern**: Sudden spike, sustained high load, gradual decrease
-
-**Scenario 3: Black Friday / Flash Sale**
-- **Users**: Spike from 500 to 2000
-- **Duration**: 4 hours
-- **Pattern**: Extreme spike, very high load, checkout heavy
-
-### Continuous Load Testing
-
-**Integration with CI/CD:**
-
-Add to `.github/workflows/performance.yml`:
-```yaml
-name: Performance Testing
-
-on:
-  schedule:
-    - cron: '0 2 * * 0'  # Weekly, Sunday 2 AM
-  workflow_dispatch:
-
-jobs:
-  load-test:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-      - uses: grafana/k6-action@v0.3.1
-        with:
-          filename: packages/test/load-tests/auth-login.js
-          cloud: true
-          token: ${{ secrets.K6_CLOUD_TOKEN }}
-```
-
-### Action Items After Load Testing
-
-1. **Review Results**
-   - Analyze metrics
-   - Identify bottlenecks
-   - Compare against targets
-
-2. **Optimize**
-   - Fix slow queries
-   - Add caching where needed
-   - Optimize resource usage
-
-3. **Document Findings**
-   - Record max capacity
-   - Note any issues discovered
-   - Update infrastructure plans
-
-4. **Retest**
-   - Verify optimizations effective
-   - Confirm system meets targets
-
----
-
-## Penetration Testing
-
-### Important: Testing Ethics & Legal
-
-**ONLY perform penetration testing on:**
-- Your own systems
-- Systems you have explicit written permission to test
-- Non-production environments
-
-**DO NOT:**
-- Test production without approval
-- Perform DoS attacks
-- Access data you're not authorized to view
-- Share vulnerabilities publicly before they're fixed
-
-### Testing Scope
-
-**In-Scope Systems:**
-- CMS Application (`apps/cms`)
-- Web Application (`apps/mainframe`)
-- API Endpoints (`/api/*`)
-- Authentication System
-- Payment Processing
-- Multi-Tenant Isolation
-
-**Out-of-Scope:**
-- Third-party services (Stripe, Supabase, Vercel)
-- Infrastructure provided by cloud vendors
-- Other tenants' data (respect isolation)
-
-### Testing Categories
-
-#### 1. Authentication & Session Management
-
-**Tests to Perform:**
-
-- [ ] **Brute Force Attack**
-  - Attempt multiple login failures
-  - Verify rate limiting kicks in
-  - Check account lockout mechanism
-
-- [ ] **Session Fixation**
-  - Verify session ID changes after login
-  - Verify fix for GHSA-26rv-h2hf-3fw4
-
-- [ ] **JWT Token Security**
-  - Attempt to modify JWT payload
-  - Attempt to use expired token
-  - Verify token invalidated after logout
-  - Check for JWT secrets in error messages
-
-- [ ] **Password Reset**
-  - Test password reset token expiration
-  - Verify reset tokens are single-use
-  - Check for information disclosure
-
-**Tools:**
-- Burp Suite
-- OWASP ZAP
-- Postman/curl
-
-**Example:**
-```bash
-# Test rate limiting
-for i in {1..10}; do
-  curl -X POST http://localhost:4000/api/users/login \
-    -H "Content-Type: application/json" \
-    -d '{"email":"wrong@example.com","password":"wrong"}'
-done
-# Should receive 429 Too Many Requests after 5 attempts
-```
-
-#### 2. Authorization & Access Control
-
-**Tests to Perform:**
-
-- [ ] **Privilege Escalation**
-  - Regular user tries to access admin endpoints
-  - Tenant admin tries to access super admin functions
-  - Verify role checks enforced
-
-- [ ] **Multi-Tenant Isolation**
-  - User from Tenant A tries to access Tenant B's data
-  - Modify URL parameters to access other tenant IDs
-  - Check for tenant ID in JWT claims
-
-- [ ] **IDOR (Insecure Direct Object Reference)**
-  - Access resources by guessing IDs
-  - Modify ID parameters in API calls
-  - Verify proper authorization checks
-
-**Example:**
-```bash
-# Try to access another user's data
-curl http://localhost:4000/api/users/999 \
-  -H "Authorization: JWT <regular-user-token>"
-# Should return 403 Forbidden
-```
-
-#### 3. Input Validation & Injection Attacks
-
-**Tests to Perform:**
-
-- [ ] **SQL Injection**
-  - Test query parameters with SQL payloads
-  - Test form inputs with SQL injection attempts
-  - Verify RevealUI CMS/Drizzle ORM prevents injection
-
-- [ ] **XSS (Cross-Site Scripting)**
-  - Input `<script>alert('XSS')</script>` in form fields
-  - Test rich text editor for script injection
-  - Verify CSP blocks inline scripts
-
-- [ ] **Command Injection**
-  - Test file upload functionality
-  - Test any system command execution
-  - Verify input sanitization
-
-- [ ] **Path Traversal**
-  - Test file access with `../../etc/passwd`
-  - Test media upload paths
-  - Verify filesystem restrictions
-
-**Example Payloads:**
-```javascript
-// SQL Injection
-"' OR '1'='1"
-"1; DROP TABLE users--"
-
-// XSS
-"<script>alert('XSS')</script>"
-"<img src=x onerror=alert('XSS')>"
-
-// Path Traversal
-"../../.env.development.local"
-"../../../etc/passwd"
-```
-
-#### 4. API Security
-
-**Tests to Perform:**
-
-- [ ] **CSRF Protection**
-  - Verify CSRF tokens on state-changing requests
-  - Test cross-origin requests
-  - Check SameSite cookie attributes
-
-- [ ] **CORS Misconfiguration**
-  - Test requests from unauthorized origins
-  - Verify `Access-Control-Allow-Origin` not set to `*`
-  - Check credentials handling
-
-- [ ] **Mass Assignment**
-  - Try to set unexpected fields in POST/PATCH
-  - Attempt to modify protected fields
-  - Verify field-level permissions
-
-- [ ] **API Rate Limiting**
-  - Verify rate limits on all endpoints
-  - Test different attack patterns
-  - Check rate limit bypass techniques
-
-**Example:**
-```bash
-# Test CORS from unauthorized origin
-curl http://localhost:4000/api/pages \
-  -H "Origin: https://malicious-site.com" \
-  -v
-# Should not include Access-Control-Allow-Origin header
-```
-
-#### 5. Payment Security
-
-**Tests to Perform:**
-
-- [ ] **Webhook Signature Bypass**
-  - Send webhook without signature
-  - Send webhook with invalid signature
-  - Attempt to replay old webhooks
-
-- [ ] **Price Manipulation**
-  - Modify price in checkout request
-  - Verify prices fetched from Stripe, not client
-  - Check for price validation
-
-- [ ] **Payment Data Exposure**
-  - Verify no card data stored locally
-  - Check API responses don't leak payment info
-  - Verify PCI compliance
-
-**Example:**
-```bash
-# Test webhook without signature
-curl -X POST http://localhost:4000/api/webhooks/stripe \
-  -H "Content-Type: application/json" \
-  -d '{"type":"payment_intent.succeeded","data":{}}'
-# Should return 400 Bad Request
-```
-
-#### 6. File Upload Security
-
-**Tests to Perform:**
-
-- [ ] **Malicious File Upload**
-  - Upload executable files (.exe, .sh)
-  - Upload files with double extensions
-  - Upload oversized files
-
-- [ ] **File Type Validation**
-  - Upload non-image file to image field
-  - Verify MIME type checking
-  - Test file content validation
-
-- [ ] **Path Traversal via Filename**
-  - Upload with filename `../../malicious.php`
-  - Verify filename sanitization
-
-### Security Testing Tools
-
-**Automated Scanning:**
-
-1. **OWASP ZAP**
-   ```bash
-   # Install ZAP
-   # Run automated scan
-   zap-cli quick-scan --self-contained \
-     --start-options '-config api.disablekey=true' \
-     http://localhost:4000
-   ```
-
-2. **Nuclei**
-   ```bash
-   # Install Nuclei
-   nuclei -u http://localhost:4000 -t ~/nuclei-templates/
-   ```
-
-3. **npm audit**
-   ```bash
-   pnpm audit --audit-level=moderate
-   ```
-
-**Manual Testing Tools:**
-- **Burp Suite**: Comprehensive web security testing
-- **Postman**: API testing and automation
-- **curl**: Command-line HTTP testing
-- **Browser DevTools**: Network inspection, cookie analysis
-
-### Vulnerability Reporting
-
-**Internal Process:**
-
-1. **Document Finding**
-   - Vulnerability description
-   - Steps to reproduce
-   - Potential impact
-   - Suggested remediation
-
-2. **Severity Classification**
-   - **Critical**: Authentication bypass, data exposure
-   - **High**: Privilege escalation, injection attacks
-   - **Medium**: Information disclosure, DoS
-   - **Low**: Minor security improvements
-
-3. **Report to Team**
-   - Use private channel
-   - Include reproduction steps
-   - Provide fix recommendations
-
-**Report Template:**
-```markdown
-## Vulnerability Report
-
-**Title**: [Brief description]
-**Severity**: Critical/High/Medium/Low
-**Date Found**: YYYY-MM-DD
-**Tester**: [Your name]
-
-### Description
-[What is the vulnerability?]
-
-### Impact
-[What could an attacker do?]
-
-### Steps to Reproduce
-1. [Step 1]
-2. [Step 2]
-3. [Expected malicious outcome]
-
-### Affected Components
-- [File paths]
-- [Endpoints]
-
-### Suggested Fix
-[How to remediate]
-
-### References
-- [CVE numbers if applicable]
-- [Related documentation]
-```
-
-### Security Test Checklist
-
-**Authentication Security:**
-- [ ] Brute force protection active
-- [ ] Session fixation prevented
-- [ ] JWT properly validated and invalidated
-- [ ] Password strength enforced
-- [ ] Account enumeration prevented
-
-**Authorization Security:**
-- [ ] Role-based access control working
-- [ ] Tenant isolation enforced
-- [ ] Privilege escalation prevented
-- [ ] IDOR vulnerabilities patched
-
-**Input Validation:**
-- [ ] SQL injection prevented
-- [ ] XSS attacks blocked
-- [ ] Command injection prevented
-- [ ] Path traversal blocked
-- [ ] File upload restrictions enforced
-
-**API Security:**
-- [ ] CORS properly configured
-- [ ] CSRF protection enabled
-- [ ] Rate limiting active
-- [ ] Mass assignment prevented
-- [ ] API authentication required
-
-**Data Protection:**
-- [ ] Sensitive data encrypted in transit (HTTPS)
-- [ ] Sensitive data encrypted at rest
-- [ ] No secrets in code or logs
-- [ ] Environment variables secured
-- [ ] Database access restricted
-
-**Payment Security:**
-- [ ] Webhook signatures verified
-- [ ] No card data stored
-- [ ] Price validation server-side
-- [ ] PCI compliance maintained
-
-### Remediation Timeline
-
-**Critical Vulnerabilities:**
-- **Fix**: Within 24 hours
-- **Deploy**: Emergency patch
-- **Communicate**: Immediate team notification
-
-**High Vulnerabilities:**
-- **Fix**: Within 1 week
-- **Deploy**: Next scheduled release
-- **Communicate**: Daily standup
-
-**Medium Vulnerabilities:**
-- **Fix**: Within 2 weeks
-- **Deploy**: Regular sprint cycle
-
-**Low Vulnerabilities:**
-- **Fix**: Backlog priority
-- **Deploy**: When convenient
-
-### Post-Testing Actions
-
-1. **Fix All Critical/High Findings**
-   - Before production deployment
-   - Verify fixes with retesting
-
-2. **Document Security Posture**
-   - Record all findings
-   - Document mitigations
-   - Update security documentation
-
-3. **Schedule Regular Testing**
-   - Quarterly penetration tests
-   - After major feature releases
-   - When significant dependencies updated
-
-4. **Security Awareness**
-   - Share learnings with team
-   - Update secure coding guidelines
-   - Improve security practices
-
-### External Security Audit
-
-**When to Engage External Auditors:**
-- Before major product launch
-- After significant architecture changes
-- Annually for compliance
-- When handling sensitive data increases
-
-**Recommended Services:**
-- HackerOne
-- Bugcrowd
-- Professional penetration testing firms
-- Security consulting services
-
----
-
-## Verification Procedures
-
-### Quick Verification Checklist
-
-**Test Execution:**
-```bash
-# Run all tests for a specific package
-# Note: Package name is @revealui/core
-pnpm test --filter @revealui/core
-
-# Run specific test files
-pnpm test checkDependencies findGlobal fieldTraversal --filter @revealui/core
-
-# Check test count matches claims
-pnpm test --filter @revealui/core 2>&1 | grep -E "Tests.*passed|Tests.*failed"
-```
-
-**Code Coverage:**
-```bash
-# Generate coverage report
-pnpm test:coverage --filter @revealui/core
-
-# Check coverage thresholds met
-# Open coverage/index.html and verify files are covered
-```
-
-**Build Verification:**
-```bash
-# Ensure code compiles
-pnpm build --filter @revealui/core
-
-# Type checking
-pnpm typecheck --filter @revealui/core
-```
-
-**File Existence Checks:**
-```bash
-# Verify test files exist
-ls -la packages/core/src/core/__tests__/
-# Should see: checkDependencies.test.ts, findGlobal.test.ts, fieldTraversal.test.ts
-
-# Verify implementation files exist
-ls -la packages/core/src/core/
-# Should see: fieldTraversal.ts, revealui.ts (with implementations)
-```
-
-**Code Review:**
-```bash
-# Check if functions are implemented (not just stubs)
-grep -A 20 "export.*function checkDependencies" packages/core/src/core/revealui.ts
-grep -A 50 "async findGlobal" packages/core/src/core/revealui.ts
-
-# Check if tests actually test the code
-grep -A 5 "describe.*checkDependencies" packages/core/src/core/__tests__/checkDependencies.test.ts
-grep -A 5 "describe.*findGlobal" packages/core/src/core/__tests__/findGlobal.test.ts
-```
-
-### Specific Verification Steps
-
-**1. Verify "All Tests Passing" Claim:**
-
-```bash
-cd <your-project-root>
-pnpm test checkDependencies findGlobal fieldTraversal --filter @revealui/core
-```
-
-**What to Check:**
-- Exit code is 0 (success)
-- Test count matches claim (e.g., "41 tests")
-- No failed tests in output
-- All test files show "passed"
-
-**Red Flags:**
-- Exit code non-zero
-- "Tests failed" in output
-- Test count doesn't match claim
-- Skipped tests that should run
-
-**2. Verify "Implementation Complete" Claim:**
-
-**Step 1: Check function exists**
-```bash
-grep -n "export.*function checkDependencies" packages/core/src/core/revealui.ts
-grep -n "async findGlobal" packages/core/src/core/revealui.ts
-```
-
-**Step 2: Check it's not just a stub**
-```bash
-# Check for TODO/FIXME comments
-grep -A 30 "async findGlobal" packages/core/src/core/revealui.ts | grep -E "TODO|FIXME|throw.*not implemented"
-
-# Check for actual implementation (not just throwing error)
-grep -A 30 "async findGlobal" packages/core/src/core/revealui.ts | grep -v "throw.*not implemented" | head -20
-```
-
-**Step 3: Verify it matches type definition**
-```bash
-# Check type definition exists
-grep -A 10 "findGlobal.*:" packages/core/src/core/types/index.ts
-```
-
-**3. Verify "Test Coverage Complete" Claim:**
-
-**Step 1: Check test files exist**
-```bash
-test -f packages/core/src/core/__tests__/checkDependencies.test.ts && echo "✓ Exists" || echo "✗ Missing"
-test -f packages/core/src/core/__tests__/findGlobal.test.ts && echo "✓ Exists" || echo "✗ Missing"
-test -f packages/core/src/core/__tests__/fieldTraversal.test.ts && echo "✓ Exists" || echo "✗ Missing"
-```
-
-**Step 2: Count actual test cases**
-```bash
-# Count "it(" statements (actual tests)
-grep -c "it(" packages/core/src/core/__tests__/checkDependencies.test.ts
-grep -c "it(" packages/core/src/core/__tests__/findGlobal.test.ts
-grep -c "it(" packages/core/src/core/__tests__/fieldTraversal.test.ts
-```
-
-**Step 3: Run tests and verify count**
-```bash
-pnpm test checkDependencies findGlobal fieldTraversal --filter @revealui/core 2>&1 | grep "Tests"
-# Should match sum of individual test counts
-```
-
-### Red Flags to Watch For
-
-**In Test Output:**
-- Exit code non-zero
-- "Tests failed" message
-- Test count doesn't match claim
-- Test files skipped that should run
-
-**In Code:**
-- Functions with only `throw new Error("not implemented")`
-- TODO/FIXME comments in implementations
-- Empty function bodies
-- Missing type definitions
-
-**In Reports:**
-- Vague claims ("tests pass" without count)
-- Claims without verification commands
-- "Should work" instead of "verified working"
-- No specific file paths or test names
-
-### Trust Levels
-
-**High Trust (Verified Independently):**
-- Test output shows specific counts
-- Build succeeds with exit code 0
-- Files exist and can be examined
-- Code reviewed manually
-
-**Medium Trust (Probable):**
-- Agent provides specific commands to run
-- Agent shows file contents
-- Agent acknowledges limitations
-
-**Low Trust (Verify Before Believing):**
-- Vague status reports
-- Claims without evidence
-- "Should work" statements
-- No verification commands provided
-
-### Recommended Workflow
-
-**Before Trusting Any Claim:**
-
-1. **Ask for verification command**
-   - "What command can I run to verify this?"
-   - "Show me the test output"
-   - "What file should I check?"
-
-2. **Run the verification yourself**
-   - Don't trust, verify
-   - Run commands in your own terminal
-   - Check exit codes
-
-3. **Review code directly**
-   - Look at actual files
-   - Check for TODOs/stubs
-   - Verify test coverage
-
-4. **Cross-reference with plan**
-   - Compare against requirements
-   - Check against implementation plan
-   - Verify all items addressed
-
----
-
-## Tools and Frameworks
-
-### Testing Frameworks
-
-**Vitest:**
-- Modern, fast unit and integration testing
-- Native ESM support
-- TypeScript support out of the box
-- Compatible with Jest APIs
-
-**Playwright:**
-- End-to-end testing for web applications
-- Cross-browser support (Chromium, Firefox, WebKit)
-- Auto-wait for elements
-- Built-in test runner
-
-**Testing Library:**
-- User-centric testing utilities
-- Encourages accessible markup
-- Framework-agnostic core
-
-### Load Testing Tools
-
-**k6:**
-- Modern load testing tool
-- JavaScript-based test scripts
-- Built-in metrics and thresholds
-- Cloud integration available
-
-**Artillery:**
-- Node.js-based load testing
-- YAML or JavaScript configuration
-- Good for CI/CD integration
-
-### Security Testing Tools
-
-**OWASP ZAP:**
-- Free, open-source security scanner
-- Automated and manual testing
-- API scanning capabilities
-
-**Burp Suite:**
-- Industry-standard web security testing
-- Intercepting proxy
-- Extensive plugin ecosystem
-
-**Nuclei:**
-- Fast, customizable vulnerability scanner
-- Template-based scanning
-- Great for automation
-
----
-
-## Best Practices
-
-### General Testing Best Practices
-
-1. **Write Tests First (TDD)**
-   - Define expected behavior before implementation
-   - Ensures testable code
-   - Provides living documentation
-
-2. **Keep Tests Independent**
-   - Tests should not depend on each other
-   - Each test should set up its own data
-   - Clean up after tests
-
-3. **Use Descriptive Test Names**
-   - Test names should describe what's being tested
-   - Include the scenario and expected outcome
-   - Example: "should return 401 when JWT is expired"
-
-4. **Test Edge Cases**
-   - Don't just test happy paths
-   - Test boundary conditions
-   - Test error handling
-
-5. **Maintain Test Data**
-   - Use factories or fixtures for test data
-   - Keep test data minimal and relevant
-   - Reset database state between tests
-
-6. **Mock External Dependencies**
-   - Don't hit real APIs in unit tests
-   - Use test mode for third-party services
-   - Mock time-dependent functions
-
-7. **Monitor Test Performance**
-   - Tests should run quickly
-   - Slow tests indicate integration issues
-   - Parallelize when possible
-
-### Security Testing Best Practices
-
-1. **Test Early and Often**
-   - Integrate security testing into CI/CD
-   - Don't wait until pre-production
-   - Fix vulnerabilities as they're found
-
-2. **Follow Responsible Disclosure**
-   - Report vulnerabilities privately
-   - Give team time to fix before public disclosure
-   - Document fixes and lessons learned
-
-3. **Use Multiple Tools**
-   - No single tool catches everything
-   - Combine automated and manual testing
-   - Leverage different perspectives
-
-4. **Stay Updated**
-   - Keep security tools updated
-   - Follow OWASP Top 10
-   - Monitor security advisories for dependencies
-
-### Load Testing Best Practices
-
-1. **Test in Production-Like Environment**
-   - Match production hardware specs
-   - Use production-like data volumes
-   - Test with realistic network conditions
-
-2. **Ramp Up Gradually**
-   - Don't spike to max load immediately
-   - Allow system to warm up
-   - Observe behavior at different load levels
-
-3. **Monitor System Resources**
-   - Track CPU, memory, disk I/O
-   - Monitor database performance
-   - Watch for bottlenecks
-
-4. **Test Different Scenarios**
-   - Normal load, peak load, stress load
-   - Different user behavior patterns
-   - Various API endpoint combinations
-
----
 
 ## Running Tests
 
-### Local Development
+### All Tests
+```bash
+pnpm test
+```
+
+### With Coverage
+```bash
+pnpm test:coverage
+```
+
+### Specific Package
+```bash
+pnpm test --filter @revealui/core
+```
+
+### Specific Test File
+```bash
+pnpm vitest run packages/core/src/__tests__/utils/test-helpers.test.ts
+```
+
+### Watch Mode
+```bash
+pnpm vitest watch
+```
+
+### Integration Tests
+```bash
+pnpm test:integration
+```
+
+### Debugging Tests
+```bash
+pnpm vitest --inspect-brk
+```
+
+## Test Utilities
+
+### Async Testing
+
+**waitFor** - Wait for conditions:
+```typescript
+it('should update after async operation', async () => {
+  let value = false
+  setTimeout(() => value = true, 100)
+
+  await waitFor(() => value, { timeout: 1000 })
+  expect(value).toBe(true)
+})
+```
+
+**withTimeout** - Timeout protection:
+```typescript
+it('should complete within timeout', async () => {
+  await withTimeout(
+    async () => await longOperation(),
+    5000,
+    'Operation took too long'
+  )
+})
+```
+
+**retry** - Retry flaky operations:
+```typescript
+it('should retry on failure', async () => {
+  const result = await retry(
+    async () => await unreliableOperation(),
+    { maxAttempts: 3, delay: 100, backoff: true }
+  )
+  expect(result).toBeDefined()
+})
+```
+
+### Time Mocking
+
+```typescript
+it('should handle date-based logic', () => {
+  const restore = mockDate('2024-01-01T00:00:00Z')
+
+  // All Date operations use 2024-01-01
+  expect(new Date().getFullYear()).toBe(2024)
+  expect(Date.now()).toBe(new Date('2024-01-01').getTime())
+
+  restore()
+})
+```
+
+### Request Mocking
+
+```typescript
+it('should handle request context', () => {
+  const context = createMockContext({
+    requestId: 'req-123',
+    userId: 'user-456',
+    path: '/api/users',
+    method: 'GET',
+  })
+
+  runInRequestContext(context, () => {
+    expect(getRequestId()).toBe('req-123')
+  })
+})
+```
+
+### Error Mocking
+
+```typescript
+it('should handle database errors', () => {
+  const error = createMockDbError('23505', {
+    constraint: 'users_email_unique',
+    table: 'users',
+    detail: 'Key (email)=(test@example.com) already exists.',
+  })
+
+  expect(() => handleDatabaseError(error, 'insert user'))
+    .toThrow('Duplicate users email unique')
+})
+```
+
+## Test Fixtures
+
+### Using Predefined Fixtures
+
+```typescript
+import { userFixtures, postFixtures } from '@revealui/db/__tests__/fixtures'
+
+it('should authenticate admin user', () => {
+  const admin = userFixtures.admin
+  expect(admin.role).toBe('admin')
+  expect(admin.emailVerified).toBeDefined()
+})
+```
+
+### Creating Custom Fixtures
+
+```typescript
+import { createUserFixture, createPostFixture } from '@revealui/db/__tests__/fixtures'
+
+it('should create post for user', () => {
+  const author = createUserFixture({ role: 'author' })
+  const post = createPostFixture({
+    authorId: author.id,
+    status: 'published',
+  })
+
+  expect(post.authorId).toBe(author.id)
+})
+```
+
+### Test Isolation
+
+Always reset counters to ensure test isolation:
+
+```typescript
+import { resetAllCounters } from '@revealui/db/__tests__/fixtures'
+
+describe('User Tests', () => {
+  beforeEach(() => {
+    resetAllCounters() // Ensures predictable fixture IDs
+  })
+
+  it('should create user with ID 1', () => {
+    const user = createUserFixture()
+    expect(user.email).toBe('user1@test.com')
+  })
+})
+```
+
+## Writing Tests
+
+### Unit Test Pattern
+
+```typescript
+import { describe, expect, it } from 'vitest'
+import { functionToTest } from '../module.js'
+
+describe('functionToTest', () => {
+  it('should handle valid input', () => {
+    const result = functionToTest('valid')
+    expect(result).toBe('expected')
+  })
+
+  it('should throw on invalid input', () => {
+    expect(() => functionToTest(null)).toThrow('Invalid input')
+  })
+})
+```
+
+### Integration Test Pattern
+
+```typescript
+import { beforeAll, afterAll, beforeEach, describe, expect, it } from 'vitest'
+import { setupTestDatabase, resetTestDatabase, teardownTestDatabase } from '@revealui/db/__tests__/setup'
+import { createUserFixture } from '@revealui/db/__tests__/fixtures'
+
+describe('User API Integration', () => {
+  beforeAll(async () => {
+    await setupTestDatabase()
+  })
+
+  afterAll(async () => {
+    await teardownTestDatabase()
+  })
+
+  beforeEach(async () => {
+    await resetTestDatabase()
+  })
+
+  it('should create user in database', async () => {
+    const userData = createUserFixture()
+    const user = await createUser(userData)
+
+    expect(user.id).toBeDefined()
+    expect(user.email).toBe(userData.email)
+  })
+})
+```
+
+### Component Test Pattern
+
+```typescript
+import { render, screen } from '@testing-library/react'
+import { describe, expect, it } from 'vitest'
+import { Button } from './Button'
+
+describe('Button', () => {
+  it('should render with text', () => {
+    render(<Button>Click me</Button>)
+    expect(screen.getByText('Click me')).toBeInTheDocument()
+  })
+
+  it('should call onClick when clicked', async () => {
+    const onClick = vi.fn()
+    render(<Button onClick={onClick}>Click</Button>)
+
+    await userEvent.click(screen.getByText('Click'))
+    expect(onClick).toHaveBeenCalledOnce()
+  })
+})
+```
+
+## Coverage
+
+### Coverage Configuration
+
+Coverage is configured in `vitest.config.ts`:
+
+```typescript
+{
+  test: {
+    coverage: {
+      provider: 'v8',
+      reporter: ['text', 'lcov', 'html', 'json-summary'],
+      thresholds: {
+        lines: 70,
+        functions: 70,
+        branches: 65,
+        statements: 70,
+      },
+    },
+  },
+}
+```
+
+### Viewing Coverage
+
+```bash
+# Generate coverage report
+pnpm test:coverage
+
+# Open HTML report
+open coverage/index.html
+```
+
+### Coverage Reports
+
+- **Text:** Console output
+- **HTML:** `coverage/index.html`
+- **LCOV:** `coverage/lcov.info` (for CI tools)
+- **JSON:** `coverage/coverage-final.json`
+
+### Coverage Badges
+
+Coverage badges are automatically generated and uploaded to Codecov in CI.
+
+## CI/CD
+
+### GitHub Actions Workflow
+
+Tests run automatically on:
+- Push to `main` or `develop`
+- Pull requests
+
+**Workflow steps:**
+1. Install dependencies
+2. Run linter
+3. Run type check
+4. Run all tests with coverage
+5. Upload coverage to Codecov
+6. Generate coverage badges
+7. Archive test results
+
+**Matrix Testing:**
+- Node.js 24
+
+### Integration Tests in CI
+
+Integration tests run with PostgreSQL service:
+
+```yaml
+services:
+  postgres:
+    image: postgres:16
+    env:
+      POSTGRES_USER: test
+      POSTGRES_PASSWORD: test
+      POSTGRES_DB: revealui_test
+```
+
+## Best Practices
+
+### 1. Test Organization
+
+```typescript
+describe('Module Name', () => {
+  describe('functionName', () => {
+    it('should handle case 1', () => {})
+    it('should handle case 2', () => {})
+    it('should throw on error', () => {})
+  })
+})
+```
+
+### 2. Test Isolation
+
+```typescript
+beforeEach(() => {
+  // Reset all state
+  resetAllCounters()
+  vi.clearAllMocks()
+})
+
+afterEach(() => {
+  // Cleanup
+  vi.restoreAllMocks()
+})
+```
+
+### 3. Clear Test Names
+
+```typescript
+// ✅ Good
+it('should return 404 when user not found', () => {})
+
+// ❌ Bad
+it('test user endpoint', () => {})
+```
+
+### 4. Arrange-Act-Assert
+
+```typescript
+it('should create user', () => {
+  // Arrange
+  const userData = createUserFixture()
+
+  // Act
+  const user = createUser(userData)
+
+  // Assert
+  expect(user.email).toBe(userData.email)
+})
+```
+
+### 5. Test Edge Cases
+
+```typescript
+describe('divide', () => {
+  it('should divide numbers', () => {
+    expect(divide(10, 2)).toBe(5)
+  })
+
+  it('should throw on division by zero', () => {
+    expect(() => divide(10, 0)).toThrow('Cannot divide by zero')
+  })
+
+  it('should handle negative numbers', () => {
+    expect(divide(-10, 2)).toBe(-5)
+  })
+})
+```
+
+### 6. Use Fixtures for Consistency
+
+```typescript
+// ✅ Good - consistent test data
+const user = createUserFixture()
+
+// ❌ Bad - manual data creation
+const user = {
+  email: 'test@example.com',
+  name: 'Test',
+  password: '123',
+}
+```
+
+### 7. Mock External Dependencies
+
+```typescript
+import { vi } from 'vitest'
+
+// Mock external API
+vi.mock('../api-client', () => ({
+  fetchData: vi.fn().mockResolvedValue({ data: 'mock' }),
+}))
+```
+
+### 8. Test Async Code Properly
+
+```typescript
+// ✅ Good - await async operations
+it('should fetch user', async () => {
+  const user = await fetchUser('123')
+  expect(user.id).toBe('123')
+})
+
+// ❌ Bad - missing await
+it('should fetch user', () => {
+  const user = fetchUser('123')
+  expect(user.id).toBe('123') // Will fail!
+})
+```
+
+### 9. Clean Up Resources
+
+```typescript
+describe('File Operations', () => {
+  let tempFile: string
+
+  beforeEach(() => {
+    tempFile = createTempFile()
+  })
+
+  afterEach(() => {
+    deleteTempFile(tempFile)
+  })
+})
+```
+
+### 10. Document Complex Tests
+
+```typescript
+it('should calculate discount with complex rules', () => {
+  // Given a premium user with 3 items in cart,
+  // each item > $50, and it's a weekend:
+  // - Base discount: 10%
+  // - Premium bonus: +5%
+  // - Weekend special: +3%
+  // Total: 18% discount
+
+  const discount = calculateDiscount(user, cart, date)
+  expect(discount).toBe(0.18)
+})
+```
+
+## Troubleshooting
+
+### Tests Timing Out
+
+```typescript
+// Increase timeout for specific test
+it('slow operation', async () => {
+  await slowOperation()
+}, 10000) // 10 second timeout
+```
+
+### Flaky Tests
+
+```typescript
+// Use retry utility
+it('flaky test', async () => {
+  await retry(async () => {
+    const result = await unreliableOperation()
+    expect(result).toBeDefined()
+  }, { maxAttempts: 3 })
+})
+```
+
+### Memory Leaks
+
+```typescript
+// Clean up listeners, timers, etc.
+afterEach(() => {
+  clearAllTimers()
+  removeAllListeners()
+})
+```
+
+### Test Database Issues
+
+```bash
+# Reset test database
+pnpm db:setup-test
+
+# Check database connection
+pnpm db:status
+```
+
+## Resources
+
+- [Vitest Documentation](https://vitest.dev/)
+- [Testing Library](https://testing-library.com/)
+- [Test Coverage Guide](./docs/development/testing/coverage.md)
+- [CI/CD Pipeline](./.github/workflows/test.yml)
+- [Test Utilities](./packages/core/src/__tests__/utils/test-helpers.ts)
+- [Test Fixtures](./packages/db/__tests__/fixtures/)
+
+---
+
+# Component Testing Guide
+
+This guide covers component testing practices for the RevealUI project using React Testing Library and Vitest.
+
+## Table of Contents
+
+- [Overview](#overview)
+- [Testing Philosophy](#testing-philosophy)
+- [Test Structure](#test-structure)
+- [Component Test Patterns](#component-test-patterns)
+- [Best Practices](#best-practices)
+- [Common Scenarios](#common-scenarios)
+- [Running Tests](#running-tests)
+- [Coverage](#coverage)
+
+## Overview
+
+Component tests verify that React components render correctly, handle user interactions, maintain accessibility, and manage state as expected. We use:
+
+- **Vitest** - Fast unit test framework
+- **React Testing Library** - User-centric testing utilities
+- **@testing-library/user-event** - Realistic user interaction simulation
+- **@testing-library/jest-dom** - Custom matchers for DOM assertions
+
+## Testing Philosophy
+
+### User-Centric Testing
+
+Test components from the user's perspective:
+
+```typescript
+// ✅ GOOD - Test user behavior
+it('should submit form when user clicks submit button', async () => {
+  const user = userEvent.setup()
+  const onSubmit = vi.fn()
+
+  render(<LoginForm onSubmit={onSubmit} />)
+
+  await user.type(screen.getByLabelText('Email'), 'test@example.com')
+  await user.type(screen.getByLabelText('Password'), 'password123')
+  await user.click(screen.getByRole('button', { name: /submit/i }))
+
+  expect(onSubmit).toHaveBeenCalled()
+})
+
+// ❌ BAD - Test implementation details
+it('should update state when input changes', () => {
+  const { result } = renderHook(() => useFormState())
+
+  act(() => {
+    result.current.setEmail('test@example.com')
+  })
+
+  expect(result.current.email).toBe('test@example.com')
+})
+```
+
+### Accessibility First
+
+Always test accessibility features:
+
+```typescript
+it('should have accessible form labels', () => {
+  render(<LoginForm />)
+
+  expect(screen.getByLabelText('Email')).toBeInTheDocument()
+  expect(screen.getByLabelText('Password')).toBeInTheDocument()
+})
+
+it('should announce errors to screen readers', () => {
+  render(<ErrorMessage error="Invalid email" />)
+
+  const alert = screen.getByRole('alert')
+  expect(alert).toHaveTextContent('Invalid email')
+})
+```
+
+## Test Structure
+
+### Organize by Feature/Behavior
+
+Group tests by what they're testing, not by implementation:
+
+```typescript
+describe('Button', () => {
+  describe('Rendering', () => {
+    it('should render with text', () => { ... })
+    it('should render with icon', () => { ... })
+  })
+
+  describe('Click Handling', () => {
+    it('should call onClick when clicked', () => { ... })
+    it('should not call onClick when disabled', () => { ... })
+  })
+
+  describe('Accessibility', () => {
+    it('should be keyboard navigable', () => { ... })
+    it('should have accessible name', () => { ... })
+  })
+
+  describe('Edge Cases', () => {
+    it('should handle rapid clicks', () => { ... })
+    it('should handle null children', () => { ... })
+  })
+})
+```
+
+### Standard Test Categories
+
+Every component should have tests for:
+
+1. **Rendering** - Basic rendering and props
+2. **User Interaction** - Clicks, typing, focus
+3. **States** - Loading, error, disabled, etc.
+4. **Accessibility** - ARIA attributes, keyboard navigation
+5. **Edge Cases** - Boundary conditions, error handling
+
+## Component Test Patterns
+
+### Basic Component Rendering
+
+```typescript
+import { render, screen } from '@testing-library/react'
+import { describe, expect, it } from 'vitest'
+import { Button } from './Button'
+
+describe('Button', () => {
+  it('should render without crashing', () => {
+    render(<Button>Click me</Button>)
+
+    expect(screen.getByRole('button')).toBeInTheDocument()
+  })
+
+  it('should render with text', () => {
+    render(<Button>Click me</Button>)
+
+    expect(screen.getByText('Click me')).toBeInTheDocument()
+  })
+})
+```
+
+### User Interaction Testing
+
+```typescript
+import userEvent from '@testing-library/user-event'
+
+it('should handle user interactions', async () => {
+  const user = userEvent.setup()
+  const handleClick = vi.fn()
+
+  render(<Button onClick={handleClick}>Click me</Button>)
+
+  await user.click(screen.getByRole('button'))
+
+  expect(handleClick).toHaveBeenCalledOnce()
+})
+
+it('should handle keyboard input', async () => {
+  const user = userEvent.setup()
+  const handleChange = vi.fn()
+
+  render(<Input onChange={handleChange} />)
+
+  const input = screen.getByRole('textbox')
+  await user.type(input, 'Hello')
+
+  expect(handleChange).toHaveBeenCalledTimes(5) // Once per character
+})
+```
+
+### Form Component Testing
+
+```typescript
+describe('LoginForm', () => {
+  it('should validate required fields', async () => {
+    const user = userEvent.setup()
+
+    render(<LoginForm />)
+
+    await user.click(screen.getByRole('button', { name: /submit/i }))
+
+    expect(screen.getByText(/email is required/i)).toBeInTheDocument()
+  })
+
+  it('should submit valid form', async () => {
+    const user = userEvent.setup()
+    const onSubmit = vi.fn()
+
+    render(<LoginForm onSubmit={onSubmit} />)
+
+    await user.type(screen.getByLabelText('Email'), 'test@example.com')
+    await user.type(screen.getByLabelText('Password'), 'password123')
+    await user.click(screen.getByRole('button', { name: /submit/i }))
+
+    expect(onSubmit).toHaveBeenCalledWith({
+      email: 'test@example.com',
+      password: 'password123',
+    })
+  })
+})
+```
+
+### Loading and Error States
+
+```typescript
+it('should show loading state', () => {
+  render(<DataPanel loading={true} />)
+
+  expect(screen.getByRole('status')).toBeInTheDocument()
+  expect(screen.queryByText('Data content')).not.toBeInTheDocument()
+})
+
+it('should show error state', () => {
+  render(<DataPanel error="Failed to load" />)
+
+  expect(screen.getByText(/failed to load/i)).toBeInTheDocument()
+  expect(screen.getByRole('button', { name: /retry/i })).toBeInTheDocument()
+})
+```
+
+### Conditional Rendering
+
+```typescript
+it('should render conditionally based on props', () => {
+  const { rerender } = render(<Alert show={false} />)
+
+  expect(screen.queryByRole('alert')).not.toBeInTheDocument()
+
+  rerender(<Alert show={true} />)
+
+  expect(screen.getByRole('alert')).toBeInTheDocument()
+})
+```
+
+### Testing with Context
+
+```typescript
+it('should use context values', () => {
+  render(
+    <ThemeContext.Provider value={{ theme: 'dark' }}>
+      <ThemedComponent />
+    </ThemeContext.Provider>
+  )
+
+  expect(screen.getByTestId('theme-indicator')).toHaveTextContent('dark')
+})
+```
+
+### Mocking Child Components
+
+```typescript
+// Mock heavy child components
+vi.mock('./HeavyChart', () => ({
+  HeavyChart: () => <div>Mocked Chart</div>
+}))
+
+it('should render with mocked children', () => {
+  render(<Dashboard />)
+
+  expect(screen.getByText('Mocked Chart')).toBeInTheDocument()
+})
+```
+
+## Best Practices
+
+### 1. Use Semantic Queries
+
+Prefer queries that reflect how users interact:
+
+```typescript
+// ✅ GOOD - Semantic queries
+screen.getByRole('button', { name: /submit/i })
+screen.getByLabelText('Email')
+screen.getByPlaceholderText('Enter your name')
+screen.getByText('Welcome')
+
+// ❌ BAD - Implementation details
+screen.getByTestId('submit-button')
+screen.getByClassName('email-input')
+```
+
+### 2. Async Testing
+
+Always await user interactions and async operations:
+
+```typescript
+// ✅ GOOD - Await async operations
+it('should load data', async () => {
+  render(<DataComponent />)
+
+  await waitFor(() => {
+    expect(screen.getByText('Data loaded')).toBeInTheDocument()
+  })
+})
+
+// ❌ BAD - Not awaiting
+it('should load data', () => {
+  render(<DataComponent />)
+
+  expect(screen.getByText('Data loaded')).toBeInTheDocument() // Might fail
+})
+```
+
+### 3. Clean Up
+
+Use proper cleanup and mock restoration:
+
+```typescript
+import { beforeEach, afterEach, vi } from 'vitest'
+
+const originalError = console.error
+
+beforeEach(() => {
+  // Mock console.error to avoid cluttering test output
+  console.error = vi.fn()
+})
+
+afterEach(() => {
+  // Restore original console.error
+  console.error = originalError
+
+  // Clear all mocks
+  vi.clearAllMocks()
+})
+```
+
+### 4. Test Accessibility
+
+Always include accessibility tests:
+
+```typescript
+describe('Accessibility', () => {
+  it('should have proper ARIA attributes', () => {
+    render(<Modal isOpen={true} />)
+
+    expect(screen.getByRole('dialog')).toHaveAttribute('aria-modal', 'true')
+  })
+
+  it('should be keyboard navigable', async () => {
+    const user = userEvent.setup()
+
+    render(<Menu />)
+
+    await user.tab()
+    expect(screen.getByRole('button')).toHaveFocus()
+  })
+
+  it('should announce changes to screen readers', () => {
+    render(<Notification message="Success" />)
+
+    const liveRegion = screen.getByRole('status')
+    expect(liveRegion).toHaveAttribute('aria-live', 'polite')
+  })
+})
+```
+
+### 5. Test Edge Cases
+
+Don't forget boundary conditions:
+
+```typescript
+describe('Edge Cases', () => {
+  it('should handle empty data', () => {
+    render(<DataList items={[]} />)
+
+    expect(screen.getByText(/no items/i)).toBeInTheDocument()
+  })
+
+  it('should handle very long text', () => {
+    const longText = 'A'.repeat(1000)
+
+    render(<TextDisplay text={longText} />)
+
+    expect(screen.getByText(longText)).toBeInTheDocument()
+  })
+
+  it('should handle rapid interactions', async () => {
+    const user = userEvent.setup()
+    const onClick = vi.fn()
+
+    render(<Button onClick={onClick}>Click</Button>)
+
+    const button = screen.getByRole('button')
+    for (let i = 0; i < 10; i++) {
+      await user.click(button)
+    }
+
+    expect(onClick).toHaveBeenCalledTimes(10)
+  })
+})
+```
+
+## Common Scenarios
+
+### Testing Forms
+
+```typescript
+describe('RegistrationForm', () => {
+  it('should validate email format', async () => {
+    const user = userEvent.setup()
+
+    render(<RegistrationForm />)
+
+    await user.type(screen.getByLabelText('Email'), 'invalid-email')
+    await user.click(screen.getByRole('button', { name: /submit/i }))
+
+    expect(screen.getByText(/invalid email/i)).toBeInTheDocument()
+  })
+
+  it('should show password strength', async () => {
+    const user = userEvent.setup()
+
+    render(<RegistrationForm />)
+
+    await user.type(screen.getByLabelText('Password'), 'weak')
+    expect(screen.getByText(/weak password/i)).toBeInTheDocument()
+
+    await user.clear(screen.getByLabelText('Password'))
+    await user.type(screen.getByLabelText('Password'), 'StrongP@ssw0rd123')
+    expect(screen.getByText(/strong password/i)).toBeInTheDocument()
+  })
+})
+```
+
+### Testing Modals/Dialogs
+
+```typescript
+describe('Modal', () => {
+  it('should trap focus inside modal', async () => {
+    const user = userEvent.setup()
+
+    render(<Modal isOpen={true}>
+      <button>First</button>
+      <button>Last</button>
+    </Modal>)
+
+    const firstButton = screen.getByRole('button', { name: 'First' })
+    const lastButton = screen.getByRole('button', { name: 'Last' })
+
+    firstButton.focus()
+    await user.tab()
+    expect(lastButton).toHaveFocus()
+
+    await user.tab()
+    expect(firstButton).toHaveFocus() // Wrapped back
+  })
+
+  it('should close on Escape key', async () => {
+    const user = userEvent.setup()
+    const onClose = vi.fn()
+
+    render(<Modal isOpen={true} onClose={onClose}>Content</Modal>)
+
+    await user.keyboard('{Escape}')
+
+    expect(onClose).toHaveBeenCalled()
+  })
+})
+```
+
+### Testing Lists
+
+```typescript
+describe('UserList', () => {
+  it('should render all users', () => {
+    const users = [
+      { id: '1', name: 'Alice' },
+      { id: '2', name: 'Bob' },
+    ]
+
+    render(<UserList users={users} />)
+
+    expect(screen.getByText('Alice')).toBeInTheDocument()
+    expect(screen.getByText('Bob')).toBeInTheDocument()
+  })
+
+  it('should filter users by search', async () => {
+    const user = userEvent.setup()
+    const users = [
+      { id: '1', name: 'Alice' },
+      { id: '2', name: 'Bob' },
+    ]
+
+    render(<UserList users={users} />)
+
+    await user.type(screen.getByRole('searchbox'), 'Ali')
+
+    expect(screen.getByText('Alice')).toBeInTheDocument()
+    expect(screen.queryByText('Bob')).not.toBeInTheDocument()
+  })
+})
+```
+
+### Testing Error Boundaries
+
+```typescript
+describe('ErrorBoundary', () => {
+  it('should catch errors from children', () => {
+    const ThrowError = () => {
+      throw new Error('Test error')
+    }
+
+    // Suppress console.error
+    const originalError = console.error
+    console.error = vi.fn()
+
+    render(
+      <ErrorBoundary>
+        <ThrowError />
+      </ErrorBoundary>
+    )
+
+    expect(screen.getByText(/something went wrong/i)).toBeInTheDocument()
+
+    console.error = originalError
+  })
+})
+```
+
+## Running Tests
+
+### Run All Component Tests
 
 ```bash
 # Run all tests
 pnpm test
 
-# Run tests with UI
-pnpm test:ui
+# Run tests in watch mode
+pnpm test:watch
 
 # Run tests with coverage
 pnpm test:coverage
 
-# Run E2E tests
-pnpm test:e2e
+# Run tests for specific component
+pnpm test Button.test.tsx
 
-# Run load tests
-pnpm --filter test test:load:auth
-
-# Run security audit
-pnpm audit --audit-level=moderate
+# Run tests in specific directory
+pnpm test apps/cms
 ```
 
-### CI/CD Pipeline
+### Run Tests in CI
 
-Tests are automatically run on:
-- Every push to `main`, `cursor`, `develop` branches
-- Every pull request
-- Pre-deployment to staging
+```bash
+# Run all tests with coverage
+pnpm test:ci
 
-See `.github/workflows/ci.yml` for CI configuration.
+# This runs:
+# - All test files
+# - Generates coverage report
+# - Fails if coverage thresholds not met
+```
 
----
+### Debug Tests
+
+```typescript
+import { screen, debug } from '@testing-library/react'
+
+it('should debug component', () => {
+  render(<MyComponent />)
+
+  // Print entire document
+  screen.debug()
+
+  // Print specific element
+  screen.debug(screen.getByRole('button'))
+})
+```
+
+## Coverage
+
+### Coverage Thresholds
+
+Current project thresholds (vitest.config.ts):
+
+```typescript
+coverage: {
+  thresholds: {
+    lines: 70,
+    functions: 70,
+    branches: 65,
+    statements: 70,
+  }
+}
+```
+
+### View Coverage Report
+
+```bash
+# Generate and open coverage report
+pnpm test:coverage
+open coverage/index.html
+```
+
+### Coverage Best Practices
+
+1. **Aim for meaningful coverage** - Don't chase 100%, focus on critical paths
+2. **Test user flows** - Cover complete user journeys
+3. **Don't test implementation details** - Test behavior, not internals
+4. **Cover edge cases** - Null values, empty arrays, extreme inputs
+5. **Test error states** - Loading, errors, empty states
+
+## File Organization
+
+```
+src/
+├── components/
+│   ├── Button.tsx
+│   ├── Input.tsx
+│   └── Card.tsx
+└── __tests__/
+    └── components/
+        ├── Button.test.tsx
+        ├── Input.test.tsx
+        └── Card.test.tsx
+```
 
 ## Resources
 
-### Official Documentation
+- [React Testing Library Docs](https://testing-library.com/docs/react-testing-library/intro/)
+- [Vitest Docs](https://vitest.dev/)
+- [Testing Library Queries](https://testing-library.com/docs/queries/about)
+- [User Event API](https://testing-library.com/docs/user-event/intro)
+- [Common Mistakes](https://kentcdodds.com/blog/common-mistakes-with-react-testing-library)
 
-- [Vitest Documentation](https://vitest.dev/)
-- [Playwright Documentation](https://playwright.dev/)
-- [Testing Library](https://testing-library.com/)
-- [k6 Documentation](https://k6.io/docs/)
-- [k6 Test Examples](https://k6.io/docs/examples/)
-- [Artillery Documentation](https://www.artillery.io/docs)
-- [OWASP Top 10](https://owasp.org/www-project-top-ten/)
-- [OWASP Testing Guide](https://owasp.org/www-project-web-security-testing-guide/)
+## Examples
 
-### Platform-Specific
+See example test files:
 
-- [Stripe Testing](https://stripe.com/docs/testing)
-- [RevealUI CMS Security Documentation](https://revealui.com/docs/security)
-- [Next.js Security](https://nextjs.org/docs/app/building-your-application/configuring/security)
-
-### Performance Testing
-
-- [Performance Testing Best Practices](https://k6.io/docs/testing-guides/api-load-testing/)
+- `packages/presentation/src/__tests__/components/Button.test.tsx` - Button component
+- `packages/presentation/src/__tests__/components/Input.test.tsx` - Form input
+- `packages/presentation/src/__tests__/components/Checkbox.test.tsx` - Checkbox with states
+- `packages/presentation/src/__tests__/components/Card.test.tsx` - Composite component
+- `apps/cms/src/__tests__/components/AgentPanel.test.tsx` - Stateful component
+- `apps/cms/src/__tests__/components/ErrorBoundary.test.tsx` - Error handling
 
 ---
 
-## Next Steps
-
-1. ✅ Set up testing infrastructure
-2. ✅ Create validation schemas
-3. ✅ Add health check endpoint
-4. ⏸️ Write authentication tests
-5. ⏸️ Write access control tests
-6. ⏸️ Write payment flow tests
-7. ⏸️ Set up E2E test suite
-8. ⏸️ Configure test coverage reporting
-9. ⏸️ Add load testing suite
-10. ⏸️ Schedule penetration testing
+**Last Updated**: February 2026
+**Version**: 1.0.0
 
 ---
 
-## Historical Reference
+# Integration Testing Guide
 
-This guide consolidates testing information from multiple sources. For historical context, see:
+Comprehensive guide for writing and running integration tests in RevealUI.
 
-- [Testing Patterns (Jan 2026)](../archive/testing/testing-patterns-2026-01.md) - Original testing patterns guide (now integrated above)
-- [Dev Package Integration Tests (Jan 2026)](../archive/testing/integration-tests-dev-package-2026-01.md) - Original integration tests documentation (now integrated above)
+## Overview
 
-These archives are preserved for historical reference and troubleshooting.
+Integration tests validate that multiple components work together correctly. Unlike unit tests that test individual functions in isolation, integration tests verify the interaction between modules, APIs, databases, and external services.
 
----
+## Test Structure
+
+```
+apps/cms/src/__tests__/integration/
+├── api/           # API endpoint integration tests
+│   ├── health.test.ts
+│   └── gdpr.test.ts
+└── auth/          # Authentication flow tests
+    └── flows.test.ts
+
+packages/core/src/__tests__/integration/
+├── error-handling.test.ts  # Cross-module error handling
+└── monitoring.test.ts       # Monitoring system integration
+
+packages/db/__tests__/integration/
+└── database.test.ts         # Database operations
+```
+
+## Running Integration Tests
+
+```bash
+# All integration tests
+pnpm test:integration
+
+# Specific package
+pnpm vitest run packages/core/src/__tests__/integration/
+
+# Watch mode
+pnpm vitest watch packages/core/src/__tests__/integration/
+
+# With coverage
+pnpm vitest run --coverage packages/core/src/__tests__/integration/
+```
+
+## API Integration Tests
+
+### Health Endpoint Testing
+
+```typescript
+import { createMockRequest } from '@revealui/core/__tests__/utils/test-helpers'
+import { GET as healthHandler } from '../../../app/api/health/route'
+
+describe('Health API Integration', () => {
+  it('should return 200 OK', async () => {
+    const request = createMockRequest({
+      url: 'http://localhost:3000/api/health',
+      method: 'GET',
+    })
+
+    const response = await healthHandler(request)
+
+    expect(response.status).toBe(200)
+  })
+
+  it('should return health status', async () => {
+    const request = createMockRequest({
+      url: 'http://localhost:3000/api/health',
+      method: 'GET',
+    })
+
+    const response = await healthHandler(request)
+    const data = await response.json()
+
+    expect(data).toHaveProperty('status')
+    expect(data.status).toBe('ok')
+  })
+})
+```
+
+### GDPR Endpoint Testing
+
+```typescript
+describe('GDPR API Integration', () => {
+  it('should require authentication', async () => {
+    const request = createMockRequest({
+      url: 'http://localhost:3000/api/gdpr/export',
+      method: 'POST',
+      body: { email: 'test@example.com' },
+    })
+
+    const response = await POST(request)
+
+    expect([400, 401, 403]).toContain(response.status)
+  })
+
+  it('should validate request body', async () => {
+    const request = createMockRequest({
+      url: 'http://localhost:3000/api/gdpr/export',
+      method: 'POST',
+      body: {}, // Missing email
+    })
+
+    const response = await POST(request)
+
+    expect(response.status).toBeGreaterThanOrEqual(400)
+  })
+})
+```
+
+## Database Integration Tests
+
+### CRUD Operations
+
+```typescript
+import { createUserFixture } from '@revealui/db/__tests__/fixtures'
+import { setupTestDatabase, resetTestDatabase } from '@revealui/db/__tests__/setup'
+
+describe('Database Integration', () => {
+  beforeAll(() => setupTestDatabase())
+  afterAll() => teardownTestDatabase())
+  beforeEach(() => resetTestDatabase())
+
+  it('should insert new record', async () => {
+    const user = createUserFixture()
+
+    await db.insert(users).values(user)
+    const inserted = await db.query.users.findFirst({
+      where: eq(users.email, user.email)
+    })
+
+    expect(inserted).toBeDefined()
+    expect(inserted.email).toBe(user.email)
+  })
+})
+```
+
+### Transaction Testing
+
+```typescript
+it('should rollback failed transactions', async () => {
+  const user = createUserFixture()
+
+  try {
+    await db.transaction(async (tx) => {
+      await tx.insert(users).values(user)
+      throw new Error('Rollback test')
+    })
+  } catch (error) {
+    expect(error).toBeDefined()
+  }
+
+  // Verify rollback occurred
+  const found = await db.query.users.findFirst({
+    where: eq(users.email, user.email)
+  })
+
+  expect(found).toBeUndefined()
+})
+```
+
+### Constraint Validation
+
+```typescript
+it('should enforce unique constraints', async () => {
+  const user = createUserFixture({ email: 'unique@test.com' })
+
+  await db.insert(users).values(user)
+
+  await expect(
+    db.insert(users).values(user)
+  ).rejects.toThrow(/unique/i)
+})
+```
+
+## Authentication Flow Tests
+
+### Login Flow
+
+```typescript
+describe('Login Flow', () => {
+  it('should authenticate valid credentials', async () => {
+    const user = createUserFixture({
+      email: 'user@test.com',
+      password: 'password123',
+    })
+
+    const request = createMockRequest({
+      url: 'http://localhost:3000/api/auth/signin',
+      method: 'POST',
+      body: {
+        email: user.email,
+        password: user.password,
+      },
+    })
+
+    const response = await signInHandler(request)
+
+    expect(response.status).toBe(200)
+  })
+})
+```
+
+### Session Management
+
+```typescript
+it('should validate active session', async () => {
+  const request = createMockRequest({
+    url: 'http://localhost:3000/api/auth/session',
+    method: 'GET',
+    headers: {
+      cookie: 'session=valid-session-id',
+    },
+  })
+
+  const response = await sessionHandler(request)
+
+  expect(response.status).toBe(200)
+})
+```
+
+## Error Handling Integration
+
+### Database Error Handling
+
+```typescript
+it('should handle unique constraint violations', () => {
+  const error = createMockDbError('23505', {
+    constraint: 'users_email_unique',
+    table: 'users',
+  })
+
+  expect(() =>
+    handleDatabaseError(error, 'insert user')
+  ).toThrow(/duplicate/i)
+})
+```
+
+### Error Propagation
+
+```typescript
+it('should propagate errors up the call stack', async () => {
+  async function level3() {
+    throw new Error('Level 3 error')
+  }
+
+  async function level2() {
+    await level3()
+  }
+
+  async function level1() {
+    await level2()
+  }
+
+  await expect(level1()).rejects.toThrow('Level 3 error')
+})
+```
+
+## Monitoring Integration
+
+### Alert Delivery
+
+```typescript
+import { sendAlert } from '@revealui/core/monitoring/alerts'
+
+it('should deliver critical alerts', () => {
+  const alert: Alert = {
+    level: 'critical',
+    metric: 'memory_usage',
+    value: 98,
+    threshold: 95,
+    message: 'Critical memory usage',
+    timestamp: Date.now(),
+  }
+
+  expect(() => sendAlert(alert)).not.toThrow()
+})
+```
+
+### Health Monitoring
+
+```typescript
+it('should track system health', () => {
+  const health = {
+    status: 'ok',
+    checks: {
+      database: 'healthy',
+      cache: 'healthy',
+    },
+  }
+
+  expect(health.status).toBe('ok')
+  expect(Object.keys(health.checks)).toHaveLength(2)
+})
+```
+
+## Best Practices
+
+### 1. Test Isolation
+
+Always reset state between tests:
+
+```typescript
+beforeEach(async () => {
+  await resetTestDatabase()
+  resetAllCounters()
+  vi.clearAllMocks()
+})
+```
+
+### 2. Use Fixtures
+
+Use test fixtures for consistent data:
+
+```typescript
+// ✅ Good - consistent test data
+const user = createUserFixture({ role: 'admin' })
+
+// ❌ Bad - manual data creation
+const user = { email: 'test@test.com', password: '123' }
+```
+
+### 3. Test Real Interactions
+
+Test actual component interactions, not mocks:
+
+```typescript
+// ✅ Good - tests real database interaction
+await db.insert(users).values(user)
+const found = await db.query.users.findFirst()
+
+// ❌ Bad - mocks everything
+vi.mock('database')
+```
+
+### 4. Handle Async Properly
+
+Always await async operations:
+
+```typescript
+// ✅ Good
+it('should create user', async () => {
+  const user = await createUser(data)
+  expect(user).toBeDefined()
+})
+
+// ❌ Bad - missing await
+it('should create user', () => {
+  const user = createUser(data)
+  expect(user).toBeDefined()
+})
+```
+
+### 5. Test Error Cases
+
+Test both success and failure paths:
+
+```typescript
+describe('API endpoint', () => {
+  it('should handle valid request', async () => {
+    // Test success path
+  })
+
+  it('should reject invalid request', async () => {
+    // Test error path
+  })
+
+  it('should handle authentication errors', async () => {
+    // Test auth errors
+  })
+})
+```
+
+### 6. Use Descriptive Test Names
+
+```typescript
+// ✅ Good - describes what and why
+it('should return 401 when user is not authenticated', () => {})
+
+// ❌ Bad - vague
+it('test auth', () => {})
+```
+
+### 7. Group Related Tests
+
+```typescript
+describe('User API', () => {
+  describe('POST /api/users', () => {
+    it('should create user with valid data', () => {})
+    it('should reject duplicate email', () => {})
+    it('should validate required fields', () => {})
+  })
+
+  describe('GET /api/users/:id', () => {
+    it('should return user by ID', () => {})
+    it('should return 404 for nonexistent user', () => {})
+  })
+})
+```
+
+### 8. Clean Up Resources
+
+Always clean up after tests:
+
+```typescript
+afterEach(() => {
+  consoleMock.restore()
+  vi.restoreAllMocks()
+})
+
+afterAll(async () => {
+  await teardownTestDatabase()
+})
+```
+
+## Common Patterns
+
+### Testing API Endpoints
+
+```typescript
+const request = createMockRequest({
+  url: 'http://localhost:3000/api/endpoint',
+  method: 'POST',
+  headers: { 'content-type': 'application/json' },
+  body: { data: 'value' },
+})
+
+const response = await handler(request)
+const data = await response.json()
+
+expect(response.status).toBe(200)
+expect(data).toHaveProperty('result')
+```
+
+### Testing with Authentication
+
+```typescript
+const authenticatedRequest = createMockRequest({
+  url: 'http://localhost:3000/api/protected',
+  method: 'GET',
+  headers: {
+    authorization: 'Bearer valid-token',
+    cookie: 'session=session-id',
+  },
+})
+```
+
+### Testing Database Operations
+
+```typescript
+await withTestTransaction(async () => {
+  // All database operations in this block
+  // are automatically rolled back
+  const user = await createUser(data)
+  const post = await createPost({ authorId: user.id })
+
+  expect(post.authorId).toBe(user.id)
+})
+```
+
+### Testing Error Recovery
+
+```typescript
+let attempt = 0
+const flaky = async () => {
+  attempt++
+  if (attempt < 3) throw new Error('Transient error')
+  return 'success'
+}
+
+const result = await retry(flaky, { maxAttempts: 3 })
+
+expect(result).toBe('success')
+expect(attempt).toBe(3)
+```
+
+## Troubleshooting
+
+### Tests Timing Out
+
+Increase timeout for slow operations:
+
+```typescript
+it('slow operation', async () => {
+  await slowDatabaseQuery()
+}, 10000) // 10 second timeout
+```
+
+### Database Connection Issues
+
+Ensure database is set up:
+
+```bash
+# Run database migrations
+pnpm db:migrate
+
+# Seed test data
+pnpm db:seed
+
+# Check database status
+pnpm db:status
+```
+
+### Import Errors
+
+Use correct import paths:
+
+```typescript
+// ✅ Correct - relative path for test files
+import { createMockRequest } from '../../core/src/__tests__/utils/test-helpers.js'
+
+// ❌ Wrong - package imports don't include __tests__
+import { createMockRequest } from '@revealui/core/__tests__/utils/test-helpers'
+```
+
+## Coverage
+
+Integration tests contribute to overall coverage goals:
+
+- **Target:** 80% coverage
+- **Critical paths:** 100% coverage
+- **API endpoints:** 80%+ coverage
+- **Database operations:** 90%+ coverage
 
 ## Related Documentation
 
-- [CI/CD Guide](./CI_CD_GUIDE.md) - Complete CI/CD setup with testing pipelines
-- [Development Guide](./README.md) - Development tools and configuration
-- [Test Package README](../../packages/test/README.md) - Test package utilities and quick reference
-- [Master Index](../INDEX.md) - Complete documentation index
+- [Testing Guide](../../TESTING.md)
+- [Test Utilities](../../packages/core/src/__tests__/utils/test-helpers.ts)
+- [Test Fixtures](../../packages/db/__tests__/fixtures/)
+- [CI/CD Pipeline](../../.github/workflows/test.yml)
 
 ---
 
-**Last Updated**: January 31, 2026
-**Status**: Consolidated Testing Documentation
-**Consolidated**: January 31, 2026 (3 files → 1 file)
-**Maintainer**: RevealUI Framework Team
+# E2E Testing Guide
+
+Comprehensive guide to end-to-end testing with Playwright for the RevealUI project.
+
+## Table of Contents
+
+- [Overview](#overview)
+- [Setup](#setup)
+- [Running Tests](#running-tests)
+- [Writing Tests](#writing-tests)
+- [Test Organization](#test-organization)
+- [Best Practices](#best-practices)
+- [Common Patterns](#common-patterns)
+- [Debugging](#debugging)
+- [CI Integration](#ci-integration)
+- [Performance Testing](#performance-testing)
+
+## Overview
+
+E2E (End-to-End) tests verify complete user workflows from the browser perspective, testing the entire application stack including:
+
+- Frontend UI and interactions
+- API endpoints and responses
+- Database operations
+- Authentication flows
+- Third-party integrations
+
+### Why Playwright?
+
+- **Cross-browser testing** - Chromium, Firefox, WebKit
+- **Auto-wait** - Intelligent waiting for elements
+- **Screenshots & videos** - Debug failures easily
+- **Network interception** - Test error scenarios
+- **Mobile emulation** - Test responsive designs
+- **Fast & reliable** - Parallel execution, retry logic
+
+## Setup
+
+### Installation
+
+Playwright is already installed. If setting up fresh:
+
+```bash
+pnpm add -D @playwright/test playwright
+```
+
+### Configuration
+
+Configuration is in `playwright.config.ts`:
+
+```typescript
+export default defineConfig({
+  testDir: './e2e',
+  testMatch: '**/*.e2e.ts',
+  use: {
+    baseURL: 'http://localhost:3000',
+    screenshot: 'only-on-failure',
+    video: 'retain-on-failure',
+    trace: 'on-first-retry',
+  },
+  projects: [
+    { name: 'chromium', use: { ...devices['Desktop Chrome'] } },
+    { name: 'firefox', use: { ...devices['Desktop Firefox'] } },
+    { name: 'webkit', use: { ...devices['Desktop Safari'] } },
+  ],
+})
+```
+
+### Browser Installation
+
+Install browsers for testing:
+
+```bash
+pnpm exec playwright install
+```
+
+Install with system dependencies:
+
+```bash
+pnpm exec playwright install --with-deps
+```
+
+## Running Tests
+
+### Run All Tests
+
+```bash
+# Run all E2E tests
+pnpm test:e2e
+
+# Run with UI mode (visual debugger)
+pnpm exec playwright test --ui
+
+# Run in headed mode (see browser)
+pnpm exec playwright test --headed
+```
+
+### Run Specific Tests
+
+```bash
+# Run single test file
+pnpm exec playwright test e2e/auth.e2e.ts
+
+# Run tests matching pattern
+pnpm exec playwright test auth
+
+# Run specific test by name
+pnpm exec playwright test -g "should login with valid credentials"
+```
+
+### Run on Specific Browser
+
+```bash
+# Run on Chromium only
+pnpm exec playwright test --project=chromium
+
+# Run on Firefox
+pnpm exec playwright test --project=firefox
+
+# Run on mobile
+pnpm exec playwright test --project=mobile-chrome
+```
+
+### Debug Mode
+
+```bash
+# Run in debug mode with inspector
+pnpm exec playwright test --debug
+
+# Debug specific test
+pnpm exec playwright test auth.e2e.ts --debug
+```
+
+## Writing Tests
+
+### Basic Test Structure
+
+```typescript
+import { test, expect } from '@playwright/test'
+
+test.describe('Feature Name', () => {
+  test.beforeEach(async ({ page }) => {
+    // Setup before each test
+    await page.goto('/')
+  })
+
+  test('should perform action', async ({ page }) => {
+    // Arrange
+    await page.goto('/login')
+
+    // Act
+    await page.fill('input[name="email"]', 'test@example.com')
+    await page.click('button[type="submit"]')
+
+    // Assert
+    await expect(page).toHaveURL(/dashboard/)
+  })
+})
+```
+
+### Using Test Helpers
+
+```typescript
+import { fillField, waitForNetworkIdle } from './utils/test-helpers'
+
+test('should login', async ({ page }) => {
+  await page.goto('/login')
+
+  await fillField(page, 'input[name="email"]', 'test@example.com')
+  await fillField(page, 'input[name="password"]', 'password123')
+  await page.click('button[type="submit"]')
+
+  await waitForNetworkIdle(page)
+
+  await expect(page).toHaveURL(/dashboard/)
+})
+```
+
+## Test Organization
+
+### File Structure
+
+```
+e2e/
+├── auth.e2e.ts                 # Authentication tests
+├── user-flows.e2e.ts           # Critical user journeys
+├── error-scenarios.e2e.ts      # Error handling tests
+├── performance.e2e.ts          # Performance tests
+├── utils/
+│   └── test-helpers.ts         # Shared utilities
+├── fixtures/
+│   └── test-data.ts            # Test data
+├── global-setup.ts             # Global setup
+└── global-teardown.ts          # Global cleanup
+```
+
+### Test Categories
+
+Organize tests by:
+
+1. **Feature** - Group by application feature
+2. **User Flow** - Group by complete user journey
+3. **Error Scenario** - Group by error type
+4. **Browser** - Separate mobile/desktop if needed
+
+### Naming Conventions
+
+```typescript
+// File names: feature.e2e.ts
+auth.e2e.ts
+checkout.e2e.ts
+search.e2e.ts
+
+// Test names: should + action + expected result
+test('should login with valid credentials', ...)
+test('should show error for invalid email', ...)
+test('should redirect to dashboard after signup', ...)
+```
+
+## Best Practices
+
+### 1. Use Semantic Selectors
+
+```typescript
+// ✅ GOOD - Semantic, resilient
+await page.click('button[type="submit"]')
+await page.click('[aria-label="Close"]')
+await page.click('text="Login"')
+
+// ❌ BAD - Fragile, implementation-specific
+await page.click('.btn-primary-xyz123')
+await page.click('#submit-button-wrapper > button')
+```
+
+### 2. Auto-Waiting
+
+Playwright auto-waits for elements. Don't add unnecessary waits:
+
+```typescript
+// ✅ GOOD - Playwright waits automatically
+await page.click('button')
+
+// ❌ BAD - Unnecessary timeout
+await page.waitForTimeout(1000)
+await page.click('button')
+```
+
+### 3. Assertions
+
+Use explicit expectations:
+
+```typescript
+// ✅ GOOD - Clear expectations
+await expect(page.locator('h1')).toHaveText('Dashboard')
+await expect(page).toHaveURL(/dashboard/)
+await expect(page.locator('.error')).toBeVisible()
+
+// ❌ BAD - Vague checks
+expect(await page.textContent('h1')).toBeTruthy()
+```
+
+### 4. Isolation
+
+Keep tests independent:
+
+```typescript
+test.beforeEach(async ({ page }) => {
+  // Clear state before each test
+  await page.goto('/')
+  await clearStorage(page)
+})
+
+test.afterEach(async ({ page }) => {
+  // Clean up after each test
+  await page.close()
+})
+```
+
+### 5. Page Object Model (Optional)
+
+For complex pages, use page objects:
+
+```typescript
+// pages/LoginPage.ts
+export class LoginPage {
+  constructor(private page: Page) {}
+
+  async login(email: string, password: string) {
+    await this.page.fill('input[name="email"]', email)
+    await this.page.fill('input[name="password"]', password)
+    await this.page.click('button[type="submit"]')
+  }
+
+  async expectLoginSuccess() {
+    await expect(this.page).toHaveURL(/dashboard/)
+  }
+}
+
+// In test
+const loginPage = new LoginPage(page)
+await loginPage.login('test@example.com', 'password123')
+await loginPage.expectLoginSuccess()
+```
+
+## Common Patterns
+
+### Navigation
+
+```typescript
+// Navigate to page
+await page.goto('/dashboard')
+
+// Click and navigate
+await Promise.all([
+  page.waitForNavigation(),
+  page.click('a[href="/settings"]'),
+])
+
+// Wait for URL
+await page.waitForURL('**/dashboard')
+```
+
+### Form Handling
+
+```typescript
+// Fill form
+await page.fill('input[name="email"]', 'test@example.com')
+await page.fill('input[name="password"]', 'password123')
+
+// Select dropdown
+await page.selectOption('select[name="country"]', 'US')
+
+// Check checkbox
+await page.check('input[type="checkbox"]')
+
+// Upload file
+await page.setInputFiles('input[type="file"]', 'path/to/file.pdf')
+
+// Submit form
+await page.click('button[type="submit"]')
+```
+
+### Waiting Strategies
+
+```typescript
+// Wait for selector
+await page.waitForSelector('.results')
+
+// Wait for network idle
+await page.waitForLoadState('networkidle')
+
+// Wait for specific response
+await page.waitForResponse((resp) =>
+  resp.url().includes('/api/data')
+)
+
+// Wait for function
+await page.waitForFunction(() =>
+  document.querySelectorAll('.item').length > 5
+)
+```
+
+### Network Interception
+
+```typescript
+// Mock API response
+await page.route('**/api/users', (route) => {
+  route.fulfill({
+    status: 200,
+    body: JSON.stringify([{ id: 1, name: 'Test User' }]),
+  })
+})
+
+// Block resources
+await page.route('**/*.{png,jpg,jpeg}', (route) => route.abort())
+
+// Modify requests
+await page.route('**/api/**', (route) => {
+  const headers = { ...route.request().headers(), 'X-Custom': 'value' }
+  route.continue({ headers })
+})
+```
+
+### Screenshots & Videos
+
+```typescript
+// Take screenshot
+await page.screenshot({ path: 'screenshot.png' })
+
+// Screenshot specific element
+await page.locator('.header').screenshot({ path: 'header.png' })
+
+// Full page screenshot
+await page.screenshot({ path: 'fullpage.png', fullPage: true })
+
+// Video is automatic (configured in playwright.config.ts)
+// Videos saved to test-results/ on failure
+```
+
+### Mobile Testing
+
+```typescript
+// Use mobile viewport
+test.use({ viewport: { width: 375, height: 667 } })
+
+test('should work on mobile', async ({ page }) => {
+  await page.goto('/')
+
+  // Test mobile-specific features
+  const mobileMenu = page.locator('.mobile-menu')
+  await expect(mobileMenu).toBeVisible()
+})
+
+// Or use device emulation
+test.use({ ...devices['iPhone 12'] })
+```
+
+### Authentication State
+
+```typescript
+// Save authentication state
+await page.context().storageState({ path: 'auth.json' })
+
+// Reuse authentication state
+test.use({ storageState: 'auth.json' })
+
+test('should access protected route', async ({ page }) => {
+  await page.goto('/dashboard')
+  // Already authenticated
+})
+```
+
+## Debugging
+
+### Debug Tools
+
+```bash
+# Run with Playwright Inspector
+pnpm exec playwright test --debug
+
+# Run specific test in debug mode
+pnpm exec playwright test auth --debug -g "should login"
+
+# Open last HTML report
+pnpm exec playwright show-report
+```
+
+### Console Logging
+
+```typescript
+// Log page console
+page.on('console', (msg) => console.log('PAGE LOG:', msg.text()))
+
+// Log network requests
+page.on('request', (request) =>
+  console.log('>>', request.method(), request.url())
+)
+page.on('response', (response) =>
+  console.log('<<', response.status(), response.url())
+)
+
+// Log page errors
+page.on('pageerror', (error) =>
+  console.log('PAGE ERROR:', error.message)
+)
+```
+
+### Trace Viewer
+
+```typescript
+// Traces are automatically captured on first retry
+// View trace:
+pnpm exec playwright show-trace trace.zip
+
+// Or configure to always trace:
+// playwright.config.ts
+use: {
+  trace: 'on', // Always capture trace
+}
+```
+
+### Slow Motion
+
+```typescript
+// Slow down test execution
+test.use({ launchOptions: { slowMo: 1000 } }) // 1 second delay
+
+test('slow test', async ({ page }) => {
+  await page.goto('/')
+  // Each action delayed by 1 second
+})
+```
+
+## CI Integration
+
+### GitHub Actions
+
+```yaml
+# .github/workflows/e2e.yml
+name: E2E Tests
+
+on: [push, pull_request]
+
+jobs:
+  e2e:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - uses: actions/setup-node@v3
+      - uses: pnpm/action-setup@v2
+
+      - name: Install dependencies
+        run: pnpm install
+
+      - name: Install Playwright browsers
+        run: pnpm exec playwright install --with-deps
+
+      - name: Start application
+        run: pnpm dev &
+        env:
+          PORT: 3000
+
+      - name: Wait for server
+        run: npx wait-on http://localhost:3000
+
+      - name: Run E2E tests
+        run: pnpm test:e2e
+
+      - name: Upload test results
+        if: always()
+        uses: actions/upload-artifact@v3
+        with:
+          name: playwright-report
+          path: playwright-report/
+
+      - name: Upload videos
+        if: failure()
+        uses: actions/upload-artifact@v3
+        with:
+          name: test-videos
+          path: test-results/
+```
+
+### Docker
+
+```dockerfile
+# Dockerfile.e2e
+FROM mcr.microsoft.com/playwright:v1.58.0-jammy
+
+WORKDIR /app
+
+COPY package*.json ./
+RUN pnpm install
+
+COPY . .
+
+CMD ["pnpm", "test:e2e"]
+```
+
+```bash
+# Run in Docker
+docker build -f Dockerfile.e2e -t revealui-e2e .
+docker run revealui-e2e
+```
+
+## Performance Testing
+
+### Performance Metrics
+
+```typescript
+import { checkPerformance } from './utils/test-helpers'
+
+test('should meet performance budget', async ({ page }) => {
+  await page.goto('/')
+
+  const metrics = await checkPerformance(page, {
+    domContentLoaded: 3000, // 3s max
+    loadComplete: 5000, // 5s max
+    firstPaint: 2000, // 2s max
+  })
+
+  console.log('Performance metrics:', metrics)
+})
+```
+
+### Lighthouse Integration
+
+```typescript
+import { playAudit } from 'playwright-lighthouse'
+
+test('should pass Lighthouse audit', async ({ page, context }) => {
+  await page.goto('/')
+
+  await playAudit({
+    page,
+    port: 9222,
+    thresholds: {
+      performance: 90,
+      accessibility: 95,
+      'best-practices': 90,
+      seo: 90,
+    },
+  })
+})
+```
+
+### Network Simulation
+
+```typescript
+import { simulateSlowNetwork } from './utils/test-helpers'
+
+test('should work on slow network', async ({ page }) => {
+  await simulateSlowNetwork(page)
+
+  await page.goto('/')
+
+  // Should still load within acceptable time
+  await expect(page.locator('h1')).toBeVisible({ timeout: 10000 })
+})
+```
+
+## Troubleshooting
+
+### Common Issues
+
+**Tests timing out:**
+```typescript
+// Increase timeout
+test.setTimeout(60000) // 60 seconds
+
+// Or per-action timeout
+await page.click('button', { timeout: 30000 })
+```
+
+**Flaky tests:**
+```typescript
+// Use built-in retry
+test.describe.configure({ retries: 2 })
+
+// Or wait for stable state
+await page.waitForLoadState('networkidle')
+await page.waitForLoadState('domcontentloaded')
+```
+
+**Element not found:**
+```typescript
+// Use more specific selectors
+await page.locator('button:has-text("Submit")').click()
+
+// Wait for element
+await page.waitForSelector('button')
+
+// Check if element exists
+const count = await page.locator('button').count()
+```
+
+## Resources
+
+- [Playwright Documentation](https://playwright.dev/)
+- [Best Practices](https://playwright.dev/docs/best-practices)
+- [API Reference](https://playwright.dev/docs/api/class-playwright)
+- [Examples](https://github.com/microsoft/playwright/tree/main/examples)
+- [Discord Community](https://aka.ms/playwright/discord)
+
+## Test Examples
+
+See example E2E tests in:
+
+- `e2e/auth.e2e.ts` - Authentication flows (43 tests)
+- `e2e/user-flows.e2e.ts` - Critical user journeys (25+ tests)
+- `e2e/error-scenarios.e2e.ts` - Error handling (40+ tests)
+- `e2e/utils/test-helpers.ts` - Reusable test utilities
+
+---
+
+**Last Updated**: February 2026
+**Version**: 1.0.0
