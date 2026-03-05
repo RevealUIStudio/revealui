@@ -39,7 +39,7 @@ export function CodeBlock({
           {showCopy && (
             <button
               type="button"
-              onClick={handleCopy}
+              onClick={() => void handleCopy()}
               aria-label={copied ? 'Copied' : 'Copy code'}
               className="rounded px-2 py-1 text-xs text-zinc-400 transition-colors hover:bg-zinc-800 hover:text-zinc-200 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-500"
             >

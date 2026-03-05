@@ -153,12 +153,12 @@ function rowToEntry(row: typeof auditLog.$inferSelect): AuditEntry {
   return {
     id: row.id,
     timestamp: row.timestamp,
-    eventType: row.eventType as AuditEntry['eventType'],
-    severity: row.severity as AuditEntry['severity'],
+    eventType: row.eventType,
+    severity: row.severity,
     agentId: row.agentId,
     taskId: row.taskId ?? undefined,
     sessionId: row.sessionId ?? undefined,
     payload: (row.payload ?? {}) as Record<string, unknown>,
-    policyViolations: (row.policyViolations ?? []) as string[],
+    policyViolations: row.policyViolations ?? [],
   }
 }
