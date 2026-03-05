@@ -91,7 +91,7 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
       count: results.length,
     })
   } catch (error) {
-    logger.error('Error searching memories', { error })
+    logger.error('Error searching memories', error instanceof Error ? error : undefined)
     return createErrorResponse(error, {
       endpoint: '/api/memory/search',
       operation: 'memory_search',
