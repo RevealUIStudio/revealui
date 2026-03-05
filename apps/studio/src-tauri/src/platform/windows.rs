@@ -151,26 +151,12 @@ impl WindowsPlatform {
     }
 
     fn repo_registry() -> Vec<RepoEntry> {
-        vec![
-            RepoEntry {
-                name: "RevealUI".to_string(),
-                c_path: "projects\\RevealUI".to_string(),
-                e_path: "professional\\RevealUI".to_string(),
-                identity: "professional".to_string(),
-            },
-            RepoEntry {
-                name: "revault".to_string(),
-                c_path: "projects\\revault".to_string(),
-                e_path: "professional\\revault".to_string(),
-                identity: "professional".to_string(),
-            },
-            RepoEntry {
-                name: "devkit".to_string(),
-                c_path: ".revealui".to_string(),
-                e_path: "professional\\devkit".to_string(),
-                identity: "professional".to_string(),
-            },
-        ]
+        vec![RepoEntry {
+            name: "RevealUI".to_string(),
+            c_path: "projects\\RevealUI".to_string(),
+            e_path: "repos\\RevealUI".to_string(),
+            identity: "professional".to_string(),
+        }]
     }
 
     fn app_registry() -> Vec<AppInfo> {
