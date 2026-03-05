@@ -56,10 +56,3 @@ export function getAuthHeader(): string | null {
   const token = getAuthToken()
   return token ? `JWT ${token}` : null
 }
-
-/**
- * Check if user is authenticated
- */
-export function isAuthenticated(): boolean {
-  return getAuthToken() !== null
-}
