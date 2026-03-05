@@ -62,7 +62,10 @@ export async function GET(
       context: manager.getAllContext(),
     })
   } catch (error: unknown) {
-    logger.error('Error getting agent context', { error, sessionId, agentId })
+    logger.error('Error getting agent context', error instanceof Error ? error : undefined, {
+      sessionId,
+      agentId,
+    })
     return createErrorResponse(error, {
       endpoint: '/api/memory/context/:sessionId/:agentId',
       operation: 'context_get',
@@ -159,7 +162,10 @@ export async function POST(
       context: manager.getAllContext(),
     })
   } catch (error: unknown) {
-    logger.error('Error updating agent context', { error, sessionId, agentId })
+    logger.error('Error updating agent context', error instanceof Error ? error : undefined, {
+      sessionId,
+      agentId,
+    })
     return createErrorResponse(error, {
       endpoint: '/api/memory/context/:sessionId/:agentId',
       operation: 'context_post',
@@ -237,7 +243,10 @@ export async function DELETE(
       context: manager.getAllContext(),
     })
   } catch (error: unknown) {
-    logger.error('Error removing context key', { error, sessionId, agentId })
+    logger.error('Error removing context key', error instanceof Error ? error : undefined, {
+      sessionId,
+      agentId,
+    })
     return createErrorResponse(error, {
       endpoint: '/api/memory/context/:sessionId/:agentId',
       operation: 'context_remove',

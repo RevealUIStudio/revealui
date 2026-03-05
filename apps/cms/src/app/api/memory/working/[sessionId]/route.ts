@@ -52,7 +52,9 @@ export async function GET(
       activeAgents: memory.getActiveAgents(),
     })
   } catch (error) {
-    logger.error('Error getting working memory', { error, sessionId })
+    logger.error('Error getting working memory', error instanceof Error ? error : undefined, {
+      sessionId,
+    })
     return createErrorResponse(error, {
       endpoint: '/api/memory/working/:sessionId',
       operation: 'working_memory_get',
@@ -148,7 +150,9 @@ export async function POST(
       activeAgents: memory.getActiveAgents(),
     })
   } catch (error) {
-    logger.error('Error updating working memory', { error, sessionId })
+    logger.error('Error updating working memory', error instanceof Error ? error : undefined, {
+      sessionId,
+    })
     return createErrorResponse(error, {
       endpoint: '/api/memory/working/:sessionId',
       operation: 'working_memory_post',

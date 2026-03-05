@@ -174,7 +174,10 @@ export async function PUT(
       memory: updatedMemory,
     })
   } catch (error) {
-    logger.error('Error updating episodic memory', { error, userId, memoryId })
+    logger.error('Error updating episodic memory', error instanceof Error ? error : undefined, {
+      userId,
+      memoryId,
+    })
     return createErrorResponse(error, {
       endpoint: '/api/memory/episodic/:userId/:memoryId',
       operation: 'episodic_memory_update',
@@ -232,7 +235,10 @@ export async function DELETE(
       count,
     })
   } catch (error) {
-    logger.error('Error removing episodic memory', { error, userId, memoryId })
+    logger.error('Error removing episodic memory', error instanceof Error ? error : undefined, {
+      userId,
+      memoryId,
+    })
     return createErrorResponse(error, {
       endpoint: '/api/memory/episodic/:userId/:memoryId',
       operation: 'episodic_memory_delete',
