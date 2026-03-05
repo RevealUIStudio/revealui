@@ -34,7 +34,7 @@
 
 import { exec as execCallback } from 'node:child_process'
 import { existsSync } from 'node:fs'
-import { mkdir, readFile, rmdir, unlink, writeFile } from 'node:fs/promises'
+import { mkdir, readFile, rm, rmdir, unlink, writeFile } from 'node:fs/promises'
 import { promisify } from 'node:util'
 
 const execAsync = promisify(execCallback)
@@ -267,7 +267,11 @@ export class DryRunEngine {
      */
     rmdir: async (path: string, recursive = false): Promise<FSOperationResult> => {
       if (!this.enabled) {
-        await rmdir(path, { recursive })
+        if (recursive) {
+          await rm(path, { recursive: true, force: true })
+        } else {
+          await rmdir(path)
+        }
         return { success: true }
       }
 

@@ -1,10 +1,11 @@
 {
-  "name": "@revealui/scripts-lib",
+  "name": "@revealui/scripts",
   "version": "0.1.0",
   "type": "module",
   "description": "Shared utilities for RevealUI scripts",
   "exports": {
     ".": "./index.ts",
+    "./errors": "./errors.ts",
     "./logger": "./logger.ts",
     "./paths": "./paths.ts",
     "./exec": "./exec.ts",

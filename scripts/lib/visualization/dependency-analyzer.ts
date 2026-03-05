@@ -76,14 +76,19 @@ export interface MermaidOptions {
  * Dependency Analyzer class for visualizing script dependencies
  */
 export class DependencyAnalyzer {
+  private projectRoot: string
   private graph: DependencyGraph | null = null
+
+  constructor(projectRoot?: string) {
+    this.projectRoot = projectRoot ?? process.cwd()
+  }
 
   /**
    * Analyze dependencies starting from entry points
    */
   async analyze(options: AnalysisOptions): Promise<DependencyGraph> {
     const {
-      rootDir,
+      rootDir = this.projectRoot,
       entryFiles = [],
       includeExternal = false,
       maxDepth = 10,

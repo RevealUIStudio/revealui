@@ -36,8 +36,8 @@ export interface WorkflowStateMachineOptions {
  *
  * @example
  * ```typescript
- * import { WorkflowStateMachine } from '@revealui/scripts-lib/state/workflow'
- * import { PGliteStateAdapter } from '@revealui/scripts-lib/state/adapters/pglite'
+ * import { WorkflowStateMachine } from '@revealui/scripts/state/workflow'
+ * import { PGliteStateAdapter } from '@revealui/scripts/state/adapters/pglite'
  *
  * const machine = new WorkflowStateMachine({
  *   adapter: new PGliteStateAdapter(),

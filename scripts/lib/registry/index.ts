@@ -10,5 +10,7 @@
  */
 
 export * from './script-metadata.js'
-export * from './script-registry.js'
-export * from './script-scanner.js'
+// Explicitly re-export ScriptRegistry class and factory from script-registry.ts,
+// overriding the ScriptRegistry interface of the same name from script-metadata.ts.
+export { createScriptRegistry, ScriptRegistry } from './script-registry.js'
+export { ScriptScanner } from './script-scanner.js'

@@ -257,7 +257,7 @@ export class ScriptRegistry {
       await this.load()
     }
 
-    return Object.keys(this.registry?.byCategory)
+    return Object.keys(this.registry?.byCategory ?? {})
   }
 
   /**
@@ -268,7 +268,8 @@ export class ScriptRegistry {
       await this.load()
     }
 
-    return this.registry?.stats
+    // biome-ignore lint/style/noNonNullAssertion: registry is guaranteed to be loaded after this.load()
+    return this.registry!.stats
   }
 
   // ===========================================================================
