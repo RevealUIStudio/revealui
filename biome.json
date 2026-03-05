@@ -156,6 +156,16 @@
   },
   "overrides": [
     {
+      "includes": ["**/skills/compat/tool-mapper.ts"],
+      "linter": {
+        "rules": {
+          "style": {
+            "useNamingConvention": "off"
+          }
+        }
+      }
+    },
+    {
       "includes": ["**/*.config.*", "**/eslint.config.*", "**/vite.config.*", "**/vitest.config.*"],
       "linter": {
         "rules": {
