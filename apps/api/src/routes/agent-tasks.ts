@@ -438,10 +438,10 @@ function buildCMSClient(baseUrl: string | undefined) {
       const data =
         body !== null && typeof body === 'object' ? (body as Record<string, unknown>) : {}
       return {
-        docs: Array.isArray(data['docs']) ? (data['docs'] as unknown[]) : undefined,
-        totalDocs: typeof data['totalDocs'] === 'number' ? data['totalDocs'] : undefined,
-        page: typeof data['page'] === 'number' ? data['page'] : undefined,
-        totalPages: typeof data['totalPages'] === 'number' ? data['totalPages'] : undefined,
+        docs: Array.isArray(data.docs) ? (data.docs as unknown[]) : undefined,
+        totalDocs: typeof data.totalDocs === 'number' ? data.totalDocs : undefined,
+        page: typeof data.page === 'number' ? data.page : undefined,
+        totalPages: typeof data.totalPages === 'number' ? data.totalPages : undefined,
       }
     },
 
