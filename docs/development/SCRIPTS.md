@@ -39,18 +39,12 @@ pnpm test:coverage      # Run tests with coverage
 pnpm test:integration   # Run integration tests
 ```
 
-### Analysis
+### Audits
 ```bash
-pnpm analyze                # Show analyze CLI help
-pnpm analyze:quality        # Code quality metrics
-pnpm analyze:types          # TypeScript type analysis
-pnpm analyze:console        # Find console statements
-pnpm analyze:docs           # Documentation analysis
-pnpm analyze:performance    # Performance measurement
-pnpm analyze:components     # React component inventory
-pnpm analyze:audit-any      # Find 'any' type usage
-pnpm analyze:audit-docs     # Audit documentation
-pnpm analyze:dependencies   # Analyze package dependencies
+pnpm audit:any              # Find 'any' type usage
+pnpm audit:any:json         # Find 'any' types (JSON output)
+pnpm audit:console          # Find console statements
+pnpm audit:console:json     # Find console statements (JSON output)
 ```
 
 ### Database Operations
@@ -117,7 +111,7 @@ pnpm scripts:audit              # Audit all package scripts (detailed)
 pnpm scripts:validate           # Validate scripts against templates
 pnpm scripts:fix                # Preview auto-fix (dry-run)
 pnpm scripts:fix:apply          # Apply auto-fix to all packages
-pnpm scripts:health             # Full health check (validate + audit)
+pnpm scripts:fix:apply          # Apply fixes to all packages
 ```
 
 ### Release Management ⭐
@@ -141,15 +135,12 @@ pnpm build-cache:cleanup    # Clean up old cache entries
 pnpm build-cache:info       # Show cache configuration
 ```
 
-### Metrics & Analytics ⭐
+### Dashboard ⭐
 ```bash
-pnpm metrics                # Show metrics CLI help
-pnpm metrics:summary        # Show metrics summary
-pnpm metrics:dashboard      # Show full dashboard
-pnpm metrics:scripts        # Script execution stats
-pnpm metrics:cache          # Cache performance metrics
-pnpm metrics:errors         # Error analytics
-pnpm metrics:clear          # Clear all metrics
+pnpm dashboard              # Performance dashboard
+pnpm dashboard:report       # Generate report
+pnpm dashboard:summary      # Show summary
+pnpm dashboard:watch        # Watch mode
 ```
 
 ### Script Explorer ⭐
@@ -247,7 +238,7 @@ ECONNREFUSED: Connection refused
 📚 Learn more: https://docs.revealui.dev/database-setup
 ```
 
-**Available in all CLIs**: db, analyze, maintain, validate, workflow, skills, release, build-cache, metrics, explore, profile
+**Available CLIs**: ops, info, assets, state, release, dashboard, explore, profile, deps
 
 ---
 
@@ -301,9 +292,8 @@ pnpm release:publish
 ## 📊 Statistics
 
 - **Total Scripts**: 100+
-- **CLI Categories**: 14 (analyze, maintain, release, build-cache, metrics, explore, profile, dashboard, db, setup, validate, workflow, skills, revealui)
-- **New CLIs (Phase 1-4)**: maintain, analyze, release, build-cache, metrics, explore, profile, dashboard, revealui
-- **Legacy Scripts**: Still supported for backward compatibility
+- **CLI Categories**: 9 (ops, info, assets, state, release, dashboard, explore, profile, deps)
+- **Deprecated wrappers**: Some old command names (maintain, db, build-cache, etc.) forward to consolidated CLIs
 
 ---
 

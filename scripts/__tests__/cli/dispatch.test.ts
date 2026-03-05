@@ -1,7 +1,7 @@
 /**
  * Tests for the dispatch mechanism in CLI tools
  *
- * Tests that db.ts, validate.ts, and setup.ts can correctly dispatch
+ * Tests that dispatcher CLIs can correctly dispatch
  * to external scripts while maintaining JSON mode compatibility.
  */
 
@@ -106,43 +106,6 @@ describe('CLI Dispatch Mechanism', () => {
       // Verify that positional args are preserved
       const positional = process.argv.slice(3)
       expect(positional).toEqual(testArgs)
-
-      process.argv = originalArgv
-    })
-  })
-
-  describe('Validate CLI Dispatch', () => {
-    it('should dispatch validation commands correctly', () => {
-      const originalArgv = process.argv
-      process.argv = ['node', 'validate.ts', 'schema', '--json']
-
-      // Verify command is captured
-      expect(process.argv[2]).toBe('schema')
-      expect(process.argv).toContain('--json')
-
-      process.argv = originalArgv
-    })
-
-    it('should handle JSON mode in dispatch', () => {
-      const originalArgv = process.argv
-      process.argv = ['node', 'validate.ts', 'env', '--json']
-
-      // In JSON mode, the dispatch should note that output may not be JSON
-      const hasJsonFlag = process.argv.includes('--json')
-      expect(hasJsonFlag).toBe(true)
-
-      process.argv = originalArgv
-    })
-  })
-
-  describe('Setup CLI Dispatch', () => {
-    it('should forward setup commands to external scripts', () => {
-      const originalArgv = process.argv
-      process.argv = ['node', 'setup.ts', 'install', '--force']
-
-      // Verify command and flags are preserved
-      expect(process.argv[2]).toBe('install')
-      expect(process.argv).toContain('--force')
 
       process.argv = originalArgv
     })
