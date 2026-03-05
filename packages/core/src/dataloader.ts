@@ -42,8 +42,20 @@ type BatchKeyTuple = [
   PopulateType?,
 ]
 
-const parseCacheKey = (value: string): CacheKeyTuple => JSON.parse(value) as CacheKeyTuple
-const parseBatchKey = (value: string): BatchKeyTuple => JSON.parse(value) as BatchKeyTuple
+const parseCacheKey = (value: string): CacheKeyTuple => {
+  try {
+    return JSON.parse(value) as CacheKeyTuple
+  } catch {
+    throw new Error(`DataLoader: malformed cache key (not valid JSON): ${value.slice(0, 120)}`)
+  }
+}
+const parseBatchKey = (value: string): BatchKeyTuple => {
+  try {
+    return JSON.parse(value) as BatchKeyTuple
+  } catch {
+    throw new Error(`DataLoader: malformed batch key (not valid JSON): ${value.slice(0, 120)}`)
+  }
+}
 
 // RevealUI uses `dataloader` to solve the classic N+1 problem.
 
