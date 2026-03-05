@@ -30,7 +30,7 @@ Open-source business infrastructure for software companies.
 - [Package Reference](./REFERENCE.md) — Core, contracts, DB, config, presentation, utils, router, CLI
 - [Component Catalog](./COMPONENT_CATALOG.md) — 50+ native UI components
 - [AI](./AI.md) — AI package overview, prompt/response/semantic caching
-- [Pro](./PRO.md) — MCP servers, BYOK, editor integrations
+- [Pro](./PRO.md) — MCP servers, BYOK, editor integrations, harnesses, services
 
 ## Legal
 
