@@ -82,7 +82,6 @@ scripts/
 │   └── fix/               # ✨ NEW: Code modification scripts (Phase 3)
 │       ├── fix-import-extensions.ts
 │       ├── fix-linting-errors.ts
-│       ├── fix-supabase-types.ts
 │       ├── fix-test-errors.ts
 │       └── fix-typescript-errors.ts
 │
@@ -190,7 +189,6 @@ Commands:
   fix-imports      Fix missing .js extensions
   fix-lint         Fix linting errors
   fix-types        Fix TypeScript errors
-  fix-supabase     Update Supabase types
   fix-node16       Fix Node16 imports
   fix-validation   Fix validation issues
   fix-test         Fix test errors
@@ -210,7 +208,6 @@ pnpm revealui maintain audit-scripts --json
 - `maintain:fix-imports`
 - `maintain:fix-lint`
 - `maintain:fix-types`
-- `maintain:fix-supabase`
 - `maintain:audit-scripts`
 - `maintain:clean`
 

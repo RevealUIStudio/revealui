@@ -29,14 +29,14 @@
  * in @revealui/core extends this shape with additional methods.
  */
 export interface RevealCMSInstance {
-  find<T = { id: string | number; [key: string]: unknown }>(options: {
+  find(options: {
     collection: string
     where?: Record<string, unknown>
     limit?: number
     page?: number
     depth?: number
     [key: string]: unknown
-  }): Promise<{ docs: Array<T>; totalDocs: number }>
+  }): Promise<{ docs: Array<{ id: string | number; [key: string]: unknown }>; totalDocs: number }>
   create(options: {
     collection: string
     data: Record<string, unknown>

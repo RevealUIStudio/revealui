@@ -105,11 +105,26 @@ export const sharedConfig = {
  * Get shared configuration for CMS app
  * Returns base config that can be extended in apps/cms/revealui.config.ts
  */
-export function getSharedCMSConfig() {
+export function getSharedCMSConfig(): { serverURL: string; secret: string } {
   return {
     serverURL: sharedConfig.serverURL,
     secret: sharedConfig.secret,
   }
+}
+
+export interface SharedWebConfig {
+  prerender: {
+    partial: boolean
+    noExtraDir: boolean
+    parallel: number
+    disableAutoRun: boolean
+    [key: string]: unknown
+  }
+  trailingSlash: boolean
+  baseServer: string
+  baseAssets: string
+  disableUrlNormalization: boolean
+  redirects: Record<string, never>
 }
 
 /**
@@ -118,7 +133,7 @@ export function getSharedCMSConfig() {
  *
  * @returns Partial RevealUI Config object with shared prerender and routing settings
  */
-export function getSharedWebConfig() {
+export function getSharedWebConfig(): SharedWebConfig {
   const isDevelopment = process.env.NODE_ENV === 'development'
   const isProduction = process.env.NODE_ENV === 'production'
   const isTest = process.env.NODE_ENV === 'test'
@@ -154,7 +169,7 @@ export function getSharedWebConfig() {
  * Get shared Vite configuration
  * Can be used in vite.config.ts files
  */
-export function getSharedViteConfig() {
+export function getSharedViteConfig(): { build: { sourcemap: boolean }; server: { port: number } } {
   return {
     build: {
       sourcemap: true,
@@ -169,7 +184,10 @@ export function getSharedViteConfig() {
  * Get shared Next.js configuration
  * Can be used in next.config.mjs files
  */
-export function getSharedNextJSConfig() {
+export function getSharedNextJSConfig(): {
+  output: 'standalone'
+  experimental: { serverActions: boolean; serverComponentsExternalPackages: string[] }
+} {
   return {
     output: 'standalone' as const,
     experimental: {

@@ -95,10 +95,6 @@
       "types": "./dist/generated/types/cms.d.ts",
       "import": "./dist/generated/types/cms.js"
     },
-    "./generated/types/supabase": {
-      "types": "./dist/generated/types/supabase.d.ts",
-      "import": "./dist/generated/types/supabase.js"
-    },
     "./generated/types/neon": {
       "types": "./dist/generated/types/neon.d.ts",
       "import": "./dist/generated/types/neon.js"
