@@ -1,6 +1,69 @@
 import { logger } from '@revealui/core/observability/logger'
-import { match as pathMatch } from 'path-to-regexp'
 import type { NavigateOptions, Route, RouteMatch, RouteParams, RouterOptions } from './types'
+
+// ---------------------------------------------------------------------------
+// Hand-rolled path matcher — replaces `path-to-regexp`.
+// Supports: exact paths, named params (:id), wildcards (*path),
+// and optional segments ({/...}).
+// ---------------------------------------------------------------------------
+
+interface PathKey {
+  name: string
+  wildcard: boolean
+}
+
+function compilePathPattern(pattern: string): { regex: RegExp; keys: PathKey[] } {
+  const keys: PathKey[] = []
+  let src = '^'
+  let i = 0
+  while (i < pattern.length) {
+    const ch = pattern[i]!
+    if (ch === '{') {
+      src += '(?:'
+      i++
+    } else if (ch === '}') {
+      src += ')?'
+      i++
+    } else if (ch === ':') {
+      i++
+      let name = ''
+      while (i < pattern.length && /\w/.test(pattern[i]!)) name += pattern[i++]
+      keys.push({ name, wildcard: false })
+      src += '([^/]+)'
+    } else if (ch === '*') {
+      i++
+      let name = ''
+      while (i < pattern.length && /\w/.test(pattern[i]!)) name += pattern[i++]
+      keys.push({ name: name || '0', wildcard: true })
+      src += '(.+)'
+    } else {
+      src += ch.replace(/[.+?^$|()[\]\\]/g, '\\$&')
+      i++
+    }
+  }
+  src += '$'
+  return { regex: new RegExp(src), keys }
+}
+
+function pathMatch(
+  pattern: string,
+  options: { decode?: (s: string) => string } = {},
+): (path: string) => { params: Record<string, string | string[]> } | false {
+  const { regex, keys } = compilePathPattern(pattern)
+  const decode = options.decode ?? ((s) => s)
+  return (path: string) => {
+    const m = regex.exec(path)
+    if (!m) return false
+    const params: Record<string, string | string[]> = {}
+    for (let j = 0; j < keys.length; j++) {
+      const key = keys[j]!
+      const val = m[j + 1]
+      if (val === undefined) continue
+      params[key.name] = key.wildcard ? val.split('/').map(decode) : decode(val)
+    }
+    return { params }
+  }
+}
 
 /**
  * RevealUI Router - Lightweight file-based routing with SSR support
