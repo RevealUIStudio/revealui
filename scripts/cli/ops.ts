@@ -10,7 +10,6 @@
  *   fix-imports       Fix missing .js extensions in imports
  *   fix-lint          Fix common linting errors
  *   fix-types         Fix TypeScript errors
- *   fix-supabase      Update Supabase type definitions
  *   fix-node16        Fix Node16 module resolution imports
  *   fix-validation    Fix validation issues
  *   fix-test          Fix test errors
@@ -49,6 +48,9 @@
  * - Scripts: Individual command scripts in commandMap (dispatched at runtime)
  */
 
+import { execSync } from 'node:child_process'
+import { resolve } from 'node:path'
+import { fileURLToPath } from 'node:url'
 import type { ParsedArgs } from '../lib/args.js'
 import { type CommandDefinition, DispatcherCLI, runCLI } from './_base.js'
 
@@ -62,7 +64,6 @@ class OpsCLI extends DispatcherCLI {
     'fix-imports': 'scripts/commands/fix/fix-import-extensions.ts',
     'fix-lint': 'scripts/commands/fix/fix-linting-errors.ts',
     'fix-types': 'scripts/commands/fix/fix-typescript-errors.ts',
-    'fix-supabase': 'scripts/commands/fix/fix-supabase-types.ts',
     'fix-node16': 'scripts/gates/ops/fix-node16-imports.ts',
     'fix-validation': 'scripts/validate/fix-validation-issues.ts',
     'fix-test': 'scripts/commands/fix/fix-test-errors.ts',
@@ -121,11 +122,6 @@ class OpsCLI extends DispatcherCLI {
         name: 'fix-types',
         description: 'Fix TypeScript errors',
         handler: async (args) => this.dispatchCommand('fix-types', args),
-      },
-      {
-        name: 'fix-supabase',
-        description: 'Update Supabase type definitions',
-        handler: async (args) => this.dispatchCommand('fix-supabase', args),
       },
       {
         name: 'fix-node16',
@@ -193,7 +189,16 @@ class OpsCLI extends DispatcherCLI {
       },
       {
         name: 'clean',
-        description: 'Clean generated files and caches',
+        description:
+          'Clean build artifacts (dist/, .next/, .turbo/). Use --deep to also remove node_modules and reinstall.',
+        args: [
+          {
+            name: 'deep',
+            type: 'boolean' as const,
+            description: 'Also remove node_modules and reinstall dependencies',
+            default: false,
+          },
+        ],
         confirmPrompt: 'This will delete generated files. Continue?',
         handler: async (args) => this.clean(args),
       },
@@ -333,13 +338,29 @@ class OpsCLI extends DispatcherCLI {
   // Custom Command Handlers
   // ===========================================================================
 
-  private async clean(_args: ParsedArgs) {
-    // Implementation for clean command
-    // TODO: Implement cleanup logic
+  private async clean(args: ParsedArgs) {
+    // Delegate to the root package.json "clean" script which removes dist/, node_modules/,
+    // .next/, and .turbo/ directories across all workspaces.
+    const repoRoot = resolve(fileURLToPath(import.meta.url), '../../../')
+    const deep = args.flags.deep as boolean | undefined
+
+    if (args.flags.json) {
+      console.log(JSON.stringify({ status: 'running', target: deep ? 'full' : 'build-artifacts' }))
+    } else {
+      console.log(
+        deep ? 'Removing node_modules + build artifacts...' : 'Removing build artifacts...',
+      )
+    }
+
+    const script = deep ? 'clean:install' : 'clean'
+    execSync(`pnpm ${script}`, { cwd: repoRoot, stdio: 'inherit' })
+
     return {
       success: true,
-      data: { message: 'Clean command not yet implemented' },
-      message: 'Clean command not yet implemented',
+      data: { cleaned: script },
+      message: deep
+        ? 'Cleaned build artifacts and reinstalled dependencies'
+        : 'Cleaned build artifacts',
     }
   }
 
