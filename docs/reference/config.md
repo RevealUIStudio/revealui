@@ -9,7 +9,7 @@ npm install @revealui/config
 ## Quick Start
 
 ```ts
-import { config } from '@revealui/config'
+import config from '@revealui/config'
 
 // Access config groups — validated on first access, not on import
 const dbUrl = config.database.url
@@ -32,7 +32,7 @@ const serverUrl = config.reveal.serverURL
 The default export. Groups all environment variables by concern.
 
 ```ts
-import { config } from '@revealui/config'
+import config from '@revealui/config'
 
 interface Config {
   database: DatabaseConfig
@@ -148,6 +148,53 @@ import { getDatabaseConfig, getRevealConfig, getStripeConfig } from '@revealui/c
 const dbConfig = getDatabaseConfig(process.env)
 const revealConfig = getRevealConfig(process.env)
 const stripeConfig = getStripeConfig(process.env)
+```
+
+---
+
+## Config Instance API
+
+### `getConfig(strict?: boolean): Config`
+
+Returns the resolved `Config` object. Equivalent to importing `config` directly, but useful when you need to call it as a function (e.g. in a factory or DI container). Pass `strict: false` to disable throwing on missing vars (same as build-time lenient mode).
+
+```ts
+import { getConfig } from '@revealui/config'
+
+const cfg = getConfig()          // throws if required vars missing
+const cfg = getConfig(false)     // lenient — returns partial config
+```
+
+### `resetConfig(): void`
+
+Clears the cached config instance. Forces re-validation on the next access. Useful in tests to reset between cases with different env vars.
+
+```ts
+import { resetConfig } from '@revealui/config'
+
+beforeEach(() => {
+  process.env.POSTGRES_URL = 'postgresql://test-db'
+  resetConfig()
+})
+```
+
+---
+
+## Environment Detection
+
+### `detectEnvironment(): Environment`
+
+Returns the current environment string: `'development'`, `'test'`, `'staging'`, or `'production'`. Reads `NODE_ENV` with fallback logic.
+
+### `loadEnvironment(): Record<string, string>`
+
+Merges `process.env` with any `.env` file found in the current working directory. Returns the merged env record. Called automatically by `getConfig()` on first access.
+
+```ts
+import { detectEnvironment, loadEnvironment } from '@revealui/config'
+
+const env = detectEnvironment()   // 'development' | 'test' | 'staging' | 'production'
+const vars = loadEnvironment()    // { POSTGRES_URL: '...', ... }
 ```
 
 ---
