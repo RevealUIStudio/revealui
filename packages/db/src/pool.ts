@@ -214,7 +214,14 @@ export async function checkDatabaseHealth(): Promise<{
 // POOL MONITORING
 // ===========================================================================
 
-export function getPoolStats() {
+export function getPoolStats(): {
+  totalCount: number
+  idleCount: number
+  waitingCount: number
+  maxConnections: number | undefined
+  minConnections: number | undefined
+  utilization: number
+} {
   return {
     totalCount: pool.totalCount, // Total clients
     idleCount: pool.idleCount, // Idle clients
@@ -228,8 +235,8 @@ export function getPoolStats() {
 /**
  * Log pool stats periodically
  */
-export function startPoolMonitoring(intervalMs: number = 60000) {
-  setInterval(() => {
+export function startPoolMonitoring(intervalMs: number = 60000): ReturnType<typeof setInterval> {
+  return setInterval(() => {
     const stats = getPoolStats()
     logger.info('Database pool stats', {
       ...stats,
@@ -258,7 +265,7 @@ export function startPoolMonitoring(intervalMs: number = 60000) {
 /**
  * Pre-warm the connection pool
  */
-export async function warmupPool() {
+export async function warmupPool(): Promise<void> {
   logger.info('Warming up database pool')
 
   const warmupConnections = Math.min(poolConfig.min || 5, poolConfig.max || 20)
