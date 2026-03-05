@@ -89,17 +89,17 @@ export async function checkRateLimit(
 
   // Check if blocked
   if (config.blockDurationMs && currentEntry.count >= config.maxAttempts) {
-    const blockUntil = currentEntry.resetAt + (config.blockDurationMs - config.windowMs)
-    if (now < blockUntil) {
-      return {
-        allowed: false,
-        remaining: 0,
-        resetAt: blockUntil,
-      }
+    const blockUntil = now + config.blockDurationMs
+    // Extend the storage TTL so the entry outlives the block period.
+    // Without this, the entry expires at resetAt (end of the rate-limit window)
+    // before the block expires, letting the user back in prematurely.
+    const blockTtlSeconds = Math.ceil(config.blockDurationMs / 1000)
+    await storage.set(storageKey, serializeEntry(currentEntry), blockTtlSeconds)
+    return {
+      allowed: false,
+      remaining: 0,
+      resetAt: blockUntil,
     }
-    // Block expired, reset
-    currentEntry.count = 0
-    currentEntry.resetAt = now + config.windowMs
   }
 
   // Check if within window

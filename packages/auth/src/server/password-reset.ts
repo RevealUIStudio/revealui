@@ -65,6 +65,14 @@ export async function generatePasswordResetToken(email: string): Promise<Passwor
       }
     }
 
+    // Invalidate any existing unused reset tokens for this user before creating a new one.
+    // This limits active tokens to one per user, preventing table accumulation that would
+    // slow the time-bounded full-table scan in validatePasswordResetToken.
+    await db
+      .update(passwordResetTokens)
+      .set({ usedAt: new Date() })
+      .where(and(eq(passwordResetTokens.userId, user.id), isNull(passwordResetTokens.usedAt)))
+
     // Generate secure token with per-token salt
     const token = crypto.randomBytes(32).toString('hex')
     const tokenSalt = generateSalt()

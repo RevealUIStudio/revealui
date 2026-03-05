@@ -57,6 +57,12 @@ export function decryptApiKey(encrypted: string): string {
   const iv = Buffer.from(ivB64, 'base64url')
   const authTag = Buffer.from(authTagB64, 'base64url')
   const ciphertext = Buffer.from(ciphertextB64, 'base64url')
+  if (iv.length !== IV_LENGTH) {
+    throw new Error(`Invalid IV length: expected ${IV_LENGTH} bytes, got ${iv.length}`)
+  }
+  if (authTag.length !== 16) {
+    throw new Error(`Invalid auth tag length: expected 16 bytes, got ${authTag.length}`)
+  }
   const decipher = createDecipheriv(ALGORITHM, kek, iv)
   decipher.setAuthTag(authTag)
   return Buffer.concat([decipher.update(ciphertext), decipher.final()]).toString('utf8')
