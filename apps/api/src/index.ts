@@ -26,6 +26,7 @@ import apiKeysRoute from './routes/api-keys.js'
 import billingRoute from './routes/billing.js'
 import provenanceRoute from './routes/code-provenance.js'
 import { createCollabRoute } from './routes/collab.js'
+import contentRoute from './routes/content.js'
 import errorsRoute from './routes/errors.js'
 import healthRoute from './routes/health.js'
 import licenseRoute from './routes/license.js'
@@ -204,6 +205,9 @@ app.post('/api/provenance/*', writeProtected)
 app.patch('/api/provenance/*', writeProtected)
 app.delete('/api/provenance/*', writeProtected)
 app.post('/api/billing/*', writeProtected)
+app.post('/api/content/*', writeProtected)
+app.patch('/api/content/*', writeProtected)
+app.delete('/api/content/*', writeProtected)
 
 // OpenAPI documentation
 app.doc('/openapi.json', {
@@ -237,6 +241,7 @@ app.route('/api/provenance', provenanceRoute)
 app.route('/api/tickets', ticketsRoute)
 app.route('/api/agent-tasks', agentTasksRoute)
 app.route('/api/agent-stream', agentStreamRoute)
+app.route('/api/content', contentRoute)
 app.route('/api/rag', ragIndexRoute)
 app.route('/api/api-keys', apiKeysRoute)
 app.route('', createCollabRoute())

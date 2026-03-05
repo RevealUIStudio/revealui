@@ -113,6 +113,22 @@
       "types": "./dist/queries/code-provenance.d.ts",
       "import": "./dist/queries/code-provenance.js"
     },
+    "./queries/posts": {
+      "types": "./dist/queries/posts.d.ts",
+      "import": "./dist/queries/posts.js"
+    },
+    "./queries/media": {
+      "types": "./dist/queries/media.d.ts",
+      "import": "./dist/queries/media.js"
+    },
+    "./queries/sites": {
+      "types": "./dist/queries/sites.d.ts",
+      "import": "./dist/queries/sites.js"
+    },
+    "./queries/pages": {
+      "types": "./dist/queries/pages.d.ts",
+      "import": "./dist/queries/pages.js"
+    },
     "./schema/yjs-documents": {
       "types": "./dist/schema/yjs-documents.d.ts",
       "import": "./dist/schema/yjs-documents.js"
