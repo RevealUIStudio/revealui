@@ -1,7 +1,5 @@
 import { defineConfig } from 'vitest/config'
 
-// TODO: Add test files for setup package utilities
-// Currently configured but no tests implemented yet
 export default defineConfig({
   test: {
     globals: true,

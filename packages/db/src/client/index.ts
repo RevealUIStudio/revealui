@@ -32,21 +32,8 @@ import * as schema from '../schema/index.js' // Full schema for backward compati
 import * as restSchema from '../schema/rest.js'
 import * as vectorSchema from '../schema/vector.js'
 
-// Dynamic import removed to avoid circular dependency (db <-> core)
-// Monitoring integration is handled by the application layer instead
-// TODO: Consider alternative monitoring registration approach
-// let monitoringModule: typeof import('@revealui/core/monitoring') | null = null
-// async function getMonitoring() {
-//   if (!monitoringModule) {
-//     try {
-//       monitoringModule = await import('@revealui/core/monitoring')
-//     } catch {
-//       // Monitoring module not available (e.g., during build)
-//       monitoringModule = null
-//     }
-//   }
-//   return monitoringModule
-// }
+// Monitoring integration is handled by the application layer to avoid
+// circular dependency (db <-> core)
 
 // Define PoolMetrics type locally to avoid circular dependency
 // This matches the type from @revealui/core/monitoring

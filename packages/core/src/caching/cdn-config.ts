@@ -8,7 +8,7 @@
  * CDN Cache Configuration
  */
 export interface CDNCacheConfig {
-  provider?: 'cloudflare' | 'vercel' | 'cloudfront' | 'fastly' | 'custom'
+  provider?: 'cloudflare' | 'vercel' | 'fastly' | 'custom'
   zones?: string[]
   ttl?: number
   staleWhileRevalidate?: number
@@ -149,7 +149,7 @@ export const CDN_CACHE_PRESETS = {
  * CDN Purge Configuration
  */
 export interface CDNPurgeConfig {
-  provider: 'cloudflare' | 'vercel' | 'cloudfront' | 'fastly'
+  provider: 'cloudflare' | 'vercel' | 'fastly'
   apiKey?: string
   apiSecret?: string
   zoneId?: string
@@ -170,8 +170,6 @@ export async function purgeCDNCache(
       return purgeCloudflare(urls, config)
     case 'vercel':
       return purgeVercel(urls, config)
-    case 'cloudfront':
-      return purgeCloudFront(urls, config)
     case 'fastly':
       return purgeFastly(urls, config)
     default:
@@ -257,22 +255,6 @@ async function purgeVercel(
       purged: 0,
       errors: [error instanceof Error ? error.message : 'Unknown error'],
     }
-  }
-}
-
-/**
- * Purge CloudFront cache
- */
-async function purgeCloudFront(
-  _urls: string[],
-  _config: CDNPurgeConfig,
-): Promise<{ success: boolean; purged: number; errors?: string[] }> {
-  // Would require AWS SDK
-  // Placeholder implementation
-  return {
-    success: false,
-    purged: 0,
-    errors: ['CloudFront purge requires AWS SDK integration'],
   }
 }
 

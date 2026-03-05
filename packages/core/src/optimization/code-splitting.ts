@@ -309,30 +309,6 @@ export function markPureCall(fn: Function): Function {
 }
 
 /**
- * Analyze module dependencies
- */
-export interface ModuleDependency {
-  name: string
-  size: number
-  children: ModuleDependency[]
-}
-
-export function analyzeModuleDependencies(_modulePath: string): ModuleDependency | null {
-  // This would need bundler integration
-  // Placeholder for now
-  return null
-}
-
-/**
- * Critical CSS helper
- */
-export function extractCriticalCSS(_html: string): string {
-  // This would need a CSS parser
-  // Placeholder for now
-  return ''
-}
-
-/**
  * Inline critical scripts
  */
 export function shouldInlineScript(scriptPath: string, size: number): boolean {

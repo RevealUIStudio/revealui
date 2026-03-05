@@ -1,8 +1,6 @@
 import path from 'node:path'
 import { defineConfig } from 'vitest/config'
 
-// TODO: Add test files for presentation package components
-// Currently configured but no tests implemented yet
 export default defineConfig({
   test: {
     globals: true,
