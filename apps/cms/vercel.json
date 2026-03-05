@@ -3,5 +3,18 @@
   "installCommand": "pnpm install --no-frozen-lockfile",
   "ignoreCommand": "git diff --quiet HEAD~1 HEAD -- . ../../packages ../../pnpm-lock.yaml ../../package.json ../../turbo.json 2>/dev/null || exit 1",
   "framework": "nextjs",
-  "github": { "silent": true }
+  "github": { "silent": true },
+  "env": [
+    "REVEALUI_SECRET",
+    "POSTGRES_URL",
+    "NEXT_PUBLIC_SERVER_URL",
+    "REVEALUI_PUBLIC_SERVER_URL",
+    "STRIPE_SECRET_KEY",
+    "STRIPE_WEBHOOK_SECRET",
+    "NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY",
+    "BLOB_READ_WRITE_TOKEN",
+    "NEXT_PUBLIC_SUPABASE_URL",
+    "NEXT_PUBLIC_SUPABASE_ANON_KEY",
+    "SUPABASE_SERVICE_ROLE_KEY"
+  ]
 }

@@ -3,6 +3,15 @@
   "installCommand": "cd ../.. && pnpm install --no-frozen-lockfile",
   "buildCommand": "cd ../.. && pnpm turbo build --filter=api",
   "ignoreCommand": "git diff --quiet HEAD~1 HEAD -- . ../../packages ../../pnpm-lock.yaml ../../package.json ../../turbo.json 2>/dev/null || exit 1",
+  "env": [
+    "REVEALUI_SECRET",
+    "POSTGRES_URL",
+    "STRIPE_SECRET_KEY",
+    "STRIPE_WEBHOOK_SECRET",
+    "CMS_URL",
+    "NEXT_PUBLIC_SERVER_URL",
+    "REVEALUI_PUBLIC_SERVER_URL"
+  ],
   "rewrites": [{ "source": "/(.*)", "destination": "/api" }],
   "headers": [
     {
