@@ -51,6 +51,24 @@ async function gdprExportHandler(request: NextRequest) {
       }),
     ])
 
+    const conversations =
+      conversationsResult.status === 'fulfilled' ? conversationsResult.value.docs : []
+    const orders = ordersResult.status === 'fulfilled' ? ordersResult.value.docs : []
+    const subscriptions =
+      subscriptionsResult.status === 'fulfilled' ? subscriptionsResult.value.docs : []
+
+    // Guard against oversized exports (10 MB JSON limit)
+    const MaxExportBytes = 10 * 1024 * 1024
+    const totalRecords = conversations.length + orders.length + subscriptions.length
+    const estimatedSize = JSON.stringify({ conversations, orders, subscriptions }).length
+    if (estimatedSize > MaxExportBytes) {
+      return createApplicationErrorResponse(
+        `Export too large (${totalRecords} records, ~${Math.round(estimatedSize / 1024 / 1024)}MB). Contact support for a bulk export.`,
+        'EXPORT_TOO_LARGE',
+        413,
+      )
+    }
+
     // Export user data (excluding sensitive fields like password hashes)
     const exportData = {
       user: {
@@ -62,11 +80,9 @@ async function gdprExportHandler(request: NextRequest) {
         createdAt: session.user.createdAt,
         updatedAt: session.user.updatedAt,
       },
-      conversations:
-        conversationsResult.status === 'fulfilled' ? conversationsResult.value.docs : [],
-      orders: ordersResult.status === 'fulfilled' ? ordersResult.value.docs : [],
-      subscriptions:
-        subscriptionsResult.status === 'fulfilled' ? subscriptionsResult.value.docs : [],
+      conversations,
+      orders,
+      subscriptions,
     }
 
     // Write audit trail entry for every export request
