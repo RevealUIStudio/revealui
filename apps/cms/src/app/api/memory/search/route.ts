@@ -7,7 +7,7 @@
  */
 
 import { VectorMemoryService } from '@revealui/ai/memory/vector'
-import { logger } from '@revealui/core/utils/logger'
+import { logger } from '@revealui/core/observability/logger'
 import { type NextRequest, NextResponse } from 'next/server'
 import { createErrorResponse, createValidationErrorResponse } from '@/lib/utils/error-response'
 
