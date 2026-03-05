@@ -20,6 +20,7 @@ import { requestIdMiddleware } from './middleware/request-id.js'
 import { tenantMiddleware } from './middleware/tenant.js'
 import { a2aRoutes, wellKnownRoutes } from './routes/a2a.js'
 import { createAgentCollabRoute } from './routes/agent-collab.js'
+import agentStreamRoute from './routes/agent-stream.js'
 import agentTasksRoute from './routes/agent-tasks.js'
 import apiKeysRoute from './routes/api-keys.js'
 import billingRoute from './routes/billing.js'
@@ -29,6 +30,7 @@ import errorsRoute from './routes/errors.js'
 import healthRoute from './routes/health.js'
 import licenseRoute from './routes/license.js'
 import logsRoute from './routes/logs.js'
+import ragIndexRoute from './routes/rag-index.js'
 import ticketsRoute from './routes/tickets.js'
 import webhooksRoute from './routes/webhooks.js'
 
@@ -136,6 +138,11 @@ app.use(
   rateLimitMiddleware({ maxRequests: 10, windowMs: 60_000, keyPrefix: 'agent' }),
 )
 app.use(
+  '/api/agent-stream',
+  rateLimitMiddleware({ maxRequests: 10, windowMs: 60_000, keyPrefix: 'agent-stream' }),
+)
+app.use('/api/rag/*', rateLimitMiddleware({ maxRequests: 20, windowMs: 60_000, keyPrefix: 'rag' }))
+app.use(
   '/api/errors',
   rateLimitMiddleware({ maxRequests: 50, windowMs: 60_000, keyPrefix: 'error-capture' }),
 )
@@ -179,6 +186,8 @@ app.use(
 
 // License enforcement — gate premium routes by feature
 app.use('/api/agent-tasks/*', requireFeature('ai'))
+app.use('/api/agent-stream', requireFeature('ai'))
+app.use('/api/rag/*', requireFeature('ai'))
 app.use('/api/collab/agent/*', requireFeature('ai'))
 app.use('/api/provenance/*', requireFeature('dashboard'))
 
@@ -188,6 +197,9 @@ app.post('/api/tickets/*', writeProtected)
 app.patch('/api/tickets/*', writeProtected)
 app.delete('/api/tickets/*', writeProtected)
 app.post('/api/agent-tasks/*', writeProtected)
+app.post('/api/agent-stream', writeProtected)
+app.post('/api/rag/*', writeProtected)
+app.delete('/api/rag/*', writeProtected)
 app.post('/api/provenance/*', writeProtected)
 app.patch('/api/provenance/*', writeProtected)
 app.delete('/api/provenance/*', writeProtected)
@@ -224,6 +236,8 @@ app.route('/api/webhooks', webhooksRoute)
 app.route('/api/provenance', provenanceRoute)
 app.route('/api/tickets', ticketsRoute)
 app.route('/api/agent-tasks', agentTasksRoute)
+app.route('/api/agent-stream', agentStreamRoute)
+app.route('/api/rag', ragIndexRoute)
 app.route('/api/api-keys', apiKeysRoute)
 app.route('', createCollabRoute())
 app.route('', createAgentCollabRoute())
