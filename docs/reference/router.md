@@ -291,15 +291,64 @@ const post = useData<Post>()
 
 ## Server-Side Rendering
 
-Import from `@revealui/router/server`.
+Import from `@revealui/router/server`. The router integrates with Hono for SSR.
+
+### `createSSRHandler(routes, options?): HonoHandler`
+
+Creates a Hono request handler that matches the URL, runs the route loader, renders to an HTML string (or streams), and inlines loader data for hydration. Uses `react-dom/server` under the hood.
 
 ```ts
-import { renderToString } from '@revealui/router/server'
+import { createSSRHandler } from '@revealui/router/server'
+import { Hono } from 'hono'
+import { routes } from './routes'
 
-const html = await renderToString(router, '/posts/42')
+const app = new Hono()
+app.get('*', createSSRHandler(routes, {
+  template: (html, data) => `<!DOCTYPE html>
+<html><head><title>${data?.title ?? 'App'}</title></head>
+<body><div id="root">${html}</div>
+<script type="module" src="/src/client.tsx"></script>
+</body></html>`,
+}))
 ```
 
-The server renderer matches the URL, runs the route loader, renders the component to an HTML string, and inlines the loader data for hydration.
+**`SSROptions`:**
+```ts
+interface SSROptions {
+  /** HTML template function — receives rendered HTML + loader data */
+  template?: (html: string, data?: Record<string, unknown>) => string
+  /** Enable streaming SSR via renderToPipeableStream */
+  streaming?: boolean
+  /** Error handler */
+  onError?: (error: Error, context: Context) => void
+}
+```
+
+---
+
+### `createDevServer(routes, options?): Promise<void>`
+
+Starts a local development server with HMR support. Wraps Hono + Vite middleware.
+
+```ts
+import { createDevServer } from '@revealui/router/server'
+import { routes } from './routes'
+
+await createDevServer(routes, { port: 3000 })
+```
+
+---
+
+### `hydrate(router?, rootElement?): Promise<void>`
+
+Hydrates the server-rendered HTML on the client. Call this in your client entry point.
+
+```ts
+// src/client.tsx
+import { hydrate } from '@revealui/router/server'
+
+await hydrate()  // auto-detects router + #root element
+```
 
 ---
 

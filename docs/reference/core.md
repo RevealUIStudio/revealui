@@ -56,6 +56,42 @@ const revealui = await getRevealUI({ config })
 
 ---
 
+### `withRevealUI(nextConfig?, options?): NextConfig`
+
+Next.js configuration wrapper. Merges RevealUI's webpack/Turbopack aliases, environment variables, and security headers into your `next.config.ts`. Required when using RevealUI with Next.js.
+
+```ts
+// next.config.ts
+import { withRevealUI } from '@revealui/core'
+
+export default withRevealUI({
+  // your existing next.config options
+}, {
+  configPath: './revealui.config.ts',  // default
+  admin: true,                          // enable admin UI, default true
+  adminRoute: '/admin',                 // default
+  apiRoute: '/api',                     // default
+})
+```
+
+**What it does:**
+- Adds webpack aliases: `@revealui/core` → core package, `@revealui/config` → your config file
+- Sets Turbopack `resolveAlias` equivalents for Next.js 16+
+- Injects env vars: `REVEALUI_CONFIG_PATH`, `REVEALUI_ADMIN_ENABLED`, `REVEALUI_ADMIN_ROUTE`, `REVEALUI_API_ROUTE`
+- Appends security headers (`X-Frame-Options: SAMEORIGIN`, `X-Content-Type-Options: nosniff`) to the admin route
+
+**`WithRevealUIOptions`:**
+```ts
+interface WithRevealUIOptions {
+  configPath?: string   // path to revealui.config.ts (relative to project root)
+  admin?: boolean       // mount admin UI (default: true)
+  adminRoute?: string   // admin base path (default: '/admin')
+  apiRoute?: string     // API base path (default: '/api')
+}
+```
+
+---
+
 ## Collections & Fields
 
 ### `defineCollection(config: CollectionConfig): CollectionConfig`
