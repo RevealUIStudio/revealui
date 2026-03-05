@@ -20,7 +20,10 @@ export interface SSROptions {
 /**
  * Create a Hono handler for SSR
  */
-export function createSSRHandler(routes: Route[], options: SSROptions = {}) {
+export function createSSRHandler(
+  routes: Route[],
+  options: SSROptions = {},
+): (c: Context) => Promise<Response> {
   const router = new Router()
   router.registerRoutes(routes)
 
