@@ -44,6 +44,7 @@
  */
 
 import { spawn } from 'node:child_process'
+import { readFileSync } from 'node:fs'
 import { dirname, join } from 'node:path'
 import { fileURLToPath } from 'node:url'
 import { ErrorCode } from '../lib/errors.js'
@@ -275,8 +276,10 @@ function showHelp() {
 }
 
 function showVersion() {
-  // TODO: Read from package.json
-  console.log('revealui v0.1.0')
+  // Read version from root package.json at runtime
+  const pkgPath = new URL('../../package.json', import.meta.url)
+  const pkg = JSON.parse(readFileSync(pkgPath, 'utf-8')) as { version?: string }
+  console.log(`revealui v${pkg.version ?? '0.0.0'}`)
 }
 
 // =============================================================================

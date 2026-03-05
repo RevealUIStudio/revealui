@@ -11,7 +11,6 @@
  *   status            Show changeset status (pending versions)
  *   oss               Full OSS release: version → build → publish → GitHub releases
  *   pro               Publish Pro packages to GitHub Packages
- *   supabase-types    Regenerate Supabase types and optionally open a PR
  *   version           Bump version (major|minor|patch)
  *   preview           Preview release changes
  *   changelog         Generate changelog
@@ -25,7 +24,6 @@
  *   pnpm release oss --dry-run           # preview only
  *   pnpm release pro                     # publish Pro packages to GitHub Packages
  *   pnpm release pro --dry-run           # dry-run Pro publish
- *   pnpm release supabase-types          # regenerate and optionally PR
  *   pnpm release version minor
  *   pnpm release preview
  *   pnpm release changelog --output CHANGELOG.md
@@ -45,6 +43,8 @@
  * - External: npm - Package publishing
  */
 
+import { writeFileSync } from 'node:fs'
+import { resolve } from 'node:path'
 import type { ParsedArgs } from '../lib/args.js'
 import { ErrorCode } from '../lib/errors.js'
 import { execCommand } from '../lib/index.js'
@@ -106,11 +106,6 @@ class ReleaseCLI extends ExecutingCLI {
         handler: async (args) => this.releasePro(args),
       },
       {
-        name: 'supabase-types',
-        description: 'Regenerate Supabase types and optionally open a PR',
-        handler: async (args) => this.regenerateSupabaseTypes(args),
-      },
-      {
         name: 'version',
         description: 'Bump version (major|minor|patch)',
         args: [
@@ -130,7 +125,20 @@ class ReleaseCLI extends ExecutingCLI {
       },
       {
         name: 'changelog',
-        description: 'Generate changelog from git commits',
+        description: 'Generate changelog from git commits since the last tag',
+        args: [
+          {
+            name: 'output',
+            type: 'string' as const,
+            description: 'Output file path (default: CHANGELOG.md)',
+            default: 'CHANGELOG.md',
+          },
+          {
+            name: 'since',
+            type: 'string' as const,
+            description: 'Git ref (tag, commit) to start from (default: last tag)',
+          },
+        ],
         handler: async (args) => this.generateChangelog(args),
       },
       {
@@ -377,66 +385,6 @@ class ReleaseCLI extends ExecutingCLI {
   }
 
   /**
-   * Regenerate Supabase types and optionally create a PR.
-   * Replaces the manual dispatch regenerate-types.yml workflow.
-   *
-   * Requires:
-   *   SUPABASE_ACCESS_TOKEN — Supabase personal access token
-   *   SUPABASE_PROJECT_ID   — Supabase project ID
-   */
-  private async regenerateSupabaseTypes(_args: ParsedArgs) {
-    if (!(process.env.SUPABASE_ACCESS_TOKEN && process.env.SUPABASE_PROJECT_ID)) {
-      return fail(
-        'SUPABASE_ACCESS_TOKEN and SUPABASE_PROJECT_ID are required.\nThese should be available via direnv / revvault.',
-        ErrorCode.CONFIG_ERROR,
-      )
-    }
-
-    console.log('\nRegenerating Supabase types...')
-    const genResult = await execCommand('pnpm', ['generate:supabase-types'], {
-      cwd: this.projectRoot,
-      timeout: 120000,
-    })
-
-    if (!genResult.success) {
-      return fail('Supabase type generation failed', ErrorCode.EXECUTION_ERROR)
-    }
-
-    // Check if any files changed
-    const statusResult = await execCommand('git', ['status', '--porcelain'], {
-      cwd: this.projectRoot,
-      capture: true,
-    })
-    const dirty = (statusResult.stdout ?? '').trim()
-
-    if (!dirty) {
-      return ok({ message: 'Supabase types are already up to date — no changes' })
-    }
-
-    console.log('\nChanged files:')
-    for (const line of dirty.split('\n')) {
-      console.log(`  ${line}`)
-    }
-
-    // Offer to create a PR via gh CLI
-    console.log('\nWould you like to commit and create a PR? (gh CLI required)')
-    console.log('Run manually:')
-    console.log('  git checkout -b automated/regenerate-types')
-    console.log(
-      '  git add packages/services/src/supabase/types.ts packages/services/src/generated/types/supabase.ts',
-    )
-    console.log('  git commit -m "chore: regenerate Supabase types"')
-    console.log('  gh pr create --title "Regenerate Supabase Types" \\')
-    console.log('    --body "Auto-regenerated Supabase TypeScript types" \\')
-    console.log('    --branch automated/regenerate-types')
-
-    return ok({
-      message: 'Supabase types regenerated — see instructions above to create a PR',
-      changedFiles: dirty.split('\n').filter(Boolean),
-    })
-  }
-
-  /**
    * Bump version using changesets
    */
   private async bumpVersion(args: ParsedArgs) {
@@ -482,14 +430,85 @@ class ReleaseCLI extends ExecutingCLI {
    */
   private async generateChangelog(args: ParsedArgs) {
     const outputFile = args.output ? String(args.output) : 'CHANGELOG.md'
+    const since = args.since ? String(args.since) : undefined
 
-    // TODO: Implement changelog generation
-    // This could use conventional-changelog, git log parsing, or changeset
+    // Get the most recent git tag as the base, or use --since override
+    let fromRef = since
+    if (!fromRef) {
+      const tagResult = await execCommand('git', ['describe', '--tags', '--abbrev=0'], {
+        cwd: this.projectRoot,
+      })
+      fromRef = tagResult.success ? (tagResult.stdout ?? '').trim() : undefined
+    }
+
+    const logArgs = ['log', '--pretty=format:%H|%s|%an|%ad', '--date=short', '--no-merges']
+    if (fromRef) logArgs.push(`${fromRef}..HEAD`)
+
+    const logResult = await execCommand('git', logArgs, { cwd: this.projectRoot })
+    if (!logResult.success) {
+      return fail('Failed to read git log', ErrorCode.EXECUTION_ERROR)
+    }
+
+    const lines = (logResult.stdout ?? '').trim().split('\n').filter(Boolean)
+
+    // Parse conventional commits into sections
+    const sections: Record<string, string[]> = {
+      feat: [],
+      fix: [],
+      perf: [],
+      refactor: [],
+      docs: [],
+      test: [],
+      chore: [],
+      other: [],
+    }
+    const labelMap: Record<string, string> = {
+      feat: 'Features',
+      fix: 'Bug Fixes',
+      perf: 'Performance',
+      refactor: 'Refactoring',
+      docs: 'Documentation',
+      test: 'Tests',
+      chore: 'Chores',
+      other: 'Other Changes',
+    }
+
+    for (const line of lines) {
+      const [hash, subject] = line.split('|')
+      if (!subject) continue
+      const match = subject.match(/^(\w+)(?:\(([^)]+)\))?(!)?:\s*(.+)$/)
+      if (match) {
+        const [, type, scope, breaking, desc] = match
+        const entry = scope
+          ? `- **${scope}**: ${desc}${breaking ? ' (**BREAKING**)' : ''} (${hash?.slice(0, 8)})`
+          : `- ${desc}${breaking ? ' (**BREAKING**)' : ''} (${hash?.slice(0, 8)})`
+        const bucket = sections[type ?? ''] !== undefined ? (type ?? 'other') : 'other'
+        sections[bucket]?.push(entry)
+      } else {
+        sections.other?.push(`- ${subject} (${hash?.slice(0, 8)})`)
+      }
+    }
+
+    const dateStr = new Date().toISOString().slice(0, 10)
+    const header = fromRef
+      ? `## Changes since ${fromRef} (${dateStr})\n`
+      : `## Changelog (${dateStr})\n`
+
+    const body = Object.entries(sections)
+      .filter(([, entries]) => entries.length > 0)
+      .map(([type, entries]) => `### ${labelMap[type]}\n\n${entries.join('\n')}`)
+      .join('\n\n')
+
+    const content = `${header}\n${body || '_No changes_'}\n`
+
+    const outPath = resolve(this.projectRoot, outputFile)
+    writeFileSync(outPath, content, 'utf-8')
 
     return ok({
-      message: `Changelog would be generated to ${outputFile}`,
-      output: outputFile,
-      note: 'Changelog generation not yet implemented - use changeset CLI directly',
+      message: `Changelog written to ${outputFile}`,
+      output: outPath,
+      commits: lines.length,
+      since: fromRef ?? 'beginning',
     })
   }
 
