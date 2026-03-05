@@ -62,12 +62,12 @@ export async function analyzeQuality(options) {
   // Implementation
 }
 
-// scripts/cli/analyze.ts
-import { analyzeQuality } from '../commands/analyze/quality.js'
+// scripts/cli/ops.ts (dispatcher pattern)
+import { OpsCLI } from './_base.js'
 
-class AnalyzeCLI extends BaseCLI {
-  async runQuality(args) {
-    return analyzeQuality(args)
+class OpsCLI extends DispatcherCLI {
+  protected commandMap = {
+    'fix-imports': 'scripts/commands/fix/fix-import-extensions.ts',
   }
 }
 ```

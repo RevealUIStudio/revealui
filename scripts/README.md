@@ -36,8 +36,8 @@ pnpm revealui release version patch
 Each CLI can also be accessed directly:
 
 ```bash
-pnpm analyze:quality
-pnpm maintain:fix-imports
+pnpm audit:any
+pnpm ops fix-imports
 pnpm release:preview
 ```
 
@@ -140,41 +140,16 @@ pnpm revealui maintain fix-imports --dry-run
 
 ---
 
-### 2. Analyze CLI - Code Analysis
+### 2. Audit Commands - Code Analysis
 
-Comprehensive code analysis and metrics.
+Direct audit commands for code quality checks.
 
 ```bash
-pnpm analyze <command> [options]
-
-Commands:
-  quality         Code quality metrics
-  types           TypeScript type analysis
-  console         Find console statements
-  docs            Documentation analysis
-  performance     Performance measurement
-  components      React component inventory
-  audit-any       Find 'any' type usage
-  audit-docs      Audit documentation
+pnpm audit:any              # Find 'any' type usage
+pnpm audit:any:json         # Find 'any' types (JSON output)
+pnpm audit:console          # Find console statements
+pnpm audit:console:json     # Find console statements (JSON output)
 ```
-
-**Examples:**
-```bash
-pnpm analyze:quality --json
-pnpm analyze:console --path "apps/cms/**"
-pnpm analyze:types --verbose
-pnpm revealui analyze audit-any --threshold 10
-```
-
-**Package.json scripts:**
-- `analyze:quality`
-- `analyze:types`
-- `analyze:console`
-- `analyze:docs`
-- `analyze:performance`
-- `analyze:components`
-- `analyze:audit-any`
-- `analyze:audit-docs`
 
 ---
 
@@ -534,10 +509,9 @@ pnpm vitest run __tests__/unit/logger.test.ts
 pnpm analysis:quality
 pnpm analysis:types
 
-# New (both work!)
-pnpm analyze:quality
-pnpm analyze:types
-pnpm revealui analyze quality
+# New
+pnpm audit:any
+pnpm audit:console
 ```
 
 **Maintenance Commands:**
@@ -545,28 +519,25 @@ pnpm revealui analyze quality
 # Old
 pnpm fix:import-extensions
 
-# New (both work!)
-pnpm maintain:fix-imports
-pnpm revealui maintain fix-imports
+# New
+pnpm ops fix-imports
 ```
 
 **Unified Access:**
 ```bash
-# Master CLI provides unified access
-pnpm revealui db init
-pnpm revealui analyze quality
-pnpm revealui maintain fix-lint
-pnpm revealui release preview
+# Consolidated CLIs
+pnpm ops fix-lint
+pnpm ops db:seed
+pnpm release preview
 ```
 
 ### Backward Compatibility
 
-All old commands still work! New CLIs are additive:
+Deprecated wrappers (maintain, db, etc.) still forward to consolidated CLIs:
 
-- ✅ `analysis:*` scripts still work
-- ✅ `fix:*` scripts still work
 - ✅ `db:*` scripts still work
-- ✅ New `analyze:*` scripts available
+- ✅ `maintain:*` forwards to ops CLI
+- ✅ `audit:*` commands available directly
 - ✅ New `maintain:*` scripts available
 - ✅ New `release:*` scripts available
 - ✅ Master `revealui` CLI available

@@ -127,7 +127,6 @@ pnpm tsx scripts/setup/setup-dual-database.ts
 |--------|-------------|
 | `cleanup-failed-attempts.ts` | After failed migration attempts |
 | `test-cycle-fix.ts` | Fix circular dependency issues in tests |
-| `postinstall.ts` | Automatically runs after `pnpm install` |
 
 ## Troubleshooting
 

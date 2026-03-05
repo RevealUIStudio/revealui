@@ -495,21 +495,16 @@ pnpm scripts:validate
 pnpm scripts:validate --package @revealui/core
 ```
 
-### Tool 2: Code Quality Analysis
+### Tool 2: Code Quality Audits
 
-**Analyze code quality:**
+**Find `any` type usage:**
 ```bash
-pnpm analyze:quality
-```
-
-**Check TypeScript usage:**
-```bash
-pnpm analyze:types
+pnpm audit:any
 ```
 
 **Find console statements:**
 ```bash
-pnpm analyze:console
+pnpm audit:console
 ```
 
 ### Tool 3: Maintenance Tools

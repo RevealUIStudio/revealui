@@ -223,9 +223,9 @@ pnpm analysis:quality
 
 **After:**
 ```bash
-# New workflow (old still works!)
-pnpm maintain:fix-imports
-pnpm analyze:quality
+# Consolidated CLI commands
+pnpm ops fix-imports
+pnpm audit:any
 ```
 
 **Time:** 5 minutes

@@ -14,13 +14,13 @@
  * @example
  * ```bash
  * # Validate all scripts
- * pnpm check validate:dependencies
+ * tsx scripts/commands/validate/validate-dependencies.ts
  *
  * # Check specific file
- * pnpm check validate:dependencies --file scripts/cli/ops.ts
+ * tsx scripts/commands/validate/validate-dependencies.ts --file scripts/cli/ops.ts
  *
  * # Output JSON
- * pnpm check validate:dependencies --json
+ * tsx scripts/commands/validate/validate-dependencies.ts --json
  * ```
  */
 
