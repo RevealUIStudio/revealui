@@ -252,7 +252,12 @@ export async function invalidatePasswordResetToken(token: string): Promise<void>
 
     for (const candidate of candidates) {
       const expectedHash = hashToken(token, candidate.tokenSalt)
-      if (expectedHash === candidate.tokenHash) {
+      const expectedBuf = Buffer.from(expectedHash)
+      const actualBuf = Buffer.from(candidate.tokenHash)
+      if (
+        expectedBuf.length === actualBuf.length &&
+        crypto.timingSafeEqual(expectedBuf, actualBuf)
+      ) {
         await db
           .update(passwordResetTokens)
           .set({ usedAt: new Date() })
