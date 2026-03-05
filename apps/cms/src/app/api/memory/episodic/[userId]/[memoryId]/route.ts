@@ -7,6 +7,7 @@
 
 import { CRDTPersistence } from '@revealui/ai/memory/persistence'
 import { EpisodicMemory } from '@revealui/ai/memory/stores'
+import { getSession } from '@revealui/auth/server'
 import type { AgentMemory } from '@revealui/contracts/agents'
 import { EmbeddingSchema } from '@revealui/contracts/representation'
 import { logger } from '@revealui/core/observability/logger'
@@ -37,6 +38,11 @@ export async function PUT(
   let memoryId: string | undefined
 
   try {
+    const authSession = await getSession(request.headers)
+    if (!authSession) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+    }
+
     const paramsResolved = await params
     userId = paramsResolved.userId
     memoryId = paramsResolved.memoryId
@@ -192,13 +198,18 @@ export async function PUT(
  * Removes a memory from episodic memory.
  */
 export async function DELETE(
-  _request: NextRequest,
+  request: NextRequest,
   { params }: { params: Promise<{ userId: string; memoryId: string }> },
 ): Promise<NextResponse> {
   let userId: string | undefined
   let memoryId: string | undefined
 
   try {
+    const authSession = await getSession(request.headers)
+    if (!authSession) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+    }
+
     const paramsResolved = await params
     userId = paramsResolved.userId
     memoryId = paramsResolved.memoryId

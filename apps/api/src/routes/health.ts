@@ -1,4 +1,4 @@
-import { getClient } from '@revealui/db'
+import { getClient, getPoolMetrics } from '@revealui/db'
 import { sql } from 'drizzle-orm'
 import { Hono } from 'hono'
 
@@ -60,11 +60,14 @@ app.get('/ready', async (c) => {
     checks.push({ name: 'env', status: 'ok' })
   }
 
+  const pools = getPoolMetrics()
+
   return c.json(
     {
       status: ready ? 'ready' : 'not_ready',
       timestamp: new Date().toISOString(),
       checks,
+      ...(pools.length > 0 && { pools }),
     },
     ready ? 200 : 503,
   )

@@ -137,7 +137,12 @@ export async function validatePasswordResetToken(token: string): Promise<string 
 
     for (const entry of candidates) {
       const expectedHash = hashToken(token, entry.tokenSalt)
-      if (expectedHash === entry.tokenHash) {
+      const expectedBuf = Buffer.from(expectedHash)
+      const actualBuf = Buffer.from(entry.tokenHash)
+      if (
+        expectedBuf.length === actualBuf.length &&
+        crypto.timingSafeEqual(expectedBuf, actualBuf)
+      ) {
         return entry.userId
       }
     }
@@ -175,7 +180,12 @@ export async function resetPasswordWithToken(
     let entry: (typeof candidates)[number] | undefined
     for (const candidate of candidates) {
       const expectedHash = hashToken(token, candidate.tokenSalt)
-      if (expectedHash === candidate.tokenHash) {
+      const expectedBuf = Buffer.from(expectedHash)
+      const actualBuf = Buffer.from(candidate.tokenHash)
+      if (
+        expectedBuf.length === actualBuf.length &&
+        crypto.timingSafeEqual(expectedBuf, actualBuf)
+      ) {
         entry = candidate
         break
       }

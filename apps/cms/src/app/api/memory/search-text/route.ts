@@ -9,6 +9,7 @@
 
 import { generateEmbedding } from '@revealui/ai/embeddings'
 import { VectorMemoryService } from '@revealui/ai/memory/vector'
+import { getSession } from '@revealui/auth/server'
 import { logger } from '@revealui/core/observability/logger'
 import { type NextRequest, NextResponse } from 'next/server'
 import { createErrorResponse, createValidationErrorResponse } from '@/lib/utils/error-response'
@@ -45,6 +46,11 @@ interface SearchTextBody {
  */
 export async function POST(request: NextRequest): Promise<NextResponse> {
   try {
+    const authSession = await getSession(request.headers)
+    if (!authSession) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+    }
+
     let body: SearchTextBody
     try {
       body = (await request.json()) as SearchTextBody

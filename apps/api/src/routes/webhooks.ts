@@ -62,12 +62,13 @@ async function checkAndMarkProcessed(
     if (err instanceof Error && err.message.includes('duplicate key')) {
       return true
     }
-    // For any other DB error, log and allow processing (fail open for webhooks)
-    logger.warn('Idempotency check failed, allowing event processing', {
+    // Any other DB error is unexpected — throw so the caller returns 500 to Stripe.
+    // Stripe will retry the event, which is safe because our INSERT is idempotent.
+    logger.error('Idempotency check failed — returning 500 to force Stripe retry', undefined, {
       eventId,
       error: err instanceof Error ? err.message : 'unknown',
     })
-    return false
+    throw err
   }
 }
 
@@ -146,6 +147,7 @@ const relevantEvents = new Set([
   'customer.subscription.trial_will_end',
   'charge.dispute.closed',
   'charge.dispute.created',
+  'charge.refunded',
 ])
 
 app.post('/stripe', async (c) => {
@@ -208,7 +210,10 @@ app.post('/stripe', async (c) => {
             customerId,
             subscriptionId,
           })
-          break
+          // Return 500 so Stripe retries — a payment was captured but no license was issued.
+          throw new Error(
+            `Cannot resolve user for checkout session (customerId=${customerId}, subscriptionId=${subscriptionId})`,
+          )
         }
 
         // Generate license key
@@ -223,7 +228,8 @@ app.post('/stripe', async (c) => {
               tier,
             },
           )
-          break
+          // Return 500 so Stripe retries — a payment was captured but no license was issued.
+          throw new Error('REVEALUI_LICENSE_PRIVATE_KEY not configured')
         }
 
         // Unescape literal \n sequences — Vercel stores multi-line PEM keys
@@ -547,6 +553,46 @@ app.post('/stripe', async (c) => {
           chargeId,
           amount: dispute.amount,
         })
+        break
+      }
+
+      case 'charge.refunded': {
+        // A charge has been refunded (partial or full). Revoke the customer's license
+        // if the refund fully covers the amount — partial refunds leave access intact.
+        const charge = event.data.object as Stripe.Charge
+        const customerId = resolveCustomerId(charge.customer)
+        if (!customerId) break
+
+        const isFullRefund = charge.amount_refunded >= charge.amount
+
+        if (isFullRefund) {
+          await db
+            .update(licenses)
+            .set({ status: 'revoked', updatedAt: new Date() })
+            .where(eq(licenses.customerId, customerId))
+
+          resetLicenseState()
+
+          logger.warn('License revoked: full refund issued', {
+            customerId,
+            chargeId: charge.id,
+            amountRefunded: charge.amount_refunded,
+            amount: charge.amount,
+          })
+          auditLicenseEvent(db, 'license.revoked.refund', 'warn', {
+            customerId,
+            chargeId: charge.id,
+            amountRefunded: charge.amount_refunded,
+            amount: charge.amount,
+          })
+        } else {
+          logger.info('Partial refund issued — license retained', {
+            customerId,
+            chargeId: charge.id,
+            amountRefunded: charge.amount_refunded,
+            amount: charge.amount,
+          })
+        }
         break
       }
     }
