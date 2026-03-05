@@ -6,6 +6,8 @@ The CMS engine. Provides config building, collections, access control, REST API 
 npm install @revealui/core
 ```
 
+---
+
 ## Setup
 
 ### `buildConfig<T>(config: T): T`
@@ -31,9 +33,9 @@ Throws `ConfigValidationError` if the config is structurally invalid.
 
 ---
 
-### `createRevealUI(config: Config)`
+### `createRevealUI(config: RevealConfig): Promise<RevealUIInstance>`
 
-Creates a RevealUI CMS instance from a built config. Used in app startup.
+Creates a RevealUI instance from a config. Returns the instance with all CRUD methods attached.
 
 ```ts
 import { createRevealUI } from '@revealui/core'
@@ -114,6 +116,9 @@ export const Posts = defineCollection({
     update: authenticated,
     delete: authenticated,
   },
+  hooks: {
+    afterChange: [sendNotificationEmail],
+  },
 })
 ```
 
@@ -139,11 +144,299 @@ Type-safe helper for defining a field outside a collection definition.
 
 ---
 
+## Instance Methods
+
+All methods are available on the `RevealUIInstance` returned by `createRevealUI()` / `getRevealUI()`.
+
+### `revealui.find(options)`
+
+Fetches multiple documents from a collection. Returns a paginated result.
+
+```ts
+const result = await revealui.find({
+  collection: 'posts',
+  where: { status: { equals: 'published' } },
+  sort: '-createdAt',
+  limit: 20,
+  page: 1,
+  depth: 1,      // populate relationships 1 level deep
+})
+
+// result.docs      — array of documents
+// result.totalDocs — total matching documents
+// result.totalPages
+// result.page, result.hasNextPage, result.nextPage
+```
+
+**`RevealFindOptions`:**
+```ts
+interface RevealFindOptions {
+  collection: string
+  where?: RevealWhere           // filter expression
+  sort?: RevealSort             // field name, prefix with '-' for descending
+  limit?: number                // default: 10
+  page?: number                 // 1-based
+  pagination?: boolean          // set false to return all docs (no pagination)
+  depth?: number                // relationship population depth (default: 0)
+  select?: RevealSelect         // field projection
+  draft?: boolean               // include drafts
+  overrideAccess?: boolean      // skip access control (server-side only)
+  locale?: string
+  req?: RevealRequest           // pass to propagate auth context
+}
+```
+
+**Where operators:**
+```ts
+// Equality
+where: { slug: { equals: 'hello-world' } }
+
+// Comparison
+where: { views: { greater_than: 100 } }
+where: { price: { less_than_equal: 50 } }
+
+// Text search
+where: { title: { like: 'revealui' } }
+where: { title: { contains: 'guide' } }
+
+// In / Not in
+where: { status: { in: ['published', 'archived'] } }
+where: { id: { not_in: [1, 2, 3] } }
+
+// Existence
+where: { publishedAt: { exists: true } }
+
+// Compound: AND (default when multiple fields)
+where: {
+  status: { equals: 'published' },
+  author: { equals: userId },
+}
+
+// Compound: OR
+where: {
+  or: [
+    { status: { equals: 'published' } },
+    { featured: { equals: true } },
+  ],
+}
+```
+
+---
+
+### `revealui.findByID(options)`
+
+Fetches a single document by ID. Returns `null` if not found.
+
+```ts
+const post = await revealui.findByID({
+  collection: 'posts',
+  id: '6621f3e2a1b2c3d4e5f60001',
+  depth: 2,
+})
+```
+
+```ts
+// Options
+{
+  collection: string
+  id: string | number
+  depth?: number
+  req?: RevealRequest
+}
+```
+
+---
+
+### `revealui.create(options)`
+
+Creates a new document. Runs `afterChange` hooks on success.
+
+```ts
+const post = await revealui.create({
+  collection: 'posts',
+  data: {
+    title: 'Hello World',
+    status: 'draft',
+    author: userId,
+  },
+  req,  // pass to trigger access control
+})
+```
+
+Throws `'Access denied'` if the collection's `access.create` function returns false.
+
+```ts
+interface RevealCreateOptions {
+  collection: string
+  data: Record<string, unknown>
+  req?: RevealRequest
+}
+// Returns: Promise<RevealDocument>
+```
+
+---
+
+### `revealui.update(options)`
+
+Updates a document by ID. Fetches the previous version, runs `afterChange` hooks with `previousDoc`.
+
+```ts
+const updated = await revealui.update({
+  collection: 'posts',
+  id: postId,
+  data: { status: 'published' },
+  req,
+})
+```
+
+```ts
+interface RevealUpdateOptions {
+  collection: string
+  id: string | number
+  data: Record<string, unknown>
+  req?: RevealRequest
+}
+// Returns: Promise<RevealDocument>
+```
+
+---
+
+### `revealui.delete(options)`
+
+Deletes a document by ID.
+
+```ts
+const deleted = await revealui.delete({
+  collection: 'posts',
+  id: postId,
+  req,
+})
+```
+
+```ts
+interface RevealDeleteOptions {
+  collection: string
+  id: string | number
+  req?: RevealRequest
+}
+// Returns: Promise<RevealDocument>   (the deleted document)
+```
+
+---
+
+### `revealui.login(options)`
+
+Authenticates a user and returns a signed JWT.
+
+```ts
+const { user, token } = await revealui.login({
+  collection: 'users',
+  data: {
+    email: 'user@example.com',
+    password: 'secret',
+  },
+})
+```
+
+Passwords must be stored as bcrypt hashes. Plain-text passwords are rejected.
+
+---
+
+## Collection Hooks
+
+Hooks run at specific lifecycle points. Attach them in `defineCollection({ hooks: { ... } })`.
+
+### `afterChange`
+
+Runs after a successful create or update. Receives the saved document and can return a modified version.
+
+```ts
+import type { CollectionAfterChangeHook } from '@revealui/core'
+
+const sendWelcomeEmail: CollectionAfterChangeHook = async ({
+  doc,
+  operation,    // 'create' | 'update'
+  previousDoc,  // undefined on create
+  req,
+  collection,
+}) => {
+  if (operation === 'create') {
+    await email.send({ to: doc.email, template: 'welcome' })
+  }
+  return doc  // return to replace the stored doc, or undefined to keep it
+}
+
+export const Users = defineCollection({
+  slug: 'users',
+  fields: [...],
+  hooks: {
+    afterChange: [sendWelcomeEmail],
+  },
+})
+```
+
+**Hook args:**
+```ts
+interface AfterChangeHookArgs {
+  doc: RevealDocument
+  operation: 'create' | 'update'
+  previousDoc?: RevealDocument
+  req: RevealRequest
+  collection: string
+  context: {
+    revealui?: RevealUIInstance
+    collection: string
+    operation: 'create' | 'update'
+    previousDoc?: RevealDocument
+    req: RevealRequest
+  }
+}
+```
+
+### `beforeChange`
+
+Runs before the data is persisted. Use to transform or validate data.
+
+```ts
+import type { CollectionBeforeChangeHook } from '@revealui/core'
+
+const slugify: CollectionBeforeChangeHook = async ({ data, operation }) => {
+  if (operation === 'create' && data.title) {
+    return {
+      ...data,
+      slug: data.title.toLowerCase().replace(/\s+/g, '-'),
+    }
+  }
+  return data
+}
+```
+
+### `afterRead`
+
+Runs after a document is fetched. Use to add computed fields.
+
+```ts
+import type { CollectionAfterReadHook } from '@revealui/core'
+
+const addComputedFields: CollectionAfterReadHook = async ({ doc }) => {
+  return {
+    ...doc,
+    readingTime: Math.ceil((doc.body?.length ?? 0) / 1000),
+  }
+}
+```
+
+### `beforeValidate`
+
+Runs before Zod schema validation. Use to coerce or normalize input before it's validated.
+
+---
+
 ## Access Control
 
 ### `anyone`
 
-Access function that allows all requests (public).
+Allows all requests (public read).
 
 ```ts
 import { anyone, authenticated } from '@revealui/core'
@@ -153,7 +446,56 @@ access: { read: anyone, create: authenticated }
 
 ### `authenticated`
 
-Access function that requires a valid session.
+Requires a valid session (`req.user` must be present).
+
+### `isAdmin({ req })`
+
+Returns `true` if the user has the `'admin'` role.
+
+```ts
+import { isAdmin } from '@revealui/core'
+
+access: { delete: isAdmin }
+```
+
+### `isSuperAdmin({ req })`
+
+Returns `true` if the user has the `'super-admin'` role.
+
+### `hasRole(role: string)`
+
+Factory: returns an access function that requires a specific role.
+
+```ts
+import { hasRole } from '@revealui/core'
+
+access: { update: hasRole('editor') }
+```
+
+### `hasAnyRole(roles: string[])`
+
+Factory: returns an access function that passes if the user has **any** of the given roles.
+
+```ts
+import { hasAnyRole } from '@revealui/core'
+
+access: { create: hasAnyRole(['editor', 'admin']) }
+```
+
+### Custom access functions
+
+All access functions share the same signature:
+
+```ts
+type AccessFunction = (args: { req: RevealRequest }) => boolean | Promise<boolean>
+
+// Example: owner-only update
+const isOwner: AccessFunction = ({ req }) => {
+  if (!req.user) return false
+  // use req.user.id to check document ownership
+  return true
+}
+```
 
 ---
 
@@ -180,6 +522,64 @@ import { handleRESTRequest } from '@revealui/core/server'
 export async function GET(req: Request) {
   return handleRESTRequest(req, config)
 }
+```
+
+---
+
+## Rate Limiting
+
+Import from `@revealui/core/api/rate-limit`.
+
+### `checkRateLimit(request, config)`
+
+Fixed-window rate limiter. Returns `{ allowed, limit, remaining, resetTime }`.
+
+```ts
+import { checkRateLimit, RATE_LIMIT_PRESETS } from '@revealui/core/api/rate-limit'
+
+const result = checkRateLimit(request, RATE_LIMIT_PRESETS.standard)
+if (!result.allowed) {
+  return new Response('Too Many Requests', { status: 429 })
+}
+```
+
+### `createRateLimitMiddleware(config)`
+
+Returns a Next.js-compatible middleware function that adds `X-RateLimit-*` headers and rejects over-limit requests with HTTP 429.
+
+```ts
+export const middleware = createRateLimitMiddleware({
+  windowMs: 60_000,   // 1 minute
+  maxRequests: 100,
+})
+```
+
+### `createUserRateLimit(config)` / `createAPIKeyRateLimit(config)` / `createEndpointRateLimit(config)`
+
+Pre-keyed middleware factories:
+- `createUserRateLimit` — keys by `x-user-id` header
+- `createAPIKeyRateLimit` — keys by `x-api-key` header
+- `createEndpointRateLimit` — keys by `IP + pathname`
+
+### `RATE_LIMIT_PRESETS`
+
+```ts
+RATE_LIMIT_PRESETS.veryStrict  // 10 req/min
+RATE_LIMIT_PRESETS.strict      // 30 req/min
+RATE_LIMIT_PRESETS.standard    // 100 req/min (default)
+RATE_LIMIT_PRESETS.relaxed     // 500 req/min
+RATE_LIMIT_PRESETS.hourly      // 1,000 req/hr
+RATE_LIMIT_PRESETS.daily       // 10,000 req/day
+```
+
+### Sliding window & token bucket
+
+```ts
+// More accurate — no boundary burst
+checkSlidingWindowRateLimit(request, config)
+
+// Smooth token refill
+checkTokenBucketRateLimit(request, { ...config, refillRate: 10 })
 ```
 
 ---
@@ -251,9 +651,9 @@ Returns the max number of active users allowed: free=3, pro=25 (or payload value
 
 Verifies a license JWT using RS256/ES256. Returns the decoded payload or `null` if invalid/expired.
 
-### `generateLicenseKey(payload: Omit<LicensePayload, 'iat' | 'exp'>, privateKey: string, expiresInSeconds?: number): Promise<string>`
+### `generateLicenseKey(payload, privateKey, expiresInSeconds?): Promise<string>`
 
-Signs a new license JWT with the given private key. Default expiry is 1 year (31,536,000 seconds). Used by the RevealUI license server — not needed in app code.
+Signs a new license JWT. Default expiry is 1 year. Used by the RevealUI license server — not needed in app code.
 
 ---
 
@@ -307,7 +707,7 @@ Returns the feature flags available at a specific tier without affecting cached 
 Returns the minimum tier required for a feature.
 
 ```ts
-getRequiredTier('ai')        // 'pro'
+getRequiredTier('ai')         // 'pro'
 getRequiredTier('whiteLabel') // 'enterprise'
 ```
 
@@ -315,14 +715,14 @@ getRequiredTier('whiteLabel') // 'enterprise'
 
 ## Logging
 
-Import from `@revealui/core/observability/logger` (server) or `@revealui/core/utils/logger/client` (browser).
+Import from `@revealui/core/utils/logger`.
 
-### `createLogger(context: LogContext): Logger`
+### `createLogger(context?: LogContext): Logger`
 
 Creates a scoped logger instance with request/module context.
 
 ```ts
-import { createLogger } from '@revealui/core/observability/logger'
+import { createLogger } from '@revealui/core'
 
 const log = createLogger({ module: 'auth', requestId: req.id })
 log.info('User signed in', { userId })
@@ -334,7 +734,7 @@ log.error('Sign-in failed', { error })
 Global default logger instance — use when no request context is available.
 
 ```ts
-import { logger } from '@revealui/core/observability/logger'
+import { logger } from '@revealui/core'
 
 logger.warn('Config missing optional field')
 ```
@@ -413,35 +813,11 @@ buildConfig({
 
 ---
 
-## Utilities
-
-### `deepClone<T>(obj: T): T`
-
-Deep clones an object. Safe for use with objects containing nested arrays and plain values.
-
-### `LRUCache<K, V>`
-
-Least-recently-used cache implementation.
-
-```ts
-import { LRUCache } from '@revealui/core'
-
-const cache = new LRUCache<string, User>(100) // max 100 entries
-cache.set('user:1', user)
-const hit = cache.get('user:1')
-```
-
-### `deepMerge<T>(a: object, b: object): T`
-
-Recursively merges two objects. Arrays are replaced (not concatenated).
-
----
-
 ## Rich Text
 
 Import from `@revealui/core/richtext` or the main entry.
 
-### `serializeLexicalState(data: SerializedEditorState | null | undefined, options?: SerializeOptions): JSX.Element | null`
+### `serializeLexicalState(data, options?): JSX.Element | null`
 
 Converts a stored Lexical editor state (JSON) into a React element tree for server-side rendering. Returns `null` for empty or missing states.
 
@@ -465,6 +841,57 @@ interface SerializeOptions {
   /** Custom renderers per node type */
   customRenderers?: Record<string, (node: SerializedLexicalNode) => JSX.Element | null>
 }
+```
+
+### Rich text editor features
+
+Pass to `lexicalEditor({ features: [...] })` in your field config:
+
+```ts
+import {
+  lexicalEditor,
+  BoldFeature,
+  ItalicFeature,
+  UnderlineFeature,
+  HeadingFeature,
+  LinkFeature,
+  FixedToolbarFeature,
+} from '@revealui/core'
+
+{ name: 'body', type: 'richText', editor: lexicalEditor({
+  features: [
+    BoldFeature(),
+    ItalicFeature(),
+    UnderlineFeature(),
+    HeadingFeature({ enabledHeadingSizes: ['h2', 'h3'] }),
+    LinkFeature(),
+    FixedToolbarFeature(),
+  ],
+}) }
+```
+
+---
+
+## Utilities
+
+### `deepClone<T>(obj: T): T`
+
+Deep clones an object. Safe for objects with nested arrays and plain values.
+
+### `deepMerge<T>(a: object, b: object): T`
+
+Recursively merges two objects. Arrays are replaced (not concatenated).
+
+### `LRUCache<K, V>`
+
+Least-recently-used cache implementation.
+
+```ts
+import { LRUCache } from '@revealui/core'
+
+const cache = new LRUCache<string, User>(100) // max 100 entries
+cache.set('user:1', user)
+const hit = cache.get('user:1')
 ```
 
 ---

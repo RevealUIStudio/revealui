@@ -1,7 +1,7 @@
 export function SocialProof() {
   const features = [
     {
-      title: '21-Collection CMS Engine',
+      title: '20-Collection CMS Engine',
       description:
         'Schema-first collections with rich text (Lexical), media, relationships, and lifecycle hooks. Define once, works everywhere.',
     },

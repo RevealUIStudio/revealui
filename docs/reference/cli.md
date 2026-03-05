@@ -59,10 +59,9 @@ The CLI walks through five configuration steps:
 | Template | Description | Tier |
 |----------|-------------|------|
 | `basic-blog` | Blog with posts, pages, media, and REST API | Free |
-| `e-commerce` | Store with products, Stripe checkout, and license management | Pro |
-| `portfolio` | Portfolio site with projects and contact form | Pro |
+| `e-commerce` | Store with products, Stripe checkout, and license management | Free |
+| `portfolio` | Portfolio site with projects and contact form | Free |
 
-Pro templates require a valid RevealUI Pro license key in `REVEALUI_LICENSE_KEY` or `~/.revealui/license.json`.
 
 ---
 
@@ -143,17 +142,6 @@ pnpm dev
 ```
 
 The CMS will be at `http://localhost:4000` and the API at `http://localhost:3004`.
-
----
-
-## License Validation
-
-The CLI performs a lightweight Pro license check before generating Pro templates:
-
-1. Reads `REVEALUI_LICENSE_KEY` env var, or
-2. Reads `~/.revealui/license.json` → `{ "key": "..." }`
-
-The JWT payload is decoded (not verified — the server verifies on use) to check `tier`. If the tier is not `pro` or `enterprise`, Pro templates are blocked with a clear error message linking to the pricing page.
 
 ---
 

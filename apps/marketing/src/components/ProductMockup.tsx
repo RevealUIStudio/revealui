@@ -10,11 +10,11 @@ export function ProductMockup() {
   const globals = ['Settings', 'Header', 'Footer']
 
   const posts = [
-    { title: 'Getting Started with RevealUI', status: 'published', date: 'Mar 4', author: 'JV' },
-    { title: 'Building Multi-Tenant Apps', status: 'published', date: 'Mar 2', author: 'JV' },
-    { title: 'AI Agent Workflows', status: 'draft', date: 'Mar 1', author: 'JV' },
-    { title: 'Real-Time Sync with ElectricSQL', status: 'published', date: 'Feb 28', author: 'JV' },
-    { title: 'White-Label CMS Guide', status: 'draft', date: 'Feb 25', author: 'JV' },
+    { title: 'Getting Started with RevealUI', status: 'published', date: 'Mar 4', author: 'AK' },
+    { title: 'Building Multi-Tenant Apps', status: 'published', date: 'Mar 2', author: 'SL' },
+    { title: 'AI Agent Workflows', status: 'draft', date: 'Mar 1', author: 'AK' },
+    { title: 'Real-Time Sync with ElectricSQL', status: 'published', date: 'Feb 28', author: 'MR' },
+    { title: 'White-Label CMS Guide', status: 'draft', date: 'Feb 25', author: 'SL' },
   ]
 
   return (
@@ -47,7 +47,7 @@ export function ProductMockup() {
               cms.yourdomain.com/admin
             </div>
           </div>
-          <div className="text-xs text-gray-400 font-medium">v0.1.0</div>
+          <div className="text-xs text-gray-400 font-medium">v1.0.0</div>
         </div>
 
         {/* Admin UI */}
@@ -137,11 +137,11 @@ export function ProductMockup() {
             <div className="px-3 py-3 border-t border-gray-200">
               <div className="flex items-center gap-2">
                 <div className="h-6 w-6 rounded-full bg-indigo-500 flex items-center justify-center text-white text-xs font-semibold">
-                  JV
+                  AK
                 </div>
                 <div className="flex-1 min-w-0">
-                  <p className="text-xs font-medium text-gray-700 truncate">founder@revealui.com</p>
-                  <p className="text-xs text-blue-600">Enterprise</p>
+                  <p className="text-xs font-medium text-gray-700 truncate">alex@acmecorp.io</p>
+                  <p className="text-xs text-blue-600">Pro</p>
                 </div>
               </div>
             </div>
@@ -213,7 +213,9 @@ export function ProductMockup() {
                       </td>
                       <td className="px-4 py-3 text-gray-500">{post.date}</td>
                       <td className="px-4 py-3">
-                        <div className="h-5 w-5 rounded-full bg-indigo-500 flex items-center justify-center text-white text-xs font-semibold">
+                        <div
+                          className={`h-5 w-5 rounded-full flex items-center justify-center text-white text-xs font-semibold ${post.author === 'SL' ? 'bg-emerald-500' : post.author === 'MR' ? 'bg-violet-500' : 'bg-indigo-500'}`}
+                        >
                           {post.author}
                         </div>
                       </td>
