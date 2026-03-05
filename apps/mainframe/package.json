@@ -61,7 +61,7 @@
     "stripe:webhooks": "stripe listen --forward-to localhost:8000/stripe/webhooks",
     "test": "vitest run --passWithNoTests",
     "typecheck": "tsc --noEmit",
-    "vercel-build": "tsc"
+    "vercel-build": "vite build && tsup"
   },
   "type": "module"
 }
