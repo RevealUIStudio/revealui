@@ -228,6 +228,14 @@ async function gate(): Promise<void> {
         // In changed-only mode, skip network-bound security audit for speed
         skip: skip.has('security') || changed,
       },
+      {
+        name: 'Coverage check',
+        command: 'pnpm',
+        args: ['coverage:check'],
+        warnOnly: true,
+        // Skip if no coverage reports exist yet (gate:quick shouldn't require a test run)
+        skip: skip.has('coverage'),
+      },
     ]
 
     const results = await runPhaseParallel(phase1Checks)
