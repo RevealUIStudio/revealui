@@ -1,6 +1,6 @@
 export function Audiences() {
   return (
-    <section className="py-24 bg-gray-50 sm:py-32">
+    <section className="py-24 bg-white sm:py-32">
       <div className="mx-auto max-w-7xl px-6 lg:px-8">
         <div className="mx-auto max-w-2xl text-center">
           <h2 className="text-base font-semibold leading-7 text-blue-600">Who it's for</h2>

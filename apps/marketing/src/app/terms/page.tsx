@@ -1,5 +1,6 @@
 import type { Metadata } from 'next'
 import { Footer } from '@/components/Footer'
+import { NavBar } from '@/components/NavBar'
 
 export const metadata: Metadata = {
   title: 'Terms of Service — RevealUI',
@@ -9,6 +10,7 @@ export const metadata: Metadata = {
 export default function TermsOfServicePage() {
   return (
     <div className="min-h-screen bg-white">
+      <NavBar />
       <article className="mx-auto max-w-3xl px-6 py-24 lg:px-8 prose prose-gray">
         <h1>Terms of Service</h1>
         <p className="text-sm text-gray-500">Last updated: March 4, 2026</p>
