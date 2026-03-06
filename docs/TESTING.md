@@ -690,9 +690,9 @@ pnpm db:status
 - [Vitest Documentation](https://vitest.dev/)
 - [Testing Library](https://testing-library.com/)
 - [CI/CD Guide](./CI_CD_GUIDE.md)
-- [CI/CD Pipeline](./.github/workflows/test.yml)
-- [Test Utilities](./packages/core/src/__tests__/utils/test-helpers.ts)
-- [Test Fixtures](./packages/db/__tests__/fixtures/)
+- [CI/CD Guide](./CI_CD_GUIDE.md)
+- [Test Utilities](https://github.com/RevealUIStudio/revealui/tree/main/packages/core/src/__tests__/utils/test-helpers.ts)
+- [Test Fixtures](https://github.com/RevealUIStudio/revealui/tree/main/packages/db/__tests__/fixtures/)
 
 ---
 
@@ -1861,10 +1861,10 @@ Integration tests contribute to overall coverage goals:
 
 ## Related Documentation
 
-- [Testing Guide](../../TESTING.md)
-- [Test Utilities](../../packages/core/src/__tests__/utils/test-helpers.ts)
-- [Test Fixtures](../../packages/db/__tests__/fixtures/)
-- [CI/CD Pipeline](../../.github/workflows/test.yml)
+- [Testing Guide](./TESTING.md)
+- [Test Utilities](https://github.com/RevealUIStudio/revealui/tree/main/packages/core/src/__tests__/utils/test-helpers.ts)
+- [Test Fixtures](https://github.com/RevealUIStudio/revealui/tree/main/packages/db/__tests__/fixtures/)
+- [CI/CD Guide](./CI_CD_GUIDE.md)
 
 ---
 
