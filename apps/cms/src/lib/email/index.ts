@@ -253,11 +253,13 @@ export async function sendEmail(
  * Send password reset email
  *
  * @param email - User email
+ * @param tokenId - Token row ID (included in the reset URL for O(1) lookup)
  * @param resetToken - Password reset token
  * @param resetUrl - Full reset URL (optional, will construct if not provided)
  */
 export async function sendPasswordResetEmail(
   email: string,
+  tokenId: string,
   resetToken: string,
   resetUrl?: string,
 ): Promise<{ success: boolean; error?: string }> {
@@ -268,7 +270,7 @@ export async function sendPasswordResetEmail(
       error: 'NEXT_PUBLIC_SERVER_URL or REVEALUI_PUBLIC_SERVER_URL is not set',
     }
   }
-  const finalResetUrl = resetUrl || `${baseUrl}/reset-password?token=${resetToken}`
+  const finalResetUrl = resetUrl || `${baseUrl}/reset-password?id=${tokenId}&token=${resetToken}`
 
   const html = `
     <!DOCTYPE html>

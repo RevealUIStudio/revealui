@@ -21,6 +21,7 @@ export interface PasswordResetResult {
   success: boolean
   error?: string
   token?: string
+  tokenId?: string
 }
 
 const TOKEN_EXPIRY_MS = 60 * 60 * 1000 // 1 hour
@@ -92,6 +93,7 @@ export async function generatePasswordResetToken(email: string): Promise<Passwor
     return {
       success: true,
       token,
+      tokenId: id,
     }
   } catch (error) {
     const errorMessage = error instanceof Error ? error.message : String(error)
@@ -123,36 +125,43 @@ export async function generatePasswordResetToken(email: string): Promise<Passwor
 /**
  * Validates a password reset token
  *
- * @param token - Reset token (plain text)
+ * Uses O(1) lookup by token ID, then verifies the token hash with timingSafeEqual
+ * against the single matching row.
+ *
+ * @param tokenId - Token row ID (from the reset URL)
+ * @param token - Reset token (plain text, from the reset URL)
  * @returns User ID if valid, null otherwise
  */
-export async function validatePasswordResetToken(token: string): Promise<string | null> {
+export async function validatePasswordResetToken(
+  tokenId: string,
+  token: string,
+): Promise<string | null> {
   try {
     const db = getClient()
 
-    // We cannot look up by hash directly without the salt.
-    // Strategy: find unexpired unused tokens for any user, then verify via HMAC.
-    // To avoid full-table scans we include a time filter. In practice, there are
-    // very few active reset tokens at any given moment.
-    //
-    // A common alternative is to encode the token ID in the reset URL (e.g.,
-    // /reset?id=<uuid>&token=<token>), but this requires a URL format change.
-    // For now we do a time-bounded scan — acceptable at low token volume.
-    const candidates = await db
+    // O(1) lookup by primary key, filtered to unexpired and unused tokens
+    const [entry] = await db
       .select()
       .from(passwordResetTokens)
-      .where(and(gt(passwordResetTokens.expiresAt, new Date()), isNull(passwordResetTokens.usedAt)))
+      .where(
+        and(
+          eq(passwordResetTokens.id, tokenId),
+          gt(passwordResetTokens.expiresAt, new Date()),
+          isNull(passwordResetTokens.usedAt),
+        ),
+      )
+      .limit(1)
 
-    for (const entry of candidates) {
-      const expectedHash = hashToken(token, entry.tokenSalt)
-      const expectedBuf = Buffer.from(expectedHash)
-      const actualBuf = Buffer.from(entry.tokenHash)
-      if (
-        expectedBuf.length === actualBuf.length &&
-        crypto.timingSafeEqual(expectedBuf, actualBuf)
-      ) {
-        return entry.userId
-      }
+    if (!entry) {
+      return null
+    }
+
+    // Verify the token hash using timing-safe comparison
+    const expectedHash = hashToken(token, entry.tokenSalt)
+    const expectedBuf = Buffer.from(expectedHash)
+    const actualBuf = Buffer.from(entry.tokenHash)
+    if (expectedBuf.length === actualBuf.length && crypto.timingSafeEqual(expectedBuf, actualBuf)) {
+      return entry.userId
     }
 
     return null
@@ -168,38 +177,48 @@ export async function validatePasswordResetToken(token: string): Promise<string 
 /**
  * Resets password using a token
  *
- * @param token - Reset token (plain text)
+ * Uses O(1) lookup by token ID, then verifies the token hash.
+ *
+ * @param tokenId - Token row ID (from the reset URL)
+ * @param token - Reset token (plain text, from the reset URL)
  * @param newPassword - New password
  * @returns Success result
  */
 export async function resetPasswordWithToken(
+  tokenId: string,
   token: string,
   newPassword: string,
 ): Promise<PasswordResetResult> {
   try {
     const db = getClient()
 
-    // Find valid token by HMAC verification (same time-bounded scan as validatePasswordResetToken)
-    const candidates = await db
+    // O(1) lookup by primary key, filtered to unexpired and unused tokens
+    const [entry] = await db
       .select()
       .from(passwordResetTokens)
-      .where(and(gt(passwordResetTokens.expiresAt, new Date()), isNull(passwordResetTokens.usedAt)))
+      .where(
+        and(
+          eq(passwordResetTokens.id, tokenId),
+          gt(passwordResetTokens.expiresAt, new Date()),
+          isNull(passwordResetTokens.usedAt),
+        ),
+      )
+      .limit(1)
 
-    let entry: (typeof candidates)[number] | undefined
-    for (const candidate of candidates) {
-      const expectedHash = hashToken(token, candidate.tokenSalt)
-      const expectedBuf = Buffer.from(expectedHash)
-      const actualBuf = Buffer.from(candidate.tokenHash)
-      if (
-        expectedBuf.length === actualBuf.length &&
-        crypto.timingSafeEqual(expectedBuf, actualBuf)
-      ) {
-        entry = candidate
-        break
+    if (!entry) {
+      return {
+        success: false,
+        error: 'Invalid or expired reset token',
       }
     }
 
-    if (!entry) {
+    // Verify the token hash using timing-safe comparison
+    const expectedHash = hashToken(token, entry.tokenSalt)
+    const expectedBuf = Buffer.from(expectedHash)
+    const actualBuf = Buffer.from(entry.tokenHash)
+    if (
+      !(expectedBuf.length === actualBuf.length && crypto.timingSafeEqual(expectedBuf, actualBuf))
+    ) {
       return {
         success: false,
         error: 'Invalid or expired reset token',
@@ -246,32 +265,41 @@ export async function resetPasswordWithToken(
 /**
  * Invalidates a password reset token
  *
- * @param token - Reset token (plain text)
+ * Uses O(1) lookup by token ID, then verifies the token hash before marking as used.
+ *
+ * @param tokenId - Token row ID (from the reset URL)
+ * @param token - Reset token (plain text, from the reset URL)
  */
-export async function invalidatePasswordResetToken(token: string): Promise<void> {
+export async function invalidatePasswordResetToken(tokenId: string, token: string): Promise<void> {
   try {
     const db = getClient()
 
-    // Find the token entry by HMAC verification (time-bounded scan)
-    const candidates = await db
+    // O(1) lookup by primary key
+    const [entry] = await db
       .select()
       .from(passwordResetTokens)
-      .where(and(gt(passwordResetTokens.expiresAt, new Date()), isNull(passwordResetTokens.usedAt)))
+      .where(
+        and(
+          eq(passwordResetTokens.id, tokenId),
+          gt(passwordResetTokens.expiresAt, new Date()),
+          isNull(passwordResetTokens.usedAt),
+        ),
+      )
+      .limit(1)
 
-    for (const candidate of candidates) {
-      const expectedHash = hashToken(token, candidate.tokenSalt)
-      const expectedBuf = Buffer.from(expectedHash)
-      const actualBuf = Buffer.from(candidate.tokenHash)
-      if (
-        expectedBuf.length === actualBuf.length &&
-        crypto.timingSafeEqual(expectedBuf, actualBuf)
-      ) {
-        await db
-          .update(passwordResetTokens)
-          .set({ usedAt: new Date() })
-          .where(eq(passwordResetTokens.id, candidate.id))
-        break
-      }
+    if (!entry) {
+      return
+    }
+
+    // Verify the token hash before invalidating
+    const expectedHash = hashToken(token, entry.tokenSalt)
+    const expectedBuf = Buffer.from(expectedHash)
+    const actualBuf = Buffer.from(entry.tokenHash)
+    if (expectedBuf.length === actualBuf.length && crypto.timingSafeEqual(expectedBuf, actualBuf)) {
+      await db
+        .update(passwordResetTokens)
+        .set({ usedAt: new Date() })
+        .where(eq(passwordResetTokens.id, entry.id))
     }
   } catch (error) {
     logger.error(

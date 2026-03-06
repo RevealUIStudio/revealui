@@ -8,7 +8,15 @@
 import { createHash, timingSafeEqual } from 'node:crypto'
 
 /**
- * Hash a session token for storage in database
+ * Hash a session token using SHA-256.
+ *
+ * SHA-256 is appropriate for high-entropy session tokens (256-bit / 32 random bytes).
+ * Unlike passwords (low entropy, user-chosen), these tokens have sufficient keyspace
+ * (~2^256) to make brute-force infeasible even with fast hashes. Using bcrypt/argon2
+ * would add ~100ms latency per request with no meaningful security benefit.
+ *
+ * Security relies on: (1) token entropy >= 128 bits, (2) session expiry enforcement,
+ * (3) token regeneration on privilege changes.
  *
  * @param token - Plain session token
  * @returns Hashed token (SHA-256)
