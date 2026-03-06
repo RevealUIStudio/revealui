@@ -4,6 +4,7 @@
  * Updates an existing document in a collection with hook handling.
  */
 
+import type { RevealRequest as ContractsRevealRequest } from '@revealui/contracts/cms'
 import type { RevealDocument, RevealUIInstance, RevealUpdateOptions } from '../../types/index.js'
 import { validateJWTFromRequest } from '../../utils/jwt-validation.js'
 import { callHooks } from './hooks.js'
@@ -27,7 +28,10 @@ export async function update(
 
   // Enforce collection-level access control
   if (collectionConfig?.access?.update && options.req) {
-    const canUpdate = await collectionConfig.access.update({ req: options.req, id: options.id })
+    const canUpdate = await collectionConfig.access.update({
+      req: options.req as unknown as ContractsRevealRequest,
+      id: options.id,
+    })
     if (!canUpdate) {
       throw new Error('Access denied: you do not have permission to update in this collection')
     }
