@@ -1,4 +1,6 @@
+import { useState } from 'react'
 import { useTunnel } from '../../hooks/use-tunnel'
+import type { TailscalePeer } from '../../types'
 
 export default function TunnelPanel() {
   const { status, loading, error, toggling, up, down, refresh } = useTunnel()
@@ -66,28 +68,66 @@ export default function TunnelPanel() {
       {/* Peers */}
       {status?.peers && status.peers.length > 0 && (
         <div>
-          <h2 className="mb-3 text-sm font-medium text-neutral-400">Peers</h2>
-          <div className="space-y-1">
+          <h2 className="mb-3 text-sm font-medium text-neutral-400">
+            Peers ({status.peers.length})
+          </h2>
+          <div className="space-y-2">
             {status.peers.map((peer) => (
-              <div
-                key={peer.hostname}
-                className="flex items-center justify-between rounded-md border border-neutral-800 bg-neutral-900 px-4 py-2"
-              >
-                <div className="flex items-center gap-3">
-                  <span
-                    className={`inline-block size-2 rounded-full ${peer.online ? 'bg-green-500' : 'bg-neutral-600'}`}
-                  />
-                  <div>
-                    <p className="text-sm text-neutral-200">{peer.hostname}</p>
-                    <p className="text-xs text-neutral-500">{peer.os}</p>
-                  </div>
-                </div>
-                <span className="text-xs font-mono text-neutral-400">{peer.ip}</span>
-              </div>
+              <PeerCard key={peer.hostname} peer={peer} />
             ))}
           </div>
         </div>
       )}
+    </div>
+  )
+}
+
+function OsBadge({ os }: { os: string }) {
+  const normalized = os.toLowerCase()
+  const { label, className } = normalized.includes('windows')
+    ? { label: 'Windows', className: 'bg-blue-900/40 text-blue-300' }
+    : normalized.includes('linux')
+      ? { label: 'Linux', className: 'bg-orange-900/40 text-orange-300' }
+      : normalized.includes('mac') || normalized.includes('darwin')
+        ? { label: 'macOS', className: 'bg-purple-900/40 text-purple-300' }
+        : { label: os, className: 'bg-neutral-800 text-neutral-400' }
+
+  return (
+    <span className={`rounded px-1.5 py-0.5 text-[10px] font-medium ${className}`}>{label}</span>
+  )
+}
+
+function PeerCard({ peer }: { peer: TailscalePeer }) {
+  const [copied, setCopied] = useState(false)
+
+  const copyIp = async () => {
+    await navigator.clipboard.writeText(peer.ip)
+    setCopied(true)
+    setTimeout(() => setCopied(false), 2000)
+  }
+
+  return (
+    <div className="flex items-center justify-between rounded-lg border border-neutral-800 bg-neutral-900 px-4 py-3">
+      <div className="flex items-center gap-3">
+        <span
+          className={`inline-block size-2 shrink-0 rounded-full ${peer.online ? 'bg-green-500' : 'bg-neutral-600'}`}
+        />
+        <div>
+          <div className="flex items-center gap-2">
+            <p className="text-sm font-medium text-neutral-200">{peer.hostname}</p>
+            <OsBadge os={peer.os} />
+          </div>
+          <p className="mt-0.5 text-xs font-mono text-neutral-500">{peer.ip}</p>
+        </div>
+      </div>
+      <button
+        type="button"
+        onClick={copyIp}
+        title="Copy IP address"
+        className="rounded px-2 py-1 text-xs text-neutral-400 transition-colors hover:bg-neutral-800 hover:text-neutral-200"
+      >
+        {copied ? 'Copied!' : 'Copy IP'}
+      </button>
     </div>
   )
 }
