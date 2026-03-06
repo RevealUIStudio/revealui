@@ -1,5 +1,13 @@
 # @revealui/contracts
 
+## 1.1.0
+
+### Minor Changes
+
+- Add vision/multipart message support to ChatRequestContract.
+
+  Introduces `TextPart`, `ImagePart`, and `ContentPart` schemas so message content can be either a plain string or an array of content parts (text + image_url). This aligns with the OpenAI vision API format and enables inference-snaps multimodal models (Gemma 3, Qwen 2.5 VL) to be used through the chat endpoint.
+
 ## 1.0.0
 
 ### Minor Changes
