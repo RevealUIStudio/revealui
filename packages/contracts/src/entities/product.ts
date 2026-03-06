@@ -173,6 +173,7 @@ const ProductObjectSchema = DualEntitySchema.extend({
   createdAt: z.string().datetime(),
 
   /** CMS status */
+  // biome-ignore lint/style/useNamingConvention: _status is a conventional CMS status marker
   _status: ProductStatusSchema.nullable().optional(),
 })
 
@@ -206,6 +207,7 @@ export const CreateProductInputSchema = z.object({
   enablePaywall: z.boolean().optional(),
   categories: z.array(z.number().int().positive()).optional(),
   relatedProducts: z.array(z.number().int().positive()).optional(),
+  // biome-ignore lint/style/useNamingConvention: _status is a conventional CMS status marker
   _status: ProductStatusSchema.optional(),
 })
 

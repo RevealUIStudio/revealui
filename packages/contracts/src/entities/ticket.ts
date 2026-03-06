@@ -243,6 +243,7 @@ export function createTicketInsert(
 // =============================================================================
 
 export interface TicketWithComputed extends Ticket {
+  // biome-ignore lint/style/useNamingConvention: _computed is a conventional computed-field marker
   _computed: {
     isOpen: boolean
     isInProgress: boolean
@@ -264,6 +265,7 @@ export interface TicketWithComputed extends Ticket {
 export function ticketToHuman(ticket: Ticket): TicketWithComputed {
   return {
     ...ticket,
+    // biome-ignore lint/style/useNamingConvention: _computed is a conventional computed-field marker
     _computed: {
       isOpen: isOpen(ticket),
       isInProgress: isInProgress(ticket),
