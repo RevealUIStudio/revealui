@@ -84,9 +84,12 @@ app.openapi(
     const tenant = c.get('tenant')
     const { instruction, boardId, priority } = c.req.valid('json')
 
-    // Verify board exists
+    // Verify board exists and caller is in the same tenant
     const board = await boardQueries.getBoardById(db, boardId)
     if (!board) {
+      return c.json({ success: false as const, error: `Board "${boardId}" not found` }, 400)
+    }
+    if (board.tenantId && board.tenantId !== tenant?.id) {
       return c.json({ success: false as const, error: `Board "${boardId}" not found` }, 400)
     }
 
@@ -250,7 +253,7 @@ app.openapi(
     const { ticketId } = c.req.valid('param')
 
     const ticket = await ticketQueries.getTicketById(db, ticketId)
-    if (!ticket) {
+    if (!ticket || (ticket.tenantId && ticket.tenantId !== tenant?.id)) {
       return c.json({ success: false as const, error: 'Ticket not found' }, 404)
     }
 
