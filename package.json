@@ -2,7 +2,7 @@
   "name": "revealui",
   "version": "0.1.0",
   "private": true,
-  "description": "monorepo for RevealUI",
+  "description": "Open-source business infrastructure for software companies — users, content, payments, and AI, pre-wired and ready to deploy.",
   "devDependencies": {
     "@biomejs/biome": "^2.4.4",
     "@changesets/cli": "^2.29.8",
