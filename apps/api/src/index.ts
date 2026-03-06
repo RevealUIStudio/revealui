@@ -13,6 +13,7 @@ import { cors } from 'hono/cors'
 import { logger as honoLogger } from 'hono/logger'
 import { authMiddleware, requireRole } from './middleware/auth.js'
 import { dbMiddleware } from './middleware/db.js'
+import { domainLockMiddleware, validateForgeConfig } from './middleware/domain-lock.js'
 import { errorHandler } from './middleware/error.js'
 import { checkLicenseStatus, requireFeature } from './middleware/license.js'
 import { rateLimitMiddleware, tieredRateLimitMiddleware } from './middleware/rate-limit.js'
@@ -70,6 +71,9 @@ async function gracefulShutdown(signal: string): Promise<void> {
 process.once('SIGTERM', () => gracefulShutdown('SIGTERM'))
 process.once('SIGINT', () => gracefulShutdown('SIGINT'))
 
+// Validate Forge config at startup — exits if FORGE_* env vars are inconsistent
+validateForgeConfig()
+
 /**
  * Parse and validate CORS origins from environment variable.
  * Throws an error in production if CORS_ORIGIN is not properly configured.
@@ -110,6 +114,7 @@ const securityPreset =
 const securityHeaders = new SecurityHeaders(securityPreset)
 
 // Global middleware
+app.use('*', domainLockMiddleware()) // Forge: reject requests from unlicensed domains
 app.use('*', requestIdMiddleware())
 app.use(
   '*',
