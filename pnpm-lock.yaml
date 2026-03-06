@@ -55,6 +55,11 @@ overrides:
   basic-ftp: '>=5.2.0'
   underscore: '>=1.13.8'
 
+patchedDependencies:
+  '@revealui/services@0.0.1':
+    hash: 1a475c3d5496ec66db5f75ce79368cb820b37d764232fee941d1066826dad543
+    path: patches/@revealui__services@0.0.1.patch
+
 importers:
 
   .:
@@ -308,7 +313,7 @@ importers:
         version: link:../../packages/presentation
       '@revealui/services':
         specifier: ^0.0.1
-        version: 0.0.1(@swc/helpers@0.5.18)(@types/node@25.3.0)(graphql@16.13.1)(jiti@2.6.1)(lightningcss@1.31.1)(sass@1.97.3)(terser@5.46.0)(tsx@4.21.0)(typescript@5.9.3)(yaml@2.8.2)
+        version: 0.0.1(patch_hash=1a475c3d5496ec66db5f75ce79368cb820b37d764232fee941d1066826dad543)(@swc/helpers@0.5.18)(@types/node@25.3.0)(graphql@16.13.1)(jiti@2.6.1)(lightningcss@1.31.1)(sass@1.97.3)(terser@5.46.0)(tsx@4.21.0)(typescript@5.9.3)(yaml@2.8.2)
       '@revealui/sync':
         specifier: workspace:*
         version: link:../../packages/sync
@@ -1260,7 +1265,7 @@ importers:
         version: link:../db
       '@revealui/services':
         specifier: ^0.0.1
-        version: 0.0.1(@swc/helpers@0.5.18)(@types/node@25.3.0)(graphql@16.13.1)(jiti@2.6.1)(lightningcss@1.31.1)(sass@1.97.3)(terser@5.46.0)(tsx@4.21.0)(typescript@5.9.3)(yaml@2.8.2)
+        version: 0.0.1(patch_hash=1a475c3d5496ec66db5f75ce79368cb820b37d764232fee941d1066826dad543)(@swc/helpers@0.5.18)(@types/node@25.3.0)(graphql@16.13.1)(jiti@2.6.1)(lightningcss@1.31.1)(sass@1.97.3)(terser@5.46.0)(tsx@4.21.0)(typescript@5.9.3)(yaml@2.8.2)
       '@revealui/utils':
         specifier: workspace:*
         version: link:../utils
@@ -14821,7 +14826,7 @@ snapshots:
       - sql.js
       - sqlite3
 
-  '@revealui/services@0.0.1(@swc/helpers@0.5.18)(@types/node@25.3.0)(graphql@16.13.1)(jiti@2.6.1)(lightningcss@1.31.1)(sass@1.97.3)(terser@5.46.0)(tsx@4.21.0)(typescript@5.9.3)(yaml@2.8.2)':
+  '@revealui/services@0.0.1(patch_hash=1a475c3d5496ec66db5f75ce79368cb820b37d764232fee941d1066826dad543)(@swc/helpers@0.5.18)(@types/node@25.3.0)(graphql@16.13.1)(jiti@2.6.1)(lightningcss@1.31.1)(sass@1.97.3)(terser@5.46.0)(tsx@4.21.0)(typescript@5.9.3)(yaml@2.8.2)':
     dependencies:
       '@supabase/ssr': 0.7.0(@supabase/supabase-js@2.95.3)
       '@supabase/supabase-js': 2.95.3
