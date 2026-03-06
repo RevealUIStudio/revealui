@@ -73,19 +73,6 @@ function resetMockDb() {
   Object.assign(mockDb, fresh)
 }
 
-/**
- * A known bcrypt hash for the password "Correct123!" with salt rounds=10.
- *
- * Pre-computed to avoid importing bcryptjs in the test file.
- * Generated with: bcrypt.hashSync('Correct123!', 10)
- *
- * bcrypt.compare('Correct123!', KNOWN_HASH) → true
- * bcrypt.compare('WrongPassword!', KNOWN_HASH) → false
- */
-const KNOWN_HASH = '$2b$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi'
-// Note: the above is a well-known bcrypt hash for "password" used in tests.
-// We need the real hash for 'Correct123!'. Use the signUp flow to create it.
-
 // ---------------------------------------------------------------------------
 // Test Suite
 // ---------------------------------------------------------------------------
