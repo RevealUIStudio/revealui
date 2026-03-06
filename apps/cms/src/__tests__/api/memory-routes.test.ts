@@ -14,9 +14,59 @@ import {
   POST as postWorkingMemory,
 } from '../../app/api/memory/working/[sessionId]/route'
 
-vi.mock('@revealui/db/client', () => ({
-  getClient: vi.fn(() => ({})),
+vi.mock('@revealui/auth/server', () => ({
+  getSession: vi.fn().mockResolvedValue({
+    session: {
+      id: 'session-abc',
+      schemaVersion: '1',
+      userId: 'user-123',
+      tokenHash: 'hash',
+      userAgent: null,
+      ipAddress: null,
+      persistent: false,
+      lastActivityAt: new Date(),
+      createdAt: new Date(),
+      expiresAt: new Date(Date.now() + 3_600_000),
+    },
+    user: {
+      id: 'user-123',
+      schemaVersion: '1',
+      type: 'standard',
+      name: 'Test User',
+      email: 'test@example.com',
+      avatarUrl: null,
+      password: null,
+      role: 'admin',
+      status: 'active',
+      agentModel: null,
+      agentCapabilities: null,
+      agentConfig: null,
+      emailVerified: true,
+      emailVerificationToken: null,
+      emailVerifiedAt: null,
+      preferences: null,
+      createdAt: new Date(),
+      updatedAt: new Date(),
+      lastActiveAt: null,
+    },
+  }),
 }))
+
+vi.mock('@revealui/db/client', () => {
+  const chain = {
+    select: vi.fn(),
+    from: vi.fn(),
+    where: vi.fn(),
+    limit: vi.fn().mockResolvedValue([{ userId: 'user-123' }]),
+    insert: vi.fn(),
+    values: vi.fn().mockResolvedValue([]),
+  }
+  chain.select.mockReturnValue(chain)
+  chain.from.mockReturnValue(chain)
+  chain.where.mockReturnValue(chain)
+  chain.insert.mockReturnValue(chain)
+  return { getClient: vi.fn(() => chain) }
+})
 
 vi.mock('@revealui/ai/memory/persistence', () => {
   class CRDTPersistence {

@@ -8,6 +8,48 @@ import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { POST } from '@/app/api/chat/route'
 
 // Mock dependencies
+vi.mock('@revealui/auth/server', () => ({
+  getSession: vi.fn().mockResolvedValue({
+    session: {
+      id: 'session-abc',
+      schemaVersion: '1',
+      userId: 'user-123',
+      tokenHash: 'hash',
+      userAgent: null,
+      ipAddress: null,
+      persistent: false,
+      lastActivityAt: new Date(),
+      createdAt: new Date(),
+      expiresAt: new Date(Date.now() + 3_600_000),
+    },
+    user: {
+      id: 'user-123',
+      schemaVersion: '1',
+      type: 'standard',
+      name: 'Test User',
+      email: 'test@example.com',
+      avatarUrl: null,
+      password: null,
+      role: 'admin',
+      status: 'active',
+      agentModel: null,
+      agentCapabilities: null,
+      agentConfig: null,
+      emailVerified: true,
+      emailVerificationToken: null,
+      emailVerifiedAt: null,
+      preferences: null,
+      createdAt: new Date(),
+      updatedAt: new Date(),
+      lastActiveAt: null,
+    },
+  }),
+}))
+
+vi.mock('@revealui/core/features', () => ({
+  isFeatureEnabled: vi.fn().mockReturnValue(true),
+}))
+
 vi.mock('@revealui/ai/embeddings', () => ({
   generateEmbedding: vi.fn().mockResolvedValue({
     vector: new Array(1536).fill(0),
