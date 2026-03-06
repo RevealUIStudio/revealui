@@ -4,6 +4,7 @@
  * Creates a new document in a collection with hook handling.
  */
 
+import type { RevealRequest as ContractsRevealRequest } from '@revealui/contracts/cms'
 import type { RevealCreateOptions, RevealDocument, RevealUIInstance } from '../../types/index.js'
 import { validateJWTFromRequest } from '../../utils/jwt-validation.js'
 import { callHooks } from './hooks.js'
@@ -27,7 +28,10 @@ export async function create(
 
   // Enforce collection-level access control
   if (collectionConfig?.access?.create && options.req) {
-    const canCreate = await collectionConfig.access.create({ req: options.req, data: options.data })
+    const canCreate = await collectionConfig.access.create({
+      req: options.req as unknown as ContractsRevealRequest,
+      data: options.data,
+    })
     if (!canCreate) {
       throw new Error('Access denied: you do not have permission to create in this collection')
     }
