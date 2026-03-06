@@ -145,6 +145,7 @@ const relevantEvents = new Set([
   'customer.subscription.created',
   'customer.subscription.updated',
   'customer.subscription.deleted',
+  'customer.deleted',
   'invoice.payment_failed',
   'invoice.payment_succeeded',
   'payment_intent.payment_failed',
@@ -178,22 +179,12 @@ app.post('/stripe', async (c) => {
     return c.json({ received: true }, 200)
   }
 
-  // Reject stale events to prevent replay attacks.
-  // Stripe's own tolerance window is 300s; we match it.
-  // Note: Stripe retries failed deliveries for up to 72h, but those retries
-  // carry the *original* event timestamp. If legitimate retries are being
-  // rejected here, increase MAX_EVENT_AGE_SECONDS or scope this check to
-  // sensitive event types only (checkout.session.completed, subscription.*).
-  const maxEventAgeSeconds = 300
-  const eventAge = Math.floor(Date.now() / 1000) - event.created
-  if (eventAge > maxEventAgeSeconds) {
-    logger.warn('Rejected stale webhook event', {
-      eventId: event.id,
-      eventAge,
-      eventType: event.type,
-    })
-    return c.json({ error: 'Event too old' }, 400)
-  }
+  // NOTE: We intentionally do NOT enforce a timestamp freshness window here.
+  // Replay attacks are prevented by DB-backed idempotency (processedWebhookEvents
+  // table, INSERT ON CONFLICT) below. A timestamp window would incorrectly reject
+  // Stripe's legitimate 72-hour retry delivery attempts, which carry the original
+  // event timestamp. Stripe's own signature verification already enforces a 300s
+  // tolerance during constructEvent above.
 
   const db = getClient()
 
@@ -372,6 +363,24 @@ app.post('/stripe', async (c) => {
         break
       }
 
+      case 'customer.deleted': {
+        // Customer record deleted directly in Stripe (e.g., by an admin or via API).
+        // Revoke all associated licenses immediately to prevent continued access.
+        const customer = event.data.object as Stripe.Customer
+        const customerId = customer.id
+
+        await db
+          .update(licenses)
+          .set({ status: 'revoked', updatedAt: new Date() })
+          .where(eq(licenses.customerId, customerId))
+
+        resetLicenseState()
+
+        logger.warn('License revoked: Stripe customer deleted', { customerId })
+        auditLicenseEvent(db, 'license.revoked.customer_deleted', 'warn', { customerId })
+        break
+      }
+
       case 'customer.subscription.updated': {
         const subscription = event.data.object as Stripe.Subscription
         const customerId = resolveCustomerId(subscription.customer)
@@ -404,6 +413,33 @@ app.post('/stripe', async (c) => {
               })
             })
           }
+        }
+
+        // If subscription is scheduled for cancellation at period end, stamp the license
+        // expiry so it lapses correctly even if the subscription.deleted webhook is delayed
+        // or missed. This is belt-and-suspenders alongside the subscription.deleted handler.
+        if (
+          subscription.status === 'active' &&
+          subscription.cancel_at_period_end &&
+          subscription.cancel_at
+        ) {
+          const cancelAt = new Date(subscription.cancel_at * 1000)
+          await db
+            .update(licenses)
+            .set({ expiresAt: cancelAt, updatedAt: new Date() })
+            .where(eq(licenses.customerId, customerId))
+
+          resetLicenseState()
+          logger.info('License expiry set for scheduled downgrade', {
+            customerId,
+            subscriptionId: subscription.id,
+            expiresAt: cancelAt.toISOString(),
+          })
+          auditLicenseEvent(db, 'license.expiry_scheduled', 'info', {
+            customerId,
+            subscriptionId: subscription.id,
+            expiresAt: cancelAt.toISOString(),
+          })
         }
 
         // If subscription is active, sync tier + status (covers reactivations and tier upgrades).
