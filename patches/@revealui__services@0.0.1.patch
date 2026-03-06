@@ -1,0 +1,41 @@
+diff --git a/dist/index.d.ts b/dist/index.d.ts
+new file mode 100644
+index 0000000000000000000000000000000000000000..e95aaff64ed9d2d714839dcc65e6fdfea6bc4752
+--- /dev/null
++++ b/dist/index.d.ts
+@@ -0,0 +1,27 @@
++/**
++ * @revealui/services — type stubs for public repo typecheck
++ *
++ * The full implementation is in revealui-jv/packages/services.
++ * These stubs satisfy TypeScript while the Pro package awaits
++ * its first proper npm publish.
++ */
++import type Stripe from 'stripe'
++
++// ---------------------------------------------------------------------------
++// Stripe
++// ---------------------------------------------------------------------------
++
++/** Stripe client wrapped with circuit-breaker protection */
++export declare const protectedStripe: Stripe
++
++// ---------------------------------------------------------------------------
++// Supabase
++// ---------------------------------------------------------------------------
++
++export declare function createServerClient(...args: unknown[]): unknown
++
++// ---------------------------------------------------------------------------
++// Payments
++// ---------------------------------------------------------------------------
++
++export declare function createPaymentIntent(...args: unknown[]): Promise<unknown>
+diff --git a/dist/index.js b/dist/index.js
+new file mode 100644
+index 0000000000000000000000000000000000000000..d04afcf1f21816673242b9111be9851cc776eafb
+--- /dev/null
++++ b/dist/index.js
+@@ -0,0 +1,2 @@
++// @revealui/services stub — implementation provided by Pro package
++export {}

@@ -103,7 +103,10 @@
       "esbuild",
       "sharp",
       "unrs-resolver"
-    ]
+    ],
+    "patchedDependencies": {
+      "@revealui/services@0.0.1": "patches/@revealui__services@0.0.1.patch"
+    }
   },
   "scripts": {
     "audit:any": "tsx scripts/analyze/audit-any-types.ts",
