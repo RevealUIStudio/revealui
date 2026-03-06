@@ -1,6 +1,6 @@
 import type { Route } from '@revealui/router'
 import React from 'react'
-import { Builder } from './components/Builder/Builder.js'
+import { Builder } from './components/Builder.js'
 import {
   HomeBackground,
   HomeCard,
