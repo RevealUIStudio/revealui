@@ -1,9 +1,14 @@
 'use client'
 import type React from 'react'
-import { useState } from 'react'
+import { lazy, Suspense, useState } from 'react'
 import type { RichTextEditor as RichTextEditorConfig } from '../../../richtext/index.js'
 import type { RevealCollectionConfig, RevealDocument, RevealUIField } from '../../../types/index.js'
-import { RichTextEditor } from '../../richtext/RichTextEditor.js'
+
+// Lazy-loaded so Lexical (~1.2MB) is only bundled for edit pages with richText
+// fields — list/dashboard pages skip the entire Lexical chunk.
+const RichTextEditor = lazy(() =>
+  import('../../richtext/RichTextEditor.js').then((m) => ({ default: m.RichTextEditor })),
+)
 
 // Helper to resolve field label to a string
 type LabelResolver = (args: { t: (key: string) => string }) => string
@@ -233,13 +238,21 @@ function FieldInput({ field, value, onChange }: FieldInputProps) {
     case 'richText': {
       const editorConfig = (field as { editor?: RichTextEditorConfig }).editor
       return (
-        <RichTextEditor
-          namespace={String(field.name)}
-          editorConfig={editorConfig}
-          initialValue={value as string | null | undefined}
-          onSerializedChange={(json) => onChange(json)}
-          className="border border-gray-300 rounded-md"
-        />
+        <Suspense
+          fallback={
+            <div className="border border-gray-300 rounded-md h-40 flex items-center justify-center text-sm text-gray-400">
+              Loading editor…
+            </div>
+          }
+        >
+          <RichTextEditor
+            namespace={String(field.name)}
+            editorConfig={editorConfig}
+            initialValue={value as string | null | undefined}
+            onSerializedChange={(json) => onChange(json)}
+            className="border border-gray-300 rounded-md"
+          />
+        </Suspense>
       )
     }
 
