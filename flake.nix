@@ -138,81 +138,8 @@ PGHBA
             export POSTGRES_URL="postgresql://postgres@localhost:5432/postgres"
             export DATABASE_URL="postgresql://postgres@localhost:5432/postgres"
 
-            # Color definitions
-            RED='\033[0;31m'
-            GREEN='\033[0;32m'
-            YELLOW='\033[1;33m'
-            BLUE='\033[0;34m'
-            PURPLE='\033[0;35m'
-            CYAN='\033[0;36m'
-            NC='\033[0m' # No Color
-
-            echo ""
-            echo -e "''${PURPLE}╔════════════════════════════════════════════════════════════╗''${NC}"
-            echo -e "''${PURPLE}║''${NC}  ''${CYAN}🚀 RevealUI Development Environment''${NC}                    ''${PURPLE}║''${NC}"
-            echo -e "''${PURPLE}╚════════════════════════════════════════════════════════════╝''${NC}"
-            echo ""
-            # Run version checks in parallel to avoid sequential startup delays.
-            # stripe --version is the slowest; parallel execution means total wait
-            # equals the slowest single call rather than the sum of all four.
-            _tmpdir=$(mktemp -d)
-            node --version                                          > "$_tmpdir/node"    &
-            pnpm --version                                          > "$_tmpdir/pnpm"    &
-            postgres --version 2>/dev/null | awk '{print $NF}'     > "$_tmpdir/pg"      &
-            { stripe --version 2>/dev/null || echo 'installed'; }  > "$_tmpdir/stripe"  &
-            wait
-            echo -e "''${BLUE}📦 Versions:''${NC}"
-            echo -e "  Node.js:    ''${GREEN}$(cat "$_tmpdir/node")''${NC}"
-            echo -e "  pnpm:       ''${GREEN}$(cat "$_tmpdir/pnpm")''${NC}"
-            echo -e "  PostgreSQL: ''${GREEN}$(cat "$_tmpdir/pg")''${NC}"
-            echo -e "  Stripe CLI: ''${GREEN}$(cat "$_tmpdir/stripe")''${NC}"
-            rm -rf "$_tmpdir"
-            unset _tmpdir
-            echo ""
-            echo -e "''${BLUE}📂 Project:''${NC}"
-            echo -e "  Location:   ''${GREEN}$PWD''${NC}"
-            echo -e "  PGDATA:     ''${GREEN}$PGDATA''${NC}"
-            echo ""
-            echo -e "''${BLUE}🛠️  Commands:''${NC}"
-            echo -e "  ''${CYAN}pnpm install''${NC}       Install dependencies"
-            echo -e "  ''${CYAN}pnpm dev''${NC}           Start development servers"
-            echo -e "  ''${CYAN}pnpm test''${NC}          Run tests"
-            echo -e "  ''${CYAN}pnpm build''${NC}         Build for production"
-            echo ""
-            echo -e "''${BLUE}🗄️  Database Commands:''${NC}"
-            echo -e "  ''${CYAN}db-init''${NC}            Initialize PostgreSQL"
-            echo -e "  ''${CYAN}db-start''${NC}           Start PostgreSQL server"
-            echo -e "  ''${CYAN}db-stop''${NC}            Stop PostgreSQL server"
-            echo -e "  ''${CYAN}db-status''${NC}          Check PostgreSQL status"
-            echo -e "  ''${CYAN}db-reset''${NC}           Reset database (delete & reinit)"
-            echo -e "  ''${CYAN}db-psql''${NC}            Connect with psql client"
-            echo ""
-
-            # Note: pnpm is already provided via nodePackages.pnpm in buildInputs
-            # Nix manages versions, so corepack is not needed
-
-            # Check PostgreSQL initialization
-            if [ ! -d "$PGDATA" ]; then
-              echo -e "''${YELLOW}⚠️  PostgreSQL not initialized''${NC}"
-              echo -e "   Run ''${CYAN}db-init''${NC} to initialize, then ''${CYAN}db-start''${NC} to start"
-              echo ""
-            else
-              # Check if PostgreSQL is running
-              if pg_ctl status -D "$PGDATA" &>/dev/null; then
-                echo -e "''${GREEN}✅ PostgreSQL is running''${NC}"
-              else
-                echo -e "''${YELLOW}⚠️  PostgreSQL is initialized but not running''${NC}"
-                echo -e "   Run ''${CYAN}db-start''${NC} to start the server"
-              fi
-              echo ""
-            fi
-
-            # Check if node_modules exists
-            if [ ! -d "node_modules" ]; then
-              echo -e "''${YELLOW}⚠️  Dependencies not installed''${NC}"
-              echo -e "   Run ''${CYAN}pnpm install''${NC} to install dependencies"
-              echo ""
-            fi
+            # Silence NPM_TOKEN expansion warning
+            export NPM_TOKEN="''${NPM_TOKEN:-}"
 
             # Add project bin to PATH for custom scripts
             export PATH="$PWD/node_modules/.bin:$PATH"
@@ -223,8 +150,51 @@ PGHBA
             # Turborepo cache directory
             export TURBO_CACHE_DIR="$PWD/.turbo"
 
-            echo -e "''${GREEN}✨ Environment ready!''${NC} Happy coding! 🎉"
+            # Git context (fast — no subprocess wait)
+            _BRANCH=$(git -C "$PWD" branch --show-current 2>/dev/null || echo "detached")
+            _DIRTY=$(git -C "$PWD" status --porcelain 2>/dev/null | wc -l | tr -d ' ')
+
+            # Build header
+            _HEADER="  RevealUI  ·  $_BRANCH"
+            [ "$_DIRTY" -gt 0 ] 2>/dev/null && _HEADER="$_HEADER  ·  $_DIRTY uncommitted"
+
+            # Colors (minimal set)
+            GREEN='\033[0;32m'
+            YELLOW='\033[1;33m'
+            CYAN='\033[0;36m'
+            BOLD='\033[1m'
+            NC='\033[0m'
+
             echo ""
+            echo -e "''${BOLD}$_HEADER''${NC}"
+            echo ""
+
+            # Inline status + deferred warnings
+            _STATUS=""
+            _WARN=""
+
+            if [ ! -d "$PGDATA" ]; then
+              _WARN="''${_WARN}\n  ''${YELLOW}⚠  postgres not initialized''${NC}  —  run ''${CYAN}db-init''${NC}"
+            elif pg_ctl status -D "$PGDATA" &>/dev/null; then
+              _STATUS="''${_STATUS}  ''${GREEN}✅ postgres running''${NC}"
+            else
+              _WARN="''${_WARN}\n  ''${YELLOW}⚠  postgres not running''${NC}  —  run ''${CYAN}db-start''${NC}"
+            fi
+
+            if [ -d "node_modules" ]; then
+              _STATUS="''${_STATUS}   ''${GREEN}✅ deps installed''${NC}"
+            else
+              _WARN="''${_WARN}\n  ''${YELLOW}⚠  deps not installed''${NC}  —  run ''${CYAN}pnpm install''${NC}"
+            fi
+
+            [ -n "$_STATUS" ] && echo -e "$_STATUS"
+            [ -n "$_WARN" ]   && echo -e "$_WARN"
+
+            echo ""
+            echo -e "  ''${CYAN}gate:quick''${NC}  ·  ''${CYAN}dev''${NC}  ·  ''${CYAN}wb''${NC}  ·  ''${CYAN}db-psql''${NC}"
+            echo ""
+
+            unset _BRANCH _DIRTY _HEADER _STATUS _WARN
 
             # Live workboard watcher — renders .claude/workboard.md every 3 s
             # Usage: wb
