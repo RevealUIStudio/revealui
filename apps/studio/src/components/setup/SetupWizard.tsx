@@ -4,6 +4,9 @@ import { markSetupComplete, useSetup } from '../../hooks/use-setup'
 import { useTunnel } from '../../hooks/use-tunnel'
 import { vaultInit, vaultIsInitialized } from '../../lib/invoke'
 
+const SETUP_DONE_KEY = 'revealui_project_setup_done'
+const SETUP_CMD = 'pnpm setup:env'
+
 interface SetupWizardProps {
   onClose: () => void
 }
@@ -224,20 +227,7 @@ export default function SetupWizard({ onClose }: SetupWizardProps) {
           />
 
           {/* Step 7: Project Setup */}
-          <div className="rounded-lg border border-neutral-800 bg-neutral-950/40 px-4 py-3">
-            <div className="flex items-center gap-2">
-              <StatusDot done={false} />
-              <span className="text-sm font-medium">Project Setup</span>
-            </div>
-            <p className="mt-1 text-xs text-neutral-500">
-              Run{' '}
-              <code className="rounded bg-neutral-800 px-1 py-0.5 font-mono text-neutral-300">
-                pnpm setup
-              </code>{' '}
-              in your RevealUI project directory to configure environment variables (Stripe,
-              Postgres, Blob). This step is optional during first-run.
-            </p>
-          </div>
+          <ProjectSetupRow />
         </div>
 
         {/* Footer */}
@@ -259,6 +249,63 @@ export default function SetupWizard({ onClose }: SetupWizardProps) {
           </button>
         </div>
       </div>
+    </div>
+  )
+}
+
+function ProjectSetupRow() {
+  const [done, setDone] = useState(() => localStorage.getItem(SETUP_DONE_KEY) === 'true')
+  const [copied, setCopied] = useState(false)
+
+  const copy = async () => {
+    await navigator.clipboard.writeText(SETUP_CMD)
+    setCopied(true)
+    setTimeout(() => setCopied(false), 2000)
+  }
+
+  const markDone = () => {
+    localStorage.setItem(SETUP_DONE_KEY, 'true')
+    setDone(true)
+  }
+
+  return (
+    <div className="rounded-lg border border-neutral-800 bg-neutral-950/40 px-4 py-3">
+      <div className="flex items-center justify-between">
+        <div className="flex items-center gap-2">
+          <StatusDot done={done} />
+          <span className="text-sm font-medium">Project Setup</span>
+        </div>
+        {!done && (
+          <button
+            type="button"
+            onClick={markDone}
+            className="text-xs text-neutral-500 transition-colors hover:text-neutral-300"
+          >
+            Mark done
+          </button>
+        )}
+      </div>
+      <p className="mt-1 text-xs text-neutral-500">
+        {done ? (
+          'Environment variables configured.'
+        ) : (
+          <>Run in your project directory to configure Stripe, Postgres, and Blob credentials:</>
+        )}
+      </p>
+      {!done && (
+        <div className="mt-2 flex items-center gap-2">
+          <code className="rounded bg-neutral-800 px-2 py-1 font-mono text-xs text-neutral-300">
+            {SETUP_CMD}
+          </code>
+          <button
+            type="button"
+            onClick={copy}
+            className="rounded px-2 py-1 text-xs text-neutral-400 transition-colors hover:bg-neutral-800 hover:text-neutral-200"
+          >
+            {copied ? 'Copied!' : 'Copy'}
+          </button>
+        </div>
+      )}
     </div>
   )
 }
