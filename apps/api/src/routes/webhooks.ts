@@ -72,9 +72,12 @@ async function checkAndMarkProcessed(
   }
 }
 
-function resolveTier(metadata: Record<string, string> | null | undefined): 'pro' | 'enterprise' {
+function resolveTier(
+  metadata: Record<string, string> | null | undefined,
+): 'pro' | 'max' | 'enterprise' {
   const tier = metadata?.tier
   if (tier === 'enterprise') return 'enterprise'
+  if (tier === 'max') return 'max'
   return 'pro'
 }
 
