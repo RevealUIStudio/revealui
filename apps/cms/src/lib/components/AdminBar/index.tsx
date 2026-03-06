@@ -1,7 +1,7 @@
 'use client'
 
 import { useRouter, useSelectedLayoutSegments } from 'next/navigation'
-import React, { type SetStateAction, useState } from 'react'
+import React, { useState } from 'react'
 
 // Local type definitions for RevealUI CMS
 export interface RevealUIAdminBarProps {

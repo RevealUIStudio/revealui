@@ -82,6 +82,9 @@ app.get('/agent.json', (c) => {
 /** Per-agent card at /.well-known/agents/:id/agent.json */
 app.get('/agents/:id/agent.json', (c) => {
   const agentId = c.req.param('id')
+  if (!/^[\w-]{1,256}$/.test(agentId)) {
+    return c.json({ error: 'Invalid agent ID format' }, 400)
+  }
   const baseUrl = getBaseUrl(c.req.raw)
   const card = agentCardRegistry.getCard(agentId, baseUrl)
   if (!card) {
@@ -150,6 +153,9 @@ a2a.get('/agents', (c) => {
 /** Single agent card by ID */
 a2a.get('/agents/:id', (c) => {
   const agentId = c.req.param('id')
+  if (!/^[\w-]{1,256}$/.test(agentId)) {
+    return c.json({ error: 'Invalid agent ID format' }, 400)
+  }
   const baseUrl = getBaseUrl(c.req.raw)
   const card = agentCardRegistry.getCard(agentId, baseUrl)
   if (!card) {
@@ -161,6 +167,9 @@ a2a.get('/agents/:id', (c) => {
 /** Full agent definition — admin only, requires 'ai' feature */
 a2a.get('/agents/:id/def', requireFeature('ai'), (c) => {
   const agentId = c.req.param('id')
+  if (!/^[\w-]{1,256}$/.test(agentId)) {
+    return c.json({ error: 'Invalid agent ID format' }, 400)
+  }
   const def = agentCardRegistry.getDef(agentId)
   if (!def) {
     return c.json({ error: `Agent '${agentId}' not found` }, 404)
@@ -171,6 +180,9 @@ a2a.get('/agents/:id/def', requireFeature('ai'), (c) => {
 /** Task history for an agent — last 20 actions, requires 'ai' feature */
 a2a.get('/agents/:id/tasks', requireFeature('ai'), async (c) => {
   const agentId = c.req.param('id')
+  if (!/^[\w-]{1,256}$/.test(agentId)) {
+    return c.json({ error: 'Invalid agent ID format' }, 400)
+  }
   try {
     const db = getClient()
     const rows = await db
@@ -188,6 +200,9 @@ a2a.get('/agents/:id/tasks', requireFeature('ai'), async (c) => {
 /** Update an agent's mutable fields — requires 'ai' feature */
 a2a.put('/agents/:id', requireFeature('ai'), async (c) => {
   const agentId = c.req.param('id')
+  if (!/^[\w-]{1,256}$/.test(agentId)) {
+    return c.json({ error: 'Invalid agent ID format' }, 400)
+  }
   if (!agentCardRegistry.has(agentId)) {
     return c.json({ error: `Agent '${agentId}' not found` }, 404)
   }
@@ -248,6 +263,9 @@ a2a.put('/agents/:id', requireFeature('ai'), async (c) => {
 /** Retire (unregister) an agent — built-in platform agents are protected */
 a2a.delete('/agents/:id', requireFeature('ai'), async (c) => {
   const agentId = c.req.param('id')
+  if (!/^[\w-]{1,256}$/.test(agentId)) {
+    return c.json({ error: 'Invalid agent ID format' }, 400)
+  }
 
   // Built-in agents cannot be retired
   if (BUILTIN_AGENT_IDS.has(agentId)) {
