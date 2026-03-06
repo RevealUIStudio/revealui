@@ -110,8 +110,13 @@ export class DatabaseStorage implements Storage {
             set: { value, resetAt, updatedAt: new Date() },
           })
       })
-    } catch {
-      // Transaction not supported (e.g., Neon HTTP serverless) — fall back to non-atomic
+    } catch (error) {
+      // Only fall back for transaction-not-supported errors (e.g., Neon HTTP serverless).
+      // Re-throw real DB errors (connection failures, constraint violations, deadlocks).
+      const msg = error instanceof Error ? error.message : String(error)
+      if (!(msg.includes('transaction') || msg.includes('Transaction'))) {
+        throw error
+      }
       const existing = await this.get(key)
       const { value, ttlSeconds } = updater(existing)
       await this.set(key, value, ttlSeconds)

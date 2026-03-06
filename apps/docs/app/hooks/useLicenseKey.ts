@@ -41,7 +41,8 @@ export function useLicenseKey(): UseLicenseKeyResult {
       }
 
       const data = (await response.json()) as { valid: boolean; tier?: string }
-      const valid = data.valid && (data.tier === 'pro' || data.tier === 'enterprise')
+      const valid =
+        data.valid && (data.tier === 'pro' || data.tier === 'max' || data.tier === 'enterprise')
 
       if (valid) {
         setKey(storedKey)
@@ -88,7 +89,8 @@ export function useLicenseKey(): UseLicenseKeyResult {
         }
 
         const data = (await response.json()) as { valid: boolean; tier?: string }
-        const valid = data.valid && (data.tier === 'pro' || data.tier === 'enterprise')
+        const valid =
+          data.valid && (data.tier === 'pro' || data.tier === 'max' || data.tier === 'enterprise')
         const resolvedTier = data.tier ?? null
 
         if (valid) {
