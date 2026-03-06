@@ -35,15 +35,14 @@ Steps:
 **Changesets must be applied before running** — run `pnpm changeset version` locally and commit first.
 
 ### `release-pro.yml` — Release Pro Packages
-**Trigger:** Manual (`workflow_dispatch`)
+**Trigger:** Manual (`workflow_dispatch`) — **runs from the private `revealui-jv` repo, not here**
 
-Publishes Pro packages (`@revealui/ai`, `mcp`, `editors`, `services`, `harnesses`)
-to **GitHub Packages** (`npm.pkg.github.com`).
+Pro package source (`@revealui/ai`, `mcp`, `editors`, `services`, `harnesses`) lives in
+the private `RevealUIStudio/revealui-jv` repo. The `release-pro.yml` workflow there publishes
+to **npm.org** via `NPM_TOKEN`.
 
-**Prerequisites:**
-- Remove `"private": true` from each Pro `package.json`
-- Add `"publishConfig": { "registry": "https://npm.pkg.github.com" }` to each
-- Create repository secret `GH_PACKAGES_TOKEN` (GitHub PAT with `write:packages`)
+This file is kept in the public repo for documentation purposes only — running it here
+will fail (Pro package source is not present).
 
 ## Disabled Workflows
 

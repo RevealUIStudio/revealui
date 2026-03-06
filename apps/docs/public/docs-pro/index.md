@@ -21,16 +21,16 @@ Pro packages are commercially licensed. An active Pro or Enterprise subscription
 
 ## Installation
 
-Pro packages are distributed via GitHub Packages. After purchasing, you'll receive a scoped token.
-
-```bash
-# .npmrc
-@revealui:registry=https://npm.pkg.github.com
-//npm.pkg.github.com/:_authToken=${REVEALUI_NPM_TOKEN}
-```
+Pro packages are published to npm. After purchasing, install with your package manager:
 
 ```bash
 pnpm add @revealui/ai @revealui/mcp
+```
+
+Set your license key in the environment:
+
+```bash
+REVEALUI_LICENSE_KEY=your-license-key
 ```
 
 ## Quick links
