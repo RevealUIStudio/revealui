@@ -38,21 +38,35 @@ pnpm stripe:webhooks
 
 ```
 apps/mainframe/
+├── api/
+│   └── index.js        # Vercel serverless entry (wraps dist/index.js)
 ├── src/
-│   ├── server.ts       # Hono app + SSR handler
-│   ├── client.tsx      # Client-side hydration
-│   ├── routes.ts       # Route definitions
-│   ├── pages/          # Page components
+│   ├── server.ts       # Dev server (tsx watch)
+│   ├── app.ts          # Hono app + SSR handler (builds to dist/index.js)
+│   ├── client.tsx      # Client-side hydration (builds to public/assets/)
+│   ├── routes.tsx      # Route definitions
+│   ├── components/     # Page components
 │   └── styles/         # CSS
-├── public/             # Static assets
+├── public/             # Static assets (favicons + build output)
 └── vercel.json         # Vercel deployment config
 ```
 
-The server creates a Hono app, registers static file middleware, and uses `createSSRHandler` from `@revealui/router/server` to render React components server-side with data injection.
+**Build pipeline:** `vite build` → `public/assets/client.{js,css}` (client bundle);
+`tsup` → `dist/index.js` (SSR server bundle). `api/index.js` wraps the SSR bundle
+as a Vercel Node.js serverless function. All requests are rewritten to `/api` in production.
 
 ## Deployment
 
-Vercel project `revealui-mainframe` exists but deployment is not yet functional. Requires `@hono/vercel` adapter and an `api/index.ts` entry point.
+Vercel project `revealui-mainframe` is linked in `.vercel/project.json`. Build and
+serverless adapter are wired and verified. To deploy:
+
+```bash
+cd apps/mainframe
+vercel deploy --prod
+```
+
+No environment variables are required for the current routes (all pages are
+static/in-memory — no live API calls).
 
 ## Related
 
