@@ -49,7 +49,15 @@ export function HeroSection() {
               </svg>
             </a>
           </div>
-          <div className="mt-10 flex flex-wrap items-center justify-center gap-x-8 gap-y-3 text-sm text-gray-500">
+          {/* CLI quick-start */}
+          <div className="mt-10 inline-flex items-center gap-3 rounded-xl bg-gray-950 px-5 py-3 font-mono text-sm shadow-lg ring-1 ring-white/10">
+            <span className="select-none text-gray-500">$</span>
+            <span className="text-green-400">npx</span>
+            <span className="text-white">create-revealui@latest</span>
+            <span className="text-blue-300">my-app</span>
+          </div>
+
+          <div className="mt-8 flex flex-wrap items-center justify-center gap-x-8 gap-y-3 text-sm text-gray-500">
             <div className="flex items-center gap-2">
               <svg className="h-4 w-4 text-green-500" fill="currentColor" viewBox="0 0 20 20">
                 <title>Check</title>

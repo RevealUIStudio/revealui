@@ -4,7 +4,7 @@ export function ProductMockup() {
     { label: 'Pages', active: false },
     { label: 'Media', active: false },
     { label: 'Users', active: false },
-    { label: 'Categories', active: false },
+    { label: 'Orders', active: false },
   ]
 
   const globals = ['Settings', 'Header', 'Footer']
@@ -14,13 +14,78 @@ export function ProductMockup() {
     { title: 'Building Multi-Tenant Apps', status: 'published', date: 'Mar 2', author: 'SL' },
     { title: 'AI Agent Workflows', status: 'draft', date: 'Mar 1', author: 'AK' },
     { title: 'Real-Time Sync with ElectricSQL', status: 'published', date: 'Feb 28', author: 'MR' },
-    { title: 'White-Label CMS Guide', status: 'draft', date: 'Feb 25', author: 'SL' },
   ]
 
+  const codeLines = [
+    {
+      tokens: [
+        { t: 'keyword', v: 'import' },
+        { t: 'plain', v: ' { buildConfig } ' },
+        { t: 'keyword', v: 'from' },
+        { t: 'string', v: " '@revealui/core'" },
+      ],
+    },
+    { tokens: [] },
+    {
+      tokens: [
+        { t: 'keyword', v: 'export default' },
+        { t: 'plain', v: ' buildConfig({' },
+      ],
+    },
+    {
+      tokens: [
+        { t: 'prop', v: '  collections' },
+        { t: 'plain', v: ': [Posts, Products, Orders],' },
+      ],
+    },
+    {
+      tokens: [
+        { t: 'prop', v: '  plugins' },
+        { t: 'plain', v: ': [' },
+      ],
+    },
+    {
+      tokens: [
+        { t: 'fn', v: '    stripePlugin' },
+        { t: 'plain', v: '({ webhookSecret }),' },
+      ],
+    },
+    {
+      tokens: [
+        { t: 'fn', v: '    vercelBlobStorage' },
+        { t: 'plain', v: '({ token }),' },
+      ],
+    },
+    { tokens: [{ t: 'plain', v: '  ],' }] },
+    {
+      tokens: [
+        { t: 'prop', v: '  db' },
+        { t: 'plain', v: ': ' },
+        { t: 'fn', v: 'postgresAdapter' },
+        { t: 'plain', v: '({ url }),' },
+      ],
+    },
+    {
+      tokens: [
+        { t: 'prop', v: '  auth' },
+        { t: 'plain', v: ': { sessions: true, rateLimit: true },' },
+      ],
+    },
+    { tokens: [{ t: 'plain', v: '})' }] },
+  ]
+
+  const tokenColor: Record<string, string> = {
+    keyword: 'text-purple-400',
+    string: 'text-green-400',
+    prop: 'text-blue-300',
+    fn: 'text-yellow-300',
+    plain: 'text-gray-300',
+  }
+
   return (
-    <div className="w-full max-w-5xl mx-auto">
-      {/* Browser chrome */}
-      <div className="rounded-2xl overflow-hidden shadow-2xl ring-1 ring-gray-900/10">
+    <div className="w-full max-w-6xl mx-auto grid grid-cols-1 lg:grid-cols-5 gap-4">
+      {/* Left: Admin UI browser */}
+      <div className="lg:col-span-3 rounded-2xl overflow-hidden shadow-2xl ring-1 ring-gray-900/10">
         {/* Title bar */}
         <div className="flex items-center gap-2 px-4 py-3 bg-gray-100 border-b border-gray-200">
           <div className="flex gap-1.5">
@@ -47,13 +112,12 @@ export function ProductMockup() {
               cms.revealui.com/admin
             </div>
           </div>
-          <div className="text-xs text-gray-400 font-medium">v1.0.0</div>
         </div>
 
         {/* Admin UI */}
-        <div className="flex bg-white" style={{ minHeight: '420px' }}>
+        <div className="flex bg-white" style={{ minHeight: '380px' }}>
           {/* Sidebar */}
-          <div className="w-48 flex-shrink-0 bg-gray-50 border-r border-gray-200 flex flex-col">
+          <div className="w-44 flex-shrink-0 bg-gray-50 border-r border-gray-200 flex flex-col">
             <div className="px-4 py-4 border-b border-gray-200">
               <div className="flex items-center gap-2">
                 <div className="h-6 w-6 rounded bg-blue-600 flex items-center justify-center">
@@ -148,12 +212,11 @@ export function ProductMockup() {
           </div>
 
           {/* Main content */}
-          <div className="flex-1 flex flex-col">
-            {/* Top bar */}
-            <div className="flex items-center justify-between px-6 py-4 border-b border-gray-200">
+          <div className="flex-1 flex flex-col overflow-hidden">
+            <div className="flex items-center justify-between px-5 py-4 border-b border-gray-200">
               <div>
-                <h1 className="text-base font-semibold text-gray-900">Posts</h1>
-                <p className="text-xs text-gray-500">5 entries</p>
+                <h2 className="text-sm font-semibold text-gray-900">Posts</h2>
+                <p className="text-xs text-gray-500">4 entries</p>
               </div>
               <button
                 type="button"
@@ -173,30 +236,30 @@ export function ProductMockup() {
               </button>
             </div>
 
-            {/* Table */}
             <div className="flex-1 overflow-hidden">
               <table className="w-full text-xs">
                 <thead>
                   <tr className="border-b border-gray-100 bg-gray-50">
-                    <th className="text-left px-6 py-2.5 font-medium text-gray-500 w-full">
+                    <th className="text-left px-5 py-2.5 font-medium text-gray-500 w-full">
                       Title
                     </th>
                     <th className="text-left px-4 py-2.5 font-medium text-gray-500 whitespace-nowrap">
                       Status
                     </th>
-                    <th className="text-left px-4 py-2.5 font-medium text-gray-500 whitespace-nowrap">
+                    <th className="text-left px-4 py-2.5 font-medium text-gray-500 whitespace-nowrap hidden sm:table-cell">
                       Date
                     </th>
-                    <th className="text-left px-4 py-2.5 font-medium text-gray-500">Author</th>
                   </tr>
                 </thead>
                 <tbody>
                   {posts.map((post, i) => (
                     <tr
                       key={post.title}
-                      className={`border-b border-gray-100 ${i % 2 === 0 ? 'bg-white' : 'bg-gray-50/50'} hover:bg-blue-50/30`}
+                      className={`border-b border-gray-100 ${i % 2 === 0 ? 'bg-white' : 'bg-gray-50/50'}`}
                     >
-                      <td className="px-6 py-3 font-medium text-gray-900">{post.title}</td>
+                      <td className="px-5 py-3 font-medium text-gray-900 truncate max-w-0 w-full">
+                        <span className="truncate block">{post.title}</span>
+                      </td>
                       <td className="px-4 py-3">
                         <span
                           className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-medium ${
@@ -211,20 +274,60 @@ export function ProductMockup() {
                           {post.status === 'published' ? 'Published' : 'Draft'}
                         </span>
                       </td>
-                      <td className="px-4 py-3 text-gray-500">{post.date}</td>
-                      <td className="px-4 py-3">
-                        <div
-                          className={`h-5 w-5 rounded-full flex items-center justify-center text-white text-xs font-semibold ${post.author === 'SL' ? 'bg-emerald-500' : post.author === 'MR' ? 'bg-violet-500' : 'bg-indigo-500'}`}
-                        >
-                          {post.author}
-                        </div>
-                      </td>
+                      <td className="px-4 py-3 text-gray-500 hidden sm:table-cell">{post.date}</td>
                     </tr>
                   ))}
                 </tbody>
               </table>
             </div>
           </div>
+        </div>
+      </div>
+
+      {/* Right: Code panel */}
+      <div className="lg:col-span-2 rounded-2xl overflow-hidden shadow-2xl ring-1 ring-gray-900/10 bg-gray-950 flex flex-col">
+        {/* Tab bar */}
+        <div className="flex items-center gap-2 px-4 py-3 bg-gray-900 border-b border-gray-800">
+          <div className="flex gap-1.5">
+            <div className="h-3 w-3 rounded-full bg-red-500/60" />
+            <div className="h-3 w-3 rounded-full bg-yellow-500/60" />
+            <div className="h-3 w-3 rounded-full bg-green-500/60" />
+          </div>
+          <div className="ml-3 flex items-center gap-1 rounded-md bg-gray-800 px-3 py-1 text-xs text-gray-400">
+            <span className="text-blue-400">revealui</span>
+            <span className="text-gray-600">/</span>
+            <span>config.ts</span>
+          </div>
+        </div>
+
+        {/* Code */}
+        <div className="flex-1 px-5 py-5 font-mono text-xs leading-6 overflow-hidden">
+          {codeLines.map((line, i) => (
+            // biome-ignore lint/suspicious/noArrayIndexKey: static display list, no reordering
+            <div key={i} className="flex">
+              <span className="select-none w-6 shrink-0 text-gray-600 text-right mr-4">
+                {i + 1}
+              </span>
+              <span>
+                {line.tokens.length === 0 ? (
+                  <span>&nbsp;</span>
+                ) : (
+                  line.tokens.map((tok, j) => (
+                    // biome-ignore lint/suspicious/noArrayIndexKey: static display list, no reordering
+                    <span key={j} className={tokenColor[tok.t] ?? 'text-gray-300'}>
+                      {tok.v}
+                    </span>
+                  ))
+                )}
+              </span>
+            </div>
+          ))}
+        </div>
+
+        {/* Status bar */}
+        <div className="px-5 py-2 bg-blue-600/20 border-t border-gray-800 flex items-center gap-2">
+          <div className="h-1.5 w-1.5 rounded-full bg-green-400" />
+          <span className="text-xs text-gray-400 font-mono">TypeScript · RevealUI v0.2.0</span>
         </div>
       </div>
     </div>

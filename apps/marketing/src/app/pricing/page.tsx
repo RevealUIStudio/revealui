@@ -1,5 +1,6 @@
 import type { Metadata } from 'next'
 import { Footer } from '@/components/Footer'
+import { NavBar } from '@/components/NavBar'
 
 export const metadata: Metadata = {
   title: 'Pricing — RevealUI',
@@ -136,6 +137,7 @@ const faqs = [
 export default function PricingPage() {
   return (
     <div className="min-h-screen bg-white">
+      <NavBar />
       {/* Header */}
       <section className="relative overflow-hidden bg-gradient-to-br from-blue-50 via-white to-indigo-50 px-6 py-24 sm:px-6 sm:py-32 lg:px-8">
         <div className="mx-auto max-w-4xl text-center">
