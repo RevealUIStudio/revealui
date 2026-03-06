@@ -394,22 +394,21 @@ app.post('/stripe', async (c) => {
           const newTier = resolveTier(subscription.metadata as Record<string, string>)
           const privateKey = process.env.REVEALUI_LICENSE_PRIVATE_KEY
 
-          if (privateKey) {
-            const normalizedKey = privateKey.replace(/\\n/g, '\n')
-            const licenseKey = await generateLicenseKey(
-              { tier: newTier, customerId },
-              normalizedKey,
+          if (!privateKey) {
+            logger.error(
+              'CRITICAL: REVEALUI_LICENSE_PRIVATE_KEY not configured — license sync failed',
+              undefined,
+              { customerId, subscriptionId: subscription.id, tier: newTier },
             )
-            await db
-              .update(licenses)
-              .set({ status: 'active', tier: newTier, licenseKey, updatedAt: new Date() })
-              .where(eq(licenses.customerId, customerId))
-          } else {
-            await db
-              .update(licenses)
-              .set({ status: 'active', tier: newTier, updatedAt: new Date() })
-              .where(eq(licenses.customerId, customerId))
+            throw new Error('REVEALUI_LICENSE_PRIVATE_KEY not configured')
           }
+
+          const normalizedKey = privateKey.replace(/\\n/g, '\n')
+          const licenseKey = await generateLicenseKey({ tier: newTier, customerId }, normalizedKey)
+          await db
+            .update(licenses)
+            .set({ status: 'active', tier: newTier, licenseKey, updatedAt: new Date() })
+            .where(eq(licenses.customerId, customerId))
 
           resetLicenseState()
           auditLicenseEvent(db, 'license.reactivated', 'info', {
@@ -474,22 +473,24 @@ app.post('/stripe', async (c) => {
         const recoveredTier = resolveTier(recoveredSubscription.metadata as Record<string, string>)
         const privateKey = process.env.REVEALUI_LICENSE_PRIVATE_KEY
 
-        if (privateKey) {
-          const normalizedKey = privateKey.replace(/\\n/g, '\n')
-          const licenseKey = await generateLicenseKey(
-            { tier: recoveredTier, customerId },
-            normalizedKey,
+        if (!privateKey) {
+          logger.error(
+            'CRITICAL: REVEALUI_LICENSE_PRIVATE_KEY not configured — payment recovery failed',
+            undefined,
+            { customerId, subscriptionId: recoveredSubscription.id, tier: recoveredTier },
           )
-          await db
-            .update(licenses)
-            .set({ status: 'active', tier: recoveredTier, licenseKey, updatedAt: new Date() })
-            .where(eq(licenses.customerId, customerId))
-        } else {
-          await db
-            .update(licenses)
-            .set({ status: 'active', tier: recoveredTier, updatedAt: new Date() })
-            .where(eq(licenses.customerId, customerId))
+          throw new Error('REVEALUI_LICENSE_PRIVATE_KEY not configured')
         }
+
+        const normalizedKey = privateKey.replace(/\\n/g, '\n')
+        const licenseKey = await generateLicenseKey(
+          { tier: recoveredTier, customerId },
+          normalizedKey,
+        )
+        await db
+          .update(licenses)
+          .set({ status: 'active', tier: recoveredTier, licenseKey, updatedAt: new Date() })
+          .where(eq(licenses.customerId, customerId))
 
         resetLicenseState()
 
