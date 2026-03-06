@@ -94,6 +94,18 @@ function generateSecret(): string {
 }
 
 /**
+ * List template directories that actually exist on disk.
+ */
+async function listAvailableTemplates(): Promise<string[]> {
+  try {
+    const entries = await fs.readdir(TEMPLATES_DIR, { withFileTypes: true })
+    return entries.filter((e) => e.isDirectory()).map((e) => e.name)
+  } catch {
+    return []
+  }
+}
+
+/**
  * Copy a template directory recursively into the target path.
  */
 async function copyTemplate(templateName: string, targetPath: string): Promise<void> {
@@ -103,10 +115,12 @@ async function copyTemplate(templateName: string, targetPath: string): Promise<v
   try {
     await fs.access(templatePath)
   } catch {
-    throw new Error(
-      `Template "${templateName}" not found at ${templatePath}. ` +
-        `Available templates: minimal, basic-blog, e-commerce, portfolio`,
-    )
+    const available = await listAvailableTemplates()
+    const listing =
+      available.length > 0
+        ? `Available templates: ${available.join(', ')}`
+        : `No templates found in ${TEMPLATES_DIR}`
+    throw new Error(`Template "${templateName}" not found at ${templatePath}. ${listing}`)
   }
 
   await copyDir(templatePath, targetPath)

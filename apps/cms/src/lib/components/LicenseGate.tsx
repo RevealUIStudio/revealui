@@ -8,10 +8,6 @@ import { UpgradePrompt } from './UpgradePrompt'
 interface LicenseGateProps {
   /** Feature flag that must be enabled to show children */
   feature: keyof FeatureFlags
-  /** Human-readable feature name for the upgrade prompt */
-  featureLabel: string
-  /** Minimum tier required (default: 'pro') */
-  requiredTier?: 'pro' | 'max' | 'enterprise'
   children: React.ReactNode
 }
 
@@ -21,12 +17,7 @@ interface LicenseGateProps {
  *
  * Note: this is a UX layer only — API-level enforcement happens in the API middleware.
  */
-export function LicenseGate({
-  feature,
-  featureLabel,
-  requiredTier = 'pro',
-  children,
-}: LicenseGateProps) {
+export function LicenseGate({ feature, children }: LicenseGateProps) {
   const { features, isLoading } = useLicense()
 
   if (isLoading) {
@@ -42,7 +33,7 @@ export function LicenseGate({
   if (!enabled) {
     return (
       <div className="p-6">
-        <UpgradePrompt feature={featureLabel} requiredTier={requiredTier} />
+        <UpgradePrompt feature={feature} />
       </div>
     )
   }

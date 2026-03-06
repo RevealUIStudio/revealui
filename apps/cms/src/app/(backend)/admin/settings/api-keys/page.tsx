@@ -71,7 +71,7 @@ export default function ApiKeysPage() {
   const activeProviderInfo = PROVIDERS.find((p) => p.id === provider)
 
   return (
-    <LicenseGate feature="ai" featureLabel="AI Agents">
+    <LicenseGate feature="ai">
       <div className="min-h-screen">
         {/* Breadcrumb header */}
         <div className="flex items-center gap-3 border-b border-zinc-800 bg-zinc-900 px-6 py-4">

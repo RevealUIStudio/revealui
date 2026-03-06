@@ -20,7 +20,7 @@ export default function AgentsPage() {
   const [tab, setTab] = useState<Tab>('agents')
 
   return (
-    <LicenseGate feature="ai" featureLabel="AI Agents">
+    <LicenseGate feature="ai">
       <div className="min-h-screen">
         {/* Page header */}
         <div className="border-b border-zinc-800 bg-zinc-900 px-6 py-4">

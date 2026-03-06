@@ -7,6 +7,7 @@
  */
 
 import { index, pgTable, text, timestamp } from 'drizzle-orm/pg-core'
+import { users } from './users.js'
 
 // =============================================================================
 // Licenses Table
@@ -19,7 +20,9 @@ export const licenses = pgTable(
     id: text('id').primaryKey(),
 
     /** User who owns this license */
-    userId: text('user_id').notNull(),
+    userId: text('user_id')
+      .notNull()
+      .references(() => users.id, { onDelete: 'cascade' }),
 
     /** The signed JWT license key */
     licenseKey: text('license_key').notNull(),
