@@ -488,13 +488,16 @@ class StructureValidator {
       'packages/ai/src',
       'packages/services/src/supabase',
       'packages/mcp/src',
+      // Integration tests for Supabase services are expected to import supabase-js
+      'packages/test/src/integration',
     ]
 
     let output = ''
     try {
-      // Use grep to find all TypeScript files importing @supabase/supabase-js
+      // Use grep to find all TypeScript files importing @supabase/supabase-js.
+      // Exclude .claude/worktrees/ — those are agent sandbox directories, not production source.
       output = execSync(
-        `grep -r --include="*.ts" --include="*.tsx" --exclude-dir=".next" --exclude-dir="dist" --exclude-dir="node_modules" --exclude-dir=".turbo" -l "@supabase/supabase-js" . 2>/dev/null || true`,
+        `grep -r --include="*.ts" --include="*.tsx" --exclude-dir=".next" --exclude-dir="dist" --exclude-dir="node_modules" --exclude-dir=".turbo" --exclude-dir="worktrees" -l "@supabase/supabase-js" . 2>/dev/null || true`,
         { encoding: 'utf8', cwd: process.cwd() },
       )
     } catch {
@@ -508,8 +511,15 @@ class StructureValidator {
       .filter(Boolean)
       // Normalize: strip leading ./
       .map((f) => f.replace(/^\.\//, ''))
-      // Ignore node_modules and dist
-      .filter((f) => !(f.includes('node_modules') || f.includes('/dist/')))
+      // Only consider source code in packages/ and apps/ — exclude scripts (they contain
+      // the pattern as string literals), dist, node_modules, and agent worktrees.
+      .filter(
+        (f) =>
+          (f.startsWith('packages/') || f.startsWith('apps/')) &&
+          !f.includes('node_modules') &&
+          !f.includes('/dist/') &&
+          !f.startsWith('.claude/worktrees/'),
+      )
 
     const violations: string[] = []
     const permitted: string[] = []
@@ -538,7 +548,7 @@ class StructureValidator {
         console.log(`   - ${v}`)
       }
       console.log(
-        '   Permitted paths: packages/db/src/vector, packages/db/src/auth, packages/auth/src, packages/ai/src, packages/services/src/supabase, apps/*/src/lib/supabase/',
+        '   Permitted paths: packages/db/src/vector, packages/db/src/auth, packages/auth/src, packages/ai/src, packages/services/src/supabase, packages/mcp/src, packages/test/src/integration, apps/*/src/lib/supabase/',
       )
       console.log('   See .claude/rules/database.md for the dual-DB boundary policy.')
     } else if (files.length === 0) {
