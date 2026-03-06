@@ -91,7 +91,7 @@ export const AdminBar: React.FC<{
   const router = useRouter()
 
   const onAuthChange = React.useCallback((user: RevealUIMeUser) => {
-    return setShow(user?.id as unknown as SetStateAction<boolean>)
+    setShow(Boolean(user?.id))
   }, [])
 
   function cn(

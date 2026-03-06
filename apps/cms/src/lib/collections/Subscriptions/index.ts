@@ -5,6 +5,14 @@ const Subscriptions: CollectionConfig = {
   admin: {
     // useAsTitle: "id", // Use the Stripe subscription ID as the title
   },
+  // Subscriptions are managed exclusively by Stripe webhooks — no CMS user should
+  // be able to create, update, or delete them. Read access is restricted to admins.
+  access: {
+    read: ({ user }: { user?: { role?: string } | null }) => user?.role === 'admin',
+    create: () => false,
+    update: () => false,
+    delete: () => false,
+  },
   fields: [
     {
       name: 'id',
