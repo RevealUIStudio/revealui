@@ -19,6 +19,7 @@ describe('SignUpRequestContract', () => {
         email: 'user@example.com',
         password: 'SecurePass123',
         name: 'John Doe',
+        tosAccepted: true,
       })
 
       expect(result.success).toBe(true)
@@ -34,6 +35,7 @@ describe('SignUpRequestContract', () => {
         email: 'USER@EXAMPLE.COM',
         password: 'SecurePass123',
         name: 'John Doe',
+        tosAccepted: true,
       })
 
       expect(result.success).toBe(true)
@@ -47,6 +49,7 @@ describe('SignUpRequestContract', () => {
         email: 'user@example.com',
         password: 'SecurePass123',
         name: '  John   Doe  ',
+        tosAccepted: true,
       })
 
       expect(result.success).toBe(true)

@@ -7,9 +7,30 @@ const __dirname = path.dirname(__filename)
 
 export default defineConfig({
   resolve: {
-    alias: {
-      dev: path.resolve(__dirname, './src'),
-    },
+    alias: [
+      // More-specific subpath aliases must come before the broad prefix alias.
+      // These mirror the package.json "exports" map so tests can import 'dev/*'
+      // without the package being installed in node_modules.
+      {
+        find: 'dev/tailwind/create-config',
+        replacement: path.resolve(__dirname, './src/tailwind/create-config.ts'),
+      },
+      {
+        find: 'dev/tailwind',
+        replacement: path.resolve(__dirname, './src/tailwind/tailwind.config.ts'),
+      },
+      {
+        find: 'dev/postcss',
+        replacement: path.resolve(__dirname, './src/postcss/postcss.config.ts'),
+      },
+      { find: 'dev/vite', replacement: path.resolve(__dirname, './src/vite/vite.shared.ts') },
+      { find: 'dev/biome', replacement: path.resolve(__dirname, './src/biome/biome.config.ts') },
+      { find: 'dev/eslint', replacement: path.resolve(__dirname, './src/eslint/index.js') },
+      {
+        find: 'dev/code-validator',
+        replacement: path.resolve(__dirname, './src/code-validator/index.ts'),
+      },
+    ],
   },
   test: {
     include: ['src/**/*.test.ts', 'src/**/*.integration.test.ts'],
