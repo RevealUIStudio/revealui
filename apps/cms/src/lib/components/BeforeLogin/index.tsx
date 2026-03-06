@@ -7,7 +7,7 @@ const BeforeLogin: React.FC = () => {
       <p className="text-lg">
         This is where site admins log in to manage content, users, and settings. If you are a
         customer looking to access your account, please{' '}
-        <a className="ml-1 underline" href={`${process.env.VITE_PUBLIC_URL}/login`}>
+        <a className="ml-1 underline" href={`${process.env.NEXT_PUBLIC_SERVER_URL}/login`}>
           log in to the site
         </a>
         .

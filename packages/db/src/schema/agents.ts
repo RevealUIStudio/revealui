@@ -61,7 +61,7 @@ export const agentContexts = pgTable('agent_contexts', {
   priority: real('priority').default(0.5),
 
   // Optional embedding for semantic retrieval
-  embedding: vector('embedding', { dimensions: 1536 }),
+  embedding: vector('embedding', { dimensions: 768 }),
 
   // Timestamps
   createdAt: timestamp('created_at', { withTimezone: true }).defaultNow().notNull(),
@@ -89,7 +89,7 @@ export const agentMemories = pgTable('agent_memories', {
   source: jsonb('source').notNull(),
 
   // Vector embedding for semantic search
-  embedding: vector('embedding', { dimensions: 1536 }),
+  embedding: vector('embedding', { dimensions: 768 }),
 
   // Full embedding metadata (model, dimension, generatedAt)
   embeddingMetadata: jsonb('embedding_metadata'),

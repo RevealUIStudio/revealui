@@ -74,7 +74,10 @@ export async function register() {
         if (entry.error) data.error = entry.error
         fetch(`${apiUrl}/api/logs`, {
           method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
+          headers: {
+            'Content-Type': 'application/json',
+            'X-Internal-Token': process.env.REVEALUI_SECRET ?? '',
+          },
           body: JSON.stringify({
             level: entry.level,
             message: entry.message,
@@ -102,7 +105,10 @@ export async function register() {
           : undefined
         fetch(`${apiUrl}/api/errors`, {
           method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
+          headers: {
+            'Content-Type': 'application/json',
+            'X-Internal-Token': process.env.REVEALUI_SECRET ?? '',
+          },
           body: JSON.stringify({
             level: 'error',
             message: err.message,

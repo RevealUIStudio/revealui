@@ -382,9 +382,14 @@ app.openapi(
   }),
   async (c) => {
     const db = c.get('db')
+    const user = c.get('user')
+    if (!user) throw new HTTPException(401, { message: 'Authentication required' })
     const { id } = c.req.valid('param')
     const existing = await postQueries.getPostById(db, id)
     if (!existing) throw new HTTPException(404, { message: 'Post not found' })
+    if (user.role !== 'admin' && existing.authorId !== user.id) {
+      throw new HTTPException(403, { message: 'Forbidden' })
+    }
     await postQueries.deletePost(db, id)
     return c.json({ success: true as const, message: 'Post deleted' }, 200)
   },
@@ -525,9 +530,14 @@ app.openapi(
   }),
   async (c) => {
     const db = c.get('db')
+    const user = c.get('user')
+    if (!user) throw new HTTPException(401, { message: 'Authentication required' })
     const { id } = c.req.valid('param')
     const existing = await mediaQueries.getMediaById(db, id)
     if (!existing) throw new HTTPException(404, { message: 'Media not found' })
+    if (user.role !== 'admin' && existing.uploadedBy !== user.id) {
+      throw new HTTPException(403, { message: 'Forbidden' })
+    }
     await mediaQueries.deleteMedia(db, id)
     return c.json({ success: true as const, message: 'Media deleted' }, 200)
   },
@@ -943,9 +953,17 @@ app.openapi(
   }),
   async (c) => {
     const db = c.get('db')
+    const user = c.get('user')
+    if (!user) throw new HTTPException(401, { message: 'Authentication required' })
     const { id } = c.req.valid('param')
     const existing = await pageQueries.getPageById(db, id)
     if (!existing) throw new HTTPException(404, { message: 'Page not found' })
+    if (user.role !== 'admin') {
+      const site = await siteQueries.getSiteById(db, existing.siteId)
+      if (!site || site.ownerId !== user.id) {
+        throw new HTTPException(403, { message: 'Forbidden' })
+      }
+    }
     await pageQueries.deletePage(db, id)
     return c.json({ success: true as const, message: 'Page deleted' }, 200)
   },
