@@ -31,9 +31,10 @@ const tiers = [
       'Up to 25 users/editors',
       'Session-based auth',
       'AI agents (BYOK — bring your own LLM key)',
-      'AI working memory',
       'Built-in Stripe payments',
       'Full real-time sync',
+      'Monitoring dashboard',
+      'Custom domain mapping',
       'Email support (48h response)',
       'Full source code access',
     ],
@@ -42,27 +43,46 @@ const tiers = [
     featured: true,
   },
   {
-    name: 'Enterprise',
+    name: 'Max',
+    id: 'max',
+    price: '$149',
+    period: '/month',
+    description: 'For teams that need AI memory, multi-provider, and compliance tooling.',
+    features: [
+      'Everything in Pro',
+      'Up to 15 sites',
+      'Up to 100 users/editors',
+      'Full AI memory (working + episodic + vector)',
+      'Multi-provider AI (up to 2 providers)',
+      'BYOK server-side key storage',
+      'Audit logging',
+      'Email support (24h response)',
+      'Full source code access',
+    ],
+    cta: 'Start Free Trial',
+    ctaHref: `${process.env.NEXT_PUBLIC_CMS_URL || 'https://cms.revealui.com'}/signup?plan=max`,
+    featured: false,
+  },
+  {
+    name: 'Forge',
     id: 'enterprise',
     price: '$299',
     period: '/month',
     description: 'For teams with advanced scale and compliance requirements.',
     features: [
-      'Unlimited CMS collections',
+      'Everything in Max',
       'Unlimited sites',
       'Unlimited users/editors',
-      'Session-based auth + OAuth',
-      'All AI providers',
-      'Full AI memory (working + episodic + vector)',
-      'Stripe payments + invoicing',
-      'Full sync + conflict resolution',
+      'Session-based auth + OAuth + SSO/SAML',
+      'All AI providers (unlimited)',
       'Multi-tenant architecture',
       'White-label branding',
       'Slack support (4h SLA)',
+      'Annual pricing available',
       'Full source code access',
     ],
     cta: 'Contact Sales',
-    ctaHref: 'mailto:founder@revealui.com?subject=Enterprise%20Inquiry',
+    ctaHref: 'mailto:founder@revealui.com?subject=Forge%20Inquiry',
     featured: false,
   },
 ]
@@ -76,7 +96,7 @@ const faqs = [
   {
     question: 'What happens after the free trial ends?',
     answer:
-      "The Pro tier includes a 7-day free trial. After the trial ends, you'll be charged $49/month. You can cancel anytime during the trial without being charged.",
+      "Pro and Max tiers include a 7-day free trial. After the trial ends, you'll be charged the monthly rate. You can cancel anytime during the trial without being charged.",
   },
   {
     question: 'Can I upgrade or downgrade my plan?',
@@ -86,17 +106,17 @@ const faqs = [
   {
     question: 'What AI providers are supported?',
     answer:
-      'RevealUI uses BYOK (bring your own key) — you connect your own API key from any supported provider: Anthropic, OpenAI, Groq, Ollama (local), or Vultr. You pay the provider directly; RevealUI adds no markup.',
+      'RevealUI uses BYOK (bring your own key) — you connect your own API key from any supported provider: Anthropic, OpenAI, Groq, Ollama (local), or Vultr. You pay the provider directly; RevealUI adds no markup. Max allows 2 providers simultaneously; Forge allows all.',
   },
   {
     question: 'What does "full source code access" mean?',
     answer:
-      'You get the complete RevealUI source code, including all apps and packages. You can modify, extend, and deploy it however you need. Pro and Enterprise tiers include priority updates and features.',
+      'You get the complete RevealUI source code, including all apps and packages. You can modify, extend, and deploy it however you need. All paid tiers include priority updates and commercial package access.',
   },
   {
     question: 'Do you offer custom pricing for large teams?',
     answer:
-      'Yes! If you need more than what the Enterprise tier offers, contact us at founder@revealui.com to discuss custom pricing and SLAs.',
+      'Yes! If you need more than what the Forge tier offers, contact us at founder@revealui.com to discuss custom pricing and SLAs.',
   },
 ]
 
@@ -113,8 +133,8 @@ export default function PricingPage() {
             </span>
           </h1>
           <p className="mx-auto mt-6 max-w-2xl text-lg leading-8 text-gray-600 sm:text-xl">
-            Start with our free open-source tier, upgrade to Pro for professional features, or go
-            Enterprise for unlimited scale.
+            Start free, scale as you grow. All paid tiers include a 7-day free trial and full source
+            code access.
           </p>
         </div>
       </section>
@@ -122,26 +142,24 @@ export default function PricingPage() {
       {/* Pricing Cards */}
       <section className="py-24 sm:py-32">
         <div className="mx-auto max-w-7xl px-6 lg:px-8">
-          <div className="grid grid-cols-1 gap-8 lg:grid-cols-3">
+          <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-4">
             {tiers.map((tier) => (
               <div
                 key={tier.id}
                 className={`relative rounded-2xl bg-white p-8 shadow-lg ${
-                  tier.featured
-                    ? 'ring-2 ring-blue-600 scale-105 lg:scale-110 z-10'
-                    : 'ring-1 ring-gray-200'
+                  tier.featured ? 'ring-2 ring-blue-600' : 'ring-1 ring-gray-200'
                 }`}
               >
                 {tier.featured && (
-                  <div className="absolute -top-5 left-0 right-0 mx-auto w-32 rounded-full bg-gradient-to-r from-blue-600 to-indigo-600 px-3 py-2 text-sm font-semibold text-white text-center shadow-lg">
+                  <div className="absolute -top-4 left-0 right-0 mx-auto w-32 rounded-full bg-gradient-to-r from-blue-600 to-indigo-600 px-3 py-1.5 text-sm font-semibold text-white text-center shadow-lg">
                     Most Popular
                   </div>
                 )}
                 <div className="mb-8">
-                  <h3 className="text-2xl font-bold tracking-tight text-gray-900">{tier.name}</h3>
+                  <h3 className="text-xl font-bold tracking-tight text-gray-900">{tier.name}</h3>
                   <p className="mt-2 text-sm text-gray-600">{tier.description}</p>
                   <p className="mt-6 flex items-baseline gap-x-1">
-                    <span className="text-5xl font-bold tracking-tight text-gray-900">
+                    <span className="text-4xl font-bold tracking-tight text-gray-900">
                       {tier.price}
                     </span>
                     {tier.period && <span className="text-sm text-gray-600">{tier.period}</span>}
@@ -151,7 +169,7 @@ export default function PricingPage() {
                   {tier.features.map((feature) => (
                     <li key={feature} className="flex items-start gap-x-3">
                       <svg
-                        className="h-6 w-6 flex-none text-blue-600"
+                        className="h-5 w-5 shrink-0 text-blue-600 mt-0.5"
                         fill="currentColor"
                         viewBox="0 0 20 20"
                       >
@@ -171,18 +189,14 @@ export default function PricingPage() {
                     href={tier.ctaHref}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className={`block w-full rounded-md px-8 py-4 text-center text-base font-semibold transition-colors ${
-                      tier.featured
-                        ? 'bg-blue-600 text-white hover:bg-blue-500 shadow-sm'
-                        : 'bg-gray-100 text-gray-900 hover:bg-gray-200'
-                    }`}
+                    className="block w-full rounded-md px-6 py-3 text-center text-sm font-semibold transition-colors bg-gray-100 text-gray-900 hover:bg-gray-200"
                   >
                     {tier.cta}
                   </a>
                 ) : tier.id === 'enterprise' ? (
                   <a
                     href={tier.ctaHref}
-                    className={`block w-full rounded-md px-8 py-4 text-center text-base font-semibold transition-colors ${
+                    className={`block w-full rounded-md px-6 py-3 text-center text-sm font-semibold transition-colors ${
                       tier.featured
                         ? 'bg-blue-600 text-white hover:bg-blue-500 shadow-sm'
                         : 'bg-gray-100 text-gray-900 hover:bg-gray-200'
@@ -193,7 +207,7 @@ export default function PricingPage() {
                 ) : (
                   <a
                     href={tier.ctaHref}
-                    className={`block w-full rounded-md px-8 py-4 text-center text-base font-semibold transition-colors ${
+                    className={`block w-full rounded-md px-6 py-3 text-center text-sm font-semibold transition-colors ${
                       tier.featured
                         ? 'bg-blue-600 text-white hover:bg-blue-500 shadow-sm'
                         : 'bg-gray-100 text-gray-900 hover:bg-gray-200'

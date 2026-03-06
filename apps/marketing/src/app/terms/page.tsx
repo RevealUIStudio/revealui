@@ -17,7 +17,7 @@ export default function TermsOfServicePage() {
         <p>
           RevealUI is open-source business infrastructure for software companies. It includes a CMS
           engine, authentication, billing integration, AI agents, and UI components. The Service is
-          available in three tiers: Free (OSS), Pro, and Enterprise.
+          available in four tiers: Free (OSS), Pro, Max, and Forge.
         </p>
 
         <h2>2. Accounts</h2>
@@ -35,11 +35,12 @@ export default function TermsOfServicePage() {
           features (1 site, 3 users, community support).
         </p>
 
-        <h2>4. Paid Tiers (Pro &amp; Enterprise)</h2>
+        <h2>4. Paid Tiers (Pro, Max &amp; Forge)</h2>
         <h3>Billing</h3>
         <ul>
           <li>Pro: $49/month, billed monthly. Includes a 7-day free trial.</li>
-          <li>Enterprise: $299/month, billed monthly. Contact sales for annual pricing.</li>
+          <li>Max: $149/month, billed monthly. Includes a 7-day free trial.</li>
+          <li>Forge: $299/month, billed monthly. Contact sales for annual pricing.</li>
           <li>All prices are in USD and exclude applicable taxes.</li>
           <li>Payment is processed by Stripe. You agree to Stripe&apos;s terms of service.</li>
         </ul>
@@ -47,7 +48,7 @@ export default function TermsOfServicePage() {
         <p>
           The Pro tier includes a 7-day free trial. You will not be charged during the trial period.
           If you do not cancel before the trial ends, your subscription will automatically begin and
-          you will be charged $49/month.
+          you will be charged the applicable monthly rate.
         </p>
         <h3>Cancellation</h3>
         <p>
@@ -64,7 +65,7 @@ export default function TermsOfServicePage() {
 
         <h2>5. Commercial License</h2>
         <p>
-          Pro and Enterprise packages (@revealui/ai, @revealui/mcp, @revealui/editors,
+          Pro, Max, and Forge packages (@revealui/ai, @revealui/mcp, @revealui/editors,
           @revealui/services, @revealui/harnesses) are commercially licensed. The license is granted
           per-subscription and is non-transferable. See LICENSE.commercial in the repository for
           full terms.
@@ -77,7 +78,7 @@ export default function TermsOfServicePage() {
           <li>Attempt to gain unauthorized access to the Service or its infrastructure</li>
           <li>Distribute malware, spam, or harmful content through the Service</li>
           <li>Exceed reasonable usage limits or abuse API rate limits</li>
-          <li>Resell Pro/Enterprise features without a valid license</li>
+          <li>Resell Pro/Max/Forge features without a valid license</li>
           <li>Reverse-engineer, decompile, or circumvent license key validation</li>
         </ul>
         <p>We reserve the right to suspend or terminate accounts that violate these terms.</p>
