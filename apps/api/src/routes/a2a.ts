@@ -197,8 +197,8 @@ a2a.get('/agents/:id/tasks', requireFeature('ai'), async (c) => {
   }
 })
 
-/** Update an agent's mutable fields — requires 'ai' feature */
-a2a.put('/agents/:id', requireFeature('ai'), async (c) => {
+/** Update an agent's mutable fields — requires auth + 'ai' feature */
+a2a.put('/agents/:id', authMiddleware({ required: true }), requireFeature('ai'), async (c) => {
   const agentId = c.req.param('id')
   if (!/^[\w-]{1,256}$/.test(agentId)) {
     return c.json({ error: 'Invalid agent ID format' }, 400)
@@ -260,8 +260,8 @@ a2a.put('/agents/:id', requireFeature('ai'), async (c) => {
   return c.json({ card })
 })
 
-/** Retire (unregister) an agent — built-in platform agents are protected */
-a2a.delete('/agents/:id', requireFeature('ai'), async (c) => {
+/** Retire (unregister) an agent — requires auth; built-in platform agents are protected */
+a2a.delete('/agents/:id', authMiddleware({ required: true }), requireFeature('ai'), async (c) => {
   const agentId = c.req.param('id')
   if (!/^[\w-]{1,256}$/.test(agentId)) {
     return c.json({ error: 'Invalid agent ID format' }, 400)

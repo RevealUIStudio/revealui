@@ -114,4 +114,5 @@ export const POST = withRateLimit(signInHandler, {
   maxAttempts: 5,
   windowMs: 15 * 60 * 1000, // 15 minutes
   keyPrefix: 'signin',
+  failClosed: true,
 })

@@ -36,7 +36,15 @@ interface ProcessListResponse {
  *
  * Returns list of tracked processes
  */
-export async function GET(request: NextRequest): Promise<NextResponse<ProcessListResponse>> {
+export async function GET(
+  request: NextRequest,
+): Promise<NextResponse<ProcessListResponse | { error: string }>> {
+  const token = request.headers.get('x-internal-token')
+  const secret = process.env.REVEALUI_SECRET
+  if (!(secret && token) || token !== secret) {
+    return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
+  }
+
   try {
     const searchParams = request.nextUrl.searchParams
 

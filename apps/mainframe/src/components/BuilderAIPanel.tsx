@@ -21,15 +21,15 @@ export function BuilderAIPanel({ buildContext }: BuilderAIPanelProps): JSX.Eleme
     const instruction = input.trim()
     if (!instruction || isStreaming) return
 
-    const apiBase = apiKey
-      ? `/api/agent-stream?provider=groq&key=${encodeURIComponent(apiKey)}`
-      : '/api/agent-stream'
+    const apiBase = apiKey ? '/api/agent-stream?provider=groq' : '/api/agent-stream'
+    const headers = apiKey ? { 'X-API-Key': apiKey } : undefined
 
     start(
       {
         instruction: buildContext ? `Context: ${buildContext}\n\n${instruction}` : instruction,
       },
       apiBase,
+      { headers },
     )
     setInput('')
   }

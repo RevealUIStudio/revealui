@@ -4,7 +4,7 @@
  * JWT-based authentication with session management, token refresh, and OAuth support
  */
 
-import { createHmac, randomBytes } from 'node:crypto'
+import { createHmac, randomBytes, timingSafeEqual } from 'node:crypto'
 import { jwtVerify, SignJWT } from 'jose'
 
 export interface User {
@@ -334,9 +334,9 @@ export class AuthSystem {
   /**
    * Generate cryptographically secure refresh token
    */
-  private generateRefreshToken(userId: string): string {
-    const token = randomBytes(32).toString('hex')
-    return `${userId}.${token}`
+  private generateRefreshToken(_userId: string): string {
+    // Opaque token — userId is stored in the refreshTokens map, not leaked in the token itself
+    return randomBytes(32).toString('hex')
   }
 
   /**
@@ -600,7 +600,10 @@ export class TwoFactorAuth {
       const testTime = timestamp + i * 30000
       const testCode = TwoFactorAuth.generateCode(secret, testTime)
 
-      if (testCode === code) {
+      if (
+        testCode.length === code.length &&
+        timingSafeEqual(Buffer.from(testCode), Buffer.from(code))
+      ) {
         return true
       }
     }

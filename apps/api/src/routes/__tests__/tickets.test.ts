@@ -379,6 +379,8 @@ describe('Tickets', () => {
   })
 
   it('POST /tickets/:id/move — moves ticket to column', async () => {
+    mt.getTicketById.mockResolvedValue(makeTicket() as never)
+    mb.getBoardById.mockResolvedValue(makeBoard() as never)
     mt.moveTicket.mockResolvedValue(makeTicket({ columnId: 'col-2' }) as never)
     const app = createApp()
     const res = await app.request(
@@ -391,13 +393,15 @@ describe('Tickets', () => {
   })
 
   it('POST /tickets/:id/move — 404 when ticket not found', async () => {
-    mt.moveTicket.mockResolvedValue(null as never)
+    mt.getTicketById.mockResolvedValue(null as never)
     const app = createApp()
     const res = await app.request('/tickets/bad/move', post({ columnId: 'col-1', sortOrder: 0 }))
     expect(res.status).toBe(404)
   })
 
   it('GET /tickets/:id/subtasks — returns subtasks', async () => {
+    mt.getTicketById.mockResolvedValue(makeTicket() as never)
+    mb.getBoardById.mockResolvedValue(makeBoard() as never)
     mt.getSubtickets.mockResolvedValue([
       makeTicket({ id: 'sub-1', parentTicketId: 'ticket-1' }),
     ] as never)
@@ -415,6 +419,8 @@ describe('Tickets', () => {
 
 describe('Comments', () => {
   it('GET /tickets/:id/comments — returns comment list', async () => {
+    mt.getTicketById.mockResolvedValue(makeTicket() as never)
+    mb.getBoardById.mockResolvedValue(makeBoard() as never)
     mc.getCommentsByTicket.mockResolvedValue([makeComment()] as never)
     const app = createApp()
     const res = await app.request('/tickets/ticket-1/comments')
@@ -424,6 +430,8 @@ describe('Comments', () => {
   })
 
   it('POST /tickets/:id/comments — creates comment', async () => {
+    mt.getTicketById.mockResolvedValue(makeTicket() as never)
+    mb.getBoardById.mockResolvedValue(makeBoard() as never)
     mc.createComment.mockResolvedValue(makeComment() as never)
     const app = createApp()
     const res = await app.request('/tickets/ticket-1/comments', post({ body: { type: 'doc' } }))
@@ -432,6 +440,8 @@ describe('Comments', () => {
 
   it('PATCH /comments/:id — updates comment', async () => {
     mc.getCommentById.mockResolvedValue(makeComment() as never)
+    mt.getTicketById.mockResolvedValue(makeTicket() as never)
+    mb.getBoardById.mockResolvedValue(makeBoard() as never)
     mc.updateComment.mockResolvedValue(makeComment() as never)
     const app = createApp()
     const res = await app.request('/comments/comment-1', patch({ body: { type: 'doc' } }))
@@ -447,6 +457,8 @@ describe('Comments', () => {
 
   it('DELETE /comments/:id — deletes comment', async () => {
     mc.getCommentById.mockResolvedValue(makeComment() as never)
+    mt.getTicketById.mockResolvedValue(makeTicket() as never)
+    mb.getBoardById.mockResolvedValue(makeBoard() as never)
     mc.deleteComment.mockResolvedValue(undefined as never)
     const app = createApp()
     const res = await app.request('/comments/comment-1', { method: 'DELETE' })
@@ -499,6 +511,8 @@ describe('Labels', () => {
   })
 
   it('POST /tickets/:id/labels — assigns label to ticket', async () => {
+    mt.getTicketById.mockResolvedValue(makeTicket() as never)
+    mb.getBoardById.mockResolvedValue(makeBoard() as never)
     ml.assignLabel.mockResolvedValue({
       id: 'assign-1',
       ticketId: 'ticket-1',
@@ -513,6 +527,8 @@ describe('Labels', () => {
   })
 
   it('GET /tickets/:id/labels — returns labels for ticket', async () => {
+    mt.getTicketById.mockResolvedValue(makeTicket() as never)
+    mb.getBoardById.mockResolvedValue(makeBoard() as never)
     ml.getLabelsForTicket.mockResolvedValue([makeLabel()] as never)
     const app = createApp()
     const res = await app.request('/tickets/ticket-1/labels')
@@ -522,6 +538,8 @@ describe('Labels', () => {
   })
 
   it('DELETE /tickets/:id/labels/:labelId — removes label from ticket', async () => {
+    mt.getTicketById.mockResolvedValue(makeTicket() as never)
+    mb.getBoardById.mockResolvedValue(makeBoard() as never)
     ml.removeLabel.mockResolvedValue(undefined as never)
     const app = createApp()
     const res = await app.request('/tickets/ticket-1/labels/label-1', { method: 'DELETE' })
