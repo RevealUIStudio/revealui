@@ -1,0 +1,74 @@
+# syntax=docker/dockerfile:1
+# RevealUI Forge — CMS (Next.js standalone)
+# Base: Docker Hardened Images (dhi.io/node:22-debian13)
+# ~90% fewer packages than official node, near-zero CVEs, SLSA Level 3 provenance
+
+# Build stage — uses -dev variant for package management and compilation
+FROM dhi.io/node:22-debian13-dev AS base
+
+ENV PNPM_HOME="/pnpm"
+ENV PATH="$PNPM_HOME:$PATH"
+
+RUN corepack enable && corepack prepare pnpm@10.28.2 --activate
+WORKDIR /app
+
+# Dependencies stage
+FROM base AS deps
+
+COPY package.json pnpm-lock.yaml pnpm-workspace.yaml .npmrc ./
+COPY packages/auth/package.json         ./packages/auth/
+COPY packages/config/package.json       ./packages/config/
+COPY packages/contracts/package.json    ./packages/contracts/
+COPY packages/core/package.json         ./packages/core/
+COPY packages/db/package.json           ./packages/db/
+COPY packages/dev/package.json          ./packages/dev/
+COPY packages/presentation/package.json ./packages/presentation/
+COPY packages/services/package.json     ./packages/services/
+COPY packages/sync/package.json         ./packages/sync/
+COPY packages/test/package.json         ./packages/test/
+COPY apps/cms/package.json              ./apps/cms/
+
+RUN --mount=type=cache,id=pnpm,target=/pnpm/store \
+    pnpm install --frozen-lockfile --filter cms...
+
+# Builder stage
+FROM base AS builder
+
+COPY --from=deps /app/node_modules         ./node_modules
+COPY --from=deps /app/packages             ./packages
+COPY --from=deps /app/apps/cms/node_modules ./apps/cms/node_modules
+
+COPY turbo.json tsconfig.json ./
+COPY packages ./packages
+COPY apps/cms ./apps/cms
+
+ENV NODE_ENV=production
+ENV NEXT_TELEMETRY_DISABLED=1
+ENV SKIP_ENV_VALIDATION=true
+
+RUN pnpm --filter cms run build
+
+# ---------------------------------------------------------------------------
+# Runtime stage — minimal hardened image, no shell, no package manager
+# ---------------------------------------------------------------------------
+FROM dhi.io/node:22-debian13 AS runner
+
+ENV NODE_ENV=production
+ENV NEXT_TELEMETRY_DISABLED=1
+ENV PORT=3000
+ENV HOSTNAME="0.0.0.0"
+
+WORKDIR /app
+
+# Copy standalone Next.js output — includes only required server files
+COPY --from=builder /app/apps/cms/.next/standalone ./
+COPY --from=builder /app/apps/cms/.next/static      ./apps/cms/.next/static
+COPY --from=builder /app/apps/cms/public            ./apps/cms/public
+
+# Health check (no curl — use node)
+HEALTHCHECK --interval=30s --timeout=10s --start-period=40s --retries=3 \
+    CMD node -e "require('http').get('http://localhost:3000/api/health',(r)=>{process.exit(r.statusCode===200?0:1)})"
+
+EXPOSE 3000
+
+CMD ["node", "apps/cms/server.js"]
