@@ -35,6 +35,7 @@ import { Hono } from 'hono'
 import { authMiddleware } from '../middleware/auth.js'
 import { requireFeature } from '../middleware/license.js'
 import { requireTaskQuota } from '../middleware/task-quota.js'
+import { buildPaymentMethods } from '../middleware/x402.js'
 
 interface UserContext {
   id: string
@@ -92,6 +93,26 @@ app.get('/agents/:id/agent.json', (c) => {
     return c.json({ error: `Agent '${agentId}' not found` }, 404)
   }
   return c.json(card, 200, {
+    'Content-Type': 'application/json',
+    'Cache-Control': 'public, max-age=300',
+  })
+})
+
+/**
+ * x402 payment methods discovery (Phase 5.2).
+ * GET /.well-known/payment-methods.json
+ *
+ * Returns supported payment schemes for agent task micropayments.
+ * Agents can discover how to pay per-task in USDC on Base.
+ * Returns 404 when X402_ENABLED=false (default).
+ */
+app.get('/payment-methods.json', (c) => {
+  const baseUrl = getBaseUrl(c.req.raw)
+  const methods = buildPaymentMethods(baseUrl)
+  if (!methods) {
+    return c.json({ error: 'x402 payments not enabled on this instance' }, 404)
+  }
+  return c.json(methods, 200, {
     'Content-Type': 'application/json',
     'Cache-Control': 'public, max-age=300',
   })
