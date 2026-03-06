@@ -14,9 +14,9 @@
 export {
   type AgentAction,
   type AgentContext,
+  type AiMemorySession,
   agentActions,
   agentContexts,
-  type AiMemorySession,
   aiMemorySessions,
   type Conversation,
   conversations,

@@ -41,7 +41,7 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
   }
 
   const { provider, key } = body as { provider?: string; key?: string }
-  if (!provider || !key) {
+  if (!(provider && key)) {
     return NextResponse.json({ error: 'provider and key are required' }, { status: 400 })
   }
 
