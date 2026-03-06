@@ -150,51 +150,69 @@ PGHBA
             # Turborepo cache directory
             export TURBO_CACHE_DIR="$PWD/.turbo"
 
-            # Git context (fast — no subprocess wait)
+            # Git context
             _BRANCH=$(git -C "$PWD" branch --show-current 2>/dev/null || echo "detached")
             _DIRTY=$(git -C "$PWD" status --porcelain 2>/dev/null | wc -l | tr -d ' ')
 
-            # Build header
-            _HEADER="  RevealUI  ·  $_BRANCH"
-            [ "$_DIRTY" -gt 0 ] 2>/dev/null && _HEADER="$_HEADER  ·  $_DIRTY uncommitted"
-
-            # Colors (minimal set)
+            # Colors
             GREEN='\033[0;32m'
             YELLOW='\033[1;33m'
             CYAN='\033[0;36m'
             BOLD='\033[1m'
+            DIM='\033[2m'
             NC='\033[0m'
 
+            # Header: bold name, dim separators, yellow when dirty
+            _SEP="''${DIM}  ·  ''${NC}"
+            _HEADER="  ''${BOLD}RevealUI''${NC}''${_SEP}''${_BRANCH}"
+            [ "$_DIRTY" -gt 0 ] 2>/dev/null && _HEADER="''${_HEADER}''${_SEP}''${YELLOW}''${_DIRTY} uncommitted''${NC}"
+
             echo ""
-            echo -e "''${BOLD}$_HEADER''${NC}"
+            echo -e "$_HEADER"
             echo ""
 
-            # Inline status + deferred warnings
+            # Status checks — no leading-space bug when first item is a warning
             _STATUS=""
             _WARN=""
 
             if [ ! -d "$PGDATA" ]; then
-              _WARN="''${_WARN}\n  ''${YELLOW}⚠  postgres not initialized''${NC}  —  run ''${CYAN}db-init''${NC}"
+              _WARN="''${_WARN}  ''${YELLOW}⚠  postgres not initialized''${NC}  ''${DIM}—''${NC}  run ''${BOLD}''${CYAN}db-init''${NC}\n"
             elif pg_ctl status -D "$PGDATA" &>/dev/null; then
-              _STATUS="''${_STATUS}  ''${GREEN}✅ postgres running''${NC}"
+              _STATUS="  ''${GREEN}✅ postgres running''${NC}"
             else
-              _WARN="''${_WARN}\n  ''${YELLOW}⚠  postgres not running''${NC}  —  run ''${CYAN}db-start''${NC}"
+              _WARN="''${_WARN}  ''${YELLOW}⚠  postgres not running''${NC}  ''${DIM}—''${NC}  run ''${BOLD}''${CYAN}db-start''${NC}\n"
             fi
 
             if [ -d "node_modules" ]; then
-              _STATUS="''${_STATUS}   ''${GREEN}✅ deps installed''${NC}"
+              if [ -n "$_STATUS" ]; then
+                _STATUS="''${_STATUS}   ''${GREEN}✅ deps installed''${NC}"
+              else
+                _STATUS="  ''${GREEN}✅ deps installed''${NC}"
+              fi
             else
-              _WARN="''${_WARN}\n  ''${YELLOW}⚠  deps not installed''${NC}  —  run ''${CYAN}pnpm install''${NC}"
+              _WARN="''${_WARN}  ''${YELLOW}⚠  deps not installed''${NC}  ''${DIM}—''${NC}  run ''${BOLD}''${CYAN}pnpm install''${NC}\n"
+            fi
+
+            if docker info &>/dev/null; then
+              _STATUS="''${_STATUS}   ''${GREEN}✅ docker''${NC}"
+            else
+              _WARN="''${_WARN}  ''${YELLOW}⚠  docker not running''${NC}  ''${DIM}—''${NC}  start Docker Desktop\n"
+            fi
+
+            if pgrep -f mcp &>/dev/null; then
+              _STATUS="''${_STATUS}   ''${GREEN}✅ mcp''${NC}"
+            else
+              _WARN="''${_WARN}  ''${YELLOW}⚠  mcp not running''${NC}  ''${DIM}—''${NC}  run ''${BOLD}''${CYAN}pnpm mcp''${NC}\n"
             fi
 
             [ -n "$_STATUS" ] && echo -e "$_STATUS"
-            [ -n "$_WARN" ]   && echo -e "$_WARN"
+            [ -n "$_WARN" ]   && printf '%b' "$_WARN"
 
             echo ""
-            echo -e "  ''${CYAN}gate:quick''${NC}  ·  ''${CYAN}dev''${NC}  ·  ''${CYAN}wb''${NC}  ·  ''${CYAN}db-psql''${NC}"
+            echo -e "  ''${BOLD}''${CYAN}gate:quick''${NC}''${DIM}  ·  ''${NC}''${BOLD}''${CYAN}dev''${NC}''${DIM}  ·  ''${NC}''${BOLD}''${CYAN}wb''${NC}''${DIM}  ·  ''${NC}''${BOLD}''${CYAN}db-psql''${NC}"
             echo ""
 
-            unset _BRANCH _DIRTY _HEADER _STATUS _WARN
+            unset _BRANCH _DIRTY _HEADER _SEP _STATUS _WARN
 
             # Live workboard watcher — renders .claude/workboard.md every 3 s
             # Usage: wb
