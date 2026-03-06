@@ -135,9 +135,9 @@ export default function SetupWizard({ onClose }: SetupWizardProps) {
             }
           />
 
-          {/* Step 3: DevBox */}
+          {/* Step 3: DevPod */}
           <SetupRow
-            label="DevBox"
+            label="DevPod"
             done={status?.devbox_mounted ?? false}
             doneText="Studio drive mounted"
             pendingText="Studio drive not mounted"

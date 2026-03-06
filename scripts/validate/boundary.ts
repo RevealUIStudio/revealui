@@ -65,7 +65,7 @@ const INTERNAL_SOURCE_PATTERNS: Array<{ pattern: RegExp; reason: string }> = [
   },
   {
     pattern: /\/mnt\/wsl-dev\//,
-    reason: 'DevBox mount path (machine-specific)',
+    reason: 'DevPod mount path (machine-specific)',
   },
   {
     pattern: /MASTER_PLAN\.md/,
