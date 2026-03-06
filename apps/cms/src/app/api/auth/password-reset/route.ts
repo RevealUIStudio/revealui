@@ -67,9 +67,9 @@ async function passwordResetRequestHandler(request: NextRequest): Promise<NextRe
       )
     }
 
-    // Send email with reset link
-    if (result.token) {
-      const emailResult = await sendPasswordResetEmail(sanitizedEmail, result.token)
+    // Send email with reset link (tokenId is included in the URL for O(1) lookup)
+    if (result.token && result.tokenId) {
+      const emailResult = await sendPasswordResetEmail(sanitizedEmail, result.tokenId, result.token)
 
       if (!emailResult.success) {
         // Log error but don't reveal to user (security)
@@ -128,9 +128,9 @@ async function passwordResetTokenHandler(request: NextRequest): Promise<NextResp
       )
     }
 
-    const { token, password } = validationResult.data
+    const { tokenId, token, password } = validationResult.data
 
-    const result = await resetPasswordWithToken(token, password)
+    const result = await resetPasswordWithToken(tokenId, token, password)
 
     if (!result.success) {
       return createApplicationErrorResponse(
