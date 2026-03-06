@@ -336,7 +336,7 @@ This is the foundation. The five primitives — Users, Content, Products, Paymen
 
 - **Add more collections** — orders, reviews, blog posts, anything your business needs
 - **Customize the UI** — `packages/presentation` has 50+ components to build with
-- **Add AI** — Pro tier adds AI agents; see the [AI guide](../packages/ai/README.md)
+- **Add AI** — Pro tier adds AI agents; see the [AI guide](./AI.md)
 - **Invite your team** — role-based access control is already wired in
 
-Need help? [GitHub Discussions](https://github.com/RevealUIStudio/revealui/discussions) · [Discord](https://discord.gg/revealui)
+Need help? [GitHub Discussions](https://github.com/RevealUIStudio/revealui/discussions) · [Open an issue](https://github.com/RevealUIStudio/revealui/issues)

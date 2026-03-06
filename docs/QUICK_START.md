@@ -1,6 +1,6 @@
 # Quick Start Guide
 
-Get RevealUI Framework up and running in 5 minutes.
+Get RevealUI up and running in 5 minutes.
 
 ## Prerequisites
 
@@ -134,11 +134,11 @@ For detailed solutions → [Troubleshooting Guide](./TROUBLESHOOTING.md)
 
 Now that you're up and running:
 
-- 📖 Read the [Full Documentation](../README.md)
+- 📖 Read the [Full Documentation](./INDEX.md)
 - 🎨 Explore the [Component Library](./COMPONENT_CATALOG.md)
-- 🚀 Check out [Example Projects](../../examples/)
+- 🚀 Check out [Example Projects](./EXAMPLES.md)
 - 📚 Review [Deployment Guide](./CI_CD_GUIDE.md)
-- 🤝 Read [Contributing Guidelines](../../CONTRIBUTING.md)
+- 🤝 Read [Contributing Guidelines](https://github.com/RevealUIStudio/revealui/blob/main/CONTRIBUTING.md)
 
 ## Need Help?
 
@@ -170,4 +170,4 @@ See [CI/CD Guide](./CI_CD_GUIDE.md) for detailed instructions.
 
 ---
 
-**Congratulations!** You've successfully set up RevealUI Framework. Happy building! 🚀
+**Congratulations!** You've successfully set up RevealUI. Happy building! 🚀
