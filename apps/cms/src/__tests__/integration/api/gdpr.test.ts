@@ -1,204 +1,310 @@
 /**
- * GDPR API Integration Tests
+ * GDPR API Unit Tests
  *
- * Tests for GDPR data export and deletion endpoints
- *
- * NOTE: These tests are skipped because they import Next.js API routes that
- * trigger database initialization during module loading, which hangs in the
- * test environment. These should be tested in an E2E environment instead.
+ * Tests the GDPR export and delete route handlers in isolation by mocking
+ * all external dependencies (RevealUI instance, session, rate limiter).
+ * This avoids the Next.js database-initialization hang that affected the
+ * original integration test approach.
  */
 
 import type { NextRequest } from 'next/server'
-import { describe, expect, it } from 'vitest'
-import { createMockRequest } from '../../../../../../packages/core/src/__tests__/utils/test-helpers'
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 
-describe.skip('GDPR API Integration', () => {
-  describe('POST /api/gdpr/export', () => {
-    it('should require authentication', async () => {
-      const request = createMockRequest({
-        url: 'http://localhost:3000/api/gdpr/export',
-        method: 'POST',
-        body: { email: 'test@example.com' },
-      })
+// ─── Module-level mocks (must be before any imports of the modules under test) ─
 
-      // Mock the handler import
-      try {
-        const { POST } = await import('../../../app/api/gdpr/export/route')
-        const response = await POST(request as unknown as NextRequest)
+vi.mock('@revealui/auth/server', () => ({
+  getSession: vi.fn(),
+}))
 
-        // Should return 401 or 400 for unauthenticated request
-        expect([400, 401, 403]).toContain(response.status)
-      } catch (error) {
-        // Expected if route doesn't exist yet
-        expect(error).toBeDefined()
-      }
-    })
+vi.mock('@/lib/utilities/revealui-singleton', () => ({
+  getRevealUIInstance: vi.fn(),
+}))
 
-    it('should validate request body', async () => {
-      const request = createMockRequest({
-        url: 'http://localhost:3000/api/gdpr/export',
-        method: 'POST',
-        body: {}, // Missing email
-      })
+vi.mock('@/lib/utilities/gdpr-audit', () => ({
+  writeGDPRAuditEntry: vi.fn().mockResolvedValue(undefined),
+}))
 
-      try {
-        const { POST } = await import('../../../app/api/gdpr/export/route')
-        const response = await POST(request as unknown as NextRequest)
+// withRateLimit is a passthrough in tests — just call the handler directly
+vi.mock('@/lib/middleware/rate-limit', () => ({
+  withRateLimit: vi.fn((handler: unknown) => handler),
+}))
 
-        expect(response.status).toBeGreaterThanOrEqual(400)
-      } catch (error) {
-        // Expected if route doesn't exist
-        expect(error).toBeDefined()
-      }
-    })
+// ─── Imports (after mocks) ────────────────────────────────────────────────────
 
-    it('should handle valid export request', async () => {
-      const request = createMockRequest({
-        url: 'http://localhost:3000/api/gdpr/export',
-        method: 'POST',
-        headers: {
-          'content-type': 'application/json',
-        },
-        body: {
-          email: 'user@example.com',
-        },
-      })
+import { getSession } from '@revealui/auth/server'
+import { getRevealUIInstance } from '@/lib/utilities/revealui-singleton'
 
-      try {
-        const { POST } = await import('../../../app/api/gdpr/export/route')
-        const response = await POST(request as unknown as NextRequest)
+// ─── Helpers ─────────────────────────────────────────────────────────────────
 
-        // Should return 200 or 202 (accepted)
-        expect([200, 202, 400, 401]).toContain(response.status)
-      } catch (error) {
-        // Expected if route doesn't exist
-        expect(error).toBeDefined()
-      }
-    })
+function makeRequest(body: unknown, headers: Record<string, string> = {}): NextRequest {
+  return {
+    headers: {
+      get: (key: string) => headers[key.toLowerCase()] ?? null,
+    },
+    json: () => Promise.resolve(body),
+  } as unknown as NextRequest
+}
+
+const mockSession = {
+  user: {
+    id: 'user-123',
+    email: 'test@example.com',
+    name: 'Test User',
+    role: 'user',
+    status: 'active',
+    createdAt: new Date().toISOString(),
+    updatedAt: new Date().toISOString(),
+  },
+}
+
+function makeMockRevealUI(
+  overrides: Partial<{
+    find: ReturnType<typeof vi.fn>
+    delete: ReturnType<typeof vi.fn>
+  }> = {},
+) {
+  return {
+    find: overrides.find ?? vi.fn().mockResolvedValue({ docs: [] }),
+    delete: overrides.delete ?? vi.fn().mockResolvedValue(undefined),
+  }
+}
+
+// ─── Tests ───────────────────────────────────────────────────────────────────
+
+describe('GDPR Export — POST /api/gdpr/export', () => {
+  beforeEach(() => {
+    vi.resetAllMocks()
+    vi.mocked(getSession).mockResolvedValue(
+      mockSession as ReturnType<typeof getSession> extends Promise<infer T> ? T : never,
+    )
+    vi.mocked(getRevealUIInstance).mockResolvedValue(
+      makeMockRevealUI() as ReturnType<typeof getRevealUIInstance> extends Promise<infer T>
+        ? T
+        : never,
+    )
   })
 
-  describe('POST /api/gdpr/delete', () => {
-    it('should require authentication', async () => {
-      const request = createMockRequest({
-        url: 'http://localhost:3000/api/gdpr/delete',
-        method: 'POST',
-        body: { email: 'test@example.com' },
-      })
-
-      try {
-        const { POST } = await import('../../../app/api/gdpr/delete/route')
-        const response = await POST(request as unknown as NextRequest)
-
-        expect([400, 401, 403]).toContain(response.status)
-      } catch (error) {
-        expect(error).toBeDefined()
-      }
-    })
-
-    it('should validate request body', async () => {
-      const request = createMockRequest({
-        url: 'http://localhost:3000/api/gdpr/delete',
-        method: 'POST',
-        body: {}, // Missing email
-      })
-
-      try {
-        const { POST } = await import('../../../app/api/gdpr/delete/route')
-        const response = await POST(request as unknown as NextRequest)
-
-        expect(response.status).toBeGreaterThanOrEqual(400)
-      } catch (error) {
-        expect(error).toBeDefined()
-      }
-    })
-
-    it('should handle valid deletion request', async () => {
-      const request = createMockRequest({
-        url: 'http://localhost:3000/api/gdpr/delete',
-        method: 'POST',
-        headers: {
-          'content-type': 'application/json',
-        },
-        body: {
-          email: 'user@example.com',
-          confirmation: true,
-        },
-      })
-
-      try {
-        const { POST } = await import('../../../app/api/gdpr/delete/route')
-        const response = await POST(request as unknown as NextRequest)
-
-        expect([200, 202, 400, 401]).toContain(response.status)
-      } catch (error) {
-        expect(error).toBeDefined()
-      }
-    })
-
-    it('should require confirmation for deletion', async () => {
-      const request = createMockRequest({
-        url: 'http://localhost:3000/api/gdpr/delete',
-        method: 'POST',
-        body: {
-          email: 'user@example.com',
-          // Missing confirmation
-        },
-      })
-
-      try {
-        const { POST } = await import('../../../app/api/gdpr/delete/route')
-        const response = await POST(request as unknown as NextRequest)
-
-        // Should reject without confirmation
-        expect(response.status).toBeGreaterThanOrEqual(400)
-      } catch (error) {
-        expect(error).toBeDefined()
-      }
-    })
+  afterEach(() => {
+    vi.clearAllMocks()
   })
 
-  describe('GDPR Compliance', () => {
-    it('should complete export within 30 days requirement', async () => {
-      // GDPR requires data export within 30 days
-      // This test verifies the endpoint exists and responds
-      const request = createMockRequest({
-        url: 'http://localhost:3000/api/gdpr/export',
-        method: 'POST',
-        body: { email: 'test@example.com' },
-      })
+  it('returns 401 when unauthenticated', async () => {
+    vi.mocked(getSession).mockResolvedValue(null)
+    const { POST } = await import('../../../app/api/gdpr/export/route')
+    const res = await POST(makeRequest({}))
+    expect(res.status).toBe(401)
+  })
 
-      try {
-        const { POST } = await import('../../../app/api/gdpr/export/route')
-        const response = await POST(request as unknown as NextRequest)
+  it('returns 200 with user data and collections on success', async () => {
+    const conversations = [{ id: 'conv-1', message: 'hello' }]
+    const orders = [{ id: 'order-1', amount: 100 }]
+    vi.mocked(getRevealUIInstance).mockResolvedValue(
+      makeMockRevealUI({
+        find: vi
+          .fn()
+          .mockResolvedValueOnce({ docs: conversations }) // conversations
+          .mockResolvedValueOnce({ docs: orders }) // orders
+          .mockResolvedValueOnce({ docs: [] }), // subscriptions
+      }) as ReturnType<typeof getRevealUIInstance> extends Promise<infer T> ? T : never,
+    )
 
-        // Endpoint should exist and respond
-        expect(response).toBeDefined()
-        expect(response.status).toBeGreaterThan(0)
-      } catch (error) {
-        expect(error).toBeDefined()
-      }
-    })
+    const { POST } = await import('../../../app/api/gdpr/export/route')
+    const res = await POST(makeRequest({}))
+    expect(res.status).toBe(200)
 
-    it('should handle right to be forgotten', async () => {
-      // GDPR right to be forgotten (erasure)
-      const request = createMockRequest({
-        url: 'http://localhost:3000/api/gdpr/delete',
-        method: 'POST',
-        body: {
-          email: 'test@example.com',
-          confirmation: true,
-        },
-      })
+    const body = await res.json()
+    expect(body.data.user.id).toBe('user-123')
+    expect(body.data.user.email).toBe('test@example.com')
+    expect(body.data.conversations).toEqual(conversations)
+    expect(body.data.orders).toEqual(orders)
+    expect(body.exportedAt).toBeDefined()
+  })
 
-      try {
-        const { POST } = await import('../../../app/api/gdpr/delete/route')
-        const response = await POST(request as unknown as NextRequest)
+  it('includes partial data when some collections fail', async () => {
+    const orders = [{ id: 'order-1' }]
+    vi.mocked(getRevealUIInstance).mockResolvedValue(
+      makeMockRevealUI({
+        find: vi
+          .fn()
+          .mockRejectedValueOnce(new Error('conversations DB error'))
+          .mockResolvedValueOnce({ docs: orders })
+          .mockResolvedValueOnce({ docs: [] }),
+      }) as ReturnType<typeof getRevealUIInstance> extends Promise<infer T> ? T : never,
+    )
 
-        expect(response).toBeDefined()
-        expect(response.status).toBeGreaterThan(0)
-      } catch (error) {
-        expect(error).toBeDefined()
-      }
-    })
+    const { POST } = await import('../../../app/api/gdpr/export/route')
+    const res = await POST(makeRequest({}))
+    // Partial failures are non-fatal — endpoint still returns 200 with available data
+    expect(res.status).toBe(200)
+    const body = await res.json()
+    expect(body.data.orders).toEqual(orders)
+    expect(body.data.conversations).toEqual([])
+  })
+
+  it('sets Content-Disposition header for download', async () => {
+    const { POST } = await import('../../../app/api/gdpr/export/route')
+    const res = await POST(makeRequest({}))
+    expect(res.status).toBe(200)
+    expect(res.headers.get('Content-Disposition')).toContain('attachment')
+    expect(res.headers.get('Content-Disposition')).toContain('user-123')
+  })
+
+  it('does not include password or sensitive fields in export', async () => {
+    const { POST } = await import('../../../app/api/gdpr/export/route')
+    const res = await POST(makeRequest({}))
+    const body = await res.json()
+    expect(body.data.user).not.toHaveProperty('password')
+    expect(body.data.user).not.toHaveProperty('passwordHash')
+  })
+})
+
+describe('GDPR Delete — POST /api/gdpr/delete', () => {
+  beforeEach(() => {
+    vi.resetAllMocks()
+    vi.mocked(getSession).mockResolvedValue(
+      mockSession as ReturnType<typeof getSession> extends Promise<infer T> ? T : never,
+    )
+    vi.mocked(getRevealUIInstance).mockResolvedValue(
+      makeMockRevealUI() as ReturnType<typeof getRevealUIInstance> extends Promise<infer T>
+        ? T
+        : never,
+    )
+  })
+
+  afterEach(() => {
+    vi.clearAllMocks()
+  })
+
+  it('returns 401 when unauthenticated', async () => {
+    vi.mocked(getSession).mockResolvedValue(null)
+    const { POST } = await import('../../../app/api/gdpr/delete/route')
+    const res = await POST(makeRequest({}))
+    expect(res.status).toBe(401)
+  })
+
+  it('deletes user and all related collections on success', async () => {
+    const mockDelete = vi.fn().mockResolvedValue(undefined)
+    const mockFind = vi
+      .fn()
+      // conversations: one page then empty
+      .mockResolvedValueOnce({ docs: [{ id: 'conv-1' }] })
+      .mockResolvedValueOnce({ docs: [] })
+      // orders: empty
+      .mockResolvedValueOnce({ docs: [] })
+      // subscriptions: empty
+      .mockResolvedValueOnce({ docs: [] })
+      // events: empty
+      .mockResolvedValueOnce({ docs: [] })
+
+    vi.mocked(getRevealUIInstance).mockResolvedValue(
+      makeMockRevealUI({ find: mockFind, delete: mockDelete }) as ReturnType<
+        typeof getRevealUIInstance
+      > extends Promise<infer T>
+        ? T
+        : never,
+    )
+
+    const { POST } = await import('../../../app/api/gdpr/delete/route')
+    const res = await POST(makeRequest({}))
+    expect(res.status).toBe(200)
+
+    const body = await res.json()
+    expect(body.success).toBe(true)
+    expect(body.deletedAt).toBeDefined()
+
+    // Conversation doc + user record deleted
+    expect(mockDelete).toHaveBeenCalledWith(
+      expect.objectContaining({ collection: 'conversations', id: 'conv-1' }),
+    )
+    expect(mockDelete).toHaveBeenCalledWith(
+      expect.objectContaining({ collection: 'users', id: 'user-123' }),
+    )
+  })
+
+  it('returns 500 and preserves user record if cascade partially fails', async () => {
+    vi.mocked(getRevealUIInstance).mockResolvedValue(
+      makeMockRevealUI({
+        find: vi
+          .fn()
+          .mockRejectedValueOnce(new Error('conversations collection unavailable'))
+          .mockResolvedValueOnce({ docs: [] }) // orders
+          .mockResolvedValueOnce({ docs: [] }) // subscriptions
+          .mockResolvedValueOnce({ docs: [] }), // events
+      }) as ReturnType<typeof getRevealUIInstance> extends Promise<infer T> ? T : never,
+    )
+
+    const { POST } = await import('../../../app/api/gdpr/delete/route')
+    const res = await POST(makeRequest({}))
+    expect(res.status).toBe(500)
+
+    const body = await res.json()
+    expect(body.success).toBe(false)
+    expect(body.error).toContain('Cascade deletion partially failed')
+  })
+
+  it('deletes all records when user has many docs (pagination)', async () => {
+    const mockDelete = vi.fn().mockResolvedValue(undefined)
+    const page1 = Array.from({ length: 100 }, (_, i) => ({ id: `conv-${i}` }))
+    const page2 = [{ id: 'conv-100' }]
+
+    const mockFind = vi
+      .fn()
+      // conversations: 2 pages, then empty
+      .mockResolvedValueOnce({ docs: page1 })
+      .mockResolvedValueOnce({ docs: page2 })
+      .mockResolvedValueOnce({ docs: [] })
+      // orders, subscriptions, events: empty
+      .mockResolvedValueOnce({ docs: [] })
+      .mockResolvedValueOnce({ docs: [] })
+      .mockResolvedValueOnce({ docs: [] })
+
+    vi.mocked(getRevealUIInstance).mockResolvedValue(
+      makeMockRevealUI({ find: mockFind, delete: mockDelete }) as ReturnType<
+        typeof getRevealUIInstance
+      > extends Promise<infer T>
+        ? T
+        : never,
+    )
+
+    const { POST } = await import('../../../app/api/gdpr/delete/route')
+    const res = await POST(makeRequest({}))
+    expect(res.status).toBe(200)
+
+    // 101 conversation docs + 1 user record
+    expect(mockDelete).toHaveBeenCalledTimes(102)
+  })
+
+  it('writes an audit entry on successful deletion', async () => {
+    const { writeGDPRAuditEntry } = await import('@/lib/utilities/gdpr-audit')
+    const { POST } = await import('../../../app/api/gdpr/delete/route')
+    await POST(makeRequest({}))
+
+    expect(writeGDPRAuditEntry).toHaveBeenCalledWith(
+      expect.anything(),
+      expect.objectContaining({
+        action: 'delete',
+        userId: 'user-123',
+      }),
+    )
+  })
+
+  it('writes an audit entry even when cascade fails', async () => {
+    vi.mocked(getRevealUIInstance).mockResolvedValue(
+      makeMockRevealUI({
+        find: vi.fn().mockRejectedValue(new Error('DB error')),
+      }) as ReturnType<typeof getRevealUIInstance> extends Promise<infer T> ? T : never,
+    )
+
+    const { writeGDPRAuditEntry } = await import('@/lib/utilities/gdpr-audit')
+    const { POST } = await import('../../../app/api/gdpr/delete/route')
+    await POST(makeRequest({}))
+
+    expect(writeGDPRAuditEntry).toHaveBeenCalledWith(
+      expect.anything(),
+      expect.objectContaining({
+        action: 'delete',
+        metadata: expect.objectContaining({ aborted: true }),
+      }),
+    )
   })
 })

@@ -27,7 +27,7 @@ export function domainLockMiddleware() {
       host === '127.0.0.1'
 
     if (!allowed) {
-      logger.warn('Forge domain-lock rejected request', undefined, {
+      logger.warn('Forge domain-lock rejected request', {
         host,
         licensedDomain,
       })
@@ -67,5 +67,5 @@ export function validateForgeConfig(): void {
     process.exit(1)
   }
 
-  logger.info('Forge mode active', undefined, { licensedDomain })
+  logger.info('Forge mode active', { licensedDomain })
 }

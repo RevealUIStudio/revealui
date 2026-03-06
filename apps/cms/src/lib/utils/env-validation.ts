@@ -85,6 +85,20 @@ export function validateRequiredEnvVars(
       }
       warnings.push(error)
     }
+
+    // Stripe price IDs are required in production — without them, billing buttons
+    // silently send priceId:'' which the API rejects with a 400, showing
+    // "Failed to start checkout" to paying customers with no actionable error.
+    const stripePriceVars = [
+      'NEXT_PUBLIC_STRIPE_PRO_PRICE_ID',
+      'NEXT_PUBLIC_STRIPE_MAX_PRICE_ID',
+      'NEXT_PUBLIC_STRIPE_ENTERPRISE_PRICE_ID',
+    ]
+    for (const key of stripePriceVars) {
+      if (!process.env[key]) {
+        missing.push(key)
+      }
+    }
   }
 
   const valid = missing.length === 0

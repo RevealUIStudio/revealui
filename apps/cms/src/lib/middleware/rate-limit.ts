@@ -132,9 +132,11 @@ export function withRateLimit(
       })
     } catch (error) {
       if (options.failClosed) {
-        logger.error('Rate limit check failed, rejecting request (fail-closed)', {
-          error: error instanceof Error ? error.message : String(error),
-        })
+        logger.error(
+          'Rate limit check failed, rejecting request (fail-closed)',
+          error instanceof Error ? error : undefined,
+          { error: error instanceof Error ? error.message : String(error) },
+        )
         return NextResponse.json(
           { error: 'Service temporarily unavailable. Please try again later.' },
           { status: 503 },
