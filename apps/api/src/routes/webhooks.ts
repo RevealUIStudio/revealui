@@ -187,7 +187,7 @@ app.post('/stripe', async (c) => {
   const maxEventAgeSeconds = 300
   const eventAge = Math.floor(Date.now() / 1000) - event.created
   if (eventAge > maxEventAgeSeconds) {
-    logger.warn('Rejected stale webhook event', undefined, {
+    logger.warn('Rejected stale webhook event', {
       eventId: event.id,
       eventAge,
       eventType: event.type,

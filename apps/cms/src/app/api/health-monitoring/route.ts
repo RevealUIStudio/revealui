@@ -31,7 +31,15 @@ export const dynamic = 'force-dynamic'
  *
  * Returns comprehensive health metrics
  */
-export async function GET(): Promise<NextResponse<HealthMetrics>> {
+export async function GET(
+  request: Request,
+): Promise<NextResponse<HealthMetrics | { error: string }>> {
+  const token = request.headers.get('x-internal-token')
+  const secret = process.env.REVEALUI_SECRET
+  if (!(secret && token) || token !== secret) {
+    return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
+  }
+
   try {
     // Get database pool metrics
     const poolMetrics = getPoolMetrics()

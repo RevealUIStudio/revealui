@@ -19,6 +19,8 @@ export interface RateLimitOptions {
   maxAttempts?: number
   windowMs?: number
   keyPrefix?: string
+  /** If true, reject the request when the rate-limit store is unavailable (default: false) */
+  failClosed?: boolean
 }
 
 export interface RateLimitConfig {
@@ -129,6 +131,15 @@ export function withRateLimit(
         windowMs: options.windowMs || 15 * 60 * 1000, // 15 minutes
       })
     } catch (error) {
+      if (options.failClosed) {
+        logger.error('Rate limit check failed, rejecting request (fail-closed)', {
+          error: error instanceof Error ? error.message : String(error),
+        })
+        return NextResponse.json(
+          { error: 'Service temporarily unavailable. Please try again later.' },
+          { status: 503 },
+        )
+      }
       logger.warn('Rate limit check failed, allowing request', {
         error: error instanceof Error ? error.message : String(error),
       })
