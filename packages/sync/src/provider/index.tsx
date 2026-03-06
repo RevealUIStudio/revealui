@@ -2,7 +2,10 @@
 
 import type { ReactNode } from 'react'
 
-// ElectricProvider placeholder - useShape works with proxy API
+/**
+ * @experimental This provider is a passthrough — ElectricSQL integration is not yet implemented.
+ * Children are rendered without any sync functionality.
+ */
 export function ElectricProvider({
   children,
 }: {

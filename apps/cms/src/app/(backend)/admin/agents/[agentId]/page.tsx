@@ -133,7 +133,7 @@ export default function AgentDetailPage({ params }: PageProps) {
   }
 
   return (
-    <LicenseGate feature="ai" featureLabel="AI Agents">
+    <LicenseGate feature="ai">
       <div className="min-h-screen">
         {/* Breadcrumb header */}
         <div className="flex items-center gap-3 border-b border-zinc-800 bg-zinc-900 px-6 py-4">

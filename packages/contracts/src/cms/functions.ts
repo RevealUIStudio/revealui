@@ -31,16 +31,14 @@
 export interface RevealCMSInstance {
   find(options: {
     collection: string
-    // biome-ignore lint/suspicious/noExplicitAny: RevealWhere union is not assignable to Record<string,unknown> — avoids circular dep
-    where?: any
+    where?: Where
     limit?: number
     page?: number
     depth?: number
   }): Promise<{ docs: Array<{ id: string | number; [key: string]: unknown }>; totalDocs: number }>
   create(options: {
     collection: string
-    // biome-ignore lint/suspicious/noExplicitAny: RevealDataObject is not assignable to Record<string,unknown> — avoids circular dep
-    data: any
+    data: Record<string, unknown>
     depth?: number
   }): Promise<{ id: string | number; [key: string]: unknown }>
   logger?: {

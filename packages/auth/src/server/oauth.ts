@@ -41,7 +41,13 @@ export function generateOAuthState(
   const nonce = crypto.randomBytes(16).toString('hex')
   const payload = JSON.stringify({ provider, redirectTo, nonce })
   const state = Buffer.from(payload).toString('base64url')
-  const secret = process.env.REVEALUI_SECRET ?? ''
+  const secret = process.env.REVEALUI_SECRET
+  if (!secret) {
+    throw new Error(
+      'REVEALUI_SECRET is required for OAuth state signing. ' +
+        'Set it in your environment variables.',
+    )
+  }
   const hmac = crypto.createHmac('sha256', secret).update(state).digest('hex')
   return { state, cookieValue: `${state}.${hmac}` }
 }
@@ -66,7 +72,13 @@ export function verifyOAuthState(
   // State from query param must match what's in the cookie
   if (storedState !== state) return null
 
-  const secret = process.env.REVEALUI_SECRET ?? ''
+  const secret = process.env.REVEALUI_SECRET
+  if (!secret) {
+    throw new Error(
+      'REVEALUI_SECRET is required for OAuth state verification. ' +
+        'Set it in your environment variables.',
+    )
+  }
   const expectedHmac = crypto.createHmac('sha256', secret).update(state).digest('hex')
 
   // Both are hex-encoded SHA-256 HMACs — must be exactly 64 hex characters.

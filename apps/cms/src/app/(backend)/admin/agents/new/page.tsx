@@ -171,7 +171,7 @@ export default function NewAgentPage() {
   const tpl = selectedTemplate ? TEMPLATES.find((t) => t.key === selectedTemplate) : null
 
   return (
-    <LicenseGate feature="ai" featureLabel="AI Agents">
+    <LicenseGate feature="ai">
       <div className="min-h-screen">
         {/* Header */}
         <div className="border-b border-zinc-800 bg-zinc-900 px-6 py-4">
