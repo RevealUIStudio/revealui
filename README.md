@@ -102,7 +102,12 @@ RevealUI is a modular monorepo. The OSS core is on npm:
 | [`@revealui/config`](packages/config) | Type-safe environment configuration |
 | [`@revealui/utils`](packages/utils) | Logger, database helpers, validation |
 | [`@revealui/cli`](packages/cli) | `create-revealui` scaffolding tool |
-| [`@revealui/sync`](packages/sync) | ElectricSQL real-time sync |
+
+### Experimental Packages
+
+| Package | Status |
+|---------|--------|
+| [`@revealui/sync`](packages/sync) | ⚗️ Experimental — ElectricSQL real-time sync (passthrough only; not production-ready) |
 
 ## Tech stack
 
