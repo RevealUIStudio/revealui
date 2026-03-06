@@ -2,6 +2,21 @@
 
 ## Active Workflows
 
+### `ci.yml` — Continuous Integration
+**Triggers:** Push to `main`, pull requests targeting `main`
+
+Mirrors the local `pnpm gate` — same hard-fail/warn policy:
+
+| Check | When | Fail policy |
+|-------|------|-------------|
+| Biome lint | PRs + main | Hard fail |
+| Typecheck (all 24 packages) | PRs + main | Hard fail |
+| Build (all packages) | main only | Hard fail |
+| ESLint, audits, structure, boundary | PRs + main | Warn-only |
+| Tests (Vitest) | PRs + main | Warn-only |
+
+Build runs only on main pushes — at ~15 min it's too slow for PR feedback loops.
+
 ### `release.yml` — Release OSS Packages
 **Trigger:** Manual (`workflow_dispatch`)
 
@@ -63,13 +78,13 @@ pnpm release:pro:dry
 pnpm release status
 ```
 
-## CI Gate (local only)
+## CI Gate (local)
 
-There is no automated CI workflow running on PRs/pushes. The gate runs locally:
+The gate also runs locally via Husky pre-push hook:
 
 ```bash
 pnpm gate        # full: lint + typecheck + test + build
 pnpm gate:quick  # phase 1 only (lint + structure)
 ```
 
-Run `pnpm gate` before pushing. The Husky pre-push hook enforces this.
+`ci.yml` is the GitHub Actions counterpart — same checks, same policy.
