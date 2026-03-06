@@ -21,7 +21,6 @@ export const productsProxy: RevealHandler = async (req: RevealRequest): Promise<
     const listParams: Stripe.ProductListParams = {
       limit: 100,
     }
-    // @ts-expect-error - TypeScript incorrectly infers RequestOptions instead of ProductListParams for spread args
     const products = await protectedStripe.products.list(listParams)
 
     return new Response(JSON.stringify(products), {
