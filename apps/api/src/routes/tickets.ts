@@ -278,6 +278,13 @@ app.openapi(
     const db = c.get('db')
     const { id } = c.req.valid('param')
     const body = c.req.valid('json')
+    const existing = await boardQueries.getBoardById(db, id)
+    if (!existing) return c.json({ success: false as const, error: 'Board not found' }, 404)
+    assertBoardTenantAccess(existing, c.get('tenant'))
+    const user = c.get('user')
+    if (existing.ownerId && existing.ownerId !== user?.id) {
+      throw new HTTPException(403, { message: 'Forbidden' })
+    }
     const board = await boardQueries.updateBoard(db, id, body)
     if (!board) return c.json({ success: false as const, error: 'Board not found' }, 404)
     return c.json({ success: true as const, data: board }, 200)
@@ -673,11 +680,12 @@ app.openapi(
   }),
   async (c) => {
     const db = c.get('db')
+    const user = c.get('user')
     const { id } = c.req.valid('param')
     const ticket = await ticketQueries.getTicketById(db, id)
     if (!ticket) throw new HTTPException(404, { message: 'Ticket not found' })
     const board = await boardQueries.getBoardById(db, ticket.boardId)
-    const user = c.get('user')
+    assertBoardTenantAccess(board ?? {}, c.get('tenant'))
     if (board?.ownerId && board.ownerId !== user?.id) {
       throw new HTTPException(403, { message: 'Forbidden' })
     }
@@ -721,6 +729,10 @@ app.openapi(
   async (c) => {
     const db = c.get('db')
     const { id } = c.req.valid('param')
+    const existing = await ticketQueries.getTicketById(db, id)
+    if (!existing) return c.json({ success: false as const, error: 'Ticket not found' }, 404)
+    const board = await boardQueries.getBoardById(db, existing.boardId)
+    assertBoardTenantAccess(board ?? {}, c.get('tenant'))
     const { columnId, sortOrder } = c.req.valid('json')
     const ticket = await ticketQueries.moveTicket(db, id, columnId, sortOrder)
     if (!ticket) return c.json({ success: false as const, error: 'Ticket not found' }, 404)

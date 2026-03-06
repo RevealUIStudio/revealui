@@ -249,7 +249,7 @@ app.openapi(deleteRoute, async (c) => {
 
   if (!existing) throw new HTTPException(404, { message: 'API key not found' })
 
-  await db.delete(userApiKeys).where(eq(userApiKeys.id, id))
+  await db.delete(userApiKeys).where(and(eq(userApiKeys.id, id), eq(userApiKeys.userId, user.id)))
 
   return c.json({ deleted: true })
 })
