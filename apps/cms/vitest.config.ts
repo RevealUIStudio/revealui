@@ -36,6 +36,19 @@ export default defineConfig({
   },
   resolve: {
     alias: {
+      // Force workspace package resolution for @revealui/* packages.
+      // Without these, pnpm may resolve to a stale published version in the
+      // store (e.g. @revealui/config@0.2.0) whose dist/index.js contains
+      // extensionless relative imports that Node ESM rejects at test-time.
+      // Pointing directly at source lets Vitest's transform handle them.
+      // IMPORTANT: subpath aliases must come BEFORE the broad prefix alias or
+      // Vite appends the subpath suffix to the file path → ENOTDIR.
+      '@revealui/config/revealui': path.resolve(
+        __dirname,
+        '../../packages/config/src/revealui.config.ts',
+      ),
+      '@revealui/config': path.resolve(__dirname, '../../packages/config/src/index.ts'),
+      '@revealui/auth/server': path.resolve(__dirname, '../../packages/auth/src/server/index.ts'),
       '@': path.resolve(__dirname, './src'),
       '@reveal-config': path.resolve(__dirname, './revealui.config.ts'),
       '@/collections': path.resolve(__dirname, './src/lib/collections'),
