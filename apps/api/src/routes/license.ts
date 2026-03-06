@@ -3,6 +3,9 @@ import { createRoute, OpenAPIHono, z } from '@hono/zod-openapi'
 import { getFeaturesForTier } from '@revealui/core/features'
 import { generateLicenseKey, type LicensePayload, validateLicenseKey } from '@revealui/core/license'
 import { logger } from '@revealui/core/observability/logger'
+import { getClient } from '@revealui/db'
+import { licenses } from '@revealui/db/schema'
+import { eq } from 'drizzle-orm'
 import { HTTPException } from 'hono/http-exception'
 
 const app = new OpenAPIHono()
@@ -18,6 +21,11 @@ const LicenseVerifyRequestSchema = z.object({
 
 const LicenseVerifyResponseSchema = z.object({
   valid: z.boolean().openapi({ description: 'Whether the license is valid' }),
+  reason: z.enum(['valid', 'expired', 'revoked', 'invalid', 'misconfigured']).optional().openapi({
+    description:
+      'Why the license is invalid. Present when valid=false. "expired": JWT past expiry or DB status expired. "revoked": explicitly revoked in the DB (chargeback, refund, cancellation). "invalid": bad signature or malformed JWT. "misconfigured": server public key not configured.',
+    example: 'revoked',
+  }),
   tier: z.enum(['free', 'pro', 'max', 'enterprise']).openapi({
     description: 'License tier',
     example: 'pro',
@@ -137,6 +145,7 @@ app.openapi(verifyRoute, async (c) => {
     return c.json(
       {
         valid: false,
+        reason: 'misconfigured' as const,
         tier: 'free' as const,
         customerId: null,
         features: getFeaturesForTier('free'),
@@ -151,9 +160,64 @@ app.openapi(verifyRoute, async (c) => {
   const payload = await validateLicenseKey(licenseKey, publicKey)
 
   if (!payload) {
+    // JWT is invalid or expired. Check DB to distinguish between revoked (explicit
+    // admin action) vs expired (JWT exp past) vs never-valid.
+    let reason: 'expired' | 'revoked' | 'invalid' = 'invalid'
+    try {
+      const db = getClient()
+      const [row] = await db
+        .select({ status: licenses.status })
+        .from(licenses)
+        .where(eq(licenses.licenseKey, licenseKey))
+        .limit(1)
+      if (row?.status === 'revoked') reason = 'revoked'
+      else if (row?.status === 'expired') reason = 'expired'
+    } catch (err) {
+      logger.warn('Failed to check DB license status during verify', {
+        error: err instanceof Error ? err.message : 'unknown',
+      })
+    }
+
     return c.json(
       {
         valid: false,
+        reason,
+        tier: 'free' as const,
+        customerId: null,
+        features: getFeaturesForTier('free'),
+        maxSites: 1,
+        maxUsers: 3,
+        expiresAt: null,
+      },
+      200,
+    )
+  }
+
+  // JWT is structurally valid — also check DB status to catch explicit revocations
+  // (e.g., chargeback, refund, manual revoke) that may have occurred after the JWT
+  // was issued but before its exp timestamp.
+  let dbRevoked = false
+  try {
+    const db = getClient()
+    const [row] = await db
+      .select({ status: licenses.status })
+      .from(licenses)
+      .where(eq(licenses.licenseKey, licenseKey))
+      .limit(1)
+    if (row?.status === 'revoked' || row?.status === 'expired') {
+      dbRevoked = true
+    }
+  } catch (err) {
+    logger.warn('Failed to check DB revocation status during verify — trusting JWT', {
+      error: err instanceof Error ? err.message : 'unknown',
+    })
+  }
+
+  if (dbRevoked) {
+    return c.json(
+      {
+        valid: false,
+        reason: 'revoked' as const,
         tier: 'free' as const,
         customerId: null,
         features: getFeaturesForTier('free'),
@@ -172,6 +236,7 @@ app.openapi(verifyRoute, async (c) => {
   return c.json(
     {
       valid: true,
+      reason: 'valid' as const,
       tier: payload.tier,
       customerId: payload.customerId,
       features,
