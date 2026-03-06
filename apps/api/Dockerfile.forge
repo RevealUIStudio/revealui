@@ -1,10 +1,8 @@
 # syntax=docker/dockerfile:1
 # RevealUI Forge — API (Hono/Node.js)
-# Base: Docker Hardened Images (dhi.io/node:22-debian13)
-# ~90% fewer packages than official node, near-zero CVEs, SLSA Level 3 provenance
 
-# Build stage — uses -dev variant (includes corepack, npm, and build tooling)
-FROM dhi.io/node:22-debian13-dev AS build
+# Build stage
+FROM node:24-alpine AS build
 
 ENV PNPM_HOME="/pnpm"
 ENV PATH="$PNPM_HOME:$PATH"
@@ -34,9 +32,9 @@ ENV NODE_ENV=production
 RUN pnpm --filter api run build
 
 # ---------------------------------------------------------------------------
-# Runtime stage — minimal hardened image, no shell, no package manager
+# Runtime stage — minimal image, production only
 # ---------------------------------------------------------------------------
-FROM dhi.io/node:22-debian13 AS runner
+FROM node:24-alpine AS runner
 
 ENV NODE_ENV=production
 ENV PORT=3001
