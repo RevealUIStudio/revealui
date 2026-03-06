@@ -3,7 +3,7 @@
  */
 
 import { NextRequest } from 'next/server'
-import { describe, expect, it, vi } from 'vitest'
+import { afterAll, beforeAll, describe, expect, it, vi } from 'vitest'
 import { GET as getProcessList } from '../app/api/health-monitoring/processes/route'
 import { GET as getHealthMonitoring } from '../app/api/health-monitoring/route'
 
@@ -93,10 +93,17 @@ vi.mock('@revealui/db/client', () => ({
   ]),
 }))
 
+const AUTH = { headers: { 'x-internal-token': 'test-secret' } }
+
 describe('Health Monitoring API', () => {
+  beforeAll(() => vi.stubEnv('REVEALUI_SECRET', 'test-secret'))
+  afterAll(() => vi.unstubAllEnvs())
+
   describe('GET /api/health-monitoring', () => {
     it('should return health metrics with 200 status when healthy', async () => {
-      const response = await getHealthMonitoring()
+      const response = await getHealthMonitoring(
+        new NextRequest('http://localhost/api/health-monitoring', AUTH),
+      )
       const data = await response.json()
 
       expect(response.status).toBe(200)
@@ -108,7 +115,9 @@ describe('Health Monitoring API', () => {
     })
 
     it('should include system metrics', async () => {
-      const response = await getHealthMonitoring()
+      const response = await getHealthMonitoring(
+        new NextRequest('http://localhost/api/health-monitoring', AUTH),
+      )
       const data = await response.json()
 
       expect(data.system).toHaveProperty('memoryUsage')
@@ -119,7 +128,9 @@ describe('Health Monitoring API', () => {
     })
 
     it('should include process metrics', async () => {
-      const response = await getHealthMonitoring()
+      const response = await getHealthMonitoring(
+        new NextRequest('http://localhost/api/health-monitoring', AUTH),
+      )
       const data = await response.json()
 
       expect(data.processes).toHaveProperty('active')
@@ -130,7 +141,9 @@ describe('Health Monitoring API', () => {
     })
 
     it('should include database metrics', async () => {
-      const response = await getHealthMonitoring()
+      const response = await getHealthMonitoring(
+        new NextRequest('http://localhost/api/health-monitoring', AUTH),
+      )
       const data = await response.json()
 
       expect(data.database).toHaveProperty('rest')
@@ -142,7 +155,7 @@ describe('Health Monitoring API', () => {
 
   describe('GET /api/health-monitoring/processes', () => {
     it('should return process list', async () => {
-      const request = new NextRequest('http://localhost/api/health-monitoring/processes')
+      const request = new NextRequest('http://localhost/api/health-monitoring/processes', AUTH)
       const response = await getProcessList(request)
       const data = await response.json()
 
@@ -156,6 +169,7 @@ describe('Health Monitoring API', () => {
     it('should filter processes by status', async () => {
       const request = new NextRequest(
         'http://localhost/api/health-monitoring/processes?status=running',
+        AUTH,
       )
       const response = await getProcessList(request)
       const data = await response.json()
@@ -167,6 +181,7 @@ describe('Health Monitoring API', () => {
     it('should filter processes by source', async () => {
       const request = new NextRequest(
         'http://localhost/api/health-monitoring/processes?source=exec',
+        AUTH,
       )
       const response = await getProcessList(request)
       const data = await response.json()
@@ -176,7 +191,10 @@ describe('Health Monitoring API', () => {
     })
 
     it('should respect limit parameter', async () => {
-      const request = new NextRequest('http://localhost/api/health-monitoring/processes?limit=1')
+      const request = new NextRequest(
+        'http://localhost/api/health-monitoring/processes?limit=1',
+        AUTH,
+      )
       const response = await getProcessList(request)
       const data = await response.json()
 
@@ -185,7 +203,7 @@ describe('Health Monitoring API', () => {
     })
 
     it('should sort processes by startTime descending by default', async () => {
-      const request = new NextRequest('http://localhost/api/health-monitoring/processes')
+      const request = new NextRequest('http://localhost/api/health-monitoring/processes', AUTH)
       const response = await getProcessList(request)
       const data = await response.json()
 

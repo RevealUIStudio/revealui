@@ -21,16 +21,13 @@ export function BuilderAIPanel({ buildContext }: BuilderAIPanelProps): JSX.Eleme
     const instruction = input.trim()
     if (!instruction || isStreaming) return
 
-    const apiBase = apiKey ? '/api/agent-stream?provider=groq' : '/api/agent-stream'
-    const headers = apiKey ? { 'X-API-Key': apiKey } : undefined
+    const resolvedInstruction = buildContext
+      ? `Context: ${buildContext}\n\n${instruction}`
+      : instruction
+    const req = { instruction: resolvedInstruction } as Parameters<typeof start>[0]
+    if (apiKey) (req as unknown as Record<string, unknown>).apiKey = apiKey
 
-    start(
-      {
-        instruction: buildContext ? `Context: ${buildContext}\n\n${instruction}` : instruction,
-      },
-      apiBase,
-      { headers },
-    )
+    start(req, '/api/agent-stream')
     setInput('')
   }
 
