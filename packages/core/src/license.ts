@@ -179,6 +179,17 @@ export function getMaxUsers(): number {
 }
 
 /**
+ * Returns the maximum agent tasks per billing cycle for the current license.
+ * Track B metering: free=1K, pro=10K, max=50K, enterprise=unlimited.
+ */
+export function getMaxAgentTasks(): number {
+  if (cachedState.tier === 'enterprise') return Infinity
+  if (cachedState.tier === 'max') return 50_000
+  if (cachedState.tier === 'pro') return 10_000
+  return 1_000
+}
+
+/**
  * Generates a signed license key JWT.
  * This is a server-only function — requires the private key.
  *

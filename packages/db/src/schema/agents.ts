@@ -300,6 +300,35 @@ export const registeredAgents = pgTable('registered_agents', {
 // Type exports for Drizzle
 // =============================================================================
 
+// =============================================================================
+// Agent Task Usage Table (Track B — metered billing)
+// =============================================================================
+
+/**
+ * Tracks agent task execution counts per user per billing cycle.
+ * Used by requireTaskQuota() middleware and the billing usage widget.
+ * Composite PK (userId, cycleStart) means one row per user per month.
+ */
+export const agentTaskUsage = pgTable('agent_task_usage', {
+  userId: text('user_id')
+    .notNull()
+    .references(() => users.id, { onDelete: 'cascade' }),
+
+  /** UTC timestamp of the first moment of the billing cycle (truncated to month). */
+  cycleStart: timestamp('cycle_start', { withTimezone: true }).notNull(),
+
+  /** Total tasks executed this cycle. */
+  count: integer('count').notNull().default(0),
+
+  /** Tasks beyond the tier quota (for overage billing). */
+  overage: integer('overage').notNull().default(0),
+
+  updatedAt: timestamp('updated_at', { withTimezone: true }).defaultNow().notNull(),
+})
+
+export type AgentTaskUsage = typeof agentTaskUsage.$inferSelect
+export type NewAgentTaskUsage = typeof agentTaskUsage.$inferInsert
+
 export type AgentContext = typeof agentContexts.$inferSelect
 export type NewAgentContext = typeof agentContexts.$inferInsert
 export type AgentMemory = typeof agentMemories.$inferSelect
