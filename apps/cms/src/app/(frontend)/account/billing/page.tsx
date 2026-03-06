@@ -18,6 +18,19 @@ interface SubscriptionData {
   expiresAt: string | null
 }
 
+function safeStripeRedirect(url: string): void {
+  const allowed = ['checkout.stripe.com', 'billing.stripe.com']
+  try {
+    const { hostname, protocol } = new URL(url)
+    if (protocol !== 'https:' || !allowed.includes(hostname)) {
+      return
+    }
+  } catch {
+    return
+  }
+  window.location.href = url
+}
+
 export default function BillingPage() {
   const router = useRouter()
   const searchParams = useSearchParams()
@@ -77,7 +90,7 @@ export default function BillingPage() {
       })
       const data = (await res.json()) as { url?: string; error?: string }
       if (data.url) {
-        window.location.href = data.url
+        safeStripeRedirect(data.url)
       } else {
         setError(data.error || 'Failed to start checkout')
       }
@@ -153,7 +166,7 @@ export default function BillingPage() {
       })
       const data = (await res.json()) as { url?: string; error?: string }
       if (data.url) {
-        window.location.href = data.url
+        safeStripeRedirect(data.url)
       } else {
         setError(data.error || 'Failed to open billing portal')
       }

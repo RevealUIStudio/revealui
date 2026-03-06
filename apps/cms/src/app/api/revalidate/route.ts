@@ -1,0 +1,52 @@
+export const runtime = 'nodejs'
+
+import { revalidatePath, revalidateTag } from 'next/cache'
+import { type NextRequest, NextResponse } from 'next/server'
+
+export const dynamic = 'force-dynamic'
+
+/**
+ * On-demand ISR revalidation endpoint.
+ *
+ * POST /api/revalidate
+ * Header: x-revalidate-secret: <REVEALUI_SECRET>
+ * Body:   { tag } | { path } | { collection, slug }
+ */
+export async function POST(request: NextRequest): Promise<NextResponse> {
+  const secret = request.headers.get('x-revalidate-secret')
+  if (!secret || secret !== process.env.REVEALUI_SECRET) {
+    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+  }
+
+  let body: unknown
+  try {
+    body = await request.json()
+  } catch {
+    return NextResponse.json({ error: 'Invalid JSON body' }, { status: 400 })
+  }
+
+  const { collection, slug, tag, path } = body as {
+    collection?: string
+    slug?: string
+    tag?: string
+    path?: string
+  }
+
+  if (tag) {
+    revalidateTag(tag)
+    return NextResponse.json({ revalidated: true, tag })
+  }
+
+  if (path) {
+    revalidatePath(path)
+    return NextResponse.json({ revalidated: true, path })
+  }
+
+  if (collection && slug) {
+    revalidateTag(`${collection}:${slug}`)
+    revalidatePath(`/${collection}/${slug}`)
+    return NextResponse.json({ revalidated: true, collection, slug })
+  }
+
+  return NextResponse.json({ error: 'Provide tag, path, or collection+slug' }, { status: 400 })
+}

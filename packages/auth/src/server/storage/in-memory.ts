@@ -71,6 +71,20 @@ export class InMemoryStorage implements Storage {
     return true
   }
 
+  // eslint-disable-next-line @typescript-eslint/require-await
+  async atomicUpdate(
+    key: string,
+    updater: (existing: string | null) => { value: string; ttlSeconds: number },
+  ): Promise<void> {
+    // Read synchronously from the Map to avoid yielding to the event loop between
+    // read and write (JavaScript is single-threaded; no I/O = no interleaving).
+    const now = Date.now()
+    const entry = this.store.get(key)
+    const existing = entry && (!entry.expiresAt || entry.expiresAt >= now) ? entry.value : null
+    const { value, ttlSeconds } = updater(existing)
+    this.store.set(key, { value, expiresAt: now + ttlSeconds * 1000 })
+  }
+
   /**
    * Clean up expired entries (should be called periodically)
    */

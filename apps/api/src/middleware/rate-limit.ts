@@ -26,12 +26,24 @@ export interface TieredRateLimitOptions {
   keyPrefix?: string
 }
 
+/**
+ * Extract the trusted client IP from X-Forwarded-For.
+ * Takes the rightmost entry (appended by the outermost trusted proxy — Vercel/Cloudflare),
+ * not the leftmost (which is attacker-controlled in multi-hop scenarios).
+ */
+function extractTrustedIp(c: { req: { header: (name: string) => string | undefined } }): string {
+  const xff = c.req.header('x-forwarded-for')
+  if (xff) {
+    const ips = xff.split(',').map((s) => s.trim())
+    const last = ips[ips.length - 1]
+    if (last) return last
+  }
+  return c.req.header('x-real-ip') ?? 'unknown'
+}
+
 export const rateLimitMiddleware = (options: RateLimitOptions): MiddlewareHandler => {
   return async (c, next) => {
-    const ip =
-      c.req.header('x-forwarded-for')?.split(',')[0]?.trim() ||
-      c.req.header('x-real-ip') ||
-      'unknown'
+    const ip = extractTrustedIp(c)
     const key = `${options.keyPrefix || 'api'}:${ip}`
 
     const result = await checkRateLimit(key, {
@@ -62,10 +74,7 @@ export const tieredRateLimitMiddleware = (options: TieredRateLimitOptions): Midd
     const tier = getCurrentTier()
     const config = options.tiers[tier] ?? options.tiers.free
 
-    const ip =
-      c.req.header('x-forwarded-for')?.split(',')[0]?.trim() ||
-      c.req.header('x-real-ip') ||
-      'unknown'
+    const ip = extractTrustedIp(c)
     const key = `${options.keyPrefix || 'api'}:${tier}:${ip}`
 
     const result = await checkRateLimit(key, {

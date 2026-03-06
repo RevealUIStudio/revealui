@@ -66,36 +66,45 @@ export async function recordFailedAttempt(
 ): Promise<void> {
   const storage = getStorage()
   const storageKey = getStorageKey(email)
-  const now = Date.now()
 
-  const entryData = await storage.get(storageKey)
-  const entry = deserializeEntry(entryData) || { count: 0, windowStart: now }
+  const updater = (entryData: string | null): { value: string; ttlSeconds: number } => {
+    const now = Date.now()
+    const entry = deserializeEntry(entryData) || { count: 0, windowStart: now }
 
-  // Reset if lock expired
-  if (entry.lockUntil && entry.lockUntil < now) {
-    entry.count = 0
-    entry.lockUntil = undefined
-    entry.windowStart = now
+    // Reset if lock expired
+    if (entry.lockUntil && entry.lockUntil < now) {
+      entry.count = 0
+      entry.lockUntil = undefined
+      entry.windowStart = now
+    }
+
+    // Reset if window expired
+    if (now - entry.windowStart > config.windowMs) {
+      entry.count = 0
+      entry.windowStart = now
+    }
+
+    entry.count++
+
+    // Lock account if threshold reached
+    if (entry.count >= config.maxAttempts) {
+      entry.lockUntil = now + config.lockDurationMs
+    }
+
+    const ttlSeconds = Math.ceil(
+      Math.max(config.windowMs, entry.lockUntil ? entry.lockUntil - now : config.windowMs) / 1000,
+    )
+    return { value: serializeEntry(entry), ttlSeconds }
   }
 
-  // Reset if window expired
-  if (now - entry.windowStart > config.windowMs) {
-    entry.count = 0
-    entry.windowStart = now
+  if (storage.atomicUpdate) {
+    await storage.atomicUpdate(storageKey, updater)
+  } else {
+    // Fallback for storage backends that don't support atomic updates
+    const existing = await storage.get(storageKey)
+    const { value, ttlSeconds } = updater(existing)
+    await storage.set(storageKey, value, ttlSeconds)
   }
-
-  entry.count++
-
-  // Lock account if threshold reached
-  if (entry.count >= config.maxAttempts) {
-    entry.lockUntil = now + config.lockDurationMs
-  }
-
-  // Store with TTL (window duration or lock duration, whichever is longer)
-  const ttlSeconds = Math.ceil(
-    Math.max(config.windowMs, entry.lockUntil ? entry.lockUntil - now : config.windowMs) / 1000,
-  )
-  await storage.set(storageKey, serializeEntry(entry), ttlSeconds)
 }
 
 /**

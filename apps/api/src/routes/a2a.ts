@@ -291,9 +291,9 @@ a2a.delete('/agents/:id', requireFeature('ai'), async (c) => {
 /**
  * Register a new agent from an AgentDefinition.
  * The agent is added to the in-memory registry for this server's lifetime.
- * Requires 'ai' feature flag.
+ * Requires authentication + 'ai' feature flag.
  */
-a2a.post('/agents', async (c) => {
+a2a.post('/agents', authMiddleware({ required: true }), async (c) => {
   if (!isFeatureEnabled('ai')) {
     return c.json({ error: "Feature 'ai' requires a Pro or Enterprise license." }, 403)
   }

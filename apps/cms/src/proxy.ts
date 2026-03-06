@@ -49,7 +49,7 @@ export default async function proxy(request: NextRequest): Promise<NextResponse 
     // Content Security Policy (CSP)
     const cspHeader = [
       "default-src 'self'",
-      `script-src 'self' 'unsafe-inline'${process.env.NODE_ENV === 'development' ? " 'unsafe-eval'" : ''} https://js.stripe.com https://cdn.vercel-insights.com`,
+      `script-src 'self'${process.env.NODE_ENV === 'development' ? " 'unsafe-inline' 'unsafe-eval'" : ''} https://js.stripe.com https://cdn.vercel-insights.com`,
       "style-src 'self' 'unsafe-inline'",
       "img-src 'self' data: blob: https:",
       "font-src 'self' data:",

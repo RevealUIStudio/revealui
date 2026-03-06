@@ -12,6 +12,7 @@ import { getClient } from '@revealui/db/client'
 import { oauthAccounts, users } from '@revealui/db/schema'
 import { and, eq } from 'drizzle-orm'
 import type { User } from '../types.js'
+import { OAuthAccountConflictError } from './errors.js'
 import * as github from './providers/github.js'
 import * as google from './providers/google.js'
 import * as vercel from './providers/vercel.js'
@@ -218,7 +219,11 @@ export async function upsertOAuthUser(provider: string, providerUser: ProviderUs
     return user as User
   }
 
-  // 2. Check for existing user by email (account linking)
+  // 2. Check for existing user by email — BLOCK auto-linking
+  // If an account with this email already exists but was not linked via OAuth,
+  // reject the login. Auto-linking is an account takeover vector: an attacker
+  // who controls a provider email instantly owns the existing account.
+  // Explicit linking (from an authenticated session) is a future feature.
   let userId: string
   let isNewUser = false
 
@@ -230,11 +235,11 @@ export async function upsertOAuthUser(provider: string, providerUser: ProviderUs
       .limit(1)
 
     if (existingUser) {
-      userId = existingUser.id
-    } else {
-      isNewUser = true
-      userId = crypto.randomUUID()
+      throw new OAuthAccountConflictError(providerUser.email)
     }
+
+    isNewUser = true
+    userId = crypto.randomUUID()
   } else {
     isNewUser = true
     userId = crypto.randomUUID()

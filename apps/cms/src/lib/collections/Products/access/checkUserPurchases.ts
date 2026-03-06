@@ -22,10 +22,10 @@ interface UserWithPurchases extends RevealUser {
  * @returns User cast to UserWithPurchases, or null if user is undefined
  */
 function asUserWithPurchases(user: RevealUser | undefined): UserWithPurchases | null {
-  if (!user) {
-    return null
+  if (!user) return null
+  if (!('purchases' in user) || !Array.isArray((user as UserWithPurchases).purchases)) {
+    return null // hook didn't populate it — deny access
   }
-  // Type assertion: purchases property is populated by Orders hooks at runtime
   return user as UserWithPurchases
 }
 

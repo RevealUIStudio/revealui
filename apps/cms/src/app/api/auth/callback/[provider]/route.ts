@@ -9,6 +9,7 @@ import {
   createSession,
   exchangeCode,
   fetchProviderUser,
+  OAuthAccountConflictError,
   upsertOAuthUser,
   verifyOAuthState,
 } from '@revealui/auth/server'
@@ -70,7 +71,19 @@ export async function GET(
 
     const { token } = await createSession(user.id, { userAgent, ipAddress, persistent: true })
 
-    const redirectTo = verified.redirectTo.startsWith('/') ? verified.redirectTo : '/admin'
+    // Resolve redirectTo: reject cross-origin URLs to prevent open redirect.
+    // startsWith('/') is insufficient — paths like /..//..//attacker.com pass.
+    let redirectTo = '/admin'
+    try {
+      const resolved = new URL(verified.redirectTo, baseUrl)
+      const base = new URL(baseUrl)
+      if (resolved.hostname === base.hostname) {
+        redirectTo = resolved.pathname + resolved.search
+      }
+    } catch {
+      // Invalid URL — fall back to /admin
+    }
+
     const response = NextResponse.redirect(new URL(redirectTo, baseUrl))
 
     response.cookies.set('revealui-session', token, {
@@ -88,6 +101,9 @@ export async function GET(
     response.cookies.delete('oauth_state')
     return response
   } catch (err) {
+    if (err instanceof OAuthAccountConflictError) {
+      return loginUrl('account_exists')
+    }
     logger.error('OAuth callback error', { provider, error: err })
     return loginUrl('oauth_error')
   }

@@ -39,4 +39,15 @@ export interface Storage {
    * Set multiple key-value pairs
    */
   mset?(pairs: Array<[string, string]>, ttlSeconds?: number): Promise<void>
+
+  /**
+   * Atomically read and update a value.
+   * The updater receives the current value (or null) and returns the new value + TTL.
+   * Implementations that support DB transactions should do so; others fall back to
+   * a non-atomic get-then-set, which is safe for low-concurrency scenarios.
+   */
+  atomicUpdate?(
+    key: string,
+    updater: (existing: string | null) => { value: string; ttlSeconds: number },
+  ): Promise<void>
 }

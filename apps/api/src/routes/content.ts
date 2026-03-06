@@ -321,7 +321,6 @@ app.openapi(
               excerpt: z.string().max(1000).nullable().optional(),
               content: z.unknown().optional(),
               featuredImageId: z.string().nullable().optional(),
-              authorId: z.string().nullable().optional(),
               status: z.enum(['draft', 'published', 'archived']).optional(),
               published: z.boolean().optional(),
               meta: z.record(z.string(), z.unknown()).nullable().optional(),

@@ -12,13 +12,10 @@ interface TaskTesterProps {
 
 type TesterState = 'idle' | 'submitting' | 'polling' | 'done' | 'error'
 
-const LS_PROVIDER_KEY = 'revealui:byok:provider'
-const LS_API_KEY = 'revealui:byok:api-key'
-
 /**
  * Interactive task tester for an A2A agent.
  * Sends a tasks/send JSON-RPC call and streams/polls the result.
- * Attaches BYOK headers (X-AI-Provider + X-AI-Api-Key) from localStorage if configured.
+ * Fetches the BYOK key from the server at call time — key is never stored in client state.
  */
 export function TaskTester({ agentId, agentName, onComplete }: TaskTesterProps) {
   const [instruction, setInstruction] = useState('')
@@ -29,9 +26,14 @@ export function TaskTester({ agentId, agentName, onComplete }: TaskTesterProps) 
 
   const apiUrl = (process.env.NEXT_PUBLIC_API_URL ?? 'https://api.revealui.com').trim()
 
-  // Read BYOK config from localStorage on mount
+  // Check if BYOK is configured by fetching metadata (no plaintext key)
   useEffect(() => {
-    setByokProvider(localStorage.getItem(LS_PROVIDER_KEY))
+    fetch('/api/user/api-keys')
+      .then((r) => (r.ok ? r.json() : null))
+      .then((data: { provider: string } | null) => {
+        setByokProvider(data?.provider ?? null)
+      })
+      .catch(() => {})
   }, [])
 
   async function submit() {
@@ -40,16 +42,20 @@ export function TaskTester({ agentId, agentName, onComplete }: TaskTesterProps) 
     setTask(null)
     setErrorMsg(null)
 
-    // Attach BYOK headers if a key is configured
+    // Fetch the decrypted key from the server at call time only — never stored in state
     const headers: Record<string, string> = {
       'Content-Type': 'application/json',
       'X-Agent-ID': agentId,
     }
-    const storedProvider = localStorage.getItem(LS_PROVIDER_KEY)
-    const storedKey = localStorage.getItem(LS_API_KEY)
-    if (storedProvider && storedKey) {
-      headers['X-AI-Provider'] = storedProvider
-      headers['X-AI-Api-Key'] = storedKey
+    try {
+      const keyRes = await fetch('/api/user/api-keys/value')
+      if (keyRes.ok) {
+        const keyData = (await keyRes.json()) as { provider: string; key: string }
+        headers['X-AI-Provider'] = keyData.provider
+        headers['X-AI-Api-Key'] = keyData.key
+      }
+    } catch {
+      // No key configured — proceed without BYOK headers
     }
 
     try {

@@ -1,5 +1,5 @@
 import type { CollectionConfig } from '@revealui/core'
-import { anyone, authenticated, isAdmin } from '@/lib/access'
+import { anyone, isAdmin } from '@/lib/access'
 
 const Events: CollectionConfig = {
   slug: 'events',
@@ -9,7 +9,7 @@ const Events: CollectionConfig = {
     plural: 'Events',
   },
   access: {
-    create: authenticated,
+    create: isAdmin,
     read: anyone,
     update: isAdmin,
     delete: isAdmin,

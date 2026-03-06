@@ -6,6 +6,11 @@ import { and, eq } from 'drizzle-orm'
 import type { DatabaseClient } from '../client/types.js'
 import { ticketLabelAssignments, ticketLabels } from '../schema/tickets.js'
 
+export async function getLabelById(db: DatabaseClient, id: string) {
+  const result = await db.select().from(ticketLabels).where(eq(ticketLabels.id, id)).limit(1)
+  return result[0] ?? null
+}
+
 export async function getAllLabels(db: DatabaseClient, tenantId?: string) {
   if (tenantId) {
     return db

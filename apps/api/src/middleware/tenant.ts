@@ -40,13 +40,8 @@ export function tenantMiddleware(
   const { required = true, headerName = 'X-Tenant-ID' } = options
 
   return async (c, next) => {
-    // 1. Try header
-    let tenantId = c.req.header(headerName) ?? null
-
-    // 2. Try query param (fallback for webhook/callback URLs)
-    if (!tenantId) {
-      tenantId = c.req.query('tenantId') ?? null
-    }
+    // Tenant context must come from a trusted header — query params are attacker-controlled
+    const tenantId = c.req.header(headerName) ?? null
 
     // Validate format (UUID or slug: alphanumeric + hyphens, 1-128 chars)
     if (tenantId && !/^[\w-]{1,128}$/.test(tenantId)) {
@@ -55,7 +50,7 @@ export function tenantMiddleware(
 
     if (!tenantId && required) {
       throw new HTTPException(400, {
-        message: `Missing tenant context. Provide ${headerName} header or tenantId query parameter.`,
+        message: `Missing tenant context. Provide the ${headerName} header.`,
       })
     }
 

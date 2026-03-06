@@ -47,3 +47,17 @@ export class TokenError extends AuthError {
     this.name = 'TokenError'
   }
 }
+
+export class OAuthAccountConflictError extends AuthError {
+  public email: string
+
+  constructor(email: string) {
+    super(
+      'An account with this email already exists. Sign in with your password or original provider.',
+      'OAUTH_ACCOUNT_CONFLICT',
+      409,
+    )
+    this.name = 'OAuthAccountConflictError'
+    this.email = email
+  }
+}
