@@ -10,12 +10,12 @@ import type React from 'react'
 
 interface UpgradePromptProps {
   feature: string
-  requiredTier?: 'pro' | 'enterprise'
+  requiredTier?: 'pro' | 'max' | 'enterprise'
   children?: React.ReactNode
 }
 
 export function UpgradePrompt({ feature, requiredTier = 'pro', children }: UpgradePromptProps) {
-  const tierLabel = requiredTier === 'enterprise' ? 'Enterprise' : 'Pro'
+  const tierLabel = requiredTier === 'enterprise' ? 'Forge' : requiredTier === 'max' ? 'Max' : 'Pro'
   const upgradeHref = `/account/billing?upgrade=${requiredTier}`
 
   return (
