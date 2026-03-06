@@ -6,7 +6,7 @@ import { logger } from '@revealui/core/observability/logger'
 import { SecurityHeaders, SecurityPresets } from '@revealui/core/security'
 import { closeAllPools, getClient } from '@revealui/db'
 import { createDbLogHandler } from '@revealui/db/log-transport'
-import { licenses } from '@revealui/db/schema'
+import { licenses, sites } from '@revealui/db/schema'
 import { desc, eq } from 'drizzle-orm'
 import { bodyLimit } from 'hono/body-limit'
 import { cors } from 'hono/cors'
@@ -17,6 +17,7 @@ import { errorHandler } from './middleware/error.js'
 import { checkLicenseStatus, requireFeature } from './middleware/license.js'
 import { rateLimitMiddleware, tieredRateLimitMiddleware } from './middleware/rate-limit.js'
 import { requestIdMiddleware } from './middleware/request-id.js'
+import { enforceSiteLimit } from './middleware/resource-limits.js'
 import { tenantMiddleware } from './middleware/tenant.js'
 import { a2aRoutes, wellKnownRoutes } from './routes/a2a.js'
 import { createAgentCollabRoute } from './routes/agent-collab.js'
@@ -305,6 +306,11 @@ app.patch('/api/content/*', writeProtected)
 app.patch('/api/v1/content/*', writeProtected)
 app.delete('/api/content/*', writeProtected)
 app.delete('/api/v1/content/*', writeProtected)
+
+// Resource limits — enforce tier-based caps on site creation
+const siteLimit = enforceSiteLimit(() => sites)
+app.post('/api/content/sites', siteLimit)
+app.post('/api/v1/content/sites', siteLimit)
 
 // OpenAPI documentation
 app.doc('/openapi.json', {
