@@ -24,9 +24,10 @@ interface TierLimits {
   users: number | null
 }
 
-const TIER_LIMITS: Record<'free' | 'pro' | 'enterprise', TierLimits> = {
+const TIER_LIMITS: Record<'free' | 'pro' | 'max' | 'enterprise', TierLimits> = {
   free: { sites: 1, users: 3 },
   pro: { sites: 5, users: 25 },
+  max: { sites: 15, users: 100 },
   enterprise: { sites: null, users: null },
 }
 
@@ -37,6 +38,8 @@ const FEATURE_LABELS: Record<keyof FeatureFlags, string> = {
   editors: 'Editor Integration',
   harnesses: 'AI Harness Coordination',
   payments: 'Built-in Payments',
+  byokServerSide: 'BYOK Server-side Key Storage',
+  aiMultiProvider: 'Multi-provider AI',
   multiTenant: 'Multi-tenant Sites',
   whiteLabel: 'White-label Dashboard',
   sso: 'SSO / SAML',
@@ -50,7 +53,8 @@ const FEATURE_LABELS: Record<keyof FeatureFlags, string> = {
 const TIER_LABELS: Record<string, string> = {
   free: 'Free (OSS)',
   pro: 'Pro',
-  enterprise: 'Enterprise',
+  max: 'Max',
+  enterprise: 'Forge (Enterprise)',
 }
 
 const TIER_COLORS: Record<string, string> = {

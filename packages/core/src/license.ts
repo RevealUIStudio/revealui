@@ -10,12 +10,12 @@ import { importPKCS8, importSPKI, jwtVerify, SignJWT } from 'jose'
 import { z } from 'zod'
 
 /** Available license tiers */
-export type LicenseTier = 'free' | 'pro' | 'enterprise'
+export type LicenseTier = 'free' | 'pro' | 'max' | 'enterprise'
 
 /** Decoded license payload schema */
 const licensePayloadSchema = z.object({
   /** License tier */
-  tier: z.enum(['pro', 'enterprise']),
+  tier: z.enum(['pro', 'max', 'enterprise']),
   /** Organization or customer ID */
   customerId: z.string(),
   /** Licensed domain(s) */
@@ -140,7 +140,8 @@ export function isLicensed(requiredTier: LicenseTier): boolean {
   const tierRank: Record<LicenseTier, number> = {
     free: 0,
     pro: 1,
-    enterprise: 2,
+    max: 2,
+    enterprise: 3,
   }
 
   // Free tier is always available
@@ -162,6 +163,7 @@ export function isLicensed(requiredTier: LicenseTier): boolean {
  */
 export function getMaxSites(): number {
   if (cachedState.tier === 'enterprise') return Infinity
+  if (cachedState.tier === 'max') return cachedState.payload?.maxSites ?? 15
   if (cachedState.tier === 'pro') return cachedState.payload?.maxSites ?? 5
   return 1
 }
@@ -171,6 +173,7 @@ export function getMaxSites(): number {
  */
 export function getMaxUsers(): number {
   if (cachedState.tier === 'enterprise') return Infinity
+  if (cachedState.tier === 'max') return cachedState.payload?.maxUsers ?? 100
   if (cachedState.tier === 'pro') return cachedState.payload?.maxUsers ?? 25
   return 3
 }
