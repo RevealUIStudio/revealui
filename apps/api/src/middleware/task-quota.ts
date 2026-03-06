@@ -68,6 +68,18 @@ export async function requireTaskQuota(
   const current = row?.count ?? 0
 
   if (current >= quota) {
+    // Track overage for billing reports (fire-and-forget — does not block the 429)
+    void db
+      .insert(agentTaskUsage)
+      .values({ userId: user.id, cycleStart: cycle, count: current, overage: 1 })
+      .onConflictDoUpdate({
+        target: [agentTaskUsage.userId, agentTaskUsage.cycleStart],
+        set: { overage: sql`${agentTaskUsage.overage} + 1`, updatedAt: new Date() },
+      })
+      .catch(() => {
+        // Non-fatal
+      })
+
     return c.json(
       {
         error: 'Agent task quota exceeded for this billing cycle.',

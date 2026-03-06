@@ -19,6 +19,7 @@ import { checkLicenseStatus, requireFeature } from './middleware/license.js'
 import { rateLimitMiddleware, tieredRateLimitMiddleware } from './middleware/rate-limit.js'
 import { requestIdMiddleware } from './middleware/request-id.js'
 import { enforceSiteLimit } from './middleware/resource-limits.js'
+import { requireTaskQuota } from './middleware/task-quota.js'
 import { tenantMiddleware } from './middleware/tenant.js'
 import { a2aRoutes, wellKnownRoutes } from './routes/a2a.js'
 import { createAgentCollabRoute } from './routes/agent-collab.js'
@@ -331,6 +332,13 @@ app.delete('/api/v1/content/*', writeProtected)
 const siteLimit = enforceSiteLimit(() => sites)
 app.post('/api/content/sites', siteLimit)
 app.post('/api/v1/content/sites', siteLimit)
+
+// Task quota metering (Track B) — runs after auth + feature gate so user context is set.
+// Applied to all AI task endpoints: agent-tasks, agent-stream, and A2A (a2a.ts wires its own).
+app.post('/api/agent-tasks/*', requireTaskQuota)
+app.post('/api/v1/agent-tasks/*', requireTaskQuota)
+app.post('/api/agent-stream', requireTaskQuota)
+app.post('/api/v1/agent-stream', requireTaskQuota)
 
 // OpenAPI documentation
 app.doc('/openapi.json', {
