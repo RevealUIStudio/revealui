@@ -17,9 +17,10 @@ const Users: RevealCollectionConfig<User> = {
   access: {
     create: isAdmin,
     read: ({ req }) => {
-      if (!req.user) return false
+      const user = req?.user as { id?: string } | null
+      if (!user?.id) return false
       if (isAdmin({ req })) return true
-      return { id: { equals: req.user.id } }
+      return { id: { equals: user.id } }
     },
     update: isAdminAndUser,
     delete: isAdmin,

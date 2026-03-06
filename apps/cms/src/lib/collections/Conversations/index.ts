@@ -17,19 +17,22 @@ export const Conversations: CollectionConfig = {
   access: {
     create: authenticated,
     read: ({ req }) => {
-      if (!req.user) return false
+      const user = req?.user as { id?: string } | null
+      if (!user?.id) return false
       if (isAdmin({ req })) return true
-      return { user_id: { equals: req.user.id } }
+      return { user_id: { equals: user.id } }
     },
     update: ({ req }) => {
-      if (!req.user) return false
+      const user = req?.user as { id?: string } | null
+      if (!user?.id) return false
       if (isAdmin({ req })) return true
-      return { user_id: { equals: req.user.id } }
+      return { user_id: { equals: user.id } }
     },
     delete: ({ req }) => {
-      if (!req.user) return false
+      const user = req?.user as { id?: string } | null
+      if (!user?.id) return false
       if (isAdmin({ req })) return true
-      return { user_id: { equals: req.user.id } }
+      return { user_id: { equals: user.id } }
     },
   },
   admin: {
