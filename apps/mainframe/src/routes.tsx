@@ -358,7 +358,7 @@ export const routes: Route[] = [
   {
     path: '/',
     component: HomePage,
-    meta: { title: 'RevealUI — Full-stack React Framework' },
+    meta: { title: 'RevealUI — Open-Source Business Infrastructure' },
   },
   {
     path: '/builder',

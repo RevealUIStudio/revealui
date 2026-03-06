@@ -184,38 +184,18 @@ export default function PricingPage() {
                     </li>
                   ))}
                 </ul>
-                {tier.id === 'free' ? (
-                  <a
-                    href={tier.ctaHref}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="block w-full rounded-md px-6 py-3 text-center text-sm font-semibold transition-colors bg-gray-100 text-gray-900 hover:bg-gray-200"
-                  >
-                    {tier.cta}
-                  </a>
-                ) : tier.id === 'enterprise' ? (
-                  <a
-                    href={tier.ctaHref}
-                    className={`block w-full rounded-md px-6 py-3 text-center text-sm font-semibold transition-colors ${
-                      tier.featured
-                        ? 'bg-blue-600 text-white hover:bg-blue-500 shadow-sm'
-                        : 'bg-gray-100 text-gray-900 hover:bg-gray-200'
-                    }`}
-                  >
-                    {tier.cta}
-                  </a>
-                ) : (
-                  <a
-                    href={tier.ctaHref}
-                    className={`block w-full rounded-md px-6 py-3 text-center text-sm font-semibold transition-colors ${
-                      tier.featured
-                        ? 'bg-blue-600 text-white hover:bg-blue-500 shadow-sm'
-                        : 'bg-gray-100 text-gray-900 hover:bg-gray-200'
-                    }`}
-                  >
-                    {tier.cta}
-                  </a>
-                )}
+                <a
+                  href={tier.ctaHref}
+                  target={tier.id === 'free' ? '_blank' : undefined}
+                  rel={tier.id === 'free' ? 'noopener noreferrer' : undefined}
+                  className={`block w-full rounded-md px-6 py-3 text-center text-sm font-semibold transition-colors ${
+                    tier.featured
+                      ? 'bg-blue-600 text-white hover:bg-blue-500 shadow-sm'
+                      : 'bg-gray-100 text-gray-900 hover:bg-gray-200'
+                  }`}
+                >
+                  {tier.cta}
+                </a>
               </div>
             ))}
           </div>

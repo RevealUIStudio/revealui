@@ -6,7 +6,7 @@ Open-source business infrastructure for software companies.
 
 - [Quick Start](./QUICK_START.md) — 5-minute setup guide
 - [Build Your Business](./BUILD_YOUR_BUSINESS.md) — End-to-end tutorial: scaffold to deploy
-- [Examples](./examples.md) — Blog, SaaS starter, storefront
+- [Examples](./EXAMPLES.md) — Blog, SaaS starter, storefront
 
 ## Core Guides
 
