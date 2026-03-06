@@ -248,6 +248,7 @@ export function updateSessionActivity(): Partial<Session> {
  * Session with computed fields for UI display
  */
 export interface SessionWithComputed extends Session {
+  // biome-ignore lint/style/useNamingConvention: _computed is a conventional computed-field marker
   _computed: {
     isExpired: boolean
     isValid: boolean
@@ -265,6 +266,7 @@ export interface SessionWithComputed extends Session {
 export function sessionToHuman(session: Session): SessionWithComputed {
   return {
     ...session,
+    // biome-ignore lint/style/useNamingConvention: _computed is a conventional computed-field marker
     _computed: {
       isExpired: isSessionExpired(session),
       isValid: isSessionValid(session),
@@ -313,6 +315,7 @@ export function sessionToAgent(session: Session): SessionAgent {
  */
 export const SessionWithComputedSchema = SessionSchema.and(
   z.object({
+    // biome-ignore lint/style/useNamingConvention: _computed is a conventional computed-field marker
     _computed: z.object({
       isExpired: z.boolean(),
       isValid: z.boolean(),
