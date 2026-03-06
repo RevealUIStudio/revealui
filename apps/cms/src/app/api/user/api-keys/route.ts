@@ -2,7 +2,7 @@ export const runtime = 'nodejs'
 
 import { getSession } from '@revealui/auth/server'
 import { getClient } from '@revealui/db'
-import { decryptApiKey, encryptApiKey, redactApiKey } from '@revealui/db/crypto'
+import { encryptApiKey, redactApiKey } from '@revealui/db/crypto'
 import { userApiKeys } from '@revealui/db/schema'
 import { and, eq } from 'drizzle-orm'
 import { type NextRequest, NextResponse } from 'next/server'

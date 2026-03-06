@@ -183,11 +183,13 @@ export function hasDueDate(ticket: Ticket): boolean {
 
 export function isOverdue(ticket: Ticket): boolean {
   if (!hasDueDate(ticket) || isResolved(ticket)) return false
+  // biome-ignore lint/style/noNonNullAssertion: guarded by hasDueDate(ticket) above
   return ticket.dueDate!.getTime() < Date.now()
 }
 
 export function getDaysUntilDue(ticket: Ticket): number | null {
   if (!hasDueDate(ticket)) return null
+  // biome-ignore lint/style/noNonNullAssertion: guarded by hasDueDate(ticket) above
   const ms = ticket.dueDate!.getTime() - Date.now()
   return Math.ceil(ms / (1000 * 60 * 60 * 24))
 }

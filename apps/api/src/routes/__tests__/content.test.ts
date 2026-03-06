@@ -8,7 +8,7 @@
 
 import { Hono } from 'hono'
 import { HTTPException } from 'hono/http-exception'
-import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
+import { beforeEach, describe, expect, it, vi } from 'vitest'
 
 // ─── Mocks ────────────────────────────────────────────────────────────────────
 // vi.mock() factories are hoisted to the top of the file by Vitest before any
