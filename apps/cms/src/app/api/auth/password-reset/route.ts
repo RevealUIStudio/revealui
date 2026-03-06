@@ -163,10 +163,12 @@ export const POST = withRateLimit(passwordResetRequestHandler, {
   maxAttempts: 3,
   windowMs: 60 * 60 * 1000, // 1 hour
   keyPrefix: 'password-reset',
+  failClosed: true,
 })
 
 export const PUT = withRateLimit(passwordResetTokenHandler, {
   maxAttempts: 5,
   windowMs: 15 * 60 * 1000, // 15 minutes
   keyPrefix: 'password-reset-token',
+  failClosed: true,
 })

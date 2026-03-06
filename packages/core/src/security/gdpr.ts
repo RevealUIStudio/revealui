@@ -4,6 +4,7 @@
  * Data privacy, consent management, data export, and right to be forgotten
  */
 
+import { createHash } from 'node:crypto'
 import { logger } from '../observability/logger.js'
 
 export type ConsentType = 'necessary' | 'functional' | 'analytics' | 'marketing' | 'personalization'
@@ -396,17 +397,11 @@ export class DataAnonymization {
   }
 
   /**
-   * Hash value (irreversible)
+   * Hash value (irreversible) using SHA-256
    */
   static hashValue(value: string): string {
-    // Simple hash (use proper crypto in production)
-    let hash = 0
-    for (let i = 0; i < value.length; i++) {
-      const char = value.charCodeAt(i)
-      hash = (hash << 5) - hash + char
-      hash = hash & hash
-    }
-    return `hash_${Math.abs(hash).toString(36)}`
+    const digest = createHash('sha256').update(value).digest('hex')
+    return `hash_${digest}`
   }
 
   /**

@@ -1,11 +1,6 @@
-import path from 'node:path'
-import { fileURLToPath } from 'node:url'
 import type { CollectionConfig } from '@revealui/core'
 import { FixedToolbarFeature, InlineToolbarFeature, lexicalEditor } from '@revealui/core/richtext'
 import { authenticated } from '@/lib/access'
-
-const filename = fileURLToPath(import.meta.url)
-const _dirname = path.dirname(filename)
 
 export const Media: CollectionConfig = {
   slug: 'media',
@@ -31,30 +26,10 @@ export const Media: CollectionConfig = {
       }),
     },
   ],
+  // Upload config is applied by the vercelBlobStorage plugin in revealui.config.ts.
+  // Originals are stored in Vercel Blob; on-demand resizing is handled by next/image
+  // (Vercel Image Optimization) — no pre-generated size variants needed.
   upload: {
     mimeTypes: ['image/jpeg', 'image/jpg', 'image/png', 'image/webp', 'image/gif'],
-    imageSizes: [
-      {
-        name: 'thumbnail',
-        width: 400,
-        height: 300,
-        position: 'centre',
-      },
-      {
-        name: 'card',
-        width: 768,
-        height: 1024,
-        position: 'centre',
-      },
-      {
-        name: 'tablet',
-        width: 1024,
-        height: undefined,
-        position: 'centre',
-      },
-    ],
-    adminThumbnail: 'thumbnail',
-    focalPoint: true,
-    crop: true,
   },
 }

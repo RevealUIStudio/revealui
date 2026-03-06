@@ -56,6 +56,11 @@ const nextConfig = {
       },
       {
         protocol: 'https',
+        // Vercel Blob CDN — originals stored here, next/image resizes on demand
+        hostname: '*.blob.vercel-storage.com',
+      },
+      {
+        protocol: 'https',
         hostname: 'res.cloudinary.com',
       },
       {

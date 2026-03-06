@@ -433,7 +433,7 @@ export async function warmCDNCache(
 
   const warmed = results.filter((r) => r.success).length
   const failed = results.filter((r) => !r.success).length
-  const errors = results.filter((r) => r.error).map((r) => r.error!)
+  const errors = results.flatMap((r) => (r.error ? [r.error] : []))
 
   return { warmed, failed, errors }
 }
