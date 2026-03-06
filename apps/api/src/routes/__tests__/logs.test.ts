@@ -51,6 +51,7 @@ beforeEach(() => {
   mockInsertValues.mockResolvedValue({ rowCount: 1 })
   mockDb.insert.mockReturnValue({ values: mockInsertValues })
   process.env.NODE_ENV = 'test'
+  process.env.REVEALUI_SECRET = 'test-secret'
 })
 
 // ─── Tests ────────────────────────────────────────────────────────────────────
