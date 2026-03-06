@@ -232,8 +232,14 @@ app.openapi(
   }),
   async (c) => {
     const db = c.get('db')
+    const user = c.get('user')
+    if (!user) throw new HTTPException(401, { message: 'Authentication required' })
     const body = c.req.valid('json')
-    const post = await postQueries.createPost(db, { id: crypto.randomUUID(), ...body })
+    const post = await postQueries.createPost(db, {
+      id: crypto.randomUUID(),
+      authorId: user.id,
+      ...body,
+    })
     // biome-ignore lint/style/noNonNullAssertion: createPost always returns the created row
     return c.json({ success: true as const, data: post! }, 201)
   },

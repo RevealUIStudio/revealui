@@ -10,7 +10,7 @@
 import type { NextRequest } from 'next/server'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 
-// ─── Module-level mocks (must be before any imports of the modules under test) ─
+// ─── Module-level mocks (hoisted before any imports) ─────────────────────────
 
 vi.mock('@revealui/auth/server', () => ({
   getSession: vi.fn(),
@@ -21,7 +21,7 @@ vi.mock('@/lib/utilities/revealui-singleton', () => ({
 }))
 
 vi.mock('@/lib/utilities/gdpr-audit', () => ({
-  writeGDPRAuditEntry: vi.fn().mockResolvedValue(undefined),
+  writeGDPRAuditEntry: vi.fn(),
 }))
 
 // withRateLimit is a passthrough in tests — just call the handler directly
@@ -32,6 +32,7 @@ vi.mock('@/lib/middleware/rate-limit', () => ({
 // ─── Imports (after mocks) ────────────────────────────────────────────────────
 
 import { getSession } from '@revealui/auth/server'
+import { writeGDPRAuditEntry } from '@/lib/utilities/gdpr-audit'
 import { getRevealUIInstance } from '@/lib/utilities/revealui-singleton'
 
 // ─── Helpers ─────────────────────────────────────────────────────────────────
@@ -57,15 +58,12 @@ const mockSession = {
   },
 }
 
-function makeMockRevealUI(
-  overrides: Partial<{
-    find: ReturnType<typeof vi.fn>
-    delete: ReturnType<typeof vi.fn>
-  }> = {},
-) {
+// biome-ignore lint/suspicious/noExplicitAny: test mock does not need strict typing
+function makeMockRevealUI(overrides: Record<string, any> = {}) {
   return {
-    find: overrides.find ?? vi.fn().mockResolvedValue({ docs: [] }),
-    delete: overrides.delete ?? vi.fn().mockResolvedValue(undefined),
+    find: vi.fn().mockResolvedValue({ docs: [] }),
+    delete: vi.fn().mockResolvedValue(undefined),
+    ...overrides,
   }
 }
 
@@ -73,15 +71,10 @@ function makeMockRevealUI(
 
 describe('GDPR Export — POST /api/gdpr/export', () => {
   beforeEach(() => {
-    vi.resetAllMocks()
-    vi.mocked(getSession).mockResolvedValue(
-      mockSession as ReturnType<typeof getSession> extends Promise<infer T> ? T : never,
-    )
-    vi.mocked(getRevealUIInstance).mockResolvedValue(
-      makeMockRevealUI() as ReturnType<typeof getRevealUIInstance> extends Promise<infer T>
-        ? T
-        : never,
-    )
+    vi.clearAllMocks()
+    vi.mocked(getSession).mockResolvedValue(mockSession as never)
+    vi.mocked(getRevealUIInstance).mockResolvedValue(makeMockRevealUI() as never)
+    vi.mocked(writeGDPRAuditEntry).mockResolvedValue(undefined)
   })
 
   afterEach(() => {
@@ -102,10 +95,10 @@ describe('GDPR Export — POST /api/gdpr/export', () => {
       makeMockRevealUI({
         find: vi
           .fn()
-          .mockResolvedValueOnce({ docs: conversations }) // conversations
-          .mockResolvedValueOnce({ docs: orders }) // orders
-          .mockResolvedValueOnce({ docs: [] }), // subscriptions
-      }) as ReturnType<typeof getRevealUIInstance> extends Promise<infer T> ? T : never,
+          .mockResolvedValueOnce({ docs: conversations })
+          .mockResolvedValueOnce({ docs: orders })
+          .mockResolvedValueOnce({ docs: [] }),
+      }) as never,
     )
 
     const { POST } = await import('../../../app/api/gdpr/export/route')
@@ -129,7 +122,7 @@ describe('GDPR Export — POST /api/gdpr/export', () => {
           .mockRejectedValueOnce(new Error('conversations DB error'))
           .mockResolvedValueOnce({ docs: orders })
           .mockResolvedValueOnce({ docs: [] }),
-      }) as ReturnType<typeof getRevealUIInstance> extends Promise<infer T> ? T : never,
+      }) as never,
     )
 
     const { POST } = await import('../../../app/api/gdpr/export/route')
@@ -160,15 +153,10 @@ describe('GDPR Export — POST /api/gdpr/export', () => {
 
 describe('GDPR Delete — POST /api/gdpr/delete', () => {
   beforeEach(() => {
-    vi.resetAllMocks()
-    vi.mocked(getSession).mockResolvedValue(
-      mockSession as ReturnType<typeof getSession> extends Promise<infer T> ? T : never,
-    )
-    vi.mocked(getRevealUIInstance).mockResolvedValue(
-      makeMockRevealUI() as ReturnType<typeof getRevealUIInstance> extends Promise<infer T>
-        ? T
-        : never,
-    )
+    vi.clearAllMocks()
+    vi.mocked(getSession).mockResolvedValue(mockSession as never)
+    vi.mocked(getRevealUIInstance).mockResolvedValue(makeMockRevealUI() as never)
+    vi.mocked(writeGDPRAuditEntry).mockResolvedValue(undefined)
   })
 
   afterEach(() => {
@@ -197,11 +185,7 @@ describe('GDPR Delete — POST /api/gdpr/delete', () => {
       .mockResolvedValueOnce({ docs: [] })
 
     vi.mocked(getRevealUIInstance).mockResolvedValue(
-      makeMockRevealUI({ find: mockFind, delete: mockDelete }) as ReturnType<
-        typeof getRevealUIInstance
-      > extends Promise<infer T>
-        ? T
-        : never,
+      makeMockRevealUI({ find: mockFind, delete: mockDelete }) as never,
     )
 
     const { POST } = await import('../../../app/api/gdpr/delete/route')
@@ -230,7 +214,7 @@ describe('GDPR Delete — POST /api/gdpr/delete', () => {
           .mockResolvedValueOnce({ docs: [] }) // orders
           .mockResolvedValueOnce({ docs: [] }) // subscriptions
           .mockResolvedValueOnce({ docs: [] }), // events
-      }) as ReturnType<typeof getRevealUIInstance> extends Promise<infer T> ? T : never,
+      }) as never,
     )
 
     const { POST } = await import('../../../app/api/gdpr/delete/route')
@@ -259,11 +243,7 @@ describe('GDPR Delete — POST /api/gdpr/delete', () => {
       .mockResolvedValueOnce({ docs: [] })
 
     vi.mocked(getRevealUIInstance).mockResolvedValue(
-      makeMockRevealUI({ find: mockFind, delete: mockDelete }) as ReturnType<
-        typeof getRevealUIInstance
-      > extends Promise<infer T>
-        ? T
-        : never,
+      makeMockRevealUI({ find: mockFind, delete: mockDelete }) as never,
     )
 
     const { POST } = await import('../../../app/api/gdpr/delete/route')
@@ -275,7 +255,6 @@ describe('GDPR Delete — POST /api/gdpr/delete', () => {
   })
 
   it('writes an audit entry on successful deletion', async () => {
-    const { writeGDPRAuditEntry } = await import('@/lib/utilities/gdpr-audit')
     const { POST } = await import('../../../app/api/gdpr/delete/route')
     await POST(makeRequest({}))
 
@@ -292,10 +271,9 @@ describe('GDPR Delete — POST /api/gdpr/delete', () => {
     vi.mocked(getRevealUIInstance).mockResolvedValue(
       makeMockRevealUI({
         find: vi.fn().mockRejectedValue(new Error('DB error')),
-      }) as ReturnType<typeof getRevealUIInstance> extends Promise<infer T> ? T : never,
+      }) as never,
     )
 
-    const { writeGDPRAuditEntry } = await import('@/lib/utilities/gdpr-audit')
     const { POST } = await import('../../../app/api/gdpr/delete/route')
     await POST(makeRequest({}))
 
