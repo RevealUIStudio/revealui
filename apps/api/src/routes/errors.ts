@@ -8,6 +8,7 @@
  * Protected by a dedicated IP rate limit (50 req/min) to prevent abuse.
  */
 
+import { timingSafeEqual } from 'node:crypto'
 import { logger } from '@revealui/core/observability/logger'
 import { getClient } from '@revealui/db'
 import { errorEvents } from '@revealui/db/schema'
@@ -32,7 +33,13 @@ app.post('/', async (c) => {
   // Verify shared secret — rejects requests not originating from trusted RevealUI apps
   const token = c.req.header('X-Internal-Token')
   const secret = process.env.REVEALUI_SECRET
-  if (!(secret && token) || token !== secret) {
+  if (!(secret && token)) {
+    return c.json({ success: false, error: 'Forbidden' }, 403)
+  }
+  // Use timing-safe comparison to prevent character-by-character brute force
+  const tokenBuf = Buffer.from(token)
+  const secretBuf = Buffer.from(secret)
+  if (tokenBuf.length !== secretBuf.length || !timingSafeEqual(tokenBuf, secretBuf)) {
     return c.json({ success: false, error: 'Forbidden' }, 403)
   }
 

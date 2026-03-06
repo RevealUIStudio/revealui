@@ -237,10 +237,20 @@ export class EncryptionSystem {
     length: number,
     charset: string = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789',
   ): string {
-    const bytes = this.randomBytes(length)
-    return Array.from(bytes)
-      .map((byte) => charset[byte % charset.length])
-      .join('')
+    // Rejection sampling to avoid modulo bias:
+    // Only accept bytes below the largest multiple of charset.length that fits in a byte.
+    const maxValid = 256 - (256 % charset.length)
+    const result: string[] = []
+    while (result.length < length) {
+      const bytes = this.randomBytes(length - result.length + 16)
+      for (const byte of bytes) {
+        if (byte < maxValid) {
+          result.push(charset[byte % charset.length])
+          if (result.length === length) break
+        }
+      }
+    }
+    return result.join('')
   }
 
   /**

@@ -24,10 +24,9 @@ export function BuilderAIPanel({ buildContext }: BuilderAIPanelProps): JSX.Eleme
     const resolvedInstruction = buildContext
       ? `Context: ${buildContext}\n\n${instruction}`
       : instruction
-    const req = { instruction: resolvedInstruction } as Parameters<typeof start>[0]
-    if (apiKey) (req as unknown as Record<string, unknown>).apiKey = apiKey
 
-    start(req, '/api/agent-stream')
+    // BYOK key is sent via Authorization header, never in the request body
+    start({ instruction: resolvedInstruction }, apiKey ? `/api/agent-stream` : undefined)
     setInput('')
   }
 

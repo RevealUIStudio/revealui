@@ -83,7 +83,7 @@ export async function create(
     const id = String(
       typeof data.id === 'string' || typeof data.id === 'number'
         ? data.id
-        : `rvl_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
+        : `rvl_${crypto.randomUUID()}`,
     )
 
     // Build INSERT query (PostgreSQL uses $1, $2 style)
@@ -136,6 +136,6 @@ export async function create(
   const id =
     typeof data.id === 'string' || typeof data.id === 'number'
       ? data.id
-      : `rvl_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`
+      : `rvl_${crypto.randomUUID()}`
   return { ...data, id }
 }

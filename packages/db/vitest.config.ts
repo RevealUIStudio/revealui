@@ -5,7 +5,7 @@ export default defineConfig({
     globals: true,
     environment: 'node',
     pool: 'forks',
-    include: ['src/**/*.test.ts'],
+    include: ['src/**/*.test.ts', '__tests__/**/*.test.ts'],
     exclude: [
       '**/node_modules/**',
       '**/dist/**', // Exclude compiled tests - only run source tests

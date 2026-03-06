@@ -389,7 +389,7 @@ async function handleCollectionOperation(
     const clientMessage = status >= 500 ? 'An internal server error occurred' : message
     return new Response(
       JSON.stringify({
-        message,
+        message: clientMessage,
         errors: [{ message: clientMessage }],
       }),
       {
@@ -467,7 +467,7 @@ async function handleGlobalOperation(
     const clientMessage = status >= 500 ? 'An internal server error occurred' : message
     return new Response(
       JSON.stringify({
-        message,
+        message: clientMessage,
         errors: [{ message: clientMessage }],
       }),
       {

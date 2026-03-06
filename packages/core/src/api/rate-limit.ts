@@ -151,7 +151,7 @@ function createRateLimitResponse(result: {
 }
 
 /**
- * Cleanup expired rate limit entries
+ * Cleanup expired rate limit entries across all stores
  */
 export function cleanupRateLimits(): number {
   const now = Date.now()
@@ -160,6 +160,23 @@ export function cleanupRateLimits(): number {
   for (const [key, entry] of rateLimitStore.entries()) {
     if (now > entry.resetTime) {
       rateLimitStore.delete(key)
+      cleaned++
+    }
+  }
+
+  // Evict stale sliding window entries (no timestamps within last hour)
+  for (const [key, entry] of slidingWindowStore.entries()) {
+    entry.timestamps = entry.timestamps.filter((ts) => now - ts < 3_600_000)
+    if (entry.timestamps.length === 0) {
+      slidingWindowStore.delete(key)
+      cleaned++
+    }
+  }
+
+  // Evict stale token bucket entries (idle for more than 1 hour)
+  for (const [key, entry] of tokenBucketStore.entries()) {
+    if (now - entry.lastRefill > 3_600_000) {
+      tokenBucketStore.delete(key)
       cleaned++
     }
   }

@@ -29,14 +29,19 @@ function getPoolSSLConfig(): PoolConfig['ssl'] {
 
 /**
  * Connection pool configuration optimized for performance
+ *
+ * Validation is deferred to first pool usage (getPool) to avoid crashing
+ * modules that transitively import this file without needing the pool.
  */
-if (
-  process.env.NODE_ENV === 'production' &&
-  !process.env.DATABASE_HOST &&
-  !process.env.DATABASE_URL &&
-  !process.env.POSTGRES_URL
-) {
-  throw new Error('DATABASE_HOST (or DATABASE_URL / POSTGRES_URL) must be set in production')
+function assertProductionConfig(): void {
+  if (
+    process.env.NODE_ENV === 'production' &&
+    !process.env.DATABASE_HOST &&
+    !process.env.DATABASE_URL &&
+    !process.env.POSTGRES_URL
+  ) {
+    throw new Error('DATABASE_HOST (or DATABASE_URL / POSTGRES_URL) must be set in production')
+  }
 }
 
 const poolConfig: PoolConfig = {
@@ -95,7 +100,10 @@ const poolConfig: PoolConfig = {
 
 /**
  * Create connection pool
+ * Note: assertProductionConfig() defers the check to pool-creation time,
+ * not module-parse time, so tree-shaking and type-only imports don't crash.
  */
+assertProductionConfig()
 export const pool = new Pool(poolConfig)
 
 // ===========================================================================

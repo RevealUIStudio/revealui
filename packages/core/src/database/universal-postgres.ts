@@ -176,17 +176,15 @@ export function universalPostgresAdapter(
         // Neon serverless has limitations with $1, $2 style parameters
         // Using pg ensures full PostgreSQL compatibility
         const neonConnectionString = connectionString!
+        const { Pool: NeonPool } = await import('pg')
+        const neonPool = new NeonPool({
+          connectionString: neonConnectionString,
+          ssl: getSSLConfig(neonConnectionString),
+        })
 
         queryFn = async (queryString: string, values: unknown[] = []) => {
           try {
-            // Use pg library for best compatibility with parameterized queries
-            const { Pool } = await import('pg')
-            const pool = new Pool({
-              connectionString: neonConnectionString,
-              ssl: getSSLConfig(neonConnectionString),
-            })
-
-            const client = await pool.connect()
+            const client = await neonPool.connect()
             try {
               const result = await client.query(queryString, values)
               return {
