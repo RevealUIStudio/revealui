@@ -26,9 +26,7 @@
       "@revealui/core/*": ["packages/core/src/*"],
       "@revealui/db": ["packages/db/src/index.ts"],
       "@revealui/db/*": ["packages/db/src/*"],
-      "@revealui/ai": ["packages/ai/src/index.ts"],
-      "@revealui/ai/*": ["packages/ai/src/*"],
-      "@revealui/auth": ["packages/auth/src/index.ts"],
+"@revealui/auth": ["packages/auth/src/index.ts"],
       "@revealui/auth/*": ["packages/auth/src/*"]
     }
   },
