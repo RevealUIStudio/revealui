@@ -457,6 +457,93 @@ app.openapi(downgradeRoute, async (c) => {
   return c.json({ success: true, effectiveAt: effectiveDate }, 200)
 })
 
+// POST /api/billing/checkout-perpetual — One-time perpetual license purchase
+const PerpetualCheckoutRequestSchema = z.object({
+  priceId: z.string().min(1).openapi({
+    description: 'Stripe price ID for the perpetual license product',
+    example: 'price_pro_perpetual',
+  }),
+  tier: z.enum(['pro', 'max', 'enterprise']).openapi({
+    description: 'Perpetual license tier',
+    example: 'pro',
+  }),
+  githubUsername: z.string().optional().openapi({
+    description: 'GitHub username for revealui-pro team access provisioning',
+    example: 'octocat',
+  }),
+})
+
+const perpetualCheckoutRoute = createRoute({
+  method: 'post',
+  path: '/checkout-perpetual',
+  tags: ['billing'],
+  summary: 'Create a perpetual license checkout session',
+  description:
+    'Creates a one-time Stripe payment session for a perpetual license. Includes 1 year of support. Requires authentication.',
+  request: {
+    body: {
+      content: {
+        'application/json': { schema: PerpetualCheckoutRequestSchema },
+      },
+    },
+  },
+  responses: {
+    200: {
+      content: { 'application/json': { schema: CheckoutResponseSchema } },
+      description: 'Checkout session created',
+    },
+    401: {
+      content: { 'application/json': { schema: ErrorSchema } },
+      description: 'Not authenticated',
+    },
+  },
+})
+
+app.openapi(perpetualCheckoutRoute, async (c) => {
+  const user = c.get('user')
+  if (!user) {
+    throw new HTTPException(401, { message: 'Authentication required' })
+  }
+
+  const { priceId, tier, githubUsername } = c.req.valid('json')
+  const customerId = await ensureStripeCustomer(user.id, user.email ?? '')
+
+  const stripe = getStripeClient()
+  const cmsUrl = process.env.CMS_URL || process.env.NEXT_PUBLIC_SERVER_URL
+  if (!cmsUrl) throw new HTTPException(500, { message: 'CMS_URL is not configured' })
+
+  const session = await stripe.checkout.sessions.create({
+    customer: customerId,
+    mode: 'payment',
+    payment_method_types: ['card'],
+    billing_address_collection: 'required',
+    allow_promotion_codes: true,
+    line_items: [{ price: priceId, quantity: 1 }],
+    payment_intent_data: {
+      metadata: {
+        tier,
+        perpetual: 'true',
+        revealui_user_id: user.id,
+        ...(githubUsername && { github_username: githubUsername }),
+      },
+    },
+    metadata: {
+      tier,
+      perpetual: 'true',
+      revealui_user_id: user.id,
+      ...(githubUsername && { github_username: githubUsername }),
+    },
+    success_url: `${cmsUrl}/account/billing?perpetual=true`,
+    cancel_url: `${cmsUrl}/account/billing`,
+  })
+
+  if (!session.url) {
+    throw new HTTPException(500, { message: 'Failed to create checkout session' })
+  }
+
+  return c.json({ url: session.url }, 200)
+})
+
 // GET /api/billing/usage — Agent task usage for the current billing cycle
 const UsageResponseSchema = z.object({
   used: z.number().openapi({ description: 'Tasks executed this billing cycle' }),
@@ -515,6 +602,96 @@ app.openapi(usageRoute, async (c) => {
     },
     200,
   )
+})
+
+// POST /api/billing/support-renewal-check — Internal cron: send 30-day support renewal reminders
+// Called by a Vercel cron job (vercel.json crons) or an external scheduler.
+// Protected by X-Cron-Secret header (REVEALUI_CRON_SECRET env var).
+const SupportRenewalResponseSchema = z.object({
+  reminded: z.number().openapi({ description: 'Number of reminder emails sent' }),
+})
+
+const supportRenewalRoute = createRoute({
+  method: 'post',
+  path: '/support-renewal-check',
+  tags: ['billing'],
+  summary: 'Send support renewal reminders (internal cron)',
+  description:
+    'Finds perpetual licenses whose support contract expires within 30 days and sends reminder emails. Protected by X-Cron-Secret.',
+  responses: {
+    200: {
+      content: { 'application/json': { schema: SupportRenewalResponseSchema } },
+      description: 'Reminders sent',
+    },
+    403: {
+      content: { 'application/json': { schema: ErrorSchema } },
+      description: 'Invalid cron secret',
+    },
+  },
+})
+
+app.openapi(supportRenewalRoute, async (c) => {
+  const { timingSafeEqual } = await import('node:crypto')
+  const cronSecret = process.env.REVEALUI_CRON_SECRET
+  const provided = c.req.header('X-Cron-Secret')
+
+  if (!(cronSecret && provided)) {
+    return c.json({ error: 'Forbidden' }, 403)
+  }
+  const a = Buffer.from(provided)
+  const b = Buffer.from(cronSecret)
+  if (a.length !== b.length || !timingSafeEqual(a, b)) {
+    return c.json({ error: 'Forbidden' }, 403)
+  }
+
+  const db = getClient()
+  const now = new Date()
+  const in30Days = new Date(now.getTime() + 30 * 24 * 60 * 60 * 1000)
+
+  // Find active perpetual licenses with support expiring within the next 30 days
+  const expiringLicenses = await db
+    .select({
+      id: licenses.id,
+      userId: licenses.userId,
+      supportExpiresAt: licenses.supportExpiresAt,
+    })
+    .from(licenses)
+    .where(and(eq(licenses.perpetual, true), eq(licenses.status, 'active')))
+
+  const { sendEmail } = await import('../lib/email.js')
+  let reminded = 0
+
+  for (const row of expiringLicenses) {
+    if (!row.supportExpiresAt) continue
+    if (row.supportExpiresAt > in30Days || row.supportExpiresAt < now) continue
+
+    const [user] = await db
+      .select({ email: users.email })
+      .from(users)
+      .where(eq(users.id, row.userId))
+      .limit(1)
+
+    if (!user?.email) continue
+
+    const expiryDate = row.supportExpiresAt.toLocaleDateString('en-US', {
+      month: 'long',
+      day: 'numeric',
+      year: 'numeric',
+    })
+
+    await sendEmail({
+      to: user.email,
+      subject: 'Your RevealUI support contract expires soon',
+      text: `Your RevealUI annual support contract expires on ${expiryDate}. Renew at https://revealui.com/pricing. Your perpetual license itself never expires.`,
+      html: `<p>Your RevealUI support contract expires on <strong>${expiryDate}</strong>. <a href="https://revealui.com/pricing">Renew here</a>. Your perpetual license never expires.</p>`,
+    }).catch(() => {
+      /* best-effort */
+    })
+
+    reminded++
+  }
+
+  return c.json({ reminded }, 200)
 })
 
 export default app
