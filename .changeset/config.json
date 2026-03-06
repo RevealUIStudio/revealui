@@ -15,10 +15,6 @@
     "@revealui/studio",
     "api",
     "test",
-    "@revealui/ai",
-    "@revealui/mcp",
-    "@revealui/editors",
-    "@revealui/services",
-    "@revealui/harnesses"
+    "test"
   ]
 }
