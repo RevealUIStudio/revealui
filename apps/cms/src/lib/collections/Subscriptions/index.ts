@@ -1,4 +1,5 @@
 import type { CollectionConfig } from '@revealui/core'
+import { isAdmin } from '@/lib/access'
 
 const Subscriptions: CollectionConfig = {
   slug: 'subscriptions',
@@ -8,7 +9,7 @@ const Subscriptions: CollectionConfig = {
   // Subscriptions are managed exclusively by Stripe webhooks — no CMS user should
   // be able to create, update, or delete them. Read access is restricted to admins.
   access: {
-    read: ({ user }: { user?: { role?: string } | null }) => user?.role === 'admin',
+    read: isAdmin,
     create: () => false,
     update: () => false,
     delete: () => false,
