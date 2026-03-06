@@ -17,6 +17,7 @@ export {
   AuthError,
   AuthenticationError,
   DatabaseError,
+  OAuthAccountConflictError,
   SessionError,
   TokenError,
 } from './errors.js'

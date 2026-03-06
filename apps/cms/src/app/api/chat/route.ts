@@ -13,6 +13,7 @@ import { ToolRegistry } from '@revealui/ai/tools/registry'
 import { getSession } from '@revealui/auth/server'
 import { ChatRequestContract } from '@revealui/contracts'
 import { apiClient } from '@revealui/core/admin/utils/apiClient'
+import { isFeatureEnabled } from '@revealui/core/features'
 import { logger } from '@revealui/core/utils/logger/server'
 import type { NextRequest } from 'next/server'
 import { rateLimit } from '@/lib/middleware/rate-limit'
@@ -97,7 +98,7 @@ export async function POST(request: NextRequest) {
     return rateLimitResponse
   }
 
-  // Require authenticated admin session — this route has full CMS CRUD access
+  // Require authenticated session with a Pro (or higher) license
   const authSession = await getSession(request.headers)
   if (!authSession) {
     return new Response(JSON.stringify({ error: 'Unauthorized' }), {
@@ -105,8 +106,8 @@ export async function POST(request: NextRequest) {
       headers: { 'Content-Type': 'application/json' },
     })
   }
-  if (authSession.user.role !== 'admin') {
-    return new Response(JSON.stringify({ error: 'Forbidden' }), {
+  if (!isFeatureEnabled('ai')) {
+    return new Response(JSON.stringify({ error: 'Forbidden', reason: 'Pro license required' }), {
       status: 403,
       headers: { 'Content-Type': 'application/json' },
     })

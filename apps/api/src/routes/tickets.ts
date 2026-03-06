@@ -239,6 +239,11 @@ app.openapi(
     const { id } = c.req.valid('param')
     const board = await boardQueries.getBoardById(db, id)
     if (!board) return c.json({ success: false as const, error: 'Board not found' }, 404)
+    assertBoardTenantAccess(board, c.get('tenant'))
+    const user = c.get('user')
+    if (board.ownerId && board.ownerId !== user?.id && user?.role !== 'admin') {
+      throw new HTTPException(403, { message: 'Forbidden' })
+    }
     return c.json({ success: true as const, data: board }, 200)
   },
 )
@@ -438,6 +443,14 @@ app.openapi(
     const db = c.get('db')
     const { id } = c.req.valid('param')
     const body = c.req.valid('json')
+    const existing = await boardQueries.getColumnById(db, id)
+    if (!existing) return c.json({ success: false as const, error: 'Column not found' }, 404)
+    const board = await boardQueries.getBoardById(db, existing.boardId)
+    assertBoardTenantAccess(board ?? {}, c.get('tenant'))
+    const user = c.get('user')
+    if (board?.ownerId && board.ownerId !== user?.id) {
+      throw new HTTPException(403, { message: 'Forbidden' })
+    }
     const column = await boardQueries.updateColumn(db, id, body)
     if (!column) return c.json({ success: false as const, error: 'Column not found' }, 404)
     return c.json({ success: true as const, data: column }, 200)
@@ -466,6 +479,14 @@ app.openapi(
   async (c) => {
     const db = c.get('db')
     const { id } = c.req.valid('param')
+    const existing = await boardQueries.getColumnById(db, id)
+    if (!existing) throw new HTTPException(404, { message: 'Column not found' })
+    const board = await boardQueries.getBoardById(db, existing.boardId)
+    assertBoardTenantAccess(board ?? {}, c.get('tenant'))
+    const user = c.get('user')
+    if (board?.ownerId && board.ownerId !== user?.id) {
+      throw new HTTPException(403, { message: 'Forbidden' })
+    }
     await boardQueries.deleteColumn(db, id)
     return c.json({ success: true as const, message: 'Column deleted' })
   },
@@ -510,6 +531,10 @@ app.openapi(
     const board = await boardQueries.getBoardById(db, boardId)
     if (!board) throw new HTTPException(404, { message: 'Board not found' })
     assertBoardTenantAccess(board, c.get('tenant'))
+    const user = c.get('user')
+    if (board.ownerId && board.ownerId !== user?.id && user?.role !== 'admin') {
+      throw new HTTPException(403, { message: 'Forbidden' })
+    }
     const tickets = await ticketQueries.getTicketsByBoard(db, boardId, filters)
     return c.json({ success: true as const, data: tickets })
   },
@@ -686,7 +711,9 @@ app.openapi(
     if (!ticket) throw new HTTPException(404, { message: 'Ticket not found' })
     const board = await boardQueries.getBoardById(db, ticket.boardId)
     assertBoardTenantAccess(board ?? {}, c.get('tenant'))
-    if (board?.ownerId && board.ownerId !== user?.id) {
+    // Use strict check: NULL ownerId is NOT a bypass — treat as owned-by-nobody,
+    // which non-admins cannot access.
+    if (user?.role !== 'admin' && board?.ownerId !== user?.id) {
       throw new HTTPException(403, { message: 'Forbidden' })
     }
     await ticketQueries.deleteTicket(db, id)
@@ -876,6 +903,12 @@ app.openapi(
     const db = c.get('db')
     const { id } = c.req.valid('param')
     const data = c.req.valid('json')
+    const existing = await commentQueries.getCommentById(db, id)
+    if (!existing) return c.json({ success: false as const, error: 'Comment not found' }, 404)
+    const user = c.get('user')
+    if (existing.authorId && existing.authorId !== user?.id && user?.role !== 'admin') {
+      throw new HTTPException(403, { message: 'Forbidden' })
+    }
     const comment = await commentQueries.updateComment(db, id, data)
     if (!comment) return c.json({ success: false as const, error: 'Comment not found' }, 404)
     return c.json({ success: true as const, data: comment }, 200)
@@ -904,6 +937,12 @@ app.openapi(
   async (c) => {
     const db = c.get('db')
     const { id } = c.req.valid('param')
+    const existing = await commentQueries.getCommentById(db, id)
+    if (!existing) throw new HTTPException(404, { message: 'Comment not found' })
+    const user = c.get('user')
+    if (existing.authorId && existing.authorId !== user?.id && user?.role !== 'admin') {
+      throw new HTTPException(403, { message: 'Forbidden' })
+    }
     await commentQueries.deleteComment(db, id)
     return c.json({ success: true as const, message: 'Comment deleted' })
   },
@@ -1019,6 +1058,12 @@ app.openapi(
     const db = c.get('db')
     const { id } = c.req.valid('param')
     const body = c.req.valid('json')
+    const existing = await labelQueries.getLabelById(db, id)
+    if (!existing) return c.json({ success: false as const, error: 'Label not found' }, 404)
+    const tenant = c.get('tenant')
+    if (tenant && existing.tenantId && existing.tenantId !== tenant.id) {
+      throw new HTTPException(403, { message: 'Access denied for this tenant' })
+    }
     const label = await labelQueries.updateLabel(db, id, body)
     if (!label) return c.json({ success: false as const, error: 'Label not found' }, 404)
     return c.json({ success: true as const, data: label }, 200)
@@ -1047,6 +1092,12 @@ app.openapi(
   async (c) => {
     const db = c.get('db')
     const { id } = c.req.valid('param')
+    const existing = await labelQueries.getLabelById(db, id)
+    if (!existing) throw new HTTPException(404, { message: 'Label not found' })
+    const tenant = c.get('tenant')
+    if (tenant && existing.tenantId && existing.tenantId !== tenant.id) {
+      throw new HTTPException(403, { message: 'Access denied for this tenant' })
+    }
     await labelQueries.deleteLabel(db, id)
     return c.json({ success: true as const, message: 'Label deleted' })
   },

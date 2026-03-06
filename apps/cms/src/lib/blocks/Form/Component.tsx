@@ -176,7 +176,18 @@ export const FormBlock: React.FC<Props> = memo(({ enableIntro, form, introConten
 
           if (confirmationType === 'redirect' && redirect) {
             const { url } = redirect
-            if (url) router.push(url)
+            if (url) {
+              try {
+                const parsed = new URL(url, window.location.origin)
+                if (parsed.origin !== window.location.origin) {
+                  return
+                }
+                router.push(parsed.pathname + parsed.search)
+              } catch {
+                // Relative path — safe to push directly
+                router.push(url)
+              }
+            }
           }
         } catch (_err) {
           setIsLoading(false)

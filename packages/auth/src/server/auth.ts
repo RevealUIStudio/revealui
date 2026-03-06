@@ -4,6 +4,7 @@
  * Sign in and sign up functionality with password hashing.
  */
 
+import { createHash, randomBytes } from 'node:crypto'
 import { logger } from '@revealui/core/observability/logger'
 import { getClient } from '@revealui/db/client'
 import { users } from '@revealui/db/schema'
@@ -273,8 +274,14 @@ export async function signUp(
       }
     }
 
-    // Generate email verification token
-    const emailVerificationToken = crypto.randomUUID()
+    // Generate email verification token.
+    // Store the SHA-256 hash in the DB; send the raw token in the email link.
+    // A DB breach cannot be used to verify arbitrary emails without the raw token.
+    const rawEmailVerificationToken = randomBytes(32).toString('hex')
+    const emailVerificationToken = createHash('sha256')
+      .update(rawEmailVerificationToken)
+      .digest('hex')
+    const emailVerificationTokenExpiresAt = new Date(Date.now() + 24 * 60 * 60 * 1000) // 24h
 
     // Create user
     let user: User | undefined
@@ -288,6 +295,7 @@ export async function signUp(
           password: hashedPassword,
           emailVerified: false,
           emailVerificationToken,
+          emailVerificationTokenExpiresAt,
           tosAcceptedAt: options?.tosAcceptedAt ?? null,
           tosVersion: options?.tosVersion ?? null,
         })
@@ -324,9 +332,13 @@ export async function signUp(
       }
     }
 
+    // Return the raw (unhashed) token so the caller can include it in the
+    // verification email link. The DB holds only the hash.
+    const userWithRawToken = { ...user, emailVerificationToken: rawEmailVerificationToken }
+
     return {
       success: true,
-      user,
+      user: userWithRawToken,
       sessionToken: token,
     }
   } catch {

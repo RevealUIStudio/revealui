@@ -10,6 +10,8 @@ import { WorkingMemory } from '@revealui/ai/memory/stores'
 import { getSession } from '@revealui/auth/server'
 import { logger } from '@revealui/core/observability/logger'
 import { getClient } from '@revealui/db/client'
+import { aiMemorySessions } from '@revealui/db/schema'
+import { eq } from 'drizzle-orm'
 import { type NextRequest, NextResponse } from 'next/server'
 import { getNodeIdFromSession } from '@/lib/utilities/nodeId'
 import { createErrorResponse, createValidationErrorResponse } from '@/lib/utils/error-response'
@@ -45,6 +47,21 @@ export async function GET(
     }
 
     const db = getClient()
+
+    // Ownership check: verify this session belongs to the authenticated user
+    const [sessionRecord] = await db
+      .select({ userId: aiMemorySessions.userId })
+      .from(aiMemorySessions)
+      .where(eq(aiMemorySessions.id, sessionId))
+      .limit(1)
+
+    if (!sessionRecord) {
+      return NextResponse.json({ error: 'Session not found' }, { status: 404 })
+    }
+    if (sessionRecord.userId !== authSession.user.id && authSession.user.role !== 'admin') {
+      return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
+    }
+
     const persistence = new CRDTPersistence(db)
     const nodeId = await getNodeIdFromSession(sessionId, db)
 
@@ -96,6 +113,24 @@ export async function POST(
       )
     }
 
+    const db = getClient()
+
+    // Ownership: first POST claims the session; subsequent POSTs verify ownership
+    const [existingSession] = await db
+      .select({ userId: aiMemorySessions.userId })
+      .from(aiMemorySessions)
+      .where(eq(aiMemorySessions.id, sessionId))
+      .limit(1)
+
+    if (existingSession) {
+      if (existingSession.userId !== authSession.user.id && authSession.user.role !== 'admin') {
+        return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
+      }
+    } else {
+      // Claim the session — bind it to this user
+      await db.insert(aiMemorySessions).values({ id: sessionId, userId: authSession.user.id })
+    }
+
     let body: unknown
     try {
       body = await request.json()
@@ -115,7 +150,6 @@ export async function POST(
       activeAgents?: unknown
     }
 
-    const db = getClient()
     const persistence = new CRDTPersistence(db)
     const nodeId = await getNodeIdFromSession(sessionId, db)
 

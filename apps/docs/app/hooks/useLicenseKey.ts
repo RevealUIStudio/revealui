@@ -33,7 +33,7 @@ export function useLicenseKey(): UseLicenseKeyResult {
       })
 
       if (!response.ok) {
-        localStorage.removeItem(STORAGE_KEY)
+        sessionStorage.removeItem(STORAGE_KEY)
         setKey(null)
         setTier(null)
         setIsValid(false)
@@ -48,7 +48,7 @@ export function useLicenseKey(): UseLicenseKeyResult {
         setTier(data.tier ?? null)
         setIsValid(true)
       } else {
-        localStorage.removeItem(STORAGE_KEY)
+        sessionStorage.removeItem(STORAGE_KEY)
         setKey(null)
         setTier(null)
         setIsValid(false)
@@ -62,7 +62,7 @@ export function useLicenseKey(): UseLicenseKeyResult {
   }, [])
 
   useEffect(() => {
-    const stored = localStorage.getItem(STORAGE_KEY)
+    const stored = sessionStorage.getItem(STORAGE_KEY)
     if (stored) {
       void revalidate(stored).finally(() => setIsLoading(false))
     } else {
@@ -92,7 +92,7 @@ export function useLicenseKey(): UseLicenseKeyResult {
         const resolvedTier = data.tier ?? null
 
         if (valid) {
-          localStorage.setItem(STORAGE_KEY, inputKey)
+          sessionStorage.setItem(STORAGE_KEY, inputKey)
           setKey(inputKey)
           setTier(resolvedTier)
           setIsValid(true)
@@ -114,7 +114,7 @@ export function useLicenseKey(): UseLicenseKeyResult {
   )
 
   const clear = useCallback(() => {
-    localStorage.removeItem(STORAGE_KEY)
+    sessionStorage.removeItem(STORAGE_KEY)
     setKey(null)
     setTier(null)
     setIsValid(false)

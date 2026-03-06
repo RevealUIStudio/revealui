@@ -8,7 +8,7 @@
 import crypto from 'node:crypto'
 import { logger } from '@revealui/core/observability/logger'
 import { getClient } from '@revealui/db/client'
-import { passwordResetTokens, users } from '@revealui/db/schema'
+import { passwordResetTokens, sessions, users } from '@revealui/db/schema'
 import bcrypt from 'bcryptjs'
 import { and, eq, gt, isNull } from 'drizzle-orm'
 
@@ -24,7 +24,7 @@ export interface PasswordResetResult {
   tokenId?: string
 }
 
-const TOKEN_EXPIRY_MS = 60 * 60 * 1000 // 1 hour
+const TOKEN_EXPIRY_MS = 15 * 60 * 1000 // 15 minutes
 
 /**
  * Hash a token using HMAC-SHA256 with a per-token salt.
@@ -240,6 +240,10 @@ export async function resetPasswordWithToken(
 
     // Update user password
     await db.update(users).set({ password }).where(eq(users.id, entry.userId))
+
+    // Invalidate all existing sessions for this user so any attacker who had
+    // a compromised session can no longer use it after the password change.
+    await db.delete(sessions).where(eq(sessions.userId, entry.userId))
 
     // Mark token as used (single-use enforcement)
     await db

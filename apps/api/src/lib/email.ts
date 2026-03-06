@@ -14,6 +14,11 @@ interface EmailOptions {
   text?: string
 }
 
+function sanitizeEmailHeader(value: string): string {
+  // Strip CR and LF to prevent header injection via to/subject fields
+  return value.replace(/[\r\n]/g, '')
+}
+
 export async function sendEmail(options: EmailOptions): Promise<void> {
   const apiKey = process.env.RESEND_API_KEY
   const fromEmail = process.env.RESEND_FROM_EMAIL ?? process.env.EMAIL_FROM
@@ -46,8 +51,8 @@ export async function sendEmail(options: EmailOptions): Promise<void> {
     },
     body: JSON.stringify({
       from: resolvedFrom,
-      to: options.to,
-      subject: options.subject,
+      to: sanitizeEmailHeader(options.to),
+      subject: sanitizeEmailHeader(options.subject),
       html: options.html,
       text: options.text,
     }),

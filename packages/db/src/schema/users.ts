@@ -42,7 +42,11 @@ export const users = pgTable(
 
     // Email verification (grace period — login allowed, reminders shown)
     emailVerified: boolean('email_verified').default(false).notNull(),
+    // SHA-256 hash of the raw verification token sent in the email link
     emailVerificationToken: text('email_verification_token'),
+    emailVerificationTokenExpiresAt: timestamp('email_verification_token_expires_at', {
+      withTimezone: true,
+    }),
     emailVerifiedAt: timestamp('email_verified_at', { withTimezone: true }),
 
     // Terms of Service acceptance (required for legal compliance)

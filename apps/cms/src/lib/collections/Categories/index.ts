@@ -1,14 +1,14 @@
 import type { CollectionConfig } from '@revealui/core'
-import { anyone, authenticated } from '@/lib/access'
+import { anyone, isAdmin } from '@/lib/access'
 import { slugField } from '@/lib/fields/slug/index'
 
 const Categories: CollectionConfig = {
   slug: 'categories',
   access: {
-    create: authenticated,
-    delete: authenticated,
+    create: isAdmin,
+    delete: isAdmin,
     read: anyone,
-    update: authenticated,
+    update: isAdmin,
   },
   admin: {
     useAsTitle: 'title',

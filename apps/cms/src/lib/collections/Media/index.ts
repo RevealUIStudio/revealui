@@ -2,7 +2,7 @@ import path from 'node:path'
 import { fileURLToPath } from 'node:url'
 import type { CollectionConfig } from '@revealui/core'
 import { FixedToolbarFeature, InlineToolbarFeature, lexicalEditor } from '@revealui/core/richtext'
-import { anyone, authenticated } from '@/lib/access'
+import { authenticated } from '@/lib/access'
 
 const filename = fileURLToPath(import.meta.url)
 const _dirname = path.dirname(filename)
@@ -12,7 +12,7 @@ export const Media: CollectionConfig = {
   access: {
     create: authenticated,
     delete: authenticated,
-    read: anyone,
+    read: authenticated,
     update: authenticated,
   },
   fields: [

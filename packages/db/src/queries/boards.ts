@@ -92,6 +92,11 @@ export async function deleteBoard(db: DatabaseClient, id: string) {
   await db.delete(boards).where(eq(boards.id, id))
 }
 
+export async function getColumnById(db: DatabaseClient, id: string) {
+  const result = await db.select().from(boardColumns).where(eq(boardColumns.id, id)).limit(1)
+  return result[0] ?? null
+}
+
 export async function getColumnsByBoard(db: DatabaseClient, boardId: string) {
   return db
     .select()
