@@ -39,7 +39,10 @@ import errorsApp from '../errors.js'
 function post(body: unknown, raw = false) {
   return new Request('http://localhost/', {
     method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
+    headers: {
+      'Content-Type': 'application/json',
+      'X-Internal-Token': process.env.REVEALUI_SECRET ?? 'test-secret',
+    },
     body: raw ? String(body) : JSON.stringify(body),
   })
 }

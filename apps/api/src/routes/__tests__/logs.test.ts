@@ -31,7 +31,10 @@ import logsApp from '../logs.js'
 function post(body: unknown) {
   return new Request('http://localhost/', {
     method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
+    headers: {
+      'Content-Type': 'application/json',
+      'X-Internal-Token': process.env.REVEALUI_SECRET ?? 'test-secret',
+    },
     body: JSON.stringify(body),
   })
 }
