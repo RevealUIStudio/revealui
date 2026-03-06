@@ -197,6 +197,125 @@ app.post('/stripe', async (c) => {
     switch (event.type) {
       case 'checkout.session.completed': {
         const session = event.data.object as Stripe.Checkout.Session
+
+        // ── Perpetual (one-time payment) ──────────────────────────────────
+        if (session.mode === 'payment') {
+          const customerId = resolveCustomerId(session.customer)
+          if (!customerId) break
+
+          const tier = resolveTier(session.metadata)
+          const githubUsername = session.metadata?.github_username ?? null
+
+          let resolvedUserId = session.metadata?.revealui_user_id ?? null
+          if (!resolvedUserId) {
+            const [user] = await db
+              .select({ id: users.id })
+              .from(users)
+              .where(eq(users.stripeCustomerId, customerId))
+              .limit(1)
+            resolvedUserId = user?.id ?? null
+          }
+
+          if (!resolvedUserId) {
+            logger.error('CRITICAL: Cannot resolve user for perpetual checkout', undefined, {
+              customerId,
+            })
+            throw new Error(`Cannot resolve user for perpetual checkout (customerId=${customerId})`)
+          }
+
+          const privateKey = process.env.REVEALUI_LICENSE_PRIVATE_KEY
+          if (!privateKey) {
+            logger.error(
+              'CRITICAL: REVEALUI_LICENSE_PRIVATE_KEY not configured — perpetual license not generated',
+              undefined,
+              { customerId, tier },
+            )
+            throw new Error('REVEALUI_LICENSE_PRIVATE_KEY not configured')
+          }
+
+          const normalizedKey = privateKey.replace(/\\n/g, '\n')
+          // null expiresInSeconds = no exp claim — perpetual license never expires
+          const licenseKey = await generateLicenseKey(
+            { tier, customerId, perpetual: true },
+            normalizedKey,
+            null,
+          )
+
+          // Support contract expires 1 year from purchase
+          const supportExpiresAt = new Date(Date.now() + 365 * 24 * 60 * 60 * 1000)
+          const licenseId = crypto.randomUUID()
+
+          await db.transaction(async (tx) => {
+            const [userRow] = await tx
+              .select({ id: users.id })
+              .from(users)
+              .where(eq(users.stripeCustomerId, customerId))
+              .limit(1)
+
+            if (!userRow) {
+              logger.error(
+                'Customer has no matching user in DB — perpetual license not created',
+                undefined,
+                { customerId },
+              )
+              return
+            }
+
+            await tx.insert(licenses).values({
+              id: licenseId,
+              userId: resolvedUserId,
+              licenseKey,
+              tier,
+              subscriptionId: null,
+              customerId,
+              status: 'active',
+              expiresAt: null,
+              perpetual: true,
+              supportExpiresAt,
+              githubUsername,
+              createdAt: new Date(),
+              updatedAt: new Date(),
+            })
+          })
+
+          resetLicenseState()
+
+          logger.info('Perpetual license generated and stored', { tier, customerId, licenseId })
+          auditLicenseEvent(db, 'license.perpetual.created', 'info', {
+            licenseId,
+            tier,
+            customerId,
+            userId: resolvedUserId,
+            githubUsername,
+          })
+
+          // Best-effort: provision GitHub team access
+          if (githubUsername) {
+            provisionGitHubAccess(githubUsername).catch((err) => {
+              logger.warn('Failed to provision GitHub team access', {
+                githubUsername,
+                error: err instanceof Error ? err.message : 'unknown',
+              })
+            })
+          }
+
+          // Send perpetual license activation email
+          const perpetualEmail =
+            session.customer_email ?? (await findUserEmailByCustomerId(db, customerId))
+          if (perpetualEmail) {
+            sendPerpetualLicenseActivatedEmail(perpetualEmail, tier, supportExpiresAt).catch(
+              (err) => {
+                logger.warn('Failed to send perpetual license activation email', {
+                  error: err instanceof Error ? err.message : 'unknown',
+                })
+              },
+            )
+          }
+
+          break
+        }
+
+        // ── Subscription ──────────────────────────────────────────────────
         if (session.mode !== 'subscription' || !session.subscription) break
 
         const customerId = resolveCustomerId(session.customer)
@@ -891,6 +1010,82 @@ async function sendPaymentRecoveredEmail(to: string): Promise<void> {
       </html>
     `,
     text: `Your RevealUI payment was received and your access has been restored. Manage your subscription at ${portalUrl}.`,
+  })
+}
+
+/**
+ * Provisions GitHub team membership for a perpetual license holder.
+ * Adds the user to RevealUIStudio/revealui-pro-customers so they can access
+ * the private Pro packages repo.
+ *
+ * Requires REVEALUI_GITHUB_TOKEN (fine-grained PAT with org:write:members scope).
+ * Best-effort — failure is logged but does not block license activation.
+ */
+async function provisionGitHubAccess(githubUsername: string): Promise<void> {
+  const token = process.env.REVEALUI_GITHUB_TOKEN
+  if (!token) {
+    logger.warn('REVEALUI_GITHUB_TOKEN not configured — skipping GitHub team provisioning', {
+      githubUsername,
+    })
+    return
+  }
+
+  const response = await fetch(
+    `https://api.github.com/orgs/RevealUIStudio/teams/revealui-pro-customers/memberships/${githubUsername}`,
+    {
+      method: 'PUT',
+      headers: {
+        ['Authorization']: `Bearer ${token}`,
+        ['Accept']: 'application/vnd.github.v3+json',
+        'Content-Type': 'application/json',
+        'User-Agent': 'RevealUI-License-Server/1.0',
+      },
+      body: JSON.stringify({ role: 'member' }),
+    },
+  )
+
+  if (!response.ok) {
+    const body = await response.text().catch(() => '')
+    throw new Error(`GitHub API error: ${response.status} ${body}`)
+  }
+
+  logger.info('GitHub team access provisioned', { githubUsername })
+}
+
+async function sendPerpetualLicenseActivatedEmail(
+  to: string,
+  tier: string,
+  supportExpiresAt: Date,
+): Promise<void> {
+  const { sendEmail } = await import('../lib/email.js')
+  const label = tierLabel(tier)
+  const supportExpiry = supportExpiresAt.toLocaleDateString('en-US', {
+    month: 'long',
+    day: 'numeric',
+    year: 'numeric',
+  })
+  const portalUrl = `${process.env.CMS_URL || process.env.NEXT_PUBLIC_SERVER_URL || 'https://cms.revealui.com'}/account/billing`
+  await sendEmail({
+    to,
+    subject: `Your RevealUI ${label} Perpetual License is ready`,
+    html: `
+      <!DOCTYPE html>
+      <html>
+        <head><meta charset="utf-8"><title>Perpetual License Activated</title></head>
+        <body style="font-family: Arial, sans-serif; line-height: 1.6; color: #333; max-width: 600px; margin: 0 auto; padding: 20px;">
+          <h1 style="color: #2563eb;">Your Perpetual License is Active</h1>
+          <p>Thank you for purchasing RevealUI <strong>${label} Perpetual</strong>. Your license never expires.</p>
+          <p>Your purchase includes <strong>1 year of support</strong> (until ${supportExpiry}). You'll receive a reminder 30 days before it lapses.</p>
+          <p style="text-align: center; margin: 30px 0;">
+            <a href="${portalUrl}" style="background-color: #2563eb; color: white; padding: 12px 24px; text-decoration: none; border-radius: 6px; display: inline-block;">
+              View Your License
+            </a>
+          </p>
+          <p style="color: #666; font-size: 14px;">Questions? Reply to this email or contact founder@revealui.com.</p>
+        </body>
+      </html>
+    `,
+    text: `Your RevealUI ${label} Perpetual License is now active. The license never expires. Your 1-year support contract runs until ${supportExpiry}. View your license at ${portalUrl}.`,
   })
 }
 

@@ -24,9 +24,15 @@ const licensePayloadSchema = z.object({
   maxSites: z.number().int().positive().optional(),
   /** Maximum number of users/editors allowed */
   maxUsers: z.number().int().positive().optional(),
+  /**
+   * True for one-time perpetual purchases.
+   * When set, the exp claim is omitted from the JWT and isLicensed() skips
+   * expiry checks — the license is valid as long as it hasn't been revoked.
+   */
+  perpetual: z.boolean().optional(),
   /** License issued-at timestamp */
   iat: z.number().optional(),
-  /** License expiration timestamp */
+  /** License expiration timestamp — absent for perpetual licenses */
   exp: z.number().optional(),
 })
 
@@ -147,8 +153,8 @@ export function isLicensed(requiredTier: LicenseTier): boolean {
   // Free tier is always available
   if (requiredTier === 'free') return true
 
-  // Check expiration if present
-  if (cachedState.payload?.exp) {
+  // Perpetual licenses never expire — skip the exp check entirely
+  if (!cachedState.payload?.perpetual && cachedState.payload?.exp) {
     const nowSeconds = Math.floor(Date.now() / 1000)
     if (cachedState.payload.exp < nowSeconds) {
       return false
@@ -193,22 +199,23 @@ export function getMaxAgentTasks(): number {
  * Generates a signed license key JWT.
  * This is a server-only function — requires the private key.
  *
- * @param payload - License payload (tier, customerId, limits)
- * @param privateKey - RS256 or ES256 private key (PEM format)
- * @param expiresInSeconds - JWT expiration in seconds. Defaults to 1 year.
+ * @param payload - License payload (tier, customerId, limits, perpetual flag)
+ * @param privateKey - RS256 private key (PEM format)
+ * @param expiresInSeconds - JWT expiration in seconds. Pass null for perpetual
+ *   licenses (no exp claim). Defaults to 1 year for subscription licenses.
  * @returns Signed JWT string
  */
 export async function generateLicenseKey(
   payload: Omit<LicensePayload, 'iat' | 'exp'>,
   privateKey: string,
-  expiresInSeconds = 365 * 24 * 60 * 60,
+  expiresInSeconds: number | null = 365 * 24 * 60 * 60,
 ): Promise<string> {
   const key = await importPKCS8(privateKey, 'RS256')
-  return new SignJWT({ ...payload })
-    .setProtectedHeader({ alg: 'RS256' })
-    .setIssuedAt()
-    .setExpirationTime(`${expiresInSeconds}s`)
-    .sign(key)
+  const builder = new SignJWT({ ...payload }).setProtectedHeader({ alg: 'RS256' }).setIssuedAt()
+  if (expiresInSeconds !== null) {
+    builder.setExpirationTime(`${expiresInSeconds}s`)
+  }
+  return builder.sign(key)
 }
 
 /**

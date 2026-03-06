@@ -6,7 +6,7 @@
  * retrieval, auditing, and revocation.
  */
 
-import { index, pgTable, text, timestamp } from 'drizzle-orm/pg-core'
+import { boolean, index, pgTable, text, timestamp } from 'drizzle-orm/pg-core'
 import { users } from './users.js'
 
 // =============================================================================
@@ -45,8 +45,17 @@ export const licenses = pgTable(
     /** When the license was last updated */
     updatedAt: timestamp('updated_at', { withTimezone: true }).defaultNow().notNull(),
 
-    /** When the license expires (null = never) */
+    /** When the license expires (null = never for perpetual licenses) */
     expiresAt: timestamp('expires_at', { withTimezone: true }),
+
+    /** True for one-time perpetual purchases — license never expires */
+    perpetual: boolean('perpetual').notNull().default(false),
+
+    /** When annual support contract expires (perpetual only) */
+    supportExpiresAt: timestamp('support_expires_at', { withTimezone: true }),
+
+    /** GitHub username for revealui-pro team provisioning (perpetual only) */
+    githubUsername: text('github_username'),
   },
   (table) => [
     index('licenses_customer_id_idx').on(table.customerId),
