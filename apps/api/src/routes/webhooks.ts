@@ -719,19 +719,26 @@ app.post('/stripe', async (c) => {
 // the API and CMS run as separate deployments — the email system may
 // not be available. Emails are fire-and-forget with error logging.
 
+function tierLabel(tier: string): string {
+  if (tier === 'enterprise') return 'Enterprise'
+  if (tier === 'max') return 'Max'
+  return 'Pro'
+}
+
 async function sendLicenseActivatedEmail(to: string, tier: string): Promise<void> {
   const { sendEmail } = await import('../lib/email.js')
+  const label = tierLabel(tier)
   await sendEmail({
     to,
-    subject: `Your RevealUI ${tier === 'enterprise' ? 'Enterprise' : 'Pro'} license is active`,
+    subject: `Your RevealUI ${label} license is active`,
     html: `
       <!DOCTYPE html>
       <html>
         <head><meta charset="utf-8"><title>License Activated</title></head>
         <body style="font-family: Arial, sans-serif; line-height: 1.6; color: #333; max-width: 600px; margin: 0 auto; padding: 20px;">
           <h1 style="color: #2563eb;">Your License is Active</h1>
-          <p>Your RevealUI <strong>${tier === 'enterprise' ? 'Enterprise' : 'Pro'}</strong> license has been activated.</p>
-          <p>You now have access to all ${tier === 'enterprise' ? 'Enterprise' : 'Pro'} features including${tier === 'enterprise' ? ' multi-tenant architecture, white-label branding, SSO, and' : ''} AI agents, advanced sync, and built-in payments.</p>
+          <p>Your RevealUI <strong>${label}</strong> license has been activated.</p>
+          <p>You now have access to all ${label} features including${tier === 'enterprise' ? ' multi-tenant architecture, white-label branding, SSO, and' : tier === 'max' ? ' AI memory, BYOK server-side, multi-provider AI, audit log, and' : ''} AI agents, advanced sync, and built-in payments.</p>
           <p style="text-align: center; margin: 30px 0;">
             <a href="${process.env.CMS_URL || process.env.NEXT_PUBLIC_SERVER_URL || 'https://cms.revealui.com'}/admin" style="background-color: #2563eb; color: white; padding: 12px 24px; text-decoration: none; border-radius: 6px; display: inline-block;">
               Go to Dashboard
@@ -741,7 +748,7 @@ async function sendLicenseActivatedEmail(to: string, tier: string): Promise<void
         </body>
       </html>
     `,
-    text: `Your RevealUI ${tier === 'enterprise' ? 'Enterprise' : 'Pro'} license is now active. Go to your dashboard to explore your new features.`,
+    text: `Your RevealUI ${label} license is now active. Go to your dashboard to explore your new features.`,
   })
 }
 
