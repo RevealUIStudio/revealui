@@ -4,8 +4,6 @@
  */
 
 import { randomUUID } from 'node:crypto'
-// Import the actual CMS config with all collections using alias
-import config from '@reveal-config'
 import type { RevealUIInstance } from '@revealui/core'
 import { getRevealUI } from '@revealui/core'
 
@@ -45,6 +43,10 @@ export function clearTestRevealUI(): void {
  */
 export async function getTestRevealUI(): Promise<RevealUIInstance> {
   if (!revealuiInstance) {
+    // Lazy import: avoid loading all collections (including @revealui/ai) at module
+    // level, since clearTestRevealUI() doesn't need config and many tests mock
+    // everything at the route level without needing a real RevealUI instance.
+    const { default: config } = await import('@reveal-config')
     revealuiInstance = await getRevealUI({ config })
     // Trigger database initialization by making a lightweight query
     // This ensures tables are created before any test queries
