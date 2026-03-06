@@ -3,18 +3,31 @@
  *
  * For authenticated users:
  *   - Looks up current billing cycle row in agent_task_usage
- *   - Returns 429 if count >= tier quota
+ *   - Returns 429 if count >= tier quota (or 402 + x402 payment if X402_ENABLED=true)
  *   - Atomically increments count before passing through
  *
  * For unauthenticated requests: passes through (feature gate handles auth separately).
  * For enterprise (Forge) tier: increments for metering but never blocks.
+ *
+ * x402 payment path (Phase 5.2):
+ *   When X402_ENABLED=true and quota is exceeded:
+ *   - No X-PAYMENT-PAYLOAD header → HTTP 402 with X-PAYMENT-REQUIRED header
+ *   - Valid X-PAYMENT-PAYLOAD header → verify via Coinbase facilitator → allow through
+ *   - Invalid X-PAYMENT-PAYLOAD header → HTTP 402 with error detail
  */
 
 import { getMaxAgentTasks } from '@revealui/core/license'
+import { logger } from '@revealui/core/observability/logger'
 import { getClient } from '@revealui/db'
 import { agentTaskUsage } from '@revealui/db/schema'
 import { and, eq, sql } from 'drizzle-orm'
 import type { Context, Next } from 'hono'
+import {
+  buildPaymentRequired,
+  encodePaymentRequired,
+  getX402Config,
+  verifyPayment,
+} from './x402.js'
 
 interface UserContext {
   id: string
@@ -69,7 +82,7 @@ export async function requireTaskQuota(
   const current = row?.count ?? 0
 
   if (current >= quota) {
-    // Track overage for billing reports (fire-and-forget — does not block the 429)
+    // Track overage for billing reports (fire-and-forget)
     void db
       .insert(agentTaskUsage)
       .values({ userId: user.id, cycleStart: cycle, count: current, overage: 1 })
@@ -81,14 +94,66 @@ export async function requireTaskQuota(
         // Non-fatal
       })
 
+    const x402 = getX402Config()
+    const resetAt = new Date(
+      Date.UTC(cycle.getUTCFullYear(), cycle.getUTCMonth() + 1, 1),
+    ).toISOString()
+
+    if (x402.enabled && x402.receivingAddress) {
+      // x402 payment path — agents can pay USDC per task instead of hard-blocking
+      const payloadHeader = c.req.header('X-PAYMENT-PAYLOAD')
+
+      if (payloadHeader) {
+        // Verify the payment proof the agent sent
+        const resource = new URL(c.req.url).pathname
+        const result = await verifyPayment(payloadHeader, resource)
+
+        if (result.valid) {
+          logger.info('x402 payment accepted — task quota bypassed', {
+            userId: user.id,
+            resource,
+            used: current,
+          })
+          // Allow through without incrementing quota (it's a paid overage call)
+          return next()
+        }
+
+        return c.json(
+          {
+            payment_required: true,
+            error: result.error,
+            amount: x402.pricePerTask,
+            currency: 'USDC',
+          },
+          402,
+        )
+      }
+
+      // No payment header — return 402 with x402 payment requirements
+      const resource = `${new URL(c.req.url).origin}${new URL(c.req.url).pathname}`
+      const paymentRequired = buildPaymentRequired(resource)
+      return c.json(
+        {
+          payment_required: true,
+          amount: x402.pricePerTask,
+          currency: 'USDC',
+          address: x402.receivingAddress,
+          used: current,
+          quota,
+          resetAt,
+        },
+        402,
+        { 'X-PAYMENT-REQUIRED': encodePaymentRequired(paymentRequired) },
+      )
+    }
+
+    // x402 disabled → existing 429 behavior (no behavioral change for subscribers)
     return c.json(
       {
         error: 'Agent task quota exceeded for this billing cycle.',
         used: current,
         quota,
-        resetAt: new Date(
-          Date.UTC(cycle.getUTCFullYear(), cycle.getUTCMonth() + 1, 1),
-        ).toISOString(),
+        resetAt,
       },
       429,
     )
