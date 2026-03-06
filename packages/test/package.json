@@ -4,11 +4,11 @@
   "private": true,
   "dependencies": {
     "@neondatabase/serverless": "^1.0.2",
-    "@revealui/ai": "workspace:*",
+    "@revealui/ai": "0.1.0",
     "@revealui/contracts": "workspace:*",
     "@revealui/core": "workspace:*",
     "@revealui/db": "workspace:*",
-    "@revealui/services": "workspace:*",
+    "@revealui/services": "0.0.1",
     "@revealui/utils": "workspace:*",
     "bcryptjs": "^3.0.3",
     "drizzle-orm": "^0.45.1",

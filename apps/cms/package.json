@@ -7,14 +7,14 @@
   "dependencies": {
     "@electric-sql/client": "^1.0.27",
     "@electric-sql/react": "^1.0.27",
-    "@revealui/ai": "workspace:*",
+    "@revealui/ai": "0.1.0",
     "@revealui/auth": "workspace:*",
     "@revealui/config": "workspace:*",
     "@revealui/contracts": "workspace:*",
     "@revealui/core": "workspace:*",
     "@revealui/db": "workspace:*",
     "@revealui/presentation": "workspace:*",
-    "@revealui/services": "workspace:*",
+    "@revealui/services": "0.0.1",
     "@revealui/sync": "workspace:*",
     "@revealui/utils": "workspace:*",
     "@sentry/nextjs": "^10.34.0",
@@ -79,7 +79,7 @@
     "test:ui": "vitest --ui",
     "test:watch": "vitest",
     "typecheck": "tsc --noEmit",
-    "vercel-build": "pnpm --filter @revealui/utils build && pnpm --filter @revealui/config build && pnpm --filter @revealui/presentation build && pnpm --filter @revealui/db build && pnpm --filter @revealui/contracts build && pnpm --filter @revealui/core build && pnpm --filter @revealui/auth build && pnpm --filter @revealui/sync build && pnpm --filter @revealui/services build && pnpm --filter @revealui/ai build && env -u NODE_ENV cross-env NODE_OPTIONS=--no-deprecation TURBOPACK=0 next build"
+    "vercel-build": "pnpm --filter @revealui/utils build && pnpm --filter @revealui/config build && pnpm --filter @revealui/presentation build && pnpm --filter @revealui/db build && pnpm --filter @revealui/contracts build && pnpm --filter @revealui/core build && pnpm --filter @revealui/auth build && pnpm --filter @revealui/sync build && env -u NODE_ENV cross-env NODE_OPTIONS=--no-deprecation TURBOPACK=0 next build"
   },
   "type": "module"
 }
