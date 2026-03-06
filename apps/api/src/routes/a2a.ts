@@ -34,6 +34,7 @@ import { desc, eq } from 'drizzle-orm'
 import { Hono } from 'hono'
 import { authMiddleware } from '../middleware/auth.js'
 import { requireFeature } from '../middleware/license.js'
+import { requireTaskQuota } from '../middleware/task-quota.js'
 
 interface UserContext {
   id: string
@@ -440,6 +441,12 @@ a2a.post('/', async (c) => {
         },
         403,
       )
+    }
+
+    // Check and increment task quota (Track B metering)
+    const quotaResponse = await requireTaskQuota(c, async () => {})
+    if (quotaResponse instanceof Response) {
+      return quotaResponse
     }
   }
 
