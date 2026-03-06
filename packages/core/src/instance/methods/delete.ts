@@ -4,6 +4,7 @@
  * Deletes a document from a collection.
  */
 
+import type { RevealRequest as ContractsRevealRequest } from '@revealui/contracts/cms'
 import type { RevealDeleteOptions, RevealDocument, RevealUIInstance } from '../../types/index.js'
 import { validateJWTFromRequest } from '../../utils/jwt-validation.js'
 
@@ -25,7 +26,10 @@ export async function deleteMethod(
   // Enforce collection-level access control
   const collectionConfig = instance.config.collections?.find((c) => c.slug === collection)
   if (collectionConfig?.access?.delete && options.req) {
-    const canDelete = await collectionConfig.access.delete({ req: options.req, id: options.id })
+    const canDelete = await collectionConfig.access.delete({
+      req: options.req as unknown as ContractsRevealRequest,
+      id: options.id,
+    })
     if (!canDelete) {
       throw new Error('Access denied: you do not have permission to delete in this collection')
     }
