@@ -4,7 +4,7 @@
   "private": true,
   "dependencies": {
     "@hono/node-server": "^1.19.10",
-    "@revealui/ai": "workspace:*",
+    "@revealui/ai": "0.1.0",
     "@revealui/presentation": "workspace:*",
     "@revealui/router": "workspace:*",
     "@sentry/react": "^10.34.0",
