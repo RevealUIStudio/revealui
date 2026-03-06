@@ -245,7 +245,7 @@ export class EncryptionSystem {
       const bytes = this.randomBytes(length - result.length + 16)
       for (const byte of bytes) {
         if (byte < maxValid) {
-          result.push(charset[byte % charset.length])
+          result.push(charset[byte % charset.length] as string)
           if (result.length === length) break
         }
       }
