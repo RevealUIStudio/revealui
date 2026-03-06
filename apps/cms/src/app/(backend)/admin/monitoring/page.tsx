@@ -7,7 +7,7 @@ export const dynamic = 'force-dynamic'
 
 export default function MonitoringPage() {
   return (
-    <LicenseGate feature="dashboard" featureLabel="System Monitoring">
+    <LicenseGate feature="dashboard">
       <div className="min-h-screen">
         <div className="p-4 border-b border-gray-700 bg-gray-900">
           <h1 className="text-xl font-semibold text-white">System Monitoring</h1>

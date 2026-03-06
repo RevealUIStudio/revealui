@@ -1,6 +1,7 @@
 {
   "name": "@revealui/sync",
   "version": "0.2.0",
+  "experimental": true,
   "license": "MIT",
   "files": [
     "dist"

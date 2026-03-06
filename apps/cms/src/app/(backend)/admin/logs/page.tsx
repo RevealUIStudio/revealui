@@ -71,7 +71,7 @@ export default async function LogsPage({ searchParams }: PageProps) {
   }
 
   return (
-    <LicenseGate feature="dashboard" featureLabel="Application Logs">
+    <LicenseGate feature="dashboard">
       <div className="min-h-screen bg-gray-950 text-white">
         {/* Header */}
         <div className="p-4 border-b border-gray-700 bg-gray-900 flex flex-wrap items-center gap-4">

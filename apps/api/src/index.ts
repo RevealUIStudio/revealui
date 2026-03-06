@@ -137,109 +137,174 @@ app.use('*', async (c, next) => {
 app.use('*', dbMiddleware())
 
 // Rate limiting — tiered global + per-route overrides
-app.use(
-  '/api/*',
-  tieredRateLimitMiddleware({
-    tiers: {
-      free: { maxRequests: 60, windowMs: 60_000 },
-      pro: { maxRequests: 300, windowMs: 60_000 },
-      max: { maxRequests: 600, windowMs: 60_000 },
-      enterprise: { maxRequests: 1000, windowMs: 60_000 },
-    },
-    keyPrefix: 'api',
-  }),
-)
-app.use(
-  '/api/license/generate',
-  rateLimitMiddleware({ maxRequests: 5, windowMs: 15 * 60_000, keyPrefix: 'license-gen' }),
-)
-app.use(
-  '/api/agent-tasks/*',
-  rateLimitMiddleware({ maxRequests: 10, windowMs: 60_000, keyPrefix: 'agent' }),
-)
-app.use(
-  '/api/agent-stream',
-  rateLimitMiddleware({ maxRequests: 10, windowMs: 60_000, keyPrefix: 'agent-stream' }),
-)
-app.use('/api/rag/*', rateLimitMiddleware({ maxRequests: 20, windowMs: 60_000, keyPrefix: 'rag' }))
-app.use(
-  '/api/errors',
-  rateLimitMiddleware({ maxRequests: 50, windowMs: 60_000, keyPrefix: 'error-capture' }),
-)
-app.use(
-  '/api/logs',
-  rateLimitMiddleware({ maxRequests: 200, windowMs: 60_000, keyPrefix: 'log-ingest' }),
-)
+// Applied to both /api/* and /api/v1/* for versioned route support
+const tieredRateLimit = tieredRateLimitMiddleware({
+  tiers: {
+    free: { maxRequests: 60, windowMs: 60_000 },
+    pro: { maxRequests: 300, windowMs: 60_000 },
+    max: { maxRequests: 600, windowMs: 60_000 },
+    enterprise: { maxRequests: 1000, windowMs: 60_000 },
+  },
+  keyPrefix: 'api',
+})
+app.use('/api/*', tieredRateLimit)
+app.use('/api/v1/*', tieredRateLimit)
+
+const licenseGenLimit = rateLimitMiddleware({
+  maxRequests: 5,
+  windowMs: 15 * 60_000,
+  keyPrefix: 'license-gen',
+})
+app.use('/api/license/generate', licenseGenLimit)
+app.use('/api/v1/license/generate', licenseGenLimit)
+
+const agentLimit = rateLimitMiddleware({
+  maxRequests: 10,
+  windowMs: 60_000,
+  keyPrefix: 'agent',
+})
+app.use('/api/agent-tasks/*', agentLimit)
+app.use('/api/v1/agent-tasks/*', agentLimit)
+
+const agentStreamLimit = rateLimitMiddleware({
+  maxRequests: 10,
+  windowMs: 60_000,
+  keyPrefix: 'agent-stream',
+})
+app.use('/api/agent-stream', agentStreamLimit)
+app.use('/api/v1/agent-stream', agentStreamLimit)
+
+const ragLimit = rateLimitMiddleware({ maxRequests: 20, windowMs: 60_000, keyPrefix: 'rag' })
+app.use('/api/rag/*', ragLimit)
+app.use('/api/v1/rag/*', ragLimit)
+
+const errorCaptureLimit = rateLimitMiddleware({
+  maxRequests: 50,
+  windowMs: 60_000,
+  keyPrefix: 'error-capture',
+})
+app.use('/api/errors', errorCaptureLimit)
+app.use('/api/v1/errors', errorCaptureLimit)
+
+const logIngestLimit = rateLimitMiddleware({
+  maxRequests: 200,
+  windowMs: 60_000,
+  keyPrefix: 'log-ingest',
+})
+app.use('/api/logs', logIngestLimit)
+app.use('/api/v1/logs', logIngestLimit)
+
 // API keys manage long-lived credentials — tight limits to slow enumeration/abuse
-app.use(
-  '/api/api-keys/*',
-  rateLimitMiddleware({ maxRequests: 20, windowMs: 60_000, keyPrefix: 'api-keys' }),
-)
+const apiKeysLimit = rateLimitMiddleware({
+  maxRequests: 20,
+  windowMs: 60_000,
+  keyPrefix: 'api-keys',
+})
+app.use('/api/api-keys/*', apiKeysLimit)
+app.use('/api/v1/api-keys/*', apiKeysLimit)
+
 // Billing endpoints create Stripe objects — tighter limits to prevent abuse
-app.use(
-  '/api/billing/checkout',
-  rateLimitMiddleware({ maxRequests: 10, windowMs: 15 * 60_000, keyPrefix: 'billing-checkout' }),
-)
-app.use(
-  '/api/billing/upgrade',
-  rateLimitMiddleware({ maxRequests: 5, windowMs: 15 * 60_000, keyPrefix: 'billing-upgrade' }),
-)
-app.use(
-  '/api/billing/downgrade',
-  rateLimitMiddleware({ maxRequests: 5, windowMs: 15 * 60_000, keyPrefix: 'billing-downgrade' }),
-)
+const billingCheckoutLimit = rateLimitMiddleware({
+  maxRequests: 10,
+  windowMs: 15 * 60_000,
+  keyPrefix: 'billing-checkout',
+})
+app.use('/api/billing/checkout', billingCheckoutLimit)
+app.use('/api/v1/billing/checkout', billingCheckoutLimit)
+
+const billingUpgradeLimit = rateLimitMiddleware({
+  maxRequests: 5,
+  windowMs: 15 * 60_000,
+  keyPrefix: 'billing-upgrade',
+})
+app.use('/api/billing/upgrade', billingUpgradeLimit)
+app.use('/api/v1/billing/upgrade', billingUpgradeLimit)
+
+const billingDowngradeLimit = rateLimitMiddleware({
+  maxRequests: 5,
+  windowMs: 15 * 60_000,
+  keyPrefix: 'billing-downgrade',
+})
+app.use('/api/billing/downgrade', billingDowngradeLimit)
+app.use('/api/v1/billing/downgrade', billingDowngradeLimit)
 
 // Populate session if present (non-blocking — sets user context for all API routes)
-app.use('/api/*', authMiddleware({ required: false }))
+const optionalAuth = authMiddleware({ required: false })
+app.use('/api/*', optionalAuth)
+app.use('/api/v1/*', optionalAuth)
 // Multi-tenant context (optional by default — routes that require it use requireTenant())
-app.use('/api/*', tenantMiddleware({ required: false }))
+const optionalTenant = tenantMiddleware({ required: false })
+app.use('/api/*', optionalTenant)
+app.use('/api/v1/*', optionalTenant)
 
 // License status enforcement — catches revoked/expired licenses (5-minute DB cache)
-app.use(
-  '/api/*',
-  checkLicenseStatus(async (customerId) => {
-    const db = getClient()
-    const [license] = await db
-      .select({ status: licenses.status })
-      .from(licenses)
-      .where(eq(licenses.customerId, customerId))
-      .orderBy(desc(licenses.createdAt))
-      .limit(1)
-    return license?.status ?? null
-  }),
-)
+const licenseStatusCheck = checkLicenseStatus(async (customerId) => {
+  const db = getClient()
+  const [license] = await db
+    .select({ status: licenses.status })
+    .from(licenses)
+    .where(eq(licenses.customerId, customerId))
+    .orderBy(desc(licenses.createdAt))
+    .limit(1)
+  return license?.status ?? null
+})
+app.use('/api/*', licenseStatusCheck)
+app.use('/api/v1/*', licenseStatusCheck)
 
 // License enforcement — gate premium routes by feature
 app.use('/api/agent-tasks/*', requireFeature('ai'))
+app.use('/api/v1/agent-tasks/*', requireFeature('ai'))
 app.use('/api/agent-stream', requireFeature('ai'))
+app.use('/api/v1/agent-stream', requireFeature('ai'))
 app.use('/api/rag/*', requireFeature('ai'))
+app.use('/api/v1/rag/*', requireFeature('ai'))
 app.use('/api/collab/agent/*', requireFeature('ai'))
+app.use('/api/v1/collab/agent/*', requireFeature('ai'))
 app.use('/api/provenance/*', requireFeature('dashboard'))
+app.use('/api/v1/provenance/*', requireFeature('dashboard'))
 
 // Role-based access — admin-only operations
 // RAG index writes and deletes are administrative operations (rebuilding/managing the vector index).
 // Any authenticated user can read RAG query results, but only admins can modify index contents.
 app.use('/api/rag/*/index/*', requireRole('admin'))
+app.use('/api/v1/rag/*/index/*', requireRole('admin'))
 app.delete('/api/rag/*', requireRole('admin'))
+app.delete('/api/v1/rag/*', requireRole('admin'))
 
 // Write-protect mutation endpoints — these require authentication
 const writeProtected = authMiddleware({ required: true })
 app.post('/api/collab/*', writeProtected)
+app.post('/api/v1/collab/*', writeProtected)
 app.post('/api/collab/agent/*', writeProtected)
+app.post('/api/v1/collab/agent/*', writeProtected)
 app.post('/api/tickets/*', writeProtected)
+app.post('/api/v1/tickets/*', writeProtected)
 app.patch('/api/tickets/*', writeProtected)
+app.patch('/api/v1/tickets/*', writeProtected)
 app.delete('/api/tickets/*', writeProtected)
+app.delete('/api/v1/tickets/*', writeProtected)
 app.post('/api/agent-tasks/*', writeProtected)
+app.post('/api/v1/agent-tasks/*', writeProtected)
 app.post('/api/agent-stream', writeProtected)
+app.post('/api/v1/agent-stream', writeProtected)
 app.post('/api/rag/*', writeProtected)
+app.post('/api/v1/rag/*', writeProtected)
 app.delete('/api/rag/*', writeProtected)
+app.delete('/api/v1/rag/*', writeProtected)
 app.post('/api/provenance/*', writeProtected)
+app.post('/api/v1/provenance/*', writeProtected)
 app.patch('/api/provenance/*', writeProtected)
+app.patch('/api/v1/provenance/*', writeProtected)
 app.delete('/api/provenance/*', writeProtected)
+app.delete('/api/v1/provenance/*', writeProtected)
 app.post('/api/billing/*', writeProtected)
+app.post('/api/v1/billing/*', writeProtected)
 app.post('/api/content/*', writeProtected)
+app.post('/api/v1/content/*', writeProtected)
 app.patch('/api/content/*', writeProtected)
+app.patch('/api/v1/content/*', writeProtected)
 app.delete('/api/content/*', writeProtected)
+app.delete('/api/v1/content/*', writeProtected)
 
 // OpenAPI documentation
 app.doc('/openapi.json', {
@@ -278,6 +343,21 @@ app.route('/api/rag', ragIndexRoute)
 app.route('/api/api-keys', apiKeysRoute)
 app.route('', createCollabRoute())
 app.route('', createAgentCollabRoute())
+
+// Versioned routes (/api/v1/*) — mirrors of /api/* for forward compatibility.
+// Non-API routes (/.well-known, /a2a, /health) are not versioned.
+app.route('/api/v1/errors', errorsRoute)
+app.route('/api/v1/logs', logsRoute)
+app.route('/api/v1/license', licenseRoute)
+app.route('/api/v1/billing', billingRoute)
+app.route('/api/v1/webhooks', webhooksRoute)
+app.route('/api/v1/provenance', provenanceRoute)
+app.route('/api/v1/tickets', ticketsRoute)
+app.route('/api/v1/agent-tasks', agentTasksRoute)
+app.route('/api/v1/agent-stream', agentStreamRoute)
+app.route('/api/v1/content', contentRoute)
+app.route('/api/v1/rag', ragIndexRoute)
+app.route('/api/v1/api-keys', apiKeysRoute)
 
 // Error handling
 app.onError(errorHandler)

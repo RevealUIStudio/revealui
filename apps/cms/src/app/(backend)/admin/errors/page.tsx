@@ -35,7 +35,7 @@ export default async function ErrorsPage() {
   }
 
   return (
-    <LicenseGate feature="dashboard" featureLabel="Error Events">
+    <LicenseGate feature="dashboard">
       <div className="min-h-screen bg-gray-950 text-white">
         <div className="p-4 border-b border-gray-700 bg-gray-900">
           <h1 className="text-xl font-semibold text-white">Error Events</h1>
