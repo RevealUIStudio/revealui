@@ -11,6 +11,7 @@
  */
 
 import { createLLMClientFromEnv } from '@revealui/ai'
+import { LLMClient } from '@revealui/ai/llm/client'
 import type { Agent, Task } from '@revealui/ai/orchestration/agent'
 import { StreamingAgentRuntime } from '@revealui/ai/orchestration/streaming-runtime'
 import { Hono } from 'hono'
@@ -29,15 +30,24 @@ app.post('/', async (c) => {
     boardId?: string
     workspaceId?: string
     priority?: string
+    apiKey?: string
   } | null
 
   if (!body?.instruction) {
     return c.json({ success: false, error: 'instruction is required' }, 400)
   }
 
-  let llmClient: ReturnType<typeof createLLMClientFromEnv>
+  let llmClient: LLMClient
   try {
-    llmClient = createLLMClientFromEnv()
+    if (body.apiKey) {
+      llmClient = new LLMClient({
+        provider: 'groq',
+        apiKey: body.apiKey,
+        model: 'llama-3.3-70b-versatile',
+      })
+    } else {
+      llmClient = createLLMClientFromEnv()
+    }
   } catch {
     return c.json({ success: false, error: 'AI provider not configured' }, 503)
   }

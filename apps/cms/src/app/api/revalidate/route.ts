@@ -33,7 +33,7 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
   }
 
   if (tag) {
-    revalidateTag(tag)
+    revalidateTag(tag, 'page')
     return NextResponse.json({ revalidated: true, tag })
   }
 
@@ -43,7 +43,7 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
   }
 
   if (collection && slug) {
-    revalidateTag(`${collection}:${slug}`)
+    revalidateTag(`${collection}:${slug}`, 'page')
     revalidatePath(`/${collection}/${slug}`)
     return NextResponse.json({ revalidated: true, collection, slug })
   }

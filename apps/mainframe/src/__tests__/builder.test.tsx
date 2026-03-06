@@ -7,8 +7,20 @@
 
 import { render, screen } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
-import { describe, expect, it } from 'vitest'
-import { Builder } from '../components/Builder/Builder'
+import { describe, expect, it, vi } from 'vitest'
+import { Builder } from '../components/Builder'
+
+vi.mock('@revealui/ai/client', () => ({
+  useAgentStream: () => ({
+    text: '',
+    chunks: [],
+    isStreaming: false,
+    error: null,
+    start: vi.fn(),
+    abort: vi.fn(),
+    reset: vi.fn(),
+  }),
+}))
 
 describe('Builder', () => {
   describe('Rendering', () => {
