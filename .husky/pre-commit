@@ -49,20 +49,11 @@ if [ -n "$SCRIPT_FILES" ]; then
   # Validate dependencies for changed files
   for file in $SCRIPT_FILES; do
     echo "  Validating $file..."
-    pnpm check validate:dependencies --file="$file" > /dev/null 2>&1 || {
-      echo "⚠️  Warning: $file has dependency validation issues"
-      echo "   Run 'pnpm check validate:dependencies --file=$file' to see details"
-    }
+    # Removed: pnpm check validate:dependencies — script does not exist in package.json
+    true
   done
 
-  # Audit exit codes (warnings only)
-  echo "  Auditing exit codes..."
-  pnpm ops audit:exit-codes --json > /tmp/exit-code-audit.json 2>&1 || true
-  VIOLATIONS=$(cat /tmp/exit-code-audit.json | grep -o '"totalViolations":[0-9]*' | grep -o '[0-9]*' || echo "0")
-  if [ "$VIOLATIONS" -gt "0" ]; then
-    echo "⚠️  Warning: Found $VIOLATIONS exit code violations"
-    echo "   Run 'pnpm ops audit:exit-codes' to see details"
-  fi
+  # Removed: pnpm ops audit:exit-codes — script does not exist in package.json
 
   echo "✅ Script validation complete"
 fi

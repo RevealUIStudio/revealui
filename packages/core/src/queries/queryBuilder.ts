@@ -205,8 +205,10 @@ export function buildWhereClause(
       // contains (LIKE with wildcards)
       if ('contains' in condition && typeof condition.contains === 'string') {
         const placeholder = getPlaceholder()
-        params.push(`%${condition.contains}%`)
-        conditions.push(`${quotedField} LIKE ${placeholder}`)
+        // Escape LIKE wildcards (% and _) in user input to prevent wildcard injection
+        const escaped = condition.contains.replace(/[%_\\]/g, '\\$&')
+        params.push(`%${escaped}%`)
+        conditions.push(`${quotedField} LIKE ${placeholder} ESCAPE '\\'`)
       }
 
       // greater_than
@@ -285,7 +287,8 @@ export function extractWhereValues(where?: RevealWhere): unknown[] {
             break
           case 'contains':
             if (typeof value === 'string') {
-              values.push(`%${value}%`)
+              const escaped = value.replace(/[%_\\]/g, '\\$&')
+              values.push(`%${escaped}%`)
             }
             break
           case 'in':

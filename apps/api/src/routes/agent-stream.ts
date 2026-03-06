@@ -30,19 +30,22 @@ app.post('/', async (c) => {
     boardId?: string
     workspaceId?: string
     priority?: string
-    apiKey?: string
   } | null
 
   if (!body?.instruction) {
     return c.json({ success: false, error: 'instruction is required' }, 400)
   }
 
+  // BYOK: accept API key via Authorization header (never in request body)
+  const authHeader = c.req.header('Authorization')
+  const byokKey = authHeader?.startsWith('Bearer ') ? authHeader.slice(7) : undefined
+
   let llmClient: LLMClient
   try {
-    if (body.apiKey) {
+    if (byokKey) {
       llmClient = new LLMClient({
         provider: 'groq',
-        apiKey: body.apiKey,
+        apiKey: byokKey,
         model: 'llama-3.3-70b-versatile',
       })
     } else {

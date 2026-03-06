@@ -409,9 +409,10 @@ export class OAuthClient {
   private config: OAuthConfig
 
   constructor(config: OAuthConfig) {
+    // Provider defaults fill in missing fields; user-provided config takes precedence
     this.config = {
-      ...config,
       ...OAuthProviders[config.provider as keyof typeof OAuthProviders],
+      ...config,
     }
   }
 

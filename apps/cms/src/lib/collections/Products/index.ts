@@ -19,9 +19,10 @@ const Products: RevealCollectionConfig<Product> = {
     useAsTitle: 'title',
     defaultColumns: ['title', 'stripeProductID', '_status'],
     preview: (doc: Record<string, unknown>) => {
-      return `${import.meta.env.REVEALUI_PUBLIC_SERVER_URL}/api/preview?url=${encodeURIComponent(
-        `${import.meta.env.REVEALUI_PUBLIC_SERVER_URL}/products/${doc.slug}`,
-      )}&secret=${import.meta.env.REVEALUI_DRAFT_SECRET}`
+      // Use the cookie-based JWT preview route — no secret in the URL
+      return `${import.meta.env.REVEALUI_PUBLIC_SERVER_URL}/next/preview?path=${encodeURIComponent(
+        `/products/${doc.slug}`,
+      )}`
     },
   },
   hooks: {
