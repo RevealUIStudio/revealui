@@ -219,6 +219,7 @@ describe('Boards', () => {
   })
 
   it('PATCH /boards/:id — updates board', async () => {
+    mb.getBoardById.mockResolvedValue(makeBoard() as never)
     mb.updateBoard.mockResolvedValue(makeBoard({ name: 'Updated' }) as never)
     const app = createApp()
     const res = await app.request('/boards/board-1', patch({ name: 'Updated' }))
