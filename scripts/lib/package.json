@@ -17,6 +17,9 @@
     "./validation/env": "./validation/env.ts",
     "./validation/database": "./validation/database.ts"
   },
+  "dependencies": {
+    "@revealui/core": "workspace:*"
+  },
   "devDependencies": {
     "@electric-sql/pglite": "^0.3.15"
   },
