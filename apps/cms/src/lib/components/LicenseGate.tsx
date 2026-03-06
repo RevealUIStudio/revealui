@@ -11,7 +11,7 @@ interface LicenseGateProps {
   /** Human-readable feature name for the upgrade prompt */
   featureLabel: string
   /** Minimum tier required (default: 'pro') */
-  requiredTier?: 'pro' | 'enterprise'
+  requiredTier?: 'pro' | 'max' | 'enterprise'
   children: React.ReactNode
 }
 
