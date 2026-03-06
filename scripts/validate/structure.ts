@@ -79,7 +79,7 @@ const VALIDATION_RULES: ValidationRule[] = [
     required: false,
   },
 
-  // Simplified documentation structure
+  // Documentation structure (flat — docs served at /docs/<FILE>.md by apps/docs)
   {
     path: 'docs',
     type: 'directory',
@@ -87,51 +87,27 @@ const VALIDATION_RULES: ValidationRule[] = [
     required: true,
   },
   {
-    path: 'docs/guides',
-    type: 'directory',
-    description: 'User guides',
-    required: true,
-  },
-  {
-    path: 'docs/reference',
-    type: 'directory',
-    description: 'API references',
-    required: true,
-  },
-  {
-    path: 'docs/development',
-    type: 'directory',
-    description: 'Development docs',
-    required: true,
-  },
-  {
-    path: 'docs/archive',
-    type: 'directory',
-    description: 'Historical docs',
-    required: true,
-  },
-  {
-    path: 'docs/testing',
-    type: 'directory',
-    description: 'Testing documentation',
-    required: true,
-  },
-  {
-    path: 'docs/deployment',
-    type: 'directory',
-    description: 'Deployment documentation',
-    required: true,
-  },
-  {
-    path: 'docs/architecture',
-    type: 'directory',
-    description: 'Architecture documentation',
-    required: true,
-  },
-  {
-    path: 'docs/README.md',
+    path: 'docs/INDEX.md',
     type: 'file',
-    description: 'Docs navigation',
+    description: 'Docs index (entry point for docs site)',
+    required: true,
+  },
+  {
+    path: 'docs/QUICK_START.md',
+    type: 'file',
+    description: 'Quick start guide',
+    required: true,
+  },
+  {
+    path: 'docs/PRO.md',
+    type: 'file',
+    description: 'Pro tier documentation',
+    required: true,
+  },
+  {
+    path: 'docs/REFERENCE.md',
+    type: 'file',
+    description: 'API reference index',
     required: false,
   },
 
@@ -453,6 +429,8 @@ class StructureValidator {
     // Check package structure consistency
     console.log('\n🔍 Checking package structure consistency...')
     const packagesDir = 'packages'
+    // Packages exempt from src/ and __tests__ checks — thin wrappers or delegation-only packages
+    const srcExempt = new Set(['create-revealui', 'PACKAGE-CONVENTIONS.md'])
     if (existsSync(packagesDir)) {
       const packages = readdirSync(packagesDir).filter((item) =>
         statSync(join(packagesDir, item)).isDirectory(),
@@ -465,12 +443,14 @@ class StructureValidator {
           existsSync(join(pkgPath, '__tests__')) || existsSync(join(pkgPath, 'src', '__tests__'))
         const hasPackageJson = existsSync(join(pkgPath, 'package.json'))
 
-        if (!hasSrc) {
-          console.log(`⚠️  Package ${pkg} missing src/ directory`)
-          allValid = false
-        }
-        if (!hasTests) {
-          console.log(`⚠️  Package ${pkg} missing __tests__ directory`)
+        if (!srcExempt.has(pkg)) {
+          if (!hasSrc) {
+            console.log(`⚠️  Package ${pkg} missing src/ directory`)
+            allValid = false
+          }
+          if (!hasTests) {
+            console.log(`⚠️  Package ${pkg} missing __tests__ directory`)
+          }
         }
         if (!hasPackageJson) {
           console.log(`❌ Package ${pkg} missing package.json`)
