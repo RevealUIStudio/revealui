@@ -6,9 +6,10 @@
  */
 
 import { createRoute, OpenAPIHono, z } from '@hono/zod-openapi'
+import { getMaxAgentTasks } from '@revealui/core/license'
 import { getClient } from '@revealui/db'
-import { licenses, users } from '@revealui/db/schema'
-import { desc, eq } from 'drizzle-orm'
+import { agentTaskUsage, licenses, users } from '@revealui/db/schema'
+import { and, desc, eq } from 'drizzle-orm'
 import { HTTPException } from 'hono/http-exception'
 import Stripe from 'stripe'
 
@@ -454,6 +455,66 @@ app.openapi(downgradeRoute, async (c) => {
     : new Date().toISOString()
 
   return c.json({ success: true, effectiveAt: effectiveDate }, 200)
+})
+
+// GET /api/billing/usage — Agent task usage for the current billing cycle
+const UsageResponseSchema = z.object({
+  used: z.number().openapi({ description: 'Tasks executed this billing cycle' }),
+  quota: z.number().openapi({ description: 'Maximum tasks for this tier (-1 = unlimited)' }),
+  overage: z.number().openapi({ description: 'Tasks beyond the tier quota' }),
+  cycleStart: z.string().openapi({ description: 'Start of current billing cycle (ISO 8601)' }),
+  resetAt: z
+    .string()
+    .openapi({ description: 'When the cycle resets (start of next month, ISO 8601)' }),
+})
+
+const usageRoute = createRoute({
+  method: 'get',
+  path: '/usage',
+  tags: ['billing'],
+  summary: 'Agent task usage',
+  description: 'Returns agent task usage for the current billing cycle.',
+  responses: {
+    200: {
+      content: { 'application/json': { schema: UsageResponseSchema } },
+      description: 'Current cycle usage',
+    },
+    401: {
+      content: { 'application/json': { schema: ErrorSchema } },
+      description: 'Not authenticated',
+    },
+  },
+})
+
+app.openapi(usageRoute, async (c) => {
+  const user = c.get('user')
+  if (!user) {
+    throw new HTTPException(401, { message: 'Authentication required' })
+  }
+
+  const now = new Date()
+  const cycle = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), 1))
+  const resetAt = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth() + 1, 1))
+
+  const db = getClient()
+  const [row] = await db
+    .select({ count: agentTaskUsage.count, overage: agentTaskUsage.overage })
+    .from(agentTaskUsage)
+    .where(and(eq(agentTaskUsage.userId, user.id), eq(agentTaskUsage.cycleStart, cycle)))
+    .limit(1)
+
+  const quota = getMaxAgentTasks()
+
+  return c.json(
+    {
+      used: row?.count ?? 0,
+      quota: quota === Infinity ? -1 : quota,
+      overage: row?.overage ?? 0,
+      cycleStart: cycle.toISOString(),
+      resetAt: resetAt.toISOString(),
+    },
+    200,
+  )
 })
 
 export default app

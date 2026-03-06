@@ -2,7 +2,7 @@
  * Auto-generated Zod schemas from Drizzle
  *
  * DO NOT EDIT - Regenerate with: pnpm generate:all
- * Generated: 2026-03-06T07:03:48.695Z
+ * Generated: 2026-03-06T12:54:43.569Z
  *
  * This file provides Zod schemas for all database tables, generated
  * directly from Drizzle table definitions using drizzle-zod.
@@ -91,6 +91,32 @@ export type AgentMemoriesRow = z.infer<typeof AgentMemoriesSelectSchema>
  * TypeScript type for agentMemories insert
  */
 export type AgentMemoriesInsert = z.infer<typeof AgentMemoriesInsertSchema>
+
+// =============================================================================
+// AgentTaskUsage Schemas
+// =============================================================================
+
+/**
+ * Zod schema for selecting agentTaskUsage rows from database
+ * Generated from Drizzle table definition: tables.agentTaskUsage
+ */
+export const AgentTaskUsageSelectSchema = createSelectSchema(tables.agentTaskUsage)
+
+/**
+ * Zod schema for inserting agentTaskUsage rows to database
+ * Generated from Drizzle table definition: tables.agentTaskUsage
+ */
+export const AgentTaskUsageInsertSchema = createInsertSchema(tables.agentTaskUsage)
+
+/**
+ * TypeScript type for agentTaskUsage row (Select)
+ */
+export type AgentTaskUsageRow = z.infer<typeof AgentTaskUsageSelectSchema>
+
+/**
+ * TypeScript type for agentTaskUsage insert
+ */
+export type AgentTaskUsageInsert = z.infer<typeof AgentTaskUsageInsertSchema>
 
 // =============================================================================
 // AiMemorySessions Schemas

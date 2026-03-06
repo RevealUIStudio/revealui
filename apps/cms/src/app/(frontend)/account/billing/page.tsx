@@ -18,6 +18,14 @@ interface SubscriptionData {
   expiresAt: string | null
 }
 
+interface UsageData {
+  used: number
+  quota: number
+  overage: number
+  cycleStart: string
+  resetAt: string
+}
+
 function safeStripeRedirect(url: string): void {
   const allowed = ['checkout.stripe.com', 'billing.stripe.com']
   try {
@@ -38,6 +46,7 @@ export default function BillingPage() {
   const upgrade = searchParams.get('upgrade')
   const { data: session, isLoading: sessionLoading } = useSession()
   const [subscription, setSubscription] = useState<SubscriptionData | null>(null)
+  const [usage, setUsage] = useState<UsageData | null>(null)
   const [isLoading, setIsLoading] = useState(true)
   const [actionLoading, setActionLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
@@ -47,10 +56,17 @@ export default function BillingPage() {
 
   const fetchSubscription = useCallback(async () => {
     try {
-      const res = await fetch(`${apiUrl}/api/billing/subscription`, { credentials: 'include' })
-      if (res.ok) {
-        const data = (await res.json()) as SubscriptionData
+      const [subRes, usageRes] = await Promise.all([
+        fetch(`${apiUrl}/api/billing/subscription`, { credentials: 'include' }),
+        fetch(`${apiUrl}/api/billing/usage`, { credentials: 'include' }),
+      ])
+      if (subRes.ok) {
+        const data = (await subRes.json()) as SubscriptionData
         setSubscription(data)
+      }
+      if (usageRes.ok) {
+        const data = (await usageRes.json()) as UsageData
+        setUsage(data)
       }
     } catch {
       setError('Failed to load subscription data')
@@ -377,6 +393,46 @@ export default function BillingPage() {
           </div>
         </CardContent>
       </Card>
+
+      {usage && (
+        <Card>
+          <CardHeader>
+            <CardTitle>Agent Task Usage</CardTitle>
+            <CardDescription>
+              {usage.quota === -1
+                ? 'Unlimited agent tasks (Forge tier).'
+                : `${usage.quota.toLocaleString()} tasks included per month. Resets ${new Date(usage.resetAt).toLocaleDateString('en-US', { month: 'long', day: 'numeric' })}.`}
+            </CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-3">
+            <div className="flex items-end justify-between text-sm">
+              <span className="font-medium">{usage.used.toLocaleString()} used</span>
+              <span className="text-zinc-500">
+                {usage.quota === -1 ? 'Unlimited' : `of ${usage.quota.toLocaleString()}`}
+              </span>
+            </div>
+            {usage.quota !== -1 && (
+              <div className="h-2 w-full overflow-hidden rounded-full bg-zinc-100 dark:bg-zinc-800">
+                <div
+                  className={`h-full rounded-full transition-all ${
+                    usage.used / usage.quota > 0.9
+                      ? 'bg-red-500'
+                      : usage.used / usage.quota > 0.7
+                        ? 'bg-amber-500'
+                        : 'bg-blue-500'
+                  }`}
+                  style={{ width: `${Math.min((usage.used / usage.quota) * 100, 100)}%` }}
+                />
+              </div>
+            )}
+            {usage.overage > 0 && (
+              <p className="text-xs text-amber-600 dark:text-amber-400">
+                {usage.overage.toLocaleString()} tasks over quota this cycle.
+              </p>
+            )}
+          </CardContent>
+        </Card>
+      )}
 
       {tier === 'free' && (
         <Card>
