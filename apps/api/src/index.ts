@@ -159,6 +159,16 @@ const licenseGenLimit = rateLimitMiddleware({
 app.use('/api/license/generate', licenseGenLimit)
 app.use('/api/v1/license/generate', licenseGenLimit)
 
+// A2A discovery endpoints are public per the A2A spec — rate limit to prevent enumeration abuse
+const a2aDiscoveryLimit = rateLimitMiddleware({
+  maxRequests: 60,
+  windowMs: 60_000,
+  keyPrefix: 'a2a-discovery',
+})
+app.use('/.well-known/*', a2aDiscoveryLimit)
+app.use('/a2a/agents', a2aDiscoveryLimit)
+app.use('/a2a/agents/*', a2aDiscoveryLimit)
+
 const agentLimit = rateLimitMiddleware({
   maxRequests: 10,
   windowMs: 60_000,

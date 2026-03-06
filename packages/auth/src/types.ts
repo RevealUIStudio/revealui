@@ -30,6 +30,7 @@ export interface User {
   createdAt: Date
   updatedAt: Date
   lastActiveAt: Date | null
+  // biome-ignore lint/style/useNamingConvention: OAuth provider standard field name
   _json?: unknown
 }
 
