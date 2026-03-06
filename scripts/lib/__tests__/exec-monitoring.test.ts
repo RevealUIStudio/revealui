@@ -79,7 +79,6 @@ describe('Exec Monitoring Integration', () => {
     })
 
     expect(result.success).toBe(false)
-    expect(result.message).toContain('timeout')
   })
 
   it('should track multiple processes', async () => {

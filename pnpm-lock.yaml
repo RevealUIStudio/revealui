@@ -1526,6 +1526,9 @@ importers:
 
   scripts/lib:
     dependencies:
+      '@revealui/core':
+        specifier: workspace:*
+        version: link:../../packages/core
       typescript:
         specifier: ^5.0.0
         version: 5.9.3
