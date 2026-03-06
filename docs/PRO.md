@@ -792,7 +792,7 @@ All MCP servers are **completely free**:
 
 - [Environment Variables Guide](./ENVIRONMENT_VARIABLES_GUIDE.md) - Configuration
 - [Database](./DATABASE.md) - Database setup and network compatibility
-- [Master Index](../INDEX.md) - Complete documentation index
+- [Master Index](./INDEX.md) - Complete documentation index
 
 ---
 
@@ -805,7 +805,6 @@ All MCP servers are **completely free**:
 
 ---
 
-**Last Updated:** January 2025
 **Maintained by:** RevealUI Team
 
 ---
