@@ -1,12 +1,113 @@
 'use client'
 
-import { useAgentStream } from '@revealui/ai/client'
 import type { JSX } from 'react'
-import { useRef, useState } from 'react'
+import { useCallback, useRef, useState } from 'react'
 
 interface BuilderAIPanelProps {
   /** Optional context describing what the user is currently building */
   buildContext?: string
+}
+
+interface AgentStreamChunk {
+  type: 'text' | 'tool_call_start' | 'tool_call_result' | 'error' | 'done'
+  content?: string
+  error?: string
+}
+
+/**
+ * Minimal agent streaming hook — supports an optional Authorization header
+ * for BYOK (Bring Your Own Key) use. The published @revealui/ai hook does
+ * not accept custom headers, so we implement the fetch loop here.
+ */
+function useAgentStream() {
+  const [text, setText] = useState('')
+  const [isStreaming, setIsStreaming] = useState(false)
+  const [error, setError] = useState<string | null>(null)
+  const controllerRef = useRef<AbortController | null>(null)
+
+  const abort = useCallback(() => {
+    controllerRef.current?.abort()
+    setIsStreaming(false)
+  }, [])
+
+  const reset = useCallback(() => {
+    controllerRef.current?.abort()
+    setText('')
+    setError(null)
+    setIsStreaming(false)
+  }, [])
+
+  const start = useCallback(async (instruction: string, apiKey?: string) => {
+    controllerRef.current?.abort()
+    const controller = new AbortController()
+    controllerRef.current = controller
+
+    setText('')
+    setError(null)
+    setIsStreaming(true)
+
+    const headers: Record<string, string> = { 'Content-Type': 'application/json' }
+    if (apiKey) {
+      headers.Authorization = `Bearer ${apiKey}`
+    }
+
+    try {
+      const response = await fetch('/api/agent-stream', {
+        method: 'POST',
+        headers,
+        body: JSON.stringify({ instruction }),
+        signal: controller.signal,
+      })
+
+      if (!response.ok) {
+        const errText = await response.text()
+        setError(`HTTP ${response.status}: ${errText}`)
+        setIsStreaming(false)
+        return
+      }
+
+      if (!response.body) {
+        setError('No response body')
+        setIsStreaming(false)
+        return
+      }
+
+      const reader = response.body.getReader()
+      const decoder = new TextDecoder()
+      let buffer = ''
+
+      while (true) {
+        const { value, done } = await reader.read()
+        if (done) break
+        buffer += decoder.decode(value, { stream: true })
+
+        const events = buffer.split('\n\n')
+        buffer = events.pop() ?? ''
+
+        for (const event of events) {
+          const dataLine = event.split('\n').find((l) => l.startsWith('data: '))
+          if (!dataLine) continue
+          try {
+            const chunk = JSON.parse(dataLine.slice(6)) as AgentStreamChunk
+            if (chunk.type === 'text') setText((t) => t + (chunk.content ?? ''))
+            if (chunk.type === 'error') setError(chunk.error ?? 'Unknown error')
+            if (chunk.type === 'done' || chunk.type === 'error') setIsStreaming(false)
+          } catch {
+            // Malformed SSE data — skip
+          }
+        }
+      }
+    } catch (err) {
+      if (err instanceof Error && err.name === 'AbortError') {
+        setIsStreaming(false)
+        return
+      }
+      setError(err instanceof Error ? err.message : String(err))
+      setIsStreaming(false)
+    }
+  }, [])
+
+  return { text, isStreaming, error, start, abort, reset }
 }
 
 export function BuilderAIPanel({ buildContext }: BuilderAIPanelProps): JSX.Element {
@@ -26,7 +127,7 @@ export function BuilderAIPanel({ buildContext }: BuilderAIPanelProps): JSX.Eleme
       : instruction
 
     // BYOK key is sent via Authorization header, never in the request body
-    start({ instruction: resolvedInstruction }, apiKey ? `/api/agent-stream` : undefined)
+    void start(resolvedInstruction, apiKey || undefined)
     setInput('')
   }
 
