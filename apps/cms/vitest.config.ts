@@ -15,6 +15,16 @@ export default defineConfig({
       DATABASE_URL: '', // Use SQLite for tests
       SKIP_ONINIT: 'true',
     },
+    server: {
+      deps: {
+        // Inline all @revealui/* workspace packages so Vite's resolver (and
+        // alias map) applies to their transitive imports too. Without this,
+        // Node.js native ESM loads them directly and the @revealui/config
+        // alias is bypassed, causing "Cannot find module ./loader" errors
+        // from the extensionless imports that tsc emits under moduleResolution:bundler.
+        inline: [/@revealui\//],
+      },
+    },
     coverage: {
       provider: 'v8',
       reporter: ['text', 'json', 'html', 'lcov'],
