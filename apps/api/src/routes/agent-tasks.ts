@@ -253,7 +253,11 @@ app.openapi(
     const { ticketId } = c.req.valid('param')
 
     const ticket = await ticketQueries.getTicketById(db, ticketId)
-    if (!ticket || (ticket.tenantId && ticket.tenantId !== tenant?.id)) {
+    if (!ticket) {
+      return c.json({ success: false as const, error: 'Ticket not found' }, 404)
+    }
+    const board = await boardQueries.getBoardById(db, ticket.boardId)
+    if (tenant && board?.tenantId && board.tenantId !== tenant.id) {
       return c.json({ success: false as const, error: 'Ticket not found' }, 404)
     }
 
