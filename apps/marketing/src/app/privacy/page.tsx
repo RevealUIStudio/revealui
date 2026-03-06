@@ -1,4 +1,10 @@
+import type { Metadata } from 'next'
 import { Footer } from '@/components/Footer'
+
+export const metadata: Metadata = {
+  title: 'Privacy Policy — RevealUI',
+  description: 'Privacy policy for RevealUI and RevealUI Studio.',
+}
 
 export default function PrivacyPolicyPage() {
   return (

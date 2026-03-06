@@ -1,4 +1,17 @@
+import type { Metadata } from 'next'
 import { Footer } from '@/components/Footer'
+
+export const metadata: Metadata = {
+  title: 'Pricing — RevealUI',
+  description:
+    'Free to start. Upgrade for AI agents, multi-provider LLMs, audit logs, and advanced compliance. Simple, transparent pricing for software companies.',
+  openGraph: {
+    title: 'Pricing — RevealUI',
+    description:
+      'Free to start. Upgrade for AI agents, multi-provider LLMs, audit logs, and advanced compliance.',
+    type: 'website',
+  },
+}
 
 const tiers = [
   {

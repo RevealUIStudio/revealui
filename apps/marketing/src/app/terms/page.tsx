@@ -1,4 +1,10 @@
+import type { Metadata } from 'next'
 import { Footer } from '@/components/Footer'
+
+export const metadata: Metadata = {
+  title: 'Terms of Service — RevealUI',
+  description: 'Terms of service for RevealUI and RevealUI Studio.',
+}
 
 export default function TermsOfServicePage() {
   return (
