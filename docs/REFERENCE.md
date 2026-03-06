@@ -620,7 +620,7 @@ if (isLicensed('pro')) {
 Returns the cached license tier synchronously. Call `initializeLicense()` first.
 
 ```ts
-type LicenseTier = 'free' | 'pro' | 'enterprise'
+type LicenseTier = 'free' | 'pro' | 'max' | 'enterprise'
 ```
 
 ### `getLicensePayload(): LicensePayload | null`
@@ -629,7 +629,7 @@ Returns the decoded JWT payload, or `null` on free tier.
 
 ```ts
 interface LicensePayload {
-  tier: 'pro' | 'enterprise'
+  tier: 'pro' | 'max' | 'enterprise'
   customerId: string
   domains?: string[]
   maxSites?: number

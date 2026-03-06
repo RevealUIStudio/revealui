@@ -15,7 +15,7 @@ import { isLicensed, type LicenseTier } from './license.js'
 export interface FeatureFlags {
   /** AI agent system (Pro: 1 provider, Enterprise: all providers) */
   ai: boolean
-  /** AI memory system — working + episodic + vector (Pro: basic, Enterprise: full) */
+  /** AI memory system — working + episodic + vector (Max: basic, Enterprise: full) */
   aiMemory: boolean
   /** MCP server integration */
   mcp: boolean
@@ -31,6 +31,10 @@ export interface FeatureFlags {
   whiteLabel: boolean
   /** SSO/SAML authentication */
   sso: boolean
+  /** BYOK server-side key storage (Max+) */
+  byokServerSide: boolean
+  /** Multi-provider AI (Max+: 2 providers, Enterprise: all providers) */
+  aiMultiProvider: boolean
   /** Audit logging and compliance trail */
   auditLog: boolean
   /** Full real-time sync with conflict resolution */
@@ -46,7 +50,6 @@ export interface FeatureFlags {
 /** Feature-to-tier mapping: minimum tier required for each feature */
 const featureTierMap: Record<keyof FeatureFlags, LicenseTier> = {
   ai: 'pro',
-  aiMemory: 'pro',
   mcp: 'pro',
   editors: 'pro',
   harnesses: 'pro',
@@ -55,10 +58,13 @@ const featureTierMap: Record<keyof FeatureFlags, LicenseTier> = {
   dashboard: 'pro',
   customDomain: 'pro',
   analytics: 'pro',
+  aiMemory: 'max',
+  byokServerSide: 'max',
+  aiMultiProvider: 'max',
+  auditLog: 'max',
   multiTenant: 'enterprise',
   whiteLabel: 'enterprise',
   sso: 'enterprise',
-  auditLog: 'enterprise',
 }
 
 /**
@@ -108,7 +114,8 @@ export function getFeaturesForTier(tier: LicenseTier): FeatureFlags {
   const tierRank: Record<LicenseTier, number> = {
     free: 0,
     pro: 1,
-    enterprise: 2,
+    max: 2,
+    enterprise: 3,
   }
 
   const flags = {} as FeatureFlags

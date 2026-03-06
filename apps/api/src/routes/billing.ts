@@ -37,7 +37,7 @@ const CheckoutRequestSchema = z.object({
     description: 'Stripe price ID for the subscription',
     example: 'price_abc123',
   }),
-  tier: z.enum(['pro', 'enterprise']).optional().openapi({
+  tier: z.enum(['pro', 'max', 'enterprise']).optional().openapi({
     description: 'License tier (defaults to pro)',
     example: 'pro',
   }),
@@ -52,7 +52,9 @@ const PortalResponseSchema = z.object({
 })
 
 const SubscriptionResponseSchema = z.object({
-  tier: z.enum(['free', 'pro', 'enterprise']).openapi({ description: 'Current license tier' }),
+  tier: z
+    .enum(['free', 'pro', 'max', 'enterprise'])
+    .openapi({ description: 'Current license tier' }),
   status: z.string().openapi({ description: 'License status', example: 'active' }),
   expiresAt: z.string().nullable().openapi({ description: 'Expiration date (ISO 8601)' }),
   licenseKey: z.string().nullable().openapi({ description: 'JWT license key' }),
@@ -67,9 +69,9 @@ const UpgradeRequestSchema = z.object({
     description: 'Stripe price ID for the target tier',
     example: 'price_enterprise_monthly',
   }),
-  targetTier: z.enum(['pro', 'enterprise']).openapi({
+  targetTier: z.enum(['pro', 'max', 'enterprise']).openapi({
     description: 'Tier to upgrade to',
-    example: 'enterprise',
+    example: 'max',
   }),
 })
 
@@ -291,7 +293,7 @@ app.openapi(subscriptionRoute, async (c) => {
 
   return c.json(
     {
-      tier: license.tier as 'free' | 'pro' | 'enterprise',
+      tier: license.tier as 'free' | 'pro' | 'max' | 'enterprise',
       status: license.status,
       expiresAt: license.expiresAt?.toISOString() ?? null,
       licenseKey: license.licenseKey,

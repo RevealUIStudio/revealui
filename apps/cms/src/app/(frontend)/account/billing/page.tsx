@@ -13,7 +13,7 @@ import { useRouter, useSearchParams } from 'next/navigation'
 import { useCallback, useEffect, useState } from 'react'
 
 interface SubscriptionData {
-  tier: 'free' | 'pro' | 'enterprise'
+  tier: 'free' | 'pro' | 'max' | 'enterprise'
   status: string
   expiresAt: string | null
 }
@@ -88,6 +88,33 @@ export default function BillingPage() {
     }
   }
 
+  const handleUpgradeToMax = async () => {
+    setActionLoading(true)
+    setError(null)
+    try {
+      const res = await fetch(`${apiUrl}/api/billing/upgrade`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
+        body: JSON.stringify({
+          priceId: process.env.NEXT_PUBLIC_STRIPE_MAX_PRICE_ID || '',
+          targetTier: 'max',
+        }),
+      })
+      const data = (await res.json()) as { success?: boolean; error?: string }
+      if (data.success) {
+        setUpgradeSuccess(true)
+        setTimeout(() => void fetchSubscription(), 2000)
+      } else {
+        setError(data.error || 'Failed to upgrade subscription')
+      }
+    } catch {
+      setError('Network error. Please try again.')
+    } finally {
+      setActionLoading(false)
+    }
+  }
+
   const handleUpgradeToEnterprise = async () => {
     setActionLoading(true)
     setError(null)
@@ -148,12 +175,14 @@ export default function BillingPage() {
   const tierLabels: Record<string, string> = {
     free: 'Free (OSS)',
     pro: 'Pro',
-    enterprise: 'Enterprise',
+    max: 'Max',
+    enterprise: 'Forge (Enterprise)',
   }
 
   const tierColors: Record<string, string> = {
     free: 'bg-zinc-100 text-zinc-700 dark:bg-zinc-800 dark:text-zinc-300',
     pro: 'bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400',
+    max: 'bg-indigo-100 text-indigo-700 dark:bg-indigo-900/30 dark:text-indigo-400',
     enterprise: 'bg-purple-100 text-purple-700 dark:bg-purple-900/30 dark:text-purple-400',
   }
 
@@ -184,8 +213,8 @@ export default function BillingPage() {
       )}
 
       {upgradeSuccess && (
-        <div className="rounded-md bg-purple-50 p-4 text-sm text-purple-700 dark:bg-purple-900/20 dark:text-purple-400">
-          Upgraded to Enterprise! Your plan will update within a few seconds.
+        <div className="rounded-md bg-indigo-50 p-4 text-sm text-indigo-700 dark:bg-indigo-900/20 dark:text-indigo-400">
+          Upgraded! Your plan will update within a few seconds.
         </div>
       )}
 
@@ -240,8 +269,45 @@ export default function BillingPage() {
             {tier === 'pro' && (
               <div className="space-y-3">
                 <p className="text-sm text-zinc-500">
-                  Upgrade to Enterprise for unlimited sites, multi-provider AI, white-label
-                  branding, and dedicated support.
+                  Upgrade to Max for AI memory, BYOK server-side, multi-provider AI, and higher
+                  limits (15 projects, 100 users).
+                </p>
+                <Button
+                  onClick={handleUpgradeToMax}
+                  disabled={actionLoading || upgradeSuccess}
+                  className="w-full"
+                >
+                  {actionLoading
+                    ? 'Upgrading...'
+                    : upgradeSuccess
+                      ? 'Upgraded to Max'
+                      : 'Upgrade to Max — $149/mo'}
+                </Button>
+                <Button
+                  onClick={handleManageBilling}
+                  disabled={actionLoading}
+                  variant="outline"
+                  className="w-full"
+                >
+                  {actionLoading ? 'Opening portal...' : 'Manage Billing'}
+                </Button>
+                <button
+                  type="button"
+                  onClick={handleManageBilling}
+                  disabled={actionLoading}
+                  title="Cancels at the end of your current billing period. You keep access until then."
+                  className="w-full text-sm text-zinc-400 underline hover:text-zinc-600 disabled:cursor-not-allowed dark:text-zinc-500 dark:hover:text-zinc-300"
+                >
+                  Cancel subscription
+                </button>
+              </div>
+            )}
+
+            {tier === 'max' && (
+              <div className="space-y-3">
+                <p className="text-sm text-zinc-500">
+                  Upgrade to Forge for unlimited projects and users, SSO, white-label branding,
+                  multi-tenant isolation, and self-hosted deployment.
                 </p>
                 <Button
                   onClick={handleUpgradeToEnterprise}
@@ -251,8 +317,8 @@ export default function BillingPage() {
                   {actionLoading
                     ? 'Upgrading...'
                     : upgradeSuccess
-                      ? 'Upgraded to Enterprise'
-                      : 'Upgrade to Enterprise — $299/mo'}
+                      ? 'Upgraded to Forge'
+                      : 'Upgrade to Forge — $299/mo'}
                 </Button>
                 <Button
                   onClick={handleManageBilling}
@@ -306,14 +372,16 @@ export default function BillingPage() {
           </CardHeader>
           <CardContent>
             <ul className="space-y-2 text-sm text-zinc-600 dark:text-zinc-400">
-              <li>Up to 5 sites and 25 users</li>
-              <li>AI agent system (1 provider)</li>
-              <li>AI memory (working + episodic)</li>
+              <li>Up to 5 projects and 25 users</li>
+              <li>AI agent system (1 provider, BYOK client-side)</li>
+              <li>MCP server integration</li>
               <li>Built-in Stripe payment processing</li>
               <li>Full real-time sync with conflict resolution</li>
               <li>Monitoring dashboard</li>
               <li>Custom domain mapping</li>
               <li>Analytics and conversion tracking</li>
+              <li>10,000 agent tasks/month</li>
+              <li>300 API requests/minute</li>
               <li>Email support (48-hour SLA)</li>
             </ul>
           </CardContent>
@@ -323,16 +391,39 @@ export default function BillingPage() {
       {tier === 'pro' && (
         <Card>
           <CardHeader>
-            <CardTitle>What&apos;s Included in Enterprise</CardTitle>
+            <CardTitle>What&apos;s Included in Max</CardTitle>
           </CardHeader>
           <CardContent>
             <ul className="space-y-2 text-sm text-zinc-600 dark:text-zinc-400">
-              <li>Unlimited sites and users</li>
+              <li>Up to 15 projects and 100 users</li>
+              <li>AI with 2 providers, BYOK server-side</li>
+              <li>AI memory (working + episodic + vector)</li>
+              <li>Audit log for all license + tier events</li>
+              <li>50,000 agent tasks/month</li>
+              <li>600 API requests/minute</li>
+              <li>Priority support (24-hour SLA)</li>
+            </ul>
+          </CardContent>
+        </Card>
+      )}
+
+      {tier === 'max' && (
+        <Card>
+          <CardHeader>
+            <CardTitle>What&apos;s Included in Forge</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <ul className="space-y-2 text-sm text-zinc-600 dark:text-zinc-400">
+              <li>Unlimited projects and users</li>
               <li>All AI providers (Anthropic, OpenAI, Groq, Ollama)</li>
               <li>Full AI memory (semantic + procedural + episodic)</li>
+              <li>SSO/SAML authentication</li>
               <li>White-label branding removal</li>
+              <li>Multi-tenant isolation</li>
               <li>Domain-locked license enforcement</li>
-              <li>Audit log for all license + tier events</li>
+              <li>Self-hosted deployment rights</li>
+              <li>Unlimited agent tasks</li>
+              <li>1,000 API requests/minute</li>
               <li>Priority support (4-hour SLA)</li>
               <li>Custom SLA and DPA available</li>
             </ul>

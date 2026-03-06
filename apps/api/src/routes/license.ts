@@ -18,7 +18,7 @@ const LicenseVerifyRequestSchema = z.object({
 
 const LicenseVerifyResponseSchema = z.object({
   valid: z.boolean().openapi({ description: 'Whether the license is valid' }),
-  tier: z.enum(['free', 'pro', 'enterprise']).openapi({
+  tier: z.enum(['free', 'pro', 'max', 'enterprise']).openapi({
     description: 'License tier',
     example: 'pro',
   }),
@@ -44,7 +44,7 @@ const LicenseVerifyResponseSchema = z.object({
 })
 
 const LicenseGenerateRequestSchema = z.object({
-  tier: z.enum(['pro', 'enterprise']).openapi({
+  tier: z.enum(['pro', 'max', 'enterprise']).openapi({
     description: 'License tier to generate',
     example: 'pro',
   }),
@@ -78,7 +78,7 @@ const LicenseGenerateResponseSchema = z.object({
   licenseKey: z.string().openapi({
     description: 'Signed JWT license key',
   }),
-  tier: z.enum(['pro', 'enterprise']).openapi({
+  tier: z.enum(['pro', 'max', 'enterprise']).openapi({
     description: 'License tier',
   }),
   customerId: z.string().openapi({
