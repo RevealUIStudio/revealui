@@ -7,6 +7,7 @@ import type { getSharedRoomManager } from '../collab/shared-room-manager.js'
 
 type Variables = {
   db: Parameters<typeof getSharedRoomManager>[0]
+  user?: { id: string; role: string }
 }
 
 const UpdateSchema = z.object({
@@ -35,6 +36,9 @@ export function createCollabRoute(): Hono<{ Variables: Variables }> {
    * (crdt_operations table) is planned for Phase 2.
    */
   app.post('/api/collab/update', async (c) => {
+    if (!c.get('user')) {
+      return c.json({ success: false, error: 'Authentication required' }, 401)
+    }
     const body = await c.req.json()
     const parsed = UpdateSchema.safeParse(body)
     if (!parsed.success) {
@@ -76,6 +80,9 @@ export function createCollabRoute(): Hono<{ Variables: Variables }> {
    * subscription catches up.
    */
   app.get('/api/collab/snapshot/:documentId', async (c) => {
+    if (!c.get('user')) {
+      return c.json({ success: false, error: 'Authentication required' }, 401)
+    }
     const documentId = c.req.param('documentId')
     const db = c.get('db')
     const persistence = createYjsPersistence(db)

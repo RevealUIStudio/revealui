@@ -284,10 +284,15 @@ app.delete('/api/v1/rag/*', requireRole('admin'))
 
 // Write-protect mutation endpoints — these require authentication
 const writeProtected = authMiddleware({ required: true })
+app.get('/api/collab/snapshot/*', writeProtected)
+app.get('/api/v1/collab/snapshot/*', writeProtected)
 app.post('/api/collab/*', writeProtected)
 app.post('/api/v1/collab/*', writeProtected)
 app.post('/api/collab/agent/*', writeProtected)
 app.post('/api/v1/collab/agent/*', writeProtected)
+// Ticket routes: all methods require auth — boards/tickets are private workspace data
+app.get('/api/tickets/*', writeProtected)
+app.get('/api/v1/tickets/*', writeProtected)
 app.post('/api/tickets/*', writeProtected)
 app.post('/api/v1/tickets/*', writeProtected)
 app.patch('/api/tickets/*', writeProtected)

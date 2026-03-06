@@ -68,18 +68,21 @@ export const errorHandler: ErrorHandler = (err, c) => {
 
   // Handle validation errors — client mistake, no persist
   if (err.name === 'ZodError') {
+    // Strip field-level details in production to avoid leaking schema information
     let details: unknown
-    try {
-      details = JSON.parse(err.message)
-    } catch {
-      details = err.message
+    if (process.env.NODE_ENV !== 'production') {
+      try {
+        details = JSON.parse(err.message)
+      } catch {
+        details = err.message
+      }
     }
     return c.json(
       {
         success: false as const,
         error: 'Validation failed',
         code: 'VALIDATION_ERROR',
-        details,
+        ...(details !== undefined && { details }),
         requestId,
       } satisfies APIErrorResponse,
       400,

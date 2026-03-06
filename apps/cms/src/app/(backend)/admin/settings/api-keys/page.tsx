@@ -28,43 +28,49 @@ const PROVIDERS: ProviderInfo[] = [
   },
 ]
 
-const LS_PROVIDER_KEY = 'revealui:byok:provider'
-const LS_API_KEY = 'revealui:byok:api-key'
-
 export default function ApiKeysPage() {
   const [provider, setProvider] = useState<Provider>('anthropic')
   const [apiKey, setApiKey] = useState('')
   const [showKey, setShowKey] = useState(false)
   const [saved, setSaved] = useState(false)
   const [currentProvider, setCurrentProvider] = useState<string | null>(null)
+  const [currentKeyHint, setCurrentKeyHint] = useState<string | null>(null)
 
-  // Load from localStorage on mount
+  // Load existing key metadata from server on mount
   useEffect(() => {
-    const storedProvider = localStorage.getItem(LS_PROVIDER_KEY) as Provider | null
-    const storedKey = localStorage.getItem(LS_API_KEY)
-    if (storedProvider) {
-      setProvider(storedProvider)
-      setCurrentProvider(storedProvider)
-    }
-    if (storedKey) {
-      setApiKey(storedKey)
-    }
+    fetch('/api/user/api-keys')
+      .then((r) => (r.ok ? r.json() : null))
+      .then((data: { provider: string; keyHint: string | null } | null) => {
+        if (data) {
+          setCurrentProvider(data.provider as Provider)
+          setCurrentKeyHint(data.keyHint)
+        }
+      })
+      .catch(() => {})
   }, [])
 
-  function handleSave() {
+  async function handleSave() {
     if (!apiKey.trim()) return
-    localStorage.setItem(LS_PROVIDER_KEY, provider)
-    localStorage.setItem(LS_API_KEY, apiKey.trim())
-    setCurrentProvider(provider)
-    setSaved(true)
-    setTimeout(() => setSaved(false), 2000)
+    const res = await fetch('/api/user/api-keys', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ provider, key: apiKey.trim() }),
+    })
+    if (res.ok) {
+      const data = (await res.json()) as { provider: string; keyHint: string }
+      setCurrentProvider(data.provider)
+      setCurrentKeyHint(data.keyHint)
+      setApiKey('')
+      setSaved(true)
+      setTimeout(() => setSaved(false), 2000)
+    }
   }
 
-  function handleClear() {
-    localStorage.removeItem(LS_PROVIDER_KEY)
-    localStorage.removeItem(LS_API_KEY)
+  async function handleClear() {
+    await fetch('/api/user/api-keys', { method: 'DELETE' })
     setApiKey('')
     setCurrentProvider(null)
+    setCurrentKeyHint(null)
     setSaved(false)
   }
 
@@ -91,15 +97,15 @@ export default function ApiKeysPage() {
             <div className="mb-6 flex items-center gap-2 rounded-lg border border-emerald-800/50 bg-emerald-900/20 px-4 py-3 text-sm text-emerald-400">
               <span className="h-2 w-2 rounded-full bg-emerald-400" />
               {PROVIDERS.find((p) => p.id === currentProvider)?.label ?? currentProvider} key
-              configured — tasks will use your key
+              configured{currentKeyHint ? ` (${currentKeyHint})` : ''} — tasks will use your key
             </div>
           )}
 
           <div className="rounded-xl border border-zinc-800 bg-zinc-900 p-5">
             <h1 className="text-base font-semibold text-white">AI Provider Key</h1>
             <p className="mt-1 text-sm text-zinc-400">
-              Your key is stored only in this browser and sent directly to the API on each request.
-              It is never saved on RevealUI servers.
+              Your key is stored encrypted on RevealUI servers and never sent to the client except
+              at the moment of an AI request.
             </p>
 
             <div className="mt-5 flex flex-col gap-4">
@@ -184,12 +190,6 @@ export default function ApiKeysPage() {
               </div>
             </div>
           </div>
-
-          <p className="mt-4 text-xs text-zinc-600">
-            Keys are stored in your browser&apos;s localStorage under{' '}
-            <code className="font-mono text-zinc-500">revealui:byok:*</code>. Clearing browser data
-            removes them.
-          </p>
         </div>
       </div>
     </LicenseGate>

@@ -6,6 +6,11 @@ import { eq, sql } from 'drizzle-orm'
 import type { DatabaseClient } from '../client/types.js'
 import { ticketComments, tickets } from '../schema/tickets.js'
 
+export async function getCommentById(db: DatabaseClient, id: string) {
+  const result = await db.select().from(ticketComments).where(eq(ticketComments.id, id)).limit(1)
+  return result[0] ?? null
+}
+
 export async function getCommentsByTicket(db: DatabaseClient, ticketId: string) {
   return db
     .select()

@@ -76,14 +76,16 @@ export async function revalidateTag(
 ): Promise<{ revalidated: boolean; error?: string }> {
   try {
     const url = new URL('/api/revalidate', process.env.NEXT_PUBLIC_URL || 'http://localhost:3000')
-    url.searchParams.set('tag', tag)
 
+    const headers: HeadersInit = { 'Content-Type': 'application/json' }
     if (secret) {
-      url.searchParams.set('secret', secret)
+      headers['x-revalidate-secret'] = secret
     }
 
     const response = await fetch(url.toString(), {
       method: 'POST',
+      headers,
+      body: JSON.stringify({ tag }),
     })
 
     const data = await response.json()
@@ -109,14 +111,16 @@ export async function revalidatePath(
 ): Promise<{ revalidated: boolean; error?: string }> {
   try {
     const url = new URL('/api/revalidate', process.env.NEXT_PUBLIC_URL || 'http://localhost:3000')
-    url.searchParams.set('path', path)
 
+    const headers: HeadersInit = { 'Content-Type': 'application/json' }
     if (secret) {
-      url.searchParams.set('secret', secret)
+      headers['x-revalidate-secret'] = secret
     }
 
     const response = await fetch(url.toString(), {
       method: 'POST',
+      headers,
+      body: JSON.stringify({ path }),
     })
 
     const data = await response.json()

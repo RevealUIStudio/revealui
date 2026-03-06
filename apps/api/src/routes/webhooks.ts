@@ -178,6 +178,23 @@ app.post('/stripe', async (c) => {
     return c.json({ received: true }, 200)
   }
 
+  // Reject stale events to prevent replay attacks.
+  // Stripe's own tolerance window is 300s; we match it.
+  // Note: Stripe retries failed deliveries for up to 72h, but those retries
+  // carry the *original* event timestamp. If legitimate retries are being
+  // rejected here, increase MAX_EVENT_AGE_SECONDS or scope this check to
+  // sensitive event types only (checkout.session.completed, subscription.*).
+  const maxEventAgeSeconds = 300
+  const eventAge = Math.floor(Date.now() / 1000) - event.created
+  if (eventAge > maxEventAgeSeconds) {
+    logger.warn('Rejected stale webhook event', undefined, {
+      eventId: event.id,
+      eventAge,
+      eventType: event.type,
+    })
+    return c.json({ error: 'Event too old' }, 400)
+  }
+
   const db = getClient()
 
   // DB-backed idempotency check

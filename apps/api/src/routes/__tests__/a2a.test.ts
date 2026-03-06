@@ -50,6 +50,11 @@ const {
   mockGetClient: vi.fn(),
 }))
 
+vi.mock('@revealui/ai/llm/server', () => ({
+  createLLMClientForUser: vi.fn(),
+  LLMClient: class LLMClient {},
+}))
+
 vi.mock('@revealui/ai', () => ({
   agentCardRegistry: {
     getCard: mockGetCard,
@@ -72,6 +77,18 @@ vi.mock('@revealui/core/features', () => ({
 
 vi.mock('@revealui/core/license', () => ({
   initializeLicense: vi.fn(),
+}))
+
+// Mock auth middleware — passes through by default (auth enforced in integration tests)
+vi.mock('../../middleware/auth.js', () => ({
+  authMiddleware: vi.fn(
+    (_options?: unknown) => async (_c: unknown, next: () => Promise<void>) => next(),
+  ),
+  requireRole: vi.fn(
+    (..._roles: string[]) =>
+      async (_c: unknown, next: () => Promise<void>) =>
+        next(),
+  ),
 }))
 
 // Mock license middleware — requireFeature passes through by default

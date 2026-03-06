@@ -1,5 +1,5 @@
 import type { CollectionConfig } from '@revealui/core'
-import { authenticated } from '@/lib/access'
+import { authenticated, isAdmin } from '@/lib/access'
 
 /**
  * Conversations Collection
@@ -16,9 +16,21 @@ export const Conversations: CollectionConfig = {
   slug: 'conversations',
   access: {
     create: authenticated,
-    delete: authenticated,
-    read: authenticated,
-    update: authenticated,
+    read: ({ req }) => {
+      if (!req.user) return false
+      if (isAdmin({ req })) return true
+      return { user_id: { equals: req.user.id } }
+    },
+    update: ({ req }) => {
+      if (!req.user) return false
+      if (isAdmin({ req })) return true
+      return { user_id: { equals: req.user.id } }
+    },
+    delete: ({ req }) => {
+      if (!req.user) return false
+      if (isAdmin({ req })) return true
+      return { user_id: { equals: req.user.id } }
+    },
   },
   admin: {
     defaultColumns: ['id', 'session_id', 'user_id', 'agent_id', 'created_at', 'updated_at'],

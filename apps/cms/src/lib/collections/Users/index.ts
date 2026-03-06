@@ -1,6 +1,6 @@
 import type { RevealCollectionConfig } from '@revealui/core'
 import type { User } from '@revealui/core/types/cms'
-import { anyone, isAdmin, isAdminAndUser, isSuperAdmin } from '@/lib/access'
+import { isAdmin, isAdminAndUser, isSuperAdmin } from '@/lib/access'
 import { isTenantAdminOrSuperAdmin } from '@/lib/access/tenants/isTenantAdminOrSuperAdmin'
 import { loginAfterCreate, recordLastLoggedInTenant } from '@/lib/hooks/index'
 
@@ -16,7 +16,11 @@ const Users: RevealCollectionConfig<User> = {
   },
   access: {
     create: isAdmin,
-    read: anyone,
+    read: ({ req }) => {
+      if (!req.user) return false
+      if (isAdmin({ req })) return true
+      return { id: { equals: req.user.id } }
+    },
     update: isAdminAndUser,
     delete: isAdmin,
   },

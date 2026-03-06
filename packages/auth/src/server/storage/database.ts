@@ -84,4 +84,37 @@ export class DatabaseStorage implements Storage {
     const result = await this.get(key)
     return result !== null
   }
+
+  /**
+   * Atomically read and update a value using a database transaction.
+   * Falls back to non-atomic get-then-set if transactions are unavailable
+   * (e.g., Neon HTTP mode in environments that don't support advisory locks).
+   */
+  async atomicUpdate(
+    key: string,
+    updater: (existing: string | null) => { value: string; ttlSeconds: number },
+  ): Promise<void> {
+    try {
+      await this.db.transaction(async (tx) => {
+        const now = new Date()
+        const result = await tx.query.rateLimits.findFirst({
+          where: and(eq(rateLimits.key, key), gte(rateLimits.resetAt, now)),
+        })
+        const { value, ttlSeconds } = updater(result?.value ?? null)
+        const resetAt = new Date(Date.now() + ttlSeconds * 1000)
+        await tx
+          .insert(rateLimits)
+          .values({ key, value, resetAt })
+          .onConflictDoUpdate({
+            target: rateLimits.key,
+            set: { value, resetAt, updatedAt: new Date() },
+          })
+      })
+    } catch {
+      // Transaction not supported (e.g., Neon HTTP serverless) — fall back to non-atomic
+      const existing = await this.get(key)
+      const { value, ttlSeconds } = updater(existing)
+      await this.set(key, value, ttlSeconds)
+    }
+  }
 }

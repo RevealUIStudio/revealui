@@ -262,6 +262,30 @@ export const agentActions = pgTable('agent_actions', {
 })
 
 // =============================================================================
+// AI Memory Sessions Table (Ownership binding for CRDT memory sessions)
+// =============================================================================
+
+/**
+ * Binds a CRDT working-memory sessionId to the user who created it.
+ * Inserted on first POST to /api/memory/working/:sessionId or
+ * /api/memory/context/:sessionId/:agentId; checked on every subsequent access.
+ */
+export const aiMemorySessions = pgTable('ai_memory_sessions', {
+  // sessionId from the client (client-generated UUID)
+  id: text('id').primaryKey(),
+
+  // User who owns this session — enforced on read/write
+  userId: text('user_id')
+    .notNull()
+    .references(() => users.id, { onDelete: 'cascade' }),
+
+  createdAt: timestamp('created_at', { withTimezone: true }).defaultNow().notNull(),
+})
+
+export type AiMemorySession = typeof aiMemorySessions.$inferSelect
+export type NewAiMemorySession = typeof aiMemorySessions.$inferInsert
+
+// =============================================================================
 // Registered Agents Table (Persisted A2A agent definitions)
 // =============================================================================
 

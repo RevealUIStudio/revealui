@@ -88,9 +88,13 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
       )
     }
 
-    // Perform search
+    // Perform search — enforce userId so non-admins can only search their own memories
     const service = new VectorMemoryService()
-    const results = await service.searchSimilar(queryEmbedding, options || {})
+    const safeOptions = {
+      ...((options as Record<string, unknown>) ?? {}),
+      ...(authSession.user.role !== 'admin' ? { userId: authSession.user.id } : {}),
+    }
+    const results = await service.searchSimilar(queryEmbedding, safeOptions)
 
     return NextResponse.json({
       success: true,

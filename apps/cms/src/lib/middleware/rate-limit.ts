@@ -48,13 +48,24 @@ export const rateLimitConfigs = {
 /**
  * Creates a rate limit middleware function
  */
+/**
+ * Extract the trusted client IP from X-Forwarded-For.
+ * Takes the rightmost entry (appended by the outermost trusted proxy — Vercel/Cloudflare),
+ * not the leftmost (which is attacker-controlled in multi-hop scenarios).
+ */
+function extractTrustedIp(request: NextRequest): string {
+  const xff = request.headers.get('x-forwarded-for')
+  if (xff) {
+    const ips = xff.split(',').map((s) => s.trim())
+    const last = ips[ips.length - 1]
+    if (last) return last
+  }
+  return request.headers.get('x-real-ip') || (request as NextRequestWithIP).ip || 'unknown'
+}
+
 export function rateLimit(config: RateLimitConfig) {
   return async (request: NextRequest): Promise<NextResponse | null> => {
-    const ipAddress =
-      request.headers.get('x-forwarded-for')?.split(',')[0] ||
-      request.headers.get('x-real-ip') ||
-      (request as NextRequestWithIP).ip ||
-      'unknown'
+    const ipAddress = extractTrustedIp(request)
 
     const rateLimitKey = `rate_limit:${ipAddress}`
 
@@ -104,11 +115,7 @@ export function withRateLimit(
 ): (request: NextRequest) => Promise<NextResponse> {
   return async (request: NextRequest) => {
     // Get IP address for rate limiting
-    const ipAddress =
-      request.headers.get('x-forwarded-for')?.split(',')[0] ||
-      request.headers.get('x-real-ip') ||
-      (request as NextRequestWithIP).ip ||
-      'unknown'
+    const ipAddress = extractTrustedIp(request)
 
     // Create rate limit key
     const keyPrefix = options.keyPrefix || 'api'

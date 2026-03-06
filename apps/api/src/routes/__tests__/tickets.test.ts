@@ -12,6 +12,7 @@ vi.mock('@revealui/db/queries/boards', () => ({
   deleteBoard: vi.fn(),
   getColumnsByBoard: vi.fn(),
   createColumn: vi.fn(),
+  getColumnById: vi.fn(),
   updateColumn: vi.fn(),
   deleteColumn: vi.fn(),
 }))
@@ -29,6 +30,7 @@ vi.mock('@revealui/db/queries/tickets', () => ({
 vi.mock('@revealui/db/queries/ticket-comments', () => ({
   getCommentsByTicket: vi.fn(),
   createComment: vi.fn(),
+  getCommentById: vi.fn(),
   updateComment: vi.fn(),
   deleteComment: vi.fn(),
 }))
@@ -36,6 +38,7 @@ vi.mock('@revealui/db/queries/ticket-comments', () => ({
 vi.mock('@revealui/db/queries/ticket-labels', () => ({
   getAllLabels: vi.fn(),
   createLabel: vi.fn(),
+  getLabelById: vi.fn(),
   updateLabel: vi.fn(),
   deleteLabel: vi.fn(),
   assignLabel: vi.fn(),
@@ -149,10 +152,12 @@ function makeLabel(overrides = {}) {
 // App factory
 // ---------------------------------------------------------------------------
 
-function createApp() {
-  const app = new Hono<{ Variables: { db: DatabaseClient } }>()
+function createApp(user?: { id: string; role: string }) {
+  // biome-ignore lint/suspicious/noExplicitAny: test helper — Variables shape varies per endpoint
+  const app = new Hono<{ Variables: any }>()
   app.use('*', async (c, next) => {
     c.set('db', {} as DatabaseClient)
+    if (user) c.set('user', user)
     await next()
   })
   app.route('/', ticketsApp)
@@ -262,6 +267,8 @@ describe('Columns', () => {
   })
 
   it('PATCH /columns/:id — updates column', async () => {
+    mb.getColumnById.mockResolvedValue(makeColumn() as never)
+    mb.getBoardById.mockResolvedValue(makeBoard() as never)
     mb.updateColumn.mockResolvedValue(makeColumn({ name: 'In Progress' }) as never)
     const app = createApp()
     const res = await app.request('/columns/col-1', patch({ name: 'In Progress' }))
@@ -269,13 +276,15 @@ describe('Columns', () => {
   })
 
   it('PATCH /columns/:id — 404 for missing column', async () => {
-    mb.updateColumn.mockResolvedValue(null as never)
+    mb.getColumnById.mockResolvedValue(null as never)
     const app = createApp()
     const res = await app.request('/columns/no-col', patch({ name: 'x' }))
     expect(res.status).toBe(404)
   })
 
   it('DELETE /columns/:id — deletes column', async () => {
+    mb.getColumnById.mockResolvedValue(makeColumn() as never)
+    mb.getBoardById.mockResolvedValue(makeBoard() as never)
     mb.deleteColumn.mockResolvedValue(undefined as never)
     const app = createApp()
     const res = await app.request('/columns/col-1', { method: 'DELETE' })
@@ -343,13 +352,30 @@ describe('Tickets', () => {
     expect(res.status).toBe(404)
   })
 
-  it('DELETE /tickets/:id — deletes ticket', async () => {
+  it('DELETE /tickets/:id — deletes ticket (admin user)', async () => {
     mt.getTicketById.mockResolvedValue(makeTicket() as never)
     mb.getBoardById.mockResolvedValue(makeBoard() as never)
     mt.deleteTicket.mockResolvedValue(undefined as never)
-    const app = createApp()
+    const app = createApp({ id: 'admin-1', role: 'admin' })
     const res = await app.request('/tickets/ticket-1', { method: 'DELETE' })
     expect(res.status).toBe(200)
+  })
+
+  it('DELETE /tickets/:id — deletes ticket (board owner)', async () => {
+    mt.getTicketById.mockResolvedValue(makeTicket() as never)
+    mb.getBoardById.mockResolvedValue(makeBoard({ ownerId: 'user-1' }) as never)
+    mt.deleteTicket.mockResolvedValue(undefined as never)
+    const app = createApp({ id: 'user-1', role: 'member' })
+    const res = await app.request('/tickets/ticket-1', { method: 'DELETE' })
+    expect(res.status).toBe(200)
+  })
+
+  it('DELETE /tickets/:id — 403 for non-owner non-admin', async () => {
+    mt.getTicketById.mockResolvedValue(makeTicket() as never)
+    mb.getBoardById.mockResolvedValue(makeBoard({ ownerId: 'other-user' }) as never)
+    const app = createApp({ id: 'user-1', role: 'member' })
+    const res = await app.request('/tickets/ticket-1', { method: 'DELETE' })
+    expect(res.status).toBe(403)
   })
 
   it('POST /tickets/:id/move — moves ticket to column', async () => {
@@ -405,6 +431,7 @@ describe('Comments', () => {
   })
 
   it('PATCH /comments/:id — updates comment', async () => {
+    mc.getCommentById.mockResolvedValue(makeComment() as never)
     mc.updateComment.mockResolvedValue(makeComment() as never)
     const app = createApp()
     const res = await app.request('/comments/comment-1', patch({ body: { type: 'doc' } }))
@@ -412,13 +439,14 @@ describe('Comments', () => {
   })
 
   it('PATCH /comments/:id — 404 for missing comment', async () => {
-    mc.updateComment.mockResolvedValue(null as never)
+    mc.getCommentById.mockResolvedValue(null as never)
     const app = createApp()
     const res = await app.request('/comments/no-comment', patch({ body: { type: 'doc' } }))
     expect(res.status).toBe(404)
   })
 
   it('DELETE /comments/:id — deletes comment', async () => {
+    mc.getCommentById.mockResolvedValue(makeComment() as never)
     mc.deleteComment.mockResolvedValue(undefined as never)
     const app = createApp()
     const res = await app.request('/comments/comment-1', { method: 'DELETE' })
@@ -448,6 +476,7 @@ describe('Labels', () => {
   })
 
   it('PATCH /labels/:id — updates label', async () => {
+    ml.getLabelById.mockResolvedValue(makeLabel() as never)
     ml.updateLabel.mockResolvedValue(makeLabel({ name: 'feature' }) as never)
     const app = createApp()
     const res = await app.request('/labels/label-1', patch({ name: 'feature' }))
@@ -455,13 +484,14 @@ describe('Labels', () => {
   })
 
   it('PATCH /labels/:id — 404 for missing label', async () => {
-    ml.updateLabel.mockResolvedValue(null as never)
+    ml.getLabelById.mockResolvedValue(null as never)
     const app = createApp()
     const res = await app.request('/labels/no-label', patch({ name: 'x' }))
     expect(res.status).toBe(404)
   })
 
   it('DELETE /labels/:id — deletes label', async () => {
+    ml.getLabelById.mockResolvedValue(makeLabel() as never)
     ml.deleteLabel.mockResolvedValue(undefined as never)
     const app = createApp()
     const res = await app.request('/labels/label-1', { method: 'DELETE' })

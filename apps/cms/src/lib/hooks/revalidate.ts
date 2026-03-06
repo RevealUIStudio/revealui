@@ -8,9 +8,16 @@ export const revalidate = async (args: {
   const { collection, slug, revealui } = args
 
   try {
-    const url = `${process.env.REVEALUI_PUBLIC_SERVER_URL}/api/revalidate?secret=${process.env.REVEALUI_SECRET}&collection=${collection}&slug=${slug}`
+    const url = `${process.env.REVEALUI_PUBLIC_SERVER_URL}/api/revalidate`
 
-    const res = await fetch(url)
+    const res = await fetch(url, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'x-revalidate-secret': process.env.REVEALUI_SECRET ?? '',
+      },
+      body: JSON.stringify({ collection, slug }),
+    })
 
     if (res.ok) {
       revealui.logger.info(`Successfully revalidated page '${slug}' in collection '${collection}'`)

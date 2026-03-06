@@ -7,10 +7,11 @@
  * Redirects to the login page with a success/error message.
  */
 
+import { createHash } from 'node:crypto'
 import { logger } from '@revealui/core/utils/logger'
 import { getClient } from '@revealui/db'
 import { users } from '@revealui/db/schema'
-import { eq } from 'drizzle-orm'
+import { and, eq, gt, isNull, or } from 'drizzle-orm'
 import { type NextRequest, NextResponse } from 'next/server'
 
 export const dynamic = 'force-dynamic'
@@ -27,11 +28,27 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
   try {
     const db = getClient()
 
-    // Find user by verification token
+    // Hash the incoming raw token to compare against the stored hash.
+    // Tokens generated before this fix were stored as UUIDs (plaintext).
+    // For backwards compatibility: try the hashed lookup first; if not found,
+    // fall back to direct match (legacy plaintext tokens).
+    const tokenHash = createHash('sha256').update(token).digest('hex')
+
     const [user] = await db
       .select({ id: users.id, emailVerified: users.emailVerified })
       .from(users)
-      .where(eq(users.emailVerificationToken, token))
+      .where(
+        and(
+          or(
+            eq(users.emailVerificationToken, tokenHash),
+            eq(users.emailVerificationToken, token), // legacy plaintext tokens
+          ),
+          or(
+            isNull(users.emailVerificationTokenExpiresAt),
+            gt(users.emailVerificationTokenExpiresAt, new Date()),
+          ),
+        ),
+      )
       .limit(1)
 
     if (!user) {

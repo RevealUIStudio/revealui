@@ -87,12 +87,13 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
     // Generate embedding from query text
     const embedding = await generateEmbedding(query)
 
-    // Perform vector search
+    // Perform vector search — enforce userId so non-admins can only search their own memories
     const service = new VectorMemoryService()
     const results = await service.searchSimilar(embedding.vector, {
       ...options,
       limit: options.limit ?? 10,
       threshold: options.threshold ?? 0.5,
+      ...(authSession.user.role !== 'admin' ? { userId: authSession.user.id } : {}),
     })
 
     return NextResponse.json({
