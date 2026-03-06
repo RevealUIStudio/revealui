@@ -4,7 +4,7 @@
 
 | Agent | CWD | Role | Workboard ID |
 |-------|-----|------|--------------|
-| wsl-root | ~/projects/ | Repo ops, DevBox, bootstrapping | wsl-root |
+| wsl-root | ~/projects/ | Repo ops, DevPod, bootstrapping | wsl-root |
 | revealui-terminal | ~/projects/RevealUI/ | Builds, deploys, DB, publish | revealui-terminal |
 | zed-revealui | RevealUI (Zed) | Code editing, documentation | zed-1 |
 

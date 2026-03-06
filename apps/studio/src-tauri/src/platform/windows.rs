@@ -459,7 +459,7 @@ impl PlatformOps for WindowsPlatform {
             .map(|s| s.trim() == "YES")
             .unwrap_or(false);
 
-        // Check DevBox mount
+        // Check DevPod mount
         let devbox_mounted = self
             .wsl_exec("mountpoint -q /mnt/studio && echo MOUNTED || echo NOT_MOUNTED")
             .map(|s| s.contains("MOUNTED") && !s.contains("NOT_MOUNTED"))

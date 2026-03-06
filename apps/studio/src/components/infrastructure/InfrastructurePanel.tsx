@@ -12,7 +12,7 @@ export default function InfrastructurePanel() {
       {/* Tab bar */}
       <div className="flex gap-1 border-b border-neutral-800">
         <TabButton label="App Launcher" active={tab === 'apps'} onClick={() => setTab('apps')} />
-        <TabButton label="DevBox" active={tab === 'devbox'} onClick={() => setTab('devbox')} />
+        <TabButton label="DevPod" active={tab === 'devbox'} onClick={() => setTab('devbox')} />
       </div>
 
       <div className="flex-1 overflow-y-auto">

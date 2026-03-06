@@ -1037,7 +1037,7 @@ AI harness adapters, workboard coordination, and JSON-RPC server. Integrates Cla
 
 `@revealui/harnesses` connects AI coding tools to each other and to your project's shared workboard. Multiple AI sessions — across editors, terminals, and CI — register themselves and claim file ownership to prevent conflicts.
 
-**Requires a Pro or Enterprise license** (`isFeatureEnabled('harnesses')`).
+**Requires a Pro or Forge license** (`isFeatureEnabled('harnesses')`).
 
 ## Quick start
 
@@ -1197,7 +1197,7 @@ await autoDetectHarnesses(registry)
 
 ## Config sync
 
-Sync harness configuration between the local project and an external SSD/DevBox:
+Sync harness configuration between the local project and an external SSD/DevPod:
 
 ```typescript
 import { syncConfig, diffConfig } from '@revealui/harnesses'
@@ -1223,7 +1223,7 @@ Stripe payment processing and Supabase client integrations for RevealUI Pro.
 
 `@revealui/services` provides pre-wired Stripe and Supabase integrations with auth-aware clients, webhook handlers, and billing flow helpers.
 
-**Requires a Pro or Enterprise license** (`isFeatureEnabled('payments')`).
+**Requires a Pro or Forge license** (`isFeatureEnabled('payments')`).
 
 ## Stripe
 

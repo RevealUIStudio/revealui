@@ -19,7 +19,7 @@ export default function DevBoxPanel() {
 
   return (
     <div className="space-y-6">
-      <h1 className="text-xl font-semibold">DevBox</h1>
+      <h1 className="text-xl font-semibold">DevPod</h1>
 
       <div className="flex items-center gap-3">
         <button
