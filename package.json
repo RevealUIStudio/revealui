@@ -180,6 +180,8 @@
     "gate:quick": "tsx scripts/gates/ci-gate.ts --phase=1",
     "gate:security": "tsx scripts/gates/security-gate.ts",
     "gate:types": "tsx scripts/gates/types-gate.ts",
+    "coverage:check": "tsx scripts/gates/test-coverage-gate.ts",
+    "coverage:check:strict": "tsx scripts/gates/test-coverage-gate.ts --fail-on-zero",
     "generate:all": "tsx scripts/generate/unified-types.ts",
     "install:clean": "cross-env NODE_OPTIONS=\"--no-deprecation\" pnpm install",
     "lint": "pnpm lint:biome && pnpm lint:eslint",

@@ -32,6 +32,7 @@ function cycleStart(): Date {
 export async function requireTaskQuota(
   c: Context<{ Variables: { user: UserContext | undefined } }>,
   next: Next,
+  // biome-ignore lint/suspicious/noConfusingVoidType: Hono middleware must return Response | void
 ): Promise<Response | void> {
   const user = c.get('user')
   if (!user) {

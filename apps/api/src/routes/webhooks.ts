@@ -1035,8 +1035,8 @@ async function provisionGitHubAccess(githubUsername: string): Promise<void> {
     {
       method: 'PUT',
       headers: {
-        ['Authorization']: `Bearer ${token}`,
-        ['Accept']: 'application/vnd.github.v3+json',
+        Authorization: `Bearer ${token}`,
+        Accept: 'application/vnd.github.v3+json',
         'Content-Type': 'application/json',
         'User-Agent': 'RevealUI-License-Server/1.0',
       },

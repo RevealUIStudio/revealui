@@ -374,7 +374,7 @@ describe('RSC / RCC serializer parity', () => {
     ['code block', codeBlock],
   ] as const
 
-  it.each(fixtures)('%s produces equivalent output', (name, state) => {
+  it.each(fixtures)('%s produces equivalent output', (_name, state) => {
     const rsc = renderRsc(state as SerializedEditorState)
     const rcc = renderRcc(state as SerializedEditorState)
 
