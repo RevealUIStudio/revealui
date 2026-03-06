@@ -32,7 +32,7 @@ pub trait PlatformOps {
     /// Stop a RevealUI app by killing its port (fuser -k).
     fn stop_app(&self, name: &str) -> Result<String, String>;
 
-    /// Check environment setup status (WSL, Nix, DevBox, git config).
+    /// Check environment setup status (WSL, Nix, DevPod, git config).
     fn check_setup(&self) -> Result<SetupStatus, String>;
 
     /// Set git global user.name and user.email in WSL.

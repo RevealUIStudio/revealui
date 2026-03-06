@@ -24,7 +24,7 @@ RevealUI Studio <founder@revealui.com>
 | docs | 3002 | Vite/React | Documentation site |
 | marketing | 3000 | Next.js | Marketing + waitlist |
 | mainframe | 3001 | Hono SSR + React | Demo/showcase app |
-| studio | — | Tauri 2 + React 19 | Desktop companion: DevBox manager, app launcher, first-run wizard, system tray |
+| studio | — | Tauri 2 + React 19 | Desktop companion: DevPod manager, app launcher, first-run wizard, system tray |
 
 ### OSS Packages (MIT)
 | Package | Purpose |

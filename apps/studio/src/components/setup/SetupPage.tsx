@@ -105,9 +105,9 @@ export default function SetupPage() {
           }
         />
 
-        {/* DevBox */}
+        {/* DevPod */}
         <SetupRow
-          label="DevBox"
+          label="DevPod"
           done={status?.devbox_mounted ?? false}
           doneText="Studio drive mounted"
           pendingText="Studio drive not mounted"

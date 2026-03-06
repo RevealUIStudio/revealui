@@ -1730,7 +1730,7 @@ interface StorageConfig {
 
 ### `config.branding`
 
-White-label branding (Enterprise tier).
+White-label branding (Forge tier).
 
 ```ts
 interface BrandingConfig {

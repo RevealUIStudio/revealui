@@ -1,6 +1,6 @@
 # RevealUI Studio
 
-Desktop companion app — DevBox manager, app launcher, secret vault, tunnel manager, and first-run wizard.
+Desktop companion app — DevPod manager, app launcher, secret vault, tunnel manager, and first-run wizard.
 
 Built with Tauri 2 + React 19 + Tailwind CSS v4.
 
@@ -8,8 +8,8 @@ Built with Tauri 2 + React 19 + Tailwind CSS v4.
 
 - **Dashboard** — Service status overview with tier badge
 - **Vault** — Secret management via Revvault (age encryption), namespace filtering, clipboard integration
-- **Infrastructure** — App launcher (start/stop/open 5 apps by port) + DevBox mount/unmount
-- **Sync** — Repository sync across locations (WSL, LTS, DevBox)
+- **Infrastructure** — App launcher (start/stop/open 5 apps by port) + DevPod mount/unmount
+- **Sync** — Repository sync across locations (WSL, LTS, DevPod)
 - **Tunnel** — Tailscale status, connect/disconnect, peer list with 10s polling
 - **Setup** — First-run wizard (environment check, vault init, Tailscale, project setup)
 
@@ -46,7 +46,7 @@ apps/studio/
 │   ├── components/
 │   │   ├── apps/           # App launcher
 │   │   ├── dashboard/      # Dashboard + service cards
-│   │   ├── devbox/         # DevBox manager
+│   │   ├── devbox/         # DevPod manager
 │   │   ├── infrastructure/ # Infrastructure panel (apps + devbox)
 │   │   ├── layout/         # AppShell, Sidebar, StatusBar
 │   │   ├── setup/          # Setup wizard + setup page
