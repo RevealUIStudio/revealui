@@ -15,17 +15,21 @@ FROM base AS deps
 
 COPY package.json pnpm-lock.yaml pnpm-workspace.yaml .npmrc ./
 COPY patches ./patches
-COPY packages/auth/package.json         ./packages/auth/
-COPY packages/config/package.json       ./packages/config/
-COPY packages/contracts/package.json    ./packages/contracts/
-COPY packages/core/package.json         ./packages/core/
-COPY packages/db/package.json           ./packages/db/
-COPY packages/dev/package.json          ./packages/dev/
-COPY packages/presentation/package.json ./packages/presentation/
-COPY packages/services/package.json     ./packages/services/
-COPY packages/sync/package.json         ./packages/sync/
-COPY packages/test/package.json         ./packages/test/
-COPY apps/cms/package.json              ./apps/cms/
+COPY packages/auth/package.json          ./packages/auth/
+COPY packages/cli/package.json           ./packages/cli/
+COPY packages/config/package.json        ./packages/config/
+COPY packages/contracts/package.json     ./packages/contracts/
+COPY packages/core/package.json          ./packages/core/
+COPY packages/create-revealui/package.json ./packages/create-revealui/
+COPY packages/db/package.json            ./packages/db/
+COPY packages/dev/package.json           ./packages/dev/
+COPY packages/presentation/package.json  ./packages/presentation/
+COPY packages/router/package.json        ./packages/router/
+COPY packages/setup/package.json         ./packages/setup/
+COPY packages/sync/package.json          ./packages/sync/
+COPY packages/test/package.json          ./packages/test/
+COPY packages/utils/package.json         ./packages/utils/
+COPY apps/cms/package.json               ./apps/cms/
 
 RUN --mount=type=cache,id=pnpm,target=/pnpm/store \
     pnpm install --frozen-lockfile --filter cms...
