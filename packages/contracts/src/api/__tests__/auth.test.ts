@@ -252,12 +252,14 @@ describe('PasswordResetTokenContract', () => {
   describe('valid data', () => {
     it('validates correct password reset with token', () => {
       const result = PasswordResetTokenContract.validate({
+        tokenId: 'abc-123-def',
         token: 'reset-token-12345',
         password: 'NewSecurePass123',
       })
 
       expect(result.success).toBe(true)
       if (result.success) {
+        expect(result.data.tokenId).toBe('abc-123-def')
         expect(result.data.token).toBe('reset-token-12345')
         expect(result.data.password).toBe('NewSecurePass123')
       }
@@ -265,8 +267,21 @@ describe('PasswordResetTokenContract', () => {
   })
 
   describe('invalid data', () => {
+    it('rejects missing tokenId', () => {
+      const result = PasswordResetTokenContract.validate({
+        token: 'reset-token-12345',
+        password: 'NewSecurePass123',
+      })
+
+      expect(result.success).toBe(false)
+      if (!result.success) {
+        expect(result.errors.issues[0]?.path).toContain('tokenId')
+      }
+    })
+
     it('rejects missing token', () => {
       const result = PasswordResetTokenContract.validate({
+        tokenId: 'abc-123-def',
         password: 'NewSecurePass123',
       })
 
@@ -278,6 +293,7 @@ describe('PasswordResetTokenContract', () => {
 
     it('rejects empty token', () => {
       const result = PasswordResetTokenContract.validate({
+        tokenId: 'abc-123-def',
         token: '',
         password: 'NewSecurePass123',
       })
@@ -290,6 +306,7 @@ describe('PasswordResetTokenContract', () => {
 
     it('rejects missing password', () => {
       const result = PasswordResetTokenContract.validate({
+        tokenId: 'abc-123-def',
         token: 'reset-token-12345',
       })
 
@@ -301,6 +318,7 @@ describe('PasswordResetTokenContract', () => {
 
     it('rejects password shorter than 8 characters', () => {
       const result = PasswordResetTokenContract.validate({
+        tokenId: 'abc-123-def',
         token: 'reset-token-12345',
         password: 'Short1',
       })
