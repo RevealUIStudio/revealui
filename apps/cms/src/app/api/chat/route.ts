@@ -148,7 +148,15 @@ export async function POST(request: NextRequest) {
     if (!lastMessage) {
       return createApplicationErrorResponse('No messages provided', 'NO_MESSAGES', 400)
     }
-    const userMessage = lastMessage.content
+    // Extract plain text from the last message for vector search.
+    // Multipart messages (vision) may include image parts — use text parts only.
+    const rawContent = lastMessage.content
+    const userMessage = Array.isArray(rawContent)
+      ? rawContent
+          .filter((p: { type: string }) => p.type === 'text')
+          .map((p: { type: string; text?: string }) => p.text ?? '')
+          .join(' ')
+      : String(rawContent)
 
     // Create LLM client from env (supports Vultr, OpenAI, Anthropic)
     let llmClient: LLMClient

@@ -234,6 +234,100 @@ describe('ChatRequestContract', () => {
     })
   })
 
+  describe('multipart content (vision)', () => {
+    it('accepts user message with text + image parts', () => {
+      const result = ChatRequestContract.validate({
+        messages: [
+          {
+            role: 'user',
+            content: [
+              { type: 'text', text: 'What is in this image?' },
+              { type: 'image_url', image_url: { url: 'data:image/jpeg;base64,/9j/4AAQ==' } },
+            ],
+          },
+        ],
+      })
+      expect(result.success).toBe(true)
+    })
+
+    it('accepts user message with only an image part', () => {
+      const result = ChatRequestContract.validate({
+        messages: [
+          {
+            role: 'user',
+            content: [{ type: 'image_url', image_url: { url: 'https://example.com/photo.jpg' } }],
+          },
+        ],
+      })
+      expect(result.success).toBe(true)
+    })
+
+    it('accepts image part with detail hint', () => {
+      const result = ChatRequestContract.validate({
+        messages: [
+          {
+            role: 'user',
+            content: [
+              { type: 'text', text: 'Describe this.' },
+              {
+                type: 'image_url',
+                image_url: { url: 'data:image/png;base64,abc123', detail: 'high' },
+              },
+            ],
+          },
+        ],
+      })
+      expect(result.success).toBe(true)
+    })
+
+    it('rejects empty parts array', () => {
+      const result = ChatRequestContract.validate({
+        messages: [{ role: 'user', content: [] }],
+      })
+      expect(result.success).toBe(false)
+    })
+
+    it('rejects text part with empty text', () => {
+      const result = ChatRequestContract.validate({
+        messages: [{ role: 'user', content: [{ type: 'text', text: '' }] }],
+      })
+      expect(result.success).toBe(false)
+    })
+
+    it('rejects invalid detail value', () => {
+      const result = ChatRequestContract.validate({
+        messages: [
+          {
+            role: 'user',
+            content: [
+              {
+                type: 'image_url',
+                image_url: { url: 'https://example.com/img.jpg', detail: 'ultra' },
+              },
+            ],
+          },
+        ],
+      })
+      expect(result.success).toBe(false)
+    })
+
+    it('allows prior assistant messages to have string content alongside vision user message', () => {
+      const result = ChatRequestContract.validate({
+        messages: [
+          { role: 'assistant', content: 'Sure, send me the image.' },
+          {
+            role: 'user',
+            content: [
+              { type: 'text', text: 'Here it is.' },
+              { type: 'image_url', image_url: { url: 'data:image/jpeg;base64,/9j/4AAQ==' } },
+            ],
+          },
+        ],
+      })
+      expect(result.success).toBe(true)
+    })
+  })
+
   describe('role validation', () => {
     it('validates all valid roles', () => {
       const userResult = ChatRequestContract.validate({
