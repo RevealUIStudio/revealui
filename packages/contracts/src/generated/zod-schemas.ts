@@ -2,7 +2,7 @@
  * Auto-generated Zod schemas from Drizzle
  *
  * DO NOT EDIT - Regenerate with: pnpm generate:all
- * Generated: 2026-03-05T07:44:53.963Z
+ * Generated: 2026-03-06T03:36:58.464Z
  *
  * This file provides Zod schemas for all database tables, generated
  * directly from Drizzle table definitions using drizzle-zod.

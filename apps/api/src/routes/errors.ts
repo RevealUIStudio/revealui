@@ -29,6 +29,13 @@ const ErrorPayloadSchema = z.object({
 })
 
 app.post('/', async (c) => {
+  // Verify shared secret — rejects requests not originating from trusted RevealUI apps
+  const token = c.req.header('X-Internal-Token')
+  const secret = process.env.REVEALUI_SECRET
+  if (!(secret && token) || token !== secret) {
+    return c.json({ success: false, error: 'Forbidden' }, 403)
+  }
+
   let body: unknown
   try {
     body = await c.req.json()
