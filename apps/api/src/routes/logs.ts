@@ -59,6 +59,10 @@ const logRoute = createRoute({
       content: { 'application/json': { schema: ErrorSchema } },
       description: 'Invalid payload',
     },
+    403: {
+      content: { 'application/json': { schema: ErrorSchema } },
+      description: 'Forbidden — missing or invalid X-Internal-Token',
+    },
   },
 })
 
