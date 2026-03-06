@@ -199,3 +199,10 @@ docs/PRICE_COLLECTION.md
 docs/PRODUCT_COLLECTION.md
 docs/launch-announcement.md
 docs/SECRETS-MANAGEMENT.md
+
+# Pro packages — source lives in revealui-jv, distributed as npm packages
+packages/ai/
+packages/mcp/
+packages/editors/
+packages/services/
+packages/harnesses/
