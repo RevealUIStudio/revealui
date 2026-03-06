@@ -1,0 +1,96 @@
+name: Release Pro Packages
+
+# Publishes Pro packages (@revealui/ai, mcp, editors, services, harnesses)
+# to GitHub Packages (npm.pkg.github.com) using a GitHub PAT.
+#
+# Prerequisites (one-time setup):
+#   1. Remove "private": true from each Pro package.json
+#   2. Create a GitHub PAT with write:packages scope
+#   3. Add it as a repository secret named GH_PACKAGES_TOKEN
+#   4. Each Pro package.json must have:
+#      "publishConfig": { "registry": "https://npm.pkg.github.com" }
+#
+# Trigger: manually from GitHub Actions UI (Actions > Release Pro Packages > Run workflow)
+
+on:
+  workflow_dispatch:
+    inputs:
+      dry-run:
+        description: "Dry run — build without publishing"
+        type: boolean
+        default: false
+
+permissions:
+  contents: read
+  packages: write
+
+env:
+  NODE_VERSION: "24"
+  PNPM_VERSION: "10.28.2"
+
+jobs:
+  release-pro:
+    name: Publish Pro to GitHub Packages
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    environment: github-packages
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: ${{ env.PNPM_VERSION }}
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: pnpm
+          registry-url: "https://npm.pkg.github.com"
+          scope: "@revealui"
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Check Pro packages are not private
+        run: |
+          for pkg in ai mcp editors services harnesses; do
+            private=$(node -e "const p=require('./packages/$pkg/package.json'); console.log(p.private||false)")
+            if [ "$private" = "true" ]; then
+              echo "ERROR: packages/$pkg/package.json has \"private\": true — remove it before publishing"
+              exit 1
+            fi
+          done
+          echo "All Pro packages are publishable."
+
+      - name: Build Pro packages
+        run: |
+          for pkg in ai mcp editors services harnesses; do
+            echo "Building @revealui/$pkg..."
+            pnpm --filter "@revealui/$pkg" build
+          done
+        env:
+          SKIP_ENV_VALIDATION: "true"
+
+      - name: Publish Pro packages (dry run)
+        if: ${{ inputs.dry-run }}
+        run: |
+          for pkg in ai mcp editors services harnesses; do
+            echo "[dry-run] Would publish: @revealui/$pkg"
+            pnpm --filter "@revealui/$pkg" publish --no-git-checks --dry-run
+          done
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.GH_PACKAGES_TOKEN }}
+
+      - name: Publish Pro packages to GitHub Packages
+        if: ${{ !inputs.dry-run }}
+        run: |
+          for pkg in ai mcp editors services harnesses; do
+            echo "Publishing @revealui/$pkg to GitHub Packages..."
+            pnpm --filter "@revealui/$pkg" publish --no-git-checks
+          done
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.GH_PACKAGES_TOKEN }}

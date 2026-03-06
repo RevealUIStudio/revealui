@@ -1,223 +1,75 @@
 # GitHub Actions Workflows
 
-This directory contains automated CI/CD workflows for the RevealUI project.
+## Active Workflows
 
-## Workflows
+### `release.yml` — Release OSS Packages
+**Trigger:** Manual (`workflow_dispatch`)
 
-### Core CI/CD
+Publishes OSS packages to npm using **OIDC trusted publishing** (no long-lived `NPM_TOKEN`).
+Generates **SLSA Build Level 2 provenance attestations** via `--provenance`.
 
-#### `ci.yml` - Continuous Integration
-**Triggers:** Pull requests, pushes to main/master
+Steps:
+1. Install + build all packages (`SKIP_ENV_VALIDATION=true`)
+2. `pnpm changeset publish --provenance` — publishes packages that have pending changesets
+3. Push git tags
+4. Create GitHub releases for each published package
 
-Comprehensive CI pipeline with parallel execution:
-- **Lint:** Biome and ESLint checks
-- **Typecheck:** TypeScript validation across all packages
-- **Unit Tests:** Matrix testing across all packages
-- **E2E Tests:** Playwright tests with browser matrix (Chrome, Firefox, WebKit)
-- **Build:** All apps (cms, web, docs, dashboard, landing)
-- **Docker Build:** Multi-platform images for main branch
+**One-time npm setup:** Configure trusted publishing on npmjs.org for each OSS package
+(Package Settings > Publishing > Trusted Publishers > Add GitHub Actions, workflow: `release.yml`).
 
-#### `test.yml` - Test Suite
-**Triggers:** Pull requests, pushes to main/master
+**Changesets must be applied before running** — run `pnpm changeset version` locally and commit first.
 
-Focused test execution with coverage reporting:
-- Unit tests for all packages
-- Integration tests
-- Coverage upload to Codecov
+### `release-pro.yml` — Release Pro Packages
+**Trigger:** Manual (`workflow_dispatch`)
 
-### Quality Assurance
+Publishes Pro packages (`@revealui/ai`, `mcp`, `editors`, `services`, `harnesses`)
+to **GitHub Packages** (`npm.pkg.github.com`).
 
-#### `quality-checks.yml` - Quality Metrics **[NEW]**
-**Triggers:** Pull requests, pushes to main/master
+**Prerequisites:**
+- Remove `"private": true` from each Pro `package.json`
+- Add `"publishConfig": { "registry": "https://npm.pkg.github.com" }` to each
+- Create repository secret `GH_PACKAGES_TOKEN` (GitHub PAT with `write:packages`)
 
-Enforces 100% quality standards:
+## Disabled Workflows
 
-**Type Safety Audit:**
-- Scans for avoidable `any` types using `pnpm audit:any`
-- Fails CI if any avoidable `any` types found
-- Uploads detailed audit report
-- **Target:** 0 avoidable `any` types
+Workflows in `.github/workflows-disabled/` are not active:
 
-**Console Statement Audit:**
-- Scans for `console.*` statements in production code
-- Fails CI if production console statements found
-- Tests, scripts, and config files are allowed
-- Uploads detailed audit report
-- **Target:** 0 console statements in production
+| File | Purpose | Why disabled |
+|------|---------|--------------|
+| `deploy-staging.yml` | Auto-deploy CMS to Vercel staging on push to main | Vercel auto-deploy via GitHub integration is preferred |
+| `deploy-production.yml` | Manual production deploy via `workflow_dispatch` | Same reason |
+| `preview-pr.yml` | Preview deploys on PRs | Not yet configured |
 
-**Build All Packages:**
-- Ensures all 21 packages build successfully
-- Verifies no TypeScript compilation errors
-- Uses Turbo cache for performance
-- **Target:** 21/21 packages building
+To re-enable a workflow, move it to `.github/workflows/`.
 
-**Benefits:**
-- Prevents quality regressions
-- Maintains 100% quality metrics
-- Automated enforcement (no manual reviews needed)
-- Clear feedback for developers
+## Local Release (Primary Flow)
 
-### Security
-
-#### `security-audit.yml` - Security Scanning **[NEW]**
-**Triggers:** Pull requests, pushes to main/master, weekly schedule (Mondays 9am UTC), manual dispatch
-
-Comprehensive security checks:
-
-**Dependency Vulnerability Scan:**
-- Uses `pnpm audit` to check for known vulnerabilities
-- Fails on critical/high severity issues
-- Warns on moderate severity issues
-- Uploads audit report for review
-
-**Secrets & Credentials Scan:**
-- Scans for hardcoded passwords, API keys, tokens
-- Detects AWS keys, Google API keys, Stripe keys
-- Checks for database URLs with credentials
-- Pattern-based detection with regex
-
-**Environment Variable Security:**
-- Ensures no `.env` files are committed (except `.env.example`)
-- Checks for exposed database URLs
-- Validates environment configuration
-
-**Auth & Authorization Review:**
-- Checks for hardcoded JWT secrets
-- Validates password strength requirements
-- Scans for plaintext password storage
-- Reviews authentication patterns
-
-**API Security Review:**
-- Detects CORS misconfigurations (wildcards)
-- Checks for rate limiting on API routes
-- Validates API security best practices
-
-**Schedule:** Runs weekly to catch new vulnerabilities
-
-#### `secrets-scan.yml` - Secret Detection
-**Triggers:** Pull requests, pushes
-
-Lightweight secret scanning focused on preventing accidental commits.
-
-#### `codeql.yml` - CodeQL Analysis
-**Triggers:** Pull requests, pushes, scheduled
-
-GitHub's semantic code analysis for security vulnerabilities.
-
-### Validation
-
-#### `validate-types.yml` - Type Validation
-**Triggers:** Pull requests, pushes
-
-Validates TypeScript types across the monorepo.
-
-#### `validate-docs.yml` - Documentation Validation
-**Triggers:** Pull requests, pushes
-
-Ensures documentation quality and accuracy.
-
-#### `doc-validation.yml` - Doc Structure Validation
-**Triggers:** Pull requests, pushes
-
-Validates documentation structure and formatting.
-
-#### `structure-validation.yml` - Project Structure
-**Triggers:** Pull requests, pushes
-
-Validates project organization and file structure.
-
-### Visual Testing
-
-#### `visual-regression.yml` - Visual Regression Tests
-**Triggers:** Pull requests, pushes to main
-
-Captures and compares screenshots to detect UI changes.
-
-### Other
-
-#### `check-vultr-model.yml` - Vultr Model Check
-**Triggers:** Pull requests, pushes
-
-Validates Vultr AI model configuration.
-
-#### `regenerate-types.yml` - Type Regeneration
-**Triggers:** Manual dispatch
-
-Regenerates TypeScript types from database schema.
-
-## Quality Metrics Enforcement
-
-The `quality-checks.yml` workflow enforces these metrics:
-
-| Metric | Target | Status |
-|--------|--------|--------|
-| Build Success | 21/21 packages | ✅ 100% |
-| Type Safety | 0 avoidable `any` | ✅ 100% |
-| Console Cleanup | 0 in production | ✅ 100% |
-| Test Coverage | All tests passing | ✅ 100% |
-
-## Security Posture
-
-The `security-audit.yml` workflow maintains:
-
-- ✅ No critical/high severity vulnerabilities
-- ✅ No hardcoded secrets or credentials
-- ✅ No committed `.env` files
-- ✅ Secure authentication patterns
-- ✅ API rate limiting implemented
-
-## Local Development
-
-Run quality checks locally before pushing:
+For day-to-day releases, use the local CLI scripts instead of triggering GHA:
 
 ```bash
-# Type safety audit
-pnpm audit:any
+# OSS release (version → build → publish → GitHub releases)
+pnpm release:oss
 
-# Console statement audit
-pnpm audit:console
+# OSS dry run
+pnpm release:oss:dry
 
-# Build all packages
-pnpm build
+# Pro release (requires NODE_AUTH_TOKEN + non-private packages)
+pnpm release:pro
 
-# Run all tests
-pnpm test
+# Pro dry run
+pnpm release:pro:dry
 
-# Security: dependency audit
-pnpm audit
-
-# Full CI simulation
-pnpm lint && pnpm typecheck:all && pnpm test && pnpm build
+# Check pending changesets
+pnpm release status
 ```
 
-## Monitoring
+## CI Gate (local only)
 
-### Artifacts
-Workflows upload artifacts for debugging:
-- Type safety audit reports (30 days retention)
-- Console audit reports (30 days retention)
-- Dependency audit reports (30 days retention)
-- Test results and screenshots (7 days retention)
-- Build artifacts (7 days retention)
+There is no automated CI workflow running on PRs/pushes. The gate runs locally:
 
-### Notifications
-- Failed checks block PR merges
-- Weekly security audit summary (email)
-- Quality metric reports available in Actions tab
+```bash
+pnpm gate        # full: lint + typecheck + test + build
+pnpm gate:quick  # phase 1 only (lint + structure)
+```
 
-## Contributing
-
-When adding new workflows:
-1. Follow existing naming conventions
-2. Add comprehensive documentation here
-3. Use appropriate timeouts (avoid hanging jobs)
-4. Upload artifacts for debugging
-5. Provide clear failure messages
-6. Test locally with `act` if possible
-
-## Maintenance
-
-- Review and update dependency versions quarterly
-- Audit workflow permissions regularly
-- Monitor action usage and costs
-- Update this documentation when workflows change
+Run `pnpm gate` before pushing. The Husky pre-push hook enforces this.

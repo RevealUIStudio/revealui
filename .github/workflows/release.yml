@@ -1,0 +1,111 @@
+name: Release OSS Packages
+
+# Publishes OSS packages to npm with OIDC trusted publishing (no long-lived NPM_TOKEN).
+# Provenance attestations (SLSA Build Level 2) are generated via --provenance.
+#
+# Prerequisites (one-time setup):
+#   1. Configure trusted publishing on npmjs.org for each OSS package:
+#      Package Settings > Publishing > Trusted Publishers > Add GitHub Actions
+#      Repository: RevealUIStudio/revealui, Workflow: release.yml
+#   2. No NPM_TOKEN secret is needed — OIDC handles authentication.
+#
+# Trigger: manually from GitHub Actions UI (Actions > Release OSS Packages > Run workflow)
+# Changesets must already be applied (pnpm changeset version committed to main).
+
+on:
+  workflow_dispatch:
+    inputs:
+      dry-run:
+        description: "Dry run — build and preview without publishing"
+        type: boolean
+        default: false
+
+permissions:
+  contents: write # push tags, create GitHub releases
+  id-token: write # OIDC token for npm provenance (SLSA B2)
+
+env:
+  NODE_VERSION: "24"
+  PNPM_VERSION: "10.28.2"
+
+jobs:
+  release:
+    name: Publish OSS to npm
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    environment: npm-publish
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: ${{ env.PNPM_VERSION }}
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: pnpm
+          registry-url: "https://registry.npmjs.org"
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Check pending changesets
+        run: pnpm changeset status --verbose
+
+      - name: Build all packages
+        run: pnpm build
+        env:
+          SKIP_ENV_VALIDATION: "true"
+
+      - name: Publish to npm (dry run)
+        if: ${{ inputs.dry-run }}
+        run: |
+          echo "[dry-run] Would run: pnpm changeset publish --provenance"
+          pnpm changeset status
+
+      - name: Publish to npm with provenance
+        if: ${{ !inputs.dry-run }}
+        run: pnpm changeset publish --provenance
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          # NODE_AUTH_TOKEN not needed — OIDC trusted publishing handles auth.
+          # If trusted publishing is not yet configured, set NPM_TOKEN secret
+          # and uncomment the line below:
+          # NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+
+      - name: Push tags
+        if: ${{ !inputs.dry-run }}
+        run: git push --follow-tags
+
+      - name: Create GitHub releases
+        if: ${{ !inputs.dry-run }}
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const { execSync } = require('child_process')
+            const tags = execSync('git tag --points-at HEAD', { encoding: 'utf8' })
+              .trim().split('\n').filter(Boolean)
+
+            for (const tag of tags) {
+              try {
+                await github.rest.repos.createRelease({
+                  owner: context.repo.owner,
+                  repo: context.repo.repo,
+                  tag_name: tag,
+                  name: tag,
+                  generate_release_notes: true,
+                  make_latest: 'false',
+                })
+                console.log(`Created release: ${tag}`)
+              } catch (e) {
+                console.warn(`Could not create release for ${tag}: ${e.message}`)
+              }
+            }
