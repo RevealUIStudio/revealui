@@ -1,4 +1,22 @@
 export function SocialProof() {
+  const stats = [
+    { value: '18', label: 'packages' },
+    { value: '320K+', label: 'lines of TypeScript' },
+    { value: '307+', label: 'tests' },
+    { value: '6', label: 'apps deployed' },
+  ]
+
+  const techStack = [
+    'TypeScript',
+    'React 19',
+    'Next.js 16',
+    'Hono',
+    'Drizzle ORM',
+    'Stripe',
+    'Tailwind v4',
+    'ElectricSQL',
+  ]
+
   const features = [
     {
       title: 'Headless CMS Engine',
@@ -35,7 +53,39 @@ export function SocialProof() {
   return (
     <section className="py-24 bg-gray-50 sm:py-32">
       <div className="mx-auto max-w-7xl px-6 lg:px-8">
-        <div className="mx-auto max-w-2xl text-center">
+        {/* Stats strip */}
+        <div className="mx-auto max-w-4xl">
+          <dl className="grid grid-cols-2 gap-px rounded-2xl overflow-hidden bg-gray-200 lg:grid-cols-4">
+            {stats.map((stat) => (
+              <div key={stat.label} className="flex flex-col bg-white px-8 py-6 text-center">
+                <dt className="text-sm leading-6 text-gray-600">{stat.label}</dt>
+                <dd className="order-first text-3xl font-semibold tracking-tight text-gray-900">
+                  {stat.value}
+                </dd>
+              </div>
+            ))}
+          </dl>
+        </div>
+
+        {/* Tech stack */}
+        <div className="mx-auto mt-10 max-w-4xl">
+          <p className="text-center text-xs font-semibold uppercase tracking-widest text-gray-400 mb-4">
+            Built on
+          </p>
+          <div className="flex flex-wrap justify-center gap-2">
+            {techStack.map((tech) => (
+              <span
+                key={tech}
+                className="rounded-full bg-white px-4 py-1.5 text-sm font-medium text-gray-700 ring-1 ring-gray-200"
+              >
+                {tech}
+              </span>
+            ))}
+          </div>
+        </div>
+
+        {/* Feature cards */}
+        <div className="mx-auto max-w-2xl text-center mt-20">
           <h2 className="text-base font-semibold leading-7 text-blue-600">What's Included</h2>
           <p className="mt-2 text-3xl font-bold tracking-tight text-gray-900 sm:text-4xl">
             Every layer of the stack, production-ready
