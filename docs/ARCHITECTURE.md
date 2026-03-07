@@ -1648,12 +1648,7 @@ Reusable UI components used throughout the CMS.
 8. **CustomerSelect** (`CustomerSelect/`)
    - **Purpose**: Customer selection component
 
-9. **FighterSelect** (`FighterSelect/index.tsx`)
-   - **Purpose**: Fighter/user selection dropdown
-   - **Business Logic**: Fetches from `/api/collections/users`
-   - **Schema**: Uses `TextField` from RevealUI
-
-10. **Icon** (`Icon/index.tsx`)
+9. **Icon** (`Icon/index.tsx`)
     - **Purpose**: Icon component
 
 11. **Link** (`Link/index.tsx`)
@@ -2214,7 +2209,6 @@ ElectricSQL database schema for real-time sync.
 
 | Component | Schema | Location |
 |-----------|--------|----------|
-| `FighterSelect` | `User` type | `@/types` |
 | `ProductSelect` | `Product` type | `@/types` |
 | `PricesSelect` | `Price` type | `@/types` |
 | `CollectionArchive` | Collection types | `@/types` |
