@@ -101,11 +101,12 @@ export async function requireTaskQuota(
 
     if (x402.enabled && x402.receivingAddress) {
       // x402 payment path — agents can pay USDC per task instead of hard-blocking
+      const parsedUrl = new URL(c.req.url)
+      const resource = `${parsedUrl.origin}${parsedUrl.pathname}`
       const payloadHeader = c.req.header('X-PAYMENT-PAYLOAD')
 
       if (payloadHeader) {
         // Verify the payment proof the agent sent
-        const resource = new URL(c.req.url).pathname
         const result = await verifyPayment(payloadHeader, resource)
 
         if (result.valid) {
@@ -130,7 +131,6 @@ export async function requireTaskQuota(
       }
 
       // No payment header — return 402 with x402 payment requirements
-      const resource = `${new URL(c.req.url).origin}${new URL(c.req.url).pathname}`
       const paymentRequired = buildPaymentRequired(resource)
       return c.json(
         {
