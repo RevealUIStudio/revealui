@@ -5,9 +5,8 @@ import WebSocket from 'ws'
 import * as awarenessProtocol from 'y-protocols/awareness'
 import * as syncProtocol from 'y-protocols/sync'
 import * as Y from 'yjs'
+import { MESSAGE_AWARENESS, MESSAGE_SYNC } from './protocol-constants.js'
 
-const MESSAGE_SYNC = 0
-const MESSAGE_AWARENESS = 1
 const MAX_RECONNECT_ATTEMPTS = 5
 const BASE_RECONNECT_DELAY = 1000
 const RECONNECT_MULTIPLIER = 2

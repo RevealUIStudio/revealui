@@ -259,14 +259,32 @@ export function createEdgeCachedFetch(config: EdgeCacheConfig = {}) {
  */
 export function createCachedFunction<TArgs extends unknown[], TReturn>(
   fn: (...args: TArgs) => Promise<TReturn>,
-  _options: {
+  options: {
     tags?: string[]
     revalidate?: number | false
   } = {},
 ): (...args: TArgs) => Promise<TReturn> {
-  // In production, this would use Next.js unstable_cache
-  // For now, return the function as-is
-  return fn
+  // If revalidation is disabled, bypass cache entirely
+  if (options.revalidate === false) {
+    return fn
+  }
+
+  const ttlMs = (options.revalidate ?? 60) * 1000
+  const cache = new Map<string, { value: TReturn; expiresAt: number }>()
+
+  return async (...args: TArgs): Promise<TReturn> => {
+    const key = JSON.stringify(args)
+    const now = Date.now()
+    const cached = cache.get(key)
+
+    if (cached && now < cached.expiresAt) {
+      return cached.value
+    }
+
+    const value = await fn(...args)
+    cache.set(key, { value, expiresAt: now + ttlMs })
+    return value
+  }
 }
 
 /**

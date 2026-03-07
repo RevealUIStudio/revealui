@@ -110,18 +110,6 @@ export function createChunkName(name: string): string {
 }
 
 /**
- * Dynamic import with webpack magic comments
- */
-export function lazyWithChunkName<TProps = Record<string, unknown>>(
-  _chunkName: string,
-  importFn: () => Promise<{ default: ComponentType<TProps> }>,
-): LazyExoticComponent<ComponentType<TProps>> {
-  // In production, webpack will use the magic comment in the actual import
-  // This is a runtime helper for consistency
-  return lazy(importFn)
-}
-
-/**
  * Prefetch multiple components
  */
 export function prefetchComponents<T = unknown>(importFns: Array<() => Promise<T>>): Promise<T[]> {
@@ -297,15 +285,6 @@ export function shouldConcatenateModule(modulePath: string): boolean {
 
   // Concatenate ES modules
   return modulePath.endsWith('.js') || modulePath.endsWith('.ts')
-}
-
-/**
- * Tree shaking helper - mark side effects
- */
-export function markPureCall(fn: Function): Function {
-  // This is for documentation purposes
-  // Actual tree shaking is done by bundler
-  return fn
 }
 
 /**

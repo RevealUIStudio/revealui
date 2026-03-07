@@ -14,6 +14,3 @@ export * from './environment/index.js'
 export * from './utils/index.js'
 // Validators
 export * from './validators/index.js'
-
-// Database setup (to be implemented)
-// export * from './database/index.js'
