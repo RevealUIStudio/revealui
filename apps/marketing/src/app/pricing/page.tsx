@@ -103,7 +103,7 @@ const tiers = [
       'Full source code access',
     ],
     cta: 'Contact Sales',
-    ctaHref: 'mailto:founder@revealui.com?subject=Forge%20Inquiry',
+    ctaHref: 'mailto:support@revealui.com?subject=Forge%20Inquiry',
     featured: false,
   },
 ]
@@ -161,7 +161,7 @@ const perpetualTiers = [
       'Private GitHub repo access',
     ],
     cta: 'Buy License',
-    ctaHref: 'mailto:founder@revealui.com?subject=Pro%20Perpetual%20License',
+    ctaHref: 'mailto:support@revealui.com?subject=Pro%20Perpetual%20License',
     comingSoon: false,
   },
   {
@@ -179,7 +179,7 @@ const perpetualTiers = [
       'Private GitHub repo access',
     ],
     cta: 'Buy License',
-    ctaHref: 'mailto:founder@revealui.com?subject=Agency%20Perpetual%20License',
+    ctaHref: 'mailto:support@revealui.com?subject=Agency%20Perpetual%20License',
     comingSoon: false,
   },
   {
@@ -197,7 +197,7 @@ const perpetualTiers = [
       'Private GitHub repo + Docker image access',
     ],
     cta: 'Contact Sales',
-    ctaHref: 'mailto:founder@revealui.com?subject=Forge%20Perpetual%20License%20Inquiry',
+    ctaHref: 'mailto:support@revealui.com?subject=Forge%20Perpetual%20License%20Inquiry',
     comingSoon: false,
   },
 ]
@@ -230,7 +230,7 @@ const faqs = [
   {
     question: 'Can I upgrade or downgrade my plan?',
     answer:
-      "Yes, you can upgrade your plan at any time — you'll be charged the prorated amount immediately. To downgrade, visit your billing portal or contact founder@revealui.com.",
+      "Yes, you can upgrade your plan at any time — you'll be charged the prorated amount immediately. To downgrade, visit your billing portal or contact support@revealui.com.",
   },
   {
     question: 'What AI providers are supported?',
@@ -245,7 +245,7 @@ const faqs = [
   {
     question: 'Do you offer custom pricing for large teams?',
     answer:
-      'Yes! If you need more than what the Forge tier offers, contact us at founder@revealui.com to discuss custom pricing and SLAs.',
+      'Yes! If you need more than what the Forge tier offers, contact us at support@revealui.com to discuss custom pricing and SLAs.',
   },
 ]
 
@@ -410,7 +410,7 @@ export default function PricingPage() {
                 <p className="mt-1 text-xl font-semibold text-purple-600">{bundle.tasks} tasks</p>
                 <p className="mt-1 text-xs text-gray-400">{bundle.costPer}</p>
                 <a
-                  href="mailto:founder@revealui.com?subject=Agent%20Credits%20Inquiry"
+                  href="mailto:support@revealui.com?subject=Agent%20Credits%20Inquiry"
                   className={`mt-8 block w-full rounded-md px-4 py-2.5 text-center text-sm font-semibold transition-colors ${
                     bundle.highlight
                       ? 'bg-purple-600 text-white hover:bg-purple-500'

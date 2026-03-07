@@ -9,7 +9,7 @@
  * ─── REQUIRED ENV VARS ────────────────────────────────────────────────────────
  *   PLAYWRIGHT_BASE_URL   https://cms.revealui.com
  *   API_BASE_URL          https://api.revealui.com
- *   CMS_ADMIN_EMAIL       founder@revealui.com
+ *   CMS_ADMIN_EMAIL       admin@example.com
  *   CMS_ADMIN_PASSWORD    <your-cms-admin-password>
  *
  * ─── REQUIRED FOR STRIPE CHECKOUT TESTS ─────────────────────────────────────
@@ -25,7 +25,7 @@
  *   CI=1 \
  *   PLAYWRIGHT_BASE_URL=https://cms.revealui.com \
  *   API_BASE_URL=https://api.revealui.com \
- *   CMS_ADMIN_EMAIL=founder@revealui.com \
+ *   CMS_ADMIN_EMAIL=admin@example.com \
  *   CMS_ADMIN_PASSWORD='<your-cms-admin-password>' \
  *   STRIPE_SECRET_KEY=sk_test_... \
  *   node_modules/.bin/playwright test e2e/billing-funnel.e2e.ts \
@@ -33,7 +33,7 @@
  *
  * Run (auth + UI only — no Stripe key required):
  *   PLAYWRIGHT_BASE_URL=https://cms.revealui.com \
- *   CMS_ADMIN_EMAIL=founder@revealui.com \
+ *   CMS_ADMIN_EMAIL=admin@example.com \
  *   CMS_ADMIN_PASSWORD='<your-cms-admin-password>' \
  *   node_modules/.bin/playwright test e2e/billing-funnel.e2e.ts \
  *     --project=chromium --retries=0

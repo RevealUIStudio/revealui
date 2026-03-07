@@ -49,7 +49,7 @@ async function notifyFounder(email: string, source: string): Promise<void> {
     headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${apiKey}` },
     body: JSON.stringify({
       from: `RevealUI Waitlist <${process.env.RESEND_FROM_EMAIL ?? 'noreply@revealui.com'}>`,
-      to: process.env.REVEALUI_WAITLIST_NOTIFY_EMAIL ?? 'founder@revealui.com',
+      to: process.env.REVEALUI_WAITLIST_NOTIFY_EMAIL ?? 'hello@revealui.com',
       subject: `New waitlist signup: ${email}`,
       text: `New waitlist signup\n\nEmail: ${email}\nSource: ${source}\nTime: ${new Date().toISOString()}`,
     }),

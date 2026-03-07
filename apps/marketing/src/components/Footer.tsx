@@ -75,7 +75,7 @@ export function Footer() {
               </li>
               <li>
                 <Link
-                  href="mailto:founder@revealui.com"
+                  href="mailto:support@revealui.com"
                   className="hover:text-white transition-colors"
                 >
                   Contact
