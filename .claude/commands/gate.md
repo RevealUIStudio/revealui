@@ -1,3 +1,8 @@
+---
+description: Run the full CI gate (Biome lint, typecheck, Vitest, turbo build) before pushing. Only invoke when explicitly asked to run the gate or verify before a push.
+disable-model-invocation: true
+---
+
 Run the CI gate to validate the monorepo before pushing.
 
 Execute `pnpm gate` in the RevealUI monorepo root. This runs the full CI pipeline:
