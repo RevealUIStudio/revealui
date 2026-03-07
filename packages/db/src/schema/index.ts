@@ -39,6 +39,7 @@ import { codeProvenance, codeReviews } from './code-provenance.js'
 import { collabEdits } from './collab-edits.js'
 import { errorEvents } from './error-events.js'
 import { licenses } from './licenses.js'
+import { marketplaceServers, marketplaceTransactions } from './marketplace.js'
 import { oauthAccounts } from './oauth-accounts.js'
 import { pageRevisions, pages } from './pages.js'
 import { passwordResetTokens } from './password-reset-tokens.js'
@@ -338,6 +339,25 @@ export const ticketLabelAssignmentsRelations = relations(ticketLabelAssignments,
   label: one(ticketLabels, {
     fields: [ticketLabelAssignments.labelId],
     references: [ticketLabels.id],
+  }),
+}))
+
+// =============================================================================
+// Marketplace Relations
+// =============================================================================
+
+export const marketplaceServersRelations = relations(marketplaceServers, ({ one, many }) => ({
+  developer: one(users, {
+    fields: [marketplaceServers.developerId],
+    references: [users.id],
+  }),
+  transactions: many(marketplaceTransactions),
+}))
+
+export const marketplaceTransactionsRelations = relations(marketplaceTransactions, ({ one }) => ({
+  server: one(marketplaceServers, {
+    fields: [marketplaceTransactions.serverId],
+    references: [marketplaceServers.id],
   }),
 }))
 

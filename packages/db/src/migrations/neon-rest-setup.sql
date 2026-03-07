@@ -353,3 +353,58 @@ CREATE TABLE IF NOT EXISTS "oauth_accounts" (
 CREATE UNIQUE INDEX IF NOT EXISTS "oauth_accounts_provider_user_idx" ON "oauth_accounts"("provider", "provider_user_id");
 CREATE INDEX IF NOT EXISTS "oauth_accounts_user_id_idx" ON "oauth_accounts"("user_id");
 COMMENT ON TABLE "oauth_accounts" IS 'OAuth provider account links — maps provider identities to local users';
+
+-- =============================================================================
+-- MCP Marketplace (Phase 5.5)
+-- =============================================================================
+
+CREATE TABLE IF NOT EXISTS "marketplace_servers" (
+  "id" text PRIMARY KEY NOT NULL,
+  "name" text NOT NULL,
+  "description" text NOT NULL,
+  "url" text NOT NULL,
+  "category" text NOT NULL DEFAULT 'other',
+  "tags" text[] NOT NULL DEFAULT '{}',
+  "price_per_call_usdc" text NOT NULL DEFAULT '0.001',
+  "developer_id" text NOT NULL,
+  "stripe_account_id" text,
+  "status" text NOT NULL DEFAULT 'active',
+  "call_count" integer NOT NULL DEFAULT 0,
+  "metadata" jsonb DEFAULT '{}',
+  "created_at" timestamp with time zone DEFAULT now() NOT NULL,
+  "updated_at" timestamp with time zone DEFAULT now() NOT NULL,
+  CONSTRAINT "marketplace_servers_developer_id_fkey"
+    FOREIGN KEY ("developer_id") REFERENCES "users"("id") ON DELETE CASCADE
+);
+
+CREATE TABLE IF NOT EXISTS "marketplace_transactions" (
+  "id" text PRIMARY KEY NOT NULL,
+  "server_id" text NOT NULL,
+  "caller_id" text,
+  "amount_usdc" text NOT NULL,
+  "platform_fee_usdc" text NOT NULL,
+  "developer_amount_usdc" text NOT NULL,
+  "stripe_transfer_id" text,
+  "payment_method" text NOT NULL DEFAULT 'x402',
+  "status" text NOT NULL DEFAULT 'pending',
+  "metadata" jsonb DEFAULT '{}',
+  "created_at" timestamp with time zone DEFAULT now() NOT NULL,
+  CONSTRAINT "marketplace_transactions_server_id_fkey"
+    FOREIGN KEY ("server_id") REFERENCES "marketplace_servers"("id") ON DELETE CASCADE
+);
+
+CREATE INDEX IF NOT EXISTS "marketplace_servers_developer_id_idx"
+  ON "marketplace_servers"("developer_id");
+CREATE INDEX IF NOT EXISTS "marketplace_servers_status_idx"
+  ON "marketplace_servers"("status");
+CREATE INDEX IF NOT EXISTS "marketplace_servers_category_idx"
+  ON "marketplace_servers"("category");
+CREATE INDEX IF NOT EXISTS "marketplace_transactions_server_id_idx"
+  ON "marketplace_transactions"("server_id");
+CREATE INDEX IF NOT EXISTS "marketplace_transactions_caller_id_idx"
+  ON "marketplace_transactions"("caller_id");
+CREATE INDEX IF NOT EXISTS "marketplace_transactions_status_idx"
+  ON "marketplace_transactions"("status");
+
+COMMENT ON TABLE "marketplace_servers" IS 'Community-published MCP servers available through the RevealUI marketplace';
+COMMENT ON TABLE "marketplace_transactions" IS 'Per-call payment ledger for marketplace server invocations';
