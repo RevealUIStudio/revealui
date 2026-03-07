@@ -44,6 +44,14 @@ function HomePage(): React.ReactElement {
 
   return (
     <HomeBackground>
+      {/* Demo/showcase banner — this app is not a production template */}
+      <div className="w-full bg-amber-100 border-b border-amber-300 text-amber-900 text-sm text-center py-2 px-4 font-medium">
+        <strong>Demo app</strong> — This is the RevealUI showcase. Not a production template. See{' '}
+        <a href="https://revealui.com/docs" className="underline hover:text-amber-700">
+          the docs
+        </a>{' '}
+        to build your own app.
+      </div>
       <HomeHeader />
       <div className="text-center mb-8">
         <button
