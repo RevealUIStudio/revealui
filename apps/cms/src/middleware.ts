@@ -15,7 +15,7 @@ export function middleware(request: NextRequest): NextResponse {
     return NextResponse.next()
   }
 
-  const host = (request.headers.get('host') ?? '').toLowerCase().split(':')[0]
+  const host = (request.headers.get('host') ?? '').toLowerCase().split(':')[0] ?? ''
 
   const allowed =
     host === licensedDomain ||
