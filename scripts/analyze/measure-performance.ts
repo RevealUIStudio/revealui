@@ -17,7 +17,8 @@ import { NodeIdService } from '../../../packages/ai/src/memory/services/node-id-
 // Packages must be built first: pnpm --filter @revealui/db build && pnpm --filter @revealui/ai build
 import { createClient } from '../../packages/db/dist/client/index.ts'
 import { ErrorCode } from '../lib/errors.js'
-import { createLogger, getProjectRoot } from '../typed/shared/utils.ts'
+import { createLogger } from '../lib/logger.js'
+import { getProjectRoot } from '../lib/paths.js'
 
 const logger = createLogger()
 
