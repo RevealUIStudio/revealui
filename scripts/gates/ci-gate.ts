@@ -225,8 +225,8 @@ async function gate(): Promise<void> {
         command: 'pnpm',
         args: ['gate:security'],
         warnOnly: true,
-        // In changed-only mode, skip network-bound security audit for speed
-        skip: skip.has('security') || changed,
+        // Security audit runs even in --changed mode (pnpm audit is fast and must not be silently skipped)
+        skip: skip.has('security'),
       },
       {
         name: 'Coverage check',
