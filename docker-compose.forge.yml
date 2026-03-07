@@ -1,0 +1,181 @@
+# =============================================================================
+# RevealUI Forge — Self-Hosted Production Stack
+# =============================================================================
+# For enterprise customers running RevealUI on their own infrastructure.
+#
+# Prerequisites:
+#   1. An active Forge (enterprise) license key from https://revealui.com/pricing
+#   2. Docker + Docker Compose v2 installed
+#   3. A .env.forge file with the variables listed below
+#
+# Quick start:
+#   cp .env.template .env.forge    # Fill in required vars
+#   docker compose -f docker-compose.forge.yml --env-file .env.forge up -d
+#
+# Required .env.forge variables:
+#   FORGE_LICENSE_KEY         — enterprise license key (required)
+#   FORGE_LICENSED_DOMAIN     — domain this instance serves (e.g. admin.acme.com)
+#   POSTGRES_PASSWORD         — secure database password
+#   REVEALUI_SECRET           — 32+ char random secret (openssl rand -hex 32)
+#   JWT_SECRET                — 32+ char random secret (openssl rand -hex 32)
+#   REVEALUI_PUBLIC_KEY       — RSA public key for license verification
+#   REVEALUI_PRIVATE_KEY      — RSA private key for license issuance
+#   RESEND_API_KEY            — transactional email (optional — disables email features if absent)
+# =============================================================================
+
+services:
+
+  # ---------------------------------------------------------------------------
+  # PostgreSQL — primary data store
+  # ---------------------------------------------------------------------------
+  postgres:
+    image: postgres:16-alpine
+    container_name: revealui-forge-postgres
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB:-revealui}
+      POSTGRES_USER: ${POSTGRES_USER:-revealui}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?POSTGRES_PASSWORD is required}
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-revealui}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - forge-network
+    restart: unless-stopped
+
+  # ---------------------------------------------------------------------------
+  # API — Hono REST server (agent tasks, billing, license, webhooks)
+  # ---------------------------------------------------------------------------
+  api:
+    build:
+      context: .
+      dockerfile: apps/api/Dockerfile.forge
+      target: runner
+    container_name: revealui-forge-api
+    environment:
+      NODE_ENV: production
+      PORT: "3004"
+
+      # Forge license enforcement
+      FORGE_LICENSE_KEY: ${FORGE_LICENSE_KEY:?FORGE_LICENSE_KEY is required}
+      FORGE_LICENSED_DOMAIN: ${FORGE_LICENSED_DOMAIN:?FORGE_LICENSED_DOMAIN is required}
+
+      # Database
+      POSTGRES_URL: postgresql://${POSTGRES_USER:-revealui}:${POSTGRES_PASSWORD}@postgres:5432/${POSTGRES_DB:-revealui}
+      DATABASE_URL: postgresql://${POSTGRES_USER:-revealui}:${POSTGRES_PASSWORD}@postgres:5432/${POSTGRES_DB:-revealui}
+
+      # Auth secrets
+      REVEALUI_SECRET: ${REVEALUI_SECRET:?REVEALUI_SECRET is required}
+      JWT_SECRET: ${JWT_SECRET:?JWT_SECRET is required}
+      REVEALUI_PUBLIC_KEY: ${REVEALUI_PUBLIC_KEY:?REVEALUI_PUBLIC_KEY is required}
+      REVEALUI_PRIVATE_KEY: ${REVEALUI_PRIVATE_KEY:?REVEALUI_PRIVATE_KEY is required}
+
+      # CMS origin for CORS
+      CMS_URL: ${CMS_URL:-http://cms:4000}
+      REVEALUI_PUBLIC_SERVER_URL: ${REVEALUI_PUBLIC_SERVER_URL:-http://cms:4000}
+
+      # Optional: Stripe (billing features)
+      STRIPE_SECRET_KEY: ${STRIPE_SECRET_KEY:-}
+      STRIPE_WEBHOOK_SECRET: ${STRIPE_WEBHOOK_SECRET:-}
+
+      # Optional: Resend (transactional email)
+      RESEND_API_KEY: ${RESEND_API_KEY:-}
+      RESEND_FROM_EMAIL: ${RESEND_FROM_EMAIL:-noreply@revealui.com}
+
+      # Optional: x402 micropayments
+      X402_ENABLED: ${X402_ENABLED:-false}
+      X402_RECEIVING_ADDRESS: ${X402_RECEIVING_ADDRESS:-}
+
+      # Optional: perpetual license provisioning
+      REVEALUI_GITHUB_TOKEN: ${REVEALUI_GITHUB_TOKEN:-}
+      REVEALUI_CRON_SECRET: ${REVEALUI_CRON_SECRET:-}
+
+    ports:
+      - "${API_PORT:-3004}:3004"
+    depends_on:
+      postgres:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "node", "-e", "require('http').get('http://localhost:3004/health',(r)=>{process.exit(r.statusCode===200?0:1)})"]
+      interval: 30s
+      timeout: 10s
+      start_period: 20s
+      retries: 3
+    networks:
+      - forge-network
+    restart: unless-stopped
+
+  # ---------------------------------------------------------------------------
+  # CMS — Next.js standalone admin dashboard + headless CMS API
+  # ---------------------------------------------------------------------------
+  cms:
+    build:
+      context: .
+      dockerfile: apps/cms/Dockerfile.forge
+      target: runner
+    container_name: revealui-forge-cms
+    environment:
+      NODE_ENV: production
+      PORT: "4000"
+      HOSTNAME: "0.0.0.0"
+      NEXT_TELEMETRY_DISABLED: "1"
+
+      # Forge license enforcement
+      FORGE_LICENSE_KEY: ${FORGE_LICENSE_KEY}
+      FORGE_LICENSED_DOMAIN: ${FORGE_LICENSED_DOMAIN}
+
+      # Database
+      POSTGRES_URL: postgresql://${POSTGRES_USER:-revealui}:${POSTGRES_PASSWORD}@postgres:5432/${POSTGRES_DB:-revealui}
+      DATABASE_URL: postgresql://${POSTGRES_USER:-revealui}:${POSTGRES_PASSWORD}@postgres:5432/${POSTGRES_DB:-revealui}
+
+      # Auth secrets
+      REVEALUI_SECRET: ${REVEALUI_SECRET}
+      JWT_SECRET: ${JWT_SECRET}
+      REVEALUI_PUBLIC_KEY: ${REVEALUI_PUBLIC_KEY}
+      REVEALUI_PRIVATE_KEY: ${REVEALUI_PRIVATE_KEY}
+
+      # API URL (internal container network)
+      NEXT_PUBLIC_API_URL: ${NEXT_PUBLIC_API_URL:-http://api:3004}
+      API_URL: http://api:3004
+
+      # Public URLs
+      NEXT_PUBLIC_SERVER_URL: ${NEXT_PUBLIC_SERVER_URL:-http://localhost:4000}
+      REVEALUI_PUBLIC_SERVER_URL: ${REVEALUI_PUBLIC_SERVER_URL:-http://localhost:4000}
+
+      # Optional: Stripe
+      NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY: ${NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY:-}
+      STRIPE_SECRET_KEY: ${STRIPE_SECRET_KEY:-}
+      NEXT_PUBLIC_STRIPE_PRO_PRICE_ID: ${NEXT_PUBLIC_STRIPE_PRO_PRICE_ID:-}
+      NEXT_PUBLIC_STRIPE_MAX_PRICE_ID: ${NEXT_PUBLIC_STRIPE_MAX_PRICE_ID:-}
+
+      # Optional: Resend
+      RESEND_API_KEY: ${RESEND_API_KEY:-}
+      RESEND_FROM_EMAIL: ${RESEND_FROM_EMAIL:-noreply@revealui.com}
+
+    ports:
+      - "${CMS_PORT:-4000}:4000"
+    depends_on:
+      postgres:
+        condition: service_healthy
+      api:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "node", "-e", "require('http').get('http://localhost:4000/api/health',(r)=>{process.exit(r.statusCode===200?0:1)})"]
+      interval: 30s
+      timeout: 10s
+      start_period: 40s
+      retries: 3
+    networks:
+      - forge-network
+    restart: unless-stopped
+
+networks:
+  forge-network:
+    driver: bridge
+
+volumes:
+  postgres-data:
+    driver: local
