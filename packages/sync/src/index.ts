@@ -1,7 +1,8 @@
 /**
- * @experimental ElectricSQL sync is not yet functional.
- * The ElectricProvider is currently a passthrough that renders children without
- * establishing any sync connection. Do not use in production.
+ * @revealui/sync — Real-time collaboration and sync primitives.
+ *
+ * The collab layer (Yjs-based) is fully functional.
+ * ElectricProvider is a passthrough context — ElectricSQL integration is planned.
  */
 
 export type {
@@ -14,5 +15,9 @@ export {
   useCollabDocument,
   useCollaboration,
 } from './collab/index.js'
+export type { AgentContextRecord } from './hooks/useAgentContexts.js'
+export { useAgentContexts } from './hooks/useAgentContexts.js'
+export type { AgentMemoryRecord } from './hooks/useAgentMemory.js'
+export { useAgentMemory } from './hooks/useAgentMemory.js'
 export { useConversations } from './hooks/useConversations.js'
-export { ElectricProvider } from './provider/index.js'
+export { ElectricProvider, useElectricConfig } from './provider/index.js'
