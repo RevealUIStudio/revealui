@@ -63,6 +63,23 @@ const TIER_COLORS: Record<string, string> = {
   enterprise: 'bg-purple-100 text-purple-700 dark:bg-purple-900/30 dark:text-purple-400',
 }
 
+const PERPETUAL_PLANS = [
+  {
+    label: 'Pro Perpetual',
+    price: '$299',
+    tier: 'pro' as const,
+    priceIdEnv: process.env.NEXT_PUBLIC_STRIPE_PERPETUAL_PRO_PRICE_ID,
+    description: 'Pro features forever. Includes 1 year of support.',
+  },
+  {
+    label: 'Max Perpetual',
+    price: '$799',
+    tier: 'max' as const,
+    priceIdEnv: process.env.NEXT_PUBLIC_STRIPE_PERPETUAL_MAX_PRICE_ID,
+    description: 'Max features forever. Includes 1 year of support.',
+  },
+]
+
 export default function LicensePage() {
   const router = useRouter()
   const { data: session, isLoading: sessionLoading } = useSession()
@@ -70,6 +87,7 @@ export default function LicensePage() {
   const [features, setFeatures] = useState<Record<string, FeatureFlags> | null>(null)
   const [isLoading, setIsLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
+  const [perpetualLoading, setPerpetualLoading] = useState<string | null>(null)
 
   const fetchData = useCallback(async () => {
     try {
@@ -110,6 +128,27 @@ export default function LicensePage() {
         <p className="text-zinc-500">Loading...</p>
       </div>
     )
+  }
+
+  const handlePerpetualCheckout = async (plan: (typeof PERPETUAL_PLANS)[number]) => {
+    if (!plan.priceIdEnv) return
+    setPerpetualLoading(plan.tier)
+    try {
+      const apiUrl = (process.env.NEXT_PUBLIC_API_URL || 'https://api.revealui.com').trim()
+      const res = await fetch(`${apiUrl}/api/billing/checkout-perpetual`, {
+        method: 'POST',
+        credentials: 'include',
+        headers: { 'content-type': 'application/json' },
+        body: JSON.stringify({ priceId: plan.priceIdEnv, tier: plan.tier }),
+      })
+      if (!res.ok) throw new Error('Checkout failed')
+      const { url } = (await res.json()) as { url: string }
+      router.push(url)
+    } catch {
+      setError('Failed to start checkout. Please try again.')
+    } finally {
+      setPerpetualLoading(null)
+    }
   }
 
   const tier = subscription?.tier ?? 'free'
@@ -188,6 +227,40 @@ export default function LicensePage() {
           </div>
         </CardContent>
       </Card>
+
+      {/* Perpetual license */}
+      {canUpgrade && PERPETUAL_PLANS.some((p) => p.priceIdEnv) && (
+        <Card>
+          <CardHeader>
+            <CardTitle>Perpetual License</CardTitle>
+            <CardDescription>
+              Own your license forever. One-time payment — no subscription required. Includes 1 year
+              of support with optional annual renewals.
+            </CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-3">
+            {PERPETUAL_PLANS.filter((p) => p.priceIdEnv).map((plan) => (
+              <div
+                key={plan.tier}
+                className="flex items-center justify-between rounded-lg border p-3 dark:border-zinc-800"
+              >
+                <div>
+                  <p className="text-sm font-medium">{plan.label}</p>
+                  <p className="text-xs text-zinc-500">{plan.description}</p>
+                </div>
+                <button
+                  type="button"
+                  disabled={perpetualLoading === plan.tier}
+                  onClick={() => void handlePerpetualCheckout(plan)}
+                  className="shrink-0 ml-4 rounded-md bg-zinc-900 px-3 py-1.5 text-sm font-medium text-white hover:bg-zinc-700 disabled:opacity-50 dark:bg-white dark:text-zinc-900 dark:hover:bg-zinc-200"
+                >
+                  {perpetualLoading === plan.tier ? 'Redirecting…' : `Buy ${plan.price}`}
+                </button>
+              </div>
+            ))}
+          </CardContent>
+        </Card>
+      )}
 
       {/* Feature access matrix */}
       <Card>
