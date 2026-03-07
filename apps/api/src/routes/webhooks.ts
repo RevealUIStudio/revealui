@@ -921,7 +921,7 @@ async function sendLicenseActivatedEmail(to: string, tier: string): Promise<void
               Go to Dashboard
             </a>
           </p>
-          <p style="color: #666; font-size: 14px;">If you have questions, reply to this email or contact founder@revealui.com.</p>
+          <p style="color: #666; font-size: 14px;">If you have questions, reply to this email or contact ${process.env.REVEALUI_SUPPORT_EMAIL ?? 'support@revealui.com'}.</p>
         </body>
       </html>
     `,
@@ -948,7 +948,7 @@ async function sendPaymentFailedEmail(to: string): Promise<void> {
               Update Payment Method
             </a>
           </p>
-          <p style="color: #666; font-size: 14px;">If you believe this is an error, contact founder@revealui.com.</p>
+          <p style="color: #666; font-size: 14px;">If you believe this is an error, contact ${process.env.REVEALUI_SUPPORT_EMAIL ?? 'support@revealui.com'}.</p>
         </body>
       </html>
     `,
@@ -983,7 +983,7 @@ async function sendTrialEndingEmail(to: string, trialEnd: number | null): Promis
               Manage Subscription
             </a>
           </p>
-          <p style="color: #666; font-size: 14px;">Questions? Contact founder@revealui.com.</p>
+          <p style="color: #666; font-size: 14px;">Questions? Contact ${process.env.REVEALUI_SUPPORT_EMAIL ?? 'support@revealui.com'}.</p>
         </body>
       </html>
     `,
@@ -1009,7 +1009,7 @@ async function sendPaymentRecoveredEmail(to: string): Promise<void> {
               Go to Billing
             </a>
           </p>
-          <p style="color: #666; font-size: 14px;">If you have questions, contact founder@revealui.com.</p>
+          <p style="color: #666; font-size: 14px;">If you have questions, contact ${process.env.REVEALUI_SUPPORT_EMAIL ?? 'support@revealui.com'}.</p>
         </body>
       </html>
     `,
@@ -1085,7 +1085,7 @@ async function sendPerpetualLicenseActivatedEmail(
               View Your License
             </a>
           </p>
-          <p style="color: #666; font-size: 14px;">Questions? Reply to this email or contact founder@revealui.com.</p>
+          <p style="color: #666; font-size: 14px;">Questions? Reply to this email or contact ${process.env.REVEALUI_SUPPORT_EMAIL ?? 'support@revealui.com'}.</p>
         </body>
       </html>
     `,
@@ -1106,7 +1106,7 @@ async function sendDisputeLostEmail(to: string): Promise<void> {
         <body style="font-family: Arial, sans-serif; line-height: 1.6; color: #333; max-width: 600px; margin: 0 auto; padding: 20px;">
           <h1 style="color: #dc2626;">License Suspended</h1>
           <p>Your RevealUI Pro/Enterprise license has been suspended following a chargeback decision on a recent payment.</p>
-          <p>To restore access, please contact us at <a href="mailto:founder@revealui.com">founder@revealui.com</a> to resolve the dispute and arrange a new payment.</p>
+          <p>To restore access, please contact us at <a href="mailto:${process.env.REVEALUI_SUPPORT_EMAIL ?? 'support@revealui.com'}">${process.env.REVEALUI_SUPPORT_EMAIL ?? 'support@revealui.com'}</a> to resolve the dispute and arrange a new payment.</p>
           <p style="text-align: center; margin: 30px 0;">
             <a href="${portalUrl}" style="background-color: #2563eb; color: white; padding: 12px 24px; text-decoration: none; border-radius: 6px; display: inline-block;">
               Manage Billing
@@ -1116,7 +1116,7 @@ async function sendDisputeLostEmail(to: string): Promise<void> {
         </body>
       </html>
     `,
-    text: `Your RevealUI Pro/Enterprise license has been suspended following a chargeback decision. Contact founder@revealui.com to resolve this. Manage your billing at ${portalUrl}.`,
+    text: `Your RevealUI Pro/Enterprise license has been suspended following a chargeback decision. Contact ${process.env.REVEALUI_SUPPORT_EMAIL ?? 'support@revealui.com'} to resolve this. Manage your billing at ${portalUrl}.`,
   })
 }
 

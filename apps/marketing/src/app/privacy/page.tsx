@@ -139,7 +139,7 @@ export default function PrivacyPolicyPage() {
         <h2>10. Contact</h2>
         <p>
           For privacy-related questions or to exercise your data rights, contact us at{' '}
-          <a href="mailto:founder@revealui.com">founder@revealui.com</a>.
+          <a href="mailto:support@revealui.com">support@revealui.com</a>.
         </p>
       </article>
       <Footer />
