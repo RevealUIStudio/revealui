@@ -86,11 +86,11 @@ export function LeadCapture() {
       <div className="mx-auto max-w-7xl px-6 lg:px-8">
         <div className="mx-auto max-w-2xl text-center">
           <h2 className="text-3xl font-bold tracking-tight text-white sm:text-4xl">
-            Start building today
+            Get early access to Pro
           </h2>
           <p className="mt-6 text-lg leading-8 text-blue-100">
-            RevealUI is open source and ready to deploy. Sign up for early access to Pro and be
-            first in line for new features, announcements, and launch deals.
+            The MIT core is live on npm today. Join the list for Pro launch pricing, new feature
+            announcements, and first access to AI agents, MCP servers, and billing automation.
           </p>
           <form onSubmit={handleSubmit} className="mt-10">
             <div className="flex max-w-md mx-auto gap-x-4">

@@ -6,7 +6,6 @@ import { useState } from 'react'
 const navLinks = [
   { label: 'Docs', href: 'https://docs.revealui.com' },
   { label: 'Pricing', href: '/pricing' },
-  { label: 'GitHub', href: 'https://github.com/RevealUIStudio/revealui' },
 ]
 
 export function NavBar() {

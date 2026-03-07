@@ -109,34 +109,12 @@ export function Audiences() {
             </div>
 
             <div className="mt-8 border-t border-gray-100 pt-6">
-              <span className="inline-flex items-center rounded-full bg-amber-50 px-2.5 py-0.5 text-xs font-semibold text-amber-700 ring-1 ring-inset ring-amber-200">
-                Coming soon
-              </span>
-              <ul className="mt-3 space-y-2.5 text-sm leading-6 text-gray-500">
-                {[
-                  'Visual collection builder — define data models without TypeScript',
-                  'Template marketplace — launch a product from a pre-built starting point',
-                  'No-code onboarding wizard — from zero to running in minutes',
-                ].map((item) => (
-                  <li key={item} className="flex items-start gap-3">
-                    <svg
-                      className="mt-0.5 h-4 w-4 flex-shrink-0 text-amber-400"
-                      fill="none"
-                      viewBox="0 0 24 24"
-                      strokeWidth={2}
-                      stroke="currentColor"
-                    >
-                      <title>Clock</title>
-                      <path
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        d="M12 6v6h4.5m4.5 0a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z"
-                      />
-                    </svg>
-                    {item}
-                  </li>
-                ))}
-              </ul>
+              <p className="text-sm text-gray-500">
+                More no-code tooling is on the roadmap.{' '}
+                <a href="/#waitlist" className="text-green-700 hover:text-green-600 font-medium">
+                  Join the list to follow along →
+                </a>
+              </p>
             </div>
           </div>
         </div>
