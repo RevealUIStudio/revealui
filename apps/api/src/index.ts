@@ -12,6 +12,7 @@ import { bodyLimit } from 'hono/body-limit'
 import { cors } from 'hono/cors'
 import { logger as honoLogger } from 'hono/logger'
 import { authMiddleware, requireRole } from './middleware/auth.js'
+import { requirePermission } from './middleware/authorization.js'
 import { dbMiddleware } from './middleware/db.js'
 import { domainLockMiddleware, validateForgeConfig } from './middleware/domain-lock.js'
 import { errorHandler } from './middleware/error.js'
@@ -311,10 +312,11 @@ app.use('/api/v1/provenance/*', requireFeature('dashboard'))
 // Role-based access — admin-only operations
 // RAG index writes and deletes are administrative operations (rebuilding/managing the vector index).
 // Any authenticated user can read RAG query results, but only admins can modify index contents.
-app.use('/api/rag/*/index/*', requireRole('admin'))
-app.use('/api/v1/rag/*/index/*', requireRole('admin'))
-app.delete('/api/rag/*', requireRole('admin'))
-app.delete('/api/v1/rag/*', requireRole('admin'))
+// Uses core AuthorizationSystem (RBAC with CommonRoles) via requirePermission middleware.
+app.use('/api/rag/*/index/*', requirePermission('rag', 'admin'))
+app.use('/api/v1/rag/*/index/*', requirePermission('rag', 'admin'))
+app.delete('/api/rag/*', requirePermission('rag', 'admin'))
+app.delete('/api/v1/rag/*', requirePermission('rag', 'admin'))
 
 // Write-protect mutation endpoints — these require authentication
 const writeProtected = authMiddleware({ required: true })

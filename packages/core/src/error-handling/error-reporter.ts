@@ -5,7 +5,7 @@
  */
 
 import { logger } from '../observability/logger.js'
-import type { ErrorInfo } from './error-boundary'
+import type { ErrorInfo } from './error-boundary.js'
 
 export interface ErrorReport {
   error: Error
@@ -506,6 +506,8 @@ export function initializeErrorReporting(config: {
   }
 
   if (config.dsn) {
+    // DSN is accepted for forward compatibility with external error services.
+    // Currently routes to LoggingErrorReporter (structured log output).
     errorReporter.addReporter(new LoggingErrorReporter())
   }
 

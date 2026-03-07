@@ -53,8 +53,16 @@ export function generateSizesAttribute(
  * Image format detection
  */
 export function getOptimalImageFormat(userAgent: string): 'avif' | 'webp' | 'jpeg' {
-  // Check for AVIF support
-  if (userAgent.includes('Chrome/9') || userAgent.includes('Edge/9')) {
+  // Check for AVIF support (Chrome 90+, Edge 90+, Firefox 93+)
+  const chromeMatch = userAgent.match(/Chrome\/(\d+)/)
+  const edgeMatch = userAgent.match(/Edg\/(\d+)/)
+  const firefoxMatch = userAgent.match(/Firefox\/(\d+)/)
+
+  if (
+    (chromeMatch && Number(chromeMatch[1]) >= 90) ||
+    (edgeMatch && Number(edgeMatch[1]) >= 90) ||
+    (firefoxMatch && Number(firefoxMatch[1]) >= 93)
+  ) {
     return 'avif'
   }
 
@@ -156,12 +164,39 @@ export const DEFAULT_CSS_CONFIG: CSSOptimizationConfig = {
 }
 
 /**
- * Remove unused CSS selectors
+ * Remove CSS rules whose selectors are not in the usedSelectors set.
+ *
+ * This is a basic regex-based implementation that handles simple selectors.
+ * For production use with complex CSS (media queries, keyframes, layers),
+ * consider integrating PurgeCSS or PostCSS.
  */
-export function removeUnusedCSS(css: string, _usedSelectors: string[]): string {
-  // Simplified implementation
-  // Real implementation would use PostCSS or PurgeCSS
-  return css
+export function removeUnusedCSS(css: string, usedSelectors: string[]): string {
+  if (usedSelectors.length === 0) return css
+
+  const used = new Set(usedSelectors)
+
+  // Match CSS rule blocks: selector { ... }
+  // Handles nested braces up to one level deep (media queries)
+  return css.replace(
+    /([^{}@]+)\{([^{}]*(?:\{[^{}]*\}[^{}]*)*)\}/g,
+    (match, selectorGroup: string) => {
+      const selectors = selectorGroup
+        .split(',')
+        .map((s: string) => s.trim())
+        .filter(Boolean)
+
+      // Keep the rule if any selector matches (class name, id, or element)
+      const hasUsedSelector = selectors.some((selector: string) => {
+        // Extract class names (.foo), IDs (#foo), and element names
+        const tokens = selector.match(/[.#]?[a-zA-Z_][\w-]*/g)
+        return tokens?.some(
+          (token: string) => used.has(token) || used.has(token.replace(/^[.#]/, '')),
+        )
+      })
+
+      return hasUsedSelector ? match : ''
+    },
+  )
 }
 
 /**

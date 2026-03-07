@@ -330,8 +330,10 @@ describe('Marketplace: pagination defaults', () => {
   })
 
   it('defaults to limit=50, offset=0', () => {
-    const limit = Math.min(Number(undefined ?? 50), 100)
-    const offset = Number(undefined ?? 0)
+    const rawLimit: string | undefined = undefined
+    const rawOffset: string | undefined = undefined
+    const limit = Math.min(Number(rawLimit ?? 50), 100)
+    const offset = Number(rawOffset ?? 0)
     expect(limit).toBe(50)
     expect(offset).toBe(0)
   })

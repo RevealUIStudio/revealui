@@ -416,10 +416,12 @@ export class KeyRotationManager {
   private encryption: EncryptionSystem
   private currentKeyId: string
   private oldKeys: Map<string, CryptoKey> = new Map()
+  private keyCreationDates: Map<string, Date> = new Map()
 
   constructor(encryption: EncryptionSystem, initialKeyId: string) {
     this.encryption = encryption
     this.currentKeyId = initialKeyId
+    this.keyCreationDates.set(initialKeyId, new Date())
   }
 
   /**
@@ -435,6 +437,7 @@ export class KeyRotationManager {
     // Set new key
     this.encryption.storeKey(newKeyId, newKey)
     this.currentKeyId = newKeyId
+    this.keyCreationDates.set(newKeyId, new Date())
   }
 
   /**
@@ -464,12 +467,17 @@ export class KeyRotationManager {
   }
 
   /**
-   * Clean up old keys
+   * Clean up old keys created before the specified date.
+   * Never removes the current active key.
    */
-  cleanupOldKeys(_olderThan: Date): void {
-    // In a real implementation, you'd track key creation dates
-    // and remove keys older than the specified date
-    this.oldKeys.clear()
+  cleanupOldKeys(olderThan: Date): void {
+    for (const [keyId, createdAt] of this.keyCreationDates.entries()) {
+      if (keyId !== this.currentKeyId && createdAt < olderThan) {
+        this.oldKeys.delete(keyId)
+        this.encryption.removeKey(keyId)
+        this.keyCreationDates.delete(keyId)
+      }
+    }
   }
 }
 

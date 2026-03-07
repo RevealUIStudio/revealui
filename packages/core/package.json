@@ -226,9 +226,21 @@
       "types": "./dist/utils/request-context.d.ts",
       "import": "./dist/utils/request-context.js"
     },
+    "./error-handling": {
+      "types": "./dist/error-handling/index.d.ts",
+      "import": "./dist/error-handling/index.js"
+    },
     "./error-handling/error-reporter": {
       "types": "./dist/error-handling/error-reporter.d.ts",
       "import": "./dist/error-handling/error-reporter.js"
+    },
+    "./caching": {
+      "types": "./dist/caching/index.d.ts",
+      "import": "./dist/caching/index.js"
+    },
+    "./optimization/code-splitting": {
+      "types": "./dist/optimization/code-splitting.d.ts",
+      "import": "./dist/optimization/code-splitting.js"
     },
     "./richtext/lexical": {
       "types": "./dist/richtext/lexical.d.ts",

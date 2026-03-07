@@ -1,8 +1,8 @@
 /**
  * Security & Compliance
  *
- * Comprehensive security infrastructure for authentication, authorization,
- * encryption, audit logging, GDPR compliance, and secure headers
+ * Security infrastructure for authentication, authorization,
+ * encryption, audit logging, GDPR compliance, and secure headers.
  */
 
 export type {

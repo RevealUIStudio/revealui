@@ -300,36 +300,74 @@ export class AuthorizationSystem {
 export const authorization = new AuthorizationSystem()
 
 /**
- * Common roles
+ * Common roles — aligned with DB schema (`users.role` column)
+ * and `UserRoleSchema` in @revealui/contracts.
+ *
+ * Values: owner | admin | editor | viewer | agent | contributor
  */
-export const CommonRoles = {
+export const CommonRoles: Record<string, Role> = {
+  owner: {
+    id: 'owner',
+    name: 'Owner',
+    description: 'Full control — inherits admin',
+    permissions: [{ resource: '*', action: '*' }],
+    inherits: ['admin'],
+  },
   admin: {
     id: 'admin',
     name: 'Administrator',
     description: 'Full system access',
     permissions: [{ resource: '*', action: '*' }],
   },
-  user: {
-    id: 'user',
-    name: 'User',
-    description: 'Standard user access',
+  editor: {
+    id: 'editor',
+    name: 'Editor',
+    description: 'Can read and modify content',
     permissions: [
+      { resource: 'content', action: 'read' },
+      { resource: 'content', action: 'create' },
+      { resource: 'content', action: 'update' },
       { resource: 'profile', action: 'read' },
       { resource: 'profile', action: 'update' },
-      { resource: 'posts', action: 'read' },
-      { resource: 'posts', action: 'create' },
+      { resource: 'sites', action: 'read' },
+      { resource: 'marketplace', action: 'read' },
     ],
   },
-  guest: {
-    id: 'guest',
-    name: 'Guest',
-    description: 'Public access',
+  viewer: {
+    id: 'viewer',
+    name: 'Viewer',
+    description: 'Read-only access',
     permissions: [
-      { resource: 'posts', action: 'read' },
+      { resource: 'content', action: 'read' },
+      { resource: 'profile', action: 'read' },
+      { resource: 'sites', action: 'read' },
       { resource: 'public', action: 'read' },
     ],
   },
-}
+  agent: {
+    id: 'agent',
+    name: 'AI Agent',
+    description: 'Can execute tasks and read content',
+    permissions: [
+      { resource: 'tasks', action: 'create' },
+      { resource: 'tasks', action: 'read' },
+      { resource: 'content', action: 'read' },
+      { resource: 'rag', action: 'read' },
+      { resource: 'rag', action: 'create' },
+    ],
+  },
+  contributor: {
+    id: 'contributor',
+    name: 'Contributor',
+    description: 'Can suggest changes — create drafts but not publish or delete',
+    permissions: [
+      { resource: 'content', action: 'read' },
+      { resource: 'content', action: 'create' },
+      { resource: 'profile', action: 'read' },
+      { resource: 'profile', action: 'update' },
+    ],
+  },
+} satisfies Record<string, Role>
 
 /**
  * Permission builder
