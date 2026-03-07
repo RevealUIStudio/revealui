@@ -38,7 +38,7 @@ RUN pnpm --filter api run build
 FROM node:24-alpine AS runner
 
 ENV NODE_ENV=production
-ENV PORT=3001
+ENV PORT=3004
 
 WORKDIR /app
 
@@ -49,8 +49,8 @@ COPY --from=build /app/node_modules          ./node_modules_root
 
 # Health check (no curl in hardened image — use node)
 HEALTHCHECK --interval=30s --timeout=10s --start-period=20s --retries=3 \
-    CMD node -e "require('http').get('http://localhost:3001/health',(r)=>{process.exit(r.statusCode===200?0:1)})"
+    CMD node -e "require('http').get('http://localhost:3004/health',(r)=>{process.exit(r.statusCode===200?0:1)})"
 
-EXPOSE 3001
+EXPOSE 3004
 
 CMD ["node", "dist/index.js"]
