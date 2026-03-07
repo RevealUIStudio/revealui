@@ -9,7 +9,7 @@ import { createRoute, OpenAPIHono, z } from '@hono/zod-openapi'
 import { getMaxAgentTasks } from '@revealui/core/license'
 import { getClient } from '@revealui/db'
 import { agentTaskUsage, licenses, users } from '@revealui/db/schema'
-import { and, desc, eq } from 'drizzle-orm'
+import { and, desc, eq, gt } from 'drizzle-orm'
 import { HTTPException } from 'hono/http-exception'
 import Stripe from 'stripe'
 
@@ -692,6 +692,100 @@ app.openapi(supportRenewalRoute, async (c) => {
   }
 
   return c.json({ reminded }, 200)
+})
+
+// POST /api/billing/report-agent-overage — Internal cron: report agent task overage to Stripe metered billing.
+// Reads the previous billing cycle's overage from agent_task_usage and creates Stripe usage records.
+// Protected by X-Cron-Secret header. Skips silently if STRIPE_AGENT_METERED_PRICE_ID is not set.
+const reportOverageRoute = createRoute({
+  method: 'post',
+  path: '/report-agent-overage',
+  tags: ['billing'],
+  summary: 'Report agent task overage to Stripe (internal cron)',
+  description:
+    'Reads overage from the previous billing cycle and creates Stripe metered usage records. Protected by X-Cron-Secret.',
+  responses: {
+    200: {
+      content: {
+        'application/json': { schema: z.object({ reported: z.number(), skipped: z.number() }) },
+      },
+      description: 'Overage reported',
+    },
+    401: {
+      content: { 'application/json': { schema: z.object({ error: z.string() }) } },
+      description: 'Invalid cron secret',
+    },
+  },
+})
+
+app.openapi(reportOverageRoute, async (c) => {
+  const cronSecret = process.env.REVEALUI_CRON_SECRET
+  const provided = c.req.header('X-Cron-Secret')
+  if (!(cronSecret && provided) || Buffer.from(cronSecret).compare(Buffer.from(provided)) !== 0) {
+    return c.json({ error: 'Unauthorized' }, 401)
+  }
+
+  const meteredPriceId = process.env.STRIPE_AGENT_METERED_PRICE_ID
+  if (!meteredPriceId) {
+    // Not configured yet — skip silently (owner action required to create Stripe metered price)
+    return c.json({ reported: 0, skipped: 0 }, 200)
+  }
+
+  const db = getClient()
+  const stripe = getStripeClient()
+
+  // Previous billing cycle = last calendar month
+  const now = new Date()
+  const prevCycle = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth() - 1, 1))
+
+  // Find all users with non-zero overage in the previous cycle
+  const overageRows = await db
+    .select({
+      userId: agentTaskUsage.userId,
+      overage: agentTaskUsage.overage,
+    })
+    .from(agentTaskUsage)
+    .where(and(eq(agentTaskUsage.cycleStart, prevCycle), gt(agentTaskUsage.overage, 0)))
+
+  let reported = 0
+  let skipped = 0
+
+  for (const row of overageRows) {
+    // Find the user's active subscription
+    const [license] = await db
+      .select({ subscriptionId: licenses.subscriptionId })
+      .from(licenses)
+      .where(and(eq(licenses.userId, row.userId), eq(licenses.status, 'active')))
+      .limit(1)
+
+    if (!license?.subscriptionId) {
+      skipped++
+      continue
+    }
+
+    try {
+      const subscription = await stripe.subscriptions.retrieve(license.subscriptionId)
+      const meteredItem = subscription.items.data.find((item) => item.price.id === meteredPriceId)
+
+      if (!meteredItem) {
+        // This subscription doesn't have the metered item yet — skip (not yet migrated)
+        skipped++
+        continue
+      }
+
+      await stripe.subscriptionItems.createUsageRecord(meteredItem.id, {
+        quantity: row.overage,
+        // 'set' replaces any prior usage record for this period to avoid double-counting
+        action: 'set',
+        timestamp: Math.floor(prevCycle.getTime() / 1000 + 30 * 24 * 60 * 60 - 1),
+      })
+      reported++
+    } catch {
+      skipped++
+    }
+  }
+
+  return c.json({ reported, skipped }, 200)
 })
 
 export default app
