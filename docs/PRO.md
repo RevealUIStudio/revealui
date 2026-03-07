@@ -1341,3 +1341,192 @@ SUPABASE_SECRET_KEY=sb_secret_...
 SUPABASE_ANON_KEY=eyJ...
 SUPABASE_SERVICE_ROLE_KEY=eyJ...
 ```
+
+---
+
+# x402 Micropayments
+
+RevealUI Pro includes native support for the [x402 protocol](https://x402.org) — HTTP-402-based micropayments in USDC on Base. Agents and callers pay per-task without subscriptions or API keys.
+
+## Overview
+
+When a caller hits a metered endpoint without a valid payment, the API returns:
+
+```http
+HTTP/1.1 402 Payment Required
+X-PAYMENT-REQUIRED: <base64 PaymentRequired>
+```
+
+The caller pays the required USDC amount on-chain, then retries with the payment proof in `X-PAYMENT-PAYLOAD`. The API verifies the payment via the Coinbase x402 facilitator and processes the request.
+
+## Metered endpoints
+
+| Endpoint | Default price |
+|----------|--------------|
+| `POST /a2a/:agentId/tasks/send` | `X402_PRICE_PER_TASK` USDC |
+| `POST /api/marketplace/servers/:id/invoke` | Per-server price (set by developer) |
+
+## Environment configuration
+
+```bash
+# Enable x402 payment gating
+X402_ENABLED=true
+
+# USDC receiving address on Base
+X402_RECEIVING_ADDRESS=0x...
+
+# Default price per agent task (USDC string, e.g. "0.01")
+X402_PRICE_PER_TASK=0.01
+
+# Network (base or base-sepolia for testnet)
+X402_NETWORK=base
+```
+
+## Caller integration
+
+```typescript
+import { withPaymentInterceptor } from '@coinbase/x402/fetch'
+import { createWalletClient } from 'viem'
+
+const wallet = createWalletClient({ /* your wallet config */ })
+const fetch402 = withPaymentInterceptor(fetch, wallet)
+
+// Automatically handles 402 → pay → retry
+const response = await fetch402('https://api.revealui.com/a2a/my-agent/tasks/send', {
+  method: 'POST',
+  headers: { 'Content-Type': 'application/json' },
+  body: JSON.stringify({ /* A2A task payload */ }),
+})
+```
+
+The SDK handles the full 402 → payment → retry cycle automatically.
+
+## Security
+
+- Payment is verified by the [x402.org](https://x402.org) facilitator before any task is executed
+- Each `X-PAYMENT-PAYLOAD` is validated on-chain; replays are rejected
+- The receiving address is set server-side — callers cannot redirect payments
+
+## Related
+
+- [MCP Marketplace](./MARKETPLACE.md) — per-server x402 pricing for community MCP servers
+- [AI agents](./AI.md) — A2A task dispatch with payment gating
+- [Coinbase x402 SDK](https://github.com/coinbase/x402)
+
+---
+
+# Perpetual Licenses
+
+RevealUI Pro is available as a **perpetual license** in addition to monthly/annual subscriptions. Buy once, use forever on a single production domain.
+
+## What's included
+
+- All Pro tier features at time of purchase
+- 12 months of updates (patch + minor releases)
+- Priority support during the coverage period
+- License key scoped to one production domain
+
+After the 12-month update period, the license continues to work indefinitely on the version you have. Renewing adds another 12 months of updates.
+
+## License key format
+
+Perpetual license keys are JWT-signed:
+
+```
+rui_perpetual_<base64-payload>.<signature>
+```
+
+The payload encodes: `domain`, `issuedAt`, `expiresAt` (update window end), and `tier`.
+
+## Validating a license
+
+```http
+POST /api/license/verify
+Content-Type: application/json
+
+{ "licenseKey": "rui_perpetual_..." }
+```
+
+```json
+{
+  "valid": true,
+  "tier": "pro",
+  "domain": "app.example.com",
+  "updatesUntil": "2027-03-07T00:00:00Z"
+}
+```
+
+## Forge (enterprise perpetual)
+
+Forge licenses follow the same perpetual model but are scoped to self-hosted deployments with domain lock. See [Forge](./FORGE.md) for the full self-hosted deployment guide.
+
+---
+
+# MCP Marketplace
+
+The MCP Marketplace lets developers publish Model Context Protocol servers with per-call USDC pricing. RevealUI takes 20%; you earn 80%. Callers pay via x402 — no subscriptions, no API keys.
+
+This is a full reference guide for both publishers and callers.
+
+See **[MARKETPLACE.md](./MARKETPLACE.md)** for the complete guide, including:
+
+- Publishing a server (POST `/api/marketplace/servers`)
+- Category and pricing guidelines
+- Stripe Connect onboarding for payouts
+- Discovering and invoking servers as a caller
+- x402 payment flow with the Coinbase SDK
+- SSRF protection and server requirements
+- Rate limits
+
+### Quick reference
+
+```http
+# Publish
+POST /api/marketplace/servers
+Authorization: Bearer <session-token>
+
+# Discover
+GET /api/marketplace/servers?category=coding
+
+# Invoke (with x402 payment)
+POST /api/marketplace/servers/:id/invoke
+X-PAYMENT-PAYLOAD: <base64 proof>
+
+# Agent discovery
+GET /.well-known/marketplace.json
+```
+
+---
+
+# Forge — Self-Hosted Deployment
+
+Forge is the enterprise tier of RevealUI. Deploy the entire stack on your own infrastructure with domain lock and unlimited users.
+
+See **[FORGE.md](./FORGE.md)** for the complete deployment guide, including:
+
+- Docker Compose stack (API + CMS + PostgreSQL)
+- Environment variables (`FORGE_LICENSE_KEY`, `FORGE_LICENSED_DOMAIN`, etc.)
+- Domain lock enforcement
+- Reverse proxy configuration (Caddy + Nginx examples)
+- Database migrations and upgrade procedure
+- RSA key generation for license JWT signing
+- Troubleshooting
+
+### Quick reference
+
+```bash
+# Pull images (requires GHCR token from Forge welcome email)
+echo "$GHCR_TOKEN" | docker login ghcr.io -u revealuistudio --password-stdin
+docker pull ghcr.io/revealuistudio/revealui-api:latest
+docker pull ghcr.io/revealuistudio/revealui-cms:latest
+
+# Start the stack
+docker compose -f docker-compose.forge.yml --env-file .env.forge up -d
+
+# Apply migrations
+docker compose -f docker-compose.forge.yml exec api pnpm db:migrate
+
+# Verify
+curl https://your-domain.com/health
+# {"status":"ok","db":"connected","license":"forge"}
+```

@@ -109,6 +109,12 @@ RevealUI is a modular monorepo. The OSS core is on npm:
 |---------|--------|
 | [`@revealui/sync`](packages/sync) | ⚗️ Experimental — ElectricSQL real-time sync (passthrough only; not production-ready) |
 
+### Pro Packages
+
+Pro packages (`@revealui/ai`, `@revealui/mcp`, `@revealui/editors`, `@revealui/services`, `@revealui/harnesses`) are **not included in this repository**. They are distributed separately via GitHub Packages and require a Pro or higher license key.
+
+To install Pro packages, [purchase a license](https://revealui.com/pro) and follow the [Pro setup guide](https://docs.revealui.com/pro/setup).
+
 ## Tech stack
 
 | Layer | Technology |

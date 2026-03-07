@@ -156,6 +156,7 @@ apps/docs/dist/docs/
 .claude/agent-state.md
 .claude/events.jsonl
 .claude/workboard.lock
+.claude/settings.local.json
 
 # RevealUI cache files (PGlite database)
 .revealui/cache/

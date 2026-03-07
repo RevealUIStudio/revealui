@@ -21,7 +21,7 @@ interface HealthCheck {
 export async function GET(request: Request) {
   // Auth check — unauthenticated requests get minimal status only
   const session = await getSession(request.headers)
-  const isAuthenticated = session?.user?.role === 'admin' || session?.user?.role === 'editor'
+  const isAuthenticated = session?.user?.role === 'admin'
 
   if (!isAuthenticated) {
     return NextResponse.json({ status: 'healthy' })

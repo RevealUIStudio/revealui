@@ -68,7 +68,7 @@ export default function TermsOfServicePage() {
         <p>
           We offer a full refund if requested within 14 days of your first paid charge (not
           including the trial period). After 14 days, no refunds are issued for partial billing
-          periods. Contact founder@revealui.com for refund requests.
+          periods. Contact support@revealui.com for refund requests.
         </p>
 
         <h2>5. Commercial License</h2>
@@ -137,7 +137,7 @@ export default function TermsOfServicePage() {
         <h2>12. Contact</h2>
         <p>
           For questions about these Terms, contact us at{' '}
-          <a href="mailto:founder@revealui.com">founder@revealui.com</a>.
+          <a href="mailto:support@revealui.com">support@revealui.com</a>.
         </p>
       </article>
       <Footer />
