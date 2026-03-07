@@ -1,4 +1,5 @@
 import { useShape } from '@electric-sql/react'
+import { useElectricConfig } from '../provider/index.js'
 
 export interface CollabDocumentState {
   initialState: Uint8Array | null
@@ -10,7 +11,9 @@ export interface CollabDocumentState {
 // UUID v4 pattern — only format accepted as a yjs_documents PK
 const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i
 
-export function useCollabDocument(documentId: string, electricUrl: string): CollabDocumentState {
+export function useCollabDocument(documentId: string): CollabDocumentState {
+  const { proxyBaseUrl } = useElectricConfig()
+
   // Validate before interpolating into the WHERE clause. yjs_documents PKs are
   // always UUIDs — reject anything else so no untrusted string enters the query.
   const isValidId = UUID_RE.test(documentId)
@@ -18,10 +21,9 @@ export function useCollabDocument(documentId: string, electricUrl: string): Coll
   // Hook must always be called (Rules of Hooks). Pass an impossible WHERE when
   // the ID is invalid so the shape returns no rows but the hook still runs.
   const { data, isLoading, error } = useShape({
-    url: `${electricUrl}/v1/shape`,
+    url: `${proxyBaseUrl}/api/shapes/yjs-documents`,
     params: {
-      table: 'yjs_documents',
-      where: isValidId ? `id = '${documentId}'` : `id = 'invalid'`,
+      document_id: isValidId ? documentId : '__invalid__',
     },
   })
 
