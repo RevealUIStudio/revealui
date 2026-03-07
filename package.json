@@ -228,6 +228,7 @@
     "secrets:scan": "tsx scripts/secrets/scan.ts",
     "secrets:generate": "tsx scripts/secrets/generate.ts",
     "secrets:rotate": "tsx scripts/secrets/rotate.ts",
+    "setup:credentials": "tsx scripts/setup/credentials.ts",
     "setup:env": "tsx scripts/setup/environment.ts",
     "setup:node": "tsx scripts/setup/setup-node-version.ts",
     "size": "size-limit",
