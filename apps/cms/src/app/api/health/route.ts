@@ -1,5 +1,6 @@
 import { getSession } from '@revealui/auth/server'
 import { protectedStripe } from '@revealui/services'
+import { list } from '@vercel/blob'
 import { NextResponse } from 'next/server'
 import { getRevealUIInstance } from '@/lib/utilities/revealui-singleton'
 
@@ -82,18 +83,22 @@ export async function GET(request: Request) {
     }
   }
 
-  // Check Vercel Blob Storage (if configured)
+  // Check Vercel Blob Storage (if configured) — make a real API call with a 2s timeout
   if (process.env.BLOB_READ_WRITE_TOKEN) {
     try {
       const blobStartTime = Date.now()
-      // Vercel Blob doesn't have a simple health check endpoint
-      // We'll mark it as healthy if token is configured
+      await Promise.race([
+        list({ prefix: '_health/', limit: 1 }),
+        new Promise<never>((_, reject) =>
+          setTimeout(() => reject(new Error('Blob health check timed out (2s)')), 2000),
+        ),
+      ])
       const blobResponseTime = Date.now() - blobStartTime
 
       checks.push({
         name: 'vercel-blob',
         status: 'healthy',
-        message: 'Vercel Blob token configured',
+        message: 'Vercel Blob API reachable',
         responseTimeMs: blobResponseTime,
       })
     } catch (error) {
