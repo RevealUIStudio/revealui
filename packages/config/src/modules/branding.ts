@@ -9,7 +9,7 @@
  *   REVEALUI_SHOW_POWERED_BY=false.
  */
 
-import type { EnvConfig } from '../schema'
+import type { EnvConfig } from '../schema.js'
 
 export interface BrandingConfig {
   /** Product name shown in admin UI and emails (default: 'RevealUI') */

@@ -2,7 +2,7 @@
  * @revealui/config - Optional Configuration Modules
  */
 
-import type { EnvConfig } from '../schema'
+import type { EnvConfig } from '../schema.js'
 
 export interface SupabaseConfig {
   url?: string

@@ -34,21 +34,21 @@
  * - Attempting to use lenient mode at runtime will throw an error.
  */
 
-import { loadEnvironment } from './loader'
-import { type BrandingConfig, getBrandingConfig } from './modules/branding'
-import { type DatabaseConfig, getDatabaseConfig } from './modules/database'
+import { loadEnvironment } from './loader.js'
+import { type BrandingConfig, getBrandingConfig } from './modules/branding.js'
+import { type DatabaseConfig, getDatabaseConfig } from './modules/database.js'
 import {
   type DevToolsConfig,
   getOptionalConfig,
   type OptionalConfig,
   type SentryConfig,
   type SupabaseConfig,
-} from './modules/optional'
-import { getRevealConfig, type RevealConfig } from './modules/reveal'
-import { getStorageConfig, type StorageConfig } from './modules/storage'
-import { getStripeConfig, type StripeConfig } from './modules/stripe'
-import type { EnvConfig } from './schema'
-import { formatValidationErrors, validateAndThrow, validateEnvVars } from './validator'
+} from './modules/optional.js'
+import { getRevealConfig, type RevealConfig } from './modules/reveal.js'
+import { getStorageConfig, type StorageConfig } from './modules/storage.js'
+import { getStripeConfig, type StripeConfig } from './modules/stripe.js'
+import type { EnvConfig } from './schema.js'
+import { formatValidationErrors, validateAndThrow, validateEnvVars } from './validator.js'
 
 // =============================================================================
 // Main Config Interface
@@ -314,7 +314,7 @@ export {
   getSharedViteConfig,
   getSharedWebConfig,
   sharedConfig,
-} from './revealui.config'
+} from './revealui.config.js'
 
 // Export types (Config is already exported as interface above)
 export type {
@@ -330,6 +330,6 @@ export type {
   EnvConfig,
 }
 
-export type { Environment } from './loader'
+export type { Environment } from './loader.js'
 // Export loader utilities (for advanced usage)
-export { detectEnvironment, loadEnvironment } from './loader'
+export { detectEnvironment, loadEnvironment } from './loader.js'
