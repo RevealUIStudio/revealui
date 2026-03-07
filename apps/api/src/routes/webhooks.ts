@@ -200,6 +200,10 @@ app.post('/stripe', async (c) => {
 
         // ── Perpetual (one-time payment) ──────────────────────────────────
         if (session.mode === 'payment') {
+          // Only process as perpetual license if RevealUI tier metadata is present.
+          // Other payment-mode checkouts (non-RevealUI products) are silently skipped.
+          if (!session.metadata?.tier) break
+
           const customerId = resolveCustomerId(session.customer)
           if (!customerId) break
 
