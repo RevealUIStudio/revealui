@@ -28,6 +28,7 @@ import { createLLMClientForUser, LLMClient, type LLMProviderType } from '@reveal
 import type { A2AJsonRpcRequest } from '@revealui/contracts'
 import { A2AJsonRpcRequestSchema, AgentDefinitionSchema } from '@revealui/contracts'
 import { isFeatureEnabled } from '@revealui/core/features'
+import { logger } from '@revealui/core/observability/logger'
 import { getClient } from '@revealui/db'
 import { agentActions, marketplaceServers, registeredAgents } from '@revealui/db/schema'
 import { desc, eq } from 'drizzle-orm'
@@ -243,7 +244,7 @@ a2a.get('/agents/:id', (c) => {
 })
 
 /** Full agent definition — admin only, requires 'ai' feature */
-a2a.get('/agents/:id/def', requireFeature('ai'), (c) => {
+a2a.get('/agents/:id/def', authMiddleware({ required: true }), requireFeature('ai'), (c) => {
   const agentId = c.req.param('id')
   if (!/^[\w-]{1,256}$/.test(agentId)) {
     return c.json({ error: 'Invalid agent ID format' }, 400)
@@ -328,8 +329,12 @@ a2a.put('/agents/:id', authMiddleware({ required: true }), requireFeature('ai'),
           })
           .where(eq(registeredAgents.id, agentId))
       }
-    } catch {
-      // Non-fatal — update is applied in-memory
+    } catch (err) {
+      // Non-fatal — update is applied in-memory.
+      logger.warn('Agent registry DB update failed (update applied in-memory only)', {
+        agentId,
+        error: err instanceof Error ? err.message : 'unknown',
+      })
     }
   }
 
@@ -359,8 +364,12 @@ a2a.delete('/agents/:id', authMiddleware({ required: true }), requireFeature('ai
   try {
     const db = getClient()
     await db.delete(registeredAgents).where(eq(registeredAgents.id, agentId))
-  } catch {
-    // Non-fatal — agent is unregistered from in-memory registry
+  } catch (err) {
+    // Non-fatal — agent is unregistered from in-memory registry.
+    logger.warn('Agent registry DB delete failed (agent removed from in-memory only)', {
+      agentId,
+      error: err instanceof Error ? err.message : 'unknown',
+    })
   }
 
   return c.json({ success: true })
@@ -402,8 +411,13 @@ a2a.post('/agents', authMiddleware({ required: true }), async (c) => {
       id: def.id,
       definition: def,
     })
-  } catch {
-    // Non-fatal — agent is registered in-memory for this server instance
+  } catch (err) {
+    // Non-fatal — agent is registered in-memory for this server instance.
+    // Log so operators can detect persistent DB write failures on cold starts/redeploys.
+    logger.warn('Agent registry DB persist failed (agent registered in-memory only)', {
+      agentId: def.id,
+      error: err instanceof Error ? err.message : 'unknown',
+    })
   }
 
   const baseUrl = getBaseUrl(c.req.raw)

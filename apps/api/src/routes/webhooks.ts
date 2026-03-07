@@ -58,8 +58,11 @@ async function checkAndMarkProcessed(
     })
     return false // Not a duplicate — insert succeeded
   } catch (err) {
-    // Unique constraint violation = already processed
-    if (err instanceof Error && err.message.includes('duplicate key')) {
+    // Unique constraint violation = already processed.
+    // Check PostgreSQL error code '23505' (stable across all pg drivers) in addition
+    // to the message, since NeonDB's HTTP driver may format the message differently.
+    const pgCode = (err as { code?: string }).code
+    if (pgCode === '23505' || (err instanceof Error && err.message.includes('duplicate key'))) {
       return true
     }
     // Any other DB error is unexpected — throw so the caller returns 500 to Stripe.
@@ -78,6 +81,18 @@ function resolveTier(
   const tier = metadata?.tier
   if (tier === 'enterprise') return 'enterprise'
   if (tier === 'max') return 'max'
+  // Log when falling back to 'pro' due to missing/unknown tier — operators must see this
+  // so they can detect misconfigured Stripe metadata before a customer is silently downgraded.
+  if (tier !== 'pro') {
+    logger.error(
+      'resolveTier: unknown or missing tier in Stripe metadata — defaulting to pro',
+      undefined,
+      {
+        tier: tier ?? null,
+        metadata: metadata ?? null,
+      },
+    )
+  }
   return 'pro'
 }
 
