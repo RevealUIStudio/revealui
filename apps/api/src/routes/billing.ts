@@ -6,6 +6,7 @@
  */
 
 import { createRoute, OpenAPIHono, z } from '@hono/zod-openapi'
+import { CircuitBreaker, CircuitBreakerOpenError } from '@revealui/core/error-handling'
 import { getMaxAgentTasks } from '@revealui/core/license'
 import { getClient } from '@revealui/db'
 import { agentTaskUsage, licenses, users } from '@revealui/db/schema'
@@ -23,12 +24,33 @@ interface UserContext {
 // biome-ignore lint/style/useNamingConvention: Hono requires PascalCase `Variables` in its generic type parameter
 const app = new OpenAPIHono<{ Variables: { user: UserContext | undefined } }>()
 
+// Circuit breaker for Stripe API — fails fast when Stripe is unreachable
+const stripeBreaker = new CircuitBreaker({
+  failureThreshold: 5,
+  resetTimeout: 30_000,
+  successThreshold: 2,
+})
+
 function getStripeClient(): Stripe {
   const key = process.env.STRIPE_SECRET_KEY
   if (!key) {
     throw new HTTPException(500, { message: 'Stripe is not configured' })
   }
-  return new Stripe(key)
+  return new Stripe(key, { maxNetworkRetries: 2 })
+}
+
+/** Execute a Stripe operation through the circuit breaker */
+async function withStripe<T>(operation: (stripe: Stripe) => Promise<T>): Promise<T> {
+  try {
+    return await stripeBreaker.execute(() => operation(getStripeClient()))
+  } catch (error) {
+    if (error instanceof CircuitBreakerOpenError) {
+      throw new HTTPException(503, {
+        message: 'Payment service temporarily unavailable. Please try again shortly.',
+      })
+    }
+    throw error
+  }
 }
 
 // ─── Schemas ─────────────────────────────────────────────────────────────────
@@ -167,24 +189,25 @@ app.openapi(checkoutRoute, async (c) => {
   const { priceId, tier } = c.req.valid('json')
   const customerId = await ensureStripeCustomer(user.id, user.email ?? '')
 
-  const stripe = getStripeClient()
   const cmsUrl = process.env.CMS_URL || process.env.NEXT_PUBLIC_SERVER_URL
   if (!cmsUrl) throw new HTTPException(500, { message: 'CMS_URL is not configured' })
 
-  const session = await stripe.checkout.sessions.create({
-    customer: customerId,
-    mode: 'subscription',
-    payment_method_types: ['card'],
-    billing_address_collection: 'required',
-    allow_promotion_codes: true,
-    line_items: [{ price: priceId, quantity: 1 }],
-    subscription_data: {
-      trial_period_days: 7,
-      metadata: { tier: tier || 'pro', revealui_user_id: user.id },
-    },
-    success_url: `${cmsUrl}/account/billing?success=true`,
-    cancel_url: `${cmsUrl}/account/billing`,
-  })
+  const session = await withStripe((stripe) =>
+    stripe.checkout.sessions.create({
+      customer: customerId,
+      mode: 'subscription',
+      payment_method_types: ['card'],
+      billing_address_collection: 'required',
+      allow_promotion_codes: true,
+      line_items: [{ price: priceId, quantity: 1 }],
+      subscription_data: {
+        trial_period_days: 7,
+        metadata: { tier: tier || 'pro', revealui_user_id: user.id },
+      },
+      success_url: `${cmsUrl}/account/billing?success=true`,
+      cancel_url: `${cmsUrl}/account/billing`,
+    }),
+  )
 
   if (!session.url) {
     throw new HTTPException(500, { message: 'Failed to create checkout session' })
@@ -773,7 +796,13 @@ app.openapi(reportOverageRoute, async (c) => {
         continue
       }
 
-      await stripe.subscriptionItems.createUsageRecord(meteredItem.id, {
+      // TODO: migrate to stripe.billing.meterEvents.create() when Stripe Meter is configured
+      // createUsageRecord was removed in Stripe SDK v20+ — casting through any until migration
+      await (
+        stripe.subscriptionItems as unknown as {
+          createUsageRecord: (id: string, params: Record<string, unknown>) => Promise<unknown>
+        }
+      ).createUsageRecord(meteredItem.id, {
         quantity: row.overage,
         // 'set' replaces any prior usage record for this period to avoid double-counting
         action: 'set',

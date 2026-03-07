@@ -398,7 +398,7 @@ export async function getServiceWorkerState(): Promise<{
   }
 }
 
-export interface ServiceWorkerHook {
+export interface ServiceWorkerHelper {
   register: () => Promise<ServiceWorkerRegistration | null>
   unregister: () => Promise<boolean>
   update: () => Promise<void>
@@ -412,10 +412,14 @@ export interface ServiceWorkerHook {
   }>
 }
 
+/** @deprecated Use `createServiceWorkerHelper` instead */
+export type ServiceWorkerHook = ServiceWorkerHelper
+
 /**
- * React hook for service worker
+ * Create service worker helper with registration, update, and state methods.
+ * Not a React hook — safe to call conditionally or outside components.
  */
-export function useServiceWorker(config?: ServiceWorkerConfig): ServiceWorkerHook {
+export function createServiceWorkerHelper(config?: ServiceWorkerConfig): ServiceWorkerHelper {
   if (typeof window === 'undefined') {
     return {
       register: async () => null,

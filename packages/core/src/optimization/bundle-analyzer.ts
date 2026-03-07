@@ -189,13 +189,39 @@ export function analyzeWebpackStats(statsPath: string): BundleStats {
 /**
  * Find duplicate dependencies
  */
-export function findDuplicateDependencies(_stats: BundleStats): DuplicateModule[] {
-  const _modules = new Map<string, { versions: Set<string>; size: number }>()
+export function findDuplicateDependencies(stats: BundleStats): DuplicateModule[] {
+  // Group dependencies by base package name (strip scope version differences)
+  const byName = new Map<string, DependencyStats[]>()
 
-  // This would need module resolution data
-  // Placeholder implementation
+  for (const dep of stats.dependencies) {
+    // Normalize: @scope/pkg-name → base name without version suffix
+    const baseName = dep.name.replace(/-\d+$/, '')
+    const existing = byName.get(baseName)
+    if (existing) {
+      existing.push(dep)
+    } else {
+      byName.set(baseName, [dep])
+    }
+  }
 
-  return []
+  const duplicates: DuplicateModule[] = []
+
+  for (const [name, deps] of byName.entries()) {
+    // Multiple instances of the same dependency indicate duplicates
+    if (deps.length > 1 || deps.some((d) => d.instances > 1)) {
+      const versions = [...new Set(deps.map((d) => d.version))]
+      const totalSize = deps.reduce((sum, d) => sum + d.size, 0)
+
+      duplicates.push({
+        name,
+        versions,
+        totalSize,
+        locations: deps.map((d) => d.name),
+      })
+    }
+  }
+
+  return duplicates.sort((a, b) => b.totalSize - a.totalSize)
 }
 
 /**
