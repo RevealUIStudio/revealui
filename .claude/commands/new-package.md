@@ -1,3 +1,9 @@
+---
+description: Scaffold a new @revealui/* package with package.json, tsconfig.json, tsup.config.ts, and src/index.ts. Only invoke when explicitly asked to create a new package.
+disable-model-invocation: true
+argument-hint: <package-name>
+---
+
 Scaffold a new package in the RevealUI monorepo.
 
 Arguments: $ARGUMENTS (package name, e.g., "analytics")

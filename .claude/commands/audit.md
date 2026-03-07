@@ -1,3 +1,7 @@
+---
+description: Audit the codebase for avoidable `any` types and production console statements. Use when asked to check code quality, before a release, or after a large refactor.
+---
+
 Run code quality audits on the RevealUI monorepo.
 
 Execute these audit commands in sequence:
