@@ -3,7 +3,17 @@
 import { createContext, type ReactNode, useContext, useMemo } from 'react'
 
 interface ElectricContextValue {
+  /**
+   * Direct Electric service URL (e.g. the Railway instance).
+   * Stored in context for future use — not consumed by the current proxy-based hooks.
+   * All hooks use proxyBaseUrl + /api/shapes/* instead.
+   */
   serviceUrl: string | null
+  /**
+   * Base URL prefix for authenticated CMS shape proxy routes.
+   * Default '' keeps all hook URLs relative (works for same-origin apps).
+   * Set to 'https://cms.revealui.com' when consuming from a different origin.
+   */
   proxyBaseUrl: string
   debug: boolean
 }
@@ -17,8 +27,8 @@ const ElectricContext = createContext<ElectricContextValue>({
 /**
  * Provides ElectricSQL configuration to child hooks (`useConversations`, `useCollabDocument`).
  *
- * Currently a passthrough context — children render normally. When ElectricSQL
- * integration is completed, this provider will establish a shared sync connection.
+ * Provides proxyBaseUrl (and optional serviceUrl/debug) to child hooks via context.
+ * All hooks use the CMS proxy pattern — no direct Electric connection is established here.
  */
 export function ElectricProvider(props: {
   children: ReactNode

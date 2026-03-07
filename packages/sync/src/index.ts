@@ -2,7 +2,8 @@
  * @revealui/sync — Real-time collaboration and sync primitives.
  *
  * The collab layer (Yjs-based) is fully functional.
- * ElectricProvider is a passthrough context — ElectricSQL integration is planned.
+ * ElectricProvider provides proxyBaseUrl config to child hooks. All hooks route
+ * through the authenticated CMS proxy at /api/shapes/* — no direct Electric client.
  */
 
 export type {

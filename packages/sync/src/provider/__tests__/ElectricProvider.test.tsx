@@ -1,6 +1,7 @@
-import { render, screen } from '@testing-library/react'
+import { render, renderHook, screen } from '@testing-library/react'
+import type { ReactNode } from 'react'
 import { describe, expect, it } from 'vitest'
-import { ElectricProvider } from '../index.js'
+import { ElectricProvider, useElectricConfig } from '../index.js'
 
 describe('ElectricProvider', () => {
   it('should render children', () => {
@@ -15,7 +16,6 @@ describe('ElectricProvider', () => {
   })
 
   it('should accept serviceUrl prop', () => {
-    // Provider accepts the prop but doesn't use it yet (placeholder implementation)
     expect(() => {
       render(
         <ElectricProvider serviceUrl="http://localhost:3000">
@@ -26,7 +26,6 @@ describe('ElectricProvider', () => {
   })
 
   it('should accept debug prop', () => {
-    // Provider accepts the prop but doesn't use it yet (placeholder implementation)
     expect(() => {
       render(
         <ElectricProvider debug={true}>
@@ -64,5 +63,27 @@ describe('ElectricProvider', () => {
     )
 
     expect(screen.getByTestId('nested-child')).toBeInTheDocument()
+  })
+})
+
+describe('useElectricConfig', () => {
+  it('should return defaults when no provider is present', () => {
+    const { result } = renderHook(() => useElectricConfig())
+
+    expect(result.current.serviceUrl).toBeNull()
+    expect(result.current.debug).toBe(false)
+  })
+
+  it('should return provider values', () => {
+    const wrapper = ({ children }: { children: ReactNode }) => (
+      <ElectricProvider serviceUrl="http://localhost:3000" debug={true}>
+        {children}
+      </ElectricProvider>
+    )
+
+    const { result } = renderHook(() => useElectricConfig(), { wrapper })
+
+    expect(result.current.serviceUrl).toBe('http://localhost:3000')
+    expect(result.current.debug).toBe(true)
   })
 })
