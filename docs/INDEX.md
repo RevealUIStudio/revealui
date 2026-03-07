@@ -28,6 +28,7 @@ Open-source business infrastructure for software companies.
 ## Reference
 
 - [Package Reference](./REFERENCE.md) — Core, contracts, DB, config, presentation, utils, router, CLI
+- [Core Stability](./CORE_STABILITY.md) — API stability tiers, production verification status, version policy
 - [Component Catalog](./COMPONENT_CATALOG.md) — 50+ native UI components
 - [AI](./AI.md) — AI package overview, prompt/response/semantic caching
 - [Pro](./PRO.md) — MCP servers, BYOK, editor integrations, harnesses, services, x402, marketplace, Forge
