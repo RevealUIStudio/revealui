@@ -1,173 +1,173 @@
 # Quick Start Guide
 
-Get RevealUI up and running in 5 minutes.
+Get RevealUI up and running locally. Budget 15–30 minutes if you're creating accounts for the first time.
 
-## Prerequisites
+---
 
-Before you begin, ensure you have:
+## Which path are you on?
 
-- **Node.js** 24.13.0+ installed
-- **pnpm** 10+ installed ([Install pnpm](https://pnpm.io/installation))
-- Accounts for:
-  - [NeonDB](https://neon.tech) (for database)
-  - [Vercel](https://vercel.com) (for storage and deployment)
-  - [Stripe](https://stripe.com) (for payments - test mode is fine)
-
-## Step 1: Clone and Install (1 minute)
+**Building a new project with RevealUI:**
 
 ```bash
-# Clone the repository
+npx create-revealui my-app
+cd my-app
+```
+
+Then continue from [Step 2](#step-2-set-up-environment-variables) below.
+
+**Exploring or contributing to RevealUI itself:**
+
+```bash
 git clone https://github.com/RevealUIStudio/revealui.git
 cd revealui
-
-# Install dependencies
 pnpm install
 ```
 
-## Step 2: Set Up Environment Variables (3 minutes)
+Then continue from [Step 2](#step-2-set-up-environment-variables) below.
 
-### Quick Reference
+---
 
-Create `.env.development.local` in the project root with these 8 required variables:
+## Prerequisites
+
+- **Node.js 24+** ([nodejs.org](https://nodejs.org))
+- **pnpm 10+** ([pnpm.io/installation](https://pnpm.io/installation))
+
+---
+
+## Step 2: Set Up Environment Variables
+
+Copy the template:
 
 ```bash
-# Copy from template
 cp .env.template .env.development.local
 ```
 
-Then add your credentials:
+You need these variables set before the dev server will start:
 
 ```env
-# RevealUI Core (generate secret below)
-REVEALUI_SECRET=your_generated_secret_here
+# Generate with: node -e "console.log(require('crypto').randomBytes(32).toString('hex'))"
+REVEALUI_SECRET=your_32_char_hex_secret
+
+# Leave as-is for local dev
 REVEALUI_PUBLIC_SERVER_URL=http://localhost:4000
 NEXT_PUBLIC_SERVER_URL=http://localhost:4000
 
-# Database (get from NeonDB dashboard)
+# Required: NeonDB connection string
 POSTGRES_URL=postgresql://user:password@host/database?sslmode=require
+```
 
-# Storage (get from Vercel dashboard)
+These are optional for local development — you can skip them and add them later:
+
+```env
+# Optional: Vercel Blob (needed for media uploads)
 BLOB_READ_WRITE_TOKEN=vercel_blob_rw_XXXXX
 
-# Stripe (get from Stripe dashboard - use test mode)
+# Optional: Stripe (needed for billing flows)
 STRIPE_SECRET_KEY=sk_test_XXXXX
 NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY=pk_test_XXXXX
+# For webhooks locally, use: stripe listen --forward-to localhost:4000/api/webhooks/stripe
 STRIPE_WEBHOOK_SECRET=whsec_XXXXX
 ```
 
-### Get Your Credentials
+### Getting your credentials
 
-**Generate REVEALUI_SECRET:**
+**REVEALUI_SECRET** — generate locally:
+
 ```bash
 node -e "console.log(require('crypto').randomBytes(32).toString('hex'))"
 ```
 
-**Get other credentials:**
-- **NeonDB**: [console.neon.tech](https://console.neon.tech) → Copy connection string
-- **Vercel Blob**: [vercel.com/dashboard](https://vercel.com/dashboard) → Storage → Blob → Create token
-- **Stripe**: [dashboard.stripe.com](https://dashboard.stripe.com) → Developers → API Keys (test mode)
+**POSTGRES_URL** — [console.neon.tech](https://console.neon.tech) → New project → Connection string (include `?sslmode=require`)
 
-📖 **Need detailed setup instructions?** See [Environment Variables Guide](./ENVIRONMENT_VARIABLES_GUIDE.md) for complete configuration with all optional variables.
+**BLOB_READ_WRITE_TOKEN** (optional) — [vercel.com/dashboard](https://vercel.com/dashboard) → Storage → Blob → Create store → Create token
 
-## Step 3: Start Development Server (1 minute)
+**Stripe keys** (optional) — [dashboard.stripe.com](https://dashboard.stripe.com) → Developers → API Keys (use test mode keys)
 
-```bash
-# Start all services
-pnpm dev
-
-# Or start individually:
-# pnpm dev:cms  # CMS on http://localhost:4000
-# pnpm dev:api  # API on http://localhost:3004
-```
-
-## Step 4: Create Your First Admin User
-
-1. Open your browser to `http://localhost:4000/admin`
-2. Click **"Create your first user"**
-3. Fill in:
-   - Email address
-   - Password (must be 8+ characters)
-   - Confirm password
-4. Click **"Create"**
-
-You're now logged in as an admin! 🎉
-
-## Step 5: Verify Everything Works
-
-### Test Media Upload
-
-1. In the admin panel, go to **Media**
-2. Click **Upload** and select an image
-3. The image should upload successfully to Vercel Blob storage
-
-### Test Database Connection
-
-1. In the admin panel, go to **Posts** or **Pages**
-2. Try creating a new post
-3. If it saves successfully, your database connection is working!
-
-### Test Stripe Integration (Optional)
-
-1. Go to **Settings** → **Stripe**
-2. Verify your API keys are configured
-3. Create a test product and price
-4. Test the checkout flow
-
-## Troubleshooting
-
-Having issues? See [Troubleshooting Guide](./TROUBLESHOOTING.md) for comprehensive solutions to common problems:
-
-- **Database connection issues** - Connection errors, SSL problems, IP allowlist
-- **Environment variable problems** - Missing variables, invalid secrets
-- **Build failures** - Module errors, TypeScript errors, deployment issues
-- **Port conflicts** - Port already in use, zombie processes
-- **Authentication errors** - Login failures, JWT token issues
-
-**Quick fixes**:
-- Restart dev server after changing .env files
-- Verify connection string includes `?sslmode=require`
-- Check `REVEALUI_SECRET` is 32+ characters
-
-For detailed solutions → [Troubleshooting Guide](./TROUBLESHOOTING.md)
-
-## Next Steps
-
-Now that you're up and running:
-
-- 📖 Read the [Full Documentation](./INDEX.md)
-- 🎨 Explore the [Component Library](./COMPONENT_CATALOG.md)
-- 🚀 Check out [Example Projects](./EXAMPLES.md)
-- 📚 Review [Deployment Guide](./CI_CD_GUIDE.md)
-- 🤝 Read [Contributing Guidelines](https://github.com/RevealUIStudio/revealui/blob/main/CONTRIBUTING.md)
-
-## Need Help?
-
-- 💬 [GitHub Discussions](https://github.com/RevealUIStudio/revealui/discussions)
-- 🐛 [Report Issues](https://github.com/RevealUIStudio/revealui/issues)
-- 📧 [Email Support](mailto:support@revealui.com)
-
-## Production Deployment
-
-When you're ready to deploy:
-
-1. Push your code to GitHub
-2. Connect your repository to [Vercel](https://vercel.com)
-3. Add environment variables in Vercel dashboard
-4. Deploy!
-
-See [CI/CD Guide](./CI_CD_GUIDE.md) for detailed instructions.
-
-## Related Documentation
-
-### Essential Guides
-- **[Environment Variables Guide](./ENVIRONMENT_VARIABLES_GUIDE.md)** - Complete environment configuration with quick reference tables
-- [Database Guide](./DATABASE.md) - Complete database setup and management
-- [CI/CD Guide](./CI_CD_GUIDE.md) - Deployment and production configuration
-
-### Advanced
-- [Architecture](./ARCHITECTURE.md) - System design and architecture
-- [Package Reference](./REFERENCE.md) - Complete package reference
+See [Environment Variables Guide](./ENVIRONMENT_VARIABLES_GUIDE.md) for the full reference.
 
 ---
 
-**Congratulations!** You've successfully set up RevealUI. Happy building! 🚀
+## Step 3: Run Database Migrations
+
+Before starting the dev server, initialize the database schema:
+
+```bash
+pnpm db:migrate
+```
+
+This creates all 41 tables. If you see a connection error, double-check your `POSTGRES_URL` — it must include `?sslmode=require` for NeonDB.
+
+---
+
+## Step 4: Start the Dev Server
+
+```bash
+pnpm dev
+```
+
+This starts two services:
+
+| Service | URL | What it is |
+|---------|-----|------------|
+| CMS | http://localhost:4000 | Admin dashboard + auth pages |
+| API | http://localhost:3004 | REST API + agent endpoints |
+
+---
+
+## Step 5: Create Your First Admin User
+
+1. Open [http://localhost:4000/signup](http://localhost:4000/signup)
+2. Enter your email and a password (8+ characters)
+3. Click **Create account**
+4. You're redirected to the admin dashboard at [http://localhost:4000/admin](http://localhost:4000/admin)
+
+---
+
+## Step 6: Verify It Works
+
+**Database** — go to **Posts** or **Pages** in the admin, create a record, save it. If it persists on reload, the database connection is working.
+
+**Media** (requires `BLOB_READ_WRITE_TOKEN`) — go to **Media**, upload an image. Skip this step if you haven't set up Vercel Blob yet.
+
+**Billing** (requires Stripe keys) — go to **Account → Billing**. The page loads without Stripe keys but checkout won't function until keys are set. For local webhook testing, run `stripe listen --forward-to localhost:4000/api/webhooks/stripe` to get a local `STRIPE_WEBHOOK_SECRET`.
+
+---
+
+## Troubleshooting
+
+**`relation "users" does not exist`** — you skipped `pnpm db:migrate`. Run it now.
+
+**`ConfigValidationError: REVEALUI_SECRET`** — your secret is missing or under 32 characters. Regenerate it:
+```bash
+node -e "console.log(require('crypto').randomBytes(32).toString('hex'))"
+```
+
+**`Connection refused` on POSTGRES_URL** — check the connection string includes `?sslmode=require` and that your NeonDB project is active (free tier projects pause after inactivity).
+
+**Port already in use** — something else is on 4000 or 3004. Find and stop it:
+```bash
+lsof -i :4000
+lsof -i :3004
+```
+
+**Dev server shows errors after changing `.env`** — restart it; environment variables are not hot-reloaded.
+
+For more → [Troubleshooting Guide](./TROUBLESHOOTING.md)
+
+---
+
+## Next Steps
+
+- [Full documentation](./INDEX.md)
+- [Component catalog](./COMPONENT_CATALOG.md) — 50+ native UI components
+- [Example projects](./EXAMPLES.md) — blog, SaaS starter, storefront
+- [Deployment guide](./CI_CD_GUIDE.md) — Vercel, environment variables, production checklist
+- [AI agents](./AI.md) — agent orchestration, BYOK, MCP servers (Pro)
+
+---
+
+## Need Help?
+
+- [GitHub Discussions](https://github.com/RevealUIStudio/revealui/discussions)
+- [Report a bug](https://github.com/RevealUIStudio/revealui/issues)
+- [support@revealui.com](mailto:support@revealui.com)
