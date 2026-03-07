@@ -225,10 +225,7 @@ async function gate(): Promise<void> {
         command: 'pnpm',
         args: ['gate:security'],
         warnOnly: true,
-        // In changed-only mode, skip security audit: the env-file scanner has a pre-existing
-        // false positive on .env.template/.env.test. Fix security-gate.ts to whitelist these
-        // files before removing the '|| changed' skip here.
-        skip: skip.has('security') || changed,
+        skip: skip.has('security'),
       },
       {
         name: 'Coverage check',
