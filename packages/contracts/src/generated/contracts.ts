@@ -2,7 +2,7 @@
  * Auto-generated Contract wrappers
  *
  * DO NOT EDIT - Regenerate with: pnpm generate:all
- * Generated: 2026-03-06T15:19:34.458Z
+ * Generated: 2026-03-07T02:23:43.884Z
  *
  * This file provides Contract wrappers for all database tables.
  * Contracts combine TypeScript types, Zod schemas, and runtime validation
@@ -533,6 +533,58 @@ export const LicensesInsertContract = createContract({
   version: '1',
   description: 'Database insert contract for licenses table',
   schema: Schemas.LicensesInsertSchema,
+})
+
+// =============================================================================
+// MarketplaceServers Contracts
+// =============================================================================
+
+/**
+ * Contract for marketplaceServers row (Select)
+ * Database table: marketplace_servers
+ */
+export const MarketplaceServersRowContract = createContract({
+  name: 'MarketplaceServersRow',
+  version: '1',
+  description: 'Database row contract for marketplace_servers table',
+  schema: Schemas.MarketplaceServersSelectSchema,
+})
+
+/**
+ * Contract for marketplaceServers insert
+ * Database table: marketplace_servers
+ */
+export const MarketplaceServersInsertContract = createContract({
+  name: 'MarketplaceServersInsert',
+  version: '1',
+  description: 'Database insert contract for marketplace_servers table',
+  schema: Schemas.MarketplaceServersInsertSchema,
+})
+
+// =============================================================================
+// MarketplaceTransactions Contracts
+// =============================================================================
+
+/**
+ * Contract for marketplaceTransactions row (Select)
+ * Database table: marketplace_transactions
+ */
+export const MarketplaceTransactionsRowContract = createContract({
+  name: 'MarketplaceTransactionsRow',
+  version: '1',
+  description: 'Database row contract for marketplace_transactions table',
+  schema: Schemas.MarketplaceTransactionsSelectSchema,
+})
+
+/**
+ * Contract for marketplaceTransactions insert
+ * Database table: marketplace_transactions
+ */
+export const MarketplaceTransactionsInsertContract = createContract({
+  name: 'MarketplaceTransactionsInsert',
+  version: '1',
+  description: 'Database insert contract for marketplace_transactions table',
+  schema: Schemas.MarketplaceTransactionsInsertSchema,
 })
 
 // =============================================================================
