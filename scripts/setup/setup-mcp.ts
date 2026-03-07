@@ -7,7 +7,8 @@
  *
  * @dependencies
  * - scripts/lib/errors.ts - ErrorCode enum for exit codes
- * - scripts/shared/utils.ts - Logger and project root utilities
+ * - scripts/lib/logger.ts - Logger utility
+ * - scripts/lib/paths.ts - Project root utilities
  * - node:fs - File system operations (existsSync)
  * - node:path - Path manipulation utilities
  * - dotenv - Environment variable loading
@@ -23,7 +24,8 @@ import { existsSync } from 'node:fs'
 import { join } from 'node:path'
 import { config } from 'dotenv'
 import { ErrorCode } from '../lib/errors.js'
-import { createLogger, getProjectRoot } from '../shared/utils.ts'
+import { createLogger } from '../lib/logger.js'
+import { getProjectRoot } from '../lib/paths.js'
 
 const logger = createLogger()
 

@@ -10,26 +10,19 @@ import * as ts from 'typescript'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 
 // Mock the logger and utilities
-vi.mock('../shared/utils.js', async () => {
-  const actual = await vi.importActual('../shared/utils.js')
+vi.mock('../../lib/logger.js', () => ({
+  createLogger: () => ({
+    info: vi.fn(),
+    warning: vi.fn(),
+    success: vi.fn(),
+    error: vi.fn(),
+  }),
+}))
+vi.mock('../../lib/paths.js', async () => {
+  const actual = await vi.importActual('../../lib/paths.js')
   return {
     ...actual,
-    createLogger: () => ({
-      info: vi.fn(),
-      warning: vi.fn(),
-      success: vi.fn(),
-      error: vi.fn(),
-    }),
     getProjectRoot: async () => '/tmp/test-project',
-    fileExists: async (path: string) => {
-      const fs = await import('node:fs/promises')
-      try {
-        await fs.access(path)
-        return true
-      } catch {
-        return false
-      }
-    },
   }
 })
 

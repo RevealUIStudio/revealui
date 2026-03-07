@@ -8,7 +8,8 @@
  *
  * @dependencies
  * - scripts/lib/errors.ts - ErrorCode enum for exit codes
- * - scripts/shared/utils.ts - Logger and project root utilities
+ * - scripts/lib/logger.ts - Logger utility
+ * - scripts/lib/paths.ts - Project root utilities
  * - node:path - Path manipulation utilities
  * - node:url - URL utilities for ES modules
  * - dotenv - Environment variable loading
@@ -26,15 +27,16 @@ import { dirname, resolve } from 'node:path'
 import { fileURLToPath } from 'node:url'
 import { config } from 'dotenv'
 import { ErrorCode } from '../lib/errors.js'
-import { createLogger, getProjectRoot } from '../shared/utils.ts'
+import { createLogger } from '../lib/logger.js'
+import { getProjectRoot } from '../lib/paths.js'
 
 const logger = createLogger()
 
 const __filename = fileURLToPath(import.meta.url)
 const __dirname = dirname(__filename)
 
-// Load environment variables
-config({ path: resolve(__dirname, '../.env.development.local') })
+// Load environment variables from project root
+config({ path: resolve(__dirname, '../../.env.development.local') })
 
 // Required variables (must be present)
 const required: string[] = [
