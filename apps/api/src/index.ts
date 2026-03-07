@@ -34,6 +34,7 @@ import errorsRoute from './routes/errors.js'
 import healthRoute from './routes/health.js'
 import licenseRoute from './routes/license.js'
 import logsRoute from './routes/logs.js'
+import marketplaceRoute from './routes/marketplace.js'
 import ragIndexRoute from './routes/rag-index.js'
 import ticketsRoute from './routes/tickets.js'
 import webhooksRoute from './routes/webhooks.js'
@@ -245,6 +246,33 @@ const billingDowngradeLimit = rateLimitMiddleware({
 app.use('/api/billing/downgrade', billingDowngradeLimit)
 app.use('/api/v1/billing/downgrade', billingDowngradeLimit)
 
+// Marketplace publish — prevent server spam (10 per hour)
+const marketplacePublishLimit = rateLimitMiddleware({
+  maxRequests: 10,
+  windowMs: 60 * 60_000,
+  keyPrefix: 'marketplace-publish',
+})
+app.use('/api/marketplace/servers', marketplacePublishLimit)
+app.use('/api/v1/marketplace/servers', marketplacePublishLimit)
+
+// Marketplace invoke — payment is the primary gate; still rate-limit to prevent probe abuse
+const marketplaceInvokeLimit = rateLimitMiddleware({
+  maxRequests: 30,
+  windowMs: 60_000,
+  keyPrefix: 'marketplace-invoke',
+})
+app.use('/api/marketplace/servers/*/invoke', marketplaceInvokeLimit)
+app.use('/api/v1/marketplace/servers/*/invoke', marketplaceInvokeLimit)
+
+// Stripe Connect onboarding — tight limit (creates external Stripe objects)
+const marketplaceConnectLimit = rateLimitMiddleware({
+  maxRequests: 5,
+  windowMs: 15 * 60_000,
+  keyPrefix: 'marketplace-connect',
+})
+app.use('/api/marketplace/connect/*', marketplaceConnectLimit)
+app.use('/api/v1/marketplace/connect/*', marketplaceConnectLimit)
+
 // Populate session if present (non-blocking — sets user context for all API routes)
 const optionalAuth = authMiddleware({ required: false })
 app.use('/api/*', optionalAuth)
@@ -375,6 +403,7 @@ app.route('/api/agent-stream', agentStreamRoute)
 app.route('/api/content', contentRoute)
 app.route('/api/rag', ragIndexRoute)
 app.route('/api/api-keys', apiKeysRoute)
+app.route('/api/marketplace', marketplaceRoute)
 app.route('', createCollabRoute())
 app.route('', createAgentCollabRoute())
 
@@ -392,6 +421,7 @@ app.route('/api/v1/agent-stream', agentStreamRoute)
 app.route('/api/v1/content', contentRoute)
 app.route('/api/v1/rag', ragIndexRoute)
 app.route('/api/v1/api-keys', apiKeysRoute)
+app.route('/api/v1/marketplace', marketplaceRoute)
 
 // Error handling
 app.onError(errorHandler)

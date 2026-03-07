@@ -2,7 +2,7 @@
  * Auto-generated Zod schemas from Drizzle
  *
  * DO NOT EDIT - Regenerate with: pnpm generate:all
- * Generated: 2026-03-06T15:19:32.773Z
+ * Generated: 2026-03-07T02:23:44.528Z
  *
  * This file provides Zod schemas for all database tables, generated
  * directly from Drizzle table definitions using drizzle-zod.
@@ -533,6 +533,58 @@ export type LicensesRow = z.infer<typeof LicensesSelectSchema>
  * TypeScript type for licenses insert
  */
 export type LicensesInsert = z.infer<typeof LicensesInsertSchema>
+
+// =============================================================================
+// MarketplaceServers Schemas
+// =============================================================================
+
+/**
+ * Zod schema for selecting marketplaceServers rows from database
+ * Generated from Drizzle table definition: tables.marketplaceServers
+ */
+export const MarketplaceServersSelectSchema = createSelectSchema(tables.marketplaceServers)
+
+/**
+ * Zod schema for inserting marketplaceServers rows to database
+ * Generated from Drizzle table definition: tables.marketplaceServers
+ */
+export const MarketplaceServersInsertSchema = createInsertSchema(tables.marketplaceServers)
+
+/**
+ * TypeScript type for marketplaceServers row (Select)
+ */
+export type MarketplaceServersRow = z.infer<typeof MarketplaceServersSelectSchema>
+
+/**
+ * TypeScript type for marketplaceServers insert
+ */
+export type MarketplaceServersInsert = z.infer<typeof MarketplaceServersInsertSchema>
+
+// =============================================================================
+// MarketplaceTransactions Schemas
+// =============================================================================
+
+/**
+ * Zod schema for selecting marketplaceTransactions rows from database
+ * Generated from Drizzle table definition: tables.marketplaceTransactions
+ */
+export const MarketplaceTransactionsSelectSchema = createSelectSchema(tables.marketplaceTransactions)
+
+/**
+ * Zod schema for inserting marketplaceTransactions rows to database
+ * Generated from Drizzle table definition: tables.marketplaceTransactions
+ */
+export const MarketplaceTransactionsInsertSchema = createInsertSchema(tables.marketplaceTransactions)
+
+/**
+ * TypeScript type for marketplaceTransactions row (Select)
+ */
+export type MarketplaceTransactionsRow = z.infer<typeof MarketplaceTransactionsSelectSchema>
+
+/**
+ * TypeScript type for marketplaceTransactions insert
+ */
+export type MarketplaceTransactionsInsert = z.infer<typeof MarketplaceTransactionsInsertSchema>
 
 // =============================================================================
 // Media Schemas

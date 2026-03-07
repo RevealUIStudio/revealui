@@ -145,19 +145,21 @@ function toAtomicUnits(humanAmount: string): string {
 }
 
 /**
- * Build a PaymentRequired object for a single agent task.
+ * Build a PaymentRequired object for a single agent task or marketplace call.
  *
- * @param resource - Canonical URL of the endpoint being accessed
- *                   (e.g. 'https://api.revealui.com/api/agent-stream')
+ * @param resource    - Canonical URL of the endpoint being accessed
+ * @param customPrice - Optional override for the USDC price (e.g. marketplace per-server pricing).
+ *                      Defaults to X402_PRICE_PER_TASK env var ('0.001').
  */
-export function buildPaymentRequired(resource: string): PaymentRequiredV1 {
+export function buildPaymentRequired(resource: string, customPrice?: string): PaymentRequiredV1 {
   const config = getX402Config()
+  const price = customPrice ?? config.pricePerTask
   const requirements: PaymentRequirementsV1 = {
     scheme: 'exact',
     network: config.network,
-    maxAmountRequired: toAtomicUnits(config.pricePerTask),
+    maxAmountRequired: toAtomicUnits(price),
     resource,
-    description: `RevealUI agent task — ${config.pricePerTask} USDC per call`,
+    description: `RevealUI agent task — ${price} USDC per call`,
     mimeType: 'application/json',
     outputSchema: {},
     payTo: config.receivingAddress,

@@ -29,7 +29,7 @@ import type { A2AJsonRpcRequest } from '@revealui/contracts'
 import { A2AJsonRpcRequestSchema, AgentDefinitionSchema } from '@revealui/contracts'
 import { isFeatureEnabled } from '@revealui/core/features'
 import { getClient } from '@revealui/db'
-import { agentActions, registeredAgents } from '@revealui/db/schema'
+import { agentActions, marketplaceServers, registeredAgents } from '@revealui/db/schema'
 import { desc, eq } from 'drizzle-orm'
 import { Hono } from 'hono'
 import { authMiddleware } from '../middleware/auth.js'
@@ -96,6 +96,62 @@ app.get('/agents/:id/agent.json', (c) => {
     'Content-Type': 'application/json',
     'Cache-Control': 'public, max-age=300',
   })
+})
+
+/**
+ * MCP Marketplace discovery (Phase 5.5).
+ * GET /.well-known/marketplace.json
+ *
+ * Returns marketplace metadata and the registry URL for agent discovery.
+ * Includes a lightweight summary of active servers for quick enumeration.
+ */
+app.get('/marketplace.json', async (c) => {
+  const baseUrl = getBaseUrl(c.req.raw)
+
+  // Fetch active server summaries (name, category, price only — not internal URLs)
+  let servers: Array<{
+    id: string
+    name: string
+    description: string
+    category: string
+    pricePerCallUsdc: string
+    invokeUrl: string
+  }> = []
+  try {
+    const db = getClient()
+    const rows = await db
+      .select({
+        id: marketplaceServers.id,
+        name: marketplaceServers.name,
+        description: marketplaceServers.description,
+        category: marketplaceServers.category,
+        pricePerCallUsdc: marketplaceServers.pricePerCallUsdc,
+      })
+      .from(marketplaceServers)
+      .where(eq(marketplaceServers.status, 'active'))
+      .limit(50)
+
+    servers = rows.map((row) => ({
+      ...row,
+      invokeUrl: `${baseUrl}/api/marketplace/servers/${row.id}/invoke`,
+    }))
+  } catch {
+    // DB unavailable — return metadata without server list
+  }
+
+  return c.json(
+    {
+      version: '1.0',
+      platform: 'revealui',
+      registryUrl: `${baseUrl}/api/marketplace/servers`,
+      publishUrl: `${baseUrl}/api/marketplace/servers`,
+      revenueShare: { platform: 0.2, developer: 0.8 },
+      paymentMethods: ['x402-usdc'],
+      servers,
+    },
+    200,
+    { 'Cache-Control': 'public, max-age=60' },
+  )
 })
 
 /**
