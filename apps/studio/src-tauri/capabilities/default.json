@@ -6,6 +6,7 @@
     "core:default",
     "shell:allow-open",
     "shell:allow-execute",
-    "core:event:default"
+    "core:event:default",
+    "dialog:default"
   ]
 }

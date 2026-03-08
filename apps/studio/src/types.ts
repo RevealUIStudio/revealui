@@ -67,12 +67,17 @@ export type Page =
   | 'terminal'
   | 'setup'
 
+/** SSH authentication — password or key file */
+export type SshAuth =
+  | { method: 'password'; password: string }
+  | { method: 'key'; key_path: string; passphrase?: string | null }
+
 /** SSH connection parameters */
 export interface SshConnectParams {
   host: string
   port: number
   username: string
-  password: string
+  auth: SshAuth
 }
 
 /** SSH output event from backend */
