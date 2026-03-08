@@ -1,14 +1,19 @@
 use std::collections::HashMap;
+use std::io::Write;
 use std::path::Path;
 use std::sync::Arc;
 
 use base64::Engine;
-use base64::engine::general_purpose::STANDARD as BASE64;
+use base64::engine::general_purpose::{STANDARD as BASE64, STANDARD_NO_PAD};
 use russh::keys::key;
 use russh::{ChannelId, ChannelMsg, client};
+use russh_keys::PublicKeyBase64;
 use serde::{Deserialize, Serialize};
+use sha2::{Digest, Sha256};
 use tauri::Emitter;
 use tokio::sync::Mutex;
+
+// ── Types ────────────────────────────────────────────────────────────────────
 
 /// Authentication method for SSH connections.
 #[derive(Clone, Debug, Deserialize)]
@@ -37,6 +42,17 @@ pub struct SshDisconnectEvent {
     pub reason: String,
 }
 
+/// Event payload for host key verification notifications.
+#[derive(Clone, Serialize)]
+pub struct SshHostKeyEvent {
+    pub host: String,
+    pub port: u16,
+    pub fingerprint: String,
+    pub key_type: String,
+    /// "new" = TOFU (added to known_hosts), "match" = verified, "mismatch" = REJECTED
+    pub status: String,
+}
+
 /// Holds a single SSH session's handle and channel.
 pub struct SshSession {
     pub handle: client::Handle<SshClientHandler>,
@@ -56,10 +72,115 @@ impl Default for SshState {
     }
 }
 
+// ── Known Hosts ──────────────────────────────────────────────────────────────
+
+enum KnownHostStatus {
+    /// Host key matches a known_hosts entry.
+    Match,
+    /// Host is in known_hosts but with a different key (possible MITM).
+    Mismatch,
+    /// Host not found in known_hosts.
+    Unknown,
+}
+
+/// Compute SSH fingerprint: SHA256:<base64-no-pad hash of wire-format key>.
+fn compute_fingerprint(key: &key::PublicKey) -> String {
+    let bytes = key.public_key_bytes();
+    let hash = Sha256::digest(&bytes);
+    format!("SHA256:{}", STANDARD_NO_PAD.encode(hash))
+}
+
+/// Build the hostname pattern used in known_hosts (bracketed with port if non-standard).
+fn host_pattern(host: &str, port: u16) -> String {
+    if port == 22 {
+        host.to_string()
+    } else {
+        format!("[{host}]:{port}")
+    }
+}
+
+/// Check if a host key is in ~/.ssh/known_hosts.
+fn check_known_hosts_file(host: &str, port: u16, key: &key::PublicKey) -> KnownHostStatus {
+    let known_hosts_path = match dirs::home_dir() {
+        Some(home) => home.join(".ssh").join("known_hosts"),
+        None => return KnownHostStatus::Unknown,
+    };
+
+    let contents = match std::fs::read_to_string(&known_hosts_path) {
+        Ok(c) => c,
+        Err(_) => return KnownHostStatus::Unknown,
+    };
+
+    let pattern = host_pattern(host, port);
+    let key_algo = key.name();
+    let key_b64 = key.public_key_base64();
+
+    for line in contents.lines() {
+        let line = line.trim();
+        // Skip comments, empty lines, and hashed entries (|1|…)
+        if line.is_empty() || line.starts_with('#') || line.starts_with('|') {
+            continue;
+        }
+
+        let parts: Vec<&str> = line.splitn(3, ' ').collect();
+        if parts.len() < 3 {
+            continue;
+        }
+
+        let hosts_field = parts[0];
+        let algo = parts[1];
+        // Strip any trailing comment after the key
+        let stored_key = parts[2].split_whitespace().next().unwrap_or("");
+
+        let host_matches = hosts_field.split(',').any(|h| h.trim() == pattern);
+        if !host_matches {
+            continue;
+        }
+
+        if algo == key_algo && stored_key == key_b64 {
+            return KnownHostStatus::Match;
+        }
+        return KnownHostStatus::Mismatch;
+    }
+
+    KnownHostStatus::Unknown
+}
+
+/// Append a host key entry to ~/.ssh/known_hosts (TOFU).
+fn learn_known_host(host: &str, port: u16, key: &key::PublicKey) -> Result<(), String> {
+    let known_hosts_path = dirs::home_dir()
+        .ok_or("Cannot determine home directory")?
+        .join(".ssh")
+        .join("known_hosts");
+
+    if let Some(parent) = known_hosts_path.parent() {
+        std::fs::create_dir_all(parent)
+            .map_err(|e| format!("Failed to create ~/.ssh: {e}"))?;
+    }
+
+    let pattern = host_pattern(host, port);
+    let line = format!("{} {} {}\n", pattern, key.name(), key.public_key_base64());
+
+    let mut file = std::fs::OpenOptions::new()
+        .create(true)
+        .append(true)
+        .open(&known_hosts_path)
+        .map_err(|e| format!("Failed to open known_hosts: {e}"))?;
+
+    file.write_all(line.as_bytes())
+        .map_err(|e| format!("Failed to write known_hosts: {e}"))?;
+
+    Ok(())
+}
+
+// ── Client Handler ───────────────────────────────────────────────────────────
+
 /// russh client handler — receives data from the SSH server and emits it to the frontend.
 pub struct SshClientHandler {
     pub app_handle: tauri::AppHandle,
     pub session_id: String,
+    pub host: String,
+    pub port: u16,
 }
 
 #[async_trait::async_trait]
@@ -68,11 +189,54 @@ impl client::Handler for SshClientHandler {
 
     async fn check_server_key(
         &mut self,
-        _server_public_key: &key::PublicKey,
+        server_public_key: &key::PublicKey,
     ) -> Result<bool, Self::Error> {
-        // Accept all host keys for now.
-        // TODO: implement known_hosts verification UI
-        Ok(true)
+        let fingerprint = compute_fingerprint(server_public_key);
+        let key_type = server_public_key.name().to_string();
+
+        match check_known_hosts_file(&self.host, self.port, server_public_key) {
+            KnownHostStatus::Match => {
+                let _ = self.app_handle.emit(
+                    "ssh_host_key",
+                    SshHostKeyEvent {
+                        host: self.host.clone(),
+                        port: self.port,
+                        fingerprint,
+                        key_type,
+                        status: "match".to_string(),
+                    },
+                );
+                Ok(true)
+            }
+            KnownHostStatus::Unknown => {
+                // TOFU: Trust On First Use — accept and save.
+                let _ = learn_known_host(&self.host, self.port, server_public_key);
+                let _ = self.app_handle.emit(
+                    "ssh_host_key",
+                    SshHostKeyEvent {
+                        host: self.host.clone(),
+                        port: self.port,
+                        fingerprint,
+                        key_type,
+                        status: "new".to_string(),
+                    },
+                );
+                Ok(true)
+            }
+            KnownHostStatus::Mismatch => {
+                let _ = self.app_handle.emit(
+                    "ssh_host_key",
+                    SshHostKeyEvent {
+                        host: self.host.clone(),
+                        port: self.port,
+                        fingerprint,
+                        key_type,
+                        status: "mismatch".to_string(),
+                    },
+                );
+                Ok(false)
+            }
+        }
     }
 
     async fn data(
@@ -93,6 +257,8 @@ impl client::Handler for SshClientHandler {
     }
 }
 
+// ── Connect ──────────────────────────────────────────────────────────────────
+
 /// Connect to an SSH server, open a PTY and shell. Returns session ID.
 pub async fn connect(
     host: String,
@@ -109,6 +275,8 @@ pub async fn connect(
     let handler = SshClientHandler {
         app_handle: app_handle.clone(),
         session_id: session_id.clone(),
+        host: host.clone(),
+        port,
     };
 
     let mut handle = client::connect(config, (host.as_str(), port), handler)

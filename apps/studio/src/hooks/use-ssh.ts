@@ -1,7 +1,12 @@
 import { listen } from '@tauri-apps/api/event'
 import { useCallback, useEffect, useRef, useState } from 'react'
 import { sshConnect, sshDisconnect, sshResize, sshSend } from '../lib/invoke'
-import type { SshConnectParams, SshDisconnectEvent, SshOutputEvent } from '../types'
+import type {
+  SshConnectParams,
+  SshDisconnectEvent,
+  SshHostKeyEvent,
+  SshOutputEvent,
+} from '../types'
 
 interface SshHookState {
   sessionId: string | null
@@ -13,6 +18,7 @@ interface SshHookState {
 interface UseSshOptions {
   onData?: (data: Uint8Array) => void
   onDisconnect?: (reason: string) => void
+  onHostKey?: (event: SshHostKeyEvent) => void
 }
 
 export function useSsh(options: UseSshOptions = {}) {
@@ -25,17 +31,26 @@ export function useSsh(options: UseSshOptions = {}) {
 
   const onDataRef = useRef(options.onData)
   const onDisconnectRef = useRef(options.onDisconnect)
+  const onHostKeyRef = useRef(options.onHostKey)
   const unlistenOutputRef = useRef<(() => void) | null>(null)
   const unlistenDisconnectRef = useRef<(() => void) | null>(null)
+  const unlistenHostKeyRef = useRef<(() => void) | null>(null)
   const sessionIdRef = useRef<string | null>(null)
 
   // Keep refs in sync
   onDataRef.current = options.onData
   onDisconnectRef.current = options.onDisconnect
+  onHostKeyRef.current = options.onHostKey
 
   const connect = useCallback(async (params: SshConnectParams) => {
     setState((prev) => ({ ...prev, connecting: true, error: null }))
     try {
+      // Listen for host key verification events (fires during handshake)
+      const unlistenHk = await listen<SshHostKeyEvent>('ssh_host_key', (event) => {
+        onHostKeyRef.current?.(event.payload)
+      })
+      unlistenHostKeyRef.current = unlistenHk
+
       const id = await sshConnect(params)
       sessionIdRef.current = id
 
@@ -53,8 +68,10 @@ export function useSsh(options: UseSshOptions = {}) {
         sessionIdRef.current = null
         unlistenOutputRef.current?.()
         unlistenDisconnectRef.current?.()
+        unlistenHostKeyRef.current?.()
         unlistenOutputRef.current = null
         unlistenDisconnectRef.current = null
+        unlistenHostKeyRef.current = null
         setState({
           sessionId: null,
           connected: false,
@@ -92,8 +109,10 @@ export function useSsh(options: UseSshOptions = {}) {
     sessionIdRef.current = null
     unlistenOutputRef.current?.()
     unlistenDisconnectRef.current?.()
+    unlistenHostKeyRef.current?.()
     unlistenOutputRef.current = null
     unlistenDisconnectRef.current = null
+    unlistenHostKeyRef.current = null
     setState({
       sessionId: null,
       connected: false,
@@ -127,6 +146,7 @@ export function useSsh(options: UseSshOptions = {}) {
       }
       unlistenOutputRef.current?.()
       unlistenDisconnectRef.current?.()
+      unlistenHostKeyRef.current?.()
     }
   }, [])
 
