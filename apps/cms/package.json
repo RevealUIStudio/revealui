@@ -76,7 +76,7 @@
     "test:ui": "vitest --ui",
     "test:watch": "vitest",
     "typecheck": "tsc --noEmit",
-    "vercel-build": "pnpm --filter @revealui/utils build && pnpm --filter @revealui/config build && pnpm --filter @revealui/presentation build && pnpm --filter @revealui/db build && pnpm --filter @revealui/contracts build && pnpm --filter @revealui/core build && pnpm --filter @revealui/auth build && pnpm --filter @revealui/sync build && env -u NODE_ENV cross-env NODE_OPTIONS=--no-deprecation TURBOPACK=0 next build"
+    "vercel-build": "env -u NODE_ENV cross-env NODE_OPTIONS=--no-deprecation TURBOPACK=0 next build"
   },
   "type": "module"
 }
