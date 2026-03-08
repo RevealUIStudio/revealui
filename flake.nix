@@ -16,6 +16,25 @@
 
       in {
         devShells.default = pkgs.mkShell {
+          nativeBuildInputs = with pkgs; [
+            pkg-config
+          ];
+
+          # Tauri needs system libs on LD_LIBRARY_PATH for linking + runtime
+          LD_LIBRARY_PATH = pkgs.lib.makeLibraryPath [
+            pkgs.openssl
+            pkgs.gtk3
+            pkgs.glib
+            pkgs.gdk-pixbuf
+            pkgs.pango
+            pkgs.cairo
+            pkgs.atk
+            pkgs.libsoup_3
+            pkgs.webkitgtk_4_1
+            pkgs.librsvg
+            pkgs.xz  # liblzma (needed by cargo-tauri)
+          ];
+
           buildInputs = with pkgs; [
             # Node.js ecosystem
             nodejs
@@ -24,6 +43,23 @@
 
             # Database
             (postgresql_16.withPackages (ps: [ ps.pgvector ]))
+
+            # Rust / Tauri (Studio desktop app)
+            rustc
+            cargo
+            cargo-tauri
+            openssl
+
+            # Tauri system dependencies (Linux/GTK)
+            gtk3
+            glib
+            gdk-pixbuf
+            pango
+            cairo
+            atk
+            libsoup_3
+            webkitgtk_4_1
+            librsvg
 
             # Services & APIs
             stripe-cli
