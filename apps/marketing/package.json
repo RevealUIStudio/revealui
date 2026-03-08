@@ -9,7 +9,7 @@
     "next": "catalog:",
     "react": "^19.2.3",
     "react-dom": "^19.2.3",
-    "zod": "^4.3.5"
+    "zod": "catalog:"
   },
   "devDependencies": {
     "@next/eslint-plugin-next": "^16.1.6",

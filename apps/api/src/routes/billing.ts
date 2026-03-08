@@ -742,9 +742,15 @@ const reportOverageRoute = createRoute({
 })
 
 app.openapi(reportOverageRoute, async (c) => {
+  const { timingSafeEqual } = await import('node:crypto')
   const cronSecret = process.env.REVEALUI_CRON_SECRET
   const provided = c.req.header('X-Cron-Secret')
-  if (!(cronSecret && provided) || Buffer.from(cronSecret).compare(Buffer.from(provided)) !== 0) {
+  if (!(cronSecret && provided)) {
+    return c.json({ error: 'Unauthorized' }, 401)
+  }
+  const a = Buffer.from(provided)
+  const b = Buffer.from(cronSecret)
+  if (a.length !== b.length || !timingSafeEqual(a, b)) {
     return c.json({ error: 'Unauthorized' }, 401)
   }
 

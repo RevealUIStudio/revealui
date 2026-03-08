@@ -33,6 +33,7 @@
             pkgs.webkitgtk_4_1
             pkgs.librsvg
             pkgs.xz  # liblzma (needed by cargo-tauri)
+            pkgs.libayatana-appindicator  # system tray (Tauri)
           ];
 
           buildInputs = with pkgs; [
@@ -60,6 +61,7 @@
             libsoup_3
             webkitgtk_4_1
             librsvg
+            libayatana-appindicator  # system tray
 
             # Services & APIs
             stripe-cli

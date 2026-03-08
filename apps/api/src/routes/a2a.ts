@@ -256,8 +256,12 @@ a2a.get('/agents/:id/def', authMiddleware({ required: true }), requireFeature('a
   return c.json({ def })
 })
 
-/** Task history for an agent — last 20 actions, requires 'ai' feature */
+/** Task history for an agent — last 20 actions, requires auth + 'ai' feature */
 a2a.get('/agents/:id/tasks', requireFeature('ai'), async (c) => {
+  const user = c.get('user')
+  if (!user) {
+    return c.json({ error: 'Authentication required' }, 401)
+  }
   const agentId = c.req.param('id')
   if (!/^[\w-]{1,256}$/.test(agentId)) {
     return c.json({ error: 'Invalid agent ID format' }, 400)

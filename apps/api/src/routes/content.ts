@@ -852,10 +852,15 @@ app.openapi(
   }),
   async (c) => {
     const db = c.get('db')
+    const user = c.get('user')
+    if (!user) throw new HTTPException(401, { message: 'Authentication required' })
     const { siteId } = c.req.valid('param')
     const body = c.req.valid('json')
     const existingSite = await siteQueries.getSiteById(db, siteId)
     if (!existingSite) return c.json({ success: false as const, error: 'Site not found' }, 404)
+    if (user.role !== 'admin' && existingSite.ownerId !== user.id) {
+      throw new HTTPException(403, { message: 'Forbidden' })
+    }
     const page = await pageQueries.createPage(db, {
       id: crypto.randomUUID(),
       siteId,

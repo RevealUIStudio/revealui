@@ -105,6 +105,10 @@ const MOCK_DATA: Record<string, unknown> = {
   ssh_send: undefined,
   ssh_resize: undefined,
   sync_repo: { drive: 'C', repo: 'RevealUI', status: 'ok', branch: 'main' } satisfies SyncResult,
+  read_app_log: '[mock] No log output available',
+  ssh_bookmark_list: [] satisfies SshBookmark[],
+  ssh_bookmark_save: undefined,
+  ssh_bookmark_delete: undefined,
 }
 
 /** Guarded invoke — returns mock data in browser, real IPC in Tauri */
@@ -154,6 +158,10 @@ export function startApp(name: string): Promise<string> {
 
 export function stopApp(name: string): Promise<string> {
   return invoke<string>('stop_app', { name })
+}
+
+export function readAppLog(name: string, lines?: number): Promise<string> {
+  return invoke<string>('read_app_log', { name, lines: lines ?? null })
 }
 
 export function checkSetup(): Promise<SetupStatus> {

@@ -1,4 +1,7 @@
 import { useApps } from '../../hooks/use-apps'
+import Button from '../ui/Button'
+import ErrorAlert from '../ui/ErrorAlert'
+import PanelHeader from '../ui/PanelHeader'
 import AppCard from './AppCard'
 
 export default function AppsPanel() {
@@ -6,23 +9,16 @@ export default function AppsPanel() {
 
   return (
     <div className="space-y-6">
-      <div className="flex items-center justify-between">
-        <h1 className="text-xl font-semibold">App Launcher</h1>
-        <button
-          type="button"
-          onClick={refresh}
-          disabled={loading}
-          className="rounded-md bg-neutral-800 px-3 py-1.5 text-sm text-neutral-300 transition-colors hover:bg-neutral-700 disabled:opacity-50"
-        >
-          {loading ? 'Checking...' : 'Refresh'}
-        </button>
-      </div>
+      <PanelHeader
+        title="App Launcher"
+        action={
+          <Button variant="secondary" onClick={refresh} loading={loading}>
+            Refresh
+          </Button>
+        }
+      />
 
-      {error && (
-        <div className="rounded-md border border-red-900/50 bg-red-950/30 px-4 py-3 text-sm text-red-400">
-          {error}
-        </div>
-      )}
+      <ErrorAlert message={error} />
 
       {apps.length === 0 && loading && (
         <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3">

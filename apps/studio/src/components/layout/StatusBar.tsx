@@ -1,4 +1,5 @@
 import { useStatusContext } from '../../hooks/use-status'
+import StatusDot from '../ui/StatusDot'
 
 export default function StatusBar() {
   const { system, mount, loading } = useStatusContext()
@@ -9,23 +10,15 @@ export default function StatusBar() {
         <span>Loading...</span>
       ) : (
         <>
-          <StatusDot ok={system?.wsl_running ?? false} />
+          <StatusDot status={system?.wsl_running ? 'ok' : 'off'} />
           <span>WSL {system?.wsl_running ? 'Running' : 'Stopped'}</span>
           <span className="text-neutral-600">|</span>
           <span>Tier: {system?.tier ?? '?'}</span>
           <span className="text-neutral-600">|</span>
-          <StatusDot ok={mount?.mounted ?? false} />
+          <StatusDot status={mount?.mounted ? 'ok' : 'off'} />
           <span>Studio: {mount?.mounted ? 'Mounted' : 'Not Mounted'}</span>
         </>
       )}
     </footer>
-  )
-}
-
-function StatusDot({ ok }: { ok: boolean }) {
-  return (
-    <span
-      className={`inline-block size-2 rounded-full ${ok ? 'bg-green-500' : 'bg-neutral-600'}`}
-    />
   )
 }

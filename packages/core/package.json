@@ -28,7 +28,7 @@
     "pg": "^8.18.0",
     "sharp": "^0.34.5",
     "yjs": "^13.6.29",
-    "zod": "^4.3.5"
+    "zod": "catalog:"
   },
   "devDependencies": {
     "@types/json-schema": "^7.0.15",

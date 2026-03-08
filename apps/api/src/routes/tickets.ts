@@ -238,10 +238,12 @@ app.openapi(
   async (c) => {
     const db = c.get('db')
     const tenant = c.get('tenant')
+    const user = c.get('user') as { id: string } | undefined
     const body = c.req.valid('json')
     const board = await boardQueries.createBoard(db, {
       id: crypto.randomUUID(),
       ...body,
+      ownerId: user?.id,
       tenantId: tenant?.id,
     })
     // biome-ignore lint/style/noNonNullAssertion: createBoard always returns the created row

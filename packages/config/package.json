@@ -7,7 +7,7 @@
   ],
   "dependencies": {
     "dotenv": "^17.2.4",
-    "zod": "^4.3.5"
+    "zod": "catalog:"
   },
   "devDependencies": {
     "@types/node": "^25.3.0",

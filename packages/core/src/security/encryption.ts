@@ -5,7 +5,7 @@
  */
 
 export interface EncryptionConfig {
-  algorithm: 'AES-GCM' | 'AES-CBC' | 'AES-CTR'
+  algorithm: 'AES-GCM' | 'AES-CTR'
   keySize: 128 | 192 | 256
   ivSize?: number
 }
