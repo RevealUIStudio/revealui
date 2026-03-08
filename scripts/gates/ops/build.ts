@@ -126,7 +126,7 @@ async function runBuild() {
     // Lint check
     logger.info('\n🔍 Running lint checks...\n')
     const lintCode = await runCommand('pnpm', ['lint'], {
-      description: 'ESLint checks',
+      description: 'Biome lint checks',
     })
 
     if (lintCode !== 0) {

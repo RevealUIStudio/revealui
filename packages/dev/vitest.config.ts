@@ -25,7 +25,6 @@ export default defineConfig({
       },
       { find: 'dev/vite', replacement: path.resolve(__dirname, './src/vite/vite.shared.ts') },
       { find: 'dev/biome', replacement: path.resolve(__dirname, './src/biome/biome.config.ts') },
-      { find: 'dev/eslint', replacement: path.resolve(__dirname, './src/eslint/index.js') },
       {
         find: 'dev/code-validator',
         replacement: path.resolve(__dirname, './src/code-validator/index.ts'),

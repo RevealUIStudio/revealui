@@ -114,7 +114,6 @@ export {
 }
 export type { PrimitivePropsWithRef }
 
-// /* eslint-disable @typescript-eslint/no-explicit-any */
 // import React from "react";
 // import { Slot } from "./slot.js";
 
@@ -166,7 +165,6 @@ export type { PrimitivePropsWithRef }
 // export { Primitive };
 // export type { Primitives };
 
-// /* eslint-disable @typescript-eslint/no-explicit-any */
 // import * as React from "react";
 // import { Slot } from "./Slot"; // Adjust import according to your structure
 

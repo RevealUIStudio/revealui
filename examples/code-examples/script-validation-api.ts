@@ -47,7 +47,7 @@ const REQUIRED_SCRIPTS = {
   tool: ['build', 'dev', 'lint', 'typecheck', 'test'],
 }
 
-const OPTIONAL_SCRIPTS = ['lint:eslint', 'test:watch', 'test:coverage', 'test:ui', 'format']
+const OPTIONAL_SCRIPTS = ['test:watch', 'test:coverage', 'test:ui', 'format']
 
 /**
  * Detect package type based on location and dependencies

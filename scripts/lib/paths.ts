@@ -109,7 +109,6 @@ export function getProjectRootSync(): string {
   // When called without import.meta.url, use cwd as starting point
   let currentDir = process.cwd()
 
-  // eslint-disable-next-line @typescript-eslint/no-require-imports
   const fs = require('node:fs')
 
   for (let i = 0; i < 10; i++) {

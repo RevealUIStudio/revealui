@@ -65,7 +65,6 @@ const TEMPLATES: Record<string, Template> = {
       build: 'tsc',
       dev: 'tsc --watch',
       lint: 'biome check .',
-      'lint:eslint': 'eslint .',
       typecheck: 'tsc --noEmit',
       test: 'vitest run',
       'test:watch': 'vitest',
@@ -78,7 +77,6 @@ const TEMPLATES: Record<string, Template> = {
     scripts: {
       // Will be determined by existing build system
       lint: 'biome check .',
-      'lint:eslint': 'eslint .',
       typecheck: 'tsc --noEmit',
       test: 'vitest run',
       'test:watch': 'vitest',
@@ -92,7 +90,6 @@ const TEMPLATES: Record<string, Template> = {
       build: 'tsup',
       dev: 'tsup --watch',
       lint: 'biome check .',
-      'lint:eslint': 'eslint .',
       typecheck: 'tsc --noEmit',
       test: 'vitest run',
       'test:watch': 'vitest',

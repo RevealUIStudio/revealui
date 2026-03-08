@@ -39,7 +39,7 @@ RevealUI Studio <founder@revealui.com>
 | @revealui/cli | `create-revealui` scaffolding tool |
 | @revealui/setup | Environment setup utilities |
 | @revealui/sync | ElectricSQL real-time sync |
-| @revealui/dev | Shared configs (Biome, ESLint, TS, Tailwind) |
+| @revealui/dev | Shared configs (Biome, TS, Tailwind) |
 | @revealui/test | E2E specs (Playwright), integration tests, fixtures, mocks, test utilities |
 
 ### Pro Packages (Commercial — source-available, commercially licensed)
@@ -79,7 +79,7 @@ pnpm test:integration       # Integration tests
 ```bash
 pnpm gate                   # Full CI gate (lint, typecheck, test, build)
 pnpm gate:quick             # Quick gate (phase 1 only)
-pnpm lint                   # Biome + ESLint
+pnpm lint                   # Biome lint
 pnpm lint:fix               # Auto-fix lint issues
 pnpm format                 # Biome format
 pnpm typecheck:all          # TypeScript check all packages
@@ -151,11 +151,11 @@ Schemas are in `packages/db/src/schema/`. Use Drizzle ORM for queries. Dual-data
 
 ## CI Gate Architecture
 The `pnpm gate` script runs 3 phases:
-1. **Quality** (parallel): Biome lint (hard fail), ESLint (warn), audits (warn), structure (warn), security (warn)
+1. **Quality** (parallel): Biome lint (hard fail), audits (warn), structure (warn), security (warn)
 2. **Type checking** (serial): `pnpm -r typecheck` across all workspaces
 3. **Test + Build** (parallel): Vitest (warn), turbo build (hard fail)
 
-Only Biome, typecheck, and build can block pushes. ESLint and tests are warn-only.
+Only Biome, typecheck, and build can block pushes. Tests are warn-only.
 
 ## Security
 - CSP, CORS, HSTS headers in `packages/core/src/security/`

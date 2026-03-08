@@ -83,7 +83,6 @@ export function createCIWorkflow(config: CIWorkflowConfig = {}): {
             name: 'Run Linting',
             description: 'Check code style and quality',
             action: async () => {
-              // Run ESLint
               // Run Biome
               return {
                 success: true,

@@ -39,7 +39,6 @@
     "clean": "rm -rf dist",
     "dev": "tsc --watch",
     "lint": "biome check .",
-    "lint:eslint": "eslint .",
     "test": "vitest run",
     "test:watch": "vitest",
     "typecheck": "tsc --noEmit"

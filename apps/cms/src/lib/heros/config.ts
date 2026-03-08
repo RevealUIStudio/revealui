@@ -75,7 +75,6 @@ export const hero: Field = {
   label: false,
 }
 
-// /* eslint-disable @typescript-eslint/no-explicit-any */
 // import type { Field } from "@revealui/core"
 // // import richText from "../richText";
 // import linkGroupField from "../linkGroupField"

@@ -5,7 +5,6 @@
  * Extracted from @revealui/core to break circular dependencies
  */
 
-/* eslint-disable no-console */
 /* console-allowed */
 
 export type LogLevel = 'debug' | 'info' | 'warn' | 'error' | 'fatal'

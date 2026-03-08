@@ -6,7 +6,6 @@ export const formatSlug = (val: string): string =>
 
 export const formatSlugHook =
   (fallback: string) =>
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   ({
     data,
     operation,

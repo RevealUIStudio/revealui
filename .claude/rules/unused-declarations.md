@@ -53,7 +53,6 @@ When you determine a declaration is incomplete (case 1), the required steps are:
 5. **Run `pnpm gate:quick`** after implementing to verify no new errors were introduced.
 
 Do NOT:
-- Add `// eslint-disable-next-line no-unused-vars`
 - Add `// biome-ignore lint/correctness/noUnusedVariables: TODO implement`
 - Rename to `_variable` just to silence the warning when the variable should be used
 - Delete a stub that represents planned functionality without implementing it first

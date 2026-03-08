@@ -14,10 +14,6 @@
  * - Most linting rules (style, correctness, performance)
  * - Import organization
  *
- * ESLint complements with:
- * - Type-aware TypeScript rules (requires type information)
- * - Type safety checks (no-unsafe-*)
- *
  * @type {import('@biomejs/biome').Config}
  */
 export const biomeConfig = {
@@ -203,7 +199,7 @@ export const biomeConfig = {
   overrides: [
     {
       // Config files can be more lenient
-      includes: ['**/*.config.*', '**/eslint.config.*', '**/vite.config.*'],
+      includes: ['**/*.config.*', '**/vite.config.*'],
       linter: {
         rules: {
           suspicious: {

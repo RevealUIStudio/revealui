@@ -38,7 +38,6 @@ export async function generateDevContainer(projectPath: string): Promise<void> {
     customizations: {
       vscode: {
         extensions: [
-          'dbaeumer.vscode-eslint',
           'biomejs.biome',
           'bradlc.vscode-tailwindcss',
           'Prisma.prisma',
@@ -131,7 +130,6 @@ This directory contains the Dev Container configuration for RevealUI.
 - pnpm package manager
 - PostgreSQL 16 with pgvector
 - VS Code extensions:
-  - ESLint
   - Biome
   - Tailwind CSS
   - Prisma

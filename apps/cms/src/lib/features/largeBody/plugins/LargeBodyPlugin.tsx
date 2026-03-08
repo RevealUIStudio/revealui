@@ -36,7 +36,6 @@ const LargeBodyPlugin: React.FC<LargeBodyPluginProps> = ({ editor }) => {
 
 export default LargeBodyPlugin
 
-// /* eslint-disable @typescript-eslint/no-explicit-any */
 // type BaseEditor = {
 //   shouldBreakOutOnEnter?: (element: any) => boolean
 // }
@@ -63,7 +62,7 @@ export default LargeBodyPlugin
 // export default LargeBodyPlugin
 // const withLargeBody: RichTextPlugin = (incomingEditor) => {
 //   const editor: BaseEditor & {
-//     shouldBreakOutOnEnter?: (element: any) => boolean; // eslint-disable-line @typescript-eslint/no-explicit-any
+//     shouldBreakOutOnEnter?: (element: any) => boolean;
 //   } = incomingEditor;
 
 //   const { shouldBreakOutOnEnter } = editor;

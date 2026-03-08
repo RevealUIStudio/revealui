@@ -198,14 +198,8 @@ async function gate(): Promise<void> {
   if (phase === null || phase === 1) {
     logger.info('Phase 1 \u2014 Quality checks (parallel)')
 
-    // In changed-only mode: scope ESLint to changed packages; skip network-bound security audit
-    const eslintArgs = changed
-      ? ['turbo', 'run', 'lint:eslint', '--filter=...[HEAD~1]']
-      : ['lint:eslint']
-
     const phase1Checks: CheckDef[] = [
       { name: 'Biome lint', command: 'pnpm', args: ['lint:biome'], timeout: 600000 },
-      { name: 'ESLint', command: 'pnpm', args: eslintArgs, warnOnly: true, timeout: 300000 },
       { name: 'Any type audit', command: 'pnpm', args: ['audit:any'], warnOnly: true },
       { name: 'Console audit', command: 'pnpm', args: ['audit:console'], warnOnly: true },
       {

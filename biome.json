@@ -171,7 +171,7 @@
       }
     },
     {
-      "includes": ["**/*.config.*", "**/eslint.config.*", "**/vite.config.*", "**/vitest.config.*"],
+      "includes": ["**/*.config.*", "**/vite.config.*", "**/vitest.config.*"],
       "linter": {
         "rules": {
           "suspicious": {

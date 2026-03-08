@@ -65,7 +65,7 @@ export const PageList: Block = {
 //   pages: 'pages'
 // }
 
-// // eslint-disable-next-line no-redeclare
+//
 // type PageListField = (typeof PageListField)[keyof typeof PageListField]
 
 // export const PageList: Block = {

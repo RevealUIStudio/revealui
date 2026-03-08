@@ -1,5 +1,3 @@
-/* eslint-disable react/button-has-type */
-
 import type { ButtonProps } from '@revealui/presentation/server'
 import { buttonVariants } from '@revealui/presentation/server'
 import * as React from 'react'
