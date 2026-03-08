@@ -39,7 +39,9 @@ export function useApps() {
 
   useEffect(() => {
     refresh()
-    const id = setInterval(refresh, 5_000)
+    const id = setInterval(() => {
+      if (!document.hidden) refresh()
+    }, 5_000)
     return () => clearInterval(id)
   }, [refresh])
 
