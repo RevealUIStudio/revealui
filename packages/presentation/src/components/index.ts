@@ -87,6 +87,11 @@ export {
   type PaginationPreviousProps,
   type PaginationProps,
 } from './Pagination.js'
+export {
+  PricingTable,
+  type PricingTableProps,
+  type PricingTier,
+} from './pricing-table.js'
 export { Progress } from './progress.js'
 export { Radio, RadioField, RadioGroup } from './radio.js'
 export { Rating } from './rating.js'

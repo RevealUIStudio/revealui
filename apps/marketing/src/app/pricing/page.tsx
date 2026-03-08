@@ -1,3 +1,4 @@
+import { CREDIT_BUNDLES, PERPETUAL_TIERS, SUBSCRIPTION_TIERS } from '@revealui/contracts/pricing'
 import type { Metadata } from 'next'
 import { Footer } from '@/components/Footer'
 import { NavBar } from '@/components/NavBar'
@@ -14,193 +15,12 @@ export const metadata: Metadata = {
   },
 }
 
-// ---------------------------------------------------------------------------
-// Track A — Subscriptions
-// ---------------------------------------------------------------------------
-
-const tiers = [
-  {
-    name: 'Free (OSS)',
-    id: 'free',
-    price: '$0',
-    description: 'Perfect for trying out RevealUI and small projects.',
-    features: [
-      'Unlimited CMS collections',
-      '1 site',
-      'Up to 3 users/editors',
-      'Session-based auth',
-      'Basic real-time sync',
-      'Community support',
-      'Full source code access',
-    ],
-    cta: 'Get Started',
-    ctaHref: 'https://github.com/RevealUIStudio/revealui',
-    featured: false,
-  },
-  {
-    name: 'Pro',
-    id: 'pro',
-    price: '$49',
-    period: '/month',
-    description: 'For software companies building production products.',
-    features: [
-      'Unlimited CMS collections',
-      'Up to 5 sites',
-      'Up to 25 users/editors',
-      'Session-based auth',
-      'AI agents (BYOK — bring your own LLM key)',
-      'Built-in Stripe payments',
-      'Full real-time sync',
-      'Monitoring dashboard',
-      'Custom domain mapping',
-      '10,000 agent tasks/month included',
-      'Email support (48h response)',
-      'Full source code access',
-    ],
-    cta: 'Start Free Trial',
-    ctaHref: `${process.env.NEXT_PUBLIC_CMS_URL || 'https://cms.revealui.com'}/signup?plan=pro`,
-    featured: true,
-  },
-  {
-    name: 'Max',
-    id: 'max',
-    price: '$149',
-    period: '/month',
-    description: 'For teams that need AI memory, multi-provider, and compliance tooling.',
-    features: [
-      'Everything in Pro',
-      'Up to 15 sites',
-      'Up to 100 users/editors',
-      'Full AI memory (working + episodic + vector)',
-      'Multi-provider AI (up to 2 providers)',
-      'BYOK server-side key storage',
-      'Audit logging',
-      '50,000 agent tasks/month included',
-      'Email support (24h response)',
-      'Full source code access',
-    ],
-    cta: 'Start Free Trial',
-    ctaHref: `${process.env.NEXT_PUBLIC_CMS_URL || 'https://cms.revealui.com'}/signup?plan=max`,
-    featured: false,
-  },
-  {
-    name: 'Forge',
-    id: 'enterprise',
-    price: '$299',
-    period: '/month',
-    description: 'For teams with advanced scale and compliance requirements.',
-    features: [
-      'Everything in Max',
-      'Unlimited sites',
-      'Unlimited users/editors',
-      'Session-based auth + OAuth + SSO/SAML',
-      'All AI providers (unlimited)',
-      'Multi-tenant architecture',
-      'White-label branding',
-      'Unlimited agent tasks',
-      'Slack support (4h SLA)',
-      'Annual pricing available',
-      'Full source code access',
-    ],
-    cta: 'Contact Sales',
-    ctaHref: 'mailto:support@revealui.com?subject=Forge%20Inquiry',
-    featured: false,
-  },
-]
-
-// ---------------------------------------------------------------------------
-// Track B — Agent Credits
-// ---------------------------------------------------------------------------
-
-const creditBundles = [
-  {
-    name: 'Starter',
-    tasks: '10,000',
-    price: '$10',
-    priceNote: 'one-time',
-    costPer: '$0.001/task',
-    description: 'Top up any plan. Never expires.',
-    highlight: false,
-  },
-  {
-    name: 'Standard',
-    tasks: '60,000',
-    price: '$50',
-    priceNote: 'one-time',
-    costPer: '$0.00083/task',
-    description: '17% cheaper per task vs Starter.',
-    highlight: true,
-  },
-  {
-    name: 'Scale',
-    tasks: '350,000',
-    price: '$250',
-    priceNote: 'one-time',
-    costPer: '$0.00071/task',
-    description: '29% cheaper per task vs Starter.',
-    highlight: false,
-  },
-]
-
-// ---------------------------------------------------------------------------
-// Track C — Perpetual Licenses
-// ---------------------------------------------------------------------------
-
-const perpetualTiers = [
-  {
-    name: 'Pro Perpetual',
-    price: '$299',
-    priceNote: 'one-time',
-    renewal: '$99/yr for continued support',
-    description: 'Pro features, forever. No subscription required.',
-    features: [
-      'All Pro tier features',
-      'License key — never expires',
-      '1 year priority support included',
-      'All Pro updates released during support period',
-      'Private GitHub repo access',
-    ],
-    cta: 'Buy License',
-    ctaHref: 'mailto:support@revealui.com?subject=Pro%20Perpetual%20License',
-    comingSoon: false,
-  },
-  {
-    name: 'Agency Perpetual',
-    price: '$799',
-    priceNote: 'one-time',
-    renewal: '$199/yr for continued support',
-    description: 'Deploy for multiple clients without per-site subscriptions.',
-    features: [
-      'All Max tier features',
-      'License key — never expires',
-      'Up to 10 client deployments',
-      '1 year priority support included',
-      'All Max updates released during support period',
-      'Private GitHub repo access',
-    ],
-    cta: 'Buy License',
-    ctaHref: 'mailto:support@revealui.com?subject=Agency%20Perpetual%20License',
-    comingSoon: false,
-  },
-  {
-    name: 'Forge Perpetual',
-    price: '$1,999',
-    priceNote: 'one-time',
-    renewal: '$499/yr for continued support',
-    description: 'Full self-hosted Forge with unlimited deployments.',
-    features: [
-      'All Forge tier features',
-      'License key — never expires',
-      'Unlimited self-hosted deployments',
-      '1 year priority support included',
-      'All Forge updates released during support period',
-      'Private GitHub repo + Docker image access',
-    ],
-    cta: 'Contact Sales',
-    ctaHref: 'mailto:support@revealui.com?subject=Forge%20Perpetual%20License%20Inquiry',
-    comingSoon: false,
-  },
-]
+// Resolve CTA hrefs for marketing context (absolute URLs for signup)
+const cmsUrl = process.env.NEXT_PUBLIC_CMS_URL || 'https://cms.revealui.com'
+const tiers = SUBSCRIPTION_TIERS.map((tier) => ({
+  ...tier,
+  ctaHref: tier.ctaHref.startsWith('/') ? `${cmsUrl}${tier.ctaHref}` : tier.ctaHref,
+}))
 
 // ---------------------------------------------------------------------------
 // FAQ
@@ -314,10 +134,10 @@ export default function PricingPage() {
               <div
                 key={tier.id}
                 className={`relative rounded-2xl bg-white p-8 shadow-lg ${
-                  tier.featured ? 'ring-2 ring-blue-600' : 'ring-1 ring-gray-200'
+                  tier.highlighted ? 'ring-2 ring-blue-600' : 'ring-1 ring-gray-200'
                 }`}
               >
-                {tier.featured && (
+                {tier.highlighted && (
                   <div className="absolute -top-4 left-0 right-0 mx-auto w-32 rounded-full bg-gradient-to-r from-blue-600 to-indigo-600 px-3 py-1.5 text-sm font-semibold text-white text-center shadow-lg">
                     Most Popular
                   </div>
@@ -356,7 +176,7 @@ export default function PricingPage() {
                   target={tier.id === 'free' ? '_blank' : undefined}
                   rel={tier.id === 'free' ? 'noopener noreferrer' : undefined}
                   className={`block w-full rounded-md px-6 py-3 text-center text-sm font-semibold transition-colors ${
-                    tier.featured
+                    tier.highlighted
                       ? 'bg-blue-600 text-white hover:bg-blue-500 shadow-sm'
                       : 'bg-gray-100 text-gray-900 hover:bg-gray-200'
                   }`}
@@ -387,14 +207,14 @@ export default function PricingPage() {
             </p>
           </div>
           <div className="mx-auto max-w-4xl grid grid-cols-1 gap-6 sm:grid-cols-3">
-            {creditBundles.map((bundle) => (
+            {CREDIT_BUNDLES.map((bundle) => (
               <div
                 key={bundle.name}
                 className={`rounded-2xl bg-white p-8 shadow-lg ${
-                  bundle.highlight ? 'ring-2 ring-purple-500' : 'ring-1 ring-gray-200'
+                  bundle.highlighted ? 'ring-2 ring-purple-500' : 'ring-1 ring-gray-200'
                 }`}
               >
-                {bundle.highlight && (
+                {bundle.highlighted && (
                   <div className="mb-3 text-center">
                     <span className="text-xs font-semibold text-purple-700 bg-purple-100 px-3 py-1 rounded-full">
                       Best value
@@ -412,7 +232,7 @@ export default function PricingPage() {
                 <a
                   href="mailto:support@revealui.com?subject=Agent%20Credits%20Inquiry"
                   className={`mt-8 block w-full rounded-md px-4 py-2.5 text-center text-sm font-semibold transition-colors ${
-                    bundle.highlight
+                    bundle.highlighted
                       ? 'bg-purple-600 text-white hover:bg-purple-500'
                       : 'bg-gray-100 text-gray-900 hover:bg-gray-200'
                   }`}
@@ -444,7 +264,7 @@ export default function PricingPage() {
             </p>
           </div>
           <div className="mx-auto max-w-5xl grid grid-cols-1 gap-6 sm:grid-cols-3">
-            {perpetualTiers.map((tier) => (
+            {PERPETUAL_TIERS.map((tier) => (
               <div
                 key={tier.name}
                 className="relative rounded-2xl bg-white p-8 shadow-lg ring-1 ring-gray-200"

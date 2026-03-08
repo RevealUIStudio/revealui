@@ -1,10 +1,11 @@
 'use client'
 
+import type { LicenseTierId } from '@revealui/contracts/pricing'
 import type { FeatureFlags } from '@revealui/core/features'
 import { createContext, useCallback, useContext, useEffect, useState } from 'react'
 
 interface LicenseContextValue {
-  tier: 'free' | 'pro' | 'enterprise'
+  tier: LicenseTierId
   features: FeatureFlags | null
   isLoading: boolean
   refetch: () => Promise<void>
@@ -19,7 +20,7 @@ const LicenseContext = createContext<LicenseContextValue>({
 })
 
 export function LicenseProvider({ children }: { children: React.ReactNode }) {
-  const [tier, setTier] = useState<'free' | 'pro' | 'enterprise'>('free')
+  const [tier, setTier] = useState<LicenseTierId>('free')
   const [features, setFeatures] = useState<FeatureFlags | null>(null)
   const [isLoading, setIsLoading] = useState(true)
 
@@ -32,7 +33,7 @@ export function LicenseProvider({ children }: { children: React.ReactNode }) {
       // Fetch subscription status
       const subRes = await fetch(`${apiUrl}/api/billing/subscription`, { credentials: 'include' })
       if (subRes.ok) {
-        const data = (await subRes.json()) as { tier: 'free' | 'pro' | 'enterprise' }
+        const data = (await subRes.json()) as { tier: LicenseTierId }
         setTier(data.tier)
 
         // Fetch feature flags using the freshly-resolved tier (not stale state)

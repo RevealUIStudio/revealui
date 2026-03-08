@@ -37,6 +37,7 @@ import licenseRoute from './routes/license.js'
 import logsRoute from './routes/logs.js'
 import marketplaceRoute from './routes/marketplace.js'
 import ragIndexRoute from './routes/rag-index.js'
+import terminalAuthRoute from './routes/terminal-auth.js'
 import ticketsRoute from './routes/tickets.js'
 import webhooksRoute from './routes/webhooks.js'
 
@@ -406,6 +407,7 @@ app.route('/api/content', contentRoute)
 app.route('/api/rag', ragIndexRoute)
 app.route('/api/api-keys', apiKeysRoute)
 app.route('/api/marketplace', marketplaceRoute)
+app.route('/api/terminal-auth', terminalAuthRoute)
 app.route('', createCollabRoute())
 app.route('', createAgentCollabRoute())
 

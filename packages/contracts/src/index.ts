@@ -470,6 +470,29 @@ export {
 } from './api/gdpr.js'
 
 // =============================================================================
+// Pricing
+// =============================================================================
+
+export {
+  CREDIT_BUNDLES,
+  type CreditBundle,
+  FEATURE_LABELS,
+  type FeatureFlagKey,
+  getTierColor,
+  getTierLabel,
+  getTiersFromCurrent,
+  type LicenseTierId,
+  PERPETUAL_TIERS,
+  type PerpetualTier,
+  SUBSCRIPTION_TIERS,
+  type SubscriptionTier,
+  TIER_COLORS,
+  TIER_LABELS,
+  TIER_LIMITS,
+  type TierLimits,
+} from './pricing.js'
+
+// =============================================================================
 // Actions
 // =============================================================================
 

@@ -1,6 +1,13 @@
 'use client'
 
 import { useSession } from '@revealui/auth/react'
+import {
+  FEATURE_LABELS,
+  type LicenseTierId,
+  TIER_COLORS,
+  TIER_LABELS,
+  TIER_LIMITS,
+} from '@revealui/contracts/pricing'
 import type { FeatureFlags } from '@revealui/core/features'
 import {
   Card,
@@ -14,53 +21,9 @@ import { useRouter } from 'next/navigation'
 import { useCallback, useEffect, useState } from 'react'
 
 interface SubscriptionData {
-  tier: 'free' | 'pro' | 'enterprise'
+  tier: LicenseTierId
   status: string
   expiresAt: string | null
-}
-
-interface TierLimits {
-  sites: number | null
-  users: number | null
-}
-
-const TIER_LIMITS: Record<'free' | 'pro' | 'max' | 'enterprise', TierLimits> = {
-  free: { sites: 1, users: 3 },
-  pro: { sites: 5, users: 25 },
-  max: { sites: 15, users: 100 },
-  enterprise: { sites: null, users: null },
-}
-
-const FEATURE_LABELS: Record<keyof FeatureFlags, string> = {
-  ai: 'AI Agent System',
-  aiMemory: 'AI Memory',
-  mcp: 'MCP Server Integration',
-  editors: 'Editor Integration',
-  harnesses: 'AI Harness Coordination',
-  payments: 'Built-in Payments',
-  byokServerSide: 'BYOK Server-side Key Storage',
-  aiMultiProvider: 'Multi-provider AI',
-  multiTenant: 'Multi-tenant Sites',
-  whiteLabel: 'White-label Dashboard',
-  sso: 'SSO / SAML',
-  auditLog: 'Audit Logging',
-  advancedSync: 'Advanced Real-time Sync',
-  dashboard: 'Monitoring Dashboard',
-  customDomain: 'Custom Domain Mapping',
-  analytics: 'Analytics & Tracking',
-}
-
-const TIER_LABELS: Record<string, string> = {
-  free: 'Free (OSS)',
-  pro: 'Pro',
-  max: 'Max',
-  enterprise: 'Forge (Enterprise)',
-}
-
-const TIER_COLORS: Record<string, string> = {
-  free: 'bg-zinc-100 text-zinc-700 dark:bg-zinc-800 dark:text-zinc-300',
-  pro: 'bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400',
-  enterprise: 'bg-purple-100 text-purple-700 dark:bg-purple-900/30 dark:text-purple-400',
 }
 
 const PERPETUAL_PLANS = [
