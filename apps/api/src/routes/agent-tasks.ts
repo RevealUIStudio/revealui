@@ -122,75 +122,12 @@ app.openapi(
       )
     }
 
-    // Dispatch and await — agent runs the agentic loop, calls CMS tools, updates ticket.
-    // A timeout guard prevents requests from hanging indefinitely.  On timeout, the ticket
-    // is marked blocked and a 504 is returned so the caller can retry or escalate.
-    const AgentTimeoutMs = 120_000 // 2 minutes
-    let timeoutHandle: ReturnType<typeof setTimeout> | undefined
-    const timeoutPromise = new Promise<never>((_, reject) => {
-      timeoutHandle = setTimeout(
-        () => reject(new Error('Agent dispatch timed out')),
-        AgentTimeoutMs,
-      )
-    })
-
-    let result: Awaited<ReturnType<typeof dispatcher.dispatch>>
-    try {
-      result = await Promise.race([
-        dispatcher
-          .dispatch({
-            id: ticket.id,
-            title: ticket.title,
-            description: ticket.description,
-            type: ticket.type,
-            priority: ticket.priority,
-          })
-          .finally(() => clearTimeout(timeoutHandle)),
-        timeoutPromise,
-      ])
-    } catch (dispatchErr) {
-      clearTimeout(timeoutHandle)
-      await ticketQueries.updateTicket(db, ticket.id, { status: 'blocked' })
-      const isTimeout =
-        dispatchErr instanceof Error && dispatchErr.message === 'Agent dispatch timed out'
-      return c.json(
-        {
-          success: false as const,
-          error: isTimeout ? 'Agent timed out after 2 minutes' : 'Agent dispatch failed',
-        },
-        503,
-      )
+    // Dispatch agent with timeout, persist outcome to memory
+    const dispatchResult = await dispatchWithTimeout(db, dispatcher, ticket)
+    if (!dispatchResult.success) {
+      return c.json({ success: false as const, error: dispatchResult.error }, 503)
     }
-
-    // If agent didn't update the ticket status itself, mark it done/blocked based on result
-    if (!result.success) {
-      await ticketQueries.updateTicket(db, ticket.id, { status: 'blocked' })
-    }
-
-    // Persist agent outcome to agent_memories for traceability and future retrieval
-    if (result.output) {
-      try {
-        await db.insert(agentMemories).values({
-          id: crypto.randomUUID(),
-          content: result.output,
-          type: 'decision',
-          source: {
-            type: 'agent',
-            id: `ticket-agent-${ticket.id}`,
-            confidence: result.success ? 1 : 0.5,
-          },
-          agentId: `ticket-agent-${ticket.id}`,
-          metadata: {
-            ticketId: ticket.id,
-            success: result.success,
-            executionTime: result.metadata?.executionTime,
-            tokensUsed: result.metadata?.tokensUsed,
-          },
-        })
-      } catch {
-        // Memory persistence is best-effort — don't fail the request
-      }
-    }
+    const { result } = dispatchResult
 
     // Re-fetch final ticket state
     const finalTicket = await ticketQueries.getTicketById(db, ticket.id)
@@ -276,71 +213,12 @@ app.openapi(
     // Mark in_progress before dispatch
     await ticketQueries.updateTicket(db, ticketId, { status: 'in_progress' })
 
-    const AgentTimeoutMs = 120_000 // 2 minutes
-    let timeoutHandle2: ReturnType<typeof setTimeout> | undefined
-    const timeoutPromise2 = new Promise<never>((_, reject) => {
-      timeoutHandle2 = setTimeout(
-        () => reject(new Error('Agent dispatch timed out')),
-        AgentTimeoutMs,
-      )
-    })
-
-    let result: Awaited<ReturnType<typeof dispatcher.dispatch>>
-    try {
-      result = await Promise.race([
-        dispatcher
-          .dispatch({
-            id: ticket.id,
-            title: ticket.title,
-            description: ticket.description,
-            type: ticket.type,
-            priority: ticket.priority,
-          })
-          .finally(() => clearTimeout(timeoutHandle2)),
-        timeoutPromise2,
-      ])
-    } catch (dispatchErr) {
-      clearTimeout(timeoutHandle2)
-      await ticketQueries.updateTicket(db, ticketId, { status: 'blocked' })
-      const isTimeout =
-        dispatchErr instanceof Error && dispatchErr.message === 'Agent dispatch timed out'
-      return c.json(
-        {
-          success: false as const,
-          error: isTimeout ? 'Agent timed out after 2 minutes' : 'Agent dispatch failed',
-        },
-        503,
-      )
+    // Dispatch agent with timeout, persist outcome to memory
+    const dispatchResult = await dispatchWithTimeout(db, dispatcher, ticket)
+    if (!dispatchResult.success) {
+      return c.json({ success: false as const, error: dispatchResult.error }, 503)
     }
-
-    if (!result.success) {
-      await ticketQueries.updateTicket(db, ticketId, { status: 'blocked' })
-    }
-
-    // Persist agent outcome to agent_memories
-    if (result.output) {
-      try {
-        await db.insert(agentMemories).values({
-          id: crypto.randomUUID(),
-          content: result.output,
-          type: 'decision',
-          source: {
-            type: 'agent',
-            id: `ticket-agent-${ticketId}`,
-            confidence: result.success ? 1 : 0.5,
-          },
-          agentId: `ticket-agent-${ticketId}`,
-          metadata: {
-            ticketId,
-            success: result.success,
-            executionTime: result.metadata?.executionTime,
-            tokensUsed: result.metadata?.tokensUsed,
-          },
-        })
-      } catch {
-        // Memory persistence is best-effort — don't fail the request
-      }
-    }
+    const { result } = dispatchResult
 
     const finalTicket = await ticketQueries.getTicketById(db, ticketId)
 
@@ -359,6 +237,85 @@ app.openapi(
 // =============================================================================
 // Helpers
 // =============================================================================
+
+const AGENT_TIMEOUT_MS = 120_000 // 2 minutes
+
+/**
+ * Dispatch an agent for a ticket with a timeout guard, then persist the
+ * outcome to agent_memories. Shared by both POST handlers.
+ */
+async function dispatchWithTimeout(
+  db: DatabaseClient,
+  dispatcher: TicketAgentDispatcher,
+  ticket: { id: string; title: string; description: unknown; type: string; priority: string },
+): Promise<
+  | { success: true; result: Awaited<ReturnType<typeof dispatcher.dispatch>> }
+  | { success: false; error: string }
+> {
+  let timeoutHandle: ReturnType<typeof setTimeout> | undefined
+  const timeoutPromise = new Promise<never>((_, reject) => {
+    timeoutHandle = setTimeout(
+      () => reject(new Error('Agent dispatch timed out')),
+      AGENT_TIMEOUT_MS,
+    )
+  })
+
+  let result: Awaited<ReturnType<typeof dispatcher.dispatch>>
+  try {
+    result = await Promise.race([
+      dispatcher
+        .dispatch({
+          id: ticket.id,
+          title: ticket.title,
+          description: ticket.description,
+          type: ticket.type,
+          priority: ticket.priority,
+        })
+        .finally(() => clearTimeout(timeoutHandle)),
+      timeoutPromise,
+    ])
+  } catch (dispatchErr) {
+    clearTimeout(timeoutHandle)
+    await ticketQueries.updateTicket(db, ticket.id, { status: 'blocked' })
+    const isTimeout =
+      dispatchErr instanceof Error && dispatchErr.message === 'Agent dispatch timed out'
+    return {
+      success: false,
+      error: isTimeout ? 'Agent timed out after 2 minutes' : 'Agent dispatch failed',
+    }
+  }
+
+  if (!result.success) {
+    await ticketQueries.updateTicket(db, ticket.id, { status: 'blocked' })
+  }
+
+  // Persist agent outcome to agent_memories (best-effort)
+  if (result.output) {
+    try {
+      await db.insert(agentMemories).values({
+        id: crypto.randomUUID(),
+        content: result.output,
+        type: 'decision',
+        source: {
+          type: 'agent',
+          id: `ticket-agent-${ticket.id}`,
+          confidence: result.success ? 1 : 0.5,
+        },
+        agentId: `ticket-agent-${ticket.id}`,
+        metadata: {
+          ticketId: ticket.id,
+          success: result.success,
+          executionTime: result.metadata?.executionTime,
+          tokensUsed: result.metadata?.tokensUsed,
+        },
+      })
+    } catch {
+      // Memory persistence is best-effort — don't fail the request
+    }
+  }
+
+  return { success: true, result }
+}
 
 /**
  * Build a TicketAgentDispatcher backed by the real DB client.

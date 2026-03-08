@@ -47,6 +47,7 @@ export class AgentCollabClient extends Observable<string> {
     origin: string | null,
   ) => void
   private destroyed = false
+  private pendingSyncAbort: (() => void) | null = null
 
   constructor(options: AgentCollabClientOptions) {
     super()
@@ -159,24 +160,37 @@ export class AgentCollabClient extends Observable<string> {
   waitForSync(timeoutMs = 5000): Promise<void> {
     if (this.synced) return Promise.resolve()
     return new Promise((resolve, reject) => {
-      const timeout = setTimeout(() => {
+      const cleanup = () => {
+        clearTimeout(timeout)
         this.off('sync', handler)
+        if (this.pendingSyncAbort === abort) this.pendingSyncAbort = null
+      }
+
+      const timeout = setTimeout(() => {
+        cleanup()
         reject(new Error(`Sync timeout after ${timeoutMs}ms`))
       }, timeoutMs)
 
       const handler = (isSynced: unknown) => {
         if (isSynced) {
-          clearTimeout(timeout)
-          this.off('sync', handler)
+          cleanup()
           resolve()
         }
       }
+
+      const abort = () => {
+        cleanup()
+        reject(new Error('Client destroyed while waiting for sync'))
+      }
+
+      this.pendingSyncAbort = abort
       this.on('sync', handler)
     })
   }
 
   destroy(): void {
     this.destroyed = true
+    this.pendingSyncAbort?.()
     this.awareness.off('update', this.awarenessUpdateHandler)
     this.disconnect()
     this.awareness.destroy()
