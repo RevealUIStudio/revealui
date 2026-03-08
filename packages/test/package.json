@@ -27,8 +27,8 @@
     "vitest": "^4.0.18"
   },
   "peerDependencies": {
-    "@revealui/ai": "^0.1.0",
-    "@revealui/services": "^0.0.1"
+    "@revealui/ai": "workspace:*",
+    "@revealui/services": "workspace:*"
   },
   "peerDependenciesMeta": {
     "@revealui/ai": {

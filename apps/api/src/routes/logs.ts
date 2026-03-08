@@ -68,9 +68,15 @@ const logRoute = createRoute({
 
 app.openapi(logRoute, async (c) => {
   // Verify shared secret — rejects requests not originating from trusted RevealUI apps
+  const { timingSafeEqual } = await import('node:crypto')
   const token = c.req.header('X-Internal-Token')
   const secret = process.env.REVEALUI_SECRET
-  if (!(secret && token) || token !== secret) {
+  if (!(secret && token)) {
+    return c.json({ error: 'Forbidden' }, 403)
+  }
+  const a = Buffer.from(token)
+  const b = Buffer.from(secret)
+  if (a.length !== b.length || !timingSafeEqual(a, b)) {
     return c.json({ error: 'Forbidden' }, 403)
   }
 
