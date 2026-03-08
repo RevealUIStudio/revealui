@@ -1,13 +1,27 @@
 use std::collections::HashMap;
+use std::path::Path;
 use std::sync::Arc;
 
 use base64::Engine;
 use base64::engine::general_purpose::STANDARD as BASE64;
 use russh::keys::key;
 use russh::{ChannelId, ChannelMsg, client};
-use serde::Serialize;
+use serde::{Deserialize, Serialize};
 use tauri::Emitter;
 use tokio::sync::Mutex;
+
+/// Authentication method for SSH connections.
+#[derive(Clone, Debug, Deserialize)]
+#[serde(tag = "method")]
+pub enum SshAuth {
+    #[serde(rename = "password")]
+    Password { password: String },
+    #[serde(rename = "key")]
+    Key {
+        key_path: String,
+        passphrase: Option<String>,
+    },
+}
 
 /// Event payload sent from backend to frontend with terminal output.
 #[derive(Clone, Serialize)]
@@ -84,7 +98,7 @@ pub async fn connect(
     host: String,
     port: u16,
     username: String,
-    password: String,
+    auth: SshAuth,
     app_handle: tauri::AppHandle,
     ssh_state: Arc<Mutex<HashMap<String, SshSession>>>,
 ) -> Result<String, String> {
@@ -101,13 +115,34 @@ pub async fn connect(
         .await
         .map_err(|e| format!("SSH connection failed: {e}"))?;
 
-    let auth_ok = handle
-        .authenticate_password(&username, &password)
-        .await
-        .map_err(|e| format!("SSH auth error: {e}"))?;
-
-    if !auth_ok {
-        return Err("Authentication failed: invalid credentials".to_string());
+    match &auth {
+        SshAuth::Password { password } => {
+            let auth_ok = handle
+                .authenticate_password(&username, password)
+                .await
+                .map_err(|e| format!("SSH auth error: {e}"))?;
+            if !auth_ok {
+                return Err("Authentication failed: invalid credentials".to_string());
+            }
+        }
+        SshAuth::Key {
+            key_path,
+            passphrase,
+        } => {
+            let path = Path::new(key_path);
+            if !path.exists() {
+                return Err(format!("Key file not found: {key_path}"));
+            }
+            let key_pair = russh_keys::load_secret_key(path, passphrase.as_deref())
+                .map_err(|e| format!("Failed to load key: {e}"))?;
+            let auth_ok = handle
+                .authenticate_publickey(&username, Arc::new(key_pair))
+                .await
+                .map_err(|e| format!("SSH key auth error: {e}"))?;
+            if !auth_ok {
+                return Err("Authentication failed: key rejected by server".to_string());
+            }
+        }
     }
 
     let channel = handle

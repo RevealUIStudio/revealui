@@ -2,7 +2,7 @@ use base64::Engine;
 use base64::engine::general_purpose::STANDARD as BASE64;
 use tauri::State;
 
-use crate::ssh::SshState;
+use crate::ssh::{SshAuth, SshState};
 
 /// Connect to an SSH server. Returns a session ID.
 #[tauri::command]
@@ -10,11 +10,11 @@ pub async fn ssh_connect(
     host: String,
     port: u16,
     username: String,
-    password: String,
+    auth: SshAuth,
     app_handle: tauri::AppHandle,
     state: State<'_, SshState>,
 ) -> Result<String, String> {
-    crate::ssh::connect(host, port, username, password, app_handle, state.sessions.clone()).await
+    crate::ssh::connect(host, port, username, auth, app_handle, state.sessions.clone()).await
 }
 
 /// Disconnect an SSH session.
