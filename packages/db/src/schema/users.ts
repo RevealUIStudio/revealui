@@ -56,6 +56,9 @@ export const users = pgTable(
     // Stripe integration
     stripeCustomerId: text('stripe_customer_id'),
 
+    // SSH terminal auth (Phase E — `ssh terminal.revealui.com`)
+    sshKeyFingerprint: text('ssh_key_fingerprint'),
+
     // User preferences (JSON blob)
     preferences: jsonb('preferences'),
 
@@ -72,6 +75,7 @@ export const users = pgTable(
     index('users_type_idx').on(table.type),
     index('users_status_idx').on(table.status),
     index('users_stripe_customer_id_idx').on(table.stripeCustomerId),
+    index('users_ssh_key_fingerprint_idx').on(table.sshKeyFingerprint),
   ],
 )
 
