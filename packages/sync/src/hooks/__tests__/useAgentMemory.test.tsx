@@ -85,10 +85,10 @@ describe('useAgentMemory', () => {
     expect(result.current.memories).toEqual([])
     expect(result.current.isLoading).toBe(false)
     expect(result.current.error?.message).toMatch(/Invalid agentId/)
-    // Shape is still called (rules of hooks) but with __invalid__ sentinel
+    // Shape is still called (rules of hooks) but with UUID sentinel that matches no rows
     expect(mockUseShape).toHaveBeenCalledWith({
       url: '/api/shapes/agent-memories',
-      params: { agent_id: '__invalid__' },
+      params: { agent_id: '00000000-0000-0000-0000-000000000000' },
     })
   })
 
@@ -100,7 +100,7 @@ describe('useAgentMemory', () => {
     expect(result.current.error?.message).toMatch(/Invalid agentId/)
     expect(mockUseShape).toHaveBeenCalledWith({
       url: '/api/shapes/agent-memories',
-      params: { agent_id: '__invalid__' },
+      params: { agent_id: '00000000-0000-0000-0000-000000000000' },
     })
   })
 
@@ -129,5 +129,25 @@ describe('useAgentMemory', () => {
     const { result } = renderHook(() => useAgentMemory('agent-123'))
 
     expect(result.current.memories).toEqual([])
+  })
+
+  it('should return mutation functions (create, update, remove)', () => {
+    mockUseShape.mockReturnValue({ data: [], isLoading: false, error: null })
+
+    const { result } = renderHook(() => useAgentMemory('agent-123'))
+
+    expect(typeof result.current.create).toBe('function')
+    expect(typeof result.current.update).toBe('function')
+    expect(typeof result.current.remove).toBe('function')
+  })
+
+  it('should return mutation functions even for invalid agentId', () => {
+    mockUseShape.mockReturnValue({ data: null, isLoading: false, error: null })
+
+    const { result } = renderHook(() => useAgentMemory(''))
+
+    expect(typeof result.current.create).toBe('function')
+    expect(typeof result.current.update).toBe('function')
+    expect(typeof result.current.remove).toBe('function')
   })
 })

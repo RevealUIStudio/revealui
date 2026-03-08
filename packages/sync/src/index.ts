@@ -4,6 +4,10 @@
  * The collab layer (Yjs-based) is fully functional.
  * ElectricProvider provides proxyBaseUrl config to child hooks. All hooks route
  * through the authenticated CMS proxy at /api/shapes/* — no direct Electric client.
+ *
+ * Reads use ElectricSQL shape subscriptions for real-time updates.
+ * Writes use REST mutations via /api/sync/* — changes propagate to all
+ * subscribers automatically through ElectricSQL replication.
  */
 
 export type {
@@ -16,9 +20,26 @@ export {
   useCollabDocument,
   useCollaboration,
 } from './collab/index.js'
-export type { AgentContextRecord } from './hooks/useAgentContexts.js'
+export type {
+  AgentContextRecord,
+  CreateAgentContextInput,
+  UpdateAgentContextInput,
+  UseAgentContextsResult,
+} from './hooks/useAgentContexts.js'
 export { useAgentContexts } from './hooks/useAgentContexts.js'
-export type { AgentMemoryRecord } from './hooks/useAgentMemory.js'
+export type {
+  AgentMemoryRecord,
+  CreateAgentMemoryInput,
+  UpdateAgentMemoryInput,
+  UseAgentMemoryResult,
+} from './hooks/useAgentMemory.js'
 export { useAgentMemory } from './hooks/useAgentMemory.js'
+export type {
+  ConversationRecord,
+  CreateConversationInput,
+  UpdateConversationInput,
+  UseConversationsResult,
+} from './hooks/useConversations.js'
 export { useConversations } from './hooks/useConversations.js'
+export type { MutationResult } from './mutations.js'
 export { ElectricProvider, useElectricConfig } from './provider/index.js'

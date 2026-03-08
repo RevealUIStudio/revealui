@@ -65,13 +65,16 @@ describe('SKIP_ENV_VALIDATION guard', () => {
     Reflect.deleteProperty(process.env, 'NEXT_PHASE')
     resetConfig()
 
-    // Should not throw the guard error
+    // Should not throw the guard error (may throw for missing env vars — that's fine)
     let caughtMessage: string | undefined
     try {
       getConfig()
     } catch (err) {
       caughtMessage = err instanceof Error ? err.message : String(err)
     }
-    expect(caughtMessage).not.toContain('SKIP_ENV_VALIDATION=true is only valid during')
+    // If no error was thrown, the guard passed — success
+    if (caughtMessage !== undefined) {
+      expect(caughtMessage).not.toContain('SKIP_ENV_VALIDATION=true is only valid during')
+    }
   })
 })
