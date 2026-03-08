@@ -92,6 +92,27 @@ export interface SshDisconnectEvent {
   reason: string
 }
 
+/** Saved SSH connection profile — never stores passwords */
+export interface SshBookmark {
+  id: string
+  label: string
+  host: string
+  port: number
+  username: string
+  auth_method: 'password' | 'key'
+  key_path?: string | null
+}
+
+/** SSH host key verification event from backend */
+export interface SshHostKeyEvent {
+  host: string
+  port: number
+  fingerprint: string
+  key_type: string
+  /** "new" = TOFU (added to known_hosts), "match" = verified, "mismatch" = REJECTED */
+  status: 'new' | 'match' | 'mismatch'
+}
+
 /** Mirrors Rust SecretInfo struct from revvault-core */
 export interface SecretInfo {
   path: string
