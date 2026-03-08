@@ -48,9 +48,19 @@ const app = new Hono<{ Variables: { user: UserContext | undefined } }>()
 function generateServerId(): string {
   const chars = 'abcdefghijklmnopqrstuvwxyz0123456789'
   let id = 'mcp_'
-  const bytes = crypto.getRandomValues(new Uint8Array(12))
-  for (const byte of bytes) {
-    id += chars[byte % chars.length]
+  const bytes = crypto.getRandomValues(new Uint8Array(24)) // extra bytes for rejection
+  let i = 0
+  while (id.length < 16 && i < bytes.length) {
+    const idx = bytes[i++] & 63 // 6-bit mask
+    if (idx < chars.length) {
+      id += chars[idx]
+    }
+  }
+  // Fallback: if we somehow exhausted bytes (extremely unlikely), pad with rejection-free generation
+  while (id.length < 16) {
+    const [b] = crypto.getRandomValues(new Uint8Array(1))
+    const idx = b & 63
+    if (idx < chars.length) id += chars[idx]
   }
   return id
 }
@@ -120,7 +130,7 @@ function computeSplit(priceUsdc: string): {
 function getStripeClient(): Stripe {
   const key = process.env.STRIPE_SECRET_KEY?.trim()
   if (!key) throw new Error('STRIPE_SECRET_KEY not configured')
-  return new Stripe(key)
+  return new Stripe(key, { maxNetworkRetries: 2 })
 }
 
 // =============================================================================

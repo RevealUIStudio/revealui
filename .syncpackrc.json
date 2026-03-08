@@ -9,6 +9,20 @@
       "pinVersion": "workspace:*"
     },
     {
+      "label": "Ignore pnpm catalog: references (syncpack does not understand catalog protocol)",
+      "packages": ["**"],
+      "dependencies": ["**"],
+      "dependencyTypes": ["prod", "dev"],
+      "specifierTypes": ["unsupported"],
+      "isIgnored": true
+    },
+    {
+      "label": "Allow Vite v6/v7 split (studio pins v6 until R3-I1 migration)",
+      "packages": ["**"],
+      "dependencies": ["vite", "@vitejs/plugin-react"],
+      "isIgnored": true
+    },
+    {
       "label": "Pin exact versions for critical dependencies",
       "packages": ["**"],
       "dependencies": ["next", "react", "react-dom", "typescript", "drizzle-orm"],
