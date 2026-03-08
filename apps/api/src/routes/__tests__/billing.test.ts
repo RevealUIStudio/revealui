@@ -7,7 +7,7 @@
 
 import { Hono } from 'hono'
 import { HTTPException } from 'hono/http-exception'
-import { beforeEach, describe, expect, it, vi } from 'vitest'
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 
 // ─── Mocks — declared before imports so vi.mock hoisting takes effect ─────────
 
@@ -16,6 +16,7 @@ const mockCheckoutSessionsCreate = vi.fn()
 const mockBillingPortalSessionsCreate = vi.fn()
 const mockSubscriptionsList = vi.fn()
 const mockSubscriptionsUpdate = vi.fn()
+const mockMeterEventsCreate = vi.fn()
 
 vi.mock('stripe', () => ({
   default: vi.fn().mockImplementation(
@@ -25,6 +26,7 @@ vi.mock('stripe', () => ({
       checkout = { sessions: { create: mockCheckoutSessionsCreate } }
       billingPortal = { sessions: { create: mockBillingPortalSessionsCreate } }
       subscriptions = { list: mockSubscriptionsList, update: mockSubscriptionsUpdate }
+      billing = { meterEvents: { create: mockMeterEventsCreate } }
     } as unknown as (...args: unknown[]) => unknown,
   ),
 }))
@@ -43,11 +45,19 @@ vi.mock('@revealui/db/schema', () => ({
     userId: 'licenses.userId',
     createdAt: 'licenses.createdAt',
   },
+  agentTaskUsage: {
+    userId: 'agentTaskUsage.userId',
+    overage: 'agentTaskUsage.overage',
+    count: 'agentTaskUsage.count',
+    cycleStart: 'agentTaskUsage.cycleStart',
+  },
 }))
 
 vi.mock('drizzle-orm', () => ({
   eq: vi.fn((_col, _val) => `eq(${String(_col)},${String(_val)})`),
   desc: vi.fn((_col) => `desc(${String(_col)})`),
+  and: vi.fn((...args: unknown[]) => `and(${args.join(',')})`),
+  gt: vi.fn((_col, _val) => `gt(${String(_col)},${String(_val)})`),
 }))
 
 // ─── DB Mock — thenable fluent chain ─────────────────────────────────────────
@@ -63,6 +73,7 @@ let _selectResult: unknown[] = []
 
 const mockDbSelectChain = {
   from: vi.fn(),
+  innerJoin: vi.fn(),
   where: vi.fn(),
   orderBy: vi.fn(),
   limit: vi.fn(),
@@ -130,6 +141,7 @@ function createApp(user: UserContext = MOCK_USER) {
 function resetChains() {
   _selectResult = []
   mockDbSelectChain.from.mockReturnValue(mockDbSelectChain)
+  mockDbSelectChain.innerJoin.mockReturnValue(mockDbSelectChain)
   mockDbSelectChain.where.mockReturnValue(mockDbSelectChain)
   mockDbSelectChain.orderBy.mockReturnValue(mockDbSelectChain)
   mockDbSelectChain.limit.mockImplementation(() => Promise.resolve(_selectResult))
@@ -483,5 +495,98 @@ describe('POST /upgrade', () => {
       metadata: { tier: 'enterprise', revealui_user_id: MOCK_USER.id },
       proration_behavior: 'create_prorations',
     })
+  })
+})
+
+describe('POST /report-agent-overage', () => {
+  const CRON_SECRET = 'test-cron-secret-abc'
+
+  function cronPost(path: string) {
+    return new Request(`http://localhost${path}`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'X-Cron-Secret': CRON_SECRET,
+      },
+    })
+  }
+
+  beforeEach(() => {
+    vi.clearAllMocks()
+    resetChains()
+    process.env.STRIPE_SECRET_KEY = 'sk_test_placeholder'
+    process.env.REVEALUI_CRON_SECRET = CRON_SECRET
+  })
+
+  afterEach(() => {
+    delete process.env.STRIPE_AGENT_METER_EVENT_NAME
+  })
+
+  it('returns 401 with invalid cron secret', async () => {
+    const res = await billingApp.request(
+      new Request('http://localhost/report-agent-overage', {
+        method: 'POST',
+        headers: { 'X-Cron-Secret': 'wrong-secret' },
+      }),
+    )
+    expect(res.status).toBe(401)
+  })
+
+  it('skips silently when STRIPE_AGENT_METER_EVENT_NAME is not set', async () => {
+    delete process.env.STRIPE_AGENT_METER_EVENT_NAME
+
+    const res = await billingApp.request(cronPost('/report-agent-overage'))
+    expect(res.status).toBe(200)
+    const body = (await res.json()) as Record<string, unknown>
+    expect(body.reported).toBe(0)
+    expect(body.skipped).toBe(0)
+    expect(mockMeterEventsCreate).not.toHaveBeenCalled()
+  })
+
+  it('reports overage via meterEvents.create with correct payload', async () => {
+    process.env.STRIPE_AGENT_METER_EVENT_NAME = 'agent_task_overage'
+    _selectResult = [{ userId: 'user-1', overage: 42, stripeCustomerId: 'cus_abc' }]
+    mockMeterEventsCreate.mockResolvedValue({ identifier: 'evt_1' })
+
+    const res = await billingApp.request(cronPost('/report-agent-overage'))
+    expect(res.status).toBe(200)
+    const body = (await res.json()) as Record<string, unknown>
+    expect(body.reported).toBe(1)
+    expect(body.skipped).toBe(0)
+
+    expect(mockMeterEventsCreate).toHaveBeenCalledOnce()
+    expect(mockMeterEventsCreate).toHaveBeenCalledWith(
+      expect.objectContaining({
+        event_name: 'agent_task_overage',
+        payload: {
+          stripe_customer_id: 'cus_abc',
+          value: '42',
+        },
+      }),
+    )
+  })
+
+  it('skips users without stripeCustomerId', async () => {
+    process.env.STRIPE_AGENT_METER_EVENT_NAME = 'agent_task_overage'
+    _selectResult = [{ userId: 'user-no-stripe', overage: 10, stripeCustomerId: null }]
+
+    const res = await billingApp.request(cronPost('/report-agent-overage'))
+    expect(res.status).toBe(200)
+    const body = (await res.json()) as Record<string, unknown>
+    expect(body.reported).toBe(0)
+    expect(body.skipped).toBe(1)
+    expect(mockMeterEventsCreate).not.toHaveBeenCalled()
+  })
+
+  it('handles meter event creation failure gracefully', async () => {
+    process.env.STRIPE_AGENT_METER_EVENT_NAME = 'agent_task_overage'
+    _selectResult = [{ userId: 'user-1', overage: 5, stripeCustomerId: 'cus_fail' }]
+    mockMeterEventsCreate.mockRejectedValue(new Error('Stripe error'))
+
+    const res = await billingApp.request(cronPost('/report-agent-overage'))
+    expect(res.status).toBe(200)
+    const body = (await res.json()) as Record<string, unknown>
+    expect(body.reported).toBe(0)
+    expect(body.skipped).toBe(1)
   })
 })
