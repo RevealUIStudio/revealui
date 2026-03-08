@@ -13,14 +13,14 @@ describe('ConsentManager', () => {
   it('hasConsent returns true after grant', async () => {
     const mgr = new ConsentManager()
     await mgr.grantConsent('user1', 'marketing')
-    expect(mgr.hasConsent('user1', 'marketing')).toBe(true)
+    expect(await mgr.hasConsent('user1', 'marketing')).toBe(true)
   })
 
   it('revokeConsent makes hasConsent return false', async () => {
     const mgr = new ConsentManager()
     await mgr.grantConsent('user1', 'analytics')
     await mgr.revokeConsent('user1', 'analytics')
-    expect(mgr.hasConsent('user1', 'analytics')).toBe(false)
+    expect(await mgr.hasConsent('user1', 'analytics')).toBe(false)
   })
 
   it('hasConsent returns false for expired consent', async () => {
@@ -28,7 +28,7 @@ describe('ConsentManager', () => {
     // Expire in 1ms
     await mgr.grantConsent('user1', 'functional', 'explicit', 1)
     await new Promise((r) => setTimeout(r, 10))
-    expect(mgr.hasConsent('user1', 'functional')).toBe(false)
+    expect(await mgr.hasConsent('user1', 'functional')).toBe(false)
   })
 
   it('getUserConsents returns all consents for a user', async () => {
@@ -36,7 +36,7 @@ describe('ConsentManager', () => {
     await mgr.grantConsent('userA', 'analytics')
     await mgr.grantConsent('userA', 'marketing')
     await mgr.grantConsent('userB', 'analytics')
-    const consents = mgr.getUserConsents('userA')
+    const consents = await mgr.getUserConsents('userA')
     expect(consents).toHaveLength(2)
     expect(consents.every((c) => c.userId === 'userA')).toBe(true)
   })
@@ -46,7 +46,7 @@ describe('ConsentManager', () => {
     await mgr.grantConsent('u1', 'analytics')
     await mgr.grantConsent('u1', 'marketing')
     await mgr.revokeConsent('u1', 'marketing')
-    const stats = mgr.getStatistics()
+    const stats = await mgr.getStatistics()
     expect(stats.total).toBe(2)
     expect(stats.granted).toBe(1)
     expect(stats.revoked).toBe(1)
@@ -70,18 +70,18 @@ describe('ConsentManager', () => {
     const mgr = new ConsentManager()
     await mgr.grantConsent('u1', 'analytics')
     // maxAge of 0 means always needs renewal
-    expect(mgr.needsRenewal('u1', 'analytics', 0)).toBe(true)
+    expect(await mgr.needsRenewal('u1', 'analytics', 0)).toBe(true)
   })
 
   it('needsRenewal returns false for fresh consent with generous maxAge', async () => {
     const mgr = new ConsentManager()
     await mgr.grantConsent('u1', 'analytics')
-    expect(mgr.needsRenewal('u1', 'analytics', 60 * 60 * 1000)).toBe(false)
+    expect(await mgr.needsRenewal('u1', 'analytics', 60 * 60 * 1000)).toBe(false)
   })
 
-  it('hasConsent returns false for unknown user', () => {
+  it('hasConsent returns false for unknown user', async () => {
     const mgr = new ConsentManager()
-    expect(mgr.hasConsent('nobody', 'analytics')).toBe(false)
+    expect(await mgr.hasConsent('nobody', 'analytics')).toBe(false)
   })
 
   it('setConsentVersion updates the version on new records', async () => {

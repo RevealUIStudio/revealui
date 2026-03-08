@@ -1,23 +1,9 @@
 /**
  * Caching utilities for RevealUI applications.
  *
- * - app-cache: React Query/SWR config, cache key generation, optimistic updates
  * - cdn-config: Cache-Control headers, CDN purge, Vercel/Cloudflare config
  * - edge-cache: Next.js ISR presets, revalidation, edge middleware helpers
  */
-
-export type { ReactQueryConfig, SWRConfig } from './app-cache'
-export {
-  CacheInvalidator,
-  CacheKeyGenerator,
-  CachePersistence,
-  CachePrefetcher,
-  CacheStatsTracker,
-  DEFAULT_REACT_QUERY_CONFIG,
-  DEFAULT_SWR_CONFIG,
-  OptimisticUpdater,
-  QueryDeduplicator,
-} from './app-cache'
 
 export {
   CDN_CACHE_PRESETS,

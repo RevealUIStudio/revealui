@@ -99,6 +99,9 @@ export {
   PrivacyPolicyManager,
   privacyPolicyManager,
 } from './gdpr'
+export type { GDPRStorage } from './gdpr-storage'
+// GDPR storage abstraction
+export { InMemoryGDPRStorage } from './gdpr-storage'
 export type {
   CORSConfig,
   ContentSecurityPolicyConfig,

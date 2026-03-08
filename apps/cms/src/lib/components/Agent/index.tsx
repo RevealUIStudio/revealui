@@ -51,7 +51,7 @@ function nextId() {
   return `msg-${++messageCounter}`
 }
 
-const ChatGPTAssistant: React.FC = () => {
+const AgentChat: React.FC = () => {
   const [messages, setMessages] = useState<ChatMessage[]>([])
   const [input, setInput] = useState('')
   const [isLoading, setIsLoading] = useState(false)
@@ -211,4 +211,4 @@ const ChatGPTAssistant: React.FC = () => {
   )
 }
 
-export default ChatGPTAssistant
+export default AgentChat

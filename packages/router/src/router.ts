@@ -82,6 +82,13 @@ export class Router {
   }
 
   /**
+   * Get router options
+   */
+  getOptions(): RouterOptions {
+    return this.options
+  }
+
+  /**
    * Register a route
    */
   register(route: Route): void {

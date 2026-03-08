@@ -1,5 +1,5 @@
 import type React from 'react'
-import { createContext, useContext, useEffect, useSyncExternalStore } from 'react'
+import { Component, createContext, useContext, useEffect, useSyncExternalStore } from 'react'
 import type { Router } from './router'
 import type { NavigateOptions, RouteMatch } from './types'
 
@@ -31,6 +31,7 @@ export function RouterProvider({
  */
 export function Routes() {
   const router = useRouter()
+  const options = router.getOptions()
 
   // Subscribe to router changes
   const match = useSyncExternalStore(
@@ -40,18 +41,24 @@ export function Routes() {
   )
 
   if (!match) {
-    return <NotFound />
+    const CustomNotFound = options.notFound
+    return CustomNotFound ? <CustomNotFound /> : <NotFound />
   }
 
   const { route, params, data } = match
-  const Component = route.component
+  const RouteComponent = route.component
   const Layout = route.layout
 
-  const element = <Component params={params} data={data} />
+  const element = <RouteComponent params={params} data={data} />
+  const wrapped = Layout ? <Layout>{element}</Layout> : element
 
   return (
     <MatchContext.Provider value={match}>
-      {Layout ? <Layout>{element}</Layout> : element}
+      {options.errorBoundary ? (
+        <RouteErrorBoundary fallback={options.errorBoundary}>{wrapped}</RouteErrorBoundary>
+      ) : (
+        wrapped
+      )}
     </MatchContext.Provider>
   )
 }
@@ -166,6 +173,34 @@ function NotFound() {
       <Link to="/">Go Home</Link>
     </div>
   )
+}
+
+/**
+ * RouteErrorBoundary - Catches render errors in route components
+ */
+class RouteErrorBoundary extends Component<
+  { fallback: React.ComponentType<{ error: Error }>; children: React.ReactNode },
+  { error: Error | null }
+> {
+  constructor(props: {
+    fallback: React.ComponentType<{ error: Error }>
+    children: React.ReactNode
+  }) {
+    super(props)
+    this.state = { error: null }
+  }
+
+  static getDerivedStateFromError(error: Error): { error: Error } {
+    return { error }
+  }
+
+  render() {
+    if (this.state.error) {
+      const Fallback = this.props.fallback
+      return <Fallback error={this.state.error} />
+    }
+    return this.props.children
+  }
 }
 
 /**

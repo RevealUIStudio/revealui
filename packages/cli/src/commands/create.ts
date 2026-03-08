@@ -150,9 +150,9 @@ async function copyDir(src: string, dest: string): Promise<void> {
  */
 function resolveTemplateName(template: ProjectConfig['template']): string {
   const map: Record<ProjectConfig['template'], string> = {
-    'basic-blog': 'minimal',
-    'e-commerce': 'minimal',
-    portfolio: 'minimal',
+    'basic-blog': 'basic-blog',
+    'e-commerce': 'e-commerce',
+    portfolio: 'portfolio',
   }
   return map[template] ?? 'minimal'
 }
