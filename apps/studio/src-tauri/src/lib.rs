@@ -1,10 +1,14 @@
 mod commands;
+mod local_shell;
 mod platform;
 mod ssh;
 mod state;
 mod tray;
 
-use commands::{apps, mount, setup, ssh as ssh_cmds, status, sync, tunnel, vault};
+use commands::{
+    apps, local_shell as shell_cmds, mount, setup, ssh as ssh_cmds, status, sync, tunnel, vault,
+};
+use local_shell::LocalShellState;
 use ssh::SshState;
 use state::AppState;
 
@@ -16,6 +20,7 @@ pub fn run() {
         .plugin(tauri_plugin_dialog::init())
         .manage(AppState::new(platform))
         .manage(SshState::default())
+        .manage(LocalShellState::default())
         .setup(|app| {
             tray::setup_tray(&app.handle())?;
             Ok(())
@@ -30,6 +35,7 @@ pub fn run() {
             apps::list_apps,
             apps::start_app,
             apps::stop_app,
+            apps::read_app_log,
             setup::check_setup,
             setup::set_git_identity,
             vault::vault_init,
@@ -43,6 +49,10 @@ pub fn run() {
             tunnel::get_tailscale_status,
             tunnel::tailscale_up,
             tunnel::tailscale_down,
+            shell_cmds::shell_open,
+            shell_cmds::shell_close,
+            shell_cmds::shell_send,
+            shell_cmds::shell_resize,
             ssh_cmds::ssh_connect,
             ssh_cmds::ssh_disconnect,
             ssh_cmds::ssh_send,

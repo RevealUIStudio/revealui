@@ -1,4 +1,5 @@
 pub mod apps;
+pub mod local_shell;
 pub mod mount;
 pub mod setup;
 pub mod ssh;

@@ -64,7 +64,7 @@ export class CircuitBreaker {
   private lastSuccessTime?: number
   private stateChangedAt: number = Date.now()
   private resetTimer?: NodeJS.Timeout
-  private config: Required<CircuitBreakerConfig>
+  protected config: Required<CircuitBreakerConfig>
 
   constructor(config: CircuitBreakerConfig = {}) {
     this.config = { ...DEFAULT_CONFIG, ...config }
@@ -523,6 +523,9 @@ export class AdaptiveCircuitBreaker extends CircuitBreaker {
     else if (errorRate > 0.5) {
       this.adaptiveThreshold = Math.max(this.adaptiveThreshold - 1, 2)
     }
+
+    // Sync adaptive threshold to parent config so it actually takes effect
+    this.config.failureThreshold = this.adaptiveThreshold
   }
 
   /**

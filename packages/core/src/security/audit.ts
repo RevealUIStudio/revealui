@@ -31,7 +31,10 @@ export type AuditEventType =
   | 'gdpr.consent'
   | 'gdpr.data_request'
   | 'gdpr.data_deletion'
-  | string
+  | `data.${string}`
+  | `permission.${string}`
+  | `security.${string}`
+  | `gdpr.${string}`
 
 export type AuditSeverity = 'low' | 'medium' | 'high' | 'critical'
 

@@ -23,7 +23,7 @@ import {
   type NewMarketplaceServer,
   type NewMarketplaceTransaction,
 } from '@revealui/db/schema'
-import { and, asc, eq } from 'drizzle-orm'
+import { and, asc, eq, sql } from 'drizzle-orm'
 import { Hono } from 'hono'
 import Stripe from 'stripe'
 import { z } from 'zod'
@@ -152,8 +152,10 @@ app.get('/servers', async (c) => {
   const db = getClient()
 
   const category = c.req.query('category')
-  const limit = Math.min(Number(c.req.query('limit') ?? 50), 100)
-  const offset = Number(c.req.query('offset') ?? 0)
+  const rawLimit = Number(c.req.query('limit') ?? 50)
+  const rawOffset = Number(c.req.query('offset') ?? 0)
+  const limit = Number.isFinite(rawLimit) && rawLimit > 0 ? Math.min(Math.floor(rawLimit), 100) : 50
+  const offset = Number.isFinite(rawOffset) && rawOffset >= 0 ? Math.floor(rawOffset) : 0
 
   const conditions = [eq(marketplaceServers.status, 'active')]
   if (category && VALID_CATEGORIES.includes(category as (typeof VALID_CATEGORIES)[number])) {
@@ -465,7 +467,7 @@ app.post('/servers/:id/invoke', async (c) => {
         callSucceeded
           ? db
               .update(marketplaceServers)
-              .set({ callCount: server.callCount + 1, updatedAt: new Date() })
+              .set({ callCount: sql`${marketplaceServers.callCount} + 1`, updatedAt: new Date() })
               .where(eq(marketplaceServers.id, id))
           : Promise.resolve(),
       ])

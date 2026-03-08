@@ -76,6 +76,7 @@ pub struct SyncResult {
 }
 
 #[derive(Debug, Clone, Serialize)]
+#[cfg(target_os = "windows")]
 pub struct RepoEntry {
     pub name: String,
     pub c_path: String,

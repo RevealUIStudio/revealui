@@ -64,8 +64,9 @@ export async function GET(
     const user = await upsertOAuthUser(provider, providerUser)
 
     const userAgent = request.headers.get('user-agent') ?? undefined
+    const xff = request.headers.get('x-forwarded-for')
     const ipAddress =
-      request.headers.get('x-forwarded-for')?.split(',')[0] ??
+      (xff ? xff.split(',').pop()?.trim() : undefined) ??
       request.headers.get('x-real-ip') ??
       undefined
 

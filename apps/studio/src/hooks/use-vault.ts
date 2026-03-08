@@ -39,13 +39,11 @@ export function useVault() {
     setState((prev) => ({ ...prev, loading: true, error: null }))
     try {
       const isInit = await vaultIsInitialized()
-      if (isInit) {
+      if (!isInit) {
         await vaultInit()
-        const secrets = await vaultList()
-        setState((prev) => ({ ...prev, initialized: true, secrets, loading: false }))
-      } else {
-        setState((prev) => ({ ...prev, initialized: false, loading: false }))
       }
+      const secrets = await vaultList()
+      setState((prev) => ({ ...prev, initialized: true, secrets, loading: false }))
     } catch (err) {
       setState((prev) => ({
         ...prev,

@@ -19,9 +19,11 @@ export function useAgentMemory(agentId: string) {
   const { proxyBaseUrl } = useElectricConfig()
   const isValid = agentId.length > 0 && AGENT_ID_RE.test(agentId)
 
+  // Hook must always be called (Rules of Hooks). Pass an impossible WHERE when
+  // the ID is invalid so the shape returns no rows but the hook still runs.
   const { data, isLoading, error } = useShape({
     url: `${proxyBaseUrl}/api/shapes/agent-memories`,
-    params: { agent_id: isValid ? agentId : '__invalid__' },
+    params: { agent_id: isValid ? agentId : '00000000-0000-0000-0000-000000000000' },
   })
 
   if (!isValid) {

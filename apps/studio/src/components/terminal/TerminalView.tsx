@@ -65,6 +65,11 @@ export default function TerminalView({ onData, onResize, terminalRef }: Terminal
       onResizeRef.current(terminal.cols, terminal.rows)
     })
 
+    // Welcome message before connection
+    terminal.writeln('\x1b[1;33mRevealUI Studio Terminal\x1b[0m')
+    terminal.writeln('\x1b[90mConnect to an SSH server using the form above.\x1b[0m')
+    terminal.writeln('')
+
     // Forward user input to SSH
     terminal.onData((data) => onDataRef.current(data))
 
@@ -73,15 +78,20 @@ export default function TerminalView({ onData, onResize, terminalRef }: Terminal
       onResizeRef.current(cols, rows)
     })
 
-    // ResizeObserver to re-fit when container changes
+    // Debounced ResizeObserver to avoid rapid re-fits during panel transitions
+    let resizeTimeout: ReturnType<typeof setTimeout> | null = null
     const observer = new ResizeObserver(() => {
-      fitAddon.fit()
+      if (resizeTimeout) clearTimeout(resizeTimeout)
+      resizeTimeout = setTimeout(() => {
+        fitAddon.fit()
+      }, 100)
     })
     observer.observe(container)
 
     terminalRefStable.current.current = terminal
 
     return () => {
+      if (resizeTimeout) clearTimeout(resizeTimeout)
       observer.disconnect()
       terminal.dispose()
       terminalRefStable.current.current = null
