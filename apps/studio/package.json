@@ -9,10 +9,12 @@
     "preview": "vite preview",
     "tauri:dev": "cargo tauri dev",
     "tauri:build": "cargo tauri build",
-    "build:windows": "powershell -ExecutionPolicy Bypass -File build-windows.ps1"
+    "build:windows": "powershell -ExecutionPolicy Bypass -File build-windows.ps1",
+    "typecheck": "tsc -b --noEmit"
   },
   "dependencies": {
     "@tauri-apps/api": "^2.0.0",
+    "@tauri-apps/plugin-dialog": "^2.6.0",
     "@tauri-apps/plugin-shell": "^2.0.0",
     "@xterm/addon-fit": "^0.11.0",
     "@xterm/xterm": "^6.0.0",
