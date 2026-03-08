@@ -1,0 +1,107 @@
+/**
+ * Agent Memories Sync Mutation Route
+ *
+ * POST /api/sync/agent-memories — Create a new agent memory
+ *
+ * Authenticated. Memories are scoped by agent_id.
+ * ElectricSQL picks up the database change and pushes it to all shape subscribers.
+ */
+
+import crypto from 'node:crypto'
+import { getSession } from '@revealui/auth/server'
+import { logger } from '@revealui/core/utils/logger'
+import { getClient } from '@revealui/db'
+import { agentMemories } from '@revealui/db/schema'
+import { type NextRequest, NextResponse } from 'next/server'
+import {
+  createApplicationErrorResponse,
+  createErrorResponse,
+  createValidationErrorResponse,
+} from '@/lib/utils/error-response'
+
+export const dynamic = 'force-dynamic'
+export const runtime = 'nodejs'
+
+const AGENT_ID_RE = /^[a-zA-Z0-9_-]+$/
+const VALID_MEMORY_TYPES = new Set([
+  'fact',
+  'preference',
+  'decision',
+  'feedback',
+  'example',
+  'correction',
+  'skill',
+  'warning',
+])
+
+export async function POST(request: NextRequest): Promise<NextResponse> {
+  try {
+    const session = await getSession(request.headers)
+    if (!session) {
+      return createApplicationErrorResponse('Unauthorized', 'UNAUTHORIZED', 401)
+    }
+
+    const body = (await request.json()) as {
+      agent_id?: string
+      content?: string
+      type?: string
+      source?: Record<string, unknown>
+      metadata?: Record<string, unknown>
+      expires_at?: string | null
+    }
+
+    if (!(body.agent_id && AGENT_ID_RE.test(body.agent_id))) {
+      return createValidationErrorResponse(
+        'agent_id is required and must be alphanumeric with hyphens/underscores',
+        'agent_id',
+        body.agent_id,
+      )
+    }
+
+    if (!body.content || body.content.trim().length === 0) {
+      return createValidationErrorResponse('content is required', 'content', body.content)
+    }
+
+    if (!(body.type && VALID_MEMORY_TYPES.has(body.type))) {
+      return createValidationErrorResponse(
+        `type must be one of: ${[...VALID_MEMORY_TYPES].join(', ')}`,
+        'type',
+        body.type,
+      )
+    }
+
+    if (!body.source || typeof body.source !== 'object') {
+      return createValidationErrorResponse(
+        'source is required and must be an object',
+        'source',
+        body.source,
+      )
+    }
+
+    const db = getClient()
+    const id = crypto.randomUUID()
+    const now = new Date()
+
+    const [created] = await db
+      .insert(agentMemories)
+      .values({
+        id,
+        agentId: body.agent_id,
+        content: body.content,
+        type: body.type,
+        source: body.source,
+        metadata: body.metadata ?? {},
+        createdAt: now,
+        expiresAt: body.expires_at ? new Date(body.expires_at) : undefined,
+      })
+      .returning()
+
+    return NextResponse.json(created, { status: 201 })
+  } catch (error) {
+    logger.error('Error creating agent memory', { error })
+    return createErrorResponse(error, {
+      endpoint: '/api/sync/agent-memories',
+      operation: 'create_agent_memory',
+    })
+  }
+}

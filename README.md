@@ -165,7 +165,7 @@ revealui/
 │   ├── marketing/  # Marketing site
 │   └── studio/     # Desktop companion app (Tauri 2)
 ├── packages/       # OSS packages (see table above)
-├── docs/           # 60+ guides
+├── docs/           # 23 guides
 └── scripts/        # CI gates, release tooling
 ```
 
