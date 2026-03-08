@@ -4,6 +4,7 @@ import type {
   MountStatus,
   SecretInfo,
   SetupStatus,
+  SshConnectParams,
   SyncResult,
   SystemStatus,
   TailscaleStatus,
@@ -101,4 +102,22 @@ export function tailscaleUp(): Promise<string> {
 
 export function tailscaleDown(): Promise<string> {
   return tauriInvoke<string>('tailscale_down')
+}
+
+// ── SSH Terminal ──────────────────────────────────────────────────────────────
+
+export function sshConnect(params: SshConnectParams): Promise<string> {
+  return tauriInvoke<string>('ssh_connect', { ...params })
+}
+
+export function sshDisconnect(sessionId: string): Promise<void> {
+  return tauriInvoke<void>('ssh_disconnect', { sessionId })
+}
+
+export function sshSend(sessionId: string, data: string): Promise<void> {
+  return tauriInvoke<void>('ssh_send', { sessionId, data })
+}
+
+export function sshResize(sessionId: string, cols: number, rows: number): Promise<void> {
+  return tauriInvoke<void>('ssh_resize', { sessionId, cols, rows })
 }

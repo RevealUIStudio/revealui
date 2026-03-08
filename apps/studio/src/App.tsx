@@ -5,6 +5,7 @@ import AppShell from './components/layout/AppShell'
 import SetupPage from './components/setup/SetupPage'
 import SetupWizard from './components/setup/SetupWizard'
 import SyncPanel from './components/sync/SyncPanel'
+import TerminalPanel from './components/terminal/TerminalPanel'
 import TunnelPanel from './components/tunnel/TunnelPanel'
 import VaultPanel from './components/vault/VaultPanel'
 import { isSetupComplete } from './hooks/use-setup'
@@ -22,6 +23,7 @@ export default function App() {
         {page === 'infrastructure' && <InfrastructurePanel />}
         {page === 'sync' && <SyncPanel />}
         {page === 'tunnel' && <TunnelPanel />}
+        {page === 'terminal' && <TerminalPanel />}
         {page === 'setup' && <SetupPage />}
       </AppShell>
       {isFirstRun && <SetupWizard onClose={() => setIsFirstRun(false)} />}

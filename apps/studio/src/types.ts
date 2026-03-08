@@ -58,7 +58,34 @@ export interface SetupStatus {
   git_email: string
 }
 
-export type Page = 'dashboard' | 'vault' | 'infrastructure' | 'sync' | 'tunnel' | 'setup'
+export type Page =
+  | 'dashboard'
+  | 'vault'
+  | 'infrastructure'
+  | 'sync'
+  | 'tunnel'
+  | 'terminal'
+  | 'setup'
+
+/** SSH connection parameters */
+export interface SshConnectParams {
+  host: string
+  port: number
+  username: string
+  password: string
+}
+
+/** SSH output event from backend */
+export interface SshOutputEvent {
+  session_id: string
+  data: string // base64-encoded
+}
+
+/** SSH disconnect event from backend */
+export interface SshDisconnectEvent {
+  session_id: string
+  reason: string
+}
 
 /** Mirrors Rust SecretInfo struct from revvault-core */
 export interface SecretInfo {
