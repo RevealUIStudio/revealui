@@ -67,7 +67,7 @@ if [ -n "$SCHEMA_FILES" ]; then
   echo "$SCHEMA_FILES" | sed 's/^/  - /'
 
   # Regenerate types
-  pnpm generate:all
+  pnpm --filter @revealui/db generate:all
 
   if [ $? -eq 0 ]; then
     echo "✅ Types regenerated successfully"

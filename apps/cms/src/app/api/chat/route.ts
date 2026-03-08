@@ -85,12 +85,21 @@ function initializeCMSTools() {
     })
   } catch (error) {
     logger.error('Failed to initialize CMS tools', { error })
+    throw error
   }
 }
 
 export async function POST(request: NextRequest) {
   // Initialize CMS tools on first request
-  initializeCMSTools()
+  try {
+    initializeCMSTools()
+  } catch (_error) {
+    return createApplicationErrorResponse(
+      'Chat tools failed to initialize',
+      'TOOLS_INIT_FAILED',
+      500,
+    )
+  }
 
   // Apply rate limiting
   const rateLimitResponse = await limiter(request)

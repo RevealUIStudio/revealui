@@ -2,7 +2,7 @@
  * Board database queries
  */
 
-import { eq } from 'drizzle-orm'
+import { and, eq } from 'drizzle-orm'
 import type { DatabaseClient } from '../client/types.js'
 import { boardColumns, boards } from '../schema/tickets.js'
 
@@ -30,7 +30,6 @@ export async function getBoardBySlug(db: DatabaseClient, slug: string, tenantId?
   const conditions = [eq(boards.slug, slug)]
   if (tenantId) conditions.push(eq(boards.tenantId, tenantId))
 
-  const { and } = await import('drizzle-orm')
   const result = await db
     .select()
     .from(boards)
