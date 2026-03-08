@@ -63,15 +63,6 @@ const MOCK_DATA: Record<string, unknown> = {
       },
       running: false,
     },
-    {
-      app: {
-        name: 'mainframe',
-        display_name: 'Mainframe',
-        port: 3001,
-        url: 'http://localhost:3001',
-      },
-      running: false,
-    },
   ] satisfies AppStatus[],
   sync_all_repos: [] satisfies SyncResult[],
   get_tailscale_status: {

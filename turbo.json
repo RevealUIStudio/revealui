@@ -40,7 +40,6 @@
         "X402_NETWORK",
         "LOGGER_PORT",
         "DOCS_PORT",
-        "MAINFRAME_PORT",
         "YOUTUBE_BASE_URL"
       ],
       "inputs": [
@@ -64,7 +63,7 @@
         "src/**/*.tsx",
         "src/**/*.js",
         "src/**/*.jsx",
-        ".eslintrc.*",
+        "eslint.config.js",
         "biome.json",
         "package.json"
       ],
@@ -82,7 +81,7 @@
         "src/**/*.tsx",
         "src/**/*.js",
         "src/**/*.jsx",
-        ".eslintrc.*",
+        "eslint.config.js",
         "package.json"
       ],
       "outputs": []
@@ -149,46 +148,11 @@
       "persistent": true,
       "dependsOn": ["build"]
     },
-    "dev:build": {
-      "cache": true,
-      "dependsOn": ["^build"],
-      "inputs": ["src/**/*.ts", "src/**/*.tsx", "package.json", "tsconfig.json"],
-      "outputs": ["packages/dev/dist/**"],
-      "persistent": true
-    },
-    "core:build": {
-      "cache": true,
-      "dependsOn": ["^build"],
-      "inputs": ["src/**/*.ts", "src/**/*.tsx", "package.json", "tsconfig.json"],
-      "outputs": ["packages/core/dist/**"],
-      "persistent": true
-    },
-    "services:build": {
-      "cache": true,
-      "dependsOn": ["^build"],
-      "inputs": ["src/**/*.ts", "src/**/*.tsx", "package.json", "tsconfig.json"],
-      "outputs": ["packages/services/dist/**"],
-      "persistent": true
-    },
     "presentation:build": {
       "cache": true,
       "dependsOn": ["^build"],
       "inputs": ["src/**/*.ts", "src/**/*.tsx", "src/**/*.css", "package.json", "tsconfig.json"],
       "outputs": ["packages/presentation/dist/**"]
-    },
-    "mainframe:build": {
-      "cache": true,
-      "dependsOn": ["^build"],
-      "inputs": [
-        "src/**/*.ts",
-        "src/**/*.tsx",
-        "src/**/*.css",
-        "public/**",
-        "package.json",
-        "tsconfig.json",
-        "vite.config.ts"
-      ],
-      "outputs": ["apps/mainframe/dist/**"]
     },
     "cms:build": {
       "cache": true,
