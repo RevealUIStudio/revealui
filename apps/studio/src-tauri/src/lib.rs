@@ -47,6 +47,9 @@ pub fn run() {
             ssh_cmds::ssh_disconnect,
             ssh_cmds::ssh_send,
             ssh_cmds::ssh_resize,
+            ssh_cmds::ssh_bookmark_list,
+            ssh_cmds::ssh_bookmark_save,
+            ssh_cmds::ssh_bookmark_delete,
         ])
         .run(tauri::generate_context!())
         .expect("error while running RevealUI Studio");
