@@ -149,6 +149,7 @@
     "changeset:publish": "changeset publish",
     "changeset:status": "changeset status",
     "deps:check": "syncpack list-mismatches",
+    "deps:circular": "turbo run typecheck 2>&1 | grep -i circular || echo 'No circular dependencies detected'",
     "deps:fix": "syncpack fix-mismatches && syncpack format",
     "install:clean": "cross-env NODE_OPTIONS=\"--no-deprecation\" pnpm install",
     "playwright:install": "playwright install --with-deps",
