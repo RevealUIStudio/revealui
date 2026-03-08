@@ -7,8 +7,6 @@
  * vector similarity search against the memory database.
  */
 
-import { generateEmbedding } from '@revealui/ai/embeddings'
-import { VectorMemoryService } from '@revealui/ai/memory/vector'
 import { getSession } from '@revealui/auth/server'
 import { logger } from '@revealui/core/observability/logger'
 import { type NextRequest, NextResponse } from 'next/server'
@@ -84,11 +82,18 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
       )
     }
 
+    // Dynamic import — @revealui/ai is an optional Pro dependency
+    const embeddingsMod = await import('@revealui/ai/embeddings').catch(() => null)
+    const vectorMod = await import('@revealui/ai/memory/vector').catch(() => null)
+    if (!(embeddingsMod && vectorMod)) {
+      return NextResponse.json({ error: 'AI features require @revealui/ai (Pro)' }, { status: 503 })
+    }
+
     // Generate embedding from query text
-    const embedding = await generateEmbedding(query)
+    const embedding = await embeddingsMod.generateEmbedding(query)
 
     // Perform vector search — enforce userId so non-admins can only search their own memories
-    const service = new VectorMemoryService()
+    const service = new vectorMod.VectorMemoryService()
     const results = await service.searchSimilar(embedding.vector, {
       ...options,
       limit: options.limit ?? 10,

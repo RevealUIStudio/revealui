@@ -5,8 +5,6 @@
  * DELETE /api/memory/episodic/:userId/:memoryId - Remove memory
  */
 
-import { CRDTPersistence } from '@revealui/ai/memory/persistence'
-import { EpisodicMemory } from '@revealui/ai/memory/stores'
 import { getSession } from '@revealui/auth/server'
 import type { AgentMemory } from '@revealui/contracts/agents'
 import { EmbeddingSchema } from '@revealui/contracts/representation'
@@ -25,6 +23,22 @@ type Database = ReturnType<typeof getClient>
 
 export const dynamic = 'force-dynamic'
 export const runtime = 'nodejs'
+
+/**
+ * Dynamically import @revealui/ai episodic memory dependencies.
+ * Returns null if the Pro package is not installed.
+ */
+async function loadEpisodicDeps() {
+  const [persistMod, storesMod] = await Promise.all([
+    import('@revealui/ai/memory/persistence').catch(() => null),
+    import('@revealui/ai/memory/stores').catch(() => null),
+  ])
+  if (!(persistMod && storesMod)) return null
+  return {
+    CRDTPersistence: persistMod.CRDTPersistence,
+    EpisodicMemory: storesMod.EpisodicMemory,
+  }
+}
 
 /**
  * PUT /api/memory/episodic/:userId/:memoryId
@@ -78,11 +92,16 @@ export async function PUT(
       })
     }
 
+    const deps = await loadEpisodicDeps()
+    if (!deps) {
+      return NextResponse.json({ error: 'AI features require @revealui/ai (Pro)' }, { status: 503 })
+    }
+
     const db: Database = getClient()
-    const persistence = new CRDTPersistence(db)
+    const persistence = new deps.CRDTPersistence(db)
     const nodeId = await getNodeIdFromUser(userId, db)
 
-    const memory = new EpisodicMemory(userId, nodeId, db, persistence)
+    const memory = new deps.EpisodicMemory(userId, nodeId, db, persistence)
     await memory.load()
 
     // Check if memory exists
@@ -208,11 +227,16 @@ export async function DELETE(
       return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
     }
 
+    const deps = await loadEpisodicDeps()
+    if (!deps) {
+      return NextResponse.json({ error: 'AI features require @revealui/ai (Pro)' }, { status: 503 })
+    }
+
     const db: Database = getClient()
-    const persistence = new CRDTPersistence(db)
+    const persistence = new deps.CRDTPersistence(db)
     const nodeId = await getNodeIdFromUser(userId, db)
 
-    const memory = new EpisodicMemory(userId, nodeId, db, persistence)
+    const memory = new deps.EpisodicMemory(userId, nodeId, db, persistence)
     await memory.load()
 
     const count: number = await memory.removeById(memoryId)

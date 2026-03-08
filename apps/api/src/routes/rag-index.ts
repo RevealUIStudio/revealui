@@ -9,8 +9,6 @@
  * Requires requireFeature('ai') — applied in apps/api/src/index.ts.
  */
 
-import { generateEmbedding } from '@revealui/ai/embeddings'
-import { IngestionPipeline } from '@revealui/ai/ingestion'
 import type { DatabaseClient } from '@revealui/db/client'
 import { getVectorClient } from '@revealui/db/client'
 import { ragDocuments } from '@revealui/db/schema/rag'
@@ -65,13 +63,22 @@ app.post('/workspaces/:workspaceId/index/:collection', async (c) => {
     )
   }
 
+  const [embeddingsMod, ingestionMod] = await Promise.all([
+    import('@revealui/ai/embeddings').catch(() => null),
+    import('@revealui/ai/ingestion').catch(() => null),
+  ])
+
+  if (!(embeddingsMod && ingestionMod)) {
+    return c.json({ success: false, error: 'AI package not available' }, 503)
+  }
+
   const vectorDb = getVectorClient()
   const embeddingFn = async (text: string): Promise<number[]> => {
-    const emb = await generateEmbedding(text)
+    const emb = await embeddingsMod.generateEmbedding(text)
     return emb.vector
   }
 
-  const pipeline = new IngestionPipeline(vectorDb, embeddingFn)
+  const pipeline = new ingestionMod.IngestionPipeline(vectorDb, embeddingFn)
 
   let indexed = 0
   let failed = 0
@@ -137,13 +144,23 @@ app.get('/workspaces/:workspaceId/documents', async (c) => {
 
 app.delete('/workspaces/:workspaceId/documents/:documentId', async (c) => {
   const { documentId } = c.req.param()
+
+  const [embeddingsMod, ingestionMod] = await Promise.all([
+    import('@revealui/ai/embeddings').catch(() => null),
+    import('@revealui/ai/ingestion').catch(() => null),
+  ])
+
+  if (!(embeddingsMod && ingestionMod)) {
+    return c.json({ success: false, error: 'AI package not available' }, 503)
+  }
+
   const vectorDb = getVectorClient()
 
   const embeddingFn = async (text: string): Promise<number[]> => {
-    const emb = await generateEmbedding(text)
+    const emb = await embeddingsMod.generateEmbedding(text)
     return emb.vector
   }
-  const pipeline = new IngestionPipeline(vectorDb, embeddingFn)
+  const pipeline = new ingestionMod.IngestionPipeline(vectorDb, embeddingFn)
   await pipeline.deleteDocument(documentId)
 
   return c.json({ success: true, documentId })

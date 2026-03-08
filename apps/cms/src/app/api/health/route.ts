@@ -1,5 +1,4 @@
 import { getSession } from '@revealui/auth/server'
-import { protectedStripe } from '@revealui/services'
 import { list } from '@vercel/blob'
 import { NextResponse } from 'next/server'
 import { getRevealUIInstance } from '@/lib/utilities/revealui-singleton'
@@ -61,24 +60,33 @@ export async function GET(request: Request) {
 
   // Check Stripe API (if configured)
   if (process.env.STRIPE_SECRET_KEY) {
-    try {
-      const stripeStartTime = Date.now()
-      // Simple API call to verify connectivity
-      await protectedStripe.balance.retrieve()
-      const stripeResponseTime = Date.now() - stripeStartTime
+    const services = await import('@revealui/services').catch(() => null)
+    if (services) {
+      try {
+        const stripeStartTime = Date.now()
+        // Simple API call to verify connectivity
+        await services.protectedStripe.balance.retrieve()
+        const stripeResponseTime = Date.now() - stripeStartTime
 
+        checks.push({
+          name: 'stripe',
+          status: 'healthy',
+          message: 'Stripe API connection successful',
+          responseTimeMs: stripeResponseTime,
+        })
+      } catch (error) {
+        overallStatus = overallStatus === 'healthy' ? 'degraded' : overallStatus
+        checks.push({
+          name: 'stripe',
+          status: 'unhealthy',
+          message: error instanceof Error ? error.message : 'Stripe API connection failed',
+        })
+      }
+    } else {
       checks.push({
         name: 'stripe',
-        status: 'healthy',
-        message: 'Stripe API connection successful',
-        responseTimeMs: stripeResponseTime,
-      })
-    } catch (error) {
-      overallStatus = overallStatus === 'healthy' ? 'degraded' : overallStatus
-      checks.push({
-        name: 'stripe',
-        status: 'unhealthy',
-        message: error instanceof Error ? error.message : 'Stripe API connection failed',
+        status: 'degraded',
+        message: 'Stripe check skipped: @revealui/services (Pro) not installed',
       })
     }
   }

@@ -6,7 +6,6 @@
  * This endpoint uses Supabase vector database for semantic search.
  */
 
-import { VectorMemoryService } from '@revealui/ai/memory/vector'
 import { getSession } from '@revealui/auth/server'
 import { logger } from '@revealui/core/observability/logger'
 import { type NextRequest, NextResponse } from 'next/server'
@@ -89,7 +88,11 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
     }
 
     // Perform search — enforce userId so non-admins can only search their own memories
-    const service = new VectorMemoryService()
+    const mod = await import('@revealui/ai/memory/vector').catch(() => null)
+    if (!mod) {
+      return NextResponse.json({ error: 'AI features require @revealui/ai (Pro)' }, { status: 503 })
+    }
+    const service = new mod.VectorMemoryService()
     const safeOptions = {
       ...((options as Record<string, unknown>) ?? {}),
       ...(authSession.user.role !== 'admin' ? { userId: authSession.user.id } : {}),

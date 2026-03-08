@@ -5,8 +5,6 @@
  * POST /api/memory/working/:sessionId - Update working memory
  */
 
-import { CRDTPersistence } from '@revealui/ai/memory/persistence'
-import { WorkingMemory } from '@revealui/ai/memory/stores'
 import { getSession } from '@revealui/auth/server'
 import { logger } from '@revealui/core/observability/logger'
 import { getClient } from '@revealui/db/client'
@@ -18,6 +16,22 @@ import { createErrorResponse, createValidationErrorResponse } from '@/lib/utils/
 
 export const dynamic = 'force-dynamic'
 export const runtime = 'nodejs'
+
+/**
+ * Dynamically import @revealui/ai working memory dependencies.
+ * Returns null if the Pro package is not installed.
+ */
+async function loadWorkingMemoryDeps() {
+  const [persistMod, storesMod] = await Promise.all([
+    import('@revealui/ai/memory/persistence').catch(() => null),
+    import('@revealui/ai/memory/stores').catch(() => null),
+  ])
+  if (!(persistMod && storesMod)) return null
+  return {
+    CRDTPersistence: persistMod.CRDTPersistence,
+    WorkingMemory: storesMod.WorkingMemory,
+  }
+}
 
 /**
  * GET /api/memory/working/:sessionId
@@ -62,10 +76,15 @@ export async function GET(
       return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
     }
 
-    const persistence = new CRDTPersistence(db)
+    const deps = await loadWorkingMemoryDeps()
+    if (!deps) {
+      return NextResponse.json({ error: 'AI features require @revealui/ai (Pro)' }, { status: 503 })
+    }
+
+    const persistence = new deps.CRDTPersistence(db)
     const nodeId = await getNodeIdFromSession(sessionId, db)
 
-    const memory = new WorkingMemory(sessionId, nodeId, persistence)
+    const memory = new deps.WorkingMemory(sessionId, nodeId, persistence)
     await memory.load()
 
     return NextResponse.json({
@@ -150,10 +169,15 @@ export async function POST(
       activeAgents?: unknown
     }
 
-    const persistence = new CRDTPersistence(db)
+    const deps = await loadWorkingMemoryDeps()
+    if (!deps) {
+      return NextResponse.json({ error: 'AI features require @revealui/ai (Pro)' }, { status: 503 })
+    }
+
+    const persistence = new deps.CRDTPersistence(db)
     const nodeId = await getNodeIdFromSession(sessionId, db)
 
-    const memory = new WorkingMemory(sessionId, nodeId, persistence)
+    const memory = new deps.WorkingMemory(sessionId, nodeId, persistence)
     await memory.load()
 
     // Update context if provided

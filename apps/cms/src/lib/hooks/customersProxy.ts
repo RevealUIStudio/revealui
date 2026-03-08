@@ -1,5 +1,4 @@
 import type { RevealHandler, RevealRequest, RevealUser } from '@revealui/core'
-import { protectedStripe } from '@revealui/services'
 import type Stripe from 'stripe'
 import { Role } from '@/lib/access/permissions/roles'
 import {
@@ -27,8 +26,15 @@ export const customersProxy: RevealHandler = async (req: RevealRequest): Promise
     )
   }
 
+  const services = await import('@revealui/services').catch(() => null)
+  if (!services) {
+    return new Response('Stripe features require @revealui/services (Pro)', {
+      status: 503,
+    })
+  }
+
   try {
-    const customers = await protectedStripe.customers.list({ limit: 100 })
+    const customers = await services.protectedStripe.customers.list({ limit: 100 })
     return new Response(JSON.stringify(customers), {
       status: 200,
       headers: { 'Content-Type': 'application/json' },
@@ -59,6 +65,13 @@ export const customerProxy: RevealHandler = async (req: RevealRequest) => {
     return createApplicationErrorResponse(`No ID found for user ${userID}`, 'USER_NOT_FOUND', 404)
   }
 
+  const services = await import('@revealui/services').catch(() => null)
+  if (!services) {
+    return new Response('Stripe features require @revealui/services (Pro)', {
+      status: 503,
+    })
+  }
+
   const customerID = user.stripeCustomerID || user.id
 
   try {
@@ -68,7 +81,7 @@ export const customerProxy: RevealHandler = async (req: RevealRequest) => {
       | Stripe.ApiList<Stripe.Customer | Stripe.DeletedCustomer>
 
     const customer = await (
-      protectedStripe.customers.retrieve as (
+      services.protectedStripe.customers.retrieve as (
         id: string,
         params?: Stripe.CustomerRetrieveParams,
       ) => Promise<Stripe.Customer | Stripe.DeletedCustomer>
@@ -105,7 +118,7 @@ export const customerProxy: RevealHandler = async (req: RevealRequest) => {
         }
         try {
           const validatedData = CustomerUpdateSchema.parse(bodyData)
-          response = await protectedStripe.customers.update(
+          response = await services.protectedStripe.customers.update(
             customerID.toString(),
             validatedData as Stripe.CustomerUpdateParams,
           )
@@ -132,7 +145,7 @@ export const customerProxy: RevealHandler = async (req: RevealRequest) => {
         }
         try {
           const validatedData = CustomerCreateSchema.parse(bodyData)
-          response = await protectedStripe.customers.create(
+          response = await services.protectedStripe.customers.create(
             validatedData as Stripe.CustomerCreateParams,
           )
         } catch (validationError) {
@@ -145,7 +158,7 @@ export const customerProxy: RevealHandler = async (req: RevealRequest) => {
       }
 
       case 'DELETE': {
-        response = await protectedStripe.customers.del(customerID.toString())
+        response = await services.protectedStripe.customers.del(customerID.toString())
         break
       }
 

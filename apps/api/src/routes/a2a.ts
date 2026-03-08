@@ -17,14 +17,6 @@
  * Discovery endpoints (agent.json, /a2a/agents) are public — no auth required.
  */
 
-import {
-  agentCardRegistry,
-  getTask,
-  handleA2AJsonRpc,
-  RPC_INVALID_REQUEST,
-  RPC_PARSE_ERROR,
-} from '@revealui/ai'
-import { createLLMClientForUser, LLMClient, type LLMProviderType } from '@revealui/ai/llm/server'
 import type { A2AJsonRpcRequest } from '@revealui/contracts'
 import { A2AJsonRpcRequestSchema, AgentDefinitionSchema } from '@revealui/contracts'
 import { isFeatureEnabled } from '@revealui/core/features'
@@ -37,6 +29,29 @@ import { authMiddleware } from '../middleware/auth.js'
 import { requireFeature } from '../middleware/license.js'
 import { requireTaskQuota } from '../middleware/task-quota.js'
 import { buildPaymentMethods } from '../middleware/x402.js'
+
+// JSON-RPC error codes (inlined — avoids static import of @revealui/ai)
+const RPC_PARSE_ERROR = -32700
+const RPC_INVALID_REQUEST = -32600
+
+// Lazy-loaded @revealui/ai module — cached after first successful import
+let aiModulePromise: Promise<typeof import('@revealui/ai') | null> | null = null
+
+function getAiModule(): Promise<typeof import('@revealui/ai') | null> {
+  if (!aiModulePromise) {
+    aiModulePromise = import('@revealui/ai').catch(() => null)
+  }
+  return aiModulePromise
+}
+
+let aiLlmServerPromise: Promise<typeof import('@revealui/ai/llm/server') | null> | null = null
+
+function getAiLlmServerModule(): Promise<typeof import('@revealui/ai/llm/server') | null> {
+  if (!aiLlmServerPromise) {
+    aiLlmServerPromise = import('@revealui/ai/llm/server').catch(() => null)
+  }
+  return aiLlmServerPromise
+}
 
 interface UserContext {
   id: string
@@ -58,11 +73,13 @@ function getBaseUrl(req: Request): string {
 // Build an LLMClient from BYOK headers (X-AI-Provider + X-AI-Api-Key).
 // Keys are never stored — they exist only for the duration of this request.
 const VALID_PROVIDERS = new Set<string>(['openai', 'anthropic', 'groq', 'ollama', 'vultr'])
-function llmClientFromRequest(req: Request): LLMClient | undefined {
+async function llmClientFromRequest(req: Request): Promise<unknown | undefined> {
   const provider = req.headers.get('X-AI-Provider')
   const apiKey = req.headers.get('X-AI-Api-Key')
   if (!(provider && apiKey && VALID_PROVIDERS.has(provider))) return undefined
-  return new LLMClient({ provider: provider as LLMProviderType, apiKey })
+  const llmMod = await getAiLlmServerModule()
+  if (!llmMod) return undefined
+  return new llmMod.LLMClient({ provider: provider as string, apiKey })
 }
 
 // =============================================================================
@@ -70,9 +87,13 @@ function llmClientFromRequest(req: Request): LLMClient | undefined {
 // =============================================================================
 
 /** Platform-level agent card */
-app.get('/agent.json', (c) => {
+app.get('/agent.json', async (c) => {
+  const aiMod = await getAiModule()
+  if (!aiMod) {
+    return c.json({ error: 'AI package not available' }, 503)
+  }
   const baseUrl = getBaseUrl(c.req.raw)
-  const card = agentCardRegistry.getCard('revealui-creator', baseUrl)
+  const card = aiMod.agentCardRegistry.getCard('revealui-creator', baseUrl)
   if (!card) {
     return c.json({ error: 'Agent not found' }, 404)
   }
@@ -83,13 +104,17 @@ app.get('/agent.json', (c) => {
 })
 
 /** Per-agent card at /.well-known/agents/:id/agent.json */
-app.get('/agents/:id/agent.json', (c) => {
+app.get('/agents/:id/agent.json', async (c) => {
+  const aiMod = await getAiModule()
+  if (!aiMod) {
+    return c.json({ error: 'AI package not available' }, 503)
+  }
   const agentId = c.req.param('id')
   if (!/^[\w-]{1,256}$/.test(agentId)) {
     return c.json({ error: 'Invalid agent ID format' }, 400)
   }
   const baseUrl = getBaseUrl(c.req.raw)
-  const card = agentCardRegistry.getCard(agentId, baseUrl)
+  const card = aiMod.agentCardRegistry.getCard(agentId, baseUrl)
   if (!card) {
     return c.json({ error: `Agent '${agentId}' not found` }, 404)
   }
@@ -200,12 +225,14 @@ async function ensureRegistryHydrated(): Promise<void> {
   if (hydrationPromise) return hydrationPromise
   hydrationPromise = (async () => {
     try {
+      const aiMod = await getAiModule()
+      if (!aiMod) return // @revealui/ai not installed — skip hydration
       const db = getClient()
       const rows = await db.select().from(registeredAgents)
       for (const row of rows) {
         const parsed = AgentDefinitionSchema.safeParse(row.definition)
-        if (parsed.success && !agentCardRegistry.has(parsed.data.id)) {
-          agentCardRegistry.register(parsed.data)
+        if (parsed.success && !aiMod.agentCardRegistry.has(parsed.data.id)) {
+          aiMod.agentCardRegistry.register(parsed.data)
         }
       }
     } catch {
@@ -223,20 +250,28 @@ a2a.use('*', async (_c, next) => {
 })
 
 /** List all registered agents as A2A agent cards */
-a2a.get('/agents', (c) => {
+a2a.get('/agents', async (c) => {
+  const aiMod = await getAiModule()
+  if (!aiMod) {
+    return c.json({ error: 'AI package not available' }, 503)
+  }
   const baseUrl = getBaseUrl(c.req.raw)
-  const cards = agentCardRegistry.listCards(baseUrl)
+  const cards = aiMod.agentCardRegistry.listCards(baseUrl)
   return c.json({ agents: cards })
 })
 
 /** Single agent card by ID */
-a2a.get('/agents/:id', (c) => {
+a2a.get('/agents/:id', async (c) => {
+  const aiMod = await getAiModule()
+  if (!aiMod) {
+    return c.json({ error: 'AI package not available' }, 503)
+  }
   const agentId = c.req.param('id')
   if (!/^[\w-]{1,256}$/.test(agentId)) {
     return c.json({ error: 'Invalid agent ID format' }, 400)
   }
   const baseUrl = getBaseUrl(c.req.raw)
-  const card = agentCardRegistry.getCard(agentId, baseUrl)
+  const card = aiMod.agentCardRegistry.getCard(agentId, baseUrl)
   if (!card) {
     return c.json({ error: `Agent '${agentId}' not found` }, 404)
   }
@@ -244,12 +279,16 @@ a2a.get('/agents/:id', (c) => {
 })
 
 /** Full agent definition — admin only, requires 'ai' feature */
-a2a.get('/agents/:id/def', authMiddleware({ required: true }), requireFeature('ai'), (c) => {
+a2a.get('/agents/:id/def', authMiddleware({ required: true }), requireFeature('ai'), async (c) => {
+  const aiMod = await getAiModule()
+  if (!aiMod) {
+    return c.json({ error: 'AI package not available' }, 503)
+  }
   const agentId = c.req.param('id')
   if (!/^[\w-]{1,256}$/.test(agentId)) {
     return c.json({ error: 'Invalid agent ID format' }, 400)
   }
-  const def = agentCardRegistry.getDef(agentId)
+  const def = aiMod.agentCardRegistry.getDef(agentId)
   if (!def) {
     return c.json({ error: `Agent '${agentId}' not found` }, 404)
   }
@@ -282,11 +321,15 @@ a2a.get('/agents/:id/tasks', requireFeature('ai'), async (c) => {
 
 /** Update an agent's mutable fields — requires auth + 'ai' feature */
 a2a.put('/agents/:id', authMiddleware({ required: true }), requireFeature('ai'), async (c) => {
+  const aiMod = await getAiModule()
+  if (!aiMod) {
+    return c.json({ error: 'AI package not available' }, 503)
+  }
   const agentId = c.req.param('id')
   if (!/^[\w-]{1,256}$/.test(agentId)) {
     return c.json({ error: 'Invalid agent ID format' }, 400)
   }
-  if (!agentCardRegistry.has(agentId)) {
+  if (!aiMod.agentCardRegistry.has(agentId)) {
     return c.json({ error: `Agent '${agentId}' not found` }, 404)
   }
 
@@ -317,12 +360,15 @@ a2a.put('/agents/:id', authMiddleware({ required: true }), requireFeature('ai'),
     }
   }
 
-  agentCardRegistry.update(agentId, patch as Parameters<typeof agentCardRegistry.update>[1])
+  aiMod.agentCardRegistry.update(
+    agentId,
+    patch as Parameters<typeof aiMod.agentCardRegistry.update>[1],
+  )
 
   // Persist update to DB for non-built-in agents (best-effort)
   if (!BUILTIN_AGENT_IDS.has(agentId)) {
     try {
-      const updatedDef = agentCardRegistry.getDef(agentId)
+      const updatedDef = aiMod.agentCardRegistry.getDef(agentId)
       if (updatedDef) {
         const db = getClient()
         await db
@@ -343,7 +389,7 @@ a2a.put('/agents/:id', authMiddleware({ required: true }), requireFeature('ai'),
   }
 
   const baseUrl = getBaseUrl(c.req.raw)
-  const card = agentCardRegistry.getCard(agentId, baseUrl)
+  const card = aiMod.agentCardRegistry.getCard(agentId, baseUrl)
   return c.json({ card })
 })
 
@@ -359,7 +405,12 @@ a2a.delete('/agents/:id', authMiddleware({ required: true }), requireFeature('ai
     return c.json({ error: 'Built-in platform agents cannot be retired' }, 403)
   }
 
-  const removed = agentCardRegistry.unregister(agentId)
+  const aiMod = await getAiModule()
+  if (!aiMod) {
+    return c.json({ error: 'AI package not available' }, 503)
+  }
+
+  const removed = aiMod.agentCardRegistry.unregister(agentId)
   if (!removed) {
     return c.json({ error: `Agent '${agentId}' not found` }, 404)
   }
@@ -401,12 +452,17 @@ a2a.post('/agents', authMiddleware({ required: true }), async (c) => {
     return c.json({ error: 'Invalid agent definition', issues: parsed.error.issues }, 400)
   }
 
+  const aiMod = await getAiModule()
+  if (!aiMod) {
+    return c.json({ error: 'AI package not available' }, 503)
+  }
+
   const def = parsed.data
-  if (agentCardRegistry.has(def.id)) {
+  if (aiMod.agentCardRegistry.has(def.id)) {
     return c.json({ error: `Agent '${def.id}' already registered` }, 409)
   }
 
-  agentCardRegistry.register(def)
+  aiMod.agentCardRegistry.register(def)
 
   // Persist to DB (best-effort; registry remains functional if DB write fails)
   try {
@@ -425,7 +481,7 @@ a2a.post('/agents', authMiddleware({ required: true }), async (c) => {
   }
 
   const baseUrl = getBaseUrl(c.req.raw)
-  const card = agentCardRegistry.getCard(def.id, baseUrl)
+  const card = aiMod.agentCardRegistry.getCard(def.id, baseUrl)
   return c.json({ card }, 201)
 })
 
@@ -437,8 +493,13 @@ a2a.post('/agents', authMiddleware({ required: true }), async (c) => {
  * the AgentRuntime emits events that are forwarded here.
  */
 a2a.get('/stream/:taskId', requireFeature('ai'), async (c) => {
+  const aiMod = await getAiModule()
+  if (!aiMod) {
+    return c.json({ error: 'AI package not available' }, 503)
+  }
   const taskId = c.req.param('taskId')
 
+  const getTaskFn = aiMod.getTask
   return c.body(
     new ReadableStream({
       start(controller) {
@@ -452,7 +513,7 @@ a2a.get('/stream/:taskId', requireFeature('ai'), async (c) => {
 
         const poll = () => {
           iterations++
-          const task = getTask(taskId)
+          const task = getTaskFn(taskId)
 
           if (!task) {
             send({ error: `Task '${taskId}' not found` })
@@ -492,6 +553,18 @@ a2a.get('/stream/:taskId', requireFeature('ai'), async (c) => {
  * tasks/get and tasks/cancel are always allowed.
  */
 a2a.post('/', async (c) => {
+  const aiMod = await getAiModule()
+  if (!aiMod) {
+    return c.json(
+      {
+        jsonrpc: '2.0',
+        id: null,
+        error: { code: -32603, message: 'AI package not available' },
+      },
+      503,
+    )
+  }
+
   let body: unknown
   try {
     body = await c.req.json()
@@ -539,7 +612,9 @@ a2a.post('/', async (c) => {
     }
 
     // Check and increment task quota (Track B metering)
-    const quotaResponse = await requireTaskQuota(c, async () => {})
+    const quotaResponse = await requireTaskQuota(c, async () => {
+      // No-op: quota check only, work is performed after quota validation
+    })
     if (quotaResponse instanceof Response) {
       return quotaResponse
     }
@@ -552,17 +627,20 @@ a2a.post('/', async (c) => {
   //   1. Request-header BYOK (X-AI-Provider + X-AI-Api-Key) — client-side key, highest priority
   //   2. Server-stored key (user_api_keys) — Pro BYOK, resolved from session
   //   3. Stub — no key configured; handler returns a canned response
-  let llmClient = llmClientFromRequest(c.req.raw)
+  let llmClient = await llmClientFromRequest(c.req.raw)
   if (!llmClient) {
     const userId = c.get('user')?.id
     if (userId) {
-      const db = getClient()
-      llmClient = (await createLLMClientForUser(userId, db)) ?? undefined
+      const llmServerMod = await getAiLlmServerModule()
+      if (llmServerMod) {
+        const db = getClient()
+        llmClient = (await llmServerMod.createLLMClientForUser(userId, db)) ?? undefined
+      }
     }
   }
 
   const startedAt = Date.now()
-  const result = await handleA2AJsonRpc(req, agentId ?? undefined, llmClient)
+  const result = await aiMod.handleA2AJsonRpc(req, agentId ?? undefined, llmClient)
   const completedAt = Date.now()
 
   // Fire-and-forget: persist task execution record to agentActions

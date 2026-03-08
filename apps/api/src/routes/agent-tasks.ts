@@ -13,7 +13,6 @@
  */
 
 import { createRoute, OpenAPIHono, z } from '@hono/zod-openapi'
-import { createLLMClientFromEnv, TicketAgentDispatcher } from '@revealui/ai'
 import type { DatabaseClient } from '@revealui/db/client'
 import * as boardQueries from '@revealui/db/queries/boards'
 import * as commentQueries from '@revealui/db/queries/ticket-comments'
@@ -108,7 +107,7 @@ app.openapi(
     }
 
     // Build the dispatcher with DB-backed ticket mutation client
-    const dispatcher = buildDispatcher(db, tenant?.id)
+    const dispatcher = await buildDispatcher(db, tenant?.id)
     if (!dispatcher) {
       // AI not configured — return the ticket but note it was not dispatched
       await ticketQueries.updateTicket(db, ticket.id, { status: 'open' })
@@ -198,7 +197,7 @@ app.openapi(
       return c.json({ success: false as const, error: 'Ticket not found' }, 404)
     }
 
-    const dispatcher = buildDispatcher(db, tenant?.id)
+    const dispatcher = await buildDispatcher(db, tenant?.id)
     if (!dispatcher) {
       return c.json(
         {
@@ -246,10 +245,23 @@ const AGENT_TIMEOUT_MS = 120_000 // 2 minutes
  */
 async function dispatchWithTimeout(
   db: DatabaseClient,
-  dispatcher: TicketAgentDispatcher,
+  dispatcher: {
+    dispatch: (ticket: Record<string, unknown>) => Promise<{
+      success: boolean
+      output?: string
+      metadata?: { executionTime?: number; tokensUsed?: number }
+    }>
+  },
   ticket: { id: string; title: string; description: unknown; type: string; priority: string },
 ): Promise<
-  | { success: true; result: Awaited<ReturnType<typeof dispatcher.dispatch>> }
+  | {
+      success: true
+      result: {
+        success: boolean
+        output?: string
+        metadata?: { executionTime?: number; tokensUsed?: number }
+      }
+    }
   | { success: false; error: string }
 > {
   let timeoutHandle: ReturnType<typeof setTimeout> | undefined
@@ -319,15 +331,24 @@ async function dispatchWithTimeout(
 
 /**
  * Build a TicketAgentDispatcher backed by the real DB client.
- * Returns null if no LLM provider is configured.
+ * Returns null if no LLM provider is configured or @revealui/ai is not installed.
  */
-function buildDispatcher(
+async function buildDispatcher(
   db: DatabaseClient,
   _tenantId: string | undefined,
-): TicketAgentDispatcher | null {
-  let llmClient: ReturnType<typeof createLLMClientFromEnv>
+): Promise<{
+  dispatch: (ticket: Record<string, unknown>) => Promise<{
+    success: boolean
+    output?: string
+    metadata?: { executionTime?: number; tokensUsed?: number }
+  }>
+} | null> {
+  const aiMod = await import('@revealui/ai').catch(() => null)
+  if (!aiMod) return null
+
+  let llmClient: unknown
   try {
-    llmClient = createLLMClientFromEnv()
+    llmClient = aiMod.createLLMClientFromEnv()
   } catch {
     return null
   }
@@ -353,7 +374,7 @@ function buildDispatcher(
   const cmsBaseUrl = process.env.CMS_URL ?? process.env.NEXT_PUBLIC_CMS_URL
   const apiClient = buildCMSClient(cmsBaseUrl)
 
-  return new TicketAgentDispatcher({ llmClient, apiClient, ticketClient })
+  return new aiMod.TicketAgentDispatcher({ llmClient, apiClient, ticketClient })
 }
 
 /**
