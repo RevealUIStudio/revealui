@@ -2,7 +2,7 @@
   "name": "revealui",
   "version": "0.1.0",
   "private": true,
-  "description": "Open-source business infrastructure for software companies — users, content, payments, and AI, pre-wired and ready to deploy.",
+  "description": "Open-source business infrastructure for software companies \u2014 users, content, payments, and AI, pre-wired and ready to deploy.",
   "devDependencies": {
     "@biomejs/biome": "^2.4.4",
     "@changesets/cli": "^2.29.8",
@@ -130,7 +130,9 @@
     "test:integration": "tsx scripts/dev-tools/run-integration-tests.ts",
     "gate": "tsx scripts/gates/ci-gate.ts",
     "gate:quick": "tsx scripts/gates/ci-gate.ts --phase=1",
+    "gate:types": "tsx scripts/gates/types-gate.ts",
     "gate:security": "tsx scripts/gates/security-gate.ts",
+    "coverage:check": "tsx scripts/gates/test-coverage-gate.ts",
     "db:init": "tsx scripts/setup/database.ts",
     "db:migrate": "tsx scripts/setup/migrations.ts",
     "db:seed": "dotenv -- tsx --tsconfig apps/cms/tsconfig.json apps/cms/src/seed.ts",

@@ -1,99 +1,139 @@
 /**
- * Client-side search component for documentation
+ * Client-side search bar for documentation.
+ *
+ * Uses FlexSearch to provide instant full-text search across all docs.
+ * Supports Cmd+K / Ctrl+K keyboard shortcut to focus.
  */
 
-import { useEffect, useState } from 'react'
+import { useCallback, useEffect, useRef, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
+import type { SearchResult } from '../lib/search-index'
+import { buildSearchIndex, searchDocs } from '../lib/search-index'
 
-interface SearchResult {
-  path: string
-  title: string
-  section: 'guides' | 'api' | 'reference'
-  excerpt?: string
-}
-
-/**
- * Simple client-side search implementation
- * Searches through loaded markdown content
- */
 export function SearchBar() {
   const [query, setQuery] = useState('')
   const [results, setResults] = useState<SearchResult[]>([])
   const [isOpen, setIsOpen] = useState(false)
+  const [activeIndex, setActiveIndex] = useState(-1)
+  const [indexReady, setIndexReady] = useState(false)
+  const inputRef = useRef<HTMLInputElement>(null)
+  const debounceRef = useRef<ReturnType<typeof setTimeout>>(null)
   const navigate = useNavigate()
 
-  // Search through loaded content (simplified - in production, use a search index)
+  // Build search index on mount (lazy, once)
   useEffect(() => {
-    if (!query.trim()) {
-      setResults([])
-      return
-    }
+    void buildSearchIndex().then(() => {
+      setIndexReady(true)
+    })
+  }, [])
 
-    // For now, provide suggestions based on common paths
-    // In a full implementation, this would search through actual markdown content
-    const commonResults: SearchResult[] = []
-    const lowerQuery = query.toLowerCase()
-
-    const suggestions = [
-      {
-        path: '/guides/getting-started',
-        title: 'Getting Started',
-        section: 'guides' as const,
-      },
-      {
-        path: '/guides/installation',
-        title: 'Installation',
-        section: 'guides' as const,
-      },
-      {
-        path: '/guides/configuration',
-        title: 'Configuration',
-        section: 'guides' as const,
-      },
-      {
-        path: '/api/revealui-core',
-        title: 'RevealUI Core API',
-        section: 'api' as const,
-      },
-      {
-        path: '/api/revealui-schema',
-        title: 'Schema API',
-        section: 'api' as const,
-      },
-      {
-        path: '/reference/config',
-        title: 'Configuration Reference',
-        section: 'reference' as const,
-      },
-    ]
-
-    for (const suggestion of suggestions) {
-      if (
-        suggestion.title.toLowerCase().includes(lowerQuery) ||
-        suggestion.path.toLowerCase().includes(lowerQuery)
-      ) {
-        commonResults.push(suggestion)
+  // Cmd+K / Ctrl+K keyboard shortcut
+  useEffect(() => {
+    function handleGlobalKeyDown(e: KeyboardEvent) {
+      if ((e.metaKey || e.ctrlKey) && e.key === 'k') {
+        e.preventDefault()
+        inputRef.current?.focus()
+        setIsOpen(true)
       }
     }
+    document.addEventListener('keydown', handleGlobalKeyDown)
+    return () => document.removeEventListener('keydown', handleGlobalKeyDown)
+  }, [])
 
-    setResults(commonResults.slice(0, 5)) // Limit to 5 results
-  }, [query])
+  // Debounced search
+  const handleQueryChange = useCallback(
+    (value: string) => {
+      setQuery(value)
+      setActiveIndex(-1)
 
-  const handleSelect = (result: SearchResult) => {
-    void navigate(result.path)
-    setQuery('')
-    setIsOpen(false)
-  }
+      if (debounceRef.current) {
+        clearTimeout(debounceRef.current)
+      }
+
+      if (!value.trim()) {
+        setResults([])
+        return
+      }
+
+      debounceRef.current = setTimeout(() => {
+        if (indexReady) {
+          setResults(searchDocs(value))
+        }
+      }, 200)
+    },
+    [indexReady],
+  )
+
+  // Clean up debounce timer on unmount
+  useEffect(() => {
+    return () => {
+      if (debounceRef.current) {
+        clearTimeout(debounceRef.current)
+      }
+    }
+  }, [])
+
+  const handleSelect = useCallback(
+    (result: SearchResult) => {
+      void navigate(`/docs/${result.path}`)
+      setQuery('')
+      setResults([])
+      setIsOpen(false)
+      setActiveIndex(-1)
+    },
+    [navigate],
+  )
+
+  // Keyboard navigation within results
+  const handleKeyDown = useCallback(
+    (e: React.KeyboardEvent) => {
+      if (!isOpen || results.length === 0) {
+        if (e.key === 'Escape') {
+          setIsOpen(false)
+          inputRef.current?.blur()
+        }
+        return
+      }
+
+      switch (e.key) {
+        case 'ArrowDown': {
+          e.preventDefault()
+          setActiveIndex((prev) => (prev < results.length - 1 ? prev + 1 : 0))
+          break
+        }
+        case 'ArrowUp': {
+          e.preventDefault()
+          setActiveIndex((prev) => (prev > 0 ? prev - 1 : results.length - 1))
+          break
+        }
+        case 'Enter': {
+          e.preventDefault()
+          const selected = results[activeIndex]
+          if (activeIndex >= 0 && selected) {
+            handleSelect(selected)
+          }
+          break
+        }
+        case 'Escape': {
+          setIsOpen(false)
+          inputRef.current?.blur()
+          break
+        }
+      }
+    },
+    [isOpen, results, activeIndex, handleSelect],
+  )
 
   return (
     <div style={{ position: 'relative', width: '100%', maxWidth: '400px' }}>
       <div style={{ position: 'relative' }}>
         <input
+          ref={inputRef}
           type="search"
           placeholder="Search documentation..."
           value={query}
           onChange={(e) => {
-            setQuery(e.target.value)
+            handleQueryChange(e.target.value)
             setIsOpen(true)
           }}
           onFocus={() => setIsOpen(true)}
@@ -101,6 +141,7 @@ export function SearchBar() {
             // Delay closing to allow click on results
             setTimeout(() => setIsOpen(false), 200)
           }}
+          onKeyDown={handleKeyDown}
           style={{
             width: '100%',
             padding: '0.5rem 2.5rem 0.5rem 0.75rem',
@@ -116,14 +157,17 @@ export function SearchBar() {
             top: '50%',
             transform: 'translateY(-50%)',
             color: '#6a737d',
+            fontSize: '0.75rem',
+            pointerEvents: 'none',
           }}
         >
-          ⌘K
+          {'\u2318'}K
         </span>
       </div>
 
       {isOpen && results.length > 0 && (
         <div
+          role="listbox"
           style={{
             position: 'absolute',
             top: '100%',
@@ -139,25 +183,30 @@ export function SearchBar() {
             overflowY: 'auto',
           }}
         >
-          {results.map((result, index) => (
+          {results.map((result, i) => (
             <button
               type="button"
-              key={result.title || `result-${index}`}
+              role="option"
+              aria-selected={i === activeIndex}
+              key={result.path}
               onClick={() => handleSelect(result)}
               style={{
                 width: '100%',
                 padding: '0.75rem',
                 textAlign: 'left',
                 border: 'none',
-                background: 'transparent',
+                background: i === activeIndex ? '#f6f8fa' : 'transparent',
                 cursor: 'pointer',
-                borderBottom: index < results.length - 1 ? '1px solid #e1e4e8' : 'none',
+                borderBottom: i < results.length - 1 ? '1px solid #e1e4e8' : 'none',
               }}
               onMouseEnter={(e) => {
                 e.currentTarget.style.background = '#f6f8fa'
+                setActiveIndex(i)
               }}
               onMouseLeave={(e) => {
-                e.currentTarget.style.background = 'transparent'
+                if (i !== activeIndex) {
+                  e.currentTarget.style.background = 'transparent'
+                }
               }}
             >
               <div
@@ -169,15 +218,20 @@ export function SearchBar() {
               >
                 {result.title}
               </div>
-              <div
-                style={{
-                  fontSize: '0.75rem',
-                  color: '#6a737d',
-                  textTransform: 'capitalize',
-                }}
-              >
-                {result.section}
-              </div>
+              {result.excerpt && (
+                <div
+                  style={{
+                    fontSize: '0.75rem',
+                    color: '#6a737d',
+                    lineHeight: 1.4,
+                    overflow: 'hidden',
+                    textOverflow: 'ellipsis',
+                    whiteSpace: 'nowrap',
+                  }}
+                >
+                  {result.excerpt}
+                </div>
+              )}
             </button>
           ))}
         </div>
@@ -200,7 +254,7 @@ export function SearchBar() {
             fontSize: '0.875rem',
           }}
         >
-          No results found
+          {indexReady ? 'No results found' : 'Loading search index...'}
         </div>
       )}
     </div>

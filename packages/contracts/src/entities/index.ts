@@ -1,7 +1,14 @@
 /**
  * @revealui/contracts/entities
  *
- * Domain entity contracts (User, Site, Page)
+ * Domain entity contracts (User, Site, Page, Product, etc.)
+ *
+ * Dual-schema architecture:
+ * - Generated schemas (../generated/zod-schemas.ts) reflect raw DB columns via drizzle-zod.
+ * - Hand-written schemas here add business constraints (enums, omitted sensitive fields)
+ *   and extend DualEntitySchema for human + agent representation views.
+ * - Unification path: GeneratedSchema.omit({sensitive}).merge(DualEntitySchema).extend({enums}).
+ * - Use generated schemas for DB operations; use these for API boundaries and validation.
  */
 
 export {

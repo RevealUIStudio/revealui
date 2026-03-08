@@ -167,7 +167,7 @@ export async function hydrate(router: Router, rootElement: HTMLElement | null = 
   router.initClient()
 
   // Use hydrateRoot for React 18+
-  const { hydrateRoot } = require('react-dom/client')
+  const { hydrateRoot } = await import('react-dom/client')
 
   hydrateRoot(
     root,
