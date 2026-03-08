@@ -6,8 +6,6 @@
  * DELETE /api/memory/episodic/:userId/:memoryId - Remove memory
  */
 
-import { CRDTPersistence } from '@revealui/ai/memory/persistence'
-import { EpisodicMemory } from '@revealui/ai/memory/stores'
 import { getSession } from '@revealui/auth/server'
 import { AgentMemoryContract } from '@revealui/contracts'
 import { logger } from '@revealui/core/observability/logger'
@@ -18,6 +16,22 @@ import { createErrorResponse, createValidationErrorResponse } from '@/lib/utils/
 
 export const dynamic = 'force-dynamic'
 export const runtime = 'nodejs'
+
+/**
+ * Dynamically import @revealui/ai episodic memory dependencies.
+ * Returns null if the Pro package is not installed.
+ */
+async function loadEpisodicDeps() {
+  const [persistMod, storesMod] = await Promise.all([
+    import('@revealui/ai/memory/persistence').catch(() => null),
+    import('@revealui/ai/memory/stores').catch(() => null),
+  ])
+  if (!(persistMod && storesMod)) return null
+  return {
+    CRDTPersistence: persistMod.CRDTPersistence,
+    EpisodicMemory: storesMod.EpisodicMemory,
+  }
+}
 
 /**
  * GET /api/memory/episodic/:userId
@@ -50,11 +64,16 @@ export async function GET(
       return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
     }
 
+    const deps = await loadEpisodicDeps()
+    if (!deps) {
+      return NextResponse.json({ error: 'AI features require @revealui/ai (Pro)' }, { status: 503 })
+    }
+
     const db = getClient()
-    const persistence = new CRDTPersistence(db)
+    const persistence = new deps.CRDTPersistence(db)
     const nodeId = await getNodeIdFromUser(userId, db)
 
-    const memory = new EpisodicMemory(userId, nodeId, db, persistence)
+    const memory = new deps.EpisodicMemory(userId, nodeId, db, persistence)
     await memory.load()
 
     const memories = await memory.getAll()
@@ -137,11 +156,16 @@ export async function POST(
 
     const memoryData = validationResult.data
 
+    const deps = await loadEpisodicDeps()
+    if (!deps) {
+      return NextResponse.json({ error: 'AI features require @revealui/ai (Pro)' }, { status: 503 })
+    }
+
     const db = getClient()
-    const persistence = new CRDTPersistence(db)
+    const persistence = new deps.CRDTPersistence(db)
     const nodeId = await getNodeIdFromUser(userId, db)
 
-    const memory = new EpisodicMemory(userId, nodeId, db, persistence)
+    const memory = new deps.EpisodicMemory(userId, nodeId, db, persistence)
     await memory.load()
 
     const tag = await memory.add(memoryData)

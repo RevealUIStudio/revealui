@@ -6,7 +6,6 @@ import {
 import type { RevealBeforeChangeHook } from '@revealui/core'
 import type { Price } from '@revealui/core/types/cms'
 import { LRUCache } from '@revealui/core/utils/cache'
-import { protectedStripe } from '@revealui/services'
 
 const logs = false
 
@@ -18,9 +17,12 @@ const cache = new LRUCache<string, StripePriceData>({
 })
 
 // Retrieve a single Stripe price by price ID with caching
-async function cachedRetrievePrice(priceId: string): Promise<StripePriceData> {
+async function cachedRetrievePrice(
+  stripe: Awaited<typeof import('@revealui/services')>['protectedStripe'],
+  priceId: string,
+): Promise<StripePriceData> {
   return cache.fetch(`price_${priceId}`, async () => {
-    const price = await protectedStripe.prices.retrieve(priceId)
+    const price = await stripe.prices.retrieve(priceId)
     // Validate the Stripe response matches expected structure
     const validatedPrice = StripePriceDataSchema.parse(price)
     return validatedPrice
@@ -102,6 +104,16 @@ export const beforePriceChange: RevealBeforeChangeHook<Price> = async ({ req, da
     skipSync: false, // Set back to 'false' so that all changes continue to sync to Stripe
   }
 
+  // Dynamic import — @revealui/services is an optional Pro dependency
+  const services = await import('@revealui/services').catch(() => null)
+  if (!services) {
+    // Allow drafts without Stripe, but block published prices
+    if (data.stripePriceID || data._status === 'published') {
+      throw new Error('Stripe features require @revealui/services (Pro)')
+    }
+    return newDoc
+  }
+
   // Skip sync if explicitly requested
   if (data.skipSync) {
     if (logs) revealui?.logger?.info(`Skipping price 'beforeChange' hook`)
@@ -134,7 +146,7 @@ export const beforePriceChange: RevealBeforeChangeHook<Price> = async ({ req, da
 
   try {
     // Fetch and validate the price from Stripe
-    const stripePrice = await cachedRetrievePrice(data.stripePriceID)
+    const stripePrice = await cachedRetrievePrice(services.protectedStripe, data.stripePriceID)
 
     if (logs) {
       revealui?.logger?.info(

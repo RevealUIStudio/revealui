@@ -34,7 +34,16 @@ const nextConfig = {
     return config
   },
   // Externalize problematic packages in server bundle
-  serverExternalPackages: ['libsql', '@libsql/client', '@libsql/client-wasm'],
+  // Pro packages (@revealui/ai, @revealui/services) are optional peer dependencies.
+  // Mark them as server-external so the bundler skips them at build time;
+  // route handlers load them via dynamic import() with a try/catch fallback.
+  serverExternalPackages: [
+    'libsql',
+    '@libsql/client',
+    '@libsql/client-wasm',
+    '@revealui/ai',
+    '@revealui/services',
+  ],
   // Transpile workspace packages - all now use bundler module resolution with extensionless imports
   // This works with Turbopack since we changed from NodeNext to bundler resolution
   transpilePackages: [
@@ -43,10 +52,8 @@ const nextConfig = {
     '@revealui/contracts',
     '@revealui/auth',
     '@revealui/core',
-    '@revealui/ai',
     '@revealui/presentation',
     '@revealui/sync',
-    '@revealui/services',
   ],
   images: {
     remotePatterns: [

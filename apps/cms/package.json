@@ -7,14 +7,12 @@
   "dependencies": {
     "@electric-sql/client": "^1.0.27",
     "@electric-sql/react": "^1.0.27",
-    "@revealui/ai": "workspace:*",
     "@revealui/auth": "workspace:*",
     "@revealui/config": "workspace:*",
     "@revealui/contracts": "workspace:*",
     "@revealui/core": "workspace:*",
     "@revealui/db": "workspace:*",
     "@revealui/presentation": "workspace:*",
-    "@revealui/services": "workspace:*",
     "@revealui/sync": "workspace:*",
     "@revealui/utils": "workspace:*",
     "@sentry/nextjs": "^10.34.0",
@@ -54,6 +52,18 @@
     "tailwindcss": "^4.1.18",
     "typescript": "^5.9.3",
     "vitest": "^4.0.18"
+  },
+  "peerDependencies": {
+    "@revealui/ai": "workspace:*",
+    "@revealui/services": "workspace:*"
+  },
+  "peerDependenciesMeta": {
+    "@revealui/ai": {
+      "optional": true
+    },
+    "@revealui/services": {
+      "optional": true
+    }
   },
   "scripts": {
     "_comment_build": "Next.js 16 uses Turbopack by default for builds. No flags needed.",

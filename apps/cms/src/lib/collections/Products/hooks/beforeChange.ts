@@ -8,7 +8,6 @@ import {
 import type { RevealBeforeChangeHook } from '@revealui/core'
 import type { Product } from '@revealui/core/types/cms'
 import { LRUCache } from '@revealui/core/utils/cache'
-import { protectedStripe } from '@revealui/services'
 import type Stripe from 'stripe'
 
 const logs = false
@@ -117,23 +116,29 @@ function validateStripePriceList(priceList: unknown): {
 
 /**
  * Retrieve Stripe product with caching
+ * @param stripe - The protectedStripe instance from @revealui/services
  * @param productId - The Stripe product ID
  * @returns Stripe product data
  */
-async function cachedRetrieveProduct(productId: string): Promise<Stripe.Product> {
-  return productCache.fetch(`product_${productId}`, () =>
-    protectedStripe.products.retrieve(productId),
-  )
+async function cachedRetrieveProduct(
+  stripe: Awaited<typeof import('@revealui/services')>['protectedStripe'],
+  productId: string,
+): Promise<Stripe.Product> {
+  return productCache.fetch(`product_${productId}`, () => stripe.products.retrieve(productId))
 }
 
 /**
  * List prices for a product with caching
+ * @param stripe - The protectedStripe instance from @revealui/services
  * @param productId - The Stripe product ID
  * @returns Stripe price list
  */
-async function cachedListPrices(productId: string): Promise<Stripe.ApiList<Stripe.Price>> {
+async function cachedListPrices(
+  stripe: Awaited<typeof import('@revealui/services')>['protectedStripe'],
+  productId: string,
+): Promise<Stripe.ApiList<Stripe.Price>> {
   return pricesCache.fetch(`prices_${productId}`, async () =>
-    protectedStripe.prices.list({
+    stripe.prices.list({
       product: productId,
       limit: 100,
     }),
@@ -149,6 +154,16 @@ export const beforeProductChange: RevealBeforeChangeHook<Product> = async ({ req
   const newDoc: Product = {
     ...data,
     skipSync: false, // Reset to false so changes continue to sync
+  }
+
+  // Dynamic import — @revealui/services is an optional Pro dependency
+  const services = await import('@revealui/services').catch(() => null)
+  if (!services) {
+    // Allow drafts without Stripe, but block published products
+    if (data.stripeProductID || data._status === 'published') {
+      throw new Error('Stripe features require @revealui/services (Pro)')
+    }
+    return newDoc
   }
 
   // Skip validation if skipSync flag is set
@@ -184,7 +199,7 @@ export const beforeProductChange: RevealBeforeChangeHook<Product> = async ({ req
   // =============================================================================
   let stripeProduct: Stripe.Product
   try {
-    stripeProduct = await cachedRetrieveProduct(data.stripeProductID)
+    stripeProduct = await cachedRetrieveProduct(services.protectedStripe, data.stripeProductID)
     if (logs) revealui?.logger?.info(`Found Stripe product: ${stripeProduct.name}`)
 
     // Validate product data structure
@@ -203,7 +218,7 @@ export const beforeProductChange: RevealBeforeChangeHook<Product> = async ({ req
   // Step 3: Fetch and validate price list
   // =============================================================================
   try {
-    const priceList = await cachedListPrices(data.stripeProductID)
+    const priceList = await cachedListPrices(services.protectedStripe, data.stripeProductID)
     if (logs) revealui?.logger?.info(`Found ${priceList.data.length} prices for product`)
 
     // Validate price list structure
