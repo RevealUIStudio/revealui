@@ -44,13 +44,24 @@ export function getStorage(): Storage {
       globalStorage = new DatabaseStorage(dbUrl)
       return globalStorage
     } catch (error) {
+      if (process.env.NODE_ENV === 'production') {
+        throw new Error(
+          `Rate limiting requires database storage in production. DatabaseStorage failed: ${error instanceof Error ? error.message : String(error)}`,
+        )
+      }
       logger.warn('Failed to create DatabaseStorage, falling back to InMemoryStorage', {
         error: error instanceof Error ? error.message : String(error),
       })
     }
   }
 
-  // Fallback to in-memory (development without DATABASE_URL)
+  if (process.env.NODE_ENV === 'production') {
+    throw new Error(
+      'Rate limiting requires DATABASE_URL or POSTGRES_URL in production. In-memory storage is not safe for distributed deployments.',
+    )
+  }
+
+  // Fallback to in-memory (development only)
   globalStorage = new InMemoryStorage()
   return globalStorage
 }
