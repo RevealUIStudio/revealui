@@ -45,6 +45,12 @@ export {
   type PaginationProps,
 } from './components/Pagination.js'
 
+export {
+  PricingTable,
+  type PricingTableProps,
+  type PricingTier,
+} from './components/pricing-table.js'
+
 export { Textarea as TextareaCVA, type TextareaProps } from './components/Textarea.js'
 
 // Note: Checkbox and Select CVA versions use state and are in client.ts

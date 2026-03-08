@@ -1,6 +1,7 @@
 'use client'
 
 import { useSession } from '@revealui/auth/react'
+import { type LicenseTierId, TIER_COLORS, TIER_LABELS } from '@revealui/contracts/pricing'
 import {
   ButtonCVA as Button,
   Card,
@@ -13,7 +14,7 @@ import { useRouter, useSearchParams } from 'next/navigation'
 import { useCallback, useEffect, useState } from 'react'
 
 interface SubscriptionData {
-  tier: 'free' | 'pro' | 'max' | 'enterprise'
+  tier: LicenseTierId
   status: string
   expiresAt: string | null
 }
@@ -201,20 +202,6 @@ export default function BillingPage() {
     )
   }
 
-  const tierLabels: Record<string, string> = {
-    free: 'Free (OSS)',
-    pro: 'Pro',
-    max: 'Max',
-    enterprise: 'Forge (Enterprise)',
-  }
-
-  const tierColors: Record<string, string> = {
-    free: 'bg-zinc-100 text-zinc-700 dark:bg-zinc-800 dark:text-zinc-300',
-    pro: 'bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400',
-    max: 'bg-indigo-100 text-indigo-700 dark:bg-indigo-900/30 dark:text-indigo-400',
-    enterprise: 'bg-purple-100 text-purple-700 dark:bg-purple-900/30 dark:text-purple-400',
-  }
-
   const tier = subscription?.tier || 'free'
 
   return (
@@ -261,8 +248,8 @@ export default function BillingPage() {
         <CardContent className="space-y-4">
           <div className="flex items-center justify-between">
             <span className="text-sm text-zinc-500">Plan</span>
-            <span className={`rounded-full px-3 py-1 text-sm font-medium ${tierColors[tier]}`}>
-              {tierLabels[tier]}
+            <span className={`rounded-full px-3 py-1 text-sm font-medium ${TIER_COLORS[tier]}`}>
+              {TIER_LABELS[tier]}
             </span>
           </div>
 
