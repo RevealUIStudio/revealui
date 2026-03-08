@@ -158,8 +158,12 @@ async function signUpHandler(request: NextRequest): Promise<NextResponse> {
       },
     })
 
-    // Set session cookie
-    if (result.sessionToken) {
+    // Only grant session if email is already verified (e.g. OAuth-linked accounts).
+    // New signups must verify their email first — the frontend should redirect
+    // to a "check your email" page when emailVerified is false.
+    const isVerified = result.user?.emailVerified ?? false
+
+    if (result.sessionToken && isVerified) {
       response.cookies.set('revealui-session', result.sessionToken, {
         httpOnly: true,
         secure: process.env.NODE_ENV === 'production',
@@ -168,7 +172,14 @@ async function signUpHandler(request: NextRequest): Promise<NextResponse> {
         maxAge: 60 * 60 * 24 * 7, // 7 days
         domain:
           process.env.NODE_ENV === 'production'
-            ? process.env.SESSION_COOKIE_DOMAIN || '.revealui.com'
+            ? (() => {
+                if (!process.env.SESSION_COOKIE_DOMAIN) {
+                  throw new Error(
+                    'SESSION_COOKIE_DOMAIN env var is required in production. Set it to your root domain (e.g. ".example.com").',
+                  )
+                }
+                return process.env.SESSION_COOKIE_DOMAIN
+              })()
             : undefined,
       })
     }

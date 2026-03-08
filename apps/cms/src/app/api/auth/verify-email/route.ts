@@ -5,9 +5,12 @@
  *
  * Verifies a user's email address using the token sent during signup.
  * Redirects to the login page with a success/error message.
+ *
+ * Rate limited: 10 attempts per 15 minutes per IP.
  */
 
 import { createHash } from 'node:crypto'
+import { checkRateLimit } from '@revealui/auth/server'
 import { logger } from '@revealui/core/utils/logger'
 import { getClient } from '@revealui/db'
 import { users } from '@revealui/db/schema'
@@ -25,13 +28,33 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
     return NextResponse.redirect(`${baseUrl}/login?error=missing_token`)
   }
 
+  // Rate limit by IP — 10 attempts per 15 minutes
+  const xff = request.headers.get('x-forwarded-for')
+  const ip =
+    (xff ? xff.split(',').pop()?.trim() : undefined) ||
+    request.headers.get('x-real-ip') ||
+    'unknown'
+
+  try {
+    const rateLimit = await checkRateLimit(`verify_email:${ip}`, {
+      maxAttempts: 10,
+      windowMs: 15 * 60 * 1000,
+    })
+    if (!rateLimit.allowed) {
+      return NextResponse.redirect(`${baseUrl}/login?error=too_many_attempts`)
+    }
+  } catch (rateLimitError) {
+    // Fail closed — reject if rate limit store is unavailable
+    logger.error('Rate limit check failed for verify-email', {
+      error: rateLimitError instanceof Error ? rateLimitError.message : String(rateLimitError),
+    })
+    return NextResponse.redirect(`${baseUrl}/login?error=verification_failed`)
+  }
+
   try {
     const db = getClient()
 
     // Hash the incoming raw token to compare against the stored hash.
-    // Tokens generated before this fix were stored as UUIDs (plaintext).
-    // For backwards compatibility: try the hashed lookup first; if not found,
-    // fall back to direct match (legacy plaintext tokens).
     const tokenHash = createHash('sha256').update(token).digest('hex')
 
     const [user] = await db
@@ -39,10 +62,7 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
       .from(users)
       .where(
         and(
-          or(
-            eq(users.emailVerificationToken, tokenHash),
-            eq(users.emailVerificationToken, token), // legacy plaintext tokens
-          ),
+          eq(users.emailVerificationToken, tokenHash),
           or(
             isNull(users.emailVerificationTokenExpiresAt),
             gt(users.emailVerificationTokenExpiresAt, new Date()),
