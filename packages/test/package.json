@@ -12,7 +12,6 @@
     "drizzle-orm": "^0.45.1",
     "hono": "^4.12.4",
     "stripe": "^20.3.1",
-    "vite": "^7.3.0",
     "zod": "catalog:"
   },
   "devDependencies": {
@@ -24,6 +23,7 @@
     "@vitest/ui": "^4.0.18",
     "dev": "workspace:*",
     "jsdom": "^27.4.0",
+    "vite": "^7.3.0",
     "vitest": "^4.0.18"
   },
   "peerDependencies": {
@@ -68,14 +68,6 @@
     "test:e2e": "playwright test",
     "test:integration": "vitest run --config vitest.integration.config.ts src/integration",
     "test:integration:watch": "vitest watch --config vitest.integration.config.ts src/integration",
-    "test:load": "echo 'Load tests are run via pnpm test:performance (uses endpoints.json configuration)'",
-    "test:load:ai": "echo 'AI tests are included in pnpm test:performance'",
-    "test:load:all": "echo 'All load tests run via pnpm test:performance'",
-    "test:load:api": "echo 'API tests are included in pnpm test:performance'",
-    "test:load:auth": "echo 'Auth tests are included in pnpm test:performance'",
-    "test:load:auth-load": "echo 'Auth load tests are included in pnpm test:performance'",
-    "test:load:cms": "echo 'CMS tests are included in pnpm test:performance'",
-    "test:load:payment": "echo 'Payment tests are included in pnpm test:performance'",
     "test:memory:all": "cd ../.. && pnpm exec tsx packages/test/scripts/run-memory-tests.ts all",
     "test:memory:dual": "cd ../.. && pnpm exec tsx packages/test/scripts/run-memory-tests.ts dual",
     "test:memory:episodic": "cd ../.. && pnpm exec tsx packages/test/scripts/run-memory-tests.ts episodic",

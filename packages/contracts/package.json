@@ -98,7 +98,6 @@
     "registry": "https://registry.npmjs.org"
   },
   "peerDependencies": {
-    "@revealui/db": "workspace:*",
     "typescript": ">=5.0.0"
   },
   "scripts": {
