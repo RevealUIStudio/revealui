@@ -71,6 +71,10 @@
       "types": "./dist/content/index.d.ts",
       "import": "./dist/content/index.js"
     },
+    "./pricing": {
+      "types": "./dist/pricing.d.ts",
+      "import": "./dist/pricing.js"
+    },
     "./generated": {
       "types": "./dist/generated/database.d.ts",
       "import": "./dist/generated/database.js"
