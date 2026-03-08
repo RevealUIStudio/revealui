@@ -1,7 +1,0 @@
-{
-  "buildCommand": "cd ../.. && pnpm turbo build --filter=mainframe",
-  "installCommand": "cd ../.. && pnpm install --no-frozen-lockfile",
-  "ignoreCommand": "git diff --quiet HEAD~1 HEAD -- . ../../packages ../../pnpm-lock.yaml ../../package.json ../../turbo.json 2>/dev/null || exit 1",
-  "outputDirectory": "public",
-  "rewrites": [{ "source": "/(.*)", "destination": "/api" }]
-}

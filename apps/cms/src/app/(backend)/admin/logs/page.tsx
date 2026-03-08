@@ -12,7 +12,7 @@ const LEVEL_STYLES: Record<string, string> = {
   warn: 'bg-yellow-700 text-yellow-100',
 }
 
-const APPS = ['cms', 'api', 'marketing', 'mainframe'] as const
+const APPS = ['cms', 'api', 'marketing'] as const
 const LEVELS = ['warn', 'error', 'fatal'] as const
 
 function formatTime(date: Date): string {
