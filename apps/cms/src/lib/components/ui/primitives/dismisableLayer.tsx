@@ -236,7 +236,6 @@ function usePointerDownOutside(
       if (event.target && !isPointerInsideReactTreeRef.current) {
         const eventDetail = { originalEvent: event }
 
-        // eslint-disable-next-line no-inner-declarations
         function handleAndDispatchPointerDownOutsideEvent() {
           handleAndDispatchCustomEvent(
             POINTER_DOWN_OUTSIDE,
@@ -281,9 +280,9 @@ function usePointerDownOutside(
      * This is not React specific, but rather how the DOM works, ie:
      * ```
      * button.addEventListener('pointerdown', () => {
-     *   console.log('I will log');
+     *   // fires immediately
      *   document.addEventListener('pointerdown', () => {
-     *     console.log('I will also log');
+     *     // also fires for the same event
      *   })
      * });
      */
