@@ -421,14 +421,14 @@ describe('GDPR Compliance', () => {
     it('should grant consent', async () => {
       await consent.grantConsent('123', 'analytics', 'explicit')
 
-      expect(consent.hasConsent('123', 'analytics')).toBe(true)
+      expect(await consent.hasConsent('123', 'analytics')).toBe(true)
     })
 
     it('should revoke consent', async () => {
       await consent.grantConsent('123', 'analytics', 'explicit')
       await consent.revokeConsent('123', 'analytics')
 
-      expect(consent.hasConsent('123', 'analytics')).toBe(false)
+      expect(await consent.hasConsent('123', 'analytics')).toBe(false)
     })
 
     it('should handle consent expiration', async () => {
@@ -437,7 +437,7 @@ describe('GDPR Compliance', () => {
       // Wait for expiration
       await new Promise((resolve) => setTimeout(resolve, 150))
 
-      expect(consent.hasConsent('123', 'analytics')).toBe(false)
+      expect(await consent.hasConsent('123', 'analytics')).toBe(false)
     })
   })
 

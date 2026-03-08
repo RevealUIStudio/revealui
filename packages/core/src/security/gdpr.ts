@@ -6,6 +6,8 @@
 
 import { createHash } from 'node:crypto'
 import { logger } from '../observability/logger.js'
+import type { GDPRStorage } from './gdpr-storage.js'
+import { InMemoryGDPRStorage } from './gdpr-storage.js'
 
 export type ConsentType = 'necessary' | 'functional' | 'analytics' | 'marketing' | 'personalization'
 
@@ -73,8 +75,12 @@ export interface DataDeletionRequest {
  * Consent management system
  */
 export class ConsentManager {
-  private consents: Map<string, ConsentRecord> = new Map()
+  private readonly storage: GDPRStorage
   private consentVersion: string = '1.0.0'
+
+  constructor(storage?: GDPRStorage) {
+    this.storage = storage ?? new InMemoryGDPRStorage()
+  }
 
   /**
    * Grant consent
@@ -96,7 +102,7 @@ export class ConsentManager {
       version: this.consentVersion,
     }
 
-    this.consents.set(`${userId}:${type}`, consent)
+    await this.storage.setConsent(userId, type, consent)
 
     return consent
   }
@@ -105,20 +111,20 @@ export class ConsentManager {
    * Revoke consent
    */
   async revokeConsent(userId: string, type: ConsentType): Promise<void> {
-    const key = `${userId}:${type}`
-    const existing = this.consents.get(key)
+    const existing = await this.storage.getConsent(userId, type)
 
     if (existing) {
       existing.granted = false
       existing.timestamp = new Date().toISOString()
+      await this.storage.setConsent(userId, type, existing)
     }
   }
 
   /**
    * Check if consent is granted
    */
-  hasConsent(userId: string, type: ConsentType): boolean {
-    const consent = this.consents.get(`${userId}:${type}`)
+  async hasConsent(userId: string, type: ConsentType): Promise<boolean> {
+    const consent = await this.storage.getConsent(userId, type)
 
     if (!consent?.granted) {
       return false
@@ -135,8 +141,8 @@ export class ConsentManager {
   /**
    * Get all consents for user
    */
-  getUserConsents(userId: string): ConsentRecord[] {
-    return Array.from(this.consents.values()).filter((c) => c.userId === userId)
+  async getUserConsents(userId: string): Promise<ConsentRecord[]> {
+    return this.storage.getConsentsByUser(userId)
   }
 
   /**
@@ -149,8 +155,8 @@ export class ConsentManager {
   /**
    * Check if consent needs renewal
    */
-  needsRenewal(userId: string, type: ConsentType, maxAge: number): boolean {
-    const consent = this.consents.get(`${userId}:${type}`)
+  async needsRenewal(userId: string, type: ConsentType, maxAge: number): Promise<boolean> {
+    const consent = await this.storage.getConsent(userId, type)
 
     if (!consent?.granted) {
       return true
@@ -163,14 +169,14 @@ export class ConsentManager {
   /**
    * Get consent statistics
    */
-  getStatistics(): {
+  async getStatistics(): Promise<{
     total: number
     granted: number
     revoked: number
     expired: number
     byType: Record<ConsentType, number>
-  } {
-    const consents = Array.from(this.consents.values())
+  }> {
+    const consents = await this.storage.getAllConsents()
     const now = new Date()
 
     const granted = consents.filter((c) => c.granted).length
@@ -270,7 +276,11 @@ export class DataExportSystem {
  * Data deletion system (Right to be Forgotten)
  */
 export class DataDeletionSystem {
-  private requests: Map<string, DataDeletionRequest> = new Map()
+  private readonly storage: GDPRStorage
+
+  constructor(storage?: GDPRStorage) {
+    this.storage = storage ?? new InMemoryGDPRStorage()
+  }
 
   /**
    * Request data deletion
@@ -289,7 +299,7 @@ export class DataDeletionSystem {
       reason,
     }
 
-    this.requests.set(request.id, request)
+    await this.storage.setDeletionRequest(request)
 
     return request
   }
@@ -307,13 +317,14 @@ export class DataDeletionSystem {
       retained: string[]
     }>,
   ): Promise<void> {
-    const request = this.requests.get(requestId)
+    const request = await this.storage.getDeletionRequest(requestId)
 
     if (!request) {
       throw new Error('Deletion request not found')
     }
 
     request.status = 'processing'
+    await this.storage.setDeletionRequest(request)
 
     try {
       const result = await deleteData(request.userId, request.dataCategories)
@@ -322,8 +333,10 @@ export class DataDeletionSystem {
       request.processedAt = new Date().toISOString()
       request.deletedData = result.deleted
       request.retainedData = result.retained
+      await this.storage.setDeletionRequest(request)
     } catch (error) {
       request.status = 'failed'
+      await this.storage.setDeletionRequest(request)
       throw error
     }
   }
@@ -331,15 +344,15 @@ export class DataDeletionSystem {
   /**
    * Get deletion request
    */
-  getRequest(requestId: string): DataDeletionRequest | undefined {
-    return this.requests.get(requestId)
+  async getRequest(requestId: string): Promise<DataDeletionRequest | undefined> {
+    return this.storage.getDeletionRequest(requestId)
   }
 
   /**
    * Get user deletion requests
    */
-  getUserRequests(userId: string): DataDeletionRequest[] {
-    return Array.from(this.requests.values()).filter((r) => r.userId === userId)
+  async getUserRequests(userId: string): Promise<DataDeletionRequest[]> {
+    return this.storage.getDeletionRequestsByUser(userId)
   }
 
   /**
@@ -687,10 +700,10 @@ export class DataBreachManager {
 /**
  * Global instances
  *
- * WARNING: These singletons use in-memory Maps for storage.
+ * WARNING: These singletons default to `InMemoryGDPRStorage`.
  * All records are lost on process restart or serverless cold start.
- * DO NOT rely on these for production GDPR compliance without
- * replacing the storage backend with a database-backed implementation.
+ * For production GDPR compliance, construct `ConsentManager` and
+ * `DataDeletionSystem` with a database-backed `GDPRStorage` implementation.
  *
  * The CMS GDPR routes (apps/cms/src/app/api/gdpr/) use direct DB
  * queries and are NOT affected by this limitation.

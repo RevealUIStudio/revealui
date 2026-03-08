@@ -1,4 +1,7 @@
+'use client'
+
 import Image from 'next/image'
+import { useState } from 'react'
 
 const SCREENSHOTS = [
   { src: '/screenshots/cms-dashboard.png', label: 'Dashboard' },
@@ -10,6 +13,7 @@ const SCREENSHOTS = [
 ]
 
 export function ProductMockup() {
+  const [activeTab, setActiveTab] = useState(0)
   const codeLines = [
     {
       tokens: [
@@ -55,8 +59,8 @@ export function ProductMockup() {
       tokens: [
         { t: 'prop', v: '  db' },
         { t: 'plain', v: ': ' },
-        { t: 'fn', v: 'postgresAdapter' },
-        { t: 'plain', v: '({ url }),' },
+        { t: 'fn', v: 'universalPostgresAdapter' },
+        { t: 'plain', v: '({ connectionString: url }),' },
       ],
     },
     {
@@ -111,24 +115,26 @@ export function ProductMockup() {
         {/* Screenshot tabs */}
         <div className="flex items-center gap-1 px-3 py-2 bg-gray-50 border-b border-gray-200 overflow-x-auto">
           {SCREENSHOTS.map((s, i) => (
-            <span
+            <button
               key={s.label}
-              className={`px-2.5 py-1 rounded text-xs whitespace-nowrap ${
-                i === 0
+              type="button"
+              onClick={() => setActiveTab(i)}
+              className={`px-2.5 py-1 rounded text-xs whitespace-nowrap transition-colors ${
+                i === activeTab
                   ? 'bg-white text-gray-900 font-medium shadow-sm ring-1 ring-gray-200'
-                  : 'text-gray-500'
+                  : 'text-gray-500 hover:text-gray-700'
               }`}
             >
               {s.label}
-            </span>
+            </button>
           ))}
         </div>
 
         {/* Real screenshot */}
         <div className="relative bg-gray-100" style={{ minHeight: '380px' }}>
           <Image
-            src={SCREENSHOTS[0].src}
-            alt="RevealUI CMS admin dashboard"
+            src={SCREENSHOTS[activeTab].src}
+            alt={`RevealUI CMS — ${SCREENSHOTS[activeTab].label}`}
             fill
             className="object-cover object-top"
             sizes="(max-width: 1024px) 100vw, 60vw"

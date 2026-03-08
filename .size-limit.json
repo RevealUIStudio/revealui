@@ -7,13 +7,6 @@
     "gzip": true
   },
   {
-    "name": "Mainframe - Main Bundle",
-    "path": "apps/mainframe/dist/**/*.js",
-    "limit": "300 KB",
-    "webpack": false,
-    "gzip": true
-  },
-  {
     "name": "Docs - Main Bundle",
     "path": "apps/docs/dist/**/*.js",
     "limit": "200 KB",

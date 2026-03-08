@@ -34,7 +34,6 @@ build/
 dist/
 .next/
 out/
-apps/mainframe/public/assets/
 
 # Misc
 .DS_Store
