@@ -6,6 +6,12 @@ import { encryptApiKey, redactApiKey } from '@revealui/db/crypto'
 import { userApiKeys } from '@revealui/db/schema'
 import { and, eq } from 'drizzle-orm'
 import { type NextRequest, NextResponse } from 'next/server'
+import { z } from 'zod'
+
+const ApiKeySchema = z.object({
+  provider: z.enum(['openai', 'anthropic', 'groq', 'ollama', 'huggingface', 'vultr']),
+  key: z.string().min(1).max(4096),
+})
 
 export const dynamic = 'force-dynamic'
 
@@ -40,10 +46,14 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
     return NextResponse.json({ error: 'Invalid JSON body' }, { status: 400 })
   }
 
-  const { provider, key } = body as { provider?: string; key?: string }
-  if (!(provider && key)) {
-    return NextResponse.json({ error: 'provider and key are required' }, { status: 400 })
+  const parsed = ApiKeySchema.safeParse(body)
+  if (!parsed.success) {
+    return NextResponse.json(
+      { error: 'Invalid input', details: parsed.error.flatten().fieldErrors },
+      { status: 400 },
+    )
   }
+  const { provider, key } = parsed.data
 
   const encryptedKey = encryptApiKey(key)
   const keyHint = redactApiKey(key)

@@ -42,8 +42,6 @@ export {
 } from './client/index.js'
 // Re-export everything from core (schema)
 export * from './schema/index.js'
-export { DrizzleSecurityAuditStorage } from './security-audit-storage.js'
-
 // Re-export Database types (centralized type matching Supabase structure)
 export type {
   Database,
