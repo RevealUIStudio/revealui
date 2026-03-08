@@ -519,6 +519,7 @@ export interface CacheStats {
 export class CacheStatsTracker {
   private hits: number = 0
   private misses: number = 0
+  private _cacheSize: number = 0
 
   /**
    * Record cache hit
@@ -535,6 +536,13 @@ export class CacheStatsTracker {
   }
 
   /**
+   * Update the reported cache size (call from the cache implementation)
+   */
+  setCacheSize(size: number): void {
+    this._cacheSize = size
+  }
+
+  /**
    * Get statistics
    */
   getStats(): CacheStats {
@@ -546,7 +554,7 @@ export class CacheStatsTracker {
       misses: this.misses,
       hitRate,
       totalQueries,
-      cacheSize: 0, // Would need cache implementation
+      cacheSize: this._cacheSize,
     }
   }
 
@@ -556,6 +564,7 @@ export class CacheStatsTracker {
   reset(): void {
     this.hits = 0
     this.misses = 0
+    this._cacheSize = 0
   }
 }
 

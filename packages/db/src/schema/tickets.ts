@@ -13,7 +13,7 @@
  * - ticketLabelAssignments: Junction table for ticket-label M:N
  */
 
-import { boolean, integer, jsonb, pgTable, text, timestamp } from 'drizzle-orm/pg-core'
+import { boolean, index, integer, jsonb, pgTable, text, timestamp } from 'drizzle-orm/pg-core'
 import { users } from './users.js'
 
 // =============================================================================
@@ -109,71 +109,78 @@ export type NewTicketLabel = typeof ticketLabels.$inferInsert
 // Tickets (replaces todos)
 // =============================================================================
 
-export const tickets = pgTable('tickets', {
-  id: text('id').primaryKey(),
-  schemaVersion: text('schema_version').notNull().default('1'),
+export const tickets = pgTable(
+  'tickets',
+  {
+    id: text('id').primaryKey(),
+    schemaVersion: text('schema_version').notNull().default('1'),
 
-  /** Which board this ticket belongs to */
-  boardId: text('board_id')
-    .notNull()
-    .references(() => boards.id, { onDelete: 'cascade' }),
+    /** Which board this ticket belongs to */
+    boardId: text('board_id')
+      .notNull()
+      .references(() => boards.id, { onDelete: 'cascade' }),
 
-  /** Current kanban column */
-  columnId: text('column_id').references(() => boardColumns.id, { onDelete: 'set null' }),
+    /** Current kanban column */
+    columnId: text('column_id').references(() => boardColumns.id, { onDelete: 'set null' }),
 
-  /** Parent ticket for subtasks/epics (self-referencing) */
-  parentTicketId: text('parent_ticket_id'),
+    /** Parent ticket for subtasks/epics (self-referencing) */
+    parentTicketId: text('parent_ticket_id'),
 
-  /** Human-readable ticket number, auto-incremented per board */
-  ticketNumber: integer('ticket_number').notNull(),
+    /** Human-readable ticket number, auto-incremented per board */
+    ticketNumber: integer('ticket_number').notNull(),
 
-  title: text('title').notNull(),
+    title: text('title').notNull(),
 
-  /** Rich text description (Lexical editor JSON) */
-  description: jsonb('description'),
+    /** Rich text description (Lexical editor JSON) */
+    description: jsonb('description'),
 
-  /** Status: backlog, todo, in_progress, review, done, closed */
-  status: text('status').notNull().default('backlog'),
+    /** Status: backlog, todo, in_progress, review, done, closed */
+    status: text('status').notNull().default('backlog'),
 
-  /** Priority: critical, high, medium, low */
-  priority: text('priority').notNull().default('medium'),
+    /** Priority: critical, high, medium, low */
+    priority: text('priority').notNull().default('medium'),
 
-  /** Type: bug, feature, task, improvement, epic */
-  type: text('type').notNull().default('task'),
+    /** Type: bug, feature, task, improvement, epic */
+    type: text('type').notNull().default('task'),
 
-  /** Assigned user */
-  assigneeId: text('assignee_id').references(() => users.id, { onDelete: 'set null' }),
+    /** Assigned user */
+    assigneeId: text('assignee_id').references(() => users.id, { onDelete: 'set null' }),
 
-  /** User who created the ticket */
-  reporterId: text('reporter_id').references(() => users.id, { onDelete: 'set null' }),
+    /** User who created the ticket */
+    reporterId: text('reporter_id').references(() => users.id, { onDelete: 'set null' }),
 
-  /** Due date */
-  dueDate: timestamp('due_date', { withTimezone: true }),
+    /** Due date */
+    dueDate: timestamp('due_date', { withTimezone: true }),
 
-  /** Estimated effort (story points or minutes) */
-  estimatedEffort: integer('estimated_effort'),
+    /** Estimated effort (story points or minutes) */
+    estimatedEffort: integer('estimated_effort'),
 
-  /** Sort order within a column (for drag-and-drop) */
-  sortOrder: integer('sort_order').notNull().default(0),
+    /** Sort order within a column (for drag-and-drop) */
+    sortOrder: integer('sort_order').notNull().default(0),
 
-  /** Denormalized comment count for list views */
-  commentCount: integer('comment_count').notNull().default(0),
+    /** Denormalized comment count for list views */
+    commentCount: integer('comment_count').notNull().default(0),
 
-  /** File attachments */
-  attachments: jsonb('attachments')
-    .$type<Array<{ url: string; filename: string; mimeType: string; filesize: number }>>()
-    .default([])
-    .notNull(),
+    /** File attachments */
+    attachments: jsonb('attachments')
+      .$type<Array<{ url: string; filename: string; mimeType: string; filesize: number }>>()
+      .default([])
+      .notNull(),
 
-  /** Extensible metadata */
-  metadata: jsonb('metadata').default('{}').notNull(),
+    /** Extensible metadata */
+    metadata: jsonb('metadata').default('{}').notNull(),
 
-  /** When the ticket was closed/resolved */
-  closedAt: timestamp('closed_at', { withTimezone: true }),
+    /** When the ticket was closed/resolved */
+    closedAt: timestamp('closed_at', { withTimezone: true }),
 
-  createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
-  updatedAt: timestamp('updated_at', { withTimezone: true }).notNull().defaultNow(),
-})
+    createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
+    updatedAt: timestamp('updated_at', { withTimezone: true }).notNull().defaultNow(),
+  },
+  (table) => [
+    index('tickets_board_id_idx').on(table.boardId),
+    index('tickets_assignee_id_idx').on(table.assigneeId),
+  ],
+)
 
 export type Ticket = typeof tickets.$inferSelect
 export type NewTicket = typeof tickets.$inferInsert
@@ -182,22 +189,26 @@ export type NewTicket = typeof tickets.$inferInsert
 // Ticket Comments
 // =============================================================================
 
-export const ticketComments = pgTable('ticket_comments', {
-  id: text('id').primaryKey(),
+export const ticketComments = pgTable(
+  'ticket_comments',
+  {
+    id: text('id').primaryKey(),
 
-  ticketId: text('ticket_id')
-    .notNull()
-    .references(() => tickets.id, { onDelete: 'cascade' }),
+    ticketId: text('ticket_id')
+      .notNull()
+      .references(() => tickets.id, { onDelete: 'cascade' }),
 
-  /** Comment author */
-  authorId: text('author_id').references(() => users.id, { onDelete: 'set null' }),
+    /** Comment author */
+    authorId: text('author_id').references(() => users.id, { onDelete: 'set null' }),
 
-  /** Rich text body (Lexical editor JSON) */
-  body: jsonb('body').notNull(),
+    /** Rich text body (Lexical editor JSON) */
+    body: jsonb('body').notNull(),
 
-  createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
-  updatedAt: timestamp('updated_at', { withTimezone: true }).notNull().defaultNow(),
-})
+    createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
+    updatedAt: timestamp('updated_at', { withTimezone: true }).notNull().defaultNow(),
+  },
+  (table) => [index('ticket_comments_ticket_id_idx').on(table.ticketId)],
+)
 
 export type TicketComment = typeof ticketComments.$inferSelect
 export type NewTicketComment = typeof ticketComments.$inferInsert

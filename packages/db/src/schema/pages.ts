@@ -5,7 +5,7 @@
  * The schema structure mirrors the Zod schemas in @revealui/contracts/entities.
  */
 
-import { integer, jsonb, pgTable, text, timestamp } from 'drizzle-orm/pg-core'
+import { index, integer, jsonb, pgTable, text, timestamp } from 'drizzle-orm/pg-core'
 import { sites } from './sites.js'
 import { users } from './users.js'
 
@@ -13,49 +13,53 @@ import { users } from './users.js'
 // Pages Table
 // =============================================================================
 
-export const pages = pgTable('pages', {
-  // Primary identifier
-  id: text('id').primaryKey(),
+export const pages = pgTable(
+  'pages',
+  {
+    // Primary identifier
+    id: text('id').primaryKey(),
 
-  // Schema versioning for migrations
-  schemaVersion: text('schema_version').notNull().default('1'),
+    // Schema versioning for migrations
+    schemaVersion: text('schema_version').notNull().default('1'),
 
-  // Relationships
-  siteId: text('site_id')
-    .notNull()
-    .references(() => sites.id, { onDelete: 'cascade' }),
-  parentId: text('parent_id'),
-  templateId: text('template_id'),
+    // Relationships
+    siteId: text('site_id')
+      .notNull()
+      .references(() => sites.id, { onDelete: 'cascade' }),
+    parentId: text('parent_id'),
+    templateId: text('template_id'),
 
-  // Basic info
-  title: text('title').notNull(),
-  slug: text('slug').notNull(),
-  path: text('path').notNull(),
+    // Basic info
+    title: text('title').notNull(),
+    slug: text('slug').notNull(),
+    path: text('path').notNull(),
 
-  // Status: draft, published, archived, scheduled
-  status: text('status').notNull().default('draft'),
+    // Status: draft, published, archived, scheduled
+    status: text('status').notNull().default('draft'),
 
-  // Content blocks (JSON array of Block objects)
-  blocks: jsonb('blocks').$type<unknown[]>().default([]),
+    // Content blocks (JSON array of Block objects)
+    blocks: jsonb('blocks').$type<unknown[]>().default([]),
 
-  // SEO metadata (JSON blob)
-  seo: jsonb('seo'),
+    // SEO metadata (JSON blob)
+    seo: jsonb('seo'),
 
-  // Computed metadata
-  blockCount: integer('block_count').default(0),
-  wordCount: integer('word_count').default(0),
+    // Computed metadata
+    blockCount: integer('block_count').default(0),
+    wordCount: integer('word_count').default(0),
 
-  // Lock for concurrent editing
-  lock: jsonb('lock'),
+    // Lock for concurrent editing
+    lock: jsonb('lock'),
 
-  // Scheduling
-  scheduledAt: timestamp('scheduled_at', { withTimezone: true }),
+    // Scheduling
+    scheduledAt: timestamp('scheduled_at', { withTimezone: true }),
 
-  // Timestamps
-  createdAt: timestamp('created_at', { withTimezone: true }).defaultNow().notNull(),
-  updatedAt: timestamp('updated_at', { withTimezone: true }).defaultNow().notNull(),
-  publishedAt: timestamp('published_at', { withTimezone: true }),
-})
+    // Timestamps
+    createdAt: timestamp('created_at', { withTimezone: true }).defaultNow().notNull(),
+    updatedAt: timestamp('updated_at', { withTimezone: true }).defaultNow().notNull(),
+    publishedAt: timestamp('published_at', { withTimezone: true }),
+  },
+  (table) => [index('pages_site_id_idx').on(table.siteId)],
+)
 
 // =============================================================================
 // Page Revisions Table (for version history)

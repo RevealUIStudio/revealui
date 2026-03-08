@@ -4,51 +4,55 @@
  * These tables provide content management functionality for the CMS app.
  */
 
-import { boolean, integer, jsonb, pgTable, text, timestamp } from 'drizzle-orm/pg-core'
+import { boolean, index, integer, jsonb, pgTable, text, timestamp } from 'drizzle-orm/pg-core'
 import { users } from './users.js'
 
 // =============================================================================
 // Posts Table
 // =============================================================================
 
-export const posts = pgTable('posts', {
-  // Primary identifier
-  id: text('id').primaryKey(),
+export const posts = pgTable(
+  'posts',
+  {
+    // Primary identifier
+    id: text('id').primaryKey(),
 
-  // Schema versioning for migrations
-  schemaVersion: text('schema_version').notNull().default('1'),
+    // Schema versioning for migrations
+    schemaVersion: text('schema_version').notNull().default('1'),
 
-  // Basic info
-  title: text('title').notNull(),
-  slug: text('slug').notNull().unique(),
-  excerpt: text('excerpt'),
+    // Basic info
+    title: text('title').notNull(),
+    slug: text('slug').notNull().unique(),
+    excerpt: text('excerpt'),
 
-  // Content (Lexical editor state as JSON)
-  content: jsonb('content'),
+    // Content (Lexical editor state as JSON)
+    content: jsonb('content'),
 
-  // Featured image reference
-  featuredImageId: text('featured_image_id'),
+    // Featured image reference
+    featuredImageId: text('featured_image_id'),
 
-  // Author relationship
-  authorId: text('author_id').references(() => users.id, {
-    onDelete: 'set null',
-  }),
+    // Author relationship
+    authorId: text('author_id').references(() => users.id, {
+      onDelete: 'set null',
+    }),
 
-  // Status: draft, published, archived
-  status: text('status').notNull().default('draft'),
-  published: boolean('published').default(false),
+    // Status: draft, published, archived
+    status: text('status').notNull().default('draft'),
+    published: boolean('published').default(false),
 
-  // SEO metadata
-  meta: jsonb('meta'),
+    // SEO metadata
+    meta: jsonb('meta'),
 
-  // Categories/tags as JSON array
-  categories: jsonb('categories').$type<string[]>().default([]),
+    // Categories/tags as JSON array
+    categories: jsonb('categories').$type<string[]>().default([]),
 
-  // Timestamps
-  createdAt: timestamp('created_at', { withTimezone: true }).defaultNow().notNull(),
-  updatedAt: timestamp('updated_at', { withTimezone: true }).defaultNow().notNull(),
-  publishedAt: timestamp('published_at', { withTimezone: true }),
-})
+    // Timestamps
+    createdAt: timestamp('created_at', { withTimezone: true }).defaultNow().notNull(),
+    updatedAt: timestamp('updated_at', { withTimezone: true }).defaultNow().notNull(),
+    publishedAt: timestamp('published_at', { withTimezone: true }),
+  },
+  (table) => [index('posts_author_id_idx').on(table.authorId)],
+)
 
 // =============================================================================
 // Media Table
