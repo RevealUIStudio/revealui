@@ -389,10 +389,10 @@ export class DataAnonymization {
   }
 
   /**
-   * Pseudonymize data (reversible)
+   * Pseudonymize data (one-way, key-dependent)
    */
   static pseudonymize(value: string, key: string): string {
-    // Simple pseudonymization (use proper crypto in production)
+    // Uses SHA-256 via hashValue — deterministic given same key
     return `pseudo_${DataAnonymization.hashValue(value + key).substring(0, 16)}`
   }
 
