@@ -1,15 +1,3 @@
-import { generateEmbedding } from '@revealui/ai/embeddings'
-import type { LLMClient } from '@revealui/ai/llm/client'
-import type { Message } from '@revealui/ai/llm/providers/base'
-import { createLLMClientFromEnv } from '@revealui/ai/llm/server'
-import { VectorMemoryService } from '@revealui/ai/memory/vector'
-import {
-  type CMSAPIClient,
-  type CollectionMetadata,
-  createCMSTools,
-  type GlobalMetadata,
-} from '@revealui/ai/tools/cms'
-import { ToolRegistry } from '@revealui/ai/tools/registry'
 import { getSession } from '@revealui/auth/server'
 import { ChatRequestContract } from '@revealui/contracts'
 import { apiClient } from '@revealui/core/admin/utils/apiClient'
@@ -43,56 +31,95 @@ const limiter = rateLimit({
   windowMs: 60 * 1000, // 1 minute
 })
 
-// Create tool registry (shared across requests in production)
-const toolRegistry = new ToolRegistry()
+// Lazily-initialized tool registry (shared across requests in production)
+let toolRegistry: unknown = null
+
+/**
+ * Dynamically import all @revealui/ai dependencies needed for chat.
+ * Returns null if the Pro package is not installed.
+ */
+async function loadChatAIDeps() {
+  const [embeddingsMod, llmServerMod, vectorMod, cmsMod, registryMod] = await Promise.all([
+    import('@revealui/ai/embeddings').catch(() => null),
+    import('@revealui/ai/llm/server').catch(() => null),
+    import('@revealui/ai/memory/vector').catch(() => null),
+    import('@revealui/ai/tools/cms').catch(() => null),
+    import('@revealui/ai/tools/registry').catch(() => null),
+  ])
+  if (!(embeddingsMod && llmServerMod && vectorMod && cmsMod && registryMod)) return null
+  return {
+    generateEmbedding: embeddingsMod.generateEmbedding,
+    createLLMClientFromEnv: llmServerMod.createLLMClientFromEnv,
+    VectorMemoryService: vectorMod.VectorMemoryService,
+    createCMSTools: cmsMod.createCMSTools,
+    ToolRegistry: registryMod.ToolRegistry,
+  }
+}
 
 // Initialize CMS tools lazily (on first request)
-function initializeCMSTools() {
+async function initializeCMSTools(deps: NonNullable<Awaited<ReturnType<typeof loadChatAIDeps>>>) {
+  // Create registry on first call
+  if (!toolRegistry) {
+    toolRegistry = new deps.ToolRegistry()
+  }
+
+  const registry = toolRegistry as InstanceType<typeof deps.ToolRegistry>
+
   // Only initialize if not already done
-  if (toolRegistry.getAll().length > 0) {
-    return
+  if (registry.getAll().length > 0) {
+    return registry
   }
 
   try {
     // Create CMS tools with API client and config
-    const cmsTools = createCMSTools({
-      apiClient: apiClient as CMSAPIClient, // Cast to compatible type
+    const cmsTools = deps.createCMSTools({
+      apiClient: apiClient as Record<string, unknown>,
       collections: config.collections?.map(
-        (c): CollectionMetadata => ({
+        (c): { slug: string; label: string; description: string } => ({
           slug: String(c.slug),
           label: (c.labels?.singular as string | undefined) || String(c.slug),
           description: `Collection for ${(c.labels?.singular as string | undefined) || c.slug}`,
         }),
       ),
-      globals: config.globals?.map(
-        (g): GlobalMetadata => ({
-          slug: String(g.slug),
-          label: (g.label as string | undefined) || String(g.slug),
-          description: `Global configuration for ${(g.label as string | undefined) || g.slug}`,
-        }),
-      ),
+      globals: config.globals?.map((g): { slug: string; label: string; description: string } => ({
+        slug: String(g.slug),
+        label: (g.label as string | undefined) || String(g.slug),
+        description: `Global configuration for ${(g.label as string | undefined) || g.slug}`,
+      })),
       // User context will be added per-request
     })
 
     // Register all CMS tools
-    cmsTools.forEach((tool) => {
-      toolRegistry.register(tool)
+    cmsTools.forEach((tool: { name: string }) => {
+      registry.register(tool)
     })
 
     logger.info('CMS tools initialized', {
       toolCount: cmsTools.length,
-      tools: cmsTools.map((t) => t.name),
+      tools: cmsTools.map((t: { name: string }) => t.name),
     })
   } catch (error) {
     logger.error('Failed to initialize CMS tools', { error })
     throw error
   }
+
+  return registry
 }
 
 export async function POST(request: NextRequest) {
+  // Dynamic import — @revealui/ai is an optional Pro dependency
+  const aiDeps = await loadChatAIDeps()
+  if (!aiDeps) {
+    return new Response(JSON.stringify({ error: 'AI features require @revealui/ai (Pro)' }), {
+      status: 503,
+      headers: { 'Content-Type': 'application/json' },
+    })
+  }
+
   // Initialize CMS tools on first request
+  let registry: Awaited<ReturnType<typeof initializeCMSTools>>
   try {
-    initializeCMSTools()
+    registry = await initializeCMSTools(aiDeps)
   } catch (_error) {
     return createApplicationErrorResponse(
       'Chat tools failed to initialize',
@@ -168,14 +195,15 @@ export async function POST(request: NextRequest) {
       : String(rawContent)
 
     // Create LLM client from env (supports Vultr, OpenAI, Anthropic)
-    let llmClient: LLMClient
+    // biome-ignore lint/suspicious/noExplicitAny: LLMClient type comes from @revealui/ai (optional Pro dep)
+    let llmClient: any
     try {
       logger.info('Creating LLM client', {
         provider: process.env.LLM_PROVIDER,
         hasApiKey: !!process.env.VULTR_API_KEY,
         model: process.env.LLM_MODEL,
       })
-      llmClient = createLLMClientFromEnv()
+      llmClient = aiDeps.createLLMClientFromEnv()
     } catch (_err) {
       return createApplicationErrorResponse(
         'LLM provider not configured',
@@ -188,8 +216,8 @@ export async function POST(request: NextRequest) {
     let memoryContext = ''
     if (process.env.ENABLE_VECTOR_MEMORY !== 'false') {
       try {
-        const queryEmbedding = await generateEmbedding(userMessage)
-        const vectorService = new VectorMemoryService()
+        const queryEmbedding = await aiDeps.generateEmbedding(userMessage)
+        const vectorService = new aiDeps.VectorMemoryService()
 
         const searchResults = await vectorService.searchSimilar(queryEmbedding.vector, {
           limit: 5,
@@ -213,7 +241,7 @@ export async function POST(request: NextRequest) {
     const enableCache = process.env.LLM_ENABLE_CACHE === 'true'
 
     // 3. Get tool definitions for LLM
-    const toolDefinitions = toolRegistry.getToolDefinitions()
+    const toolDefinitions = registry.getToolDefinitions()
 
     logger.info('Chat request with tools', {
       messageCount: messages.length,
@@ -222,14 +250,21 @@ export async function POST(request: NextRequest) {
     })
 
     // 4. Start conversation loop (may require multiple turns for tool calls)
-    const conversationMessages: Message[] = [
+    const conversationMessages: Array<{
+      role: string
+      content: string
+      cacheControl?: { type: string }
+      toolCalls?: unknown[]
+      toolCallId?: string
+      name?: string
+    }> = [
       {
         role: 'system',
         content: systemPrompt,
         // Cache system prompt for cost savings (5min TTL)
         cacheControl: enableCache ? { type: 'ephemeral' } : undefined,
       },
-      ...(messages as Message[]),
+      ...(messages as Array<{ role: string; content: string }>),
     ]
 
     let finalResponse = ''
@@ -298,7 +333,7 @@ export async function POST(request: NextRequest) {
           })
 
           // Execute the tool
-          const toolResult = await toolRegistry.execute(toolName, parsedArgs)
+          const toolResult = await registry.execute(toolName, parsedArgs)
 
           // Add tool result to conversation
           conversationMessages.push({

@@ -6,8 +6,6 @@
  * DELETE /api/memory/context/:sessionId/:agentId - Remove context key
  */
 
-import { AgentContextManager } from '@revealui/ai/memory/agent'
-import { CRDTPersistence } from '@revealui/ai/memory/persistence'
 import { getSession } from '@revealui/auth/server'
 import { logger } from '@revealui/core/observability/logger'
 import { getClient } from '@revealui/db/client'
@@ -19,6 +17,22 @@ import { createErrorResponse, createValidationErrorResponse } from '@/lib/utils/
 
 export const dynamic = 'force-dynamic'
 export const runtime = 'nodejs'
+
+/**
+ * Dynamically import @revealui/ai context dependencies.
+ * Returns null if the Pro package is not installed.
+ */
+async function loadContextDeps() {
+  const [agentMod, persistMod] = await Promise.all([
+    import('@revealui/ai/memory/agent').catch(() => null),
+    import('@revealui/ai/memory/persistence').catch(() => null),
+  ])
+  if (!(agentMod && persistMod)) return null
+  return {
+    AgentContextManager: agentMod.AgentContextManager,
+    CRDTPersistence: persistMod.CRDTPersistence,
+  }
+}
 
 /**
  * GET /api/memory/context/:sessionId/:agentId
@@ -73,10 +87,15 @@ export async function GET(
       return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
     }
 
-    const persistence = new CRDTPersistence(db)
+    const deps = await loadContextDeps()
+    if (!deps) {
+      return NextResponse.json({ error: 'AI features require @revealui/ai (Pro)' }, { status: 503 })
+    }
+
+    const persistence = new deps.CRDTPersistence(db)
     const nodeId = await getNodeIdFromSession(sessionId, db)
 
-    const manager = new AgentContextManager(sessionId, agentId, nodeId, db, persistence)
+    const manager = new deps.AgentContextManager(sessionId, agentId, nodeId, db, persistence)
     await manager.load()
 
     return NextResponse.json({
@@ -191,10 +210,15 @@ export async function POST(
       await db.insert(aiMemorySessions).values({ id: sessionId, userId: authSession.user.id })
     }
 
-    const persistence = new CRDTPersistence(db)
+    const deps = await loadContextDeps()
+    if (!deps) {
+      return NextResponse.json({ error: 'AI features require @revealui/ai (Pro)' }, { status: 503 })
+    }
+
+    const persistence = new deps.CRDTPersistence(db)
     const nodeId = await getNodeIdFromSession(sessionId, db)
 
-    const manager = new AgentContextManager(sessionId, agentId, nodeId, db, persistence)
+    const manager = new deps.AgentContextManager(sessionId, agentId, nodeId, db, persistence)
     await manager.load()
     manager.updateContext(updates)
     await manager.save()
@@ -292,10 +316,15 @@ export async function DELETE(
       return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
     }
 
-    const persistence = new CRDTPersistence(db)
+    const deps = await loadContextDeps()
+    if (!deps) {
+      return NextResponse.json({ error: 'AI features require @revealui/ai (Pro)' }, { status: 503 })
+    }
+
+    const persistence = new deps.CRDTPersistence(db)
     const nodeId = await getNodeIdFromSession(sessionId, db)
 
-    const manager = new AgentContextManager(sessionId, agentId, nodeId, db, persistence)
+    const manager = new deps.AgentContextManager(sessionId, agentId, nodeId, db, persistence)
     await manager.load()
     manager.removeContext(key)
     await manager.save()

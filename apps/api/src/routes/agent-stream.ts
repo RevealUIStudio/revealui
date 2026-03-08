@@ -10,10 +10,6 @@
  * See packages/ai/src/client/hooks/useAgentStream.ts for the React hook.
  */
 
-import { createLLMClientFromEnv } from '@revealui/ai'
-import { LLMClient } from '@revealui/ai/llm/client'
-import type { Agent, Task } from '@revealui/ai/orchestration/agent'
-import { StreamingAgentRuntime } from '@revealui/ai/orchestration/streaming-runtime'
 import { Hono } from 'hono'
 import { streamSSE } from 'hono/streaming'
 
@@ -36,20 +32,31 @@ app.post('/', async (c) => {
     return c.json({ success: false, error: 'instruction is required' }, 400)
   }
 
+  // Dynamically load @revealui/ai modules
+  const [aiMod, llmClientMod, streamingRuntimeMod] = await Promise.all([
+    import('@revealui/ai').catch(() => null),
+    import('@revealui/ai/llm/client').catch(() => null),
+    import('@revealui/ai/orchestration/streaming-runtime').catch(() => null),
+  ])
+
+  if (!(aiMod && llmClientMod && streamingRuntimeMod)) {
+    return c.json({ success: false, error: 'AI package not available' }, 503)
+  }
+
   // BYOK: accept API key via Authorization header (never in request body)
   const authHeader = c.req.header('Authorization')
   const byokKey = authHeader?.startsWith('Bearer ') ? authHeader.slice(7) : undefined
 
-  let llmClient: LLMClient
+  let llmClient: unknown
   try {
     if (byokKey) {
-      llmClient = new LLMClient({
+      llmClient = new llmClientMod.LLMClient({
         provider: 'groq',
         apiKey: byokKey,
         model: 'llama-3.3-70b-versatile',
       })
     } else {
-      llmClient = createLLMClientFromEnv()
+      llmClient = aiMod.createLLMClientFromEnv()
     }
   } catch {
     return c.json({ success: false, error: 'AI provider not configured' }, 503)
@@ -57,7 +64,7 @@ app.post('/', async (c) => {
 
   const workspaceId = body.workspaceId ?? c.get('tenant')?.id ?? 'default'
 
-  const agent: Agent = {
+  const agent = {
     id: 'stream-agent',
     name: 'Stream Agent',
     instructions: `You are a helpful AI assistant for RevealUI workspace ${workspaceId}. Complete the user's request accurately and concisely.`,
@@ -66,13 +73,16 @@ app.post('/', async (c) => {
     getContext: () => ({ agentId: 'stream-agent' }),
   }
 
-  const task: Task = {
+  const task = {
     id: `task-${Date.now()}`,
     type: 'instruction',
     description: body.instruction,
   }
 
-  const runtime = new StreamingAgentRuntime({ maxIterations: 10, timeout: 120_000 })
+  const runtime = new streamingRuntimeMod.StreamingAgentRuntime({
+    maxIterations: 10,
+    timeout: 120_000,
+  })
 
   return streamSSE(c, async (stream) => {
     const controller = new AbortController()
