@@ -717,16 +717,16 @@ app.openapi(supportRenewalRoute, async (c) => {
   return c.json({ reminded }, 200)
 })
 
-// POST /api/billing/report-agent-overage — Internal cron: report agent task overage to Stripe metered billing.
-// Reads the previous billing cycle's overage from agent_task_usage and creates Stripe usage records.
-// Protected by X-Cron-Secret header. Skips silently if STRIPE_AGENT_METERED_PRICE_ID is not set.
+// POST /api/billing/report-agent-overage — Internal cron: report agent task overage to Stripe Billing Meters.
+// Reads the previous billing cycle's overage from agent_task_usage and emits Stripe meter events.
+// Protected by X-Cron-Secret header. Skips silently if STRIPE_AGENT_METER_EVENT_NAME is not set.
 const reportOverageRoute = createRoute({
   method: 'post',
   path: '/report-agent-overage',
   tags: ['billing'],
   summary: 'Report agent task overage to Stripe (internal cron)',
   description:
-    'Reads overage from the previous billing cycle and creates Stripe metered usage records. Protected by X-Cron-Secret.',
+    'Reads overage from the previous billing cycle and emits Stripe Billing Meter events. Protected by X-Cron-Secret.',
   responses: {
     200: {
       content: {
@@ -748,9 +748,9 @@ app.openapi(reportOverageRoute, async (c) => {
     return c.json({ error: 'Unauthorized' }, 401)
   }
 
-  const meteredPriceId = process.env.STRIPE_AGENT_METERED_PRICE_ID
-  if (!meteredPriceId) {
-    // Not configured yet — skip silently (owner action required to create Stripe metered price)
+  const meterEventName = process.env.STRIPE_AGENT_METER_EVENT_NAME
+  if (!meterEventName) {
+    // Not configured yet — skip silently (owner action required to create Stripe Billing Meter)
     return c.json({ reported: 0, skipped: 0 }, 200)
   }
 
@@ -761,51 +761,33 @@ app.openapi(reportOverageRoute, async (c) => {
   const now = new Date()
   const prevCycle = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth() - 1, 1))
 
-  // Find all users with non-zero overage in the previous cycle
+  // Find all users with non-zero overage in the previous cycle, joined with stripe_customer_id
   const overageRows = await db
     .select({
       userId: agentTaskUsage.userId,
       overage: agentTaskUsage.overage,
+      stripeCustomerId: users.stripeCustomerId,
     })
     .from(agentTaskUsage)
+    .innerJoin(users, eq(agentTaskUsage.userId, users.id))
     .where(and(eq(agentTaskUsage.cycleStart, prevCycle), gt(agentTaskUsage.overage, 0)))
 
   let reported = 0
   let skipped = 0
 
   for (const row of overageRows) {
-    // Find the user's active subscription
-    const [license] = await db
-      .select({ subscriptionId: licenses.subscriptionId })
-      .from(licenses)
-      .where(and(eq(licenses.userId, row.userId), eq(licenses.status, 'active')))
-      .limit(1)
-
-    if (!license?.subscriptionId) {
+    if (!row.stripeCustomerId) {
       skipped++
       continue
     }
 
     try {
-      const subscription = await stripe.subscriptions.retrieve(license.subscriptionId)
-      const meteredItem = subscription.items.data.find((item) => item.price.id === meteredPriceId)
-
-      if (!meteredItem) {
-        // This subscription doesn't have the metered item yet — skip (not yet migrated)
-        skipped++
-        continue
-      }
-
-      // TODO: migrate to stripe.billing.meterEvents.create() when Stripe Meter is configured
-      // createUsageRecord was removed in Stripe SDK v20+ — casting through any until migration
-      await (
-        stripe.subscriptionItems as unknown as {
-          createUsageRecord: (id: string, params: Record<string, unknown>) => Promise<unknown>
-        }
-      ).createUsageRecord(meteredItem.id, {
-        quantity: row.overage,
-        // 'set' replaces any prior usage record for this period to avoid double-counting
-        action: 'set',
+      await stripe.billing.meterEvents.create({
+        event_name: meterEventName,
+        payload: {
+          stripe_customer_id: row.stripeCustomerId,
+          value: String(row.overage),
+        },
         timestamp: Math.floor(prevCycle.getTime() / 1000 + 30 * 24 * 60 * 60 - 1),
       })
       reported++
