@@ -11,6 +11,7 @@ const NAV_ITEMS: { page: Page; label: string; icon: string }[] = [
   { page: 'infrastructure', label: 'Infrastructure', icon: 'server' },
   { page: 'sync', label: 'Sync', icon: 'refresh' },
   { page: 'tunnel', label: 'Tunnel', icon: 'globe' },
+  { page: 'terminal', label: 'Terminal', icon: 'terminal' },
   { page: 'setup', label: 'Setup', icon: 'settings' },
 ]
 
@@ -116,6 +117,20 @@ function NavIcon({ name }: { name: string }) {
           <circle cx="12" cy="12" r="10" />
           <line x1="2" x2="22" y1="12" y2="12" />
           <path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z" />
+        </svg>
+      )
+    case 'terminal':
+      return (
+        <svg
+          className="size-4"
+          aria-hidden="true"
+          fill="none"
+          viewBox="0 0 24 24"
+          stroke="currentColor"
+          strokeWidth={2}
+        >
+          <polyline points="4 17 10 11 4 5" />
+          <line x1="12" x2="20" y1="19" y2="19" />
         </svg>
       )
     case 'settings':
