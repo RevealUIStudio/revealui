@@ -55,7 +55,10 @@ export async function generatePasswordResetToken(email: string): Promise<Passwor
   try {
     const db = getClient()
 
-    // Find user by email
+    // Find user by email — intentionally does NOT check user.password.
+    // OAuth-only users (password: null) can use this flow to set a password,
+    // giving them a fallback login method independent of their OAuth provider.
+    // This is safe because the reset link is sent to their verified email.
     const [user] = await db.select().from(users).where(eq(users.email, email)).limit(1)
 
     if (!user) {
