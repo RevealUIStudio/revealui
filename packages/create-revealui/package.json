@@ -10,7 +10,7 @@
     "bin"
   ],
   "dependencies": {
-    "@revealui/cli": "^0.2.0"
+    "@revealui/cli": "workspace:*"
   },
   "license": "MIT",
   "publishConfig": {
