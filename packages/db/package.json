@@ -164,7 +164,6 @@
     "generate:types": "tsx src/types/generate.ts",
     "generate:zod": "tsx src/types/generate-zod-schemas.ts",
     "lint": "biome check .",
-    "lint:eslint": "eslint .",
     "test": "vitest run",
     "test:coverage": "vitest run --coverage",
     "typecheck": "tsc --noEmit"

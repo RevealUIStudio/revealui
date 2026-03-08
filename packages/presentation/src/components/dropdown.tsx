@@ -390,7 +390,6 @@ export function DropdownItem({
   const {
     disabled,
     children,
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
     onClick: _onClick,
     ...buttonProps
   } = props as {

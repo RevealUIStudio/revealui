@@ -75,7 +75,6 @@
     "clean": "rm -rf dist",
     "dev": "vite build --watch --mode development",
     "lint": "biome check .",
-    "lint:eslint": "eslint .",
     "test": "vitest run --passWithNoTests",
     "test:coverage": "vitest run --coverage",
     "test:watch": "vitest",

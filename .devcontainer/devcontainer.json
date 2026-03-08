@@ -36,10 +36,8 @@
   "customizations": {
     "vscode": {
       "extensions": [
-        "dbaeumer.vscode-eslint",
         "biomejs.biome",
         "bradlc.vscode-tailwindcss",
-        "Prisma.prisma",
         "ms-azuretools.vscode-docker",
         "streetsidesoftware.code-spell-checker",
         "eamodio.gitlens",

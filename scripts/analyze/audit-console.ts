@@ -149,7 +149,6 @@ function categorizeFile(filePath: string): ConsoleUsage['category'] {
     relativePath.includes('vite.config') ||
     relativePath.includes('tailwind.config') ||
     relativePath.includes('postcss.config') ||
-    relativePath.includes('.eslintrc') ||
     relativePath.includes('tsconfig') ||
     relativePath.endsWith('config.ts') ||
     relativePath.endsWith('config.js')

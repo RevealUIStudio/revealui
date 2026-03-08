@@ -1,7 +1,6 @@
 import type { RevealAfterReadHook, RevealDocument, RevealUIInstance } from '@revealui/core'
 import type { User } from '@revealui/core/types/cms'
 
-// eslint-disable-next-line @typescript-eslint/no-empty-object-type
 interface PostWithAuthors extends RevealDocument {}
 
 type PostWithPopulated = PostWithAuthors & {

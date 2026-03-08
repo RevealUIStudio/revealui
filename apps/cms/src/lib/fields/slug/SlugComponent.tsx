@@ -36,7 +36,6 @@ export const SlugComponent: React.FC<SlugComponentProps> = ({
     path: checkboxFieldPath,
   })
 
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const fieldToUseValue = useFormFields<string>(([fields]) => {
     return (fields[fieldToUse]?.value as string) || ''
   }) as string

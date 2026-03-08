@@ -2,7 +2,7 @@ name: CI
 
 # Mirrors local `pnpm gate` — same hard-fail policy:
 #   Hard fail: Biome lint, typecheck, build
-#   Warn-only: ESLint, audits, structure, boundary, tests
+#   Warn-only: audits, structure, boundary, tests
 #
 # Build runs only on push to main (too slow for PRs; ~15 min).
 # PRs get quality + typecheck + tests for fast feedback (~5 min).
@@ -27,7 +27,7 @@ jobs:
   # ---------------------------------------------------------------------------
   # Phase 1: Quality checks (parallel, fast)
   # Hard fail: Biome lint
-  # Warn-only: ESLint, audits, structure, boundary
+  # Warn-only: audits, structure, boundary
   # ---------------------------------------------------------------------------
   quality:
     name: Quality
@@ -51,10 +51,6 @@ jobs:
 
       - name: Biome lint (hard fail)
         run: pnpm lint:biome
-
-      - name: ESLint (warn-only)
-        run: pnpm lint:eslint || echo "ESLint warnings — not blocking"
-        continue-on-error: true
 
       - name: Any-type audit (warn-only)
         run: pnpm audit:any || echo "any-type warnings — not blocking"

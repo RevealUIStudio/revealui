@@ -1,6 +1,5 @@
 import type { RevealDocument, RevealRequest } from '@revealui/core'
 
-// eslint-disable-next-line @typescript-eslint/no-empty-object-type
 interface UserWithCart extends RevealDocument {}
 
 type UserWithPopulatedCart = UserWithCart & {

@@ -266,7 +266,6 @@
     "clean": "rm -rf dist",
     "dev": "tsc --watch",
     "lint": "biome check .",
-    "lint:eslint": "eslint .",
     "test": "vitest run",
     "test:coverage": "vitest run --coverage",
     "test:watch": "vitest",

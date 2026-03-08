@@ -1,5 +1,3 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
-/* eslint-disable @typescript-eslint/no-unused-vars */
 import { useLexicalComposerContext } from '@revealui/core/richtext/client'
 import { $getNodeByKey } from 'lexical'
 import type React from 'react'

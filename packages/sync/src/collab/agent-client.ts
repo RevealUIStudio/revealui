@@ -116,8 +116,6 @@ export class AgentCollabClient extends Observable<string> {
   }
 
   getTextContent(name?: string): string {
-    // Y.Text.toString() returns the text content — ESLint doesn't recognize this
-    // eslint-disable-next-line @typescript-eslint/no-base-to-string
     return this.getText(name).toString()
   }
 

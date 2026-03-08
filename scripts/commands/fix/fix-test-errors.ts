@@ -15,12 +15,6 @@ import { join } from 'node:path'
 function fixTestImports(content: string): string {
   let fixedContent = content
 
-  // Fix incorrect import: import config from 'dev/eslint' → remove or comment out
-  fixedContent = fixedContent.replace(
-    /import\s+config\s+from\s+['"]dev\/eslint['"]/g,
-    "// import config from 'dev/eslint' // Commented out - package does not exist",
-  )
-
   // Fix missing @revealui/core import by adding proper imports
   if (content.includes('@revealui/core') && !content.includes('deepMerge')) {
     // Add missing import for deepMerge

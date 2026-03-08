@@ -16,7 +16,6 @@
  *   TEST_DATABASE_URL=postgresql://...
  */
 
-/* eslint-disable no-console */
 /* console-allowed */
 
 import { mkdir, writeFile } from 'node:fs/promises'

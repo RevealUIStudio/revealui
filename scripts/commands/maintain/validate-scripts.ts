@@ -69,7 +69,6 @@ const TEMPLATES: Record<string, Template> = {
       build: 'tsc',
       dev: 'tsc --watch',
       lint: 'biome check .',
-      'lint:eslint': 'eslint .',
       typecheck: 'tsc --noEmit',
       test: 'vitest run',
       'test:watch': 'vitest',
@@ -77,7 +76,7 @@ const TEMPLATES: Record<string, Template> = {
       clean: 'rm -rf dist',
     },
     required: ['build', 'dev', 'lint', 'typecheck', 'test', 'clean'],
-    optional: ['lint:eslint', 'test:watch', 'test:coverage', 'format'],
+    optional: ['test:watch', 'test:coverage', 'format'],
   },
   app: {
     scripts: {
@@ -86,7 +85,6 @@ const TEMPLATES: Record<string, Template> = {
       dev: 'next dev | vite dev',
       start: 'next start | vite preview',
       lint: 'biome check .',
-      'lint:eslint': 'eslint .',
       typecheck: 'tsc --noEmit',
       test: 'vitest run',
       'test:watch': 'vitest',
@@ -94,21 +92,20 @@ const TEMPLATES: Record<string, Template> = {
       clean: 'rm -rf .next dist .turbo',
     },
     required: ['dev', 'build', 'start', 'lint', 'typecheck', 'test', 'clean'],
-    optional: ['lint:eslint', 'test:watch', 'test:coverage', 'format'],
+    optional: ['test:watch', 'test:coverage', 'format'],
   },
   tool: {
     scripts: {
       build: 'tsup',
       dev: 'tsup --watch',
       lint: 'biome check .',
-      'lint:eslint': 'eslint .',
       typecheck: 'tsc --noEmit',
       test: 'vitest run',
       'test:watch': 'vitest',
       'test:coverage': 'vitest run --coverage',
     },
     required: ['build', 'dev', 'lint', 'typecheck', 'test'],
-    optional: ['lint:eslint', 'test:watch', 'test:coverage', 'clean'],
+    optional: ['test:watch', 'test:coverage', 'clean'],
   },
 }
 

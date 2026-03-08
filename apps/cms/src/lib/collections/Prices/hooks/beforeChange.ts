@@ -267,7 +267,6 @@ export const beforePriceChange: RevealBeforeChangeHook<Price> = async ({ req, da
 //   return newDoc;
 // };
 
-// /* eslint-disable @typescript-eslint/no-explicit-any */
 // import Stripe from "stripe";
 
 // const stripeSecretKey = process.env.STRIPE_SECRET_KEY;

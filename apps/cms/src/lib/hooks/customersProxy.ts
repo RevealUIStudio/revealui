@@ -167,7 +167,6 @@ export const customerProxy: RevealHandler = async (req: RevealRequest) => {
     })
   }
 }
-// /* eslint-disable @typescript-eslint/no-explicit-any */
 // import type { RevealHandler, RevealRequest } from '@revealui/core'
 // import Stripe from 'stripe'
 // import { checkUser } from '../..'

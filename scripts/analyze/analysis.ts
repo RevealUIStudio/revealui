@@ -138,19 +138,6 @@ async function runQualityChecks(options: QualityOptions) {
   })
   results.push({ name: 'Biome', code: biomeResult.code })
 
-  // ESLint checking (advanced TypeScript/React rules) - Industry Standard 2025
-  const eslintArgs = ['lint:eslint']
-  if (options.fix) {
-    eslintArgs.push('--', '--fix')
-  }
-
-  const eslintResult = await runQualityCheck('pnpm', eslintArgs, {
-    description: 'ESLint advanced TypeScript code quality checks (per-package)',
-    fixable: true,
-    ci: options.ci,
-  })
-  results.push({ name: 'ESLint', code: eslintResult.code })
-
   // TypeScript type checking - Industry Standard 2025
   if (!options.ci || options.strict) {
     const tscResult = await runQualityCheck('pnpm', ['dlx', 'tsc', '--noEmit'], {
@@ -158,10 +145,6 @@ async function runQualityChecks(options: QualityOptions) {
       ci: options.ci,
     })
     results.push({ name: 'TypeScript', code: tscResult.code })
-  }
-
-  if (eslintResult.code !== 0 && !options.fix && !options.ci) {
-    logger.info('\n💡 Tip: Run `tsx scripts/analysis/quality.ts --fix` to auto-fix lint issues\n')
   }
 
   // Package audit (if in CI or strict mode)

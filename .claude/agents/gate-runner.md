@@ -15,12 +15,12 @@ Run `pnpm install` first to establish symlinks in this worktree.
 - Gate without build: `pnpm gate --no-build`
 
 ## Gate Phases
-1. **Quality** (parallel): Biome lint (hard fail), ESLint (warn), audits (warn)
+1. **Quality** (parallel): Biome lint (hard fail), audits (warn)
 2. **Type checking** (serial): `pnpm -r typecheck` across all packages
 3. **Test + Build** (parallel): Vitest (warn), turbo build (hard fail)
 
 ## Rules
 - Report which phase failed and the specific error(s)
 - Biome, typecheck, and build are hard failures — must be fixed
-- ESLint and tests are warn-only — report but don't block
+- Tests are warn-only — report but don't block
 - Do NOT modify source code — only run the gate and report

@@ -108,48 +108,6 @@ describe('Dev Package Configs Integration', () => {
     })
   })
 
-  describe('ESLint Config', () => {
-    // ESLint's @eslint/eslintrc CJS internals (AJV defaultMeta initialisation) are
-    // incompatible with Vitest's ESM transform. Skip here; ESLint is verified at runtime
-    // via `pnpm lint:eslint` and in CI via the gate ESLint step.
-    it.skip('should import eslint config', { timeout: 45000 }, async () => {
-      const config = await import('dev/eslint')
-      expect(config.default).toBeDefined()
-
-      // ESLint config exports an array, but the module resolution might wrap it
-      // Check if it's directly an array or if default is the array
-      const exported = config.default || config
-
-      // Should be defined and either an array or have the structure
-      expect(exported).toBeDefined()
-      // ESLint flat config is an array, verify structure
-      if (Array.isArray(exported)) {
-        expect(exported.length).toBeGreaterThan(0)
-      } else {
-        // If not an array directly, verify it's a valid config object
-        expect(typeof exported === 'object').toBe(true)
-      }
-    })
-
-    it.skip('should have proper config structure', async () => {
-      const config = await import('dev/eslint')
-      const exported = config.default || config
-      expect(exported).toBeDefined()
-
-      // ESLint flat config should be an array
-      if (Array.isArray(exported)) {
-        expect(exported.length).toBeGreaterThan(0)
-        // Each config should be an object or a function
-        exported.forEach((item) => {
-          expect(typeof item === 'object' || typeof item === 'function').toBe(true)
-        })
-      } else {
-        // If not an array, it should still be a valid config structure
-        expect(typeof exported === 'object').toBe(true)
-      }
-    })
-  })
-
   describe('Biome Config', () => {
     it('should import biome config', async () => {
       const config = await import('dev/biome')
@@ -210,7 +168,6 @@ describe('Dev Package Configs Integration', () => {
     })
 
     it('should verify all config exports are accessible', async () => {
-      // ESLint is skipped here — see ESLint Config describe block for explanation.
       const tailwind = await import('dev/tailwind')
       const postcss = await import('dev/postcss')
       const vite = await import('dev/vite')

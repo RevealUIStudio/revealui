@@ -10,7 +10,7 @@
 
     "//quality": "Code quality and validation",
     "lint": "biome check .",
-    "lint:eslint": "eslint .",
+
     "format": "biome format --write .",
     "typecheck": "tsc --noEmit",
 

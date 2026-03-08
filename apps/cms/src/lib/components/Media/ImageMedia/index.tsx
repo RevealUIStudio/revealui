@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/no-unused-vars */
 'use client'
 
 import cssVariables from 'cssVariables'
@@ -76,7 +75,6 @@ export const ImageMedia: React.FC<MediaProps> = (props) => {
   )
 }
 
-// /* eslint-disable @typescript-eslint/no-unused-vars */
 // "use client";
 
 // import type { StaticImageData } from "next/image";
