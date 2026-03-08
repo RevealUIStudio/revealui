@@ -8,7 +8,7 @@
     "@hono/swagger-ui": "^0.5.3",
     "@hono/zod-openapi": "^1.2.1",
     "@hono/zod-validator": "^0.7.6",
-    "@revealui/ai": "^0.1.0",
+    "@revealui/ai": "workspace:*",
     "@revealui/auth": "workspace:*",
     "@revealui/config": "workspace:*",
     "@revealui/contracts": "workspace:*",
