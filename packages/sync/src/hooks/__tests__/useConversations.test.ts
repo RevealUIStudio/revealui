@@ -144,4 +144,14 @@ describe('useConversations', () => {
     expect(result.current.conversations[0].id).toBe(1)
     expect(result.current.conversations[1].id).toBe(2)
   })
+
+  it('should return mutation functions (create, update, remove)', () => {
+    mockUseShape.mockReturnValue({ data: [], isLoading: false, error: null })
+
+    const { result } = renderHook(() => useConversations('user-123'))
+
+    expect(typeof result.current.create).toBe('function')
+    expect(typeof result.current.update).toBe('function')
+    expect(typeof result.current.remove).toBe('function')
+  })
 })

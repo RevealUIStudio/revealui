@@ -1,15 +1,15 @@
 # @revealui/sync
 
-ElectricSQL sync utilities for RevealUI - real-time data synchronization with local-first architecture.
+ElectricSQL sync utilities for RevealUI — real-time data synchronization with local-first architecture.
 
 ## Features
 
-- **ElectricSQL Integration**: Real-time sync with ElectricSQL
-- **React Hooks**: Use sync data in React components
+- **ElectricSQL Integration**: Real-time sync via shape subscriptions
+- **React Hooks**: Subscribe to synced data in React components
+- **Mutations**: Create, update, and delete records via authenticated REST endpoints
 - **Type-safe**: Full TypeScript support with database types
-- **Local-first**: Works offline, syncs when online
 - **React Provider**: Easy setup with `ElectricProvider`
-- **Optimistic Updates**: Instant UI updates with server reconciliation
+- **Yjs Collaboration**: CRDT-based real-time collaborative editing
 
 ## Installation
 
@@ -28,27 +28,29 @@ import { ElectricProvider } from '@revealui/sync/provider'
 
 export default function App() {
   return (
-    <ElectricProvider>
+    <ElectricProvider proxyBaseUrl="https://cms.revealui.com">
       <YourComponents />
     </ElectricProvider>
   )
 }
 ```
 
-### Use Synced Data
+### Read Synced Data
+
+Hooks subscribe to ElectricSQL shapes via authenticated proxy routes. Data updates in real-time as the database changes.
 
 ```typescript
 import { useAgentContexts } from '@revealui/sync'
 
 function MyComponent() {
-  const { data: contexts, isLoading } = useAgentContexts()
+  const { contexts, isLoading } = useAgentContexts()
 
   if (isLoading) return <div>Loading...</div>
 
   return (
     <ul>
       {contexts.map(context => (
-        <li key={context.id}>{context.name}</li>
+        <li key={context.id}>{JSON.stringify(context.context)}</li>
       ))}
     </ul>
   )
@@ -57,18 +59,29 @@ function MyComponent() {
 
 ### Mutations
 
+Each hook returns `create`, `update`, and `remove` functions. Mutations go through authenticated REST endpoints at `/api/sync/*`. ElectricSQL picks up the database changes and pushes updates to all subscribers automatically.
+
 ```typescript
 import { useAgentContexts } from '@revealui/sync'
 
 function CreateContext() {
-  const { create } = useAgentContexts()
+  const { contexts, create, update, remove } = useAgentContexts()
 
   const handleCreate = async () => {
-    await create({
-      name: 'New Context',
-      agent_id: 'agent-123',
-      // ... other fields
+    const result = await create({
+      agent_id: 'assistant',
+      context: { theme: 'dark', language: 'en' },
+      priority: 0.8,
     })
+    if (!result.success) console.error(result.error)
+  }
+
+  const handleUpdate = async (id: string) => {
+    await update(id, { context: { theme: 'light' } })
+  }
+
+  const handleDelete = async (id: string) => {
+    await remove(id)
   }
 
   return <button onClick={handleCreate}>Create</button>
@@ -79,138 +92,95 @@ function CreateContext() {
 
 ### `useAgentContexts()`
 
-Sync agent contexts (task context, working memory, etc.)
+Subscribe to agent contexts (task context, working memory).
 
 ```typescript
 const {
-  data,        // Agent contexts array
-  isLoading,   // Loading state
-  error,       // Error state
-  create,      // Create function
-  update,      // Update function
-  remove       // Delete function
+  contexts,    // AgentContextRecord[]
+  isLoading,   // boolean
+  error,       // Error | null
+  create,      // (data: CreateAgentContextInput) => Promise<MutationResult>
+  update,      // (id: string, data: UpdateAgentContextInput) => Promise<MutationResult>
+  remove,      // (id: string) => Promise<MutationResult>
 } = useAgentContexts()
 ```
 
-### `useAgentMemory()`
+### `useAgentMemory(agentId)`
 
-Sync agent memory (episodic, semantic, working)
+Subscribe to agent memory (episodic, semantic, working) filtered by agent ID.
 
 ```typescript
 const {
-  data,        // Memory entries array
-  isLoading,
-  error,
-  create,
-  update,
-  remove
-} = useAgentMemory()
+  memories,    // AgentMemoryRecord[]
+  isLoading,   // boolean
+  error,       // Error | null
+  create,      // (data: CreateAgentMemoryInput) => Promise<MutationResult>
+  update,      // (id: string, data: UpdateAgentMemoryInput) => Promise<MutationResult>
+  remove,      // (id: string) => Promise<MutationResult>
+} = useAgentMemory('assistant')
 ```
 
-### `useConversations()`
+### `useConversations(userId)`
 
-Sync conversation history
+Subscribe to conversation history. Server-side proxy enforces row-level filtering by session — the `userId` parameter is for API compatibility but filtering is handled server-side.
 
 ```typescript
 const {
-  data,        // Conversations array
-  isLoading,
-  error,
-  create,
-  update,
-  remove
-} = useConversations()
+  conversations,  // ConversationRecord[]
+  isLoading,      // boolean
+  error,          // Error | null
+  create,         // (data: CreateConversationInput) => Promise<MutationResult>
+  update,         // (id: string, data: UpdateConversationInput) => Promise<MutationResult>
+  remove,         // (id: string) => Promise<MutationResult>
+} = useConversations(userId)
 ```
 
 ## How It Works
 
-1. **ElectricSQL Service**: Runs as a sync service between Postgres and clients
-2. **Shape Subscriptions**: Subscribe to "shapes" of data (queries)
-3. **Local Cache**: Data cached locally in browser
-4. **Real-time Updates**: Changes propagate instantly to all connected clients
-5. **Conflict Resolution**: CRDT-based conflict resolution for offline edits
+1. **Reads**: ElectricSQL shape subscriptions via authenticated CMS proxy (`/api/shapes/*`)
+2. **Writes**: REST mutations via CMS API (`/api/sync/*`) → Postgres → ElectricSQL replication
+3. **Real-time**: Database changes propagate to all shape subscribers automatically
+4. **Auth**: All endpoints require a valid session cookie
+
+## Collaboration (Yjs)
+
+The collab layer provides CRDT-based collaborative editing:
+
+```typescript
+import { useCollaboration } from '@revealui/sync'
+
+function Editor() {
+  const { doc, synced, connectedUsers } = useCollaboration({
+    documentId: 'doc-uuid',
+    serverUrl: 'ws://localhost:4000',
+  })
+  // ...
+}
+```
+
+Server-side agents can use `AgentCollabClient` from `@revealui/sync/collab/server`.
 
 ## Environment Variables
 
 ```env
-# ElectricSQL service URL
-NEXT_PUBLIC_ELECTRIC_SERVICE_URL=http://localhost:5133
-
-# Optional: Server-side Electric URL (if different)
+# ElectricSQL service URL (used by CMS proxy)
 ELECTRIC_SERVICE_URL=http://localhost:5133
+
+# Optional: Electric auth secret
+ELECTRIC_SECRET=your-secret
+
+# Client-side (stored in provider context)
+NEXT_PUBLIC_ELECTRIC_SERVICE_URL=http://localhost:5133
 ```
 
 ## Development
 
 ```bash
-# Build package
-pnpm --filter @revealui/sync build
-
-# Watch mode
-pnpm --filter @revealui/sync dev
-
-# Run tests
-pnpm --filter @revealui/sync test
-
-# Type check
-pnpm --filter @revealui/sync typecheck
+pnpm --filter @revealui/sync build      # Build
+pnpm --filter @revealui/sync dev        # Watch mode
+pnpm --filter @revealui/sync test       # Run tests
+pnpm --filter @revealui/sync typecheck  # Type check
 ```
-
-## Testing
-
-```bash
-# Run all tests
-pnpm --filter @revealui/sync test
-
-# Watch mode
-pnpm --filter @revealui/sync test:watch
-
-# Coverage
-pnpm --filter @revealui/sync test:coverage
-```
-
-## Architecture
-
-```
-┌─────────────────┐
-│  React Component │
-│  (useAgentContexts) │
-└────────┬────────┘
-         │
-         ▼
-┌─────────────────┐
-│  ElectricSQL    │
-│  Shape Hook     │
-└────────┬────────┘
-         │
-         ▼
-┌─────────────────┐
-│  Electric Sync  │
-│  Service        │
-└────────┬────────┘
-         │
-         ▼
-┌─────────────────┐
-│  PostgreSQL     │
-│  Database       │
-└─────────────────┘
-```
-
-## Limitations
-
-⚠️ **CRITICAL**: ElectricSQL API endpoints need independent verification before production use.
-
-**Status:** ⚠️ NEEDS VERIFICATION
-- ElectricSQL integration exists but requires testing
-- API endpoints based on assumptions
-- No integration tests performed yet
-- Verify against your deployment before relying on sync in production
-
-## Related Documentation
-
-- [ElectricSQL Documentation](https://electric-sql.com/docs) - Official ElectricSQL docs
-- [Architecture](../../docs/ARCHITECTURE.md) - System architecture overview
-- [Database Guide](../../docs/DATABASE.md) - Database setup
 
 ## License
 

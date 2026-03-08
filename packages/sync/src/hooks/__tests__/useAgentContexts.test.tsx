@@ -102,4 +102,14 @@ describe('useAgentContexts', () => {
 
     expect(result.current.contexts).toEqual([])
   })
+
+  it('should return mutation functions (create, update, remove)', () => {
+    mockUseShape.mockReturnValue({ data: [], isLoading: false, error: null })
+
+    const { result } = renderHook(() => useAgentContexts())
+
+    expect(typeof result.current.create).toBe('function')
+    expect(typeof result.current.update).toBe('function')
+    expect(typeof result.current.remove).toBe('function')
+  })
 })

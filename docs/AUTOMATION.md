@@ -51,7 +51,7 @@ Comprehensive guide to AI agent capabilities, configurations, and workflows in t
 packages/
 ├── core/           # CMS framework (includes types/ and generated/)
 ├── contracts/      # Zod schemas & TypeScript types
-├── db/             # Database (Drizzle ORM, 41 tables)
+├── db/             # Database (Drizzle ORM, 50 tables)
 ├── auth/           # Authentication system
 ├── presentation/   # 50+ UI components (Tailwind v4)
 ├── router/         # File-based router with SSR
