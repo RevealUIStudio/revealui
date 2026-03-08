@@ -31,7 +31,6 @@ export const Media: React.FC<Props> = (props) => {
   )
 }
 
-// /* eslint-disable @typescript-eslint/no-explicit-any */
 // import React, { Fragment } from "react";
 
 // import type { Props } from "./types.js";

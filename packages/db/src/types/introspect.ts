@@ -150,7 +150,6 @@ export async function introspectDatabase(
  * @param connectionString - Database connection string
  * @param outputFile - Output file path
  */
-// eslint-disable-next-line @typescript-eslint/require-await
 export async function generateTypesFromDatabase(
   connectionString: string,
   outputFile: string,

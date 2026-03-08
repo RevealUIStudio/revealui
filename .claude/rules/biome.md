@@ -2,13 +2,13 @@
 
 ## Overview
 
-Biome 2 is the primary linter and formatter for this monorepo. ESLint is used alongside for rules Biome doesn't cover yet.
+Biome 2 is the sole linter and formatter for this monorepo.
 
 ## Commands
 
-- `pnpm lint:biome` — check all files with Biome
+- `pnpm lint` — check all files with Biome (`biome check .`)
 - `pnpm format` — format all files with Biome (`biome format --write .`)
-- `pnpm lint:fix` — auto-fix with both Biome and ESLint
+- `pnpm lint:fix` — auto-fix with Biome (`biome check --write .`)
 - `biome check .` — lint + format check (per-package)
 - `biome check --write .` — auto-fix (used by lint-staged)
 
@@ -26,12 +26,6 @@ Pre-commit hook runs `biome check --write` on staged `*.{ts,tsx,js,jsx}` files v
 - Trailing commas
 - Semicolons required
 - 2-space indentation (tabs in Biome config, spaces in output)
-
-## When Biome Conflicts with ESLint
-
-- Biome takes precedence for formatting
-- ESLint handles rules Biome doesn't support (import resolution, React-specific)
-- If a file has both Biome and ESLint errors, fix Biome first
 
 ## Suppressing Rules
 

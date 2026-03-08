@@ -596,7 +596,6 @@ export function createRESTHandlers(
   PATCH: (request: Request, context?: unknown) => Promise<Response>
   OPTIONS: (request: Request, context?: unknown) => Promise<Response>
 } {
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const handler = async (request: Request, _context?: unknown) => {
     return await handleRESTRequest(request, config, revealui)
   }

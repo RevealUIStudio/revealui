@@ -42,7 +42,6 @@
         "src/**/*.tsx",
         "src/**/*.js",
         "src/**/*.jsx",
-        "eslint.config.js",
         "biome.json",
         "package.json"
       ],
@@ -51,18 +50,6 @@
     "lint:biome": {
       "cache": true,
       "inputs": ["src/**/*.ts", "src/**/*.tsx", "src/**/*.js", "src/**/*.jsx", "biome.json"],
-      "outputs": []
-    },
-    "lint:eslint": {
-      "cache": true,
-      "inputs": [
-        "src/**/*.ts",
-        "src/**/*.tsx",
-        "src/**/*.js",
-        "src/**/*.jsx",
-        "eslint.config.js",
-        "package.json"
-      ],
       "outputs": []
     },
     "typecheck": {

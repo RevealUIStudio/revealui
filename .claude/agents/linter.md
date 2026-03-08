@@ -17,7 +17,7 @@ Run `pnpm install` first to establish symlinks in this worktree.
 - Format: `pnpm format`
 
 ## Rules
-- Fix Biome errors before ESLint errors (Biome takes precedence)
+- Biome is the sole linter — fix all Biome errors
 - Follow the unused declarations policy in `.claude/rules/unused-declarations.md`
 - Report remaining warnings that cannot be auto-fixed
 - Do NOT suppress lint rules without justification

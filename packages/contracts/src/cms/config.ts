@@ -323,7 +323,7 @@ export interface Config {
 
   // Collections and globals
   // biome-ignore lint/suspicious/noExplicitAny: invariant generic requires any for heterogeneous collections
-  collections?: CollectionConfig<any>[] // eslint-disable-line @typescript-eslint/no-explicit-any
+  collections?: CollectionConfig<any>[]
   globals?: GlobalConfig[]
 
   // Database - allow adapter-specific shape
@@ -410,7 +410,7 @@ export interface Config {
  */
 export interface SanitizedConfig extends Config {
   // biome-ignore lint/suspicious/noExplicitAny: invariant generic requires any for heterogeneous collections
-  collections: CollectionConfig<any>[] // eslint-disable-line @typescript-eslint/no-explicit-any
+  collections: CollectionConfig<any>[]
   globals: GlobalConfig[]
 }
 

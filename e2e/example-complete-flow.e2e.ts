@@ -8,7 +8,6 @@
  * Verifies: UI state, API calls, database records, Stripe integration
  */
 
-/* eslint-disable no-console */
 /* console-allowed */
 
 import { expect, test } from '@playwright/test'

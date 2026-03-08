@@ -305,7 +305,6 @@ class StructureValidator {
       'tsconfig.json',
       // Linting and formatting
       'biome.json',
-      'eslint.config.js',
       // Testing
       'vitest.config.ts',
       'playwright.config.ts',

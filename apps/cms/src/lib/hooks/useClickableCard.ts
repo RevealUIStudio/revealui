@@ -31,27 +31,23 @@ function useClickableCard<T extends HTMLElement>({
   const hasActiveParent = useRef<boolean>(false)
   const pressedButton = useRef<number>(0)
 
-  const handleMouseDown = useCallback(
-    (e: MouseEvent) => {
-      if (e.target) {
-        const target = e.target as Element
+  const handleMouseDown = useCallback((e: MouseEvent) => {
+    if (e.target) {
+      const target = e.target as Element
 
-        const timeNow = Date.now()
-        const parent = target?.closest('a')
+      const timeNow = Date.now()
+      const parent = target?.closest('a')
 
-        pressedButton.current = e.button
+      pressedButton.current = e.button
 
-        if (!parent) {
-          hasActiveParent.current = false
-          timeDown.current = timeNow
-        } else {
-          hasActiveParent.current = true
-        }
+      if (!parent) {
+        hasActiveParent.current = false
+        timeDown.current = timeNow
+      } else {
+        hasActiveParent.current = true
       }
-    },
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-    [],
-  )
+    }
+  }, [])
 
   const handleMouseUp = useCallback(
     (e: MouseEvent) => {
@@ -71,7 +67,6 @@ function useClickableCard<T extends HTMLElement>({
         }
       }
     },
-    // eslint-disable-next-line react-hooks/exhaustive-deps
     [router, external, newTab, scroll],
   )
 
@@ -91,7 +86,6 @@ function useClickableCard<T extends HTMLElement>({
         }
       }
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [handleMouseDown, handleMouseUp])
 
   return {

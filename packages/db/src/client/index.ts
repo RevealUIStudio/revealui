@@ -240,7 +240,6 @@ function registerPoolCleanup() {
  * ```
  */
 // Note: DatabaseType | string union is intentional for backward compatibility (allows both type strings and connection strings)
-// eslint-disable-next-line @typescript-eslint/no-redundant-type-constituents
 export function getClient(typeOrConnectionString?: DatabaseType | string): Database {
   // Legacy API: If first argument is a string and not 'rest' or 'vector', treat as connection string
   if (typeOrConnectionString && typeof typeOrConnectionString === 'string') {

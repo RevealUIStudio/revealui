@@ -171,8 +171,7 @@ async function findConfigFiles(dir: string): Promise<string[]> {
       entry.isFile() &&
       (entry.name.includes('tailwind') ||
         entry.name.includes('postcss') ||
-        entry.name.includes('vite') ||
-        entry.name.includes('eslint')) &&
+        entry.name.includes('vite')) &&
       (entry.name.endsWith('.ts') || entry.name.endsWith('.js') || entry.name.endsWith('.mjs'))
     ) {
       files.push(fullPath)
@@ -203,8 +202,7 @@ function checkFile(filePath: string): void {
     !hasGoodImport &&
     (filePath.includes('tailwind.config') ||
       filePath.includes('postcss.config') ||
-      filePath.includes('vite.config') ||
-      filePath.includes('eslint.config')) &&
+      filePath.includes('vite.config')) &&
     !relativePath.startsWith('packages/dev/') &&
     !relativePath.includes('__tests__') &&
     !relativePath.includes('.timestamp-') &&

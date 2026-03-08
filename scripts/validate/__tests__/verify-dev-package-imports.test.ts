@@ -56,8 +56,7 @@ import { postcssConfig } from 'dev/postcss'`
     it('should detect multiple good imports', async () => {
       const testFile = join(testDir, 'test.ts')
       const content = `import { tailwindConfig } from 'dev/tailwind'
-import { viteConfig } from 'dev/vite'
-import { eslintConfig } from 'dev/eslint'`
+import { viteConfig } from 'dev/vite'`
       await writeFile(testFile, content)
 
       const sourceFile = ts.createSourceFile(

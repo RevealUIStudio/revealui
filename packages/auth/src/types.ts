@@ -2,8 +2,8 @@
  * Auth Types
  *
  * Type definitions for authentication system.
- * Uses concrete interfaces instead of z.infer<> aliases to ensure
- * ESLint type-checked rules can resolve all types.
+ * Uses concrete interfaces instead of z.infer<> aliases for
+ * clear type definitions and better IDE support.
  */
 
 /**

@@ -57,7 +57,6 @@
     "clean": "rm -rf dist",
     "dev": "tsc --watch",
     "lint": "biome check .",
-    "lint:eslint": "eslint .",
     "test": "vitest",
     "test:all": "pnpm test:unit && pnpm test:integration && pnpm test:e2e",
     "test:auth-e2e": "playwright test src/e2e/auth.spec.ts",

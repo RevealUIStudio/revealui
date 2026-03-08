@@ -42,7 +42,6 @@
   },
   "devDependencies": {
     "@next/bundle-analyzer": "^16.1.6",
-    "@next/eslint-plugin-next": "^16.1.6",
     "@tailwindcss/postcss": "^4.1.18",
     "@testing-library/jest-dom": "^6.9.1",
     "@testing-library/react": "^16.3.1",
@@ -69,7 +68,6 @@
     "generate:importmap": "cross-env NODE_OPTIONS=--no-deprecation revealui cms generate:importmap",
     "generate:types": "cross-env NODE_OPTIONS=--no-deprecation revealui cms generate:types",
     "lint": "biome check .",
-    "lint:eslint": "eslint .",
     "start": "cross-env NODE_OPTIONS=--no-deprecation next start --port 4000",
     "test": "vitest run",
     "test:coverage": "vitest run --coverage",

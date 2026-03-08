@@ -30,7 +30,6 @@
     "clean": "rm -rf .next dist .turbo public/docs",
     "dev": "bash scripts/copy-docs.sh && vite dev",
     "lint": "biome check .",
-    "lint:eslint": "eslint .",
     "preview": "vite preview",
     "start": "vite preview",
     "test": "vitest run",
