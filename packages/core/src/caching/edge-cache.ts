@@ -74,8 +74,14 @@ export async function revalidateTag(
   tag: string,
   secret?: string,
 ): Promise<{ revalidated: boolean; error?: string }> {
+  const baseUrl = process.env.NEXT_PUBLIC_URL
+  if (!baseUrl) {
+    logger.warn('revalidateTag skipped: NEXT_PUBLIC_URL is not configured', { tag })
+    return { revalidated: false, error: 'NEXT_PUBLIC_URL is not configured' }
+  }
+
   try {
-    const url = new URL('/api/revalidate', process.env.NEXT_PUBLIC_URL || 'http://localhost:3000')
+    const url = new URL('/api/revalidate', baseUrl)
 
     const headers: HeadersInit = { 'Content-Type': 'application/json' }
     if (secret) {
@@ -90,14 +96,20 @@ export async function revalidateTag(
 
     const data = await response.json()
 
+    if (!response.ok) {
+      logger.warn('revalidateTag failed', { tag, status: response.status, error: data.error })
+    }
+
     return {
       revalidated: response.ok,
       error: data.error,
     }
   } catch (error) {
+    const message = error instanceof Error ? error.message : 'Unknown error'
+    logger.warn('revalidateTag error', { tag, error: message })
     return {
       revalidated: false,
-      error: error instanceof Error ? error.message : 'Unknown error',
+      error: message,
     }
   }
 }
@@ -109,8 +121,14 @@ export async function revalidatePath(
   path: string,
   secret?: string,
 ): Promise<{ revalidated: boolean; error?: string }> {
+  const baseUrl = process.env.NEXT_PUBLIC_URL
+  if (!baseUrl) {
+    logger.warn('revalidatePath skipped: NEXT_PUBLIC_URL is not configured', { path })
+    return { revalidated: false, error: 'NEXT_PUBLIC_URL is not configured' }
+  }
+
   try {
-    const url = new URL('/api/revalidate', process.env.NEXT_PUBLIC_URL || 'http://localhost:3000')
+    const url = new URL('/api/revalidate', baseUrl)
 
     const headers: HeadersInit = { 'Content-Type': 'application/json' }
     if (secret) {

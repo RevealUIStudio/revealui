@@ -70,7 +70,16 @@ const DEFAULT_CONFIG: Required<Omit<AuthConfig, 'jwtSecret'>> = {
 }
 
 /**
- * Authentication system
+ * Authentication system — abstract base class.
+ *
+ * This class provides JWT token management, session tracking, TOTP, and OAuth
+ * infrastructure. The `authenticate()` method intentionally throws and must be
+ * overridden by a concrete subclass or replaced with a database-backed
+ * implementation (see `@revealui/auth` for the production implementation used
+ * by RevealUI's CMS).
+ *
+ * Do NOT instantiate this class directly and call `authenticate()` — it will
+ * always throw. Use `@revealui/auth` for ready-to-use authentication.
  */
 export class AuthSystem {
   private static readonly MAX_SESSIONS = 10_000
@@ -92,9 +101,12 @@ export class AuthSystem {
     _password: string,
     _deviceInfo?: AuthSession['deviceInfo'],
   ): Promise<{ user: User; token: AuthToken; session: AuthSession }> {
-    // This would integrate with your authentication backend
-    // For now, this is a placeholder implementation
-    throw new Error('Implement authenticate() with your auth backend')
+    // Override this method with your authentication backend.
+    // RevealUI's CMS uses @revealui/auth (bcrypt + session storage).
+    // Custom integrations should: validate credentials → call createToken() → call createSession().
+    throw new Error(
+      'AuthSystem.authenticate() must be overridden. See @revealui/auth for the default implementation.',
+    )
   }
 
   /**

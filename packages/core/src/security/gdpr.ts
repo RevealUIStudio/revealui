@@ -550,7 +550,17 @@ export class CookieConsentManager {
       const stored = localStorage.getItem('cookie-consent')
       if (stored) {
         try {
-          this.config = JSON.parse(stored)
+          const parsed = JSON.parse(stored)
+          // Validate shape before assigning — only accept known boolean fields
+          // to prevent malicious scripts from injecting arbitrary config.
+          if (typeof parsed === 'object' && parsed !== null) {
+            this.config = {
+              necessary: true, // always required
+              analytics: typeof parsed.analytics === 'boolean' ? parsed.analytics : false,
+              marketing: typeof parsed.marketing === 'boolean' ? parsed.marketing : false,
+              functional: typeof parsed.functional === 'boolean' ? parsed.functional : true,
+            }
+          }
         } catch {
           // Ignore parse errors
         }
@@ -676,6 +686,14 @@ export class DataBreachManager {
 
 /**
  * Global instances
+ *
+ * WARNING: These singletons use in-memory Maps for storage.
+ * All records are lost on process restart or serverless cold start.
+ * DO NOT rely on these for production GDPR compliance without
+ * replacing the storage backend with a database-backed implementation.
+ *
+ * The CMS GDPR routes (apps/cms/src/app/api/gdpr/) use direct DB
+ * queries and are NOT affected by this limitation.
  */
 export const consentManager = new ConsentManager()
 export const dataExportSystem = new DataExportSystem()

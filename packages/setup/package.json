@@ -22,7 +22,7 @@
     "execa": "^9.0.0",
     "inquirer": "^12.0.0",
     "ora": "^8.0.1",
-    "zod": "^4.3.5"
+    "zod": "catalog:"
   },
   "devDependencies": {
     "@types/inquirer": "^9.0.7",

@@ -1,5 +1,7 @@
 import { useDevBox } from '../../hooks/use-devbox'
 import { useStatus } from '../../hooks/use-status'
+import Button from '../ui/Button'
+import ErrorAlert from '../ui/ErrorAlert'
 import DriveInfo from './DriveInfo'
 import MountLog from './MountLog'
 
@@ -22,30 +24,26 @@ export default function DevBoxPanel() {
       <h1 className="text-xl font-semibold">DevPod</h1>
 
       <div className="flex items-center gap-3">
-        <button
-          type="button"
+        <Button
+          variant="primary"
+          size="lg"
           onClick={handleMount}
           disabled={operating || (mount?.mounted ?? false)}
-          className="rounded-md bg-orange-600 px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-orange-500 disabled:opacity-50"
         >
           Mount
-        </button>
-        <button
-          type="button"
+        </Button>
+        <Button
+          variant="secondary"
+          size="lg"
           onClick={handleUnmount}
           disabled={operating || !(mount?.mounted ?? false)}
-          className="rounded-md bg-neutral-700 px-4 py-2 text-sm font-medium text-neutral-200 transition-colors hover:bg-neutral-600 disabled:opacity-50"
         >
           Unmount
-        </button>
+        </Button>
         {operating && <span className="text-sm text-neutral-400">Working...</span>}
       </div>
 
-      {error && (
-        <div className="rounded-md border border-red-900/50 bg-red-950/30 px-4 py-3 text-sm text-red-400">
-          {error}
-        </div>
-      )}
+      <ErrorAlert message={error} />
 
       {mount && <DriveInfo mount={mount} />}
 

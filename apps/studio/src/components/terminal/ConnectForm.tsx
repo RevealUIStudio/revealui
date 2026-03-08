@@ -2,6 +2,8 @@ import { open } from '@tauri-apps/plugin-dialog'
 import { useCallback, useEffect, useState } from 'react'
 import { sshBookmarkDelete, sshBookmarkList, sshBookmarkSave } from '../../lib/invoke'
 import type { SshAuth, SshBookmark, SshConnectParams } from '../../types'
+import Button from '../ui/Button'
+import Input from '../ui/Input'
 
 interface ConnectFormProps {
   onConnect: (params: SshConnectParams) => void
@@ -119,13 +121,9 @@ export default function ConnectForm({ onConnect, connecting }: ConnectFormProps)
             ))}
           </div>
           <div className="border-t border-neutral-800 pt-2">
-            <button
-              type="button"
-              onClick={() => setShowBookmarks(false)}
-              className="text-xs text-neutral-500 hover:text-neutral-300"
-            >
+            <Button variant="ghost" size="sm" onClick={() => setShowBookmarks(false)}>
               New connection
-            </button>
+            </Button>
           </div>
         </div>
       )}
@@ -134,64 +132,40 @@ export default function ConnectForm({ onConnect, connecting }: ConnectFormProps)
       {(!showBookmarks || bookmarks.length === 0) && (
         <form onSubmit={handleSubmit} className="space-y-4">
           {bookmarks.length > 0 && (
-            <button
-              type="button"
-              onClick={() => setShowBookmarks(true)}
-              className="text-xs text-neutral-500 hover:text-neutral-300"
-            >
+            <Button variant="ghost" size="sm" onClick={() => setShowBookmarks(true)}>
               Saved connections
-            </button>
+            </Button>
           )}
 
           <div className="grid grid-cols-2 gap-4">
-            <div>
-              <label htmlFor="ssh-host" className="mb-1 block text-xs font-medium text-neutral-400">
-                Host
-              </label>
-              <input
-                id="ssh-host"
-                type="text"
-                value={host}
-                onChange={(e) => setHost(e.target.value)}
-                placeholder="192.168.1.138"
-                required
-                className="w-full rounded-md border border-neutral-700 bg-neutral-800 px-3 py-2 text-sm text-neutral-200 placeholder:text-neutral-500 focus:border-orange-600 focus:outline-none"
-              />
-            </div>
-            <div>
-              <label htmlFor="ssh-port" className="mb-1 block text-xs font-medium text-neutral-400">
-                Port
-              </label>
-              <input
-                id="ssh-port"
-                type="number"
-                value={port}
-                onChange={(e) => setPort(Number(e.target.value))}
-                min={1}
-                max={65535}
-                required
-                className="w-full rounded-md border border-neutral-700 bg-neutral-800 px-3 py-2 text-sm text-neutral-200 focus:border-orange-600 focus:outline-none"
-              />
-            </div>
-          </div>
-
-          <div>
-            <label
-              htmlFor="ssh-username"
-              className="mb-1 block text-xs font-medium text-neutral-400"
-            >
-              Username
-            </label>
-            <input
-              id="ssh-username"
-              type="text"
-              value={username}
-              onChange={(e) => setUsername(e.target.value)}
-              placeholder="joshua-v-dev"
+            <Input
+              id="ssh-host"
+              label="Host"
+              value={host}
+              onChange={(e) => setHost(e.target.value)}
+              placeholder="192.168.1.138"
               required
-              className="w-full rounded-md border border-neutral-700 bg-neutral-800 px-3 py-2 text-sm text-neutral-200 placeholder:text-neutral-500 focus:border-orange-600 focus:outline-none"
+            />
+            <Input
+              id="ssh-port"
+              label="Port"
+              type="number"
+              value={port}
+              onChange={(e) => setPort(Number(e.target.value))}
+              min={1}
+              max={65535}
+              required
             />
           </div>
+
+          <Input
+            id="ssh-username"
+            label="Username"
+            value={username}
+            onChange={(e) => setUsername(e.target.value)}
+            placeholder="joshua-v-dev"
+            required
+          />
 
           {/* Auth method toggle */}
           <div>
@@ -223,21 +197,13 @@ export default function ConnectForm({ onConnect, connecting }: ConnectFormProps)
           </div>
 
           {authMethod === 'password' ? (
-            <div>
-              <label
-                htmlFor="ssh-password"
-                className="mb-1 block text-xs font-medium text-neutral-400"
-              >
-                Password
-              </label>
-              <input
-                id="ssh-password"
-                type="password"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                className="w-full rounded-md border border-neutral-700 bg-neutral-800 px-3 py-2 text-sm text-neutral-200 focus:border-orange-600 focus:outline-none"
-              />
-            </div>
+            <Input
+              id="ssh-password"
+              label="Password"
+              type="password"
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+            />
           ) : (
             <>
               <div>
@@ -248,59 +214,50 @@ export default function ConnectForm({ onConnect, connecting }: ConnectFormProps)
                   Key file
                 </label>
                 <div className="flex gap-2">
-                  <input
+                  <Input
                     id="ssh-keypath"
-                    type="text"
                     value={keyPath}
                     onChange={(e) => setKeyPath(e.target.value)}
                     placeholder="~/.ssh/id_ed25519"
-                    className="min-w-0 flex-1 rounded-md border border-neutral-700 bg-neutral-800 px-3 py-2 text-sm text-neutral-200 placeholder:text-neutral-500 focus:border-orange-600 focus:outline-none"
+                    className="min-w-0 flex-1"
                   />
-                  <button
-                    type="button"
+                  <Button
+                    variant="secondary"
+                    size="md"
                     onClick={handleBrowseKey}
-                    className="shrink-0 rounded-md border border-neutral-700 bg-neutral-800 px-3 py-2 text-xs font-medium text-neutral-300 transition-colors hover:bg-neutral-700"
+                    className="shrink-0"
                   >
                     Browse
-                  </button>
+                  </Button>
                 </div>
               </div>
-              <div>
-                <label
-                  htmlFor="ssh-passphrase"
-                  className="mb-1 block text-xs font-medium text-neutral-400"
-                >
-                  Passphrase
-                  <span className="ml-1 text-neutral-500">(optional)</span>
-                </label>
-                <input
-                  id="ssh-passphrase"
-                  type="password"
-                  value={passphrase}
-                  onChange={(e) => setPassphrase(e.target.value)}
-                  placeholder="Leave empty if unencrypted"
-                  className="w-full rounded-md border border-neutral-700 bg-neutral-800 px-3 py-2 text-sm text-neutral-200 placeholder:text-neutral-500 focus:border-orange-600 focus:outline-none"
-                />
-              </div>
+              <Input
+                id="ssh-passphrase"
+                label="Passphrase"
+                hint="optional"
+                type="password"
+                value={passphrase}
+                onChange={(e) => setPassphrase(e.target.value)}
+                placeholder="Leave empty if unencrypted"
+              />
             </>
           )}
 
           <div className="flex gap-2">
-            <button
+            <Button
+              variant="primary"
+              size="lg"
+              loading={connecting}
+              disabled={!isValid}
+              className="flex-1"
               type="submit"
-              disabled={connecting || !isValid}
-              className="flex-1 rounded-md bg-orange-600 px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-orange-500 disabled:opacity-50"
             >
-              {connecting ? 'Connecting...' : 'Connect'}
-            </button>
+              Connect
+            </Button>
             {isValid && (
-              <button
-                type="button"
-                onClick={handleSaveBookmark}
-                className="rounded-md border border-neutral-700 bg-neutral-800 px-3 py-2 text-xs font-medium text-neutral-400 transition-colors hover:bg-neutral-700 hover:text-neutral-200"
-              >
+              <Button variant="secondary" size="lg" onClick={handleSaveBookmark}>
                 Save
-              </button>
+              </Button>
             )}
           </div>
         </form>

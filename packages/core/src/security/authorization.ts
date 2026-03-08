@@ -579,10 +579,12 @@ export function checkAttributeAccess(
 export class PermissionCache {
   private cache: Map<string, { allowed: boolean; expiresAt: number }> = new Map()
   private ttl: number
+  private maxEntries: number
 
-  constructor(ttl: number = 300000) {
-    // 5 minutes default
+  constructor(ttl: number = 300000, maxEntries: number = 10_000) {
+    // 5 minutes default, 10k max entries
     this.ttl = ttl
+    this.maxEntries = maxEntries
   }
 
   /**
@@ -610,6 +612,23 @@ export class PermissionCache {
    */
   set(userId: string, resource: string, action: string, allowed: boolean): void {
     const key = this.getCacheKey(userId, resource, action)
+
+    // Evict expired entries when approaching max size
+    if (this.cache.size >= this.maxEntries) {
+      const now = Date.now()
+      for (const [k, v] of this.cache) {
+        if (now > v.expiresAt) this.cache.delete(k)
+      }
+      // If still over limit after purge, drop oldest entries (FIFO via Map insertion order)
+      if (this.cache.size >= this.maxEntries) {
+        const excess = this.cache.size - this.maxEntries + 1
+        const keys = this.cache.keys()
+        for (let i = 0; i < excess; i++) {
+          const next = keys.next()
+          if (!next.done) this.cache.delete(next.value)
+        }
+      }
+    }
 
     this.cache.set(key, {
       allowed,

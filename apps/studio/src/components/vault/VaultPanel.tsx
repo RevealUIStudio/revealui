@@ -1,5 +1,7 @@
 import { useState } from 'react'
 import { useVault } from '../../hooks/use-vault'
+import Button from '../ui/Button'
+import ErrorAlert from '../ui/ErrorAlert'
 import CreateSecretDialog from './CreateSecretDialog'
 import NamespaceFilter from './NamespaceFilter'
 import SearchBar from './SearchBar'
@@ -29,11 +31,7 @@ export default function VaultPanel() {
   const [showCreate, setShowCreate] = useState(false)
 
   if (loading) {
-    return (
-      <div className="flex h-full items-center justify-center">
-        <p className="text-sm text-neutral-500">Loading vault...</p>
-      </div>
-    )
+    return <VaultSkeleton />
   }
 
   if (!initialized) {
@@ -58,14 +56,10 @@ export default function VaultPanel() {
             Initialize the passage-store to start managing secrets
           </p>
         </div>
-        {error && <p className="max-w-sm text-center text-sm text-red-400">{error}</p>}
-        <button
-          type="button"
-          onClick={initStore}
-          className="rounded-md bg-orange-600 px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-orange-500"
-        >
+        <ErrorAlert message={error} className="max-w-sm text-center" />
+        <Button variant="primary" size="lg" onClick={initStore}>
           Initialize Vault
-        </button>
+        </Button>
       </div>
     )
   }
@@ -77,13 +71,9 @@ export default function VaultPanel() {
         <div className="flex-1">
           <SearchBar query={searchQuery} onChange={setSearchQuery} />
         </div>
-        <button
-          type="button"
-          onClick={() => setShowCreate(true)}
-          className="flex items-center gap-2 rounded-md bg-orange-600 px-3 py-2 text-sm font-medium text-white transition-colors hover:bg-orange-500"
-        >
+        <Button variant="primary" onClick={() => setShowCreate(true)}>
           <svg
-            className="size-4"
+            className="mr-1.5 size-4"
             aria-hidden="true"
             fill="none"
             viewBox="0 0 24 24"
@@ -93,14 +83,10 @@ export default function VaultPanel() {
             <path d="M12 5v14M5 12h14" />
           </svg>
           New Secret
-        </button>
+        </Button>
       </div>
 
-      {error && (
-        <div className="rounded-md border border-red-900/50 bg-red-950/30 px-4 py-3 text-sm text-red-400">
-          {error}
-        </div>
-      )}
+      <ErrorAlert message={error} />
 
       {/* Three-column layout: Namespace | List | Detail */}
       <div className="flex flex-1 gap-0 overflow-hidden rounded-lg border border-neutral-800 bg-neutral-950/30">
@@ -127,6 +113,34 @@ export default function VaultPanel() {
       {showCreate && (
         <CreateSecretDialog onConfirm={createSecret} onClose={() => setShowCreate(false)} />
       )}
+    </div>
+  )
+}
+
+function VaultSkeleton() {
+  return (
+    <div className="flex h-full flex-col gap-4">
+      <div className="flex items-center gap-3">
+        <div className="h-9 flex-1 animate-pulse rounded-md bg-neutral-800" />
+        <div className="h-9 w-28 animate-pulse rounded-md bg-neutral-800" />
+      </div>
+      <div className="flex flex-1 overflow-hidden rounded-lg border border-neutral-800 bg-neutral-950/30">
+        <div className="w-44 border-r border-neutral-800 p-3">
+          <div className="space-y-2">
+            {[1, 2, 3].map((i) => (
+              <div key={i} className="h-7 animate-pulse rounded bg-neutral-800/50" />
+            ))}
+          </div>
+        </div>
+        <div className="w-64 border-r border-neutral-800 p-3">
+          <div className="space-y-2">
+            {[1, 2, 3, 4].map((i) => (
+              <div key={i} className="h-10 animate-pulse rounded bg-neutral-800/50" />
+            ))}
+          </div>
+        </div>
+        <div className="flex-1" />
+      </div>
     </div>
   )
 }

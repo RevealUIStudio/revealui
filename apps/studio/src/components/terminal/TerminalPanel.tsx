@@ -1,13 +1,18 @@
 import type { Terminal } from '@xterm/xterm'
-import { useCallback, useRef, useState } from 'react'
+import { useCallback, useEffect, useRef, useState } from 'react'
 import { useSsh } from '../../hooks/use-ssh'
-import type { SshHostKeyEvent } from '../../types'
+import type { SshConnectParams, SshHostKeyEvent } from '../../types'
+import Button from '../ui/Button'
+import ErrorAlert from '../ui/ErrorAlert'
+import StatusDot from '../ui/StatusDot'
 import ConnectForm from './ConnectForm'
 import TerminalView from './TerminalView'
 
 export default function TerminalPanel() {
   const terminalRef = useRef<Terminal | null>(null)
   const [hostKeyInfo, setHostKeyInfo] = useState<SshHostKeyEvent | null>(null)
+  const [lastParams, setLastParams] = useState<SshConnectParams | null>(null)
+  const [connectedAt, setConnectedAt] = useState<number | null>(null)
 
   const handleData = useCallback((data: Uint8Array) => {
     terminalRef.current?.write(data)
@@ -15,6 +20,7 @@ export default function TerminalPanel() {
 
   const handleDisconnect = useCallback((reason: string) => {
     terminalRef.current?.writeln(`\r\n\x1b[33m--- ${reason} ---\x1b[0m`)
+    setConnectedAt(null)
   }, [])
 
   const handleHostKey = useCallback((event: SshHostKeyEvent) => {
@@ -26,6 +32,22 @@ export default function TerminalPanel() {
     onDisconnect: handleDisconnect,
     onHostKey: handleHostKey,
   })
+
+  const handleConnect = useCallback(
+    (params: SshConnectParams) => {
+      setLastParams(params)
+      setConnectedAt(Date.now())
+      connect(params)
+    },
+    [connect],
+  )
+
+  const handleReconnect = useCallback(async () => {
+    if (!lastParams) return
+    await disconnect()
+    setConnectedAt(Date.now())
+    connect(lastParams)
+  }, [lastParams, disconnect, connect])
 
   const handleTerminalData = useCallback(
     (data: string) => {
@@ -46,26 +68,16 @@ export default function TerminalPanel() {
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-3">
           <h1 className="text-xl font-semibold">Terminal</h1>
-          <span
-            className={`inline-block size-2.5 rounded-full ${connected ? 'bg-green-500' : 'bg-neutral-600'}`}
-          />
+          <StatusDot status={connected ? 'ok' : 'off'} size="md" />
         </div>
         {connected && (
-          <button
-            type="button"
-            onClick={disconnect}
-            className="rounded-md bg-neutral-700 px-3 py-1.5 text-sm font-medium text-neutral-200 transition-colors hover:bg-neutral-600"
-          >
+          <Button variant="secondary" onClick={disconnect}>
             Disconnect
-          </button>
+          </Button>
         )}
       </div>
 
-      {error && (
-        <div className="rounded-md border border-red-900/50 bg-red-950/30 px-4 py-3 text-sm text-red-400">
-          {error}
-        </div>
-      )}
+      <ErrorAlert message={error} />
 
       {hostKeyInfo && hostKeyInfo.status !== 'match' && (
         <HostKeyBanner event={hostKeyInfo} onDismiss={() => setHostKeyInfo(null)} />
@@ -75,20 +87,63 @@ export default function TerminalPanel() {
         <div className="mx-auto w-full max-w-md pt-12">
           <div className="rounded-lg border border-neutral-800 bg-neutral-900 p-6">
             <h2 className="mb-4 text-sm font-medium text-neutral-300">SSH Connection</h2>
-            <ConnectForm onConnect={connect} connecting={connecting} />
+            <ConnectForm onConnect={handleConnect} connecting={connecting} />
           </div>
         </div>
       ) : (
-        <div className="min-h-0 flex-1">
-          <TerminalView
-            onData={handleTerminalData}
-            onResize={handleTerminalResize}
-            terminalRef={terminalRef}
-          />
-        </div>
+        <>
+          <div className="min-h-0 flex-1">
+            <TerminalView
+              onData={handleTerminalData}
+              onResize={handleTerminalResize}
+              terminalRef={terminalRef}
+            />
+          </div>
+
+          {/* Connection status strip */}
+          {lastParams && (
+            <div className="flex items-center justify-between rounded-md border border-neutral-800 bg-neutral-900 px-3 py-1.5">
+              <div className="flex items-center gap-2 text-xs text-neutral-400">
+                <StatusDot status="ok" size="sm" />
+                <span className="font-mono">
+                  {lastParams.username}@{lastParams.host}:{lastParams.port}
+                </span>
+                {connectedAt && <SessionTimer startTime={connectedAt} />}
+              </div>
+              <Button variant="ghost" size="sm" onClick={handleReconnect}>
+                Reconnect
+              </Button>
+            </div>
+          )}
+        </>
       )}
     </div>
   )
+}
+
+function SessionTimer({ startTime }: { startTime: number }) {
+  const [elapsed, setElapsed] = useState('')
+
+  // Update every 30s — session duration doesn't need high precision
+  useEffect(() => {
+    const update = () => {
+      const seconds = Math.floor((Date.now() - startTime) / 1000)
+      const minutes = Math.floor(seconds / 60)
+      const hours = Math.floor(minutes / 60)
+      if (hours > 0) {
+        setElapsed(`${hours}h ${minutes % 60}m`)
+      } else if (minutes > 0) {
+        setElapsed(`${minutes}m`)
+      } else {
+        setElapsed(`${seconds}s`)
+      }
+    }
+    update()
+    const id = setInterval(update, 30_000)
+    return () => clearInterval(id)
+  }, [startTime])
+
+  return <span className="text-neutral-500">{elapsed}</span>
 }
 
 function HostKeyBanner({ event, onDismiss }: { event: SshHostKeyEvent; onDismiss: () => void }) {
@@ -106,7 +161,7 @@ function HostKeyBanner({ event, onDismiss }: { event: SshHostKeyEvent; onDismiss
           <p className="font-medium">
             {isMismatch
               ? 'HOST KEY MISMATCH — connection rejected'
-              : `New host added to known_hosts`}
+              : 'New host added to known_hosts'}
           </p>
           <p className="mt-1 font-mono text-xs opacity-80">
             {event.host}:{event.port} ({event.key_type})
@@ -119,13 +174,9 @@ function HostKeyBanner({ event, onDismiss }: { event: SshHostKeyEvent; onDismiss
             </p>
           )}
         </div>
-        <button
-          type="button"
-          onClick={onDismiss}
-          className="shrink-0 text-xs opacity-60 hover:opacity-100"
-        >
+        <Button variant="ghost" size="sm" onClick={onDismiss}>
           dismiss
-        </button>
+        </Button>
       </div>
     </div>
   )

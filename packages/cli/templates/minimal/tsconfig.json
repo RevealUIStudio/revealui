@@ -1,5 +1,5 @@
 {
-  "extends": "@revealui/dev/tsconfig/nextjs.json",
+  "extends": "@revealui/dev/ts/nextjs",
   "compilerOptions": {
     "baseUrl": ".",
     "paths": {

@@ -252,12 +252,18 @@ export class Router {
   }
 
   /**
-   * Initialize client-side routing
+   * Initialize client-side routing.
+   * Uses a global flag to prevent duplicate event listeners on HMR re-invocation.
    */
   initClient(): void {
     if (typeof window === 'undefined') {
       return
     }
+
+    // biome-ignore lint/suspicious/noExplicitAny: global HMR guard
+    const g = globalThis as any
+    if (g.__revealui_router_initialized) return
+    g.__revealui_router_initialized = true
 
     // Handle browser back/forward buttons
     window.addEventListener('popstate', () => {

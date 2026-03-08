@@ -1,5 +1,9 @@
 import { open } from '@tauri-apps/plugin-shell'
+import { useCallback, useEffect, useRef, useState } from 'react'
+import { readAppLog } from '../../lib/invoke'
 import type { AppStatus } from '../../types'
+import Button from '../ui/Button'
+import StatusDot from '../ui/StatusDot'
 
 interface AppCardProps {
   status: AppStatus
@@ -10,57 +14,85 @@ interface AppCardProps {
 
 export default function AppCard({ status, isOperating, onStart, onStop }: AppCardProps) {
   const { app, running } = status
+  const [showLogs, setShowLogs] = useState(false)
+  const [logContent, setLogContent] = useState('')
+  const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null)
+
+  const fetchLog = useCallback(async () => {
+    try {
+      const content = await readAppLog(app.name, 50)
+      setLogContent(content)
+    } catch {
+      setLogContent('[Failed to read log]')
+    }
+  }, [app.name])
+
+  useEffect(() => {
+    if (showLogs && running) {
+      fetchLog()
+      intervalRef.current = setInterval(fetchLog, 3000)
+    }
+    return () => {
+      if (intervalRef.current) {
+        clearInterval(intervalRef.current)
+        intervalRef.current = null
+      }
+    }
+  }, [showLogs, running, fetchLog])
 
   const handleOpen = () => {
     open(app.url)
   }
 
   return (
-    <div className="rounded-lg border border-neutral-800 bg-neutral-900 p-4">
-      <div className="flex items-start justify-between">
-        <div className="flex items-center gap-2">
-          <span
-            className={`inline-block size-2 rounded-full ${running ? 'bg-green-500' : 'bg-neutral-600'}`}
-          />
-          <h3 className="text-sm font-medium">{app.display_name}</h3>
+    <div className="rounded-lg border border-neutral-800 bg-neutral-900">
+      <div className="p-4">
+        <div className="flex items-start justify-between">
+          <div className="flex items-center gap-2">
+            <StatusDot status={running ? 'ok' : 'off'} size="sm" pulse={isOperating} />
+            <h3 className="text-sm font-medium">{app.display_name}</h3>
+          </div>
+          <span className="text-xs text-neutral-500">:{app.port}</span>
         </div>
-        <span className="text-xs text-neutral-500">:{app.port}</span>
+
+        <p className="mt-1 text-xs text-neutral-500">
+          {isOperating
+            ? running
+              ? 'Stopping...'
+              : 'Starting...'
+            : running
+              ? `Running on localhost:${app.port}`
+              : 'Stopped'}
+        </p>
+
+        <div className="mt-3 flex gap-2">
+          {running ? (
+            <>
+              <Button variant="primary" size="sm" onClick={handleOpen}>
+                Open
+              </Button>
+              <Button variant="secondary" size="sm" onClick={onStop} loading={isOperating}>
+                Stop
+              </Button>
+              <Button variant="ghost" size="sm" onClick={() => setShowLogs((s) => !s)}>
+                {showLogs ? 'Hide Logs' : 'Logs'}
+              </Button>
+            </>
+          ) : (
+            <Button variant="secondary" size="sm" onClick={onStart} loading={isOperating}>
+              Start
+            </Button>
+          )}
+        </div>
       </div>
 
-      <p className="mt-1 text-xs text-neutral-500">
-        {running ? `localhost:${app.port}` : 'Stopped'}
-      </p>
-
-      <div className="mt-3 flex gap-2">
-        {running ? (
-          <>
-            <button
-              type="button"
-              onClick={handleOpen}
-              className="rounded px-2.5 py-1 text-xs bg-orange-600 text-white transition-colors hover:bg-orange-500"
-            >
-              Open
-            </button>
-            <button
-              type="button"
-              onClick={onStop}
-              disabled={isOperating}
-              className="rounded px-2.5 py-1 text-xs bg-neutral-700 text-neutral-200 transition-colors hover:bg-neutral-600 disabled:opacity-50"
-            >
-              {isOperating ? 'Stopping...' : 'Stop'}
-            </button>
-          </>
-        ) : (
-          <button
-            type="button"
-            onClick={onStart}
-            disabled={isOperating}
-            className="rounded px-2.5 py-1 text-xs bg-neutral-700 text-neutral-200 transition-colors hover:bg-neutral-600 disabled:opacity-50"
-          >
-            {isOperating ? 'Starting...' : 'Start'}
-          </button>
-        )}
-      </div>
+      {showLogs && running && (
+        <div className="border-t border-neutral-800">
+          <pre className="max-h-48 overflow-y-auto whitespace-pre-wrap p-3 font-mono text-xs text-neutral-400">
+            {logContent || 'No log output yet...'}
+          </pre>
+        </div>
+      )}
     </div>
   )
 }

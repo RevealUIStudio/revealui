@@ -1,43 +1,42 @@
 import { useState } from 'react'
 import { useTunnel } from '../../hooks/use-tunnel'
 import type { TailscalePeer } from '../../types'
+import Button from '../ui/Button'
+import ErrorAlert from '../ui/ErrorAlert'
+import PanelHeader from '../ui/PanelHeader'
+import StatusDot from '../ui/StatusDot'
 
 export default function TunnelPanel() {
   const { status, loading, error, toggling, up, down, refresh } = useTunnel()
 
+  if (loading && !status) {
+    return <TunnelSkeleton />
+  }
+
   return (
     <div className="space-y-6">
-      <div className="flex items-center justify-between">
-        <h1 className="text-xl font-semibold">Tunnel</h1>
-        <button
-          type="button"
-          onClick={refresh}
-          disabled={loading}
-          className="rounded-md bg-neutral-800 px-3 py-1.5 text-sm text-neutral-300 transition-colors hover:bg-neutral-700 disabled:opacity-50"
-        >
-          {loading ? 'Refreshing…' : 'Refresh'}
-        </button>
-      </div>
+      <PanelHeader
+        title="Tunnel"
+        action={
+          <Button variant="secondary" onClick={refresh} loading={loading}>
+            Refresh
+          </Button>
+        }
+      />
 
-      {error && (
-        <div className="rounded-md border border-red-900/50 bg-red-950/30 px-4 py-3 text-sm text-red-400">
-          {error}
-        </div>
-      )}
+      <ErrorAlert message={error} />
 
       {/* Status card */}
       <div className="rounded-lg border border-neutral-800 bg-neutral-900 p-5">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-3">
-            <span
-              className={`inline-block size-2.5 rounded-full ${status?.running ? 'bg-green-500' : 'bg-neutral-600'}`}
-            />
+            <StatusDot status={status?.running ? 'ok' : 'off'} size="md" />
             <div>
               <p className="text-sm font-medium text-neutral-200">
                 Tailscale {status?.running ? 'Connected' : 'Disconnected'}
               </p>
               {status?.running && status.ip && (
-                <p className="mt-0.5 text-xs font-mono text-neutral-400">{status.ip}</p>
+                <p className="mt-0.5 font-mono text-xs text-neutral-400">{status.ip}</p>
               )}
               {status?.running && status.hostname && (
                 <p className="text-xs text-neutral-500">{status.hostname}</p>
@@ -45,22 +44,12 @@ export default function TunnelPanel() {
             </div>
           </div>
           <div className="flex gap-2">
-            <button
-              type="button"
-              onClick={up}
-              disabled={toggling || status?.running}
-              className="rounded-md bg-green-700 px-3 py-1.5 text-sm font-medium text-white transition-colors hover:bg-green-600 disabled:opacity-40"
-            >
+            <Button variant="success" onClick={up} disabled={toggling || status?.running}>
               Connect
-            </button>
-            <button
-              type="button"
-              onClick={down}
-              disabled={toggling || !status?.running}
-              className="rounded-md bg-neutral-700 px-3 py-1.5 text-sm font-medium text-neutral-200 transition-colors hover:bg-neutral-600 disabled:opacity-40"
-            >
+            </Button>
+            <Button variant="secondary" onClick={down} disabled={toggling || !status?.running}>
               Disconnect
-            </button>
+            </Button>
           </div>
         </div>
       </div>
@@ -78,6 +67,24 @@ export default function TunnelPanel() {
           </div>
         </div>
       )}
+
+      {status?.running && status?.peers?.length === 0 && (
+        <p className="text-sm text-neutral-500">No peers connected.</p>
+      )}
+    </div>
+  )
+}
+
+function TunnelSkeleton() {
+  return (
+    <div className="space-y-6">
+      <div className="h-7 w-24 animate-pulse rounded bg-neutral-800" />
+      <div className="h-20 animate-pulse rounded-lg bg-neutral-800/50" />
+      <div className="space-y-2">
+        {[1, 2].map((i) => (
+          <div key={i} className="h-14 animate-pulse rounded-lg bg-neutral-800/50" />
+        ))}
+      </div>
     </div>
   )
 }
@@ -109,25 +116,18 @@ function PeerCard({ peer }: { peer: TailscalePeer }) {
   return (
     <div className="flex items-center justify-between rounded-lg border border-neutral-800 bg-neutral-900 px-4 py-3">
       <div className="flex items-center gap-3">
-        <span
-          className={`inline-block size-2 shrink-0 rounded-full ${peer.online ? 'bg-green-500' : 'bg-neutral-600'}`}
-        />
+        <StatusDot status={peer.online ? 'ok' : 'off'} size="sm" />
         <div>
           <div className="flex items-center gap-2">
             <p className="text-sm font-medium text-neutral-200">{peer.hostname}</p>
             <OsBadge os={peer.os} />
           </div>
-          <p className="mt-0.5 text-xs font-mono text-neutral-500">{peer.ip}</p>
+          <p className="mt-0.5 font-mono text-xs text-neutral-500">{peer.ip}</p>
         </div>
       </div>
-      <button
-        type="button"
-        onClick={copyIp}
-        title="Copy IP address"
-        className="rounded px-2 py-1 text-xs text-neutral-400 transition-colors hover:bg-neutral-800 hover:text-neutral-200"
-      >
+      <Button variant="ghost" size="sm" onClick={copyIp}>
         {copied ? 'Copied!' : 'Copy IP'}
-      </button>
+      </Button>
     </div>
   )
 }

@@ -1,4 +1,7 @@
 import { useStatusContext } from '../../hooks/use-status'
+import Button from '../ui/Button'
+import ErrorAlert from '../ui/ErrorAlert'
+import PanelHeader from '../ui/PanelHeader'
 import ServiceCard from './ServiceCard'
 import TierBadge from './TierBadge'
 
@@ -11,23 +14,16 @@ export default function Dashboard() {
 
   return (
     <div className="space-y-6">
-      <div className="flex items-center justify-between">
-        <h1 className="text-xl font-semibold">Dashboard</h1>
-        <button
-          type="button"
-          onClick={refresh}
-          disabled={loading}
-          className="rounded-md bg-neutral-800 px-3 py-1.5 text-sm text-neutral-300 transition-colors hover:bg-neutral-700 disabled:opacity-50"
-        >
-          {loading ? 'Refreshing...' : 'Refresh'}
-        </button>
-      </div>
+      <PanelHeader
+        title="Dashboard"
+        action={
+          <Button variant="secondary" onClick={refresh} loading={loading}>
+            Refresh
+          </Button>
+        }
+      />
 
-      {error && (
-        <div className="rounded-md border border-red-900/50 bg-red-950/30 px-4 py-3 text-sm text-red-400">
-          {error}
-        </div>
-      )}
+      <ErrorAlert message={error} />
 
       {system && (
         <div className="flex items-center gap-3">

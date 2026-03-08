@@ -28,6 +28,8 @@ interface Room {
   awareness: awarenessProtocol.Awareness
   clients: Map<string, Client>
   persistTimer: ReturnType<typeof setTimeout> | null
+  /** Resolves when the initial document load completes. Prevents sync races. */
+  loadPromise: Promise<void> | null
 }
 
 export interface ServerEdit {
@@ -72,7 +74,7 @@ export function createRoomManager(
     if (!room) {
       const doc = new Y.Doc()
       const awareness = new awarenessProtocol.Awareness(doc)
-      room = { doc, awareness, clients: new Map(), persistTimer: null }
+      room = { doc, awareness, clients: new Map(), persistTimer: null, loadPromise: null }
       rooms.set(documentId, room)
 
       const currentRoom = room
@@ -149,18 +151,24 @@ export function createRoomManager(
 
       room.clients.set(clientId, { id: clientId, send, identity })
 
+      // Ensure the doc is fully loaded before sending syncStep1 to ANY client.
+      // Without this, clients connecting during the initial async load would
+      // receive syncStep1 against an empty doc, causing data loss.
       if (isFirstClient) {
-        persistence.loadDocument(documentId, room.doc).then(() => {
-          const encoder = encoding.createEncoder()
-          encoding.writeVarUint(encoder, MESSAGE_SYNC)
-          syncProtocol.writeSyncStep1(encoder, room.doc)
-          send(encoding.toUint8Array(encoder))
-        })
-      } else {
+        room.loadPromise = persistence.loadDocument(documentId, room.doc)
+      }
+
+      const sendSync = () => {
         const encoder = encoding.createEncoder()
         encoding.writeVarUint(encoder, MESSAGE_SYNC)
         syncProtocol.writeSyncStep1(encoder, room.doc)
         send(encoding.toUint8Array(encoder))
+      }
+
+      if (room.loadPromise) {
+        room.loadPromise.then(sendSync)
+      } else {
+        sendSync()
       }
 
       // Send current awareness states to the new client
@@ -200,6 +208,15 @@ export function createRoomManager(
       } else if (messageType === MESSAGE_AWARENESS) {
         const update = decoding.readVarUint8Array(decoder)
         awarenessProtocol.applyAwarenessUpdate(room.awareness, update, clientId)
+
+        // Track the numeric awareness client ID for this string client ID
+        // so we can clean up awareness state on disconnect.
+        const updateDecoder = decoding.createDecoder(update)
+        const numClients = decoding.readVarUint(updateDecoder)
+        if (numClients > 0) {
+          const awarenessClientId = decoding.readVarUint(updateDecoder)
+          clientAwarenessMap.set(clientId, awarenessClientId)
+        }
       }
     },
 
