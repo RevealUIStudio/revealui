@@ -6,7 +6,7 @@
  * Returns the current authenticated user.
  */
 
-import { getSession } from '@revealui/auth/server'
+import { getLinkedProviders, getSession } from '@revealui/auth/server'
 import { logger } from '@revealui/core/utils/logger'
 import { type NextRequest, NextResponse } from 'next/server'
 import { createApplicationErrorResponse, createErrorResponse } from '@/lib/utils/error-response'
@@ -22,6 +22,18 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
       return createApplicationErrorResponse('Unauthorized', 'UNAUTHORIZED', 401)
     }
 
+    // Fetch linked OAuth providers for the account settings UI
+    let linkedProviders: Array<{
+      provider: string
+      providerEmail: string | null
+      providerName: string | null
+    }> = []
+    try {
+      linkedProviders = await getLinkedProviders(session.user.id)
+    } catch (err) {
+      logger.warn('Failed to fetch linked providers', { userId: session.user.id, error: err })
+    }
+
     return NextResponse.json({
       user: {
         id: session.user.id,
@@ -31,6 +43,12 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
         role: session.user.role,
         status: session.user.status,
         emailVerified: session.user.emailVerified ?? false,
+        linkedProviders: linkedProviders.map((lp) => ({
+          provider: lp.provider,
+          email: lp.providerEmail,
+          name: lp.providerName,
+        })),
+        hasPassword: !!session.user.password,
       },
     })
   } catch (error) {
