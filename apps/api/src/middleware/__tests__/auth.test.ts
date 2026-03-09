@@ -28,6 +28,16 @@ import { errorHandler } from '../error.js'
 
 const mockedGetSession = vi.mocked(getSession)
 
+// biome-ignore lint/suspicious/noExplicitAny: test helper — mock session data with partial fields
+function mockSession(
+  overrides?: Partial<{ user: Record<string, unknown>; session: Record<string, unknown> }>,
+): any {
+  return {
+    user: { id: 'user-1', role: 'admin', email: 'a@b.com', ...overrides?.user },
+    session: { id: 'sess-1', expiresAt: new Date(), ...overrides?.session },
+  }
+}
+
 beforeEach(() => {
   vi.clearAllMocks()
 })
@@ -41,11 +51,7 @@ type TestVariables = { user: any; session: any }
 describe('authMiddleware', () => {
   describe('required: true (default)', () => {
     it('sets user and session when session exists', async () => {
-      const sessionData = {
-        user: { id: 'user-1', role: 'admin', email: 'a@b.com' },
-        session: { id: 'sess-1', expiresAt: new Date() },
-      }
-      mockedGetSession.mockResolvedValue(sessionData)
+      mockedGetSession.mockResolvedValue(mockSession())
 
       const app = new Hono<{ Variables: TestVariables }>()
       app.use('*', authMiddleware())
@@ -89,11 +95,7 @@ describe('authMiddleware', () => {
     })
 
     it('passes request headers to getSession', async () => {
-      const sessionData = {
-        user: { id: 'u1', role: 'admin', email: 'a@b.com' },
-        session: { id: 's1', expiresAt: new Date() },
-      }
-      mockedGetSession.mockResolvedValue(sessionData)
+      mockedGetSession.mockResolvedValue(mockSession({ user: { id: 'u1' }, session: { id: 's1' } }))
 
       const app = new Hono<{ Variables: TestVariables }>()
       app.use('*', authMiddleware({ required: false }))
@@ -111,11 +113,12 @@ describe('authMiddleware', () => {
 
   describe('required: false (optional auth)', () => {
     it('sets user and session when session exists', async () => {
-      const sessionData = {
-        user: { id: 'user-2', role: 'editor', email: 'b@c.com' },
-        session: { id: 'sess-2', expiresAt: new Date() },
-      }
-      mockedGetSession.mockResolvedValue(sessionData)
+      mockedGetSession.mockResolvedValue(
+        mockSession({
+          user: { id: 'user-2', role: 'editor', email: 'b@c.com' },
+          session: { id: 'sess-2' },
+        }),
+      )
 
       const app = new Hono<{ Variables: TestVariables }>()
       app.use('*', authMiddleware({ required: false }))
@@ -144,11 +147,7 @@ describe('authMiddleware', () => {
   })
 
   it('calls next() after setting context', async () => {
-    const sessionData = {
-      user: { id: 'user-1', role: 'admin', email: 'a@b.com' },
-      session: { id: 'sess-1', expiresAt: new Date() },
-    }
-    mockedGetSession.mockResolvedValue(sessionData)
+    mockedGetSession.mockResolvedValue(mockSession())
 
     const nextSpy = vi.fn()
     const app = new Hono<{ Variables: TestVariables }>()
@@ -178,10 +177,7 @@ describe('requireRole', () => {
   }
 
   it('allows user with matching role', async () => {
-    mockedGetSession.mockResolvedValue({
-      user: { id: 'u1', role: 'admin', email: 'a@b.com' },
-      session: { id: 's1', expiresAt: new Date() },
-    })
+    mockedGetSession.mockResolvedValue(mockSession())
 
     const app = createApp('admin', 'editor')
     const res = await app.request('/test')
@@ -190,10 +186,7 @@ describe('requireRole', () => {
   })
 
   it('returns 403 when user role is not in allowed list', async () => {
-    mockedGetSession.mockResolvedValue({
-      user: { id: 'u1', role: 'viewer', email: 'a@b.com' },
-      session: { id: 's1', expiresAt: new Date() },
-    })
+    mockedGetSession.mockResolvedValue(mockSession({ user: { role: 'viewer' } }))
 
     const app = createApp('admin', 'editor')
     const res = await app.request('/test')
@@ -213,10 +206,7 @@ describe('requireRole', () => {
   })
 
   it('accepts single role', async () => {
-    mockedGetSession.mockResolvedValue({
-      user: { id: 'u1', role: 'editor', email: 'a@b.com' },
-      session: { id: 's1', expiresAt: new Date() },
-    })
+    mockedGetSession.mockResolvedValue(mockSession({ user: { role: 'editor' } }))
 
     const app = createApp('editor')
     const res = await app.request('/test')
@@ -225,10 +215,7 @@ describe('requireRole', () => {
   })
 
   it('checks exact role match (no partial matching)', async () => {
-    mockedGetSession.mockResolvedValue({
-      user: { id: 'u1', role: 'admin-viewer', email: 'a@b.com' },
-      session: { id: 's1', expiresAt: new Date() },
-    })
+    mockedGetSession.mockResolvedValue(mockSession({ user: { role: 'admin-viewer' } }))
 
     const app = createApp('admin')
     const res = await app.request('/test')
