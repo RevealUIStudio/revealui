@@ -12,9 +12,9 @@ export function NavBar() {
   const [open, setOpen] = useState(false)
 
   return (
-    <header className="sticky top-0 z-50 bg-white/80 backdrop-blur-sm border-b border-gray-100">
+    <header className="sticky top-0 z-50 bg-white/80 backdrop-blur-md border-b border-gray-950/5">
       <nav className="mx-auto max-w-7xl px-6 lg:px-8 flex items-center justify-between h-16">
-        <Link href="/" className="text-xl font-bold text-gray-900">
+        <Link href="/" className="text-xl font-bold tracking-tight text-gray-950">
           RevealUI
         </Link>
 
@@ -46,7 +46,7 @@ export function NavBar() {
         <div className="flex items-center gap-3">
           <a
             href="/#waitlist"
-            className="rounded-lg bg-blue-600 px-5 py-2 text-sm font-semibold text-white hover:bg-blue-500 transition-colors"
+            className="rounded-lg bg-gray-950 px-5 py-2 text-sm font-semibold text-white hover:bg-gray-800 transition-colors"
           >
             Get Early Access
           </a>

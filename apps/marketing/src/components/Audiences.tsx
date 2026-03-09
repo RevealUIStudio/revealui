@@ -3,20 +3,22 @@ export function Audiences() {
     <section className="py-24 bg-white sm:py-32">
       <div className="mx-auto max-w-7xl px-6 lg:px-8">
         <div className="mx-auto max-w-2xl text-center">
-          <h2 className="text-base font-semibold leading-7 text-blue-600">Who it's for</h2>
-          <p className="mt-2 text-3xl font-bold tracking-tight text-gray-900 sm:text-4xl">
+          <p className="text-sm font-semibold uppercase tracking-widest text-gray-400">
+            Who it&apos;s for
+          </p>
+          <p className="mt-3 text-3xl font-bold tracking-tight text-gray-950 sm:text-4xl">
             Built for builders at every stage
           </p>
-          <p className="mt-6 text-lg leading-8 text-gray-600">
-            Whether you're starting from scratch or retrofitting a product you already ship,
+          <p className="mt-6 text-lg leading-8 text-gray-500">
+            Whether you&apos;re starting from scratch or retrofitting a product you already ship,
             RevealUI gives you the business layer — without the years it takes to build it.
           </p>
         </div>
 
         <div className="mx-auto mt-16 grid max-w-2xl grid-cols-1 gap-8 lg:max-w-none lg:grid-cols-2">
           {/* Card 1: Existing products */}
-          <div className="flex flex-col rounded-2xl bg-white p-8 shadow-sm ring-1 ring-gray-200">
-            <div className="mb-6 flex h-12 w-12 items-center justify-center rounded-xl bg-indigo-600 shadow-sm">
+          <div className="group flex flex-col rounded-2xl bg-white p-8 shadow-sm ring-1 ring-gray-950/5 hover:ring-gray-950/10 transition-all">
+            <div className="mb-6 flex h-12 w-12 items-center justify-center rounded-xl bg-gray-950 shadow-sm">
               <svg
                 className="h-6 w-6 text-white"
                 fill="none"
@@ -32,23 +34,23 @@ export function Audiences() {
                 />
               </svg>
             </div>
-            <h3 className="text-xl font-semibold leading-7 text-gray-900">
+            <h3 className="text-xl font-semibold leading-7 text-gray-950">
               Retrofit your existing product
             </h3>
-            <p className="mt-4 text-base leading-7 text-gray-600">
-              Already shipping but missing the business layer? RevealUI's packages are modular —
-              drop in what you need without rebuilding what you have.
+            <p className="mt-4 text-base leading-7 text-gray-500">
+              Already shipping but missing the business layer? RevealUI&apos;s packages are modular
+              — drop in what you need without rebuilding what you have.
             </p>
-            <ul className="mt-6 space-y-3 text-sm leading-6 text-gray-600">
+            <ul className="mt-6 space-y-3 text-sm leading-6 text-gray-500">
               {[
                 'Add billing and subscriptions without touching your core app',
                 'Layer proper auth, RBAC, and sessions on top of what you ship',
-                'Give your team a CMS so they can publish without you',
+                'Plug in a content engine so your team publishes without you',
                 'Add AI agents your product can run as background workflows',
               ].map((item) => (
                 <li key={item} className="flex items-start gap-3">
                   <svg
-                    className="mt-0.5 h-4 w-4 flex-shrink-0 text-indigo-500"
+                    className="mt-0.5 h-4 w-4 flex-shrink-0 text-emerald-500"
                     fill="currentColor"
                     viewBox="0 0 20 20"
                   >
@@ -63,17 +65,20 @@ export function Audiences() {
                 </li>
               ))}
             </ul>
-            <p className="mt-6 text-sm text-gray-500">
+            <p className="mt-6 text-sm text-gray-400">
               Pick the packages you need.{' '}
-              <a href="https://docs.revealui.com" className="text-indigo-600 hover:text-indigo-500">
-                See the full package list →
+              <a
+                href="https://docs.revealui.com"
+                className="text-gray-950 hover:text-gray-700 font-medium"
+              >
+                See the full package list &rarr;
               </a>
             </p>
           </div>
 
-          {/* Card 2: Non-technical users */}
-          <div className="flex flex-col rounded-2xl bg-white p-8 shadow-sm ring-1 ring-gray-200">
-            <div className="mb-6 flex h-12 w-12 items-center justify-center rounded-xl bg-green-600 shadow-sm">
+          {/* Card 2: Start fresh */}
+          <div className="group flex flex-col rounded-2xl bg-white p-8 shadow-sm ring-1 ring-gray-950/5 hover:ring-gray-950/10 transition-all">
+            <div className="mb-6 flex h-12 w-12 items-center justify-center rounded-xl bg-emerald-600 shadow-sm">
               <svg
                 className="h-6 w-6 text-white"
                 fill="none"
@@ -81,40 +86,49 @@ export function Audiences() {
                 strokeWidth={1.5}
                 stroke="currentColor"
               >
-                <title>Sparkles</title>
+                <title>Rocket</title>
                 <path
                   strokeLinecap="round"
                   strokeLinejoin="round"
-                  d="M9.813 15.904 9 18.75l-.813-2.846a4.5 4.5 0 0 0-3.09-3.09L2.25 12l2.846-.813a4.5 4.5 0 0 0 3.09-3.09L9 5.25l.813 2.846a4.5 4.5 0 0 0 3.09 3.09L15.75 12l-2.846.813a4.5 4.5 0 0 0-3.09 3.09Z"
+                  d="M15.59 14.37a6 6 0 0 1-5.84 7.38v-4.8m5.84-2.58a14.98 14.98 0 0 0 6.16-12.12A14.98 14.98 0 0 0 9.631 8.41m5.96 5.96a14.926 14.926 0 0 1-5.841 2.58m-.119-8.54a6 6 0 0 0-7.381 5.84h4.8m2.581-5.84a14.927 14.927 0 0 0-2.58 5.84m2.699 2.7c-.103.021-.207.041-.311.06a15.09 15.09 0 0 1-2.448-2.448 14.9 14.9 0 0 1 .06-.312m-2.24 2.39a4.493 4.493 0 0 0-1.757 4.306 4.493 4.493 0 0 0 4.306-1.758M16.5 9a1.5 1.5 0 1 1-3 0 1.5 1.5 0 0 1 3 0Z"
                 />
               </svg>
             </div>
-            <h3 className="text-xl font-semibold leading-7 text-gray-900">No code required</h3>
+            <h3 className="text-xl font-semibold leading-7 text-gray-950">
+              Start fresh with everything
+            </h3>
 
             <div className="mt-4">
-              <span className="inline-flex items-center rounded-full bg-green-50 px-2.5 py-0.5 text-xs font-semibold text-green-700 ring-1 ring-inset ring-green-200">
-                Available now
-              </span>
-              <p className="mt-3 text-base leading-7 text-gray-600">
-                The RevealUI admin dashboard is live today. Non-technical team members can manage
-                content, users, products, media, and billing — no code, no deployments, no waiting
-                for a developer.
+              <p className="text-base leading-7 text-gray-500">
+                One CLI command gives you a complete business stack: auth, content, billing, admin
+                dashboard, REST API, and deployment config. Skip the months of infrastructure work
+                and ship your product on day one.
               </p>
-              <a
-                href="https://docs.revealui.com/docs/CMS_GUIDE"
-                className="mt-4 inline-flex items-center gap-1.5 text-sm font-medium text-green-700 hover:text-green-600"
-              >
-                See the CMS guide →
-              </a>
             </div>
 
-            <div className="mt-8 border-t border-gray-100 pt-6">
-              <p className="text-sm text-gray-500">
-                More no-code tooling is on the roadmap.{' '}
-                <a href="/#waitlist" className="text-green-700 hover:text-green-600 font-medium">
-                  Join the list to follow along →
-                </a>
-              </p>
+            <div className="mt-6 rounded-xl bg-gray-950 px-5 py-4 font-mono text-sm">
+              <div className="flex items-center gap-2">
+                <span className="select-none text-gray-500">$</span>
+                <span className="text-emerald-400">npx</span>
+                <span className="text-white">create-revealui</span>
+                <span className="text-blue-300">my-saas</span>
+              </div>
+              <div className="mt-2 text-gray-500 text-xs leading-5">
+                <div>&#x2713; Auth + sessions + RBAC</div>
+                <div>&#x2713; Stripe billing + webhooks</div>
+                <div>&#x2713; Content collections + REST API</div>
+                <div>&#x2713; Admin dashboard</div>
+                <div>&#x2713; Ready to deploy</div>
+              </div>
+            </div>
+
+            <div className="mt-6 border-t border-gray-100 pt-6">
+              <a
+                href="https://docs.revealui.com/docs/QUICK_START"
+                className="inline-flex items-center gap-1.5 text-sm font-medium text-emerald-700 hover:text-emerald-600"
+              >
+                Quick start guide &rarr;
+              </a>
             </div>
           </div>
         </div>
