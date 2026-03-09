@@ -10,6 +10,8 @@ interface ImportMetaEnv {
   readonly DATABASE_URL: string
   readonly NEXT_PUBLIC_SERVER_URL: string
   readonly API_URL: string
+  readonly REVEALUI_DRAFT_SECRET: string
+  readonly VITE_STRIPE_IS_TEST_KEY: string
 }
 
 interface ImportMeta {

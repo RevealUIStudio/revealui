@@ -73,7 +73,7 @@ async function initializeCMSTools(deps: NonNullable<Awaited<ReturnType<typeof lo
   try {
     // Create CMS tools with API client and config
     const cmsTools = deps.createCMSTools({
-      apiClient: apiClient as Record<string, unknown>,
+      apiClient: apiClient as unknown as Parameters<typeof deps.createCMSTools>[0]['apiClient'],
       collections: config.collections?.map(
         (c): { slug: string; label: string; description: string } => ({
           slug: String(c.slug),
@@ -90,9 +90,9 @@ async function initializeCMSTools(deps: NonNullable<Awaited<ReturnType<typeof lo
     })
 
     // Register all CMS tools
-    cmsTools.forEach((tool: { name: string }) => {
+    for (const tool of cmsTools) {
       registry.register(tool)
-    })
+    }
 
     logger.info('CMS tools initialized', {
       toolCount: cmsTools.length,
@@ -300,7 +300,9 @@ export async function POST(request: NextRequest) {
       // Check if LLM wants to use tools
       if (chatResp.toolCalls && chatResp.toolCalls.length > 0) {
         logger.info('LLM requested tool calls', {
-          toolCalls: chatResp.toolCalls.map((tc) => tc.function.name),
+          toolCalls: chatResp.toolCalls.map(
+            (tc: { function: { name: string } }) => tc.function.name,
+          ),
         })
 
         // Add assistant message with tool calls to conversation

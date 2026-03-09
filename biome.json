@@ -127,7 +127,8 @@
       },
       "performance": {
         "noAccumulatingSpread": "warn",
-        "noDelete": "error"
+        "noDelete": "error",
+        "noImgElement": "warn"
       },
       "security": {
         "noDangerouslySetInnerHtml": "warn",

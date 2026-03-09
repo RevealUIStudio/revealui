@@ -91,7 +91,15 @@ app.post('/', async (c) => {
     c.req.raw.signal?.addEventListener('abort', () => controller.abort())
 
     try {
-      for await (const chunk of runtime.streamTask(agent, task, llmClient, controller.signal)) {
+      // llmClient is typed as unknown because it comes from dynamically imported Pro packages;
+      // the runtime type is LLMClient when present.
+      type StreamTaskParams = Parameters<typeof runtime.streamTask>
+      for await (const chunk of runtime.streamTask(
+        agent,
+        task,
+        llmClient as StreamTaskParams[2],
+        controller.signal,
+      )) {
         await stream.writeSSE({
           data: JSON.stringify(chunk),
           event: chunk.type,

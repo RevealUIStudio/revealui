@@ -28,7 +28,7 @@ vi.mock('../x402.js', () => ({
     currency: 'USDC',
   })),
   encodePaymentRequired: vi.fn(() => 'base64-encoded-payment-required'),
-  verifyPayment: vi.fn(async () => ({ valid: false })),
+  verifyPayment: vi.fn(async () => ({ valid: false, error: 'Not verified' })),
 }))
 
 import { isFeatureEnabled } from '@revealui/core/features'
@@ -133,9 +133,11 @@ describe('requireLicense — x402', () => {
     mockedGetX402Config.mockReturnValue({
       enabled: true,
       receivingAddress: '0x1234',
-      pricePerTask: 0.001,
+      pricePerTask: '0.001',
       network: 'base-sepolia',
       facilitatorUrl: 'https://x402.org/facilitator',
+      usdcAsset: '0xUSDC',
+      maxTimeoutSeconds: 300,
     } as ReturnType<typeof getX402Config>)
   })
 
@@ -169,7 +171,7 @@ describe('requireLicense — x402', () => {
 
   it('returns 402 when x402 payment header is invalid', async () => {
     mockedIsLicensed.mockReturnValue(false)
-    mockedVerifyPayment.mockResolvedValue({ valid: false })
+    mockedVerifyPayment.mockResolvedValue({ valid: false, error: 'Invalid payment' })
 
     const app = createApp(requireLicense('pro'))
     const res = await app.request('/protected/resource', {
@@ -240,9 +242,11 @@ describe('requireFeature — x402', () => {
     mockedGetX402Config.mockReturnValue({
       enabled: true,
       receivingAddress: '0x1234',
-      pricePerTask: 0.001,
+      pricePerTask: '0.001',
       network: 'base-sepolia',
       facilitatorUrl: 'https://x402.org/facilitator',
+      usdcAsset: '0xUSDC',
+      maxTimeoutSeconds: 300,
     } as ReturnType<typeof getX402Config>)
   })
 
@@ -274,7 +278,7 @@ describe('requireFeature — x402', () => {
 
   it('returns 402 when feature payment is invalid', async () => {
     mockedIsFeatureEnabled.mockReturnValue(false)
-    mockedVerifyPayment.mockResolvedValue({ valid: false })
+    mockedVerifyPayment.mockResolvedValue({ valid: false, error: 'Invalid payment' })
 
     const app = createApp(requireFeature('ai'))
     const res = await app.request('/protected/resource', {
