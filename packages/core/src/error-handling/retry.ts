@@ -118,12 +118,12 @@ export function calculateDelay(
   }
 
   if (jitter) {
-    // Add random jitter (±25%)
+    // Add random jitter (±25%), clamped to maxDelay
     const jitterAmount = delay * 0.25
     delay = delay + (Math.random() * jitterAmount * 2 - jitterAmount)
   }
 
-  return Math.floor(delay)
+  return Math.floor(Math.min(delay, maxDelay))
 }
 
 /**
