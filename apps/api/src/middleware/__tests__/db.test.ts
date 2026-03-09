@@ -52,7 +52,8 @@ describe('dbMiddleware', () => {
 
   it('provides the same client returned by getClient', async () => {
     const customDb = { custom: true }
-    mockedGetClient.mockReturnValue(customDb)
+    // biome-ignore lint/suspicious/noExplicitAny: test mock — partial DB shape
+    mockedGetClient.mockReturnValue(customDb as any)
 
     // biome-ignore lint/suspicious/noExplicitAny: test helper
     const app = new Hono<{ Variables: { db: any } }>()

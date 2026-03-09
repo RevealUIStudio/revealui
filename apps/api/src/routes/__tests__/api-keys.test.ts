@@ -89,7 +89,8 @@ function createApp(user?: MockUser) {
   return app
 }
 
-function jsonPost(app: Hono, path: string, body: unknown) {
+// biome-ignore lint/suspicious/noExplicitAny: test helper — Hono generics vary per test
+function jsonPost(app: Hono<any>, path: string, body: unknown) {
   return app.request(path, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
