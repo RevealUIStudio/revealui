@@ -173,7 +173,7 @@ describe('SwitchGroup', () => {
   })
 
   it('should have data-slot="control"', () => {
-    const { container } = render(
+    render(
       <SwitchGroup data-testid="group">
         <span>Content</span>
       </SwitchGroup>,

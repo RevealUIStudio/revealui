@@ -27,7 +27,7 @@
  */
 
 import { spawnSync } from 'node:child_process'
-import { access, readFile, writeFile } from 'node:fs/promises'
+import { readFile, writeFile } from 'node:fs/promises'
 import { homedir } from 'node:os'
 import { join } from 'node:path'
 
@@ -49,8 +49,7 @@ const log = {
 // ---------------------------------------------------------------------------
 
 const REVVAULT_BIN = join(homedir(), '.local/bin/revvault')
-const REVVAULT_IDENTITY =
-  process.env['REVVAULT_IDENTITY'] ?? join(homedir(), '.config/age/keys.txt')
+const REVVAULT_IDENTITY = process.env.REVVAULT_IDENTITY ?? join(homedir(), '.config/age/keys.txt')
 const REVVAULT_SECRET_PATH = 'revealui/env/reveal-saas-dev-secrets'
 
 /**
@@ -200,7 +199,7 @@ async function main(): Promise<void> {
   let missing = 0
 
   // npm.org token
-  const npmToken = secrets['NPM_TOKEN']
+  const npmToken = secrets.NPM_TOKEN
   if (npmToken && npmToken.length > 10) {
     await writeNpmToken(npmToken)
     log.success(`NPM_TOKEN → ~/.npmrc (//registry.npmjs.org/:_authToken)`)
@@ -212,7 +211,7 @@ async function main(): Promise<void> {
   }
 
   // GitHub Packages token (for installing Pro packages)
-  const githubToken = secrets['GITHUB_TOKEN']
+  const githubToken = secrets.GITHUB_TOKEN
   if (githubToken && githubToken.length > 10) {
     await writeGitHubToken(githubToken)
     log.success(`GITHUB_TOKEN → ~/.npmrc (//npm.pkg.github.com/:_authToken)`)

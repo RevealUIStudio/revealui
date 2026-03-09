@@ -43,7 +43,9 @@ const DEFAULT_CONFIG: Required<RetryConfig> = {
     // Retry all other errors by default (network errors, 5xx, generic errors)
     return true
   },
-  onRetry: () => {},
+  onRetry: () => {
+    // No-op default — consumers override via config
+  },
 }
 
 /**

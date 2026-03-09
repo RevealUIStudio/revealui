@@ -82,7 +82,7 @@ export interface ParsedArgs {
   /** Whether help was requested */
   help: boolean
   /** Raw argv for debugging */
-  _raw: string[]
+  raw: string[]
 }
 
 export interface ArgParser {
@@ -115,7 +115,7 @@ export function parseArgs(argv: string[], config: ParserConfig): ParsedArgs {
     positional: [],
     flags: {},
     help: false,
-    _raw: argv,
+    raw: argv,
   }
 
   // Build lookup maps for flags

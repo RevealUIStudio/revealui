@@ -18,7 +18,6 @@ import {
   SidebarHeading,
   SidebarItem,
   SidebarLabel,
-  SidebarSection,
   SidebarSpacer,
 } from '../../components/sidebar.js'
 

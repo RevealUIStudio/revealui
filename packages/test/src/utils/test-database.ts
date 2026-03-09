@@ -8,6 +8,7 @@ import fs from 'node:fs'
 import { universalPostgresAdapter } from '@revealui/core'
 import type { DatabaseAdapter } from '@revealui/core/types'
 
+// biome-ignore lint/style/useNamingConvention: internal test property convention
 type TestDatabaseAdapter = DatabaseAdapter & { __testDbPath?: string }
 
 let testDb: TestDatabaseAdapter | null = null
@@ -24,6 +25,7 @@ export async function setupTestDatabase(dbPath?: string): Promise<DatabaseAdapte
   // Provide a simple compatibility wrapper that converts '?' placeholders to $1, $2, ...
   const base = universalPostgresAdapter({ provider: 'electric' })
 
+  // biome-ignore lint/style/useNamingConvention: internal test property convention
   const compat: DatabaseAdapter & { __testDbPath?: string; close?: () => Promise<void> } = {
     async init() {
       // no-op for pglite

@@ -43,6 +43,7 @@ function cycleStart(): Date {
 }
 
 export async function requireTaskQuota(
+  // biome-ignore lint/style/useNamingConvention: Hono generic parameter convention
   c: Context<{ Variables: { user: UserContext | undefined } }>,
   next: Next,
   // biome-ignore lint/suspicious/noConfusingVoidType: Hono middleware must return Response | void

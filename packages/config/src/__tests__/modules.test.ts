@@ -67,7 +67,6 @@ describe('config modules', () => {
 
     it('falls back to DATABASE_URL', () => {
       const env = makeEnv()
-      // biome-ignore lint/performance/noDelete: test requires deleting the key
       delete (env as Record<string, unknown>).POSTGRES_URL
       ;(env as Record<string, unknown>).DATABASE_URL = 'postgresql://fallback:5432/db'
       const config = getDatabaseConfig(env)
@@ -76,7 +75,6 @@ describe('config modules', () => {
 
     it('falls back to SUPABASE_DATABASE_URI', () => {
       const env = makeEnv()
-      // biome-ignore lint/performance/noDelete: test requires deleting the key
       delete (env as Record<string, unknown>).POSTGRES_URL
       ;(env as Record<string, unknown>).SUPABASE_DATABASE_URI = 'postgresql://supabase:5432/db'
       const config = getDatabaseConfig(env)
@@ -85,7 +83,6 @@ describe('config modules', () => {
 
     it('returns empty string when no DB URL set', () => {
       const env = makeEnv()
-      // biome-ignore lint/performance/noDelete: test requires deleting the key
       delete (env as Record<string, unknown>).POSTGRES_URL
       const config = getDatabaseConfig(env)
       expect(config.url).toBe('')
@@ -283,7 +280,6 @@ describe('MCP config', () => {
     }
   })
 
-  // biome-ignore lint/suspicious/noMisplacedAssertion: afterEach restore is not an assertion
   afterEach(() => {
     process.env = { ...originalEnv }
   })

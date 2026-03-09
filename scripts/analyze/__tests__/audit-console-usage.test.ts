@@ -38,8 +38,6 @@ describe('Console Usage Audit (AST-based)', () => {
       )
 
       const matches: string[] = []
-      const _lines = content.split('\n')
-
       function findConsole(node: ts.Node) {
         if (ts.isPropertyAccessExpression(node)) {
           const expr = node.expression
@@ -47,7 +45,6 @@ describe('Console Usage Audit (AST-based)', () => {
             const methodName = node.name.text
             const parent = node.parent
             if (parent && ts.isCallExpression(parent)) {
-              const { line } = sourceFile.getLineAndCharacterOfPosition(node.getStart())
               matches.push(methodName)
             }
           }

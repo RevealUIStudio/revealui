@@ -1672,7 +1672,7 @@ Reusable UI components used throughout the CMS.
 
 17. **RevealUIRedirects** (`RevealUIRedirects/index.tsx`)
     - **Purpose**: RevealUI redirect management
-    - **Note**: Previously named `PayloadRedirects` (legacy name from Payload CMS)
+    - **Note**: Handles server-side redirects for RevealUI routes
 
 19. **RichText** (`RichText/`)
     - **Purpose**: Rich text editor/display

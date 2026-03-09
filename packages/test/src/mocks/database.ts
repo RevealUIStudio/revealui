@@ -7,6 +7,7 @@
 import type { DatabaseAdapter, DatabaseResult, RevealDocument } from '@revealui/core/types'
 
 type MockDatabaseAdapter = DatabaseAdapter & {
+  // biome-ignore lint/style/useNamingConvention: internal mock storage convention
   __mockData?: Record<string, unknown[]>
   close?: () => Promise<void>
   transaction?: (callback: () => Promise<unknown>) => Promise<void>
@@ -17,6 +18,7 @@ type MockDatabaseAdapter = DatabaseAdapter & {
  */
 export function createMockDatabase(): DatabaseAdapter {
   const mockDb: MockDatabaseAdapter = {
+    // biome-ignore lint/style/useNamingConvention: internal mock storage convention
     __mockData: {},
     init(): Promise<void> {
       // Mock initialization

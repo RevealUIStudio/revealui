@@ -47,6 +47,8 @@ export function createDbLogHandler(app: string): (entry: LogEntry) => void {
         userId: entry.context?.userId ?? null,
         data: Object.keys(data).length > 0 ? data : null,
       })
-      .catch(() => {}) // never throw back to the logger
+      .catch(() => {
+        // Intentionally empty — never throw back to the logger
+      })
   }
 }

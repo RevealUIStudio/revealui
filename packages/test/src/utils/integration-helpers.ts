@@ -15,7 +15,9 @@ import type { DatabaseAdapter, RevealDataObject } from '@revealui/core/types'
 
 type SqlitePragmaRow = { name?: string; file?: string }
 type TestDatabaseAdapter = DatabaseAdapter & {
+  // biome-ignore lint/style/useNamingConvention: internal test property convention
   __testDbPath?: string
+  // biome-ignore lint/style/useNamingConvention: internal test property convention
   __db?: {
     pragma?: (command: string) => SqlitePragmaRow[]
   }
@@ -92,8 +94,8 @@ export async function setupTestDatabase(): Promise<TestDatabaseAdapter> {
     // Store cleanup path reference for compatibility
     testDatabase.__testDbPath = dbPath
 
-    console.log(
-      `[TEST DB] Created test database adapter (electric/pglite) at: ${dbPath} (PID: ${process.pid})`,
+    process.stdout.write(
+      `[TEST DB] Created test database adapter (electric/pglite) at: ${dbPath} (PID: ${process.pid})\n`,
     )
 
     return testDatabase
