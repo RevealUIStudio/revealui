@@ -1,6 +1,5 @@
 'use client'
 
-import Link from 'next/link'
 import { useEffect, useState } from 'react'
 import { LicenseGate } from '@/lib/components/LicenseGate'
 
@@ -81,18 +80,6 @@ export default function ApiKeysPage() {
   return (
     <LicenseGate feature="ai">
       <div className="min-h-screen">
-        {/* Breadcrumb header */}
-        <div className="flex items-center gap-3 border-b border-zinc-800 bg-zinc-900 px-6 py-4">
-          <Link
-            href="/admin/agents"
-            className="text-sm text-zinc-500 transition-colors hover:text-zinc-300"
-          >
-            Agents
-          </Link>
-          <span className="text-zinc-700">/</span>
-          <span className="text-sm text-white">API Keys</span>
-        </div>
-
         <div className="p-6 max-w-lg">
           {/* Status banner */}
           {currentProvider && (
