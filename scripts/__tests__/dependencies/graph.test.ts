@@ -25,6 +25,16 @@ vi.mock('../../lib/logger.js', () => ({
 import type { GraphFormat } from '../../commands/info/deps-graph.js'
 import { generateDependencyGraph } from '../../commands/info/deps-graph.js'
 
+interface GraphEdge {
+  type: string
+  to: string
+  from: string
+}
+
+interface GraphNode {
+  path: string
+}
+
 describe('Dependency Graph Generator', () => {
   const testDir = join(process.cwd(), '.test-dep-graph')
   const scriptsDir = join(testDir, 'scripts')
@@ -406,8 +416,8 @@ import path from 'node:path'
       })
 
       const graph = JSON.parse(result)
-      const fileEdges = graph.edges.filter((e: any) => e.type === 'file')
-      const packageEdges = graph.edges.filter((e: any) => e.type === 'package')
+      const fileEdges = graph.edges.filter((e: GraphEdge) => e.type === 'file')
+      const packageEdges = graph.edges.filter((e: GraphEdge) => e.type === 'package')
 
       expect(fileEdges.length).toBeGreaterThan(0)
       expect(packageEdges.length).toBe(0)
@@ -445,7 +455,7 @@ import path from 'node:path'
       const edges = graph.edges
 
       // Should only have file edges
-      expect(edges.every((e: any) => e.type === 'file')).toBe(true)
+      expect(edges.every((e: GraphEdge) => e.type === 'file')).toBe(true)
     })
   })
 
@@ -484,8 +494,8 @@ import path from 'node:path'
 
       const graph = JSON.parse(result)
       // Nodes should have path information
-      expect(graph.nodes.some((n: any) => n.path.includes('cli'))).toBe(true)
-      expect(graph.nodes.some((n: any) => n.path.includes('lib'))).toBe(true)
+      expect(graph.nodes.some((n: GraphNode) => n.path.includes('cli'))).toBe(true)
+      expect(graph.nodes.some((n: GraphNode) => n.path.includes('lib'))).toBe(true)
     })
 
     it('should group by type', () => {
@@ -515,8 +525,8 @@ import path from 'node:path'
 
       const graph = JSON.parse(result)
       // Edges should be categorized by type
-      const fileEdges = graph.edges.filter((e: any) => e.type === 'file')
-      const packageEdges = graph.edges.filter((e: any) => e.type === 'package')
+      const fileEdges = graph.edges.filter((e: GraphEdge) => e.type === 'file')
+      const packageEdges = graph.edges.filter((e: GraphEdge) => e.type === 'package')
 
       expect(fileEdges.length + packageEdges.length).toBe(graph.edges.length)
     })
@@ -615,7 +625,7 @@ import path from 'node:path'
       expect(graph.nodes.length).toBe(4)
 
       // D should be referenced by both B and C
-      const edgesToD = graph.edges.filter((e: any) => e.to.includes('d.ts'))
+      const edgesToD = graph.edges.filter((e: GraphEdge) => e.to.includes('d.ts'))
       expect(edgesToD.length).toBeGreaterThanOrEqual(2)
     })
 

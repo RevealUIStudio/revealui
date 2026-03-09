@@ -57,6 +57,7 @@ export function Avatar({
           </text>
         </svg>
       )}
+      {/* biome-ignore lint/performance/noImgElement: generic React component, not Next.js */}
       {src && <img className="size-full" src={src} alt={alt} />}
     </span>
   )

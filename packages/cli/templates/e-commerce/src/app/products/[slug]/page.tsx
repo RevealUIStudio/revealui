@@ -1,3 +1,5 @@
+import Image from 'next/image'
+
 const API_URL = process.env.NEXT_PUBLIC_SERVER_URL || 'http://localhost:4000'
 
 interface Product {
@@ -53,9 +55,11 @@ export default async function ProductPage({ params }: { params: Promise<{ slug: 
       </nav>
       <div className="grid grid-cols-1 gap-8 md:grid-cols-2">
         {product.image?.url && (
-          <img
+          <Image
             src={product.image.url}
             alt={product.image.alt || product.name}
+            width={600}
+            height={600}
             className="aspect-square w-full rounded-lg object-cover"
           />
         )}

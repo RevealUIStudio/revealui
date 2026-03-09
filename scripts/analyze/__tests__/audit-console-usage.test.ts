@@ -274,7 +274,7 @@ describe('Console Usage Audit (AST-based)', () => {
       const originalSplit = String.prototype.split
 
       // Count split() calls
-      String.prototype.split = function (...args: any[]) {
+      String.prototype.split = function (...args: [string | RegExp, number?]) {
         _splitCallCount++
         return originalSplit.apply(this, args)
       }

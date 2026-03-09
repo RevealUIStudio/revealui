@@ -52,7 +52,7 @@ describe('Retry Logic', () => {
   it('should not retry non-retryable errors', async () => {
     const fn = vi.fn(async () => {
       const error = new Error('Non-retryable')
-      ;(error as any).statusCode = 400
+      Object.assign(error, { statusCode: 400 })
       throw error
     })
 

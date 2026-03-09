@@ -386,78 +386,85 @@ export class DataDeletionSystem {
 /**
  * Data anonymization utilities
  */
-export class DataAnonymization {
-  /**
-   * Anonymize user data
-   */
-  static anonymizeUser(user: Record<string, unknown>): Record<string, unknown> {
-    return {
-      ...user,
-      email: DataAnonymization.hashValue(user.email as string),
-      name: 'Anonymous User',
-      phone: undefined,
-      address: undefined,
-      ip: undefined,
-    }
-  }
 
-  /**
-   * Pseudonymize data (one-way, key-dependent)
-   */
-  static pseudonymize(value: string, key: string): string {
-    // Uses SHA-256 via hashValue — deterministic given same key
-    return `pseudo_${DataAnonymization.hashValue(value + key).substring(0, 16)}`
-  }
+/**
+ * Hash value (irreversible) using SHA-256
+ */
+function hashValue(value: string): string {
+  const digest = createHash('sha256').update(value).digest('hex')
+  return `hash_${digest}`
+}
 
-  /**
-   * Hash value (irreversible) using SHA-256
-   */
-  static hashValue(value: string): string {
-    const digest = createHash('sha256').update(value).digest('hex')
-    return `hash_${digest}`
-  }
-
-  /**
-   * Anonymize dataset
-   */
-  static anonymizeDataset<T extends Record<string, unknown>>(
-    data: T[],
-    sensitiveFields: (keyof T)[],
-  ): T[] {
-    return data.map((item) => {
-      const anonymized = { ...item }
-
-      sensitiveFields.forEach((field) => {
-        if (field in anonymized && typeof anonymized[field] === 'string') {
-          anonymized[field] = DataAnonymization.hashValue(anonymized[field] as string) as T[keyof T]
-        }
-      })
-
-      return anonymized
-    })
-  }
-
-  /**
-   * K-anonymity check
-   */
-  static checkKAnonymity<T extends Record<string, unknown>>(
-    data: T[],
-    quasiIdentifiers: (keyof T)[],
-    k: number,
-  ): boolean {
-    // Group by quasi-identifiers
-    const groups = new Map<string, number>()
-
-    data.forEach((item) => {
-      const key = quasiIdentifiers.map((field) => String(item[field])).join('|')
-
-      groups.set(key, (groups.get(key) || 0) + 1)
-    })
-
-    // Check if all groups have at least k members
-    return Array.from(groups.values()).every((count) => count >= k)
+/**
+ * Anonymize user data
+ */
+function anonymizeUser(user: Record<string, unknown>): Record<string, unknown> {
+  return {
+    ...user,
+    email: hashValue(user.email as string),
+    name: 'Anonymous User',
+    phone: undefined,
+    address: undefined,
+    ip: undefined,
   }
 }
+
+/**
+ * Pseudonymize data (one-way, key-dependent)
+ */
+function pseudonymize(value: string, key: string): string {
+  // Uses SHA-256 via hashValue — deterministic given same key
+  return `pseudo_${hashValue(value + key).substring(0, 16)}`
+}
+
+/**
+ * Anonymize dataset
+ */
+function anonymizeDataset<T extends Record<string, unknown>>(
+  data: T[],
+  sensitiveFields: (keyof T)[],
+): T[] {
+  return data.map((item) => {
+    const anonymized = { ...item }
+
+    sensitiveFields.forEach((field) => {
+      if (field in anonymized && typeof anonymized[field] === 'string') {
+        anonymized[field] = hashValue(anonymized[field] as string) as T[keyof T]
+      }
+    })
+
+    return anonymized
+  })
+}
+
+/**
+ * K-anonymity check
+ */
+function checkKAnonymity<T extends Record<string, unknown>>(
+  data: T[],
+  quasiIdentifiers: (keyof T)[],
+  k: number,
+): boolean {
+  // Group by quasi-identifiers
+  const groups = new Map<string, number>()
+
+  data.forEach((item) => {
+    const key = quasiIdentifiers.map((field) => String(item[field])).join('|')
+
+    groups.set(key, (groups.get(key) || 0) + 1)
+  })
+
+  // Check if all groups have at least k members
+  return Array.from(groups.values()).every((count) => count >= k)
+}
+
+export const DataAnonymization = {
+  anonymizeUser,
+  pseudonymize,
+  hashValue,
+  anonymizeDataset,
+  checkKAnonymity,
+} as const
 
 /**
  * Privacy policy manager
