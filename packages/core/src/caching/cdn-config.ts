@@ -237,6 +237,7 @@ async function purgeVercel(
     const response = await fetch('https://api.vercel.com/v1/purge', {
       method: 'POST',
       headers: {
+        // biome-ignore lint/style/useNamingConvention: HTTP header convention
         Authorization: `Bearer ${apiKey}`,
         'Content-Type': 'application/json',
       },

@@ -254,6 +254,7 @@ async function deployAll(): Promise<void> {
       logger.info('\nRunning smoke tests...')
       smokeResults = new Map()
       for (const r of deployed) {
+        // biome-ignore lint/style/noNonNullAssertion: filtered to only entries with url
         const ok = await smokeTest(r.url!)
         smokeResults.set(r.app, ok)
         const icon = ok ? '\u2713' : '\u2717'

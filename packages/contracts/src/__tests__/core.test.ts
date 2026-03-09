@@ -21,6 +21,7 @@ import {
   PageSchema,
   PageSeoSchema,
   PageStatusSchema,
+  type Session,
   SessionSchema,
   SITE_SCHEMA_VERSION,
   // Site
@@ -151,7 +152,7 @@ describe('Core Schemas', () => {
         expect(session.persistent).toBe(true)
         expect(session.userAgent).toBe('Mozilla/5.0')
         expect(session.expiresAt).toBeInstanceOf(Date)
-        expect(isSessionValid(session as any)).toBe(true)
+        expect(isSessionValid(session as unknown as Session)).toBe(true)
       })
 
       it('should validate created session', () => {

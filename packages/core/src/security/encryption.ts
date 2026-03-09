@@ -553,114 +553,127 @@ export class EnvelopeEncryption {
 /**
  * Data masking utilities
  */
-export class DataMasking {
-  /**
-   * Mask email
-   */
-  static maskEmail(email: string): string {
-    const [local, domain] = email.split('@')
-    if (!(local && domain)) return email
 
-    const maskedLocal =
-      local.length > 2
-        ? local[0] + '*'.repeat(local.length - 2) + local[local.length - 1]
-        : `${local[0]}*`
+/**
+ * Mask email
+ */
+function maskEmail(email: string): string {
+  const [local, domain] = email.split('@')
+  if (!(local && domain)) return email
 
-    return `${maskedLocal}@${domain}`
-  }
+  const maskedLocal =
+    local.length > 2
+      ? local[0] + '*'.repeat(local.length - 2) + local[local.length - 1]
+      : `${local[0]}*`
 
-  /**
-   * Mask phone number
-   */
-  static maskPhone(phone: string): string {
-    const digits = phone.replace(/\D/g, '')
-    if (digits.length < 4) return phone
-
-    const lastFour = digits.slice(-4)
-    const masked = '*'.repeat(digits.length - 4) + lastFour
-
-    return phone.replace(/\d/g, (char, index) => {
-      const digitIndex = phone.slice(0, index + 1).replace(/\D/g, '').length - 1
-      return masked[digitIndex] || char
-    })
-  }
-
-  /**
-   * Mask credit card
-   */
-  static maskCreditCard(card: string): string {
-    const digits = card.replace(/\D/g, '')
-    if (digits.length < 4) return card
-
-    const lastFour = digits.slice(-4)
-    return `****-****-****-${lastFour}`
-  }
-
-  /**
-   * Mask SSN
-   */
-  static maskSSN(ssn: string): string {
-    const digits = ssn.replace(/\D/g, '')
-    if (digits.length !== 9) return ssn
-
-    return `***-**-${digits.slice(-4)}`
-  }
-
-  /**
-   * Mask string (keep first and last character)
-   */
-  static maskString(str: string, keepChars: number = 1): string {
-    if (str.length <= keepChars * 2) {
-      return '*'.repeat(str.length)
-    }
-
-    const prefix = str.slice(0, keepChars)
-    const suffix = str.slice(-keepChars)
-    const masked = '*'.repeat(str.length - keepChars * 2)
-
-    return `${prefix}${masked}${suffix}`
-  }
+  return `${maskedLocal}@${domain}`
 }
+
+/**
+ * Mask phone number
+ */
+function maskPhone(phone: string): string {
+  const digits = phone.replace(/\D/g, '')
+  if (digits.length < 4) return phone
+
+  const lastFour = digits.slice(-4)
+  const masked = '*'.repeat(digits.length - 4) + lastFour
+
+  return phone.replace(/\d/g, (char, index) => {
+    const digitIndex = phone.slice(0, index + 1).replace(/\D/g, '').length - 1
+    return masked[digitIndex] || char
+  })
+}
+
+/**
+ * Mask credit card
+ */
+function maskCreditCard(card: string): string {
+  const digits = card.replace(/\D/g, '')
+  if (digits.length < 4) return card
+
+  const lastFour = digits.slice(-4)
+  return `****-****-****-${lastFour}`
+}
+
+/**
+ * Mask SSN
+ */
+function maskSSN(ssn: string): string {
+  const digits = ssn.replace(/\D/g, '')
+  if (digits.length !== 9) return ssn
+
+  return `***-**-${digits.slice(-4)}`
+}
+
+/**
+ * Mask string (keep first and last character)
+ */
+function maskString(str: string, keepChars: number = 1): string {
+  if (str.length <= keepChars * 2) {
+    return '*'.repeat(str.length)
+  }
+
+  const prefix = str.slice(0, keepChars)
+  const suffix = str.slice(-keepChars)
+  const masked = '*'.repeat(str.length - keepChars * 2)
+
+  return `${prefix}${masked}${suffix}`
+}
+
+export const DataMasking = {
+  maskEmail,
+  maskPhone,
+  maskCreditCard,
+  maskSSN,
+  maskString,
+} as const
 
 /**
  * Secure random token generator
  */
-export class TokenGenerator {
-  /**
-   * Generate secure token. `length` is the number of random bytes;
-   * the returned string is hex-encoded, so it will be `length * 2` characters.
-   */
-  static generate(length: number = 32): string {
-    const bytes = encryption.randomBytes(length)
-    return Array.from(bytes)
-      .map((b) => b.toString(16).padStart(2, '0'))
-      .join('')
-  }
 
-  /**
-   * Generate UUID v4
-   */
-  static generateUUID(): string {
-    const crypto = globalThis.crypto
-    if (!crypto) {
-      throw new Error('Crypto API not available')
-    }
-
-    return crypto.randomUUID()
-  }
-
-  /**
-   * Generate API key
-   */
-  static generateAPIKey(prefix: string = 'sk'): string {
-    const token = TokenGenerator.generate(32)
-    return `${prefix}_${token}`
-  }
-
-  /**
-   * Generate session ID
-   */
-  static generateSessionID(): string {
-    return TokenGenerator.generate(64)
-  }
+/**
+ * Generate secure token. `length` is the number of random bytes;
+ * the returned string is hex-encoded, so it will be `length * 2` characters.
+ */
+function generateToken(length: number = 32): string {
+  const bytes = encryption.randomBytes(length)
+  return Array.from(bytes)
+    .map((b) => b.toString(16).padStart(2, '0'))
+    .join('')
 }
+
+/**
+ * Generate UUID v4
+ */
+function generateUUID(): string {
+  const crypto = globalThis.crypto
+  if (!crypto) {
+    throw new Error('Crypto API not available')
+  }
+
+  return crypto.randomUUID()
+}
+
+/**
+ * Generate API key
+ */
+function generateAPIKey(prefix: string = 'sk'): string {
+  const token = generateToken(32)
+  return `${prefix}_${token}`
+}
+
+/**
+ * Generate session ID
+ */
+function generateSessionID(): string {
+  return generateToken(64)
+}
+
+export const TokenGenerator = {
+  generate: generateToken,
+  generateUUID,
+  generateAPIKey,
+  generateSessionID,
+} as const

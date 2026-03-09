@@ -317,6 +317,7 @@ async function resetDatabase() {
   // Show what will be reset
   logger.info('Databases to reset:')
   for (const db of validDatabases) {
+    // biome-ignore lint/style/noNonNullAssertion: url guaranteed by filter above
     const provider = detectDatabaseProvider(db.url!)
     logger.info(`  - ${db.type} (${provider})`)
   }
@@ -324,6 +325,7 @@ async function resetDatabase() {
   // Validate connections
   logger.info('Validating database connections...')
   for (const db of validDatabases) {
+    // biome-ignore lint/style/noNonNullAssertion: url guaranteed by filter above
     const result = await validateDatabaseConnection(db.url!, { logger })
     if (!result.connected) {
       logger.error(`Cannot connect to ${db.type} database: ${result.error}`)
@@ -353,6 +355,7 @@ async function resetDatabase() {
     // Create backup
     if (!options.skipBackup) {
       logger.info('Creating backup...')
+      // biome-ignore lint/style/noNonNullAssertion: url guaranteed by filter above
       const backupPath = await createBackup(db.url!, projectRoot)
       if (!backupPath) {
         const continueAnyway = await confirm('Backup failed. Continue anyway?')
@@ -365,6 +368,7 @@ async function resetDatabase() {
 
     // Drop all tables
     logger.info('Dropping all tables...')
+    // biome-ignore lint/style/noNonNullAssertion: url guaranteed by filter above
     const dropped = await dropAllTables(db.url!)
     if (!dropped) {
       logger.error('Failed to drop tables. Aborting.')
@@ -393,6 +397,7 @@ async function resetDatabase() {
 
   // Verify tables exist
   for (const db of validDatabases) {
+    // biome-ignore lint/style/noNonNullAssertion: url guaranteed by filter above
     const tables = await listTables(db.url!)
     logger.info(`${db.type} database: ${tables.length} tables created`)
   }

@@ -57,7 +57,7 @@ export async function retry<T>(
   options: RetryOptions = {},
 ): Promise<T> {
   const mergedConfig = { ...DEFAULT_CONFIG, ...config }
-  let lastError: Error
+  let lastError: Error = new Error('Retry failed')
 
   for (let attempt = 0; attempt <= mergedConfig.maxRetries; attempt++) {
     try {
@@ -97,7 +97,7 @@ export async function retry<T>(
     }
   }
 
-  throw lastError!
+  throw lastError
 }
 
 /**

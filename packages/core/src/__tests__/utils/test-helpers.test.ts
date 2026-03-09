@@ -309,7 +309,7 @@ describe('Test Helpers', () => {
         code: 'ERR_TEST',
         statusCode: 500,
         custom: 'value',
-      }) as any
+      }) as unknown as Error & Record<string, unknown>
 
       expect(error.code).toBe('ERR_TEST')
       expect(error.statusCode).toBe(500)
@@ -324,7 +324,7 @@ describe('Test Helpers', () => {
         table: 'users',
         column: 'email',
         detail: 'Key (email)=(test@example.com) already exists.',
-      }) as any
+      }) as unknown as Error & { code: string; constraint: string; table: string; column: string }
 
       expect(error.code).toBe('23505')
       expect(error.constraint).toBe('users_email_unique')

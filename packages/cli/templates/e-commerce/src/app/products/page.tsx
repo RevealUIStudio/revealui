@@ -1,3 +1,5 @@
+import Image from 'next/image'
+
 const API_URL = process.env.NEXT_PUBLIC_SERVER_URL || 'http://localhost:4000'
 
 interface Product {
@@ -51,9 +53,11 @@ export default async function ProductsPage() {
               className="group rounded-lg border border-gray-200 p-4 transition-shadow hover:shadow-md"
             >
               {product.image?.url && (
-                <img
+                <Image
                   src={product.image.url}
                   alt={product.image.alt || product.name}
+                  width={400}
+                  height={400}
                   className="mb-4 aspect-square w-full rounded object-cover"
                 />
               )}
