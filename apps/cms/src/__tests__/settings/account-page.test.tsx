@@ -37,7 +37,9 @@ const mockUser = {
   name: 'Test User',
   role: 'admin',
   hasPassword: true,
-  linkedProviders: [{ provider: 'github', email: 'test@github.com', name: 'testuser' }],
+  linkedProviders: [
+    { provider: 'github', email: 'test@github.com', name: 'testuser' as string | null },
+  ],
 }
 
 function mockFetchSuccess(user = mockUser) {
@@ -92,7 +94,7 @@ describe('AccountSettingsPage', () => {
       hasPassword: false,
       linkedProviders: [
         { provider: 'github', email: 'test@github.com', name: 'testuser' },
-        { provider: 'google', email: 'test@google.com', name: null },
+        { provider: 'google', email: 'test@google.com', name: null as string | null },
       ],
     })
 
@@ -138,7 +140,7 @@ describe('AccountSettingsPage', () => {
     })
 
     const linkButtons = screen.getAllByText('Link')
-    fireEvent.click(linkButtons[0])
+    fireEvent.click(linkButtons[0]!)
 
     expect(mockLocation.href).toContain('/api/auth/link/google')
     expect(mockLocation.href).toContain('redirectTo=')
