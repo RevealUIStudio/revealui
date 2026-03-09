@@ -1,4 +1,4 @@
-import { beforeEach, describe, expect, it, vi } from 'vitest'
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 
 // Track created providers for assertions
 const createdProviders: Array<{
@@ -51,6 +51,10 @@ describe('useCollaboration', () => {
     vi.clearAllMocks()
     createdProviders.length = 0
     shouldThrowOnConstruct = false
+  })
+
+  afterEach(() => {
+    vi.restoreAllMocks()
   })
 
   it('should return initial state when not enabled', () => {
