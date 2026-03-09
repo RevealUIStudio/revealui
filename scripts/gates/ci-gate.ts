@@ -198,8 +198,21 @@ async function gate(): Promise<void> {
   if (phase === null || phase === 1) {
     logger.info('Phase 1 \u2014 Quality checks (parallel)')
 
+    // In changed-only mode: lint only files changed since HEAD~1
+    const biomeCheck: CheckDef = changed
+      ? {
+          name: 'Biome lint (changed)',
+          command: 'bash',
+          args: [
+            '-c',
+            'FILES=$(git diff --name-only --diff-filter=ACMR HEAD~1 -- "*.ts" "*.tsx" "*.js" "*.jsx" 2>/dev/null); [ -z "$FILES" ] && exit 0; echo "$FILES" | xargs node_modules/.bin/biome check',
+          ],
+          timeout: 600000,
+        }
+      : { name: 'Biome lint', command: 'pnpm', args: ['lint:biome'], timeout: 600000 }
+
     const phase1Checks: CheckDef[] = [
-      { name: 'Biome lint', command: 'pnpm', args: ['lint:biome'], timeout: 600000 },
+      biomeCheck,
       { name: 'Any type audit', command: 'pnpm', args: ['audit:any'], warnOnly: true },
       { name: 'Console audit', command: 'pnpm', args: ['audit:console'], warnOnly: true },
       {
@@ -286,9 +299,24 @@ async function gate(): Promise<void> {
   if (phase === null || phase === 3) {
     logger.info('Phase 3 \u2014 Test + Build (parallel)')
 
+    // In changed-only mode with --no-build: still build changed packages (fast scoped build)
+    const buildCheck: CheckDef[] =
+      noBuild && !changed
+        ? []
+        : noBuild && changed
+          ? [
+              {
+                name: 'Build (changed)',
+                command: 'pnpm',
+                args: ['turbo', 'run', 'build', '--filter=...[HEAD~1]'],
+                timeout: 600000,
+              },
+            ]
+          : [{ name: 'Build', command: 'pnpm', args: ['build'], timeout: 900000 }]
+
     const phase3Checks: CheckDef[] = [
       { name: 'Tests', command: 'pnpm', args: ['test'], warnOnly: true, timeout: 300000 },
-      ...(noBuild ? [] : [{ name: 'Build', command: 'pnpm', args: ['build'], timeout: 900000 }]),
+      ...buildCheck,
     ]
 
     const results = await runPhaseParallel(phase3Checks)
