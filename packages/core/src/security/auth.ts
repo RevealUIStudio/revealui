@@ -111,7 +111,14 @@ export class OAuthClient {
     })
 
     if (!response.ok) {
-      throw new Error('Failed to exchange code for token')
+      let detail = ''
+      try {
+        const body = await response.text()
+        detail = `: ${response.status} ${body.slice(0, 200)}`
+      } catch {
+        detail = `: ${response.status}`
+      }
+      throw new Error(`Failed to exchange code for token${detail}`)
     }
 
     return response.json()
@@ -135,7 +142,14 @@ export class OAuthClient {
     })
 
     if (!response.ok) {
-      throw new Error('Failed to fetch user info')
+      let detail = ''
+      try {
+        const body = await response.text()
+        detail = `: ${response.status} ${body.slice(0, 200)}`
+      } catch {
+        detail = `: ${response.status}`
+      }
+      throw new Error(`Failed to fetch user info${detail}`)
     }
 
     return response.json()
@@ -146,7 +160,10 @@ export class OAuthClient {
  * Password hashing utilities
  *
  * Uses PBKDF2 with a random salt for secure password hashing.
- * For even stronger hashing, use bcryptjs (available in @revealui/auth).
+ *
+ * @deprecated Use `@revealui/auth` instead — it uses bcrypt which is more
+ * resistant to GPU brute-force attacks. This PBKDF2 implementation will be
+ * removed in a future major version.
  */
 
 const PH_ITERATIONS = 100000
