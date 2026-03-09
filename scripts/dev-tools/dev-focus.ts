@@ -1,44 +1,47 @@
 /**
- * dev-focus: Start dev watchers only for the target package/app and its dependencies.
+ * dev-focus: Start dev watchers only for specified packages/apps.
  *
  * Usage:
- *   pnpm dev:focus cms          # Start CMS + all transitive deps
- *   pnpm dev:focus api          # Start API + all transitive deps
- *   pnpm dev:focus core         # Start core + its deps only
- *   pnpm dev:focus cms api      # Start both apps + shared deps
+ *   pnpm dev:focus cms              # Watch CMS only
+ *   pnpm dev:focus api core         # Watch API and core
+ *   pnpm dev:focus --deps cms       # Watch CMS + all its transitive deps
  *
  * Supports both short names (cms, api, core) and full names (@revealui/core).
- * Passes --filter=...target to turbo so transitive dependencies are included.
+ * Uses turbo --filter to scope which packages run their dev script.
+ *
+ * Tip: Run `pnpm build` first to ensure deps are compiled, then use
+ * dev:focus to watch only what you're actively editing.
  */
 
 import { execFileSync } from 'node:child_process'
 
-const targets = process.argv.slice(2)
+const rawArgs = process.argv.slice(2)
+const includeDeps = rawArgs.includes('--deps')
+const targets = rawArgs.filter((a) => a !== '--deps')
 
 if (targets.length === 0) {
   console.error(
-    'Usage: pnpm dev:focus <package|app> [...more]\n\n' +
+    'Usage: pnpm dev:focus [--deps] <package|app> [...more]\n\n' +
       'Examples:\n' +
-      '  pnpm dev:focus cms           # CMS + all deps\n' +
-      '  pnpm dev:focus api           # API + all deps\n' +
-      '  pnpm dev:focus core          # core + its deps\n' +
-      '  pnpm dev:focus cms api       # Both apps + shared deps\n' +
-      '  pnpm dev:focus presentation  # UI components only (no deps)\n',
+      '  pnpm dev:focus cms              # Watch CMS only\n' +
+      '  pnpm dev:focus api core         # Watch API + core\n' +
+      '  pnpm dev:focus --deps cms       # Watch CMS + all transitive deps\n' +
+      '  pnpm dev:focus presentation     # Watch UI components only\n\n' +
+      'Options:\n' +
+      '  --deps   Also watch transitive dependencies (uses turbo ...filter)\n',
   )
   process.exit(1)
 }
 
-// Build turbo filter flags: ...name includes transitive deps
+// Build turbo filter flags
 const filterFlags = targets.flatMap((target) => {
-  // Normalize: "cms" → "cms", "@revealui/core" → "@revealui/core"
-  const name = target.startsWith('@') ? target : target
-  // ...name syntax tells turbo to include the package AND all its dependencies
-  return ['--filter', `...${name}`]
+  const prefix = includeDeps ? '...' : ''
+  return ['--filter', `${prefix}${target}`]
 })
 
 const args = ['turbo', 'run', 'dev', '--parallel', ...filterFlags]
 
-console.log(`Starting focused dev: ${targets.join(', ')}`)
+console.log(`Starting focused dev: ${targets.join(', ')}${includeDeps ? ' (+ deps)' : ''}`)
 console.log(`Running: pnpm ${args.join(' ')}\n`)
 
 try {
