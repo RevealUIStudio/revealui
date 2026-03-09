@@ -90,7 +90,10 @@ const mockSession = {
 // Helpers
 // ---------------------------------------------------------------------------
 
-function createRequest(url: string, options?: RequestInit): NextRequest {
+function createRequest(
+  url: string,
+  options?: ConstructorParameters<typeof NextRequest>[1],
+): NextRequest {
   return new NextRequest(new URL(url, BASE_URL), options)
 }
 

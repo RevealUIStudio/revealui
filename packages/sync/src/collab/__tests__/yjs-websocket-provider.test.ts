@@ -37,6 +37,8 @@ describe('CollabProvider', () => {
   })
 
   afterEach(() => {
+    // Clear any pending timers (reconnect, MockWebSocket onopen) before restoring real timers
+    vi.clearAllTimers()
     globalThis.WebSocket = originalWebSocket
     vi.useRealTimers()
   })
