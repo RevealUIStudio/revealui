@@ -4,9 +4,9 @@ import { beforeEach, describe, expect, it, vi } from 'vitest'
 // ---------------------------------------------------------------------------
 // Mock @revealui/ai — all dynamic imports return null by default
 // ---------------------------------------------------------------------------
-vi.mock('@revealui/ai', () => null)
-vi.mock('@revealui/ai/llm/client', () => null)
-vi.mock('@revealui/ai/orchestration/streaming-runtime', () => null)
+vi.mock('@revealui/ai', () => ({}))
+vi.mock('@revealui/ai/llm/client', () => ({}))
+vi.mock('@revealui/ai/orchestration/streaming-runtime', () => ({}))
 
 import agentStream from '../agent-stream.js'
 
