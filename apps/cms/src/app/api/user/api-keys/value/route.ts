@@ -44,7 +44,9 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
   db.update(userApiKeys)
     .set({ lastUsedAt: new Date() })
     .where(eq(userApiKeys.id, row.id))
-    .catch(() => {})
+    .catch(() => {
+      // Fire-and-forget — lastUsedAt update failure is non-critical
+    })
 
   return NextResponse.json({ provider: row.provider, key })
 }

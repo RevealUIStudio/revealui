@@ -29,7 +29,9 @@ async function loadContextDeps() {
   ])
   if (!(agentMod && persistMod)) return null
   return {
+    // biome-ignore lint/style/useNamingConvention: class constructor reference
     AgentContextManager: agentMod.AgentContextManager,
+    // biome-ignore lint/style/useNamingConvention: class constructor reference
     CRDTPersistence: persistMod.CRDTPersistence,
   }
 }

@@ -28,7 +28,9 @@ async function loadWorkingMemoryDeps() {
   ])
   if (!(persistMod && storesMod)) return null
   return {
+    // biome-ignore lint/style/useNamingConvention: class constructor reference
     CRDTPersistence: persistMod.CRDTPersistence,
+    // biome-ignore lint/style/useNamingConvention: class constructor reference
     WorkingMemory: storesMod.WorkingMemory,
   }
 }
