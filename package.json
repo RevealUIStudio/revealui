@@ -101,7 +101,7 @@
       "unrs-resolver"
     ],
     "patchedDependencies": {
-      "@revealui/services@0.0.1": "patches/@revealui__services@0.0.1.patch"
+      "@revealui/services@0.0.2": "patches/@revealui__services@0.0.2.patch"
     }
   },
   "scripts": {
@@ -158,6 +158,7 @@
     "deploy": "tsx scripts/gates/ops/deploy.ts",
     "validate:structure": "tsx scripts/validate/structure.ts",
     "validate:boundary": "tsx scripts/validate/boundary.ts",
+    "validate:versions": "tsx scripts/validate/version-policy.ts",
     "audit:any": "tsx scripts/analyze/audit-any-types.ts",
     "audit:console": "tsx scripts/analyze/audit-console.ts",
     "secrets:scan": "tsx scripts/secrets/scan.ts",

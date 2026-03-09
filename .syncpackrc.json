@@ -2,10 +2,22 @@
   "$schema": "https://unpkg.com/syncpack@13.0.4/dist/schema.json",
   "versionGroups": [
     {
-      "label": "Use workspace protocol for internal packages",
+      "label": "Pro packages are published externally — pin peer deps to exact versions, not workspace:*",
+      "dependencies": [
+        "@revealui/ai",
+        "@revealui/mcp",
+        "@revealui/editors",
+        "@revealui/services",
+        "@revealui/harnesses"
+      ],
+      "dependencyTypes": ["peer"],
+      "policy": "sameRange"
+    },
+    {
+      "label": "Use workspace protocol for internal (OSS) packages",
       "packages": ["**"],
       "dependencies": ["@revealui/**"],
-      "dependencyTypes": ["prod", "dev", "peer"],
+      "dependencyTypes": ["prod", "dev"],
       "pinVersion": "workspace:*"
     },
     {

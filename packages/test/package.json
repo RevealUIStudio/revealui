@@ -20,14 +20,15 @@
     "@testing-library/user-event": "^14.6.1",
     "@vitest/coverage-v8": "^4.0.18",
     "@vitest/ui": "^4.0.18",
+    "bcryptjs": "^3.0.3",
     "dev": "workspace:*",
     "jsdom": "^27.4.0",
     "vite": "^7.3.0",
     "vitest": "^4.0.18"
   },
   "peerDependencies": {
-    "@revealui/ai": "workspace:*",
-    "@revealui/services": "workspace:*"
+    "@revealui/ai": "^0.1.3",
+    "@revealui/services": "^0.0.2"
   },
   "peerDependenciesMeta": {
     "@revealui/ai": {

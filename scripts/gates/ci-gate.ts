@@ -215,6 +215,11 @@ async function gate(): Promise<void> {
         warnOnly: true,
       },
       {
+        name: 'Version policy',
+        command: 'pnpm',
+        args: ['validate:versions'],
+      },
+      {
         name: 'Security audit',
         command: 'pnpm',
         args: ['gate:security'],
