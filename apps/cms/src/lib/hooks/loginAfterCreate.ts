@@ -4,7 +4,7 @@ interface RevealUIWithLogin {
   login: (args: {
     collection: string
     data: { email: string; password: string }
-  }) => Promise<{ user: unknown; token: string }>
+  }) => Promise<{ user: unknown; token: string }> // token is an opaque session token
 }
 
 interface RequestWithLogin {

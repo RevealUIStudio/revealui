@@ -24,12 +24,9 @@ export {
   // Re-export admin utils
   apiClient,
   CollectionList,
-  clearAuthToken,
   DocumentForm,
   FloatingToolbarPlugin,
   generatePageMetadata,
-  getAuthHeader,
-  getAuthToken,
   ImageNode,
   ImageNodeComponent,
   ImagePlugin,
@@ -42,7 +39,6 @@ export {
   // Rich text (exclude RichTextEditor component - use richtext/client)
   richTextEditorStyles,
   serializeConfig,
-  setAuthToken,
   // UI
   ToolbarPlugin,
   // Hooks
