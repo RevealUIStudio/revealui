@@ -73,6 +73,7 @@ export class Router {
   private options: RouterOptions
   private listeners: Set<() => void> = new Set()
   private currentMatch: RouteMatch | null = null
+  private lastPathname: string | null = null
 
   constructor(options: RouterOptions = {}) {
     this.options = {
@@ -174,6 +175,10 @@ export class Router {
       window.history.pushState(options.state || null, '', fullUrl)
     }
 
+    // Update cached match so useSyncExternalStore gets a stable reference
+    this.lastPathname = window.location.pathname
+    this.currentMatch = this.match(window.location.pathname)
+
     this.notifyListeners()
   }
 
@@ -211,13 +216,18 @@ export class Router {
    * Get current route match
    */
   getCurrentMatch(): RouteMatch | null {
-    // On server, return stored match (set by resolve during SSR)
     if (typeof window === 'undefined') {
       return this.currentMatch
     }
 
-    // On client, match against current URL
-    return this.match(window.location.pathname)
+    // Return cached match if pathname hasn't changed (stable reference for useSyncExternalStore)
+    const pathname = window.location.pathname
+    if (pathname !== this.lastPathname) {
+      this.lastPathname = pathname
+      this.currentMatch = this.match(pathname)
+    }
+
+    return this.currentMatch
   }
 
   /**
@@ -274,6 +284,8 @@ export class Router {
 
     // Handle browser back/forward buttons
     window.addEventListener('popstate', () => {
+      this.lastPathname = window.location.pathname
+      this.currentMatch = this.match(window.location.pathname)
       this.notifyListeners()
     })
 
