@@ -57,7 +57,7 @@ export function Footer() {
               </li>
               <li>
                 <Link
-                  href="https://docs.revealui.com/reference/core"
+                  href="https://docs.revealui.com/docs/REFERENCE"
                   className="hover:text-white transition-colors"
                 >
                   API Reference

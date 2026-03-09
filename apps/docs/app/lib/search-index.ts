@@ -5,7 +5,9 @@
  * excerpts, and indexes them with FlexSearch for instant search.
  */
 
-import { Document } from 'flexsearch'
+import FlexSearch from 'flexsearch'
+
+const { Document } = FlexSearch
 
 // ---------------------------------------------------------------------------
 // Types
@@ -29,7 +31,7 @@ interface DocEntry {
 // Module state (singleton — built once per page load)
 // ---------------------------------------------------------------------------
 
-let index: Document<DocEntry, true> | null = null
+let index: InstanceType<typeof Document> | null = null
 let docs: DocEntry[] = []
 let buildPromise: Promise<void> | null = null
 
@@ -149,7 +151,7 @@ export async function buildSearchIndex(): Promise<void> {
       }
 
       // Build FlexSearch document index
-      index = new Document<DocEntry, true>({
+      index = new Document({
         document: {
           id: 'id',
           index: ['title', 'content'],
