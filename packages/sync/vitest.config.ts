@@ -5,8 +5,18 @@ export default defineConfig({
   test: {
     globals: true,
     environment: 'jsdom', // React hooks need DOM
-    pool: 'forks',
     setupFiles: ['./src/test-setup.ts'],
+    // Increased timeout to prevent worker init failures under full monorepo parallel load
+    testTimeout: 30_000,
+    hookTimeout: 30_000,
+    pool: 'threads',
+    poolOptions: {
+      threads: {
+        // Single thread avoids resource contention when turbo runs 29 packages in parallel
+        maxThreads: 1,
+        minThreads: 1,
+      },
+    },
     coverage: {
       provider: 'v8',
       // Standardized reporters: text (CI logs), json (programmatic), html (local dev), lcov (Codecov)

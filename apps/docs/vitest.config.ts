@@ -11,6 +11,16 @@ export default defineConfig({
     globals: true,
     environment: 'jsdom',
     setupFiles: ['./__tests__/setup.ts'],
+    // Increased timeout to prevent worker init failures under full monorepo parallel load
+    testTimeout: 30_000,
+    hookTimeout: 30_000,
+    pool: 'threads',
+    poolOptions: {
+      threads: {
+        maxThreads: 1,
+        minThreads: 1,
+      },
+    },
   },
   resolve: {
     alias: {
