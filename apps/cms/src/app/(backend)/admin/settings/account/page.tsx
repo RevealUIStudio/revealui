@@ -2,7 +2,6 @@
 
 export const dynamic = 'force-dynamic'
 
-import Link from 'next/link'
 import { useSearchParams } from 'next/navigation'
 import { Suspense, useCallback, useEffect, useState } from 'react'
 
@@ -98,17 +97,10 @@ export default function AccountSettingsPage() {
   return (
     <Suspense
       fallback={
-        <div className="min-h-screen">
-          <div className="flex items-center gap-3 border-b border-zinc-800 bg-zinc-900 px-6 py-4">
-            <span className="text-sm text-zinc-500">Settings</span>
-            <span className="text-zinc-700">/</span>
-            <span className="text-sm text-white">Account</span>
-          </div>
-          <div className="p-6 max-w-lg">
-            <div className="rounded-xl border border-zinc-800 bg-zinc-900 p-5">
-              <div className="h-5 w-48 animate-pulse rounded bg-zinc-800" />
-              <div className="mt-3 h-4 w-72 animate-pulse rounded bg-zinc-800" />
-            </div>
+        <div className="p-6 max-w-lg">
+          <div className="rounded-xl border border-zinc-800 bg-zinc-900 p-5">
+            <div className="h-5 w-48 animate-pulse rounded bg-zinc-800" />
+            <div className="mt-3 h-4 w-72 animate-pulse rounded bg-zinc-800" />
           </div>
         </div>
       }
@@ -179,6 +171,12 @@ function AccountSettingsContent() {
   }
 
   async function handleUnlink(provider: OAuthProvider) {
+    const label = PROVIDERS.find((p) => p.id === provider)?.label ?? provider
+    const confirmed = window.confirm(
+      `Unlink ${label}? You'll no longer be able to sign in with this account.`,
+    )
+    if (!confirmed) return
+
     setUnlinking(provider)
     setError(null)
 
@@ -208,15 +206,6 @@ function AccountSettingsContent() {
 
   return (
     <div className="min-h-screen">
-      {/* Breadcrumb header */}
-      <div className="flex items-center gap-3 border-b border-zinc-800 bg-zinc-900 px-6 py-4">
-        <Link href="/admin" className="text-sm text-zinc-500 transition-colors hover:text-zinc-300">
-          Settings
-        </Link>
-        <span className="text-zinc-700">/</span>
-        <span className="text-sm text-white">Account</span>
-      </div>
-
       <div className="p-6 max-w-lg">
         {/* Success banner */}
         {success && (
@@ -334,8 +323,14 @@ function AccountSettingsContent() {
                 })}
               </div>
 
-              {/* Safety note */}
-              {!user.hasPassword && linkedSet.size <= 1 && (
+              {/* Safety notes */}
+              {!user.hasPassword && linkedSet.size === 0 && (
+                <p className="mt-4 text-xs text-red-400">
+                  You have no password and no linked accounts. Set a password or link a provider to
+                  regain access.
+                </p>
+              )}
+              {!user.hasPassword && linkedSet.size === 1 && (
                 <p className="mt-4 text-xs text-amber-400/80">
                   You have no password set. Unlinking your only connected account will lock you out.
                   Set a password first or link another provider.
