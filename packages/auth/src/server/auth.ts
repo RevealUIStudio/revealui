@@ -7,7 +7,7 @@
 import { createHash, randomBytes } from 'node:crypto'
 import { logger } from '@revealui/core/observability/logger'
 import { getClient } from '@revealui/db/client'
-import { users } from '@revealui/db/schema'
+import { oauthAccounts, users } from '@revealui/db/schema'
 import bcrypt from 'bcryptjs'
 import { eq } from 'drizzle-orm'
 import type { SignInResult, SignUpResult, User } from '../types.js'
@@ -242,7 +242,9 @@ export async function signUp(
       }
     }
 
-    // Check if user already exists
+    // Check if user already exists (by email in users table or OAuth accounts).
+    // Both checks prevent account collision: a password signup must not collide
+    // with an existing OAuth identity for the same email address.
     let existing: User | undefined
     try {
       const result = await db.select().from(users).where(eq(users.email, email)).limit(1)
@@ -259,6 +261,30 @@ export async function signUp(
       return {
         success: false,
         error: 'Unable to create account',
+      }
+    }
+
+    // Block signup if an OAuth account already uses this email.
+    // Without this check, an attacker could create a password account
+    // for an email that was registered via OAuth, enabling account takeover.
+    try {
+      const [existingOAuth] = await db
+        .select({ id: oauthAccounts.id })
+        .from(oauthAccounts)
+        .where(eq(oauthAccounts.providerEmail, email))
+        .limit(1)
+
+      if (existingOAuth) {
+        return {
+          success: false,
+          error: 'Unable to create account',
+        }
+      }
+    } catch {
+      logger.error('Error checking OAuth accounts')
+      return {
+        success: false,
+        error: 'Database error',
       }
     }
 
