@@ -1,0 +1,81 @@
+diff --git a/dist/index.d.ts b/dist/index.d.ts
+new file mode 100644
+index 0000000000000000000000000000000000000000..e95aaff64ed9d2d714839dcc65e6fdfea6bc4752
+--- /dev/null
++++ b/dist/index.d.ts
+@@ -0,0 +1,27 @@
++/**
++ * @revealui/services — type stubs for public repo typecheck
++ *
++ * The full implementation is in revealui-jv/packages/services.
++ * These stubs satisfy TypeScript while the Pro package awaits
++ * its first proper npm publish.
++ */
++import type Stripe from 'stripe'
++
++// ---------------------------------------------------------------------------
++// Stripe
++// ---------------------------------------------------------------------------
++
++/** Stripe client wrapped with circuit-breaker protection */
++export declare const protectedStripe: Stripe
++
++// ---------------------------------------------------------------------------
++// Supabase
++// ---------------------------------------------------------------------------
++
++export declare function createServerClient(...args: unknown[]): unknown
++
++// ---------------------------------------------------------------------------
++// Payments
++// ---------------------------------------------------------------------------
++
++export declare function createPaymentIntent(...args: unknown[]): Promise<unknown>
+diff --git a/dist/index.js b/dist/index.js
+new file mode 100644
+index 0000000000000000000000000000000000000000..b1ec583196e8dd14aae6cfc80d3184d06fc4e286
+--- /dev/null
++++ b/dist/index.js
+@@ -0,0 +1,42 @@
++// @revealui/services — runtime stubs for public repo builds
++// Full implementation lives in revealui-jv/packages/services (Pro).
++// These stubs export real named values so bundlers (Turbopack/webpack)
++// can resolve them. Methods throw at call time if not configured.
++
++function notImplemented(name) {
++  return function () {
++    throw new Error(
++      '@revealui/services: ' + name + ' requires the Pro package or STRIPE_SECRET_KEY.'
++    )
++  }
++}
++
++export const protectedStripe = {
++  billingPortal: { sessions: { create: notImplemented('billingPortal.sessions.create') } },
++  customers: {
++    create: notImplemented('customers.create'),
++    retrieve: notImplemented('customers.retrieve'),
++    update: notImplemented('customers.update'),
++    del: notImplemented('customers.del'),
++    list: notImplemented('customers.list'),
++  },
++  paymentIntents: {
++    create: notImplemented('paymentIntents.create'),
++    retrieve: notImplemented('paymentIntents.retrieve'),
++    update: notImplemented('paymentIntents.update'),
++  },
++  checkout: {
++    sessions: {
++      create: notImplemented('checkout.sessions.create'),
++      retrieve: notImplemented('checkout.sessions.retrieve'),
++    },
++  },
++  products: { create: notImplemented('products.create'), retrieve: notImplemented('products.retrieve'), update: notImplemented('products.update'), list: notImplemented('products.list') },
++  prices: { create: notImplemented('prices.create'), retrieve: notImplemented('prices.retrieve'), update: notImplemented('prices.update'), list: notImplemented('prices.list') },
++  subscriptions: { retrieve: notImplemented('subscriptions.retrieve'), update: notImplemented('subscriptions.update'), cancel: notImplemented('subscriptions.cancel') },
++  webhooks: { constructEvent: notImplemented('webhooks.constructEvent') },
++  balance: { retrieve: notImplemented('balance.retrieve') },
++}
++
++export function createServerClient() { return null }
++export function createPaymentIntent() { return Promise.reject(new Error('@revealui/services stub')) }
