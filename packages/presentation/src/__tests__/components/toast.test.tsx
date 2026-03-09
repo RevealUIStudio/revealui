@@ -40,28 +40,34 @@ function ToastTrigger({
 describe('Toast', () => {
   it('renders a toast when addToast is called', async () => {
     vi.useFakeTimers()
-    const user = userEvent.setup({ advanceTimers: vi.advanceTimersByTime })
     render(
       <ToastProvider>
-        <ToastTrigger title="Hello toast" />
+        <ToastTrigger title="Hello toast" duration={0} />
       </ToastProvider>,
     )
-    await user.click(screen.getByText('Show toast'))
+    await act(async () => {
+      screen.getByText('Show toast').click()
+    })
     expect(screen.getByText('Hello toast')).toBeInTheDocument()
     vi.useRealTimers()
   })
 
   it('removes a toast when removeToast is called', async () => {
-    const user = userEvent.setup()
+    vi.useFakeTimers()
     render(
       <ToastProvider>
         <ToastTrigger title="Removable toast" duration={0} />
       </ToastProvider>,
     )
-    await user.click(screen.getByText('Show toast'))
+    await act(async () => {
+      screen.getByText('Show toast').click()
+    })
     expect(screen.getByText('Removable toast')).toBeInTheDocument()
-    await user.click(screen.getByText('Remove toast'))
+    await act(async () => {
+      screen.getByText('Remove toast').click()
+    })
     expect(screen.queryByText('Removable toast')).not.toBeInTheDocument()
+    vi.useRealTimers()
   })
 
   it('auto-dismisses after duration', async () => {
