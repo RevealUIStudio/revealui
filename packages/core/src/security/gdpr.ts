@@ -4,10 +4,9 @@
  * Data privacy, consent management, data export, and right to be forgotten
  */
 
-import { createHash } from 'node:crypto'
+import { createHash, createHmac } from 'node:crypto'
 import { logger } from '../observability/logger.js'
 import type { GDPRStorage } from './gdpr-storage.js'
-import { InMemoryGDPRStorage } from './gdpr-storage.js'
 
 export type ConsentType = 'necessary' | 'functional' | 'analytics' | 'marketing' | 'personalization'
 
@@ -78,8 +77,8 @@ export class ConsentManager {
   private readonly storage: GDPRStorage
   private consentVersion: string = '1.0.0'
 
-  constructor(storage?: GDPRStorage) {
-    this.storage = storage ?? new InMemoryGDPRStorage()
+  constructor(storage: GDPRStorage) {
+    this.storage = storage
   }
 
   /**
@@ -278,8 +277,8 @@ export class DataExportSystem {
 export class DataDeletionSystem {
   private readonly storage: GDPRStorage
 
-  constructor(storage?: GDPRStorage) {
-    this.storage = storage ?? new InMemoryGDPRStorage()
+  constructor(storage: GDPRStorage) {
+    this.storage = storage
   }
 
   /**
@@ -411,10 +410,13 @@ function anonymizeUser(user: Record<string, unknown>): Record<string, unknown> {
 
 /**
  * Pseudonymize data (one-way, key-dependent)
+ *
+ * Uses HMAC-SHA256 — cryptographically bound to the key, resistant to
+ * length-extension attacks and GPU brute-force (unlike plain SHA-256).
  */
 function pseudonymize(value: string, key: string): string {
-  // Uses SHA-256 via hashValue — deterministic given same key
-  return `pseudo_${hashValue(value + key).substring(0, 16)}`
+  const hmac = createHmac('sha256', key).update(value).digest('hex')
+  return `pseudo_${hmac.substring(0, 16)}`
 }
 
 /**
@@ -705,19 +707,23 @@ export class DataBreachManager {
 }
 
 /**
- * Global instances
+ * Factory functions for GDPR subsystems.
  *
- * WARNING: These singletons default to `InMemoryGDPRStorage`.
- * All records are lost on process restart or serverless cold start.
- * For production GDPR compliance, construct `ConsentManager` and
- * `DataDeletionSystem` with a database-backed `GDPRStorage` implementation.
+ * `ConsentManager` and `DataDeletionSystem` require a `GDPRStorage` implementation.
+ * Use `InMemoryGDPRStorage` only in tests — production MUST use a database-backed store.
  *
- * The CMS GDPR routes (apps/cms/src/app/api/gdpr/) use direct DB
- * queries and are NOT affected by this limitation.
+ * `DataExportSystem`, `PrivacyPolicyManager`, `CookieConsentManager`, and
+ * `DataBreachManager` are stateless or client-side only, so singletons are safe.
  */
-export const consentManager = new ConsentManager()
+export function createConsentManager(storage: GDPRStorage): ConsentManager {
+  return new ConsentManager(storage)
+}
+
+export function createDataDeletionSystem(storage: GDPRStorage): DataDeletionSystem {
+  return new DataDeletionSystem(storage)
+}
+
 export const dataExportSystem = new DataExportSystem()
-export const dataDeletionSystem = new DataDeletionSystem()
 export const privacyPolicyManager = new PrivacyPolicyManager()
 export const cookieConsentManager = new CookieConsentManager()
 export const dataBreachManager = new DataBreachManager()
