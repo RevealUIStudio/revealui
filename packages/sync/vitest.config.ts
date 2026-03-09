@@ -9,14 +9,10 @@ export default defineConfig({
     // Increased timeout to prevent worker init failures under full monorepo parallel load
     testTimeout: 30_000,
     hookTimeout: 30_000,
-    pool: 'threads',
-    poolOptions: {
-      threads: {
-        // Single thread avoids resource contention when turbo runs 29 packages in parallel
-        maxThreads: 1,
-        minThreads: 1,
-      },
-    },
+    // Forks give each test file its own process, preventing jsdom/yjs shared-state
+    // contention when turbo runs 29 packages in parallel during CI gate
+    pool: 'forks',
+    maxConcurrency: 1,
     coverage: {
       provider: 'v8',
       // Standardized reporters: text (CI logs), json (programmatic), html (local dev), lcov (Codecov)
