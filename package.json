@@ -112,6 +112,8 @@
     "clean": "rm -rf node_modules packages/*/node_modules apps/*/node_modules packages/*/dist apps/*/dist packages/*/.next apps/*/.next packages/*/.turbo apps/*/.turbo .next .turbo",
     "clean:install": "pnpm clean && pnpm install:clean",
     "dev": "turbo run dev --parallel",
+    "dev:focus": "tsx scripts/dev-tools/dev-focus.ts",
+    "dev:watched": "tsx scripts/dev-tools/dev-watchdog.ts",
     "dev:api": "pnpm --filter api dev",
     "dev:cms": "pnpm run build:auth && pnpm --filter cms dev",
     "studio:dev": "cd apps/studio/src-tauri && cargo tauri dev",
