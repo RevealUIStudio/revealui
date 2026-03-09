@@ -55,9 +55,6 @@ This document lists all third-party dependencies used in the RevealUI Framework 
 - **@types/jest** v29.5.14 - TypeScript definitions for Jest
 - **@types/testing-library__jest-dom** v6.0.0 - TypeScript definitions for jest-dom
 
-### ISC Licensed
-- **eslint** v9.17.0 - An AST-based pattern checker for JavaScript
-
 ### 0BSD Licensed
 - **tsx** v4.19.2 - TypeScript execution and REPL for node.js
 

@@ -93,8 +93,6 @@ Comprehensive standards and conventions for package.json scripts across the Reve
 }
 ```
 
-**Note**: Use `lint:eslint` for ESLint (see optional scripts)
-
 ---
 
 #### `typecheck`
@@ -155,21 +153,6 @@ Comprehensive standards and conventions for package.json scripts across the Reve
 ---
 
 ### Optional Scripts
-
-#### `lint:eslint`
-**Purpose**: Run ESLint
-**Recommended for**: All packages
-
-**Standard Implementation:**
-```json
-{
-  "scripts": {
-    "lint:eslint": "eslint ."
-  }
-}
-```
-
----
 
 #### `test:watch`
 **Purpose**: Run tests in watch mode
@@ -256,7 +239,7 @@ Comprehensive standards and conventions for package.json scripts across the Reve
 
 Use consistent prefixes for related scripts:
 
-- **`lint:`** - Linting tasks (`lint:biome`, `lint:eslint`)
+- **`lint:`** - Linting tasks (`lint:fix`)
 - **`test:`** - Testing tasks (`test:watch`, `test:coverage`, `test:ui`, `test:integration`)
 - **`db:`** - Database tasks (`db:migrate`, `db:seed`, `db:reset`)
 - **`analyze:`** - Analysis tasks (root only)
@@ -315,7 +298,7 @@ Script names should be self-documenting:
     "build": "tsc",
     "dev": "tsc --watch",
     "lint": "biome check .",
-    "lint:eslint": "eslint .",
+
     "typecheck": "tsc --noEmit",
     "test": "vitest run",
     "test:watch": "vitest",
@@ -347,7 +330,7 @@ Script names should be self-documenting:
     "build": "next build",
     "start": "next start --port 3000",
     "lint": "biome check .",
-    "lint:eslint": "eslint .",
+
     "typecheck": "tsc --noEmit",
     "test": "vitest run",
     "test:watch": "vitest",
@@ -365,7 +348,7 @@ Script names should be self-documenting:
     "build": "vite build",
     "start": "vite preview",
     "lint": "biome check .",
-    "lint:eslint": "eslint .",
+
     "typecheck": "tsc --noEmit",
     "test": "vitest run",
     "clean": "rm -rf dist .turbo"
@@ -394,7 +377,7 @@ Script names should be self-documenting:
     "build": "tsup",
     "dev": "tsup --watch",
     "lint": "biome check .",
-    "lint:eslint": "eslint .",
+
     "typecheck": "tsc --noEmit",
     "test": "vitest run",
     "test:watch": "vitest"
