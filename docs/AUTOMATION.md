@@ -1007,7 +1007,7 @@ pnpm changeset:version --dry-run
 
 **Monitor CI Checks on Test PR:**
 - [ ] `validate-config` - Should pass configuration validation
-- [ ] `lint` - Should run ESLint/Biome checks
+- [ ] `lint` - Should run Biome checks
 - [ ] `typecheck` - Should validate TypeScript compilation
 - [ ] `test` - Should run unit tests with coverage
 - [ ] `security-scan` - Should check for vulnerabilities

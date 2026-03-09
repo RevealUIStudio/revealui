@@ -2507,7 +2507,6 @@ Added `typecheck` task configuration:
       "src/**/*.tsx",
       "src/**/*.js",
       "src/**/*.jsx",
-      ".eslintrc.*",
       "biome.json",
       "package.json"
     ]

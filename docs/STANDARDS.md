@@ -8,7 +8,6 @@ This document describes the code style, linting, and formatting standards for th
 
 - [Overview](#overview)
 - [Tooling](#tooling)
-  - [ESLint Configuration](#eslint-configuration)
   - [Biome Configuration](#biome-configuration)
 - [Commands](#commands)
 - [Style Rules](#style-rules)
@@ -24,73 +23,17 @@ This document describes the code style, linting, and formatting standards for th
 
 ## Overview
 
-The project uses **ESLint for type-aware linting** and **Biome for formatting + fast linting**. This separation provides:
+The project uses **Biome 2** as its sole linter and formatter. Biome provides:
 
-- **ESLint**: Type-aware TypeScript rules that catch type safety issues
-- **Biome**: Fast formatting and style rules that don't require type information
+- Fast formatting and style rules (30x faster than Prettier)
+- TypeScript-aware linting rules
+- Import sorting and organization
 
 **Philosophy**: Simple, consistent code style that works across the entire monorepo.
 
 ---
 
 ## Tooling
-
-### ESLint Configuration
-
-#### Shared Config
-
-Each package/app owns its `eslint.config.js` (or `eslint.config.mjs` if it is not ESM) and composes the shared config from `packages/dev`:
-
-```javascript
-// eslint.config.js
-import path from 'node:path'
-import { fileURLToPath } from 'node:url'
-import { baseConfig, createTypeCheckedConfig } from 'dev/eslint'
-
-const __dirname = path.dirname(fileURLToPath(import.meta.url))
-
-export default [
-  ...baseConfig,
-  createTypeCheckedConfig({ tsconfigRootDir: __dirname }),
-]
-```
-
-For Next.js apps, add the Next plugin rules:
-
-```javascript
-import next from '@next/eslint-plugin-next'
-
-const nextFiles = [
-  'src/**/*.{ts,tsx,js,jsx}',
-  'app/**/*.{ts,tsx,js,jsx}',
-  'pages/**/*.{ts,tsx,js,jsx}',
-]
-
-export default [
-  ...baseConfig,
-  createTypeCheckedConfig({ tsconfigRootDir: __dirname }),
-  {
-    ...next.configs['core-web-vitals'],
-    files: nextFiles,
-  },
-]
-```
-
-#### What ESLint Checks
-
-ESLint focuses on **type-aware TypeScript rules** that require type information:
-
-- `@typescript-eslint/no-explicit-any`: Prevents `any` types
-- `@typescript-eslint/no-unsafe-*`: Catches unsafe type operations
-- Additional type-safe rules from the `recommended-type-checked` preset
-
-#### Config Files
-
-Config files are excluded from type-aware linting (they use basic syntax-only rules):
-- `**/*.config.*`
-- `**/eslint.config.*`
-- `**/vite.config.*`
-- `**/next.config.*`
 
 ### Biome Configuration
 
@@ -131,14 +74,9 @@ cd apps/cms
 pnpm lint
 ```
 
-**ESLint in a specific package/app**:
-```bash
-pnpm --filter <pkg> lint:eslint
-```
-
 ### Formatting
 
-**Biome handles ALL formatting**. Do not use ESLint's `--fix` flag.
+**Biome handles ALL formatting**.
 
 **Format all files**:
 ```bash
@@ -148,19 +86,6 @@ pnpm format
 **Format and lint fix** (Biome formatting + lint fixes):
 ```bash
 pnpm lint:fix
-```
-
-**ESLint fixes** (type-aware lint fixes):
-```bash
-pnpm lint:eslint:fix
-```
-
-### Standardized Commands
-
-The repo standardizes on a single ESLint command from the root (Turbo runs per-package `lint:eslint` scripts):
-
-```bash
-pnpm lint:eslint
 ```
 
 ---
@@ -223,8 +148,7 @@ pnpm format && pnpm lint && pnpm typecheck
 
 Your project uses a multi-layered approach to enforce code style:
 1. **Biome** - Fast formatter and linter (30x faster than Prettier)
-2. **ESLint** - Advanced TypeScript/React rules
-3. **TypeScript** - Strict type checking
+2. **TypeScript** - Strict type checking
 4. **`.cursorrules`** - LLM-specific instructions
 
 #### 1. Comprehensive `.cursorrules` File
@@ -274,8 +198,7 @@ Ensure your `.cursorrules` matches your actual tooling:
 
 | Tool | Config File | Command |
 |------|-------------|---------|
-| Biome | `biome.json` | `pnpm format` |
-| ESLint | `eslint.config.js` | `pnpm lint` |
+| Biome | `biome.json` | `pnpm format` / `pnpm lint` |
 | TypeScript | `tsconfig.json` | `pnpm typecheck:all` |
 
 **Action**: When you update `biome.json`, update `.cursorrules` too.
@@ -557,7 +480,7 @@ await Promise.all(promises)
 
 ### Enforcement with Linting
 
-Add to your ESLint config to catch common mistakes:
+Add to your Biome config to catch common mistakes:
 
 ```json
 {
@@ -583,7 +506,7 @@ Before committing:
 
 1. **Format code**: `pnpm format` or `pnpm lint:fix`
 2. **Run linting**: `pnpm lint`
-3. **Fix any errors**: ESLint and Biome will report issues
+3. **Fix any errors**: Biome will report issues
 
 ---
 
@@ -591,36 +514,15 @@ Before committing:
 
 The CI pipeline runs:
 
-1. **Biome**: `pnpm lint:biome` (checks formatting and Biome linting)
-2. **ESLint**: `pnpm lint:eslint` (type-aware checks for apps/packages source)
+1. **Biome**: `pnpm lint` (checks formatting and linting)
 
-Both must pass for CI to succeed.
+Must pass for CI to succeed.
 
 ---
 
 ## Troubleshooting
 
-### ESLint "Cannot find module 'dev/eslint'"
-
-Ensure `dev` workspace package is installed:
-```bash
-pnpm install
-```
-
-### Type-aware rules not working
-
-Ensure your package has a `tsconfig.json` and files are included in the `include` array.
-
-### Formatting conflicts
-
-Never use `eslint --fix`. Always use `biome format --write .` for formatting.
-
 ### Cache issues
-
-Clear ESLint cache:
-```bash
-rm -rf .eslintcache
-```
 
 Clear Biome cache:
 ```bash
@@ -652,14 +554,13 @@ rm -rf node_modules/.cache/biome
 
 ### Apps
 
-- Use local `eslint.config.js`/`eslint.config.mjs` plus the shared `dev/eslint` config
-- Next apps add `@next/eslint-plugin-next` rules (core web vitals)
+- All apps use the shared `biome.json` configuration
+- App-specific overrides can be added in local `biome.json` files
 
 ### Packages
 
-- Use the `lint:eslint` script (`eslint .`)
-- Extend shared config from `dev/eslint`
-- Package-specific ignores in local `eslint.config.*`
+- All packages use the shared Biome configuration
+- Package-specific ignores can be added in local `biome.json`
 
 ---
 
@@ -677,10 +578,10 @@ rm -rf node_modules/.cache/biome
 The best way to enforce code style with LLMs:
 
 1. ✅ **Comprehensive `.cursorrules`** with specific rules and examples
-2. ✅ **Keep it in sync** with your actual tooling (Biome, ESLint)
+2. ✅ **Keep it in sync** with your actual tooling (Biome)
 3. ✅ **Use concrete examples** instead of abstract rules
 4. ✅ **Document anti-patterns** explicitly
-5. ✅ **Reference your config files** (biome.json, eslint.config.js)
+5. ✅ **Reference your config files** (biome.json)
 6. ✅ **Add validation commands** the LLM should run
 7. ✅ **Use pre-commit hooks** for automatic formatting
 8. ✅ **Iterate and improve** based on what the LLM generates
@@ -689,11 +590,11 @@ The best way to enforce code style with LLMs:
 
 ## Migration Notes
 
-**Changed from**: Previously, some packages used `biome lint .` for linting.
+**Changed from**: Previously, some packages used ESLint for type-aware linting.
 
-**Changed to**: Each package/app owns an `eslint.config.*` and a `lint:eslint` script; the root `pnpm lint:eslint` runs them via Turbo.
+**Changed to**: Biome 2 is now the sole linter and formatter across the entire monorepo.
 
-**Formatting**: Biome still handles all formatting (unchanged).
+**Formatting**: Biome handles all formatting.
 
 ---
 
@@ -929,7 +830,6 @@ transpilePackages: ['@revealui/core', '@revealui/db', '@revealui/contracts', '@r
 
 - [Package Conventions](../../packages/PACKAGE-CONVENTIONS.md) - Package structure and conventions
 - [Testing](./TESTING.md) - Testing requirements
-- [ESLint Config](../../packages/dev/src/eslint/eslint.config.js) - Shared ESLint configuration
 - [Biome Config](../../biome.json) - Biome configuration
 
 
@@ -2451,23 +2351,6 @@ This makes logs searchable and parseable by log aggregation tools like:
    const authLogger = createLogger({ module: 'auth' })
    authLogger.info('Login attempt') // Includes module: 'auth'
    ```
-
-## ESLint Configuration
-
-Add this rule to prevent `console.*` usage:
-
-```javascript
-// eslint.config.js
-export default [
-  {
-    rules: {
-      'no-console': ['error', {
-        allow: [] // No console methods allowed
-      }]
-    }
-  }
-]
-```
 
 ## Testing
 

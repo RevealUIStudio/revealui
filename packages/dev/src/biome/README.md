@@ -2,21 +2,17 @@
 
 This Biome configuration provides comprehensive formatting and linting rules for the RevealUI Framework.
 
-## Strategy: ESLint + Biome
+## What Biome Handles
 
-### Biome Handles:
+Biome is the sole linter and formatter for the RevealUI monorepo:
+
 - ✅ Code formatting (indentation, quotes, semicolons, trailing commas, etc.)
 - ✅ Style rules (useForOf, useConst, useTemplate, naming conventions, etc.)
-- ✅ Most correctness checks (no unused variables, no unreachable code, etc.)
+- ✅ Correctness checks (no unused variables, no unreachable code, etc.)
 - ✅ Performance rules (no accumulating spread, no delete, etc.)
 - ✅ Security rules (no global eval, no dangerouslySetInnerHtml, etc.)
 - ✅ Import organization
 - ✅ Accessibility rules
-
-### ESLint Handles:
-- ✅ Type-aware TypeScript rules (requires TypeScript compiler)
-- ✅ Type safety checks (`no-unsafe-*` rules)
-- ✅ Type-only import enforcement
 
 ## Configuration
 
@@ -94,12 +90,6 @@ biome check --write .
 biome check .
 ```
 
-## Integration with ESLint
+## Integration with TypeScript
 
-Biome and ESLint work together:
-1. **Biome** runs first for fast formatting and most linting
-2. **ESLint** runs second for type-aware TypeScript checks
-
-This gives you the best of both worlds:
-- Fast formatting and linting from Biome
-- Deep type safety checks from ESLint
+Biome handles all linting and formatting. TypeScript's `tsc --noEmit` provides type checking as a separate CI gate step.
