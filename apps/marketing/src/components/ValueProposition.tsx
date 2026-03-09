@@ -81,7 +81,10 @@ export function ValueProposition() {
         <div className="mx-auto mt-16 max-w-2xl sm:mt-20 lg:mt-24 lg:max-w-none">
           <dl className="grid max-w-xl grid-cols-1 gap-x-8 gap-y-16 lg:max-w-none lg:grid-cols-3">
             {features.map((feature) => (
-              <div key={feature.title} className="flex flex-col items-start">
+              <div
+                key={feature.title}
+                className="flex flex-col items-start hover:-translate-y-0.5 transition-all"
+              >
                 <div className="mb-6 flex h-12 w-12 items-center justify-center rounded-xl bg-blue-600 shadow-sm">
                   {feature.icon}
                 </div>

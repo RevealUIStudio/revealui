@@ -1,5 +1,4 @@
 import { Footer } from '@/components/Footer'
-import { NavBar } from '@/components/NavBar'
 
 const tiers = [
   {
@@ -55,7 +54,6 @@ const tiers = [
 export default function SponsorPage() {
   return (
     <div className="min-h-screen bg-white">
-      <NavBar />
       {/* Header */}
       <section className="relative overflow-hidden bg-gradient-to-br from-blue-50 via-white to-indigo-50 px-6 py-24 sm:px-6 sm:py-32 lg:px-8">
         <div className="mx-auto max-w-4xl text-center">
