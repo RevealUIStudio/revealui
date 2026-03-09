@@ -50,8 +50,10 @@ async function loadChatAIDeps() {
   return {
     generateEmbedding: embeddingsMod.generateEmbedding,
     createLLMClientFromEnv: llmServerMod.createLLMClientFromEnv,
+    // biome-ignore lint/style/useNamingConvention: class constructor reference
     VectorMemoryService: vectorMod.VectorMemoryService,
     createCMSTools: cmsMod.createCMSTools,
+    // biome-ignore lint/style/useNamingConvention: class constructor reference
     ToolRegistry: registryMod.ToolRegistry,
   }
 }

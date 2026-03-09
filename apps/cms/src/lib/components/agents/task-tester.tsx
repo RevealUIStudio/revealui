@@ -33,7 +33,9 @@ export function TaskTester({ agentId, agentName, onComplete }: TaskTesterProps) 
       .then((data: { provider: string } | null) => {
         setByokProvider(data?.provider ?? null)
       })
-      .catch(() => {})
+      .catch(() => {
+        // BYOK key check is optional — missing key handled downstream
+      })
   }, [])
 
   async function submit() {

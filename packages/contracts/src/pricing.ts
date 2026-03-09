@@ -127,7 +127,7 @@ export const SUBSCRIPTION_TIERS: SubscriptionTier[] = [
       'Full source code access',
     ],
     cta: 'Get Started',
-    ctaHref: 'https://github.com/RevealUIStudio/revealui',
+    ctaHref: 'https://docs.revealui.com',
     highlighted: false,
   },
   {
