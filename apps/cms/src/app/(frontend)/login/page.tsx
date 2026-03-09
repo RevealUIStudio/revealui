@@ -20,7 +20,10 @@ const OAUTH_ERROR_MESSAGES: Record<string, string> = {
   access_denied: 'You cancelled the sign-in. Please try again.',
   provider_error: 'The sign-in provider returned an error. Please try again.',
   invalid_state: 'The sign-in request expired. Please try again.',
-  email_conflict: 'An account with this email already exists. Sign in with your password instead.',
+  account_exists:
+    'An account with this email already exists. Sign in with your password, or link this provider from your account settings.',
+  not_allowed: 'Your account is not authorized. Contact the administrator for access.',
+  unknown_provider: 'Unknown sign-in provider. Please try again.',
 }
 
 export default function LoginPage() {

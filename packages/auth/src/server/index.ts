@@ -26,7 +26,10 @@ export {
   exchangeCode,
   fetchProviderUser,
   generateOAuthState,
+  getLinkedProviders,
+  linkOAuthAccount,
   type ProviderUser,
+  unlinkOAuthAccount,
   upsertOAuthUser,
   verifyOAuthState,
 } from './oauth.js'
