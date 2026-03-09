@@ -586,16 +586,18 @@ describe('Access Control Tests', () => {
       expect(users.docs.length).toBeGreaterThanOrEqual(0)
     })
 
-    it('should return 401 for invalid tokens', async () => {
+    it('should treat invalid tokens as unauthenticated (session-based auth)', async () => {
       const revealui = await getTestRevealUI()
 
-      // Invalid token should fail
-      await expect(
-        revealui.find({
-          collection: 'users',
-          req: createRequest(undefined, 'invalid-token'),
-        }),
-      ).rejects.toThrow()
+      // With session-based auth, invalid tokens in headers are ignored —
+      // the request is treated as unauthenticated and returns public data.
+      // JWT auth was removed in session 86.
+      const result = await revealui.find({
+        collection: 'users',
+        req: createRequest(undefined, 'invalid-token'),
+      })
+
+      expect(result.docs).toBeDefined()
     })
 
     it('should return 403 for insufficient permissions', async () => {
