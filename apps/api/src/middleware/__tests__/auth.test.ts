@@ -28,9 +28,9 @@ import { errorHandler } from '../error.js'
 
 const mockedGetSession = vi.mocked(getSession)
 
-// biome-ignore lint/suspicious/noExplicitAny: test helper — mock session data with partial fields
 function mockSession(
   overrides?: Partial<{ user: Record<string, unknown>; session: Record<string, unknown> }>,
+  // biome-ignore lint/suspicious/noExplicitAny: test helper — mock session data with partial fields
 ): any {
   return {
     user: { id: 'user-1', role: 'admin', email: 'a@b.com', ...overrides?.user },
@@ -152,7 +152,7 @@ describe('authMiddleware', () => {
     const nextSpy = vi.fn()
     const app = new Hono<{ Variables: TestVariables }>()
     app.use('*', authMiddleware())
-    app.use('*', async (c, next) => {
+    app.use('*', async (_c, next) => {
       nextSpy()
       await next()
     })
