@@ -8,6 +8,7 @@ import { PasswordHasher, TwoFactorAuth } from '../auth'
 import { AuthorizationSystem, PolicyBuilder } from '../authorization'
 import { DataMasking, EncryptionSystem, TokenGenerator } from '../encryption'
 import { ConsentManager, DataAnonymization, DataExportSystem } from '../gdpr'
+import { InMemoryGDPRStorage } from '../gdpr-storage'
 import { CORSManager, SecurityHeaders, SecurityPresets } from '../headers'
 
 describe('PasswordHasher', () => {
@@ -298,7 +299,7 @@ describe('GDPR Compliance', () => {
     let consent: ConsentManager
 
     beforeEach(() => {
-      consent = new ConsentManager()
+      consent = new ConsentManager(new InMemoryGDPRStorage())
     })
 
     it('should grant consent', async () => {
