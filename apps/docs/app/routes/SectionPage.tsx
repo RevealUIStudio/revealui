@@ -72,9 +72,46 @@ Document not found at \`${resolved.markdownPath}\`.
     )
   }
 
+  const docFileName = path || 'INDEX'
+  const githubUrl = `https://github.com/RevealUIStudio/revealui/blob/main/docs/${docFileName}.md`
+
   return (
     <ErrorBoundary>
       <div>{renderMarkdown(content)}</div>
+      <div
+        style={{
+          marginTop: '3rem',
+          paddingTop: '1.5rem',
+          borderTop: '1px solid #e1e4e8',
+          display: 'flex',
+          justifyContent: 'space-between',
+          fontSize: '0.875rem',
+          color: '#6a737d',
+        }}
+      >
+        <a
+          href={githubUrl}
+          target="_blank"
+          rel="noopener noreferrer"
+          style={{ color: '#0969da', textDecoration: 'none' }}
+        >
+          Edit this page on GitHub
+        </a>
+        <button
+          type="button"
+          onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}
+          style={{
+            color: '#6a737d',
+            background: 'none',
+            border: 'none',
+            cursor: 'pointer',
+            fontSize: 'inherit',
+            padding: 0,
+          }}
+        >
+          Back to top
+        </button>
+      </div>
     </ErrorBoundary>
   )
 }
