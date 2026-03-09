@@ -13,6 +13,7 @@
 import { randomInt } from 'node:crypto'
 import { zValidator } from '@hono/zod-validator'
 import { logger } from '@revealui/core/observability/logger'
+import type { DatabaseClient } from '@revealui/db/client'
 import { eq } from 'drizzle-orm'
 import { Hono } from 'hono'
 import { z } from 'zod/v4'
@@ -90,7 +91,12 @@ export function clearOtpStore(): void {
 // Routes
 // =============================================================================
 
-const terminalAuth = new Hono()
+type Variables = {
+  db?: DatabaseClient
+}
+
+// biome-ignore lint/style/useNamingConvention: Hono requires PascalCase `Variables` in its generic type parameter
+const terminalAuth = new Hono<{ Variables: Variables }>()
 
 const linkSchema = z.object({
   fingerprint: z.string().min(1),
@@ -158,7 +164,9 @@ terminalAuth.post('/link', zValidator('json', linkSchema), async (c) => {
       text: `Your RevealUI Terminal verification code: ${code}\n\nThis code expires in 5 minutes.`,
     })
   } catch (err) {
-    logger.error('Failed to send terminal auth OTP email', { email, error: err })
+    logger.error('Failed to send terminal auth OTP email', err instanceof Error ? err : undefined, {
+      email,
+    })
     return c.json({ success: false, error: 'Failed to send verification email' }, 500)
   }
 

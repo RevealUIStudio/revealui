@@ -374,7 +374,15 @@ async function buildDispatcher(
   const cmsBaseUrl = process.env.CMS_URL ?? process.env.NEXT_PUBLIC_CMS_URL
   const apiClient = buildCMSClient(cmsBaseUrl)
 
-  return new aiMod.TicketAgentDispatcher({ llmClient, apiClient, ticketClient })
+  // Type assertions needed: TicketAgentDispatcher comes from Pro package with its own
+  // type resolution path. llmClient is unknown from dynamic import; the dispatcher's
+  // dispatch() accepts TicketInput (narrower than Record<string, unknown>).
+  type DispatcherConfig = ConstructorParameters<typeof aiMod.TicketAgentDispatcher>[0]
+  return new aiMod.TicketAgentDispatcher({
+    llmClient: llmClient as DispatcherConfig['llmClient'],
+    apiClient,
+    ticketClient,
+  }) as unknown as NonNullable<Awaited<ReturnType<typeof buildDispatcher>>>
 }
 
 /**

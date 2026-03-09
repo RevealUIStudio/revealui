@@ -138,11 +138,12 @@ describe('useRovingTabindex', () => {
       expect(screen.getByTestId('item-2')).not.toHaveAttribute('data-focus')
     })
 
-    it('should activate on pointer enter', async () => {
-      const user = userEvent.setup()
+    it('should activate on pointer enter', () => {
       render(<ListboxComponent initialIndex={0} />)
 
-      await user.hover(screen.getByTestId('item-2'))
+      // Use fireEvent directly — userEvent.hover() has timing issues in JSDOM
+      // that cause intermittent timeouts with onPointerEnter handlers
+      fireEvent.pointerEnter(screen.getByTestId('item-2'))
       expect(screen.getByTestId('active-index')).toHaveTextContent('2')
     })
 
