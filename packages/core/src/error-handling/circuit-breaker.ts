@@ -43,9 +43,15 @@ const DEFAULT_CONFIG: Required<CircuitBreakerConfig> = {
   resetTimeout: 30000,
   volumeThreshold: 10,
   errorFilter: () => true,
-  onStateChange: () => {},
-  onTrip: () => {},
-  onReset: () => {},
+  onStateChange: () => {
+    // No-op default — consumers override via config
+  },
+  onTrip: () => {
+    // No-op default — consumers override via config
+  },
+  onReset: () => {
+    // No-op default — consumers override via config
+  },
 }
 
 /**

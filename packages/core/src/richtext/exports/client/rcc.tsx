@@ -9,12 +9,8 @@
 
 import type { SerializedAutoLinkNode, SerializedLinkNode } from '@lexical/link'
 import type { SerializedListItemNode, SerializedListNode } from '@lexical/list'
-import type { SerializedHeadingNode, SerializedQuoteNode } from '@lexical/rich-text'
-import type {
-  SerializedTableCellNode,
-  SerializedTableNode,
-  SerializedTableRowNode,
-} from '@lexical/table'
+import type { SerializedHeadingNode } from '@lexical/rich-text'
+import type { SerializedTableCellNode } from '@lexical/table'
 import {
   IS_BOLD,
   IS_CODE,

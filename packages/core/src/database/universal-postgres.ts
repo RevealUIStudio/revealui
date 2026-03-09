@@ -15,7 +15,7 @@
 import type { Field } from '@revealui/contracts/cms'
 import { defaultLogger } from '../instance/logger.js'
 import { logger } from '../observability/logger.js'
-import type { DatabaseAdapter, DatabaseResult, RevealDocument } from '../types/index.js'
+import type { DatabaseAdapter, DatabaseResult } from '../types/index.js'
 import { safeParseRevealDocuments } from './safe-parse.js'
 import { getSSLConfig } from './ssl-config.js'
 
@@ -99,6 +99,7 @@ function getWorkerPendingTableCreations(): Promise<void>[] {
   if (!workerPendingTableCreations.has(workerID)) {
     workerPendingTableCreations.set(workerID, [])
   }
+  // biome-ignore lint/style/noNonNullAssertion: guaranteed by has-check + set above
   return workerPendingTableCreations.get(workerID)!
 }
 
@@ -110,6 +111,7 @@ function getWorkerCreatedTables(): Set<string> {
   if (!workerCreatedTables.has(workerID)) {
     workerCreatedTables.set(workerID, new Set<string>())
   }
+  // biome-ignore lint/style/noNonNullAssertion: guaranteed by has-check + set above
   return workerCreatedTables.get(workerID)!
 }
 
@@ -175,6 +177,7 @@ export function universalPostgresAdapter(
         // Use pg library for Neon (more compatible with parameterized queries)
         // Neon serverless has limitations with $1, $2 style parameters
         // Using pg ensures full PostgreSQL compatibility
+        // biome-ignore lint/style/noNonNullAssertion: non-electric providers throw above if connectionString is missing
         const neonConnectionString = connectionString!
         const { Pool: NeonPool } = await import('pg')
         const neonPool = new NeonPool({
@@ -206,6 +209,7 @@ export function universalPostgresAdapter(
         // CRITICAL: For Supabase transaction pooling (port 6543), we use pg library
         // Transaction pooling works fine with pg - no special configuration needed
         // Reference: https://supabase.com/docs/guides/database/connecting-to-postgres
+        // biome-ignore lint/style/noNonNullAssertion: non-electric providers throw above if connectionString is missing
         const supabaseConnectionString = connectionString!
         const isTransactionPooling = supabaseConnectionString.includes(':6543')
 
@@ -281,6 +285,7 @@ export function universalPostgresAdapter(
 
       default: {
         // Generic PostgreSQL using pg (node-postgres)
+        // biome-ignore lint/style/noNonNullAssertion: non-electric providers throw above if connectionString is missing
         const genericConnectionString = connectionString!
         const { Pool } = await import('pg')
         const pool = new Pool({

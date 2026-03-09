@@ -67,7 +67,7 @@ export const users = pgTable(
     updatedAt: timestamp('updated_at', { withTimezone: true }).defaultNow().notNull(),
     lastActiveAt: timestamp('last_active_at', { withTimezone: true }),
 
-    // RevealUI/PayloadCMS compatibility - stores additional collection data
+    // biome-ignore lint/style/useNamingConvention: RevealUI document metadata field
     _json: jsonb('_json').default('{}'),
   },
   (table) => [

@@ -56,6 +56,7 @@ export function dbRowToContract<TContract, TDbRow>(
  *
  * Maps database table names to their corresponding contracts for automatic validation.
  */
+// biome-ignore lint/style/useNamingConvention: mirrors Supabase generated Database type shape
 type DatabaseLike = {
   public: {
     Tables: Record<string, { Row: unknown; Insert: unknown; Update: unknown }>
