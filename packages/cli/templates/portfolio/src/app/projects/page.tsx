@@ -1,3 +1,5 @@
+import Image from 'next/image'
+
 const API_URL = process.env.NEXT_PUBLIC_SERVER_URL || 'http://localhost:4000'
 
 interface Project {
@@ -47,18 +49,20 @@ export default async function ProjectsPage() {
               className="rounded-lg border border-gray-200 p-4 transition-shadow hover:shadow-md"
             >
               {project.image?.url && (
-                <img
+                <Image
                   src={project.image.url}
                   alt={project.image.alt || project.title}
+                  width={600}
+                  height={338}
                   className="mb-4 aspect-video w-full rounded object-cover"
                 />
               )}
               <h2 className="text-xl font-semibold">{project.title}</h2>
               {project.tags && project.tags.length > 0 && (
                 <div className="mt-2 flex flex-wrap gap-2">
-                  {project.tags.map((t, i) => (
+                  {project.tags.map((t) => (
                     <span
-                      key={i}
+                      key={t.tag}
                       className="rounded-full bg-gray-100 px-2 py-0.5 text-xs text-gray-700"
                     >
                       {t.tag}

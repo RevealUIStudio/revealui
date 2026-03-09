@@ -17,6 +17,7 @@ function compilePathPattern(pattern: string): { regex: RegExp; keys: PathKey[] }
   let src = '^'
   let i = 0
   while (i < pattern.length) {
+    // biome-ignore lint/style/noNonNullAssertion: index bounds-checked by loop condition
     const ch = pattern[i]!
     if (ch === '{') {
       src += '(?:'
@@ -27,12 +28,14 @@ function compilePathPattern(pattern: string): { regex: RegExp; keys: PathKey[] }
     } else if (ch === ':') {
       i++
       let name = ''
+      // biome-ignore lint/style/noNonNullAssertion: index bounds-checked by loop condition
       while (i < pattern.length && /\w/.test(pattern[i]!)) name += pattern[i++]
       keys.push({ name, wildcard: false })
       src += '([^/]+)'
     } else if (ch === '*') {
       i++
       let name = ''
+      // biome-ignore lint/style/noNonNullAssertion: index bounds-checked by loop condition
       while (i < pattern.length && /\w/.test(pattern[i]!)) name += pattern[i++]
       keys.push({ name: name || '0', wildcard: true })
       src += '(.+)'
@@ -56,6 +59,7 @@ function pathMatch(
     if (!m) return false
     const params: Record<string, string | string[]> = {}
     for (let j = 0; j < keys.length; j++) {
+      // biome-ignore lint/style/noNonNullAssertion: index bounds-checked by loop condition
       const key = keys[j]!
       const val = m[j + 1]
       if (val === undefined) continue

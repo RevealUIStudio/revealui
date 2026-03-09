@@ -505,7 +505,7 @@ export function initializeErrorReporting(config: {
 
   // Add sample rate filter
   if (config.sampleRate && config.sampleRate < 1) {
-    errorReporter.addFilter(() => Math.random() < config.sampleRate!)
+    errorReporter.addFilter(() => Math.random() < (config.sampleRate ?? 1))
   }
 
   // Add reporters

@@ -95,7 +95,8 @@ export class OAuthClient {
     expires_in: number
     token_type: string
   }> {
-    const response = await fetch(this.config.tokenUrl!, {
+    if (!this.config.tokenUrl) throw new Error('tokenUrl is required for OAuth')
+    const response = await fetch(this.config.tokenUrl, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/x-www-form-urlencoded',
@@ -125,7 +126,8 @@ export class OAuthClient {
     name?: string
     picture?: string
   }> {
-    const response = await fetch(this.config.userInfoUrl!, {
+    if (!this.config.userInfoUrl) throw new Error('userInfoUrl is required for OAuth')
+    const response = await fetch(this.config.userInfoUrl, {
       headers: {
         // biome-ignore lint/style/useNamingConvention: HTTP header convention
         Authorization: `Bearer ${accessToken}`,
@@ -146,157 +148,156 @@ export class OAuthClient {
  * Uses PBKDF2 with a random salt for secure password hashing.
  * For even stronger hashing, use bcryptjs (available in @revealui/auth).
  */
-export class PasswordHasher {
-  private static readonly ITERATIONS = 100000
-  private static readonly KEY_LENGTH = 64
-  private static readonly DIGEST = 'sha512'
 
-  /**
-   * Hash password with PBKDF2 and random salt
-   */
-  static async hash(password: string): Promise<string> {
-    const { pbkdf2, randomBytes: rb } = await import('node:crypto')
-    const salt = rb(16).toString('hex')
+const PH_ITERATIONS = 100000
+const PH_KEY_LENGTH = 64
+const PH_DIGEST = 'sha512'
 
-    return new Promise((resolve, reject) => {
-      pbkdf2(
-        password,
-        salt,
-        PasswordHasher.ITERATIONS,
-        PasswordHasher.KEY_LENGTH,
-        PasswordHasher.DIGEST,
-        (err, derivedKey) => {
-          if (err) reject(err)
-          else resolve(`${salt}:${derivedKey.toString('hex')}`)
-        },
-      )
+/**
+ * Hash password with PBKDF2 and random salt
+ */
+async function hashPassword(password: string): Promise<string> {
+  const { pbkdf2, randomBytes: rb } = await import('node:crypto')
+  const salt = rb(16).toString('hex')
+
+  return new Promise((resolve, reject) => {
+    pbkdf2(password, salt, PH_ITERATIONS, PH_KEY_LENGTH, PH_DIGEST, (err, derivedKey) => {
+      if (err) reject(err)
+      else resolve(`${salt}:${derivedKey.toString('hex')}`)
     })
-  }
-
-  /**
-   * Verify password against stored hash
-   */
-  static async verify(password: string, storedHash: string): Promise<boolean> {
-    const { pbkdf2, timingSafeEqual } = await import('node:crypto')
-    const [salt, hash] = storedHash.split(':')
-
-    if (!(salt && hash)) {
-      return false
-    }
-
-    return new Promise((resolve, reject) => {
-      pbkdf2(
-        password,
-        salt,
-        PasswordHasher.ITERATIONS,
-        PasswordHasher.KEY_LENGTH,
-        PasswordHasher.DIGEST,
-        (err, derivedKey) => {
-          if (err) reject(err)
-          else {
-            const derived = Buffer.from(derivedKey.toString('hex'), 'utf-8')
-            const expected = Buffer.from(hash, 'utf-8')
-            if (derived.length !== expected.length) {
-              resolve(false)
-            } else {
-              resolve(timingSafeEqual(derived, expected))
-            }
-          }
-        },
-      )
-    })
-  }
+  })
 }
+
+/**
+ * Verify password against stored hash
+ */
+async function verifyPassword(password: string, storedHash: string): Promise<boolean> {
+  const { pbkdf2, timingSafeEqual: tse } = await import('node:crypto')
+  const [salt, hash] = storedHash.split(':')
+
+  if (!(salt && hash)) {
+    return false
+  }
+
+  return new Promise((resolve, reject) => {
+    pbkdf2(password, salt, PH_ITERATIONS, PH_KEY_LENGTH, PH_DIGEST, (err, derivedKey) => {
+      if (err) reject(err)
+      else {
+        const derived = Buffer.from(derivedKey.toString('hex'), 'utf-8')
+        const expected = Buffer.from(hash, 'utf-8')
+        if (derived.length !== expected.length) {
+          resolve(false)
+        } else {
+          resolve(tse(derived, expected))
+        }
+      }
+    })
+  })
+}
+
+export const PasswordHasher = {
+  hash: hashPassword,
+  verify: verifyPassword,
+} as const
 
 /**
  * Two-factor authentication
  */
-export class TwoFactorAuth {
-  /**
-   * Generate TOTP secret
-   */
-  static generateSecret(): string {
-    const crypto = globalThis.crypto
-    if (!crypto) {
-      throw new Error('Crypto API not available')
+
+/**
+ * Base32 encode
+ */
+function base32Encode(buffer: Uint8Array): string {
+  const alphabet = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ234567'
+  let result = ''
+  let bits = 0
+  let value = 0
+
+  for (const byte of buffer) {
+    if (byte === undefined) continue
+    value = (value << 8) | byte
+    bits += 8
+
+    while (bits >= 5) {
+      result += alphabet[(value >>> (bits - 5)) & 31]
+      bits -= 5
     }
-
-    const buffer = new Uint8Array(20)
-    crypto.getRandomValues(buffer)
-    return TwoFactorAuth.base32Encode(buffer)
   }
 
-  /**
-   * Generate TOTP code
-   */
-  static generateCode(secret: string, timestamp?: number): string {
-    const time = Math.floor((timestamp || Date.now()) / 30000)
-    const hmacDigest = TwoFactorAuth.hmac(secret, time.toString())
-    const offset = hmacDigest[hmacDigest.length - 1]! & 0x0f
-    const code =
-      (((hmacDigest[offset]! & 0x7f) << 24) |
-        ((hmacDigest[offset + 1]! & 0xff) << 16) |
-        ((hmacDigest[offset + 2]! & 0xff) << 8) |
-        (hmacDigest[offset + 3]! & 0xff)) %
-      1000000
-
-    return code.toString().padStart(6, '0')
+  if (bits > 0) {
+    result += alphabet[(value << (5 - bits)) & 31]
   }
 
-  /**
-   * Verify TOTP code
-   */
-  static verifyCode(secret: string, code: string, window: number = 1): boolean {
-    const timestamp = Date.now()
-
-    // Check current and adjacent time windows
-    for (let i = -window; i <= window; i++) {
-      const testTime = timestamp + i * 30000
-      const testCode = TwoFactorAuth.generateCode(secret, testTime)
-
-      if (
-        testCode.length === code.length &&
-        timingSafeEqual(Buffer.from(testCode), Buffer.from(code))
-      ) {
-        return true
-      }
-    }
-
-    return false
-  }
-
-  /**
-   * Base32 encode
-   */
-  private static base32Encode(buffer: Uint8Array): string {
-    const alphabet = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ234567'
-    let result = ''
-    let bits = 0
-    let value = 0
-
-    for (const byte of buffer) {
-      if (byte === undefined) continue
-      value = (value << 8) | byte
-      bits += 8
-
-      while (bits >= 5) {
-        result += alphabet[(value >>> (bits - 5)) & 31]
-        bits -= 5
-      }
-    }
-
-    if (bits > 0) {
-      result += alphabet[(value << (5 - bits)) & 31]
-    }
-
-    return result
-  }
-
-  /**
-   * HMAC-SHA1 implementation for TOTP
-   */
-  private static hmac(key: string, message: string): Uint8Array {
-    const hmacDigest = createHmac('sha1', key).update(message).digest()
-    return new Uint8Array(hmacDigest)
-  }
+  return result
 }
+
+/**
+ * HMAC-SHA1 implementation for TOTP
+ */
+function totpHmac(key: string, message: string): Uint8Array {
+  const hmacDigest = createHmac('sha1', key).update(message).digest()
+  return new Uint8Array(hmacDigest)
+}
+
+/**
+ * Generate TOTP secret
+ */
+function generateSecret(): string {
+  const crypto = globalThis.crypto
+  if (!crypto) {
+    throw new Error('Crypto API not available')
+  }
+
+  const buffer = new Uint8Array(20)
+  crypto.getRandomValues(buffer)
+  return base32Encode(buffer)
+}
+
+/**
+ * Generate TOTP code
+ */
+function generateCode(secret: string, timestamp?: number): string {
+  const time = Math.floor((timestamp || Date.now()) / 30000)
+  const hmacDigest = totpHmac(secret, time.toString())
+  // biome-ignore lint/style/noNonNullAssertion: HMAC-SHA1 always produces 20 bytes; buffer indices are guaranteed valid
+  const offset = hmacDigest[hmacDigest.length - 1]! & 0x0f
+  // biome-ignore lint/style/noNonNullAssertion: HMAC-SHA1 always produces 20 bytes; buffer indices are guaranteed valid
+  const b0 = hmacDigest[offset]! & 0x7f
+  // biome-ignore lint/style/noNonNullAssertion: HMAC-SHA1 always produces 20 bytes; buffer indices are guaranteed valid
+  const b1 = hmacDigest[offset + 1]! & 0xff
+  // biome-ignore lint/style/noNonNullAssertion: HMAC-SHA1 always produces 20 bytes; buffer indices are guaranteed valid
+  const b2 = hmacDigest[offset + 2]! & 0xff
+  // biome-ignore lint/style/noNonNullAssertion: HMAC-SHA1 always produces 20 bytes; buffer indices are guaranteed valid
+  const b3 = hmacDigest[offset + 3]! & 0xff
+  const code = ((b0 << 24) | (b1 << 16) | (b2 << 8) | b3) % 1000000
+
+  return code.toString().padStart(6, '0')
+}
+
+/**
+ * Verify TOTP code
+ */
+function verifyCode(secret: string, code: string, window: number = 1): boolean {
+  const timestamp = Date.now()
+
+  // Check current and adjacent time windows
+  for (let i = -window; i <= window; i++) {
+    const testTime = timestamp + i * 30000
+    const testCode = generateCode(secret, testTime)
+
+    if (
+      testCode.length === code.length &&
+      timingSafeEqual(Buffer.from(testCode), Buffer.from(code))
+    ) {
+      return true
+    }
+  }
+
+  return false
+}
+
+export const TwoFactorAuth = {
+  generateSecret,
+  generateCode,
+  verifyCode,
+} as const

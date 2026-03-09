@@ -318,11 +318,13 @@ export class InMemoryAuditStorage implements AuditStorage {
 
     // Filter by date range
     if (query.startDate) {
-      results = results.filter((e) => new Date(e.timestamp) >= query.startDate!)
+      const startDate = query.startDate
+      results = results.filter((e) => new Date(e.timestamp) >= startDate)
     }
 
     if (query.endDate) {
-      results = results.filter((e) => new Date(e.timestamp) <= query.endDate!)
+      const endDate = query.endDate
+      results = results.filter((e) => new Date(e.timestamp) <= endDate)
     }
 
     // Filter by severity
