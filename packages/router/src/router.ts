@@ -78,6 +78,8 @@ export class Router {
   private listeners: Set<() => void> = new Set()
   private currentMatch: RouteMatch | null = null
   private lastPathname: string | null = null
+  private popstateHandler: (() => void) | null = null
+  private clickHandler: ((e: MouseEvent) => void) | null = null
 
   constructor(options: RouterOptions = {}) {
     this.options = {
@@ -285,14 +287,15 @@ export class Router {
     g.__revealui_router_initialized = true
 
     // Handle browser back/forward buttons
-    window.addEventListener('popstate', () => {
+    this.popstateHandler = () => {
       this.lastPathname = window.location.pathname
       this.currentMatch = this.match(window.location.pathname)
       this.notifyListeners()
-    })
+    }
+    window.addEventListener('popstate', this.popstateHandler)
 
     // Intercept link clicks
-    document.addEventListener('click', (e) => {
+    this.clickHandler = (e: MouseEvent) => {
       const target = (e.target as HTMLElement).closest('a')
 
       if (!target) return
@@ -312,6 +315,30 @@ export class Router {
         e.preventDefault()
         this.navigate(href)
       }
-    })
+    }
+    document.addEventListener('click', this.clickHandler)
+  }
+
+  /**
+   * Clean up client-side event listeners.
+   * Call this before unmounting or during HMR teardown.
+   */
+  dispose(): void {
+    if (typeof window === 'undefined') return
+
+    if (this.popstateHandler) {
+      window.removeEventListener('popstate', this.popstateHandler)
+      this.popstateHandler = null
+    }
+    if (this.clickHandler) {
+      document.removeEventListener('click', this.clickHandler)
+      this.clickHandler = null
+    }
+
+    this.listeners.clear()
+
+    // biome-ignore lint/suspicious/noExplicitAny: global HMR guard cleanup
+    const g = globalThis as any
+    g.__revealui_router_initialized = false
   }
 }
