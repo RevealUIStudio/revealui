@@ -271,16 +271,6 @@ describe('Router', () => {
   })
 
   describe('resolve', () => {
-    it('stores match on server side for getCurrentMatch', async () => {
-      const router = new Router()
-      router.register(createRoute('/first'))
-      router.register(createRoute('/second'))
-      await router.resolve('/first')
-      expect(router.getCurrentMatch()?.route.path).toBe('/first')
-      await router.resolve('/second')
-      expect(router.getCurrentMatch()?.route.path).toBe('/second')
-    })
-
     it('passes params to loader', async () => {
       const loader = vi.fn().mockResolvedValue({ ok: true })
       const router = new Router()
@@ -290,52 +280,8 @@ describe('Router', () => {
     })
   })
 
-  describe('navigate (server-side noop)', () => {
-    it('does not throw on server', () => {
-      const router = new Router()
-      expect(() => router.navigate('/somewhere')).not.toThrow()
-    })
-
-    it('does not throw with replace option', () => {
-      const router = new Router()
-      expect(() => router.navigate('/somewhere', { replace: true })).not.toThrow()
-    })
-  })
-
-  describe('back and forward (server-side noop)', () => {
-    it('back does not throw on server', () => {
-      const router = new Router()
-      expect(() => router.back()).not.toThrow()
-    })
-
-    it('forward does not throw on server', () => {
-      const router = new Router()
-      expect(() => router.forward()).not.toThrow()
-    })
-  })
-
-  describe('initClient (server-side noop)', () => {
-    it('does not throw on server', () => {
-      const router = new Router()
-      expect(() => router.initClient()).not.toThrow()
-    })
-  })
-
-  describe('getCurrentMatch (server-side)', () => {
-    it('returns null when no match has been resolved', () => {
-      const router = new Router()
-      expect(router.getCurrentMatch()).toBeNull()
-    })
-
-    it('returns the last resolved match on server', async () => {
-      const router = new Router()
-      router.register(createRoute('/'))
-      await router.resolve('/')
-      const match = router.getCurrentMatch()
-      expect(match).not.toBeNull()
-      expect(match?.route.path).toBe('/')
-    })
-  })
+  // Server-side tests (navigate, back, forward, initClient, getCurrentMatch after resolve)
+  // are in router-server.test.ts which runs with @vitest-environment node
 
   describe('normalizePath edge cases', () => {
     it('handles URL with both query and hash', () => {

@@ -151,10 +151,8 @@ export class Router {
       }
     }
 
-    // Store match for SSR (if on server)
-    if (typeof window === 'undefined') {
-      this.currentMatch = matched
-    }
+    // Store resolved match for getCurrentMatch (SSR and resolve-based flows)
+    this.currentMatch = matched
 
     return matched
   }

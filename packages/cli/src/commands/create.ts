@@ -27,8 +27,8 @@ const logger = createLogger({ prefix: 'Create' })
 const __filename = fileURLToPath(import.meta.url)
 const __dirname = path.dirname(__filename)
 
-// Templates live at packages/cli/templates/ — one level up from dist/
-const TEMPLATES_DIR = path.resolve(__dirname, '../templates')
+// Templates live at packages/cli/templates/ — two levels up from src/commands/ or dist/commands/
+const TEMPLATES_DIR = path.resolve(__dirname, '../../templates')
 
 export interface CreateProjectConfig {
   project: ProjectConfig
