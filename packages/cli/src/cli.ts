@@ -11,6 +11,7 @@ export interface CliOptions {
   template?: string
   skipGit?: boolean
   skipInstall?: boolean
+  yes?: boolean
 }
 
 export function createCli(): Command {
@@ -24,6 +25,7 @@ export function createCli(): Command {
     .option('-t, --template <name>', 'Template to use (basic-blog, e-commerce, portfolio)')
     .option('--skip-git', 'Skip git initialization', false)
     .option('--skip-install', 'Skip dependency installation', false)
+    .option('-y, --yes', 'Skip all prompts and use defaults', false)
     .action(async (projectName: string | undefined, options: CliOptions) => {
       logger.header('🚀 Create RevealUI Project')
 
