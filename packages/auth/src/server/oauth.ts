@@ -223,7 +223,8 @@ export async function upsertOAuthUser(provider: string, providerUser: ProviderUs
   // If an account with this email already exists but was not linked via OAuth,
   // reject the login. Auto-linking is an account takeover vector: an attacker
   // who controls a provider email instantly owns the existing account.
-  // Explicit linking (from an authenticated session) is a future feature.
+  // Users must link providers explicitly from an authenticated session
+  // via linkOAuthAccount().
   let userId: string
   let isNewUser = false
 
@@ -272,4 +273,166 @@ export async function upsertOAuthUser(provider: string, providerUser: ProviderUs
   const [user] = await db.select().from(users).where(eq(users.id, userId)).limit(1)
   if (!user) throw new Error('Failed to fetch upserted OAuth user')
   return user as User
+}
+
+// =============================================================================
+// Explicit Account Linking
+// =============================================================================
+
+/**
+ * Link an OAuth provider to an existing authenticated user.
+ *
+ * Unlike upsertOAuthUser(), this function requires the caller to be
+ * authenticated and explicitly requests the link. This is safe because
+ * the user has already proven ownership of the local account via their
+ * session.
+ *
+ * @param userId - The authenticated user's ID (from session)
+ * @param provider - OAuth provider name
+ * @param providerUser - Profile returned by the OAuth provider
+ * @returns The linked user
+ * @throws Error if the provider account is already linked to a different user
+ */
+export async function linkOAuthAccount(
+  userId: string,
+  provider: string,
+  providerUser: ProviderUser,
+): Promise<User> {
+  const db = getClient()
+
+  // 1. Check if this provider identity is already linked to ANY user
+  const [existingLink] = await db
+    .select()
+    .from(oauthAccounts)
+    .where(
+      and(eq(oauthAccounts.provider, provider), eq(oauthAccounts.providerUserId, providerUser.id)),
+    )
+    .limit(1)
+
+  if (existingLink) {
+    if (existingLink.userId === userId) {
+      // Already linked to this user — refresh metadata and return
+      await db
+        .update(oauthAccounts)
+        .set({
+          providerEmail: providerUser.email,
+          providerName: providerUser.name,
+          providerAvatarUrl: providerUser.avatarUrl,
+          updatedAt: new Date(),
+        })
+        .where(eq(oauthAccounts.id, existingLink.id))
+
+      const [user] = await db.select().from(users).where(eq(users.id, userId)).limit(1)
+      if (!user) throw new Error('Authenticated user not found in database')
+      return user as User
+    }
+    // Linked to a different user — cannot steal the identity
+    throw new Error(
+      'This provider account is already linked to another user. Unlink it from the other account first.',
+    )
+  }
+
+  // 2. Check the authenticated user exists
+  const [user] = await db.select().from(users).where(eq(users.id, userId)).limit(1)
+  if (!user) throw new Error('Authenticated user not found in database')
+
+  // 3. Check if this user already has a link for this provider (different provider account)
+  const [existingProviderLink] = await db
+    .select()
+    .from(oauthAccounts)
+    .where(and(eq(oauthAccounts.userId, userId), eq(oauthAccounts.provider, provider)))
+    .limit(1)
+
+  if (existingProviderLink) {
+    throw new Error(
+      `You already have a ${provider} account linked. Unlink it first to connect a different one.`,
+    )
+  }
+
+  // 4. Create the link
+  await db.insert(oauthAccounts).values({
+    id: crypto.randomUUID(),
+    userId,
+    provider,
+    providerUserId: providerUser.id,
+    providerEmail: providerUser.email,
+    providerName: providerUser.name,
+    providerAvatarUrl: providerUser.avatarUrl,
+  })
+
+  logger.info(`Linked ${provider} account to user ${userId}`)
+  return user as User
+}
+
+/**
+ * Unlink an OAuth provider from a user's account.
+ *
+ * Safety: refuses to unlink the last auth method (if user has no password
+ * and this is their only OAuth link, unlinking would lock them out).
+ *
+ * @param userId - The authenticated user's ID
+ * @param provider - The provider to unlink
+ * @throws Error if unlinking would leave the user with no authentication method
+ */
+export async function unlinkOAuthAccount(userId: string, provider: string): Promise<void> {
+  const db = getClient()
+
+  // 1. Find the link to remove
+  const [link] = await db
+    .select()
+    .from(oauthAccounts)
+    .where(and(eq(oauthAccounts.userId, userId), eq(oauthAccounts.provider, provider)))
+    .limit(1)
+
+  if (!link) {
+    throw new Error(`No ${provider} account is linked to your account`)
+  }
+
+  // 2. Safety check: ensure user won't be locked out
+  const [user] = await db.select().from(users).where(eq(users.id, userId)).limit(1)
+  if (!user) throw new Error('User not found')
+
+  const allLinks = await db
+    .select({ id: oauthAccounts.id })
+    .from(oauthAccounts)
+    .where(eq(oauthAccounts.userId, userId))
+
+  const hasPassword = !!(user as User).password
+  const otherLinksCount = allLinks.length - 1
+
+  if (!hasPassword && otherLinksCount === 0) {
+    throw new Error(
+      'Cannot unlink your only sign-in method. Set a password first, or link another provider.',
+    )
+  }
+
+  // 3. Delete the link
+  await db
+    .delete(oauthAccounts)
+    .where(and(eq(oauthAccounts.userId, userId), eq(oauthAccounts.provider, provider)))
+
+  logger.info(`Unlinked ${provider} account from user ${userId}`)
+}
+
+/**
+ * Get all linked OAuth providers for a user.
+ *
+ * @param userId - The user's ID
+ * @returns Array of linked provider info (provider name, email, avatar)
+ */
+export async function getLinkedProviders(
+  userId: string,
+): Promise<Array<{ provider: string; providerEmail: string | null; providerName: string | null }>> {
+  const db = getClient()
+
+  const links = await db
+    .select({
+      provider: oauthAccounts.provider,
+      providerEmail: oauthAccounts.providerEmail,
+      providerName: oauthAccounts.providerName,
+    })
+    .from(oauthAccounts)
+    .where(eq(oauthAccounts.userId, userId))
+
+  return links
 }
