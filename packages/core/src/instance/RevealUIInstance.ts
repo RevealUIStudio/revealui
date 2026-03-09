@@ -1,6 +1,5 @@
 import { randomBytes } from 'node:crypto'
 import bcrypt from 'bcryptjs'
-import { SignJWT } from 'jose'
 import { RevealUICollection } from '../collections/CollectionOperations.js'
 import { getDataLoader } from '../dataloader.js'
 import { afterRead } from '../fields/hooks/afterRead/index.js'
@@ -191,25 +190,8 @@ export async function createRevealUIInstance(config: RevealConfig): Promise<Reve
         throw new Error('Invalid credentials')
       }
 
-      // Generate JWT token with unique jti (JWT ID) for session fixation prevention
-      const secret = process.env.REVEALUI_SECRET
-      if (!secret || secret.length < 32) {
-        throw new Error(
-          'REVEALUI_SECRET must be set to a secure random value (minimum 32 characters). ' +
-            'Generate one with: openssl rand -base64 32',
-        )
-      }
-      const secretKey = new TextEncoder().encode(secret)
-      const token = await new SignJWT({
-        id: user.id,
-        email: user.email,
-        collection,
-      })
-        .setProtectedHeader({ alg: 'HS256' })
-        .setIssuedAt()
-        .setExpirationTime('7d')
-        .setJti(`${user.id}-${Date.now()}-${randomBytes(8).toString('hex')}`)
-        .sign(secretKey)
+      // Generate opaque session token for session fixation prevention
+      const token = randomBytes(32).toString('hex')
 
       // Remove password from user object before returning
       const userWithoutPassword = { ...user, password: undefined }

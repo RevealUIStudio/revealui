@@ -1,17 +1,12 @@
-import { jwtVerify } from 'jose'
 import { draftMode } from 'next/headers'
 import { redirect } from 'next/navigation'
 import type { NextRequest } from 'next/server'
-import { getRevealUIInstance } from '@/lib/utilities/revealui-singleton'
 
 // Force dynamic rendering to prevent build-time RevealUI CMS initialization
 export const dynamic = 'force-dynamic'
 
-const authToken = 'revealui-token'
-
 export async function GET(req: NextRequest): Promise<Response> {
-  const revealui = await getRevealUIInstance()
-  const token = req.cookies.get(authToken)?.value
+  const session = req.cookies.get('revealui-session')?.value
   const { searchParams } = new URL(req.url)
   const path = searchParams.get('path')
 
@@ -19,34 +14,7 @@ export async function GET(req: NextRequest): Promise<Response> {
     return new Response('No path provided', { status: 404 })
   }
 
-  if (!token) {
-    return new Response('You are not allowed to preview this page', {
-      status: 403,
-    })
-  }
-
-  let user: Record<string, unknown> | null = null
-
-  const secret = revealui.secret || process.env.REVEALUI_SECRET || ''
-  if (!secret) {
-    return new Response('Server configuration error: no secret configured', {
-      status: 500,
-    })
-  }
-
-  try {
-    const { payload } = await jwtVerify(token, new TextEncoder().encode(secret))
-    user = payload as Record<string, unknown>
-  } catch (error) {
-    revealui.logger.error(
-      `Error verifying token for live preview: ${error instanceof Error ? error.message : String(error)}`,
-    )
-  }
-
-  // You can add additional checks here to see if the user is allowed to preview this page
-  if (!user) {
-    const draft = await draftMode()
-    draft.disable()
+  if (!session) {
     return new Response('You are not allowed to preview this page', {
       status: 403,
     })

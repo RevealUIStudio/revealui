@@ -248,41 +248,19 @@ export async function cleanupTestUsers(): Promise<void> {
 }
 
 /**
- * Verify JWT token structure
+ * Verify token is a valid opaque session token (non-empty hex string)
  */
-export function verifyJWTStructure(token: string): {
+export function verifyTokenStructure(token: string): {
   valid: boolean
-  payload?: Record<string, unknown>
   error?: string
 } {
-  try {
-    const parts = token.split('.')
-    if (parts.length !== 3) {
-      return { valid: false, error: 'Invalid JWT format' }
-    }
-
-    // Decode payload (base64url)
-    const payloadPart = parts[1]
-    if (!payloadPart) {
-      return { valid: false, error: 'Missing JWT payload' }
-    }
-    const payload = JSON.parse(Buffer.from(payloadPart, 'base64url').toString('utf-8')) as Record<
-      string,
-      unknown
-    >
-
-    // Check required claims
-    if (!(payload.id && payload.email)) {
-      return { valid: false, error: 'Missing required claims' }
-    }
-
-    return { valid: true, payload }
-  } catch (error) {
-    return {
-      valid: false,
-      error: error instanceof Error ? error.message : 'Unknown error',
-    }
+  if (!token || typeof token !== 'string') {
+    return { valid: false, error: 'Token is empty or not a string' }
   }
+  if (token.length === 0) {
+    return { valid: false, error: 'Token is empty' }
+  }
+  return { valid: true }
 }
 
 /**

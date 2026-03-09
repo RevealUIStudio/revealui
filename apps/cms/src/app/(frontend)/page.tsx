@@ -8,7 +8,7 @@ export const dynamicParams = true
 
 export default async function RootPage() {
   const cookieStore = await cookies()
-  const sessionCookie = cookieStore.get('revealui-session') ?? cookieStore.get('revealui_session')
+  const sessionCookie = cookieStore.get('revealui-session')
 
   if (sessionCookie?.value) {
     redirect('/admin')

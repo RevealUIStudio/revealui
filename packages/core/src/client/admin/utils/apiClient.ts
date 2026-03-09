@@ -4,7 +4,6 @@
  */
 
 import type { RevealDocument } from '../../../types/index.js'
-import { getAuthHeader } from './auth.js'
 
 export interface APIResponse<T = RevealDocument> {
   docs?: T[]
@@ -132,12 +131,8 @@ export class APIClient {
    * Make an authenticated API request
    */
   private async request<T = unknown>(endpoint: string, options: RequestInit = {}): Promise<T> {
-    const authHeader = getAuthHeader()
-
     const headers: HeadersInit = {
       'Content-Type': 'application/json',
-      // biome-ignore lint/style/useNamingConvention: HTTP header key.
-      ...(authHeader && { Authorization: authHeader }),
       ...options.headers,
     }
 

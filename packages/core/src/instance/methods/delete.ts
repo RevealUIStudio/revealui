@@ -6,7 +6,6 @@
 
 import type { RevealRequest as ContractsRevealRequest } from '@revealui/contracts/cms'
 import type { RevealDeleteOptions, RevealDocument, RevealUIInstance } from '../../types/index.js'
-import { validateJWTFromRequest } from '../../utils/jwt-validation.js'
 
 export async function deleteMethod(
   instance: RevealUIInstance,
@@ -14,10 +13,7 @@ export async function deleteMethod(
   options: RevealDeleteOptions & { collection: string },
 ): Promise<RevealDocument> {
   await ensureDbConnected()
-  const { collection, req } = options
-
-  // Validate JWT token if authorization header is provided
-  await validateJWTFromRequest(req)
+  const { collection } = options
 
   if (!instance.collections[collection]) {
     throw new Error(`Collection '${collection}' not found`)

@@ -22,16 +22,11 @@ export {
   InMemoryAuditStorage,
 } from './audit'
 export type {
-  AuthConfig,
-  AuthSession,
-  AuthToken,
-  JWTPayload,
   OAuthConfig,
   User,
 } from './auth'
 // Authentication
 export {
-  AuthSystem,
   OAuthClient,
   OAuthProviders,
   PasswordHasher,

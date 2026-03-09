@@ -6,7 +6,6 @@
 
 import type { RevealRequest as ContractsRevealRequest } from '@revealui/contracts/cms'
 import type { RevealCreateOptions, RevealDocument, RevealUIInstance } from '../../types/index.js'
-import { validateJWTFromRequest } from '../../utils/jwt-validation.js'
 import { callHooks } from './hooks.js'
 
 export async function create(
@@ -16,9 +15,6 @@ export async function create(
 ): Promise<RevealDocument> {
   await ensureDbConnected()
   const { collection, req } = options
-
-  // Validate JWT token if authorization header is provided
-  await validateJWTFromRequest(req)
 
   if (!instance.collections[collection]) {
     throw new Error(`Collection '${collection}' not found`)

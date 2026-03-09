@@ -8,11 +8,6 @@ import { beforeEach, describe, expect, it, vi } from 'vitest'
 import type { RevealDocument, RevealUIInstance } from '../../../types/index.js'
 import { findByID } from '../findById.js'
 
-// Mock validateJWTFromRequest
-vi.mock('../../../utils/jwt-validation', () => ({
-  validateJWTFromRequest: vi.fn(),
-}))
-
 // Mock getDataLoader
 vi.mock('../../../dataloader', () => ({
   getDataLoader: vi.fn(() => ({})),
