@@ -21,8 +21,8 @@ import { promptPaymentConfig } from './prompts/payments.js'
 import { promptProjectConfig } from './prompts/project.js'
 import { promptStorageConfig } from './prompts/storage.js'
 
-/** Templates that require a Pro or Enterprise license. */
-const PRO_TEMPLATES = new Set<string>(['e-commerce', 'portfolio'])
+/** Templates that require a Pro or Enterprise license (none currently — all 3 are free). */
+const PRO_TEMPLATES = new Set<string>([])
 
 /**
  * Lightweight Pro license check for the CLI.
@@ -90,7 +90,7 @@ export async function run(projectName: string | undefined, _options: CliOptions)
 
     // Step 2: Collect project configuration
     logger.info('[2/8] Configure your project')
-    const projectConfig = await promptProjectConfig(projectName)
+    const projectConfig = await promptProjectConfig(projectName, _options.template)
     logger.success(`Project: ${projectConfig.projectName}`)
     logger.success(`Template: ${projectConfig.template}`)
 
@@ -105,9 +105,14 @@ export async function run(projectName: string | undefined, _options: CliOptions)
       logger.success('Pro license verified')
     }
 
+    // When --yes is set, skip all interactive prompts and use sensible defaults
+    const nonInteractive = _options.yes === true
+
     // Step 3: Database configuration
     logger.info('[3/8] Configure database')
-    const databaseConfig = await promptDatabaseConfig()
+    const databaseConfig: import('./prompts/database.js').DatabaseConfig = nonInteractive
+      ? { provider: 'skip' }
+      : await promptDatabaseConfig()
     if (databaseConfig.provider !== 'skip') {
       logger.success(`Database: ${databaseConfig.provider}`)
     } else {
@@ -116,7 +121,9 @@ export async function run(projectName: string | undefined, _options: CliOptions)
 
     // Step 4: Storage configuration
     logger.info('[4/8] Configure storage')
-    const storageConfig = await promptStorageConfig()
+    const storageConfig: import('./prompts/storage.js').StorageConfig = nonInteractive
+      ? { provider: 'skip' }
+      : await promptStorageConfig()
     if (storageConfig.provider !== 'skip') {
       logger.success(`Storage: ${storageConfig.provider}`)
     } else {
@@ -125,7 +132,9 @@ export async function run(projectName: string | undefined, _options: CliOptions)
 
     // Step 5: Payment configuration
     logger.info('[5/8] Configure payments')
-    const paymentConfig = await promptPaymentConfig()
+    const paymentConfig: import('./prompts/payments.js').PaymentConfig = nonInteractive
+      ? { enabled: false }
+      : await promptPaymentConfig()
     if (paymentConfig.enabled) {
       logger.success('Stripe configured')
     } else {
@@ -134,7 +143,9 @@ export async function run(projectName: string | undefined, _options: CliOptions)
 
     // Step 6: Development environment
     logger.info('[6/8] Configure development environment')
-    const devEnvConfig = await promptDevEnvConfig()
+    const devEnvConfig: import('./prompts/devenv.js').DevEnvConfig = nonInteractive
+      ? { createDevContainer: false, createDevbox: false }
+      : await promptDevEnvConfig()
     logger.success(
       `Dev Container: ${devEnvConfig.createDevContainer ? 'Yes' : 'No'}, Devbox: ${devEnvConfig.createDevbox ? 'Yes' : 'No'}`,
     )

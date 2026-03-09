@@ -42,7 +42,6 @@ const projects: SeedProject[] = [
   },
 ]
 
-// biome-ignore lint/suspicious/noConsole: seed script is a standalone CLI tool
 const log = (...args: unknown[]) => process.stdout.write(`${args.join(' ')}\n`)
 const logErr = (...args: unknown[]) => process.stderr.write(`${args.join(' ')}\n`)
 
