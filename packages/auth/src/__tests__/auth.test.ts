@@ -118,52 +118,62 @@ describe('Authentication', () => {
   })
 
   describe('signUp', () => {
-    it('should return error if user already exists', async () => {
-      // Reset mocks
-      vi.clearAllMocks()
-
-      // Mock: user already exists
-      mockDb.select.mockReturnValue({
+    /** Helper: mock a select() chain returning the given rows */
+    function mockSelectChain(rows: unknown[]) {
+      return {
         from: vi.fn(() => ({
           where: vi.fn(() => ({
-            limit: vi.fn(() => [mockUser]), // User exists
+            limit: vi.fn(() => rows),
           })),
         })),
-      })
+      }
+    }
 
-      // Use password that meets strength requirements
+    it('should return error if user already exists', async () => {
+      vi.clearAllMocks()
+
+      // First select (users table) returns existing user — OAuth check never reached
+      mockDb.select.mockReturnValueOnce(mockSelectChain([mockUser]))
+
       const result = await signUp('test@example.com', 'Password123', 'Test User')
       expect(result.success).toBe(false)
       expect(result.error).toBe('Unable to create account')
     })
 
-    it('should create user and session on success', async () => {
-      // Reset mocks
+    it('should block signup when OAuth account exists with same email', async () => {
       vi.clearAllMocks()
 
-      // Mock: no existing user
-      mockDb.select.mockReturnValue({
-        from: vi.fn(() => ({
-          where: vi.fn(() => ({
-            limit: vi.fn(() => []), // No existing user
-          })),
-        })),
-      })
+      // First select (users table): no password user
+      mockDb.select.mockReturnValueOnce(mockSelectChain([]))
+      // Second select (oauth_accounts table): OAuth account exists
+      mockDb.select.mockReturnValueOnce(mockSelectChain([{ id: 'oauth-acc-1' }]))
 
-      // Mock: successful user creation
+      const result = await signUp('oauth@example.com', 'Password123', 'Attacker')
+      expect(result.success).toBe(false)
+      expect(result.error).toBe('Unable to create account')
+    })
+
+    it('should create user and session on success', async () => {
+      vi.clearAllMocks()
+
       const newUser = {
         ...mockUser,
         id: 'new-user-123',
         email: 'new@example.com',
         name: 'New User',
       }
+
+      // First select (users table): no existing user
+      mockDb.select.mockReturnValueOnce(mockSelectChain([]))
+      // Second select (oauth_accounts table): no OAuth account
+      mockDb.select.mockReturnValueOnce(mockSelectChain([]))
+
       mockDb.insert.mockReturnValue({
         values: vi.fn(() => ({
           returning: vi.fn(() => [newUser]),
         })),
       })
 
-      // Use password that meets strength requirements (uppercase, lowercase, number)
       const result = await signUp('new@example.com', 'Password123', 'New User')
       expect(result.success).toBe(true)
       expect(result.user).toBeDefined()
