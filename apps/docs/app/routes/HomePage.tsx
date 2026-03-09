@@ -17,14 +17,14 @@ pnpm dev
 
 Open [http://localhost:4000/admin](http://localhost:4000/admin) to see the CMS dashboard.
 
-See the [Quick Start guide](/docs/QUICK_START) for the full walkthrough, or browse the [Examples](/docs/examples) for complete project starters.
+See the [Quick Start guide](/docs/QUICK_START) for the full walkthrough, or browse the [Examples](/docs/EXAMPLES) for complete project starters.
 
 ## Documentation Sections
 
 ### Getting Started
 - [Quick Start](/docs/QUICK_START) - Get running in 5 minutes
 - [Build Your Business](/docs/BUILD_YOUR_BUSINESS) - End-to-end tutorial: scaffold to deploy
-- [Examples](/docs/examples) - Blog, SaaS starter, e-commerce storefront
+- [Examples](/docs/EXAMPLES) - Blog, SaaS starter, e-commerce storefront
 
 ### Core Guides
 - [CMS Guide](/docs/CMS_GUIDE) - Collections, fields, access control, rich text

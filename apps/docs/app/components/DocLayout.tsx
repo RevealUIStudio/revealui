@@ -76,12 +76,15 @@ function NavLink({ item, depth = 0 }: { item: NavItem; depth?: number }) {
       <Link
         to={item.path}
         style={{
-          fontWeight: isActive ? 'bold' : 'normal',
-          color: isActive ? '#3b82f6' : 'inherit',
+          fontWeight: isActive ? 600 : 'normal',
+          color: isActive ? '#2563eb' : 'inherit',
+          backgroundColor: isActive ? '#dbeafe' : 'transparent',
           display: 'block',
-          padding: `4px 8px 4px ${depth * 12 + 8}px`,
+          padding: `6px 10px 6px ${depth * 12 + 10}px`,
           textDecoration: 'none',
           fontSize: depth > 0 ? '0.9em' : '1em',
+          borderRadius: '6px',
+          transition: 'background-color 0.15s, color 0.15s',
         }}
       >
         {item.label}
