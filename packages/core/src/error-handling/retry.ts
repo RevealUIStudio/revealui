@@ -352,8 +352,8 @@ export async function retryUntil<T>(
 
       const delay = calculateDelay(
         attempts - 1,
-        config.baseDelay || DEFAULT_CONFIG.baseDelay,
-        config.maxDelay || DEFAULT_CONFIG.maxDelay,
+        config.baseDelay ?? DEFAULT_CONFIG.baseDelay,
+        config.maxDelay ?? DEFAULT_CONFIG.maxDelay,
         config.exponentialBackoff ?? DEFAULT_CONFIG.exponentialBackoff,
         config.jitter ?? DEFAULT_CONFIG.jitter,
       )
@@ -368,8 +368,8 @@ export async function retryUntil<T>(
 
       const delay = calculateDelay(
         attempts - 1,
-        config.baseDelay || DEFAULT_CONFIG.baseDelay,
-        config.maxDelay || DEFAULT_CONFIG.maxDelay,
+        config.baseDelay ?? DEFAULT_CONFIG.baseDelay,
+        config.maxDelay ?? DEFAULT_CONFIG.maxDelay,
         config.exponentialBackoff ?? DEFAULT_CONFIG.exponentialBackoff,
         config.jitter ?? DEFAULT_CONFIG.jitter,
       )

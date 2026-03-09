@@ -19,7 +19,7 @@ const navigation: NavItem[] = [
     children: [
       { label: 'Quick Start', path: '/docs/QUICK_START' },
       { label: 'Build Your Business', path: '/docs/BUILD_YOUR_BUSINESS' },
-      { label: 'Examples', path: '/docs/examples' },
+      { label: 'Examples', path: '/docs/EXAMPLES' },
     ],
   },
   {
@@ -31,6 +31,18 @@ const navigation: NavItem[] = [
       { label: 'Database', path: '/docs/DATABASE' },
       { label: 'CI/CD & Deployment', path: '/docs/CI_CD_GUIDE' },
       { label: 'Environment Variables', path: '/docs/ENVIRONMENT_VARIABLES_GUIDE' },
+      { label: 'Testing', path: '/docs/TESTING' },
+      { label: 'Troubleshooting', path: '/docs/TROUBLESHOOTING' },
+    ],
+  },
+  {
+    label: 'Architecture',
+    path: '/docs/ARCHITECTURE',
+    children: [
+      { label: 'System Architecture', path: '/docs/ARCHITECTURE' },
+      { label: 'Performance', path: '/docs/PERFORMANCE' },
+      { label: 'Standards', path: '/docs/STANDARDS' },
+      { label: 'Core Stability', path: '/docs/CORE_STABILITY' },
     ],
   },
   {
@@ -40,9 +52,18 @@ const navigation: NavItem[] = [
       { label: 'Package Reference', path: '/docs/REFERENCE' },
       { label: 'Component Catalog', path: '/docs/COMPONENT_CATALOG' },
       { label: 'AI', path: '/docs/AI' },
+      { label: 'Marketplace', path: '/docs/MARKETPLACE' },
     ],
   },
-  { label: 'Pro (AI, MCP, BYOK)', path: '/docs/PRO' },
+  {
+    label: 'Pro & Enterprise',
+    path: '/docs/PRO',
+    children: [
+      { label: 'Pro (AI, MCP, BYOK)', path: '/docs/PRO' },
+      { label: 'Forge (Enterprise)', path: '/docs/FORGE' },
+    ],
+  },
+  { label: 'Third-Party Licenses', path: '/docs/THIRD_PARTY_LICENSES' },
 ]
 
 function NavLink({ item, depth = 0 }: { item: NavItem; depth?: number }) {
