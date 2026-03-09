@@ -123,7 +123,7 @@ export abstract class BaseCLI {
       positional: [],
       flags: {},
       help: false,
-      _raw: this.argv,
+      raw: this.argv,
     }
   }
 

@@ -127,6 +127,7 @@ export class OAuthClient {
   }> {
     const response = await fetch(this.config.userInfoUrl!, {
       headers: {
+        // biome-ignore lint/style/useNamingConvention: HTTP header convention
         Authorization: `Bearer ${accessToken}`,
       },
     })

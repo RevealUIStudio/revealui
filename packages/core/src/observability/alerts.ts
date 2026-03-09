@@ -225,8 +225,7 @@ export const consoleChannel: AlertChannel = {
       logger.info(logMessage, logContext)
     }
 
-    if (alert.details) {
-    }
+    // alert.details already included in logContext above
   },
 }
 

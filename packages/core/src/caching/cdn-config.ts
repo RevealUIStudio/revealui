@@ -196,6 +196,7 @@ async function purgeCloudflare(
       {
         method: 'POST',
         headers: {
+          // biome-ignore lint/style/useNamingConvention: HTTP header convention
           Authorization: `Bearer ${apiKey}`,
           'Content-Type': 'application/json',
         },
@@ -320,6 +321,7 @@ export async function purgeCacheByTag(
         {
           method: 'POST',
           headers: {
+            // biome-ignore lint/style/useNamingConvention: HTTP header convention
             Authorization: `Bearer ${apiKey}`,
             'Content-Type': 'application/json',
           },
@@ -365,6 +367,7 @@ export async function purgeAllCache(
         {
           method: 'POST',
           headers: {
+            // biome-ignore lint/style/useNamingConvention: HTTP header convention
             Authorization: `Bearer ${apiKey}`,
             'Content-Type': 'application/json',
           },

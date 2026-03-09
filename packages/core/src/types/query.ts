@@ -80,6 +80,7 @@ export interface RevealDocument {
 export interface RevealDocumentWithMeta extends RevealDocument {
   createdAt?: string
   updatedAt?: string
+  // biome-ignore lint/style/useNamingConvention: RevealUI document status field
   _status?: 'draft' | 'published'
 }
 

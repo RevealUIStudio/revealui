@@ -46,7 +46,9 @@ export default function ApiKeysPage() {
           setCurrentKeyHint(data.keyHint)
         }
       })
-      .catch(() => {})
+      .catch(() => {
+        // Swallow fetch errors — API key metadata is non-critical
+      })
   }, [])
 
   async function handleSave() {

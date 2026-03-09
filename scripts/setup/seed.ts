@@ -68,6 +68,7 @@ const pages = [
   {
     title: 'Home',
     slug: 'home',
+    // biome-ignore lint/style/useNamingConvention: RevealUI document status field
     _status: 'published' as const,
     layout: [
       {
@@ -97,6 +98,7 @@ const pages = [
   {
     title: 'About',
     slug: 'about',
+    // biome-ignore lint/style/useNamingConvention: RevealUI document status field
     _status: 'published' as const,
     layout: [
       {
@@ -121,6 +123,7 @@ const pages = [
   {
     title: 'Getting Started',
     slug: 'getting-started',
+    // biome-ignore lint/style/useNamingConvention: RevealUI document status field
     _status: 'published' as const,
     layout: [
       {
