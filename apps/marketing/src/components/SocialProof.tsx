@@ -2,8 +2,8 @@ export function SocialProof() {
   const stats = [
     { value: '18', label: 'packages' },
     { value: '320K+', label: 'lines of TypeScript' },
-    { value: '307+', label: 'tests' },
-    { value: '6', label: 'apps deployed' },
+    { value: '1,400+', label: 'tests' },
+    { value: '5', label: 'apps deployed' },
   ]
 
   const techStack = [
@@ -95,7 +95,7 @@ export function SocialProof() {
           {features.map((feature) => (
             <div
               key={feature.title}
-              className="flex flex-col rounded-2xl bg-white p-8 shadow-sm ring-1 ring-gray-200"
+              className="flex flex-col rounded-2xl bg-white p-8 shadow-sm ring-1 ring-gray-200 hover:shadow-md hover:ring-gray-300 transition-all"
             >
               <h3 className="text-base font-semibold text-gray-900">{feature.title}</h3>
               <p className="mt-3 text-sm leading-6 text-gray-600">{feature.description}</p>
