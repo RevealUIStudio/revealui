@@ -13,11 +13,6 @@ import type {
 } from '../../../types/index.js'
 import { find } from '../find.js'
 
-// Mock validateJWTFromRequest
-vi.mock('../../../utils/jwt-validation', () => ({
-  validateJWTFromRequest: vi.fn(),
-}))
-
 // Mock getDataLoader
 vi.mock('../../../dataloader', () => ({
   getDataLoader: vi.fn(() => ({})),

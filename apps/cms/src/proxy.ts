@@ -32,11 +32,9 @@ export default async function proxy(request: NextRequest): Promise<NextResponse 
   }
 
   // Auth gate: protect /admin routes — redirect to /login if no session cookie
-  // Check both cookie names: revealui-session (new auth) and revealui-token (legacy JWT)
   if (pathname.startsWith('/admin')) {
     const session = request.cookies.get('revealui-session')?.value
-    const token = request.cookies.get('revealui-token')?.value
-    if (!(session || token)) {
+    if (!session) {
       const loginUrl = request.nextUrl.clone()
       loginUrl.pathname = '/login'
       loginUrl.searchParams.set('redirect', pathname)
