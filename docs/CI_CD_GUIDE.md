@@ -1216,8 +1216,6 @@ pnpm --filter @revealui/test exec playwright show-report
 ```bash
 # Lint
 pnpm lint
-pnpm lint:biome
-pnpm lint:eslint
 
 # Typecheck
 pnpm typecheck:all
@@ -2574,7 +2572,7 @@ The project includes automated CI/CD workflows:
 
 Runs on every push and pull request:
 
-- Linting (ESLint, Biome)
+- Linting (Biome)
 - Type checking (TypeScript)
 - Unit tests (Vitest)
 - Integration tests

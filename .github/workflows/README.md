@@ -12,7 +12,7 @@ Mirrors the local `pnpm gate` — same hard-fail/warn policy:
 | Biome lint | PRs + main | Hard fail |
 | Typecheck (all 24 packages) | PRs + main | Hard fail |
 | Build (all packages) | main only | Hard fail |
-| ESLint, audits, structure, boundary | PRs + main | Warn-only |
+| Audits, structure, boundary | PRs + main | Warn-only |
 | Tests (Vitest) | PRs + main | Warn-only |
 
 Build runs only on main pushes — at ~15 min it's too slow for PR feedback loops.

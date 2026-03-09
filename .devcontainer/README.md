@@ -28,7 +28,7 @@ This directory contains the Dev Container configuration for RevealUI, enabling d
 - **Native VS Code integration** (seamless experience)
 - **GitHub Codespaces ready** (cloud development)
 - **Service orchestration** (PostgreSQL, ElectricSQL, etc.)
-- **Pre-configured extensions** (ESLint, Tailwind, etc.)
+- **Pre-configured extensions** (Biome, Tailwind, etc.)
 - **Team consistency** (everyone gets identical setup)
 
 **⚠️ Trade-offs:**
@@ -67,8 +67,7 @@ This directory contains the Dev Container configuration for RevealUI, enabling d
 - **direnv** - Environment variable management
 
 ### VS Code Extensions
-- **ESLint** - JavaScript/TypeScript linting
-- **Biome** - Fast formatter and linter
+- **Biome** - Formatter and linter (sole linter)
 - **Tailwind CSS IntelliSense** - Tailwind autocomplete
 - **Prisma** - Database schema management
 - **Docker** - Container management

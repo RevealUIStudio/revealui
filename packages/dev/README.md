@@ -2,28 +2,18 @@
 
 Shared development tooling and configuration for the RevealUI Framework monorepo.
 
-**Package Name**: `dev` (unscoped workspace package)  
+**Package Name**: `dev` (unscoped workspace package)
 **Import Format**: `dev/...` (e.g., `dev/tailwind/create-config`)
 
 ## Overview
 
 This package provides centralized configuration files for:
-- **ESLint** - Type-aware TypeScript linting
-- **Biome** - Fast formatting and linting
+- **Biome** - Fast formatting and linting (sole linter)
 - **Tailwind CSS** - Shared styling configuration
 - **Vite** - Build tool configuration
 - **TypeScript** - Compiler configurations for different project types
 
 ## Exports
-
-### ESLint Config
-```ts
-import { baseConfig, createTypeCheckedConfig } from 'dev/eslint'
-```
-
-Type-aware ESLint configuration that complements Biome. Focuses on TypeScript type safety checks.
-
-**See**: `packages/dev/src/eslint/eslint.config.js`
 
 ### Biome Config
 ```ts
@@ -66,35 +56,7 @@ Available configs (use relative paths):
 
 **See**: [TypeScript README](./src/ts/README.md)
 
-## Strategy: ESLint + Biome
-
-This package uses a dual-linter strategy:
-
-- **Biome**: Handles formatting, style rules, and most correctness checks (fast)
-- **ESLint**: Handles type-aware TypeScript rules (requires type information)
-
-This gives you:
-- ⚡ Fast formatting and linting from Biome
-- 🔒 Deep type safety checks from ESLint
-
 ## Usage Examples
-
-### ESLint Configuration
-```js
-// eslint.config.js
-import path from 'node:path'
-import { fileURLToPath } from 'node:url'
-import { baseConfig, createTypeCheckedConfig } from 'dev/eslint'
-
-const __dirname = path.dirname(fileURLToPath(import.meta.url))
-
-export default [
-  ...baseConfig,
-  createTypeCheckedConfig({ tsconfigRootDir: __dirname }),
-]
-```
-
-Use `eslint.config.mjs` if the package does not set `"type": "module"`.
 
 ### Biome Configuration
 Most packages should use the root `biome.json`, but you can extend the shared config:
@@ -152,15 +114,12 @@ export default defineConfig({
 ## Development
 
 ### Scripts
-- `pnpm lint` - Run Biome and ESLint across the repo
-- `pnpm lint:biome` - Run Biome only
-- `pnpm lint:eslint` - Run ESLint across packages/apps via Turbo
-- `pnpm --filter <pkg> lint:eslint` - Run ESLint for a single package/app
+- `pnpm lint` - Run Biome across the repo
 - `pnpm format` - Format code with Biome
 
 ### Adding New Configs
 
-1. Create config file in appropriate directory (`src/eslint/`, `src/biome/`, etc.)
+1. Create config file in appropriate directory (`src/biome/`, `src/tailwind/`, etc.)
 2. Add export to `package.json` `exports` field
 3. Document in relevant README
 4. Update this README if it's a new category

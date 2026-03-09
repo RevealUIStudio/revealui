@@ -81,7 +81,7 @@ const dryRun = releasePresets.dryRun('minor')
 Comprehensive continuous integration quality checks.
 
 **Features:**
-- Linting (ESLint, Biome)
+- Linting (Biome)
 - Type checking (TypeScript)
 - Test execution with coverage
 - Build verification
