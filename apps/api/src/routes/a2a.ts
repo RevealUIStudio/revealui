@@ -79,7 +79,10 @@ async function llmClientFromRequest(req: Request): Promise<unknown | undefined> 
   if (!(provider && apiKey && VALID_PROVIDERS.has(provider))) return undefined
   const llmMod = await getAiLlmServerModule()
   if (!llmMod) return undefined
-  return new llmMod.LLMClient({ provider: provider as string, apiKey })
+  // Provider string is validated against VALID_PROVIDERS Set above; type assertion
+  // needed because LLMProviderType is a string literal union from the Pro package.
+  type LLMConfig = ConstructorParameters<typeof llmMod.LLMClient>[0]
+  return new llmMod.LLMClient({ provider: provider as LLMConfig['provider'], apiKey })
 }
 
 // =============================================================================
@@ -634,13 +637,25 @@ a2a.post('/', async (c) => {
       const llmServerMod = await getAiLlmServerModule()
       if (llmServerMod) {
         const db = getClient()
-        llmClient = (await llmServerMod.createLLMClientForUser(userId, db)) ?? undefined
+        // Type assertion needed: workspace @revealui/db and npm @revealui/db resolve
+        // to structurally identical but nominally different Database types.
+        type ProDatabase = Parameters<typeof llmServerMod.createLLMClientForUser>[1]
+        llmClient =
+          (await llmServerMod.createLLMClientForUser(userId, db as unknown as ProDatabase)) ??
+          undefined
       }
     }
   }
 
   const startedAt = Date.now()
-  const result = await aiMod.handleA2AJsonRpc(req, agentId ?? undefined, llmClient)
+  // llmClient is typed as unknown because it comes from dynamically imported Pro packages;
+  // the runtime type is LLMClient when present.
+  type HandleParams = Parameters<typeof aiMod.handleA2AJsonRpc>
+  const result = await aiMod.handleA2AJsonRpc(
+    req,
+    agentId ?? undefined,
+    llmClient as HandleParams[2],
+  )
   const completedAt = Date.now()
 
   // Fire-and-forget: persist task execution record to agentActions

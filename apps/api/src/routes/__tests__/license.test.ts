@@ -21,6 +21,26 @@ vi.mock('@revealui/core/observability/logger', () => ({
   logger: { info: vi.fn(), error: vi.fn(), warn: vi.fn() },
 }))
 
+// Mock DB to prevent real connection attempts during tests
+vi.mock('@revealui/db', () => ({
+  getClient: vi.fn(() => ({
+    select: vi.fn(() => ({
+      from: vi.fn(() => ({
+        where: vi.fn(() => ({
+          limit: vi.fn().mockResolvedValue([]),
+        })),
+      })),
+    })),
+  })),
+}))
+
+vi.mock('@revealui/db/schema', () => ({
+  licenses: {
+    status: 'status',
+    licenseKey: 'license_key',
+  },
+}))
+
 import { generateLicenseKey, validateLicenseKey } from '@revealui/core/license'
 import licenseApp from '../license.js'
 

@@ -78,7 +78,13 @@ app.post('/workspaces/:workspaceId/index/:collection', async (c) => {
     return emb.vector
   }
 
-  const pipeline = new ingestionMod.IngestionPipeline(vectorDb, embeddingFn)
+  // Type assertion needed: workspace @revealui/db and npm @revealui/db resolve
+  // to structurally identical but nominally different Database types.
+  type PipelineDb = ConstructorParameters<typeof ingestionMod.IngestionPipeline>[0]
+  const pipeline = new ingestionMod.IngestionPipeline(
+    vectorDb as unknown as PipelineDb,
+    embeddingFn,
+  )
 
   let indexed = 0
   let failed = 0
@@ -160,7 +166,12 @@ app.delete('/workspaces/:workspaceId/documents/:documentId', async (c) => {
     const emb = await embeddingsMod.generateEmbedding(text)
     return emb.vector
   }
-  const pipeline = new ingestionMod.IngestionPipeline(vectorDb, embeddingFn)
+  // Type assertion: workspace vs npm @revealui/db nominal type mismatch (structurally identical)
+  type PipelineDb = ConstructorParameters<typeof ingestionMod.IngestionPipeline>[0]
+  const pipeline = new ingestionMod.IngestionPipeline(
+    vectorDb as unknown as PipelineDb,
+    embeddingFn,
+  )
   await pipeline.deleteDocument(documentId)
 
   return c.json({ success: true, documentId })

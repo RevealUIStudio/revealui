@@ -39,7 +39,8 @@ function ToastTrigger({
 
 describe('Toast', () => {
   it('renders a toast when addToast is called', async () => {
-    const user = userEvent.setup()
+    vi.useFakeTimers()
+    const user = userEvent.setup({ advanceTimers: vi.advanceTimersByTime })
     render(
       <ToastProvider>
         <ToastTrigger title="Hello toast" />
@@ -47,6 +48,7 @@ describe('Toast', () => {
     )
     await user.click(screen.getByText('Show toast'))
     expect(screen.getByText('Hello toast')).toBeInTheDocument()
+    vi.useRealTimers()
   })
 
   it('removes a toast when removeToast is called', async () => {

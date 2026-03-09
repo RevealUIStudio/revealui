@@ -3,7 +3,7 @@ import type { Page } from '@revealui/core/types/cms'
 import { getIndexer } from '@/lib/ai/indexer'
 
 export const indexPage: RevealAfterChangeHook<Page> = ({ doc, operation }) => {
-  const op = operation as string
+  const op = operation as 'create' | 'update' | 'delete'
 
   // Fire-and-forget — do not block the response
   getIndexer()

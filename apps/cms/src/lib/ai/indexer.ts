@@ -14,7 +14,13 @@
 import { getRestClient } from '@revealui/db/client'
 
 let indexerInstance: {
-  onDocumentChanged: (event: Record<string, unknown>) => Promise<unknown>
+  onDocumentChanged: (event: {
+    collection: string
+    id: string
+    operation: 'create' | 'update' | 'delete'
+    doc?: Record<string, unknown>
+    workspaceId?: string
+  }) => Promise<void>
 } | null = null
 
 async function getIndexer(): Promise<typeof indexerInstance> {
