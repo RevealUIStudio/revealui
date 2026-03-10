@@ -89,6 +89,7 @@ pnpm typecheck:all          # TypeScript check all packages
 ```bash
 pnpm audit:any              # Find avoidable `any` types
 pnpm audit:console          # Find production console statements
+pnpm preflight              # Full pre-launch checklist (15 checks)
 ```
 
 ### Database
