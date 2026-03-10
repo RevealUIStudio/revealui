@@ -223,9 +223,19 @@ export function getRateLimitStats() {
 }
 
 /**
- * Rate limit presets
+ * Rate limit preset configuration
  */
-export const RATE_LIMIT_PRESETS = {
+export interface RateLimitPresetConfig {
+  /** Time window in milliseconds */
+  windowMs: number
+  /** Maximum requests per window */
+  maxRequests: number
+}
+
+/**
+ * Default rate limit presets (immutable reference copy)
+ */
+const DEFAULT_RATE_LIMIT_PRESETS: Record<string, RateLimitPresetConfig> = {
   // Very strict (10 requests per minute)
   veryStrict: {
     windowMs: 60 * 1000,
@@ -261,7 +271,71 @@ export const RATE_LIMIT_PRESETS = {
     windowMs: 24 * 60 * 60 * 1000,
     maxRequests: 10000,
   },
-} as const
+}
+
+/** Mutable presets (overridable via configureRateLimitPresets) */
+let rateLimitPresets: Record<string, RateLimitPresetConfig> = {
+  ...DEFAULT_RATE_LIMIT_PRESETS,
+}
+
+/**
+ * Override one or more rate limit presets.
+ *
+ * Unknown keys create new presets; existing keys are merged with defaults.
+ */
+export function configureRateLimitPresets(
+  overrides: Record<string, Partial<RateLimitPresetConfig>>,
+): void {
+  for (const [key, override] of Object.entries(overrides)) {
+    const base = DEFAULT_RATE_LIMIT_PRESETS[key] ?? {
+      windowMs: 60_000,
+      maxRequests: 100,
+    }
+    rateLimitPresets[key] = { ...base, ...override }
+  }
+}
+
+/**
+ * Get the current (possibly overridden) rate limit presets.
+ */
+export function getRateLimitPresets(): Readonly<Record<string, RateLimitPresetConfig>> {
+  return rateLimitPresets
+}
+
+/**
+ * Reset all presets to their defaults.
+ */
+export function resetRateLimitPresets(): void {
+  rateLimitPresets = { ...DEFAULT_RATE_LIMIT_PRESETS }
+}
+
+/**
+ * Rate limit presets — backward-compatible accessor.
+ *
+ * Reads from the mutable `rateLimitPresets` so overrides from
+ * `configureRateLimitPresets()` are reflected automatically.
+ */
+export const RATE_LIMIT_PRESETS = new Proxy({} as Record<string, RateLimitPresetConfig>, {
+  get(_target, prop: string) {
+    return rateLimitPresets[prop]
+  },
+  ownKeys() {
+    return Object.keys(rateLimitPresets)
+  },
+  getOwnPropertyDescriptor(_target, prop: string) {
+    if (prop in rateLimitPresets) {
+      return {
+        configurable: true,
+        enumerable: true,
+        value: rateLimitPresets[prop],
+      }
+    }
+    return undefined
+  },
+  has(_target, prop: string) {
+    return prop in rateLimitPresets
+  },
+})
 
 /**
  * Rate limit by user ID
