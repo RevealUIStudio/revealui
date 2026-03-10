@@ -27,7 +27,6 @@ import {
   RscEntryLexicalCell as RscEntryLexicalCell44fe37237e0ebf4470c9990d8cb7b07e,
   RscEntryLexicalField as RscEntryLexicalField44fe37237e0ebf4470c9990d8cb7b07e,
 } from '@revealui/core/richtext/rsc'
-import { default as default6e8ecd0d543c830d4bf561d5b4bb3292 } from '@/lib/collections/Orders/ui/LinkToPaymentIntent'
 import { default as default4d6ac3253bab303b1c48954197cfca34 } from '@/lib/collections/Prices/ui/PricesSelect'
 import { default as default7c13595db9274a0da8a15c431a9b3a54 } from '@/lib/components/Agent'
 import { default as default1a7510af427896d367a49dbf838d2de6 } from '@/lib/components/BeforeDashboard'
@@ -87,8 +86,6 @@ export const importMap = {
     TreeViewFeatureClientE70f5e05f09f93e00b997edb1ef0c864,
   '@/lib/fields/slug/SlugComponent#SlugComponent': SlugComponent92cc057d0a2abb4f6cf0307edf59f986,
   '@/lib/collections/Prices/ui/PricesSelect#default': default4d6ac3253bab303b1c48954197cfca34,
-  '@/lib/collections/Orders/ui/LinkToPaymentIntent#default':
-    default6e8ecd0d543c830d4bf561d5b4bb3292,
   'revealui/cms/richtext/client#BlocksFeatureClient':
     BlocksFeatureClientE70f5e05f09f93e00b997edb1ef0c864,
   '@/lib/components/Icon#default': defaultFe9ca0c9b67829fe284b73bb77968447,

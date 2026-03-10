@@ -38,10 +38,6 @@ export const Orders: RevealCollectionConfig<Order> = {
       type: 'text',
       admin: {
         position: 'sidebar',
-        components: {
-          // biome-ignore lint/style/useNamingConvention: admin component keys use Field in RevealUI CMS.
-          Field: '/src/lib/collections/Orders/ui/LinkToPaymentIntent',
-        },
       },
     },
     {
