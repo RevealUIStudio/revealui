@@ -452,9 +452,11 @@ test.describe('Error Scenarios', () => {
 
       try {
         await page.goto(longUrl, { timeout: 5000 })
-      } catch (_error) {
-        // Expected to fail or handle gracefully
-        expect(true).toBe(true)
+        // If navigation succeeded, the page should still be functional
+        await expect(page.locator('body')).toBeVisible()
+      } catch (error) {
+        // Navigation may timeout or fail — that is acceptable for an extremely long URL
+        expect(error).toBeDefined()
       }
     })
 

@@ -306,24 +306,54 @@ describe('Error Reporter', () => {
     expect(breadcrumbs[0].message).toBe('User clicked button')
   })
 
-  it('should set user context', () => {
+  it('should set user context and include it in error reports', async () => {
+    const { logger } = await import('../../observability/logger.js')
+    const loggerSpy = vi.spyOn(logger, 'error').mockImplementation(() => {})
+
+    const reporter = new ConsoleErrorReporter()
+    errorReporter.addReporter(reporter)
+
     errorReporter.setUser({
       id: '123',
       email: 'test@example.com',
     })
 
-    // User context is set (tested indirectly through reporters)
-    expect(true).toBe(true)
+    const error = new Error('User context test')
+    errorReporter.captureError(error)
+
+    expect(loggerSpy).toHaveBeenCalledWith(
+      expect.stringContaining('[Error Reporter]'),
+      error,
+      expect.objectContaining({
+        user: expect.objectContaining({ id: '123', email: 'test@example.com' }),
+      }),
+    )
+
+    loggerSpy.mockRestore()
   })
 
-  it('should filter errors', () => {
+  it('should filter errors and prevent reporting', async () => {
+    const { logger } = await import('../../observability/logger.js')
+    const loggerSpy = vi.spyOn(logger, 'error').mockImplementation(() => {})
+
+    const reporter = new ConsoleErrorReporter()
+    errorReporter.addReporter(reporter)
+
     errorReporter.addFilter(ErrorFilters.ignoreExtensions)
 
     const extensionError = new Error('Extension error')
     extensionError.stack = 'Error at chrome-extension://...'
 
-    // Error should be filtered (tested indirectly)
-    expect(true).toBe(true)
+    errorReporter.captureError(extensionError)
+
+    // The error should be filtered out, so the reporter should not be called
+    expect(loggerSpy).not.toHaveBeenCalledWith(
+      expect.stringContaining('[Error Reporter]'),
+      extensionError,
+      expect.anything(),
+    )
+
+    loggerSpy.mockRestore()
   })
 
   it('should capture error with context', async () => {
