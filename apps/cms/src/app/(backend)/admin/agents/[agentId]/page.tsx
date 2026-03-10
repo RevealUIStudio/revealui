@@ -4,6 +4,7 @@ import type { A2AAgentCard } from '@revealui/contracts'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import { use, useEffect, useState } from 'react'
+import { AgentMemory } from '@/lib/components/agents/agent-memory'
 import { TaskHistory } from '@/lib/components/agents/task-history'
 import { TaskTester } from '@/lib/components/agents/task-tester'
 import { LicenseGate } from '@/lib/components/LicenseGate'
@@ -408,6 +409,14 @@ export default function AgentDetailPage({ params }: PageProps) {
                     agentName={card.name}
                     onComplete={() => setTaskRefreshKey((k) => k + 1)}
                   />
+                </div>
+
+                <div className="rounded-xl border border-zinc-800 bg-zinc-900 p-5">
+                  <h2 className="mb-4 text-sm font-medium uppercase tracking-wide text-zinc-500">
+                    Agent Memory
+                    <span className="ml-2 text-xs font-normal normal-case text-zinc-600">live</span>
+                  </h2>
+                  <AgentMemory agentId={agentId} />
                 </div>
 
                 <div className="rounded-xl border border-zinc-800 bg-zinc-900 p-5">

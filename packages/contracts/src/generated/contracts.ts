@@ -2,7 +2,7 @@
  * Auto-generated Contract wrappers
  *
  * DO NOT EDIT - Regenerate with: pnpm generate:all
- * Generated: 2026-03-10T06:54:37.376Z
+ * Generated: 2026-03-10T17:34:46.206Z
  *
  * This file provides Contract wrappers for all database tables.
  * Contracts combine TypeScript types, Zod schemas, and runtime validation
@@ -429,6 +429,58 @@ export const FailedAttemptsInsertContract = createContract({
   version: '1',
   description: 'Database insert contract for failed_attempts table',
   schema: Schemas.FailedAttemptsInsertSchema,
+})
+
+// =============================================================================
+// GdprConsents Contracts
+// =============================================================================
+
+/**
+ * Contract for gdprConsents row (Select)
+ * Database table: gdpr_consents
+ */
+export const GdprConsentsRowContract = createContract({
+  name: 'GdprConsentsRow',
+  version: '1',
+  description: 'Database row contract for gdpr_consents table',
+  schema: Schemas.GdprConsentsSelectSchema,
+})
+
+/**
+ * Contract for gdprConsents insert
+ * Database table: gdpr_consents
+ */
+export const GdprConsentsInsertContract = createContract({
+  name: 'GdprConsentsInsert',
+  version: '1',
+  description: 'Database insert contract for gdpr_consents table',
+  schema: Schemas.GdprConsentsInsertSchema,
+})
+
+// =============================================================================
+// GdprDeletionRequests Contracts
+// =============================================================================
+
+/**
+ * Contract for gdprDeletionRequests row (Select)
+ * Database table: gdpr_deletion_requests
+ */
+export const GdprDeletionRequestsRowContract = createContract({
+  name: 'GdprDeletionRequestsRow',
+  version: '1',
+  description: 'Database row contract for gdpr_deletion_requests table',
+  schema: Schemas.GdprDeletionRequestsSelectSchema,
+})
+
+/**
+ * Contract for gdprDeletionRequests insert
+ * Database table: gdpr_deletion_requests
+ */
+export const GdprDeletionRequestsInsertContract = createContract({
+  name: 'GdprDeletionRequestsInsert',
+  version: '1',
+  description: 'Database insert contract for gdpr_deletion_requests table',
+  schema: Schemas.GdprDeletionRequestsInsertSchema,
 })
 
 // =============================================================================
