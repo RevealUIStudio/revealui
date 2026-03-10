@@ -73,7 +73,7 @@ describe('initializeDatabase', () => {
     mockExeca.mockResolvedValue({} as Awaited<ReturnType<typeof execa>>)
     await initializeDatabase('/some/other/path')
 
-    for (const call of mockExeca.mock.calls) {
+    for (const call of mockExeca.mock.calls as unknown[][]) {
       expect(call[2]).toEqual(expect.objectContaining({ cwd: '/some/other/path' }))
     }
   })

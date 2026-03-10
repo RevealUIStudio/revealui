@@ -306,6 +306,7 @@ async function dispatchWithTimeout(
     try {
       await db.insert(agentMemories).values({
         id: crypto.randomUUID(),
+        siteId: 'system',
         content: result.output,
         type: 'decision',
         source: {
