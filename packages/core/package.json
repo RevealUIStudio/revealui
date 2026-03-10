@@ -198,6 +198,10 @@
       "types": "./dist/security/index.d.ts",
       "import": "./dist/security/index.js"
     },
+    "./observability": {
+      "types": "./dist/observability/index.d.ts",
+      "import": "./dist/observability/index.js"
+    },
     "./observability/logger": {
       "types": "./dist/observability/logger.d.ts",
       "import": "./dist/observability/logger.js"

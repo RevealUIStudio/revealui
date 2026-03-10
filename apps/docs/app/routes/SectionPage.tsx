@@ -1,8 +1,8 @@
 import { logger } from '@revealui/core/observability/logger'
 import { useEffect, useState } from 'react'
-import { useParams } from 'react-router-dom'
 import { ErrorBoundary } from '../components/ErrorBoundary'
 import { LoadingSkeleton } from '../components/LoadingSkeleton'
+import { useWildcardPath } from '../hooks/useWildcardPath'
 import { loadMarkdownFile, renderMarkdown } from '../utils/markdown'
 import type { DocSection } from '../utils/paths'
 import { resolveDocPath } from '../utils/paths'
@@ -14,7 +14,7 @@ interface SectionPageProps {
 }
 
 function SectionContent({ section, title }: SectionPageProps) {
-  const { '*': path } = useParams()
+  const path = useWildcardPath()
   const [content, setContent] = useState<string>('')
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
@@ -146,7 +146,7 @@ Content is being organized. Check back soon!
 }
 
 export function SectionPage(props: SectionPageProps) {
-  const { '*': path } = useParams()
+  const path = useWildcardPath()
 
   if (!path || path === '') {
     return <SectionIndex {...props} />

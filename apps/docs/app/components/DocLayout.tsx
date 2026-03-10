@@ -1,4 +1,5 @@
-import { Link, useLocation } from 'react-router-dom'
+import { Link } from '@revealui/router'
+import { usePathname } from '../hooks/usePathname'
 import { SearchBar } from './SearchBar'
 
 interface DocLayoutProps {
@@ -77,9 +78,9 @@ const sections: NavSection[] = [
 ]
 
 function NavLink({ item, depth = 0 }: { item: NavItem; depth?: number }) {
-  const location = useLocation()
-  const isActive = location.pathname === item.path
-  const isParentActive = item.children?.some((child) => location.pathname === child.path)
+  const pathname = usePathname()
+  const isActive = pathname === item.path
+  const isParentActive = item.children?.some((child) => pathname === child.path)
 
   return (
     <li>
@@ -106,8 +107,8 @@ function NavLink({ item, depth = 0 }: { item: NavItem; depth?: number }) {
 }
 
 export function DocLayout({ children }: DocLayoutProps) {
-  const location = useLocation()
-  const isHome = location.pathname === '/'
+  const pathname = usePathname()
+  const isHome = pathname === '/'
 
   return (
     <div className="flex min-h-screen font-sans">

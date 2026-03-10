@@ -1,13 +1,13 @@
 import { logger } from '@revealui/core/observability/logger'
 import { useEffect, useState } from 'react'
-import { Route, Routes, useParams } from 'react-router-dom'
 import { ErrorBoundary } from '../components/ErrorBoundary'
 import { LoadingSkeleton } from '../components/LoadingSkeleton'
+import { useWildcardPath } from '../hooks/useWildcardPath'
 import { loadMarkdownFile, renderMarkdown } from '../utils/markdown'
 import { resolveDocPath } from '../utils/paths'
 
 function ApiPackageContent() {
-  const { '*': path } = useParams()
+  const path = useWildcardPath()
   const [content, setContent] = useState<string>('')
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
@@ -92,7 +92,7 @@ Complete API documentation for RevealUI Framework packages.
 ## Packages
 
 - [@revealui/core](./revealui-core) - Core CMS framework
-- [@revealui/contracts](./revealui-contracts) - Contract definitions and schemas  
+- [@revealui/contracts](./revealui-contracts) - Contract definitions and schemas
 - [@revealui/db](./revealui-db) - Database package
 
 ## Generation
@@ -123,10 +123,11 @@ Changes should be made to:
 }
 
 export function ApiPage() {
-  return (
-    <Routes>
-      <Route path="/" element={<ApiIndex />} />
-      <Route path="*" element={<ApiPackageContent />} />
-    </Routes>
-  )
+  const path = useWildcardPath()
+
+  if (!path || path === '') {
+    return <ApiIndex />
+  }
+
+  return <ApiPackageContent />
 }
