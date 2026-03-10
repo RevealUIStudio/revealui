@@ -124,9 +124,6 @@ describe('afterRead', () => {
 
   it('does not run hooks when triggerHooks is false', async () => {
     const hook = vi.fn()
-    const fields = [
-      { name: 'title', type: 'text', hooks: { beforeRead: [hook], afterRead: [hook] } },
-    ]
     const doc = { id: '1', title: 'Test' }
 
     // afterRead doesn't directly take triggerHooks, it defaults to true in traverseFields
