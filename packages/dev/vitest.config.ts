@@ -40,7 +40,7 @@ export default defineConfig({
       VITEST: 'true',
       NODE_ENV: 'test',
     },
-    pool: 'threads',
+    pool: 'forks',
     coverage: {
       provider: 'v8',
       // Standardized reporters: text (CI logs), json (programmatic), html (local dev), lcov (Codecov)
