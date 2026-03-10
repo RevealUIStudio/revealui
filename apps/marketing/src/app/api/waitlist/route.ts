@@ -144,8 +144,11 @@ export async function POST(request: NextRequest) {
     })
 
     // Notify founder — fire-and-forget, never blocks the response
-    // biome-ignore lint/suspicious/noEmptyBlockStatements: intentional fire-and-forget — errors are non-critical
-    notifyFounder(email, source || 'landing-page').catch(() => {})
+    notifyFounder(email, source || 'landing-page').catch((err: unknown) => {
+      logger.warn('Founder notification failed (best-effort)', {
+        error: err instanceof Error ? err.message : String(err),
+      })
+    })
 
     return NextResponse.json(
       {

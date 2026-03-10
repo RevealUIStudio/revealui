@@ -8,6 +8,7 @@
 import { createRoute, OpenAPIHono, z } from '@hono/zod-openapi'
 import { CircuitBreaker, CircuitBreakerOpenError } from '@revealui/core/error-handling'
 import { getMaxAgentTasks } from '@revealui/core/license'
+import { logger } from '@revealui/core/observability/logger'
 import { getClient } from '@revealui/db'
 import { agentTaskUsage, licenses, users } from '@revealui/db/schema'
 import { and, desc, eq, gt } from 'drizzle-orm'
@@ -707,8 +708,10 @@ app.openapi(supportRenewalRoute, async (c) => {
       subject: 'Your RevealUI support contract expires soon',
       text: `Your RevealUI annual support contract expires on ${expiryDate}. Renew at https://revealui.com/pricing. Your perpetual license itself never expires.`,
       html: `<p>Your RevealUI support contract expires on <strong>${expiryDate}</strong>. <a href="https://revealui.com/pricing">Renew here</a>. Your perpetual license never expires.</p>`,
-    }).catch(() => {
-      /* best-effort */
+    }).catch((err: unknown) => {
+      logger.warn('Support renewal email failed (best-effort)', {
+        error: err instanceof Error ? err.message : String(err),
+      })
     })
 
     reminded++
