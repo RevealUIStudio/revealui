@@ -24,6 +24,9 @@ export default defineConfig({
     env: {
       VITEST: 'true',
       NODE_ENV: 'test',
+      // Force in-memory storage by unsetting database URLs that may leak from direnv/nix shell
+      POSTGRES_URL: '',
+      DATABASE_URL: '',
     },
     pool: 'forks',
     coverage: {

@@ -12,6 +12,11 @@ export default defineConfig({
     // Forks give each test file its own process, preventing jsdom/yjs shared-state
     // contention when turbo runs 29 packages in parallel during CI gate
     pool: 'forks',
+    env: {
+      // Force in-memory storage by unsetting database URLs that may leak from direnv/nix shell
+      POSTGRES_URL: '',
+      DATABASE_URL: '',
+    },
     maxConcurrency: 1,
     coverage: {
       provider: 'v8',
