@@ -240,7 +240,7 @@ describe('InMemoryStorage atomicUpdate concurrency', () => {
   })
 
   it('sequential incr operations should accumulate correctly', async () => {
-    // incr uses async get+set internally, so sequential calls are safe
+    // Sequential calls are always safe; this verifies basic correctness
     const results: number[] = []
     for (let i = 0; i < 15; i++) {
       results.push(await testStorage.incr('inc-counter'))
