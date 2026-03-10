@@ -248,14 +248,20 @@ describe('Router', () => {
       expect(listener).not.toHaveBeenCalled()
     })
 
-    it('supports multiple listeners', () => {
+    it('supports multiple listeners without error', () => {
       const router = new Router()
       const listener1 = vi.fn()
       const listener2 = vi.fn()
-      router.subscribe(listener1)
-      router.subscribe(listener2)
-      // Both should be registered (can't directly test notification without client env)
-      expect(true).toBe(true)
+      const unsub1 = router.subscribe(listener1)
+      const unsub2 = router.subscribe(listener2)
+
+      // Both return valid unsubscribe functions
+      expect(typeof unsub1).toBe('function')
+      expect(typeof unsub2).toBe('function')
+
+      // Cleanup
+      unsub1()
+      unsub2()
     })
 
     it('only unsubscribes the specific listener', () => {
@@ -263,10 +269,16 @@ describe('Router', () => {
       const listener1 = vi.fn()
       const listener2 = vi.fn()
       const unsub1 = router.subscribe(listener1)
-      router.subscribe(listener2)
+      const unsub2 = router.subscribe(listener2)
+
+      // Unsubscribe listener1 only
       unsub1()
-      // listener2 should still be subscribed — just verify no error thrown
-      expect(true).toBe(true)
+
+      // Unsubscribing again should not throw
+      unsub1()
+
+      // listener2 unsubscribe should still work
+      unsub2()
     })
   })
 

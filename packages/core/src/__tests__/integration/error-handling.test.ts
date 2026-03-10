@@ -285,27 +285,14 @@ describe('Error Handling Integration', () => {
   })
 
   describe('Error Boundaries', () => {
-    it('should catch React component errors', () => {
-      // Test React Error Boundary behavior
+    it('should create component errors with proper metadata', () => {
       const ComponentError = new Error('Component render error')
+      ComponentError.name = 'ComponentError'
 
-      // Error boundary should catch this
-      expect(ComponentError).toBeDefined()
-    })
-
-    it('should render fallback UI on error', () => {
-      // Error boundary should render fallback
-      expect(true).toBe(true)
-    })
-
-    it('should report errors to monitoring', () => {
-      // Errors should be sent to Sentry
-      expect(true).toBe(true)
-    })
-
-    it('should allow error recovery', () => {
-      // Error boundary should allow retry
-      expect(true).toBe(true)
+      expect(ComponentError).toBeInstanceOf(Error)
+      expect(ComponentError.message).toBe('Component render error')
+      expect(ComponentError.name).toBe('ComponentError')
+      expect(ComponentError.stack).toBeDefined()
     })
   })
 
