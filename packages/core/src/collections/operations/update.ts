@@ -84,7 +84,25 @@ export async function update(
         .map((field: RevealUIField) => field.name)
         .filter((name: string | undefined): name is string => typeof name === 'string'),
     )
-    const keys = Object.keys(data).filter((k) => k !== 'id' && !jsonFieldNames.has(k))
+    // Build allowlist from collection fields + system columns to prevent SQL injection via crafted keys
+    const allowedColumns = new Set<string>([
+      'id',
+      'createdAt',
+      'updatedAt',
+      'created_at',
+      'updated_at',
+      '_json',
+      'password',
+    ])
+    if (config.fields) {
+      for (const field of config.fields) {
+        if (field.name) allowedColumns.add(field.name)
+      }
+    }
+
+    const keys = Object.keys(data).filter(
+      (k) => k !== 'id' && !jsonFieldNames.has(k) && allowedColumns.has(k),
+    )
     const jsonKeys = Object.keys(data).filter((k) => k !== 'id' && jsonFieldNames.has(k))
 
     // Collect JSON fields to update using collectJsonFields utility
@@ -144,7 +162,7 @@ export async function update(
       }
     }
 
-    const setClause = keys.map((key, i) => `"${key}" = $${i + 1}`).join(', ')
+    const setClause = keys.map((key, i) => `"${key.replace(/"/g, '""')}" = $${i + 1}`).join(', ')
     const values = keys.map((key) => {
       if (key === '_json') {
         // Serialize merged JSON fields object to JSON string

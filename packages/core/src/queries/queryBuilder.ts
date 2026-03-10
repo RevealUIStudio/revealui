@@ -63,7 +63,10 @@ export function buildWhereClause(
   }
 
   const quoteField = (field: string): string => {
-    return quoteFields ? `"${field}"` : field
+    if (!quoteFields) return field
+    // Escape embedded double quotes to prevent SQL injection via identifier breakout
+    const escaped = field.replace(/"/g, '""')
+    return `"${escaped}"`
   }
 
   const whereWithGroups = where as { and?: RevealWhere[]; or?: RevealWhere[] }
