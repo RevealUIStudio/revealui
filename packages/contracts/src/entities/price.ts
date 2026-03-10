@@ -97,13 +97,11 @@ export type PriceStatus = z.infer<typeof PriceStatusSchema>
  * Simplified block schema for price content
  * In production, this would reference the full block schema
  */
-const PriceBlockSchema = z
-  .object({
-    blockType: z.string(),
-    blockName: z.string().optional(),
-    // Additional block fields would go here
-  })
-  .passthrough() // Allow additional properties
+const PriceBlockSchema = z.object({
+  blockType: z.string(),
+  blockName: z.string().optional(),
+  data: z.record(z.string(), z.unknown()).optional(),
+})
 
 // =============================================================================
 // Price Base Schema (without circular reference)
@@ -152,13 +150,13 @@ const PriceObjectSchema = DualEntitySchema.extend({
 
   /** Categories (populated or IDs) */
   categories: z
-    .array(z.union([z.number().int().positive(), z.object({}).passthrough()]))
+    .array(z.union([z.number().int().positive(), z.object({ id: z.number() }).passthrough()]))
     .nullable()
     .optional(),
 
   /** Related prices (populated or IDs) */
   relatedPrices: z
-    .array(z.union([z.number().int().positive(), z.object({}).passthrough()]))
+    .array(z.union([z.number().int().positive(), z.object({ id: z.number() }).passthrough()]))
     .nullable()
     .optional(),
 
