@@ -10,9 +10,11 @@
 import {
   boolean,
   customType,
+  index,
   integer,
   jsonb,
   pgTable,
+  primaryKey,
   real,
   text,
   timestamp,
@@ -72,50 +74,62 @@ export const agentContexts = pgTable('agent_contexts', {
 // Agent Memories Table (Long-term memory)
 // =============================================================================
 
-export const agentMemories = pgTable('agent_memories', {
-  // Primary identifier
-  id: text('id').primaryKey(),
+export const agentMemories = pgTable(
+  'agent_memories',
+  {
+    // Primary identifier
+    id: text('id').primaryKey(),
 
-  // Schema versioning
-  version: integer('version').notNull().default(1),
+    // Schema versioning
+    version: integer('version').notNull().default(1),
 
-  // Memory content
-  content: text('content').notNull(),
+    // Memory content
+    content: text('content').notNull(),
 
-  // Memory type: fact, preference, decision, feedback, example, correction, skill, warning
-  type: text('type').notNull(),
+    // Memory type: fact, preference, decision, feedback, example, correction, skill, warning
+    type: text('type').notNull(),
 
-  // Source of this memory
-  source: jsonb('source').notNull(),
+    // Source of this memory
+    source: jsonb('source').notNull(),
 
-  // Vector embedding for semantic search
-  embedding: vector('embedding', { dimensions: 768 }),
+    // Vector embedding for semantic search
+    embedding: vector('embedding', { dimensions: 768 }),
 
-  // Full embedding metadata (model, dimension, generatedAt)
-  embeddingMetadata: jsonb('embedding_metadata'),
+    // Full embedding metadata (model, dimension, generatedAt)
+    embeddingMetadata: jsonb('embedding_metadata'),
 
-  // Metadata (importance, tags, expiry, etc.)
-  metadata: jsonb('metadata').default({}),
+    // Metadata (importance, tags, expiry, etc.)
+    metadata: jsonb('metadata').default({}),
 
-  // Access tracking
-  accessCount: integer('access_count').default(0),
-  accessedAt: timestamp('accessed_at', { withTimezone: true }),
+    // Access tracking
+    accessCount: integer('access_count').default(0),
+    accessedAt: timestamp('accessed_at', { withTimezone: true }),
 
-  // Verification status
-  verified: boolean('verified').default(false),
-  verifiedBy: text('verified_by').references(() => users.id, {
-    onDelete: 'set null',
-  }),
-  verifiedAt: timestamp('verified_at', { withTimezone: true }),
+    // Verification status
+    verified: boolean('verified').default(false),
+    verifiedBy: text('verified_by').references(() => users.id, {
+      onDelete: 'set null',
+    }),
+    verifiedAt: timestamp('verified_at', { withTimezone: true }),
 
-  // Scope: which site/agent this memory applies to
-  siteId: text('site_id').references(() => sites.id, { onDelete: 'cascade' }),
-  agentId: text('agent_id'),
+    // Scope: which site/agent this memory applies to
+    siteId: text('site_id')
+      .notNull()
+      .references(() => sites.id, { onDelete: 'cascade' }),
+    agentId: text('agent_id'),
 
-  // Timestamps
-  createdAt: timestamp('created_at', { withTimezone: true }).defaultNow().notNull(),
-  expiresAt: timestamp('expires_at', { withTimezone: true }),
-})
+    // Timestamps
+    createdAt: timestamp('created_at', { withTimezone: true }).defaultNow().notNull(),
+    expiresAt: timestamp('expires_at', { withTimezone: true }),
+  },
+  (table) => [
+    index('agent_memories_site_id_idx').on(table.siteId),
+    index('agent_memories_agent_id_idx').on(table.agentId),
+    index('agent_memories_verified_idx').on(table.verified),
+    index('agent_memories_expires_at_idx').on(table.expiresAt),
+    index('agent_memories_type_idx').on(table.type),
+  ],
+)
 
 // =============================================================================
 // Conversations Table
@@ -309,22 +323,26 @@ export const registeredAgents = pgTable('registered_agents', {
  * Used by requireTaskQuota() middleware and the billing usage widget.
  * Composite PK (userId, cycleStart) means one row per user per month.
  */
-export const agentTaskUsage = pgTable('agent_task_usage', {
-  userId: text('user_id')
-    .notNull()
-    .references(() => users.id, { onDelete: 'cascade' }),
+export const agentTaskUsage = pgTable(
+  'agent_task_usage',
+  {
+    userId: text('user_id')
+      .notNull()
+      .references(() => users.id, { onDelete: 'cascade' }),
 
-  /** UTC timestamp of the first moment of the billing cycle (truncated to month). */
-  cycleStart: timestamp('cycle_start', { withTimezone: true }).notNull(),
+    /** UTC timestamp of the first moment of the billing cycle (truncated to month). */
+    cycleStart: timestamp('cycle_start', { withTimezone: true }).notNull(),
 
-  /** Total tasks executed this cycle. */
-  count: integer('count').notNull().default(0),
+    /** Total tasks executed this cycle. */
+    count: integer('count').notNull().default(0),
 
-  /** Tasks beyond the tier quota (for overage billing). */
-  overage: integer('overage').notNull().default(0),
+    /** Tasks beyond the tier quota (for overage billing). */
+    overage: integer('overage').notNull().default(0),
 
-  updatedAt: timestamp('updated_at', { withTimezone: true }).defaultNow().notNull(),
-})
+    updatedAt: timestamp('updated_at', { withTimezone: true }).defaultNow().notNull(),
+  },
+  (table) => [primaryKey({ columns: [table.userId, table.cycleStart] })],
+)
 
 export type AgentTaskUsage = typeof agentTaskUsage.$inferSelect
 export type NewAgentTaskUsage = typeof agentTaskUsage.$inferInsert

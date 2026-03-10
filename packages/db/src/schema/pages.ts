@@ -58,7 +58,10 @@ export const pages = pgTable(
     updatedAt: timestamp('updated_at', { withTimezone: true }).defaultNow().notNull(),
     publishedAt: timestamp('published_at', { withTimezone: true }),
   },
-  (table) => [index('pages_site_id_idx').on(table.siteId)],
+  (table) => [
+    index('pages_parent_id_idx').on(table.parentId),
+    index('pages_site_id_idx').on(table.siteId),
+  ],
 )
 
 // =============================================================================
