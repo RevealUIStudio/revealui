@@ -3,7 +3,16 @@
   "version": "0.2.0",
   "description": "Shared utilities for RevealUI - logger, SSL config, and common helpers",
   "license": "MIT",
-  "type": "module",
+  "dependencies": {
+    "zod": "catalog:"
+  },
+  "devDependencies": {
+    "@types/node": "^25.3.0",
+    "dev": "workspace:*",
+    "tsup": "^8.5.1",
+    "typescript": "^5.9.3",
+    "vitest": "^4.0.18"
+  },
   "exports": {
     ".": {
       "types": "./dist/index.d.ts",
@@ -25,28 +34,21 @@
   "files": [
     "dist"
   ],
+  "main": "./dist/index.js",
   "publishConfig": {
     "access": "public",
     "registry": "https://registry.npmjs.org"
   },
   "scripts": {
     "build": "tsup",
+    "clean": "rm -rf dist",
     "dev": "tsup --watch",
-    "typecheck": "tsc --noEmit",
-    "test": "vitest run --passWithNoTests",
-    "test:watch": "vitest",
     "lint": "biome check .",
     "lint:fix": "biome check --write .",
-    "clean": "rm -rf dist"
+    "test": "vitest run --passWithNoTests",
+    "test:watch": "vitest",
+    "typecheck": "tsc --noEmit"
   },
-  "dependencies": {
-    "zod": "catalog:"
-  },
-  "devDependencies": {
-    "@types/node": "^25.3.0",
-    "dev": "workspace:*",
-    "tsup": "^8.5.1",
-    "typescript": "^5.9.3",
-    "vitest": "^4.0.18"
-  }
+  "type": "module",
+  "types": "./dist/index.d.ts"
 }
