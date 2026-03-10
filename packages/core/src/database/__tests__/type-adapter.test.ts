@@ -161,8 +161,8 @@ describe('dbRowToRevealUIDoc', () => {
     const doc = dbRowToRevealUIDoc<UserDocument, typeof rowWithExtras>(rowWithExtras)
 
     // The cast does not strip properties — extras remain at runtime
-    expect((doc as Record<string, unknown>)['internal_flag']).toBe(true)
-    expect((doc as Record<string, unknown>)['_version']).toBe(7)
+    expect((doc as Record<string, unknown>).internal_flag).toBe(true)
+    expect((doc as Record<string, unknown>)._version).toBe(7)
   })
 
   it('handles Date objects in date fields', () => {
@@ -206,8 +206,8 @@ describe('revealUIDocToDbInsert', () => {
     const insert = revealUIDocToDbInsert<UserDocument, UserInsert>(doc)
 
     // Runtime object still has all fields from the source doc
-    expect((insert as Record<string, unknown>)['id']).toBe('usr_abc123')
-    expect((insert as Record<string, unknown>)['created_at']).toBe('2025-01-15T10:30:00.000Z')
+    expect((insert as Record<string, unknown>).id).toBe('usr_abc123')
+    expect((insert as Record<string, unknown>).created_at).toBe('2025-01-15T10:30:00.000Z')
   })
 
   it('works with partial documents', () => {
@@ -255,7 +255,7 @@ describe('identity property (round-trip)', () => {
     const backToRow = revealUIDocToDbInsert<UserDocument, UserDbRow>(doc)
 
     expect(backToRow).toEqual(row)
-    expect((backToRow.metadata as Record<string, unknown>)['nested']).toEqual({ deep: true })
+    expect((backToRow.metadata as Record<string, unknown>).nested).toEqual({ deep: true })
   })
 })
 
@@ -291,7 +291,7 @@ describe('dbRowToContract', () => {
 
     expect(result.id).toBe('usr_1')
     expect(result.email).toBe('a@b.com')
-    expect((result as Record<string, unknown>)['bonus']).toBeUndefined()
+    expect((result as Record<string, unknown>).bonus).toBeUndefined()
   })
 })
 
@@ -454,8 +454,8 @@ describe('missing fields', () => {
     expect(doc.id).toBe('usr_sparse')
     expect(doc.email).toBe('sparse@example.com')
     // Fields not present on the source are undefined at runtime
-    expect((doc as Record<string, unknown>)['name']).toBeUndefined()
-    expect((doc as Record<string, unknown>)['role']).toBeUndefined()
+    expect((doc as Record<string, unknown>).name).toBeUndefined()
+    expect((doc as Record<string, unknown>).role).toBeUndefined()
   })
 
   it('revealUIDocToDbInsert works with a sparse document', () => {

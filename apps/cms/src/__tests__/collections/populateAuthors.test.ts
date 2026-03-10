@@ -1,6 +1,8 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { populateAuthors } from '@/lib/collections/Posts/hooks/populateAuthors'
 
+type HookArgs = Parameters<typeof populateAuthors>[0]
+
 describe('populateAuthors', () => {
   const mockFindByID = vi.fn()
 
@@ -9,6 +11,13 @@ describe('populateAuthors', () => {
       findByID: mockFindByID,
     },
   })
+
+  const callHook = (doc: Record<string, unknown>, req?: Record<string, unknown>) =>
+    populateAuthors({
+      doc: doc as unknown as HookArgs['doc'],
+      req: (req ?? createReq()) as unknown as HookArgs['req'],
+      findMany: false,
+    })
 
   beforeEach(() => {
     vi.clearAllMocks()
@@ -23,14 +32,7 @@ describe('populateAuthors', () => {
       authors: ['author-1', 'author-2'],
     }
 
-    const result = await populateAuthors({
-      doc: doc as unknown as Parameters<typeof populateAuthors>[0]['doc'],
-      req: createReq() as unknown as Parameters<typeof populateAuthors>[0]['req'],
-      findByID: undefined as unknown as Parameters<typeof populateAuthors>[0]['findByID'],
-      collection: undefined as unknown as Parameters<typeof populateAuthors>[0]['collection'],
-      context: {} as unknown as Parameters<typeof populateAuthors>[0]['context'],
-      query: undefined as unknown as Parameters<typeof populateAuthors>[0]['query'],
-    })
+    const result = await callHook(doc)
 
     const populated = result as typeof doc & {
       populatedAuthors: Array<{ id: string; name: string }>
@@ -49,14 +51,7 @@ describe('populateAuthors', () => {
       authors: [{ id: 'author-1' }],
     }
 
-    const result = await populateAuthors({
-      doc: doc as unknown as Parameters<typeof populateAuthors>[0]['doc'],
-      req: createReq() as unknown as Parameters<typeof populateAuthors>[0]['req'],
-      findByID: undefined as unknown as Parameters<typeof populateAuthors>[0]['findByID'],
-      collection: undefined as unknown as Parameters<typeof populateAuthors>[0]['collection'],
-      context: {} as unknown as Parameters<typeof populateAuthors>[0]['context'],
-      query: undefined as unknown as Parameters<typeof populateAuthors>[0]['query'],
-    })
+    const result = await callHook(doc)
 
     const populated = result as typeof doc & {
       populatedAuthors: Array<{ id: string; name: string }>
@@ -77,14 +72,7 @@ describe('populateAuthors', () => {
       authors: ['author-1'],
     }
 
-    const result = await populateAuthors({
-      doc: doc as unknown as Parameters<typeof populateAuthors>[0]['doc'],
-      req: {} as unknown as Parameters<typeof populateAuthors>[0]['req'],
-      findByID: undefined as unknown as Parameters<typeof populateAuthors>[0]['findByID'],
-      collection: undefined as unknown as Parameters<typeof populateAuthors>[0]['collection'],
-      context: {} as unknown as Parameters<typeof populateAuthors>[0]['context'],
-      query: undefined as unknown as Parameters<typeof populateAuthors>[0]['query'],
-    })
+    const result = await callHook(doc, {})
 
     expect(result).toEqual(doc)
     expect(mockFindByID).not.toHaveBeenCalled()
@@ -93,14 +81,7 @@ describe('populateAuthors', () => {
   it('returns doc unchanged when authors is not present', async () => {
     const doc = { id: 'post-1' }
 
-    const result = await populateAuthors({
-      doc: doc as unknown as Parameters<typeof populateAuthors>[0]['doc'],
-      req: createReq() as unknown as Parameters<typeof populateAuthors>[0]['req'],
-      findByID: undefined as unknown as Parameters<typeof populateAuthors>[0]['findByID'],
-      collection: undefined as unknown as Parameters<typeof populateAuthors>[0]['collection'],
-      context: {} as unknown as Parameters<typeof populateAuthors>[0]['context'],
-      query: undefined as unknown as Parameters<typeof populateAuthors>[0]['query'],
-    })
+    const result = await callHook(doc)
 
     expect(mockFindByID).not.toHaveBeenCalled()
     expect(result).toEqual(doc)
@@ -109,14 +90,7 @@ describe('populateAuthors', () => {
   it('returns doc unchanged when authors is not an array', async () => {
     const doc = { id: 'post-1', authors: 'single-author' }
 
-    const result = await populateAuthors({
-      doc: doc as unknown as Parameters<typeof populateAuthors>[0]['doc'],
-      req: createReq() as unknown as Parameters<typeof populateAuthors>[0]['req'],
-      findByID: undefined as unknown as Parameters<typeof populateAuthors>[0]['findByID'],
-      collection: undefined as unknown as Parameters<typeof populateAuthors>[0]['collection'],
-      context: {} as unknown as Parameters<typeof populateAuthors>[0]['context'],
-      query: undefined as unknown as Parameters<typeof populateAuthors>[0]['query'],
-    })
+    const result = await callHook(doc)
 
     expect(mockFindByID).not.toHaveBeenCalled()
     expect(result).toEqual(doc)
@@ -131,20 +105,13 @@ describe('populateAuthors', () => {
       authors: ['author-1', 'author-missing'],
     }
 
-    const result = await populateAuthors({
-      doc: doc as unknown as Parameters<typeof populateAuthors>[0]['doc'],
-      req: createReq() as unknown as Parameters<typeof populateAuthors>[0]['req'],
-      findByID: undefined as unknown as Parameters<typeof populateAuthors>[0]['findByID'],
-      collection: undefined as unknown as Parameters<typeof populateAuthors>[0]['collection'],
-      context: {} as unknown as Parameters<typeof populateAuthors>[0]['context'],
-      query: undefined as unknown as Parameters<typeof populateAuthors>[0]['query'],
-    })
+    const result = await callHook(doc)
 
     const populated = result as typeof doc & {
       populatedAuthors: Array<{ id: string; name: string }>
     }
     expect(populated.populatedAuthors).toHaveLength(1)
-    expect(populated.populatedAuthors[0].id).toBe('author-1')
+    expect(populated.populatedAuthors[0]?.id).toBe('author-1')
   })
 
   it('skips null/undefined authors in the array', async () => {
@@ -155,14 +122,7 @@ describe('populateAuthors', () => {
       authors: [null, 'author-1', undefined],
     }
 
-    const result = await populateAuthors({
-      doc: doc as unknown as Parameters<typeof populateAuthors>[0]['doc'],
-      req: createReq() as unknown as Parameters<typeof populateAuthors>[0]['req'],
-      findByID: undefined as unknown as Parameters<typeof populateAuthors>[0]['findByID'],
-      collection: undefined as unknown as Parameters<typeof populateAuthors>[0]['collection'],
-      context: {} as unknown as Parameters<typeof populateAuthors>[0]['context'],
-      query: undefined as unknown as Parameters<typeof populateAuthors>[0]['query'],
-    })
+    const result = await callHook(doc)
 
     const populated = result as typeof doc & {
       populatedAuthors: Array<{ id: string; name: string }>
@@ -176,14 +136,7 @@ describe('populateAuthors', () => {
       authors: [true, false],
     }
 
-    const result = await populateAuthors({
-      doc: doc as unknown as Parameters<typeof populateAuthors>[0]['doc'],
-      req: createReq() as unknown as Parameters<typeof populateAuthors>[0]['req'],
-      findByID: undefined as unknown as Parameters<typeof populateAuthors>[0]['findByID'],
-      collection: undefined as unknown as Parameters<typeof populateAuthors>[0]['collection'],
-      context: {} as unknown as Parameters<typeof populateAuthors>[0]['context'],
-      query: undefined as unknown as Parameters<typeof populateAuthors>[0]['query'],
-    })
+    const result = await callHook(doc)
 
     const populated = result as typeof doc & {
       populatedAuthors: Array<{ id: string; name: string }>
@@ -200,14 +153,7 @@ describe('populateAuthors', () => {
       authors: ['author-deleted'],
     }
 
-    const result = await populateAuthors({
-      doc: doc as unknown as Parameters<typeof populateAuthors>[0]['doc'],
-      req: createReq() as unknown as Parameters<typeof populateAuthors>[0]['req'],
-      findByID: undefined as unknown as Parameters<typeof populateAuthors>[0]['findByID'],
-      collection: undefined as unknown as Parameters<typeof populateAuthors>[0]['collection'],
-      context: {} as unknown as Parameters<typeof populateAuthors>[0]['context'],
-      query: undefined as unknown as Parameters<typeof populateAuthors>[0]['query'],
-    })
+    const result = await callHook(doc)
 
     const populated = result as typeof doc & {
       populatedAuthors: Array<{ id: string; name: string }>

@@ -21,10 +21,10 @@ export default defineConfig({
       // Standard thresholds for core packages
       // Balanced between code quality and development velocity
       thresholds: {
-        statements: 70,
-        branches: 60,
-        functions: 70,
-        lines: 70,
+        lines: 75,
+        functions: 75,
+        branches: 70,
+        statements: 75,
       },
     },
   },

@@ -5,6 +5,7 @@
  */
 
 import { expect, type Page } from '@playwright/test'
+import { type A11yCheckOptions, checkAccessibility } from './a11y-helper'
 
 /**
  * Wait for network to be idle
@@ -132,16 +133,13 @@ export async function logout(page: Page) {
 }
 
 /**
- * Check accessibility violations
+ * Check accessibility violations using aXe-core.
+ *
+ * Runs WCAG 2.1 AA compliance checks and fails the test if violations are found.
+ * Pass options to disable specific rules or exclude selectors for known issues.
  */
-export async function checkA11y(page: Page) {
-  // This would integrate with axe-core or similar
-  // For now, basic checks
-  const missingAlt = await page.locator('img:not([alt])').count()
-  expect(missingAlt).toBe(0)
-
-  const emptyLinks = await page.locator('a:empty').count()
-  expect(emptyLinks).toBe(0)
+export async function checkA11y(page: Page, options?: A11yCheckOptions): Promise<void> {
+  await checkAccessibility(page, options)
 }
 
 /**

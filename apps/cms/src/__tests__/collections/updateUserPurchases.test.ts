@@ -64,7 +64,7 @@ describe('updateUserPurchases', () => {
       context: {} as unknown as Parameters<typeof updateUserPurchases>[0]['context'],
     })
 
-    const updateCall = mockUpdate.mock.calls[0][0]
+    const updateCall = mockUpdate.mock.calls[0]?.[0]
     const purchases = updateCall.data.purchases as string[]
     expect(purchases).toHaveLength(3)
     expect(purchases).toContain('prod-1')
@@ -91,7 +91,7 @@ describe('updateUserPurchases', () => {
       context: {} as unknown as Parameters<typeof updateUserPurchases>[0]['context'],
     })
 
-    const updateCall = mockUpdate.mock.calls[0][0]
+    const updateCall = mockUpdate.mock.calls[0]?.[0]
     const purchases = updateCall.data.purchases as string[]
     expect(purchases).toContain('prod-obj-1')
     expect(purchases).toContain('prod-str-1')
@@ -116,7 +116,7 @@ describe('updateUserPurchases', () => {
       context: {} as unknown as Parameters<typeof updateUserPurchases>[0]['context'],
     })
 
-    const updateCall = mockUpdate.mock.calls[0][0]
+    const updateCall = mockUpdate.mock.calls[0]?.[0]
     const purchases = updateCall.data.purchases as string[]
     expect(purchases).toContain('prod-existing')
     expect(purchases).toContain('prod-new')

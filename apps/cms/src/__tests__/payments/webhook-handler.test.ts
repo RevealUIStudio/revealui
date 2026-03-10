@@ -725,7 +725,7 @@ describe('Stripe webhook handler — comprehensive', () => {
         id: 'sub_str',
         customer: 'cus_string_id',
       })
-      const dataStr = eventString.data.object as Record<string, unknown>
+      const dataStr = eventString.data.object as unknown as Record<string, unknown>
       expect(typeof dataStr.customer).toBe('string')
 
       // Object customer ID
@@ -733,7 +733,7 @@ describe('Stripe webhook handler — comprehensive', () => {
         id: 'sub_obj',
         customer: { id: 'cus_object_id', object: 'customer' },
       })
-      const dataObject = eventObj.data.object as Record<string, unknown>
+      const dataObject = eventObj.data.object as unknown as Record<string, unknown>
       expect(typeof dataObject.customer).toBe('object')
     })
   })

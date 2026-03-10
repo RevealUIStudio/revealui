@@ -21,6 +21,15 @@ export default defineConfig({
         minForks: 1,
       },
     },
+    coverage: {
+      provider: 'v8',
+      thresholds: {
+        lines: 60,
+        functions: 60,
+        branches: 55,
+        statements: 60,
+      },
+    },
   },
   resolve: {
     alias: {
