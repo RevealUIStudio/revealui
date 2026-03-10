@@ -156,3 +156,54 @@ jobs:
         run: pnpm build
         env:
           SKIP_ENV_VALIDATION: "true"
+
+  # ---------------------------------------------------------------------------
+  # Phase 4: E2E smoke tests (warn-only — Playwright chromium only)
+  # ---------------------------------------------------------------------------
+  e2e-smoke:
+    name: E2E Smoke
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    needs: [quality, typecheck]
+    if: github.ref == 'refs/heads/main'
+    continue-on-error: true
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: pnpm/action-setup@v4
+        with:
+          version: ${{ env.PNPM_VERSION }}
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: pnpm
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Install Playwright (chromium only)
+        run: npx playwright install --with-deps chromium
+
+      - name: Build for E2E
+        run: pnpm build
+        env:
+          SKIP_ENV_VALIDATION: "true"
+
+      - name: Run E2E smoke tests
+        run: pnpm test:e2e -- --project=chromium e2e/smoke.e2e.ts
+        continue-on-error: true
+        env:
+          CI: "true"
+          SKIP_ENV_VALIDATION: "true"
+
+      - name: Upload test results
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: e2e-results
+          path: |
+            playwright-report/
+            test-results/
+          retention-days: 7
