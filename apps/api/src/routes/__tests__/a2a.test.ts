@@ -100,14 +100,18 @@ vi.mock('../../middleware/license.js', () => ({
 }))
 
 // Contracts — real Zod schemas replaced with pass-through mocks
-vi.mock('@revealui/contracts', () => ({
-  AgentDefinitionSchema: {
-    safeParse: mockAgentDefinitionSafeParse,
-  },
-  A2AJsonRpcRequestSchema: {
-    safeParse: mockA2AJsonRpcSafeParse,
-  },
-}))
+vi.mock('@revealui/contracts', async (importOriginal) => {
+  const actual = await importOriginal<typeof import('@revealui/contracts')>()
+  return {
+    ...actual,
+    AgentDefinitionSchema: {
+      safeParse: mockAgentDefinitionSafeParse,
+    },
+    A2AJsonRpcRequestSchema: {
+      safeParse: mockA2AJsonRpcSafeParse,
+    },
+  }
+})
 
 // DB mock — fluent Drizzle chain
 let _dbResult: unknown[] = []
