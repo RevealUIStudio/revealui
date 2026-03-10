@@ -54,31 +54,22 @@ export class ErrorBoundary extends Component<ErrorBoundaryProps, ErrorBoundarySt
 
       // Default error UI
       return (
-        <div style={{ padding: '2rem', maxWidth: '800px', margin: '0 auto' }}>
-          <h1>Error Loading Content</h1>
-          <p>An error occurred while rendering this content. This might be due to:</p>
-          <ul>
+        <div className="mx-auto max-w-[var(--width-content)] p-8">
+          <h1 className="text-2xl font-bold text-red-600">Error Loading Content</h1>
+          <p className="mt-2 text-text-secondary">
+            An error occurred while rendering this content. This might be due to:
+          </p>
+          <ul className="mt-2 list-disc pl-6 text-text-secondary">
             <li>Invalid markdown syntax</li>
             <li>Missing or corrupted file</li>
             <li>Rendering issue with content</li>
           </ul>
           {this.state.error && (
-            <details
-              style={{
-                marginTop: '1rem',
-                padding: '1rem',
-                background: '#f5f5f5',
-                borderRadius: '4px',
-              }}
-            >
-              <summary style={{ cursor: 'pointer', fontWeight: 'bold' }}>Technical Details</summary>
-              <pre
-                style={{
-                  marginTop: '0.5rem',
-                  whiteSpace: 'pre-wrap',
-                  fontSize: '0.875rem',
-                }}
-              >
+            <details className="mt-4 rounded-lg border border-border bg-code-bg p-4">
+              <summary className="cursor-pointer font-semibold text-text-primary">
+                Technical Details
+              </summary>
+              <pre className="mt-2 whitespace-pre-wrap text-sm text-text-secondary">
                 {this.state.error.message}
                 {this.state.error.stack && `\n\n${this.state.error.stack}`}
               </pre>
@@ -89,15 +80,7 @@ export class ErrorBoundary extends Component<ErrorBoundaryProps, ErrorBoundarySt
               this.setState({ hasError: false, error: null })
             }}
             type="button"
-            style={{
-              marginTop: '1rem',
-              padding: '0.5rem 1rem',
-              background: '#007bff',
-              color: 'white',
-              border: 'none',
-              borderRadius: '4px',
-              cursor: 'pointer',
-            }}
+            className="mt-4 cursor-pointer rounded-lg border-none bg-accent px-4 py-2 font-sans text-sm font-medium text-white transition-colors hover:bg-accent-hover"
           >
             Try Again
           </button>

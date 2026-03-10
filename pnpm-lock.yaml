@@ -6,6 +6,9 @@ settings:
 
 catalogs:
   default:
+    tailwindcss:
+      specifier: ^4.2.1
+      version: 4.2.1
     tsup:
       specifier: ^8.5.1
       version: 8.5.1
@@ -432,6 +435,9 @@ importers:
         specifier: ^4.0.1
         version: 4.0.1
     devDependencies:
+      '@tailwindcss/vite':
+        specifier: ^4.2.1
+        version: 4.2.1(vite@7.3.1(@types/node@25.3.0)(jiti@2.6.1)(lightningcss@1.31.1)(sass@1.97.3)(terser@5.46.0)(tsx@4.21.0)(yaml@2.8.2))
       '@testing-library/jest-dom':
         specifier: ^6.9.1
         version: 6.9.1
@@ -459,6 +465,9 @@ importers:
       jsdom:
         specifier: ^27.4.0
         version: 27.4.0(@noble/hashes@1.8.0)(bufferutil@4.1.0)(utf-8-validate@6.0.6)
+      tailwindcss:
+        specifier: 'catalog:'
+        version: 4.2.1
       typescript:
         specifier: ^5.9.3
         version: 5.9.3

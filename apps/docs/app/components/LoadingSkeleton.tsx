@@ -4,58 +4,26 @@
 
 export function LoadingSkeleton() {
   return (
-    <div style={{ padding: '2.5rem 2rem', maxWidth: 'var(--content-max-width)', margin: '0 auto' }}>
+    <div className="mx-auto max-w-[var(--width-content)] px-8 py-10">
       {/* Title skeleton */}
-      <div
-        style={{
-          height: '2rem',
-          width: '55%',
-          background: 'var(--color-border)',
-          borderRadius: '6px',
-          marginBottom: '1.5rem',
-          animation: 'pulse 1.5s ease-in-out infinite',
-        }}
-      />
+      <div className="mb-6 h-8 w-[55%] animate-pulse rounded-md bg-border" />
 
       {/* Paragraph skeletons */}
       {[1, 2, 3].map((i) => (
-        <div key={i} style={{ marginBottom: '1rem' }}>
+        <div key={i} className="mb-4">
           <div
-            style={{
-              height: '0.875rem',
-              width: '100%',
-              background: 'var(--color-border)',
-              borderRadius: '4px',
-              marginBottom: '0.5rem',
-              animation: 'pulse 1.5s ease-in-out infinite',
-              animationDelay: `${i * 0.1}s`,
-            }}
+            className="mb-2 h-3.5 w-full animate-pulse rounded bg-border"
+            style={{ animationDelay: `${i * 100}ms` }}
           />
           <div
-            style={{
-              height: '0.875rem',
-              width: '80%',
-              background: 'var(--color-border)',
-              borderRadius: '4px',
-              animation: 'pulse 1.5s ease-in-out infinite',
-              animationDelay: `${i * 0.1 + 0.05}s`,
-            }}
+            className="h-3.5 w-4/5 animate-pulse rounded bg-border"
+            style={{ animationDelay: `${i * 100 + 50}ms` }}
           />
         </div>
       ))}
 
       {/* Code block skeleton */}
-      <div
-        style={{
-          height: '7rem',
-          width: '100%',
-          background: 'var(--color-code-bg)',
-          borderRadius: '8px',
-          marginTop: '1.5rem',
-          border: '1px solid var(--color-border)',
-          animation: 'pulse 1.5s ease-in-out infinite',
-        }}
-      />
+      <div className="mt-6 h-28 w-full animate-pulse rounded-lg border border-border bg-code-bg" />
     </div>
   )
 }
@@ -65,24 +33,8 @@ export function LoadingSkeleton() {
  */
 export function LoadingSpinner() {
   return (
-    <div
-      style={{
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'center',
-        padding: '2rem',
-      }}
-    >
-      <div
-        style={{
-          width: '32px',
-          height: '32px',
-          border: '3px solid var(--color-border)',
-          borderTop: '3px solid var(--color-accent)',
-          borderRadius: '50%',
-          animation: 'spin 0.8s linear infinite',
-        }}
-      />
+    <div className="flex items-center justify-center p-8">
+      <div className="h-8 w-8 animate-spin rounded-full border-3 border-border border-t-accent" />
     </div>
   )
 }
