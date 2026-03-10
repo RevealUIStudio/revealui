@@ -1,7 +1,3 @@
-import type { RevealUser } from '@revealui/core'
-import type { Role } from '@/lib/access/permissions/roles'
-import { hasRole } from './hasRole'
-
 export enum AccessLevel {
   Customer = 1,
   User = 2,
@@ -14,8 +10,4 @@ export enum AccessLevel {
   TenantAdmin = 9,
   TenantSuperAdmin = 10,
   UserSuperAdmin = 11,
-}
-
-export function hasAnyRole(user: RevealUser, roles: Role[]): boolean {
-  return hasRole(user, roles)
 }

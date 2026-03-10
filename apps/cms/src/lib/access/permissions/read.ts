@@ -1,4 +1,4 @@
-import { checkUserRoles } from '@/lib/access/users/checkUserRoles'
+import { hasRole } from '@/lib/access/roles/hasRole'
 import { Role } from './roles'
 
 export const readAccess = ({
@@ -20,7 +20,7 @@ export const readAccess = ({
   }
 
   const isPublished = data?.status === 'published' || data?._status === 'published'
-  const isUserAdmin = checkUserRoles(user, [Role.UserSuperAdmin, Role.UserAdmin])
+  const isUserAdmin = hasRole(user, [Role.UserSuperAdmin, Role.UserAdmin])
   const isOwner = data?.user?.id === user.id
 
   return isPublished || isUserAdmin || isOwner

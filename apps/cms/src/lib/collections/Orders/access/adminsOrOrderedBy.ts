@@ -1,5 +1,5 @@
 import { Role } from '@/lib/access/permissions/roles'
-import { checkUserRoles } from '@/lib/access/users/checkUserRoles'
+import { hasRole } from '@/lib/access/roles/hasRole'
 
 export const adminsOrOrderedBy = ({ req }: { req: { user?: unknown } }) => {
   const user = req?.user as {
@@ -12,8 +12,7 @@ export const adminsOrOrderedBy = ({ req }: { req: { user?: unknown } }) => {
     return false
   }
 
-  // Pass the user as the first argument and the roles array as the second
-  if (checkUserRoles(user, [Role.TenantSuperAdmin])) {
+  if (hasRole(user, [Role.TenantSuperAdmin])) {
     return true
   }
 
@@ -24,21 +23,3 @@ export const adminsOrOrderedBy = ({ req }: { req: { user?: unknown } }) => {
     },
   }
 }
-
-// import {
-//   checkUserRoles,
-//   type UserRole,
-// } from '@/lib/access/users/checkUserRoles';
-// import type { Access } from "@revealui/core";
-
-// export const adminsOrOrderedBy: Access = ({ req }) => {
-//   if (checkUserRoles(["user-super-admin"], user as UserRole)) {
-//     return true;
-//   }
-
-//   return {
-//     orderedBy: {
-//       equals: user?.id,
-//     },
-//   };
-// };

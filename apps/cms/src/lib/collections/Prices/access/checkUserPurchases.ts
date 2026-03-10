@@ -1,6 +1,6 @@
 import type { FieldAccess, RevealUser } from '@revealui/core'
 import { Role } from '@/lib/access/permissions/roles'
-import { checkUserRoles } from '@/lib/access/users/checkUserRoles'
+import { hasRole } from '@/lib/access/roles/hasRole'
 
 interface Price {
   id: number
@@ -19,7 +19,7 @@ export const checkUserPurchases: FieldAccess<Price> = async ({ req, data: doc })
 
   const userWithPurchases = user as UserWithPurchases
 
-  if (checkUserRoles(userWithPurchases, [Role.UserSuperAdmin, Role.UserAdmin])) {
+  if (hasRole(userWithPurchases, [Role.UserSuperAdmin, Role.UserAdmin])) {
     return true
   }
 
