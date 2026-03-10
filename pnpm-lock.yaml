@@ -202,7 +202,7 @@ importers:
         specifier: ^0.7.6
         version: 0.7.6(hono@4.12.5)(zod@4.3.6)
       '@revealui/ai':
-        specifier: ^0.1.3
+        specifier: 0.1.3
         version: 0.1.3(@cloudflare/workers-types@4.20260131.0)(@electric-sql/pglite@0.3.15)(@opentelemetry/api@1.9.0)(@types/pg@8.16.0)(drizzle-orm@0.45.1(@cloudflare/workers-types@4.20260131.0)(@electric-sql/pglite@0.3.15)(@neondatabase/serverless@1.0.2)(@opentelemetry/api@1.9.0)(@types/pg@8.16.0)(pg@8.18.0))(next@16.1.6(@opentelemetry/api@1.9.0)(@playwright/test@1.58.2)(react-dom@19.2.4(react@19.2.4))(react@19.2.4)(sass@1.97.3))(react-dom@19.2.4(react@19.2.4))(react@19.2.4)(typescript@5.9.3)
       '@revealui/auth':
         specifier: workspace:*
@@ -272,7 +272,7 @@ importers:
         specifier: ^1.0.27
         version: 1.0.30(react@19.2.4)
       '@revealui/ai':
-        specifier: ^0.1.3
+        specifier: 0.1.3
         version: 0.1.3(@cloudflare/workers-types@4.20260131.0)(@electric-sql/pglite@0.3.15)(@opentelemetry/api@1.9.0)(@types/pg@8.16.0)(drizzle-orm@0.45.1(@cloudflare/workers-types@4.20260131.0)(@electric-sql/pglite@0.3.15)(@neondatabase/serverless@1.0.2)(@opentelemetry/api@1.9.0)(@types/pg@8.16.0)(pg@8.18.0))(next@16.1.6(@opentelemetry/api@1.9.0)(@playwright/test@1.58.2)(react-dom@19.2.4(react@19.2.4))(react@19.2.4)(sass@1.97.3))(react-dom@19.2.4(react@19.2.4))(react@19.2.4)(typescript@5.9.3)
       '@revealui/auth':
         specifier: workspace:*
@@ -369,7 +369,7 @@ importers:
         specifier: ^16.1.6
         version: 16.1.6(bufferutil@4.1.0)(utf-8-validate@6.0.6)
       '@revealui/services':
-        specifier: ^0.0.2
+        specifier: 0.0.2
         version: 0.0.2(patch_hash=e098b055d7200e649bae51a25c1789e1c90aaa5abbd4746480153797789d4974)(@swc/helpers@0.5.18)(@types/node@25.3.0)(bufferutil@4.1.0)(graphql@16.13.1)(jiti@2.6.1)(lightningcss@1.31.1)(sass@1.97.3)(terser@5.46.0)(tsx@4.21.0)(typescript@5.9.3)(utf-8-validate@6.0.6)(yaml@2.8.2)
       '@tailwindcss/postcss':
         specifier: ^4.1.18
@@ -1088,7 +1088,7 @@ importers:
         specifier: ^1.0.2
         version: 1.0.2
       '@revealui/ai':
-        specifier: ^0.1.3
+        specifier: 0.1.3
         version: 0.1.3(@cloudflare/workers-types@4.20260131.0)(@electric-sql/pglite@0.3.15)(@opentelemetry/api@1.9.0)(@types/pg@8.16.0)(drizzle-orm@0.45.1(@cloudflare/workers-types@4.20260131.0)(@electric-sql/pglite@0.3.15)(@neondatabase/serverless@1.0.2)(@opentelemetry/api@1.9.0)(@types/pg@8.16.0)(pg@8.18.0))(next@16.1.6(@opentelemetry/api@1.9.0)(@playwright/test@1.58.2)(react-dom@19.2.4(react@19.2.4))(react@19.2.4)(sass@1.97.3))(react-dom@19.2.4(react@19.2.4))(react@19.2.4)(typescript@5.9.3)
       '@revealui/contracts':
         specifier: workspace:*
@@ -1100,7 +1100,7 @@ importers:
         specifier: workspace:*
         version: link:../db
       '@revealui/services':
-        specifier: ^0.0.2
+        specifier: 0.0.2
         version: 0.0.2(patch_hash=e098b055d7200e649bae51a25c1789e1c90aaa5abbd4746480153797789d4974)(@swc/helpers@0.5.18)(@types/node@25.3.0)(bufferutil@4.1.0)(graphql@16.13.1)(jiti@2.6.1)(lightningcss@1.31.1)(sass@1.97.3)(terser@5.46.0)(tsx@4.21.0)(typescript@5.9.3)(utf-8-validate@6.0.6)(yaml@2.8.2)
       '@revealui/utils':
         specifier: workspace:*

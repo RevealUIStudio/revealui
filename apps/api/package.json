@@ -31,7 +31,7 @@
     "vitest": "^4.0.18"
   },
   "peerDependencies": {
-    "@revealui/ai": "^0.1.3"
+    "@revealui/ai": "0.1.3"
   },
   "peerDependenciesMeta": {
     "@revealui/ai": {
