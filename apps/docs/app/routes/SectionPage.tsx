@@ -78,37 +78,11 @@ Document not found at \`${resolved.markdownPath}\`.
   return (
     <ErrorBoundary>
       <div>{renderMarkdown(content)}</div>
-      <div
-        style={{
-          marginTop: '3rem',
-          paddingTop: '1.5rem',
-          borderTop: '1px solid #e1e4e8',
-          display: 'flex',
-          justifyContent: 'space-between',
-          fontSize: '0.875rem',
-          color: '#6a737d',
-        }}
-      >
-        <a
-          href={githubUrl}
-          target="_blank"
-          rel="noopener noreferrer"
-          style={{ color: '#0969da', textDecoration: 'none' }}
-        >
+      <div className="doc-footer">
+        <a href={githubUrl} target="_blank" rel="noopener noreferrer">
           Edit this page on GitHub
         </a>
-        <button
-          type="button"
-          onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}
-          style={{
-            color: '#6a737d',
-            background: 'none',
-            border: 'none',
-            cursor: 'pointer',
-            fontSize: 'inherit',
-            padding: 0,
-          }}
-        >
+        <button type="button" onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}>
           Back to top
         </button>
       </div>
