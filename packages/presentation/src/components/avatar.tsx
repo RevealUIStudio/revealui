@@ -1,6 +1,5 @@
 import clsx from 'clsx'
 import type React from 'react'
-import { forwardRef } from 'react'
 import { useDataInteractive } from '../hooks/use-data-interactive.js'
 import { TouchTarget } from './button-headless.js'
 import { Link } from './link.js'
@@ -63,24 +62,21 @@ export function Avatar({
   )
 }
 
-export const AvatarButton = forwardRef(function AvatarButton(
-  {
-    src,
-    square = false,
-    initials,
-    alt,
-    className,
-    ...props
-  }: AvatarProps &
-    (
-      | ({
-          href?: never
-          disabled?: boolean
-        } & Omit<React.ComponentPropsWithoutRef<'button'>, 'className'>)
-      | ({ href: string } & Omit<React.ComponentPropsWithoutRef<typeof Link>, 'className'>)
-    ),
-  ref: React.ForwardedRef<HTMLButtonElement>,
-) {
+export function AvatarButton({
+  src,
+  square = false,
+  initials,
+  alt,
+  className,
+  ref,
+  ...props
+}: AvatarProps & { ref?: React.Ref<HTMLButtonElement> } & (
+    | ({
+        href?: never
+        disabled?: boolean
+      } & Omit<React.ComponentPropsWithoutRef<'button'>, 'className'>)
+    | ({ href: string } & Omit<React.ComponentPropsWithoutRef<typeof Link>, 'className'>)
+  )) {
   const disabled = 'disabled' in props ? props.disabled : false
   const interactiveProps = useDataInteractive({ disabled: disabled ?? false })
 
@@ -91,7 +87,7 @@ export const AvatarButton = forwardRef(function AvatarButton(
   )
 
   return typeof props.href === 'string' ? (
-    <Link {...props} className={classes} ref={ref as React.ForwardedRef<HTMLAnchorElement>}>
+    <Link {...props} className={classes} ref={ref as React.Ref<HTMLAnchorElement>}>
       <TouchTarget>
         <Avatar src={src} square={square} initials={initials} alt={alt} />
       </TouchTarget>
@@ -103,4 +99,4 @@ export const AvatarButton = forwardRef(function AvatarButton(
       </TouchTarget>
     </button>
   )
-})
+}

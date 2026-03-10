@@ -29,14 +29,7 @@
  * ```
  */
 
-import {
-  createContext,
-  type ReactNode,
-  type RefObject,
-  useContext,
-  useLayoutEffect,
-  useRef,
-} from 'react'
+import { createContext, type ReactNode, type RefObject, use, useLayoutEffect, useRef } from 'react'
 
 // ============================================
 // CONTEXT
@@ -82,7 +75,7 @@ const LAYOUT_DURATION = 350
  */
 export function useLayoutAnimation(layoutId: string): RefObject<HTMLElement | null> {
   const ref = useRef<HTMLElement | null>(null)
-  const rectsCtx = useContext(LayoutGroupContext)
+  const rectsCtx = use(LayoutGroupContext)
 
   useLayoutEffect(() => {
     const el = ref.current

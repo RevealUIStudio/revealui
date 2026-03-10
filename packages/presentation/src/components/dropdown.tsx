@@ -2,7 +2,7 @@
 
 import clsx from 'clsx'
 import type React from 'react'
-import { createContext, useCallback, useContext, useMemo, useRef, useState } from 'react'
+import { createContext, use, useCallback, useMemo, useRef, useState } from 'react'
 import { createPortal } from 'react-dom'
 import { useClickOutside } from '../hooks/use-click-outside.js'
 import { useDataInteractive } from '../hooks/use-data-interactive.js'
@@ -28,7 +28,7 @@ interface DropdownContextValue {
 const DropdownContext = createContext<DropdownContextValue | null>(null)
 
 function useDropdownContext(): DropdownContextValue {
-  const ctx = useContext(DropdownContext)
+  const ctx = use(DropdownContext)
   if (!ctx) {
     throw new Error('Dropdown compound components must be used within <Dropdown>')
   }
@@ -286,7 +286,7 @@ export function DropdownItem({
     } & Omit<React.ComponentPropsWithoutRef<typeof Link>, 'className'>)
 )) {
   const { close } = useDropdownContext()
-  const itemCtx = useContext(DropdownItemContext)
+  const itemCtx = use(DropdownItemContext)
   const interactiveProps = useDataInteractive({
     disabled: 'disabled' in props ? (props.disabled ?? false) : false,
   })

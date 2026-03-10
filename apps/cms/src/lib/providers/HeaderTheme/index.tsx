@@ -1,7 +1,7 @@
 'use client'
 
 import type React from 'react'
-import { createContext, useCallback, useContext, useState } from 'react'
+import { createContext, use, useCallback, useState } from 'react'
 import type { Theme } from '@/lib/providers/Theme/types'
 
 import { canUseDOM } from '@/lib/utilities/canUseDOM'
@@ -38,4 +38,4 @@ export function HeaderThemeProvider({
   )
 }
 
-export const useHeaderTheme = (): ContextType => useContext(HeaderThemeContext)
+export const useHeaderTheme = (): ContextType => use(HeaderThemeContext)

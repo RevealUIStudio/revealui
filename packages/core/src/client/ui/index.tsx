@@ -310,7 +310,7 @@ const ModalContext = React.createContext<ModalContextType>({
 })
 
 export function useModal() {
-  const context = React.useContext(ModalContext)
+  const context = React.use(ModalContext)
   return context
 }
 

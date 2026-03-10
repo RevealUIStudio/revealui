@@ -1,9 +1,11 @@
-import React from 'react'
+import type React from 'react'
 import { cn } from '../utils/cn.js'
 
-export type LabelProps = React.LabelHTMLAttributes<HTMLLabelElement>
+export type LabelProps = React.LabelHTMLAttributes<HTMLLabelElement> & {
+  ref?: React.Ref<HTMLLabelElement>
+}
 
-const Label = React.forwardRef<HTMLLabelElement, LabelProps>(({ className, ...props }, ref) => {
+function Label({ className, ref, ...props }: LabelProps) {
   return (
     // biome-ignore lint/a11y/noLabelWithoutControl: label associations are provided by consumers.
     <label
@@ -15,7 +17,6 @@ const Label = React.forwardRef<HTMLLabelElement, LabelProps>(({ className, ...pr
       {...props}
     />
   )
-})
-Label.displayName = 'Label'
+}
 
 export { Label }

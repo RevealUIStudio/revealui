@@ -2,7 +2,7 @@
 
 import type { LicenseTierId } from '@revealui/contracts/pricing'
 import type { FeatureFlags } from '@revealui/core/features'
-import { createContext, useCallback, useContext, useEffect, useState } from 'react'
+import { createContext, use, useCallback, useEffect, useState } from 'react'
 
 interface LicenseContextValue {
   tier: LicenseTierId
@@ -63,5 +63,5 @@ export function LicenseProvider({ children }: { children: React.ReactNode }) {
 }
 
 export function useLicense(): LicenseContextValue {
-  return useContext(LicenseContext)
+  return use(LicenseContext)
 }

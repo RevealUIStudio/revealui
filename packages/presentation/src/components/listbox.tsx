@@ -7,8 +7,8 @@ import {
   createContext,
   isValidElement,
   type ReactNode,
+  use,
   useCallback,
-  useContext,
   useEffect,
   useId,
   useMemo,
@@ -43,7 +43,7 @@ interface ListboxContextValue<T = unknown> {
 const ListboxContext = createContext<ListboxContextValue | null>(null)
 
 function useListboxContext(): ListboxContextValue {
-  const ctx = useContext(ListboxContext)
+  const ctx = use(ListboxContext)
   if (!ctx) {
     throw new Error('Listbox compound components must be used within <Listbox>')
   }
@@ -418,7 +418,7 @@ export function ListboxOption<T>({
   disabled?: boolean
 }) {
   const ctx = useListboxContext()
-  const index = useContext(OptionIndexContext)
+  const index = use(OptionIndexContext)
   const optionRef = useRef<HTMLDivElement>(null)
 
   const isSelected = ctx.value === optionValue

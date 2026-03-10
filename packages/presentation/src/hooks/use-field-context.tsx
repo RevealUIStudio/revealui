@@ -1,4 +1,4 @@
-import { createContext, type ReactNode, useContext, useId, useMemo } from 'react'
+import { createContext, type ReactNode, use, useId, useMemo } from 'react'
 
 interface FieldContextValue {
   /** ID for the form control element */
@@ -16,7 +16,7 @@ interface FieldContextValue {
 const FieldContext = createContext<FieldContextValue | null>(null)
 
 export function useFieldContext(): FieldContextValue | null {
-  return useContext(FieldContext)
+  return use(FieldContext)
 }
 
 interface FieldProviderProps {

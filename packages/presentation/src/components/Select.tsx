@@ -1,6 +1,6 @@
 'use client'
 
-import React from 'react'
+import type React from 'react'
 import { Box, type BoxProps } from '../primitives/Box.js'
 import { cn } from '../utils/cn.js'
 
@@ -57,42 +57,45 @@ export interface SelectProps extends BoxProps {
   value?: string
 }
 
-const Select = React.forwardRef<HTMLDivElement, SelectProps>(
-  ({ children, className, ...props }, ref) => (
+function Select({ children, className, ref, ...props }: SelectProps) {
+  return (
     <Box ref={ref} className={cn(className)} {...props}>
       {children}
     </Box>
-  ),
-)
-Select.displayName = 'Select'
+  )
+}
 
-const SelectGroup = React.forwardRef<HTMLDivElement, BoxProps>(
-  ({ children, className, ...props }, ref) => (
+function SelectGroup({ children, className, ref, ...props }: BoxProps) {
+  return (
     <Box ref={ref} className={cn(className)} {...props}>
       {children}
     </Box>
-  ),
-)
-SelectGroup.displayName = 'SelectGroup'
+  )
+}
 
 export interface SelectValueProps extends BoxProps {
   placeholder?: string
   value?: string
 }
 
-const SelectValue = React.forwardRef<HTMLSpanElement, SelectValueProps>(
-  ({ placeholder, children, value, ...props }, ref) => (
+function SelectValue({
+  placeholder,
+  children,
+  value,
+  ref,
+  ...props
+}: SelectValueProps & { ref?: React.Ref<HTMLSpanElement> }) {
+  return (
     <span ref={ref} {...props}>
       {children || placeholder || value}
     </span>
-  ),
-)
-SelectValue.displayName = 'SelectValue'
+  )
+}
 
 export type SelectTriggerProps = BoxProps
 
-const SelectTrigger = React.forwardRef<HTMLDivElement, SelectTriggerProps>(
-  ({ children, className, ...props }, ref) => (
+function SelectTrigger({ children, className, ref, ...props }: SelectTriggerProps) {
+  return (
     <Box
       className={cn(
         'flex h-10 w-full items-center justify-between rounded border border-input bg-background px-3 py-2 text-inherit ring-offset-background placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 [&>span]:line-clamp-1',
@@ -104,14 +107,15 @@ const SelectTrigger = React.forwardRef<HTMLDivElement, SelectTriggerProps>(
       {children}
       <ChevronDown className="size-4 opacity-50" />
     </Box>
-  ),
-)
-SelectTrigger.displayName = 'SelectTrigger'
+  )
+}
 
-export type SelectScrollUpButtonProps = React.ButtonHTMLAttributes<HTMLButtonElement>
+export type SelectScrollUpButtonProps = React.ButtonHTMLAttributes<HTMLButtonElement> & {
+  ref?: React.Ref<HTMLButtonElement>
+}
 
-const SelectScrollUpButton = React.forwardRef<HTMLButtonElement, SelectScrollUpButtonProps>(
-  ({ className, ...props }, ref) => (
+function SelectScrollUpButton({ className, ref, ...props }: SelectScrollUpButtonProps) {
+  return (
     <button
       className={cn('flex cursor-default items-center justify-center py-1', className)}
       ref={ref}
@@ -119,14 +123,15 @@ const SelectScrollUpButton = React.forwardRef<HTMLButtonElement, SelectScrollUpB
     >
       <ChevronUp className="size-4" />
     </button>
-  ),
-)
-SelectScrollUpButton.displayName = 'SelectScrollUpButton'
+  )
+}
 
-export type SelectScrollDownButtonProps = React.ButtonHTMLAttributes<HTMLButtonElement>
+export type SelectScrollDownButtonProps = React.ButtonHTMLAttributes<HTMLButtonElement> & {
+  ref?: React.Ref<HTMLButtonElement>
+}
 
-const SelectScrollDownButton = React.forwardRef<HTMLButtonElement, SelectScrollDownButtonProps>(
-  ({ className, ...props }, ref) => (
+function SelectScrollDownButton({ className, ref, ...props }: SelectScrollDownButtonProps) {
+  return (
     <button
       className={cn('flex cursor-default items-center justify-center py-1', className)}
       ref={ref}
@@ -134,14 +139,13 @@ const SelectScrollDownButton = React.forwardRef<HTMLButtonElement, SelectScrollD
     >
       <ChevronDown className="size-4" />
     </button>
-  ),
-)
-SelectScrollDownButton.displayName = 'SelectScrollDownButton'
+  )
+}
 
 export type SelectContentProps = BoxProps
 
-const SelectContent = React.forwardRef<HTMLDivElement, SelectContentProps>(
-  ({ children, className, ...props }, ref) => (
+function SelectContent({ children, className, ref, ...props }: SelectContentProps) {
+  return (
     <Box
       className={cn(
         'relative z-50 max-h-96 min-w-[8rem] overflow-hidden rounded border bg-card text-popover-foreground shadow-md',
@@ -154,25 +158,25 @@ const SelectContent = React.forwardRef<HTMLDivElement, SelectContentProps>(
       <div className="p-1">{children}</div>
       <SelectScrollDownButton />
     </Box>
-  ),
-)
-SelectContent.displayName = 'SelectContent'
+  )
+}
 
-export type SelectLabelProps = React.HTMLAttributes<HTMLDivElement>
+export type SelectLabelProps = React.HTMLAttributes<HTMLDivElement> & {
+  ref?: React.Ref<HTMLDivElement>
+}
 
-const SelectLabel = React.forwardRef<HTMLDivElement, SelectLabelProps>(
-  ({ className, ...props }, ref) => (
+function SelectLabel({ className, ref, ...props }: SelectLabelProps) {
+  return (
     <div className={cn('py-1.5 pl-8 pr-2 text-sm font-semibold', className)} ref={ref} {...props} />
-  ),
-)
-SelectLabel.displayName = 'SelectLabel'
+  )
+}
 
 export interface SelectItemProps extends BoxProps {
   value?: string
 }
 
-const SelectItem = React.forwardRef<HTMLDivElement, SelectItemProps>(
-  ({ children, className, value, ...props }, ref) => (
+function SelectItem({ children, className, value, ref, ...props }: SelectItemProps) {
+  return (
     <Box
       className={cn(
         'relative flex w-full cursor-default select-none items-center rounded py-1.5 pl-8 pr-2 text-sm outline-none focus:bg-accent focus:text-accent-foreground data-[disabled]:pointer-events-none data-[disabled]:opacity-50',
@@ -187,18 +191,14 @@ const SelectItem = React.forwardRef<HTMLDivElement, SelectItemProps>(
       </span>
       <span>{children}</span>
     </Box>
-  ),
-)
-SelectItem.displayName = 'SelectItem'
+  )
+}
 
 export type SelectSeparatorProps = BoxProps
 
-const SelectSeparator = React.forwardRef<HTMLDivElement, SelectSeparatorProps>(
-  ({ className, ...props }, ref) => (
-    <Box className={cn('-mx-1 my-1 h-px bg-muted', className)} ref={ref} {...props} />
-  ),
-)
-SelectSeparator.displayName = 'SelectSeparator'
+function SelectSeparator({ className, ref, ...props }: SelectSeparatorProps) {
+  return <Box className={cn('-mx-1 my-1 h-px bg-muted', className)} ref={ref} {...props} />
+}
 
 export {
   Select,

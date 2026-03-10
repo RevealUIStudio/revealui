@@ -1,36 +1,18 @@
-import React, { type Ref } from 'react'
+import type React from 'react'
+import type { Ref } from 'react'
 
 interface SlotProps extends React.HTMLAttributes<HTMLElement> {
   children?: React.ReactNode
+  ref?: React.Ref<HTMLElement>
 }
-const Slot = React.forwardRef<HTMLElement, SlotProps>((props, forwardedRef) => {
-  const { children, ...slotProps } = props
 
+function Slot({ children, ref, ...slotProps }: SlotProps) {
   return (
-    <div {...slotProps} ref={forwardedRef as Ref<HTMLDivElement>}>
+    <div {...slotProps} ref={ref as Ref<HTMLDivElement>}>
       {children}
     </div>
   )
-})
-Slot.displayName = 'Slot'
+}
+
 export { Slot }
 export type { SlotProps }
-// import * as React from "react";
-
-// interface SlotProps extends React.HTMLAttributes<HTMLElement> {
-//   children?: React.ReactNode;
-// }
-
-// const Slot = React.forwardRef<HTMLElement, SlotProps>((props, forwardedRef) => {
-//   const { children, ...slotProps } = props;
-//   return (
-//     <div {...slotProps} ref={forwardedRef}>
-//       {children}
-//     </div>
-//   );
-// });
-
-// Slot.displayName = "Slot";
-
-// export { Slot };
-// export type { SlotProps };

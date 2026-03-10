@@ -16,15 +16,15 @@ function createContext<ContextValueType extends object | null>(
 
   Provider.displayName = `${rootComponentName}Provider`
 
-  function useContext(consumerName: string) {
-    const context = React.useContext(Context)
+  function useContextValue(consumerName: string) {
+    const context = React.use(Context)
     if (context) return context
     if (defaultContext !== undefined) return defaultContext
     // if a defaultContext wasn't specified, it's a required context.
     throw new Error(`\`${consumerName}\` must be used within \`${rootComponentName}\``)
   }
 
-  return [Provider, useContext] as const
+  return [Provider, useContextValue] as const
 }
 
 /* -------------------------------------------------------------------------------------------------
@@ -69,16 +69,16 @@ function createContextScope(scopeName: string, createContextScopeDeps: CreateSco
 
     Provider.displayName = `${rootComponentName}Provider`
 
-    function useContext(consumerName: string, scope: Scope<ContextValueType | undefined>) {
+    function useContextValue(consumerName: string, scope: Scope<ContextValueType | undefined>) {
       const Context = scope?.[scopeName]?.[index] || BaseContext
-      const context = React.useContext(Context)
+      const context = React.use(Context)
       if (context) return context
       if (defaultContext !== undefined) return defaultContext
       // if a defaultContext wasn't specified, it's a required context.
       throw new Error(`\`${consumerName}\` must be used within \`${rootComponentName}\``)
     }
 
-    return [Provider, useContext] as const
+    return [Provider, useContextValue] as const
   }
 
   /* -----------------------------------------------------------------------------------------------

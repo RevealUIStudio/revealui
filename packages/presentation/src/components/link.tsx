@@ -11,14 +11,13 @@
  */
 
 import type React from 'react'
-import { forwardRef } from 'react'
 import { useDataInteractive } from '../hooks/use-data-interactive.js'
 
-export const Link = forwardRef(function Link(
-  props: { href: string } & React.ComponentPropsWithoutRef<'a'>,
-  ref: React.ForwardedRef<HTMLAnchorElement>,
-) {
+export function Link({
+  ref,
+  ...props
+}: { href: string; ref?: React.Ref<HTMLAnchorElement> } & React.ComponentPropsWithoutRef<'a'>) {
   const interactiveProps = useDataInteractive()
 
   return <a {...props} {...interactiveProps} ref={ref} />
-})
+}

@@ -21,7 +21,7 @@ const DirectionProvider: React.FC<DirectionProviderProps> = ({ dir, children }) 
 /* -----------------------------------------------------------------------------------------------*/
 // Custom hook to use the direction context
 const useDirection = (localDir?: Direction): Direction => {
-  const globalDir = React.useContext(DirectionContext)
+  const globalDir = React.use(DirectionContext)
   return localDir || globalDir || 'ltr' // Fallback to 'ltr' if both are undefined
 }
 

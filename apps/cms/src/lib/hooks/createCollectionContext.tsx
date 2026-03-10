@@ -63,17 +63,18 @@ function createCollection<ItemElement extends HTMLElement, ItemData = Record<str
 
   const CollectionSlotName = `${name}CollectionSlot`
 
-  const CollectionSlot = React.forwardRef<CollectionElement, CollectionProps>(
-    (props, forwardedRef) => {
-      const { scope, children } = props
-      const context = useCollectionContext(
-        CollectionSlotName,
-        scope as Scope<ContextValue | undefined>,
-      )
-      const composedRefs = useComposedRefs(forwardedRef, context.collectionRef)
-      return <Slot ref={composedRefs}>{children}</Slot>
-    },
-  )
+  function CollectionSlot({
+    scope,
+    children,
+    ref: forwardedRef,
+  }: CollectionProps & { ref?: React.Ref<CollectionElement> }) {
+    const context = useCollectionContext(
+      CollectionSlotName,
+      scope as Scope<ContextValue | undefined>,
+    )
+    const composedRefs = useComposedRefs(forwardedRef, context.collectionRef)
+    return <Slot ref={composedRefs}>{children}</Slot>
+  }
 
   CollectionSlot.displayName = CollectionSlotName
 
@@ -89,32 +90,34 @@ function createCollection<ItemElement extends HTMLElement, ItemData = Record<str
     scope: string | undefined
   }
 
-  const CollectionItemSlot = React.forwardRef<ItemElement, CollectionItemSlotProps>(
-    (props, forwardedRef) => {
-      const { scope, children, ...itemData } = props
-      const ref = React.useRef<ItemElement | null>(null)
-      const composedRefs = useComposedRefs(forwardedRef, ref)
-      const context = useCollectionContext(ItemSlotName, scope as Scope<ContextValue | undefined>)
+  function CollectionItemSlot({
+    scope,
+    children,
+    ref: forwardedRef,
+    ...itemData
+  }: CollectionItemSlotProps & { ref?: React.Ref<ItemElement> }) {
+    const ref = React.useRef<ItemElement | null>(null)
+    const composedRefs = useComposedRefs(forwardedRef, ref)
+    const context = useCollectionContext(ItemSlotName, scope as Scope<ContextValue | undefined>)
 
-      React.useEffect(() => {
-        // ref type is MutableRefObject but Map expects RefObject - compatible at runtime
-        context.itemMap.set(
-          ref as React.RefObject<ItemElement>,
-          {
-            ref: ref as React.RefObject<ItemElement>,
-            ...itemData,
-          } as { ref: React.RefObject<ItemElement> } & ItemData,
-        )
-        return () => void context.itemMap.delete(ref as React.RefObject<ItemElement>)
-      })
-
-      return (
-        <Slot {...{ [ItemDataAttr]: '' }} ref={composedRefs}>
-          {children}
-        </Slot>
+    React.useEffect(() => {
+      // ref type is MutableRefObject but Map expects RefObject - compatible at runtime
+      context.itemMap.set(
+        ref as React.RefObject<ItemElement>,
+        {
+          ref: ref as React.RefObject<ItemElement>,
+          ...itemData,
+        } as { ref: React.RefObject<ItemElement> } & ItemData,
       )
-    },
-  )
+      return () => void context.itemMap.delete(ref as React.RefObject<ItemElement>)
+    })
+
+    return (
+      <Slot {...{ [ItemDataAttr]: '' }} ref={composedRefs}>
+        {children}
+      </Slot>
+    )
+  }
 
   CollectionItemSlot.displayName = ItemSlotName
 

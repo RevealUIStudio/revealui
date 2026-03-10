@@ -1,6 +1,6 @@
 import clsx from 'clsx'
 import type React from 'react'
-import { createContext, useCallback, useContext } from 'react'
+import { createContext, use, useCallback } from 'react'
 import { useControllableState } from '../hooks/use-controllable-state.js'
 import { useDataInteractive } from '../hooks/use-data-interactive.js'
 import { FieldProvider } from '../hooks/use-field-context.js'
@@ -16,7 +16,7 @@ interface RadioGroupContextValue {
 const RadioGroupContext = createContext<RadioGroupContextValue | null>(null)
 
 function useRadioGroupContext() {
-  const ctx = useContext(RadioGroupContext)
+  const ctx = use(RadioGroupContext)
   if (!ctx) throw new Error('Radio must be used within a RadioGroup')
   return ctx
 }
