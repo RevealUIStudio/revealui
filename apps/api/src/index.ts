@@ -452,6 +452,7 @@ function validateStartup(): void {
   if (process.env.NODE_ENV === 'production') {
     const prodRequired = [
       'REVEALUI_SECRET',
+      'REVEALUI_KEK',
       'STRIPE_SECRET_KEY',
       'STRIPE_WEBHOOK_SECRET',
       'REVEALUI_LICENSE_PRIVATE_KEY',
