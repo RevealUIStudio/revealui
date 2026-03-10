@@ -5,8 +5,8 @@
  * Supports Cmd+K / Ctrl+K keyboard shortcut to focus.
  */
 
+import { useNavigate } from '@revealui/router'
 import { useCallback, useEffect, useRef, useState } from 'react'
-import { useNavigate } from 'react-router-dom'
 import type { SearchResult } from '../lib/search-index'
 import { buildSearchIndex, searchDocs } from '../lib/search-index'
 

@@ -1,14 +1,14 @@
 import { logger } from '@revealui/core/observability/logger'
 import { useEffect, useState } from 'react'
-import { useParams } from 'react-router-dom'
 import { ErrorBoundary } from '../components/ErrorBoundary'
 import { LicenseGate } from '../components/LicenseGate'
 import { LoadingSkeleton } from '../components/LoadingSkeleton'
+import { useWildcardPath } from '../hooks/useWildcardPath'
 import { loadMarkdownFile, renderMarkdown } from '../utils/markdown'
 import { sanitizePath } from '../utils/paths'
 
 function ProContent() {
-  const { '*': routePath } = useParams()
+  const routePath = useWildcardPath()
   const [content, setContent] = useState<string>('')
   const [loading, setLoading] = useState(true)
 

@@ -17,6 +17,9 @@ const mockSearchSimilar = vi
 
 vi.mock('@revealui/auth/server', () => ({
   getSession: vi.fn(),
+  checkRateLimit: vi
+    .fn()
+    .mockResolvedValue({ allowed: true, remaining: 29, resetAt: Date.now() + 60_000 }),
 }))
 
 vi.mock('@revealui/core/observability/logger', () => ({

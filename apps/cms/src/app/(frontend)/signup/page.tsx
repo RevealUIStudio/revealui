@@ -14,9 +14,36 @@ import {
 } from '@revealui/presentation/server'
 import Link from 'next/link'
 import { useRouter, useSearchParams } from 'next/navigation'
-import { type FormEvent, useState } from 'react'
+import { type FormEvent, Suspense, useState } from 'react'
 
 export default function SignupPage() {
+  return (
+    <Suspense
+      fallback={
+        <AuthLayout>
+          <Card className="w-full max-w-sm">
+            <CardHeader>
+              <div className="h-6 w-48 animate-pulse rounded bg-zinc-200 dark:bg-zinc-700" />
+              <div className="mt-2 h-4 w-64 animate-pulse rounded bg-zinc-100 dark:bg-zinc-800" />
+            </CardHeader>
+            <CardContent>
+              <div className="space-y-4">
+                <div className="h-10 animate-pulse rounded bg-zinc-100 dark:bg-zinc-800" />
+                <div className="h-10 animate-pulse rounded bg-zinc-100 dark:bg-zinc-800" />
+                <div className="h-10 animate-pulse rounded bg-zinc-100 dark:bg-zinc-800" />
+                <div className="h-10 animate-pulse rounded bg-zinc-200 dark:bg-zinc-700" />
+              </div>
+            </CardContent>
+          </Card>
+        </AuthLayout>
+      }
+    >
+      <SignupContent />
+    </Suspense>
+  )
+}
+
+function SignupContent() {
   const router = useRouter()
   const searchParams = useSearchParams()
   const plan = searchParams.get('plan')

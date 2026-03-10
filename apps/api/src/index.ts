@@ -32,6 +32,7 @@ import provenanceRoute from './routes/code-provenance.js'
 import { createCollabRoute } from './routes/collab.js'
 import contentRoute from './routes/content.js'
 import errorsRoute from './routes/errors.js'
+import gdprRoute from './routes/gdpr.js'
 import healthRoute from './routes/health.js'
 import licenseRoute from './routes/license.js'
 import logsRoute from './routes/logs.js'
@@ -266,6 +267,23 @@ const marketplaceInvokeLimit = rateLimitMiddleware({
 app.use('/api/marketplace/servers/*/invoke', marketplaceInvokeLimit)
 app.use('/api/v1/marketplace/servers/*/invoke', marketplaceInvokeLimit)
 
+// GDPR consent endpoints — moderate limits, deletion requests tighter
+const gdprConsentLimit = rateLimitMiddleware({
+  maxRequests: 30,
+  windowMs: 60_000,
+  keyPrefix: 'gdpr-consent',
+})
+app.use('/api/gdpr/consent/*', gdprConsentLimit)
+app.use('/api/v1/gdpr/consent/*', gdprConsentLimit)
+
+const gdprDeletionLimit = rateLimitMiddleware({
+  maxRequests: 5,
+  windowMs: 15 * 60_000,
+  keyPrefix: 'gdpr-deletion',
+})
+app.use('/api/gdpr/deletion', gdprDeletionLimit)
+app.use('/api/v1/gdpr/deletion', gdprDeletionLimit)
+
 // Stripe Connect onboarding — tight limit (creates external Stripe objects)
 const marketplaceConnectLimit = rateLimitMiddleware({
   maxRequests: 5,
@@ -352,6 +370,10 @@ app.delete('/api/provenance/*', writeProtected)
 app.delete('/api/v1/provenance/*', writeProtected)
 app.post('/api/billing/*', writeProtected)
 app.post('/api/v1/billing/*', writeProtected)
+app.get('/api/gdpr/*', writeProtected)
+app.get('/api/v1/gdpr/*', writeProtected)
+app.post('/api/gdpr/*', writeProtected)
+app.post('/api/v1/gdpr/*', writeProtected)
 app.post('/api/content/*', writeProtected)
 app.post('/api/v1/content/*', writeProtected)
 app.patch('/api/content/*', writeProtected)
@@ -395,6 +417,7 @@ app.route('/.well-known', wellKnownRoutes)
 app.route('/a2a', a2aRoutes)
 app.route('/health', healthRoute)
 app.route('/api/errors', errorsRoute)
+app.route('/api/gdpr', gdprRoute)
 app.route('/api/logs', logsRoute)
 app.route('/api/license', licenseRoute)
 app.route('/api/billing', billingRoute)
@@ -414,6 +437,7 @@ app.route('', createAgentCollabRoute())
 // Versioned routes (/api/v1/*) — mirrors of /api/* for forward compatibility.
 // Non-API routes (/.well-known, /a2a, /health) are not versioned.
 app.route('/api/v1/errors', errorsRoute)
+app.route('/api/v1/gdpr', gdprRoute)
 app.route('/api/v1/logs', logsRoute)
 app.route('/api/v1/license', licenseRoute)
 app.route('/api/v1/billing', billingRoute)

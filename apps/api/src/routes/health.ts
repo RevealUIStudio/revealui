@@ -1,8 +1,32 @@
+import {
+  createDatabaseHealthCheck,
+  createMemoryHealthCheck,
+  healthCheck,
+  metrics,
+  trackHTTPRequest,
+} from '@revealui/core/observability'
 import { getClient, getPoolMetrics } from '@revealui/db'
 import { sql } from 'drizzle-orm'
 import { Hono } from 'hono'
 
 const app = new Hono()
+
+// ---------------------------------------------------------------------------
+// Register health checks with the core HealthCheckSystem
+// ---------------------------------------------------------------------------
+
+healthCheck.register(
+  createDatabaseHealthCheck(async () => {
+    const db = getClient()
+    await db.execute(sql`SELECT 1`)
+  }),
+)
+
+healthCheck.register(createMemoryHealthCheck(90))
+
+// ---------------------------------------------------------------------------
+// Routes
+// ---------------------------------------------------------------------------
 
 /**
  * Liveness probe — instant response, no dependencies.
@@ -14,6 +38,7 @@ function liveness(c: import('hono').Context) {
     timestamp: new Date().toISOString(),
     version: process.env.npm_package_version ?? '1.0.0',
     service: 'RevealUI API',
+    uptime: healthCheck.getUptime(),
   })
 }
 
@@ -24,53 +49,49 @@ app.get('/', liveness)
 app.get('/live', liveness)
 
 /**
- * Readiness probe — checks live dependencies.
- * Returns 200 when ready to serve traffic, 503 when a dependency is down.
- * Kubernetes uses this to decide whether to send traffic to the pod.
+ * Readiness probe — runs all registered health checks.
+ * Returns 200 when ready to serve traffic, 503 when a critical check fails.
  */
 app.get('/ready', async (c) => {
-  const checks: Array<{ name: string; status: 'ok' | 'error'; message?: string }> = []
-  let ready = true
+  const startTime = Date.now()
+  const health = await healthCheck.checkHealth()
 
-  // Database connectivity
-  try {
-    const db = getClient()
-    await db.execute(sql`SELECT 1`)
-    checks.push({ name: 'database', status: 'ok' })
-  } catch (err) {
-    ready = false
-    checks.push({
-      name: 'database',
-      status: 'error',
-      message: err instanceof Error ? err.message : 'connection failed',
-    })
-  }
-
-  // Required environment variables
-  const requiredEnvVars = ['POSTGRES_URL', 'NODE_ENV']
-  const missingEnv = requiredEnvVars.filter((key) => !process.env[key])
-  if (missingEnv.length > 0) {
-    ready = false
-    checks.push({
-      name: 'env',
-      status: 'error',
-      message: `Missing required env vars: ${missingEnv.join(', ')}`,
-    })
-  } else {
-    checks.push({ name: 'env', status: 'ok' })
-  }
-
+  // Supplement with pool metrics from @revealui/db
   const pools = getPoolMetrics()
+
+  const ready = health.status !== 'unhealthy'
+
+  const duration = Date.now() - startTime
+  trackHTTPRequest('GET', '/health/ready', ready ? 200 : 503, duration)
 
   return c.json(
     {
-      status: ready ? 'ready' : 'not_ready',
-      timestamp: new Date().toISOString(),
-      checks,
+      status: health.status,
+      timestamp: health.timestamp,
+      uptime: health.uptime,
+      checks: health.checks,
       ...(pools.length > 0 && { pools }),
     },
     ready ? 200 : 503,
   )
+})
+
+/**
+ * Prometheus-compatible metrics endpoint.
+ * Exposes all application metrics collected by the core MetricsCollector.
+ */
+app.get('/metrics', (c) => {
+  return c.text(metrics.exportPrometheus(), 200, {
+    'Content-Type': 'text/plain; version=0.0.4; charset=utf-8',
+    'Cache-Control': 'no-cache, no-store, must-revalidate',
+  })
+})
+
+/**
+ * Metrics in JSON format — useful for internal dashboards and debugging.
+ */
+app.get('/metrics/json', (c) => {
+  return c.json(metrics.exportJSON())
 })
 
 export default app

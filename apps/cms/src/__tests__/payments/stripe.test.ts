@@ -4,28 +4,18 @@ import {
   createMockCheckoutSession,
   createMockCustomer,
   createMockPaymentIntent,
-  createMockStripe,
   createMockWebhookEvent,
   createMockWebhookSignature,
 } from '../utils/stripe-test-utils'
 
 /**
  * Stripe Integration Tests
- * Tests for payment processing, webhooks, and subscription management
+ * Tests for Zod schema validation, webhook event structure, and mock factories
  */
 
-// Mock Stripe
-vi.mock('services', () => ({
-  stripe: createMockStripe(),
-}))
-
 describe('Stripe Integration Tests', () => {
-  let _mockStripe: ReturnType<typeof createMockStripe>
-
   beforeEach(() => {
-    // Reset mocks before each test
     vi.clearAllMocks()
-    _mockStripe = createMockStripe()
   })
 
   describe('Webhook Signature Verification', () => {
@@ -253,17 +243,6 @@ describe('Stripe Integration Tests', () => {
       expect(paymentIntent.amount).toBe(productPrice)
       expect(paymentIntent.currency).toBe('usd')
     })
-
-    it('should handle Stripe API errors gracefully', async () => {
-      // Test error handling
-      try {
-        // Simulate API error
-        throw new Error('Stripe API error')
-      } catch (error) {
-        expect(error).toBeInstanceOf(Error)
-        expect((error as Error).message).toBe('Stripe API error')
-      }
-    })
   })
 
   describe('Checkout Session Creation', () => {
@@ -297,17 +276,6 @@ describe('Stripe Integration Tests', () => {
 
       // Trial period would be configured in actual implementation
       expect(checkoutSession).toBeDefined()
-    })
-
-    it('should reject unauthenticated requests', async () => {
-      // Unauthenticated requests should fail
-      try {
-        // Simulate unauthenticated request
-        throw new Error('Unauthorized')
-      } catch (error) {
-        expect(error).toBeInstanceOf(Error)
-        expect((error as Error).message).toBe('Unauthorized')
-      }
     })
   })
 
@@ -379,41 +347,6 @@ describe('Stripe Integration Tests', () => {
       })
 
       expect(event.data.object).toBeDefined()
-    })
-  })
-
-  describe('Error Handling', () => {
-    it('should handle network errors to Stripe API', async () => {
-      try {
-        // Simulate network error
-        throw new Error('Network error')
-      } catch (error) {
-        expect(error).toBeInstanceOf(Error)
-        expect((error as Error).message).toBe('Network error')
-      }
-    })
-
-    it('should handle database errors gracefully', async () => {
-      try {
-        // Simulate database error
-        throw new Error('Database connection failed')
-      } catch (error) {
-        expect(error).toBeInstanceOf(Error)
-        expect((error as Error).message).toBe('Database connection failed')
-      }
-    })
-
-    it('should return appropriate error messages to client', async () => {
-      const error = new Error('Payment processing failed')
-      expect(error.message).toBe('Payment processing failed')
-    })
-
-    it('should log errors without exposing sensitive data', async () => {
-      const error = new Error('Payment failed')
-      // Error should not contain sensitive data like API keys
-      expect(error.message).not.toContain('sk_')
-      expect(error.message).not.toContain('pk_')
-      expect(error.message).not.toContain('whsec_')
     })
   })
 })
