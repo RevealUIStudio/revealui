@@ -19,7 +19,7 @@ if (!dbUrl) {
 
 export default defineConfig({
   // Schema location - only vector schemas
-  schema: './src/core/rest.ts',
+  schema: './src/schema/rest.ts',
 
   // Output directory for migrations
   out: './drizzle/neon',

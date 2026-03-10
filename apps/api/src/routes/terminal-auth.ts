@@ -10,7 +10,7 @@
  * - GET  /api/terminal-auth/lookup — lookup user by SSH fingerprint
  */
 
-import { randomInt } from 'node:crypto'
+import { randomInt, timingSafeEqual } from 'node:crypto'
 import { zValidator } from '@hono/zod-validator'
 import { getStorage, type Storage } from '@revealui/auth/server'
 import { logger } from '@revealui/core/observability/logger'
@@ -190,7 +190,10 @@ terminalAuth.post('/verify', zValidator('json', verifySchema), async (c) => {
     return c.json({ success: false, error: 'No pending verification or code has expired' }, 400)
   }
 
-  if (pending.code !== code) {
+  const codeMatch =
+    pending.code.length === code.length &&
+    timingSafeEqual(Buffer.from(pending.code), Buffer.from(code))
+  if (!codeMatch) {
     return c.json({ success: false, error: 'Invalid verification code' }, 400)
   }
 
