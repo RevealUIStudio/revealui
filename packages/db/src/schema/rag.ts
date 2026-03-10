@@ -8,7 +8,7 @@
  * Embedding dimensions: 768 (nomic-embed-text via Ollama — policy default)
  */
 
-import { customType, integer, jsonb, pgTable, text, timestamp } from 'drizzle-orm/pg-core'
+import { customType, index, integer, jsonb, pgTable, text, timestamp } from 'drizzle-orm/pg-core'
 import { sites } from './sites.js'
 
 // =============================================================================
@@ -65,28 +65,35 @@ export const ragDocuments = pgTable('rag_documents', {
 // rag_chunks — one row per text chunk, with 768-dim embedding
 // =============================================================================
 
-export const ragChunks = pgTable('rag_chunks', {
-  id: text('id').primaryKey(),
+export const ragChunks = pgTable(
+  'rag_chunks',
+  {
+    id: text('id').primaryKey(),
 
-  documentId: text('document_id')
-    .notNull()
-    .references(() => ragDocuments.id, { onDelete: 'cascade' }),
+    documentId: text('document_id')
+      .notNull()
+      .references(() => ragDocuments.id, { onDelete: 'cascade' }),
 
-  workspaceId: text('workspace_id').references(() => sites.id, { onDelete: 'cascade' }),
+    workspaceId: text('workspace_id').references(() => sites.id, { onDelete: 'cascade' }),
 
-  content: text('content').notNull(),
-  tokenCount: integer('token_count').default(0),
-  chunkIndex: integer('chunk_index').notNull().default(0),
+    content: text('content').notNull(),
+    tokenCount: integer('token_count').default(0),
+    chunkIndex: integer('chunk_index').notNull().default(0),
 
-  /** Vector embedding — 768 dimensions (nomic-embed-text) */
-  embedding: vector('embedding', { dimensions: 768 }),
-  embeddingModel: text('embedding_model'),
+    /** Vector embedding — 768 dimensions (nomic-embed-text) */
+    embedding: vector('embedding', { dimensions: 768 }),
+    embeddingModel: text('embedding_model'),
 
-  /** Arbitrary metadata (e.g. page number, section heading) */
-  metadata: jsonb('metadata').default({}),
+    /** Arbitrary metadata (e.g. page number, section heading) */
+    metadata: jsonb('metadata').default({}),
 
-  createdAt: timestamp('created_at', { withTimezone: true }).defaultNow().notNull(),
-})
+    createdAt: timestamp('created_at', { withTimezone: true }).defaultNow().notNull(),
+  },
+  (table) => [
+    index('rag_chunks_document_id_idx').on(table.documentId),
+    index('rag_chunks_workspace_id_idx').on(table.workspaceId),
+  ],
+)
 
 // =============================================================================
 // rag_workspaces — per-workspace RAG configuration

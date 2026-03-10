@@ -179,6 +179,8 @@ export const tickets = pgTable(
   (table) => [
     index('tickets_board_id_idx').on(table.boardId),
     index('tickets_assignee_id_idx').on(table.assigneeId),
+    index('tickets_parent_ticket_id_idx').on(table.parentTicketId),
+    index('tickets_reporter_id_idx').on(table.reporterId),
   ],
 )
 
