@@ -5,6 +5,7 @@ export default defineConfig({
   test: {
     globals: true,
     environment: 'jsdom',
+    pool: 'forks',
     setupFiles: [path.resolve(__dirname, './src/__tests__/setup.ts')],
     env: {
       // CRITICAL: Skip env validation during tests

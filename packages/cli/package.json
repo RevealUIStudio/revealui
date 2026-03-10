@@ -38,7 +38,10 @@
     "node": ">=24.13.0"
   },
   "exports": {
-    ".": "./dist/cli.js"
+    ".": {
+      "types": "./dist/cli.d.ts",
+      "import": "./dist/cli.js"
+    }
   },
   "files": [
     "bin",
