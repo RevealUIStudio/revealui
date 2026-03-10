@@ -201,10 +201,15 @@ describe('POST /checkout', () => {
 
     // Should have created a new Stripe customer
     expect(mockCustomersCreate).toHaveBeenCalledOnce()
-    expect(mockCustomersCreate).toHaveBeenCalledWith({
-      email: MOCK_USER.email,
-      metadata: { revealui_user_id: MOCK_USER.id },
-    })
+    expect(mockCustomersCreate).toHaveBeenCalledWith(
+      {
+        email: MOCK_USER.email,
+        metadata: { revealui_user_id: MOCK_USER.id },
+      },
+      {
+        idempotencyKey: `create-customer-${MOCK_USER.id}`,
+      },
+    )
 
     // Should have stored the new customer ID on the user record
     expect(mockDb.update).toHaveBeenCalledOnce()
