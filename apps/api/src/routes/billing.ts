@@ -121,10 +121,15 @@ async function ensureStripeCustomer(userId: string, email: string): Promise<stri
   // Create Stripe customer, then persist the ID in a transaction so we don't
   // end up with a dangling Stripe customer if the DB write fails.
   const stripe = getStripeClient()
-  const customer = await stripe.customers.create({
-    email,
-    metadata: { revealui_user_id: userId },
-  })
+  const customer = await stripe.customers.create(
+    {
+      email,
+      metadata: { revealui_user_id: userId },
+    },
+    {
+      idempotencyKey: `create-customer-${userId}`,
+    },
+  )
 
   await db.transaction(async (tx) => {
     // Re-check inside the transaction to handle concurrent requests

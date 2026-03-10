@@ -217,6 +217,11 @@ app.get('/deletion/:id', async (c) => {
  * GET /gdpr/admin/stats — Aggregate consent statistics (admin only).
  */
 app.get('/admin/stats', async (c) => {
+  const user = c.get('user')
+  if (!user || user.role !== 'admin') {
+    return c.json({ success: false, error: 'Admin access required' }, 403)
+  }
+
   const stats = await consentManager.getStatistics()
 
   return c.json({ success: true, stats })
