@@ -12,7 +12,9 @@ export default defineConfig({
       NODE_ENV: 'test',
       REVEALUI_SECRET: 'test-secret-key-for-testing-only-32chars',
       REVEALUI_PUBLIC_SERVER_URL: 'http://localhost:4000',
-      DATABASE_URL: '', // Use SQLite for tests
+      // Force in-memory storage by unsetting database URLs that may leak from direnv/nix shell
+      POSTGRES_URL: '',
+      DATABASE_URL: '',
       SKIP_ONINIT: 'true',
     },
     server: {

@@ -15,6 +15,9 @@ export default defineConfig({
     pool: 'forks',
     env: {
       NODE_ENV: 'test',
+      // Force in-memory storage by unsetting database URLs that may leak from direnv/nix shell
+      POSTGRES_URL: '',
+      DATABASE_URL: '',
     },
     coverage: {
       provider: 'v8',
