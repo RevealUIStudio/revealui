@@ -19,6 +19,7 @@
  */
 
 import { createRoute, OpenAPIHono, z } from '@hono/zod-openapi'
+import { POST_STATUSES } from '@revealui/contracts/entities'
 import type { DatabaseClient } from '@revealui/db/client'
 import * as mediaQueries from '@revealui/db/queries/media'
 import * as pageQueries from '@revealui/db/queries/pages'
@@ -70,7 +71,7 @@ const PostSchema = z
     content: z.unknown().nullable(),
     featuredImageId: z.string().nullable(),
     authorId: z.string().nullable(),
-    status: z.string(),
+    status: z.enum(POST_STATUSES as unknown as [string, ...string[]]),
     published: z.boolean().nullable(),
     meta: z.unknown().nullable(),
     categories: z.unknown().nullable(),
