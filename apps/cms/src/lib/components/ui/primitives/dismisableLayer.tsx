@@ -9,7 +9,6 @@ import { useCallbackRef } from './useCallbackRef'
 import { useComposedRefs } from './useComposedRefs'
 import { useEscapeKeydown } from './useEscapeKeydown'
 
-const DISMISSABLE_LAYER_NAME = 'DismissableLayer'
 const CONTEXT_UPDATE = 'dismissableLayer.update'
 const POINTER_DOWN_OUTSIDE = 'dismissableLayer.pointerDownOutside'
 const FOCUS_OUTSIDE = 'dismissableLayer.focusOutside'
@@ -186,13 +185,9 @@ function DismissableLayer({
   )
 }
 
-DismissableLayer.displayName = DISMISSABLE_LAYER_NAME
-
 /* -------------------------------------------------------------------------------------------------
  * DismissableLayerBranch
  * -----------------------------------------------------------------------------------------------*/
-
-const BRANCH_NAME = 'DismissableLayerBranch'
 
 type DismissableLayerBranchElement = HTMLDivElement
 interface DismissableLayerBranchProps extends PrimitiveDivProps {}
@@ -217,8 +212,6 @@ function DismissableLayerBranch({
 
   return <Primitive.div {...props} ref={composedRefs} />
 }
-
-DismissableLayerBranch.displayName = BRANCH_NAME
 
 /* -----------------------------------------------------------------------------------------------*/
 
