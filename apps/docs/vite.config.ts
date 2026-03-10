@@ -1,6 +1,7 @@
 import fs from 'node:fs/promises'
 import path from 'node:path'
 import { fileURLToPath } from 'node:url'
+import tailwindcss from '@tailwindcss/vite'
 import react from '@vitejs/plugin-react'
 import { defineConfig } from 'vite'
 
@@ -305,7 +306,7 @@ function docsCopyPlugin() {
 }
 
 export default defineConfig({
-  plugins: [react(), docsCopyPlugin()],
+  plugins: [tailwindcss(), react(), docsCopyPlugin()],
   resolve: {
     alias: {
       '@': path.resolve(__dirname, './app'),

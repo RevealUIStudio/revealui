@@ -125,12 +125,12 @@ export function SearchBar() {
   )
 
   return (
-    <div style={{ position: 'relative', width: '100%', maxWidth: '400px' }}>
-      <div style={{ position: 'relative' }}>
+    <div className="relative w-full max-w-[400px]">
+      <div className="relative">
         <input
           ref={inputRef}
           type="search"
-          placeholder="Search documentation..."
+          placeholder="Search docs..."
           value={query}
           onChange={(e) => {
             handleQueryChange(e.target.value)
@@ -138,29 +138,12 @@ export function SearchBar() {
           }}
           onFocus={() => setIsOpen(true)}
           onBlur={() => {
-            // Delay closing to allow click on results
             setTimeout(() => setIsOpen(false), 200)
           }}
           onKeyDown={handleKeyDown}
-          style={{
-            width: '100%',
-            padding: '0.5rem 2.5rem 0.5rem 0.75rem',
-            border: '1px solid #e1e4e8',
-            borderRadius: '6px',
-            fontSize: '0.875rem',
-          }}
+          className="w-full rounded-lg border border-border bg-surface py-2 pr-10 pl-3 font-sans text-[0.8125rem] text-text-primary transition-all focus:border-accent focus:shadow-[0_0_0_3px_var(--color-accent-bg)] focus:outline-none"
         />
-        <span
-          style={{
-            position: 'absolute',
-            right: '0.75rem',
-            top: '50%',
-            transform: 'translateY(-50%)',
-            color: '#6a737d',
-            fontSize: '0.75rem',
-            pointerEvents: 'none',
-          }}
-        >
+        <span className="pointer-events-none absolute top-1/2 right-3 -translate-y-1/2 text-xs text-text-muted">
           {'\u2318'}K
         </span>
       </div>
@@ -168,20 +151,7 @@ export function SearchBar() {
       {isOpen && results.length > 0 && (
         <div
           role="listbox"
-          style={{
-            position: 'absolute',
-            top: '100%',
-            left: 0,
-            right: 0,
-            marginTop: '0.25rem',
-            background: 'white',
-            border: '1px solid #e1e4e8',
-            borderRadius: '6px',
-            boxShadow: '0 4px 12px rgba(0, 0, 0, 0.15)',
-            zIndex: 1000,
-            maxHeight: '400px',
-            overflowY: 'auto',
-          }}
+          className="absolute top-full right-0 left-0 z-[1000] mt-1 max-h-[400px] overflow-y-auto rounded-lg border border-border bg-surface shadow-lg"
         >
           {results.map((result, i) => (
             <button
@@ -190,45 +160,14 @@ export function SearchBar() {
               aria-selected={i === activeIndex}
               key={result.path}
               onClick={() => handleSelect(result)}
-              style={{
-                width: '100%',
-                padding: '0.75rem',
-                textAlign: 'left',
-                border: 'none',
-                background: i === activeIndex ? '#f6f8fa' : 'transparent',
-                cursor: 'pointer',
-                borderBottom: i < results.length - 1 ? '1px solid #e1e4e8' : 'none',
-              }}
-              onMouseEnter={(e) => {
-                e.currentTarget.style.background = '#f6f8fa'
-                setActiveIndex(i)
-              }}
-              onMouseLeave={(e) => {
-                if (i !== activeIndex) {
-                  e.currentTarget.style.background = 'transparent'
-                }
-              }}
+              onMouseEnter={() => setActiveIndex(i)}
+              className={`w-full cursor-pointer border-none px-3 py-2.5 text-left font-sans transition-colors ${
+                i === activeIndex ? 'bg-accent-bg' : 'bg-transparent hover:bg-accent-bg'
+              } ${i < results.length - 1 ? 'border-b border-border-subtle' : ''}`}
             >
-              <div
-                style={{
-                  fontWeight: 500,
-                  color: '#24292f',
-                  marginBottom: '0.25rem',
-                }}
-              >
-                {result.title}
-              </div>
+              <div className="mb-0.5 font-medium text-text-primary">{result.title}</div>
               {result.excerpt && (
-                <div
-                  style={{
-                    fontSize: '0.75rem',
-                    color: '#6a737d',
-                    lineHeight: 1.4,
-                    overflow: 'hidden',
-                    textOverflow: 'ellipsis',
-                    whiteSpace: 'nowrap',
-                  }}
-                >
+                <div className="truncate text-xs leading-snug text-text-muted">
                   {result.excerpt}
                 </div>
               )}
@@ -238,22 +177,7 @@ export function SearchBar() {
       )}
 
       {isOpen && query && results.length === 0 && (
-        <div
-          style={{
-            position: 'absolute',
-            top: '100%',
-            left: 0,
-            right: 0,
-            marginTop: '0.25rem',
-            background: 'white',
-            border: '1px solid #e1e4e8',
-            borderRadius: '6px',
-            padding: '1rem',
-            textAlign: 'center',
-            color: '#6a737d',
-            fontSize: '0.875rem',
-          }}
-        >
+        <div className="absolute top-full right-0 left-0 mt-1 rounded-lg border border-border bg-surface p-4 text-center text-sm text-text-muted">
           {indexReady ? 'No results found' : 'Loading search index...'}
         </div>
       )}

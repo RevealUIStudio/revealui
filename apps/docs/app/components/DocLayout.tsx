@@ -85,15 +85,17 @@ function NavLink({ item, depth = 0 }: { item: NavItem; depth?: number }) {
     <li>
       <Link
         to={item.path}
-        className={isActive ? 'active' : ''}
-        style={{
-          paddingLeft: `${depth * 12 + 12}px`,
-        }}
+        className={`block rounded-md px-3 py-1.5 text-sm transition-all ${
+          isActive
+            ? 'bg-accent-bg font-semibold text-accent'
+            : 'font-normal text-text-secondary hover:bg-accent-bg hover:text-accent'
+        }`}
+        style={{ paddingLeft: `${depth * 12 + 12}px` }}
       >
         {item.label}
       </Link>
       {item.children && (isParentActive || isActive) && (
-        <ul>
+        <ul className="m-0 list-none p-0">
           {item.children.map((child) => (
             <NavLink key={child.path} item={child} depth={depth + 1} />
           ))}
@@ -108,58 +110,57 @@ export function DocLayout({ children }: DocLayoutProps) {
   const isHome = location.pathname === '/'
 
   return (
-    <div className="docs-container">
-      <nav className="docs-sidebar">
-        <h2>
-          <Link to="/" style={{ textDecoration: 'none', color: 'inherit' }}>
-            <span style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-              <svg
-                width="20"
-                height="20"
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                strokeWidth="2"
-                strokeLinecap="round"
-                strokeLinejoin="round"
-              >
-                <title>RevealUI</title>
-                <path d="M14.25 9.75 16.5 12l-2.25 2.25m-4.5 0L7.5 12l2.25-2.25M6 20.25h12A2.25 2.25 0 0 0 20.25 18V6A2.25 2.25 0 0 0 18 3.75H6A2.25 2.25 0 0 0 3.75 6v12A2.25 2.25 0 0 0 6 20.25Z" />
-              </svg>
-              RevealUI
-            </span>
+    <div className="flex min-h-screen font-sans">
+      {/* Sidebar */}
+      <nav className="sticky top-0 flex h-screen w-[var(--width-sidebar)] shrink-0 flex-col overflow-y-auto border-r border-border bg-sidebar p-4 pb-6 max-md:static max-md:h-auto max-md:w-full max-md:border-b max-md:border-r-0">
+        {/* Logo */}
+        <h2 className="mb-4 text-lg font-bold tracking-tight text-ink">
+          <Link to="/" className="flex items-center gap-2 no-underline">
+            <svg
+              width="20"
+              height="20"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="2"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+            >
+              <title>RevealUI</title>
+              <path d="M14.25 9.75 16.5 12l-2.25 2.25m-4.5 0L7.5 12l2.25-2.25M6 20.25h12A2.25 2.25 0 0 0 20.25 18V6A2.25 2.25 0 0 0 18 3.75H6A2.25 2.25 0 0 0 3.75 6v12A2.25 2.25 0 0 0 6 20.25Z" />
+            </svg>
+            RevealUI
           </Link>
         </h2>
-        <div style={{ marginBottom: '1.25rem' }}>
+
+        {/* Search */}
+        <div className="mb-4">
           <SearchBar />
         </div>
 
         {/* Home link */}
-        <ul>
+        <ul className="m-0 list-none p-0">
           <li>
-            <Link to="/" className={isHome ? 'active' : ''}>
+            <Link
+              to="/"
+              className={`block rounded-md px-3 py-1.5 text-sm transition-all ${
+                isHome
+                  ? 'bg-accent-bg font-semibold text-accent'
+                  : 'font-normal text-text-secondary hover:bg-accent-bg hover:text-accent'
+              }`}
+            >
               Home
             </Link>
           </li>
         </ul>
 
-        {/* Sections with labels */}
+        {/* Nav sections */}
         {sections.map((section) => (
           <div key={section.title}>
-            <div
-              style={{
-                fontSize: '0.6875rem',
-                fontWeight: 600,
-                textTransform: 'uppercase',
-                letterSpacing: '0.08em',
-                color: 'var(--color-text-muted)',
-                padding: '1rem 0.75rem 0.375rem',
-                marginTop: '0.25rem',
-              }}
-            >
+            <div className="mt-4 px-3 pb-1 text-[0.6875rem] font-semibold uppercase tracking-widest text-text-muted">
               {section.title}
             </div>
-            <ul>
+            <ul className="m-0 list-none space-y-px p-0">
               {section.items.map((item) => (
                 <NavLink key={item.path} item={item} />
               ))}
@@ -168,25 +169,10 @@ export function DocLayout({ children }: DocLayoutProps) {
         ))}
 
         {/* Footer */}
-        <div
-          style={{
-            marginTop: 'auto',
-            paddingTop: '1rem',
-            borderTop: '1px solid var(--color-border)',
-          }}
-        >
+        <div className="mt-auto border-t border-border pt-4">
           <a
             href="https://github.com/RevealUIStudio/revealui"
-            style={{
-              display: 'flex',
-              alignItems: 'center',
-              gap: '0.5rem',
-              color: 'var(--color-text-muted)',
-              textDecoration: 'none',
-              fontSize: '0.8125rem',
-              padding: '0.375rem 0.75rem',
-              borderRadius: '6px',
-            }}
+            className="flex items-center gap-2 rounded-md px-3 py-1.5 text-[0.8125rem] text-text-muted no-underline transition-colors hover:text-text-secondary"
           >
             <svg height="16" width="16" viewBox="0 0 16 16" fill="currentColor" aria-hidden="true">
               <title>GitHub</title>
@@ -196,17 +182,7 @@ export function DocLayout({ children }: DocLayoutProps) {
           </a>
           <a
             href="https://revealui.com"
-            style={{
-              display: 'flex',
-              alignItems: 'center',
-              gap: '0.5rem',
-              color: 'var(--color-text-muted)',
-              textDecoration: 'none',
-              fontSize: '0.8125rem',
-              padding: '0.375rem 0.75rem',
-              borderRadius: '6px',
-              marginTop: '0.25rem',
-            }}
+            className="mt-1 flex items-center gap-2 rounded-md px-3 py-1.5 text-[0.8125rem] text-text-muted no-underline transition-colors hover:text-text-secondary"
           >
             <svg
               height="16"
@@ -227,7 +203,9 @@ export function DocLayout({ children }: DocLayoutProps) {
           </a>
         </div>
       </nav>
-      <main className="docs-content">{children}</main>
+
+      {/* Main content */}
+      <main className="min-w-0 flex-1 bg-surface">{children}</main>
     </div>
   )
 }

@@ -65,9 +65,9 @@ Document not found at \`${resolved.markdownPath}\`.
 
   if (error) {
     return (
-      <div style={{ padding: '2rem', maxWidth: '800px', margin: '0 auto' }}>
-        <h1>Error Loading {title}</h1>
-        <p>{error}</p>
+      <div className="mx-auto max-w-[var(--width-content)] p-8">
+        <h1 className="text-2xl font-bold text-red-600">Error Loading {title}</h1>
+        <p className="mt-2 text-text-secondary">{error}</p>
       </div>
     )
   }
@@ -78,11 +78,20 @@ Document not found at \`${resolved.markdownPath}\`.
   return (
     <ErrorBoundary>
       <div>{renderMarkdown(content)}</div>
-      <div className="doc-footer">
-        <a href={githubUrl} target="_blank" rel="noopener noreferrer">
+      <div className="mx-auto mt-12 flex max-w-[var(--width-content)] items-center justify-between border-t border-border px-8 pt-6 text-[0.8125rem] text-text-muted">
+        <a
+          href={githubUrl}
+          target="_blank"
+          rel="noopener noreferrer"
+          className="font-medium text-accent no-underline transition-colors hover:text-accent-hover"
+        >
           Edit this page on GitHub
         </a>
-        <button type="button" onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}>
+        <button
+          type="button"
+          onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}
+          className="cursor-pointer border-none bg-transparent p-0 font-sans text-[inherit] text-text-muted transition-colors hover:text-text-secondary"
+        >
           Back to top
         </button>
       </div>
