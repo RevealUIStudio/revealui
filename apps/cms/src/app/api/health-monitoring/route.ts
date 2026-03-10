@@ -14,6 +14,7 @@
  * - 503: Unhealthy (critical alerts)
  */
 
+import crypto from 'node:crypto'
 import {
   getHealthMetrics,
   getHealthStatus,
@@ -36,7 +37,11 @@ export async function GET(
 ): Promise<NextResponse<HealthMetrics | { error: string }>> {
   const token = request.headers.get('x-internal-token')
   const secret = process.env.REVEALUI_SECRET
-  if (!(secret && token) || token !== secret) {
+  if (
+    !(secret && token) ||
+    token.length !== secret.length ||
+    !crypto.timingSafeEqual(Buffer.from(token), Buffer.from(secret))
+  ) {
     return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
   }
 
