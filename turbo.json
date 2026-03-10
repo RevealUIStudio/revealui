@@ -113,32 +113,6 @@
       "cache": false,
       "persistent": true,
       "dependsOn": ["build"]
-    },
-    "presentation:build": {
-      "cache": true,
-      "dependsOn": ["^build"],
-      "inputs": ["src/**/*.ts", "src/**/*.tsx", "src/**/*.css", "package.json", "tsconfig.json"],
-      "outputs": ["packages/presentation/dist/**"]
-    },
-    "cms:build": {
-      "cache": true,
-      "dependsOn": ["^build"],
-      "inputs": [
-        "src/**/*.ts",
-        "src/**/*.tsx",
-        "src/**/*.css",
-        "public/**",
-        "package.json",
-        "tsconfig.json",
-        "next.config.mjs"
-      ],
-      "outputs": ["apps/cms/.next/**", "apps/cms/.next/cache/**"]
-    },
-    "api:build": {
-      "cache": true,
-      "dependsOn": ["^build"],
-      "inputs": ["src/**/*.ts", "package.json", "tsconfig.json"],
-      "outputs": ["apps/api/dist/**"]
     }
   }
 }
