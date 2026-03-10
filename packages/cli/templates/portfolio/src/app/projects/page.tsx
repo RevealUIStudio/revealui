@@ -44,9 +44,10 @@ export default async function ProjectsPage() {
       ) : (
         <div className="grid grid-cols-1 gap-6 sm:grid-cols-2">
           {projects.map((project) => (
-            <div
+            <a
               key={project.id}
-              className="rounded-lg border border-gray-200 p-4 transition-shadow hover:shadow-md"
+              href={`/projects/${project.slug}`}
+              className="block rounded-lg border border-gray-200 p-4 transition-shadow hover:shadow-md"
             >
               {project.image?.url && (
                 <Image
@@ -71,16 +72,11 @@ export default async function ProjectsPage() {
                 </div>
               )}
               {project.link && (
-                <a
-                  href={project.link}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="mt-3 inline-block text-sm text-accent underline"
-                >
+                <span className="mt-3 inline-block text-sm text-accent underline">
                   View project &rarr;
-                </a>
+                </span>
               )}
-            </div>
+            </a>
           ))}
         </div>
       )}
