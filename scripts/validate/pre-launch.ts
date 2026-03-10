@@ -156,8 +156,156 @@ async function checkHealthEndpoint() {
   }
 }
 
+async function checkGitStatus() {
+  logger.info('10. Checking git status...')
+
+  // Check for uncommitted changes
+  const statusResult = await execCommand('git', ['status', '--porcelain'], { silent: true })
+  if (statusResult.success && statusResult.message?.trim()) {
+    const lines = statusResult.message.trim().split('\n').length
+    recordWarning(`${lines} uncommitted change(s) — commit or stash before launch`)
+  } else {
+    recordResult('Clean working tree', true)
+  }
+
+  // Check if ahead of origin
+  const aheadResult = await execCommand('git', ['rev-list', '--count', 'origin/main..HEAD'], {
+    silent: true,
+  })
+  if (aheadResult.success && Number.parseInt(aheadResult.message?.trim() ?? '0', 10) > 0) {
+    recordWarning(`${aheadResult.message?.trim()} unpushed commit(s) — push before launch`)
+  } else {
+    recordResult('All commits pushed', true)
+  }
+}
+
+async function checkCredentialRotation() {
+  logger.info('11. Checking credential rotation readiness...')
+  const projectRoot = await getProjectRoot(import.meta.url)
+
+  // Check .env.template exists with all required vars
+  const envTemplate = join(projectRoot, '.env.template')
+  if (await fileExists(envTemplate)) {
+    const content = await readFile(envTemplate, 'utf-8')
+    const requiredVars = [
+      'REVEALUI_SECRET',
+      'REVEALUI_KEK',
+      'STRIPE_SECRET_KEY',
+      'STRIPE_WEBHOOK_SECRET',
+      'POSTGRES_URL',
+    ]
+    const missing = requiredVars.filter((v) => !content.includes(v))
+    if (missing.length > 0) {
+      recordWarning(`Missing from .env.template: ${missing.join(', ')}`)
+    } else {
+      recordResult('All required env vars documented in template', true)
+    }
+  } else {
+    recordWarning('No .env.template found — create one before launch')
+  }
+
+  // Check for any .env files that shouldn't be committed
+  const gitResult = await execCommand('git', ['ls-files', '--cached', '*.env', '.env*'], {
+    silent: true,
+  })
+  if (gitResult.success && gitResult.message?.trim()) {
+    const envFiles = gitResult.message
+      .trim()
+      .split('\n')
+      .filter((f) => !(f.endsWith('.template') || f.endsWith('.example')))
+    if (envFiles.length > 0) {
+      recordWarning(`Env files tracked by git: ${envFiles.join(', ')} — remove before going public`)
+    } else {
+      recordResult('No .env files tracked by git', true)
+    }
+  } else {
+    recordResult('No .env files tracked by git', true)
+  }
+}
+
+async function checkSecrets() {
+  logger.info('12. Scanning for leaked secrets...')
+  const result = await execCommand('pnpm', ['secrets:scan'], { silent: true })
+  if (result.success) {
+    recordResult('No secrets found in tracked files', true)
+  } else {
+    recordResult('Secret scan failed', false, 'Run: pnpm secrets:scan')
+  }
+}
+
+async function checkNpmPublishReadiness() {
+  logger.info('13. Checking npm publish readiness...')
+  const projectRoot = await getProjectRoot(import.meta.url)
+
+  const publishablePackages = [
+    'core',
+    'contracts',
+    'db',
+    'auth',
+    'presentation',
+    'router',
+    'config',
+    'utils',
+    'cli',
+    'setup',
+    'sync',
+    'dev',
+  ]
+
+  let missingLicense = 0
+  let missingReadme = 0
+
+  for (const pkg of publishablePackages) {
+    const pkgDir = join(projectRoot, 'packages', pkg)
+    if (!(await fileExists(pkgDir))) continue
+
+    const pkgJson = join(pkgDir, 'package.json')
+    if (await fileExists(pkgJson)) {
+      const content = JSON.parse(await readFile(pkgJson, 'utf-8'))
+      if (content.private) continue // Skip private packages
+
+      if (!content.license) missingLicense++
+      const readmePath = join(pkgDir, 'README.md')
+      if (!(await fileExists(readmePath))) missingReadme++
+    }
+  }
+
+  if (missingLicense > 0) {
+    recordWarning(`${missingLicense} publishable package(s) missing "license" field`)
+  }
+  if (missingReadme > 0) {
+    recordWarning(`${missingReadme} publishable package(s) missing README.md`)
+  }
+  if (missingLicense === 0 && missingReadme === 0) {
+    recordResult('All publishable packages have license and README', true)
+  }
+}
+
+async function checkVercelDeployments() {
+  logger.info('14. Checking Vercel deployment status...')
+
+  // Check if vercel CLI is available
+  const vercelResult = await execCommand('which', ['vercel'], { silent: true })
+  if (!vercelResult.success) {
+    recordWarning('Vercel CLI not installed — install with: npm i -g vercel')
+    return
+  }
+
+  // Check for vercel.json or deployment config
+  const projectRoot = await getProjectRoot(import.meta.url)
+  const apps = ['api', 'cms', 'marketing']
+  for (const app of apps) {
+    const vercelJson = join(projectRoot, 'apps', app, 'vercel.json')
+    if (await fileExists(vercelJson)) {
+      recordResult(`Vercel config: apps/${app}/vercel.json`, true)
+    } else {
+      recordWarning(`Missing Vercel config: apps/${app}/vercel.json`)
+    }
+  }
+}
+
 async function checkTestCoverage() {
-  logger.info('10. Checking test coverage...')
+  logger.info('15. Checking test coverage...')
   const projectRoot = await getProjectRoot(import.meta.url)
   const coveragePath = join(projectRoot, 'apps/cms/coverage')
 
@@ -212,6 +360,11 @@ async function runValidation() {
   await checkEnvironment()
   await checkDocumentation()
   await checkHealthEndpoint()
+  await checkGitStatus()
+  await checkCredentialRotation()
+  await checkSecrets()
+  await checkNpmPublishReadiness()
+  await checkVercelDeployments()
   await checkTestCoverage()
 
   // Summary
