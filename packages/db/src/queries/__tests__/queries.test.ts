@@ -1254,7 +1254,7 @@ describe('code-provenance queries', () => {
       { authorType: 'human', count: 10, totalLines: 500 },
       { authorType: 'ai', count: 5, totalLines: 200 },
     ]
-    const byReviewStatus = [
+    const _byReviewStatus = [
       { reviewStatus: 'approved', count: 8 },
       { reviewStatus: 'unreviewed', count: 7 },
     ]

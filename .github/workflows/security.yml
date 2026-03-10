@@ -58,6 +58,7 @@ jobs:
       - uses: github/codeql-action/init@v3
         with:
           languages: javascript-typescript
+          queries: security-and-quality
       - uses: pnpm/action-setup@v4
         with:
           version: ${{ env.PNPM_VERSION }}

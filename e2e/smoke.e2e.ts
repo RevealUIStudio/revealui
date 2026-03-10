@@ -23,6 +23,7 @@
  */
 
 import { expect, test } from '@playwright/test'
+import { checkAccessibilityCritical } from './utils/a11y-helper'
 
 // ---------------------------------------------------------------------------
 // API Health Checks (apps/api — port 3004)
@@ -95,6 +96,11 @@ test.describe('CMS basic render', () => {
     )
     expect(criticalErrors).toHaveLength(0)
   })
+
+  test('CMS root has no critical accessibility violations', async ({ page }) => {
+    await page.goto(CmsBase, { waitUntil: 'domcontentloaded' })
+    await checkAccessibilityCritical(page)
+  })
 })
 
 // ---------------------------------------------------------------------------
@@ -123,5 +129,10 @@ test.describe('Marketing page', () => {
     expect([200, 201]).toContain(response.status())
     const body = (await response.json()) as Record<string, unknown>
     expect(body.success).toBe(true)
+  })
+
+  test('Marketing homepage has no critical accessibility violations', async ({ page }) => {
+    await page.goto(MarketingBase, { waitUntil: 'domcontentloaded' })
+    await checkAccessibilityCritical(page)
   })
 })

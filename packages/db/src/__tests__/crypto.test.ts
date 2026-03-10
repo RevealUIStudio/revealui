@@ -168,4 +168,104 @@ describe('crypto — BYOK API key encryption', () => {
       expect(hint.replace('...', '')).toHaveLength(4)
     })
   })
+
+  describe('roundtrip edge cases', () => {
+    it('roundtrips empty string', () => {
+      const encrypted = encryptApiKey('')
+      const decrypted = decryptApiKey(encrypted)
+      expect(decrypted).toBe('')
+    })
+
+    it('roundtrips large payload (10KB)', () => {
+      const largeKey = `sk-${'x'.repeat(10_000)}`
+      const encrypted = encryptApiKey(largeKey)
+      const decrypted = decryptApiKey(encrypted)
+      expect(decrypted).toBe(largeKey)
+      expect(decrypted).toHaveLength(10_003)
+    })
+
+    it('roundtrips string with null bytes', () => {
+      const key = 'sk-test\x00embedded\x00nulls'
+      const encrypted = encryptApiKey(key)
+      const decrypted = decryptApiKey(encrypted)
+      expect(decrypted).toBe(key)
+    })
+
+    it('roundtrips string with newlines and tabs', () => {
+      const key = 'sk-test\n\twith\r\nwhitespace'
+      const encrypted = encryptApiKey(key)
+      const decrypted = decryptApiKey(encrypted)
+      expect(decrypted).toBe(key)
+    })
+
+    it('roundtrips multi-byte unicode (CJK, emoji, combining chars)', () => {
+      const key = 'sk-\u{1F680}\u{1F4BB}\u0301\u4E16\u754C'
+      const encrypted = encryptApiKey(key)
+      const decrypted = decryptApiKey(encrypted)
+      expect(decrypted).toBe(key)
+    })
+
+    it('produces base64url-safe output (no +, /, or =)', () => {
+      // Encrypt many times to ensure no base64 padding chars leak
+      for (let i = 0; i < 20; i++) {
+        const encrypted = encryptApiKey(`sk-iteration-${i}`)
+        expect(encrypted).not.toMatch(/[+/=]/)
+      }
+    })
+
+    it('different KEKs produce incompatible ciphertexts', () => {
+      const kek1 = randomBytes(32).toString('hex')
+      const kek2 = randomBytes(32).toString('hex')
+
+      process.env.REVEALUI_KEK = kek1
+      const encrypted1 = encryptApiKey('same-plaintext')
+
+      process.env.REVEALUI_KEK = kek2
+      expect(() => decryptApiKey(encrypted1)).toThrow()
+    })
+
+    it('encrypted output has correct IV length (12 bytes)', () => {
+      const encrypted = encryptApiKey('sk-test')
+      const ivB64 = encrypted.split('.')[0]!
+      const ivBuffer = Buffer.from(ivB64, 'base64url')
+      expect(ivBuffer).toHaveLength(12)
+    })
+
+    it('encrypted output has correct auth tag length (16 bytes)', () => {
+      const encrypted = encryptApiKey('sk-test')
+      const authTagB64 = encrypted.split('.')[1]!
+      const authTagBuffer = Buffer.from(authTagB64, 'base64url')
+      expect(authTagBuffer).toHaveLength(16)
+    })
+  })
+
+  describe('KEK validation', () => {
+    it('non-hex chars in KEK produce a shorter key buffer, causing crypto error', () => {
+      // Buffer.from('gg...', 'hex') silently drops invalid hex chars,
+      // yielding a buffer shorter than 32 bytes. Node crypto then rejects it.
+      process.env.REVEALUI_KEK = 'g'.repeat(64)
+      expect(() => encryptApiKey('sk-test')).toThrow()
+    })
+
+    it('rejects KEK that is too short', () => {
+      process.env.REVEALUI_KEK = 'aa'.repeat(16) // 32 hex chars = 16 bytes (too short)
+      expect(() => encryptApiKey('sk-test')).toThrow('64 hex characters')
+    })
+
+    it('rejects KEK that is too long', () => {
+      process.env.REVEALUI_KEK = 'aa'.repeat(48) // 96 hex chars = 48 bytes (too long)
+      expect(() => encryptApiKey('sk-test')).toThrow('64 hex characters')
+    })
+
+    it('accepts valid 64-char hex KEK', () => {
+      process.env.REVEALUI_KEK = 'ab'.repeat(32)
+      expect(() => encryptApiKey('sk-test')).not.toThrow()
+    })
+
+    it('rejects empty string KEK', () => {
+      process.env.REVEALUI_KEK = ''
+      // Empty string is falsy in JS, so getKek() treats it as not set
+      expect(() => encryptApiKey('sk-test')).toThrow()
+    })
+  })
 })

@@ -46,6 +46,12 @@ export default defineConfig({
       // Standardized reporters: text (CI logs), json (programmatic), html (local dev), lcov (Codecov)
       reporter: ['text', 'json', 'html', 'lcov'],
       exclude: ['node_modules/**', '**/*.test.ts', '**/*.spec.ts', 'dist/**', '**/__tests__/**'],
+      thresholds: {
+        lines: 60,
+        functions: 60,
+        branches: 55,
+        statements: 60,
+      },
     },
   },
 })
