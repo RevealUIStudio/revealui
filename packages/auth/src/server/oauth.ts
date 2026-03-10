@@ -70,8 +70,13 @@ export function verifyOAuthState(
   const storedState = cookieValue.substring(0, dotIdx)
   const storedHmac = cookieValue.substring(dotIdx + 1)
 
-  // State from query param must match what's in the cookie
-  if (storedState !== state) return null
+  // State from query param must match what's in the cookie (timing-safe)
+  if (
+    storedState.length !== state.length ||
+    !crypto.timingSafeEqual(Buffer.from(storedState), Buffer.from(state))
+  ) {
+    return null
+  }
 
   const secret = process.env.REVEALUI_SECRET
   if (!secret) {
