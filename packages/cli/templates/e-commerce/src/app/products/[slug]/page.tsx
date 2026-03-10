@@ -38,7 +38,7 @@ export default async function ProductPage({ params }: { params: Promise<{ slug: 
       <main className="mx-auto max-w-2xl px-4 py-16">
         <h1 className="text-2xl font-bold">Product not found</h1>
         <p className="mt-4">
-          <a href="/products" className="text-blue-600 underline">
+          <a href="/products" className="text-accent underline">
             Back to products
           </a>
         </p>
@@ -49,7 +49,7 @@ export default async function ProductPage({ params }: { params: Promise<{ slug: 
   return (
     <main className="mx-auto max-w-2xl px-4 py-16">
       <nav className="mb-8">
-        <a href="/products" className="text-sm text-blue-600 underline">
+        <a href="/products" className="text-sm text-accent underline">
           &larr; Back to products
         </a>
       </nav>

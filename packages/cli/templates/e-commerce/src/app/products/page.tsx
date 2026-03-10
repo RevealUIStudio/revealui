@@ -38,7 +38,7 @@ export default async function ProductsPage() {
       {products.length === 0 ? (
         <p className="text-gray-500">
           No products yet. Add products in the{' '}
-          <a href="/admin/collections/products" className="text-blue-600 underline">
+          <a href="/admin/collections/products" className="text-accent underline">
             admin panel
           </a>
           , or run <code className="rounded bg-gray-100 px-1">pnpm db:seed</code> to add sample
@@ -61,7 +61,7 @@ export default async function ProductsPage() {
                   className="mb-4 aspect-square w-full rounded object-cover"
                 />
               )}
-              <h2 className="font-semibold group-hover:text-blue-600">{product.name}</h2>
+              <h2 className="font-semibold group-hover:text-accent">{product.name}</h2>
               <p className="mt-1 text-lg font-bold text-gray-900">{formatPrice(product.price)}</p>
             </a>
           ))}

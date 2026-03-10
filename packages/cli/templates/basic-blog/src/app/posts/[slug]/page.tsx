@@ -31,7 +31,7 @@ export default async function PostPage({ params }: { params: Promise<{ slug: str
       <main className="mx-auto max-w-2xl px-4 py-16">
         <h1 className="text-2xl font-bold">Post not found</h1>
         <p className="mt-4">
-          <a href="/posts" className="text-blue-600 underline">
+          <a href="/posts" className="text-accent underline">
             Back to blog
           </a>
         </p>
@@ -42,7 +42,7 @@ export default async function PostPage({ params }: { params: Promise<{ slug: str
   return (
     <main className="mx-auto max-w-2xl px-4 py-16">
       <nav className="mb-8">
-        <a href="/posts" className="text-sm text-blue-600 underline">
+        <a href="/posts" className="text-sm text-accent underline">
           &larr; Back to blog
         </a>
       </nav>
