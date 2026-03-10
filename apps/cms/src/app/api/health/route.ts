@@ -139,7 +139,7 @@ export async function GET(request: Request) {
   }
 
   // Determine HTTP status code
-  const httpStatus = overallStatus === 'healthy' ? 200 : overallStatus === 'degraded' ? 200 : 503
+  const httpStatus = overallStatus === 'healthy' ? 200 : 503
 
   return NextResponse.json(
     {
