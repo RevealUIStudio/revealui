@@ -25,7 +25,7 @@ catalog:
   postgres: ^3.5.4
   react: ^19.2.3
   react-dom: ^19.2.3
-  tailwindcss: ^4.1.18
+  tailwindcss: ^4.2.1
   tsup: ^8.5.1
   tsx: ^4.21.0
   typescript: ^5.9.3
