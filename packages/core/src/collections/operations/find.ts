@@ -42,12 +42,34 @@ export async function find(
       quoteFields: true,
     })
 
-    // Build ORDER BY clause
+    // Build ORDER BY clause with field name validation
     let orderByClause = ''
     if (sort) {
+      // Build allowlist from collection fields + common system columns
+      const allowedFields = new Set<string>([
+        'id',
+        'createdAt',
+        'updatedAt',
+        'created_at',
+        'updated_at',
+        '_json',
+      ])
+      if (config.fields) {
+        for (const field of config.fields) {
+          if (field.name) allowedFields.add(field.name)
+        }
+      }
+
       const sortConditions: string[] = []
       Object.entries(sort).forEach(([key, direction]) => {
-        sortConditions.push(`"${key}" ${direction === '-1' ? 'DESC' : 'ASC'}`)
+        if (!allowedFields.has(key)) {
+          throw new Error(
+            `Invalid sort field: "${key}". Must be a defined field on the "${tableName}" collection.`,
+          )
+        }
+        // Escape embedded double quotes in identifier to prevent SQL injection
+        const escaped = key.replace(/"/g, '""')
+        sortConditions.push(`"${escaped}" ${direction === '-1' ? 'DESC' : 'ASC'}`)
       })
       orderByClause = sortConditions.length > 0 ? `ORDER BY ${sortConditions.join(', ')}` : ''
     }

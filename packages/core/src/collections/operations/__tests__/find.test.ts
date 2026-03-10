@@ -15,7 +15,10 @@ import { find } from '../find.js'
 describe('find operation', () => {
   const mockConfig: RevealCollectionConfig = {
     slug: 'test-collection',
-    fields: [],
+    fields: [
+      { name: 'title', type: 'text' },
+      { name: 'created', type: 'date' },
+    ],
   }
 
   const mockDb = {
@@ -118,6 +121,19 @@ describe('find operation', () => {
     expect(queryCall[0]).toContain('ORDER BY')
     expect(queryCall[0]).toContain('"title" ASC')
     expect(queryCall[0]).toContain('"created" DESC')
+  })
+
+  it('should reject sort fields not defined on the collection', async () => {
+    const options: RevealFindOptions = {
+      sort: {
+        nonexistent_field: '1',
+      },
+    }
+
+    // No mock setup needed — the error throws before any query executes
+    await expect(find(mockConfig, mockDb as never, options)).rejects.toThrow(
+      'Invalid sort field: "nonexistent_field"',
+    )
   })
 
   it('should throw error if depth is invalid', async () => {

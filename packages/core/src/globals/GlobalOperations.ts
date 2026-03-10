@@ -152,7 +152,9 @@ export class RevealUIGlobal {
         // Update (PostgreSQL uses $1, $2 style)
         // Serialize complex values (objects, arrays) to JSON strings for SQLite
         const keys = Object.keys(data)
-        const setClause = keys.map((key, i) => `"${key}" = $${i + 1}`).join(', ')
+        const setClause = keys
+          .map((key, i) => `"${key.replace(/"/g, '""')}" = $${i + 1}`)
+          .join(', ')
         const values = keys.map((key) => {
           const value = data[key]
           // Serialize non-primitive values to JSON strings for SQLite compatibility
@@ -184,7 +186,7 @@ export class RevealUIGlobal {
           }
           return value
         })
-        const query = `INSERT INTO "${tableName}" (id, ${columns.map((c) => `"${c}"`).join(', ')}) VALUES ($1, ${placeholders})`
+        const query = `INSERT INTO "${tableName}" (id, ${columns.map((c) => `"${c.replace(/"/g, '""')}"`).join(', ')}) VALUES ($1, ${placeholders})`
         await this.db.query(query, [id, ...values])
       }
 
