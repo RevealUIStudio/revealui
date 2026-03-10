@@ -69,6 +69,7 @@ export {
 } from './features.js'
 // License and feature flags
 export {
+  configureLicenseCache,
   generateLicenseKey,
   getCurrentTier,
   getLicensePayload,
@@ -76,6 +77,7 @@ export {
   getMaxUsers,
   initializeLicense,
   isLicensed,
+  type LicenseCacheConfig,
   type LicensePayload,
   type LicenseTier,
   resetLicenseState,
