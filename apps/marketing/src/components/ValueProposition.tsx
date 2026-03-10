@@ -6,6 +6,7 @@ export function ValueProposition() {
         'MIT-licensed business infrastructure: users, content, products, payments, and AI agents — all in one monorepo. Deploy anywhere, white-label for clients, customize every line.',
       icon: 'M14.25 9.75 16.5 12l-2.25 2.25m-4.5 0L7.5 12l2.25-2.25M6 20.25h12A2.25 2.25 0 0 0 20.25 18V6A2.25 2.25 0 0 0 18 3.75H6A2.25 2.25 0 0 0 3.75 6v12A2.25 2.25 0 0 0 6 20.25Z',
       accent: 'bg-gray-950',
+      href: 'https://docs.revealui.com/docs/QUICK_START',
     },
     {
       title: 'AI Agents Built In',
@@ -13,6 +14,7 @@ export function ValueProposition() {
         'Not a plugin — a first-class A2A protocol agent system. Describe a task in plain language, ship it as a structured background workflow. BYOK for full LLM provider control.',
       icon: 'M9.813 15.904L9 18.75l-.813-2.846a4.5 4.5 0 0 0-3.09-3.09L2.25 12l2.846-.813a4.5 4.5 0 0 0 3.09-3.09L9 5.25l.813 2.846a4.5 4.5 0 0 0 3.09 3.09L15.75 12l-2.846.813a4.5 4.5 0 0 0-3.09 3.09zM18.259 8.715 18 9.75l-.259-1.035a3.375 3.375 0 0 0-2.455-2.456L14.25 6l1.036-.259a3.375 3.375 0 0 0 2.455-2.456L18 2.25l.259 1.035a3.375 3.375 0 0 0 2.456 2.456L21.75 6l-1.035.259a3.375 3.375 0 0 0-2.456 2.456z',
       accent: 'bg-violet-600',
+      href: 'https://docs.revealui.com/docs/AI_AGENTS',
     },
     {
       title: 'Production Stack Included',
@@ -20,6 +22,7 @@ export function ValueProposition() {
         'Session auth, RBAC, brute-force protection, Stripe billing, ElectricSQL real-time sync, and multi-tenant isolation — wired end-to-end so you ship features, not infrastructure.',
       icon: 'M6.429 9.75 2.25 12l4.179 2.25m0-4.5 5.571 3 5.571-3m-11.142 0L2.25 7.5 12 2.25l9.75 5.25-4.179 2.25m0 0L21.75 12l-4.179 2.25m0 0 4.179 2.25L12 21.75 2.25 16.5l4.179-2.25m11.142 0-5.571 3-5.571-3',
       accent: 'bg-emerald-600',
+      href: 'https://docs.revealui.com/docs/REFERENCE',
     },
   ]
 
@@ -38,6 +41,7 @@ export function ValueProposition() {
             start on day one with a real running business — not a blank slate.
           </p>
         </div>
+        <div className="mx-auto mt-10 max-w-xs border-t border-gray-200" />
         <div className="mx-auto mt-16 max-w-2xl sm:mt-20 lg:mt-24 lg:max-w-none">
           <dl className="grid max-w-xl grid-cols-1 gap-x-8 gap-y-16 lg:max-w-none lg:grid-cols-3">
             {features.map((feature) => (
@@ -58,6 +62,12 @@ export function ValueProposition() {
                 </div>
                 <dt className="text-lg font-semibold leading-7 text-gray-950">{feature.title}</dt>
                 <dd className="mt-2 text-base leading-7 text-gray-500">{feature.description}</dd>
+                <a
+                  href={feature.href}
+                  className="mt-4 inline-flex items-center gap-1 text-sm font-medium text-gray-950 hover:text-gray-700 transition-colors"
+                >
+                  Learn more &rarr;
+                </a>
               </div>
             ))}
           </dl>
