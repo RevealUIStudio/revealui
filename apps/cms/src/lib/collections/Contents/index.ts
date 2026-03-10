@@ -1,7 +1,5 @@
 import type { CollectionConfig } from '@revealui/core'
 
-// import { Menu, PageContent, PageList, SiteTitle } from 'reveal'
-
 const ContentsField = {
   name: 'name',
   slug: 'slug',
@@ -39,58 +37,8 @@ const Contents: CollectionConfig = {
       name: 'blocks',
       type: 'blocks',
       blocks: [],
-      // blocks: [Menu, PageContent, PageList, SiteTitle]
     },
   ],
 }
 
 export default Contents
-
-// import { CollectionConfig } from "@revealui/core";
-// import { Menu } from "../../blocks/Menu";
-// import { PageContent } from '@/lib/blocks/PageContent/index';
-// import { PageList } from '@/lib/blocks/PageList/index';
-// import { SiteTitle } from '@/lib/blocks/SiteTitle/index';
-
-// const ContentsField = {
-//   name: "name",
-//   slug: "slug",
-//   description: "description",
-// };
-// type ContentsField = (typeof ContentsField)[keyof typeof ContentsField];
-
-// const Contents: CollectionConfig = {
-//   slug: "contents",
-//   access: {
-//     read: () => true,
-//   },
-//   admin: {
-//     useAsTitle: ContentsField.name,
-//   },
-//   fields: [
-//     {
-//       name: ContentsField.name,
-//       type: "text",
-//       required: true,
-//     },
-//     {
-//       name: ContentsField.slug,
-//       type: "text",
-//       unique: true,
-//       admin: {
-//         position: "sidebar",
-//       },
-//     },
-//     {
-//       name: ContentsField.description,
-//       type: "text",
-//     },
-//     {
-//       name: "blocks",
-//       type: "blocks",
-//       blocks: [Menu, PageContent, PageList, SiteTitle],
-//     },
-//   ],
-// };
-
-// export default Contents;
