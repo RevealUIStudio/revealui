@@ -2,7 +2,7 @@
 
 import clsx from 'clsx'
 import type React from 'react'
-import { createContext, useCallback, useContext, useReducer } from 'react'
+import { createContext, use, useCallback, useReducer } from 'react'
 import { createPortal } from 'react-dom'
 
 type ToastVariant = 'default' | 'success' | 'error' | 'warning' | 'info'
@@ -61,7 +61,7 @@ export function ToastProvider({ children }: { children: React.ReactNode }) {
 }
 
 export function useToast(): Pick<ToastContextValue, 'addToast' | 'removeToast'> {
-  const ctx = useContext(ToastContext)
+  const ctx = use(ToastContext)
   if (!ctx) throw new Error('useToast must be used within a ToastProvider')
   return ctx
 }

@@ -1,5 +1,5 @@
 import { cva, type VariantProps } from 'class-variance-authority'
-import React from 'react'
+import type React from 'react'
 import { Slot } from '../primitives/Slot.js'
 import { cn } from '../utils/cn.js'
 
@@ -35,16 +35,12 @@ export interface ButtonProps
   extends React.ButtonHTMLAttributes<HTMLButtonElement>,
     VariantProps<typeof buttonVariants> {
   asChild?: boolean
+  ref?: React.Ref<HTMLButtonElement>
 }
 
-const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
-  ({ asChild = false, className, size, variant, ...props }, ref) => {
-    const Comp = asChild ? Slot : 'button'
-    return (
-      <Comp className={cn(buttonVariants({ className, size, variant }))} ref={ref} {...props} />
-    )
-  },
-)
-Button.displayName = 'Button'
+function Button({ asChild = false, className, size, variant, ref, ...props }: ButtonProps) {
+  const Comp = asChild ? Slot : 'button'
+  return <Comp className={cn(buttonVariants({ className, size, variant }))} ref={ref} {...props} />
+}
 
 export { Button, buttonVariants }

@@ -1,6 +1,6 @@
 'use client'
 
-import { createContext, type ReactNode, useContext, useMemo } from 'react'
+import { createContext, type ReactNode, use, useMemo } from 'react'
 
 interface ElectricContextValue {
   /**
@@ -53,5 +53,5 @@ export function ElectricProvider(props: {
  * Returns `{ serviceUrl: null, debug: false }` if no provider is present.
  */
 export function useElectricConfig(): ElectricContextValue {
-  return useContext(ElectricContext)
+  return use(ElectricContext)
 }

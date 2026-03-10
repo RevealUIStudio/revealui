@@ -1,7 +1,7 @@
 'use client'
 
 import type React from 'react'
-import { createContext, useCallback, useContext, useEffect, useState } from 'react'
+import { createContext, use, useCallback, useEffect, useState } from 'react'
 import { canUseDOM } from '@/lib/utilities/canUseDOM'
 import { defaultTheme, getImplicitPreference, themeLocalStorageKey } from './shared'
 import type { Theme, ThemeContextType } from './types'
@@ -53,4 +53,4 @@ export function ThemeProvider({ children }: { children: React.ReactNode }): Reac
   return <ThemeContext.Provider value={{ setTheme, theme }}>{children}</ThemeContext.Provider>
 }
 
-export const useTheme = (): ThemeContextType => useContext(ThemeContext)
+export const useTheme = (): ThemeContextType => use(ThemeContext)

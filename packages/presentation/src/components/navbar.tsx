@@ -2,7 +2,7 @@
 
 import clsx from 'clsx'
 import type React from 'react'
-import { forwardRef, useId } from 'react'
+import { useId } from 'react'
 import { useDataInteractive } from '../hooks/use-data-interactive.js'
 import { LayoutGroup, LayoutIndicator } from '../hooks/use-layout-animation.js'
 import { TouchTarget } from './button-headless.js'
@@ -36,21 +36,24 @@ export function NavbarSpacer({ className, ...props }: React.ComponentPropsWithou
   return <div aria-hidden="true" {...props} className={clsx(className, '-ml-4 flex-1')} />
 }
 
-export const NavbarItem = forwardRef(function NavbarItem(
-  {
-    current,
-    className,
-    children,
-    ...props
-  }: { current?: boolean; className?: string; children: React.ReactNode } & (
-    | ({
-        href?: never
-        disabled?: boolean
-      } & Omit<React.ComponentPropsWithoutRef<'button'>, 'className'>)
-    | ({ href: string } & Omit<React.ComponentPropsWithoutRef<typeof Link>, 'className'>)
-  ),
-  ref: React.ForwardedRef<HTMLAnchorElement | HTMLButtonElement>,
-) {
+export function NavbarItem({
+  current,
+  className,
+  children,
+  ref,
+  ...props
+}: {
+  current?: boolean
+  className?: string
+  children: React.ReactNode
+  ref?: React.Ref<HTMLAnchorElement | HTMLButtonElement>
+} & (
+  | ({
+      href?: never
+      disabled?: boolean
+    } & Omit<React.ComponentPropsWithoutRef<'button'>, 'className'>)
+  | ({ href: string } & Omit<React.ComponentPropsWithoutRef<typeof Link>, 'className'>)
+)) {
   const disabled = 'disabled' in props ? props.disabled : false
   const interactiveProps = useDataInteractive({ disabled: disabled ?? false })
 
@@ -86,7 +89,7 @@ export const NavbarItem = forwardRef(function NavbarItem(
           {...props}
           className={classes}
           data-current={current ? 'true' : undefined}
-          ref={ref as React.ForwardedRef<HTMLAnchorElement>}
+          ref={ref as React.Ref<HTMLAnchorElement>}
         >
           <TouchTarget>{children}</TouchTarget>
         </Link>
@@ -97,14 +100,14 @@ export const NavbarItem = forwardRef(function NavbarItem(
           {...interactiveProps}
           className={clsx('cursor-default', classes)}
           data-current={current ? 'true' : undefined}
-          ref={ref as React.ForwardedRef<HTMLButtonElement>}
+          ref={ref as React.Ref<HTMLButtonElement>}
         >
           <TouchTarget>{children}</TouchTarget>
         </button>
       )}
     </span>
   )
-})
+}
 
 export function NavbarLabel({ className, ...props }: React.ComponentPropsWithoutRef<'span'>) {
   return <span {...props} className={clsx(className, 'truncate')} />

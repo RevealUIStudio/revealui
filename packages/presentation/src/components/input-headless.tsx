@@ -1,6 +1,5 @@
 import clsx from 'clsx'
 import type React from 'react'
-import { forwardRef } from 'react'
 import { useDataInteractive } from '../hooks/use-data-interactive.js'
 import { useFieldControlProps } from '../hooks/use-field-context.js'
 
@@ -29,12 +28,10 @@ type InputProps = {
   type?: 'email' | 'number' | 'password' | 'search' | 'tel' | 'text' | 'url' | DateType
   disabled?: boolean
   invalid?: boolean
+  ref?: React.Ref<HTMLInputElement>
 } & Omit<React.ComponentPropsWithoutRef<'input'>, 'className' | 'type'>
 
-export const Input = forwardRef(function Input(
-  { className, disabled, invalid, ...props }: InputProps,
-  ref: React.ForwardedRef<HTMLInputElement>,
-) {
+export function Input({ className, disabled, invalid, ref, ...props }: InputProps) {
   const interactiveProps = useDataInteractive({ disabled })
   const fieldProps = useFieldControlProps()
 
@@ -100,4 +97,4 @@ export const Input = forwardRef(function Input(
       />
     </span>
   )
-})
+}

@@ -1,5 +1,5 @@
 import type React from 'react'
-import { Component, createContext, useContext, useEffect, useSyncExternalStore } from 'react'
+import { Component, createContext, use, useEffect, useSyncExternalStore } from 'react'
 import type { Router } from './router'
 import type { NavigateOptions, RouteMatch } from './types'
 
@@ -119,7 +119,7 @@ export function Link({
  * useRouter - Hook to access router instance
  */
 export function useRouter(): Router {
-  const router = useContext(RouterContext)
+  const router = use(RouterContext)
 
   if (!router) {
     throw new Error('useRouter must be used within a RouterProvider')
@@ -132,7 +132,7 @@ export function useRouter(): Router {
  * useMatch - Hook to access current route match
  */
 export function useMatch(): RouteMatch | null {
-  return useContext(MatchContext)
+  return use(MatchContext)
 }
 
 /**

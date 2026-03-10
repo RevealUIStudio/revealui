@@ -1,6 +1,6 @@
 import type { ButtonProps } from '@revealui/presentation/server'
 import { buttonVariants } from '@revealui/presentation/server'
-import * as React from 'react'
+import type * as React from 'react'
 import { cn } from '@/lib/styles/classnames'
 
 const ChevronLeft = ({ className }: { className: string }) => {
@@ -60,17 +60,21 @@ const Pagination = ({ className, ...props }: React.ComponentProps<'nav'>) => (
 )
 Pagination.displayName = 'Pagination'
 
-const PaginationContent = React.forwardRef<HTMLUListElement, React.ComponentProps<'ul'>>(
-  ({ className, ...props }, ref) => (
-    <ul className={cn('flex flex-row items-center gap-1', className)} ref={ref} {...props} />
-  ),
-)
-PaginationContent.displayName = 'PaginationContent'
+function PaginationContent({
+  className,
+  ref,
+  ...props
+}: React.ComponentProps<'ul'> & { ref?: React.Ref<HTMLUListElement> }) {
+  return <ul className={cn('flex flex-row items-center gap-1', className)} ref={ref} {...props} />
+}
 
-const PaginationItem = React.forwardRef<HTMLLIElement, React.ComponentProps<'li'>>(
-  ({ className, ...props }, ref) => <li className={cn('', className)} ref={ref} {...props} />,
-)
-PaginationItem.displayName = 'PaginationItem'
+function PaginationItem({
+  className,
+  ref,
+  ...props
+}: React.ComponentProps<'li'> & { ref?: React.Ref<HTMLLIElement> }) {
+  return <li className={cn('', className)} ref={ref} {...props} />
+}
 
 type PaginationLinkProps = {
   isActive?: boolean

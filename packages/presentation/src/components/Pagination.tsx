@@ -1,4 +1,4 @@
-import * as React from 'react'
+import type * as React from 'react'
 import { cn } from '../utils/cn.js'
 import type { ButtonProps } from './Button.js'
 import { buttonVariants } from './Button.js'
@@ -60,19 +60,22 @@ const Pagination = ({ className, ...props }: PaginationProps) => (
     {...props}
   />
 )
-Pagination.displayName = 'Pagination'
 
-const PaginationContent = React.forwardRef<HTMLUListElement, React.ComponentProps<'ul'>>(
-  ({ className, ...props }, ref) => (
-    <ul className={cn('flex flex-row items-center gap-1', className)} ref={ref} {...props} />
-  ),
-)
-PaginationContent.displayName = 'PaginationContent'
+function PaginationContent({
+  className,
+  ref,
+  ...props
+}: React.ComponentProps<'ul'> & { ref?: React.Ref<HTMLUListElement> }) {
+  return <ul className={cn('flex flex-row items-center gap-1', className)} ref={ref} {...props} />
+}
 
-const PaginationItem = React.forwardRef<HTMLLIElement, React.ComponentProps<'li'>>(
-  ({ className, ...props }, ref) => <li className={cn('', className)} ref={ref} {...props} />,
-)
-PaginationItem.displayName = 'PaginationItem'
+function PaginationItem({
+  className,
+  ref,
+  ...props
+}: React.ComponentProps<'li'> & { ref?: React.Ref<HTMLLIElement> }) {
+  return <li className={cn('', className)} ref={ref} {...props} />
+}
 
 export interface PaginationLinkProps
   extends Pick<ButtonProps, 'size'>,
@@ -93,7 +96,6 @@ const PaginationLink = ({ className, isActive, size = 'icon', ...props }: Pagina
     {...props}
   />
 )
-PaginationLink.displayName = 'PaginationLink'
 
 export type PaginationPreviousProps = React.ComponentProps<typeof PaginationLink>
 
@@ -108,7 +110,6 @@ const PaginationPrevious = ({ className, ...props }: PaginationPreviousProps) =>
     <span>Previous</span>
   </PaginationLink>
 )
-PaginationPrevious.displayName = 'PaginationPrevious'
 
 export type PaginationNextProps = React.ComponentProps<typeof PaginationLink>
 
@@ -123,7 +124,6 @@ const PaginationNext = ({ className, ...props }: PaginationNextProps) => (
     <ChevronRight className="size-4" />
   </PaginationLink>
 )
-PaginationNext.displayName = 'PaginationNext'
 
 export type PaginationEllipsisProps = React.ComponentProps<'span'>
 
@@ -137,7 +137,6 @@ const PaginationEllipsis = ({ className, ...props }: PaginationEllipsisProps) =>
     <span className="sr-only">More pages</span>
   </span>
 )
-PaginationEllipsis.displayName = 'PaginationEllipsis'
 
 export {
   Pagination,

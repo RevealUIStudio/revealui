@@ -1,6 +1,5 @@
 import clsx from 'clsx'
 import type React from 'react'
-import { forwardRef } from 'react'
 import { useDataInteractive } from '../hooks/use-data-interactive.js'
 import { Link } from './link.js'
 
@@ -163,7 +162,7 @@ type ButtonProps = (
   | { color?: keyof typeof styles.colors; outline?: never; plain?: never }
   | { color?: never; outline: true; plain?: never }
   | { color?: never; outline?: never; plain: true }
-) & { className?: string; children: React.ReactNode } & (
+) & { className?: string; children: React.ReactNode; ref?: React.Ref<HTMLElement> } & (
     | ({
         href?: never
         disabled?: boolean
@@ -174,10 +173,7 @@ type ButtonProps = (
       } & Omit<React.ComponentPropsWithoutRef<typeof Link>, 'className'>)
   )
 
-export const Button = forwardRef(function Button(
-  { color, outline, plain, className, children, ...props }: ButtonProps,
-  ref: React.ForwardedRef<HTMLElement>,
-) {
+export function Button({ color, outline, plain, className, children, ref, ...props }: ButtonProps) {
   const disabled = 'disabled' in props ? props.disabled : false
   const interactiveProps = useDataInteractive({ disabled: disabled ?? false })
 
@@ -192,7 +188,7 @@ export const Button = forwardRef(function Button(
   )
 
   return typeof props.href === 'string' ? (
-    <Link {...props} className={classes} ref={ref as React.ForwardedRef<HTMLAnchorElement>}>
+    <Link {...props} className={classes} ref={ref as React.Ref<HTMLAnchorElement>}>
       <TouchTarget>{children}</TouchTarget>
     </Link>
   ) : (
@@ -201,12 +197,12 @@ export const Button = forwardRef(function Button(
       {...props}
       {...interactiveProps}
       className={clsx(classes, 'cursor-default')}
-      ref={ref as React.ForwardedRef<HTMLButtonElement>}
+      ref={ref as React.Ref<HTMLButtonElement>}
     >
       <TouchTarget>{children}</TouchTarget>
     </button>
   )
-})
+}
 
 /**
  * Expand the hit area to at least 44x44px on touch devices

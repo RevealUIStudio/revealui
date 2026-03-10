@@ -1,17 +1,15 @@
-import * as React from 'react'
+import type * as React from 'react'
 import { Primitive } from '.' // Adjust import according to your structure
 
-const NAME = 'Label'
+type LabelElement = HTMLLabelElement
+type LabelProps = React.ComponentPropsWithoutRef<'label'>
 
-type LabelElement = React.ComponentRef<typeof Primitive.label>
-type LabelProps = React.ComponentPropsWithoutRef<typeof Primitive.label>
-
-const Label = React.forwardRef<LabelElement, LabelProps>((props, forwardedRef) => {
+function Label({ ref, ...props }: LabelProps & { ref?: React.Ref<LabelElement> }) {
   return (
     // biome-ignore lint/a11y/noLabelWithoutControl: label is associated by consumers via htmlFor or nesting.
     <Primitive.label
       {...props}
-      ref={forwardedRef}
+      ref={ref}
       onMouseDown={(event) => {
         const target = event.target as HTMLElement
         if (target.closest('button, input, select, textarea')) return
@@ -21,9 +19,7 @@ const Label = React.forwardRef<LabelElement, LabelProps>((props, forwardedRef) =
       }}
     />
   )
-})
-
-Label.displayName = NAME
+}
 
 export { Label }
 export type { LabelProps }
