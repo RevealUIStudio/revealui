@@ -2,7 +2,7 @@
 
 import clsx from 'clsx'
 import type React from 'react'
-import { createContext, useCallback, useContext, useId, useState } from 'react'
+import { createContext, use, useCallback, useId, useState } from 'react'
 
 type TabsContextValue = {
   activeTab: string
@@ -13,7 +13,7 @@ type TabsContextValue = {
 const TabsContext = createContext<TabsContextValue | null>(null)
 
 function useTabsContext() {
-  const ctx = useContext(TabsContext)
+  const ctx = use(TabsContext)
   if (!ctx) throw new Error('Tabs subcomponents must be used inside <Tabs>')
   return ctx
 }

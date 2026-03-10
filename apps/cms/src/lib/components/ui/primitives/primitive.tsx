@@ -1,4 +1,4 @@
-import * as React from 'react'
+import type * as React from 'react'
 import * as ReactDOM from 'react-dom'
 import { Slot } from './slot'
 
@@ -21,15 +21,15 @@ const NODES = [
   'ul',
 ] as const
 
-type Primitives = {
-  [E in (typeof NODES)[number]]: PrimitiveForwardRefComponent<E>
-}
 type PrimitivePropsWithRef<E extends React.ElementType> = React.ComponentPropsWithRef<E> & {
   asChild?: boolean
 }
 
-interface PrimitiveForwardRefComponent<E extends React.ElementType>
-  extends React.ForwardRefExoticComponent<PrimitivePropsWithRef<E>> {}
+type PrimitiveComponent<E extends React.ElementType> = React.FC<PrimitivePropsWithRef<E>>
+
+type Primitives = {
+  [E in (typeof NODES)[number]]: PrimitiveComponent<E>
+}
 
 /* -------------------------------------------------------------------------------------------------
  * Primitive
@@ -38,22 +38,19 @@ interface PrimitiveForwardRefComponent<E extends React.ElementType>
 const Primitive = {} as Primitives
 
 for (const node of NODES) {
-  const Node = React.forwardRef<React.ElementRef<typeof node>, PrimitivePropsWithRef<typeof node>>(
-    (props, forwardedRef) => {
-      const { asChild, ...primitiveProps } = props
-      const Comp: React.ElementType = asChild ? Slot : node
+  function Node({ asChild, ref, ...primitiveProps }: PrimitivePropsWithRef<typeof node>) {
+    const Comp: React.ElementType = asChild ? Slot : node
 
-      if (typeof window !== 'undefined') {
-        const radixWindow = window as unknown as Window & Record<symbol, boolean>
-        radixWindow[Symbol.for('radix-ui')] = true
-      }
+    if (typeof window !== 'undefined') {
+      const radixWindow = window as unknown as Window & Record<symbol, boolean>
+      radixWindow[Symbol.for('radix-ui')] = true
+    }
 
-      return <Comp {...primitiveProps} ref={forwardedRef} />
-    },
-  )
+    return <Comp {...primitiveProps} ref={ref} />
+  }
 
   Node.displayName = `Primitive.${node}`
-  Primitive[node] = Node
+  ;(Primitive as Record<string, unknown>)[node] = Node
 }
 
 /* -------------------------------------------------------------------------------------------------
@@ -113,99 +110,3 @@ export {
   dispatchDiscreteCustomEvent,
 }
 export type { PrimitivePropsWithRef }
-
-// import React from "react";
-// import { Slot } from "./slot.js";
-
-// const NODES = [
-//   "a",
-//   "button",
-//   "div",
-//   "form",
-//   "h2",
-//   "h3",
-//   "img",
-//   "input",
-//   "label",
-//   "li",
-//   "nav",
-//   "ol",
-//   "p",
-//   "span",
-//   "svg",
-//   "ul",
-// ] as const;
-
-// type Primitives = {
-//   [E in (typeof NODES)[number]]: PrimitiveForwardRefComponent<E>;
-// };
-// type PrimitivePropsWithRef<E extends React.ElementType> =
-//   React.ComponentPropsWithRef<E> & {
-//     asChild?: boolean; // Include asChild in the props
-//   };
-
-// interface PrimitiveForwardRefComponent<E extends React.ElementType>
-//   extends React.ForwardRefExoticComponent<PrimitivePropsWithRef<E>> {}
-
-// const Primitive = NODES.reduce((primitive, node) => {
-//   const Node = React.forwardRef<
-//     HTMLElement,
-//     PrimitivePropsWithRef<typeof node>
-//   >((props, forwardedRef) => {
-//     const { asChild, ...primitiveProps } = props;
-//     const Comp: any = asChild ? Slot : node; // Use Slot if asChild is true
-
-//     return <Comp {...primitiveProps} ref={forwardedRef} />;
-//   });
-
-//   Node.displayName = `Primitive.${node}`;
-//   return { ...primitive, [node]: Node };
-// }, {} as Primitives);
-
-// export { Primitive };
-// export type { Primitives };
-
-// import * as React from "react";
-// import { Slot } from "./Slot"; // Adjust import according to your structure
-
-// const NODES = [
-//   "a",
-//   "button",
-//   "div",
-//   "form",
-//   "h2",
-//   "h3",
-//   "img",
-//   "input",
-//   "label",
-//   "li",
-//   "nav",
-//   "ol",
-//   "p",
-//   "span",
-//   "svg",
-//   "ul",
-// ] as const;
-
-// type Primitives = {
-//   [E in (typeof NODES)[number]]: React.ForwardRefExoticComponent<
-//     React.ComponentPropsWithRef<E>
-//   >;
-// };
-
-// const Primitive = NODES.reduce((primitive, node) => {
-//   const Node = React.forwardRef(
-//     (props: React.ComponentPropsWithRef<typeof node>, forwardedRef) => {
-//       const { asChild, ...primitiveProps } = props;
-//       const Comp: any = asChild ? Slot : node;
-
-//       return <Comp {...primitiveProps} ref={forwardedRef} />;
-//     },
-//   );
-
-//   Node.displayName = `Primitive.${node}`;
-//   return { ...primitive, [node]: Node };
-// }, {} as Primitives);
-
-// export { Primitive };
-// export type { Primitives };

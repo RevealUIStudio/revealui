@@ -1,6 +1,5 @@
 import clsx from 'clsx'
 import type React from 'react'
-import { forwardRef } from 'react'
 import { useDataInteractive } from '../hooks/use-data-interactive.js'
 import { useFieldControlProps } from '../hooks/use-field-context.js'
 
@@ -9,12 +8,17 @@ type TextareaProps = {
   resizable?: boolean
   disabled?: boolean
   invalid?: boolean
+  ref?: React.Ref<HTMLTextAreaElement>
 } & Omit<React.ComponentPropsWithoutRef<'textarea'>, 'className'>
 
-export const Textarea = forwardRef(function Textarea(
-  { className, resizable = true, disabled, invalid, ...props }: TextareaProps,
-  ref: React.ForwardedRef<HTMLTextAreaElement>,
-) {
+export function Textarea({
+  className,
+  resizable = true,
+  disabled,
+  invalid,
+  ref,
+  ...props
+}: TextareaProps) {
   const interactiveProps = useDataInteractive({ disabled })
   const fieldProps = useFieldControlProps()
 
@@ -64,4 +68,4 @@ export const Textarea = forwardRef(function Textarea(
       />
     </span>
   )
-})
+}

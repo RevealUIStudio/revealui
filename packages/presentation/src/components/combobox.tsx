@@ -2,7 +2,7 @@
 
 import clsx from 'clsx'
 import type React from 'react'
-import { createContext, useCallback, useContext, useEffect, useId, useRef, useState } from 'react'
+import { createContext, use, useCallback, useEffect, useId, useRef, useState } from 'react'
 import { createPortal } from 'react-dom'
 import { useClickOutside } from '../hooks/use-click-outside.js'
 import { useControllableState } from '../hooks/use-controllable-state.js'
@@ -25,7 +25,7 @@ interface ComboboxContextValue<T = unknown> {
 const ComboboxContext = createContext<ComboboxContextValue | null>(null)
 
 function useComboboxContext(): ComboboxContextValue {
-  const ctx = useContext(ComboboxContext)
+  const ctx = use(ComboboxContext)
   if (!ctx) {
     throw new Error('Combobox compound components must be used within <Combobox>')
   }
@@ -391,7 +391,7 @@ export function ComboboxOption<T>({
   disabled?: boolean
 }) {
   const { selectedValue, activeIndex, select, setActiveIndex } = useComboboxContext()
-  const index = useContext(ComboboxOptionIndexContext)
+  const index = use(ComboboxOptionIndexContext)
 
   const isSelected = selectedValue === value
   const isActive = activeIndex === index

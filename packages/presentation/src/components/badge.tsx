@@ -1,6 +1,5 @@
 import clsx from 'clsx'
 import type React from 'react'
-import { forwardRef } from 'react'
 import { useDataInteractive } from '../hooks/use-data-interactive.js'
 import { TouchTarget } from './button-headless.js'
 import { Link } from './link.js'
@@ -54,21 +53,19 @@ export function Badge({
   )
 }
 
-export const BadgeButton = forwardRef(function BadgeButton(
-  {
-    color = 'zinc',
-    className,
-    children,
-    ...props
-  }: BadgeProps & { className?: string; children: React.ReactNode } & (
-      | ({
-          href?: never
-          disabled?: boolean
-        } & Omit<React.ComponentPropsWithoutRef<'button'>, 'className'>)
-      | ({ href: string } & Omit<React.ComponentPropsWithoutRef<typeof Link>, 'className'>)
-    ),
-  ref: React.ForwardedRef<HTMLElement>,
-) {
+export function BadgeButton({
+  color = 'zinc',
+  className,
+  children,
+  ref,
+  ...props
+}: BadgeProps & { className?: string; children: React.ReactNode; ref?: React.Ref<HTMLElement> } & (
+    | ({
+        href?: never
+        disabled?: boolean
+      } & Omit<React.ComponentPropsWithoutRef<'button'>, 'className'>)
+    | ({ href: string } & Omit<React.ComponentPropsWithoutRef<typeof Link>, 'className'>)
+  )) {
   const disabled = 'disabled' in props ? props.disabled : false
   const interactiveProps = useDataInteractive({ disabled: disabled ?? false })
 
@@ -78,7 +75,7 @@ export const BadgeButton = forwardRef(function BadgeButton(
   )
 
   return typeof props.href === 'string' ? (
-    <Link {...props} className={classes} ref={ref as React.ForwardedRef<HTMLAnchorElement>}>
+    <Link {...props} className={classes} ref={ref as React.Ref<HTMLAnchorElement>}>
       <TouchTarget>
         <Badge color={color}>{children}</Badge>
       </TouchTarget>
@@ -89,11 +86,11 @@ export const BadgeButton = forwardRef(function BadgeButton(
       {...props}
       {...interactiveProps}
       className={classes}
-      ref={ref as React.ForwardedRef<HTMLButtonElement>}
+      ref={ref as React.Ref<HTMLButtonElement>}
     >
       <TouchTarget>
         <Badge color={color}>{children}</Badge>
       </TouchTarget>
     </button>
   )
-})
+}

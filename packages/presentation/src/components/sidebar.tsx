@@ -2,7 +2,7 @@
 
 import clsx from 'clsx'
 import type React from 'react'
-import { forwardRef, useCallback, useId } from 'react'
+import { useCallback, useId } from 'react'
 import { useCloseContext } from '../hooks/use-close-context.js'
 import { useDataInteractive } from '../hooks/use-data-interactive.js'
 import { LayoutGroup, LayoutIndicator } from '../hooks/use-layout-animation.js'
@@ -84,21 +84,24 @@ export function SidebarHeading({ className, ...props }: React.ComponentPropsWith
   )
 }
 
-export const SidebarItem = forwardRef(function SidebarItem(
-  {
-    current,
-    className,
-    children,
-    ...props
-  }: { current?: boolean; className?: string; children: React.ReactNode } & (
-    | ({
-        href?: never
-        disabled?: boolean
-      } & Omit<React.ComponentPropsWithoutRef<'button'>, 'className'>)
-    | ({ href: string } & Omit<React.ComponentPropsWithoutRef<typeof Link>, 'className'>)
-  ),
-  ref: React.ForwardedRef<HTMLAnchorElement | HTMLButtonElement>,
-) {
+export function SidebarItem({
+  current,
+  className,
+  children,
+  ref,
+  ...props
+}: {
+  current?: boolean
+  className?: string
+  children: React.ReactNode
+  ref?: React.Ref<HTMLAnchorElement | HTMLButtonElement>
+} & (
+  | ({
+      href?: never
+      disabled?: boolean
+    } & Omit<React.ComponentPropsWithoutRef<'button'>, 'className'>)
+  | ({ href: string } & Omit<React.ComponentPropsWithoutRef<typeof Link>, 'className'>)
+)) {
   const disabled = 'disabled' in props ? props.disabled : false
   const interactiveProps = useDataInteractive({ disabled: disabled ?? false })
   const closeFn = useCloseContext()
@@ -150,7 +153,7 @@ export const SidebarItem = forwardRef(function SidebarItem(
           {...props}
           className={classes}
           data-current={current ? 'true' : undefined}
-          ref={ref as React.ForwardedRef<HTMLAnchorElement>}
+          ref={ref as React.Ref<HTMLAnchorElement>}
           onClick={handleLinkClick}
         >
           <TouchTarget>{children}</TouchTarget>
@@ -162,14 +165,14 @@ export const SidebarItem = forwardRef(function SidebarItem(
           {...interactiveProps}
           className={clsx('cursor-default', classes)}
           data-current={current ? 'true' : undefined}
-          ref={ref as React.ForwardedRef<HTMLButtonElement>}
+          ref={ref as React.Ref<HTMLButtonElement>}
         >
           <TouchTarget>{children}</TouchTarget>
         </button>
       )}
     </span>
   )
-})
+}
 
 export function SidebarLabel({ className, ...props }: React.ComponentPropsWithoutRef<'span'>) {
   return <span {...props} className={clsx(className, 'truncate')} />

@@ -1,6 +1,5 @@
 import clsx from 'clsx'
 import type React from 'react'
-import { forwardRef } from 'react'
 import { useDataInteractive } from '../hooks/use-data-interactive.js'
 import { useFieldControlProps } from '../hooks/use-field-context.js'
 
@@ -9,12 +8,10 @@ type SelectProps = {
   multiple?: boolean
   disabled?: boolean
   invalid?: boolean
+  ref?: React.Ref<HTMLSelectElement>
 } & Omit<React.ComponentPropsWithoutRef<'select'>, 'className'>
 
-export const Select = forwardRef(function Select(
-  { className, multiple, disabled, invalid, ...props }: SelectProps,
-  ref: React.ForwardedRef<HTMLSelectElement>,
-) {
+export function Select({ className, multiple, disabled, invalid, ref, ...props }: SelectProps) {
   const interactiveProps = useDataInteractive({ disabled })
   const fieldProps = useFieldControlProps()
 
@@ -92,4 +89,4 @@ export const Select = forwardRef(function Select(
       )}
     </span>
   )
-})
+}
