@@ -10,6 +10,7 @@
  */
 
 import { createRoute, OpenAPIHono, z } from '@hono/zod-openapi'
+import { TICKET_PRIORITIES, TICKET_STATUSES, TICKET_TYPES } from '@revealui/contracts/entities'
 import type { DatabaseClient } from '@revealui/db/client'
 import * as boardQueries from '@revealui/db/queries/boards'
 import * as commentQueries from '@revealui/db/queries/ticket-comments'
@@ -134,9 +135,9 @@ const TicketSchema = z
     ticketNumber: z.number(),
     title: z.string(),
     description: z.unknown().nullable(),
-    status: z.string(),
-    priority: z.string(),
-    type: z.string(),
+    status: z.enum(TICKET_STATUSES as unknown as [string, ...string[]]),
+    priority: z.enum(TICKET_PRIORITIES as unknown as [string, ...string[]]),
+    type: z.enum(TICKET_TYPES as unknown as [string, ...string[]]),
     assigneeId: z.string().nullable(),
     reporterId: z.string().nullable(),
     dueDate: z.string().nullable().openapi({ type: 'string', format: 'date-time' }),
