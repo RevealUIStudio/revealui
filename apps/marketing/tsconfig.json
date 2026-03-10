@@ -27,12 +27,7 @@
     },
     "target": "ES2022"
   },
-  "include": [
-    "src/**/*.ts",
-    "src/**/*.tsx",
-    "next-env.d.ts",
-    ".next/types/**/*.ts"
-  ],
+  "include": ["src/**/*.ts", "src/**/*.tsx", "next-env.d.ts", ".next/types/**/*.ts"],
   "typeAcquisition": {
     "enable": false
   },

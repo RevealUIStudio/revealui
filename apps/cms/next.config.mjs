@@ -84,7 +84,7 @@ const nextConfig = {
               protocol: url.protocol.replace(':', ''),
             }
           } catch (_error) {
-            console.error('Invalid URL in NEXT_PUBLIC_SERVER_URL:', item)
+            // Silently skip malformed URLs — validation happens at runtime
             return null
           }
         })

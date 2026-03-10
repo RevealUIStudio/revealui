@@ -8,5 +8,14 @@ export default defineConfig({
     exclude: ['**/node_modules/**'],
     testTimeout: 30000,
     hookTimeout: 10000,
+    coverage: {
+      provider: 'v8',
+      thresholds: {
+        lines: 60,
+        functions: 60,
+        branches: 55,
+        statements: 60,
+      },
+    },
   },
 })

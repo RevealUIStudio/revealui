@@ -51,7 +51,7 @@ import apiKeysApp from '../api-keys.js'
 vi.mock('../../middleware/error.js', async () => {
   const { HTTPException } = await import('hono/http-exception')
   return {
-    errorHandler: (err: unknown, c: { json: Function }) => {
+    errorHandler: (err: unknown, c: { json: (...args: unknown[]) => unknown }) => {
       if (err instanceof HTTPException) {
         return c.json(
           { error: (err as HTTPException).message, code: `HTTP_${(err as HTTPException).status}` },

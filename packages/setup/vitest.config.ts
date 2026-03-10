@@ -6,5 +6,14 @@ export default defineConfig({
     environment: 'node',
     // Allow empty test suite until tests are added
     passWithNoTests: true,
+    coverage: {
+      provider: 'v8',
+      thresholds: {
+        lines: 60,
+        functions: 60,
+        branches: 55,
+        statements: 60,
+      },
+    },
   },
 })
