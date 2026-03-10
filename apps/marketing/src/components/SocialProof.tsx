@@ -1,8 +1,8 @@
 export function SocialProof() {
   const stats = [
-    { value: '18', label: 'packages' },
-    { value: '320K+', label: 'lines of TypeScript' },
-    { value: '1,400+', label: 'tests' },
+    { value: '20', label: 'packages' },
+    { value: '340K+', label: 'lines of TypeScript' },
+    { value: '6,400+', label: 'tests' },
     { value: '5', label: 'apps deployed' },
   ]
 
