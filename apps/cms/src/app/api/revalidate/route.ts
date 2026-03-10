@@ -1,5 +1,6 @@
 export const runtime = 'nodejs'
 
+import crypto from 'node:crypto'
 import { revalidatePath, revalidateTag } from 'next/cache'
 import { type NextRequest, NextResponse } from 'next/server'
 
@@ -14,7 +15,12 @@ export const dynamic = 'force-dynamic'
  */
 export async function POST(request: NextRequest): Promise<NextResponse> {
   const secret = request.headers.get('x-revalidate-secret')
-  if (!secret || secret !== process.env.REVEALUI_SECRET) {
+  const expected = process.env.REVEALUI_SECRET
+  if (
+    !(secret && expected) ||
+    secret.length !== expected.length ||
+    !crypto.timingSafeEqual(Buffer.from(secret), Buffer.from(expected))
+  ) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
   }
 

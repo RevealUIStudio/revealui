@@ -6,10 +6,16 @@
  * This endpoint uses Supabase vector database for semantic search.
  */
 
-import { getSession } from '@revealui/auth/server'
+import { checkRateLimit, getSession } from '@revealui/auth/server'
 import { logger } from '@revealui/core/observability/logger'
 import { type NextRequest, NextResponse } from 'next/server'
 import { createErrorResponse, createValidationErrorResponse } from '@/lib/utils/error-response'
+
+/** Rate limit: 30 requests per minute per user */
+const MEMORY_SEARCH_RATE_LIMIT = {
+  maxAttempts: 30,
+  windowMs: 60 * 1000,
+} as const
 
 export const dynamic = 'force-dynamic'
 export const runtime = 'nodejs'
@@ -36,6 +42,24 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
     const authSession = await getSession(request.headers)
     if (!authSession) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+    }
+
+    // Rate limit per user
+    const rateLimit = await checkRateLimit(
+      `memory_search:${authSession.user.id}`,
+      MEMORY_SEARCH_RATE_LIMIT,
+    )
+    if (!rateLimit.allowed) {
+      return NextResponse.json(
+        {
+          error: 'Too many requests',
+          retryAfter: Math.ceil((rateLimit.resetAt - Date.now()) / 1000),
+        },
+        {
+          status: 429,
+          headers: { 'Retry-After': String(Math.ceil((rateLimit.resetAt - Date.now()) / 1000)) },
+        },
+      )
     }
 
     let body: unknown
