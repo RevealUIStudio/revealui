@@ -54,8 +54,9 @@ const optionalSchema = z.object({
   REVEALUI_ADMIN_PASSWORD: z.string().min(12, 'Password must be at least 12 characters').optional(),
 
   // CORS
-  REVEALUI_CORS_ORIGINS: z.string().optional(),
-  REVEALUI_WHITELISTORIGINS: z.string().optional(), // Deprecated
+  CORS_ORIGIN: z.string().optional(), // API: comma-separated allowed origins (required in production)
+  REVEALUI_CORS_ORIGINS: z.string().optional(), // CMS: comma-separated allowed origins (alias for CORS_ORIGIN)
+  REVEALUI_WHITELISTORIGINS: z.string().optional(), // Deprecated — use CORS_ORIGIN
 
   // Database
   DATABASE_URL: postgresUrlSchema.optional(), // Accepts DATABASE_URL as alternative to POSTGRES_URL
