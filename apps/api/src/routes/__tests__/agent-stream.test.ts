@@ -68,7 +68,7 @@ describe('agent-stream route', () => {
 
     expect(res.status).toBe(503)
     const body = await parseBody(res)
-    expect(body.error).toContain('AI package not available')
+    expect(body.error).toContain('AI provider not configured')
   })
 
   it('returns 400 with empty instruction string', async () => {

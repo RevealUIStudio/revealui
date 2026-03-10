@@ -36,7 +36,16 @@ export async function exchangeCode(code: string, redirectUri: string): Promise<s
   })
 
   if (!response.ok) {
-    throw new Error(`GitHub token exchange failed: ${response.status}`)
+    let detail = ''
+    try {
+      const err = (await response.json()) as { error_description?: string; error?: string }
+      detail = err.error_description ?? err.error ?? ''
+    } catch {
+      // Response body not JSON — use status only
+    }
+    throw new Error(
+      `GitHub token exchange failed: ${response.status}${detail ? ` — ${detail}` : ''}`,
+    )
   }
 
   const data = (await response.json()) as { access_token?: string; error?: string }
@@ -59,7 +68,16 @@ export async function fetchUser(accessToken: string): Promise<ProviderUser> {
 
   const userResponse = await fetch('https://api.github.com/user', { headers })
   if (!userResponse.ok) {
-    throw new Error(`GitHub user fetch failed: ${userResponse.status}`)
+    let detail = ''
+    try {
+      const err = (await userResponse.json()) as { message?: string }
+      detail = err.message ?? ''
+    } catch {
+      // Response body not JSON
+    }
+    throw new Error(
+      `GitHub user fetch failed: ${userResponse.status}${detail ? ` — ${detail}` : ''}`,
+    )
   }
 
   const user = (await userResponse.json()) as {

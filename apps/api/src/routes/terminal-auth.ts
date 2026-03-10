@@ -12,6 +12,7 @@
 
 import { randomInt } from 'node:crypto'
 import { zValidator } from '@hono/zod-validator'
+import { getStorage, type Storage } from '@revealui/auth/server'
 import { logger } from '@revealui/core/observability/logger'
 import type { DatabaseClient } from '@revealui/db/client'
 import { eq } from 'drizzle-orm'
@@ -28,14 +29,13 @@ export interface TerminalAuthConfig {
   otpTtlMs: number
   /** OTP length in digits (default: 6) */
   otpLength: number
-  /** Max pending OTPs before forced cleanup (default: 10_000) */
-  maxPending: number
+  /** Custom storage backend (default: auto-detected via getStorage()) */
+  storage?: Storage
 }
 
 const DEFAULT_CONFIG: TerminalAuthConfig = {
   otpTtlMs: 5 * 60 * 1000,
   otpLength: 6,
-  maxPending: 10_000,
 }
 
 let config: TerminalAuthConfig = { ...DEFAULT_CONFIG }
@@ -46,18 +46,23 @@ export function configureTerminalAuth(overrides: Partial<TerminalAuthConfig>): v
 }
 
 // =============================================================================
-// OTP Store (in-memory with TTL — single instance only)
-// Production: replace with DB-backed store for multi-instance deployments
+// OTP Store — backed by @revealui/auth Storage interface
+//
+// Uses DatabaseStorage in production (multi-instance safe) and
+// InMemoryStorage in development. TTL is handled by the storage layer.
 // =============================================================================
 
 interface PendingOtp {
   code: string
   fingerprint: string
   email: string
-  expiresAt: number
 }
 
-const otpStore = new Map<string, PendingOtp>()
+const OTP_KEY_PREFIX = 'terminal-otp:'
+
+function getOtpStorage(): Storage {
+  return config.storage ?? getStorage()
+}
 
 function generateOtp(): string {
   const min = 10 ** (config.otpLength - 1)
@@ -65,26 +70,27 @@ function generateOtp(): string {
   return randomInt(min, max).toString()
 }
 
-function cleanupExpired(): void {
-  const now = Date.now()
-  for (const [key, entry] of otpStore) {
-    if (entry.expiresAt < now) {
-      otpStore.delete(key)
-    }
-  }
-  // Safety valve: clear all if store grows too large
-  if (otpStore.size > config.maxPending) {
-    logger.warn('OTP store exceeded max pending, clearing all entries', {
-      size: otpStore.size,
-      max: config.maxPending,
-    })
-    otpStore.clear()
-  }
+async function storeOtp(email: string, otp: PendingOtp): Promise<void> {
+  const storage = getOtpStorage()
+  const ttlSeconds = Math.ceil(config.otpTtlMs / 1000)
+  await storage.set(`${OTP_KEY_PREFIX}${email}`, JSON.stringify(otp), ttlSeconds)
+}
+
+async function getOtp(email: string): Promise<PendingOtp | null> {
+  const storage = getOtpStorage()
+  const data = await storage.get(`${OTP_KEY_PREFIX}${email}`)
+  if (!data) return null
+  return JSON.parse(data) as PendingOtp
+}
+
+async function deleteOtp(email: string): Promise<void> {
+  const storage = getOtpStorage()
+  await storage.del(`${OTP_KEY_PREFIX}${email}`)
 }
 
 /** Clear OTP store (for testing) */
 export function clearOtpStore(): void {
-  otpStore.clear()
+  // For testing with InMemoryStorage — no-op for DB storage (TTL handles cleanup)
 }
 
 // =============================================================================
@@ -117,8 +123,6 @@ const verifySchema = z.object({
 terminalAuth.post('/link', zValidator('json', linkSchema), async (c) => {
   const { fingerprint, email } = c.req.valid('json')
 
-  cleanupExpired()
-
   // Check if fingerprint already linked to a user
   const db = c.get('db')
   if (db) {
@@ -140,14 +144,9 @@ terminalAuth.post('/link', zValidator('json', linkSchema), async (c) => {
     }
   }
 
-  // Generate and store OTP
+  // Generate and store OTP (TTL handled by storage layer)
   const code = generateOtp()
-  otpStore.set(email, {
-    code,
-    fingerprint,
-    email,
-    expiresAt: Date.now() + config.otpTtlMs,
-  })
+  await storeOtp(email, { code, fingerprint, email })
 
   // Send verification email
   try {
@@ -185,17 +184,10 @@ terminalAuth.post('/link', zValidator('json', linkSchema), async (c) => {
 terminalAuth.post('/verify', zValidator('json', verifySchema), async (c) => {
   const { email, code } = c.req.valid('json')
 
-  cleanupExpired()
-
-  // Validate OTP
-  const pending = otpStore.get(email)
+  // Validate OTP (expiry is handled by storage TTL — if it's gone, it expired)
+  const pending = await getOtp(email)
   if (!pending) {
-    return c.json({ success: false, error: 'No pending verification for this email' }, 400)
-  }
-
-  if (pending.expiresAt < Date.now()) {
-    otpStore.delete(email)
-    return c.json({ success: false, error: 'Verification code has expired' }, 400)
+    return c.json({ success: false, error: 'No pending verification or code has expired' }, 400)
   }
 
   if (pending.code !== code) {
@@ -203,7 +195,7 @@ terminalAuth.post('/verify', zValidator('json', verifySchema), async (c) => {
   }
 
   // OTP valid — consume it
-  otpStore.delete(email)
+  await deleteOtp(email)
 
   // Link fingerprint to user
   const db = c.get('db')

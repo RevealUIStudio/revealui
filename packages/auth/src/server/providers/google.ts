@@ -32,7 +32,16 @@ export async function exchangeCode(code: string, redirectUri: string): Promise<s
   })
 
   if (!response.ok) {
-    throw new Error(`Google token exchange failed: ${response.status}`)
+    let detail = ''
+    try {
+      const err = (await response.json()) as { error_description?: string; error?: string }
+      detail = err.error_description ?? err.error ?? ''
+    } catch {
+      // Response body not JSON — use status only
+    }
+    throw new Error(
+      `Google token exchange failed: ${response.status}${detail ? ` — ${detail}` : ''}`,
+    )
   }
 
   const data = (await response.json()) as { access_token?: string }
@@ -49,7 +58,16 @@ export async function fetchUser(accessToken: string): Promise<ProviderUser> {
   })
 
   if (!response.ok) {
-    throw new Error(`Google userinfo fetch failed: ${response.status}`)
+    let detail = ''
+    try {
+      const err = (await response.json()) as { error?: { message?: string } }
+      detail = err.error?.message ?? ''
+    } catch {
+      // Response body not JSON
+    }
+    throw new Error(
+      `Google userinfo fetch failed: ${response.status}${detail ? ` — ${detail}` : ''}`,
+    )
   }
 
   const data = (await response.json()) as {
