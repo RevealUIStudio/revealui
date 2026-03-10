@@ -83,9 +83,17 @@ export interface PaginationLinkProps
   isActive?: boolean
 }
 
-const PaginationLink = ({ className, isActive, size = 'icon', ...props }: PaginationLinkProps) => (
+const PaginationLink = ({
+  className,
+  isActive,
+  size = 'icon',
+  disabled,
+  ...props
+}: PaginationLinkProps) => (
   <button
     aria-current={isActive ? 'page' : undefined}
+    aria-disabled={disabled ? true : undefined}
+    disabled={disabled}
     className={cn(
       buttonVariants({
         size,
