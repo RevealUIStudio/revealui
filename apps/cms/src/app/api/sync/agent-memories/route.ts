@@ -43,6 +43,7 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
 
     const body = (await request.json()) as {
       agent_id?: string
+      site_id?: string
       content?: string
       type?: string
       source?: Record<string, unknown>
@@ -78,6 +79,10 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
       )
     }
 
+    if (!body.site_id || body.site_id.trim().length === 0) {
+      return createValidationErrorResponse('site_id is required', 'site_id', body.site_id)
+    }
+
     const db = getClient()
     const id = crypto.randomUUID()
     const now = new Date()
@@ -87,6 +92,7 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
       .values({
         id,
         agentId: body.agent_id,
+        siteId: body.site_id,
         content: body.content,
         type: body.type,
         source: body.source,
