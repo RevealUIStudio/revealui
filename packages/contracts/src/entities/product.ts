@@ -101,12 +101,11 @@ export type ProductStatus = z.infer<typeof ProductStatusSchema>
 // Content Blocks
 // =============================================================================
 
-const ProductBlockSchema = z
-  .object({
-    blockType: z.string(),
-    blockName: z.string().optional(),
-  })
-  .passthrough()
+const ProductBlockSchema = z.object({
+  blockType: z.string(),
+  blockName: z.string().optional(),
+  data: z.record(z.string(), z.unknown()).optional(),
+})
 
 // =============================================================================
 // Product Base Schema
@@ -155,13 +154,13 @@ const ProductObjectSchema = DualEntitySchema.extend({
 
   /** Categories (populated or IDs) */
   categories: z
-    .array(z.union([z.number().int().positive(), z.object({}).passthrough()]))
+    .array(z.union([z.number().int().positive(), z.object({ id: z.number() }).passthrough()]))
     .nullable()
     .optional(),
 
   /** Related products (populated or IDs) */
   relatedProducts: z
-    .array(z.union([z.number().int().positive(), z.object({}).passthrough()]))
+    .array(z.union([z.number().int().positive(), z.object({ id: z.number() }).passthrough()]))
     .nullable()
     .optional(),
 

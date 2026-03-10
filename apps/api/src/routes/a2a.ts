@@ -18,7 +18,7 @@
  */
 
 import type { A2AJsonRpcRequest } from '@revealui/contracts'
-import { A2AJsonRpcRequestSchema, AgentDefinitionSchema } from '@revealui/contracts'
+import { A2AJsonRpcRequestSchema, AgentDefinitionSchema, LLM_PROVIDERS } from '@revealui/contracts'
 import { isFeatureEnabled } from '@revealui/core/features'
 import { logger } from '@revealui/core/observability/logger'
 import { getClient } from '@revealui/db'
@@ -72,7 +72,7 @@ function getBaseUrl(req: Request): string {
 
 // Build an LLMClient from BYOK headers (X-AI-Provider + X-AI-Api-Key).
 // Keys are never stored — they exist only for the duration of this request.
-const VALID_PROVIDERS = new Set<string>(['openai', 'anthropic', 'groq', 'ollama', 'vultr'])
+const VALID_PROVIDERS = new Set<string>(LLM_PROVIDERS)
 async function llmClientFromRequest(req: Request): Promise<unknown | undefined> {
   const provider = req.headers.get('X-AI-Provider')
   const apiKey = req.headers.get('X-AI-Api-Key')

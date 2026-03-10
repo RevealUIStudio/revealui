@@ -26,6 +26,7 @@ import {
 // =============================================================================
 
 export const USER_SCHEMA_VERSION = 1
+export const SESSION_SCHEMA_VERSION = 1
 
 // =============================================================================
 // User Types
@@ -272,7 +273,7 @@ export const SessionSchema = z.object({
   id: z.string(),
 
   /** Schema version */
-  version: z.number().int().default(USER_SCHEMA_VERSION),
+  version: z.number().int().default(SESSION_SCHEMA_VERSION),
 
   /** User who owns this session */
   userId: z.string(),
@@ -318,7 +319,7 @@ export function createSession(
   const now = new Date().toISOString()
   return {
     id,
-    version: USER_SCHEMA_VERSION,
+    version: SESSION_SCHEMA_VERSION,
     userId,
     tokenHash,
     expiresAt: expiresAt.toISOString(),
