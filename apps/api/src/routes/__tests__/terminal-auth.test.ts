@@ -8,6 +8,33 @@ vi.mock('@revealui/core/observability/logger', () => ({
   logger: { info: vi.fn(), error: vi.fn(), warn: vi.fn(), debug: vi.fn() },
 }))
 
+// Mock auth storage with a simple in-memory Map so tests don't need real DB
+const mockStore = new Map<string, { value: string; expiresAt: number }>()
+vi.mock('@revealui/auth/server', () => ({
+  getStorage: () => ({
+    get: async (key: string) => {
+      const entry = mockStore.get(key)
+      if (!entry) return null
+      if (entry.expiresAt && entry.expiresAt < Date.now()) {
+        mockStore.delete(key)
+        return null
+      }
+      return entry.value
+    },
+    set: async (key: string, value: string, ttlSeconds?: number) => {
+      mockStore.set(key, {
+        value,
+        expiresAt: ttlSeconds ? Date.now() + ttlSeconds * 1000 : Number.POSITIVE_INFINITY,
+      })
+    },
+    del: async (key: string) => {
+      mockStore.delete(key)
+    },
+    exists: async (key: string) => mockStore.has(key),
+    incr: async () => 1,
+  }),
+}))
+
 const mockSendEmail = vi.fn().mockResolvedValue(undefined)
 vi.mock('../../lib/email.js', () => ({
   sendEmail: (...args: unknown[]) => mockSendEmail(...args),
@@ -53,11 +80,13 @@ async function parseBody(res: Response): Promise<any> {
 describe('terminal-auth routes', () => {
   beforeEach(() => {
     vi.clearAllMocks()
+    mockStore.clear()
     clearOtpStore()
-    configureTerminalAuth({ otpTtlMs: 5 * 60 * 1000, otpLength: 6, maxPending: 10_000 })
+    configureTerminalAuth({ otpTtlMs: 5 * 60 * 1000, otpLength: 6 })
   })
 
   afterEach(() => {
+    mockStore.clear()
     clearOtpStore()
   })
 
@@ -178,7 +207,7 @@ describe('terminal-auth routes', () => {
     })
 
     it('returns error for expired OTP', async () => {
-      // Set very short TTL
+      // Set very short TTL (1ms → rounds up to 1s in storage, so simulate expiry manually)
       configureTerminalAuth({ otpTtlMs: 1 })
 
       const app = createApp()
@@ -187,15 +216,19 @@ describe('terminal-auth routes', () => {
         email: 'expired@example.com',
       })
 
-      // Wait for expiry
-      await new Promise((r) => setTimeout(r, 10))
+      // Manually expire the entry in mock storage
+      const key = 'terminal-otp:expired@example.com'
+      const entry = mockStore.get(key)
+      if (entry) {
+        mockStore.set(key, { ...entry, expiresAt: Date.now() - 1 })
+      }
 
       const res = await jsonPost(app, '/terminal-auth/verify', {
         email: 'expired@example.com',
         code: '123456',
       })
 
-      // cleanupExpired() runs before lookup, so expired OTP is already deleted
+      // Storage returns null for expired entries
       expect(res.status).toBe(400)
       const body = await parseBody(res)
       expect(body.error).toContain('No pending verification')

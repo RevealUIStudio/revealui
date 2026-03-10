@@ -55,3 +55,11 @@ export {
   deleteSession,
   getSession,
 } from './session.js'
+export type { Storage } from './storage/index.js'
+export {
+  createStorage,
+  DatabaseStorage,
+  getStorage,
+  InMemoryStorage,
+  resetStorage,
+} from './storage/index.js'

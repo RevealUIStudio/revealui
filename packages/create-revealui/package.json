@@ -27,5 +27,10 @@
     "create-revealui",
     "scaffolding",
     "cli"
-  ]
+  ],
+  "scripts": {
+    "lint": "biome check .",
+    "test": "echo 'No tests — thin wrapper for @revealui/cli'",
+    "typecheck": "echo 'No source — bin wrapper only'"
+  }
 }
