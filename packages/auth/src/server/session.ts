@@ -193,6 +193,63 @@ export async function createSession(
 }
 
 /**
+ * Rotate a user's session to prevent session fixation attacks.
+ *
+ * Deletes the old session (by token hash) or all sessions for the user,
+ * then creates a fresh session with a new token.
+ *
+ * @param userId - User ID to rotate sessions for
+ * @param options - Rotation options
+ * @returns New session token and session data
+ */
+export async function rotateSession(
+  userId: string,
+  options?: {
+    /** Raw token of the old session to invalidate. When omitted, all user sessions are deleted. */
+    oldSessionToken?: string
+    persistent?: boolean
+    userAgent?: string
+    ipAddress?: string
+  },
+): Promise<{ token: string; session: Session }> {
+  try {
+    let db: ReturnType<typeof getClient>
+    try {
+      db = getClient()
+    } catch (error: unknown) {
+      logger.error('Error getting database client in rotateSession')
+      throw new DatabaseError('Database connection failed', error)
+    }
+
+    // Invalidate old session(s)
+    try {
+      if (options?.oldSessionToken) {
+        const oldTokenHash = hashToken(options.oldSessionToken)
+        await db.delete(sessions).where(eq(sessions.tokenHash, oldTokenHash))
+      } else {
+        await db.delete(sessions).where(eq(sessions.userId, userId))
+      }
+    } catch (error: unknown) {
+      logger.error('Error deleting old session(s) during rotation')
+      throw new DatabaseError('Failed to delete old session(s)', error)
+    }
+
+    // Create a fresh session
+    return await createSession(userId, {
+      persistent: options?.persistent,
+      userAgent: options?.userAgent,
+      ipAddress: options?.ipAddress,
+    })
+  } catch (err: unknown) {
+    if (err instanceof DatabaseError || err instanceof TokenError) {
+      throw err
+    }
+    logger.error('Unexpected error in rotateSession')
+    throw new DatabaseError('Unexpected error rotating session', err)
+  }
+}
+
+/**
  * Delete a session (sign out)
  *
  * @param headers - Request headers containing session cookie

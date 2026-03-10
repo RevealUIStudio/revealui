@@ -54,6 +54,7 @@ export {
   deleteAllUserSessions,
   deleteSession,
   getSession,
+  rotateSession,
 } from './session.js'
 export type { Storage } from './storage/index.js'
 export {
