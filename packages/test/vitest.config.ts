@@ -25,8 +25,7 @@ export default defineConfig({
       VITEST: 'true',
       NODE_ENV: 'test',
     },
-    // Unit tests can run in parallel (no shared state)
-    pool: 'threads',
+    pool: 'forks',
     coverage: {
       provider: 'v8',
       reporter: ['text', 'json', 'html', 'lcov'],

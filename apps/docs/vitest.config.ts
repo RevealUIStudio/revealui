@@ -14,11 +14,11 @@ export default defineConfig({
     // Increased timeout to prevent worker init failures under full monorepo parallel load
     testTimeout: 30_000,
     hookTimeout: 30_000,
-    pool: 'threads',
+    pool: 'forks',
     poolOptions: {
-      threads: {
-        maxThreads: 1,
-        minThreads: 1,
+      forks: {
+        maxForks: 1,
+        minForks: 1,
       },
     },
   },
