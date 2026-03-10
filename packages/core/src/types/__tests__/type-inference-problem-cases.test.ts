@@ -267,8 +267,8 @@ describe('Problem Case Type Inference', () => {
         expectTypeOf(isEmailField).toEqualTypeOf<boolean>()
       }
 
-      // All assertions should have worked
-      expect(true).toBe(true)
+      // Validation passed for all required fields
+      expect(Object.keys(data)).toEqual(expect.arrayContaining(['email', 'name']))
     })
 
     it('should work with field conversion utilities', () => {

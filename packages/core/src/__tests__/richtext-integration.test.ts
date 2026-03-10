@@ -182,14 +182,3 @@ describe('RichText Serialization', () => {
     expect(result).not.toBeNull()
   })
 })
-
-// ============================================
-// CMS CRUD TESTS (skipped - requires database layer)
-// ============================================
-
-describe.skip('CMS CRUD Operations', () => {
-  it('placeholder for future CMS integration tests', () => {
-    // TODO: Enable when createRevealUIInstance is implemented
-    expect(true).toBe(true)
-  })
-})

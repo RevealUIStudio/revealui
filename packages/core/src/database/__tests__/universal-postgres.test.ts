@@ -839,8 +839,10 @@ describe('universalPostgresAdapter', () => {
       mockPGliteQuery.mockResolvedValue({ rows: [], rowCount: 0 })
       await adapter2.init?.()
 
-      // Both should work without errors
-      expect(true).toBe(true)
+      // Verify the new adapter can execute queries after clearing
+      const result = await adapter2.query('SELECT 1', [])
+      expect(result.rows).toBeDefined()
+      expect(result.rowCount).toBe(0)
     })
 
     it('should clear all workers when clearAllWorkers is true', async () => {
@@ -856,11 +858,13 @@ describe('universalPostgresAdapter', () => {
       // Clear all
       clearGlobalPGlite(true)
 
-      // After clearing all, new instances should be created
+      // After clearing all, new instances should be created and functional
       const adapterC = universalPostgresAdapter({ provider: 'electric' })
       await adapterC.init?.()
 
-      expect(true).toBe(true)
+      const result = await adapterC.query('SELECT 1', [])
+      expect(result.rows).toBeDefined()
+      expect(result.rowCount).toBe(0)
     })
   })
 
