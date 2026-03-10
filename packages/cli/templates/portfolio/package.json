@@ -19,7 +19,7 @@
     "@revealui/config": "^0.2.0",
     "@revealui/db": "^0.2.0",
     "@revealui/auth": "^0.2.0",
-    "@revealui/contracts": "^0.2.0",
+    "@revealui/contracts": "^1.1.0",
     "next": "^16.0.0",
     "react": "^19.0.0",
     "react-dom": "^19.0.0",
@@ -27,7 +27,7 @@
     "zod": "^4.0.0"
   },
   "devDependencies": {
-    "@revealui/dev": "^0.2.0",
+    "@revealui/dev": "^0.0.1",
     "@tailwindcss/postcss": "^4.1.0",
     "tailwindcss": "^4.1.0",
     "typescript": "^5.9.0",
