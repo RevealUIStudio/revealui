@@ -5,7 +5,7 @@
  * All API keys remain server-side, preventing exposure
  */
 
-import { useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 
 interface SpeechRecognitionEvent {
   results: {
@@ -47,6 +47,14 @@ export function useChat(): {
 } {
   const [transcript, setTranscript] = useState('')
   const [isLoading, setIsLoading] = useState(false)
+  const recognitionRef = useRef<SpeechRecognitionInstance | null>(null)
+
+  // Clean up speech recognition on unmount
+  useEffect(() => {
+    return () => {
+      recognitionRef.current?.stop()
+    }
+  }, [])
 
   /**
    * Send message to server-side chat API
@@ -87,17 +95,20 @@ export function useChat(): {
 
   // Voice recognition setup using Web Speech API
   const startVoiceRecognition = (): void => {
-    const SpeechRecognition =
+    const SpeechRecognitionCtor =
       (typeof window !== 'undefined' &&
         (window.SpeechRecognition || window.webkitSpeechRecognition)) ||
       undefined
 
-    if (!SpeechRecognition) {
+    if (!SpeechRecognitionCtor) {
       // Speech recognition not supported - silently return
       return
     }
 
-    const recognition = new SpeechRecognition()
+    // Stop any existing recognition before starting a new one
+    recognitionRef.current?.stop()
+
+    const recognition = new SpeechRecognitionCtor()
     recognition.lang = 'en-US'
     recognition.interimResults = false
     recognition.maxAlternatives = 1
@@ -107,22 +118,15 @@ export function useChat(): {
       setTranscript(speechResult)
     }
 
+    recognitionRef.current = recognition
     recognition.start()
   }
 
   const stopVoiceRecognition = (): void => {
-    const SpeechRecognition =
-      (typeof window !== 'undefined' &&
-        (window.SpeechRecognition || window.webkitSpeechRecognition)) ||
-      undefined
-
-    if (!SpeechRecognition) {
-      // Speech recognition not supported - silently return
-      return
+    if (recognitionRef.current) {
+      recognitionRef.current.stop()
+      recognitionRef.current = null
     }
-
-    const recognition = new SpeechRecognition()
-    recognition.stop()
   }
 
   return {

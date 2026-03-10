@@ -36,16 +36,19 @@ const RevealUIAdminBar: React.FC<RevealUIAdminBarProps> = (props) => {
 
   // Fetch user on mount
   React.useEffect(() => {
-    fetch('/api/auth/me')
+    const controller = new AbortController()
+    fetch('/api/auth/me', { signal: controller.signal })
       .then((res) => res.json())
       .then((data) => {
         if (onAuthChange && data?.user) {
           onAuthChange(data.user)
         }
       })
-      .catch(() => {
+      .catch((err: unknown) => {
+        if (err instanceof Error && err.name === 'AbortError') return
         // User not logged in
       })
+    return () => controller.abort()
   }, [onAuthChange])
 
   return (
