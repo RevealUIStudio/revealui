@@ -38,6 +38,27 @@ const licensePayloadSchema = z.object({
 
 export type LicensePayload = z.infer<typeof licensePayloadSchema>
 
+/** License cache TTL configuration */
+export interface LicenseCacheConfig {
+  /** Cache TTL in milliseconds (default: 24 hours) */
+  ttlMs: number
+}
+
+const DEFAULT_CACHE_CONFIG: LicenseCacheConfig = {
+  ttlMs: 24 * 60 * 60 * 1000,
+}
+
+let cacheConfig: LicenseCacheConfig = { ...DEFAULT_CACHE_CONFIG }
+let cachedAt = 0
+
+/**
+ * Configure the license cache TTL.
+ * Useful for tests (short TTL) or deployments needing faster revocation detection.
+ */
+export function configureLicenseCache(overrides: Partial<LicenseCacheConfig>): void {
+  cacheConfig = { ...DEFAULT_CACHE_CONFIG, ...overrides }
+}
+
 /** Cached license state */
 interface LicenseState {
   tier: LicenseTier
@@ -104,6 +125,7 @@ export async function initializeLicense(): Promise<LicenseTier> {
 
   if (!(licenseKey && publicKey)) {
     cachedState = { tier: 'free', payload: null, validatedAt: Date.now() }
+    cachedAt = Date.now()
     return 'free'
   }
 
@@ -111,6 +133,7 @@ export async function initializeLicense(): Promise<LicenseTier> {
 
   if (!payload) {
     cachedState = { tier: 'free', payload: null, validatedAt: Date.now() }
+    cachedAt = Date.now()
     return 'free'
   }
 
@@ -119,22 +142,36 @@ export async function initializeLicense(): Promise<LicenseTier> {
     payload,
     validatedAt: Date.now(),
   }
+  cachedAt = Date.now()
 
   return payload.tier
 }
 
 /**
+ * Invalidates the cached license state if it has exceeded the configured TTL.
+ * After invalidation, the license defaults to 'free' until re-initialized.
+ */
+function evictStaleCache(): void {
+  if (cachedAt > 0 && Date.now() - cachedAt > cacheConfig.ttlMs) {
+    cachedState = { tier: 'free', payload: null, validatedAt: null }
+    cachedAt = 0
+  }
+}
+
+/**
  * Returns the current license tier.
- * If the license hasn't been initialized, returns 'free'.
+ * If the license hasn't been initialized or the cache has expired, returns 'free'.
  */
 export function getCurrentTier(): LicenseTier {
+  evictStaleCache()
   return cachedState.tier
 }
 
 /**
- * Returns the full license payload, or null if no valid license.
+ * Returns the full license payload, or null if no valid license or cache expired.
  */
 export function getLicensePayload(): LicensePayload | null {
+  evictStaleCache()
   return cachedState.payload
 }
 
@@ -143,6 +180,7 @@ export function getLicensePayload(): LicensePayload | null {
  * Also validates that the license has not expired (checks JWT exp claim).
  */
 export function isLicensed(requiredTier: LicenseTier): boolean {
+  evictStaleCache()
   const tierRank: Record<LicenseTier, number> = {
     free: 0,
     pro: 1,
@@ -168,6 +206,7 @@ export function isLicensed(requiredTier: LicenseTier): boolean {
  * Returns the maximum number of sites allowed by the current license.
  */
 export function getMaxSites(): number {
+  evictStaleCache()
   if (cachedState.tier === 'enterprise') return Infinity
   if (cachedState.tier === 'max') return cachedState.payload?.maxSites ?? 15
   if (cachedState.tier === 'pro') return cachedState.payload?.maxSites ?? 5
@@ -178,6 +217,7 @@ export function getMaxSites(): number {
  * Returns the maximum number of users/editors allowed by the current license.
  */
 export function getMaxUsers(): number {
+  evictStaleCache()
   if (cachedState.tier === 'enterprise') return Infinity
   if (cachedState.tier === 'max') return cachedState.payload?.maxUsers ?? 100
   if (cachedState.tier === 'pro') return cachedState.payload?.maxUsers ?? 25
@@ -189,6 +229,7 @@ export function getMaxUsers(): number {
  * Track B metering: free=1K, pro=10K, max=50K, enterprise=unlimited.
  */
 export function getMaxAgentTasks(): number {
+  evictStaleCache()
   if (cachedState.tier === 'enterprise') return Infinity
   if (cachedState.tier === 'max') return 50_000
   if (cachedState.tier === 'pro') return 10_000
@@ -223,4 +264,5 @@ export async function generateLicenseKey(
  */
 export function resetLicenseState(): void {
   cachedState = { tier: 'free', payload: null, validatedAt: null }
+  cachedAt = 0
 }
