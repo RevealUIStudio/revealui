@@ -548,6 +548,7 @@ export {
   type CreateUserInput,
   CreateUserInputSchema,
   createUser,
+  SESSION_SCHEMA_VERSION as USER_SESSION_SCHEMA_VERSION,
   type UpdateUserInput,
   UpdateUserInputSchema,
   USER_SCHEMA_VERSION,
