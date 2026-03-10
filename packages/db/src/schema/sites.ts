@@ -26,7 +26,7 @@ export const sites = pgTable('sites', {
 
   // Basic info
   name: text('name').notNull(),
-  slug: text('slug').notNull(),
+  slug: text('slug').notNull().unique(),
   description: text('description'),
 
   // Status: draft, published, archived
