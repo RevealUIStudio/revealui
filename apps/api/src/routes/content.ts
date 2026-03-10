@@ -52,9 +52,16 @@ const SlugParam = z.object({
 })
 
 const PaginationQuery = z.object({
-  limit: z.coerce.number().int().min(1).max(100).default(20).optional(),
-  offset: z.coerce.number().int().min(0).default(0).optional(),
+  limit: z.coerce.number().int().min(1).max(100).default(20),
+  offset: z.coerce.number().int().min(0).default(0),
 })
+
+const SLUG_PATTERN = /^[a-z0-9]+(?:-[a-z0-9]+)*$/
+const SlugField = z
+  .string()
+  .min(1)
+  .max(200)
+  .regex(SLUG_PATTERN, 'Slug must be lowercase alphanumeric with hyphens only')
 
 const ErrorSchema = z.object({ success: z.literal(false), error: z.string() })
 
@@ -210,7 +217,7 @@ app.openapi(
           'application/json': {
             schema: z.object({
               title: z.string().min(1).max(500),
-              slug: z.string().min(1).max(200),
+              slug: SlugField,
               excerpt: z.string().max(1000).optional(),
               content: z.unknown().optional(),
               featuredImageId: z.string().optional(),
@@ -327,7 +334,7 @@ app.openapi(
           'application/json': {
             schema: z.object({
               title: z.string().min(1).max(500).optional(),
-              slug: z.string().min(1).max(200).optional(),
+              slug: SlugField.optional(),
               excerpt: z.string().max(1000).nullable().optional(),
               content: z.unknown().optional(),
               featuredImageId: z.string().nullable().optional(),
@@ -619,7 +626,7 @@ app.openapi(
           'application/json': {
             schema: z.object({
               name: z.string().min(1).max(200),
-              slug: z.string().min(1).max(200),
+              slug: SlugField,
               description: z.string().max(1000).optional(),
               status: z.enum(SITE_STATUSES as unknown as [string, ...string[]]).optional(),
             }),
@@ -699,7 +706,7 @@ app.openapi(
           'application/json': {
             schema: z.object({
               name: z.string().min(1).max(200).optional(),
-              slug: z.string().min(1).max(200).optional(),
+              slug: SlugField.optional(),
               description: z.string().max(1000).nullable().optional(),
               status: z.enum(SITE_STATUSES as unknown as [string, ...string[]]).optional(),
               favicon: z.string().nullable().optional(),
@@ -835,7 +842,7 @@ app.openapi(
           'application/json': {
             schema: z.object({
               title: z.string().min(1).max(500),
-              slug: z.string().min(1).max(200),
+              slug: SlugField,
               path: z.string().min(1).max(500),
               status: z.enum(PAGE_STATUSES as unknown as [string, ...string[]]).optional(),
               parentId: z.string().optional(),
@@ -930,7 +937,7 @@ app.openapi(
           'application/json': {
             schema: z.object({
               title: z.string().min(1).max(500).optional(),
-              slug: z.string().min(1).max(200).optional(),
+              slug: SlugField.optional(),
               path: z.string().min(1).max(500).optional(),
               status: z.enum(PAGE_STATUSES as unknown as [string, ...string[]]).optional(),
               parentId: z.string().nullable().optional(),
