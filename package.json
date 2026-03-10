@@ -163,6 +163,7 @@
     "validate:versions": "tsx scripts/validate/version-policy.ts",
     "audit:any": "tsx scripts/analyze/audit-any-types.ts",
     "audit:console": "tsx scripts/analyze/audit-console.ts",
+    "preflight": "tsx scripts/validate/pre-launch.ts",
     "secrets:scan": "tsx scripts/secrets/scan.ts",
     "revealui": "tsx scripts/cli/revealui.ts",
     "scripts": "tsx scripts/cli/scripts.ts"
