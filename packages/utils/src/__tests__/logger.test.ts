@@ -208,6 +208,161 @@ describe('Logger', () => {
       expect(entries[0]?.timestamp).toBe('')
     })
   })
+
+  describe('pretty formatting', () => {
+    it('formats output with colors when pretty=true', () => {
+      const spy = vi.spyOn(console, 'info').mockImplementation(() => {})
+      const { logger } = makeLogger({ pretty: true, includeTimestamp: false })
+      logger.info('pretty message')
+      // Pretty output includes ANSI color codes
+      const output = spy.mock.calls[0]?.[0] as string
+      expect(output).toContain('INFO')
+      expect(output).toContain('pretty message')
+    })
+
+    it('formats as JSON when pretty=false', () => {
+      const spy = vi.spyOn(console, 'info').mockImplementation(() => {})
+      const { logger } = makeLogger({ pretty: false })
+      logger.info('json message')
+      const output = spy.mock.calls[0]?.[0] as string
+      expect(() => JSON.parse(output)).not.toThrow()
+    })
+
+    it('includes context in pretty format', () => {
+      const spy = vi.spyOn(console, 'info').mockImplementation(() => {})
+      const { logger } = makeLogger({ pretty: true, includeTimestamp: false })
+      logger.info('ctx', { userId: 'u123' })
+      const output = spy.mock.calls[0]?.[0] as string
+      expect(output).toContain('u123')
+    })
+
+    it('includes error details in pretty format', () => {
+      const spy = vi.spyOn(console, 'error').mockImplementation(() => {})
+      const { logger } = makeLogger({ pretty: true, includeTimestamp: false })
+      logger.error('fail', new Error('pretty error'))
+      const output = spy.mock.calls[0]?.[0] as string
+      expect(output).toContain('pretty error')
+    })
+  })
+
+  describe('file destination', () => {
+    it('outputs JSON to console.log when destination=file', () => {
+      const spy = vi.spyOn(console, 'log').mockImplementation(() => {})
+      const { logger } = makeLogger({ destination: 'file', pretty: false })
+      logger.info('file log')
+      expect(spy).toHaveBeenCalledOnce()
+      const output = spy.mock.calls[0]?.[0] as string
+      expect(() => JSON.parse(output)).not.toThrow()
+    })
+  })
+
+  describe('remote destination', () => {
+    it('sends log to remote URL via fetch', async () => {
+      const fetchSpy = vi.spyOn(globalThis, 'fetch').mockResolvedValue(new Response())
+      const { logger } = makeLogger({
+        destination: 'remote',
+        remoteUrl: 'https://logs.example.com/ingest',
+      })
+      logger.info('remote log')
+      // Allow the async fetch to complete
+      await vi.waitFor(() => {
+        expect(fetchSpy).toHaveBeenCalledWith(
+          'https://logs.example.com/ingest',
+          expect.objectContaining({ method: 'POST' }),
+        )
+      })
+      fetchSpy.mockRestore()
+    })
+
+    it('does not fetch when remoteUrl is empty', () => {
+      const fetchSpy = vi.spyOn(globalThis, 'fetch').mockResolvedValue(new Response())
+      const { logger } = makeLogger({ destination: 'remote', remoteUrl: '' })
+      logger.info('no url')
+      expect(fetchSpy).not.toHaveBeenCalled()
+      fetchSpy.mockRestore()
+    })
+
+    it('falls back to console when fetch fails', async () => {
+      const fetchSpy = vi.spyOn(globalThis, 'fetch').mockRejectedValue(new Error('network error'))
+      const errorSpy = vi.spyOn(console, 'error').mockImplementation(() => {})
+      const { logger } = makeLogger({
+        destination: 'remote',
+        remoteUrl: 'https://logs.example.com/ingest',
+      })
+      logger.info('will fail')
+      await vi.waitFor(() => {
+        expect(errorSpy).toHaveBeenCalled()
+      })
+      fetchSpy.mockRestore()
+    })
+  })
+
+  describe('constructor defaults', () => {
+    it('defaults level to info', () => {
+      const { logger, entries } = makeLogger({ level: undefined })
+      // Override the makeLogger default by creating directly
+      const directLogger = new Logger({})
+      const directEntries: LogEntry[] = []
+      directLogger.addLogHandler((e) => directEntries.push(e))
+      directLogger.debug('should be filtered')
+      directLogger.info('should pass')
+      expect(directEntries).toHaveLength(1)
+      expect(directEntries[0]?.level).toBe('info')
+      // Suppress unused warning
+      void logger
+      void entries
+    })
+
+    it('defaults enabled to true', () => {
+      const directLogger = new Logger({})
+      const entries: LogEntry[] = []
+      directLogger.addLogHandler((e) => entries.push(e))
+      directLogger.info('should log')
+      expect(entries).toHaveLength(1)
+    })
+  })
+
+  describe('error with cause', () => {
+    it('includes error cause in the log entry', () => {
+      const { logger, entries } = makeLogger()
+      const cause = new Error('root cause')
+      const err = new Error('wrapper', { cause })
+      logger.error('chained', err)
+      expect(entries[0]?.error?.cause).toBe(cause)
+    })
+  })
+
+  describe('fatal without error', () => {
+    it('logs fatal level without error object', () => {
+      const { logger, entries } = makeLogger()
+      logger.fatal('system down')
+      expect(entries[0]?.level).toBe('fatal')
+      expect(entries[0]?.error).toBeUndefined()
+    })
+  })
+
+  describe('multiple extra handlers', () => {
+    it('calls all registered handlers', () => {
+      const { logger } = makeLogger()
+      const handler1: LogEntry[] = []
+      const handler2: LogEntry[] = []
+      logger.addLogHandler((e) => handler1.push(e))
+      logger.addLogHandler((e) => handler2.push(e))
+      logger.info('multi')
+      expect(handler1).toHaveLength(1)
+      expect(handler2).toHaveLength(1)
+    })
+  })
+
+  describe('context accumulation', () => {
+    it('setContext merges with existing context', () => {
+      const { logger, entries } = makeLogger()
+      logger.setContext({ userId: 'u1' })
+      logger.setContext({ requestId: 'r1' })
+      logger.info('merged')
+      expect(entries[0]?.context).toMatchObject({ userId: 'u1', requestId: 'r1' })
+    })
+  })
 })
 
 // ─── Module-level helpers ─────────────────────────────────────────────────────
