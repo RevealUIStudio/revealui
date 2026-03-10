@@ -62,6 +62,14 @@ export default async function proxy(request: NextRequest): Promise<NextResponse 
     response.headers.set('Referrer-Policy', 'strict-origin-when-cross-origin')
     response.headers.set('Permissions-Policy', 'camera=(), microphone=(), geolocation=()')
 
+    // HSTS — enforce HTTPS in production
+    if (process.env.NODE_ENV !== 'development') {
+      response.headers.set(
+        'Strict-Transport-Security',
+        'max-age=31536000; includeSubDomains; preload',
+      )
+    }
+
     // Content Security Policy (CSP)
     const cspHeader = [
       "default-src 'self'",
