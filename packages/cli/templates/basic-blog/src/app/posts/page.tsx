@@ -34,7 +34,7 @@ export default async function PostsPage() {
       {posts.length === 0 ? (
         <p className="text-gray-500">
           No posts yet. Create your first post in the{' '}
-          <a href="/admin/collections/posts" className="text-blue-600 underline">
+          <a href="/admin/collections/posts" className="text-accent underline">
             admin panel
           </a>
           , or run <code className="rounded bg-gray-100 px-1">pnpm db:seed</code> to add sample
@@ -45,7 +45,7 @@ export default async function PostsPage() {
           {posts.map((post) => (
             <li key={post.id}>
               <a href={`/posts/${post.slug}`} className="group block">
-                <h2 className="text-xl font-semibold group-hover:text-blue-600">{post.title}</h2>
+                <h2 className="text-xl font-semibold group-hover:text-accent">{post.title}</h2>
                 {post.publishedAt && (
                   <time className="text-sm text-gray-500">
                     {new Date(post.publishedAt).toLocaleDateString()}

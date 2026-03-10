@@ -35,7 +35,7 @@ export default async function ProjectsPage() {
       {projects.length === 0 ? (
         <p className="text-gray-500">
           No projects yet. Add projects in the{' '}
-          <a href="/admin/collections/projects" className="text-blue-600 underline">
+          <a href="/admin/collections/projects" className="text-accent underline">
             admin panel
           </a>
           , or run <code className="rounded bg-gray-100 px-1">pnpm db:seed</code> to add sample
@@ -75,7 +75,7 @@ export default async function ProjectsPage() {
                   href={project.link}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="mt-3 inline-block text-sm text-blue-600 underline"
+                  className="mt-3 inline-block text-sm text-accent underline"
                 >
                   View project &rarr;
                 </a>

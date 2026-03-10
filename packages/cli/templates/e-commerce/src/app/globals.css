@@ -1,15 +1,6 @@
-*, *::before, *::after {
-  box-sizing: border-box;
-}
+@import "tailwindcss";
 
-body {
-  margin: 0;
-  font-family: system-ui, -apple-system, sans-serif;
-  line-height: 1.6;
-  color: #111;
-  background: #fff;
-}
-
-a {
-  color: #2563eb;
+@theme {
+  --color-accent: #2563eb;
+  --color-accent-hover: #1d4ed8;
 }
