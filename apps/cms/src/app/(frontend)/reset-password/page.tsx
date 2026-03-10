@@ -13,7 +13,7 @@ import {
 } from '@revealui/presentation/server'
 import Link from 'next/link'
 import { useSearchParams } from 'next/navigation'
-import { type FormEvent, useState } from 'react'
+import { type FormEvent, Suspense, useState } from 'react'
 
 function RequestResetForm() {
   const [email, setEmail] = useState('')
@@ -208,6 +208,31 @@ function ResetWithTokenForm({ token }: { token: string }) {
 }
 
 export default function ResetPasswordPage() {
+  return (
+    <Suspense
+      fallback={
+        <AuthLayout>
+          <Card className="w-full max-w-sm">
+            <CardHeader>
+              <div className="h-6 w-40 animate-pulse rounded bg-zinc-200 dark:bg-zinc-700" />
+              <div className="mt-2 h-4 w-64 animate-pulse rounded bg-zinc-100 dark:bg-zinc-800" />
+            </CardHeader>
+            <CardContent>
+              <div className="space-y-4">
+                <div className="h-10 animate-pulse rounded bg-zinc-100 dark:bg-zinc-800" />
+                <div className="h-10 animate-pulse rounded bg-zinc-200 dark:bg-zinc-700" />
+              </div>
+            </CardContent>
+          </Card>
+        </AuthLayout>
+      }
+    >
+      <ResetPasswordContent />
+    </Suspense>
+  )
+}
+
+function ResetPasswordContent() {
   const searchParams = useSearchParams()
   const token = searchParams.get('token')
 

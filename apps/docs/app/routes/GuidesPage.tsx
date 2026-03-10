@@ -1,13 +1,13 @@
 import { logger } from '@revealui/core/observability/logger'
 import { useEffect, useState } from 'react'
-import { useParams } from 'react-router-dom'
 import { ErrorBoundary } from '../components/ErrorBoundary'
 import { LoadingSkeleton } from '../components/LoadingSkeleton'
+import { useWildcardPath } from '../hooks/useWildcardPath'
 import { loadMarkdownFile, renderMarkdown } from '../utils/markdown'
 import { resolveDocPath } from '../utils/paths'
 
 function GuideContent() {
-  const { '*': path } = useParams()
+  const path = useWildcardPath()
   const [content, setContent] = useState<string>('')
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
@@ -127,7 +127,7 @@ Guides are located in the \`docs/guides/\` directory. Available guides will be l
 }
 
 export function GuidesPage() {
-  const { '*': path } = useParams()
+  const path = useWildcardPath()
 
   // If no path, show index
   if (!path || path === '') {

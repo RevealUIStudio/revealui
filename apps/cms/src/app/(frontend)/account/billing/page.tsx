@@ -11,7 +11,7 @@ import {
   CardTitle,
 } from '@revealui/presentation/server'
 import { useRouter, useSearchParams } from 'next/navigation'
-import { useCallback, useEffect, useState } from 'react'
+import { Suspense, useCallback, useEffect, useState } from 'react'
 
 interface SubscriptionData {
   tier: LicenseTierId
@@ -41,6 +41,20 @@ function safeStripeRedirect(url: string): void {
 }
 
 export default function BillingPage() {
+  return (
+    <Suspense
+      fallback={
+        <div className="flex min-h-[60vh] items-center justify-center">
+          <p className="text-zinc-500">Loading...</p>
+        </div>
+      }
+    >
+      <BillingContent />
+    </Suspense>
+  )
+}
+
+function BillingContent() {
   const router = useRouter()
   const searchParams = useSearchParams()
   const success = searchParams.get('success')
@@ -84,15 +98,7 @@ export default function BillingPage() {
     }
   }, [session, sessionLoading, fetchSubscription, router])
 
-  // Auto-redirect to checkout on signup with ?upgrade=pro
-  // biome-ignore lint/correctness/useExhaustiveDependencies: intentional — trigger once when subscription loads, not on every actionLoading/handleUpgrade change
-  useEffect(() => {
-    if (upgrade === 'pro' && subscription?.tier === 'free' && !actionLoading) {
-      void handleCheckout()
-    }
-  }, [upgrade, subscription])
-
-  const handleCheckout = async () => {
+  const handleCheckout = useCallback(async () => {
     setActionLoading(true)
     setError(null)
     try {
@@ -116,7 +122,14 @@ export default function BillingPage() {
     } finally {
       setActionLoading(false)
     }
-  }
+  }, [apiUrl])
+
+  // Auto-redirect to checkout on signup with ?upgrade=pro
+  useEffect(() => {
+    if (upgrade === 'pro' && subscription?.tier === 'free' && !actionLoading) {
+      void handleCheckout()
+    }
+  }, [upgrade, subscription, actionLoading, handleCheckout])
 
   const handleUpgradeToMax = async () => {
     setActionLoading(true)
@@ -134,6 +147,7 @@ export default function BillingPage() {
       const data = (await res.json()) as { success?: boolean; error?: string }
       if (data.success) {
         setUpgradeSuccess(true)
+        // TODO: Replace setTimeout polling with webhook-driven refresh via SSE or polling with backoff
         setTimeout(() => void fetchSubscription(), 2000)
       } else {
         setError(data.error || 'Failed to upgrade subscription')
@@ -161,7 +175,7 @@ export default function BillingPage() {
       const data = (await res.json()) as { success?: boolean; error?: string }
       if (data.success) {
         setUpgradeSuccess(true)
-        // Refresh subscription data — webhook syncs DB async, so poll briefly
+        // TODO: Replace setTimeout polling with webhook-driven refresh via SSE or polling with backoff
         setTimeout(() => void fetchSubscription(), 2000)
       } else {
         setError(data.error || 'Failed to upgrade subscription')
