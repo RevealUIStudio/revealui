@@ -3931,3 +3931,712 @@ interface CreateProjectConfig {
 - [Quick start guide](/guides/quick-start) — Full walkthrough with `create-revealui`
 - [`@revealui/core`](/reference/core) — `buildConfig` — the config file your project generates
 - [`@revealui/db`](/reference/db) — Database schema and migrations
+
+---
+
+# @revealui/setup
+
+Environment setup utilities for RevealUI projects — secret generation, env file parsing, validation, and interactive setup orchestration.
+
+```bash
+npm install @revealui/setup
+```
+
+## Subpath Exports
+
+| Import path | Purpose |
+|-------------|---------|
+| `@revealui/setup` | All exports (environment, utils, validators) |
+| `@revealui/setup/environment` | Secret generators, env file parsing, setup orchestration |
+| `@revealui/setup/utils` | Logger utility |
+| `@revealui/setup/validators` | Env variable validation, built-in validators |
+
+---
+
+## Secret Generation
+
+Import from `@revealui/setup` or `@revealui/setup/environment`.
+
+### `generateSecret(length?: number): string`
+
+Generates a cryptographically secure random hex string using `crypto.randomBytes`.
+
+| Parameter | Type | Default | Description |
+|-----------|------|---------|-------------|
+| `length` | `number` | `32` | Length in bytes (output is 2x in hex chars) |
+
+**Returns:** `string` — hex-encoded random secret.
+
+```ts
+import { generateSecret } from '@revealui/setup'
+
+const secret = generateSecret()    // 64 hex chars (32 bytes)
+const short = generateSecret(16)   // 32 hex chars (16 bytes)
+```
+
+---
+
+### `generatePassword(length?: number): string`
+
+Generates a random password with alphanumeric and special characters using `crypto.randomBytes`.
+
+| Parameter | Type | Default | Description |
+|-----------|------|---------|-------------|
+| `length` | `number` | `16` | Password length in characters |
+
+**Returns:** `string` — random password containing `a-zA-Z0-9!@#$%^&*`.
+
+```ts
+import { generatePassword } from '@revealui/setup'
+
+const password = generatePassword()    // 16-char password
+const strong = generatePassword(32)    // 32-char password
+```
+
+---
+
+## Env File Utilities
+
+### `updateEnvValue(content: string, key: string, value: string): string`
+
+Replaces or appends an environment variable in `.env` file content. If the key exists, its value is replaced in-place. If it does not exist, a new line is appended.
+
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `content` | `string` | Original `.env` file content |
+| `key` | `string` | Environment variable name |
+| `value` | `string` | New value |
+
+**Returns:** `string` — updated `.env` file content.
+
+```ts
+import { updateEnvValue } from '@revealui/setup'
+
+let env = 'DB_URL=old_value\nAPI_KEY=abc'
+env = updateEnvValue(env, 'DB_URL', 'postgresql://localhost/myapp')
+// DB_URL=postgresql://localhost/myapp
+// API_KEY=abc
+```
+
+---
+
+### `parseEnvContent(content: string): Record<string, string>`
+
+Parses `.env` file content into a key-value object. Skips comments (`#`) and empty lines.
+
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `content` | `string` | Raw `.env` file content |
+
+**Returns:** `Record<string, string>` — parsed environment variables.
+
+```ts
+import { parseEnvContent } from '@revealui/setup'
+
+const env = parseEnvContent('DB_URL=postgresql://...\n# comment\nAPI_KEY=abc123')
+// { DB_URL: 'postgresql://...', API_KEY: 'abc123' }
+```
+
+---
+
+## Validation
+
+Import from `@revealui/setup` or `@revealui/setup/validators`.
+
+### `validateEnv(required: EnvVariable[], env: Record<string, string | undefined>): ValidationResult`
+
+Validates environment variables against a list of required variable definitions.
+
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `required` | `EnvVariable[]` | Variable definitions with names, descriptions, and optional validators |
+| `env` | `Record<string, string \| undefined>` | Environment object to validate (e.g. `process.env`) |
+
+**`EnvVariable`:**
+```ts
+interface EnvVariable {
+  name: string
+  description: string
+  required: boolean
+  validator?: (value: string) => boolean
+}
+```
+
+**Returns:**
+```ts
+interface ValidationResult {
+  valid: boolean
+  missing: string[]
+  invalid: string[]
+}
+```
+
+```ts
+import { validateEnv } from '@revealui/setup'
+
+const result = validateEnv(
+  [{ name: 'DB_URL', description: 'Database URL', required: true }],
+  process.env,
+)
+
+if (!result.valid) {
+  console.error('Missing:', result.missing)
+  console.error('Invalid:', result.invalid)
+}
+```
+
+---
+
+### `REQUIRED_ENV_VARS`
+
+Pre-defined list of required environment variables for RevealUI projects.
+
+| Variable | Description | Validator |
+|----------|-------------|-----------|
+| `REVEALUI_SECRET` | Secret key for session encryption | `minLength(32)` |
+| `POSTGRES_URL` | PostgreSQL connection string | `postgresUrl` |
+| `BLOB_READ_WRITE_TOKEN` | Vercel Blob storage token | — |
+| `STRIPE_SECRET_KEY` | Stripe secret key | `stripeSecretKey` |
+| `NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY` | Stripe publishable key | `stripePublishableKey` |
+
+### `OPTIONAL_ENV_VARS`
+
+Pre-defined list of optional environment variables.
+
+| Variable | Description | Validator |
+|----------|-------------|-----------|
+| `STRIPE_WEBHOOK_SECRET` | Stripe webhook secret | — |
+| `NEXT_PUBLIC_SUPABASE_URL` | Supabase project URL | `url` |
+| `NEXT_PUBLIC_SUPABASE_ANON_KEY` | Supabase anonymous key | — |
+| `REVEALUI_ADMIN_EMAIL` | Initial admin email | `email` |
+| `REVEALUI_ADMIN_PASSWORD` | Initial admin password | `minLength(12)` |
+
+---
+
+## Setup Orchestration
+
+### `setupEnvironment(options: SetupEnvironmentOptions): Promise<SetupEnvironmentResult>`
+
+Interactive (or non-interactive) environment setup wizard. Copies `.env.template`, auto-generates secrets, prompts for missing values, and validates the result.
+
+| Parameter | Type | Default | Description |
+|-----------|------|---------|-------------|
+| `options.projectRoot` | `string` | — | Project root directory (required) |
+| `options.templatePath` | `string` | `<projectRoot>/.env.template` | Path to template file |
+| `options.outputPath` | `string` | `<projectRoot>/.env.development.local` | Output path |
+| `options.force` | `boolean` | `false` | Overwrite existing output file |
+| `options.generateOnly` | `boolean` | `false` | Only generate secrets, skip prompts |
+| `options.interactive` | `boolean` | `true` | Prompt for missing values |
+| `options.customVariables` | `EnvVariable[]` | `REQUIRED_ENV_VARS` | Custom variable definitions |
+| `options.logger` | `Logger` | Default logger | Logger instance |
+
+**Returns:**
+```ts
+interface SetupEnvironmentResult {
+  success: boolean
+  envPath: string
+  missing: string[]
+  invalid: string[]
+}
+```
+
+```ts
+import { setupEnvironment } from '@revealui/setup'
+
+const result = await setupEnvironment({
+  projectRoot: '/path/to/project',
+  interactive: false,
+  generateOnly: true,
+})
+
+if (result.success) {
+  console.log(`Env written to ${result.envPath}`)
+}
+```
+
+---
+
+## Logger
+
+Import from `@revealui/setup` or `@revealui/setup/utils`.
+
+### `createLogger(options?: LoggerOptions): Logger`
+
+Creates a structured logger with color support, level filtering, and progress bars.
+
+| Parameter | Type | Default | Description |
+|-----------|------|---------|-------------|
+| `options.level` | `'debug' \| 'info' \| 'warn' \| 'error' \| 'silent'` | `process.env.LOG_LEVEL` or `'info'` | Minimum log level |
+| `options.prefix` | `string` | `''` | Prefix label (e.g. `'Setup'`) |
+| `options.colors` | `boolean` | Auto-detected from TTY | Enable ANSI colors |
+| `options.timestamps` | `boolean` | `false` | Include ISO timestamps |
+
+**Returns:**
+```ts
+interface Logger {
+  debug(msg: string, ...args: unknown[]): void
+  info(msg: string, ...args: unknown[]): void
+  warn(msg: string, ...args: unknown[]): void
+  error(msg: string, ...args: unknown[]): void
+  success(msg: string, ...args: unknown[]): void
+  header(msg: string): void
+  divider(): void
+  table(data: Record<string, unknown>[]): void
+  group(label: string): void
+  groupEnd(): void
+  progress(current: number, total: number, label?: string): void
+}
+```
+
+```ts
+import { createLogger } from '@revealui/setup'
+
+const logger = createLogger({ level: 'info', prefix: 'MyScript' })
+logger.info('Starting process...')
+logger.success('Done!')
+logger.progress(3, 10, 'Processing files')
+```
+
+---
+
+## Related
+
+- [`@revealui/cli`](/reference/cli) — Uses `@revealui/setup` for project scaffolding
+- [`@revealui/config`](/reference/config) — Type-safe env config (consumed after setup)
+
+---
+
+# @revealui/sync
+
+Real-time collaboration and sync primitives. Provides Yjs-based collaborative editing (WebSocket) and ElectricSQL shape subscriptions for live data sync. Reads use ElectricSQL; writes use REST mutations via `/api/sync/*`.
+
+```bash
+npm install @revealui/sync
+```
+
+## Subpath Exports
+
+| Import path | Purpose |
+|-------------|---------|
+| `@revealui/sync` | All client-side exports (hooks, provider, collab) |
+| `@revealui/sync/provider` | `ElectricProvider`, `useElectricConfig` |
+| `@revealui/sync/collab` | `CollabProvider`, `useCollaboration`, `useCollabDocument` |
+| `@revealui/sync/collab/server` | Server-side: `AgentCollabClient`, `createAgentClient`, `createAndConnectAgentClient` |
+
+---
+
+## ElectricSQL Provider
+
+### `ElectricProvider`
+
+React context provider that supplies ElectricSQL configuration to all child sync hooks.
+
+```tsx
+import { ElectricProvider } from '@revealui/sync'
+
+function App() {
+  return (
+    <ElectricProvider
+      proxyBaseUrl="https://cms.revealui.com"
+      debug={false}
+    >
+      <MyApp />
+    </ElectricProvider>
+  )
+}
+```
+
+| Prop | Type | Default | Description |
+|------|------|---------|-------------|
+| `children` | `ReactNode` | — | Child components (required) |
+| `serviceUrl` | `string` | `null` | Direct Electric service URL (stored for future use) |
+| `proxyBaseUrl` | `string` | `''` | Base URL for authenticated CMS proxy routes |
+| `debug` | `boolean` | `false` | Enable debug mode |
+
+---
+
+### `useElectricConfig(): ElectricContextValue`
+
+Accesses the ElectricSQL configuration from the nearest `ElectricProvider`.
+
+**Returns:**
+```ts
+interface ElectricContextValue {
+  serviceUrl: string | null
+  proxyBaseUrl: string
+  debug: boolean
+}
+```
+
+---
+
+## Collaborative Editing
+
+Yjs-based real-time collaboration over WebSocket.
+
+### `CollabProvider`
+
+WebSocket-backed Yjs sync provider for browser clients. Manages document synchronization and user awareness (cursors, presence).
+
+```ts
+import { CollabProvider } from '@revealui/sync'
+import * as Y from 'yjs'
+
+const doc = new Y.Doc()
+const provider = new CollabProvider(serverUrl, documentId, doc, {
+  initialState: savedState, // optional Uint8Array
+})
+
+provider.setLocalIdentity({ name: 'Alice', color: '#ff0000', type: 'human' })
+provider.connect()
+```
+
+**Constructor:**
+```ts
+new CollabProvider(
+  serverUrl: string,
+  documentId: string,
+  doc: Y.Doc,
+  options?: { initialState?: Uint8Array | null },
+)
+```
+
+**Events:** `sync` (boolean), `status` ({ status: string }), `awareness` (Map of UserPresence).
+
+**`UserPresence`:**
+```ts
+interface UserPresence {
+  name: string
+  color: string
+  type: 'human' | 'agent'
+  agentModel?: string
+  cursor?: { index: number; length: number }
+}
+```
+
+---
+
+### `useCollaboration(options: UseCollaborationOptions): UseCollaborationResult`
+
+React hook that manages a collaborative editing session. Creates a Yjs document, connects a `CollabProvider`, and tracks sync state and connected users.
+
+| Parameter | Type | Default | Description |
+|-----------|------|---------|-------------|
+| `options.documentId` | `string` | — | Document identifier (required) |
+| `options.serverUrl` | `string` | — | WebSocket server URL (required) |
+| `options.enabled` | `boolean` | `true` | Enable/disable the connection |
+| `options.initialState` | `Uint8Array \| null` | `null` | Initial Yjs document state |
+| `options.identity` | `CollaborationIdentity` | — | Local user identity for presence |
+
+**`CollaborationIdentity`:**
+```ts
+interface CollaborationIdentity {
+  name: string
+  color: string
+  type?: 'human' | 'agent'
+  agentModel?: string
+}
+```
+
+**Returns:**
+```ts
+interface UseCollaborationResult {
+  doc: Y.Doc | null
+  provider: CollabProvider | null
+  synced: boolean
+  status: string           // 'disconnected' | 'connecting' | 'connected'
+  error: Error | null
+  connectedUsers: Map<number, UserPresence>
+}
+```
+
+```tsx
+import { useCollaboration } from '@revealui/sync'
+
+function Editor({ docId }: { docId: string }) {
+  const { doc, synced, connectedUsers } = useCollaboration({
+    documentId: docId,
+    serverUrl: 'wss://collab.revealui.com',
+    identity: { name: 'Alice', color: '#ff6600' },
+  })
+
+  if (!synced) return <p>Connecting...</p>
+
+  return <RichTextEditor yDoc={doc} />
+}
+```
+
+---
+
+### `useCollabDocument(documentId: string): CollabDocumentState`
+
+React hook that fetches a collaborative document's persisted state via ElectricSQL shape subscription. Use the returned `initialState` to hydrate a `CollabProvider` or `useCollaboration`.
+
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `documentId` | `string` | UUID of the document |
+
+**Returns:**
+```ts
+interface CollabDocumentState {
+  initialState: Uint8Array | null
+  connectedClients: number
+  isLoading: boolean
+  error: Error | null
+}
+```
+
+```tsx
+import { useCollabDocument, useCollaboration } from '@revealui/sync'
+
+function LiveEditor({ docId }: { docId: string }) {
+  const { initialState, isLoading } = useCollabDocument(docId)
+  const { doc, synced } = useCollaboration({
+    documentId: docId,
+    serverUrl: 'wss://collab.revealui.com',
+    enabled: !isLoading,
+    initialState,
+  })
+
+  // ...
+}
+```
+
+---
+
+## Agent Collaboration Client (Pro)
+
+Server-side Node.js client for AI agents to participate in collaborative editing sessions. Uses the `ws` package for WebSocket connections.
+
+Import from `@revealui/sync/collab/server`.
+
+### `AgentCollabClient`
+
+Full-featured Yjs collaboration client for server-side agents. Supports document editing, awareness (presence), auto-reconnect, and sync waiting.
+
+```ts
+import { AgentCollabClient } from '@revealui/sync/collab/server'
+
+const client = new AgentCollabClient({
+  serverUrl: 'wss://collab.revealui.com',
+  documentId: 'doc-uuid',
+  identity: { type: 'agent', name: 'Claude', model: 'claude-opus-4', color: '#8B5CF6' },
+  authToken: 'session-token',
+  autoReconnect: true,
+  defaultTextName: 'content',
+})
+
+client.connect()
+await client.waitForSync(5000)
+
+// Read and write
+const content = client.getTextContent()
+client.replaceAll('New document content')
+client.insertText(0, 'Prefix: ')
+client.deleteText(0, 8)
+
+// Listen for remote changes
+const unsub = client.onUpdate((update) => { /* ... */ })
+
+// Cleanup
+client.destroy()
+```
+
+**Constructor options:**
+
+| Parameter | Type | Default | Description |
+|-----------|------|---------|-------------|
+| `serverUrl` | `string` | — | WebSocket server URL (required) |
+| `documentId` | `string` | — | Document UUID (required) |
+| `identity` | `AgentIdentity` | — | Agent identity for presence (required) |
+| `authToken` | `string` | — | Authentication token |
+| `autoReconnect` | `boolean` | `true` | Auto-reconnect on disconnect |
+| `defaultTextName` | `string` | `'content'` | Default Yjs Text type name |
+
+**Key methods:**
+
+| Method | Returns | Description |
+|--------|---------|-------------|
+| `connect()` | `void` | Open WebSocket connection |
+| `disconnect()` | `void` | Close connection |
+| `waitForSync(timeoutMs?)` | `Promise<void>` | Wait for initial sync (default 5s timeout) |
+| `getText(name?)` | `Y.Text` | Get a named Yjs Text type |
+| `getTextContent(name?)` | `string` | Get text content as string |
+| `insertText(index, content, name?)` | `void` | Insert text at position |
+| `deleteText(index, length, name?)` | `void` | Delete text at position |
+| `replaceAll(content, name?)` | `void` | Replace all text content (transactional) |
+| `onUpdate(callback)` | `() => void` | Subscribe to remote updates (returns unsubscribe) |
+| `getConnectedUsers()` | `Map<number, Record<string, unknown>>` | Get connected users from awareness |
+| `getDocument()` | `Y.Doc` | Access the underlying Yjs document |
+| `destroy()` | `void` | Clean up all resources |
+
+---
+
+### `createAgentClient(options: CreateAgentClientOptions): AgentCollabClient`
+
+Factory function that creates an `AgentCollabClient` with sensible defaults.
+
+| Parameter | Type | Default | Description |
+|-----------|------|---------|-------------|
+| `options.serverUrl` | `string` | — | WebSocket server URL (required) |
+| `options.documentId` | `string` | — | Document UUID (required) |
+| `options.name` | `string` | `'AI Agent'` | Agent display name |
+| `options.model` | `string` | `'unknown'` | LLM model identifier |
+| `options.color` | `string` | `'#8B5CF6'` | Presence cursor color |
+| `options.authToken` | `string` | — | Authentication token |
+| `options.autoReconnect` | `boolean` | `true` | Auto-reconnect on disconnect |
+| `options.defaultTextName` | `string` | `'content'` | Default Yjs Text type name |
+
+```ts
+import { createAgentClient } from '@revealui/sync/collab/server'
+
+const client = createAgentClient({
+  serverUrl: 'wss://collab.revealui.com',
+  documentId: 'doc-uuid',
+  name: 'Claude',
+  model: 'claude-opus-4',
+  authToken: 'session-token',
+})
+
+client.connect()
+await client.waitForSync()
+```
+
+---
+
+### `createAndConnectAgentClient(options): Promise<AgentCollabClient>`
+
+Convenience wrapper that creates a client, connects, and waits for sync in one call. Accepts all `CreateAgentClientOptions` plus an optional `syncTimeoutMs` (default: 5000).
+
+```ts
+import { createAndConnectAgentClient } from '@revealui/sync/collab/server'
+
+const client = await createAndConnectAgentClient({
+  serverUrl: 'wss://collab.revealui.com',
+  documentId: 'doc-uuid',
+  name: 'Claude',
+  model: 'claude-opus-4',
+  syncTimeoutMs: 10_000,
+})
+
+const content = client.getTextContent()
+```
+
+---
+
+## Sync Data Hooks (Pro)
+
+React hooks for real-time data subscriptions via ElectricSQL shapes. Reads are live-updating; writes go through REST mutations at `/api/sync/*`. All hooks require an `ElectricProvider` ancestor.
+
+### `useSyncMutations<TCreate, TUpdate, TRecord>(endpoint: string)`
+
+Low-level hook that returns `create`, `update`, and `remove` mutation functions for a given sync API endpoint. Used internally by the data hooks below.
+
+**Returns:**
+```ts
+{
+  create: (data: TCreate) => Promise<MutationResult<TRecord>>
+  update: (id: string, data: TUpdate) => Promise<MutationResult<TRecord>>
+  remove: (id: string) => Promise<MutationResult<void>>
+}
+
+interface MutationResult<T = unknown> {
+  success: boolean
+  data?: T
+  error?: string
+}
+```
+
+---
+
+### `useConversations(userId: string): UseConversationsResult`
+
+Subscribes to the current user's conversations via ElectricSQL. The `userId` parameter is kept for API compatibility; actual filtering is enforced server-side by the session cookie.
+
+**Returns:**
+```ts
+interface UseConversationsResult {
+  conversations: ConversationRecord[]
+  isLoading: boolean
+  error: Error | null
+  create: (data: CreateConversationInput) => Promise<MutationResult<ConversationRecord>>
+  update: (id: string, data: UpdateConversationInput) => Promise<MutationResult<ConversationRecord>>
+  remove: (id: string) => Promise<MutationResult<void>>
+}
+```
+
+```tsx
+import { useConversations } from '@revealui/sync'
+
+function ChatList({ userId }: { userId: string }) {
+  const { conversations, create, isLoading } = useConversations(userId)
+
+  const handleNew = async () => {
+    await create({ agent_id: 'claude', title: 'New Chat' })
+  }
+
+  return (
+    <ul>
+      {conversations.map((c) => <li key={c.id}>{c.title}</li>)}
+    </ul>
+  )
+}
+```
+
+---
+
+### `useAgentMemory(agentId: string): UseAgentMemoryResult`
+
+Subscribes to an agent's memory records via ElectricSQL. Validates `agentId` format (alphanumeric, hyphens, underscores).
+
+**Returns:**
+```ts
+interface UseAgentMemoryResult {
+  memories: AgentMemoryRecord[]
+  isLoading: boolean
+  error: Error | null
+  create: (data: CreateAgentMemoryInput) => Promise<MutationResult<AgentMemoryRecord>>
+  update: (id: string, data: UpdateAgentMemoryInput) => Promise<MutationResult<AgentMemoryRecord>>
+  remove: (id: string) => Promise<MutationResult<void>>
+}
+```
+
+```tsx
+import { useAgentMemory } from '@revealui/sync'
+
+function MemoryViewer({ agentId }: { agentId: string }) {
+  const { memories, isLoading } = useAgentMemory(agentId)
+
+  return (
+    <ul>
+      {memories.map((m) => <li key={m.id}>{m.type}: {m.content}</li>)}
+    </ul>
+  )
+}
+```
+
+---
+
+### `useAgentContexts(): UseAgentContextsResult`
+
+Subscribes to agent context records via ElectricSQL. No parameters required; filtering is session-scoped server-side.
+
+**Returns:**
+```ts
+interface UseAgentContextsResult {
+  contexts: AgentContextRecord[]
+  isLoading: boolean
+  error: Error | null
+  create: (data: CreateAgentContextInput) => Promise<MutationResult<AgentContextRecord>>
+  update: (id: string, data: UpdateAgentContextInput) => Promise<MutationResult<AgentContextRecord>>
+  remove: (id: string) => Promise<MutationResult<void>>
+}
+```
+
+---
+
+## Related
+
+- [`@revealui/core`](/reference/core) — CMS engine that hosts the sync proxy routes
+- [`@revealui/db`](/reference/db) — Database schema for conversations, agent memory, and contexts
+- [`@revealui/ai`](/reference/ai) — AI agents that use `AgentCollabClient` for collaborative editing
