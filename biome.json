@@ -37,8 +37,7 @@
       "!apps/docs/public/docs/reference",
       "!playwright-report",
       "!test-results",
-      "!e2e/.auth",
-      "!apps/mainframe/public/assets"
+      "!e2e/.auth"
     ],
     "ignoreUnknown": true
   },
@@ -158,7 +157,7 @@
       "semicolons": "asNeeded",
       "arrowParentheses": "always"
     },
-    "globals": ["console", "process", "__dirname", "__filename", "global", "Buffer", "NodeJS"]
+    "globals": ["console", "process", "__dirname", "__filename", "global", "Buffer", "NodeJS", "document", "window", "navigator", "localStorage", "sessionStorage", "fetch", "URL", "URLSearchParams", "Headers", "Request", "Response", "FormData", "AbortController", "setTimeout", "clearTimeout", "setInterval", "clearInterval", "requestAnimationFrame", "cancelAnimationFrame", "queueMicrotask", "structuredClone", "crypto", "performance", "MutationObserver", "ResizeObserver", "IntersectionObserver", "HTMLElement", "Event", "CustomEvent", "EventTarget"]
   },
   "overrides": [
     {
