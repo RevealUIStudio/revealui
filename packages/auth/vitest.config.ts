@@ -8,8 +8,9 @@ export default defineConfig({
     include: ['src/**/*.test.ts'],
     env: {
       REVEALUI_SECRET: 'test-secret-key-for-testing-only-32chars',
-      // Don't set DATABASE_URL - let auth package use in-memory storage for tests
-      // Integration tests will check for DATABASE_URL and skip if not set
+      // Force in-memory storage by unsetting database URLs that may leak from direnv/nix shell
+      POSTGRES_URL: '',
+      DATABASE_URL: '',
       NODE_ENV: 'test',
     },
     coverage: {
