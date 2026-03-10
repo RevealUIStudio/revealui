@@ -4,6 +4,11 @@ export default defineConfig({
   test: {
     globals: true,
     environment: 'node',
+    env: {
+      // Force in-memory storage by unsetting database URLs that may leak from direnv/nix shell
+      POSTGRES_URL: '',
+      DATABASE_URL: '',
+    },
     include: ['**/*.test.ts'],
     exclude: ['**/node_modules/**'],
     testTimeout: 30000,
