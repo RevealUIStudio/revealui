@@ -2765,6 +2765,614 @@ type Password = z.infer<typeof passwordSchema>
 
 ---
 
+# @revealui/auth
+
+Session-based authentication for RevealUI apps. Provides sign in/up, session management, OAuth account linking, brute-force protection, rate limiting, and password reset — all backed by PostgreSQL.
+
+```bash
+npm install @revealui/auth
+```
+
+## Subpath Exports
+
+| Import path | Environment | Purpose |
+|-------------|-------------|---------|
+| `@revealui/auth` | Both | Re-exports server + react + types |
+| `@revealui/auth/server` | Server only | All server-side auth functions |
+| `@revealui/auth/react` | Client only | React hooks (useSession, useSignIn, etc.) |
+
+---
+
+## Authentication
+
+### `signIn(email, password, options?)`
+
+Authenticates a user with email and password. Records failed attempts for brute-force protection.
+
+```ts
+import { signIn } from '@revealui/auth/server'
+
+const result = await signIn('user@example.com', 'password123', {
+  userAgent: req.headers.get('user-agent') ?? undefined,
+  ipAddress: '127.0.0.1',
+})
+
+if (result.success) {
+  // Set session cookie with result.sessionToken
+}
+```
+
+**Parameters:**
+| Param | Type | Description |
+|-------|------|-------------|
+| `email` | `string` | User's email address |
+| `password` | `string` | Plain-text password to verify |
+| `options.userAgent` | `string?` | Browser user-agent for session tracking |
+| `options.ipAddress` | `string?` | Client IP for session tracking |
+
+**Returns:** `Promise<SignInResult>`
+```ts
+interface SignInResult {
+  success: boolean
+  user?: User
+  sessionToken?: string
+  error?: string
+}
+```
+
+---
+
+### `signUp(email, password, name, options?)`
+
+Creates a new user account with hashed password. Returns a session token on success.
+
+```ts
+import { signUp } from '@revealui/auth/server'
+
+const result = await signUp('user@example.com', 'SecureP@ss1', 'Jane Doe', {
+  tosAcceptedAt: new Date(),
+  tosVersion: '2025-01',
+})
+```
+
+**Parameters:**
+| Param | Type | Description |
+|-------|------|-------------|
+| `email` | `string` | Email address (must be unique) |
+| `password` | `string` | Password (validated against strength rules) |
+| `name` | `string` | Display name |
+| `options.userAgent` | `string?` | Browser user-agent |
+| `options.ipAddress` | `string?` | Client IP |
+| `options.tosAcceptedAt` | `Date?` | Timestamp of ToS acceptance |
+| `options.tosVersion` | `string?` | Version of accepted ToS |
+
+**Returns:** `Promise<SignUpResult>`
+
+---
+
+### `isSignupAllowed(email)`
+
+Checks if an email is allowed to register (not blocked, not already taken).
+
+```ts
+import { isSignupAllowed } from '@revealui/auth/server'
+
+if (!isSignupAllowed('user@example.com')) {
+  throw new Error('Registration not allowed for this email')
+}
+```
+
+**Returns:** `boolean`
+
+---
+
+## Sessions
+
+### `createSession(userId, options?)`
+
+Creates a new session and returns the raw token (to set as a cookie).
+
+```ts
+import { createSession } from '@revealui/auth/server'
+
+const { token, session } = await createSession(user.id, {
+  persistent: true,   // 7-day expiry (vs 1-day for non-persistent)
+  userAgent: 'Mozilla/5.0...',
+  ipAddress: '192.168.1.1',
+})
+
+// Set cookie: revealui-session=<token>
+```
+
+**Returns:** `Promise<{ token: string; session: Session }>`
+
+---
+
+### `getSession(headers)`
+
+Retrieves the current session from the `revealui-session` cookie in the request headers.
+
+```ts
+import { getSession } from '@revealui/auth/server'
+
+const session = await getSession(request.headers)
+if (!session) {
+  return new Response('Unauthorized', { status: 401 })
+}
+// session.user, session.session available
+```
+
+**Returns:** `Promise<SessionData | null>`
+```ts
+interface SessionData {
+  session: Session
+  user: User
+}
+```
+
+---
+
+### `deleteSession(headers)`
+
+Deletes the session identified by the cookie in the request headers.
+
+```ts
+import { deleteSession } from '@revealui/auth/server'
+
+await deleteSession(request.headers) // returns true if deleted
+```
+
+**Returns:** `Promise<boolean>`
+
+---
+
+### `deleteAllUserSessions(userId)`
+
+Deletes all sessions for a user (e.g., after password change or account compromise).
+
+```ts
+import { deleteAllUserSessions } from '@revealui/auth/server'
+
+await deleteAllUserSessions(user.id)
+```
+
+---
+
+## OAuth
+
+### `buildAuthUrl(provider, redirectUri, state)`
+
+Builds the OAuth authorization URL for a given provider.
+
+```ts
+import { buildAuthUrl, generateOAuthState } from '@revealui/auth/server'
+
+const { state, cookieValue } = generateOAuthState('github', '/dashboard')
+const url = buildAuthUrl('github', 'https://app.example.com/auth/callback/github', state)
+// Redirect user to url, set state cookie to cookieValue
+```
+
+**Supported providers:** `github`, `google`, `vercel`
+
+---
+
+### `generateOAuthState(provider, redirectTo)` / `verifyOAuthState(state, cookieValue)`
+
+CSRF protection for OAuth flows. Generate a state param before redirect, verify it on callback.
+
+```ts
+import { generateOAuthState, verifyOAuthState } from '@revealui/auth/server'
+
+// Before redirect
+const { state, cookieValue } = generateOAuthState('github', '/dashboard')
+
+// On callback
+const verified = verifyOAuthState(callbackState, storedCookieValue)
+if (!verified) throw new Error('Invalid OAuth state')
+// verified.provider, verified.redirectTo
+```
+
+---
+
+### `exchangeCode(provider, code, redirectUri)`
+
+Exchanges an authorization code for an access token.
+
+**Returns:** `Promise<string>` — the access token
+
+---
+
+### `fetchProviderUser(provider, accessToken)`
+
+Fetches the authenticated user's profile from the OAuth provider.
+
+**Returns:** `Promise<ProviderUser>`
+```ts
+interface ProviderUser {
+  id: string
+  email: string | null
+  name: string
+  avatarUrl: string | null
+}
+```
+
+---
+
+### `upsertOAuthUser(provider, providerUser)`
+
+Creates or updates a user from OAuth login. If the email already exists, links the OAuth account to the existing user.
+
+**Returns:** `Promise<User>`
+
+---
+
+### `linkOAuthAccount(userId, provider, providerUser)` / `unlinkOAuthAccount(userId, provider)`
+
+Link or unlink an OAuth provider to an existing authenticated user's account.
+
+```ts
+import { linkOAuthAccount, unlinkOAuthAccount } from '@revealui/auth/server'
+
+// Link GitHub to current user
+await linkOAuthAccount(user.id, 'github', providerUser)
+
+// Unlink GitHub
+await unlinkOAuthAccount(user.id, 'github')
+```
+
+---
+
+### `getLinkedProviders(userId)`
+
+Returns all OAuth providers linked to a user account.
+
+```ts
+import { getLinkedProviders } from '@revealui/auth/server'
+
+const providers = await getLinkedProviders(user.id)
+// [{ provider: 'github', providerEmail: 'user@github.com', providerName: 'Jane' }]
+```
+
+**Returns:** `Promise<Array<{ provider: string; providerEmail: string | null; providerName: string | null }>>`
+
+---
+
+## Brute-Force Protection
+
+### `recordFailedAttempt(email, config?)`
+
+Records a failed login attempt. After `maxAttempts` within the window, the account is locked.
+
+```ts
+import { recordFailedAttempt, isAccountLocked } from '@revealui/auth/server'
+
+await recordFailedAttempt('user@example.com')
+
+const status = await isAccountLocked('user@example.com')
+if (status.locked) {
+  // Account locked until status.lockUntil
+}
+```
+
+**Config defaults:**
+```ts
+interface BruteForceConfig {
+  maxAttempts: number     // default: 5
+  lockDurationMs: number  // default: 15 minutes
+  windowMs: number        // default: 15 minutes
+}
+```
+
+---
+
+### `clearFailedAttempts(email)`
+
+Clears all failed attempts for an email (call after successful login).
+
+---
+
+### `getFailedAttemptCount(email)`
+
+Returns the current number of failed attempts.
+
+**Returns:** `Promise<number>`
+
+---
+
+## Rate Limiting
+
+### `checkRateLimit(key, config?)`
+
+Checks if a rate limit key has remaining capacity.
+
+```ts
+import { checkRateLimit } from '@revealui/auth/server'
+
+const limit = await checkRateLimit(`login:${ip}`, {
+  maxAttempts: 10,
+  windowMs: 60_000,    // 1 minute
+})
+
+if (!limit.allowed) {
+  return new Response('Too many requests', { status: 429 })
+}
+```
+
+**Returns:** `Promise<{ allowed: boolean; remaining: number; resetAt: number }>`
+
+---
+
+### `resetRateLimit(key)`
+
+Resets a rate limit counter.
+
+---
+
+### `getRateLimitStatus(key, config?)`
+
+Returns current rate limit status without consuming an attempt.
+
+**Returns:** `Promise<{ count: number; remaining: number; resetAt: number }>`
+
+---
+
+## Password Reset
+
+### `generatePasswordResetToken(email)`
+
+Generates a password reset token and stores it in the database. Send the token to the user via email.
+
+```ts
+import { generatePasswordResetToken } from '@revealui/auth/server'
+
+const result = await generatePasswordResetToken('user@example.com')
+if (result.success) {
+  // Send email with result.token and result.tokenId
+}
+```
+
+**Returns:** `Promise<PasswordResetResult>`
+
+---
+
+### `validatePasswordResetToken(tokenId, token)`
+
+Validates a password reset token without consuming it. Returns the user ID if valid.
+
+**Returns:** `Promise<string | null>` — user ID or null
+
+---
+
+### `resetPasswordWithToken(tokenId, token, newPassword)`
+
+Resets the user's password and invalidates the token.
+
+```ts
+import { resetPasswordWithToken } from '@revealui/auth/server'
+
+const result = await resetPasswordWithToken(tokenId, token, 'NewSecureP@ss1')
+if (result.success) {
+  // Password updated, redirect to login
+}
+```
+
+---
+
+### `invalidatePasswordResetToken(tokenId, token)`
+
+Manually invalidates a password reset token.
+
+---
+
+## Password Validation
+
+### `validatePasswordStrength(password)`
+
+Validates password against strength requirements (min 8 chars, uppercase, lowercase, digit, special char).
+
+```ts
+import { validatePasswordStrength } from '@revealui/auth/server'
+
+const result = validatePasswordStrength('weak')
+// { valid: false, errors: ['at least 8 characters', 'at least one uppercase letter', ...] }
+```
+
+**Returns:** `PasswordValidationResult`
+```ts
+interface PasswordValidationResult {
+  valid: boolean
+  errors: string[]
+}
+```
+
+---
+
+### `meetsMinimumPasswordRequirements(password)`
+
+Quick boolean check — returns `true` if the password passes all strength requirements.
+
+---
+
+## React Hooks
+
+### `useSession()`
+
+Returns the current authenticated session, with loading and error states.
+
+```tsx
+import { useSession } from '@revealui/auth/react'
+
+function ProfileButton() {
+  const { data, isLoading } = useSession()
+
+  if (isLoading) return <Spinner />
+  if (!data) return <a href="/login">Sign in</a>
+
+  return <span>Hello, {data.user.name}</span>
+}
+```
+
+**Returns:** `UseSessionResult`
+```ts
+interface UseSessionResult {
+  data: AuthSession | null  // { session, user }
+  isLoading: boolean
+  error: Error | null
+  refetch: () => Promise<void>
+}
+```
+
+---
+
+### `useSignIn()`
+
+Provides a `signIn` function for email/password authentication.
+
+```tsx
+import { useSignIn } from '@revealui/auth/react'
+
+function LoginForm() {
+  const { signIn, isLoading } = useSignIn()
+
+  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault()
+    const result = await signIn({ email, password })
+    if (result.success) router.push('/dashboard')
+  }
+
+  return <form onSubmit={handleSubmit}>...</form>
+}
+```
+
+---
+
+### `useSignUp()`
+
+Provides a `signUp` function for new account registration.
+
+```tsx
+import { useSignUp } from '@revealui/auth/react'
+
+function RegisterForm() {
+  const { signUp, isLoading } = useSignUp()
+
+  const result = await signUp({
+    email: 'user@example.com',
+    password: 'SecureP@ss1',
+    name: 'Jane Doe',
+    tosAccepted: true,
+  })
+}
+```
+
+---
+
+### `useSignOut()`
+
+Provides a `signOut` function that deletes the current session.
+
+```tsx
+import { useSignOut } from '@revealui/auth/react'
+
+function LogoutButton() {
+  const { signOut, isLoading } = useSignOut()
+  return <button onClick={signOut} disabled={isLoading}>Sign out</button>
+}
+```
+
+---
+
+## Error Classes
+
+| Class | Code | When |
+|-------|------|------|
+| `AuthError` | varies | Base class for all auth errors |
+| `AuthenticationError` | `AUTHENTICATION_ERROR` | Invalid credentials |
+| `SessionError` | `SESSION_ERROR` | Invalid or expired session |
+| `TokenError` | `TOKEN_ERROR` | Invalid reset/verification token |
+| `DatabaseError` | `DATABASE_ERROR` | Database operation failed |
+| `OAuthAccountConflictError` | `OAUTH_ACCOUNT_CONFLICT` | OAuth email already linked to another account |
+
+All error classes extend `AuthError` which extends `Error`. Each includes a `code` string and optional `statusCode` number.
+
+```ts
+import { AuthenticationError, SessionError } from '@revealui/auth/server'
+
+try {
+  await signIn(email, password)
+} catch (err) {
+  if (err instanceof AuthenticationError) {
+    // Invalid credentials
+  }
+}
+```
+
+---
+
+## Types
+
+### `User`
+
+```ts
+interface User {
+  id: string
+  name: string
+  email: string | null
+  avatarUrl: string | null
+  role: string
+  status: string
+  emailVerified: boolean
+  preferences: unknown
+  createdAt: Date
+  updatedAt: Date
+  lastActiveAt: Date | null
+}
+```
+
+### `Session`
+
+```ts
+interface Session {
+  id: string
+  userId: string
+  userAgent: string | null
+  ipAddress: string | null
+  persistent: boolean | null
+  lastActivityAt: Date
+  createdAt: Date
+  expiresAt: Date
+}
+```
+
+### `AuthSession`
+
+```ts
+interface AuthSession {
+  session: Session
+  user: User
+}
+```
+
+---
+
+## Architecture Notes
+
+- **Session-only auth** — no JWT tokens. Sessions are stored in PostgreSQL and identified by a `revealui-session` cookie containing an opaque `randomBytes(32).toString('hex')` token.
+- **Cookie domain** — `.revealui.com` for cross-subdomain support (CMS, API, marketing all share sessions).
+- **Password hashing** — bcrypt with automatic salt generation.
+- **Token hashing** — session tokens and reset tokens are hashed with SHA-256 before storage.
+- **OAuth state** — CSRF-protected with HMAC-signed state parameters.
+
+---
+
+## Related
+
+- [`@revealui/core`](/reference/core) — CMS engine, uses auth for admin access control
+- [`@revealui/contracts`](/reference/contracts) — `passwordSchema` Zod schema for validation
+- [`@revealui/db`](/reference/db) — `users`, `sessions`, `passwordResetTokens`, `oauthAccounts` tables
+
+---
+
 # @revealui/router
 
 Lightweight client-side router with SSR support. Built on `path-to-regexp` — no heavy dependencies.

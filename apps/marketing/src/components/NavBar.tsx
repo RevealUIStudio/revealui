@@ -6,6 +6,7 @@ import { useState } from 'react'
 const navLinks = [
   { label: 'Docs', href: 'https://docs.revealui.com' },
   { label: 'Pricing', href: '/pricing' },
+  { label: 'Sponsor', href: '/sponsor' },
 ]
 
 export function NavBar() {
@@ -104,6 +105,15 @@ export function NavBar() {
                 {label}
               </Link>
             ))}
+            <a
+              href="https://github.com/RevealUIStudio/revealui"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="rounded-md px-3 py-2.5 text-sm font-medium text-gray-700 hover:bg-gray-50 hover:text-gray-900 transition-colors"
+              onClick={() => setOpen(false)}
+            >
+              GitHub
+            </a>
           </div>
         </div>
       )}
