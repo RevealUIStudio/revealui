@@ -62,12 +62,12 @@ describe('convertToRevealUIField', () => {
   })
 
   it('preserves text field properties (maxLength, minLength)', () => {
-    // biome-ignore lint/suspicious/noExplicitAny: test helper — minimal field shape
     const result = convertToRevealUIField({
       name: 'code',
       type: 'text',
       maxLength: 10,
       minLength: 2,
+      // biome-ignore lint/suspicious/noExplicitAny: test helper — minimal field shape
     } as any)
 
     // biome-ignore lint/suspicious/noExplicitAny: test helper — accessing type-specific props
@@ -77,11 +77,11 @@ describe('convertToRevealUIField', () => {
   })
 
   it('recursively converts array field children', () => {
-    // biome-ignore lint/suspicious/noExplicitAny: test helper — minimal field shape
     const result = convertToRevealUIField({
       name: 'items',
       type: 'array',
       fields: [{ name: 'label', type: 'text' }],
+      // biome-ignore lint/suspicious/noExplicitAny: test helper — minimal field shape
     } as any)
 
     // biome-ignore lint/suspicious/noExplicitAny: test helper — accessing type-specific props
@@ -92,13 +92,13 @@ describe('convertToRevealUIField', () => {
   })
 
   it('preserves array field minRows/maxRows', () => {
-    // biome-ignore lint/suspicious/noExplicitAny: test helper — minimal field shape
     const result = convertToRevealUIField({
       name: 'items',
       type: 'array',
       fields: [],
       minRows: 1,
       maxRows: 5,
+      // biome-ignore lint/suspicious/noExplicitAny: test helper — minimal field shape
     } as any)
 
     // biome-ignore lint/suspicious/noExplicitAny: test helper — accessing type-specific props
@@ -108,11 +108,11 @@ describe('convertToRevealUIField', () => {
   })
 
   it('preserves checkbox defaultValue', () => {
-    // biome-ignore lint/suspicious/noExplicitAny: test helper — minimal field shape
     const result = convertToRevealUIField({
       name: 'active',
       type: 'checkbox',
       defaultValue: true,
+      // biome-ignore lint/suspicious/noExplicitAny: test helper — minimal field shape
     } as any)
 
     // biome-ignore lint/suspicious/noExplicitAny: test helper — accessing type-specific props
@@ -122,11 +122,11 @@ describe('convertToRevealUIField', () => {
 
   it('preserves richText editor', () => {
     const editor = { name: 'lexical' }
-    // biome-ignore lint/suspicious/noExplicitAny: test helper — minimal field shape
     const result = convertToRevealUIField({
       name: 'content',
       type: 'richText',
       editor,
+      // biome-ignore lint/suspicious/noExplicitAny: test helper — minimal field shape
     } as any)
 
     // biome-ignore lint/suspicious/noExplicitAny: test helper — accessing type-specific props
@@ -176,12 +176,12 @@ describe('convertFromRevealUIField', () => {
   })
 
   it('preserves text field maxLength/minLength', () => {
-    // biome-ignore lint/suspicious/noExplicitAny: test helper — minimal field shape
     const revealUIField = convertToRevealUIField({
       name: 'code',
       type: 'text',
       maxLength: 10,
       minLength: 2,
+      // biome-ignore lint/suspicious/noExplicitAny: test helper — minimal field shape
     } as any)
     const result = convertFromRevealUIField(revealUIField)
 
@@ -192,11 +192,11 @@ describe('convertFromRevealUIField', () => {
   })
 
   it('recursively converts array field children back', () => {
-    // biome-ignore lint/suspicious/noExplicitAny: test helper — minimal field shape
     const revealUIField = convertToRevealUIField({
       name: 'items',
       type: 'array',
       fields: [{ name: 'label', type: 'text' }],
+      // biome-ignore lint/suspicious/noExplicitAny: test helper — minimal field shape
     } as any)
     const result = convertFromRevealUIField(revealUIField)
 
@@ -209,11 +209,11 @@ describe('convertFromRevealUIField', () => {
   })
 
   it('preserves checkbox defaultValue on round-trip', () => {
-    // biome-ignore lint/suspicious/noExplicitAny: test helper — minimal field shape
     const revealUIField = convertToRevealUIField({
       name: 'active',
       type: 'checkbox',
       defaultValue: false,
+      // biome-ignore lint/suspicious/noExplicitAny: test helper — minimal field shape
     } as any)
     const result = convertFromRevealUIField(revealUIField)
 
@@ -223,11 +223,11 @@ describe('convertFromRevealUIField', () => {
 
   it('preserves richText editor on round-trip', () => {
     const editor = { name: 'lexical' }
-    // biome-ignore lint/suspicious/noExplicitAny: test helper — minimal field shape
     const revealUIField = convertToRevealUIField({
       name: 'content',
       type: 'richText',
       editor,
+      // biome-ignore lint/suspicious/noExplicitAny: test helper — minimal field shape
     } as any)
     const result = convertFromRevealUIField(revealUIField)
 
@@ -458,7 +458,6 @@ describe('validateRevealUIField', () => {
       const field = enhanceFieldWithRevealUI({ name: 'title', type: 'text' })
       field.validate = vi.fn(() => 'Original error')
 
-      // biome-ignore lint/suspicious/noExplicitAny: test helper — using mock args
       const result = validateRevealUIField(field, 'value', baseContext)
 
       expect(result).toBe('Original error')
