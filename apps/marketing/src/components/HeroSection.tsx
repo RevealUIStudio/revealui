@@ -43,9 +43,11 @@ export function HeroSection() {
             <span className="h-1.5 w-1.5 rounded-full bg-emerald-500 animate-pulse" />
             Open Source &middot; MIT Licensed
           </div>
-          <h1 className="text-4xl font-bold tracking-tight text-gray-950 sm:text-6xl lg:text-7xl">
+          <h1 className="text-4xl font-bold tracking-tight text-gray-950 sm:text-6xl lg:text-7xl hero-stagger">
             Build your business,
-            <span className="block text-gray-400">not your boilerplate.</span>
+            <span className="block bg-gradient-to-r from-gray-500 to-gray-300 bg-clip-text text-transparent">
+              not your boilerplate.
+            </span>
           </h1>
           <p className="mx-auto mt-6 max-w-2xl text-lg leading-8 text-gray-500">
             Everything a software company needs &mdash; users, content, products, payments, and AI

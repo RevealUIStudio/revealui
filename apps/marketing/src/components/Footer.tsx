@@ -79,6 +79,14 @@ export function Footer() {
                   API Reference
                 </Link>
               </li>
+              <li>
+                <Link
+                  href="https://docs.revealui.com/blog"
+                  className="hover:text-white transition-colors"
+                >
+                  Blog
+                </Link>
+              </li>
             </ul>
           </div>
           <div>
