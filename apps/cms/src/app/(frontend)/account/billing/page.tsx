@@ -11,7 +11,7 @@ import {
   CardTitle,
 } from '@revealui/presentation/server'
 import { useRouter, useSearchParams } from 'next/navigation'
-import { Suspense, useCallback, useEffect, useState } from 'react'
+import { Suspense, useCallback, useEffect, useRef, useState } from 'react'
 
 interface SubscriptionData {
   tier: LicenseTierId
@@ -124,6 +124,27 @@ function BillingContent() {
     }
   }, [apiUrl])
 
+  // Poll subscription status with exponential backoff after upgrades.
+  // Retries up to 3 times (1s → 2s → 4s) to allow webhook processing.
+  const pollTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
+  const pollSubscription = useCallback(
+    (attempt = 0) => {
+      const maxAttempts = 3
+      if (attempt >= maxAttempts) return
+      const delay = 1000 * 2 ** attempt // 1s, 2s, 4s
+      pollTimerRef.current = setTimeout(() => {
+        void fetchSubscription().then(() => pollSubscription(attempt + 1))
+      }, delay)
+    },
+    [fetchSubscription],
+  )
+
+  useEffect(() => {
+    return () => {
+      if (pollTimerRef.current) clearTimeout(pollTimerRef.current)
+    }
+  }, [])
+
   // Auto-redirect to checkout on signup with ?upgrade=pro
   useEffect(() => {
     if (upgrade === 'pro' && subscription?.tier === 'free' && !actionLoading) {
@@ -147,8 +168,7 @@ function BillingContent() {
       const data = (await res.json()) as { success?: boolean; error?: string }
       if (data.success) {
         setUpgradeSuccess(true)
-        // TODO: Replace setTimeout polling with webhook-driven refresh via SSE or polling with backoff
-        setTimeout(() => void fetchSubscription(), 2000)
+        pollSubscription()
       } else {
         setError(data.error || 'Failed to upgrade subscription')
       }
@@ -175,8 +195,7 @@ function BillingContent() {
       const data = (await res.json()) as { success?: boolean; error?: string }
       if (data.success) {
         setUpgradeSuccess(true)
-        // TODO: Replace setTimeout polling with webhook-driven refresh via SSE or polling with backoff
-        setTimeout(() => void fetchSubscription(), 2000)
+        pollSubscription()
       } else {
         setError(data.error || 'Failed to upgrade subscription')
       }

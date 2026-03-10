@@ -544,9 +544,18 @@ app.openapi(
     request: {
       params: BoardIdParam,
       query: z.object({
-        status: z.string().optional().openapi({ example: 'open' }),
-        priority: z.string().optional().openapi({ example: 'high' }),
-        type: z.string().optional().openapi({ example: 'task' }),
+        status: z
+          .enum(TICKET_STATUSES as unknown as [string, ...string[]])
+          .optional()
+          .openapi({ example: 'open' }),
+        priority: z
+          .enum(TICKET_PRIORITIES as unknown as [string, ...string[]])
+          .optional()
+          .openapi({ example: 'high' }),
+        type: z
+          .enum(TICKET_TYPES as unknown as [string, ...string[]])
+          .optional()
+          .openapi({ example: 'task' }),
         assigneeId: z.string().optional(),
         columnId: z.string().optional(),
       }),
@@ -595,9 +604,9 @@ app.openapi(
               description: z.record(z.string(), z.unknown()).optional(),
               columnId: z.string().optional(),
               parentTicketId: z.string().optional(),
-              status: z.string().optional(),
-              priority: z.string().optional(),
-              type: z.string().optional(),
+              status: z.enum(TICKET_STATUSES as unknown as [string, ...string[]]).optional(),
+              priority: z.enum(TICKET_PRIORITIES as unknown as [string, ...string[]]).optional(),
+              type: z.enum(TICKET_TYPES as unknown as [string, ...string[]]).optional(),
               assigneeId: z.string().optional(),
               reporterId: z.string().optional(),
               dueDate: z.string().datetime().optional(),
@@ -677,9 +686,9 @@ app.openapi(
             schema: z.object({
               title: z.string().min(1).max(500).optional(),
               description: z.record(z.string(), z.unknown()).optional(),
-              status: z.string().optional(),
-              priority: z.string().optional(),
-              type: z.string().optional(),
+              status: z.enum(TICKET_STATUSES as unknown as [string, ...string[]]).optional(),
+              priority: z.enum(TICKET_PRIORITIES as unknown as [string, ...string[]]).optional(),
+              type: z.enum(TICKET_TYPES as unknown as [string, ...string[]]).optional(),
               assigneeId: z.string().nullable().optional(),
               reporterId: z.string().nullable().optional(),
               columnId: z.string().nullable().optional(),

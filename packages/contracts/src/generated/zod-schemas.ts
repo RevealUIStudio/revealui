@@ -2,7 +2,7 @@
  * Auto-generated Zod schemas from Drizzle
  *
  * DO NOT EDIT - Regenerate with: pnpm generate:all
- * Generated: 2026-03-10T06:54:36.093Z
+ * Generated: 2026-03-10T17:34:44.863Z
  *
  * This file provides Zod schemas for all database tables, generated
  * directly from Drizzle table definitions using drizzle-zod.
@@ -429,6 +429,58 @@ export type FailedAttemptsRow = z.infer<typeof FailedAttemptsSelectSchema>
  * TypeScript type for failedAttempts insert
  */
 export type FailedAttemptsInsert = z.infer<typeof FailedAttemptsInsertSchema>
+
+// =============================================================================
+// GdprConsents Schemas
+// =============================================================================
+
+/**
+ * Zod schema for selecting gdprConsents rows from database
+ * Generated from Drizzle table definition: tables.gdprConsents
+ */
+export const GdprConsentsSelectSchema = createSelectSchema(tables.gdprConsents)
+
+/**
+ * Zod schema for inserting gdprConsents rows to database
+ * Generated from Drizzle table definition: tables.gdprConsents
+ */
+export const GdprConsentsInsertSchema = createInsertSchema(tables.gdprConsents)
+
+/**
+ * TypeScript type for gdprConsents row (Select)
+ */
+export type GdprConsentsRow = z.infer<typeof GdprConsentsSelectSchema>
+
+/**
+ * TypeScript type for gdprConsents insert
+ */
+export type GdprConsentsInsert = z.infer<typeof GdprConsentsInsertSchema>
+
+// =============================================================================
+// GdprDeletionRequests Schemas
+// =============================================================================
+
+/**
+ * Zod schema for selecting gdprDeletionRequests rows from database
+ * Generated from Drizzle table definition: tables.gdprDeletionRequests
+ */
+export const GdprDeletionRequestsSelectSchema = createSelectSchema(tables.gdprDeletionRequests)
+
+/**
+ * Zod schema for inserting gdprDeletionRequests rows to database
+ * Generated from Drizzle table definition: tables.gdprDeletionRequests
+ */
+export const GdprDeletionRequestsInsertSchema = createInsertSchema(tables.gdprDeletionRequests)
+
+/**
+ * TypeScript type for gdprDeletionRequests row (Select)
+ */
+export type GdprDeletionRequestsRow = z.infer<typeof GdprDeletionRequestsSelectSchema>
+
+/**
+ * TypeScript type for gdprDeletionRequests insert
+ */
+export type GdprDeletionRequestsInsert = z.infer<typeof GdprDeletionRequestsInsertSchema>
 
 // =============================================================================
 // GlobalFooter Schemas

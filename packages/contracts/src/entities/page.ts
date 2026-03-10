@@ -34,13 +34,10 @@ export const PAGE_SCHEMA_VERSION = 1
 // Page Status
 // =============================================================================
 
-export const PageStatusSchema = z.enum([
-  'draft', // Not published
-  'published', // Live
-  'scheduled', // Will publish at scheduled time
-  'archived', // Soft deleted
-])
-export type PageStatus = z.infer<typeof PageStatusSchema>
+export const PAGE_STATUSES = ['draft', 'published', 'scheduled', 'archived'] as const
+
+export const PageStatusSchema = z.enum(PAGE_STATUSES)
+export type PageStatus = (typeof PAGE_STATUSES)[number]
 
 // =============================================================================
 // Page SEO

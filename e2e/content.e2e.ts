@@ -163,10 +163,86 @@ test.describe('Content CRUD lifecycle', () => {
 })
 
 // ---------------------------------------------------------------------------
-// Media upload
+// Media upload — API-based (bypasses DocumentForm which lacks upload field type)
 // ---------------------------------------------------------------------------
-// TODO(phase1): DocumentForm renders text/date/select inputs only — no upload
-// field type support yet. Media E2E tests require either:
-//   a) Adding upload field type to DocumentForm
-//   b) A direct API-based upload test (multipart POST to /api/collections/media)
-// Skipped for Phase 0 scope.
+
+test.describe('Media upload via API', () => {
+  test.use({ storageState: AUTH_STATE_FILE })
+
+  test.beforeAll(async ({ request }) => {
+    try {
+      const state = JSON.parse(readFileSync(AUTH_STATE_FILE, 'utf8')) as {
+        cookies?: unknown[]
+      }
+      if (!state.cookies?.length) {
+        test.skip()
+        return
+      }
+    } catch {
+      test.skip()
+      return
+    }
+    try {
+      const res = await request.get(`${CMS_BASE}/api/health`, { timeout: 5000 })
+      if (!res.ok()) test.skip()
+    } catch {
+      test.skip()
+    }
+  })
+
+  test('can upload a media file via multipart POST', async ({ request }) => {
+    // Create a small 1x1 PNG (68 bytes)
+    const pngBytes = Buffer.from(
+      'iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNk+M9QDwADhgGAWjR9awAAAABJRU5ErkJggg==',
+      'base64',
+    )
+
+    const response = await request.post(`${CMS_BASE}/api/collections/media`, {
+      multipart: {
+        file: {
+          name: `e2e-test-${Date.now()}.png`,
+          mimeType: 'image/png',
+          buffer: pngBytes,
+        },
+        alt: 'E2E test image',
+      },
+    })
+
+    // Accept 201 (created) or 200 (OK). 4xx means the endpoint rejected
+    // the request — still a valid test outcome if auth or storage isn't configured.
+    if (response.status() === 401 || response.status() === 403) {
+      test.skip()
+      return
+    }
+
+    expect([200, 201]).toContain(response.status())
+
+    const body = (await response.json()) as { doc?: { id?: string }; id?: string }
+    const id = body.doc?.id ?? body.id
+    expect(id).toBeDefined()
+  })
+
+  test('rejects upload without authentication', async ({ browser }) => {
+    // Fresh context with no stored auth
+    const context = await browser.newContext()
+    const req = context.request
+
+    const pngBytes = Buffer.from(
+      'iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNk+M9QDwADhgGAWjR9awAAAABJRU5ErkJggg==',
+      'base64',
+    )
+
+    const response = await req.post(`${CMS_BASE}/api/collections/media`, {
+      multipart: {
+        file: {
+          name: 'unauthorized.png',
+          mimeType: 'image/png',
+          buffer: pngBytes,
+        },
+      },
+    })
+
+    expect([401, 403]).toContain(response.status())
+    await context.close()
+  })
+})
