@@ -35,13 +35,10 @@ export const SITE_SCHEMA_VERSION = 1
 // Site Status
 // =============================================================================
 
-export const SiteStatusSchema = z.enum([
-  'draft', // Not published
-  'published', // Live
-  'archived', // Soft deleted
-  'maintenance', // Temporarily offline
-])
-export type SiteStatus = z.infer<typeof SiteStatusSchema>
+export const SITE_STATUSES = ['draft', 'published', 'archived', 'maintenance'] as const
+
+export const SiteStatusSchema = z.enum(SITE_STATUSES)
+export type SiteStatus = (typeof SITE_STATUSES)[number]
 
 // =============================================================================
 // Site Theme

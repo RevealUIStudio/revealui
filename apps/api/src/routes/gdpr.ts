@@ -4,9 +4,9 @@ import {
   createConsentManager,
   createDataDeletionSystem,
   type DataCategory,
-  InMemoryGDPRStorage,
 } from '@revealui/core/security'
 import { Hono } from 'hono'
+import { DrizzleGDPRStorage } from '../lib/drizzle-gdpr-storage.js'
 
 interface UserContext {
   id: string
@@ -15,9 +15,8 @@ interface UserContext {
   role: string
 }
 
-// Shared storage instance for both consent and deletion subsystems.
-// TODO: Replace with database-backed GDPRStorage for production persistence.
-const gdprStorage = new InMemoryGDPRStorage()
+// Database-backed storage — persists consent records and deletion requests to PostgreSQL.
+const gdprStorage = new DrizzleGDPRStorage()
 const consentManager = createConsentManager(gdprStorage)
 const deletionSystem = createDataDeletionSystem(gdprStorage)
 

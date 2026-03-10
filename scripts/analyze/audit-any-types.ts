@@ -199,16 +199,25 @@ function findAnyUsage(filePath: string): AnyUsage[] {
           backticks % 2 !== 0 ||
           inTemplateLiteral
 
-        // Check if in JSX string (line starts with whitespace and ends with < or just plain text)
+        // Detect JSX text content — "any" appearing as an English word in HTML, not as a TS type.
+        // JSX text lines typically contain HTML entities, JSX tags, or are inside tag content.
+        const trimmedLine = line.trim()
         const looksLikeJSXText =
-          line.trim().length > 0 &&
-          !line.includes(':') &&
-          !line.includes('=') &&
-          !line.includes('function') &&
-          !line.includes('const') &&
-          !line.includes('let') &&
-          !line.includes('var') &&
-          (line.includes('time') || line.includes('moment') || line.includes('hour'))
+          trimmedLine.length > 0 &&
+          // Line contains JSX text indicators (HTML entities or surrounded by tags)
+          (/&\w+;/.test(trimmedLine) ||
+            /^<\w+[^>]*>.*\bany\b.*<\/\w+>/.test(trimmedLine) ||
+            // "any" preceded by a word character + space (English prose, not `: any`)
+            /\w\s+any(\s+\w|$)/.test(trimmedLine)) &&
+          // Not a TypeScript type annotation
+          !/:\s*any\b/.test(trimmedLine) &&
+          !/<any>/.test(trimmedLine) &&
+          !/as\s+any\b/.test(trimmedLine) &&
+          !trimmedLine.startsWith('const ') &&
+          !trimmedLine.startsWith('let ') &&
+          !trimmedLine.startsWith('function ') &&
+          !trimmedLine.startsWith('type ') &&
+          !trimmedLine.startsWith('interface ')
 
         const inComment =
           beforeMatch.includes('//') || beforeMatch.includes('/*') || beforeMatch.includes('*')

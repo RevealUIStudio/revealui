@@ -19,7 +19,7 @@
  */
 
 import { createRoute, OpenAPIHono, z } from '@hono/zod-openapi'
-import { POST_STATUSES } from '@revealui/contracts/entities'
+import { PAGE_STATUSES, POST_STATUSES, SITE_STATUSES } from '@revealui/contracts/entities'
 import type { DatabaseClient } from '@revealui/db/client'
 import * as mediaQueries from '@revealui/db/queries/media'
 import * as pageQueries from '@revealui/db/queries/pages'
@@ -114,7 +114,7 @@ const SiteSchema = z
     slug: z.string(),
     description: z.string().nullable(),
     ownerId: z.string(),
-    status: z.string(),
+    status: z.enum(SITE_STATUSES as unknown as [string, ...string[]]),
     theme: z.unknown().nullable(),
     settings: z.unknown().nullable(),
     pageCount: z.number().nullable(),
@@ -138,7 +138,7 @@ const PageSchema = z
     title: z.string(),
     slug: z.string(),
     path: z.string(),
-    status: z.string(),
+    status: z.enum(PAGE_STATUSES as unknown as [string, ...string[]]),
     blocks: z.unknown().nullable(),
     seo: z.unknown().nullable(),
     blockCount: z.number().nullable(),
@@ -162,7 +162,10 @@ app.openapi(
     summary: 'List posts',
     request: {
       query: PaginationQuery.extend({
-        status: z.string().optional().openapi({ example: 'published' }),
+        status: z
+          .enum(POST_STATUSES as unknown as [string, ...string[]])
+          .optional()
+          .openapi({ example: 'published' }),
         authorId: z.string().optional(),
       }),
     },
@@ -212,7 +215,7 @@ app.openapi(
               content: z.unknown().optional(),
               featuredImageId: z.string().optional(),
               authorId: z.string().optional(),
-              status: z.enum(['draft', 'published', 'archived']).optional(),
+              status: z.enum(POST_STATUSES as unknown as [string, ...string[]]).optional(),
               meta: z.record(z.string(), z.unknown()).optional(),
               categories: z.array(z.string()).optional(),
             }),
@@ -328,7 +331,7 @@ app.openapi(
               excerpt: z.string().max(1000).nullable().optional(),
               content: z.unknown().optional(),
               featuredImageId: z.string().nullable().optional(),
-              status: z.enum(['draft', 'published', 'archived']).optional(),
+              status: z.enum(POST_STATUSES as unknown as [string, ...string[]]).optional(),
               published: z.boolean().optional(),
               meta: z.record(z.string(), z.unknown()).nullable().optional(),
               categories: z.array(z.string()).optional(),
@@ -576,7 +579,10 @@ app.openapi(
     summary: 'List sites',
     request: {
       query: PaginationQuery.extend({
-        status: z.string().optional().openapi({ example: 'published' }),
+        status: z
+          .enum(SITE_STATUSES as unknown as [string, ...string[]])
+          .optional()
+          .openapi({ example: 'published' }),
       }),
     },
     responses: {
@@ -615,7 +621,7 @@ app.openapi(
               name: z.string().min(1).max(200),
               slug: z.string().min(1).max(200),
               description: z.string().max(1000).optional(),
-              status: z.enum(['draft', 'published', 'archived']).optional(),
+              status: z.enum(SITE_STATUSES as unknown as [string, ...string[]]).optional(),
             }),
           },
         },
@@ -695,7 +701,7 @@ app.openapi(
               name: z.string().min(1).max(200).optional(),
               slug: z.string().min(1).max(200).optional(),
               description: z.string().max(1000).nullable().optional(),
-              status: z.enum(['draft', 'published', 'archived']).optional(),
+              status: z.enum(SITE_STATUSES as unknown as [string, ...string[]]).optional(),
               favicon: z.string().nullable().optional(),
             }),
           },
@@ -778,7 +784,10 @@ app.openapi(
     request: {
       params: SiteIdParam,
       query: z.object({
-        status: z.string().optional().openapi({ example: 'published' }),
+        status: z
+          .enum(PAGE_STATUSES as unknown as [string, ...string[]])
+          .optional()
+          .openapi({ example: 'published' }),
       }),
     },
     responses: {
@@ -828,7 +837,7 @@ app.openapi(
               title: z.string().min(1).max(500),
               slug: z.string().min(1).max(200),
               path: z.string().min(1).max(500),
-              status: z.enum(['draft', 'published', 'archived', 'scheduled']).optional(),
+              status: z.enum(PAGE_STATUSES as unknown as [string, ...string[]]).optional(),
               parentId: z.string().optional(),
               templateId: z.string().optional(),
               blocks: z.array(z.unknown()).optional(),
@@ -923,7 +932,7 @@ app.openapi(
               title: z.string().min(1).max(500).optional(),
               slug: z.string().min(1).max(200).optional(),
               path: z.string().min(1).max(500).optional(),
-              status: z.enum(['draft', 'published', 'archived', 'scheduled']).optional(),
+              status: z.enum(PAGE_STATUSES as unknown as [string, ...string[]]).optional(),
               parentId: z.string().nullable().optional(),
               templateId: z.string().nullable().optional(),
               blocks: z.array(z.unknown()).optional(),
