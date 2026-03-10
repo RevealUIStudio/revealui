@@ -114,7 +114,7 @@ describe('Query Builder Utilities', () => {
 
       const clause = buildWhereClause(where, params)
 
-      expect(clause).toBe('"title" LIKE $1')
+      expect(clause).toBe(`"title" LIKE $1 ESCAPE '\\'`)
       expect(params).toEqual(['%test%'])
     })
 

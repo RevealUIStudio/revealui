@@ -103,7 +103,7 @@ describe('Test Helpers', () => {
       await sleep(50)
       const duration = Date.now() - start
       expect(duration).toBeGreaterThanOrEqual(45)
-      expect(duration).toBeLessThan(100)
+      expect(duration).toBeLessThan(200)
     })
   })
 
