@@ -144,22 +144,22 @@ describe('Rate limit concurrent checks', () => {
     expect(overflow.remaining).toBe(0)
   })
 
-  it('concurrent rate limit checks expose non-atomic read-write race', async () => {
+  it('concurrent rate limit checks should count all requests (atomic)', async () => {
     const key = 'api:race'
     const config = { maxAttempts: 5, windowMs: 60_000 }
 
-    // Fire 5 concurrent checks — the non-atomic get/set in checkRateLimit
-    // means multiple calls may read count=0 before any write completes.
-    // This is a known limitation of the storage-backed rate limiter.
+    // Fire 5 concurrent checks — checkRateLimit now uses atomicUpdate,
+    // so all 5 increments are counted without lost updates.
     const results = await Promise.all(Array.from({ length: 5 }, () => checkRateLimit(key, config)))
 
-    // All should be allowed since they race on the initial read
+    // All 5 should be allowed (exactly at the limit)
     const allowed = results.filter((r) => r.allowed).length
     expect(allowed).toBe(5)
 
-    // The actual stored count may be less than 5 due to lost updates.
-    // This documents the race condition — the brute-force module uses
-    // atomicUpdate to avoid this, but rate-limit.ts does not.
+    // The 6th should be denied — all 5 previous requests were counted
+    const overflow = await checkRateLimit(key, config)
+    expect(overflow.allowed).toBe(false)
+    expect(overflow.remaining).toBe(0)
   })
 
   it('sequential checks from different keys should be independent', async () => {
@@ -250,23 +250,20 @@ describe('InMemoryStorage atomicUpdate concurrency', () => {
     expect(results).toEqual(Array.from({ length: 15 }, (_, i) => i + 1))
   })
 
-  it('concurrent incr exposes non-atomic race condition', async () => {
-    // incr does async get() then set() — concurrent calls all read
-    // the same initial value and overwrite each other (lost updates).
-    // This documents a real race condition in InMemoryStorage.incr.
-    const increments = Array.from({ length: 10 }, () => testStorage.incr('racy-counter'))
+  it('concurrent incr should accumulate correctly (atomic)', async () => {
+    // incr now uses synchronous Map operations (no await between read/write),
+    // so concurrent calls cannot interleave and lose updates.
+    const increments = Array.from({ length: 10 }, () => testStorage.incr('atomic-counter'))
 
     const results = await Promise.all(increments)
 
-    // All calls return 1 because they all read null/0 before any write
-    // This is the expected (racy) behavior — not a bug in the test
-    for (const result of results) {
-      expect(result).toBe(1)
-    }
+    // All 10 increments should be counted — each returns a unique value 1..10
+    const sorted = [...results].sort((a, b) => a - b)
+    expect(sorted).toEqual(Array.from({ length: 10 }, (_, i) => i + 1))
 
-    // The stored value reflects only the last write (1, not 10)
-    const stored = await testStorage.get('racy-counter')
-    expect(stored).toBe('1')
+    // The stored value should reflect all 10 increments
+    const stored = await testStorage.get('atomic-counter')
+    expect(stored).toBe('10')
   })
 
   it('concurrent set and get should return consistent values', async () => {
