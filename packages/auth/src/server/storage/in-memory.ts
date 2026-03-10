@@ -45,9 +45,14 @@ export class InMemoryStorage implements Storage {
   }
 
   async incr(key: string): Promise<number> {
-    const current = await this.get(key)
+    // Read and write synchronously on the Map to avoid yielding to the event loop
+    // between read and write (same approach as atomicUpdate).
+    const now = Date.now()
+    const entry = this.store.get(key)
+    const current = entry && (!entry.expiresAt || entry.expiresAt >= now) ? entry.value : null
     const newValue = current ? parseInt(current, 10) + 1 : 1
-    await this.set(key, String(newValue))
+    // Preserve the original TTL if the entry exists
+    this.store.set(key, { value: String(newValue), expiresAt: entry?.expiresAt })
     return newValue
   }
 

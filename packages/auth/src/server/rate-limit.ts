@@ -71,56 +71,61 @@ export async function checkRateLimit(
   const storageKey = getStorageKey(key)
   const now = Date.now()
 
-  // Get existing entry
-  const entryData = await storage.get(storageKey)
-  let entry = deserializeEntry(entryData)
+  // Use atomicUpdate to avoid the read-modify-write race condition.
+  // The result is captured via closure since atomicUpdate returns void.
+  let result: { allowed: boolean; remaining: number; resetAt: number }
 
-  // Clean up expired entries
-  if (entry && entry.resetAt < now) {
-    await storage.del(storageKey)
-    entry = null
-  }
+  const updater = (entryData: string | null): { value: string; ttlSeconds: number } => {
+    let entry = deserializeEntry(entryData)
 
-  // Get or create entry
-  const currentEntry: RateLimitEntry = entry || {
-    count: 0,
-    resetAt: now + config.windowMs,
-  }
-
-  // Check if blocked
-  if (config.blockDurationMs && currentEntry.count >= config.maxAttempts) {
-    const blockUntil = now + config.blockDurationMs
-    // Extend the storage TTL so the entry outlives the block period.
-    // Without this, the entry expires at resetAt (end of the rate-limit window)
-    // before the block expires, letting the user back in prematurely.
-    const blockTtlSeconds = Math.ceil(config.blockDurationMs / 1000)
-    await storage.set(storageKey, serializeEntry(currentEntry), blockTtlSeconds)
-    return {
-      allowed: false,
-      remaining: 0,
-      resetAt: blockUntil,
+    // Clean up expired entries
+    if (entry && entry.resetAt < now) {
+      entry = null
     }
-  }
 
-  // Check if within window
-  if (currentEntry.count >= config.maxAttempts) {
-    return {
-      allowed: false,
-      remaining: 0,
+    // Get or create entry
+    const currentEntry: RateLimitEntry = entry || {
+      count: 0,
+      resetAt: now + config.windowMs,
+    }
+
+    // Check if blocked
+    if (config.blockDurationMs && currentEntry.count >= config.maxAttempts) {
+      const blockUntil = now + config.blockDurationMs
+      const blockTtlSeconds = Math.ceil(config.blockDurationMs / 1000)
+      result = { allowed: false, remaining: 0, resetAt: blockUntil }
+      return { value: serializeEntry(currentEntry), ttlSeconds: blockTtlSeconds }
+    }
+
+    // Check if within window
+    if (currentEntry.count >= config.maxAttempts) {
+      const ttlSeconds = Math.ceil((currentEntry.resetAt - now) / 1000)
+      result = { allowed: false, remaining: 0, resetAt: currentEntry.resetAt }
+      return { value: serializeEntry(currentEntry), ttlSeconds }
+    }
+
+    // Increment and update
+    currentEntry.count++
+    const ttlSeconds = Math.ceil((currentEntry.resetAt - now) / 1000)
+    result = {
+      allowed: true,
+      remaining: config.maxAttempts - currentEntry.count,
       resetAt: currentEntry.resetAt,
     }
+    return { value: serializeEntry(currentEntry), ttlSeconds }
   }
 
-  // Increment and update
-  currentEntry.count++
-  const ttlSeconds = Math.ceil((currentEntry.resetAt - now) / 1000)
-  await storage.set(storageKey, serializeEntry(currentEntry), ttlSeconds)
-
-  return {
-    allowed: true,
-    remaining: config.maxAttempts - currentEntry.count,
-    resetAt: currentEntry.resetAt,
+  if (storage.atomicUpdate) {
+    await storage.atomicUpdate(storageKey, updater)
+  } else {
+    // Fallback for storage backends without atomicUpdate
+    const existing = await storage.get(storageKey)
+    const { value, ttlSeconds } = updater(existing)
+    await storage.set(storageKey, value, ttlSeconds)
   }
+
+  // biome-ignore lint/style/noNonNullAssertion: result is always assigned by updater before this point
+  return result!
 }
 
 /**
