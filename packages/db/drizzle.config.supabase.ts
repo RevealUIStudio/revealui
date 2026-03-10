@@ -19,7 +19,7 @@ if (!dbUrl) {
 
 export default defineConfig({
   // Schema location - only vector schemas
-  schema: './src/core/vector.ts',
+  schema: './src/schema/vector.ts',
 
   // Output directory for migrations
   out: './drizzle/supabase',
