@@ -1,0 +1,251 @@
+/**
+ * Pricing Route — serves tier/pricing data from Stripe with server-side fallback
+ *
+ * Public endpoint (no auth). Prices come from Stripe Products API when configured,
+ * otherwise from private server-side defaults.
+ */
+
+import { createRoute, OpenAPIHono, z } from '@hono/zod-openapi'
+import {
+  CREDIT_BUNDLES,
+  PERPETUAL_TIERS,
+  type PricingResponse,
+  SUBSCRIPTION_TIERS,
+} from '@revealui/contracts/pricing'
+import { CircuitBreaker, CircuitBreakerOpenError } from '@revealui/core/error-handling'
+import { logger } from '@revealui/core/observability/logger'
+import Stripe from 'stripe'
+
+const app = new OpenAPIHono()
+
+// ---------------------------------------------------------------------------
+// Stripe client (self-contained — does not share with billing.ts)
+// ---------------------------------------------------------------------------
+
+const pricingBreaker = new CircuitBreaker({
+  failureThreshold: 3,
+  resetTimeout: 60_000,
+  successThreshold: 2,
+})
+
+function getStripeClient(): Stripe | null {
+  const key = process.env.STRIPE_SECRET_KEY
+  if (!key) return null
+  return new Stripe(key, { maxNetworkRetries: 2 })
+}
+
+// ---------------------------------------------------------------------------
+// Server-side fallback prices (private — never exported or in contracts)
+// ---------------------------------------------------------------------------
+
+const FALLBACK_SUBSCRIPTION_PRICES: Record<string, { price: string; period?: string }> = {
+  free: { price: '$0' },
+  pro: { price: '$49', period: '/month' },
+  max: { price: '$149', period: '/month' },
+  enterprise: { price: '$299', period: '/month' },
+}
+
+const FALLBACK_CREDIT_PRICES: Record<
+  string,
+  { price: string; priceNote: string; costPer: string }
+> = {
+  Starter: { price: '$10', priceNote: 'one-time', costPer: '$0.001/task' },
+  Standard: { price: '$50', priceNote: 'one-time', costPer: '$0.00083/task' },
+  Scale: { price: '$250', priceNote: 'one-time', costPer: '$0.00071/task' },
+}
+
+const FALLBACK_PERPETUAL_PRICES: Record<
+  string,
+  { price: string; priceNote: string; renewal: string }
+> = {
+  'Pro Perpetual': {
+    price: '$299',
+    priceNote: 'one-time',
+    renewal: '$99/yr for continued support',
+  },
+  'Agency Perpetual': {
+    price: '$799',
+    priceNote: 'one-time',
+    renewal: '$199/yr for continued support',
+  },
+  'Forge Perpetual': {
+    price: '$1,999',
+    priceNote: 'one-time',
+    renewal: '$499/yr for continued support',
+  },
+}
+
+// ---------------------------------------------------------------------------
+// Stripe → pricing merge logic
+// ---------------------------------------------------------------------------
+
+function formatPrice(unitAmount: number): string {
+  return `$${(unitAmount / 100).toFixed(0)}`
+}
+
+function formatPeriod(interval: string | undefined): string | undefined {
+  if (!interval) return undefined
+  return `/${interval}`
+}
+
+interface StripeProductMap {
+  subscriptions: Map<string, { price: string; period?: string }>
+  credits: Map<string, { price: string; priceNote: string; costPer: string }>
+  perpetual: Map<string, { price: string; priceNote: string; renewal: string }>
+}
+
+async function fetchStripePrices(): Promise<StripeProductMap | null> {
+  const stripe = getStripeClient()
+  if (!stripe) return null
+
+  try {
+    const result = await pricingBreaker.execute(async () => {
+      const products = await stripe.products.list({
+        active: true,
+        expand: ['data.default_price'],
+        limit: 100,
+      })
+      return products
+    })
+
+    const map: StripeProductMap = {
+      subscriptions: new Map(),
+      credits: new Map(),
+      perpetual: new Map(),
+    }
+
+    for (const product of result.data) {
+      const track = product.metadata?.revealui_track
+      const tier = product.metadata?.revealui_tier
+      if (!(track && tier)) continue
+
+      const defaultPrice = product.default_price as Stripe.Price | null
+      if (!defaultPrice?.unit_amount) continue
+
+      const priceStr = formatPrice(defaultPrice.unit_amount)
+
+      if (track === 'subscription') {
+        map.subscriptions.set(tier, {
+          price: priceStr,
+          period: formatPeriod(defaultPrice.recurring?.interval),
+        })
+      } else if (track === 'credit') {
+        map.credits.set(product.name, {
+          price: priceStr,
+          priceNote: product.metadata?.revealui_price_note ?? 'one-time',
+          costPer: product.metadata?.revealui_cost_per ?? '',
+        })
+      } else if (track === 'perpetual') {
+        map.perpetual.set(product.name, {
+          price: priceStr,
+          priceNote: product.metadata?.revealui_price_note ?? 'one-time',
+          renewal: product.metadata?.revealui_renewal ?? '',
+        })
+      }
+    }
+
+    return map
+  } catch (error) {
+    if (error instanceof CircuitBreakerOpenError) {
+      logger.warn('Pricing: Stripe circuit breaker open, using fallback')
+    } else {
+      logger.error(
+        'Pricing: Stripe fetch failed, using fallback',
+        error instanceof Error ? error : new Error(String(error)),
+      )
+    }
+    return null
+  }
+}
+
+function buildPricingResponse(stripePrices: StripeProductMap | null): PricingResponse {
+  const subscriptions = SUBSCRIPTION_TIERS.map((tier) => {
+    const stripePrice = stripePrices?.subscriptions.get(tier.id)
+    const fallback = FALLBACK_SUBSCRIPTION_PRICES[tier.id]
+    return { ...tier, ...(stripePrice ?? fallback) }
+  })
+
+  const credits = CREDIT_BUNDLES.map((bundle) => {
+    const stripePrice = stripePrices?.credits.get(bundle.name)
+    const fallback = FALLBACK_CREDIT_PRICES[bundle.name]
+    return { ...bundle, ...(stripePrice ?? fallback) }
+  })
+
+  const perpetual = PERPETUAL_TIERS.map((tier) => {
+    const stripePrice = stripePrices?.perpetual.get(tier.name)
+    const fallback = FALLBACK_PERPETUAL_PRICES[tier.name]
+    return { ...tier, ...(stripePrice ?? fallback) }
+  })
+
+  return { subscriptions, credits, perpetual }
+}
+
+// ---------------------------------------------------------------------------
+// Route definition
+// ---------------------------------------------------------------------------
+
+const PricingResponseSchema = z.object({
+  subscriptions: z.array(
+    z.object({
+      id: z.string(),
+      name: z.string(),
+      price: z.string().optional(),
+      period: z.string().optional(),
+      description: z.string(),
+      features: z.array(z.string()),
+      cta: z.string(),
+      ctaHref: z.string(),
+      highlighted: z.boolean(),
+    }),
+  ),
+  credits: z.array(
+    z.object({
+      name: z.string(),
+      tasks: z.string(),
+      price: z.string().optional(),
+      priceNote: z.string().optional(),
+      costPer: z.string().optional(),
+      description: z.string(),
+      highlighted: z.boolean(),
+    }),
+  ),
+  perpetual: z.array(
+    z.object({
+      name: z.string(),
+      price: z.string().optional(),
+      priceNote: z.string().optional(),
+      renewal: z.string().optional(),
+      description: z.string(),
+      features: z.array(z.string()),
+      cta: z.string(),
+      ctaHref: z.string(),
+      comingSoon: z.boolean(),
+    }),
+  ),
+})
+
+const pricingRoute = createRoute({
+  method: 'get',
+  path: '/',
+  tags: ['pricing'],
+  summary: 'Get pricing data',
+  description:
+    'Returns subscription tiers, credit bundles, and perpetual license pricing. Prices sourced from Stripe when configured, otherwise server-side defaults.',
+  responses: {
+    200: {
+      content: { 'application/json': { schema: PricingResponseSchema } },
+      description: 'Pricing data',
+    },
+  },
+})
+
+app.openapi(pricingRoute, async (c) => {
+  const stripePrices = await fetchStripePrices()
+  const response = buildPricingResponse(stripePrices)
+
+  c.header('Cache-Control', 'public, s-maxage=3600, stale-while-revalidate=86400')
+
+  return c.json(response, 200)
+})
+
+export default app
