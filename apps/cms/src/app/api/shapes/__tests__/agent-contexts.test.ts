@@ -16,8 +16,7 @@ vi.mock('@revealui/auth/server', () => ({
 
 // Mock the electric proxy utilities
 vi.mock('@/lib/api/electric-proxy', () => ({
-  prepareElectricUrl: vi.fn((url: string) => {
-    const _testUrl = new URL(url);
+  prepareElectricUrl: vi.fn((_url: string) => {
     const electricUrl = new URL('http://localhost:5133/v1/shape');
     electricUrl.searchParams.set('table', 'agent_contexts');
     return electricUrl;

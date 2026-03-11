@@ -29,21 +29,6 @@ import { z } from 'zod/v4';
 import { countryOptions } from './Form/Country/options';
 import { stateOptions } from './Form/State/options';
 
-/**
- * Mapping from generated block types to schema block types
- */
-const _BLOCK_TYPE_MAP = {
-  cta: 'button',
-  content: 'text',
-  formBlock: 'form',
-  mediaBlock: 'image', // Default, can be video
-  code: 'code',
-  // Custom blocks that don't map directly
-  archive: 'component',
-  banner: 'component',
-  reusableContent: 'component',
-} as const;
-
 type GeneratedBlockType = Page['layout'][number];
 type GeneratedBlock = NonNullable<GeneratedBlockType>;
 

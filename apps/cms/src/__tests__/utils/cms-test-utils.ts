@@ -233,7 +233,7 @@ export function generateUniqueTestEmail(prefix = 'test'): string {
  * or explicit deletion in test teardown.
  */
 export async function cleanupTestUsers(): Promise<void> {
-  const _revealui = await getTestRevealUI();
+  await getTestRevealUI();
   const testEmails = [
     'test@example.com',
     'test-admin@example.com',

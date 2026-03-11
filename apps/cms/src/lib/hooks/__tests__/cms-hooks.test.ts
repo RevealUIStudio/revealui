@@ -123,7 +123,7 @@ describe('createTenant', () => {
       operation: 'create',
       context: { email: 'user@test.com' },
     } as never);
-    const createArg = mockCreate.mock.calls[0][0] as { data: Record<string, unknown> };
+    const createArg = mockCreate.mock.calls[0]![0] as { data: Record<string, unknown> };
     expect(createArg.data).not.toHaveProperty('password');
   });
 
@@ -232,9 +232,7 @@ describe('loginAfterCreate', () => {
 describe('ensureFirstUserIsSuperAdmin', () => {
   const mockFind = vi.fn();
 
-  const makeReq = () => ({
-    revealui: { find: mockFind },
-  });
+  const makeReq = () => ({ revealui: { find: mockFind } }) as never;
 
   beforeEach(() => {
     vi.clearAllMocks();
