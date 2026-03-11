@@ -30,6 +30,9 @@
     "typescript": "^5",
     "vitest": "^4.0.18"
   },
+  "engines": {
+    "node": ">=24.13.0"
+  },
   "peerDependencies": {
     "@revealui/ai": "0.1.3"
   },

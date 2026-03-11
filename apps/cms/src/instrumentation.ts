@@ -53,9 +53,9 @@ export async function register() {
       // so we use fetch() instead of importing @revealui/db directly.
       const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'https://api.revealui.com';
 
-      // Circuit breaker: back off exponentially on consecutive failures
+      // Circuit breaker: back off on consecutive failures
       let telemetryFailures = 0;
-      const maxBackoffFailures = 5; // after 5 consecutive failures, stop sending
+      const maxBackoffFailures = Number(process.env.TELEMETRY_MAX_FAILURES ?? 5);
 
       logger.addLogHandler((entry) => {
         if (entry.level !== 'warn' && entry.level !== 'error' && entry.level !== 'fatal') return;
