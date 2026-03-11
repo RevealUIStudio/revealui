@@ -1,9 +1,5 @@
 import type { Block } from '@revealui/core'
 
-// import Categories from "../../collections/Categories/index.js";
-
-// import Tags from "../../collections/Tags/index.js";
-
 const PageListField = {
   numberOfItems: 'numberOfItems',
   filterByCategories: 'filterByCategories',
@@ -12,6 +8,10 @@ const PageListField = {
   pages: 'pages',
 }
 
+// TODO: filterByCategories and filterByTags currently point to 'pages'
+// because Categories and Tags collections don't exist yet.
+// When those collections are created, update relationTo accordingly.
+// sortBy options are also empty pending PagesField enum.
 export const PageList: Block = {
   slug: 'pageList',
   interfaceName: 'PageList',
@@ -24,7 +24,6 @@ export const PageList: Block = {
     {
       name: PageListField.filterByCategories,
       type: 'relationship',
-      // relationTo: [Categories.slug],
       relationTo: 'pages',
       maxDepth: 0,
       hasMany: true,
@@ -32,7 +31,6 @@ export const PageList: Block = {
     {
       name: PageListField.filterByTags,
       type: 'relationship',
-      // relationTo: [Tags.slug],
       relationTo: 'pages',
       hasMany: true,
       maxDepth: 0,
@@ -40,68 +38,7 @@ export const PageList: Block = {
     {
       name: PageListField.sortBy,
       type: 'select',
-      options: [
-        // PagesField.title,
-        // PagesField.createdAt,
-        // PagesField.updatedAt,
-        // `-${PagesField.title}`,
-        // `-${PagesField.createdAt}`,
-        // `-${PagesField.updatedAt}`,
-      ],
+      options: [],
     },
   ],
 }
-
-// import { Block } from '@revealui/core'
-// import Categories from '../../../collections/Categories'
-// import { PagesField } from '../../../collections/Pages'
-// import Tags from '../../../collections/Tags'
-
-// const PageListField = {
-//   numberOfItems: 'numberOfItems',
-//   filterByCategories: 'filterByCategories',
-//   filterByTags: 'filterByTags',
-//   sortBy: 'sortBy',
-//   pages: 'pages'
-// }
-
-//
-// type PageListField = (typeof PageListField)[keyof typeof PageListField]
-
-// export const PageList: Block = {
-//   slug: 'pageList',
-//   interfaceName: 'PageList',
-//   fields: [
-//     {
-//       name: PageListField.numberOfItems,
-//       type: 'number',
-//       defaultValue: 5
-//     },
-//     {
-//       name: PageListField.filterByCategories,
-//       type: 'relationship',
-//       relationTo: [Categories.slug],
-//       maxDepth: 0,
-//       hasMany: true
-//     },
-//     {
-//       name: PageListField.filterByTags,
-//       type: 'relationship',
-//       relationTo: [Tags.slug],
-//       hasMany: true,
-//       maxDepth: 0
-//     },
-//     {
-//       name: PageListField.sortBy,
-//       type: 'select',
-//       options: [
-//         PagesField.title,
-//         PagesField.createdAt,
-//         PagesField.updatedAt,
-//         `-${PagesField.title}`,
-//         `-${PagesField.createdAt}`,
-//         `-${PagesField.updatedAt}`
-//       ]
-//     }
-//   ]
-// }

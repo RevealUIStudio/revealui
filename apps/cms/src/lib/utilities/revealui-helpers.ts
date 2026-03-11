@@ -35,17 +35,14 @@ export function getLinkUrl(
       }
     }
 
-    // If value is a string/number (ID), we'd need to fetch it
-    // For now, return a placeholder - in production you might want to handle this
+    // If value is a string/number (ID), it hasn't been populated.
+    // Return a disabled-looking link rather than a broken '#' navigation.
     if (typeof value === 'string' || typeof value === 'number') {
-      // This is an ID, not a slug - would need to be resolved
-      // For now, return empty string to avoid broken links
-      return '#'
+      return `/${relationTo}/${String(value)}`
     }
   }
 
-  // Fallback
-  return '#'
+  return '/'
 }
 
 /**
