@@ -1,7 +1,7 @@
+import { createRoute, OpenAPIHono, z } from '@hono/zod-openapi';
 import { logger } from '@revealui/core/observability/logger';
-import { Hono } from 'hono';
+import { HTTPException } from 'hono/http-exception';
 import * as Y from 'yjs';
-import { z } from 'zod';
 import { createYjsPersistence } from '../collab/persistence.js';
 import type { getSharedRoomManager } from '../collab/shared-room-manager.js';
 
@@ -10,48 +10,97 @@ type Variables = {
   user?: { id: string; role: string };
 };
 
-const UpdateSchema = z.object({
-  documentId: z.string().min(1),
-  // base64-encoded Yjs binary update (Y.encodeStateAsUpdate output)
-  update: z.string().min(1),
+// ---------------------------------------------------------------------------
+// Schemas
+// ---------------------------------------------------------------------------
+
+const UpdateRequestSchema = z
+  .object({
+    documentId: z.string().min(1),
+    update: z.string().min(1).openapi({ description: 'Base64-encoded Yjs binary update' }),
+  })
+  .openapi('CollabUpdateRequest');
+
+const UpdateResponseSchema = z
+  .object({
+    success: z.literal(true),
+  })
+  .openapi('CollabUpdateResponse');
+
+const DocumentIdParam = z.object({
+  documentId: z.string().openapi({
+    param: { name: 'documentId', in: 'path' },
+    example: 'doc-001',
+  }),
 });
 
+const SnapshotResponseSchema = z
+  .object({
+    success: z.literal(true),
+    documentId: z.string(),
+    state: z.string().openapi({ description: 'Base64-encoded Yjs document state' }),
+  })
+  .openapi('CollabSnapshotResponse');
+
+// ---------------------------------------------------------------------------
+// Route definitions
+// ---------------------------------------------------------------------------
+
+const updateRoute = createRoute({
+  method: 'post',
+  path: '/api/collab/update',
+  tags: ['Collaboration'],
+  summary: 'Apply a Yjs binary update to a document',
+  request: {
+    body: {
+      content: { 'application/json': { schema: UpdateRequestSchema } },
+    },
+  },
+  responses: {
+    200: {
+      content: { 'application/json': { schema: UpdateResponseSchema } },
+      description: 'Update applied successfully',
+    },
+  },
+});
+
+const snapshotRoute = createRoute({
+  method: 'get',
+  path: '/api/collab/snapshot/{documentId}',
+  tags: ['Collaboration'],
+  summary: 'Get current Yjs document state as base64',
+  request: {
+    params: DocumentIdParam,
+  },
+  responses: {
+    200: {
+      content: { 'application/json': { schema: SnapshotResponseSchema } },
+      description: 'Document snapshot',
+    },
+  },
+});
+
+// ---------------------------------------------------------------------------
+// Handlers
+// ---------------------------------------------------------------------------
+
 // biome-ignore lint/style/useNamingConvention: Hono requires PascalCase Variables key
-export function createCollabRoute(): Hono<{ Variables: Variables }> {
+export function createCollabRoute(): OpenAPIHono<{ Variables: Variables }> {
   // biome-ignore lint/style/useNamingConvention: Hono requires PascalCase Variables key
-  const app = new Hono<{ Variables: Variables }>();
+  const app = new OpenAPIHono<{ Variables: Variables }>();
 
-  /**
-   * Accept a Yjs binary update from a client, merge it with the current
-   * document state in the DB, and persist the result.
-   *
-   * Clients subscribe to the yjs_documents ElectricSQL shape to receive
-   * state changes in real time. On receiving a new state blob they call
-   * Y.applyUpdate() to sync their local document.
-   *
-   * Known limitation (Phase 0): concurrent updates to the same document
-   * race on the state column (last-write-wins). Yjs CRDT convergence
-   * ensures no data is silently discarded — re-applying a missed update is
-   * safe. Serialization via DB advisory locks and a proper operation log
-   * (crdt_operations table) is planned for Phase 2.
-   */
-  app.post('/api/collab/update', async (c) => {
+  app.openapi(updateRoute, async (c) => {
     if (!c.get('user')) {
-      return c.json({ success: false, error: 'Authentication required' }, 401);
-    }
-    const body = await c.req.json();
-    const parsed = UpdateSchema.safeParse(body);
-    if (!parsed.success) {
-      return c.json({ success: false, error: parsed.error.message }, 400);
+      throw new HTTPException(401, { message: 'Authentication required' });
     }
 
-    const { documentId, update } = parsed.data;
+    const { documentId, update } = c.req.valid('json');
 
     let updateBytes: Uint8Array;
     try {
       updateBytes = new Uint8Array(Buffer.from(update, 'base64'));
     } catch {
-      return c.json({ success: false, error: 'Invalid update encoding — expected base64' }, 400);
+      throw new HTTPException(400, { message: 'Invalid update encoding — expected base64' });
     }
 
     const db = c.get('db');
@@ -63,27 +112,22 @@ export function createCollabRoute(): Hono<{ Variables: Variables }> {
       Y.applyUpdate(doc, updateBytes);
       await persistence.saveDocument(documentId, doc);
       doc.destroy();
-      return c.json({ success: true });
+      return c.json({ success: true as const });
     } catch (err) {
       logger.error(
         'Failed to apply collab update',
         err instanceof Error ? err : new Error(String(err)),
         { documentId },
       );
-      return c.json({ success: false, error: 'Failed to apply update' }, 500);
+      throw new HTTPException(500, { message: 'Failed to apply update' });
     }
   });
 
-  /**
-   * Return the current Yjs document state as a base64-encoded binary blob.
-   * Used by clients for the initial load before the ElectricSQL shape
-   * subscription catches up.
-   */
-  app.get('/api/collab/snapshot/:documentId', async (c) => {
+  app.openapi(snapshotRoute, async (c) => {
     if (!c.get('user')) {
-      return c.json({ success: false, error: 'Authentication required' }, 401);
+      throw new HTTPException(401, { message: 'Authentication required' });
     }
-    const documentId = c.req.param('documentId');
+    const { documentId } = c.req.valid('param');
     const db = c.get('db');
     const persistence = createYjsPersistence(db);
 
@@ -94,21 +138,22 @@ export function createCollabRoute(): Hono<{ Variables: Variables }> {
       doc.destroy();
 
       if (state.length <= 2) {
-        return c.json({ success: false, error: 'Document not found' }, 404);
+        throw new HTTPException(404, { message: 'Document not found' });
       }
 
       return c.json({
-        success: true,
+        success: true as const,
         documentId,
         state: Buffer.from(state).toString('base64'),
       });
     } catch (err) {
+      if (err instanceof HTTPException) throw err;
       logger.error(
         'Failed to get collab snapshot',
         err instanceof Error ? err : new Error(String(err)),
         { documentId },
       );
-      return c.json({ success: false, error: 'Failed to get snapshot' }, 500);
+      throw new HTTPException(500, { message: 'Failed to get snapshot' });
     }
   });
 

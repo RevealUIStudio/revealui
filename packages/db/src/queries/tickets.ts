@@ -64,19 +64,14 @@ export async function createTicket(
     estimatedEffort?: number;
   },
 ) {
-  // Auto-increment ticket number per board
-  const maxResult = await db
-    .select({ max: sql<number>`COALESCE(MAX(${tickets.ticketNumber}), 0)` })
-    .from(tickets)
-    .where(eq(tickets.boardId, data.boardId));
-
-  const nextNumber = (maxResult[0]?.max ?? 0) + 1;
-
+  // Atomic ticket number assignment — the subquery computes MAX+1 inside the
+  // INSERT so concurrent inserts cannot produce duplicate numbers. The UNIQUE
+  // constraint on (board_id, ticket_number) acts as a safety net.
   const result = await db
     .insert(tickets)
     .values({
       ...data,
-      ticketNumber: nextNumber,
+      ticketNumber: sql<number>`(SELECT COALESCE(MAX(${tickets.ticketNumber}), 0) + 1 FROM ${tickets} WHERE ${tickets.boardId} = ${data.boardId})`,
       description: data.description ?? null,
     })
     .returning();

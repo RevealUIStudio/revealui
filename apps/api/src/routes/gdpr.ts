@@ -3,9 +3,9 @@ import {
   type ConsentType,
   createConsentManager,
   createDataDeletionSystem,
-  type DataCategory,
 } from '@revealui/core/security';
 import { Hono } from 'hono';
+import { z } from 'zod';
 import { DrizzleGDPRStorage } from '../lib/drizzle-gdpr-storage.js';
 
 interface UserContext {
@@ -27,6 +27,22 @@ const CONSENT_TYPES: ConsentType[] = [
   'marketing',
   'personalization',
 ];
+
+const consentGrantSchema = z.object({
+  type: z.enum(['necessary', 'functional', 'analytics', 'marketing', 'personalization']),
+  expiresIn: z.number().int().positive().optional(),
+});
+
+const consentRevokeSchema = z.object({
+  type: z.enum(['necessary', 'functional', 'analytics', 'marketing', 'personalization']),
+});
+
+const deletionRequestSchema = z.object({
+  categories: z
+    .array(z.enum(['personal', 'sensitive', 'financial', 'health', 'behavioral']))
+    .optional(),
+  reason: z.string().max(1000).optional(),
+});
 
 // biome-ignore lint/style/useNamingConvention: Hono requires PascalCase `Variables` in its generic type parameter
 const app = new Hono<{ Variables: { user: UserContext | undefined } }>();
@@ -60,13 +76,12 @@ app.post('/consent/grant', async (c) => {
     return c.json({ success: false, error: 'Authentication required' }, 401);
   }
 
-  const body = await c.req.json<{ type?: string; expiresIn?: number }>();
-
-  if (!(body.type && CONSENT_TYPES.includes(body.type as ConsentType))) {
+  const result = consentGrantSchema.safeParse(await c.req.json());
+  if (!result.success) {
     return c.json(
       {
         success: false,
-        error: `Invalid consent type. Must be one of: ${CONSENT_TYPES.join(', ')}`,
+        error: `Invalid request body: ${result.error.issues.map((i) => i.message).join(', ')}`,
       },
       400,
     );
@@ -74,12 +89,12 @@ app.post('/consent/grant', async (c) => {
 
   const consent = await consentManager.grantConsent(
     user.id,
-    body.type as ConsentType,
+    result.data.type,
     'explicit',
-    body.expiresIn,
+    result.data.expiresIn,
   );
 
-  logger.info('Consent granted', { userId: user.id, type: body.type });
+  logger.info('Consent granted', { userId: user.id, type: result.data.type });
 
   return c.json({ success: true, consent });
 });
@@ -95,19 +110,18 @@ app.post('/consent/revoke', async (c) => {
     return c.json({ success: false, error: 'Authentication required' }, 401);
   }
 
-  const body = await c.req.json<{ type?: string }>();
-
-  if (!(body.type && CONSENT_TYPES.includes(body.type as ConsentType))) {
+  const result = consentRevokeSchema.safeParse(await c.req.json());
+  if (!result.success) {
     return c.json(
       {
         success: false,
-        error: `Invalid consent type. Must be one of: ${CONSENT_TYPES.join(', ')}`,
+        error: `Invalid request body: ${result.error.issues.map((i) => i.message).join(', ')}`,
       },
       400,
     );
   }
 
-  if (body.type === 'necessary') {
+  if (result.data.type === 'necessary') {
     return c.json(
       {
         success: false,
@@ -117,9 +131,9 @@ app.post('/consent/revoke', async (c) => {
     );
   }
 
-  await consentManager.revokeConsent(user.id, body.type as ConsentType);
+  await consentManager.revokeConsent(user.id, result.data.type);
 
-  logger.info('Consent revoked', { userId: user.id, type: body.type });
+  logger.info('Consent revoked', { userId: user.id, type: result.data.type });
 
   return c.json({ success: true });
 });
@@ -156,7 +170,7 @@ app.get('/consent/check/:type', async (c) => {
 /**
  * POST /gdpr/deletion — Request data deletion (right to be forgotten).
  *
- * Body: { categories?: DataCategory[], reason?: string }
+ * Body: { categories?: ('personal'|'sensitive'|'financial'|'health'|'behavioral')[], reason?: string }
  */
 app.post('/deletion', async (c) => {
   const user = c.get('user');
@@ -164,12 +178,21 @@ app.post('/deletion', async (c) => {
     return c.json({ success: false, error: 'Authentication required' }, 401);
   }
 
-  const body = await c.req.json<{ categories?: string[]; reason?: string }>();
+  const result = deletionRequestSchema.safeParse(await c.req.json());
+  if (!result.success) {
+    return c.json(
+      {
+        success: false,
+        error: `Invalid request body: ${result.error.issues.map((i) => i.message).join(', ')}`,
+      },
+      400,
+    );
+  }
 
   const request = await deletionSystem.requestDeletion(
     user.id,
-    (body.categories as DataCategory[]) ?? ['personal'],
-    body.reason,
+    result.data.categories ?? ['personal'],
+    result.data.reason,
   );
 
   logger.info('Deletion request created', { userId: user.id, requestId: request.id });

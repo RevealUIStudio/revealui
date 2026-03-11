@@ -40,6 +40,6 @@ limitations:
   - id: no-soft-delete
     surface: api
     summary: "No soft-delete pattern — users and sites are hard-deleted"
-  - id: ticket-race
+  - id: ticket-race-fixed
     surface: api
-    summary: "Ticket number uses MAX()+1 app-level increment — race condition under concurrency"
+    summary: "Ticket number now uses atomic INSERT subquery + UNIQUE(board_id, ticket_number) (fixed — was MAX+1)"

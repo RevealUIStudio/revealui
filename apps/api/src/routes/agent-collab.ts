@@ -1,6 +1,6 @@
-import { Hono } from 'hono';
+import { createRoute, OpenAPIHono, z } from '@hono/zod-openapi';
+import { HTTPException } from 'hono/http-exception';
 import * as Y from 'yjs';
-import { z } from 'zod';
 import { getSharedRoomManager } from '../collab/shared-room-manager.js';
 
 type Variables = {
@@ -9,41 +9,152 @@ type Variables = {
 
 const DEFAULT_AGENT_COLOR = '#8B5CF6';
 
-const ConnectRequestSchema = z.object({
-  documentId: z.string().min(1),
-  agentName: z.string().min(1).max(100),
-  agentModel: z.string().min(1).max(100),
-  color: z
-    .string()
-    .regex(/^#[0-9a-fA-F]{6}$/)
-    .optional(),
+// ---------------------------------------------------------------------------
+// Schemas
+// ---------------------------------------------------------------------------
+
+const ConnectRequestSchema = z
+  .object({
+    documentId: z.string().min(1),
+    agentName: z.string().min(1).max(100),
+    agentModel: z.string().min(1).max(100),
+    color: z
+      .string()
+      .regex(/^#[0-9a-fA-F]{6}$/)
+      .optional(),
+  })
+  .openapi('AgentConnectRequest');
+
+const AgentIdentitySchema = z.object({
+  type: z.literal('agent'),
+  name: z.string(),
+  model: z.string(),
+  color: z.string(),
 });
 
-const EditRequestSchema = z.object({
-  documentId: z.string().min(1),
-  edit: z.object({
-    type: z.enum(['insert', 'delete', 'replace-all']),
-    textName: z.string().optional(),
-    index: z.number().int().nonnegative().optional(),
-    content: z.string().optional(),
-    length: z.number().int().positive().optional(),
+const ConnectResponseSchema = z
+  .object({
+    success: z.literal(true),
+    wsUrl: z.string().openapi({ description: 'WebSocket URL for real-time collaboration' }),
+    documentId: z.string(),
+    identity: AgentIdentitySchema,
+  })
+  .openapi('AgentConnectResponse');
+
+const EditRequestSchema = z
+  .object({
+    documentId: z.string().min(1),
+    edit: z.object({
+      type: z.enum(['insert', 'delete', 'replace-all']),
+      textName: z.string().optional(),
+      index: z.number().int().nonnegative().optional(),
+      content: z.string().optional(),
+      length: z.number().int().positive().optional(),
+    }),
+  })
+  .openapi('AgentEditRequest');
+
+const EditResponseSchema = z
+  .object({
+    success: z.literal(true),
+    documentId: z.string(),
+    textLength: z.number(),
+  })
+  .openapi('AgentEditResponse');
+
+const DocumentIdParam = z.object({
+  documentId: z.string().openapi({
+    param: { name: 'documentId', in: 'path' },
+    example: 'doc-001',
   }),
 });
 
+const AgentSnapshotResponseSchema = z
+  .object({
+    success: z.literal(true),
+    documentId: z.string(),
+    content: z.string(),
+    textLength: z.number(),
+    connectedClients: z.array(
+      z.object({
+        type: z.string(),
+        id: z.string(),
+        name: z.string(),
+        color: z.string(),
+        agentModel: z.string().optional(),
+      }),
+    ),
+  })
+  .openapi('AgentSnapshotResponse');
+
+// ---------------------------------------------------------------------------
+// Route definitions
+// ---------------------------------------------------------------------------
+
+const connectRoute = createRoute({
+  method: 'post',
+  path: '/api/collab/agent/connect',
+  tags: ['Agent Collaboration'],
+  summary: 'Get WebSocket URL for agent collaboration',
+  request: {
+    body: {
+      content: { 'application/json': { schema: ConnectRequestSchema } },
+    },
+  },
+  responses: {
+    200: {
+      content: { 'application/json': { schema: ConnectResponseSchema } },
+      description: 'WebSocket connection details',
+    },
+  },
+});
+
+const editRoute = createRoute({
+  method: 'post',
+  path: '/api/collab/agent/edit',
+  tags: ['Agent Collaboration'],
+  summary: 'Apply server-side edit to agent document',
+  request: {
+    body: {
+      content: { 'application/json': { schema: EditRequestSchema } },
+    },
+  },
+  responses: {
+    200: {
+      content: { 'application/json': { schema: EditResponseSchema } },
+      description: 'Edit applied successfully',
+    },
+  },
+});
+
+const agentSnapshotRoute = createRoute({
+  method: 'get',
+  path: '/api/collab/agent/snapshot/{documentId}',
+  tags: ['Agent Collaboration'],
+  summary: 'Get agent document state and connected clients',
+  request: {
+    params: DocumentIdParam,
+  },
+  responses: {
+    200: {
+      content: { 'application/json': { schema: AgentSnapshotResponseSchema } },
+      description: 'Agent document snapshot',
+    },
+  },
+});
+
+// ---------------------------------------------------------------------------
+// Handlers
+// ---------------------------------------------------------------------------
+
 // biome-ignore lint/style/useNamingConvention: Hono requires PascalCase `Variables` key in generic context
-export function createAgentCollabRoute(): Hono<{ Variables: Variables }> {
+export function createAgentCollabRoute(): OpenAPIHono<{ Variables: Variables }> {
   // biome-ignore lint/style/useNamingConvention: Hono requires PascalCase `Variables` key in generic context
-  const app = new Hono<{ Variables: Variables }>();
+  const app = new OpenAPIHono<{ Variables: Variables }>();
   const wsBaseUrl = process.env.WS_BASE_URL ?? 'ws://localhost:3004';
 
-  app.post('/api/collab/agent/connect', async (c) => {
-    const body = await c.req.json();
-    const parsed = ConnectRequestSchema.safeParse(body);
-    if (!parsed.success) {
-      return c.json({ success: false, error: parsed.error.message }, 400);
-    }
-
-    const { documentId, agentName, agentModel, color } = parsed.data;
+  app.openapi(connectRoute, async (c) => {
+    const { documentId, agentName, agentModel, color } = c.req.valid('json');
     const agentColor = color ?? DEFAULT_AGENT_COLOR;
 
     const identity = {
@@ -63,21 +174,15 @@ export function createAgentCollabRoute(): Hono<{ Variables: Variables }> {
     const wsUrl = `${wsBaseUrl}/ws/collab/${documentId}?${params.toString()}`;
 
     return c.json({
-      success: true,
+      success: true as const,
       wsUrl,
       documentId,
       identity,
     });
   });
 
-  app.post('/api/collab/agent/edit', async (c) => {
-    const body = await c.req.json();
-    const parsed = EditRequestSchema.safeParse(body);
-    if (!parsed.success) {
-      return c.json({ success: false, error: parsed.error.message }, 400);
-    }
-
-    const { documentId, edit } = parsed.data;
+  app.openapi(editRoute, async (c) => {
+    const { documentId, edit } = c.req.valid('json');
     const db = c.get('db');
     const manager = getSharedRoomManager(db);
 
@@ -89,29 +194,25 @@ export function createAgentCollabRoute(): Hono<{ Variables: Variables }> {
       const textLength = doc.getText(textName).length;
 
       return c.json({
-        success: true,
+        success: true as const,
         documentId,
         textLength,
       });
     } catch (err) {
-      return c.json(
-        {
-          success: false,
-          error: err instanceof Error ? err.message : 'Unknown error',
-        },
-        500,
-      );
+      throw new HTTPException(500, {
+        message: err instanceof Error ? err.message : 'Unknown error',
+      });
     }
   });
 
-  app.get('/api/collab/agent/snapshot/:documentId', async (c) => {
-    const documentId = c.req.param('documentId');
+  app.openapi(agentSnapshotRoute, async (c) => {
+    const { documentId } = c.req.valid('param');
     const db = c.get('db');
     const manager = getSharedRoomManager(db);
 
     const snapshot = await manager.getDocumentSnapshot(documentId);
     if (!snapshot) {
-      return c.json({ success: false, error: 'Document not found' }, 404);
+      throw new HTTPException(404, { message: 'Document not found' });
     }
 
     const tempDoc = new Y.Doc();
@@ -123,7 +224,7 @@ export function createAgentCollabRoute(): Hono<{ Variables: Variables }> {
     const connectedClients = manager.getConnectedClients(documentId);
 
     return c.json({
-      success: true,
+      success: true as const,
       documentId,
       content,
       textLength,
