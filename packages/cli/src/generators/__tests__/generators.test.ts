@@ -8,10 +8,21 @@ vi.mock('node:fs/promises', () => ({
   },
 }))
 
+// Mock node:crypto for deterministic env-file tests
+vi.mock('node:crypto', () => ({
+  default: {
+    randomBytes: vi.fn(() => ({
+      toString: () => 'a'.repeat(64),
+    })),
+  },
+}))
+
 import fs from 'node:fs/promises'
 import type { ProjectConfig } from '../../prompts/project.js'
 import { generateDevbox } from '../devbox.js'
 import { generateDevContainer } from '../devcontainer.js'
+import type { EnvConfig } from '../env-file.js'
+import { generateEnvFile } from '../env-file.js'
 import { generateReadme } from '../readme.js'
 
 const mockWriteFile = vi.mocked(fs.writeFile)
@@ -225,5 +236,128 @@ describe('generateDevContainer', () => {
     const content = dockerfileCall![1] as string
     expect(content).toContain('postgresql-client')
     expect(content).toContain('corepack enable')
+  })
+})
+
+describe('generateEnvFile', () => {
+  const baseEnvConfig: EnvConfig = {
+    database: { provider: 'neon', postgresUrl: 'postgresql://user:pass@host/db' },
+    storage: { provider: 'vercel-blob', blobToken: 'FAKE_BLOB_TOKEN_FOR_TESTS' },
+    payment: {
+      enabled: true,
+      stripeSecretKey: 'FAKE_STRIPE_SK_FOR_TESTS',
+      stripePublishableKey: 'FAKE_STRIPE_PK_FOR_TESTS',
+      stripeWebhookSecret: 'FAKE_STRIPE_WHSEC_FOR_TESTS',
+    },
+  }
+
+  it('writes .env.development.local to project path', async () => {
+    await generateEnvFile('/tmp/my-app', baseEnvConfig)
+    expect(mockWriteFile).toHaveBeenCalledOnce()
+    expect(mockWriteFile.mock.calls[0][0]).toBe('/tmp/my-app/.env.development.local')
+    expect(mockWriteFile.mock.calls[0][2]).toBe('utf-8')
+  })
+
+  it('includes REVEALUI_SECRET generated from crypto', async () => {
+    await generateEnvFile('/tmp/my-app', baseEnvConfig)
+    const content = mockWriteFile.mock.calls[0][1] as string
+    expect(content).toContain(`REVEALUI_SECRET=${'a'.repeat(64)}`)
+  })
+
+  it('includes core server URLs', async () => {
+    await generateEnvFile('/tmp/my-app', baseEnvConfig)
+    const content = mockWriteFile.mock.calls[0][1] as string
+    expect(content).toContain('REVEALUI_PUBLIC_SERVER_URL=http://localhost:4000')
+    expect(content).toContain('NEXT_PUBLIC_SERVER_URL=http://localhost:4000')
+  })
+
+  it('includes POSTGRES_URL when database is configured', async () => {
+    await generateEnvFile('/tmp/my-app', baseEnvConfig)
+    const content = mockWriteFile.mock.calls[0][1] as string
+    expect(content).toContain('POSTGRES_URL=postgresql://user:pass@host/db')
+  })
+
+  it('comments out POSTGRES_URL when database is skipped', async () => {
+    const config: EnvConfig = {
+      ...baseEnvConfig,
+      database: { provider: 'skip' },
+    }
+    await generateEnvFile('/tmp/my-app', config)
+    const content = mockWriteFile.mock.calls[0][1] as string
+    expect(content).toContain('# POSTGRES_URL=')
+    expect(content).not.toMatch(/^POSTGRES_URL=/m)
+  })
+
+  it('includes Vercel Blob token when storage is vercel-blob', async () => {
+    await generateEnvFile('/tmp/my-app', baseEnvConfig)
+    const content = mockWriteFile.mock.calls[0][1] as string
+    expect(content).toContain('BLOB_READ_WRITE_TOKEN=FAKE_BLOB_TOKEN_FOR_TESTS')
+  })
+
+  it('includes Supabase keys when storage is supabase', async () => {
+    const config: EnvConfig = {
+      ...baseEnvConfig,
+      storage: {
+        provider: 'supabase',
+        supabaseUrl: 'https://abc.supabase.co',
+        supabaseAnonKey: 'eyJhbGc...',
+      },
+    }
+    await generateEnvFile('/tmp/my-app', config)
+    const content = mockWriteFile.mock.calls[0][1] as string
+    expect(content).toContain('NEXT_PUBLIC_SUPABASE_URL=https://abc.supabase.co')
+    expect(content).toContain('NEXT_PUBLIC_SUPABASE_ANON_KEY=eyJhbGc...')
+  })
+
+  it('comments out storage when provider is not configured', async () => {
+    const config: EnvConfig = {
+      ...baseEnvConfig,
+      storage: { provider: 'skip' },
+    }
+    await generateEnvFile('/tmp/my-app', config)
+    const content = mockWriteFile.mock.calls[0][1] as string
+    expect(content).toContain('# BLOB_READ_WRITE_TOKEN=')
+  })
+
+  it('includes all Stripe keys when payments are enabled', async () => {
+    await generateEnvFile('/tmp/my-app', baseEnvConfig)
+    const content = mockWriteFile.mock.calls[0][1] as string
+    expect(content).toContain('STRIPE_SECRET_KEY=FAKE_STRIPE_SK_FOR_TESTS')
+    expect(content).toContain('NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY=FAKE_STRIPE_PK_FOR_TESTS')
+    expect(content).toContain('STRIPE_WEBHOOK_SECRET=FAKE_STRIPE_WHSEC_FOR_TESTS')
+  })
+
+  it('comments out Stripe keys when payments are disabled', async () => {
+    const config: EnvConfig = {
+      ...baseEnvConfig,
+      payment: { enabled: false },
+    }
+    await generateEnvFile('/tmp/my-app', config)
+    const content = mockWriteFile.mock.calls[0][1] as string
+    expect(content).toContain('# STRIPE_SECRET_KEY=')
+    expect(content).toContain('# NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY=')
+    expect(content).toContain('# STRIPE_WEBHOOK_SECRET=')
+  })
+
+  it('comments out webhook secret with CLI instructions when not provided', async () => {
+    const config: EnvConfig = {
+      ...baseEnvConfig,
+      payment: {
+        enabled: true,
+        stripeSecretKey: 'FAKE_STRIPE_SK_FOR_TESTS',
+        stripePublishableKey: 'FAKE_STRIPE_PK_FOR_TESTS',
+      },
+    }
+    await generateEnvFile('/tmp/my-app', config)
+    const content = mockWriteFile.mock.calls[0][1] as string
+    expect(content).toContain('STRIPE_SECRET_KEY=FAKE_STRIPE_SK_FOR_TESTS')
+    expect(content).toContain('# STRIPE_WEBHOOK_SECRET=')
+    expect(content).toContain('stripe listen --forward-to')
+  })
+
+  it('includes CORS origins', async () => {
+    await generateEnvFile('/tmp/my-app', baseEnvConfig)
+    const content = mockWriteFile.mock.calls[0][1] as string
+    expect(content).toContain('REVEALUI_CORS_ORIGINS=http://localhost:3000,http://localhost:4000')
   })
 })
