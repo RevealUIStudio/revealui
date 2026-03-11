@@ -46,7 +46,8 @@ const RevealUIAdminBar: React.FC<RevealUIAdminBarProps> = (props) => {
       })
       .catch((err: unknown) => {
         if (err instanceof Error && err.name === 'AbortError') return
-        // User not logged in
+        // Auth check failed — user likely not logged in; hide admin bar
+        if (onAuthChange) onAuthChange({})
       })
     return () => controller.abort()
   }, [onAuthChange])
