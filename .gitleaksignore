@@ -5,6 +5,14 @@ apps/api/src/routes/__tests__/billing.test.ts:stripe-access-token:288
 apps/api/src/routes/__tests__/billing.test.ts:stripe-access-token:331
 apps/api/src/routes/__tests__/billing.test.ts:stripe-access-token:400
 apps/api/src/routes/__tests__/billing.test.ts:stripe-access-token:522
+apps/api/src/routes/__tests__/billing-comprehensive.test.ts:stripe-access-token:219
+apps/api/src/routes/__tests__/billing-comprehensive.test.ts:stripe-access-token:326
+apps/api/src/routes/__tests__/billing-comprehensive.test.ts:stripe-access-token:460
+apps/api/src/routes/__tests__/billing-comprehensive.test.ts:stripe-access-token:536
+apps/api/src/routes/__tests__/billing-comprehensive.test.ts:stripe-access-token:656
+apps/api/src/routes/__tests__/billing-comprehensive.test.ts:stripe-access-token:710
+apps/api/src/routes/__tests__/billing-comprehensive.test.ts:stripe-access-token:754
+apps/api/src/routes/__tests__/billing-comprehensive.test.ts:stripe-access-token:808
 apps/api/src/routes/__tests__/webhook-handler.test.ts:stripe-access-token:151
 apps/api/src/routes/__tests__/webhooks-expansion.test.ts:stripe-access-token:143
 apps/api/src/routes/__tests__/webhook-signature-replay.test.ts:stripe-access-token:151
