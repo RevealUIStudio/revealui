@@ -95,7 +95,12 @@ export async function GET(
       maxAge: 60 * 60 * 24 * 7, // 7 days
       domain:
         process.env.NODE_ENV === 'production'
-          ? process.env.SESSION_COOKIE_DOMAIN || '.revealui.com'
+          ? (() => {
+              if (!process.env.SESSION_COOKIE_DOMAIN) {
+                throw new Error('SESSION_COOKIE_DOMAIN env var is required in production')
+              }
+              return process.env.SESSION_COOKIE_DOMAIN
+            })()
           : undefined,
     })
 

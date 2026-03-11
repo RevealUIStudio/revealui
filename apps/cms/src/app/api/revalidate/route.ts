@@ -17,9 +17,14 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
   const secret = request.headers.get('x-revalidate-secret')
   const expected = process.env.REVEALUI_SECRET
   if (
-    !(secret && expected) ||
-    secret.length !== expected.length ||
-    !crypto.timingSafeEqual(Buffer.from(secret), Buffer.from(expected))
+    !(
+      secret &&
+      expected &&
+      crypto.timingSafeEqual(
+        Buffer.from(secret.padEnd(64, '\0')),
+        Buffer.from(expected.padEnd(64, '\0')),
+      )
+    )
   ) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
   }
