@@ -284,15 +284,16 @@ describe('Logger', () => {
 
     it('falls back to console when fetch fails', async () => {
       const fetchSpy = vi.spyOn(globalThis, 'fetch').mockRejectedValue(new Error('network error'));
-      const errorSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
+      const infoSpy = vi.spyOn(console, 'info').mockImplementation(() => {});
       const { logger } = makeLogger({
         destination: 'remote',
         remoteUrl: 'https://logs.example.com/ingest',
       });
       logger.info('will fail');
       await vi.waitFor(() => {
-        expect(errorSpy).toHaveBeenCalled();
+        expect(infoSpy).toHaveBeenCalled();
       });
+      infoSpy.mockRestore();
       fetchSpy.mockRestore();
     });
   });
