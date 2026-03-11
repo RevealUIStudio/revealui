@@ -490,6 +490,7 @@ export {
   type LicenseTierId,
   PERPETUAL_TIERS,
   type PerpetualTier,
+  type PricingResponse,
   SUBSCRIPTION_TIERS,
   type SubscriptionTier,
   TIER_COLORS,

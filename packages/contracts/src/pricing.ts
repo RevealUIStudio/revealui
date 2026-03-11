@@ -102,7 +102,7 @@ export const TIER_LIMITS: Record<LicenseTierId, TierLimits> = {
 export interface SubscriptionTier {
   id: LicenseTierId
   name: string
-  price: string
+  price?: string
   period?: string
   description: string
   features: string[]
@@ -115,7 +115,6 @@ export const SUBSCRIPTION_TIERS: SubscriptionTier[] = [
   {
     id: 'free',
     name: 'Free (OSS)',
-    price: '$0',
     description: 'Perfect for trying out RevealUI and small projects.',
     features: [
       'Unlimited CMS collections',
@@ -133,8 +132,6 @@ export const SUBSCRIPTION_TIERS: SubscriptionTier[] = [
   {
     id: 'pro',
     name: 'Pro',
-    price: '$49',
-    period: '/month',
     description: 'For software companies building production products.',
     features: [
       'Unlimited CMS collections',
@@ -157,8 +154,6 @@ export const SUBSCRIPTION_TIERS: SubscriptionTier[] = [
   {
     id: 'max',
     name: 'Max',
-    price: '$149',
-    period: '/month',
     description: 'For teams that need AI memory, multi-provider, and compliance tooling.',
     features: [
       'Everything in Pro',
@@ -179,8 +174,6 @@ export const SUBSCRIPTION_TIERS: SubscriptionTier[] = [
   {
     id: 'enterprise',
     name: 'Forge',
-    price: '$299',
-    period: '/month',
     description: 'For teams with advanced scale and compliance requirements.',
     features: [
       'Everything in Max',
@@ -208,9 +201,9 @@ export const SUBSCRIPTION_TIERS: SubscriptionTier[] = [
 export interface CreditBundle {
   name: string
   tasks: string
-  price: string
-  priceNote: string
-  costPer: string
+  price?: string
+  priceNote?: string
+  costPer?: string
   description: string
   highlighted: boolean
 }
@@ -219,27 +212,18 @@ export const CREDIT_BUNDLES: CreditBundle[] = [
   {
     name: 'Starter',
     tasks: '10,000',
-    price: '$10',
-    priceNote: 'one-time',
-    costPer: '$0.001/task',
     description: 'Top up any plan. Never expires.',
     highlighted: false,
   },
   {
     name: 'Standard',
     tasks: '60,000',
-    price: '$50',
-    priceNote: 'one-time',
-    costPer: '$0.00083/task',
     description: '17% cheaper per task vs Starter.',
     highlighted: true,
   },
   {
     name: 'Scale',
     tasks: '350,000',
-    price: '$250',
-    priceNote: 'one-time',
-    costPer: '$0.00071/task',
     description: '29% cheaper per task vs Starter.',
     highlighted: false,
   },
@@ -251,9 +235,9 @@ export const CREDIT_BUNDLES: CreditBundle[] = [
 
 export interface PerpetualTier {
   name: string
-  price: string
-  priceNote: string
-  renewal: string
+  price?: string
+  priceNote?: string
+  renewal?: string
   description: string
   features: string[]
   cta: string
@@ -261,12 +245,19 @@ export interface PerpetualTier {
   comingSoon: boolean
 }
 
+// =============================================================================
+// Pricing API Response
+// =============================================================================
+
+export interface PricingResponse {
+  subscriptions: SubscriptionTier[]
+  credits: CreditBundle[]
+  perpetual: PerpetualTier[]
+}
+
 export const PERPETUAL_TIERS: PerpetualTier[] = [
   {
     name: 'Pro Perpetual',
-    price: '$299',
-    priceNote: 'one-time',
-    renewal: '$99/yr for continued support',
     description: 'Pro features, forever. No subscription required.',
     features: [
       'All Pro tier features',
@@ -281,9 +272,6 @@ export const PERPETUAL_TIERS: PerpetualTier[] = [
   },
   {
     name: 'Agency Perpetual',
-    price: '$799',
-    priceNote: 'one-time',
-    renewal: '$199/yr for continued support',
     description: 'Deploy for multiple clients without per-site subscriptions.',
     features: [
       'All Max tier features',
@@ -299,9 +287,6 @@ export const PERPETUAL_TIERS: PerpetualTier[] = [
   },
   {
     name: 'Forge Perpetual',
-    price: '$1,999',
-    priceNote: 'one-time',
-    renewal: '$499/yr for continued support',
     description: 'Full self-hosted Forge with unlimited deployments.',
     features: [
       'All Forge tier features',
