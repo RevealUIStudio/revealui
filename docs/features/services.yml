@@ -1,0 +1,23 @@
+feature: services
+name: Stripe + Supabase Integrations
+status: beta
+tier: pro
+last-verified: 2026-03-11
+
+api-surface:
+  stripe-integration:
+    endpoint: "@revealui/services/stripe — checkout, webhooks, subscriptions"
+    openapi: false
+    tested: true
+  supabase-integration:
+    endpoint: "@revealui/services/supabase — auth, vectors, real-time"
+    openapi: false
+    tested: true
+
+limitations:
+  - id: dist-only
+    surface: api
+    summary: "@revealui/services is dist-only in public repo"
+  - id: payload-vulns
+    surface: api
+    summary: "Transitive payload IDOR + SSRF vulns (mitigated by CSP/CORS, upgrade when 3.75+ compatible)"

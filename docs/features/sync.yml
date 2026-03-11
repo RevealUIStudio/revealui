@@ -1,0 +1,19 @@
+feature: sync
+name: ElectricSQL Real-Time Sync
+status: alpha
+tier: pro
+last-verified: 2026-03-11
+
+api-surface:
+  sync-module:
+    endpoint: "@revealui/sync — mutations.ts, CRDT operations"
+    openapi: false
+    tested: true
+
+limitations:
+  - id: minimal-surface
+    surface: api
+    summary: "Minimal implementation — mutations tracking and test setup only"
+  - id: no-conflict-resolution
+    surface: api
+    summary: "Full conflict resolution not yet implemented"

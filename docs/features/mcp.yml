@@ -1,0 +1,19 @@
+feature: mcp
+name: MCP Servers
+status: beta
+tier: pro
+last-verified: 2026-03-11
+
+api-surface:
+  mcp-servers:
+    endpoint: "@revealui/mcp — Stripe, Supabase, Neon, Vercel, Playwright servers"
+    openapi: false
+    tested: true
+
+limitations:
+  - id: dist-only
+    surface: api
+    summary: "@revealui/mcp is dist-only in public repo — source opaque"
+  - id: neon-mcp-vuln
+    surface: api
+    summary: "@neondatabase/mcp-server-neon pulls vulnerable oauth2-server (accepted risk, dev-only)"

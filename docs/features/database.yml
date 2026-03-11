@@ -1,0 +1,45 @@
+feature: database
+name: Database Schema (Drizzle ORM)
+status: production
+tier: free
+last-verified: 2026-03-11
+
+api-surface:
+  schema:
+    endpoint: "packages/db/src/schema/ (27 schema files, ~50 tables)"
+    openapi: false
+    tested: true
+  dual-db:
+    endpoint: "NeonDB (REST content) + Supabase (vectors/auth)"
+    openapi: false
+    tested: true
+  drizzle-orm:
+    endpoint: "Code-first schema with Drizzle ORM"
+    openapi: false
+    tested: true
+
+limitations:
+  - id: pages-parent-fk
+    surface: api
+    summary: "pages.parentId has no FK constraint — orphaned child pages possible"
+  - id: tickets-parent-fk
+    surface: api
+    summary: "tickets.parentTicketId has no FK constraint — orphaned subtasks possible"
+  - id: pages-slug-unique
+    surface: api
+    summary: "No composite unique on pages(slug, siteId) — duplicate slugs per site possible"
+  - id: collab-edits-index
+    surface: api
+    summary: "collab_edits.documentId has no index — slow lookups on large tables"
+  - id: page-count-denorm
+    surface: api
+    summary: "sites.pageCount denormalized without DB trigger — count can drift"
+  - id: cross-db-fk
+    surface: api
+    summary: "No runtime FK validation between Supabase and NeonDB references"
+  - id: no-soft-delete
+    surface: api
+    summary: "No soft-delete pattern — users and sites are hard-deleted"
+  - id: ticket-race
+    surface: api
+    summary: "Ticket number uses MAX()+1 app-level increment — race condition under concurrency"
