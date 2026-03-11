@@ -19,10 +19,6 @@ export interface FeatureFlags {
   aiMemory: boolean;
   /** MCP server integration */
   mcp: boolean;
-  /** Editor integration daemon */
-  editors: boolean;
-  /** AI harness integration (Claude Code, Cursor, Copilot coordination) */
-  harnesses: boolean;
   /** Built-in Stripe payment processing */
   payments: boolean;
   /** Multi-tenant site management */
@@ -51,8 +47,6 @@ export interface FeatureFlags {
 const featureTierMap: Record<keyof FeatureFlags, LicenseTier> = {
   ai: 'pro',
   mcp: 'pro',
-  editors: 'pro',
-  harnesses: 'pro',
   payments: 'pro',
   advancedSync: 'pro',
   dashboard: 'pro',
