@@ -1,11 +1,19 @@
 /**
  * Storage Factory
  *
- * Selects storage backend based on configuration
+ * Selects storage backend based on configuration.
  * Priority: Database > In-Memory
  *
- * Note: Uses database storage for distributed rate limiting (works with ElectricSQL sync).
- * ElectricSQL handles client-side sync, database handles server-side storage.
+ * Architecture Decision (2026-03-11):
+ * Production deployments use DatabaseStorage backed by NeonDB (PostgreSQL).
+ * Neon's serverless driver uses HTTP (not persistent connections), so each
+ * rate limit check is a single HTTP round-trip (~30-50ms). State persists
+ * across Vercel cold starts because it lives in PostgreSQL, not process memory.
+ * This is acceptable for current scale. If sub-10ms latency becomes critical,
+ * add an Upstash Redis adapter implementing the Storage interface.
+ *
+ * In-memory storage is ONLY used in development (throws in production if
+ * DATABASE_URL is missing).
  */
 
 import config from '@revealui/config';
