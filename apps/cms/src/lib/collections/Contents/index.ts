@@ -1,4 +1,12 @@
 import type { CollectionConfig } from '@revealui/core';
+import { ArchiveBlock } from '@/lib/blocks/ArchiveBlock/config';
+import { Banner } from '@/lib/blocks/Banner/config';
+import { CallToAction } from '@/lib/blocks/CallToAction/config';
+import { Code } from '@/lib/blocks/Code/config';
+import { Content } from '@/lib/blocks/Content/config';
+import { FormBlock } from '@/lib/blocks/Form/config';
+import { MediaBlock } from '@/lib/blocks/MediaBlock/config';
+import { StatsBlock } from '@/lib/blocks/StatsBlock/config';
 
 const ContentsField = {
   name: 'name',
@@ -7,7 +15,6 @@ const ContentsField = {
 };
 
 const Contents: CollectionConfig = {
-  // slug: ContentsField.slug,
   slug: 'contents',
   access: {
     read: () => true,
@@ -36,7 +43,16 @@ const Contents: CollectionConfig = {
     {
       name: 'blocks',
       type: 'blocks',
-      blocks: [],
+      blocks: [
+        ArchiveBlock,
+        Banner,
+        CallToAction,
+        Code,
+        Content,
+        FormBlock,
+        MediaBlock,
+        StatsBlock,
+      ],
     },
   ],
 };

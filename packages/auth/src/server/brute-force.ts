@@ -25,6 +25,23 @@ const DEFAULT_CONFIG: BruteForceConfig = {
   windowMs: 15 * 60 * 1000, // 15 minutes
 };
 
+let globalConfig: BruteForceConfig = { ...DEFAULT_CONFIG };
+
+/**
+ * Override default brute force configuration globally.
+ * Per-call config parameters still take precedence.
+ */
+export function configureBruteForce(overrides: Partial<BruteForceConfig>): void {
+  globalConfig = { ...DEFAULT_CONFIG, ...overrides };
+}
+
+/**
+ * Reset brute force configuration to defaults (for testing).
+ */
+export function resetBruteForceConfig(): void {
+  globalConfig = { ...DEFAULT_CONFIG };
+}
+
 /**
  * Serialize failed attempt entry
  */
@@ -62,7 +79,7 @@ function getStorageKey(email: string): string {
  */
 export async function recordFailedAttempt(
   email: string,
-  config: BruteForceConfig = DEFAULT_CONFIG,
+  config: BruteForceConfig = globalConfig,
 ): Promise<void> {
   const storage = getStorage();
   const storageKey = getStorageKey(email);
@@ -127,7 +144,7 @@ export async function clearFailedAttempts(email: string): Promise<void> {
  */
 export async function isAccountLocked(
   email: string,
-  config: BruteForceConfig = DEFAULT_CONFIG,
+  config: BruteForceConfig = globalConfig,
 ): Promise<{ locked: boolean; lockUntil?: number; attemptsRemaining: number }> {
   const storage = getStorage();
   const storageKey = getStorageKey(email);
