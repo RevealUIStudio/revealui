@@ -188,4 +188,20 @@ describe('PricingTable — edge cases', () => {
     const { container } = render(<PricingTable tiers={mockTiers.slice(0, 2)} />)
     expect(container.firstChild).toHaveClass('lg:grid-cols-2')
   })
+
+  it('renders "—" when price is undefined', () => {
+    const tiersWithoutPrice = [
+      {
+        id: 'free',
+        name: 'Free',
+        description: 'Free tier',
+        features: ['Feature 1'],
+        cta: 'Get Started',
+        ctaHref: '/start',
+        highlighted: false,
+      },
+    ]
+    render(<PricingTable tiers={tiersWithoutPrice} />)
+    expect(screen.getByText('—')).toBeInTheDocument()
+  })
 })
