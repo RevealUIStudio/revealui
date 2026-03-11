@@ -200,7 +200,7 @@ docs/PRODUCT_COLLECTION.md
 docs/launch-announcement.md
 docs/SECRETS-MANAGEMENT.md
 
-# Pro packages — source lives in revealui-jv, distributed as npm packages
+# Pro packages — source in private upstream, distributed as npm packages
 packages/ai/
 packages/mcp/
 packages/editors/

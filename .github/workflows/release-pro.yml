@@ -1,9 +1,9 @@
 name: Release Pro Packages
 
-# Pro package source (packages/ai, mcp, editors, services, harnesses) was moved to
-# the private RevealUIStudio/revealui-jv repo as part of the OSS/Pro separation.
+# Pro package source (packages/ai, mcp, editors, services, harnesses) lives in
+# a private upstream repo as part of the OSS/Pro separation.
 #
-# To publish Pro packages, trigger the release-pro.yml workflow from revealui-jv.
+# To publish Pro packages, trigger the release-pro.yml workflow from private upstream.
 # This file is intentionally a no-op stub kept for reference.
 
 on:

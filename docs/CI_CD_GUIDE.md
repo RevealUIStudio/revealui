@@ -2459,7 +2459,7 @@ kubectl apply -f k8s/namespace.yaml
 
 #### 2. Configure Secrets
 
-Edit `k8s/secrets.yaml` with your actual secrets (or use a secrets manager):
+Copy `k8s/secrets.yaml.example` to `k8s/secrets.yaml`, fill in your actual secrets (or use a secrets manager):
 
 ```bash
 # Generate base64 encoded secrets
@@ -2467,7 +2467,7 @@ echo -n "your-database-password" | base64
 echo -n "your-jwt-secret" | base64
 
 # Apply secrets
-kubectl apply -f k8s/secrets.yaml
+kubectl apply -f k8s/secrets.yaml  # your local copy, not the .example
 ```
 
 **Production Best Practice:** Use external secrets management:

@@ -39,7 +39,7 @@ const MOCK_DATA: Record<string, unknown> = {
     nix_installed: true,
     devbox_mounted: false,
     git_name: 'RevealUI Studio',
-    git_email: 'founder@revealui.com',
+    git_email: 'noreply@revealui.com',
   } satisfies SetupStatus,
   list_apps: [
     {
