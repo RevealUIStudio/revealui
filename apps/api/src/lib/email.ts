@@ -35,11 +35,7 @@ export async function sendEmail(options: EmailOptions): Promise<void> {
       });
       return;
     }
-    logger.warn('Email not sent — RESEND_API_KEY not configured', {
-      to: options.to,
-      subject: options.subject,
-    });
-    return;
+    throw new Error('RESEND_API_KEY is not configured — email delivery is required in production');
   }
 
   const response = await fetch('https://api.resend.com/emails', {
