@@ -1,4 +1,4 @@
-import { CREDIT_BUNDLES, PERPETUAL_TIERS, SUBSCRIPTION_TIERS } from '@revealui/contracts/pricing'
+import type { PricingResponse } from '@revealui/contracts/pricing'
 import type { Metadata } from 'next'
 import { Footer } from '@/components/Footer'
 
@@ -16,10 +16,19 @@ export const metadata: Metadata = {
 
 // Resolve CTA hrefs for marketing context (absolute URLs for signup)
 const cmsUrl = process.env.NEXT_PUBLIC_CMS_URL || 'https://cms.revealui.com'
-const tiers = SUBSCRIPTION_TIERS.map((tier) => ({
-  ...tier,
-  ctaHref: tier.ctaHref.startsWith('/') ? `${cmsUrl}${tier.ctaHref}` : tier.ctaHref,
-}))
+
+async function getPricing(): Promise<PricingResponse | null> {
+  const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'https://api.revealui.com'
+  try {
+    const res = await fetch(`${apiUrl}/api/pricing`, {
+      next: { revalidate: 3600 },
+    })
+    if (!res.ok) return null
+    return (await res.json()) as PricingResponse
+  } catch {
+    return null
+  }
+}
 
 // ---------------------------------------------------------------------------
 // FAQ
@@ -72,7 +81,16 @@ const faqs = [
 // Page
 // ---------------------------------------------------------------------------
 
-export default function PricingPage() {
+export default async function PricingPage() {
+  const pricing = await getPricing()
+
+  const tiers = (pricing?.subscriptions ?? []).map((tier) => ({
+    ...tier,
+    ctaHref: tier.ctaHref.startsWith('/') ? `${cmsUrl}${tier.ctaHref}` : tier.ctaHref,
+  }))
+  const creditBundles = pricing?.credits ?? []
+  const perpetualTiers = pricing?.perpetual ?? []
+
   return (
     <div className="min-h-screen bg-white">
       {/* Header */}
@@ -144,7 +162,7 @@ export default function PricingPage() {
                   <p className="mt-2 text-sm text-gray-600">{tier.description}</p>
                   <p className="mt-6 flex items-baseline gap-x-1">
                     <span className="text-4xl font-bold tracking-tight text-gray-900">
-                      {tier.price}
+                      {tier.price ?? 'Contact us'}
                     </span>
                     {tier.period && <span className="text-sm text-gray-600">{tier.period}</span>}
                   </p>
@@ -204,7 +222,7 @@ export default function PricingPage() {
             </p>
           </div>
           <div className="mx-auto max-w-4xl grid grid-cols-1 gap-6 sm:grid-cols-3">
-            {CREDIT_BUNDLES.map((bundle) => (
+            {creditBundles.map((bundle) => (
               <div
                 key={bundle.name}
                 className={`rounded-2xl bg-white p-8 shadow-lg ${
@@ -221,11 +239,11 @@ export default function PricingPage() {
                 <h3 className="text-lg font-bold text-gray-900">{bundle.name}</h3>
                 <p className="mt-1 text-sm text-gray-500">{bundle.description}</p>
                 <p className="mt-4 flex items-baseline gap-x-1">
-                  <span className="text-4xl font-bold text-gray-900">{bundle.price}</span>
-                  <span className="text-sm text-gray-500">{bundle.priceNote}</span>
+                  <span className="text-4xl font-bold text-gray-900">{bundle.price ?? '—'}</span>
+                  <span className="text-sm text-gray-500">{bundle.priceNote ?? ''}</span>
                 </p>
                 <p className="mt-1 text-xl font-semibold text-purple-600">{bundle.tasks} tasks</p>
-                <p className="mt-1 text-xs text-gray-400">{bundle.costPer}</p>
+                <p className="mt-1 text-xs text-gray-400">{bundle.costPer ?? ''}</p>
                 <a
                   href="mailto:support@revealui.com?subject=Agent%20Credits%20Inquiry"
                   className={`mt-8 block w-full rounded-md px-4 py-2.5 text-center text-sm font-semibold transition-colors ${
@@ -261,7 +279,7 @@ export default function PricingPage() {
             </p>
           </div>
           <div className="mx-auto max-w-5xl grid grid-cols-1 gap-6 sm:grid-cols-3">
-            {PERPETUAL_TIERS.map((tier) => (
+            {perpetualTiers.map((tier) => (
               <div
                 key={tier.name}
                 className="relative rounded-2xl bg-white p-8 shadow-lg ring-1 ring-gray-200"
@@ -276,10 +294,10 @@ export default function PricingPage() {
                 <h3 className="text-lg font-bold text-gray-900">{tier.name}</h3>
                 <p className="mt-1 text-sm text-gray-500">{tier.description}</p>
                 <p className="mt-4 flex items-baseline gap-x-1">
-                  <span className="text-4xl font-bold text-gray-900">{tier.price}</span>
-                  <span className="text-sm text-gray-500">{tier.priceNote}</span>
+                  <span className="text-4xl font-bold text-gray-900">{tier.price ?? '—'}</span>
+                  <span className="text-sm text-gray-500">{tier.priceNote ?? ''}</span>
                 </p>
-                <p className="mt-1 text-xs text-gray-400">{tier.renewal}</p>
+                <p className="mt-1 text-xs text-gray-400">{tier.renewal ?? '—'}</p>
                 <ul className="mt-6 mb-8 space-y-3">
                   {tier.features.map((feature) => (
                     <li key={feature} className="flex items-start gap-x-3">
