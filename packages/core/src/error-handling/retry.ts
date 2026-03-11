@@ -4,6 +4,7 @@
  * Implements exponential backoff and retry strategies
  */
 
+import { randomInt } from 'node:crypto'
 import { logger } from '../observability/logger.js'
 
 export interface HttpError extends Error {
@@ -118,9 +119,11 @@ export function calculateDelay(
   }
 
   if (jitter) {
-    // Add random jitter (±25%), clamped to maxDelay
-    const jitterAmount = delay * 0.25
-    delay = delay + (Math.random() * jitterAmount * 2 - jitterAmount)
+    // Add cryptographically random jitter (±25%), clamped to maxDelay
+    const jitterAmount = Math.ceil(delay * 0.25)
+    if (jitterAmount > 0) {
+      delay = delay + randomInt(jitterAmount * 2 + 1) - jitterAmount
+    }
   }
 
   return Math.floor(Math.min(delay, maxDelay))

@@ -237,7 +237,8 @@ app.openapi(
 // Helpers
 // =============================================================================
 
-const AGENT_TIMEOUT_MS = 120_000 // 2 minutes
+/** Agent dispatch timeout — configurable via AGENT_TIMEOUT_MS env var */
+const AGENT_TIMEOUT_MS = Number(process.env.AGENT_TIMEOUT_MS) || 120_000
 
 /**
  * Dispatch an agent for a ticket with a timeout guard, then persist the

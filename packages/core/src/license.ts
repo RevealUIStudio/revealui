@@ -144,6 +144,14 @@ export async function initializeLicense(): Promise<LicenseTier> {
   }
   cachedAt = Date.now()
 
+  // Clamp cache TTL to license expiry so revoked licenses don't survive the full TTL
+  if (payload.exp) {
+    const msUntilExpiry = payload.exp * 1000 - Date.now()
+    if (msUntilExpiry > 0 && msUntilExpiry < cacheConfig.ttlMs) {
+      cacheConfig = { ...cacheConfig, ttlMs: msUntilExpiry }
+    }
+  }
+
   return payload.tier
 }
 

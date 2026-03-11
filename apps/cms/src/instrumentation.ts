@@ -52,8 +52,17 @@ export async function register() {
       // Next.js statically traces ALL imports in instrumentation.ts (even dynamic ones),
       // so we use fetch() instead of importing @revealui/db directly.
       const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'https://api.revealui.com'
+
+      // Circuit breaker: back off exponentially on consecutive failures
+      let telemetryFailures = 0
+      const maxBackoffFailures = 5 // after 5 consecutive failures, stop sending
+
       logger.addLogHandler((entry) => {
         if (entry.level !== 'warn' && entry.level !== 'error' && entry.level !== 'fatal') return
+
+        // Circuit breaker: skip if too many consecutive failures
+        if (telemetryFailures >= maxBackoffFailures) return
+
         const data: Record<string, unknown> = {}
         if (entry.context && Object.keys(entry.context).length > 0) {
           // Copy only safe keys — never forward credentials or prototype-poisoning keys
@@ -87,9 +96,18 @@ export async function register() {
             userId: entry.context?.userId,
             data: Object.keys(data).length > 0 ? data : undefined,
           }),
-        }).catch(() => {
-          /* fire-and-forget — telemetry must never throw */
         })
+          .then(() => {
+            telemetryFailures = 0 // reset on success
+          })
+          .catch((err: unknown) => {
+            telemetryFailures++
+            if (telemetryFailures === maxBackoffFailures) {
+              process.stderr.write(
+                `[Instrumentation] Telemetry circuit breaker open after ${maxBackoffFailures} failures: ${err instanceof Error ? err.message : String(err)}\n`,
+              )
+            }
+          })
       })
 
       // Server-side error capture — POST unhandled rejections to the API error endpoint.
@@ -117,9 +135,18 @@ export async function register() {
             context: 'server',
             environment: process.env.NODE_ENV ?? 'production',
           }),
-        }).catch(() => {
-          /* fire-and-forget — telemetry must never throw */
         })
+          .then(() => {
+            telemetryFailures = 0
+          })
+          .catch((fetchErr: unknown) => {
+            telemetryFailures++
+            if (telemetryFailures === maxBackoffFailures) {
+              process.stderr.write(
+                `[Instrumentation] Error telemetry circuit breaker open: ${fetchErr instanceof Error ? fetchErr.message : String(fetchErr)}\n`,
+              )
+            }
+          })
       })
     }
   } catch (error) {

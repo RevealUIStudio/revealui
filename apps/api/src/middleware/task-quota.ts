@@ -29,6 +29,20 @@ import {
   verifyPayment,
 } from './x402.js'
 
+/** Tracks consecutive DB write failures for observability. */
+let quotaWriteFailures = 0
+const FAILURE_LOG_INTERVAL = 10
+
+function onQuotaWriteError(err: unknown): void {
+  quotaWriteFailures++
+  if (quotaWriteFailures % FAILURE_LOG_INTERVAL === 1) {
+    logger.warn('Task quota DB write failed', {
+      consecutiveFailures: quotaWriteFailures,
+      error: err instanceof Error ? err.message : String(err),
+    })
+  }
+}
+
 interface UserContext {
   id: string
   email: string | null
@@ -67,9 +81,7 @@ export async function requireTaskQuota(
         target: [agentTaskUsage.userId, agentTaskUsage.cycleStart],
         set: { count: sql`${agentTaskUsage.count} + 1`, updatedAt: new Date() },
       })
-      .catch(() => {
-        // Non-fatal
-      })
+      .catch(onQuotaWriteError)
     return next()
   }
 
@@ -91,9 +103,7 @@ export async function requireTaskQuota(
         target: [agentTaskUsage.userId, agentTaskUsage.cycleStart],
         set: { overage: sql`${agentTaskUsage.overage} + 1`, updatedAt: new Date() },
       })
-      .catch(() => {
-        // Non-fatal
-      })
+      .catch(onQuotaWriteError)
 
     const x402 = getX402Config()
     const resetAt = new Date(
@@ -168,9 +178,7 @@ export async function requireTaskQuota(
       target: [agentTaskUsage.userId, agentTaskUsage.cycleStart],
       set: { count: sql`${agentTaskUsage.count} + 1`, updatedAt: new Date() },
     })
-    .catch(() => {
-      // Non-fatal — task proceeds
-    })
+    .catch(onQuotaWriteError)
 
   return next()
 }

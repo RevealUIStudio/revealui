@@ -12,7 +12,13 @@ interface PathKey {
   wildcard: boolean
 }
 
+/** Maximum pattern length to prevent ReDoS from malicious/misconfigured routes */
+const MAX_PATTERN_LENGTH = 2048
+
 function compilePathPattern(pattern: string): { regex: RegExp; keys: PathKey[] } {
+  if (pattern.length > MAX_PATTERN_LENGTH) {
+    throw new Error(`Route pattern exceeds ${MAX_PATTERN_LENGTH} characters`)
+  }
   const keys: PathKey[] = []
   let src = '^'
   let i = 0
