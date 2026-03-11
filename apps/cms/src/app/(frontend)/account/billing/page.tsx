@@ -1,7 +1,12 @@
-'use client'
+'use client';
 
-import { useSession } from '@revealui/auth/react'
-import { type LicenseTierId, TIER_COLORS, TIER_LABELS } from '@revealui/contracts/pricing'
+import { useSession } from '@revealui/auth/react';
+import {
+  type LicenseTierId,
+  type PricingResponse,
+  TIER_COLORS,
+  TIER_LABELS,
+} from '@revealui/contracts/pricing';
 import {
   ButtonCVA as Button,
   Card,
@@ -9,35 +14,35 @@ import {
   CardDescription,
   CardHeader,
   CardTitle,
-} from '@revealui/presentation/server'
-import { useRouter, useSearchParams } from 'next/navigation'
-import { Suspense, useCallback, useEffect, useRef, useState } from 'react'
+} from '@revealui/presentation/server';
+import { useRouter, useSearchParams } from 'next/navigation';
+import { Suspense, useCallback, useEffect, useRef, useState } from 'react';
 
 interface SubscriptionData {
-  tier: LicenseTierId
-  status: string
-  expiresAt: string | null
+  tier: LicenseTierId;
+  status: string;
+  expiresAt: string | null;
 }
 
 interface UsageData {
-  used: number
-  quota: number
-  overage: number
-  cycleStart: string
-  resetAt: string
+  used: number;
+  quota: number;
+  overage: number;
+  cycleStart: string;
+  resetAt: string;
 }
 
 function safeStripeRedirect(url: string): void {
-  const allowed = ['checkout.stripe.com', 'billing.stripe.com']
+  const allowed = ['checkout.stripe.com', 'billing.stripe.com'];
   try {
-    const { hostname, protocol } = new URL(url)
+    const { hostname, protocol } = new URL(url);
     if (protocol !== 'https:' || !allowed.includes(hostname)) {
-      return
+      return;
     }
   } catch {
-    return
+    return;
   }
-  window.location.href = url
+  window.location.href = url;
 }
 
 export default function BillingPage() {
@@ -51,56 +56,68 @@ export default function BillingPage() {
     >
       <BillingContent />
     </Suspense>
-  )
+  );
 }
 
 function BillingContent() {
-  const router = useRouter()
-  const searchParams = useSearchParams()
-  const success = searchParams.get('success')
-  const upgrade = searchParams.get('upgrade')
-  const { data: session, isLoading: sessionLoading } = useSession()
-  const [subscription, setSubscription] = useState<SubscriptionData | null>(null)
-  const [usage, setUsage] = useState<UsageData | null>(null)
-  const [isLoading, setIsLoading] = useState(true)
-  const [actionLoading, setActionLoading] = useState(false)
-  const [error, setError] = useState<string | null>(null)
-  const [upgradeSuccess, setUpgradeSuccess] = useState(false)
+  const router = useRouter();
+  const searchParams = useSearchParams();
+  const success = searchParams.get('success');
+  const upgrade = searchParams.get('upgrade');
+  const { data: session, isLoading: sessionLoading } = useSession();
+  const [subscription, setSubscription] = useState<SubscriptionData | null>(null);
+  const [usage, setUsage] = useState<UsageData | null>(null);
+  const [isLoading, setIsLoading] = useState(true);
+  const [actionLoading, setActionLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const [upgradeSuccess, setUpgradeSuccess] = useState(false);
+  const [pricing, setPricing] = useState<PricingResponse | null>(null);
 
-  const apiUrl = (process.env.NEXT_PUBLIC_API_URL || 'https://api.revealui.com').trim()
+  const apiUrl = (process.env.NEXT_PUBLIC_API_URL || 'https://api.revealui.com').trim();
+
+  const getPrice = (tierId: string): string => {
+    const t = pricing?.subscriptions.find((s) => s.id === tierId);
+    if (!t?.price) return '—';
+    return `${t.price}${t.period ?? ''}`;
+  };
 
   const fetchSubscription = useCallback(async () => {
     try {
-      const [subRes, usageRes] = await Promise.all([
+      const [subRes, usageRes, pricingRes] = await Promise.all([
         fetch(`${apiUrl}/api/billing/subscription`, { credentials: 'include' }),
         fetch(`${apiUrl}/api/billing/usage`, { credentials: 'include' }),
-      ])
+        fetch(`${apiUrl}/api/pricing`),
+      ]);
       if (subRes.ok) {
-        const data = (await subRes.json()) as SubscriptionData
-        setSubscription(data)
+        const data = (await subRes.json()) as SubscriptionData;
+        setSubscription(data);
       }
       if (usageRes.ok) {
-        const data = (await usageRes.json()) as UsageData
-        setUsage(data)
+        const data = (await usageRes.json()) as UsageData;
+        setUsage(data);
+      }
+      if (pricingRes.ok) {
+        const data = (await pricingRes.json()) as PricingResponse;
+        setPricing(data);
       }
     } catch {
-      setError('Failed to load subscription data')
+      setError('Failed to load subscription data');
     } finally {
-      setIsLoading(false)
+      setIsLoading(false);
     }
-  }, [apiUrl])
+  }, [apiUrl]);
 
   useEffect(() => {
     if (!sessionLoading && session) {
-      void fetchSubscription()
+      void fetchSubscription();
     } else if (!(sessionLoading || session)) {
-      router.push('/login')
+      router.push('/login');
     }
-  }, [session, sessionLoading, fetchSubscription, router])
+  }, [session, sessionLoading, fetchSubscription, router]);
 
   const handleCheckout = useCallback(async () => {
-    setActionLoading(true)
-    setError(null)
+    setActionLoading(true);
+    setError(null);
     try {
       const res = await fetch(`${apiUrl}/api/billing/checkout`, {
         method: 'POST',
@@ -110,51 +127,51 @@ function BillingContent() {
           priceId: process.env.NEXT_PUBLIC_STRIPE_PRO_PRICE_ID || '',
           tier: 'pro',
         }),
-      })
-      const data = (await res.json()) as { url?: string; error?: string }
+      });
+      const data = (await res.json()) as { url?: string; error?: string };
       if (data.url) {
-        safeStripeRedirect(data.url)
+        safeStripeRedirect(data.url);
       } else {
-        setError(data.error || 'Failed to start checkout')
+        setError(data.error || 'Failed to start checkout');
       }
     } catch {
-      setError('Network error. Please try again.')
+      setError('Network error. Please try again.');
     } finally {
-      setActionLoading(false)
+      setActionLoading(false);
     }
-  }, [apiUrl])
+  }, [apiUrl]);
 
   // Poll subscription status with exponential backoff after upgrades.
   // Retries up to 3 times (1s → 2s → 4s) to allow webhook processing.
-  const pollTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
+  const pollTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const pollSubscription = useCallback(
     (attempt = 0) => {
-      const maxAttempts = 3
-      if (attempt >= maxAttempts) return
-      const delay = 1000 * 2 ** attempt // 1s, 2s, 4s
+      const maxAttempts = 3;
+      if (attempt >= maxAttempts) return;
+      const delay = 1000 * 2 ** attempt; // 1s, 2s, 4s
       pollTimerRef.current = setTimeout(() => {
-        void fetchSubscription().then(() => pollSubscription(attempt + 1))
-      }, delay)
+        void fetchSubscription().then(() => pollSubscription(attempt + 1));
+      }, delay);
     },
     [fetchSubscription],
-  )
+  );
 
   useEffect(() => {
     return () => {
-      if (pollTimerRef.current) clearTimeout(pollTimerRef.current)
-    }
-  }, [])
+      if (pollTimerRef.current) clearTimeout(pollTimerRef.current);
+    };
+  }, []);
 
   // Auto-redirect to checkout on signup with ?upgrade=pro
   useEffect(() => {
     if (upgrade === 'pro' && subscription?.tier === 'free' && !actionLoading) {
-      void handleCheckout()
+      void handleCheckout();
     }
-  }, [upgrade, subscription, actionLoading, handleCheckout])
+  }, [upgrade, subscription, actionLoading, handleCheckout]);
 
   const handleUpgradeToMax = async () => {
-    setActionLoading(true)
-    setError(null)
+    setActionLoading(true);
+    setError(null);
     try {
       const res = await fetch(`${apiUrl}/api/billing/upgrade`, {
         method: 'POST',
@@ -164,24 +181,24 @@ function BillingContent() {
           priceId: process.env.NEXT_PUBLIC_STRIPE_MAX_PRICE_ID || '',
           targetTier: 'max',
         }),
-      })
-      const data = (await res.json()) as { success?: boolean; error?: string }
+      });
+      const data = (await res.json()) as { success?: boolean; error?: string };
       if (data.success) {
-        setUpgradeSuccess(true)
-        pollSubscription()
+        setUpgradeSuccess(true);
+        pollSubscription();
       } else {
-        setError(data.error || 'Failed to upgrade subscription')
+        setError(data.error || 'Failed to upgrade subscription');
       }
     } catch {
-      setError('Network error. Please try again.')
+      setError('Network error. Please try again.');
     } finally {
-      setActionLoading(false)
+      setActionLoading(false);
     }
-  }
+  };
 
   const handleUpgradeToEnterprise = async () => {
-    setActionLoading(true)
-    setError(null)
+    setActionLoading(true);
+    setError(null);
     try {
       const res = await fetch(`${apiUrl}/api/billing/upgrade`, {
         method: 'POST',
@@ -191,51 +208,51 @@ function BillingContent() {
           priceId: process.env.NEXT_PUBLIC_STRIPE_ENTERPRISE_PRICE_ID || '',
           targetTier: 'enterprise',
         }),
-      })
-      const data = (await res.json()) as { success?: boolean; error?: string }
+      });
+      const data = (await res.json()) as { success?: boolean; error?: string };
       if (data.success) {
-        setUpgradeSuccess(true)
-        pollSubscription()
+        setUpgradeSuccess(true);
+        pollSubscription();
       } else {
-        setError(data.error || 'Failed to upgrade subscription')
+        setError(data.error || 'Failed to upgrade subscription');
       }
     } catch {
-      setError('Network error. Please try again.')
+      setError('Network error. Please try again.');
     } finally {
-      setActionLoading(false)
+      setActionLoading(false);
     }
-  }
+  };
 
   const handleManageBilling = async () => {
-    setActionLoading(true)
-    setError(null)
+    setActionLoading(true);
+    setError(null);
     try {
       const res = await fetch(`${apiUrl}/api/billing/portal`, {
         method: 'POST',
         credentials: 'include',
-      })
-      const data = (await res.json()) as { url?: string; error?: string }
+      });
+      const data = (await res.json()) as { url?: string; error?: string };
       if (data.url) {
-        safeStripeRedirect(data.url)
+        safeStripeRedirect(data.url);
       } else {
-        setError(data.error || 'Failed to open billing portal')
+        setError(data.error || 'Failed to open billing portal');
       }
     } catch {
-      setError('Network error. Please try again.')
+      setError('Network error. Please try again.');
     } finally {
-      setActionLoading(false)
+      setActionLoading(false);
     }
-  }
+  };
 
   if (sessionLoading || isLoading) {
     return (
       <div className="flex min-h-[60vh] items-center justify-center">
         <p className="text-zinc-500">Loading...</p>
       </div>
-    )
+    );
   }
 
-  const tier = subscription?.tier || 'free'
+  const tier = subscription?.tier || 'free';
 
   return (
     <div className="mx-auto max-w-2xl space-y-6 py-12">
@@ -251,7 +268,7 @@ function BillingContent() {
               year: 'numeric',
             })}
           </strong>
-          . After that, you&apos;ll be charged $49/month. Cancel anytime before then.
+          . After that, you&apos;ll be charged {getPrice('pro')}. Cancel anytime before then.
         </div>
       )}
 
@@ -309,7 +326,9 @@ function BillingContent() {
                   Upgrade to Pro for AI agents, advanced sync, built-in payments, and more.
                 </p>
                 <Button onClick={handleCheckout} disabled={actionLoading} className="w-full">
-                  {actionLoading ? 'Redirecting to checkout...' : 'Upgrade to Pro — $49/mo'}
+                  {actionLoading
+                    ? 'Redirecting to checkout...'
+                    : `Upgrade to Pro — ${getPrice('pro')}`}
                 </Button>
                 <p className="text-center text-xs text-zinc-400">Includes a 7-day free trial</p>
               </div>
@@ -330,7 +349,7 @@ function BillingContent() {
                     ? 'Upgrading...'
                     : upgradeSuccess
                       ? 'Upgraded to Max'
-                      : 'Upgrade to Max — $149/mo'}
+                      : `Upgrade to Max — ${getPrice('max')}`}
                 </Button>
                 <Button
                   onClick={handleManageBilling}
@@ -367,7 +386,7 @@ function BillingContent() {
                     ? 'Upgrading...'
                     : upgradeSuccess
                       ? 'Upgraded to Forge'
-                      : 'Upgrade to Forge — $299/mo'}
+                      : `Upgrade to Forge — ${getPrice('enterprise')}`}
                 </Button>
                 <Button
                   onClick={handleManageBilling}
@@ -520,5 +539,5 @@ function BillingContent() {
         </Card>
       )}
     </div>
-  )
+  );
 }
