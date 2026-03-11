@@ -6,8 +6,9 @@ export default defineConfig({
     alias: {
       // Point to actual revealui package
       '@revealui/core': path.resolve(__dirname, '../core/src'),
-      // Allow importing from apps/cms
+      // Allow importing from apps
       '@cms': path.resolve(__dirname, '../../apps/cms/src'),
+      '@api': path.resolve(__dirname, '../../apps/api/src'),
     },
   },
   esbuild: {
