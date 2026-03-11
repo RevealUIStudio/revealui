@@ -15,10 +15,10 @@
  * - Validation errors (ZodError) are properly formatted
  */
 
+import { errorHandler } from '@api/middleware/error.js';
 import { Hono } from 'hono';
 import { HTTPException } from 'hono/http-exception';
 import { beforeEach, describe, expect, it } from 'vitest';
-import { errorHandler } from '../../../../../apps/api/src/middleware/error.js';
 
 describe('API Error Handler Integration Tests', () => {
   let app: Hono;
