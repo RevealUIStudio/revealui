@@ -11,16 +11,16 @@
  * - Standard: `new Response(JSON.stringify(createErrorResponseData(...)), { status: 400 })`
  */
 
-import { ApplicationError, ValidationError } from './errors.js'
+import { ApplicationError, ValidationError } from './errors.js';
 
 /**
  * Error response data format
  */
 export interface ErrorResponseData {
-  error: string
-  message: string
-  code?: string
-  details?: unknown
+  error: string;
+  message: string;
+  code?: string;
+  details?: unknown;
 }
 
 /**
@@ -41,7 +41,7 @@ export function createErrorResponseData(
       code: error.code,
       ...(error.context && { details: error.context }),
       ...(context && { details: { ...error.context, ...context } }),
-    }
+    };
   }
 
   if (error instanceof ValidationError) {
@@ -51,18 +51,18 @@ export function createErrorResponseData(
       code: 'VALIDATION_ERROR',
       ...(error.context && { details: error.context }),
       ...(context && { details: { ...error.context, ...context } }),
-    }
+    };
   }
 
   // Unknown error
-  const errorMessage = error instanceof Error ? error.message : String(error)
+  const errorMessage = error instanceof Error ? error.message : String(error);
 
   return {
     error: 'INTERNAL_ERROR',
     message: errorMessage,
     code: 'INTERNAL_ERROR',
     ...(context && { details: context }),
-  }
+  };
 }
 
 /**
@@ -89,7 +89,7 @@ export function createValidationErrorResponseData(
       value,
       ...details,
     },
-  }
+  };
 }
 
 /**
@@ -113,7 +113,7 @@ export function createApplicationErrorResponseData(
     code,
     ...(context && { details: context }),
     ...(statusCode !== undefined && { statusCode }), // Include for reference if needed
-  }
+  };
 }
 
 /**
@@ -123,5 +123,5 @@ export function createApplicationErrorResponseData(
  * @returns Success response data (can be wrapped by framework)
  */
 export function createSuccessResponseData<T>(data: T): T {
-  return data
+  return data;
 }

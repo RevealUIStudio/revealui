@@ -1,5 +1,5 @@
-import type React from 'react'
-import PoweredByRevealUI from '../PoweredByRevealUI/index'
+import type React from 'react';
+import PoweredByRevealUI from '../PoweredByRevealUI/index';
 
 const BeforeDashboard: React.FC = () => {
   return (
@@ -20,7 +20,7 @@ const BeforeDashboard: React.FC = () => {
 
       <PoweredByRevealUI />
     </div>
-  )
-}
+  );
+};
 
-export default BeforeDashboard
+export default BeforeDashboard;

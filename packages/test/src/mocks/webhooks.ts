@@ -4,25 +4,25 @@
  * Provides mocks for webhook delivery, signature generation, and retry logic
  */
 
-import crypto from 'node:crypto'
+import crypto from 'node:crypto';
 
 export interface MockWebhook {
-  id: string
-  url: string
-  payload: unknown
-  headers: Record<string, string>
-  sentAt: Date
-  status: 'pending' | 'delivered' | 'failed'
-  attempts: number
+  id: string;
+  url: string;
+  payload: unknown;
+  headers: Record<string, string>;
+  sentAt: Date;
+  status: 'pending' | 'delivered' | 'failed';
+  attempts: number;
 }
 
-const mockWebhooks: MockWebhook[] = []
+const mockWebhooks: MockWebhook[] = [];
 
 /**
  * Generate webhook signature
  */
 export function generateWebhookSignature(payload: string, secret: string): string {
-  return crypto.createHmac('sha256', secret).update(payload).digest('hex')
+  return crypto.createHmac('sha256', secret).update(payload).digest('hex');
 }
 
 /**
@@ -33,20 +33,20 @@ export function verifyWebhookSignature(
   signature: string,
   secret: string,
 ): boolean {
-  const expectedSignature = generateWebhookSignature(payload, secret)
-  return crypto.timingSafeEqual(Buffer.from(signature), Buffer.from(expectedSignature))
+  const expectedSignature = generateWebhookSignature(payload, secret);
+  return crypto.timingSafeEqual(Buffer.from(signature), Buffer.from(expectedSignature));
 }
 
 /**
  * Mock webhook delivery
  */
 export function mockWebhookDelivery(options: {
-  url: string
-  payload: unknown
-  secret?: string
+  url: string;
+  payload: unknown;
+  secret?: string;
 }): Promise<MockWebhook> {
-  const payloadString = JSON.stringify(options.payload)
-  const signature = options.secret ? generateWebhookSignature(payloadString, options.secret) : ''
+  const payloadString = JSON.stringify(options.payload);
+  const signature = options.secret ? generateWebhookSignature(payloadString, options.secret) : '';
 
   const webhook: MockWebhook = {
     id: `webhook_${Date.now()}_${Math.random().toString(36).substring(7)}`,
@@ -59,42 +59,42 @@ export function mockWebhookDelivery(options: {
     sentAt: new Date(),
     status: 'delivered',
     attempts: 1,
-  }
+  };
 
-  mockWebhooks.push(webhook)
-  return Promise.resolve(webhook)
+  mockWebhooks.push(webhook);
+  return Promise.resolve(webhook);
 }
 
 /**
  * Mock webhook retry logic
  */
 export function mockWebhookRetry(webhookId: string, maxAttempts = 3): Promise<MockWebhook | null> {
-  const webhook = mockWebhooks.find((w) => w.id === webhookId)
+  const webhook = mockWebhooks.find((w) => w.id === webhookId);
   if (!webhook) {
-    return Promise.resolve(null)
+    return Promise.resolve(null);
   }
 
   if (webhook.attempts < maxAttempts && webhook.status === 'failed') {
-    webhook.attempts++
-    webhook.status = 'delivered'
-    webhook.sentAt = new Date()
+    webhook.attempts++;
+    webhook.status = 'delivered';
+    webhook.sentAt = new Date();
   }
 
-  return Promise.resolve(webhook)
+  return Promise.resolve(webhook);
 }
 
 /**
  * Get mock webhooks
  */
 export function getMockWebhooks(): MockWebhook[] {
-  return [...mockWebhooks]
+  return [...mockWebhooks];
 }
 
 /**
  * Clear all mock webhooks
  */
 export function clearMockWebhooks(): void {
-  mockWebhooks.length = 0
+  mockWebhooks.length = 0;
 }
 
 /**
@@ -108,5 +108,5 @@ export function createMockWebhookClient() {
     verifySignature: verifyWebhookSignature,
     getWebhooks: getMockWebhooks,
     clear: clearMockWebhooks,
-  }
+  };
 }

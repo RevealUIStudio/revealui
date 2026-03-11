@@ -5,9 +5,9 @@
  * from contracts and that type guards work properly.
  */
 
-import { describe, expect, it } from 'vitest'
-import { z } from 'zod/v4'
-import { type ContractType, createContract } from '../../foundation/contract.js'
+import { describe, expect, it } from 'vitest';
+import { z } from 'zod/v4';
+import { type ContractType, createContract } from '../../foundation/contract.js';
 
 describe('Contract Type Safety', () => {
   describe('Type Inference', () => {
@@ -20,21 +20,21 @@ describe('Contract Type Safety', () => {
           email: z.string().email(),
           name: z.string(),
         }),
-      })
+      });
 
-      type User = ContractType<typeof UserContract>
+      type User = ContractType<typeof UserContract>;
 
       // This should compile - all properties exist
       const user: User = {
         id: '123',
         email: 'test@example.com',
         name: 'Test',
-      }
+      };
 
-      expect(user.id).toBe('123')
-      expect(user.email).toBe('test@example.com')
-      expect(user.name).toBe('Test')
-    })
+      expect(user.id).toBe('123');
+      expect(user.email).toBe('test@example.com');
+      expect(user.name).toBe('Test');
+    });
 
     it('infers correct types from nested schemas', () => {
       const PostContract = createContract({
@@ -49,9 +49,9 @@ describe('Contract Type Safety', () => {
           }),
           tags: z.array(z.string()),
         }),
-      })
+      });
 
-      type Post = ContractType<typeof PostContract>
+      type Post = ContractType<typeof PostContract>;
 
       const post: Post = {
         id: '1',
@@ -61,11 +61,11 @@ describe('Contract Type Safety', () => {
           name: 'Author',
         },
         tags: ['test', 'example'],
-      }
+      };
 
-      expect(post.author.name).toBe('Author')
-      expect(post.tags).toHaveLength(2)
-    })
+      expect(post.author.name).toBe('Author');
+      expect(post.tags).toHaveLength(2);
+    });
 
     it('infers correct types from union schemas', () => {
       const StatusContract = createContract({
@@ -75,24 +75,24 @@ describe('Contract Type Safety', () => {
           z.object({ type: z.literal('success'), data: z.string() }),
           z.object({ type: z.literal('error'), message: z.string() }),
         ]),
-      })
+      });
 
-      type Status = ContractType<typeof StatusContract>
+      type Status = ContractType<typeof StatusContract>;
 
       const success: Status = {
         type: 'success',
         data: 'Done',
-      }
+      };
 
       const error: Status = {
         type: 'error',
         message: 'Failed',
-      }
+      };
 
-      expect(success.type).toBe('success')
-      expect(error.type).toBe('error')
-    })
-  })
+      expect(success.type).toBe('success');
+      expect(error.type).toBe('error');
+    });
+  });
 
   describe('Type Guards', () => {
     it('narrows unknown types correctly', () => {
@@ -103,20 +103,20 @@ describe('Contract Type Safety', () => {
           id: z.string(),
           email: z.string().email(),
         }),
-      })
+      });
 
       const unknownData: unknown = {
         id: '123',
         email: 'test@example.com',
-      }
+      };
 
       if (UserContract.isType(unknownData)) {
         // TypeScript should narrow unknownData to User type
         // These should compile without errors
-        expect(unknownData.id).toBe('123')
-        expect(unknownData.email).toBe('test@example.com')
+        expect(unknownData.id).toBe('123');
+        expect(unknownData.email).toBe('test@example.com');
       }
-    })
+    });
 
     it('rejects invalid data in type guards', () => {
       const UserContract = createContract({
@@ -126,15 +126,15 @@ describe('Contract Type Safety', () => {
           id: z.string(),
           email: z.string().email(),
         }),
-      })
+      });
 
       const invalidData: unknown = {
         id: '123',
         email: 'not-an-email',
-      }
+      };
 
-      expect(UserContract.isType(invalidData)).toBe(false)
-    })
+      expect(UserContract.isType(invalidData)).toBe(false);
+    });
 
     it('works with nested type guards', () => {
       const PostContract = createContract({
@@ -147,7 +147,7 @@ describe('Contract Type Safety', () => {
             name: z.string(),
           }),
         }),
-      })
+      });
 
       const unknownData: unknown = {
         id: '1',
@@ -155,14 +155,14 @@ describe('Contract Type Safety', () => {
           id: '123',
           name: 'Author',
         },
-      }
+      };
 
       if (PostContract.isType(unknownData)) {
         // TypeScript should narrow to Post type
-        expect(unknownData.author.name).toBe('Author')
+        expect(unknownData.author.name).toBe('Author');
       }
-    })
-  })
+    });
+  });
 
   describe('Validation Result Types', () => {
     it('provides correct types for validation results', () => {
@@ -173,19 +173,19 @@ describe('Contract Type Safety', () => {
           id: z.string(),
           email: z.string().email(),
         }),
-      })
+      });
 
       const result = UserContract.validate({
         id: '123',
         email: 'test@example.com',
-      })
+      });
 
       if (result.success) {
         // TypeScript should know result.data is User type
-        expect(result.data.id).toBe('123')
-        expect(result.data.email).toBe('test@example.com')
+        expect(result.data.id).toBe('123');
+        expect(result.data.email).toBe('test@example.com');
       }
-    })
+    });
 
     it('provides correct types for validation failures', () => {
       const UserContract = createContract({
@@ -195,18 +195,18 @@ describe('Contract Type Safety', () => {
           id: z.string(),
           email: z.string().email(),
         }),
-      })
+      });
 
       const result = UserContract.validate({
         id: '123',
         email: 'invalid',
-      })
+      });
 
       if (!result.success) {
         // TypeScript should know result.errors exists
-        expect(result.errors).toBeDefined()
-        expect(result.errors.issues.length).toBeGreaterThan(0)
+        expect(result.errors).toBeDefined();
+        expect(result.errors.issues.length).toBeGreaterThan(0);
       }
-    })
-  })
-})
+    });
+  });
+});

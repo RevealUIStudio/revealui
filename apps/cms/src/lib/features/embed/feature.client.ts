@@ -1,14 +1,14 @@
-'use client'
+'use client';
 
 import {
   createClientFeature,
   type LexicalEditor,
   slashMenuBasicGroupWithItems,
   toolbarAddDropdownGroupWithItems,
-} from '@revealui/core/richtext/client'
-import { EmbedIcon } from './icons/EmbedIcon'
-import { EmbedNode, OPEN_EMBED_DRAWER_COMMAND } from './nodes/EmbedNode'
-import { EmbedPlugin } from './plugins/EmbedPlugin'
+} from '@revealui/core/richtext/client';
+import { EmbedIcon } from './icons/EmbedIcon';
+import { EmbedNode, OPEN_EMBED_DRAWER_COMMAND } from './nodes/EmbedNode';
+import { EmbedPlugin } from './plugins/EmbedPlugin';
 
 export const EmbedFeatureClient = createClientFeature({
   plugins: [
@@ -28,7 +28,7 @@ export const EmbedFeatureClient = createClientFeature({
           ChildComponent: EmbedIcon,
           label: 'Embed',
           onSelect: ({ editor }: { editor: LexicalEditor }) => {
-            editor.dispatchCommand(OPEN_EMBED_DRAWER_COMMAND, {})
+            editor.dispatchCommand(OPEN_EMBED_DRAWER_COMMAND, {});
           },
         },
       ]),
@@ -41,7 +41,7 @@ export const EmbedFeatureClient = createClientFeature({
           key: 'embed',
           label: 'Embed',
           onSelect: ({ editor }: { editor: LexicalEditor }) => {
-            editor.dispatchCommand(OPEN_EMBED_DRAWER_COMMAND, {})
+            editor.dispatchCommand(OPEN_EMBED_DRAWER_COMMAND, {});
           },
           keywords: ['embed'],
           // biome-ignore lint/style/useNamingConvention: Rich text slash menu API uses Icon.
@@ -50,4 +50,4 @@ export const EmbedFeatureClient = createClientFeature({
       ]),
     ],
   },
-})
+});

@@ -1,4 +1,4 @@
-import type { Block } from '@revealui/core'
+import type { Block } from '@revealui/core';
 
 export const Code: Block = {
   slug: 'code',
@@ -30,4 +30,4 @@ export const Code: Block = {
       required: true,
     },
   ],
-}
+};

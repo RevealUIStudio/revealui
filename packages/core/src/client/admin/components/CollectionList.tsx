@@ -1,52 +1,56 @@
-'use client'
-import type React from 'react'
-import type { RevealCollectionConfig, RevealDocument, RevealUIField } from '../../../types/index.js'
+'use client';
+import type React from 'react';
+import type {
+  RevealCollectionConfig,
+  RevealDocument,
+  RevealUIField,
+} from '../../../types/index.js';
 
 // Helper to resolve field label to a string
-type LabelResolver = (args: { t: (key: string) => string }) => string
+type LabelResolver = (args: { t: (key: string) => string }) => string;
 
 function getFieldLabel(field: RevealUIField): string {
-  const { label } = field
+  const { label } = field;
   if (typeof label === 'function') {
-    return (label as LabelResolver)({ t: (key) => key })
+    return (label as LabelResolver)({ t: (key) => key });
   }
   if (typeof label === 'string') {
-    return label
+    return label;
   }
-  return typeof field.name === 'string' ? field.name : 'Field'
+  return typeof field.name === 'string' ? field.name : 'Field';
 }
 
 function formatTextValue(value: unknown): string {
-  if (value === null || value === undefined) return ''
-  if (typeof value === 'string') return value
+  if (value === null || value === undefined) return '';
+  if (typeof value === 'string') return value;
   if (typeof value === 'number' || typeof value === 'boolean' || typeof value === 'bigint') {
-    return String(value)
+    return String(value);
   }
-  if (typeof value === 'symbol') return value.description ?? value.toString()
-  if (typeof value === 'function') return value.name || 'function'
-  return JSON.stringify(value)
+  if (typeof value === 'symbol') return value.description ?? value.toString();
+  if (typeof value === 'function') return value.name || 'function';
+  return JSON.stringify(value);
 }
 
 function formatDateValue(value: unknown): string {
-  if (value instanceof Date) return value.toLocaleDateString()
+  if (value instanceof Date) return value.toLocaleDateString();
   if (typeof value === 'string' || typeof value === 'number') {
-    const parsed = new Date(value)
-    return Number.isNaN(parsed.getTime()) ? '' : parsed.toLocaleDateString()
+    const parsed = new Date(value);
+    return Number.isNaN(parsed.getTime()) ? '' : parsed.toLocaleDateString();
   }
-  return ''
+  return '';
 }
 
 interface CollectionListProps {
-  collection: RevealCollectionConfig
-  documents: RevealDocument[]
-  totalDocs: number
-  page: number
-  totalPages: number
-  onCreate: () => void
-  onEdit: (doc: RevealDocument) => void
-  onDelete: (doc: RevealDocument) => void
-  onPageChange: (page: number) => void
-  deleting?: string | null
+  collection: RevealCollectionConfig;
+  documents: RevealDocument[];
+  totalDocs: number;
+  page: number;
+  totalPages: number;
+  onCreate: () => void;
+  onEdit: (doc: RevealDocument) => void;
+  onDelete: (doc: RevealDocument) => void;
+  onPageChange: (page: number) => void;
+  deleting?: string | null;
 }
 
 export function CollectionList({
@@ -64,9 +68,9 @@ export function CollectionList({
   // Filter to only include fields with names (exclude layout fields) that are visible
   const displayFields = collection.fields
     .filter((field: RevealUIField) => {
-      return field.name && field.admin?.position !== 'sidebar' && !field.admin?.hidden
+      return field.name && field.admin?.position !== 'sidebar' && !field.admin?.hidden;
     })
-    .slice(0, 5) // Show first 5 visible fields
+    .slice(0, 5); // Show first 5 visible fields
 
   return (
     <div className="bg-white shadow overflow-hidden sm:rounded-md">
@@ -224,30 +228,30 @@ export function CollectionList({
         </div>
       )}
     </div>
-  )
+  );
 }
 
 function renderFieldValue(value: unknown, field: RevealUIField): React.ReactNode {
   if (value === null || value === undefined) {
-    return <span className="text-gray-400">-</span>
+    return <span className="text-gray-400">-</span>;
   }
 
   switch (field.type) {
     case 'text':
     case 'textarea':
-      return formatTextValue(value)
+      return formatTextValue(value);
     case 'number':
-      return Number(value)
+      return Number(value);
     case 'checkbox':
-      return value ? '✓' : '✗'
+      return value ? '✓' : '✗';
     case 'date':
-      return formatDateValue(value)
+      return formatDateValue(value);
     case 'select':
-      return formatTextValue(value)
+      return formatTextValue(value);
     default:
       if (typeof value === 'object') {
-        return JSON.stringify(value)
+        return JSON.stringify(value);
       }
-      return formatTextValue(value)
+      return formatTextValue(value);
   }
 }

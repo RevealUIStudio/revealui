@@ -46,7 +46,7 @@ export const VERIFICATION_RULES = {
     'Manual code review performed',
     'Stakeholder approval obtained',
   ],
-}
+};
 
 /**
  * Validate that a document meets verification requirements
@@ -55,7 +55,7 @@ export function validateVerificationClaims(
   content: string,
   filePath: string,
 ): { valid: boolean; errors: string[] } {
-  const errors: string[] = []
+  const errors: string[] = [];
 
   // Check for forbidden claims in automated content
   const isAutomated =
@@ -64,7 +64,7 @@ export function validateVerificationClaims(
     content.includes('automation system') ||
     filePath.includes('generated') ||
     filePath.includes('-review-validated') ||
-    filePath.includes('assessment-report')
+    filePath.includes('assessment-report');
 
   if (isAutomated) {
     // Check each forbidden pattern
@@ -72,13 +72,13 @@ export function validateVerificationClaims(
       if (pattern.test(content)) {
         errors.push(
           `Automated report contains forbidden claim: ${pattern.source.replace(/\\/g, '')}`,
-        )
+        );
       }
     }
 
     // Check for required disclaimer
     if (!content.includes(VERIFICATION_RULES.requiredDisclaimer)) {
-      errors.push('Missing required disclaimer for automated report')
+      errors.push('Missing required disclaimer for automated report');
     }
   }
 
@@ -86,23 +86,23 @@ export function validateVerificationClaims(
   if (/COMPLETE|VERIFIED|RESOLVED/i.test(content)) {
     const hasHumanReview =
       /reviewDate.*:.*[0-9]{4}-[0-9]{2}-[0-9]{2}/.test(content) &&
-      /reviewedBy.*:.*\w+/.test(content)
+      /reviewedBy.*:.*\w+/.test(content);
 
     if (!hasHumanReview) {
-      errors.push('Document claims completion without human review section')
+      errors.push('Document claims completion without human review section');
     }
   }
 
   // Check for grade inflation without evidence
-  const gradeMatch = content.match(/([A-F][+-]?)\s*\(([0-9.]+)\/10\)/i)
+  const gradeMatch = content.match(/([A-F][+-]?)\s*\(([0-9.]+)\/10\)/i);
   if (gradeMatch && !content.includes('Human Review')) {
-    const grade = gradeMatch[1]
-    const score = parseFloat(gradeMatch[2])
+    const grade = gradeMatch[1];
+    const score = parseFloat(gradeMatch[2]);
 
     // Grades of A or B require human verification
     if (grade.toUpperCase().startsWith('A') || grade.toUpperCase().startsWith('B')) {
       if (score >= 7.0 && !content.includes('reviewedBy')) {
-        errors.push(`Grade ${grade} (${score}/10) requires human verification`)
+        errors.push(`Grade ${grade} (${score}/10) requires human verification`);
       }
     }
   }
@@ -110,7 +110,7 @@ export function validateVerificationClaims(
   return {
     valid: errors.length === 0,
     errors,
-  }
+  };
 }
 
 /**
@@ -124,9 +124,9 @@ export function isAutomatedReport(filePath: string): boolean {
     /audit-results/i,
     /-COMPLETE\.md$/i,
     /VERIFICATION.*REPORT/i,
-  ]
+  ];
 
-  return automatedPatterns.some((pattern) => pattern.test(filePath))
+  return automatedPatterns.some((pattern) => pattern.test(filePath));
 }
 
 /**
@@ -153,52 +153,52 @@ export function generateHumanReviewTemplate(): string {
 - **Verification Method:** [Describe how claims were verified]
 - **Evidence Links:** [Links to test results, security scans, etc.]
 - **Comments:** [Reviewer comments and notes]
-`
+`;
 }
 
 /**
  * Validate documentation claim against actual evidence
  */
 export interface ClaimEvidence {
-  claim: string
-  evidence: string[]
-  verified: boolean
-  notes?: string
+  claim: string;
+  evidence: string[];
+  verified: boolean;
+  notes?: string;
 }
 
 export function validateClaimWithEvidence(claim: ClaimEvidence): {
-  valid: boolean
-  reason: string
+  valid: boolean;
+  reason: string;
 } {
   if (!claim.verified) {
     return {
       valid: false,
       reason: 'Claim not marked as verified',
-    }
+    };
   }
 
   if (!claim.evidence || claim.evidence.length === 0) {
     return {
       valid: false,
       reason: 'No evidence provided for claim',
-    }
+    };
   }
 
   // Check that evidence is specific (not just generic statements)
-  const genericEvidence = ['manual review', 'checked', 'verified', 'tested']
+  const genericEvidence = ['manual review', 'checked', 'verified', 'tested'];
   const hasSpecificEvidence = claim.evidence.some(
     (e) => !genericEvidence.some((generic) => e.toLowerCase().includes(generic)),
-  )
+  );
 
   if (!hasSpecificEvidence) {
     return {
       valid: false,
       reason: 'Evidence is too generic - need specific test results or scan outputs',
-    }
+    };
   }
 
   return {
     valid: true,
     reason: 'Claim has specific evidence',
-  }
+  };
 }

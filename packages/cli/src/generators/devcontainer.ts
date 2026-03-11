@@ -2,12 +2,12 @@
  * Dev Container configuration generator
  */
 
-import fs from 'node:fs/promises'
-import path from 'node:path'
+import fs from 'node:fs/promises';
+import path from 'node:path';
 
 export async function generateDevContainer(projectPath: string): Promise<void> {
-  const devcontainerDir = path.join(projectPath, '.devcontainer')
-  await fs.mkdir(devcontainerDir, { recursive: true })
+  const devcontainerDir = path.join(projectPath, '.devcontainer');
+  await fs.mkdir(devcontainerDir, { recursive: true });
 
   // Create devcontainer.json
   const devcontainerConfig = {
@@ -55,13 +55,13 @@ export async function generateDevContainer(projectPath: string): Promise<void> {
       },
     },
     remoteUser: 'node',
-  }
+  };
 
   await fs.writeFile(
     path.join(devcontainerDir, 'devcontainer.json'),
     JSON.stringify(devcontainerConfig, null, 2),
     'utf-8',
-  )
+  );
 
   // Create docker-compose.yml for services
   const dockerCompose = `version: '3.8'
@@ -88,9 +88,9 @@ services:
 
 volumes:
   postgres-data:
-`
+`;
 
-  await fs.writeFile(path.join(devcontainerDir, 'docker-compose.yml'), dockerCompose, 'utf-8')
+  await fs.writeFile(path.join(devcontainerDir, 'docker-compose.yml'), dockerCompose, 'utf-8');
 
   // Create Dockerfile
   const dockerfile = `FROM mcr.microsoft.com/devcontainers/typescript-node:24
@@ -101,9 +101,9 @@ RUN apt-get update && export DEBIAN_FRONTEND=noninteractive \\
 
 # Enable pnpm
 RUN corepack enable
-`
+`;
 
-  await fs.writeFile(path.join(devcontainerDir, 'Dockerfile'), dockerfile, 'utf-8')
+  await fs.writeFile(path.join(devcontainerDir, 'Dockerfile'), dockerfile, 'utf-8');
 
   // Create README
   const readme = `# Dev Container Setup
@@ -146,7 +146,7 @@ For GitHub Codespaces, set secrets in your repository settings.
 - 3000: Web application
 - 4000: CMS
 - 5432: PostgreSQL database
-`
+`;
 
-  await fs.writeFile(path.join(devcontainerDir, 'README.md'), readme, 'utf-8')
+  await fs.writeFile(path.join(devcontainerDir, 'README.md'), readme, 'utf-8');
 }

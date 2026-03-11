@@ -10,9 +10,9 @@
  * - node:readline - Interactive CLI prompts
  */
 
-import { access, readFile } from 'node:fs/promises'
-import { createInterface } from 'node:readline'
-import { ErrorCode, ScriptError } from './errors.js'
+import { access, readFile } from 'node:fs/promises';
+import { createInterface } from 'node:readline';
+import { ErrorCode, ScriptError } from './errors.js';
 
 /**
  * Reads a file and returns its contents as a string.
@@ -23,7 +23,7 @@ import { ErrorCode, ScriptError } from './errors.js'
  * ```
  */
 export async function readFileContent(filePath: string): Promise<string> {
-  return readFile(filePath, 'utf-8')
+  return readFile(filePath, 'utf-8');
 }
 
 /**
@@ -35,8 +35,8 @@ export async function readFileContent(filePath: string): Promise<string> {
  * ```
  */
 export async function writeFileContent(filePath: string, content: string): Promise<void> {
-  const { writeFile: fsWriteFile } = await import('node:fs/promises')
-  await fsWriteFile(filePath, content, 'utf-8')
+  const { writeFile: fsWriteFile } = await import('node:fs/promises');
+  await fsWriteFile(filePath, content, 'utf-8');
 }
 
 /**
@@ -51,10 +51,10 @@ export async function writeFileContent(filePath: string, content: string): Promi
  */
 export async function fileExists(filePath: string): Promise<boolean> {
   try {
-    await access(filePath)
-    return true
+    await access(filePath);
+    return true;
   } catch {
-    return false
+    return false;
   }
 }
 
@@ -64,9 +64,9 @@ export async function fileExists(filePath: string): Promise<boolean> {
  */
 export async function readFileIfExists(filePath: string): Promise<string | null> {
   try {
-    return await readFile(filePath, 'utf-8')
+    return await readFile(filePath, 'utf-8');
   } catch {
-    return null
+    return null;
   }
 }
 
@@ -82,14 +82,14 @@ export async function prompt(question: string): Promise<string> {
   const rl = createInterface({
     input: process.stdin,
     output: process.stdout,
-  })
+  });
 
   return new Promise((resolve) => {
     rl.question(question, (answer) => {
-      rl.close()
-      resolve(answer)
-    })
-  })
+      rl.close();
+      resolve(answer);
+    });
+  });
 }
 
 /**
@@ -103,22 +103,22 @@ export async function prompt(question: string): Promise<string> {
  * ```
  */
 export async function confirm(question: string, defaultValue = false): Promise<boolean> {
-  const suffix = defaultValue ? '(Y/n)' : '(y/N)'
-  const answer = await prompt(`${question} ${suffix}: `)
-  const trimmed = answer.trim().toLowerCase()
+  const suffix = defaultValue ? '(Y/n)' : '(y/N)';
+  const answer = await prompt(`${question} ${suffix}: `);
+  const trimmed = answer.trim().toLowerCase();
 
   if (!trimmed) {
-    return defaultValue
+    return defaultValue;
   }
 
-  return trimmed === 'y' || trimmed === 'yes'
+  return trimmed === 'y' || trimmed === 'yes';
 }
 
 /**
  * Sleeps for the specified number of milliseconds.
  */
 export function sleep(ms: number): Promise<void> {
-  return new Promise((resolve) => setTimeout(resolve, ms))
+  return new Promise((resolve) => setTimeout(resolve, ms));
 }
 
 /**
@@ -139,66 +139,66 @@ export async function waitFor(
   timeout = 30000,
   interval = 1000,
 ): Promise<boolean> {
-  const start = Date.now()
+  const start = Date.now();
   while (Date.now() - start < timeout) {
-    const result = await condition()
-    if (result) return true
-    await sleep(interval)
+    const result = await condition();
+    if (result) return true;
+    await sleep(interval);
   }
-  return false
+  return false;
 }
 
 /**
  * Generates a random ID string.
  */
 export function generateId(prefix = '', length = 8): string {
-  const chars = 'abcdefghijklmnopqrstuvwxyz0123456789'
-  let id = prefix ? `${prefix}-` : ''
+  const chars = 'abcdefghijklmnopqrstuvwxyz0123456789';
+  let id = prefix ? `${prefix}-` : '';
   for (let i = 0; i < length; i++) {
-    id += chars.charAt(Math.floor(Math.random() * chars.length))
+    id += chars.charAt(Math.floor(Math.random() * chars.length));
   }
-  return id
+  return id;
 }
 
 /**
  * Formats bytes into a human-readable string.
  */
 export function formatBytes(bytes: number): string {
-  const units = ['B', 'KB', 'MB', 'GB', 'TB']
-  let value = bytes
-  let unitIndex = 0
+  const units = ['B', 'KB', 'MB', 'GB', 'TB'];
+  let value = bytes;
+  let unitIndex = 0;
 
   while (value >= 1024 && unitIndex < units.length - 1) {
-    value /= 1024
-    unitIndex++
+    value /= 1024;
+    unitIndex++;
   }
 
-  return `${value.toFixed(unitIndex > 0 ? 1 : 0)} ${units[unitIndex]}`
+  return `${value.toFixed(unitIndex > 0 ? 1 : 0)} ${units[unitIndex]}`;
 }
 
 /**
  * Formats a duration in milliseconds into a human-readable string.
  */
 export function formatDuration(ms: number): string {
-  if (ms < 1000) return `${ms}ms`
-  if (ms < 60000) return `${(ms / 1000).toFixed(1)}s`
-  if (ms < 3600000) return `${Math.floor(ms / 60000)}m ${Math.floor((ms % 60000) / 1000)}s`
-  return `${Math.floor(ms / 3600000)}h ${Math.floor((ms % 3600000) / 60000)}m`
+  if (ms < 1000) return `${ms}ms`;
+  if (ms < 60000) return `${(ms / 1000).toFixed(1)}s`;
+  if (ms < 3600000) return `${Math.floor(ms / 60000)}m ${Math.floor((ms % 60000) / 1000)}s`;
+  return `${Math.floor(ms / 3600000)}h ${Math.floor((ms % 3600000) / 60000)}m`;
 }
 
 /**
  * Truncates a string to a maximum length.
  */
 export function truncate(str: string, maxLength: number, suffix = '...'): string {
-  if (str.length <= maxLength) return str
-  return str.substring(0, maxLength - suffix.length) + suffix
+  if (str.length <= maxLength) return str;
+  return str.substring(0, maxLength - suffix.length) + suffix;
 }
 
 /**
  * Ensures a value is an array.
  */
 export function ensureArray<T>(value: T | T[]): T[] {
-  return Array.isArray(value) ? value : [value]
+  return Array.isArray(value) ? value : [value];
 }
 
 /**
@@ -208,17 +208,17 @@ export function debounce<T extends (...args: unknown[]) => unknown>(
   fn: T,
   delay: number,
 ): (...args: Parameters<T>) => void {
-  let timeoutId: NodeJS.Timeout | null = null
+  let timeoutId: NodeJS.Timeout | null = null;
 
   return (...args: Parameters<T>) => {
     if (timeoutId) {
-      clearTimeout(timeoutId)
+      clearTimeout(timeoutId);
     }
     timeoutId = setTimeout(() => {
-      fn(...args)
-      timeoutId = null
-    }, delay)
-  }
+      fn(...args);
+      timeoutId = null;
+    }, delay);
+  };
 }
 
 /**
@@ -236,19 +236,19 @@ export function debounce<T extends (...args: unknown[]) => unknown>(
  * ```
  */
 export function requireEnv(key: string, fallbackKey?: string): string {
-  const value = process.env[key]
-  if (value) return value
+  const value = process.env[key];
+  if (value) return value;
 
   if (fallbackKey) {
-    const fallbackValue = process.env[fallbackKey]
-    if (fallbackValue) return fallbackValue
+    const fallbackValue = process.env[fallbackKey];
+    if (fallbackValue) return fallbackValue;
     throw new ScriptError(
       `Required environment variable ${key} or ${fallbackKey} is not set`,
       ErrorCode.CONFIG_ERROR,
-    )
+    );
   }
 
-  throw new ScriptError(`Required environment variable ${key} is not set`, ErrorCode.CONFIG_ERROR)
+  throw new ScriptError(`Required environment variable ${key} is not set`, ErrorCode.CONFIG_ERROR);
 }
 
 /**
@@ -256,9 +256,9 @@ export function requireEnv(key: string, fallbackKey?: string): string {
  */
 export interface ValidateDependenciesOptions {
   /** Log missing dependencies */
-  log?: boolean
+  log?: boolean;
   /** Throw on missing dependencies */
-  throwOnMissing?: boolean
+  throwOnMissing?: boolean;
 }
 
 /**
@@ -277,30 +277,30 @@ export async function validateDependencies(
   packages: string[],
   options: ValidateDependenciesOptions = {},
 ): Promise<boolean> {
-  const missing: string[] = []
+  const missing: string[] = [];
 
   for (const pkg of packages) {
     try {
-      await import(pkg)
+      await import(pkg);
     } catch {
-      missing.push(pkg)
+      missing.push(pkg);
     }
   }
 
   if (missing.length > 0) {
     if (options.log) {
-      console.error(`Missing dependencies: ${missing.join(', ')}`)
+      console.error(`Missing dependencies: ${missing.join(', ')}`);
     }
     if (options.throwOnMissing) {
       throw new ScriptError(
         `Missing dependencies: ${missing.join(', ')}`,
         ErrorCode.DEPENDENCY_ERROR,
-      )
+      );
     }
-    return false
+    return false;
   }
 
-  return true
+  return true;
 }
 
 // =============================================================================
@@ -312,17 +312,17 @@ export async function validateDependencies(
  */
 export interface ScanDirectoryOptions {
   /** File extensions to include (e.g., ['.ts', '.tsx']) */
-  extensions?: string[]
+  extensions?: string[];
   /** Directory names to exclude (defaults to common build/cache dirs) */
-  excludeDirs?: string[]
+  excludeDirs?: string[];
   /** Regex patterns to exclude files/directories */
-  excludePatterns?: RegExp[]
+  excludePatterns?: RegExp[];
   /** Include hidden files/directories (starting with .) */
-  includeHidden?: boolean
+  includeHidden?: boolean;
   /** Maximum depth to scan (default: unlimited) */
-  maxDepth?: number
+  maxDepth?: number;
   /** Follow symbolic links (default: false) */
-  followSymlinks?: boolean
+  followSymlinks?: boolean;
 }
 
 /**
@@ -341,7 +341,7 @@ const DEFAULT_EXCLUDE_DIRS = [
   '.output',
   '.vercel',
   '.cache',
-]
+];
 
 /**
  * Scan a directory recursively for files matching criteria (async generator).
@@ -394,40 +394,40 @@ export async function* scanDirectory(
     includeHidden = false,
     maxDepth = Infinity,
     followSymlinks = false,
-  } = options
+  } = options;
 
   async function* scan(currentDir: string, depth: number): AsyncGenerator<string> {
-    if (depth > maxDepth) return
+    if (depth > maxDepth) return;
 
     try {
-      const { readdir } = await import('node:fs/promises')
-      const entries = await readdir(currentDir, { withFileTypes: true })
+      const { readdir } = await import('node:fs/promises');
+      const entries = await readdir(currentDir, { withFileTypes: true });
 
       for (const entry of entries) {
         // Skip hidden files/directories unless explicitly included
         if (!includeHidden && entry.name.startsWith('.')) {
-          continue
+          continue;
         }
 
-        const fullPath = `${currentDir}/${entry.name}`
+        const fullPath = `${currentDir}/${entry.name}`;
 
         // Skip excluded directories
         if (entry.isDirectory() && excludeDirs.includes(entry.name)) {
-          continue
+          continue;
         }
 
         // Skip files/dirs matching exclude patterns
         if (excludePatterns.some((pattern) => pattern.test(fullPath))) {
-          continue
+          continue;
         }
 
         if (entry.isDirectory()) {
-          yield* scan(fullPath, depth + 1)
+          yield* scan(fullPath, depth + 1);
         } else if (entry.isFile() || (followSymlinks && entry.isSymbolicLink())) {
           // Check file extension
-          const ext = entry.name.substring(entry.name.lastIndexOf('.'))
+          const ext = entry.name.substring(entry.name.lastIndexOf('.'));
           if (extensions.length === 0 || extensions.includes(ext)) {
-            yield fullPath
+            yield fullPath;
           }
         }
       }
@@ -437,7 +437,7 @@ export async function* scanDirectory(
     }
   }
 
-  yield* scan(dir, 0)
+  yield* scan(dir, 0);
 }
 
 /**
@@ -475,11 +475,11 @@ export async function scanDirectoryAll(
   dir: string,
   options: ScanDirectoryOptions = {},
 ): Promise<string[]> {
-  const files: string[] = []
+  const files: string[] = [];
   for await (const file of scanDirectory(dir, options)) {
-    files.push(file)
+    files.push(file);
   }
-  return files
+  return files;
 }
 
 /**
@@ -524,42 +524,42 @@ export function scanDirectorySync(dir: string, options: ScanDirectoryOptions = {
     includeHidden = false,
     maxDepth = Infinity,
     followSymlinks = false,
-  } = options
+  } = options;
 
-  const files: string[] = []
+  const files: string[] = [];
 
   function scan(currentDir: string, depth: number): void {
-    if (depth > maxDepth) return
+    if (depth > maxDepth) return;
 
     try {
-      const { readdirSync } = require('node:fs')
-      const entries = readdirSync(currentDir, { withFileTypes: true })
+      const { readdirSync } = require('node:fs');
+      const entries = readdirSync(currentDir, { withFileTypes: true });
 
       for (const entry of entries) {
         // Skip hidden files/directories unless explicitly included
         if (!includeHidden && entry.name.startsWith('.')) {
-          continue
+          continue;
         }
 
-        const fullPath = `${currentDir}/${entry.name}`
+        const fullPath = `${currentDir}/${entry.name}`;
 
         // Skip excluded directories
         if (entry.isDirectory() && excludeDirs.includes(entry.name)) {
-          continue
+          continue;
         }
 
         // Skip files/dirs matching exclude patterns
         if (excludePatterns.some((pattern: RegExp) => pattern.test(fullPath))) {
-          continue
+          continue;
         }
 
         if (entry.isDirectory()) {
-          scan(fullPath, depth + 1)
+          scan(fullPath, depth + 1);
         } else if (entry.isFile() || (followSymlinks && entry.isSymbolicLink())) {
           // Check file extension
-          const ext = entry.name.substring(entry.name.lastIndexOf('.'))
+          const ext = entry.name.substring(entry.name.lastIndexOf('.'));
           if (extensions.length === 0 || extensions.includes(ext)) {
-            files.push(fullPath)
+            files.push(fullPath);
           }
         }
       }
@@ -568,6 +568,6 @@ export function scanDirectorySync(dir: string, options: ScanDirectoryOptions = {
     }
   }
 
-  scan(dir, 0)
-  return files
+  scan(dir, 0);
+  return files;
 }

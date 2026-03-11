@@ -8,7 +8,7 @@
  * we recreate representative configs based on the actual codebase.
  */
 
-import { describe, expect, it } from 'vitest'
+import { describe, expect, it } from 'vitest';
 import {
   type AccessFunction,
   type CollectionAfterChangeHook,
@@ -21,7 +21,7 @@ import {
   GlobalStructureSchema,
   type RevealRequest,
   safeValidate,
-} from '../cms/index.js'
+} from '../cms/index.js';
 
 describe('Real Config Patterns from apps/cms', () => {
   describe('Posts Collection (apps/cms/src/lib/collections/Posts)', () => {
@@ -139,27 +139,27 @@ describe('Real Config Patterns from apps/cms', () => {
         },
         maxPerDoc: 50,
       },
-    }
+    };
 
     it('validates Posts structure', () => {
-      const result = safeValidate(CollectionStructureSchema, PostsConfig, 'collection', 'posts')
-      expect(result.success).toBe(true)
-    })
+      const result = safeValidate(CollectionStructureSchema, PostsConfig, 'collection', 'posts');
+      expect(result.success).toBe(true);
+    });
 
     it('has correct slug', () => {
-      expect(PostsConfig.slug).toBe('posts')
-    })
+      expect(PostsConfig.slug).toBe('posts');
+    });
 
     it('has tabs field structure', () => {
-      const tabsField = PostsConfig.fields.find((f) => f.type === 'tabs')
-      expect(tabsField).toBeDefined()
-      expect(tabsField?.tabs?.length).toBe(2)
-    })
+      const tabsField = PostsConfig.fields.find((f) => f.type === 'tabs');
+      expect(tabsField).toBeDefined();
+      expect(tabsField?.tabs?.length).toBe(2);
+    });
 
     it('has versioning configured', () => {
-      expect(PostsConfig.versions).toBeDefined()
-    })
-  })
+      expect(PostsConfig.versions).toBeDefined();
+    });
+  });
 
   describe('Users Collection (apps/cms/src/lib/collections/Users)', () => {
     // Mirror of actual Users collection structure
@@ -177,8 +177,8 @@ describe('Real Config Patterns from apps/cms', () => {
         create: ({ req }) => Boolean(req?.user?.roles?.includes('admin')),
         read: () => true,
         update: ({ req, id }) => {
-          if (req?.user?.roles?.includes('admin')) return true
-          return req?.user?.id === id
+          if (req?.user?.roles?.includes('admin')) return true;
+          return req?.user?.id === id;
         },
         delete: ({ req }) => Boolean(req?.user?.roles?.includes('admin')),
       },
@@ -228,30 +228,30 @@ describe('Real Config Patterns from apps/cms', () => {
           relationTo: 'tenants',
         },
       ],
-    }
+    };
 
     it('validates Users structure', () => {
-      const result = safeValidate(CollectionStructureSchema, UsersConfig, 'collection', 'users')
-      expect(result.success).toBe(true)
-    })
+      const result = safeValidate(CollectionStructureSchema, UsersConfig, 'collection', 'users');
+      expect(result.success).toBe(true);
+    });
 
     it('has auth enabled', () => {
-      expect(UsersConfig.auth).toBeDefined()
-    })
+      expect(UsersConfig.auth).toBeDefined();
+    });
 
     it('has roles field', () => {
-      const rolesField = UsersConfig.fields.find((f) => f.name === 'roles')
-      expect(rolesField).toBeDefined()
-      expect(rolesField?.type).toBe('select')
-      expect(rolesField?.hasMany).toBe(true)
-    })
+      const rolesField = UsersConfig.fields.find((f) => f.name === 'roles');
+      expect(rolesField).toBeDefined();
+      expect(rolesField?.type).toBe('select');
+      expect(rolesField?.hasMany).toBe(true);
+    });
 
     it('has tenants array', () => {
-      const tenantsField = UsersConfig.fields.find((f) => f.name === 'tenants')
-      expect(tenantsField).toBeDefined()
-      expect(tenantsField?.type).toBe('array')
-    })
-  })
+      const tenantsField = UsersConfig.fields.find((f) => f.name === 'tenants');
+      expect(tenantsField).toBeDefined();
+      expect(tenantsField?.type).toBe('array');
+    });
+  });
 
   describe('Settings Global (apps/cms/src/lib/globals/Settings)', () => {
     // Mirror of actual Settings global structure
@@ -272,86 +272,86 @@ describe('Real Config Patterns from apps/cms', () => {
           label: 'Products page',
         },
       ],
-    }
+    };
 
     it('validates Settings structure', () => {
-      const result = safeValidate(GlobalStructureSchema, SettingsConfig, 'global', 'settings')
-      expect(result.success).toBe(true)
-    })
+      const result = safeValidate(GlobalStructureSchema, SettingsConfig, 'global', 'settings');
+      expect(result.success).toBe(true);
+    });
 
     it('has relationship field', () => {
-      const productsPage = SettingsConfig.fields.find((f) => f.name === 'productsPage')
-      expect(productsPage).toBeDefined()
-      expect(productsPage?.type).toBe('relationship')
-    })
-  })
+      const productsPage = SettingsConfig.fields.find((f) => f.name === 'productsPage');
+      expect(productsPage).toBeDefined();
+      expect(productsPage?.type).toBe('relationship');
+    });
+  });
 
   describe('Access Functions (apps/cms/src/lib/access)', () => {
     it('authenticated access pattern', () => {
       const authenticated: AccessFunction = ({ req }) => {
-        return Boolean(req?.user)
-      }
+        return Boolean(req?.user);
+      };
 
-      const userReq: RevealRequest = { user: { id: '1' } }
-      const emptyReq: RevealRequest = {}
-      expect(authenticated({ req: userReq })).toBe(true)
-      expect(authenticated({ req: emptyReq })).toBe(false)
-    })
+      const userReq: RevealRequest = { user: { id: '1' } };
+      const emptyReq: RevealRequest = {};
+      expect(authenticated({ req: userReq })).toBe(true);
+      expect(authenticated({ req: emptyReq })).toBe(false);
+    });
 
     it('admin access pattern', () => {
       const isAdmin: AccessFunction = ({ req }) => {
-        const user = req?.user
-        if (!user) return false
-        return user.roles?.includes('admin') || user.roles?.includes('super-admin')
-      }
+        const user = req?.user;
+        if (!user) return false;
+        return user.roles?.includes('admin') || user.roles?.includes('super-admin');
+      };
 
-      const adminReq: RevealRequest = { user: { id: '1', roles: ['admin'] } }
-      const userReq: RevealRequest = { user: { id: '1', roles: ['user'] } }
-      expect(isAdmin({ req: adminReq })).toBe(true)
-      expect(isAdmin({ req: userReq })).toBe(false)
-    })
+      const adminReq: RevealRequest = { user: { id: '1', roles: ['admin'] } };
+      const userReq: RevealRequest = { user: { id: '1', roles: ['user'] } };
+      expect(isAdmin({ req: adminReq })).toBe(true);
+      expect(isAdmin({ req: userReq })).toBe(false);
+    });
 
     it('self-or-admin access pattern', () => {
       const isAdminAndUser: AccessFunction = ({ req, id }) => {
-        const user = req?.user
-        if (!user) return false
-        if (user.roles?.includes('admin')) return true
-        return user.id === id
-      }
+        const user = req?.user;
+        if (!user) return false;
+        if (user.roles?.includes('admin')) return true;
+        return user.id === id;
+      };
 
       // Admin can access anything
-      const adminReq: RevealRequest = { user: { id: '1', roles: ['admin'] } }
-      expect(isAdminAndUser({ req: adminReq, id: '2' })).toBe(true)
+      const adminReq: RevealRequest = { user: { id: '1', roles: ['admin'] } };
+      expect(isAdminAndUser({ req: adminReq, id: '2' })).toBe(true);
       // User can access own resource
-      const userReq: RevealRequest = { user: { id: '1', roles: ['user'] } }
-      expect(isAdminAndUser({ req: userReq, id: '1' })).toBe(true)
+      const userReq: RevealRequest = { user: { id: '1', roles: ['user'] } };
+      expect(isAdminAndUser({ req: userReq, id: '1' })).toBe(true);
       // User cannot access other's resource
-      expect(isAdminAndUser({ req: userReq, id: '2' })).toBe(false)
-    })
-  })
+      expect(isAdminAndUser({ req: userReq, id: '2' })).toBe(false);
+    });
+  });
 
   describe('Hook Functions (apps/cms/src/lib/hooks)', () => {
     interface Post {
-      id: string
-      title: string
-      slug: string
-      _status?: 'draft' | 'published'
+      id: string;
+      title: string;
+      slug: string;
+      _status?: 'draft' | 'published';
     }
 
     it('afterChange hook pattern (revalidatePost)', () => {
       const revalidatePost: CollectionAfterChangeHook<Post> = ({ doc, previousDoc, req }) => {
-        void req
+        void req;
         // In reality, this would revalidate cache
-        const path = `/posts/${doc.slug}`
-        console.log(`Revalidating: ${path}`)
+        const path = `/posts/${doc.slug}`;
+        console.log(`Revalidating: ${path}`);
 
         // Handle unpublish case
         if (previousDoc?._status === 'published' && doc._status !== 'published') {
-          console.log(`Unpublished: ${path}`)
+          console.log(`Unpublished: ${path}`);
         }
 
-        return doc
-      }
+        return doc;
+      };
 
       const result = revalidatePost({
         doc: { id: '1', title: 'Test', slug: 'test', _status: 'published' },
@@ -359,33 +359,33 @@ describe('Real Config Patterns from apps/cms', () => {
         operation: 'update',
         req: {},
         context: {},
-      })
+      });
 
       expect(result).toEqual({
         id: '1',
         title: 'Test',
         slug: 'test',
         _status: 'published',
-      })
-    })
+      });
+    });
 
     it('afterRead hook pattern (populateAuthors)', () => {
       interface PostWithAuthors extends Post {
-        authors?: string[]
-        populatedAuthors?: Array<{ id: string; name: string }>
+        authors?: string[];
+        populatedAuthors?: Array<{ id: string; name: string }>;
       }
 
       const populateAuthors: CollectionAfterReadHook<PostWithAuthors> = ({ doc, req }) => {
-        void req
+        void req;
         // In reality, this would fetch author details
         if (doc.authors?.length) {
           doc.populatedAuthors = doc.authors.map((id) => ({
             id,
             name: `Author ${id}`, // Would be fetched from DB
-          }))
+          }));
         }
-        return doc
-      }
+        return doc;
+      };
 
       const result = populateAuthors({
         doc: {
@@ -397,11 +397,11 @@ describe('Real Config Patterns from apps/cms', () => {
         req: {},
         findMany: false,
         context: {},
-      })
+      });
 
-      expect(result.populatedAuthors).toHaveLength(2)
-    })
-  })
+      expect(result.populatedAuthors).toHaveLength(2);
+    });
+  });
 
   describe('Field Patterns', () => {
     it('slug field with formatSlug hook pattern', () => {
@@ -415,11 +415,11 @@ describe('Real Config Patterns from apps/cms', () => {
           position: 'sidebar',
         },
         // Note: hooks would be added via field configuration
-      }
+      };
 
-      const result = FieldStructureSchema.safeParse(slugField)
-      expect(result.success).toBe(true)
-    })
+      const result = FieldStructureSchema.safeParse(slugField);
+      expect(result.success).toBe(true);
+    });
 
     it('link field group pattern', () => {
       const linkField: Field = {
@@ -452,11 +452,11 @@ describe('Real Config Patterns from apps/cms', () => {
             label: 'Open in new tab',
           },
         ],
-      }
+      };
 
-      const result = FieldStructureSchema.safeParse(linkField)
-      expect(result.success).toBe(true)
-    })
+      const result = FieldStructureSchema.safeParse(linkField);
+      expect(result.success).toBe(true);
+    });
 
     it('blocks field with banner and code blocks', () => {
       const layoutField: Field = {
@@ -493,13 +493,13 @@ describe('Real Config Patterns from apps/cms', () => {
             ],
           },
         ],
-      }
+      };
 
-      const result = FieldStructureSchema.safeParse(layoutField)
-      expect(result.success).toBe(true)
-    })
-  })
-})
+      const result = FieldStructureSchema.safeParse(layoutField);
+      expect(result.success).toBe(true);
+    });
+  });
+});
 
 describe('Edge Cases', () => {
   describe('Field with hooks inline', () => {
@@ -514,19 +514,19 @@ describe('Edge Cases', () => {
               beforeChange: [
                 ({ siblingData, value }) => {
                   if (siblingData?._status === 'published' && !value) {
-                    return new Date()
+                    return new Date();
                   }
-                  return value
+                  return value;
                 },
               ],
             },
           },
         ],
-      }
+      };
 
-      expect(config.slug).toBe('test')
-    })
-  })
+      expect(config.slug).toBe('test');
+    });
+  });
 
   describe('Collection with complex versions config', () => {
     it('accepts versions with autosave', () => {
@@ -541,12 +541,12 @@ describe('Edge Cases', () => {
           },
           maxPerDoc: 50,
         },
-      }
+      };
 
-      const result = safeValidate(CollectionStructureSchema, config, 'collection')
-      expect(result.success).toBe(true)
-    })
-  })
+      const result = safeValidate(CollectionStructureSchema, config, 'collection');
+      expect(result.success).toBe(true);
+    });
+  });
 
   describe('Global with complex admin config', () => {
     it('accepts global with preview and livePreview', () => {
@@ -557,10 +557,10 @@ describe('Edge Cases', () => {
           description: 'Site settings',
           hidden: false,
         },
-      }
+      };
 
-      const result = safeValidate(GlobalStructureSchema, config, 'global')
-      expect(result.success).toBe(true)
-    })
-  })
-})
+      const result = safeValidate(GlobalStructureSchema, config, 'global');
+      expect(result.success).toBe(true);
+    });
+  });
+});

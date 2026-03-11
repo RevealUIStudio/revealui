@@ -28,13 +28,13 @@
  * - node:path - Path manipulation utilities (join)
  */
 
-import { existsSync } from 'node:fs'
-import { copyFile, mkdir, readdir, rename, writeFile } from 'node:fs/promises'
-import { join } from 'node:path'
-import { createLogger, getProjectRoot } from '../../../lib/index.js'
-import { ErrorCode } from '../lib/errors.js'
+import { existsSync } from 'node:fs';
+import { copyFile, mkdir, readdir, rename, writeFile } from 'node:fs/promises';
+import { join } from 'node:path';
+import { createLogger, getProjectRoot } from '../../../lib/index.js';
+import { ErrorCode } from '../lib/errors.js';
 
-const logger = createLogger()
+const logger = createLogger();
 
 // Allowed markdown files in project root
 const ALLOWED_ROOT_FILES = [
@@ -47,7 +47,7 @@ const ALLOWED_ROOT_FILES = [
   'CONTRIBUTING.md',
   'CODE_OF_CONDUCT.md',
   'CHANGELOG.md',
-]
+];
 
 // Allowed patterns (case-insensitive matching, exact matches only)
 const ALLOWED_PATTERNS = [
@@ -60,7 +60,7 @@ const ALLOWED_PATTERNS = [
   /^CONTRIBUTING\.md$/i, // GitHub recognizes (PR/Issue linking)
   /^CODE_OF_CONDUCT\.md$/i, // GitHub recognizes (Community tab)
   /^CHANGELOG\.md$/i, // Common in root (version history)
-]
+];
 
 /**
  * Determine target subfolder for a file based on its name and patterns
@@ -68,7 +68,7 @@ const ALLOWED_PATTERNS = [
  * Exported for testing
  */
 export function determineTargetSubfolder(filename: string): string {
-  const lowerFilename = filename.toLowerCase()
+  const lowerFilename = filename.toLowerCase();
 
   // Assessment files (check before agent - assessments take priority)
   if (
@@ -78,7 +78,7 @@ export function determineTargetSubfolder(filename: string): string {
     lowerFilename.includes('cohesion_analysis') ||
     lowerFilename.includes('developer_experience')
   ) {
-    return 'docs/assessments'
+    return 'docs/assessments';
   }
 
   // Agent-related files (handoff, instructions - not assessments)
@@ -87,7 +87,7 @@ export function determineTargetSubfolder(filename: string): string {
     lowerFilename.includes('prompt_for_next') ||
     lowerFilename.includes('handoff')
   ) {
-    return 'docs/agent'
+    return 'docs/agent';
   }
 
   // Development/Technical docs (check before guides - development takes priority)
@@ -97,7 +97,7 @@ export function determineTargetSubfolder(filename: string): string {
     lowerFilename.includes('development') ||
     lowerFilename.includes('technical')
   ) {
-    return 'docs/development'
+    return 'docs/development';
   }
 
   // Guide files
@@ -114,7 +114,7 @@ export function determineTargetSubfolder(filename: string): string {
     lowerFilename.includes('examples') ||
     lowerFilename.includes('recommendations')
   ) {
-    return 'docs/guides'
+    return 'docs/guides';
   }
 
   // Migration docs
@@ -125,7 +125,7 @@ export function determineTargetSubfolder(filename: string): string {
     lowerFilename.includes('deprecated') ||
     lowerFilename.includes('modernization')
   ) {
-    return 'docs/migrations'
+    return 'docs/migrations';
   }
 
   // Reference docs
@@ -136,7 +136,7 @@ export function determineTargetSubfolder(filename: string): string {
     lowerFilename.includes('frameworks') ||
     lowerFilename.includes('component')
   ) {
-    return 'docs/reference'
+    return 'docs/reference';
   }
 
   // Planning/Research docs
@@ -149,7 +149,7 @@ export function determineTargetSubfolder(filename: string): string {
     lowerFilename.includes('prioritized') ||
     lowerFilename.includes('rev')
   ) {
-    return 'docs/planning'
+    return 'docs/planning';
   }
 
   // Legal docs
@@ -159,7 +159,7 @@ export function determineTargetSubfolder(filename: string): string {
     lowerFilename.includes('third_party') ||
     lowerFilename.includes('third-party')
   ) {
-    return 'docs/legal'
+    return 'docs/legal';
   }
 
   // Documentation management
@@ -170,7 +170,7 @@ export function determineTargetSubfolder(filename: string): string {
     lowerFilename.includes('doc_cleanup') ||
     lowerFilename.includes('root_markdown')
   ) {
-    return 'docs'
+    return 'docs';
   }
 
   // Summary/Completion docs
@@ -179,18 +179,18 @@ export function determineTargetSubfolder(filename: string): string {
     lowerFilename.includes('complete') ||
     lowerFilename.includes('finished')
   ) {
-    return 'docs'
+    return 'docs';
   }
 
   // Default: docs/ (root of docs)
-  return 'docs'
+  return 'docs';
 }
 
 interface ValidationResult {
-  file: string
-  allowed: boolean
-  reason?: string
-  targetSubfolder?: string
+  file: string;
+  allowed: boolean;
+  reason?: string;
+  targetSubfolder?: string;
 }
 
 /**
@@ -204,11 +204,11 @@ interface ValidationResult {
 export function isAllowedRootFile(filename: string): boolean {
   // Exact match
   if (ALLOWED_ROOT_FILES.includes(filename)) {
-    return true
+    return true;
   }
 
   // Pattern match
-  return ALLOWED_PATTERNS.some((pattern) => pattern.test(filename))
+  return ALLOWED_PATTERNS.some((pattern) => pattern.test(filename));
 }
 
 /**
@@ -222,22 +222,22 @@ export async function createBackup(
   backupDir: string,
 ): Promise<boolean> {
   try {
-    await mkdir(backupDir, { recursive: true })
+    await mkdir(backupDir, { recursive: true });
 
     for (const violation of violations) {
-      const sourcePath = join(projectRoot, violation.file)
+      const sourcePath = join(projectRoot, violation.file);
       if (existsSync(sourcePath)) {
-        const backupPath = join(backupDir, violation.file)
-        await copyFile(sourcePath, backupPath)
+        const backupPath = join(backupDir, violation.file);
+        await copyFile(sourcePath, backupPath);
       }
     }
 
-    return true
+    return true;
   } catch (error) {
     logger.warning(
       `Failed to create backup: ${error instanceof Error ? error.message : String(error)}`,
-    )
-    return false
+    );
+    return false;
   }
 }
 
@@ -257,35 +257,35 @@ export async function saveRollbackInfo(
       target: f.target,
       backup: f.backup,
     })),
-  }
+  };
 
-  const rollbackPath = join(backupDir, 'rollback-info.json')
-  await writeFile(rollbackPath, JSON.stringify(rollbackInfo, null, 2))
+  const rollbackPath = join(backupDir, 'rollback-info.json');
+  await writeFile(rollbackPath, JSON.stringify(rollbackInfo, null, 2));
 }
 
 /**
  * Find all markdown files in root
  */
 async function findRootMarkdownFiles(projectRoot: string): Promise<string[]> {
-  const files: string[] = []
+  const files: string[] = [];
 
   try {
-    const entries = await readdir(projectRoot, { withFileTypes: true })
+    const entries = await readdir(projectRoot, { withFileTypes: true });
 
     for (const entry of entries) {
-      if (!entry.isFile()) continue
-      if (!entry.name.endsWith('.md')) continue
+      if (!entry.isFile()) continue;
+      if (!entry.name.endsWith('.md')) continue;
 
-      const filePath = join(projectRoot, entry.name)
-      files.push(filePath)
+      const filePath = join(projectRoot, entry.name);
+      files.push(filePath);
     }
   } catch (error) {
     logger.error(
       `Failed to read root directory: ${error instanceof Error ? error.message : String(error)}`,
-    )
+    );
   }
 
-  return files
+  return files;
 }
 
 /**
@@ -300,186 +300,186 @@ export async function validateRootMarkdown(
   options: { fix: boolean },
   projectRoot: string,
 ): Promise<void> {
-  logger.header('Validate Root Markdown Files')
+  logger.header('Validate Root Markdown Files');
 
-  const root = projectRoot
+  const root = projectRoot;
 
   // Find all markdown files in root
-  const rootFiles = await findRootMarkdownFiles(root)
-  const _rootFileNames = rootFiles.map((f) => f.split(/[/\\]/).pop() || '')
+  const rootFiles = await findRootMarkdownFiles(root);
+  const _rootFileNames = rootFiles.map((f) => f.split(/[/\\]/).pop() || '');
 
-  logger.info(`Found ${rootFiles.length} markdown files in project root`)
+  logger.info(`Found ${rootFiles.length} markdown files in project root`);
 
   // Validate each file
-  const violations: ValidationResult[] = []
-  const allowed: ValidationResult[] = []
+  const violations: ValidationResult[] = [];
+  const allowed: ValidationResult[] = [];
 
   for (const filePath of rootFiles) {
-    const filename = filePath.split(/[/\\]/).pop() || ''
-    const isAllowed = isAllowedRootFile(filename)
+    const filename = filePath.split(/[/\\]/).pop() || '';
+    const isAllowed = isAllowedRootFile(filename);
 
     if (isAllowed) {
-      allowed.push({ file: filename, allowed: true })
+      allowed.push({ file: filename, allowed: true });
     } else {
-      const targetSubfolder = determineTargetSubfolder(filename)
+      const targetSubfolder = determineTargetSubfolder(filename);
       violations.push({
         file: filename,
         allowed: false,
         reason: 'Not in allowed list',
         targetSubfolder,
-      })
+      });
     }
   }
 
   // Report results
-  logger.header('Validation Results')
+  logger.header('Validation Results');
 
   if (allowed.length > 0) {
-    logger.success(`✅ Allowed files (${allowed.length}):`)
+    logger.success(`✅ Allowed files (${allowed.length}):`);
     for (const result of allowed) {
-      logger.info(`  - ${result.file}`)
+      logger.info(`  - ${result.file}`);
     }
   }
 
   if (violations.length > 0) {
-    logger.warning(`❌ Violations found (${violations.length}):`)
+    logger.warning(`❌ Violations found (${violations.length}):`);
     for (const result of violations) {
-      logger.warning(`  - ${result.file} (${result.reason})`)
+      logger.warning(`  - ${result.file} (${result.reason})`);
       if (result.targetSubfolder) {
-        logger.info(`    → Will move to: ${result.targetSubfolder}/`)
+        logger.info(`    → Will move to: ${result.targetSubfolder}/`);
       }
     }
 
     if (options.fix) {
-      logger.header('Fixing Violations')
+      logger.header('Fixing Violations');
 
       // Safety: Confirmation prompt (unless in CI or non-interactive mode)
       if (process.stdin.isTTY && !process.env.CI && !process.env.NON_INTERACTIVE) {
-        logger.warning(`⚠️  About to move ${violations.length} files.`)
-        logger.info('Press Ctrl+C to cancel, or Enter to continue...')
+        logger.warning(`⚠️  About to move ${violations.length} files.`);
+        logger.info('Press Ctrl+C to cancel, or Enter to continue...');
 
         // Use readline for better compatibility
-        const readline = await import('node:readline')
+        const readline = await import('node:readline');
         const rl = readline.createInterface({
           input: process.stdin,
           output: process.stdout,
-        })
+        });
 
         await new Promise<void>((resolve) => {
           rl.once('line', () => {
-            rl.close()
-            resolve()
-          })
-        })
+            rl.close();
+            resolve();
+          });
+        });
       }
 
       // Create backup directory
-      const backupDir = join(root, '.cursor', 'backups', `markdown-move-${Date.now()}`)
-      const backupCreated = await createBackup(root, violations, backupDir)
+      const backupDir = join(root, '.cursor', 'backups', `markdown-move-${Date.now()}`);
+      const backupCreated = await createBackup(root, violations, backupDir);
       if (backupCreated) {
-        logger.info(`📦 Backup created: ${backupDir}`)
+        logger.info(`📦 Backup created: ${backupDir}`);
       }
 
       // Group violations by target subfolder
-      const bySubfolder = new Map<string, ValidationResult[]>()
+      const bySubfolder = new Map<string, ValidationResult[]>();
       for (const violation of violations) {
-        const subfolder = violation.targetSubfolder || 'docs'
+        const subfolder = violation.targetSubfolder || 'docs';
         if (!bySubfolder.has(subfolder)) {
-          bySubfolder.set(subfolder, [])
+          bySubfolder.set(subfolder, []);
         }
-        bySubfolder.get(subfolder)?.push(violation)
+        bySubfolder.get(subfolder)?.push(violation);
       }
 
       // Move files to their target subfolders
-      let moved = 0
-      let failed = 0
+      let moved = 0;
+      let failed = 0;
       const movedFiles: Array<{
-        source: string
-        target: string
-        backup?: string
-      }> = []
+        source: string;
+        target: string;
+        backup?: string;
+      }> = [];
 
       for (const [subfolder, files] of bySubfolder.entries()) {
-        const targetDir = join(root, subfolder)
+        const targetDir = join(root, subfolder);
 
         // Create target directory if needed
         if (!existsSync(targetDir)) {
-          await mkdir(targetDir, { recursive: true })
-          logger.info(`Created directory: ${subfolder}/`)
+          await mkdir(targetDir, { recursive: true });
+          logger.info(`Created directory: ${subfolder}/`);
         }
 
         // Move files
         for (const violation of files) {
-          const sourcePath = join(root, violation.file)
-          const targetPath = join(targetDir, violation.file)
+          const sourcePath = join(root, violation.file);
+          const targetPath = join(targetDir, violation.file);
 
           try {
             // Check if target already exists
             if (existsSync(targetPath)) {
-              logger.warning(`  ⚠️  ${violation.file} already exists in ${subfolder}/, skipping`)
-              continue
+              logger.warning(`  ⚠️  ${violation.file} already exists in ${subfolder}/, skipping`);
+              continue;
             }
 
-            await rename(sourcePath, targetPath)
-            moved++
-            const backupPath = backupCreated ? join(backupDir, violation.file) : undefined
+            await rename(sourcePath, targetPath);
+            moved++;
+            const backupPath = backupCreated ? join(backupDir, violation.file) : undefined;
             movedFiles.push({
               source: sourcePath,
               target: targetPath,
               backup: backupPath,
-            })
-            logger.success(`  ✅ Moved ${violation.file} -> ${subfolder}/${violation.file}`)
+            });
+            logger.success(`  ✅ Moved ${violation.file} -> ${subfolder}/${violation.file}`);
           } catch (error) {
-            failed++
+            failed++;
             logger.error(
               `  ❌ Failed to move ${violation.file}: ${error instanceof Error ? error.message : String(error)}`,
-            )
+            );
           }
         }
       }
 
       // Save rollback information
       if (moved > 0 && backupCreated) {
-        await saveRollbackInfo(backupDir, movedFiles)
-        logger.info(`📦 Rollback info saved to: ${backupDir}/rollback-info.json`)
-        logger.info(`💡 To rollback: pnpm rollback:markdown-move ${backupDir}`)
+        await saveRollbackInfo(backupDir, movedFiles);
+        logger.info(`📦 Rollback info saved to: ${backupDir}/rollback-info.json`);
+        logger.info(`💡 To rollback: pnpm rollback:markdown-move ${backupDir}`);
       }
 
-      logger.header('Move Summary')
-      logger.success(`Moved ${moved} files to appropriate docs/ subfolders`)
+      logger.header('Move Summary');
+      logger.success(`Moved ${moved} files to appropriate docs/ subfolders`);
       if (failed > 0) {
-        logger.warning(`Failed to move ${failed} files`)
+        logger.warning(`Failed to move ${failed} files`);
       }
     } else {
-      logger.header('How to Fix')
+      logger.header('How to Fix');
       logger.info(
         'Run with --fix to automatically move violations to appropriate docs/ subfolders:',
-      )
-      logger.info('  pnpm validate:root-markdown --fix')
-      logger.info('')
-      logger.info('Files will be categorized and moved to:')
-      logger.info('  - docs/agent/ - Agent handoff files')
-      logger.info('  - docs/assessments/ - Assessment files')
-      logger.info('  - docs/guides/ - Guide files')
-      logger.info('  - docs/development/ - Development docs')
-      logger.info('  - docs/migrations/ - Migration docs')
-      logger.info('  - docs/reference/ - Reference docs')
-      logger.info('  - docs/planning/ - Planning/Research docs')
-      logger.info('  - docs/legal/ - Legal docs')
-      logger.info('  - docs/ - Other documentation')
+      );
+      logger.info('  pnpm validate:root-markdown --fix');
+      logger.info('');
+      logger.info('Files will be categorized and moved to:');
+      logger.info('  - docs/agent/ - Agent handoff files');
+      logger.info('  - docs/assessments/ - Assessment files');
+      logger.info('  - docs/guides/ - Guide files');
+      logger.info('  - docs/development/ - Development docs');
+      logger.info('  - docs/migrations/ - Migration docs');
+      logger.info('  - docs/reference/ - Reference docs');
+      logger.info('  - docs/planning/ - Planning/Research docs');
+      logger.info('  - docs/legal/ - Legal docs');
+      logger.info('  - docs/ - Other documentation');
     }
   } else {
-    logger.success('✅ No violations found! All root markdown files are allowed.')
+    logger.success('✅ No violations found! All root markdown files are allowed.');
   }
 
   // Summary
-  logger.header('Summary')
-  logger.info(`Total files: ${rootFiles.length}`)
-  logger.info(`Allowed: ${allowed.length}`)
-  logger.info(`Violations: ${violations.length}`)
+  logger.header('Summary');
+  logger.info(`Total files: ${rootFiles.length}`);
+  logger.info(`Allowed: ${allowed.length}`);
+  logger.info(`Violations: ${violations.length}`);
 
   if (violations.length > 0 && !options.fix) {
-    process.exit(ErrorCode.EXECUTION_ERROR)
+    process.exit(ErrorCode.EXECUTION_ERROR);
   }
 }
 
@@ -489,24 +489,24 @@ export async function validateRootMarkdown(
  * Exported for testing
  */
 export function parseOptions(): { fix: boolean } {
-  const args = process.argv.slice(2)
+  const args = process.argv.slice(2);
   return {
     fix: args.includes('--fix') || args.includes('-f'),
-  }
+  };
 }
 
 /**
  * Main function
  */
 async function main() {
-  const options = parseOptions()
+  const options = parseOptions();
 
   try {
-    const projectRoot = await getProjectRoot(import.meta.url)
-    await validateRootMarkdown(options, projectRoot)
+    const projectRoot = await getProjectRoot(import.meta.url);
+    await validateRootMarkdown(options, projectRoot);
   } catch (error) {
-    logger.error(`Validation failed: ${error instanceof Error ? error.message : String(error)}`)
-    process.exit(ErrorCode.EXECUTION_ERROR)
+    logger.error(`Validation failed: ${error instanceof Error ? error.message : String(error)}`);
+    process.exit(ErrorCode.EXECUTION_ERROR);
   }
 }
 
@@ -515,5 +515,5 @@ if (
   import.meta.url === `file://${process.argv[1]}` ||
   process.argv[1]?.endsWith('validate-root-markdown.ts')
 ) {
-  main()
+  main();
 }

@@ -2,15 +2,15 @@
  * Tests for Dependency Graph Generator
  */
 
-import { existsSync, mkdirSync, rmSync, writeFileSync } from 'node:fs'
-import { join } from 'node:path'
-import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
+import { existsSync, mkdirSync, rmSync, writeFileSync } from 'node:fs';
+import { join } from 'node:path';
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
 // Mock problematic imports
 vi.mock('@revealui/core/monitoring', () => ({
   registerProcess: vi.fn(),
   updateProcessStatus: vi.fn(),
-}))
+}));
 
 vi.mock('../../lib/logger.js', () => ({
   createLogger: vi.fn(() => ({
@@ -20,48 +20,48 @@ vi.mock('../../lib/logger.js', () => ({
     warn: vi.fn(),
     debug: vi.fn(),
   })),
-}))
+}));
 
-import type { GraphFormat } from '../../commands/info/deps-graph.js'
-import { generateDependencyGraph } from '../../commands/info/deps-graph.js'
+import type { GraphFormat } from '../../commands/info/deps-graph.js';
+import { generateDependencyGraph } from '../../commands/info/deps-graph.js';
 
 interface GraphEdge {
-  type: string
-  to: string
-  from: string
+  type: string;
+  to: string;
+  from: string;
 }
 
 interface GraphNode {
-  path: string
+  path: string;
 }
 
 describe('Dependency Graph Generator', () => {
-  const testDir = join(process.cwd(), '.test-dep-graph')
-  const scriptsDir = join(testDir, 'scripts')
+  const testDir = join(process.cwd(), '.test-dep-graph');
+  const scriptsDir = join(testDir, 'scripts');
 
   beforeEach(() => {
     // Create test directory structure
     if (existsSync(testDir)) {
-      rmSync(testDir, { recursive: true, force: true })
+      rmSync(testDir, { recursive: true, force: true });
     }
-    mkdirSync(scriptsDir, { recursive: true })
-  })
+    mkdirSync(scriptsDir, { recursive: true });
+  });
 
   afterEach(() => {
     // Cleanup test directory
     if (existsSync(testDir)) {
-      rmSync(testDir, { recursive: true, force: true })
+      rmSync(testDir, { recursive: true, force: true });
     }
-  })
+  });
 
   const createTestFile = (relativePath: string, content: string) => {
-    const fullPath = join(scriptsDir, relativePath)
-    const dir = fullPath.substring(0, fullPath.lastIndexOf('/'))
+    const fullPath = join(scriptsDir, relativePath);
+    const dir = fullPath.substring(0, fullPath.lastIndexOf('/'));
     if (!existsSync(dir)) {
-      mkdirSync(dir, { recursive: true })
+      mkdirSync(dir, { recursive: true });
     }
-    writeFileSync(fullPath, content, 'utf-8')
-  }
+    writeFileSync(fullPath, content, 'utf-8');
+  };
 
   describe('mermaid format', () => {
     it('should generate mermaid graph for simple dependency', () => {
@@ -73,7 +73,7 @@ describe('Dependency Graph Generator', () => {
  */
 import { b } from './b.js'
 `,
-      )
+      );
 
       createTestFile(
         'b.ts',
@@ -83,17 +83,17 @@ import { b } from './b.js'
  */
 import fs from 'node:fs'
 `,
-      )
+      );
 
       const result = generateDependencyGraph(testDir, {
         format: 'mermaid',
-      })
+      });
 
-      expect(result).toContain('graph TD')
-      expect(result).toContain('"a"')
-      expect(result).toContain('"b"')
-      expect(result).toContain('-->')
-    })
+      expect(result).toContain('graph TD');
+      expect(result).toContain('"a"');
+      expect(result).toContain('"b"');
+      expect(result).toContain('-->');
+    });
 
     it('should highlight circular dependencies in mermaid', () => {
       createTestFile(
@@ -104,7 +104,7 @@ import fs from 'node:fs'
  */
 import { b } from './b.js'
 `,
-      )
+      );
 
       createTestFile(
         'b.ts',
@@ -114,18 +114,18 @@ import { b } from './b.js'
  */
 import { a } from './a.js'
 `,
-      )
+      );
 
       const result = generateDependencyGraph(testDir, {
         format: 'mermaid',
-      })
+      });
 
       // Should highlight the cycle (typically with different styling)
-      expect(result).toContain('"a"')
-      expect(result).toContain('"b"')
+      expect(result).toContain('"a"');
+      expect(result).toContain('"b"');
       // Circular dependencies usually marked with different styling
-      expect(result).toMatch(/cycle|style.*fill:#ff/i)
-    })
+      expect(result).toMatch(/cycle|style.*fill:#ff/i);
+    });
 
     it('should group nodes by directory in mermaid', () => {
       createTestFile(
@@ -136,7 +136,7 @@ import { a } from './a.js'
  */
 import fs from 'node:fs'
 `,
-      )
+      );
 
       createTestFile(
         'lib/b.ts',
@@ -146,18 +146,18 @@ import fs from 'node:fs'
  */
 import path from 'node:path'
 `,
-      )
+      );
 
       const result = generateDependencyGraph(testDir, {
         format: 'mermaid',
         groupBy: 'directory',
-      })
+      });
 
-      expect(result).toContain('subgraph')
-      expect(result).toContain('cli')
-      expect(result).toContain('lib')
-    })
-  })
+      expect(result).toContain('subgraph');
+      expect(result).toContain('cli');
+      expect(result).toContain('lib');
+    });
+  });
 
   describe('json format', () => {
     it('should generate valid JSON', () => {
@@ -169,14 +169,14 @@ import path from 'node:path'
  */
 import fs from 'node:fs'
 `,
-      )
+      );
 
       const result = generateDependencyGraph(testDir, {
         format: 'json',
-      })
+      });
 
-      expect(() => JSON.parse(result)).not.toThrow()
-    })
+      expect(() => JSON.parse(result)).not.toThrow();
+    });
 
     it('should include nodes and edges in JSON', () => {
       createTestFile(
@@ -187,7 +187,7 @@ import fs from 'node:fs'
  */
 import { b } from './b.js'
 `,
-      )
+      );
 
       createTestFile(
         'b.ts',
@@ -197,18 +197,18 @@ import { b } from './b.js'
  */
 import fs from 'node:fs'
 `,
-      )
+      );
 
       const result = generateDependencyGraph(testDir, {
         format: 'json',
-      })
+      });
 
-      const graph = JSON.parse(result)
-      expect(graph.nodes).toBeDefined()
-      expect(graph.edges).toBeDefined()
-      expect(Array.isArray(graph.nodes)).toBe(true)
-      expect(Array.isArray(graph.edges)).toBe(true)
-    })
+      const graph = JSON.parse(result);
+      expect(graph.nodes).toBeDefined();
+      expect(graph.edges).toBeDefined();
+      expect(Array.isArray(graph.nodes)).toBe(true);
+      expect(Array.isArray(graph.edges)).toBe(true);
+    });
 
     it('should include circular dependency information in JSON', () => {
       createTestFile(
@@ -219,7 +219,7 @@ import fs from 'node:fs'
  */
 import { b } from './b.js'
 `,
-      )
+      );
 
       createTestFile(
         'b.ts',
@@ -229,17 +229,17 @@ import { b } from './b.js'
  */
 import { a } from './a.js'
 `,
-      )
+      );
 
       const result = generateDependencyGraph(testDir, {
         format: 'json',
-      })
+      });
 
-      const graph = JSON.parse(result)
-      expect(graph.cycles).toBeDefined()
-      expect(Array.isArray(graph.cycles)).toBe(true)
-      expect(graph.cycles.length).toBeGreaterThan(0)
-    })
+      const graph = JSON.parse(result);
+      expect(graph.cycles).toBeDefined();
+      expect(Array.isArray(graph.cycles)).toBe(true);
+      expect(graph.cycles.length).toBeGreaterThan(0);
+    });
 
     it('should include missing dependency information in JSON', () => {
       createTestFile(
@@ -250,18 +250,18 @@ import { a } from './a.js'
  */
 import { missing } from './nonexistent.js'
 `,
-      )
+      );
 
       const result = generateDependencyGraph(testDir, {
         format: 'json',
-      })
+      });
 
-      const graph = JSON.parse(result)
-      expect(graph.missing).toBeDefined()
-      expect(Array.isArray(graph.missing)).toBe(true)
-      expect(graph.missing.length).toBeGreaterThan(0)
-    })
-  })
+      const graph = JSON.parse(result);
+      expect(graph.missing).toBeDefined();
+      expect(Array.isArray(graph.missing)).toBe(true);
+      expect(graph.missing.length).toBeGreaterThan(0);
+    });
+  });
 
   describe('dot format', () => {
     it('should generate valid DOT format', () => {
@@ -273,7 +273,7 @@ import { missing } from './nonexistent.js'
  */
 import { b } from './b.js'
 `,
-      )
+      );
 
       createTestFile(
         'b.ts',
@@ -283,17 +283,17 @@ import { b } from './b.js'
  */
 import fs from 'node:fs'
 `,
-      )
+      );
 
       const result = generateDependencyGraph(testDir, {
         format: 'dot',
-      })
+      });
 
-      expect(result).toContain('digraph')
-      expect(result).toContain('{')
-      expect(result).toContain('}')
-      expect(result).toContain('->')
-    })
+      expect(result).toContain('digraph');
+      expect(result).toContain('{');
+      expect(result).toContain('}');
+      expect(result).toContain('->');
+    });
 
     it('should include nodes and edges in DOT', () => {
       createTestFile(
@@ -304,7 +304,7 @@ import fs from 'node:fs'
  */
 import { b } from './b.js'
 `,
-      )
+      );
 
       createTestFile(
         'b.ts',
@@ -314,16 +314,16 @@ import { b } from './b.js'
  */
 import fs from 'node:fs'
 `,
-      )
+      );
 
       const result = generateDependencyGraph(testDir, {
         format: 'dot',
-      })
+      });
 
-      expect(result).toContain('"a"')
-      expect(result).toContain('"b"')
-      expect(result).toContain('->')
-    })
+      expect(result).toContain('"a"');
+      expect(result).toContain('"b"');
+      expect(result).toContain('->');
+    });
 
     it('should style circular dependencies in DOT', () => {
       createTestFile(
@@ -334,7 +334,7 @@ import fs from 'node:fs'
  */
 import { b } from './b.js'
 `,
-      )
+      );
 
       createTestFile(
         'b.ts',
@@ -344,16 +344,16 @@ import { b } from './b.js'
  */
 import { a } from './a.js'
 `,
-      )
+      );
 
       const result = generateDependencyGraph(testDir, {
         format: 'dot',
-      })
+      });
 
       // Circular dependencies typically have special styling
-      expect(result).toMatch(/color|style|penwidth/i)
-    })
-  })
+      expect(result).toMatch(/color|style|penwidth/i);
+    });
+  });
 
   describe('filtering options', () => {
     it('should filter by scope', () => {
@@ -365,7 +365,7 @@ import { a } from './a.js'
  */
 import fs from 'node:fs'
 `,
-      )
+      );
 
       createTestFile(
         'lib/b.ts',
@@ -375,17 +375,17 @@ import fs from 'node:fs'
  */
 import path from 'node:path'
 `,
-      )
+      );
 
       const result = generateDependencyGraph(testDir, {
         format: 'json',
         scope: 'cli',
-      })
+      });
 
-      const graph = JSON.parse(result)
-      expect(graph.nodes.length).toBe(1)
-      expect(graph.nodes[0].path).toContain('cli')
-    })
+      const graph = JSON.parse(result);
+      expect(graph.nodes.length).toBe(1);
+      expect(graph.nodes[0].path).toContain('cli');
+    });
 
     it('should filter by type', () => {
       createTestFile(
@@ -398,7 +398,7 @@ import path from 'node:path'
 import { b } from './b.js'
 import fs from 'node:fs'
 `,
-      )
+      );
 
       createTestFile(
         'b.ts',
@@ -408,20 +408,20 @@ import fs from 'node:fs'
  */
 import path from 'node:path'
 `,
-      )
+      );
 
       const result = generateDependencyGraph(testDir, {
         format: 'json',
         includePackages: false, // Default, excludes package edges
-      })
+      });
 
-      const graph = JSON.parse(result)
-      const fileEdges = graph.edges.filter((e: GraphEdge) => e.type === 'file')
-      const packageEdges = graph.edges.filter((e: GraphEdge) => e.type === 'package')
+      const graph = JSON.parse(result);
+      const fileEdges = graph.edges.filter((e: GraphEdge) => e.type === 'file');
+      const packageEdges = graph.edges.filter((e: GraphEdge) => e.type === 'package');
 
-      expect(fileEdges.length).toBeGreaterThan(0)
-      expect(packageEdges.length).toBe(0)
-    })
+      expect(fileEdges.length).toBeGreaterThan(0);
+      expect(packageEdges.length).toBe(0);
+    });
 
     it('should exclude package dependencies when requested', () => {
       createTestFile(
@@ -434,7 +434,7 @@ import path from 'node:path'
 import { lib } from './lib.js'
 import fs from 'node:fs'
 `,
-      )
+      );
 
       createTestFile(
         'lib.ts',
@@ -444,20 +444,20 @@ import fs from 'node:fs'
  */
 import path from 'node:path'
 `,
-      )
+      );
 
       const result = generateDependencyGraph(testDir, {
         format: 'json',
         includePackages: false,
-      })
+      });
 
-      const graph = JSON.parse(result)
-      const edges = graph.edges
+      const graph = JSON.parse(result);
+      const edges = graph.edges;
 
       // Should only have file edges
-      expect(edges.every((e: GraphEdge) => e.type === 'file')).toBe(true)
-    })
-  })
+      expect(edges.every((e: GraphEdge) => e.type === 'file')).toBe(true);
+    });
+  });
 
   describe('grouping options', () => {
     it('should group by directory', () => {
@@ -468,7 +468,7 @@ import path from 'node:path'
  * - node:fs - File system
  */
 `,
-      )
+      );
 
       createTestFile(
         'cli/b.ts',
@@ -477,7 +477,7 @@ import path from 'node:path'
  * - node:path - Path operations
  */
 `,
-      )
+      );
 
       createTestFile(
         'lib/c.ts',
@@ -486,17 +486,17 @@ import path from 'node:path'
  * - node:util - Utilities
  */
 `,
-      )
+      );
 
       const result = generateDependencyGraph(testDir, {
         format: 'json',
-      })
+      });
 
-      const graph = JSON.parse(result)
+      const graph = JSON.parse(result);
       // Nodes should have path information
-      expect(graph.nodes.some((n: GraphNode) => n.path.includes('cli'))).toBe(true)
-      expect(graph.nodes.some((n: GraphNode) => n.path.includes('lib'))).toBe(true)
-    })
+      expect(graph.nodes.some((n: GraphNode) => n.path.includes('cli'))).toBe(true);
+      expect(graph.nodes.some((n: GraphNode) => n.path.includes('lib'))).toBe(true);
+    });
 
     it('should group by type', () => {
       createTestFile(
@@ -507,7 +507,7 @@ import path from 'node:path'
  * - node:fs - External
  */
 `,
-      )
+      );
 
       createTestFile(
         'lib.ts',
@@ -516,21 +516,21 @@ import path from 'node:path'
  * - node:path - External
  */
 `,
-      )
+      );
 
       const result = generateDependencyGraph(testDir, {
         format: 'json',
         includePackages: true,
-      })
+      });
 
-      const graph = JSON.parse(result)
+      const graph = JSON.parse(result);
       // Edges should be categorized by type
-      const fileEdges = graph.edges.filter((e: GraphEdge) => e.type === 'file')
-      const packageEdges = graph.edges.filter((e: GraphEdge) => e.type === 'package')
+      const fileEdges = graph.edges.filter((e: GraphEdge) => e.type === 'file');
+      const packageEdges = graph.edges.filter((e: GraphEdge) => e.type === 'package');
 
-      expect(fileEdges.length + packageEdges.length).toBe(graph.edges.length)
-    })
-  })
+      expect(fileEdges.length + packageEdges.length).toBe(graph.edges.length);
+    });
+  });
 
   describe('complex dependency graphs', () => {
     it('should handle multiple levels of dependencies', () => {
@@ -541,7 +541,7 @@ import path from 'node:path'
  * - scripts/b.ts - Level 1
  */
 `,
-      )
+      );
 
       createTestFile(
         'b.ts',
@@ -550,7 +550,7 @@ import path from 'node:path'
  * - scripts/c.ts - Level 2
  */
 `,
-      )
+      );
 
       createTestFile(
         'c.ts',
@@ -559,7 +559,7 @@ import path from 'node:path'
  * - scripts/d.ts - Level 3
  */
 `,
-      )
+      );
 
       createTestFile(
         'd.ts',
@@ -568,16 +568,16 @@ import path from 'node:path'
  * - node:fs - External
  */
 `,
-      )
+      );
 
       const result = generateDependencyGraph(testDir, {
         format: 'json',
-      })
+      });
 
-      const graph = JSON.parse(result)
-      expect(graph.nodes.length).toBe(4)
-      expect(graph.edges.length).toBeGreaterThanOrEqual(3)
-    })
+      const graph = JSON.parse(result);
+      expect(graph.nodes.length).toBe(4);
+      expect(graph.edges.length).toBeGreaterThanOrEqual(3);
+    });
 
     it('should handle diamond dependencies (A -> B,C; B,C -> D)', () => {
       createTestFile(
@@ -588,7 +588,7 @@ import path from 'node:path'
  * - scripts/c.ts - Dep C
  */
 `,
-      )
+      );
 
       createTestFile(
         'b.ts',
@@ -597,7 +597,7 @@ import path from 'node:path'
  * - scripts/d.ts - Common dep
  */
 `,
-      )
+      );
 
       createTestFile(
         'c.ts',
@@ -606,7 +606,7 @@ import path from 'node:path'
  * - scripts/d.ts - Common dep
  */
 `,
-      )
+      );
 
       createTestFile(
         'd.ts',
@@ -615,19 +615,19 @@ import path from 'node:path'
  * - node:fs - External
  */
 `,
-      )
+      );
 
       const result = generateDependencyGraph(testDir, {
         format: 'json',
-      })
+      });
 
-      const graph = JSON.parse(result)
-      expect(graph.nodes.length).toBe(4)
+      const graph = JSON.parse(result);
+      expect(graph.nodes.length).toBe(4);
 
       // D should be referenced by both B and C
-      const edgesToD = graph.edges.filter((e: GraphEdge) => e.to.includes('d.ts'))
-      expect(edgesToD.length).toBeGreaterThanOrEqual(2)
-    })
+      const edgesToD = graph.edges.filter((e: GraphEdge) => e.to.includes('d.ts'));
+      expect(edgesToD.length).toBeGreaterThanOrEqual(2);
+    });
 
     it('should detect multiple circular dependencies', () => {
       // Cycle 1: A <-> B
@@ -638,7 +638,7 @@ import path from 'node:path'
  * - scripts/b.ts - File B
  */
 `,
-      )
+      );
 
       createTestFile(
         'b.ts',
@@ -647,7 +647,7 @@ import path from 'node:path'
  * - scripts/a.ts - File A
  */
 `,
-      )
+      );
 
       // Cycle 2: C <-> D
       createTestFile(
@@ -657,7 +657,7 @@ import path from 'node:path'
  * - scripts/d.ts - File D
  */
 `,
-      )
+      );
 
       createTestFile(
         'd.ts',
@@ -666,27 +666,27 @@ import path from 'node:path'
  * - scripts/c.ts - File C
  */
 `,
-      )
+      );
 
       const result = generateDependencyGraph(testDir, {
         format: 'json',
-      })
+      });
 
-      const graph = JSON.parse(result)
-      expect(graph.cycles.length).toBeGreaterThanOrEqual(2)
-    })
-  })
+      const graph = JSON.parse(result);
+      expect(graph.cycles.length).toBeGreaterThanOrEqual(2);
+    });
+  });
 
   describe('edge cases', () => {
     it('should handle empty scripts directory', () => {
       const result = generateDependencyGraph(testDir, {
         format: 'json',
-      })
+      });
 
-      const graph = JSON.parse(result)
-      expect(graph.nodes).toHaveLength(0)
-      expect(graph.edges).toHaveLength(0)
-    })
+      const graph = JSON.parse(result);
+      expect(graph.nodes).toHaveLength(0);
+      expect(graph.edges).toHaveLength(0);
+    });
 
     it('should handle files with no dependencies', () => {
       createTestFile(
@@ -696,15 +696,15 @@ import path from 'node:path'
  */
 console.log('standalone')
 `,
-      )
+      );
 
       const result = generateDependencyGraph(testDir, {
         format: 'json',
-      })
+      });
 
-      const graph = JSON.parse(result)
-      expect(graph.nodes.length).toBeGreaterThanOrEqual(1)
-    })
+      const graph = JSON.parse(result);
+      expect(graph.nodes.length).toBeGreaterThanOrEqual(1);
+    });
 
     it('should handle all three formats without errors', () => {
       createTestFile(
@@ -714,15 +714,15 @@ console.log('standalone')
  * - node:fs - File system
  */
 `,
-      )
+      );
 
-      const formats: GraphFormat[] = ['mermaid', 'json', 'dot']
+      const formats: GraphFormat[] = ['mermaid', 'json', 'dot'];
 
       for (const format of formats) {
         expect(() => {
-          generateDependencyGraph(testDir, { format })
-        }).not.toThrow()
+          generateDependencyGraph(testDir, { format });
+        }).not.toThrow();
       }
-    })
-  })
-})
+    });
+  });
+});

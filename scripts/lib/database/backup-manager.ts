@@ -10,41 +10,41 @@
  * - node:path - Path manipulation utilities
  */
 
-import { mkdir, readdir, readFile, unlink, writeFile } from 'node:fs/promises'
-import { join } from 'node:path'
-import { createLogger, getProjectRoot, type Logger, listTables } from '../index.js'
-import type { DatabaseConnection } from './connection.js'
+import { mkdir, readdir, readFile, unlink, writeFile } from 'node:fs/promises';
+import { join } from 'node:path';
+import { createLogger, getProjectRoot, type Logger, listTables } from '../index.js';
+import type { DatabaseConnection } from './connection.js';
 
 export interface BackupOptions {
   /** Directory to store backups (default: .revealui/backups) */
-  backupDir?: string
+  backupDir?: string;
   /** Number of backups to retain (default: 5) */
-  retainCount?: number
+  retainCount?: number;
   /** Tables to include (default: all) */
-  tables?: string[]
+  tables?: string[];
   /** Format for backup (default: json) */
-  format?: 'json' | 'sql'
+  format?: 'json' | 'sql';
   /** Logger instance */
-  logger?: Logger
+  logger?: Logger;
 }
 
 export interface BackupMetadata {
-  id: string
-  timestamp: Date
-  tables: string[]
-  rowCounts: Record<string, number>
-  format: 'json' | 'sql'
-  size: number
+  id: string;
+  timestamp: Date;
+  tables: string[];
+  rowCounts: Record<string, number>;
+  format: 'json' | 'sql';
+  size: number;
 }
 
 export interface BackupResult {
-  success: boolean
-  path?: string
-  metadata?: BackupMetadata
-  error?: string
+  success: boolean;
+  path?: string;
+  metadata?: BackupMetadata;
+  error?: string;
 }
 
-const defaultLogger = createLogger({ level: 'silent' })
+const defaultLogger = createLogger({ level: 'silent' });
 
 /**
  * Creates a backup of the database.
@@ -70,101 +70,101 @@ export async function createBackup(
     tables: specifiedTables,
     format = 'json',
     logger = defaultLogger,
-  } = options
+  } = options;
 
-  const projectRoot = await getProjectRoot(importMetaUrl)
-  const backupDir = options.backupDir || join(projectRoot, '.revealui', 'backups')
+  const projectRoot = await getProjectRoot(importMetaUrl);
+  const backupDir = options.backupDir || join(projectRoot, '.revealui', 'backups');
 
   try {
     // Ensure backup directory exists
-    await mkdir(backupDir, { recursive: true })
+    await mkdir(backupDir, { recursive: true });
 
     // Get tables to backup
-    const allTables = await listTables(connection.pool.options.connectionString || '')
-    const tablesToBackup = specifiedTables?.filter((t) => allTables.includes(t)) || allTables
+    const allTables = await listTables(connection.pool.options.connectionString || '');
+    const tablesToBackup = specifiedTables?.filter((t) => allTables.includes(t)) || allTables;
 
     if (tablesToBackup.length === 0) {
-      logger.warn('No tables to backup')
-      return { success: true, metadata: undefined }
+      logger.warn('No tables to backup');
+      return { success: true, metadata: undefined };
     }
 
-    const timestamp = new Date()
-    const backupId = `backup-${timestamp.toISOString().replace(/[:.]/g, '-')}`
-    const backupPath = join(backupDir, `${backupId}.${format}`)
+    const timestamp = new Date();
+    const backupId = `backup-${timestamp.toISOString().replace(/[:.]/g, '-')}`;
+    const backupPath = join(backupDir, `${backupId}.${format}`);
 
-    const rowCounts: Record<string, number> = {}
+    const rowCounts: Record<string, number> = {};
 
     if (format === 'json') {
       // JSON format backup
-      const backup: Record<string, unknown[]> = {}
+      const backup: Record<string, unknown[]> = {};
 
       for (const table of tablesToBackup) {
-        logger.info(`Backing up table: ${table}`)
+        logger.info(`Backing up table: ${table}`);
         try {
-          const result = await connection.query(`SELECT * FROM "${table}"`)
-          backup[table] = result.rows
-          rowCounts[table] = result.rows.length
-          logger.debug(`  ${result.rows.length} rows`)
+          const result = await connection.query(`SELECT * FROM "${table}"`);
+          backup[table] = result.rows;
+          rowCounts[table] = result.rows.length;
+          logger.debug(`  ${result.rows.length} rows`);
         } catch (error) {
-          logger.warn(`Could not backup table ${table}: ${error}`)
-          rowCounts[table] = 0
+          logger.warn(`Could not backup table ${table}: ${error}`);
+          rowCounts[table] = 0;
         }
       }
 
-      await writeFile(backupPath, JSON.stringify(backup, null, 2))
+      await writeFile(backupPath, JSON.stringify(backup, null, 2));
     } else {
       // SQL format backup
-      const sqlStatements: string[] = []
+      const sqlStatements: string[] = [];
 
-      sqlStatements.push('-- RevealUI Database Backup')
-      sqlStatements.push(`-- Created: ${timestamp.toISOString()}`)
-      sqlStatements.push('')
+      sqlStatements.push('-- RevealUI Database Backup');
+      sqlStatements.push(`-- Created: ${timestamp.toISOString()}`);
+      sqlStatements.push('');
 
       for (const table of tablesToBackup) {
-        logger.info(`Backing up table: ${table}`)
+        logger.info(`Backing up table: ${table}`);
         try {
-          const result = await connection.query(`SELECT * FROM "${table}"`)
-          rowCounts[table] = result.rows.length
+          const result = await connection.query(`SELECT * FROM "${table}"`);
+          rowCounts[table] = result.rows.length;
 
           if (result.rows.length > 0) {
             // Get column names
-            const columns = Object.keys(result.rows[0] as Record<string, unknown>)
+            const columns = Object.keys(result.rows[0] as Record<string, unknown>);
 
-            sqlStatements.push(`-- Table: ${table}`)
+            sqlStatements.push(`-- Table: ${table}`);
 
             for (const row of result.rows) {
-              const typedRow = row as Record<string, unknown>
+              const typedRow = row as Record<string, unknown>;
               const values = columns.map((col) => {
-                const val = typedRow[col]
-                if (val === null || val === undefined) return 'NULL'
-                if (typeof val === 'number') return String(val)
-                if (typeof val === 'boolean') return val ? 'TRUE' : 'FALSE'
-                if (val instanceof Date) return `'${val.toISOString()}'`
-                if (typeof val === 'object') return `'${JSON.stringify(val).replace(/'/g, "''")}'`
-                return `'${String(val).replace(/'/g, "''")}'`
-              })
+                const val = typedRow[col];
+                if (val === null || val === undefined) return 'NULL';
+                if (typeof val === 'number') return String(val);
+                if (typeof val === 'boolean') return val ? 'TRUE' : 'FALSE';
+                if (val instanceof Date) return `'${val.toISOString()}'`;
+                if (typeof val === 'object') return `'${JSON.stringify(val).replace(/'/g, "''")}'`;
+                return `'${String(val).replace(/'/g, "''")}'`;
+              });
 
               sqlStatements.push(
                 `INSERT INTO "${table}" ("${columns.join('", "')}") VALUES (${values.join(', ')});`,
-              )
+              );
             }
 
-            sqlStatements.push('')
+            sqlStatements.push('');
           }
 
-          logger.debug(`  ${result.rows.length} rows`)
+          logger.debug(`  ${result.rows.length} rows`);
         } catch (error) {
-          logger.warn(`Could not backup table ${table}: ${error}`)
-          rowCounts[table] = 0
+          logger.warn(`Could not backup table ${table}: ${error}`);
+          rowCounts[table] = 0;
         }
       }
 
-      await writeFile(backupPath, sqlStatements.join('\n'))
+      await writeFile(backupPath, sqlStatements.join('\n'));
     }
 
     // Get backup file size
-    const backupContent = await readFile(backupPath)
-    const size = backupContent.length
+    const backupContent = await readFile(backupPath);
+    const size = backupContent.length;
 
     const metadata: BackupMetadata = {
       id: backupId,
@@ -173,20 +173,20 @@ export async function createBackup(
       rowCounts,
       format,
       size,
-    }
+    };
 
-    logger.success(`Backup created: ${backupPath}`)
-    logger.info(`Total rows: ${Object.values(rowCounts).reduce((a, b) => a + b, 0)}`)
-    logger.info(`Size: ${formatBytes(size)}`)
+    logger.success(`Backup created: ${backupPath}`);
+    logger.info(`Total rows: ${Object.values(rowCounts).reduce((a, b) => a + b, 0)}`);
+    logger.info(`Size: ${formatBytes(size)}`);
 
     // Clean up old backups
-    await cleanOldBackups(backupDir, retainCount, logger)
+    await cleanOldBackups(backupDir, retainCount, logger);
 
-    return { success: true, path: backupPath, metadata }
+    return { success: true, path: backupPath, metadata };
   } catch (error) {
-    const errorMessage = error instanceof Error ? error.message : String(error)
-    logger.error(`Backup failed: ${errorMessage}`)
-    return { success: false, error: errorMessage }
+    const errorMessage = error instanceof Error ? error.message : String(error);
+    logger.error(`Backup failed: ${errorMessage}`);
+    return { success: false, error: errorMessage };
   }
 }
 
@@ -203,57 +203,57 @@ export async function restoreBackup(
   backupPath: string,
   options: { logger?: Logger; clearTables?: boolean } = {},
 ): Promise<{ success: boolean; error?: string }> {
-  const { logger = defaultLogger, clearTables = true } = options
+  const { logger = defaultLogger, clearTables = true } = options;
 
   try {
-    const content = await readFile(backupPath, 'utf-8')
-    const isJson = backupPath.endsWith('.json')
+    const content = await readFile(backupPath, 'utf-8');
+    const isJson = backupPath.endsWith('.json');
 
     if (isJson) {
-      const backup = JSON.parse(content) as Record<string, unknown[]>
+      const backup = JSON.parse(content) as Record<string, unknown[]>;
 
       for (const [table, rows] of Object.entries(backup)) {
-        if (rows.length === 0) continue
+        if (rows.length === 0) continue;
 
-        logger.info(`Restoring table: ${table}`)
+        logger.info(`Restoring table: ${table}`);
 
         if (clearTables) {
-          await connection.query(`DELETE FROM "${table}"`)
+          await connection.query(`DELETE FROM "${table}"`);
         }
 
-        const columns = Object.keys(rows[0] as Record<string, unknown>)
+        const columns = Object.keys(rows[0] as Record<string, unknown>);
 
         for (const row of rows) {
-          const typedRow = row as Record<string, unknown>
-          const values = columns.map((col) => typedRow[col])
-          const placeholders = columns.map((_, i) => `$${i + 1}`)
+          const typedRow = row as Record<string, unknown>;
+          const values = columns.map((col) => typedRow[col]);
+          const placeholders = columns.map((_, i) => `$${i + 1}`);
 
           await connection.query(
             `INSERT INTO "${table}" ("${columns.join('", "')}") VALUES (${placeholders.join(', ')})`,
             values,
-          )
+          );
         }
 
-        logger.debug(`  ${rows.length} rows restored`)
+        logger.debug(`  ${rows.length} rows restored`);
       }
     } else {
       // SQL format - execute statements
       const statements = content
         .split(';')
         .map((s) => s.trim())
-        .filter((s) => s.length > 0 && !s.startsWith('--'))
+        .filter((s) => s.length > 0 && !s.startsWith('--'));
 
       for (const stmt of statements) {
-        await connection.query(stmt)
+        await connection.query(stmt);
       }
     }
 
-    logger.success('Restore completed')
-    return { success: true }
+    logger.success('Restore completed');
+    return { success: true };
   } catch (error) {
-    const errorMessage = error instanceof Error ? error.message : String(error)
-    logger.error(`Restore failed: ${errorMessage}`)
-    return { success: false, error: errorMessage }
+    const errorMessage = error instanceof Error ? error.message : String(error);
+    logger.error(`Restore failed: ${errorMessage}`);
+    return { success: false, error: errorMessage };
   }
 }
 
@@ -264,17 +264,17 @@ export async function listBackups(
   importMetaUrl: string,
   options: { backupDir?: string } = {},
 ): Promise<string[]> {
-  const projectRoot = await getProjectRoot(importMetaUrl)
-  const backupDir = options.backupDir || join(projectRoot, '.revealui', 'backups')
+  const projectRoot = await getProjectRoot(importMetaUrl);
+  const backupDir = options.backupDir || join(projectRoot, '.revealui', 'backups');
 
   try {
-    const files = await readdir(backupDir)
+    const files = await readdir(backupDir);
     return files
       .filter((f) => f.startsWith('backup-') && (f.endsWith('.json') || f.endsWith('.sql')))
       .sort()
-      .reverse()
+      .reverse();
   } catch {
-    return []
+    return [];
   }
 }
 
@@ -287,20 +287,20 @@ async function cleanOldBackups(
   logger: Logger,
 ): Promise<void> {
   try {
-    const files = await readdir(backupDir)
+    const files = await readdir(backupDir);
     const backupFiles = files
       .filter((f) => f.startsWith('backup-'))
       .sort()
-      .reverse()
+      .reverse();
 
-    const toDelete = backupFiles.slice(keepCount)
+    const toDelete = backupFiles.slice(keepCount);
     for (const file of toDelete) {
-      await unlink(join(backupDir, file))
-      logger.debug(`Deleted old backup: ${file}`)
+      await unlink(join(backupDir, file));
+      logger.debug(`Deleted old backup: ${file}`);
     }
 
     if (toDelete.length > 0) {
-      logger.info(`Cleaned up ${toDelete.length} old backups`)
+      logger.info(`Cleaned up ${toDelete.length} old backups`);
     }
   } catch {
     // Ignore errors during cleanup
@@ -311,14 +311,14 @@ async function cleanOldBackups(
  * Formats bytes to human-readable string.
  */
 function formatBytes(bytes: number): string {
-  const units = ['B', 'KB', 'MB', 'GB']
-  let value = bytes
-  let unitIndex = 0
+  const units = ['B', 'KB', 'MB', 'GB'];
+  let value = bytes;
+  let unitIndex = 0;
 
   while (value >= 1024 && unitIndex < units.length - 1) {
-    value /= 1024
-    unitIndex++
+    value /= 1024;
+    unitIndex++;
   }
 
-  return `${value.toFixed(unitIndex > 0 ? 1 : 0)} ${units[unitIndex]}`
+  return `${value.toFixed(unitIndex > 0 ? 1 : 0)} ${units[unitIndex]}`;
 }

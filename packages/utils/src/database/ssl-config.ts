@@ -13,7 +13,7 @@
  * PostgreSQL SSL configuration options
  */
 export interface SSLConfig {
-  rejectUnauthorized: boolean
+  rejectUnauthorized: boolean;
 }
 
 /**
@@ -52,12 +52,12 @@ export interface SSLConfig {
 export function getSSLConfig(connectionString: string): SSLConfig | false {
   try {
     // Parse connection string
-    const url = new URL(connectionString)
-    const sslmode = url.searchParams.get('sslmode')
+    const url = new URL(connectionString);
+    const sslmode = url.searchParams.get('sslmode');
 
     // No SSL if sslmode is explicitly disabled or not specified
     if (!sslmode || sslmode === 'disable') {
-      return false
+      return false;
     }
 
     // Environment override for local development with self-signed certificates
@@ -67,17 +67,17 @@ export function getSSLConfig(connectionString: string): SSLConfig | false {
       process.env.NODE_ENV !== 'production' &&
       process.env.DATABASE_SSL_REJECT_UNAUTHORIZED === 'false'
     ) {
-      return { rejectUnauthorized: false }
+      return { rejectUnauthorized: false };
     }
 
     // Default: verify certificates (security best practice)
     // Handles: require, verify-full, verify-ca, prefer
     // In pg v9+, these will all use verify-full semantics
-    return { rejectUnauthorized: true }
+    return { rejectUnauthorized: true };
   } catch (_error) {
     // If URL parsing fails, assume local connection without SSL
     // Silently fallback to no SSL for invalid connection strings
-    return false
+    return false;
   }
 }
 
@@ -92,17 +92,17 @@ export function validateSSLConfig(
   connectionString: string,
   environment: string = process.env.NODE_ENV || 'development',
 ): boolean {
-  const sslConfig = getSSLConfig(connectionString)
+  const sslConfig = getSSLConfig(connectionString);
 
   // Check if SSL is disabled in production
   if (environment === 'production' && sslConfig === false) {
-    return false // SSL disabled in production - security risk
+    return false; // SSL disabled in production - security risk
   }
 
   // Check if certificate verification is disabled in production
   if (environment === 'production' && sslConfig && !sslConfig.rejectUnauthorized) {
-    return false // Certificate verification disabled - security risk
+    return false; // Certificate verification disabled - security risk
   }
 
-  return true // SSL configuration is valid
+  return true; // SSL configuration is valid
 }

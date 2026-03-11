@@ -1,6 +1,6 @@
-import type { GlobalConfig } from '@revealui/core'
-import { link } from '@/lib/fields/link'
-import { revalidateHeader } from './hooks/revalidateHeader'
+import type { GlobalConfig } from '@revealui/core';
+import { link } from '@/lib/fields/link';
+import { revalidateHeader } from './hooks/revalidateHeader';
 
 export const Header: GlobalConfig = {
   slug: 'header',
@@ -23,4 +23,4 @@ export const Header: GlobalConfig = {
     // @ts-expect-error - Hook signatures are flexible and runtime-compatible
     afterChange: [revalidateHeader],
   },
-}
+};

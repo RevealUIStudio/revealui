@@ -17,62 +17,62 @@
 // Control verbose logging for type generation
 const VERBOSE_LOGGING =
   process.env.DB_VERBOSE !== 'false' &&
-  (process.env.NODE_ENV !== 'production' || process.env.CI !== 'true')
+  (process.env.NODE_ENV !== 'production' || process.env.CI !== 'true');
 
-import { mkdirSync, writeFileSync } from 'node:fs'
-import { dirname, join } from 'node:path'
-import { fileURLToPath } from 'node:url'
-import { logger } from '@revealui/utils/logger'
-import { discoverTables, validateTables } from './discover.js'
-import { type ExtractedRelationship, extractRelationships } from './extract-relationships.js'
+import { mkdirSync, writeFileSync } from 'node:fs';
+import { dirname, join } from 'node:path';
+import { fileURLToPath } from 'node:url';
+import { logger } from '@revealui/utils/logger';
+import { discoverTables, validateTables } from './discover.js';
+import { type ExtractedRelationship, extractRelationships } from './extract-relationships.js';
 
-const __filename = fileURLToPath(import.meta.url)
-const __dirname = dirname(__filename)
-const rootDir = join(__dirname, '../../..')
-const outputPath = join(__dirname, 'database.ts')
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = dirname(__filename);
+const rootDir = join(__dirname, '../../..');
+const outputPath = join(__dirname, 'database.ts');
 
 // Generate Database type file
 const generateDatabaseType = () => {
   // Discover all tables automatically
-  const discoveryResult = discoverTables()
-  const { tables, errors: discoveryErrors } = discoveryResult
+  const discoveryResult = discoverTables();
+  const { tables, errors: discoveryErrors } = discoveryResult;
 
   // Log discovery errors (warnings)
   if (discoveryErrors.length > 0) {
     for (const error of discoveryErrors) {
       const location = error.position
         ? `${error.file}:${error.position.line}:${error.position.column}`
-        : error.file
-      logger.warn(`⚠️  ${location}: ${error.message}${error.context ? ` (${error.context})` : ''}`)
+        : error.file;
+      logger.warn(`⚠️  ${location}: ${error.message}${error.context ? ` (${error.context})` : ''}`);
     }
   }
 
-  const validation = validateTables(tables)
+  const validation = validateTables(tables);
 
   if (!validation.valid) {
     throw new Error(
       `Table validation failed:\n${validation.errors.map((e) => `  - ${e}`).join('\n')}`,
-    )
+    );
   }
 
   // Helper to convert camelCase to PascalCase for type names
   const toPascalCase = (str: string): string => {
-    return str.charAt(0).toUpperCase() + str.slice(1).replace(/([A-Z])/g, '$1')
-  }
+    return str.charAt(0).toUpperCase() + str.slice(1).replace(/([A-Z])/g, '$1');
+  };
   // Generate imports
-  const imports = tables.map((t) => t.variableName).join(',\n  ')
+  const imports = tables.map((t) => t.variableName).join(',\n  ');
 
   // Generate type definitions
   const typeDefinitions = tables
     .map((table) => {
-      const typeName = toPascalCase(table.variableName)
-      const comment = `// ${typeName.replace(/([A-Z])/g, ' $1').trim()}`
+      const typeName = toPascalCase(table.variableName);
+      const comment = `// ${typeName.replace(/([A-Z])/g, ' $1').trim()}`;
       return `${comment}
 export type ${typeName}Row = typeof ${table.variableName}.$inferSelect
 export type ${typeName}Insert = typeof ${table.variableName}.$inferInsert
-export type ${typeName}Update = Partial<${typeName}Insert>`
+export type ${typeName}Update = Partial<${typeName}Insert>`;
     })
-    .join('\n\n')
+    .join('\n\n');
 
   const header = `/**
  * Generated Database Type for NeonDB
@@ -163,15 +163,15 @@ export type Database = {
     Tables: {
 ${tables
   .map((table) => {
-    const typeName = toPascalCase(table.variableName)
-    const relationshipsVar = `${table.variableName}Relationships`
+    const typeName = toPascalCase(table.variableName);
+    const relationshipsVar = `${table.variableName}Relationships`;
     // Relationships are automatically extracted from Drizzle relations
     return `      ${table.tableName}: {
         Row: ${typeName}Row
         Insert: ${typeName}Insert
         Update: ${typeName}Update
         Relationships: typeof ${relationshipsVar}
-      }`
+      }`;
   })
   .join('\n')}
     }
@@ -206,68 +206,68 @@ export type TableUpdate<T extends keyof Database['public']['Tables']> =
  */
 export type TableRelationships<T extends keyof Database['public']['Tables']> =
   Database['public']['Tables'][T]['Relationships']
-`
+`;
 
   // Extract relationships automatically from Drizzle relations
-  const extractionResult = extractRelationships(tables)
-  const extractedRelationships = extractionResult.relationships
-  const extractionErrors = extractionResult.errors
+  const extractionResult = extractRelationships(tables);
+  const extractedRelationships = extractionResult.relationships;
+  const extractionErrors = extractionResult.errors;
 
   // Log extraction errors (warnings for missing relations, errors for critical issues)
   if (extractionErrors.length > 0) {
     for (const error of extractionErrors) {
       const location = error.position
         ? `${error.file}:${error.position.line}:${error.position.column}`
-        : error.file
-      logger.warn(`⚠️  ${location}: ${error.message}${error.context ? ` (${error.context})` : ''}`)
+        : error.file;
+      logger.warn(`⚠️  ${location}: ${error.message}${error.context ? ` (${error.context})` : ''}`);
     }
   }
 
-  const relationshipsMap = new Map<string, ExtractedRelationship[]>()
+  const relationshipsMap = new Map<string, ExtractedRelationship[]>();
 
   // Build map of relationships by table variable name
   for (const tableRel of extractedRelationships) {
-    relationshipsMap.set(tableRel.tableVariableName, tableRel.relationships)
+    relationshipsMap.set(tableRel.tableVariableName, tableRel.relationships);
   }
 
   // Validate relationships
-  const tableNameMap = new Map<string, string>() // variableName -> tableName
+  const tableNameMap = new Map<string, string>(); // variableName -> tableName
   for (const table of tables) {
-    tableNameMap.set(table.variableName, table.tableName)
+    tableNameMap.set(table.variableName, table.tableName);
   }
 
-  const relationshipErrors: string[] = []
+  const relationshipErrors: string[] = [];
   for (const tableRel of extractedRelationships) {
     for (const rel of tableRel.relationships) {
       // Validate referenced table exists
       const referencedTableExists = Array.from(tableNameMap.values()).includes(
         rel.referencedRelation,
-      )
+      );
       if (!referencedTableExists) {
         relationshipErrors.push(
           `Relationship on ${tableRel.tableVariableName} references unknown table: ${rel.referencedRelation}`,
-        )
+        );
       }
 
       // Validate columns are not empty
       if (rel.columns.length === 0) {
         relationshipErrors.push(
           `Relationship on ${tableRel.tableVariableName} has empty columns array`,
-        )
+        );
       }
 
       // Validate referenced columns are not empty
       if (rel.referencedColumns.length === 0) {
         relationshipErrors.push(
           `Relationship on ${tableRel.tableVariableName} has empty referencedColumns array`,
-        )
+        );
       }
 
       // Validate foreign key name format
       if (!rel.foreignKeyName?.endsWith('_fk')) {
         relationshipErrors.push(
           `Relationship on ${tableRel.tableVariableName} has invalid foreignKeyName: ${rel.foreignKeyName}`,
-        )
+        );
       }
     }
   }
@@ -275,68 +275,68 @@ export type TableRelationships<T extends keyof Database['public']['Tables']> =
   if (relationshipErrors.length > 0) {
     throw new Error(
       `Relationship validation failed:\n${relationshipErrors.map((e) => `  - ${e}`).join('\n')}`,
-    )
+    );
   }
 
   // Generate relationship arrays for all tables
   const relationshipArrays = tables
     .map((table) => {
-      const relationshipsVar = `${table.variableName}Relationships`
-      const relationships = relationshipsMap.get(table.variableName) || []
+      const relationshipsVar = `${table.variableName}Relationships`;
+      const relationships = relationshipsMap.get(table.variableName) || [];
 
       if (relationships.length === 0) {
         return `// ${toPascalCase(table.variableName)} relationships
-export const ${relationshipsVar}: readonly Relationship[] = []`
+export const ${relationshipsVar}: readonly Relationship[] = []`;
       }
 
       // Format relationships as array
       const relationshipsStr = relationships
         .map((rel) => {
-          const columnsStr = rel.columns.map((c) => `'${c}'`).join(', ')
-          const refColumnsStr = rel.referencedColumns.map((c) => `'${c}'`).join(', ')
-          return `  { foreignKeyName: '${rel.foreignKeyName}', columns: [${columnsStr}], isOneToOne: ${rel.isOneToOne}, referencedRelation: '${rel.referencedRelation}', referencedColumns: [${refColumnsStr}] }`
+          const columnsStr = rel.columns.map((c) => `'${c}'`).join(', ');
+          const refColumnsStr = rel.referencedColumns.map((c) => `'${c}'`).join(', ');
+          return `  { foreignKeyName: '${rel.foreignKeyName}', columns: [${columnsStr}], isOneToOne: ${rel.isOneToOne}, referencedRelation: '${rel.referencedRelation}', referencedColumns: [${refColumnsStr}] }`;
         })
-        .join(',\n')
+        .join(',\n');
 
       return `// ${toPascalCase(table.variableName)} relationships
 export const ${relationshipsVar} = [
 ${relationshipsStr},
-] as const satisfies readonly Relationship[]`
+] as const satisfies readonly Relationship[]`;
     })
-    .join('\n\n')
+    .join('\n\n');
 
   // Insert relationships after DatabaseRelationships type
-  const relationshipsMarker = '// Relationships will be inserted here'
-  const relationshipsIndex = header.indexOf(relationshipsMarker)
+  const relationshipsMarker = '// Relationships will be inserted here';
+  const relationshipsIndex = header.indexOf(relationshipsMarker);
 
   if (relationshipsIndex > -1) {
-    const before = header.substring(0, relationshipsIndex)
-    const after = header.substring(relationshipsIndex + relationshipsMarker.length)
-    return `${before + relationshipArrays}\n${after}`
+    const before = header.substring(0, relationshipsIndex);
+    const after = header.substring(relationshipsIndex + relationshipsMarker.length);
+    return `${before + relationshipArrays}\n${after}`;
   }
 
-  return header
-}
+  return header;
+};
 
 // Generate and write the file
 try {
   // Ensure directory exists
-  mkdirSync(dirname(outputPath), { recursive: true })
+  mkdirSync(dirname(outputPath), { recursive: true });
 
   // Generate content
-  const content = generateDatabaseType()
+  const content = generateDatabaseType();
 
   // Write file
-  writeFileSync(outputPath, content, 'utf-8')
+  writeFileSync(outputPath, content, 'utf-8');
 
   if (VERBOSE_LOGGING) {
-    logger.info(`✅ Generated Database type: ${outputPath.replace(rootDir, '.')}`)
-    logger.info('   - All tables included')
-    logger.info('   - Row, Insert, Update types generated')
-    logger.info('   - Relationships included')
-    logger.info('   - Supabase-compatible structure')
+    logger.info(`✅ Generated Database type: ${outputPath.replace(rootDir, '.')}`);
+    logger.info('   - All tables included');
+    logger.info('   - Row, Insert, Update types generated');
+    logger.info('   - Relationships included');
+    logger.info('   - Supabase-compatible structure');
   }
 } catch (error) {
-  logger.error('❌ Error generating Database type:', error instanceof Error ? error : undefined)
-  process.exit(1)
+  logger.error('❌ Error generating Database type:', error instanceof Error ? error : undefined);
+  process.exit(1);
 }

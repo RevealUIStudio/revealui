@@ -1,7 +1,7 @@
-'use client'
+'use client';
 
-import clsx from 'clsx'
-import { useCallback, useState } from 'react'
+import clsx from 'clsx';
+import { useCallback, useState } from 'react';
 
 export function CodeBlock({
   code,
@@ -10,19 +10,19 @@ export function CodeBlock({
   showCopy = true,
   className,
 }: {
-  code: string
-  language?: string
-  filename?: string
-  showCopy?: boolean
-  className?: string
+  code: string;
+  language?: string;
+  filename?: string;
+  showCopy?: boolean;
+  className?: string;
 }) {
-  const [copied, setCopied] = useState(false)
+  const [copied, setCopied] = useState(false);
 
   const handleCopy = useCallback(async () => {
-    await navigator.clipboard.writeText(code)
-    setCopied(true)
-    setTimeout(() => setCopied(false), 2000)
-  }, [code])
+    await navigator.clipboard.writeText(code);
+    setCopied(true);
+    setTimeout(() => setCopied(false), 2000);
+  }, [code]);
 
   return (
     <div className={clsx('overflow-hidden rounded-xl bg-zinc-950 ring-1 ring-zinc-800', className)}>
@@ -52,5 +52,5 @@ export function CodeBlock({
         <code>{code}</code>
       </pre>
     </div>
-  )
+  );
 }

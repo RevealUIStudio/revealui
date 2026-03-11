@@ -1,6 +1,6 @@
-import type { TextField } from '@revealui/core'
-import { logger } from '@revealui/core/utils/logger'
-import React from 'react'
+import type { TextField } from '@revealui/core';
+import { logger } from '@revealui/core/utils/logger';
+import React from 'react';
 
 const fetchStripeCustomers = async () => {
   const response = await fetch(`/api/stripe/customers`, {
@@ -8,26 +8,26 @@ const fetchStripeCustomers = async () => {
     headers: {
       'Content-Type': 'application/json',
     },
-  })
+  });
   if (!response.ok) {
-    throw new Error(`HTTP error! status: ${response.status}`)
+    throw new Error(`HTTP error! status: ${response.status}`);
   }
-  return response.json()
-}
+  return response.json();
+};
 
 const CustomerSelect: React.FC<TextField> = (props) => {
-  const { name, label } = props
+  const { name, label } = props;
   const [options, setOptions] = React.useState<
     {
-      label: string
-      value: string
+      label: string;
+      value: string;
     }[]
-  >([])
-  const optionsMap = options.map((option) => <p key={option.value}>{option.label}</p>)
+  >([]);
+  const optionsMap = options.map((option) => <p key={option.value}>{option.label}</p>);
   React.useEffect(() => {
     const initializeOptions = async () => {
       try {
-        const res = await fetchStripeCustomers()
+        const res = await fetchStripeCustomers();
         if (res?.data && Array.isArray(res.data)) {
           const fetchedCustomers = res.data.reduce(
             (
@@ -37,20 +37,20 @@ const CustomerSelect: React.FC<TextField> = (props) => {
               acc.push({
                 label: item.name || item.email || item.id,
                 value: item.id,
-              })
-              return acc
+              });
+              return acc;
             },
             [{ label: 'Select a customer', value: '' }],
-          )
-          setOptions(fetchedCustomers)
+          );
+          setOptions(fetchedCustomers);
         }
       } catch (error) {
-        logger.error('Error fetching customers', { error })
+        logger.error('Error fetching customers', { error });
       }
-    }
+    };
 
-    initializeOptions()
-  }, [])
+    initializeOptions();
+  }, []);
 
   return (
     <>
@@ -81,7 +81,7 @@ const CustomerSelect: React.FC<TextField> = (props) => {
         <p>{optionsMap}</p>
       </div>
     </>
-  )
-}
+  );
+};
 
-export default CustomerSelect
+export default CustomerSelect;

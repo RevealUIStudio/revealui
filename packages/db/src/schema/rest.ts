@@ -33,30 +33,30 @@ export {
   registeredAgents,
   syncMetadata,
   userDevices,
-} from './agents.js'
-export * from './api-keys.js'
-export * from './app-logs.js'
-export * from './audit-log.js'
+} from './agents.js';
+export * from './api-keys.js';
+export * from './app-logs.js';
+export * from './audit-log.js';
 // Export all REST schemas
-export * from './cms.js'
-export * from './code-provenance.js'
-export * from './collab-edits.js'
-export * from './crdt-operations.js'
-export * from './error-events.js'
-export * from './gdpr.js'
-export * from './licenses.js'
-export * from './marketplace.js'
-export * from './node-ids.js'
-export * from './oauth-accounts.js'
-export * from './pages.js'
-export * from './password-reset-tokens.js'
-export * from './rate-limits.js'
-export * from './sites.js'
-export * from './tickets.js'
-export * from './users.js'
-export * from './waitlist.js'
-export * from './webhook-events.js'
-export * from './yjs-documents.js'
+export * from './cms.js';
+export * from './code-provenance.js';
+export * from './collab-edits.js';
+export * from './crdt-operations.js';
+export * from './error-events.js';
+export * from './gdpr.js';
+export * from './licenses.js';
+export * from './marketplace.js';
+export * from './node-ids.js';
+export * from './oauth-accounts.js';
+export * from './pages.js';
+export * from './password-reset-tokens.js';
+export * from './rate-limits.js';
+export * from './sites.js';
+export * from './tickets.js';
+export * from './users.js';
+export * from './waitlist.js';
+export * from './webhook-events.js';
+export * from './yjs-documents.js';
 
 // Note: Relations are defined in index.ts to avoid circular dependencies
 // They reference agentMemories which is in vector.ts, so we don't export them here

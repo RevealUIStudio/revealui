@@ -1,6 +1,6 @@
-import { clsx } from 'clsx/lite'
-import { type ComponentProps, type ReactNode, useId } from 'react'
-import { Section } from '@/components/revealui/elements/section'
+import { clsx } from 'clsx/lite';
+import { type ComponentProps, type ReactNode, useId } from 'react';
+import { Section } from '@/components/revealui/elements/section';
 
 export function Stat({
   stat,
@@ -16,11 +16,11 @@ export function Stat({
       <div className="text-2xl/10 tracking-tight text-mist-950 dark:text-white">{stat}</div>
       <p className="mt-2 text-sm/7 text-mist-700 dark:text-mist-400">{text}</p>
     </div>
-  )
+  );
 }
 
 export function StatsWithGraph({ children, ...props }: ComponentProps<typeof Section>) {
-  const pathId = useId()
+  const pathId = useId();
 
   return (
     <Section {...props}>
@@ -144,5 +144,5 @@ export function StatsWithGraph({ children, ...props }: ComponentProps<typeof Sec
         </div>
       </div>
     </Section>
-  )
+  );
 }

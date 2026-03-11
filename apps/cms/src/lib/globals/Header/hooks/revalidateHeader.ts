@@ -1,21 +1,21 @@
-import { revalidateTag } from 'next/cache'
+import { revalidateTag } from 'next/cache';
 
 type RevalidateHeaderArgs = {
-  doc: unknown
+  doc: unknown;
   req: {
     revealui?: {
       logger?: {
-        info?: (message: string) => void
-      }
-    }
-  }
-}
+        info?: (message: string) => void;
+      };
+    };
+  };
+};
 
 export const revalidateHeader = ({ doc, req }: RevalidateHeaderArgs) => {
-  const revealui = req.revealui
-  revealui?.logger?.info?.(`Revalidating header`)
+  const revealui = req.revealui;
+  revealui?.logger?.info?.(`Revalidating header`);
 
-  revalidateTag('global_header', 'page')
+  revalidateTag('global_header', 'page');
 
-  return doc
-}
+  return doc;
+};

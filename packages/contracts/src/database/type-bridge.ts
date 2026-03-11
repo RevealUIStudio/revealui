@@ -11,7 +11,7 @@
  * @module @revealui/contracts/core/contracts/type-bridge
  */
 
-import type { Contract, ContractValidationResult } from '../foundation/contract.js'
+import type { Contract, ContractValidationResult } from '../foundation/contract.js';
 
 /**
  * Generic Database type structure
@@ -28,14 +28,14 @@ export type Database<
         string,
         {
           // biome-ignore lint/style/useNamingConvention: Supabase schema shape.
-          Row: unknown
+          Row: unknown;
           // biome-ignore lint/style/useNamingConvention: Supabase schema shape.
-          Insert: unknown
+          Insert: unknown;
           // biome-ignore lint/style/useNamingConvention: Supabase schema shape.
-          Update: unknown
+          Update: unknown;
         }
-      >
-    }
+      >;
+    };
   } = {
     public: {
       // biome-ignore lint/style/useNamingConvention: Supabase schema shape.
@@ -43,16 +43,16 @@ export type Database<
         string,
         {
           // biome-ignore lint/style/useNamingConvention: Supabase schema shape.
-          Row: unknown
+          Row: unknown;
           // biome-ignore lint/style/useNamingConvention: Supabase schema shape.
-          Insert: unknown
+          Insert: unknown;
           // biome-ignore lint/style/useNamingConvention: Supabase schema shape.
-          Update: unknown
+          Update: unknown;
         }
-      >
-    }
+      >;
+    };
   },
-> = T
+> = T;
 
 /**
  * Convert Drizzle table type to Contract type
@@ -63,7 +63,7 @@ export type Database<
  * @template TTable - The Drizzle table type
  * @template TContract - The Contract type
  */
-export type DrizzleToContract<TTable, TContract> = TTable extends TContract ? TContract : never
+export type DrizzleToContract<TTable, TContract> = TTable extends TContract ? TContract : never;
 
 /**
  * Convert Contract type to Drizzle insert type
@@ -75,7 +75,7 @@ export type DrizzleToContract<TTable, TContract> = TTable extends TContract ? TC
  */
 export type ContractToDrizzleInsert<TContract, TInsert> = TContract extends TInsert
   ? TInsert
-  : never
+  : never;
 
 /**
  * Type-safe mapper function for converting database rows to contract types
@@ -102,9 +102,9 @@ export function createDbRowMapper<TContract, TDbRow = unknown>(
   mapper?: (row: TDbRow) => unknown,
 ) {
   return (row: TDbRow): TContract => {
-    const data = mapper ? mapper(row) : row
-    return contract.parse(data)
-  }
+    const data = mapper ? mapper(row) : row;
+    return contract.parse(data);
+  };
 }
 
 /**
@@ -134,10 +134,10 @@ export function createContractToDbMapper<TContract, TInsert = TContract>(
 ) {
   return (data: TContract): TInsert => {
     if (mapper) {
-      return mapper(data)
+      return mapper(data);
     }
-    return data as unknown as TInsert
-  }
+    return data as unknown as TInsert;
+  };
 }
 
 /**
@@ -156,9 +156,9 @@ export function batchDbRowsToContract<TContract, TDbRow = unknown>(
   mapper?: (row: TDbRow) => unknown,
 ): TContract[] {
   return rows.map((row) => {
-    const data = mapper ? mapper(row) : row
-    return contract.parse(data)
-  })
+    const data = mapper ? mapper(row) : row;
+    return contract.parse(data);
+  });
 }
 
 /**
@@ -176,10 +176,10 @@ export function batchContractToDbInsert<TContract, TInsert = TContract>(
 ): TInsert[] {
   return entities.map((entity) => {
     if (mapper) {
-      return mapper(entity)
+      return mapper(entity);
     }
-    return entity as unknown as TInsert
-  })
+    return entity as unknown as TInsert;
+  });
 }
 
 /**
@@ -195,7 +195,7 @@ export function isDbRowAndContract<TContract, TDbRow>(
   contract: Contract<TContract>,
   value: unknown,
 ): value is TContract & TDbRow {
-  return contract.isType(value)
+  return contract.isType(value);
 }
 
 /**
@@ -208,11 +208,11 @@ export function isDbRowAndContract<TContract, TDbRow>(
 export type TableContractMap<T extends Database> = {
   [K in keyof T['public']['Tables']]?: T['public']['Tables'][K] extends {
     // biome-ignore lint/style/useNamingConvention: Supabase schema shape.
-    Row: infer R
+    Row: infer R;
   }
     ? Contract<R>
-    : never
-}
+    : never;
+};
 
 /**
  * Create a type-safe table-to-contract registry
@@ -243,35 +243,35 @@ export function createTableContractRegistry<T extends Database>(map: TableContra
       row: T['public']['Tables'][K] extends { Row: infer R } ? R : never,
     ): T['public']['Tables'][K] extends {
       // biome-ignore lint/style/useNamingConvention: Supabase schema shape.
-      Row: infer R
+      Row: infer R;
     }
       ? ContractValidationResult<R> | null
       : null {
-      const contract = map[tableName]
+      const contract = map[tableName];
       if (!contract) {
         return null as T['public']['Tables'][K] extends {
           // biome-ignore lint/style/useNamingConvention: Supabase schema shape.
-          Row: infer R
+          Row: infer R;
         }
           ? ContractValidationResult<R> | null
-          : null
+          : null;
       }
-      type TableType = T['public']['Tables'][K]
+      type TableType = T['public']['Tables'][K];
       type RowType = TableType extends {
         // biome-ignore lint/style/useNamingConvention: Supabase schema shape.
-        Row: infer R
+        Row: infer R;
       }
         ? R
-        : never
-      type ContractType = Contract<RowType>
+        : never;
+      type ContractType = Contract<RowType>;
       return (contract as ContractType).validate(
         row as RowType,
       ) as T['public']['Tables'][K] extends {
         // biome-ignore lint/style/useNamingConvention: Supabase schema shape.
-        Row: infer R
+        Row: infer R;
       }
         ? ContractValidationResult<R>
-        : never
+        : never;
     },
 
     /**
@@ -281,16 +281,16 @@ export function createTableContractRegistry<T extends Database>(map: TableContra
       tableName: K,
     ): T['public']['Tables'][K] extends {
       // biome-ignore lint/style/useNamingConvention: Supabase schema shape.
-      Row: infer R
+      Row: infer R;
     }
       ? Contract<R> | undefined
       : undefined {
       return map[tableName] as T['public']['Tables'][K] extends {
         // biome-ignore lint/style/useNamingConvention: Supabase schema shape.
-        Row: infer R
+        Row: infer R;
       }
         ? Contract<R> | undefined
-        : undefined
+        : undefined;
     },
-  }
+  };
 }

@@ -1,10 +1,10 @@
-import type { CollectionConfig } from '@revealui/core'
+import type { CollectionConfig } from '@revealui/core';
 
 const ContentsField = {
   name: 'name',
   slug: 'slug',
   description: 'description',
-}
+};
 
 const Contents: CollectionConfig = {
   // slug: ContentsField.slug,
@@ -39,6 +39,6 @@ const Contents: CollectionConfig = {
       blocks: [],
     },
   ],
-}
+};
 
-export default Contents
+export default Contents;

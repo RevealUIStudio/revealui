@@ -5,16 +5,20 @@
  * error handling, and logging.
  */
 
-import type { NextRequest } from 'next/server'
-import { NextResponse } from 'next/server'
-import { handleApiError } from './errors.js'
-import { logger } from './logger.js'
-import { createRequestContext, getRequestDuration, runInRequestContext } from './request-context.js'
+import type { NextRequest } from 'next/server';
+import { NextResponse } from 'next/server';
+import { handleApiError } from './errors.js';
+import { logger } from './logger.js';
+import {
+  createRequestContext,
+  getRequestDuration,
+  runInRequestContext,
+} from './request-context.js';
 
 /**
  * API route handler function
  */
-export type ApiHandler<T = unknown> = (request: NextRequest) => Promise<Response | NextResponse<T>>
+export type ApiHandler<T = unknown> = (request: NextRequest) => Promise<Response | NextResponse<T>>;
 
 /**
  * Wrap an API route handler with request context, logging, and error handling
@@ -52,7 +56,7 @@ export function withRequestContext<T = unknown>(handler: ApiHandler<T>): ApiHand
       path: request.nextUrl.pathname,
       method: request.method,
       ip: request.headers.get('x-forwarded-for') || request.headers.get('x-real-ip') || undefined,
-    })
+    });
 
     // Log incoming request
     logger.info('Incoming request', {
@@ -60,43 +64,43 @@ export function withRequestContext<T = unknown>(handler: ApiHandler<T>): ApiHand
       path: context.path,
       ip: context.ip,
       userAgent: context.userAgent,
-    })
+    });
 
     try {
       // Run handler within request context
-      const response = await runInRequestContext(context, () => handler(request))
+      const response = await runInRequestContext(context, () => handler(request));
 
       // Log successful response
-      const duration = getRequestDuration()
+      const duration = getRequestDuration();
       logger.info('Request completed', {
         method: context.method,
         path: context.path,
         status: response.status,
         duration,
-      })
+      });
 
       // Add request ID to response headers
       if (response instanceof NextResponse) {
-        response.headers.set('x-request-id', context.requestId)
-        response.headers.set('x-request-duration', duration?.toString() || '0')
+        response.headers.set('x-request-id', context.requestId);
+        response.headers.set('x-request-duration', duration?.toString() || '0');
       }
 
-      return response
+      return response;
     } catch (error) {
       // Handle errors with proper logging and status codes
-      const duration = getRequestDuration()
+      const duration = getRequestDuration();
       logger.error('Request failed', {
         method: context.method,
         path: context.path,
         error: error instanceof Error ? error.message : String(error),
         duration,
-      })
+      });
 
       // Convert error to API response
       const apiError = handleApiError(error, {
         method: context.method,
         path: context.path,
-      })
+      });
 
       const errorResponse = NextResponse.json(
         {
@@ -107,15 +111,15 @@ export function withRequestContext<T = unknown>(handler: ApiHandler<T>): ApiHand
           },
         },
         { status: apiError.statusCode },
-      )
+      );
 
       // Add request ID to error response
-      errorResponse.headers.set('x-request-id', context.requestId)
-      errorResponse.headers.set('x-request-duration', duration?.toString() || '0')
+      errorResponse.headers.set('x-request-id', context.requestId);
+      errorResponse.headers.set('x-request-duration', duration?.toString() || '0');
 
-      return errorResponse
+      return errorResponse;
     }
-  }
+  };
 }
 
 /**
@@ -143,35 +147,35 @@ export function withServerActionContext<TArgs extends unknown[], TReturn>(
 ): (...args: TArgs) => Promise<TReturn> {
   return async (...args: TArgs): Promise<TReturn> => {
     // Create request context (no headers available in server actions)
-    const context = createRequestContext({})
+    const context = createRequestContext({});
 
     // Log server action execution
     logger.info('Server action started', {
       action: action.name || 'anonymous',
-    })
+    });
 
     try {
       // Run action within request context
-      const result = await runInRequestContext(context, () => action(...args))
+      const result = await runInRequestContext(context, () => action(...args));
 
       // Log successful execution
-      const duration = getRequestDuration()
+      const duration = getRequestDuration();
       logger.info('Server action completed', {
         action: action.name || 'anonymous',
         duration,
-      })
+      });
 
-      return result
+      return result;
     } catch (error) {
       // Log error
-      const duration = getRequestDuration()
+      const duration = getRequestDuration();
       logger.error('Server action failed', {
         action: action.name || 'anonymous',
         error: error instanceof Error ? error.message : String(error),
         duration,
-      })
+      });
 
-      throw error
+      throw error;
     }
-  }
+  };
 }

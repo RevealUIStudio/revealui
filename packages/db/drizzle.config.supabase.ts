@@ -1,4 +1,4 @@
-import { defineConfig } from 'drizzle-kit'
+import { defineConfig } from 'drizzle-kit';
 
 /**
  * Drizzle config for Supabase (Vector Database)
@@ -11,10 +11,10 @@ import { defineConfig } from 'drizzle-kit'
  */
 
 // Use DATABASE_URL for Supabase (vector database)
-const dbUrl = process.env.DATABASE_URL ?? ''
+const dbUrl = process.env.DATABASE_URL ?? '';
 
 if (!dbUrl) {
-  throw new Error('DATABASE_URL must be set for Supabase vector database')
+  throw new Error('DATABASE_URL must be set for Supabase vector database');
 }
 
 export default defineConfig({
@@ -42,4 +42,4 @@ export default defineConfig({
   introspect: {
     casing: 'camel',
   },
-})
+});

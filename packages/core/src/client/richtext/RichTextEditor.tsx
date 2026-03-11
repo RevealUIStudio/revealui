@@ -1,4 +1,4 @@
-'use client'
+'use client';
 
 /**
  * RevealUI Rich Text Editor
@@ -7,37 +7,43 @@
  * Supports configurable features, onChange callbacks, and initial state.
  */
 
-import { CodeHighlightNode, CodeNode } from '@lexical/code'
-import { AutoLinkNode, LinkNode } from '@lexical/link'
-import { ListItemNode, ListNode } from '@lexical/list'
-import { AutoFocusPlugin } from '@lexical/react/LexicalAutoFocusPlugin'
-import { CheckListPlugin } from '@lexical/react/LexicalCheckListPlugin'
-import { LexicalComposer } from '@lexical/react/LexicalComposer'
-import { ContentEditable } from '@lexical/react/LexicalContentEditable'
-import { LexicalErrorBoundary } from '@lexical/react/LexicalErrorBoundary'
-import { HistoryPlugin } from '@lexical/react/LexicalHistoryPlugin'
-import { HorizontalRuleNode } from '@lexical/react/LexicalHorizontalRuleNode'
-import { LinkPlugin } from '@lexical/react/LexicalLinkPlugin'
-import { ListPlugin } from '@lexical/react/LexicalListPlugin'
-import { OnChangePlugin } from '@lexical/react/LexicalOnChangePlugin'
-import { RichTextPlugin } from '@lexical/react/LexicalRichTextPlugin'
-import { TablePlugin } from '@lexical/react/LexicalTablePlugin'
-import { HeadingNode, QuoteNode } from '@lexical/rich-text'
-import { TableCellNode, TableNode, TableRowNode } from '@lexical/table'
-import type { Provider } from '@lexical/yjs'
-import { logger } from '@revealui/core/utils/logger'
-import type { EditorState, Klass, LexicalEditor, LexicalNode, SerializedEditorState } from 'lexical'
-import { useCallback, useMemo } from 'react'
-import type { Doc } from 'yjs'
+import { CodeHighlightNode, CodeNode } from '@lexical/code';
+import { AutoLinkNode, LinkNode } from '@lexical/link';
+import { ListItemNode, ListNode } from '@lexical/list';
+import { AutoFocusPlugin } from '@lexical/react/LexicalAutoFocusPlugin';
+import { CheckListPlugin } from '@lexical/react/LexicalCheckListPlugin';
+import { LexicalComposer } from '@lexical/react/LexicalComposer';
+import { ContentEditable } from '@lexical/react/LexicalContentEditable';
+import { LexicalErrorBoundary } from '@lexical/react/LexicalErrorBoundary';
+import { HistoryPlugin } from '@lexical/react/LexicalHistoryPlugin';
+import { HorizontalRuleNode } from '@lexical/react/LexicalHorizontalRuleNode';
+import { LinkPlugin } from '@lexical/react/LexicalLinkPlugin';
+import { ListPlugin } from '@lexical/react/LexicalListPlugin';
+import { OnChangePlugin } from '@lexical/react/LexicalOnChangePlugin';
+import { RichTextPlugin } from '@lexical/react/LexicalRichTextPlugin';
+import { TablePlugin } from '@lexical/react/LexicalTablePlugin';
+import { HeadingNode, QuoteNode } from '@lexical/rich-text';
+import { TableCellNode, TableNode, TableRowNode } from '@lexical/table';
+import type { Provider } from '@lexical/yjs';
+import { logger } from '@revealui/core/utils/logger';
+import type {
+  EditorState,
+  Klass,
+  LexicalEditor,
+  LexicalNode,
+  SerializedEditorState,
+} from 'lexical';
+import { useCallback, useMemo } from 'react';
+import type { Doc } from 'yjs';
 import type {
   RichTextEditor as RichTextEditorConfig,
   RichTextFeature,
-} from '../../richtext/index.js'
+} from '../../richtext/index.js';
 // Image node for upload feature (imported conditionally)
-import { ImageNode } from './nodes/ImageNode.js'
-import { CollaborationPlugin } from './plugins/CollaborationPlugin.js'
-import { ImagePlugin } from './plugins/ImagePlugin.js'
-import { PastePlugin } from './plugins/PastePlugin.js'
+import { ImageNode } from './nodes/ImageNode.js';
+import { CollaborationPlugin } from './plugins/CollaborationPlugin.js';
+import { ImagePlugin } from './plugins/ImagePlugin.js';
+import { PastePlugin } from './plugins/PastePlugin.js';
 
 // ============================================
 // TYPES
@@ -45,41 +51,41 @@ import { PastePlugin } from './plugins/PastePlugin.js'
 
 export interface RichTextEditorProps {
   /** Editor configuration from lexicalEditor() */
-  editorConfig?: RichTextEditorConfig
+  editorConfig?: RichTextEditorConfig;
   /** Initial content (JSON serialized state) */
-  initialValue?: SerializedEditorState | string | null
+  initialValue?: SerializedEditorState | string | null;
   /** Callback when content changes */
-  onChange?: (state: EditorState, editor: LexicalEditor) => void
+  onChange?: (state: EditorState, editor: LexicalEditor) => void;
   /** Callback with serialized JSON on change */
-  onSerializedChange?: (json: SerializedEditorState) => void
+  onSerializedChange?: (json: SerializedEditorState) => void;
   /** Placeholder text */
-  placeholder?: string
+  placeholder?: string;
   /** Additional CSS class */
-  className?: string
+  className?: string;
   /** Whether editor is editable */
-  editable?: boolean
+  editable?: boolean;
   /** Auto-focus on mount */
-  autoFocus?: boolean
+  autoFocus?: boolean;
   /** Custom error handler */
-  onError?: (error: Error, editor: LexicalEditor) => void
+  onError?: (error: Error, editor: LexicalEditor) => void;
   /** Editor namespace (unique identifier) */
-  namespace?: string
+  namespace?: string;
   /** Enable collaborative editing mode */
-  collaborative?: boolean
+  collaborative?: boolean;
   /** Document ID for collaboration */
-  documentId?: string
+  documentId?: string;
   /** Provider factory for Yjs collaboration */
-  providerFactory?: (id: string, yjsDocMap: Map<string, Doc>) => Provider
+  providerFactory?: (id: string, yjsDocMap: Map<string, Doc>) => Provider;
   /** Whether to bootstrap initial state (only for first user) */
-  shouldBootstrap?: boolean
+  shouldBootstrap?: boolean;
   /** Username for cursor display */
-  username?: string
+  username?: string;
   /** Cursor color for this user */
-  cursorColor?: string
+  cursorColor?: string;
   /** Client type for collaborative cursor display */
-  clientType?: 'human' | 'agent'
+  clientType?: 'human' | 'agent';
   /** Agent model identifier for cursor labeling */
-  agentModel?: string
+  agentModel?: string;
 }
 
 // ============================================
@@ -150,61 +156,61 @@ const defaultTheme = {
     url: 'editor-tokenOperator',
     variable: 'editor-tokenVariable',
   },
-}
+};
 
 // ============================================
 // NODES CONFIGURATION
 // ============================================
 
 function getNodesFromFeatures(features: RichTextFeature[]): Array<Klass<LexicalNode>> {
-  const nodeSet = new Set<Klass<LexicalNode>>()
+  const nodeSet = new Set<Klass<LexicalNode>>();
 
   // Always include base nodes
-  nodeSet.add(HeadingNode)
-  nodeSet.add(QuoteNode)
+  nodeSet.add(HeadingNode);
+  nodeSet.add(QuoteNode);
 
   // Check if upload feature is enabled (for ImageNode)
-  const hasUpload = features.some((f) => f.key === 'upload')
+  const hasUpload = features.some((f) => f.key === 'upload');
   if (hasUpload) {
-    nodeSet.add(ImageNode)
+    nodeSet.add(ImageNode);
   }
 
   features.forEach((feature) => {
     switch (feature.key) {
       case 'heading':
-        nodeSet.add(HeadingNode)
-        break
+        nodeSet.add(HeadingNode);
+        break;
       case 'quote':
-        nodeSet.add(QuoteNode)
-        break
+        nodeSet.add(QuoteNode);
+        break;
       case 'list':
       case 'orderedList':
       case 'unorderedList':
       case 'checklist':
-        nodeSet.add(ListNode)
-        nodeSet.add(ListItemNode)
-        break
+        nodeSet.add(ListNode);
+        nodeSet.add(ListItemNode);
+        break;
       case 'link':
-        nodeSet.add(LinkNode)
-        nodeSet.add(AutoLinkNode)
-        break
+        nodeSet.add(LinkNode);
+        nodeSet.add(AutoLinkNode);
+        break;
       case 'code':
       case 'codeBlock':
-        nodeSet.add(CodeNode)
-        nodeSet.add(CodeHighlightNode)
-        break
+        nodeSet.add(CodeNode);
+        nodeSet.add(CodeHighlightNode);
+        break;
       case 'horizontalRule':
-        nodeSet.add(HorizontalRuleNode)
-        break
+        nodeSet.add(HorizontalRuleNode);
+        break;
       case 'table':
-        nodeSet.add(TableNode)
-        nodeSet.add(TableCellNode)
-        nodeSet.add(TableRowNode)
-        break
+        nodeSet.add(TableNode);
+        nodeSet.add(TableCellNode);
+        nodeSet.add(TableRowNode);
+        break;
     }
-  })
+  });
 
-  return Array.from(nodeSet)
+  return Array.from(nodeSet);
 }
 
 // ============================================
@@ -212,26 +218,26 @@ function getNodesFromFeatures(features: RichTextFeature[]): Array<Klass<LexicalN
 // ============================================
 
 function Placeholder({ text }: { text: string }) {
-  return <div className="editor-placeholder">{text}</div>
+  return <div className="editor-placeholder">{text}</div>;
 }
 
 // ============================================
 // TOOLBAR COMPONENT
 // ============================================
 
-import { FloatingToolbarPlugin } from './plugins/FloatingToolbarPlugin.js'
+import { FloatingToolbarPlugin } from './plugins/FloatingToolbarPlugin.js';
 // Import the full-featured toolbar plugin
-import { ToolbarPlugin } from './plugins/ToolbarPlugin.js'
+import { ToolbarPlugin } from './plugins/ToolbarPlugin.js';
 
-export { FloatingToolbarPlugin } from './plugins/FloatingToolbarPlugin.js'
-export { ToolbarPlugin } from './plugins/ToolbarPlugin.js'
+export { FloatingToolbarPlugin } from './plugins/FloatingToolbarPlugin.js';
+export { ToolbarPlugin } from './plugins/ToolbarPlugin.js';
 
 // ============================================
 // FEATURE PLUGINS COMPONENT
 // ============================================
 
 function FeaturePlugins({ features }: { features: RichTextFeature[] }) {
-  const hasFeature = (key: string) => features.some((f) => f.key === key)
+  const hasFeature = (key: string) => features.some((f) => f.key === key);
 
   return (
     <>
@@ -244,7 +250,7 @@ function FeaturePlugins({ features }: { features: RichTextFeature[] }) {
       {hasFeature('table') && <TablePlugin />}
       <PastePlugin />
     </>
-  )
+  );
 }
 
 // ============================================
@@ -271,48 +277,48 @@ export function RichTextEditor({
   clientType,
   agentModel,
 }: RichTextEditorProps) {
-  const features = editorConfig?.features ?? []
+  const features = editorConfig?.features ?? [];
 
   // Build initial editor state from value
   const initialEditorState = useMemo(() => {
-    if (!initialValue) return undefined
+    if (!initialValue) return undefined;
 
     if (typeof initialValue === 'string') {
       try {
-        return initialValue
+        return initialValue;
       } catch {
-        return undefined
+        return undefined;
       }
     }
 
     // SerializedEditorState - convert to string
-    return JSON.stringify(initialValue)
-  }, [initialValue])
+    return JSON.stringify(initialValue);
+  }, [initialValue]);
 
   // Error handler
   const handleError = useCallback(
     (error: Error, editor: LexicalEditor) => {
-      logger.error('RichTextEditor error', { error })
-      onError?.(error, editor)
+      logger.error('RichTextEditor error', { error });
+      onError?.(error, editor);
     },
     [onError],
-  )
+  );
 
   // Change handler
   const handleChange = useCallback(
     (state: EditorState, editor: LexicalEditor) => {
-      onChange?.(state, editor)
+      onChange?.(state, editor);
 
       if (onSerializedChange) {
-        const json = state.toJSON()
-        onSerializedChange(json)
+        const json = state.toJSON();
+        onSerializedChange(json);
       }
     },
     [onChange, onSerializedChange],
-  )
+  );
 
   // Build nodes from features
-  const nodes = useMemo(() => getNodesFromFeatures(features), [features])
+  const nodes = useMemo(() => getNodesFromFeatures(features), [features]);
 
   // Lexical config
   const initialConfig = useMemo(
@@ -325,7 +331,7 @@ export function RichTextEditor({
       onError: handleError,
     }),
     [namespace, nodes, editable, collaborative, initialEditorState, handleError],
-  )
+  );
 
   // Determine toolbar variant from features
   const hasFloatingToolbar = features.some(
@@ -333,14 +339,14 @@ export function RichTextEditor({
       (f.type === 'toolbar' && f.position === 'floating') ||
       f.key === 'floatingToolbar' ||
       f.key === 'floating-toolbar',
-  )
+  );
   const hasFixedToolbar = features.some(
     (f: RichTextFeature) =>
       (f.type === 'toolbar' && f.position === 'fixed') ||
       f.key === 'fixedToolbar' ||
       f.key === 'fixed-toolbar' ||
       (!f.position && f.type === 'toolbar'),
-  )
+  );
 
   return (
     <div className={`revealui-rich-text-editor ${className}`}>
@@ -380,7 +386,7 @@ export function RichTextEditor({
         </div>
       </LexicalComposer>
     </div>
-  )
+  );
 }
 
 // ============================================
@@ -518,6 +524,6 @@ export const richTextEditorStyles = `
   opacity: 0.2;
   transition: opacity 1s ease-out;
 }
-`
+`;
 
-export default RichTextEditor
+export default RichTextEditor;

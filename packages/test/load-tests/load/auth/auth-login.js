@@ -1,5 +1,5 @@
-import { check, sleep } from 'k6'
-import http from 'k6/http'
+import { check, sleep } from 'k6';
+import http from 'k6/http';
 
 /**
  * Authentication Load Test
@@ -18,37 +18,37 @@ export const options = {
     http_req_failed: ['rate<0.01'], // Less than 1% failures
     http_req_waiting: ['p(95)<1500'], // 95% waiting time under 1.5s
   },
-}
+};
 
 // biome-ignore lint/correctness/noUndeclaredVariables: k6 global
-const BASE_URL = __ENV.BASE_URL || 'http://localhost:4000'
+const BASE_URL = __ENV.BASE_URL || 'http://localhost:4000';
 
 export default function () {
   const payload = JSON.stringify({
     email: 'test-user@example.com',
     password: 'Test1234!',
-  })
+  });
 
   const params = {
     headers: {
       'Content-Type': 'application/json',
     },
-  }
+  };
 
-  const res = http.post(`${BASE_URL}/api/users/login`, payload, params)
+  const res = http.post(`${BASE_URL}/api/users/login`, payload, params);
 
   check(res, {
     'status is 200': (r) => r.status === 200,
     'has JWT token': (r) => {
       try {
-        const body = JSON.parse(r.body)
-        return body.token !== undefined
+        const body = JSON.parse(r.body);
+        return body.token !== undefined;
       } catch {
-        return false
+        return false;
       }
     },
     'response time < 2s': (r) => r.timings.duration < 2000,
-  })
+  });
 
-  sleep(1)
+  sleep(1);
 }

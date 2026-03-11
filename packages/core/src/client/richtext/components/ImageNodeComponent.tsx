@@ -1,4 +1,4 @@
-'use client'
+'use client';
 
 /**
  * RevealUI Rich Text Editor - Image Node Component
@@ -6,56 +6,56 @@
  * React component for rendering and editing images in the editor.
  */
 
-import { useLexicalComposerContext } from '@lexical/react/LexicalComposerContext'
-import { $getNodeByKey } from 'lexical'
-import type React from 'react'
-import { useCallback, useState } from 'react'
-import type { ImageNodeData } from '../nodes/ImageNode.js'
-import { OPEN_IMAGE_UPLOAD_COMMAND } from '../nodes/ImageNode.js'
+import { useLexicalComposerContext } from '@lexical/react/LexicalComposerContext';
+import { $getNodeByKey } from 'lexical';
+import type React from 'react';
+import { useCallback, useState } from 'react';
+import type { ImageNodeData } from '../nodes/ImageNode.js';
+import { OPEN_IMAGE_UPLOAD_COMMAND } from '../nodes/ImageNode.js';
 
 type Props = {
-  data: ImageNodeData
-  nodeKey: string
-}
+  data: ImageNodeData;
+  nodeKey: string;
+};
 
 export const ImageNodeComponent: React.FC<Props> = (props) => {
-  const { data, nodeKey } = props
-  const [editor] = useLexicalComposerContext()
-  const [isEditing, setIsEditing] = useState(false)
-  const [editAlt, setEditAlt] = useState(data.alt || '')
+  const { data, nodeKey } = props;
+  const [editor] = useLexicalComposerContext();
+  const [isEditing, setIsEditing] = useState(false);
+  const [editAlt, setEditAlt] = useState(data.alt || '');
 
   const removeImage = useCallback(() => {
     editor.update(() => {
-      const foundNode = $getNodeByKey(nodeKey)
+      const foundNode = $getNodeByKey(nodeKey);
       if (foundNode) {
-        foundNode.remove()
+        foundNode.remove();
       }
-    })
-  }, [editor, nodeKey])
+    });
+  }, [editor, nodeKey]);
 
   const updateAlt = useCallback(() => {
     if (editAlt !== data.alt) {
       editor.update(() => {
-        const foundNode = $getNodeByKey(nodeKey)
+        const foundNode = $getNodeByKey(nodeKey);
         if (foundNode && 'setData' in foundNode) {
-          ;(foundNode as { setData: (nextData: ImageNodeData) => void }).setData({
+          (foundNode as { setData: (nextData: ImageNodeData) => void }).setData({
             ...data,
             alt: editAlt,
-          })
+          });
         }
-      })
+      });
     }
-    setIsEditing(false)
-  }, [editor, nodeKey, editAlt, data])
+    setIsEditing(false);
+  }, [editor, nodeKey, editAlt, data]);
 
   const handleEdit = useCallback(() => {
     editor.dispatchCommand(OPEN_IMAGE_UPLOAD_COMMAND, {
       data,
       nodeKey,
-    })
-  }, [editor, data, nodeKey])
+    });
+  }, [editor, data, nodeKey]);
 
-  const [showControls, setShowControls] = useState(false)
+  const [showControls, setShowControls] = useState(false);
 
   return (
     <figure className="editor-image-container" style={{ margin: '16px 0', textAlign: 'center' }}>
@@ -79,9 +79,9 @@ export const ImageNodeComponent: React.FC<Props> = (props) => {
           }}
           onError={(e) => {
             // Show placeholder on error
-            const target = e.target as HTMLImageElement
+            const target = e.target as HTMLImageElement;
             target.src =
-              'data:image/svg+xml,%3Csvg xmlns="http://www.w3.org/2000/svg" width="400" height="300"%3E%3Crect fill="%23e2e8f0" width="400" height="300"/%3E%3Ctext x="50%25" y="50%25" text-anchor="middle" dy=".3em" fill="%2394a3b8" font-family="sans-serif"%3EImage not found%3C/text%3E%3C/svg%3E'
+              'data:image/svg+xml,%3Csvg xmlns="http://www.w3.org/2000/svg" width="400" height="300"%3E%3Crect fill="%23e2e8f0" width="400" height="300"/%3E%3Ctext x="50%25" y="50%25" text-anchor="middle" dy=".3em" fill="%2394a3b8" font-family="sans-serif"%3EImage not found%3C/text%3E%3C/svg%3E';
           }}
         />
         <div
@@ -141,10 +141,10 @@ export const ImageNodeComponent: React.FC<Props> = (props) => {
           onBlur={updateAlt}
           onKeyDown={(e) => {
             if (e.key === 'Enter') {
-              updateAlt()
+              updateAlt();
             } else if (e.key === 'Escape') {
-              setEditAlt(data.alt || '')
-              setIsEditing(false)
+              setEditAlt(data.alt || '');
+              setIsEditing(false);
             }
           }}
           placeholder="Image alt text"
@@ -171,5 +171,5 @@ export const ImageNodeComponent: React.FC<Props> = (props) => {
         )
       )}
     </figure>
-  )
-}
+  );
+};

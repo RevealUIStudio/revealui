@@ -1,10 +1,10 @@
-import type { SecretInfo } from '../../types'
+import type { SecretInfo } from '../../types';
 
 interface SecretListProps {
-  secrets: SecretInfo[]
-  selectedPath: string | null
-  onSelect: (path: string) => void
-  onDelete: (path: string) => void
+  secrets: SecretInfo[];
+  selectedPath: string | null;
+  onSelect: (path: string) => void;
+  onDelete: (path: string) => void;
 }
 
 export default function SecretList({ secrets, selectedPath, onSelect, onDelete }: SecretListProps) {
@@ -13,7 +13,7 @@ export default function SecretList({ secrets, selectedPath, onSelect, onDelete }
       <div className="flex flex-1 items-center justify-center text-sm text-neutral-500">
         No secrets found
       </div>
-    )
+    );
   }
 
   return (
@@ -34,8 +34,8 @@ export default function SecretList({ secrets, selectedPath, onSelect, onDelete }
           <button
             type="button"
             onClick={(e) => {
-              e.stopPropagation()
-              onDelete(secret.path)
+              e.stopPropagation();
+              onDelete(secret.path);
             }}
             className="ml-2 hidden rounded p-1 text-neutral-600 transition-colors hover:bg-red-950/50 hover:text-red-400 group-hover:flex"
             aria-label={`Delete ${secret.path}`}
@@ -54,5 +54,5 @@ export default function SecretList({ secrets, selectedPath, onSelect, onDelete }
         </div>
       ))}
     </div>
-  )
+  );
 }

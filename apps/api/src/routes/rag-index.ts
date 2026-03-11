@@ -9,50 +9,50 @@
  * Requires requireFeature('ai') — applied in apps/api/src/index.ts.
  */
 
-import type { DatabaseClient } from '@revealui/db/client'
-import { getVectorClient } from '@revealui/db/client'
-import { ragDocuments } from '@revealui/db/schema/rag'
-import { and, count, eq, isNotNull, max } from 'drizzle-orm'
-import { Hono } from 'hono'
+import type { DatabaseClient } from '@revealui/db/client';
+import { getVectorClient } from '@revealui/db/client';
+import { ragDocuments } from '@revealui/db/schema/rag';
+import { and, count, eq, isNotNull, max } from 'drizzle-orm';
+import { Hono } from 'hono';
 
 type Variables = {
-  db: DatabaseClient
-  tenant?: { id: string }
-}
+  db: DatabaseClient;
+  tenant?: { id: string };
+};
 
 // biome-ignore lint/style/useNamingConvention: Hono requires PascalCase `Variables` in its generic type parameter
-const app = new Hono<{ Variables: Variables }>()
+const app = new Hono<{ Variables: Variables }>();
 
 // =============================================================================
 // POST /api/rag/workspaces/:workspaceId/index/:collection
 // =============================================================================
 
 app.post('/workspaces/:workspaceId/index/:collection', async (c) => {
-  const { workspaceId, collection } = c.req.param()
+  const { workspaceId, collection } = c.req.param();
 
   if (!/^[a-zA-Z0-9_-]+$/.test(collection)) {
-    return c.json({ success: false, error: 'Invalid collection name' }, 400)
+    return c.json({ success: false, error: 'Invalid collection name' }, 400);
   }
 
   // CMS API client — requires NEXT_PUBLIC_CMS_URL or CMS_URL
   const cmsBaseUrl =
-    process.env.CMS_URL ?? process.env.NEXT_PUBLIC_CMS_URL ?? 'http://localhost:4000'
+    process.env.CMS_URL ?? process.env.NEXT_PUBLIC_CMS_URL ?? 'http://localhost:4000';
 
-  let documents: Array<{ id: string; title?: string; content?: string; rawContent?: string }> = []
+  let documents: Array<{ id: string; title?: string; content?: string; rawContent?: string }> = [];
 
   try {
     // Paginated fetch from CMS collection REST API
     const res = await fetch(`${cmsBaseUrl}/api/${collection}?limit=100&depth=0`, {
       headers: { 'Content-Type': 'application/json' },
       signal: AbortSignal.timeout(300_000), // 5 minute timeout
-    })
+    });
 
     if (!res.ok) {
-      return c.json({ success: false, error: `CMS fetch failed: HTTP ${res.status}` }, 502)
+      return c.json({ success: false, error: `CMS fetch failed: HTTP ${res.status}` }, 502);
     }
 
-    const data = (await res.json()) as { docs?: typeof documents }
-    documents = data.docs ?? []
+    const data = (await res.json()) as { docs?: typeof documents };
+    documents = data.docs ?? [];
   } catch (error) {
     return c.json(
       {
@@ -60,35 +60,35 @@ app.post('/workspaces/:workspaceId/index/:collection', async (c) => {
         error: `CMS fetch error: ${error instanceof Error ? error.message : String(error)}`,
       },
       502,
-    )
+    );
   }
 
   const [embeddingsMod, ingestionMod] = await Promise.all([
     import('@revealui/ai/embeddings').catch(() => null),
     import('@revealui/ai/ingestion').catch(() => null),
-  ])
+  ]);
 
   if (!(embeddingsMod && ingestionMod)) {
-    return c.json({ success: false, error: 'AI package not available' }, 503)
+    return c.json({ success: false, error: 'AI package not available' }, 503);
   }
 
-  const vectorDb = getVectorClient()
+  const vectorDb = getVectorClient();
   const embeddingFn = async (text: string): Promise<number[]> => {
-    const emb = await embeddingsMod.generateEmbedding(text)
-    return emb.vector
-  }
+    const emb = await embeddingsMod.generateEmbedding(text);
+    return emb.vector;
+  };
 
   // Type assertion needed: workspace @revealui/db and npm @revealui/db resolve
   // to structurally identical but nominally different Database types.
-  type PipelineDb = ConstructorParameters<typeof ingestionMod.IngestionPipeline>[0]
+  type PipelineDb = ConstructorParameters<typeof ingestionMod.IngestionPipeline>[0];
   const pipeline = new ingestionMod.IngestionPipeline(
     vectorDb as unknown as PipelineDb,
     embeddingFn,
-  )
+  );
 
-  let indexed = 0
-  let failed = 0
-  const jobId = `rag-index-${workspaceId}-${collection}-${Date.now()}`
+  let indexed = 0;
+  let failed = 0;
+  const jobId = `rag-index-${workspaceId}-${collection}-${Date.now()}`;
 
   // Run indexing synchronously (background queue deferred)
   for (const doc of documents) {
@@ -97,7 +97,7 @@ app.post('/workspaces/:workspaceId/index/:collection', async (c) => {
         ? doc.content
         : typeof doc.rawContent === 'string'
           ? doc.rawContent
-          : JSON.stringify(doc)
+          : JSON.stringify(doc);
 
     const result = await pipeline.ingest({
       workspaceId,
@@ -107,12 +107,12 @@ app.post('/workspaces/:workspaceId/index/:collection', async (c) => {
       title: doc.title ?? `${collection}/${doc.id}`,
       mimeType: 'text/plain',
       rawContent,
-    })
+    });
 
     if (result.status === 'indexed') {
-      indexed++
+      indexed++;
     } else {
-      failed++
+      failed++;
     }
   }
 
@@ -125,85 +125,85 @@ app.post('/workspaces/:workspaceId/index/:collection', async (c) => {
     indexed,
     failed,
     status: 'completed',
-  })
-})
+  });
+});
 
 // =============================================================================
 // GET /api/rag/workspaces/:workspaceId/documents
 // =============================================================================
 
 app.get('/workspaces/:workspaceId/documents', async (c) => {
-  const { workspaceId } = c.req.param()
-  const vectorDb = getVectorClient()
+  const { workspaceId } = c.req.param();
+  const vectorDb = getVectorClient();
 
   const docs = await vectorDb
     .select()
     .from(ragDocuments)
-    .where(eq(ragDocuments.workspaceId, workspaceId))
+    .where(eq(ragDocuments.workspaceId, workspaceId));
 
-  return c.json({ success: true, documents: docs, total: docs.length })
-})
+  return c.json({ success: true, documents: docs, total: docs.length });
+});
 
 // =============================================================================
 // DELETE /api/rag/workspaces/:workspaceId/documents/:documentId
 // =============================================================================
 
 app.delete('/workspaces/:workspaceId/documents/:documentId', async (c) => {
-  const { documentId } = c.req.param()
+  const { documentId } = c.req.param();
 
   const [embeddingsMod, ingestionMod] = await Promise.all([
     import('@revealui/ai/embeddings').catch(() => null),
     import('@revealui/ai/ingestion').catch(() => null),
-  ])
+  ]);
 
   if (!(embeddingsMod && ingestionMod)) {
-    return c.json({ success: false, error: 'AI package not available' }, 503)
+    return c.json({ success: false, error: 'AI package not available' }, 503);
   }
 
-  const vectorDb = getVectorClient()
+  const vectorDb = getVectorClient();
 
   const embeddingFn = async (text: string): Promise<number[]> => {
-    const emb = await embeddingsMod.generateEmbedding(text)
-    return emb.vector
-  }
+    const emb = await embeddingsMod.generateEmbedding(text);
+    return emb.vector;
+  };
   // Type assertion: workspace vs npm @revealui/db nominal type mismatch (structurally identical)
-  type PipelineDb = ConstructorParameters<typeof ingestionMod.IngestionPipeline>[0]
+  type PipelineDb = ConstructorParameters<typeof ingestionMod.IngestionPipeline>[0];
   const pipeline = new ingestionMod.IngestionPipeline(
     vectorDb as unknown as PipelineDb,
     embeddingFn,
-  )
-  await pipeline.deleteDocument(documentId)
+  );
+  await pipeline.deleteDocument(documentId);
 
-  return c.json({ success: true, documentId })
-})
+  return c.json({ success: true, documentId });
+});
 
 // =============================================================================
 // GET /api/rag/workspaces/:workspaceId/status
 // =============================================================================
 
 app.get('/workspaces/:workspaceId/status', async (c) => {
-  const { workspaceId } = c.req.param()
-  const vectorDb = getVectorClient()
+  const { workspaceId } = c.req.param();
+  const vectorDb = getVectorClient();
 
   const [totalRow] = await vectorDb
     .select({ total: count() })
     .from(ragDocuments)
-    .where(eq(ragDocuments.workspaceId, workspaceId))
+    .where(eq(ragDocuments.workspaceId, workspaceId));
 
   const [indexedRow] = await vectorDb
     .select({ total: count() })
     .from(ragDocuments)
-    .where(and(eq(ragDocuments.workspaceId, workspaceId), eq(ragDocuments.status, 'indexed')))
+    .where(and(eq(ragDocuments.workspaceId, workspaceId), eq(ragDocuments.status, 'indexed')));
 
   const [pendingRow] = await vectorDb
     .select({ total: count() })
     .from(ragDocuments)
-    .where(and(eq(ragDocuments.workspaceId, workspaceId), eq(ragDocuments.status, 'pending')))
+    .where(and(eq(ragDocuments.workspaceId, workspaceId), eq(ragDocuments.status, 'pending')));
 
   const [lastRow] = await vectorDb
     .select({ lastIndexedAt: max(ragDocuments.indexedAt) })
     .from(ragDocuments)
-    .where(and(eq(ragDocuments.workspaceId, workspaceId), isNotNull(ragDocuments.indexedAt)))
+    .where(and(eq(ragDocuments.workspaceId, workspaceId), isNotNull(ragDocuments.indexedAt)));
 
   return c.json({
     success: true,
@@ -212,7 +212,7 @@ app.get('/workspaces/:workspaceId/status', async (c) => {
     indexedDocuments: indexedRow?.total ?? 0,
     pendingDocuments: pendingRow?.total ?? 0,
     lastIndexedAt: lastRow?.lastIndexedAt ?? null,
-  })
-})
+  });
+});
 
-export default app
+export default app;

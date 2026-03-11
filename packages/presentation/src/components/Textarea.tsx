@@ -1,9 +1,9 @@
-import type React from 'react'
-import { cn } from '../utils/cn.js'
+import type React from 'react';
+import { cn } from '../utils/cn.js';
 
 export type TextareaProps = React.TextareaHTMLAttributes<HTMLTextAreaElement> & {
-  ref?: React.Ref<HTMLTextAreaElement>
-}
+  ref?: React.Ref<HTMLTextAreaElement>;
+};
 
 function Textarea({ className, ref, ...props }: TextareaProps) {
   return (
@@ -15,7 +15,7 @@ function Textarea({ className, ref, ...props }: TextareaProps) {
       ref={ref}
       {...props}
     />
-  )
+  );
 }
 
-export { Textarea }
+export { Textarea };

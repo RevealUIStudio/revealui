@@ -12,27 +12,27 @@
  * - node:fs - File system operations
  */
 
-import { execSync } from 'node:child_process'
-import fs from 'node:fs'
-import { ErrorCode } from '../lib/errors.js'
+import { execSync } from 'node:child_process';
+import fs from 'node:fs';
+import { ErrorCode } from '../lib/errors.js';
 
 interface Claim {
-  file: string
-  category: string
-  description: string
-  pattern: string
-  matches: string[]
-  context: string
-  verification: string
+  file: string;
+  category: string;
+  description: string;
+  pattern: string;
+  matches: string[];
+  context: string;
+  verification: string;
 }
 
 interface SystemState {
-  testsCanRun: boolean
-  consoleStatements: number
-  anyTypes: number
-  securityVerified: boolean
-  coverageMetrics: boolean
-  currentYear: number
+  testsCanRun: boolean;
+  consoleStatements: number;
+  anyTypes: number;
+  securityVerified: boolean;
+  coverageMetrics: boolean;
+  currentYear: number;
 }
 
 /**
@@ -40,59 +40,59 @@ interface SystemState {
  * NO HARDCODED ASSUMPTIONS - Everything must be verified
  */
 async function getActualSystemState(): Promise<SystemState> {
-  console.log('🔍 Gathering actual system state...\n')
+  console.log('🔍 Gathering actual system state...\n');
 
   // Check if tests can actually run
-  let testsCanRun = false
+  let testsCanRun = false;
   try {
-    execSync('pnpm test --run --reporter=silent 2>&1', { timeout: 30000, stdio: 'pipe' })
-    testsCanRun = true
+    execSync('pnpm test --run --reporter=silent 2>&1', { timeout: 30000, stdio: 'pipe' });
+    testsCanRun = true;
   } catch {
-    testsCanRun = false
+    testsCanRun = false;
   }
 
   // Count actual console.* statements
-  let consoleStatements = 0
+  let consoleStatements = 0;
   try {
     const result = execSync(
       'grep -r "console\\." --include="*.ts" --include="*.tsx" --include="*.js" --include="*.jsx" . 2>/dev/null | wc -l',
       { encoding: 'utf-8' },
-    )
-    consoleStatements = parseInt(result.trim(), 10) || 0
+    );
+    consoleStatements = parseInt(result.trim(), 10) || 0;
   } catch {
-    consoleStatements = 0
+    consoleStatements = 0;
   }
 
   // Count actual any types
-  let anyTypes = 0
+  let anyTypes = 0;
   try {
     const result = execSync(
       'grep -r ": any" --include="*.ts" --include="*.tsx" . 2>/dev/null | wc -l',
       { encoding: 'utf-8' },
-    )
-    anyTypes = parseInt(result.trim(), 10) || 0
+    );
+    anyTypes = parseInt(result.trim(), 10) || 0;
   } catch {
-    anyTypes = 0
+    anyTypes = 0;
   }
 
   // Check if security tests exist and pass
-  let securityVerified = false
+  let securityVerified = false;
   try {
     const securityTestFiles = execSync(
       'find . -name "*security*.test.ts" -o -name "*auth*.test.ts" 2>/dev/null | wc -l',
       { encoding: 'utf-8' },
-    )
-    securityVerified = parseInt(securityTestFiles.trim(), 10) > 0
+    );
+    securityVerified = parseInt(securityTestFiles.trim(), 10) > 0;
   } catch {
-    securityVerified = false
+    securityVerified = false;
   }
 
   // Check if coverage metrics exist
-  let coverageMetrics = false
+  let coverageMetrics = false;
   try {
-    coverageMetrics = fs.existsSync('coverage/coverage-summary.json')
+    coverageMetrics = fs.existsSync('coverage/coverage-summary.json');
   } catch {
-    coverageMetrics = false
+    coverageMetrics = false;
   }
 
   const state = {
@@ -102,50 +102,50 @@ async function getActualSystemState(): Promise<SystemState> {
     securityVerified,
     coverageMetrics,
     currentYear: new Date().getFullYear(),
-  }
+  };
 
-  console.log('📊 Actual System State:')
-  console.log(`   Tests Can Run: ${state.testsCanRun}`)
-  console.log(`   Console Statements: ${state.consoleStatements}`)
-  console.log(`   Any Types: ${state.anyTypes}`)
-  console.log(`   Security Verified: ${state.securityVerified}`)
-  console.log(`   Coverage Metrics: ${state.coverageMetrics}`)
-  console.log(`   Current Year: ${state.currentYear}\n`)
+  console.log('📊 Actual System State:');
+  console.log(`   Tests Can Run: ${state.testsCanRun}`);
+  console.log(`   Console Statements: ${state.consoleStatements}`);
+  console.log(`   Any Types: ${state.anyTypes}`);
+  console.log(`   Security Verified: ${state.securityVerified}`);
+  console.log(`   Coverage Metrics: ${state.coverageMetrics}`);
+  console.log(`   Current Year: ${state.currentYear}\n`);
 
-  return state
+  return state;
 }
 
-let systemState: SystemState
+let systemState: SystemState;
 
 interface VerifiedClaim {
-  file: string
-  category: string
-  description: string
+  file: string;
+  category: string;
+  description: string;
   verification: {
-    status: 'confirmedFalse' | 'potentiallyFalse' | 'needsInvestigation'
-    reason: string
-    action: string
-    priority: 'critical' | 'high' | 'medium' | 'low'
-  }
+    status: 'confirmedFalse' | 'potentiallyFalse' | 'needsInvestigation';
+    reason: string;
+    action: string;
+    priority: 'critical' | 'high' | 'medium' | 'low';
+  };
 }
 
 interface VerificationResults {
-  verified: VerifiedClaim[]
+  verified: VerifiedClaim[];
   summary: {
-    totalVerified: number
-    confirmedFalse: number
-    potentiallyFalse: number
-    needsInvestigation: number
-  }
+    totalVerified: number;
+    confirmedFalse: number;
+    potentiallyFalse: number;
+    needsInvestigation: number;
+  };
 }
 
 async function verifyClaims(): Promise<VerificationResults> {
-  console.log('🔍 Verifying false claims against system state...\n')
+  console.log('🔍 Verifying false claims against system state...\n');
 
   // Get actual system state first
-  systemState = await getActualSystemState()
+  systemState = await getActualSystemState();
 
-  const auditResults = JSON.parse(fs.readFileSync('docs/audit-results.json', 'utf8'))
+  const auditResults = JSON.parse(fs.readFileSync('docs/audit-results.json', 'utf8'));
   const verifiedResults: VerificationResults = {
     verified: [],
     summary: {
@@ -154,43 +154,43 @@ async function verifyClaims(): Promise<VerificationResults> {
       potentiallyFalse: 0,
       needsInvestigation: 0,
     },
-  }
+  };
 
   auditResults.falseClaims.forEach((claim: Claim) => {
-    const verification = verifyClaim(claim)
+    const verification = verifyClaim(claim);
     verifiedResults.verified.push({
       ...claim,
       verification: verification as VerifiedClaim['verification'],
-    })
+    });
 
-    verifiedResults.summary.totalVerified++
-    verifiedResults.summary[verification.status as keyof typeof verifiedResults.summary]++
-  })
+    verifiedResults.summary.totalVerified++;
+    verifiedResults.summary[verification.status as keyof typeof verifiedResults.summary]++;
+  });
 
   // Generate verification report
-  console.log('✅ VERIFICATION COMPLETE\n')
-  console.log('='.repeat(50))
-  console.log('VERIFICATION REPORT')
-  console.log('='.repeat(50))
+  console.log('✅ VERIFICATION COMPLETE\n');
+  console.log('='.repeat(50));
+  console.log('VERIFICATION REPORT');
+  console.log('='.repeat(50));
 
-  console.log(`\n📊 Summary:`)
-  console.log(`   Total Claims Verified: ${verifiedResults.summary.totalVerified}`)
-  console.log(`   ✅ Confirmed False: ${verifiedResults.summary.confirmedFalse}`)
-  console.log(`   ⚠️ Potentially False: ${verifiedResults.summary.potentiallyFalse}`)
-  console.log(`   🔍 Needs Investigation: ${verifiedResults.summary.needsInvestigation}`)
+  console.log(`\n📊 Summary:`);
+  console.log(`   Total Claims Verified: ${verifiedResults.summary.totalVerified}`);
+  console.log(`   ✅ Confirmed False: ${verifiedResults.summary.confirmedFalse}`);
+  console.log(`   ⚠️ Potentially False: ${verifiedResults.summary.potentiallyFalse}`);
+  console.log(`   🔍 Needs Investigation: ${verifiedResults.summary.needsInvestigation}`);
 
-  console.log(`\n🚨 Critical False Claims (Immediate Action Required):`)
+  console.log(`\n🚨 Critical False Claims (Immediate Action Required):`);
   verifiedResults.verified
     .filter((claim) => claim.verification.priority === 'critical')
     .slice(0, 10)
     .forEach((claim, index) => {
-      console.log(`   ${index + 1}. ${claim.file}`)
-      console.log(`      ${claim.description}`)
-      console.log(`      Action: ${claim.verification.action}`)
-      console.log()
-    })
+      console.log(`   ${index + 1}. ${claim.file}`);
+      console.log(`      ${claim.description}`);
+      console.log(`      Action: ${claim.verification.action}`);
+      console.log();
+    });
 
-  console.log(`📁 Files Needing Updates:`)
+  console.log(`📁 Files Needing Updates:`);
   const filesToUpdate = [
     ...new Set([
       ...verifiedResults.verified
@@ -200,28 +200,28 @@ async function verifyClaims(): Promise<VerificationResults> {
         .filter((c) => c.verification.status === 'potentiallyFalse')
         .map((c) => c.file),
     ]),
-  ]
+  ];
 
   filesToUpdate.slice(0, 10).forEach((file, index) => {
-    const claimCount = verifiedResults.verified.filter((c) => c.file === file).length
-    console.log(`   ${index + 1}. ${file} (${claimCount} claims)`)
-  })
+    const claimCount = verifiedResults.verified.filter((c) => c.file === file).length;
+    console.log(`   ${index + 1}. ${file} (${claimCount} claims)`);
+  });
 
   if (filesToUpdate.length > 10) {
-    console.log(`   ... and ${filesToUpdate.length - 10} more files`)
+    console.log(`   ... and ${filesToUpdate.length - 10} more files`);
   }
 
-  console.log(`\n💡 Next Steps:`)
-  console.log(`1. Review the critical false claims above`)
-  console.log(`2. Run consolidation script: node scripts/consolidate-docs.ts`)
-  console.log(`3. Create new organized structure`)
-  console.log(`4. Establish maintenance policies`)
+  console.log(`\n💡 Next Steps:`);
+  console.log(`1. Review the critical false claims above`);
+  console.log(`2. Run consolidation script: node scripts/consolidate-docs.ts`);
+  console.log(`3. Create new organized structure`);
+  console.log(`4. Establish maintenance policies`);
 
   // Save detailed results
-  fs.writeFileSync('docs/verified-claims.json', JSON.stringify(verifiedResults, null, 2))
-  console.log(`\n💾 Detailed results saved to: docs/verified-claims.json`)
+  fs.writeFileSync('docs/verified-claims.json', JSON.stringify(verifiedResults, null, 2));
+  console.log(`\n💾 Detailed results saved to: docs/verified-claims.json`);
 
-  return verifiedResults
+  return verifiedResults;
 }
 
 function verifyClaim(claim: Claim) {
@@ -233,7 +233,7 @@ function verifyClaim(claim: Claim) {
         reason: 'Tests cannot run due to cyclic dependencies',
         action: 'Update to: "Testing infrastructure exists but has blockers"',
         priority: 'critical',
-      }
+      };
     }
 
     if (claim.description.includes('enterprise-grade security') && !systemState.securityVerified) {
@@ -242,7 +242,7 @@ function verifyClaim(claim: Claim) {
         reason: 'Security measures exist but are unverified',
         action: 'Update to: "Security measures implemented, verification pending"',
         priority: 'high',
-      }
+      };
     }
 
     if (claim.description.includes('production ready')) {
@@ -251,7 +251,7 @@ function verifyClaim(claim: Claim) {
         reason: 'Multiple critical blockers prevent production use',
         action: 'Update to: "NOT production ready - critical blockers exist"',
         priority: 'critical',
-      }
+      };
     }
   }
 
@@ -263,7 +263,7 @@ function verifyClaim(claim: Claim) {
         reason: `Actual count is ${systemState.consoleStatements}, not 53`,
         action: `Update to: "${systemState.consoleStatements} console statements (target: <50)"`,
         priority: 'high',
-      }
+      };
     }
 
     if (claim.description.includes('cannot run')) {
@@ -273,7 +273,7 @@ function verifyClaim(claim: Claim) {
           'Tests blocked by cyclic dependencies - this claim is accurate but context is misleading',
         action: 'Verify context and update for clarity if needed',
         priority: 'medium',
-      }
+      };
     }
   }
 
@@ -284,12 +284,12 @@ function verifyClaim(claim: Claim) {
       reason: 'Requires manual verification of completion status against current system state',
       action: 'Verify completion claims and update to reflect current reality',
       priority: 'high',
-    }
+    };
   }
 
   // Outdated content (future dates)
   if (claim.category === 'outdatedContent') {
-    const yearMatch = claim.context.match(/\b(202[6-9])\b/)
+    const yearMatch = claim.context.match(/\b(202[6-9])\b/);
     if (yearMatch && parseInt(yearMatch[1], 10) > systemState.currentYear) {
       return {
         status: 'confirmedFalse',
@@ -299,7 +299,7 @@ function verifyClaim(claim: Claim) {
             ? 'Update to current date'
             : 'Move to planning docs or archive',
         priority: 'medium',
-      }
+      };
     }
   }
 
@@ -308,11 +308,11 @@ function verifyClaim(claim: Claim) {
     reason: 'Requires manual review to determine accuracy',
     action: 'Investigate and categorize appropriately',
     priority: 'low',
-  }
+  };
 }
 
 // Run verification
 verifyClaims().catch((error) => {
-  console.error('❌ Verification failed:', error)
-  process.exit(ErrorCode.VALIDATION_ERROR)
-})
+  console.error('❌ Verification failed:', error);
+  process.exit(ErrorCode.VALIDATION_ERROR);
+});

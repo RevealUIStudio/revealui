@@ -1,38 +1,38 @@
-import { logger } from '@revealui/core/observability/logger'
-import { useEffect, useState } from 'react'
-import { ErrorBoundary } from '../components/ErrorBoundary'
-import { LoadingSkeleton } from '../components/LoadingSkeleton'
-import { useWildcardPath } from '../hooks/useWildcardPath'
-import { loadMarkdownFile, renderMarkdown } from '../utils/markdown'
-import { resolveDocPath } from '../utils/paths'
+import { logger } from '@revealui/core/observability/logger';
+import { useEffect, useState } from 'react';
+import { ErrorBoundary } from '../components/ErrorBoundary';
+import { LoadingSkeleton } from '../components/LoadingSkeleton';
+import { useWildcardPath } from '../hooks/useWildcardPath';
+import { loadMarkdownFile, renderMarkdown } from '../utils/markdown';
+import { resolveDocPath } from '../utils/paths';
 
 function GuideContent() {
-  const path = useWildcardPath()
-  const [content, setContent] = useState<string>('')
-  const [loading, setLoading] = useState(true)
-  const [error, setError] = useState<string | null>(null)
+  const path = useWildcardPath();
+  const [content, setContent] = useState<string>('');
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     async function loadGuide() {
       try {
-        setLoading(true)
-        setError(null)
+        setLoading(true);
+        setError(null);
 
         // Use shared path resolution utility
         const resolved = resolveDocPath({
           section: 'guides',
           routePath: path || null,
-        })
+        });
 
         try {
-          const loaded = await loadMarkdownFile(resolved.markdownPath, true) // Use cache
-          setContent(loaded)
+          const loaded = await loadMarkdownFile(resolved.markdownPath, true); // Use cache
+          setContent(loaded);
         } catch (loadError) {
           // Log error for debugging
           logger.error(
             `[GuidesPage] Failed to load guide: ${resolved.markdownPath}`,
             loadError instanceof Error ? loadError : new Error(String(loadError)),
-          )
+          );
 
           // Fallback to placeholder
           setContent(`# Guide: ${resolved.displayPath || 'Index'}
@@ -40,26 +40,26 @@ function GuideContent() {
 Guide not found at \`${resolved.markdownPath}\`.
 
 Available guides are loaded from the \`docs/guides/\` directory.
-`)
+`);
         }
 
-        setLoading(false)
+        setLoading(false);
       } catch (err) {
-        const errorMessage = err instanceof Error ? err.message : 'Failed to load guide'
-        setError(errorMessage)
+        const errorMessage = err instanceof Error ? err.message : 'Failed to load guide';
+        setError(errorMessage);
         logger.error(
           '[GuidesPage] Error loading guide',
           err instanceof Error ? err : new Error(String(err)),
-        )
-        setLoading(false)
+        );
+        setLoading(false);
       }
     }
 
-    void loadGuide()
-  }, [path])
+    void loadGuide();
+  }, [path]);
 
   if (loading) {
-    return <LoadingSkeleton />
+    return <LoadingSkeleton />;
   }
 
   if (error) {
@@ -68,19 +68,19 @@ Available guides are loaded from the \`docs/guides/\` directory.
         <h1>Error Loading Guide</h1>
         <p>{error}</p>
       </div>
-    )
+    );
   }
 
   return (
     <ErrorBoundary>
       <div>{renderMarkdown(content)}</div>
     </ErrorBoundary>
-  )
+  );
 }
 
 function GuideIndex() {
-  const [content, setContent] = useState<string>('')
-  const [loading, setLoading] = useState(true)
+  const [content, setContent] = useState<string>('');
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     async function loadIndex() {
@@ -89,16 +89,16 @@ function GuideIndex() {
         const resolved = resolveDocPath({
           section: 'guides',
           routePath: null,
-        })
+        });
 
-        const indexContent = await loadMarkdownFile(resolved.markdownPath, true) // Use cache
-        setContent(indexContent)
+        const indexContent = await loadMarkdownFile(resolved.markdownPath, true); // Use cache
+        setContent(indexContent);
       } catch (error) {
         // Log error for debugging
         logger.error(
           '[GuidesPage] Failed to load guides index',
           error instanceof Error ? error : new Error(String(error)),
-        )
+        );
 
         // Fallback
         setContent(`# Guides
@@ -106,33 +106,33 @@ function GuideIndex() {
 Welcome to the RevealUI Framework guides section.
 
 Guides are located in the \`docs/guides/\` directory. Available guides will be listed here once files are copied to the public directory.
-`)
+`);
       } finally {
-        setLoading(false)
+        setLoading(false);
       }
     }
 
-    void loadIndex()
-  }, [])
+    void loadIndex();
+  }, []);
 
   if (loading) {
-    return <LoadingSkeleton />
+    return <LoadingSkeleton />;
   }
 
   return (
     <ErrorBoundary>
       <div>{renderMarkdown(content)}</div>
     </ErrorBoundary>
-  )
+  );
 }
 
 export function GuidesPage() {
-  const path = useWildcardPath()
+  const path = useWildcardPath();
 
   // If no path, show index
   if (!path || path === '') {
-    return <GuideIndex />
+    return <GuideIndex />;
   }
 
-  return <GuideContent />
+  return <GuideContent />;
 }

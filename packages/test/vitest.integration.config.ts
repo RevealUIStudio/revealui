@@ -1,5 +1,5 @@
-import path from 'node:path'
-import { defineConfig } from 'vitest/config'
+import path from 'node:path';
+import { defineConfig } from 'vitest/config';
 
 /**
  * Vitest configuration for integration tests
@@ -54,4 +54,4 @@ export default defineConfig({
       ],
     },
   },
-})
+});

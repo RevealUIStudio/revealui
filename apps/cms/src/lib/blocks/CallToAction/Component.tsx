@@ -1,12 +1,12 @@
-import { ButtonBlockSchema } from '@revealui/contracts/content'
-import type { Page } from '@revealui/core/types/cms'
-import { logger } from '@revealui/core/utils/logger'
-import type React from 'react'
-import { memo } from 'react'
-import { CMSLink } from '@/lib/components/Link/index'
-import RichText from '@/lib/components/RichText/index'
+import { ButtonBlockSchema } from '@revealui/contracts/content';
+import type { Page } from '@revealui/core/types/cms';
+import { logger } from '@revealui/core/utils/logger';
+import type React from 'react';
+import { memo } from 'react';
+import { CMSLink } from '@/lib/components/Link/index';
+import RichText from '@/lib/components/RichText/index';
 
-type Props = Extract<Page['layout'][0], { blockType: 'cta' }>
+type Props = Extract<Page['layout'][0], { blockType: 'cta' }>;
 
 export const CallToActionBlock: React.FC<Props> = memo(({ links, richText }) => {
   // Runtime validation with ButtonBlockSchema
@@ -19,11 +19,11 @@ export const CallToActionBlock: React.FC<Props> = memo(({ links, richText }) => 
         href: links?.[0]?.link?.url || '',
         variant: links?.[0]?.link?.appearance === 'outline' ? 'outline' : 'default',
       },
-    }
-    ButtonBlockSchema.parse(buttonBlockData)
+    };
+    ButtonBlockSchema.parse(buttonBlockData);
   } catch (error) {
     if (process.env.NODE_ENV === 'development') {
-      logger.warn('CallToActionBlock validation warning', { error })
+      logger.warn('CallToActionBlock validation warning', { error });
     }
   }
 
@@ -40,7 +40,7 @@ export const CallToActionBlock: React.FC<Props> = memo(({ links, richText }) => 
         </div>
       </div>
     </div>
-  )
-})
+  );
+});
 
-CallToActionBlock.displayName = 'CallToActionBlock'
+CallToActionBlock.displayName = 'CallToActionBlock';

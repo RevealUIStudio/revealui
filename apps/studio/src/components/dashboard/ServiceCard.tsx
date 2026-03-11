@@ -1,16 +1,16 @@
-import StatusDot from '../ui/StatusDot'
+import StatusDot from '../ui/StatusDot';
 
 interface ServiceCardProps {
-  title: string
-  status: 'running' | 'stopped' | 'degraded'
-  detail: string
+  title: string;
+  status: 'running' | 'stopped' | 'degraded';
+  detail: string;
 }
 
 const statusMap = {
   running: 'ok',
   stopped: 'off',
   degraded: 'warn',
-} as const
+} as const;
 
 export default function ServiceCard({ title, status, detail }: ServiceCardProps) {
   return (
@@ -22,5 +22,5 @@ export default function ServiceCard({ title, status, detail }: ServiceCardProps)
       <p className="mt-2 text-xs text-neutral-400">{detail}</p>
       <p className="mt-1 text-xs capitalize text-neutral-500">{status}</p>
     </div>
-  )
+  );
 }

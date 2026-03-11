@@ -4,7 +4,7 @@
  * Standardized error handling for RevealUI framework.
  */
 
-import { logger } from './logger.js'
+import { logger } from './logger.js';
 
 /**
  * Application Error
@@ -17,9 +17,9 @@ export class ApplicationError extends Error {
     public statusCode: number = 500,
     public context?: Record<string, unknown>,
   ) {
-    super(message)
-    this.name = 'ApplicationError'
-    Error.captureStackTrace(this, ApplicationError)
+    super(message);
+    this.name = 'ApplicationError';
+    Error.captureStackTrace(this, ApplicationError);
   }
 }
 
@@ -34,9 +34,9 @@ export class ValidationError extends Error {
     public value: unknown,
     public context?: Record<string, unknown>,
   ) {
-    super(message)
-    this.name = 'ValidationError'
-    Error.captureStackTrace(this, ValidationError)
+    super(message);
+    this.name = 'ValidationError';
+    Error.captureStackTrace(this, ValidationError);
   }
 }
 
@@ -55,9 +55,9 @@ export class DatabaseError extends Error {
     public column?: string,
     public context?: Record<string, unknown>,
   ) {
-    super(message)
-    this.name = 'DatabaseError'
-    Error.captureStackTrace(this, DatabaseError)
+    super(message);
+    this.name = 'DatabaseError';
+    Error.captureStackTrace(this, DatabaseError);
   }
 }
 
@@ -99,27 +99,27 @@ export const PostgresErrorCode = {
   // Class 25 - Invalid Transaction State
   INVALID_TRANSACTION_STATE: '25000',
   ACTIVE_SQL_TRANSACTION: '25001',
-} as const
+} as const;
 
 /**
  * Extract Postgres error information from an error object
  */
 function parsePostgresError(error: unknown): {
-  pgCode?: string
-  constraint?: string
-  table?: string
-  column?: string
-  detail?: string
+  pgCode?: string;
+  constraint?: string;
+  table?: string;
+  column?: string;
+  detail?: string;
 } {
   // Handle Postgres/pg library errors
   if (error && typeof error === 'object' && 'code' in error && typeof error.code === 'string') {
     const pgError = error as {
-      code: string
-      constraint?: string
-      table?: string
-      column?: string
-      detail?: string
-    }
+      code: string;
+      constraint?: string;
+      table?: string;
+      column?: string;
+      detail?: string;
+    };
 
     return {
       pgCode: pgError.code,
@@ -127,10 +127,10 @@ function parsePostgresError(error: unknown): {
       table: pgError.table,
       column: pgError.column,
       detail: pgError.detail,
-    }
+    };
   }
 
-  return {}
+  return {};
 }
 
 /**
@@ -155,14 +155,14 @@ export function handleApiError(
       column: error.column,
       ...error.context,
       ...context,
-    })
+    });
 
     return {
       message: error.message,
       statusCode: error.statusCode,
       code: error.code,
       retryable: error.context?.retryable as boolean | undefined,
-    }
+    };
   }
 
   if (error instanceof ApplicationError) {
@@ -172,13 +172,13 @@ export function handleApiError(
       statusCode: error.statusCode,
       ...error.context,
       ...context,
-    })
+    });
 
     return {
       message: error.message,
       statusCode: error.statusCode,
       code: error.code,
-    }
+    };
   }
 
   if (error instanceof ValidationError) {
@@ -187,25 +187,25 @@ export function handleApiError(
       field: error.field,
       ...error.context,
       ...context,
-    })
+    });
 
     return {
       message: error.message,
       statusCode: 400,
       code: 'VALIDATION_ERROR',
-    }
+    };
   }
 
   // Unknown error - log with full details, return generic message
-  const err = error instanceof Error ? error : new Error(String(error))
+  const err = error instanceof Error ? error : new Error(String(error));
 
   // Always use logger - it's always available from the same package
-  logger.error('Unexpected error', { error: err.message, stack: err.stack })
+  logger.error('Unexpected error', { error: err.message, stack: err.stack });
 
   return {
     message: 'An error occurred',
     statusCode: 500,
-  }
+  };
 }
 
 /**
@@ -230,16 +230,16 @@ export function handleDatabaseError(
   operation: string,
   context?: Record<string, unknown>,
 ): never {
-  const pgError = parsePostgresError(error)
-  const errorMessage = error instanceof Error ? error.message : String(error)
+  const pgError = parsePostgresError(error);
+  const errorMessage = error instanceof Error ? error.message : String(error);
 
   // Parse Postgres error codes for specific error types
   if (pgError.pgCode) {
     switch (pgError.pgCode) {
       // Unique constraint violation
       case PostgresErrorCode.UNIQUE_VIOLATION: {
-        const field = pgError.constraint?.replace(/_/g, ' ') || 'field'
-        const message = `Duplicate ${field}: this value already exists`
+        const field = pgError.constraint?.replace(/_/g, ' ') || 'field';
+        const message = `Duplicate ${field}: this value already exists`;
 
         logger.warn('Unique constraint violation', {
           operation,
@@ -247,7 +247,7 @@ export function handleDatabaseError(
           table: pgError.table,
           detail: pgError.detail,
           ...context,
-        })
+        });
 
         throw new DatabaseError(
           message,
@@ -262,13 +262,13 @@ export function handleDatabaseError(
             detail: pgError.detail,
             ...context,
           },
-        )
+        );
       }
 
       // Foreign key constraint violation
       case PostgresErrorCode.FOREIGN_KEY_VIOLATION: {
-        const constraint = pgError.constraint?.replace(/_/g, ' ') || 'reference'
-        const message = `Invalid ${constraint}: referenced record does not exist`
+        const constraint = pgError.constraint?.replace(/_/g, ' ') || 'reference';
+        const message = `Invalid ${constraint}: referenced record does not exist`;
 
         logger.warn('Foreign key violation', {
           operation,
@@ -276,7 +276,7 @@ export function handleDatabaseError(
           table: pgError.table,
           detail: pgError.detail,
           ...context,
-        })
+        });
 
         throw new DatabaseError(
           message,
@@ -291,20 +291,20 @@ export function handleDatabaseError(
             detail: pgError.detail,
             ...context,
           },
-        )
+        );
       }
 
       // Not null constraint violation
       case PostgresErrorCode.NOT_NULL_VIOLATION: {
-        const field = pgError.column || 'field'
-        const message = `Missing required field: ${field} cannot be null`
+        const field = pgError.column || 'field';
+        const message = `Missing required field: ${field} cannot be null`;
 
         logger.warn('Not null violation', {
           operation,
           column: pgError.column,
           table: pgError.table,
           ...context,
-        })
+        });
 
         throw new DatabaseError(
           message,
@@ -318,13 +318,13 @@ export function handleDatabaseError(
             operation,
             ...context,
           },
-        )
+        );
       }
 
       // Check constraint violation
       case PostgresErrorCode.CHECK_VIOLATION: {
-        const constraint = pgError.constraint?.replace(/_/g, ' ') || 'constraint'
-        const message = `Validation failed: ${constraint} check constraint violated`
+        const constraint = pgError.constraint?.replace(/_/g, ' ') || 'constraint';
+        const message = `Validation failed: ${constraint} check constraint violated`;
 
         logger.warn('Check constraint violation', {
           operation,
@@ -332,7 +332,7 @@ export function handleDatabaseError(
           table: pgError.table,
           detail: pgError.detail,
           ...context,
-        })
+        });
 
         throw new DatabaseError(
           message,
@@ -347,18 +347,18 @@ export function handleDatabaseError(
             detail: pgError.detail,
             ...context,
           },
-        )
+        );
       }
 
       // Deadlock detected
       case PostgresErrorCode.DEADLOCK_DETECTED: {
-        const message = 'Database deadlock detected - please retry the operation'
+        const message = 'Database deadlock detected - please retry the operation';
 
         logger.error('Deadlock detected', {
           operation,
           table: pgError.table,
           ...context,
-        })
+        });
 
         throw new DatabaseError(
           message,
@@ -373,17 +373,17 @@ export function handleDatabaseError(
             retryable: true,
             ...context,
           },
-        )
+        );
       }
 
       // Serialization failure (concurrent update conflict)
       case PostgresErrorCode.SERIALIZATION_FAILURE: {
-        const message = 'Concurrent update conflict - please retry the operation'
+        const message = 'Concurrent update conflict - please retry the operation';
 
         logger.warn('Serialization failure', {
           operation,
           ...context,
-        })
+        });
 
         throw new DatabaseError(
           message,
@@ -398,17 +398,17 @@ export function handleDatabaseError(
             retryable: true,
             ...context,
           },
-        )
+        );
       }
 
       // Query canceled (timeout)
       case PostgresErrorCode.QUERY_CANCELED: {
-        const message = 'Database query timeout - operation took too long'
+        const message = 'Database query timeout - operation took too long';
 
         logger.error('Query timeout', {
           operation,
           ...context,
-        })
+        });
 
         throw new DatabaseError(
           message,
@@ -422,20 +422,20 @@ export function handleDatabaseError(
             operation,
             ...context,
           },
-        )
+        );
       }
 
       // Connection errors
       case PostgresErrorCode.CONNECTION_EXCEPTION:
       case PostgresErrorCode.CONNECTION_FAILURE:
       case PostgresErrorCode.CONNECTION_DOES_NOT_EXIST: {
-        const message = 'Database connection error - please try again'
+        const message = 'Database connection error - please try again';
 
         logger.error('Database connection error', {
           operation,
           pgCode: pgError.pgCode,
           ...context,
-        })
+        });
 
         throw new DatabaseError(
           message,
@@ -450,20 +450,20 @@ export function handleDatabaseError(
             retryable: true,
             ...context,
           },
-        )
+        );
       }
 
       // Resource errors
       case PostgresErrorCode.DISK_FULL:
       case PostgresErrorCode.OUT_OF_MEMORY:
       case PostgresErrorCode.TOO_MANY_CONNECTIONS: {
-        const message = 'Database resource limit reached - please try again later'
+        const message = 'Database resource limit reached - please try again later';
 
         logger.error('Database resource error', {
           operation,
           pgCode: pgError.pgCode,
           ...context,
-        })
+        });
 
         throw new DatabaseError(
           message,
@@ -478,13 +478,13 @@ export function handleDatabaseError(
             retryable: true,
             ...context,
           },
-        )
+        );
       }
 
       // Undefined table/column
       case PostgresErrorCode.UNDEFINED_TABLE:
       case PostgresErrorCode.UNDEFINED_COLUMN: {
-        const message = 'Database schema error - table or column does not exist'
+        const message = 'Database schema error - table or column does not exist';
 
         logger.error('Schema error', {
           operation,
@@ -492,7 +492,7 @@ export function handleDatabaseError(
           table: pgError.table,
           column: pgError.column,
           ...context,
-        })
+        });
 
         throw new DatabaseError(
           message,
@@ -506,7 +506,7 @@ export function handleDatabaseError(
             operation,
             ...context,
           },
-        )
+        );
       }
     }
   }
@@ -518,7 +518,7 @@ export function handleDatabaseError(
         operation,
         message: errorMessage,
         ...context,
-      })
+      });
       throw new DatabaseError(
         'Resource already exists',
         'UNIQUE_VIOLATION',
@@ -528,7 +528,7 @@ export function handleDatabaseError(
         undefined,
         undefined,
         { operation, ...context },
-      )
+      );
     }
 
     if (
@@ -539,7 +539,7 @@ export function handleDatabaseError(
         operation,
         message: errorMessage,
         ...context,
-      })
+      });
       throw new DatabaseError(
         'Invalid reference',
         'FOREIGN_KEY_VIOLATION',
@@ -549,11 +549,11 @@ export function handleDatabaseError(
         undefined,
         undefined,
         { operation, ...context },
-      )
+      );
     }
 
     if (errorMessage.includes('not found') || errorMessage.includes('does not exist')) {
-      logger.warn('Not found (message-based)', { operation, message: errorMessage, ...context })
+      logger.warn('Not found (message-based)', { operation, message: errorMessage, ...context });
       throw new DatabaseError(
         'Resource not found',
         'NOT_FOUND',
@@ -563,7 +563,7 @@ export function handleDatabaseError(
         undefined,
         undefined,
         { operation, ...context },
-      )
+      );
     }
   }
 
@@ -577,7 +577,7 @@ export function handleDatabaseError(
     column: pgError.column,
     detail: pgError.detail,
     ...context,
-  })
+  });
 
   throw new DatabaseError(
     'Database operation failed',
@@ -592,5 +592,5 @@ export function handleDatabaseError(
       originalError: errorMessage,
       ...context,
     },
-  )
+  );
 }

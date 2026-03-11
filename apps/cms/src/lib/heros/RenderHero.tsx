@@ -1,23 +1,23 @@
-import type { Page } from '@revealui/core/types/cms'
-import type React from 'react'
-import { HighImpactHero } from './HighImpact/index'
-import { LowImpactHero } from './LowImpact/index'
-import { MediumImpactHero } from './MediumImpact/index'
+import type { Page } from '@revealui/core/types/cms';
+import type React from 'react';
+import { HighImpactHero } from './HighImpact/index';
+import { LowImpactHero } from './LowImpact/index';
+import { MediumImpactHero } from './MediumImpact/index';
 
 const heroes = {
   highImpact: HighImpactHero,
   lowImpact: LowImpactHero,
   mediumImpact: MediumImpactHero,
-}
+};
 
 export const RenderHero: React.FC<Page['hero']> = (props) => {
-  const { type } = props || {}
+  const { type } = props || {};
 
-  if (!type || type === 'none') return null
+  if (!type || type === 'none') return null;
 
-  const HeroToRender = heroes[type]
+  const HeroToRender = heroes[type];
 
-  if (!HeroToRender) return null
+  if (!HeroToRender) return null;
 
-  return <HeroToRender {...props} />
-}
+  return <HeroToRender {...props} />;
+};

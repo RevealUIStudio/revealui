@@ -1,11 +1,11 @@
-import { cleanup, fireEvent, render, screen, waitFor } from '@testing-library/react'
-import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
+import { cleanup, fireEvent, render, screen, waitFor } from '@testing-library/react';
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
 // Mock useLicense provider
-const mockUseLicense = vi.fn()
+const mockUseLicense = vi.fn();
 vi.mock('@/lib/providers/LicenseProvider', () => ({
   useLicense: () => mockUseLicense(),
-}))
+}));
 
 // Mock @revealui/contracts/pricing
 vi.mock('@revealui/contracts/pricing', () => ({
@@ -13,7 +13,7 @@ vi.mock('@revealui/contracts/pricing', () => ({
     { id: 'pro', name: 'Pro', price: '$49/mo' },
     { id: 'max', name: 'Max', price: '$149/mo' },
   ]),
-}))
+}));
 
 // Mock presentation components
 vi.mock('@revealui/presentation', () => ({
@@ -22,10 +22,10 @@ vi.mock('@revealui/presentation', () => ({
     onClose,
     children,
   }: {
-    open: boolean
-    onClose: () => void
-    size?: string
-    children: React.ReactNode
+    open: boolean;
+    onClose: () => void;
+    size?: string;
+    children: React.ReactNode;
   }) =>
     open ? (
       <div data-testid="dialog" data-open={open}>
@@ -45,17 +45,17 @@ vi.mock('@revealui/presentation', () => ({
   DialogActions: ({ children }: { children: React.ReactNode }) => (
     <div data-testid="dialog-actions">{children}</div>
   ),
-}))
+}));
 
 vi.mock('@revealui/presentation/server', () => ({
   PricingTable: ({
     currentTier,
     onSelectTier,
   }: {
-    tiers: unknown[]
-    currentTier: string
-    compact?: boolean
-    onSelectTier: (id: string) => void
+    tiers: unknown[];
+    currentTier: string;
+    compact?: boolean;
+    onSelectTier: (id: string) => void;
   }) => (
     <div data-testid="pricing-table" data-current={currentTier}>
       <button type="button" data-testid="select-pro" onClick={() => onSelectTier('pro')}>
@@ -66,7 +66,7 @@ vi.mock('@revealui/presentation/server', () => ({
       </button>
     </div>
   ),
-}))
+}));
 
 // Mock next/link
 vi.mock('next/link', () => ({
@@ -76,118 +76,118 @@ vi.mock('next/link', () => ({
     onClick,
     ...props
   }: {
-    href: string
-    children: React.ReactNode
-    onClick?: () => void
-    className?: string
+    href: string;
+    children: React.ReactNode;
+    onClick?: () => void;
+    className?: string;
   }) => (
     <a href={href} onClick={onClick} {...props}>
       {children}
     </a>
   ),
-}))
+}));
 
-import { UpgradeDialog } from '../UpgradeDialog'
+import { UpgradeDialog } from '../UpgradeDialog';
 
 afterEach(() => {
-  cleanup()
-})
+  cleanup();
+});
 
 beforeEach(() => {
-  vi.clearAllMocks()
-  mockUseLicense.mockReturnValue({ tier: 'free' })
-})
+  vi.clearAllMocks();
+  mockUseLicense.mockReturnValue({ tier: 'free' });
+});
 
 describe('UpgradeDialog', () => {
   it('does not render dialog initially (closed by default)', () => {
-    render(<UpgradeDialog />)
-    expect(screen.queryByTestId('dialog')).not.toBeInTheDocument()
-  })
+    render(<UpgradeDialog />);
+    expect(screen.queryByTestId('dialog')).not.toBeInTheDocument();
+  });
 
   it('opens when revealui:upgrade-required event is dispatched', async () => {
-    render(<UpgradeDialog />)
-    window.dispatchEvent(new CustomEvent('revealui:upgrade-required', { detail: {} }))
+    render(<UpgradeDialog />);
+    window.dispatchEvent(new CustomEvent('revealui:upgrade-required', { detail: {} }));
     await waitFor(() => {
-      expect(screen.getByTestId('dialog')).toBeInTheDocument()
-    })
-    expect(screen.getByText('Upgrade Your Plan')).toBeInTheDocument()
-  })
+      expect(screen.getByTestId('dialog')).toBeInTheDocument();
+    });
+    expect(screen.getByText('Upgrade Your Plan')).toBeInTheDocument();
+  });
 
   it('shows generic description when no feature name is provided', async () => {
-    render(<UpgradeDialog />)
-    window.dispatchEvent(new CustomEvent('revealui:upgrade-required', { detail: {} }))
+    render(<UpgradeDialog />);
+    window.dispatchEvent(new CustomEvent('revealui:upgrade-required', { detail: {} }));
     await waitFor(() => {
       expect(screen.getByTestId('dialog-description')).toHaveTextContent(
         'Unlock more features by upgrading your plan.',
-      )
-    })
-  })
+      );
+    });
+  });
 
   it('shows feature-specific description when feature name is provided', async () => {
-    render(<UpgradeDialog />)
+    render(<UpgradeDialog />);
     window.dispatchEvent(
       new CustomEvent('revealui:upgrade-required', { detail: { feature: 'AI Agents' } }),
-    )
+    );
     await waitFor(() => {
       expect(screen.getByTestId('dialog-description')).toHaveTextContent(
         '"AI Agents" requires a higher tier.',
-      )
-    })
-  })
+      );
+    });
+  });
 
   it('closes when "Maybe later" button is clicked', async () => {
-    render(<UpgradeDialog />)
-    window.dispatchEvent(new CustomEvent('revealui:upgrade-required', { detail: {} }))
+    render(<UpgradeDialog />);
+    window.dispatchEvent(new CustomEvent('revealui:upgrade-required', { detail: {} }));
     await waitFor(() => {
-      expect(screen.getByTestId('dialog')).toBeInTheDocument()
-    })
+      expect(screen.getByTestId('dialog')).toBeInTheDocument();
+    });
 
-    fireEvent.click(screen.getByText('Maybe later'))
+    fireEvent.click(screen.getByText('Maybe later'));
     await waitFor(() => {
-      expect(screen.queryByTestId('dialog')).not.toBeInTheDocument()
-    })
-  })
+      expect(screen.queryByTestId('dialog')).not.toBeInTheDocument();
+    });
+  });
 
   it('renders PricingTable with current tier', async () => {
-    mockUseLicense.mockReturnValue({ tier: 'pro' })
-    render(<UpgradeDialog />)
-    window.dispatchEvent(new CustomEvent('revealui:upgrade-required', { detail: {} }))
+    mockUseLicense.mockReturnValue({ tier: 'pro' });
+    render(<UpgradeDialog />);
+    window.dispatchEvent(new CustomEvent('revealui:upgrade-required', { detail: {} }));
     await waitFor(() => {
-      expect(screen.getByTestId('pricing-table')).toHaveAttribute('data-current', 'pro')
-    })
-  })
+      expect(screen.getByTestId('pricing-table')).toHaveAttribute('data-current', 'pro');
+    });
+  });
 
   it('defaults tier to free when license tier is null', async () => {
-    mockUseLicense.mockReturnValue({ tier: null })
-    render(<UpgradeDialog />)
-    window.dispatchEvent(new CustomEvent('revealui:upgrade-required', { detail: {} }))
+    mockUseLicense.mockReturnValue({ tier: null });
+    render(<UpgradeDialog />);
+    window.dispatchEvent(new CustomEvent('revealui:upgrade-required', { detail: {} }));
     await waitFor(() => {
-      expect(screen.getByTestId('pricing-table')).toHaveAttribute('data-current', 'free')
-    })
-  })
+      expect(screen.getByTestId('pricing-table')).toHaveAttribute('data-current', 'free');
+    });
+  });
 
   it('contains a link to full pricing page', async () => {
-    render(<UpgradeDialog />)
-    window.dispatchEvent(new CustomEvent('revealui:upgrade-required', { detail: {} }))
+    render(<UpgradeDialog />);
+    window.dispatchEvent(new CustomEvent('revealui:upgrade-required', { detail: {} }));
     await waitFor(() => {
-      const link = screen.getByText('View full pricing')
-      expect(link).toHaveAttribute('href', '/admin/upgrade')
-    })
-  })
+      const link = screen.getByText('View full pricing');
+      expect(link).toHaveAttribute('href', '/admin/upgrade');
+    });
+  });
 
   it('calls fetch with checkout endpoint when tier is selected', async () => {
     const mockFetch = vi.fn().mockResolvedValue({
       json: () => Promise.resolve({ url: 'https://checkout.stripe.com/test' }),
-    })
-    vi.stubGlobal('fetch', mockFetch)
+    });
+    vi.stubGlobal('fetch', mockFetch);
 
-    render(<UpgradeDialog />)
-    window.dispatchEvent(new CustomEvent('revealui:upgrade-required', { detail: {} }))
+    render(<UpgradeDialog />);
+    window.dispatchEvent(new CustomEvent('revealui:upgrade-required', { detail: {} }));
     await waitFor(() => {
-      expect(screen.getByTestId('select-pro')).toBeInTheDocument()
-    })
+      expect(screen.getByTestId('select-pro')).toBeInTheDocument();
+    });
 
-    fireEvent.click(screen.getByTestId('select-pro'))
+    fireEvent.click(screen.getByTestId('select-pro'));
     await waitFor(() => {
       expect(mockFetch).toHaveBeenCalledWith(
         expect.stringContaining('/api/billing/checkout'),
@@ -195,17 +195,17 @@ describe('UpgradeDialog', () => {
           method: 'POST',
           credentials: 'include',
         }),
-      )
-    })
+      );
+    });
 
-    vi.unstubAllGlobals()
-  })
+    vi.unstubAllGlobals();
+  });
 
   it('cleans up event listener on unmount', () => {
-    const removeSpy = vi.spyOn(window, 'removeEventListener')
-    const { unmount } = render(<UpgradeDialog />)
-    unmount()
-    expect(removeSpy).toHaveBeenCalledWith('revealui:upgrade-required', expect.any(Function))
-    removeSpy.mockRestore()
-  })
-})
+    const removeSpy = vi.spyOn(window, 'removeEventListener');
+    const { unmount } = render(<UpgradeDialog />);
+    unmount();
+    expect(removeSpy).toHaveBeenCalledWith('revealui:upgrade-required', expect.any(Function));
+    removeSpy.mockRestore();
+  });
+});

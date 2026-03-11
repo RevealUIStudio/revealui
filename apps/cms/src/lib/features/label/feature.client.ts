@@ -1,4 +1,4 @@
-'use client'
+'use client';
 
 // Label feature client — not yet implemented.
 // Server-side feature exists in feature.server.ts with LabelNode + schema.
@@ -10,13 +10,13 @@
 // LabelNode, LabelPlugin, LabelIcon into toolbarFixed + slashMenu.
 
 export const LabelFeatureClient: {
-  path: string
-  clientProps: Record<string, unknown>
-  exportName: string
-  serverProps: Record<string, unknown>
+  path: string;
+  clientProps: Record<string, unknown>;
+  exportName: string;
+  serverProps: Record<string, unknown>;
 } = {
   path: 'label-feature-client',
   clientProps: {},
   exportName: '',
   serverProps: {},
-}
+};

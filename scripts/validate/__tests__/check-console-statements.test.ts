@@ -3,11 +3,11 @@
  * Tests AST-based console statement detection
  */
 
-import { mkdir, rm, writeFile } from 'node:fs/promises'
-import { tmpdir } from 'node:os'
-import { join } from 'node:path'
-import * as ts from 'typescript'
-import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
+import { mkdir, rm, writeFile } from 'node:fs/promises';
+import { tmpdir } from 'node:os';
+import { join } from 'node:path';
+import * as ts from 'typescript';
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
 // Mock the logger and utilities
 vi.mock('../../lib/logger.js', () => ({
@@ -17,35 +17,35 @@ vi.mock('../../lib/logger.js', () => ({
     success: vi.fn(),
     error: vi.fn(),
   }),
-}))
+}));
 vi.mock('../../lib/paths.js', async () => {
-  const actual = await vi.importActual('../../lib/paths.js')
+  const actual = await vi.importActual('../../lib/paths.js');
   return {
     ...actual,
     getProjectRoot: async () => '/tmp/test-project',
-  }
-})
+  };
+});
 
 describe('Console Statement Detection (AST-based)', () => {
-  let testDir: string
-  let srcDir: string
+  let testDir: string;
+  let srcDir: string;
 
   beforeEach(async () => {
-    testDir = join(tmpdir(), `revealui-test-${Date.now()}`)
-    srcDir = join(testDir, 'packages', 'core', 'src')
-    await mkdir(srcDir, { recursive: true })
-  })
+    testDir = join(tmpdir(), `revealui-test-${Date.now()}`);
+    srcDir = join(testDir, 'packages', 'core', 'src');
+    await mkdir(srcDir, { recursive: true });
+  });
 
   afterEach(async () => {
-    await rm(testDir, { recursive: true, force: true })
-  })
+    await rm(testDir, { recursive: true, force: true });
+  });
 
   it('should detect console.log() calls', async () => {
-    const testFile = join(srcDir, 'test.ts')
+    const testFile = join(srcDir, 'test.ts');
     const content = `export function test() {
   console.log('hello')
-}`
-    await writeFile(testFile, content)
+}`;
+    await writeFile(testFile, content);
 
     const sourceFile = ts.createSourceFile(
       testFile,
@@ -53,46 +53,46 @@ describe('Console Statement Detection (AST-based)', () => {
       ts.ScriptTarget.Latest,
       true,
       ts.ScriptKind.TS,
-    )
+    );
 
-    const matches: Array<{ line: number; content: string }> = []
-    const lines = content.split('\n')
+    const matches: Array<{ line: number; content: string }> = [];
+    const lines = content.split('\n');
 
     function findConsole(node: ts.Node) {
       if (ts.isPropertyAccessExpression(node)) {
-        const expr = node.expression
+        const expr = node.expression;
         if (ts.isIdentifier(expr) && expr.text === 'console') {
-          const methodName = node.name.text
+          const methodName = node.name.text;
           if (methodName === 'log') {
-            const parent = node.parent
+            const parent = node.parent;
             if (parent && ts.isCallExpression(parent)) {
-              const { line } = sourceFile.getLineAndCharacterOfPosition(node.getStart())
+              const { line } = sourceFile.getLineAndCharacterOfPosition(node.getStart());
               matches.push({
                 line: line + 1,
                 content: lines[line]?.trim() || '',
-              })
+              });
             }
           }
         }
       }
-      ts.forEachChild(node, findConsole)
+      ts.forEachChild(node, findConsole);
     }
 
-    findConsole(sourceFile)
+    findConsole(sourceFile);
 
-    expect(matches).toHaveLength(1)
-    expect(matches[0].line).toBe(2)
-    expect(matches[0].content).toContain("console.log('hello')")
-  })
+    expect(matches).toHaveLength(1);
+    expect(matches[0].line).toBe(2);
+    expect(matches[0].content).toContain("console.log('hello')");
+  });
 
   it('should NOT detect console in strings', async () => {
-    const testFile = join(srcDir, 'test.ts')
+    const testFile = join(srcDir, 'test.ts');
     const content = `export function test() {
   const msg = "console.log() is not a real call"
   const other = 'also console.error() here'
   const template = \`and console.warn() here\`
-}`
-    await writeFile(testFile, content)
+}`;
+    await writeFile(testFile, content);
 
     const sourceFile = ts.createSourceFile(
       testFile,
@@ -100,37 +100,37 @@ describe('Console Statement Detection (AST-based)', () => {
       ts.ScriptTarget.Latest,
       true,
       ts.ScriptKind.TS,
-    )
+    );
 
-    const matches: Array<{ line: number }> = []
+    const matches: Array<{ line: number }> = [];
 
     function findConsole(node: ts.Node) {
       if (ts.isPropertyAccessExpression(node)) {
-        const expr = node.expression
+        const expr = node.expression;
         if (ts.isIdentifier(expr) && expr.text === 'console') {
-          const parent = node.parent
+          const parent = node.parent;
           if (parent && ts.isCallExpression(parent)) {
-            const { line } = sourceFile.getLineAndCharacterOfPosition(node.getStart())
-            matches.push({ line: line + 1 })
+            const { line } = sourceFile.getLineAndCharacterOfPosition(node.getStart());
+            matches.push({ line: line + 1 });
           }
         }
       }
-      ts.forEachChild(node, findConsole)
+      ts.forEachChild(node, findConsole);
     }
 
-    findConsole(sourceFile)
+    findConsole(sourceFile);
 
     // Should find 0 matches because console is inside strings, not actual calls
-    expect(matches).toHaveLength(0)
-  })
+    expect(matches).toHaveLength(0);
+  });
 
   it('should NOT detect console in comments', async () => {
-    const testFile = join(srcDir, 'test.ts')
+    const testFile = join(srcDir, 'test.ts');
     const content = `export function test() {
   // console.log('commented out')
   /* console.error('also commented') */
-}`
-    await writeFile(testFile, content)
+}`;
+    await writeFile(testFile, content);
 
     const sourceFile = ts.createSourceFile(
       testFile,
@@ -138,39 +138,39 @@ describe('Console Statement Detection (AST-based)', () => {
       ts.ScriptTarget.Latest,
       true,
       ts.ScriptKind.TS,
-    )
+    );
 
-    const matches: Array<{ line: number }> = []
+    const matches: Array<{ line: number }> = [];
 
     function findConsole(node: ts.Node) {
       if (ts.isPropertyAccessExpression(node)) {
-        const expr = node.expression
+        const expr = node.expression;
         if (ts.isIdentifier(expr) && expr.text === 'console') {
-          const parent = node.parent
+          const parent = node.parent;
           if (parent && ts.isCallExpression(parent)) {
-            const { line } = sourceFile.getLineAndCharacterOfPosition(node.getStart())
-            matches.push({ line: line + 1 })
+            const { line } = sourceFile.getLineAndCharacterOfPosition(node.getStart());
+            matches.push({ line: line + 1 });
           }
         }
       }
-      ts.forEachChild(node, findConsole)
+      ts.forEachChild(node, findConsole);
     }
 
-    findConsole(sourceFile)
+    findConsole(sourceFile);
 
     // AST parser automatically excludes comments
-    expect(matches).toHaveLength(0)
-  })
+    expect(matches).toHaveLength(0);
+  });
 
   it('should detect multiple console methods', async () => {
-    const testFile = join(srcDir, 'test.ts')
+    const testFile = join(srcDir, 'test.ts');
     const content = `export function test() {
   console.log('info')
   console.error('error')
   console.warn('warning')
   console.debug('debug')
-}`
-    await writeFile(testFile, content)
+}`;
+    await writeFile(testFile, content);
 
     const sourceFile = ts.createSourceFile(
       testFile,
@@ -178,39 +178,39 @@ describe('Console Statement Detection (AST-based)', () => {
       ts.ScriptTarget.Latest,
       true,
       ts.ScriptKind.TS,
-    )
+    );
 
-    const matches: string[] = []
+    const matches: string[] = [];
 
     function findConsole(node: ts.Node) {
       if (ts.isPropertyAccessExpression(node)) {
-        const expr = node.expression
+        const expr = node.expression;
         if (ts.isIdentifier(expr) && expr.text === 'console') {
-          const methodName = node.name.text
-          const parent = node.parent
+          const methodName = node.name.text;
+          const parent = node.parent;
           if (parent && ts.isCallExpression(parent)) {
-            matches.push(methodName)
+            matches.push(methodName);
           }
         }
       }
-      ts.forEachChild(node, findConsole)
+      ts.forEachChild(node, findConsole);
     }
 
-    findConsole(sourceFile)
+    findConsole(sourceFile);
 
-    expect(matches).toHaveLength(4)
-    expect(matches).toContain('log')
-    expect(matches).toContain('error')
-    expect(matches).toContain('warn')
-    expect(matches).toContain('debug')
-  })
+    expect(matches).toHaveLength(4);
+    expect(matches).toContain('log');
+    expect(matches).toContain('error');
+    expect(matches).toContain('warn');
+    expect(matches).toContain('debug');
+  });
 
   it('should handle arrow functions with console', async () => {
-    const testFile = join(srcDir, 'test.ts')
+    const testFile = join(srcDir, 'test.ts');
     const content = `export const test = () => {
   console.log('arrow function')
-}`
-    await writeFile(testFile, content)
+}`;
+    await writeFile(testFile, content);
 
     const sourceFile = ts.createSourceFile(
       testFile,
@@ -218,27 +218,27 @@ describe('Console Statement Detection (AST-based)', () => {
       ts.ScriptTarget.Latest,
       true,
       ts.ScriptKind.TS,
-    )
+    );
 
-    const matches: number[] = []
+    const matches: number[] = [];
 
     function findConsole(node: ts.Node) {
       if (ts.isPropertyAccessExpression(node)) {
-        const expr = node.expression
+        const expr = node.expression;
         if (ts.isIdentifier(expr) && expr.text === 'console') {
-          const parent = node.parent
+          const parent = node.parent;
           if (parent && ts.isCallExpression(parent)) {
-            const { line } = sourceFile.getLineAndCharacterOfPosition(node.getStart())
-            matches.push(line + 1)
+            const { line } = sourceFile.getLineAndCharacterOfPosition(node.getStart());
+            matches.push(line + 1);
           }
         }
       }
-      ts.forEachChild(node, findConsole)
+      ts.forEachChild(node, findConsole);
     }
 
-    findConsole(sourceFile)
+    findConsole(sourceFile);
 
-    expect(matches).toHaveLength(1)
-    expect(matches[0]).toBe(2)
-  })
-})
+    expect(matches).toHaveLength(1);
+    expect(matches[0]).toBe(2);
+  });
+});

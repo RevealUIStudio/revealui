@@ -15,4 +15,4 @@ export {
   startPeriodicStatusLogging,
   stopDevMonitoring,
   stopPeriodicStatusLogging,
-} from './process-tracker.js'
+} from './process-tracker.js';

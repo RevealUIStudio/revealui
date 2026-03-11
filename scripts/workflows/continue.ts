@@ -3,8 +3,8 @@
  * Continue Rev loop iterative workflow
  */
 
-import { createLogger, getProjectRoot } from '../../lib/index.js'
-import { ErrorCode } from '../lib/errors.js'
+import { createLogger, getProjectRoot } from '../../lib/index.js';
+import { ErrorCode } from '../lib/errors.js';
 import {
   checkCompletion,
   cleanupWorkflow,
@@ -12,97 +12,97 @@ import {
   readStateFile,
   validateStateFile,
   writeStateFile,
-} from '../utils/orchestration.js'
+} from '../utils/orchestration.js';
 
-const logger = createLogger()
+const logger = createLogger();
 
 /**
  * Run continue workflow
  */
 async function runContinue() {
-  const projectRoot = await getProjectRoot(import.meta.url)
+  const projectRoot = await getProjectRoot(import.meta.url);
 
   // Check if workflow is active
   if (!(await isWorkflowActive(projectRoot))) {
-    logger.error('No active workflow')
-    logger.info('Run "pnpm rev:start" to begin a workflow')
-    process.exit(ErrorCode.EXECUTION_ERROR)
+    logger.error('No active workflow');
+    logger.info('Run "pnpm rev:start" to begin a workflow');
+    process.exit(ErrorCode.EXECUTION_ERROR);
   }
 
   try {
     // Read state file
-    const stateFile = await readStateFile(projectRoot)
+    const stateFile = await readStateFile(projectRoot);
 
     // Validate state file
-    const validation = await validateStateFile(projectRoot)
+    const validation = await validateStateFile(projectRoot);
     if (!validation.valid) {
-      logger.error('State file validation failed:')
+      logger.error('State file validation failed:');
       for (const error of validation.errors) {
-        logger.error(`  - ${error}`)
+        logger.error(`  - ${error}`);
       }
-      logger.info('Run "pnpm rev:cancel" to reset the workflow')
-      process.exit(ErrorCode.CONFIG_ERROR)
+      logger.info('Run "pnpm rev:cancel" to reset the workflow');
+      process.exit(ErrorCode.CONFIG_ERROR);
     }
 
-    const state = stateFile.frontmatter
+    const state = stateFile.frontmatter;
 
     // Check max iterations
     if (state.max_iterations > 0 && state.iteration >= state.max_iterations) {
-      logger.warning(`Max iterations (${state.max_iterations}) reached`)
-      logger.info('Cleaning up workflow...')
-      await cleanupWorkflow(projectRoot)
-      logger.success('Workflow completed (max iterations reached)')
-      process.exit(ErrorCode.SUCCESS)
+      logger.warning(`Max iterations (${state.max_iterations}) reached`);
+      logger.info('Cleaning up workflow...');
+      await cleanupWorkflow(projectRoot);
+      logger.success('Workflow completed (max iterations reached)');
+      process.exit(ErrorCode.SUCCESS);
     }
 
     // Check completion marker
     if (state.completion_promise) {
-      const isComplete = await checkCompletion(projectRoot, state.completion_promise)
+      const isComplete = await checkCompletion(projectRoot, state.completion_promise);
       if (isComplete) {
-        logger.success('Completion marker detected!')
-        logger.info('Cleaning up workflow...')
-        await cleanupWorkflow(projectRoot)
-        logger.success('Workflow completed successfully!')
-        process.exit(ErrorCode.SUCCESS)
+        logger.success('Completion marker detected!');
+        logger.info('Cleaning up workflow...');
+        await cleanupWorkflow(projectRoot);
+        logger.success('Workflow completed successfully!');
+        process.exit(ErrorCode.SUCCESS);
       }
     }
 
     // Increment iteration
-    const nextIteration = state.iteration + 1
+    const nextIteration = state.iteration + 1;
     const updatedState = {
       ...state,
       iteration: nextIteration,
-    }
+    };
 
     // Write updated state
-    await writeStateFile(projectRoot, updatedState, stateFile.prompt)
+    await writeStateFile(projectRoot, updatedState, stateFile.prompt);
 
-    logger.header(`Rev Iteration ${nextIteration}`)
+    logger.header(`Rev Iteration ${nextIteration}`);
     logger.info(
       `Progress: ${nextIteration}${state.max_iterations > 0 ? ` / ${state.max_iterations}` : ''} iterations`,
-    )
+    );
 
     // Show prompt for next iteration
-    logger.info('')
-    logger.info('Continue working on:')
-    logger.info('')
-    logger.info(stateFile.prompt)
-    logger.info('')
+    logger.info('');
+    logger.info('Continue working on:');
+    logger.info('');
+    logger.info(stateFile.prompt);
+    logger.info('');
 
     if (state.completion_promise) {
       logger.info(
         `When complete, create marker: echo "${state.completion_promise}" > .cursor/rev-complete.marker`,
-      )
-      logger.info('Then run: pnpm rev:continue')
+      );
+      logger.info('Then run: pnpm rev:continue');
     } else {
-      logger.info('Continue when ready: pnpm rev:continue')
-      logger.info('Or cancel: pnpm rev:cancel')
+      logger.info('Continue when ready: pnpm rev:continue');
+      logger.info('Or cancel: pnpm rev:cancel');
     }
   } catch (error) {
     logger.error(
       `Failed to continue workflow: ${error instanceof Error ? error.message : String(error)}`,
-    )
-    process.exit(ErrorCode.EXECUTION_ERROR)
+    );
+    process.exit(ErrorCode.EXECUTION_ERROR);
   }
 }
 
@@ -111,14 +111,14 @@ async function runContinue() {
  */
 async function main() {
   try {
-    await runContinue()
+    await runContinue();
   } catch (error) {
-    logger.error(`Script failed: ${error instanceof Error ? error.message : String(error)}`)
+    logger.error(`Script failed: ${error instanceof Error ? error.message : String(error)}`);
     if (error instanceof Error && error.stack) {
-      logger.error(`Stack trace: ${error.stack}`)
+      logger.error(`Stack trace: ${error.stack}`);
     }
-    process.exit(ErrorCode.EXECUTION_ERROR)
+    process.exit(ErrorCode.EXECUTION_ERROR);
   }
 }
 
-main()
+main();

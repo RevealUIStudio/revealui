@@ -1,13 +1,13 @@
-import { clsx } from 'clsx/lite'
-import Link from 'next/link'
-import type { ComponentProps } from 'react'
+import { clsx } from 'clsx/lite';
+import Link from 'next/link';
+import type { ComponentProps } from 'react';
 
 export function RevealUILink({
   href,
   className,
   ...props
 }: {
-  href: string
+  href: string;
 } & Omit<ComponentProps<typeof Link>, 'href'>) {
   return (
     <Link
@@ -18,5 +18,5 @@ export function RevealUILink({
       )}
       {...props}
     />
-  )
+  );
 }

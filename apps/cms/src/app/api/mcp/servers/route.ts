@@ -8,9 +8,9 @@
  * each MCP server exposes when started with pnpm mcp:<name>.
  */
 
-import { getSession } from '@revealui/auth/server'
-import { type NextRequest, NextResponse } from 'next/server'
-import type { McpServerInfo } from '@/lib/components/agents/mcp-server-card'
+import { getSession } from '@revealui/auth/server';
+import { type NextRequest, NextResponse } from 'next/server';
+import type { McpServerInfo } from '@/lib/components/agents/mcp-server-card';
 
 const MCP_SERVERS: McpServerInfo[] = [
   {
@@ -174,15 +174,15 @@ const MCP_SERVERS: McpServerInfo[] = [
       { name: 'analyze_bundle', description: 'Analyze the Next.js bundle size', parameterCount: 1 },
     ],
   },
-]
+];
 
 export async function GET(request: NextRequest) {
-  const authSession = await getSession(request.headers)
+  const authSession = await getSession(request.headers);
   if (!authSession) {
-    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
   }
   if (authSession.user.role !== 'admin') {
-    return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
+    return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
   }
-  return NextResponse.json({ servers: MCP_SERVERS })
+  return NextResponse.json({ servers: MCP_SERVERS });
 }

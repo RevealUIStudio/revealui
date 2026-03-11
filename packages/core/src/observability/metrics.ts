@@ -4,40 +4,40 @@
  * Collect and expose application metrics for monitoring
  */
 
-export type MetricType = 'counter' | 'gauge' | 'histogram' | 'summary'
+export type MetricType = 'counter' | 'gauge' | 'histogram' | 'summary';
 
 export interface MetricLabels {
-  [key: string]: string | number
+  [key: string]: string | number;
 }
 
 export interface MetricValue {
-  value: number
-  timestamp: number
-  labels?: MetricLabels
+  value: number;
+  timestamp: number;
+  labels?: MetricLabels;
 }
 
 export interface Metric {
-  name: string
-  type: MetricType
-  help: string
-  values: MetricValue[]
-  labels?: string[]
+  name: string;
+  type: MetricType;
+  help: string;
+  values: MetricValue[];
+  labels?: string[];
 }
 
 export interface HistogramBucket {
-  le: number
-  count: number
+  le: number;
+  count: number;
 }
 
 export interface HistogramMetric extends Metric {
-  type: 'histogram'
-  buckets: HistogramBucket[]
-  sum: number
-  count: number
+  type: 'histogram';
+  buckets: HistogramBucket[];
+  sum: number;
+  count: number;
 }
 
 export class MetricsCollector {
-  private metrics: Map<string, Metric> = new Map()
+  private metrics: Map<string, Metric> = new Map();
 
   /**
    * Register a counter metric
@@ -49,11 +49,11 @@ export class MetricsCollector {
       help,
       values: [],
       labels,
-    }
+    };
 
-    this.metrics.set(name, metric)
+    this.metrics.set(name, metric);
 
-    return new Counter(metric)
+    return new Counter(metric);
   }
 
   /**
@@ -66,11 +66,11 @@ export class MetricsCollector {
       help,
       values: [],
       labels,
-    }
+    };
 
-    this.metrics.set(name, metric)
+    this.metrics.set(name, metric);
 
-    return new Gauge(metric)
+    return new Gauge(metric);
   }
 
   /**
@@ -91,56 +91,56 @@ export class MetricsCollector {
       buckets: buckets.map((le) => ({ le, count: 0 })),
       sum: 0,
       count: 0,
-    }
+    };
 
-    this.metrics.set(name, metric)
+    this.metrics.set(name, metric);
 
-    return new Histogram(metric)
+    return new Histogram(metric);
   }
 
   /**
    * Get all metrics
    */
   getMetrics(): Metric[] {
-    return Array.from(this.metrics.values())
+    return Array.from(this.metrics.values());
   }
 
   /**
    * Get metric by name
    */
   getMetric(name: string): Metric | undefined {
-    return this.metrics.get(name)
+    return this.metrics.get(name);
   }
 
   /**
    * Clear all metrics
    */
   clear(): void {
-    this.metrics.clear()
+    this.metrics.clear();
   }
 
   /**
    * Export metrics in Prometheus format
    */
   exportPrometheus(): string {
-    const lines: string[] = []
+    const lines: string[] = [];
 
     for (const metric of this.metrics.values()) {
       // Add help text
-      lines.push(`# HELP ${metric.name} ${metric.help}`)
-      lines.push(`# TYPE ${metric.name} ${metric.type}`)
+      lines.push(`# HELP ${metric.name} ${metric.help}`);
+      lines.push(`# TYPE ${metric.name} ${metric.type}`);
 
       if (metric.type === 'histogram') {
-        const histMetric = metric as HistogramMetric
+        const histMetric = metric as HistogramMetric;
 
         // Export buckets
         for (const bucket of histMetric.buckets) {
-          lines.push(`${metric.name}_bucket{le="${bucket.le}"} ${bucket.count}`)
+          lines.push(`${metric.name}_bucket{le="${bucket.le}"} ${bucket.count}`);
         }
 
-        lines.push(`${metric.name}_bucket{le="+Inf"} ${histMetric.count}`)
-        lines.push(`${metric.name}_sum ${histMetric.sum}`)
-        lines.push(`${metric.name}_count ${histMetric.count}`)
+        lines.push(`${metric.name}_bucket{le="+Inf"} ${histMetric.count}`);
+        lines.push(`${metric.name}_sum ${histMetric.sum}`);
+        lines.push(`${metric.name}_count ${histMetric.count}`);
       } else {
         // Export regular metrics
         for (const value of metric.values) {
@@ -148,46 +148,46 @@ export class MetricsCollector {
             ? Object.entries(value.labels)
                 .map(([k, v]) => `${k}="${v}"`)
                 .join(',')
-            : ''
+            : '';
 
           const metricLine = labelStr
             ? `${metric.name}{${labelStr}} ${value.value}`
-            : `${metric.name} ${value.value}`
+            : `${metric.name} ${value.value}`;
 
-          lines.push(metricLine)
+          lines.push(metricLine);
         }
       }
 
-      lines.push('')
+      lines.push('');
     }
 
-    return lines.join('\n')
+    return lines.join('\n');
   }
 
   /**
    * Export metrics as JSON
    */
   exportJSON(): Record<string, unknown> {
-    const result: Record<string, unknown> = {}
+    const result: Record<string, unknown> = {};
 
     for (const metric of this.metrics.values()) {
       if (metric.type === 'histogram') {
-        const histMetric = metric as HistogramMetric
+        const histMetric = metric as HistogramMetric;
         result[metric.name] = {
           type: metric.type,
           count: histMetric.count,
           sum: histMetric.sum,
           buckets: histMetric.buckets,
-        }
+        };
       } else {
         result[metric.name] = {
           type: metric.type,
           values: metric.values,
-        }
+        };
       }
     }
 
-    return result
+    return result;
   }
 }
 
@@ -201,17 +201,17 @@ export class Counter {
    * Increment counter
    */
   inc(value: number = 1, labels?: MetricLabels): void {
-    const existing = this.findValue(labels)
+    const existing = this.findValue(labels);
 
     if (existing) {
-      existing.value += value
-      existing.timestamp = Date.now()
+      existing.value += value;
+      existing.timestamp = Date.now();
     } else {
       this.metric.values.push({
         value,
         timestamp: Date.now(),
         labels,
-      })
+      });
     }
   }
 
@@ -219,30 +219,30 @@ export class Counter {
    * Get current value
    */
   get(labels?: MetricLabels): number {
-    const value = this.findValue(labels)
-    return value ? value.value : 0
+    const value = this.findValue(labels);
+    return value ? value.value : 0;
   }
 
   /**
    * Find value by labels
    */
   private findValue(labels?: MetricLabels): MetricValue | undefined {
-    return this.metric.values.find((v) => this.labelsMatch(v.labels, labels))
+    return this.metric.values.find((v) => this.labelsMatch(v.labels, labels));
   }
 
   /**
    * Check if labels match
    */
   private labelsMatch(a?: MetricLabels, b?: MetricLabels): boolean {
-    if (!(a || b)) return true
-    if (!(a && b)) return false
+    if (!(a || b)) return true;
+    if (!(a && b)) return false;
 
-    const aKeys = Object.keys(a).sort()
-    const bKeys = Object.keys(b).sort()
+    const aKeys = Object.keys(a).sort();
+    const bKeys = Object.keys(b).sort();
 
-    if (aKeys.length !== bKeys.length) return false
+    if (aKeys.length !== bKeys.length) return false;
 
-    return aKeys.every((key, i) => key === bKeys[i] && a[key] === b[key])
+    return aKeys.every((key, i) => key === bKeys[i] && a[key] === b[key]);
   }
 }
 
@@ -256,17 +256,17 @@ export class Gauge {
    * Set gauge value
    */
   set(value: number, labels?: MetricLabels): void {
-    const existing = this.findValue(labels)
+    const existing = this.findValue(labels);
 
     if (existing) {
-      existing.value = value
-      existing.timestamp = Date.now()
+      existing.value = value;
+      existing.timestamp = Date.now();
     } else {
       this.metric.values.push({
         value,
         timestamp: Date.now(),
         labels,
-      })
+      });
     }
   }
 
@@ -274,17 +274,17 @@ export class Gauge {
    * Increment gauge
    */
   inc(value: number = 1, labels?: MetricLabels): void {
-    const existing = this.findValue(labels)
+    const existing = this.findValue(labels);
 
     if (existing) {
-      existing.value += value
-      existing.timestamp = Date.now()
+      existing.value += value;
+      existing.timestamp = Date.now();
     } else {
       this.metric.values.push({
         value,
         timestamp: Date.now(),
         labels,
-      })
+      });
     }
   }
 
@@ -292,37 +292,37 @@ export class Gauge {
    * Decrement gauge
    */
   dec(value: number = 1, labels?: MetricLabels): void {
-    this.inc(-value, labels)
+    this.inc(-value, labels);
   }
 
   /**
    * Get current value
    */
   get(labels?: MetricLabels): number {
-    const value = this.findValue(labels)
-    return value ? value.value : 0
+    const value = this.findValue(labels);
+    return value ? value.value : 0;
   }
 
   /**
    * Find value by labels
    */
   private findValue(labels?: MetricLabels): MetricValue | undefined {
-    return this.metric.values.find((v) => this.labelsMatch(v.labels, labels))
+    return this.metric.values.find((v) => this.labelsMatch(v.labels, labels));
   }
 
   /**
    * Check if labels match
    */
   private labelsMatch(a?: MetricLabels, b?: MetricLabels): boolean {
-    if (!(a || b)) return true
-    if (!(a && b)) return false
+    if (!(a || b)) return true;
+    if (!(a && b)) return false;
 
-    const aKeys = Object.keys(a).sort()
-    const bKeys = Object.keys(b).sort()
+    const aKeys = Object.keys(a).sort();
+    const bKeys = Object.keys(b).sort();
 
-    if (aKeys.length !== bKeys.length) return false
+    if (aKeys.length !== bKeys.length) return false;
 
-    return aKeys.every((key, i) => key === bKeys[i] && a[key] === b[key])
+    return aKeys.every((key, i) => key === bKeys[i] && a[key] === b[key]);
   }
 }
 
@@ -339,59 +339,59 @@ export class Histogram {
     // Update buckets
     for (const bucket of this.metric.buckets) {
       if (value <= bucket.le) {
-        bucket.count++
+        bucket.count++;
       }
     }
 
     // Update sum and count
-    this.metric.sum += value
-    this.metric.count++
+    this.metric.sum += value;
+    this.metric.count++;
 
     // Store value
     this.metric.values.push({
       value,
       timestamp: Date.now(),
       labels,
-    })
+    });
   }
 
   /**
    * Start a timer
    */
   startTimer(labels?: MetricLabels): () => void {
-    const start = Date.now()
+    const start = Date.now();
 
     return () => {
-      const duration = (Date.now() - start) / 1000
-      this.observe(duration, labels)
-    }
+      const duration = (Date.now() - start) / 1000;
+      this.observe(duration, labels);
+    };
   }
 
   /**
    * Get percentile
    */
   percentile(p: number): number {
-    if (this.metric.values.length === 0) return 0
+    if (this.metric.values.length === 0) return 0;
 
-    const sorted = [...this.metric.values].sort((a, b) => a.value - b.value)
-    const index = Math.ceil((p / 100) * sorted.length) - 1
+    const sorted = [...this.metric.values].sort((a, b) => a.value - b.value);
+    const index = Math.ceil((p / 100) * sorted.length) - 1;
 
-    return sorted[index]?.value || 0
+    return sorted[index]?.value || 0;
   }
 
   /**
    * Get average
    */
   average(): number {
-    if (this.metric.count === 0) return 0
-    return this.metric.sum / this.metric.count
+    if (this.metric.count === 0) return 0;
+    return this.metric.sum / this.metric.count;
   }
 }
 
 /**
  * Default metrics collector
  */
-export const metrics = new MetricsCollector()
+export const metrics = new MetricsCollector();
 
 /**
  * Application metrics
@@ -464,7 +464,7 @@ export const appMetrics = {
     [0.1, 0.5, 1, 2, 5, 10],
     ['service'],
   ),
-}
+};
 
 /**
  * Track HTTP request
@@ -475,16 +475,16 @@ export function trackHTTPRequest(
   status: number,
   duration: number,
 ): void {
-  appMetrics.httpRequestsTotal.inc(1, { method, path, status: String(status) })
-  appMetrics.httpRequestDuration.observe(duration / 1000, { method, path })
+  appMetrics.httpRequestsTotal.inc(1, { method, path, status: String(status) });
+  appMetrics.httpRequestDuration.observe(duration / 1000, { method, path });
 }
 
 /**
  * Track database query
  */
 export function trackDBQuery(operation: string, table: string, duration: number): void {
-  appMetrics.dbQueriesTotal.inc(1, { operation, table })
-  appMetrics.dbQueryDuration.observe(duration / 1000, { operation, table })
+  appMetrics.dbQueriesTotal.inc(1, { operation, table });
+  appMetrics.dbQueryDuration.observe(duration / 1000, { operation, table });
 }
 
 /**
@@ -494,7 +494,7 @@ export function trackCacheOperation(
   operation: 'hit' | 'miss' | 'set' | 'delete',
   result: 'success' | 'error' = 'success',
 ): void {
-  appMetrics.cacheOperationsTotal.inc(1, { operation, result })
+  appMetrics.cacheOperationsTotal.inc(1, { operation, result });
 }
 
 /**
@@ -504,14 +504,14 @@ export function trackError(
   type: string,
   severity: 'low' | 'medium' | 'high' | 'critical' = 'medium',
 ): void {
-  appMetrics.errorsTotal.inc(1, { type, severity })
+  appMetrics.errorsTotal.inc(1, { type, severity });
 }
 
 /**
  * Update active connections
  */
 export function updateActiveConnections(type: string, delta: number): void {
-  appMetrics.activeConnections.inc(delta, { type })
+  appMetrics.activeConnections.inc(delta, { type });
 }
 
 /**
@@ -519,11 +519,11 @@ export function updateActiveConnections(type: string, delta: number): void {
  */
 export function updateMemoryUsage(): void {
   if (typeof process !== 'undefined' && process.memoryUsage) {
-    const mem = process.memoryUsage()
+    const mem = process.memoryUsage();
 
-    appMetrics.memoryUsage.set(mem.heapUsed, { type: 'heap' })
-    appMetrics.memoryUsage.set(mem.external, { type: 'external' })
-    appMetrics.memoryUsage.set(mem.rss, { type: 'rss' })
+    appMetrics.memoryUsage.set(mem.heapUsed, { type: 'heap' });
+    appMetrics.memoryUsage.set(mem.external, { type: 'external' });
+    appMetrics.memoryUsage.set(mem.rss, { type: 'rss' });
   }
 }
 
@@ -531,7 +531,7 @@ export function updateMemoryUsage(): void {
  * Start memory monitoring
  */
 export function startMemoryMonitoring(intervalMs: number = 60000): NodeJS.Timeout {
-  return setInterval(updateMemoryUsage, intervalMs)
+  return setInterval(updateMemoryUsage, intervalMs);
 }
 
 /**
@@ -542,24 +542,24 @@ export function createMetricsMiddleware<TRequest = unknown, TResponse = unknown>
     request: TRequest & { method: string; url: string },
     next: () => Promise<TResponse & { status?: number }>,
   ): Promise<TResponse & { status?: number }> => {
-    const startTime = Date.now()
-    const method = request.method
-    const path = new URL(request.url).pathname
+    const startTime = Date.now();
+    const method = request.method;
+    const path = new URL(request.url).pathname;
 
     try {
-      const response = await next()
-      const duration = Date.now() - startTime
+      const response = await next();
+      const duration = Date.now() - startTime;
 
-      trackHTTPRequest(method, path, response.status ?? 200, duration)
+      trackHTTPRequest(method, path, response.status ?? 200, duration);
 
-      return response
+      return response;
     } catch (error) {
-      const duration = Date.now() - startTime
+      const duration = Date.now() - startTime;
 
-      trackHTTPRequest(method, path, 500, duration)
-      trackError('http_error', 'high')
+      trackHTTPRequest(method, path, 500, duration);
+      trackError('http_error', 'high');
 
-      throw error
+      throw error;
     }
-  }
+  };
 }

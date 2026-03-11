@@ -1,42 +1,42 @@
-'use client'
+'use client';
 
-import { logger } from '@revealui/core/utils/logger'
-import { useEffect, useState } from 'react'
+import { logger } from '@revealui/core/utils/logger';
+import { useEffect, useState } from 'react';
 import type {
   RevealCollectionConfig,
   RevealConfig,
   RevealDocument,
   RevealGlobalConfig,
-} from '../../../types/index.js'
-import { APIError, APIErrorType, apiClient } from '../utils/index.js'
-import { CollectionList } from './CollectionList.js'
-import { DocumentForm } from './DocumentForm.js'
-import { GlobalForm } from './GlobalForm.js'
+} from '../../../types/index.js';
+import { APIError, APIErrorType, apiClient } from '../utils/index.js';
+import { CollectionList } from './CollectionList.js';
+import { DocumentForm } from './DocumentForm.js';
+import { GlobalForm } from './GlobalForm.js';
 
 interface AdminDashboardProps {
-  config: RevealConfig
+  config: RevealConfig;
 }
 
-type ViewType = 'dashboard' | 'collection' | 'edit' | 'global'
+type ViewType = 'dashboard' | 'collection' | 'edit' | 'global';
 
 interface CurrentView {
-  type: ViewType
-  collection?: RevealCollectionConfig
-  document?: RevealDocument
-  global?: RevealGlobalConfig
+  type: ViewType;
+  collection?: RevealCollectionConfig;
+  document?: RevealDocument;
+  global?: RevealGlobalConfig;
 }
 
 export function AdminDashboard({ config }: AdminDashboardProps) {
   const [currentView, setCurrentView] = useState<CurrentView>({
     type: 'dashboard',
-  })
+  });
   const [collectionData, setCollectionData] = useState<{
-    documents: RevealDocument[]
-    totalDocs: number
-    page: number
-    totalPages: number
-    loading: boolean
-    error: string | null
+    documents: RevealDocument[];
+    totalDocs: number;
+    page: number;
+    totalPages: number;
+    loading: boolean;
+    error: string | null;
   }>({
     documents: [],
     totalDocs: 0,
@@ -44,57 +44,57 @@ export function AdminDashboard({ config }: AdminDashboardProps) {
     totalPages: 1,
     loading: false,
     error: null,
-  })
-  const [saving, setSaving] = useState(false)
-  const [deleting, setDeleting] = useState<string | null>(null)
-  const [error, setError] = useState<string | null>(null)
-  const [successMessage, setSuccessMessage] = useState<string | null>(null)
+  });
+  const [saving, setSaving] = useState(false);
+  const [deleting, setDeleting] = useState<string | null>(null);
+  const [error, setError] = useState<string | null>(null);
+  const [successMessage, setSuccessMessage] = useState<string | null>(null);
   const [globalData, setGlobalData] = useState<{
-    document: RevealDocument | null
-    loading: boolean
-    error: string | null
+    document: RevealDocument | null;
+    loading: boolean;
+    error: string | null;
   }>({
     document: null,
     loading: false,
     error: null,
-  })
+  });
 
-  const collections = config.collections || []
-  const globals = config.globals || []
+  const collections = config.collections || [];
+  const globals = config.globals || [];
 
   // Auto-dismiss success messages
   useEffect(() => {
     if (successMessage) {
-      const timer = setTimeout(() => setSuccessMessage(null), 3000)
-      return () => clearTimeout(timer)
+      const timer = setTimeout(() => setSuccessMessage(null), 3000);
+      return () => clearTimeout(timer);
     }
-    return
-  }, [successMessage])
+    return;
+  }, [successMessage]);
 
   // Auto-dismiss error messages
   useEffect(() => {
     if (error) {
-      const timer = setTimeout(() => setError(null), 5000)
-      return () => clearTimeout(timer)
+      const timer = setTimeout(() => setError(null), 5000);
+      return () => clearTimeout(timer);
     }
-    return
-  }, [error])
+    return;
+  }, [error]);
 
   const handleCollectionClick = async (collection: RevealCollectionConfig) => {
-    setCurrentView({ type: 'collection', collection })
-    setError(null)
-    setSuccessMessage(null)
+    setCurrentView({ type: 'collection', collection });
+    setError(null);
+    setSuccessMessage(null);
 
     try {
       // Show loading state
-      setCollectionData((prev) => ({ ...prev, loading: true, error: null }))
+      setCollectionData((prev) => ({ ...prev, loading: true, error: null }));
 
       // Fetch first page of documents
       const response = await apiClient.find({
         collection: String(collection.slug),
         page: 1,
         limit: 10,
-      })
+      });
 
       setCollectionData({
         documents: response.docs || [],
@@ -103,71 +103,73 @@ export function AdminDashboard({ config }: AdminDashboardProps) {
         totalPages: response.totalPages || 1,
         loading: false,
         error: null,
-      })
+      });
     } catch (err: unknown) {
       // Handle error
       const errorMessage =
-        err instanceof APIError ? err.message : 'Failed to fetch collection data. Please try again.'
-      logger.error('Failed to fetch collection data', { error: err })
+        err instanceof APIError
+          ? err.message
+          : 'Failed to fetch collection data. Please try again.';
+      logger.error('Failed to fetch collection data', { error: err });
       setCollectionData((prev) => ({
         ...prev,
         loading: false,
         error: errorMessage,
-      }))
-      setError(errorMessage)
+      }));
+      setError(errorMessage);
 
       // Handle authentication errors
       if (err instanceof APIError && err.type === APIErrorType.Authentication) {
         // Redirect to login would be handled by the auth system
-        logger.warn('Authentication required')
+        logger.warn('Authentication required');
       }
     }
-  }
+  };
 
   const handleGlobalClick = async (global: RevealGlobalConfig) => {
-    setCurrentView({ type: 'global', global })
-    setError(null)
-    setSuccessMessage(null)
+    setCurrentView({ type: 'global', global });
+    setError(null);
+    setSuccessMessage(null);
 
     try {
       // Show loading state
-      setGlobalData({ document: null, loading: true, error: null })
+      setGlobalData({ document: null, loading: true, error: null });
 
       // Fetch global data
       const document = await apiClient.findGlobal({
         slug: String(global.slug),
         depth: 0,
-      })
+      });
 
       setGlobalData({
         document,
         loading: false,
         error: null,
-      })
+      });
     } catch (err: unknown) {
       // Handle error
       const errorMessage =
-        err instanceof APIError ? err.message : 'Failed to fetch global data. Please try again.'
-      logger.error('Failed to fetch global data', { error: err })
+        err instanceof APIError ? err.message : 'Failed to fetch global data. Please try again.';
+      logger.error('Failed to fetch global data', { error: err });
       setGlobalData({
         document: null,
         loading: false,
         error: errorMessage,
-      })
-      setError(errorMessage)
+      });
+      setError(errorMessage);
 
       // Handle authentication errors
       if (err instanceof APIError && err.type === APIErrorType.Authentication) {
-        logger.warn('Authentication required')
+        logger.warn('Authentication required');
       }
     }
-  }
+  };
 
   const handleCreate = (): void => {
     if (currentView.collection) {
-      setCurrentView({ type: 'edit', collection: currentView.collection })
+      setCurrentView({ type: 'edit', collection: currentView.collection });
     }
-  }
+  };
 
   const handleEdit = (document: RevealDocument): void => {
     if (currentView.collection) {
@@ -175,59 +177,59 @@ export function AdminDashboard({ config }: AdminDashboardProps) {
         type: 'edit',
         collection: currentView.collection,
         document,
-      })
+      });
     }
-  }
+  };
 
   const handleDelete = async (document: RevealDocument) => {
-    if (!(currentView.collection && document.id)) return
+    if (!(currentView.collection && document.id)) return;
 
     // Show confirmation dialog
     const confirmed = window.confirm(
       `Are you sure you want to delete this ${String(currentView.collection.slug)}? This action cannot be undone.`,
-    )
+    );
 
-    if (!confirmed) return
+    if (!confirmed) return;
 
     try {
-      setDeleting(String(document.id))
-      setError(null)
-      setSuccessMessage(null)
+      setDeleting(String(document.id));
+      setError(null);
+      setSuccessMessage(null);
 
       await apiClient.delete({
         collection: String(currentView.collection.slug),
         id: String(document.id),
-      })
+      });
 
       // Refresh collection list
       if (currentView.collection) {
-        await handleCollectionClick(currentView.collection)
+        await handleCollectionClick(currentView.collection);
       }
 
       // Show success message
-      setSuccessMessage('Document deleted successfully')
+      setSuccessMessage('Document deleted successfully');
     } catch (err: unknown) {
       const errorMessage =
-        err instanceof APIError ? err.message : 'Failed to delete document. Please try again.'
-      logger.error('Failed to delete document', { error: err })
-      setError(errorMessage)
+        err instanceof APIError ? err.message : 'Failed to delete document. Please try again.';
+      logger.error('Failed to delete document', { error: err });
+      setError(errorMessage);
 
       // Handle authentication errors
       if (err instanceof APIError && err.type === APIErrorType.Authentication) {
-        logger.warn('Authentication required')
+        logger.warn('Authentication required');
       }
     } finally {
-      setDeleting(null)
+      setDeleting(null);
     }
-  }
+  };
 
   const handleSave = async (data: Record<string, unknown>) => {
-    if (!currentView.collection) return
+    if (!currentView.collection) return;
 
     try {
-      setSaving(true)
-      setError(null)
-      setSuccessMessage(null)
+      setSaving(true);
+      setError(null);
+      setSuccessMessage(null);
 
       if (currentView.document?.id) {
         // Update existing document
@@ -235,15 +237,15 @@ export function AdminDashboard({ config }: AdminDashboardProps) {
           collection: String(currentView.collection.slug),
           id: String(currentView.document.id),
           data,
-        })
-        setSuccessMessage('Document updated successfully')
+        });
+        setSuccessMessage('Document updated successfully');
       } else {
         // Auto-generate slug from title if the collection has a slug field but none was
         // submitted. Server-side beforeValidate field hooks may not run for all routes,
         // so we replicate the slug-generation logic here as a reliable client-side fallback.
         const hasSlugField = currentView.collection.fields.some(
           (f) => 'name' in f && f.name === 'slug',
-        )
+        );
         const submitData =
           hasSlugField && !data.slug && typeof data.title === 'string'
             ? {
@@ -253,31 +255,31 @@ export function AdminDashboard({ config }: AdminDashboardProps) {
                   .replace(/[^\w-]+/g, '')
                   .toLowerCase(),
               }
-            : data
+            : data;
 
         // Create new document
         await apiClient.create({
           collection: String(currentView.collection.slug),
           data: submitData,
-        })
-        setSuccessMessage('Document created successfully')
+        });
+        setSuccessMessage('Document created successfully');
       }
 
       // Refresh collection list
       if (currentView.collection) {
-        await handleCollectionClick(currentView.collection)
+        await handleCollectionClick(currentView.collection);
       }
 
       // Navigate back to collection view
       setCurrentView({
         type: 'collection',
         collection: currentView.collection,
-      })
+      });
     } catch (err: unknown) {
       const errorMessage =
-        err instanceof APIError ? err.message : 'Failed to save document. Please try again.'
-      logger.error('Failed to save document', { error: err })
-      setError(errorMessage)
+        err instanceof APIError ? err.message : 'Failed to save document. Please try again.';
+      logger.error('Failed to save document', { error: err });
+      setError(errorMessage);
 
       // Handle validation errors
       if (err instanceof APIError && err.type === APIErrorType.Validation) {
@@ -285,73 +287,73 @@ export function AdminDashboard({ config }: AdminDashboardProps) {
         logger.warn('Validation error', {
           field: err.field,
           message: err.message,
-        })
+        });
       }
 
       // Handle authentication errors
       if (err instanceof APIError && err.type === APIErrorType.Authentication) {
-        logger.warn('Authentication required')
+        logger.warn('Authentication required');
       }
     } finally {
-      setSaving(false)
+      setSaving(false);
     }
-  }
+  };
 
   const handleSaveGlobal = async (data: Record<string, unknown>) => {
-    if (!currentView.global) return
+    if (!currentView.global) return;
 
     try {
-      setSaving(true)
-      setError(null)
-      setSuccessMessage(null)
+      setSaving(true);
+      setError(null);
+      setSuccessMessage(null);
 
       // Update global
       await apiClient.updateGlobal({
         slug: String(currentView.global.slug),
         data,
-      })
-      setSuccessMessage('Global updated successfully')
+      });
+      setSuccessMessage('Global updated successfully');
 
       // Navigate back to dashboard
-      setCurrentView({ type: 'dashboard' })
+      setCurrentView({ type: 'dashboard' });
     } catch (err: unknown) {
       const errorMessage =
-        err instanceof APIError ? err.message : 'Failed to save global. Please try again.'
-      logger.error('Failed to save global', { error: err })
-      setError(errorMessage)
+        err instanceof APIError ? err.message : 'Failed to save global. Please try again.';
+      logger.error('Failed to save global', { error: err });
+      setError(errorMessage);
 
       // Handle validation errors
       if (err instanceof APIError && err.type === APIErrorType.Validation) {
         logger.warn('Validation error', {
           field: err.field,
           message: err.message,
-        })
+        });
       }
 
       // Handle authentication errors
       if (err instanceof APIError && err.type === APIErrorType.Authentication) {
-        logger.warn('Authentication required')
+        logger.warn('Authentication required');
       }
     } finally {
-      setSaving(false)
+      setSaving(false);
     }
-  }
+  };
 
   const handleCancel = () => {
-    setCurrentView({ type: 'dashboard' })
-  }
+    setCurrentView({ type: 'dashboard' });
+  };
 
   const handlePageChange = async (page: number) => {
-    if (!currentView.collection) return
+    if (!currentView.collection) return;
 
     try {
-      setCollectionData((prev) => ({ ...prev, loading: true, error: null }))
+      setCollectionData((prev) => ({ ...prev, loading: true, error: null }));
 
       const response = await apiClient.find({
         collection: String(currentView.collection.slug),
         page,
         limit: 10,
-      })
+      });
 
       setCollectionData({
         documents: response.docs || [],
@@ -360,19 +362,19 @@ export function AdminDashboard({ config }: AdminDashboardProps) {
         totalPages: response.totalPages || 1,
         loading: false,
         error: null,
-      })
+      });
     } catch (err: unknown) {
       const errorMessage =
-        err instanceof APIError ? err.message : 'Failed to fetch page. Please try again.'
-      logger.error('Failed to fetch page', { error: err })
+        err instanceof APIError ? err.message : 'Failed to fetch page. Please try again.';
+      logger.error('Failed to fetch page', { error: err });
       setCollectionData((prev) => ({
         ...prev,
         loading: false,
         error: errorMessage,
-      }))
-      setError(errorMessage)
+      }));
+      setError(errorMessage);
     }
-  }
+  };
 
   if (currentView.type === 'collection' && currentView.collection) {
     return (
@@ -435,7 +437,7 @@ export function AdminDashboard({ config }: AdminDashboardProps) {
           />
         </main>
       </div>
-    )
+    );
   }
 
   if (currentView.type === 'edit' && currentView.collection) {
@@ -489,7 +491,7 @@ export function AdminDashboard({ config }: AdminDashboardProps) {
           </div>
         </main>
       </div>
-    )
+    );
   }
 
   if (currentView.type === 'global' && currentView.global) {
@@ -552,7 +554,7 @@ export function AdminDashboard({ config }: AdminDashboardProps) {
           </div>
         </main>
       </div>
-    )
+    );
   }
 
   // Dashboard view
@@ -723,5 +725,5 @@ export function AdminDashboard({ config }: AdminDashboardProps) {
         </div>
       </main>
     </div>
-  )
+  );
 }

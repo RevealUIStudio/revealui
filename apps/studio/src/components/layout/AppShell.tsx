@@ -1,17 +1,17 @@
-import type { ReactNode } from 'react'
-import { StatusContext, useStatus } from '../../hooks/use-status'
-import type { Page } from '../../types'
-import Sidebar from './Sidebar'
-import StatusBar from './StatusBar'
+import type { ReactNode } from 'react';
+import { StatusContext, useStatus } from '../../hooks/use-status';
+import type { Page } from '../../types';
+import Sidebar from './Sidebar';
+import StatusBar from './StatusBar';
 
 interface AppShellProps {
-  currentPage: Page
-  onNavigate: (page: Page) => void
-  children: ReactNode
+  currentPage: Page;
+  onNavigate: (page: Page) => void;
+  children: ReactNode;
 }
 
 export default function AppShell({ currentPage, onNavigate, children }: AppShellProps) {
-  const status = useStatus()
+  const status = useStatus();
 
   return (
     <StatusContext.Provider value={status}>
@@ -23,5 +23,5 @@ export default function AppShell({ currentPage, onNavigate, children }: AppShell
         </div>
       </div>
     </StatusContext.Provider>
-  )
+  );
 }

@@ -5,33 +5,33 @@
  * Supports in-memory (dev), Redis (production), or database (fallback).
  */
 
-import { getStorage } from './storage/index.js'
+import { getStorage } from './storage/index.js';
 
 interface RateLimitEntry {
-  count: number
-  resetAt: number
+  count: number;
+  resetAt: number;
 }
 
 /**
  * Rate limit configuration
  */
 export interface RateLimitConfig {
-  maxAttempts: number
-  windowMs: number
-  blockDurationMs?: number
+  maxAttempts: number;
+  windowMs: number;
+  blockDurationMs?: number;
 }
 
 const DEFAULT_CONFIG: RateLimitConfig = {
   maxAttempts: 5,
   windowMs: 15 * 60 * 1000, // 15 minutes
   blockDurationMs: 30 * 60 * 1000, // 30 minutes block after max attempts
-}
+};
 
 /**
  * Serialize rate limit entry to string
  */
 function serializeEntry(entry: RateLimitEntry): string {
-  return JSON.stringify(entry)
+  return JSON.stringify(entry);
 }
 
 /**
@@ -39,13 +39,13 @@ function serializeEntry(entry: RateLimitEntry): string {
  */
 function deserializeEntry(data: string | null): RateLimitEntry | null {
   if (!data) {
-    return null
+    return null;
   }
 
   try {
-    return JSON.parse(data) as RateLimitEntry
+    return JSON.parse(data) as RateLimitEntry;
   } catch {
-    return null
+    return null;
   }
 }
 
@@ -53,7 +53,7 @@ function deserializeEntry(data: string | null): RateLimitEntry | null {
  * Get storage key for rate limit entry
  */
 function getStorageKey(key: string): string {
-  return `rate_limit:${key}`
+  return `rate_limit:${key}`;
 }
 
 /**
@@ -67,65 +67,65 @@ export async function checkRateLimit(
   key: string,
   config: RateLimitConfig = DEFAULT_CONFIG,
 ): Promise<{ allowed: boolean; remaining: number; resetAt: number }> {
-  const storage = getStorage()
-  const storageKey = getStorageKey(key)
-  const now = Date.now()
+  const storage = getStorage();
+  const storageKey = getStorageKey(key);
+  const now = Date.now();
 
   // Use atomicUpdate to avoid the read-modify-write race condition.
   // The result is captured via closure since atomicUpdate returns void.
-  let result: { allowed: boolean; remaining: number; resetAt: number }
+  let result: { allowed: boolean; remaining: number; resetAt: number };
 
   const updater = (entryData: string | null): { value: string; ttlSeconds: number } => {
-    let entry = deserializeEntry(entryData)
+    let entry = deserializeEntry(entryData);
 
     // Clean up expired entries
     if (entry && entry.resetAt < now) {
-      entry = null
+      entry = null;
     }
 
     // Get or create entry
     const currentEntry: RateLimitEntry = entry || {
       count: 0,
       resetAt: now + config.windowMs,
-    }
+    };
 
     // Check if blocked
     if (config.blockDurationMs && currentEntry.count >= config.maxAttempts) {
-      const blockUntil = now + config.blockDurationMs
-      const blockTtlSeconds = Math.ceil(config.blockDurationMs / 1000)
-      result = { allowed: false, remaining: 0, resetAt: blockUntil }
-      return { value: serializeEntry(currentEntry), ttlSeconds: blockTtlSeconds }
+      const blockUntil = now + config.blockDurationMs;
+      const blockTtlSeconds = Math.ceil(config.blockDurationMs / 1000);
+      result = { allowed: false, remaining: 0, resetAt: blockUntil };
+      return { value: serializeEntry(currentEntry), ttlSeconds: blockTtlSeconds };
     }
 
     // Check if within window
     if (currentEntry.count >= config.maxAttempts) {
-      const ttlSeconds = Math.ceil((currentEntry.resetAt - now) / 1000)
-      result = { allowed: false, remaining: 0, resetAt: currentEntry.resetAt }
-      return { value: serializeEntry(currentEntry), ttlSeconds }
+      const ttlSeconds = Math.ceil((currentEntry.resetAt - now) / 1000);
+      result = { allowed: false, remaining: 0, resetAt: currentEntry.resetAt };
+      return { value: serializeEntry(currentEntry), ttlSeconds };
     }
 
     // Increment and update
-    currentEntry.count++
-    const ttlSeconds = Math.ceil((currentEntry.resetAt - now) / 1000)
+    currentEntry.count++;
+    const ttlSeconds = Math.ceil((currentEntry.resetAt - now) / 1000);
     result = {
       allowed: true,
       remaining: config.maxAttempts - currentEntry.count,
       resetAt: currentEntry.resetAt,
-    }
-    return { value: serializeEntry(currentEntry), ttlSeconds }
-  }
+    };
+    return { value: serializeEntry(currentEntry), ttlSeconds };
+  };
 
   if (storage.atomicUpdate) {
-    await storage.atomicUpdate(storageKey, updater)
+    await storage.atomicUpdate(storageKey, updater);
   } else {
     // Fallback for storage backends without atomicUpdate
-    const existing = await storage.get(storageKey)
-    const { value, ttlSeconds } = updater(existing)
-    await storage.set(storageKey, value, ttlSeconds)
+    const existing = await storage.get(storageKey);
+    const { value, ttlSeconds } = updater(existing);
+    await storage.set(storageKey, value, ttlSeconds);
   }
 
   // biome-ignore lint/style/noNonNullAssertion: result is always assigned by updater before this point
-  return result!
+  return result!;
 }
 
 /**
@@ -134,9 +134,9 @@ export async function checkRateLimit(
  * @param key - Rate limit key
  */
 export async function resetRateLimit(key: string): Promise<void> {
-  const storage = getStorage()
-  const storageKey = getStorageKey(key)
-  await storage.del(storageKey)
+  const storage = getStorage();
+  const storageKey = getStorageKey(key);
+  await storage.del(storageKey);
 }
 
 /**
@@ -150,24 +150,24 @@ export async function getRateLimitStatus(
   key: string,
   config: RateLimitConfig = DEFAULT_CONFIG,
 ): Promise<{ count: number; remaining: number; resetAt: number }> {
-  const storage = getStorage()
-  const storageKey = getStorageKey(key)
-  const now = Date.now()
+  const storage = getStorage();
+  const storageKey = getStorageKey(key);
+  const now = Date.now();
 
-  const entryData = await storage.get(storageKey)
-  const entry = deserializeEntry(entryData)
+  const entryData = await storage.get(storageKey);
+  const entry = deserializeEntry(entryData);
 
   if (!entry || entry.resetAt < now) {
     return {
       count: 0,
       remaining: config.maxAttempts,
       resetAt: now + config.windowMs,
-    }
+    };
   }
 
   return {
     count: entry.count,
     remaining: Math.max(0, config.maxAttempts - entry.count),
     resetAt: entry.resetAt,
-  }
+  };
 }

@@ -1,6 +1,6 @@
-'use client'
+'use client';
 
-import { createContext, type ReactNode, use, useMemo } from 'react'
+import { createContext, type ReactNode, use, useMemo } from 'react';
 
 interface ElectricContextValue {
   /**
@@ -8,21 +8,21 @@ interface ElectricContextValue {
    * Stored in context for future use — not consumed by the current proxy-based hooks.
    * All hooks use proxyBaseUrl + /api/shapes/* instead.
    */
-  serviceUrl: string | null
+  serviceUrl: string | null;
   /**
    * Base URL prefix for authenticated CMS shape proxy routes.
    * Default '' keeps all hook URLs relative (works for same-origin apps).
    * Set to 'https://cms.revealui.com' when consuming from a different origin.
    */
-  proxyBaseUrl: string
-  debug: boolean
+  proxyBaseUrl: string;
+  debug: boolean;
 }
 
 const ElectricContext = createContext<ElectricContextValue>({
   serviceUrl: null,
   proxyBaseUrl: '',
   debug: false,
-})
+});
 
 /**
  * Provides ElectricSQL configuration to child hooks (`useConversations`, `useCollabDocument`).
@@ -31,10 +31,10 @@ const ElectricContext = createContext<ElectricContextValue>({
  * All hooks use the CMS proxy pattern — no direct Electric connection is established here.
  */
 export function ElectricProvider(props: {
-  children: ReactNode
-  serviceUrl?: string
-  proxyBaseUrl?: string
-  debug?: boolean
+  children: ReactNode;
+  serviceUrl?: string;
+  proxyBaseUrl?: string;
+  debug?: boolean;
 }): ReactNode {
   const value = useMemo(
     () => ({
@@ -43,9 +43,9 @@ export function ElectricProvider(props: {
       debug: props.debug ?? false,
     }),
     [props.serviceUrl, props.proxyBaseUrl, props.debug],
-  )
+  );
 
-  return <ElectricContext value={value}>{props.children}</ElectricContext>
+  return <ElectricContext value={value}>{props.children}</ElectricContext>;
 }
 
 /**
@@ -53,5 +53,5 @@ export function ElectricProvider(props: {
  * Returns `{ serviceUrl: null, debug: false }` if no provider is present.
  */
 export function useElectricConfig(): ElectricContextValue {
-  return use(ElectricContext)
+  return use(ElectricContext);
 }

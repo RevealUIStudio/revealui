@@ -1,10 +1,10 @@
-import type { EmailField } from '@revealui/core/plugins'
-import { InputCVA as Input } from '@revealui/presentation/server'
-import type React from 'react'
-import { FormFieldError } from '@/lib/blocks/Form/Error'
-import type { BaseFormFieldProps } from '@/lib/blocks/Form/types'
-import { Width } from '@/lib/blocks/Form/Width'
-import { Label } from '@/lib/components/ui/primitives/label'
+import type { EmailField } from '@revealui/core/plugins';
+import { InputCVA as Input } from '@revealui/presentation/server';
+import type React from 'react';
+import { FormFieldError } from '@/lib/blocks/Form/Error';
+import type { BaseFormFieldProps } from '@/lib/blocks/Form/types';
+import { Width } from '@/lib/blocks/Form/Width';
+import { Label } from '@/lib/components/ui/primitives/label';
 
 export const Email: React.FC<
   EmailField & BaseFormFieldProps & { defaultValue?: string | number }
@@ -31,5 +31,5 @@ export const Email: React.FC<
 
       {requiredFromProps && errors[name] && <FormFieldError />}
     </Width>
-  )
-}
+  );
+};

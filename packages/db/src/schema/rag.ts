@@ -8,8 +8,8 @@
  * Embedding dimensions: 768 (nomic-embed-text via Ollama — policy default)
  */
 
-import { customType, index, integer, jsonb, pgTable, text, timestamp } from 'drizzle-orm/pg-core'
-import { sites } from './sites.js'
+import { customType, index, integer, jsonb, pgTable, text, timestamp } from 'drizzle-orm/pg-core';
+import { sites } from './sites.js';
 
 // =============================================================================
 // Custom Vector Type (768-dim for nomic-embed-text)
@@ -17,15 +17,15 @@ import { sites } from './sites.js'
 
 const vector = customType<{ data: number[]; driverData: string }>({
   dataType(config) {
-    return `vector(${(config as { dimensions: number })?.dimensions ?? 768})`
+    return `vector(${(config as { dimensions: number })?.dimensions ?? 768})`;
   },
   toDriver(value: number[]): string {
-    return `[${value.join(',')}]`
+    return `[${value.join(',')}]`;
   },
   fromDriver(value: string): number[] {
-    return JSON.parse(value.replace(/^\[/, '[').replace(/\]$/, ']')) as number[]
+    return JSON.parse(value.replace(/^\[/, '[').replace(/\]$/, ']')) as number[];
   },
-})
+});
 
 // =============================================================================
 // rag_documents — one row per indexed source
@@ -59,7 +59,7 @@ export const ragDocuments = pgTable('rag_documents', {
 
   createdAt: timestamp('created_at', { withTimezone: true }).defaultNow().notNull(),
   updatedAt: timestamp('updated_at', { withTimezone: true }).defaultNow().notNull(),
-})
+});
 
 // =============================================================================
 // rag_chunks — one row per text chunk, with 768-dim embedding
@@ -93,7 +93,7 @@ export const ragChunks = pgTable(
     index('rag_chunks_document_id_idx').on(table.documentId),
     index('rag_chunks_workspace_id_idx').on(table.workspaceId),
   ],
-)
+);
 
 // =============================================================================
 // rag_workspaces — per-workspace RAG configuration
@@ -109,15 +109,15 @@ export const ragWorkspaces = pgTable('rag_workspaces', {
   chunkOverlap: integer('chunk_overlap').notNull().default(64),
 
   createdAt: timestamp('created_at', { withTimezone: true }).defaultNow().notNull(),
-})
+});
 
 // =============================================================================
 // Type exports
 // =============================================================================
 
-export type RagDocument = typeof ragDocuments.$inferSelect
-export type NewRagDocument = typeof ragDocuments.$inferInsert
-export type RagChunk = typeof ragChunks.$inferSelect
-export type NewRagChunk = typeof ragChunks.$inferInsert
-export type RagWorkspace = typeof ragWorkspaces.$inferSelect
-export type NewRagWorkspace = typeof ragWorkspaces.$inferInsert
+export type RagDocument = typeof ragDocuments.$inferSelect;
+export type NewRagDocument = typeof ragDocuments.$inferInsert;
+export type RagChunk = typeof ragChunks.$inferSelect;
+export type NewRagChunk = typeof ragChunks.$inferInsert;
+export type RagWorkspace = typeof ragWorkspaces.$inferSelect;
+export type NewRagWorkspace = typeof ragWorkspaces.$inferInsert;

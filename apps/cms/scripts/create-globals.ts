@@ -3,30 +3,30 @@
  * This will populate the Header and Footer globals to remove warnings
  */
 
-import { getRevealUI } from '@revealui/core'
-import config from '../revealui.config.js'
+import { getRevealUI } from '@revealui/core';
+import config from '../revealui.config.js';
 
 async function createGlobals() {
-  console.log('🚀 Creating Header and Footer globals...\n')
+  console.log('🚀 Creating Header and Footer globals...\n');
 
   try {
-    const revealui = await getRevealUI({ config })
+    const revealui = await getRevealUI({ config });
 
     // Create/Update Header Global
-    console.log('📝 Creating Header global...')
+    console.log('📝 Creating Header global...');
     try {
       const existingHeader = await revealui.findGlobal({
         slug: 'header',
         depth: 0,
-      })
+      });
 
       if (existingHeader) {
-        console.log('✅ Header global already exists')
-        console.log('   Current nav items:', existingHeader.navItems?.length || 0)
+        console.log('✅ Header global already exists');
+        console.log('   Current nav items:', existingHeader.navItems?.length || 0);
       }
     } catch (_error) {
       // Header doesn't exist, create it
-      console.log('   Header not found, creating...')
+      console.log('   Header not found, creating...');
       await revealui.updateGlobal({
         slug: 'header',
         data: {
@@ -57,26 +57,26 @@ async function createGlobals() {
             },
           ],
         },
-      })
-      console.log('✅ Header global created successfully!')
-      console.log('   Added 3 navigation items: Home, Posts, Admin')
+      });
+      console.log('✅ Header global created successfully!');
+      console.log('   Added 3 navigation items: Home, Posts, Admin');
     }
 
     // Create/Update Footer Global
-    console.log('\n📝 Creating Footer global...')
+    console.log('\n📝 Creating Footer global...');
     try {
       const existingFooter = await revealui.findGlobal({
         slug: 'footer',
         depth: 0,
-      })
+      });
 
       if (existingFooter) {
-        console.log('✅ Footer global already exists')
-        console.log('   Current nav items:', existingFooter.navItems?.length || 0)
+        console.log('✅ Footer global already exists');
+        console.log('   Current nav items:', existingFooter.navItems?.length || 0);
       }
     } catch (_error) {
       // Footer doesn't exist, create it
-      console.log('   Footer not found, creating...')
+      console.log('   Footer not found, creating...');
       await revealui.updateGlobal({
         slug: 'footer',
         data: {
@@ -104,25 +104,25 @@ async function createGlobals() {
             },
           ],
         },
-      })
-      console.log('✅ Footer global created successfully!')
-      console.log('   Added 3 navigation items: Privacy, Terms, Contact')
+      });
+      console.log('✅ Footer global created successfully!');
+      console.log('   Added 3 navigation items: Privacy, Terms, Contact');
     }
 
-    console.log('\n🎉 All globals created successfully!')
-    console.log('\n📋 Summary:')
-    console.log('  • Header: Navigation with Home, Posts, Admin links')
-    console.log('  • Footer: Links for Privacy Policy, Terms, Contact')
-    console.log('\n💡 Visit http://localhost:4000/admin/globals/header to edit')
-    console.log('💡 Visit http://localhost:4000/admin/globals/footer to edit')
-    console.log('\n✨ The "Global not found" warnings should now be gone!')
+    console.log('\n🎉 All globals created successfully!');
+    console.log('\n📋 Summary:');
+    console.log('  • Header: Navigation with Home, Posts, Admin links');
+    console.log('  • Footer: Links for Privacy Policy, Terms, Contact');
+    console.log('\n💡 Visit http://localhost:4000/admin/globals/header to edit');
+    console.log('💡 Visit http://localhost:4000/admin/globals/footer to edit');
+    console.log('\n✨ The "Global not found" warnings should now be gone!');
 
-    process.exit(0)
+    process.exit(0);
   } catch (error) {
-    console.error('\n❌ Error creating globals:', error)
-    console.error('\n💡 Make sure the dev server is running: pnpm dev:cms')
-    process.exit(1)
+    console.error('\n❌ Error creating globals:', error);
+    console.error('\n💡 Make sure the dev server is running: pnpm dev:cms');
+    process.exit(1);
   }
 }
 
-createGlobals()
+createGlobals();

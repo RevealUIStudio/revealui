@@ -15,16 +15,16 @@
  * })
  * ```
  */
-import path from 'node:path'
-import { fileURLToPath } from 'node:url'
-import type { UserConfig } from 'vite'
+import path from 'node:path';
+import { fileURLToPath } from 'node:url';
+import type { UserConfig } from 'vite';
 
-const __filename = fileURLToPath(import.meta.url)
-const __dirname = path.dirname(__filename)
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
 
 // Calculate paths relative to this file's location (packages/dev/src/vite/)
-const packagesRoot = path.resolve(__dirname, '../../..') // packages/
-const projectRoot = path.resolve(__dirname, '../../../..') // RevealUI/
+const packagesRoot = path.resolve(__dirname, '../../..'); // packages/
+const projectRoot = path.resolve(__dirname, '../../../..'); // RevealUI/
 
 const sharedViteConfig: UserConfig = {
   esbuild: {
@@ -83,6 +83,6 @@ const sharedViteConfig: UserConfig = {
   optimizeDeps: {
     exclude: [],
   },
-}
+};
 
-export default sharedViteConfig
+export default sharedViteConfig;

@@ -1,40 +1,40 @@
-import type { Category, Post } from '@revealui/core/types/cms'
-import { logger } from '@revealui/core/utils/logger'
-import type React from 'react'
-import { CollectionArchive } from '@/lib/components/CollectionArchive/index'
-import { ErrorBoundary } from '@/lib/components/ErrorBoundary/index'
-import RichText from '@/lib/components/RichText/index'
-import { getRevealUIInstance } from '@/lib/utilities/revealui-singleton'
+import type { Category, Post } from '@revealui/core/types/cms';
+import { logger } from '@revealui/core/utils/logger';
+import type React from 'react';
+import { CollectionArchive } from '@/lib/components/CollectionArchive/index';
+import { ErrorBoundary } from '@/lib/components/ErrorBoundary/index';
+import RichText from '@/lib/components/RichText/index';
+import { getRevealUIInstance } from '@/lib/utilities/revealui-singleton';
 
 export interface ArchiveBlockProps {
   introContent?: {
     root: {
-      type: string
+      type: string;
       children: {
-        type: string
-        version: number
-        [k: string]: unknown
-      }[]
-      direction: ('ltr' | 'rtl') | null
-      format: 'left' | 'start' | 'center' | 'right' | 'end' | 'justify' | ''
-      indent: number
-      version: number
-    }
-    [k: string]: unknown
-  } | null
-  populateBy?: 'collection' | 'selection' | null
-  relationTo?: 'posts' | null
-  categories?: (string | Category)[] | null
-  limit?: number | null
+        type: string;
+        version: number;
+        [k: string]: unknown;
+      }[];
+      direction: ('ltr' | 'rtl') | null;
+      format: 'left' | 'start' | 'center' | 'right' | 'end' | 'justify' | '';
+      indent: number;
+      version: number;
+    };
+    [k: string]: unknown;
+  } | null;
+  populateBy?: 'collection' | 'selection' | null;
+  relationTo?: 'posts' | null;
+  categories?: (string | Category)[] | null;
+  limit?: number | null;
   selectedDocs?:
     | {
-        relationTo: 'posts'
-        value: string | Post
+        relationTo: 'posts';
+        value: string | Post;
       }[]
-    | null
-  id?: string | null
-  blockName?: string | null
-  blockType: 'archive'
+    | null;
+  id?: string | null;
+  blockName?: string | null;
+  blockType: 'archive';
 }
 
 export const ArchiveBlock: React.FC<ArchiveBlockProps> = async (props) => {
@@ -44,21 +44,21 @@ export const ArchiveBlock: React.FC<ArchiveBlockProps> = async (props) => {
     if (process.env.NODE_ENV === 'development') {
       logger.warn('ArchiveBlock validation warning: Invalid blockType', {
         blockType: props.blockType,
-      })
+      });
     }
   }
 
-  const { id, categories, introContent, limit: limitFromProps, populateBy, selectedDocs } = props
-  const limit = limitFromProps || 3
+  const { id, categories, introContent, limit: limitFromProps, populateBy, selectedDocs } = props;
+  const limit = limitFromProps || 3;
 
-  let posts: Post[] = []
+  let posts: Post[] = [];
 
   if (populateBy === 'collection') {
-    const revealui = await getRevealUIInstance()
+    const revealui = await getRevealUIInstance();
 
     const flattenedCategories = categories?.map((category) =>
       typeof category === 'object' ? category.id : category,
-    )
+    );
 
     const fetchedPosts = await revealui.find({
       collection: 'posts',
@@ -73,15 +73,15 @@ export const ArchiveBlock: React.FC<ArchiveBlockProps> = async (props) => {
             },
           }
         : {}),
-    })
+    });
 
-    posts = (fetchedPosts.docs as unknown as Post[]).map((doc) => doc)
+    posts = (fetchedPosts.docs as unknown as Post[]).map((doc) => doc);
   } else if (selectedDocs?.length) {
     posts = selectedDocs
       .map((doc: { relationTo: 'posts'; value: string | Post }) =>
         typeof doc.value === 'object' ? doc.value : null,
       )
-      .filter(Boolean) as Post[]
+      .filter(Boolean) as Post[];
   }
 
   return (
@@ -101,5 +101,5 @@ export const ArchiveBlock: React.FC<ArchiveBlockProps> = async (props) => {
         <CollectionArchive posts={posts} />
       </div>
     </ErrorBoundary>
-  )
-}
+  );
+};

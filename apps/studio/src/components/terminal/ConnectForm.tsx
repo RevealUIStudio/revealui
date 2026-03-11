@@ -1,65 +1,65 @@
-import { open } from '@tauri-apps/plugin-dialog'
-import { useCallback, useEffect, useState } from 'react'
-import { sshBookmarkDelete, sshBookmarkList, sshBookmarkSave } from '../../lib/invoke'
-import type { SshAuth, SshBookmark, SshConnectParams } from '../../types'
-import Button from '../ui/Button'
-import Input from '../ui/Input'
+import { open } from '@tauri-apps/plugin-dialog';
+import { useCallback, useEffect, useState } from 'react';
+import { sshBookmarkDelete, sshBookmarkList, sshBookmarkSave } from '../../lib/invoke';
+import type { SshAuth, SshBookmark, SshConnectParams } from '../../types';
+import Button from '../ui/Button';
+import Input from '../ui/Input';
 
 interface ConnectFormProps {
-  onConnect: (params: SshConnectParams) => void
-  connecting: boolean
+  onConnect: (params: SshConnectParams) => void;
+  connecting: boolean;
 }
 
-type AuthMethod = 'password' | 'key'
+type AuthMethod = 'password' | 'key';
 
 export default function ConnectForm({ onConnect, connecting }: ConnectFormProps) {
-  const [host, setHost] = useState('')
-  const [port, setPort] = useState(22)
-  const [username, setUsername] = useState('')
-  const [authMethod, setAuthMethod] = useState<AuthMethod>('key')
-  const [password, setPassword] = useState('')
-  const [keyPath, setKeyPath] = useState('')
-  const [passphrase, setPassphrase] = useState('')
-  const [bookmarks, setBookmarks] = useState<SshBookmark[]>([])
-  const [showBookmarks, setShowBookmarks] = useState(true)
+  const [host, setHost] = useState('');
+  const [port, setPort] = useState(22);
+  const [username, setUsername] = useState('');
+  const [authMethod, setAuthMethod] = useState<AuthMethod>('key');
+  const [password, setPassword] = useState('');
+  const [keyPath, setKeyPath] = useState('');
+  const [passphrase, setPassphrase] = useState('');
+  const [bookmarks, setBookmarks] = useState<SshBookmark[]>([]);
+  const [showBookmarks, setShowBookmarks] = useState(true);
 
   const loadBookmarks = useCallback(async () => {
     try {
-      const list = await sshBookmarkList()
-      setBookmarks(list)
+      const list = await sshBookmarkList();
+      setBookmarks(list);
     } catch {
       // Bookmarks unavailable outside Tauri
     }
-  }, [])
+  }, []);
 
   useEffect(() => {
-    loadBookmarks()
-  }, [loadBookmarks])
+    loadBookmarks();
+  }, [loadBookmarks]);
 
   const handleBrowseKey = async () => {
     const selected = await open({
       title: 'Select SSH key',
       multiple: false,
       directory: false,
-    })
+    });
     if (selected) {
-      setKeyPath(selected)
+      setKeyPath(selected);
     }
-  }
+  };
 
   const handleSelectBookmark = (b: SshBookmark) => {
-    setHost(b.host)
-    setPort(b.port)
-    setUsername(b.username)
-    setAuthMethod(b.auth_method)
-    if (b.key_path) setKeyPath(b.key_path)
-    setShowBookmarks(false)
-  }
+    setHost(b.host);
+    setPort(b.port);
+    setUsername(b.username);
+    setAuthMethod(b.auth_method);
+    if (b.key_path) setKeyPath(b.key_path);
+    setShowBookmarks(false);
+  };
 
   const handleDeleteBookmark = async (id: string) => {
-    await sshBookmarkDelete(id)
-    await loadBookmarks()
-  }
+    await sshBookmarkDelete(id);
+    await loadBookmarks();
+  };
 
   const handleSaveBookmark = async () => {
     const bookmark: SshBookmark = {
@@ -70,23 +70,23 @@ export default function ConnectForm({ onConnect, connecting }: ConnectFormProps)
       username,
       auth_method: authMethod,
       key_path: authMethod === 'key' ? keyPath : null,
-    }
-    await sshBookmarkSave(bookmark)
-    await loadBookmarks()
-  }
+    };
+    await sshBookmarkSave(bookmark);
+    await loadBookmarks();
+  };
 
   const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault()
-    let auth: SshAuth
+    e.preventDefault();
+    let auth: SshAuth;
     if (authMethod === 'password') {
-      auth = { method: 'password', password }
+      auth = { method: 'password', password };
     } else {
-      auth = { method: 'key', key_path: keyPath, passphrase: passphrase || null }
+      auth = { method: 'key', key_path: keyPath, passphrase: passphrase || null };
     }
-    onConnect({ host, port, username, auth })
-  }
+    onConnect({ host, port, username, auth });
+  };
 
-  const isValid = host && username && (authMethod === 'password' ? password : keyPath)
+  const isValid = host && username && (authMethod === 'password' ? password : keyPath);
 
   return (
     <div className="space-y-4">
@@ -263,5 +263,5 @@ export default function ConnectForm({ onConnect, connecting }: ConnectFormProps)
         </form>
       )}
     </div>
-  )
+  );
 }

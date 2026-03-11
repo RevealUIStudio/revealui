@@ -3,68 +3,68 @@
  * Start a Rev loop iterative workflow
  */
 
-import { join } from 'node:path'
-import { createLogger, getProjectRoot, writeFileContent as writeFile } from '../../lib/index.js'
-import { ErrorCode } from '../lib/errors.js'
-import type { RevStartOptions } from '../types.ts'
-import { generateBrutalHonestyPromptPrefix } from '../utils/brutal-honesty.js'
+import { join } from 'node:path';
+import { createLogger, getProjectRoot, writeFileContent as writeFile } from '../../lib/index.js';
+import { ErrorCode } from '../lib/errors.js';
+import type { RevStartOptions } from '../types.ts';
+import { generateBrutalHonestyPromptPrefix } from '../utils/brutal-honesty.js';
 import {
   getPromptFilePath,
   getStateFilePath,
   isWorkflowActive,
   writeStateFile,
-} from '../utils/orchestration.js'
+} from '../utils/orchestration.js';
 
-const logger = createLogger()
+const logger = createLogger();
 
 /**
  * Parse command line arguments
  */
 function parseArguments(): RevStartOptions & { help: boolean } {
-  const args = process.argv.slice(2)
+  const args = process.argv.slice(2);
 
   if (args.length === 0 || args.includes('--help') || args.includes('-h')) {
-    return { prompt: '', help: true }
+    return { prompt: '', help: true };
   }
 
-  let prompt = ''
-  let maxIterations = 0
-  let completionPromise: string | undefined
-  let brutalHonesty = true // Default to true
+  let prompt = '';
+  let maxIterations = 0;
+  let completionPromise: string | undefined;
+  let brutalHonesty = true; // Default to true
 
   // Parse arguments
   for (let i = 0; i < args.length; i++) {
-    const arg = args[i]
+    const arg = args[i];
 
     if (arg === '--max-iterations' || arg === '-n') {
-      const value = args[i + 1]
+      const value = args[i + 1];
       if (!value) {
-        logger.error('--max-iterations requires a number argument')
-        process.exit(ErrorCode.CONFIG_ERROR)
+        logger.error('--max-iterations requires a number argument');
+        process.exit(ErrorCode.CONFIG_ERROR);
       }
-      const parsed = Number.parseInt(value, 10)
+      const parsed = Number.parseInt(value, 10);
       if (Number.isNaN(parsed) || parsed < 0) {
-        logger.error('--max-iterations must be a non-negative integer (0 = unlimited)')
-        process.exit(ErrorCode.CONFIG_ERROR)
+        logger.error('--max-iterations must be a non-negative integer (0 = unlimited)');
+        process.exit(ErrorCode.CONFIG_ERROR);
       }
-      maxIterations = parsed
-      i++
+      maxIterations = parsed;
+      i++;
     } else if (arg === '--completion-promise' || arg === '-p') {
-      const value = args[i + 1]
+      const value = args[i + 1];
       if (!value) {
-        logger.error('--completion-promise requires a text argument')
-        process.exit(ErrorCode.CONFIG_ERROR)
+        logger.error('--completion-promise requires a text argument');
+        process.exit(ErrorCode.CONFIG_ERROR);
       }
-      completionPromise = value
-      i++
+      completionPromise = value;
+      i++;
     } else if (arg === '--no-brutal-honesty') {
-      brutalHonesty = false
+      brutalHonesty = false;
     } else if (!(arg.startsWith('--') || arg.startsWith('-'))) {
       // Positional argument (prompt)
       if (prompt) {
-        prompt += ` ${arg}`
+        prompt += ` ${arg}`;
       } else {
-        prompt = arg
+        prompt = arg;
       }
     }
   }
@@ -75,7 +75,7 @@ function parseArguments(): RevStartOptions & { help: boolean } {
     completionPromise,
     brutalHonesty,
     help: false,
-  }
+  };
 }
 
 /**
@@ -121,50 +121,50 @@ CANCEL:
 NOTE:
   This is a MANUAL iterative workflow, not an autonomous loop.
   You must re-invoke commands to continue iterations.
-`)
+`);
 }
 
 /**
  * Main function
  */
 async function _main() {
-  const projectRoot = await getProjectRoot(import.meta.url)
-  const args = parseArguments()
+  const projectRoot = await getProjectRoot(import.meta.url);
+  const args = parseArguments();
 
   if (args.help) {
-    showHelp()
-    process.exit(ErrorCode.SUCCESS)
+    showHelp();
+    process.exit(ErrorCode.SUCCESS);
   }
 
   // Validate prompt
   if (!args.prompt?.trim()) {
-    logger.error('Prompt is required')
-    logger.info('\nUsage: pnpm rev:start "<prompt>" [OPTIONS]')
-    logger.info('Run: pnpm rev:start --help for more information')
-    process.exit(ErrorCode.EXECUTION_ERROR)
+    logger.error('Prompt is required');
+    logger.info('\nUsage: pnpm rev:start "<prompt>" [OPTIONS]');
+    logger.info('Run: pnpm rev:start --help for more information');
+    process.exit(ErrorCode.EXECUTION_ERROR);
   }
 
   // Check if workflow is already active
   if (await isWorkflowActive(projectRoot)) {
-    logger.error('A workflow is already active')
-    logger.info(`State file: ${getStateFilePath(projectRoot)}`)
-    logger.info('Run "pnpm rev:cancel" to cancel the existing workflow first')
-    process.exit(ErrorCode.EXECUTION_ERROR)
+    logger.error('A workflow is already active');
+    logger.info(`State file: ${getStateFilePath(projectRoot)}`);
+    logger.info('Run "pnpm rev:cancel" to cancel the existing workflow first');
+    process.exit(ErrorCode.EXECUTION_ERROR);
   }
 
   // Create .cursor directory if it doesn't exist
-  const { mkdir } = await import('node:fs/promises')
-  await mkdir(join(projectRoot, '.cursor'), { recursive: true })
+  const { mkdir } = await import('node:fs/promises');
+  await mkdir(join(projectRoot, '.cursor'), { recursive: true });
 
-  const _stateFilePath = getStateFilePath(projectRoot)
-  const promptFilePath = getPromptFilePath(projectRoot)
+  const _stateFilePath = getStateFilePath(projectRoot);
+  const promptFilePath = getPromptFilePath(projectRoot);
 
   // Enhance prompt with brutal honesty if enabled
-  let finalPrompt = args.prompt
+  let finalPrompt = args.prompt;
   if (args.brutalHonesty) {
-    const brutalPrefix = generateBrutalHonestyPromptPrefix()
-    finalPrompt = `${brutalPrefix}\n\n${args.prompt}`
-    logger.info('Brutal honesty mode enabled (default for cohesion workflows)')
+    const brutalPrefix = generateBrutalHonestyPromptPrefix();
+    finalPrompt = `${brutalPrefix}\n\n${args.prompt}`;
+    logger.info('Brutal honesty mode enabled (default for cohesion workflows)');
   }
 
   // Create state
@@ -176,39 +176,39 @@ async function _main() {
     started_at: new Date().toISOString(),
     prompt_file: '.cursor/rev-prompt.md',
     completion_marker: '.cursor/rev-complete.marker',
-  }
+  };
 
   // Write state file
-  await writeStateFile(projectRoot, state, finalPrompt.trim())
+  await writeStateFile(projectRoot, state, finalPrompt.trim());
 
   // Write prompt file
-  await writeFile(promptFilePath, finalPrompt.trim())
+  await writeFile(promptFilePath, finalPrompt.trim());
 
-  logger.header('Rev Workflow Started')
+  logger.header('Rev Workflow Started');
   logger.success(
     `Iteration: ${state.iteration}${state.max_iterations > 0 ? ` / ${state.max_iterations}` : ''}`,
-  )
-  logger.info(`Prompt: ${args.prompt.trim()}`)
+  );
+  logger.info(`Prompt: ${args.prompt.trim()}`);
   if (args.brutalHonesty) {
-    logger.info('Brutal honesty mode: ENABLED (automatic)')
+    logger.info('Brutal honesty mode: ENABLED (automatic)');
   }
   if (state.completion_promise) {
-    logger.info(`Completion promise: ${state.completion_promise}`)
+    logger.info(`Completion promise: ${state.completion_promise}`);
   } else {
-    logger.warning('No completion promise set (workflow runs until manually cancelled)')
+    logger.warning('No completion promise set (workflow runs until manually cancelled)');
   }
-  logger.info('')
-  logger.info('Next steps:')
-  logger.info('  1. Work on the task in Cursor chat')
-  logger.info('  2. Check status: pnpm rev:status')
-  logger.info('  3. Continue iteration: pnpm rev:continue')
+  logger.info('');
+  logger.info('Next steps:');
+  logger.info('  1. Work on the task in Cursor chat');
+  logger.info('  2. Check status: pnpm rev:status');
+  logger.info('  3. Continue iteration: pnpm rev:continue');
   if (state.completion_promise) {
     logger.info(
       `  4. When complete, create marker: echo "${state.completion_promise}" > .cursor/rev-complete.marker`,
-    )
-    logger.info('  5. Run: pnpm rev:continue (detects completion)')
+    );
+    logger.info('  5. Run: pnpm rev:continue (detects completion)');
   }
-  logger.info('  6. Cancel anytime: pnpm rev:cancel')
+  logger.info('  6. Cancel anytime: pnpm rev:cancel');
 }
 
 /**
@@ -216,14 +216,14 @@ async function _main() {
  */
 async function main() {
   try {
-    await _main()
+    await _main();
   } catch (error) {
-    logger.error(`Script failed: ${error instanceof Error ? error.message : String(error)}`)
+    logger.error(`Script failed: ${error instanceof Error ? error.message : String(error)}`);
     if (error instanceof Error && error.stack) {
-      logger.error(`Stack trace: ${error.stack}`)
+      logger.error(`Stack trace: ${error.stack}`);
     }
-    process.exit(ErrorCode.EXECUTION_ERROR)
+    process.exit(ErrorCode.EXECUTION_ERROR);
   }
 }
 
-main()
+main();

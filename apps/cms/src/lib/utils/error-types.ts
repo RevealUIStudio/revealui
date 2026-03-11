@@ -11,14 +11,14 @@
  */
 export interface ErrorResponse {
   /** Error type/category (e.g., 'VALIDATION_ERROR', 'UNAUTHORIZED') */
-  error: string
+  error: string;
 
   /** Human-readable error message */
-  message: string
+  message: string;
 
   /** Optional error code for programmatic handling */
-  code?: string
+  code?: string;
 
   /** Optional additional details (validation errors, stack traces in dev, etc.) */
-  details?: unknown
+  details?: unknown;
 }

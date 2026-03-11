@@ -9,7 +9,7 @@
  */
 
 // Re-export all generated CMS types from unified package
-export type * from '@revealui/core/generated/types/cms'
+export type * from '@revealui/core/generated/types/cms';
 
 // Re-export commonly used types for convenience
 export type {
@@ -32,4 +32,4 @@ export type {
   Tag,
   Tenant,
   User,
-} from '@revealui/core/generated/types/cms'
+} from '@revealui/core/generated/types/cms';

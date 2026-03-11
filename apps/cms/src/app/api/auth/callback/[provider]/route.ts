@@ -12,80 +12,82 @@ import {
   OAuthAccountConflictError,
   upsertOAuthUser,
   verifyOAuthState,
-} from '@revealui/auth/server'
-import { logger } from '@revealui/core/utils/logger'
-import { type NextRequest, NextResponse } from 'next/server'
+} from '@revealui/auth/server';
+import { logger } from '@revealui/core/utils/logger';
+import { type NextRequest, NextResponse } from 'next/server';
 
-export const dynamic = 'force-dynamic'
-export const runtime = 'nodejs'
+export const dynamic = 'force-dynamic';
+export const runtime = 'nodejs';
 
-const ALLOWED_PROVIDERS = ['google', 'github', 'vercel'] as const
+const ALLOWED_PROVIDERS = ['google', 'github', 'vercel'] as const;
 
 export async function GET(
   request: NextRequest,
   { params }: { params: Promise<{ provider: string }> },
 ): Promise<NextResponse> {
-  const { provider } = await params
+  const { provider } = await params;
 
   const baseUrl =
-    process.env.NEXT_PUBLIC_APP_URL ?? process.env.NEXT_PUBLIC_SERVER_URL ?? 'http://localhost:4000'
+    process.env.NEXT_PUBLIC_APP_URL ??
+    process.env.NEXT_PUBLIC_SERVER_URL ??
+    'http://localhost:4000';
 
   const loginUrl = (error: string) =>
-    NextResponse.redirect(new URL(`/login?error=${encodeURIComponent(error)}`, baseUrl))
+    NextResponse.redirect(new URL(`/login?error=${encodeURIComponent(error)}`, baseUrl));
 
   if (!(ALLOWED_PROVIDERS as readonly string[]).includes(provider)) {
-    return loginUrl('unknown_provider')
+    return loginUrl('unknown_provider');
   }
 
-  const code = request.nextUrl.searchParams.get('code')
-  const state = request.nextUrl.searchParams.get('state')
-  const stateCookie = request.cookies.get('oauth_state')?.value
+  const code = request.nextUrl.searchParams.get('code');
+  const state = request.nextUrl.searchParams.get('state');
+  const stateCookie = request.cookies.get('oauth_state')?.value;
 
-  const verified = verifyOAuthState(state, stateCookie)
+  const verified = verifyOAuthState(state, stateCookie);
   if (!verified) {
-    return loginUrl('invalid_state')
+    return loginUrl('invalid_state');
   }
 
   try {
-    const redirectUri = `${baseUrl}/api/auth/callback/${provider}`
-    const accessToken = await exchangeCode(provider, code ?? '', redirectUri)
-    const providerUser = await fetchProviderUser(provider, accessToken)
+    const redirectUri = `${baseUrl}/api/auth/callback/${provider}`;
+    const accessToken = await exchangeCode(provider, code ?? '', redirectUri);
+    const providerUser = await fetchProviderUser(provider, accessToken);
 
     // Allowlist check — leave OAUTH_ADMIN_EMAILS empty to allow any authenticated user
     const allowedEmails = (process.env.OAUTH_ADMIN_EMAILS ?? '')
       .split(',')
       .map((e) => e.trim())
-      .filter(Boolean)
+      .filter(Boolean);
 
     if (allowedEmails.length > 0 && !allowedEmails.includes(providerUser.email ?? '')) {
-      return loginUrl('not_allowed')
+      return loginUrl('not_allowed');
     }
 
-    const user = await upsertOAuthUser(provider, providerUser)
+    const user = await upsertOAuthUser(provider, providerUser);
 
-    const userAgent = request.headers.get('user-agent') ?? undefined
-    const xff = request.headers.get('x-forwarded-for')
+    const userAgent = request.headers.get('user-agent') ?? undefined;
+    const xff = request.headers.get('x-forwarded-for');
     const ipAddress =
       (xff ? xff.split(',').pop()?.trim() : undefined) ??
       request.headers.get('x-real-ip') ??
-      undefined
+      undefined;
 
-    const { token } = await createSession(user.id, { userAgent, ipAddress, persistent: true })
+    const { token } = await createSession(user.id, { userAgent, ipAddress, persistent: true });
 
     // Resolve redirectTo: reject cross-origin URLs to prevent open redirect.
     // startsWith('/') is insufficient — paths like /..//..//attacker.com pass.
-    let redirectTo = '/admin'
+    let redirectTo = '/admin';
     try {
-      const resolved = new URL(verified.redirectTo, baseUrl)
-      const base = new URL(baseUrl)
+      const resolved = new URL(verified.redirectTo, baseUrl);
+      const base = new URL(baseUrl);
       if (resolved.hostname === base.hostname) {
-        redirectTo = resolved.pathname + resolved.search
+        redirectTo = resolved.pathname + resolved.search;
       }
     } catch {
       // Invalid URL — fall back to /admin
     }
 
-    const response = NextResponse.redirect(new URL(redirectTo, baseUrl))
+    const response = NextResponse.redirect(new URL(redirectTo, baseUrl));
 
     response.cookies.set('revealui-session', token, {
       httpOnly: true,
@@ -97,20 +99,20 @@ export async function GET(
         process.env.NODE_ENV === 'production'
           ? (() => {
               if (!process.env.SESSION_COOKIE_DOMAIN) {
-                throw new Error('SESSION_COOKIE_DOMAIN env var is required in production')
+                throw new Error('SESSION_COOKIE_DOMAIN env var is required in production');
               }
-              return process.env.SESSION_COOKIE_DOMAIN
+              return process.env.SESSION_COOKIE_DOMAIN;
             })()
           : undefined,
-    })
+    });
 
-    response.cookies.delete('oauth_state')
-    return response
+    response.cookies.delete('oauth_state');
+    return response;
   } catch (err) {
     if (err instanceof OAuthAccountConflictError) {
-      return loginUrl('account_exists')
+      return loginUrl('account_exists');
     }
-    logger.error('OAuth callback error', { provider, error: err })
-    return loginUrl('oauth_error')
+    logger.error('OAuth callback error', { provider, error: err });
+    return loginUrl('oauth_error');
   }
 }

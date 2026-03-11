@@ -11,8 +11,8 @@ export type {
   AgentMemory as AgentMemoryType,
   NewAgentMemory,
   NewAgentMemory as NewAgentMemoryType,
-} from './agents.js'
+} from './agents.js';
 // Only vector-related schemas
-export { agentMemories } from './agents.js'
+export { agentMemories } from './agents.js';
 // RAG tables (pgvector-backed, stored on Supabase)
-export * from './rag.js'
+export * from './rag.js';

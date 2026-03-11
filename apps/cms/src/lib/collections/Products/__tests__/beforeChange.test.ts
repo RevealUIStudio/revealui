@@ -10,21 +10,21 @@
  * - skipSync flag behavior
  */
 
-import type { Product } from '@revealui/core/types/cms'
-import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
-import { createMockRequest, createMockRevealUI } from '@/__tests__/helpers/mockRevealUI'
-import { beforeProductChange } from '@/lib/collections/Products/hooks/beforeChange'
+import type { Product } from '@revealui/core/types/cms';
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
+import { createMockRequest, createMockRevealUI } from '@/__tests__/helpers/mockRevealUI';
+import { beforeProductChange } from '@/lib/collections/Products/hooks/beforeChange';
 
 // =============================================================================
 // Mocks
 // =============================================================================
 
-const _mockRevealUI = createMockRevealUI()
-const mockReq = createMockRequest()
+const _mockRevealUI = createMockRevealUI();
+const mockReq = createMockRequest();
 
 // Mock Stripe module
-const mockStripeRetrieve = vi.fn()
-const mockStripePricesList = vi.fn()
+const mockStripeRetrieve = vi.fn();
+const mockStripePricesList = vi.fn();
 
 vi.mock('@revealui/services', () => ({
   protectedStripe: {
@@ -35,7 +35,7 @@ vi.mock('@revealui/services', () => ({
       list: (...args: unknown[]) => mockStripePricesList(...args),
     },
   },
-}))
+}));
 
 // =============================================================================
 // Test Data
@@ -50,7 +50,7 @@ const validStripeProduct = {
   metadata: {},
   images: [],
   default_price: 'price_1234567890123456',
-}
+};
 
 const validPriceList = {
   object: 'list' as const,
@@ -65,7 +65,7 @@ const validPriceList = {
     },
   ],
   has_more: false,
-}
+};
 
 const createMockProduct = (overrides: Partial<Product> = {}): Product => ({
   id: 1,
@@ -83,7 +83,7 @@ const createMockProduct = (overrides: Partial<Product> = {}): Product => ({
   createdAt: new Date().toISOString(),
   _status: 'draft',
   ...overrides,
-})
+});
 
 // =============================================================================
 // Tests
@@ -91,30 +91,30 @@ const createMockProduct = (overrides: Partial<Product> = {}): Product => ({
 
 describe('Products beforeChange Hook', () => {
   // Helper to generate unique product IDs to avoid cache collisions
-  let testCounter = 0
+  let testCounter = 0;
   const generateUniqueProductId = (prefix = 'test') => {
-    testCounter++
-    return `prod_${prefix}${testCounter.toString().padStart(12, '0')}`
-  }
+    testCounter++;
+    return `prod_${prefix}${testCounter.toString().padStart(12, '0')}`;
+  };
 
   const _generateUniquePriceId = (prefix = 'test') => {
-    testCounter++
-    return `price_${prefix}${testCounter.toString().padStart(11, '0')}`
-  }
+    testCounter++;
+    return `price_${prefix}${testCounter.toString().padStart(11, '0')}`;
+  };
 
   beforeEach(() => {
-    vi.clearAllMocks()
+    vi.clearAllMocks();
     // Reset mock implementations to ensure clean state
-    mockStripeRetrieve.mockReset()
-    mockStripePricesList.mockReset()
+    mockStripeRetrieve.mockReset();
+    mockStripePricesList.mockReset();
     // Set default mock returns
-    mockStripeRetrieve.mockResolvedValue(validStripeProduct)
-    mockStripePricesList.mockResolvedValue(validPriceList)
-  })
+    mockStripeRetrieve.mockResolvedValue(validStripeProduct);
+    mockStripePricesList.mockResolvedValue(validPriceList);
+  });
 
   afterEach(() => {
-    vi.clearAllMocks()
-  })
+    vi.clearAllMocks();
+  });
 
   // ===========================================================================
   // Stripe Product ID Format Validation
@@ -124,25 +124,25 @@ describe('Products beforeChange Hook', () => {
     it('should accept valid Stripe product ID format', async () => {
       const product = createMockProduct({
         stripeProductID: 'prod_1234567890123456',
-      })
+      });
 
-      mockStripeRetrieve.mockResolvedValueOnce(validStripeProduct)
-      mockStripePricesList.mockResolvedValueOnce(validPriceList)
+      mockStripeRetrieve.mockResolvedValueOnce(validStripeProduct);
+      mockStripePricesList.mockResolvedValueOnce(validPriceList);
 
       const result = await beforeProductChange({
         req: mockReq,
         data: product,
         operation: 'create',
-      })
+      });
 
-      expect(result).toBeDefined()
-      expect(result.stripeProductID).toBe('prod_1234567890123456')
-    })
+      expect(result).toBeDefined();
+      expect(result.stripeProductID).toBe('prod_1234567890123456');
+    });
 
     it('should reject invalid Stripe product ID format', async () => {
       const product = createMockProduct({
         stripeProductID: 'invalid_id',
-      })
+      });
 
       await expect(
         beforeProductChange({
@@ -150,13 +150,13 @@ describe('Products beforeChange Hook', () => {
           data: product,
           operation: 'create',
         }),
-      ).rejects.toThrow('Invalid Stripe Product ID')
-    })
+      ).rejects.toThrow('Invalid Stripe Product ID');
+    });
 
     it('should reject Stripe product ID with wrong prefix', async () => {
       const product = createMockProduct({
         stripeProductID: 'price_1234567890123456',
-      })
+      });
 
       await expect(
         beforeProductChange({
@@ -164,13 +164,13 @@ describe('Products beforeChange Hook', () => {
           data: product,
           operation: 'create',
         }),
-      ).rejects.toThrow('Invalid Stripe Product ID')
-    })
+      ).rejects.toThrow('Invalid Stripe Product ID');
+    });
 
     it('should reject Stripe product ID that is too short', async () => {
       const product = createMockProduct({
         stripeProductID: 'prod_123',
-      })
+      });
 
       await expect(
         beforeProductChange({
@@ -178,9 +178,9 @@ describe('Products beforeChange Hook', () => {
           data: product,
           operation: 'create',
         }),
-      ).rejects.toThrow('Invalid Stripe Product ID')
-    })
-  })
+      ).rejects.toThrow('Invalid Stripe Product ID');
+    });
+  });
 
   // ===========================================================================
   // Stripe Product Data Validation
@@ -188,27 +188,27 @@ describe('Products beforeChange Hook', () => {
 
   describe('Stripe Product Data Validation', () => {
     it('should fetch and validate Stripe product data', async () => {
-      const productId = generateUniqueProductId('fetch')
-      const product = createMockProduct({ stripeProductID: productId })
+      const productId = generateUniqueProductId('fetch');
+      const product = createMockProduct({ stripeProductID: productId });
 
-      mockStripeRetrieve.mockResolvedValueOnce({ ...validStripeProduct, id: productId })
-      mockStripePricesList.mockResolvedValueOnce(validPriceList)
+      mockStripeRetrieve.mockResolvedValueOnce({ ...validStripeProduct, id: productId });
+      mockStripePricesList.mockResolvedValueOnce(validPriceList);
 
       const result = await beforeProductChange({
         req: mockReq,
         data: product,
         operation: 'create',
-      })
+      });
 
-      expect(mockStripeRetrieve).toHaveBeenCalledWith(productId)
-      expect(result).toBeDefined()
-    })
+      expect(mockStripeRetrieve).toHaveBeenCalledWith(productId);
+      expect(result).toBeDefined();
+    });
 
     it('should throw error if Stripe product not found', async () => {
-      const productId = generateUniqueProductId('notfound')
-      const product = createMockProduct({ stripeProductID: productId })
+      const productId = generateUniqueProductId('notfound');
+      const product = createMockProduct({ stripeProductID: productId });
 
-      mockStripeRetrieve.mockRejectedValueOnce(new Error('Product not found'))
+      mockStripeRetrieve.mockRejectedValueOnce(new Error('Product not found'));
 
       await expect(
         beforeProductChange({
@@ -216,18 +216,18 @@ describe('Products beforeChange Hook', () => {
           data: product,
           operation: 'create',
         }),
-      ).rejects.toThrow('Failed to validate Stripe product')
-    })
+      ).rejects.toThrow('Failed to validate Stripe product');
+    });
 
     it('should throw error if Stripe product data is invalid', async () => {
-      const productId = generateUniqueProductId('invalid')
-      const product = createMockProduct({ stripeProductID: productId })
+      const productId = generateUniqueProductId('invalid');
+      const product = createMockProduct({ stripeProductID: productId });
 
       mockStripeRetrieve.mockResolvedValueOnce({
         id: productId,
         object: 'invalid',
         // Missing required fields
-      })
+      });
 
       await expect(
         beforeProductChange({
@@ -235,9 +235,9 @@ describe('Products beforeChange Hook', () => {
           data: product,
           operation: 'create',
         }),
-      ).rejects.toThrow('Invalid product data from Stripe')
-    })
-  })
+      ).rejects.toThrow('Invalid product data from Stripe');
+    });
+  });
 
   // ===========================================================================
   // Price List Validation
@@ -245,64 +245,64 @@ describe('Products beforeChange Hook', () => {
 
   describe('Price List Validation', () => {
     it('should fetch and store price list', async () => {
-      const productId = generateUniqueProductId('fetchlist')
-      const product = createMockProduct({ stripeProductID: productId })
+      const productId = generateUniqueProductId('fetchlist');
+      const product = createMockProduct({ stripeProductID: productId });
 
-      mockStripeRetrieve.mockResolvedValueOnce({ ...validStripeProduct, id: productId })
-      mockStripePricesList.mockResolvedValueOnce(validPriceList)
+      mockStripeRetrieve.mockResolvedValueOnce({ ...validStripeProduct, id: productId });
+      mockStripePricesList.mockResolvedValueOnce(validPriceList);
 
       const result = await beforeProductChange({
         req: mockReq,
         data: product,
         operation: 'create',
-      })
+      });
 
       expect(mockStripePricesList).toHaveBeenCalledWith({
         product: productId,
         limit: 100,
-      })
-      expect(result.priceJSON).toBe(JSON.stringify(validPriceList))
-    })
+      });
+      expect(result.priceJSON).toBe(JSON.stringify(validPriceList));
+    });
 
     it('should handle price list fetch failure gracefully', async () => {
-      const productId = generateUniqueProductId('pricelistfail')
-      const product = createMockProduct({ stripeProductID: productId })
+      const productId = generateUniqueProductId('pricelistfail');
+      const product = createMockProduct({ stripeProductID: productId });
 
-      mockStripeRetrieve.mockResolvedValueOnce({ ...validStripeProduct, id: productId })
-      mockStripePricesList.mockRejectedValueOnce(new Error('Price list error'))
+      mockStripeRetrieve.mockResolvedValueOnce({ ...validStripeProduct, id: productId });
+      mockStripePricesList.mockRejectedValueOnce(new Error('Price list error'));
 
       const result = await beforeProductChange({
         req: mockReq,
         data: product,
         operation: 'create',
-      })
+      });
 
       // Should not throw, just log error
-      expect(result).toBeDefined()
-      expect(mockReq.revealui?.logger?.error).toHaveBeenCalled()
-    })
+      expect(result).toBeDefined();
+      expect(mockReq.revealui?.logger?.error).toHaveBeenCalled();
+    });
 
     it('should handle invalid price list structure gracefully', async () => {
-      const productId = generateUniqueProductId('invalidlist')
-      const product = createMockProduct({ stripeProductID: productId })
+      const productId = generateUniqueProductId('invalidlist');
+      const product = createMockProduct({ stripeProductID: productId });
 
-      mockStripeRetrieve.mockResolvedValueOnce({ ...validStripeProduct, id: productId })
+      mockStripeRetrieve.mockResolvedValueOnce({ ...validStripeProduct, id: productId });
       mockStripePricesList.mockResolvedValueOnce({
         object: 'invalid',
         // Missing required fields
-      })
+      });
 
       const result = await beforeProductChange({
         req: mockReq,
         data: product,
         operation: 'create',
-      })
+      });
 
       // Should not throw, just log error (products can exist without prices)
-      expect(result).toBeDefined()
-      expect(mockReq.revealui?.logger?.error).toHaveBeenCalled()
-    })
-  })
+      expect(result).toBeDefined();
+      expect(mockReq.revealui?.logger?.error).toHaveBeenCalled();
+    });
+  });
 
   // ===========================================================================
   // Business Rules
@@ -313,23 +313,23 @@ describe('Products beforeChange Hook', () => {
       const product = createMockProduct({
         stripeProductID: null,
         _status: 'draft',
-      })
+      });
 
       const result = await beforeProductChange({
         req: mockReq,
         data: product,
         operation: 'create',
-      })
+      });
 
-      expect(result).toBeDefined()
-      expect(result.stripeProductID).toBeNull()
-    })
+      expect(result).toBeDefined();
+      expect(result.stripeProductID).toBeNull();
+    });
 
     it('should reject published products without Stripe product ID', async () => {
       const product = createMockProduct({
         stripeProductID: null,
         _status: 'published',
-      })
+      });
 
       await expect(
         beforeProductChange({
@@ -337,22 +337,22 @@ describe('Products beforeChange Hook', () => {
           data: product,
           operation: 'update',
         }),
-      ).rejects.toThrow('Published products must have a valid Stripe Product ID')
-    })
+      ).rejects.toThrow('Published products must have a valid Stripe Product ID');
+    });
 
     it('should reject published products with inactive Stripe product', async () => {
-      const productId = generateUniqueProductId('inactive')
+      const productId = generateUniqueProductId('inactive');
       const product = createMockProduct({
         _status: 'published',
         stripeProductID: productId,
-      })
+      });
 
       mockStripeRetrieve.mockResolvedValueOnce({
         ...validStripeProduct,
         id: productId,
         active: false,
-      })
-      mockStripePricesList.mockResolvedValueOnce(validPriceList)
+      });
+      mockStripePricesList.mockResolvedValueOnce(validPriceList);
 
       await expect(
         beforeProductChange({
@@ -360,27 +360,27 @@ describe('Products beforeChange Hook', () => {
           data: product,
           operation: 'update',
         }),
-      ).rejects.toThrow('Cannot publish product: Stripe product is not active')
-    })
+      ).rejects.toThrow('Cannot publish product: Stripe product is not active');
+    });
 
     it('should allow published products with active Stripe product', async () => {
       const product = createMockProduct({
         _status: 'published',
-      })
+      });
 
-      mockStripeRetrieve.mockResolvedValueOnce(validStripeProduct)
-      mockStripePricesList.mockResolvedValueOnce(validPriceList)
+      mockStripeRetrieve.mockResolvedValueOnce(validStripeProduct);
+      mockStripePricesList.mockResolvedValueOnce(validPriceList);
 
       const result = await beforeProductChange({
         req: mockReq,
         data: product,
         operation: 'update',
-      })
+      });
 
-      expect(result).toBeDefined()
-      expect(result._status).toBe('published')
-    })
-  })
+      expect(result).toBeDefined();
+      expect(result._status).toBe('published');
+    });
+  });
 
   // ===========================================================================
   // skipSync Flag
@@ -390,34 +390,34 @@ describe('Products beforeChange Hook', () => {
     it('should skip validation when skipSync is true', async () => {
       const product = createMockProduct({
         skipSync: true,
-      })
+      });
 
       const result = await beforeProductChange({
         req: mockReq,
         data: product,
         operation: 'update',
-      })
+      });
 
-      expect(result).toBeDefined()
-      expect(result.skipSync).toBe(false) // Reset to false
-      expect(mockStripeRetrieve).not.toHaveBeenCalled()
-      expect(mockStripePricesList).not.toHaveBeenCalled()
-    })
+      expect(result).toBeDefined();
+      expect(result.skipSync).toBe(false); // Reset to false
+      expect(mockStripeRetrieve).not.toHaveBeenCalled();
+      expect(mockStripePricesList).not.toHaveBeenCalled();
+    });
 
     it('should reset skipSync to false after skipping', async () => {
       const product = createMockProduct({
         skipSync: true,
-      })
+      });
 
       const result = await beforeProductChange({
         req: mockReq,
         data: product,
         operation: 'update',
-      })
+      });
 
-      expect(result.skipSync).toBe(false)
-    })
-  })
+      expect(result.skipSync).toBe(false);
+    });
+  });
 
   // ===========================================================================
   // Error Handling
@@ -425,10 +425,10 @@ describe('Products beforeChange Hook', () => {
 
   describe('Error Handling', () => {
     it('should handle Stripe API errors gracefully', async () => {
-      const productId = generateUniqueProductId('apierror')
-      const product = createMockProduct({ stripeProductID: productId })
+      const productId = generateUniqueProductId('apierror');
+      const product = createMockProduct({ stripeProductID: productId });
 
-      mockStripeRetrieve.mockRejectedValueOnce(new Error('Stripe API Error'))
+      mockStripeRetrieve.mockRejectedValueOnce(new Error('Stripe API Error'));
 
       await expect(
         beforeProductChange({
@@ -436,16 +436,16 @@ describe('Products beforeChange Hook', () => {
           data: product,
           operation: 'create',
         }),
-      ).rejects.toThrow('Failed to validate Stripe product')
+      ).rejects.toThrow('Failed to validate Stripe product');
 
-      expect(mockReq.revealui?.logger?.error).toHaveBeenCalled()
-    })
+      expect(mockReq.revealui?.logger?.error).toHaveBeenCalled();
+    });
 
     it('should handle network errors', async () => {
-      const productId = generateUniqueProductId('neterror')
-      const product = createMockProduct({ stripeProductID: productId })
+      const productId = generateUniqueProductId('neterror');
+      const product = createMockProduct({ stripeProductID: productId });
 
-      mockStripeRetrieve.mockRejectedValueOnce(new Error('Network error'))
+      mockStripeRetrieve.mockRejectedValueOnce(new Error('Network error'));
 
       await expect(
         beforeProductChange({
@@ -453,27 +453,27 @@ describe('Products beforeChange Hook', () => {
           data: product,
           operation: 'create',
         }),
-      ).rejects.toThrow()
-    })
+      ).rejects.toThrow();
+    });
 
     it('should provide descriptive error messages', async () => {
       const product = createMockProduct({
         stripeProductID: 'invalid_format',
-      })
+      });
 
       try {
         await beforeProductChange({
           req: mockReq,
           data: product,
           operation: 'create',
-        })
-        expect.fail('Should have thrown error')
+        });
+        expect.fail('Should have thrown error');
       } catch (error) {
-        expect(error).toBeInstanceOf(Error)
-        expect((error as Error).message).toContain('Invalid Stripe Product ID')
+        expect(error).toBeInstanceOf(Error);
+        expect((error as Error).message).toContain('Invalid Stripe Product ID');
       }
-    })
-  })
+    });
+  });
 
   // ===========================================================================
   // Edge Cases
@@ -483,65 +483,65 @@ describe('Products beforeChange Hook', () => {
     it('should handle products with no categories', async () => {
       const product = createMockProduct({
         categories: null,
-      })
+      });
 
-      mockStripeRetrieve.mockResolvedValueOnce(validStripeProduct)
-      mockStripePricesList.mockResolvedValueOnce(validPriceList)
+      mockStripeRetrieve.mockResolvedValueOnce(validStripeProduct);
+      mockStripePricesList.mockResolvedValueOnce(validPriceList);
 
       const result = await beforeProductChange({
         req: mockReq,
         data: product,
         operation: 'create',
-      })
+      });
 
-      expect(result).toBeDefined()
-      expect(result.categories).toBeNull()
-    })
+      expect(result).toBeDefined();
+      expect(result.categories).toBeNull();
+    });
 
     it('should handle products with no related products', async () => {
       const product = createMockProduct({
         relatedProducts: null,
-      })
+      });
 
-      mockStripeRetrieve.mockResolvedValueOnce(validStripeProduct)
-      mockStripePricesList.mockResolvedValueOnce(validPriceList)
+      mockStripeRetrieve.mockResolvedValueOnce(validStripeProduct);
+      mockStripePricesList.mockResolvedValueOnce(validPriceList);
 
       const result = await beforeProductChange({
         req: mockReq,
         data: product,
         operation: 'create',
-      })
+      });
 
-      expect(result).toBeDefined()
-      expect(result.relatedProducts).toBeNull()
-    })
+      expect(result).toBeDefined();
+      expect(result.relatedProducts).toBeNull();
+    });
 
     it('should handle empty price list', async () => {
-      const productId = generateUniqueProductId('emptylist')
-      const product = createMockProduct({ stripeProductID: productId })
+      const productId = generateUniqueProductId('emptylist');
+      const product = createMockProduct({ stripeProductID: productId });
 
-      mockStripeRetrieve.mockResolvedValueOnce({ ...validStripeProduct, id: productId })
+      mockStripeRetrieve.mockResolvedValueOnce({ ...validStripeProduct, id: productId });
       mockStripePricesList.mockResolvedValueOnce({
         object: 'list',
         data: [],
         has_more: false,
-      })
+      });
 
       const result = await beforeProductChange({
         req: mockReq,
         data: product,
         operation: 'create',
-      })
+      });
 
-      expect(result).toBeDefined()
-      expect(result.priceJSON).toContain('"data":[]')
-    })
+      expect(result).toBeDefined();
+      expect(result.priceJSON).toContain('"data":[]');
+    });
 
     it('should handle price list with multiple currencies', async () => {
-      const productId = generateUniqueProductId('multicur')
-      const product = createMockProduct({ stripeProductID: productId })
+      const productId = generateUniqueProductId('multicur');
+      const product = createMockProduct({ stripeProductID: productId });
 
-      mockStripeRetrieve.mockResolvedValueOnce({ ...validStripeProduct, id: productId })
+      mockStripeRetrieve.mockResolvedValueOnce({ ...validStripeProduct, id: productId });
       mockStripePricesList.mockResolvedValueOnce({
         object: 'list',
         data: [
@@ -563,24 +563,24 @@ describe('Products beforeChange Hook', () => {
           },
         ],
         has_more: false,
-      })
+      });
 
       const result = await beforeProductChange({
         req: mockReq,
         data: product,
         operation: 'create',
-      })
+      });
 
-      expect(result).toBeDefined()
-      const priceJSON = JSON.parse(result.priceJSON || '{}')
-      expect(priceJSON.data).toHaveLength(2)
-    })
+      expect(result).toBeDefined();
+      const priceJSON = JSON.parse(result.priceJSON || '{}');
+      expect(priceJSON.data).toHaveLength(2);
+    });
 
     it('should handle products with recurring prices', async () => {
-      const productId = generateUniqueProductId('recurring')
-      const product = createMockProduct({ stripeProductID: productId })
+      const productId = generateUniqueProductId('recurring');
+      const product = createMockProduct({ stripeProductID: productId });
 
-      mockStripeRetrieve.mockResolvedValueOnce({ ...validStripeProduct, id: productId })
+      mockStripeRetrieve.mockResolvedValueOnce({ ...validStripeProduct, id: productId });
       mockStripePricesList.mockResolvedValueOnce({
         object: 'list',
         data: [
@@ -598,17 +598,17 @@ describe('Products beforeChange Hook', () => {
           },
         ],
         has_more: false,
-      })
+      });
 
       const result = await beforeProductChange({
         req: mockReq,
         data: product,
         operation: 'create',
-      })
+      });
 
-      expect(result).toBeDefined()
-      const priceJSON = JSON.parse(result.priceJSON || '{}')
-      expect(priceJSON.data[0].type).toBe('recurring')
-    })
-  })
-})
+      expect(result).toBeDefined();
+      const priceJSON = JSON.parse(result.priceJSON || '{}');
+      expect(priceJSON.data[0].type).toBe('recurring');
+    });
+  });
+});

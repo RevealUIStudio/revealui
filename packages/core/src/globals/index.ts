@@ -1,1 +1,1 @@
-export { RevealUIGlobal } from './GlobalOperations.js'
+export { RevealUIGlobal } from './GlobalOperations.js';

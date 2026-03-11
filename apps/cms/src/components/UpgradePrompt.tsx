@@ -1,13 +1,13 @@
-'use client'
+'use client';
 
 import {
   FEATURE_LABELS,
   getTiersFromCurrent,
   type LicenseTierId,
   TIER_LABELS,
-} from '@revealui/contracts/pricing'
-import type { FeatureFlags } from '@revealui/core/features'
-import { getRequiredTier } from '@revealui/core/features'
+} from '@revealui/contracts/pricing';
+import type { FeatureFlags } from '@revealui/core/features';
+import { getRequiredTier } from '@revealui/core/features';
 import {
   ButtonCVA as Button,
   Card,
@@ -16,22 +16,22 @@ import {
   CardHeader,
   CardTitle,
   PricingTable,
-} from '@revealui/presentation/server'
-import Link from 'next/link'
-import { useLicense } from '@/lib/providers/LicenseProvider'
+} from '@revealui/presentation/server';
+import Link from 'next/link';
+import { useLicense } from '@/lib/providers/LicenseProvider';
 
 interface UpgradePromptProps {
-  feature: keyof FeatureFlags
-  description?: string
+  feature: keyof FeatureFlags;
+  description?: string;
 }
 
 export function UpgradePrompt({ feature, description }: UpgradePromptProps) {
-  const { tier: currentTier } = useLicense()
-  const label = FEATURE_LABELS[feature]
-  const requiredTier = getRequiredTier(feature)
-  const tierLabel = requiredTier === 'free' ? 'Pro' : TIER_LABELS[requiredTier as LicenseTierId]
-  const upgradeHref = `/account/billing?upgrade=${requiredTier === 'free' ? 'pro' : requiredTier}`
-  const upgradeTiers = getTiersFromCurrent(currentTier)
+  const { tier: currentTier } = useLicense();
+  const label = FEATURE_LABELS[feature];
+  const requiredTier = getRequiredTier(feature);
+  const tierLabel = requiredTier === 'free' ? 'Pro' : TIER_LABELS[requiredTier as LicenseTierId];
+  const upgradeHref = `/account/billing?upgrade=${requiredTier === 'free' ? 'pro' : requiredTier}`;
+  const upgradeTiers = getTiersFromCurrent(currentTier);
 
   return (
     <Card className="border-dashed">
@@ -58,12 +58,12 @@ export function UpgradePrompt({ feature, description }: UpgradePromptProps) {
               currentTier={currentTier ?? 'free'}
               compact
               onSelectTier={(id) => {
-                window.location.href = `/account/billing?upgrade=${id}`
+                window.location.href = `/account/billing?upgrade=${id}`;
               }}
             />
           </div>
         )}
       </CardContent>
     </Card>
-  )
+  );
 }

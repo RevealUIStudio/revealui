@@ -26,10 +26,10 @@
  *   node:path           — path joins
  */
 
-import { spawnSync } from 'node:child_process'
-import { readFile, writeFile } from 'node:fs/promises'
-import { homedir } from 'node:os'
-import { join } from 'node:path'
+import { spawnSync } from 'node:child_process';
+import { readFile, writeFile } from 'node:fs/promises';
+import { homedir } from 'node:os';
+import { join } from 'node:path';
 
 // ---------------------------------------------------------------------------
 // Logger (inline — avoids pulling in @revealui/core/monitoring via scripts/lib)
@@ -42,32 +42,32 @@ const log = {
   error: (msg: string) => console.error(`  ✗ ${msg}`),
   header: (msg: string) => console.log(`\n── ${msg} ──\n`),
   divider: () => console.log(''),
-}
+};
 
 // ---------------------------------------------------------------------------
 // Revvault reader
 // ---------------------------------------------------------------------------
 
-const REVVAULT_BIN = join(homedir(), '.local/bin/revvault')
-const REVVAULT_IDENTITY = process.env.REVVAULT_IDENTITY ?? join(homedir(), '.config/age/keys.txt')
-const REVVAULT_SECRET_PATH = 'revealui/env/reveal-saas-dev-secrets'
+const REVVAULT_BIN = join(homedir(), '.local/bin/revvault');
+const REVVAULT_IDENTITY = process.env.REVVAULT_IDENTITY ?? join(homedir(), '.config/age/keys.txt');
+const REVVAULT_SECRET_PATH = 'revealui/env/reveal-saas-dev-secrets';
 
 /**
  * Parses Revvault's YAML-style `key: value` output into a plain object.
  * Mirrors the sed transformation used in .envrc: `sed 's/: /=/'`
  */
 function parseRevvaultOutput(raw: string): Record<string, string> {
-  const result: Record<string, string> = {}
+  const result: Record<string, string> = {};
   for (const line of raw.split('\n')) {
-    const trimmed = line.trim()
-    if (!trimmed || trimmed.startsWith('#')) continue
-    const colonIdx = trimmed.indexOf(': ')
-    if (colonIdx === -1) continue
-    const key = trimmed.slice(0, colonIdx).trim()
-    const value = trimmed.slice(colonIdx + 2).trim()
-    if (key) result[key] = value
+    const trimmed = line.trim();
+    if (!trimmed || trimmed.startsWith('#')) continue;
+    const colonIdx = trimmed.indexOf(': ');
+    if (colonIdx === -1) continue;
+    const key = trimmed.slice(0, colonIdx).trim();
+    const value = trimmed.slice(colonIdx + 2).trim();
+    if (key) result[key] = value;
   }
-  return result
+  return result;
 }
 
 function readFromRevvault(): Record<string, string> | null {
@@ -75,12 +75,12 @@ function readFromRevvault(): Record<string, string> | null {
     env: { ...process.env, REVVAULT_IDENTITY },
     encoding: 'utf-8',
     timeout: 10_000,
-  })
+  });
 
-  if (result.error || result.status !== 0) return null
-  if (!result.stdout?.trim()) return null
+  if (result.error || result.status !== 0) return null;
+  if (!result.stdout?.trim()) return null;
 
-  return parseRevvaultOutput(result.stdout)
+  return parseRevvaultOutput(result.stdout);
 }
 
 // ---------------------------------------------------------------------------
@@ -89,81 +89,81 @@ function readFromRevvault(): Record<string, string> | null {
 
 async function getProjectRoot(): Promise<string> {
   // Walk up from __dirname to find package.json with "name": "revealui"
-  let dir = new URL('..', import.meta.url).pathname
+  let dir = new URL('..', import.meta.url).pathname;
   for (let i = 0; i < 5; i++) {
     try {
       const pkg = JSON.parse(await readFile(join(dir, 'package.json'), 'utf-8')) as {
-        name?: string
-      }
-      if (pkg.name === 'revealui') return dir
+        name?: string;
+      };
+      if (pkg.name === 'revealui') return dir;
     } catch {
       // keep walking
     }
-    dir = join(dir, '..')
+    dir = join(dir, '..');
   }
   // Fall back to two levels up from scripts/setup/
-  return new URL('../..', import.meta.url).pathname
+  return new URL('../..', import.meta.url).pathname;
 }
 
 async function readFromEnvFile(root: string): Promise<Record<string, string>> {
-  const candidates = ['.env', '.env.local', '.env.development.local']
+  const candidates = ['.env', '.env.local', '.env.development.local'];
   for (const filename of candidates) {
     try {
-      const content = await readFile(join(root, filename), 'utf-8')
-      const result: Record<string, string> = {}
+      const content = await readFile(join(root, filename), 'utf-8');
+      const result: Record<string, string> = {};
       for (const line of content.split('\n')) {
-        const trimmed = line.trim()
-        if (!trimmed || trimmed.startsWith('#')) continue
-        const eqIdx = trimmed.indexOf('=')
-        if (eqIdx === -1) continue
-        const key = trimmed.slice(0, eqIdx).trim()
-        let value = trimmed.slice(eqIdx + 1).trim()
+        const trimmed = line.trim();
+        if (!trimmed || trimmed.startsWith('#')) continue;
+        const eqIdx = trimmed.indexOf('=');
+        if (eqIdx === -1) continue;
+        const key = trimmed.slice(0, eqIdx).trim();
+        let value = trimmed.slice(eqIdx + 1).trim();
         if (
           (value.startsWith('"') && value.endsWith('"')) ||
           (value.startsWith("'") && value.endsWith("'"))
         ) {
-          value = value.slice(1, -1)
+          value = value.slice(1, -1);
         }
-        if (key) result[key] = value
+        if (key) result[key] = value;
       }
-      return result
+      return result;
     } catch {
       // try next
     }
   }
-  return {}
+  return {};
 }
 
 // ---------------------------------------------------------------------------
 // ~/.npmrc writer
 // ---------------------------------------------------------------------------
 
-const USER_NPMRC = join(homedir(), '.npmrc')
+const USER_NPMRC = join(homedir(), '.npmrc');
 
 async function readNpmrc(): Promise<string> {
   try {
-    return await readFile(USER_NPMRC, 'utf-8')
+    return await readFile(USER_NPMRC, 'utf-8');
   } catch {
-    return ''
+    return '';
   }
 }
 
 function setNpmrcEntry(content: string, key: string, value: string): string {
-  const pattern = new RegExp(`^${key.replace(/\//g, '\\/').replace(/\./g, '\\.')}=.*$`, 'm')
-  const line = `${key}=${value}`
-  return pattern.test(content) ? content.replace(pattern, line) : `${content.trimEnd()}\n${line}\n`
+  const pattern = new RegExp(`^${key.replace(/\//g, '\\/').replace(/\./g, '\\.')}=.*$`, 'm');
+  const line = `${key}=${value}`;
+  return pattern.test(content) ? content.replace(pattern, line) : `${content.trimEnd()}\n${line}\n`;
 }
 
 async function writeNpmToken(token: string): Promise<void> {
-  let npmrc = await readNpmrc()
-  npmrc = setNpmrcEntry(npmrc, '//registry.npmjs.org/:_authToken', token)
-  await writeFile(USER_NPMRC, npmrc, { mode: 0o600 })
+  let npmrc = await readNpmrc();
+  npmrc = setNpmrcEntry(npmrc, '//registry.npmjs.org/:_authToken', token);
+  await writeFile(USER_NPMRC, npmrc, { mode: 0o600 });
 }
 
 async function writeGitHubToken(token: string): Promise<void> {
-  let npmrc = await readNpmrc()
-  npmrc = setNpmrcEntry(npmrc, '//npm.pkg.github.com/:_authToken', token)
-  await writeFile(USER_NPMRC, npmrc, { mode: 0o600 })
+  let npmrc = await readNpmrc();
+  npmrc = setNpmrcEntry(npmrc, '//npm.pkg.github.com/:_authToken', token);
+  await writeFile(USER_NPMRC, npmrc, { mode: 0o600 });
 }
 
 // ---------------------------------------------------------------------------
@@ -171,19 +171,19 @@ async function writeGitHubToken(token: string): Promise<void> {
 // ---------------------------------------------------------------------------
 
 async function main(): Promise<void> {
-  log.header('RevealUI Credentials Bootstrap')
+  log.header('RevealUI Credentials Bootstrap');
 
-  const root = await getProjectRoot()
+  const root = await getProjectRoot();
 
   // Build secrets map: process.env → .env file → Revvault (later sources win)
-  log.info('Reading secrets...')
-  const envFileSecrets = await readFromEnvFile(root)
-  const revvaultSecrets = readFromRevvault()
+  log.info('Reading secrets...');
+  const envFileSecrets = await readFromEnvFile(root);
+  const revvaultSecrets = readFromRevvault();
 
   if (revvaultSecrets) {
-    log.success('Revvault loaded')
+    log.success('Revvault loaded');
   } else {
-    log.warn('Revvault unavailable')
+    log.warn('Revvault unavailable');
   }
 
   // Merge: .env provides the base, Revvault overrides (Revvault is source of truth)
@@ -191,50 +191,50 @@ async function main(): Promise<void> {
     ...(process.env as Record<string, string>),
     ...envFileSecrets,
     ...(revvaultSecrets ?? {}),
-  }
+  };
 
-  log.divider()
+  log.divider();
 
-  let wrote = 0
-  let missing = 0
+  let wrote = 0;
+  let missing = 0;
 
   // npm.org token
-  const npmToken = secrets.NPM_TOKEN
+  const npmToken = secrets.NPM_TOKEN;
   if (npmToken && npmToken.length > 10) {
-    await writeNpmToken(npmToken)
-    log.success(`NPM_TOKEN → ~/.npmrc (//registry.npmjs.org/:_authToken)`)
-    wrote++
+    await writeNpmToken(npmToken);
+    log.success(`NPM_TOKEN → ~/.npmrc (//registry.npmjs.org/:_authToken)`);
+    wrote++;
   } else {
-    log.warn('NPM_TOKEN not found — npm publish will require `npm login`')
-    log.info('  Add it to Revvault: revvault set revealui/env/reveal-saas-dev-secrets')
-    missing++
+    log.warn('NPM_TOKEN not found — npm publish will require `npm login`');
+    log.info('  Add it to Revvault: revvault set revealui/env/reveal-saas-dev-secrets');
+    missing++;
   }
 
   // GitHub Packages token (for installing Pro packages)
-  const githubToken = secrets.GITHUB_TOKEN
+  const githubToken = secrets.GITHUB_TOKEN;
   if (githubToken && githubToken.length > 10) {
-    await writeGitHubToken(githubToken)
-    log.success(`GITHUB_TOKEN → ~/.npmrc (//npm.pkg.github.com/:_authToken)`)
-    wrote++
+    await writeGitHubToken(githubToken);
+    log.success(`GITHUB_TOKEN → ~/.npmrc (//npm.pkg.github.com/:_authToken)`);
+    wrote++;
   } else {
-    log.warn('GITHUB_TOKEN not found — skipping GitHub Packages auth')
-    missing++
+    log.warn('GITHUB_TOKEN not found — skipping GitHub Packages auth');
+    missing++;
   }
 
-  log.divider()
+  log.divider();
 
   if (wrote > 0) {
-    log.success(`${wrote} credential(s) written to ~/.npmrc (mode 600)`)
+    log.success(`${wrote} credential(s) written to ~/.npmrc (mode 600)`);
   }
   if (missing > 0) {
-    log.warn(`${missing} credential(s) missing — see warnings above`)
+    log.warn(`${missing} credential(s) missing — see warnings above`);
   }
   if (wrote === 0 && missing > 0) {
-    process.exit(1)
+    process.exit(1);
   }
 }
 
 main().catch((err: unknown) => {
-  log.error(err instanceof Error ? err.message : String(err))
-  process.exit(1)
-})
+  log.error(err instanceof Error ? err.message : String(err));
+  process.exit(1);
+});

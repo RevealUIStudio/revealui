@@ -19,40 +19,40 @@
  * ```
  */
 
-import { copyFile, readFile, writeFile } from 'node:fs/promises'
-import { join } from 'node:path'
-import { ErrorCode } from '../../lib/errors.js'
-import { getProjectRoot } from '../../lib/paths.js'
+import { copyFile, readFile, writeFile } from 'node:fs/promises';
+import { join } from 'node:path';
+import { ErrorCode } from '../../lib/errors.js';
+import { getProjectRoot } from '../../lib/paths.js';
 
 // =============================================================================
 // Types
 // =============================================================================
 
 interface FixResult {
-  name: string
-  path: string
-  type: 'app' | 'library' | 'tool'
-  scriptsAdded: string[]
-  scriptsCorrected: string[]
-  skipped: boolean
-  error?: string
+  name: string;
+  path: string;
+  type: 'app' | 'library' | 'tool';
+  scriptsAdded: string[];
+  scriptsCorrected: string[];
+  skipped: boolean;
+  error?: string;
 }
 
 interface FixReport {
   summary: {
-    totalPackages: number
-    fixed: number
-    skipped: number
-    errors: number
-    scriptsAdded: number
-    scriptsCorrected: number
-  }
-  results: FixResult[]
+    totalPackages: number;
+    fixed: number;
+    skipped: number;
+    errors: number;
+    scriptsAdded: number;
+    scriptsCorrected: number;
+  };
+  results: FixResult[];
 }
 
 interface Template {
-  scripts: Record<string, string>
-  required: string[]
+  scripts: Record<string, string>;
+  required: string[];
 }
 
 // =============================================================================
@@ -97,10 +97,10 @@ const TEMPLATES: Record<string, Template> = {
     },
     required: ['build', 'dev', 'lint', 'typecheck', 'test'],
   },
-}
+};
 
 // Root package is special - skip auto-fix
-const SKIP_PACKAGES = ['reveal-ui']
+const SKIP_PACKAGES = ['reveal-ui'];
 
 // =============================================================================
 // Package Discovery
@@ -134,7 +134,7 @@ const PACKAGE_PATHS = [
 
   // Infrastructure
   { path: './infrastructure/opencode-server/pulumi-vultr/package.json', type: 'library' as const },
-]
+];
 
 // =============================================================================
 // Fix Logic
@@ -146,15 +146,15 @@ const PACKAGE_PATHS = [
 function detectBuildTool(
   scripts: Record<string, string>,
 ): 'next' | 'vite' | 'tsc' | 'tsup' | 'unknown' {
-  const buildScript = scripts.build || ''
-  const devScript = scripts.dev || ''
+  const buildScript = scripts.build || '';
+  const devScript = scripts.dev || '';
 
-  if (buildScript.includes('next') || devScript.includes('next')) return 'next'
-  if (buildScript.includes('vite') || devScript.includes('vite')) return 'vite'
-  if (buildScript.includes('tsup') || devScript.includes('tsup')) return 'tsup'
-  if (buildScript.includes('tsc') || devScript.includes('tsc')) return 'tsc'
+  if (buildScript.includes('next') || devScript.includes('next')) return 'next';
+  if (buildScript.includes('vite') || devScript.includes('vite')) return 'vite';
+  if (buildScript.includes('tsup') || devScript.includes('tsup')) return 'tsup';
+  if (buildScript.includes('tsc') || devScript.includes('tsc')) return 'tsc';
 
-  return 'unknown'
+  return 'unknown';
 }
 
 /**
@@ -167,15 +167,15 @@ function getAppScripts(buildTool: string): Partial<Record<string, string>> {
         dev: 'next dev',
         build: 'next build',
         start: 'next start',
-      }
+      };
     case 'vite':
       return {
         dev: 'vite dev',
         build: 'vite build',
         start: 'vite preview',
-      }
+      };
     default:
-      return {}
+      return {};
   }
 }
 
@@ -190,9 +190,9 @@ async function fixPackageScripts(
   backup: boolean,
 ): Promise<FixResult> {
   try {
-    const fullPath = join(projectRoot, packagePath)
-    const content = await readFile(fullPath, 'utf-8')
-    const pkg = JSON.parse(content)
+    const fullPath = join(projectRoot, packagePath);
+    const content = await readFile(fullPath, 'utf-8');
+    const pkg = JSON.parse(content);
 
     // Skip packages in skip list
     if (SKIP_PACKAGES.includes(pkg.name)) {
@@ -203,23 +203,23 @@ async function fixPackageScripts(
         scriptsAdded: [],
         scriptsCorrected: [],
         skipped: true,
-      }
+      };
     }
 
-    const template = TEMPLATES[type]
-    const actualScripts = pkg.scripts || {}
+    const template = TEMPLATES[type];
+    const actualScripts = pkg.scripts || {};
 
     // Detect build tool for apps
-    let appScripts: Partial<Record<string, string>> = {}
+    let appScripts: Partial<Record<string, string>> = {};
     if (type === 'app') {
-      const buildTool = detectBuildTool(actualScripts)
-      appScripts = getAppScripts(buildTool)
+      const buildTool = detectBuildTool(actualScripts);
+      appScripts = getAppScripts(buildTool);
     }
 
     // Find missing scripts
-    const scriptsAdded: string[] = []
-    const scriptsCorrected: string[] = []
-    const newScripts = { ...actualScripts }
+    const scriptsAdded: string[] = [];
+    const scriptsCorrected: string[] = [];
+    const newScripts = { ...actualScripts };
 
     for (const scriptName of template.required) {
       if (!actualScripts[scriptName]) {
@@ -227,10 +227,10 @@ async function fixPackageScripts(
         const scriptCommand =
           appScripts[scriptName] ||
           template.scripts[scriptName] ||
-          `echo "TODO: Add ${scriptName} script"`
+          `echo "TODO: Add ${scriptName} script"`;
 
-        newScripts[scriptName] = scriptCommand
-        scriptsAdded.push(scriptName)
+        newScripts[scriptName] = scriptCommand;
+        scriptsAdded.push(scriptName);
       }
     }
 
@@ -243,21 +243,21 @@ async function fixPackageScripts(
         scriptsAdded: [],
         scriptsCorrected: [],
         skipped: false,
-      }
+      };
     }
 
     // Create backup if requested
     if (backup && !dryRun) {
-      await copyFile(fullPath, `${fullPath}.backup`)
+      await copyFile(fullPath, `${fullPath}.backup`);
     }
 
     // Write updated package.json
     if (!dryRun) {
-      pkg.scripts = newScripts
+      pkg.scripts = newScripts;
 
       // Pretty print with 2-space indentation
-      const updatedContent = `${JSON.stringify(pkg, null, 2)}\n`
-      await writeFile(fullPath, updatedContent, 'utf-8')
+      const updatedContent = `${JSON.stringify(pkg, null, 2)}\n`;
+      await writeFile(fullPath, updatedContent, 'utf-8');
     }
 
     return {
@@ -267,7 +267,7 @@ async function fixPackageScripts(
       scriptsAdded,
       scriptsCorrected,
       skipped: false,
-    }
+    };
   } catch (error) {
     return {
       name: packagePath,
@@ -277,7 +277,7 @@ async function fixPackageScripts(
       scriptsCorrected: [],
       skipped: false,
       error: error instanceof Error ? error.message : String(error),
-    }
+    };
   }
 }
 
@@ -289,30 +289,30 @@ async function generateFixReport(
   dryRun = false,
   backup = false,
 ): Promise<FixReport> {
-  const projectRoot = await getProjectRoot(import.meta.url)
+  const projectRoot = await getProjectRoot(import.meta.url);
 
-  let packagesToFix = PACKAGE_PATHS
+  let packagesToFix = PACKAGE_PATHS;
 
   // Filter by package if specified
   if (packageFilter) {
     packagesToFix = packagesToFix.filter((p) =>
       p.path.includes(packageFilter.replace('@revealui/', '')),
-    )
+    );
   }
 
   // Fix all packages
   const fixResults = await Promise.all(
     packagesToFix.map((p) => fixPackageScripts(projectRoot, p.path, p.type, dryRun, backup)),
-  )
+  );
 
   // Calculate summary
   const fixed = fixResults.filter(
     (r) => r.scriptsAdded.length > 0 || r.scriptsCorrected.length > 0,
-  ).length
-  const skipped = fixResults.filter((r) => r.skipped).length
-  const errors = fixResults.filter((r) => r.error).length
-  const scriptsAdded = fixResults.reduce((sum, r) => sum + r.scriptsAdded.length, 0)
-  const scriptsCorrected = fixResults.reduce((sum, r) => sum + r.scriptsCorrected.length, 0)
+  ).length;
+  const skipped = fixResults.filter((r) => r.skipped).length;
+  const errors = fixResults.filter((r) => r.error).length;
+  const scriptsAdded = fixResults.reduce((sum, r) => sum + r.scriptsAdded.length, 0);
+  const scriptsCorrected = fixResults.reduce((sum, r) => sum + r.scriptsCorrected.length, 0);
 
   return {
     summary: {
@@ -324,63 +324,63 @@ async function generateFixReport(
       scriptsCorrected,
     },
     results: fixResults,
-  }
+  };
 }
 
 /**
  * Print fix report
  */
 function printReport(report: FixReport, dryRun: boolean): void {
-  console.log(dryRun ? '\n🔍 Dry Run - Script Fix Preview' : '\n✨ Script Fix Report')
-  console.log('='.repeat(80))
+  console.log(dryRun ? '\n🔍 Dry Run - Script Fix Preview' : '\n✨ Script Fix Report');
+  console.log('='.repeat(80));
 
   // Summary
-  console.log('\n📊 Summary:')
-  console.log(`   Total Packages:      ${report.summary.totalPackages}`)
-  console.log(`   ${dryRun ? 'Would Fix' : 'Fixed'}:           ${report.summary.fixed}`)
-  console.log(`   Skipped:             ${report.summary.skipped}`)
-  console.log(`   Errors:              ${report.summary.errors}`)
-  console.log(`   Scripts Added:       ${report.summary.scriptsAdded}`)
-  console.log(`   Scripts Corrected:   ${report.summary.scriptsCorrected}`)
+  console.log('\n📊 Summary:');
+  console.log(`   Total Packages:      ${report.summary.totalPackages}`);
+  console.log(`   ${dryRun ? 'Would Fix' : 'Fixed'}:           ${report.summary.fixed}`);
+  console.log(`   Skipped:             ${report.summary.skipped}`);
+  console.log(`   Errors:              ${report.summary.errors}`);
+  console.log(`   Scripts Added:       ${report.summary.scriptsAdded}`);
+  console.log(`   Scripts Corrected:   ${report.summary.scriptsCorrected}`);
 
   // Packages with changes
   const changedResults = report.results.filter(
     (r) => r.scriptsAdded.length > 0 || r.scriptsCorrected.length > 0,
-  )
+  );
 
   if (changedResults.length > 0) {
-    console.log(dryRun ? '\n📝 Would Add Scripts:' : '\n✅ Scripts Added:')
+    console.log(dryRun ? '\n📝 Would Add Scripts:' : '\n✅ Scripts Added:');
     for (const result of changedResults) {
       if (result.scriptsAdded.length > 0) {
-        console.log(`\n   ${result.name}:`)
+        console.log(`\n   ${result.name}:`);
         for (const script of result.scriptsAdded) {
-          console.log(`      + ${script}`)
+          console.log(`      + ${script}`);
         }
       }
     }
   }
 
   // Errors
-  const errorResults = report.results.filter((r) => r.error)
+  const errorResults = report.results.filter((r) => r.error);
   if (errorResults.length > 0) {
-    console.log('\n❌ Errors:')
+    console.log('\n❌ Errors:');
     for (const result of errorResults) {
-      console.log(`   ${result.name}: ${result.error}`)
+      console.log(`   ${result.name}: ${result.error}`);
     }
   }
 
-  console.log(`\n${'='.repeat(80)}`)
+  console.log(`\n${'='.repeat(80)}`);
 
   if (dryRun) {
-    console.log('🔍 Dry run complete. Run without --dry-run to apply changes.\n')
+    console.log('🔍 Dry run complete. Run without --dry-run to apply changes.\n');
   } else if (report.summary.fixed > 0) {
-    console.log('✅ Scripts fixed successfully!\n')
-    console.log('Next steps:')
-    console.log('  1. Review changes: git diff')
-    console.log('  2. Validate: pnpm maintain:validate-scripts')
-    console.log('  3. Test: pnpm test\n')
+    console.log('✅ Scripts fixed successfully!\n');
+    console.log('Next steps:');
+    console.log('  1. Review changes: git diff');
+    console.log('  2. Validate: pnpm maintain:validate-scripts');
+    console.log('  3. Test: pnpm test\n');
   } else {
-    console.log('✨ All packages are already up to date!\n')
+    console.log('✨ All packages are already up to date!\n');
   }
 }
 
@@ -389,29 +389,29 @@ function printReport(report: FixReport, dryRun: boolean): void {
 // =============================================================================
 
 async function main() {
-  const args = process.argv.slice(2)
-  const json = args.includes('--json')
-  const dryRun = args.includes('--dry-run')
-  const backup = args.includes('--backup')
+  const args = process.argv.slice(2);
+  const json = args.includes('--json');
+  const dryRun = args.includes('--dry-run');
+  const backup = args.includes('--backup');
 
-  const packageIndex = args.indexOf('--package')
-  const packageFilter = packageIndex >= 0 ? args[packageIndex + 1] : undefined
+  const packageIndex = args.indexOf('--package');
+  const packageFilter = packageIndex >= 0 ? args[packageIndex + 1] : undefined;
 
-  const report = await generateFixReport(packageFilter, dryRun, backup)
+  const report = await generateFixReport(packageFilter, dryRun, backup);
 
   if (json) {
-    console.log(JSON.stringify(report, null, 2))
+    console.log(JSON.stringify(report, null, 2));
   } else {
-    printReport(report, dryRun)
+    printReport(report, dryRun);
   }
 
   // Exit with error code if there were errors
   if (report.summary.errors > 0) {
-    process.exit(ErrorCode.VALIDATION_ERROR)
+    process.exit(ErrorCode.VALIDATION_ERROR);
   }
 }
 
 main().catch((error) => {
-  console.error('Error:', error)
-  process.exit(ErrorCode.EXECUTION_ERROR)
-})
+  console.error('Error:', error);
+  process.exit(ErrorCode.EXECUTION_ERROR);
+});

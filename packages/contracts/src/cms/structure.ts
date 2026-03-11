@@ -14,15 +14,15 @@
  * @module @revealui/contracts/core/contracts/structure
  */
 
-import { z } from 'zod/v4'
+import { z } from 'zod/v4';
 
 // ============================================
 // SCHEMA VERSIONS
 // ============================================
 
-export const FIELD_SCHEMA_VERSION = 1
-export const COLLECTION_SCHEMA_VERSION = 1
-export const GLOBAL_SCHEMA_VERSION = 1
+export const FIELD_SCHEMA_VERSION = 1;
+export const COLLECTION_SCHEMA_VERSION = 1;
+export const GLOBAL_SCHEMA_VERSION = 1;
 
 // ============================================
 // FIELD STRUCTURE SCHEMAS
@@ -63,9 +63,9 @@ export const FieldTypeSchema = z.enum([
   'json',
   'point',
   'ui',
-])
+]);
 
-export type FieldType = z.infer<typeof FieldTypeSchema>
+export type FieldType = z.infer<typeof FieldTypeSchema>;
 
 /**
  * Field admin configuration (UI-related settings)
@@ -99,9 +99,9 @@ export const FieldAdminConfigSchema = z
     // Note: 'components', 'condition' are functions - not validated here
   })
   .passthrough()
-  .optional()
+  .optional();
 
-export type FieldAdminConfig = z.infer<typeof FieldAdminConfigSchema>
+export type FieldAdminConfig = z.infer<typeof FieldAdminConfigSchema>;
 
 /**
  * Option for select/radio fields
@@ -112,9 +112,9 @@ export const FieldOptionSchema = z.union([
     label: z.string(),
     value: z.string(),
   }),
-])
+]);
 
-export type FieldOption = z.infer<typeof FieldOptionSchema>
+export type FieldOption = z.infer<typeof FieldOptionSchema>;
 
 /**
  * Block definition within a blocks field
@@ -133,9 +133,9 @@ export const BlockDefinitionSchema = z
     // Fields are recursive - handled in FieldStructureSchema
     fields: z.array(z.lazy(() => FieldStructureSchema)),
   })
-  .passthrough()
+  .passthrough();
 
-export type BlockDefinition = z.infer<typeof BlockDefinitionSchema>
+export type BlockDefinition = z.infer<typeof BlockDefinitionSchema>;
 
 /**
  * Tab definition within a tabs field
@@ -148,9 +148,9 @@ export const TabDefinitionSchema = z
     // Fields are recursive
     fields: z.array(z.lazy(() => FieldStructureSchema)),
   })
-  .passthrough()
+  .passthrough();
 
-export type TabDefinition = z.infer<typeof TabDefinitionSchema>
+export type TabDefinition = z.infer<typeof TabDefinitionSchema>;
 
 // =============================================================================
 // FIELD ACCESS/HOOKS SCHEMAS
@@ -167,9 +167,9 @@ export const FieldAccessConfigSchema = z
     read: z.unknown().optional(),
     update: z.unknown().optional(),
   })
-  .optional()
+  .optional();
 
-export type FieldAccessConfig = z.infer<typeof FieldAccessConfigSchema>
+export type FieldAccessConfig = z.infer<typeof FieldAccessConfigSchema>;
 
 /**
  * Field hooks schema
@@ -183,9 +183,9 @@ export const FieldHooksConfigSchema = z
     beforeValidate: z.array(z.unknown()).optional(),
     afterRead: z.array(z.unknown()).optional(),
   })
-  .optional()
+  .optional();
 
-export type FieldHooksConfig = z.infer<typeof FieldHooksConfigSchema>
+export type FieldHooksConfig = z.infer<typeof FieldHooksConfigSchema>;
 
 // =============================================================================
 // BASE FIELD STRUCTURE
@@ -254,44 +254,44 @@ export const FieldStructureSchema: z.ZodType<FieldStructure> = z
     // are functions and are NOT validated by this schema.
     // They are typed in the Field interface which extends this.
   })
-  .passthrough()
+  .passthrough();
 
 /**
  * Field structure type (without function properties)
  */
 export interface FieldStructure {
-  type: FieldType
-  name?: string | undefined
-  label?: string | false
+  type: FieldType;
+  name?: string | undefined;
+  label?: string | false;
   labels?:
     | {
-        singular?: string | undefined
-        plural?: string | undefined
+        singular?: string | undefined;
+        plural?: string | undefined;
       }
-    | undefined
-  required?: boolean | undefined
-  unique?: boolean | undefined
-  index?: boolean | undefined
-  localized?: boolean | undefined
-  hidden?: boolean | undefined
-  saveToJWT?: boolean | string | undefined
-  minLength?: number | undefined
-  maxLength?: number | undefined
-  min?: number | undefined
-  max?: number | undefined
-  minRows?: number | undefined
-  maxRows?: number | undefined
-  relationTo?: string | string[] | undefined
-  hasMany?: boolean | undefined
-  maxDepth?: number | undefined
-  options?: FieldOption[] | undefined
-  defaultValue?: unknown
-  admin?: FieldAdminConfig | undefined
-  fields?: FieldStructure[] | undefined
-  blocks?: BlockDefinition[] | undefined
-  tabs?: TabDefinition[] | undefined
-  interfaceName?: string | undefined
-  custom?: Record<string, unknown> | undefined
+    | undefined;
+  required?: boolean | undefined;
+  unique?: boolean | undefined;
+  index?: boolean | undefined;
+  localized?: boolean | undefined;
+  hidden?: boolean | undefined;
+  saveToJWT?: boolean | string | undefined;
+  minLength?: number | undefined;
+  maxLength?: number | undefined;
+  min?: number | undefined;
+  max?: number | undefined;
+  minRows?: number | undefined;
+  maxRows?: number | undefined;
+  relationTo?: string | string[] | undefined;
+  hasMany?: boolean | undefined;
+  maxDepth?: number | undefined;
+  options?: FieldOption[] | undefined;
+  defaultValue?: unknown;
+  admin?: FieldAdminConfig | undefined;
+  fields?: FieldStructure[] | undefined;
+  blocks?: BlockDefinition[] | undefined;
+  tabs?: TabDefinition[] | undefined;
+  interfaceName?: string | undefined;
+  custom?: Record<string, unknown> | undefined;
 }
 
 // =============================================================================
@@ -346,7 +346,7 @@ const BaseFieldPropertiesSchema = z
     filterOptions: z.unknown().optional(),
     editor: z.unknown().optional(),
   })
-  .passthrough()
+  .passthrough();
 
 /**
  * Full Field Schema (recursive - includes nested fields)
@@ -361,7 +361,7 @@ export const FieldSchema: z.ZodType<FieldStructure> = z.lazy(() =>
     /** Tabs (for tabs field) */
     tabs: z.array(TabDefinitionSchema).optional(),
   }),
-) as z.ZodType<FieldStructure>
+) as z.ZodType<FieldStructure>;
 
 // =============================================================================
 // SPECIFIC FIELD TYPE SCHEMAS
@@ -373,7 +373,7 @@ export const FieldSchema: z.ZodType<FieldStructure> = z.lazy(() =>
 export const TextFieldSchema = BaseFieldPropertiesSchema.extend({
   type: z.literal('text'),
   name: z.string(), // Required for text fields
-})
+});
 
 /**
  * Number field schema
@@ -383,7 +383,7 @@ export const NumberFieldSchema = BaseFieldPropertiesSchema.extend({
   name: z.string(),
   min: z.number().optional(),
   max: z.number().optional(),
-})
+});
 
 /**
  * Relationship field schema
@@ -392,7 +392,7 @@ export const RelationshipFieldSchema = BaseFieldPropertiesSchema.extend({
   type: z.literal('relationship'),
   name: z.string(),
   relationTo: z.union([z.string(), z.array(z.string())]),
-})
+});
 
 /**
  * Array field schema (recursive)
@@ -403,7 +403,7 @@ export const ArrayFieldSchema = z.lazy(() =>
     name: z.string(),
     fields: z.array(FieldSchema),
   }),
-)
+);
 
 /**
  * Group field schema (recursive)
@@ -414,7 +414,7 @@ export const GroupFieldSchema = z.lazy(() =>
     name: z.string(),
     fields: z.array(FieldSchema),
   }),
-)
+);
 
 /**
  * Select field schema
@@ -423,7 +423,7 @@ export const SelectFieldSchema = BaseFieldPropertiesSchema.extend({
   type: z.literal('select'),
   name: z.string(),
   options: z.array(FieldOptionSchema),
-})
+});
 
 /**
  * Row field schema (layout field - recursive)
@@ -433,7 +433,7 @@ export const RowFieldSchema = z.lazy(() =>
     type: z.literal('row'),
     fields: z.array(FieldSchema),
   }),
-)
+);
 
 /**
  * Tabs field schema (layout field - recursive)
@@ -443,7 +443,7 @@ export const TabsFieldSchema = z.lazy(() =>
     type: z.literal('tabs'),
     tabs: z.array(TabDefinitionSchema),
   }),
-)
+);
 
 // ============================================
 // COLLECTION STRUCTURE SCHEMAS
@@ -457,9 +457,9 @@ export const CollectionLabelsSchema = z
     singular: z.string(),
     plural: z.string().optional(),
   })
-  .optional()
+  .optional();
 
-export type CollectionLabels = z.infer<typeof CollectionLabelsSchema>
+export type CollectionLabels = z.infer<typeof CollectionLabelsSchema>;
 
 /**
  * Collection access control schema
@@ -483,9 +483,9 @@ export const CollectionAccessSchema = z
     /** Read versions */
     readVersions: z.unknown().optional(),
   })
-  .optional()
+  .optional();
 
-export type CollectionAccess = z.infer<typeof CollectionAccessSchema>
+export type CollectionAccess = z.infer<typeof CollectionAccessSchema>;
 
 /**
  * Collection hooks schema
@@ -512,9 +512,9 @@ export const CollectionHooksSchema = z
     afterMe: z.array(z.unknown()).optional(),
     afterForgotPassword: z.array(z.unknown()).optional(),
   })
-  .optional()
+  .optional();
 
-export type CollectionHooks = z.infer<typeof CollectionHooksSchema>
+export type CollectionHooks = z.infer<typeof CollectionHooksSchema>;
 
 /**
  * Collection admin configuration
@@ -552,9 +552,9 @@ export const CollectionAdminConfigSchema = z
     enableRichTextRelationship: z.boolean().optional(),
   })
   .passthrough()
-  .optional()
+  .optional();
 
-export type CollectionAdminConfig = z.infer<typeof CollectionAdminConfigSchema>
+export type CollectionAdminConfig = z.infer<typeof CollectionAdminConfigSchema>;
 
 /**
  * Versions configuration schema (for collections)
@@ -582,12 +582,12 @@ export const VersionsConfigSchema = z
         .optional(),
     }),
   ])
-  .optional()
+  .optional();
 
-export type VersionConfig = z.infer<typeof VersionsConfigSchema>
+export type VersionConfig = z.infer<typeof VersionsConfigSchema>;
 
 // Alias for backward compatibility - use VersionsConfigSchema for collections/globals
-export const VersionConfigSchema = VersionsConfigSchema
+export const VersionConfigSchema = VersionsConfigSchema;
 
 /**
  * Global versions configuration schema
@@ -618,9 +618,9 @@ export const GlobalVersionsConfigSchema = z
         .optional(),
     }),
   ])
-  .optional()
+  .optional();
 
-export type GlobalVersionsConfig = z.infer<typeof GlobalVersionsConfigSchema>
+export type GlobalVersionsConfig = z.infer<typeof GlobalVersionsConfigSchema>;
 
 /**
  * Upload configuration
@@ -651,9 +651,9 @@ export const UploadConfigSchema = z
       crop: z.boolean().optional(),
     }),
   ])
-  .optional()
+  .optional();
 
-export type UploadConfig = z.infer<typeof UploadConfigSchema>
+export type UploadConfig = z.infer<typeof UploadConfigSchema>;
 
 /**
  * Auth configuration
@@ -693,9 +693,9 @@ export const AuthConfigSchema = z
       strategies: z.array(z.unknown()).optional(),
     }),
   ])
-  .optional()
+  .optional();
 
-export type AuthConfig = z.infer<typeof AuthConfigSchema>
+export type AuthConfig = z.infer<typeof AuthConfigSchema>;
 
 /**
  * TypeScript generation configuration
@@ -704,9 +704,9 @@ export const TypeScriptConfigSchema = z
   .object({
     interface: z.string().optional(),
   })
-  .optional()
+  .optional();
 
-export type TypeScriptConfig = z.infer<typeof TypeScriptConfigSchema>
+export type TypeScriptConfig = z.infer<typeof TypeScriptConfigSchema>;
 
 /**
  * Collection structure schema
@@ -760,24 +760,24 @@ export const CollectionStructureSchema = z
 
     // Note: access, hooks, endpoints are functions - not validated here
   })
-  .passthrough()
+  .passthrough();
 
 /**
  * Collection structure type (without function properties)
  */
 export interface CollectionStructure {
-  slug: string
-  labels?: CollectionLabels | undefined
-  fields: FieldStructure[]
-  timestamps?: boolean | undefined
-  admin?: CollectionAdminConfig | undefined
-  versions?: VersionConfig | undefined
-  upload?: UploadConfig | undefined
-  auth?: AuthConfig | undefined
-  typescript?: TypeScriptConfig | undefined
-  custom?: Record<string, unknown> | undefined
-  dbName?: string | undefined
-  defaultSort?: string | undefined
+  slug: string;
+  labels?: CollectionLabels | undefined;
+  fields: FieldStructure[];
+  timestamps?: boolean | undefined;
+  admin?: CollectionAdminConfig | undefined;
+  versions?: VersionConfig | undefined;
+  upload?: UploadConfig | undefined;
+  auth?: AuthConfig | undefined;
+  typescript?: TypeScriptConfig | undefined;
+  custom?: Record<string, unknown> | undefined;
+  dbName?: string | undefined;
+  defaultSort?: string | undefined;
 }
 
 /**
@@ -804,7 +804,7 @@ export const CollectionConfigSchema = CollectionStructureSchema.extend({
     .optional(),
   /** Schema version */
   schemaVersion: z.number().int().default(COLLECTION_SCHEMA_VERSION).optional(),
-}).passthrough()
+}).passthrough();
 
 /**
  * Sanitized Collection Config Schema (after processing)
@@ -812,9 +812,9 @@ export const CollectionConfigSchema = CollectionStructureSchema.extend({
 export const SanitizedCollectionConfigSchema = CollectionConfigSchema.extend({
   /** Flattened field paths */
   flattenedFields: z.array(FieldStructureSchema).optional(),
-})
+});
 
-export type SanitizedCollectionConfig = z.infer<typeof SanitizedCollectionConfigSchema>
+export type SanitizedCollectionConfig = z.infer<typeof SanitizedCollectionConfigSchema>;
 
 // ============================================
 // GLOBAL STRUCTURE SCHEMAS
@@ -828,9 +828,9 @@ export const GlobalLabelsSchema = z
     singular: z.string(),
     plural: z.string().optional(),
   })
-  .optional()
+  .optional();
 
-export type GlobalLabels = z.infer<typeof GlobalLabelsSchema>
+export type GlobalLabels = z.infer<typeof GlobalLabelsSchema>;
 
 /**
  * Global access control schema
@@ -844,9 +844,9 @@ export const GlobalAccessSchema = z
     /** Read versions */
     readVersions: z.unknown().optional(),
   })
-  .optional()
+  .optional();
 
-export type GlobalAccess = z.infer<typeof GlobalAccessSchema>
+export type GlobalAccess = z.infer<typeof GlobalAccessSchema>;
 
 /**
  * Global hooks schema
@@ -859,9 +859,9 @@ export const GlobalHooksSchema = z
     beforeRead: z.array(z.unknown()).optional(),
     afterRead: z.array(z.unknown()).optional(),
   })
-  .optional()
+  .optional();
 
-export type GlobalHooks = z.infer<typeof GlobalHooksSchema>
+export type GlobalHooks = z.infer<typeof GlobalHooksSchema>;
 
 /**
  * Global admin configuration
@@ -888,9 +888,9 @@ export const GlobalAdminConfigSchema = z
       .optional(),
   })
   .passthrough()
-  .optional()
+  .optional();
 
-export type GlobalAdminConfig = z.infer<typeof GlobalAdminConfigSchema>
+export type GlobalAdminConfig = z.infer<typeof GlobalAdminConfigSchema>;
 
 /**
  * Global structure schema
@@ -927,21 +927,21 @@ export const GlobalStructureSchema = z
 
     // Note: access, hooks, endpoints are functions - not validated here
   })
-  .passthrough()
+  .passthrough();
 
 /**
  * Global structure type (without function properties)
  */
 export interface GlobalStructure {
-  slug: string
-  label?: string | undefined
-  labels?: GlobalLabels | undefined
-  fields: FieldStructure[]
-  admin?: GlobalAdminConfig | undefined
-  versions?: VersionConfig | undefined
-  typescript?: TypeScriptConfig | undefined
-  dbName?: string | undefined
-  custom?: Record<string, unknown> | undefined
+  slug: string;
+  label?: string | undefined;
+  labels?: GlobalLabels | undefined;
+  fields: FieldStructure[];
+  admin?: GlobalAdminConfig | undefined;
+  versions?: VersionConfig | undefined;
+  typescript?: TypeScriptConfig | undefined;
+  dbName?: string | undefined;
+  custom?: Record<string, unknown> | undefined;
 }
 
 /**
@@ -970,7 +970,7 @@ export const GlobalConfigSchema = GlobalStructureSchema.extend({
     .optional(),
   /** Schema version */
   schemaVersion: z.number().int().default(GLOBAL_SCHEMA_VERSION).optional(),
-}).passthrough()
+}).passthrough();
 
 /**
  * Sanitized Global Config Schema (after processing)
@@ -978,9 +978,9 @@ export const GlobalConfigSchema = GlobalStructureSchema.extend({
 export const SanitizedGlobalConfigSchema = GlobalConfigSchema.extend({
   /** Flattened field paths */
   flattenedFields: z.array(FieldStructureSchema).optional(),
-})
+});
 
-export type SanitizedGlobalConfig = z.infer<typeof SanitizedGlobalConfigSchema>
+export type SanitizedGlobalConfig = z.infer<typeof SanitizedGlobalConfigSchema>;
 
 // ============================================
 // INFERRED FIELD TYPES
@@ -989,39 +989,39 @@ export type SanitizedGlobalConfig = z.infer<typeof SanitizedGlobalConfigSchema>
 /**
  * Text field type
  */
-export type TextField = z.infer<typeof TextFieldSchema>
+export type TextField = z.infer<typeof TextFieldSchema>;
 
 /**
  * Number field type
  */
-export type NumberField = z.infer<typeof NumberFieldSchema>
+export type NumberField = z.infer<typeof NumberFieldSchema>;
 
 /**
  * Relationship field type
  */
-export type RelationshipField = z.infer<typeof RelationshipFieldSchema>
+export type RelationshipField = z.infer<typeof RelationshipFieldSchema>;
 
 /**
  * Array field type
  */
-export type ArrayField = z.infer<typeof ArrayFieldSchema>
+export type ArrayField = z.infer<typeof ArrayFieldSchema>;
 
 /**
  * Group field type
  */
-export type GroupField = z.infer<typeof GroupFieldSchema>
+export type GroupField = z.infer<typeof GroupFieldSchema>;
 
 /**
  * Select field type
  */
-export type SelectField = z.infer<typeof SelectFieldSchema>
+export type SelectField = z.infer<typeof SelectFieldSchema>;
 
 /**
  * Tabs field type
  */
-export type TabsField = z.infer<typeof TabsFieldSchema>
+export type TabsField = z.infer<typeof TabsFieldSchema>;
 
 /**
  * Row field type
  */
-export type RowField = z.infer<typeof RowFieldSchema>
+export type RowField = z.infer<typeof RowFieldSchema>;

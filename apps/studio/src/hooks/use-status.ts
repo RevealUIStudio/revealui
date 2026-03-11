@@ -1,24 +1,24 @@
-import { createContext, use, useCallback, useEffect, useState } from 'react'
-import { getMountStatus, getSystemStatus } from '../lib/invoke'
-import type { MountStatus, SystemStatus } from '../types'
+import { createContext, use, useCallback, useEffect, useState } from 'react';
+import { getMountStatus, getSystemStatus } from '../lib/invoke';
+import type { MountStatus, SystemStatus } from '../types';
 
 interface StatusState {
-  system: SystemStatus | null
-  mount: MountStatus | null
-  loading: boolean
-  error: string | null
+  system: SystemStatus | null;
+  mount: MountStatus | null;
+  loading: boolean;
+  error: string | null;
 }
 
 export interface StatusContextValue extends StatusState {
-  refresh: () => Promise<void>
+  refresh: () => Promise<void>;
 }
 
-export const StatusContext = createContext<StatusContextValue | null>(null)
+export const StatusContext = createContext<StatusContextValue | null>(null);
 
 export function useStatusContext(): StatusContextValue {
-  const ctx = use(StatusContext)
-  if (!ctx) throw new Error('useStatusContext must be used inside AppShell')
-  return ctx
+  const ctx = use(StatusContext);
+  if (!ctx) throw new Error('useStatusContext must be used inside AppShell');
+  return ctx;
 }
 
 export function useStatus() {
@@ -27,27 +27,27 @@ export function useStatus() {
     mount: null,
     loading: true,
     error: null,
-  })
+  });
 
   const refresh = useCallback(async () => {
-    setState((prev) => ({ ...prev, loading: true, error: null }))
+    setState((prev) => ({ ...prev, loading: true, error: null }));
     try {
-      const [system, mount] = await Promise.all([getSystemStatus(), getMountStatus()])
-      setState({ system, mount, loading: false, error: null })
+      const [system, mount] = await Promise.all([getSystemStatus(), getMountStatus()]);
+      setState({ system, mount, loading: false, error: null });
     } catch (err) {
       setState((prev) => ({
         ...prev,
         loading: false,
         error: err instanceof Error ? err.message : String(err),
-      }))
+      }));
     }
-  }, [])
+  }, []);
 
   useEffect(() => {
-    refresh()
-    const interval = setInterval(refresh, 30_000)
-    return () => clearInterval(interval)
-  }, [refresh])
+    refresh();
+    const interval = setInterval(refresh, 30_000);
+    return () => clearInterval(interval);
+  }, [refresh]);
 
-  return { ...state, refresh }
+  return { ...state, refresh };
 }

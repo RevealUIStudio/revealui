@@ -1,8 +1,8 @@
-import type { Page } from '../../types'
+import type { Page } from '../../types';
 
 interface SidebarProps {
-  currentPage: Page
-  onNavigate: (page: Page) => void
+  currentPage: Page;
+  onNavigate: (page: Page) => void;
 }
 
 const NAV_ITEMS: { page: Page; label: string; icon: string }[] = [
@@ -13,7 +13,7 @@ const NAV_ITEMS: { page: Page; label: string; icon: string }[] = [
   { page: 'tunnel', label: 'Tunnel', icon: 'globe' },
   { page: 'terminal', label: 'Terminal', icon: 'terminal' },
   { page: 'setup', label: 'Setup', icon: 'settings' },
-]
+];
 
 export default function Sidebar({ currentPage, onNavigate }: SidebarProps) {
   return (
@@ -42,7 +42,7 @@ export default function Sidebar({ currentPage, onNavigate }: SidebarProps) {
         ))}
       </nav>
     </aside>
-  )
+  );
 }
 
 function NavIcon({ name }: { name: string }) {
@@ -59,7 +59,7 @@ function NavIcon({ name }: { name: string }) {
         >
           <path d="M4 5a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v4a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1V5ZM14 5a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v4a1 1 0 0 1-1 1h-4a1 1 0 0 1-1-1V5ZM4 15a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v4a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1v-4ZM14 15a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v4a1 1 0 0 1-1 1h-4a1 1 0 0 1-1-1v-4Z" />
         </svg>
-      )
+      );
     case 'lock':
       return (
         <svg
@@ -73,7 +73,7 @@ function NavIcon({ name }: { name: string }) {
           <rect width="18" height="11" x="3" y="11" rx="2" ry="2" />
           <path d="M7 11V7a5 5 0 0 1 10 0v4" />
         </svg>
-      )
+      );
     case 'server':
       return (
         <svg
@@ -89,7 +89,7 @@ function NavIcon({ name }: { name: string }) {
           <line x1="6" x2="6" y1="6" y2="6" />
           <line x1="6" x2="6" y1="18" y2="18" />
         </svg>
-      )
+      );
     case 'refresh':
       return (
         <svg
@@ -103,7 +103,7 @@ function NavIcon({ name }: { name: string }) {
           <path d="M4 4v5h5M20 20v-5h-5" />
           <path d="M20.49 9A9 9 0 0 0 5.64 5.64L4 7m16 10l-1.64 1.36A9 9 0 0 1 3.51 15" />
         </svg>
-      )
+      );
     case 'globe':
       return (
         <svg
@@ -118,7 +118,7 @@ function NavIcon({ name }: { name: string }) {
           <line x1="2" x2="22" y1="12" y2="12" />
           <path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z" />
         </svg>
-      )
+      );
     case 'terminal':
       return (
         <svg
@@ -132,7 +132,7 @@ function NavIcon({ name }: { name: string }) {
           <polyline points="4 17 10 11 4 5" />
           <line x1="12" x2="20" y1="19" y2="19" />
         </svg>
-      )
+      );
     case 'settings':
       return (
         <svg
@@ -146,8 +146,8 @@ function NavIcon({ name }: { name: string }) {
           <path d="M12.22 2h-.44a2 2 0 0 0-2 2v.18a2 2 0 0 1-1 1.73l-.43.25a2 2 0 0 1-2 0l-.15-.08a2 2 0 0 0-2.73.73l-.22.38a2 2 0 0 0 .73 2.73l.15.1a2 2 0 0 1 1 1.72v.51a2 2 0 0 1-1 1.74l-.15.09a2 2 0 0 0-.73 2.73l.22.38a2 2 0 0 0 2.73.73l.15-.08a2 2 0 0 1 2 0l.43.25a2 2 0 0 1 1 1.73V20a2 2 0 0 0 2 2h.44a2 2 0 0 0 2-2v-.18a2 2 0 0 1 1-1.73l.43-.25a2 2 0 0 1 2 0l.15.08a2 2 0 0 0 2.73-.73l.22-.39a2 2 0 0 0-.73-2.73l-.15-.08a2 2 0 0 1-1-1.74v-.5a2 2 0 0 1 1-1.74l.15-.09a2 2 0 0 0 .73-2.73l-.22-.38a2 2 0 0 0-2.73-.73l-.15.08a2 2 0 0 1-2 0l-.43-.25a2 2 0 0 1-1-1.73V4a2 2 0 0 0-2-2Z" />
           <circle cx="12" cy="12" r="3" />
         </svg>
-      )
+      );
     default:
-      return <span className="size-4" />
+      return <span className="size-4" />;
   }
 }

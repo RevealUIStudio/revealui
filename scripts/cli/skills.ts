@@ -31,83 +31,83 @@
  * - External: gh - GitHub CLI for Vercel skills
  */
 
-import * as path from 'node:path'
-import type { ParsedArgs } from '../lib/args.js'
-import { executionError, notFound, validationError } from '../lib/errors.js'
-import { ok, type ScriptOutput } from '../lib/output.js'
-import { type CommandDefinition, ExecutingCLI, runCLI } from './_base.js'
+import * as path from 'node:path';
+import type { ParsedArgs } from '../lib/args.js';
+import { executionError, notFound, validationError } from '../lib/errors.js';
+import { ok, type ScriptOutput } from '../lib/output.js';
+import { type CommandDefinition, ExecutingCLI, runCLI } from './_base.js';
 
 // =============================================================================
 // Types for JSON output
 // =============================================================================
 
 interface SkillData {
-  name: string
-  description: string
-  version?: string
-  license?: string
-  author?: string
-  scope: 'local' | 'global'
-  path: string
-  tags?: string[]
-  compatibility?: string[]
-  allowedTools?: string[]
+  name: string;
+  description: string;
+  version?: string;
+  license?: string;
+  author?: string;
+  scope: 'local' | 'global';
+  path: string;
+  tags?: string[];
+  compatibility?: string[];
+  allowedTools?: string[];
 }
 
 interface SkillListData {
-  skills: SkillData[]
-  count: number
+  skills: SkillData[];
+  count: number;
 }
 
 interface SkillSearchResult {
-  skill: SkillData
-  score?: number
+  skill: SkillData;
+  score?: number;
 }
 
 interface SkillSearchData {
-  results: SkillSearchResult[]
-  query: string
-  semantic: boolean
+  results: SkillSearchResult[];
+  query: string;
+  semantic: boolean;
 }
 
 interface SkillInstallData {
-  installed: SkillData
-  source: string
-  sourceType: 'github' | 'local' | 'vercel'
+  installed: SkillData;
+  source: string;
+  sourceType: 'github' | 'local' | 'vercel';
 }
 
 interface SkillCreateData {
-  created: string
-  path: string
+  created: string;
+  path: string;
 }
 
 interface VercelCatalogSkillData {
-  id: string
-  name: string
-  owner: string
-  repo: string
-  description: string
-  installs?: number
-  tags?: string[]
+  id: string;
+  name: string;
+  owner: string;
+  repo: string;
+  description: string;
+  installs?: number;
+  tags?: string[];
 }
 
 interface VercelSearchData {
   results: Array<{
-    skill: VercelCatalogSkillData
-    score: number
-    matchReason?: string
-  }>
-  query: string
+    skill: VercelCatalogSkillData;
+    score: number;
+    matchReason?: string;
+  }>;
+  query: string;
 }
 
 interface VercelTrendingData {
-  skills: VercelCatalogSkillData[]
+  skills: VercelCatalogSkillData[];
 }
 
 interface SkillUpdateData {
-  updated: SkillData
-  previousVersion?: string
-  newVersion?: string
+  updated: SkillData;
+  previousVersion?: string;
+  newVersion?: string;
 }
 
 // =============================================================================
@@ -125,27 +125,27 @@ interface SkillUpdateData {
  */
 async function getSkillsModule() {
   try {
-    const mod = await import('../../packages/ai/src/skills/index.js')
+    const mod = await import('../../packages/ai/src/skills/index.js');
 
     // Validate module has expected exports
     if (!mod || typeof mod !== 'object') {
       throw executionError('Skills module loaded but has invalid structure', undefined, undefined, {
         hint: 'The skills module may be corrupted. Try reinstalling dependencies.',
-      })
+      });
     }
 
     // Verify critical functions exist
-    const requiredExports = ['SkillRegistry', 'loadFromGitHub', 'loadFromLocal', 'removeSkill']
-    const missingExports = requiredExports.filter((exp) => !(exp in mod))
+    const requiredExports = ['SkillRegistry', 'loadFromGitHub', 'loadFromLocal', 'removeSkill'];
+    const missingExports = requiredExports.filter((exp) => !(exp in mod));
 
     if (missingExports.length > 0) {
       throw executionError('Skills module is missing required exports', undefined, undefined, {
         hint: `Missing: ${missingExports.join(', ')}. Try reinstalling @revealui/ai package.`,
         missingExports,
-      })
+      });
     }
 
-    return mod
+    return mod;
   } catch (error) {
     // Handle specific error types
     if (error instanceof Error) {
@@ -157,7 +157,7 @@ async function getSkillsModule() {
         throw executionError('Skills package not found', undefined, error, {
           hint: 'Run `pnpm install` to install dependencies, or ensure @revealui/ai is built.',
           code: error.code,
-        })
+        });
       }
 
       // Network errors (if module uses dynamic imports from CDN)
@@ -165,26 +165,26 @@ async function getSkillsModule() {
         throw executionError('Network error while loading skills module', undefined, error, {
           hint: 'Check your internet connection and try again.',
           code: error.code,
-        })
+        });
       }
 
       // Syntax errors in the module
       if (error.name === 'SyntaxError') {
         throw executionError('Skills module has syntax errors', undefined, error, {
           hint: 'The skills module may be corrupted. Try rebuilding: pnpm --filter @revealui/ai build',
-        })
+        });
       }
 
       // Import resolution errors
       if (error.message.includes('Cannot find module')) {
         throw executionError('Skills module dependencies not found', undefined, error, {
           hint: 'Run `pnpm install` and ensure all dependencies are installed.',
-        })
+        });
       }
     }
 
     // Rethrow if it's already a ScriptError
-    throw error
+    throw error;
   }
 }
 
@@ -193,9 +193,9 @@ async function getSkillsModule() {
 // =============================================================================
 
 class SkillsCLI extends ExecutingCLI {
-  name = 'skills'
-  description = 'Manage Agent Skills for RevealUI'
-  protected enableExecutionLogging = true
+  name = 'skills';
+  description = 'Manage Agent Skills for RevealUI';
+  protected enableExecutionLogging = true;
 
   defineCommands(): CommandDefinition[] {
     return [
@@ -258,7 +258,7 @@ class SkillsCLI extends ExecutingCLI {
         args: [{ name: 'global', type: 'boolean', description: 'Create in global location' }],
         handler: (args) => this.create(args),
       },
-    ]
+    ];
   }
 
   // ===========================================================================
@@ -266,13 +266,13 @@ class SkillsCLI extends ExecutingCLI {
   // ===========================================================================
 
   private async list(_args: ParsedArgs): Promise<ScriptOutput<SkillListData>> {
-    const skills = await getSkillsModule()
+    const skills = await getSkillsModule();
     const registry = new skills.SkillRegistry({
       projectRoot: process.cwd(),
-    })
+    });
 
-    await registry.loadAllMetadata()
-    const metadata = registry.getAllMetadata()
+    await registry.loadAllMetadata();
+    const metadata = registry.getAllMetadata();
 
     const data: SkillListData = {
       skills: metadata.map((meta) => ({
@@ -284,48 +284,48 @@ class SkillsCLI extends ExecutingCLI {
         tags: meta.tags,
       })),
       count: metadata.length,
-    }
+    };
 
     // Human-mode output
     if (!this.output.isJsonMode()) {
       if (metadata.length === 0) {
-        this.output.progress('No skills installed')
-        this.output.progress('')
-        this.output.progress('Install skills with:')
-        this.output.progress('  pnpm skills add <owner/repo>')
-        this.output.progress('  pnpm skills add <path> --local')
+        this.output.progress('No skills installed');
+        this.output.progress('');
+        this.output.progress('Install skills with:');
+        this.output.progress('  pnpm skills add <owner/repo>');
+        this.output.progress('  pnpm skills add <path> --local');
       } else {
-        this.output.header('Installed Skills')
+        this.output.header('Installed Skills');
 
         for (const meta of metadata) {
-          console.log(`  ${meta.name}`)
-          console.log(`    ${meta.description}`)
+          console.log(`  ${meta.name}`);
+          console.log(`    ${meta.description}`);
           if (meta.tags?.length) {
-            console.log(`    Tags: ${meta.tags.join(', ')}`)
+            console.log(`    Tags: ${meta.tags.join(', ')}`);
           }
-          console.log()
+          console.log();
         }
 
-        this.output.progress(`Total: ${metadata.length} skill(s)`)
+        this.output.progress(`Total: ${metadata.length} skill(s)`);
       }
     }
 
-    return ok(data)
+    return ok(data);
   }
 
   private async info(_args: ParsedArgs): Promise<ScriptOutput<SkillData>> {
-    const name = this.requirePositional(0, 'skill name')
+    const name = this.requirePositional(0, 'skill name');
 
-    const skills = await getSkillsModule()
+    const skills = await getSkillsModule();
     const registry = new skills.SkillRegistry({
       projectRoot: process.cwd(),
-    })
+    });
 
-    await registry.loadAllMetadata()
-    const skill = await registry.loadSkill(name)
+    await registry.loadAllMetadata();
+    const skill = await registry.loadSkill(name);
 
     if (!skill) {
-      throw notFound('Skill', name)
+      throw notFound('Skill', name);
     }
 
     const data: SkillData = {
@@ -339,80 +339,80 @@ class SkillsCLI extends ExecutingCLI {
       tags: skill.metadata.tags,
       compatibility: skill.metadata.compatibility,
       allowedTools: skill.metadata.allowedTools,
-    }
+    };
 
     // Human-mode output
     if (!this.output.isJsonMode()) {
-      this.output.header(`Skill: ${skill.metadata.name}`)
-      console.log()
-      console.log(`Description: ${skill.metadata.description}`)
-      console.log(`Version: ${skill.metadata.version ?? 'Not specified'}`)
-      console.log(`License: ${skill.metadata.license ?? 'Not specified'}`)
-      console.log(`Author: ${skill.metadata.author ?? 'Not specified'}`)
-      console.log(`Scope: ${skill.scope}`)
-      console.log(`Path: ${skill.sourcePath}`)
+      this.output.header(`Skill: ${skill.metadata.name}`);
+      console.log();
+      console.log(`Description: ${skill.metadata.description}`);
+      console.log(`Version: ${skill.metadata.version ?? 'Not specified'}`);
+      console.log(`License: ${skill.metadata.license ?? 'Not specified'}`);
+      console.log(`Author: ${skill.metadata.author ?? 'Not specified'}`);
+      console.log(`Scope: ${skill.scope}`);
+      console.log(`Path: ${skill.sourcePath}`);
 
       if (skill.metadata.tags?.length) {
-        console.log(`Tags: ${skill.metadata.tags.join(', ')}`)
+        console.log(`Tags: ${skill.metadata.tags.join(', ')}`);
       }
 
       if (skill.metadata.compatibility?.length) {
-        console.log(`Compatibility: ${skill.metadata.compatibility.join(', ')}`)
+        console.log(`Compatibility: ${skill.metadata.compatibility.join(', ')}`);
       }
 
       if (skill.metadata.allowedTools?.length) {
-        console.log(`Allowed Tools: ${skill.metadata.allowedTools.join(', ')}`)
+        console.log(`Allowed Tools: ${skill.metadata.allowedTools.join(', ')}`);
       }
 
       if (skill.resources?.length) {
-        console.log()
-        console.log('Resources:')
+        console.log();
+        console.log('Resources:');
         for (const resource of skill.resources) {
-          console.log(`  - ${resource.path} (${resource.type})`)
+          console.log(`  - ${resource.path} (${resource.type})`);
         }
       }
 
-      console.log()
-      this.output.divider()
-      console.log()
-      console.log('Instructions:')
-      console.log()
+      console.log();
+      this.output.divider();
+      console.log();
+      console.log('Instructions:');
+      console.log();
 
-      const maxLines = 30
-      const lines = skill.instructions.split('\n')
+      const maxLines = 30;
+      const lines = skill.instructions.split('\n');
       if (lines.length > maxLines) {
-        console.log(lines.slice(0, maxLines).join('\n'))
-        console.log(`\n... (${lines.length - maxLines} more lines)`)
+        console.log(lines.slice(0, maxLines).join('\n'));
+        console.log(`\n... (${lines.length - maxLines} more lines)`);
       } else {
-        console.log(skill.instructions)
+        console.log(skill.instructions);
       }
     }
 
-    return ok(data)
+    return ok(data);
   }
 
   private async add(_args: ParsedArgs): Promise<ScriptOutput<SkillInstallData>> {
-    const source = this.requirePositional(0, 'source (owner/repo or path)')
+    const source = this.requirePositional(0, 'source (owner/repo or path)');
 
-    const skills = await getSkillsModule()
-    const isLocal = this.getFlag('local', false)
-    const isVercel = this.getFlag('vercel', false)
-    const isGlobal = this.getFlag('global', false)
-    const force = this.getFlag('force', false)
+    const skills = await getSkillsModule();
+    const isLocal = this.getFlag('local', false);
+    const isVercel = this.getFlag('vercel', false);
+    const isGlobal = this.getFlag('global', false);
+    const force = this.getFlag('force', false);
 
-    const scope = isGlobal ? 'global' : 'local'
+    const scope = isGlobal ? 'global' : 'local';
     const registry = new skills.SkillRegistry({
       projectRoot: process.cwd(),
-    })
+    });
 
-    const targetDir = registry.getSkillDirectory('', scope).replace(/\/$/, '')
+    const targetDir = registry.getSkillDirectory('', scope).replace(/\/$/, '');
 
-    let skill: Awaited<ReturnType<typeof skills.loadFromLocal>>
-    let sourceType: 'github' | 'local' | 'vercel'
+    let skill: Awaited<ReturnType<typeof skills.loadFromLocal>>;
+    let sourceType: 'github' | 'local' | 'vercel';
 
     if (isLocal) {
-      this.output.progress(`Installing from local path: ${source}`)
-      sourceType = 'local'
+      this.output.progress(`Installing from local path: ${source}`);
+      sourceType = 'local';
 
       skill = await skills.loadFromLocal(source, {
         targetDir,
@@ -421,10 +421,10 @@ class SkillsCLI extends ExecutingCLI {
         copy: true,
         force,
         generateEmbedding: false,
-      })
+      });
     } else if (isVercel) {
-      this.output.progress(`Installing from Vercel Skills: ${source}`)
-      sourceType = 'vercel'
+      this.output.progress(`Installing from Vercel Skills: ${source}`);
+      sourceType = 'vercel';
 
       skill = await skills.loadFromVercelSkills(source, {
         targetDir,
@@ -432,14 +432,14 @@ class SkillsCLI extends ExecutingCLI {
         registry,
         force,
         generateEmbedding: true, // Enable embeddings for Vercel skills
-      })
+      });
     } else {
-      this.output.progress(`Installing from GitHub: ${source}`)
-      sourceType = 'github'
+      this.output.progress(`Installing from GitHub: ${source}`);
+      sourceType = 'github';
 
-      const isValid = await skills.validateGitHubSource(source)
+      const isValid = await skills.validateGitHubSource(source);
       if (!isValid) {
-        throw executionError(`Could not access GitHub repository: ${source}`)
+        throw executionError(`Could not access GitHub repository: ${source}`);
       }
 
       skill = await skills.loadFromGitHub(source, {
@@ -448,7 +448,7 @@ class SkillsCLI extends ExecutingCLI {
         registry,
         force,
         generateEmbedding: false,
-      })
+      });
     }
 
     const data: SkillInstallData = {
@@ -462,56 +462,56 @@ class SkillsCLI extends ExecutingCLI {
       },
       source,
       sourceType,
-    }
+    };
 
-    this.output.progress(`Installed skill: ${skill.metadata.name}`)
-    this.output.progress(`  Description: ${skill.metadata.description}`)
-    this.output.progress(`  Source: ${sourceType}`)
-    this.output.progress(`  Location: ${skill.sourcePath}`)
+    this.output.progress(`Installed skill: ${skill.metadata.name}`);
+    this.output.progress(`  Description: ${skill.metadata.description}`);
+    this.output.progress(`  Source: ${sourceType}`);
+    this.output.progress(`  Location: ${skill.sourcePath}`);
 
-    return ok(data)
+    return ok(data);
   }
 
   private async remove(_args: ParsedArgs): Promise<ScriptOutput<{ removed: string }>> {
-    const name = this.requirePositional(0, 'skill name')
+    const name = this.requirePositional(0, 'skill name');
 
-    const skills = await getSkillsModule()
+    const skills = await getSkillsModule();
     const registry = new skills.SkillRegistry({
       projectRoot: process.cwd(),
-    })
+    });
 
-    await registry.loadAllMetadata()
-    const skill = await registry.loadSkill(name)
+    await registry.loadAllMetadata();
+    const skill = await registry.loadSkill(name);
 
     if (!skill) {
-      throw notFound('Skill', name)
+      throw notFound('Skill', name);
     }
 
-    const removed = skills.removeSkill(skill.metadata.name, registry)
+    const removed = skills.removeSkill(skill.metadata.name, registry);
     if (!removed) {
-      throw executionError(`Failed to remove skill: ${name}`)
+      throw executionError(`Failed to remove skill: ${name}`);
     }
 
-    this.output.progress(`Removed skill: ${skill.metadata.name}`)
-    return ok({ removed: skill.metadata.name })
+    this.output.progress(`Removed skill: ${skill.metadata.name}`);
+    return ok({ removed: skill.metadata.name });
   }
 
   private async search(
     _args: ParsedArgs,
   ): Promise<ScriptOutput<SkillSearchData | VercelSearchData>> {
-    const query = this.requirePositional(0, 'search query')
-    const useSemantic = this.getFlag('semantic', false)
-    const useVercel = this.getFlag('vercel', false)
+    const query = this.requirePositional(0, 'search query');
+    const useSemantic = this.getFlag('semantic', false);
+    const useVercel = this.getFlag('vercel', false);
 
-    const skills = await getSkillsModule()
+    const skills = await getSkillsModule();
 
     // Search Vercel catalog
     if (useVercel) {
-      this.output.progress('Searching Vercel Skills catalog...')
+      this.output.progress('Searching Vercel Skills catalog...');
       const vercelResults = await skills.searchVercelCatalog(query, {
         threshold: 0.1,
         limit: 10,
-      })
+      });
 
       const data: VercelSearchData = {
         results: vercelResults.map((result) => ({
@@ -528,41 +528,41 @@ class SkillsCLI extends ExecutingCLI {
           matchReason: result.matchReason,
         })),
         query,
-      }
+      };
 
       // Human-mode output
       if (!this.output.isJsonMode()) {
         if (vercelResults.length === 0) {
-          this.output.progress('No matching skills found in Vercel catalog')
+          this.output.progress('No matching skills found in Vercel catalog');
         } else {
-          this.output.header('Vercel Skills Search Results')
+          this.output.header('Vercel Skills Search Results');
           for (const result of vercelResults) {
-            console.log(`  ${result.skill.name} (${(result.score * 100).toFixed(1)}% match)`)
-            console.log(`    ${result.skill.description}`)
+            console.log(`  ${result.skill.name} (${(result.score * 100).toFixed(1)}% match)`);
+            console.log(`    ${result.skill.description}`);
             if (result.skill.installs) {
-              console.log(`    ${result.skill.installs.toLocaleString()} installs`)
+              console.log(`    ${result.skill.installs.toLocaleString()} installs`);
             }
-            console.log(`    Install: pnpm skills add ${result.skill.id} --vercel`)
-            console.log()
+            console.log(`    Install: pnpm skills add ${result.skill.id} --vercel`);
+            console.log();
           }
         }
       }
 
-      return ok(data, { count: vercelResults.length })
+      return ok(data, { count: vercelResults.length });
     }
 
     // Search local skills
     const registry = new skills.SkillRegistry({
       projectRoot: process.cwd(),
-    })
+    });
 
-    await registry.loadAllSkills(useSemantic)
+    await registry.loadAllSkills(useSemantic);
 
-    let results: SkillSearchResult[]
+    let results: SkillSearchResult[];
 
     if (useSemantic) {
-      this.output.progress('Searching with semantic similarity...')
-      const semanticResults = await registry.searchByEmbedding(query, 0.5, 10)
+      this.output.progress('Searching with semantic similarity...');
+      const semanticResults = await registry.searchByEmbedding(query, 0.5, 10);
       results = semanticResults.map(({ skill, score }) => ({
         skill: {
           name: skill.metadata.name,
@@ -573,9 +573,9 @@ class SkillsCLI extends ExecutingCLI {
           tags: skill.metadata.tags,
         },
         score,
-      }))
+      }));
     } else {
-      const keywordResults = registry.searchByKeyword(query)
+      const keywordResults = registry.searchByKeyword(query);
       results = keywordResults.map((skill) => ({
         skill: {
           name: skill.metadata.name,
@@ -585,41 +585,41 @@ class SkillsCLI extends ExecutingCLI {
           path: skill.sourcePath,
           tags: skill.metadata.tags,
         },
-      }))
+      }));
     }
 
     const data: SkillSearchData = {
       results,
       query,
       semantic: useSemantic,
-    }
+    };
 
     // Human-mode output
     if (!this.output.isJsonMode()) {
       if (results.length === 0) {
-        this.output.progress('No matching skills found')
+        this.output.progress('No matching skills found');
       } else {
-        this.output.header('Search Results')
+        this.output.header('Search Results');
         for (const { skill, score } of results) {
           if (score !== undefined) {
-            console.log(`  ${skill.name} (${(score * 100).toFixed(1)}% match)`)
+            console.log(`  ${skill.name} (${(score * 100).toFixed(1)}% match)`);
           } else {
-            console.log(`  ${skill.name}`)
+            console.log(`  ${skill.name}`);
           }
-          console.log(`    ${skill.description}`)
-          console.log()
+          console.log(`    ${skill.description}`);
+          console.log();
         }
       }
     }
 
-    return ok(data, { count: results.length })
+    return ok(data, { count: results.length });
   }
 
   private async trending(_args: ParsedArgs): Promise<ScriptOutput<VercelTrendingData>> {
-    const skills = await getSkillsModule()
+    const skills = await getSkillsModule();
 
-    this.output.progress('Fetching trending skills from Vercel...')
-    const trendingSkills = await skills.getTrendingSkills(10)
+    this.output.progress('Fetching trending skills from Vercel...');
+    const trendingSkills = await skills.getTrendingSkills(10);
 
     const data: VercelTrendingData = {
       skills: trendingSkills.map((skill) => ({
@@ -631,38 +631,38 @@ class SkillsCLI extends ExecutingCLI {
         installs: skill.installs,
         tags: skill.tags,
       })),
-    }
+    };
 
     // Human-mode output
     if (!this.output.isJsonMode()) {
-      this.output.header('Trending Vercel Skills')
+      this.output.header('Trending Vercel Skills');
       for (const skill of trendingSkills) {
-        console.log(`  ${skill.name}`)
-        console.log(`    ${skill.description}`)
+        console.log(`  ${skill.name}`);
+        console.log(`    ${skill.description}`);
         if (skill.installs) {
-          console.log(`    ${skill.installs.toLocaleString()} installs`)
+          console.log(`    ${skill.installs.toLocaleString()} installs`);
         }
-        console.log(`    Install: pnpm skills add ${skill.id} --vercel`)
-        console.log()
+        console.log(`    Install: pnpm skills add ${skill.id} --vercel`);
+        console.log();
       }
     }
 
-    return ok(data, { count: trendingSkills.length })
+    return ok(data, { count: trendingSkills.length });
   }
 
   private async update(_args: ParsedArgs): Promise<ScriptOutput<SkillUpdateData>> {
-    const name = this.requirePositional(0, 'skill name')
+    const name = this.requirePositional(0, 'skill name');
 
-    const skills = await getSkillsModule()
+    const skills = await getSkillsModule();
     const registry = new skills.SkillRegistry({
       projectRoot: process.cwd(),
-    })
+    });
 
-    await registry.loadAllMetadata()
-    const existingSkill = await registry.loadSkill(name)
+    await registry.loadAllMetadata();
+    const existingSkill = await registry.loadSkill(name);
 
     if (!existingSkill) {
-      throw notFound('Skill', name)
+      throw notFound('Skill', name);
     }
 
     if (existingSkill.source !== 'vercel') {
@@ -673,14 +673,14 @@ class SkillsCLI extends ExecutingCLI {
         {
           hint: `Skill "${name}" is a ${existingSkill.source} skill. Use "pnpm skills add --force" to reinstall.`,
         },
-      )
+      );
     }
 
-    this.output.progress(`Checking for updates to ${name}...`)
+    this.output.progress(`Checking for updates to ${name}...`);
 
-    const updateInfo = await skills.checkVercelSkillUpdates(name, registry)
+    const updateInfo = await skills.checkVercelSkillUpdates(name, registry);
     if (!updateInfo.available) {
-      this.output.progress('Skill is already up to date')
+      this.output.progress('Skill is already up to date');
       return ok({
         updated: {
           name: existingSkill.metadata.name,
@@ -691,11 +691,11 @@ class SkillsCLI extends ExecutingCLI {
         },
         previousVersion: updateInfo.currentVersion,
         newVersion: updateInfo.currentVersion,
-      })
+      });
     }
 
-    this.output.progress('Update available, installing...')
-    const updatedSkill = await skills.updateVercelSkill(name, registry)
+    this.output.progress('Update available, installing...');
+    const updatedSkill = await skills.updateVercelSkill(name, registry);
 
     const data: SkillUpdateData = {
       updated: {
@@ -707,58 +707,58 @@ class SkillsCLI extends ExecutingCLI {
       },
       previousVersion: updateInfo.currentVersion,
       newVersion: updatedSkill.metadata.version,
-    }
+    };
 
-    this.output.progress(`Updated skill: ${updatedSkill.metadata.name}`)
+    this.output.progress(`Updated skill: ${updatedSkill.metadata.name}`);
     if (updateInfo.changelog) {
-      this.output.progress(`Changes: ${updateInfo.changelog}`)
+      this.output.progress(`Changes: ${updateInfo.changelog}`);
     }
 
-    return ok(data)
+    return ok(data);
   }
 
   private async create(_args: ParsedArgs): Promise<ScriptOutput<SkillCreateData>> {
-    const name = this.requirePositional(0, 'skill name')
+    const name = this.requirePositional(0, 'skill name');
 
     // Validate name format
     if (!/^[a-z0-9-]+$/.test(name)) {
       throw validationError(
         'Skill name must be kebab-case (lowercase letters, numbers, hyphens)',
         'name',
-      )
+      );
     }
 
-    const isGlobal = this.getFlag('global', false)
-    const skills = await getSkillsModule()
+    const isGlobal = this.getFlag('global', false);
+    const skills = await getSkillsModule();
     const registry = new skills.SkillRegistry({
       projectRoot: process.cwd(),
-    })
+    });
 
-    const scope = isGlobal ? 'global' : 'local'
-    const targetDir = registry.getSkillDirectory('', scope).replace(/\/$/, '')
+    const scope = isGlobal ? 'global' : 'local';
+    const targetDir = registry.getSkillDirectory('', scope).replace(/\/$/, '');
 
     const skillDir = await skills.createSkill(name, targetDir, {
       createScripts: true,
       createReferences: true,
-    })
+    });
 
     const data: SkillCreateData = {
       created: name,
       path: skillDir,
-    }
+    };
 
     // Human-mode output
     if (!this.output.isJsonMode()) {
-      this.output.progress(`Created skill template: ${name}`)
-      this.output.progress(`Location: ${skillDir}`)
-      this.output.progress('')
-      this.output.progress('Next steps:')
-      this.output.progress(`  1. Edit ${path.join(skillDir, 'SKILL.md')} with your instructions`)
-      this.output.progress('  2. Add any scripts to the scripts/ directory')
-      this.output.progress('  3. Add reference docs to the references/ directory')
+      this.output.progress(`Created skill template: ${name}`);
+      this.output.progress(`Location: ${skillDir}`);
+      this.output.progress('');
+      this.output.progress('Next steps:');
+      this.output.progress(`  1. Edit ${path.join(skillDir, 'SKILL.md')} with your instructions`);
+      this.output.progress('  2. Add any scripts to the scripts/ directory');
+      this.output.progress('  3. Add reference docs to the references/ directory');
     }
 
-    return ok(data)
+    return ok(data);
   }
 }
 
@@ -766,4 +766,4 @@ class SkillsCLI extends ExecutingCLI {
 // Entry Point
 // =============================================================================
 
-runCLI(SkillsCLI)
+runCLI(SkillsCLI);

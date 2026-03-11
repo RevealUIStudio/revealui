@@ -23,23 +23,23 @@
  * ```
  */
 
-import { execSync } from 'node:child_process'
-import { existsSync } from 'node:fs'
-import { watch } from 'chokidar'
-import { ErrorCode, ScriptError } from '../lib/errors.js'
-import { createLogger } from '../lib/index.js'
+import { execSync } from 'node:child_process';
+import { existsSync } from 'node:fs';
+import { watch } from 'chokidar';
+import { ErrorCode, ScriptError } from '../lib/errors.js';
+import { createLogger } from '../lib/index.js';
 
-const logger = createLogger({ prefix: 'TypeWatch' })
+const logger = createLogger({ prefix: 'TypeWatch' });
 
 interface WatchConfig {
   /** Paths to watch for schema changes */
-  schemaPaths: string[]
+  schemaPaths: string[];
   /** Command to run for type generation */
-  generateCommand: string
+  generateCommand: string;
   /** Debounce delay in ms */
-  debounceMs: number
+  debounceMs: number;
   /** Whether to run generation on startup */
-  generateOnStart: boolean
+  generateOnStart: boolean;
 }
 
 const DEFAULT_CONFIG: WatchConfig = {
@@ -51,15 +51,15 @@ const DEFAULT_CONFIG: WatchConfig = {
   generateCommand: 'pnpm --filter @revealui/db generate:types',
   debounceMs: 1000,
   generateOnStart: true,
-}
+};
 
 class SchemaTypeWatcher {
-  private config: WatchConfig
-  private isGenerating = false
-  private pendingRegeneration = false
+  private config: WatchConfig;
+  private isGenerating = false;
+  private pendingRegeneration = false;
 
   constructor(config: Partial<WatchConfig> = {}) {
-    this.config = { ...DEFAULT_CONFIG, ...config }
+    this.config = { ...DEFAULT_CONFIG, ...config };
   }
 
   /**
@@ -67,37 +67,37 @@ class SchemaTypeWatcher {
    */
   private async generateTypes(): Promise<void> {
     if (this.isGenerating) {
-      this.pendingRegeneration = true
-      return
+      this.pendingRegeneration = true;
+      return;
     }
 
     try {
-      this.isGenerating = true
-      this.lastGenerationTime = Date.now()
+      this.isGenerating = true;
+      this.lastGenerationTime = Date.now();
 
-      logger.info('🔄 Regenerating database types...')
+      logger.info('🔄 Regenerating database types...');
 
-      const startTime = Date.now()
+      const startTime = Date.now();
       execSync(this.config.generateCommand, {
         stdio: 'inherit',
         encoding: 'utf-8',
-      })
+      });
 
-      const duration = Date.now() - startTime
-      logger.success(`✅ Types generated in ${duration}ms`)
+      const duration = Date.now() - startTime;
+      logger.success(`✅ Types generated in ${duration}ms`);
 
       // If another change happened during generation, regenerate
       if (this.pendingRegeneration) {
-        this.pendingRegeneration = false
-        this.isGenerating = false
-        setTimeout(() => this.generateTypes(), this.config.debounceMs)
+        this.pendingRegeneration = false;
+        this.isGenerating = false;
+        setTimeout(() => this.generateTypes(), this.config.debounceMs);
       }
     } catch (error) {
       logger.error(
         `❌ Type generation failed: ${error instanceof Error ? error.message : String(error)}`,
-      )
+      );
     } finally {
-      this.isGenerating = false
+      this.isGenerating = false;
     }
   }
 
@@ -105,33 +105,33 @@ class SchemaTypeWatcher {
    * Start watching schema files
    */
   async start(): Promise<void> {
-    logger.header('Database Type Watcher')
-    logger.info('Watching for schema changes...')
-    console.log()
+    logger.header('Database Type Watcher');
+    logger.info('Watching for schema changes...');
+    console.log();
 
     // Verify schema paths exist
     const existingPaths = this.config.schemaPaths.filter((path) => {
-      const exists = existsSync(path.split('/**')[0])
+      const exists = existsSync(path.split('/**')[0]);
       if (!exists) {
-        logger.warn(`⚠️  Schema path not found: ${path}`)
+        logger.warn(`⚠️  Schema path not found: ${path}`);
       }
-      return exists
-    })
+      return exists;
+    });
 
     if (existingPaths.length === 0) {
-      throw new ScriptError('No valid schema paths found to watch', ErrorCode.NOT_FOUND)
+      throw new ScriptError('No valid schema paths found to watch', ErrorCode.NOT_FOUND);
     }
 
-    logger.info('Watching paths:')
+    logger.info('Watching paths:');
     for (const path of existingPaths) {
-      logger.info(`  - ${path}`)
+      logger.info(`  - ${path}`);
     }
-    console.log()
+    console.log();
 
     // Generate types on startup if configured
     if (this.config.generateOnStart) {
-      await this.generateTypes()
-      console.log()
+      await this.generateTypes();
+      console.log();
     }
 
     // Set up file watcher
@@ -142,65 +142,65 @@ class SchemaTypeWatcher {
         stabilityThreshold: 300,
         pollInterval: 100,
       },
-    })
+    });
 
-    let debounceTimeout: NodeJS.Timeout | null = null
+    let debounceTimeout: NodeJS.Timeout | null = null;
 
     watcher.on('change', (path) => {
-      logger.info(`📝 Schema changed: ${path}`)
+      logger.info(`📝 Schema changed: ${path}`);
 
       if (debounceTimeout) {
-        clearTimeout(debounceTimeout)
+        clearTimeout(debounceTimeout);
       }
 
       debounceTimeout = setTimeout(() => {
-        this.generateTypes()
-      }, this.config.debounceMs)
-    })
+        this.generateTypes();
+      }, this.config.debounceMs);
+    });
 
     watcher.on('add', (path) => {
-      logger.info(`➕ Schema added: ${path}`)
+      logger.info(`➕ Schema added: ${path}`);
 
       if (debounceTimeout) {
-        clearTimeout(debounceTimeout)
+        clearTimeout(debounceTimeout);
       }
 
       debounceTimeout = setTimeout(() => {
-        this.generateTypes()
-      }, this.config.debounceMs)
-    })
+        this.generateTypes();
+      }, this.config.debounceMs);
+    });
 
     watcher.on('unlink', (path) => {
-      logger.info(`➖ Schema removed: ${path}`)
+      logger.info(`➖ Schema removed: ${path}`);
 
       if (debounceTimeout) {
-        clearTimeout(debounceTimeout)
+        clearTimeout(debounceTimeout);
       }
 
       debounceTimeout = setTimeout(() => {
-        this.generateTypes()
-      }, this.config.debounceMs)
-    })
+        this.generateTypes();
+      }, this.config.debounceMs);
+    });
 
     watcher.on('error', (error) => {
-      logger.error(`❌ Watcher error: ${error.message}`)
-    })
+      logger.error(`❌ Watcher error: ${error.message}`);
+    });
 
-    logger.info('👀 Watching for changes... (Press Ctrl+C to stop)')
-    console.log()
+    logger.info('👀 Watching for changes... (Press Ctrl+C to stop)');
+    console.log();
 
     // Handle graceful shutdown
     process.on('SIGINT', () => {
-      logger.info('\n🛑 Stopping watcher...')
-      watcher.close()
-      process.exit(ErrorCode.SUCCESS)
-    })
+      logger.info('\n🛑 Stopping watcher...');
+      watcher.close();
+      process.exit(ErrorCode.SUCCESS);
+    });
 
     process.on('SIGTERM', () => {
-      logger.info('\n🛑 Stopping watcher...')
-      watcher.close()
-      process.exit(ErrorCode.SUCCESS)
-    })
+      logger.info('\n🛑 Stopping watcher...');
+      watcher.close();
+      process.exit(ErrorCode.SUCCESS);
+    });
   }
 }
 
@@ -209,14 +209,14 @@ class SchemaTypeWatcher {
  */
 async function main() {
   try {
-    const watcher = new SchemaTypeWatcher()
-    await watcher.start()
+    const watcher = new SchemaTypeWatcher();
+    await watcher.start();
   } catch (error) {
     logger.error(
       `Failed to start watcher: ${error instanceof Error ? error.message : String(error)}`,
-    )
-    process.exit(ErrorCode.EXECUTION_ERROR)
+    );
+    process.exit(ErrorCode.EXECUTION_ERROR);
   }
 }
 
-main()
+main();

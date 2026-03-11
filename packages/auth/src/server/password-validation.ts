@@ -5,8 +5,8 @@
  */
 
 export interface PasswordValidationResult {
-  valid: boolean
-  errors: string[]
+  valid: boolean;
+  errors: string[];
 }
 
 /**
@@ -16,26 +16,26 @@ export interface PasswordValidationResult {
  * @returns Validation result with errors
  */
 export function validatePasswordStrength(password: string): PasswordValidationResult {
-  const errors: string[] = []
+  const errors: string[] = [];
 
   if (password.length < 8) {
-    errors.push('Password must be at least 8 characters long')
+    errors.push('Password must be at least 8 characters long');
   }
 
   if (password.length > 128) {
-    errors.push('Password must be less than 128 characters')
+    errors.push('Password must be less than 128 characters');
   }
 
   if (!/[a-z]/.test(password)) {
-    errors.push('Password must contain at least one lowercase letter')
+    errors.push('Password must contain at least one lowercase letter');
   }
 
   if (!/[A-Z]/.test(password)) {
-    errors.push('Password must contain at least one uppercase letter')
+    errors.push('Password must contain at least one uppercase letter');
   }
 
   if (!/[0-9]/.test(password)) {
-    errors.push('Password must contain at least one number')
+    errors.push('Password must contain at least one number');
   }
 
   // Optional: special characters (not too strict)
@@ -46,7 +46,7 @@ export function validatePasswordStrength(password: string): PasswordValidationRe
   return {
     valid: errors.length === 0,
     errors,
-  }
+  };
 }
 
 /**
@@ -57,5 +57,5 @@ export function validatePasswordStrength(password: string): PasswordValidationRe
  * @returns True if meets minimum requirements
  */
 export function meetsMinimumPasswordRequirements(password: string): boolean {
-  return password.length >= 8 && password.length <= 128
+  return password.length >= 8 && password.length <= 128;
 }

@@ -1,5 +1,5 @@
-import { Hono } from 'hono'
-import { describe, expect, it, vi } from 'vitest'
+import { Hono } from 'hono';
+import { describe, expect, it, vi } from 'vitest';
 
 // ---------------------------------------------------------------------------
 // Mock the DB query module
@@ -15,19 +15,19 @@ vi.mock('@revealui/db/queries/code-provenance', () => ({
   createReview: vi.fn(),
   updateReviewStatus: vi.fn(),
   getReviewsForProvenance: vi.fn(),
-}))
+}));
 
-import type { DatabaseClient } from '@revealui/db/client'
-import * as provenanceQueries from '@revealui/db/queries/code-provenance'
-import provenanceApp from '../code-provenance.js'
+import type { DatabaseClient } from '@revealui/db/client';
+import * as provenanceQueries from '@revealui/db/queries/code-provenance';
+import provenanceApp from '../code-provenance.js';
 
-const mq = vi.mocked(provenanceQueries)
+const mq = vi.mocked(provenanceQueries);
 
 // ---------------------------------------------------------------------------
 // Fixtures
 // ---------------------------------------------------------------------------
 
-const NOW = new Date()
+const NOW = new Date();
 
 function makeEntry(overrides = {}) {
   return {
@@ -51,7 +51,7 @@ function makeEntry(overrides = {}) {
     createdAt: NOW,
     updatedAt: NOW,
     ...overrides,
-  }
+  };
 }
 
 function makeReview(overrides = {}) {
@@ -65,7 +65,7 @@ function makeReview(overrides = {}) {
     metadata: null as unknown,
     createdAt: NOW,
     ...overrides,
-  }
+  };
 }
 
 // ---------------------------------------------------------------------------
@@ -73,14 +73,16 @@ function makeReview(overrides = {}) {
 // ---------------------------------------------------------------------------
 
 function createApp(user?: { id: string; role: string }) {
-  const app = new Hono<{ Variables: { db: DatabaseClient; user?: { id: string; role: string } } }>()
+  const app = new Hono<{
+    Variables: { db: DatabaseClient; user?: { id: string; role: string } };
+  }>();
   app.use('*', async (c, next) => {
-    c.set('db', {} as DatabaseClient)
-    if (user) c.set('user', user)
-    await next()
-  })
-  app.route('/', provenanceApp)
-  return app
+    c.set('db', {} as DatabaseClient);
+    if (user) c.set('user', user);
+    await next();
+  });
+  app.route('/', provenanceApp);
+  return app;
 }
 
 function json(body: unknown) {
@@ -88,7 +90,7 @@ function json(body: unknown) {
     method: 'POST',
     body: JSON.stringify(body),
     headers: { 'Content-Type': 'application/json' },
-  }
+  };
 }
 
 function patch(body: unknown) {
@@ -96,193 +98,199 @@ function patch(body: unknown) {
     method: 'PATCH',
     body: JSON.stringify(body),
     headers: { 'Content-Type': 'application/json' },
-  }
+  };
 }
 
 // biome-ignore lint/suspicious/noExplicitAny: test helper — response shape varies per endpoint
 async function parseBody(res: Response): Promise<any> {
-  return res.json()
+  return res.json();
 }
 
 // ---------------------------------------------------------------------------
 
 describe('GET / — list provenance', () => {
   it('returns 200 with a data array', async () => {
-    mq.getAllProvenance.mockResolvedValue([makeEntry()] as never)
-    const app = createApp()
-    const res = await app.request('/')
-    expect(res.status).toBe(200)
-    const body = await parseBody(res)
-    expect(body.success).toBe(true)
-    expect(Array.isArray(body.data)).toBe(true)
-    expect(body.data).toHaveLength(1)
-  })
+    mq.getAllProvenance.mockResolvedValue([makeEntry()] as never);
+    const app = createApp();
+    const res = await app.request('/');
+    expect(res.status).toBe(200);
+    const body = await parseBody(res);
+    expect(body.success).toBe(true);
+    expect(Array.isArray(body.data)).toBe(true);
+    expect(body.data).toHaveLength(1);
+  });
 
   it('passes query filters to getAllProvenance', async () => {
-    mq.getAllProvenance.mockResolvedValue([])
-    const app = createApp()
-    await app.request('/?authorType=ai_generated&reviewStatus=unreviewed')
+    mq.getAllProvenance.mockResolvedValue([]);
+    const app = createApp();
+    await app.request('/?authorType=ai_generated&reviewStatus=unreviewed');
     expect(mq.getAllProvenance).toHaveBeenCalledWith(
       expect.anything(),
       expect.objectContaining({ authorType: 'ai_generated', reviewStatus: 'unreviewed' }),
-    )
-  })
-})
+    );
+  });
+});
 
 describe('GET /stats', () => {
   it('returns aggregate stats', async () => {
     mq.getProvenanceStats.mockResolvedValue({
       byAuthorType: [{ authorType: 'ai_generated', count: 5, totalLines: 100 }],
       byReviewStatus: [{ reviewStatus: 'unreviewed', count: 5 }],
-    })
-    const app = createApp()
-    const res = await app.request('/stats')
-    expect(res.status).toBe(200)
-    const body = await parseBody(res)
-    expect(body.success).toBe(true)
-    expect(body.data.byAuthorType).toHaveLength(1)
-    expect(body.data.byReviewStatus).toHaveLength(1)
-  })
-})
+    });
+    const app = createApp();
+    const res = await app.request('/stats');
+    expect(res.status).toBe(200);
+    const body = await parseBody(res);
+    expect(body.success).toBe(true);
+    expect(body.data.byAuthorType).toHaveLength(1);
+    expect(body.data.byReviewStatus).toHaveLength(1);
+  });
+});
 
 describe('GET /file/:filePath', () => {
   it('returns entries for a specific file', async () => {
-    mq.getProvenanceByFile.mockResolvedValue([makeEntry()] as never)
-    const app = createApp()
-    const res = await app.request('/file/packages%2Fcore%2Fsrc%2Findex.ts')
-    expect(res.status).toBe(200)
-    const body = await parseBody(res)
-    expect(body.success).toBe(true)
-    expect(Array.isArray(body.data)).toBe(true)
-  })
-})
+    mq.getProvenanceByFile.mockResolvedValue([makeEntry()] as never);
+    const app = createApp();
+    const res = await app.request('/file/packages%2Fcore%2Fsrc%2Findex.ts');
+    expect(res.status).toBe(200);
+    const body = await parseBody(res);
+    expect(body.success).toBe(true);
+    expect(Array.isArray(body.data)).toBe(true);
+  });
+});
 
 describe('GET /:id', () => {
   it('returns 200 for an existing entry', async () => {
-    mq.getProvenanceById.mockResolvedValue(makeEntry() as never)
-    const app = createApp()
-    const res = await app.request('/prov-1')
-    expect(res.status).toBe(200)
-    const body = await parseBody(res)
-    expect(body.success).toBe(true)
-    expect(body.data.id).toBe('prov-1')
-  })
+    mq.getProvenanceById.mockResolvedValue(makeEntry() as never);
+    const app = createApp();
+    const res = await app.request('/prov-1');
+    expect(res.status).toBe(200);
+    const body = await parseBody(res);
+    expect(body.success).toBe(true);
+    expect(body.data.id).toBe('prov-1');
+  });
 
   it('returns 404 when entry does not exist', async () => {
-    mq.getProvenanceById.mockResolvedValue(null as never)
-    const app = createApp()
-    const res = await app.request('/no-such-id')
-    expect(res.status).toBe(404)
-    const body = await parseBody(res)
-    expect(body.success).toBe(false)
-  })
-})
+    mq.getProvenanceById.mockResolvedValue(null as never);
+    const app = createApp();
+    const res = await app.request('/no-such-id');
+    expect(res.status).toBe(404);
+    const body = await parseBody(res);
+    expect(body.success).toBe(false);
+  });
+});
 
 describe('POST / — create entry', () => {
   it('creates and returns a new entry with 201', async () => {
-    mq.createProvenance.mockResolvedValue(makeEntry() as never)
-    const app = createApp()
-    const res = await app.request('/', json({ filePath: 'src/foo.ts', authorType: 'ai_generated' }))
-    expect(res.status).toBe(201)
-    const body = await parseBody(res)
-    expect(body.success).toBe(true)
-    expect(body.data.filePath).toBe('packages/core/src/index.ts')
-  })
+    mq.createProvenance.mockResolvedValue(makeEntry() as never);
+    const app = createApp();
+    const res = await app.request(
+      '/',
+      json({ filePath: 'src/foo.ts', authorType: 'ai_generated' }),
+    );
+    expect(res.status).toBe(201);
+    const body = await parseBody(res);
+    expect(body.success).toBe(true);
+    expect(body.data.filePath).toBe('packages/core/src/index.ts');
+  });
 
   it('returns 400 when filePath is missing', async () => {
-    const app = createApp()
-    const res = await app.request('/', json({ authorType: 'ai_generated' }))
-    expect(res.status).toBe(400)
-  })
+    const app = createApp();
+    const res = await app.request('/', json({ authorType: 'ai_generated' }));
+    expect(res.status).toBe(400);
+  });
 
   it('returns 400 when authorType is not a valid enum value', async () => {
-    const app = createApp()
-    const res = await app.request('/', json({ filePath: 'src/x.ts', authorType: 'robot' }))
-    expect(res.status).toBe(400)
-  })
+    const app = createApp();
+    const res = await app.request('/', json({ filePath: 'src/x.ts', authorType: 'robot' }));
+    expect(res.status).toBe(400);
+  });
 
   it('returns 500 when createProvenance returns null', async () => {
-    mq.createProvenance.mockResolvedValue(null as never)
-    const app = createApp()
+    mq.createProvenance.mockResolvedValue(null as never);
+    const app = createApp();
     const res = await app.request(
       '/',
       json({ filePath: 'src/foo.ts', authorType: 'human_written' }),
-    )
-    expect(res.status).toBe(500)
-  })
-})
+    );
+    expect(res.status).toBe(500);
+  });
+});
 
 describe('PATCH /:id — update entry', () => {
   it('updates and returns the entry', async () => {
-    mq.updateProvenance.mockResolvedValue(makeEntry({ reviewStatus: 'human_reviewed' }) as never)
-    const app = createApp()
-    const res = await app.request('/prov-1', patch({ reviewStatus: 'human_reviewed' }))
-    expect(res.status).toBe(200)
-    const body = await parseBody(res)
-    expect(body.data.reviewStatus).toBe('human_reviewed')
-  })
+    mq.updateProvenance.mockResolvedValue(makeEntry({ reviewStatus: 'human_reviewed' }) as never);
+    const app = createApp();
+    const res = await app.request('/prov-1', patch({ reviewStatus: 'human_reviewed' }));
+    expect(res.status).toBe(200);
+    const body = await parseBody(res);
+    expect(body.data.reviewStatus).toBe('human_reviewed');
+  });
 
   it('returns 404 when entry does not exist', async () => {
-    mq.updateProvenance.mockResolvedValue(null as never)
-    const app = createApp()
-    const res = await app.request('/missing', patch({ reviewStatus: 'human_reviewed' }))
-    expect(res.status).toBe(404)
-  })
-})
+    mq.updateProvenance.mockResolvedValue(null as never);
+    const app = createApp();
+    const res = await app.request('/missing', patch({ reviewStatus: 'human_reviewed' }));
+    expect(res.status).toBe(404);
+  });
+});
 
 describe('DELETE /:id', () => {
   it('deletes an entry and returns success message', async () => {
-    mq.deleteProvenance.mockResolvedValue(undefined as never)
-    const app = createApp({ id: 'admin-1', role: 'admin' })
-    const res = await app.request('/prov-1', { method: 'DELETE' })
-    expect(res.status).toBe(200)
-    const body = await parseBody(res)
-    expect(body.success).toBe(true)
-    expect(typeof body.message).toBe('string')
-  })
-})
+    mq.deleteProvenance.mockResolvedValue(undefined as never);
+    const app = createApp({ id: 'admin-1', role: 'admin' });
+    const res = await app.request('/prov-1', { method: 'DELETE' });
+    expect(res.status).toBe(200);
+    const body = await parseBody(res);
+    expect(body.success).toBe(true);
+    expect(typeof body.message).toBe('string');
+  });
+});
 
 describe('POST /:id/review', () => {
   it('adds a review and returns 201', async () => {
-    mq.getProvenanceById.mockResolvedValue(makeEntry() as never)
-    mq.createReview.mockResolvedValue(makeReview() as never)
-    mq.updateReviewStatus.mockResolvedValue(undefined as never)
-    const app = createApp()
+    mq.getProvenanceById.mockResolvedValue(makeEntry() as never);
+    mq.createReview.mockResolvedValue(makeReview() as never);
+    mq.updateReviewStatus.mockResolvedValue(undefined as never);
+    const app = createApp();
     const res = await app.request(
       '/prov-1/review',
       json({ reviewType: 'human_review', status: 'approved' }),
-    )
-    expect(res.status).toBe(201)
-    const body = await parseBody(res)
-    expect(body.success).toBe(true)
-    expect(body.data.id).toBe('rev-1')
-  })
+    );
+    expect(res.status).toBe(201);
+    const body = await parseBody(res);
+    expect(body.success).toBe(true);
+    expect(body.data.id).toBe('rev-1');
+  });
 
   it('returns 404 when provenance entry does not exist', async () => {
-    mq.getProvenanceById.mockResolvedValue(null as never)
-    const app = createApp()
+    mq.getProvenanceById.mockResolvedValue(null as never);
+    const app = createApp();
     const res = await app.request(
       '/no-id/review',
       json({ reviewType: 'human_review', status: 'approved' }),
-    )
-    expect(res.status).toBe(404)
-  })
+    );
+    expect(res.status).toBe(404);
+  });
 
   it('returns 400 for invalid reviewType', async () => {
-    const app = createApp()
-    const res = await app.request('/prov-1/review', json({ reviewType: 'bad', status: 'approved' }))
-    expect(res.status).toBe(400)
-  })
-})
+    const app = createApp();
+    const res = await app.request(
+      '/prov-1/review',
+      json({ reviewType: 'bad', status: 'approved' }),
+    );
+    expect(res.status).toBe(400);
+  });
+});
 
 describe('GET /:id/reviews', () => {
   it('returns reviews for a provenance entry', async () => {
-    mq.getReviewsForProvenance.mockResolvedValue([makeReview()] as never)
-    const app = createApp()
-    const res = await app.request('/prov-1/reviews')
-    expect(res.status).toBe(200)
-    const body = await parseBody(res)
-    expect(Array.isArray(body.data)).toBe(true)
-    expect(body.data[0].provenanceId).toBe('prov-1')
-  })
-})
+    mq.getReviewsForProvenance.mockResolvedValue([makeReview()] as never);
+    const app = createApp();
+    const res = await app.request('/prov-1/reviews');
+    expect(res.status).toBe(200);
+    const body = await parseBody(res);
+    expect(Array.isArray(body.data)).toBe(true);
+    expect(body.data[0].provenanceId).toBe('prov-1');
+  });
+});

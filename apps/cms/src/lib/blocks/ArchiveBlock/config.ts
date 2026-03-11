@@ -1,14 +1,14 @@
-import type { Block } from '@revealui/core'
+import type { Block } from '@revealui/core';
 
 import {
   FixedToolbarFeature,
   HeadingFeature,
   InlineToolbarFeature,
   lexicalEditor,
-} from '@revealui/core/richtext'
+} from '@revealui/core/richtext';
 
 interface ArchiveBlockData {
-  populateBy?: 'collection' | 'selection'
+  populateBy?: 'collection' | 'selection';
 }
 
 export const ArchiveBlock: Block = {
@@ -25,7 +25,7 @@ export const ArchiveBlock: Block = {
             HeadingFeature({ enabledHeadingSizes: ['h1', 'h2', 'h3', 'h4'] }),
             FixedToolbarFeature(),
             InlineToolbarFeature(),
-          ]
+          ];
         },
       }),
       label: 'Intro Content',
@@ -99,4 +99,4 @@ export const ArchiveBlock: Block = {
     plural: 'Archives',
     singular: 'Archive',
   },
-}
+};

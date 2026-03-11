@@ -1,7 +1,7 @@
-import type { MountStatus } from '../../types'
+import type { MountStatus } from '../../types';
 
 interface DriveInfoProps {
-  mount: MountStatus
+  mount: MountStatus;
 }
 
 export default function DriveInfo({ mount }: DriveInfoProps) {
@@ -35,5 +35,5 @@ export default function DriveInfo({ mount }: DriveInfoProps) {
         )}
       </dl>
     </div>
-  )
+  );
 }

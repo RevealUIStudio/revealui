@@ -1,17 +1,17 @@
-'use client'
+'use client';
 
-import clsx from 'clsx'
-import type React from 'react'
-import { useCallback, useEffect, useId, useRef, useState } from 'react'
+import clsx from 'clsx';
+import type React from 'react';
+import { useCallback, useEffect, useId, useRef, useState } from 'react';
 
-type TooltipSide = 'top' | 'bottom' | 'left' | 'right'
+type TooltipSide = 'top' | 'bottom' | 'left' | 'right';
 
 const sideClasses: Record<TooltipSide, string> = {
   top: 'bottom-full left-1/2 -translate-x-1/2 mb-2',
   bottom: 'top-full left-1/2 -translate-x-1/2 mt-2',
   left: 'right-full top-1/2 -translate-y-1/2 mr-2',
   right: 'left-full top-1/2 -translate-y-1/2 ml-2',
-}
+};
 
 export function Tooltip({
   content,
@@ -19,29 +19,29 @@ export function Tooltip({
   className,
   children,
 }: {
-  content: React.ReactNode
-  side?: TooltipSide
-  className?: string
-  children: React.ReactElement
+  content: React.ReactNode;
+  side?: TooltipSide;
+  className?: string;
+  children: React.ReactElement;
 }) {
-  const [visible, setVisible] = useState(false)
-  const id = useId()
-  const timeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null)
+  const [visible, setVisible] = useState(false);
+  const id = useId();
+  const timeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   const show = useCallback(() => {
-    timeoutRef.current = setTimeout(() => setVisible(true), 200)
-  }, [])
+    timeoutRef.current = setTimeout(() => setVisible(true), 200);
+  }, []);
 
   const hide = useCallback(() => {
-    if (timeoutRef.current) clearTimeout(timeoutRef.current)
-    setVisible(false)
-  }, [])
+    if (timeoutRef.current) clearTimeout(timeoutRef.current);
+    setVisible(false);
+  }, []);
 
   useEffect(() => {
     return () => {
-      if (timeoutRef.current) clearTimeout(timeoutRef.current)
-    }
-  }, [])
+      if (timeoutRef.current) clearTimeout(timeoutRef.current);
+    };
+  }, []);
 
   return (
     <span
@@ -66,5 +66,5 @@ export function Tooltip({
         </span>
       )}
     </span>
-  )
+  );
 }

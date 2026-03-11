@@ -1,5 +1,5 @@
-import type { CollectionConfig } from '@revealui/core'
-import { anyone, isAdmin } from '@/lib/access'
+import type { CollectionConfig } from '@revealui/core';
+import { anyone, isAdmin } from '@/lib/access';
 
 const Events: CollectionConfig = {
   slug: 'events',
@@ -41,6 +41,6 @@ const Events: CollectionConfig = {
       required: false,
     },
   ],
-}
+};
 
-export default Events
+export default Events;

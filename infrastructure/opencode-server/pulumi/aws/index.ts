@@ -1,22 +1,22 @@
-import * as fs from 'node:fs'
-import * as path from 'node:path'
-import * as aws from '@pulumi/aws'
-import * as pulumi from '@pulumi/pulumi'
+import * as fs from 'node:fs';
+import * as path from 'node:path';
+import * as aws from '@pulumi/aws';
+import * as pulumi from '@pulumi/pulumi';
 
 // Configuration
-const config = new pulumi.Config()
-const awsRegion = config.get('awsRegion') || 'us-east-1'
-const instanceType = config.get('instanceType') || 't3.large'
-const keyName = config.require('sshKeyName')
-const domainName = config.get('domainName')
-const envFilePath = config.require('envFilePath')
+const config = new pulumi.Config();
+const awsRegion = config.get('awsRegion') || 'us-east-1';
+const instanceType = config.get('instanceType') || 't3.large';
+const keyName = config.require('sshKeyName');
+const domainName = config.get('domainName');
+const envFilePath = config.require('envFilePath');
 
 // Read environment file
-const _envContent = fs.readFileSync(envFilePath, 'utf-8')
+const _envContent = fs.readFileSync(envFilePath, 'utf-8');
 const dockerComposeContent = fs.readFileSync(
   path.join(__dirname, '../../docker-compose.yml'),
   'utf-8',
-)
+);
 
 // VPC
 const vpc = new aws.ec2.Vpc('opencode-vpc', {
@@ -25,14 +25,14 @@ const vpc = new aws.ec2.Vpc('opencode-vpc', {
   enableDnsSupport: true,
   // biome-ignore lint/style/useNamingConvention: Name is the AWS-required tag key for resource naming in the console
   tags: { Name: 'opencode-vpc' },
-})
+});
 
 // Internet Gateway
 const igw = new aws.ec2.InternetGateway('opencode-igw', {
   vpcId: vpc.id,
   // biome-ignore lint/style/useNamingConvention: Name is the AWS-required tag key for resource naming in the console
   tags: { Name: 'opencode-igw' },
-})
+});
 
 // Public Subnet
 const subnet = new aws.ec2.Subnet('opencode-subnet', {
@@ -42,7 +42,7 @@ const subnet = new aws.ec2.Subnet('opencode-subnet', {
   mapPublicIpOnLaunch: true,
   // biome-ignore lint/style/useNamingConvention: Name is the AWS-required tag key for resource naming in the console
   tags: { Name: 'opencode-subnet' },
-})
+});
 
 // Route Table
 const routeTable = new aws.ec2.RouteTable('opencode-rt', {
@@ -50,12 +50,12 @@ const routeTable = new aws.ec2.RouteTable('opencode-rt', {
   routes: [{ cidrBlock: '0.0.0.0/0', gatewayId: igw.id }],
   // biome-ignore lint/style/useNamingConvention: Name is the AWS-required tag key for resource naming in the console
   tags: { Name: 'opencode-rt' },
-})
+});
 
 const _routeTableAssoc = new aws.ec2.RouteTableAssociation('opencode-rta', {
   subnetId: subnet.id,
   routeTableId: routeTable.id,
-})
+});
 
 // Security Group
 const sg = new aws.ec2.SecurityGroup('opencode-sg', {
@@ -70,7 +70,7 @@ const sg = new aws.ec2.SecurityGroup('opencode-sg', {
   egress: [{ protocol: '-1', fromPort: 0, toPort: 0, cidrBlocks: ['0.0.0.0/0'] }],
   // biome-ignore lint/style/useNamingConvention: Name is the AWS-required tag key for resource naming in the console
   tags: { Name: 'opencode-sg' },
-})
+});
 
 // AMI lookup
 const ami = aws.ec2.getAmi({
@@ -80,7 +80,7 @@ const ami = aws.ec2.getAmi({
     { name: 'virtualization-type', values: ['hvm'] },
   ],
   owners: ['099720109477'], // Canonical
-})
+});
 
 // User data script
 const userData = pulumi.interpolate`#!/bin/bash
@@ -110,7 +110,7 @@ chmod 600 /opt/opencode-server/.env
 # Start services
 cd /opt/opencode-server
 docker-compose up -d
-`
+`;
 
 // EC2 Instance
 const instance = new aws.ec2.Instance('opencode-server', {
@@ -126,7 +126,7 @@ const instance = new aws.ec2.Instance('opencode-server', {
   },
   // biome-ignore lint/style/useNamingConvention: Name is the AWS-required tag key for resource naming in the console
   tags: { Name: 'opencode-server' },
-})
+});
 
 // Elastic IP
 const eip = new aws.ec2.Eip('opencode-eip', {
@@ -134,22 +134,22 @@ const eip = new aws.ec2.Eip('opencode-eip', {
   instance: instance.id,
   // biome-ignore lint/style/useNamingConvention: Name is the AWS-required tag key for resource naming in the console
   tags: { Name: 'opencode-eip' },
-})
+});
 
 // Route53 DNS (optional)
 if (domainName) {
-  const zone = aws.route53.getZone({ name: domainName })
+  const zone = aws.route53.getZone({ name: domainName });
   const _dnsRecord = new aws.route53.Record('opencode-dns', {
     zoneId: zone.then((z) => z.zoneId),
     name: domainName,
     type: 'A',
     ttl: 300,
     records: [eip.publicIp],
-  })
+  });
 }
 
 // Exports
-export const publicIp = eip.publicIp
-export const publicDns = instance.publicDns
-export const sshCommand = pulumi.interpolate`ssh -i ~/.ssh/${keyName}.pem ubuntu@${eip.publicIp}`
-export const instanceId = instance.id
+export const publicIp = eip.publicIp;
+export const publicDns = instance.publicDns;
+export const sshCommand = pulumi.interpolate`ssh -i ~/.ssh/${keyName}.pem ubuntu@${eip.publicIp}`;
+export const instanceId = instance.id;

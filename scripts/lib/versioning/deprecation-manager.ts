@@ -30,10 +30,10 @@
  * ```
  */
 
-import { mkdir } from 'node:fs/promises'
-import { join } from 'node:path'
-import { PGlite } from '@electric-sql/pglite'
-import { ErrorCode, ScriptError } from '../errors.js'
+import { mkdir } from 'node:fs/promises';
+import { join } from 'node:path';
+import { PGlite } from '@electric-sql/pglite';
+import { ErrorCode, ScriptError } from '../errors.js';
 
 // =============================================================================
 // Types
@@ -44,40 +44,40 @@ import { ErrorCode, ScriptError } from '../errors.js'
  */
 export interface Deprecation {
   /** Script name */
-  scriptName: string
+  scriptName: string;
 
   /** Feature/function being deprecated */
-  feature: string
+  feature: string;
 
   /** Version when deprecation was introduced */
-  version: string
+  version: string;
 
   /** Reason for deprecation */
-  reason: string
+  reason: string;
 
   /** Alternative to use */
-  alternative: string
+  alternative: string;
 
   /** Version when feature will be removed */
-  removalVersion: string
+  removalVersion: string;
 
   /** Severity level */
-  severity: 'info' | 'warning' | 'error'
+  severity: 'info' | 'warning' | 'error';
 
   /** Timestamp when added */
-  addedAt?: Date
+  addedAt?: Date;
 }
 
 // Internal DB row type
 interface DeprecationRow {
-  script_name: string
-  feature: string
-  version: string
-  reason: string
-  alternative: string
-  removal_version: string
-  severity: string
-  added_at: number
+  script_name: string;
+  feature: string;
+  version: string;
+  reason: string;
+  alternative: string;
+  removal_version: string;
+  severity: string;
+  added_at: number;
 }
 
 // =============================================================================
@@ -85,12 +85,12 @@ interface DeprecationRow {
 // =============================================================================
 
 export class DeprecationManager {
-  private static instance: DeprecationManager | null = null
-  private db: PGlite | null = null
-  private dbPath: string
+  private static instance: DeprecationManager | null = null;
+  private db: PGlite | null = null;
+  private dbPath: string;
 
   private constructor(dbPath: string) {
-    this.dbPath = dbPath
+    this.dbPath = dbPath;
   }
 
   /**
@@ -98,13 +98,13 @@ export class DeprecationManager {
    */
   static async getInstance(projectRoot?: string): Promise<DeprecationManager> {
     if (!DeprecationManager.instance) {
-      const root = projectRoot || process.cwd()
-      const dbPath = join(root, '.revealui', 'script-management.db')
-      DeprecationManager.instance = new DeprecationManager(dbPath)
-      await DeprecationManager.instance.initialize()
+      const root = projectRoot || process.cwd();
+      const dbPath = join(root, '.revealui', 'script-management.db');
+      DeprecationManager.instance = new DeprecationManager(dbPath);
+      await DeprecationManager.instance.initialize();
     }
 
-    return DeprecationManager.instance
+    return DeprecationManager.instance;
   }
 
   /**
@@ -113,16 +113,16 @@ export class DeprecationManager {
   async initialize(): Promise<void> {
     try {
       // Ensure directory exists
-      await mkdir(join(this.dbPath, '..'), { recursive: true })
+      await mkdir(join(this.dbPath, '..'), { recursive: true });
 
       // Initialize PGlite
-      this.db = new PGlite(this.dbPath)
+      this.db = new PGlite(this.dbPath);
 
       // Create schema
-      await this.createSchema()
+      await this.createSchema();
     } catch (error) {
-      console.error('Failed to initialize deprecation manager:', error)
-      throw error
+      console.error('Failed to initialize deprecation manager:', error);
+      throw error;
     }
   }
 
@@ -130,7 +130,7 @@ export class DeprecationManager {
    * Create database schema
    */
   private async createSchema(): Promise<void> {
-    if (!this.db) throw new ScriptError('Database not initialized', ErrorCode.INVALID_STATE)
+    if (!this.db) throw new ScriptError('Database not initialized', ErrorCode.INVALID_STATE);
 
     await this.db.exec(`
       CREATE TABLE IF NOT EXISTS deprecations (
@@ -149,14 +149,14 @@ export class DeprecationManager {
       CREATE INDEX IF NOT EXISTS idx_deprecations_script_name ON deprecations(script_name);
       CREATE INDEX IF NOT EXISTS idx_deprecations_version ON deprecations(version);
       CREATE INDEX IF NOT EXISTS idx_deprecations_severity ON deprecations(severity);
-    `)
+    `);
   }
 
   /**
    * Add a deprecation notice
    */
   async addDeprecation(deprecation: Deprecation): Promise<void> {
-    if (!this.db) throw new ScriptError('Database not initialized', ErrorCode.INVALID_STATE)
+    if (!this.db) throw new ScriptError('Database not initialized', ErrorCode.INVALID_STATE);
 
     await this.db.query(
       `
@@ -181,87 +181,87 @@ export class DeprecationManager {
         deprecation.severity,
         Date.now(),
       ],
-    )
+    );
   }
 
   /**
    * Get deprecations for a specific script
    */
   async getDeprecations(scriptName: string): Promise<Deprecation[]> {
-    if (!this.db) throw new ScriptError('Database not initialized', ErrorCode.INVALID_STATE)
+    if (!this.db) throw new ScriptError('Database not initialized', ErrorCode.INVALID_STATE);
 
     const result = await this.db.query(
       'SELECT * FROM deprecations WHERE script_name = $1 ORDER BY added_at DESC',
       [scriptName],
-    )
+    );
 
-    return result.rows.map((row) => this.mapRowToDeprecation(row as unknown as DeprecationRow))
+    return result.rows.map((row) => this.mapRowToDeprecation(row as unknown as DeprecationRow));
   }
 
   /**
    * Get deprecations by version
    */
   async getDeprecationsByVersion(scriptName: string, version: string): Promise<Deprecation[]> {
-    if (!this.db) throw new ScriptError('Database not initialized', ErrorCode.INVALID_STATE)
+    if (!this.db) throw new ScriptError('Database not initialized', ErrorCode.INVALID_STATE);
 
     const result = await this.db.query(
       'SELECT * FROM deprecations WHERE script_name = $1 AND version = $2',
       [scriptName, version],
-    )
+    );
 
-    return result.rows.map((row) => this.mapRowToDeprecation(row as unknown as DeprecationRow))
+    return result.rows.map((row) => this.mapRowToDeprecation(row as unknown as DeprecationRow));
   }
 
   /**
    * Get all deprecations across all scripts
    */
   async getAllDeprecations(): Promise<Deprecation[]> {
-    if (!this.db) throw new ScriptError('Database not initialized', ErrorCode.INVALID_STATE)
+    if (!this.db) throw new ScriptError('Database not initialized', ErrorCode.INVALID_STATE);
 
     const result = await this.db.query(
       'SELECT * FROM deprecations ORDER BY script_name, added_at DESC',
-    )
+    );
 
-    return result.rows.map((row) => this.mapRowToDeprecation(row as unknown as DeprecationRow))
+    return result.rows.map((row) => this.mapRowToDeprecation(row as unknown as DeprecationRow));
   }
 
   /**
    * Check for deprecation warnings for a script
    */
   async checkDeprecations(scriptName: string): Promise<{
-    hasDeprecations: boolean
-    warnings: Deprecation[]
-    errors: Deprecation[]
-    info: Deprecation[]
+    hasDeprecations: boolean;
+    warnings: Deprecation[];
+    errors: Deprecation[];
+    info: Deprecation[];
   }> {
-    if (!this.db) throw new ScriptError('Database not initialized', ErrorCode.INVALID_STATE)
+    if (!this.db) throw new ScriptError('Database not initialized', ErrorCode.INVALID_STATE);
 
-    const deprecations = await this.getDeprecations(scriptName)
+    const deprecations = await this.getDeprecations(scriptName);
 
-    const warnings = deprecations.filter((d) => d.severity === 'warning')
-    const errors = deprecations.filter((d) => d.severity === 'error')
-    const info = deprecations.filter((d) => d.severity === 'info')
+    const warnings = deprecations.filter((d) => d.severity === 'warning');
+    const errors = deprecations.filter((d) => d.severity === 'error');
+    const info = deprecations.filter((d) => d.severity === 'info');
 
     return {
       hasDeprecations: deprecations.length > 0,
       warnings,
       errors,
       info,
-    }
+    };
   }
 
   /**
    * Remove a deprecation notice
    */
   async removeDeprecation(scriptName: string, feature: string): Promise<boolean> {
-    if (!this.db) throw new ScriptError('Database not initialized', ErrorCode.INVALID_STATE)
+    if (!this.db) throw new ScriptError('Database not initialized', ErrorCode.INVALID_STATE);
 
     const result = await this.db.query(
       'DELETE FROM deprecations WHERE script_name = $1 AND feature = $2',
       [scriptName, feature],
-    )
+    );
 
-    return result.affectedRows !== undefined && result.affectedRows > 0
+    return result.affectedRows !== undefined && result.affectedRows > 0;
   }
 
   /**
@@ -269,8 +269,8 @@ export class DeprecationManager {
    */
   async close(): Promise<void> {
     if (this.db) {
-      await this.db.close()
-      this.db = null
+      await this.db.close();
+      this.db = null;
     }
   }
 
@@ -291,7 +291,7 @@ export class DeprecationManager {
       removalVersion: row.removal_version,
       severity: row.severity as 'info' | 'warning' | 'error',
       addedAt: new Date(Number(row.added_at)),
-    }
+    };
   }
 }
 
@@ -303,5 +303,5 @@ export class DeprecationManager {
  * Get deprecation manager instance
  */
 export async function getDeprecationManager(projectRoot?: string): Promise<DeprecationManager> {
-  return DeprecationManager.getInstance(projectRoot)
+  return DeprecationManager.getInstance(projectRoot);
 }

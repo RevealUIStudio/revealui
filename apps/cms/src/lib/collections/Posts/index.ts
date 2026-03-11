@@ -1,4 +1,4 @@
-import type { RevealCollectionConfig } from '@revealui/core'
+import type { RevealCollectionConfig } from '@revealui/core';
 import {
   BlocksFeature,
   FixedToolbarFeature,
@@ -6,18 +6,18 @@ import {
   HorizontalRuleFeature,
   InlineToolbarFeature,
   lexicalEditor,
-} from '@revealui/core/richtext'
-import type { Post } from '@revealui/core/types/cms'
-import { authenticated } from '@/lib/access'
-import { authenticatedOrPublished } from '@/lib/access/roles/authenticatedOrPublished'
-import { Banner } from '@/lib/blocks/Banner/config'
-import { Code } from '@/lib/blocks/Code/config'
-import { MediaBlock } from '@/lib/blocks/MediaBlock/config'
-import { slugField } from '@/lib/fields/slug'
-import { generatePreviewPath } from '@/lib/utilities/generatePreviewPath'
-import { indexPost } from './hooks/indexPost'
-import { populateAuthors } from './hooks/populateAuthors'
-import { revalidatePost } from './hooks/revalidatePost'
+} from '@revealui/core/richtext';
+import type { Post } from '@revealui/core/types/cms';
+import { authenticated } from '@/lib/access';
+import { authenticatedOrPublished } from '@/lib/access/roles/authenticatedOrPublished';
+import { Banner } from '@/lib/blocks/Banner/config';
+import { Code } from '@/lib/blocks/Code/config';
+import { MediaBlock } from '@/lib/blocks/MediaBlock/config';
+import { slugField } from '@/lib/fields/slug';
+import { generatePreviewPath } from '@/lib/utilities/generatePreviewPath';
+import { indexPost } from './hooks/indexPost';
+import { populateAuthors } from './hooks/populateAuthors';
+import { revalidatePost } from './hooks/revalidatePost';
 
 export const Posts: RevealCollectionConfig<Post> = {
   slug: 'posts',
@@ -33,8 +33,8 @@ export const Posts: RevealCollectionConfig<Post> = {
       url: ({ data }: { data: Record<string, unknown> }) => {
         const path = generatePreviewPath({
           path: `/posts/${typeof data?.slug === 'string' ? data.slug : ''}`,
-        })
-        return `${process.env.NEXT_PUBLIC_SERVER_URL}${path}`
+        });
+        return `${process.env.NEXT_PUBLIC_SERVER_URL}${path}`;
       },
     },
     preview: (doc: Record<string, unknown>) =>
@@ -138,9 +138,9 @@ export const Posts: RevealCollectionConfig<Post> = {
           // biome-ignore lint/style/useNamingConvention: _status is a RevealUI CMS internal field name required by the framework
           ({ siblingData, value }: { siblingData?: { _status?: string }; value: unknown }) => {
             if (siblingData?._status === 'published' && !value) {
-              return new Date()
+              return new Date();
             }
-            return value
+            return value;
           },
         ],
       },
@@ -189,4 +189,4 @@ export const Posts: RevealCollectionConfig<Post> = {
     },
     maxPerDoc: 50,
   },
-}
+};

@@ -12,7 +12,7 @@ export {
   sendAlert,
   sendAlerts,
   setAlertChannels,
-} from './alerts.js'
+} from './alerts.js';
 // Export cleanup manager
 export {
   cleanupManager,
@@ -22,9 +22,9 @@ export {
   isShutdownInProgress,
   registerCleanupHandler,
   unregisterCleanupHandler,
-} from './cleanup-manager.js'
+} from './cleanup-manager.js';
 // Export health monitor
-export { getHealthMetrics, getHealthStatus } from './health-monitor.js'
+export { getHealthMetrics, getHealthStatus } from './health-monitor.js';
 // Export process registry
 export {
   getAllProcesses,
@@ -37,10 +37,10 @@ export {
   processRegistry,
   registerProcess,
   updateProcessStatus,
-} from './process-registry.js'
+} from './process-registry.js';
 // Export types
-export type * from './types.js'
-export { DEFAULT_MONITORING_CONFIG } from './types.js'
+export type * from './types.js';
+export { DEFAULT_MONITORING_CONFIG } from './types.js';
 // Export zombie detector
 export {
   getZombieCount,
@@ -50,4 +50,4 @@ export {
   startZombieDetection,
   stopZombieDetection,
   zombieDetector,
-} from './zombie-detector.js'
+} from './zombie-detector.js';

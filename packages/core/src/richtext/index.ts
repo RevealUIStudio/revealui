@@ -11,7 +11,7 @@ export type {
   LexicalNode,
   SerializedEditorState,
   SerializedLexicalNode,
-} from 'lexical'
+} from 'lexical';
 // Re-export from vanilla Lexical packages
 export {
   $createParagraphNode,
@@ -27,30 +27,30 @@ export {
   COMMAND_PRIORITY_NORMAL,
   createEditor,
   FORMAT_TEXT_COMMAND,
-} from 'lexical'
+} from 'lexical';
 export type {
   RichTextContent,
   RscEntryLexicalCell,
   RscEntryLexicalField,
-} from './exports/server/rsc.js'
+} from './exports/server/rsc.js';
 
-export { serializeLexicalState } from './exports/server/rsc.js'
+export { serializeLexicalState } from './exports/server/rsc.js';
 // Feature type definitions
 export interface RichTextFeature {
-  name: string
-  key: string
-  type: 'mark' | 'block' | 'inline' | 'toolbar' | 'utility'
-  tag?: string
-  position?: string
-  options?: Record<string, unknown>
+  name: string;
+  key: string;
+  type: 'mark' | 'block' | 'inline' | 'toolbar' | 'utility';
+  tag?: string;
+  position?: string;
+  options?: Record<string, unknown>;
 }
 
 export interface RichTextEditor {
-  editorType: 'lexical'
-  features: RichTextFeature[]
-  outputFormat?: 'html' | 'json'
-  sanitize?: boolean
-  validate?: boolean
+  editorType: 'lexical';
+  features: RichTextFeature[];
+  outputFormat?: 'html' | 'json';
+  sanitize?: boolean;
+  validate?: boolean;
 }
 
 // Feature factories
@@ -59,49 +59,49 @@ export const BoldFeature = (): RichTextFeature => ({
   key: 'bold',
   type: 'mark',
   tag: 'strong',
-})
+});
 
 export const ItalicFeature = (): RichTextFeature => ({
   name: 'italic',
   key: 'italic',
   type: 'mark',
   tag: 'em',
-})
+});
 
 export const UnderlineFeature = (): RichTextFeature => ({
   name: 'underline',
   key: 'underline',
   type: 'mark',
   tag: 'u',
-})
+});
 
 export const StrikethroughFeature = (): RichTextFeature => ({
   name: 'strikethrough',
   key: 'strikethrough',
   type: 'mark',
   tag: 's',
-})
+});
 
 export const CodeFeature = (): RichTextFeature => ({
   name: 'code',
   key: 'code',
   type: 'mark',
   tag: 'code',
-})
+});
 
 export const SubscriptFeature = (): RichTextFeature => ({
   name: 'subscript',
   key: 'subscript',
   type: 'mark',
   tag: 'sub',
-})
+});
 
 export const SuperscriptFeature = (): RichTextFeature => ({
   name: 'superscript',
   key: 'superscript',
   type: 'mark',
   tag: 'sup',
-})
+});
 
 // Toolbar features
 export const FixedToolbarFeature = (): RichTextFeature => ({
@@ -109,21 +109,21 @@ export const FixedToolbarFeature = (): RichTextFeature => ({
   key: 'fixed-toolbar',
   type: 'toolbar',
   position: 'fixed',
-})
+});
 
 export const InlineToolbarFeature = (): RichTextFeature => ({
   name: 'inline-toolbar',
   key: 'inline-toolbar',
   type: 'toolbar',
   position: 'inline',
-})
+});
 
 export const FloatingToolbarFeature = (): RichTextFeature => ({
   name: 'floating-toolbar',
   key: 'floating-toolbar',
   type: 'toolbar',
   position: 'floating',
-})
+});
 
 // Structural features
 export const HeadingFeature = (options?: { enabledHeadingSizes?: string[] }): RichTextFeature => ({
@@ -133,18 +133,18 @@ export const HeadingFeature = (options?: { enabledHeadingSizes?: string[] }): Ri
   options: {
     enabledHeadingSizes: options?.enabledHeadingSizes || ['h1', 'h2', 'h3', 'h4', 'h5', 'h6'],
   },
-})
+});
 
 export const ParagraphFeature = (): RichTextFeature => ({
   name: 'paragraph',
   key: 'paragraph',
   type: 'block',
   tag: 'p',
-})
+});
 
 export const ListFeature = (options?: {
-  ordered?: boolean
-  unordered?: boolean
+  ordered?: boolean;
+  unordered?: boolean;
 }): RichTextFeature => ({
   name: 'list',
   key: 'list',
@@ -153,29 +153,29 @@ export const ListFeature = (options?: {
     ordered: options?.ordered ?? true,
     unordered: options?.unordered ?? true,
   },
-})
+});
 
 export const QuoteFeature = (): RichTextFeature => ({
   name: 'quote',
   key: 'quote',
   type: 'block',
   tag: 'blockquote',
-})
+});
 
-export const BlockquoteFeature = QuoteFeature
+export const BlockquoteFeature = QuoteFeature;
 
 export const CodeBlockFeature = (): RichTextFeature => ({
   name: 'code-block',
   key: 'code-block',
   type: 'block',
   tag: 'pre',
-})
+});
 
 // Link feature
 export const LinkFeature = (options?: {
-  enabledCollections?: string[]
-  fields?: unknown[]
-  allowExternalLinks?: boolean
+  enabledCollections?: string[];
+  fields?: unknown[];
+  allowExternalLinks?: boolean;
 }): RichTextFeature => ({
   name: 'link',
   key: 'link',
@@ -185,11 +185,11 @@ export const LinkFeature = (options?: {
     fields: options?.fields || [],
     allowExternalLinks: options?.allowExternalLinks ?? true,
   },
-})
+});
 
 // Upload feature
 export const UploadFeature = (options?: {
-  collections?: Record<string, boolean>
+  collections?: Record<string, boolean>;
 }): RichTextFeature => ({
   name: 'upload',
   key: 'upload',
@@ -197,25 +197,25 @@ export const UploadFeature = (options?: {
   options: {
     collections: options?.collections || {},
   },
-})
+});
 
 // Utility features
 export const TreeViewFeature = (): RichTextFeature => ({
   name: 'tree-view',
   key: 'tree-view',
   type: 'utility',
-})
+});
 
 export const HistoryFeature = (): RichTextFeature => ({
   name: 'history',
   key: 'history',
   type: 'utility',
-})
+});
 
 // Relationship feature
 export const RelationshipFeature = (options?: {
-  enabledCollections?: string[]
-  allowMultiple?: boolean
+  enabledCollections?: string[];
+  allowMultiple?: boolean;
 }): RichTextFeature => ({
   name: 'relationship',
   key: 'relationship',
@@ -224,7 +224,7 @@ export const RelationshipFeature = (options?: {
     enabledCollections: options?.enabledCollections || [],
     allowMultiple: options?.allowMultiple ?? true,
   },
-})
+});
 
 // Blocks feature
 export const BlocksFeature = (options?: { blocks?: unknown[] }): RichTextFeature => ({
@@ -234,7 +234,7 @@ export const BlocksFeature = (options?: { blocks?: unknown[] }): RichTextFeature
   options: {
     blocks: options?.blocks || [],
   },
-})
+});
 
 // Horizontal rule
 export const HorizontalRuleFeature = (): RichTextFeature => ({
@@ -242,47 +242,47 @@ export const HorizontalRuleFeature = (): RichTextFeature => ({
   key: 'horizontal-rule',
   type: 'block',
   tag: 'hr',
-})
+});
 
 // Checklist feature
 export const ChecklistFeature = (): RichTextFeature => ({
   name: 'checklist',
   key: 'checklist',
   type: 'block',
-})
+});
 
 export const OrderedListFeature = (): RichTextFeature => ({
   name: 'ordered-list',
   key: 'ordered-list',
   type: 'block',
   tag: 'ol',
-})
+});
 
 export const UnorderedListFeature = (): RichTextFeature => ({
   name: 'unordered-list',
   key: 'unordered-list',
   type: 'block',
   tag: 'ul',
-})
+});
 
 export const IndentFeature = (): RichTextFeature => ({
   name: 'indent',
   key: 'indent',
   type: 'utility',
-})
+});
 
 export const AlignFeature = (): RichTextFeature => ({
   name: 'align',
   key: 'align',
   type: 'utility',
-})
+});
 
 export const InlineCodeFeature = (): RichTextFeature => ({
   name: 'inline-code',
   key: 'inline-code',
   type: 'mark',
   tag: 'code',
-})
+});
 
 // Default features
 const defaultFeatures: RichTextFeature[] = [
@@ -294,7 +294,7 @@ const defaultFeatures: RichTextFeature[] = [
   ListFeature(),
   LinkFeature(),
   HistoryFeature(),
-]
+];
 
 const rootFeatures: RichTextFeature[] = [
   ParagraphFeature(),
@@ -303,7 +303,7 @@ const rootFeatures: RichTextFeature[] = [
   QuoteFeature(),
   CodeBlockFeature(),
   UploadFeature(),
-]
+];
 
 /**
  * Creates a Lexical editor configuration
@@ -311,19 +311,19 @@ const rootFeatures: RichTextFeature[] = [
 export const lexicalEditor = (config?: {
   features?:
     | ((args: {
-        defaultFeatures: RichTextFeature[]
-        rootFeatures: RichTextFeature[]
+        defaultFeatures: RichTextFeature[];
+        rootFeatures: RichTextFeature[];
       }) => RichTextFeature[])
-    | RichTextFeature[]
+    | RichTextFeature[];
 }): RichTextEditor => {
-  let features: RichTextFeature[]
+  let features: RichTextFeature[];
 
   if (typeof config?.features === 'function') {
-    features = config.features({ defaultFeatures, rootFeatures })
+    features = config.features({ defaultFeatures, rootFeatures });
   } else if (Array.isArray(config?.features)) {
-    features = config.features
+    features = config.features;
   } else {
-    features = defaultFeatures
+    features = defaultFeatures;
   }
 
   return {
@@ -332,86 +332,86 @@ export const lexicalEditor = (config?: {
     outputFormat: 'html',
     sanitize: true,
     validate: true,
-  }
-}
+  };
+};
 
 // Serialization types for compatibility
 export interface SerializedBlockNode<T = Record<string, unknown>> {
-  type: string
-  blockType?: string
-  version: number
-  fields?: T
+  type: string;
+  blockType?: string;
+  version: number;
+  fields?: T;
 }
 
 // Default serialized node types
 export interface SerializedTextNode {
-  type: 'text'
-  text: string
-  format: number
-  version: number
+  type: 'text';
+  text: string;
+  format: number;
+  version: number;
 }
 
 export interface SerializedParagraphNode {
-  type: 'paragraph'
-  children: SerializedTextNode[]
-  version: number
+  type: 'paragraph';
+  children: SerializedTextNode[];
+  version: number;
 }
 
 export interface SerializedHeadingNode {
-  type: 'heading'
-  tag: 'h1' | 'h2' | 'h3' | 'h4' | 'h5' | 'h6'
-  children: SerializedTextNode[]
-  version: number
+  type: 'heading';
+  tag: 'h1' | 'h2' | 'h3' | 'h4' | 'h5' | 'h6';
+  children: SerializedTextNode[];
+  version: number;
 }
 
 export interface SerializedListNode {
-  type: 'list'
-  listType: 'bullet' | 'number' | 'check'
-  children: SerializedListItemNode[]
-  version: number
+  type: 'list';
+  listType: 'bullet' | 'number' | 'check';
+  children: SerializedListItemNode[];
+  version: number;
 }
 
 export interface SerializedListItemNode {
-  type: 'listitem'
-  children: SerializedTextNode[]
-  version: number
+  type: 'listitem';
+  children: SerializedTextNode[];
+  version: number;
 }
 
 export interface SerializedQuoteNode {
-  type: 'quote'
-  children: SerializedTextNode[]
-  version: number
+  type: 'quote';
+  children: SerializedTextNode[];
+  version: number;
 }
 
 export interface SerializedCodeNode {
-  type: 'code'
-  children: SerializedTextNode[]
-  version: number
+  type: 'code';
+  children: SerializedTextNode[];
+  version: number;
 }
 
 export interface SerializedLinkNode {
-  type: 'link'
-  url: string
-  children: SerializedTextNode[]
-  version: number
+  type: 'link';
+  url: string;
+  children: SerializedTextNode[];
+  version: number;
   fields?: {
-    url?: string
-    newTab?: boolean
-    linkType?: 'internal' | 'external'
-    doc?: { value: string; relationTo: string }
-  }
+    url?: string;
+    newTab?: boolean;
+    linkType?: 'internal' | 'external';
+    doc?: { value: string; relationTo: string };
+  };
 }
 
 export interface SerializedLinebreakNode {
-  type: 'linebreak'
-  version: number
+  type: 'linebreak';
+  version: number;
 }
 
 export interface SerializedUploadNode {
-  type: 'upload'
-  relationTo: string
-  value: unknown
-  version: number
+  type: 'upload';
+  relationTo: string;
+  value: unknown;
+  version: number;
 }
 
 export type DefaultNodeTypes =
@@ -424,21 +424,21 @@ export type DefaultNodeTypes =
   | SerializedCodeNode
   | SerializedLinkNode
   | SerializedLinebreakNode
-  | SerializedUploadNode
+  | SerializedUploadNode;
 
 // Server feature creation utilities
 export interface ServerFeatureConfig {
   feature: {
     // biome-ignore lint/style/useNamingConvention: Aligns with upstream client feature naming.
-    ClientFeature?: string | React.ComponentType<unknown>
+    ClientFeature?: string | React.ComponentType<unknown>;
     nodes?: Array<{
-      node: unknown
-    }>
-    generateSchemaMap?: () => Map<string, unknown>
-  }
-  key: string
+      node: unknown;
+    }>;
+    generateSchemaMap?: () => Map<string, unknown>;
+  };
+  key: string;
 }
 
 export const createServerFeature = (config: ServerFeatureConfig) => {
-  return config
-}
+  return config;
+};

@@ -19,45 +19,45 @@
  * ```
  */
 
-import { mkdir, readFile, writeFile } from 'node:fs/promises'
-import { dirname, join } from 'node:path'
-import { createLogger, fileExists, getProjectRoot } from '../../index.js'
-import { scanDirectoryRecursive } from '../shared/file-scanner.js'
-import { matchHTTPMethods } from '../shared/pattern-matcher.js'
+import { mkdir, readFile, writeFile } from 'node:fs/promises';
+import { dirname, join } from 'node:path';
+import { createLogger, fileExists, getProjectRoot } from '../../index.js';
+import { scanDirectoryRecursive } from '../shared/file-scanner.js';
+import { matchHTTPMethods } from '../shared/pattern-matcher.js';
 
-const logger = createLogger({ prefix: 'APIDocs' })
+const logger = createLogger({ prefix: 'APIDocs' });
 
 // =============================================================================
 // Types
 // =============================================================================
 
 export interface APIEndpoint {
-  path: string
-  method: string
-  description: string
-  parameters?: unknown[]
-  responses?: unknown[]
+  path: string;
+  method: string;
+  description: string;
+  parameters?: unknown[];
+  responses?: unknown[];
 }
 
 interface OpenApiOperation {
-  summary: string
+  summary: string;
   responses: {
     '200': {
-      description: string
-    }
-  }
+      description: string;
+    };
+  };
 }
 
-type OpenApiPaths = Record<string, Record<string, OpenApiOperation>>
+type OpenApiPaths = Record<string, Record<string, OpenApiOperation>>;
 
 export interface OpenApiSpec {
-  openapi: string
+  openapi: string;
   info: {
-    title: string
-    version: string
-    description: string
-  }
-  paths: OpenApiPaths
+    title: string;
+    version: string;
+    description: string;
+  };
+  paths: OpenApiPaths;
 }
 
 // =============================================================================
@@ -78,32 +78,32 @@ export interface OpenApiSpec {
 export async function generateAPIDocs(
   options: { projectRoot?: string; apiDir?: string; outputPath?: string } = {},
 ): Promise<OpenApiSpec | null> {
-  logger.header('Generating API Documentation')
+  logger.header('Generating API Documentation');
 
-  const projectRoot = options.projectRoot || (await getProjectRoot(import.meta.url))
-  const apiDir = options.apiDir || join(projectRoot, 'apps', 'cms', 'src', 'app', 'api')
+  const projectRoot = options.projectRoot || (await getProjectRoot(import.meta.url));
+  const apiDir = options.apiDir || join(projectRoot, 'apps', 'cms', 'src', 'app', 'api');
   const outputPath =
-    options.outputPath || join(projectRoot, 'docs', 'api', 'generated-openapi.json')
+    options.outputPath || join(projectRoot, 'docs', 'api', 'generated-openapi.json');
 
   try {
     if (!(await fileExists(apiDir))) {
-      logger.warn('API directory not found, skipping API docs generation')
-      return null
+      logger.warn('API directory not found, skipping API docs generation');
+      return null;
     }
 
-    const endpoints = await extractAPIEndpoints(apiDir)
-    const openAPISpec = generateOpenAPISpec(endpoints)
+    const endpoints = await extractAPIEndpoints(apiDir);
+    const openAPISpec = generateOpenAPISpec(endpoints);
 
-    await mkdir(dirname(outputPath), { recursive: true })
-    await writeFile(outputPath, JSON.stringify(openAPISpec, null, 2))
+    await mkdir(dirname(outputPath), { recursive: true });
+    await writeFile(outputPath, JSON.stringify(openAPISpec, null, 2));
 
-    logger.success(`Generated OpenAPI spec with ${endpoints.length} endpoints`)
-    logger.info(`Output: ${outputPath}`)
+    logger.success(`Generated OpenAPI spec with ${endpoints.length} endpoints`);
+    logger.info(`Output: ${outputPath}`);
 
-    return openAPISpec
+    return openAPISpec;
   } catch (error) {
-    logger.error(`API documentation generation failed: ${error}`)
-    return null
+    logger.error(`API documentation generation failed: ${error}`);
+    return null;
   }
 }
 
@@ -118,38 +118,38 @@ export async function generateAPIDocs(
  * @returns Array of endpoints
  */
 export async function extractAPIEndpoints(apiDir: string): Promise<APIEndpoint[]> {
-  const endpoints: APIEndpoint[] = []
+  const endpoints: APIEndpoint[] = [];
 
   const files = await scanDirectoryRecursive({
     directory: apiDir,
     extensions: ['.ts', '.js'],
     loadContent: false,
-  })
+  });
 
   // Filter for route files only
-  const routeFiles = files.filter((f) => f.name === 'route.ts' || f.name === 'route.js')
+  const routeFiles = files.filter((f) => f.name === 'route.ts' || f.name === 'route.js');
 
   for (const routeFile of routeFiles) {
     // Extract endpoint path from directory structure
     const relativePath = routeFile.relativePath
       .replace(/\/route\.(ts|js)$/, '')
-      .replace(/\[([^\]]+)\]/g, '{$1}') // Convert [param] to {param}
+      .replace(/\[([^\]]+)\]/g, '{$1}'); // Convert [param] to {param}
 
-    const endpointPath = relativePath ? `/${relativePath}` : '/'
+    const endpointPath = relativePath ? `/${relativePath}` : '/';
 
     // Extract HTTP methods from file
-    const methods = await extractRouteMethods(routeFile.path)
+    const methods = await extractRouteMethods(routeFile.path);
 
     for (const method of methods) {
       endpoints.push({
         path: endpointPath,
         method,
         description: `API endpoint: ${method} ${endpointPath}`,
-      })
+      });
     }
   }
 
-  return endpoints
+  return endpoints;
 }
 
 /**
@@ -160,10 +160,10 @@ export async function extractAPIEndpoints(apiDir: string): Promise<APIEndpoint[]
  */
 export async function extractRouteMethods(routeFile: string): Promise<string[]> {
   try {
-    const content = await readFile(routeFile, 'utf-8')
-    return matchHTTPMethods(content)
+    const content = await readFile(routeFile, 'utf-8');
+    return matchHTTPMethods(content);
   } catch {
-    return []
+    return [];
   }
 }
 
@@ -178,11 +178,11 @@ export async function extractRouteMethods(routeFile: string): Promise<string[]> 
  * @returns OpenAPI specification
  */
 export function generateOpenAPISpec(endpoints: APIEndpoint[]): OpenApiSpec {
-  const paths: OpenApiPaths = {}
+  const paths: OpenApiPaths = {};
 
   for (const endpoint of endpoints) {
     if (!paths[endpoint.path]) {
-      paths[endpoint.path] = {}
+      paths[endpoint.path] = {};
     }
     paths[endpoint.path][endpoint.method.toLowerCase()] = {
       summary: endpoint.description,
@@ -191,7 +191,7 @@ export function generateOpenAPISpec(endpoints: APIEndpoint[]): OpenApiSpec {
           description: 'Success',
         },
       },
-    }
+    };
   }
 
   return {
@@ -202,5 +202,5 @@ export function generateOpenAPISpec(endpoints: APIEndpoint[]): OpenApiSpec {
       description: 'Generated API documentation for RevealUI CMS',
     },
     paths,
-  }
+  };
 }

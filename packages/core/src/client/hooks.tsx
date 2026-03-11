@@ -4,10 +4,10 @@
  * Client-side React hooks and HOCs for RevealUI CMS
  */
 
-'use client'
+'use client';
 
-import type React from 'react'
-import type { RevealUIContext } from '../types/index.js'
+import type React from 'react';
+import type { RevealUIContext } from '../types/index.js';
 
 /**
  * React hook to access RevealUI context
@@ -18,7 +18,7 @@ export function useRevealUI(): RevealUIContext {
   return {
     permissions: ['read'],
     theme: 'default',
-  }
+  };
 }
 
 /**
@@ -31,7 +31,7 @@ export function withRevealUIAccess<P extends object>(
 ): React.ComponentType<P> {
   return function RevealUIAccessWrapper(props: P) {
     // This would check permissions and conditionally render
-    void requiredPermissions
-    return <WrappedComponent {...props} />
-  }
+    void requiredPermissions;
+    return <WrappedComponent {...props} />;
+  };
 }

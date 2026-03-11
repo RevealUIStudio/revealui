@@ -8,7 +8,7 @@ export type {
   CircuitBreakerConfig,
   CircuitBreakerStats,
   CircuitState,
-} from './circuit-breaker'
+} from './circuit-breaker';
 // Circuit breakers
 export {
   AdaptiveCircuitBreaker,
@@ -23,14 +23,14 @@ export {
   fetchWithCircuitBreaker,
   ResilientOperation,
   withCircuitBreaker,
-} from './circuit-breaker'
+} from './circuit-breaker';
 export type {
   ErrorBoundaryProps,
   ErrorBoundaryState,
   ErrorBoundaryWithRetryProps,
   ErrorInfo,
   ErrorSeverity,
-} from './error-boundary'
+} from './error-boundary';
 // Error boundaries
 export {
   AuthenticationError,
@@ -47,7 +47,7 @@ export {
   useErrorHandler,
   ValidationError,
   withErrorBoundary,
-} from './error-boundary'
+} from './error-boundary';
 export type {
   Breadcrumb,
   ErrorContext,
@@ -55,7 +55,7 @@ export type {
   ErrorReport,
   ErrorReporter,
   UserContext,
-} from './error-reporter'
+} from './error-reporter';
 // Error reporting
 export {
   ConsoleErrorReporter,
@@ -68,8 +68,8 @@ export {
   trackAction,
   trackAPICall,
   trackNavigation,
-} from './error-reporter'
-export type { ErrorFallbackProps } from './fallback-components'
+} from './error-reporter';
+export type { ErrorFallbackProps } from './fallback-components';
 // Fallback components
 export {
   DegradedServiceFallback,
@@ -87,8 +87,8 @@ export {
   SuccessMessage,
   SuspenseFallback,
   Toast,
-} from './fallback-components'
-export type { RetryConfig, RetryOptions } from './retry'
+} from './fallback-components';
+export type { RetryConfig, RetryOptions } from './retry';
 // Retry logic
 export {
   calculateDelay,
@@ -106,4 +106,4 @@ export {
   retryUntil,
   retryWithFallback,
   sleep,
-} from './retry'
+} from './retry';

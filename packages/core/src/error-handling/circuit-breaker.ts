@@ -4,36 +4,36 @@
  * Prevents cascading failures by stopping requests to failing services
  */
 
-import { logger } from '../observability/logger.js'
-import type { HttpError } from './retry.js'
+import { logger } from '../observability/logger.js';
+import type { HttpError } from './retry.js';
 
-export type CircuitState = 'closed' | 'open' | 'half-open'
+export type CircuitState = 'closed' | 'open' | 'half-open';
 
 export interface CircuitBreakerConfig {
-  failureThreshold?: number
-  successThreshold?: number
-  timeout?: number
-  resetTimeout?: number
-  volumeThreshold?: number
-  errorFilter?: (error: Error) => boolean
-  onStateChange?: (state: CircuitState) => void
-  onTrip?: () => void
-  onReset?: () => void
+  failureThreshold?: number;
+  successThreshold?: number;
+  timeout?: number;
+  resetTimeout?: number;
+  volumeThreshold?: number;
+  errorFilter?: (error: Error) => boolean;
+  onStateChange?: (state: CircuitState) => void;
+  onTrip?: () => void;
+  onReset?: () => void;
 }
 
 export interface CircuitBreakerStats {
-  [key: string]: unknown
-  state: CircuitState
-  failures: number
-  successes: number
-  consecutiveFailures: number
-  consecutiveSuccesses: number
-  totalCalls: number
-  totalFailures: number
-  totalSuccesses: number
-  lastFailureTime?: number
-  lastSuccessTime?: number
-  stateChangedAt: number
+  [key: string]: unknown;
+  state: CircuitState;
+  failures: number;
+  successes: number;
+  consecutiveFailures: number;
+  consecutiveSuccesses: number;
+  totalCalls: number;
+  totalFailures: number;
+  totalSuccesses: number;
+  lastFailureTime?: number;
+  lastSuccessTime?: number;
+  stateChangedAt: number;
 }
 
 const DEFAULT_CONFIG: Required<CircuitBreakerConfig> = {
@@ -52,28 +52,28 @@ const DEFAULT_CONFIG: Required<CircuitBreakerConfig> = {
   onReset: () => {
     // No-op default — consumers override via config
   },
-}
+};
 
 /**
  * Circuit Breaker implementation
  */
 export class CircuitBreaker {
-  private state: CircuitState = 'closed'
-  private failures: number = 0
-  private successes: number = 0
-  private consecutiveFailures: number = 0
-  private consecutiveSuccesses: number = 0
-  private totalCalls: number = 0
-  private totalFailures: number = 0
-  private totalSuccesses: number = 0
-  private lastFailureTime?: number
-  private lastSuccessTime?: number
-  private stateChangedAt: number = Date.now()
-  private resetTimer?: NodeJS.Timeout
-  protected config: Required<CircuitBreakerConfig>
+  private state: CircuitState = 'closed';
+  private failures: number = 0;
+  private successes: number = 0;
+  private consecutiveFailures: number = 0;
+  private consecutiveSuccesses: number = 0;
+  private totalCalls: number = 0;
+  private totalFailures: number = 0;
+  private totalSuccesses: number = 0;
+  private lastFailureTime?: number;
+  private lastSuccessTime?: number;
+  private stateChangedAt: number = Date.now();
+  private resetTimer?: NodeJS.Timeout;
+  protected config: Required<CircuitBreakerConfig>;
 
   constructor(config: CircuitBreakerConfig = {}) {
-    this.config = { ...DEFAULT_CONFIG, ...config }
+    this.config = { ...DEFAULT_CONFIG, ...config };
   }
 
   /**
@@ -84,22 +84,22 @@ export class CircuitBreaker {
     if (this.state === 'open') {
       // Check if reset timeout has passed
       if (Date.now() - this.stateChangedAt >= this.config.resetTimeout) {
-        this.transitionTo('half-open')
+        this.transitionTo('half-open');
       } else {
-        throw new CircuitBreakerOpenError('Circuit breaker is open')
+        throw new CircuitBreakerOpenError('Circuit breaker is open');
       }
     }
 
-    this.totalCalls++
+    this.totalCalls++;
 
     try {
-      const result = await fn()
-      this.onSuccess()
-      return result
+      const result = await fn();
+      this.onSuccess();
+      return result;
     } catch (error) {
-      const err = error instanceof Error ? error : new Error(String(error))
-      this.onFailure(err)
-      throw error
+      const err = error instanceof Error ? error : new Error(String(error));
+      this.onFailure(err);
+      throw error;
     }
   }
 
@@ -107,22 +107,22 @@ export class CircuitBreaker {
    * Handle successful execution
    */
   private onSuccess(): void {
-    this.successes++
-    this.consecutiveSuccesses++
-    this.totalSuccesses++
-    this.consecutiveFailures = 0
-    this.lastSuccessTime = Date.now()
+    this.successes++;
+    this.consecutiveSuccesses++;
+    this.totalSuccesses++;
+    this.consecutiveFailures = 0;
+    this.lastSuccessTime = Date.now();
 
     if (this.state === 'half-open') {
       // Check if we can close the circuit
       if (this.consecutiveSuccesses >= this.config.successThreshold) {
-        this.transitionTo('closed')
+        this.transitionTo('closed');
       }
     }
 
     // Reset failure count in closed state
     if (this.state === 'closed') {
-      this.failures = 0
+      this.failures = 0;
     }
   }
 
@@ -132,25 +132,25 @@ export class CircuitBreaker {
   private onFailure(error: Error): void {
     // Check if error should count
     if (!this.config.errorFilter(error)) {
-      return
+      return;
     }
 
-    this.failures++
-    this.consecutiveFailures++
-    this.totalFailures++
-    this.consecutiveSuccesses = 0
-    this.lastFailureTime = Date.now()
+    this.failures++;
+    this.consecutiveFailures++;
+    this.totalFailures++;
+    this.consecutiveSuccesses = 0;
+    this.lastFailureTime = Date.now();
 
     if (this.state === 'half-open') {
       // Immediately open circuit on failure in half-open state
-      this.transitionTo('open')
+      this.transitionTo('open');
     } else if (this.state === 'closed') {
       // Check if we should open the circuit
       if (
         this.consecutiveFailures >= this.config.failureThreshold &&
         this.totalCalls >= this.config.volumeThreshold
       ) {
-        this.transitionTo('open')
+        this.transitionTo('open');
       }
     }
   }
@@ -159,49 +159,49 @@ export class CircuitBreaker {
    * Transition to new state
    */
   private transitionTo(newState: CircuitState): void {
-    if (this.state === newState) return
+    if (this.state === newState) return;
 
-    const oldState = this.state
-    this.state = newState
-    this.stateChangedAt = Date.now()
+    const oldState = this.state;
+    this.state = newState;
+    this.stateChangedAt = Date.now();
 
     // Reset counters
     if (newState === 'half-open' || newState === 'closed') {
-      this.consecutiveFailures = 0
-      this.consecutiveSuccesses = 0
+      this.consecutiveFailures = 0;
+      this.consecutiveSuccesses = 0;
     }
 
     // Clear reset timer
     if (this.resetTimer) {
-      clearTimeout(this.resetTimer)
-      this.resetTimer = undefined
+      clearTimeout(this.resetTimer);
+      this.resetTimer = undefined;
     }
 
     // Set reset timer for open state
     if (newState === 'open') {
       this.resetTimer = setTimeout(() => {
-        this.transitionTo('half-open')
-      }, this.config.resetTimeout)
+        this.transitionTo('half-open');
+      }, this.config.resetTimeout);
 
-      this.config.onTrip()
+      this.config.onTrip();
     }
 
     // Circuit reset
     if (newState === 'closed' && oldState === 'half-open') {
-      this.failures = 0
-      this.config.onReset()
+      this.failures = 0;
+      this.config.onReset();
     }
 
-    this.config.onStateChange(newState)
+    this.config.onStateChange(newState);
 
-    logger.info(`Circuit breaker state changed: ${oldState} -> ${newState}`, this.getStats())
+    logger.info(`Circuit breaker state changed: ${oldState} -> ${newState}`, this.getStats());
   }
 
   /**
    * Get current state
    */
   getState(): CircuitState {
-    return this.state
+    return this.state;
   }
 
   /**
@@ -220,69 +220,69 @@ export class CircuitBreaker {
       lastFailureTime: this.lastFailureTime,
       lastSuccessTime: this.lastSuccessTime,
       stateChangedAt: this.stateChangedAt,
-    }
+    };
   }
 
   /**
    * Manually open circuit
    */
   trip(): void {
-    this.transitionTo('open')
+    this.transitionTo('open');
   }
 
   /**
    * Manually close circuit
    */
   reset(): void {
-    this.failures = 0
-    this.successes = 0
-    this.consecutiveFailures = 0
-    this.consecutiveSuccesses = 0
-    this.transitionTo('closed')
+    this.failures = 0;
+    this.successes = 0;
+    this.consecutiveFailures = 0;
+    this.consecutiveSuccesses = 0;
+    this.transitionTo('closed');
   }
 
   /**
    * Force state to half-open
    */
   halfOpen(): void {
-    this.transitionTo('half-open')
+    this.transitionTo('half-open');
   }
 
   /**
    * Check if circuit is open
    */
   isOpen(): boolean {
-    return this.state === 'open'
+    return this.state === 'open';
   }
 
   /**
    * Check if circuit is closed
    */
   isClosed(): boolean {
-    return this.state === 'closed'
+    return this.state === 'closed';
   }
 
   /**
    * Check if circuit is half-open
    */
   isHalfOpen(): boolean {
-    return this.state === 'half-open'
+    return this.state === 'half-open';
   }
 
   /**
    * Get failure rate
    */
   getFailureRate(): number {
-    if (this.totalCalls === 0) return 0
-    return this.totalFailures / this.totalCalls
+    if (this.totalCalls === 0) return 0;
+    return this.totalFailures / this.totalCalls;
   }
 
   /**
    * Get success rate
    */
   getSuccessRate(): number {
-    if (this.totalCalls === 0) return 0
-    return this.totalSuccesses / this.totalCalls
+    if (this.totalCalls === 0) return 0;
+    return this.totalSuccesses / this.totalCalls;
   }
 
   /**
@@ -290,7 +290,7 @@ export class CircuitBreaker {
    */
   destroy(): void {
     if (this.resetTimer) {
-      clearTimeout(this.resetTimer)
+      clearTimeout(this.resetTimer);
     }
   }
 }
@@ -300,8 +300,8 @@ export class CircuitBreaker {
  */
 export class CircuitBreakerOpenError extends Error {
   constructor(message: string = 'Circuit breaker is open') {
-    super(message)
-    this.name = 'CircuitBreakerOpenError'
+    super(message);
+    this.name = 'CircuitBreakerOpenError';
   }
 }
 
@@ -309,59 +309,59 @@ export class CircuitBreakerOpenError extends Error {
  * Circuit breaker registry
  */
 export class CircuitBreakerRegistry {
-  private breakers: Map<string, CircuitBreaker> = new Map()
+  private breakers: Map<string, CircuitBreaker> = new Map();
 
   /**
    * Get or create circuit breaker
    */
   get(name: string, config?: CircuitBreakerConfig): CircuitBreaker {
-    let breaker = this.breakers.get(name)
+    let breaker = this.breakers.get(name);
 
     if (!breaker) {
-      breaker = new CircuitBreaker(config)
-      this.breakers.set(name, breaker)
+      breaker = new CircuitBreaker(config);
+      this.breakers.set(name, breaker);
     }
 
-    return breaker
+    return breaker;
   }
 
   /**
    * Check if breaker exists
    */
   has(name: string): boolean {
-    return this.breakers.has(name)
+    return this.breakers.has(name);
   }
 
   /**
    * Remove circuit breaker
    */
   remove(name: string): boolean {
-    const breaker = this.breakers.get(name)
+    const breaker = this.breakers.get(name);
     if (breaker) {
-      breaker.destroy()
-      return this.breakers.delete(name)
+      breaker.destroy();
+      return this.breakers.delete(name);
     }
-    return false
+    return false;
   }
 
   /**
    * Get all breakers
    */
   getAll(): Map<string, CircuitBreaker> {
-    return new Map(this.breakers)
+    return new Map(this.breakers);
   }
 
   /**
    * Get all statistics
    */
   getAllStats(): Record<string, CircuitBreakerStats> {
-    const stats: Record<string, CircuitBreakerStats> = {}
+    const stats: Record<string, CircuitBreakerStats> = {};
 
     for (const [name, breaker] of this.breakers) {
-      stats[name] = breaker.getStats()
+      stats[name] = breaker.getStats();
     }
 
-    return stats
+    return stats;
   }
 
   /**
@@ -369,7 +369,7 @@ export class CircuitBreakerRegistry {
    */
   resetAll(): void {
     for (const breaker of this.breakers.values()) {
-      breaker.reset()
+      breaker.reset();
     }
   }
 
@@ -378,36 +378,36 @@ export class CircuitBreakerRegistry {
    */
   clear(): void {
     for (const breaker of this.breakers.values()) {
-      breaker.destroy()
+      breaker.destroy();
     }
-    this.breakers.clear()
+    this.breakers.clear();
   }
 }
 
 /**
  * Global circuit breaker registry
  */
-export const circuitBreakerRegistry = new CircuitBreakerRegistry()
+export const circuitBreakerRegistry = new CircuitBreakerRegistry();
 
 /**
  * Create circuit breaker decorator
  */
 export function CircuitBreak(nameOrConfig: string | CircuitBreakerConfig = {}) {
   return (target: object, propertyKey: string, descriptor: PropertyDescriptor) => {
-    const originalMethod = descriptor.value
+    const originalMethod = descriptor.value;
     const name =
       typeof nameOrConfig === 'string'
         ? nameOrConfig
-        : `${(target as { constructor: { name: string } }).constructor.name}.${propertyKey}`
-    const config = typeof nameOrConfig === 'object' ? nameOrConfig : undefined
+        : `${(target as { constructor: { name: string } }).constructor.name}.${propertyKey}`;
+    const config = typeof nameOrConfig === 'object' ? nameOrConfig : undefined;
 
     descriptor.value = async function (...args: unknown[]) {
-      const breaker = circuitBreakerRegistry.get(name, config)
-      return breaker.execute(() => originalMethod.apply(this, args))
-    }
+      const breaker = circuitBreakerRegistry.get(name, config);
+      return breaker.execute(() => originalMethod.apply(this, args));
+    };
 
-    return descriptor
-  }
+    return descriptor;
+  };
 }
 
 /**
@@ -418,8 +418,8 @@ export async function withCircuitBreaker<T>(
   fn: () => Promise<T>,
   config?: CircuitBreakerConfig,
 ): Promise<T> {
-  const breaker = circuitBreakerRegistry.get(name, config)
-  return breaker.execute(fn)
+  const breaker = circuitBreakerRegistry.get(name, config);
+  return breaker.execute(fn);
 }
 
 /**
@@ -429,11 +429,11 @@ export function createCircuitBreakerMiddleware<TRequest = unknown, TResponse = u
   name: string,
   config?: CircuitBreakerConfig,
 ) {
-  const breaker = circuitBreakerRegistry.get(name, config)
+  const breaker = circuitBreakerRegistry.get(name, config);
 
   return async (_request: TRequest, next: () => Promise<TResponse>): Promise<TResponse> => {
-    return breaker.execute(next)
-  }
+    return breaker.execute(next);
+  };
 }
 
 /**
@@ -445,33 +445,33 @@ export async function fetchWithCircuitBreaker(
   init?: RequestInit,
   config?: CircuitBreakerConfig,
 ): Promise<Response> {
-  const breaker = circuitBreakerRegistry.get(name, config)
+  const breaker = circuitBreakerRegistry.get(name, config);
 
   return breaker.execute(async () => {
-    const response = await fetch(url, init)
+    const response = await fetch(url, init);
 
     // Treat 5xx errors as failures
     if (response.status >= 500) {
-      const error = new Error(`HTTP ${response.status}: ${response.statusText}`) as HttpError
-      error.statusCode = response.status
-      throw error
+      const error = new Error(`HTTP ${response.status}: ${response.statusText}`) as HttpError;
+      error.statusCode = response.status;
+      throw error;
     }
 
-    return response
-  })
+    return response;
+  });
 }
 
 /**
  * Adaptive circuit breaker with dynamic thresholds
  */
 export class AdaptiveCircuitBreaker extends CircuitBreaker {
-  private errorRateWindow: number[] = []
-  private windowSize: number = 100
-  private adaptiveThreshold: number
+  private errorRateWindow: number[] = [];
+  private windowSize: number = 100;
+  private adaptiveThreshold: number;
 
   constructor(config: CircuitBreakerConfig = {}) {
-    super(config)
-    this.adaptiveThreshold = config.failureThreshold || 5
+    super(config);
+    this.adaptiveThreshold = config.failureThreshold || 5;
   }
 
   /**
@@ -479,12 +479,12 @@ export class AdaptiveCircuitBreaker extends CircuitBreaker {
    */
   async execute<T>(fn: () => Promise<T>): Promise<T> {
     try {
-      const result = await super.execute(fn)
-      this.recordSuccess()
-      return result
+      const result = await super.execute(fn);
+      this.recordSuccess();
+      return result;
     } catch (error) {
-      this.recordFailure()
-      throw error
+      this.recordFailure();
+      throw error;
     }
   }
 
@@ -492,18 +492,18 @@ export class AdaptiveCircuitBreaker extends CircuitBreaker {
    * Record success in window
    */
   private recordSuccess(): void {
-    this.errorRateWindow.push(0)
-    this.trimWindow()
-    this.adjustThreshold()
+    this.errorRateWindow.push(0);
+    this.trimWindow();
+    this.adjustThreshold();
   }
 
   /**
    * Record failure in window
    */
   private recordFailure(): void {
-    this.errorRateWindow.push(1)
-    this.trimWindow()
-    this.adjustThreshold()
+    this.errorRateWindow.push(1);
+    this.trimWindow();
+    this.adjustThreshold();
   }
 
   /**
@@ -511,7 +511,7 @@ export class AdaptiveCircuitBreaker extends CircuitBreaker {
    */
   private trimWindow(): void {
     if (this.errorRateWindow.length > this.windowSize) {
-      this.errorRateWindow.shift()
+      this.errorRateWindow.shift();
     }
   }
 
@@ -519,36 +519,36 @@ export class AdaptiveCircuitBreaker extends CircuitBreaker {
    * Adjust threshold based on error rate
    */
   private adjustThreshold(): void {
-    const errorRate = this.getWindowErrorRate()
+    const errorRate = this.getWindowErrorRate();
 
     // Increase threshold if error rate is low
     if (errorRate < 0.1) {
-      this.adaptiveThreshold = Math.min(this.adaptiveThreshold + 1, 20)
+      this.adaptiveThreshold = Math.min(this.adaptiveThreshold + 1, 20);
     }
     // Decrease threshold if error rate is high
     else if (errorRate > 0.5) {
-      this.adaptiveThreshold = Math.max(this.adaptiveThreshold - 1, 2)
+      this.adaptiveThreshold = Math.max(this.adaptiveThreshold - 1, 2);
     }
 
     // Sync adaptive threshold to parent config so it actually takes effect
-    this.config.failureThreshold = this.adaptiveThreshold
+    this.config.failureThreshold = this.adaptiveThreshold;
   }
 
   /**
    * Get error rate in window
    */
   private getWindowErrorRate(): number {
-    if (this.errorRateWindow.length === 0) return 0
+    if (this.errorRateWindow.length === 0) return 0;
 
-    const errors = this.errorRateWindow.reduce((sum, val) => sum + val, 0)
-    return errors / this.errorRateWindow.length
+    const errors = this.errorRateWindow.reduce((sum, val) => sum + val, 0);
+    return errors / this.errorRateWindow.length;
   }
 
   /**
    * Get adaptive threshold
    */
   getAdaptiveThreshold(): number {
-    return this.adaptiveThreshold
+    return this.adaptiveThreshold;
   }
 }
 
@@ -556,14 +556,14 @@ export class AdaptiveCircuitBreaker extends CircuitBreaker {
  * Bulkhead pattern - limit concurrent executions
  */
 export class Bulkhead {
-  private activeRequests: number = 0
-  private queue: Array<() => void> = []
-  private maxConcurrent: number
-  private maxQueue: number
+  private activeRequests: number = 0;
+  private queue: Array<() => void> = [];
+  private maxConcurrent: number;
+  private maxQueue: number;
 
   constructor(maxConcurrent: number = 10, maxQueue: number = 100) {
-    this.maxConcurrent = maxConcurrent
-    this.maxQueue = maxQueue
+    this.maxConcurrent = maxConcurrent;
+    this.maxQueue = maxQueue;
   }
 
   /**
@@ -574,26 +574,26 @@ export class Bulkhead {
     if (this.activeRequests >= this.maxConcurrent) {
       // Check queue capacity
       if (this.queue.length >= this.maxQueue) {
-        throw new Error('Bulkhead queue is full')
+        throw new Error('Bulkhead queue is full');
       }
 
       // Wait for slot
       await new Promise<void>((resolve) => {
-        this.queue.push(resolve)
-      })
+        this.queue.push(resolve);
+      });
     }
 
-    this.activeRequests++
+    this.activeRequests++;
 
     try {
-      return await fn()
+      return await fn();
     } finally {
-      this.activeRequests--
+      this.activeRequests--;
 
       // Process queue
-      const next = this.queue.shift()
+      const next = this.queue.shift();
       if (next) {
-        next()
+        next();
       }
     }
   }
@@ -602,31 +602,31 @@ export class Bulkhead {
    * Get active requests
    */
   getActiveRequests(): number {
-    return this.activeRequests
+    return this.activeRequests;
   }
 
   /**
    * Get queue size
    */
   getQueueSize(): number {
-    return this.queue.length
+    return this.queue.length;
   }
 
   /**
    * Get statistics
    */
   getStats(): {
-    activeRequests: number
-    queueSize: number
-    maxConcurrent: number
-    maxQueue: number
+    activeRequests: number;
+    queueSize: number;
+    maxConcurrent: number;
+    maxQueue: number;
   } {
     return {
       activeRequests: this.activeRequests,
       queueSize: this.queue.length,
       maxConcurrent: this.maxConcurrent,
       maxQueue: this.maxQueue,
-    }
+    };
   }
 }
 
@@ -646,16 +646,16 @@ export class ResilientOperation<T> {
   async execute(): Promise<T> {
     const executeFn = async () => {
       if (this.bulkhead) {
-        return this.bulkhead.execute(this.fn)
+        return this.bulkhead.execute(this.fn);
       }
-      return this.fn()
-    }
+      return this.fn();
+    };
 
     if (this.circuitBreaker) {
-      return this.circuitBreaker.execute(executeFn)
+      return this.circuitBreaker.execute(executeFn);
     }
 
-    return executeFn()
+    return executeFn();
   }
 }
 
@@ -665,17 +665,17 @@ export class ResilientOperation<T> {
 export function createResilientFunction<T>(
   fn: () => Promise<T>,
   options: {
-    circuitBreaker?: CircuitBreakerConfig
-    bulkhead?: { maxConcurrent: number; maxQueue: number }
+    circuitBreaker?: CircuitBreakerConfig;
+    bulkhead?: { maxConcurrent: number; maxQueue: number };
   } = {},
 ): () => Promise<T> {
-  const breaker = options.circuitBreaker ? new CircuitBreaker(options.circuitBreaker) : undefined
+  const breaker = options.circuitBreaker ? new CircuitBreaker(options.circuitBreaker) : undefined;
 
   const bulkhead = options.bulkhead
     ? new Bulkhead(options.bulkhead.maxConcurrent, options.bulkhead.maxQueue)
-    : undefined
+    : undefined;
 
-  const operation = new ResilientOperation(fn, breaker, bulkhead)
+  const operation = new ResilientOperation(fn, breaker, bulkhead);
 
-  return () => operation.execute()
+  return () => operation.execute();
 }

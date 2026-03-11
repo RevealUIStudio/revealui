@@ -1,5 +1,5 @@
-import * as path from 'node:path'
-import { defineConfig } from 'vitest/config'
+import * as path from 'node:path';
+import { defineConfig } from 'vitest/config';
 
 export default defineConfig({
   test: {
@@ -39,4 +39,4 @@ export default defineConfig({
       '@revealui/contracts': path.resolve(__dirname, '../contracts/src'),
     },
   },
-})
+});

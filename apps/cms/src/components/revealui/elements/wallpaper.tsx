@@ -1,7 +1,7 @@
-import { clsx } from 'clsx/lite'
-import type { ComponentProps } from 'react'
+import { clsx } from 'clsx/lite';
+import type { ComponentProps } from 'react';
 
-const html = String.raw
+const html = String.raw;
 
 const noisePattern = `url("data:image/svg+xml;charset=utf-8,${encodeURIComponent(
   html`
@@ -18,7 +18,7 @@ const noisePattern = `url("data:image/svg+xml;charset=utf-8,${encodeURIComponent
       <rect width="100%" height="100%" filter="url(#n)" />
     </svg>
   `.replace(/\s+/g, ' '),
-)}")`
+)}")`;
 
 export function Wallpaper({
   children,
@@ -44,5 +44,5 @@ export function Wallpaper({
       />
       <div className="relative">{children}</div>
     </div>
-  )
+  );
 }

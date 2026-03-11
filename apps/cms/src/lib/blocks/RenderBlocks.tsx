@@ -1,22 +1,22 @@
-import { BlockSchema } from '@revealui/contracts/content'
-import type { Page } from '@revealui/core/types/cms'
-import { logger } from '@revealui/core/utils/logger'
-import type React from 'react'
-import { Fragment } from 'react'
-import { ErrorBoundary } from '@/lib/components/ErrorBoundary/index'
-import { ArchiveBlock } from './ArchiveBlock/Component'
-import { CallToActionBlock } from './CallToAction/Component'
-import { ContentBlock } from './Content/Component'
-import { FormBlock } from './Form/Component'
-import { MediaBlock } from './MediaBlock/Component'
-import { validateAndTransformBlocks } from './schema-adapter'
+import { BlockSchema } from '@revealui/contracts/content';
+import type { Page } from '@revealui/core/types/cms';
+import { logger } from '@revealui/core/utils/logger';
+import type React from 'react';
+import { Fragment } from 'react';
+import { ErrorBoundary } from '@/lib/components/ErrorBoundary/index';
+import { ArchiveBlock } from './ArchiveBlock/Component';
+import { CallToActionBlock } from './CallToAction/Component';
+import { ContentBlock } from './Content/Component';
+import { FormBlock } from './Form/Component';
+import { MediaBlock } from './MediaBlock/Component';
+import { validateAndTransformBlocks } from './schema-adapter';
 
 // Define individual block types from generated types
-type CallToActionBlockProps = Extract<Page['layout'][0], { blockType: 'cta' }>
-type ContentBlockProps = Extract<Page['layout'][0], { blockType: 'content' }>
-type FormBlockProps = Extract<Page['layout'][0], { blockType: 'formBlock' }>
-type ArchiveBlockProps = Extract<Page['layout'][0], { blockType: 'archive' }>
-type MediaBlockProps = Extract<Page['layout'][0], { blockType: 'mediaBlock' }>
+type CallToActionBlockProps = Extract<Page['layout'][0], { blockType: 'cta' }>;
+type ContentBlockProps = Extract<Page['layout'][0], { blockType: 'content' }>;
+type FormBlockProps = Extract<Page['layout'][0], { blockType: 'formBlock' }>;
+type ArchiveBlockProps = Extract<Page['layout'][0], { blockType: 'archive' }>;
+type MediaBlockProps = Extract<Page['layout'][0], { blockType: 'mediaBlock' }>;
 
 // Combine all block props into a single union type
 export type BlockProps =
@@ -24,11 +24,11 @@ export type BlockProps =
   | ContentBlockProps
   | FormBlockProps
   | ArchiveBlockProps
-  | MediaBlockProps
+  | MediaBlockProps;
 
 // Type guard to narrow block type for safe prop passing
 function isBlockType<T extends BlockProps>(block: BlockProps, blockType: string): block is T {
-  return 'blockType' in block && block.blockType === blockType
+  return 'blockType' in block && block.blockType === blockType;
 }
 
 // Type normalization helpers to bridge generated types and component prop types
@@ -48,8 +48,8 @@ function normalizeArchiveBlockProps(
       value: typeof doc.value === 'number' ? String(doc.value) : doc.value,
     })),
     blockName: block.blockName ?? undefined,
-  }
-  return normalized as unknown as ArchiveBlockProps
+  };
+  return normalized as unknown as ArchiveBlockProps;
 }
 function normalizeFormBlockProps(
   block: Extract<Page['layout'][0], { blockType: 'formBlock' }>,
@@ -60,9 +60,9 @@ function normalizeFormBlockProps(
     enableIntro: block.enableIntro ?? false,
     form: block.form,
     introContent: block.introContent ?? null,
-  }
+  };
   // Type assertion: Generated types and component props are runtime-compatible but type-incompatible
-  return normalized as unknown as FormBlockProps
+  return normalized as unknown as FormBlockProps;
 }
 
 function normalizeMediaBlockProps(
@@ -71,9 +71,9 @@ function normalizeMediaBlockProps(
   const normalized = {
     ...block,
     id: block.id ?? undefined,
-  }
+  };
   // Type assertion: MediaBlock Props expects undefined but generated type has null
-  return normalized as unknown as MediaBlockProps & { id?: string }
+  return normalized as unknown as MediaBlockProps & { id?: string };
 }
 
 /**
@@ -98,36 +98,36 @@ function normalizeMediaBlockProps(
  * ```
  */
 export const RenderBlocks: React.FC<{
-  blocks: Page['layout']
-  strictMode?: boolean
+  blocks: Page['layout'];
+  strictMode?: boolean;
 }> = ({ blocks, strictMode = true }) => {
   // Validate input
   if (!(blocks && Array.isArray(blocks)) || blocks.length === 0) {
-    return null
+    return null;
   }
 
   // Transform and validate blocks using schema adapter
-  const validationResult = validateAndTransformBlocks(blocks)
+  const validationResult = validateAndTransformBlocks(blocks);
 
   // Additional runtime validation with Zod BlockSchema.parse() for each block
   // This provides an extra layer of validation using the schema types directly
-  const validationErrors: Array<{ index: number; error: unknown }> = []
+  const validationErrors: Array<{ index: number; error: unknown }> = [];
   blocks.forEach((block, index) => {
-    if (!block) return
+    if (!block) return;
 
     try {
       // Validate against BlockSchema - this ensures the block matches schema structure
       // Note: We validate the transformed block from validationResult if available
       if (validationResult.success && validationResult.data[index]) {
-        BlockSchema.parse(validationResult.data[index])
+        BlockSchema.parse(validationResult.data[index]);
       }
     } catch (error) {
-      validationErrors.push({ index, error })
+      validationErrors.push({ index, error });
       if (strictMode) {
-        logger.error('Block failed schema validation', { index, error })
+        logger.error('Block failed schema validation', { index, error });
       }
     }
-  })
+  });
 
   // In strict mode (default), if validation fails, don't render anything
   if (strictMode && (!validationResult.success || validationErrors.length > 0)) {
@@ -139,11 +139,11 @@ export const RenderBlocks: React.FC<{
             error: issue,
           })),
           ...validationErrors,
-        ]
+        ];
 
     logger.error('Block validation failed (strict mode)', {
       errors: allErrors,
-    })
+    });
     return (
       <div className="my-16 p-4 border border-red-500 rounded bg-red-50">
         <p className="text-red-700 font-semibold">Block validation failed</p>
@@ -157,7 +157,7 @@ export const RenderBlocks: React.FC<{
           </pre>
         </details>
       </div>
-    )
+    );
   }
 
   // In non-strict mode, log errors but continue (development/debugging only)
@@ -165,17 +165,17 @@ export const RenderBlocks: React.FC<{
     logger.warn('Block validation errors (non-strict mode)', {
       adapterErrors: validationResult.success ? null : validationResult.error.issues,
       schemaErrors: validationErrors,
-    })
+    });
   }
 
   return (
     <Fragment>
       {blocks.map((block, index) => {
         if (!block) {
-          return null
+          return null;
         }
 
-        const { blockType, id } = block
+        const { blockType, id } = block;
 
         // Note: Individual block validation is handled in validateAndTransformBlocks above.
         // We don't validate here again to avoid double validation and type mismatches.
@@ -187,15 +187,15 @@ export const RenderBlocks: React.FC<{
           try {
             switch (blockType) {
               case 'archive': {
-                if (!isBlockType<ArchiveBlockProps>(block, 'archive')) return null
+                if (!isBlockType<ArchiveBlockProps>(block, 'archive')) return null;
                 const normalizedArchive = normalizeArchiveBlockProps(
                   block,
-                ) as unknown as React.ComponentProps<typeof ArchiveBlock>
-                return <ArchiveBlock {...normalizedArchive} />
+                ) as unknown as React.ComponentProps<typeof ArchiveBlock>;
+                return <ArchiveBlock {...normalizedArchive} />;
               }
               case 'content': {
-                if (!isBlockType<ContentBlockProps>(block, 'content')) return null
-                if (!block.columns || block.columns.length === 0) return null
+                if (!isBlockType<ContentBlockProps>(block, 'content')) return null;
+                if (!block.columns || block.columns.length === 0) return null;
                 return (
                   <ContentBlock
                     {...block}
@@ -205,30 +205,30 @@ export const RenderBlocks: React.FC<{
                       >['columns']
                     }
                   />
-                )
+                );
               }
               case 'cta': {
-                if (!isBlockType<CallToActionBlockProps>(block, 'cta')) return null
-                return <CallToActionBlock {...block} />
+                if (!isBlockType<CallToActionBlockProps>(block, 'cta')) return null;
+                return <CallToActionBlock {...block} />;
               }
               case 'formBlock': {
-                if (!isBlockType<FormBlockProps>(block, 'formBlock')) return null
+                if (!isBlockType<FormBlockProps>(block, 'formBlock')) return null;
                 const normalizedForm = normalizeFormBlockProps(
                   block,
-                ) as unknown as React.ComponentProps<typeof FormBlock>
-                return <FormBlock {...normalizedForm} />
+                ) as unknown as React.ComponentProps<typeof FormBlock>;
+                return <FormBlock {...normalizedForm} />;
               }
               case 'mediaBlock': {
-                if (!isBlockType<MediaBlockProps>(block, 'mediaBlock')) return null
-                const normalizedMedia = normalizeMediaBlockProps(block)
-                return <MediaBlock {...normalizedMedia} />
+                if (!isBlockType<MediaBlockProps>(block, 'mediaBlock')) return null;
+                const normalizedMedia = normalizeMediaBlockProps(block);
+                return <MediaBlock {...normalizedMedia} />;
               }
               default: {
                 logger.warn('No component found for block type', {
                   blockType,
                   index,
-                })
-                return null
+                });
+                return null;
               }
             }
           } catch (error) {
@@ -236,10 +236,10 @@ export const RenderBlocks: React.FC<{
               blockType,
               index,
               error,
-            })
-            return null
+            });
+            return null;
           }
-        }
+        };
 
         return (
           <ErrorBoundary
@@ -252,8 +252,8 @@ export const RenderBlocks: React.FC<{
           >
             <div className="my-16">{renderBlock()}</div>
           </ErrorBoundary>
-        )
+        );
       })}
     </Fragment>
-  )
-}
+  );
+};

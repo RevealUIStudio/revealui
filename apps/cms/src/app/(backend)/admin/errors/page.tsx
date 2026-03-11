@@ -1,15 +1,15 @@
-import { getClient } from '@revealui/db'
-import { errorEvents } from '@revealui/db/schema'
-import { desc } from 'drizzle-orm'
-import { LicenseGate } from '@/lib/components/LicenseGate'
+import { getClient } from '@revealui/db';
+import { errorEvents } from '@revealui/db/schema';
+import { desc } from 'drizzle-orm';
+import { LicenseGate } from '@/lib/components/LicenseGate';
 
-export const dynamic = 'force-dynamic'
+export const dynamic = 'force-dynamic';
 
 const LEVEL_STYLES: Record<string, string> = {
   fatal: 'bg-red-900 text-red-200',
   error: 'bg-red-700 text-red-100',
   warn: 'bg-yellow-700 text-yellow-100',
-}
+};
 
 function formatTime(date: Date): string {
   return new Intl.DateTimeFormat('en-US', {
@@ -20,18 +20,18 @@ function formatTime(date: Date): string {
     second: '2-digit',
     hour12: false,
     timeZoneName: 'short',
-  }).format(date)
+  }).format(date);
 }
 
 export default async function ErrorsPage() {
-  let rows: (typeof errorEvents.$inferSelect)[] = []
-  let dbError: string | null = null
+  let rows: (typeof errorEvents.$inferSelect)[] = [];
+  let dbError: string | null = null;
 
   try {
-    const db = getClient()
-    rows = await db.select().from(errorEvents).orderBy(desc(errorEvents.timestamp)).limit(100)
+    const db = getClient();
+    rows = await db.select().from(errorEvents).orderBy(desc(errorEvents.timestamp)).limit(100);
   } catch (err) {
-    dbError = err instanceof Error ? err.message : String(err)
+    dbError = err instanceof Error ? err.message : String(err);
   }
 
   return (
@@ -116,5 +116,5 @@ export default async function ErrorsPage() {
         )}
       </div>
     </LicenseGate>
-  )
+  );
 }

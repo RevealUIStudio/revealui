@@ -1,11 +1,11 @@
-import fs from 'node:fs/promises'
-import path from 'node:path'
-import { fileURLToPath } from 'node:url'
-import tailwindcss from '@tailwindcss/vite'
-import react from '@vitejs/plugin-react'
-import { defineConfig } from 'vite'
+import fs from 'node:fs/promises';
+import path from 'node:path';
+import { fileURLToPath } from 'node:url';
+import tailwindcss from '@tailwindcss/vite';
+import react from '@vitejs/plugin-react';
+import { defineConfig } from 'vite';
 
-const __dirname = path.dirname(fileURLToPath(import.meta.url))
+const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
 /**
  * Vite plugin to copy documentation files to public directory
@@ -29,38 +29,38 @@ const INTERNAL_DOC_FILES = new Set([
   'PRICE_COLLECTION.md',
   'PRODUCT_COLLECTION.md',
   'SECRETS-MANAGEMENT.md',
-])
+]);
 
 function docsCopyPlugin() {
-  const docsSource = path.resolve(__dirname, '../../docs')
-  const docsDest = path.resolve(__dirname, 'public/docs')
+  const docsSource = path.resolve(__dirname, '../../docs');
+  const docsDest = path.resolve(__dirname, 'public/docs');
 
   // Debounce queue
-  let debounceTimer: NodeJS.Timeout | null = null
-  const pendingOperations = new Set<string>()
-  const DebounceMs = 300
+  let debounceTimer: NodeJS.Timeout | null = null;
+  const pendingOperations = new Set<string>();
+  const DebounceMs = 300;
 
   // Track if initial copy is done
-  let initialCopyDone = false
+  let initialCopyDone = false;
 
   return {
     name: 'docs-copy',
     async buildStart() {
       if (!initialCopyDone) {
-        await copyAllDocsFiles()
-        initialCopyDone = true
+        await copyAllDocsFiles();
+        initialCopyDone = true;
       }
     },
     async configureServer(server) {
       // Copy all files on server start (first time only)
       if (!initialCopyDone) {
-        await copyAllDocsFiles()
-        initialCopyDone = true
+        await copyAllDocsFiles();
+        initialCopyDone = true;
       }
 
       // Watch the docs directory
-      const watchPattern = path.join(docsSource, '**/*.{md,mdx}')
-      server.watcher.add(watchPattern)
+      const watchPattern = path.join(docsSource, '**/*.{md,mdx}');
+      server.watcher.add(watchPattern);
 
       // Debounced file change handler
       const handleFileOperation = async (
@@ -68,120 +68,120 @@ function docsCopyPlugin() {
         operation: 'change' | 'add' | 'unlink' | 'unlinkDir',
       ) => {
         // Use proper path resolution instead of string matching
-        const normalizedFile = path.normalize(file)
+        const normalizedFile = path.normalize(file);
         if (!normalizedFile.startsWith(path.normalize(docsSource))) {
-          return // Not in docs directory
+          return; // Not in docs directory
         }
 
         // Only handle markdown files
         if (!(normalizedFile.endsWith('.md') || normalizedFile.endsWith('.mdx'))) {
-          return
+          return;
         }
 
         // Add to pending operations
-        pendingOperations.add(`${operation}:${normalizedFile}`)
+        pendingOperations.add(`${operation}:${normalizedFile}`);
 
         // Debounce the operation
         if (debounceTimer) {
-          clearTimeout(debounceTimer)
+          clearTimeout(debounceTimer);
         }
 
         debounceTimer = setTimeout(async () => {
-          await processPendingOperations()
-          debounceTimer = null
-        }, DebounceMs)
-      }
+          await processPendingOperations();
+          debounceTimer = null;
+        }, DebounceMs);
+      };
 
-      server.watcher.on('change', (file) => handleFileOperation(file, 'change'))
-      server.watcher.on('add', (file) => handleFileOperation(file, 'add'))
-      server.watcher.on('unlink', (file) => handleFileOperation(file, 'unlink'))
-      server.watcher.on('unlinkDir', (file) => handleFileOperation(file, 'unlinkDir'))
+      server.watcher.on('change', (file) => handleFileOperation(file, 'change'));
+      server.watcher.on('add', (file) => handleFileOperation(file, 'add'));
+      server.watcher.on('unlink', (file) => handleFileOperation(file, 'unlink'));
+      server.watcher.on('unlinkDir', (file) => handleFileOperation(file, 'unlinkDir'));
     },
-  }
+  };
 
   /**
    * Process all pending file operations (debounced)
    */
   async function processPendingOperations() {
     if (pendingOperations.size === 0) {
-      return
+      return;
     }
 
-    const operations = Array.from(pendingOperations)
-    pendingOperations.clear()
+    const operations = Array.from(pendingOperations);
+    pendingOperations.clear();
 
-    console.log(`[docs-copy] Processing ${operations.length} file operation(s)...`)
+    console.log(`[docs-copy] Processing ${operations.length} file operation(s)...`);
 
     for (const op of operations) {
-      const [operation, file] = op.split(':', 2)
+      const [operation, file] = op.split(':', 2);
 
       try {
         if (operation === 'unlink' || operation === 'unlinkDir') {
-          await handleFileDeletion(file)
+          await handleFileDeletion(file);
         } else {
-          await copySingleFile(file)
+          await copySingleFile(file);
         }
       } catch (error) {
         console.error(
           `[docs-copy] Error processing ${operation} for ${file}:`,
           error instanceof Error ? error.message : String(error),
-        )
+        );
         if (error instanceof Error && error.stack) {
-          console.error(`[docs-copy] Stack trace:`, error.stack)
+          console.error(`[docs-copy] Stack trace:`, error.stack);
         }
       }
     }
 
-    console.log('[docs-copy] File operations completed')
+    console.log('[docs-copy] File operations completed');
   }
 
   /**
    * Copy a single file incrementally
    */
   async function copySingleFile(filePath: string) {
-    const normalizedFile = path.normalize(filePath)
+    const normalizedFile = path.normalize(filePath);
 
     // Calculate relative path from docs source
-    const relativePath = path.relative(docsSource, normalizedFile)
+    const relativePath = path.relative(docsSource, normalizedFile);
     if (relativePath.startsWith('..') || path.isAbsolute(relativePath)) {
-      console.warn(`[docs-copy] Skipping file outside docs directory: ${normalizedFile}`)
-      return
+      console.warn(`[docs-copy] Skipping file outside docs directory: ${normalizedFile}`);
+      return;
     }
 
     // Skip ignored directories
-    const parts = relativePath.split(path.sep)
-    const ignoreDirs = ['node_modules', '.next', 'dist', 'archive']
+    const parts = relativePath.split(path.sep);
+    const ignoreDirs = ['node_modules', '.next', 'dist', 'archive'];
     if (parts.some((part) => ignoreDirs.includes(part))) {
-      return
+      return;
     }
 
     // Skip hidden files
     if (parts.some((part) => part.startsWith('.'))) {
-      return
+      return;
     }
 
     // Skip internal-only files (only applies to top-level files)
-    const filename = path.basename(normalizedFile)
+    const filename = path.basename(normalizedFile);
     if (parts.length === 1 && INTERNAL_DOC_FILES.has(filename)) {
-      return
+      return;
     }
 
-    const destPath = path.join(docsDest, relativePath)
+    const destPath = path.join(docsDest, relativePath);
 
     try {
       // Ensure destination directory exists
-      const destDir = path.dirname(destPath)
-      await fs.mkdir(destDir, { recursive: true })
+      const destDir = path.dirname(destPath);
+      await fs.mkdir(destDir, { recursive: true });
 
       // Copy the file
-      await fs.copyFile(normalizedFile, destPath)
-      console.log(`[docs-copy] ✓ Copied: ${relativePath}`)
+      await fs.copyFile(normalizedFile, destPath);
+      console.log(`[docs-copy] ✓ Copied: ${relativePath}`);
     } catch (error) {
-      const err = error as NodeJS.ErrnoException
+      const err = error as NodeJS.ErrnoException;
       if (err.code === 'ENOENT') {
-        console.warn(`[docs-copy] Source file not found: ${normalizedFile}`)
+        console.warn(`[docs-copy] Source file not found: ${normalizedFile}`);
       } else {
-        throw error
+        throw error;
       }
     }
   }
@@ -190,49 +190,49 @@ function docsCopyPlugin() {
    * Handle file deletion - remove from public directory
    */
   async function handleFileDeletion(filePath: string) {
-    const normalizedFile = path.normalize(filePath)
+    const normalizedFile = path.normalize(filePath);
 
     // Calculate relative path
-    const relativePath = path.relative(docsSource, normalizedFile)
+    const relativePath = path.relative(docsSource, normalizedFile);
     if (relativePath.startsWith('..') || path.isAbsolute(relativePath)) {
-      return // Not in docs directory
+      return; // Not in docs directory
     }
 
-    const destPath = path.join(docsDest, relativePath)
+    const destPath = path.join(docsDest, relativePath);
 
     try {
       // Check if file exists in destination
-      await fs.access(destPath)
+      await fs.access(destPath);
 
       // Delete the file
-      await fs.unlink(destPath)
-      console.log(`[docs-copy] ✗ Deleted: ${relativePath}`)
+      await fs.unlink(destPath);
+      console.log(`[docs-copy] ✗ Deleted: ${relativePath}`);
 
       // Clean up empty directories
-      let currentDir = path.dirname(destPath)
+      let currentDir = path.dirname(destPath);
       while (currentDir !== docsDest && currentDir.length > docsDest.length) {
         try {
-          const entries = await fs.readdir(currentDir)
+          const entries = await fs.readdir(currentDir);
           if (entries.length === 0) {
-            await fs.rmdir(currentDir)
+            await fs.rmdir(currentDir);
             console.log(
               `[docs-copy] ✗ Removed empty directory: ${path.relative(docsDest, currentDir)}`,
-            )
-            currentDir = path.dirname(currentDir)
+            );
+            currentDir = path.dirname(currentDir);
           } else {
-            break
+            break;
           }
         } catch {
-          break
+          break;
         }
       }
     } catch (error) {
-      const err = error as NodeJS.ErrnoException
+      const err = error as NodeJS.ErrnoException;
       if (err.code === 'ENOENT') {
         // File already doesn't exist, that's fine
-        return
+        return;
       } else {
-        throw error
+        throw error;
       }
     }
   }
@@ -243,7 +243,7 @@ function docsCopyPlugin() {
   async function copyAllDocsFiles() {
     try {
       // Ensure destination directory exists
-      await fs.mkdir(docsDest, { recursive: true })
+      await fs.mkdir(docsDest, { recursive: true });
 
       // Copy entire docs directory structure (excluding archives)
       await copyDirectory(docsSource, docsDest, [
@@ -251,17 +251,17 @@ function docsCopyPlugin() {
         '.next',
         'dist',
         'archive', // Skip archive in public - too large
-      ])
+      ]);
 
       console.log(
         '[docs-copy] ✓ Initial copy completed: All documentation files copied to public directory',
-      )
+      );
     } catch (error) {
-      console.error('[docs-copy] ✗ Failed to copy docs files:', error)
+      console.error('[docs-copy] ✗ Failed to copy docs files:', error);
       if (error instanceof Error && error.stack) {
-        console.error('[docs-copy] Stack trace:', error.stack)
+        console.error('[docs-copy] Stack trace:', error.stack);
       }
-      throw error
+      throw error;
     }
   }
 
@@ -270,36 +270,36 @@ function docsCopyPlugin() {
    */
   async function copyDirectory(src: string, dest: string, ignore: string[] = []) {
     try {
-      const entries = await fs.readdir(src, { withFileTypes: true })
+      const entries = await fs.readdir(src, { withFileTypes: true });
 
       for (const entry of entries) {
         // Skip ignored directories and hidden files
         if (ignore.includes(entry.name) || entry.name.startsWith('.')) {
-          continue
+          continue;
         }
 
-        const srcPath = path.join(src, entry.name)
-        const destPath = path.join(dest, entry.name)
+        const srcPath = path.join(src, entry.name);
+        const destPath = path.join(dest, entry.name);
 
         if (entry.isDirectory()) {
-          await fs.mkdir(destPath, { recursive: true })
-          await copyDirectory(srcPath, destPath, ignore)
+          await fs.mkdir(destPath, { recursive: true });
+          await copyDirectory(srcPath, destPath, ignore);
         } else if (entry.isFile()) {
           // Copy all markdown files, but skip internal-only top-level files
           if (entry.name.endsWith('.md') || entry.name.endsWith('.mdx')) {
             // Only filter at the top level (src === docsSource)
             if (src === docsSource && INTERNAL_DOC_FILES.has(entry.name)) {
-              continue
+              continue;
             }
-            await fs.copyFile(srcPath, destPath)
+            await fs.copyFile(srcPath, destPath);
           }
         }
       }
     } catch (error) {
       // Ignore errors for missing directories
-      const err = error as NodeJS.ErrnoException
+      const err = error as NodeJS.ErrnoException;
       if (err.code !== 'ENOENT') {
-        console.warn(`[docs-copy] Failed to copy ${src}:`, err.message)
+        console.warn(`[docs-copy] Failed to copy ${src}:`, err.message);
       }
     }
   }
@@ -321,4 +321,4 @@ export default defineConfig({
     sourcemap: true,
   },
   publicDir: 'public',
-})
+});

@@ -22,18 +22,18 @@ import {
   UnderlineFeatureClient as UnderlineFeatureClientE70f5e05f09f93e00b997edb1ef0c864,
   UnorderedListFeatureClient as UnorderedListFeatureClientE70f5e05f09f93e00b997edb1ef0c864,
   UploadFeatureClient as UploadFeatureClientE70f5e05f09f93e00b997edb1ef0c864,
-} from '@revealui/core/richtext/client'
+} from '@revealui/core/richtext/client';
 import {
   RscEntryLexicalCell as RscEntryLexicalCell44fe37237e0ebf4470c9990d8cb7b07e,
   RscEntryLexicalField as RscEntryLexicalField44fe37237e0ebf4470c9990d8cb7b07e,
-} from '@revealui/core/richtext/rsc'
-import { default as default4d6ac3253bab303b1c48954197cfca34 } from '@/lib/collections/Prices/ui/PricesSelect'
-import { default as default7c13595db9274a0da8a15c431a9b3a54 } from '@/lib/components/Agent'
-import { default as default1a7510af427896d367a49dbf838d2de6 } from '@/lib/components/BeforeDashboard'
-import { default as default8a7ab0eb7ab5c511aba12e68480bfe5e } from '@/lib/components/BeforeLogin'
-import { default as defaultFe9ca0c9b67829fe284b73bb77968447 } from '@/lib/components/Icon'
-import { default as default2b7e2e151f989fb419ce3009e56b903e } from '@/lib/components/Logo'
-import { SlugComponent as SlugComponent92cc057d0a2abb4f6cf0307edf59f986 } from '@/lib/fields/slug/SlugComponent'
+} from '@revealui/core/richtext/rsc';
+import { default as default4d6ac3253bab303b1c48954197cfca34 } from '@/lib/collections/Prices/ui/PricesSelect';
+import { default as default7c13595db9274a0da8a15c431a9b3a54 } from '@/lib/components/Agent';
+import { default as default1a7510af427896d367a49dbf838d2de6 } from '@/lib/components/BeforeDashboard';
+import { default as default8a7ab0eb7ab5c511aba12e68480bfe5e } from '@/lib/components/BeforeLogin';
+import { default as defaultFe9ca0c9b67829fe284b73bb77968447 } from '@/lib/components/Icon';
+import { default as default2b7e2e151f989fb419ce3009e56b903e } from '@/lib/components/Logo';
+import { SlugComponent as SlugComponent92cc057d0a2abb4f6cf0307edf59f986 } from '@/lib/fields/slug/SlugComponent';
 
 export const importMap = {
   'revealui/cms/richtext/rsc#RscEntryLexicalCell':
@@ -93,4 +93,4 @@ export const importMap = {
   '@/lib/components/Agent#default': default7c13595db9274a0da8a15c431a9b3a54,
   '@/lib/components/BeforeLogin#default': default8a7ab0eb7ab5c511aba12e68480bfe5e,
   '@/lib/components/BeforeDashboard#default': default1a7510af427896d367a49dbf838d2de6,
-}
+};

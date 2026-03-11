@@ -6,7 +6,7 @@
  * Deletion requests are append-only audit records.
  */
 
-import { boolean, index, jsonb, pgTable, text, timestamp, unique } from 'drizzle-orm/pg-core'
+import { boolean, index, jsonb, pgTable, text, timestamp, unique } from 'drizzle-orm/pg-core';
 
 // =============================================================================
 // Consent Records
@@ -48,13 +48,13 @@ export const gdprConsents = pgTable(
     index('gdpr_consents_type_idx').on(table.type),
     index('gdpr_consents_granted_idx').on(table.granted),
   ],
-)
+);
 
 /** Row type for select queries */
-export type GdprConsentRow = typeof gdprConsents.$inferSelect
+export type GdprConsentRow = typeof gdprConsents.$inferSelect;
 
 /** Insert type for new records */
-export type GdprConsentInsert = typeof gdprConsents.$inferInsert
+export type GdprConsentInsert = typeof gdprConsents.$inferInsert;
 
 // =============================================================================
 // Deletion Requests
@@ -95,10 +95,10 @@ export const gdprDeletionRequests = pgTable(
     index('gdpr_deletion_requests_status_idx').on(table.status),
     index('gdpr_deletion_requests_requested_at_idx').on(table.requestedAt),
   ],
-)
+);
 
 /** Row type for select queries */
-export type GdprDeletionRequestRow = typeof gdprDeletionRequests.$inferSelect
+export type GdprDeletionRequestRow = typeof gdprDeletionRequests.$inferSelect;
 
 /** Insert type for new records */
-export type GdprDeletionRequestInsert = typeof gdprDeletionRequests.$inferInsert
+export type GdprDeletionRequestInsert = typeof gdprDeletionRequests.$inferInsert;

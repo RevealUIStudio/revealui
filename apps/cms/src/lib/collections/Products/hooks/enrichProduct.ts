@@ -6,9 +6,9 @@ import {
   getPriceRange,
   hasProductPrices,
   hasStripeProduct,
-} from '@revealui/contracts/entities'
-import type { RevealAfterReadHook, RevealDocument } from '@revealui/core'
-import type { Product } from '@revealui/core/types/cms'
+} from '@revealui/contracts/entities';
+import type { RevealAfterReadHook, RevealDocument } from '@revealui/core';
+import type { Product } from '@revealui/core/types/cms';
 
 /**
  * Product Enrichment Hook (afterRead)
@@ -61,28 +61,28 @@ import type { Product } from '@revealui/core/types/cms'
 export interface EnrichedProduct extends Product {
   /** Numeric price range */
   priceRange?: {
-    min: number | null
-    max: number | null
-    currency: string | null
-  } | null
+    min: number | null;
+    max: number | null;
+    currency: string | null;
+  } | null;
 
   /** Formatted price range string (e.g., "$9.99 - $99.99") */
-  formattedPriceRange?: string | null
+  formattedPriceRange?: string | null;
 
   /** Number of available prices */
-  priceCount?: number
+  priceCount?: number;
 
   /** Default Stripe price ID */
-  defaultPriceId?: string | null
+  defaultPriceId?: string | null;
 
   /** Whether product has valid Stripe product */
-  isActive?: boolean
+  isActive?: boolean;
 
   /** Whether paywall is enabled */
-  hasPaywall?: boolean
+  hasPaywall?: boolean;
 
   /** Whether product has associated prices */
-  hasPrices?: boolean
+  hasPrices?: boolean;
 }
 
 // =============================================================================
@@ -93,12 +93,12 @@ export interface EnrichedProduct extends Product {
  * Parse priceJSON string safely
  */
 function parsePriceJSON(priceJSON: string | null | undefined): unknown {
-  if (!priceJSON) return null
+  if (!priceJSON) return null;
 
   try {
-    return JSON.parse(priceJSON)
+    return JSON.parse(priceJSON);
   } catch {
-    return null
+    return null;
   }
 }
 
@@ -110,7 +110,7 @@ function parsePriceJSON(priceJSON: string | null | undefined): unknown {
  * Enrich product with computed display fields
  */
 export const enrichProduct: RevealAfterReadHook = async ({ doc }) => {
-  const product = doc as unknown as Product
+  const product = doc as unknown as Product;
 
   // Only enrich if product has Stripe product
   if (!hasStripeProduct(product as unknown as ContractsProduct)) {
@@ -123,26 +123,26 @@ export const enrichProduct: RevealAfterReadHook = async ({ doc }) => {
       isActive: false,
       hasPaywall: product.enablePaywall ?? false,
       hasPrices: false,
-    } as unknown as RevealDocument
+    } as unknown as RevealDocument;
   }
 
   // Parse priceJSON if it's a string
-  let workingProduct = product
+  let workingProduct = product;
   if (typeof product.priceJSON === 'string') {
-    const parsed = parsePriceJSON(product.priceJSON)
+    const parsed = parsePriceJSON(product.priceJSON);
     workingProduct = {
       ...product,
       priceJSON: parsed,
-    } as Product
+    } as Product;
   }
 
   // Calculate enrichment fields using utility functions
-  const contractsProduct = workingProduct as unknown as ContractsProduct
-  const priceRange = getPriceRange(contractsProduct)
-  const formattedPriceRange = formatPriceRange(contractsProduct)
-  const priceCount = getPriceCount(contractsProduct)
-  const defaultPriceId = getDefaultPriceId(contractsProduct)
-  const hasPrices = hasProductPrices(contractsProduct)
+  const contractsProduct = workingProduct as unknown as ContractsProduct;
+  const priceRange = getPriceRange(contractsProduct);
+  const formattedPriceRange = formatPriceRange(contractsProduct);
+  const priceCount = getPriceCount(contractsProduct);
+  const defaultPriceId = getDefaultPriceId(contractsProduct);
+  const hasPrices = hasProductPrices(contractsProduct);
 
   // Return enriched product
   return {
@@ -154,8 +154,8 @@ export const enrichProduct: RevealAfterReadHook = async ({ doc }) => {
     isActive: true,
     hasPaywall: product.enablePaywall ?? false,
     hasPrices,
-  } as unknown as RevealDocument
-}
+  } as unknown as RevealDocument;
+};
 
 // =============================================================================
 // Utility Exports
@@ -171,9 +171,9 @@ export async function enrichProductManually(product: Product): Promise<EnrichedP
     findMany: false,
     context: undefined,
     query: undefined,
-  })
+  });
 
-  return result as unknown as EnrichedProduct
+  return result as unknown as EnrichedProduct;
 }
 
 /**
@@ -188,22 +188,22 @@ export async function enrichProductsBatch(products: Product[]): Promise<Enriched
         findMany: false,
         context: undefined,
         query: undefined,
-      })
-      return result as unknown as EnrichedProduct
+      });
+      return result as unknown as EnrichedProduct;
     }),
-  )
+  );
 }
 
 /**
  * Extract price statistics from enriched product
  */
 export function getPriceStatistics(product: EnrichedProduct): {
-  hasValidPricing: boolean
-  minPrice: number | null
-  maxPrice: number | null
-  currency: string | null
-  totalPrices: number
-  formattedRange: string | null
+  hasValidPricing: boolean;
+  minPrice: number | null;
+  maxPrice: number | null;
+  currency: string | null;
+  totalPrices: number;
+  formattedRange: string | null;
 } {
   return {
     hasValidPricing: (product.isActive ?? false) && (product.hasPrices ?? false),
@@ -212,7 +212,7 @@ export function getPriceStatistics(product: EnrichedProduct): {
     currency: product.priceRange?.currency || null,
     totalPrices: product.priceCount || 0,
     formattedRange: product.formattedPriceRange || null,
-  }
+  };
 }
 
 /**
@@ -224,19 +224,19 @@ export function isProductPurchasable(product: EnrichedProduct): boolean {
     product.hasPrices === true &&
     product._status === 'published' &&
     (product.priceCount || 0) > 0
-  )
+  );
 }
 
 /**
  * Get product display name with price
  */
 export function getProductDisplayName(product: EnrichedProduct): string {
-  const title = product.title
-  const priceRange = product.formattedPriceRange
+  const title = product.title;
+  const priceRange = product.formattedPriceRange;
 
   if (priceRange) {
-    return `${title} (${priceRange})`
+    return `${title} (${priceRange})`;
   }
 
-  return title
+  return title;
 }

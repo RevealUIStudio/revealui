@@ -1,7 +1,7 @@
-import { NextResponse } from 'next/server'
+import { NextResponse } from 'next/server';
 
-export const runtime = 'nodejs'
-export const dynamic = 'force-dynamic'
+export const runtime = 'nodejs';
+export const dynamic = 'force-dynamic';
 
 /**
  * Liveness probe endpoint
@@ -15,5 +15,5 @@ export async function GET() {
       timestamp: new Date().toISOString(),
     },
     { status: 200 },
-  )
+  );
 }

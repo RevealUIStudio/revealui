@@ -3,32 +3,32 @@
  * @module @revealui/core/fields/getDefaultValue
  */
 
-import type { Field } from './config/types.js'
+import type { Field } from './config/types.js';
 
 interface GetDefaultValueArgs {
-  field: Field
-  locale?: string | null
-  user?: unknown
+  field: Field;
+  locale?: string | null;
+  user?: unknown;
 }
 
-type DefaultValueFn = (args: { locale?: string | null; user?: unknown }) => unknown
+type DefaultValueFn = (args: { locale?: string | null; user?: unknown }) => unknown;
 
 /**
  * Gets the default value for a field
  */
 export function getDefaultValue({ field, locale, user }: GetDefaultValueArgs): unknown {
-  void locale
-  void user
+  void locale;
+  void user;
 
   if ('defaultValue' in field) {
     if (typeof field.defaultValue === 'function') {
-      return (field.defaultValue as DefaultValueFn)({ locale, user })
+      return (field.defaultValue as DefaultValueFn)({ locale, user });
     }
-    return field.defaultValue
+    return field.defaultValue;
   }
 
   // Return undefined for fields without default values
-  return undefined
+  return undefined;
 }
 
-export default getDefaultValue
+export default getDefaultValue;

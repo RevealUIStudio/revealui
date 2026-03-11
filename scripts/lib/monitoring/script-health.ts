@@ -26,11 +26,11 @@
  * ```
  */
 
-import { mkdir } from 'node:fs/promises'
-import { join } from 'node:path'
-import { PGlite } from '@electric-sql/pglite'
-import { getExecutionLogger } from '../audit/execution-logger.js'
-import { ErrorCode, ScriptError } from '../errors.js'
+import { mkdir } from 'node:fs/promises';
+import { join } from 'node:path';
+import { PGlite } from '@electric-sql/pglite';
+import { getExecutionLogger } from '../audit/execution-logger.js';
+import { ErrorCode, ScriptError } from '../errors.js';
 
 // =============================================================================
 // Types
@@ -41,25 +41,25 @@ import { ErrorCode, ScriptError } from '../errors.js'
  */
 export interface HealthStatus {
   /** Overall status */
-  status: 'healthy' | 'degraded' | 'unhealthy' | 'critical'
+  status: 'healthy' | 'degraded' | 'unhealthy' | 'critical';
 
   /** Health score (0-100) */
-  score: number
+  score: number;
 
   /** Success rate (0-1) */
-  successRate: number
+  successRate: number;
 
   /** Trend (improving, stable, degrading) */
-  trend: 'improving' | 'stable' | 'degrading'
+  trend: 'improving' | 'stable' | 'degrading';
 
   /** Last execution timestamp */
-  lastExecution: Date | null
+  lastExecution: Date | null;
 
   /** Recent failures count */
-  recentFailures: number
+  recentFailures: number;
 
   /** Average execution time (ms) */
-  avgExecutionTimeMs: number
+  avgExecutionTimeMs: number;
 }
 
 /**
@@ -67,19 +67,19 @@ export interface HealthStatus {
  */
 export interface HealthAlert {
   /** Alert severity */
-  severity: 'info' | 'warning' | 'critical'
+  severity: 'info' | 'warning' | 'critical';
 
   /** Alert message */
-  message: string
+  message: string;
 
   /** Script name */
-  scriptName: string
+  scriptName: string;
 
   /** Alert timestamp */
-  timestamp: Date
+  timestamp: Date;
 
   /** Related metrics */
-  metrics: Record<string, unknown>
+  metrics: Record<string, unknown>;
 }
 
 /**
@@ -87,16 +87,16 @@ export interface HealthAlert {
  */
 export interface HealthSnapshot {
   /** Script name */
-  scriptName: string
+  scriptName: string;
 
   /** Snapshot timestamp */
-  timestamp: Date
+  timestamp: Date;
 
   /** Health status at this point */
-  status: HealthStatus
+  status: HealthStatus;
 
   /** Active alerts */
-  alerts: HealthAlert[]
+  alerts: HealthAlert[];
 }
 
 /**
@@ -104,20 +104,20 @@ export interface HealthSnapshot {
  */
 export interface HealthDashboard {
   /** Overall system health */
-  overall: HealthStatus
+  overall: HealthStatus;
 
   /** Per-script health */
   scripts: Array<{
-    scriptName: string
-    status: HealthStatus
-    alerts: HealthAlert[]
-  }>
+    scriptName: string;
+    status: HealthStatus;
+    alerts: HealthAlert[];
+  }>;
 
   /** System-wide alerts */
-  systemAlerts: HealthAlert[]
+  systemAlerts: HealthAlert[];
 
   /** Generated at */
-  timestamp: Date
+  timestamp: Date;
 }
 
 // =============================================================================
@@ -125,12 +125,12 @@ export interface HealthDashboard {
 // =============================================================================
 
 export class ScriptHealthMonitor {
-  private static instance: ScriptHealthMonitor | null = null
-  private db: PGlite | null = null
-  private dbPath: string
+  private static instance: ScriptHealthMonitor | null = null;
+  private db: PGlite | null = null;
+  private dbPath: string;
 
   private constructor(dbPath: string) {
-    this.dbPath = dbPath
+    this.dbPath = dbPath;
   }
 
   /**
@@ -138,13 +138,13 @@ export class ScriptHealthMonitor {
    */
   static async getInstance(projectRoot?: string): Promise<ScriptHealthMonitor> {
     if (!ScriptHealthMonitor.instance) {
-      const root = projectRoot || process.cwd()
-      const dbPath = join(root, '.revealui', 'script-management.db')
-      ScriptHealthMonitor.instance = new ScriptHealthMonitor(dbPath)
-      await ScriptHealthMonitor.instance.initialize()
+      const root = projectRoot || process.cwd();
+      const dbPath = join(root, '.revealui', 'script-management.db');
+      ScriptHealthMonitor.instance = new ScriptHealthMonitor(dbPath);
+      await ScriptHealthMonitor.instance.initialize();
     }
 
-    return ScriptHealthMonitor.instance
+    return ScriptHealthMonitor.instance;
   }
 
   /**
@@ -153,16 +153,16 @@ export class ScriptHealthMonitor {
   async initialize(): Promise<void> {
     try {
       // Ensure directory exists
-      await mkdir(join(this.dbPath, '..'), { recursive: true })
+      await mkdir(join(this.dbPath, '..'), { recursive: true });
 
       // Initialize PGlite
-      this.db = new PGlite(this.dbPath)
+      this.db = new PGlite(this.dbPath);
 
       // Create schema
-      await this.createSchema()
+      await this.createSchema();
     } catch (error) {
-      console.error('Failed to initialize health monitor:', error)
-      throw error
+      console.error('Failed to initialize health monitor:', error);
+      throw error;
     }
   }
 
@@ -170,7 +170,7 @@ export class ScriptHealthMonitor {
    * Create database schema
    */
   private async createSchema(): Promise<void> {
-    if (!this.db) throw new ScriptError('Database not initialized', ErrorCode.INVALID_STATE)
+    if (!this.db) throw new ScriptError('Database not initialized', ErrorCode.INVALID_STATE);
 
     await this.db.exec(`
       CREATE TABLE IF NOT EXISTS health_snapshots (
@@ -188,24 +188,24 @@ export class ScriptHealthMonitor {
 
       CREATE INDEX IF NOT EXISTS idx_health_script_name ON health_snapshots(script_name);
       CREATE INDEX IF NOT EXISTS idx_health_timestamp ON health_snapshots(timestamp);
-    `)
+    `);
   }
 
   /**
    * Get current health status for a script
    */
   async getHealth(scriptName: string): Promise<HealthStatus> {
-    const logger = await getExecutionLogger()
+    const logger = await getExecutionLogger();
 
     // Get execution history (last 30 days)
-    const thirtyDaysAgo = new Date()
-    thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30)
+    const thirtyDaysAgo = new Date();
+    thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
 
     const executions = await logger.getHistory({
       scriptName,
       startDate: thirtyDaysAgo,
       limit: 100,
-    })
+    });
 
     if (executions.length === 0) {
       return {
@@ -216,46 +216,46 @@ export class ScriptHealthMonitor {
         lastExecution: null,
         recentFailures: 0,
         avgExecutionTimeMs: 0,
-      }
+      };
     }
 
     // Calculate metrics
-    const successCount = executions.filter((e) => e.success).length
-    const successRate = successCount / executions.length
+    const successCount = executions.filter((e) => e.success).length;
+    const successRate = successCount / executions.length;
 
     // Recent failures (last 10 executions)
-    const recent = executions.slice(0, 10)
-    const recentFailures = recent.filter((e) => !e.success).length
+    const recent = executions.slice(0, 10);
+    const recentFailures = recent.filter((e) => !e.success).length;
 
     // Average execution time (rounded to integer for database storage)
     const avgExecutionTimeMs = Math.round(
       executions
         .filter((e) => e.durationMs !== null)
         .reduce((sum, e) => sum + (e.durationMs || 0), 0) / executions.length,
-    )
+    );
 
     // Calculate trend (compare first half vs second half)
-    const halfPoint = Math.floor(executions.length / 2)
-    const oldHalf = executions.slice(halfPoint)
-    const newHalf = executions.slice(0, halfPoint)
+    const halfPoint = Math.floor(executions.length / 2);
+    const oldHalf = executions.slice(halfPoint);
+    const newHalf = executions.slice(0, halfPoint);
 
-    const oldSuccessRate = oldHalf.filter((e) => e.success).length / oldHalf.length
-    const newSuccessRate = newHalf.filter((e) => e.success).length / newHalf.length
+    const oldSuccessRate = oldHalf.filter((e) => e.success).length / oldHalf.length;
+    const newSuccessRate = newHalf.filter((e) => e.success).length / newHalf.length;
 
-    let trend: 'improving' | 'stable' | 'degrading'
-    if (newSuccessRate > oldSuccessRate + 0.1) trend = 'improving'
-    else if (newSuccessRate < oldSuccessRate - 0.1) trend = 'degrading'
-    else trend = 'stable'
+    let trend: 'improving' | 'stable' | 'degrading';
+    if (newSuccessRate > oldSuccessRate + 0.1) trend = 'improving';
+    else if (newSuccessRate < oldSuccessRate - 0.1) trend = 'degrading';
+    else trend = 'stable';
 
     // Calculate health score
-    const score = this.calculateHealthScore(successRate, recentFailures, trend)
+    const score = this.calculateHealthScore(successRate, recentFailures, trend);
 
     // Determine status
-    let status: HealthStatus['status']
-    if (score >= 90) status = 'healthy'
-    else if (score >= 70) status = 'degraded'
-    else if (score >= 50) status = 'unhealthy'
-    else status = 'critical'
+    let status: HealthStatus['status'];
+    if (score >= 90) status = 'healthy';
+    else if (score >= 70) status = 'degraded';
+    else if (score >= 50) status = 'unhealthy';
+    else status = 'critical';
 
     return {
       status,
@@ -265,7 +265,7 @@ export class ScriptHealthMonitor {
       lastExecution: executions[0].startedAt,
       recentFailures,
       avgExecutionTimeMs,
-    }
+    };
   }
 
   /**
@@ -275,28 +275,28 @@ export class ScriptHealthMonitor {
     scriptName: string,
     options: { days?: number; limit?: number } = {},
   ): Promise<HealthSnapshot[]> {
-    if (!this.db) throw new ScriptError('Database not initialized', ErrorCode.INVALID_STATE)
+    if (!this.db) throw new ScriptError('Database not initialized', ErrorCode.INVALID_STATE);
 
-    const { days = 7, limit = 50 } = options
-    const cutoffTime = Date.now() - days * 24 * 60 * 60 * 1000
+    const { days = 7, limit = 50 } = options;
+    const cutoffTime = Date.now() - days * 24 * 60 * 60 * 1000;
 
     const result = await this.db.query<{
-      script_name: string
-      timestamp: string
-      status: string
-      score: number
-      success_rate: number
-      trend: string
-      recent_failures: number
-      avg_execution_time_ms: number
-      alerts: string
+      script_name: string;
+      timestamp: string;
+      status: string;
+      score: number;
+      success_rate: number;
+      trend: string;
+      recent_failures: number;
+      avg_execution_time_ms: number;
+      alerts: string;
     }>(
       `SELECT * FROM health_snapshots
        WHERE script_name = $1 AND timestamp >= $2
        ORDER BY timestamp DESC
        LIMIT $3`,
       [scriptName, cutoffTime, limit],
-    )
+    );
 
     return result.rows.map((row) => ({
       scriptName: row.script_name,
@@ -311,52 +311,52 @@ export class ScriptHealthMonitor {
         avgExecutionTimeMs: Number(row.avg_execution_time_ms),
       },
       alerts: JSON.parse(row.alerts) as HealthAlert[],
-    }))
+    }));
   }
 
   /**
    * Get comprehensive health dashboard
    */
   async getDashboard(): Promise<HealthDashboard> {
-    const logger = await getExecutionLogger()
+    const logger = await getExecutionLogger();
 
     // Get all unique script names from execution history
-    const stats = await logger.getStats({ days: 30 })
-    const scriptNames = [...new Set(stats.topScripts.map((s) => s.scriptName))]
+    const stats = await logger.getStats({ days: 30 });
+    const scriptNames = [...new Set(stats.topScripts.map((s) => s.scriptName))];
 
     // Get health for each script
     const scriptHealth = await Promise.all(
       scriptNames.map(async (scriptName) => {
-        const status = await this.getHealth(scriptName)
-        const alerts = await this.generateAlerts(scriptName, status)
+        const status = await this.getHealth(scriptName);
+        const alerts = await this.generateAlerts(scriptName, status);
 
         // Store snapshot
-        await this.storeSnapshot(scriptName, status, alerts)
+        await this.storeSnapshot(scriptName, status, alerts);
 
         return {
           scriptName,
           status,
           alerts,
-        }
+        };
       }),
-    )
+    );
 
     // Calculate overall health
     const overallScore =
       scriptHealth.length > 0
         ? scriptHealth.reduce((sum, s) => sum + s.status.score, 0) / scriptHealth.length
-        : 100
+        : 100;
 
     const overallSuccessRate =
       scriptHealth.length > 0
         ? scriptHealth.reduce((sum, s) => sum + s.status.successRate, 0) / scriptHealth.length
-        : 1
+        : 1;
 
-    let overallStatus: HealthStatus['status']
-    if (overallScore >= 90) overallStatus = 'healthy'
-    else if (overallScore >= 70) overallStatus = 'degraded'
-    else if (overallScore >= 50) overallStatus = 'unhealthy'
-    else overallStatus = 'critical'
+    let overallStatus: HealthStatus['status'];
+    if (overallScore >= 90) overallStatus = 'healthy';
+    else if (overallScore >= 70) overallStatus = 'degraded';
+    else if (overallScore >= 50) overallStatus = 'unhealthy';
+    else overallStatus = 'critical';
 
     const overall: HealthStatus = {
       status: overallStatus,
@@ -371,10 +371,10 @@ export class ScriptHealthMonitor {
               scriptHealth.length
           : 0,
       ),
-    }
+    };
 
     // Collect system-wide alerts
-    const systemAlerts: HealthAlert[] = []
+    const systemAlerts: HealthAlert[] = [];
     if (overallStatus === 'critical') {
       systemAlerts.push({
         severity: 'critical',
@@ -385,7 +385,7 @@ export class ScriptHealthMonitor {
           overallScore,
           affectedScripts: scriptHealth.filter((s) => s.status.status === 'critical').length,
         },
-      })
+      });
     }
 
     return {
@@ -393,7 +393,7 @@ export class ScriptHealthMonitor {
       scripts: scriptHealth,
       systemAlerts,
       timestamp: new Date(),
-    }
+    };
   }
 
   /**
@@ -401,8 +401,8 @@ export class ScriptHealthMonitor {
    */
   async close(): Promise<void> {
     if (this.db) {
-      await this.db.close()
-      this.db = null
+      await this.db.close();
+      this.db = null;
     }
   }
 
@@ -418,23 +418,23 @@ export class ScriptHealthMonitor {
     recentFailures: number,
     trend: HealthStatus['trend'],
   ): number {
-    let score = successRate * 100
+    let score = successRate * 100;
 
     // Penalize recent failures
-    score -= recentFailures * 5
+    score -= recentFailures * 5;
 
     // Adjust for trend
-    if (trend === 'improving') score += 5
-    else if (trend === 'degrading') score -= 10
+    if (trend === 'improving') score += 5;
+    else if (trend === 'degrading') score -= 10;
 
-    return Math.max(0, Math.min(100, Math.round(score)))
+    return Math.max(0, Math.min(100, Math.round(score)));
   }
 
   /**
    * Generate alerts based on health status
    */
   private async generateAlerts(scriptName: string, status: HealthStatus): Promise<HealthAlert[]> {
-    const alerts: HealthAlert[] = []
+    const alerts: HealthAlert[] = [];
 
     if (status.status === 'critical') {
       alerts.push({
@@ -447,7 +447,7 @@ export class ScriptHealthMonitor {
           successRate: status.successRate,
           recentFailures: status.recentFailures,
         },
-      })
+      });
     } else if (status.status === 'unhealthy') {
       alerts.push({
         severity: 'warning',
@@ -458,7 +458,7 @@ export class ScriptHealthMonitor {
           score: status.score,
           successRate: status.successRate,
         },
-      })
+      });
     }
 
     if (status.trend === 'degrading') {
@@ -468,7 +468,7 @@ export class ScriptHealthMonitor {
         scriptName,
         timestamp: new Date(),
         metrics: { trend: status.trend },
-      })
+      });
     }
 
     if (status.recentFailures >= 3) {
@@ -478,10 +478,10 @@ export class ScriptHealthMonitor {
         scriptName,
         timestamp: new Date(),
         metrics: { recentFailures: status.recentFailures },
-      })
+      });
     }
 
-    return alerts
+    return alerts;
   }
 
   /**
@@ -492,7 +492,7 @@ export class ScriptHealthMonitor {
     status: HealthStatus,
     alerts: HealthAlert[],
   ): Promise<void> {
-    if (!this.db) throw new ScriptError('Database not initialized', ErrorCode.INVALID_STATE)
+    if (!this.db) throw new ScriptError('Database not initialized', ErrorCode.INVALID_STATE);
 
     await this.db.query(
       `
@@ -512,7 +512,7 @@ export class ScriptHealthMonitor {
         status.avgExecutionTimeMs,
         JSON.stringify(alerts),
       ],
-    )
+    );
   }
 }
 
@@ -524,5 +524,5 @@ export class ScriptHealthMonitor {
  * Get health monitor instance
  */
 export async function getHealthMonitor(projectRoot?: string): Promise<ScriptHealthMonitor> {
-  return ScriptHealthMonitor.getInstance(projectRoot)
+  return ScriptHealthMonitor.getInstance(projectRoot);
 }

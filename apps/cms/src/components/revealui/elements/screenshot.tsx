@@ -1,6 +1,6 @@
-import { clsx } from 'clsx/lite'
-import type { ComponentProps } from 'react'
-import { Wallpaper } from './wallpaper'
+import { clsx } from 'clsx/lite';
+import type { ComponentProps } from 'react';
+import { Wallpaper } from './wallpaper';
 
 export function Screenshot({
   children,
@@ -9,8 +9,8 @@ export function Screenshot({
   className,
   ...props
 }: {
-  wallpaper: 'green' | 'blue' | 'purple' | 'brown'
-  placement: 'bottom' | 'bottom-left' | 'bottom-right' | 'top' | 'top-left' | 'top-right'
+  wallpaper: 'green' | 'blue' | 'purple' | 'brown';
+  placement: 'bottom' | 'bottom-left' | 'bottom-right' | 'top' | 'top-left' | 'top-right';
 } & Omit<ComponentProps<'div'>, 'color'>) {
   return (
     <Wallpaper
@@ -25,5 +25,5 @@ export function Screenshot({
         </div>
       </div>
     </Wallpaper>
-  )
+  );
 }

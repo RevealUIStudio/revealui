@@ -5,9 +5,9 @@
  * field configurations to ensure correct storage type detection.
  */
 
-import { describe, expect, it } from 'vitest'
-import { getRelationshipFields } from '../revealui.js'
-import type { RevealCollectionConfig } from '../types/index.js'
+import { describe, expect, it } from 'vitest';
+import { getRelationshipFields } from '../revealui.js';
+import type { RevealCollectionConfig } from '../types/index.js';
 
 // Test collection with various relationship types
 const testCollectionConfig: RevealCollectionConfig = {
@@ -59,7 +59,7 @@ const testCollectionConfig: RevealCollectionConfig = {
       ],
     },
   ],
-}
+};
 
 // Expected results
 const expectedRelationships = [
@@ -113,72 +113,72 @@ const expectedRelationships = [
     path: 'tags.tag',
     maxDepth: 1,
   },
-]
+];
 
 describe('Relationship Field Analyzer', () => {
   it('should extract all relationship fields with correct metadata', () => {
-    const result = getRelationshipFields(testCollectionConfig)
+    const result = getRelationshipFields(testCollectionConfig);
 
     // Check count
-    expect(result.length).toBe(expectedRelationships.length)
+    expect(result.length).toBe(expectedRelationships.length);
 
     // Check each relationship
     for (let i = 0; i < Math.min(result.length, expectedRelationships.length); i++) {
-      const actual = result[i]
-      const expected = expectedRelationships[i]
+      const actual = result[i];
+      const expected = expectedRelationships[i];
 
-      expect(actual.fieldName).toBe(expected.fieldName)
-      expect(actual.storageType).toBe(expected.storageType)
-      expect(JSON.stringify(actual.relationTo)).toBe(JSON.stringify(expected.relationTo))
-      expect(actual.hasMany).toBe(expected.hasMany)
-      expect(actual.path).toBe(expected.path)
+      expect(actual.fieldName).toBe(expected.fieldName);
+      expect(actual.storageType).toBe(expected.storageType);
+      expect(JSON.stringify(actual.relationTo)).toBe(JSON.stringify(expected.relationTo));
+      expect(actual.hasMany).toBe(expected.hasMany);
+      expect(actual.path).toBe(expected.path);
 
       // Check tableName (may be undefined for direct_fk)
       if (expected.tableName) {
-        expect(actual.tableName).toBe(expected.tableName)
+        expect(actual.tableName).toBe(expected.tableName);
       }
 
       // Check fkColumnName (may be undefined for junction tables)
       if (expected.fkColumnName) {
-        expect(actual.fkColumnName).toBe(expected.fkColumnName)
+        expect(actual.fkColumnName).toBe(expected.fkColumnName);
       }
     }
-  })
+  });
 
   it('should detect direct FK relationships', () => {
-    const result = getRelationshipFields(testCollectionConfig)
-    const authorRel = result.find((r) => r.fieldName === 'author')
+    const result = getRelationshipFields(testCollectionConfig);
+    const authorRel = result.find((r) => r.fieldName === 'author');
 
-    expect(authorRel).toBeDefined()
-    expect(authorRel?.storageType).toBe('direct_fk')
-    expect(authorRel?.hasMany).toBe(false)
-    expect(authorRel?.fkColumnName).toBe('author_id')
-  })
+    expect(authorRel).toBeDefined();
+    expect(authorRel?.storageType).toBe('direct_fk');
+    expect(authorRel?.hasMany).toBe(false);
+    expect(authorRel?.fkColumnName).toBe('author_id');
+  });
 
   it('should detect junction table relationships', () => {
-    const result = getRelationshipFields(testCollectionConfig)
-    const categoriesRel = result.find((r) => r.fieldName === 'categories')
+    const result = getRelationshipFields(testCollectionConfig);
+    const categoriesRel = result.find((r) => r.fieldName === 'categories');
 
-    expect(categoriesRel).toBeDefined()
-    expect(categoriesRel?.storageType).toBe('junction_table')
-    expect(categoriesRel?.hasMany).toBe(true)
-    expect(categoriesRel?.tableName).toContain('_rels')
-  })
+    expect(categoriesRel).toBeDefined();
+    expect(categoriesRel?.storageType).toBe('junction_table');
+    expect(categoriesRel?.hasMany).toBe(true);
+    expect(categoriesRel?.tableName).toContain('_rels');
+  });
 
   it('should detect polymorphic relationships', () => {
-    const result = getRelationshipFields(testCollectionConfig)
-    const relatedContentRel = result.find((r) => r.fieldName === 'relatedContent')
+    const result = getRelationshipFields(testCollectionConfig);
+    const relatedContentRel = result.find((r) => r.fieldName === 'relatedContent');
 
-    expect(relatedContentRel).toBeDefined()
-    expect(relatedContentRel?.storageType).toBe('polymorphic')
-    expect(Array.isArray(relatedContentRel?.relationTo)).toBe(true)
-  })
+    expect(relatedContentRel).toBeDefined();
+    expect(relatedContentRel?.storageType).toBe('polymorphic');
+    expect(Array.isArray(relatedContentRel?.relationTo)).toBe(true);
+  });
 
   it('should handle nested relationship fields in arrays', () => {
-    const result = getRelationshipFields(testCollectionConfig)
-    const tagRel = result.find((r) => r.fieldName === 'tag' && r.path === 'tags.tag')
+    const result = getRelationshipFields(testCollectionConfig);
+    const tagRel = result.find((r) => r.fieldName === 'tag' && r.path === 'tags.tag');
 
-    expect(tagRel).toBeDefined()
-    expect(tagRel?.path).toBe('tags.tag')
-  })
-})
+    expect(tagRel).toBeDefined();
+    expect(tagRel?.path).toBe('tags.tag');
+  });
+});

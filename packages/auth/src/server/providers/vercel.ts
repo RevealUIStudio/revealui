@@ -5,14 +5,14 @@
  * No scopes required — Vercel uses full access by default.
  */
 
-import type { ProviderUser } from '../oauth.js'
+import type { ProviderUser } from '../oauth.js';
 
 export function buildAuthUrl(clientId: string, redirectUri: string, state: string): string {
-  const url = new URL('https://vercel.com/oauth/authorize')
-  url.searchParams.set('client_id', clientId)
-  url.searchParams.set('redirect_uri', redirectUri)
-  url.searchParams.set('state', state)
-  return url.toString()
+  const url = new URL('https://vercel.com/oauth/authorize');
+  url.searchParams.set('client_id', clientId);
+  url.searchParams.set('redirect_uri', redirectUri);
+  url.searchParams.set('state', state);
+  return url.toString();
 }
 
 export async function exchangeCode(code: string, redirectUri: string): Promise<string> {
@@ -25,57 +25,57 @@ export async function exchangeCode(code: string, redirectUri: string): Promise<s
       client_secret: process.env.VERCEL_CLIENT_SECRET ?? '',
       redirect_uri: redirectUri,
     }),
-  })
+  });
 
   if (!response.ok) {
-    let detail = ''
+    let detail = '';
     try {
-      const err = (await response.json()) as { error_description?: string; error?: string }
-      detail = err.error_description ?? err.error ?? ''
+      const err = (await response.json()) as { error_description?: string; error?: string };
+      detail = err.error_description ?? err.error ?? '';
     } catch {
       // Response body not JSON — use status only
     }
     throw new Error(
       `Vercel token exchange failed: ${response.status}${detail ? ` — ${detail}` : ''}`,
-    )
+    );
   }
 
-  const data = (await response.json()) as { access_token: string }
-  return data.access_token
+  const data = (await response.json()) as { access_token: string };
+  return data.access_token;
 }
 
 export async function fetchUser(accessToken: string): Promise<ProviderUser> {
   const response = await fetch('https://api.vercel.com/v2/user', {
     // biome-ignore lint/style/useNamingConvention: HTTP header names are case-sensitive per RFC 7230
     headers: { Authorization: `Bearer ${accessToken}` },
-  })
+  });
 
   if (!response.ok) {
-    let detail = ''
+    let detail = '';
     try {
-      const err = (await response.json()) as { error?: { message?: string } }
-      detail = err.error?.message ?? ''
+      const err = (await response.json()) as { error?: { message?: string } };
+      detail = err.error?.message ?? '';
     } catch {
       // Response body not JSON
     }
-    throw new Error(`Vercel user fetch failed: ${response.status}${detail ? ` — ${detail}` : ''}`)
+    throw new Error(`Vercel user fetch failed: ${response.status}${detail ? ` — ${detail}` : ''}`);
   }
 
   const data = (await response.json()) as {
     user: {
-      id: string
-      email: string
-      name?: string | null
-      username?: string
-      avatar?: string | null
-    }
-  }
+      id: string;
+      email: string;
+      name?: string | null;
+      username?: string;
+      avatar?: string | null;
+    };
+  };
 
-  const u = data.user
+  const u = data.user;
   return {
     id: u.id,
     email: u.email,
     name: u.name ?? u.username ?? 'Vercel User',
     avatarUrl: u.avatar ? `https://avatar.vercel.sh/${u.avatar}` : null,
-  }
+  };
 }

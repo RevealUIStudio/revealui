@@ -1,5 +1,5 @@
-import { clsx } from 'clsx/lite'
-import type { ComponentProps } from 'react'
+import { clsx } from 'clsx/lite';
+import type { ComponentProps } from 'react';
 
 export function Heading({
   children,
@@ -19,5 +19,5 @@ export function Heading({
     >
       {children}
     </h1>
-  )
+  );
 }

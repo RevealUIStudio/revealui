@@ -1,4 +1,4 @@
-import type { CollectionConfig } from '@revealui/contracts'
+import type { CollectionConfig } from '@revealui/contracts';
 
 export const Products: CollectionConfig = {
   slug: 'products',
@@ -47,4 +47,4 @@ export const Products: CollectionConfig = {
       ],
     },
   ],
-}
+};

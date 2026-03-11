@@ -2,9 +2,9 @@
  * Code Provenance database queries
  */
 
-import { and, desc, eq, like, sql } from 'drizzle-orm'
-import type { DatabaseClient } from '../client/types.js'
-import { codeProvenance, codeReviews } from '../schema/code-provenance.js'
+import { and, desc, eq, like, sql } from 'drizzle-orm';
+import type { DatabaseClient } from '../client/types.js';
+import { codeProvenance, codeReviews } from '../schema/code-provenance.js';
 
 // =============================================================================
 // Provenance Queries
@@ -15,12 +15,12 @@ export async function getProvenanceByFile(db: DatabaseClient, filePath: string) 
     .select()
     .from(codeProvenance)
     .where(eq(codeProvenance.filePath, filePath))
-    .orderBy(codeProvenance.lineStart)
+    .orderBy(codeProvenance.lineStart);
 }
 
 export async function getProvenanceById(db: DatabaseClient, id: string) {
-  const result = await db.select().from(codeProvenance).where(eq(codeProvenance.id, id)).limit(1)
-  return result[0] ?? null
+  const result = await db.select().from(codeProvenance).where(eq(codeProvenance.id, id)).limit(1);
+  return result[0] ?? null;
 }
 
 export async function getProvenanceByCommit(db: DatabaseClient, gitCommitHash: string) {
@@ -28,86 +28,86 @@ export async function getProvenanceByCommit(db: DatabaseClient, gitCommitHash: s
     .select()
     .from(codeProvenance)
     .where(eq(codeProvenance.gitCommitHash, gitCommitHash))
-    .orderBy(codeProvenance.filePath)
+    .orderBy(codeProvenance.filePath);
 }
 
 export async function getUnreviewedProvenance(
   db: DatabaseClient,
   filters?: {
-    authorType?: string
-    filePathPrefix?: string
+    authorType?: string;
+    filePathPrefix?: string;
   },
 ) {
-  const conditions = [eq(codeProvenance.reviewStatus, 'unreviewed')]
+  const conditions = [eq(codeProvenance.reviewStatus, 'unreviewed')];
 
   if (filters?.authorType) {
-    conditions.push(eq(codeProvenance.authorType, filters.authorType))
+    conditions.push(eq(codeProvenance.authorType, filters.authorType));
   }
   if (filters?.filePathPrefix) {
-    conditions.push(like(codeProvenance.filePath, `${filters.filePathPrefix}%`))
+    conditions.push(like(codeProvenance.filePath, `${filters.filePathPrefix}%`));
   }
 
   return db
     .select()
     .from(codeProvenance)
     .where(and(...conditions))
-    .orderBy(desc(codeProvenance.createdAt))
+    .orderBy(desc(codeProvenance.createdAt));
 }
 
 export async function getAllProvenance(
   db: DatabaseClient,
   filters?: {
-    authorType?: string
-    reviewStatus?: string
-    filePathPrefix?: string
-    limit?: number
-    offset?: number
+    authorType?: string;
+    reviewStatus?: string;
+    filePathPrefix?: string;
+    limit?: number;
+    offset?: number;
   },
 ) {
-  const conditions = []
+  const conditions = [];
 
   if (filters?.authorType) {
-    conditions.push(eq(codeProvenance.authorType, filters.authorType))
+    conditions.push(eq(codeProvenance.authorType, filters.authorType));
   }
   if (filters?.reviewStatus) {
-    conditions.push(eq(codeProvenance.reviewStatus, filters.reviewStatus))
+    conditions.push(eq(codeProvenance.reviewStatus, filters.reviewStatus));
   }
   if (filters?.filePathPrefix) {
-    conditions.push(like(codeProvenance.filePath, `${filters.filePathPrefix}%`))
+    conditions.push(like(codeProvenance.filePath, `${filters.filePathPrefix}%`));
   }
 
-  const cap = Math.min(filters?.limit ?? 100, 500)
-  const off = filters?.offset ?? 0
+  const cap = Math.min(filters?.limit ?? 100, 500);
+  const off = filters?.offset ?? 0;
 
-  const query = db.select().from(codeProvenance)
+  const query = db.select().from(codeProvenance);
 
   if (conditions.length > 0) {
     return query
       .where(and(...conditions))
       .orderBy(desc(codeProvenance.createdAt))
       .limit(cap)
-      .offset(off)
+      .offset(off);
   }
 
-  return query.orderBy(desc(codeProvenance.createdAt)).limit(cap).offset(off)
+  return query.orderBy(desc(codeProvenance.createdAt)).limit(cap).offset(off);
 }
 
 export async function createProvenance(
   db: DatabaseClient,
   data: {
-    id: string
-    filePath: string
-    authorType: string
-    functionName?: string
-    lineStart?: number
-    lineEnd?: number
-    aiModel?: string
-    aiSessionId?: string
-    gitCommitHash?: string
-    gitAuthor?: string
-    confidence?: number
-    linesOfCode?: number
-    metadata?: unknown
+    id: string;
+    filePath: string;
+    authorType: string;
+    functionName?: string;
+    lineStart?: number;
+    lineEnd?: number;
+    aiModel?: string;
+    aiSessionId?: string;
+    gitCommitHash?: string;
+    gitAuthor?: string;
+    confidence?: number;
+    linesOfCode?: number;
+    metadata?: unknown;
   },
 ) {
   const result = await db
@@ -116,39 +116,39 @@ export async function createProvenance(
       ...data,
       metadata: data.metadata ?? {},
     })
-    .returning()
+    .returning();
 
-  return result[0]
+  return result[0];
 }
 
 export async function updateProvenance(
   db: DatabaseClient,
   id: string,
   data: Partial<{
-    filePath: string
-    functionName: string | null
-    lineStart: number | null
-    lineEnd: number | null
-    authorType: string
-    aiModel: string | null
-    aiSessionId: string | null
-    gitCommitHash: string | null
-    gitAuthor: string | null
-    confidence: number
-    reviewStatus: string
-    reviewedBy: string | null
-    reviewedAt: Date | null
-    linesOfCode: number
-    metadata: unknown
+    filePath: string;
+    functionName: string | null;
+    lineStart: number | null;
+    lineEnd: number | null;
+    authorType: string;
+    aiModel: string | null;
+    aiSessionId: string | null;
+    gitCommitHash: string | null;
+    gitAuthor: string | null;
+    confidence: number;
+    reviewStatus: string;
+    reviewedBy: string | null;
+    reviewedAt: Date | null;
+    linesOfCode: number;
+    metadata: unknown;
   }>,
 ) {
   const result = await db
     .update(codeProvenance)
     .set({ ...data, updatedAt: new Date() })
     .where(eq(codeProvenance.id, id))
-    .returning()
+    .returning();
 
-  return result[0] ?? null
+  return result[0] ?? null;
 }
 
 export async function updateReviewStatus(
@@ -166,13 +166,13 @@ export async function updateReviewStatus(
       updatedAt: new Date(),
     })
     .where(eq(codeProvenance.id, id))
-    .returning()
+    .returning();
 
-  return result[0] ?? null
+  return result[0] ?? null;
 }
 
 export async function deleteProvenance(db: DatabaseClient, id: string) {
-  await db.delete(codeProvenance).where(eq(codeProvenance.id, id))
+  await db.delete(codeProvenance).where(eq(codeProvenance.id, id));
 }
 
 export async function getProvenanceStats(db: DatabaseClient) {
@@ -183,7 +183,7 @@ export async function getProvenanceStats(db: DatabaseClient) {
       totalLines: sql<number>`COALESCE(SUM(${codeProvenance.linesOfCode}), 0)`,
     })
     .from(codeProvenance)
-    .groupBy(codeProvenance.authorType)
+    .groupBy(codeProvenance.authorType);
 
   const byReviewStatus = await db
     .select({
@@ -191,9 +191,9 @@ export async function getProvenanceStats(db: DatabaseClient) {
       count: sql<number>`COUNT(*)`,
     })
     .from(codeProvenance)
-    .groupBy(codeProvenance.reviewStatus)
+    .groupBy(codeProvenance.reviewStatus);
 
-  return { byAuthorType, byReviewStatus }
+  return { byAuthorType, byReviewStatus };
 }
 
 // =============================================================================
@@ -205,19 +205,19 @@ export async function getReviewsForProvenance(db: DatabaseClient, provenanceId: 
     .select()
     .from(codeReviews)
     .where(eq(codeReviews.provenanceId, provenanceId))
-    .orderBy(desc(codeReviews.createdAt))
+    .orderBy(desc(codeReviews.createdAt));
 }
 
 export async function createReview(
   db: DatabaseClient,
   data: {
-    id: string
-    provenanceId: string
-    reviewerId?: string
-    reviewType: string
-    status: string
-    comment?: string
-    metadata?: unknown
+    id: string;
+    provenanceId: string;
+    reviewerId?: string;
+    reviewType: string;
+    status: string;
+    comment?: string;
+    metadata?: unknown;
   },
 ) {
   const result = await db
@@ -226,7 +226,7 @@ export async function createReview(
       ...data,
       metadata: data.metadata ?? {},
     })
-    .returning()
+    .returning();
 
-  return result[0]
+  return result[0];
 }

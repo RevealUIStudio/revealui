@@ -3,16 +3,16 @@
  */
 
 export interface EnvVariable {
-  name: string
-  description: string
-  required: boolean
-  validator?: (value: string) => boolean
+  name: string;
+  description: string;
+  required: boolean;
+  validator?: (value: string) => boolean;
 }
 
 export interface ValidationResult {
-  valid: boolean
-  missing: string[]
-  invalid: string[]
+  valid: boolean;
+  missing: string[];
+  invalid: string[];
 }
 
 /**
@@ -33,21 +33,21 @@ export function validateEnv(
   required: EnvVariable[],
   env: Record<string, string | undefined>,
 ): ValidationResult {
-  const missing: string[] = []
-  const invalid: string[] = []
+  const missing: string[] = [];
+  const invalid: string[] = [];
 
   for (const variable of required) {
-    const value = env[variable.name]
+    const value = env[variable.name];
 
     // Check if required variable is missing
     if (variable.required && (!value || value.trim() === '')) {
-      missing.push(variable.name)
-      continue
+      missing.push(variable.name);
+      continue;
     }
 
     // Check if value passes custom validator
     if (value && variable.validator && !variable.validator(value)) {
-      invalid.push(variable.name)
+      invalid.push(variable.name);
     }
   }
 
@@ -55,7 +55,7 @@ export function validateEnv(
     valid: missing.length === 0 && invalid.length === 0,
     missing,
     invalid,
-  }
+  };
 }
 
 /**
@@ -67,10 +67,10 @@ export const validators = {
    */
   postgresUrl: (value: string): boolean => {
     try {
-      const url = new URL(value)
-      return url.protocol === 'postgresql:' || url.protocol === 'postgres:'
+      const url = new URL(value);
+      return url.protocol === 'postgresql:' || url.protocol === 'postgres:';
     } catch {
-      return false
+      return false;
     }
   },
 
@@ -78,14 +78,14 @@ export const validators = {
    * Validates Stripe secret key format
    */
   stripeSecretKey: (value: string): boolean => {
-    return value.startsWith('sk_test_') || value.startsWith('sk_live_')
+    return value.startsWith('sk_test_') || value.startsWith('sk_live_');
   },
 
   /**
    * Validates Stripe publishable key format
    */
   stripePublishableKey: (value: string): boolean => {
-    return value.startsWith('pk_test_') || value.startsWith('pk_live_')
+    return value.startsWith('pk_test_') || value.startsWith('pk_live_');
   },
 
   /**
@@ -93,10 +93,10 @@ export const validators = {
    */
   url: (value: string): boolean => {
     try {
-      new URL(value)
-      return true
+      new URL(value);
+      return true;
     } catch {
-      return false
+      return false;
     }
   },
 
@@ -106,16 +106,16 @@ export const validators = {
   minLength:
     (min: number) =>
     (value: string): boolean => {
-      return value.length >= min
+      return value.length >= min;
     },
 
   /**
    * Validates email format
    */
   email: (value: string): boolean => {
-    return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value)
+    return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value);
   },
-}
+};
 
 /**
  * Common required environment variables for RevealUI
@@ -150,7 +150,7 @@ export const REQUIRED_ENV_VARS: EnvVariable[] = [
     required: true,
     validator: validators.stripePublishableKey,
   },
-]
+];
 
 /**
  * Optional environment variables
@@ -184,4 +184,4 @@ export const OPTIONAL_ENV_VARS: EnvVariable[] = [
     required: false,
     validator: validators.minLength(12),
   },
-]
+];

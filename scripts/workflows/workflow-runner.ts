@@ -6,117 +6,117 @@
  * Provides CLI interface for running automation workflows.
  */
 
-import { existsSync, readdirSync, readFileSync } from 'node:fs'
-import { join } from 'node:path'
-import { ErrorCode } from '../lib/errors.js'
-import { AutomationEngine, type WorkflowStep } from './typed/automation-engine.ts'
+import { existsSync, readdirSync, readFileSync } from 'node:fs';
+import { join } from 'node:path';
+import { ErrorCode } from '../lib/errors.js';
+import { AutomationEngine, type WorkflowStep } from './typed/automation-engine.ts';
 
 interface WorkflowTemplate {
-  id: string
-  name: string
-  description: string
-  steps: WorkflowStep[]
+  id: string;
+  name: string;
+  description: string;
+  steps: WorkflowStep[];
 }
 
 class WorkflowRunner {
-  private templates: Map<string, WorkflowTemplate> = new Map()
+  private templates: Map<string, WorkflowTemplate> = new Map();
 
   constructor() {
-    this.loadTemplates()
+    this.loadTemplates();
   }
 
   async runWorkflow(templateId: string, task: string): Promise<boolean> {
-    const template = this.templates.get(templateId)
+    const template = this.templates.get(templateId);
     if (!template) {
-      console.log(`❌ Workflow template not found: ${templateId}`)
-      console.log('Available templates:', Array.from(this.templates.keys()))
-      return false
+      console.log(`❌ Workflow template not found: ${templateId}`);
+      console.log('Available templates:', Array.from(this.templates.keys()));
+      return false;
     }
 
-    console.log(`🚀 Starting workflow: ${template.name}`)
-    console.log(`Description: ${template.description}`)
-    console.log(`Task: ${task}\n`)
+    console.log(`🚀 Starting workflow: ${template.name}`);
+    console.log(`Description: ${template.description}`);
+    console.log(`Task: ${task}\n`);
 
-    const engine = new AutomationEngine(task, `${templateId}-${Date.now()}`)
-    engine.defineWorkflow(template.steps)
+    const engine = new AutomationEngine(task, `${templateId}-${Date.now()}`);
+    engine.defineWorkflow(template.steps);
 
-    return await engine.execute()
+    return await engine.execute();
   }
 
   async resumeWorkflow(workflowId: string): Promise<boolean> {
-    const stateFile = join(process.cwd(), `automation-${workflowId}.json`)
+    const stateFile = join(process.cwd(), `automation-${workflowId}.json`);
 
     if (!existsSync(stateFile)) {
-      console.log(`❌ Workflow state not found: ${workflowId}`)
-      return false
+      console.log(`❌ Workflow state not found: ${workflowId}`);
+      return false;
     }
 
-    console.log(`🔄 Resuming workflow: ${workflowId}`)
+    console.log(`🔄 Resuming workflow: ${workflowId}`);
 
-    const engine = new AutomationEngine('', workflowId)
-    return await engine.resume()
+    const engine = new AutomationEngine('', workflowId);
+    return await engine.resume();
   }
 
   async checkApprovals(): Promise<void> {
     const approvalFiles = readdirSync(process.cwd()).filter(
       (file) => file.startsWith('approval-') && file.endsWith('.txt'),
-    )
+    );
 
     if (approvalFiles.length === 0) {
-      console.log('✅ No pending approvals')
-      return
+      console.log('✅ No pending approvals');
+      return;
     }
 
-    console.log('📋 Pending Approvals:')
+    console.log('📋 Pending Approvals:');
     for (const file of approvalFiles) {
-      console.log(`  • ${file}`)
+      console.log(`  • ${file}`);
     }
 
     console.log(
       '\n💡 To approve, edit the file and change the response, then run the workflow again.',
-    )
+    );
   }
 
   async listWorkflows(): Promise<void> {
-    console.log('📋 Available Workflow Templates:')
-    console.log('================================\n')
+    console.log('📋 Available Workflow Templates:');
+    console.log('================================\n');
 
     for (const [id, template] of this.templates) {
-      console.log(`${id}:`)
-      console.log(`  Name: ${template.name}`)
-      console.log(`  Description: ${template.description}`)
-      console.log(`  Steps: ${template.steps.length}`)
-      console.log('')
+      console.log(`${id}:`);
+      console.log(`  Name: ${template.name}`);
+      console.log(`  Description: ${template.description}`);
+      console.log(`  Steps: ${template.steps.length}`);
+      console.log('');
     }
   }
 
   async listRunningWorkflows(): Promise<void> {
     const stateFiles = readdirSync(process.cwd()).filter(
       (file) => file.startsWith('automation-') && file.endsWith('.json'),
-    )
+    );
 
     if (stateFiles.length === 0) {
-      console.log('✅ No running workflows')
-      return
+      console.log('✅ No running workflows');
+      return;
     }
 
-    console.log('🔄 Running Workflows:')
-    console.log('====================\n')
+    console.log('🔄 Running Workflows:');
+    console.log('====================\n');
 
     for (const file of stateFiles) {
       try {
-        const state = JSON.parse(readFileSync(file, 'utf8'))
-        console.log(`${state.id}:`)
-        console.log(`  Task: ${state.task}`)
-        console.log(`  Status: ${state.status}`)
-        console.log(`  Progress: ${state.completedSteps.length}/${state.steps.length} steps`)
-        console.log(`  Current: ${state.steps[state.currentStepIndex]?.name || 'N/A'}`)
+        const state = JSON.parse(readFileSync(file, 'utf8'));
+        console.log(`${state.id}:`);
+        console.log(`  Task: ${state.task}`);
+        console.log(`  Status: ${state.status}`);
+        console.log(`  Progress: ${state.completedSteps.length}/${state.steps.length} steps`);
+        console.log(`  Current: ${state.steps[state.currentStepIndex]?.name || 'N/A'}`);
         if (state.reason) {
-          console.log(`  Reason: ${state.reason}`)
+          console.log(`  Reason: ${state.reason}`);
         }
-        console.log('')
+        console.log('');
       } catch (_error) {
-        console.log(`${file}: Error reading state`)
+        console.log(`${file}: Error reading state`);
       }
     }
   }
@@ -187,7 +187,7 @@ class WorkflowRunner {
           validation: ['typecheck', 'lint', 'test'],
         },
       ],
-    })
+    });
 
     this.templates.set('validation-cleanup', {
       id: 'validation-cleanup',
@@ -222,7 +222,7 @@ class WorkflowRunner {
           requiresApproval: false,
         },
       ],
-    })
+    });
 
     this.templates.set('documentation-lifecycle', {
       id: 'documentation-lifecycle',
@@ -269,82 +269,82 @@ class WorkflowRunner {
           timeout: 15 * 60 * 1000, // 15 minutes
         },
       ],
-    })
+    });
   }
 }
 
 // CLI interface
 async function main() {
-  const args = process.argv.slice(2)
-  const runner = new WorkflowRunner()
+  const args = process.argv.slice(2);
+  const runner = new WorkflowRunner();
 
   if (args.length === 0) {
-    console.log('Workflow Runner - Orchestrates automation workflows')
-    console.log('=================================================\n')
-    console.log('Commands:')
-    console.log('  list                    - List available workflow templates')
-    console.log('  running                 - List running workflows')
-    console.log('  approvals               - Check pending approvals')
-    console.log('  run <template> <task>   - Run a workflow template')
-    console.log('  resume <workflow-id>    - Resume a paused workflow')
-    console.log('\nExamples:')
-    console.log('  workflow-runner run automation-infrastructure "Build real automation"')
-    console.log('  workflow-runner resume workflow-1234567890')
-    return
+    console.log('Workflow Runner - Orchestrates automation workflows');
+    console.log('=================================================\n');
+    console.log('Commands:');
+    console.log('  list                    - List available workflow templates');
+    console.log('  running                 - List running workflows');
+    console.log('  approvals               - Check pending approvals');
+    console.log('  run <template> <task>   - Run a workflow template');
+    console.log('  resume <workflow-id>    - Resume a paused workflow');
+    console.log('\nExamples:');
+    console.log('  workflow-runner run automation-infrastructure "Build real automation"');
+    console.log('  workflow-runner resume workflow-1234567890');
+    return;
   }
 
-  const command = args[0]
+  const command = args[0];
 
   switch (command) {
     case 'list':
-      await runner.listWorkflows()
-      break
+      await runner.listWorkflows();
+      break;
 
     case 'running':
-      await runner.listRunningWorkflows()
-      break
+      await runner.listRunningWorkflows();
+      break;
 
     case 'approvals':
-      await runner.checkApprovals()
-      break
+      await runner.checkApprovals();
+      break;
 
     case 'run': {
       if (args.length < 3) {
-        console.log('❌ Error: run requires template and task')
-        console.log('Usage: workflow-runner run <template> <task>')
-        process.exit(ErrorCode.CONFIG_ERROR)
+        console.log('❌ Error: run requires template and task');
+        console.log('Usage: workflow-runner run <template> <task>');
+        process.exit(ErrorCode.CONFIG_ERROR);
       }
-      const templateId = args[1]
-      const task = args.slice(2).join(' ')
-      const success = await runner.runWorkflow(templateId, task)
+      const templateId = args[1];
+      const task = args.slice(2).join(' ');
+      const success = await runner.runWorkflow(templateId, task);
       if (!success) {
-        process.exit(ErrorCode.CONFIG_ERROR)
+        process.exit(ErrorCode.CONFIG_ERROR);
       }
-      break
+      break;
     }
 
     case 'resume': {
       if (args.length < 2) {
-        console.log('❌ Error: resume requires workflow ID')
-        console.log('Usage: workflow-runner resume <workflow-id>')
-        process.exit(ErrorCode.CONFIG_ERROR)
+        console.log('❌ Error: resume requires workflow ID');
+        console.log('Usage: workflow-runner resume <workflow-id>');
+        process.exit(ErrorCode.CONFIG_ERROR);
       }
-      const workflowId = args[1]
-      const resumeSuccess = await runner.resumeWorkflow(workflowId)
+      const workflowId = args[1];
+      const resumeSuccess = await runner.resumeWorkflow(workflowId);
       if (!resumeSuccess) {
-        process.exit(ErrorCode.CONFIG_ERROR)
+        process.exit(ErrorCode.CONFIG_ERROR);
       }
-      break
+      break;
     }
 
     default:
-      console.log(`❌ Unknown command: ${command}`)
-      process.exit(ErrorCode.CONFIG_ERROR)
+      console.log(`❌ Unknown command: ${command}`);
+      process.exit(ErrorCode.CONFIG_ERROR);
   }
 }
 
 if (import.meta.url === `file://${process.argv[1]}`) {
-  main().catch(console.error)
+  main().catch(console.error);
 }
 
-export { WorkflowRunner }
+export { WorkflowRunner };

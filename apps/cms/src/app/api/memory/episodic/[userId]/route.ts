@@ -6,16 +6,16 @@
  * DELETE /api/memory/episodic/:userId/:memoryId - Remove memory
  */
 
-import { getSession } from '@revealui/auth/server'
-import { AgentMemoryContract } from '@revealui/contracts'
-import { logger } from '@revealui/core/observability/logger'
-import { getClient } from '@revealui/db/client'
-import { type NextRequest, NextResponse } from 'next/server'
-import { getNodeIdFromUser } from '@/lib/utilities/nodeId'
-import { createErrorResponse, createValidationErrorResponse } from '@/lib/utils/error-response'
+import { getSession } from '@revealui/auth/server';
+import { AgentMemoryContract } from '@revealui/contracts';
+import { logger } from '@revealui/core/observability/logger';
+import { getClient } from '@revealui/db/client';
+import { type NextRequest, NextResponse } from 'next/server';
+import { getNodeIdFromUser } from '@/lib/utilities/nodeId';
+import { createErrorResponse, createValidationErrorResponse } from '@/lib/utils/error-response';
 
-export const dynamic = 'force-dynamic'
-export const runtime = 'nodejs'
+export const dynamic = 'force-dynamic';
+export const runtime = 'nodejs';
 
 /**
  * Dynamically import @revealui/ai episodic memory dependencies.
@@ -25,14 +25,14 @@ async function loadEpisodicDeps() {
   const [persistMod, storesMod] = await Promise.all([
     import('@revealui/ai/memory/persistence').catch(() => null),
     import('@revealui/ai/memory/stores').catch(() => null),
-  ])
-  if (!(persistMod && storesMod)) return null
+  ]);
+  if (!(persistMod && storesMod)) return null;
   return {
     // biome-ignore lint/style/useNamingConvention: class constructor reference
     CRDTPersistence: persistMod.CRDTPersistence,
     // biome-ignore lint/style/useNamingConvention: class constructor reference
     EpisodicMemory: storesMod.EpisodicMemory,
-  }
+  };
 }
 
 /**
@@ -43,57 +43,60 @@ export async function GET(
   request: NextRequest,
   { params }: { params: Promise<{ userId: string }> },
 ): Promise<NextResponse> {
-  let userId: string | undefined
+  let userId: string | undefined;
 
   try {
-    const authSession = await getSession(request.headers)
+    const authSession = await getSession(request.headers);
     if (!authSession) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
-    const paramsResolved = await params
-    userId = paramsResolved.userId
+    const paramsResolved = await params;
+    userId = paramsResolved.userId;
 
     if (!userId || typeof userId !== 'string' || userId.trim().length === 0) {
       return createValidationErrorResponse(
         'Invalid userId: must be a non-empty string',
         'userId',
         userId,
-      )
+      );
     }
 
     if (authSession.user.id !== userId && authSession.user.role !== 'admin') {
-      return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
+      return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
     }
 
-    const deps = await loadEpisodicDeps()
+    const deps = await loadEpisodicDeps();
     if (!deps) {
-      return NextResponse.json({ error: 'AI features require @revealui/ai (Pro)' }, { status: 503 })
+      return NextResponse.json(
+        { error: 'AI features require @revealui/ai (Pro)' },
+        { status: 503 },
+      );
     }
 
-    const db = getClient()
-    const persistence = new deps.CRDTPersistence(db)
-    const nodeId = await getNodeIdFromUser(userId, db)
+    const db = getClient();
+    const persistence = new deps.CRDTPersistence(db);
+    const nodeId = await getNodeIdFromUser(userId, db);
 
-    const memory = new deps.EpisodicMemory(userId, nodeId, db, persistence)
-    await memory.load()
+    const memory = new deps.EpisodicMemory(userId, nodeId, db, persistence);
+    await memory.load();
 
-    const memories = await memory.getAll()
+    const memories = await memory.getAll();
 
     return NextResponse.json({
       userId: memory.getUserId(),
       memories,
       accessCount: memory.getAccessCount(),
-    })
+    });
   } catch (error) {
     logger.error('Error getting episodic memory', error instanceof Error ? error : undefined, {
       userId,
-    })
+    });
     return createErrorResponse(error, {
       endpoint: '/api/memory/episodic/:userId',
       operation: 'episodic_memory_get',
       userId,
-    })
+    });
   }
 }
 
@@ -105,44 +108,44 @@ export async function POST(
   request: NextRequest,
   { params }: { params: Promise<{ userId: string }> },
 ): Promise<NextResponse> {
-  let userId: string | undefined
+  let userId: string | undefined;
 
   try {
-    const authSession = await getSession(request.headers)
+    const authSession = await getSession(request.headers);
     if (!authSession) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
-    const paramsResolved = await params
-    userId = paramsResolved.userId
+    const paramsResolved = await params;
+    userId = paramsResolved.userId;
 
     if (!userId || typeof userId !== 'string' || userId.trim().length === 0) {
       return createValidationErrorResponse(
         'Invalid userId: must be a non-empty string',
         'userId',
         userId,
-      )
+      );
     }
 
     if (authSession.user.id !== userId && authSession.user.role !== 'admin') {
-      return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
+      return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
     }
 
-    let body: unknown
+    let body: unknown;
     try {
-      body = await request.json()
+      body = await request.json();
     } catch (jsonError) {
       return createValidationErrorResponse('Invalid JSON in request body', 'body', null, {
         parseError: jsonError instanceof Error ? jsonError.message : 'Malformed JSON',
-      })
+      });
     }
 
     // Validate request body using contract
-    const validationResult = AgentMemoryContract.validate(body)
+    const validationResult = AgentMemoryContract.validate(body);
 
     if (!validationResult.success) {
       // Extract first validation error for user-friendly response
-      const firstIssue = validationResult.errors.issues[0]
+      const firstIssue = validationResult.errors.issues[0];
       return createValidationErrorResponse(
         firstIssue?.message || 'Validation failed',
         firstIssue?.path?.join('.') || 'body',
@@ -153,39 +156,42 @@ export async function POST(
             message: issue.message,
           })),
         },
-      )
+      );
     }
 
-    const memoryData = validationResult.data
+    const memoryData = validationResult.data;
 
-    const deps = await loadEpisodicDeps()
+    const deps = await loadEpisodicDeps();
     if (!deps) {
-      return NextResponse.json({ error: 'AI features require @revealui/ai (Pro)' }, { status: 503 })
+      return NextResponse.json(
+        { error: 'AI features require @revealui/ai (Pro)' },
+        { status: 503 },
+      );
     }
 
-    const db = getClient()
-    const persistence = new deps.CRDTPersistence(db)
-    const nodeId = await getNodeIdFromUser(userId, db)
+    const db = getClient();
+    const persistence = new deps.CRDTPersistence(db);
+    const nodeId = await getNodeIdFromUser(userId, db);
 
-    const memory = new deps.EpisodicMemory(userId, nodeId, db, persistence)
-    await memory.load()
+    const memory = new deps.EpisodicMemory(userId, nodeId, db, persistence);
+    await memory.load();
 
-    const tag = await memory.add(memoryData)
-    await memory.save()
+    const tag = await memory.add(memoryData);
+    await memory.save();
 
     return NextResponse.json({
       success: true,
       tag,
       memoryId: memoryData.id,
-    })
+    });
   } catch (error) {
     logger.error('Error adding episodic memory', error instanceof Error ? error : undefined, {
       userId,
-    })
+    });
     return createErrorResponse(error, {
       endpoint: '/api/memory/episodic/:userId',
       operation: 'episodic_memory_post',
       userId,
-    })
+    });
   }
 }

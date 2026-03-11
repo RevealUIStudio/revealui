@@ -10,22 +10,25 @@
  * - Error recovery
  */
 
-import type { RevealDocument } from '@revealui/core'
-import type { Product } from '@revealui/core/types/cms'
-import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
-import { createMockRequest, createMockRevealUI } from '@/__tests__/helpers/mockRevealUI'
-import { beforeProductChange } from '@/lib/collections/Products/hooks/beforeChange'
-import { type EnrichedProduct, enrichProduct } from '@/lib/collections/Products/hooks/enrichProduct'
+import type { RevealDocument } from '@revealui/core';
+import type { Product } from '@revealui/core/types/cms';
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
+import { createMockRequest, createMockRevealUI } from '@/__tests__/helpers/mockRevealUI';
+import { beforeProductChange } from '@/lib/collections/Products/hooks/beforeChange';
+import {
+  type EnrichedProduct,
+  enrichProduct,
+} from '@/lib/collections/Products/hooks/enrichProduct';
 
 // =============================================================================
 // Mocks
 // =============================================================================
 
-const _mockRevealUI = createMockRevealUI()
-const mockReq = createMockRequest()
+const _mockRevealUI = createMockRevealUI();
+const mockReq = createMockRequest();
 
-const mockStripeRetrieve = vi.fn()
-const mockStripePricesList = vi.fn()
+const mockStripeRetrieve = vi.fn();
+const mockStripePricesList = vi.fn();
 
 vi.mock('@revealui/services', () => ({
   protectedStripe: {
@@ -36,7 +39,7 @@ vi.mock('@revealui/services', () => ({
       list: (...args: unknown[]) => mockStripePricesList(...args),
     },
   },
-}))
+}));
 
 // =============================================================================
 // Test Data
@@ -51,7 +54,7 @@ const validStripeProduct = {
   metadata: {},
   images: [],
   default_price: 'price_1234567890123456',
-}
+};
 
 const validPriceList = {
   object: 'list' as const,
@@ -66,7 +69,7 @@ const validPriceList = {
     },
   ],
   has_more: false,
-}
+};
 
 const createMockProduct = (overrides: Partial<Product> = {}): Product => ({
   id: 1,
@@ -84,7 +87,7 @@ const createMockProduct = (overrides: Partial<Product> = {}): Product => ({
   createdAt: new Date().toISOString(),
   _status: 'draft',
   ...overrides,
-})
+});
 
 // =============================================================================
 // Tests
@@ -92,30 +95,30 @@ const createMockProduct = (overrides: Partial<Product> = {}): Product => ({
 
 describe('Product Integration Tests', () => {
   // Helper to generate unique product IDs to avoid cache collisions
-  let testCounter = 0
+  let testCounter = 0;
   const generateUniqueProductId = (prefix = 'test') => {
-    testCounter++
-    return `prod_${prefix}${testCounter.toString().padStart(12, '0')}`
-  }
+    testCounter++;
+    return `prod_${prefix}${testCounter.toString().padStart(12, '0')}`;
+  };
 
   const _generateUniquePriceId = (prefix = 'test') => {
-    testCounter++
-    return `price_${prefix}${testCounter.toString().padStart(11, '0')}`
-  }
+    testCounter++;
+    return `price_${prefix}${testCounter.toString().padStart(11, '0')}`;
+  };
 
   beforeEach(() => {
-    vi.clearAllMocks()
+    vi.clearAllMocks();
     // Reset mock implementations to ensure clean state
-    mockStripeRetrieve.mockReset()
-    mockStripePricesList.mockReset()
+    mockStripeRetrieve.mockReset();
+    mockStripePricesList.mockReset();
     // Set default mock returns
-    mockStripeRetrieve.mockResolvedValue(validStripeProduct)
-    mockStripePricesList.mockResolvedValue(validPriceList)
-  })
+    mockStripeRetrieve.mockResolvedValue(validStripeProduct);
+    mockStripePricesList.mockResolvedValue(validPriceList);
+  });
 
   afterEach(() => {
-    vi.clearAllMocks()
-  })
+    vi.clearAllMocks();
+  });
 
   // ===========================================================================
   // Create and Publish Workflow
@@ -126,48 +129,48 @@ describe('Product Integration Tests', () => {
       const product = createMockProduct({
         stripeProductID: null,
         _status: 'draft',
-      })
+      });
 
       const validated = await beforeProductChange({
         req: mockReq,
         data: product,
         operation: 'create',
-      })
+      });
 
-      expect(validated).toBeDefined()
-      expect(validated.stripeProductID).toBeNull()
-      expect(mockStripeRetrieve).not.toHaveBeenCalled()
-    })
+      expect(validated).toBeDefined();
+      expect(validated.stripeProductID).toBeNull();
+      expect(mockStripeRetrieve).not.toHaveBeenCalled();
+    });
 
     it('should validate and fetch data when Stripe product is added', async () => {
-      const product = createMockProduct()
+      const product = createMockProduct();
 
-      mockStripeRetrieve.mockResolvedValueOnce(validStripeProduct)
-      mockStripePricesList.mockResolvedValueOnce(validPriceList)
+      mockStripeRetrieve.mockResolvedValueOnce(validStripeProduct);
+      mockStripePricesList.mockResolvedValueOnce(validPriceList);
 
       const validated = await beforeProductChange({
         req: mockReq,
         data: product,
         operation: 'update',
-      })
+      });
 
-      expect(validated).toBeDefined()
-      expect(validated.priceJSON).toBeDefined()
-      expect(mockStripeRetrieve).toHaveBeenCalledWith('prod_1234567890123456')
-      expect(mockStripePricesList).toHaveBeenCalled()
-    })
+      expect(validated).toBeDefined();
+      expect(validated.priceJSON).toBeDefined();
+      expect(mockStripeRetrieve).toHaveBeenCalledWith('prod_1234567890123456');
+      expect(mockStripePricesList).toHaveBeenCalled();
+    });
 
     it('should enrich product after validation', async () => {
-      const product = createMockProduct()
+      const product = createMockProduct();
 
-      mockStripeRetrieve.mockResolvedValueOnce(validStripeProduct)
-      mockStripePricesList.mockResolvedValueOnce(validPriceList)
+      mockStripeRetrieve.mockResolvedValueOnce(validStripeProduct);
+      mockStripePricesList.mockResolvedValueOnce(validPriceList);
 
       const validated = await beforeProductChange({
         req: mockReq,
         data: product,
         operation: 'update',
-      })
+      });
 
       const enriched = (await enrichProduct({
         doc: validated as unknown as RevealDocument,
@@ -175,32 +178,32 @@ describe('Product Integration Tests', () => {
         findMany: false,
         context: undefined,
         query: undefined,
-      })) as unknown as EnrichedProduct
+      })) as unknown as EnrichedProduct;
 
-      expect(enriched.formattedPriceRange).toBe('$10.00')
-      expect(enriched.priceCount).toBe(1)
-      expect(enriched.isActive).toBe(true)
-    })
+      expect(enriched.formattedPriceRange).toBe('$10.00');
+      expect(enriched.priceCount).toBe(1);
+      expect(enriched.isActive).toBe(true);
+    });
 
     it('should complete full create → validate → enrich → publish flow', async () => {
       // Step 1: Create draft
       const draftProduct = createMockProduct({
         stripeProductID: null,
         _status: 'draft',
-      })
+      });
 
       const draft = await beforeProductChange({
         req: mockReq,
         data: draftProduct,
         operation: 'create',
-      })
+      });
 
-      expect(draft._status).toBe('draft')
-      expect(draft.stripeProductID).toBeNull()
+      expect(draft._status).toBe('draft');
+      expect(draft.stripeProductID).toBeNull();
 
       // Step 2: Add Stripe product
-      mockStripeRetrieve.mockResolvedValueOnce(validStripeProduct)
-      mockStripePricesList.mockResolvedValueOnce(validPriceList)
+      mockStripeRetrieve.mockResolvedValueOnce(validStripeProduct);
+      mockStripePricesList.mockResolvedValueOnce(validPriceList);
 
       const withStripe = await beforeProductChange({
         req: mockReq,
@@ -209,14 +212,14 @@ describe('Product Integration Tests', () => {
           stripeProductID: 'prod_1234567890123456',
         },
         operation: 'update',
-      })
+      });
 
-      expect(withStripe.stripeProductID).toBe('prod_1234567890123456')
-      expect(withStripe.priceJSON).toBeDefined()
+      expect(withStripe.stripeProductID).toBe('prod_1234567890123456');
+      expect(withStripe.priceJSON).toBeDefined();
 
       // Step 3: Publish
-      mockStripeRetrieve.mockResolvedValueOnce(validStripeProduct)
-      mockStripePricesList.mockResolvedValueOnce(validPriceList)
+      mockStripeRetrieve.mockResolvedValueOnce(validStripeProduct);
+      mockStripePricesList.mockResolvedValueOnce(validPriceList);
 
       const published = await beforeProductChange({
         req: mockReq,
@@ -225,9 +228,9 @@ describe('Product Integration Tests', () => {
           _status: 'published',
         },
         operation: 'update',
-      })
+      });
 
-      expect(published._status).toBe('published')
+      expect(published._status).toBe('published');
 
       // Step 4: Enrich
       const enriched = (await enrichProduct({
@@ -236,12 +239,12 @@ describe('Product Integration Tests', () => {
         findMany: false,
         context: undefined,
         query: undefined,
-      })) as unknown as EnrichedProduct
+      })) as unknown as EnrichedProduct;
 
-      expect(enriched.isActive).toBe(true)
-      expect(enriched.formattedPriceRange).toBeDefined()
-    })
-  })
+      expect(enriched.isActive).toBe(true);
+      expect(enriched.formattedPriceRange).toBeDefined();
+    });
+  });
 
   // ===========================================================================
   // Multi-Currency Scenarios
@@ -249,7 +252,7 @@ describe('Product Integration Tests', () => {
 
   describe('Multi-Currency Scenarios', () => {
     it('should handle products with multiple currencies', async () => {
-      const productId = generateUniqueProductId('multicurrency')
+      const productId = generateUniqueProductId('multicurrency');
       const multiCurrencyPrices = {
         object: 'list' as const,
         data: [
@@ -279,18 +282,18 @@ describe('Product Integration Tests', () => {
           },
         ],
         has_more: false,
-      }
+      };
 
-      const product = createMockProduct({ stripeProductID: productId })
+      const product = createMockProduct({ stripeProductID: productId });
 
-      mockStripeRetrieve.mockResolvedValueOnce({ ...validStripeProduct, id: productId })
-      mockStripePricesList.mockResolvedValueOnce(multiCurrencyPrices)
+      mockStripeRetrieve.mockResolvedValueOnce({ ...validStripeProduct, id: productId });
+      mockStripePricesList.mockResolvedValueOnce(multiCurrencyPrices);
 
       const validated = await beforeProductChange({
         req: mockReq,
         data: product,
         operation: 'create',
-      })
+      });
 
       const enriched = (await enrichProduct({
         doc: validated as unknown as RevealDocument,
@@ -298,14 +301,14 @@ describe('Product Integration Tests', () => {
         findMany: false,
         context: undefined,
         query: undefined,
-      })) as unknown as EnrichedProduct
+      })) as unknown as EnrichedProduct;
 
-      expect(enriched.priceCount).toBe(3)
-      expect(enriched.priceRange?.currency).toBe('usd') // First currency
-    })
+      expect(enriched.priceCount).toBe(3);
+      expect(enriched.priceRange?.currency).toBe('usd'); // First currency
+    });
 
     it('should format prices from first currency in list', async () => {
-      const productId = generateUniqueProductId('firstcur')
+      const productId = generateUniqueProductId('firstcur');
       const multiCurrencyPrices = {
         object: 'list' as const,
         data: [
@@ -327,18 +330,18 @@ describe('Product Integration Tests', () => {
           },
         ],
         has_more: false,
-      }
+      };
 
-      const product = createMockProduct({ stripeProductID: productId })
+      const product = createMockProduct({ stripeProductID: productId });
 
-      mockStripeRetrieve.mockResolvedValueOnce({ ...validStripeProduct, id: productId })
-      mockStripePricesList.mockResolvedValueOnce(multiCurrencyPrices)
+      mockStripeRetrieve.mockResolvedValueOnce({ ...validStripeProduct, id: productId });
+      mockStripePricesList.mockResolvedValueOnce(multiCurrencyPrices);
 
       const validated = await beforeProductChange({
         req: mockReq,
         data: product,
         operation: 'create',
-      })
+      });
 
       const enriched = (await enrichProduct({
         doc: validated as unknown as RevealDocument,
@@ -346,11 +349,11 @@ describe('Product Integration Tests', () => {
         findMany: false,
         context: undefined,
         query: undefined,
-      })) as unknown as EnrichedProduct
+      })) as unknown as EnrichedProduct;
 
-      expect(enriched.formattedPriceRange).toContain('19.99')
-    })
-  })
+      expect(enriched.formattedPriceRange).toContain('19.99');
+    });
+  });
 
   // ===========================================================================
   // Recurring vs One-time Prices
@@ -387,19 +390,19 @@ describe('Product Integration Tests', () => {
           },
         ],
         has_more: false,
-      }
+      };
 
-      const productId = generateUniqueProductId('recurring')
-      const product = createMockProduct({ stripeProductID: productId })
+      const productId = generateUniqueProductId('recurring');
+      const product = createMockProduct({ stripeProductID: productId });
 
-      mockStripeRetrieve.mockResolvedValueOnce({ ...validStripeProduct, id: productId })
-      mockStripePricesList.mockResolvedValueOnce(recurringPrices)
+      mockStripeRetrieve.mockResolvedValueOnce({ ...validStripeProduct, id: productId });
+      mockStripePricesList.mockResolvedValueOnce(recurringPrices);
 
       const validated = await beforeProductChange({
         req: mockReq,
         data: product,
         operation: 'create',
-      })
+      });
 
       const enriched = (await enrichProduct({
         doc: validated as unknown as RevealDocument,
@@ -407,14 +410,14 @@ describe('Product Integration Tests', () => {
         findMany: false,
         context: undefined,
         query: undefined,
-      })) as unknown as EnrichedProduct
+      })) as unknown as EnrichedProduct;
 
-      expect(enriched.priceCount).toBe(2)
-      expect(enriched.formattedPriceRange).toBe('$10.00 - $100.00')
-    })
+      expect(enriched.priceCount).toBe(2);
+      expect(enriched.formattedPriceRange).toBe('$10.00 - $100.00');
+    });
 
     it('should handle mixed one-time and recurring prices', async () => {
-      const productId2 = generateUniqueProductId('mixed')
+      const productId2 = generateUniqueProductId('mixed');
       const mixedPrices = {
         object: 'list' as const,
         data: [
@@ -440,18 +443,18 @@ describe('Product Integration Tests', () => {
           },
         ],
         has_more: false,
-      }
+      };
 
-      const product = createMockProduct({ stripeProductID: productId2 })
+      const product = createMockProduct({ stripeProductID: productId2 });
 
-      mockStripeRetrieve.mockResolvedValueOnce({ ...validStripeProduct, id: productId2 })
-      mockStripePricesList.mockResolvedValueOnce(mixedPrices)
+      mockStripeRetrieve.mockResolvedValueOnce({ ...validStripeProduct, id: productId2 });
+      mockStripePricesList.mockResolvedValueOnce(mixedPrices);
 
       const validated = await beforeProductChange({
         req: mockReq,
         data: product,
         operation: 'create',
-      })
+      });
 
       const enriched = (await enrichProduct({
         doc: validated as unknown as RevealDocument,
@@ -459,13 +462,13 @@ describe('Product Integration Tests', () => {
         findMany: false,
         context: undefined,
         query: undefined,
-      })) as unknown as EnrichedProduct
+      })) as unknown as EnrichedProduct;
 
-      expect(enriched.priceCount).toBe(2)
-      expect(enriched.priceRange?.min).toBe(1000)
-      expect(enriched.priceRange?.max).toBe(5000)
-    })
-  })
+      expect(enriched.priceCount).toBe(2);
+      expect(enriched.priceRange?.min).toBe(1000);
+      expect(enriched.priceRange?.max).toBe(5000);
+    });
+  });
 
   // ===========================================================================
   // Relationship Handling
@@ -475,36 +478,36 @@ describe('Product Integration Tests', () => {
     it('should preserve categories during validation', async () => {
       const product = createMockProduct({
         categories: [1, 2, 3],
-      })
+      });
 
-      mockStripeRetrieve.mockResolvedValueOnce(validStripeProduct)
-      mockStripePricesList.mockResolvedValueOnce(validPriceList)
+      mockStripeRetrieve.mockResolvedValueOnce(validStripeProduct);
+      mockStripePricesList.mockResolvedValueOnce(validPriceList);
 
       const validated = await beforeProductChange({
         req: mockReq,
         data: product,
         operation: 'create',
-      })
+      });
 
-      expect(validated.categories).toEqual([1, 2, 3])
-    })
+      expect(validated.categories).toEqual([1, 2, 3]);
+    });
 
     it('should preserve related products during validation', async () => {
       const product = createMockProduct({
         relatedProducts: [10, 20],
-      })
+      });
 
-      mockStripeRetrieve.mockResolvedValueOnce(validStripeProduct)
-      mockStripePricesList.mockResolvedValueOnce(validPriceList)
+      mockStripeRetrieve.mockResolvedValueOnce(validStripeProduct);
+      mockStripePricesList.mockResolvedValueOnce(validPriceList);
 
       const validated = await beforeProductChange({
         req: mockReq,
         data: product,
         operation: 'create',
-      })
+      });
 
-      expect(validated.relatedProducts).toEqual([10, 20])
-    })
+      expect(validated.relatedProducts).toEqual([10, 20]);
+    });
 
     it('should handle populated relationships', async () => {
       const product = createMockProduct({
@@ -512,20 +515,20 @@ describe('Product Integration Tests', () => {
           { id: 1, name: 'Category 1' },
           { id: 2, name: 'Category 2' },
         ] as never,
-      })
+      });
 
-      mockStripeRetrieve.mockResolvedValueOnce(validStripeProduct)
-      mockStripePricesList.mockResolvedValueOnce(validPriceList)
+      mockStripeRetrieve.mockResolvedValueOnce(validStripeProduct);
+      mockStripePricesList.mockResolvedValueOnce(validPriceList);
 
       const validated = await beforeProductChange({
         req: mockReq,
         data: product,
         operation: 'create',
-      })
+      });
 
-      expect(validated.categories).toHaveLength(2)
-    })
-  })
+      expect(validated.categories).toHaveLength(2);
+    });
+  });
 
   // ===========================================================================
   // Paywall Scenarios
@@ -535,16 +538,16 @@ describe('Product Integration Tests', () => {
     it('should handle products with paywall enabled', async () => {
       const product = createMockProduct({
         enablePaywall: true,
-      })
+      });
 
-      mockStripeRetrieve.mockResolvedValueOnce(validStripeProduct)
-      mockStripePricesList.mockResolvedValueOnce(validPriceList)
+      mockStripeRetrieve.mockResolvedValueOnce(validStripeProduct);
+      mockStripePricesList.mockResolvedValueOnce(validPriceList);
 
       const validated = await beforeProductChange({
         req: mockReq,
         data: product,
         operation: 'create',
-      })
+      });
 
       const enriched = (await enrichProduct({
         doc: validated as unknown as RevealDocument,
@@ -552,24 +555,24 @@ describe('Product Integration Tests', () => {
         findMany: false,
         context: undefined,
         query: undefined,
-      })) as unknown as EnrichedProduct
+      })) as unknown as EnrichedProduct;
 
-      expect(enriched.hasPaywall).toBe(true)
-    })
+      expect(enriched.hasPaywall).toBe(true);
+    });
 
     it('should handle products with paywall disabled', async () => {
       const product = createMockProduct({
         enablePaywall: false,
-      })
+      });
 
-      mockStripeRetrieve.mockResolvedValueOnce(validStripeProduct)
-      mockStripePricesList.mockResolvedValueOnce(validPriceList)
+      mockStripeRetrieve.mockResolvedValueOnce(validStripeProduct);
+      mockStripePricesList.mockResolvedValueOnce(validPriceList);
 
       const validated = await beforeProductChange({
         req: mockReq,
         data: product,
         operation: 'create',
-      })
+      });
 
       const enriched = (await enrichProduct({
         doc: validated as unknown as RevealDocument,
@@ -577,11 +580,11 @@ describe('Product Integration Tests', () => {
         findMany: false,
         context: undefined,
         query: undefined,
-      })) as unknown as EnrichedProduct
+      })) as unknown as EnrichedProduct;
 
-      expect(enriched.hasPaywall).toBe(false)
-    })
-  })
+      expect(enriched.hasPaywall).toBe(false);
+    });
+  });
 
   // ===========================================================================
   // Error Recovery
@@ -589,10 +592,10 @@ describe('Product Integration Tests', () => {
 
   describe('Error Recovery', () => {
     it('should handle Stripe product fetch failure', async () => {
-      const productId = generateUniqueProductId('fetchfail')
-      const product = createMockProduct({ stripeProductID: productId })
+      const productId = generateUniqueProductId('fetchfail');
+      const product = createMockProduct({ stripeProductID: productId });
 
-      mockStripeRetrieve.mockRejectedValueOnce(new Error('Stripe API error'))
+      mockStripeRetrieve.mockRejectedValueOnce(new Error('Stripe API error'));
 
       await expect(
         beforeProductChange({
@@ -600,31 +603,31 @@ describe('Product Integration Tests', () => {
           data: product,
           operation: 'create',
         }),
-      ).rejects.toThrow('Failed to validate Stripe product')
-    })
+      ).rejects.toThrow('Failed to validate Stripe product');
+    });
 
     it('should handle price list fetch failure gracefully', async () => {
-      const productId = generateUniqueProductId('listfail')
-      const product = createMockProduct({ stripeProductID: productId })
+      const productId = generateUniqueProductId('listfail');
+      const product = createMockProduct({ stripeProductID: productId });
 
-      mockStripeRetrieve.mockResolvedValueOnce({ ...validStripeProduct, id: productId })
-      mockStripePricesList.mockRejectedValueOnce(new Error('Price list error'))
+      mockStripeRetrieve.mockResolvedValueOnce({ ...validStripeProduct, id: productId });
+      mockStripePricesList.mockRejectedValueOnce(new Error('Price list error'));
 
       const validated = await beforeProductChange({
         req: mockReq,
         data: product,
         operation: 'create',
-      })
+      });
 
       // Should not throw, product should still be created
-      expect(validated).toBeDefined()
-      expect(mockReq.revealui?.logger?.error).toHaveBeenCalled()
-    })
+      expect(validated).toBeDefined();
+      expect(mockReq.revealui?.logger?.error).toHaveBeenCalled();
+    });
 
     it('should enrich products even if priceJSON is missing', async () => {
       const product = createMockProduct({
         priceJSON: null,
-      })
+      });
 
       const enriched = (await enrichProduct({
         doc: product as unknown as RevealDocument,
@@ -632,17 +635,17 @@ describe('Product Integration Tests', () => {
         findMany: false,
         context: undefined,
         query: undefined,
-      })) as unknown as EnrichedProduct
+      })) as unknown as EnrichedProduct;
 
-      expect(enriched.priceCount).toBe(0)
-      expect(enriched.formattedPriceRange).toBeNull()
-      expect(enriched.isActive).toBe(true) // Still has Stripe product ID
-    })
+      expect(enriched.priceCount).toBe(0);
+      expect(enriched.formattedPriceRange).toBeNull();
+      expect(enriched.isActive).toBe(true); // Still has Stripe product ID
+    });
 
     it('should handle invalid priceJSON during enrichment', async () => {
       const product = createMockProduct({
         priceJSON: 'invalid json' as never,
-      })
+      });
 
       const enriched = (await enrichProduct({
         doc: product as unknown as RevealDocument,
@@ -650,12 +653,12 @@ describe('Product Integration Tests', () => {
         findMany: false,
         context: undefined,
         query: undefined,
-      })) as unknown as EnrichedProduct
+      })) as unknown as EnrichedProduct;
 
-      expect(enriched.priceCount).toBe(0)
-      expect(enriched.hasPrices).toBe(false)
-    })
-  })
+      expect(enriched.priceCount).toBe(0);
+      expect(enriched.hasPrices).toBe(false);
+    });
+  });
 
   // ===========================================================================
   // Edge Cases
@@ -663,7 +666,7 @@ describe('Product Integration Tests', () => {
 
   describe('Edge Cases', () => {
     it('should handle products with no active prices', async () => {
-      const productId = generateUniqueProductId('noactive')
+      const productId = generateUniqueProductId('noactive');
       const inactivePrices = {
         object: 'list' as const,
         data: [
@@ -677,18 +680,18 @@ describe('Product Integration Tests', () => {
           },
         ],
         has_more: false,
-      }
+      };
 
-      const product = createMockProduct({ stripeProductID: productId })
+      const product = createMockProduct({ stripeProductID: productId });
 
-      mockStripeRetrieve.mockResolvedValueOnce({ ...validStripeProduct, id: productId })
-      mockStripePricesList.mockResolvedValueOnce(inactivePrices)
+      mockStripeRetrieve.mockResolvedValueOnce({ ...validStripeProduct, id: productId });
+      mockStripePricesList.mockResolvedValueOnce(inactivePrices);
 
       const validated = await beforeProductChange({
         req: mockReq,
         data: product,
         operation: 'create',
-      })
+      });
 
       const enriched = (await enrichProduct({
         doc: validated as unknown as RevealDocument,
@@ -696,30 +699,30 @@ describe('Product Integration Tests', () => {
         findMany: false,
         context: undefined,
         query: undefined,
-      })) as unknown as EnrichedProduct
+      })) as unknown as EnrichedProduct;
 
-      expect(enriched.priceCount).toBe(0)
-      expect(enriched.formattedPriceRange).toBeNull()
-    })
+      expect(enriched.priceCount).toBe(0);
+      expect(enriched.formattedPriceRange).toBeNull();
+    });
 
     it('should handle products with empty price list', async () => {
-      const productId = generateUniqueProductId('emptylist')
+      const productId = generateUniqueProductId('emptylist');
       const emptyPrices = {
         object: 'list' as const,
         data: [],
         has_more: false,
-      }
+      };
 
-      const product = createMockProduct({ stripeProductID: productId })
+      const product = createMockProduct({ stripeProductID: productId });
 
-      mockStripeRetrieve.mockResolvedValueOnce({ ...validStripeProduct, id: productId })
-      mockStripePricesList.mockResolvedValueOnce(emptyPrices)
+      mockStripeRetrieve.mockResolvedValueOnce({ ...validStripeProduct, id: productId });
+      mockStripePricesList.mockResolvedValueOnce(emptyPrices);
 
       const validated = await beforeProductChange({
         req: mockReq,
         data: product,
         operation: 'create',
-      })
+      });
 
       const enriched = (await enrichProduct({
         doc: validated as unknown as RevealDocument,
@@ -727,14 +730,14 @@ describe('Product Integration Tests', () => {
         findMany: false,
         context: undefined,
         query: undefined,
-      })) as unknown as EnrichedProduct
+      })) as unknown as EnrichedProduct;
 
-      expect(enriched.priceCount).toBe(0)
-      expect(enriched.defaultPriceId).toBeNull()
-    })
+      expect(enriched.priceCount).toBe(0);
+      expect(enriched.defaultPriceId).toBeNull();
+    });
 
     it('should handle products with null unit_amount prices', async () => {
-      const productId = generateUniqueProductId('nullamt')
+      const productId = generateUniqueProductId('nullamt');
       const nullAmountPrices = {
         object: 'list' as const,
         data: [
@@ -748,18 +751,18 @@ describe('Product Integration Tests', () => {
           },
         ],
         has_more: false,
-      }
+      };
 
-      const product = createMockProduct({ stripeProductID: productId })
+      const product = createMockProduct({ stripeProductID: productId });
 
-      mockStripeRetrieve.mockResolvedValueOnce({ ...validStripeProduct, id: productId })
-      mockStripePricesList.mockResolvedValueOnce(nullAmountPrices)
+      mockStripeRetrieve.mockResolvedValueOnce({ ...validStripeProduct, id: productId });
+      mockStripePricesList.mockResolvedValueOnce(nullAmountPrices);
 
       const validated = await beforeProductChange({
         req: mockReq,
         data: product,
         operation: 'create',
-      })
+      });
 
       const enriched = (await enrichProduct({
         doc: validated as unknown as RevealDocument,
@@ -767,14 +770,14 @@ describe('Product Integration Tests', () => {
         findMany: false,
         context: undefined,
         query: undefined,
-      })) as unknown as EnrichedProduct
+      })) as unknown as EnrichedProduct;
 
-      expect(enriched.priceRange).toBeNull()
-      expect(enriched.formattedPriceRange).toBeNull()
-    })
+      expect(enriched.priceRange).toBeNull();
+      expect(enriched.formattedPriceRange).toBeNull();
+    });
 
     it('should handle very large price lists', async () => {
-      const productId = generateUniqueProductId('largelist')
+      const productId = generateUniqueProductId('largelist');
       const largePriceList = {
         object: 'list' as const,
         data: Array.from({ length: 100 }, (_, i) => ({
@@ -786,18 +789,18 @@ describe('Product Integration Tests', () => {
           type: 'one_time' as const,
         })),
         has_more: false,
-      }
+      };
 
-      const product = createMockProduct({ stripeProductID: productId })
+      const product = createMockProduct({ stripeProductID: productId });
 
-      mockStripeRetrieve.mockResolvedValueOnce({ ...validStripeProduct, id: productId })
-      mockStripePricesList.mockResolvedValueOnce(largePriceList)
+      mockStripeRetrieve.mockResolvedValueOnce({ ...validStripeProduct, id: productId });
+      mockStripePricesList.mockResolvedValueOnce(largePriceList);
 
       const validated = await beforeProductChange({
         req: mockReq,
         data: product,
         operation: 'create',
-      })
+      });
 
       const enriched = (await enrichProduct({
         doc: validated as unknown as RevealDocument,
@@ -805,11 +808,11 @@ describe('Product Integration Tests', () => {
         findMany: false,
         context: undefined,
         query: undefined,
-      })) as unknown as EnrichedProduct
+      })) as unknown as EnrichedProduct;
 
-      expect(enriched.priceCount).toBe(100)
-      expect(enriched.priceRange?.min).toBe(1000)
-      expect(enriched.priceRange?.max).toBe(10900)
-    })
-  })
-})
+      expect(enriched.priceCount).toBe(100);
+      expect(enriched.priceRange?.min).toBe(1000);
+      expect(enriched.priceRange?.max).toBe(10900);
+    });
+  });
+});

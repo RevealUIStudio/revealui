@@ -13,15 +13,15 @@
  * - Runtime validation with Zod
  */
 
-import { z } from 'zod/v4'
-import { createContract } from '../foundation/contract.js'
-import { DualEntitySchema } from '../representation/index.js'
+import { z } from 'zod/v4';
+import { createContract } from '../foundation/contract.js';
+import { DualEntitySchema } from '../representation/index.js';
 
 // =============================================================================
 // Schema Version
 // =============================================================================
 
-export const PRICE_SCHEMA_VERSION = 1
+export const PRICE_SCHEMA_VERSION = 1;
 
 // =============================================================================
 // Stripe Price Format
@@ -37,9 +37,9 @@ export const StripePriceIDSchema = z
     message: 'Stripe Price ID must match format: price_xxxxx',
   })
   .min(14) // price_ + minimum ID length
-  .max(100)
+  .max(100);
 
-export type StripePriceID = z.infer<typeof StripePriceIDSchema>
+export type StripePriceID = z.infer<typeof StripePriceIDSchema>;
 
 // =============================================================================
 // Stripe Price Data
@@ -78,16 +78,16 @@ export const StripePriceDataSchema = z.object({
       }),
     )
     .optional(),
-})
+});
 
-export type StripePriceData = z.infer<typeof StripePriceDataSchema>
+export type StripePriceData = z.infer<typeof StripePriceDataSchema>;
 
 // =============================================================================
 // Price Status
 // =============================================================================
 
-export const PriceStatusSchema = z.enum(['draft', 'published'])
-export type PriceStatus = z.infer<typeof PriceStatusSchema>
+export const PriceStatusSchema = z.enum(['draft', 'published']);
+export type PriceStatus = z.infer<typeof PriceStatusSchema>;
 
 // =============================================================================
 // Content Blocks (simplified for now)
@@ -101,7 +101,7 @@ const PriceBlockSchema = z.object({
   blockType: z.string(),
   blockName: z.string().optional(),
   data: z.record(z.string(), z.unknown()).optional(),
-})
+});
 
 // =============================================================================
 // Price Base Schema (without circular reference)
@@ -133,11 +133,11 @@ const PriceObjectSchema = DualEntitySchema.extend({
     .nullable()
     .optional()
     .transform((val) => {
-      if (!val) return null
+      if (!val) return null;
       try {
-        return JSON.parse(val) as unknown
+        return JSON.parse(val) as unknown;
       } catch {
-        return null
+        return null;
       }
     })
     .pipe(StripePriceDataSchema.nullable()),
@@ -170,16 +170,16 @@ const PriceObjectSchema = DualEntitySchema.extend({
   /** CMS status */
   // biome-ignore lint/style/useNamingConvention: _status is a conventional CMS status marker
   _status: PriceStatusSchema.nullable().optional(),
-})
+});
 
 // Full schema with business rule refinements
 const PriceBaseSchema = PriceObjectSchema.refine(
   (data) => {
     // Business rule: published prices must have a valid Stripe price
     if (data._status === 'published') {
-      return !!data.stripePriceID
+      return !!data.stripePriceID;
     }
-    return true
+    return true;
   },
   {
     message: 'Published prices must have a valid Stripe Price ID',
@@ -189,20 +189,20 @@ const PriceBaseSchema = PriceObjectSchema.refine(
   (data) => {
     // Business rule: if priceJSON exists, it should be valid
     if (data.priceJSON && typeof data.priceJSON === 'object') {
-      return data.priceJSON.id === data.stripePriceID
+      return data.priceJSON.id === data.stripePriceID;
     }
-    return true
+    return true;
   },
   {
     message: 'Price JSON must match the configured Stripe Price ID',
     path: ['priceJSON'],
   },
-)
+);
 
-export type Price = z.infer<typeof PriceBaseSchema>
+export type Price = z.infer<typeof PriceBaseSchema>;
 
 /** Main schema export (alias for PriceBaseSchema) */
-export const PriceSchema = PriceBaseSchema
+export const PriceSchema = PriceBaseSchema;
 
 // =============================================================================
 // Create Price Input
@@ -216,17 +216,17 @@ export const CreatePriceInputSchema = z.object({
   relatedPrices: z.array(z.number().int().positive()).optional(),
   // biome-ignore lint/style/useNamingConvention: _status is a conventional CMS status marker
   _status: PriceStatusSchema.optional(),
-})
+});
 
-export type CreatePriceInput = z.infer<typeof CreatePriceInputSchema>
+export type CreatePriceInput = z.infer<typeof CreatePriceInputSchema>;
 
 // =============================================================================
 // Update Price Input
 // =============================================================================
 
-export const UpdatePriceInputSchema = CreatePriceInputSchema.partial()
+export const UpdatePriceInputSchema = CreatePriceInputSchema.partial();
 
-export type UpdatePriceInput = z.infer<typeof UpdatePriceInputSchema>
+export type UpdatePriceInput = z.infer<typeof UpdatePriceInputSchema>;
 
 // =============================================================================
 // Price with Populated Relationships
@@ -237,9 +237,9 @@ export type UpdatePriceInput = z.infer<typeof UpdatePriceInputSchema>
  */
 export const PriceWithCategoriesSchema = PriceObjectSchema.extend({
   categories: z.array(z.object({ id: z.number(), name: z.string() }).passthrough()).nullable(),
-})
+});
 
-export type PriceWithCategories = z.infer<typeof PriceWithCategoriesSchema>
+export type PriceWithCategories = z.infer<typeof PriceWithCategoriesSchema>;
 
 /**
  * Price with all relationships populated
@@ -255,9 +255,9 @@ export const PriceWithRelatedSchema = PriceObjectSchema.extend({
       }),
     )
     .nullable(),
-})
+});
 
-export type PriceWithRelated = z.infer<typeof PriceWithRelatedSchema>
+export type PriceWithRelated = z.infer<typeof PriceWithRelatedSchema>;
 
 // =============================================================================
 // Type Guards
@@ -267,41 +267,41 @@ export type PriceWithRelated = z.infer<typeof PriceWithRelatedSchema>
  * Check if price has a valid Stripe price configured
  */
 export function hasStripePrice(price: Price): price is Price & {
-  stripePriceID: string
-  priceJSON: StripePriceData
+  stripePriceID: string;
+  priceJSON: StripePriceData;
 } {
-  return !!price.stripePriceID && !!price.priceJSON && price.priceJSON !== null
+  return !!price.stripePriceID && !!price.priceJSON && price.priceJSON !== null;
 }
 
 /**
  * Check if price is published and active
  */
 export function isPublishedPrice(price: Price): boolean {
-  return price._status === 'published' && hasStripePrice(price)
+  return price._status === 'published' && hasStripePrice(price);
 }
 
 /**
  * Check if price is recurring (subscription)
  */
 export function isRecurringPrice(price: Price): boolean {
-  if (!hasStripePrice(price)) return false
-  return price.priceJSON.type === 'recurring'
+  if (!hasStripePrice(price)) return false;
+  return price.priceJSON.type === 'recurring';
 }
 
 /**
  * Check if price is one-time payment
  */
 export function isOneTimePrice(price: Price): boolean {
-  if (!hasStripePrice(price)) return false
-  return price.priceJSON.type === 'one_time'
+  if (!hasStripePrice(price)) return false;
+  return price.priceJSON.type === 'one_time';
 }
 
 /**
  * Check if price has tiered pricing
  */
 export function hasTieredPricing(price: Price): boolean {
-  if (!hasStripePrice(price)) return false
-  return !!price.priceJSON.tiers && price.priceJSON.tiers.length > 0
+  if (!hasStripePrice(price)) return false;
+  return !!price.priceJSON.tiers && price.priceJSON.tiers.length > 0;
 }
 
 // =============================================================================
@@ -320,21 +320,21 @@ export function formatPriceAmount(amount: number, currency: string): string {
     currency: currency.toUpperCase(),
     minimumFractionDigits: 2,
     maximumFractionDigits: 2,
-  })
+  });
 
-  return formatter.format(amount / 100)
+  return formatter.format(amount / 100);
 }
 
 /**
  * Get display amount from price
  */
 export function getDisplayAmount(price: Price): string | null {
-  if (!hasStripePrice(price)) return null
+  if (!hasStripePrice(price)) return null;
 
-  const amount = price.priceJSON.unit_amount
-  if (amount === null || amount === undefined) return null
+  const amount = price.priceJSON.unit_amount;
+  if (amount === null || amount === undefined) return null;
 
-  return formatPriceAmount(amount, price.priceJSON.currency)
+  return formatPriceAmount(amount, price.priceJSON.currency);
 }
 
 /**
@@ -342,18 +342,18 @@ export function getDisplayAmount(price: Price): string | null {
  * @example "monthly", "yearly", "every 3 months"
  */
 export function getIntervalDescription(price: Price): string | null {
-  if (!(isRecurringPrice(price) && price.priceJSON)) return null
+  if (!(isRecurringPrice(price) && price.priceJSON)) return null;
 
-  const recurring = price.priceJSON.recurring
-  if (!recurring) return null
+  const recurring = price.priceJSON.recurring;
+  if (!recurring) return null;
 
-  const { interval, interval_count } = recurring
+  const { interval, interval_count } = recurring;
 
   if (interval_count === 1) {
-    return `${interval}ly`
+    return `${interval}ly`;
   }
 
-  return `every ${interval_count} ${interval}s`
+  return `every ${interval_count} ${interval}s`;
 }
 
 // =============================================================================
@@ -365,18 +365,18 @@ export const PriceContract = createContract({
   version: '1',
   schema: PriceSchema,
   description: 'Stripe-backed price entity with content management',
-})
+});
 
 export const CreatePriceContract = createContract({
   name: 'CreatePrice',
   version: '1',
   schema: CreatePriceInputSchema,
   description: 'Input contract for creating a new price',
-})
+});
 
 export const UpdatePriceContract = createContract({
   name: 'UpdatePrice',
   version: '1',
   schema: UpdatePriceInputSchema,
   description: 'Input contract for updating an existing price',
-})
+});

@@ -3,9 +3,9 @@
  * Tests the conversational AI interface for CMS management
  */
 
-import type { NextRequest } from 'next/server'
-import { beforeEach, describe, expect, it, vi } from 'vitest'
-import { POST } from '@/app/api/chat/route'
+import type { NextRequest } from 'next/server';
+import { beforeEach, describe, expect, it, vi } from 'vitest';
+import { POST } from '@/app/api/chat/route';
 
 // Mock dependencies
 vi.mock('@revealui/auth/server', () => ({
@@ -44,17 +44,17 @@ vi.mock('@revealui/auth/server', () => ({
       lastActiveAt: null,
     },
   }),
-}))
+}));
 
 vi.mock('@revealui/core/features', () => ({
   isFeatureEnabled: vi.fn().mockReturnValue(true),
-}))
+}));
 
 vi.mock('@revealui/ai/embeddings', () => ({
   generateEmbedding: vi.fn().mockResolvedValue({
     vector: new Array(1536).fill(0),
   }),
-}))
+}));
 
 vi.mock('@revealui/ai/llm/server', () => ({
   createLLMClientFromEnv: vi.fn(() => ({
@@ -65,13 +65,13 @@ vi.mock('@revealui/ai/llm/server', () => ({
     getResponseCacheStats: vi.fn().mockReturnValue(undefined),
     getSemanticCacheStats: vi.fn().mockReturnValue(undefined),
   })),
-}))
+}));
 
 vi.mock('@revealui/ai/memory/vector', () => ({
   VectorMemoryService: vi.fn().mockImplementation(() => ({
     searchSimilar: vi.fn().mockResolvedValue([]),
   })),
-}))
+}));
 
 vi.mock('@revealui/core/admin/utils/apiClient', () => ({
   apiClient: {
@@ -88,7 +88,7 @@ vi.mock('@revealui/core/admin/utils/apiClient', () => ({
     findGlobal: vi.fn(),
     updateGlobal: vi.fn(),
   },
-}))
+}));
 
 vi.mock('../../../../revealui.config', () => ({
   default: {
@@ -101,18 +101,18 @@ vi.mock('../../../../revealui.config', () => ({
       { slug: 'footer', label: 'Footer' },
     ],
   },
-}))
+}));
 
 vi.mock('@/lib/middleware/rate-limit', () => ({
   rateLimit: vi.fn(() => async () => null), // Return null = no rate limit response
-}))
+}));
 
 describe('Chat API', () => {
   beforeEach(() => {
-    vi.clearAllMocks()
+    vi.clearAllMocks();
     // Mock environment to skip vector memory
-    process.env.ENABLE_VECTOR_MEMORY = 'false'
-  })
+    process.env.ENABLE_VECTOR_MEMORY = 'false';
+  });
 
   describe('POST /api/chat', () => {
     it('should handle basic chat request', async () => {
@@ -126,15 +126,15 @@ describe('Chat API', () => {
           ],
         }),
         headers: new Headers(),
-      } as unknown as NextRequest
+      } as unknown as NextRequest;
 
-      const response = await POST(request)
-      const data = await response.json()
+      const response = await POST(request);
+      const data = await response.json();
 
-      expect(response.status).toBe(200)
-      expect(data).toHaveProperty('content')
-      expect(typeof data.content).toBe('string')
-    })
+      expect(response.status).toBe(200);
+      expect(data).toHaveProperty('content');
+      expect(typeof data.content).toBe('string');
+    });
 
     it('should validate request body', async () => {
       const request = {
@@ -142,43 +142,43 @@ describe('Chat API', () => {
           // Missing required messages field
         }),
         headers: new Headers(),
-      } as unknown as NextRequest
+      } as unknown as NextRequest;
 
-      const response = await POST(request)
-      const data = await response.json()
+      const response = await POST(request);
+      const data = await response.json();
 
-      expect(response.status).toBe(400)
-      expect(data).toHaveProperty('error')
-    })
+      expect(response.status).toBe(400);
+      expect(data).toHaveProperty('error');
+    });
 
     it('should handle malformed JSON', async () => {
       const request = {
         json: async () => {
-          throw new Error('Invalid JSON')
+          throw new Error('Invalid JSON');
         },
         headers: new Headers(),
-      } as unknown as NextRequest
+      } as unknown as NextRequest;
 
-      const response = await POST(request)
-      const data = await response.json()
+      const response = await POST(request);
+      const data = await response.json();
 
-      expect(response.status).toBe(400)
-      expect(data).toHaveProperty('error')
-      expect(typeof data.error).toBe('string')
-    })
+      expect(response.status).toBe(400);
+      expect(data).toHaveProperty('error');
+      expect(typeof data.error).toBe('string');
+    });
 
     it('should initialize CMS tools', async () => {
-      const { createLLMClientFromEnv } = await import('@revealui/ai/llm/server')
+      const { createLLMClientFromEnv } = await import('@revealui/ai/llm/server');
       const mockChat = vi.fn().mockResolvedValue({
         content: 'Tools are ready!',
         toolCalls: [],
-      })
+      });
 
       vi.mocked(createLLMClientFromEnv).mockReturnValue({
         chat: mockChat,
         getResponseCacheStats: vi.fn().mockReturnValue(undefined),
         getSemanticCacheStats: vi.fn().mockReturnValue(undefined),
-      } as unknown as ReturnType<typeof createLLMClientFromEnv>)
+      } as unknown as ReturnType<typeof createLLMClientFromEnv>);
 
       const request = {
         json: async () => ({
@@ -190,23 +190,23 @@ describe('Chat API', () => {
           ],
         }),
         headers: new Headers(),
-      } as unknown as NextRequest
+      } as unknown as NextRequest;
 
-      const response = await POST(request)
+      const response = await POST(request);
 
-      expect(response.status).toBe(200)
-      expect(mockChat).toHaveBeenCalled()
+      expect(response.status).toBe(200);
+      expect(mockChat).toHaveBeenCalled();
 
       // Verify tools were passed to LLM
-      const callArgs = mockChat.mock.calls[0]
-      expect(callArgs).toBeDefined()
-      expect(callArgs?.[1]).toHaveProperty('tools')
-      expect(Array.isArray(callArgs?.[1].tools)).toBe(true)
-      expect(callArgs?.[1].tools.length).toBeGreaterThan(0)
-    })
+      const callArgs = mockChat.mock.calls[0];
+      expect(callArgs).toBeDefined();
+      expect(callArgs?.[1]).toHaveProperty('tools');
+      expect(Array.isArray(callArgs?.[1].tools)).toBe(true);
+      expect(callArgs?.[1].tools.length).toBeGreaterThan(0);
+    });
 
     it('should handle tool calls from LLM', async () => {
-      const { createLLMClientFromEnv } = await import('@revealui/ai/llm/server')
+      const { createLLMClientFromEnv } = await import('@revealui/ai/llm/server');
 
       // Mock LLM to request a tool call
       const mockChat = vi
@@ -229,13 +229,13 @@ describe('Chat API', () => {
         .mockResolvedValueOnce({
           content: 'Here are your collections: pages, posts',
           toolCalls: [],
-        })
+        });
 
       vi.mocked(createLLMClientFromEnv).mockReturnValue({
         chat: mockChat,
         getResponseCacheStats: vi.fn().mockReturnValue(undefined),
         getSemanticCacheStats: vi.fn().mockReturnValue(undefined),
-      } as unknown as ReturnType<typeof createLLMClientFromEnv>)
+      } as unknown as ReturnType<typeof createLLMClientFromEnv>);
 
       const request = {
         json: async () => ({
@@ -247,20 +247,20 @@ describe('Chat API', () => {
           ],
         }),
         headers: new Headers(),
-      } as unknown as NextRequest
+      } as unknown as NextRequest;
 
-      const response = await POST(request)
-      const data = await response.json()
+      const response = await POST(request);
+      const data = await response.json();
 
-      expect(response.status).toBe(200)
-      expect(data.content).toContain('collections')
+      expect(response.status).toBe(200);
+      expect(data.content).toContain('collections');
 
       // Verify tool was called twice (once for tool, once for final response)
-      expect(mockChat).toHaveBeenCalledTimes(2)
-    })
+      expect(mockChat).toHaveBeenCalledTimes(2);
+    });
 
     it('should handle find_documents tool call', async () => {
-      const { createLLMClientFromEnv } = await import('@revealui/ai/llm/server')
+      const { createLLMClientFromEnv } = await import('@revealui/ai/llm/server');
 
       const mockChat = vi
         .fn()
@@ -283,13 +283,13 @@ describe('Chat API', () => {
         .mockResolvedValueOnce({
           content: 'Found 2 pages',
           toolCalls: [],
-        })
+        });
 
       vi.mocked(createLLMClientFromEnv).mockReturnValue({
         chat: mockChat,
         getResponseCacheStats: vi.fn().mockReturnValue(undefined),
         getSemanticCacheStats: vi.fn().mockReturnValue(undefined),
-      } as unknown as ReturnType<typeof createLLMClientFromEnv>)
+      } as unknown as ReturnType<typeof createLLMClientFromEnv>);
 
       const request = {
         json: async () => ({
@@ -301,20 +301,20 @@ describe('Chat API', () => {
           ],
         }),
         headers: new Headers(),
-      } as unknown as NextRequest
+      } as unknown as NextRequest;
 
-      const response = await POST(request)
-      const data = await response.json()
+      const response = await POST(request);
+      const data = await response.json();
 
-      expect(response.status).toBe(200)
-      expect(data.content).toBe('Found 2 pages')
+      expect(response.status).toBe(200);
+      expect(data.content).toBe('Found 2 pages');
 
       // Verify the tool was called - check that chat was called twice
-      expect(mockChat).toHaveBeenCalledTimes(2)
-    })
+      expect(mockChat).toHaveBeenCalledTimes(2);
+    });
 
     it('should respect max iterations limit', async () => {
-      const { createLLMClientFromEnv } = await import('@revealui/ai/llm/server')
+      const { createLLMClientFromEnv } = await import('@revealui/ai/llm/server');
 
       // Mock LLM to always request tools (infinite loop)
       const mockChat = vi.fn().mockResolvedValue({
@@ -329,13 +329,13 @@ describe('Chat API', () => {
             },
           },
         ],
-      })
+      });
 
       vi.mocked(createLLMClientFromEnv).mockReturnValue({
         chat: mockChat,
         getResponseCacheStats: vi.fn().mockReturnValue(undefined),
         getSemanticCacheStats: vi.fn().mockReturnValue(undefined),
-      } as unknown as ReturnType<typeof createLLMClientFromEnv>)
+      } as unknown as ReturnType<typeof createLLMClientFromEnv>);
 
       const request = {
         json: async () => ({
@@ -347,16 +347,16 @@ describe('Chat API', () => {
           ],
         }),
         headers: new Headers(),
-      } as unknown as NextRequest
+      } as unknown as NextRequest;
 
-      const response = await POST(request)
-      const data = await response.json()
+      const response = await POST(request);
+      const data = await response.json();
 
-      expect(response.status).toBe(200)
-      expect(data.content).toContain('processing limit')
+      expect(response.status).toBe(200);
+      expect(data.content).toContain('processing limit');
 
       // Should stop at max iterations (5)
-      expect(mockChat).toHaveBeenCalledTimes(5)
-    })
-  })
-})
+      expect(mockChat).toHaveBeenCalledTimes(5);
+    });
+  });
+});

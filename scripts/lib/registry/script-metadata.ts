@@ -35,19 +35,19 @@
  */
 export interface ArgumentMetadata {
   /** Argument name */
-  name: string
+  name: string;
   /** Short flag (single character) */
-  short?: string
+  short?: string;
   /** Argument type */
-  type: 'string' | 'number' | 'boolean' | 'array'
+  type: 'string' | 'number' | 'boolean' | 'array';
   /** Argument description */
-  description: string
+  description: string;
   /** Whether argument is required */
-  required?: boolean
+  required?: boolean;
   /** Default value */
-  default?: unknown
+  default?: unknown;
   /** Allowed values (for enums) */
-  choices?: string[]
+  choices?: string[];
 }
 
 /**
@@ -55,15 +55,15 @@ export interface ArgumentMetadata {
  */
 export interface CommandMetadata {
   /** Command name */
-  name: string
+  name: string;
   /** Command description */
-  description: string
+  description: string;
   /** Command-specific arguments */
-  args?: ArgumentMetadata[]
+  args?: ArgumentMetadata[];
   /** Confirmation prompt for dangerous operations */
-  confirmPrompt?: string
+  confirmPrompt?: string;
   /** Examples of command usage */
-  examples?: string[]
+  examples?: string[];
 }
 
 /**
@@ -71,11 +71,11 @@ export interface CommandMetadata {
  */
 export interface DependencyMetadata {
   /** npm package name */
-  name: string
+  name: string;
   /** Required version or range */
-  version?: string
+  version?: string;
   /** Whether dependency is required for all commands */
-  required: boolean
+  required: boolean;
 }
 
 /**
@@ -83,13 +83,13 @@ export interface DependencyMetadata {
  */
 export interface PerformanceMetadata {
   /** Estimated duration in milliseconds */
-  estimatedDuration?: number
+  estimatedDuration?: number;
   /** Memory usage category */
-  memoryUsage?: 'low' | 'medium' | 'high'
+  memoryUsage?: 'low' | 'medium' | 'high';
   /** CPU usage category */
-  cpuUsage?: 'low' | 'medium' | 'high'
+  cpuUsage?: 'low' | 'medium' | 'high';
   /** Whether script performs I/O operations */
-  ioIntensive?: boolean
+  ioIntensive?: boolean;
 }
 
 /**
@@ -97,13 +97,13 @@ export interface PerformanceMetadata {
  */
 export interface RiskMetadata {
   /** Risk level */
-  level: 'low' | 'medium' | 'high' | 'critical'
+  level: 'low' | 'medium' | 'high' | 'critical';
   /** Operations that contribute to risk */
-  operations: ('file-write' | 'file-delete' | 'db-write' | 'db-delete' | 'external-command')[]
+  operations: ('file-write' | 'file-delete' | 'db-write' | 'db-delete' | 'external-command')[];
   /** Whether operation is reversible */
-  reversible: boolean
+  reversible: boolean;
   /** Rollback complexity */
-  rollbackComplexity?: 'simple' | 'moderate' | 'complex'
+  rollbackComplexity?: 'simple' | 'moderate' | 'complex';
 }
 
 /**
@@ -111,13 +111,13 @@ export interface RiskMetadata {
  */
 export interface ScriptMetadata {
   /** Script name (from CLI class name property) */
-  name: string
+  name: string;
 
   /** Absolute file path */
-  filePath: string
+  filePath: string;
 
   /** Relative path from project root */
-  relativePath: string
+  relativePath: string;
 
   /** Script category (derived from directory structure) */
   category:
@@ -127,96 +127,96 @@ export interface ScriptMetadata {
     | 'deployment'
     | 'maintenance'
     | 'validation'
-    | 'other'
+    | 'other';
 
   /** Script description */
-  description: string
+  description: string;
 
   /** Available commands */
-  commands: CommandMetadata[]
+  commands: CommandMetadata[];
 
   /** Global arguments (available to all commands) */
-  globalArgs?: ArgumentMetadata[]
+  globalArgs?: ArgumentMetadata[];
 
   /** Whether script extends BaseCLI */
-  extendsBaseCLI: boolean
+  extendsBaseCLI: boolean;
 
   /** Whether script extends EnhancedCLI */
-  extendsEnhancedCLI?: boolean
+  extendsEnhancedCLI?: boolean;
 
   /** Whether script supports dry-run mode */
-  supportsDryRun: boolean
+  supportsDryRun: boolean;
 
   /** Whether script requires user confirmation */
-  requiresConfirmation: boolean
+  requiresConfirmation: boolean;
 
   /** Script dependencies (npm packages) */
-  dependencies: DependencyMetadata[]
+  dependencies: DependencyMetadata[];
 
   /** Import dependencies (other scripts/libs) */
-  imports: string[]
+  imports: string[];
 
   /** Tags for categorization and search */
-  tags: string[]
+  tags: string[];
 
   /** Script version (if versioned) */
-  version?: string
+  version?: string;
 
   /** Performance characteristics */
-  performance?: PerformanceMetadata
+  performance?: PerformanceMetadata;
 
   /** Risk assessment */
-  risk?: RiskMetadata
+  risk?: RiskMetadata;
 
   /** Last modified timestamp */
-  lastModified: Date
+  lastModified: Date;
 
   /** Whether script has associated tests */
-  hasTests?: boolean
+  hasTests?: boolean;
 
   /** Documentation URL or path */
-  docsUrl?: string
+  docsUrl?: string;
 
   /** Usage examples */
-  examples?: string[]
+  examples?: string[];
 
   /** Deprecation information */
   deprecated?: {
     /** Whether script is deprecated */
-    isDeprecated: boolean
+    isDeprecated: boolean;
     /** Deprecation reason */
-    reason?: string
+    reason?: string;
     /** Replacement script */
-    replacement?: string
+    replacement?: string;
     /** Removal version */
-    removeInVersion?: string
-  }
+    removeInVersion?: string;
+  };
 
   /** Contract information (if uses Zod contracts) */
   contract?: {
     /** Input schema name */
-    inputSchema?: string
+    inputSchema?: string;
     /** Output schema name */
-    outputSchema?: string
-  }
+    outputSchema?: string;
+  };
 }
 
 /**
  * Script registry entry (simplified for registry JSON)
  */
 export interface ScriptRegistryEntry {
-  name: string
-  filePath: string
-  relativePath: string
-  category: string
-  description: string
-  commands: string[]
-  supportsDryRun: boolean
-  requiresConfirmation: boolean
-  tags: string[]
-  version?: string
-  deprecated?: boolean
-  lastModified: string
+  name: string;
+  filePath: string;
+  relativePath: string;
+  category: string;
+  description: string;
+  commands: string[];
+  supportsDryRun: boolean;
+  requiresConfirmation: boolean;
+  tags: string[];
+  version?: string;
+  deprecated?: boolean;
+  lastModified: string;
 }
 
 /**
@@ -224,29 +224,29 @@ export interface ScriptRegistryEntry {
  */
 export interface ScriptRegistry {
   /** Registry version */
-  version: string
+  version: string;
 
   /** Generation timestamp */
-  generatedAt: string
+  generatedAt: string;
 
   /** Total number of scripts */
-  totalScripts: number
+  totalScripts: number;
 
   /** Scripts by category */
-  byCategory: Record<string, ScriptRegistryEntry[]>
+  byCategory: Record<string, ScriptRegistryEntry[]>;
 
   /** All scripts */
-  scripts: ScriptRegistryEntry[]
+  scripts: ScriptRegistryEntry[];
 
   /** Registry statistics */
   stats: {
-    totalCommands: number
-    scriptsWithDryRun: number
-    scriptsWithConfirmation: number
-    scriptsDeprecated: number
-    extendsBaseCLI: number
-    extendsEnhancedCLI: number
-  }
+    totalCommands: number;
+    scriptsWithDryRun: number;
+    scriptsWithConfirmation: number;
+    scriptsDeprecated: number;
+    extendsBaseCLI: number;
+    extendsEnhancedCLI: number;
+  };
 }
 
 // =============================================================================
@@ -258,28 +258,28 @@ export interface ScriptRegistry {
  */
 export interface ScriptSearchCriteria {
   /** Search query (matches name, description, tags) */
-  query?: string
+  query?: string;
 
   /** Filter by category */
-  category?: string
+  category?: string;
 
   /** Filter by tags (any match) */
-  tags?: string[]
+  tags?: string[];
 
   /** Filter by dry-run support */
-  supportsDryRun?: boolean
+  supportsDryRun?: boolean;
 
   /** Filter by confirmation requirement */
-  requiresConfirmation?: boolean
+  requiresConfirmation?: boolean;
 
   /** Filter by deprecated status */
-  includeDeprecated?: boolean
+  includeDeprecated?: boolean;
 
   /** Filter by CLI base class */
-  extendsEnhancedCLI?: boolean
+  extendsEnhancedCLI?: boolean;
 
   /** Filter by command name */
-  command?: string
+  command?: string;
 }
 
 /**
@@ -287,16 +287,16 @@ export interface ScriptSearchCriteria {
  */
 export interface ScriptSearchResult {
   /** Matched script metadata */
-  script: ScriptRegistryEntry
+  script: ScriptRegistryEntry;
 
   /** Match score (0-1, higher is better) */
-  score: number
+  score: number;
 
   /** Matching fields */
   matches: {
-    field: string
-    value: string
-  }[]
+    field: string;
+    value: string;
+  }[];
 }
 
 // =============================================================================
@@ -308,28 +308,28 @@ export interface ScriptSearchResult {
  */
 export interface ASTAnalysisResult {
   /** Detected class name */
-  className?: string
+  className?: string;
 
   /** Base class name */
-  baseClass?: string
+  baseClass?: string;
 
   /** Class properties */
   properties: {
-    name: string
-    value?: unknown
-  }[]
+    name: string;
+    value?: unknown;
+  }[];
 
   /** Methods defined in class */
-  methods: string[]
+  methods: string[];
 
   /** Import statements */
   imports: {
-    source: string
-    specifiers: string[]
-  }[]
+    source: string;
+    specifiers: string[];
+  }[];
 
   /** Exported identifiers */
-  exports: string[]
+  exports: string[];
 }
 
 // =============================================================================
@@ -341,16 +341,16 @@ export interface ASTAnalysisResult {
  */
 export interface ExtractionOptions {
   /** Project root directory */
-  projectRoot: string
+  projectRoot: string;
 
   /** Whether to include full AST analysis */
-  fullAnalysis?: boolean
+  fullAnalysis?: boolean;
 
   /** Whether to extract performance metadata */
-  extractPerformance?: boolean
+  extractPerformance?: boolean;
 
   /** Whether to assess risk */
-  assessRisk?: boolean
+  assessRisk?: boolean;
 }
 
 /**
@@ -358,11 +358,11 @@ export interface ExtractionOptions {
  */
 export interface MetadataValidationResult {
   /** Whether metadata is valid */
-  valid: boolean
+  valid: boolean;
 
   /** Validation errors */
-  errors: string[]
+  errors: string[];
 
   /** Validation warnings */
-  warnings: string[]
+  warnings: string[];
 }

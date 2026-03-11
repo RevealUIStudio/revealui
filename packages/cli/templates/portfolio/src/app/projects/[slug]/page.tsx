@@ -1,33 +1,33 @@
-import Image from 'next/image'
+import Image from 'next/image';
 
-const API_URL = process.env.NEXT_PUBLIC_SERVER_URL || 'http://localhost:4000'
+const API_URL = process.env.NEXT_PUBLIC_SERVER_URL || 'http://localhost:4000';
 
 interface Project {
-  id: string
-  title: string
-  slug: string
-  description: unknown
-  tags?: Array<{ tag: string }>
-  link?: string
-  image?: { url: string; alt?: string } | null
+  id: string;
+  title: string;
+  slug: string;
+  description: unknown;
+  tags?: Array<{ tag: string }>;
+  link?: string;
+  image?: { url: string; alt?: string } | null;
 }
 
 async function getProject(slug: string): Promise<Project | null> {
   try {
     const res = await fetch(`${API_URL}/api/projects?where[slug][equals]=${slug}&limit=1`, {
       cache: 'no-store',
-    })
-    if (!res.ok) return null
-    const data = await res.json()
-    return data.docs?.[0] ?? null
+    });
+    if (!res.ok) return null;
+    const data = await res.json();
+    return data.docs?.[0] ?? null;
   } catch {
-    return null
+    return null;
   }
 }
 
 export default async function ProjectPage({ params }: { params: Promise<{ slug: string }> }) {
-  const { slug } = await params
-  const project = await getProject(slug)
+  const { slug } = await params;
+  const project = await getProject(slug);
 
   if (!project) {
     return (
@@ -39,7 +39,7 @@ export default async function ProjectPage({ params }: { params: Promise<{ slug: 
           </a>
         </p>
       </main>
-    )
+    );
   }
 
   return (
@@ -91,5 +91,5 @@ export default async function ProjectPage({ params }: { params: Promise<{ slug: 
         )}
       </article>
     </main>
-  )
+  );
 }

@@ -1,6 +1,6 @@
-'use client'
+'use client';
 
-import { useSignUp } from '@revealui/auth/react'
+import { useSignUp } from '@revealui/auth/react';
 import {
   AuthLayout,
   ButtonCVA as Button,
@@ -11,10 +11,10 @@ import {
   CardTitle,
   FormLabel,
   InputCVA as Input,
-} from '@revealui/presentation/server'
-import Link from 'next/link'
-import { useRouter, useSearchParams } from 'next/navigation'
-import { type FormEvent, Suspense, useState } from 'react'
+} from '@revealui/presentation/server';
+import Link from 'next/link';
+import { useRouter, useSearchParams } from 'next/navigation';
+import { type FormEvent, Suspense, useState } from 'react';
 
 export default function SignupPage() {
   return (
@@ -40,40 +40,40 @@ export default function SignupPage() {
     >
       <SignupContent />
     </Suspense>
-  )
+  );
 }
 
 function SignupContent() {
-  const router = useRouter()
-  const searchParams = useSearchParams()
-  const plan = searchParams.get('plan')
-  const { signUp, isLoading } = useSignUp()
-  const [name, setName] = useState('')
-  const [email, setEmail] = useState('')
-  const [password, setPassword] = useState('')
-  const [tosAccepted, setTosAccepted] = useState(false)
-  const [error, setError] = useState<string | null>(null)
+  const router = useRouter();
+  const searchParams = useSearchParams();
+  const plan = searchParams.get('plan');
+  const { signUp, isLoading } = useSignUp();
+  const [name, setName] = useState('');
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
+  const [tosAccepted, setTosAccepted] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
   const handleSubmit = async (e: FormEvent) => {
-    e.preventDefault()
-    setError(null)
+    e.preventDefault();
+    setError(null);
 
     if (!tosAccepted) {
-      setError('You must accept the Terms of Service to create an account.')
-      return
+      setError('You must accept the Terms of Service to create an account.');
+      return;
     }
 
-    const result = await signUp({ email, password, name, tosAccepted: true })
+    const result = await signUp({ email, password, name, tosAccepted: true });
     if (result.success) {
       if (plan === 'pro') {
-        router.push('/account/billing?upgrade=pro')
+        router.push('/account/billing?upgrade=pro');
       } else {
-        router.push('/')
+        router.push('/');
       }
     } else {
-      setError(result.error || 'Failed to create account')
+      setError(result.error || 'Failed to create account');
     }
-  }
+  };
 
   return (
     <AuthLayout>
@@ -185,5 +185,5 @@ function SignupContent() {
         </CardContent>
       </Card>
     </AuthLayout>
-  )
+  );
 }

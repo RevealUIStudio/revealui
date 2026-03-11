@@ -12,7 +12,7 @@
  * @module @revealui/contracts/database
  */
 
-import type { Contract } from '../foundation/contract.js'
+import type { Contract } from '../foundation/contract.js';
 
 /**
  * Generic Database type structure
@@ -29,14 +29,14 @@ export type Database<
         string,
         {
           // biome-ignore lint/style/useNamingConvention: Supabase schema shape.
-          Row: unknown
+          Row: unknown;
           // biome-ignore lint/style/useNamingConvention: Supabase schema shape.
-          Insert: unknown
+          Insert: unknown;
           // biome-ignore lint/style/useNamingConvention: Supabase schema shape.
-          Update: unknown
+          Update: unknown;
         }
-      >
-    }
+      >;
+    };
   } = {
     public: {
       // biome-ignore lint/style/useNamingConvention: Supabase schema shape.
@@ -44,16 +44,16 @@ export type Database<
         string,
         {
           // biome-ignore lint/style/useNamingConvention: Supabase schema shape.
-          Row: unknown
+          Row: unknown;
           // biome-ignore lint/style/useNamingConvention: Supabase schema shape.
-          Insert: unknown
+          Insert: unknown;
           // biome-ignore lint/style/useNamingConvention: Supabase schema shape.
-          Update: unknown
+          Update: unknown;
         }
-      >
-    }
+      >;
+    };
   },
-> = T
+> = T;
 
 /**
  * Convert a database row to a contract-validated entity
@@ -75,7 +75,7 @@ export type Database<
  * ```
  */
 export function dbRowToContract<T>(contract: Contract<T>, dbRow: unknown): T {
-  return contract.parse(dbRow)
+  return contract.parse(dbRow);
 }
 
 /**
@@ -104,7 +104,7 @@ export function safeDbRowToContract<T>(
   contract: Contract<T>,
   dbRow: unknown,
 ): ReturnType<typeof contract.validate> {
-  return contract.validate(dbRow)
+  return contract.validate(dbRow);
 }
 
 /**
@@ -127,7 +127,7 @@ export function safeDbRowToContract<T>(
 export function contractToDbInsert<TContract, TInsert>(contractData: TContract): TInsert {
   // Type assertion - the contract should match the database structure
   // In practice, contracts and database schemas should be kept in sync
-  return contractData as unknown as TInsert
+  return contractData as unknown as TInsert;
 }
 
 /**
@@ -139,7 +139,7 @@ export function contractToDbInsert<TContract, TInsert>(contractData: TContract):
  * @returns True if the row matches the contract
  */
 export function isDbRowMatchingContract<T>(contract: Contract<T>, dbRow: unknown): dbRow is T {
-  return contract.isType(dbRow)
+  return contract.isType(dbRow);
 }
 
 /**
@@ -147,7 +147,7 @@ export function isDbRowMatchingContract<T>(contract: Contract<T>, dbRow: unknown
  *
  * Utility type to extract table names from the Database type structure.
  */
-export type TableName<T extends Database> = keyof T['public']['Tables']
+export type TableName<T extends Database> = keyof T['public']['Tables'];
 
 /**
  * Extract row type for a specific table
@@ -160,10 +160,10 @@ export type TableRowType<
   N extends TableName<T>,
 > = T['public']['Tables'][N] extends {
   // biome-ignore lint/style/useNamingConvention: Supabase schema shape.
-  Row: infer R
+  Row: infer R;
 }
   ? R
-  : never
+  : never;
 
 /**
  * Extract insert type for a specific table
@@ -176,10 +176,10 @@ export type TableInsertType<
   N extends TableName<T>,
 > = T['public']['Tables'][N] extends {
   // biome-ignore lint/style/useNamingConvention: Supabase schema shape.
-  Insert: infer I
+  Insert: infer I;
 }
   ? I
-  : never
+  : never;
 
 /**
  * Extract update type for a specific table
@@ -192,10 +192,10 @@ export type TableUpdateType<
   N extends TableName<T>,
 > = T['public']['Tables'][N] extends {
   // biome-ignore lint/style/useNamingConvention: Supabase schema shape.
-  Update: infer U
+  Update: infer U;
 }
   ? U
-  : never
+  : never;
 
 /**
  * Database Contract Registry
@@ -204,7 +204,7 @@ export type TableUpdateType<
  * This enables automatic validation when converting database rows to contract types.
  */
 export class DatabaseContractRegistry {
-  private contracts = new Map<string, Contract<unknown>>()
+  private contracts = new Map<string, Contract<unknown>>();
 
   /**
    * Register a contract for a table
@@ -213,7 +213,7 @@ export class DatabaseContractRegistry {
    * @param contract - The contract to use for validation
    */
   register<T>(tableName: string, contract: Contract<T>): void {
-    this.contracts.set(tableName, contract as Contract<unknown>)
+    this.contracts.set(tableName, contract as Contract<unknown>);
   }
 
   /**
@@ -223,7 +223,7 @@ export class DatabaseContractRegistry {
    * @returns The contract if registered, undefined otherwise
    */
   get<T>(tableName: string): Contract<T> | undefined {
-    return this.contracts.get(tableName) as Contract<T> | undefined
+    return this.contracts.get(tableName) as Contract<T> | undefined;
   }
 
   /**
@@ -234,15 +234,15 @@ export class DatabaseContractRegistry {
    * @returns Validation result
    */
   validateRow(tableName: string, dbRow: unknown): ReturnType<Contract<unknown>['validate']> | null {
-    const contract = this.contracts.get(tableName)
+    const contract = this.contracts.get(tableName);
     if (!contract) {
-      return null
+      return null;
     }
-    return contract.validate(dbRow)
+    return contract.validate(dbRow);
   }
 }
 
 /**
  * Global database contract registry instance
  */
-export const databaseContractRegistry = new DatabaseContractRegistry()
+export const databaseContractRegistry = new DatabaseContractRegistry();

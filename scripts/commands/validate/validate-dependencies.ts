@@ -24,13 +24,13 @@
  * ```
  */
 
-import { existsSync, readFileSync } from 'node:fs'
-import { join, relative, resolve } from 'node:path'
-import glob from 'fast-glob'
-import { ErrorCode } from '../../lib/errors.js'
-import { createLogger } from '../../lib/index.js'
+import { existsSync, readFileSync } from 'node:fs';
+import { join, relative, resolve } from 'node:path';
+import glob from 'fast-glob';
+import { ErrorCode } from '../../lib/errors.js';
+import { createLogger } from '../../lib/index.js';
 
-const logger = createLogger({ prefix: 'DepsValidator' })
+const logger = createLogger({ prefix: 'DepsValidator' });
 
 // =============================================================================
 // Types
@@ -38,73 +38,73 @@ const logger = createLogger({ prefix: 'DepsValidator' })
 
 export interface ScriptNode {
   /** Absolute file path */
-  path: string
+  path: string;
   /** Relative path from project root */
-  relativePath: string
+  relativePath: string;
   /** File dependencies from @dependencies */
-  fileDependencies: FileDependency[]
+  fileDependencies: FileDependency[];
   /** Package dependencies from @dependencies */
-  packageDependencies: string[]
+  packageDependencies: string[];
   /** Environment variables from @requires */
-  envVariables: string[]
+  envVariables: string[];
   /** External tools from @requires */
-  externalTools: string[]
+  externalTools: string[];
   /** Script execution dependencies from @requires */
-  scriptDependencies: string[]
+  scriptDependencies: string[];
   /** Whether the file has @dependencies header */
-  hasDocumentation: boolean
+  hasDocumentation: boolean;
   /** Actual imports found in the file */
-  actualImports: string[]
+  actualImports: string[];
 }
 
 export interface FileDependency {
   /** File path (as written in @dependencies) */
-  path: string
+  path: string;
   /** Description */
-  description: string
+  description: string;
   /** Resolved absolute path */
-  resolvedPath?: string
+  resolvedPath?: string;
   /** Whether the file exists */
-  exists: boolean
+  exists: boolean;
 }
 
 export interface DependencyEdge {
-  from: string
-  to: string
-  type: 'file' | 'package'
+  from: string;
+  to: string;
+  type: 'file' | 'package';
 }
 
 export interface Cycle {
-  nodes: string[]
-  severity: 'error' | 'warning'
+  nodes: string[];
+  severity: 'error' | 'warning';
 }
 
 export interface MissingDependency {
-  file: string
-  dependency: string
-  type: 'file' | 'import' | 'documentation'
-  message: string
+  file: string;
+  dependency: string;
+  type: 'file' | 'import' | 'documentation';
+  message: string;
 }
 
 export interface DependencyGraph {
-  nodes: ScriptNode[]
-  edges: DependencyEdge[]
-  cycles: Cycle[]
-  missing: MissingDependency[]
+  nodes: ScriptNode[];
+  edges: DependencyEdge[];
+  cycles: Cycle[];
+  missing: MissingDependency[];
 }
 
 export interface ValidationResult {
-  graph: DependencyGraph
-  errors: string[]
-  warnings: string[]
+  graph: DependencyGraph;
+  errors: string[];
+  warnings: string[];
   stats: {
-    totalFiles: number
-    documented: number
-    undocumented: number
-    circularDependencies: number
-    missingFiles: number
-    missingDocumentation: number
-  }
+    totalFiles: number;
+    documented: number;
+    undocumented: number;
+    circularDependencies: number;
+    missingFiles: number;
+    missingDocumentation: number;
+  };
 }
 
 // =============================================================================
@@ -115,59 +115,59 @@ export interface ValidationResult {
  * Extract @dependencies section from file content
  */
 function extractDependencies(content: string): string[] {
-  const match = content.match(/@dependencies\s*\n([\s\S]*?)(?=\n\s*\*\s*@|\n\s*\*\/)/m)
-  if (!match) return []
+  const match = content.match(/@dependencies\s*\n([\s\S]*?)(?=\n\s*\*\s*@|\n\s*\*\/)/m);
+  if (!match) return [];
 
-  const section = match[1]
+  const section = match[1];
   const lines = section
     .split('\n')
     .map((line) => line.trim())
     .filter((line) => line.startsWith('*') || line.startsWith('-'))
     .map((line) => line.replace(/^\*?\s*-?\s*/, '').trim())
-    .filter((line) => line.length > 0 && !line.startsWith('@'))
+    .filter((line) => line.length > 0 && !line.startsWith('@'));
 
-  return lines
+  return lines;
 }
 
 /**
  * Extract @requires section from file content
  */
 function extractRequires(content: string): string[] {
-  const match = content.match(/@requires\s*\n([\s\S]*?)(?=\n\s*\*\s*@|\n\s*\*\/)/m)
-  if (!match) return []
+  const match = content.match(/@requires\s*\n([\s\S]*?)(?=\n\s*\*\s*@|\n\s*\*\/)/m);
+  if (!match) return [];
 
-  const section = match[1]
+  const section = match[1];
   const lines = section
     .split('\n')
     .map((line) => line.trim())
     .filter((line) => line.startsWith('*') || line.startsWith('-'))
     .map((line) => line.replace(/^\*?\s*-?\s*/, '').trim())
-    .filter((line) => line.length > 0 && !line.startsWith('@'))
+    .filter((line) => line.length > 0 && !line.startsWith('@'));
 
-  return lines
+  return lines;
 }
 
 /**
  * Extract actual import statements from file content
  */
 function extractActualImports(content: string): string[] {
-  const imports: string[] = []
+  const imports: string[] = [];
 
   // Match import statements
   const importMatches = content.matchAll(
     /import\s+(?:type\s+)?(?:{[^}]+}|[\w*]+)?\s*(?:,\s*{[^}]+})?\s*from\s+['"]([^'"]+)['"]/g,
-  )
+  );
   for (const match of importMatches) {
-    imports.push(match[1])
+    imports.push(match[1]);
   }
 
   // Match require statements
-  const requireMatches = content.matchAll(/require\s*\(\s*['"]([^'"]+)['"]\s*\)/g)
+  const requireMatches = content.matchAll(/require\s*\(\s*['"]([^'"]+)['"]\s*\)/g);
   for (const match of requireMatches) {
-    imports.push(match[1])
+    imports.push(match[1]);
   }
 
-  return imports
+  return imports;
 }
 
 /**
@@ -178,27 +178,27 @@ function parseFileDependencies(
   currentFile: string,
   rootDir: string,
 ): FileDependency[] {
-  const result: FileDependency[] = []
+  const result: FileDependency[] = [];
 
   for (const dep of dependencies) {
     // Skip package dependencies (start with @, or no extension)
-    if (dep.startsWith('@') || dep.startsWith('node:')) continue
+    if (dep.startsWith('@') || dep.startsWith('node:')) continue;
 
     // Extract path and description: "path/to/file.ts - Description"
-    const match = dep.match(/^([^\s]+(?:\.ts|\.js|\.mjs))\s*-?\s*(.*)$/)
-    if (!match) continue
+    const match = dep.match(/^([^\s]+(?:\.ts|\.js|\.mjs))\s*-?\s*(.*)$/);
+    if (!match) continue;
 
-    const [, depPath, description] = match
+    const [, depPath, description] = match;
 
     // Resolve relative path
-    let resolvedPath: string | undefined
+    let resolvedPath: string | undefined;
     if (depPath.startsWith('.')) {
       // Relative to current file
-      const currentDir = resolve(rootDir, join(currentFile, '..'))
-      resolvedPath = resolve(currentDir, depPath)
+      const currentDir = resolve(rootDir, join(currentFile, '..'));
+      resolvedPath = resolve(currentDir, depPath);
     } else if (depPath.startsWith('scripts/')) {
       // Relative to project root
-      resolvedPath = resolve(rootDir, depPath)
+      resolvedPath = resolve(rootDir, depPath);
     }
 
     result.push({
@@ -206,87 +206,87 @@ function parseFileDependencies(
       description: description.trim(),
       resolvedPath,
       exists: resolvedPath ? existsSync(resolvedPath) : false,
-    })
+    });
   }
 
-  return result
+  return result;
 }
 
 /**
  * Parse package dependencies from @dependencies section
  */
 function parsePackageDependencies(dependencies: string[]): string[] {
-  const packages: string[] = []
+  const packages: string[] = [];
 
   for (const dep of dependencies) {
     // Match package dependencies (start with @ or node:, or no slashes)
-    const match = dep.match(/^(@[\w/-]+|node:[\w/]+|[\w-]+)\s*-/)
+    const match = dep.match(/^(@[\w/-]+|node:[\w/]+|[\w-]+)\s*-/);
     if (match) {
-      packages.push(match[1])
+      packages.push(match[1]);
     }
   }
 
-  return packages
+  return packages;
 }
 
 /**
  * Parse environment variables from @requires section
  */
 function parseEnvVariables(requires: string[]): string[] {
-  const vars: string[] = []
+  const vars: string[] = [];
 
   for (const req of requires) {
-    const match = req.match(/^Environment:\s*(\w+)/)
+    const match = req.match(/^Environment:\s*(\w+)/);
     if (match) {
-      vars.push(match[1])
+      vars.push(match[1]);
     }
   }
 
-  return vars
+  return vars;
 }
 
 /**
  * Parse external tools from @requires section
  */
 function parseExternalTools(requires: string[]): string[] {
-  const tools: string[] = []
+  const tools: string[] = [];
 
   for (const req of requires) {
-    const match = req.match(/^External:\s*([\w-]+)/)
+    const match = req.match(/^External:\s*([\w-]+)/);
     if (match) {
-      tools.push(match[1])
+      tools.push(match[1]);
     }
   }
 
-  return tools
+  return tools;
 }
 
 /**
  * Parse script dependencies from @requires section
  */
 function parseScriptDependencies(requires: string[]): string[] {
-  const scripts: string[] = []
+  const scripts: string[] = [];
 
   for (const req of requires) {
-    const match = req.match(/^Scripts?:\s*([^\s(]+)/)
+    const match = req.match(/^Scripts?:\s*([^\s(]+)/);
     if (match) {
-      scripts.push(match[1])
+      scripts.push(match[1]);
     }
   }
 
-  return scripts
+  return scripts;
 }
 
 /**
  * Parse a TypeScript file and extract dependency information
  */
 function parseScriptFile(filePath: string, rootDir: string): ScriptNode {
-  const content = readFileSync(filePath, 'utf-8')
-  const relativePath = relative(rootDir, filePath)
+  const content = readFileSync(filePath, 'utf-8');
+  const relativePath = relative(rootDir, filePath);
 
-  const dependenciesSection = extractDependencies(content)
-  const requiresSection = extractRequires(content)
-  const actualImports = extractActualImports(content)
+  const dependenciesSection = extractDependencies(content);
+  const requiresSection = extractRequires(content);
+  const actualImports = extractActualImports(content);
 
   return {
     path: filePath,
@@ -298,7 +298,7 @@ function parseScriptFile(filePath: string, rootDir: string): ScriptNode {
     scriptDependencies: parseScriptDependencies(requiresSection),
     hasDocumentation: dependenciesSection.length > 0 || requiresSection.length > 0,
     actualImports,
-  }
+  };
 }
 
 // =============================================================================
@@ -310,20 +310,20 @@ function parseScriptFile(filePath: string, rootDir: string): ScriptNode {
  */
 function buildDependencyGraph(rootDir: string, filePattern?: string): DependencyGraph {
   // Find all TypeScript files in scripts/
-  const pattern = filePattern || 'scripts/**/*.ts'
+  const pattern = filePattern || 'scripts/**/*.ts';
   const files = glob.sync(pattern, {
     cwd: rootDir,
     absolute: true,
     ignore: ['**/node_modules/**', '**/dist/**', '**/*.test.ts', '**/*.spec.ts'],
-  })
+  });
 
-  logger.info(`Found ${files.length} script files`)
+  logger.info(`Found ${files.length} script files`);
 
   // Parse all files
-  const nodes: ScriptNode[] = files.map((file) => parseScriptFile(file, rootDir))
+  const nodes: ScriptNode[] = files.map((file) => parseScriptFile(file, rootDir));
 
   // Build edges
-  const edges: DependencyEdge[] = []
+  const edges: DependencyEdge[] = [];
   for (const node of nodes) {
     // Add file dependency edges
     for (const dep of node.fileDependencies) {
@@ -332,7 +332,7 @@ function buildDependencyGraph(rootDir: string, filePattern?: string): Dependency
           from: node.relativePath,
           to: relative(rootDir, dep.resolvedPath),
           type: 'file',
-        })
+        });
       }
     }
 
@@ -342,79 +342,79 @@ function buildDependencyGraph(rootDir: string, filePattern?: string): Dependency
         from: node.relativePath,
         to: pkg,
         type: 'package',
-      })
+      });
     }
   }
 
   // Detect cycles
-  const cycles = detectCycles(nodes, edges)
+  const cycles = detectCycles(nodes, edges);
 
   // Detect missing dependencies
-  const missing = detectMissingDependencies(nodes, rootDir)
+  const missing = detectMissingDependencies(nodes, rootDir);
 
-  return { nodes, edges, cycles, missing }
+  return { nodes, edges, cycles, missing };
 }
 
 /**
  * Detect circular dependencies using DFS
  */
 function detectCycles(nodes: ScriptNode[], edges: DependencyEdge[]): Cycle[] {
-  const cycles: Cycle[] = []
-  const visited = new Set<string>()
-  const recursionStack = new Set<string>()
-  const pathStack: string[] = []
+  const cycles: Cycle[] = [];
+  const visited = new Set<string>();
+  const recursionStack = new Set<string>();
+  const pathStack: string[] = [];
 
   // Build adjacency list (only file dependencies)
-  const adjacency = new Map<string, string[]>()
+  const adjacency = new Map<string, string[]>();
   for (const edge of edges) {
     if (edge.type === 'file') {
       if (!adjacency.has(edge.from)) {
-        adjacency.set(edge.from, [])
+        adjacency.set(edge.from, []);
       }
-      adjacency.get(edge.from)?.push(edge.to)
+      adjacency.get(edge.from)?.push(edge.to);
     }
   }
 
   function dfs(node: string): boolean {
-    visited.add(node)
-    recursionStack.add(node)
-    pathStack.push(node)
+    visited.add(node);
+    recursionStack.add(node);
+    pathStack.push(node);
 
-    const neighbors = adjacency.get(node) || []
+    const neighbors = adjacency.get(node) || [];
     for (const neighbor of neighbors) {
       if (!visited.has(neighbor)) {
-        if (dfs(neighbor)) return true
+        if (dfs(neighbor)) return true;
       } else if (recursionStack.has(neighbor)) {
         // Found cycle
-        const cycleStart = pathStack.indexOf(neighbor)
-        const cyclePath = pathStack.slice(cycleStart).concat(neighbor)
+        const cycleStart = pathStack.indexOf(neighbor);
+        const cyclePath = pathStack.slice(cycleStart).concat(neighbor);
         cycles.push({
           nodes: cyclePath,
           severity: 'error',
-        })
-        return true
+        });
+        return true;
       }
     }
 
-    recursionStack.delete(node)
-    pathStack.pop()
-    return false
+    recursionStack.delete(node);
+    pathStack.pop();
+    return false;
   }
 
   for (const node of nodes) {
     if (!visited.has(node.relativePath)) {
-      dfs(node.relativePath)
+      dfs(node.relativePath);
     }
   }
 
-  return cycles
+  return cycles;
 }
 
 /**
  * Detect missing dependencies and undocumented files
  */
 function detectMissingDependencies(nodes: ScriptNode[], _rootDir: string): MissingDependency[] {
-  const missing: MissingDependency[] = []
+  const missing: MissingDependency[] = [];
 
   for (const node of nodes) {
     // Check for missing file dependencies
@@ -425,7 +425,7 @@ function detectMissingDependencies(nodes: ScriptNode[], _rootDir: string): Missi
           dependency: dep.path,
           type: 'file',
           message: `File dependency does not exist: ${dep.path}`,
-        })
+        });
       }
     }
 
@@ -436,7 +436,7 @@ function detectMissingDependencies(nodes: ScriptNode[], _rootDir: string): Missi
         dependency: '',
         type: 'documentation',
         message: 'Missing @dependencies documentation',
-      })
+      });
     }
 
     // Check if actual imports are documented
@@ -445,7 +445,7 @@ function detectMissingDependencies(nodes: ScriptNode[], _rootDir: string): Missi
         // It's a local file import - check if it's in @dependencies
         const isDocumented = node.fileDependencies.some(
           (dep) => dep.path.includes(imp) || imp.includes(dep.path),
-        )
+        );
 
         if (!isDocumented && node.hasDocumentation) {
           missing.push({
@@ -453,13 +453,13 @@ function detectMissingDependencies(nodes: ScriptNode[], _rootDir: string): Missi
             dependency: imp,
             type: 'import',
             message: `Import "${imp}" not documented in @dependencies`,
-          })
+          });
         }
       }
     }
   }
 
-  return missing
+  return missing;
 }
 
 // =============================================================================
@@ -472,47 +472,47 @@ function detectMissingDependencies(nodes: ScriptNode[], _rootDir: string): Missi
 export function validateDependencies(
   rootDir: string,
   options: {
-    filePattern?: string
-    verbose?: boolean
+    filePattern?: string;
+    verbose?: boolean;
   } = {},
 ): ValidationResult {
-  const { filePattern, verbose = true } = options
+  const { filePattern, verbose = true } = options;
 
   if (verbose) {
-    logger.info('Validating script dependencies...')
+    logger.info('Validating script dependencies...');
   }
 
-  const graph = buildDependencyGraph(rootDir, filePattern)
+  const graph = buildDependencyGraph(rootDir, filePattern);
 
-  const errors: string[] = []
-  const warnings: string[] = []
+  const errors: string[] = [];
+  const warnings: string[] = [];
 
   // Process cycles
   for (const cycle of graph.cycles) {
-    const message = `Circular dependency detected: ${cycle.nodes.join(' → ')}`
+    const message = `Circular dependency detected: ${cycle.nodes.join(' → ')}`;
     if (cycle.severity === 'error') {
-      errors.push(message)
+      errors.push(message);
     } else {
-      warnings.push(message)
+      warnings.push(message);
     }
   }
 
   // Process missing dependencies
   for (const missing of graph.missing) {
     if (missing.type === 'file') {
-      errors.push(`[${missing.file}] ${missing.message}`)
+      errors.push(`[${missing.file}] ${missing.message}`);
     } else if (missing.type === 'import') {
-      warnings.push(`[${missing.file}] ${missing.message}`)
+      warnings.push(`[${missing.file}] ${missing.message}`);
     } else if (missing.type === 'documentation') {
-      warnings.push(`[${missing.file}] ${missing.message}`)
+      warnings.push(`[${missing.file}] ${missing.message}`);
     }
   }
 
   // Calculate stats
-  const documented = graph.nodes.filter((n) => n.hasDocumentation).length
-  const undocumented = graph.nodes.length - documented
-  const missingFiles = graph.missing.filter((m) => m.type === 'file').length
-  const missingDocs = graph.missing.filter((m) => m.type === 'documentation').length
+  const documented = graph.nodes.filter((n) => n.hasDocumentation).length;
+  const undocumented = graph.nodes.length - documented;
+  const missingFiles = graph.missing.filter((m) => m.type === 'file').length;
+  const missingDocs = graph.missing.filter((m) => m.type === 'documentation').length;
 
   return {
     graph,
@@ -526,7 +526,7 @@ export function validateDependencies(
       missingFiles,
       missingDocumentation: missingDocs,
     },
-  }
+  };
 }
 
 // =============================================================================
@@ -534,65 +534,65 @@ export function validateDependencies(
 // =============================================================================
 
 if (import.meta.url === `file://${process.argv[1]}`) {
-  const rootDir = resolve(join(import.meta.dirname, '../../..'))
+  const rootDir = resolve(join(import.meta.dirname, '../../..'));
 
   // Parse arguments
-  const args = process.argv.slice(2)
-  const fileArg = args.find((arg) => arg.startsWith('--file='))
-  const jsonOutput = args.includes('--json')
-  const verbose = !jsonOutput
+  const args = process.argv.slice(2);
+  const fileArg = args.find((arg) => arg.startsWith('--file='));
+  const jsonOutput = args.includes('--json');
+  const verbose = !jsonOutput;
 
-  const filePattern = fileArg ? fileArg.split('=')[1] : undefined
+  const filePattern = fileArg ? fileArg.split('=')[1] : undefined;
 
   // Run validation
-  const result = validateDependencies(rootDir, { filePattern, verbose })
+  const result = validateDependencies(rootDir, { filePattern, verbose });
 
   if (jsonOutput) {
-    console.log(JSON.stringify(result, null, 2))
+    console.log(JSON.stringify(result, null, 2));
   } else {
     // Display results
-    console.log('\n📊 Dependency Validation Report\n')
-    console.log('='.repeat(70))
+    console.log('\n📊 Dependency Validation Report\n');
+    console.log('='.repeat(70));
 
-    console.log('\n📈 Statistics:')
-    console.log(`  Total files:              ${result.stats.totalFiles}`)
+    console.log('\n📈 Statistics:');
+    console.log(`  Total files:              ${result.stats.totalFiles}`);
     console.log(
       `  Documented:               ${result.stats.documented} (${Math.round((result.stats.documented / result.stats.totalFiles) * 100)}%)`,
-    )
-    console.log(`  Undocumented:             ${result.stats.undocumented}`)
-    console.log(`  Circular dependencies:    ${result.stats.circularDependencies}`)
-    console.log(`  Missing files:            ${result.stats.missingFiles}`)
-    console.log(`  Missing documentation:    ${result.stats.missingDocumentation}`)
+    );
+    console.log(`  Undocumented:             ${result.stats.undocumented}`);
+    console.log(`  Circular dependencies:    ${result.stats.circularDependencies}`);
+    console.log(`  Missing files:            ${result.stats.missingFiles}`);
+    console.log(`  Missing documentation:    ${result.stats.missingDocumentation}`);
 
     if (result.errors.length > 0) {
-      console.log('\n❌ Errors:')
+      console.log('\n❌ Errors:');
       for (const error of result.errors.slice(0, 20)) {
-        console.log(`  ${error}`)
+        console.log(`  ${error}`);
       }
       if (result.errors.length > 20) {
-        console.log(`  ... and ${result.errors.length - 20} more errors`)
+        console.log(`  ... and ${result.errors.length - 20} more errors`);
       }
     }
 
     if (result.warnings.length > 0) {
-      console.log('\n⚠️  Warnings:')
+      console.log('\n⚠️  Warnings:');
       for (const warning of result.warnings.slice(0, 20)) {
-        console.log(`  ${warning}`)
+        console.log(`  ${warning}`);
       }
       if (result.warnings.length > 20) {
-        console.log(`  ... and ${result.warnings.length - 20} more warnings`)
+        console.log(`  ... and ${result.warnings.length - 20} more warnings`);
       }
     }
 
     if (result.errors.length === 0 && result.warnings.length === 0) {
-      console.log('\n✅ All dependencies validated successfully!')
+      console.log('\n✅ All dependencies validated successfully!');
     }
 
-    console.log(`\n${'='.repeat(70)}`)
+    console.log(`\n${'='.repeat(70)}`);
 
     // Exit with error code if there are errors
     if (result.errors.length > 0) {
-      process.exit(ErrorCode.VALIDATION_ERROR)
+      process.exit(ErrorCode.VALIDATION_ERROR);
     }
   }
 }

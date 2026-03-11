@@ -15,42 +15,42 @@
  * - Environment: POSTGRES_URL or DATABASE_URL (Neon database connection)
  */
 
-import { ErrorCode } from '../../lib/errors.js'
-import { createLogger } from '../../lib/index.js'
-import { createClient } from '../packages/db/client/index.ts'
+import { ErrorCode } from '../../lib/errors.js';
+import { createLogger } from '../../lib/index.js';
+import { createClient } from '../packages/db/client/index.ts';
 
-const logger = createLogger()
-const POSTGRES_URL = process.env.POSTGRES_URL || process.env.DATABASE_URL
+const logger = createLogger();
+const POSTGRES_URL = process.env.POSTGRES_URL || process.env.DATABASE_URL;
 
 if (!POSTGRES_URL) {
-  logger.error('POSTGRES_URL or DATABASE_URL must be set')
-  process.exit(ErrorCode.MISSING_CONFIG)
+  logger.error('POSTGRES_URL or DATABASE_URL must be set');
+  process.exit(ErrorCode.MISSING_CONFIG);
 }
 
 try {
-  const db = createClient({ connectionString: POSTGRES_URL })
+  const db = createClient({ connectionString: POSTGRES_URL });
 
   // Test connection with a simple query
   const result = await db.execute({
     sql: 'SELECT 1 as test, NOW() as timestamp',
     params: [],
-  })
+  });
 
   // Handle different result formats
-  const rows = Array.isArray(result) ? result : result?.rows || []
+  const rows = Array.isArray(result) ? result : result?.rows || [];
 
   if (rows.length > 0) {
-    logger.success('Connection verified')
-    logger.info(`Test result: ${JSON.stringify(rows[0])}`)
-    process.exit(ErrorCode.SUCCESS)
+    logger.success('Connection verified');
+    logger.info(`Test result: ${JSON.stringify(rows[0])}`);
+    process.exit(ErrorCode.SUCCESS);
   } else {
-    logger.error('Query returned no results')
-    process.exit(ErrorCode.EXECUTION_ERROR)
+    logger.error('Query returned no results');
+    process.exit(ErrorCode.EXECUTION_ERROR);
   }
 } catch (error) {
-  logger.error(`Connection failed: ${error instanceof Error ? error.message : String(error)}`)
+  logger.error(`Connection failed: ${error instanceof Error ? error.message : String(error)}`);
   if (error instanceof Error && error.stack) {
-    logger.error(`Stack trace: ${error.stack}`)
+    logger.error(`Stack trace: ${error.stack}`);
   }
-  process.exit(ErrorCode.DATABASE_ERROR)
+  process.exit(ErrorCode.DATABASE_ERROR);
 }

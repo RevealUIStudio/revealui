@@ -4,7 +4,7 @@
  * Finds a single document by ID with optional relationship population.
  */
 
-import { afterRead } from '../../fields/hooks/afterRead/index.js'
+import { afterRead } from '../../fields/hooks/afterRead/index.js';
 import type {
   DatabaseResult,
   PopulateType,
@@ -12,43 +12,43 @@ import type {
   RevealDocument,
   RevealRequest,
   SanitizedCollectionConfig,
-} from '../../types/index.js'
-import { deserializeJsonFields } from '../../utils/json-parsing.js'
+} from '../../types/index.js';
+import { deserializeJsonFields } from '../../utils/json-parsing.js';
 
 export async function findByID(
   config: RevealCollectionConfig,
   db: {
-    query: (query: string, values?: unknown[]) => Promise<DatabaseResult>
+    query: (query: string, values?: unknown[]) => Promise<DatabaseResult>;
   } | null,
   options: {
-    id: string | number
-    depth?: number
-    req?: RevealRequest
-    populate?: PopulateType
+    id: string | number;
+    depth?: number;
+    req?: RevealRequest;
+    populate?: PopulateType;
   },
 ): Promise<RevealDocument | null> {
-  const { id, depth = 0, req, populate: populateOption } = options
+  const { id, depth = 0, req, populate: populateOption } = options;
 
   // Validate depth
   if (depth < 0 || depth > 3) {
-    throw new Error(`Depth must be between 0 and 3, got ${depth}`)
+    throw new Error(`Depth must be between 0 and 3, got ${depth}`);
   }
 
   if (db?.query) {
-    const tableName = config.slug
+    const tableName = config.slug;
     // Ensure id is a string for consistent comparison
-    const idString = String(id)
-    const query = `SELECT * FROM "${tableName}" WHERE id = $1 LIMIT 1`
-    const result = await db.query(query, [idString])
-    const rawDoc = result.rows[0]
+    const idString = String(id);
+    const query = `SELECT * FROM "${tableName}" WHERE id = $1 LIMIT 1`;
+    const result = await db.query(query, [idString]);
+    const rawDoc = result.rows[0];
 
     if (!rawDoc) {
       // Don't throw here, just return null as expected
-      return null
+      return null;
     }
 
     // Deserialize JSON strings back to objects/arrays for SQLite compatibility
-    const doc = deserializeJsonFields(rawDoc, `${tableName}.id=${id}`)
+    const doc = deserializeJsonFields(rawDoc, `${tableName}.id=${id}`);
 
     // Use afterRead hook system for relationship population
     if (req && depth > 0) {
@@ -59,7 +59,7 @@ export async function findByID(
         fields: config.fields as SanitizedCollectionConfig['fields'],
         flattenedFields: config.fields as SanitizedCollectionConfig['flattenedFields'],
         endpoints: config.endpoints === false ? undefined : config.endpoints,
-      } as SanitizedCollectionConfig
+      } as SanitizedCollectionConfig;
 
       return await afterRead({
         collection: sanitizedConfig,
@@ -78,11 +78,11 @@ export async function findByID(
         req,
         select: undefined,
         showHiddenFields: false,
-      })
+      });
     }
 
-    return doc
+    return doc;
   }
 
-  return null
+  return null;
 }

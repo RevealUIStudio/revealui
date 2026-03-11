@@ -1,5 +1,5 @@
-import clsx from 'clsx'
-import type React from 'react'
+import clsx from 'clsx';
+import type React from 'react';
 
 export function EmptyState({
   icon,
@@ -8,11 +8,11 @@ export function EmptyState({
   action,
   className,
 }: {
-  icon?: React.ReactNode
-  title: string
-  description?: string
-  action?: React.ReactNode
-  className?: string
+  icon?: React.ReactNode;
+  title: string;
+  description?: string;
+  action?: React.ReactNode;
+  className?: string;
 }) {
   return (
     <div
@@ -32,5 +32,5 @@ export function EmptyState({
       )}
       {action && <div className="mt-6">{action}</div>}
     </div>
-  )
+  );
 }

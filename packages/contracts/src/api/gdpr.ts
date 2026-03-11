@@ -4,8 +4,8 @@
  * Validation contracts for GDPR/privacy endpoints (data export, deletion)
  */
 
-import { z } from 'zod/v4'
-import { createContract } from '../foundation/contract.js'
+import { z } from 'zod/v4';
+import { createContract } from '../foundation/contract.js';
 
 /**
  * GDPR Data Export Request validation
@@ -20,16 +20,16 @@ export const GDPRExportRequestSchema = z
   .refine((data) => data.userId || data.email, {
     message: 'Either userId or email must be provided',
     path: ['body'],
-  })
+  });
 
-export type GDPRExportRequest = z.infer<typeof GDPRExportRequestSchema>
+export type GDPRExportRequest = z.infer<typeof GDPRExportRequestSchema>;
 
 export const GDPRExportRequestContract = createContract({
   name: 'GDPRExportRequest',
   version: '1',
   description: 'Validates GDPR data export request',
   schema: GDPRExportRequestSchema,
-})
+});
 
 /**
  * GDPR Data Deletion Request validation
@@ -49,13 +49,13 @@ export const GDPRDeleteRequestSchema = z
   .refine((data) => data.userId || data.email, {
     message: 'Either userId or email must be provided',
     path: ['body'],
-  })
+  });
 
-export type GDPRDeleteRequest = z.infer<typeof GDPRDeleteRequestSchema>
+export type GDPRDeleteRequest = z.infer<typeof GDPRDeleteRequestSchema>;
 
 export const GDPRDeleteRequestContract = createContract({
   name: 'GDPRDeleteRequest',
   version: '1',
   description: 'Validates GDPR data deletion request with confirmation',
   schema: GDPRDeleteRequestSchema,
-})
+});

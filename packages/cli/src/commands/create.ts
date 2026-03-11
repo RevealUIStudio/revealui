@@ -5,39 +5,39 @@
  * and initialises a git repo.
  */
 
-import crypto from 'node:crypto'
-import fs from 'node:fs/promises'
-import path from 'node:path'
-import { fileURLToPath } from 'node:url'
-import { createLogger } from '@revealui/setup/utils'
-import ora from 'ora'
-import { generateDevbox } from '../generators/devbox.js'
-import { generateDevContainer } from '../generators/devcontainer.js'
-import { generateReadme } from '../generators/readme.js'
-import { installDependencies, isPnpmInstalled } from '../installers/dependencies.js'
-import type { DatabaseConfig } from '../prompts/database.js'
-import type { DevEnvConfig } from '../prompts/devenv.js'
-import type { PaymentConfig } from '../prompts/payments.js'
-import type { ProjectConfig } from '../prompts/project.js'
-import type { StorageConfig } from '../prompts/storage.js'
-import { createInitialCommit, initializeGitRepo, isGitInstalled } from '../utils/git.js'
+import crypto from 'node:crypto';
+import fs from 'node:fs/promises';
+import path from 'node:path';
+import { fileURLToPath } from 'node:url';
+import { createLogger } from '@revealui/setup/utils';
+import ora from 'ora';
+import { generateDevbox } from '../generators/devbox.js';
+import { generateDevContainer } from '../generators/devcontainer.js';
+import { generateReadme } from '../generators/readme.js';
+import { installDependencies, isPnpmInstalled } from '../installers/dependencies.js';
+import type { DatabaseConfig } from '../prompts/database.js';
+import type { DevEnvConfig } from '../prompts/devenv.js';
+import type { PaymentConfig } from '../prompts/payments.js';
+import type { ProjectConfig } from '../prompts/project.js';
+import type { StorageConfig } from '../prompts/storage.js';
+import { createInitialCommit, initializeGitRepo, isGitInstalled } from '../utils/git.js';
 
-const logger = createLogger({ prefix: 'Create' })
+const logger = createLogger({ prefix: 'Create' });
 
-const __filename = fileURLToPath(import.meta.url)
-const __dirname = path.dirname(__filename)
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
 
 // Templates live at packages/cli/templates/ — two levels up from src/commands/ or dist/commands/
-const TEMPLATES_DIR = path.resolve(__dirname, '../../templates')
+const TEMPLATES_DIR = path.resolve(__dirname, '../../templates');
 
 export interface CreateProjectConfig {
-  project: ProjectConfig
-  database: DatabaseConfig
-  storage: StorageConfig
-  payment: PaymentConfig
-  devenv: DevEnvConfig
-  skipGit?: boolean
-  skipInstall?: boolean
+  project: ProjectConfig;
+  database: DatabaseConfig;
+  storage: StorageConfig;
+  payment: PaymentConfig;
+  devenv: DevEnvConfig;
+  skipGit?: boolean;
+  skipInstall?: boolean;
 }
 
 /**
@@ -53,44 +53,44 @@ function buildEnvLocal(cfg: CreateProjectConfig): string {
     `NEXT_PUBLIC_SERVER_URL=http://localhost:4000`,
     '',
     '# Database',
-  ]
+  ];
 
   if (cfg.database.postgresUrl) {
-    lines.push(`POSTGRES_URL=${cfg.database.postgresUrl}`)
+    lines.push(`POSTGRES_URL=${cfg.database.postgresUrl}`);
   } else {
-    lines.push('POSTGRES_URL=postgresql://postgres:postgres@localhost:5432/revealui')
+    lines.push('POSTGRES_URL=postgresql://postgres:postgres@localhost:5432/revealui');
   }
 
-  lines.push('', '# Storage (Vercel Blob)')
+  lines.push('', '# Storage (Vercel Blob)');
   if (cfg.storage.provider === 'vercel-blob' && cfg.storage.blobToken) {
-    lines.push(`BLOB_READ_WRITE_TOKEN=${cfg.storage.blobToken}`)
+    lines.push(`BLOB_READ_WRITE_TOKEN=${cfg.storage.blobToken}`);
   } else {
-    lines.push('BLOB_READ_WRITE_TOKEN=vercel_blob_rw_placeholder')
+    lines.push('BLOB_READ_WRITE_TOKEN=vercel_blob_rw_placeholder');
   }
 
-  lines.push('', '# Stripe')
+  lines.push('', '# Stripe');
   if (cfg.payment.enabled && cfg.payment.stripeSecretKey) {
-    lines.push(`STRIPE_SECRET_KEY=${cfg.payment.stripeSecretKey}`)
-    lines.push(`STRIPE_WEBHOOK_SECRET=${cfg.payment.stripeWebhookSecret || 'whsec_placeholder'}`)
+    lines.push(`STRIPE_SECRET_KEY=${cfg.payment.stripeSecretKey}`);
+    lines.push(`STRIPE_WEBHOOK_SECRET=${cfg.payment.stripeWebhookSecret || 'whsec_placeholder'}`);
     lines.push(
       `NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY=${cfg.payment.stripePublishableKey || 'pk_test_placeholder'}`,
-    )
+    );
   } else {
-    lines.push('STRIPE_SECRET_KEY=sk_test_placeholder')
-    lines.push('STRIPE_WEBHOOK_SECRET=whsec_placeholder')
-    lines.push('NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY=pk_test_placeholder')
+    lines.push('STRIPE_SECRET_KEY=sk_test_placeholder');
+    lines.push('STRIPE_WEBHOOK_SECRET=whsec_placeholder');
+    lines.push('NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY=pk_test_placeholder');
   }
 
-  lines.push('', '# Admin bootstrap (used on first run only)')
-  lines.push('REVEALUI_ADMIN_EMAIL=admin@example.com')
-  lines.push('REVEALUI_ADMIN_PASSWORD=changeme-min-12-chars')
+  lines.push('', '# Admin bootstrap (used on first run only)');
+  lines.push('REVEALUI_ADMIN_EMAIL=admin@example.com');
+  lines.push('REVEALUI_ADMIN_PASSWORD=changeme-min-12-chars');
 
-  return `${lines.join('\n')}\n`
+  return `${lines.join('\n')}\n`;
 }
 
 /** Generate a cryptographically random 48-char hex secret */
 function generateSecret(): string {
-  return crypto.randomBytes(24).toString('hex')
+  return crypto.randomBytes(24).toString('hex');
 }
 
 /**
@@ -98,10 +98,10 @@ function generateSecret(): string {
  */
 async function listAvailableTemplates(): Promise<string[]> {
   try {
-    const entries = await fs.readdir(TEMPLATES_DIR, { withFileTypes: true })
-    return entries.filter((e) => e.isDirectory()).map((e) => e.name)
+    const entries = await fs.readdir(TEMPLATES_DIR, { withFileTypes: true });
+    return entries.filter((e) => e.isDirectory()).map((e) => e.name);
   } catch {
-    return []
+    return [];
   }
 }
 
@@ -109,37 +109,37 @@ async function listAvailableTemplates(): Promise<string[]> {
  * Copy a template directory recursively into the target path.
  */
 async function copyTemplate(templateName: string, targetPath: string): Promise<void> {
-  const templatePath = path.join(TEMPLATES_DIR, templateName)
+  const templatePath = path.join(TEMPLATES_DIR, templateName);
 
   // Verify the template exists
   try {
-    await fs.access(templatePath)
+    await fs.access(templatePath);
   } catch {
-    const available = await listAvailableTemplates()
+    const available = await listAvailableTemplates();
     const listing =
       available.length > 0
         ? `Available templates: ${available.join(', ')}`
-        : `No templates found in ${TEMPLATES_DIR}`
-    throw new Error(`Template "${templateName}" not found at ${templatePath}. ${listing}`)
+        : `No templates found in ${TEMPLATES_DIR}`;
+    throw new Error(`Template "${templateName}" not found at ${templatePath}. ${listing}`);
   }
 
-  await copyDir(templatePath, targetPath)
+  await copyDir(templatePath, targetPath);
 }
 
 async function copyDir(src: string, dest: string): Promise<void> {
-  await fs.mkdir(dest, { recursive: true })
-  const entries = await fs.readdir(src, { withFileTypes: true })
+  await fs.mkdir(dest, { recursive: true });
+  const entries = await fs.readdir(src, { withFileTypes: true });
 
   for (const entry of entries) {
-    const srcPath = path.join(src, entry.name)
+    const srcPath = path.join(src, entry.name);
     // npm always strips .gitignore from tarballs; we store it as _gitignore and rename on copy
-    const destName = entry.name === '_gitignore' ? '.gitignore' : entry.name
-    const destPath = path.join(dest, destName)
+    const destName = entry.name === '_gitignore' ? '.gitignore' : entry.name;
+    const destPath = path.join(dest, destName);
 
     if (entry.isDirectory()) {
-      await copyDir(srcPath, destPath)
+      await copyDir(srcPath, destPath);
     } else {
-      await fs.copyFile(srcPath, destPath)
+      await fs.copyFile(srcPath, destPath);
     }
   }
 }
@@ -153,82 +153,84 @@ function resolveTemplateName(template: ProjectConfig['template']): string {
     'basic-blog': 'basic-blog',
     'e-commerce': 'e-commerce',
     portfolio: 'portfolio',
-  }
-  return map[template] ?? 'minimal'
+  };
+  return map[template] ?? 'minimal';
 }
 
 /**
  * Main project creation function — wires everything together.
  */
 export async function createProject(cfg: CreateProjectConfig): Promise<void> {
-  const { project, skipGit = false, skipInstall = false } = cfg
-  const { projectPath, projectName, template } = project
+  const { project, skipGit = false, skipInstall = false } = cfg;
+  const { projectPath, projectName, template } = project;
 
   // 1. Copy template files
-  const spinner = ora(`Copying template "${template}"...`).start()
+  const spinner = ora(`Copying template "${template}"...`).start();
   try {
-    await copyTemplate(resolveTemplateName(template), projectPath)
-    spinner.succeed('Template files copied')
+    await copyTemplate(resolveTemplateName(template), projectPath);
+    spinner.succeed('Template files copied');
   } catch (err) {
-    spinner.fail('Failed to copy template files')
-    throw err
+    spinner.fail('Failed to copy template files');
+    throw err;
   }
 
   // 2. Replace {{PROJECT_NAME}} placeholders in package.json / other files
-  const pkgJsonPath = path.join(projectPath, 'package.json')
+  const pkgJsonPath = path.join(projectPath, 'package.json');
   try {
-    const raw = await fs.readFile(pkgJsonPath, 'utf-8')
-    await fs.writeFile(pkgJsonPath, raw.replaceAll('{{PROJECT_NAME}}', projectName), 'utf-8')
+    const raw = await fs.readFile(pkgJsonPath, 'utf-8');
+    await fs.writeFile(pkgJsonPath, raw.replaceAll('{{PROJECT_NAME}}', projectName), 'utf-8');
   } catch {
     // package.json placeholder replacement is best-effort
   }
 
   // 3. Write .env.local
-  const envSpinner = ora('Writing .env.local...').start()
+  const envSpinner = ora('Writing .env.local...').start();
   try {
-    await fs.writeFile(path.join(projectPath, '.env.local'), buildEnvLocal(cfg), 'utf-8')
-    envSpinner.succeed('.env.local written')
+    await fs.writeFile(path.join(projectPath, '.env.local'), buildEnvLocal(cfg), 'utf-8');
+    envSpinner.succeed('.env.local written');
   } catch (err) {
-    envSpinner.fail('Failed to write .env.local')
-    throw err
+    envSpinner.fail('Failed to write .env.local');
+    throw err;
   }
 
   // 4. Generate README
-  await generateReadme(projectPath, project)
-  logger.success('README.md generated')
+  await generateReadme(projectPath, project);
+  logger.success('README.md generated');
 
   // 4b. Generate dev environment configs
   if (cfg.devenv.createDevContainer) {
-    await generateDevContainer(projectPath)
-    logger.success('.devcontainer/ generated')
+    await generateDevContainer(projectPath);
+    logger.success('.devcontainer/ generated');
   }
   if (cfg.devenv.createDevbox) {
-    await generateDevbox(projectPath)
-    logger.success('devbox.json generated')
+    await generateDevbox(projectPath);
+    logger.success('devbox.json generated');
   }
 
   // 5. Install dependencies
   if (!skipInstall) {
-    const pnpmOk = await isPnpmInstalled()
+    const pnpmOk = await isPnpmInstalled();
     if (!pnpmOk) {
-      logger.warn('pnpm not found — skipping dependency installation. Run `pnpm install` manually.')
+      logger.warn(
+        'pnpm not found — skipping dependency installation. Run `pnpm install` manually.',
+      );
     } else {
-      await installDependencies(projectPath)
+      await installDependencies(projectPath);
     }
   } else {
-    logger.info('Skipping dependency installation (--skip-install)')
+    logger.info('Skipping dependency installation (--skip-install)');
   }
 
   // 6. Git init
   if (!skipGit) {
-    const gitOk = await isGitInstalled()
+    const gitOk = await isGitInstalled();
     if (!gitOk) {
-      logger.warn('git not found — skipping repository initialisation.')
+      logger.warn('git not found — skipping repository initialisation.');
     } else {
-      await initializeGitRepo(projectPath)
-      await createInitialCommit(projectPath)
+      await initializeGitRepo(projectPath);
+      await createInitialCommit(projectPath);
     }
   } else {
-    logger.info('Skipping git initialisation (--skip-git)')
+    logger.info('Skipping git initialisation (--skip-git)');
   }
 }

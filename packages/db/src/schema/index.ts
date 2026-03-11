@@ -17,8 +17,8 @@
  */
 
 // Re-export everything for backward compatibility
-export * from './rest.js'
-export * from './vector.js'
+export * from './rest.js';
+export * from './vector.js';
 
 // Note: We don't export * from './agents.js' to avoid duplicate agentMemories export
 // agentMemories is already exported via './vector'
@@ -29,21 +29,21 @@ export * from './vector.js'
 // Relations (defined separately to avoid circular imports)
 // =============================================================================
 
-import { relations } from 'drizzle-orm'
-import { agentActions, agentContexts, agentMemories, conversations } from './agents.js'
-import { tenantProviderConfigs, userApiKeys } from './api-keys.js'
-import { appLogs } from './app-logs.js'
-import { auditLog } from './audit-log.js'
-import { media, posts } from './cms.js'
-import { codeProvenance, codeReviews } from './code-provenance.js'
-import { collabEdits } from './collab-edits.js'
-import { errorEvents } from './error-events.js'
-import { licenses } from './licenses.js'
-import { marketplaceServers, marketplaceTransactions } from './marketplace.js'
-import { oauthAccounts } from './oauth-accounts.js'
-import { pageRevisions, pages } from './pages.js'
-import { passwordResetTokens } from './password-reset-tokens.js'
-import { siteCollaborators, sites } from './sites.js'
+import { relations } from 'drizzle-orm';
+import { agentActions, agentContexts, agentMemories, conversations } from './agents.js';
+import { tenantProviderConfigs, userApiKeys } from './api-keys.js';
+import { appLogs } from './app-logs.js';
+import { auditLog } from './audit-log.js';
+import { media, posts } from './cms.js';
+import { codeProvenance, codeReviews } from './code-provenance.js';
+import { collabEdits } from './collab-edits.js';
+import { errorEvents } from './error-events.js';
+import { licenses } from './licenses.js';
+import { marketplaceServers, marketplaceTransactions } from './marketplace.js';
+import { oauthAccounts } from './oauth-accounts.js';
+import { pageRevisions, pages } from './pages.js';
+import { passwordResetTokens } from './password-reset-tokens.js';
+import { siteCollaborators, sites } from './sites.js';
 import {
   boardColumns,
   boards,
@@ -51,9 +51,9 @@ import {
   ticketLabelAssignments,
   ticketLabels,
   tickets,
-} from './tickets.js'
-import { sessions, users } from './users.js'
-import { yjsDocuments } from './yjs-documents.js'
+} from './tickets.js';
+import { sessions, users } from './users.js';
+import { yjsDocuments } from './yjs-documents.js';
 
 // User relations
 export const usersRelations = relations(users, ({ many }) => ({
@@ -65,7 +65,7 @@ export const usersRelations = relations(users, ({ many }) => ({
   apiKeys: many(userApiKeys),
   providerConfigs: many(tenantProviderConfigs),
   oauthAccounts: many(oauthAccounts),
-}))
+}));
 
 // OAuth account relations
 export const oauthAccountsRelations = relations(oauthAccounts, ({ one }) => ({
@@ -73,7 +73,7 @@ export const oauthAccountsRelations = relations(oauthAccounts, ({ one }) => ({
     fields: [oauthAccounts.userId],
     references: [users.id],
   }),
-}))
+}));
 
 // BYOK API key relations
 export const userApiKeysRelations = relations(userApiKeys, ({ one }) => ({
@@ -81,14 +81,14 @@ export const userApiKeysRelations = relations(userApiKeys, ({ one }) => ({
     fields: [userApiKeys.userId],
     references: [users.id],
   }),
-}))
+}));
 
 export const tenantProviderConfigsRelations = relations(tenantProviderConfigs, ({ one }) => ({
   user: one(users, {
     fields: [tenantProviderConfigs.userId],
     references: [users.id],
   }),
-}))
+}));
 
 // Session relations
 export const sessionsRelations = relations(sessions, ({ one }) => ({
@@ -96,7 +96,7 @@ export const sessionsRelations = relations(sessions, ({ one }) => ({
     fields: [sessions.userId],
     references: [users.id],
   }),
-}))
+}));
 
 // Password reset token relations
 export const passwordResetTokensRelations = relations(passwordResetTokens, ({ one }) => ({
@@ -104,7 +104,7 @@ export const passwordResetTokensRelations = relations(passwordResetTokens, ({ on
     fields: [passwordResetTokens.userId],
     references: [users.id],
   }),
-}))
+}));
 
 // Site relations
 // Note: memories relation removed - agentMemories is in vector database (Supabase)
@@ -116,7 +116,7 @@ export const sitesRelations = relations(sites, ({ one, many }) => ({
   }),
   collaborators: many(siteCollaborators),
   pages: many(pages),
-}))
+}));
 
 // Site collaborator relations
 export const siteCollaboratorsRelations = relations(siteCollaborators, ({ one }) => ({
@@ -132,7 +132,7 @@ export const siteCollaboratorsRelations = relations(siteCollaborators, ({ one })
     fields: [siteCollaborators.addedBy],
     references: [users.id],
   }),
-}))
+}));
 
 // Page relations
 export const pagesRelations = relations(pages, ({ one, many }) => ({
@@ -149,7 +149,7 @@ export const pagesRelations = relations(pages, ({ one, many }) => ({
     relationName: 'parent',
   }),
   revisions: many(pageRevisions),
-}))
+}));
 
 // Page revision relations
 export const pageRevisionsRelations = relations(pageRevisions, ({ one }) => ({
@@ -161,12 +161,12 @@ export const pageRevisionsRelations = relations(pageRevisions, ({ one }) => ({
     fields: [pageRevisions.createdBy],
     references: [users.id],
   }),
-}))
+}));
 
 // Agent context relations
 export const agentContextsRelations = relations(agentContexts, () => ({
   // Contexts are loosely coupled via sessionId/agentId strings
-}))
+}));
 
 // Agent memory relations
 export const agentMemoriesRelations = relations(agentMemories, ({ one }) => ({
@@ -178,7 +178,7 @@ export const agentMemoriesRelations = relations(agentMemories, ({ one }) => ({
     fields: [agentMemories.verifiedBy],
     references: [users.id],
   }),
-}))
+}));
 
 // Conversation relations
 export const conversationsRelations = relations(conversations, ({ one, many }) => ({
@@ -187,7 +187,7 @@ export const conversationsRelations = relations(conversations, ({ one, many }) =
     references: [users.id],
   }),
   actions: many(agentActions),
-}))
+}));
 
 // Agent action relations
 export const agentActionsRelations = relations(agentActions, ({ one }) => ({
@@ -195,7 +195,7 @@ export const agentActionsRelations = relations(agentActions, ({ one }) => ({
     fields: [agentActions.conversationId],
     references: [conversations.id],
   }),
-}))
+}));
 
 // =============================================================================
 // CMS Relations
@@ -211,7 +211,7 @@ export const postsRelations = relations(posts, ({ one }) => ({
     fields: [posts.featuredImageId],
     references: [media.id],
   }),
-}))
+}));
 
 // Media relations
 export const mediaRelations = relations(media, ({ one }) => ({
@@ -219,7 +219,7 @@ export const mediaRelations = relations(media, ({ one }) => ({
     fields: [media.uploadedBy],
     references: [users.id],
   }),
-}))
+}));
 
 // =============================================================================
 // License Relations
@@ -230,7 +230,7 @@ export const licensesRelations = relations(licenses, ({ one }) => ({
     fields: [licenses.userId],
     references: [users.id],
   }),
-}))
+}));
 
 // =============================================================================
 // Audit Log Relations
@@ -239,15 +239,15 @@ export const licensesRelations = relations(licenses, ({ one }) => ({
 // Audit log entries are standalone — no foreign keys by design.
 // The agentId, taskId, and sessionId are stored as plain text for
 // decoupling the audit trail from agent lifecycle tables.
-export const auditLogRelations = relations(auditLog, () => ({}))
+export const auditLogRelations = relations(auditLog, () => ({}));
 
 // App logs are standalone — no foreign keys by design.
 // Append-only structured log store (warn+ in production).
-export const appLogsRelations = relations(appLogs, () => ({}))
+export const appLogsRelations = relations(appLogs, () => ({}));
 
 // Error events are standalone — no foreign keys by design.
 // userId is stored as plain text so errors outlive user deletion.
-export const errorEventsRelations = relations(errorEvents, () => ({}))
+export const errorEventsRelations = relations(errorEvents, () => ({}));
 
 // =============================================================================
 // Collaborative Editing Relations
@@ -255,14 +255,14 @@ export const errorEventsRelations = relations(errorEvents, () => ({}))
 
 export const yjsDocumentsRelations = relations(yjsDocuments, ({ many }) => ({
   edits: many(collabEdits),
-}))
+}));
 
 export const collabEditsRelations = relations(collabEdits, ({ one }) => ({
   document: one(yjsDocuments, {
     fields: [collabEdits.documentId],
     references: [yjsDocuments.id],
   }),
-}))
+}));
 
 // =============================================================================
 // Ticketing System Relations
@@ -275,7 +275,7 @@ export const boardsRelations = relations(boards, ({ one, many }) => ({
   }),
   columns: many(boardColumns),
   tickets: many(tickets),
-}))
+}));
 
 export const boardColumnsRelations = relations(boardColumns, ({ one, many }) => ({
   board: one(boards, {
@@ -283,7 +283,7 @@ export const boardColumnsRelations = relations(boardColumns, ({ one, many }) => 
     references: [boards.id],
   }),
   tickets: many(tickets),
-}))
+}));
 
 export const ticketsRelations = relations(tickets, ({ one, many }) => ({
   board: one(boards, {
@@ -314,7 +314,7 @@ export const ticketsRelations = relations(tickets, ({ one, many }) => ({
   }),
   comments: many(ticketComments),
   labelAssignments: many(ticketLabelAssignments),
-}))
+}));
 
 export const ticketCommentsRelations = relations(ticketComments, ({ one }) => ({
   ticket: one(tickets, {
@@ -325,11 +325,11 @@ export const ticketCommentsRelations = relations(ticketComments, ({ one }) => ({
     fields: [ticketComments.authorId],
     references: [users.id],
   }),
-}))
+}));
 
 export const ticketLabelsRelations = relations(ticketLabels, ({ many }) => ({
   assignments: many(ticketLabelAssignments),
-}))
+}));
 
 export const ticketLabelAssignmentsRelations = relations(ticketLabelAssignments, ({ one }) => ({
   ticket: one(tickets, {
@@ -340,7 +340,7 @@ export const ticketLabelAssignmentsRelations = relations(ticketLabelAssignments,
     fields: [ticketLabelAssignments.labelId],
     references: [ticketLabels.id],
   }),
-}))
+}));
 
 // =============================================================================
 // Marketplace Relations
@@ -352,14 +352,14 @@ export const marketplaceServersRelations = relations(marketplaceServers, ({ one,
     references: [users.id],
   }),
   transactions: many(marketplaceTransactions),
-}))
+}));
 
 export const marketplaceTransactionsRelations = relations(marketplaceTransactions, ({ one }) => ({
   server: one(marketplaceServers, {
     fields: [marketplaceTransactions.serverId],
     references: [marketplaceServers.id],
   }),
-}))
+}));
 
 // =============================================================================
 // Code Provenance Relations
@@ -371,7 +371,7 @@ export const codeProvenanceRelations = relations(codeProvenance, ({ one, many })
     references: [users.id],
   }),
   reviews: many(codeReviews),
-}))
+}));
 
 export const codeReviewsRelations = relations(codeReviews, ({ one }) => ({
   provenance: one(codeProvenance, {
@@ -382,4 +382,4 @@ export const codeReviewsRelations = relations(codeReviews, ({ one }) => ({
     fields: [codeReviews.reviewerId],
     references: [users.id],
   }),
-}))
+}));

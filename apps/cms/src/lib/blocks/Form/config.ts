@@ -1,14 +1,14 @@
-import type { Block } from '@revealui/core'
+import type { Block } from '@revealui/core';
 
 import {
   FixedToolbarFeature,
   HeadingFeature,
   InlineToolbarFeature,
   lexicalEditor,
-} from '@revealui/core/richtext'
+} from '@revealui/core/richtext';
 
 interface FormBlockData {
-  enableIntro?: boolean
+  enableIntro?: boolean;
 }
 
 export const FormBlock: Block = {
@@ -39,7 +39,7 @@ export const FormBlock: Block = {
             HeadingFeature({ enabledHeadingSizes: ['h1', 'h2', 'h3', 'h4'] }),
             FixedToolbarFeature(),
             InlineToolbarFeature(),
-          ]
+          ];
         },
       }),
       label: 'Intro Content',
@@ -50,4 +50,4 @@ export const FormBlock: Block = {
     plural: 'Form Blocks',
     singular: 'Form Block',
   },
-}
+};

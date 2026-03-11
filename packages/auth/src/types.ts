@@ -11,27 +11,27 @@
  * Structurally compatible with UsersRow from @revealui/contracts/generated.
  */
 export interface User {
-  id: string
-  schemaVersion: string
-  type: string
-  name: string
-  email: string | null
-  avatarUrl: string | null
-  password: string | null
-  role: string
-  status: string
-  agentModel: string | null
-  agentCapabilities: string[] | null
-  agentConfig: unknown
-  emailVerified: boolean
-  emailVerificationToken: string | null
-  emailVerifiedAt: Date | null
-  preferences: unknown
-  createdAt: Date
-  updatedAt: Date
-  lastActiveAt: Date | null
+  id: string;
+  schemaVersion: string;
+  type: string;
+  name: string;
+  email: string | null;
+  avatarUrl: string | null;
+  password: string | null;
+  role: string;
+  status: string;
+  agentModel: string | null;
+  agentCapabilities: string[] | null;
+  agentConfig: unknown;
+  emailVerified: boolean;
+  emailVerificationToken: string | null;
+  emailVerifiedAt: Date | null;
+  preferences: unknown;
+  createdAt: Date;
+  updatedAt: Date;
+  lastActiveAt: Date | null;
   // biome-ignore lint/style/useNamingConvention: OAuth provider standard field name
-  _json?: unknown
+  _json?: unknown;
 }
 
 /**
@@ -39,33 +39,33 @@ export interface User {
  * Structurally compatible with SessionsRow from @revealui/contracts/generated.
  */
 export interface Session {
-  id: string
-  schemaVersion: string
-  userId: string
-  tokenHash: string
-  userAgent: string | null
-  ipAddress: string | null
-  persistent: boolean | null
-  lastActivityAt: Date
-  createdAt: Date
-  expiresAt: Date
+  id: string;
+  schemaVersion: string;
+  userId: string;
+  tokenHash: string;
+  userAgent: string | null;
+  ipAddress: string | null;
+  persistent: boolean | null;
+  lastActivityAt: Date;
+  createdAt: Date;
+  expiresAt: Date;
 }
 
 export interface AuthSession {
-  session: Session
-  user: User
+  session: Session;
+  user: User;
 }
 
 export interface SignInResult {
-  success: boolean
-  user?: User
-  sessionToken?: string
-  error?: string
+  success: boolean;
+  user?: User;
+  sessionToken?: string;
+  error?: string;
 }
 
 export interface SignUpResult {
-  success: boolean
-  user?: User
-  sessionToken?: string
-  error?: string
+  success: boolean;
+  user?: User;
+  sessionToken?: string;
+  error?: string;
 }

@@ -5,7 +5,7 @@
  * Users can log in without verifying, but the CMS shows a reminder banner.
  */
 
-import { sendEmail } from './index'
+import { sendEmail } from './index';
 
 /**
  * Send email verification link to a new user.
@@ -14,9 +14,10 @@ export async function sendVerificationEmail(
   email: string,
   token: string,
 ): Promise<{ success: boolean; error?: string }> {
-  const baseUrl = process.env.NEXT_PUBLIC_SERVER_URL || process.env.REVEALUI_PUBLIC_SERVER_URL || ''
+  const baseUrl =
+    process.env.NEXT_PUBLIC_SERVER_URL || process.env.REVEALUI_PUBLIC_SERVER_URL || '';
 
-  const verifyUrl = `${baseUrl}/api/auth/verify-email?token=${encodeURIComponent(token)}`
+  const verifyUrl = `${baseUrl}/api/auth/verify-email?token=${encodeURIComponent(token)}`;
 
   const html = `
     <!DOCTYPE html>
@@ -42,7 +43,7 @@ export async function sendVerificationEmail(
         </p>
       </body>
     </html>
-  `
+  `;
 
   const text = `
 Verify Your Email
@@ -53,12 +54,12 @@ ${verifyUrl}
 
 You can use RevealUI without verifying, but some features may be limited after 7 days.
 If you didn't create this account, you can safely ignore this email.
-  `.trim()
+  `.trim();
 
   return sendEmail({
     to: email,
     subject: 'Verify your email — RevealUI',
     html,
     text,
-  })
+  });
 }

@@ -75,6 +75,8 @@
             curl
             wget
             jq
+            # Note: opensrc (npm install -g opensrc) provides package source for AI agents
+            # Not in nixpkgs — installed globally via npm. Re-install after fnm node switch.
 
             # File utilities
             ripgrep
@@ -259,6 +261,10 @@ PGHBA
             # Usage: wb
             wb() { watch -n3 "glow '$PWD/.claude/workboard.md' 2>/dev/null || cat '$PWD/.claude/workboard.md'"; }
             export -f wb
+
+            # opensrc — fetch package source for agent context
+            osrc() { opensrc "$@" --cwd "$PWD" --modify false; }
+            export -f osrc
           '';
 
           # Environment variables

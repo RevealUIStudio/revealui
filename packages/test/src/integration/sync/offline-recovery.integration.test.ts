@@ -17,29 +17,29 @@
  * - Error recovery
  */
 
-import { beforeEach, describe, expect, it } from 'vitest'
+import { beforeEach, describe, expect, it } from 'vitest';
 
 // Mock operation queue
 interface QueuedOperation {
-  id: string
-  type: 'create' | 'update' | 'delete'
-  collection: string
-  data: unknown
-  timestamp: number
+  id: string;
+  type: 'create' | 'update' | 'delete';
+  collection: string;
+  data: unknown;
+  timestamp: number;
 }
 
 class OfflineQueue {
-  private queue: QueuedOperation[] = []
-  private isOnline: boolean = true
+  private queue: QueuedOperation[] = [];
+  private isOnline: boolean = true;
 
   constructor() {
     // Load queue from localStorage in real implementation
-    this.loadQueue()
+    this.loadQueue();
   }
 
   private loadQueue(): void {
     // In real implementation: JSON.parse(localStorage.getItem('offline-queue') || '[]')
-    this.queue = []
+    this.queue = [];
   }
 
   private saveQueue(): void {
@@ -47,11 +47,11 @@ class OfflineQueue {
   }
 
   setOnline(online: boolean): void {
-    this.isOnline = online
+    this.isOnline = online;
   }
 
   isClientOnline(): boolean {
-    return this.isOnline
+    return this.isOnline;
   }
 
   addOperation(op: Omit<QueuedOperation, 'id' | 'timestamp'>): string {
@@ -59,63 +59,63 @@ class OfflineQueue {
       ...op,
       id: `op_${Date.now()}_${Math.random()}`,
       timestamp: Date.now(),
-    }
+    };
 
-    this.queue.push(operation)
-    this.saveQueue()
-    return operation.id
+    this.queue.push(operation);
+    this.saveQueue();
+    return operation.id;
   }
 
   getQueue(): QueuedOperation[] {
-    return [...this.queue]
+    return [...this.queue];
   }
 
   async syncQueue(): Promise<{ success: boolean; synced: number; failed: number }> {
     if (!this.isOnline) {
-      return { success: false, synced: 0, failed: 0 }
+      return { success: false, synced: 0, failed: 0 };
     }
 
-    let synced = 0
-    let failed = 0
+    let synced = 0;
+    let failed = 0;
 
     for (const op of this.queue) {
       try {
         // Simulate sync operation
-        await this.syncOperation(op)
-        synced++
+        await this.syncOperation(op);
+        synced++;
       } catch {
-        failed++
+        failed++;
       }
     }
 
     if (failed === 0) {
-      this.clearQueue()
+      this.clearQueue();
     }
 
-    return { success: failed === 0, synced, failed }
+    return { success: failed === 0, synced, failed };
   }
 
   private async syncOperation(_op: QueuedOperation): Promise<void> {
     // Simulate sync with small delay
-    await new Promise((resolve) => setTimeout(resolve, 10))
+    await new Promise((resolve) => setTimeout(resolve, 10));
   }
 
   clearQueue(): void {
-    this.queue = []
-    this.saveQueue()
+    this.queue = [];
+    this.saveQueue();
   }
 
   size(): number {
-    return this.queue.length
+    return this.queue.length;
   }
 }
 
 describe('Offline Recovery Integration Tests', () => {
-  let offlineQueue: OfflineQueue
+  let offlineQueue: OfflineQueue;
 
   beforeEach(() => {
-    offlineQueue = new OfflineQueue()
-  })
+    offlineQueue = new OfflineQueue();
+  });
 
   // =============================================================================
   // Offline Detection
@@ -123,21 +123,21 @@ describe('Offline Recovery Integration Tests', () => {
 
   describe('Offline Detection', () => {
     it('should detect when client goes offline', () => {
-      offlineQueue.setOnline(true)
-      expect(offlineQueue.isClientOnline()).toBe(true)
+      offlineQueue.setOnline(true);
+      expect(offlineQueue.isClientOnline()).toBe(true);
 
-      offlineQueue.setOnline(false)
-      expect(offlineQueue.isClientOnline()).toBe(false)
-    })
+      offlineQueue.setOnline(false);
+      expect(offlineQueue.isClientOnline()).toBe(false);
+    });
 
     it('should detect when client comes back online', () => {
-      offlineQueue.setOnline(false)
-      expect(offlineQueue.isClientOnline()).toBe(false)
+      offlineQueue.setOnline(false);
+      expect(offlineQueue.isClientOnline()).toBe(false);
 
-      offlineQueue.setOnline(true)
-      expect(offlineQueue.isClientOnline()).toBe(true)
-    })
-  })
+      offlineQueue.setOnline(true);
+      expect(offlineQueue.isClientOnline()).toBe(true);
+    });
+  });
 
   // =============================================================================
   // Operation Queueing
@@ -145,30 +145,30 @@ describe('Offline Recovery Integration Tests', () => {
 
   describe('Operation Queueing', () => {
     it('should queue operations when offline', () => {
-      offlineQueue.setOnline(false)
+      offlineQueue.setOnline(false);
 
       offlineQueue.addOperation({
         type: 'create',
         collection: 'conversations',
         data: { title: 'Offline conversation' },
-      })
+      });
 
-      expect(offlineQueue.size()).toBe(1)
-    })
+      expect(offlineQueue.size()).toBe(1);
+    });
 
     it('should persist queue to localStorage', () => {
       offlineQueue.addOperation({
         type: 'update',
         collection: 'messages',
         data: { id: 'msg_1', content: 'Updated offline' },
-      })
+      });
 
       // Simulate page reload by creating new instance
-      const newQueue = new OfflineQueue()
+      const newQueue = new OfflineQueue();
       // In real implementation, this would load from localStorage
-      expect(newQueue).toBeDefined()
-    })
-  })
+      expect(newQueue).toBeDefined();
+    });
+  });
 
   // =============================================================================
   // Sync on Reconnection
@@ -176,65 +176,65 @@ describe('Offline Recovery Integration Tests', () => {
 
   describe('Sync on Reconnection', () => {
     it('should replay queued operations on reconnect', async () => {
-      offlineQueue.setOnline(false)
+      offlineQueue.setOnline(false);
 
       // Queue operations while offline
       offlineQueue.addOperation({
         type: 'create',
         collection: 'conversations',
         data: { title: 'Conv 1' },
-      })
+      });
       offlineQueue.addOperation({
         type: 'update',
         collection: 'messages',
         data: { id: 'msg_1' },
-      })
+      });
 
-      expect(offlineQueue.size()).toBe(2)
+      expect(offlineQueue.size()).toBe(2);
 
       // Reconnect and sync
-      offlineQueue.setOnline(true)
-      const result = await offlineQueue.syncQueue()
+      offlineQueue.setOnline(true);
+      const result = await offlineQueue.syncQueue();
 
-      expect(result.success).toBe(true)
-      expect(result.synced).toBe(2)
-      expect(result.failed).toBe(0)
-    })
+      expect(result.success).toBe(true);
+      expect(result.synced).toBe(2);
+      expect(result.failed).toBe(0);
+    });
 
     it('should handle conflicts during sync', async () => {
-      offlineQueue.setOnline(false)
+      offlineQueue.setOnline(false);
 
       // Queue conflicting operations
       offlineQueue.addOperation({
         type: 'update',
         collection: 'documents',
         data: { id: 'doc_1', content: 'Local update' },
-      })
+      });
 
-      offlineQueue.setOnline(true)
+      offlineQueue.setOnline(true);
 
       // Sync should handle conflicts (using CRDT or last-write-wins)
-      const result = await offlineQueue.syncQueue()
-      expect(result.success).toBe(true)
-    })
+      const result = await offlineQueue.syncQueue();
+      expect(result.success).toBe(true);
+    });
 
     it('should clear queue after successful sync', async () => {
-      offlineQueue.setOnline(false)
+      offlineQueue.setOnline(false);
 
       offlineQueue.addOperation({
         type: 'create',
         collection: 'notes',
         data: { title: 'Note 1' },
-      })
+      });
 
-      expect(offlineQueue.size()).toBe(1)
+      expect(offlineQueue.size()).toBe(1);
 
-      offlineQueue.setOnline(true)
-      await offlineQueue.syncQueue()
+      offlineQueue.setOnline(true);
+      await offlineQueue.syncQueue();
 
-      expect(offlineQueue.size()).toBe(0)
-    })
-  })
+      expect(offlineQueue.size()).toBe(0);
+    });
+  });
 
   // =============================================================================
   // Error Recovery
@@ -246,16 +246,16 @@ describe('Offline Recovery Integration Tests', () => {
         type: 'create',
         collection: 'items',
         data: { name: 'Item 1' },
-      })
+      });
 
-      offlineQueue.setOnline(true)
+      offlineQueue.setOnline(true);
 
       // First sync attempt (will succeed in mock)
-      const result1 = await offlineQueue.syncQueue()
-      expect(result1.success).toBe(true)
+      const result1 = await offlineQueue.syncQueue();
+      expect(result1.success).toBe(true);
 
       // If there were failures, queue should still have items
       // In real implementation, this would retry failed operations
-    })
-  })
-})
+    });
+  });
+});

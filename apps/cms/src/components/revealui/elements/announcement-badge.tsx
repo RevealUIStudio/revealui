@@ -1,6 +1,6 @@
-import { clsx } from 'clsx/lite'
-import type { ComponentProps, ReactNode } from 'react'
-import { ChevronIcon } from '@/components/revealui/icons/chevron-icon'
+import { clsx } from 'clsx/lite';
+import type { ComponentProps, ReactNode } from 'react';
+import { ChevronIcon } from '@/components/revealui/icons/chevron-icon';
 
 export function AnnouncementBadge({
   text,
@@ -10,10 +10,10 @@ export function AnnouncementBadge({
   className,
   ...props
 }: {
-  text: ReactNode
-  href: string
-  cta?: ReactNode
-  variant?: 'normal' | 'overlay'
+  text: ReactNode;
+  href: string;
+  cta?: ReactNode;
+  variant?: 'normal' | 'overlay';
 } & Omit<ComponentProps<'a'>, 'href' | 'children'>) {
   return (
     <a
@@ -46,5 +46,5 @@ export function AnnouncementBadge({
         {cta} <ChevronIcon className="shrink-0" />
       </span>
     </a>
-  )
+  );
 }

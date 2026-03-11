@@ -1,15 +1,15 @@
-import { defineConfig } from 'drizzle-kit'
+import { defineConfig } from 'drizzle-kit';
 
 // Use process.env directly - drizzle-kit has issues with ESM imports in config files
 // POSTGRES_URL or DATABASE_URL should be set by the calling script
-const dbUrl = process.env.POSTGRES_URL ?? process.env.DATABASE_URL ?? ''
+const dbUrl = process.env.POSTGRES_URL ?? process.env.DATABASE_URL ?? '';
 
 // Only warn at configure time — generate works without a live connection.
 // Avoid console.* (banned by pre-commit hook); use process.stderr directly.
 if (!dbUrl && process.env.DRIZZLE_REQUIRE_URL !== 'false') {
   process.stderr.write(
     'Warning: POSTGRES_URL or DATABASE_URL not set. db:migrate and db:push will fail.\n',
-  )
+  );
 }
 
 export default defineConfig({
@@ -43,4 +43,4 @@ export default defineConfig({
     // This allows validating schemas against actual database
     casing: 'camel',
   },
-})
+});

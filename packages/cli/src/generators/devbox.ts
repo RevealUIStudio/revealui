@@ -2,8 +2,8 @@
  * Devbox configuration generator
  */
 
-import fs from 'node:fs/promises'
-import path from 'node:path'
+import fs from 'node:fs/promises';
+import path from 'node:path';
 
 export async function generateDevbox(projectPath: string): Promise<void> {
   const devboxConfig = {
@@ -23,11 +23,11 @@ export async function generateDevbox(projectPath: string): Promise<void> {
     env: {
       NODE_ENV: 'development',
     },
-  }
+  };
 
   await fs.writeFile(
     path.join(projectPath, 'devbox.json'),
     JSON.stringify(devboxConfig, null, 2),
     'utf-8',
-  )
+  );
 }

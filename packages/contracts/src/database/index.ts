@@ -16,7 +16,7 @@ export {
   type TableName,
   type TableRowType,
   type TableUpdateType,
-} from './bridge.js'
+} from './bridge.js';
 export {
   batchContractToDbInsert,
   batchDbRowsToContract,
@@ -27,4 +27,4 @@ export {
   type DrizzleToContract,
   isDbRowAndContract,
   type TableContractMap,
-} from './type-bridge.js'
+} from './type-bridge.js';

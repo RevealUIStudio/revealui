@@ -1,12 +1,12 @@
-import { useSync } from '../../hooks/use-sync'
-import Button from '../ui/Button'
-import ErrorAlert from '../ui/ErrorAlert'
-import PanelHeader from '../ui/PanelHeader'
-import RepoCard from './RepoCard'
-import SyncLog from './SyncLog'
+import { useSync } from '../../hooks/use-sync';
+import Button from '../ui/Button';
+import ErrorAlert from '../ui/ErrorAlert';
+import PanelHeader from '../ui/PanelHeader';
+import RepoCard from './RepoCard';
+import SyncLog from './SyncLog';
 
 export default function SyncPanel() {
-  const { syncing, results, log, error, syncAll, syncOne } = useSync()
+  const { syncing, results, log, error, syncAll, syncOne } = useSync();
 
   return (
     <div className="space-y-6">
@@ -56,5 +56,5 @@ export default function SyncPanel() {
 
       {log.length > 0 && <SyncLog entries={log} />}
     </div>
-  )
+  );
 }

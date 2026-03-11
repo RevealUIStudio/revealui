@@ -1,5 +1,5 @@
-import clsx from 'clsx'
-import type React from 'react'
+import clsx from 'clsx';
+import type React from 'react';
 
 export function Skeleton({ className, ...props }: React.ComponentPropsWithoutRef<'div'>) {
   return (
@@ -8,7 +8,7 @@ export function Skeleton({ className, ...props }: React.ComponentPropsWithoutRef
       {...props}
       className={clsx('animate-pulse rounded-md bg-zinc-200 dark:bg-zinc-700', className)}
     />
-  )
+  );
 }
 
 export function SkeletonText({ lines = 3, className }: { lines?: number; className?: string }) {
@@ -21,10 +21,10 @@ export function SkeletonText({ lines = 3, className }: { lines?: number; classNa
             key={i}
             className={clsx('h-4', i === lines - 1 && lines > 1 ? 'w-4/5' : 'w-full')}
           />
-        )
+        );
       })}
     </div>
-  )
+  );
 }
 
 export function SkeletonCard({ className }: { className?: string }) {
@@ -39,5 +39,5 @@ export function SkeletonCard({ className }: { className?: string }) {
       </div>
       <SkeletonText lines={3} className="mt-4" />
     </div>
-  )
+  );
 }

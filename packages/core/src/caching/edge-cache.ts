@@ -4,16 +4,16 @@
  * Utilities for Next.js edge caching, ISR, and on-demand revalidation
  */
 
-import type { NextRequest, NextResponse } from 'next/server'
-import { logger } from '../observability/logger.js'
+import type { NextRequest, NextResponse } from 'next/server';
+import { logger } from '../observability/logger.js';
 
 /**
  * ISR Configuration
  */
 export interface ISRConfig {
-  revalidate?: number | false
-  tags?: string[]
-  dynamicParams?: boolean
+  revalidate?: number | false;
+  tags?: string[];
+  dynamicParams?: boolean;
 }
 
 export const ISR_PRESETS = {
@@ -46,7 +46,7 @@ export const ISR_PRESETS = {
   never: {
     revalidate: false,
   },
-} as const
+} as const;
 
 /**
  * Generate static params for ISR
@@ -56,14 +56,14 @@ export async function generateStaticParams<T>(
   mapFn: (item: T) => Record<string, string>,
 ): Promise<Array<Record<string, string>>> {
   try {
-    const items = await fetchFn()
-    return items.map(mapFn)
+    const items = await fetchFn();
+    return items.map(mapFn);
   } catch (error) {
     logger.error(
       'Failed to generate static params',
       error instanceof Error ? error : new Error(String(error)),
-    )
-    return []
+    );
+    return [];
   }
 }
 
@@ -74,43 +74,43 @@ export async function revalidateTag(
   tag: string,
   secret?: string,
 ): Promise<{ revalidated: boolean; error?: string }> {
-  const baseUrl = process.env.NEXT_PUBLIC_URL
+  const baseUrl = process.env.NEXT_PUBLIC_URL;
   if (!baseUrl) {
-    logger.warn('revalidateTag skipped: NEXT_PUBLIC_URL is not configured', { tag })
-    return { revalidated: false, error: 'NEXT_PUBLIC_URL is not configured' }
+    logger.warn('revalidateTag skipped: NEXT_PUBLIC_URL is not configured', { tag });
+    return { revalidated: false, error: 'NEXT_PUBLIC_URL is not configured' };
   }
 
   try {
-    const url = new URL('/api/revalidate', baseUrl)
+    const url = new URL('/api/revalidate', baseUrl);
 
-    const headers: HeadersInit = { 'Content-Type': 'application/json' }
+    const headers: HeadersInit = { 'Content-Type': 'application/json' };
     if (secret) {
-      headers['x-revalidate-secret'] = secret
+      headers['x-revalidate-secret'] = secret;
     }
 
     const response = await fetch(url.toString(), {
       method: 'POST',
       headers,
       body: JSON.stringify({ tag }),
-    })
+    });
 
-    const data = await response.json()
+    const data = await response.json();
 
     if (!response.ok) {
-      logger.warn('revalidateTag failed', { tag, status: response.status, error: data.error })
+      logger.warn('revalidateTag failed', { tag, status: response.status, error: data.error });
     }
 
     return {
       revalidated: response.ok,
       error: data.error,
-    }
+    };
   } catch (error) {
-    const message = error instanceof Error ? error.message : 'Unknown error'
-    logger.warn('revalidateTag error', { tag, error: message })
+    const message = error instanceof Error ? error.message : 'Unknown error';
+    logger.warn('revalidateTag error', { tag, error: message });
     return {
       revalidated: false,
       error: message,
-    }
+    };
   }
 }
 
@@ -121,37 +121,37 @@ export async function revalidatePath(
   path: string,
   secret?: string,
 ): Promise<{ revalidated: boolean; error?: string }> {
-  const baseUrl = process.env.NEXT_PUBLIC_URL
+  const baseUrl = process.env.NEXT_PUBLIC_URL;
   if (!baseUrl) {
-    logger.warn('revalidatePath skipped: NEXT_PUBLIC_URL is not configured', { path })
-    return { revalidated: false, error: 'NEXT_PUBLIC_URL is not configured' }
+    logger.warn('revalidatePath skipped: NEXT_PUBLIC_URL is not configured', { path });
+    return { revalidated: false, error: 'NEXT_PUBLIC_URL is not configured' };
   }
 
   try {
-    const url = new URL('/api/revalidate', baseUrl)
+    const url = new URL('/api/revalidate', baseUrl);
 
-    const headers: HeadersInit = { 'Content-Type': 'application/json' }
+    const headers: HeadersInit = { 'Content-Type': 'application/json' };
     if (secret) {
-      headers['x-revalidate-secret'] = secret
+      headers['x-revalidate-secret'] = secret;
     }
 
     const response = await fetch(url.toString(), {
       method: 'POST',
       headers,
       body: JSON.stringify({ path }),
-    })
+    });
 
-    const data = await response.json()
+    const data = await response.json();
 
     return {
       revalidated: response.ok,
       error: data.error,
-    }
+    };
   } catch (error) {
     return {
       revalidated: false,
       error: error instanceof Error ? error.message : 'Unknown error',
-    }
+    };
   }
 }
 
@@ -162,38 +162,38 @@ export async function revalidatePaths(
   paths: string[],
   secret?: string,
 ): Promise<{
-  revalidated: number
-  failed: number
-  errors: Array<{ path: string; error: string }>
+  revalidated: number;
+  failed: number;
+  errors: Array<{ path: string; error: string }>;
 }> {
-  const results = await Promise.allSettled(paths.map((path) => revalidatePath(path, secret)))
+  const results = await Promise.allSettled(paths.map((path) => revalidatePath(path, secret)));
 
-  let revalidated = 0
-  let failed = 0
-  const errors: Array<{ path: string; error: string }> = []
+  let revalidated = 0;
+  let failed = 0;
+  const errors: Array<{ path: string; error: string }> = [];
 
   for (let i = 0; i < results.length; i++) {
-    const result = results[i]
-    const path = paths[i]
+    const result = results[i];
+    const path = paths[i];
 
     if (!(result && path)) {
-      continue
+      continue;
     }
 
     if (result.status === 'fulfilled' && result.value.revalidated) {
-      revalidated++
+      revalidated++;
     } else {
-      failed++
+      failed++;
       const error =
         result.status === 'fulfilled'
           ? result.value.error || 'Unknown error'
-          : String(result.reason) || 'Unknown error'
+          : String(result.reason) || 'Unknown error';
 
-      errors.push({ path, error })
+      errors.push({ path, error });
     }
   }
 
-  return { revalidated, failed, errors }
+  return { revalidated, failed, errors };
 }
 
 /**
@@ -203,49 +203,49 @@ export async function revalidateTags(
   tags: string[],
   secret?: string,
 ): Promise<{
-  revalidated: number
-  failed: number
-  errors: Array<{ tag: string; error: string }>
+  revalidated: number;
+  failed: number;
+  errors: Array<{ tag: string; error: string }>;
 }> {
-  const results = await Promise.allSettled(tags.map((tag) => revalidateTag(tag, secret)))
+  const results = await Promise.allSettled(tags.map((tag) => revalidateTag(tag, secret)));
 
-  let revalidated = 0
-  let failed = 0
-  const errors: Array<{ tag: string; error: string }> = []
+  let revalidated = 0;
+  let failed = 0;
+  const errors: Array<{ tag: string; error: string }> = [];
 
   for (let i = 0; i < results.length; i++) {
-    const result = results[i]
-    const tag = tags[i]
+    const result = results[i];
+    const tag = tags[i];
 
     if (!(result && tag)) {
-      continue
+      continue;
     }
 
     if (result.status === 'fulfilled' && result.value.revalidated) {
-      revalidated++
+      revalidated++;
     } else {
-      failed++
+      failed++;
       const error =
         result.status === 'fulfilled'
           ? result.value.error || 'Unknown error'
-          : String(result.reason) || 'Unknown error'
+          : String(result.reason) || 'Unknown error';
 
-      errors.push({ tag, error })
+      errors.push({ tag, error });
     }
   }
 
-  return { revalidated, failed, errors }
+  return { revalidated, failed, errors };
 }
 
 /**
  * Edge middleware cache configuration
  */
 export interface EdgeCacheConfig {
-  cache?: 'force-cache' | 'no-cache' | 'no-store' | 'only-if-cached'
+  cache?: 'force-cache' | 'no-cache' | 'no-store' | 'only-if-cached';
   next?: {
-    revalidate?: number | false
-    tags?: string[]
-  }
+    revalidate?: number | false;
+    tags?: string[];
+  };
 }
 
 /**
@@ -260,16 +260,16 @@ export function createEdgeCachedFetch(config: EdgeCacheConfig = {}) {
         ...options?.next,
         ...config.next,
       },
-    }
+    };
 
-    const response = await fetch(url, fetchOptions)
+    const response = await fetch(url, fetchOptions);
 
     if (!response.ok) {
-      throw new Error(`Fetch failed: ${response.statusText}`)
+      throw new Error(`Fetch failed: ${response.statusText}`);
     }
 
-    return response.json()
-  }
+    return response.json();
+  };
 }
 
 /**
@@ -278,44 +278,44 @@ export function createEdgeCachedFetch(config: EdgeCacheConfig = {}) {
 export function createCachedFunction<TArgs extends unknown[], TReturn>(
   fn: (...args: TArgs) => Promise<TReturn>,
   options: {
-    tags?: string[]
-    revalidate?: number | false
+    tags?: string[];
+    revalidate?: number | false;
   } = {},
 ): (...args: TArgs) => Promise<TReturn> {
   // If revalidation is disabled, bypass cache entirely
   if (options.revalidate === false) {
-    return fn
+    return fn;
   }
 
-  const ttlMs = (options.revalidate ?? 60) * 1000
-  const cache = new Map<string, { value: TReturn; expiresAt: number }>()
+  const ttlMs = (options.revalidate ?? 60) * 1000;
+  const cache = new Map<string, { value: TReturn; expiresAt: number }>();
 
   return async (...args: TArgs): Promise<TReturn> => {
-    const key = JSON.stringify(args)
-    const now = Date.now()
-    const cached = cache.get(key)
+    const key = JSON.stringify(args);
+    const now = Date.now();
+    const cached = cache.get(key);
 
     if (cached && now < cached.expiresAt) {
-      return cached.value
+      return cached.value;
     }
 
-    const value = await fn(...args)
-    cache.set(key, { value, expiresAt: now + ttlMs })
-    return value
-  }
+    const value = await fn(...args);
+    cache.set(key, { value, expiresAt: now + ttlMs });
+    return value;
+  };
 }
 
 /**
  * Edge rate limiting with cache
  */
 export interface EdgeRateLimitConfig {
-  limit: number
-  window: number
-  key?: (request: NextRequest) => string
+  limit: number;
+  window: number;
+  key?: (request: NextRequest) => string;
 }
 
 export class EdgeRateLimiter {
-  private cache: Map<string, { count: number; resetTime: number }> = new Map()
+  private cache: Map<string, { count: number; resetTime: number }> = new Map();
 
   constructor(private config: EdgeRateLimitConfig) {}
 
@@ -323,49 +323,49 @@ export class EdgeRateLimiter {
    * Check rate limit
    */
   check(request: NextRequest): {
-    allowed: boolean
-    limit: number
-    remaining: number
-    reset: number
+    allowed: boolean;
+    limit: number;
+    remaining: number;
+    reset: number;
   } {
     const key = this.config.key
       ? this.config.key(request)
-      : request.headers.get('x-forwarded-for') || 'unknown'
+      : request.headers.get('x-forwarded-for') || 'unknown';
 
-    const now = Date.now()
-    let entry = this.cache.get(key)
+    const now = Date.now();
+    let entry = this.cache.get(key);
 
     // Reset if window expired
     if (!entry || now > entry.resetTime) {
       entry = {
         count: 0,
         resetTime: now + this.config.window,
-      }
-      this.cache.set(key, entry)
+      };
+      this.cache.set(key, entry);
     }
 
     // Increment count
-    entry.count++
+    entry.count++;
 
-    const allowed = entry.count <= this.config.limit
-    const remaining = Math.max(0, this.config.limit - entry.count)
+    const allowed = entry.count <= this.config.limit;
+    const remaining = Math.max(0, this.config.limit - entry.count);
 
     return {
       allowed,
       limit: this.config.limit,
       remaining,
       reset: entry.resetTime,
-    }
+    };
   }
 
   /**
    * Clean up expired entries
    */
   cleanup(): void {
-    const now = Date.now()
+    const now = Date.now();
     for (const [key, entry] of this.cache.entries()) {
       if (now > entry.resetTime) {
-        this.cache.delete(key)
+        this.cache.delete(key);
       }
     }
   }
@@ -375,31 +375,31 @@ export class EdgeRateLimiter {
  * Edge geolocation caching
  */
 export interface GeoLocation {
-  country?: string
-  region?: string
-  city?: string
-  latitude?: number
-  longitude?: number
+  country?: string;
+  region?: string;
+  city?: string;
+  latitude?: number;
+  longitude?: number;
 }
 
 export function getGeoLocation(request: NextRequest): GeoLocation | null {
   // Vercel edge headers
-  const country = request.headers.get('x-vercel-ip-country')
-  const region = request.headers.get('x-vercel-ip-country-region')
-  const city = request.headers.get('x-vercel-ip-city')
-  const latitude = request.headers.get('x-vercel-ip-latitude')
-  const longitude = request.headers.get('x-vercel-ip-longitude')
+  const country = request.headers.get('x-vercel-ip-country');
+  const region = request.headers.get('x-vercel-ip-country-region');
+  const city = request.headers.get('x-vercel-ip-city');
+  const latitude = request.headers.get('x-vercel-ip-latitude');
+  const longitude = request.headers.get('x-vercel-ip-longitude');
 
   if (!country) {
     // Cloudflare headers
-    const cfCountry = request.headers.get('cf-ipcountry')
+    const cfCountry = request.headers.get('cf-ipcountry');
     if (cfCountry) {
       return {
         country: cfCountry,
-      }
+      };
     }
 
-    return null
+    return null;
   }
 
   return {
@@ -408,7 +408,7 @@ export function getGeoLocation(request: NextRequest): GeoLocation | null {
     city: city ? decodeURIComponent(city) : undefined,
     latitude: latitude ? parseFloat(latitude) : undefined,
     longitude: longitude ? parseFloat(longitude) : undefined,
-  }
+  };
 }
 
 /**
@@ -420,60 +420,60 @@ export function getABTestVariant(
   variants: string[],
 ): string {
   // Check cookie first
-  const cookieName = `ab-test-${testName}`
-  const cookieVariant = request.cookies.get(cookieName)?.value
+  const cookieName = `ab-test-${testName}`;
+  const cookieVariant = request.cookies.get(cookieName)?.value;
 
   if (cookieVariant && variants.includes(cookieVariant)) {
-    return cookieVariant
+    return cookieVariant;
   }
 
   // Assign variant based on IP hash
-  const ip = request.headers.get('x-forwarded-for') || 'unknown'
-  const hash = simpleHash(ip + testName)
-  const variantIndex = hash % variants.length
-  const variant = variants[variantIndex]
+  const ip = request.headers.get('x-forwarded-for') || 'unknown';
+  const hash = simpleHash(ip + testName);
+  const variantIndex = hash % variants.length;
+  const variant = variants[variantIndex];
 
   if (!variant) {
-    throw new Error('No variant found for A/B test')
+    throw new Error('No variant found for A/B test');
   }
 
-  return variant
+  return variant;
 }
 
 /**
  * Simple hash function
  */
 function simpleHash(str: string): number {
-  let hash = 0
+  let hash = 0;
   for (let i = 0; i < str.length; i++) {
-    const char = str.charCodeAt(i)
-    hash = (hash << 5) - hash + char
-    hash = hash & hash
+    const char = str.charCodeAt(i);
+    hash = (hash << 5) - hash + char;
+    hash = hash & hash;
   }
-  return Math.abs(hash)
+  return Math.abs(hash);
 }
 
 /**
  * Edge personalization cache
  */
 export interface PersonalizationConfig {
-  userId?: string
-  preferences?: Record<string, unknown>
-  location?: GeoLocation
-  device?: 'mobile' | 'tablet' | 'desktop'
-  variant?: string
+  userId?: string;
+  preferences?: Record<string, unknown>;
+  location?: GeoLocation;
+  device?: 'mobile' | 'tablet' | 'desktop';
+  variant?: string;
 }
 
 export function getPersonalizationConfig(request: NextRequest): PersonalizationConfig {
-  const userAgent = request.headers.get('user-agent') || ''
-  const device = getDeviceType(userAgent)
-  const location = getGeoLocation(request)
+  const userAgent = request.headers.get('user-agent') || '';
+  const device = getDeviceType(userAgent);
+  const location = getGeoLocation(request);
 
   return {
     userId: request.cookies.get('user-id')?.value,
     location: location || undefined,
     device,
-  }
+  };
 }
 
 /**
@@ -481,12 +481,12 @@ export function getPersonalizationConfig(request: NextRequest): PersonalizationC
  */
 function getDeviceType(userAgent: string): 'mobile' | 'tablet' | 'desktop' {
   if (/mobile/i.test(userAgent) && !/tablet|ipad/i.test(userAgent)) {
-    return 'mobile'
+    return 'mobile';
   }
   if (/tablet|ipad/i.test(userAgent)) {
-    return 'tablet'
+    return 'tablet';
   }
-  return 'desktop'
+  return 'desktop';
 }
 
 /**
@@ -495,35 +495,35 @@ function getDeviceType(userAgent: string): 'mobile' | 'tablet' | 'desktop' {
 export function setEdgeCacheHeaders(
   response: NextResponse,
   config: {
-    maxAge?: number
-    sMaxAge?: number
-    staleWhileRevalidate?: number
-    tags?: string[]
+    maxAge?: number;
+    sMaxAge?: number;
+    staleWhileRevalidate?: number;
+    tags?: string[];
   },
 ): NextResponse {
-  const cacheControl: string[] = []
+  const cacheControl: string[] = [];
 
   if (config.maxAge !== undefined) {
-    cacheControl.push(`max-age=${config.maxAge}`)
+    cacheControl.push(`max-age=${config.maxAge}`);
   }
 
   if (config.sMaxAge !== undefined) {
-    cacheControl.push(`s-maxage=${config.sMaxAge}`)
+    cacheControl.push(`s-maxage=${config.sMaxAge}`);
   }
 
   if (config.staleWhileRevalidate !== undefined) {
-    cacheControl.push(`stale-while-revalidate=${config.staleWhileRevalidate}`)
+    cacheControl.push(`stale-while-revalidate=${config.staleWhileRevalidate}`);
   }
 
   if (cacheControl.length > 0) {
-    response.headers.set('Cache-Control', cacheControl.join(', '))
+    response.headers.set('Cache-Control', cacheControl.join(', '));
   }
 
   if (config.tags && config.tags.length > 0) {
-    response.headers.set('Cache-Tag', config.tags.join(','))
+    response.headers.set('Cache-Tag', config.tags.join(','));
   }
 
-  return response
+  return response;
 }
 
 /**
@@ -532,31 +532,31 @@ export function setEdgeCacheHeaders(
 export function addPreloadLinks(
   response: NextResponse,
   resources: Array<{
-    href: string
-    as: string
-    type?: string
-    crossorigin?: boolean
+    href: string;
+    as: string;
+    type?: string;
+    crossorigin?: boolean;
   }>,
 ): NextResponse {
   const links = resources.map((resource) => {
-    const attrs = [`<${resource.href}>`, `rel="preload"`, `as="${resource.as}"`]
+    const attrs = [`<${resource.href}>`, `rel="preload"`, `as="${resource.as}"`];
 
     if (resource.type) {
-      attrs.push(`type="${resource.type}"`)
+      attrs.push(`type="${resource.type}"`);
     }
 
     if (resource.crossorigin) {
-      attrs.push('crossorigin')
+      attrs.push('crossorigin');
     }
 
-    return attrs.join('; ')
-  })
+    return attrs.join('; ');
+  });
 
   if (links.length > 0) {
-    response.headers.set('Link', links.join(', '))
+    response.headers.set('Link', links.join(', '));
   }
 
-  return response
+  return response;
 }
 
 /**
@@ -566,48 +566,48 @@ export async function warmISRCache(
   paths: string[],
   baseURL: string = process.env.NEXT_PUBLIC_URL || 'http://localhost:3000',
 ): Promise<{
-  warmed: number
-  failed: number
-  errors: Array<{ path: string; error: string }>
+  warmed: number;
+  failed: number;
+  errors: Array<{ path: string; error: string }>;
 }> {
   const results = await Promise.allSettled(
     paths.map(async (path) => {
-      const url = new URL(path, baseURL)
-      const response = await fetch(url.toString())
+      const url = new URL(path, baseURL);
+      const response = await fetch(url.toString());
 
       if (!response.ok) {
-        throw new Error(`${response.status} ${response.statusText}`)
+        throw new Error(`${response.status} ${response.statusText}`);
       }
 
-      return true
+      return true;
     }),
-  )
+  );
 
-  let warmed = 0
-  let failed = 0
-  const errors: Array<{ path: string; error: string }> = []
+  let warmed = 0;
+  let failed = 0;
+  const errors: Array<{ path: string; error: string }> = [];
 
   for (let i = 0; i < results.length; i++) {
-    const result = results[i]
-    const path = paths[i]
+    const result = results[i];
+    const path = paths[i];
 
     if (!(result && path)) {
-      continue
+      continue;
     }
 
     if (result.status === 'fulfilled') {
-      warmed++
+      warmed++;
     } else {
-      failed++
+      failed++;
       errors.push({
         path,
         error:
           result.reason instanceof Error
             ? result.reason.message
             : String(result.reason) || 'Unknown error',
-      })
+      });
     }
   }
 
-  return { warmed, failed, errors }
+  return { warmed, failed, errors };
 }

@@ -1,28 +1,28 @@
-import type { Post } from '@revealui/core/types/cms'
-import type { Metadata } from 'next'
-import { draftMode } from 'next/headers'
-import { cache } from 'react'
-import { RelatedPosts } from '@/lib/blocks/RelatedPosts/Component'
-import { RevealUIRedirects } from '@/lib/components/RevealUIRedirects'
-import RichText from '@/lib/components/RichText'
-import { PostHero } from '@/lib/heros/PostHero'
-import { generateMeta } from '@/lib/utilities/generateMeta'
-import { getRevealUIInstance } from '@/lib/utilities/revealui-singleton'
-import PageClient from './page.client'
+import type { Post } from '@revealui/core/types/cms';
+import type { Metadata } from 'next';
+import { draftMode } from 'next/headers';
+import { cache } from 'react';
+import { RelatedPosts } from '@/lib/blocks/RelatedPosts/Component';
+import { RevealUIRedirects } from '@/lib/components/RevealUIRedirects';
+import RichText from '@/lib/components/RichText';
+import { PostHero } from '@/lib/heros/PostHero';
+import { generateMeta } from '@/lib/utilities/generateMeta';
+import { getRevealUIInstance } from '@/lib/utilities/revealui-singleton';
+import PageClient from './page.client';
 
 // Force dynamic rendering to prevent build-time RevealUI CMS initialization
-export const dynamic = 'force-dynamic'
-export const dynamicParams = true
+export const dynamic = 'force-dynamic';
+export const dynamicParams = true;
 
 // Removed generateStaticParams to prevent build-time initialization
 // Posts will be generated on-demand at request time
 
 export default async function PostPage({ params }: { params: Promise<{ slug: string }> }) {
-  const { slug } = await params
-  const url = `/posts/${slug}`
-  const result = await queryPostBySlug({ slug })
+  const { slug } = await params;
+  const url = `/posts/${slug}`;
+  const result = await queryPostBySlug({ slug });
 
-  if (!result) return <RevealUIRedirects url={url} />
+  if (!result) return <RevealUIRedirects url={url} />;
 
   return (
     <article className="pt-16 pb-16">
@@ -53,24 +53,24 @@ export default async function PostPage({ params }: { params: Promise<{ slug: str
         )}
       </div>
     </article>
-  )
+  );
 }
 
 export async function generateMetadata({
   params,
 }: {
-  params: Promise<{ slug: string }>
+  params: Promise<{ slug: string }>;
 }): Promise<Metadata> {
-  const { slug } = await params
-  const post = await queryPostBySlug({ slug })
+  const { slug } = await params;
+  const post = await queryPostBySlug({ slug });
 
-  return generateMeta({ doc: post })
+  return generateMeta({ doc: post });
 }
 
 const queryPostBySlug = cache(async ({ slug }: { slug: string }): Promise<Post | null> => {
-  const { isEnabled: draft } = await draftMode()
+  const { isEnabled: draft } = await draftMode();
 
-  const revealui = await getRevealUIInstance()
+  const revealui = await getRevealUIInstance();
 
   const result = await revealui.find({
     collection: 'posts',
@@ -82,9 +82,9 @@ const queryPostBySlug = cache(async ({ slug }: { slug: string }): Promise<Post |
         equals: slug,
       },
     },
-  })
+  });
 
   // revealui.find() returns RevealDocument (generic CMS type). Post is the generated
   // type for this collection — cast at the typed boundary is the correct pattern here.
-  return (result.docs?.[0] ?? null) as unknown as Post | null
-})
+  return (result.docs?.[0] ?? null) as unknown as Post | null;
+});

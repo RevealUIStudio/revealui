@@ -8,13 +8,13 @@
  * This is Phase 2.11 "Internal vs Productized Boundary" enforcement.
  */
 
-import fs from 'node:fs/promises'
-import path from 'node:path'
-import { fileURLToPath } from 'node:url'
-import { describe, expect, it } from 'vitest'
+import fs from 'node:fs/promises';
+import path from 'node:path';
+import { fileURLToPath } from 'node:url';
+import { describe, expect, it } from 'vitest';
 
-const __dirname = path.dirname(fileURLToPath(import.meta.url))
-const TEMPLATES_DIR = path.resolve(__dirname, '../../templates')
+const __dirname = path.dirname(fileURLToPath(import.meta.url));
+const TEMPLATES_DIR = path.resolve(__dirname, '../../templates');
 
 // Patterns that must never appear in template files
 const FORBIDDEN_PATTERNS: Array<{ pattern: RegExp; reason: string }> = [
@@ -54,53 +54,53 @@ const FORBIDDEN_PATTERNS: Array<{ pattern: RegExp; reason: string }> = [
     pattern: /RevealUIStudio\//,
     reason: 'GitHub org reference (internal)',
   },
-]
+];
 
 async function collectTemplateFiles(dir: string): Promise<string[]> {
-  const entries = await fs.readdir(dir, { withFileTypes: true })
-  const files: string[] = []
+  const entries = await fs.readdir(dir, { withFileTypes: true });
+  const files: string[] = [];
   for (const entry of entries) {
-    const fullPath = path.join(dir, entry.name)
+    const fullPath = path.join(dir, entry.name);
     if (entry.isDirectory()) {
-      files.push(...(await collectTemplateFiles(fullPath)))
+      files.push(...(await collectTemplateFiles(fullPath)));
     } else {
-      files.push(fullPath)
+      files.push(fullPath);
     }
   }
-  return files
+  return files;
 }
 
 describe('create-revealui template clean room', () => {
   it('templates directory exists', async () => {
-    const stat = await fs.stat(TEMPLATES_DIR)
-    expect(stat.isDirectory()).toBe(true)
-  })
+    const stat = await fs.stat(TEMPLATES_DIR);
+    expect(stat.isDirectory()).toBe(true);
+  });
 
   it('contains at least one template', async () => {
-    const entries = await fs.readdir(TEMPLATES_DIR, { withFileTypes: true })
-    const dirs = entries.filter((e) => e.isDirectory())
-    expect(dirs.length).toBeGreaterThan(0)
-  })
+    const entries = await fs.readdir(TEMPLATES_DIR, { withFileTypes: true });
+    const dirs = entries.filter((e) => e.isDirectory());
+    expect(dirs.length).toBeGreaterThan(0);
+  });
 
   it('template files contain no forbidden patterns', async () => {
-    const files = await collectTemplateFiles(TEMPLATES_DIR)
-    expect(files.length).toBeGreaterThan(0)
+    const files = await collectTemplateFiles(TEMPLATES_DIR);
+    expect(files.length).toBeGreaterThan(0);
 
-    const violations: string[] = []
+    const violations: string[] = [];
 
     for (const file of files) {
       // Skip binary files (images, fonts, etc.) by extension
-      const ext = path.extname(file).toLowerCase()
+      const ext = path.extname(file).toLowerCase();
       if (['.png', '.jpg', '.jpeg', '.gif', '.svg', '.ico', '.woff', '.woff2'].includes(ext)) {
-        continue
+        continue;
       }
 
-      const content = await fs.readFile(file, 'utf8')
-      const relPath = path.relative(TEMPLATES_DIR, file)
+      const content = await fs.readFile(file, 'utf8');
+      const relPath = path.relative(TEMPLATES_DIR, file);
 
       for (const { pattern, reason } of FORBIDDEN_PATTERNS) {
         if (pattern.test(content)) {
-          violations.push(`  ${relPath}: contains ${reason} (${pattern})`)
+          violations.push(`  ${relPath}: contains ${reason} (${pattern})`);
         }
       }
     }
@@ -109,28 +109,28 @@ describe('create-revealui template clean room', () => {
       throw new Error(
         `Template clean room violations found:\n${violations.join('\n')}\n\n` +
           'These patterns must be removed before publishing the CLI package.',
-      )
+      );
     }
-  })
+  });
 
   it('package.json templates use "latest" not workspace references', async () => {
-    const files = await collectTemplateFiles(TEMPLATES_DIR)
-    const packageJsonFiles = files.filter((f) => path.basename(f) === 'package.json')
+    const files = await collectTemplateFiles(TEMPLATES_DIR);
+    const packageJsonFiles = files.filter((f) => path.basename(f) === 'package.json');
 
     for (const file of packageJsonFiles) {
-      const content = await fs.readFile(file, 'utf8')
-      const pkg = JSON.parse(content) as { dependencies?: Record<string, string> }
+      const content = await fs.readFile(file, 'utf8');
+      const pkg = JSON.parse(content) as { dependencies?: Record<string, string> };
       const allDeps = {
         ...pkg.dependencies,
-      }
+      };
       for (const [dep, version] of Object.entries(allDeps)) {
         if (dep.startsWith('@revealui/')) {
           expect(
             version,
             `${dep} in ${path.relative(TEMPLATES_DIR, file)} should use "latest" not "${version}"`,
-          ).not.toMatch(/^workspace:/)
+          ).not.toMatch(/^workspace:/);
         }
       }
     }
-  })
-})
+  });
+});

@@ -10,7 +10,7 @@ import type {
   RevealHookContext,
   RevealRequest,
   RevealUIInstance,
-} from '../../types/index.js'
+} from '../../types/index.js';
 
 /**
  * Helper function to call hooks
@@ -18,14 +18,14 @@ import type {
 export async function callHooks(
   hooks: RevealAfterChangeHook[] | undefined,
   args: {
-    doc: RevealDocument
-    context: RevealHookContext
+    doc: RevealDocument;
+    context: RevealHookContext;
   },
   revealui: RevealUIInstance,
 ): Promise<RevealDocument> {
-  let result = args.doc
+  let result = args.doc;
 
-  if (!hooks) return result
+  if (!hooks) return result;
 
   for (const hook of hooks) {
     try {
@@ -36,16 +36,16 @@ export async function callHooks(
         operation: args.context.operation || 'update',
         previousDoc: args.context.previousDoc,
         collection: args.context.collection || '',
-      })
+      });
       if (hookResult !== undefined) {
-        result = hookResult as RevealDocument
+        result = hookResult as RevealDocument;
       }
     } catch (error) {
-      const msg = error instanceof Error ? error.message : String(error)
-      revealui.logger.error(`Hook execution failed: ${msg}`)
-      throw error
+      const msg = error instanceof Error ? error.message : String(error);
+      revealui.logger.error(`Hook execution failed: ${msg}`);
+      throw error;
     }
   }
 
-  return result
+  return result;
 }

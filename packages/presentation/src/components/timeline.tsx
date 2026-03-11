@@ -1,14 +1,14 @@
-import clsx from 'clsx'
-import type React from 'react'
+import clsx from 'clsx';
+import type React from 'react';
 
 export function Timeline({
   className,
   children,
 }: {
-  className?: string
-  children: React.ReactNode
+  className?: string;
+  children: React.ReactNode;
 }) {
-  return <ol className={clsx('relative', className)}>{children}</ol>
+  return <ol className={clsx('relative', className)}>{children}</ol>;
 }
 
 export function TimelineItem({
@@ -19,12 +19,12 @@ export function TimelineItem({
   isLast = false,
   className,
 }: {
-  icon?: React.ReactNode
-  date?: React.ReactNode
-  title: React.ReactNode
-  description?: React.ReactNode
-  isLast?: boolean
-  className?: string
+  icon?: React.ReactNode;
+  date?: React.ReactNode;
+  title: React.ReactNode;
+  description?: React.ReactNode;
+  isLast?: boolean;
+  className?: string;
 }) {
   return (
     <li className={clsx('relative flex gap-4', !isLast && 'pb-8', className)}>
@@ -54,5 +54,5 @@ export function TimelineItem({
         )}
       </div>
     </li>
-  )
+  );
 }

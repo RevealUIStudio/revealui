@@ -8,37 +8,37 @@ export interface Storage {
   /**
    * Get a value by key
    */
-  get(key: string): Promise<string | null>
+  get(key: string): Promise<string | null>;
 
   /**
    * Set a value with optional TTL (time to live in seconds)
    */
-  set(key: string, value: string, ttlSeconds?: number): Promise<void>
+  set(key: string, value: string, ttlSeconds?: number): Promise<void>;
 
   /**
    * Delete a value by key
    */
-  del(key: string): Promise<void>
+  del(key: string): Promise<void>;
 
   /**
    * Increment a numeric value
    */
-  incr(key: string): Promise<number>
+  incr(key: string): Promise<number>;
 
   /**
    * Check if a key exists
    */
-  exists(key: string): Promise<boolean>
+  exists(key: string): Promise<boolean>;
 
   /**
    * Get multiple values by keys
    */
-  mget?(keys: string[]): Promise<(string | null)[]>
+  mget?(keys: string[]): Promise<(string | null)[]>;
 
   /**
    * Set multiple key-value pairs
    */
-  mset?(pairs: Array<[string, string]>, ttlSeconds?: number): Promise<void>
+  mset?(pairs: Array<[string, string]>, ttlSeconds?: number): Promise<void>;
 
   /**
    * Atomically read and update a value.
@@ -49,5 +49,5 @@ export interface Storage {
   atomicUpdate?(
     key: string,
     updater: (existing: string | null) => { value: string; ttlSeconds: number },
-  ): Promise<void>
+  ): Promise<void>;
 }

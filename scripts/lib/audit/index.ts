@@ -7,4 +7,4 @@
  * - scripts/lib/audit/execution-logger.ts - Execution logging implementation
  */
 
-export * from './execution-logger.js'
+export * from './execution-logger.js';

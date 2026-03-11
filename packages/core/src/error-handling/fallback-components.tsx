@@ -5,19 +5,19 @@
  */
 
 /// <reference types="react" />
-import React, { type ReactNode } from 'react'
+import React, { type ReactNode } from 'react';
 
 /**
  * Generic error fallback props
  */
 export interface ErrorFallbackProps {
-  error?: Error
-  onRetry?: () => void
-  onDismiss?: () => void
-  title?: string
-  message?: string
-  showDetails?: boolean
-  compact?: boolean
+  error?: Error;
+  onRetry?: () => void;
+  onDismiss?: () => void;
+  title?: string;
+  message?: string;
+  showDetails?: boolean;
+  compact?: boolean;
 }
 
 /**
@@ -64,7 +64,7 @@ export function ErrorFallback({
           </button>
         )}
       </div>
-    )
+    );
   }
 
   return (
@@ -155,7 +155,7 @@ export function ErrorFallback({
         )}
       </div>
     </div>
-  )
+  );
 }
 
 /**
@@ -165,8 +165,8 @@ export function NetworkErrorFallback({
   onRetry,
   message = 'Unable to connect to the server. Please check your internet connection.',
 }: {
-  onRetry?: () => void
-  message?: string
+  onRetry?: () => void;
+  message?: string;
 }): React.ReactElement {
   return (
     <div
@@ -199,7 +199,7 @@ export function NetworkErrorFallback({
         </button>
       )}
     </div>
-  )
+  );
 }
 
 /**
@@ -210,9 +210,9 @@ export function NotFoundFallback({
   message = 'The page you are looking for does not exist.',
   onGoHome,
 }: {
-  title?: string
-  message?: string
-  onGoHome?: () => void
+  title?: string;
+  message?: string;
+  onGoHome?: () => void;
 }): React.ReactElement {
   return (
     <div
@@ -245,7 +245,7 @@ export function NotFoundFallback({
         </button>
       )}
     </div>
-  )
+  );
 }
 
 /**
@@ -256,23 +256,23 @@ export function LoadingFallback({
   timeout,
   onTimeout,
 }: {
-  message?: string
-  timeout?: number
-  onTimeout?: () => void
+  message?: string;
+  timeout?: number;
+  onTimeout?: () => void;
 }): React.ReactElement {
-  const [timedOut, setTimedOut] = React.useState(false)
+  const [timedOut, setTimedOut] = React.useState(false);
 
   React.useEffect(() => {
     if (timeout && onTimeout) {
       const timer = setTimeout(() => {
-        setTimedOut(true)
-        onTimeout()
-      }, timeout)
+        setTimedOut(true);
+        onTimeout();
+      }, timeout);
 
-      return () => clearTimeout(timer)
+      return () => clearTimeout(timer);
     }
-    return undefined
-  }, [timeout, onTimeout])
+    return undefined;
+  }, [timeout, onTimeout]);
 
   if (timedOut) {
     return (
@@ -281,7 +281,7 @@ export function LoadingFallback({
         message="This is taking longer than expected."
         onRetry={onTimeout}
       />
-    )
+    );
   }
 
   return (
@@ -315,7 +315,7 @@ export function LoadingFallback({
         `}
       </style>
     </div>
-  )
+  );
 }
 
 /**
@@ -325,8 +325,8 @@ export function OfflineFallback({
   message = 'You are currently offline. Some features may be unavailable.',
   children,
 }: {
-  message?: string
-  children?: ReactNode
+  message?: string;
+  children?: ReactNode;
 }): React.ReactElement {
   return (
     <div>
@@ -344,7 +344,7 @@ export function OfflineFallback({
       </div>
       {children}
     </div>
-  )
+  );
 }
 
 /**
@@ -355,15 +355,15 @@ export function DegradedServiceFallback({
   message,
   children,
 }: {
-  serviceName?: string
-  message?: string
-  children?: ReactNode
+  serviceName?: string;
+  message?: string;
+  children?: ReactNode;
 }): React.ReactElement {
   const displayMessage =
     message ||
     (serviceName
       ? `${serviceName} is currently experiencing issues. Some features may be limited.`
-      : 'Some services are experiencing issues. Functionality may be limited.')
+      : 'Some services are experiencing issues. Functionality may be limited.');
 
   return (
     <div>
@@ -381,7 +381,7 @@ export function DegradedServiceFallback({
       </div>
       {children}
     </div>
-  )
+  );
 }
 
 /**
@@ -392,9 +392,9 @@ export function MaintenanceFallback({
   message = 'We are currently performing maintenance. Please check back soon.',
   estimatedTime,
 }: {
-  title?: string
-  message?: string
-  estimatedTime?: string
+  title?: string;
+  message?: string;
+  estimatedTime?: string;
 }): React.ReactElement {
   return (
     <div
@@ -412,7 +412,7 @@ export function MaintenanceFallback({
         <p style={{ color: '#999', marginTop: '16px' }}>Estimated completion: {estimatedTime}</p>
       )}
     </div>
-  )
+  );
 }
 
 /**
@@ -423,9 +423,9 @@ export function PermissionDeniedFallback({
   onRequestAccess,
   onGoBack,
 }: {
-  message?: string
-  onRequestAccess?: () => void
-  onGoBack?: () => void
+  message?: string;
+  onRequestAccess?: () => void;
+  onGoBack?: () => void;
 }): React.ReactElement {
   return (
     <div
@@ -475,7 +475,7 @@ export function PermissionDeniedFallback({
         )}
       </div>
     </div>
-  )
+  );
 }
 
 /**
@@ -487,29 +487,29 @@ export function RetryBoundary({
   maxRetries = 3,
   retryDelay = 1000,
 }: {
-  children: ReactNode
-  fallback?: (error: Error, retry: () => void, attempt: number) => ReactNode
-  maxRetries?: number
-  retryDelay?: number
+  children: ReactNode;
+  fallback?: (error: Error, retry: () => void, attempt: number) => ReactNode;
+  maxRetries?: number;
+  retryDelay?: number;
 }): React.ReactElement {
-  const [error, setError] = React.useState<Error | null>(null)
-  const [retryCount, setRetryCount] = React.useState(0)
-  const [isRetrying, setIsRetrying] = React.useState(false)
+  const [error, setError] = React.useState<Error | null>(null);
+  const [retryCount, setRetryCount] = React.useState(0);
+  const [isRetrying, setIsRetrying] = React.useState(false);
 
   const retry = React.useCallback(() => {
     if (retryCount < maxRetries) {
-      setIsRetrying(true)
+      setIsRetrying(true);
       setTimeout(() => {
-        setError(null)
-        setRetryCount((c) => c + 1)
-        setIsRetrying(false)
-      }, retryDelay)
+        setError(null);
+        setRetryCount((c) => c + 1);
+        setIsRetrying(false);
+      }, retryDelay);
     }
-  }, [retryCount, maxRetries, retryDelay])
+  }, [retryCount, maxRetries, retryDelay]);
 
   if (error && !isRetrying) {
     if (fallback) {
-      return <>{fallback(error, retry, retryCount)}</>
+      return <>{fallback(error, retry, retryCount)}</>;
     }
 
     return (
@@ -521,14 +521,14 @@ export function RetryBoundary({
           retryCount >= maxRetries ? 'Unable to recover after multiple attempts.' : undefined
         }
       />
-    )
+    );
   }
 
   if (isRetrying) {
-    return <LoadingFallback message={`Retrying... (Attempt ${retryCount + 1}/${maxRetries})`} />
+    return <LoadingFallback message={`Retrying... (Attempt ${retryCount + 1}/${maxRetries})`} />;
   }
 
-  return <>{children}</>
+  return <>{children}</>;
 }
 
 /**
@@ -538,18 +538,18 @@ export function SuspenseFallback({
   message = 'Loading...',
   timeout = 10000,
 }: {
-  message?: string
-  timeout?: number
+  message?: string;
+  timeout?: number;
 }): React.ReactElement {
-  const [timedOut, setTimedOut] = React.useState(false)
+  const [timedOut, setTimedOut] = React.useState(false);
 
   React.useEffect(() => {
     const timer = setTimeout(() => {
-      setTimedOut(true)
-    }, timeout)
+      setTimedOut(true);
+    }, timeout);
 
-    return () => clearTimeout(timer)
-  }, [timeout])
+    return () => clearTimeout(timer);
+  }, [timeout]);
 
   if (timedOut) {
     return (
@@ -557,10 +557,10 @@ export function SuspenseFallback({
         title="Loading Timeout"
         message="This is taking longer than expected. Please refresh the page."
       />
-    )
+    );
   }
 
-  return <LoadingFallback message={message} />
+  return <LoadingFallback message={message} />;
 }
 
 /**
@@ -570,8 +570,8 @@ export function FeatureUnavailableFallback({
   featureName,
   message,
 }: {
-  featureName: string
-  message?: string
+  featureName: string;
+  message?: string;
 }): React.ReactElement {
   return (
     <div
@@ -588,7 +588,7 @@ export function FeatureUnavailableFallback({
         {message || `The "${featureName}" feature is currently unavailable.`}
       </p>
     </div>
-  )
+  );
 }
 
 /**
@@ -598,8 +598,8 @@ export function InlineError({
   message,
   onDismiss,
 }: {
-  message: string
-  onDismiss?: () => void
+  message: string;
+  onDismiss?: () => void;
 }): React.ReactElement {
   return (
     <div
@@ -637,7 +637,7 @@ export function InlineError({
         </button>
       )}
     </div>
-  )
+  );
 }
 
 /**
@@ -647,8 +647,8 @@ export function SuccessMessage({
   message,
   onDismiss,
 }: {
-  message: string
-  onDismiss?: () => void
+  message: string;
+  onDismiss?: () => void;
 }): React.ReactElement {
   return (
     <output
@@ -685,7 +685,7 @@ export function SuccessMessage({
         </button>
       )}
     </output>
-  )
+  );
 }
 
 /**
@@ -697,27 +697,27 @@ export function Toast({
   duration = 5000,
   onDismiss,
 }: {
-  type?: 'success' | 'error' | 'warning' | 'info'
-  message: string
-  duration?: number
-  onDismiss?: () => void
+  type?: 'success' | 'error' | 'warning' | 'info';
+  message: string;
+  duration?: number;
+  onDismiss?: () => void;
 }): React.ReactElement {
   React.useEffect(() => {
     if (duration > 0 && onDismiss) {
-      const timer = setTimeout(onDismiss, duration)
-      return () => clearTimeout(timer)
+      const timer = setTimeout(onDismiss, duration);
+      return () => clearTimeout(timer);
     }
-    return undefined
-  }, [duration, onDismiss])
+    return undefined;
+  }, [duration, onDismiss]);
 
   const colors = {
     success: { bg: '#efe', border: '#cec', text: '#060', icon: '✓' },
     error: { bg: '#fee', border: '#fcc', text: '#c00', icon: '✗' },
     warning: { bg: '#fff3cd', border: '#ffc107', text: '#856404', icon: '!' },
     info: { bg: '#e7f3ff', border: '#2196f3', text: '#0c5393', icon: 'i' },
-  }
+  };
 
-  const color = colors[type]
+  const color = colors[type];
 
   return (
     <div
@@ -758,7 +758,7 @@ export function Toast({
         </button>
       )}
     </div>
-  )
+  );
 }
 
 /**
@@ -769,9 +769,9 @@ export function Skeleton({
   height = '20px',
   borderRadius = '4px',
 }: {
-  width?: string | number
-  height?: string | number
-  borderRadius?: string
+  width?: string | number;
+  height?: string | number;
+  borderRadius?: string;
 }): React.ReactElement {
   return (
     <div
@@ -792,5 +792,5 @@ export function Skeleton({
         `}
       </style>
     </div>
-  )
+  );
 }

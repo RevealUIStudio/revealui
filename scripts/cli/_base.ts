@@ -40,9 +40,9 @@
  * - node:url - URL utilities for ESM module paths
  */
 
-import { dirname, join } from 'node:path'
-import * as readline from 'node:readline'
-import { fileURLToPath } from 'node:url'
+import { dirname, join } from 'node:path';
+import * as readline from 'node:readline';
+import { fileURLToPath } from 'node:url';
 import {
   type ArgDefinition,
   type CommandDefinition as BaseCommandDefinition,
@@ -51,11 +51,11 @@ import {
   type ParserConfig,
   parseArgs,
   validateRequiredArgs,
-} from '../lib/args.js'
-import { type ExecutionLogger, getExecutionLogger } from '../lib/audit/execution-logger.js'
-import { dispatchCommand } from '../lib/cli/dispatch.js'
-import { ErrorCode, getExitCode, isScriptError, ScriptError, wrapError } from '../lib/errors.js'
-import { createOutput, type OutputHandler, type ScriptOutput } from '../lib/output.js'
+} from '../lib/args.js';
+import { type ExecutionLogger, getExecutionLogger } from '../lib/audit/execution-logger.js';
+import { dispatchCommand } from '../lib/cli/dispatch.js';
+import { ErrorCode, getExitCode, isScriptError, ScriptError, wrapError } from '../lib/errors.js';
+import { createOutput, type OutputHandler, type ScriptOutput } from '../lib/output.js';
 
 // =============================================================================
 // Types
@@ -63,16 +63,16 @@ import { createOutput, type OutputHandler, type ScriptOutput } from '../lib/outp
 
 export interface CommandDefinition extends BaseCommandDefinition {
   /** Command handler function */
-  handler: (args: ParsedArgs) => Promise<ScriptOutput | undefined>
+  handler: (args: ParsedArgs) => Promise<ScriptOutput | undefined>;
   /** Whether this command requires user confirmation */
-  confirmPrompt?: string
+  confirmPrompt?: string;
 }
 
 export interface CLIOptions {
   /** Override argv (default: process.argv.slice(2)) */
-  argv?: string[]
+  argv?: string[];
   /** Exit process on completion (default: true) */
-  exitOnComplete?: boolean
+  exitOnComplete?: boolean;
 }
 
 // =============================================================================
@@ -84,38 +84,38 @@ export interface CLIOptions {
  */
 export abstract class BaseCLI {
   /** CLI name for help text */
-  abstract name: string
+  abstract name: string;
 
   /** CLI description */
-  abstract description: string
+  abstract description: string;
 
   /** Parsed command-line arguments */
-  protected args: ParsedArgs
+  protected args: ParsedArgs;
 
   /** Output handler for dual-mode output */
-  protected output: OutputHandler
+  protected output: OutputHandler;
 
   /** Raw argv */
-  protected argv: string[]
+  protected argv: string[];
 
   /** Whether to exit process on completion */
-  protected exitOnComplete: boolean
+  protected exitOnComplete: boolean;
 
   /** Project root directory (computed once and cached) */
-  protected projectRoot: string
+  protected projectRoot: string;
 
   constructor(options: CLIOptions = {}) {
-    this.argv = options.argv ?? process.argv.slice(2)
-    this.exitOnComplete = options.exitOnComplete ?? true
+    this.argv = options.argv ?? process.argv.slice(2);
+    this.exitOnComplete = options.exitOnComplete ?? true;
 
     // Compute project root (scripts/cli -> root is two levels up)
-    const __filename = fileURLToPath(import.meta.url)
-    const __dirname = dirname(__filename)
-    this.projectRoot = join(__dirname, '../..')
+    const __filename = fileURLToPath(import.meta.url);
+    const __dirname = dirname(__filename);
+    this.projectRoot = join(__dirname, '../..');
 
     // Pre-parse to detect JSON mode early
-    const preParseJson = this.argv.includes('--json') || this.argv.includes('-j')
-    this.output = createOutput({ json: preParseJson })
+    const preParseJson = this.argv.includes('--json') || this.argv.includes('-j');
+    this.output = createOutput({ json: preParseJson });
 
     // Will be properly parsed in run()
     this.args = {
@@ -124,13 +124,13 @@ export abstract class BaseCLI {
       flags: {},
       help: false,
       raw: this.argv,
-    }
+    };
   }
 
   /**
    * Define available commands for this CLI
    */
-  abstract defineCommands(): CommandDefinition[]
+  abstract defineCommands(): CommandDefinition[];
 
   /**
    * Define global arguments (available to all commands)
@@ -155,7 +155,7 @@ export abstract class BaseCLI {
         type: 'boolean',
         description: 'Skip confirmation prompts',
       },
-    ]
+    ];
   }
 
   /**
@@ -178,85 +178,88 @@ export abstract class BaseCLI {
    * Run the CLI
    */
   async run(): Promise<void> {
-    let exitCode = ErrorCode.SUCCESS
+    let exitCode = ErrorCode.SUCCESS;
 
     try {
       // Build parser config
-      const config = this.buildParserConfig()
+      const config = this.buildParserConfig();
 
       // Parse arguments
-      this.args = parseArgs(this.argv, config)
+      this.args = parseArgs(this.argv, config);
 
       // Update output mode based on parsed args
       if (this.args.flags.json) {
-        this.output = createOutput({ json: true })
+        this.output = createOutput({ json: true });
       }
 
       // Handle help request
       if (this.args.help) {
-        const helpText = generateHelp(config, this.args.command)
+        const helpText = generateHelp(config, this.args.command);
         if (this.args.flags.json) {
-          this.output.success({ help: helpText })
+          this.output.success({ help: helpText });
         } else {
-          console.log(helpText)
+          console.log(helpText);
         }
-        return
+        return;
       }
 
       // Find and execute command
-      const commands = this.defineCommands()
-      const command = commands.find((c) => c.name === this.args.command)
+      const commands = this.defineCommands();
+      const command = commands.find((c) => c.name === this.args.command);
 
       if (!command) {
         if (this.args.command) {
-          throw new ScriptError(`Unknown command: ${this.args.command}`, ErrorCode.VALIDATION_ERROR)
+          throw new ScriptError(
+            `Unknown command: ${this.args.command}`,
+            ErrorCode.VALIDATION_ERROR,
+          );
         }
         // No command specified - show help
-        console.log(generateHelp(config))
-        return
+        console.log(generateHelp(config));
+        return;
       }
 
       // Validate required args
-      const validation = validateRequiredArgs(this.args, config)
+      const validation = validateRequiredArgs(this.args, config);
       if (!validation.valid) {
         throw new ScriptError(
           `Missing required arguments: ${validation.missing.join(', ')}`,
           ErrorCode.VALIDATION_ERROR,
           { missing: validation.missing },
-        )
+        );
       }
 
       // Check for confirmation prompt
       if (command.confirmPrompt && !this.args.flags.force) {
-        const confirmed = await this.confirm(command.confirmPrompt)
+        const confirmed = await this.confirm(command.confirmPrompt);
         if (!confirmed) {
-          this.output.warn('Operation cancelled')
-          exitCode = ErrorCode.CANCELLED
-          return
+          this.output.warn('Operation cancelled');
+          exitCode = ErrorCode.CANCELLED;
+          return;
         }
       }
 
       // Run lifecycle hooks and command
-      await this.beforeRun()
+      await this.beforeRun();
 
       try {
-        const result = await command.handler(this.args)
+        const result = await command.handler(this.args);
 
         // If handler returned a result, output it
         if (result) {
-          this.output.result(result)
+          this.output.result(result);
           if (!result.success) {
-            exitCode = ErrorCode.GENERAL_ERROR
+            exitCode = ErrorCode.GENERAL_ERROR;
           }
         }
       } finally {
-        await this.afterRun()
+        await this.afterRun();
       }
     } catch (error) {
-      exitCode = this.handleError(error)
+      exitCode = this.handleError(error);
     } finally {
       if (this.exitOnComplete && exitCode !== ErrorCode.SUCCESS) {
-        process.exit(exitCode)
+        process.exit(exitCode);
       }
     }
   }
@@ -271,20 +274,20 @@ export abstract class BaseCLI {
    */
   async confirm(message: string): Promise<boolean> {
     if (this.args.flags.force || this.args.flags.json) {
-      return true
+      return true;
     }
 
     return new Promise((resolve) => {
       const rl = readline.createInterface({
         input: process.stdin,
         output: process.stdout,
-      })
+      });
 
       rl.question(`${message} (y/N) `, (answer) => {
-        rl.close()
-        resolve(answer.toLowerCase() === 'y' || answer.toLowerCase() === 'yes')
-      })
-    })
+        rl.close();
+        resolve(answer.toLowerCase() === 'y' || answer.toLowerCase() === 'yes');
+      });
+    });
   }
 
   /**
@@ -296,21 +299,21 @@ export abstract class BaseCLI {
       throw new ScriptError(
         'Interactive prompts not supported in JSON mode',
         ErrorCode.VALIDATION_ERROR,
-      )
+      );
     }
 
     return new Promise((resolve) => {
       const rl = readline.createInterface({
         input: process.stdin,
         output: process.stdout,
-      })
+      });
 
-      const defaultText = defaultValue ? ` (${defaultValue})` : ''
+      const defaultText = defaultValue ? ` (${defaultValue})` : '';
       rl.question(`${message}${defaultText}: `, (answer) => {
-        rl.close()
-        resolve(answer || defaultValue || '')
-      })
-    })
+        rl.close();
+        resolve(answer || defaultValue || '');
+      });
+    });
   }
 
   /**
@@ -324,23 +327,23 @@ export abstract class BaseCLI {
       throw new ScriptError(
         'Interactive selection not supported in JSON mode',
         ErrorCode.VALIDATION_ERROR,
-      )
+      );
     }
 
-    console.log(`\n${message}\n`)
+    console.log(`\n${message}\n`);
     for (let i = 0; i < options.length; i++) {
-      console.log(`  ${i + 1}. ${options[i].label}`)
+      console.log(`  ${i + 1}. ${options[i].label}`);
     }
-    console.log()
+    console.log();
 
-    const answer = await this.prompt('Enter number')
-    const index = parseInt(answer, 10) - 1
+    const answer = await this.prompt('Enter number');
+    const index = parseInt(answer, 10) - 1;
 
     if (Number.isNaN(index) || index < 0 || index >= options.length) {
-      throw new ScriptError('Invalid selection', ErrorCode.VALIDATION_ERROR)
+      throw new ScriptError('Invalid selection', ErrorCode.VALIDATION_ERROR);
     }
 
-    return options[index].value
+    return options[index].value;
   }
 
   // ===========================================================================
@@ -351,37 +354,37 @@ export abstract class BaseCLI {
    * Get a positional argument by index
    */
   protected getPositional(index: number): string | undefined {
-    return this.args.positional[index]
+    return this.args.positional[index];
   }
 
   /**
    * Get a required positional argument
    */
   protected requirePositional(index: number, name: string): string {
-    const value = this.args.positional[index]
+    const value = this.args.positional[index];
     if (!value) {
       throw new ScriptError(`Missing required argument: ${name}`, ErrorCode.VALIDATION_ERROR, {
         argument: name,
         index,
-      })
+      });
     }
-    return value
+    return value;
   }
 
   /**
    * Get a flag value with type safety
    */
   protected getFlag<T>(name: string, defaultValue: T): T {
-    const value = this.args.flags[name]
-    if (value === undefined) return defaultValue
-    return value as T
+    const value = this.args.flags[name];
+    if (value === undefined) return defaultValue;
+    return value as T;
   }
 
   /**
    * Check if verbose mode is enabled
    */
   protected isVerbose(): boolean {
-    return Boolean(this.args.flags.verbose)
+    return Boolean(this.args.flags.verbose);
   }
 
   /**
@@ -389,7 +392,7 @@ export abstract class BaseCLI {
    */
   protected verbose(message: string): void {
     if (this.isVerbose()) {
-      this.output.debug(message)
+      this.output.debug(message);
     }
   }
 
@@ -398,8 +401,8 @@ export abstract class BaseCLI {
   // ===========================================================================
 
   private buildParserConfig(): ParserConfig {
-    const commands = this.defineCommands()
-    const globalArgs = this.defineGlobalArgs()
+    const commands = this.defineCommands();
+    const globalArgs = this.defineGlobalArgs();
 
     return {
       name: this.name,
@@ -410,28 +413,28 @@ export abstract class BaseCLI {
         description: cmd.description,
         args: cmd.args,
       })),
-    }
+    };
   }
 
   private handleError(error: unknown): ErrorCode {
-    const scriptError = isScriptError(error) ? error : wrapError(error)
+    const scriptError = isScriptError(error) ? error : wrapError(error);
 
     if (this.args.flags.json) {
       this.output.error({
         code: scriptError.codeString,
         message: scriptError.message,
         details: scriptError.details,
-      })
+      });
     } else {
-      this.output.getLogger().error(scriptError.message)
+      this.output.getLogger().error(scriptError.message);
       if (scriptError.details && this.isVerbose()) {
         for (const [key, value] of Object.entries(scriptError.details)) {
-          this.output.getLogger().error(`  ${key}: ${JSON.stringify(value)}`)
+          this.output.getLogger().error(`  ${key}: ${JSON.stringify(value)}`);
         }
       }
     }
 
-    return getExitCode(scriptError)
+    return getExitCode(scriptError);
   }
 }
 
@@ -462,28 +465,28 @@ export abstract class BaseCLI {
  */
 export abstract class ExecutingCLI extends BaseCLI {
   /** Enable execution logging (override to true in subclass) */
-  protected enableExecutionLogging = false
+  protected enableExecutionLogging = false;
 
   /** Execution ID for tracking */
-  protected executionId: string | null = null
+  protected executionId: string | null = null;
 
   /** Track execution success */
-  protected executionSuccess = true
+  protected executionSuccess = true;
 
   /** Track execution error */
-  protected executionError: string | undefined
+  protected executionError: string | undefined;
 
   /** Execution logger instance */
-  private logger: ExecutionLogger | null = null
+  private logger: ExecutionLogger | null = null;
 
   /**
    * Get execution logger instance
    */
   protected async getLogger(): Promise<ExecutionLogger> {
     if (!this.logger) {
-      this.logger = await getExecutionLogger(this.projectRoot)
+      this.logger = await getExecutionLogger(this.projectRoot);
     }
-    return this.logger
+    return this.logger;
   }
 
   /**
@@ -492,12 +495,12 @@ export abstract class ExecutingCLI extends BaseCLI {
    */
   async beforeRun(): Promise<void> {
     if (this.enableExecutionLogging) {
-      const logger = await this.getLogger()
+      const logger = await this.getLogger();
       this.executionId = await logger.startExecution({
         scriptName: this.name,
         command: this.args.command || 'unknown',
         args: this.args.positional,
-      })
+      });
     }
   }
 
@@ -507,11 +510,11 @@ export abstract class ExecutingCLI extends BaseCLI {
    */
   async afterRun(): Promise<void> {
     if (this.executionId) {
-      const logger = await this.getLogger()
+      const logger = await this.getLogger();
       await logger.endExecution(this.executionId, {
         success: this.executionSuccess,
         error: this.executionError,
-      })
+      });
     }
   }
 
@@ -519,8 +522,8 @@ export abstract class ExecutingCLI extends BaseCLI {
    * Mark execution as failed (call this in error handlers)
    */
   protected markExecutionFailed(error?: string): void {
-    this.executionSuccess = false
-    this.executionError = error
+    this.executionSuccess = false;
+    this.executionError = error;
   }
 }
 
@@ -564,7 +567,7 @@ export abstract class DispatcherCLI extends ExecutingCLI {
    * Map of command names to script paths
    * Override in subclass to define available commands
    */
-  protected abstract commandMap: Record<string, string>
+  protected abstract commandMap: Record<string, string>;
 
   /**
    * Dispatch to a command script
@@ -573,38 +576,38 @@ export abstract class DispatcherCLI extends ExecutingCLI {
    * @param args - Parsed arguments to pass to the script
    */
   protected async dispatchCommand(name: string, args: ParsedArgs): Promise<ScriptOutput> {
-    const scriptPath = this.commandMap[name]
+    const scriptPath = this.commandMap[name];
 
     if (!scriptPath) {
       throw new ScriptError(`Unknown command: ${name}`, ErrorCode.VALIDATION_ERROR, {
         availableCommands: Object.keys(this.commandMap),
-      })
+      });
     }
 
     try {
       const result = await dispatchCommand(scriptPath, {
         args,
         cwd: this.projectRoot,
-      })
+      });
 
       if (!result.success) {
-        this.markExecutionFailed(result.error)
+        this.markExecutionFailed(result.error);
         return {
           success: false,
           data: null,
           message: result.error || `Command failed: ${name}`,
-        }
+        };
       }
 
       return {
         success: true,
         data: { command: name, scriptPath },
         message: `Command completed: ${name}`,
-      }
+      };
     } catch (error) {
-      const errorMessage = error instanceof Error ? error.message : String(error)
-      this.markExecutionFailed(errorMessage)
-      throw error
+      const errorMessage = error instanceof Error ? error.message : String(error);
+      this.markExecutionFailed(errorMessage);
+      throw error;
     }
   }
 }
@@ -627,6 +630,6 @@ export async function runCLI<T extends BaseCLI>(
   CLIClass: new (options?: CLIOptions) => T,
   options?: CLIOptions,
 ): Promise<void> {
-  const cli = new CLIClass(options)
-  await cli.run()
+  const cli = new CLIClass(options);
+  await cli.run();
 }

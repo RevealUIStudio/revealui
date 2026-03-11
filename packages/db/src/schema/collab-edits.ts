@@ -1,11 +1,11 @@
-import { customType, integer, pgTable, text, timestamp, uuid } from 'drizzle-orm/pg-core'
-import { yjsDocuments } from './yjs-documents.js'
+import { customType, integer, pgTable, text, timestamp, uuid } from 'drizzle-orm/pg-core';
+import { yjsDocuments } from './yjs-documents.js';
 
 const bytea = customType<{ data: Buffer; driverData: Buffer }>({
   dataType() {
-    return 'bytea'
+    return 'bytea';
   },
-})
+});
 
 export const collabEdits = pgTable('collab_edits', {
   id: uuid('id').primaryKey().defaultRandom(),
@@ -19,7 +19,7 @@ export const collabEdits = pgTable('collab_edits', {
   updateData: bytea('update_data').notNull(),
   updateSize: integer('update_size').notNull(),
   timestamp: timestamp('timestamp', { withTimezone: true }).defaultNow().notNull(),
-})
+});
 
-export type CollabEdit = typeof collabEdits.$inferSelect
-export type NewCollabEdit = typeof collabEdits.$inferInsert
+export type CollabEdit = typeof collabEdits.$inferSelect;
+export type NewCollabEdit = typeof collabEdits.$inferInsert;

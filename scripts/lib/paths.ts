@@ -10,14 +10,14 @@
  * - node:url - URL to file path conversion for ESM
  */
 
-import { access, readFile } from 'node:fs/promises'
-import { dirname, join, resolve } from 'node:path'
-import { fileURLToPath } from 'node:url'
+import { access, readFile } from 'node:fs/promises';
+import { dirname, join, resolve } from 'node:path';
+import { fileURLToPath } from 'node:url';
 
 /**
  * Project root path (cached after first resolution)
  */
-let cachedProjectRoot: string | null = null
+let cachedProjectRoot: string | null = null;
 
 /**
  * Gets the directory name from an import.meta.url
@@ -28,7 +28,7 @@ let cachedProjectRoot: string | null = null
  * ```
  */
 export function getDirname(importMetaUrl: string): string {
-  return dirname(fileURLToPath(importMetaUrl))
+  return dirname(fileURLToPath(importMetaUrl));
 }
 
 /**
@@ -40,7 +40,7 @@ export function getDirname(importMetaUrl: string): string {
  * ```
  */
 export function getFilename(importMetaUrl: string): string {
-  return fileURLToPath(importMetaUrl)
+  return fileURLToPath(importMetaUrl);
 }
 
 /**
@@ -59,42 +59,42 @@ export function getFilename(importMetaUrl: string): string {
 export async function getProjectRoot(importMetaUrl: string): Promise<string> {
   // Return cached value if available
   if (cachedProjectRoot) {
-    return cachedProjectRoot
+    return cachedProjectRoot;
   }
 
-  const __filename = fileURLToPath(importMetaUrl)
-  let currentDir = dirname(__filename)
+  const __filename = fileURLToPath(importMetaUrl);
+  let currentDir = dirname(__filename);
 
   // Walk up to 10 levels looking for root package.json
   for (let i = 0; i < 10; i++) {
     try {
-      const packageJsonPath = resolve(currentDir, 'package.json')
-      await access(packageJsonPath)
+      const packageJsonPath = resolve(currentDir, 'package.json');
+      await access(packageJsonPath);
 
       // Check if this is the monorepo root
-      const content = await readFile(packageJsonPath, 'utf-8')
-      const pkg = JSON.parse(content)
+      const content = await readFile(packageJsonPath, 'utf-8');
+      const pkg = JSON.parse(content);
 
       // Look for monorepo indicators
       if (pkg.name === 'reveal-ui' || pkg.workspaces || pkg.private === true) {
-        cachedProjectRoot = currentDir
-        return currentDir
+        cachedProjectRoot = currentDir;
+        return currentDir;
       }
     } catch {
       // package.json doesn't exist or isn't readable, continue up
     }
 
-    const parentDir = resolve(currentDir, '..')
+    const parentDir = resolve(currentDir, '..');
     if (parentDir === currentDir) {
       // Reached filesystem root
-      break
+      break;
     }
-    currentDir = parentDir
+    currentDir = parentDir;
   }
 
   // Fallback to cwd
-  cachedProjectRoot = process.cwd()
-  return cachedProjectRoot
+  cachedProjectRoot = process.cwd();
+  return cachedProjectRoot;
 }
 
 /**
@@ -103,37 +103,37 @@ export async function getProjectRoot(importMetaUrl: string): Promise<string> {
  */
 export function getProjectRootSync(): string {
   if (cachedProjectRoot) {
-    return cachedProjectRoot
+    return cachedProjectRoot;
   }
 
   // When called without import.meta.url, use cwd as starting point
-  let currentDir = process.cwd()
+  let currentDir = process.cwd();
 
-  const fs = require('node:fs')
+  const fs = require('node:fs');
 
   for (let i = 0; i < 10; i++) {
     try {
-      const packageJsonPath = resolve(currentDir, 'package.json')
-      const content = fs.readFileSync(packageJsonPath, 'utf-8')
-      const pkg = JSON.parse(content)
+      const packageJsonPath = resolve(currentDir, 'package.json');
+      const content = fs.readFileSync(packageJsonPath, 'utf-8');
+      const pkg = JSON.parse(content);
 
       if (pkg.name === 'reveal-ui' || pkg.workspaces || pkg.private === true) {
-        cachedProjectRoot = currentDir
-        return currentDir
+        cachedProjectRoot = currentDir;
+        return currentDir;
       }
     } catch {
       // Continue up
     }
 
-    const parentDir = resolve(currentDir, '..')
+    const parentDir = resolve(currentDir, '..');
     if (parentDir === currentDir) {
-      break
+      break;
     }
-    currentDir = parentDir
+    currentDir = parentDir;
   }
 
-  cachedProjectRoot = process.cwd()
-  return cachedProjectRoot
+  cachedProjectRoot = process.cwd();
+  return cachedProjectRoot;
 }
 
 /**
@@ -146,8 +146,8 @@ export function getProjectRootSync(): string {
  * ```
  */
 export async function resolvePath(importMetaUrl: string, ...paths: string[]): Promise<string> {
-  const root = await getProjectRoot(importMetaUrl)
-  return join(root, ...paths)
+  const root = await getProjectRoot(importMetaUrl);
+  return join(root, ...paths);
 }
 
 /**
@@ -183,11 +183,11 @@ export const paths = {
    * Get backups directory path (.revealui/backups/)
    */
   backups: async (importMetaUrl: string) => resolvePath(importMetaUrl, '.revealui', 'backups'),
-}
+};
 
 /**
  * Clears the cached project root (useful for testing)
  */
 export function clearProjectRootCache(): void {
-  cachedProjectRoot = null
+  cachedProjectRoot = null;
 }

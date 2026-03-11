@@ -1,29 +1,29 @@
-import { FitAddon } from '@xterm/addon-fit'
-import { Terminal } from '@xterm/xterm'
-import '@xterm/xterm/css/xterm.css'
-import { useEffect, useRef } from 'react'
+import { FitAddon } from '@xterm/addon-fit';
+import { Terminal } from '@xterm/xterm';
+import '@xterm/xterm/css/xterm.css';
+import { useEffect, useRef } from 'react';
 
 interface TerminalViewProps {
-  onData: (data: string) => void
-  onResize: (cols: number, rows: number) => void
-  terminalRef: React.MutableRefObject<Terminal | null>
+  onData: (data: string) => void;
+  onResize: (cols: number, rows: number) => void;
+  terminalRef: React.MutableRefObject<Terminal | null>;
 }
 
 export default function TerminalView({ onData, onResize, terminalRef }: TerminalViewProps) {
-  const containerRef = useRef<HTMLDivElement>(null)
-  const fitAddonRef = useRef<FitAddon | null>(null)
-  const onDataRef = useRef(onData)
-  const onResizeRef = useRef(onResize)
-  const terminalRefStable = useRef(terminalRef)
+  const containerRef = useRef<HTMLDivElement>(null);
+  const fitAddonRef = useRef<FitAddon | null>(null);
+  const onDataRef = useRef(onData);
+  const onResizeRef = useRef(onResize);
+  const terminalRefStable = useRef(terminalRef);
 
   // Keep callback refs current without re-running the effect
-  onDataRef.current = onData
-  onResizeRef.current = onResize
-  terminalRefStable.current = terminalRef
+  onDataRef.current = onData;
+  onResizeRef.current = onResize;
+  terminalRefStable.current = terminalRef;
 
   useEffect(() => {
-    const container = containerRef.current
-    if (!container) return
+    const container = containerRef.current;
+    if (!container) return;
 
     const terminal = new Terminal({
       cursorBlink: true,
@@ -51,58 +51,58 @@ export default function TerminalView({ onData, onResize, terminalRef }: Terminal
         brightCyan: '#22d3ee',
         brightWhite: '#fafafa',
       },
-    })
+    });
 
-    const fitAddon = new FitAddon()
-    terminal.loadAddon(fitAddon)
-    fitAddonRef.current = fitAddon
+    const fitAddon = new FitAddon();
+    terminal.loadAddon(fitAddon);
+    fitAddonRef.current = fitAddon;
 
-    terminal.open(container)
+    terminal.open(container);
 
     // Fit after a frame so the container has dimensions
     requestAnimationFrame(() => {
-      fitAddon.fit()
-      onResizeRef.current(terminal.cols, terminal.rows)
-    })
+      fitAddon.fit();
+      onResizeRef.current(terminal.cols, terminal.rows);
+    });
 
     // Welcome message before connection
-    terminal.writeln('\x1b[1;33mRevealUI Studio Terminal\x1b[0m')
-    terminal.writeln('\x1b[90mConnect to an SSH server using the form above.\x1b[0m')
-    terminal.writeln('')
+    terminal.writeln('\x1b[1;33mRevealUI Studio Terminal\x1b[0m');
+    terminal.writeln('\x1b[90mConnect to an SSH server using the form above.\x1b[0m');
+    terminal.writeln('');
 
     // Forward user input to SSH
-    terminal.onData((data) => onDataRef.current(data))
+    terminal.onData((data) => onDataRef.current(data));
 
     // Watch for resize
     terminal.onResize(({ cols, rows }) => {
-      onResizeRef.current(cols, rows)
-    })
+      onResizeRef.current(cols, rows);
+    });
 
     // Debounced ResizeObserver to avoid rapid re-fits during panel transitions
-    let resizeTimeout: ReturnType<typeof setTimeout> | null = null
+    let resizeTimeout: ReturnType<typeof setTimeout> | null = null;
     const observer = new ResizeObserver(() => {
-      if (resizeTimeout) clearTimeout(resizeTimeout)
+      if (resizeTimeout) clearTimeout(resizeTimeout);
       resizeTimeout = setTimeout(() => {
-        fitAddon.fit()
-      }, 100)
-    })
-    observer.observe(container)
+        fitAddon.fit();
+      }, 100);
+    });
+    observer.observe(container);
 
-    terminalRefStable.current.current = terminal
+    terminalRefStable.current.current = terminal;
 
     return () => {
-      if (resizeTimeout) clearTimeout(resizeTimeout)
-      observer.disconnect()
-      terminal.dispose()
-      terminalRefStable.current.current = null
-      fitAddonRef.current = null
-    }
-  }, [])
+      if (resizeTimeout) clearTimeout(resizeTimeout);
+      observer.disconnect();
+      terminal.dispose();
+      terminalRefStable.current.current = null;
+      fitAddonRef.current = null;
+    };
+  }, []);
 
   return (
     <div
       ref={containerRef}
       className="h-full w-full rounded-md border border-neutral-800 bg-[#171717] p-1"
     />
-  )
+  );
 }

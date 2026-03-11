@@ -1,76 +1,76 @@
-'use client'
-import type React from 'react'
-import { useCallback, useRef, useState } from 'react'
+'use client';
+import type React from 'react';
+import { useCallback, useRef, useState } from 'react';
 
 interface ChatMessage {
-  id: string
-  role: 'user' | 'assistant' | 'system'
-  content: string
+  id: string;
+  role: 'user' | 'assistant' | 'system';
+  content: string;
 }
 
 // Web Speech API type definitions (custom types to avoid conflicts)
 interface CustomSpeechRecognitionAlternative {
-  readonly transcript: string
-  readonly confidence: number
+  readonly transcript: string;
+  readonly confidence: number;
 }
 
 interface CustomSpeechRecognitionResult {
-  readonly length: number
-  readonly isFinal: boolean
-  item(index: number): CustomSpeechRecognitionAlternative
-  [index: number]: CustomSpeechRecognitionAlternative
+  readonly length: number;
+  readonly isFinal: boolean;
+  item(index: number): CustomSpeechRecognitionAlternative;
+  [index: number]: CustomSpeechRecognitionAlternative;
 }
 
 interface CustomSpeechRecognitionResultList {
-  readonly length: number
-  item(index: number): CustomSpeechRecognitionResult
-  [index: number]: CustomSpeechRecognitionResult
+  readonly length: number;
+  item(index: number): CustomSpeechRecognitionResult;
+  [index: number]: CustomSpeechRecognitionResult;
 }
 
 interface CustomSpeechRecognitionEvent extends Event {
-  readonly resultIndex: number
-  readonly results: CustomSpeechRecognitionResultList
+  readonly resultIndex: number;
+  readonly results: CustomSpeechRecognitionResultList;
 }
 
 interface CustomSpeechRecognitionInstance extends EventTarget {
-  continuous: boolean
-  interimResults: boolean
-  lang: string
-  onresult: ((event: CustomSpeechRecognitionEvent) => void) | null
-  onend: (() => void) | null
-  onerror: ((event: Event) => void) | null
-  start(): void
-  stop(): void
-  abort(): void
+  continuous: boolean;
+  interimResults: boolean;
+  lang: string;
+  onresult: ((event: CustomSpeechRecognitionEvent) => void) | null;
+  onend: (() => void) | null;
+  onerror: ((event: Event) => void) | null;
+  start(): void;
+  stop(): void;
+  abort(): void;
 }
 
-type CustomSpeechRecognition = new () => CustomSpeechRecognitionInstance
+type CustomSpeechRecognition = new () => CustomSpeechRecognitionInstance;
 
-let messageCounter = 0
+let messageCounter = 0;
 function nextId() {
-  return `msg-${++messageCounter}`
+  return `msg-${++messageCounter}`;
 }
 
 const AgentChat: React.FC = () => {
-  const [messages, setMessages] = useState<ChatMessage[]>([])
-  const [input, setInput] = useState('')
-  const [isLoading, setIsLoading] = useState(false)
-  const [error, setError] = useState<Error | null>(null)
-  const [isListening, setIsListening] = useState(false)
-  const transcriptRef = useRef('')
+  const [messages, setMessages] = useState<ChatMessage[]>([]);
+  const [input, setInput] = useState('');
+  const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState<Error | null>(null);
+  const [isListening, setIsListening] = useState(false);
+  const transcriptRef = useRef('');
 
   const handleSubmit = useCallback(
     async (e: React.FormEvent<HTMLFormElement>) => {
-      e.preventDefault()
-      const content = input.trim()
-      if (!content || isLoading) return
+      e.preventDefault();
+      const content = input.trim();
+      if (!content || isLoading) return;
 
-      const userMessage: ChatMessage = { id: nextId(), role: 'user', content }
-      const nextMessages = [...messages, userMessage]
-      setMessages(nextMessages)
-      setInput('')
-      setIsLoading(true)
-      setError(null)
+      const userMessage: ChatMessage = { id: nextId(), role: 'user', content };
+      const nextMessages = [...messages, userMessage];
+      setMessages(nextMessages);
+      setInput('');
+      setIsLoading(true);
+      setError(null);
 
       try {
         const res = await fetch('/api/chat', {
@@ -79,65 +79,69 @@ const AgentChat: React.FC = () => {
           body: JSON.stringify({
             messages: nextMessages.map(({ role, content: c }) => ({ role, content: c })),
           }),
-        })
+        });
 
         if (!res.ok) {
-          const text = await res.text()
-          throw new Error(`Chat request failed: ${res.status} ${text}`)
+          const text = await res.text();
+          throw new Error(`Chat request failed: ${res.status} ${text}`);
         }
 
-        const data = (await res.json()) as { content: string }
-        setMessages((prev) => [...prev, { id: nextId(), role: 'assistant', content: data.content }])
+        const data = (await res.json()) as { content: string };
+        setMessages((prev) => [
+          ...prev,
+          { id: nextId(), role: 'assistant', content: data.content },
+        ]);
       } catch (err) {
-        setError(err instanceof Error ? err : new Error(String(err)))
+        setError(err instanceof Error ? err : new Error(String(err)));
       } finally {
-        setIsLoading(false)
+        setIsLoading(false);
       }
     },
     [input, isLoading, messages],
-  )
+  );
 
   const handleVoiceStart = () => {
     if ('webkitSpeechRecognition' in window || 'SpeechRecognition' in window) {
       type WindowWithSpeechRecognition = Window & {
         // biome-ignore lint/style/useNamingConvention: SpeechRecognition matches the Web Speech API browser property name
-        SpeechRecognition?: CustomSpeechRecognition
-        webkitSpeechRecognition?: CustomSpeechRecognition
-      }
+        SpeechRecognition?: CustomSpeechRecognition;
+        webkitSpeechRecognition?: CustomSpeechRecognition;
+      };
       const SpeechRecognitionClass =
         (window as WindowWithSpeechRecognition).SpeechRecognition ||
-        (window as WindowWithSpeechRecognition).webkitSpeechRecognition
-      if (!SpeechRecognitionClass) return
-      const recognition = new SpeechRecognitionClass() as unknown as CustomSpeechRecognitionInstance
-      recognition.continuous = true
-      recognition.interimResults = true
+        (window as WindowWithSpeechRecognition).webkitSpeechRecognition;
+      if (!SpeechRecognitionClass) return;
+      const recognition =
+        new SpeechRecognitionClass() as unknown as CustomSpeechRecognitionInstance;
+      recognition.continuous = true;
+      recognition.interimResults = true;
 
       recognition.onresult = (event: CustomSpeechRecognitionEvent) => {
-        const current = event.resultIndex
-        const result = event.results[current]
+        const current = event.resultIndex;
+        const result = event.results[current];
         if (result?.[0]) {
-          transcriptRef.current = result[0].transcript
+          transcriptRef.current = result[0].transcript;
         }
-      }
+      };
 
       recognition.onend = () => {
-        setIsListening(false)
+        setIsListening(false);
         if (transcriptRef.current) {
-          setInput(transcriptRef.current)
-          transcriptRef.current = ''
+          setInput(transcriptRef.current);
+          transcriptRef.current = '';
         }
-      }
+      };
 
-      recognition.start()
-      setIsListening(true)
+      recognition.start();
+      setIsListening(true);
     }
-  }
+  };
 
   const handleVoiceStop = () => {
     if (isListening) {
-      setIsListening(false)
+      setIsListening(false);
     }
-  }
+  };
 
   return (
     <div className="flex h-96 flex-col rounded-lg border border-gray-300 bg-white p-4 shadow-md dark:bg-black">
@@ -208,7 +212,7 @@ const AgentChat: React.FC = () => {
         </div>
       </form>
     </div>
-  )
-}
+  );
+};
 
-export default AgentChat
+export default AgentChat;

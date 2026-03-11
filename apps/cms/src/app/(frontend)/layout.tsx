@@ -1,36 +1,36 @@
-import { logger } from '@revealui/core/observability/logger'
-import { SpeedInsights } from '@vercel/speed-insights/next'
-import { GeistMono } from 'geist/font/mono'
-import { GeistSans } from 'geist/font/sans'
-import type { Metadata } from 'next'
-import { draftMode } from 'next/headers'
-import type React from 'react'
-import { ErrorBoundary } from '@/components/ErrorBoundary'
-import { AdminBar } from '@/lib/components/AdminBar'
-import { LivePreviewListener } from '@/lib/components/LivePreviewListener'
-import { Footer } from '@/lib/globals/Footer/Component'
-import { Header } from '@/lib/globals/Header/Component'
-import { Providers } from '@/lib/providers'
-import { InitTheme } from '@/lib/providers/Theme/InitTheme'
-import { mergeOpenGraph } from '@/lib/utilities/mergeOpenGraph'
-import './styles.css'
+import { logger } from '@revealui/core/observability/logger';
+import { SpeedInsights } from '@vercel/speed-insights/next';
+import { GeistMono } from 'geist/font/mono';
+import { GeistSans } from 'geist/font/sans';
+import type { Metadata } from 'next';
+import { draftMode } from 'next/headers';
+import type React from 'react';
+import { ErrorBoundary } from '@/components/ErrorBoundary';
+import { AdminBar } from '@/lib/components/AdminBar';
+import { LivePreviewListener } from '@/lib/components/LivePreviewListener';
+import { Footer } from '@/lib/globals/Footer/Component';
+import { Header } from '@/lib/globals/Header/Component';
+import { Providers } from '@/lib/providers';
+import { InitTheme } from '@/lib/providers/Theme/InitTheme';
+import { mergeOpenGraph } from '@/lib/utilities/mergeOpenGraph';
+import './styles.css';
 
 // Force dynamic rendering to prevent global-error prerendering issues
-export const dynamic = 'force-dynamic'
+export const dynamic = 'force-dynamic';
 
 export default async function RootLayout({ children }: { children: React.ReactNode }) {
-  let isEnabled = false
+  let isEnabled = false;
   try {
-    const draft = await draftMode()
-    isEnabled = draft.isEnabled
+    const draft = await draftMode();
+    isEnabled = draft.isEnabled;
   } catch (error: unknown) {
     logger.error(
       `[CMS Layout] draftMode() failed: ${error instanceof Error ? error.message : String(error)}`,
-    )
+    );
   }
 
   function cn(...classNames: (string | undefined)[]): string {
-    return classNames.filter(Boolean).join(' ')
+    return classNames.filter(Boolean).join(' ');
   }
 
   try {
@@ -75,11 +75,11 @@ export default async function RootLayout({ children }: { children: React.ReactNo
           {process.env.NEXT_PUBLIC_VERCEL_ENV ? <SpeedInsights /> : null}
         </body>
       </html>
-    )
+    );
   } catch (error: unknown) {
     logger.error(
       `[CMS Layout] Render failed: ${error instanceof Error ? error.message : String(error)}`,
-    )
+    );
     // Fallback minimal layout so pages don't 500
     return (
       <html lang="en">
@@ -90,7 +90,7 @@ export default async function RootLayout({ children }: { children: React.ReactNo
           {children}
         </body>
       </html>
-    )
+    );
   }
 }
 
@@ -101,4 +101,4 @@ export const metadata: Metadata = {
     card: 'summary_large_image',
     creator: '@RevealUI',
   },
-}
+};

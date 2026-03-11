@@ -7,8 +7,8 @@
  * nullable columns on users to avoid table bloat.
  */
 
-import { index, pgTable, text, timestamp, uniqueIndex } from 'drizzle-orm/pg-core'
-import { users } from './users.js'
+import { index, pgTable, text, timestamp, uniqueIndex } from 'drizzle-orm/pg-core';
+import { users } from './users.js';
 
 export const oauthAccounts = pgTable(
   'oauth_accounts',
@@ -35,7 +35,7 @@ export const oauthAccounts = pgTable(
     uniqueIndex('oauth_accounts_provider_user_idx').on(t.provider, t.providerUserId),
     index('oauth_accounts_user_id_idx').on(t.userId),
   ],
-)
+);
 
-export type OauthAccount = typeof oauthAccounts.$inferSelect
-export type NewOauthAccount = typeof oauthAccounts.$inferInsert
+export type OauthAccount = typeof oauthAccounts.$inferSelect;
+export type NewOauthAccount = typeof oauthAccounts.$inferInsert;

@@ -1,5 +1,5 @@
-import { clsx } from 'clsx/lite'
-import type { ComponentProps } from 'react'
+import { clsx } from 'clsx/lite';
+import type { ComponentProps } from 'react';
 
 export function Eyebrow({ children, className, ...props }: ComponentProps<'div'>) {
   return (
@@ -9,5 +9,5 @@ export function Eyebrow({ children, className, ...props }: ComponentProps<'div'>
     >
       {children}
     </div>
-  )
+  );
 }

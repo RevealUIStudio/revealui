@@ -1,7 +1,7 @@
-import type { Field } from '@revealui/core'
-import { deepMerge } from '@revealui/core'
+import type { Field } from '@revealui/core';
+import { deepMerge } from '@revealui/core';
 
-export type LinkAppearances = 'default' | 'outline'
+export type LinkAppearances = 'default' | 'outline';
 
 export const appearanceOptions: Record<LinkAppearances, { label: string; value: string }> = {
   default: {
@@ -12,13 +12,13 @@ export const appearanceOptions: Record<LinkAppearances, { label: string; value: 
     label: 'Outline',
     value: 'outline',
   },
-}
+};
 
 type LinkType = (options?: {
-  appearances?: LinkAppearances[] | false
-  disableLabel?: boolean
-  overrides?: Record<string, unknown>
-}) => Field
+  appearances?: LinkAppearances[] | false;
+  disableLabel?: boolean;
+  overrides?: Record<string, unknown>;
+}) => Field;
 
 export const link: LinkType = ({ appearances, disableLabel = false, overrides = {} } = {}) => {
   const linkResult: Field = {
@@ -64,10 +64,10 @@ export const link: LinkType = ({ appearances, disableLabel = false, overrides = 
         ],
       },
     ],
-  }
+  };
 
   interface LinkData {
-    type?: 'reference' | 'custom'
+    type?: 'reference' | 'custom';
   }
 
   const linkTypes: Field[] = [
@@ -91,7 +91,7 @@ export const link: LinkType = ({ appearances, disableLabel = false, overrides = 
       label: 'Custom URL',
       required: true,
     },
-  ]
+  ];
 
   if (!disableLabel) {
     linkTypes.map((linkType) => ({
@@ -100,7 +100,7 @@ export const link: LinkType = ({ appearances, disableLabel = false, overrides = 
         ...((linkType.admin as Record<string, unknown>) || {}),
         width: '50%',
       },
-    }))
+    }));
 
     linkResult.fields?.push({
       type: 'row',
@@ -116,16 +116,16 @@ export const link: LinkType = ({ appearances, disableLabel = false, overrides = 
           required: true,
         },
       ],
-    })
+    });
   } else {
-    linkResult.fields = [...(linkResult.fields || []), ...linkTypes]
+    linkResult.fields = [...(linkResult.fields || []), ...linkTypes];
   }
 
   if (appearances !== false) {
-    let appearanceOptionsToUse = [appearanceOptions.default, appearanceOptions.outline]
+    let appearanceOptionsToUse = [appearanceOptions.default, appearanceOptions.outline];
 
     if (appearances) {
-      appearanceOptionsToUse = appearances.map((appearance) => appearanceOptions[appearance])
+      appearanceOptionsToUse = appearances.map((appearance) => appearanceOptions[appearance]);
     }
 
     linkResult.fields?.push({
@@ -136,8 +136,8 @@ export const link: LinkType = ({ appearances, disableLabel = false, overrides = 
       },
       defaultValue: 'default',
       options: appearanceOptionsToUse,
-    })
+    });
   }
 
-  return deepMerge(linkResult as unknown as Record<string, unknown>, overrides) as unknown as Field
-}
+  return deepMerge(linkResult as unknown as Record<string, unknown>, overrides) as unknown as Field;
+};

@@ -1,11 +1,11 @@
-import clsx from 'clsx'
-import type React from 'react'
+import clsx from 'clsx';
+import type React from 'react';
 import {
   FieldProvider,
   useFieldDescriptionProps,
   useFieldErrorProps,
   useFieldLabelProps,
-} from '../hooks/use-field-context.js'
+} from '../hooks/use-field-context.js';
 
 export function Fieldset({
   className,
@@ -21,7 +21,7 @@ export function Fieldset({
       {...props}
       className={clsx(className, '*:data-[slot=text]:mt-1 [&>*+[data-slot=control]]:mt-6')}
     />
-  )
+  );
 }
 
 export function Legend({
@@ -37,11 +37,11 @@ export function Legend({
         'text-base/6 font-semibold text-zinc-950 data-disabled:opacity-50 sm:text-sm/6 dark:text-white',
       )}
     />
-  )
+  );
 }
 
 export function FieldGroup({ className, ...props }: React.ComponentPropsWithoutRef<'div'>) {
-  return <div data-slot="control" {...props} className={clsx(className, 'space-y-8')} />
+  return <div data-slot="control" {...props} className={clsx(className, 'space-y-8')} />;
 }
 
 export function Field({
@@ -49,8 +49,8 @@ export function Field({
   disabled,
   ...props
 }: {
-  className?: string
-  disabled?: boolean
+  className?: string;
+  disabled?: boolean;
 } & Omit<React.ComponentPropsWithoutRef<'div'>, 'className'>) {
   return (
     <FieldProvider disabled={disabled}>
@@ -68,14 +68,14 @@ export function Field({
         )}
       />
     </FieldProvider>
-  )
+  );
 }
 
 export function Label({
   className,
   ...props
 }: { className?: string } & Omit<React.ComponentPropsWithoutRef<'label'>, 'className'>) {
-  const fieldLabelProps = useFieldLabelProps()
+  const fieldLabelProps = useFieldLabelProps();
 
   return (
     // biome-ignore lint/a11y/noLabelWithoutControl: htmlFor provided via useFieldLabelProps hook
@@ -88,14 +88,14 @@ export function Label({
         'text-base/6 text-zinc-950 select-none data-disabled:opacity-50 sm:text-sm/6 dark:text-white',
       )}
     />
-  )
+  );
 }
 
 export function Description({
   className,
   ...props
 }: { className?: string } & Omit<React.ComponentPropsWithoutRef<'p'>, 'className'>) {
-  const fieldDescriptionProps = useFieldDescriptionProps()
+  const fieldDescriptionProps = useFieldDescriptionProps();
 
   return (
     <p
@@ -107,14 +107,14 @@ export function Description({
         'text-base/6 text-zinc-500 data-disabled:opacity-50 sm:text-sm/6 dark:text-zinc-400',
       )}
     />
-  )
+  );
 }
 
 export function ErrorMessage({
   className,
   ...props
 }: { className?: string } & Omit<React.ComponentPropsWithoutRef<'p'>, 'className'>) {
-  const fieldErrorProps = useFieldErrorProps()
+  const fieldErrorProps = useFieldErrorProps();
 
   return (
     <p
@@ -126,5 +126,5 @@ export function ErrorMessage({
         'text-base/6 text-red-600 data-disabled:opacity-50 sm:text-sm/6 dark:text-red-500',
       )}
     />
-  )
+  );
 }

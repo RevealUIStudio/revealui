@@ -1,13 +1,13 @@
 // RevealUI Admin Layout - Local implementation
-import Head from 'next/head'
-import type React from 'react'
-import type { Config } from '../../types/index.js'
+import Head from 'next/head';
+import type React from 'react';
+import type { Config } from '../../types/index.js';
 
 export interface RootLayoutProps {
-  children: React.ReactNode
-  config: Config
-  importMap?: Record<string, unknown>
-  serverFunction?: (name: string, args: unknown) => Promise<unknown>
+  children: React.ReactNode;
+  config: Config;
+  importMap?: Record<string, unknown>;
+  serverFunction?: (name: string, args: unknown) => Promise<unknown>;
 }
 
 export function RootLayout({ children }: RootLayoutProps) {
@@ -24,5 +24,5 @@ export function RootLayout({ children }: RootLayoutProps) {
         </div>
       </body>
     </html>
-  )
+  );
 }

@@ -1,55 +1,55 @@
-'use client'
+'use client';
 
-import clsx from 'clsx'
-import type React from 'react'
-import { createContext, use, useCallback, useReducer } from 'react'
-import { createPortal } from 'react-dom'
+import clsx from 'clsx';
+import type React from 'react';
+import { createContext, use, useCallback, useReducer } from 'react';
+import { createPortal } from 'react-dom';
 
-type ToastVariant = 'default' | 'success' | 'error' | 'warning' | 'info'
+type ToastVariant = 'default' | 'success' | 'error' | 'warning' | 'info';
 
 type Toast = {
-  id: string
-  title: string
-  description?: string
-  variant?: ToastVariant
-  duration?: number
-}
+  id: string;
+  title: string;
+  description?: string;
+  variant?: ToastVariant;
+  duration?: number;
+};
 
-type ToastAction = { type: 'ADD'; toast: Toast } | { type: 'REMOVE'; id: string }
+type ToastAction = { type: 'ADD'; toast: Toast } | { type: 'REMOVE'; id: string };
 
 function toastReducer(state: Toast[], action: ToastAction): Toast[] {
   switch (action.type) {
     case 'ADD':
-      return [...state, action.toast]
+      return [...state, action.toast];
     case 'REMOVE':
-      return state.filter((t) => t.id !== action.id)
+      return state.filter((t) => t.id !== action.id);
   }
 }
 
 type ToastContextValue = {
-  toasts: Toast[]
-  addToast: (toast: Omit<Toast, 'id'>) => string
-  removeToast: (id: string) => void
-}
+  toasts: Toast[];
+  addToast: (toast: Omit<Toast, 'id'>) => string;
+  removeToast: (id: string) => void;
+};
 
-const ToastContext = createContext<ToastContextValue | null>(null)
+const ToastContext = createContext<ToastContextValue | null>(null);
 
 export function ToastProvider({ children }: { children: React.ReactNode }) {
-  const [toasts, dispatch] = useReducer(toastReducer, [])
+  const [toasts, dispatch] = useReducer(toastReducer, []);
 
   const addToast = useCallback((toast: Omit<Toast, 'id'>) => {
-    const id = Math.random().toString(36).slice(2)
-    const duration = toast.duration ?? 5000
-    dispatch({ type: 'ADD', toast: { ...toast, id } })
+    const id = Math.random().toString(36).slice(2);
+    const duration = toast.duration ?? 5000;
+    dispatch({ type: 'ADD', toast: { ...toast, id } });
     if (duration > 0) {
-      setTimeout(() => dispatch({ type: 'REMOVE', id }), duration)
+      setTimeout(() => dispatch({ type: 'REMOVE', id }), duration);
     }
-    return id
-  }, [])
+    return id;
+  }, []);
 
   const removeToast = useCallback((id: string) => {
-    dispatch({ type: 'REMOVE', id })
-  }, [])
+    dispatch({ type: 'REMOVE', id });
+  }, []);
 
   return (
     <ToastContext value={{ toasts, addToast, removeToast }}>
@@ -57,13 +57,13 @@ export function ToastProvider({ children }: { children: React.ReactNode }) {
       {typeof document !== 'undefined' &&
         createPortal(<ToastList toasts={toasts} onRemove={removeToast} />, document.body)}
     </ToastContext>
-  )
+  );
 }
 
 export function useToast(): Pick<ToastContextValue, 'addToast' | 'removeToast'> {
-  const ctx = use(ToastContext)
-  if (!ctx) throw new Error('useToast must be used within a ToastProvider')
-  return ctx
+  const ctx = use(ToastContext);
+  if (!ctx) throw new Error('useToast must be used within a ToastProvider');
+  return ctx;
 }
 
 const variantClasses: Record<ToastVariant, string> = {
@@ -72,7 +72,7 @@ const variantClasses: Record<ToastVariant, string> = {
   error: 'bg-white dark:bg-zinc-800 ring-red-500/30',
   warning: 'bg-white dark:bg-zinc-800 ring-amber-500/30',
   info: 'bg-white dark:bg-zinc-800 ring-blue-500/30',
-}
+};
 
 const variantIconClasses: Record<ToastVariant, string> = {
   default: 'hidden',
@@ -80,7 +80,7 @@ const variantIconClasses: Record<ToastVariant, string> = {
   error: 'text-red-500',
   warning: 'text-amber-500',
   info: 'text-blue-500',
-}
+};
 
 const variantIcons: Record<ToastVariant, string> = {
   default: '',
@@ -88,10 +88,10 @@ const variantIcons: Record<ToastVariant, string> = {
   error: '✕',
   warning: '!',
   info: 'i',
-}
+};
 
 function ToastList({ toasts, onRemove }: { toasts: Toast[]; onRemove: (id: string) => void }) {
-  if (toasts.length === 0) return null
+  if (toasts.length === 0) return null;
 
   return (
     <div
@@ -102,11 +102,11 @@ function ToastList({ toasts, onRemove }: { toasts: Toast[]; onRemove: (id: strin
         <ToastItem key={toast.id} toast={toast} onRemove={onRemove} />
       ))}
     </div>
-  )
+  );
 }
 
 function ToastItem({ toast, onRemove }: { toast: Toast; onRemove: (id: string) => void }) {
-  const variant = toast.variant ?? 'default'
+  const variant = toast.variant ?? 'default';
   return (
     <div
       role="alert"
@@ -135,5 +135,5 @@ function ToastItem({ toast, onRemove }: { toast: Toast; onRemove: (id: string) =
         <span aria-hidden="true">✕</span>
       </button>
     </div>
-  )
+  );
 }

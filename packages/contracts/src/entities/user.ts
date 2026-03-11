@@ -9,14 +9,14 @@
  * and adds dual representation (human + agent views) and computed fields.
  */
 
-import { z } from 'zod/v4'
+import { z } from 'zod/v4';
 import {
   createTimestamps,
   DualEntitySchema,
   REPRESENTATION_SCHEMA_VERSION,
   toAgentRepresentation,
   toHumanRepresentation,
-} from '../representation/index.js'
+} from '../representation/index.js';
 // NOTE: Auto-generated schemas available for future use:
 // import { UsersSelectSchema, UsersInsertSchema } from '../generated/zod-schemas.js'
 // These can be used to extend/compose with business logic in the future
@@ -25,8 +25,8 @@ import {
 // Schema Version
 // =============================================================================
 
-export const USER_SCHEMA_VERSION = 1
-export const SESSION_SCHEMA_VERSION = 1
+export const USER_SCHEMA_VERSION = 1;
+export const SESSION_SCHEMA_VERSION = 1;
 
 // =============================================================================
 // User Types
@@ -36,8 +36,8 @@ export const UserTypeSchema = z.enum([
   'human', // A human user
   'agent', // An AI agent
   'system', // System user (for automated tasks)
-])
-export type UserType = z.infer<typeof UserTypeSchema>
+]);
+export type UserType = z.infer<typeof UserTypeSchema>;
 
 export const UserRoleSchema = z.enum([
   'owner', // Full control
@@ -46,16 +46,16 @@ export const UserRoleSchema = z.enum([
   'viewer', // Read-only access
   'agent', // AI agent role
   'contributor', // Can suggest changes
-])
-export type UserRole = z.infer<typeof UserRoleSchema>
+]);
+export type UserRole = z.infer<typeof UserRoleSchema>;
 
 export const UserStatusSchema = z.enum([
   'active', // Normal operation
   'suspended', // Temporarily disabled
   'deleted', // Soft deleted
   'pending', // Awaiting verification
-])
-export type UserStatus = z.infer<typeof UserStatusSchema>
+]);
+export type UserStatus = z.infer<typeof UserStatusSchema>;
 
 // =============================================================================
 // User Preferences
@@ -99,9 +99,9 @@ export const UserPreferencesSchema = z.object({
       voiceEnabled: z.boolean().default(false),
     })
     .optional(),
-})
+});
 
-export type UserPreferences = z.infer<typeof UserPreferencesSchema>
+export type UserPreferences = z.infer<typeof UserPreferencesSchema>;
 
 // =============================================================================
 // User Schema (extends auto-generated base)
@@ -161,9 +161,9 @@ export const UserSchema = DualEntitySchema.extend({
 
   /** Email verified */
   emailVerified: z.boolean().default(false),
-})
+});
 
-export type User = z.infer<typeof UserSchema>
+export type User = z.infer<typeof UserSchema>;
 
 // =============================================================================
 // User Creation
@@ -189,15 +189,15 @@ export const CreateUserInputSchema = z.object({
     })
     .optional(),
   preferences: UserPreferencesSchema.optional(),
-})
+});
 
-export type CreateUserInput = z.infer<typeof CreateUserInputSchema>
+export type CreateUserInput = z.infer<typeof CreateUserInputSchema>;
 
 /**
  * Creates a new user with dual representation
  */
 export function createUser(id: string, input: CreateUserInput): User {
-  const timestamps = createTimestamps()
+  const timestamps = createTimestamps();
 
   return {
     id,
@@ -240,7 +240,7 @@ export function createUser(id: string, input: CreateUserInput): User {
       keywords: [input.type, input.role, input.name.toLowerCase()],
     }),
     ...timestamps,
-  }
+  };
 }
 
 // =============================================================================
@@ -260,9 +260,9 @@ export const UpdateUserInputSchema = z.object({
       maxTokens: z.number().int().positive().optional(),
     })
     .optional(),
-})
+});
 
-export type UpdateUserInput = z.infer<typeof UpdateUserInputSchema>
+export type UpdateUserInput = z.infer<typeof UpdateUserInputSchema>;
 
 // =============================================================================
 // Session Schema
@@ -298,9 +298,9 @@ export const SessionSchema = z.object({
 
   /** Last activity timestamp */
   lastActivityAt: z.string().datetime(),
-})
+});
 
-export type Session = z.infer<typeof SessionSchema>
+export type Session = z.infer<typeof SessionSchema>;
 
 /**
  * Creates a new session
@@ -311,12 +311,12 @@ export function createSession(
   tokenHash: string,
   expiresAt: Date,
   options?: {
-    userAgent?: string
-    ipAddress?: string
-    persistent?: boolean
+    userAgent?: string;
+    ipAddress?: string;
+    persistent?: boolean;
   },
 ): Session {
-  const now = new Date().toISOString()
+  const now = new Date().toISOString();
   return {
     id,
     version: SESSION_SCHEMA_VERSION,
@@ -328,5 +328,5 @@ export function createSession(
     persistent: options?.persistent ?? false,
     createdAt: now,
     lastActivityAt: now,
-  }
+  };
 }

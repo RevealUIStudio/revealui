@@ -11,7 +11,7 @@
 // License Tier Type
 // =============================================================================
 
-export type LicenseTierId = 'free' | 'pro' | 'max' | 'enterprise'
+export type LicenseTierId = 'free' | 'pro' | 'max' | 'enterprise';
 
 // =============================================================================
 // Feature Flag Key (mirrors @revealui/core/features — defined here to avoid
@@ -34,7 +34,7 @@ export type FeatureFlagKey =
   | 'auditLog'
   | 'multiTenant'
   | 'whiteLabel'
-  | 'sso'
+  | 'sso';
 
 // =============================================================================
 // Tier Display Constants
@@ -45,14 +45,14 @@ export const TIER_LABELS: Record<LicenseTierId, string> = {
   pro: 'Pro',
   max: 'Max',
   enterprise: 'Forge (Enterprise)',
-}
+};
 
 export const TIER_COLORS: Record<LicenseTierId, string> = {
   free: 'bg-zinc-100 text-zinc-700 dark:bg-zinc-800 dark:text-zinc-300',
   pro: 'bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400',
   max: 'bg-indigo-100 text-indigo-700 dark:bg-indigo-900/30 dark:text-indigo-400',
   enterprise: 'bg-purple-100 text-purple-700 dark:bg-purple-900/30 dark:text-purple-400',
-}
+};
 
 // =============================================================================
 // Feature Labels (human-readable names for FeatureFlags keys)
@@ -75,17 +75,17 @@ export const FEATURE_LABELS: Record<FeatureFlagKey, string> = {
   multiTenant: 'Multi-tenant Management',
   whiteLabel: 'White-label Branding',
   sso: 'SSO/SAML Authentication',
-}
+};
 
 // =============================================================================
 // Tier Limits
 // =============================================================================
 
 export interface TierLimits {
-  sites: number | null
-  users: number | null
-  agentTasks: number | null
-  apiRequestsPerMinute: number
+  sites: number | null;
+  users: number | null;
+  agentTasks: number | null;
+  apiRequestsPerMinute: number;
 }
 
 export const TIER_LIMITS: Record<LicenseTierId, TierLimits> = {
@@ -93,22 +93,22 @@ export const TIER_LIMITS: Record<LicenseTierId, TierLimits> = {
   pro: { sites: 5, users: 25, agentTasks: 10_000, apiRequestsPerMinute: 300 },
   max: { sites: 15, users: 100, agentTasks: 50_000, apiRequestsPerMinute: 600 },
   enterprise: { sites: null, users: null, agentTasks: null, apiRequestsPerMinute: 1_000 },
-}
+};
 
 // =============================================================================
 // Subscription Tiers (Track A)
 // =============================================================================
 
 export interface SubscriptionTier {
-  id: LicenseTierId
-  name: string
-  price?: string
-  period?: string
-  description: string
-  features: string[]
-  cta: string
-  ctaHref: string
-  highlighted: boolean
+  id: LicenseTierId;
+  name: string;
+  price?: string;
+  period?: string;
+  description: string;
+  features: string[];
+  cta: string;
+  ctaHref: string;
+  highlighted: boolean;
 }
 
 export const SUBSCRIPTION_TIERS: SubscriptionTier[] = [
@@ -192,20 +192,20 @@ export const SUBSCRIPTION_TIERS: SubscriptionTier[] = [
     ctaHref: 'mailto:support@revealui.com?subject=Forge%20Inquiry',
     highlighted: false,
   },
-]
+];
 
 // =============================================================================
 // Credit Bundles (Track B)
 // =============================================================================
 
 export interface CreditBundle {
-  name: string
-  tasks: string
-  price?: string
-  priceNote?: string
-  costPer?: string
-  description: string
-  highlighted: boolean
+  name: string;
+  tasks: string;
+  price?: string;
+  priceNote?: string;
+  costPer?: string;
+  description: string;
+  highlighted: boolean;
 }
 
 export const CREDIT_BUNDLES: CreditBundle[] = [
@@ -227,22 +227,22 @@ export const CREDIT_BUNDLES: CreditBundle[] = [
     description: '29% cheaper per task vs Starter.',
     highlighted: false,
   },
-]
+];
 
 // =============================================================================
 // Perpetual Licenses (Track C)
 // =============================================================================
 
 export interface PerpetualTier {
-  name: string
-  price?: string
-  priceNote?: string
-  renewal?: string
-  description: string
-  features: string[]
-  cta: string
-  ctaHref: string
-  comingSoon: boolean
+  name: string;
+  price?: string;
+  priceNote?: string;
+  renewal?: string;
+  description: string;
+  features: string[];
+  cta: string;
+  ctaHref: string;
+  comingSoon: boolean;
 }
 
 // =============================================================================
@@ -250,9 +250,9 @@ export interface PerpetualTier {
 // =============================================================================
 
 export interface PricingResponse {
-  subscriptions: SubscriptionTier[]
-  credits: CreditBundle[]
-  perpetual: PerpetualTier[]
+  subscriptions: SubscriptionTier[];
+  credits: CreditBundle[];
+  perpetual: PerpetualTier[];
 }
 
 export const PERPETUAL_TIERS: PerpetualTier[] = [
@@ -300,7 +300,7 @@ export const PERPETUAL_TIERS: PerpetualTier[] = [
     ctaHref: 'mailto:support@revealui.com?subject=Forge%20Perpetual%20License%20Inquiry',
     comingSoon: false,
   },
-]
+];
 
 // =============================================================================
 // Helper: get tiers from current upward (for upgrade prompts)
@@ -311,17 +311,17 @@ const TIER_RANK: Record<LicenseTierId, number> = {
   pro: 1,
   max: 2,
   enterprise: 3,
-}
+};
 
 export function getTiersFromCurrent(currentTier: LicenseTierId): SubscriptionTier[] {
-  const currentRank = TIER_RANK[currentTier]
-  return SUBSCRIPTION_TIERS.filter((t) => TIER_RANK[t.id] > currentRank)
+  const currentRank = TIER_RANK[currentTier];
+  return SUBSCRIPTION_TIERS.filter((t) => TIER_RANK[t.id] > currentRank);
 }
 
 export function getTierLabel(tier: LicenseTierId): string {
-  return TIER_LABELS[tier]
+  return TIER_LABELS[tier];
 }
 
 export function getTierColor(tier: LicenseTierId): string {
-  return TIER_COLORS[tier]
+  return TIER_COLORS[tier];
 }

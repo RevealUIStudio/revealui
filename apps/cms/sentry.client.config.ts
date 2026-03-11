@@ -6,8 +6,8 @@
  * and user interactions.
  */
 
-import * as Sentry from '@sentry/nextjs'
-import { sentryConfig } from './src/lib/config/sentry'
+import * as Sentry from '@sentry/nextjs';
+import { sentryConfig } from './src/lib/config/sentry';
 
 Sentry.init({
   ...sentryConfig,
@@ -26,10 +26,10 @@ Sentry.init({
   beforeBreadcrumb(breadcrumb) {
     // Filter out sensitive breadcrumbs
     if (breadcrumb.category === 'console' && breadcrumb.level === 'log') {
-      // Don't send console.log breadcrumbs to reduce noise
-      return null
+      // Don't send console-log breadcrumbs to reduce noise
+      return null;
     }
 
-    return breadcrumb
+    return breadcrumb;
   },
-})
+});

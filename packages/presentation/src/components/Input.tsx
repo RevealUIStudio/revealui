@@ -1,9 +1,9 @@
-import type React from 'react'
-import { cn } from '../utils/cn.js'
+import type React from 'react';
+import { cn } from '../utils/cn.js';
 
 export type InputProps = React.InputHTMLAttributes<HTMLInputElement> & {
-  ref?: React.Ref<HTMLInputElement>
-}
+  ref?: React.Ref<HTMLInputElement>;
+};
 
 function Input({ type, className, ref, ...props }: InputProps) {
   return (
@@ -16,7 +16,7 @@ function Input({ type, className, ref, ...props }: InputProps) {
       type={type}
       {...props}
     />
-  )
+  );
 }
 
-export { Input }
+export { Input };

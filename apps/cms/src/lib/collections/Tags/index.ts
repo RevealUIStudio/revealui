@@ -1,9 +1,9 @@
-import type { CollectionConfig } from '@revealui/core'
+import type { CollectionConfig } from '@revealui/core';
 
 const TagsField = {
   name: 'name',
   slug: 'slug',
-}
+};
 
 const Tags: CollectionConfig = {
   slug: 'tags',
@@ -30,6 +30,6 @@ const Tags: CollectionConfig = {
     },
   ],
   timestamps: false,
-}
+};
 
-export default Tags
+export default Tags;

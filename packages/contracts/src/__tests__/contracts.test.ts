@@ -8,9 +8,9 @@
  * 4. Error handling
  */
 
-import { afterEach, beforeEach, describe, expect, it } from 'vitest'
-import { ZodError } from 'zod/v4'
-import type { Field, RevealRequest } from '../cms/index.js'
+import { afterEach, beforeEach, describe, expect, it } from 'vitest';
+import { ZodError } from 'zod/v4';
+import type { Field, RevealRequest } from '../cms/index.js';
 import {
   applyPluginExtensions,
   assertValidSlug,
@@ -33,7 +33,7 @@ import {
   toSlug,
   unregisterCustomFieldType,
   validateWithErrors,
-} from '../cms/index.js'
+} from '../cms/index.js';
 
 import {
   createAdminRequest,
@@ -44,7 +44,7 @@ import {
   MockUsersCollection,
   mockAccessAdmin,
   mockAccessAllow,
-} from './mocks/revealui.js'
+} from './mocks/revealui.js';
 
 describe('Contract Error Handling', () => {
   describe('ConfigValidationError', () => {
@@ -55,14 +55,14 @@ describe('Contract Error Handling', () => {
           message: 'Required',
           code: 'invalid_type',
         },
-      ])
+      ]);
 
-      const error = new ConfigValidationError(mockZodError, 'collection', 'posts')
+      const error = new ConfigValidationError(mockZodError, 'collection', 'posts');
 
-      expect(error.message).toContain('Invalid collection configuration "posts"')
-      expect(error.message).toContain('[slug] Required')
-      expect(error.message).toContain('revealui.dev/docs')
-    })
+      expect(error.message).toContain('Invalid collection configuration "posts"');
+      expect(error.message).toContain('[slug] Required');
+      expect(error.message).toContain('revealui.dev/docs');
+    });
 
     it('provides helper methods for issue access', () => {
       const mockZodError = new ZodError([
@@ -76,15 +76,15 @@ describe('Contract Error Handling', () => {
           message: 'Invalid format',
           code: 'custom',
         },
-      ])
+      ]);
 
-      const error = new ConfigValidationError(mockZodError, 'collection')
+      const error = new ConfigValidationError(mockZodError, 'collection');
 
-      expect(error.hasFieldError('fields')).toBe(true)
-      expect(error.hasFieldError('slug')).toBe(true)
-      expect(error.hasFieldError('nonexistent')).toBe(false)
-      expect(error.getMessages()).toHaveLength(2)
-    })
+      expect(error.hasFieldError('fields')).toBe(true);
+      expect(error.hasFieldError('slug')).toBe(true);
+      expect(error.hasFieldError('nonexistent')).toBe(false);
+      expect(error.getMessages()).toHaveLength(2);
+    });
 
     it('serializes to JSON correctly', () => {
       const mockZodError = new ZodError([
@@ -93,66 +93,66 @@ describe('Contract Error Handling', () => {
           message: 'Required',
           code: 'invalid_type',
         },
-      ])
+      ]);
 
-      const error = new ConfigValidationError(mockZodError, 'collection', 'test')
-      const json = error.toJSON()
+      const error = new ConfigValidationError(mockZodError, 'collection', 'test');
+      const json = error.toJSON();
 
-      expect(json.name).toBe('ConfigValidationError')
-      expect(json.configType).toBe('collection')
-      expect(json.configName).toBe('test')
-      expect(json.issues).toHaveLength(1)
-    })
-  })
+      expect(json.name).toBe('ConfigValidationError');
+      expect(json.configType).toBe('collection');
+      expect(json.configName).toBe('test');
+      expect(json.issues).toHaveLength(1);
+    });
+  });
 
   describe('validateWithErrors', () => {
     it('returns valid data on success', () => {
-      const field = { type: 'text', name: 'title' }
-      const result = validateWithErrors(FieldStructureSchema, field, 'field')
+      const field = { type: 'text', name: 'title' };
+      const result = validateWithErrors(FieldStructureSchema, field, 'field');
 
-      expect(result.type).toBe('text')
-      expect(result.name).toBe('title')
-    })
+      expect(result.type).toBe('text');
+      expect(result.name).toBe('title');
+    });
 
     it('throws ConfigValidationError on failure', () => {
-      const invalidField = { name: 'title' } // Missing type
+      const invalidField = { name: 'title' }; // Missing type
 
       expect(() => {
-        validateWithErrors(FieldStructureSchema, invalidField, 'field')
-      }).toThrow(ConfigValidationError)
-    })
-  })
+        validateWithErrors(FieldStructureSchema, invalidField, 'field');
+      }).toThrow(ConfigValidationError);
+    });
+  });
 
   describe('safeValidate', () => {
     it('returns success result for valid data', () => {
-      const field = { type: 'text', name: 'title' }
-      const result = safeValidate(FieldStructureSchema, field, 'field')
+      const field = { type: 'text', name: 'title' };
+      const result = safeValidate(FieldStructureSchema, field, 'field');
 
-      expect(result.success).toBe(true)
+      expect(result.success).toBe(true);
       if (result.success) {
-        expect(result.data.type).toBe('text')
+        expect(result.data.type).toBe('text');
       }
-    })
+    });
 
     it('returns error result for invalid data', () => {
-      const invalidField = { name: 'title' }
-      const result = safeValidate(FieldStructureSchema, invalidField, 'field')
+      const invalidField = { name: 'title' };
+      const result = safeValidate(FieldStructureSchema, invalidField, 'field');
 
-      expect(result.success).toBe(false)
+      expect(result.success).toBe(false);
       if (!result.success) {
-        expect(result.error).toBeInstanceOf(ConfigValidationError)
+        expect(result.error).toBeInstanceOf(ConfigValidationError);
       }
-    })
-  })
-})
+    });
+  });
+});
 
 describe('Structure Schema Validation', () => {
   describe('FieldStructureSchema', () => {
     it('validates minimal field', () => {
-      const field = { type: 'text' }
-      const result = FieldStructureSchema.safeParse(field)
-      expect(result.success).toBe(true)
-    })
+      const field = { type: 'text' };
+      const result = FieldStructureSchema.safeParse(field);
+      expect(result.success).toBe(true);
+    });
 
     it('validates field with all common properties', () => {
       const field = {
@@ -168,11 +168,11 @@ describe('Structure Schema Validation', () => {
           position: 'sidebar',
           description: 'Enter title',
         },
-      }
+      };
 
-      const result = FieldStructureSchema.safeParse(field)
-      expect(result.success).toBe(true)
-    })
+      const result = FieldStructureSchema.safeParse(field);
+      expect(result.success).toBe(true);
+    });
 
     it('validates nested fields (array type)', () => {
       const arrayField = {
@@ -182,29 +182,29 @@ describe('Structure Schema Validation', () => {
           { type: 'text', name: 'title' },
           { type: 'number', name: 'quantity' },
         ],
-      }
+      };
 
-      const result = FieldStructureSchema.safeParse(arrayField)
-      expect(result.success).toBe(true)
-    })
+      const result = FieldStructureSchema.safeParse(arrayField);
+      expect(result.success).toBe(true);
+    });
 
     it('rejects invalid field type', () => {
-      const field = { type: 'invalid-type', name: 'test' }
-      const result = FieldStructureSchema.safeParse(field)
-      expect(result.success).toBe(false)
-    })
-  })
+      const field = { type: 'invalid-type', name: 'test' };
+      const result = FieldStructureSchema.safeParse(field);
+      expect(result.success).toBe(false);
+    });
+  });
 
   describe('CollectionStructureSchema', () => {
     it('validates minimal collection', () => {
       const collection = {
         slug: 'posts',
         fields: [{ type: 'text', name: 'title' }],
-      }
+      };
 
-      const result = CollectionStructureSchema.safeParse(collection)
-      expect(result.success).toBe(true)
-    })
+      const result = CollectionStructureSchema.safeParse(collection);
+      expect(result.success).toBe(true);
+    });
 
     it('validates collection with admin config', () => {
       const collection = {
@@ -215,168 +215,168 @@ describe('Structure Schema Validation', () => {
           defaultColumns: ['title', 'createdAt'],
         },
         fields: [{ type: 'text', name: 'title' }],
-      }
+      };
 
-      const result = CollectionStructureSchema.safeParse(collection)
-      expect(result.success).toBe(true)
-    })
+      const result = CollectionStructureSchema.safeParse(collection);
+      expect(result.success).toBe(true);
+    });
 
     it('rejects invalid slug format', () => {
       const collection = {
         slug: 'Invalid Slug',
         fields: [{ type: 'text' }],
-      }
+      };
 
-      const result = CollectionStructureSchema.safeParse(collection)
-      expect(result.success).toBe(false)
-    })
-  })
+      const result = CollectionStructureSchema.safeParse(collection);
+      expect(result.success).toBe(false);
+    });
+  });
 
   describe('GlobalStructureSchema', () => {
     it('validates minimal global', () => {
       const global = {
         slug: 'settings',
         fields: [{ type: 'text', name: 'siteName' }],
-      }
+      };
 
-      const result = GlobalStructureSchema.safeParse(global)
-      expect(result.success).toBe(true)
-    })
-  })
-})
+      const result = GlobalStructureSchema.safeParse(global);
+      expect(result.success).toBe(true);
+    });
+  });
+});
 
 describe('Mock Config Integration', () => {
   it('MockPostsCollection is valid', () => {
-    const result = CollectionStructureSchema.safeParse(MockPostsCollection)
-    expect(result.success).toBe(true)
-  })
+    const result = CollectionStructureSchema.safeParse(MockPostsCollection);
+    expect(result.success).toBe(true);
+  });
 
   it('MockUsersCollection is valid', () => {
-    const result = CollectionStructureSchema.safeParse(MockUsersCollection)
-    expect(result.success).toBe(true)
-  })
+    const result = CollectionStructureSchema.safeParse(MockUsersCollection);
+    expect(result.success).toBe(true);
+  });
 
   it('MockSettingsGlobal is valid', () => {
-    const result = GlobalStructureSchema.safeParse(MockSettingsGlobal)
-    expect(result.success).toBe(true)
-  })
+    const result = GlobalStructureSchema.safeParse(MockSettingsGlobal);
+    expect(result.success).toBe(true);
+  });
 
   it('mock access functions work correctly', () => {
-    const req = createMockRequest()
-    const adminReq = createAdminRequest()
+    const req = createMockRequest();
+    const adminReq = createAdminRequest();
 
-    expect(mockAccessAllow({ req: req as RevealRequest })).toBe(true)
-    expect(mockAccessAdmin({ req: req as RevealRequest })).toBe(false)
-    expect(mockAccessAdmin({ req: adminReq as RevealRequest })).toBe(true)
-  })
-})
+    expect(mockAccessAllow({ req: req as RevealRequest })).toBe(true);
+    expect(mockAccessAdmin({ req: req as RevealRequest })).toBe(false);
+    expect(mockAccessAdmin({ req: adminReq as RevealRequest })).toBe(true);
+  });
+});
 
 describe('Custom Field Type Extensibility', () => {
   beforeEach(() => {
-    clearCustomFieldTypes()
-  })
+    clearCustomFieldTypes();
+  });
 
   afterEach(() => {
-    clearCustomFieldTypes()
-  })
+    clearCustomFieldTypes();
+  });
 
   it('registers custom field type', () => {
     registerCustomFieldType('color-picker', {
       description: 'Color picker field',
       defaultValue: '#000000',
-    })
+    });
 
-    expect(isValidFieldType('color-picker')).toBe(true)
-    expect(getValidFieldTypes()).toContain('color-picker')
-  })
+    expect(isValidFieldType('color-picker')).toBe(true);
+    expect(getValidFieldTypes()).toContain('color-picker');
+  });
 
   it('validates built-in field types', () => {
-    expect(isValidFieldType('text')).toBe(true)
-    expect(isValidFieldType('number')).toBe(true)
-    expect(isValidFieldType('relationship')).toBe(true)
-    expect(isValidFieldType('nonexistent')).toBe(false)
-  })
+    expect(isValidFieldType('text')).toBe(true);
+    expect(isValidFieldType('number')).toBe(true);
+    expect(isValidFieldType('relationship')).toBe(true);
+    expect(isValidFieldType('nonexistent')).toBe(false);
+  });
 
   it('unregisters custom field type', () => {
-    registerCustomFieldType('temp-field', { description: 'Temporary' })
-    expect(isValidFieldType('temp-field')).toBe(true)
+    registerCustomFieldType('temp-field', { description: 'Temporary' });
+    expect(isValidFieldType('temp-field')).toBe(true);
 
-    unregisterCustomFieldType('temp-field')
-    expect(isValidFieldType('temp-field')).toBe(false)
-  })
-})
+    unregisterCustomFieldType('temp-field');
+    expect(isValidFieldType('temp-field')).toBe(false);
+  });
+});
 
 describe('Plugin Field Extensions', () => {
   beforeEach(() => {
-    clearPluginExtensions()
-  })
+    clearPluginExtensions();
+  });
 
   afterEach(() => {
-    clearPluginExtensions()
-  })
+    clearPluginExtensions();
+  });
 
   it('applies global fields to collection', () => {
     const globalFields: Field[] = [
       { type: 'text', name: 'metaTitle' },
       { type: 'textarea', name: 'metaDescription' },
-    ]
+    ];
     registerPluginExtension({
       pluginName: 'seo-plugin',
       globalFields,
-    })
+    });
 
-    const baseConfig = createMockCollectionConfig()
-    const extendedConfig = applyPluginExtensions(baseConfig)
+    const baseConfig = createMockCollectionConfig();
+    const extendedConfig = applyPluginExtensions(baseConfig);
 
-    expect(extendedConfig.fields.length).toBe(3) // 1 base + 2 global
-  })
+    expect(extendedConfig.fields.length).toBe(3); // 1 base + 2 global
+  });
 
   it('applies collection-specific fields', () => {
     const collectionFields: Record<string, Field[]> = {
       'test-collection': [{ type: 'number', name: 'viewCount' }],
-    }
+    };
     registerPluginExtension({
       pluginName: 'analytics-plugin',
       collectionFields,
-    })
+    });
 
-    const baseConfig = createMockCollectionConfig()
-    const extendedConfig = applyPluginExtensions(baseConfig)
+    const baseConfig = createMockCollectionConfig();
+    const extendedConfig = applyPluginExtensions(baseConfig);
 
-    expect(extendedConfig.fields.length).toBe(2)
-  })
-})
+    expect(extendedConfig.fields.length).toBe(2);
+  });
+});
 
 describe('RevealUI Compatibility', () => {
   describe('Slug Validation', () => {
     it('validates correct slugs', () => {
-      expect(isValidSlug('posts')).toBe(true)
-      expect(isValidSlug('my-posts')).toBe(true)
-      expect(isValidSlug('posts-2024')).toBe(true)
-      expect(isValidSlug('a')).toBe(true)
-    })
+      expect(isValidSlug('posts')).toBe(true);
+      expect(isValidSlug('my-posts')).toBe(true);
+      expect(isValidSlug('posts-2024')).toBe(true);
+      expect(isValidSlug('a')).toBe(true);
+    });
 
     it('rejects invalid slugs', () => {
-      expect(isValidSlug('Posts')).toBe(false) // Uppercase
-      expect(isValidSlug('my_posts')).toBe(false) // Underscore
-      expect(isValidSlug('123posts')).toBe(false) // Starts with number
-      expect(isValidSlug('-posts')).toBe(false) // Starts with hyphen
-      expect(isValidSlug('')).toBe(false) // Empty
-    })
+      expect(isValidSlug('Posts')).toBe(false); // Uppercase
+      expect(isValidSlug('my_posts')).toBe(false); // Underscore
+      expect(isValidSlug('123posts')).toBe(false); // Starts with number
+      expect(isValidSlug('-posts')).toBe(false); // Starts with hyphen
+      expect(isValidSlug('')).toBe(false); // Empty
+    });
 
     it('converts strings to valid slugs', () => {
-      expect(toSlug('My Posts')).toBe('my-posts')
-      expect(toSlug('Hello World!')).toBe('hello-world')
-      expect(toSlug('123 Numbers')).toBe('x-123-numbers')
-      expect(toSlug('already-valid')).toBe('already-valid')
-    })
+      expect(toSlug('My Posts')).toBe('my-posts');
+      expect(toSlug('Hello World!')).toBe('hello-world');
+      expect(toSlug('123 Numbers')).toBe('x-123-numbers');
+      expect(toSlug('already-valid')).toBe('already-valid');
+    });
 
     it('assertValidSlug throws for invalid', () => {
-      expect(() => assertValidSlug('posts', 'test')).not.toThrow()
-      expect(() => assertValidSlug('Invalid', 'test')).toThrow()
-    })
-  })
-})
+      expect(() => assertValidSlug('posts', 'test')).not.toThrow();
+      expect(() => assertValidSlug('Invalid', 'test')).toThrow();
+    });
+  });
+});
 
 describe('Type Safety (Compile-Time)', () => {
   /**
@@ -386,8 +386,8 @@ describe('Type Safety (Compile-Time)', () => {
 
   it('CollectionConfig accepts generic document type', () => {
     interface Article {
-      title: string
-      body: string
+      title: string;
+      body: string;
     }
 
     const config = createMockCollectionConfig<Article>({
@@ -396,34 +396,34 @@ describe('Type Safety (Compile-Time)', () => {
         { name: 'title', type: 'text', required: true },
         { name: 'body', type: 'richText' },
       ],
-    })
+    });
 
     // TypeScript should know this is CollectionConfig<Article>
-    expect(config.slug).toBe('articles')
-  })
+    expect(config.slug).toBe('articles');
+  });
 
   it('hook types work with generics', () => {
     interface Product {
-      name: string
-      price: number
+      name: string;
+      price: number;
     }
 
     // This would fail at compile time if types don't match
     const afterChange = ({ doc }: { doc: Product }) => {
       // TypeScript knows doc has name and price
-      console.log(doc.name, doc.price)
-      return doc
-    }
+      console.log(doc.name, doc.price);
+      return doc;
+    };
 
-    expect(typeof afterChange).toBe('function')
-  })
+    expect(typeof afterChange).toBe('function');
+  });
 
   it('access functions receive correct args', () => {
     const access = ({ req }: { req: { user?: { roles?: string[] } } }) => {
-      return req?.user?.roles?.includes('admin') ?? false
-    }
+      return req?.user?.roles?.includes('admin') ?? false;
+    };
 
-    const result = access({ req: { user: { roles: ['admin'] } } })
-    expect(result).toBe(true)
-  })
-})
+    const result = access({ req: { user: { roles: ['admin'] } } });
+    expect(result).toBe(true);
+  });
+});

@@ -1,120 +1,120 @@
-import type { CollectionConfig } from '@revealui/contracts/cms'
-import type { Plugin, RevealCollectionConfig, RevealUIField } from '../types/index.js'
+import type { CollectionConfig } from '@revealui/contracts/cms';
+import type { Plugin, RevealCollectionConfig, RevealUIField } from '../types/index.js';
 
 // Base form field interface with common properties
 export interface BaseFormField extends RevealUIField {
   // These are already in Field, but we reinforce them here
-  name: string
-  label?: string
-  width?: number | string
-  defaultValue?: string | number | boolean | null
-  required?: boolean
-  placeholder?: string
+  name: string;
+  label?: string;
+  width?: number | string;
+  defaultValue?: string | number | boolean | null;
+  required?: boolean;
+  placeholder?: string;
 }
 
 // Form field types (compatible with RevealUI form builder)
 export interface TextField extends BaseFormField {
-  type: 'text'
-  maxLength?: number
-  minLength?: number
+  type: 'text';
+  maxLength?: number;
+  minLength?: number;
 }
 
 export interface EmailField extends BaseFormField {
-  type: 'email'
+  type: 'email';
 }
 
 export interface TextareaField extends BaseFormField {
-  type: 'textarea'
-  maxLength?: number
-  minLength?: number
+  type: 'textarea';
+  maxLength?: number;
+  minLength?: number;
 }
 
 export interface NumberField extends BaseFormField {
-  type: 'number'
-  max?: number
-  min?: number
+  type: 'number';
+  max?: number;
+  min?: number;
 }
 
 export interface SelectField extends BaseFormField {
-  type: 'select'
-  options: Array<{ label: string; value: string }>
+  type: 'select';
+  options: Array<{ label: string; value: string }>;
 }
 
 export interface CheckboxField extends Omit<BaseFormField, 'defaultValue'> {
-  type: 'checkbox'
-  defaultValue?: boolean
+  type: 'checkbox';
+  defaultValue?: boolean;
 }
 
 export interface CountryField extends BaseFormField {
-  type: 'text' // Basic implementation
+  type: 'text'; // Basic implementation
 }
 
 export interface StateField extends BaseFormField {
-  type: 'text' // Basic implementation
+  type: 'text'; // Basic implementation
 }
 
 export interface FormFieldBlock {
-  name: string
-  label?: string
-  type: string
-  blockType: string
-  blockName?: string
-  placeholder?: string
-  required?: boolean
-  defaultValue?: unknown
-  options?: Array<{ label: string; value: string }>
-  width?: number
-  id?: string
+  name: string;
+  label?: string;
+  type: string;
+  blockType: string;
+  blockName?: string;
+  placeholder?: string;
+  required?: boolean;
+  defaultValue?: unknown;
+  options?: Array<{ label: string; value: string }>;
+  width?: number;
+  id?: string;
 }
 
 export interface Form {
-  id: string
-  title: string
-  fields: FormFieldBlock[]
-  confirmationMessage?: unknown // Rich text content
-  confirmationType?: 'message' | 'redirect'
-  submitButtonLabel?: string
-  redirect?: { url?: string }
+  id: string;
+  title: string;
+  fields: FormFieldBlock[];
+  confirmationMessage?: unknown; // Rich text content
+  confirmationType?: 'message' | 'redirect';
+  submitButtonLabel?: string;
+  redirect?: { url?: string };
   emails?: Array<{
-    emailTo?: string
-    emailFrom?: string
-    subject: string
-    message?: unknown // Rich text content
-    cc?: string
-    bcc?: string
-    replyTo?: string
-  }>
+    emailTo?: string;
+    emailFrom?: string;
+    subject: string;
+    message?: unknown; // Rich text content
+    cc?: string;
+    bcc?: string;
+    replyTo?: string;
+  }>;
 }
 
 export interface FormSubmission {
-  id: string
-  form: string
-  submissionData: Record<string, unknown>
-  submittedAt: string
+  id: string;
+  form: string;
+  submissionData: Record<string, unknown>;
+  submittedAt: string;
 }
 
 export interface FormBuilderPluginConfig {
   fields?: {
-    payment?: boolean
-  }
+    payment?: boolean;
+  };
   formOverrides?: {
-    fields?: (args: { defaultFields: RevealUIField[] }) => RevealUIField[]
-    slug?: string
+    fields?: (args: { defaultFields: RevealUIField[] }) => RevealUIField[];
+    slug?: string;
     admin?: {
-      useAsTitle?: string
-      defaultColumns?: string[]
-      components?: Record<string, string>
-    }
-  }
+      useAsTitle?: string;
+      defaultColumns?: string[];
+      components?: Record<string, string>;
+    };
+  };
   formSubmissionOverrides?: {
-    fields?: (args: { defaultFields: RevealUIField[] }) => RevealUIField[]
-    slug?: string
+    fields?: (args: { defaultFields: RevealUIField[] }) => RevealUIField[];
+    slug?: string;
     admin?: {
-      useAsTitle?: string
-      defaultColumns?: string[]
-      components?: Record<string, string>
-    }
-  }
+      useAsTitle?: string;
+      defaultColumns?: string[];
+      components?: Record<string, string>;
+    };
+  };
 }
 
 export function formBuilderPlugin(config: FormBuilderPluginConfig = {}): Plugin {
@@ -286,7 +286,7 @@ export function formBuilderPlugin(config: FormBuilderPluginConfig = {}): Plugin 
           description: 'Configure email notifications for form submissions',
         },
       },
-    ]
+    ];
 
     // Default submission fields
     const defaultSubmissionFields: RevealUIField[] = [
@@ -316,10 +316,10 @@ export function formBuilderPlugin(config: FormBuilderPluginConfig = {}): Plugin 
           readOnly: true,
         },
       },
-    ]
+    ];
 
     // Create form collection
-    const formSlug = config.formOverrides?.slug || 'forms'
+    const formSlug = config.formOverrides?.slug || 'forms';
     // biome-ignore lint/suspicious/noExplicitAny: Plugin collections can work with any document type
     const formCollection: RevealCollectionConfig<any> = {
       slug: formSlug,
@@ -331,10 +331,10 @@ export function formBuilderPlugin(config: FormBuilderPluginConfig = {}): Plugin 
         ? config.formOverrides.fields({ defaultFields: defaultFormFields })
         : defaultFormFields,
       timestamps: true,
-    }
+    };
 
     // Create submissions collection
-    const submissionSlug = config.formSubmissionOverrides?.slug || 'form-submissions'
+    const submissionSlug = config.formSubmissionOverrides?.slug || 'form-submissions';
     // biome-ignore lint/suspicious/noExplicitAny: Plugin collections can work with any document type
     const submissionsCollection: RevealCollectionConfig<any> = {
       slug: submissionSlug,
@@ -348,7 +348,7 @@ export function formBuilderPlugin(config: FormBuilderPluginConfig = {}): Plugin 
           })
         : defaultSubmissionFields,
       timestamps: true,
-    }
+    };
 
     // Add collections to config
     incomingConfig.collections = [
@@ -357,8 +357,8 @@ export function formBuilderPlugin(config: FormBuilderPluginConfig = {}): Plugin 
       formCollection as unknown as CollectionConfig<any>,
       // biome-ignore lint/suspicious/noExplicitAny: invariant generic needs any for heterogeneous array
       submissionsCollection as unknown as CollectionConfig<any>,
-    ]
+    ];
 
-    return incomingConfig
-  }
+    return incomingConfig;
+  };
 }

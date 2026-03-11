@@ -9,8 +9,8 @@
  * - codeReviews: Append-only review log per provenance entry
  */
 
-import { integer, jsonb, pgTable, real, text, timestamp } from 'drizzle-orm/pg-core'
-import { users } from './users.js'
+import { integer, jsonb, pgTable, real, text, timestamp } from 'drizzle-orm/pg-core';
+import { users } from './users.js';
 
 // =============================================================================
 // Code Provenance
@@ -65,10 +65,10 @@ export const codeProvenance = pgTable('code_provenance', {
 
   createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
   updatedAt: timestamp('updated_at', { withTimezone: true }).notNull().defaultNow(),
-})
+});
 
-export type CodeProvenance = typeof codeProvenance.$inferSelect
-export type NewCodeProvenance = typeof codeProvenance.$inferInsert
+export type CodeProvenance = typeof codeProvenance.$inferSelect;
+export type NewCodeProvenance = typeof codeProvenance.$inferInsert;
 
 // =============================================================================
 // Code Reviews (append-only log)
@@ -98,7 +98,7 @@ export const codeReviews = pgTable('code_reviews', {
   metadata: jsonb('metadata').default('{}').notNull(),
 
   createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
-})
+});
 
-export type CodeReview = typeof codeReviews.$inferSelect
-export type NewCodeReview = typeof codeReviews.$inferInsert
+export type CodeReview = typeof codeReviews.$inferSelect;
+export type NewCodeReview = typeof codeReviews.$inferInsert;

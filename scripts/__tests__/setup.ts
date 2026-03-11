@@ -4,22 +4,22 @@
  * Provides test fixtures and utilities for script tests.
  */
 
-import { afterAll, afterEach, beforeAll } from 'vitest'
-import { MemoryStateAdapter } from '../lib/state/adapters/memory.js'
-import { WorkflowStateMachine } from '../lib/state/workflow-state.js'
+import { afterAll, afterEach, beforeAll } from 'vitest';
+import { MemoryStateAdapter } from '../lib/state/adapters/memory.js';
+import { WorkflowStateMachine } from '../lib/state/workflow-state.js';
 
 // Global test state adapter
-let testAdapter: MemoryStateAdapter | null = null
-let testMachine: WorkflowStateMachine | null = null
+let testAdapter: MemoryStateAdapter | null = null;
+let testMachine: WorkflowStateMachine | null = null;
 
 /**
  * Gets the test state adapter (creates one if needed).
  */
 export function getTestAdapter(): MemoryStateAdapter {
   if (!testAdapter) {
-    testAdapter = new MemoryStateAdapter()
+    testAdapter = new MemoryStateAdapter();
   }
-  return testAdapter
+  return testAdapter;
 }
 
 /**
@@ -29,10 +29,10 @@ export async function getTestMachine(): Promise<WorkflowStateMachine> {
   if (!testMachine) {
     testMachine = new WorkflowStateMachine({
       adapter: getTestAdapter(),
-    })
-    await testMachine.initialize()
+    });
+    await testMachine.initialize();
   }
-  return testMachine
+  return testMachine;
 }
 
 /**
@@ -40,12 +40,12 @@ export async function getTestMachine(): Promise<WorkflowStateMachine> {
  */
 export async function cleanup(): Promise<void> {
   if (testMachine) {
-    await testMachine.close()
-    testMachine = null
+    await testMachine.close();
+    testMachine = null;
   }
   if (testAdapter) {
-    testAdapter.clear()
-    testAdapter = null
+    testAdapter.clear();
+    testAdapter = null;
   }
 }
 
@@ -59,22 +59,22 @@ export async function createTestWorkflow(
     { id: 'step-2', name: 'Step 2', description: 'Second step', requiresApproval: true },
   ],
 ) {
-  const machine = await getTestMachine()
-  return machine.create(name, steps)
+  const machine = await getTestMachine();
+  return machine.create(name, steps);
 }
 
 // Setup/teardown hooks
 beforeAll(async () => {
   // Initialize test environment
-})
+});
 
 afterEach(() => {
   // Clear state between tests
   if (testAdapter) {
-    testAdapter.clear()
+    testAdapter.clear();
   }
-})
+});
 
 afterAll(async () => {
-  await cleanup()
-})
+  await cleanup();
+});

@@ -1,5 +1,5 @@
-import { SUBSCRIPTION_TIERS } from '@revealui/contracts/pricing'
-import { PricingTable } from '@revealui/presentation/server'
+import { SUBSCRIPTION_TIERS } from '@revealui/contracts/pricing';
+import { PricingTable } from '@revealui/presentation/server';
 
 const features = [
   {
@@ -32,7 +32,7 @@ const features = [
     description: 'ElectricSQL-powered sync with offline support and conflict resolution.',
     icon: SyncIcon,
   },
-]
+];
 
 const proFeatures = [
   { name: 'AI Agents', tier: 'Pro' },
@@ -41,10 +41,10 @@ const proFeatures = [
   { name: 'AI Memory', tier: 'Max' },
   { name: 'Multi-provider AI', tier: 'Max' },
   { name: 'SSO/SAML', tier: 'Forge' },
-]
+];
 
 // Show only free and pro for the compact CTA
-const compactTiers = SUBSCRIPTION_TIERS.filter((t) => t.id === 'free' || t.id === 'pro')
+const compactTiers = SUBSCRIPTION_TIERS.filter((t) => t.id === 'free' || t.id === 'pro');
 
 export function CmsLandingPage() {
   return (
@@ -160,7 +160,7 @@ export function CmsLandingPage() {
         </p>
       </section>
     </div>
-  )
+  );
 }
 
 // =============================================================================
@@ -183,7 +183,7 @@ function CollectionIcon() {
         d="M2.25 7.125C2.25 6.504 2.754 6 3.375 6h6c.621 0 1.125.504 1.125 1.125v3.75c0 .621-.504 1.125-1.125 1.125h-6A1.125 1.125 0 012.25 10.875v-3.75zM14.25 8.625c0-.621.504-1.125 1.125-1.125h5.25c.621 0 1.125.504 1.125 1.125v8.25c0 .621-.504 1.125-1.125 1.125h-5.25a1.125 1.125 0 01-1.125-1.125v-8.25zM3.75 16.125c0-.621.504-1.125 1.125-1.125h5.25c.621 0 1.125.504 1.125 1.125v2.25c0 .621-.504 1.125-1.125 1.125h-5.25a1.125 1.125 0 01-1.125-1.125v-2.25z"
       />
     </svg>
-  )
+  );
 }
 
 function EditorIcon() {
@@ -202,7 +202,7 @@ function EditorIcon() {
         d="M16.862 4.487l1.687-1.688a1.875 1.875 0 112.652 2.652L10.582 16.07a4.5 4.5 0 01-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 011.13-1.897l8.932-8.931zm0 0L19.5 7.125M18 14v4.75A2.25 2.25 0 0115.75 21H5.25A2.25 2.25 0 013 18.75V8.25A2.25 2.25 0 015.25 6H10"
       />
     </svg>
-  )
+  );
 }
 
 function MediaIcon() {
@@ -221,7 +221,7 @@ function MediaIcon() {
         d="M2.25 15.75l5.159-5.159a2.25 2.25 0 013.182 0l5.159 5.159m-1.5-1.5l1.409-1.409a2.25 2.25 0 013.182 0l2.909 2.909m-18 3.75h16.5a1.5 1.5 0 001.5-1.5V6a1.5 1.5 0 00-1.5-1.5H3.75A1.5 1.5 0 002.25 6v12a1.5 1.5 0 001.5 1.5zm10.5-11.25h.008v.008h-.008V8.25zm.375 0a.375.375 0 11-.75 0 .375.375 0 01.75 0z"
       />
     </svg>
-  )
+  );
 }
 
 function ApiIcon() {
@@ -240,7 +240,7 @@ function ApiIcon() {
         d="M17.25 6.75L22.5 12l-5.25 5.25m-10.5 0L1.5 12l5.25-5.25m7.5-3l-4.5 16.5"
       />
     </svg>
-  )
+  );
 }
 
 function AuthIcon() {
@@ -259,7 +259,7 @@ function AuthIcon() {
         d="M16.5 10.5V6.75a4.5 4.5 0 10-9 0v3.75m-.75 11.25h10.5a2.25 2.25 0 002.25-2.25v-6.75a2.25 2.25 0 00-2.25-2.25H6.75a2.25 2.25 0 00-2.25 2.25v6.75a2.25 2.25 0 002.25 2.25z"
       />
     </svg>
-  )
+  );
 }
 
 function SyncIcon() {
@@ -278,5 +278,5 @@ function SyncIcon() {
         d="M16.023 9.348h4.992v-.001M2.985 19.644v-4.992m0 0h4.992m-4.993 0l3.181 3.183a8.25 8.25 0 0013.803-3.7M4.031 9.865a8.25 8.25 0 0113.803-3.7l3.181 3.182m0-4.991v4.99"
       />
     </svg>
-  )
+  );
 }

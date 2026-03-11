@@ -13,8 +13,8 @@
  *   ToolDefinition  → A2ASkill
  */
 
-import { z } from 'zod/v4'
-import type { AgentDefinition, ToolDefinition } from '../agents/index.js'
+import { z } from 'zod/v4';
+import type { AgentDefinition, ToolDefinition } from '../agents/index.js';
 
 // =============================================================================
 // Agent Card — discovery document served at /.well-known/agent.json
@@ -44,9 +44,9 @@ export const A2ASkillSchema = z.object({
 
   /** Supported output modalities */
   outputModes: z.array(z.string()).default(['text']),
-})
+});
 
-export type A2ASkill = z.infer<typeof A2ASkillSchema>
+export type A2ASkill = z.infer<typeof A2ASkillSchema>;
 
 /**
  * Agent capabilities flags
@@ -60,9 +60,9 @@ export const A2ACapabilitiesSchema = z.object({
 
   /** Whether the agent includes full task history in responses */
   stateTransitionHistory: z.boolean().default(false),
-})
+});
 
-export type A2ACapabilities = z.infer<typeof A2ACapabilitiesSchema>
+export type A2ACapabilities = z.infer<typeof A2ACapabilitiesSchema>;
 
 /**
  * Provider information
@@ -70,9 +70,9 @@ export type A2ACapabilities = z.infer<typeof A2ACapabilitiesSchema>
 export const A2AProviderSchema = z.object({
   organization: z.string(),
   url: z.string().url().optional(),
-})
+});
 
-export type A2AProvider = z.infer<typeof A2AProviderSchema>
+export type A2AProvider = z.infer<typeof A2AProviderSchema>;
 
 /**
  * Authentication configuration
@@ -83,9 +83,9 @@ export const A2AAuthSchema = z.object({
 
   /** Optional credentials hint (never put actual secrets here) */
   credentials: z.string().nullable().default(null),
-})
+});
 
-export type A2AAuth = z.infer<typeof A2AAuthSchema>
+export type A2AAuth = z.infer<typeof A2AAuthSchema>;
 
 /**
  * A2A Agent Card — the full discovery document.
@@ -125,9 +125,9 @@ export const A2AAgentCardSchema = z.object({
 
   /** Skills this agent exposes */
   skills: z.array(A2ASkillSchema),
-})
+});
 
-export type A2AAgentCard = z.infer<typeof A2AAgentCardSchema>
+export type A2AAgentCard = z.infer<typeof A2AAgentCardSchema>;
 
 // =============================================================================
 // Task & Message — runtime protocol types
@@ -139,7 +139,7 @@ export type A2AAgentCard = z.infer<typeof A2AAgentCardSchema>
 export const A2ATextPartSchema = z.object({
   type: z.literal('text'),
   text: z.string(),
-})
+});
 
 /**
  * Structured data part of a message
@@ -148,7 +148,7 @@ export const A2ADataPartSchema = z.object({
   type: z.literal('data'),
   data: z.record(z.string(), z.unknown()),
   mimeType: z.string().optional(),
-})
+});
 
 /**
  * File/binary part of a message
@@ -160,16 +160,16 @@ export const A2AFilePartSchema = z.object({
   data: z.string(),
   /** Optional filename hint */
   name: z.string().optional(),
-})
+});
 
 /** Discriminated union of all part types */
 export const A2APartSchema = z.discriminatedUnion('type', [
   A2ATextPartSchema,
   A2ADataPartSchema,
   A2AFilePartSchema,
-])
+]);
 
-export type A2APart = z.infer<typeof A2APartSchema>
+export type A2APart = z.infer<typeof A2APartSchema>;
 
 /**
  * A single message in a task conversation
@@ -181,9 +181,9 @@ export const A2AMessageSchema = z.object({
   parts: z.array(A2APartSchema),
   /** Optional message-level metadata */
   metadata: z.record(z.string(), z.unknown()).optional(),
-})
+});
 
-export type A2AMessage = z.infer<typeof A2AMessageSchema>
+export type A2AMessage = z.infer<typeof A2AMessageSchema>;
 
 /**
  * Task lifecycle states
@@ -196,9 +196,9 @@ export const A2ATaskStateSchema = z.enum([
   'canceled',
   'failed',
   'unknown',
-])
+]);
 
-export type A2ATaskState = z.infer<typeof A2ATaskStateSchema>
+export type A2ATaskState = z.infer<typeof A2ATaskStateSchema>;
 
 /**
  * Task status snapshot
@@ -207,9 +207,9 @@ export const A2ATaskStatusSchema = z.object({
   state: A2ATaskStateSchema,
   message: A2AMessageSchema.optional(),
   timestamp: z.string().datetime(),
-})
+});
 
-export type A2ATaskStatus = z.infer<typeof A2ATaskStatusSchema>
+export type A2ATaskStatus = z.infer<typeof A2ATaskStatusSchema>;
 
 /**
  * An artifact produced by a task
@@ -222,9 +222,9 @@ export const A2AArtifactSchema = z.object({
   index: z.number().int().default(0),
   append: z.boolean().optional(),
   lastChunk: z.boolean().optional(),
-})
+});
 
-export type A2AArtifact = z.infer<typeof A2AArtifactSchema>
+export type A2AArtifact = z.infer<typeof A2AArtifactSchema>;
 
 /**
  * A complete A2A Task entity
@@ -247,9 +247,9 @@ export const A2ATaskSchema = z.object({
 
   /** Arbitrary task-level metadata */
   metadata: z.record(z.string(), z.unknown()).optional(),
-})
+});
 
-export type A2ATask = z.infer<typeof A2ATaskSchema>
+export type A2ATask = z.infer<typeof A2ATaskSchema>;
 
 // =============================================================================
 // JSON-RPC 2.0 envelope
@@ -260,24 +260,24 @@ export const A2AJsonRpcRequestSchema = z.object({
   id: z.union([z.string(), z.number()]),
   method: z.string(),
   params: z.record(z.string(), z.unknown()).optional(),
-})
+});
 
-export type A2AJsonRpcRequest = z.infer<typeof A2AJsonRpcRequestSchema>
+export type A2AJsonRpcRequest = z.infer<typeof A2AJsonRpcRequestSchema>;
 
 export const A2AJsonRpcErrorSchema = z.object({
   code: z.number().int(),
   message: z.string(),
   data: z.unknown().optional(),
-})
+});
 
 export const A2AJsonRpcResponseSchema = z.object({
   jsonrpc: z.literal('2.0'),
   id: z.union([z.string(), z.number()]),
   result: z.unknown().optional(),
   error: A2AJsonRpcErrorSchema.optional(),
-})
+});
 
-export type A2AJsonRpcResponse = z.infer<typeof A2AJsonRpcResponseSchema>
+export type A2AJsonRpcResponse = z.infer<typeof A2AJsonRpcResponseSchema>;
 
 // =============================================================================
 // tasks/send params
@@ -295,9 +295,9 @@ export const A2ASendTaskParamsSchema = z.object({
 
   /** Arbitrary caller metadata */
   metadata: z.record(z.string(), z.unknown()).optional(),
-})
+});
 
-export type A2ASendTaskParams = z.infer<typeof A2ASendTaskParamsSchema>
+export type A2ASendTaskParams = z.infer<typeof A2ASendTaskParamsSchema>;
 
 // =============================================================================
 // Mapper functions — bind A2A spec to RevealUI contracts
@@ -320,7 +320,7 @@ export function toolDefinitionToSkill(tool: ToolDefinition): A2ASkill {
     examples: tool.examples?.map((e) => e.description ?? JSON.stringify(e.input)).filter(Boolean),
     inputModes: ['text'],
     outputModes: ['text'],
-  }
+  };
 }
 
 /**
@@ -330,7 +330,7 @@ export function toolDefinitionToSkill(tool: ToolDefinition): A2ASkill {
  * @param baseUrl - The public base URL of the A2A endpoint (e.g. https://api.revealui.com)
  */
 export function agentDefinitionToCard(def: AgentDefinition, baseUrl: string): A2AAgentCard {
-  const url = baseUrl.replace(/\/$/, '')
+  const url = baseUrl.replace(/\/$/, '');
   return {
     name: def.name,
     description: def.description,
@@ -353,5 +353,5 @@ export function agentDefinitionToCard(def: AgentDefinition, baseUrl: string): A2
     defaultInputModes: ['text'],
     defaultOutputModes: ['text'],
     skills: def.tools.map(toolDefinitionToSkill),
-  }
+  };
 }

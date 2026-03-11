@@ -1,15 +1,15 @@
-import { useStatusContext } from '../../hooks/use-status'
-import Button from '../ui/Button'
-import ErrorAlert from '../ui/ErrorAlert'
-import PanelHeader from '../ui/PanelHeader'
-import ServiceCard from './ServiceCard'
-import TierBadge from './TierBadge'
+import { useStatusContext } from '../../hooks/use-status';
+import Button from '../ui/Button';
+import ErrorAlert from '../ui/ErrorAlert';
+import PanelHeader from '../ui/PanelHeader';
+import ServiceCard from './ServiceCard';
+import TierBadge from './TierBadge';
 
 export default function Dashboard() {
-  const { system, mount, loading, error, refresh } = useStatusContext()
+  const { system, mount, loading, error, refresh } = useStatusContext();
 
   if (loading && !system) {
-    return <LoadingSkeleton />
+    return <LoadingSkeleton />;
   }
 
   return (
@@ -62,7 +62,7 @@ export default function Dashboard() {
         />
       </div>
     </div>
-  )
+  );
 }
 
 function LoadingSkeleton() {
@@ -75,5 +75,5 @@ function LoadingSkeleton() {
         ))}
       </div>
     </div>
-  )
+  );
 }

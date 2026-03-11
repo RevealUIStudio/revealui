@@ -1,36 +1,36 @@
 // Local Metadata type to avoid dependency on Next.js
 interface Metadata {
-  title?: string
-  description?: string
-  [key: string]: unknown
+  title?: string;
+  description?: string;
+  [key: string]: unknown;
 }
 
 export interface RootPageProps {
   config: {
-    collections?: unknown[]
-    globals?: unknown[]
-    [key: string]: unknown
-  }
-  params: Promise<{ segments?: string[] }>
-  searchParams: Promise<{ [key: string]: string | string[] }>
-  importMap?: Record<string, unknown>
+    collections?: unknown[];
+    globals?: unknown[];
+    [key: string]: unknown;
+  };
+  params: Promise<{ segments?: string[] }>;
+  searchParams: Promise<{ [key: string]: string | string[] }>;
+  importMap?: Record<string, unknown>;
 }
 
 export interface NotFoundPageProps {
   config: {
-    collections?: unknown[]
-    globals?: unknown[]
-    [key: string]: unknown
-  }
-  params: Promise<{ segments?: string[] }>
-  searchParams: Promise<{ [key: string]: string | string[] }>
-  importMap?: Record<string, unknown>
+    collections?: unknown[];
+    globals?: unknown[];
+    [key: string]: unknown;
+  };
+  params: Promise<{ segments?: string[] }>;
+  searchParams: Promise<{ [key: string]: string | string[] }>;
+  importMap?: Record<string, unknown>;
 }
 
 export function RootPage({ config }: RootPageProps) {
-  type AdminCollectionSummary = { slug?: string; fields?: unknown[] }
-  const collections = (config.collections || []) as AdminCollectionSummary[]
-  const globals = (config.globals || []) as AdminCollectionSummary[]
+  type AdminCollectionSummary = { slug?: string; fields?: unknown[] };
+  const collections = (config.collections || []) as AdminCollectionSummary[];
+  const globals = (config.globals || []) as AdminCollectionSummary[];
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -190,7 +190,7 @@ export function RootPage({ config }: RootPageProps) {
         </div>
       </main>
     </div>
-  )
+  );
 }
 
 export function NotFoundPage() {
@@ -199,12 +199,12 @@ export function NotFoundPage() {
       <h1>404 - Page Not Found</h1>
       <p>The requested admin page could not be found.</p>
     </div>
-  )
+  );
 }
 
 export function generatePageMetadata(): Metadata {
   return {
     title: 'RevealUI Admin',
     description: 'RevealUI Content Management System',
-  }
+  };
 }

@@ -6,9 +6,9 @@
  */
 
 // Client exports (React hooks)
-export * from './react/index.js'
+export * from './react/index.js';
 // Server exports
-export * from './server/index.js'
+export * from './server/index.js';
 
 // Types
 export type {
@@ -17,4 +17,4 @@ export type {
   SignInResult,
   SignUpResult,
   User,
-} from './types.js'
+} from './types.js';

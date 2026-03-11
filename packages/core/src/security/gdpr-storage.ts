@@ -6,7 +6,7 @@
  * with a database-backed store in production.
  */
 
-import type { ConsentRecord, ConsentType, DataDeletionRequest } from './gdpr.js'
+import type { ConsentRecord, ConsentType, DataDeletionRequest } from './gdpr.js';
 
 /**
  * Storage interface for GDPR consent records and deletion requests.
@@ -21,39 +21,39 @@ export interface GDPRStorage {
   /**
    * Store or update a consent record, keyed by `userId:consentType`.
    */
-  setConsent(userId: string, type: ConsentType, record: ConsentRecord): Promise<void>
+  setConsent(userId: string, type: ConsentType, record: ConsentRecord): Promise<void>;
 
   /**
    * Retrieve a consent record by user and type. Returns `undefined` if not found.
    */
-  getConsent(userId: string, type: ConsentType): Promise<ConsentRecord | undefined>
+  getConsent(userId: string, type: ConsentType): Promise<ConsentRecord | undefined>;
 
   /**
    * Retrieve all consent records for a given user.
    */
-  getConsentsByUser(userId: string): Promise<ConsentRecord[]>
+  getConsentsByUser(userId: string): Promise<ConsentRecord[]>;
 
   /**
    * Retrieve every consent record in storage (used for aggregate statistics).
    */
-  getAllConsents(): Promise<ConsentRecord[]>
+  getAllConsents(): Promise<ConsentRecord[]>;
 
   // ── Deletion Requests ────────────────────────────────────────────
 
   /**
    * Store a deletion request, keyed by its `id`.
    */
-  setDeletionRequest(request: DataDeletionRequest): Promise<void>
+  setDeletionRequest(request: DataDeletionRequest): Promise<void>;
 
   /**
    * Retrieve a deletion request by ID. Returns `undefined` if not found.
    */
-  getDeletionRequest(requestId: string): Promise<DataDeletionRequest | undefined>
+  getDeletionRequest(requestId: string): Promise<DataDeletionRequest | undefined>;
 
   /**
    * Retrieve all deletion requests for a given user.
    */
-  getDeletionRequestsByUser(userId: string): Promise<DataDeletionRequest[]>
+  getDeletionRequestsByUser(userId: string): Promise<DataDeletionRequest[]>;
 }
 
 /**
@@ -64,38 +64,38 @@ export interface GDPRStorage {
  * Production deployments MUST supply a database-backed `GDPRStorage`.
  */
 export class InMemoryGDPRStorage implements GDPRStorage {
-  private consents: Map<string, ConsentRecord> = new Map()
-  private deletionRequests: Map<string, DataDeletionRequest> = new Map()
+  private consents: Map<string, ConsentRecord> = new Map();
+  private deletionRequests: Map<string, DataDeletionRequest> = new Map();
 
   // ── Consent Records ──────────────────────────────────────────────
 
   async setConsent(userId: string, type: ConsentType, record: ConsentRecord): Promise<void> {
-    this.consents.set(`${userId}:${type}`, record)
+    this.consents.set(`${userId}:${type}`, record);
   }
 
   async getConsent(userId: string, type: ConsentType): Promise<ConsentRecord | undefined> {
-    return this.consents.get(`${userId}:${type}`)
+    return this.consents.get(`${userId}:${type}`);
   }
 
   async getConsentsByUser(userId: string): Promise<ConsentRecord[]> {
-    return Array.from(this.consents.values()).filter((c) => c.userId === userId)
+    return Array.from(this.consents.values()).filter((c) => c.userId === userId);
   }
 
   async getAllConsents(): Promise<ConsentRecord[]> {
-    return Array.from(this.consents.values())
+    return Array.from(this.consents.values());
   }
 
   // ── Deletion Requests ────────────────────────────────────────────
 
   async setDeletionRequest(request: DataDeletionRequest): Promise<void> {
-    this.deletionRequests.set(request.id, request)
+    this.deletionRequests.set(request.id, request);
   }
 
   async getDeletionRequest(requestId: string): Promise<DataDeletionRequest | undefined> {
-    return this.deletionRequests.get(requestId)
+    return this.deletionRequests.get(requestId);
   }
 
   async getDeletionRequestsByUser(userId: string): Promise<DataDeletionRequest[]> {
-    return Array.from(this.deletionRequests.values()).filter((r) => r.userId === userId)
+    return Array.from(this.deletionRequests.values()).filter((r) => r.userId === userId);
   }
 }

@@ -6,7 +6,7 @@
  * replaying operations rather than just merging final states.
  */
 
-import { bigint, jsonb, pgTable, text, timestamp } from 'drizzle-orm/pg-core'
+import { bigint, jsonb, pgTable, text, timestamp } from 'drizzle-orm/pg-core';
 
 // =============================================================================
 // CRDT Operations Table
@@ -36,11 +36,11 @@ export const crdtOperations = pgTable('crdt_operations', {
 
   /** When this operation was recorded */
   createdAt: timestamp('created_at', { withTimezone: true }).defaultNow().notNull(),
-})
+});
 
 // =============================================================================
 // Type Exports
 // =============================================================================
 
-export type CRDTOperation = typeof crdtOperations.$inferSelect
-export type NewCRDTOperation = typeof crdtOperations.$inferInsert
+export type CRDTOperation = typeof crdtOperations.$inferSelect;
+export type NewCRDTOperation = typeof crdtOperations.$inferInsert;

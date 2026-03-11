@@ -1,11 +1,11 @@
-import { useState } from 'react'
-import AppsPanel from '../apps/AppsPanel'
-import DevBoxPanel from '../devbox/DevBoxPanel'
+import { useState } from 'react';
+import AppsPanel from '../apps/AppsPanel';
+import DevBoxPanel from '../devbox/DevBoxPanel';
 
-type InfraTab = 'apps' | 'devbox'
+type InfraTab = 'apps' | 'devbox';
 
 export default function InfrastructurePanel() {
-  const [tab, setTab] = useState<InfraTab>('apps')
+  const [tab, setTab] = useState<InfraTab>('apps');
 
   return (
     <div className="flex h-full flex-col gap-4">
@@ -20,7 +20,7 @@ export default function InfrastructurePanel() {
         {tab === 'devbox' && <DevBoxPanel />}
       </div>
     </div>
-  )
+  );
 }
 
 function TabButton({
@@ -28,9 +28,9 @@ function TabButton({
   active,
   onClick,
 }: {
-  label: string
-  active: boolean
-  onClick: () => void
+  label: string;
+  active: boolean;
+  onClick: () => void;
 }) {
   return (
     <button
@@ -44,5 +44,5 @@ function TabButton({
     >
       {label}
     </button>
-  )
+  );
 }

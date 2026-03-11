@@ -5,62 +5,62 @@
  * Runs WCAG 2.1 AA compliance checks with structured violation reporting.
  */
 
-import AxeBuilder from '@axe-core/playwright'
-import { expect, type Page } from '@playwright/test'
+import AxeBuilder from '@axe-core/playwright';
+import { expect, type Page } from '@playwright/test';
 
 /** Configuration options for accessibility checks */
 export interface A11yCheckOptions {
   /** aXe rules to disable (e.g., ['color-contrast'] for pages with known issues) */
-  disableRules?: string[]
+  disableRules?: string[];
   /** CSS selectors to exclude from scanning (e.g., third-party widgets) */
-  excludeSelectors?: string[]
+  excludeSelectors?: string[];
   /** CSS selectors to include (scopes the scan; default: entire page) */
-  includeSelectors?: string[]
+  includeSelectors?: string[];
   /** WCAG tags to test against (default: WCAG 2.1 AA) */
-  tags?: string[]
+  tags?: string[];
 }
 
 /** A single formatted violation for reporting */
 export interface FormattedViolation {
   /** aXe rule ID (e.g., 'color-contrast') */
-  id: string
+  id: string;
   /** Violation severity: critical, serious, moderate, minor */
-  impact: string
+  impact: string;
   /** Human-readable description of the issue */
-  description: string
+  description: string;
   /** WCAG criteria violated (e.g., 'wcag2a', 'wcag21aa') */
-  tags: string[]
+  tags: string[];
   /** Affected elements with CSS selectors and failure summaries */
   nodes: Array<{
-    selector: string
-    failureSummary: string
-  }>
+    selector: string;
+    failureSummary: string;
+  }>;
 }
 
-const DEFAULT_WCAG_TAGS = ['wcag2a', 'wcag2aa', 'wcag21a', 'wcag21aa']
+const DEFAULT_WCAG_TAGS = ['wcag2a', 'wcag2aa', 'wcag21a', 'wcag21aa'];
 
 /**
  * Build an AxeBuilder instance with the given options.
  * Extracted for reuse across checkAccessibility and getAccessibilityViolations.
  */
 function buildAxeScanner(page: Page, options: A11yCheckOptions = {}): AxeBuilder {
-  const { disableRules = [], excludeSelectors = [], includeSelectors = [], tags } = options
+  const { disableRules = [], excludeSelectors = [], includeSelectors = [], tags } = options;
 
-  let builder = new AxeBuilder({ page }).withTags(tags ?? DEFAULT_WCAG_TAGS)
+  let builder = new AxeBuilder({ page }).withTags(tags ?? DEFAULT_WCAG_TAGS);
 
   if (disableRules.length > 0) {
-    builder = builder.disableRules(disableRules)
+    builder = builder.disableRules(disableRules);
   }
 
   for (const selector of includeSelectors) {
-    builder = builder.include(selector)
+    builder = builder.include(selector);
   }
 
   for (const selector of excludeSelectors) {
-    builder = builder.exclude(selector)
+    builder = builder.exclude(selector);
   }
 
-  return builder
+  return builder;
 }
 
 /**
@@ -78,25 +78,25 @@ function formatViolations(
       selector: node.target.join(' > '),
       failureSummary: node.failureSummary ?? '',
     })),
-  }))
+  }));
 }
 
 /**
  * Build a human-readable violation report string for test failure messages.
  */
 function buildViolationReport(formatted: FormattedViolation[]): string {
-  const lines: string[] = [`Found ${formatted.length} accessibility violation(s):`, '']
+  const lines: string[] = [`Found ${formatted.length} accessibility violation(s):`, ''];
 
   for (const violation of formatted) {
-    lines.push(`  [${violation.impact.toUpperCase()}] ${violation.id}: ${violation.description}`)
+    lines.push(`  [${violation.impact.toUpperCase()}] ${violation.id}: ${violation.description}`);
     for (const node of violation.nodes) {
-      lines.push(`    - ${node.selector}`)
-      lines.push(`      ${node.failureSummary}`)
+      lines.push(`    - ${node.selector}`);
+      lines.push(`      ${node.failureSummary}`);
     }
-    lines.push('')
+    lines.push('');
   }
 
-  return lines.join('\n')
+  return lines.join('\n');
 }
 
 /**
@@ -128,10 +128,10 @@ export async function checkAccessibility(
   page: Page,
   options: A11yCheckOptions = {},
 ): Promise<void> {
-  const results = await buildAxeScanner(page, options).analyze()
-  const formatted = formatViolations(results.violations)
+  const results = await buildAxeScanner(page, options).analyze();
+  const formatted = formatViolations(results.violations);
 
-  expect(formatted, buildViolationReport(formatted)).toHaveLength(0)
+  expect(formatted, buildViolationReport(formatted)).toHaveLength(0);
 }
 
 /**
@@ -144,8 +144,8 @@ export async function getAccessibilityViolations(
   page: Page,
   options: A11yCheckOptions = {},
 ): Promise<FormattedViolation[]> {
-  const results = await buildAxeScanner(page, options).analyze()
-  return formatViolations(results.violations)
+  const results = await buildAxeScanner(page, options).analyze();
+  return formatViolations(results.violations);
 }
 
 /**
@@ -158,10 +158,10 @@ export async function checkAccessibilityCritical(
   page: Page,
   options: A11yCheckOptions = {},
 ): Promise<FormattedViolation[]> {
-  const all = await getAccessibilityViolations(page, options)
-  const critical = all.filter((v) => v.impact === 'critical' || v.impact === 'serious')
+  const all = await getAccessibilityViolations(page, options);
+  const critical = all.filter((v) => v.impact === 'critical' || v.impact === 'serious');
 
-  expect(critical, buildViolationReport(critical)).toHaveLength(0)
+  expect(critical, buildViolationReport(critical)).toHaveLength(0);
 
-  return all
+  return all;
 }

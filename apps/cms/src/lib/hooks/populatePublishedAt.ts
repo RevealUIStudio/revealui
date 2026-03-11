@@ -5,7 +5,7 @@ import type {
   RevealUIFieldHook,
   RevealUIInstance,
   RevealValue,
-} from '@revealui/core'
+} from '@revealui/core';
 
 interface RequestWithRevealUI extends RevealRequest {
   revealui?: RevealUIInstance & {
@@ -13,17 +13,17 @@ interface RequestWithRevealUI extends RevealRequest {
       users?: {
         config?: {
           hooks?: {
-            beforeChange?: Array<RevealUIFieldHook>
-          }
-        }
-      }
-    }
-  }
+            beforeChange?: Array<RevealUIFieldHook>;
+          };
+        };
+      };
+    };
+  };
 }
 
 interface DocWithPublishedAt extends RevealDocument {
   // biome-ignore lint/style/useNamingConvention: matches stored field name
-  PublishedAt?: RevealValue
+  PublishedAt?: RevealValue;
 }
 
 // The `user` collection has access control locked so that users are not publicly accessible
@@ -35,10 +35,10 @@ export const populatePublishedAt: RevealBeforeChangeHook<any> = async ({
   originalDoc,
   req,
 }) => {
-  const revealui = (req as RequestWithRevealUI | undefined)?.revealui
+  const revealui = (req as RequestWithRevealUI | undefined)?.revealui;
 
   if (originalDoc?.PublishedAt && revealui?.collections?.users?.config?.hooks?.beforeChange?.[0]) {
-    const hook = revealui.collections.users.config.hooks.beforeChange[0]
+    const hook = revealui.collections.users.config.hooks.beforeChange[0];
     const user = await hook({
       value: originalDoc.PublishedAt,
       originalDoc: originalDoc.PublishedAt as RevealDocument,
@@ -46,13 +46,13 @@ export const populatePublishedAt: RevealBeforeChangeHook<any> = async ({
       data: {},
       siblingData: {},
       req,
-    })
+    });
 
     return {
       ...data,
       populatedPublishedAt: user,
-    } as DocWithPublishedAt
+    } as DocWithPublishedAt;
   }
 
-  return data
-}
+  return data;
+};

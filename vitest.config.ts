@@ -1,4 +1,4 @@
-import { defineConfig } from 'vitest/config'
+import { defineConfig } from 'vitest/config';
 
 export default defineConfig({
   projects: [
@@ -52,4 +52,4 @@ export default defineConfig({
     globals: true,
     environment: 'node',
   },
-})
+});

@@ -5,24 +5,24 @@
  * Verifies that email validation works correctly for various scenarios
  */
 
-import type { RevealUIInstance } from '@revealui/core'
-import { beforeAll, describe, expect, it } from 'vitest'
+import type { RevealUIInstance } from '@revealui/core';
+import { beforeAll, describe, expect, it } from 'vitest';
 import {
   generateUniqueTestEmail,
   getTestRevealUI,
   trackTestData,
-} from '../../utils/integration-helpers.js'
+} from '../../utils/integration-helpers.js';
 
 describe('Email Validation', () => {
-  let revealui: RevealUIInstance
+  let revealui: RevealUIInstance;
 
   beforeAll(async () => {
-    revealui = await getTestRevealUI()
-  })
+    revealui = await getTestRevealUI();
+  });
 
   describe('Valid Email Formats', () => {
     it('should accept standard email format', async () => {
-      const testEmail = generateUniqueTestEmail('valid-standard')
+      const testEmail = generateUniqueTestEmail('valid-standard');
 
       const user = await revealui.create({
         collection: 'users',
@@ -31,14 +31,14 @@ describe('Email Validation', () => {
           password: 'TestPassword123!',
           roles: ['user-admin'],
         },
-      })
+      });
 
-      trackTestData('users', String(user.id))
-      expect(user.email).toBe(testEmail)
-    })
+      trackTestData('users', String(user.id));
+      expect(user.email).toBe(testEmail);
+    });
 
     it('should accept email with plus sign', async () => {
-      const testEmail = `test+${Date.now()}@example.com`
+      const testEmail = `test+${Date.now()}@example.com`;
 
       const user = await revealui.create({
         collection: 'users',
@@ -47,14 +47,14 @@ describe('Email Validation', () => {
           password: 'TestPassword123!',
           roles: ['user-admin'],
         },
-      })
+      });
 
-      trackTestData('users', String(user.id))
-      expect(user.email).toBe(testEmail)
-    })
+      trackTestData('users', String(user.id));
+      expect(user.email).toBe(testEmail);
+    });
 
     it('should accept email with dots', async () => {
-      const testEmail = `test.user.${Date.now()}@example.com`
+      const testEmail = `test.user.${Date.now()}@example.com`;
 
       const user = await revealui.create({
         collection: 'users',
@@ -63,14 +63,14 @@ describe('Email Validation', () => {
           password: 'TestPassword123!',
           roles: ['user-admin'],
         },
-      })
+      });
 
-      trackTestData('users', String(user.id))
-      expect(user.email).toBe(testEmail)
-    })
+      trackTestData('users', String(user.id));
+      expect(user.email).toBe(testEmail);
+    });
 
     it('should accept email with hyphens', async () => {
-      const testEmail = `test-user-${Date.now()}@example.com`
+      const testEmail = `test-user-${Date.now()}@example.com`;
 
       const user = await revealui.create({
         collection: 'users',
@@ -79,12 +79,12 @@ describe('Email Validation', () => {
           password: 'TestPassword123!',
           roles: ['user-admin'],
         },
-      })
+      });
 
-      trackTestData('users', String(user.id))
-      expect(user.email).toBe(testEmail)
-    })
-  })
+      trackTestData('users', String(user.id));
+      expect(user.email).toBe(testEmail);
+    });
+  });
 
   describe('Invalid Email Formats', () => {
     it('should reject email without @ symbol', async () => {
@@ -97,8 +97,8 @@ describe('Email Validation', () => {
             roles: ['user-admin'],
           },
         }),
-      ).rejects.toThrow(/must be a valid email address/)
-    })
+      ).rejects.toThrow(/must be a valid email address/);
+    });
 
     it('should reject email without domain', async () => {
       await expect(
@@ -110,8 +110,8 @@ describe('Email Validation', () => {
             roles: ['user-admin'],
           },
         }),
-      ).rejects.toThrow(/must be a valid email address/)
-    })
+      ).rejects.toThrow(/must be a valid email address/);
+    });
 
     it('should reject email without TLD', async () => {
       await expect(
@@ -123,8 +123,8 @@ describe('Email Validation', () => {
             roles: ['user-admin'],
           },
         }),
-      ).rejects.toThrow(/must be a valid email address/)
-    })
+      ).rejects.toThrow(/must be a valid email address/);
+    });
 
     it('should reject email with spaces', async () => {
       await expect(
@@ -136,8 +136,8 @@ describe('Email Validation', () => {
             roles: ['user-admin'],
           },
         }),
-      ).rejects.toThrow(/must be a valid email address/)
-    })
+      ).rejects.toThrow(/must be a valid email address/);
+    });
 
     it('should reject email with multiple @ symbols', async () => {
       await expect(
@@ -149,9 +149,9 @@ describe('Email Validation', () => {
             roles: ['user-admin'],
           },
         }),
-      ).rejects.toThrow(/must be a valid email address/)
-    })
-  })
+      ).rejects.toThrow(/must be a valid email address/);
+    });
+  });
 
   describe('Edge Cases', () => {
     it('should handle null email value', async () => {
@@ -162,28 +162,28 @@ describe('Email Validation', () => {
         email: null,
         password: 'TestPassword123!',
         roles: ['user-admin'],
-      }
+      };
       await expect(
         revealui.create({
           collection: 'users',
           data: invalidData,
         }),
-      ).rejects.toThrow()
-    })
+      ).rejects.toThrow();
+    });
 
     it('should handle undefined email value', async () => {
       // Email is required, so undefined should fail
       const invalidData: Record<string, unknown> = {
         password: 'TestPassword123!',
         roles: ['user-admin'],
-      }
+      };
       await expect(
         revealui.create({
           collection: 'users',
           data: invalidData,
         }),
-      ).rejects.toThrow()
-    })
+      ).rejects.toThrow();
+    });
 
     it('should handle empty string email', async () => {
       // Empty string should fail validation
@@ -196,27 +196,27 @@ describe('Email Validation', () => {
             roles: ['user-admin'],
           },
         }),
-      ).rejects.toThrow(/must be a valid email address/)
-    })
+      ).rejects.toThrow(/must be a valid email address/);
+    });
 
     it('should handle non-string email value', async () => {
       const invalidData: Record<string, unknown> = {
         email: 123,
         password: 'TestPassword123!',
         roles: ['user-admin'],
-      }
+      };
       await expect(
         revealui.create({
           collection: 'users',
           data: invalidData,
         }),
-      ).rejects.toThrow(/must be a string/)
-    })
-  })
+      ).rejects.toThrow(/must be a string/);
+    });
+  });
 
   describe('Email Validation in Update', () => {
     it('should validate email on update', async () => {
-      const testEmail = generateUniqueTestEmail('update-valid')
+      const testEmail = generateUniqueTestEmail('update-valid');
 
       const user = await revealui.create({
         collection: 'users',
@@ -225,9 +225,9 @@ describe('Email Validation', () => {
           password: 'TestPassword123!',
           roles: ['user-admin'],
         },
-      })
+      });
 
-      trackTestData('users', String(user.id))
+      trackTestData('users', String(user.id));
 
       // Update with valid email
       const updated = await revealui.update({
@@ -236,14 +236,14 @@ describe('Email Validation', () => {
         data: {
           email: generateUniqueTestEmail('update-new'),
         },
-      })
+      });
 
-      expect(updated.email).toBeDefined()
-      expect(updated.email).not.toBe(testEmail)
-    })
+      expect(updated.email).toBeDefined();
+      expect(updated.email).not.toBe(testEmail);
+    });
 
     it('should reject invalid email on update', async () => {
-      const testEmail = generateUniqueTestEmail('update-invalid')
+      const testEmail = generateUniqueTestEmail('update-invalid');
 
       const user = await revealui.create({
         collection: 'users',
@@ -252,9 +252,9 @@ describe('Email Validation', () => {
           password: 'TestPassword123!',
           roles: ['user-admin'],
         },
-      })
+      });
 
-      trackTestData('users', String(user.id))
+      trackTestData('users', String(user.id));
 
       await expect(
         revealui.update({
@@ -264,9 +264,9 @@ describe('Email Validation', () => {
             email: 'invalid-email',
           },
         }),
-      ).rejects.toThrow(/must be a valid email address/)
-    })
-  })
+      ).rejects.toThrow(/must be a valid email address/);
+    });
+  });
 
   describe('Field Name "email" Validation', () => {
     it('should validate field named "email" even if type is not "email"', async () => {
@@ -274,7 +274,7 @@ describe('Email Validation', () => {
       // even if their type is not explicitly 'email'
       // The current implementation should handle this via field.name.toLowerCase() === 'email'
 
-      const testEmail = generateUniqueTestEmail('name-check')
+      const testEmail = generateUniqueTestEmail('name-check');
 
       // Users collection has email field with type 'email', so this should work
       const user = await revealui.create({
@@ -284,10 +284,10 @@ describe('Email Validation', () => {
           password: 'TestPassword123!',
           roles: ['user-admin'],
         },
-      })
+      });
 
-      trackTestData('users', String(user.id))
-      expect(user.email).toBe(testEmail)
+      trackTestData('users', String(user.id));
+      expect(user.email).toBe(testEmail);
 
       // Try to update with invalid email
       await expect(
@@ -298,7 +298,7 @@ describe('Email Validation', () => {
             email: 'not-an-email',
           },
         }),
-      ).rejects.toThrow(/must be a valid email address/)
-    })
-  })
-})
+      ).rejects.toThrow(/must be a valid email address/);
+    });
+  });
+});

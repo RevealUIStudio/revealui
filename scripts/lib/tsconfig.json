@@ -5,14 +5,13 @@
     "moduleResolution": "NodeNext",
     "lib": ["ESNext"],
     "strict": true,
-    "esModuleInterop": true,
     "skipLibCheck": true,
     "allowImportingTsExtensions": true,
     "noEmit": true,
     "declaration": false,
     "resolveJsonModule": true,
     "isolatedModules": true,
-    "verbatimModuleSyntax": false,
+    "verbatimModuleSyntax": true,
     "paths": {
       "@revealui/core/*": ["../../packages/core/src/*.ts", "../../packages/core/src/*/index.ts"]
     }

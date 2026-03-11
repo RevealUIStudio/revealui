@@ -1,16 +1,16 @@
-import clsx from 'clsx'
-import type React from 'react'
-import { useDataInteractive } from '../hooks/use-data-interactive.js'
-import { TouchTarget } from './button-headless.js'
-import { Link } from './link.js'
+import clsx from 'clsx';
+import type React from 'react';
+import { useDataInteractive } from '../hooks/use-data-interactive.js';
+import { TouchTarget } from './button-headless.js';
+import { Link } from './link.js';
 
 type AvatarProps = {
-  src?: string | null | undefined
-  square?: boolean
-  initials?: string
-  alt?: string
-  className?: string
-}
+  src?: string | null | undefined;
+  square?: boolean;
+  initials?: string;
+  alt?: string;
+  className?: string;
+};
 
 export function Avatar({
   src = null,
@@ -20,7 +20,7 @@ export function Avatar({
   className,
   ...props
 }: AvatarProps & React.ComponentPropsWithoutRef<'span'>) {
-  const title = alt && alt.trim().length > 0 ? alt.trim() : 'Avatar'
+  const title = alt && alt.trim().length > 0 ? alt.trim() : 'Avatar';
 
   return (
     <span
@@ -59,7 +59,7 @@ export function Avatar({
       {/* biome-ignore lint/performance/noImgElement: generic React component, not Next.js */}
       {src && <img className="size-full" src={src} alt={alt} />}
     </span>
-  )
+  );
 }
 
 export function AvatarButton({
@@ -72,19 +72,19 @@ export function AvatarButton({
   ...props
 }: AvatarProps & { ref?: React.Ref<HTMLButtonElement> } & (
     | ({
-        href?: never
-        disabled?: boolean
+        href?: never;
+        disabled?: boolean;
       } & Omit<React.ComponentPropsWithoutRef<'button'>, 'className'>)
     | ({ href: string } & Omit<React.ComponentPropsWithoutRef<typeof Link>, 'className'>)
   )) {
-  const disabled = 'disabled' in props ? props.disabled : false
-  const interactiveProps = useDataInteractive({ disabled: disabled ?? false })
+  const disabled = 'disabled' in props ? props.disabled : false;
+  const interactiveProps = useDataInteractive({ disabled: disabled ?? false });
 
   const classes = clsx(
     className,
     square ? 'rounded-[20%]' : 'rounded-full',
     'relative inline-grid focus:not-data-focus:outline-hidden data-focus:outline-2 data-focus:outline-offset-2 data-focus:outline-blue-500',
-  )
+  );
 
   return typeof props.href === 'string' ? (
     <Link {...props} className={classes} ref={ref as React.Ref<HTMLAnchorElement>}>
@@ -98,5 +98,5 @@ export function AvatarButton({
         <Avatar src={src} square={square} initials={initials} alt={alt} />
       </TouchTarget>
     </button>
-  )
+  );
 }

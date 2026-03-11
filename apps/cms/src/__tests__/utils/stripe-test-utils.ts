@@ -3,47 +3,47 @@
  * Helper functions for testing Stripe integration
  */
 
-import type Stripe from 'stripe'
-import { vi } from 'vitest'
+import type Stripe from 'stripe';
+import { vi } from 'vitest';
 
-type MockFn = ReturnType<typeof vi.fn>
+type MockFn = ReturnType<typeof vi.fn>;
 
 type MockStripe = {
   webhooks: {
-    constructEvent: MockFn
-  }
+    constructEvent: MockFn;
+  };
   customers: {
-    create: MockFn
-    retrieve: MockFn
-    update: MockFn
-    del: MockFn
-  }
+    create: MockFn;
+    retrieve: MockFn;
+    update: MockFn;
+    del: MockFn;
+  };
   paymentIntents: {
-    create: MockFn
-    retrieve: MockFn
-  }
+    create: MockFn;
+    retrieve: MockFn;
+  };
   checkout: {
     sessions: {
-      create: MockFn
-      retrieve: MockFn
-    }
-  }
+      create: MockFn;
+      retrieve: MockFn;
+    };
+  };
   products: {
-    create: MockFn
-    retrieve: MockFn
-    update: MockFn
-  }
+    create: MockFn;
+    retrieve: MockFn;
+    update: MockFn;
+  };
   prices: {
-    create: MockFn
-    retrieve: MockFn
-    update: MockFn
-  }
+    create: MockFn;
+    retrieve: MockFn;
+    update: MockFn;
+  };
   subscriptions: {
-    retrieve: MockFn
-    update: MockFn
-    cancel: MockFn
-  }
-}
+    retrieve: MockFn;
+    update: MockFn;
+    cancel: MockFn;
+  };
+};
 
 /**
  * Create a mock Stripe instance for testing
@@ -84,7 +84,7 @@ export function createMockStripe(): MockStripe {
       update: vi.fn(),
       cancel: vi.fn(),
     },
-  }
+  };
 }
 
 /**
@@ -110,7 +110,7 @@ export function createMockWebhookEvent(
       previous_attributes: {},
     },
     api_version: '2024-06-20',
-  } as Stripe.Event
+  } as Stripe.Event;
 }
 
 /**
@@ -119,7 +119,7 @@ export function createMockWebhookEvent(
 export function createMockWebhookSignature(payload: string, _secret: string): string {
   // In real implementation, this would use crypto.createHmac
   // For testing, we'll return a mock signature
-  return `t=${Date.now()},v1=mock_signature_${Buffer.from(payload).toString('base64')}`
+  return `t=${Date.now()},v1=mock_signature_${Buffer.from(payload).toString('base64')}`;
 }
 
 /**
@@ -135,7 +135,7 @@ export function createMockCustomer(
     email,
     metadata,
     created: Math.floor(Date.now() / 1000),
-  } as Stripe.Customer
+  } as Stripe.Customer;
 }
 
 /**
@@ -152,7 +152,7 @@ export function createMockPaymentIntent(
     currency,
     status: 'succeeded',
     created: Math.floor(Date.now() / 1000),
-  } as Stripe.PaymentIntent
+  } as Stripe.PaymentIntent;
 }
 
 /**
@@ -171,5 +171,5 @@ export function createMockCheckoutSession(
     status: 'complete',
     payment_status: 'paid',
     created: Math.floor(Date.now() / 1000),
-  } as Stripe.Checkout.Session
+  } as Stripe.Checkout.Session;
 }

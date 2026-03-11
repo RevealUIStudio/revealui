@@ -1,18 +1,18 @@
-import { randomUUID } from 'node:crypto'
+import { randomUUID } from 'node:crypto';
 
 export interface TestSubscription {
-  id: string
-  userId: string
-  stripeSubscriptionId: string
-  status: 'active' | 'canceled' | 'past_due' | 'trialing'
-  planId: string
-  currentPeriodStart: Date
-  currentPeriodEnd: Date
-  cancelAtPeriodEnd: boolean
+  id: string;
+  userId: string;
+  stripeSubscriptionId: string;
+  status: 'active' | 'canceled' | 'past_due' | 'trialing';
+  planId: string;
+  currentPeriodStart: Date;
+  currentPeriodEnd: Date;
+  cancelAtPeriodEnd: boolean;
 }
 
 export function createTestSubscription(overrides?: Partial<TestSubscription>): TestSubscription {
-  const testId = randomUUID()
+  const testId = randomUUID();
   return {
     id: overrides?.id || `sub_${testId}`,
     userId: overrides?.userId || `user_${testId}`,
@@ -24,5 +24,5 @@ export function createTestSubscription(overrides?: Partial<TestSubscription>): T
       overrides?.currentPeriodEnd || new Date(Date.now() + 30 * 24 * 60 * 60 * 1000),
     cancelAtPeriodEnd: overrides?.cancelAtPeriodEnd ?? false,
     ...overrides,
-  }
+  };
 }

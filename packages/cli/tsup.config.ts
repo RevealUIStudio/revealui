@@ -1,4 +1,4 @@
-import { defineConfig } from 'tsup'
+import { defineConfig } from 'tsup';
 
 export default defineConfig({
   entry: ['src/index.ts', 'src/cli.ts'],
@@ -10,4 +10,4 @@ export default defineConfig({
   shims: true,
   target: 'node24',
   outDir: 'dist',
-})
+});

@@ -29,23 +29,23 @@
  * - scripts/utils/base.ts - createLogger, getProjectRoot
  */
 
-import { mkdir, writeFile } from 'node:fs/promises'
-import { join } from 'node:path'
-import { ErrorCode } from '../lib/errors.js'
-import { execCommand } from '../lib/exec.js'
-import { createLogger, getProjectRoot } from '../utils/base.js'
+import { mkdir, writeFile } from 'node:fs/promises';
+import { join } from 'node:path';
+import { ErrorCode } from '../lib/errors.js';
+import { execCommand } from '../lib/exec.js';
+import { createLogger, getProjectRoot } from '../utils/base.js';
 
-const logger = createLogger()
+const logger = createLogger();
 
 // =============================================================================
 // Types
 // =============================================================================
 
 interface CheckResult {
-  name: string
-  status: 'pass' | 'fail' | 'warn' | 'skip'
-  durationMs: number
-  detail?: string
+  name: string;
+  status: 'pass' | 'fail' | 'warn' | 'skip';
+  durationMs: number;
+  detail?: string;
 }
 
 // =============================================================================
@@ -57,47 +57,47 @@ interface CheckResult {
  * Fails on critical or high severity; warns on moderate.
  */
 async function checkDependencyAudit(projectRoot: string): Promise<CheckResult> {
-  const start = performance.now()
+  const start = performance.now();
 
   const result = await execCommand('pnpm', ['audit', '--audit-level=moderate', '--json'], {
     capture: true,
     cwd: projectRoot,
-  })
+  });
 
-  const durationMs = performance.now() - start
-  const raw = result.stdout ?? ''
+  const durationMs = performance.now() - start;
+  const raw = result.stdout ?? '';
 
   // Parse vulnerability counts from JSON output
-  let critical = 0
-  let high = 0
-  let moderate = 0
-  let low = 0
+  let critical = 0;
+  let high = 0;
+  let moderate = 0;
+  let low = 0;
 
   try {
     const parsed = JSON.parse(raw) as {
       metadata?: {
-        vulnerabilities?: { critical?: number; high?: number; moderate?: number; low?: number }
-      }
-    }
-    const v = parsed.metadata?.vulnerabilities ?? {}
-    critical = v.critical ?? 0
-    high = v.high ?? 0
-    moderate = v.moderate ?? 0
-    low = v.low ?? 0
+        vulnerabilities?: { critical?: number; high?: number; moderate?: number; low?: number };
+      };
+    };
+    const v = parsed.metadata?.vulnerabilities ?? {};
+    critical = v.critical ?? 0;
+    high = v.high ?? 0;
+    moderate = v.moderate ?? 0;
+    low = v.low ?? 0;
   } catch {
     // pnpm audit may exit non-zero even when JSON is valid — tolerate parse errors
   }
 
   // Save report for CI artifacts
-  const reportDir = join(projectRoot, '.revealui')
+  const reportDir = join(projectRoot, '.revealui');
   try {
-    await mkdir(reportDir, { recursive: true })
-    await writeFile(join(reportDir, 'security-audit-latest.json'), raw || '{}', 'utf8')
+    await mkdir(reportDir, { recursive: true });
+    await writeFile(join(reportDir, 'security-audit-latest.json'), raw || '{}', 'utf8');
   } catch {
     // Non-fatal
   }
 
-  const summary = `critical=${critical} high=${high} moderate=${moderate} low=${low}`
+  const summary = `critical=${critical} high=${high} moderate=${moderate} low=${low}`;
 
   if (critical > 0) {
     return {
@@ -105,7 +105,7 @@ async function checkDependencyAudit(projectRoot: string): Promise<CheckResult> {
       status: 'fail',
       durationMs,
       detail: `Found critical vulnerabilities: ${summary}. Run 'pnpm audit' for details.`,
-    }
+    };
   }
 
   if (high > 0 || moderate > 0) {
@@ -114,10 +114,10 @@ async function checkDependencyAudit(projectRoot: string): Promise<CheckResult> {
       status: 'warn',
       durationMs,
       detail: `Found vulnerabilities: ${summary}. Run 'pnpm audit' for details. Note: some may be unfixable transitive deps (e.g. oauth2-server via @neondatabase/mcp-server-neon).`,
-    }
+    };
   }
 
-  return { name: 'Dependency audit', status: 'pass', durationMs, detail: summary }
+  return { name: 'Dependency audit', status: 'pass', durationMs, detail: summary };
 }
 
 /**
@@ -125,7 +125,7 @@ async function checkDependencyAudit(projectRoot: string): Promise<CheckResult> {
  * Fails if any pattern matches in non-excluded files.
  */
 async function checkSecretscan(projectRoot: string): Promise<CheckResult> {
-  const start = performance.now()
+  const start = performance.now();
 
   const patterns = [
     'password\\s*=\\s*[\'"][^\'"]{8,}',
@@ -140,10 +140,10 @@ async function checkSecretscan(projectRoot: string): Promise<CheckResult> {
     'postgres://[^@]+:[^@]+@',
     'mysql://[^@]+:[^@]+@',
     'mongodb://[^@]+:[^@]+@',
-  ]
+  ];
 
   // Combine into a single alternation for one git grep call
-  const combined = patterns.join('|')
+  const combined = patterns.join('|');
 
   const result = await execCommand(
     'git',
@@ -169,32 +169,32 @@ async function checkSecretscan(projectRoot: string): Promise<CheckResult> {
       ':!**/generators/**',
     ],
     { capture: true, cwd: projectRoot },
-  )
+  );
 
-  const durationMs = performance.now() - start
+  const durationMs = performance.now() - start;
 
   // git grep exits 1 when no matches found (that's the "pass" case).
   // Filter out comment lines (JSDoc `* ...` and single-line `// ...`) to eliminate
   // false positives from documentation examples (e.g. postgres://user:pass@host in a docstring).
-  const rawMatches = (result.stdout ?? '').trim()
+  const rawMatches = (result.stdout ?? '').trim();
   const realMatches = rawMatches
     ? rawMatches.split('\n').filter((line) => {
-        const content = line.replace(/^[^:]+:/, '').trimStart()
-        return !(content.startsWith('* ') || content.startsWith('//') || content.startsWith('#'))
+        const content = line.replace(/^[^:]+:/, '').trimStart();
+        return !(content.startsWith('* ') || content.startsWith('//') || content.startsWith('#'));
       })
-    : []
+    : [];
 
   if (realMatches.length > 0) {
-    const preview = realMatches.slice(0, 5)
+    const preview = realMatches.slice(0, 5);
     return {
       name: 'Secrets scan',
       status: 'fail',
       durationMs,
       detail: `Potential secrets found. First matches:\n${preview.map((l) => `    ${l}`).join('\n')}`,
-    }
+    };
   }
 
-  return { name: 'Secrets scan', status: 'pass', durationMs }
+  return { name: 'Secrets scan', status: 'pass', durationMs };
 }
 
 /**
@@ -202,20 +202,20 @@ async function checkSecretscan(projectRoot: string): Promise<CheckResult> {
  * Fails if any .env file (not .env.example) is tracked by git.
  */
 async function checkEnvFiles(projectRoot: string): Promise<CheckResult> {
-  const start = performance.now()
+  const start = performance.now();
 
-  const result = await execCommand('git', ['ls-files'], { capture: true, cwd: projectRoot })
+  const result = await execCommand('git', ['ls-files'], { capture: true, cwd: projectRoot });
 
-  const durationMs = performance.now() - start
+  const durationMs = performance.now() - start;
 
   // Files that are intentionally committed and not secrets:
   // - .env.template: placeholder structure for onboarding, contains no real values
   // - .env.test: test fixtures with fake values (sk_test_*, whsec_test*, etc.)
   // - .env.example: standard convention for example env files
-  const AllowedEnvFiles = new Set(['.env.template', '.env.test', '.env.example'])
+  const AllowedEnvFiles = new Set(['.env.template', '.env.test', '.env.example']);
 
-  const lines = (result.stdout ?? '').split('\n')
-  const envFiles = lines.filter((f) => /^\.env(\.[^.]+)?$/.test(f) && !AllowedEnvFiles.has(f))
+  const lines = (result.stdout ?? '').split('\n');
+  const envFiles = lines.filter((f) => /^\.env(\.[^.]+)?$/.test(f) && !AllowedEnvFiles.has(f));
 
   if (envFiles.length > 0) {
     return {
@@ -223,10 +223,10 @@ async function checkEnvFiles(projectRoot: string): Promise<CheckResult> {
       status: 'fail',
       durationMs,
       detail: `Committed .env files found: ${envFiles.join(', ')}. Add to .gitignore.`,
-    }
+    };
   }
 
-  return { name: 'Env file check', status: 'pass', durationMs }
+  return { name: 'Env file check', status: 'pass', durationMs };
 }
 
 /**
@@ -234,17 +234,17 @@ async function checkEnvFiles(projectRoot: string): Promise<CheckResult> {
  * Looks for hardcoded JWT secrets, weak password lengths, plaintext passwords.
  */
 async function checkAuthPatterns(projectRoot: string): Promise<CheckResult> {
-  const start = performance.now()
-  const issues: string[] = []
+  const start = performance.now();
+  const issues: string[] = [];
 
   // Hardcoded JWT secrets
   const jwtResult = await execCommand(
     'git',
     ['grep', '-i', 'jwt.*secret.*=.*["\'][a-zA-Z0-9]', '--', ':!*.md', ':!.github/workflows/*'],
     { capture: true, cwd: projectRoot },
-  )
+  );
   if ((jwtResult.stdout ?? '').trim()) {
-    issues.push('Potential hardcoded JWT secrets')
+    issues.push('Potential hardcoded JWT secrets');
   }
 
   // Weak password requirements (< 8 chars)
@@ -252,9 +252,9 @@ async function checkAuthPatterns(projectRoot: string): Promise<CheckResult> {
     'git',
     ['grep', '-E', 'password.*length.*<\\s*[1-7]', '--', ':!*.md'],
     { capture: true, cwd: projectRoot },
-  )
+  );
   if ((pwResult.stdout ?? '').trim()) {
-    issues.push('Weak password length requirements (< 8 chars)')
+    issues.push('Weak password length requirements (< 8 chars)');
   }
 
   // Plaintext password storage
@@ -269,12 +269,12 @@ async function checkAuthPatterns(projectRoot: string): Promise<CheckResult> {
       ':!*.spec.*',
     ],
     { capture: true, cwd: projectRoot },
-  )
+  );
   if ((plainResult.stdout ?? '').trim()) {
-    issues.push('Potential plaintext password storage')
+    issues.push('Potential plaintext password storage');
   }
 
-  const durationMs = performance.now() - start
+  const durationMs = performance.now() - start;
 
   if (issues.length > 0) {
     return {
@@ -282,10 +282,10 @@ async function checkAuthPatterns(projectRoot: string): Promise<CheckResult> {
       status: 'warn',
       durationMs,
       detail: `${issues.join('; ')}. Manual review required.`,
-    }
+    };
   }
 
-  return { name: 'Auth patterns', status: 'pass', durationMs }
+  return { name: 'Auth patterns', status: 'pass', durationMs };
 }
 
 /**
@@ -293,17 +293,17 @@ async function checkAuthPatterns(projectRoot: string): Promise<CheckResult> {
  * Checks for CORS wildcards and rate limiting presence.
  */
 async function checkApiSecurity(projectRoot: string): Promise<CheckResult> {
-  const start = performance.now()
-  const issues: string[] = []
+  const start = performance.now();
+  const issues: string[] = [];
 
   // CORS wildcard
   const corsResult = await execCommand(
     'git',
     ['grep', '-iE', 'origin.*:\\s*["\']?\\*["\']?', '--', ':!*.md'],
     { capture: true, cwd: projectRoot },
-  )
+  );
   if ((corsResult.stdout ?? '').trim()) {
-    issues.push('Potential CORS wildcard (*) detected — verify not in production code')
+    issues.push('Potential CORS wildcard (*) detected — verify not in production code');
   }
 
   // Rate limiting presence
@@ -311,12 +311,12 @@ async function checkApiSecurity(projectRoot: string): Promise<CheckResult> {
     'git',
     ['grep', '-rl', 'rateLimit\\|rate-limit\\|upstash', '--', 'apps/'],
     { capture: true, cwd: projectRoot },
-  )
+  );
   if (!(rateLimitResult.stdout ?? '').trim()) {
-    issues.push('No rate limiting detected in apps/ — consider adding to prevent abuse')
+    issues.push('No rate limiting detected in apps/ — consider adding to prevent abuse');
   }
 
-  const durationMs = performance.now() - start
+  const durationMs = performance.now() - start;
 
   if (issues.length > 0) {
     return {
@@ -324,10 +324,10 @@ async function checkApiSecurity(projectRoot: string): Promise<CheckResult> {
       status: 'warn',
       durationMs,
       detail: issues.join('; '),
-    }
+    };
   }
 
-  return { name: 'API security', status: 'pass', durationMs }
+  return { name: 'API security', status: 'pass', durationMs };
 }
 
 // =============================================================================
@@ -339,36 +339,36 @@ const STATUS_ICON: Record<string, string> = {
   fail: '\u2717',
   warn: '\u26A0',
   skip: '\u2013',
-}
+};
 
 function formatDuration(ms: number): string {
-  if (ms < 1000) return `${Math.round(ms)}ms`
-  return `${(ms / 1000).toFixed(1)}s`
+  if (ms < 1000) return `${Math.round(ms)}ms`;
+  return `${(ms / 1000).toFixed(1)}s`;
 }
 
 function printSummary(results: CheckResult[], totalMs: number): void {
-  const failed = results.some((r) => r.status === 'fail')
+  const failed = results.some((r) => r.status === 'fail');
 
-  logger.header('Security Gate Summary')
+  logger.header('Security Gate Summary');
 
   for (const r of results) {
-    const icon = STATUS_ICON[r.status]
-    const duration = formatDuration(r.durationMs)
-    const suffix = r.status === 'warn' ? '  (warning)' : ''
-    const pad = ' '.repeat(Math.max(1, 24 - r.name.length))
-    console.log(`  ${icon} ${r.name}${pad}${duration}${suffix}`)
+    const icon = STATUS_ICON[r.status];
+    const duration = formatDuration(r.durationMs);
+    const suffix = r.status === 'warn' ? '  (warning)' : '';
+    const pad = ' '.repeat(Math.max(1, 24 - r.name.length));
+    console.log(`  ${icon} ${r.name}${pad}${duration}${suffix}`);
     if (r.detail && (r.status === 'fail' || r.status === 'warn')) {
-      const lines = r.detail.split('\n')
+      const lines = r.detail.split('\n');
       for (const line of lines) {
-        console.log(`       ${line}`)
+        console.log(`       ${line}`);
       }
     }
   }
 
-  console.log('='.repeat(60))
-  console.log(`  Total: ${formatDuration(totalMs)}`)
-  console.log(`  Result: ${failed ? 'FAIL' : 'PASS'}`)
-  console.log('='.repeat(60))
+  console.log('='.repeat(60));
+  console.log(`  Total: ${formatDuration(totalMs)}`);
+  console.log(`  Result: ${failed ? 'FAIL' : 'PASS'}`);
+  console.log('='.repeat(60));
 }
 
 // =============================================================================
@@ -376,15 +376,15 @@ function printSummary(results: CheckResult[], totalMs: number): void {
 // =============================================================================
 
 async function gate(): Promise<void> {
-  const projectRoot = await getProjectRoot(import.meta.url)
-  const outputJson = process.argv.includes('--json')
+  const projectRoot = await getProjectRoot(import.meta.url);
+  const outputJson = process.argv.includes('--json');
 
   if (!outputJson) {
-    logger.header('RevealUI Security Gate')
-    console.log('')
+    logger.header('RevealUI Security Gate');
+    console.log('');
   }
 
-  const totalStart = performance.now()
+  const totalStart = performance.now();
 
   // Run all checks in parallel (mirrors GitHub Actions parallel jobs)
   const results = await Promise.all([
@@ -393,9 +393,9 @@ async function gate(): Promise<void> {
     checkEnvFiles(projectRoot),
     checkAuthPatterns(projectRoot),
     checkApiSecurity(projectRoot),
-  ])
+  ]);
 
-  const totalMs = performance.now() - totalStart
+  const totalMs = performance.now() - totalStart;
 
   if (outputJson) {
     console.log(
@@ -404,21 +404,21 @@ async function gate(): Promise<void> {
         null,
         2,
       ),
-    )
-    if (results.some((r) => r.status === 'fail')) process.exit(ErrorCode.VALIDATION_ERROR)
-    return
+    );
+    if (results.some((r) => r.status === 'fail')) process.exit(ErrorCode.VALIDATION_ERROR);
+    return;
   }
 
-  printSummary(results, totalMs)
+  printSummary(results, totalMs);
 
   // Critical checks: dependency audit, secrets scan, env file check
   const criticalFailed = results
     .filter((r) => ['Dependency audit', 'Secrets scan', 'Env file check'].includes(r.name))
-    .some((r) => r.status === 'fail')
+    .some((r) => r.status === 'fail');
 
   if (criticalFailed) {
-    logger.error('Critical security checks failed')
-    process.exit(ErrorCode.VALIDATION_ERROR)
+    logger.error('Critical security checks failed');
+    process.exit(ErrorCode.VALIDATION_ERROR);
   }
 }
 
@@ -428,11 +428,11 @@ async function gate(): Promise<void> {
 
 async function main(): Promise<void> {
   try {
-    await gate()
+    await gate();
   } catch (error) {
-    logger.error(`Security gate failed: ${error instanceof Error ? error.message : String(error)}`)
-    process.exit(ErrorCode.EXECUTION_ERROR)
+    logger.error(`Security gate failed: ${error instanceof Error ? error.message : String(error)}`);
+    process.exit(ErrorCode.EXECUTION_ERROR);
   }
 }
 
-main()
+main();

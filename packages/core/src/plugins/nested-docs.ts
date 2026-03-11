@@ -1,19 +1,19 @@
-import type { Plugin } from '../types/index.js'
+import type { Plugin } from '../types/index.js';
 
 export interface NestedDocsPluginConfig {
-  collections?: string[]
-  parentFieldSlug?: string
-  breadcrumbsFieldSlug?: string
+  collections?: string[];
+  parentFieldSlug?: string;
+  breadcrumbsFieldSlug?: string;
   /** Drizzle DB client getter — if not provided, breadcrumbs will be empty */
-  getDb?: () => unknown
+  getDb?: () => unknown;
   /** Label field to use for breadcrumb labels (defaults to 'title') */
-  labelField?: string
+  labelField?: string;
 }
 
 interface BreadcrumbEntry {
-  doc: string
-  url: string
-  label: string
+  doc: string;
+  url: string;
+  label: string;
 }
 
 /**
@@ -28,18 +28,18 @@ async function buildBreadcrumbs(
   labelField: string,
   maxDepth = 10,
 ): Promise<BreadcrumbEntry[]> {
-  const crumbs: BreadcrumbEntry[] = []
-  let currentId: string | null = parentId
-  let depth = 0
+  const crumbs: BreadcrumbEntry[] = [];
+  let currentId: string | null = parentId;
+  let depth = 0;
 
   // Validate identifiers to prevent SQL injection (table/column names are from config, not user input)
-  const identifierPattern = /^[a-zA-Z_][a-zA-Z0-9_]*$/
+  const identifierPattern = /^[a-zA-Z_][a-zA-Z0-9_]*$/;
   const identifiersValid =
     identifierPattern.test(collectionSlug) &&
     identifierPattern.test(labelField) &&
-    identifierPattern.test(parentFieldSlug)
+    identifierPattern.test(parentFieldSlug);
   if (!identifiersValid) {
-    return crumbs
+    return crumbs;
   }
 
   while (currentId && depth < maxDepth) {
@@ -51,25 +51,25 @@ async function buildBreadcrumbs(
         sql: `SELECT id, "${labelField}", "${parentFieldSlug}" FROM "${collectionSlug}" WHERE id = $1 LIMIT 1`,
         params: [currentId],
         // biome-ignore lint/suspicious/noExplicitAny: Drizzle sql template requires any for raw parameterized queries
-      } as any)
+      } as any);
 
-      const row = result?.rows?.[0]
-      if (!row) break
+      const row = result?.rows?.[0];
+      if (!row) break;
 
       crumbs.unshift({
         doc: String(row.id),
         url: `/${collectionSlug}/${String(row.id)}`,
         label: String(row[labelField] ?? row.id),
-      })
+      });
 
-      currentId = row[parentFieldSlug] ? String(row[parentFieldSlug]) : null
+      currentId = row[parentFieldSlug] ? String(row[parentFieldSlug]) : null;
     } catch {
-      break
+      break;
     }
-    depth++
+    depth++;
   }
 
-  return crumbs
+  return crumbs;
 }
 
 export function nestedDocsPlugin(config: NestedDocsPluginConfig = {}): Plugin {
@@ -79,7 +79,7 @@ export function nestedDocsPlugin(config: NestedDocsPluginConfig = {}): Plugin {
     breadcrumbsFieldSlug = 'breadcrumbs',
     getDb,
     labelField = 'title',
-  } = config
+  } = config;
 
   return (incomingConfig) => {
     if (incomingConfig.collections) {
@@ -94,7 +94,7 @@ export function nestedDocsPlugin(config: NestedDocsPluginConfig = {}): Plugin {
             admin: {
               position: 'sidebar',
             },
-          }
+          };
 
           // Add breadcrumbs field
           const breadcrumbsField = {
@@ -123,27 +123,27 @@ export function nestedDocsPlugin(config: NestedDocsPluginConfig = {}): Plugin {
                 type: 'text' as const,
               },
             ],
-          }
+          };
 
-          const collectionSlug = collection.slug
+          const collectionSlug = collection.slug;
 
           // Add hooks for breadcrumbs
           const beforeChangeHook = async ({ data }: { data: Record<string, unknown> }) => {
-            const parentId = data[parentFieldSlug]
+            const parentId = data[parentFieldSlug];
             if (parentId && getDb) {
-              const db = getDb()
+              const db = getDb();
               data[breadcrumbsFieldSlug] = await buildBreadcrumbs(
                 db,
                 collectionSlug,
                 String(parentId),
                 parentFieldSlug,
                 labelField,
-              )
+              );
             } else {
-              data[breadcrumbsFieldSlug] = []
+              data[breadcrumbsFieldSlug] = [];
             }
-            return data
-          }
+            return data;
+          };
 
           collection.hooks = {
             ...collection.hooks,
@@ -155,13 +155,13 @@ export function nestedDocsPlugin(config: NestedDocsPluginConfig = {}): Plugin {
                 ? T
                 : never,
             ],
-          }
+          };
 
-          collection.fields = [...collection.fields, parentField, breadcrumbsField]
+          collection.fields = [...collection.fields, parentField, breadcrumbsField];
         }
       }
     }
 
-    return incomingConfig
-  }
+    return incomingConfig;
+  };
 }

@@ -1,5 +1,5 @@
-import { clsx } from 'clsx/lite'
-import type { ComponentProps } from 'react'
+import { clsx } from 'clsx/lite';
+import type { ComponentProps } from 'react';
 
 export function ArrowNarrowRightIcon({ className, ...props }: ComponentProps<'svg'>) {
   return (
@@ -26,5 +26,5 @@ export function ArrowNarrowRightIcon({ className, ...props }: ComponentProps<'sv
         strokeLinejoin="round"
       />
     </svg>
-  )
+  );
 }

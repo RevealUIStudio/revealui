@@ -17,29 +17,29 @@
  * ```
  */
 
-import type { WorkflowStep } from '../../lib/state/index.js'
+import type { WorkflowStep } from '../../lib/state/index.js';
 
 export interface ReleaseWorkflowConfig {
   /** Version bump type */
-  versionType: 'major' | 'minor' | 'patch' | 'prerelease'
+  versionType: 'major' | 'minor' | 'patch' | 'prerelease';
   /** Publish to npm */
-  publish?: boolean
+  publish?: boolean;
   /** Create git tag */
-  createTag?: boolean
+  createTag?: boolean;
   /** Generate changelog */
-  generateChangelog?: boolean
+  generateChangelog?: boolean;
   /** Run full test suite */
-  runTests?: boolean
+  runTests?: boolean;
   /** Create GitHub release */
-  createGitHubRelease?: boolean
+  createGitHubRelease?: boolean;
   /** Dry run (no actual changes) */
-  dryRun?: boolean
+  dryRun?: boolean;
 }
 
 export function createReleaseWorkflow(config: ReleaseWorkflowConfig): {
-  id: string
-  name: string
-  steps: WorkflowStep[]
+  id: string;
+  name: string;
+  steps: WorkflowStep[];
 } {
   const {
     versionType,
@@ -49,7 +49,7 @@ export function createReleaseWorkflow(config: ReleaseWorkflowConfig): {
     runTests = true,
     createGitHubRelease = true,
     dryRun = false,
-  } = config
+  } = config;
 
   const steps: WorkflowStep[] = [
     // Step 1: Pre-release checks
@@ -65,7 +65,7 @@ export function createReleaseWorkflow(config: ReleaseWorkflowConfig): {
         return {
           success: true,
           message: 'Pre-release checks passed',
-        }
+        };
       },
       onSuccess: 'version-bump',
       onFailure: 'abort',
@@ -84,12 +84,12 @@ export function createReleaseWorkflow(config: ReleaseWorkflowConfig): {
           return {
             success: true,
             message: `[DRY RUN] Would bump ${versionType} version`,
-          }
+          };
         }
         return {
           success: true,
           message: `Version bumped: ${versionType}`,
-        }
+        };
       },
       onSuccess: generateChangelog ? 'changelog' : 'build',
       onFailure: 'abort',
@@ -109,12 +109,12 @@ export function createReleaseWorkflow(config: ReleaseWorkflowConfig): {
                 return {
                   success: true,
                   message: '[DRY RUN] Would generate changelog',
-                }
+                };
               }
               return {
                 success: true,
                 message: 'Changelog generated',
-              }
+              };
             },
             onSuccess: 'build',
             onFailure: 'abort',
@@ -133,7 +133,7 @@ export function createReleaseWorkflow(config: ReleaseWorkflowConfig): {
         return {
           success: true,
           message: 'Build completed',
-        }
+        };
       },
       onSuccess: runTests ? 'test' : 'commit',
       onFailure: 'abort',
@@ -153,7 +153,7 @@ export function createReleaseWorkflow(config: ReleaseWorkflowConfig): {
               return {
                 success: true,
                 message: 'All tests passed',
-              }
+              };
             },
             onSuccess: 'commit',
             onFailure: 'abort',
@@ -173,12 +173,12 @@ export function createReleaseWorkflow(config: ReleaseWorkflowConfig): {
           return {
             success: true,
             message: '[DRY RUN] Would commit release',
-          }
+          };
         }
         return {
           success: true,
           message: 'Release committed',
-        }
+        };
       },
       onSuccess: createTag ? 'tag' : publish ? 'publish' : 'complete',
       onFailure: 'abort',
@@ -198,12 +198,12 @@ export function createReleaseWorkflow(config: ReleaseWorkflowConfig): {
                 return {
                   success: true,
                   message: '[DRY RUN] Would create git tag',
-                }
+                };
               }
               return {
                 success: true,
                 message: 'Git tag created',
-              }
+              };
             },
             onSuccess: publish ? 'publish' : createGitHubRelease ? 'github-release' : 'complete',
             onFailure: 'abort',
@@ -225,12 +225,12 @@ export function createReleaseWorkflow(config: ReleaseWorkflowConfig): {
                 return {
                   success: true,
                   message: '[DRY RUN] Would publish to npm',
-                }
+                };
               }
               return {
                 success: true,
                 message: 'Published to npm',
-              }
+              };
             },
             onSuccess: createGitHubRelease ? 'github-release' : 'complete',
             onFailure: 'abort',
@@ -252,12 +252,12 @@ export function createReleaseWorkflow(config: ReleaseWorkflowConfig): {
                 return {
                   success: true,
                   message: '[DRY RUN] Would create GitHub release',
-                }
+                };
               }
               return {
                 success: true,
                 message: 'GitHub release created',
-              }
+              };
             },
             onSuccess: 'complete',
             onFailure: 'abort',
@@ -279,7 +279,7 @@ export function createReleaseWorkflow(config: ReleaseWorkflowConfig): {
           message: dryRun
             ? '[DRY RUN] Release preview completed'
             : 'Release completed successfully',
-        }
+        };
       },
       onSuccess: undefined,
       onFailure: undefined,
@@ -296,18 +296,18 @@ export function createReleaseWorkflow(config: ReleaseWorkflowConfig): {
         return {
           success: false,
           message: 'Release aborted - changes reverted',
-        }
+        };
       },
       onSuccess: undefined,
       onFailure: undefined,
     },
-  ]
+  ];
 
   return {
     id: `release-${versionType}-${Date.now()}`,
     name: `Release ${versionType} version`,
     steps,
-  }
+  };
 }
 
 /**
@@ -349,4 +349,4 @@ export const releasePresets = {
       runTests: false,
       dryRun: true,
     }),
-}
+};

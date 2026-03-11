@@ -45,7 +45,7 @@ Remember: The goal is IMPROVEMENT, not politeness. Be honest, be direct, be help
 
 ---
 
-# TASK`
+# TASK`;
 }
 
 // =============================================================================
@@ -53,15 +53,15 @@ Remember: The goal is IMPROVEMENT, not politeness. Be honest, be direct, be help
 // =============================================================================
 
 interface BrutalHonestyValidation {
-  valid: boolean
-  score: number
-  violations: string[]
-  suggestions: string[]
+  valid: boolean;
+  score: number;
+  violations: string[];
+  suggestions: string[];
 }
 
 interface BrutalHonestyEnhancement {
-  enhanced: string
-  changes: string[]
+  enhanced: string;
+  changes: string[];
 }
 
 const SOFT_PHRASES = [
@@ -72,68 +72,68 @@ const SOFT_PHRASES = [
   'may not be ideal',
   'could potentially',
   'somewhat',
-]
+];
 
 const REQUIRED_ELEMENTS = [
   { pattern: /\*\*impact\*\*/i, name: 'impact statement' },
   { pattern: /recommendation|fix|solution/i, name: 'actionable recommendation' },
-]
+];
 
 /**
  * Validate that an assessment meets brutal honesty standards
  */
 export function validateBrutalHonesty(content: string): BrutalHonestyValidation {
-  const violations: string[] = []
-  const suggestions: string[] = []
-  let score = 100
+  const violations: string[] = [];
+  const suggestions: string[] = [];
+  let score = 100;
 
   for (const phrase of SOFT_PHRASES) {
-    const regex = new RegExp(phrase, 'gi')
-    const matches = content.match(regex)
+    const regex = new RegExp(phrase, 'gi');
+    const matches = content.match(regex);
     if (matches) {
-      violations.push(`Found soft language: "${phrase}" (${matches.length} occurrences)`)
-      score -= matches.length * 5
+      violations.push(`Found soft language: "${phrase}" (${matches.length} occurrences)`);
+      score -= matches.length * 5;
     }
   }
 
   for (const element of REQUIRED_ELEMENTS) {
     if (!element.pattern.test(content)) {
-      violations.push(`Missing required element: ${element.name}`)
-      score -= 10
+      violations.push(`Missing required element: ${element.name}`);
+      score -= 10;
     }
   }
 
   if (!(content.includes('`') || content.includes('```'))) {
-    violations.push('No code references found - assessment lacks specificity')
-    score -= 15
+    violations.push('No code references found - assessment lacks specificity');
+    score -= 15;
   }
 
   if (!(content.includes('Action Items') || content.includes('action items'))) {
-    suggestions.push('Add explicit action items section')
-    score -= 5
+    suggestions.push('Add explicit action items section');
+    score -= 5;
   }
 
   if (!content.includes('Grade:')) {
-    suggestions.push('Include grade prominently')
-    score -= 5
+    suggestions.push('Include grade prominently');
+    score -= 5;
   }
 
-  score = Math.max(0, Math.min(100, score))
+  score = Math.max(0, Math.min(100, score));
 
   return {
     valid: violations.length === 0 && score >= 70,
     score,
     violations,
     suggestions,
-  }
+  };
 }
 
 /**
  * Enhance assessment content with brutal honesty
  */
 export function enhanceWithBrutalHonesty(content: string): BrutalHonestyEnhancement {
-  let enhanced = content
-  const changes: string[] = []
+  let enhanced = content;
+  const changes: string[] = [];
 
   const replacements: Array<[RegExp, string]> = [
     [/could be better/gi, 'needs improvement'],
@@ -143,17 +143,17 @@ export function enhanceWithBrutalHonesty(content: string): BrutalHonestyEnhancem
     [/may not be ideal/gi, 'is problematic'],
     [/could potentially/gi, 'will'],
     [/somewhat/gi, ''],
-  ]
+  ];
 
   for (const [pattern, replacement] of replacements) {
     if (pattern.test(enhanced)) {
-      const before = enhanced
-      enhanced = enhanced.replace(pattern, replacement)
+      const before = enhanced;
+      enhanced = enhanced.replace(pattern, replacement);
       if (enhanced !== before) {
-        changes.push(`Replaced soft language matching "${pattern.source}"`)
+        changes.push(`Replaced soft language matching "${pattern.source}"`);
       }
     }
   }
 
-  return { enhanced, changes }
+  return { enhanced, changes };
 }

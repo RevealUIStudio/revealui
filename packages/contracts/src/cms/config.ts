@@ -29,33 +29,33 @@ import type {
   FilterOptionsFunction,
   GlobalAccessConfig,
   GlobalHooksConfig,
-} from './functions.js'
-import type { CollectionStructure, FieldStructure, GlobalStructure } from './structure.js'
+} from './functions.js';
+import type { CollectionStructure, FieldStructure, GlobalStructure } from './structure.js';
 
-export type UnknownRecord = Record<string, unknown>
-type HookFn = (args: UnknownRecord) => unknown
-type FieldBeforeReadHook = HookFn
-type LooseFieldAccessConfig = FieldAccessConfig<UnknownRecord, UnknownRecord>
+export type UnknownRecord = Record<string, unknown>;
+type HookFn = (args: UnknownRecord) => unknown;
+type FieldBeforeReadHook = HookFn;
+type LooseFieldAccessConfig = FieldAccessConfig<UnknownRecord, UnknownRecord>;
 type LooseFieldHooksConfig = FieldHooksConfig<unknown, UnknownRecord, UnknownRecord> & {
-  beforeRead?: FieldBeforeReadHook[]
-}
+  beforeRead?: FieldBeforeReadHook[];
+};
 type LooseCollectionAccessConfig<T = UnknownRecord> = CollectionAccessConfig<T> & {
-  readVersions?: AccessFunction<T>
-}
+  readVersions?: AccessFunction<T>;
+};
 type LooseCollectionHooksConfig<T = UnknownRecord> = CollectionHooksConfig<T> & {
-  afterLogin?: HookFn[]
-  afterLogout?: HookFn[]
-  afterRefresh?: HookFn[]
-  afterMe?: HookFn[]
-  afterForgotPassword?: HookFn[]
-}
+  afterLogin?: HookFn[];
+  afterLogout?: HookFn[];
+  afterRefresh?: HookFn[];
+  afterMe?: HookFn[];
+  afterForgotPassword?: HookFn[];
+};
 type LooseGlobalHooksConfig = GlobalHooksConfig<UnknownRecord> & {
-  beforeValidate?: HookFn[]
-}
-type LooseFieldValidateArgs = FieldValidateArgs<unknown, UnknownRecord, UnknownRecord>
+  beforeValidate?: HookFn[];
+};
+type LooseFieldValidateArgs = FieldValidateArgs<unknown, UnknownRecord, UnknownRecord>;
 type LooseGlobalAccessConfig = GlobalAccessConfig & {
-  readVersions?: AccessFunction<UnknownRecord>
-}
+  readVersions?: AccessFunction<UnknownRecord>;
+};
 
 // ============================================
 // FIELD TYPE
@@ -90,35 +90,35 @@ type LooseGlobalAccessConfig = GlobalAccessConfig & {
  */
 export interface Field extends Omit<FieldStructure, 'fields' | 'blocks' | 'tabs'> {
   // Function properties - using loose types for compatibility with destructured params
-  access?: LooseFieldAccessConfig
-  hooks?: LooseFieldHooksConfig
+  access?: LooseFieldAccessConfig;
+  hooks?: LooseFieldHooksConfig;
   validate?: (
     value: unknown,
     args: LooseFieldValidateArgs,
-  ) => string | true | Promise<string | true>
-  condition?: ConditionFunction<UnknownRecord, UnknownRecord>
-  filterOptions?: FilterOptionsFunction<UnknownRecord>
+  ) => string | true | Promise<string | true>;
+  condition?: ConditionFunction<UnknownRecord, UnknownRecord>;
+  filterOptions?: FilterOptionsFunction<UnknownRecord>;
 
   // Nested fields (recursive)
-  fields?: Field[]
+  fields?: Field[];
 
   // Blocks (for blocks field) - allow any shape
-  blocks?: unknown[]
+  blocks?: unknown[];
 
   // Tabs (for tabs field)
   tabs?: Array<{
-    label: string
-    name?: string
-    description?: string
-    fields: Field[]
-    custom?: Record<string, unknown>
-  }>
+    label: string;
+    name?: string;
+    description?: string;
+    fields: Field[];
+    custom?: Record<string, unknown>;
+  }>;
 
   // Editor (for richText field) - function type
-  editor?: unknown
+  editor?: unknown;
 
   // Custom properties for extensibility (without breaking type inference)
-  custom?: Record<string, unknown>
+  custom?: Record<string, unknown>;
 }
 
 // ============================================
@@ -175,22 +175,22 @@ export interface Field extends Omit<FieldStructure, 'fields' | 'blocks' | 'tabs'
  */
 export interface CollectionConfig<T = UnknownRecord> extends Omit<CollectionStructure, 'fields'> {
   // Schema version
-  schemaVersion?: number
+  schemaVersion?: number;
   // Fields with function support
-  fields: Field[]
+  fields: Field[];
 
   // Access functions - typed for the document type T
   // Functions can have any signature as long as they return boolean or Where clause
-  access?: LooseCollectionAccessConfig<T>
+  access?: LooseCollectionAccessConfig<T>;
 
   // Hooks - typed for the document type T
   // Hook functions can destructure their arguments freely
-  hooks?: LooseCollectionHooksConfig<T>
+  hooks?: LooseCollectionHooksConfig<T>;
 
-  endpoints?: EndpointConfig[] | false
+  endpoints?: EndpointConfig[] | false;
 
   // Custom properties for extensibility (without breaking type inference)
-  custom?: Record<string, unknown>
+  custom?: Record<string, unknown>;
 }
 
 // ============================================
@@ -220,20 +220,20 @@ export interface CollectionConfig<T = UnknownRecord> extends Omit<CollectionStru
  */
 export interface GlobalConfig extends Omit<GlobalStructure, 'fields'> {
   // Schema version
-  schemaVersion?: number
+  schemaVersion?: number;
   // Fields with function support
-  fields: Field[]
+  fields: Field[];
 
   // Access functions - using loose types for compatibility with destructured params
-  access?: LooseGlobalAccessConfig
+  access?: LooseGlobalAccessConfig;
 
   // Hooks - using loose types for compatibility with destructured params
-  hooks?: LooseGlobalHooksConfig
+  hooks?: LooseGlobalHooksConfig;
 
-  endpoints?: EndpointConfig[] | false
+  endpoints?: EndpointConfig[] | false;
 
   // Custom properties for extensibility (without breaking type inference)
-  custom?: Record<string, unknown>
+  custom?: Record<string, unknown>;
 }
 
 // ============================================
@@ -244,72 +244,72 @@ export interface GlobalConfig extends Omit<GlobalStructure, 'fields'> {
  * Database adapter configuration (simplified)
  */
 export interface DatabaseAdapterConfig {
-  pool?: unknown
-  idType?: 'serial' | 'uuid'
-  custom?: Record<string, unknown>
+  pool?: unknown;
+  idType?: 'serial' | 'uuid';
+  custom?: Record<string, unknown>;
 }
 
 /**
  * Email configuration
  */
 export interface EmailConfig {
-  transportOptions?: unknown
-  fromName?: string
-  fromAddress?: string
-  custom?: Record<string, unknown>
+  transportOptions?: unknown;
+  fromName?: string;
+  fromAddress?: string;
+  custom?: Record<string, unknown>;
 }
 
 /**
  * Admin panel configuration
  */
 export interface AdminConfig {
-  user?: string
+  user?: string;
   meta?: {
-    titleSuffix?: string
-    ogImage?: string
-    favicon?: string
+    titleSuffix?: string;
+    ogImage?: string;
+    favicon?: string;
     // Icons for various platforms
     icons?: Array<{
-      url?: string
-      sizes?: string
-      type?: string
-      rel?: string
-      fetchPriority?: 'high' | 'low' | 'auto'
-    }>
-  }
+      url?: string;
+      sizes?: string;
+      type?: string;
+      rel?: string;
+      fetchPriority?: 'high' | 'low' | 'auto';
+    }>;
+  };
   importMap?: {
-    autoGenerate?: boolean
-    baseDir?: string
-    custom?: Record<string, unknown>
-  }
-  components?: unknown
-  css?: string
-  scss?: string
-  dateFormat?: string
-  avatar?: string
-  disable?: boolean
+    autoGenerate?: boolean;
+    baseDir?: string;
+    custom?: Record<string, unknown>;
+  };
+  components?: unknown;
+  css?: string;
+  scss?: string;
+  dateFormat?: string;
+  avatar?: string;
+  disable?: boolean;
   livePreview?: {
-    url?: string | ((args: { data: unknown; locale?: string }) => string)
-    collections?: string[]
-    globals?: string[]
+    url?: string | ((args: { data: unknown; locale?: string }) => string);
+    collections?: string[];
+    globals?: string[];
     breakpoints?: Array<{
-      label: string
-      name: string
-      width: number
-      height: number
-    }>
-    custom?: Record<string, unknown>
-  }
-  custom?: Record<string, unknown>
+      label: string;
+      name: string;
+      width: number;
+      height: number;
+    }>;
+    custom?: Record<string, unknown>;
+  };
+  custom?: Record<string, unknown>;
 }
 
 /**
  * Localization configuration
  */
 export interface LocalizationConfig {
-  locales: string[] | Array<{ label: string; code: string }>
-  defaultLocale: string
-  fallback?: boolean
+  locales: string[] | Array<{ label: string; code: string }>;
+  defaultLocale: string;
+  fallback?: boolean;
 }
 
 /**
@@ -319,89 +319,89 @@ export interface LocalizationConfig {
  */
 export interface Config {
   // Required
-  secret: string
+  secret: string;
 
   // Collections and globals
   // biome-ignore lint/suspicious/noExplicitAny: invariant generic requires any for heterogeneous collections
-  collections?: CollectionConfig<any>[]
-  globals?: GlobalConfig[]
+  collections?: CollectionConfig<any>[];
+  globals?: GlobalConfig[];
 
   // Database - allow adapter-specific shape
-  db?: unknown
+  db?: unknown;
 
   // Server
-  serverURL?: string
+  serverURL?: string;
 
   // Admin
-  admin?: AdminConfig
+  admin?: AdminConfig;
 
   // Email
-  email?: EmailConfig
+  email?: EmailConfig;
 
   // Localization
-  localization?: LocalizationConfig | false
+  localization?: LocalizationConfig | false;
 
   // i18n (internationalization)
   i18n?: {
-    locales?: string[]
-    defaultLocale?: string
-    fallback?: boolean
-    supportedLanguages?: Record<string, unknown>
-  }
+    locales?: string[];
+    defaultLocale?: string;
+    fallback?: boolean;
+    supportedLanguages?: Record<string, unknown>;
+  };
 
   // CORS
-  cors?: string | string[] | { origins: string[]; headers?: string[] }
+  cors?: string | string[] | { origins: string[]; headers?: string[] };
 
   // CSRF
-  csrf?: string[]
+  csrf?: string[];
 
   // Rate limiting
   rateLimit?: {
-    window?: number
-    max?: number
-    trustProxy?: boolean
-    skip?: (req: unknown) => boolean
-  }
+    window?: number;
+    max?: number;
+    trustProxy?: boolean;
+    skip?: (req: unknown) => boolean;
+  };
 
   // Uploads
   upload?: {
     limits?: {
-      fileSize?: number
-    }
-  }
+      fileSize?: number;
+    };
+  };
 
   // Debug
-  debug?: boolean
+  debug?: boolean;
 
   // TypeScript
   typescript?: {
-    outputFile?: string
-    declare?: boolean
-    autoGenerate?: boolean
-  }
+    outputFile?: string;
+    declare?: boolean;
+    autoGenerate?: boolean;
+  };
 
   // Telemetry
-  telemetry?: boolean
+  telemetry?: boolean;
 
   // Hooks
   hooks?: {
-    afterError?: Array<(args: { error: Error; context: unknown }) => void | Promise<void>>
-  }
+    afterError?: Array<(args: { error: Error; context: unknown }) => void | Promise<void>>;
+  };
 
   // onInit callback - allow custom return
-  onInit?: (revealui: unknown) => unknown
+  onInit?: (revealui: unknown) => unknown;
 
   // Plugins - allow custom plugin shapes
-  plugins?: unknown[]
+  plugins?: unknown[];
 
   // Editor - lexical, slate, or custom editor configuration
-  editor?: unknown
+  editor?: unknown;
 
   // Sharp - image processing library configuration
-  sharp?: unknown
+  sharp?: unknown;
 
   // Custom properties for extensibility
-  custom?: Record<string, unknown>
+  custom?: Record<string, unknown>;
 }
 
 /**
@@ -410,8 +410,8 @@ export interface Config {
  */
 export interface SanitizedConfig extends Config {
   // biome-ignore lint/suspicious/noExplicitAny: invariant generic requires any for heterogeneous collections
-  collections: CollectionConfig<any>[]
-  globals: GlobalConfig[]
+  collections: CollectionConfig<any>[];
+  globals: GlobalConfig[];
 }
 
 // ============================================
@@ -425,7 +425,7 @@ export interface SanitizedConfig extends Config {
 export interface TypedCollectionConfig<T> extends CollectionConfig {
   // This is a marker interface for typed configs
   // biome-ignore lint/style/useNamingConvention: double-underscore is the convention for phantom/marker fields
-  __docType?: T
+  __docType?: T;
 }
 
 /**
@@ -435,7 +435,7 @@ export interface TypedCollectionConfig<T> extends CollectionConfig {
 export interface TypedGlobalConfig<T> extends GlobalConfig {
   // This is a marker interface for typed configs
   // biome-ignore lint/style/useNamingConvention: double-underscore is the convention for phantom/marker fields
-  __docType?: T
+  __docType?: T;
 }
 
 /**
@@ -455,19 +455,19 @@ export interface TypedGlobalConfig<T> extends GlobalConfig {
  * ```
  */
 export function defineCollection<T = unknown>(config: CollectionConfig): TypedCollectionConfig<T> {
-  return config as TypedCollectionConfig<T>
+  return config as TypedCollectionConfig<T>;
 }
 
 /**
  * Helper to create a typed global config
  */
 export function defineGlobal<T = unknown>(config: GlobalConfig): TypedGlobalConfig<T> {
-  return config as TypedGlobalConfig<T>
+  return config as TypedGlobalConfig<T>;
 }
 
 /**
  * Helper to create a field
  */
 export function defineField(field: Field): Field {
-  return field
+  return field;
 }

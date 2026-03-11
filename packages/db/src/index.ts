@@ -24,7 +24,7 @@
  */
 
 // Re-export audit stores
-export { DrizzleAuditStore } from './audit-store.js'
+export { DrizzleAuditStore } from './audit-store.js';
 // Re-export client utilities
 export {
   closeAllPools,
@@ -39,9 +39,9 @@ export {
   resetClient,
   schema,
   withTransaction,
-} from './client/index.js'
+} from './client/index.js';
 // Re-export everything from core (schema)
-export * from './schema/index.js'
+export * from './schema/index.js';
 // Re-export Database types (centralized type matching Supabase structure)
 export type {
   Database,
@@ -49,4 +49,4 @@ export type {
   TableRelationships,
   TableRow,
   TableUpdate,
-} from './types/index.js'
+} from './types/index.js';

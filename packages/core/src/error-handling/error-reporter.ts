@@ -4,90 +4,90 @@
  * Integrates with error tracking services (Sentry, Bugsnag, etc.)
  */
 
-import { logger } from '../observability/logger.js'
-import type { ErrorInfo } from './error-boundary.js'
+import { logger } from '../observability/logger.js';
+import type { ErrorInfo } from './error-boundary.js';
 
 export interface ErrorReport {
-  error: Error
-  errorInfo?: ErrorInfo
-  context?: ErrorContext
-  timestamp: string
-  id: string
-  fingerprint?: string
-  level: ErrorLevel
-  tags?: Record<string, string>
-  user?: UserContext
-  extra?: Record<string, unknown>
+  error: Error;
+  errorInfo?: ErrorInfo;
+  context?: ErrorContext;
+  timestamp: string;
+  id: string;
+  fingerprint?: string;
+  level: ErrorLevel;
+  tags?: Record<string, string>;
+  user?: UserContext;
+  extra?: Record<string, unknown>;
 }
 
 export interface ErrorContext {
-  [key: string]: unknown
-  url?: string
-  userAgent?: string
+  [key: string]: unknown;
+  url?: string;
+  userAgent?: string;
   viewport?: {
-    width: number
-    height: number
-  }
-  component?: string
-  action?: string
-  route?: string
-  version?: string
-  environment?: string
+    width: number;
+    height: number;
+  };
+  component?: string;
+  action?: string;
+  route?: string;
+  version?: string;
+  environment?: string;
 }
 
 export interface UserContext {
-  id?: string
-  email?: string
-  username?: string
-  ip?: string
+  id?: string;
+  email?: string;
+  username?: string;
+  ip?: string;
 }
 
-export type ErrorLevel = 'fatal' | 'error' | 'warning' | 'info' | 'debug'
+export type ErrorLevel = 'fatal' | 'error' | 'warning' | 'info' | 'debug';
 
 export interface ErrorReporter {
-  captureError(error: Error, context?: Partial<ErrorReport>): void
-  captureMessage(message: string, level?: ErrorLevel, context?: Partial<ErrorReport>): void
-  setUser(user: UserContext | null): void
-  setContext(context: Partial<ErrorContext>): void
-  setTag(key: string, value: string): void
-  addBreadcrumb(breadcrumb: Breadcrumb): void
+  captureError(error: Error, context?: Partial<ErrorReport>): void;
+  captureMessage(message: string, level?: ErrorLevel, context?: Partial<ErrorReport>): void;
+  setUser(user: UserContext | null): void;
+  setContext(context: Partial<ErrorContext>): void;
+  setTag(key: string, value: string): void;
+  addBreadcrumb(breadcrumb: Breadcrumb): void;
 }
 
 export interface Breadcrumb {
-  timestamp: string
-  level: ErrorLevel
-  category?: string
-  message: string
-  data?: Record<string, unknown>
+  timestamp: string;
+  level: ErrorLevel;
+  category?: string;
+  message: string;
+  data?: Record<string, unknown>;
 }
 
 /**
  * Error reporting system
  */
 export class ErrorReportingSystem implements ErrorReporter {
-  private reporters: ErrorReporter[] = []
-  private globalContext: Partial<ErrorContext> = {}
-  private globalTags: Record<string, string> = {}
-  private user: UserContext | null = null
-  private breadcrumbs: Breadcrumb[] = []
-  private maxBreadcrumbs: number = 100
-  private enabled: boolean = true
-  private errorFilters: Array<(error: Error) => boolean> = []
+  private reporters: ErrorReporter[] = [];
+  private globalContext: Partial<ErrorContext> = {};
+  private globalTags: Record<string, string> = {};
+  private user: UserContext | null = null;
+  private breadcrumbs: Breadcrumb[] = [];
+  private maxBreadcrumbs: number = 100;
+  private enabled: boolean = true;
+  private errorFilters: Array<(error: Error) => boolean> = [];
 
   /**
    * Add error reporter
    */
   addReporter(reporter: ErrorReporter): void {
-    this.reporters.push(reporter)
+    this.reporters.push(reporter);
   }
 
   /**
    * Remove error reporter
    */
   removeReporter(reporter: ErrorReporter): void {
-    const index = this.reporters.indexOf(reporter)
+    const index = this.reporters.indexOf(reporter);
     if (index > -1) {
-      this.reporters.splice(index, 1)
+      this.reporters.splice(index, 1);
     }
   }
 
@@ -95,11 +95,11 @@ export class ErrorReportingSystem implements ErrorReporter {
    * Capture error
    */
   captureError(error: Error, context?: Partial<ErrorReport>): void {
-    if (!this.enabled) return
+    if (!this.enabled) return;
 
     // Check filters
     if (!this.shouldReportError(error)) {
-      return
+      return;
     }
 
     const report: ErrorReport = {
@@ -128,17 +128,17 @@ export class ErrorReportingSystem implements ErrorReporter {
         ...context?.extra,
         breadcrumbs: this.breadcrumbs.slice(-10), // Last 10 breadcrumbs
       },
-    }
+    };
 
     // Send to all reporters
     for (const reporter of this.reporters) {
       try {
-        reporter.captureError(error, report)
+        reporter.captureError(error, report);
       } catch (reporterError) {
         logger.error(
           'Error reporter failed',
           reporterError instanceof Error ? reporterError : new Error(String(reporterError)),
-        )
+        );
       }
     }
 
@@ -152,7 +152,7 @@ export class ErrorReportingSystem implements ErrorReporter {
         errorName: error.name,
         stack: error.stack,
       },
-    })
+    });
   }
 
   /**
@@ -163,7 +163,7 @@ export class ErrorReportingSystem implements ErrorReporter {
     level: ErrorLevel = 'info',
     context?: Partial<ErrorReport>,
   ): void {
-    if (!this.enabled) return
+    if (!this.enabled) return;
 
     const report: ErrorReport = {
       error: new Error(message),
@@ -177,16 +177,16 @@ export class ErrorReportingSystem implements ErrorReporter {
       tags: { ...this.globalTags, ...context?.tags },
       user: this.user || undefined,
       extra: context?.extra,
-    }
+    };
 
     for (const reporter of this.reporters) {
       try {
-        reporter.captureMessage(message, level, report)
+        reporter.captureMessage(message, level, report);
       } catch (reporterError) {
         logger.error(
           'Error reporter failed',
           reporterError instanceof Error ? reporterError : new Error(String(reporterError)),
-        )
+        );
       }
     }
 
@@ -195,17 +195,17 @@ export class ErrorReportingSystem implements ErrorReporter {
       level,
       category: 'message',
       message,
-    })
+    });
   }
 
   /**
    * Set user context
    */
   setUser(user: UserContext | null): void {
-    this.user = user
+    this.user = user;
 
     for (const reporter of this.reporters) {
-      reporter.setUser(user)
+      reporter.setUser(user);
     }
   }
 
@@ -213,10 +213,10 @@ export class ErrorReportingSystem implements ErrorReporter {
    * Set global context
    */
   setContext(context: Partial<ErrorContext>): void {
-    this.globalContext = { ...this.globalContext, ...context }
+    this.globalContext = { ...this.globalContext, ...context };
 
     for (const reporter of this.reporters) {
-      reporter.setContext(context)
+      reporter.setContext(context);
     }
   }
 
@@ -224,10 +224,10 @@ export class ErrorReportingSystem implements ErrorReporter {
    * Set global tag
    */
   setTag(key: string, value: string): void {
-    this.globalTags[key] = value
+    this.globalTags[key] = value;
 
     for (const reporter of this.reporters) {
-      reporter.setTag(key, value)
+      reporter.setTag(key, value);
     }
   }
 
@@ -235,15 +235,15 @@ export class ErrorReportingSystem implements ErrorReporter {
    * Add breadcrumb
    */
   addBreadcrumb(breadcrumb: Breadcrumb): void {
-    this.breadcrumbs.push(breadcrumb)
+    this.breadcrumbs.push(breadcrumb);
 
     // Trim breadcrumbs
     if (this.breadcrumbs.length > this.maxBreadcrumbs) {
-      this.breadcrumbs.shift()
+      this.breadcrumbs.shift();
     }
 
     for (const reporter of this.reporters) {
-      reporter.addBreadcrumb(breadcrumb)
+      reporter.addBreadcrumb(breadcrumb);
     }
   }
 
@@ -251,14 +251,14 @@ export class ErrorReportingSystem implements ErrorReporter {
    * Add error filter
    */
   addFilter(filter: (error: Error) => boolean): void {
-    this.errorFilters.push(filter)
+    this.errorFilters.push(filter);
   }
 
   /**
    * Check if error should be reported
    */
   private shouldReportError(error: Error): boolean {
-    return this.errorFilters.every((filter) => filter(error))
+    return this.errorFilters.every((filter) => filter(error));
   }
 
   /**
@@ -266,8 +266,8 @@ export class ErrorReportingSystem implements ErrorReporter {
    */
   private generateFingerprint(error: Error): string {
     // Use error name and first line of stack
-    const firstStackLine = error.stack?.split('\n')[1] || ''
-    return `${error.name}:${firstStackLine.trim()}`
+    const firstStackLine = error.stack?.split('\n')[1] || '';
+    return `${error.name}:${firstStackLine.trim()}`;
   }
 
   /**
@@ -275,46 +275,46 @@ export class ErrorReportingSystem implements ErrorReporter {
    */
   private determineLevel(error: Error): ErrorLevel {
     if (error.name === 'TypeError' || error.name === 'ReferenceError') {
-      return 'error'
+      return 'error';
     }
 
     if (error.name === 'NetworkError') {
-      return 'warning'
+      return 'warning';
     }
 
     if (error.name === 'ValidationError') {
-      return 'warning'
+      return 'warning';
     }
 
-    return 'error'
+    return 'error';
   }
 
   /**
    * Enable/disable error reporting
    */
   setEnabled(enabled: boolean): void {
-    this.enabled = enabled
+    this.enabled = enabled;
   }
 
   /**
    * Clear breadcrumbs
    */
   clearBreadcrumbs(): void {
-    this.breadcrumbs = []
+    this.breadcrumbs = [];
   }
 
   /**
    * Get breadcrumbs
    */
   getBreadcrumbs(): Breadcrumb[] {
-    return [...this.breadcrumbs]
+    return [...this.breadcrumbs];
   }
 }
 
 /**
  * Global error reporting instance
  */
-export const errorReporter = new ErrorReportingSystem()
+export const errorReporter = new ErrorReportingSystem();
 
 /**
  * Console error reporter (for development)
@@ -326,39 +326,39 @@ export class ConsoleErrorReporter implements ErrorReporter {
       ...context?.context,
       tags: context?.tags,
       user: context?.user,
-    })
+    });
   }
 
   captureMessage(message: string, level?: ErrorLevel, context?: Partial<ErrorReport>): void {
-    const logMessage = `[Error Reporter] ${level?.toUpperCase()}: ${message}`
+    const logMessage = `[Error Reporter] ${level?.toUpperCase()}: ${message}`;
 
     switch (level) {
       case 'error':
       case 'fatal':
-        logger.error(logMessage, undefined, context?.context)
-        break
+        logger.error(logMessage, undefined, context?.context);
+        break;
       case 'warning':
-        logger.warn(logMessage, context?.context)
-        break
+        logger.warn(logMessage, context?.context);
+        break;
       default:
-        logger.info(logMessage, context?.context)
+        logger.info(logMessage, context?.context);
     }
   }
 
   setUser(user: UserContext | null): void {
-    logger.info('[Error Reporter] User set', { user })
+    logger.info('[Error Reporter] User set', { user });
   }
 
   setContext(context: Partial<ErrorContext>): void {
-    logger.info('[Error Reporter] Context set', { context })
+    logger.info('[Error Reporter] Context set', { context });
   }
 
   setTag(key: string, value: string): void {
-    logger.info(`[Error Reporter] Tag set: ${key}=${value}`)
+    logger.info(`[Error Reporter] Tag set: ${key}=${value}`);
   }
 
   addBreadcrumb(breadcrumb: Breadcrumb): void {
-    logger.debug('[Error Reporter] Breadcrumb', { breadcrumb })
+    logger.debug('[Error Reporter] Breadcrumb', { breadcrumb });
   }
 }
 
@@ -373,7 +373,7 @@ export class LoggingErrorReporter implements ErrorReporter {
     logger.debug('[ErrorReporter] Error captured', {
       error: error.message,
       ...context,
-    })
+    });
   }
 
   captureMessage(message: string, level?: ErrorLevel, context?: Partial<ErrorReport>): void {
@@ -381,7 +381,7 @@ export class LoggingErrorReporter implements ErrorReporter {
       message,
       level,
       ...context,
-    })
+    });
   }
 
   setUser(_user: UserContext | null): void {
@@ -421,12 +421,12 @@ export class HTTPErrorReporter implements ErrorReporter {
           context,
           timestamp: new Date().toISOString(),
         }),
-      })
+      });
     } catch (reportError) {
       logger.error(
         'Failed to report error',
         reportError instanceof Error ? reportError : new Error(String(reportError)),
-      )
+      );
     }
   }
 
@@ -448,12 +448,12 @@ export class HTTPErrorReporter implements ErrorReporter {
           context,
           timestamp: new Date().toISOString(),
         }),
-      })
+      });
     } catch (reportError) {
       logger.error(
         'Failed to report message',
         reportError instanceof Error ? reportError : new Error(String(reportError)),
-      )
+      );
     }
   }
 
@@ -478,49 +478,49 @@ export class HTTPErrorReporter implements ErrorReporter {
  * Initialize error reporting
  */
 export function initializeErrorReporting(config: {
-  dsn?: string
-  environment?: string
-  release?: string
-  sampleRate?: number
-  ignoreErrors?: string[]
-  beforeSend?: (report: ErrorReport) => ErrorReport | null
+  dsn?: string;
+  environment?: string;
+  release?: string;
+  sampleRate?: number;
+  ignoreErrors?: string[];
+  beforeSend?: (report: ErrorReport) => ErrorReport | null;
 }): void {
   // Set environment and release
   if (config.environment) {
-    errorReporter.setContext({ environment: config.environment })
-    errorReporter.setTag('environment', config.environment)
+    errorReporter.setContext({ environment: config.environment });
+    errorReporter.setTag('environment', config.environment);
   }
 
   if (config.release) {
-    errorReporter.setContext({ version: config.release })
-    errorReporter.setTag('release', config.release)
+    errorReporter.setContext({ version: config.release });
+    errorReporter.setTag('release', config.release);
   }
 
   // Add error filters
   if (config.ignoreErrors) {
     errorReporter.addFilter((error) => {
-      return !config.ignoreErrors?.some((pattern) => error.message.includes(pattern))
-    })
+      return !config.ignoreErrors?.some((pattern) => error.message.includes(pattern));
+    });
   }
 
   // Add sample rate filter
   if (config.sampleRate && config.sampleRate < 1) {
     errorReporter.addFilter(() => {
-      const bytes = new Uint32Array(1)
-      crypto.getRandomValues(bytes)
-      return (bytes[0] ?? 0) / 0xffffffff < (config.sampleRate ?? 1)
-    })
+      const bytes = new Uint32Array(1);
+      crypto.getRandomValues(bytes);
+      return (bytes[0] ?? 0) / 0xffffffff < (config.sampleRate ?? 1);
+    });
   }
 
   // Add reporters
   if (process.env.NODE_ENV === 'development') {
-    errorReporter.addReporter(new ConsoleErrorReporter())
+    errorReporter.addReporter(new ConsoleErrorReporter());
   }
 
   if (config.dsn) {
     // DSN is accepted for forward compatibility with external error services.
     // Currently routes to LoggingErrorReporter (structured log output).
-    errorReporter.addReporter(new LoggingErrorReporter())
+    errorReporter.addReporter(new LoggingErrorReporter());
   }
 
   // Set up global error handlers
@@ -534,19 +534,19 @@ export function initializeErrorReporting(config: {
           lineno: event.lineno,
           colno: event.colno,
         },
-      })
-    })
+      });
+    });
 
     window.addEventListener('unhandledrejection', (event) => {
-      const error = event.reason instanceof Error ? event.reason : new Error(String(event.reason))
+      const error = event.reason instanceof Error ? event.reason : new Error(String(event.reason));
 
       errorReporter.captureError(error, {
         level: 'error',
         tags: {
           type: 'unhandled_promise_rejection',
         },
-      })
-    })
+      });
+    });
   }
 }
 
@@ -560,7 +560,7 @@ export function trackAction(action: string, data?: Record<string, unknown>): voi
     category: 'user-action',
     message: action,
     data,
-  })
+  });
 }
 
 /**
@@ -573,7 +573,7 @@ export function trackNavigation(from: string, to: string): void {
     category: 'navigation',
     message: `Navigated from ${from} to ${to}`,
     data: { from, to },
-  })
+  });
 }
 
 /**
@@ -596,7 +596,7 @@ export function trackAPICall(
       status,
       duration,
     },
-  })
+  });
 }
 
 /**
@@ -607,23 +607,23 @@ export const ErrorFilters = {
    * Ignore browser extension errors
    */
   ignoreExtensions: (error: Error): boolean => {
-    const extensionPatterns = ['chrome-extension://', 'moz-extension://', 'safari-extension://']
+    const extensionPatterns = ['chrome-extension://', 'moz-extension://', 'safari-extension://'];
 
-    return !extensionPatterns.some((pattern) => error.stack?.includes(pattern))
+    return !extensionPatterns.some((pattern) => error.stack?.includes(pattern));
   },
 
   /**
    * Ignore network errors
    */
   ignoreNetwork: (error: Error): boolean => {
-    return error.name !== 'NetworkError'
+    return error.name !== 'NetworkError';
   },
 
   /**
    * Ignore cancelled requests
    */
   ignoreCancelled: (error: Error): boolean => {
-    return !(error.message.includes('cancelled') || error.message.includes('aborted'))
+    return !(error.message.includes('cancelled') || error.message.includes('aborted'));
   },
 
   /**
@@ -631,7 +631,7 @@ export const ErrorFilters = {
    */
   ignoreMessages: (patterns: string[]): ((error: Error) => boolean) => {
     return (error: Error) => {
-      return !patterns.some((pattern) => error.message.includes(pattern))
-    }
+      return !patterns.some((pattern) => error.message.includes(pattern));
+    };
   },
-}
+};

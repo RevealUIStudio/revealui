@@ -1,17 +1,17 @@
-import { useCallback, useEffect, useRef, useState } from 'react'
+import { useCallback, useEffect, useRef, useState } from 'react';
 
 interface UseTransitionReturn {
   /** Whether the element should be rendered in the DOM */
-  mounted: boolean
+  mounted: boolean;
   /** Ref to attach to the transitioning element (listens for transitionend) */
-  nodeRef: React.RefObject<HTMLElement | null>
+  nodeRef: React.RefObject<HTMLElement | null>;
   /** Data attributes to spread on the transitioning element */
   transitionProps: {
-    'data-closed'?: string
-    'data-enter'?: string
-    'data-leave'?: string
-    'data-transition'?: string
-  }
+    'data-closed'?: string;
+    'data-enter'?: string;
+    'data-leave'?: string;
+    'data-transition'?: string;
+  };
 }
 
 /**
@@ -27,106 +27,106 @@ interface UseTransitionReturn {
  *  2. On transitionend: unmount
  */
 export function useTransition(show: boolean): UseTransitionReturn {
-  const nodeRef = useRef<HTMLElement | null>(null)
-  const [, setTick] = useState(0)
-  const rerender = useCallback(() => setTick((t) => t + 1), [])
+  const nodeRef = useRef<HTMLElement | null>(null);
+  const [, setTick] = useState(0);
+  const rerender = useCallback(() => setTick((t) => t + 1), []);
 
   // Phase tracks the transition state
   // Uses ref for synchronous access during rAF callbacks
   const phase = useRef<'hidden' | 'enter-from' | 'enter-to' | 'visible' | 'leave'>(
     show ? 'visible' : 'hidden',
-  )
+  );
 
-  const prevShow = useRef(show)
-  const cleanupRef = useRef<(() => void) | null>(null)
+  const prevShow = useRef(show);
+  const cleanupRef = useRef<(() => void) | null>(null);
 
   useEffect(() => {
     // Clean up previous transition
-    cleanupRef.current?.()
-    cleanupRef.current = null
+    cleanupRef.current?.();
+    cleanupRef.current = null;
 
     if (show && !prevShow.current) {
       // === ENTER ===
-      phase.current = 'enter-from'
-      rerender()
+      phase.current = 'enter-from';
+      rerender();
 
       const frame1 = requestAnimationFrame(() => {
         const frame2 = requestAnimationFrame(() => {
-          if (phase.current !== 'enter-from') return
-          phase.current = 'enter-to'
-          rerender()
+          if (phase.current !== 'enter-from') return;
+          phase.current = 'enter-to';
+          rerender();
 
-          const node = nodeRef.current
+          const node = nodeRef.current;
           if (!node) {
-            phase.current = 'visible'
-            rerender()
-            return
+            phase.current = 'visible';
+            rerender();
+            return;
           }
 
-          let cleaned = false
+          let cleaned = false;
           const done = () => {
-            if (cleaned) return
-            cleaned = true
-            phase.current = 'visible'
-            rerender()
-          }
+            if (cleaned) return;
+            cleaned = true;
+            phase.current = 'visible';
+            rerender();
+          };
 
-          node.addEventListener('transitionend', done, { once: true })
-          const fallback = setTimeout(done, 500)
+          node.addEventListener('transitionend', done, { once: true });
+          const fallback = setTimeout(done, 500);
 
           cleanupRef.current = () => {
-            cleaned = true
-            node.removeEventListener('transitionend', done)
-            clearTimeout(fallback)
-          }
-        })
+            cleaned = true;
+            node.removeEventListener('transitionend', done);
+            clearTimeout(fallback);
+          };
+        });
 
-        cleanupRef.current = () => cancelAnimationFrame(frame2)
-      })
+        cleanupRef.current = () => cancelAnimationFrame(frame2);
+      });
 
-      cleanupRef.current = () => cancelAnimationFrame(frame1)
+      cleanupRef.current = () => cancelAnimationFrame(frame1);
     } else if (!show && prevShow.current) {
       // === LEAVE ===
-      phase.current = 'leave'
-      rerender()
+      phase.current = 'leave';
+      rerender();
 
-      const node = nodeRef.current
+      const node = nodeRef.current;
       if (!node) {
-        phase.current = 'hidden'
-        rerender()
-        prevShow.current = show
-        return
+        phase.current = 'hidden';
+        rerender();
+        prevShow.current = show;
+        return;
       }
 
-      let cleaned = false
+      let cleaned = false;
       const done = () => {
-        if (cleaned) return
-        cleaned = true
-        phase.current = 'hidden'
-        rerender()
-      }
+        if (cleaned) return;
+        cleaned = true;
+        phase.current = 'hidden';
+        rerender();
+      };
 
-      node.addEventListener('transitionend', done, { once: true })
-      const fallback = setTimeout(done, 500)
+      node.addEventListener('transitionend', done, { once: true });
+      const fallback = setTimeout(done, 500);
 
       cleanupRef.current = () => {
-        cleaned = true
-        node.removeEventListener('transitionend', done)
-        clearTimeout(fallback)
-      }
+        cleaned = true;
+        node.removeEventListener('transitionend', done);
+        clearTimeout(fallback);
+      };
     }
 
-    prevShow.current = show
-  }, [show, rerender])
+    prevShow.current = show;
+  }, [show, rerender]);
 
   // Cleanup on unmount
   useEffect(() => {
     return () => {
-      cleanupRef.current?.()
-    }
-  }, [])
+      cleanupRef.current?.();
+    };
+  }, []);
 
-  const p = phase.current
+  const p = phase.current;
 
   return {
     mounted: p !== 'hidden',
@@ -137,5 +137,5 @@ export function useTransition(show: boolean): UseTransitionReturn {
       'data-leave': p === 'leave' ? '' : undefined,
       'data-transition': p === 'enter-from' || p === 'enter-to' || p === 'leave' ? '' : undefined,
     },
-  }
+  };
 }

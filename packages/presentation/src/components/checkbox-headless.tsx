@@ -1,9 +1,9 @@
-import clsx from 'clsx'
-import type React from 'react'
-import { useCallback } from 'react'
-import { useDataInteractive } from '../hooks/use-data-interactive.js'
-import { FieldProvider } from '../hooks/use-field-context.js'
-import { useToggle } from '../hooks/use-toggle.js'
+import clsx from 'clsx';
+import type React from 'react';
+import { useCallback } from 'react';
+import { useDataInteractive } from '../hooks/use-data-interactive.js';
+import { FieldProvider } from '../hooks/use-field-context.js';
+import { useToggle } from '../hooks/use-toggle.js';
 
 export function CheckboxGroup({ className, ...props }: React.ComponentPropsWithoutRef<'div'>) {
   return (
@@ -18,7 +18,7 @@ export function CheckboxGroup({ className, ...props }: React.ComponentPropsWitho
         'has-data-[slot=description]:space-y-6 has-data-[slot=description]:**:data-[slot=label]:font-medium',
       )}
     />
-  )
+  );
 }
 
 export function CheckboxField({
@@ -26,8 +26,8 @@ export function CheckboxField({
   disabled,
   ...props
 }: {
-  className?: string
-  disabled?: boolean
+  className?: string;
+  disabled?: boolean;
 } & Omit<React.ComponentPropsWithoutRef<'div'>, 'className'>) {
   return (
     <FieldProvider disabled={disabled}>
@@ -50,7 +50,7 @@ export function CheckboxField({
         )}
       />
     </FieldProvider>
-  )
+  );
 }
 
 const base = [
@@ -79,7 +79,7 @@ const base = [
   // Forced colors mode
   'forced-colors:[--checkbox-check:HighlightText] forced-colors:[--checkbox-checked-bg:Highlight] forced-colors:group-data-disabled:[--checkbox-check:Highlight]',
   'dark:forced-colors:[--checkbox-check:HighlightText] dark:forced-colors:[--checkbox-checked-bg:Highlight] dark:forced-colors:group-data-disabled:[--checkbox-check:Highlight]',
-]
+];
 
 const colors = {
   'dark/zinc': [
@@ -120,9 +120,9 @@ const colors = {
     '[--checkbox-check:var(--color-white)] [--checkbox-checked-bg:var(--color-fuchsia-500)] [--checkbox-checked-border:var(--color-fuchsia-600)]/90',
   pink: '[--checkbox-check:var(--color-white)] [--checkbox-checked-bg:var(--color-pink-500)] [--checkbox-checked-border:var(--color-pink-600)]/90',
   rose: '[--checkbox-check:var(--color-white)] [--checkbox-checked-bg:var(--color-rose-500)] [--checkbox-checked-border:var(--color-rose-600)]/90',
-}
+};
 
-type Color = keyof typeof colors
+type Color = keyof typeof colors;
 
 export function Checkbox({
   color = 'dark/zinc',
@@ -136,33 +136,33 @@ export function Checkbox({
   value,
   ...props
 }: {
-  color?: Color
-  className?: string
-  checked?: boolean
-  defaultChecked?: boolean
-  onChange?: (checked: boolean) => void
-  disabled?: boolean
-  indeterminate?: boolean
-  name?: string
-  value?: string
+  color?: Color;
+  className?: string;
+  checked?: boolean;
+  defaultChecked?: boolean;
+  onChange?: (checked: boolean) => void;
+  disabled?: boolean;
+  indeterminate?: boolean;
+  name?: string;
+  value?: string;
 } & Omit<React.ComponentPropsWithoutRef<'span'>, 'className' | 'onChange'>) {
   const { checked, toggleProps } = useToggle({
     checked: controlledChecked,
     defaultChecked,
     onChange,
     disabled,
-  })
-  const interactiveProps = useDataInteractive({ disabled })
+  });
+  const interactiveProps = useDataInteractive({ disabled });
 
   const handleKeyDown = useCallback(
     (e: React.KeyboardEvent) => {
       if (e.key === ' ') {
-        e.preventDefault()
-        toggleProps.onKeyDown(e)
+        e.preventDefault();
+        toggleProps.onKeyDown(e);
       }
     },
     [toggleProps],
-  )
+  );
 
   return (
     <span
@@ -206,5 +206,5 @@ export function Checkbox({
         </svg>
       </span>
     </span>
-  )
+  );
 }

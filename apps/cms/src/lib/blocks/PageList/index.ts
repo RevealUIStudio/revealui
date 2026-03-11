@@ -1,4 +1,4 @@
-import type { Block } from '@revealui/core'
+import type { Block } from '@revealui/core';
 
 const PageListField = {
   numberOfItems: 'numberOfItems',
@@ -6,7 +6,7 @@ const PageListField = {
   filterByTags: 'filterByTags',
   sortBy: 'sortBy',
   pages: 'pages',
-}
+};
 
 // TODO: filterByCategories and filterByTags currently point to 'pages'
 // because Categories and Tags collections don't exist yet.
@@ -41,4 +41,4 @@ export const PageList: Block = {
       options: [],
     },
   ],
-}
+};

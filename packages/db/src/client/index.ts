@@ -19,18 +19,18 @@
  * - Supabase: https://orm.drizzle.team/docs/tutorials/drizzle-with-supabase
  */
 
-import { neon } from '@neondatabase/serverless'
+import { neon } from '@neondatabase/serverless';
 // Import config module (ESM)
 // Config uses proxy for lazy loading, so import is safe - validation only happens on property access
 // Direct ESM import - the Proxy ensures no validation occurs until properties are accessed
-import configModule from '@revealui/config'
-import { getSSLConfig } from '@revealui/utils/database'
-import { drizzle as drizzleNeon, type NeonHttpDatabase } from 'drizzle-orm/neon-http'
-import { drizzle as drizzlePg, type NodePgDatabase } from 'drizzle-orm/node-postgres'
-import { Pool } from 'pg'
-import * as schema from '../schema/index.js' // Full schema for backward compatibility
-import * as restSchema from '../schema/rest.js'
-import * as vectorSchema from '../schema/vector.js'
+import configModule from '@revealui/config';
+import { getSSLConfig } from '@revealui/utils/database';
+import { drizzle as drizzleNeon, type NeonHttpDatabase } from 'drizzle-orm/neon-http';
+import { drizzle as drizzlePg, type NodePgDatabase } from 'drizzle-orm/node-postgres';
+import { Pool } from 'pg';
+import * as schema from '../schema/index.js'; // Full schema for backward compatibility
+import * as restSchema from '../schema/rest.js';
+import * as vectorSchema from '../schema/vector.js';
 
 // Monitoring integration is handled by the application layer to avoid
 // circular dependency (db <-> core)
@@ -39,13 +39,13 @@ import * as vectorSchema from '../schema/vector.js'
 // This matches the type from @revealui/core/monitoring
 export interface PoolMetrics {
   /** Total connections in pool */
-  totalCount: number
+  totalCount: number;
   /** Idle connections */
-  idleCount: number
+  idleCount: number;
   /** Waiting requests */
-  waitingCount: number
+  waitingCount: number;
   /** Pool name/identifier */
-  name: string
+  name: string;
 }
 
 // =============================================================================
@@ -57,7 +57,7 @@ export interface PoolMetrics {
  * - 'rest': NeonDB for transactional REST API operations
  * - 'vector': Supabase for vector search operations
  */
-export type DatabaseType = 'rest' | 'vector'
+export type DatabaseType = 'rest' | 'vector';
 
 /**
  * Database client type (Drizzle ORM client)
@@ -68,11 +68,11 @@ export type DatabaseType = 'rest' | 'vector'
  * Note: This is a union type to support both Neon (REST) and Postgres (Vector) drivers.
  * The actual type will be NeonHttpDatabase for REST and PgDatabase for Vector.
  */
-export type Database = NeonHttpDatabase<typeof schema> | NodePgDatabase<typeof schema>
+export type Database = NeonHttpDatabase<typeof schema> | NodePgDatabase<typeof schema>;
 
 export interface DatabaseConfig {
-  connectionString: string
-  logger?: boolean
+  connectionString: string;
+  logger?: boolean;
 }
 
 // =============================================================================
@@ -112,7 +112,7 @@ function isSupabaseConnection(connectionString: string): boolean {
     connectionString.includes('pooler.supabase.com') ||
     connectionString.includes('localhost') ||
     connectionString.includes('127.0.0.1')
-  )
+  );
 }
 
 /**
@@ -151,7 +151,7 @@ export function createClient(
   config: DatabaseConfig,
   dbSchema: typeof restSchema | typeof vectorSchema | typeof schema = schema,
 ): Database {
-  const isSupabase = isSupabaseConnection(config.connectionString)
+  const isSupabase = isSupabaseConnection(config.connectionString);
 
   if (isSupabase) {
     // Use pg for Supabase connections
@@ -162,27 +162,27 @@ export function createClient(
       max: 10, // Connection limit
       idleTimeoutMillis: 30_000, // 30 seconds
       connectionTimeoutMillis: 10_000, // 10 seconds
-    })
+    });
 
     // Track pool and register cleanup
-    const poolId = `pool-${activePools.size + 1}`
-    activePools.set(poolId, pool)
-    registerPoolCleanup()
+    const poolId = `pool-${activePools.size + 1}`;
+    activePools.set(poolId, pool);
+    registerPoolCleanup();
 
     return drizzlePg({
       client: pool,
       schema: dbSchema,
       logger: config.logger ?? false,
-    }) as Database
+    }) as Database;
   } else {
     // Use Neon serverless driver for NeonDB connections
-    const sql = neon(config.connectionString)
+    const sql = neon(config.connectionString);
 
     return drizzleNeon({
       client: sql,
       schema: dbSchema,
       logger: config.logger ?? false,
-    }) as Database
+    }) as Database;
   }
 }
 
@@ -190,16 +190,16 @@ export function createClient(
 // Global Client (for singleton usage)
 // =============================================================================
 
-let restClient: Database | null = null
-let vectorClient: Database | null = null
+let restClient: Database | null = null;
+let vectorClient: Database | null = null;
 
 // Track all pg.Pool instances for monitoring and cleanup
-const activePools: Map<string, Pool> = new Map()
+const activePools: Map<string, Pool> = new Map();
 
 // Register cleanup handler
-let cleanupHandlerRegistered = false
+let cleanupHandlerRegistered = false;
 function registerPoolCleanup() {
-  if (cleanupHandlerRegistered) return
+  if (cleanupHandlerRegistered) return;
 
   // Monitoring integration removed to avoid circular dependency
   // Application layer should handle cleanup registration instead
@@ -215,7 +215,7 @@ function registerPoolCleanup() {
   //   )
   // }
 
-  cleanupHandlerRegistered = true
+  cleanupHandlerRegistered = true;
 }
 
 /**
@@ -245,22 +245,22 @@ export function getClient(typeOrConnectionString?: DatabaseType | string): Datab
   if (typeOrConnectionString && typeof typeOrConnectionString === 'string') {
     if (typeOrConnectionString === 'rest' || typeOrConnectionString === 'vector') {
       // New API: Type specified
-      const type = typeOrConnectionString as DatabaseType
-      return getClientByType(type)
+      const type = typeOrConnectionString as DatabaseType;
+      return getClientByType(type);
     } else if (
       typeOrConnectionString.startsWith('postgresql://') ||
       typeOrConnectionString.startsWith('postgres://')
     ) {
       // Legacy API: Connection string provided, use as REST client
       if (!restClient) {
-        restClient = createClient({ connectionString: typeOrConnectionString })
+        restClient = createClient({ connectionString: typeOrConnectionString });
       }
-      return restClient
+      return restClient;
     }
   }
 
   // Default to 'rest' for backward compatibility
-  return getClientByType('rest')
+  return getClientByType('rest');
 }
 
 /**
@@ -269,45 +269,45 @@ export function getClient(typeOrConnectionString?: DatabaseType | string): Datab
 function getClientByType(type: DatabaseType): Database {
   if (type === 'vector') {
     if (!vectorClient) {
-      const url = process.env.DATABASE_URL
+      const url = process.env.DATABASE_URL;
       if (!url || typeof url !== 'string') {
         throw new Error(
           'DATABASE_URL environment variable is required for vector database. ' +
             'Set DATABASE_URL to your Supabase connection string.',
-        )
+        );
       }
-      vectorClient = createClient({ connectionString: url }, vectorSchema)
+      vectorClient = createClient({ connectionString: url }, vectorSchema);
     }
-    return vectorClient
+    return vectorClient;
   }
 
   // type === 'rest'
   if (!restClient) {
     // Try to get from config module (ESM - lazy validation via Proxy)
-    let url: string | undefined
+    let url: string | undefined;
     try {
-      const configUrl = configModule.database?.url
+      const configUrl = configModule.database?.url;
       if (typeof configUrl === 'string') {
-        url = configUrl
+        url = configUrl;
       }
     } catch {
       // Config validation failed or module unavailable - will use process.env fallback
-      url = undefined
+      url = undefined;
     }
 
     // Fallback to process.env (use || to also catch empty strings)
-    url = url || process.env.POSTGRES_URL || process.env.DATABASE_URL
+    url = url || process.env.POSTGRES_URL || process.env.DATABASE_URL;
 
     if (!url || typeof url !== 'string') {
       throw new Error(
         'Database connection string not provided for REST database. ' +
           'Either use @revealui/config, or set POSTGRES_URL (or DATABASE_URL) environment variable.',
-      )
+      );
     }
 
-    restClient = createClient({ connectionString: url }, restSchema)
+    restClient = createClient({ connectionString: url }, restSchema);
   }
-  return restClient
+  return restClient;
 }
 
 /**
@@ -323,7 +323,7 @@ function getClientByType(type: DatabaseType): Database {
  * ```
  */
 export function getRestClient(): Database {
-  return getClient('rest')
+  return getClient('rest');
 }
 
 /**
@@ -339,7 +339,7 @@ export function getRestClient(): Database {
  * ```
  */
 export function getVectorClient(): Database {
-  return getClient('vector')
+  return getClient('vector');
 }
 
 /**
@@ -347,8 +347,8 @@ export function getVectorClient(): Database {
  * Clears both REST and Vector client instances.
  */
 export function resetClient(): void {
-  restClient = null
-  vectorClient = null
+  restClient = null;
+  vectorClient = null;
 }
 
 // =============================================================================
@@ -372,7 +372,7 @@ export function resetClient(): void {
  * ```
  */
 export function getPoolMetrics(): PoolMetrics[] {
-  const metrics: PoolMetrics[] = []
+  const metrics: PoolMetrics[] = [];
 
   for (const [name, pool] of activePools) {
     metrics.push({
@@ -380,10 +380,10 @@ export function getPoolMetrics(): PoolMetrics[] {
       totalCount: pool.totalCount,
       idleCount: pool.idleCount,
       waitingCount: pool.waitingCount,
-    })
+    });
   }
 
-  return metrics
+  return metrics;
 }
 
 /**
@@ -401,7 +401,7 @@ export function getPoolMetrics(): PoolMetrics[] {
  * ```
  */
 export async function closeAllPools(): Promise<void> {
-  const closePromises: Promise<void>[] = []
+  const closePromises: Promise<void>[] = [];
 
   for (const [_name, pool] of activePools) {
     closePromises.push(
@@ -409,15 +409,15 @@ export async function closeAllPools(): Promise<void> {
         // Silently handle pool close errors during shutdown
         // Pool is being removed from activePools regardless
       }),
-    )
+    );
   }
 
-  await Promise.all(closePromises)
-  activePools.clear()
+  await Promise.all(closePromises);
+  activePools.clear();
 
   // Reset global clients
-  restClient = null
-  vectorClient = null
+  restClient = null;
+  vectorClient = null;
 }
 
 // =============================================================================
@@ -466,7 +466,7 @@ export async function withTransaction<T>(
 ): Promise<T> {
   // Check if this is a pg Pool-based client (supports transactions)
   // The pg Pool client has a 'transaction' method from drizzle-orm/node-postgres
-  const hasPgTransaction = 'transaction' in db && typeof db.transaction === 'function'
+  const hasPgTransaction = 'transaction' in db && typeof db.transaction === 'function';
 
   if (!hasPgTransaction) {
     throw new Error(
@@ -474,21 +474,21 @@ export async function withTransaction<T>(
         'To use transactions, configure your database with Supabase or localhost connection string. ' +
         'Neon HTTP driver uses stateless requests and cannot maintain transaction state. ' +
         'See docs/PRODUCTION_BLOCKERS.md for migration guide.',
-    )
+    );
   }
 
   // Use Drizzle's built-in transaction API
   // This automatically handles BEGIN/COMMIT/ROLLBACK
   return (db as NodePgDatabase<typeof schema>).transaction(
     fn as (tx: NodePgDatabase<typeof schema>) => Promise<T>,
-  )
+  );
 }
 
 // =============================================================================
 // Re-exports
 // =============================================================================
 
-export { schema }
+export { schema };
 // Re-export individual table types
 export type {
   AgentAction,
@@ -525,7 +525,7 @@ export type {
   Site,
   SiteCollaborator,
   User,
-} from '../schema/index.js'
+} from '../schema/index.js';
 // Re-export type utilities
 export type {
   Database as DatabaseSchema,
@@ -535,4 +535,4 @@ export type {
   RelatedTables,
   TableRelationships,
   Transaction,
-} from './types.js'
+} from './types.js';

@@ -9,23 +9,23 @@
  * - Labels CRUD + assignment
  */
 
-import { createRoute, OpenAPIHono, z } from '@hono/zod-openapi'
-import { TICKET_PRIORITIES, TICKET_STATUSES, TICKET_TYPES } from '@revealui/contracts/entities'
-import type { DatabaseClient } from '@revealui/db/client'
-import * as boardQueries from '@revealui/db/queries/boards'
-import * as commentQueries from '@revealui/db/queries/ticket-comments'
-import * as labelQueries from '@revealui/db/queries/ticket-labels'
-import * as ticketQueries from '@revealui/db/queries/tickets'
-import { HTTPException } from 'hono/http-exception'
+import { createRoute, OpenAPIHono, z } from '@hono/zod-openapi';
+import { TICKET_PRIORITIES, TICKET_STATUSES, TICKET_TYPES } from '@revealui/contracts/entities';
+import type { DatabaseClient } from '@revealui/db/client';
+import * as boardQueries from '@revealui/db/queries/boards';
+import * as commentQueries from '@revealui/db/queries/ticket-comments';
+import * as labelQueries from '@revealui/db/queries/ticket-labels';
+import * as ticketQueries from '@revealui/db/queries/tickets';
+import { HTTPException } from 'hono/http-exception';
 
 type Variables = {
-  db: DatabaseClient
-  tenant?: { id: string }
-  user?: { id: string; role: string }
-}
+  db: DatabaseClient;
+  tenant?: { id: string };
+  user?: { id: string; role: string };
+};
 
 // biome-ignore lint/style/useNamingConvention: Hono requires Variables key
-const app = new OpenAPIHono<{ Variables: Variables }>()
+const app = new OpenAPIHono<{ Variables: Variables }>();
 
 /**
  * Enforce tenant isolation on a board: if a tenant context is present in the
@@ -37,7 +37,7 @@ function assertBoardTenantAccess(
   tenant: { id: string } | undefined,
 ): void {
   if (tenant && board.tenantId && board.tenantId !== tenant.id) {
-    throw new HTTPException(403, { message: 'Access denied for this tenant' })
+    throw new HTTPException(403, { message: 'Access denied for this tenant' });
   }
 }
 
@@ -50,12 +50,12 @@ async function assertBoardAccess(
   boardId: string,
   c: { get: (key: string) => unknown },
 ): Promise<void> {
-  const board = await boardQueries.getBoardById(db, boardId)
-  if (!board) throw new HTTPException(404, { message: 'Board not found' })
-  assertBoardTenantAccess(board, c.get('tenant') as { id: string } | undefined)
-  const user = c.get('user') as { id: string; role: string } | undefined
+  const board = await boardQueries.getBoardById(db, boardId);
+  if (!board) throw new HTTPException(404, { message: 'Board not found' });
+  assertBoardTenantAccess(board, c.get('tenant') as { id: string } | undefined);
+  const user = c.get('user') as { id: string; role: string } | undefined;
   if (board.ownerId && board.ownerId !== user?.id && user?.role !== 'admin') {
-    throw new HTTPException(403, { message: 'Forbidden' })
+    throw new HTTPException(403, { message: 'Forbidden' });
   }
 }
 
@@ -68,10 +68,10 @@ async function assertTicketAccess(
   ticketId: string,
   c: { get: (key: string) => unknown },
 ): Promise<NonNullable<Awaited<ReturnType<typeof ticketQueries.getTicketById>>>> {
-  const ticket = await ticketQueries.getTicketById(db, ticketId)
-  if (!ticket) throw new HTTPException(404, { message: 'Ticket not found' })
-  await assertBoardAccess(db, ticket.boardId, c)
-  return ticket
+  const ticket = await ticketQueries.getTicketById(db, ticketId);
+  if (!ticket) throw new HTTPException(404, { message: 'Ticket not found' });
+  await assertBoardAccess(db, ticket.boardId, c);
+  return ticket;
 }
 
 // =============================================================================
@@ -83,19 +83,19 @@ const IdParam = z.object({
     param: { name: 'id', in: 'path' },
     example: '550e8400-e29b-41d4-a716-446655440000',
   }),
-})
+});
 
 const BoardIdParam = z.object({
   boardId: z.string().openapi({
     param: { name: 'boardId', in: 'path' },
     example: 'board-001',
   }),
-})
+});
 
 const ErrorSchema = z.object({
   success: z.literal(false),
   error: z.string(),
-})
+});
 
 const BoardSchema = z
   .object({
@@ -109,7 +109,7 @@ const BoardSchema = z
     createdAt: z.string().openapi({ type: 'string', format: 'date-time' }),
     updatedAt: z.string().openapi({ type: 'string', format: 'date-time' }),
   })
-  .openapi('Board')
+  .openapi('Board');
 
 const ColumnSchema = z
   .object({
@@ -124,7 +124,7 @@ const ColumnSchema = z
     createdAt: z.string().openapi({ type: 'string', format: 'date-time' }),
     updatedAt: z.string().openapi({ type: 'string', format: 'date-time' }),
   })
-  .openapi('BoardColumn')
+  .openapi('BoardColumn');
 
 const TicketSchema = z
   .object({
@@ -150,7 +150,7 @@ const TicketSchema = z
     createdAt: z.string().openapi({ type: 'string', format: 'date-time' }),
     updatedAt: z.string().openapi({ type: 'string', format: 'date-time' }),
   })
-  .openapi('Ticket')
+  .openapi('Ticket');
 
 const CommentSchema = z
   .object({
@@ -161,7 +161,7 @@ const CommentSchema = z
     createdAt: z.string().openapi({ type: 'string', format: 'date-time' }),
     updatedAt: z.string().openapi({ type: 'string', format: 'date-time' }),
   })
-  .openapi('TicketComment')
+  .openapi('TicketComment');
 
 const LabelSchema = z
   .object({
@@ -174,7 +174,7 @@ const LabelSchema = z
     createdAt: z.string().openapi({ type: 'string', format: 'date-time' }),
     updatedAt: z.string().openapi({ type: 'string', format: 'date-time' }),
   })
-  .openapi('TicketLabel')
+  .openapi('TicketLabel');
 
 // =============================================================================
 // Board Routes
@@ -199,12 +199,12 @@ app.openapi(
     },
   }),
   async (c) => {
-    const db = c.get('db')
-    const tenant = c.get('tenant')
-    const boards = await boardQueries.getAllBoards(db, tenant?.id)
-    return c.json({ success: true as const, data: boards })
+    const db = c.get('db');
+    const tenant = c.get('tenant');
+    const boards = await boardQueries.getAllBoards(db, tenant?.id);
+    return c.json({ success: true as const, data: boards });
   },
-)
+);
 
 // POST /boards
 app.openapi(
@@ -237,20 +237,20 @@ app.openapi(
     },
   }),
   async (c) => {
-    const db = c.get('db')
-    const tenant = c.get('tenant')
-    const user = c.get('user') as { id: string } | undefined
-    const body = c.req.valid('json')
+    const db = c.get('db');
+    const tenant = c.get('tenant');
+    const user = c.get('user') as { id: string } | undefined;
+    const body = c.req.valid('json');
     const board = await boardQueries.createBoard(db, {
       id: crypto.randomUUID(),
       ...body,
       ownerId: user?.id,
       tenantId: tenant?.id,
-    })
+    });
     // biome-ignore lint/style/noNonNullAssertion: createBoard always returns the created row
-    return c.json({ success: true as const, data: board! }, 201)
+    return c.json({ success: true as const, data: board! }, 201);
   },
-)
+);
 
 // GET /boards/:id
 app.openapi(
@@ -271,18 +271,18 @@ app.openapi(
     },
   }),
   async (c) => {
-    const db = c.get('db')
-    const { id } = c.req.valid('param')
-    const board = await boardQueries.getBoardById(db, id)
-    if (!board) return c.json({ success: false as const, error: 'Board not found' }, 404)
-    assertBoardTenantAccess(board, c.get('tenant'))
-    const user = c.get('user')
+    const db = c.get('db');
+    const { id } = c.req.valid('param');
+    const board = await boardQueries.getBoardById(db, id);
+    if (!board) return c.json({ success: false as const, error: 'Board not found' }, 404);
+    assertBoardTenantAccess(board, c.get('tenant'));
+    const user = c.get('user');
     if (board.ownerId && board.ownerId !== user?.id && user?.role !== 'admin') {
-      throw new HTTPException(403, { message: 'Forbidden' })
+      throw new HTTPException(403, { message: 'Forbidden' });
     }
-    return c.json({ success: true as const, data: board }, 200)
+    return c.json({ success: true as const, data: board }, 200);
   },
-)
+);
 
 // PATCH /boards/:id
 app.openapi(
@@ -316,21 +316,21 @@ app.openapi(
     },
   }),
   async (c) => {
-    const db = c.get('db')
-    const { id } = c.req.valid('param')
-    const body = c.req.valid('json')
-    const existing = await boardQueries.getBoardById(db, id)
-    if (!existing) return c.json({ success: false as const, error: 'Board not found' }, 404)
-    assertBoardTenantAccess(existing, c.get('tenant'))
-    const user = c.get('user')
+    const db = c.get('db');
+    const { id } = c.req.valid('param');
+    const body = c.req.valid('json');
+    const existing = await boardQueries.getBoardById(db, id);
+    if (!existing) return c.json({ success: false as const, error: 'Board not found' }, 404);
+    assertBoardTenantAccess(existing, c.get('tenant'));
+    const user = c.get('user');
     if (existing.ownerId && existing.ownerId !== user?.id) {
-      throw new HTTPException(403, { message: 'Forbidden' })
+      throw new HTTPException(403, { message: 'Forbidden' });
     }
-    const board = await boardQueries.updateBoard(db, id, body)
-    if (!board) return c.json({ success: false as const, error: 'Board not found' }, 404)
-    return c.json({ success: true as const, data: board }, 200)
+    const board = await boardQueries.updateBoard(db, id, body);
+    if (!board) return c.json({ success: false as const, error: 'Board not found' }, 404);
+    return c.json({ success: true as const, data: board }, 200);
   },
-)
+);
 
 // DELETE /boards/:id
 app.openapi(
@@ -352,18 +352,18 @@ app.openapi(
     },
   }),
   async (c) => {
-    const db = c.get('db')
-    const { id } = c.req.valid('param')
-    const board = await boardQueries.getBoardById(db, id)
-    if (!board) throw new HTTPException(404, { message: 'Board not found' })
-    const user = c.get('user')
+    const db = c.get('db');
+    const { id } = c.req.valid('param');
+    const board = await boardQueries.getBoardById(db, id);
+    if (!board) throw new HTTPException(404, { message: 'Board not found' });
+    const user = c.get('user');
     if (board.ownerId && board.ownerId !== user?.id) {
-      throw new HTTPException(403, { message: 'Forbidden' })
+      throw new HTTPException(403, { message: 'Forbidden' });
     }
-    await boardQueries.deleteBoard(db, id)
-    return c.json({ success: true as const, message: 'Board deleted' })
+    await boardQueries.deleteBoard(db, id);
+    return c.json({ success: true as const, message: 'Board deleted' });
   },
-)
+);
 
 // GET /boards/:boardId/columns
 app.openapi(
@@ -385,13 +385,13 @@ app.openapi(
     },
   }),
   async (c) => {
-    const db = c.get('db')
-    const { boardId } = c.req.valid('param')
-    await assertBoardAccess(db, boardId, c)
-    const columns = await boardQueries.getColumnsByBoard(db, boardId)
-    return c.json({ success: true as const, data: columns })
+    const db = c.get('db');
+    const { boardId } = c.req.valid('param');
+    await assertBoardAccess(db, boardId, c);
+    const columns = await boardQueries.getColumnsByBoard(db, boardId);
+    return c.json({ success: true as const, data: columns });
   },
-)
+);
 
 // POST /boards/:boardId/columns
 app.openapi(
@@ -428,19 +428,19 @@ app.openapi(
     },
   }),
   async (c) => {
-    const db = c.get('db')
-    const { boardId } = c.req.valid('param')
-    const body = c.req.valid('json')
-    await assertBoardAccess(db, boardId, c)
+    const db = c.get('db');
+    const { boardId } = c.req.valid('param');
+    const body = c.req.valid('json');
+    await assertBoardAccess(db, boardId, c);
     const column = await boardQueries.createColumn(db, {
       id: crypto.randomUUID(),
       boardId,
       ...body,
-    })
+    });
     // biome-ignore lint/style/noNonNullAssertion: createColumn always returns the created row
-    return c.json({ success: true as const, data: column! }, 201)
+    return c.json({ success: true as const, data: column! }, 201);
   },
-)
+);
 
 // PATCH /columns/:id
 app.openapi(
@@ -478,22 +478,22 @@ app.openapi(
     },
   }),
   async (c) => {
-    const db = c.get('db')
-    const { id } = c.req.valid('param')
-    const body = c.req.valid('json')
-    const existing = await boardQueries.getColumnById(db, id)
-    if (!existing) return c.json({ success: false as const, error: 'Column not found' }, 404)
-    const board = await boardQueries.getBoardById(db, existing.boardId)
-    assertBoardTenantAccess(board ?? {}, c.get('tenant'))
-    const user = c.get('user')
+    const db = c.get('db');
+    const { id } = c.req.valid('param');
+    const body = c.req.valid('json');
+    const existing = await boardQueries.getColumnById(db, id);
+    if (!existing) return c.json({ success: false as const, error: 'Column not found' }, 404);
+    const board = await boardQueries.getBoardById(db, existing.boardId);
+    assertBoardTenantAccess(board ?? {}, c.get('tenant'));
+    const user = c.get('user');
     if (board?.ownerId && board.ownerId !== user?.id) {
-      throw new HTTPException(403, { message: 'Forbidden' })
+      throw new HTTPException(403, { message: 'Forbidden' });
     }
-    const column = await boardQueries.updateColumn(db, id, body)
-    if (!column) return c.json({ success: false as const, error: 'Column not found' }, 404)
-    return c.json({ success: true as const, data: column }, 200)
+    const column = await boardQueries.updateColumn(db, id, body);
+    if (!column) return c.json({ success: false as const, error: 'Column not found' }, 404);
+    return c.json({ success: true as const, data: column }, 200);
   },
-)
+);
 
 // DELETE /columns/:id
 app.openapi(
@@ -515,20 +515,20 @@ app.openapi(
     },
   }),
   async (c) => {
-    const db = c.get('db')
-    const { id } = c.req.valid('param')
-    const existing = await boardQueries.getColumnById(db, id)
-    if (!existing) throw new HTTPException(404, { message: 'Column not found' })
-    const board = await boardQueries.getBoardById(db, existing.boardId)
-    assertBoardTenantAccess(board ?? {}, c.get('tenant'))
-    const user = c.get('user')
+    const db = c.get('db');
+    const { id } = c.req.valid('param');
+    const existing = await boardQueries.getColumnById(db, id);
+    if (!existing) throw new HTTPException(404, { message: 'Column not found' });
+    const board = await boardQueries.getBoardById(db, existing.boardId);
+    assertBoardTenantAccess(board ?? {}, c.get('tenant'));
+    const user = c.get('user');
     if (board?.ownerId && board.ownerId !== user?.id) {
-      throw new HTTPException(403, { message: 'Forbidden' })
+      throw new HTTPException(403, { message: 'Forbidden' });
     }
-    await boardQueries.deleteColumn(db, id)
-    return c.json({ success: true as const, message: 'Column deleted' })
+    await boardQueries.deleteColumn(db, id);
+    return c.json({ success: true as const, message: 'Column deleted' });
   },
-)
+);
 
 // =============================================================================
 // Ticket Routes
@@ -572,20 +572,20 @@ app.openapi(
     },
   }),
   async (c) => {
-    const db = c.get('db')
-    const { boardId } = c.req.valid('param')
-    const filters = c.req.valid('query')
-    const board = await boardQueries.getBoardById(db, boardId)
-    if (!board) throw new HTTPException(404, { message: 'Board not found' })
-    assertBoardTenantAccess(board, c.get('tenant'))
-    const user = c.get('user')
+    const db = c.get('db');
+    const { boardId } = c.req.valid('param');
+    const filters = c.req.valid('query');
+    const board = await boardQueries.getBoardById(db, boardId);
+    if (!board) throw new HTTPException(404, { message: 'Board not found' });
+    assertBoardTenantAccess(board, c.get('tenant'));
+    const user = c.get('user');
     if (board.ownerId && board.ownerId !== user?.id && user?.role !== 'admin') {
-      throw new HTTPException(403, { message: 'Forbidden' })
+      throw new HTTPException(403, { message: 'Forbidden' });
     }
-    const tickets = await ticketQueries.getTicketsByBoard(db, boardId, filters)
-    return c.json({ success: true as const, data: tickets })
+    const tickets = await ticketQueries.getTicketsByBoard(db, boardId, filters);
+    return c.json({ success: true as const, data: tickets });
   },
-)
+);
 
 // POST /boards/:boardId/tickets
 app.openapi(
@@ -628,20 +628,20 @@ app.openapi(
     },
   }),
   async (c) => {
-    const db = c.get('db')
-    const { boardId } = c.req.valid('param')
-    const body = c.req.valid('json')
-    await assertBoardAccess(db, boardId, c)
+    const db = c.get('db');
+    const { boardId } = c.req.valid('param');
+    const body = c.req.valid('json');
+    await assertBoardAccess(db, boardId, c);
     const ticket = await ticketQueries.createTicket(db, {
       id: crypto.randomUUID(),
       boardId,
       ...body,
       dueDate: body.dueDate ? new Date(body.dueDate) : undefined,
-    })
+    });
     // biome-ignore lint/style/noNonNullAssertion: createTicket always returns the created row
-    return c.json({ success: true as const, data: ticket! }, 201)
+    return c.json({ success: true as const, data: ticket! }, 201);
   },
-)
+);
 
 // GET /tickets/:id
 app.openapi(
@@ -664,12 +664,12 @@ app.openapi(
     },
   }),
   async (c) => {
-    const db = c.get('db')
-    const { id } = c.req.valid('param')
-    const ticket = await assertTicketAccess(db, id, c)
-    return c.json({ success: true as const, data: ticket }, 200)
+    const db = c.get('db');
+    const { id } = c.req.valid('param');
+    const ticket = await assertTicketAccess(db, id, c);
+    return c.json({ success: true as const, data: ticket }, 200);
   },
-)
+);
 
 // PATCH /tickets/:id
 app.openapi(
@@ -713,18 +713,18 @@ app.openapi(
     },
   }),
   async (c) => {
-    const db = c.get('db')
-    const { id } = c.req.valid('param')
-    const body = c.req.valid('json')
-    await assertTicketAccess(db, id, c)
+    const db = c.get('db');
+    const { id } = c.req.valid('param');
+    const body = c.req.valid('json');
+    await assertTicketAccess(db, id, c);
     const ticket = await ticketQueries.updateTicket(db, id, {
       ...body,
       dueDate: body.dueDate === null ? null : body.dueDate ? new Date(body.dueDate) : undefined,
-    })
-    if (!ticket) return c.json({ success: false as const, error: 'Ticket not found' }, 404)
-    return c.json({ success: true as const, data: ticket }, 200)
+    });
+    if (!ticket) return c.json({ success: false as const, error: 'Ticket not found' }, 404);
+    return c.json({ success: true as const, data: ticket }, 200);
   },
-)
+);
 
 // DELETE /tickets/:id
 app.openapi(
@@ -746,13 +746,13 @@ app.openapi(
     },
   }),
   async (c) => {
-    const db = c.get('db')
-    const { id } = c.req.valid('param')
-    await assertTicketAccess(db, id, c)
-    await ticketQueries.deleteTicket(db, id)
-    return c.json({ success: true as const, message: 'Ticket deleted' })
+    const db = c.get('db');
+    const { id } = c.req.valid('param');
+    await assertTicketAccess(db, id, c);
+    await ticketQueries.deleteTicket(db, id);
+    return c.json({ success: true as const, message: 'Ticket deleted' });
   },
-)
+);
 
 // POST /tickets/:id/move — kanban drag-and-drop
 app.openapi(
@@ -787,15 +787,15 @@ app.openapi(
     },
   }),
   async (c) => {
-    const db = c.get('db')
-    const { id } = c.req.valid('param')
-    await assertTicketAccess(db, id, c)
-    const { columnId, sortOrder } = c.req.valid('json')
-    const ticket = await ticketQueries.moveTicket(db, id, columnId, sortOrder)
-    if (!ticket) return c.json({ success: false as const, error: 'Ticket not found' }, 404)
-    return c.json({ success: true as const, data: ticket }, 200)
+    const db = c.get('db');
+    const { id } = c.req.valid('param');
+    await assertTicketAccess(db, id, c);
+    const { columnId, sortOrder } = c.req.valid('json');
+    const ticket = await ticketQueries.moveTicket(db, id, columnId, sortOrder);
+    if (!ticket) return c.json({ success: false as const, error: 'Ticket not found' }, 404);
+    return c.json({ success: true as const, data: ticket }, 200);
   },
-)
+);
 
 // GET /tickets/:id/subtasks
 app.openapi(
@@ -817,13 +817,13 @@ app.openapi(
     },
   }),
   async (c) => {
-    const db = c.get('db')
-    const { id } = c.req.valid('param')
-    await assertTicketAccess(db, id, c)
-    const subtasks = await ticketQueries.getSubtickets(db, id)
-    return c.json({ success: true as const, data: subtasks })
+    const db = c.get('db');
+    const { id } = c.req.valid('param');
+    await assertTicketAccess(db, id, c);
+    const subtasks = await ticketQueries.getSubtickets(db, id);
+    return c.json({ success: true as const, data: subtasks });
   },
-)
+);
 
 // =============================================================================
 // Comment Routes
@@ -849,13 +849,13 @@ app.openapi(
     },
   }),
   async (c) => {
-    const db = c.get('db')
-    const { id } = c.req.valid('param')
-    await assertTicketAccess(db, id, c)
-    const comments = await commentQueries.getCommentsByTicket(db, id)
-    return c.json({ success: true as const, data: comments })
+    const db = c.get('db');
+    const { id } = c.req.valid('param');
+    await assertTicketAccess(db, id, c);
+    const comments = await commentQueries.getCommentsByTicket(db, id);
+    return c.json({ success: true as const, data: comments });
   },
-)
+);
 
 // POST /tickets/:id/comments
 app.openapi(
@@ -889,22 +889,22 @@ app.openapi(
     },
   }),
   async (c) => {
-    const db = c.get('db')
-    const { id: ticketId } = c.req.valid('param')
-    const body = c.req.valid('json')
-    const user = c.get('user')
-    await assertTicketAccess(db, ticketId, c)
+    const db = c.get('db');
+    const { id: ticketId } = c.req.valid('param');
+    const body = c.req.valid('json');
+    const user = c.get('user');
+    await assertTicketAccess(db, ticketId, c);
     // Force authorId to session user — never trust client-supplied authorId
     const comment = await commentQueries.createComment(db, {
       id: crypto.randomUUID(),
       ticketId,
       ...body,
       authorId: user?.id,
-    })
+    });
     // biome-ignore lint/style/noNonNullAssertion: createComment always returns the created row
-    return c.json({ success: true as const, data: comment! }, 201)
+    return c.json({ success: true as const, data: comment! }, 201);
   },
-)
+);
 
 // PATCH /comments/:id
 app.openapi(
@@ -936,21 +936,21 @@ app.openapi(
     },
   }),
   async (c) => {
-    const db = c.get('db')
-    const { id } = c.req.valid('param')
-    const data = c.req.valid('json')
-    const existing = await commentQueries.getCommentById(db, id)
-    if (!existing) return c.json({ success: false as const, error: 'Comment not found' }, 404)
-    await assertTicketAccess(db, existing.ticketId, c)
-    const user = c.get('user')
+    const db = c.get('db');
+    const { id } = c.req.valid('param');
+    const data = c.req.valid('json');
+    const existing = await commentQueries.getCommentById(db, id);
+    if (!existing) return c.json({ success: false as const, error: 'Comment not found' }, 404);
+    await assertTicketAccess(db, existing.ticketId, c);
+    const user = c.get('user');
     if (existing.authorId && existing.authorId !== user?.id && user?.role !== 'admin') {
-      throw new HTTPException(403, { message: 'Forbidden' })
+      throw new HTTPException(403, { message: 'Forbidden' });
     }
-    const comment = await commentQueries.updateComment(db, id, data)
-    if (!comment) return c.json({ success: false as const, error: 'Comment not found' }, 404)
-    return c.json({ success: true as const, data: comment }, 200)
+    const comment = await commentQueries.updateComment(db, id, data);
+    if (!comment) return c.json({ success: false as const, error: 'Comment not found' }, 404);
+    return c.json({ success: true as const, data: comment }, 200);
   },
-)
+);
 
 // DELETE /comments/:id
 app.openapi(
@@ -972,19 +972,19 @@ app.openapi(
     },
   }),
   async (c) => {
-    const db = c.get('db')
-    const { id } = c.req.valid('param')
-    const existing = await commentQueries.getCommentById(db, id)
-    if (!existing) throw new HTTPException(404, { message: 'Comment not found' })
-    await assertTicketAccess(db, existing.ticketId, c)
-    const user = c.get('user')
+    const db = c.get('db');
+    const { id } = c.req.valid('param');
+    const existing = await commentQueries.getCommentById(db, id);
+    if (!existing) throw new HTTPException(404, { message: 'Comment not found' });
+    await assertTicketAccess(db, existing.ticketId, c);
+    const user = c.get('user');
     if (existing.authorId && existing.authorId !== user?.id && user?.role !== 'admin') {
-      throw new HTTPException(403, { message: 'Forbidden' })
+      throw new HTTPException(403, { message: 'Forbidden' });
     }
-    await commentQueries.deleteComment(db, id)
-    return c.json({ success: true as const, message: 'Comment deleted' })
+    await commentQueries.deleteComment(db, id);
+    return c.json({ success: true as const, message: 'Comment deleted' });
   },
-)
+);
 
 // =============================================================================
 // Label Routes
@@ -1009,12 +1009,12 @@ app.openapi(
     },
   }),
   async (c) => {
-    const db = c.get('db')
-    const tenant = c.get('tenant')
-    const labels = await labelQueries.getAllLabels(db, tenant?.id)
-    return c.json({ success: true as const, data: labels })
+    const db = c.get('db');
+    const tenant = c.get('tenant');
+    const labels = await labelQueries.getAllLabels(db, tenant?.id);
+    return c.json({ success: true as const, data: labels });
   },
-)
+);
 
 // POST /labels
 app.openapi(
@@ -1047,18 +1047,18 @@ app.openapi(
     },
   }),
   async (c) => {
-    const db = c.get('db')
-    const tenant = c.get('tenant')
-    const body = c.req.valid('json')
+    const db = c.get('db');
+    const tenant = c.get('tenant');
+    const body = c.req.valid('json');
     const label = await labelQueries.createLabel(db, {
       id: crypto.randomUUID(),
       ...body,
       tenantId: tenant?.id,
-    })
+    });
     // biome-ignore lint/style/noNonNullAssertion: createLabel always returns the created row
-    return c.json({ success: true as const, data: label! }, 201)
+    return c.json({ success: true as const, data: label! }, 201);
   },
-)
+);
 
 // PATCH /labels/:id
 app.openapi(
@@ -1093,20 +1093,20 @@ app.openapi(
     },
   }),
   async (c) => {
-    const db = c.get('db')
-    const { id } = c.req.valid('param')
-    const body = c.req.valid('json')
-    const existing = await labelQueries.getLabelById(db, id)
-    if (!existing) return c.json({ success: false as const, error: 'Label not found' }, 404)
-    const tenant = c.get('tenant')
+    const db = c.get('db');
+    const { id } = c.req.valid('param');
+    const body = c.req.valid('json');
+    const existing = await labelQueries.getLabelById(db, id);
+    if (!existing) return c.json({ success: false as const, error: 'Label not found' }, 404);
+    const tenant = c.get('tenant');
     if (tenant && existing.tenantId && existing.tenantId !== tenant.id) {
-      throw new HTTPException(403, { message: 'Access denied for this tenant' })
+      throw new HTTPException(403, { message: 'Access denied for this tenant' });
     }
-    const label = await labelQueries.updateLabel(db, id, body)
-    if (!label) return c.json({ success: false as const, error: 'Label not found' }, 404)
-    return c.json({ success: true as const, data: label }, 200)
+    const label = await labelQueries.updateLabel(db, id, body);
+    if (!label) return c.json({ success: false as const, error: 'Label not found' }, 404);
+    return c.json({ success: true as const, data: label }, 200);
   },
-)
+);
 
 // DELETE /labels/:id
 app.openapi(
@@ -1128,18 +1128,18 @@ app.openapi(
     },
   }),
   async (c) => {
-    const db = c.get('db')
-    const { id } = c.req.valid('param')
-    const existing = await labelQueries.getLabelById(db, id)
-    if (!existing) throw new HTTPException(404, { message: 'Label not found' })
-    const tenant = c.get('tenant')
+    const db = c.get('db');
+    const { id } = c.req.valid('param');
+    const existing = await labelQueries.getLabelById(db, id);
+    if (!existing) throw new HTTPException(404, { message: 'Label not found' });
+    const tenant = c.get('tenant');
     if (tenant && existing.tenantId && existing.tenantId !== tenant.id) {
-      throw new HTTPException(403, { message: 'Access denied for this tenant' })
+      throw new HTTPException(403, { message: 'Access denied for this tenant' });
     }
-    await labelQueries.deleteLabel(db, id)
-    return c.json({ success: true as const, message: 'Label deleted' })
+    await labelQueries.deleteLabel(db, id);
+    return c.json({ success: true as const, message: 'Label deleted' });
   },
-)
+);
 
 // POST /tickets/:id/labels
 app.openapi(
@@ -1173,17 +1173,17 @@ app.openapi(
     },
   }),
   async (c) => {
-    const db = c.get('db')
-    const { id: ticketId } = c.req.valid('param')
-    const { labelId } = c.req.valid('json')
-    await assertTicketAccess(db, ticketId, c)
+    const db = c.get('db');
+    const { id: ticketId } = c.req.valid('param');
+    const { labelId } = c.req.valid('json');
+    await assertTicketAccess(db, ticketId, c);
     const assignment = await labelQueries.assignLabel(db, {
       id: crypto.randomUUID(),
       ticketId,
       labelId,
-    })
+    });
     if (!assignment) {
-      throw new Error('Failed to assign label')
+      throw new Error('Failed to assign label');
     }
     return c.json(
       {
@@ -1191,9 +1191,9 @@ app.openapi(
         data: { id: assignment.id, ticketId: assignment.ticketId, labelId: assignment.labelId },
       },
       201,
-    )
+    );
   },
-)
+);
 
 // DELETE /tickets/:id/labels/:labelId
 app.openapi(
@@ -1220,13 +1220,13 @@ app.openapi(
     },
   }),
   async (c) => {
-    const db = c.get('db')
-    const { id: ticketId, labelId } = c.req.valid('param')
-    await assertTicketAccess(db, ticketId, c)
-    await labelQueries.removeLabel(db, ticketId, labelId)
-    return c.json({ success: true as const, message: 'Label removed from ticket' })
+    const db = c.get('db');
+    const { id: ticketId, labelId } = c.req.valid('param');
+    await assertTicketAccess(db, ticketId, c);
+    await labelQueries.removeLabel(db, ticketId, labelId);
+    return c.json({ success: true as const, message: 'Label removed from ticket' });
   },
-)
+);
 
 // GET /tickets/:id/labels
 app.openapi(
@@ -1248,12 +1248,12 @@ app.openapi(
     },
   }),
   async (c) => {
-    const db = c.get('db')
-    const { id } = c.req.valid('param')
-    await assertTicketAccess(db, id, c)
-    const labels = await labelQueries.getLabelsForTicket(db, id)
-    return c.json({ success: true as const, data: labels })
+    const db = c.get('db');
+    const { id } = c.req.valid('param');
+    await assertTicketAccess(db, id, c);
+    const labels = await labelQueries.getLabelsForTicket(db, id);
+    return c.json({ success: true as const, data: labels });
   },
-)
+);
 
-export default app
+export default app;

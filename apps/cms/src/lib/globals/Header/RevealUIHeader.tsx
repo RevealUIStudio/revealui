@@ -1,17 +1,17 @@
-'use client'
+'use client';
 
-import Image from 'next/image'
-import { ButtonLink, PlainButtonLink } from '@/components/revealui/elements'
+import Image from 'next/image';
+import { ButtonLink, PlainButtonLink } from '@/components/revealui/elements';
 import {
   NavbarLink,
   NavbarLogo,
   NavbarWithLinksActionsAndCenteredLogo,
-} from '@/components/revealui/sections'
-import { getLinkLabel, getLinkUrl } from '@/lib/utilities/revealui-helpers'
-import type { HeaderType } from './Component'
+} from '@/components/revealui/sections';
+import { getLinkLabel, getLinkUrl } from '@/lib/utilities/revealui-helpers';
+import type { HeaderType } from './Component';
 
 interface RevealUIHeaderProps {
-  header: HeaderType
+  header: HeaderType;
 }
 
 /**
@@ -21,19 +21,19 @@ export function RevealUIHeader({ header }: RevealUIHeaderProps) {
   return (
     <NavbarWithLinksActionsAndCenteredLogo
       links={header.navItems?.map((item, idx) => {
-        const href = getLinkUrl(item.link)
-        const label = getLinkLabel(item.link)
+        const href = getLinkUrl(item.link);
+        const label = getLinkLabel(item.link);
 
         // Handle newTab - Next.js Link supports target and rel
         const linkProps = item.link.newTab
           ? { target: '_blank', rel: 'noopener noreferrer' as const }
-          : {}
+          : {};
 
         return (
           <NavbarLink key={item.id || idx} href={href} {...linkProps}>
             {label}
           </NavbarLink>
-        )
+        );
       })}
       logo={
         <NavbarLogo href="/">
@@ -62,5 +62,5 @@ export function RevealUIHeader({ header }: RevealUIHeaderProps) {
         </>
       }
     />
-  )
+  );
 }

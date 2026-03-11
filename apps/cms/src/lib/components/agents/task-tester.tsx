@@ -1,16 +1,16 @@
-'use client'
+'use client';
 
-import type { A2ATask } from '@revealui/contracts'
-import Link from 'next/link'
-import { useEffect, useState } from 'react'
+import type { A2ATask } from '@revealui/contracts';
+import Link from 'next/link';
+import { useEffect, useState } from 'react';
 
 interface TaskTesterProps {
-  agentId: string
-  agentName: string
-  onComplete?: () => void
+  agentId: string;
+  agentName: string;
+  onComplete?: () => void;
 }
 
-type TesterState = 'idle' | 'submitting' | 'polling' | 'done' | 'error'
+type TesterState = 'idle' | 'submitting' | 'polling' | 'done' | 'error';
 
 /**
  * Interactive task tester for an A2A agent.
@@ -18,43 +18,43 @@ type TesterState = 'idle' | 'submitting' | 'polling' | 'done' | 'error'
  * Fetches the BYOK key from the server at call time — key is never stored in client state.
  */
 export function TaskTester({ agentId, agentName, onComplete }: TaskTesterProps) {
-  const [instruction, setInstruction] = useState('')
-  const [state, setState] = useState<TesterState>('idle')
-  const [task, setTask] = useState<A2ATask | null>(null)
-  const [errorMsg, setErrorMsg] = useState<string | null>(null)
-  const [byokProvider, setByokProvider] = useState<string | null>(null)
+  const [instruction, setInstruction] = useState('');
+  const [state, setState] = useState<TesterState>('idle');
+  const [task, setTask] = useState<A2ATask | null>(null);
+  const [errorMsg, setErrorMsg] = useState<string | null>(null);
+  const [byokProvider, setByokProvider] = useState<string | null>(null);
 
-  const apiUrl = (process.env.NEXT_PUBLIC_API_URL ?? 'https://api.revealui.com').trim()
+  const apiUrl = (process.env.NEXT_PUBLIC_API_URL ?? 'https://api.revealui.com').trim();
 
   // Check if BYOK is configured by fetching metadata (no plaintext key)
   useEffect(() => {
     fetch('/api/user/api-keys')
       .then((r) => (r.ok ? r.json() : null))
       .then((data: { provider: string } | null) => {
-        setByokProvider(data?.provider ?? null)
+        setByokProvider(data?.provider ?? null);
       })
       .catch(() => {
         // BYOK key check is optional — missing key handled downstream
-      })
-  }, [])
+      });
+  }, []);
 
   async function submit() {
-    if (!instruction.trim()) return
-    setState('submitting')
-    setTask(null)
-    setErrorMsg(null)
+    if (!instruction.trim()) return;
+    setState('submitting');
+    setTask(null);
+    setErrorMsg(null);
 
     // Fetch the decrypted key from the server at call time only — never stored in state
     const headers: Record<string, string> = {
       'Content-Type': 'application/json',
       'X-Agent-ID': agentId,
-    }
+    };
     try {
-      const keyRes = await fetch('/api/user/api-keys/value')
+      const keyRes = await fetch('/api/user/api-keys/value');
       if (keyRes.ok) {
-        const keyData = (await keyRes.json()) as { provider: string; key: string }
-        headers['X-AI-Provider'] = keyData.provider
-        headers['X-AI-Api-Key'] = keyData.key
+        const keyData = (await keyRes.json()) as { provider: string; key: string };
+        headers['X-AI-Provider'] = keyData.provider;
+        headers['X-AI-Api-Key'] = keyData.key;
       }
     } catch {
       // No key configured — proceed without BYOK headers
@@ -76,27 +76,27 @@ export function TaskTester({ agentId, agentName, onComplete }: TaskTesterProps) 
             },
           },
         }),
-      })
+      });
 
       const json = (await res.json()) as {
-        result?: A2ATask
-        error?: { code: number; message: string }
-      }
+        result?: A2ATask;
+        error?: { code: number; message: string };
+      };
 
       if (json.error) {
-        setErrorMsg(json.error.message)
-        setState('error')
-        return
+        setErrorMsg(json.error.message);
+        setState('error');
+        return;
       }
 
       if (json.result) {
-        setTask(json.result)
-        setState('done')
-        onComplete?.()
+        setTask(json.result);
+        setState('done');
+        onComplete?.();
       }
     } catch (e: unknown) {
-      setErrorMsg(e instanceof Error ? e.message : 'Request failed')
-      setState('error')
+      setErrorMsg(e instanceof Error ? e.message : 'Request failed');
+      setState('error');
     }
   }
 
@@ -109,7 +109,7 @@ export function TaskTester({ agentId, agentName, onComplete }: TaskTesterProps) 
       .filter((p) => p.type === 'text')
       .map((p) => ('text' in p ? p.text : ''))
       .join('\n') ??
-    null
+    null;
 
   return (
     <div className="flex flex-col gap-4">
@@ -186,7 +186,7 @@ export function TaskTester({ agentId, agentName, onComplete }: TaskTesterProps) 
         </div>
       )}
     </div>
-  )
+  );
 }
 
 function TaskStateBadge({ state }: { state: string }) {
@@ -198,9 +198,9 @@ function TaskStateBadge({ state }: { state: string }) {
     canceled: { label: 'Canceled', color: 'bg-zinc-600 text-zinc-400' },
     failed: { label: 'Failed', color: 'bg-red-500/10 text-red-400' },
     unknown: { label: 'Unknown', color: 'bg-zinc-700 text-zinc-400' },
-  }
-  const cfg = configs[state] ?? { label: state, color: 'bg-zinc-700 text-zinc-300' }
+  };
+  const cfg = configs[state] ?? { label: state, color: 'bg-zinc-700 text-zinc-300' };
   return (
     <span className={`rounded-full px-2 py-0.5 text-xs font-medium ${cfg.color}`}>{cfg.label}</span>
-  )
+  );
 }

@@ -1,44 +1,44 @@
-import type { ComponentType, ReactNode } from 'react'
+import type { ComponentType, ReactNode } from 'react';
 
 /**
  * Route configuration
  */
 export interface Route<TData = unknown, TProps = Record<string, unknown>> {
   /** Route path pattern (e.g., '/', '/about', '/posts/:id') */
-  path: string
+  path: string;
   /** Component to render for this route */
-  component: ComponentType<TProps>
+  component: ComponentType<TProps>;
   /** Optional layout component */
-  layout?: ComponentType<{ children: ReactNode }>
+  layout?: ComponentType<{ children: ReactNode }>;
   /** Optional data loader function */
-  loader?: (params: RouteParams) => Promise<TData> | TData
+  loader?: (params: RouteParams) => Promise<TData> | TData;
   /** Optional metadata */
-  meta?: RouteMeta
+  meta?: RouteMeta;
 }
 
 /**
  * Route parameters extracted from URL
  */
 export interface RouteParams {
-  [key: string]: string
+  [key: string]: string;
 }
 
 /**
  * Route metadata (for SEO, etc.)
  */
 export interface RouteMeta {
-  title?: string
-  description?: string
-  [key: string]: unknown
+  title?: string;
+  description?: string;
+  [key: string]: unknown;
 }
 
 /**
  * Matched route result
  */
 export interface RouteMatch<TData = unknown> {
-  route: Route<TData>
-  params: RouteParams
-  data?: TData
+  route: Route<TData>;
+  params: RouteParams;
+  data?: TData;
 }
 
 /**
@@ -46,11 +46,11 @@ export interface RouteMatch<TData = unknown> {
  */
 export interface RouterOptions {
   /** Base URL path */
-  basePath?: string
+  basePath?: string;
   /** 404 component */
-  notFound?: ComponentType
+  notFound?: ComponentType;
   /** Error boundary component */
-  errorBoundary?: ComponentType<{ error: Error }>
+  errorBoundary?: ComponentType<{ error: Error }>;
 }
 
 /**
@@ -58,7 +58,7 @@ export interface RouterOptions {
  */
 export interface NavigateOptions<TState = unknown> {
   /** Replace current history entry instead of pushing */
-  replace?: boolean
+  replace?: boolean;
   /** State to pass with navigation */
-  state?: TState
+  state?: TState;
 }

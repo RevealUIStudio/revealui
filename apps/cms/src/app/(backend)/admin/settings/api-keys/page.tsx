@@ -1,15 +1,15 @@
-'use client'
+'use client';
 
-import { useEffect, useState } from 'react'
-import { LicenseGate } from '@/lib/components/LicenseGate'
+import { useEffect, useState } from 'react';
+import { LicenseGate } from '@/lib/components/LicenseGate';
 
-type Provider = 'anthropic' | 'groq'
+type Provider = 'anthropic' | 'groq';
 
 interface ProviderInfo {
-  id: Provider
-  label: string
-  placeholder: string
-  docsUrl: string
+  id: Provider;
+  label: string;
+  placeholder: string;
+  docsUrl: string;
 }
 
 const PROVIDERS: ProviderInfo[] = [
@@ -25,15 +25,15 @@ const PROVIDERS: ProviderInfo[] = [
     placeholder: 'gsk_...',
     docsUrl: 'https://console.groq.com/keys',
   },
-]
+];
 
 export default function ApiKeysPage() {
-  const [provider, setProvider] = useState<Provider>('anthropic')
-  const [apiKey, setApiKey] = useState('')
-  const [showKey, setShowKey] = useState(false)
-  const [saved, setSaved] = useState(false)
-  const [currentProvider, setCurrentProvider] = useState<string | null>(null)
-  const [currentKeyHint, setCurrentKeyHint] = useState<string | null>(null)
+  const [provider, setProvider] = useState<Provider>('anthropic');
+  const [apiKey, setApiKey] = useState('');
+  const [showKey, setShowKey] = useState(false);
+  const [saved, setSaved] = useState(false);
+  const [currentProvider, setCurrentProvider] = useState<string | null>(null);
+  const [currentKeyHint, setCurrentKeyHint] = useState<string | null>(null);
 
   // Load existing key metadata from server on mount
   useEffect(() => {
@@ -41,41 +41,41 @@ export default function ApiKeysPage() {
       .then((r) => (r.ok ? r.json() : null))
       .then((data: { provider: string; keyHint: string | null } | null) => {
         if (data) {
-          setCurrentProvider(data.provider as Provider)
-          setCurrentKeyHint(data.keyHint)
+          setCurrentProvider(data.provider as Provider);
+          setCurrentKeyHint(data.keyHint);
         }
       })
       .catch(() => {
         // Swallow fetch errors — API key metadata is non-critical
-      })
-  }, [])
+      });
+  }, []);
 
   async function handleSave() {
-    if (!apiKey.trim()) return
+    if (!apiKey.trim()) return;
     const res = await fetch('/api/user/api-keys', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ provider, key: apiKey.trim() }),
-    })
+    });
     if (res.ok) {
-      const data = (await res.json()) as { provider: string; keyHint: string }
-      setCurrentProvider(data.provider)
-      setCurrentKeyHint(data.keyHint)
-      setApiKey('')
-      setSaved(true)
-      setTimeout(() => setSaved(false), 2000)
+      const data = (await res.json()) as { provider: string; keyHint: string };
+      setCurrentProvider(data.provider);
+      setCurrentKeyHint(data.keyHint);
+      setApiKey('');
+      setSaved(true);
+      setTimeout(() => setSaved(false), 2000);
     }
   }
 
   async function handleClear() {
-    await fetch('/api/user/api-keys', { method: 'DELETE' })
-    setApiKey('')
-    setCurrentProvider(null)
-    setCurrentKeyHint(null)
-    setSaved(false)
+    await fetch('/api/user/api-keys', { method: 'DELETE' });
+    setApiKey('');
+    setCurrentProvider(null);
+    setCurrentKeyHint(null);
+    setSaved(false);
   }
 
-  const activeProviderInfo = PROVIDERS.find((p) => p.id === provider)
+  const activeProviderInfo = PROVIDERS.find((p) => p.id === provider);
 
   return (
     <LicenseGate feature="ai">
@@ -182,5 +182,5 @@ export default function ApiKeysPage() {
         </div>
       </div>
     </LicenseGate>
-  )
+  );
 }

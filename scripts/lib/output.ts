@@ -23,54 +23,54 @@
  * - scripts/lib/logger.ts - Colored console logging utilities
  */
 
-import { createLogger, type Logger } from './logger.js'
+import { createLogger, type Logger } from './logger.js';
 
 // =============================================================================
 // Types
 // =============================================================================
 
-export type OutputMode = 'human' | 'json'
+export type OutputMode = 'human' | 'json';
 
 export interface ScriptOutput<T = unknown> {
   /** Whether the operation succeeded */
-  success: boolean
+  success: boolean;
   /** Result data (if successful) */
-  data?: T
+  data?: T;
   /** Error information (if failed) */
-  error?: OutputErrorInfo
+  error?: OutputErrorInfo;
   /** Optional metadata about the operation */
-  metadata?: OutputMetadata
+  metadata?: OutputMetadata;
 }
 
 export interface OutputErrorInfo {
   /** Error code (maps to exit code) */
-  code: string
+  code: string;
   /** Human-readable error message */
-  message: string
+  message: string;
   /** Additional error details */
-  details?: Record<string, unknown>
+  details?: Record<string, unknown>;
 }
 
 export interface OutputMetadata {
   /** Operation duration in milliseconds */
-  duration?: number
+  duration?: number;
   /** ISO timestamp of operation */
-  timestamp?: string
+  timestamp?: string;
   /** Number of items processed */
-  count?: number
+  count?: number;
   /** Additional metadata */
-  [key: string]: unknown
+  [key: string]: unknown;
 }
 
 export interface OutputHandlerOptions {
   /** Output mode: 'human' for colored output, 'json' for machine-readable */
-  mode: OutputMode
+  mode: OutputMode;
   /** Logger options for human mode */
-  loggerPrefix?: string
+  loggerPrefix?: string;
   /** Whether to include timestamps in human output */
-  timestamps?: boolean
+  timestamps?: boolean;
   /** Stream to write JSON output to (default: stdout) */
-  jsonStream?: NodeJS.WritableStream
+  jsonStream?: NodeJS.WritableStream;
 }
 
 // =============================================================================
@@ -81,38 +81,38 @@ export interface OutputHandlerOptions {
  * Dual-mode output handler for CLI scripts
  */
 export class OutputHandler {
-  private mode: OutputMode
-  private logger: Logger
-  private jsonStream: NodeJS.WritableStream
-  private startTime: number
+  private mode: OutputMode;
+  private logger: Logger;
+  private jsonStream: NodeJS.WritableStream;
+  private startTime: number;
 
   constructor(options: OutputHandlerOptions | OutputMode) {
-    const opts = typeof options === 'string' ? { mode: options } : options
+    const opts = typeof options === 'string' ? { mode: options } : options;
 
-    this.mode = opts.mode
-    this.jsonStream = opts.jsonStream ?? process.stdout
-    this.startTime = Date.now()
+    this.mode = opts.mode;
+    this.jsonStream = opts.jsonStream ?? process.stdout;
+    this.startTime = Date.now();
 
     // In JSON mode, suppress all logger output
     this.logger = createLogger({
       level: opts.mode === 'json' ? 'silent' : 'info',
       prefix: opts.loggerPrefix,
       timestamps: opts.timestamps,
-    })
+    });
   }
 
   /**
    * Get the current output mode
    */
   getMode(): OutputMode {
-    return this.mode
+    return this.mode;
   }
 
   /**
    * Check if in JSON mode
    */
   isJsonMode(): boolean {
-    return this.mode === 'json'
+    return this.mode === 'json';
   }
 
   /**
@@ -120,7 +120,7 @@ export class OutputHandler {
    */
   progress(message: string): void {
     if (this.mode === 'human') {
-      this.logger.info(message)
+      this.logger.info(message);
     }
   }
 
@@ -129,7 +129,7 @@ export class OutputHandler {
    */
   debug(message: string): void {
     if (this.mode === 'human') {
-      this.logger.debug(message)
+      this.logger.debug(message);
     }
   }
 
@@ -138,7 +138,7 @@ export class OutputHandler {
    */
   warn(message: string): void {
     if (this.mode === 'human') {
-      this.logger.warn(message)
+      this.logger.warn(message);
     }
   }
 
@@ -147,7 +147,7 @@ export class OutputHandler {
    */
   progressBar(current: number, total: number, label?: string): void {
     if (this.mode === 'human') {
-      this.logger.progress(current, total, label)
+      this.logger.progress(current, total, label);
     }
   }
 
@@ -156,7 +156,7 @@ export class OutputHandler {
    */
   header(title: string): void {
     if (this.mode === 'human') {
-      this.logger.header(title)
+      this.logger.header(title);
     }
   }
 
@@ -165,7 +165,7 @@ export class OutputHandler {
    */
   divider(): void {
     if (this.mode === 'human') {
-      this.logger.divider()
+      this.logger.divider();
     }
   }
 
@@ -184,12 +184,12 @@ export class OutputHandler {
         timestamp: new Date().toISOString(),
         ...output.metadata,
       },
-    }
+    };
 
     if (this.mode === 'json') {
-      this.outputJson(enriched)
+      this.outputJson(enriched);
     } else {
-      this.outputHuman(enriched)
+      this.outputHuman(enriched);
     }
   }
 
@@ -197,14 +197,14 @@ export class OutputHandler {
    * Output a successful result
    */
   success<T>(data: T, metadata?: OutputMetadata): void {
-    this.result({ success: true, data, metadata })
+    this.result({ success: true, data, metadata });
   }
 
   /**
    * Output an error result
    */
   error(error: OutputErrorInfo, metadata?: OutputMetadata): void {
-    this.result({ success: false, error, metadata })
+    this.result({ success: false, error, metadata });
   }
 
   /**
@@ -212,15 +212,15 @@ export class OutputHandler {
    */
   data<T>(items: T[], options?: { format?: 'table' | 'list' }): void {
     if (this.mode === 'json') {
-      this.outputJson({ success: true, data: items })
+      this.outputJson({ success: true, data: items });
     } else if (options?.format === 'table' && Array.isArray(items) && items.length > 0) {
-      this.logger.table(items as Record<string, unknown>[])
+      this.logger.table(items as Record<string, unknown>[]);
     } else {
       for (const item of items) {
         if (typeof item === 'object' && item !== null) {
-          console.log(formatObject(item as Record<string, unknown>))
+          console.log(formatObject(item as Record<string, unknown>));
         } else {
-          console.log(String(item))
+          console.log(String(item));
         }
       }
     }
@@ -230,7 +230,7 @@ export class OutputHandler {
    * Get the underlying logger (for advanced human-mode output)
    */
   getLogger(): Logger {
-    return this.logger
+    return this.logger;
   }
 
   // ===========================================================================
@@ -238,7 +238,7 @@ export class OutputHandler {
   // ===========================================================================
 
   private outputJson<T>(output: ScriptOutput<T>): void {
-    this.jsonStream.write(`${JSON.stringify(output, null, 2)}\n`)
+    this.jsonStream.write(`${JSON.stringify(output, null, 2)}\n`);
   }
 
   private outputHuman<T>(output: ScriptOutput<T>): void {
@@ -247,25 +247,25 @@ export class OutputHandler {
         if (typeof output.data === 'object' && output.data !== null) {
           if (Array.isArray(output.data)) {
             for (const item of output.data) {
-              console.log(formatObject(item as Record<string, unknown>))
+              console.log(formatObject(item as Record<string, unknown>));
             }
           } else {
-            console.log(formatObject(output.data as Record<string, unknown>))
+            console.log(formatObject(output.data as Record<string, unknown>));
           }
         } else {
-          console.log(output.data)
+          console.log(output.data);
         }
       }
       if (output.metadata?.duration) {
-        this.logger.success(`Completed in ${output.metadata.duration}ms`)
+        this.logger.success(`Completed in ${output.metadata.duration}ms`);
       } else {
-        this.logger.success('Completed')
+        this.logger.success('Completed');
       }
     } else if (output.error) {
-      this.logger.error(`${output.error.message}`)
+      this.logger.error(`${output.error.message}`);
       if (output.error.details) {
         for (const [key, value] of Object.entries(output.error.details)) {
-          this.logger.error(`  ${key}: ${value}`)
+          this.logger.error(`  ${key}: ${value}`);
         }
       }
     }
@@ -280,23 +280,23 @@ export class OutputHandler {
  * Format an object for human-readable output
  */
 function formatObject(obj: Record<string, unknown>, indent = 0): string {
-  const pad = '  '.repeat(indent)
-  const lines: string[] = []
+  const pad = '  '.repeat(indent);
+  const lines: string[] = [];
 
   for (const [key, value] of Object.entries(obj)) {
-    if (value === undefined) continue
+    if (value === undefined) continue;
 
     if (typeof value === 'object' && value !== null && !Array.isArray(value)) {
-      lines.push(`${pad}${key}:`)
-      lines.push(formatObject(value as Record<string, unknown>, indent + 1))
+      lines.push(`${pad}${key}:`);
+      lines.push(formatObject(value as Record<string, unknown>, indent + 1));
     } else if (Array.isArray(value)) {
-      lines.push(`${pad}${key}: [${value.length} items]`)
+      lines.push(`${pad}${key}: [${value.length} items]`);
     } else {
-      lines.push(`${pad}${key}: ${value}`)
+      lines.push(`${pad}${key}: ${value}`);
     }
   }
 
-  return lines.join('\n')
+  return lines.join('\n');
 }
 
 // =============================================================================
@@ -313,14 +313,14 @@ export function createOutput(
   return new OutputHandler({
     mode: flags.json ? 'json' : 'human',
     ...options,
-  })
+  });
 }
 
 /**
  * Create a result object for success
  */
 export function ok<T>(data: T, metadata?: OutputMetadata): ScriptOutput<T> {
-  return { success: true, data, metadata }
+  return { success: true, data, metadata };
 }
 
 /**
@@ -334,5 +334,5 @@ export function fail(
   return {
     success: false,
     error: { code, message, details },
-  }
+  };
 }

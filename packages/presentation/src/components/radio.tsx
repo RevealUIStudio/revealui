@@ -1,24 +1,24 @@
-import clsx from 'clsx'
-import type React from 'react'
-import { createContext, use, useCallback } from 'react'
-import { useControllableState } from '../hooks/use-controllable-state.js'
-import { useDataInteractive } from '../hooks/use-data-interactive.js'
-import { FieldProvider } from '../hooks/use-field-context.js'
+import clsx from 'clsx';
+import type React from 'react';
+import { createContext, use, useCallback } from 'react';
+import { useControllableState } from '../hooks/use-controllable-state.js';
+import { useDataInteractive } from '../hooks/use-data-interactive.js';
+import { FieldProvider } from '../hooks/use-field-context.js';
 
 // --- RadioGroup Context ---
 interface RadioGroupContextValue {
-  value: string | undefined
-  onChange: (value: string) => void
-  disabled: boolean
-  name?: string
+  value: string | undefined;
+  onChange: (value: string) => void;
+  disabled: boolean;
+  name?: string;
 }
 
-const RadioGroupContext = createContext<RadioGroupContextValue | null>(null)
+const RadioGroupContext = createContext<RadioGroupContextValue | null>(null);
 
 function useRadioGroupContext() {
-  const ctx = use(RadioGroupContext)
-  if (!ctx) throw new Error('Radio must be used within a RadioGroup')
-  return ctx
+  const ctx = use(RadioGroupContext);
+  if (!ctx) throw new Error('Radio must be used within a RadioGroup');
+  return ctx;
 }
 
 // --- RadioGroup ---
@@ -32,63 +32,63 @@ export function RadioGroup({
   children,
   ...props
 }: {
-  className?: string
-  value?: string
-  defaultValue?: string
-  onChange?: (value: string) => void
-  disabled?: boolean
-  name?: string
-  children: React.ReactNode
+  className?: string;
+  value?: string;
+  defaultValue?: string;
+  onChange?: (value: string) => void;
+  disabled?: boolean;
+  name?: string;
+  children: React.ReactNode;
 } & Omit<React.ComponentPropsWithoutRef<'div'>, 'className' | 'onChange'>) {
   const [value, setValue] = useControllableState({
     value: controlledValue,
     defaultValue: defaultValue ?? '',
     onChange,
-  })
+  });
 
   const handleKeyDown = useCallback(
     (e: React.KeyboardEvent<HTMLDivElement>) => {
       const radios = Array.from(
         e.currentTarget.querySelectorAll<HTMLElement>('[role="radio"]:not([data-disabled])'),
-      )
-      if (radios.length === 0) return
+      );
+      if (radios.length === 0) return;
 
-      const currentIndex = radios.indexOf(document.activeElement as HTMLElement)
-      let nextIndex = currentIndex
+      const currentIndex = radios.indexOf(document.activeElement as HTMLElement);
+      let nextIndex = currentIndex;
 
       switch (e.key) {
         case 'ArrowDown':
         case 'ArrowRight':
-          e.preventDefault()
-          nextIndex = currentIndex + 1 >= radios.length ? 0 : currentIndex + 1
-          break
+          e.preventDefault();
+          nextIndex = currentIndex + 1 >= radios.length ? 0 : currentIndex + 1;
+          break;
         case 'ArrowUp':
         case 'ArrowLeft':
-          e.preventDefault()
-          nextIndex = currentIndex - 1 < 0 ? radios.length - 1 : currentIndex - 1
-          break
+          e.preventDefault();
+          nextIndex = currentIndex - 1 < 0 ? radios.length - 1 : currentIndex - 1;
+          break;
         case 'Home':
-          e.preventDefault()
-          nextIndex = 0
-          break
+          e.preventDefault();
+          nextIndex = 0;
+          break;
         case 'End':
-          e.preventDefault()
-          nextIndex = radios.length - 1
-          break
+          e.preventDefault();
+          nextIndex = radios.length - 1;
+          break;
         default:
-          return
+          return;
       }
 
-      const nextRadio = radios[nextIndex]
-      if (!nextRadio) return
-      nextRadio.focus()
-      const radioValue = nextRadio.getAttribute('data-value')
+      const nextRadio = radios[nextIndex];
+      if (!nextRadio) return;
+      nextRadio.focus();
+      const radioValue = nextRadio.getAttribute('data-value');
       if (radioValue != null) {
-        setValue(radioValue)
+        setValue(radioValue);
       }
     },
     [setValue],
-  )
+  );
 
   return (
     <RadioGroupContext value={{ value, onChange: setValue, disabled, name }}>
@@ -108,7 +108,7 @@ export function RadioGroup({
         {children}
       </div>
     </RadioGroupContext>
-  )
+  );
 }
 
 // --- RadioField ---
@@ -117,8 +117,8 @@ export function RadioField({
   disabled,
   ...props
 }: {
-  className?: string
-  disabled?: boolean
+  className?: string;
+  disabled?: boolean;
 } & Omit<React.ComponentPropsWithoutRef<'div'>, 'className'>) {
   return (
     <FieldProvider disabled={disabled}>
@@ -141,7 +141,7 @@ export function RadioField({
         )}
       />
     </FieldProvider>
-  )
+  );
 }
 
 // --- Radio ---
@@ -172,7 +172,7 @@ const base = [
   'group-data-disabled:opacity-50',
   'group-data-disabled:border-zinc-950/25 group-data-disabled:bg-zinc-950/5 group-data-disabled:[--radio-checked-indicator:var(--color-zinc-950)]/50 group-data-disabled:before:bg-transparent',
   'dark:group-data-disabled:border-white/20 dark:group-data-disabled:bg-white/2.5 dark:group-data-disabled:[--radio-checked-indicator:var(--color-white)]/50 dark:group-data-checked:group-data-disabled:after:hidden',
-]
+];
 
 const radioColors = {
   'dark/zinc': [
@@ -213,9 +213,9 @@ const radioColors = {
     '[--radio-checked-indicator:var(--color-white)] [--radio-checked-bg:var(--color-fuchsia-500)] [--radio-checked-border:var(--color-fuchsia-600)]/90',
   pink: '[--radio-checked-indicator:var(--color-white)] [--radio-checked-bg:var(--color-pink-500)] [--radio-checked-border:var(--color-pink-600)]/90',
   rose: '[--radio-checked-indicator:var(--color-white)] [--radio-checked-bg:var(--color-rose-500)] [--radio-checked-border:var(--color-rose-600)]/90',
-}
+};
 
-type Color = keyof typeof radioColors
+type Color = keyof typeof radioColors;
 
 export function Radio({
   color = 'dark/zinc',
@@ -224,21 +224,21 @@ export function Radio({
   disabled: localDisabled,
   ...props
 }: {
-  color?: Color
-  className?: string
-  value: string
-  disabled?: boolean
+  color?: Color;
+  className?: string;
+  value: string;
+  disabled?: boolean;
 } & Omit<React.ComponentPropsWithoutRef<'span'>, 'className'>) {
-  const group = useRadioGroupContext()
-  const disabled = localDisabled || group.disabled
-  const checked = group.value === value
-  const interactiveProps = useDataInteractive({ disabled })
+  const group = useRadioGroupContext();
+  const disabled = localDisabled || group.disabled;
+  const checked = group.value === value;
+  const interactiveProps = useDataInteractive({ disabled });
 
   const handleClick = useCallback(() => {
     if (!disabled) {
-      group.onChange(value)
+      group.onChange(value);
     }
-  }, [disabled, group, value])
+  }, [disabled, group, value]);
 
   return (
     <span
@@ -265,5 +265,5 @@ export function Radio({
         />
       </span>
     </span>
-  )
+  );
 }

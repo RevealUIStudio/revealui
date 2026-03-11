@@ -1,7 +1,7 @@
-'use client'
+'use client';
 
-import Image from 'next/image'
-import { useState } from 'react'
+import Image from 'next/image';
+import { useState } from 'react';
 
 const SCREENSHOTS = [
   { src: '/screenshots/cms-dashboard.png', label: 'Dashboard' },
@@ -10,10 +10,10 @@ const SCREENSHOTS = [
   { src: '/screenshots/cms-billing.png', label: 'Billing' },
   { src: '/screenshots/cms-monitoring.png', label: 'Monitoring' },
   { src: '/screenshots/api-swagger.png', label: 'API' },
-]
+];
 
 export function ProductMockup() {
-  const [activeTab, setActiveTab] = useState(0)
+  const [activeTab, setActiveTab] = useState(0);
   const codeLines = [
     {
       tokens: [
@@ -70,7 +70,7 @@ export function ProductMockup() {
       ],
     },
     { tokens: [{ t: 'plain', v: '})' }] },
-  ]
+  ];
 
   const tokenColor: Record<string, string> = {
     keyword: 'text-purple-400',
@@ -78,7 +78,7 @@ export function ProductMockup() {
     prop: 'text-blue-300',
     fn: 'text-yellow-300',
     plain: 'text-gray-300',
-  }
+  };
 
   return (
     <div className="w-full max-w-6xl mx-auto grid grid-cols-1 lg:grid-cols-5 gap-4">
@@ -190,5 +190,5 @@ export function ProductMockup() {
         </div>
       </div>
     </div>
-  )
+  );
 }

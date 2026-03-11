@@ -7,7 +7,7 @@
  * Run with: pnpm test:e2e:smoke
  */
 
-import { defineConfig, devices } from '@playwright/test'
+import { defineConfig, devices } from '@playwright/test';
 
 export default defineConfig({
   testDir: './e2e',
@@ -39,4 +39,4 @@ export default defineConfig({
   outputDir: 'test-results/smoke',
   timeout: 20000,
   expect: { timeout: 5000 },
-})
+});

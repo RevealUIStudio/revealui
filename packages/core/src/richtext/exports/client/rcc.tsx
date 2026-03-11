@@ -5,12 +5,12 @@
  * Converts Lexical JSON state to React elements without requiring a server.
  */
 
-'use client'
+'use client';
 
-import type { SerializedAutoLinkNode, SerializedLinkNode } from '@lexical/link'
-import type { SerializedListItemNode, SerializedListNode } from '@lexical/list'
-import type { SerializedHeadingNode } from '@lexical/rich-text'
-import type { SerializedTableCellNode } from '@lexical/table'
+import type { SerializedAutoLinkNode, SerializedLinkNode } from '@lexical/link';
+import type { SerializedListItemNode, SerializedListNode } from '@lexical/list';
+import type { SerializedHeadingNode } from '@lexical/rich-text';
+import type { SerializedTableCellNode } from '@lexical/table';
 import {
   IS_BOLD,
   IS_CODE,
@@ -23,56 +23,56 @@ import {
   type SerializedElementNode,
   type SerializedLexicalNode,
   type SerializedTextNode,
-} from 'lexical'
-import { Fragment, type JSX } from 'react'
+} from 'lexical';
+import { Fragment, type JSX } from 'react';
 
 // ============================================
 // TYPES
 // ============================================
 
 interface SerializedCodeHighlightNode extends SerializedElementNode {
-  type: 'code-highlight'
-  highlightType?: string
+  type: 'code-highlight';
+  highlightType?: string;
 }
 
 interface SerializedImageNodeData {
-  type: 'image'
-  src?: string
-  alt?: string
-  width?: number
-  height?: number
-  caption?: string
+  type: 'image';
+  src?: string;
+  alt?: string;
+  width?: number;
+  height?: number;
+  caption?: string;
   fields?: {
-    src?: string
-    alt?: string
-    width?: number
-    height?: number
-    caption?: string
-  }
+    src?: string;
+    alt?: string;
+    width?: number;
+    height?: number;
+    caption?: string;
+  };
 }
 
 interface SerializedBlockNode extends SerializedLexicalNode {
-  type: 'block'
-  fields?: Record<string, unknown>
+  type: 'block';
+  fields?: Record<string, unknown>;
 }
 
 export interface ClientSerializeOptions {
-  renderBlock?: (node: SerializedBlockNode, index: number) => JSX.Element | null
+  renderBlock?: (node: SerializedBlockNode, index: number) => JSX.Element | null;
   renderLink?: (
     node: SerializedLinkNode,
     children: JSX.Element | null,
     index: number,
-  ) => JSX.Element
+  ) => JSX.Element;
   renderImage?: (
     data: {
-      src?: string
-      alt?: string
-      width?: number
-      height?: number
-      caption?: string
+      src?: string;
+      alt?: string;
+      width?: number;
+      height?: number;
+      caption?: string;
     },
     index: number,
-  ) => JSX.Element | null
+  ) => JSX.Element | null;
 }
 
 // ============================================
@@ -80,41 +80,41 @@ export interface ClientSerializeOptions {
 // ============================================
 
 function serializeTextNode(node: SerializedTextNode, index: number): JSX.Element {
-  let text: JSX.Element = <Fragment key={index}>{node.text}</Fragment>
+  let text: JSX.Element = <Fragment key={index}>{node.text}</Fragment>;
 
-  const format = node.format || 0
+  const format = node.format || 0;
 
   if (format & IS_BOLD) {
-    text = <strong key={index}>{text}</strong>
+    text = <strong key={index}>{text}</strong>;
   }
   if (format & IS_ITALIC) {
-    text = <em key={index}>{text}</em>
+    text = <em key={index}>{text}</em>;
   }
   if (format & IS_UNDERLINE) {
     text = (
       <span key={index} style={{ textDecoration: 'underline' }}>
         {text}
       </span>
-    )
+    );
   }
   if (format & IS_STRIKETHROUGH) {
     text = (
       <span key={index} style={{ textDecoration: 'line-through' }}>
         {text}
       </span>
-    )
+    );
   }
   if (format & IS_CODE) {
-    text = <code key={index}>{node.text}</code>
+    text = <code key={index}>{node.text}</code>;
   }
   if (format & IS_SUBSCRIPT) {
-    text = <sub key={index}>{text}</sub>
+    text = <sub key={index}>{text}</sub>;
   }
   if (format & IS_SUPERSCRIPT) {
-    text = <sup key={index}>{text}</sup>
+    text = <sup key={index}>{text}</sup>;
   }
 
-  return text
+  return text;
 }
 
 // ============================================
@@ -125,8 +125,10 @@ function serializeChildren(
   children: SerializedLexicalNode[] | undefined,
   options?: ClientSerializeOptions,
 ): JSX.Element | null {
-  if (!children || children.length === 0) return null
-  return <Fragment>{children.map((child, index) => serializeNode(child, index, options))}</Fragment>
+  if (!children || children.length === 0) return null;
+  return (
+    <Fragment>{children.map((child, index) => serializeNode(child, index, options))}</Fragment>
+  );
 }
 
 function serializeNode(
@@ -134,100 +136,100 @@ function serializeNode(
   index: number,
   options?: ClientSerializeOptions,
 ): JSX.Element | null {
-  if (!node) return null
+  if (!node) return null;
 
-  const n = node as SerializedElementNode
+  const n = node as SerializedElementNode;
 
   // Text node
   if (node.type === 'text') {
-    return serializeTextNode(node as SerializedTextNode, index)
+    return serializeTextNode(node as SerializedTextNode, index);
   }
 
   // Linebreak
   if (node.type === 'linebreak') {
-    return <br key={index} />
+    return <br key={index} />;
   }
 
   // Tab
   if (node.type === 'tab') {
-    return <span key={index}>{'{"\t"}'}</span>
+    return <span key={index}>{'{"\t"}'}</span>;
   }
 
   // Paragraph
   if (node.type === 'paragraph') {
-    return <p key={index}>{serializeChildren(n.children, options)}</p>
+    return <p key={index}>{serializeChildren(n.children, options)}</p>;
   }
 
   // Heading
   if (node.type === 'heading') {
-    const headingNode = node as SerializedHeadingNode
-    const Tag = (headingNode.tag || 'h1') as keyof JSX.IntrinsicElements
-    return <Tag key={index}>{serializeChildren(n.children, options)}</Tag>
+    const headingNode = node as SerializedHeadingNode;
+    const Tag = (headingNode.tag || 'h1') as keyof JSX.IntrinsicElements;
+    return <Tag key={index}>{serializeChildren(n.children, options)}</Tag>;
   }
 
   // Quote
   if (node.type === 'quote') {
-    return <blockquote key={index}>{serializeChildren(n.children, options)}</blockquote>
+    return <blockquote key={index}>{serializeChildren(n.children, options)}</blockquote>;
   }
 
   // List
   if (node.type === 'list') {
-    const listNode = node as SerializedListNode
-    const Tag = listNode.listType === 'number' ? 'ol' : 'ul'
-    return <Tag key={index}>{serializeChildren(n.children, options)}</Tag>
+    const listNode = node as SerializedListNode;
+    const Tag = listNode.listType === 'number' ? 'ol' : 'ul';
+    return <Tag key={index}>{serializeChildren(n.children, options)}</Tag>;
   }
 
   // List item
   if (node.type === 'listitem') {
-    const listItemNode = node as SerializedListItemNode
+    const listItemNode = node as SerializedListItemNode;
     return (
       <li key={index} value={listItemNode.value}>
         {serializeChildren(n.children, options)}
       </li>
-    )
+    );
   }
 
   // Link
   if (node.type === 'link') {
-    const linkNode = node as SerializedLinkNode
-    const children = serializeChildren(n.children, options)
+    const linkNode = node as SerializedLinkNode;
+    const children = serializeChildren(n.children, options);
 
     if (options?.renderLink) {
-      return options.renderLink(linkNode, children, index)
+      return options.renderLink(linkNode, children, index);
     }
 
-    const href = linkNode.url || '#'
-    const target = linkNode.target ? '_blank' : undefined
-    const rel = linkNode.target ? 'noopener noreferrer' : undefined
+    const href = linkNode.url || '#';
+    const target = linkNode.target ? '_blank' : undefined;
+    const rel = linkNode.target ? 'noopener noreferrer' : undefined;
 
     return (
       <a key={index} href={href} target={target} rel={rel}>
         {children}
       </a>
-    )
+    );
   }
 
   // Autolink
   if (node.type === 'autolink') {
-    const autoLinkNode = node as SerializedAutoLinkNode
+    const autoLinkNode = node as SerializedAutoLinkNode;
     return (
       <a key={index} href={autoLinkNode.url || '#'}>
         {serializeChildren(n.children, options)}
       </a>
-    )
+    );
   }
 
   // Image
   if (node.type === 'image') {
-    const imageNode = node as unknown as SerializedImageNodeData
-    const src = imageNode.fields?.src || imageNode.src || ''
-    const alt = imageNode.fields?.alt || imageNode.alt || ''
-    const width = imageNode.fields?.width || imageNode.width
-    const height = imageNode.fields?.height || imageNode.height
-    const caption = imageNode.fields?.caption || imageNode.caption
+    const imageNode = node as unknown as SerializedImageNodeData;
+    const src = imageNode.fields?.src || imageNode.src || '';
+    const alt = imageNode.fields?.alt || imageNode.alt || '';
+    const width = imageNode.fields?.width || imageNode.width;
+    const height = imageNode.fields?.height || imageNode.height;
+    const caption = imageNode.fields?.caption || imageNode.caption;
 
     if (options?.renderImage) {
-      return options.renderImage({ src, alt, width, height, caption }, index)
+      return options.renderImage({ src, alt, width, height, caption }, index);
     }
 
     return (
@@ -248,12 +250,12 @@ function serializeNode(
           </figcaption>
         )}
       </figure>
-    )
+    );
   }
 
   // Horizontal rule
   if (node.type === 'horizontalrule') {
-    return <hr key={index} />
+    return <hr key={index} />;
   }
 
   // Code block
@@ -262,25 +264,25 @@ function serializeNode(
       <pre key={index}>
         <code>{serializeChildren(n.children, options)}</code>
       </pre>
-    )
+    );
   }
 
   // Code highlight
   if (node.type === 'code-highlight') {
-    const codeHighlightNode = node as SerializedCodeHighlightNode
+    const codeHighlightNode = node as SerializedCodeHighlightNode;
     return (
       <span key={index} className={codeHighlightNode.highlightType}>
         {serializeChildren(n.children, options)}
       </span>
-    )
+    );
   }
 
   // Block (custom block types)
   if (node.type === 'block') {
     if (options?.renderBlock) {
-      return options.renderBlock(node as SerializedBlockNode, index)
+      return options.renderBlock(node as SerializedBlockNode, index);
     }
-    return null
+    return null;
   }
 
   // Table
@@ -289,32 +291,32 @@ function serializeNode(
       <table key={index}>
         <tbody>{serializeChildren(n.children, options)}</tbody>
       </table>
-    )
+    );
   }
 
   // Table row
   if (node.type === 'tablerow') {
-    return <tr key={index}>{serializeChildren(n.children, options)}</tr>
+    return <tr key={index}>{serializeChildren(n.children, options)}</tr>;
   }
 
   // Table cell
   if (node.type === 'tablecell') {
-    const tableCellNode = node as SerializedTableCellNode
-    const isHeader = (tableCellNode.headerState ?? 0) !== 0
-    const Tag = isHeader ? 'th' : 'td'
+    const tableCellNode = node as SerializedTableCellNode;
+    const isHeader = (tableCellNode.headerState ?? 0) !== 0;
+    const Tag = isHeader ? 'th' : 'td';
     return (
       <Tag key={index} colSpan={tableCellNode.colSpan} rowSpan={tableCellNode.rowSpan}>
         {serializeChildren(n.children, options)}
       </Tag>
-    )
+    );
   }
 
   // Unknown node type — try to render children
   if (n.children) {
-    return <Fragment key={index}>{serializeChildren(n.children, options)}</Fragment>
+    return <Fragment key={index}>{serializeChildren(n.children, options)}</Fragment>;
   }
 
-  return null
+  return null;
 }
 
 // ============================================
@@ -329,10 +331,10 @@ export function serializeLexicalStateClient(
   options?: ClientSerializeOptions,
 ): JSX.Element | null {
   if (!data?.root?.children) {
-    return null
+    return null;
   }
 
-  return serializeChildren(data.root.children, options)
+  return serializeChildren(data.root.children, options);
 }
 
 /**
@@ -343,13 +345,13 @@ export function RichTextContent({
   className,
   ...options
 }: {
-  data: SerializedEditorState | null | undefined
-  className?: string
+  data: SerializedEditorState | null | undefined;
+  className?: string;
 } & ClientSerializeOptions): JSX.Element | null {
-  if (!data) return null
+  if (!data) return null;
 
-  const content = serializeLexicalStateClient(data, options)
-  if (!content) return null
+  const content = serializeLexicalStateClient(data, options);
+  if (!content) return null;
 
-  return <div className={className}>{content}</div>
+  return <div className={className}>{content}</div>;
 }

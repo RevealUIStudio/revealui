@@ -1,67 +1,67 @@
-'use client'
-import type { TextField } from '@revealui/core'
-import { Button, FieldLabel, TextInput, useField, useFormFields } from '@revealui/core/ui'
-import type React from 'react'
-import { useCallback, useEffect } from 'react'
-import { formatSlug } from './formatSlugHook'
+'use client';
+import type { TextField } from '@revealui/core';
+import { Button, FieldLabel, TextInput, useField, useFormFields } from '@revealui/core/ui';
+import type React from 'react';
+import { useCallback, useEffect } from 'react';
+import { formatSlug } from './formatSlugHook';
 
 // Type for text field client props
 interface TextFieldClientProps {
   field: TextField & {
-    path?: string
-    readOnly?: boolean
-  }
+    path?: string;
+    readOnly?: boolean;
+  };
 }
 
 type SlugComponentProps = {
-  fieldToUse: string
-  checkboxFieldPath: string
-} & TextFieldClientProps
+  fieldToUse: string;
+  checkboxFieldPath: string;
+} & TextFieldClientProps;
 
 export const SlugComponent: React.FC<SlugComponentProps> = ({
   field,
   fieldToUse,
   checkboxFieldPath: checkboxFieldPathFromProps,
 }) => {
-  const { label } = field
-  const { path, readOnly: readOnlyFromProps } = useFieldProps(field)
+  const { label } = field;
+  const { path, readOnly: readOnlyFromProps } = useFieldProps(field);
 
   const checkboxFieldPath = path.includes('.')
     ? `${path}.${checkboxFieldPathFromProps}`
-    : checkboxFieldPathFromProps
+    : checkboxFieldPathFromProps;
 
-  const { value, setValue } = useField<string>({ path })
+  const { value, setValue } = useField<string>({ path });
 
   const { value: checkboxValue, setValue: setCheckboxValue } = useField<boolean>({
     path: checkboxFieldPath,
-  })
+  });
 
   const fieldToUseValue = useFormFields<string>(([fields]) => {
-    return (fields[fieldToUse]?.value as string) || ''
-  }) as string
+    return (fields[fieldToUse]?.value as string) || '';
+  }) as string;
 
   useEffect(() => {
     if (checkboxValue) {
       if (fieldToUseValue) {
-        const formattedSlug = formatSlug(fieldToUseValue)
+        const formattedSlug = formatSlug(fieldToUseValue);
 
-        if (value !== formattedSlug) setValue(formattedSlug)
+        if (value !== formattedSlug) setValue(formattedSlug);
       } else {
-        if (value !== '') setValue('')
+        if (value !== '') setValue('');
       }
     }
-  }, [fieldToUseValue, checkboxValue, setValue, value])
+  }, [fieldToUseValue, checkboxValue, setValue, value]);
 
   const handleLock = useCallback(
     (e?: React.MouseEvent<HTMLButtonElement>) => {
-      e?.preventDefault()
+      e?.preventDefault();
 
-      setCheckboxValue(!checkboxValue)
+      setCheckboxValue(!checkboxValue);
     },
     [checkboxValue, setCheckboxValue],
-  )
+  );
 
-  const readOnly = readOnlyFromProps || checkboxValue
+  const readOnly = readOnlyFromProps || checkboxValue;
 
   return (
     <div className="field-type slug-field-component">
@@ -81,8 +81,8 @@ export const SlugComponent: React.FC<SlugComponentProps> = ({
         readOnly={readOnly}
       />
     </div>
-  )
-}
+  );
+};
 function useFieldProps(field: TextFieldClientProps['field']): { path: string; readOnly: boolean } {
   // In this context, we can use the field prop that's passed to the component
   // This hook would typically be used to extract and format field properties
@@ -91,5 +91,5 @@ function useFieldProps(field: TextFieldClientProps['field']): { path: string; re
   return {
     path: field.path || '',
     readOnly: Boolean(field.readOnly),
-  }
+  };
 }

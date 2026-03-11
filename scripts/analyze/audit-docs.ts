@@ -1,30 +1,30 @@
 #!/usr/bin/env node
 
-import fs from 'node:fs'
-import path from 'node:path'
-import fg from 'fast-glob'
+import fs from 'node:fs';
+import path from 'node:path';
+import fg from 'fast-glob';
 
 type FalseClaimCategory =
   | 'statusInflation'
   | 'metricMisrepresentation'
   | 'completionOverstatement'
-  | 'outdatedContent'
+  | 'outdatedContent';
 
 type FalseClaim = {
-  file: string
-  category: FalseClaimCategory
-  description: string
-  pattern: string
-  matches: RegExpMatchArray
-  context: string
-  verification: string
-}
+  file: string;
+  category: FalseClaimCategory;
+  description: string;
+  pattern: string;
+  matches: RegExpMatchArray;
+  context: string;
+  verification: string;
+};
 
 // False claim patterns to detect
 const FALSE_CLAIM_PATTERNS: Array<{
-  pattern: RegExp
-  category: FalseClaimCategory
-  description: string
+  pattern: RegExp;
+  category: FalseClaimCategory;
+  description: string;
 }> = [
   {
     pattern: /comprehensive tests/i,
@@ -56,12 +56,12 @@ const FALSE_CLAIM_PATTERNS: Array<{
     category: 'outdatedContent',
     description: 'Future dates in current documentation',
   },
-]
+];
 
 async function scanForFalseClaims(): Promise<void> {
-  console.log('🔍 Scanning documentation for false claims...\n')
+  console.log('🔍 Scanning documentation for false claims...\n');
 
-  const files = await fg('docs/**/*.md')
+  const files = await fg('docs/**/*.md');
   const results = {
     totalFiles: files.length,
     falseClaims: [] as FalseClaim[],
@@ -76,20 +76,20 @@ async function scanForFalseClaims(): Promise<void> {
       byCategory: {} as Record<FalseClaimCategory, number>,
       byFile: {} as Record<string, number>,
     },
-  }
+  };
 
-  console.log(`📊 Analyzing ${files.length} documentation files...\n`)
+  console.log(`📊 Analyzing ${files.length} documentation files...\n`);
 
   for (const file of files) {
-    const content = fs.readFileSync(file, 'utf8')
-    const relativePath = path.relative(process.cwd(), file)
+    const content = fs.readFileSync(file, 'utf8');
+    const relativePath = path.relative(process.cwd(), file);
 
-    let fileClaims = 0
+    let fileClaims = 0;
 
     FALSE_CLAIM_PATTERNS.forEach(({ pattern, category, description }) => {
-      const matches = content.match(pattern)
+      const matches = content.match(pattern);
       if (matches) {
-        const matchIndex = matches.index ?? 0
+        const matchIndex = matches.index ?? 0;
         const claim = {
           file: relativePath,
           category,
@@ -98,66 +98,66 @@ async function scanForFalseClaims(): Promise<void> {
           matches,
           context: getContext(content, matchIndex, 100),
           verification: 'Requires verification',
-        }
+        };
 
-        results.falseClaims.push(claim)
-        results.categories[category].push(claim)
-        fileClaims++
+        results.falseClaims.push(claim);
+        results.categories[category].push(claim);
+        fileClaims++;
 
         // Update summary
-        results.summary.totalClaims++
-        results.summary.byCategory[category] = (results.summary.byCategory[category] || 0) + 1
-        results.summary.byFile[relativePath] = (results.summary.byFile[relativePath] || 0) + 1
+        results.summary.totalClaims++;
+        results.summary.byCategory[category] = (results.summary.byCategory[category] || 0) + 1;
+        results.summary.byFile[relativePath] = (results.summary.byFile[relativePath] || 0) + 1;
 
-        console.log(`❌ ${category}: ${relativePath}`)
-        console.log(`   ${description}`)
-        console.log(`   Context: "${claim.context}"`)
-        console.log()
+        console.log(`❌ ${category}: ${relativePath}`);
+        console.log(`   ${description}`);
+        console.log(`   Context: "${claim.context}"`);
+        console.log();
       }
-    })
+    });
 
     if (fileClaims > 0) {
-      console.log(`📁 ${relativePath}: ${fileClaims} potential false claims\n`)
+      console.log(`📁 ${relativePath}: ${fileClaims} potential false claims\n`);
     }
   }
 
   // Generate summary report
-  console.log('📊 SCAN COMPLETE\n')
-  console.log('='.repeat(50))
-  console.log('SUMMARY REPORT')
-  console.log('='.repeat(50))
+  console.log('📊 SCAN COMPLETE\n');
+  console.log('='.repeat(50));
+  console.log('SUMMARY REPORT');
+  console.log('='.repeat(50));
 
-  console.log(`\n📈 Total Files Analyzed: ${results.totalFiles}`)
-  console.log(`🚨 Potential False Claims: ${results.summary.totalClaims}`)
+  console.log(`\n📈 Total Files Analyzed: ${results.totalFiles}`);
+  console.log(`🚨 Potential False Claims: ${results.summary.totalClaims}`);
 
-  console.log('\n📊 Claims by Category:')
+  console.log('\n📊 Claims by Category:');
   Object.entries(results.summary.byCategory).forEach(([category, count]) => {
-    console.log(`   ${category}: ${count}`)
-  })
+    console.log(`   ${category}: ${count}`);
+  });
 
-  console.log('\n📁 Most Problematic Files:')
+  console.log('\n📁 Most Problematic Files:');
   Object.entries(results.summary.byFile)
     .sort(([, a], [, b]) => b - a)
     .slice(0, 10)
     .forEach(([file, count]) => {
-      console.log(`   ${file}: ${count} claims`)
-    })
+      console.log(`   ${file}: ${count} claims`);
+    });
 
-  console.log('\n💡 Next Steps:')
-  console.log('1. Review the detailed findings above')
-  console.log('2. Run verification script: node scripts/verify-claims.ts')
-  console.log('3. Create consolidation plan: node scripts/consolidate-docs.ts')
+  console.log('\n💡 Next Steps:');
+  console.log('1. Review the detailed findings above');
+  console.log('2. Run verification script: node scripts/verify-claims.ts');
+  console.log('3. Create consolidation plan: node scripts/consolidate-docs.ts');
 
   // Save detailed results
-  fs.writeFileSync('docs/audit-results.json', JSON.stringify(results, null, 2))
-  console.log('\n💾 Detailed results saved to: docs/audit-results.json')
+  fs.writeFileSync('docs/audit-results.json', JSON.stringify(results, null, 2));
+  console.log('\n💾 Detailed results saved to: docs/audit-results.json');
 }
 
 function getContext(text: string, index: number, length: number): string {
-  const start = Math.max(0, index - length)
-  const end = Math.min(text.length, index + length)
-  return text.slice(start, end).replace(/\n/g, ' ').trim()
+  const start = Math.max(0, index - length);
+  const end = Math.min(text.length, index + length);
+  return text.slice(start, end).replace(/\n/g, ' ').trim();
 }
 
 // Run the audit
-scanForFalseClaims().catch(console.error)
+scanForFalseClaims().catch(console.error);

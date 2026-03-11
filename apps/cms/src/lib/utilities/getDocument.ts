@@ -1,15 +1,15 @@
-import type { RevealDocument } from '@revealui/core'
-import { unstable_cache } from 'next/cache'
-import { getRevealUIInstance } from './revealui-singleton'
+import type { RevealDocument } from '@revealui/core';
+import { unstable_cache } from 'next/cache';
+import { getRevealUIInstance } from './revealui-singleton';
 
-type Collection = string
+type Collection = string;
 
 async function getDocument(
   collection: Collection,
   slug: string,
   depth = 0,
 ): Promise<RevealDocument | undefined> {
-  const revealui = await getRevealUIInstance()
+  const revealui = await getRevealUIInstance();
 
   const page = await revealui.find({
     collection,
@@ -19,9 +19,9 @@ async function getDocument(
         equals: slug,
       },
     },
-  })
+  });
 
-  return page.docs[0]
+  return page.docs[0];
 }
 
 /**
@@ -37,4 +37,4 @@ export const getCachedDocument = (
     {
       tags: [`${String(collection)}_${slug}`],
     },
-  )
+  );

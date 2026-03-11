@@ -1,11 +1,11 @@
-import path from 'node:path'
-import { fileURLToPath } from 'node:url'
-import react from '@vitejs/plugin-react-swc'
-import { defineConfig } from 'vite'
-import dts from 'vite-plugin-dts'
+import path from 'node:path';
+import { fileURLToPath } from 'node:url';
+import react from '@vitejs/plugin-react-swc';
+import { defineConfig } from 'vite';
+import dts from 'vite-plugin-dts';
 
-const __filename = fileURLToPath(import.meta.url)
-const __dirname = path.dirname(__filename)
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
 
 export default defineConfig({
   plugins: [
@@ -37,9 +37,9 @@ export default defineConfig({
         banner: (chunk) => {
           // Add 'use client' directive only to client bundle
           if (chunk.name === 'client') {
-            return '"use client";'
+            return '"use client";';
           }
-          return ''
+          return '';
         },
       },
     },
@@ -56,4 +56,4 @@ export default defineConfig({
   optimizeDeps: {
     include: ['react', 'react-dom'],
   },
-})
+});

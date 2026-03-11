@@ -1,23 +1,23 @@
-'use client'
+'use client';
 
-import type { A2AAgentCard } from '@revealui/contracts'
-import Link from 'next/link'
-import { useEffect, useState } from 'react'
-import { AgentCard } from '@/lib/components/agents/agent-card'
-import { McpServerCard, type McpServerInfo } from '@/lib/components/agents/mcp-server-card'
-import { LicenseGate } from '@/lib/components/LicenseGate'
+import type { A2AAgentCard } from '@revealui/contracts';
+import Link from 'next/link';
+import { useEffect, useState } from 'react';
+import { AgentCard } from '@/lib/components/agents/agent-card';
+import { McpServerCard, type McpServerInfo } from '@/lib/components/agents/mcp-server-card';
+import { LicenseGate } from '@/lib/components/LicenseGate';
 
-export const dynamic = 'force-dynamic'
+export const dynamic = 'force-dynamic';
 
-type Tab = 'agents' | 'mcp'
+type Tab = 'agents' | 'mcp';
 
 interface AgentWithId {
-  card: A2AAgentCard
-  agentId: string
+  card: A2AAgentCard;
+  agentId: string;
 }
 
 export default function AgentsPage() {
-  const [tab, setTab] = useState<Tab>('agents')
+  const [tab, setTab] = useState<Tab>('agents');
 
   return (
     <LicenseGate feature="ai">
@@ -54,7 +54,7 @@ export default function AgentsPage() {
         <div className="p-6">{tab === 'agents' ? <AgentCardsPanel /> : <McpServersPanel />}</div>
       </div>
     </LicenseGate>
-  )
+  );
 }
 
 // =============================================================================
@@ -62,11 +62,11 @@ export default function AgentsPage() {
 // =============================================================================
 
 function AgentCardsPanel() {
-  const [agents, setAgents] = useState<AgentWithId[]>([])
-  const [loading, setLoading] = useState(true)
-  const [error, setError] = useState<string | null>(null)
+  const [agents, setAgents] = useState<AgentWithId[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
-  const apiUrl = (process.env.NEXT_PUBLIC_API_URL ?? 'https://api.revealui.com').trim()
+  const apiUrl = (process.env.NEXT_PUBLIC_API_URL ?? 'https://api.revealui.com').trim();
 
   useEffect(() => {
     fetch(`${apiUrl}/a2a/agents`, { credentials: 'include' })
@@ -79,19 +79,19 @@ function AgentCardsPanel() {
             .toLowerCase()
             .replace(/\s+/g, '-')
             .replace(/[^a-z0-9-]/g, ''),
-        }))
-        setAgents(withIds)
+        }));
+        setAgents(withIds);
       })
       .catch((e: unknown) => setError(e instanceof Error ? e.message : 'Failed to load agents'))
-      .finally(() => setLoading(false))
-  }, [apiUrl])
+      .finally(() => setLoading(false));
+  }, [apiUrl]);
 
   if (loading) {
     return (
       <div className="flex h-32 items-center justify-center">
         <div className="h-5 w-5 animate-spin rounded-full border-2 border-zinc-600 border-t-zinc-200" />
       </div>
-    )
+    );
   }
 
   if (error) {
@@ -99,7 +99,7 @@ function AgentCardsPanel() {
       <div className="rounded-lg border border-red-800 bg-red-900/20 p-4 text-sm text-red-400">
         {error}
       </div>
-    )
+    );
   }
 
   return (
@@ -125,7 +125,7 @@ function AgentCardsPanel() {
         )}
       </div>
     </div>
-  )
+  );
 }
 
 // =============================================================================
@@ -133,9 +133,9 @@ function AgentCardsPanel() {
 // =============================================================================
 
 function McpServersPanel() {
-  const [servers, setServers] = useState<McpServerInfo[]>([])
-  const [loading, setLoading] = useState(true)
-  const [error, setError] = useState<string | null>(null)
+  const [servers, setServers] = useState<McpServerInfo[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     fetch('/api/mcp/servers')
@@ -144,15 +144,15 @@ function McpServersPanel() {
       .catch((e: unknown) =>
         setError(e instanceof Error ? e.message : 'Failed to load MCP servers'),
       )
-      .finally(() => setLoading(false))
-  }, [])
+      .finally(() => setLoading(false));
+  }, []);
 
   if (loading) {
     return (
       <div className="flex h-32 items-center justify-center">
         <div className="h-5 w-5 animate-spin rounded-full border-2 border-zinc-600 border-t-zinc-200" />
       </div>
-    )
+    );
   }
 
   if (error) {
@@ -160,10 +160,10 @@ function McpServersPanel() {
       <div className="rounded-lg border border-red-800 bg-red-900/20 p-4 text-sm text-red-400">
         {error}
       </div>
-    )
+    );
   }
 
-  const total = servers.reduce((n, s) => n + s.tools.length, 0)
+  const total = servers.reduce((n, s) => n + s.tools.length, 0);
 
   return (
     <div>
@@ -182,5 +182,5 @@ function McpServersPanel() {
         ))}
       </div>
     </div>
-  )
+  );
 }

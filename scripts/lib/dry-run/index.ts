@@ -9,6 +9,6 @@
  * - scripts/lib/dry-run/impact-analyzer.ts - Impact analysis utilities
  */
 
-export * from './change-preview.js'
-export * from './dry-run-engine.js'
-export * from './impact-analyzer.js'
+export * from './change-preview.js';
+export * from './dry-run-engine.js';
+export * from './impact-analyzer.js';

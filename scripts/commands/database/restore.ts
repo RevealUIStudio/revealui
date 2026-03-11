@@ -15,89 +15,89 @@
  * - Environment: POSTGRES_URL - Database connection string
  */
 
-import { join } from 'node:path'
-import { listBackups, restoreBackup } from '../../lib/database/backup-manager.js'
-import { createConnection, getRestConnectionString } from '../../lib/database/connection.js'
-import { ErrorCode } from '../../lib/errors.js'
-import { confirm, createLogger, getProjectRoot } from '../../lib/index.js'
+import { join } from 'node:path';
+import { listBackups, restoreBackup } from '../../lib/database/backup-manager.js';
+import { createConnection, getRestConnectionString } from '../../lib/database/connection.js';
+import { ErrorCode } from '../../lib/errors.js';
+import { confirm, createLogger, getProjectRoot } from '../../lib/index.js';
 
-const logger = createLogger({ prefix: 'Restore' })
+const logger = createLogger({ prefix: 'Restore' });
 
 async function main() {
-  const args = process.argv.slice(2)
-  const backupFile = args.find((a) => !a.startsWith('--'))
-  const skipConfirmation = args.includes('--confirm') || args.includes('-y')
-  const clearTables = !args.includes('--no-clear')
+  const args = process.argv.slice(2);
+  const backupFile = args.find((a) => !a.startsWith('--'));
+  const skipConfirmation = args.includes('--confirm') || args.includes('-y');
+  const clearTables = !args.includes('--no-clear');
 
-  logger.header('Database Restore')
+  logger.header('Database Restore');
 
-  const projectRoot = await getProjectRoot(import.meta.url)
-  const backupDir = join(projectRoot, '.revealui', 'backups')
+  const projectRoot = await getProjectRoot(import.meta.url);
+  const backupDir = join(projectRoot, '.revealui', 'backups');
 
   // Get backup file
-  let backupPath: string
+  let backupPath: string;
 
   if (backupFile) {
     // Use specified backup
-    backupPath = backupFile.includes('/') ? backupFile : join(backupDir, backupFile)
+    backupPath = backupFile.includes('/') ? backupFile : join(backupDir, backupFile);
   } else {
     // Show available backups
-    const backups = await listBackups(import.meta.url)
+    const backups = await listBackups(import.meta.url);
 
     if (backups.length === 0) {
-      logger.error('No backups found')
-      process.exit(ErrorCode.CONFIG_ERROR)
+      logger.error('No backups found');
+      process.exit(ErrorCode.CONFIG_ERROR);
     }
 
-    logger.info('Available backups:')
+    logger.info('Available backups:');
     for (let i = 0; i < backups.length; i++) {
-      logger.info(`  ${i + 1}. ${backups[i]}`)
+      logger.info(`  ${i + 1}. ${backups[i]}`);
     }
 
-    logger.error('Specify a backup file to restore')
-    logger.info('Usage: pnpm db:restore <backup-file>')
-    process.exit(ErrorCode.EXECUTION_ERROR)
+    logger.error('Specify a backup file to restore');
+    logger.info('Usage: pnpm db:restore <backup-file>');
+    process.exit(ErrorCode.EXECUTION_ERROR);
   }
 
   // Confirm restore
   if (!skipConfirmation) {
-    logger.warn('This will overwrite existing data in the database!')
-    const confirmed = await confirm('Are you sure you want to restore?')
+    logger.warn('This will overwrite existing data in the database!');
+    const confirmed = await confirm('Are you sure you want to restore?');
     if (!confirmed) {
-      logger.info('Restore cancelled')
-      return
+      logger.info('Restore cancelled');
+      return;
     }
   }
 
   // Connect to database
-  const connectionString = getRestConnectionString()
+  const connectionString = getRestConnectionString();
   if (!connectionString) {
-    logger.error('No database connection string found')
-    process.exit(ErrorCode.EXECUTION_ERROR)
+    logger.error('No database connection string found');
+    process.exit(ErrorCode.EXECUTION_ERROR);
   }
 
-  const connection = await createConnection({ connectionString, logger })
+  const connection = await createConnection({ connectionString, logger });
 
   try {
-    logger.info(`Restoring from: ${backupPath}`)
+    logger.info(`Restoring from: ${backupPath}`);
 
     const result = await restoreBackup(connection, backupPath, {
       logger,
       clearTables,
-    })
+    });
 
     if (result.success) {
-      logger.success('Restore completed')
+      logger.success('Restore completed');
     } else {
-      logger.error(`Restore failed: ${result.error}`)
-      process.exit(ErrorCode.CONFIG_ERROR)
+      logger.error(`Restore failed: ${result.error}`);
+      process.exit(ErrorCode.CONFIG_ERROR);
     }
   } finally {
-    await connection.close()
+    await connection.close();
   }
 }
 
 main().catch((error) => {
-  logger.error(error.message)
-  process.exit(ErrorCode.EXECUTION_ERROR)
-})
+  logger.error(error.message);
+  process.exit(ErrorCode.EXECUTION_ERROR);
+});

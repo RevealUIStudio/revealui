@@ -1,20 +1,20 @@
-import type { CollectionConfig, Field, Plugin, RevealRequest } from '../types/index.js'
+import type { CollectionConfig, Field, Plugin, RevealRequest } from '../types/index.js';
 
 export interface RedirectsPluginConfig {
-  collections?: string[]
+  collections?: string[];
   overrides?: {
-    fields?: (args: { defaultFields: Field[] }) => Field[]
+    fields?: (args: { defaultFields: Field[] }) => Field[];
     hooks?: {
       afterChange?: ((args: {
-        doc: Document
-        req: RevealRequest
-      }) => Promise<Document> | Document)[]
-    }
-  }
+        doc: Document;
+        req: RevealRequest;
+      }) => Promise<Document> | Document)[];
+    };
+  };
 }
 
 export function redirectsPlugin(config: RedirectsPluginConfig = {}): Plugin {
-  const { collections = ['pages', 'posts'] } = config
+  const { collections = ['pages', 'posts'] } = config;
 
   return (incomingConfig) => {
     // Add redirects collection
@@ -55,32 +55,32 @@ export function redirectsPlugin(config: RedirectsPluginConfig = {}): Plugin {
           ],
         },
       ],
-    }
+    };
 
     // Apply overrides if provided
     if (config.overrides?.fields) {
       redirectsCollection.fields = config.overrides.fields({
         defaultFields: redirectsCollection.fields,
-      })
+      });
     }
 
     if (config.overrides?.hooks?.afterChange) {
       redirectsCollection.hooks = {
         ...redirectsCollection.hooks,
         afterChange: config.overrides.hooks.afterChange as CollectionConfig['hooks'] extends {
-          afterChange?: infer T
+          afterChange?: infer T;
         }
           ? T
           : never,
-      }
+      };
     }
 
     incomingConfig.collections = [
       ...(incomingConfig.collections || []),
       // biome-ignore lint/suspicious/noExplicitAny: invariant generic needs any for heterogeneous array
       redirectsCollection as CollectionConfig<any>,
-    ]
+    ];
 
-    return incomingConfig
-  }
+    return incomingConfig;
+  };
 }

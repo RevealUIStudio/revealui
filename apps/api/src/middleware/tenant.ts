@@ -12,17 +12,17 @@
  * should be mounted BEFORE this middleware.
  */
 
-import { logger } from '@revealui/core/observability/logger'
-import type { MiddlewareHandler } from 'hono'
-import { HTTPException } from 'hono/http-exception'
+import { logger } from '@revealui/core/observability/logger';
+import type { MiddlewareHandler } from 'hono';
+import { HTTPException } from 'hono/http-exception';
 
 // ─── Tenant Context ─────────────────────────────────────────────────────────
 
 export interface TenantContext {
   /** Tenant ID (UUID or slug) */
-  id: string
+  id: string;
   /** Resolved at middleware time for downstream use */
-  resolvedAt: Date
+  resolvedAt: Date;
 }
 
 // ─── Middleware ──────────────────────────────────────────────────────────────
@@ -37,34 +37,34 @@ export interface TenantContext {
 export function tenantMiddleware(
   options: { required?: boolean; headerName?: string } = {},
 ): MiddlewareHandler {
-  const { required = true, headerName = 'X-Tenant-ID' } = options
+  const { required = true, headerName = 'X-Tenant-ID' } = options;
 
   return async (c, next) => {
     // Tenant context must come from a trusted header — query params are attacker-controlled
-    const tenantId = c.req.header(headerName) ?? null
+    const tenantId = c.req.header(headerName) ?? null;
 
     // Validate format (UUID or slug: alphanumeric + hyphens, 1-128 chars)
     if (tenantId && !/^[\w-]{1,128}$/.test(tenantId)) {
-      throw new HTTPException(400, { message: 'Invalid tenant ID format' })
+      throw new HTTPException(400, { message: 'Invalid tenant ID format' });
     }
 
     if (!tenantId && required) {
       throw new HTTPException(400, {
         message: `Missing tenant context. Provide the ${headerName} header.`,
-      })
+      });
     }
 
     if (tenantId) {
       const tenant: TenantContext = {
         id: tenantId,
         resolvedAt: new Date(),
-      }
-      c.set('tenant', tenant)
-      logger.debug('Tenant context resolved', { tenantId })
+      };
+      c.set('tenant', tenant);
+      logger.debug('Tenant context resolved', { tenantId });
     }
 
-    await next()
-  }
+    await next();
+  };
 }
 
 // ─── Helpers ────────────────────────────────────────────────────────────────
@@ -74,7 +74,7 @@ export function tenantMiddleware(
  * Use this in route handlers to access the resolved tenant.
  */
 export function getTenantFromContext(c: { get: (key: string) => unknown }): TenantContext | null {
-  return (c.get('tenant') as TenantContext) ?? null
+  return (c.get('tenant') as TenantContext) ?? null;
 }
 
 /**
@@ -82,9 +82,9 @@ export function getTenantFromContext(c: { get: (key: string) => unknown }): Tena
  * Use in route handlers that MUST have a tenant.
  */
 export function requireTenant(c: { get: (key: string) => unknown }): TenantContext {
-  const tenant = getTenantFromContext(c)
+  const tenant = getTenantFromContext(c);
   if (!tenant) {
-    throw new HTTPException(403, { message: 'Tenant context required for this operation' })
+    throw new HTTPException(403, { message: 'Tenant context required for this operation' });
   }
-  return tenant
+  return tenant;
 }

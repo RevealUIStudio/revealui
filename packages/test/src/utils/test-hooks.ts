@@ -4,9 +4,9 @@
  * Provides Vitest/Playwright hooks for setup/teardown and automatic cleanup
  */
 
-import { afterAll, afterEach, beforeAll, beforeEach } from 'vitest'
-import { clearAllMocks } from '../mocks/index.js'
-import { cleanupTestData, resetTestState, setupTestDatabase } from './integration-helpers.js'
+import { afterAll, afterEach, beforeAll, beforeEach } from 'vitest';
+import { clearAllMocks } from '../mocks/index.js';
+import { cleanupTestData, resetTestState, setupTestDatabase } from './integration-helpers.js';
 
 /**
  * Setup test hooks for unit tests
@@ -14,8 +14,8 @@ import { cleanupTestData, resetTestState, setupTestDatabase } from './integratio
 export function setupUnitTestHooks(): void {
   beforeEach(() => {
     // Clear mocks before each test
-    clearAllMocks()
-  })
+    clearAllMocks();
+  });
 }
 
 /**
@@ -23,29 +23,29 @@ export function setupUnitTestHooks(): void {
  */
 export function setupIntegrationTestHooks(): void {
   beforeAll(async () => {
-    await setupTestDatabase()
-  })
+    await setupTestDatabase();
+  });
 
   afterAll(async () => {
-    await resetTestState()
-  })
+    await resetTestState();
+  });
 
   beforeEach(async () => {
-    await cleanupTestData()
-  })
+    await cleanupTestData();
+  });
 
   afterEach(async () => {
-    await cleanupTestData()
-    clearAllMocks()
-  })
+    await cleanupTestData();
+    clearAllMocks();
+  });
 }
 
 /**
  * Setup test hooks for E2E tests (Playwright)
  */
 export function setupE2ETestHooks(): {
-  beforeEach: (callback: () => Promise<void>) => void
-  afterEach: (callback: () => Promise<void>) => void
+  beforeEach: (callback: () => Promise<void>) => void;
+  afterEach: (callback: () => Promise<void>) => void;
 } {
   // These would be used in Playwright test files
   // Example usage:
@@ -57,21 +57,21 @@ export function setupE2ETestHooks(): {
 
   return {
     beforeEach: (callback: () => Promise<void>) => {
-      void callback()
+      void callback();
     },
     afterEach: (callback: () => Promise<void>) => {
-      void callback()
-      clearAllMocks()
+      void callback();
+      clearAllMocks();
     },
-  }
+  };
 }
 
 /**
  * Automatic cleanup utility
  */
 export async function automaticCleanup(): Promise<void> {
-  await cleanupTestData()
-  clearAllMocks()
+  await cleanupTestData();
+  clearAllMocks();
 }
 
 /**
@@ -81,11 +81,11 @@ export function enforceTestIsolation(): void {
   // Ensure tests don't share state
   beforeEach(() => {
     // Clear any global state
-    clearAllMocks()
-  })
+    clearAllMocks();
+  });
 
   afterEach(() => {
     // Cleanup after each test
-    clearAllMocks()
-  })
+    clearAllMocks();
+  });
 }

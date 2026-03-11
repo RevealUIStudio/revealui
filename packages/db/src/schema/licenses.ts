@@ -6,8 +6,8 @@
  * retrieval, auditing, and revocation.
  */
 
-import { boolean, index, pgTable, text, timestamp } from 'drizzle-orm/pg-core'
-import { users } from './users.js'
+import { boolean, index, pgTable, text, timestamp } from 'drizzle-orm/pg-core';
+import { users } from './users.js';
 
 // =============================================================================
 // Licenses Table
@@ -63,10 +63,10 @@ export const licenses = pgTable(
     index('licenses_status_idx').on(table.status),
     index('licenses_subscription_id_idx').on(table.subscriptionId),
   ],
-)
+);
 
 /** Row type for select queries */
-export type LicensesRow = typeof licenses.$inferSelect
+export type LicensesRow = typeof licenses.$inferSelect;
 
 /** Insert type for new records */
-export type LicensesInsert = typeof licenses.$inferInsert
+export type LicensesInsert = typeof licenses.$inferInsert;

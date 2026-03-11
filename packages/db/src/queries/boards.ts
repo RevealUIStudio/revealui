@@ -2,9 +2,9 @@
  * Board database queries
  */
 
-import { and, eq } from 'drizzle-orm'
-import type { DatabaseClient } from '../client/types.js'
-import { boardColumns, boards } from '../schema/tickets.js'
+import { and, eq } from 'drizzle-orm';
+import type { DatabaseClient } from '../client/types.js';
+import { boardColumns, boards } from '../schema/tickets.js';
 
 const DEFAULT_COLUMNS = [
   { name: 'Backlog', slug: 'backlog', position: 0 },
@@ -12,30 +12,30 @@ const DEFAULT_COLUMNS = [
   { name: 'In Progress', slug: 'in-progress', position: 2 },
   { name: 'Review', slug: 'review', position: 3 },
   { name: 'Done', slug: 'done', position: 4 },
-] as const
+] as const;
 
 export async function getAllBoards(db: DatabaseClient, tenantId?: string) {
   if (tenantId) {
-    return db.select().from(boards).where(eq(boards.tenantId, tenantId)).orderBy(boards.createdAt)
+    return db.select().from(boards).where(eq(boards.tenantId, tenantId)).orderBy(boards.createdAt);
   }
-  return db.select().from(boards).orderBy(boards.createdAt)
+  return db.select().from(boards).orderBy(boards.createdAt);
 }
 
 export async function getBoardById(db: DatabaseClient, id: string) {
-  const result = await db.select().from(boards).where(eq(boards.id, id)).limit(1)
-  return result[0] ?? null
+  const result = await db.select().from(boards).where(eq(boards.id, id)).limit(1);
+  return result[0] ?? null;
 }
 
 export async function getBoardBySlug(db: DatabaseClient, slug: string, tenantId?: string) {
-  const conditions = [eq(boards.slug, slug)]
-  if (tenantId) conditions.push(eq(boards.tenantId, tenantId))
+  const conditions = [eq(boards.slug, slug)];
+  if (tenantId) conditions.push(eq(boards.tenantId, tenantId));
 
   const result = await db
     .select()
     .from(boards)
     .where(and(...conditions))
-    .limit(1)
-  return result[0] ?? null
+    .limit(1);
+  return result[0] ?? null;
 }
 
 /**
@@ -44,17 +44,17 @@ export async function getBoardBySlug(db: DatabaseClient, slug: string, tenantId?
 export async function createBoard(
   db: DatabaseClient,
   data: {
-    id: string
-    name: string
-    slug: string
-    description?: string
-    ownerId?: string
-    tenantId?: string
-    isDefault?: boolean
+    id: string;
+    name: string;
+    slug: string;
+    description?: string;
+    ownerId?: string;
+    tenantId?: string;
+    isDefault?: boolean;
   },
 ) {
-  const result = await db.insert(boards).values(data).returning()
-  const board = result[0]
+  const result = await db.insert(boards).values(data).returning();
+  const board = result[0];
 
   if (board) {
     // Create default columns
@@ -67,10 +67,10 @@ export async function createBoard(
         position: col.position,
         isDefault: 'isDefault' in col ? col.isDefault : false,
       })),
-    )
+    );
   }
 
-  return board
+  return board;
 }
 
 export async function updateBoard(
@@ -82,18 +82,18 @@ export async function updateBoard(
     .update(boards)
     .set({ ...data, updatedAt: new Date() })
     .where(eq(boards.id, id))
-    .returning()
+    .returning();
 
-  return result[0] ?? null
+  return result[0] ?? null;
 }
 
 export async function deleteBoard(db: DatabaseClient, id: string) {
-  await db.delete(boards).where(eq(boards.id, id))
+  await db.delete(boards).where(eq(boards.id, id));
 }
 
 export async function getColumnById(db: DatabaseClient, id: string) {
-  const result = await db.select().from(boardColumns).where(eq(boardColumns.id, id)).limit(1)
-  return result[0] ?? null
+  const result = await db.select().from(boardColumns).where(eq(boardColumns.id, id)).limit(1);
+  return result[0] ?? null;
 }
 
 export async function getColumnsByBoard(db: DatabaseClient, boardId: string) {
@@ -101,45 +101,45 @@ export async function getColumnsByBoard(db: DatabaseClient, boardId: string) {
     .select()
     .from(boardColumns)
     .where(eq(boardColumns.boardId, boardId))
-    .orderBy(boardColumns.position)
+    .orderBy(boardColumns.position);
 }
 
 export async function createColumn(
   db: DatabaseClient,
   data: {
-    id: string
-    boardId: string
-    name: string
-    slug: string
-    position: number
-    wipLimit?: number
-    color?: string
+    id: string;
+    boardId: string;
+    name: string;
+    slug: string;
+    position: number;
+    wipLimit?: number;
+    color?: string;
   },
 ) {
-  const result = await db.insert(boardColumns).values(data).returning()
-  return result[0]
+  const result = await db.insert(boardColumns).values(data).returning();
+  return result[0];
 }
 
 export async function updateColumn(
   db: DatabaseClient,
   id: string,
   data: Partial<{
-    name: string
-    slug: string
-    position: number
-    wipLimit: number | null
-    color: string | null
+    name: string;
+    slug: string;
+    position: number;
+    wipLimit: number | null;
+    color: string | null;
   }>,
 ) {
   const result = await db
     .update(boardColumns)
     .set({ ...data, updatedAt: new Date() })
     .where(eq(boardColumns.id, id))
-    .returning()
+    .returning();
 
-  return result[0] ?? null
+  return result[0] ?? null;
 }
 
 export async function deleteColumn(db: DatabaseClient, id: string) {
-  await db.delete(boardColumns).where(eq(boardColumns.id, id))
+  await db.delete(boardColumns).where(eq(boardColumns.id, id));
 }

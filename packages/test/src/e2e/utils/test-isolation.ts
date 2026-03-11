@@ -4,16 +4,16 @@
  * Provides utilities for test isolation and data cleanup
  */
 
-import type { Page } from '@playwright/test'
-import { createTestId } from '../../utils/test-helpers.js'
+import type { Page } from '@playwright/test';
+import { createTestId } from '../../utils/test-helpers.js';
 
 /**
  * Test context for tracking test data
  */
 export interface TestContext {
-  userIds: string[]
-  tenantIds: string[]
-  testId: string
+  userIds: string[];
+  tenantIds: string[];
+  testId: string;
 }
 
 /**
@@ -24,20 +24,20 @@ export function createTestContext(): TestContext {
     userIds: [],
     tenantIds: [],
     testId: createTestId('e2e'),
-  }
+  };
 }
 
 /**
  * Cleanup test data after tests
  */
 export async function cleanupTestData(context: TestContext, page: Page): Promise<void> {
-  const baseUrl = process.env.BASE_URL || 'http://localhost:3000'
+  const baseUrl = process.env.BASE_URL || 'http://localhost:3000';
 
   // Cleanup users if needed
   for (const userId of context.userIds) {
     try {
       // Attempt to delete test user via API if available
-      await page.request.delete(`${baseUrl}/api/users/${userId}`)
+      await page.request.delete(`${baseUrl}/api/users/${userId}`);
     } catch {
       // Ignore cleanup errors
     }
@@ -51,28 +51,28 @@ export function generateUniqueTestData(
   context: TestContext,
   prefix = 'test',
 ): {
-  email: string
-  password: string
-  username: string
+  email: string;
+  password: string;
+  username: string;
 } {
-  const uniqueId = context.testId
+  const uniqueId = context.testId;
 
   return {
     email: `${prefix}-${uniqueId}@example.com`,
     password: `TestPassword${uniqueId}!`,
     username: `${prefix}_${uniqueId}`,
-  }
+  };
 }
 
 /**
  * Setup test isolation
  */
 export async function setupTestIsolation(page: Page): Promise<TestContext> {
-  const context = createTestContext()
+  const context = createTestContext();
 
   // Navigate to base URL to ensure clean state
-  await page.goto(process.env.BASE_URL || 'http://localhost:3000')
-  await page.waitForLoadState('networkidle')
+  await page.goto(process.env.BASE_URL || 'http://localhost:3000');
+  await page.waitForLoadState('networkidle');
 
-  return context
+  return context;
 }

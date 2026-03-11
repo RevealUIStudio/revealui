@@ -1,17 +1,17 @@
-import type { Metadata } from 'next'
-import { Geist, Geist_Mono } from 'next/font/google'
-import { NavBar } from '@/components/NavBar'
-import './globals.css'
+import type { Metadata } from 'next';
+import { Geist, Geist_Mono } from 'next/font/google';
+import { NavBar } from '@/components/NavBar';
+import './globals.css';
 
 const geistSans = Geist({
   variable: '--font-geist-sans',
   subsets: ['latin'],
-})
+});
 
 const geistMono = Geist_Mono({
   variable: '--font-geist-mono',
   subsets: ['latin'],
-})
+});
 
 export const metadata: Metadata = {
   title: 'RevealUI — Open-Source Business Infrastructure',
@@ -34,12 +34,12 @@ export const metadata: Metadata = {
       'Users, content, products, payments, and AI — pre-wired and ready to deploy. Open-source business infrastructure for software companies.',
     type: 'website',
   },
-}
+};
 
 export default function RootLayout({
   children,
 }: Readonly<{
-  children: React.ReactNode
+  children: React.ReactNode;
 }>) {
   return (
     <html lang="en">
@@ -48,5 +48,5 @@ export default function RootLayout({
         {children}
       </body>
     </html>
-  )
+  );
 }

@@ -5,20 +5,20 @@
  * Integration tests with real database should be in integration test suite.
  */
 
-import { beforeEach, describe, expect, it, vi } from 'vitest'
-import type { RevealUIInstance } from '../types/index.js'
+import { beforeEach, describe, expect, it, vi } from 'vitest';
+import type { RevealUIInstance } from '../types/index.js';
 
 describe('findGlobal', () => {
-  const mockGlobalFind = vi.fn()
-  const mockEnsureDbConnected = vi.fn().mockResolvedValue(undefined)
+  const mockGlobalFind = vi.fn();
+  const mockEnsureDbConnected = vi.fn().mockResolvedValue(undefined);
 
   const createMockInstance = (globals: string[] = ['settings']): RevealUIInstance => {
-    const globalInstances: Record<string, unknown> = {}
+    const globalInstances: Record<string, unknown> = {};
     globals.forEach((slug) => {
       globalInstances[slug] = {
         find: mockGlobalFind,
-      }
-    })
+      };
+    });
 
     return {
       config: {
@@ -39,96 +39,96 @@ describe('findGlobal', () => {
       },
       secret: 'test-secret',
       findGlobal: async function (options) {
-        await mockEnsureDbConnected()
-        const { slug } = options
+        await mockEnsureDbConnected();
+        const { slug } = options;
 
         // Find global config
-        const globalConfig = this.config.globals?.find((g) => g.slug === slug)
+        const globalConfig = this.config.globals?.find((g) => g.slug === slug);
         if (!globalConfig) {
-          throw new Error(`Global '${slug}' not found`)
+          throw new Error(`Global '${slug}' not found`);
         }
 
         // Check if global instance exists
         if (!this.globals[slug]) {
-          throw new Error(`Global '${slug}' instance not initialized`)
+          throw new Error(`Global '${slug}' instance not initialized`);
         }
 
         // Call the global's find method
-        return await (this.globals[slug] as { find: typeof mockGlobalFind }).find({ depth: 0 })
+        return await (this.globals[slug] as { find: typeof mockGlobalFind }).find({ depth: 0 });
       },
-    } as unknown as RevealUIInstance
-  }
+    } as unknown as RevealUIInstance;
+  };
 
   beforeEach(() => {
-    vi.clearAllMocks()
-  })
+    vi.clearAllMocks();
+  });
 
   describe('Error Cases', () => {
     it('should throw error when global slug does not exist in config', async () => {
-      const mockInstance = createMockInstance([])
+      const mockInstance = createMockInstance([]);
 
       await expect(
         mockInstance.findGlobal({
           slug: 'nonexistent',
         }),
-      ).rejects.toThrow("Global 'nonexistent' not found")
+      ).rejects.toThrow("Global 'nonexistent' not found");
 
-      expect(mockEnsureDbConnected).toHaveBeenCalled()
-    })
+      expect(mockEnsureDbConnected).toHaveBeenCalled();
+    });
 
     it('should throw error with descriptive message for missing global', async () => {
-      const mockInstance = createMockInstance([])
+      const mockInstance = createMockInstance([]);
 
       await expect(
         mockInstance.findGlobal({
           slug: 'invalid-slug',
         }),
-      ).rejects.toThrow("Global 'invalid-slug' not found")
-    })
+      ).rejects.toThrow("Global 'invalid-slug' not found");
+    });
 
     it('should throw error when global instance not initialized', async () => {
-      const mockInstance = createMockInstance(['settings'])
+      const mockInstance = createMockInstance(['settings']);
       // Remove the global instance to simulate uninitialized state
-      mockInstance.globals.settings = undefined
+      mockInstance.globals.settings = undefined;
 
       await expect(
         mockInstance.findGlobal({
           slug: 'settings',
         }),
-      ).rejects.toThrow("Global 'settings' instance not initialized")
-    })
-  })
+      ).rejects.toThrow("Global 'settings' instance not initialized");
+    });
+  });
 
   describe('Basic Functionality', () => {
     it('should call global find method and return result', async () => {
-      const mockDocument = { id: '1', siteName: 'Test Site' }
-      mockGlobalFind.mockResolvedValue(mockDocument)
+      const mockDocument = { id: '1', siteName: 'Test Site' };
+      mockGlobalFind.mockResolvedValue(mockDocument);
 
-      const mockInstance = createMockInstance(['settings'])
+      const mockInstance = createMockInstance(['settings']);
       const result = await mockInstance.findGlobal({
         slug: 'settings',
-      })
+      });
 
-      expect(mockEnsureDbConnected).toHaveBeenCalled()
-      expect(mockGlobalFind).toHaveBeenCalledWith({ depth: 0 })
-      expect(result).toEqual(mockDocument)
-    })
+      expect(mockEnsureDbConnected).toHaveBeenCalled();
+      expect(mockGlobalFind).toHaveBeenCalledWith({ depth: 0 });
+      expect(result).toEqual(mockDocument);
+    });
 
     it('should return null when global find returns null', async () => {
-      mockGlobalFind.mockResolvedValue(null)
+      mockGlobalFind.mockResolvedValue(null);
 
-      const mockInstance = createMockInstance(['settings'])
+      const mockInstance = createMockInstance(['settings']);
       const result = await mockInstance.findGlobal({
         slug: 'settings',
-      })
+      });
 
-      expect(result).toBeNull()
-    })
+      expect(result).toBeNull();
+    });
 
     it('should accept all optional parameters', async () => {
-      mockGlobalFind.mockResolvedValue({ id: '1' })
+      mockGlobalFind.mockResolvedValue({ id: '1' });
 
-      const mockInstance = createMockInstance(['settings'])
+      const mockInstance = createMockInstance(['settings']);
       const result = await mockInstance.findGlobal({
         slug: 'settings',
         depth: 0,
@@ -137,28 +137,28 @@ describe('findGlobal', () => {
         fallbackLocale: 'en',
         overrideAccess: false,
         showHiddenFields: false,
-      })
+      });
 
-      expect(result).toBeDefined()
-    })
-  })
+      expect(result).toBeDefined();
+    });
+  });
 
   describe('Method Signature Validation', () => {
     it('should be a function', () => {
-      const mockInstance = createMockInstance(['settings'])
-      expect(typeof mockInstance.findGlobal).toBe('function')
-    })
+      const mockInstance = createMockInstance(['settings']);
+      expect(typeof mockInstance.findGlobal).toBe('function');
+    });
 
     it('should return a Promise', () => {
-      mockGlobalFind.mockResolvedValue({ id: '1' })
-      const mockInstance = createMockInstance(['settings'])
+      mockGlobalFind.mockResolvedValue({ id: '1' });
+      const mockInstance = createMockInstance(['settings']);
       const result = mockInstance.findGlobal({
         slug: 'settings',
-      })
-      expect(result).toBeInstanceOf(Promise)
-    })
-  })
-})
+      });
+      expect(result).toBeInstanceOf(Promise);
+    });
+  });
+});
 
 /**
  * Integration Test Notes:

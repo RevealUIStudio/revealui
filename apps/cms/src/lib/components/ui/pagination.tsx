@@ -1,7 +1,7 @@
-import type { ButtonProps } from '@revealui/presentation/server'
-import { buttonVariants } from '@revealui/presentation/server'
-import type * as React from 'react'
-import { cn } from '@/lib/styles/classnames'
+import type { ButtonProps } from '@revealui/presentation/server';
+import { buttonVariants } from '@revealui/presentation/server';
+import type * as React from 'react';
+import { cn } from '@/lib/styles/classnames';
 
 const ChevronLeft = ({ className }: { className: string }) => {
   return (
@@ -16,8 +16,8 @@ const ChevronLeft = ({ className }: { className: string }) => {
       <title>Previous page</title>
       <path strokeLinecap="round" strokeLinejoin="round" d="M15.75 19.5 8.25 12l7.5-7.5" />
     </svg>
-  )
-}
+  );
+};
 
 const ChevronRight = ({ className }: { className: string }) => {
   return (
@@ -32,8 +32,8 @@ const ChevronRight = ({ className }: { className: string }) => {
       <title>Next page</title>
       <path strokeLinecap="round" strokeLinejoin="round" d="m8.25 4.5 7.5 7.5-7.5 7.5" />
     </svg>
-  )
-}
+  );
+};
 
 const MoreHorizontal = ({ className }: { className: string }) => {
   return (
@@ -48,8 +48,8 @@ const MoreHorizontal = ({ className }: { className: string }) => {
       <circle cx="12" cy="3" r="3" fill="currentColor" />
       <circle cx="18" cy="3" r="3" fill="currentColor" />
     </svg>
-  )
-}
+  );
+};
 
 const Pagination = ({ className, ...props }: React.ComponentProps<'nav'>) => (
   <nav
@@ -57,15 +57,15 @@ const Pagination = ({ className, ...props }: React.ComponentProps<'nav'>) => (
     className={cn('mx-auto flex w-full justify-center', className)}
     {...props}
   />
-)
-Pagination.displayName = 'Pagination'
+);
+Pagination.displayName = 'Pagination';
 
 function PaginationContent({
   className,
   ref,
   ...props
 }: React.ComponentProps<'ul'> & { ref?: React.Ref<HTMLUListElement> }) {
-  return <ul className={cn('flex flex-row items-center gap-1', className)} ref={ref} {...props} />
+  return <ul className={cn('flex flex-row items-center gap-1', className)} ref={ref} {...props} />;
 }
 
 function PaginationItem({
@@ -73,13 +73,13 @@ function PaginationItem({
   ref,
   ...props
 }: React.ComponentProps<'li'> & { ref?: React.Ref<HTMLLIElement> }) {
-  return <li className={cn('', className)} ref={ref} {...props} />
+  return <li className={cn('', className)} ref={ref} {...props} />;
 }
 
 type PaginationLinkProps = {
-  isActive?: boolean
+  isActive?: boolean;
 } & Pick<ButtonProps, 'size'> &
-  React.ComponentProps<'button'>
+  React.ComponentProps<'button'>;
 
 const PaginationLink = ({ className, isActive, size = 'icon', ...props }: PaginationLinkProps) => (
   <button
@@ -93,8 +93,8 @@ const PaginationLink = ({ className, isActive, size = 'icon', ...props }: Pagina
     )}
     {...props}
   />
-)
-PaginationLink.displayName = 'PaginationLink'
+);
+PaginationLink.displayName = 'PaginationLink';
 
 const PaginationPrevious = ({
   className,
@@ -109,8 +109,8 @@ const PaginationPrevious = ({
     <ChevronLeft className="size-4" />
     <span>Previous</span>
   </PaginationLink>
-)
-PaginationPrevious.displayName = 'PaginationPrevious'
+);
+PaginationPrevious.displayName = 'PaginationPrevious';
 
 const PaginationNext = ({ className, ...props }: React.ComponentProps<typeof PaginationLink>) => (
   <PaginationLink
@@ -122,8 +122,8 @@ const PaginationNext = ({ className, ...props }: React.ComponentProps<typeof Pag
     <span>Next</span>
     <ChevronRight className="size-4" />
   </PaginationLink>
-)
-PaginationNext.displayName = 'PaginationNext'
+);
+PaginationNext.displayName = 'PaginationNext';
 
 const PaginationEllipsis = ({ className, ...props }: React.ComponentProps<'span'>) => (
   <span
@@ -134,8 +134,8 @@ const PaginationEllipsis = ({ className, ...props }: React.ComponentProps<'span'
     <MoreHorizontal className="size-4" />
     <span className="sr-only">More pages</span>
   </span>
-)
-PaginationEllipsis.displayName = 'PaginationEllipsis'
+);
+PaginationEllipsis.displayName = 'PaginationEllipsis';
 
 export {
   Pagination,
@@ -145,4 +145,4 @@ export {
   PaginationLink,
   PaginationNext,
   PaginationPrevious,
-}
+};
