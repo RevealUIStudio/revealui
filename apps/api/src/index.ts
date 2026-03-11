@@ -147,125 +147,122 @@ app.use('*', async (c, next) => {
 })
 app.use('*', dbMiddleware())
 
+// ---------------------------------------------------------------------------
+// Rate limit configuration — all tunables in one place
+// Override per-route limits via configureRateLimits() in tests or deployment
+// ---------------------------------------------------------------------------
+
+const ONE_MINUTE = 60_000
+const FIFTEEN_MINUTES = 15 * ONE_MINUTE
+const ONE_HOUR = 60 * ONE_MINUTE
+
+interface RateLimitEntry {
+  maxRequests: number
+  windowMs: number
+}
+
+interface RateLimitsConfig {
+  /** Global tiered limits (per license tier) */
+  tiers: {
+    free: RateLimitEntry
+    pro: RateLimitEntry
+    max: RateLimitEntry
+    enterprise: RateLimitEntry
+  }
+  /** Per-route limits */
+  routes: Record<string, RateLimitEntry>
+}
+
+const DEFAULT_RATE_LIMITS: RateLimitsConfig = {
+  tiers: {
+    free: { maxRequests: 60, windowMs: ONE_MINUTE },
+    pro: { maxRequests: 300, windowMs: ONE_MINUTE },
+    max: { maxRequests: 600, windowMs: ONE_MINUTE },
+    enterprise: { maxRequests: 1000, windowMs: ONE_MINUTE },
+  },
+  routes: {
+    'license-gen': { maxRequests: 5, windowMs: FIFTEEN_MINUTES },
+    'a2a-discovery': { maxRequests: 60, windowMs: ONE_MINUTE },
+    agent: { maxRequests: 10, windowMs: ONE_MINUTE },
+    'agent-stream': { maxRequests: 10, windowMs: ONE_MINUTE },
+    rag: { maxRequests: 20, windowMs: ONE_MINUTE },
+    'error-capture': { maxRequests: 50, windowMs: ONE_MINUTE },
+    'log-ingest': { maxRequests: 200, windowMs: ONE_MINUTE },
+    'api-keys': { maxRequests: 20, windowMs: ONE_MINUTE },
+    'billing-checkout': { maxRequests: 10, windowMs: FIFTEEN_MINUTES },
+    'billing-upgrade': { maxRequests: 5, windowMs: FIFTEEN_MINUTES },
+    'billing-downgrade': { maxRequests: 5, windowMs: FIFTEEN_MINUTES },
+    'marketplace-publish': { maxRequests: 10, windowMs: ONE_HOUR },
+    'marketplace-invoke': { maxRequests: 30, windowMs: ONE_MINUTE },
+  },
+}
+
+let rateLimitsConfig: RateLimitsConfig = { ...DEFAULT_RATE_LIMITS }
+
+/** Override rate limit defaults (useful for tests or per-environment tuning) */
+export function configureRateLimits(overrides: Partial<RateLimitsConfig>): void {
+  rateLimitsConfig = {
+    tiers: { ...DEFAULT_RATE_LIMITS.tiers, ...overrides.tiers },
+    routes: { ...DEFAULT_RATE_LIMITS.routes, ...overrides.routes },
+  }
+}
+
+function routeLimit(key: string) {
+  const cfg = rateLimitsConfig.routes[key] ?? DEFAULT_RATE_LIMITS.routes[key]
+  return rateLimitMiddleware({ ...cfg, keyPrefix: key })
+}
+
 // Rate limiting — tiered global + per-route overrides
 // Applied to both /api/* and /api/v1/* for versioned route support
 const tieredRateLimit = tieredRateLimitMiddleware({
-  tiers: {
-    free: { maxRequests: 60, windowMs: 60_000 },
-    pro: { maxRequests: 300, windowMs: 60_000 },
-    max: { maxRequests: 600, windowMs: 60_000 },
-    enterprise: { maxRequests: 1000, windowMs: 60_000 },
-  },
+  tiers: rateLimitsConfig.tiers,
   keyPrefix: 'api',
 })
 app.use('/api/*', tieredRateLimit)
 app.use('/api/v1/*', tieredRateLimit)
 
-const licenseGenLimit = rateLimitMiddleware({
-  maxRequests: 5,
-  windowMs: 15 * 60_000,
-  keyPrefix: 'license-gen',
-})
-app.use('/api/license/generate', licenseGenLimit)
-app.use('/api/v1/license/generate', licenseGenLimit)
+app.use('/api/license/generate', routeLimit('license-gen'))
+app.use('/api/v1/license/generate', routeLimit('license-gen'))
 
-// A2A discovery endpoints are public per the A2A spec — rate limit to prevent enumeration abuse
-const a2aDiscoveryLimit = rateLimitMiddleware({
-  maxRequests: 60,
-  windowMs: 60_000,
-  keyPrefix: 'a2a-discovery',
-})
-app.use('/.well-known/*', a2aDiscoveryLimit)
-app.use('/a2a/agents', a2aDiscoveryLimit)
-app.use('/a2a/agents/*', a2aDiscoveryLimit)
+// A2A discovery endpoints are public per the A2A spec
+app.use('/.well-known/*', routeLimit('a2a-discovery'))
+app.use('/a2a/agents', routeLimit('a2a-discovery'))
+app.use('/a2a/agents/*', routeLimit('a2a-discovery'))
 
-const agentLimit = rateLimitMiddleware({
-  maxRequests: 10,
-  windowMs: 60_000,
-  keyPrefix: 'agent',
-})
-app.use('/api/agent-tasks/*', agentLimit)
-app.use('/api/v1/agent-tasks/*', agentLimit)
+app.use('/api/agent-tasks/*', routeLimit('agent'))
+app.use('/api/v1/agent-tasks/*', routeLimit('agent'))
 
-const agentStreamLimit = rateLimitMiddleware({
-  maxRequests: 10,
-  windowMs: 60_000,
-  keyPrefix: 'agent-stream',
-})
-app.use('/api/agent-stream', agentStreamLimit)
-app.use('/api/v1/agent-stream', agentStreamLimit)
+app.use('/api/agent-stream', routeLimit('agent-stream'))
+app.use('/api/v1/agent-stream', routeLimit('agent-stream'))
 
-const ragLimit = rateLimitMiddleware({ maxRequests: 20, windowMs: 60_000, keyPrefix: 'rag' })
-app.use('/api/rag/*', ragLimit)
-app.use('/api/v1/rag/*', ragLimit)
+app.use('/api/rag/*', routeLimit('rag'))
+app.use('/api/v1/rag/*', routeLimit('rag'))
 
-const errorCaptureLimit = rateLimitMiddleware({
-  maxRequests: 50,
-  windowMs: 60_000,
-  keyPrefix: 'error-capture',
-})
-app.use('/api/errors', errorCaptureLimit)
-app.use('/api/v1/errors', errorCaptureLimit)
+app.use('/api/errors', routeLimit('error-capture'))
+app.use('/api/v1/errors', routeLimit('error-capture'))
 
-const logIngestLimit = rateLimitMiddleware({
-  maxRequests: 200,
-  windowMs: 60_000,
-  keyPrefix: 'log-ingest',
-})
-app.use('/api/logs', logIngestLimit)
-app.use('/api/v1/logs', logIngestLimit)
+app.use('/api/logs', routeLimit('log-ingest'))
+app.use('/api/v1/logs', routeLimit('log-ingest'))
 
 // API keys manage long-lived credentials — tight limits to slow enumeration/abuse
-const apiKeysLimit = rateLimitMiddleware({
-  maxRequests: 20,
-  windowMs: 60_000,
-  keyPrefix: 'api-keys',
-})
-app.use('/api/api-keys/*', apiKeysLimit)
-app.use('/api/v1/api-keys/*', apiKeysLimit)
+app.use('/api/api-keys/*', routeLimit('api-keys'))
+app.use('/api/v1/api-keys/*', routeLimit('api-keys'))
 
 // Billing endpoints create Stripe objects — tighter limits to prevent abuse
-const billingCheckoutLimit = rateLimitMiddleware({
-  maxRequests: 10,
-  windowMs: 15 * 60_000,
-  keyPrefix: 'billing-checkout',
-})
-app.use('/api/billing/checkout', billingCheckoutLimit)
-app.use('/api/v1/billing/checkout', billingCheckoutLimit)
+app.use('/api/billing/checkout', routeLimit('billing-checkout'))
+app.use('/api/v1/billing/checkout', routeLimit('billing-checkout'))
+app.use('/api/billing/upgrade', routeLimit('billing-upgrade'))
+app.use('/api/v1/billing/upgrade', routeLimit('billing-upgrade'))
+app.use('/api/billing/downgrade', routeLimit('billing-downgrade'))
+app.use('/api/v1/billing/downgrade', routeLimit('billing-downgrade'))
 
-const billingUpgradeLimit = rateLimitMiddleware({
-  maxRequests: 5,
-  windowMs: 15 * 60_000,
-  keyPrefix: 'billing-upgrade',
-})
-app.use('/api/billing/upgrade', billingUpgradeLimit)
-app.use('/api/v1/billing/upgrade', billingUpgradeLimit)
-
-const billingDowngradeLimit = rateLimitMiddleware({
-  maxRequests: 5,
-  windowMs: 15 * 60_000,
-  keyPrefix: 'billing-downgrade',
-})
-app.use('/api/billing/downgrade', billingDowngradeLimit)
-app.use('/api/v1/billing/downgrade', billingDowngradeLimit)
-
-// Marketplace publish — prevent server spam (10 per hour)
-const marketplacePublishLimit = rateLimitMiddleware({
-  maxRequests: 10,
-  windowMs: 60 * 60_000,
-  keyPrefix: 'marketplace-publish',
-})
-app.use('/api/marketplace/servers', marketplacePublishLimit)
-app.use('/api/v1/marketplace/servers', marketplacePublishLimit)
+// Marketplace publish — prevent server spam
+app.use('/api/marketplace/servers', routeLimit('marketplace-publish'))
+app.use('/api/v1/marketplace/servers', routeLimit('marketplace-publish'))
 
 // Marketplace invoke — payment is the primary gate; still rate-limit to prevent probe abuse
-const marketplaceInvokeLimit = rateLimitMiddleware({
-  maxRequests: 30,
-  windowMs: 60_000,
-  keyPrefix: 'marketplace-invoke',
-})
-app.use('/api/marketplace/servers/*/invoke', marketplaceInvokeLimit)
-app.use('/api/v1/marketplace/servers/*/invoke', marketplaceInvokeLimit)
+app.use('/api/marketplace/servers/*/invoke', routeLimit('marketplace-invoke'))
+app.use('/api/v1/marketplace/servers/*/invoke', routeLimit('marketplace-invoke'))
 
 // GDPR consent endpoints — moderate limits, deletion requests tighter
 const gdprConsentLimit = rateLimitMiddleware({

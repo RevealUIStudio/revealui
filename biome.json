@@ -257,10 +257,10 @@
       "linter": {
         "rules": {
           "a11y": {
-            "noAutofocus": "off",
-            "useSemanticElements": "off",
-            "noStaticElementInteractions": "off",
-            "useKeyWithClickEvents": "off"
+            "noAutofocus": "warn",
+            "useSemanticElements": "warn",
+            "noStaticElementInteractions": "warn",
+            "useKeyWithClickEvents": "warn"
           }
         }
       }

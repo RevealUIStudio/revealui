@@ -39,22 +39,31 @@ let toolRegistry: unknown = null
  * Returns null if the Pro package is not installed.
  */
 async function loadChatAIDeps() {
-  const [embeddingsMod, llmServerMod, vectorMod, cmsMod, registryMod] = await Promise.all([
+  const moduleNames = ['embeddings', 'llm/server', 'memory/vector', 'tools/cms', 'tools/registry']
+  const results = await Promise.all([
     import('@revealui/ai/embeddings').catch(() => null),
     import('@revealui/ai/llm/server').catch(() => null),
     import('@revealui/ai/memory/vector').catch(() => null),
     import('@revealui/ai/tools/cms').catch(() => null),
     import('@revealui/ai/tools/registry').catch(() => null),
   ])
-  if (!(embeddingsMod && llmServerMod && vectorMod && cmsMod && registryMod)) return null
+  const [embeddingsMod, llmServerMod, vectorMod, cmsMod, registryMod] = results
+
+  // Log which specific modules failed so operators can diagnose missing Pro deps
+  const failed = moduleNames.filter((_, i) => results[i] === null)
+  if (failed.length > 0) {
+    logger.warn('AI modules unavailable (Pro package not installed?)', { missing: failed })
+    return null
+  }
+  // All modules verified non-null by the early return above
   return {
-    generateEmbedding: embeddingsMod.generateEmbedding,
-    createLLMClientFromEnv: llmServerMod.createLLMClientFromEnv,
+    generateEmbedding: embeddingsMod!.generateEmbedding,
+    createLLMClientFromEnv: llmServerMod!.createLLMClientFromEnv,
     // biome-ignore lint/style/useNamingConvention: class constructor reference
-    VectorMemoryService: vectorMod.VectorMemoryService,
-    createCMSTools: cmsMod.createCMSTools,
+    VectorMemoryService: vectorMod!.VectorMemoryService,
+    createCMSTools: cmsMod!.createCMSTools,
     // biome-ignore lint/style/useNamingConvention: class constructor reference
-    ToolRegistry: registryMod.ToolRegistry,
+    ToolRegistry: registryMod!.ToolRegistry,
   }
 }
 
@@ -197,7 +206,7 @@ export async function POST(request: NextRequest) {
       : String(rawContent)
 
     // Create LLM client from env (supports Vultr, OpenAI, Anthropic)
-    // biome-ignore lint/suspicious/noExplicitAny: LLMClient type comes from @revealui/ai (optional Pro dep)
+    // biome-ignore lint/suspicious/noExplicitAny: LLMClient type from @revealui/ai (optional Pro dep) — typed chat() signature requires ToolCall[] but our generic messages use unknown[]
     let llmClient: any
     try {
       logger.info('Creating LLM client', {

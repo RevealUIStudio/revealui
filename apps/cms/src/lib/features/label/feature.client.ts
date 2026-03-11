@@ -1,14 +1,14 @@
 'use client'
 
-// import {
-//   createClientFeature,
-//   slashMenuBasicGroupWithItems,
-//   toolbarAddDropdownGroupWithItems,
-// } from "@revealui/core/richtext/client";
-// import { LabelNode, OPEN_LABEL_DRAWER_COMMAND } from "./nodes/LabelNode.js";
-// import { LabelPlugin } from "./plugins/LabelPlugin.js";
-// import LabelIcon from "./icons/LabelIcon.js";
-// Define LabelFeatureClient with explicit type definitions
+// Label feature client — not yet implemented.
+// Server-side feature exists in feature.server.ts with LabelNode + schema.
+// Client integration (toolbar, slash menu, plugin) requires:
+//   - LabelPlugin component
+//   - LabelIcon component
+//   - createClientFeature() wiring
+// When implementing, import from '@revealui/core/richtext/client' and wire
+// LabelNode, LabelPlugin, LabelIcon into toolbarFixed + slashMenu.
+
 export const LabelFeatureClient: {
   path: string
   clientProps: Record<string, unknown>
@@ -19,93 +19,4 @@ export const LabelFeatureClient: {
   clientProps: {},
   exportName: '',
   serverProps: {},
-  // Component: createClientFeature({
-  //   plugins: [
-  //     {
-  //       Component: LabelPlugin,
-  //       position: "normal",
-  //     },
-  //   ],
-  //   nodes: [LabelNode],
-  //   toolbarFixed: {
-  //     groups: [
-  //       toolbarAddDropdownGroupWithItems([
-  //         {
-  //           key: "label",
-  //           ChildComponent: LabelIcon,
-  //           label: "Label",
-  //           onSelect: ({ editor }) => {
-  //             editor.dispatchCommand(OPEN_LABEL_DRAWER_COMMAND, {});
-  //           },
-  //         },
-  //       ]),
-  //     ],
-  //   },
-  //   slashMenu: {
-  //     groups: [
-  //       slashMenuBasicGroupWithItems([
-  //         {
-  //           key: "label",
-  //           label: "Label",
-  //           onSelect: ({ editor }) => {
-  //             editor.dispatchCommand(OPEN_LABEL_DRAWER_COMMAND, {});
-  //           },
-  //           keywords: ["label"],
-  //           Icon: LabelIcon,
-  //         },
-  //       ]),
-  //     ],
-  //   },
-  // }),
 }
-
-// "use client";
-
-// import {
-//   createClientFeature,
-//   slashMenuBasicGroupWithItems,
-//   toolbarAddDropdownGroupWithItems,
-// } from "@revealui/core/richtext/client";
-// import { LabelNode, OPEN_LABEL_DRAWER_COMMAND } from "./nodes/LabelNode.js";
-// import { LabelPlugin } from "./plugins/LabelPlugin.js";
-// import LabelIcon from "./icons/LabelIcon.js";
-// import { RevealComponent } from "@revealui/core";
-
-// export const LabelFeatureClient: RevealComponent = createClientFeature({
-//   plugins: [
-//     {
-//       Component: LabelPlugin,
-//       position: "normal",
-//     },
-//   ],
-//   nodes: [LabelNode],
-//   toolbarFixed: {
-//     groups: [
-//       toolbarAddDropdownGroupWithItems([
-//         {
-//           key: "label",
-//           ChildComponent: LabelIcon,
-//           label: "Label",
-//           onSelect: ({ editor }) => {
-//             editor.dispatchCommand(OPEN_LABEL_DRAWER_COMMAND, {});
-//           },
-//         },
-//       ]),
-//     ],
-//   },
-//   slashMenu: {
-//     groups: [
-//       slashMenuBasicGroupWithItems([
-//         {
-//           key: "label",
-//           label: "Label",
-//           onSelect: ({ editor }) => {
-//             editor.dispatchCommand(OPEN_LABEL_DRAWER_COMMAND, {});
-//           },
-//           keywords: ["label"],
-//           Icon: LabelIcon,
-//         },
-//       ]),
-//     ],
-//   },
-// });
