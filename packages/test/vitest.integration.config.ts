@@ -14,6 +14,7 @@ export default defineConfig({
     alias: {
       '@revealui/core': path.resolve(__dirname, '../core/src'),
       '@cms': path.resolve(__dirname, '../../apps/cms/src'),
+      '@api': path.resolve(__dirname, '../../apps/api/src'),
     },
   },
   esbuild: {

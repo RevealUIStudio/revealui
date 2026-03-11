@@ -65,6 +65,31 @@ jobs:
         env:
           SKIP_ENV_VALIDATION: "true"
 
+      - name: Validate release artifacts
+        run: |
+          echo "Checking dist/ output for OSS packages..."
+          FAILED=0
+          for pkg in auth cli config contracts core create-revealui db presentation router setup sync utils; do
+            DIR="packages/$pkg/dist"
+            if [ ! -d "$DIR" ] || [ -z "$(ls -A "$DIR" 2>/dev/null)" ]; then
+              echo "❌ $pkg: dist/ is empty or missing"
+              FAILED=1
+            elif [ "$pkg" != "create-revealui" ] && ! ls "$DIR"/*.d.ts >/dev/null 2>&1; then
+              echo "❌ $pkg: no .d.ts files in dist/"
+              FAILED=1
+            else
+              COUNT=$(ls "$DIR"/*.js 2>/dev/null | wc -l)
+              echo "✅ $pkg: $COUNT .js files"
+            fi
+          done
+          if [ "$FAILED" -eq 1 ]; then
+            echo ""
+            echo "❌ Release artifact validation failed"
+            exit 1
+          fi
+          echo ""
+          echo "✅ All release artifacts validated"
+
       - name: Publish to npm (dry run)
         if: ${{ inputs.dry-run }}
         run: |
