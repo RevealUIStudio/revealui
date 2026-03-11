@@ -22,8 +22,6 @@ export type FeatureFlagKey =
   | 'ai'
   | 'aiMemory'
   | 'mcp'
-  | 'editors'
-  | 'harnesses'
   | 'payments'
   | 'advancedSync'
   | 'dashboard'
@@ -62,8 +60,6 @@ export const FEATURE_LABELS: Record<FeatureFlagKey, string> = {
   ai: 'AI Agents',
   aiMemory: 'AI Memory',
   mcp: 'MCP Server Integration',
-  editors: 'Editor Integration',
-  harnesses: 'AI Harness Coordination',
   payments: 'Built-in Payments',
   advancedSync: 'Advanced Real-time Sync',
   dashboard: 'Monitoring Dashboard',
