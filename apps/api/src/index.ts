@@ -37,6 +37,7 @@ import healthRoute from './routes/health.js'
 import licenseRoute from './routes/license.js'
 import logsRoute from './routes/logs.js'
 import marketplaceRoute from './routes/marketplace.js'
+import pricingRoute from './routes/pricing.js'
 import ragIndexRoute from './routes/rag-index.js'
 import terminalAuthRoute from './routes/terminal-auth.js'
 import ticketsRoute from './routes/tickets.js'
@@ -194,6 +195,7 @@ const DEFAULT_RATE_LIMITS: RateLimitsConfig = {
     'billing-downgrade': { maxRequests: 5, windowMs: FIFTEEN_MINUTES },
     'marketplace-publish': { maxRequests: 10, windowMs: ONE_HOUR },
     'marketplace-invoke': { maxRequests: 30, windowMs: ONE_MINUTE },
+    pricing: { maxRequests: 10, windowMs: ONE_MINUTE },
   },
 }
 
@@ -263,6 +265,10 @@ app.use('/api/v1/marketplace/servers', routeLimit('marketplace-publish'))
 // Marketplace invoke — payment is the primary gate; still rate-limit to prevent probe abuse
 app.use('/api/marketplace/servers/*/invoke', routeLimit('marketplace-invoke'))
 app.use('/api/v1/marketplace/servers/*/invoke', routeLimit('marketplace-invoke'))
+
+// Pricing endpoint — public, heavily cached (ISR clients need at most 1 req/hour)
+app.use('/api/pricing', routeLimit('pricing'))
+app.use('/api/v1/pricing', routeLimit('pricing'))
 
 // GDPR consent endpoints — moderate limits, deletion requests tighter
 const gdprConsentLimit = rateLimitMiddleware({
@@ -427,6 +433,7 @@ app.route('/api/content', contentRoute)
 app.route('/api/rag', ragIndexRoute)
 app.route('/api/api-keys', apiKeysRoute)
 app.route('/api/marketplace', marketplaceRoute)
+app.route('/api/pricing', pricingRoute)
 app.route('/api/terminal-auth', terminalAuthRoute)
 app.route('', createCollabRoute())
 app.route('', createAgentCollabRoute())
@@ -447,6 +454,7 @@ app.route('/api/v1/content', contentRoute)
 app.route('/api/v1/rag', ragIndexRoute)
 app.route('/api/v1/api-keys', apiKeysRoute)
 app.route('/api/v1/marketplace', marketplaceRoute)
+app.route('/api/v1/pricing', pricingRoute)
 
 // Error handling
 app.onError(errorHandler)
