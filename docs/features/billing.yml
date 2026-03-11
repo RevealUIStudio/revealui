@@ -49,9 +49,9 @@ ui-surface:
     status: basic
 
 limitations:
-  - id: email-silent-fail
+  - id: email-production-throw
     surface: api
-    summary: "RESEND_API_KEY missing in production causes silent email skip"
+    summary: "Missing RESEND_API_KEY throws in production (fixed — was silent skip)"
   - id: billing-meter
     surface: api
     summary: "Usage overage tracked in DB but not reported to Stripe Billing Meter"
