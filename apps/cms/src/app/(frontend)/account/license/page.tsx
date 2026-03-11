@@ -1,123 +1,129 @@
-'use client'
+'use client';
 
-import { useSession } from '@revealui/auth/react'
+import { useSession } from '@revealui/auth/react';
 import {
   FEATURE_LABELS,
   type LicenseTierId,
+  type PricingResponse,
   TIER_COLORS,
   TIER_LABELS,
   TIER_LIMITS,
-} from '@revealui/contracts/pricing'
-import type { FeatureFlags } from '@revealui/core/features'
+} from '@revealui/contracts/pricing';
+import type { FeatureFlags } from '@revealui/core/features';
 import {
   Card,
   CardContent,
   CardDescription,
   CardHeader,
   CardTitle,
-} from '@revealui/presentation/server'
-import Link from 'next/link'
-import { useRouter } from 'next/navigation'
-import { useCallback, useEffect, useState } from 'react'
+} from '@revealui/presentation/server';
+import Link from 'next/link';
+import { useRouter } from 'next/navigation';
+import { useCallback, useEffect, useState } from 'react';
 
 interface SubscriptionData {
-  tier: LicenseTierId
-  status: string
-  expiresAt: string | null
+  tier: LicenseTierId;
+  status: string;
+  expiresAt: string | null;
 }
 
 const PERPETUAL_PLANS = [
   {
     label: 'Pro Perpetual',
-    price: '$299',
     tier: 'pro' as const,
     priceIdEnv: process.env.NEXT_PUBLIC_STRIPE_PERPETUAL_PRO_PRICE_ID,
     description: 'Pro features forever. Includes 1 year of support.',
   },
   {
     label: 'Max Perpetual',
-    price: '$799',
     tier: 'max' as const,
     priceIdEnv: process.env.NEXT_PUBLIC_STRIPE_PERPETUAL_MAX_PRICE_ID,
     description: 'Max features forever. Includes 1 year of support.',
   },
-]
+];
 
 export default function LicensePage() {
-  const router = useRouter()
-  const { data: session, isLoading: sessionLoading } = useSession()
-  const [subscription, setSubscription] = useState<SubscriptionData | null>(null)
-  const [features, setFeatures] = useState<Record<string, FeatureFlags> | null>(null)
-  const [isLoading, setIsLoading] = useState(true)
-  const [error, setError] = useState<string | null>(null)
-  const [perpetualLoading, setPerpetualLoading] = useState<string | null>(null)
+  const router = useRouter();
+  const { data: session, isLoading: sessionLoading } = useSession();
+  const [subscription, setSubscription] = useState<SubscriptionData | null>(null);
+  const [features, setFeatures] = useState<Record<string, FeatureFlags> | null>(null);
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+  const [perpetualLoading, setPerpetualLoading] = useState<string | null>(null);
+  const [pricing, setPricing] = useState<PricingResponse | null>(null);
 
   const fetchData = useCallback(async () => {
     try {
-      const apiUrl = (process.env.NEXT_PUBLIC_API_URL || 'https://api.revealui.com').trim()
+      const apiUrl = (process.env.NEXT_PUBLIC_API_URL || 'https://api.revealui.com').trim();
 
-      const [subRes, featRes] = await Promise.all([
+      const [subRes, featRes, pricingRes] = await Promise.all([
         fetch(`${apiUrl}/api/billing/subscription`, { credentials: 'include' }),
         fetch(`${apiUrl}/api/license/features`),
-      ])
+        fetch(`${apiUrl}/api/pricing`),
+      ]);
 
       if (subRes.ok) {
-        const data = (await subRes.json()) as SubscriptionData
-        setSubscription(data)
+        const data = (await subRes.json()) as SubscriptionData;
+        setSubscription(data);
       }
 
       if (featRes.ok) {
-        const data = (await featRes.json()) as Record<string, FeatureFlags>
-        setFeatures(data)
+        const data = (await featRes.json()) as Record<string, FeatureFlags>;
+        setFeatures(data);
+      }
+
+      if (pricingRes.ok) {
+        const data = (await pricingRes.json()) as PricingResponse;
+        setPricing(data);
       }
     } catch {
-      setError('Failed to load license data')
+      setError('Failed to load license data');
     } finally {
-      setIsLoading(false)
+      setIsLoading(false);
     }
-  }, [])
+  }, []);
 
   useEffect(() => {
     if (!sessionLoading && session) {
-      void fetchData()
+      void fetchData();
     } else if (!(sessionLoading || session)) {
-      router.push('/login')
+      router.push('/login');
     }
-  }, [session, sessionLoading, fetchData, router])
+  }, [session, sessionLoading, fetchData, router]);
 
   if (sessionLoading || isLoading) {
     return (
       <div className="flex min-h-[60vh] items-center justify-center">
         <p className="text-zinc-500">Loading...</p>
       </div>
-    )
+    );
   }
 
   const handlePerpetualCheckout = async (plan: (typeof PERPETUAL_PLANS)[number]) => {
-    if (!plan.priceIdEnv) return
-    setPerpetualLoading(plan.tier)
+    if (!plan.priceIdEnv) return;
+    setPerpetualLoading(plan.tier);
     try {
-      const apiUrl = (process.env.NEXT_PUBLIC_API_URL || 'https://api.revealui.com').trim()
+      const apiUrl = (process.env.NEXT_PUBLIC_API_URL || 'https://api.revealui.com').trim();
       const res = await fetch(`${apiUrl}/api/billing/checkout-perpetual`, {
         method: 'POST',
         credentials: 'include',
         headers: { 'content-type': 'application/json' },
         body: JSON.stringify({ priceId: plan.priceIdEnv, tier: plan.tier }),
-      })
-      if (!res.ok) throw new Error('Checkout failed')
-      const { url } = (await res.json()) as { url: string }
-      router.push(url)
+      });
+      if (!res.ok) throw new Error('Checkout failed');
+      const { url } = (await res.json()) as { url: string };
+      router.push(url);
     } catch {
-      setError('Failed to start checkout. Please try again.')
+      setError('Failed to start checkout. Please try again.');
     } finally {
-      setPerpetualLoading(null)
+      setPerpetualLoading(null);
     }
-  }
+  };
 
-  const tier = subscription?.tier ?? 'free'
-  const limits = TIER_LIMITS[tier]
-  const tierFeatures = features?.[tier]
-  const canUpgrade = tier === 'free' || tier === 'pro'
+  const tier = subscription?.tier ?? 'free';
+  const limits = TIER_LIMITS[tier];
+  const tierFeatures = features?.[tier];
+  const canUpgrade = tier === 'free' || tier === 'pro';
 
   return (
     <div className="mx-auto max-w-2xl space-y-6 py-12">
@@ -217,7 +223,9 @@ export default function LicensePage() {
                   onClick={() => void handlePerpetualCheckout(plan)}
                   className="shrink-0 ml-4 rounded-md bg-zinc-900 px-3 py-1.5 text-sm font-medium text-white hover:bg-zinc-700 disabled:opacity-50 dark:bg-white dark:text-zinc-900 dark:hover:bg-zinc-200"
                 >
-                  {perpetualLoading === plan.tier ? 'Redirecting…' : `Buy ${plan.price}`}
+                  {perpetualLoading === plan.tier
+                    ? 'Redirecting…'
+                    : `Buy ${pricing?.perpetual.find((t) => t.name === plan.label)?.price ?? '—'}`}
                 </button>
               </div>
             ))}
@@ -235,7 +243,7 @@ export default function LicensePage() {
           <ul className="space-y-2">
             {(Object.entries(FEATURE_LABELS) as [keyof FeatureFlags, string][]).map(
               ([key, label]) => {
-                const enabled = tierFeatures?.[key] ?? false
+                const enabled = tierFeatures?.[key] ?? false;
                 return (
                   <li key={key} className="flex items-center gap-3 text-sm">
                     {enabled ? (
@@ -245,14 +253,14 @@ export default function LicensePage() {
                     )}
                     <span className={enabled ? '' : 'text-zinc-400'}>{label}</span>
                   </li>
-                )
+                );
               },
             )}
           </ul>
         </CardContent>
       </Card>
     </div>
-  )
+  );
 }
 
 function CheckIcon({ className }: { className?: string }) {
@@ -272,7 +280,7 @@ function CheckIcon({ className }: { className?: string }) {
     >
       <polyline points="20 6 9 17 4 12" />
     </svg>
-  )
+  );
 }
 
 function XIcon({ className }: { className?: string }) {
@@ -293,5 +301,5 @@ function XIcon({ className }: { className?: string }) {
       <line x1="18" y1="6" x2="6" y2="18" />
       <line x1="6" y1="6" x2="18" y2="18" />
     </svg>
-  )
+  );
 }
