@@ -133,7 +133,7 @@ describe('Database Connection Recovery Integration Tests', () => {
           .catch(() => null),
       );
 
-      const _results = await Promise.all(queries);
+      await Promise.all(queries);
 
       // After all queries (even if some failed), should still be able to query
       const finalQuery = await db.select().from(users).limit(1);

@@ -300,19 +300,14 @@ describe('Session Cleanup Integration Tests', () => {
       const oldActivityDate = new Date(Date.now() - 1000 * 60 * 60 * 24 * 30); // 30 days ago
       const tokenHash = hashToken('inactive_token');
 
-      const insertedSessions = await db
-        .insert(sessions)
-        .values({
-          id: crypto.randomUUID(),
-          userId: testUserId,
-          tokenHash,
-          expiresAt: new Date(Date.now() + 1000 * 60 * 60 * 24), // Valid for 1 day
-          persistent: false,
-          lastActivityAt: oldActivityDate,
-        })
-        .returning();
-
-      const _inactiveSessionId = insertedSessions[0]?.id;
+      await db.insert(sessions).values({
+        id: crypto.randomUUID(),
+        userId: testUserId,
+        tokenHash,
+        expiresAt: new Date(Date.now() + 1000 * 60 * 60 * 24), // Valid for 1 day
+        persistent: false,
+        lastActivityAt: oldActivityDate,
+      });
 
       // Create recent session
       const { session: activeSession } = await createSession(testUserId);

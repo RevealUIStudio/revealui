@@ -34,7 +34,7 @@ describe('Authentication Tests', () => {
   beforeEach(async () => {
     // Ensure test user doesn't exist before each test
     // deleteTestUser now handles errors gracefully and returns success status
-    const _result = await deleteTestUser(testEmail);
+    await deleteTestUser(testEmail);
     // Result indicates success/failure - errors are handled internally
     // This prevents UNIQUE constraint failures from parallel test execution
   });

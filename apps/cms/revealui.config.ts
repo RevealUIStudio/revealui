@@ -50,11 +50,6 @@ import { revalidateRedirects } from '@/lib/hooks/revalidateRedirects';
 const filename = fileURLToPath(import.meta.url);
 const dirname = path.dirname(filename);
 
-// Calculate project root (always absolute from file location)
-// This ensures .revealui/cache/ is always created in the project root,
-// regardless of where commands are run from (apps/, apps/cms/, etc.)
-const _projectRoot = path.resolve(dirname, '../..');
-
 // Get shared config as fallback for serverURL and secret
 const sharedConfig = getSharedCMSConfig();
 

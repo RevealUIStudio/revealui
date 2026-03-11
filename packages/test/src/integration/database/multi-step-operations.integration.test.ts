@@ -44,9 +44,7 @@ describe('Multi-Step Operations (Without Transactions)', () => {
 
   describe('Compensating Transaction Pattern', () => {
     it('should rollback completed steps on failure', async () => {
-      const _userId = `user_${Date.now()}`;
       const email = generateUniqueTestEmail('multi-step-rollback');
-      const _siteId = `site_${Date.now()}`;
 
       const result = await executeMultiStepOperation([
         {
