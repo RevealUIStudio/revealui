@@ -71,8 +71,8 @@ describe('collab routes', () => {
       });
 
       expect(res.status).toBe(401);
-      const body = await parseBody(res);
-      expect(body.error).toContain('Authentication required');
+      const text = await res.text();
+      expect(text).toContain('Authentication required');
     });
 
     it('returns 400 for missing documentId', async () => {
@@ -108,8 +108,8 @@ describe('collab routes', () => {
 
       // Yjs applyUpdate throws on invalid data → 500
       expect(res.status).toBe(500);
-      const body = await parseBody(res);
-      expect(body.error).toContain('Failed to apply update');
+      const text = await res.text();
+      expect(text).toContain('Failed to apply update');
     });
 
     it('returns success for valid update', async () => {
@@ -148,8 +148,8 @@ describe('collab routes', () => {
       const res = await app.request('/api/collab/snapshot/doc-empty');
 
       expect(res.status).toBe(404);
-      const body = await parseBody(res);
-      expect(body.error).toContain('Document not found');
+      const text = await res.text();
+      expect(text).toContain('Document not found');
     });
 
     it('returns base64 state for existing document', async () => {

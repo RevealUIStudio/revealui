@@ -40,7 +40,7 @@ api-surface:
   gdpr:
     endpoint: "POST /api/gdpr/consent, POST /api/gdpr/delete, POST /api/gdpr/anonymize"
     openapi: true
-    input-validation: none
+    input-validation: zod
     tested: true
   errors:
     endpoint: "POST /api/errors"
@@ -71,12 +71,14 @@ api-surface:
     openapi: true
     tested: true
   collab:
-    endpoint: "WebSocket /api/collab/*"
-    openapi: false
+    endpoint: "POST /api/collab/update, GET /api/collab/snapshot/:documentId"
+    openapi: true
+    input-validation: zod
     tested: true
   agent-collab:
-    endpoint: "POST /api/agent-collab/*"
-    openapi: false
+    endpoint: "POST /api/collab/agent/connect, POST /api/collab/agent/edit, GET /api/collab/agent/snapshot/:documentId"
+    openapi: true
+    input-validation: zod
     tested: true
   code-provenance:
     endpoint: "GET|POST /api/code-provenance"
@@ -96,10 +98,4 @@ ui-surface:
     location: "/docs (Swagger UI)"
     status: functional
 
-limitations:
-  - id: gdpr-no-validation
-    surface: api
-    summary: "GDPR endpoints use raw c.req.json() without Zod validation"
-  - id: collab-no-openapi
-    surface: api
-    summary: "collab.ts and agent-collab.ts routes not in OpenAPI spec"
+limitations: []

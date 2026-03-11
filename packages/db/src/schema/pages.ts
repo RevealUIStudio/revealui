@@ -5,7 +5,8 @@
  * The schema structure mirrors the Zod schemas in @revealui/contracts/entities.
  */
 
-import { index, integer, jsonb, pgTable, text, timestamp } from 'drizzle-orm/pg-core';
+import { index, integer, jsonb, pgTable, text, timestamp, uniqueIndex } from 'drizzle-orm/pg-core';
+import type { AnyPgColumn } from 'drizzle-orm/pg-core/columns/common';
 import { sites } from './sites.js';
 import { users } from './users.js';
 
@@ -26,7 +27,7 @@ export const pages = pgTable(
     siteId: text('site_id')
       .notNull()
       .references(() => sites.id, { onDelete: 'cascade' }),
-    parentId: text('parent_id'),
+    parentId: text('parent_id').references((): AnyPgColumn => pages.id, { onDelete: 'cascade' }),
     templateId: text('template_id'),
 
     // Basic info
@@ -61,6 +62,7 @@ export const pages = pgTable(
   (table) => [
     index('pages_parent_id_idx').on(table.parentId),
     index('pages_site_id_idx').on(table.siteId),
+    uniqueIndex('pages_slug_site_id_idx').on(table.slug, table.siteId),
   ],
 );
 
