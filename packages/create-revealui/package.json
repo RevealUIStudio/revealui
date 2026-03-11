@@ -2,6 +2,9 @@
   "name": "create-revealui",
   "version": "0.2.0",
   "description": "Create a new RevealUI project",
+  "engines": {
+    "node": ">=24.13.0"
+  },
   "type": "module",
   "bin": {
     "create-revealui": "./bin/create-revealui.js"
