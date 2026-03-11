@@ -10,6 +10,11 @@ import { beforeAll, describe, expect, it } from 'vitest'
 // Skip all tests if credentials are not available
 const hasCredentials = Boolean(process.env.SUPABASE_URL && process.env.SUPABASE_KEY)
 
+// Fail fast in CI when credentials are expected but missing
+if (process.env.RUN_INTEGRATION === 'true' && !hasCredentials) {
+  throw new Error('SUPABASE_URL and SUPABASE_KEY required when RUN_INTEGRATION=true')
+}
+
 describe.skipIf(!hasCredentials)('Supabase Integration', () => {
   let supabase: Awaited<ReturnType<typeof import('@supabase/supabase-js').createClient>>
 
@@ -89,12 +94,6 @@ describe.skipIf(!hasCredentials)('Supabase Integration', () => {
   })
 })
 
-// Provide helpful message when credentials are missing
 describe.skipIf(hasCredentials)('Supabase Integration (skipped)', () => {
-  it('credentials not configured', () => {
-    console.warn(
-      'Supabase tests skipped: Set SUPABASE_URL and SUPABASE_KEY environment variables to run these tests.',
-    )
-    expect(true).toBe(true)
-  })
+  it.skip('SUPABASE_URL and SUPABASE_KEY not configured — set credentials to enable')
 })

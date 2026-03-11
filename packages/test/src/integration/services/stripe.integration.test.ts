@@ -13,6 +13,11 @@ import { afterAll, beforeAll, describe, expect, it } from 'vitest'
 // Skip all tests if Stripe test key is not available
 const hasTestKey = process.env.STRIPE_SECRET_KEY?.startsWith('sk_test_')
 
+// Fail fast in CI when credentials are expected but missing
+if (process.env.RUN_INTEGRATION === 'true' && !hasTestKey) {
+  throw new Error('STRIPE_SECRET_KEY (sk_test_*) required when RUN_INTEGRATION=true')
+}
+
 describe.skipIf(!hasTestKey)('Stripe Integration', () => {
   let stripe: Stripe
   const createdPaymentIntents: string[] = []
@@ -230,12 +235,6 @@ describe.skipIf(!hasTestKey)('Stripe Integration', () => {
   })
 })
 
-// Provide helpful message when test key is missing
 describe.skipIf(hasTestKey)('Stripe Integration (skipped)', () => {
-  it('test key not configured', () => {
-    console.warn(
-      'Stripe tests skipped: Set STRIPE_SECRET_KEY environment variable with a test key (sk_test_...) to run these tests.',
-    )
-    expect(true).toBe(true)
-  })
+  it.skip('STRIPE_SECRET_KEY not configured — set sk_test_* key to enable')
 })
