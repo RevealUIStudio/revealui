@@ -1,0 +1,19 @@
+feature: router
+name: File-Based Router
+status: beta
+tier: free
+last-verified: 2026-03-11
+
+api-surface:
+  router-module:
+    endpoint: "@revealui/router — file-based routing with SSR support"
+    openapi: false
+    tested: true
+
+limitations:
+  - id: no-nested-routes
+    surface: api
+    summary: "Nested route support not yet implemented"
+  - id: no-middleware
+    surface: api
+    summary: "Route-level middleware not yet supported"

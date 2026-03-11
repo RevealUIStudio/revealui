@@ -1,0 +1,63 @@
+feature: billing
+name: Stripe Billing & Payments
+status: production
+tier: pro
+last-verified: 2026-03-11
+
+api-surface:
+  checkout:
+    endpoint: "POST /api/billing/checkout"
+    openapi: true
+    input-validation: zod
+    tested: true
+  webhooks:
+    endpoint: "POST /api/webhooks"
+    openapi: true
+    input-validation: stripe-signature
+    tested: true
+  subscription-status:
+    endpoint: "GET /api/billing/subscription"
+    openapi: true
+    tested: true
+  upgrade:
+    endpoint: "POST /api/billing/upgrade"
+    openapi: true
+    tested: true
+  downgrade:
+    endpoint: "POST /api/billing/downgrade"
+    openapi: true
+    tested: true
+  usage:
+    endpoint: "POST /api/billing/usage"
+    openapi: true
+    tested: true
+  license-verify:
+    endpoint: "POST /api/license/verify"
+    openapi: true
+    tested: true
+  license-generate:
+    endpoint: "POST /api/license/generate"
+    openapi: true
+    tested: true
+
+ui-surface:
+  upgrade-dialog:
+    location: "apps/cms/src/app/(backend)/admin/upgrade/page.tsx"
+    status: functional
+  account-billing:
+    location: "apps/cms/src/app/(backend)/admin/settings/account/page.tsx"
+    status: basic
+
+limitations:
+  - id: email-silent-fail
+    surface: api
+    summary: "RESEND_API_KEY missing in production causes silent email skip"
+  - id: billing-meter
+    surface: api
+    summary: "Usage overage tracked in DB but not reported to Stripe Billing Meter"
+  - id: key-rotation
+    surface: api
+    summary: "No kid claim in license JWTs — key rotation breaks verification"
+  - id: github-provisioning
+    surface: api
+    summary: "Perpetual license GitHub team add is fire-and-forget, no retry"

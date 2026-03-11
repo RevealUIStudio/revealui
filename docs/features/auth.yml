@@ -1,0 +1,69 @@
+feature: auth
+name: Authentication & Security
+status: production
+tier: free
+last-verified: 2026-03-11
+
+api-surface:
+  sign-in:
+    endpoint: "POST /api/auth/sign-in"
+    openapi: true
+    input-validation: zod
+    tested: true
+  sign-up:
+    endpoint: "POST /api/auth/sign-up"
+    openapi: true
+    input-validation: zod
+    tested: true
+  sign-out:
+    endpoint: "POST /api/auth/sign-out"
+    openapi: true
+    tested: true
+  verify-email:
+    endpoint: "POST /api/auth/verify-email"
+    openapi: true
+    input-validation: zod
+    tested: true
+  password-reset-request:
+    endpoint: "POST /api/auth/password-reset"
+    openapi: true
+    input-validation: zod
+    tested: true
+  password-reset-confirm:
+    endpoint: "POST /api/auth/password-reset/confirm"
+    openapi: true
+    input-validation: zod
+    tested: true
+  oauth-callback:
+    endpoint: "GET /api/auth/oauth/:provider/callback"
+    openapi: true
+    tested: true
+  session-validate:
+    endpoint: "GET /api/auth/session"
+    openapi: true
+    tested: true
+
+ui-surface:
+  sign-in-page:
+    location: "apps/cms/src/app/(auth)/sign-in/page.tsx"
+    status: functional
+  sign-up-page:
+    location: "apps/cms/src/app/(auth)/sign-up/page.tsx"
+    status: functional
+  password-reset-page:
+    location: "apps/cms/src/app/(auth)/password-reset/page.tsx"
+    status: functional
+  verify-email-page:
+    location: "apps/cms/src/app/(auth)/verify-email/page.tsx"
+    status: functional
+
+limitations:
+  - id: no-2fa
+    surface: api
+    summary: "TOTP 2FA class exists but is not wired into sign-in flow"
+  - id: no-session-binding
+    surface: api
+    summary: "Sessions not bound to IP/UA — stolen cookie works from any client"
+  - id: no-admin-revoke
+    surface: api
+    summary: "No admin endpoint to force-logout (revoke) another user's session"

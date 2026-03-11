@@ -1,0 +1,36 @@
+feature: cms-engine
+name: CMS Engine (Collections + REST)
+status: beta
+tier: free
+last-verified: 2026-03-11
+
+api-surface:
+  collections:
+    endpoint: "20 collection definitions in apps/cms/src/lib/collections/"
+    openapi: true
+    tested: true
+  access-control:
+    endpoint: "Per-collection RBAC with role-based read/write/delete"
+    openapi: false
+    tested: true
+  hooks:
+    endpoint: "beforeChange/afterChange hooks on all collections"
+    openapi: false
+    tested: true
+  rich-text:
+    endpoint: "Lexical rich text editor integration"
+    openapi: false
+    tested: true
+
+ui-surface:
+  document-form:
+    location: "apps/cms/src/components/DocumentForm.tsx"
+    status: basic
+
+limitations:
+  - id: field-renderers
+    surface: ui
+    summary: "Not all 14 field types render correct controls (blocks, relationships, uploads, arrays incomplete)"
+  - id: version-history-ui
+    surface: ui
+    summary: "Page revisions stored in DB but no UI to view/restore them"
