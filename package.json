@@ -52,7 +52,7 @@
   },
   "lint-staged": {
     "*.{ts,tsx,js,jsx}": [
-      "biome check --write"
+      "biome check --write --no-errors-on-unmatched"
     ]
   },
   "packageManager": "pnpm@10.28.2",
