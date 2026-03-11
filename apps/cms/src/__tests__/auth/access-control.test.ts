@@ -613,7 +613,7 @@ describe('Access Control Tests', () => {
         ['user-admin'],
       );
 
-      const _revealui = await getTestRevealUI();
+      await getTestRevealUI();
 
       // Regular admin should not be able to delete users (only super admin can)
       // This test verifies access control works

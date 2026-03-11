@@ -13,7 +13,7 @@
 import type { RevealDocument } from '@revealui/core';
 import type { Product } from '@revealui/core/types/cms';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
-import { createMockRequest, createMockRevealUI } from '@/__tests__/helpers/mockRevealUI';
+import { createMockRequest } from '@/__tests__/helpers/mockRevealUI';
 import { beforeProductChange } from '@/lib/collections/Products/hooks/beforeChange';
 import {
   type EnrichedProduct,
@@ -24,7 +24,6 @@ import {
 // Mocks
 // =============================================================================
 
-const _mockRevealUI = createMockRevealUI();
 const mockReq = createMockRequest();
 
 const mockStripeRetrieve = vi.fn();
@@ -99,11 +98,6 @@ describe('Product Integration Tests', () => {
   const generateUniqueProductId = (prefix = 'test') => {
     testCounter++;
     return `prod_${prefix}${testCounter.toString().padStart(12, '0')}`;
-  };
-
-  const _generateUniquePriceId = (prefix = 'test') => {
-    testCounter++;
-    return `price_${prefix}${testCounter.toString().padStart(11, '0')}`;
   };
 
   beforeEach(() => {

@@ -76,11 +76,6 @@ describe('Health API Integration', () => {
 
   describe('GET /api/health/ready', () => {
     it('should return 200 when ready', async () => {
-      const _request = createMockRequest({
-        url: 'http://localhost:3000/api/health/ready',
-        method: 'GET',
-      });
-
       const response = await readyHandler();
 
       // Ready check returns 200 when ready, 503 when not ready
@@ -88,11 +83,6 @@ describe('Health API Integration', () => {
     }, 30000);
 
     it('should return readiness status', async () => {
-      const _request = createMockRequest({
-        url: 'http://localhost:3000/api/health/ready',
-        method: 'GET',
-      });
-
       const response = await readyHandler();
       const data = await response.json();
 
@@ -102,11 +92,6 @@ describe('Health API Integration', () => {
     }, 30000);
 
     it('should include service checks', async () => {
-      const _request = createMockRequest({
-        url: 'http://localhost:3000/api/health/ready',
-        method: 'GET',
-      });
-
       const response = await readyHandler();
       const data = await response.json();
 

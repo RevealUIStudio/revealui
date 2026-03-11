@@ -1,22 +1,7 @@
-import type {
-  RevealAfterReadHook,
-  RevealDocument,
-  RevealRequest,
-  RevealUIInstance,
-} from '@revealui/core';
+import type { RevealAfterReadHook, RevealDocument } from '@revealui/core';
 import type { Page } from '@revealui/core/types/cms';
 
 type ArchiveBlockProps = Extract<Page['layout'][0], { blockType: 'archive' }>;
-
-// Reserved for future use - types for enhanced archive block functionality
-interface _RequestWithRevealUI extends RevealRequest {
-  revealui?: RevealUIInstance;
-}
-
-interface _PopulateContext {
-  isPopulatingArchiveBlock?: boolean;
-  [key: string]: unknown;
-}
 
 export const populateArchiveBlock: RevealAfterReadHook = async ({ doc, context, req }) => {
   const revealui = req?.revealui;

@@ -306,8 +306,6 @@ describe('Stripe Webhook Handling Integration Tests', () => {
     });
 
     it('should return 400 for unknown event type', () => {
-      const _payload = createWebhookPayload('unknown.event.type', { data: 'test' });
-
       // Mock event with unknown type
       mockConstructEvent.mockReturnValue({
         id: 'evt_test_unknown',

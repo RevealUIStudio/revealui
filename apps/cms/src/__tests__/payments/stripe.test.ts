@@ -49,7 +49,7 @@ describe('Stripe Integration Tests', () => {
       const invalidSignature = 'invalid_signature_format';
 
       // Invalid signature should fail validation
-      const _validation = webhookSignatureSchema.safeParse({
+      webhookSignatureSchema.safeParse({
         signature: invalidSignature,
         payload,
       });
