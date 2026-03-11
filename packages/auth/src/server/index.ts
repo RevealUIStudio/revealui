@@ -9,9 +9,11 @@ export type { SignInResult, SignUpResult } from '../types.js';
 export { isSignupAllowed, signIn, signUp } from './auth.js';
 export {
   clearFailedAttempts,
+  configureBruteForce,
   getFailedAttemptCount,
   isAccountLocked,
   recordFailedAttempt,
+  resetBruteForceConfig,
 } from './brute-force.js';
 export {
   AuthError,
@@ -46,8 +48,10 @@ export {
 } from './password-validation.js';
 export {
   checkRateLimit,
+  configureRateLimit,
   getRateLimitStatus,
   resetRateLimit,
+  resetRateLimitConfig,
 } from './rate-limit.js';
 export {
   createSession,

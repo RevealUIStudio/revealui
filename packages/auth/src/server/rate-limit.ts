@@ -27,6 +27,23 @@ const DEFAULT_CONFIG: RateLimitConfig = {
   blockDurationMs: 30 * 60 * 1000, // 30 minutes block after max attempts
 };
 
+let globalConfig: RateLimitConfig = { ...DEFAULT_CONFIG };
+
+/**
+ * Override default rate limit configuration globally.
+ * Per-call config parameters still take precedence.
+ */
+export function configureRateLimit(overrides: Partial<RateLimitConfig>): void {
+  globalConfig = { ...DEFAULT_CONFIG, ...overrides };
+}
+
+/**
+ * Reset rate limit configuration to defaults (for testing).
+ */
+export function resetRateLimitConfig(): void {
+  globalConfig = { ...DEFAULT_CONFIG };
+}
+
 /**
  * Serialize rate limit entry to string
  */
@@ -65,7 +82,7 @@ function getStorageKey(key: string): string {
  */
 export async function checkRateLimit(
   key: string,
-  config: RateLimitConfig = DEFAULT_CONFIG,
+  config: RateLimitConfig = globalConfig,
 ): Promise<{ allowed: boolean; remaining: number; resetAt: number }> {
   const storage = getStorage();
   const storageKey = getStorageKey(key);
@@ -148,7 +165,7 @@ export async function resetRateLimit(key: string): Promise<void> {
  */
 export async function getRateLimitStatus(
   key: string,
-  config: RateLimitConfig = DEFAULT_CONFIG,
+  config: RateLimitConfig = globalConfig,
 ): Promise<{ count: number; remaining: number; resetAt: number }> {
   const storage = getStorage();
   const storageKey = getStorageKey(key);

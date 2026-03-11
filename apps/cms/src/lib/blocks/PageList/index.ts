@@ -8,10 +8,8 @@ const PageListField = {
   pages: 'pages',
 };
 
-// TODO: filterByCategories and filterByTags currently point to 'pages'
-// because Categories and Tags collections don't exist yet.
-// When those collections are created, update relationTo accordingly.
-// sortBy options are also empty pending PagesField enum.
+// filterByCategories and filterByTags reference 'pages' as placeholder.
+// Update relationTo to 'categories' and 'tags' when those collections are created.
 export const PageList: Block = {
   slug: 'pageList',
   interfaceName: 'PageList',
@@ -38,7 +36,11 @@ export const PageList: Block = {
     {
       name: PageListField.sortBy,
       type: 'select',
-      options: [],
+      options: [
+        { label: 'Title', value: 'title' },
+        { label: 'Created At', value: 'createdAt' },
+        { label: 'Updated At', value: 'updatedAt' },
+      ],
     },
   ],
 };

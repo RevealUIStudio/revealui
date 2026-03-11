@@ -195,8 +195,6 @@ function isFeatureInTier(feature: keyof FeatureFlags, tier: LicenseTierId): bool
   const featureMinTier: Record<keyof FeatureFlags, LicenseTierId> = {
     ai: 'pro',
     mcp: 'pro',
-    editors: 'pro',
-    harnesses: 'pro',
     payments: 'pro',
     advancedSync: 'pro',
     dashboard: 'pro',
