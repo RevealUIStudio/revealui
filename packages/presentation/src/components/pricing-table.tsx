@@ -7,7 +7,7 @@ import { cn } from '../utils/cn.js'
 export interface PricingTier {
   id: string
   name: string
-  price: string
+  price?: string
   period?: string
   description: string
   features: string[]
@@ -139,7 +139,7 @@ function PricingCardFull({
         <p className="mt-2 text-sm text-zinc-600 dark:text-zinc-400">{tier.description}</p>
         <p className="mt-6 flex items-baseline gap-x-1">
           <span className="text-4xl font-bold tracking-tight text-zinc-900 dark:text-white">
-            {tier.price}
+            {tier.price ?? '—'}
           </span>
           {tier.period && (
             <span className="text-sm text-zinc-600 dark:text-zinc-400">{tier.period}</span>
@@ -222,7 +222,9 @@ function PricingCardCompact({
         )}
       </div>
       <p className="mt-1 flex items-baseline gap-x-1">
-        <span className="text-2xl font-bold text-zinc-900 dark:text-white">{tier.price}</span>
+        <span className="text-2xl font-bold text-zinc-900 dark:text-white">
+          {tier.price ?? '—'}
+        </span>
         {tier.period && (
           <span className="text-xs text-zinc-500 dark:text-zinc-400">{tier.period}</span>
         )}
