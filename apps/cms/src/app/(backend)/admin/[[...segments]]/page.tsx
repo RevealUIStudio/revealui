@@ -1,26 +1,26 @@
-import { AdminDashboard } from '@revealui/core/admin'
-import { serializeConfig } from '@revealui/core/admin/utils/serializeConfig'
-import type { RevealConfig } from '@revealui/core/types/core'
-import Link from 'next/link'
-import config from '../../../../../revealui.config'
+import { AdminDashboard } from '@revealui/core/admin';
+import { serializeConfig } from '@revealui/core/admin/utils/serializeConfig';
+import type { RevealConfig } from '@revealui/core/types/core';
+import Link from 'next/link';
+import config from '../../../../../revealui.config';
 
 // Force dynamic rendering to prevent build-time initialization
-export const dynamic = 'force-dynamic'
-export const dynamicParams = true
+export const dynamic = 'force-dynamic';
+export const dynamicParams = true;
 
 type Args = {
   params: Promise<{
-    segments?: string[]
-  }>
+    segments?: string[];
+  }>;
   searchParams: Promise<{
-    [key: string]: string | string[]
-  }>
-}
+    [key: string]: string | string[];
+  }>;
+};
 
 // Admin page using the full AdminDashboard component with CRUD functionality
 export default async function Page({ params: _params, searchParams: _searchParams }: Args) {
   // Serialize config to remove functions before passing to client component
-  const serializedConfig = serializeConfig(config as RevealConfig)
+  const serializedConfig = serializeConfig(config as RevealConfig);
 
   return (
     <div className="relative">
@@ -47,5 +47,5 @@ export default async function Page({ params: _params, searchParams: _searchParam
       </Link>
       <AdminDashboard config={serializedConfig} />
     </div>
-  )
+  );
 }

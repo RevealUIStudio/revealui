@@ -12,15 +12,15 @@
  * - Runtime validation with Zod
  */
 
-import { z } from 'zod/v4'
-import { createContract } from '../foundation/contract.js'
-import { DualEntitySchema } from '../representation/index.js'
+import { z } from 'zod/v4';
+import { createContract } from '../foundation/contract.js';
+import { DualEntitySchema } from '../representation/index.js';
 
 // =============================================================================
 // Schema Version
 // =============================================================================
 
-export const PRODUCT_SCHEMA_VERSION = 1
+export const PRODUCT_SCHEMA_VERSION = 1;
 
 // =============================================================================
 // Stripe Product Format
@@ -36,9 +36,9 @@ export const StripeProductIDSchema = z
     message: 'Stripe Product ID must match format: prod_xxxxx',
   })
   .min(14) // prod_ + minimum ID length
-  .max(100)
+  .max(100);
 
-export type StripeProductID = z.infer<typeof StripeProductIDSchema>
+export type StripeProductID = z.infer<typeof StripeProductIDSchema>;
 
 // =============================================================================
 // Stripe Product Data
@@ -60,9 +60,9 @@ export const StripeProductDataSchema = z.object({
   default_price: z.string().nullable().optional(), // Default price ID
   shippable: z.boolean().optional(),
   url: z.string().nullable().optional(),
-})
+});
 
-export type StripeProductData = z.infer<typeof StripeProductDataSchema>
+export type StripeProductData = z.infer<typeof StripeProductDataSchema>;
 
 /**
  * Stripe Price List (stored in priceJSON)
@@ -86,16 +86,16 @@ export const StripePriceListSchema = z.object({
     }),
   ),
   has_more: z.boolean(),
-})
+});
 
-export type StripePriceList = z.infer<typeof StripePriceListSchema>
+export type StripePriceList = z.infer<typeof StripePriceListSchema>;
 
 // =============================================================================
 // Product Status
 // =============================================================================
 
-export const ProductStatusSchema = z.enum(['draft', 'published'])
-export type ProductStatus = z.infer<typeof ProductStatusSchema>
+export const ProductStatusSchema = z.enum(['draft', 'published']);
+export type ProductStatus = z.infer<typeof ProductStatusSchema>;
 
 // =============================================================================
 // Content Blocks
@@ -105,7 +105,7 @@ const ProductBlockSchema = z.object({
   blockType: z.string(),
   blockName: z.string().optional(),
   data: z.record(z.string(), z.unknown()).optional(),
-})
+});
 
 // =============================================================================
 // Product Base Schema
@@ -137,11 +137,11 @@ const ProductObjectSchema = DualEntitySchema.extend({
     .nullable()
     .optional()
     .transform((val) => {
-      if (!val) return null
+      if (!val) return null;
       try {
-        return JSON.parse(val) as unknown
+        return JSON.parse(val) as unknown;
       } catch {
-        return null
+        return null;
       }
     })
     .pipe(StripePriceListSchema.nullable()),
@@ -174,27 +174,27 @@ const ProductObjectSchema = DualEntitySchema.extend({
   /** CMS status */
   // biome-ignore lint/style/useNamingConvention: _status is a conventional CMS status marker
   _status: ProductStatusSchema.nullable().optional(),
-})
+});
 
 // Full schema with business rule refinements
 const ProductBaseSchema = ProductObjectSchema.refine(
   (data) => {
     // Business rule: published products must have a valid Stripe product
     if (data._status === 'published') {
-      return !!data.stripeProductID
+      return !!data.stripeProductID;
     }
-    return true
+    return true;
   },
   {
     message: 'Published products must have a valid Stripe Product ID',
     path: ['stripeProductID'],
   },
-)
+);
 
-export type Product = z.infer<typeof ProductBaseSchema>
+export type Product = z.infer<typeof ProductBaseSchema>;
 
 /** Main schema export */
-export const ProductSchema = ProductBaseSchema
+export const ProductSchema = ProductBaseSchema;
 
 // =============================================================================
 // Create Product Input
@@ -208,17 +208,17 @@ export const CreateProductInputSchema = z.object({
   relatedProducts: z.array(z.number().int().positive()).optional(),
   // biome-ignore lint/style/useNamingConvention: _status is a conventional CMS status marker
   _status: ProductStatusSchema.optional(),
-})
+});
 
-export type CreateProductInput = z.infer<typeof CreateProductInputSchema>
+export type CreateProductInput = z.infer<typeof CreateProductInputSchema>;
 
 // =============================================================================
 // Update Product Input
 // =============================================================================
 
-export const UpdateProductInputSchema = CreateProductInputSchema.partial()
+export const UpdateProductInputSchema = CreateProductInputSchema.partial();
 
-export type UpdateProductInput = z.infer<typeof UpdateProductInputSchema>
+export type UpdateProductInput = z.infer<typeof UpdateProductInputSchema>;
 
 // =============================================================================
 // Product with Populated Relationships
@@ -229,9 +229,9 @@ export type UpdateProductInput = z.infer<typeof UpdateProductInputSchema>
  */
 export const ProductWithCategoriesSchema = ProductObjectSchema.extend({
   categories: z.array(z.object({ id: z.number(), name: z.string() }).passthrough()).nullable(),
-})
+});
 
-export type ProductWithCategories = z.infer<typeof ProductWithCategoriesSchema>
+export type ProductWithCategories = z.infer<typeof ProductWithCategoriesSchema>;
 
 /**
  * Product with all relationships populated
@@ -247,9 +247,9 @@ export const ProductWithRelatedSchema = ProductObjectSchema.extend({
       }),
     )
     .nullable(),
-})
+});
 
-export type ProductWithRelated = z.infer<typeof ProductWithRelatedSchema>
+export type ProductWithRelated = z.infer<typeof ProductWithRelatedSchema>;
 
 // =============================================================================
 // Type Guards
@@ -259,25 +259,25 @@ export type ProductWithRelated = z.infer<typeof ProductWithRelatedSchema>
  * Check if product has a valid Stripe product configured
  */
 export function hasStripeProduct(product: Product): product is Product & {
-  stripeProductID: string
+  stripeProductID: string;
 } {
-  return !!product.stripeProductID
+  return !!product.stripeProductID;
 }
 
 /**
  * Check if product is published
  */
 export function isPublishedProduct(product: Product): boolean {
-  return product._status === 'published' && hasStripeProduct(product)
+  return product._status === 'published' && hasStripeProduct(product);
 }
 
 /**
  * Check if product has prices
  */
 export function hasProductPrices(product: Product): product is Product & {
-  priceJSON: StripePriceList
+  priceJSON: StripePriceList;
 } {
-  return !!product.priceJSON && product.priceJSON !== null
+  return !!product.priceJSON && product.priceJSON !== null;
 }
 
 /**
@@ -286,9 +286,9 @@ export function hasProductPrices(product: Product): product is Product & {
 export function hasProductImages(product: Product): boolean {
   // No dedicated images field on the local schema yet.
   // Guard checks stripeProductID as prerequisite for potential Stripe-hosted images.
-  if (!hasStripeProduct(product)) return false
+  if (!hasStripeProduct(product)) return false;
   // Images field not yet in schema; will be checked when added
-  return false
+  return false;
 }
 
 // =============================================================================
@@ -299,69 +299,69 @@ export function hasProductImages(product: Product): boolean {
  * Get available prices for a product
  */
 export function getAvailablePrices(product: Product): StripePriceList['data'] {
-  if (!hasProductPrices(product)) return []
-  return product.priceJSON.data.filter((price) => price.active !== false)
+  if (!hasProductPrices(product)) return [];
+  return product.priceJSON.data.filter((price) => price.active !== false);
 }
 
 /**
  * Get price count for product
  */
 export function getPriceCount(product: Product): number {
-  return getAvailablePrices(product).length
+  return getAvailablePrices(product).length;
 }
 
 /**
  * Get price range for product (lowest to highest)
  */
 export function getPriceRange(product: Product): {
-  min: number | null
-  max: number | null
-  currency: string | null
+  min: number | null;
+  max: number | null;
+  currency: string | null;
 } | null {
-  const prices = getAvailablePrices(product)
-  if (prices.length === 0) return null
+  const prices = getAvailablePrices(product);
+  if (prices.length === 0) return null;
 
   const amounts = prices
     .map((p) => p.unit_amount)
-    .filter((amount): amount is number => amount !== null && amount !== undefined)
+    .filter((amount): amount is number => amount !== null && amount !== undefined);
 
-  if (amounts.length === 0) return null
+  if (amounts.length === 0) return null;
 
   return {
     min: Math.min(...amounts),
     max: Math.max(...amounts),
     currency: prices[0]?.currency || null,
-  }
+  };
 }
 
 /**
  * Get default price ID for product
  */
 export function getDefaultPriceId(product: Product): string | null {
-  const prices = getAvailablePrices(product)
-  return prices.length > 0 && prices[0] ? prices[0].id : null
+  const prices = getAvailablePrices(product);
+  return prices.length > 0 && prices[0] ? prices[0].id : null;
 }
 
 /**
  * Format price range for display
  */
 export function formatPriceRange(product: Product): string | null {
-  const range = getPriceRange(product)
-  if (!range?.currency) return null
+  const range = getPriceRange(product);
+  if (!range?.currency) return null;
 
   const formatter = new Intl.NumberFormat('en-US', {
     style: 'currency',
     currency: range.currency.toUpperCase(),
-  })
+  });
 
-  const minAmount = range.min ?? 0
-  const maxAmount = range.max ?? 0
+  const minAmount = range.min ?? 0;
+  const maxAmount = range.max ?? 0;
 
   if (minAmount === maxAmount) {
-    return formatter.format(minAmount / 100)
+    return formatter.format(minAmount / 100);
   }
 
-  return `${formatter.format(minAmount / 100)} - ${formatter.format(maxAmount / 100)}`
+  return `${formatter.format(minAmount / 100)} - ${formatter.format(maxAmount / 100)}`;
 }
 
 // =============================================================================
@@ -373,18 +373,18 @@ export const ProductContract = createContract({
   version: '1',
   schema: ProductSchema,
   description: 'Stripe-backed product entity with content management',
-})
+});
 
 export const CreateProductContract = createContract({
   name: 'CreateProduct',
   version: '1',
   schema: CreateProductInputSchema,
   description: 'Input contract for creating a new product',
-})
+});
 
 export const UpdateProductContract = createContract({
   name: 'UpdateProduct',
   version: '1',
   schema: UpdateProductInputSchema,
   description: 'Input contract for updating an existing product',
-})
+});

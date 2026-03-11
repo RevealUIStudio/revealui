@@ -10,15 +10,15 @@
  * - Deleting a board cascades to columns and tickets
  */
 
-import { z } from 'zod/v4'
+import { z } from 'zod/v4';
 
 // =============================================================================
 // Constants
 // =============================================================================
 
-export const BOARD_SCHEMA_VERSION = 1
+export const BOARD_SCHEMA_VERSION = 1;
 
-export const DEFAULT_COLUMN_SLUGS = ['backlog', 'todo', 'in-progress', 'review', 'done'] as const
+export const DEFAULT_COLUMN_SLUGS = ['backlog', 'todo', 'in-progress', 'review', 'done'] as const;
 
 export const BOARD_LIMITS = {
   MIN_NAME_LENGTH: 1,
@@ -27,7 +27,7 @@ export const BOARD_LIMITS = {
   MAX_SLUG_LENGTH: 200,
   MAX_DESCRIPTION_LENGTH: 1000,
   MAX_COLUMNS: 20,
-} as const
+} as const;
 
 // =============================================================================
 // Board Schema
@@ -48,10 +48,10 @@ export const BoardObjectSchema = z.object({
   isDefault: z.boolean().default(false),
   createdAt: z.date(),
   updatedAt: z.date(),
-})
+});
 
-export const BoardSchema = BoardObjectSchema
-export type Board = z.infer<typeof BoardSchema>
+export const BoardSchema = BoardObjectSchema;
+export type Board = z.infer<typeof BoardSchema>;
 
 export const BoardInsertSchema = BoardObjectSchema.omit({
   createdAt: true,
@@ -59,9 +59,9 @@ export const BoardInsertSchema = BoardObjectSchema.omit({
 }).extend({
   createdAt: z.date().optional(),
   updatedAt: z.date().optional(),
-})
+});
 
-export type BoardInsert = z.infer<typeof BoardInsertSchema>
+export type BoardInsert = z.infer<typeof BoardInsertSchema>;
 
 // =============================================================================
 // Board Column Schema
@@ -78,10 +78,10 @@ export const BoardColumnObjectSchema = z.object({
   isDefault: z.boolean().default(false),
   createdAt: z.date(),
   updatedAt: z.date(),
-})
+});
 
-export const BoardColumnSchema = BoardColumnObjectSchema
-export type BoardColumn = z.infer<typeof BoardColumnSchema>
+export const BoardColumnSchema = BoardColumnObjectSchema;
+export type BoardColumn = z.infer<typeof BoardColumnSchema>;
 
 // =============================================================================
 // Helpers
@@ -94,25 +94,25 @@ export function generateSlug(name: string): string {
     .replace(/[^\w\s-]/g, '')
     .replace(/[\s_-]+/g, '-')
     .replace(/^-+|-+$/g, '')
-    .slice(0, BOARD_LIMITS.MAX_SLUG_LENGTH)
+    .slice(0, BOARD_LIMITS.MAX_SLUG_LENGTH);
 }
 
 export function isValidSlug(slug: string): boolean {
-  return /^[a-z0-9]+(?:-[a-z0-9]+)*$/.test(slug)
+  return /^[a-z0-9]+(?:-[a-z0-9]+)*$/.test(slug);
 }
 
 export function createBoardInsert(
   name: string,
   slug: string,
   options?: {
-    id?: string
-    description?: string
-    ownerId?: string
-    tenantId?: string
-    isDefault?: boolean
+    id?: string;
+    description?: string;
+    ownerId?: string;
+    tenantId?: string;
+    isDefault?: boolean;
   },
 ): BoardInsert {
-  const now = new Date()
+  const now = new Date();
   return {
     id: options?.id ?? crypto.randomUUID(),
     schemaVersion: String(BOARD_SCHEMA_VERSION),
@@ -124,5 +124,5 @@ export function createBoardInsert(
     isDefault: options?.isDefault ?? false,
     createdAt: now,
     updatedAt: now,
-  }
+  };
 }

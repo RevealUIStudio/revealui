@@ -1,17 +1,17 @@
-import type { BatchLoadFn } from 'dataloader'
+import type { BatchLoadFn } from 'dataloader';
 
-import DataLoader from 'dataloader'
+import DataLoader from 'dataloader';
 
-import type { RevealPaginatedResult, TypedFallbackLocale } from './index.js'
+import type { RevealPaginatedResult, TypedFallbackLocale } from './index.js';
 import type {
   PopulateType,
   RevealFindOptions,
   RevealRequest,
   SelectType,
   TypeWithID,
-} from './types/index.js'
+} from './types/index.js';
 
-import { isValidID } from './utils/isValidID.js'
+import { isValidID } from './utils/isValidID.js';
 
 type CacheKeyTuple = [
   number | string | null,
@@ -26,7 +26,7 @@ type CacheKeyTuple = [
   boolean,
   SelectType?,
   PopulateType?,
-]
+];
 
 type BatchKeyTuple = [
   number | string | null,
@@ -40,22 +40,22 @@ type BatchKeyTuple = [
   boolean,
   SelectType?,
   PopulateType?,
-]
+];
 
 const parseCacheKey = (value: string): CacheKeyTuple => {
   try {
-    return JSON.parse(value) as CacheKeyTuple
+    return JSON.parse(value) as CacheKeyTuple;
   } catch {
-    throw new Error(`DataLoader: malformed cache key (not valid JSON): ${value.slice(0, 120)}`)
+    throw new Error(`DataLoader: malformed cache key (not valid JSON): ${value.slice(0, 120)}`);
   }
-}
+};
 const parseBatchKey = (value: string): BatchKeyTuple => {
   try {
-    return JSON.parse(value) as BatchKeyTuple
+    return JSON.parse(value) as BatchKeyTuple;
   } catch {
-    throw new Error(`DataLoader: malformed batch key (not valid JSON): ${value.slice(0, 120)}`)
+    throw new Error(`DataLoader: malformed batch key (not valid JSON): ${value.slice(0, 120)}`);
   }
-}
+};
 
 // RevealUI uses `dataloader` to solve the classic N+1 problem.
 
@@ -68,15 +68,15 @@ const parseBatchKey = (value: string): BatchKeyTuple => {
 const batchAndLoadDocs =
   (req: RevealRequest): BatchLoadFn<string, TypeWithID> =>
   async (keys: readonly string[]): Promise<TypeWithID[]> => {
-    const revealui = req.revealui
+    const revealui = req.revealui;
 
     if (!revealui) {
-      throw new Error('RevealUI instance not available on request')
+      throw new Error('RevealUI instance not available on request');
     }
 
     // Create docs array of same length as keys, using null as value
     // We will replace nulls with injected docs as they are retrieved
-    const docs: (null | TypeWithID)[] = keys.map(() => null)
+    const docs: (null | TypeWithID)[] = keys.map(() => null);
 
     /**
     * Batch IDs by their `find` args
@@ -96,7 +96,7 @@ const batchAndLoadDocs =
     *
     **/
 
-    const batchByFindArgs: Record<string, string[]> = {}
+    const batchByFindArgs: Record<string, string[]> = {};
 
     for (const key of keys) {
       const [
@@ -112,7 +112,7 @@ const batchAndLoadDocs =
         draft,
         select,
         populate,
-      ] = parseCacheKey(key)
+      ] = parseCacheKey(key);
 
       const batchKeyArray = [
         transactionID,
@@ -126,16 +126,16 @@ const batchAndLoadDocs =
         draft,
         select,
         populate,
-      ]
+      ];
 
-      const batchKey = JSON.stringify(batchKeyArray)
+      const batchKey = JSON.stringify(batchKeyArray);
 
       // RevealUI uses text IDs by default
-      const idType = 'text' as const
-      const sanitizedID = typeof id === 'string' ? id : String(id)
+      const idType = 'text' as const;
+      const sanitizedID = typeof id === 'string' ? id : String(id);
 
       if (isValidID(sanitizedID, idType)) {
-        batchByFindArgs[batchKey] = [...(batchByFindArgs[batchKey] || []), sanitizedID]
+        batchByFindArgs[batchKey] = [...(batchByFindArgs[batchKey] || []), sanitizedID];
       }
     }
 
@@ -154,10 +154,10 @@ const batchAndLoadDocs =
         draft,
         select,
         populate,
-      ] = parseBatchKey(batchKey)
+      ] = parseBatchKey(batchKey);
 
       req.transactionID =
-        typeof transactionID === 'number' ? String(transactionID) : (transactionID ?? undefined)
+        typeof transactionID === 'number' ? String(transactionID) : (transactionID ?? undefined);
 
       const result = await revealui.find({
         collection,
@@ -178,7 +178,7 @@ const batchAndLoadDocs =
             in: ids,
           },
         },
-      })
+      });
 
       // For each returned doc, find index in original keys
       // Inject doc within docs array if index exists
@@ -196,11 +196,11 @@ const batchAndLoadDocs =
           select,
           showHiddenFields,
           transactionID: req.transactionID ?? undefined,
-        })
-        const docsIndex = keys.indexOf(docKey)
+        });
+        const docsIndex = keys.indexOf(docKey);
 
         if (docsIndex > -1) {
-          docs[docsIndex] = doc
+          docs[docsIndex] = doc;
         }
       }
     }
@@ -208,33 +208,33 @@ const batchAndLoadDocs =
     // Return docs array,
     // which has now been injected with all fetched docs
     // and should match the length of the incoming keys arg
-    return docs as TypeWithID[]
-  }
+    return docs as TypeWithID[];
+  };
 
 interface ExtendedDataLoader extends DataLoader<string, TypeWithID> {
-  find: (args: RevealFindOptions & { collection: string }) => Promise<RevealPaginatedResult>
+  find: (args: RevealFindOptions & { collection: string }) => Promise<RevealPaginatedResult>;
 }
 
 export const getDataLoader = (req: RevealRequest): ExtendedDataLoader => {
-  const findQueries = new Map<string, Promise<RevealPaginatedResult>>()
-  const dataLoader = new DataLoader(batchAndLoadDocs(req)) as ExtendedDataLoader
+  const findQueries = new Map<string, Promise<RevealPaginatedResult>>();
+  const dataLoader = new DataLoader(batchAndLoadDocs(req)) as ExtendedDataLoader;
 
   dataLoader.find = (args: RevealFindOptions & { collection: string }) => {
-    const key = createFindDataloaderCacheKey(args)
-    const cached = findQueries.get(key)
+    const key = createFindDataloaderCacheKey(args);
+    const cached = findQueries.get(key);
     if (cached) {
-      return cached
+      return cached;
     }
     if (!req.revealui) {
-      throw new Error('RevealUI instance not available on request')
+      throw new Error('RevealUI instance not available on request');
     }
-    const request = req.revealui.find(args)
-    findQueries.set(key, request)
-    return request
-  }
+    const request = req.revealui.find(args);
+    findQueries.set(key, request);
+    return request;
+  };
 
-  return dataLoader
-}
+  return dataLoader;
+};
 
 const createFindDataloaderCacheKey = ({
   collection,
@@ -255,9 +255,9 @@ const createFindDataloaderCacheKey = ({
   sort,
   where,
 }: RevealFindOptions & {
-  collection: string
-  includeLockStatus?: boolean
-  joins?: unknown
+  collection: string;
+  includeLockStatus?: boolean;
+  joins?: unknown;
 }): string =>
   JSON.stringify([
     collection,
@@ -277,22 +277,22 @@ const createFindDataloaderCacheKey = ({
     showHiddenFields,
     sort,
     where,
-  ])
+  ]);
 
 type CreateCacheKeyArgs = {
-  collectionSlug: string
-  currentDepth: number
-  depth: number
-  docID: number | string
-  draft: boolean
-  fallbackLocale: TypedFallbackLocale
-  locale: string | string[]
-  overrideAccess: boolean
-  populate?: PopulateType
-  select?: SelectType
-  showHiddenFields: boolean
-  transactionID: number | Promise<number | string> | string | undefined
-}
+  collectionSlug: string;
+  currentDepth: number;
+  depth: number;
+  docID: number | string;
+  draft: boolean;
+  fallbackLocale: TypedFallbackLocale;
+  locale: string | string[];
+  overrideAccess: boolean;
+  populate?: PopulateType;
+  select?: SelectType;
+  showHiddenFields: boolean;
+  transactionID: number | Promise<number | string> | string | undefined;
+};
 export const createDataloaderCacheKey = ({
   collectionSlug,
   currentDepth,
@@ -320,4 +320,4 @@ export const createDataloaderCacheKey = ({
     draft,
     select,
     populate,
-  ])
+  ]);

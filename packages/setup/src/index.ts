@@ -9,8 +9,8 @@
  */
 
 // Environment setup
-export * from './environment/index.js'
+export * from './environment/index.js';
 // Utilities
-export * from './utils/index.js'
+export * from './utils/index.js';
 // Validators
-export * from './validators/index.js'
+export * from './validators/index.js';

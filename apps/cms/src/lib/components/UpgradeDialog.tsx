@@ -1,43 +1,43 @@
-'use client'
+'use client';
 
-import { getTiersFromCurrent } from '@revealui/contracts/pricing'
+import { getTiersFromCurrent } from '@revealui/contracts/pricing';
 import {
   Dialog,
   DialogActions,
   DialogBody,
   DialogDescription,
   DialogTitle,
-} from '@revealui/presentation'
-import { PricingTable } from '@revealui/presentation/server'
-import Link from 'next/link'
-import { useCallback, useEffect, useState } from 'react'
-import { useLicense } from '@/lib/providers/LicenseProvider'
+} from '@revealui/presentation';
+import { PricingTable } from '@revealui/presentation/server';
+import Link from 'next/link';
+import { useCallback, useEffect, useState } from 'react';
+import { useLicense } from '@/lib/providers/LicenseProvider';
 
 /**
  * Global upgrade dialog that listens for `revealui:upgrade-required` custom events.
  * Shows tier comparison with direct checkout buttons.
  */
 export function UpgradeDialog() {
-  const [open, setOpen] = useState(false)
-  const [featureName, setFeatureName] = useState<string | undefined>()
-  const { tier } = useLicense()
+  const [open, setOpen] = useState(false);
+  const [featureName, setFeatureName] = useState<string | undefined>();
+  const { tier } = useLicense();
 
   useEffect(() => {
     function handleUpgradeRequired(e: Event) {
-      const detail = (e as CustomEvent<{ feature?: string }>).detail
-      setFeatureName(detail?.feature)
-      setOpen(true)
+      const detail = (e as CustomEvent<{ feature?: string }>).detail;
+      setFeatureName(detail?.feature);
+      setOpen(true);
     }
 
-    window.addEventListener('revealui:upgrade-required', handleUpgradeRequired)
-    return () => window.removeEventListener('revealui:upgrade-required', handleUpgradeRequired)
-  }, [])
+    window.addEventListener('revealui:upgrade-required', handleUpgradeRequired);
+    return () => window.removeEventListener('revealui:upgrade-required', handleUpgradeRequired);
+  }, []);
 
-  const handleClose = useCallback(() => setOpen(false), [])
+  const handleClose = useCallback(() => setOpen(false), []);
 
   const handleSelectTier = useCallback(async (tierId: string) => {
     try {
-      const apiUrl = (process.env.NEXT_PUBLIC_API_URL || 'https://api.revealui.com').trim()
+      const apiUrl = (process.env.NEXT_PUBLIC_API_URL || 'https://api.revealui.com').trim();
       const res = await fetch(`${apiUrl}/api/billing/checkout`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -51,18 +51,18 @@ export function UpgradeDialog() {
                 : process.env.NEXT_PUBLIC_STRIPE_ENTERPRISE_PRICE_ID,
           tier: tierId,
         }),
-      })
-      const data = (await res.json()) as { url?: string; error?: string }
+      });
+      const data = (await res.json()) as { url?: string; error?: string };
       if (data.url) {
-        window.location.href = data.url
+        window.location.href = data.url;
       }
     } catch {
       // Fall back to billing page
-      window.location.href = `/account/billing?upgrade=${tierId}`
+      window.location.href = `/account/billing?upgrade=${tierId}`;
     }
-  }, [])
+  }, []);
 
-  const upgradeTiers = getTiersFromCurrent(tier)
+  const upgradeTiers = getTiersFromCurrent(tier);
 
   return (
     <Dialog open={open} onClose={handleClose} size="2xl">
@@ -97,5 +97,5 @@ export function UpgradeDialog() {
         </button>
       </DialogActions>
     </Dialog>
-  )
+  );
 }

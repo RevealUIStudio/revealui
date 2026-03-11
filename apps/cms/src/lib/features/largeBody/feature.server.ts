@@ -1,12 +1,12 @@
-import type { TextField } from '@revealui/core'
-import { createServerFeature } from '@revealui/core/richtext'
-import { LargeBodyNode } from './nodes/LargeBodyNode'
+import type { TextField } from '@revealui/core';
+import { createServerFeature } from '@revealui/core/richtext';
+import { LargeBodyNode } from './nodes/LargeBodyNode';
 
 const urlField: TextField = {
   name: 'url',
   type: 'text',
   required: true,
-}
+};
 
 export const LabelFeature = createServerFeature({
   feature: {
@@ -18,12 +18,12 @@ export const LabelFeature = createServerFeature({
       },
     ],
     generateSchemaMap: () => {
-      const schemaMap = new Map<string, unknown>()
-      const fields: TextField[] = [urlField]
-      schemaMap.set('fields', fields)
+      const schemaMap = new Map<string, unknown>();
+      const fields: TextField[] = [urlField];
+      schemaMap.set('fields', fields);
 
-      return schemaMap
+      return schemaMap;
     },
   },
   key: 'embed',
-})
+});

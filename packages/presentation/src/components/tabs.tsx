@@ -1,21 +1,21 @@
-'use client'
+'use client';
 
-import clsx from 'clsx'
-import type React from 'react'
-import { createContext, use, useCallback, useId, useState } from 'react'
+import clsx from 'clsx';
+import type React from 'react';
+import { createContext, use, useCallback, useId, useState } from 'react';
 
 type TabsContextValue = {
-  activeTab: string
-  setActiveTab: (id: string) => void
-  baseId: string
-}
+  activeTab: string;
+  setActiveTab: (id: string) => void;
+  baseId: string;
+};
 
-const TabsContext = createContext<TabsContextValue | null>(null)
+const TabsContext = createContext<TabsContextValue | null>(null);
 
 function useTabsContext() {
-  const ctx = use(TabsContext)
-  if (!ctx) throw new Error('Tabs subcomponents must be used inside <Tabs>')
-  return ctx
+  const ctx = use(TabsContext);
+  if (!ctx) throw new Error('Tabs subcomponents must be used inside <Tabs>');
+  return ctx;
 }
 
 export function Tabs({
@@ -25,37 +25,37 @@ export function Tabs({
   className,
   children,
 }: {
-  defaultTab?: string
-  value?: string
-  onChange?: (tab: string) => void
-  className?: string
-  children: React.ReactNode
+  defaultTab?: string;
+  value?: string;
+  onChange?: (tab: string) => void;
+  className?: string;
+  children: React.ReactNode;
 }) {
-  const baseId = useId()
-  const [internalTab, setInternalTab] = useState(defaultTab ?? '')
+  const baseId = useId();
+  const [internalTab, setInternalTab] = useState(defaultTab ?? '');
 
-  const activeTab = value ?? internalTab
+  const activeTab = value ?? internalTab;
   const setActiveTab = useCallback(
     (id: string) => {
-      setInternalTab(id)
-      onChange?.(id)
+      setInternalTab(id);
+      onChange?.(id);
     },
     [onChange],
-  )
+  );
 
   return (
     <TabsContext value={{ activeTab, setActiveTab, baseId }}>
       <div className={className}>{children}</div>
     </TabsContext>
-  )
+  );
 }
 
 export function TabList({
   className,
   children,
 }: {
-  className?: string
-  children: React.ReactNode
+  className?: string;
+  children: React.ReactNode;
 }) {
   return (
     <div
@@ -64,7 +64,7 @@ export function TabList({
     >
       {children}
     </div>
-  )
+  );
 }
 
 export function Tab({
@@ -72,12 +72,12 @@ export function Tab({
   className,
   children,
 }: {
-  id: string
-  className?: string
-  children: React.ReactNode
+  id: string;
+  className?: string;
+  children: React.ReactNode;
 }) {
-  const { activeTab, setActiveTab, baseId } = useTabsContext()
-  const isActive = activeTab === id
+  const { activeTab, setActiveTab, baseId } = useTabsContext();
+  const isActive = activeTab === id;
 
   return (
     <button
@@ -98,7 +98,7 @@ export function Tab({
     >
       {children}
     </button>
-  )
+  );
 }
 
 export function TabPanel({
@@ -106,12 +106,12 @@ export function TabPanel({
   className,
   children,
 }: {
-  id: string
-  className?: string
-  children: React.ReactNode
+  id: string;
+  className?: string;
+  children: React.ReactNode;
 }) {
-  const { activeTab, baseId } = useTabsContext()
-  if (activeTab !== id) return null
+  const { activeTab, baseId } = useTabsContext();
+  if (activeTab !== id) return null;
 
   return (
     <div
@@ -124,5 +124,5 @@ export function TabPanel({
     >
       {children}
     </div>
-  )
+  );
 }

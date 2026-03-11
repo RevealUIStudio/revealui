@@ -6,7 +6,7 @@
  * @module @revealui/core/types/internal
  */
 
-import type { Field } from '@revealui/contracts/cms'
+import type { Field } from '@revealui/contracts/cms';
 
 // =============================================================================
 // BLOCK TYPE
@@ -14,30 +14,30 @@ import type { Field } from '@revealui/contracts/cms'
 
 /** Block type for RevealUI blocks */
 export type Block = {
-  slug: string
-  fields: Field[]
-  interfaceName?: string
+  slug: string;
+  fields: Field[];
+  interfaceName?: string;
   labels?: {
-    singular?: string
-    plural?: string
-  }
-  name?: string
+    singular?: string;
+    plural?: string;
+  };
+  name?: string;
   admin?: {
     components?: {
       // biome-ignore lint/style/useNamingConvention: Legacy config shape.
-      Block?: unknown
-    }
-  }
-  imageURL?: string
-  imageAltText?: string
-}
+      Block?: unknown;
+    };
+  };
+  imageURL?: string;
+  imageAltText?: string;
+};
 
 // =============================================================================
 // FIELD TYPE ALIASES
 // =============================================================================
 
-export type CheckboxField = Field & { type: 'checkbox' }
-export type BlocksField = Field & { type: 'blocks'; blocks: Block[] }
+export type CheckboxField = Field & { type: 'checkbox' };
+export type BlocksField = Field & { type: 'blocks'; blocks: Block[] };
 
 // =============================================================================
 // REVEALUI BLOCK TYPE
@@ -50,18 +50,18 @@ export interface RevealUIBlock extends Block {
   /** RevealUI-specific extensions */
   revealUI?: {
     /** Custom preview component */
-    preview?: unknown
+    preview?: unknown;
     /** Custom edit component */
-    editor?: unknown
+    editor?: unknown;
     /** Block category */
-    category?: string
+    category?: string;
     /** Icon for admin UI */
-    icon?: string
+    icon?: string;
     /** Required permissions to access this block */
-    permissions?: string[]
+    permissions?: string[];
     /** Whether this block is tenant-scoped */
-    tenantScoped?: boolean
-  }
+    tenantScoped?: boolean;
+  };
 }
 
 // =============================================================================
@@ -73,13 +73,13 @@ export interface RevealUIBlock extends Block {
  * @internal
  */
 export interface ClientConfig {
-  serverURL: string
+  serverURL: string;
   routes?: {
-    admin?: string
-    api?: string
-  }
-  collections?: Array<{ slug: string }>
-  globals?: Array<{ slug: string }>
+    admin?: string;
+    api?: string;
+  };
+  collections?: Array<{ slug: string }>;
+  globals?: Array<{ slug: string }>;
 }
 
 /**
@@ -87,16 +87,16 @@ export interface ClientConfig {
  * @internal
  */
 export interface ClientCollectionConfig {
-  slug: string
+  slug: string;
   labels?: {
-    singular?: string
-    plural?: string
-  }
+    singular?: string;
+    plural?: string;
+  };
   admin?: {
-    useAsTitle?: string
-    defaultColumns?: string[]
-    listSearchableFields?: string[]
-  }
+    useAsTitle?: string;
+    defaultColumns?: string[];
+    listSearchableFields?: string[];
+  };
 }
 
 /**
@@ -104,10 +104,10 @@ export interface ClientCollectionConfig {
  * @internal
  */
 export interface RevealUITraverseFieldsArgs {
-  fields: Field[]
-  path?: string
-  callback?: (field: Field, path: string) => undefined | boolean
-  data?: Record<string, unknown>
+  fields: Field[];
+  path?: string;
+  callback?: (field: Field, path: string) => undefined | boolean;
+  data?: Record<string, unknown>;
 }
 
 /**
@@ -115,10 +115,10 @@ export interface RevealUITraverseFieldsArgs {
  * @internal
  */
 export interface RevealUITraverseFieldsResult {
-  traversed: number
-  found: Field[]
-  data?: Record<string, unknown>
-  errors?: Array<{ field: string; message: string }>
+  traversed: number;
+  found: Field[];
+  data?: Record<string, unknown>;
+  errors?: Array<{ field: string; message: string }>;
 }
 
 /**
@@ -126,9 +126,9 @@ export interface RevealUITraverseFieldsResult {
  * @internal
  */
 export interface RevealUIDependencyCheckArgs {
-  field: Field
-  fields: Field[]
-  path?: string
+  field: Field;
+  fields: Field[];
+  path?: string;
 }
 
 /**
@@ -136,9 +136,9 @@ export interface RevealUIDependencyCheckArgs {
  * @internal
  */
 export interface RevealUISchemaArgs {
-  collections?: Array<{ slug: string; fields: Field[] }>
-  globals?: Array<{ slug: string; fields: Field[] }>
-  outputFile?: string
+  collections?: Array<{ slug: string; fields: Field[] }>;
+  globals?: Array<{ slug: string; fields: Field[] }>;
+  outputFile?: string;
 }
 
 /**
@@ -146,11 +146,11 @@ export interface RevealUISchemaArgs {
  * @internal
  */
 export interface RevealUIRichTextAdapter {
-  name: string
+  name: string;
   features?: Array<{
-    key: string
-    enabled: boolean
-  }>
-  serialize?: (content: unknown) => string
-  deserialize?: (content: string) => unknown
+    key: string;
+    enabled: boolean;
+  }>;
+  serialize?: (content: unknown) => string;
+  deserialize?: (content: string) => unknown;
 }

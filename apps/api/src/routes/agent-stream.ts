@@ -10,26 +10,26 @@
  * See packages/ai/src/client/hooks/useAgentStream.ts for the React hook.
  */
 
-import { Hono } from 'hono'
-import { streamSSE } from 'hono/streaming'
+import { Hono } from 'hono';
+import { streamSSE } from 'hono/streaming';
 
 type Variables = {
-  tenant?: { id: string }
-}
+  tenant?: { id: string };
+};
 
 // biome-ignore lint/style/useNamingConvention: Hono requires PascalCase `Variables` in its generic type parameter
-const app = new Hono<{ Variables: Variables }>()
+const app = new Hono<{ Variables: Variables }>();
 
 app.post('/', async (c) => {
   const body = (await c.req.json().catch(() => null)) as {
-    instruction?: string
-    boardId?: string
-    workspaceId?: string
-    priority?: string
-  } | null
+    instruction?: string;
+    boardId?: string;
+    workspaceId?: string;
+    priority?: string;
+  } | null;
 
   if (!body?.instruction) {
-    return c.json({ success: false, error: 'instruction is required' }, 400)
+    return c.json({ success: false, error: 'instruction is required' }, 400);
   }
 
   // Dynamically load @revealui/ai modules
@@ -37,32 +37,32 @@ app.post('/', async (c) => {
     import('@revealui/ai').catch(() => null),
     import('@revealui/ai/llm/client').catch(() => null),
     import('@revealui/ai/orchestration/streaming-runtime').catch(() => null),
-  ])
+  ]);
 
   if (!(aiMod && llmClientMod && streamingRuntimeMod)) {
-    return c.json({ success: false, error: 'AI package not available' }, 503)
+    return c.json({ success: false, error: 'AI package not available' }, 503);
   }
 
   // BYOK: accept API key via Authorization header (never in request body)
-  const authHeader = c.req.header('Authorization')
-  const byokKey = authHeader?.startsWith('Bearer ') ? authHeader.slice(7) : undefined
+  const authHeader = c.req.header('Authorization');
+  const byokKey = authHeader?.startsWith('Bearer ') ? authHeader.slice(7) : undefined;
 
-  let llmClient: unknown
+  let llmClient: unknown;
   try {
     if (byokKey) {
       llmClient = new llmClientMod.LLMClient({
         provider: 'groq',
         apiKey: byokKey,
         model: 'llama-3.3-70b-versatile',
-      })
+      });
     } else {
-      llmClient = aiMod.createLLMClientFromEnv()
+      llmClient = aiMod.createLLMClientFromEnv();
     }
   } catch {
-    return c.json({ success: false, error: 'AI provider not configured' }, 503)
+    return c.json({ success: false, error: 'AI provider not configured' }, 503);
   }
 
-  const workspaceId = body.workspaceId ?? c.get('tenant')?.id ?? 'default'
+  const workspaceId = body.workspaceId ?? c.get('tenant')?.id ?? 'default';
 
   const agent = {
     id: 'stream-agent',
@@ -71,29 +71,29 @@ app.post('/', async (c) => {
     tools: [],
     memory: undefined,
     getContext: () => ({ agentId: 'stream-agent' }),
-  }
+  };
 
   const task = {
     id: `task-${Date.now()}`,
     type: 'instruction',
     description: body.instruction,
-  }
+  };
 
   const runtime = new streamingRuntimeMod.StreamingAgentRuntime({
     maxIterations: 10,
     timeout: 120_000,
-  })
+  });
 
   return streamSSE(c, async (stream) => {
-    const controller = new AbortController()
+    const controller = new AbortController();
 
     // Clean up on client disconnect
-    c.req.raw.signal?.addEventListener('abort', () => controller.abort())
+    c.req.raw.signal?.addEventListener('abort', () => controller.abort());
 
     try {
       // llmClient is typed as unknown because it comes from dynamically imported Pro packages;
       // the runtime type is LLMClient when present.
-      type StreamTaskParams = Parameters<typeof runtime.streamTask>
+      type StreamTaskParams = Parameters<typeof runtime.streamTask>;
       for await (const chunk of runtime.streamTask(
         agent,
         task,
@@ -103,9 +103,9 @@ app.post('/', async (c) => {
         await stream.writeSSE({
           data: JSON.stringify(chunk),
           event: chunk.type,
-        })
+        });
 
-        if (chunk.type === 'done' || chunk.type === 'error') break
+        if (chunk.type === 'done' || chunk.type === 'error') break;
       }
     } catch (error) {
       await stream.writeSSE({
@@ -114,9 +114,9 @@ app.post('/', async (c) => {
           error: error instanceof Error ? error.message : 'Unknown error',
         }),
         event: 'error',
-      })
+      });
     }
-  })
-})
+  });
+});
 
-export default app
+export default app;

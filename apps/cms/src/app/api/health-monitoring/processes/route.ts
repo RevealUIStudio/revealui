@@ -16,19 +16,19 @@ import {
   type ProcessSource,
   type ProcessStatus,
   type TrackedProcess,
-} from '@revealui/core/monitoring'
-import { type NextRequest, NextResponse } from 'next/server'
+} from '@revealui/core/monitoring';
+import { type NextRequest, NextResponse } from 'next/server';
 
-export const runtime = 'nodejs'
-export const dynamic = 'force-dynamic'
+export const runtime = 'nodejs';
+export const dynamic = 'force-dynamic';
 
 /**
  * Process list response
  */
 interface ProcessListResponse {
-  processes: TrackedProcess[]
-  total: number
-  filtered: number
+  processes: TrackedProcess[];
+  total: number;
+  filtered: number;
 }
 
 /**
@@ -39,73 +39,73 @@ interface ProcessListResponse {
 export async function GET(
   request: NextRequest,
 ): Promise<NextResponse<ProcessListResponse | { error: string }>> {
-  const token = request.headers.get('x-internal-token')
-  const secret = process.env.REVEALUI_SECRET
+  const token = request.headers.get('x-internal-token');
+  const secret = process.env.REVEALUI_SECRET;
   if (!(secret && token) || token !== secret) {
-    return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
+    return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
   }
 
   try {
-    const searchParams = request.nextUrl.searchParams
+    const searchParams = request.nextUrl.searchParams;
 
     // Get query parameters
-    const statusFilter = searchParams.get('status') as ProcessStatus | null
-    const sourceFilter = searchParams.get('source') as ProcessSource | null
-    const sortField = searchParams.get('sort') || 'startTime'
-    const sortOrder = searchParams.get('order') || 'desc'
-    const limit = parseInt(searchParams.get('limit') || '100', 10)
+    const statusFilter = searchParams.get('status') as ProcessStatus | null;
+    const sourceFilter = searchParams.get('source') as ProcessSource | null;
+    const sortField = searchParams.get('sort') || 'startTime';
+    const sortOrder = searchParams.get('order') || 'desc';
+    const limit = parseInt(searchParams.get('limit') || '100', 10);
 
     // Get all processes
-    let processes = getAllProcesses()
-    const total = processes.length
+    let processes = getAllProcesses();
+    const total = processes.length;
 
     // Apply filters
     if (statusFilter) {
-      processes = processes.filter((p) => p.status === statusFilter)
+      processes = processes.filter((p) => p.status === statusFilter);
     }
 
     if (sourceFilter) {
-      processes = processes.filter((p) => p.source === sourceFilter)
+      processes = processes.filter((p) => p.source === sourceFilter);
     }
 
-    const filtered = processes.length
+    const filtered = processes.length;
 
     // Apply sorting
     processes.sort((a, b) => {
-      let aValue: number | string = 0
-      let bValue: number | string = 0
+      let aValue: number | string = 0;
+      let bValue: number | string = 0;
 
       switch (sortField) {
         case 'pid':
-          aValue = a.pid
-          bValue = b.pid
-          break
+          aValue = a.pid;
+          bValue = b.pid;
+          break;
         case 'startTime':
-          aValue = a.startTime
-          bValue = b.startTime
-          break
+          aValue = a.startTime;
+          bValue = b.startTime;
+          break;
         case 'endTime':
-          aValue = a.endTime || 0
-          bValue = b.endTime || 0
-          break
+          aValue = a.endTime || 0;
+          bValue = b.endTime || 0;
+          break;
         case 'status':
-          aValue = a.status
-          bValue = b.status
-          break
+          aValue = a.status;
+          bValue = b.status;
+          break;
         default:
-          aValue = a.startTime
-          bValue = b.startTime
+          aValue = a.startTime;
+          bValue = b.startTime;
       }
 
       if (sortOrder === 'asc') {
-        return aValue > bValue ? 1 : aValue < bValue ? -1 : 0
+        return aValue > bValue ? 1 : aValue < bValue ? -1 : 0;
       } else {
-        return aValue < bValue ? 1 : aValue > bValue ? -1 : 0
+        return aValue < bValue ? 1 : aValue > bValue ? -1 : 0;
       }
-    })
+    });
 
     // Apply limit
-    processes = processes.slice(0, limit)
+    processes = processes.slice(0, limit);
 
     return NextResponse.json(
       {
@@ -114,7 +114,7 @@ export async function GET(
         filtered,
       },
       { status: 200 },
-    )
+    );
   } catch (_error) {
     return NextResponse.json(
       {
@@ -123,6 +123,6 @@ export async function GET(
         filtered: 0,
       },
       { status: 500 },
-    )
+    );
   }
 }

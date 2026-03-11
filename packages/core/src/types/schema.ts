@@ -70,7 +70,7 @@ export type {
   UpdatePageInput,
   UpdateSiteInput,
   VideoBlock,
-} from '@revealui/contracts'
+} from '@revealui/contracts';
 
 export type {
   // Core Contracts - from @revealui/contracts/cms
@@ -150,4 +150,4 @@ export type {
   ValidationResult,
   // VersionsConfig,
   Where,
-} from '@revealui/contracts/cms'
+} from '@revealui/contracts/cms';

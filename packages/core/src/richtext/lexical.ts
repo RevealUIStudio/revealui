@@ -23,14 +23,14 @@ export type {
   LexicalNode,
   SerializedEditorState,
   SerializedLexicalNode,
-} from 'lexical'
+} from 'lexical';
 export type {
   RichTextContent,
   RscEntryLexicalCell,
   RscEntryLexicalField,
-} from './exports/server/rsc.js'
+} from './exports/server/rsc.js';
 // Re-export serialization
-export { serializeLexicalState } from './exports/server/rsc.js'
+export { serializeLexicalState } from './exports/server/rsc.js';
 // Types
 export type {
   DefaultNodeTypes,
@@ -48,7 +48,7 @@ export type {
   SerializedTextNode,
   SerializedUploadNode,
   ServerFeatureConfig,
-} from './index.js'
+} from './index.js';
 // Editor factory and all features
 export {
   AlignFeature,
@@ -89,4 +89,4 @@ export {
   UnderlineFeature,
   UnorderedListFeature,
   UploadFeature,
-} from './index.js'
+} from './index.js';

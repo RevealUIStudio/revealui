@@ -1,4 +1,4 @@
-import { defineConfig } from 'tsup'
+import { defineConfig } from 'tsup';
 
 export default defineConfig({
   entry: {
@@ -12,6 +12,6 @@ export default defineConfig({
   clean: true,
   external: ['react', 'react-dom', 'hono', '@hono/node-server', /^@revealui\//],
   esbuildOptions(options) {
-    options.jsx = 'automatic'
+    options.jsx = 'automatic';
   },
-})
+});

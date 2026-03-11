@@ -5,7 +5,7 @@
 /**
  * Type-safe documentation section paths
  */
-export type DocSection = 'docs' | 'guides' | 'api'
+export type DocSection = 'docs' | 'guides' | 'api';
 
 /**
  * Options for resolving documentation paths
@@ -14,16 +14,16 @@ export interface ResolveDocPathOptions {
   /**
    * The section (guides, api, reference)
    */
-  section: DocSection
+  section: DocSection;
   /**
    * The route path from URL params (e.g., "getting-started" or "revealui-core/index")
    */
-  routePath?: string | null
+  routePath?: string | null;
   /**
    * Whether the path should have a .md extension
    * Default: true (will add .md if not present)
    */
-  requireExtension?: boolean
+  requireExtension?: boolean;
 }
 
 /**
@@ -33,89 +33,89 @@ export interface ResolvedDocPath {
   /**
    * The resolved markdown file path (e.g., "/docs/guides/getting-started.md")
    */
-  markdownPath: string
+  markdownPath: string;
   /**
    * The sanitized route path for display
    */
-  displayPath: string
+  displayPath: string;
   /**
    * Whether this is an index/root path
    */
-  isIndex: boolean
+  isIndex: boolean;
 }
 
 const hasControlChars = (value: string): boolean => {
   for (let i = 0; i < value.length; i++) {
-    const code = value.charCodeAt(i)
+    const code = value.charCodeAt(i);
     if (code <= 0x1f || code === 0x7f) {
-      return true
+      return true;
     }
   }
-  return false
-}
+  return false;
+};
 
 const stripControlChars = (value: string): string => {
-  let result = ''
+  let result = '';
   for (let i = 0; i < value.length; i++) {
-    const code = value.charCodeAt(i)
+    const code = value.charCodeAt(i);
     if (code <= 0x1f || code === 0x7f) {
-      continue
+      continue;
     }
-    result += value[i]
+    result += value[i];
   }
-  return result
-}
+  return result;
+};
 
 /**
  * Sanitize a file path to prevent directory traversal and other security issues
  */
 export function sanitizePath(input: string): string {
   if (!input || typeof input !== 'string') {
-    return ''
+    return '';
   }
 
   // Remove null bytes
-  let sanitized = stripControlChars(input)
+  let sanitized = stripControlChars(input);
 
   // Normalize path separators
-  sanitized = sanitized.replace(/\\/g, '/')
+  sanitized = sanitized.replace(/\\/g, '/');
 
   // Remove leading/trailing slashes and whitespace
-  sanitized = sanitized.trim().replace(/^\/+|\/+$/g, '')
+  sanitized = sanitized.trim().replace(/^\/+|\/+$/g, '');
 
   // Split into segments and filter
   const segments = sanitized.split('/').filter((segment) => {
     // Remove empty segments
-    if (!segment) return false
+    if (!segment) return false;
 
     // Remove current directory references
-    if (segment === '.') return false
+    if (segment === '.') return false;
 
     // Remove parent directory references (prevent traversal)
-    if (segment === '..') return false
+    if (segment === '..') return false;
 
     // Remove segments containing only dots (security: "....")
-    if (/^\.+$/.test(segment)) return false
+    if (/^\.+$/.test(segment)) return false;
 
     // Remove segments with control characters
-    if (hasControlChars(segment)) return false
+    if (hasControlChars(segment)) return false;
 
-    return true
-  })
+    return true;
+  });
 
   // Rejoin segments
-  return segments.join('/')
+  return segments.join('/');
 }
 
 /**
  * Resolve a documentation path to a markdown file path
  */
 export function resolveDocPath(options: ResolveDocPathOptions): ResolvedDocPath {
-  const { section, routePath, requireExtension = true } = options
+  const { section, routePath, requireExtension = true } = options;
 
   // Base path for the section
   // 'docs' section maps to root /docs/ directory (not /docs/docs/)
-  const basePath = section === 'docs' ? '/docs/' : `/docs/${section}/`
+  const basePath = section === 'docs' ? '/docs/' : `/docs/${section}/`;
 
   // Handle empty/null route path (index)
   if (!routePath || routePath === '') {
@@ -123,11 +123,11 @@ export function resolveDocPath(options: ResolveDocPathOptions): ResolvedDocPath 
       markdownPath: section === 'docs' ? '/docs/INDEX.md' : `${basePath}README.md`,
       displayPath: section,
       isIndex: true,
-    }
+    };
   }
 
   // Sanitize the route path
-  const sanitized = sanitizePath(routePath)
+  const sanitized = sanitizePath(routePath);
 
   if (!sanitized) {
     // If sanitization removed everything, default to index
@@ -135,10 +135,10 @@ export function resolveDocPath(options: ResolveDocPathOptions): ResolvedDocPath 
       markdownPath: `${basePath}README.md`,
       displayPath: section,
       isIndex: true,
-    }
+    };
   }
 
-  let resolvedPath = sanitized
+  let resolvedPath = sanitized;
 
   // Handle different path formats
   if (resolvedPath.endsWith('.md') || resolvedPath.endsWith('.mdx')) {
@@ -147,7 +147,7 @@ export function resolveDocPath(options: ResolveDocPathOptions): ResolvedDocPath 
       // Keep as is
     } else {
       // Remove extension if not required
-      resolvedPath = resolvedPath.replace(/\.(md|mdx)$/, '')
+      resolvedPath = resolvedPath.replace(/\.(md|mdx)$/, '');
     }
   } else {
     // No extension - add it if required
@@ -155,13 +155,13 @@ export function resolveDocPath(options: ResolveDocPathOptions): ResolvedDocPath 
       // For API section, check if it's a package name (no slashes) vs nested path
       if (section === 'api' && !resolvedPath.includes('/')) {
         // Package name like "revealui-core" -> "revealui-core/README.md"
-        resolvedPath = `${resolvedPath}/README.md`
+        resolvedPath = `${resolvedPath}/README.md`;
       } else if (section === 'api' && resolvedPath.includes('/')) {
         // Nested path like "revealui-core/index" -> "revealui-core/index.md"
-        resolvedPath = `${resolvedPath}.md`
+        resolvedPath = `${resolvedPath}.md`;
       } else {
         // Guides/Reference: "getting-started" -> "getting-started.md"
-        resolvedPath = `${resolvedPath}.md`
+        resolvedPath = `${resolvedPath}.md`;
       }
     }
   }
@@ -170,7 +170,7 @@ export function resolveDocPath(options: ResolveDocPathOptions): ResolvedDocPath 
     markdownPath: `${basePath}${resolvedPath}`,
     displayPath: sanitized,
     isIndex: false,
-  }
+  };
 }
 
 /**
@@ -178,28 +178,28 @@ export function resolveDocPath(options: ResolveDocPathOptions): ResolvedDocPath 
  */
 export function isPathSafe(input: string): boolean {
   if (!input || typeof input !== 'string') {
-    return false
+    return false;
   }
 
   // Check for directory traversal attempts
   if (input.includes('..')) {
-    return false
+    return false;
   }
 
   // Check for null bytes
   if (input.includes('\0')) {
-    return false
+    return false;
   }
 
   // Check for absolute paths (on Windows or Unix)
   if (/^([a-zA-Z]:|\/)/.test(input)) {
-    return false
+    return false;
   }
 
   // Check for control characters
   if (hasControlChars(input)) {
-    return false
+    return false;
   }
 
-  return true
+  return true;
 }

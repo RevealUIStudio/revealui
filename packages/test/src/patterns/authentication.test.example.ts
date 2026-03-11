@@ -6,22 +6,22 @@
  * Usage: Copy patterns from this file to your actual test files
  */
 
-import type { RevealRequest, RevealUIInstance } from '@revealui/core'
-import { beforeAll, describe, expect, it } from 'vitest'
-import { getTestRevealUI, trackTestData } from '../utils/integration-helpers.js'
+import type { RevealRequest, RevealUIInstance } from '@revealui/core';
+import { beforeAll, describe, expect, it } from 'vitest';
+import { getTestRevealUI, trackTestData } from '../utils/integration-helpers.js';
 
 describe('Authentication Testing Patterns', () => {
-  let revealui: RevealUIInstance
-  const testEmail = `auth-test-${Date.now()}@example.com`
-  const testPassword = 'TestPassword123!'
+  let revealui: RevealUIInstance;
+  const testEmail = `auth-test-${Date.now()}@example.com`;
+  const testPassword = 'TestPassword123!';
 
   function createRequest(user: unknown): RevealRequest {
-    return { user } as unknown as RevealRequest
+    return { user } as unknown as RevealRequest;
   }
 
   beforeAll(async () => {
-    revealui = await getTestRevealUI()
-  })
+    revealui = await getTestRevealUI();
+  });
 
   describe('Auth Flows', () => {
     it('should complete login flow', async () => {
@@ -33,9 +33,9 @@ describe('Authentication Testing Patterns', () => {
           password: testPassword,
           roles: ['user-admin'],
         },
-      })
+      });
 
-      trackTestData('users', String(user.id))
+      trackTestData('users', String(user.id));
 
       // Login
       const loginResult = await revealui.login({
@@ -44,11 +44,11 @@ describe('Authentication Testing Patterns', () => {
           email: testEmail,
           password: testPassword,
         },
-      })
+      });
 
-      expect(loginResult.token).toBeDefined()
-      expect(loginResult.user).toBeDefined()
-    })
+      expect(loginResult.token).toBeDefined();
+      expect(loginResult.user).toBeDefined();
+    });
 
     it('should handle logout flow', async () => {
       // Login first
@@ -58,13 +58,13 @@ describe('Authentication Testing Patterns', () => {
           email: testEmail,
           password: testPassword,
         },
-      })
+      });
 
       // Logout would invalidate token
       // In real implementation, test token invalidation
-      expect(loginResult.token).toBeDefined()
-    })
-  })
+      expect(loginResult.token).toBeDefined();
+    });
+  });
 
   describe('JWT Validation', () => {
     it('should validate JWT token', async () => {
@@ -74,18 +74,18 @@ describe('Authentication Testing Patterns', () => {
           email: testEmail,
           password: testPassword,
         },
-      })
+      });
 
       // Verify token is valid format
-      expect(typeof loginResult.token).toBe('string')
-      expect(loginResult.token.length).toBeGreaterThan(0)
-    })
+      expect(typeof loginResult.token).toBe('string');
+      expect(loginResult.token.length).toBeGreaterThan(0);
+    });
 
     it('should reject invalid JWT token', async () => {
       // Test with invalid token
       // In real implementation, test token validation logic
-    })
-  })
+    });
+  });
 
   describe('Session Management', () => {
     it('should maintain session across requests', async () => {
@@ -95,26 +95,26 @@ describe('Authentication Testing Patterns', () => {
           email: testEmail,
           password: testPassword,
         },
-      })
+      });
 
-      const req = createRequest(loginResult.user)
+      const req = createRequest(loginResult.user);
 
       // Make multiple requests with same session
       const query1 = await revealui.find({
         collection: 'users',
         where: { email: { equals: testEmail } },
         req,
-      })
+      });
 
       const query2 = await revealui.find({
         collection: 'users',
         where: { email: { equals: testEmail } },
         req,
-      })
+      });
 
-      expect(query1.docs[0].id).toBe(query2.docs[0].id)
-    })
-  })
+      expect(query1.docs[0].id).toBe(query2.docs[0].id);
+    });
+  });
 
   describe('Access Control', () => {
     it('should enforce role-based access', async () => {
@@ -126,18 +126,18 @@ describe('Authentication Testing Patterns', () => {
           password: testPassword,
           roles: ['user'],
         },
-      })
+      });
 
-      trackTestData('users', String(user.id))
+      trackTestData('users', String(user.id));
 
       // Test that user can only access permitted resources
       // In real implementation, test access control rules
-      expect(user.roles).toContain('user')
-    })
+      expect(user.roles).toContain('user');
+    });
 
     it('should enforce permission-based access', async () => {
       // Test permission checks
       // Example: User with 'read' permission can read but not write
-    })
-  })
-})
+    });
+  });
+});

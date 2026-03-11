@@ -1,12 +1,12 @@
-'use client'
+'use client';
 
-import type { A2AAgentCard } from '@revealui/contracts'
-import Link from 'next/link'
+import type { A2AAgentCard } from '@revealui/contracts';
+import Link from 'next/link';
 
 interface AgentCardProps {
-  card: A2AAgentCard
+  card: A2AAgentCard;
   /** The agent ID used in the registry (derived from card URL slug) */
-  agentId: string
+  agentId: string;
 }
 
 /**
@@ -77,7 +77,7 @@ export function AgentCard({ card, agentId }: AgentCardProps) {
         </a>
       </div>
     </div>
-  )
+  );
 }
 
 function CapabilityBadge({ label, color }: { label: string; color: 'blue' | 'purple' | 'zinc' }) {
@@ -85,8 +85,8 @@ function CapabilityBadge({ label, color }: { label: string; color: 'blue' | 'pur
     blue: 'bg-blue-500/10 text-blue-400',
     purple: 'bg-purple-500/10 text-purple-400',
     zinc: 'bg-zinc-700 text-zinc-300',
-  }
+  };
   return (
     <span className={`rounded-full px-2 py-0.5 text-xs font-medium ${colors[color]}`}>{label}</span>
-  )
+  );
 }

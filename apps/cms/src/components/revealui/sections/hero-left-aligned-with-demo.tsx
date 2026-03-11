@@ -1,8 +1,8 @@
-import { clsx } from 'clsx/lite'
-import type { ComponentProps, ReactNode } from 'react'
-import { Container } from '@/components/revealui/elements/container'
-import { Heading } from '@/components/revealui/elements/heading'
-import { Text } from '@/components/revealui/elements/text'
+import { clsx } from 'clsx/lite';
+import type { ComponentProps, ReactNode } from 'react';
+import { Container } from '@/components/revealui/elements/container';
+import { Heading } from '@/components/revealui/elements/heading';
+import { Text } from '@/components/revealui/elements/text';
 
 export function HeroLeftAlignedWithDemo({
   eyebrow,
@@ -14,12 +14,12 @@ export function HeroLeftAlignedWithDemo({
   className,
   ...props
 }: {
-  eyebrow?: ReactNode
-  headline: ReactNode
-  subheadline: ReactNode
-  cta?: ReactNode
-  demo?: ReactNode
-  footer?: ReactNode
+  eyebrow?: ReactNode;
+  headline: ReactNode;
+  subheadline: ReactNode;
+  cta?: ReactNode;
+  demo?: ReactNode;
+  footer?: ReactNode;
 } & ComponentProps<'section'>) {
   return (
     <section className={clsx('py-16', className)} {...props}>
@@ -38,5 +38,5 @@ export function HeroLeftAlignedWithDemo({
         {footer}
       </Container>
     </section>
-  )
+  );
 }

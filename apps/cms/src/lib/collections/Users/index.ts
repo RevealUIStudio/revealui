@@ -1,8 +1,8 @@
-import type { RevealCollectionConfig } from '@revealui/core'
-import type { User } from '@revealui/core/types/cms'
-import { isAdmin, isAdminAndUser, isSuperAdmin } from '@/lib/access'
-import { isTenantAdminOrSuperAdmin } from '@/lib/access/tenants/isTenantAdminOrSuperAdmin'
-import { loginAfterCreate, recordLastLoggedInTenant } from '@/lib/hooks/index'
+import type { RevealCollectionConfig } from '@revealui/core';
+import type { User } from '@revealui/core/types/cms';
+import { isAdmin, isAdminAndUser, isSuperAdmin } from '@/lib/access';
+import { isTenantAdminOrSuperAdmin } from '@/lib/access/tenants/isTenantAdminOrSuperAdmin';
+import { loginAfterCreate, recordLastLoggedInTenant } from '@/lib/hooks/index';
 
 const Users: RevealCollectionConfig<User> = {
   slug: 'users',
@@ -17,10 +17,10 @@ const Users: RevealCollectionConfig<User> = {
   access: {
     create: isAdmin,
     read: ({ req }) => {
-      const user = req?.user as { id?: string } | null
-      if (!user?.id) return false
-      if (isAdmin({ req })) return true
-      return { id: { equals: user.id } }
+      const user = req?.user as { id?: string } | null;
+      if (!user?.id) return false;
+      if (isAdmin({ req })) return true;
+      return { id: { equals: user.id } };
     },
     update: isAdminAndUser,
     delete: isAdmin,
@@ -123,6 +123,6 @@ const Users: RevealCollectionConfig<User> = {
       },
     },
   ],
-}
+};
 
-export default Users
+export default Users;

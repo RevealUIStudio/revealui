@@ -1,15 +1,19 @@
-import type { CollectionAfterChangeHook, RevealHookContext, RevealUIInstance } from '@revealui/core'
-import type { User } from '@revealui/core/types/cms'
-import { Role } from '@/lib/access/permissions/roles'
+import type {
+  CollectionAfterChangeHook,
+  RevealHookContext,
+  RevealUIInstance,
+} from '@revealui/core';
+import type { User } from '@revealui/core/types/cms';
+import { Role } from '@/lib/access/permissions/roles';
 
 interface CreateTenantContext extends RevealHookContext {
-  email?: string
-  password?: string
+  email?: string;
+  password?: string;
 }
 
 interface UserWithTenantID extends User {
   // biome-ignore lint/style/useNamingConvention: PascalCase matches database schema
-  TenantID?: string | number
+  TenantID?: string | number;
 }
 
 export const createTenant: CollectionAfterChangeHook<UserWithTenantID> = async ({
@@ -20,15 +24,15 @@ export const createTenant: CollectionAfterChangeHook<UserWithTenantID> = async (
 }) => {
   if (operation !== 'create' || doc.TenantID || !req.revealui) {
     // If operation is not 'create' or TenantID is already present, return data
-    return doc
+    return doc;
   }
 
   // contracts RevealRequest.revealui is typed as unknown; cast to the known instance type
-  const revealui = req.revealui as RevealUIInstance
+  const revealui = req.revealui as RevealUIInstance;
 
-  const ctx = context as unknown as CreateTenantContext | undefined
+  const ctx = context as unknown as CreateTenantContext | undefined;
   if (!ctx?.email) {
-    return doc
+    return doc;
   }
 
   try {
@@ -40,7 +44,7 @@ export const createTenant: CollectionAfterChangeHook<UserWithTenantID> = async (
           equals: ctx.email,
         },
       },
-    })
+    });
 
     if (existingTenant.totalDocs > 0 && existingTenant.docs[0]) {
       // If tenant exists, assign TenantID to the user.
@@ -49,7 +53,7 @@ export const createTenant: CollectionAfterChangeHook<UserWithTenantID> = async (
         ...doc,
         // biome-ignore lint/style/useNamingConvention: PascalCase matches database schema
         TenantID: existingTenant.docs[0].id as string | number,
-      } as UserWithTenantID
+      } as UserWithTenantID;
     }
 
     // If no existing tenant, create a new tenant
@@ -61,7 +65,7 @@ export const createTenant: CollectionAfterChangeHook<UserWithTenantID> = async (
         ...(ctx.password !== undefined ? { password: ctx.password } : {}),
         roles: [Role.TenantAdmin],
       },
-    })
+    });
 
     // Assign the new TenantID to the user.
     // create() returns unknown for the id field; cast to satisfy UserWithTenantID.
@@ -69,10 +73,10 @@ export const createTenant: CollectionAfterChangeHook<UserWithTenantID> = async (
       ...doc,
       // biome-ignore lint/style/useNamingConvention: PascalCase matches database schema
       TenantID: newTenant.id as string | number,
-    } as UserWithTenantID
+    } as UserWithTenantID;
   } catch (error: unknown) {
     // Log error and return data as-is to avoid breaking execution
-    revealui.logger.error(`Error creating Tenant: ${error}`)
-    return doc
+    revealui.logger.error(`Error creating Tenant: ${error}`);
+    return doc;
   }
-}
+};

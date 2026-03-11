@@ -7,21 +7,21 @@
  * @module @revealui/db/client/types
  */
 
-import type { NeonHttpDatabase } from 'drizzle-orm/neon-http'
-import type * as schema from '../schema/index.js'
-import type { Database } from '../types/index.js'
+import type { NeonHttpDatabase } from 'drizzle-orm/neon-http';
+import type * as schema from '../schema/index.js';
+import type { Database } from '../types/index.js';
 
 /**
  * Re-export the centralized Database type for convenience
  */
-export type { Database }
+export type { Database };
 
 /**
  * Database client type (Drizzle ORM client)
  *
  * This is the actual database client returned by createClient/getClient.
  */
-export type DatabaseClient = NeonHttpDatabase<typeof schema>
+export type DatabaseClient = NeonHttpDatabase<typeof schema>;
 
 /**
  * Extract query result type for a table
@@ -34,10 +34,10 @@ export type QueryResult<
   N extends keyof T['public']['Tables'],
 > = T['public']['Tables'][N] extends {
   // biome-ignore lint/style/useNamingConvention: Supabase schema shape.
-  Row: infer R
+  Row: infer R;
 }
   ? R
-  : never
+  : never;
 
 /**
  * Extract query results type for multiple tables
@@ -48,11 +48,11 @@ export type QueryResult<
 export type QueryResults<T extends Database, N extends Array<keyof T['public']['Tables']>> = {
   [K in N[number]]: T['public']['Tables'][K] extends {
     // biome-ignore lint/style/useNamingConvention: Supabase schema shape.
-    Row: infer R
+    Row: infer R;
   }
     ? R
-    : never
-}
+    : never;
+};
 
 /**
  * Transaction type for database operations
@@ -60,7 +60,7 @@ export type QueryResults<T extends Database, N extends Array<keyof T['public']['
  * Note: Neon HTTP driver doesn't support true transactions,
  * but this type provides API consistency for future migration.
  */
-export type Transaction = DatabaseClient
+export type Transaction = DatabaseClient;
 
 /**
  * Type-safe query utilities
@@ -114,10 +114,10 @@ export type TableRelationships<
   N extends keyof T['public']['Tables'],
 > = T['public']['Tables'][N] extends {
   // biome-ignore lint/style/useNamingConvention: Supabase schema shape.
-  Relationships: infer R
+  Relationships: infer R;
 }
   ? R
-  : never
+  : never;
 
 /**
  * Helper type to extract all related table names for a table
@@ -130,11 +130,11 @@ export type RelatedTables<
   N extends keyof T['public']['Tables'],
 > = T['public']['Tables'][N] extends {
   // biome-ignore lint/style/useNamingConvention: Supabase schema shape.
-  Relationships: infer R
+  Relationships: infer R;
 }
   ? R extends ReadonlyArray<{ referencedRelation: infer Rel }>
     ? Rel extends keyof T['public']['Tables']
       ? Rel
       : never
     : never
-  : never
+  : never;

@@ -5,25 +5,25 @@
  * Uses the cached license state from @revealui/core — no DB call per request.
  */
 
-import { type FeatureFlags, getRequiredTier, isFeatureEnabled } from '@revealui/core/features'
+import { type FeatureFlags, getRequiredTier, isFeatureEnabled } from '@revealui/core/features';
 import {
   getCurrentTier,
   getLicensePayload,
   isLicensed,
   type LicenseTier,
-} from '@revealui/core/license'
-import type { MiddlewareHandler } from 'hono'
-import { HTTPException } from 'hono/http-exception'
+} from '@revealui/core/license';
+import type { MiddlewareHandler } from 'hono';
+import { HTTPException } from 'hono/http-exception';
 import {
   buildPaymentRequired,
   encodePaymentRequired,
   getX402Config,
   verifyPayment,
-} from './x402.js'
+} from './x402.js';
 
 /** Cache for DB-side license status checks (avoid querying every request) */
-let dbStatusCache: { status: string; checkedAt: number } | null = null
-const DB_STATUS_CHECK_INTERVAL = 5 * 60 * 1000 // 5 minutes
+let dbStatusCache: { status: string; checkedAt: number } | null = null;
+const DB_STATUS_CHECK_INTERVAL = 5 * 60 * 1000; // 5 minutes
 
 /**
  * Require a minimum license tier to access the route.
@@ -38,23 +38,23 @@ const DB_STATUS_CHECK_INTERVAL = 5 * 60 * 1000 // 5 minutes
 export const requireLicense = (minimumTier: LicenseTier): MiddlewareHandler => {
   return async (c, next) => {
     if (!isLicensed(minimumTier)) {
-      const x402 = getX402Config()
+      const x402 = getX402Config();
 
       if (x402.enabled) {
         // Check if agent already paid via x402
-        const paymentHeader = c.req.header('x-payment-payload')
+        const paymentHeader = c.req.header('x-payment-payload');
         if (paymentHeader) {
-          const resource = new URL(c.req.url).pathname
-          const result = await verifyPayment(paymentHeader, resource)
+          const resource = new URL(c.req.url).pathname;
+          const result = await verifyPayment(paymentHeader, resource);
           if (result.valid) {
-            await next()
-            return
+            await next();
+            return;
           }
         }
 
         // Return 402 with payment instructions
-        const resource = new URL(c.req.url).pathname
-        const paymentRequired = buildPaymentRequired(resource)
+        const resource = new URL(c.req.url).pathname;
+        const paymentRequired = buildPaymentRequired(resource);
 
         return c.json(
           {
@@ -68,7 +68,7 @@ export const requireLicense = (minimumTier: LicenseTier): MiddlewareHandler => {
             'X-PAYMENT-REQUIRED': encodePaymentRequired(paymentRequired),
             'X-REVEALUI-FEATURE': minimumTier,
           },
-        )
+        );
       }
 
       return c.json(
@@ -78,11 +78,11 @@ export const requireLicense = (minimumTier: LicenseTier): MiddlewareHandler => {
           code: 'HTTP_403',
         },
         403,
-      )
+      );
     }
-    await next()
-  }
-}
+    await next();
+  };
+};
 
 /**
  * Require a specific feature to be enabled.
@@ -93,23 +93,23 @@ export const requireLicense = (minimumTier: LicenseTier): MiddlewareHandler => {
 export const requireFeature = (feature: keyof FeatureFlags): MiddlewareHandler => {
   return async (c, next) => {
     if (!isFeatureEnabled(feature)) {
-      const requiredTier = getRequiredTier(feature)
-      const x402 = getX402Config()
+      const requiredTier = getRequiredTier(feature);
+      const x402 = getX402Config();
 
       if (x402.enabled) {
         // Check if agent already paid via x402
-        const paymentHeader = c.req.header('x-payment-payload')
+        const paymentHeader = c.req.header('x-payment-payload');
         if (paymentHeader) {
-          const resource = new URL(c.req.url).pathname
-          const result = await verifyPayment(paymentHeader, resource)
+          const resource = new URL(c.req.url).pathname;
+          const result = await verifyPayment(paymentHeader, resource);
           if (result.valid) {
-            await next()
-            return
+            await next();
+            return;
           }
         }
 
-        const resource = new URL(c.req.url).pathname
-        const paymentRequired = buildPaymentRequired(resource)
+        const resource = new URL(c.req.url).pathname;
+        const paymentRequired = buildPaymentRequired(resource);
 
         return c.json(
           {
@@ -123,7 +123,7 @@ export const requireFeature = (feature: keyof FeatureFlags): MiddlewareHandler =
             'X-PAYMENT-REQUIRED': encodePaymentRequired(paymentRequired),
             'X-REVEALUI-FEATURE': feature,
           },
-        )
+        );
       }
 
       return c.json(
@@ -133,11 +133,11 @@ export const requireFeature = (feature: keyof FeatureFlags): MiddlewareHandler =
           code: 'HTTP_403',
         },
         403,
-      )
+      );
     }
-    await next()
-  }
-}
+    await next();
+  };
+};
 
 /**
  * Validate the requesting domain against the license's allowed domains.
@@ -146,43 +146,43 @@ export const requireFeature = (feature: keyof FeatureFlags): MiddlewareHandler =
  */
 export const requireDomain = (): MiddlewareHandler => {
   return async (c, next) => {
-    const payload = getLicensePayload()
+    const payload = getLicensePayload();
 
     // No domain restrictions — pass through
     if (!payload?.domains || payload.domains.length === 0) {
-      await next()
-      return
+      await next();
+      return;
     }
 
-    const origin = c.req.header('origin') || c.req.header('referer')
+    const origin = c.req.header('origin') || c.req.header('referer');
     if (!origin) {
       throw new HTTPException(403, {
         message: 'Origin header required for domain-restricted licenses',
-      })
+      });
     }
 
-    let requestDomain: string
+    let requestDomain: string;
     try {
-      requestDomain = new URL(origin).hostname
+      requestDomain = new URL(origin).hostname;
     } catch {
       throw new HTTPException(403, {
         message: 'Invalid Origin header format',
-      })
+      });
     }
 
     const isAllowed = payload.domains.some(
       (d) => requestDomain === d || requestDomain.endsWith(`.${d}`),
-    )
+    );
 
     if (!isAllowed) {
       throw new HTTPException(403, {
         message: `Domain '${requestDomain}' is not licensed. Licensed domains: ${payload.domains.join(', ')}`,
-      })
+      });
     }
 
-    await next()
-  }
-}
+    await next();
+  };
+};
 
 /**
  * Check license status in the database with a 5-minute cache.
@@ -196,42 +196,42 @@ export const checkLicenseStatus = (
   queryLicenseStatus: (customerId: string) => Promise<string | null>,
 ): MiddlewareHandler => {
   return async (_c, next) => {
-    const payload = getLicensePayload()
+    const payload = getLicensePayload();
 
     // No license — free tier, no DB check needed
     if (!payload) {
-      await next()
-      return
+      await next();
+      return;
     }
 
-    const now = Date.now()
+    const now = Date.now();
     if (!dbStatusCache || now - dbStatusCache.checkedAt > DB_STATUS_CHECK_INTERVAL) {
-      const status = await queryLicenseStatus(payload.customerId)
+      const status = await queryLicenseStatus(payload.customerId);
       dbStatusCache = {
         status: status ?? 'active',
         checkedAt: now,
-      }
+      };
     }
 
     if (dbStatusCache.status === 'revoked') {
       throw new HTTPException(403, {
         message: 'Your license has been revoked. Contact support@revealui.com',
-      })
+      });
     }
 
     if (dbStatusCache.status === 'expired') {
       throw new HTTPException(403, {
         message: 'Your license has expired. Renew at https://revealui.com/pricing',
-      })
+      });
     }
 
-    await next()
-  }
-}
+    await next();
+  };
+};
 
 /**
  * Reset the DB status cache. Primarily for testing.
  */
 export function resetDbStatusCache(): void {
-  dbStatusCache = null
+  dbStatusCache = null;
 }

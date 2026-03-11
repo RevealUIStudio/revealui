@@ -1,15 +1,15 @@
-import { logger } from '@revealui/core/observability/logger'
-import { getClient } from '@revealui/db'
-import { errorEvents } from '@revealui/db/schema'
-import type { ErrorHandler } from 'hono'
-import { HTTPException } from 'hono/http-exception'
+import { logger } from '@revealui/core/observability/logger';
+import { getClient } from '@revealui/db';
+import { errorEvents } from '@revealui/db/schema';
+import type { ErrorHandler } from 'hono';
+import { HTTPException } from 'hono/http-exception';
 
 export interface APIErrorResponse {
-  success: false
-  error: string
-  code: string
-  details?: unknown
-  requestId?: string
+  success: false;
+  error: string;
+  code: string;
+  details?: unknown;
+  requestId?: string;
 }
 
 /** Fire-and-forget — persist to error_events without blocking the response. */
@@ -20,9 +20,9 @@ function persistError(
   requestId: string | undefined,
   url: string | undefined,
 ) {
-  ;(async () => {
+  (async () => {
     try {
-      const db = getClient()
+      const db = getClient();
       await db.insert(errorEvents).values({
         id: crypto.randomUUID(),
         level,
@@ -33,27 +33,27 @@ function persistError(
         environment: process.env.NODE_ENV ?? 'production',
         url,
         requestId,
-      })
+      });
     } catch (dbErr) {
       logger.error(
         'error-handler: failed to persist error event',
         dbErr instanceof Error ? dbErr : new Error(String(dbErr)),
-      )
+      );
     }
-  })()
+  })();
 }
 
 export const errorHandler: ErrorHandler = (err, c) => {
-  const requestId = c.get('requestId') as string | undefined
-  const error = err instanceof Error ? err : new Error(String(err))
-  const url = c.req.url
-  logger.error('API Error', error, { requestId })
+  const requestId = c.get('requestId') as string | undefined;
+  const error = err instanceof Error ? err : new Error(String(err));
+  const url = c.req.url;
+  logger.error('API Error', error, { requestId });
 
   // Handle HTTP exceptions
   if (err instanceof HTTPException) {
     // Only persist 5xx server errors — 4xx are client mistakes, not bugs
     if (err.status >= 500) {
-      persistError('error', err.message, err.stack, requestId, url)
+      persistError('error', err.message, err.stack, requestId, url);
     }
     return c.json(
       {
@@ -63,18 +63,18 @@ export const errorHandler: ErrorHandler = (err, c) => {
         requestId,
       } satisfies APIErrorResponse,
       err.status,
-    )
+    );
   }
 
   // Handle validation errors — client mistake, no persist
   if (err.name === 'ZodError') {
     // Strip field-level details in production to avoid leaking schema information
-    let details: unknown
+    let details: unknown;
     if (process.env.NODE_ENV !== 'production') {
       try {
-        details = JSON.parse(err.message)
+        details = JSON.parse(err.message);
       } catch {
-        details = err.message
+        details = err.message;
       }
     }
     return c.json(
@@ -86,11 +86,11 @@ export const errorHandler: ErrorHandler = (err, c) => {
         requestId,
       } satisfies APIErrorResponse,
       400,
-    )
+    );
   }
 
   // Unhandled server error — persist
-  persistError('error', error.message, error.stack, requestId, url)
+  persistError('error', error.message, error.stack, requestId, url);
 
   return c.json(
     {
@@ -100,5 +100,5 @@ export const errorHandler: ErrorHandler = (err, c) => {
       requestId,
     } satisfies APIErrorResponse,
     500,
-  )
-}
+  );
+};

@@ -1,13 +1,13 @@
-import type React from 'react'
-import { cn } from '../utils/cn.js'
+import type React from 'react';
+import { cn } from '../utils/cn.js';
 
 export interface FlexProps extends React.HTMLAttributes<HTMLDivElement> {
-  direction?: 'row' | 'column' | 'row-reverse' | 'column-reverse'
-  align?: 'start' | 'center' | 'end' | 'stretch' | 'baseline'
-  justify?: 'start' | 'center' | 'end' | 'between' | 'around' | 'evenly'
-  wrap?: boolean | 'wrap' | 'nowrap' | 'wrap-reverse'
-  gap?: number | string
-  ref?: React.Ref<HTMLDivElement>
+  direction?: 'row' | 'column' | 'row-reverse' | 'column-reverse';
+  align?: 'start' | 'center' | 'end' | 'stretch' | 'baseline';
+  justify?: 'start' | 'center' | 'end' | 'between' | 'around' | 'evenly';
+  wrap?: boolean | 'wrap' | 'nowrap' | 'wrap-reverse';
+  gap?: number | string;
+  ref?: React.Ref<HTMLDivElement>;
 }
 
 /**
@@ -35,14 +35,14 @@ function Flex({
     wrap === 'nowrap' && 'flex-nowrap',
     wrap === 'wrap-reverse' && 'flex-wrap-reverse',
     className,
-  )
+  );
 
   const flexStyle = {
     ...style,
     ...(gap && { gap: typeof gap === 'number' ? `${gap}px` : gap }),
-  }
+  };
 
-  return <div ref={ref} className={flexClasses} style={flexStyle} {...props} />
+  return <div ref={ref} className={flexClasses} style={flexStyle} {...props} />;
 }
 
-export { Flex }
+export { Flex };

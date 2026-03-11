@@ -1,9 +1,9 @@
-import type React from 'react'
-import { cn } from '../utils/cn.js'
+import type React from 'react';
+import { cn } from '../utils/cn.js';
 
 export type LabelProps = React.LabelHTMLAttributes<HTMLLabelElement> & {
-  ref?: React.Ref<HTMLLabelElement>
-}
+  ref?: React.Ref<HTMLLabelElement>;
+};
 
 function Label({ className, ref, ...props }: LabelProps) {
   return (
@@ -16,7 +16,7 @@ function Label({ className, ref, ...props }: LabelProps) {
       )}
       {...props}
     />
-  )
+  );
 }
 
-export { Label }
+export { Label };

@@ -1,4 +1,4 @@
-import type { RevealFindOptions, RevealWhere } from '../types/index.js'
+import type { RevealFindOptions, RevealWhere } from '../types/index.js';
 
 /**
  * Query Builder Utilities
@@ -7,7 +7,7 @@ import type { RevealFindOptions, RevealWhere } from '../types/index.js'
  * Uses PostgreSQL-style $1, $2 parameters by default.
  */
 
-export type ParameterStyle = 'postgres' | 'positional'
+export type ParameterStyle = 'postgres' | 'positional';
 
 /**
  * Options for building WHERE clauses
@@ -17,17 +17,17 @@ export interface BuildWhereOptions {
    * Parameter style to use ('postgres' for $1, $2 or 'positional' for ?)
    * @default 'postgres'
    */
-  parameterStyle?: ParameterStyle
+  parameterStyle?: ParameterStyle;
   /**
    * Whether to include the WHERE keyword in the result
    * @default false
    */
-  includeWhereKeyword?: boolean
+  includeWhereKeyword?: boolean;
   /**
    * Whether to quote field names
    * @default true
    */
-  quoteFields?: boolean
+  quoteFields?: boolean;
 }
 
 /**
@@ -45,10 +45,10 @@ export function buildWhereClause(
   options: BuildWhereOptions = {},
 ): string {
   if (!where) {
-    return ''
+    return '';
   }
 
-  const { parameterStyle = 'postgres', includeWhereKeyword = false, quoteFields = true } = options
+  const { parameterStyle = 'postgres', includeWhereKeyword = false, quoteFields = true } = options;
 
   const getPlaceholder = (): string => {
     if (parameterStyle === 'postgres') {
@@ -57,21 +57,24 @@ export function buildWhereClause(
       // If params.length = 0, next param will be at position 1 ($1).
       // If params.length = 1, next param will be at position 2 ($2).
       // Therefore: placeholder = params.length + 1
-      return `$${params.length + 1}`
+      return `$${params.length + 1}`;
     }
-    return '?'
-  }
+    return '?';
+  };
 
   const quoteField = (field: string): string => {
-    if (!quoteFields) return field
+    if (!quoteFields) return field;
     // Escape embedded double quotes to prevent SQL injection via identifier breakout
-    const escaped = field.replace(/"/g, '""')
-    return `"${escaped}"`
-  }
+    const escaped = field.replace(/"/g, '""');
+    return `"${escaped}"`;
+  };
 
-  const whereWithGroups = where as { and?: RevealWhere[]; or?: RevealWhere[] }
+  const whereWithGroups = where as { and?: RevealWhere[]; or?: RevealWhere[] };
   const isOperatorObject = (value: unknown): value is Record<string, unknown> =>
-    typeof value === 'object' && value !== null && !Array.isArray(value) && !(value instanceof Date)
+    typeof value === 'object' &&
+    value !== null &&
+    !Array.isArray(value) &&
+    !(value instanceof Date);
 
   // Handle and/or groups
   if (Array.isArray(whereWithGroups.and)) {
@@ -79,14 +82,14 @@ export function buildWhereClause(
       .map((w: RevealWhere) =>
         buildWhereClause(w, params, { ...options, includeWhereKeyword: false }),
       )
-      .filter((c: string) => c.length > 0)
+      .filter((c: string) => c.length > 0);
 
     if (conditions.length === 0) {
-      return ''
+      return '';
     }
 
-    const clause = conditions.join(' AND ')
-    return includeWhereKeyword ? `WHERE ${clause}` : clause
+    const clause = conditions.join(' AND ');
+    return includeWhereKeyword ? `WHERE ${clause}` : clause;
   }
 
   if (Array.isArray(whereWithGroups.or)) {
@@ -95,27 +98,27 @@ export function buildWhereClause(
         const clause = buildWhereClause(w, params, {
           ...options,
           includeWhereKeyword: false,
-        })
+        });
         // Ensure clause doesn't start with "WHERE" (should never happen with includeWhereKeyword: false, but defensive)
         if (clause.trim().toUpperCase().startsWith('WHERE')) {
           throw new Error(
             `buildWhereClause returned clause starting with "WHERE" when includeWhereKeyword is false. This indicates a bug in the query builder. Clause: ${clause}`,
-          )
+          );
         }
-        return clause
+        return clause;
       })
-      .filter((c: string) => c.length > 0)
+      .filter((c: string) => c.length > 0);
 
     if (conditions.length === 0) {
-      return ''
+      return '';
     }
 
-    const clause = `(${conditions.join(' OR ')})`
-    return includeWhereKeyword ? `WHERE ${clause}` : clause
+    const clause = `(${conditions.join(' OR ')})`;
+    return includeWhereKeyword ? `WHERE ${clause}` : clause;
   }
 
   // Handle field conditions
-  const conditions: string[] = []
+  const conditions: string[] = [];
 
   // Valid operators for validation
   const validOperators = new Set([
@@ -128,135 +131,135 @@ export function buildWhereClause(
     'less_than',
     'like',
     'exists',
-  ])
+  ]);
 
   for (const [field, condition] of Object.entries(where as Record<string, unknown>)) {
     // Skip special keys
     if (field === 'and' || field === 'or') {
-      continue
+      continue;
     }
 
     if (condition === null || condition === undefined) {
-      continue
+      continue;
     }
 
-    const quotedField = quoteField(field)
+    const quotedField = quoteField(field);
 
     // If condition is a plain value, treat as equals
     if (!isOperatorObject(condition)) {
       // Get placeholder BEFORE pushing to ensure correct index
-      const placeholder = getPlaceholder()
-      params.push(condition)
-      conditions.push(`${quotedField} = ${placeholder}`)
-      continue
+      const placeholder = getPlaceholder();
+      params.push(condition);
+      conditions.push(`${quotedField} = ${placeholder}`);
+      continue;
     }
 
     // Handle operator objects
     if (isOperatorObject(condition)) {
       // Validate operators before processing
-      const operatorKeys = Object.keys(condition).filter((key) => key !== 'and' && key !== 'or')
-      const invalidOperators = operatorKeys.filter((key) => !validOperators.has(key))
+      const operatorKeys = Object.keys(condition).filter((key) => key !== 'and' && key !== 'or');
+      const invalidOperators = operatorKeys.filter((key) => !validOperators.has(key));
       if (invalidOperators.length > 0) {
         throw new Error(
           `Invalid query operators: ${invalidOperators.join(', ')}. Valid operators are: ${Array.from(validOperators).join(', ')}`,
-        )
+        );
       }
 
       // equals
       if ('equals' in condition && condition.equals !== undefined) {
-        const placeholder = getPlaceholder()
-        params.push(condition.equals)
-        conditions.push(`${quotedField} = ${placeholder}`)
+        const placeholder = getPlaceholder();
+        params.push(condition.equals);
+        conditions.push(`${quotedField} = ${placeholder}`);
       }
 
       // not_equals
       if ('not_equals' in condition && condition.not_equals !== undefined) {
-        const placeholder = getPlaceholder()
-        params.push(condition.not_equals)
-        conditions.push(`${quotedField} != ${placeholder}`)
+        const placeholder = getPlaceholder();
+        params.push(condition.not_equals);
+        conditions.push(`${quotedField} != ${placeholder}`);
       }
 
       // in
       if ('in' in condition && Array.isArray(condition.in)) {
         if (condition.in.length > 0) {
-          const placeholders: string[] = []
+          const placeholders: string[] = [];
           for (const value of condition.in) {
-            const placeholder = getPlaceholder()
-            params.push(value)
-            placeholders.push(placeholder)
+            const placeholder = getPlaceholder();
+            params.push(value);
+            placeholders.push(placeholder);
           }
-          conditions.push(`${quotedField} IN (${placeholders.join(', ')})`)
+          conditions.push(`${quotedField} IN (${placeholders.join(', ')})`);
         } else {
           // Empty IN clause should match nothing
-          conditions.push('1=0') // Always false
+          conditions.push('1=0'); // Always false
         }
       }
 
       // not_in
       if ('not_in' in condition && Array.isArray(condition.not_in)) {
         if (condition.not_in.length > 0) {
-          const placeholders: string[] = []
+          const placeholders: string[] = [];
           for (const value of condition.not_in) {
-            const placeholder = getPlaceholder()
-            params.push(value)
-            placeholders.push(placeholder)
+            const placeholder = getPlaceholder();
+            params.push(value);
+            placeholders.push(placeholder);
           }
-          conditions.push(`${quotedField} NOT IN (${placeholders.join(', ')})`)
+          conditions.push(`${quotedField} NOT IN (${placeholders.join(', ')})`);
         }
       }
 
       // contains (LIKE with wildcards)
       if ('contains' in condition && typeof condition.contains === 'string') {
-        const placeholder = getPlaceholder()
+        const placeholder = getPlaceholder();
         // Escape LIKE wildcards (% and _) in user input to prevent wildcard injection
-        const escaped = condition.contains.replace(/[%_\\]/g, '\\$&')
-        params.push(`%${escaped}%`)
-        conditions.push(`${quotedField} LIKE ${placeholder} ESCAPE '\\'`)
+        const escaped = condition.contains.replace(/[%_\\]/g, '\\$&');
+        params.push(`%${escaped}%`);
+        conditions.push(`${quotedField} LIKE ${placeholder} ESCAPE '\\'`);
       }
 
       // greater_than
       if ('greater_than' in condition && condition.greater_than !== undefined) {
-        const placeholder = getPlaceholder()
-        params.push(condition.greater_than)
-        conditions.push(`${quotedField} > ${placeholder}`)
+        const placeholder = getPlaceholder();
+        params.push(condition.greater_than);
+        conditions.push(`${quotedField} > ${placeholder}`);
       }
 
       // less_than
       if ('less_than' in condition && condition.less_than !== undefined) {
-        const placeholder = getPlaceholder()
-        params.push(condition.less_than)
-        conditions.push(`${quotedField} < ${placeholder}`)
+        const placeholder = getPlaceholder();
+        params.push(condition.less_than);
+        conditions.push(`${quotedField} < ${placeholder}`);
       }
 
       // like
       if ('like' in condition && typeof condition.like === 'string') {
-        const placeholder = getPlaceholder()
-        params.push(condition.like)
-        conditions.push(`${quotedField} LIKE ${placeholder}`)
+        const placeholder = getPlaceholder();
+        params.push(condition.like);
+        conditions.push(`${quotedField} LIKE ${placeholder}`);
       }
 
       // exists (check if field is not null)
       if ('exists' in condition && typeof condition.exists === 'boolean') {
         if (condition.exists) {
-          conditions.push(`${quotedField} IS NOT NULL`)
+          conditions.push(`${quotedField} IS NOT NULL`);
         } else {
-          conditions.push(`${quotedField} IS NULL`)
+          conditions.push(`${quotedField} IS NULL`);
         }
       }
     }
   }
 
-  const clause = conditions.length > 0 ? conditions.join(' AND ') : ''
-  const result = includeWhereKeyword && clause ? `WHERE ${clause}` : clause
+  const clause = conditions.length > 0 ? conditions.join(' AND ') : '';
+  const result = includeWhereKeyword && clause ? `WHERE ${clause}` : clause;
 
   // Defensive check: ensure we never return "WHERE" prefix when includeWhereKeyword is false
   if (!includeWhereKeyword && result.trim().toUpperCase().startsWith('WHERE')) {
     throw new Error(
       `buildWhereClause returned clause starting with "WHERE" when includeWhereKeyword is false. This indicates a bug in the query builder. Clause: ${result}`,
-    )
+    );
   }
 
-  return result
+  return result;
 }
 
 /**
@@ -267,12 +270,12 @@ export function buildWhereClause(
  * @returns Array of parameter values in order
  */
 export function extractWhereValues(where?: RevealWhere): unknown[] {
-  if (!where) return []
+  if (!where) return [];
 
-  const values: unknown[] = []
+  const values: unknown[] = [];
 
   for (const [field, operators] of Object.entries(where as Record<string, unknown>)) {
-    if (field === 'and' || field === 'or') continue
+    if (field === 'and' || field === 'or') continue;
 
     if (
       typeof operators === 'object' &&
@@ -286,52 +289,52 @@ export function extractWhereValues(where?: RevealWhere): unknown[] {
           case 'not_equals':
           case 'greater_than':
           case 'less_than':
-            values.push(value)
-            break
+            values.push(value);
+            break;
           case 'contains':
             if (typeof value === 'string') {
-              const escaped = value.replace(/[%_\\]/g, '\\$&')
-              values.push(`%${escaped}%`)
+              const escaped = value.replace(/[%_\\]/g, '\\$&');
+              values.push(`%${escaped}%`);
             }
-            break
+            break;
           case 'in':
             if (Array.isArray(value)) {
-              values.push(...(value as unknown[]))
+              values.push(...(value as unknown[]));
             }
-            break
+            break;
           case 'not_in':
             if (Array.isArray(value)) {
-              values.push(...(value as unknown[]))
+              values.push(...(value as unknown[]));
             }
-            break
+            break;
           case 'like':
             if (typeof value === 'string') {
-              values.push(value)
+              values.push(value);
             }
-            break
+            break;
           // exists doesn't need a value
         }
       }
     } else if (operators !== null && operators !== undefined) {
       // Plain value (treated as equals)
-      values.push(operators)
+      values.push(operators);
     }
   }
 
-  const whereWithGroups = where as { and?: RevealWhere[]; or?: RevealWhere[] }
+  const whereWithGroups = where as { and?: RevealWhere[]; or?: RevealWhere[] };
 
   // Handle nested conditions
   if (Array.isArray(whereWithGroups.and)) {
     for (const w of whereWithGroups.and) {
-      values.push(...extractWhereValues(w))
+      values.push(...extractWhereValues(w));
     }
   }
 
   if (Array.isArray(whereWithGroups.or)) {
     for (const w of whereWithGroups.or) {
-      values.push(...extractWhereValues(w))
+      values.push(...extractWhereValues(w));
     }
   }
 
-  return values
+  return values;
 }

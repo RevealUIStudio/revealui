@@ -1,12 +1,12 @@
-import { ElectricProvider } from '@revealui/sync/provider'
-import type React from 'react'
-import { UpgradeDialog } from '@/lib/components/UpgradeDialog'
-import { HeaderThemeProvider } from './HeaderTheme/index'
-import { LicenseProvider } from './LicenseProvider'
-import { ThemeProvider } from './Theme/index'
+import { ElectricProvider } from '@revealui/sync/provider';
+import type React from 'react';
+import { UpgradeDialog } from '@/lib/components/UpgradeDialog';
+import { HeaderThemeProvider } from './HeaderTheme/index';
+import { LicenseProvider } from './LicenseProvider';
+import { ThemeProvider } from './Theme/index';
 
 export const Providers: React.FC<{
-  children: React.ReactNode
+  children: React.ReactNode;
 }> = ({ children }) => {
   return (
     <ElectricProvider
@@ -22,5 +22,5 @@ export const Providers: React.FC<{
         </HeaderThemeProvider>
       </ThemeProvider>
     </ElectricProvider>
-  )
-}
+  );
+};

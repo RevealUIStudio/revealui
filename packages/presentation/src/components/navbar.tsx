@@ -1,15 +1,15 @@
-'use client'
+'use client';
 
-import clsx from 'clsx'
-import type React from 'react'
-import { useId } from 'react'
-import { useDataInteractive } from '../hooks/use-data-interactive.js'
-import { LayoutGroup, LayoutIndicator } from '../hooks/use-layout-animation.js'
-import { TouchTarget } from './button-headless.js'
-import { Link } from './link.js'
+import clsx from 'clsx';
+import type React from 'react';
+import { useId } from 'react';
+import { useDataInteractive } from '../hooks/use-data-interactive.js';
+import { LayoutGroup, LayoutIndicator } from '../hooks/use-layout-animation.js';
+import { TouchTarget } from './button-headless.js';
+import { Link } from './link.js';
 
 export function Navbar({ className, ...props }: React.ComponentPropsWithoutRef<'nav'>) {
-  return <nav {...props} className={clsx(className, 'flex flex-1 items-center gap-4 py-2.5')} />
+  return <nav {...props} className={clsx(className, 'flex flex-1 items-center gap-4 py-2.5')} />;
 }
 
 export function NavbarDivider({ className, ...props }: React.ComponentPropsWithoutRef<'div'>) {
@@ -19,21 +19,21 @@ export function NavbarDivider({ className, ...props }: React.ComponentPropsWitho
       {...props}
       className={clsx(className, 'h-6 w-px bg-zinc-950/10 dark:bg-white/10')}
     />
-  )
+  );
 }
 
 export function NavbarSection({ className, ...props }: React.ComponentPropsWithoutRef<'div'>) {
-  const id = useId()
+  const id = useId();
 
   return (
     <LayoutGroup id={id}>
       <div {...props} className={clsx(className, 'flex items-center gap-3')} />
     </LayoutGroup>
-  )
+  );
 }
 
 export function NavbarSpacer({ className, ...props }: React.ComponentPropsWithoutRef<'div'>) {
-  return <div aria-hidden="true" {...props} className={clsx(className, '-ml-4 flex-1')} />
+  return <div aria-hidden="true" {...props} className={clsx(className, '-ml-4 flex-1')} />;
 }
 
 export function NavbarItem({
@@ -43,19 +43,19 @@ export function NavbarItem({
   ref,
   ...props
 }: {
-  current?: boolean
-  className?: string
-  children: React.ReactNode
-  ref?: React.Ref<HTMLAnchorElement | HTMLButtonElement>
+  current?: boolean;
+  className?: string;
+  children: React.ReactNode;
+  ref?: React.Ref<HTMLAnchorElement | HTMLButtonElement>;
 } & (
   | ({
-      href?: never
-      disabled?: boolean
+      href?: never;
+      disabled?: boolean;
     } & Omit<React.ComponentPropsWithoutRef<'button'>, 'className'>)
   | ({ href: string } & Omit<React.ComponentPropsWithoutRef<typeof Link>, 'className'>)
 )) {
-  const disabled = 'disabled' in props ? props.disabled : false
-  const interactiveProps = useDataInteractive({ disabled: disabled ?? false })
+  const disabled = 'disabled' in props ? props.disabled : false;
+  const interactiveProps = useDataInteractive({ disabled: disabled ?? false });
 
   const classes = clsx(
     // Base
@@ -74,7 +74,7 @@ export function NavbarItem({
     'dark:text-white dark:*:data-[slot=icon]:fill-zinc-400',
     'dark:data-hover:bg-white/5 dark:data-hover:*:data-[slot=icon]:fill-white',
     'dark:data-active:bg-white/5 dark:data-active:*:data-[slot=icon]:fill-white',
-  )
+  );
 
   return (
     <span className={clsx(className, 'relative')}>
@@ -106,9 +106,9 @@ export function NavbarItem({
         </button>
       )}
     </span>
-  )
+  );
 }
 
 export function NavbarLabel({ className, ...props }: React.ComponentPropsWithoutRef<'span'>) {
-  return <span {...props} className={clsx(className, 'truncate')} />
+  return <span {...props} className={clsx(className, 'truncate')} />;
 }

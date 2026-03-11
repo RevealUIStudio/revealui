@@ -25,9 +25,9 @@
  * ```
  */
 
-import { readdir, readFile, stat } from 'node:fs/promises'
-import { join, relative } from 'node:path'
-import glob from 'fast-glob'
+import { readdir, readFile, stat } from 'node:fs/promises';
+import { join, relative } from 'node:path';
+import glob from 'fast-glob';
 
 // =============================================================================
 // Types
@@ -38,17 +38,17 @@ import glob from 'fast-glob'
  */
 export interface FileInfo {
   /** Absolute path to file */
-  path: string
+  path: string;
   /** Relative path from base directory */
-  relativePath: string
+  relativePath: string;
   /** File name */
-  name: string
+  name: string;
   /** File extension */
-  extension: string
+  extension: string;
   /** File size in bytes */
-  size: number
+  size: number;
   /** File content (if loaded) */
-  content?: string
+  content?: string;
 }
 
 /**
@@ -56,19 +56,19 @@ export interface FileInfo {
  */
 export interface ScanOptions {
   /** Glob pattern(s) to match files */
-  pattern: string | string[]
+  pattern: string | string[];
   /** Base directory to scan from (default: process.cwd()) */
-  cwd?: string
+  cwd?: string;
   /** Patterns to ignore */
-  ignore?: string[]
+  ignore?: string[];
   /** Whether to load file contents (default: false) */
-  loadContent?: boolean
+  loadContent?: boolean;
   /** Maximum file size to load in bytes (default: 10MB) */
-  maxFileSize?: number
+  maxFileSize?: number;
   /** File extensions to include (e.g., ['.ts', '.tsx']) */
-  extensions?: string[]
+  extensions?: string[];
   /** Whether to follow symbolic links (default: false) */
-  followSymlinks?: boolean
+  followSymlinks?: boolean;
 }
 
 /**
@@ -76,15 +76,15 @@ export interface ScanOptions {
  */
 export interface RecursiveScanOptions {
   /** Directory to scan */
-  directory: string
+  directory: string;
   /** File extensions to include (e.g., ['.ts', '.tsx']) */
-  extensions?: string[]
+  extensions?: string[];
   /** Directories to skip */
-  skipDirs?: string[]
+  skipDirs?: string[];
   /** Whether to load file contents (default: false) */
-  loadContent?: boolean
+  loadContent?: boolean;
   /** Maximum file size to load in bytes (default: 10MB) */
-  maxFileSize?: number
+  maxFileSize?: number;
 }
 
 // =============================================================================
@@ -115,7 +115,7 @@ export async function scanFiles(options: ScanOptions): Promise<FileInfo[]> {
     maxFileSize = 10 * 1024 * 1024, // 10MB
     extensions,
     followSymlinks = false,
-  } = options
+  } = options;
 
   // Use fast-glob for efficient file matching
   const files = await glob(pattern, {
@@ -124,21 +124,21 @@ export async function scanFiles(options: ScanOptions): Promise<FileInfo[]> {
     absolute: true,
     followSymbolicLinks: followSymlinks,
     onlyFiles: true,
-  })
+  });
 
   // Filter by extension if specified
   const filteredFiles = extensions
     ? files.filter((file) => extensions.some((ext) => file.endsWith(ext)))
-    : files
+    : files;
 
   // Build file info objects
-  const fileInfos: FileInfo[] = []
+  const fileInfos: FileInfo[] = [];
 
   for (const filePath of filteredFiles) {
     try {
-      const stats = await stat(filePath)
-      const name = filePath.split('/').pop() || ''
-      const extension = name.includes('.') ? `.${name.split('.').pop()}` : ''
+      const stats = await stat(filePath);
+      const name = filePath.split('/').pop() || '';
+      const extension = name.includes('.') ? `.${name.split('.').pop()}` : '';
 
       const fileInfo: FileInfo = {
         path: filePath,
@@ -146,21 +146,21 @@ export async function scanFiles(options: ScanOptions): Promise<FileInfo[]> {
         name,
         extension,
         size: stats.size,
-      }
+      };
 
       // Load content if requested and file size is acceptable
       if (loadContent && stats.size <= maxFileSize) {
-        fileInfo.content = await readFile(filePath, 'utf-8')
+        fileInfo.content = await readFile(filePath, 'utf-8');
       }
 
-      fileInfos.push(fileInfo)
+      fileInfos.push(fileInfo);
     } catch (error) {
       // Skip files that can't be read
-      console.warn(`Warning: Could not read file ${filePath}:`, error)
+      console.warn(`Warning: Could not read file ${filePath}:`, error);
     }
   }
 
-  return fileInfos
+  return fileInfos;
 }
 
 /**
@@ -185,7 +185,7 @@ export async function* scanFilesGenerator(options: ScanOptions): AsyncGenerator<
     maxFileSize = 10 * 1024 * 1024,
     extensions,
     followSymlinks = false,
-  } = options
+  } = options;
 
   const files = await glob(pattern, {
     cwd,
@@ -193,17 +193,17 @@ export async function* scanFilesGenerator(options: ScanOptions): AsyncGenerator<
     absolute: true,
     followSymbolicLinks: followSymlinks,
     onlyFiles: true,
-  })
+  });
 
   const filteredFiles = extensions
     ? files.filter((file) => extensions.some((ext) => file.endsWith(ext)))
-    : files
+    : files;
 
   for (const filePath of filteredFiles) {
     try {
-      const stats = await stat(filePath)
-      const name = filePath.split('/').pop() || ''
-      const extension = name.includes('.') ? `.${name.split('.').pop()}` : ''
+      const stats = await stat(filePath);
+      const name = filePath.split('/').pop() || '';
+      const extension = name.includes('.') ? `.${name.split('.').pop()}` : '';
 
       const fileInfo: FileInfo = {
         path: filePath,
@@ -211,15 +211,15 @@ export async function* scanFilesGenerator(options: ScanOptions): AsyncGenerator<
         name,
         extension,
         size: stats.size,
-      }
+      };
 
       if (loadContent && stats.size <= maxFileSize) {
-        fileInfo.content = await readFile(filePath, 'utf-8')
+        fileInfo.content = await readFile(filePath, 'utf-8');
       }
 
-      yield fileInfo
+      yield fileInfo;
     } catch (error) {
-      console.warn(`Warning: Could not read file ${filePath}:`, error)
+      console.warn(`Warning: Could not read file ${filePath}:`, error);
     }
   }
 }
@@ -246,26 +246,26 @@ export async function scanDirectoryRecursive(options: RecursiveScanOptions): Pro
     skipDirs = ['node_modules', 'dist', '.git', 'coverage'],
     loadContent = false,
     maxFileSize = 10 * 1024 * 1024,
-  } = options
+  } = options;
 
-  const files: FileInfo[] = []
+  const files: FileInfo[] = [];
 
   async function scan(dir: string): Promise<void> {
-    const entries = await readdir(dir, { withFileTypes: true })
+    const entries = await readdir(dir, { withFileTypes: true });
 
     for (const entry of entries) {
-      const fullPath = join(dir, entry.name)
+      const fullPath = join(dir, entry.name);
 
       if (entry.isDirectory()) {
         // Skip directories in skipDirs list
         if (!skipDirs.includes(entry.name)) {
-          await scan(fullPath)
+          await scan(fullPath);
         }
       } else if (entry.isFile()) {
         // Check extension filter
         if (!extensions || extensions.some((ext) => entry.name.endsWith(ext))) {
-          const stats = await stat(fullPath)
-          const extension = entry.name.includes('.') ? `.${entry.name.split('.').pop()}` : ''
+          const stats = await stat(fullPath);
+          const extension = entry.name.includes('.') ? `.${entry.name.split('.').pop()}` : '';
 
           const fileInfo: FileInfo = {
             path: fullPath,
@@ -273,20 +273,20 @@ export async function scanDirectoryRecursive(options: RecursiveScanOptions): Pro
             name: entry.name,
             extension,
             size: stats.size,
-          }
+          };
 
           if (loadContent && stats.size <= maxFileSize) {
-            fileInfo.content = await readFile(fullPath, 'utf-8')
+            fileInfo.content = await readFile(fullPath, 'utf-8');
           }
 
-          files.push(fileInfo)
+          files.push(fileInfo);
         }
       }
     }
   }
 
-  await scan(directory)
-  return files
+  await scan(directory);
+  return files;
 }
 
 // =============================================================================
@@ -305,9 +305,9 @@ export function filterByExtension<T extends string | FileInfo>(
   extensions: string[],
 ): T[] {
   return files.filter((file) => {
-    const filePath = typeof file === 'string' ? file : file.path
-    return extensions.some((ext) => filePath.endsWith(ext))
-  })
+    const filePath = typeof file === 'string' ? file : file.path;
+    return extensions.some((ext) => filePath.endsWith(ext));
+  });
 }
 
 /**
@@ -319,9 +319,9 @@ export function filterByExtension<T extends string | FileInfo>(
  */
 export function filterByPattern<T extends string | FileInfo>(files: T[], pattern: RegExp): T[] {
   return files.filter((file) => {
-    const filePath = typeof file === 'string' ? file : file.relativePath
-    return pattern.test(filePath)
-  })
+    const filePath = typeof file === 'string' ? file : file.relativePath;
+    return pattern.test(filePath);
+  });
 }
 
 /**
@@ -331,18 +331,18 @@ export function filterByPattern<T extends string | FileInfo>(files: T[], pattern
  * @returns Map of directory to files
  */
 export function groupByDirectory(files: FileInfo[]): Map<string, FileInfo[]> {
-  const groups = new Map<string, FileInfo[]>()
+  const groups = new Map<string, FileInfo[]>();
 
   for (const file of files) {
     // Use relativePath and extract directory
-    const lastSlash = file.relativePath.lastIndexOf('/')
-    const dir = lastSlash >= 0 ? file.relativePath.substring(0, lastSlash) : '.'
+    const lastSlash = file.relativePath.lastIndexOf('/');
+    const dir = lastSlash >= 0 ? file.relativePath.substring(0, lastSlash) : '.';
 
     if (!groups.has(dir)) {
-      groups.set(dir, [])
+      groups.set(dir, []);
     }
-    groups.get(dir)?.push(file)
+    groups.get(dir)?.push(file);
   }
 
-  return groups
+  return groups;
 }

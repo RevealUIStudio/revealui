@@ -113,7 +113,7 @@ export const ErrorCodeDescriptions: Record<ErrorCode, string> = {
   [ErrorCode.NETWORK_ERROR]: 'Network error',
   [ErrorCode.RATE_LIMITED]: 'Rate limit exceeded',
   [ErrorCode.INVALID_STATE]: 'Invalid state for operation',
-}
+};
 
 // =============================================================================
 // Error Class
@@ -124,17 +124,17 @@ export const ErrorCodeDescriptions: Record<ErrorCode, string> = {
  */
 export interface EnhancedErrorOptions {
   /** Additional error details/context */
-  context?: Record<string, unknown>
+  context?: Record<string, unknown>;
   /** Suggested fixes for the error */
-  suggestions?: string[]
+  suggestions?: string[];
   /** Documentation URL for more information */
-  docsUrl?: string
+  docsUrl?: string;
   /** Recovery steps that can be attempted */
-  recovery?: string[]
+  recovery?: string[];
   /** Whether this error is recoverable */
-  recoverable?: boolean
+  recoverable?: boolean;
   /** What operation was being performed */
-  operation?: string
+  operation?: string;
 }
 
 /**
@@ -145,38 +145,38 @@ export interface EnhancedErrorOptions {
  */
 export class ScriptError extends Error {
   /** Error code (maps to exit code) */
-  public readonly code: ErrorCode
+  public readonly code: ErrorCode;
 
   /** Additional error details/context */
-  public readonly context?: Record<string, unknown>
+  public readonly context?: Record<string, unknown>;
 
   /** Error code as string (for JSON output) */
-  public readonly codeString: string
+  public readonly codeString: string;
 
   /** Suggested fixes for this error */
-  public readonly suggestions?: string[]
+  public readonly suggestions?: string[];
 
   /** Documentation URL */
-  public readonly docsUrl?: string
+  public readonly docsUrl?: string;
 
   /** Recovery steps */
-  public readonly recovery?: string[]
+  public readonly recovery?: string[];
 
   /** Whether this error is recoverable */
-  public readonly recoverable?: boolean
+  public readonly recoverable?: boolean;
 
   /** Operation being performed when error occurred */
-  public readonly operation?: string
+  public readonly operation?: string;
 
   /** Timestamp when error was created */
-  public readonly timestamp: number
+  public readonly timestamp: number;
 
   /** Original error if this wraps another error */
-  public readonly originalError?: Error
+  public readonly originalError?: Error;
 
   // Legacy property for backward compatibility
   public get details(): Record<string, unknown> | undefined {
-    return this.context
+    return this.context;
   }
 
   constructor(
@@ -184,11 +184,11 @@ export class ScriptError extends Error {
     code: ErrorCode = ErrorCode.GENERAL_ERROR,
     options?: EnhancedErrorOptions | Record<string, unknown>,
   ) {
-    super(message)
-    this.name = 'ScriptError'
-    this.code = code
-    this.codeString = ErrorCode[code] ?? 'UNKNOWN'
-    this.timestamp = Date.now()
+    super(message);
+    this.name = 'ScriptError';
+    this.code = code;
+    this.codeString = ErrorCode[code] ?? 'UNKNOWN';
+    this.timestamp = Date.now();
 
     // Handle both old-style (details) and new-style (EnhancedErrorOptions)
     if (options) {
@@ -196,44 +196,45 @@ export class ScriptError extends Error {
       this.context =
         'context' in options
           ? (options.context as Record<string, unknown> | undefined)
-          : (options as Record<string, unknown>)
+          : (options as Record<string, unknown>);
       this.suggestions =
         'suggestions' in options
           ? ((options.suggestions as string[] | undefined) ??
             generateSuggestionsFromMessage(message, this.codeString))
-          : generateSuggestionsFromMessage(message, this.codeString)
+          : generateSuggestionsFromMessage(message, this.codeString);
       this.docsUrl =
         'docsUrl' in options
           ? ((options.docsUrl as string | undefined) ??
             getDocumentationUrl(message, this.codeString))
-          : getDocumentationUrl(message, this.codeString)
-      this.recovery = 'recovery' in options ? (options.recovery as string[] | undefined) : undefined
+          : getDocumentationUrl(message, this.codeString);
+      this.recovery =
+        'recovery' in options ? (options.recovery as string[] | undefined) : undefined;
       this.recoverable =
-        'recoverable' in options ? (options.recoverable as boolean | undefined) : undefined
+        'recoverable' in options ? (options.recoverable as boolean | undefined) : undefined;
       this.operation =
-        'operation' in options ? (options.operation as string | undefined) : undefined
+        'operation' in options ? (options.operation as string | undefined) : undefined;
     } else {
       // Auto-generate suggestions and docs URL
-      this.suggestions = generateSuggestionsFromMessage(message, this.codeString)
-      this.docsUrl = getDocumentationUrl(message, this.codeString)
+      this.suggestions = generateSuggestionsFromMessage(message, this.codeString);
+      this.docsUrl = getDocumentationUrl(message, this.codeString);
     }
 
     // Maintain proper stack trace for where error was thrown
-    Error.captureStackTrace?.(this, ScriptError)
+    Error.captureStackTrace?.(this, ScriptError);
   }
 
   /**
    * Convert to JSON-serializable object
    */
   toJSON(): {
-    code: string
-    exitCode: number
-    message: string
-    context?: Record<string, unknown>
-    suggestions?: string[]
-    docsUrl?: string
-    recovery?: string[]
-    timestamp: number
+    code: string;
+    exitCode: number;
+    message: string;
+    context?: Record<string, unknown>;
+    suggestions?: string[];
+    docsUrl?: string;
+    recovery?: string[];
+    timestamp: number;
   } {
     return {
       code: this.codeString,
@@ -244,77 +245,77 @@ export class ScriptError extends Error {
       ...(this.docsUrl && { docsUrl: this.docsUrl }),
       ...(this.recovery && { recovery: this.recovery }),
       timestamp: this.timestamp,
-    }
+    };
   }
 
   /**
    * Get the human-readable description for this error's code
    */
   getCodeDescription(): string {
-    return ErrorCodeDescriptions[this.code] ?? 'Unknown error'
+    return ErrorCodeDescriptions[this.code] ?? 'Unknown error';
   }
 
   /**
    * Format error for display with colors and suggestions
    */
   format(verbose = false): string {
-    const parts: string[] = []
+    const parts: string[] = [];
 
     // Error header
-    parts.push('\x1b[31m✖ Error\x1b[0m')
+    parts.push('\x1b[31m✖ Error\x1b[0m');
 
     // Operation context
     if (this.operation) {
-      parts.push(`\nOperation: ${this.operation}`)
+      parts.push(`\nOperation: ${this.operation}`);
     }
 
     // Error message
-    parts.push(`\n${this.message}`)
-    parts.push(`\nCode: ${this.codeString} (exit ${this.code})`)
+    parts.push(`\n${this.message}`);
+    parts.push(`\nCode: ${this.codeString} (exit ${this.code})`);
 
     // Additional context
     if (verbose && this.context) {
-      parts.push('\n\nContext:')
+      parts.push('\n\nContext:');
       for (const [key, value] of Object.entries(this.context)) {
-        parts.push(`  ${key}: ${JSON.stringify(value)}`)
+        parts.push(`  ${key}: ${JSON.stringify(value)}`);
       }
     }
 
     // Suggestions
     if (this.suggestions && this.suggestions.length > 0) {
-      parts.push('\n\n💡 Suggested fixes:')
+      parts.push('\n\n💡 Suggested fixes:');
       for (const suggestion of this.suggestions) {
-        parts.push(`  • ${suggestion}`)
+        parts.push(`  • ${suggestion}`);
       }
     }
 
     // Recovery steps
     if (this.recovery && this.recovery.length > 0) {
-      parts.push('\n\n🔄 Recovery steps:')
+      parts.push('\n\n🔄 Recovery steps:');
       for (const step of this.recovery) {
-        parts.push(`  ${step}`)
+        parts.push(`  ${step}`);
       }
     }
 
     // Documentation link
     if (this.docsUrl) {
-      parts.push(`\n\n📚 Learn more: ${this.docsUrl}`)
+      parts.push(`\n\n📚 Learn more: ${this.docsUrl}`);
     }
 
     // Stack trace (if verbose)
     if (verbose && this.stack) {
-      parts.push('\n\nStack trace:')
-      parts.push(this.stack)
+      parts.push('\n\nStack trace:');
+      parts.push(this.stack);
     }
 
-    return parts.join('')
+    return parts.join('');
   }
 
   /**
    * Print error to console with formatting
    */
   print(verbose = false): void {
-    console.error(this.format(verbose))
+    console.error(this.format(verbose));
   }
 }
 
@@ -330,8 +331,8 @@ export function notFound(
   id?: string,
   details?: Record<string, unknown>,
 ): ScriptError {
-  const message = id ? `${resource} not found: ${id}` : `${resource} not found`
-  return new ScriptError(message, ErrorCode.NOT_FOUND, { resource, id, ...details })
+  const message = id ? `${resource} not found: ${id}` : `${resource} not found`;
+  return new ScriptError(message, ErrorCode.NOT_FOUND, { resource, id, ...details });
 }
 
 /**
@@ -342,7 +343,7 @@ export function validationError(
   field?: string,
   details?: Record<string, unknown>,
 ): ScriptError {
-  return new ScriptError(message, ErrorCode.VALIDATION_ERROR, { field, ...details })
+  return new ScriptError(message, ErrorCode.VALIDATION_ERROR, { field, ...details });
 }
 
 /**
@@ -353,7 +354,7 @@ export function configError(
   envVar?: string,
   details?: Record<string, unknown>,
 ): ScriptError {
-  return new ScriptError(message, ErrorCode.CONFIG_ERROR, { envVar, ...details })
+  return new ScriptError(message, ErrorCode.CONFIG_ERROR, { envVar, ...details });
 }
 
 /**
@@ -368,7 +369,7 @@ export function timeoutError(
     operation,
     timeoutMs,
     ...details,
-  })
+  });
 }
 
 /**
@@ -383,13 +384,13 @@ export function executionError(
   const message =
     exitCode !== undefined
       ? `Command failed with exit code ${exitCode}: ${command}`
-      : `Command failed: ${command}`
+      : `Command failed: ${command}`;
   return new ScriptError(message, ErrorCode.EXECUTION_ERROR, {
     command,
     exitCode,
     stderr,
     ...details,
-  })
+  });
 }
 
 /**
@@ -400,8 +401,8 @@ export function conflictError(
   reason?: string,
   details?: Record<string, unknown>,
 ): ScriptError {
-  const message = reason ? `Conflict: ${resource} - ${reason}` : `Conflict: ${resource}`
-  return new ScriptError(message, ErrorCode.CONFLICT, { resource, reason, ...details })
+  const message = reason ? `Conflict: ${resource} - ${reason}` : `Conflict: ${resource}`;
+  return new ScriptError(message, ErrorCode.CONFLICT, { resource, reason, ...details });
 }
 
 /**
@@ -414,12 +415,12 @@ export function permissionDenied(
 ): ScriptError {
   const message = resource
     ? `Permission denied: ${action} on ${resource}`
-    : `Permission denied: ${action}`
+    : `Permission denied: ${action}`;
   return new ScriptError(message, ErrorCode.PERMISSION_DENIED, {
     action,
     resource,
     ...details,
-  })
+  });
 }
 
 /**
@@ -431,12 +432,12 @@ export function invalidState(
   expectedStates?: string[],
   details?: Record<string, unknown>,
 ): ScriptError {
-  const expected = expectedStates?.length ? `. Expected one of: ${expectedStates.join(', ')}` : ''
+  const expected = expectedStates?.length ? `. Expected one of: ${expectedStates.join(', ')}` : '';
   return new ScriptError(
     `Cannot ${operation} in state '${currentState}'${expected}`,
     ErrorCode.INVALID_STATE,
     { operation, currentState, expectedStates, ...details },
-  )
+  );
 }
 
 // =============================================================================
@@ -447,7 +448,7 @@ export function invalidState(
  * Check if an error is a ScriptError
  */
 export function isScriptError(error: unknown): error is ScriptError {
-  return error instanceof ScriptError
+  return error instanceof ScriptError;
 }
 
 /**
@@ -455,9 +456,9 @@ export function isScriptError(error: unknown): error is ScriptError {
  */
 export function getExitCode(error: unknown): number {
   if (isScriptError(error)) {
-    return error.code
+    return error.code;
   }
-  return ErrorCode.GENERAL_ERROR
+  return ErrorCode.GENERAL_ERROR;
 }
 
 /**
@@ -465,17 +466,17 @@ export function getExitCode(error: unknown): number {
  */
 export function wrapError(error: unknown, code: ErrorCode = ErrorCode.GENERAL_ERROR): ScriptError {
   if (isScriptError(error)) {
-    return error
+    return error;
   }
 
   if (error instanceof Error) {
     return new ScriptError(error.message, code, {
       originalName: error.name,
       stack: error.stack,
-    })
+    });
   }
 
-  return new ScriptError(String(error), code)
+  return new ScriptError(String(error), code);
 }
 
 /**
@@ -486,9 +487,9 @@ export async function withErrorHandling<T>(
   errorCode?: ErrorCode,
 ): Promise<T> {
   try {
-    return await fn()
+    return await fn();
   } catch (error) {
-    throw wrapError(error, errorCode)
+    throw wrapError(error, errorCode);
   }
 }
 
@@ -500,42 +501,42 @@ export async function withErrorHandling<T>(
  * Generate helpful suggestions based on error message patterns
  */
 function generateSuggestionsFromMessage(message: string, codeString: string): string[] {
-  const lowerMessage = message.toLowerCase()
-  const suggestions: string[] = []
+  const lowerMessage = message.toLowerCase();
+  const suggestions: string[] = [];
 
   // Database errors
   if (lowerMessage.includes('econnrefused') || lowerMessage.includes('connection refused')) {
-    suggestions.push('Check if the database server is running')
-    suggestions.push('Verify the DATABASE_URL environment variable')
-    suggestions.push('Ensure the database port is accessible')
+    suggestions.push('Check if the database server is running');
+    suggestions.push('Verify the DATABASE_URL environment variable');
+    suggestions.push('Ensure the database port is accessible');
   }
 
   // Environment variable errors
   if (lowerMessage.includes('env') || lowerMessage.includes('environment')) {
-    suggestions.push('Run: pnpm setup:env')
-    suggestions.push('Check if .env file exists')
-    suggestions.push('Verify all required environment variables are set')
+    suggestions.push('Run: pnpm setup:env');
+    suggestions.push('Check if .env file exists');
+    suggestions.push('Verify all required environment variables are set');
   }
 
   // Module not found errors
   if (lowerMessage.includes('cannot find module') || lowerMessage.includes('module not found')) {
-    suggestions.push('Run: pnpm install')
-    suggestions.push('Check if the package is listed in package.json')
-    suggestions.push('Try: pnpm clean:install')
+    suggestions.push('Run: pnpm install');
+    suggestions.push('Check if the package is listed in package.json');
+    suggestions.push('Try: pnpm clean:install');
   }
 
   // Permission errors
   if (lowerMessage.includes('eacces') || lowerMessage.includes('permission denied')) {
-    suggestions.push('Check file permissions')
-    suggestions.push('Try running with appropriate permissions')
-    suggestions.push('Ensure you have write access to the directory')
+    suggestions.push('Check file permissions');
+    suggestions.push('Try running with appropriate permissions');
+    suggestions.push('Ensure you have write access to the directory');
   }
 
   // Network errors
   if (lowerMessage.includes('enotfound') || lowerMessage.includes('getaddrinfo')) {
-    suggestions.push('Check your internet connection')
-    suggestions.push('Verify the URL or hostname is correct')
-    suggestions.push('Check if a VPN or proxy is blocking the connection')
+    suggestions.push('Check your internet connection');
+    suggestions.push('Verify the URL or hostname is correct');
+    suggestions.push('Check if a VPN or proxy is blocking the connection');
   }
 
   // Port already in use
@@ -543,95 +544,95 @@ function generateSuggestionsFromMessage(message: string, codeString: string): st
     lowerMessage.includes('eaddrinuse') ||
     (lowerMessage.includes('port') && lowerMessage.includes('use'))
   ) {
-    suggestions.push('Stop the process using the port')
-    suggestions.push('Use a different port')
-    suggestions.push('Run: lsof -i :<port> to find the process')
+    suggestions.push('Stop the process using the port');
+    suggestions.push('Use a different port');
+    suggestions.push('Run: lsof -i :<port> to find the process');
   }
 
   // TypeScript errors
   if (lowerMessage.includes('type') || lowerMessage.includes('typescript')) {
-    suggestions.push('Run: pnpm typecheck:all')
-    suggestions.push('Check for missing type definitions')
-    suggestions.push('Update @types packages')
+    suggestions.push('Run: pnpm typecheck:all');
+    suggestions.push('Check for missing type definitions');
+    suggestions.push('Update @types packages');
   }
 
   // Build errors
   if (lowerMessage.includes('build') && lowerMessage.includes('fail')) {
-    suggestions.push('Run: pnpm clean')
-    suggestions.push('Delete node_modules and reinstall: pnpm clean:install')
-    suggestions.push('Check for TypeScript errors: pnpm typecheck:all')
+    suggestions.push('Run: pnpm clean');
+    suggestions.push('Delete node_modules and reinstall: pnpm clean:install');
+    suggestions.push('Check for TypeScript errors: pnpm typecheck:all');
   }
 
   // Test errors
   if (lowerMessage.includes('test') && lowerMessage.includes('fail')) {
-    suggestions.push('Run tests in verbose mode: pnpm test --verbose')
-    suggestions.push('Check test setup and configuration')
-    suggestions.push('Ensure test database is initialized: pnpm db:setup-test')
+    suggestions.push('Run tests in verbose mode: pnpm test --verbose');
+    suggestions.push('Check test setup and configuration');
+    suggestions.push('Ensure test database is initialized: pnpm db:setup-test');
   }
 
   // Git errors
   if (lowerMessage.includes('git') || lowerMessage.includes('repository')) {
-    suggestions.push('Check if you are in a git repository')
-    suggestions.push('Verify git is installed: git --version')
-    suggestions.push('Check git remote configuration: git remote -v')
+    suggestions.push('Check if you are in a git repository');
+    suggestions.push('Verify git is installed: git --version');
+    suggestions.push('Check git remote configuration: git remote -v');
   }
 
   // File not found
   if (lowerMessage.includes('enoent') || lowerMessage.includes('no such file')) {
-    suggestions.push('Check if the file path is correct')
-    suggestions.push('Verify the file exists')
-    suggestions.push('Check for typos in the file name')
+    suggestions.push('Check if the file path is correct');
+    suggestions.push('Verify the file exists');
+    suggestions.push('Check for typos in the file name');
   }
 
   // Timeout errors
   if (lowerMessage.includes('timeout') || lowerMessage.includes('timed out')) {
-    suggestions.push('Increase the timeout limit')
-    suggestions.push('Check for network or performance issues')
-    suggestions.push('Try the operation again')
+    suggestions.push('Increase the timeout limit');
+    suggestions.push('Check for network or performance issues');
+    suggestions.push('Try the operation again');
   }
 
   // Error code specific suggestions
   if (codeString === 'NOT_FOUND') {
-    suggestions.push('Verify the resource identifier is correct')
-    suggestions.push('Check if the resource was deleted')
+    suggestions.push('Verify the resource identifier is correct');
+    suggestions.push('Check if the resource was deleted');
   }
 
   if (codeString === 'VALIDATION_ERROR') {
-    suggestions.push('Check the input value')
-    suggestions.push('Verify the value meets requirements')
-    suggestions.push('See error message for details')
+    suggestions.push('Check the input value');
+    suggestions.push('Verify the value meets requirements');
+    suggestions.push('See error message for details');
   }
 
-  return suggestions
+  return suggestions;
 }
 
 /**
  * Get documentation URL based on error type
  */
 function getDocumentationUrl(message: string, codeString: string): string | undefined {
-  const lowerMessage = message.toLowerCase()
+  const lowerMessage = message.toLowerCase();
 
   if (lowerMessage.includes('database') || lowerMessage.includes('connection')) {
-    return 'https://docs.revealui.dev/database-setup'
+    return 'https://docs.revealui.dev/database-setup';
   }
 
   if (lowerMessage.includes('env') || lowerMessage.includes('environment')) {
-    return 'https://docs.revealui.dev/environment-setup'
+    return 'https://docs.revealui.dev/environment-setup';
   }
 
   if (lowerMessage.includes('build')) {
-    return 'https://docs.revealui.dev/build-setup'
+    return 'https://docs.revealui.dev/build-setup';
   }
 
   if (lowerMessage.includes('test')) {
-    return 'https://docs.revealui.dev/testing'
+    return 'https://docs.revealui.dev/testing';
   }
 
   if (codeString === 'CONFIG_ERROR') {
-    return 'https://docs.revealui.dev/configuration'
+    return 'https://docs.revealui.dev/configuration';
   }
 
-  return 'https://docs.revealui.dev/troubleshooting'
+  return 'https://docs.revealui.dev/troubleshooting';
 }
 
 // =============================================================================
@@ -644,25 +645,25 @@ function getDocumentationUrl(message: string, codeString: string): string | unde
 export async function retryWithEnhancedErrors<T>(
   fn: () => Promise<T>,
   options: {
-    retries?: number
-    delay?: number
-    operation?: string
-    context?: Record<string, unknown>
+    retries?: number;
+    delay?: number;
+    operation?: string;
+    context?: Record<string, unknown>;
   } = {},
 ): Promise<T> {
-  const { retries = 3, delay = 1000, operation, context = {} } = options
+  const { retries = 3, delay = 1000, operation, context = {} } = options;
 
-  let lastError: Error | undefined
+  let lastError: Error | undefined;
 
   for (let i = 0; i < retries; i++) {
     try {
-      return await fn()
+      return await fn();
     } catch (error) {
-      lastError = error as Error
+      lastError = error as Error;
 
       if (i < retries - 1) {
-        console.warn(`Attempt ${i + 1} failed, retrying in ${delay}ms...`)
-        await new Promise((resolve) => setTimeout(resolve, delay))
+        console.warn(`Attempt ${i + 1} failed, retrying in ${delay}ms...`);
+        await new Promise((resolve) => setTimeout(resolve, delay));
       }
     }
   }
@@ -679,13 +680,13 @@ export async function retryWithEnhancedErrors<T>(
       suggestions: lastError.suggestions,
       docsUrl: lastError.docsUrl,
       operation: operation ?? lastError.operation,
-    })
+    });
   }
 
   throw new ScriptError(lastError?.message ?? 'Unknown error', ErrorCode.GENERAL_ERROR, {
     context: { ...context, attempts: retries },
     operation,
-  })
+  });
 }
 
 /**
@@ -698,29 +699,29 @@ export function withEnhancedErrors<T extends (...args: any[]) => any>(
 ): T {
   return ((...args: Parameters<T>) => {
     try {
-      const result = fn(...args)
+      const result = fn(...args);
       if (result instanceof Promise) {
         return result.catch((error) => {
           if (error instanceof ScriptError) {
-            throw error
+            throw error;
           }
           throw new ScriptError(
             error.message ?? String(error),
             options.code ?? ErrorCode.GENERAL_ERROR,
             options,
-          )
-        })
+          );
+        });
       }
-      return result
+      return result;
     } catch (error) {
       if (error instanceof ScriptError) {
-        throw error
+        throw error;
       }
       throw new ScriptError(
         (error as Error).message ?? String(error),
         options.code ?? ErrorCode.GENERAL_ERROR,
         options,
-      )
+      );
     }
-  }) as T
+  }) as T;
 }

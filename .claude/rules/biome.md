@@ -24,7 +24,7 @@ Pre-commit hook runs `biome check --write` on staged `*.{ts,tsx,js,jsx}` files v
 - Consistent import ordering (auto-sorted)
 - Single quotes for strings
 - Trailing commas
-- Semicolons required
+- Semicolons always
 - 2-space indentation (tabs in Biome config, spaces in output)
 
 ## Suppressing Rules

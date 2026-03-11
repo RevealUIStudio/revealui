@@ -1,14 +1,14 @@
-import type { Post } from '@revealui/core/types/cms'
-import type React from 'react'
-import { cn } from '@/lib/styles/classnames'
-import { Card } from '../Card/index'
+import type { Post } from '@revealui/core/types/cms';
+import type React from 'react';
+import { cn } from '@/lib/styles/classnames';
+import { Card } from '../Card/index';
 
 export type Props = {
-  posts: Post[]
-}
+  posts: Post[];
+};
 
 export const CollectionArchive: React.FC<Props> = (props) => {
-  const { posts } = props
+  const { posts } = props;
 
   return (
     <div className={cn('container')}>
@@ -20,13 +20,13 @@ export const CollectionArchive: React.FC<Props> = (props) => {
                 <div className="col-span-4" key={result.id}>
                   <Card className="h-full" doc={result} relationTo="posts" showCategories />
                 </div>
-              )
+              );
             }
 
-            return null
+            return null;
           })}
         </div>
       </div>
     </div>
-  )
-}
+  );
+};

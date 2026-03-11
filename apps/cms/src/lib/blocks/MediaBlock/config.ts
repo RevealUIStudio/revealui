@@ -1,4 +1,4 @@
-import type { Block } from '@revealui/core'
+import type { Block } from '@revealui/core';
 
 export const MediaBlock: Block = {
   slug: 'mediaBlock',
@@ -26,4 +26,4 @@ export const MediaBlock: Block = {
       required: true,
     },
   ],
-}
+};

@@ -134,5 +134,5 @@ export function Audiences() {
         </div>
       </div>
     </section>
-  )
+  );
 }

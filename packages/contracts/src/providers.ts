@@ -6,5 +6,5 @@ export const LLM_PROVIDERS = [
   'ollama',
   'huggingface',
   'vultr',
-] as const
-export type LLMProvider = (typeof LLM_PROVIDERS)[number]
+] as const;
+export type LLMProvider = (typeof LLM_PROVIDERS)[number];

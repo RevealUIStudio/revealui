@@ -4,10 +4,10 @@
  */
 
 export interface RichTextAdapter {
-  name: string
-  features?: unknown[]
-  serialize?: (content: unknown) => string
-  deserialize?: (content: string) => unknown
+  name: string;
+  features?: unknown[];
+  serialize?: (content: unknown) => string;
+  deserialize?: (content: string) => unknown;
 }
 
-export default RichTextAdapter
+export type { RichTextAdapter as default };

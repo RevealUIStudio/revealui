@@ -4,14 +4,14 @@
  * Validation contracts for chat/AI endpoints
  */
 
-import { z } from 'zod/v4'
-import { createContract } from '../foundation/contract.js'
+import { z } from 'zod/v4';
+import { createContract } from '../foundation/contract.js';
 
 /** Plain text content part */
 const TextPartSchema = z.object({
   type: z.literal('text'),
   text: z.string().min(1),
-})
+});
 
 /** Image content part — base64 data URL or HTTPS URL.
  *  Used with vision-capable models (inference-snaps gemma3/qwen-vl, GPT-4o, etc.) */
@@ -21,11 +21,11 @@ const ImagePartSchema = z.object({
     url: z.string().min(1),
     detail: z.enum(['low', 'high', 'auto']).optional(),
   }),
-})
+});
 
-const ContentPartSchema = z.discriminatedUnion('type', [TextPartSchema, ImagePartSchema])
+const ContentPartSchema = z.discriminatedUnion('type', [TextPartSchema, ImagePartSchema]);
 
-export type ContentPart = z.infer<typeof ContentPartSchema>
+export type ContentPart = z.infer<typeof ContentPartSchema>;
 
 /**
  * Chat message schema
@@ -40,23 +40,23 @@ export const ChatMessageSchema = z.object({
     z.string().min(1, 'Message content cannot be empty'),
     z.array(ContentPartSchema).min(1, 'Content parts cannot be empty'),
   ]),
-})
+});
 
-export type ChatMessage = z.infer<typeof ChatMessageSchema>
+export type ChatMessage = z.infer<typeof ChatMessageSchema>;
 
 /** Returns true if the content is non-empty (handles both string and part array). */
 function hasContent(content: string | ContentPart[]): boolean {
-  if (typeof content === 'string') return content.trim().length > 0
+  if (typeof content === 'string') return content.trim().length > 0;
   // Array is valid when it has at least one text or image part
-  return content.some((p) => (p.type === 'text' ? p.text.trim().length > 0 : true))
+  return content.some((p) => (p.type === 'text' ? p.text.trim().length > 0 : true));
 }
 
 /** Returns the total text character count (for length validation). */
 function textLength(content: string | ContentPart[]): number {
-  if (typeof content === 'string') return content.length
+  if (typeof content === 'string') return content.length;
   return content
     .filter((p): p is z.infer<typeof TextPartSchema> => p.type === 'text')
-    .reduce((sum, p) => sum + p.text.length, 0)
+    .reduce((sum, p) => sum + p.text.length, 0);
 }
 
 /**
@@ -74,8 +74,8 @@ export const ChatRequestSchema = z
   })
   .refine(
     (data) => {
-      const lastMessage = data.messages[data.messages.length - 1]
-      return lastMessage?.role === 'user'
+      const lastMessage = data.messages[data.messages.length - 1];
+      return lastMessage?.role === 'user';
     },
     {
       message: 'Last message must be from user',
@@ -84,8 +84,8 @@ export const ChatRequestSchema = z
   )
   .refine(
     (data) => {
-      const lastMessage = data.messages[data.messages.length - 1]
-      return lastMessage != null && hasContent(lastMessage.content)
+      const lastMessage = data.messages[data.messages.length - 1];
+      return lastMessage != null && hasContent(lastMessage.content);
     },
     {
       message: 'Message content must be non-empty',
@@ -94,20 +94,20 @@ export const ChatRequestSchema = z
   )
   .refine(
     (data) => {
-      const lastMessage = data.messages[data.messages.length - 1]
-      return lastMessage != null && textLength(lastMessage.content) <= 4000
+      const lastMessage = data.messages[data.messages.length - 1];
+      return lastMessage != null && textLength(lastMessage.content) <= 4000;
     },
     {
       message: 'Message too long (max 4000 characters)',
       path: ['messages'],
     },
-  )
+  );
 
-export type ChatRequest = z.infer<typeof ChatRequestSchema>
+export type ChatRequest = z.infer<typeof ChatRequestSchema>;
 
 export const ChatRequestContract = createContract({
   name: 'ChatRequest',
   version: '1',
   description: 'Validates chat request with messages',
   schema: ChatRequestSchema,
-})
+});

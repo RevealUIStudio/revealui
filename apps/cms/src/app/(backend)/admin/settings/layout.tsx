@@ -1,16 +1,16 @@
-'use client'
+'use client';
 
-import Link from 'next/link'
-import { usePathname } from 'next/navigation'
-import type { ReactNode } from 'react'
+import Link from 'next/link';
+import { usePathname } from 'next/navigation';
+import type { ReactNode } from 'react';
 
 const NAV_ITEMS = [
   { href: '/admin/settings/account', label: 'Account' },
   { href: '/admin/settings/api-keys', label: 'API Keys' },
-] as const
+] as const;
 
 export default function SettingsLayout({ children }: { children: ReactNode }) {
-  const pathname = usePathname()
+  const pathname = usePathname();
 
   return (
     <div className="flex min-h-screen">
@@ -39,7 +39,7 @@ export default function SettingsLayout({ children }: { children: ReactNode }) {
           </h2>
 
           {NAV_ITEMS.map((item) => {
-            const isActive = pathname === item.href
+            const isActive = pathname === item.href;
             return (
               <Link
                 key={item.href}
@@ -52,7 +52,7 @@ export default function SettingsLayout({ children }: { children: ReactNode }) {
               >
                 {item.label}
               </Link>
-            )
+            );
           })}
         </div>
       </aside>
@@ -60,5 +60,5 @@ export default function SettingsLayout({ children }: { children: ReactNode }) {
       {/* Content */}
       <main className="flex-1">{children}</main>
     </div>
-  )
+  );
 }

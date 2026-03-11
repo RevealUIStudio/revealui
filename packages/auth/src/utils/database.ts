@@ -5,31 +5,31 @@
  * and creating test fixtures for authentication system tests.
  */
 
-import { getClient } from '@revealui/db/client'
-import { sessions, users } from '@revealui/db/schema'
-import { eq } from 'drizzle-orm'
-import type { Session, User } from '../types.js'
+import { getClient } from '@revealui/db/client';
+import { sessions, users } from '@revealui/db/schema';
+import { eq } from 'drizzle-orm';
+import type { Session, User } from '../types.js';
 
 /**
  * Test database configuration
  */
 export interface TestDatabaseConfig {
-  connectionString: string
+  connectionString: string;
 }
 
 /**
  * Gets the test database connection string from environment variables
  */
 export function getTestDatabaseUrl(): string {
-  const url = process.env.DATABASE_URL || process.env.POSTGRES_URL || process.env.TEST_DATABASE_URL
+  const url = process.env.DATABASE_URL || process.env.POSTGRES_URL || process.env.TEST_DATABASE_URL;
 
   if (!url) {
     throw new Error(
       'Test database URL not found. Set DATABASE_URL, POSTGRES_URL, or TEST_DATABASE_URL environment variable.',
-    )
+    );
   }
 
-  return url
+  return url;
 }
 
 /**
@@ -38,32 +38,32 @@ export function getTestDatabaseUrl(): string {
 export function createTestDatabaseClient() {
   // getClient() uses the connection string from environment
   // For tests, we need to ensure DATABASE_URL is set
-  const url = getTestDatabaseUrl()
-  process.env.DATABASE_URL = url
-  return getClient()
+  const url = getTestDatabaseUrl();
+  process.env.DATABASE_URL = url;
+  return getClient();
 }
 
 /**
  * Cleans up test data from database
  */
 export async function cleanupTestData(userIds: string[]): Promise<void> {
-  const db = getClient()
+  const db = getClient();
 
   // Delete sessions for test users
   if (userIds.length > 0) {
-    const firstUserId = userIds[0]
+    const firstUserId = userIds[0];
     if (firstUserId) {
-      await db.delete(sessions).where(eq(sessions.userId, firstUserId))
+      await db.delete(sessions).where(eq(sessions.userId, firstUserId));
     }
     // Delete remaining users if any
     for (const userId of userIds.slice(1)) {
-      await db.delete(sessions).where(eq(sessions.userId, userId))
+      await db.delete(sessions).where(eq(sessions.userId, userId));
     }
   }
 
   // Delete test users
   for (const userId of userIds) {
-    await db.delete(users).where(eq(users.id, userId))
+    await db.delete(users).where(eq(users.id, userId));
   }
 }
 
@@ -71,7 +71,7 @@ export async function cleanupTestData(userIds: string[]): Promise<void> {
  * Creates a test user in the database
  */
 export async function createTestUser(overrides?: Partial<User>): Promise<User> {
-  const db = getClient()
+  const db = getClient();
 
   const testUser: User = {
     id: overrides?.id || crypto.randomUUID(),
@@ -94,11 +94,11 @@ export async function createTestUser(overrides?: Partial<User>): Promise<User> {
     updatedAt: new Date(),
     lastActiveAt: null,
     ...overrides,
-  }
+  };
 
-  await db.insert(users).values(testUser)
+  await db.insert(users).values(testUser);
 
-  return testUser
+  return testUser;
 }
 
 /**
@@ -108,10 +108,10 @@ export async function createTestSession(
   userId: string,
   overrides?: Partial<Session>,
 ): Promise<Session> {
-  const db = getClient()
+  const db = getClient();
 
-  const expiresAt = new Date()
-  expiresAt.setDate(expiresAt.getDate() + 1) // 1 day from now
+  const expiresAt = new Date();
+  expiresAt.setDate(expiresAt.getDate() + 1); // 1 day from now
 
   const testSession: Session = {
     id: overrides?.id || crypto.randomUUID(),
@@ -124,35 +124,35 @@ export async function createTestSession(
     persistent: overrides?.persistent ?? null,
     lastActivityAt: overrides?.lastActivityAt || new Date(),
     createdAt: overrides?.createdAt || new Date(),
-  }
+  };
 
-  await db.insert(sessions).values(testSession)
+  await db.insert(sessions).values(testSession);
 
-  return testSession
+  return testSession;
 }
 
 /**
  * Gets a user by email from the database
  */
 export async function getUserByEmail(email: string): Promise<User | null> {
-  const db = getClient()
-  const result = await db.select().from(users).where(eq(users.email, email)).limit(1)
-  const user = result[0] as User | undefined
-  return user ?? null
+  const db = getClient();
+  const result = await db.select().from(users).where(eq(users.email, email)).limit(1);
+  const user = result[0] as User | undefined;
+  return user ?? null;
 }
 
 /**
  * Gets a session by token hash from the database
  */
 export async function getSessionByTokenHash(tokenHash: string): Promise<Session | null> {
-  const db = getClient()
+  const db = getClient();
   const sessionResult = await db
     .select()
     .from(sessions)
     .where(eq(sessions.tokenHash, tokenHash))
-    .limit(1)
-  const session = sessionResult[0] as Session | undefined
-  return session ?? null
+    .limit(1);
+  const session = sessionResult[0] as Session | undefined;
+  return session ?? null;
 }
 
 /**
@@ -163,14 +163,14 @@ export async function createTestUserWithPassword(
   password: string,
   name?: string,
 ): Promise<User> {
-  const bcrypt = await import('bcryptjs')
-  const hashedPassword = await bcrypt.default.hash(password, 12)
+  const bcrypt = await import('bcryptjs');
+  const hashedPassword = await bcrypt.default.hash(password, 12);
 
   return createTestUser({
     email,
     name: name || 'Test User',
     password: hashedPassword,
-  })
+  });
 }
 
 /**
@@ -180,7 +180,7 @@ export async function createTestUserWithSession(
   userOverrides?: Partial<User>,
   sessionOverrides?: Partial<Session>,
 ): Promise<{ user: User; session: Session }> {
-  const user = await createTestUser(userOverrides)
-  const session = await createTestSession(user.id, sessionOverrides)
-  return { user, session }
+  const user = await createTestUser(userOverrides);
+  const session = await createTestSession(user.id, sessionOverrides);
+  return { user, session };
 }

@@ -1,5 +1,5 @@
-import { clsx } from 'clsx/lite'
-import type { ComponentProps } from 'react'
+import { clsx } from 'clsx/lite';
+import type { ComponentProps } from 'react';
 
 export function ChevronIcon({ className, ...props }: ComponentProps<'svg'>) {
   return (
@@ -18,5 +18,5 @@ export function ChevronIcon({ className, ...props }: ComponentProps<'svg'>) {
         d="M.22.22a.75.75 0 011.06 0l3.25 3.25a.75.75 0 010 1.06L1.28 7.78A.75.75 0 01.22 6.72L2.94 4 .22 1.28a.75.75 0 010-1.06z"
       />
     </svg>
-  )
+  );
 }

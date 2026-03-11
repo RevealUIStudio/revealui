@@ -1,19 +1,19 @@
-import clsx from 'clsx'
-import type React from 'react'
+import clsx from 'clsx';
+import type React from 'react';
 
 export type BreadcrumbItem = {
-  label: React.ReactNode
-  href?: string
-}
+  label: React.ReactNode;
+  href?: string;
+};
 
 export function Breadcrumb({
   items,
   separator,
   className,
 }: {
-  items: BreadcrumbItem[]
-  separator?: React.ReactNode
-  className?: string
+  items: BreadcrumbItem[];
+  separator?: React.ReactNode;
+  className?: string;
 }) {
   const sep = separator ?? (
     <svg aria-hidden="true" viewBox="0 0 16 16" fill="none" className="size-3.5 text-zinc-400">
@@ -25,13 +25,13 @@ export function Breadcrumb({
         strokeLinejoin="round"
       />
     </svg>
-  )
+  );
 
   return (
     <nav aria-label="Breadcrumb">
       <ol className={clsx('flex flex-wrap items-center gap-1.5 text-sm', className)}>
         {items.map((item, index) => {
-          const isLast = index === items.length - 1
+          const isLast = index === items.length - 1;
           return (
             // biome-ignore lint/suspicious/noArrayIndexKey: breadcrumb items are positionally ordered with no stable ID
             <li key={index} className="flex items-center gap-1.5">
@@ -56,9 +56,9 @@ export function Breadcrumb({
               )}
               {!isLast && sep}
             </li>
-          )
+          );
         })}
       </ol>
     </nav>
-  )
+  );
 }

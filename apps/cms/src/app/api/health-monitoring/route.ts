@@ -14,18 +14,18 @@
  * - 503: Unhealthy (critical alerts)
  */
 
-import crypto from 'node:crypto'
+import crypto from 'node:crypto';
 import {
   getHealthMetrics,
   getHealthStatus,
   type HealthMetrics,
   sendAlerts,
-} from '@revealui/core/monitoring'
-import { getPoolMetrics } from '@revealui/db/client'
-import { NextResponse } from 'next/server'
+} from '@revealui/core/monitoring';
+import { getPoolMetrics } from '@revealui/db/client';
+import { NextResponse } from 'next/server';
 
-export const runtime = 'nodejs'
-export const dynamic = 'force-dynamic'
+export const runtime = 'nodejs';
+export const dynamic = 'force-dynamic';
 
 /**
  * GET /api/health-monitoring
@@ -35,39 +35,39 @@ export const dynamic = 'force-dynamic'
 export async function GET(
   request: Request,
 ): Promise<NextResponse<HealthMetrics | { error: string }>> {
-  const token = request.headers.get('x-internal-token')
-  const secret = process.env.REVEALUI_SECRET
+  const token = request.headers.get('x-internal-token');
+  const secret = process.env.REVEALUI_SECRET;
   if (
     !(secret && token) ||
     token.length !== secret.length ||
     !crypto.timingSafeEqual(Buffer.from(token), Buffer.from(secret))
   ) {
-    return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
+    return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
   }
 
   try {
     // Get database pool metrics
-    const poolMetrics = getPoolMetrics()
+    const poolMetrics = getPoolMetrics();
 
     // Separate by database type (assuming naming convention: rest-*, vector-*)
-    const restPools = poolMetrics.filter((p) => p.name.startsWith('pool-'))
-    const vectorPools = poolMetrics.filter((p) => p.name.startsWith('vector-'))
+    const restPools = poolMetrics.filter((p) => p.name.startsWith('pool-'));
+    const vectorPools = poolMetrics.filter((p) => p.name.startsWith('vector-'));
 
     // Get health metrics
     const metrics = getHealthMetrics({
       rest: restPools,
       vector: vectorPools,
-    })
+    });
 
     // Send alerts through alert system
     if (metrics.alerts.length > 0) {
-      sendAlerts(metrics.alerts)
+      sendAlerts(metrics.alerts);
     }
 
     // Determine status code based on alerts
-    const { statusCode } = getHealthStatus(metrics.alerts)
+    const { statusCode } = getHealthStatus(metrics.alerts);
 
-    return NextResponse.json(metrics, { status: statusCode })
+    return NextResponse.json(metrics, { status: statusCode });
   } catch (error) {
     // Return error response
     const errorMetrics: HealthMetrics = {
@@ -109,8 +109,8 @@ export async function GET(
         },
       ],
       timestamp: Date.now(),
-    }
+    };
 
-    return NextResponse.json(errorMetrics, { status: 503 })
+    return NextResponse.json(errorMetrics, { status: 503 });
   }
 }

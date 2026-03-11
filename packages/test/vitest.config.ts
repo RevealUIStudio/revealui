@@ -1,5 +1,5 @@
-import path from 'node:path'
-import { defineConfig } from 'vitest/config'
+import path from 'node:path';
+import { defineConfig } from 'vitest/config';
 
 export default defineConfig({
   resolve: {
@@ -48,4 +48,4 @@ export default defineConfig({
       },
     },
   },
-})
+});

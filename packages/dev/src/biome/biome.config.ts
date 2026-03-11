@@ -230,6 +230,6 @@ export const biomeConfig = {
       },
     },
   },
-}
+};
 
-export default biomeConfig
+export default biomeConfig;

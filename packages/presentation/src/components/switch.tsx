@@ -1,8 +1,8 @@
-import clsx from 'clsx'
-import type React from 'react'
-import { useDataInteractive } from '../hooks/use-data-interactive.js'
-import { FieldProvider } from '../hooks/use-field-context.js'
-import { useToggle } from '../hooks/use-toggle.js'
+import clsx from 'clsx';
+import type React from 'react';
+import { useDataInteractive } from '../hooks/use-data-interactive.js';
+import { FieldProvider } from '../hooks/use-field-context.js';
+import { useToggle } from '../hooks/use-toggle.js';
 
 export function SwitchGroup({ className, ...props }: React.ComponentPropsWithoutRef<'div'>) {
   return (
@@ -17,7 +17,7 @@ export function SwitchGroup({ className, ...props }: React.ComponentPropsWithout
         'has-data-[slot=description]:space-y-6 has-data-[slot=description]:**:data-[slot=label]:font-medium',
       )}
     />
-  )
+  );
 }
 
 export function SwitchField({
@@ -25,8 +25,8 @@ export function SwitchField({
   disabled,
   ...props
 }: {
-  className?: string
-  disabled?: boolean
+  className?: string;
+  disabled?: boolean;
 } & Omit<React.ComponentPropsWithoutRef<'div'>, 'className'>) {
   return (
     <FieldProvider disabled={disabled}>
@@ -49,7 +49,7 @@ export function SwitchField({
         )}
       />
     </FieldProvider>
-  )
+  );
 }
 
 const colors = {
@@ -141,9 +141,9 @@ const colors = {
     '[--switch-bg-ring:var(--color-rose-600)]/90 [--switch-bg:var(--color-rose-500)] dark:[--switch-bg-ring:transparent]',
     '[--switch:white] [--switch-ring:var(--color-rose-600)]/90 [--switch-shadow:var(--color-rose-900)]/20',
   ],
-}
+};
 
-type Color = keyof typeof colors
+type Color = keyof typeof colors;
 
 export function Switch({
   color = 'dark/zinc',
@@ -156,22 +156,22 @@ export function Switch({
   value,
   ...props
 }: {
-  color?: Color
-  className?: string
-  checked?: boolean
-  defaultChecked?: boolean
-  onChange?: (checked: boolean) => void
-  disabled?: boolean
-  name?: string
-  value?: string
+  color?: Color;
+  className?: string;
+  checked?: boolean;
+  defaultChecked?: boolean;
+  onChange?: (checked: boolean) => void;
+  disabled?: boolean;
+  name?: string;
+  value?: string;
 } & Omit<React.ComponentPropsWithoutRef<'button'>, 'className' | 'onChange' | 'type'>) {
   const { checked, toggleProps } = useToggle({
     checked: controlledChecked,
     defaultChecked,
     onChange,
     disabled,
-  })
-  const interactiveProps = useDataInteractive({ disabled })
+  });
+  const interactiveProps = useDataInteractive({ disabled });
 
   return (
     <button
@@ -230,5 +230,5 @@ export function Switch({
         )}
       />
     </button>
-  )
+  );
 }

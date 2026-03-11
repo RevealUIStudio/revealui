@@ -1,4 +1,4 @@
-import { defineConfig } from 'drizzle-kit'
+import { defineConfig } from 'drizzle-kit';
 
 /**
  * Drizzle config for Neon (REST Database)
@@ -11,10 +11,10 @@ import { defineConfig } from 'drizzle-kit'
  */
 
 // Use DATABASE_URL for Neon (REST database)
-const dbUrl = process.env.POSTGRES_URL ?? ''
+const dbUrl = process.env.POSTGRES_URL ?? '';
 
 if (!dbUrl) {
-  throw new Error('POSTGRES_URL must be set for Neon database')
+  throw new Error('POSTGRES_URL must be set for Neon database');
 }
 
 export default defineConfig({
@@ -42,4 +42,4 @@ export default defineConfig({
   introspect: {
     casing: 'camel',
   },
-})
+});

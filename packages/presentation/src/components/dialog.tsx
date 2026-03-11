@@ -1,14 +1,14 @@
-'use client'
+'use client';
 
-import clsx from 'clsx'
-import type React from 'react'
-import { useCallback, useId, useRef } from 'react'
-import { createPortal } from 'react-dom'
-import { useEscapeKey } from '../hooks/use-escape-key.js'
-import { useFocusTrap } from '../hooks/use-focus-trap.js'
-import { useScrollLock } from '../hooks/use-scroll-lock.js'
-import { useTransition } from '../hooks/use-transition.js'
-import { Text } from './text.js'
+import clsx from 'clsx';
+import type React from 'react';
+import { useCallback, useId, useRef } from 'react';
+import { createPortal } from 'react-dom';
+import { useEscapeKey } from '../hooks/use-escape-key.js';
+import { useFocusTrap } from '../hooks/use-focus-trap.js';
+import { useScrollLock } from '../hooks/use-scroll-lock.js';
+import { useTransition } from '../hooks/use-transition.js';
+import { Text } from './text.js';
 
 const sizes = {
   xs: 'sm:max-w-xs',
@@ -20,7 +20,7 @@ const sizes = {
   '3xl': 'sm:max-w-3xl',
   '4xl': 'sm:max-w-4xl',
   '5xl': 'sm:max-w-5xl',
-}
+};
 
 export function Dialog({
   size = 'lg',
@@ -29,33 +29,33 @@ export function Dialog({
   open,
   onClose,
 }: {
-  size?: keyof typeof sizes
-  className?: string
-  children: React.ReactNode
-  open: boolean
-  onClose: () => void
+  size?: keyof typeof sizes;
+  className?: string;
+  children: React.ReactNode;
+  open: boolean;
+  onClose: () => void;
 }) {
-  const panelRef = useRef<HTMLDivElement>(null)
-  const titleId = useId()
+  const panelRef = useRef<HTMLDivElement>(null);
+  const titleId = useId();
 
-  const backdrop = useTransition(open)
-  const panel = useTransition(open)
+  const backdrop = useTransition(open);
+  const panel = useTransition(open);
 
-  useScrollLock(open)
-  useFocusTrap(panelRef, open)
-  useEscapeKey(onClose, open)
+  useScrollLock(open);
+  useFocusTrap(panelRef, open);
+  useEscapeKey(onClose, open);
 
   const handleBackdropClick = useCallback(
     (e: React.MouseEvent) => {
       // Only close if clicking on the backdrop itself, not the panel
       if (e.target === e.currentTarget) {
-        onClose()
+        onClose();
       }
     },
     [onClose],
-  )
+  );
 
-  if (!(backdrop.mounted || panel.mounted)) return null
+  if (!(backdrop.mounted || panel.mounted)) return null;
 
   return createPortal(
     <div role="dialog" aria-modal="true" aria-labelledby={titleId}>
@@ -81,8 +81,8 @@ export function Dialog({
             <div
               ref={(node) => {
                 // Combine refs
-                ;(panelRef as React.MutableRefObject<HTMLDivElement | null>).current = node
-                ;(panel.nodeRef as React.MutableRefObject<HTMLElement | null>).current = node
+                (panelRef as React.MutableRefObject<HTMLDivElement | null>).current = node;
+                (panel.nodeRef as React.MutableRefObject<HTMLElement | null>).current = node;
               }}
               {...panel.transitionProps}
               className={clsx(
@@ -99,7 +99,7 @@ export function Dialog({
       )}
     </div>,
     document.body,
-  )
+  );
 }
 
 export function DialogTitle({
@@ -114,18 +114,18 @@ export function DialogTitle({
         'text-lg/6 font-semibold text-balance text-zinc-950 sm:text-base/6 dark:text-white',
       )}
     />
-  )
+  );
 }
 
 export function DialogDescription({
   className,
   ...props
 }: { className?: string } & React.ComponentPropsWithoutRef<typeof Text>) {
-  return <Text {...props} className={clsx(className, 'mt-2 text-pretty')} />
+  return <Text {...props} className={clsx(className, 'mt-2 text-pretty')} />;
 }
 
 export function DialogBody({ className, ...props }: React.ComponentPropsWithoutRef<'div'>) {
-  return <div {...props} className={clsx(className, 'mt-6')} />
+  return <div {...props} className={clsx(className, 'mt-6')} />;
 }
 
 export function DialogActions({ className, ...props }: React.ComponentPropsWithoutRef<'div'>) {
@@ -137,5 +137,5 @@ export function DialogActions({ className, ...props }: React.ComponentPropsWitho
         'mt-8 flex flex-col-reverse items-center justify-end gap-3 *:w-full sm:flex-row sm:*:w-auto',
       )}
     />
-  )
+  );
 }

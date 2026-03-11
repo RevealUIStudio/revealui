@@ -1,4 +1,4 @@
-'use client'
+'use client';
 
 /**
  * RevealUI Rich Text Editor - Toolbar Plugin
@@ -6,23 +6,23 @@
  * A comprehensive toolbar with formatting commands for the Lexical editor.
  */
 
-import { $isLinkNode, TOGGLE_LINK_COMMAND } from '@lexical/link'
+import { $isLinkNode, TOGGLE_LINK_COMMAND } from '@lexical/link';
 import {
   $isListNode,
   INSERT_ORDERED_LIST_COMMAND,
   INSERT_UNORDERED_LIST_COMMAND,
   ListNode,
   REMOVE_LIST_COMMAND,
-} from '@lexical/list'
-import { useLexicalComposerContext } from '@lexical/react/LexicalComposerContext'
+} from '@lexical/list';
+import { useLexicalComposerContext } from '@lexical/react/LexicalComposerContext';
 import {
   $createHeadingNode,
   $createQuoteNode,
   $isHeadingNode,
   type HeadingTagType,
-} from '@lexical/rich-text'
-import { $setBlocksType } from '@lexical/selection'
-import { $findMatchingParent, $getNearestNodeOfType, mergeRegister } from '@lexical/utils'
+} from '@lexical/rich-text';
+import { $setBlocksType } from '@lexical/selection';
+import { $findMatchingParent, $getNearestNodeOfType, mergeRegister } from '@lexical/utils';
 
 import {
   $createParagraphNode,
@@ -36,10 +36,10 @@ import {
   REDO_COMMAND,
   SELECTION_CHANGE_COMMAND,
   UNDO_COMMAND,
-} from 'lexical'
-import { useCallback, useEffect, useState } from 'react'
-import type { RichTextFeature } from '../../../richtext/index.js'
-import { ImageUploadButton } from '../components/ImageUploadButton.js'
+} from 'lexical';
+import { useCallback, useEffect, useState } from 'react';
+import type { RichTextFeature } from '../../../richtext/index.js';
+import { ImageUploadButton } from '../components/ImageUploadButton.js';
 
 // ============================================
 // TYPES
@@ -56,20 +56,20 @@ type BlockType =
   | 'quote'
   | 'bullet'
   | 'number'
-  | 'check'
+  | 'check';
 
 interface ToolbarState {
-  isBold: boolean
-  isItalic: boolean
-  isUnderline: boolean
-  isStrikethrough: boolean
-  isCode: boolean
-  isSubscript: boolean
-  isSuperscript: boolean
-  isLink: boolean
-  blockType: BlockType
-  canUndo: boolean
-  canRedo: boolean
+  isBold: boolean;
+  isItalic: boolean;
+  isUnderline: boolean;
+  isStrikethrough: boolean;
+  isCode: boolean;
+  isSubscript: boolean;
+  isSuperscript: boolean;
+  isLink: boolean;
+  blockType: BlockType;
+  canUndo: boolean;
+  canRedo: boolean;
 }
 
 // ============================================
@@ -77,12 +77,12 @@ interface ToolbarState {
 // ============================================
 
 export interface ToolbarPluginProps {
-  features: RichTextFeature[]
-  variant?: 'fixed' | 'inline' | 'floating'
+  features: RichTextFeature[];
+  variant?: 'fixed' | 'inline' | 'floating';
 }
 
 export function ToolbarPlugin({ features, variant = 'fixed' }: ToolbarPluginProps) {
-  const [editor] = useLexicalComposerContext()
+  const [editor] = useLexicalComposerContext();
 
   const [state, setState] = useState<ToolbarState>({
     isBold: false,
@@ -96,11 +96,11 @@ export function ToolbarPlugin({ features, variant = 'fixed' }: ToolbarPluginProp
     blockType: 'paragraph',
     canUndo: false,
     canRedo: false,
-  })
+  });
 
   // Update toolbar state based on selection
   const updateToolbar = useCallback(() => {
-    const selection = $getSelection()
+    const selection = $getSelection();
 
     if ($isRangeSelection(selection)) {
       // Text formatting
@@ -113,184 +113,184 @@ export function ToolbarPlugin({ features, variant = 'fixed' }: ToolbarPluginProp
         isCode: selection.hasFormat('code'),
         isSubscript: selection.hasFormat('subscript'),
         isSuperscript: selection.hasFormat('superscript'),
-      }))
+      }));
 
       // Block type
-      const anchorNode = selection.anchor.getNode()
+      const anchorNode = selection.anchor.getNode();
       let element =
         anchorNode.getKey() === 'root'
           ? anchorNode
           : $findMatchingParent(anchorNode, (e) => {
-              const parent = e.getParent()
-              return parent !== null && $isRootOrShadowRoot(parent)
-            })
+              const parent = e.getParent();
+              return parent !== null && $isRootOrShadowRoot(parent);
+            });
 
       if (element === null) {
-        element = anchorNode.getTopLevelElementOrThrow()
+        element = anchorNode.getTopLevelElementOrThrow();
       }
 
-      const elementKey = element.getKey()
-      const elementDOM = editor.getElementByKey(elementKey)
+      const elementKey = element.getKey();
+      const elementDOM = editor.getElementByKey(elementKey);
 
       if (elementDOM !== null) {
         // Check list type
         if ($isListNode(element)) {
-          const parentList = $getNearestNodeOfType(anchorNode, ListNode)
-          const type = parentList ? parentList.getListType() : element.getListType()
+          const parentList = $getNearestNodeOfType(anchorNode, ListNode);
+          const type = parentList ? parentList.getListType() : element.getListType();
 
           setState((prev) => ({
             ...prev,
             blockType: type === 'bullet' ? 'bullet' : type === 'number' ? 'number' : 'check',
-          }))
+          }));
         } else {
           // Check heading type
-          const type = $isHeadingNode(element) ? element.getTag() : element.getType()
+          const type = $isHeadingNode(element) ? element.getTag() : element.getType();
 
           if (type === 'paragraph' || type === 'root') {
-            setState((prev) => ({ ...prev, blockType: 'paragraph' }))
+            setState((prev) => ({ ...prev, blockType: 'paragraph' }));
           } else if (['h1', 'h2', 'h3', 'h4', 'h5', 'h6'].includes(type)) {
-            setState((prev) => ({ ...prev, blockType: type as BlockType }))
+            setState((prev) => ({ ...prev, blockType: type as BlockType }));
           } else if (type === 'quote') {
-            setState((prev) => ({ ...prev, blockType: 'quote' }))
+            setState((prev) => ({ ...prev, blockType: 'quote' }));
           }
         }
       }
 
       // Link state
-      const node = selection.anchor.getNode()
-      const parent = node.getParent()
+      const node = selection.anchor.getNode();
+      const parent = node.getParent();
       setState((prev) => ({
         ...prev,
         isLink: $isLinkNode(parent) || $isLinkNode(node),
-      }))
+      }));
     }
-  }, [editor])
+  }, [editor]);
 
   // Register listeners
   useEffect(() => {
     return mergeRegister(
       editor.registerUpdateListener(({ editorState }) => {
         editorState.read(() => {
-          updateToolbar()
-        })
+          updateToolbar();
+        });
       }),
       editor.registerCommand(
         SELECTION_CHANGE_COMMAND,
         () => {
-          updateToolbar()
-          return false
+          updateToolbar();
+          return false;
         },
         COMMAND_PRIORITY_CRITICAL,
       ),
       editor.registerCommand(
         CAN_UNDO_COMMAND,
         (payload) => {
-          setState((prev) => ({ ...prev, canUndo: payload }))
-          return false
+          setState((prev) => ({ ...prev, canUndo: payload }));
+          return false;
         },
         COMMAND_PRIORITY_CRITICAL,
       ),
       editor.registerCommand(
         CAN_REDO_COMMAND,
         (payload) => {
-          setState((prev) => ({ ...prev, canRedo: payload }))
-          return false
+          setState((prev) => ({ ...prev, canRedo: payload }));
+          return false;
         },
         COMMAND_PRIORITY_CRITICAL,
       ),
-    )
-  }, [editor, updateToolbar])
+    );
+  }, [editor, updateToolbar]);
 
   // Format commands
-  const formatBold = () => editor.dispatchCommand(FORMAT_TEXT_COMMAND, 'bold')
-  const formatItalic = () => editor.dispatchCommand(FORMAT_TEXT_COMMAND, 'italic')
-  const formatUnderline = () => editor.dispatchCommand(FORMAT_TEXT_COMMAND, 'underline')
-  const formatStrikethrough = () => editor.dispatchCommand(FORMAT_TEXT_COMMAND, 'strikethrough')
-  const formatCode = () => editor.dispatchCommand(FORMAT_TEXT_COMMAND, 'code')
-  const formatSubscript = () => editor.dispatchCommand(FORMAT_TEXT_COMMAND, 'subscript')
-  const formatSuperscript = () => editor.dispatchCommand(FORMAT_TEXT_COMMAND, 'superscript')
+  const formatBold = () => editor.dispatchCommand(FORMAT_TEXT_COMMAND, 'bold');
+  const formatItalic = () => editor.dispatchCommand(FORMAT_TEXT_COMMAND, 'italic');
+  const formatUnderline = () => editor.dispatchCommand(FORMAT_TEXT_COMMAND, 'underline');
+  const formatStrikethrough = () => editor.dispatchCommand(FORMAT_TEXT_COMMAND, 'strikethrough');
+  const formatCode = () => editor.dispatchCommand(FORMAT_TEXT_COMMAND, 'code');
+  const formatSubscript = () => editor.dispatchCommand(FORMAT_TEXT_COMMAND, 'subscript');
+  const formatSuperscript = () => editor.dispatchCommand(FORMAT_TEXT_COMMAND, 'superscript');
 
-  const undo = () => editor.dispatchCommand(UNDO_COMMAND, undefined)
-  const redo = () => editor.dispatchCommand(REDO_COMMAND, undefined)
+  const undo = () => editor.dispatchCommand(UNDO_COMMAND, undefined);
+  const redo = () => editor.dispatchCommand(REDO_COMMAND, undefined);
 
   // Block type commands
   const formatParagraph = () => {
     editor.update(() => {
-      const selection = $getSelection()
+      const selection = $getSelection();
       if ($isRangeSelection(selection)) {
-        $setBlocksType(selection, () => $createParagraphNode())
+        $setBlocksType(selection, () => $createParagraphNode());
       }
-    })
-  }
+    });
+  };
 
   const formatHeading = (tag: HeadingTagType) => {
     if (state.blockType !== tag) {
       editor.update(() => {
-        const selection = $getSelection()
+        const selection = $getSelection();
         if ($isRangeSelection(selection)) {
-          $setBlocksType(selection, () => $createHeadingNode(tag))
+          $setBlocksType(selection, () => $createHeadingNode(tag));
         }
-      })
+      });
     }
-  }
+  };
 
   const formatQuote = () => {
     if (state.blockType !== 'quote') {
       editor.update(() => {
-        const selection = $getSelection()
+        const selection = $getSelection();
         if ($isRangeSelection(selection)) {
-          $setBlocksType(selection, () => $createQuoteNode())
+          $setBlocksType(selection, () => $createQuoteNode());
         }
-      })
+      });
     }
-  }
+  };
 
   const formatBulletList = () => {
     if (state.blockType !== 'bullet') {
-      editor.dispatchCommand(INSERT_UNORDERED_LIST_COMMAND, undefined)
+      editor.dispatchCommand(INSERT_UNORDERED_LIST_COMMAND, undefined);
     } else {
-      editor.dispatchCommand(REMOVE_LIST_COMMAND, undefined)
+      editor.dispatchCommand(REMOVE_LIST_COMMAND, undefined);
     }
-  }
+  };
 
   const formatNumberedList = () => {
     if (state.blockType !== 'number') {
-      editor.dispatchCommand(INSERT_ORDERED_LIST_COMMAND, undefined)
+      editor.dispatchCommand(INSERT_ORDERED_LIST_COMMAND, undefined);
     } else {
-      editor.dispatchCommand(REMOVE_LIST_COMMAND, undefined)
+      editor.dispatchCommand(REMOVE_LIST_COMMAND, undefined);
     }
-  }
+  };
 
   const insertLink = () => {
     if (!state.isLink) {
-      const url = prompt('Enter URL:')
+      const url = prompt('Enter URL:');
       if (url) {
-        editor.dispatchCommand(TOGGLE_LINK_COMMAND, url)
+        editor.dispatchCommand(TOGGLE_LINK_COMMAND, url);
       }
     } else {
-      editor.dispatchCommand(TOGGLE_LINK_COMMAND, null)
+      editor.dispatchCommand(TOGGLE_LINK_COMMAND, null);
     }
-  }
+  };
 
   // Check which features are enabled
-  const hasFeature = (key: string) => features.some((f) => f.key === key)
+  const hasFeature = (key: string) => features.some((f) => f.key === key);
 
   // Check if fixed toolbar should be shown (don't show for floating/inline)
   const showToolbar = features.some((f) => {
     // Check by feature key first (more reliable)
     if (variant === 'fixed') {
-      return f.key === 'fixedToolbar' || f.key === 'fixed-toolbar'
+      return f.key === 'fixedToolbar' || f.key === 'fixed-toolbar';
     }
     // For inline/floating variants, check toolbar type (but skip fixed toolbar)
     if (variant === 'inline' || variant === 'floating') {
       if (f.type === 'toolbar') {
-        return f.position === variant || !f.position
+        return f.position === variant || !f.position;
       }
     }
-    return false
-  })
+    return false;
+  });
 
-  if (!showToolbar) return null
+  if (!showToolbar) return null;
 
   return (
     <div className={`editor-toolbar editor-toolbar--${variant}`}>
@@ -327,10 +327,10 @@ export function ToolbarPlugin({ features, variant = 'fixed' }: ToolbarPluginProp
             className="toolbar-select"
             value={state.blockType}
             onChange={(e) => {
-              const value = e.target.value as BlockType
-              if (value === 'paragraph') formatParagraph()
-              else if (value.startsWith('h')) formatHeading(value as HeadingTagType)
-              else if (value === 'quote') formatQuote()
+              const value = e.target.value as BlockType;
+              if (value === 'paragraph') formatParagraph();
+              else if (value.startsWith('h')) formatHeading(value as HeadingTagType);
+              else if (value === 'quote') formatQuote();
             }}
           >
             <option value="paragraph">Paragraph</option>
@@ -492,7 +492,7 @@ export function ToolbarPlugin({ features, variant = 'fixed' }: ToolbarPluginProp
         </div>
       )}
     </div>
-  )
+  );
 }
 
-export default ToolbarPlugin
+export default ToolbarPlugin;

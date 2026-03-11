@@ -1,44 +1,44 @@
-import type { RevealRequest, RevealValue } from '@revealui/core'
-import type { User } from '@revealui/core/types/cms'
+import type { RevealRequest, RevealValue } from '@revealui/core';
+import type { User } from '@revealui/core/types/cms';
 
 export interface CartItem {
-  id: string
-  name: string
-  price: number
-  quantity: number
+  id: string;
+  name: string;
+  price: number;
+  quantity: number;
   items: Array<{
-    product: string | number
-    quantity?: number
-    [key: string]: unknown
-  }>
+    product: string | number;
+    quantity?: number;
+    [key: string]: unknown;
+  }>;
 }
 
 export interface Product {
-  id: string | number
-  name: string
-  images?: ImageType[]
-  category?: Category
-  price: number
-  items: CartItem[]
+  id: string | number;
+  name: string;
+  images?: ImageType[];
+  category?: Category;
+  price: number;
+  items: CartItem[];
 }
 
 export interface ImageType {
-  url: string
+  url: string;
 }
 
 export interface Category {
-  name: string
+  name: string;
 }
 
 export const deletePriceFromCarts = async ({
   req,
   id,
 }: {
-  req: RevealRequest
-  id: string | number
+  req: RevealRequest;
+  id: string | number;
 }) => {
   if (!req.revealui) {
-    return
+    return;
   }
 
   const usersWithPriceInCart = await req.revealui.find({
@@ -49,30 +49,30 @@ export const deletePriceFromCarts = async ({
         equals: id,
       },
     },
-  })
+  });
 
   if (usersWithPriceInCart.totalDocs > 0 && req.revealui) {
     await Promise.allSettled(
       // RevealUI CMS document type compatibility - docs returned as unknown, then typed
       usersWithPriceInCart.docs.map(async (user: unknown) => {
-        const typedUser = user as User & { cart?: CartItem }
-        const cart = typedUser.cart
+        const typedUser = user as User & { cart?: CartItem };
+        const cart = typedUser.cart;
         if (!cart?.items) {
-          return
+          return;
         }
 
         const itemsWithoutProduct = cart.items.filter((item) => {
           if (!item || typeof item !== 'object') {
-            return true
+            return true;
           }
-          return 'product' in item && item.product !== id
-        })
+          return 'product' in item && item.product !== id;
+        });
 
         // RevealUI CMS cart data structure compatibility
         const cartWithoutProduct = {
           ...cart,
           items: itemsWithoutProduct,
-        } as unknown as CartItem
+        } as unknown as CartItem;
 
         return req.revealui?.update({
           collection: 'users',
@@ -80,8 +80,8 @@ export const deletePriceFromCarts = async ({
           data: {
             cart: cartWithoutProduct as unknown as RevealValue,
           },
-        })
+        });
       }),
-    )
+    );
   }
-}
+};

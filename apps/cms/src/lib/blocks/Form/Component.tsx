@@ -1,49 +1,49 @@
-'use client'
-import { FormBlockSchema } from '@revealui/contracts/content'
-import type { Form as FormType } from '@revealui/core/plugins'
-import { logger } from '@revealui/core/utils/logger'
-import { ButtonCVA as Button } from '@revealui/presentation/server'
-import { useRouter } from 'next/navigation'
-import type React from 'react'
-import { memo, useCallback, useState } from 'react'
-import type { FieldErrors, FieldValues, UseFormRegister } from 'react-hook-form'
-import { FormProvider, useForm } from 'react-hook-form'
-import { ErrorBoundary } from '@/lib/components/ErrorBoundary/index'
-import RichText from '@/lib/components/RichText/index'
-import { buildInitialFormState } from './buildInitialFormState'
-import { fields } from './fields'
+'use client';
+import { FormBlockSchema } from '@revealui/contracts/content';
+import type { Form as FormType } from '@revealui/core/plugins';
+import { logger } from '@revealui/core/utils/logger';
+import { ButtonCVA as Button } from '@revealui/presentation/server';
+import { useRouter } from 'next/navigation';
+import type React from 'react';
+import { memo, useCallback, useState } from 'react';
+import type { FieldErrors, FieldValues, UseFormRegister } from 'react-hook-form';
+import { FormProvider, useForm } from 'react-hook-form';
+import { ErrorBoundary } from '@/lib/components/ErrorBoundary/index';
+import RichText from '@/lib/components/RichText/index';
+import { buildInitialFormState } from './buildInitialFormState';
+import { fields } from './fields';
 
 // Define types for form data - properly typed
-export type FormFieldValue = string | number | boolean | null | undefined
-export type FormData = Record<string, FormFieldValue | FormFieldValue[]>
+export type FormFieldValue = string | number | boolean | null | undefined;
+export type FormData = Record<string, FormFieldValue | FormFieldValue[]>;
 
 // Rich text content type (Lexical format)
 export interface RichTextContent {
   root: {
-    type: string
+    type: string;
     children: Array<{
-      type: string
-      version: number
-      [key: string]: unknown
-    }>
-    direction: ('ltr' | 'rtl') | null
-    format: 'left' | 'start' | 'center' | 'right' | 'end' | 'justify' | ''
-    indent: number
-    version: number
-  }
-  [key: string]: unknown
+      type: string;
+      version: number;
+      [key: string]: unknown;
+    }>;
+    direction: ('ltr' | 'rtl') | null;
+    format: 'left' | 'start' | 'center' | 'right' | 'end' | 'justify' | '';
+    indent: number;
+    version: number;
+  };
+  [key: string]: unknown;
 }
 
 // Define the FormBlockType from generated types
 export type FormBlockType = {
-  blockName?: string
-  blockType?: 'formBlock'
-  enableIntro: boolean
-  form: FormType
-  introContent?: RichTextContent[] | null
-}
+  blockName?: string;
+  blockType?: 'formBlock';
+  enableIntro: boolean;
+  form: FormType;
+  introContent?: RichTextContent[] | null;
+};
 
-export type Props = FormBlockType
+export type Props = FormBlockType;
 
 /**
  * FormBlock Component
@@ -76,40 +76,40 @@ export const FormBlock: React.FC<Props> = memo(({ enableIntro, form, introConten
       data: {
         fields: form.fields || [],
       },
-    }
-    FormBlockSchema.parse(formBlockData)
+    };
+    FormBlockSchema.parse(formBlockData);
   } catch (error) {
     if (process.env.NODE_ENV === 'development') {
-      logger.warn('FormBlock validation warning', { error })
+      logger.warn('FormBlock validation warning', { error });
     }
     // In production, we continue rendering but log the error
   }
 
-  const { id: formID, confirmationMessage, confirmationType, redirect, submitButtonLabel } = form
+  const { id: formID, confirmationMessage, confirmationType, redirect, submitButtonLabel } = form;
 
   // Initialize form methods
   const formMethods = useForm({
     defaultValues: buildInitialFormState(form.fields),
-  })
+  });
 
   const {
     formState: { errors },
     handleSubmit,
     register,
-  } = formMethods
+  } = formMethods;
 
   // Define state for loading, submission, and errors
-  const [isLoading, setIsLoading] = useState(false)
-  const [hasSubmitted, setHasSubmitted] = useState<boolean>(false)
-  const [error, setError] = useState<{ message: string; status?: string } | undefined>()
-  const router = useRouter()
+  const [isLoading, setIsLoading] = useState(false);
+  const [hasSubmitted, setHasSubmitted] = useState<boolean>(false);
+  const [error, setError] = useState<{ message: string; status?: string } | undefined>();
+  const router = useRouter();
 
   const onSubmit = useCallback(
     async (data: FormData) => {
-      let loadingTimerID: ReturnType<typeof setTimeout>
+      let loadingTimerID: ReturnType<typeof setTimeout>;
 
       const submitForm = async () => {
-        setError(undefined)
+        setError(undefined);
 
         // Validate form data structure using FormBlockSchema before submission
         try {
@@ -118,34 +118,34 @@ export const FormBlock: React.FC<Props> = memo(({ enableIntro, form, introConten
             data: {
               fields: form.fields || [],
             },
-          }
-          FormBlockSchema.parse(formBlockData)
+          };
+          FormBlockSchema.parse(formBlockData);
         } catch (validationError) {
           setError({
             message: 'Form validation failed. Please check your form configuration.',
             status: '400',
-          })
+          });
           if (process.env.NODE_ENV === 'development') {
-            logger.error('Form validation error', { validationError })
+            logger.error('Form validation error', { validationError });
           }
-          return
+          return;
         }
 
         const dataToSend = Object.entries(data).map(([name, value]) => ({
           field: name,
           value,
-        }))
+        }));
 
         // Validate submission data structure
         if (!(formID && dataToSend.length)) {
-          setError({ message: 'Invalid form data' })
-          return
+          setError({ message: 'Invalid form data' });
+          return;
         }
 
         // Delay loading indicator by 1 second
         loadingTimerID = setTimeout(() => {
-          setIsLoading(true)
-        }, 1000)
+          setIsLoading(true);
+        }, 1000);
 
         try {
           const req = await fetch(`${process.env.NEXT_PUBLIC_SERVER_URL}/api/form-submissions`, {
@@ -157,51 +157,51 @@ export const FormBlock: React.FC<Props> = memo(({ enableIntro, form, introConten
               'Content-Type': 'application/json',
             },
             method: 'POST',
-          })
+          });
 
-          const res = await req.json()
-          clearTimeout(loadingTimerID)
+          const res = await req.json();
+          clearTimeout(loadingTimerID);
 
           if (req.status >= 400) {
-            setIsLoading(false)
+            setIsLoading(false);
             setError({
               message: res.errors?.[0]?.message || 'Internal Server Error',
               status: res.status,
-            })
-            return
+            });
+            return;
           }
 
-          setIsLoading(false)
-          setHasSubmitted(true)
+          setIsLoading(false);
+          setHasSubmitted(true);
 
           if (confirmationType === 'redirect' && redirect) {
-            const { url } = redirect
+            const { url } = redirect;
             if (url) {
               try {
-                const parsed = new URL(url, window.location.origin)
+                const parsed = new URL(url, window.location.origin);
                 if (parsed.origin !== window.location.origin) {
-                  return
+                  return;
                 }
-                router.push(parsed.pathname + parsed.search)
+                router.push(parsed.pathname + parsed.search);
               } catch {
                 // Relative path — safe to push directly
-                router.push(url)
+                router.push(url);
               }
             }
           }
         } catch (_err) {
-          setIsLoading(false)
+          setIsLoading(false);
           setError({
             message:
               'Unable to submit form. Please try again or contact support if the problem persists.',
-          })
+          });
         }
-      }
+      };
 
-      await submitForm()
+      await submitForm();
     },
     [router, formID, redirect, confirmationType, form.fields],
-  )
+  );
 
   return (
     <ErrorBoundary
@@ -227,15 +227,15 @@ export const FormBlock: React.FC<Props> = memo(({ enableIntro, form, introConten
             ? (() => {
                 const content = Array.isArray(confirmationMessage)
                   ? confirmationMessage[0]
-                  : (confirmationMessage as RichTextContent)
+                  : (confirmationMessage as RichTextContent);
                 if (content?.root) {
                   return (
                     <output aria-live="polite">
                       <RichText content={content} />
                     </output>
-                  )
+                  );
                 }
-                return null
+                return null;
               })()
             : null}
           {error && (
@@ -254,18 +254,18 @@ export const FormBlock: React.FC<Props> = memo(({ enableIntro, form, introConten
                 {form.fields?.map((field, index) => {
                   // Type guard to narrow field type
                   if (!(field && 'blockType' in field)) {
-                    return null
+                    return null;
                   }
 
-                  const fieldBlockType = field.blockType as keyof typeof fields
+                  const fieldBlockType = field.blockType as keyof typeof fields;
                   // biome-ignore lint/suspicious/noExplicitAny: Field components have dynamic props based on field type
-                  const FieldComponent = fields[fieldBlockType] as React.ComponentType<any>
+                  const FieldComponent = fields[fieldBlockType] as React.ComponentType<any>;
 
                   if (FieldComponent) {
                     const key =
-                      field?.id ?? ('name' in field ? field.name : undefined) ?? `field-${index}`
+                      field?.id ?? ('name' in field ? field.name : undefined) ?? `field-${index}`;
                     // Use Record<string, unknown> instead of any for safer type casting
-                    const fieldProps = field as unknown as Record<string, unknown>
+                    const fieldProps = field as unknown as Record<string, unknown>;
                     return (
                       <div className="mb-6 last:mb-0" key={key}>
                         <FieldComponent
@@ -274,9 +274,9 @@ export const FormBlock: React.FC<Props> = memo(({ enableIntro, form, introConten
                           register={register as UseFormRegister<FieldValues>}
                         />
                       </div>
-                    )
+                    );
                   }
-                  return null
+                  return null;
                 })}
               </fieldset>
               <Button form={formID} type="submit" variant="default">
@@ -287,7 +287,7 @@ export const FormBlock: React.FC<Props> = memo(({ enableIntro, form, introConten
         </FormProvider>
       </div>
     </ErrorBoundary>
-  )
-})
+  );
+});
 
-FormBlock.displayName = 'FormBlock'
+FormBlock.displayName = 'FormBlock';

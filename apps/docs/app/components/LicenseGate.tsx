@@ -1,36 +1,36 @@
-import type { ReactNode } from 'react'
-import { useCallback, useState } from 'react'
-import { useLicenseKey } from '../hooks/useLicenseKey'
+import type { ReactNode } from 'react';
+import { useCallback, useState } from 'react';
+import { useLicenseKey } from '../hooks/useLicenseKey';
 
 interface LicenseGateProps {
-  children: ReactNode
+  children: ReactNode;
 }
 
 export function LicenseGate({ children }: LicenseGateProps) {
-  const { isValid, isLoading, validate, clear, tier } = useLicenseKey()
-  const [inputKey, setInputKey] = useState('')
-  const [error, setError] = useState<string | null>(null)
-  const [validating, setValidating] = useState(false)
+  const { isValid, isLoading, validate, clear, tier } = useLicenseKey();
+  const [inputKey, setInputKey] = useState('');
+  const [error, setError] = useState<string | null>(null);
+  const [validating, setValidating] = useState(false);
 
   const handleSubmit = useCallback(
     async (e: React.FormEvent) => {
-      e.preventDefault()
-      const trimmed = inputKey.trim()
-      if (!trimmed) return
+      e.preventDefault();
+      const trimmed = inputKey.trim();
+      if (!trimmed) return;
 
-      setValidating(true)
-      setError(null)
+      setValidating(true);
+      setError(null);
 
-      const result = await validate(trimmed)
+      const result = await validate(trimmed);
 
       if (!result.valid) {
-        setError('Invalid or expired license key. Check your key and try again.')
+        setError('Invalid or expired license key. Check your key and try again.');
       }
 
-      setValidating(false)
+      setValidating(false);
     },
     [inputKey, validate],
-  )
+  );
 
   if (isLoading) {
     return (
@@ -40,7 +40,7 @@ export function LicenseGate({ children }: LicenseGateProps) {
           <p className="text-sm opacity-60">Checking license…</p>
         </div>
       </div>
-    )
+    );
   }
 
   if (isValid) {
@@ -58,7 +58,7 @@ export function LicenseGate({ children }: LicenseGateProps) {
         </div>
         {children}
       </div>
-    )
+    );
   }
 
   return (
@@ -108,5 +108,5 @@ export function LicenseGate({ children }: LicenseGateProps) {
         </p>
       </div>
     </div>
-  )
+  );
 }

@@ -8,8 +8,8 @@
  * - node:fs/promises - File system operations
  */
 
-import { readFile, writeFile } from 'node:fs/promises'
-import type { CodeChange, CohesionIssue, FixResult, FixStrategy } from '../types.ts'
+import { readFile, writeFile } from 'node:fs/promises';
+import type { CodeChange, CohesionIssue, FixResult, FixStrategy } from '../types.ts';
 
 // =============================================================================
 // Fix Strategy Registry
@@ -55,7 +55,7 @@ const FIX_STRATEGIES: FixStrategy[] = [
     },
     apply: applyConsoleLogFix,
   },
-]
+];
 
 // =============================================================================
 // Strategy Finder
@@ -67,10 +67,10 @@ const FIX_STRATEGIES: FixStrategy[] = [
 export function findFixStrategy(issue: CohesionIssue): FixStrategy | null {
   for (const strategy of FIX_STRATEGIES) {
     if (strategy.targetIssues.includes(issue.id)) {
-      return strategy
+      return strategy;
     }
   }
-  return null
+  return null;
 }
 
 // =============================================================================
@@ -81,7 +81,7 @@ export function findFixStrategy(issue: CohesionIssue): FixStrategy | null {
  * Apply a fix to an issue
  */
 export async function applyFix(issue: CohesionIssue, dryRun = false): Promise<FixResult> {
-  const strategy = findFixStrategy(issue)
+  const strategy = findFixStrategy(issue);
 
   if (!strategy) {
     return {
@@ -89,18 +89,18 @@ export async function applyFix(issue: CohesionIssue, dryRun = false): Promise<Fi
       file: '',
       changes: [],
       errors: [`No fix strategy available for issue: ${issue.id}`],
-    }
+    };
   }
 
   try {
-    return await strategy.apply(issue, dryRun)
+    return await strategy.apply(issue, dryRun);
   } catch (error) {
     return {
       success: false,
       file: '',
       changes: [],
       errors: [error instanceof Error ? error.message : String(error)],
-    }
+    };
   }
 }
 
@@ -114,58 +114,58 @@ export async function applyFix(issue: CohesionIssue, dryRun = false): Promise<Fi
  * Strategy: Replace "as any" with "as unknown" for better type safety
  */
 async function applyTypeAssertionAnyFix(issue: CohesionIssue, dryRun = false): Promise<FixResult> {
-  const changes: CodeChange[] = []
-  const errors: string[] = []
-  const fileChanges = new Map<string, string>()
+  const changes: CodeChange[] = [];
+  const errors: string[] = [];
+  const fileChanges = new Map<string, string>();
 
   // Group evidence by file
-  const evidenceByFile = new Map<string, typeof issue.evidence>()
+  const evidenceByFile = new Map<string, typeof issue.evidence>();
   for (const evidence of issue.evidence) {
-    const existing = evidenceByFile.get(evidence.file) || []
-    existing.push(evidence)
-    evidenceByFile.set(evidence.file, existing)
+    const existing = evidenceByFile.get(evidence.file) || [];
+    existing.push(evidence);
+    evidenceByFile.set(evidence.file, existing);
   }
 
   // Process each file
   for (const [file, evidences] of evidenceByFile) {
     try {
-      const content = await readFile(file, 'utf-8')
-      let modifiedContent = content
-      const lines = content.split('\n')
+      const content = await readFile(file, 'utf-8');
+      let modifiedContent = content;
+      const lines = content.split('\n');
 
       // Process each evidence in reverse order (to maintain line numbers)
-      const sortedEvidences = [...evidences].sort((a, b) => b.line - a.line)
+      const sortedEvidences = [...evidences].sort((a, b) => b.line - a.line);
 
       for (const evidence of sortedEvidences) {
-        const lineIndex = evidence.line - 1
-        const originalLine = lines[lineIndex]
+        const lineIndex = evidence.line - 1;
+        const originalLine = lines[lineIndex];
 
         if (originalLine?.includes(' as any')) {
-          const modifiedLine = originalLine.replace(/ as any\b/g, ' as unknown')
+          const modifiedLine = originalLine.replace(/ as any\b/g, ' as unknown');
 
           changes.push({
             file,
             line: evidence.line,
             before: originalLine.trim(),
             after: modifiedLine.trim(),
-          })
+          });
 
           // Update the lines array
-          lines[lineIndex] = modifiedLine
+          lines[lineIndex] = modifiedLine;
         }
       }
 
       // Join modified lines
-      modifiedContent = lines.join('\n')
+      modifiedContent = lines.join('\n');
 
       // Store for writing
       if (modifiedContent !== content) {
-        fileChanges.set(file, modifiedContent)
+        fileChanges.set(file, modifiedContent);
       }
     } catch (error) {
       errors.push(
         `Failed to process ${file}: ${error instanceof Error ? error.message : String(error)}`,
-      )
+      );
     }
   }
 
@@ -173,11 +173,11 @@ async function applyTypeAssertionAnyFix(issue: CohesionIssue, dryRun = false): P
   if (!dryRun) {
     for (const [file, content] of fileChanges) {
       try {
-        await writeFile(file, content, 'utf-8')
+        await writeFile(file, content, 'utf-8');
       } catch (error) {
         errors.push(
           `Failed to write ${file}: ${error instanceof Error ? error.message : String(error)}`,
-        )
+        );
       }
     }
   }
@@ -187,7 +187,7 @@ async function applyTypeAssertionAnyFix(issue: CohesionIssue, dryRun = false): P
     file: Array.from(fileChanges.keys())[0] || '',
     changes,
     errors: errors.length > 0 ? errors : undefined,
-  }
+  };
 }
 
 /**
@@ -196,55 +196,55 @@ async function applyTypeAssertionAnyFix(issue: CohesionIssue, dryRun = false): P
  * Strategy: Replace "revealui/" with "@revealui/"
  */
 async function applyUnscopedImportFix(issue: CohesionIssue, dryRun = false): Promise<FixResult> {
-  const changes: CodeChange[] = []
-  const errors: string[] = []
-  const fileChanges = new Map<string, string>()
+  const changes: CodeChange[] = [];
+  const errors: string[] = [];
+  const fileChanges = new Map<string, string>();
 
   // Group evidence by file
-  const evidenceByFile = new Map<string, typeof issue.evidence>()
+  const evidenceByFile = new Map<string, typeof issue.evidence>();
   for (const evidence of issue.evidence) {
-    const existing = evidenceByFile.get(evidence.file) || []
-    existing.push(evidence)
-    evidenceByFile.set(evidence.file, existing)
+    const existing = evidenceByFile.get(evidence.file) || [];
+    existing.push(evidence);
+    evidenceByFile.set(evidence.file, existing);
   }
 
   // Process each file
   for (const [file, evidences] of evidenceByFile) {
     try {
-      const content = await readFile(file, 'utf-8')
-      let modifiedContent = content
-      const lines = content.split('\n')
+      const content = await readFile(file, 'utf-8');
+      let modifiedContent = content;
+      const lines = content.split('\n');
 
       // Process each evidence in reverse order
-      const sortedEvidences = [...evidences].sort((a, b) => b.line - a.line)
+      const sortedEvidences = [...evidences].sort((a, b) => b.line - a.line);
 
       for (const evidence of sortedEvidences) {
-        const lineIndex = evidence.line - 1
-        const originalLine = lines[lineIndex]
+        const lineIndex = evidence.line - 1;
+        const originalLine = lines[lineIndex];
 
         if (originalLine?.includes('revealui/')) {
-          const modifiedLine = originalLine.replace(/(['"])revealui\//g, '$1@revealui/')
+          const modifiedLine = originalLine.replace(/(['"])revealui\//g, '$1@revealui/');
 
           changes.push({
             file,
             line: evidence.line,
             before: originalLine.trim(),
             after: modifiedLine.trim(),
-          })
+          });
 
-          lines[lineIndex] = modifiedLine
+          lines[lineIndex] = modifiedLine;
         }
       }
 
-      modifiedContent = lines.join('\n')
+      modifiedContent = lines.join('\n');
 
       if (modifiedContent !== content) {
-        fileChanges.set(file, modifiedContent)
+        fileChanges.set(file, modifiedContent);
       }
     } catch (error) {
       errors.push(
         `Failed to process ${file}: ${error instanceof Error ? error.message : String(error)}`,
-      )
+      );
     }
   }
 
@@ -252,11 +252,11 @@ async function applyUnscopedImportFix(issue: CohesionIssue, dryRun = false): Pro
   if (!dryRun) {
     for (const [file, content] of fileChanges) {
       try {
-        await writeFile(file, content, 'utf-8')
+        await writeFile(file, content, 'utf-8');
       } catch (error) {
         errors.push(
           `Failed to write ${file}: ${error instanceof Error ? error.message : String(error)}`,
-        )
+        );
       }
     }
   }
@@ -266,7 +266,7 @@ async function applyUnscopedImportFix(issue: CohesionIssue, dryRun = false): Pro
     file: Array.from(fileChanges.keys())[0] || '',
     changes,
     errors: errors.length > 0 ? errors : undefined,
-  }
+  };
 }
 
 /**
@@ -276,11 +276,11 @@ async function applyUnscopedImportFix(issue: CohesionIssue, dryRun = false): Pro
  * (Full replacement requires context awareness of logger availability)
  */
 async function applyConsoleLogFix(_issue: CohesionIssue, _dryRun = false): Promise<FixResult> {
-  const changes: CodeChange[] = []
-  const warnings: string[] = []
+  const changes: CodeChange[] = [];
+  const warnings: string[] = [];
 
-  warnings.push('Console.log fix requires manual intervention')
-  warnings.push('Consider replacing with logger.info(), logger.debug(), or removing')
+  warnings.push('Console.log fix requires manual intervention');
+  warnings.push('Consider replacing with logger.info(), logger.debug(), or removing');
 
   // This fix is informational only - requires manual review
   return {
@@ -288,7 +288,7 @@ async function applyConsoleLogFix(_issue: CohesionIssue, _dryRun = false): Promi
     file: '',
     changes,
     warnings,
-  }
+  };
 }
 
 // =============================================================================
@@ -304,23 +304,23 @@ async function applyConsoleLogFix(_issue: CohesionIssue, _dryRun = false): Promi
  * 3. Check if imports are actually used
  */
 export async function detectOrphanedImports(files: string[]): Promise<{
-  orphanedImports: Array<{ file: string; line: number; import: string; reason: string }>
-  totalChecked: number
+  orphanedImports: Array<{ file: string; line: number; import: string; reason: string }>;
+  totalChecked: number;
 }> {
-  const orphanedImports: Array<{ file: string; line: number; import: string; reason: string }> = []
-  let totalChecked = 0
+  const orphanedImports: Array<{ file: string; line: number; import: string; reason: string }> = [];
+  let totalChecked = 0;
 
   for (const file of files) {
     try {
-      const content = await readFile(file, 'utf-8')
-      const lines = content.split('\n')
+      const content = await readFile(file, 'utf-8');
+      const lines = content.split('\n');
 
       lines.forEach((line, index) => {
         // Check for import statements
-        const importMatch = line.match(/import\s+.*from\s+['"]([^'"]+)['"]/)
+        const importMatch = line.match(/import\s+.*from\s+['"]([^'"]+)['"]/);
         if (importMatch) {
-          totalChecked++
-          const importPath = importMatch[1]
+          totalChecked++;
+          const importPath = importMatch[1];
 
           // Check for common orphaned patterns
           if (importPath.includes('/dist/') || importPath.includes('/build/')) {
@@ -329,7 +329,7 @@ export async function detectOrphanedImports(files: string[]): Promise<{
               line: index + 1,
               import: importPath,
               reason: 'Imports from build directory (should use source)',
-            })
+            });
           }
 
           // Check for deprecated packages (example pattern)
@@ -339,10 +339,10 @@ export async function detectOrphanedImports(files: string[]): Promise<{
               line: index + 1,
               import: importPath,
               reason: 'Imports from deprecated package',
-            })
+            });
           }
         }
-      })
+      });
     } catch {
       // Skip files that can't be read
     }
@@ -351,7 +351,7 @@ export async function detectOrphanedImports(files: string[]): Promise<{
   return {
     orphanedImports,
     totalChecked,
-  }
+  };
 }
 
 // =============================================================================
@@ -359,10 +359,10 @@ export async function detectOrphanedImports(files: string[]): Promise<{
 // =============================================================================
 
 export interface ArchivalPolicy {
-  name: string
-  description: string
-  shouldArchive: (file: string, lastModified: Date) => boolean
-  archivePath: (file: string) => string
+  name: string;
+  description: string;
+  shouldArchive: (file: string, lastModified: Date) => boolean;
+  archivePath: (file: string) => string;
 }
 
 /**
@@ -373,8 +373,8 @@ export const ARCHIVAL_POLICIES: ArchivalPolicy[] = [
     name: 'archive-old-todos',
     description: 'Archive TODO comments older than 90 days',
     shouldArchive: (_file, lastModified) => {
-      const ninetyDaysAgo = new Date(Date.now() - 90 * 24 * 60 * 60 * 1000)
-      return lastModified < ninetyDaysAgo
+      const ninetyDaysAgo = new Date(Date.now() - 90 * 24 * 60 * 60 * 1000);
+      return lastModified < ninetyDaysAgo;
     },
     archivePath: (file) => file.replace('/src/', '/archive/'),
   },
@@ -384,4 +384,4 @@ export const ARCHIVAL_POLICIES: ArchivalPolicy[] = [
     shouldArchive: () => false, // Requires usage analysis
     archivePath: (file) => file.replace('/src/', '/archive/unused/'),
   },
-]
+];

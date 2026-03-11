@@ -9,37 +9,37 @@
  * They mirror AuditEntry and AuditFilter from @revealui/ai/audit/types.
  */
 
-import { and, count, desc, eq, gte, inArray, lte } from 'drizzle-orm'
-import type { Database } from './client/index.js'
-import { auditLog } from './schema/audit-log.js'
+import { and, count, desc, eq, gte, inArray, lte } from 'drizzle-orm';
+import type { Database } from './client/index.js';
+import { auditLog } from './schema/audit-log.js';
 
 // ─── Local Type Mirrors ─────────────────────────────────────────────────────
 // These mirror @revealui/ai AuditEntry and AuditFilter to avoid circular deps.
 
 /** Audit entry stored in the database */
 export interface AuditEntry {
-  id: string
-  timestamp: Date
-  eventType: string
-  severity: string
-  agentId: string
-  taskId?: string
-  sessionId?: string
-  payload: Record<string, unknown>
-  policyViolations: string[]
+  id: string;
+  timestamp: Date;
+  eventType: string;
+  severity: string;
+  agentId: string;
+  taskId?: string;
+  sessionId?: string;
+  payload: Record<string, unknown>;
+  policyViolations: string[];
 }
 
 /** Filters for querying audit entries */
 export interface AuditFilter {
-  agentId?: string
-  taskId?: string
-  sessionId?: string
-  eventTypes?: string[]
-  severity?: string[]
-  startTime?: Date
-  endTime?: Date
-  limit?: number
-  offset?: number
+  agentId?: string;
+  taskId?: string;
+  sessionId?: string;
+  eventTypes?: string[];
+  severity?: string[];
+  startTime?: Date;
+  endTime?: Date;
+  limit?: number;
+  offset?: number;
 }
 
 // ─── Drizzle Audit Store ────────────────────────────────────────────────────
@@ -65,12 +65,12 @@ export class DrizzleAuditStore {
       sessionId: entry.sessionId ?? null,
       payload: entry.payload,
       policyViolations: entry.policyViolations,
-    })
+    });
   }
 
   /** Append multiple entries atomically in a single INSERT */
   async appendBatch(entries: AuditEntry[]): Promise<void> {
-    if (entries.length === 0) return
+    if (entries.length === 0) return;
 
     await this.db.insert(auditLog).values(
       entries.map((entry) => ({
@@ -84,33 +84,33 @@ export class DrizzleAuditStore {
         payload: entry.payload,
         policyViolations: entry.policyViolations,
       })),
-    )
+    );
   }
 
   /** Query entries with filters (human-side only) */
   async query(filter: AuditFilter): Promise<AuditEntry[]> {
-    const conditions = []
+    const conditions = [];
 
     if (filter.agentId) {
-      conditions.push(eq(auditLog.agentId, filter.agentId))
+      conditions.push(eq(auditLog.agentId, filter.agentId));
     }
     if (filter.taskId) {
-      conditions.push(eq(auditLog.taskId, filter.taskId))
+      conditions.push(eq(auditLog.taskId, filter.taskId));
     }
     if (filter.sessionId) {
-      conditions.push(eq(auditLog.sessionId, filter.sessionId))
+      conditions.push(eq(auditLog.sessionId, filter.sessionId));
     }
     if (filter.eventTypes && filter.eventTypes.length > 0) {
-      conditions.push(inArray(auditLog.eventType, filter.eventTypes))
+      conditions.push(inArray(auditLog.eventType, filter.eventTypes));
     }
     if (filter.severity && filter.severity.length > 0) {
-      conditions.push(inArray(auditLog.severity, filter.severity))
+      conditions.push(inArray(auditLog.severity, filter.severity));
     }
     if (filter.startTime) {
-      conditions.push(gte(auditLog.timestamp, filter.startTime))
+      conditions.push(gte(auditLog.timestamp, filter.startTime));
     }
     if (filter.endTime) {
-      conditions.push(lte(auditLog.timestamp, filter.endTime))
+      conditions.push(lte(auditLog.timestamp, filter.endTime));
     }
 
     const rows = await this.db
@@ -119,18 +119,18 @@ export class DrizzleAuditStore {
       .where(conditions.length > 0 ? and(...conditions) : undefined)
       .orderBy(desc(auditLog.timestamp))
       .limit(filter.limit ?? 1000)
-      .offset(filter.offset ?? 0)
+      .offset(filter.offset ?? 0);
 
-    return rows.map(rowToEntry)
+    return rows.map(rowToEntry);
   }
 
   /** Get total entry count (optionally filtered by agent) */
   async count(agentId?: string): Promise<number> {
-    const condition = agentId ? eq(auditLog.agentId, agentId) : undefined
+    const condition = agentId ? eq(auditLog.agentId, agentId) : undefined;
 
-    const result = await this.db.select({ value: count() }).from(auditLog).where(condition)
+    const result = await this.db.select({ value: count() }).from(auditLog).where(condition);
 
-    return result[0]?.value ?? 0
+    return result[0]?.value ?? 0;
   }
 
   /** Get entries since a given timestamp */
@@ -140,9 +140,9 @@ export class DrizzleAuditStore {
       .from(auditLog)
       .where(gte(auditLog.timestamp, timestamp))
       .orderBy(desc(auditLog.timestamp))
-      .limit(limit)
+      .limit(limit);
 
-    return rows.map(rowToEntry)
+    return rows.map(rowToEntry);
   }
 }
 
@@ -160,5 +160,5 @@ function rowToEntry(row: typeof auditLog.$inferSelect): AuditEntry {
     sessionId: row.sessionId ?? undefined,
     payload: (row.payload ?? {}) as Record<string, unknown>,
     policyViolations: row.policyViolations ?? [],
-  }
+  };
 }

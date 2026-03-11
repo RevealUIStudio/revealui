@@ -180,7 +180,7 @@ export {
   VersionsConfigSchema,
   validateWithErrors,
   type Where,
-} from '@revealui/contracts/cms'
+} from '@revealui/contracts/cms';
 
 // =============================================================================
 // QUERY TYPES
@@ -207,7 +207,7 @@ export {
   type TypedFallbackLocale,
   type TypeWithID,
   type WhereClause,
-} from './query.js'
+} from './query.js';
 
 // =============================================================================
 // USER TYPES
@@ -220,7 +220,7 @@ export type {
   RevealUIUser,
   RevealUser,
   User,
-} from './user.js'
+} from './user.js';
 
 // =============================================================================
 // REQUEST TYPES
@@ -229,7 +229,7 @@ export type {
 export type {
   RequestContext,
   RevealRequest,
-} from './request.js'
+} from './request.js';
 
 // =============================================================================
 // RUNTIME TYPES
@@ -252,7 +252,7 @@ export type {
   RevealUILogger,
   RevealUpdateOptions,
   StorageAdapter,
-} from './runtime.js'
+} from './runtime.js';
 
 // =============================================================================
 // CONFIG TYPES
@@ -268,7 +268,7 @@ export type {
   RevealConfig,
   RevealGlobalConfig,
   RevealHookContext,
-} from './config.js'
+} from './config.js';
 
 // =============================================================================
 // HOOK TYPES
@@ -279,7 +279,7 @@ export type {
   RevealUIFieldValidator,
   RevealUIHookContext,
   RevealUIValidationRule,
-} from './hooks.js'
+} from './hooks.js';
 
 // =============================================================================
 // ACCESS TYPES (RevealUI-specific)
@@ -295,7 +295,7 @@ export type {
   RevealUIAccessResult,
   RevealUIAccessRule,
   RevealUIFilterResult,
-} from './access.js'
+} from './access.js';
 
 // =============================================================================
 // API TYPES
@@ -313,7 +313,7 @@ export type {
   RESTOptions,
   // Handler types
   RevealHandler,
-} from './api.js'
+} from './api.js';
 
 // =============================================================================
 // RICH TEXT TYPES
@@ -322,7 +322,7 @@ export type {
 export type {
   RichTextEditor,
   RichTextFeature,
-} from './richtext.js'
+} from './richtext.js';
 
 // =============================================================================
 // PLUGIN TYPES
@@ -331,7 +331,7 @@ export type {
 export type {
   Plugin,
   PluginOptions,
-} from './plugins.js'
+} from './plugins.js';
 
 // =============================================================================
 // EXTENSION TYPES
@@ -347,7 +347,7 @@ export type {
   RevealUIField,
   RevealUIFieldType,
   RevealUIFrameworkContext,
-} from './extensions.js'
+} from './extensions.js';
 
 // =============================================================================
 // INTERNAL TYPES
@@ -367,7 +367,7 @@ export type {
   RevealUISchemaArgs,
   RevealUITraverseFieldsArgs,
   RevealUITraverseFieldsResult,
-} from './legacy.js'
+} from './legacy.js';
 
 // =============================================================================
 // JOB TYPES
@@ -380,21 +380,21 @@ export type {
   JobTaskStatus,
   JobWorkflow,
   WorkflowStep,
-} from './jobs.js'
+} from './jobs.js';
 
 // =============================================================================
 // VECTOR TYPES
 // =============================================================================
 
 export interface VectorDocument {
-  id: string
-  content: string
-  embedding: number[]
+  id: string;
+  content: string;
+  embedding: number[];
   metadata: {
-    type: 'post' | 'comment' | 'memory'
-    sourceId: string
-    authorId: string
-    timestamp: Date
-    tags: string[]
-  }
+    type: 'post' | 'comment' | 'memory';
+    sourceId: string;
+    authorId: string;
+    timestamp: Date;
+    tags: string[];
+  };
 }

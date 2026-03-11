@@ -4,14 +4,14 @@
  * Implements gzip and brotli compression for API responses
  */
 
-import { type NextRequest, NextResponse } from 'next/server'
-import { logger } from '../observability/logger.js'
+import { type NextRequest, NextResponse } from 'next/server';
+import { logger } from '../observability/logger.js';
 
 interface CompressionOptions {
-  threshold?: number // Minimum response size to compress (bytes)
-  level?: number // Compression level (1-9 for gzip, 0-11 for brotli)
-  preferBrotli?: boolean // Prefer brotli over gzip when available
-  excludeTypes?: string[] // Content types to exclude from compression
+  threshold?: number; // Minimum response size to compress (bytes)
+  level?: number; // Compression level (1-9 for gzip, 0-11 for brotli)
+  preferBrotli?: boolean; // Prefer brotli over gzip when available
+  excludeTypes?: string[]; // Content types to exclude from compression
 }
 
 const DEFAULT_OPTIONS: CompressionOptions = {
@@ -28,55 +28,55 @@ const DEFAULT_OPTIONS: CompressionOptions = {
     'application/gzip',
     'application/pdf',
   ],
-}
+};
 
 /**
  * Check if response should be compressed
  */
 function shouldCompress(response: NextResponse, options: CompressionOptions): boolean {
-  const contentType = response.headers.get('content-type') || ''
-  const contentLength = parseInt(response.headers.get('content-length') || '0', 10)
+  const contentType = response.headers.get('content-type') || '';
+  const contentLength = parseInt(response.headers.get('content-length') || '0', 10);
 
   // Check if already compressed
   if (response.headers.get('content-encoding')) {
-    return false
+    return false;
   }
 
   // Check content type exclusions
   if (options.excludeTypes?.some((type) => contentType.includes(type))) {
-    return false
+    return false;
   }
 
   // Check size threshold
   if (contentLength > 0 && contentLength < (options.threshold || 0)) {
-    return false
+    return false;
   }
 
-  return true
+  return true;
 }
 
 /**
  * Get best compression encoding from Accept-Encoding header
  */
 function getBestEncoding(request: NextRequest, preferBrotli: boolean): string | null {
-  const acceptEncoding = request.headers.get('accept-encoding') || ''
+  const acceptEncoding = request.headers.get('accept-encoding') || '';
 
-  const supportsBrotli = acceptEncoding.includes('br')
-  const supportsGzip = acceptEncoding.includes('gzip')
+  const supportsBrotli = acceptEncoding.includes('br');
+  const supportsGzip = acceptEncoding.includes('gzip');
 
   if (preferBrotli && supportsBrotli) {
-    return 'br'
+    return 'br';
   }
 
   if (supportsGzip) {
-    return 'gzip'
+    return 'gzip';
   }
 
   if (supportsBrotli) {
-    return 'br'
+    return 'br';
   }
 
-  return null
+  return null;
 }
 
 /**
@@ -87,14 +87,14 @@ async function compressBody(
   encoding: string,
   _level: number,
 ): Promise<Uint8Array> {
-  const textEncoder = new TextEncoder()
-  const data = typeof body === 'string' ? textEncoder.encode(body) : body
+  const textEncoder = new TextEncoder();
+  const data = typeof body === 'string' ? textEncoder.encode(body) : body;
 
   if (encoding === 'gzip') {
     // Use CompressionStream API (available in modern environments)
-    const stream = new Response(data as BodyInit).body?.pipeThrough(new CompressionStream('gzip'))
-    const compressed = await new Response(stream).arrayBuffer()
-    return new Uint8Array(compressed)
+    const stream = new Response(data as BodyInit).body?.pipeThrough(new CompressionStream('gzip'));
+    const compressed = await new Response(stream).arrayBuffer();
+    return new Uint8Array(compressed);
   }
 
   if (encoding === 'br') {
@@ -104,18 +104,20 @@ async function compressBody(
     try {
       const stream = new Response(data as BodyInit).body?.pipeThrough(
         new CompressionStream('deflate'),
-      )
-      const compressed = await new Response(stream).arrayBuffer()
-      return new Uint8Array(compressed)
+      );
+      const compressed = await new Response(stream).arrayBuffer();
+      return new Uint8Array(compressed);
     } catch {
       // Fallback to gzip
-      const stream = new Response(data as BodyInit).body?.pipeThrough(new CompressionStream('gzip'))
-      const compressed = await new Response(stream).arrayBuffer()
-      return new Uint8Array(compressed)
+      const stream = new Response(data as BodyInit).body?.pipeThrough(
+        new CompressionStream('gzip'),
+      );
+      const compressed = await new Response(stream).arrayBuffer();
+      return new Uint8Array(compressed);
     }
   }
 
-  return data
+  return data;
 }
 
 /**
@@ -126,43 +128,43 @@ export async function compressResponse(
   response: NextResponse,
   options: CompressionOptions = {},
 ): Promise<NextResponse> {
-  const opts = { ...DEFAULT_OPTIONS, ...options }
+  const opts = { ...DEFAULT_OPTIONS, ...options };
 
   // Check if should compress
   if (!shouldCompress(response, opts)) {
-    return response
+    return response;
   }
 
   // Get best encoding
-  const encoding = getBestEncoding(request, opts.preferBrotli ?? true)
+  const encoding = getBestEncoding(request, opts.preferBrotli ?? true);
   if (!encoding) {
-    return response
+    return response;
   }
 
   try {
     // Get response body
-    const body = await response.text()
+    const body = await response.text();
 
     // Compress body
-    const compressed = await compressBody(body, encoding, opts.level || 6)
+    const compressed = await compressBody(body, encoding, opts.level || 6);
 
     // Create new response with compressed body
     const newResponse = new NextResponse(compressed as BodyInit, {
       status: response.status,
       statusText: response.statusText,
       headers: response.headers,
-    })
+    });
 
     // Set compression headers
-    newResponse.headers.set('content-encoding', encoding)
-    newResponse.headers.set('content-length', compressed.length.toString())
-    newResponse.headers.delete('content-length') // Let runtime set it
-    newResponse.headers.set('vary', 'Accept-Encoding')
+    newResponse.headers.set('content-encoding', encoding);
+    newResponse.headers.set('content-length', compressed.length.toString());
+    newResponse.headers.delete('content-length'); // Let runtime set it
+    newResponse.headers.set('vary', 'Accept-Encoding');
 
-    return newResponse
+    return newResponse;
   } catch (error) {
-    logger.error('Compression error', error instanceof Error ? error : new Error(String(error)))
-    return response
+    logger.error('Compression error', error instanceof Error ? error : new Error(String(error)));
+    return response;
   }
 }
 
@@ -171,27 +173,27 @@ export async function compressResponse(
  */
 export function createCompressionMiddleware(options: CompressionOptions = {}) {
   return async (request: NextRequest, next: () => Promise<NextResponse>) => {
-    const response = await next()
-    return compressResponse(request, response, options)
-  }
+    const response = await next();
+    return compressResponse(request, response, options);
+  };
 }
 
 /**
  * Calculate compression ratio
  */
 export function getCompressionRatio(originalSize: number, compressedSize: number): number {
-  return ((originalSize - compressedSize) / originalSize) * 100
+  return ((originalSize - compressedSize) / originalSize) * 100;
 }
 
 /**
  * Get compression stats
  */
 export interface CompressionStats {
-  originalSize: number
-  compressedSize: number
-  compressionRatio: number
-  encoding: string
-  savings: number
+  originalSize: number;
+  compressedSize: number;
+  compressionRatio: number;
+  encoding: string;
+  savings: number;
 }
 
 export function getCompressionStats(
@@ -200,11 +202,11 @@ export function getCompressionStats(
   encoding: string,
 ): CompressionStats {
   const originalSize =
-    typeof originalBody === 'string' ? new Blob([originalBody]).size : originalBody.length
+    typeof originalBody === 'string' ? new Blob([originalBody]).size : originalBody.length;
 
-  const compressedSize = compressedBody.length
-  const compressionRatio = getCompressionRatio(originalSize, compressedSize)
-  const savings = originalSize - compressedSize
+  const compressedSize = compressedBody.length;
+  const compressionRatio = getCompressionRatio(originalSize, compressedSize);
+  const savings = originalSize - compressedSize;
 
   return {
     originalSize,
@@ -212,7 +214,7 @@ export function getCompressionStats(
     compressionRatio,
     encoding,
     savings,
-  }
+  };
 }
 
 /**
@@ -263,7 +265,7 @@ export const COMPRESSION_PRESETS = {
       'application/pdf',
     ],
   },
-} as const
+} as const;
 
 /**
  * Compress JSON response
@@ -273,8 +275,8 @@ export async function compressJSON(
   encoding: 'gzip' | 'br' = 'gzip',
   level: number = 6,
 ): Promise<Uint8Array> {
-  const json = JSON.stringify(data)
-  return compressBody(json, encoding, level)
+  const json = JSON.stringify(data);
+  return compressBody(json, encoding, level);
 }
 
 /**
@@ -282,33 +284,35 @@ export async function compressJSON(
  */
 export async function decompressBody(body: Uint8Array, encoding: string): Promise<Uint8Array> {
   if (encoding === 'gzip') {
-    const stream = new Response(body as BodyInit).body?.pipeThrough(new DecompressionStream('gzip'))
-    const decompressed = await new Response(stream).arrayBuffer()
-    return new Uint8Array(decompressed)
+    const stream = new Response(body as BodyInit).body?.pipeThrough(
+      new DecompressionStream('gzip'),
+    );
+    const decompressed = await new Response(stream).arrayBuffer();
+    return new Uint8Array(decompressed);
   }
 
   if (encoding === 'br' || encoding === 'deflate') {
     const stream = new Response(body as BodyInit).body?.pipeThrough(
       new DecompressionStream('deflate'),
-    )
-    const decompressed = await new Response(stream).arrayBuffer()
-    return new Uint8Array(decompressed)
+    );
+    const decompressed = await new Response(stream).arrayBuffer();
+    return new Uint8Array(decompressed);
   }
 
-  return body
+  return body;
 }
 
 /**
  * Check if compression is supported
  */
 export function isCompressionSupported(request: NextRequest): {
-  gzip: boolean
-  brotli: boolean
+  gzip: boolean;
+  brotli: boolean;
 } {
-  const acceptEncoding = request.headers.get('accept-encoding') || ''
+  const acceptEncoding = request.headers.get('accept-encoding') || '';
 
   return {
     gzip: acceptEncoding.includes('gzip'),
     brotli: acceptEncoding.includes('br'),
-  }
+  };
 }

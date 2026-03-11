@@ -35,9 +35,9 @@ export {
   useNavigate,
   useParams,
   useRouter,
-} from './components'
+} from './components';
 // Core router
-export { Router } from './router'
+export { Router } from './router';
 
 // Types
 export type {
@@ -47,4 +47,4 @@ export type {
   RouteMeta,
   RouteParams,
   RouterOptions,
-} from './types'
+} from './types';

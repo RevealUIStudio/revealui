@@ -24,48 +24,48 @@
  * importing @x402/core (a transitive dep, not directly resolvable).
  */
 
-import { logger } from '@revealui/core/observability/logger'
+import { logger } from '@revealui/core/observability/logger';
 
 // =============================================================================
 // Minimal x402 protocol types (subset of @x402/core types we need)
 // =============================================================================
 
 interface PaymentRequirementsV1 {
-  scheme: string
-  network: string
-  maxAmountRequired: string // USDC atomic units (6 decimals): 1000 = $0.001
-  resource: string // canonical URL of the resource being paid for
-  description: string
-  mimeType: string
-  outputSchema: Record<string, unknown>
-  payTo: string // receiving wallet address
-  maxTimeoutSeconds: number
-  asset: string // USDC contract address on the network
-  extra: Record<string, unknown>
+  scheme: string;
+  network: string;
+  maxAmountRequired: string; // USDC atomic units (6 decimals): 1000 = $0.001
+  resource: string; // canonical URL of the resource being paid for
+  description: string;
+  mimeType: string;
+  outputSchema: Record<string, unknown>;
+  payTo: string; // receiving wallet address
+  maxTimeoutSeconds: number;
+  asset: string; // USDC contract address on the network
+  extra: Record<string, unknown>;
 }
 
 interface PaymentRequiredV1 {
-  x402Version: 1
-  error?: string
-  accepts: PaymentRequirementsV1[]
+  x402Version: 1;
+  error?: string;
+  accepts: PaymentRequirementsV1[];
 }
 
 interface PaymentPayloadV1 {
-  x402Version: 1
-  scheme: string
-  network: string
-  payload: Record<string, unknown>
+  x402Version: 1;
+  scheme: string;
+  network: string;
+  payload: Record<string, unknown>;
 }
 
 interface VerifyRequestBody {
-  x402Version: 1
-  paymentPayload: PaymentPayloadV1
-  paymentRequirements: PaymentRequirementsV1
+  x402Version: 1;
+  paymentPayload: PaymentPayloadV1;
+  paymentRequirements: PaymentRequirementsV1;
 }
 
 interface VerifyResponseBody {
-  isValid: boolean
-  invalidReason?: string
+  isValid: boolean;
+  invalidReason?: string;
 }
 
 // =============================================================================
@@ -75,31 +75,31 @@ interface VerifyResponseBody {
 const USDC_ADDRESSES: Record<string, string> = {
   'evm:base': '0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913',
   'evm:base-sepolia': '0x036CbD53842c5426634e7929541eC2318f3dCF7e',
-}
+};
 
 // Default Coinbase-hosted facilitator (no API key required for public verify)
-const DEFAULT_FACILITATOR_URL = 'https://x402.org/facilitator'
+const DEFAULT_FACILITATOR_URL = 'https://x402.org/facilitator';
 
 // USDC has 6 decimal places: $0.001 = 1000 atomic units
-const USDC_DECIMALS = 6
+const USDC_DECIMALS = 6;
 
 // =============================================================================
 // Config
 // =============================================================================
 
 export interface X402Config {
-  enabled: boolean
-  receivingAddress: string
-  network: string // e.g. 'evm:base' or 'evm:base-sepolia'
-  pricePerTask: string // human-readable USDC e.g. '0.001'
-  usdcAsset: string
-  facilitatorUrl: string
-  maxTimeoutSeconds: number
+  enabled: boolean;
+  receivingAddress: string;
+  network: string; // e.g. 'evm:base' or 'evm:base-sepolia'
+  pricePerTask: string; // human-readable USDC e.g. '0.001'
+  usdcAsset: string;
+  facilitatorUrl: string;
+  maxTimeoutSeconds: number;
 }
 
 /** Read x402 configuration from environment variables (lazy — never throws on missing). */
 export function getX402Config(): X402Config {
-  const network = process.env.X402_NETWORK ?? 'evm:base'
+  const network = process.env.X402_NETWORK ?? 'evm:base';
   return {
     enabled: process.env.X402_ENABLED === 'true',
     receivingAddress: process.env.X402_RECEIVING_ADDRESS ?? '',
@@ -108,7 +108,7 @@ export function getX402Config(): X402Config {
     usdcAsset: USDC_ADDRESSES[network] ?? USDC_ADDRESSES['evm:base'],
     facilitatorUrl: process.env.X402_FACILITATOR_URL ?? DEFAULT_FACILITATOR_URL,
     maxTimeoutSeconds: 300,
-  }
+  };
 }
 
 // =============================================================================
@@ -117,16 +117,16 @@ export function getX402Config(): X402Config {
 
 /** Encode a PaymentRequired object as base64 for the X-PAYMENT-REQUIRED header. */
 export function encodePaymentRequired(req: PaymentRequiredV1): string {
-  return Buffer.from(JSON.stringify(req), 'utf-8').toString('base64')
+  return Buffer.from(JSON.stringify(req), 'utf-8').toString('base64');
 }
 
 /** Decode the X-PAYMENT-PAYLOAD header from a client request. */
 function decodePaymentPayload(header: string): PaymentPayloadV1 | null {
   try {
-    const json = Buffer.from(header, 'base64').toString('utf-8')
-    return JSON.parse(json) as PaymentPayloadV1
+    const json = Buffer.from(header, 'base64').toString('utf-8');
+    return JSON.parse(json) as PaymentPayloadV1;
   } catch {
-    return null
+    return null;
   }
 }
 
@@ -139,9 +139,9 @@ function decodePaymentPayload(header: string): PaymentPayloadV1 | null {
  * USDC has 6 decimal places.
  */
 function toAtomicUnits(humanAmount: string): string {
-  const amount = Number.parseFloat(humanAmount)
-  if (!Number.isFinite(amount) || amount <= 0) return '1000' // fallback: $0.001
-  return String(Math.round(amount * 10 ** USDC_DECIMALS))
+  const amount = Number.parseFloat(humanAmount);
+  if (!Number.isFinite(amount) || amount <= 0) return '1000'; // fallback: $0.001
+  return String(Math.round(amount * 10 ** USDC_DECIMALS));
 }
 
 /**
@@ -152,8 +152,8 @@ function toAtomicUnits(humanAmount: string): string {
  *                      Defaults to X402_PRICE_PER_TASK env var ('0.001').
  */
 export function buildPaymentRequired(resource: string, customPrice?: string): PaymentRequiredV1 {
-  const config = getX402Config()
-  const price = customPrice ?? config.pricePerTask
+  const config = getX402Config();
+  const price = customPrice ?? config.pricePerTask;
   const requirements: PaymentRequirementsV1 = {
     scheme: 'exact',
     network: config.network,
@@ -166,8 +166,8 @@ export function buildPaymentRequired(resource: string, customPrice?: string): Pa
     maxTimeoutSeconds: config.maxTimeoutSeconds,
     asset: config.usdcAsset,
     extra: { name: 'USDC', version: '2' },
-  }
-  return { x402Version: 1, accepts: [requirements] }
+  };
+  return { x402Version: 1, accepts: [requirements] };
 }
 
 // =============================================================================
@@ -185,24 +185,24 @@ export async function verifyPayment(
   payloadHeader: string,
   resource: string,
 ): Promise<{ valid: true } | { valid: false; error: string }> {
-  const config = getX402Config()
+  const config = getX402Config();
 
-  const paymentPayload = decodePaymentPayload(payloadHeader)
+  const paymentPayload = decodePaymentPayload(payloadHeader);
   if (!paymentPayload) {
-    return { valid: false, error: 'Could not decode X-PAYMENT-PAYLOAD (invalid base64 or JSON)' }
+    return { valid: false, error: 'Could not decode X-PAYMENT-PAYLOAD (invalid base64 or JSON)' };
   }
 
   // Rebuild the requirements so the facilitator can verify against them
-  const requirements = buildPaymentRequired(resource).accepts[0]
+  const requirements = buildPaymentRequired(resource).accepts[0];
   if (!requirements) {
-    return { valid: false, error: 'Internal: could not build payment requirements' }
+    return { valid: false, error: 'Internal: could not build payment requirements' };
   }
 
   const body: VerifyRequestBody = {
     x402Version: 1,
     paymentPayload,
     paymentRequirements: requirements,
-  }
+  };
 
   try {
     const resp = await fetch(`${config.facilitatorUrl}/verify`, {
@@ -210,28 +210,28 @@ export async function verifyPayment(
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(body),
       signal: AbortSignal.timeout(10_000), // 10-second facilitator timeout
-    })
+    });
 
     if (!resp.ok) {
-      const text = await resp.text().catch(() => `HTTP ${resp.status}`)
+      const text = await resp.text().catch(() => `HTTP ${resp.status}`);
       logger.warn('x402 facilitator returned non-OK status', {
         status: resp.status,
         body: text.slice(0, 200),
-      })
-      return { valid: false, error: `Facilitator error: HTTP ${resp.status}` }
+      });
+      return { valid: false, error: `Facilitator error: HTTP ${resp.status}` };
     }
 
-    const result = (await resp.json()) as VerifyResponseBody
+    const result = (await resp.json()) as VerifyResponseBody;
 
     if (!result.isValid) {
-      return { valid: false, error: result.invalidReason ?? 'Payment rejected by facilitator' }
+      return { valid: false, error: result.invalidReason ?? 'Payment rejected by facilitator' };
     }
 
-    return { valid: true }
+    return { valid: true };
   } catch (err) {
-    const message = err instanceof Error ? err.message : 'Unknown error'
-    logger.warn('x402 facilitator request failed', { error: message })
-    return { valid: false, error: `Facilitator unreachable: ${message}` }
+    const message = err instanceof Error ? err.message : 'Unknown error';
+    logger.warn('x402 facilitator request failed', { error: message });
+    return { valid: false, error: `Facilitator unreachable: ${message}` };
   }
 }
 
@@ -244,8 +244,8 @@ export async function verifyPayment(
  * Returns null when x402 is disabled.
  */
 export function buildPaymentMethods(baseUrl: string): Record<string, unknown> | null {
-  const config = getX402Config()
-  if (!(config.enabled && config.receivingAddress)) return null
+  const config = getX402Config();
+  if (!(config.enabled && config.receivingAddress)) return null;
 
   return {
     version: '1.0',
@@ -263,5 +263,5 @@ export function buildPaymentMethods(baseUrl: string): Record<string, unknown> | 
         extra: { name: 'USDC', version: '2' },
       },
     ],
-  }
+  };
 }

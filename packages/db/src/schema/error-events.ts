@@ -6,7 +6,7 @@
  * Supplemented by Axiom log drain for full log search.
  */
 
-import { index, jsonb, pgTable, text, timestamp } from 'drizzle-orm/pg-core'
+import { index, jsonb, pgTable, text, timestamp } from 'drizzle-orm/pg-core';
 
 // =============================================================================
 // Error Events Table
@@ -58,10 +58,10 @@ export const errorEvents = pgTable(
     index('error_events_app_env_idx').on(table.app, table.environment),
     index('error_events_level_idx').on(table.level),
   ],
-)
+);
 
 /** Row type for select queries */
-export type ErrorEventRow = typeof errorEvents.$inferSelect
+export type ErrorEventRow = typeof errorEvents.$inferSelect;
 
 /** Insert type for new records */
-export type ErrorEventInsert = typeof errorEvents.$inferInsert
+export type ErrorEventInsert = typeof errorEvents.$inferInsert;

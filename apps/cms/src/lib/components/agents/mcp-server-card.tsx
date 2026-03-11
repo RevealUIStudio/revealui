@@ -1,38 +1,38 @@
-'use client'
+'use client';
 
-import { useState } from 'react'
+import { useState } from 'react';
 
 export interface McpServerInfo {
-  id: string
-  name: string
-  description: string
-  status: 'configured' | 'active' | 'unavailable'
-  packageName: string
-  envRequired: string[]
-  tools: McpToolInfo[]
+  id: string;
+  name: string;
+  description: string;
+  status: 'configured' | 'active' | 'unavailable';
+  packageName: string;
+  envRequired: string[];
+  tools: McpToolInfo[];
 }
 
 export interface McpToolInfo {
-  name: string
-  description: string
-  parameterCount: number
+  name: string;
+  description: string;
+  parameterCount: number;
 }
 
 interface McpServerCardProps {
-  server: McpServerInfo
+  server: McpServerInfo;
 }
 
 /**
  * Displays an MCP server and its available tools in the MCP UI panel.
  */
 export function McpServerCard({ server }: McpServerCardProps) {
-  const [expanded, setExpanded] = useState(false)
+  const [expanded, setExpanded] = useState(false);
 
   const statusColors = {
     configured: 'bg-yellow-500/10 text-yellow-400',
     active: 'bg-emerald-500/10 text-emerald-400',
     unavailable: 'bg-red-500/10 text-red-400',
-  }
+  };
 
   return (
     <div className="rounded-xl border border-zinc-800 bg-zinc-900 p-5">
@@ -111,5 +111,5 @@ export function McpServerCard({ server }: McpServerCardProps) {
         </div>
       )}
     </div>
-  )
+  );
 }

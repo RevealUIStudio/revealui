@@ -16,27 +16,27 @@
  *   }
  */
 
-import type { LogEntry } from '@revealui/utils/logger'
-import { getClient } from './client/index.js'
-import { appLogs } from './schema/app-logs.js'
+import type { LogEntry } from '@revealui/utils/logger';
+import { getClient } from './client/index.js';
+import { appLogs } from './schema/app-logs.js';
 
-const SHIP_LEVELS = new Set(['warn', 'error', 'fatal'])
+const SHIP_LEVELS = new Set(['warn', 'error', 'fatal']);
 
 export function createDbLogHandler(app: string): (entry: LogEntry) => void {
   return (entry: LogEntry): void => {
-    if (!SHIP_LEVELS.has(entry.level)) return
-    if (process.env.NODE_ENV !== 'production') return
+    if (!SHIP_LEVELS.has(entry.level)) return;
+    if (process.env.NODE_ENV !== 'production') return;
 
     // Merge context + error into a single data object
-    const data: Record<string, unknown> = {}
+    const data: Record<string, unknown> = {};
     if (entry.context && Object.keys(entry.context).length > 0) {
-      Object.assign(data, entry.context)
+      Object.assign(data, entry.context);
     }
     if (entry.error) {
-      data.error = entry.error
+      data.error = entry.error;
     }
 
-    const db = getClient()
+    const db = getClient();
     db.insert(appLogs)
       .values({
         level: entry.level,
@@ -49,6 +49,6 @@ export function createDbLogHandler(app: string): (entry: LogEntry) => void {
       })
       .catch(() => {
         // Intentionally empty — never throw back to the logger
-      })
-  }
+      });
+  };
 }

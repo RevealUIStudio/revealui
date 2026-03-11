@@ -1,8 +1,8 @@
-import { clsx } from 'clsx/lite'
-import type { ComponentProps } from 'react'
+import { clsx } from 'clsx/lite';
+import type { ComponentProps } from 'react';
 
 export function Logo({ className, ...props }: ComponentProps<'span'>) {
-  return <span className={clsx('flex h-8 items-stretch', className)} {...props} />
+  return <span className={clsx('flex h-8 items-stretch', className)} {...props} />;
 }
 
 export function LogoGrid({ className, ...props }: ComponentProps<'div'>) {
@@ -14,5 +14,5 @@ export function LogoGrid({ className, ...props }: ComponentProps<'div'>) {
       )}
       {...props}
     />
-  )
+  );
 }

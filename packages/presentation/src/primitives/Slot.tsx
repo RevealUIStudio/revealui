@@ -1,9 +1,9 @@
-import React, { type Ref } from 'react'
+import React, { type Ref } from 'react';
 
 export interface SlotProps extends React.HTMLAttributes<HTMLElement> {
-  children?: React.ReactNode
-  asChild?: boolean
-  ref?: React.Ref<HTMLElement>
+  children?: React.ReactNode;
+  asChild?: boolean;
+  ref?: React.Ref<HTMLElement>;
 }
 
 /**
@@ -16,14 +16,14 @@ function Slot({ children, asChild, ref, ...slotProps }: SlotProps) {
       ...slotProps,
       ...(children.props as Record<string, unknown>),
       ref,
-    } as unknown as React.HTMLAttributes<HTMLElement>)
+    } as unknown as React.HTMLAttributes<HTMLElement>);
   }
 
   return (
     <div {...slotProps} ref={ref as Ref<HTMLDivElement>}>
       {children}
     </div>
-  )
+  );
 }
 
-export { Slot }
+export { Slot };

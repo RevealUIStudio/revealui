@@ -5,7 +5,7 @@
  * Prevents injection attacks and malformed data errors
  */
 
-import { z } from 'zod/v4'
+import { z } from 'zod/v4';
 
 /**
  * Schema for Stripe Customer Update
@@ -26,7 +26,7 @@ export const CustomerUpdateSchema = z.object({
       country: z.string().length(2).optional(), // ISO country code
     })
     .optional(),
-})
+});
 
 /**
  * Schema for Stripe Customer Create
@@ -47,10 +47,10 @@ export const CustomerCreateSchema = z.object({
       country: z.string().length(2).optional(),
     })
     .optional(),
-})
+});
 
 /**
  * Type exports for use in API routes
  */
-export type CustomerUpdateInput = z.infer<typeof CustomerUpdateSchema>
-export type CustomerCreateInput = z.infer<typeof CustomerCreateSchema>
+export type CustomerUpdateInput = z.infer<typeof CustomerUpdateSchema>;
+export type CustomerCreateInput = z.infer<typeof CustomerCreateSchema>;

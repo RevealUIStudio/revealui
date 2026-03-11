@@ -4,14 +4,14 @@
  * Core validation logic for AI-generated code
  */
 
-import { minimatch } from 'minimatch'
+import { minimatch } from 'minimatch';
 import type {
   CodeStandards,
   ValidateCodeOptions,
   ValidationResult,
   ValidationRule,
   ValidationViolation,
-} from './types.ts'
+} from './types.ts';
 
 export class CodeValidator {
   constructor(private standards: CodeStandards) {}
@@ -20,33 +20,33 @@ export class CodeValidator {
    * Validate code content against standards
    */
   validate(code: string, options: ValidateCodeOptions = {}): ValidationResult {
-    const violations: ValidationViolation[] = []
-    const lines = code.split('\n')
-    let exemptionsApplied = 0
+    const violations: ValidationViolation[] = [];
+    const lines = code.split('\n');
+    let exemptionsApplied = 0;
 
     for (const rule of this.standards.rules) {
       // Check if file path is exempted
       if (options.filePath && this.isPathExempted(options.filePath, rule)) {
-        exemptionsApplied++
-        continue
+        exemptionsApplied++;
+        continue;
       }
 
-      const regex = new RegExp(rule.pattern, 'g')
+      const regex = new RegExp(rule.pattern, 'g');
 
       for (let i = 0; i < lines.length; i++) {
-        const line = lines[i]
-        if (!line) continue
+        const line = lines[i];
+        if (!line) continue;
 
-        const lineNumber = i + 1
+        const lineNumber = i + 1;
 
         // Check if line has exemption comment
         if (this.hasExemptionComment(line, rule, options.exemptionComments)) {
-          exemptionsApplied++
-          continue
+          exemptionsApplied++;
+          continue;
         }
 
         // Check for violations
-        let match: RegExpExecArray | null
+        let match: RegExpExecArray | null;
         // biome-ignore lint/suspicious/noAssignInExpressions: Standard regex iteration pattern
         while ((match = regex.exec(line)) !== null) {
           violations.push({
@@ -59,14 +59,14 @@ export class CodeValidator {
             lineContent: line.trim(),
             context: this.getContext(lines, i),
             suggestedFix: rule.suggestedFix,
-          })
+          });
         }
       }
     }
 
-    const errors = violations.filter((v) => v.severity === 'error').length
-    const warnings = violations.filter((v) => v.severity === 'warning').length
-    const info = violations.filter((v) => v.severity === 'info').length
+    const errors = violations.filter((v) => v.severity === 'error').length;
+    const warnings = violations.filter((v) => v.severity === 'warning').length;
+    const info = violations.filter((v) => v.severity === 'info').length;
 
     return {
       valid: errors === 0,
@@ -79,7 +79,7 @@ export class CodeValidator {
         rulesApplied: this.standards.rules.length,
         exemptionsApplied,
       },
-    }
+    };
   }
 
   /**
@@ -87,31 +87,31 @@ export class CodeValidator {
    */
   autoFix(code: string): { code: string; fixesApplied: number } {
     if (!(this.standards.autoFix?.enabled && this.standards.autoFix.rules)) {
-      return { code, fixesApplied: 0 }
+      return { code, fixesApplied: 0 };
     }
 
-    let fixedCode = code
-    let fixesApplied = 0
+    let fixedCode = code;
+    let fixesApplied = 0;
 
     for (const fixRule of this.standards.autoFix.rules) {
-      const regex = new RegExp(fixRule.find, 'g')
-      const matches = fixedCode.match(regex)
+      const regex = new RegExp(fixRule.find, 'g');
+      const matches = fixedCode.match(regex);
       if (matches) {
-        fixedCode = fixedCode.replace(regex, fixRule.replace)
-        fixesApplied += matches.length
+        fixedCode = fixedCode.replace(regex, fixRule.replace);
+        fixesApplied += matches.length;
       }
     }
 
-    return { code: fixedCode, fixesApplied }
+    return { code: fixedCode, fixesApplied };
   }
 
   /**
    * Check if file path is exempted from rule
    */
   private isPathExempted(filePath: string, rule: ValidationRule): boolean {
-    if (!rule.exemptions?.paths) return false
+    if (!rule.exemptions?.paths) return false;
 
-    return rule.exemptions.paths.some((pattern) => minimatch(filePath, pattern))
+    return rule.exemptions.paths.some((pattern) => minimatch(filePath, pattern));
   }
 
   /**
@@ -122,45 +122,45 @@ export class CodeValidator {
     rule: ValidationRule,
     additionalComments?: string[],
   ): boolean {
-    const exemptionComments = [...(rule.exemptions?.comments || []), ...(additionalComments || [])]
+    const exemptionComments = [...(rule.exemptions?.comments || []), ...(additionalComments || [])];
 
-    return exemptionComments.some((comment) => line.includes(comment))
+    return exemptionComments.some((comment) => line.includes(comment));
   }
 
   /**
    * Get context lines around a violation
    */
   private getContext(lines: string[], index: number): string[] | undefined {
-    const contextLines = this.standards.reporting?.contextLines || 2
-    if (!this.standards.reporting?.showContext) return undefined
+    const contextLines = this.standards.reporting?.contextLines || 2;
+    if (!this.standards.reporting?.showContext) return undefined;
 
-    const start = Math.max(0, index - contextLines)
-    const end = Math.min(lines.length, index + contextLines + 1)
+    const start = Math.max(0, index - contextLines);
+    const end = Math.min(lines.length, index + contextLines + 1);
 
     return lines.slice(start, end).map((line, i) => {
-      const lineNumber = start + i + 1
-      const marker = lineNumber === index + 1 ? '>' : ' '
-      return `${marker} ${lineNumber.toString().padStart(4)} | ${line}`
-    })
+      const lineNumber = start + i + 1;
+      const marker = lineNumber === index + 1 ? '>' : ' ';
+      return `${marker} ${lineNumber.toString().padStart(4)} | ${line}`;
+    });
   }
 
   /**
    * Format validation result for display
    */
   formatResult(result: ValidationResult, options: { colors?: boolean } = {}): string {
-    const { colors = true } = options
-    const lines: string[] = []
+    const { colors = true } = options;
+    const lines: string[] = [];
 
     // Summary
     if (result.violations.length === 0) {
       lines.push(
         colors ? '\x1b[32m✓ Code passes all standards\x1b[0m' : '✓ Code passes all standards',
-      )
-      return lines.join('\n')
+      );
+      return lines.join('\n');
     }
 
-    lines.push(colors ? '\x1b[31m✗ Code violations found\x1b[0m' : '✗ Code violations found')
-    lines.push('')
+    lines.push(colors ? '\x1b[31m✗ Code violations found\x1b[0m' : '✗ Code violations found');
+    lines.push('');
 
     // Violations
     for (const violation of result.violations) {
@@ -170,35 +170,37 @@ export class CodeValidator {
           : violation.severity === 'warning'
             ? '\x1b[33m'
             : '\x1b[36m'
-        : ''
-      const reset = colors ? '\x1b[0m' : ''
+        : '';
+      const reset = colors ? '\x1b[0m' : '';
 
       lines.push(
         `${severityColor}${violation.severity.toUpperCase()}${reset} [${violation.ruleId}] ${violation.ruleName}`,
-      )
-      lines.push(`  at line ${violation.line}:${violation.column}`)
-      lines.push(`  ${violation.message}`)
+      );
+      lines.push(`  at line ${violation.line}:${violation.column}`);
+      lines.push(`  ${violation.message}`);
 
       if (violation.context && this.standards.reporting?.showContext) {
-        lines.push('')
-        lines.push(...violation.context.map((line) => `    ${line}`))
+        lines.push('');
+        lines.push(...violation.context.map((line) => `    ${line}`));
       }
 
       if (violation.suggestedFix) {
-        lines.push(`  ${colors ? '\x1b[36m' : ''}Suggested fix:${reset}`)
-        lines.push(`    ${violation.suggestedFix}`)
+        lines.push(`  ${colors ? '\x1b[36m' : ''}Suggested fix:${reset}`);
+        lines.push(`    ${violation.suggestedFix}`);
       }
 
-      lines.push('')
+      lines.push('');
     }
 
     // Stats
-    lines.push(`Summary: ${result.errors} errors, ${result.warnings} warnings, ${result.info} info`)
+    lines.push(
+      `Summary: ${result.errors} errors, ${result.warnings} warnings, ${result.info} info`,
+    );
     lines.push(
       `Scanned ${result.stats.linesScanned} lines with ${result.stats.rulesApplied} rules (${result.stats.exemptionsApplied} exemptions)`,
-    )
+    );
 
-    return lines.join('\n')
+    return lines.join('\n');
   }
 }
 
@@ -206,15 +208,15 @@ export class CodeValidator {
  * Load code standards from JSON file
  */
 export async function loadStandards(filePath: string): Promise<CodeStandards> {
-  const fs = await import('node:fs/promises')
-  const content = await fs.readFile(filePath, 'utf-8')
-  return JSON.parse(content) as CodeStandards
+  const fs = await import('node:fs/promises');
+  const content = await fs.readFile(filePath, 'utf-8');
+  return JSON.parse(content) as CodeStandards;
 }
 
 /**
  * Create validator instance with standards
  */
 export async function createValidator(standardsPath: string): Promise<CodeValidator> {
-  const standards = await loadStandards(standardsPath)
-  return new CodeValidator(standards)
+  const standards = await loadStandards(standardsPath);
+  return new CodeValidator(standards);
 }

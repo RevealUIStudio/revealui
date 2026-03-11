@@ -17,33 +17,33 @@
  * - typescript - TypeScript compiler API for AST parsing
  */
 
-import { readFile, readFileSync } from 'node:fs'
-import { relative } from 'node:path'
-import * as ts from 'typescript'
+import { readFile, readFileSync } from 'node:fs';
+import { relative } from 'node:path';
+import * as ts from 'typescript';
 
 export interface ConsoleUsage {
-  file: string
-  line: number
-  column: number
-  method: 'log' | 'error' | 'warn' | 'debug' | 'info' | 'trace'
-  code: string
-  category: 'production' | 'test' | 'script' | 'unknown'
+  file: string;
+  line: number;
+  column: number;
+  method: 'log' | 'error' | 'warn' | 'debug' | 'info' | 'trace';
+  code: string;
+  category: 'production' | 'test' | 'script' | 'unknown';
 }
 
 export interface ConsoleAnalysisResult {
-  usages: ConsoleUsage[]
+  usages: ConsoleUsage[];
   summary: {
-    total: number
-    production: number
-    test: number
-    script: number
-    unknown: number
-  }
+    total: number;
+    production: number;
+    test: number;
+    script: number;
+    unknown: number;
+  };
 }
 
-export type AnalysisMode = 'ast' | 'regex' | 'auto'
+export type AnalysisMode = 'ast' | 'regex' | 'auto';
 
-const CONSOLE_METHODS = new Set(['log', 'error', 'warn', 'debug', 'info', 'trace'])
+const CONSOLE_METHODS = new Set(['log', 'error', 'warn', 'debug', 'info', 'trace']);
 
 /**
  * Categorize a file based on its path to determine the appropriate context
@@ -66,7 +66,7 @@ export function categorizeFile(
   filePath: string,
   workspaceRoot: string,
 ): 'production' | 'test' | 'script' | 'unknown' {
-  const relativePath = relative(workspaceRoot, filePath)
+  const relativePath = relative(workspaceRoot, filePath);
 
   // Test files
   if (
@@ -75,7 +75,7 @@ export function categorizeFile(
     relativePath.includes('__tests__') ||
     relativePath.includes('/tests/')
   ) {
-    return 'test'
+    return 'test';
   }
 
   // Scripts
@@ -85,7 +85,7 @@ export function categorizeFile(
     relativePath.endsWith('.config.ts') ||
     relativePath.endsWith('.config.js')
   ) {
-    return 'script'
+    return 'script';
   }
 
   // Production code
@@ -93,18 +93,18 @@ export function categorizeFile(
     relativePath.includes('/src/') &&
     (relativePath.startsWith('packages/') || relativePath.startsWith('apps/'))
   ) {
-    return 'production'
+    return 'production';
   }
 
-  return 'unknown'
+  return 'unknown';
 }
 
 /**
  * Context for AST traversal (caches expensive operations)
  */
 interface ConsoleASTContext {
-  sourceFile: ts.SourceFile
-  lines: string[] // Cached line array to avoid repeated split() calls
+  sourceFile: ts.SourceFile;
+  lines: string[]; // Cached line array to avoid repeated split() calls
 }
 
 /**
@@ -113,16 +113,16 @@ interface ConsoleASTContext {
  * or: if (!isProduction) where isProduction is derived from NODE_ENV
  */
 function isInsideProductionGuard(node: ts.Node, _sourceFile: ts.SourceFile): boolean {
-  let current: ts.Node | undefined = node
+  let current: ts.Node | undefined = node;
 
   // Walk up the AST to find conditional statements
   while (current) {
     if (ts.isIfStatement(current)) {
-      const condition = current.expression
+      const condition = current.expression;
 
       // Check for direct NODE_ENV checks
       if (isNodeEnvProductionCheck(condition)) {
-        return true
+        return true;
       }
 
       // Check for variable references that might be production checks
@@ -137,14 +137,14 @@ function isInsideProductionGuard(node: ts.Node, _sourceFile: ts.SourceFile): boo
         condition.operator === ts.SyntaxKind.ExclamationToken &&
         isNodeEnvProductionCheck(condition.operand)
       ) {
-        return true
+        return true;
       }
     }
 
-    current = current.parent
+    current = current.parent;
   }
 
-  return false
+  return false;
 }
 
 /**
@@ -153,7 +153,7 @@ function isInsideProductionGuard(node: ts.Node, _sourceFile: ts.SourceFile): boo
 function isNodeEnvProductionCheck(node: ts.Expression): boolean {
   // Check for: process.env.NODE_ENV !== 'production'
   if (ts.isBinaryExpression(node)) {
-    const { left, operatorToken, right } = node
+    const { left, operatorToken, right } = node;
 
     if (
       operatorToken.kind === ts.SyntaxKind.ExclamationEqualsEqualsToken ||
@@ -163,14 +163,14 @@ function isNodeEnvProductionCheck(node: ts.Expression): boolean {
       if (isProcessEnvNodeEnv(left)) {
         // Check if right side is 'production' literal
         if (ts.isStringLiteral(right) && right.text === 'production') {
-          return true
+          return true;
         }
       }
 
       // Also check reverse: 'production' !== process.env.NODE_ENV
       if (isProcessEnvNodeEnv(right)) {
         if (ts.isStringLiteral(left) && left.text === 'production') {
-          return true
+          return true;
         }
       }
     }
@@ -178,7 +178,7 @@ function isNodeEnvProductionCheck(node: ts.Expression): boolean {
 
   // Check for: process.env.NODE_ENV === 'development'
   if (ts.isBinaryExpression(node)) {
-    const { left, operatorToken, right } = node
+    const { left, operatorToken, right } = node;
 
     if (
       operatorToken.kind === ts.SyntaxKind.EqualsEqualsEqualsToken ||
@@ -186,13 +186,13 @@ function isNodeEnvProductionCheck(node: ts.Expression): boolean {
     ) {
       if (isProcessEnvNodeEnv(left)) {
         if (ts.isStringLiteral(right) && right.text === 'development') {
-          return true
+          return true;
         }
       }
     }
   }
 
-  return false
+  return false;
 }
 
 /**
@@ -200,10 +200,10 @@ function isNodeEnvProductionCheck(node: ts.Expression): boolean {
  */
 function isProcessEnvNodeEnv(node: ts.Expression): boolean {
   if (ts.isPropertyAccessExpression(node)) {
-    const { expression, name } = node
+    const { expression, name } = node;
 
     if (ts.isPropertyAccessExpression(expression)) {
-      const { expression: envExpr, name: envName } = expression
+      const { expression: envExpr, name: envName } = expression;
 
       if (
         ts.isIdentifier(envExpr) &&
@@ -213,12 +213,12 @@ function isProcessEnvNodeEnv(node: ts.Expression): boolean {
         ts.isIdentifier(name) &&
         name.text === 'NODE_ENV'
       ) {
-        return true
+        return true;
       }
     }
   }
 
-  return false
+  return false;
 }
 
 /**
@@ -226,7 +226,7 @@ function isProcessEnvNodeEnv(node: ts.Expression): boolean {
  * Error methods are generally acceptable, info/debug/log are not
  */
 function isProductionAppropriateConsole(method: string): boolean {
-  return method === 'error' // Only error logging is acceptable in production
+  return method === 'error'; // Only error logging is acceptable in production
 }
 
 /**
@@ -242,16 +242,16 @@ function findConsoleCallsInNode(
   workspaceRoot: string,
 ): void {
   if (ts.isPropertyAccessExpression(node)) {
-    const expression = node.expression
+    const expression = node.expression;
 
     if (ts.isIdentifier(expression) && expression.text === 'console') {
-      const methodName = node.name.text
+      const methodName = node.name.text;
 
       if (CONSOLE_METHODS.has(methodName)) {
-        const parent = node.parent
+        const parent = node.parent;
         if (parent && ts.isCallExpression(parent)) {
           // Check if this console call is inside a production guard
-          const isGuarded = isInsideProductionGuard(node, context.sourceFile)
+          const isGuarded = isInsideProductionGuard(node, context.sourceFile);
 
           // For production code, only count unguarded inappropriate calls
           // (calls not inside production guards that aren't error logging)
@@ -261,9 +261,9 @@ function findConsoleCallsInNode(
           ) {
             const { line, character } = context.sourceFile.getLineAndCharacterOfPosition(
               node.getStart(),
-            )
+            );
             // Use cached lines array instead of calling getText().split() every time
-            const lineText = context.lines[line]?.trim() || ''
+            const lineText = context.lines[line]?.trim() || '';
 
             usages.push({
               file: relative(workspaceRoot, filePath),
@@ -272,7 +272,7 @@ function findConsoleCallsInNode(
               method: methodName as ConsoleUsage['method'],
               code: lineText.substring(0, 100),
               category,
-            })
+            });
           }
         }
       }
@@ -280,8 +280,8 @@ function findConsoleCallsInNode(
   }
 
   ts.forEachChild(node, (child) => {
-    findConsoleCallsInNode(child, context, usages, filePath, category, workspaceRoot)
-  })
+    findConsoleCallsInNode(child, context, usages, filePath, category, workspaceRoot);
+  });
 }
 
 /**
@@ -304,19 +304,19 @@ function findConsoleCallsInNode(
  * @see {@link analyzeFile} for automatic mode selection
  */
 export function analyzeFileAST(filePath: string, workspaceRoot: string): ConsoleUsage[] {
-  const usages: ConsoleUsage[] = []
-  const category = categorizeFile(filePath, workspaceRoot)
+  const usages: ConsoleUsage[] = [];
+  const category = categorizeFile(filePath, workspaceRoot);
 
   try {
-    const content = readFileSync(filePath, 'utf-8')
+    const content = readFileSync(filePath, 'utf-8');
 
-    const ext = filePath.split('.').pop()?.toLowerCase()
+    const ext = filePath.split('.').pop()?.toLowerCase();
     const scriptKind =
       ext === 'tsx' || ext === 'jsx'
         ? ts.ScriptKind.TSX
         : ext === 'ts' || ext === 'js'
           ? ts.ScriptKind.TS
-          : ts.ScriptKind.Unknown
+          : ts.ScriptKind.Unknown;
 
     const sourceFile = ts.createSourceFile(
       filePath,
@@ -324,21 +324,21 @@ export function analyzeFileAST(filePath: string, workspaceRoot: string): Console
       ts.ScriptTarget.Latest,
       true,
       scriptKind,
-    )
+    );
 
     // Cache lines array once to avoid repeated split() calls (performance optimization)
     const context: ConsoleASTContext = {
       sourceFile,
       lines: content.split('\n'),
-    }
+    };
 
-    findConsoleCallsInNode(sourceFile, context, usages, filePath, category, workspaceRoot)
+    findConsoleCallsInNode(sourceFile, context, usages, filePath, category, workspaceRoot);
   } catch (_error) {
     // Skip files that can't be parsed (silently continue for library usage)
     // Calling code can handle logging if needed
   }
 
-  return usages
+  return usages;
 }
 
 /**
@@ -363,23 +363,23 @@ export async function analyzeFileRegex(
   filePath: string,
   workspaceRoot: string,
 ): Promise<ConsoleUsage[]> {
-  const category = categorizeFile(filePath, workspaceRoot)
-  const usages: ConsoleUsage[] = []
+  const category = categorizeFile(filePath, workspaceRoot);
+  const usages: ConsoleUsage[] = [];
 
   try {
     const content = await new Promise<string>((resolve, reject) => {
       readFile(filePath, 'utf-8', (err, data) => {
-        if (err) reject(err)
-        else resolve(data)
-      })
-    })
+        if (err) reject(err);
+        else resolve(data);
+      });
+    });
 
-    const lines = content.split('\n')
-    const consoleRegex = /\bconsole\.(log|warn|error|info|debug|trace)\s*\(/g
+    const lines = content.split('\n');
+    const consoleRegex = /\bconsole\.(log|warn|error|info|debug|trace)\s*\(/g;
 
     for (let i = 0; i < lines.length; i++) {
-      const line = lines[i]
-      let match = consoleRegex.exec(line)
+      const line = lines[i];
+      let match = consoleRegex.exec(line);
 
       while (match !== null) {
         usages.push({
@@ -389,8 +389,8 @@ export async function analyzeFileRegex(
           method: match[1] as ConsoleUsage['method'],
           code: line.trim(),
           category,
-        })
-        match = consoleRegex.exec(line)
+        });
+        match = consoleRegex.exec(line);
       }
     }
   } catch (_error) {
@@ -398,7 +398,7 @@ export async function analyzeFileRegex(
     // Calling code can handle logging if needed
   }
 
-  return usages
+  return usages;
 }
 
 /**
@@ -430,20 +430,20 @@ export async function analyzeFile(
   mode: AnalysisMode = 'auto',
 ): Promise<ConsoleUsage[]> {
   if (mode === 'ast') {
-    return analyzeFileAST(filePath, workspaceRoot)
+    return analyzeFileAST(filePath, workspaceRoot);
   }
 
   if (mode === 'regex') {
-    return analyzeFileRegex(filePath, workspaceRoot)
+    return analyzeFileRegex(filePath, workspaceRoot);
   }
 
   // Auto mode: use AST for TypeScript, regex for JavaScript
-  const ext = filePath.split('.').pop()?.toLowerCase()
+  const ext = filePath.split('.').pop()?.toLowerCase();
   if (ext === 'ts' || ext === 'tsx') {
-    return analyzeFileAST(filePath, workspaceRoot)
+    return analyzeFileAST(filePath, workspaceRoot);
   }
 
-  return analyzeFileRegex(filePath, workspaceRoot)
+  return analyzeFileRegex(filePath, workspaceRoot);
 }
 
 /**
@@ -474,18 +474,18 @@ export async function analyzeFiles(
   workspaceRoot: string,
   mode: AnalysisMode = 'auto',
 ): Promise<ConsoleAnalysisResult> {
-  const allUsages: ConsoleUsage[] = []
+  const allUsages: ConsoleUsage[] = [];
 
   for (const file of filePaths) {
-    const usages = await analyzeFile(file, workspaceRoot, mode)
-    allUsages.push(...usages)
+    const usages = await analyzeFile(file, workspaceRoot, mode);
+    allUsages.push(...usages);
   }
 
   // Calculate summary
-  const production = allUsages.filter((u) => u.category === 'production')
-  const test = allUsages.filter((u) => u.category === 'test')
-  const script = allUsages.filter((u) => u.category === 'script')
-  const unknown = allUsages.filter((u) => u.category === 'unknown')
+  const production = allUsages.filter((u) => u.category === 'production');
+  const test = allUsages.filter((u) => u.category === 'test');
+  const script = allUsages.filter((u) => u.category === 'script');
+  const unknown = allUsages.filter((u) => u.category === 'unknown');
 
   return {
     usages: allUsages,
@@ -496,7 +496,7 @@ export async function analyzeFiles(
       script: script.length,
       unknown: unknown.length,
     },
-  }
+  };
 }
 
 /**
@@ -531,21 +531,21 @@ export class ConsoleAnalyzer {
    * @returns Array of console usages found
    */
   analyzeAST(filePath: string): ConsoleUsage[] {
-    return analyzeFileAST(filePath, this.workspaceRoot)
+    return analyzeFileAST(filePath, this.workspaceRoot);
   }
 
   /**
    * Analyze using regex pattern matching
    */
   async analyzeRegex(filePath: string): Promise<ConsoleUsage[]> {
-    return analyzeFileRegex(filePath, this.workspaceRoot)
+    return analyzeFileRegex(filePath, this.workspaceRoot);
   }
 
   /**
    * Smart analysis with automatic mode selection
    */
   async analyze(filePath: string, mode: AnalysisMode = 'auto'): Promise<ConsoleUsage[]> {
-    return analyzeFile(filePath, this.workspaceRoot, mode)
+    return analyzeFile(filePath, this.workspaceRoot, mode);
   }
 
   /**
@@ -555,6 +555,6 @@ export class ConsoleAnalyzer {
     filePaths: string[],
     mode: AnalysisMode = 'auto',
   ): Promise<ConsoleAnalysisResult> {
-    return analyzeFiles(filePaths, this.workspaceRoot, mode)
+    return analyzeFiles(filePaths, this.workspaceRoot, mode);
   }
 }

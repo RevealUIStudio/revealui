@@ -11,7 +11,7 @@ export type {
   AuditQuery,
   AuditSeverity,
   AuditStorage,
-} from './audit'
+} from './audit';
 // Audit logging
 export {
   AuditReportGenerator,
@@ -20,25 +20,25 @@ export {
   audit,
   createAuditMiddleware,
   InMemoryAuditStorage,
-} from './audit'
+} from './audit';
 export type {
   OAuthConfig,
   User,
-} from './auth'
+} from './auth';
 // Authentication
 export {
   OAuthClient,
   OAuthProviders,
   PasswordHasher,
   TwoFactorAuth,
-} from './auth'
+} from './auth';
 export type {
   AuthorizationContext,
   Permission,
   Policy,
   PolicyCondition,
   Role,
-} from './authorization'
+} from './authorization';
 // Authorization
 export {
   AuthorizationSystem,
@@ -53,11 +53,11 @@ export {
   permissionCache,
   RequirePermission,
   RequireRole,
-} from './authorization'
+} from './authorization';
 export type {
   EncryptedData,
   EncryptionConfig,
-} from './encryption'
+} from './encryption';
 // Encryption
 export {
   DataMasking,
@@ -67,7 +67,7 @@ export {
   FieldEncryption,
   KeyRotationManager,
   TokenGenerator,
-} from './encryption'
+} from './encryption';
 export type {
   ConsentRecord,
   ConsentType,
@@ -77,7 +77,7 @@ export type {
   DataDeletionRequest,
   DataProcessingPurpose,
   PersonalDataExport,
-} from './gdpr'
+} from './gdpr';
 // GDPR compliance
 export {
   ConsentManager,
@@ -93,10 +93,10 @@ export {
   dataExportSystem,
   PrivacyPolicyManager,
   privacyPolicyManager,
-} from './gdpr'
-export type { GDPRStorage } from './gdpr-storage'
+} from './gdpr';
+export type { GDPRStorage } from './gdpr-storage';
 // GDPR storage abstraction
-export { InMemoryGDPRStorage } from './gdpr-storage'
+export { InMemoryGDPRStorage } from './gdpr-storage';
 export type {
   CORSConfig,
   ContentSecurityPolicyConfig,
@@ -104,7 +104,7 @@ export type {
   PermissionsPolicyConfig,
   ReferrerPolicyValue,
   SecurityHeadersConfig,
-} from './headers'
+} from './headers';
 // Security headers
 export {
   CORSManager,
@@ -113,4 +113,4 @@ export {
   SecurityHeaders,
   SecurityPresets,
   setRateLimitHeaders,
-} from './headers'
+} from './headers';

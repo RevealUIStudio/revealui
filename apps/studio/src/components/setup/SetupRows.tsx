@@ -1,24 +1,24 @@
-import { open } from '@tauri-apps/plugin-shell'
-import { useCallback, useEffect, useState } from 'react'
-import type { useSetup } from '../../hooks/use-setup'
-import { useTunnel } from '../../hooks/use-tunnel'
-import { vaultInit, vaultIsInitialized } from '../../lib/invoke'
-import Button from '../ui/Button'
-import ErrorAlert from '../ui/ErrorAlert'
-import Input from '../ui/Input'
-import StatusDot from '../ui/StatusDot'
+import { open } from '@tauri-apps/plugin-shell';
+import { useCallback, useEffect, useState } from 'react';
+import type { useSetup } from '../../hooks/use-setup';
+import { useTunnel } from '../../hooks/use-tunnel';
+import { vaultInit, vaultIsInitialized } from '../../lib/invoke';
+import Button from '../ui/Button';
+import ErrorAlert from '../ui/ErrorAlert';
+import Input from '../ui/Input';
+import StatusDot from '../ui/StatusDot';
 
-const SETUP_DONE_KEY = 'revealui_project_setup_done'
-const SETUP_CMD = 'pnpm setup:env'
+const SETUP_DONE_KEY = 'revealui_project_setup_done';
+const SETUP_CMD = 'pnpm setup:env';
 
 // ── Shared primitives ────────────────────────────────────────────────────────
 
 interface SetupRowProps {
-  label: string
-  done: boolean
-  doneText: string
-  pendingText: string
-  action?: React.ReactNode
+  label: string;
+  done: boolean;
+  doneText: string;
+  pendingText: string;
+  action?: React.ReactNode;
 }
 
 export function SetupRow({ label, done, doneText, pendingText, action }: SetupRowProps) {
@@ -33,51 +33,51 @@ export function SetupRow({ label, done, doneText, pendingText, action }: SetupRo
       </div>
       <p className="mt-1 text-xs text-neutral-500">{done ? doneText : pendingText}</p>
     </div>
-  )
+  );
 }
 
 // ── Vault hook ───────────────────────────────────────────────────────────────
 
 export function useVaultSetup() {
-  const [vaultInitialized, setVaultInitialized] = useState<boolean | null>(null)
-  const [vaultLoading, setVaultLoading] = useState(false)
-  const [vaultError, setVaultError] = useState<string | null>(null)
+  const [vaultInitialized, setVaultInitialized] = useState<boolean | null>(null);
+  const [vaultLoading, setVaultLoading] = useState(false);
+  const [vaultError, setVaultError] = useState<string | null>(null);
 
   const checkVault = useCallback(async () => {
     try {
-      const initialized = await vaultIsInitialized()
-      setVaultInitialized(initialized)
+      const initialized = await vaultIsInitialized();
+      setVaultInitialized(initialized);
     } catch {
-      setVaultInitialized(false)
+      setVaultInitialized(false);
     }
-  }, [])
+  }, []);
 
   useEffect(() => {
-    checkVault()
-  }, [checkVault])
+    checkVault();
+  }, [checkVault]);
 
   const handleInitVault = async () => {
-    setVaultLoading(true)
-    setVaultError(null)
+    setVaultLoading(true);
+    setVaultError(null);
     try {
-      await vaultInit()
-      setVaultInitialized(true)
+      await vaultInit();
+      setVaultInitialized(true);
     } catch (err) {
-      setVaultError(err instanceof Error ? err.message : String(err))
+      setVaultError(err instanceof Error ? err.message : String(err));
     } finally {
-      setVaultLoading(false)
+      setVaultLoading(false);
     }
-  }
+  };
 
-  return { vaultInitialized, vaultLoading, vaultError, handleInitVault }
+  return { vaultInitialized, vaultLoading, vaultError, handleInitVault };
 }
 
 // ── Composite rows ───────────────────────────────────────────────────────────
 
-type SetupHook = ReturnType<typeof useSetup>
+type SetupHook = ReturnType<typeof useSetup>;
 
 interface SetupStepsProps {
-  setup: SetupHook
+  setup: SetupHook;
 }
 
 export function WslRow({ setup }: SetupStepsProps) {
@@ -88,7 +88,7 @@ export function WslRow({ setup }: SetupStepsProps) {
       doneText="Ubuntu running"
       pendingText="WSL not detected — install WSL from the Microsoft Store"
     />
-  )
+  );
 }
 
 export function NixRow({ setup }: SetupStepsProps) {
@@ -106,7 +106,7 @@ export function NixRow({ setup }: SetupStepsProps) {
         ) : null
       }
     />
-  )
+  );
 }
 
 export function DevPodRow({ setup }: SetupStepsProps) {
@@ -124,7 +124,7 @@ export function DevPodRow({ setup }: SetupStepsProps) {
         ) : null
       }
     />
-  )
+  );
 }
 
 export function GitIdentityRow({ setup }: SetupStepsProps) {
@@ -159,11 +159,11 @@ export function GitIdentityRow({ setup }: SetupStepsProps) {
         </Button>
       </div>
     </div>
-  )
+  );
 }
 
 export function VaultRow() {
-  const { vaultInitialized, vaultLoading, vaultError, handleInitVault } = useVaultSetup()
+  const { vaultInitialized, vaultLoading, vaultError, handleInitVault } = useVaultSetup();
 
   return (
     <div className="rounded-lg border border-neutral-800 bg-neutral-900 px-4 py-3">
@@ -187,11 +187,11 @@ export function VaultRow() {
       </p>
       <ErrorAlert message={vaultError} />
     </div>
-  )
+  );
 }
 
 export function TailscaleRow() {
-  const { status: tunnelStatus } = useTunnel()
+  const { status: tunnelStatus } = useTunnel();
 
   return (
     <SetupRow
@@ -200,23 +200,23 @@ export function TailscaleRow() {
       doneText={`Connected — ${tunnelStatus?.ip ?? 'no IP'} (${tunnelStatus?.hostname ?? 'unknown'})`}
       pendingText="Tailscale not running — start it to enable VPN tunnel to your tailnet"
     />
-  )
+  );
 }
 
 export function ProjectSetupRow() {
-  const [done, setDone] = useState(() => localStorage.getItem(SETUP_DONE_KEY) === 'true')
-  const [copied, setCopied] = useState(false)
+  const [done, setDone] = useState(() => localStorage.getItem(SETUP_DONE_KEY) === 'true');
+  const [copied, setCopied] = useState(false);
 
   const copy = async () => {
-    await navigator.clipboard.writeText(SETUP_CMD)
-    setCopied(true)
-    setTimeout(() => setCopied(false), 2000)
-  }
+    await navigator.clipboard.writeText(SETUP_CMD);
+    setCopied(true);
+    setTimeout(() => setCopied(false), 2000);
+  };
 
   const markDone = () => {
-    localStorage.setItem(SETUP_DONE_KEY, 'true')
-    setDone(true)
-  }
+    localStorage.setItem(SETUP_DONE_KEY, 'true');
+    setDone(true);
+  };
 
   return (
     <div className="rounded-lg border border-neutral-800 bg-neutral-900 px-4 py-3">
@@ -249,5 +249,5 @@ export function ProjectSetupRow() {
         </div>
       )}
     </div>
-  )
+  );
 }

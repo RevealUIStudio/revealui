@@ -1,25 +1,25 @@
-'use client'
+'use client';
 
-import { logger } from '@revealui/core/observability/logger'
-import { useState } from 'react'
+import { logger } from '@revealui/core/observability/logger';
+import { useState } from 'react';
 
 export function LeadCapture() {
-  const [email, setEmail] = useState('')
-  const [isSubmitting, setIsSubmitting] = useState(false)
-  const [isSubmitted, setIsSubmitted] = useState(false)
-  const [errorMessage, setErrorMessage] = useState<string | null>(null)
+  const [email, setEmail] = useState('');
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isSubmitted, setIsSubmitted] = useState(false);
+  const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
   const extractErrorMessage = (payload: unknown): string | null => {
     if (!payload || typeof payload !== 'object' || Array.isArray(payload)) {
-      return null
+      return null;
     }
-    const { error } = payload as { error?: unknown }
-    return typeof error === 'string' ? error : null
-  }
+    const { error } = payload as { error?: unknown };
+    return typeof error === 'string' ? error : null;
+  };
 
   const submitWaitlist = async () => {
-    setIsSubmitting(true)
-    setErrorMessage(null)
+    setIsSubmitting(true);
+    setErrorMessage(null);
 
     try {
       const response = await fetch('/api/waitlist', {
@@ -28,32 +28,32 @@ export function LeadCapture() {
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({ email }),
-      })
+      });
 
-      const payload = (await response.json()) as unknown
-      const errorMessage = extractErrorMessage(payload)
+      const payload = (await response.json()) as unknown;
+      const errorMessage = extractErrorMessage(payload);
 
       if (!response.ok) {
-        throw new Error(errorMessage ?? 'Failed to join waitlist')
+        throw new Error(errorMessage ?? 'Failed to join waitlist');
       }
 
-      setIsSubmitted(true)
-      setEmail('')
+      setIsSubmitted(true);
+      setEmail('');
     } catch (error) {
       logger.error(
         'Waitlist signup error',
         error instanceof Error ? error : new Error(String(error)),
-      )
-      setErrorMessage('Failed to join waitlist. Please try again.')
+      );
+      setErrorMessage('Failed to join waitlist. Please try again.');
     } finally {
-      setIsSubmitting(false)
+      setIsSubmitting(false);
     }
-  }
+  };
 
   const handleSubmit: React.FormEventHandler<HTMLFormElement> = (event) => {
-    event.preventDefault()
-    void submitWaitlist()
-  }
+    event.preventDefault();
+    void submitWaitlist();
+  };
 
   if (isSubmitted) {
     return (
@@ -88,7 +88,7 @@ export function LeadCapture() {
           </div>
         </div>
       </section>
-    )
+    );
   }
 
   return (
@@ -132,5 +132,5 @@ export function LeadCapture() {
         </div>
       </div>
     </section>
-  )
+  );
 }

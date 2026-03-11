@@ -1,7 +1,7 @@
-import clsx from 'clsx'
-import type React from 'react'
-import { useDataInteractive } from '../hooks/use-data-interactive.js'
-import { Link } from './link.js'
+import clsx from 'clsx';
+import type React from 'react';
+import { useDataInteractive } from '../hooks/use-data-interactive.js';
+import { Link } from './link.js';
 
 const styles = {
   base: [
@@ -156,7 +156,7 @@ const styles = {
       '[--btn-icon:var(--color-rose-300)] data-active:[--btn-icon:var(--color-rose-200)] data-hover:[--btn-icon:var(--color-rose-200)]',
     ],
   },
-}
+};
 
 type ButtonProps = (
   | { color?: keyof typeof styles.colors; outline?: never; plain?: never }
@@ -164,18 +164,18 @@ type ButtonProps = (
   | { color?: never; outline?: never; plain: true }
 ) & { className?: string; children: React.ReactNode; ref?: React.Ref<HTMLElement> } & (
     | ({
-        href?: never
-        disabled?: boolean
-        type?: 'button' | 'submit' | 'reset'
+        href?: never;
+        disabled?: boolean;
+        type?: 'button' | 'submit' | 'reset';
       } & Omit<React.ComponentPropsWithoutRef<'button'>, 'className' | 'type'>)
     | ({
-        href: string
+        href: string;
       } & Omit<React.ComponentPropsWithoutRef<typeof Link>, 'className'>)
-  )
+  );
 
 export function Button({ color, outline, plain, className, children, ref, ...props }: ButtonProps) {
-  const disabled = 'disabled' in props ? props.disabled : false
-  const interactiveProps = useDataInteractive({ disabled: disabled ?? false })
+  const disabled = 'disabled' in props ? props.disabled : false;
+  const interactiveProps = useDataInteractive({ disabled: disabled ?? false });
 
   const classes = clsx(
     className,
@@ -185,7 +185,7 @@ export function Button({ color, outline, plain, className, children, ref, ...pro
       : plain
         ? styles.plain
         : clsx(styles.solid, styles.colors[color ?? 'dark/zinc']),
-  )
+  );
 
   return typeof props.href === 'string' ? (
     <Link {...props} className={classes} ref={ref as React.Ref<HTMLAnchorElement>}>
@@ -201,7 +201,7 @@ export function Button({ color, outline, plain, className, children, ref, ...pro
     >
       <TouchTarget>{children}</TouchTarget>
     </button>
-  )
+  );
 }
 
 /**
@@ -216,5 +216,5 @@ export function TouchTarget({ children }: { children: React.ReactNode }) {
       />
       {children}
     </>
-  )
+  );
 }

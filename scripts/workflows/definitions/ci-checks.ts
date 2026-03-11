@@ -17,33 +17,33 @@
  * ```
  */
 
-import type { WorkflowStep } from '../../lib/state/index.js'
+import type { WorkflowStep } from '../../lib/state/index.js';
 
 export interface CIWorkflowConfig {
   /** Run linting checks */
-  runLint?: boolean
+  runLint?: boolean;
   /** Run type checking */
-  runTypeCheck?: boolean
+  runTypeCheck?: boolean;
   /** Run test suite */
-  runTests?: boolean
+  runTests?: boolean;
   /** Generate coverage report */
-  coverage?: boolean
+  coverage?: boolean;
   /** Run build verification */
-  runBuild?: boolean
+  runBuild?: boolean;
   /** Run security audit */
-  runSecurityAudit?: boolean
+  runSecurityAudit?: boolean;
   /** Check for console statements */
-  checkConsole?: boolean
+  checkConsole?: boolean;
   /** Validate documentation */
-  validateDocs?: boolean
+  validateDocs?: boolean;
   /** Fail on warnings */
-  failOnWarnings?: boolean
+  failOnWarnings?: boolean;
 }
 
 export function createCIWorkflow(config: CIWorkflowConfig = {}): {
-  id: string
-  name: string
-  steps: WorkflowStep[]
+  id: string;
+  name: string;
+  steps: WorkflowStep[];
 } {
   const {
     runLint = true,
@@ -55,7 +55,7 @@ export function createCIWorkflow(config: CIWorkflowConfig = {}): {
     checkConsole = true,
     validateDocs = false,
     failOnWarnings = false,
-  } = config
+  } = config;
 
   const steps: WorkflowStep[] = [
     // Step 1: Setup
@@ -69,7 +69,7 @@ export function createCIWorkflow(config: CIWorkflowConfig = {}): {
         return {
           success: true,
           message: 'Environment setup complete',
-        }
+        };
       },
       onSuccess: runLint ? 'lint' : runTypeCheck ? 'typecheck' : runTests ? 'test' : 'complete',
       onFailure: 'fail',
@@ -87,7 +87,7 @@ export function createCIWorkflow(config: CIWorkflowConfig = {}): {
               return {
                 success: true,
                 message: 'Linting passed',
-              }
+              };
             },
             onSuccess: checkConsole
               ? 'console-check'
@@ -115,7 +115,7 @@ export function createCIWorkflow(config: CIWorkflowConfig = {}): {
               return {
                 success: true,
                 message: 'No console statements found',
-              }
+              };
             },
             onSuccess: runTypeCheck
               ? 'typecheck'
@@ -150,7 +150,7 @@ export function createCIWorkflow(config: CIWorkflowConfig = {}): {
               return {
                 success: true,
                 message: 'Type checking passed',
-              }
+              };
             },
             onSuccess: runTests
               ? 'test'
@@ -178,7 +178,7 @@ export function createCIWorkflow(config: CIWorkflowConfig = {}): {
               return {
                 success: true,
                 message: coverage ? 'Tests passed with coverage' : 'All tests passed',
-              }
+              };
             },
             onSuccess: coverage
               ? 'coverage-check'
@@ -205,7 +205,7 @@ export function createCIWorkflow(config: CIWorkflowConfig = {}): {
               return {
                 success: true,
                 message: 'Coverage requirements met',
-              }
+              };
             },
             onSuccess: runBuild
               ? 'build'
@@ -238,7 +238,7 @@ export function createCIWorkflow(config: CIWorkflowConfig = {}): {
               return {
                 success: true,
                 message: 'Build successful',
-              }
+              };
             },
             onSuccess: runSecurityAudit
               ? 'security-audit'
@@ -263,7 +263,7 @@ export function createCIWorkflow(config: CIWorkflowConfig = {}): {
               return {
                 success: true,
                 message: 'No security vulnerabilities found',
-              }
+              };
             },
             onSuccess: validateDocs ? 'validate-docs' : 'complete',
             onFailure: failOnWarnings ? 'fail' : validateDocs ? 'validate-docs' : 'complete',
@@ -285,7 +285,7 @@ export function createCIWorkflow(config: CIWorkflowConfig = {}): {
               return {
                 success: true,
                 message: 'Documentation is valid',
-              }
+              };
             },
             onSuccess: 'complete',
             onFailure: failOnWarnings ? 'fail' : 'complete',
@@ -304,7 +304,7 @@ export function createCIWorkflow(config: CIWorkflowConfig = {}): {
         return {
           success: true,
           message: '✅ All CI checks passed',
-        }
+        };
       },
       onSuccess: undefined,
       onFailure: undefined,
@@ -321,18 +321,18 @@ export function createCIWorkflow(config: CIWorkflowConfig = {}): {
         return {
           success: false,
           message: '❌ CI checks failed',
-        }
+        };
       },
       onSuccess: undefined,
       onFailure: undefined,
     },
-  ]
+  ];
 
   return {
     id: `ci-checks-${Date.now()}`,
     name: 'CI/CD Quality Checks',
     steps,
-  }
+  };
 }
 
 /**
@@ -381,4 +381,4 @@ export const ciPresets = {
       validateDocs: true,
       failOnWarnings: true,
     }),
-}
+};

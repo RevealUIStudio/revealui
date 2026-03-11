@@ -19,24 +19,24 @@
  * ```
  */
 
-import { mkdir, writeFile } from 'node:fs/promises'
-import { dirname, join, relative } from 'node:path'
-import { createLogger, fileExists, getProjectRoot } from '../../index.js'
-import { scanDirectoryRecursive } from '../shared/file-scanner.js'
-import { matchJSDoc } from '../shared/pattern-matcher.js'
+import { mkdir, writeFile } from 'node:fs/promises';
+import { dirname, join, relative } from 'node:path';
+import { createLogger, fileExists, getProjectRoot } from '../../index.js';
+import { scanDirectoryRecursive } from '../shared/file-scanner.js';
+import { matchJSDoc } from '../shared/pattern-matcher.js';
 
-const logger = createLogger({ prefix: 'JSDocs' })
+const logger = createLogger({ prefix: 'JSDocs' });
 
 // =============================================================================
 // Types
 // =============================================================================
 
 export interface ExtractedDoc {
-  file: string
-  description: string
-  type: 'jsdoc'
-  line?: number
-  tags?: Array<{ name: string; value: string }>
+  file: string;
+  description: string;
+  type: 'jsdoc';
+  line?: number;
+  tags?: Array<{ name: string; value: string }>;
 }
 
 // =============================================================================
@@ -58,35 +58,35 @@ export interface ExtractedDoc {
 export async function extractAPIDocs(
   options: { projectRoot?: string; sourceDirs?: string[]; outputPath?: string } = {},
 ): Promise<ExtractedDoc[]> {
-  logger.header('Extracting API Documentation')
+  logger.header('Extracting API Documentation');
 
-  const projectRoot = options.projectRoot || (await getProjectRoot(import.meta.url))
+  const projectRoot = options.projectRoot || (await getProjectRoot(import.meta.url));
   const sourceDirs = options.sourceDirs || [
     join(projectRoot, 'apps', 'cms', 'src'),
     join(projectRoot, 'packages'),
-  ]
-  const outputPath = options.outputPath || join(projectRoot, 'docs', 'api', 'extracted-docs.json')
+  ];
+  const outputPath = options.outputPath || join(projectRoot, 'docs', 'api', 'extracted-docs.json');
 
   try {
-    const apiDocs: ExtractedDoc[] = []
+    const apiDocs: ExtractedDoc[] = [];
 
     for (const sourceDir of sourceDirs) {
       if (await fileExists(sourceDir)) {
-        const docs = await extractFromSource(sourceDir, projectRoot)
-        apiDocs.push(...docs)
+        const docs = await extractFromSource(sourceDir, projectRoot);
+        apiDocs.push(...docs);
       }
     }
 
-    await mkdir(dirname(outputPath), { recursive: true })
-    await writeFile(outputPath, JSON.stringify(apiDocs, null, 2))
+    await mkdir(dirname(outputPath), { recursive: true });
+    await writeFile(outputPath, JSON.stringify(apiDocs, null, 2));
 
-    logger.success(`Extracted documentation for ${apiDocs.length} API items`)
-    logger.info(`Output: ${outputPath}`)
+    logger.success(`Extracted documentation for ${apiDocs.length} API items`);
+    logger.info(`Output: ${outputPath}`);
 
-    return apiDocs
+    return apiDocs;
   } catch (error) {
-    logger.error(`API documentation extraction failed: ${error}`)
-    return []
+    logger.error(`API documentation extraction failed: ${error}`);
+    return [];
   }
 }
 
@@ -101,23 +101,23 @@ export async function extractFromSource(
   sourceDir: string,
   projectRoot: string,
 ): Promise<ExtractedDoc[]> {
-  const docs: ExtractedDoc[] = []
+  const docs: ExtractedDoc[] = [];
 
   const files = await scanDirectoryRecursive({
     directory: sourceDir,
     extensions: ['.ts', '.tsx'],
     skipDirs: ['node_modules', 'dist', '.next', '.turbo'],
     loadContent: true, // Need content to extract JSDoc
-  })
+  });
 
   for (const file of files) {
     if (file.content) {
-      const fileDocs = extractFromFile(file.content, relative(projectRoot, file.path))
-      docs.push(...fileDocs)
+      const fileDocs = extractFromFile(file.content, relative(projectRoot, file.path));
+      docs.push(...fileDocs);
     }
   }
 
-  return docs
+  return docs;
 }
 
 /**
@@ -128,9 +128,9 @@ export async function extractFromSource(
  * @returns Array of extracted documentation
  */
 export function extractFromFile(content: string, relativePath: string): ExtractedDoc[] {
-  const docs: ExtractedDoc[] = []
+  const docs: ExtractedDoc[] = [];
 
-  const jsdocMatches = matchJSDoc(content)
+  const jsdocMatches = matchJSDoc(content);
 
   for (const match of jsdocMatches) {
     // Only include meaningful descriptions (at least 10 characters)
@@ -141,9 +141,9 @@ export function extractFromFile(content: string, relativePath: string): Extracte
         type: 'jsdoc',
         line: match.line,
         tags: match.tags,
-      })
+      });
     }
   }
 
-  return docs
+  return docs;
 }

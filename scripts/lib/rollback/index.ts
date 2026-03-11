@@ -7,4 +7,4 @@
  * - scripts/lib/rollback/manager.ts - Rollback manager implementation
  */
 
-export * from './manager.js'
+export * from './manager.js';

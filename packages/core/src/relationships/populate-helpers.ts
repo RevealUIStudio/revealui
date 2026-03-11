@@ -5,8 +5,8 @@
  * maintainability, testability, and clarity.
  */
 
-import { createDataloaderCacheKey } from '../dataloader.js'
-import { afterRead } from '../fields/hooks/afterRead/index.js'
+import { createDataloaderCacheKey } from '../dataloader.js';
+import { afterRead } from '../fields/hooks/afterRead/index.js';
 import type {
   JsonObject,
   PopulateType,
@@ -15,27 +15,27 @@ import type {
   SanitizedCollectionConfig,
   SelectType,
   TypedFallbackLocale,
-} from '../types/index.js'
+} from '../types/index.js';
 
 /** Relationship field types supported by population */
 export interface PopulateRelationshipField {
-  type: 'relationship' | 'upload' | 'join'
-  name: string
-  relationTo?: string | string[]
-  collection?: string | string[]
-  hasMany?: boolean
-  maxDepth?: number
-  localized?: boolean
+  type: 'relationship' | 'upload' | 'join';
+  name: string;
+  relationTo?: string | string[];
+  collection?: string | string[];
+  hasMany?: boolean;
+  maxDepth?: number;
+  localized?: boolean;
 }
 
 /** Information extracted about a relationship */
 export interface RelationInfo {
   /** The collection slug this relationship points to */
-  relationName: string | undefined
+  relationName: string | undefined;
   /** The ID(s) to populate */
-  id: unknown
+  id: unknown;
   /** The related collection config if available */
-  relatedCollection: unknown
+  relatedCollection: unknown;
 }
 
 /**
@@ -48,36 +48,36 @@ export function extractRelationInfo(
   data: unknown,
   req: {
     revealui?: {
-      collections?: Record<string, unknown>
-    }
+      collections?: Record<string, unknown>;
+    };
   },
 ): RelationInfo {
-  const dataRecord = data as Record<string, unknown>
+  const dataRecord = data as Record<string, unknown>;
 
   // Determine relation name based on field type
-  let relationName: string | undefined
+  let relationName: string | undefined;
   if (field.type === 'join') {
     relationName = Array.isArray(field.collection)
       ? (dataRecord.relationTo as string)
-      : (field.collection as string)
+      : (field.collection as string);
   } else {
     relationName = Array.isArray(field.relationTo)
       ? (dataRecord.relationTo as string)
-      : (field.relationTo as string)
+      : (field.relationTo as string);
   }
 
   // Get related collection config
   const relatedCollection =
-    relationName && req.revealui?.collections ? req.revealui.collections[relationName] : undefined
+    relationName && req.revealui?.collections ? req.revealui.collections[relationName] : undefined;
 
   // Extract ID based on field configuration
-  let id: unknown
+  let id: unknown;
   if (field.type === 'join' && Array.isArray(field.collection)) {
-    id = dataRecord.value
+    id = dataRecord.value;
   } else if (field.type !== 'join' && Array.isArray(field.relationTo)) {
-    id = dataRecord.value
+    id = dataRecord.value;
   } else {
-    id = data
+    id = data;
   }
 
   // Normalize ID to string or number
@@ -87,17 +87,17 @@ export function extractRelationInfo(
     typeof (id as { toString?: () => string })?.toString === 'function' &&
     typeof id !== 'object'
   ) {
-    id = (id as { toString: () => string }).toString()
+    id = (id as { toString: () => string }).toString();
   }
 
-  return { relationName, id, relatedCollection }
+  return { relationName, id, relatedCollection };
 }
 
 /**
  * Check if a relationship should be populated based on depth
  */
 export function shouldPopulateRelationship(currentDepth: number, depth: number): boolean {
-  return depth > 0 && currentDepth <= depth
+  return depth > 0 && currentDepth <= depth;
 }
 
 /**
@@ -106,22 +106,22 @@ export function shouldPopulateRelationship(currentDepth: number, depth: number):
  * Returns the populated document or undefined if not found.
  */
 export async function loadRelatedDocument(args: {
-  id: unknown
-  relationName: string
-  relatedCollection: unknown
-  currentDepth: number
-  depth: number
-  draft: boolean
-  fallbackLocale: TypedFallbackLocale
-  locale: string | null
-  overrideAccess: boolean
-  populateArg: unknown
-  showHiddenFields: boolean
+  id: unknown;
+  relationName: string;
+  relatedCollection: unknown;
+  currentDepth: number;
+  depth: number;
+  draft: boolean;
+  fallbackLocale: TypedFallbackLocale;
+  locale: string | null;
+  overrideAccess: boolean;
+  populateArg: unknown;
+  showHiddenFields: boolean;
   req: {
     dataLoader?: {
-      load?: (key: string) => Promise<unknown>
-    }
-  }
+      load?: (key: string) => Promise<unknown>;
+    };
+  };
 }): Promise<unknown> {
   const {
     id,
@@ -136,30 +136,30 @@ export async function loadRelatedDocument(args: {
     populateArg,
     showHiddenFields,
     req,
-  } = args
+  } = args;
 
   if (!req.dataLoader?.load) {
-    return undefined
+    return undefined;
   }
 
   const relatedCollectionWithConfig = relatedCollection as {
     config?: {
-      slug?: string
-      fields?: unknown[]
-      defaultPopulate?: unknown
-    }
-    slug?: string
-    fields?: unknown[]
-    defaultPopulate?: unknown
-  }
+      slug?: string;
+      fields?: unknown[];
+      defaultPopulate?: unknown;
+    };
+    slug?: string;
+    fields?: unknown[];
+    defaultPopulate?: unknown;
+  };
 
   const collectionConfig: {
-    slug?: string
-    fields?: unknown[]
-    defaultPopulate?: unknown
-  } = relatedCollectionWithConfig.config || relatedCollectionWithConfig
+    slug?: string;
+    fields?: unknown[];
+    defaultPopulate?: unknown;
+  } = relatedCollectionWithConfig.config || relatedCollectionWithConfig;
 
-  const collectionSlug = collectionConfig?.slug || relationName
+  const collectionSlug = collectionConfig?.slug || relationName;
 
   // Load the document via dataLoader
   const relationshipValue = await req.dataLoader.load(
@@ -181,9 +181,9 @@ export async function loadRelatedDocument(args: {
       showHiddenFields,
       transactionID: '',
     }),
-  )
+  );
 
-  return relationshipValue
+  return relationshipValue;
 }
 
 /**
@@ -192,21 +192,21 @@ export async function loadRelatedDocument(args: {
  * Applies afterRead hook to populate relationships within the document.
  */
 export async function applyNestedPopulation(args: {
-  doc: unknown
+  doc: unknown;
   collectionConfig: {
-    slug?: string
-    fields?: unknown[]
-    defaultPopulate?: unknown
-  }
-  currentDepth: number
-  depth: number
-  draft: boolean
-  fallbackLocale: TypedFallbackLocale
-  locale: string | null
-  overrideAccess: boolean
-  populateArg: unknown
-  showHiddenFields: boolean
-  req: RevealRequest
+    slug?: string;
+    fields?: unknown[];
+    defaultPopulate?: unknown;
+  };
+  currentDepth: number;
+  depth: number;
+  draft: boolean;
+  fallbackLocale: TypedFallbackLocale;
+  locale: string | null;
+  overrideAccess: boolean;
+  populateArg: unknown;
+  showHiddenFields: boolean;
+  req: RevealRequest;
 }): Promise<unknown> {
   const {
     doc,
@@ -220,10 +220,10 @@ export async function applyNestedPopulation(args: {
     populateArg,
     showHiddenFields,
     req,
-  } = args
+  } = args;
 
   if (!doc || currentDepth >= depth) {
-    return doc
+    return doc;
   }
 
   const sanitizedConfig = {
@@ -232,9 +232,9 @@ export async function applyNestedPopulation(args: {
     customIDType: 'text',
     trash: false,
     defaultPopulate: [],
-  } as SanitizedCollectionConfig
+  } as SanitizedCollectionConfig;
 
-  const localeForAfterRead = locale ?? 'en'
+  const localeForAfterRead = locale ?? 'en';
 
   return await afterRead({
     collection: sanitizedConfig,
@@ -253,15 +253,15 @@ export async function applyNestedPopulation(args: {
     req,
     select: undefined,
     showHiddenFields,
-  })
+  });
 }
 
 /**
  * Location information for updating a document with populated values
  */
 export interface UpdateLocation {
-  index?: number
-  key?: string
+  index?: number;
+  key?: string;
 }
 
 /**
@@ -270,62 +270,62 @@ export interface UpdateLocation {
  * Handles various field configurations: arrays, localized fields, join tables, etc.
  */
 export function updateDocumentWithPopulatedValue(args: {
-  dataReference: Record<string, unknown>
-  field: PopulateRelationshipField
-  relationshipValue: unknown
-  location: UpdateLocation
+  dataReference: Record<string, unknown>;
+  field: PopulateRelationshipField;
+  relationshipValue: unknown;
+  location: UpdateLocation;
 }): void {
-  const { dataReference, field, relationshipValue, location } = args
-  const { index, key } = location
+  const { dataReference, field, relationshipValue, location } = args;
+  const { index, key } = location;
 
   // Case 1: Localized array field (has both index and key)
   if (typeof index === 'number' && typeof key === 'string') {
-    const fieldRecord = dataReference[field.name] as Record<string, unknown>
-    const localeRecords = fieldRecord[key] as Array<Record<string, unknown>>
-    const localeEntry = localeRecords[index] as Record<string, unknown>
+    const fieldRecord = dataReference[field.name] as Record<string, unknown>;
+    const localeRecords = fieldRecord[key] as Array<Record<string, unknown>>;
+    const localeEntry = localeRecords[index] as Record<string, unknown>;
 
     if (field.type !== 'join' && Array.isArray(field.relationTo)) {
-      localeEntry.value = relationshipValue
+      localeEntry.value = relationshipValue;
     } else if (field.type === 'join' && Array.isArray(field.collection)) {
-      localeEntry.value = relationshipValue
+      localeEntry.value = relationshipValue;
     } else {
-      localeRecords[index] = relationshipValue as Record<string, unknown>
+      localeRecords[index] = relationshipValue as Record<string, unknown>;
     }
-    return
+    return;
   }
 
   // Case 2: Array field or localized field (has index or key, but not both)
   if (typeof index === 'number' || typeof key === 'string') {
-    const fieldRecord = dataReference[field.name] as Record<string, unknown>
-    const target = (index ?? key) as number | string
+    const fieldRecord = dataReference[field.name] as Record<string, unknown>;
+    const target = (index ?? key) as number | string;
 
     if (field.type === 'join') {
       if (!Array.isArray(field.collection)) {
-        const docs = fieldRecord.docs as Array<Record<string, unknown>>
-        docs[target as number] = relationshipValue as Record<string, unknown>
+        const docs = fieldRecord.docs as Array<Record<string, unknown>>;
+        docs[target as number] = relationshipValue as Record<string, unknown>;
       } else {
-        const docs = fieldRecord.docs as Array<Record<string, unknown>>
-        const docEntry = docs[target as number] as Record<string, unknown>
-        docEntry.value = relationshipValue
+        const docs = fieldRecord.docs as Array<Record<string, unknown>>;
+        const docEntry = docs[target as number] as Record<string, unknown>;
+        docEntry.value = relationshipValue;
       }
     } else if (Array.isArray(field.relationTo)) {
-      const entries = fieldRecord as unknown as Array<Record<string, unknown>>
-      const entry = entries[target as number] as Record<string, unknown>
-      entry.value = relationshipValue
+      const entries = fieldRecord as unknown as Array<Record<string, unknown>>;
+      const entry = entries[target as number] as Record<string, unknown>;
+      entry.value = relationshipValue;
     } else {
-      fieldRecord[target as string] = relationshipValue
+      fieldRecord[target as string] = relationshipValue;
     }
-    return
+    return;
   }
 
   // Case 3: Single value (no index or key)
   if (field.type !== 'join' && Array.isArray(field.relationTo)) {
-    const fieldRecord = dataReference[field.name] as Record<string, unknown>
-    fieldRecord.value = relationshipValue
+    const fieldRecord = dataReference[field.name] as Record<string, unknown>;
+    fieldRecord.value = relationshipValue;
   } else if (field.type === 'join' && Array.isArray(field.collection)) {
-    const fieldRecord = dataReference[field.name] as Record<string, unknown>
-    fieldRecord.value = relationshipValue
+    const fieldRecord = dataReference[field.name] as Record<string, unknown>;
+    fieldRecord.value = relationshipValue;
   } else {
-    dataReference[field.name] = relationshipValue
+    dataReference[field.name] = relationshipValue;
   }
 }

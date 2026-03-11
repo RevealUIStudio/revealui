@@ -19,33 +19,33 @@
  *   pnpm stripe:seed -- --sync-vercel        # push price IDs to Vercel env
  */
 
-import { execFileSync } from 'node:child_process'
-import { createRequire } from 'node:module'
-import { resolve } from 'node:path'
-import { config } from 'dotenv'
+import { execFileSync } from 'node:child_process';
+import { createRequire } from 'node:module';
+import { resolve } from 'node:path';
+import { config } from 'dotenv';
 
 // Load env from root .env
-config({ path: resolve(import.meta.dirname, '../../.env') })
+config({ path: resolve(import.meta.dirname, '../../.env') });
 
 // Stripe is installed in packages/services — resolve from there
-const require = createRequire(resolve(import.meta.dirname, '../../packages/services/'))
-const Stripe = require('stripe').default as typeof import('stripe').default
+const require = createRequire(resolve(import.meta.dirname, '../../packages/services/'));
+const Stripe = require('stripe').default as typeof import('stripe').default;
 
 // ─── Product Catalog ────────────────────────────────────────────────────────
 
 interface ProductDefinition {
-  key: string
-  name: string
-  description: string
-  prices: PriceDefinition[]
+  key: string;
+  name: string;
+  description: string;
+  prices: PriceDefinition[];
 }
 
 interface PriceDefinition {
-  key: string
-  unitAmount: number // cents
-  currency: string
-  interval: 'month' | 'year'
-  trialDays?: number
+  key: string;
+  unitAmount: number; // cents
+  currency: string;
+  interval: 'month' | 'year';
+  trialDays?: number;
 }
 
 const CATALOG: ProductDefinition[] = [
@@ -113,7 +113,7 @@ const CATALOG: ProductDefinition[] = [
       },
     ],
   },
-]
+];
 
 // Canonical webhook events — must mirror `relevantEvents` in apps/api/src/routes/webhooks.ts
 const WEBHOOK_EVENTS: Stripe.WebhookEndpointCreateParams.EnabledEvent[] = [
@@ -128,19 +128,19 @@ const WEBHOOK_EVENTS: Stripe.WebhookEndpointCreateParams.EnabledEvent[] = [
   'charge.dispute.closed',
   'charge.dispute.created',
   'charge.refunded',
-]
+];
 
 // Env vars to track: public-facing price IDs + server-side aliases
 const PRICE_ENV_KEYS: Record<string, string> = {
   revealui_pro_monthly: 'NEXT_PUBLIC_STRIPE_PRO_PRICE_ID',
   revealui_max_monthly: 'NEXT_PUBLIC_STRIPE_MAX_PRICE_ID',
   revealui_enterprise_monthly: 'NEXT_PUBLIC_STRIPE_ENTERPRISE_PRICE_ID',
-}
+};
 const PRICE_SERVER_ENV_KEYS: Record<string, string> = {
   revealui_pro_monthly: 'STRIPE_PRO_PRICE_ID',
   revealui_max_monthly: 'STRIPE_MAX_PRICE_ID',
   revealui_enterprise_monthly: 'STRIPE_ENTERPRISE_PRICE_ID',
-}
+};
 
 // ─── Logger ─────────────────────────────────────────────────────────────────
 
@@ -151,7 +151,7 @@ const log = {
   warn: (msg: string) => console.log(`  ⚠ ${msg}`),
   error: (msg: string) => console.error(`  ✗ ${msg}`),
   env: (key: string, value: string) => console.log(`\n  ${key}=${value}`),
-}
+};
 
 // ─── Products & Prices ───────────────────────────────────────────────────────
 
@@ -159,19 +159,19 @@ async function syncCatalog(
   stripe: Stripe,
   dryRun: boolean,
 ): Promise<{ envVars: Record<string, string>; productIds: string[] }> {
-  const envVars: Record<string, string> = {}
-  const productIds: string[] = []
+  const envVars: Record<string, string> = {};
+  const productIds: string[] = [];
 
   for (const productDef of CATALOG) {
-    log.info('')
-    log.info(`Processing: ${productDef.name} (${productDef.key})`)
+    log.info('');
+    log.info(`Processing: ${productDef.name} (${productDef.key})`);
 
-    const existing = await stripe.products.list({ limit: 100, active: true })
+    const existing = await stripe.products.list({ limit: 100, active: true });
     const existingProduct = existing.data.find(
       (p) => p.metadata.revealui_product_key === productDef.key,
-    )
+    );
 
-    let product: Stripe.Product
+    let product: Stripe.Product;
 
     if (existingProduct) {
       if (
@@ -179,39 +179,39 @@ async function syncCatalog(
         existingProduct.description !== productDef.description
       ) {
         if (dryRun) {
-          log.info(`Would update product: ${existingProduct.id}`)
-          product = existingProduct
+          log.info(`Would update product: ${existingProduct.id}`);
+          product = existingProduct;
         } else {
           product = await stripe.products.update(existingProduct.id, {
             name: productDef.name,
             description: productDef.description,
-          })
-          log.success(`Updated product: ${product.id}`)
+          });
+          log.success(`Updated product: ${product.id}`);
         }
       } else {
-        product = existingProduct
-        log.success(`Product exists: ${product.id} (no changes needed)`)
+        product = existingProduct;
+        log.success(`Product exists: ${product.id} (no changes needed)`);
       }
     } else {
       if (dryRun) {
-        log.info(`Would create product: ${productDef.name}`)
-        continue
+        log.info(`Would create product: ${productDef.name}`);
+        continue;
       }
       product = await stripe.products.create({
         name: productDef.name,
         description: productDef.description,
         metadata: { revealui_product_key: productDef.key },
-      })
-      log.success(`Created product: ${product.id}`)
+      });
+      log.success(`Created product: ${product.id}`);
     }
 
-    productIds.push(product.id)
+    productIds.push(product.id);
 
     const existingPrices = await stripe.prices.list({
       product: product.id,
       active: true,
       limit: 100,
-    })
+    });
 
     for (const priceDef of productDef.prices) {
       const matchingPrice = existingPrices.data.find(
@@ -220,39 +220,39 @@ async function syncCatalog(
           p.unit_amount === priceDef.unitAmount &&
           p.currency === priceDef.currency &&
           p.recurring?.interval === priceDef.interval,
-      )
+      );
 
       if (matchingPrice) {
         log.success(
           `  Price exists: ${matchingPrice.id} (${priceDef.key}: $${(priceDef.unitAmount / 100).toFixed(2)}/${priceDef.interval})`,
-        )
+        );
         if (PRICE_ENV_KEYS[priceDef.key]) {
-          envVars[PRICE_ENV_KEYS[priceDef.key]] = matchingPrice.id
+          envVars[PRICE_ENV_KEYS[priceDef.key]] = matchingPrice.id;
         }
         if (PRICE_SERVER_ENV_KEYS[priceDef.key]) {
-          envVars[PRICE_SERVER_ENV_KEYS[priceDef.key]] = matchingPrice.id
+          envVars[PRICE_SERVER_ENV_KEYS[priceDef.key]] = matchingPrice.id;
         }
-        continue
+        continue;
       }
 
       // Archive stale price with same key but different amount/interval
       const stalePrice = existingPrices.data.find(
         (p) => p.metadata.revealui_price_key === priceDef.key,
-      )
+      );
       if (stalePrice) {
         if (dryRun) {
-          log.info(`  Would archive stale price: ${stalePrice.id}`)
+          log.info(`  Would archive stale price: ${stalePrice.id}`);
         } else {
-          await stripe.prices.update(stalePrice.id, { active: false })
-          log.warn(`  Archived stale price: ${stalePrice.id}`)
+          await stripe.prices.update(stalePrice.id, { active: false });
+          log.warn(`  Archived stale price: ${stalePrice.id}`);
         }
       }
 
       if (dryRun) {
         log.info(
           `  Would create price: ${priceDef.key} ($${(priceDef.unitAmount / 100).toFixed(2)}/${priceDef.interval})`,
-        )
-        continue
+        );
+        continue;
       }
 
       const price = await stripe.prices.create({
@@ -261,22 +261,22 @@ async function syncCatalog(
         currency: priceDef.currency,
         recurring: { interval: priceDef.interval, trial_period_days: priceDef.trialDays },
         metadata: { revealui_price_key: priceDef.key },
-      })
+      });
 
       log.success(
         `  Created price: ${price.id} (${priceDef.key}: $${(priceDef.unitAmount / 100).toFixed(2)}/${priceDef.interval})`,
-      )
+      );
 
       if (PRICE_ENV_KEYS[priceDef.key]) {
-        envVars[PRICE_ENV_KEYS[priceDef.key]] = price.id
+        envVars[PRICE_ENV_KEYS[priceDef.key]] = price.id;
       }
       if (PRICE_SERVER_ENV_KEYS[priceDef.key]) {
-        envVars[PRICE_SERVER_ENV_KEYS[priceDef.key]] = price.id
+        envVars[PRICE_SERVER_ENV_KEYS[priceDef.key]] = price.id;
       }
     }
   }
 
-  return { envVars, productIds }
+  return { envVars, productIds };
 }
 
 // ─── Webhook Endpoint ────────────────────────────────────────────────────────
@@ -286,56 +286,56 @@ async function setupWebhookEndpoint(
   stripe: Stripe,
   dryRun: boolean,
 ): Promise<string | null> {
-  log.info('')
-  log.info(`Webhook URL: ${url}`)
+  log.info('');
+  log.info(`Webhook URL: ${url}`);
 
-  const existing = await stripe.webhookEndpoints.list({ limit: 100 })
-  const match = existing.data.find((e) => e.url === url)
+  const existing = await stripe.webhookEndpoints.list({ limit: 100 });
+  const match = existing.data.find((e) => e.url === url);
 
   if (match) {
-    const currentEvents = new Set(match.enabled_events)
-    const wantedEvents = new Set(WEBHOOK_EVENTS)
+    const currentEvents = new Set(match.enabled_events);
+    const wantedEvents = new Set(WEBHOOK_EVENTS);
     const needsUpdate =
       WEBHOOK_EVENTS.some((e) => !currentEvents.has(e)) ||
       [...currentEvents].some(
         (e) => e !== '*' && !wantedEvents.has(e as (typeof WEBHOOK_EVENTS)[number]),
-      )
+      );
 
     if (needsUpdate) {
       if (dryRun) {
-        log.info(`Would update webhook endpoint: ${match.id}`)
+        log.info(`Would update webhook endpoint: ${match.id}`);
       } else {
-        await stripe.webhookEndpoints.update(match.id, { enabled_events: WEBHOOK_EVENTS })
-        log.success(`Updated webhook endpoint: ${match.id}`)
+        await stripe.webhookEndpoints.update(match.id, { enabled_events: WEBHOOK_EVENTS });
+        log.success(`Updated webhook endpoint: ${match.id}`);
       }
     } else {
-      log.success(`Webhook endpoint exists: ${match.id} (no changes needed)`)
+      log.success(`Webhook endpoint exists: ${match.id} (no changes needed)`);
     }
     // Secret is only returned on creation; use existing env var if already set
     if (process.env.STRIPE_WEBHOOK_SECRET) {
-      log.info('  STRIPE_WEBHOOK_SECRET already set in env — skipping output')
+      log.info('  STRIPE_WEBHOOK_SECRET already set in env — skipping output');
     } else {
       log.warn(
         '  Webhook endpoint exists but STRIPE_WEBHOOK_SECRET not in env — retrieve it from the Stripe dashboard',
-      )
+      );
     }
-    return null
+    return null;
   }
 
   if (dryRun) {
-    log.info(`Would create webhook endpoint for: ${url}`)
-    log.info(`  Events: ${WEBHOOK_EVENTS.join(', ')}`)
-    return null
+    log.info(`Would create webhook endpoint for: ${url}`);
+    log.info(`  Events: ${WEBHOOK_EVENTS.join(', ')}`);
+    return null;
   }
 
   const endpoint = await stripe.webhookEndpoints.create({
     url,
     enabled_events: WEBHOOK_EVENTS,
     api_version: '2026-01-28.clover',
-  })
+  });
 
-  log.success(`Created webhook endpoint: ${endpoint.id}`)
-  return endpoint.secret ?? null
+  log.success(`Created webhook endpoint: ${endpoint.id}`);
+  return endpoint.secret ?? null;
 }
 
 // ─── Billing Portal ──────────────────────────────────────────────────────────
@@ -345,14 +345,14 @@ async function setupBillingPortal(
   productIds: string[],
   dryRun: boolean,
 ): Promise<void> {
-  log.info('')
-  log.info('Setting up billing portal configuration...')
+  log.info('');
+  log.info('Setting up billing portal configuration...');
 
-  const existing = await stripe.billingPortal.configurations.list({ limit: 100 })
-  const match = existing.data.find((c) => c.metadata?.revealui_portal === 'true')
+  const existing = await stripe.billingPortal.configurations.list({ limit: 100 });
+  const match = existing.data.find((c) => c.metadata?.revealui_portal === 'true');
 
   // Build the features config with all products for plan switching
-  const subscriptionUpdateProducts = productIds.map((id) => ({ product: id }))
+  const subscriptionUpdateProducts = productIds.map((id) => ({ product: id }));
 
   const portalFeatures: Stripe.BillingPortal.ConfigurationCreateParams.Features = {
     subscription_cancel: { enabled: true, mode: 'at_period_end' },
@@ -367,25 +367,25 @@ async function setupBillingPortal(
     },
     invoice_history: { enabled: true },
     payment_method_update: { enabled: true },
-  }
+  };
 
   if (match) {
     if (dryRun) {
-      log.info(`Would update billing portal config: ${match.id}`)
+      log.info(`Would update billing portal config: ${match.id}`);
     } else {
       await stripe.billingPortal.configurations.update(match.id, {
         features: portalFeatures,
         is_default: true,
-      })
-      log.success(`Updated billing portal config: ${match.id} (set as default)`)
+      });
+      log.success(`Updated billing portal config: ${match.id} (set as default)`);
     }
-    return
+    return;
   }
 
   if (dryRun) {
-    log.info('Would create billing portal configuration')
-    log.info(`  Products for plan switching: ${productIds.join(', ')}`)
-    return
+    log.info('Would create billing portal configuration');
+    log.info(`  Products for plan switching: ${productIds.join(', ')}`);
+    return;
   }
 
   const portalConfig = await stripe.billingPortal.configurations.create({
@@ -394,65 +394,65 @@ async function setupBillingPortal(
       headline: 'Manage your RevealUI subscription',
     },
     metadata: { revealui_portal: 'true' },
-  })
+  });
 
   // Set as default
-  await stripe.billingPortal.configurations.update(portalConfig.id, { is_default: true })
+  await stripe.billingPortal.configurations.update(portalConfig.id, { is_default: true });
 
-  log.success(`Created billing portal config: ${portalConfig.id} (set as default)`)
+  log.success(`Created billing portal config: ${portalConfig.id} (set as default)`);
 }
 
 // ─── Vercel Sync ─────────────────────────────────────────────────────────────
 
 async function syncToVercel(envVars: Record<string, string>): Promise<void> {
-  const token = process.env.VERCEL_TOKEN
+  const token = process.env.VERCEL_TOKEN;
   if (!token) {
-    log.error('STRIPE_SYNC_VERCEL requires VERCEL_TOKEN in env')
-    return
+    log.error('STRIPE_SYNC_VERCEL requires VERCEL_TOKEN in env');
+    return;
   }
 
-  const projectId = process.env.VERCEL_PROJECT_ID
+  const projectId = process.env.VERCEL_PROJECT_ID;
   if (!projectId) {
-    log.warn('VERCEL_PROJECT_ID not set — run `vercel link` first or set it manually')
-    log.warn('Skipping Vercel sync')
-    return
+    log.warn('VERCEL_PROJECT_ID not set — run `vercel link` first or set it manually');
+    log.warn('Skipping Vercel sync');
+    return;
   }
 
-  log.info('')
-  log.info('Syncing env vars to Vercel...')
+  log.info('');
+  log.info('Syncing env vars to Vercel...');
 
   // Get existing env vars to skip unchanged ones
-  let existingEnv: Record<string, string> = {}
+  let existingEnv: Record<string, string> = {};
   try {
     const result = execFileSync('vercel', ['env', 'ls', '--json'], {
       env: { ...process.env, VERCEL_TOKEN: token },
       encoding: 'utf-8',
-    })
-    const parsed = JSON.parse(result) as Array<{ key: string; value?: string }>
+    });
+    const parsed = JSON.parse(result) as Array<{ key: string; value?: string }>;
     for (const entry of parsed) {
       if (entry.key && entry.value) {
-        existingEnv[entry.key] = entry.value
+        existingEnv[entry.key] = entry.value;
       }
     }
   } catch {
-    log.warn('Could not fetch existing Vercel env vars — will attempt to set all')
-    existingEnv = {}
+    log.warn('Could not fetch existing Vercel env vars — will attempt to set all');
+    existingEnv = {};
   }
 
   for (const [key, value] of Object.entries(envVars)) {
     if (existingEnv[key] === value) {
-      log.success(`  ${key} already up to date`)
-      continue
+      log.success(`  ${key} already up to date`);
+      continue;
     }
     try {
       execFileSync('vercel', ['env', 'add', key, 'production'], {
         input: value,
         env: { ...process.env, VERCEL_TOKEN: token },
         encoding: 'utf-8',
-      })
-      log.success(`  Set ${key} in Vercel production`)
+      });
+      log.success(`  Set ${key} in Vercel production`);
     } catch (err) {
-      log.error(`  Failed to set ${key}: ${err instanceof Error ? err.message : String(err)}`)
+      log.error(`  Failed to set ${key}: ${err instanceof Error ? err.message : String(err)}`);
     }
   }
 }
@@ -460,94 +460,94 @@ async function syncToVercel(envVars: Record<string, string>): Promise<void> {
 // ─── Main ───────────────────────────────────────────────────────────────────
 
 async function main(): Promise<void> {
-  const args = process.argv.slice(2)
-  const dryRun = args.includes('--dry-run')
-  const skipWebhook = args.includes('--skip-webhook')
-  const skipPortal = args.includes('--skip-portal')
-  const syncVercel = args.includes('--sync-vercel')
+  const args = process.argv.slice(2);
+  const dryRun = args.includes('--dry-run');
+  const skipWebhook = args.includes('--skip-webhook');
+  const skipPortal = args.includes('--skip-portal');
+  const syncVercel = args.includes('--sync-vercel');
   const webhookUrlFlag = (() => {
-    const idx = args.indexOf('--webhook-url')
-    return idx !== -1 ? args[idx + 1] : undefined
-  })()
+    const idx = args.indexOf('--webhook-url');
+    return idx !== -1 ? args[idx + 1] : undefined;
+  })();
 
-  log.header('RevealUI Stripe IaC Seed')
+  log.header('RevealUI Stripe IaC Seed');
 
-  const secretKey = process.env.STRIPE_SECRET_KEY
+  const secretKey = process.env.STRIPE_SECRET_KEY;
   if (!secretKey) {
-    log.error('STRIPE_SECRET_KEY is not set. Add it to .env')
-    process.exit(1)
+    log.error('STRIPE_SECRET_KEY is not set. Add it to .env');
+    process.exit(1);
   }
 
   if (!(secretKey.startsWith('sk_test_') || secretKey.startsWith('sk_live_'))) {
-    log.error('STRIPE_SECRET_KEY must start with sk_test_ or sk_live_')
-    process.exit(1)
+    log.error('STRIPE_SECRET_KEY must start with sk_test_ or sk_live_');
+    process.exit(1);
   }
 
   if (secretKey.startsWith('sk_live_')) {
-    log.warn('Using LIVE Stripe key — resources will be created in production!')
-    log.info('Press Ctrl+C within 5 seconds to abort...')
-    await new Promise((r) => setTimeout(r, 5000))
+    log.warn('Using LIVE Stripe key — resources will be created in production!');
+    log.info('Press Ctrl+C within 5 seconds to abort...');
+    await new Promise((r) => setTimeout(r, 5000));
   }
 
   if (dryRun) {
-    log.info('DRY RUN — no changes will be made to Stripe')
+    log.info('DRY RUN — no changes will be made to Stripe');
   }
 
-  const stripe = new Stripe(secretKey, { apiVersion: '2026-01-28.clover' })
+  const stripe = new Stripe(secretKey, { apiVersion: '2026-01-28.clover' });
 
   try {
-    await stripe.balance.retrieve()
-    log.success('Connected to Stripe')
+    await stripe.balance.retrieve();
+    log.success('Connected to Stripe');
   } catch (err) {
-    log.error(`Failed to connect to Stripe: ${err instanceof Error ? err.message : String(err)}`)
-    process.exit(1)
+    log.error(`Failed to connect to Stripe: ${err instanceof Error ? err.message : String(err)}`);
+    process.exit(1);
   }
 
   // ── Products & prices
-  log.header('Products & Prices')
-  const { envVars, productIds } = await syncCatalog(stripe, dryRun)
+  log.header('Products & Prices');
+  const { envVars, productIds } = await syncCatalog(stripe, dryRun);
 
   // ── Webhook endpoint
   if (!skipWebhook) {
-    log.header('Webhook Endpoint')
-    const apiUrl = webhookUrlFlag ?? process.env.API_URL
-    const webhookUrl = apiUrl ? `${apiUrl.replace(/\/$/, '')}/api/webhooks/stripe` : undefined
+    log.header('Webhook Endpoint');
+    const apiUrl = webhookUrlFlag ?? process.env.API_URL;
+    const webhookUrl = apiUrl ? `${apiUrl.replace(/\/$/, '')}/api/webhooks/stripe` : undefined;
 
     if (!webhookUrl) {
-      log.warn('No webhook URL — set API_URL in .env or pass --webhook-url URL')
-      log.warn('Skipping webhook endpoint setup')
+      log.warn('No webhook URL — set API_URL in .env or pass --webhook-url URL');
+      log.warn('Skipping webhook endpoint setup');
     } else {
-      const webhookSecret = await setupWebhookEndpoint(webhookUrl, stripe, dryRun)
+      const webhookSecret = await setupWebhookEndpoint(webhookUrl, stripe, dryRun);
       if (webhookSecret) {
-        envVars.STRIPE_WEBHOOK_SECRET = webhookSecret
+        envVars.STRIPE_WEBHOOK_SECRET = webhookSecret;
       }
     }
   }
 
   // ── Billing portal
   if (!skipPortal && productIds.length > 0) {
-    log.header('Billing Portal')
-    await setupBillingPortal(stripe, productIds, dryRun)
+    log.header('Billing Portal');
+    await setupBillingPortal(stripe, productIds, dryRun);
   }
 
   // ── Output env vars
   if (Object.keys(envVars).length > 0) {
-    log.header('Env Vars — Add to .env')
+    log.header('Env Vars — Add to .env');
     for (const [key, value] of Object.entries(envVars)) {
-      log.env(key, value)
+      log.env(key, value);
     }
 
     if (syncVercel) {
-      log.header('Vercel Sync')
-      await syncToVercel(envVars)
+      log.header('Vercel Sync');
+      await syncToVercel(envVars);
     }
   }
 
-  log.info('')
-  log.success('Done!')
+  log.info('');
+  log.success('Done!');
 }
 
 main().catch((err) => {
-  log.error(`Fatal: ${err instanceof Error ? err.message : String(err)}`)
-  process.exit(1)
-})
+  log.error(`Fatal: ${err instanceof Error ? err.message : String(err)}`);
+  process.exit(1);
+});

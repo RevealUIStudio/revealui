@@ -1,23 +1,23 @@
-import { useDevBox } from '../../hooks/use-devbox'
-import { useStatus } from '../../hooks/use-status'
-import Button from '../ui/Button'
-import ErrorAlert from '../ui/ErrorAlert'
-import DriveInfo from './DriveInfo'
-import MountLog from './MountLog'
+import { useDevBox } from '../../hooks/use-devbox';
+import { useStatus } from '../../hooks/use-status';
+import Button from '../ui/Button';
+import ErrorAlert from '../ui/ErrorAlert';
+import DriveInfo from './DriveInfo';
+import MountLog from './MountLog';
 
 export default function DevBoxPanel() {
-  const { mount, refresh } = useStatus()
-  const { operating, log, error, mount: doMount, unmount: doUnmount } = useDevBox()
+  const { mount, refresh } = useStatus();
+  const { operating, log, error, mount: doMount, unmount: doUnmount } = useDevBox();
 
   const handleMount = async () => {
-    await doMount()
-    refresh()
-  }
+    await doMount();
+    refresh();
+  };
 
   const handleUnmount = async () => {
-    await doUnmount()
-    refresh()
-  }
+    await doUnmount();
+    refresh();
+  };
 
   return (
     <div className="space-y-6">
@@ -49,5 +49,5 @@ export default function DevBoxPanel() {
 
       {log.length > 0 && <MountLog entries={log} />}
     </div>
-  )
+  );
 }

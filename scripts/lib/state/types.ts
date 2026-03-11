@@ -5,59 +5,65 @@
  * - None (standalone type definitions)
  */
 
-export type WorkflowStatus = 'pending' | 'running' | 'paused' | 'completed' | 'failed' | 'cancelled'
-export type StepStatus = 'pending' | 'running' | 'completed' | 'failed' | 'skipped'
-export type ApprovalStatus = 'pending' | 'approved' | 'rejected' | 'expired'
+export type WorkflowStatus =
+  | 'pending'
+  | 'running'
+  | 'paused'
+  | 'completed'
+  | 'failed'
+  | 'cancelled';
+export type StepStatus = 'pending' | 'running' | 'completed' | 'failed' | 'skipped';
+export type ApprovalStatus = 'pending' | 'approved' | 'rejected' | 'expired';
 
 export interface WorkflowStep {
-  id: string
-  name: string
-  description: string
-  command?: string
-  script?: string
-  requiresApproval: boolean
-  validation?: string[]
-  rollback?: string
-  timeout?: number
-  dependsOn?: string[]
+  id: string;
+  name: string;
+  description: string;
+  command?: string;
+  script?: string;
+  requiresApproval: boolean;
+  validation?: string[];
+  rollback?: string;
+  timeout?: number;
+  dependsOn?: string[];
 }
 
 export interface WorkflowStepState {
-  stepId: string
-  status: StepStatus
-  startedAt?: Date
-  completedAt?: Date
-  error?: string
-  output?: string
-  retryCount: number
+  stepId: string;
+  status: StepStatus;
+  startedAt?: Date;
+  completedAt?: Date;
+  error?: string;
+  output?: string;
+  retryCount: number;
 }
 
 export interface ApprovalRequest {
-  id: string
-  workflowId: string
-  stepId: string
-  token: string
-  status: ApprovalStatus
-  requestedAt: Date
-  respondedAt?: Date
-  respondedBy?: string
-  expiresAt: Date
-  comment?: string
+  id: string;
+  workflowId: string;
+  stepId: string;
+  token: string;
+  status: ApprovalStatus;
+  requestedAt: Date;
+  respondedAt?: Date;
+  respondedBy?: string;
+  expiresAt: Date;
+  comment?: string;
 }
 
 export interface WorkflowState {
-  id: string
-  name: string
-  description?: string
-  status: WorkflowStatus
-  steps: WorkflowStep[]
-  stepStates: Map<string, WorkflowStepState>
-  currentStepIndex: number
-  createdAt: Date
-  updatedAt: Date
-  completedAt?: Date
-  error?: string
-  metadata?: Record<string, unknown>
+  id: string;
+  name: string;
+  description?: string;
+  status: WorkflowStatus;
+  steps: WorkflowStep[];
+  stepStates: Map<string, WorkflowStepState>;
+  currentStepIndex: number;
+  createdAt: Date;
+  updatedAt: Date;
+  completedAt?: Date;
+  error?: string;
+  metadata?: Record<string, unknown>;
 }
 
 export type WorkflowEvent =
@@ -73,26 +79,26 @@ export type WorkflowEvent =
   | { type: 'APPROVAL_GRANTED'; stepId: string; by?: string }
   | { type: 'APPROVAL_DENIED'; stepId: string; reason?: string }
   | { type: 'COMPLETE' }
-  | { type: 'FAIL'; error: string }
+  | { type: 'FAIL'; error: string };
 
 export interface StateAdapter {
-  initialize(): Promise<void>
-  close(): Promise<void>
+  initialize(): Promise<void>;
+  close(): Promise<void>;
 
   // Workflow operations
-  saveWorkflow(workflow: WorkflowState): Promise<void>
-  loadWorkflow(id: string): Promise<WorkflowState | null>
-  listWorkflows(options?: { status?: WorkflowStatus; limit?: number }): Promise<WorkflowState[]>
-  deleteWorkflow(id: string): Promise<boolean>
+  saveWorkflow(workflow: WorkflowState): Promise<void>;
+  loadWorkflow(id: string): Promise<WorkflowState | null>;
+  listWorkflows(options?: { status?: WorkflowStatus; limit?: number }): Promise<WorkflowState[]>;
+  deleteWorkflow(id: string): Promise<boolean>;
 
   // Approval operations
-  saveApproval(approval: ApprovalRequest): Promise<void>
-  loadApproval(token: string): Promise<ApprovalRequest | null>
-  loadApprovalsByWorkflow(workflowId: string): Promise<ApprovalRequest[]>
+  saveApproval(approval: ApprovalRequest): Promise<void>;
+  loadApproval(token: string): Promise<ApprovalRequest | null>;
+  loadApprovalsByWorkflow(workflowId: string): Promise<ApprovalRequest[]>;
   updateApprovalStatus(
     token: string,
     status: ApprovalStatus,
     respondedBy?: string,
     comment?: string,
-  ): Promise<void>
+  ): Promise<void>;
 }

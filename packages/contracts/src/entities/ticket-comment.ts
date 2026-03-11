@@ -10,13 +10,13 @@
  * - authorId is nullable (system-generated comments)
  */
 
-import { z } from 'zod/v4'
+import { z } from 'zod/v4';
 
 // =============================================================================
 // Constants
 // =============================================================================
 
-export const TICKET_COMMENT_SCHEMA_VERSION = 1
+export const TICKET_COMMENT_SCHEMA_VERSION = 1;
 
 // =============================================================================
 // Schema
@@ -30,10 +30,10 @@ export const TicketCommentObjectSchema = z.object({
   body: z.unknown(),
   createdAt: z.date(),
   updatedAt: z.date(),
-})
+});
 
-export const TicketCommentSchema = TicketCommentObjectSchema
-export type TicketComment = z.infer<typeof TicketCommentSchema>
+export const TicketCommentSchema = TicketCommentObjectSchema;
+export type TicketComment = z.infer<typeof TicketCommentSchema>;
 
 export const TicketCommentInsertSchema = TicketCommentObjectSchema.omit({
   createdAt: true,
@@ -41,20 +41,20 @@ export const TicketCommentInsertSchema = TicketCommentObjectSchema.omit({
 }).extend({
   createdAt: z.date().optional(),
   updatedAt: z.date().optional(),
-})
+});
 
-export type TicketCommentInsert = z.infer<typeof TicketCommentInsertSchema>
+export type TicketCommentInsert = z.infer<typeof TicketCommentInsertSchema>;
 
 // =============================================================================
 // Helpers
 // =============================================================================
 
 export function isSystemComment(comment: TicketComment): boolean {
-  return comment.authorId === null || comment.authorId === undefined
+  return comment.authorId === null || comment.authorId === undefined;
 }
 
 export function isAuthoredBy(comment: TicketComment, userId: string): boolean {
-  return comment.authorId === userId
+  return comment.authorId === userId;
 }
 
 export function createCommentInsert(
@@ -62,7 +62,7 @@ export function createCommentInsert(
   body: unknown,
   options?: { id?: string; authorId?: string },
 ): TicketCommentInsert {
-  const now = new Date()
+  const now = new Date();
   return {
     id: options?.id ?? crypto.randomUUID(),
     schemaVersion: String(TICKET_COMMENT_SCHEMA_VERSION),
@@ -71,5 +71,5 @@ export function createCommentInsert(
     body,
     createdAt: now,
     updatedAt: now,
-  }
+  };
 }

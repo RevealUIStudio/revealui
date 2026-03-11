@@ -5,14 +5,14 @@
  * Usage: pnpm db:seed (requires the dev server to be running)
  */
 
-const API_URL = process.env.NEXT_PUBLIC_SERVER_URL || 'http://localhost:4000'
+const API_URL = process.env.NEXT_PUBLIC_SERVER_URL || 'http://localhost:4000';
 
 interface SeedPost {
-  title: string
-  slug: string
-  content: string
-  status: string
-  publishedAt: string
+  title: string;
+  slug: string;
+  content: string;
+  status: string;
+  publishedAt: string;
 }
 
 const posts: SeedPost[] = [
@@ -40,13 +40,13 @@ const posts: SeedPost[] = [
     status: 'draft',
     publishedAt: '',
   },
-]
+];
 
-const log = (...args: unknown[]) => process.stdout.write(`${args.join(' ')}\n`)
-const logErr = (...args: unknown[]) => process.stderr.write(`${args.join(' ')}\n`)
+const log = (...args: unknown[]) => process.stdout.write(`${args.join(' ')}\n`);
+const logErr = (...args: unknown[]) => process.stderr.write(`${args.join(' ')}\n`);
 
 async function seed(): Promise<void> {
-  log(`Seeding blog posts to ${API_URL}...`)
+  log(`Seeding blog posts to ${API_URL}...`);
 
   for (const post of posts) {
     try {
@@ -54,20 +54,20 @@ async function seed(): Promise<void> {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(post),
-      })
+      });
 
       if (res.ok) {
-        log(`  Created: ${post.title}`)
+        log(`  Created: ${post.title}`);
       } else {
-        const error = await res.text()
-        logErr(`  Failed to create "${post.title}": ${error}`)
+        const error = await res.text();
+        logErr(`  Failed to create "${post.title}": ${error}`);
       }
     } catch (err) {
-      logErr(`  Error creating "${post.title}":`, err)
+      logErr(`  Error creating "${post.title}":`, err);
     }
   }
 
-  log('Seeding complete.')
+  log('Seeding complete.');
 }
 
-seed()
+seed();

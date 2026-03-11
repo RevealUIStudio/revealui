@@ -1,6 +1,6 @@
-import { cleanup, render, screen } from '@testing-library/react'
-import { act } from 'react'
-import { afterEach, describe, expect, it, vi } from 'vitest'
+import { cleanup, render, screen } from '@testing-library/react';
+import { act } from 'react';
+import { afterEach, describe, expect, it, vi } from 'vitest';
 
 // Mock the logger
 vi.mock('@revealui/core/observability/logger', () => ({
@@ -10,7 +10,7 @@ vi.mock('@revealui/core/observability/logger', () => ({
     info: vi.fn(),
     debug: vi.fn(),
   },
-}))
+}));
 
 import {
   Link,
@@ -21,244 +21,244 @@ import {
   useNavigate,
   useParams,
   useRouter,
-} from '../components.js'
-import { Router } from '../router.js'
-import type { Route } from '../types.js'
+} from '../components.js';
+import { Router } from '../router.js';
+import type { Route } from '../types.js';
 
-afterEach(cleanup)
+afterEach(cleanup);
 
 function TestComponent({ params }: { params?: Record<string, string> }) {
-  return <div data-testid="route-component">Hello {params?.name ?? 'World'}</div>
+  return <div data-testid="route-component">Hello {params?.name ?? 'World'}</div>;
 }
 
 function NotFoundComponent() {
-  return <div data-testid="not-found">Custom 404</div>
+  return <div data-testid="not-found">Custom 404</div>;
 }
 
 function LayoutComponent({ children }: { children: React.ReactNode }) {
-  return <div data-testid="layout">{children}</div>
+  return <div data-testid="layout">{children}</div>;
 }
 
 function createRoute(path: string, overrides?: Partial<Route>): Route {
-  return { path, component: TestComponent, ...overrides }
+  return { path, component: TestComponent, ...overrides };
 }
 
 function renderWithRouter(ui: React.ReactNode, router: Router) {
-  return render(<RouterProvider router={router}>{ui}</RouterProvider>)
+  return render(<RouterProvider router={router}>{ui}</RouterProvider>);
 }
 
 describe('RouterProvider', () => {
   it('provides router context to children', () => {
-    const router = new Router()
+    const router = new Router();
     function Child() {
-      const r = useRouter()
-      return <div data-testid="has-router">{r ? 'yes' : 'no'}</div>
+      const r = useRouter();
+      return <div data-testid="has-router">{r ? 'yes' : 'no'}</div>;
     }
-    renderWithRouter(<Child />, router)
-    expect(screen.getByTestId('has-router').textContent).toBe('yes')
-  })
-})
+    renderWithRouter(<Child />, router);
+    expect(screen.getByTestId('has-router').textContent).toBe('yes');
+  });
+});
 
 describe('useRouter', () => {
   it('throws when used outside RouterProvider', () => {
-    const spy = vi.spyOn(console, 'error').mockImplementation(() => {})
+    const spy = vi.spyOn(console, 'error').mockImplementation(() => {});
     function Bad() {
-      useRouter()
-      return null
+      useRouter();
+      return null;
     }
-    expect(() => render(<Bad />)).toThrow('useRouter must be used within a RouterProvider')
-    spy.mockRestore()
-  })
-})
+    expect(() => render(<Bad />)).toThrow('useRouter must be used within a RouterProvider');
+    spy.mockRestore();
+  });
+});
 
 describe('useMatch', () => {
   it('returns null when no match context', () => {
-    const router = new Router()
-    let match: unknown = 'not-set'
+    const router = new Router();
+    let match: unknown = 'not-set';
     function Child() {
-      match = useMatch()
-      return null
+      match = useMatch();
+      return null;
     }
-    renderWithRouter(<Child />, router)
-    expect(match).toBeNull()
-  })
-})
+    renderWithRouter(<Child />, router);
+    expect(match).toBeNull();
+  });
+});
 
 describe('useParams', () => {
   it('returns empty object when no match', () => {
-    const router = new Router()
-    let params: unknown = 'not-set'
+    const router = new Router();
+    let params: unknown = 'not-set';
     function Child() {
-      params = useParams()
-      return null
+      params = useParams();
+      return null;
     }
-    renderWithRouter(<Child />, router)
-    expect(params).toEqual({})
-  })
-})
+    renderWithRouter(<Child />, router);
+    expect(params).toEqual({});
+  });
+});
 
 describe('Routes', () => {
   it('renders default NotFound when no routes match', () => {
-    const router = new Router()
-    renderWithRouter(<Routes />, router)
-    expect(screen.getByText('404 - Page Not Found')).toBeDefined()
-  })
+    const router = new Router();
+    renderWithRouter(<Routes />, router);
+    expect(screen.getByText('404 - Page Not Found')).toBeDefined();
+  });
 
   it('renders custom NotFound component when provided', () => {
-    const router = new Router({ notFound: NotFoundComponent })
-    renderWithRouter(<Routes />, router)
-    expect(screen.getByTestId('not-found')).toBeDefined()
-  })
+    const router = new Router({ notFound: NotFoundComponent });
+    renderWithRouter(<Routes />, router);
+    expect(screen.getByTestId('not-found')).toBeDefined();
+  });
 
   it('renders matched route component for current pathname', () => {
-    const router = new Router()
-    router.register(createRoute('/'))
-    renderWithRouter(<Routes />, router)
-    expect(screen.getByTestId('route-component')).toBeDefined()
-  })
+    const router = new Router();
+    router.register(createRoute('/'));
+    renderWithRouter(<Routes />, router);
+    expect(screen.getByTestId('route-component')).toBeDefined();
+  });
 
   it('renders route with layout when provided', () => {
-    const router = new Router()
-    router.register(createRoute('/', { layout: LayoutComponent }))
-    renderWithRouter(<Routes />, router)
-    expect(screen.getByTestId('layout')).toBeDefined()
-    expect(screen.getByTestId('route-component')).toBeDefined()
-  })
+    const router = new Router();
+    router.register(createRoute('/', { layout: LayoutComponent }));
+    renderWithRouter(<Routes />, router);
+    expect(screen.getByTestId('layout')).toBeDefined();
+    expect(screen.getByTestId('route-component')).toBeDefined();
+  });
 
   it('renders route without layout when not provided', () => {
-    const router = new Router()
-    router.register(createRoute('/'))
-    renderWithRouter(<Routes />, router)
-    expect(screen.getByTestId('route-component')).toBeDefined()
-    expect(screen.queryByTestId('layout')).toBeNull()
-  })
-})
+    const router = new Router();
+    router.register(createRoute('/'));
+    renderWithRouter(<Routes />, router);
+    expect(screen.getByTestId('route-component')).toBeDefined();
+    expect(screen.queryByTestId('layout')).toBeNull();
+  });
+});
 
 describe('Link', () => {
   it('renders an anchor element with href', () => {
-    const router = new Router()
-    renderWithRouter(<Link to="/about">About</Link>, router)
-    const link = screen.getByText('About')
-    expect(link.tagName).toBe('A')
-    expect(link.getAttribute('href')).toBe('/about')
-  })
+    const router = new Router();
+    renderWithRouter(<Link to="/about">About</Link>, router);
+    const link = screen.getByText('About');
+    expect(link.tagName).toBe('A');
+    expect(link.getAttribute('href')).toBe('/about');
+  });
 
   it('calls router.navigate on left click', () => {
-    const router = new Router()
-    router.register(createRoute('/'))
-    const navigateSpy = vi.spyOn(router, 'navigate')
-    renderWithRouter(<Link to="/about">About</Link>, router)
-    const link = screen.getByText('About')
+    const router = new Router();
+    router.register(createRoute('/'));
+    const navigateSpy = vi.spyOn(router, 'navigate');
+    renderWithRouter(<Link to="/about">About</Link>, router);
+    const link = screen.getByText('About');
     act(() => {
-      link.dispatchEvent(new MouseEvent('click', { bubbles: true, button: 0 }))
-    })
-    expect(navigateSpy).toHaveBeenCalledWith('/about', { replace: false })
-  })
+      link.dispatchEvent(new MouseEvent('click', { bubbles: true, button: 0 }));
+    });
+    expect(navigateSpy).toHaveBeenCalledWith('/about', { replace: false });
+  });
 
   it('does not navigate on right click', () => {
-    const router = new Router()
-    const navigateSpy = vi.spyOn(router, 'navigate')
-    renderWithRouter(<Link to="/about">About</Link>, router)
-    const link = screen.getByText('About')
+    const router = new Router();
+    const navigateSpy = vi.spyOn(router, 'navigate');
+    renderWithRouter(<Link to="/about">About</Link>, router);
+    const link = screen.getByText('About');
     act(() => {
-      link.dispatchEvent(new MouseEvent('click', { bubbles: true, button: 2 }))
-    })
-    expect(navigateSpy).not.toHaveBeenCalled()
-  })
+      link.dispatchEvent(new MouseEvent('click', { bubbles: true, button: 2 }));
+    });
+    expect(navigateSpy).not.toHaveBeenCalled();
+  });
 
   it('does not navigate when meta key is pressed', () => {
-    const router = new Router()
-    const navigateSpy = vi.spyOn(router, 'navigate')
-    renderWithRouter(<Link to="/about">About</Link>, router)
-    const link = screen.getByText('About')
+    const router = new Router();
+    const navigateSpy = vi.spyOn(router, 'navigate');
+    renderWithRouter(<Link to="/about">About</Link>, router);
+    const link = screen.getByText('About');
     act(() => {
-      link.dispatchEvent(new MouseEvent('click', { bubbles: true, button: 0, metaKey: true }))
-    })
-    expect(navigateSpy).not.toHaveBeenCalled()
-  })
+      link.dispatchEvent(new MouseEvent('click', { bubbles: true, button: 0, metaKey: true }));
+    });
+    expect(navigateSpy).not.toHaveBeenCalled();
+  });
 
   it('calls custom onClick handler', () => {
-    const router = new Router()
-    const onClick = vi.fn()
+    const router = new Router();
+    const onClick = vi.fn();
     renderWithRouter(
       <Link to="/about" onClick={onClick}>
         About
       </Link>,
       router,
-    )
-    const link = screen.getByText('About')
+    );
+    const link = screen.getByText('About');
     act(() => {
-      link.dispatchEvent(new MouseEvent('click', { bubbles: true, button: 0 }))
-    })
-    expect(onClick).toHaveBeenCalled()
-  })
+      link.dispatchEvent(new MouseEvent('click', { bubbles: true, button: 0 }));
+    });
+    expect(onClick).toHaveBeenCalled();
+  });
 
   it('passes replace option to navigate', () => {
-    const router = new Router()
-    router.register(createRoute('/'))
-    const navigateSpy = vi.spyOn(router, 'navigate')
+    const router = new Router();
+    router.register(createRoute('/'));
+    const navigateSpy = vi.spyOn(router, 'navigate');
     renderWithRouter(
       <Link to="/about" replace>
         About
       </Link>,
       router,
-    )
-    const link = screen.getByText('About')
+    );
+    const link = screen.getByText('About');
     act(() => {
-      link.dispatchEvent(new MouseEvent('click', { bubbles: true, button: 0 }))
-    })
-    expect(navigateSpy).toHaveBeenCalledWith('/about', { replace: true })
-  })
+      link.dispatchEvent(new MouseEvent('click', { bubbles: true, button: 0 }));
+    });
+    expect(navigateSpy).toHaveBeenCalledWith('/about', { replace: true });
+  });
 
   it('passes extra props to the anchor', () => {
-    const router = new Router()
+    const router = new Router();
     renderWithRouter(
       <Link to="/about" data-testid="my-link" className="custom">
         About
       </Link>,
       router,
-    )
-    const link = screen.getByTestId('my-link')
-    expect(link.className).toBe('custom')
-  })
-})
+    );
+    const link = screen.getByTestId('my-link');
+    expect(link.className).toBe('custom');
+  });
+});
 
 describe('Navigate', () => {
   it('calls router.navigate on mount', () => {
-    const router = new Router()
-    const navigateSpy = vi.spyOn(router, 'navigate')
-    renderWithRouter(<Navigate to="/target" />, router)
-    expect(navigateSpy).toHaveBeenCalledWith('/target', { replace: false })
-  })
+    const router = new Router();
+    const navigateSpy = vi.spyOn(router, 'navigate');
+    renderWithRouter(<Navigate to="/target" />, router);
+    expect(navigateSpy).toHaveBeenCalledWith('/target', { replace: false });
+  });
 
   it('calls router.navigate with replace option', () => {
-    const router = new Router()
-    const navigateSpy = vi.spyOn(router, 'navigate')
-    renderWithRouter(<Navigate to="/target" replace />, router)
-    expect(navigateSpy).toHaveBeenCalledWith('/target', { replace: true })
-  })
+    const router = new Router();
+    const navigateSpy = vi.spyOn(router, 'navigate');
+    renderWithRouter(<Navigate to="/target" replace />, router);
+    expect(navigateSpy).toHaveBeenCalledWith('/target', { replace: true });
+  });
 
   it('renders null', () => {
-    const router = new Router()
-    const { container } = renderWithRouter(<Navigate to="/target" />, router)
-    expect(container.innerHTML).toBe('')
-  })
-})
+    const router = new Router();
+    const { container } = renderWithRouter(<Navigate to="/target" />, router);
+    expect(container.innerHTML).toBe('');
+  });
+});
 
 describe('useNavigate', () => {
   it('returns a navigation function', () => {
-    const router = new Router()
-    const navigateSpy = vi.spyOn(router, 'navigate')
-    let navigateFn: ((to: string) => void) | null = null
+    const router = new Router();
+    const navigateSpy = vi.spyOn(router, 'navigate');
+    let navigateFn: ((to: string) => void) | null = null;
     function Child() {
-      navigateFn = useNavigate()
-      return null
+      navigateFn = useNavigate();
+      return null;
     }
-    renderWithRouter(<Child />, router)
-    expect(typeof navigateFn).toBe('function')
+    renderWithRouter(<Child />, router);
+    expect(typeof navigateFn).toBe('function');
     act(() => {
-      navigateFn!('/somewhere')
-    })
-    expect(navigateSpy).toHaveBeenCalledWith('/somewhere', undefined)
-  })
-})
+      navigateFn!('/somewhere');
+    });
+    expect(navigateSpy).toHaveBeenCalledWith('/somewhere', undefined);
+  });
+});

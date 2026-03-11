@@ -1,6 +1,6 @@
-import type { Block } from '@revealui/core'
+import type { Block } from '@revealui/core';
 
-import { FixedToolbarFeature, InlineToolbarFeature, lexicalEditor } from '@revealui/core/richtext'
+import { FixedToolbarFeature, InlineToolbarFeature, lexicalEditor } from '@revealui/core/richtext';
 
 export const Banner: Block = {
   slug: 'banner',
@@ -22,7 +22,7 @@ export const Banner: Block = {
       type: 'richText',
       editor: lexicalEditor({
         features: ({ rootFeatures }) => {
-          return [...rootFeatures, FixedToolbarFeature(), InlineToolbarFeature()]
+          return [...rootFeatures, FixedToolbarFeature(), InlineToolbarFeature()];
         },
       }),
       label: false,
@@ -30,4 +30,4 @@ export const Banner: Block = {
     },
   ],
   interfaceName: 'BannerBlock',
-}
+};

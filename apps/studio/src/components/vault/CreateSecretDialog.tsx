@@ -1,34 +1,34 @@
-import { useState } from 'react'
-import Button from '../ui/Button'
-import ErrorAlert from '../ui/ErrorAlert'
-import Input from '../ui/Input'
-import Modal from '../ui/Modal'
+import { useState } from 'react';
+import Button from '../ui/Button';
+import ErrorAlert from '../ui/ErrorAlert';
+import Input from '../ui/Input';
+import Modal from '../ui/Modal';
 
 interface CreateSecretDialogProps {
-  onConfirm: (path: string, value: string) => Promise<void>
-  onClose: () => void
+  onConfirm: (path: string, value: string) => Promise<void>;
+  onClose: () => void;
 }
 
 export default function CreateSecretDialog({ onConfirm, onClose }: CreateSecretDialogProps) {
-  const [path, setPath] = useState('')
-  const [value, setValue] = useState('')
-  const [saving, setSaving] = useState(false)
-  const [error, setError] = useState<string | null>(null)
+  const [path, setPath] = useState('');
+  const [value, setValue] = useState('');
+  const [saving, setSaving] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
   const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault()
-    if (!(path.trim() && value.trim())) return
-    setSaving(true)
-    setError(null)
+    e.preventDefault();
+    if (!(path.trim() && value.trim())) return;
+    setSaving(true);
+    setError(null);
     try {
-      await onConfirm(path.trim(), value.trim())
-      onClose()
+      await onConfirm(path.trim(), value.trim());
+      onClose();
     } catch (err) {
-      setError(err instanceof Error ? err.message : String(err))
+      setError(err instanceof Error ? err.message : String(err));
     } finally {
-      setSaving(false)
+      setSaving(false);
     }
-  }
+  };
 
   return (
     <Modal
@@ -80,5 +80,5 @@ export default function CreateSecretDialog({ onConfirm, onClose }: CreateSecretD
         </div>
       </form>
     </Modal>
-  )
+  );
 }

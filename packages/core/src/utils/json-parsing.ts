@@ -5,8 +5,8 @@
  * Handles the _json column pattern used for storing complex field types.
  */
 
-import { defaultLogger } from '../instance/logger.js'
-import type { RevealDocument } from '../types/index.js'
+import { defaultLogger } from '../instance/logger.js';
+import type { RevealDocument } from '../types/index.js';
 
 /**
  * Parse a JSON field value safely
@@ -16,19 +16,19 @@ import type { RevealDocument } from '../types/index.js'
  */
 export function parseJsonField(value: unknown): unknown {
   if (value === null || value === undefined) {
-    return value
+    return value;
   }
 
   if (typeof value === 'string' && (value.startsWith('{') || value.startsWith('['))) {
     try {
-      return JSON.parse(value)
+      return JSON.parse(value);
     } catch {
       // Not valid JSON, keep as string
-      return value
+      return value;
     }
   }
 
-  return value
+  return value;
 }
 
 /**
@@ -50,7 +50,7 @@ export function deserializeJsonFields(
   tableName?: string,
 ): RevealDocument {
   // Ensure id field exists (required by RevealDocument type)
-  const rawId = doc.id
+  const rawId = doc.id;
   const fallbackId =
     rawId === null || rawId === undefined
       ? ''
@@ -59,54 +59,54 @@ export function deserializeJsonFields(
           typeof rawId === 'boolean' ||
           typeof rawId === 'bigint'
         ? String(rawId)
-        : ''
+        : '';
   const result: RevealDocument = {
     id: typeof rawId === 'string' || typeof rawId === 'number' ? rawId : fallbackId,
     ...doc,
-  }
+  };
 
   // Handle _json column: deserialize and merge JSON fields into document
   if (result._json !== null && result._json !== undefined) {
     try {
       // PostgreSQL JSONB returns as object, SQLite TEXT returns as string
       const jsonFields =
-        typeof result._json === 'string' ? (JSON.parse(result._json) as unknown) : result._json
+        typeof result._json === 'string' ? (JSON.parse(result._json) as unknown) : result._json;
 
       // Merge JSON fields into document
       if (jsonFields && typeof jsonFields === 'object') {
-        Object.assign(result, jsonFields)
+        Object.assign(result, jsonFields);
       }
     } catch (error) {
       // Invalid JSON - log for debugging but continue
-      defaultLogger.warn(`Failed to parse _json in ${tableName || 'unknown'}:`, error)
+      defaultLogger.warn(`Failed to parse _json in ${tableName || 'unknown'}:`, error);
     }
   }
 
   // Remove _json from result (internal column)
-  Reflect.deleteProperty(result as Record<string, unknown>, '_json')
+  Reflect.deleteProperty(result as Record<string, unknown>, '_json');
 
   // Deserialize other JSON strings (for backwards compatibility with non-JSON fields)
   for (const [key, value] of Object.entries(result)) {
     if (value === null || value === undefined) {
-      result[key] = value
-      continue
+      result[key] = value;
+      continue;
     }
 
     // Check for JSON string pattern
     if (typeof value === 'string' && (value.startsWith('{') || value.startsWith('['))) {
       try {
-        const parsed = JSON.parse(value) as unknown
-        result[key] = parsed as RevealDocument[typeof key]
+        const parsed = JSON.parse(value) as unknown;
+        result[key] = parsed as RevealDocument[typeof key];
       } catch {
         // Not valid JSON, keep as string
-        result[key] = value
+        result[key] = value;
       }
     } else {
-      result[key] = value
+      result[key] = value;
     }
   }
 
-  return result
+  return result;
 }
 
 /**
@@ -120,15 +120,15 @@ export function collectJsonFields(
   data: Record<string, unknown>,
   jsonFieldNames: Set<string>,
 ): Record<string, unknown> {
-  const jsonData: Record<string, unknown> = {}
+  const jsonData: Record<string, unknown> = {};
 
   jsonFieldNames.forEach((name) => {
     if (name in data && data[name] !== undefined) {
-      jsonData[name] = data[name]
+      jsonData[name] = data[name];
     }
-  })
+  });
 
-  return jsonData
+  return jsonData;
 }
 
 /**
@@ -146,7 +146,7 @@ export function serializeValueForDatabase(value: unknown): unknown {
     value !== undefined &&
     (typeof value === 'object' || Array.isArray(value))
   ) {
-    return JSON.stringify(value)
+    return JSON.stringify(value);
   }
-  return value
+  return value;
 }

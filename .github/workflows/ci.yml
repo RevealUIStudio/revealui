@@ -99,6 +99,9 @@ jobs:
 
   # ---------------------------------------------------------------------------
   # Phase 3a: Tests (warn-only — mirrors local gate policy)
+  # DECISION: Tests are warn-only because some integration tests require
+  # database/external service access not available in CI. When test coverage
+  # stabilizes post-launch, switch continue-on-error to false.
   # ---------------------------------------------------------------------------
   test:
     name: Tests

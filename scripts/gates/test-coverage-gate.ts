@@ -14,71 +14,71 @@
  *   tsx scripts/gates/test-coverage-gate.ts [--fail-on-zero]
  */
 
-import { existsSync, readdirSync, readFileSync, statSync } from 'node:fs'
-import { join } from 'node:path'
-import { fileURLToPath } from 'node:url'
+import { existsSync, readdirSync, readFileSync, statSync } from 'node:fs';
+import { join } from 'node:path';
+import { fileURLToPath } from 'node:url';
 
-const ROOT = join(fileURLToPath(import.meta.url), '../../..')
-const FAIL_ON_ZERO = process.argv.includes('--fail-on-zero')
+const ROOT = join(fileURLToPath(import.meta.url), '../../..');
+const FAIL_ON_ZERO = process.argv.includes('--fail-on-zero');
 
 // Packages and apps to check
-const SCAN_DIRS = ['packages', 'apps']
+const SCAN_DIRS = ['packages', 'apps'];
 
 // Minimum source LOC to require coverage data
-const MIN_LOC_THRESHOLD = 100
+const MIN_LOC_THRESHOLD = 100;
 
 interface CoverageSummary {
   total: {
-    lines: { pct: number; total: number; covered: number }
-    statements: { pct: number; total: number; covered: number }
-    functions: { pct: number; total: number; covered: number }
-    branches: { pct: number; total: number; covered: number }
-  }
+    lines: { pct: number; total: number; covered: number };
+    statements: { pct: number; total: number; covered: number };
+    functions: { pct: number; total: number; covered: number };
+    branches: { pct: number; total: number; covered: number };
+  };
 }
 
 interface PackageResult {
-  name: string
-  path: string
-  sourceLoc: number
-  hasCoverageReport: boolean
-  linePct: number | null
-  testFiles: number
+  name: string;
+  path: string;
+  sourceLoc: number;
+  hasCoverageReport: boolean;
+  linePct: number | null;
+  testFiles: number;
 }
 
 /** Count non-blank, non-comment source lines across .ts/.tsx files */
 function countSourceLines(srcDir: string): number {
-  if (!existsSync(srcDir)) return 0
-  let total = 0
+  if (!existsSync(srcDir)) return 0;
+  let total = 0;
 
   function walk(dir: string): void {
     for (const entry of readdirSync(dir)) {
-      const full = join(dir, entry)
-      const stat = statSync(full)
+      const full = join(dir, entry);
+      const stat = statSync(full);
       if (stat.isDirectory()) {
-        if (entry === 'node_modules' || entry === 'dist' || entry === '__tests__') continue
-        walk(full)
+        if (entry === 'node_modules' || entry === 'dist' || entry === '__tests__') continue;
+        walk(full);
       } else if (entry.endsWith('.ts') || entry.endsWith('.tsx')) {
-        const content = readFileSync(full, 'utf-8')
+        const content = readFileSync(full, 'utf-8');
         for (const line of content.split('\n')) {
-          const trimmed = line.trim()
+          const trimmed = line.trim();
           if (trimmed && !trimmed.startsWith('//') && !trimmed.startsWith('*')) {
-            total++
+            total++;
           }
         }
       }
     }
   }
 
-  walk(srcDir)
-  return total
+  walk(srcDir);
+  return total;
 }
 
 /** Count test files in a package */
 function countTestFiles(pkgPath: string): number {
-  const testDirs = [join(pkgPath, 'src', '__tests__'), join(pkgPath, '__tests__')]
-  let count = 0
+  const testDirs = [join(pkgPath, 'src', '__tests__'), join(pkgPath, '__tests__')];
+  let count = 0;
   for (const dir of testDirs) {
-    if (!existsSync(dir)) continue
+    if (!existsSync(dir)) continue;
     for (const entry of readdirSync(dir, { recursive: true } as Parameters<
       typeof readdirSync
     >[1])) {
@@ -86,11 +86,11 @@ function countTestFiles(pkgPath: string): number {
         typeof entry === 'string' &&
         (entry.endsWith('.test.ts') || entry.endsWith('.test.tsx'))
       ) {
-        count++
+        count++;
       }
     }
   }
-  return count
+  return count;
 }
 
 /** Read coverage summary JSON if it exists */
@@ -98,38 +98,38 @@ function readCoverageSummary(pkgPath: string): CoverageSummary | null {
   const paths = [
     join(pkgPath, 'coverage', 'coverage-summary.json'),
     join(pkgPath, 'coverage', 'coverage-final.json'), // alternative vitest output
-  ]
+  ];
   for (const p of paths) {
     if (existsSync(p)) {
       try {
-        const raw = JSON.parse(readFileSync(p, 'utf-8')) as Record<string, unknown>
+        const raw = JSON.parse(readFileSync(p, 'utf-8')) as Record<string, unknown>;
         // coverage-summary.json has a "total" key
-        if (raw.total) return raw as unknown as CoverageSummary
+        if (raw.total) return raw as unknown as CoverageSummary;
       } catch {
         // Malformed — skip
       }
     }
   }
-  return null
+  return null;
 }
 
 function scan(): PackageResult[] {
-  const results: PackageResult[] = []
+  const results: PackageResult[] = [];
 
   for (const scanDir of SCAN_DIRS) {
-    const dir = join(ROOT, scanDir)
-    if (!existsSync(dir)) continue
+    const dir = join(ROOT, scanDir);
+    if (!existsSync(dir)) continue;
 
     for (const pkgName of readdirSync(dir)) {
-      const pkgPath = join(dir, pkgName)
-      if (!statSync(pkgPath).isDirectory()) continue
+      const pkgPath = join(dir, pkgName);
+      if (!statSync(pkgPath).isDirectory()) continue;
 
-      const srcDir = join(pkgPath, 'src')
-      const sourceLoc = countSourceLines(srcDir)
-      if (sourceLoc < MIN_LOC_THRESHOLD) continue
+      const srcDir = join(pkgPath, 'src');
+      const sourceLoc = countSourceLines(srcDir);
+      if (sourceLoc < MIN_LOC_THRESHOLD) continue;
 
-      const summary = readCoverageSummary(pkgPath)
-      const testFiles = countTestFiles(pkgPath)
+      const summary = readCoverageSummary(pkgPath);
+      const testFiles = countTestFiles(pkgPath);
 
       results.push({
         name: `${scanDir}/${pkgName}`,
@@ -138,94 +138,94 @@ function scan(): PackageResult[] {
         hasCoverageReport: summary !== null,
         linePct: summary?.total.lines.pct ?? null,
         testFiles,
-      })
+      });
     }
   }
 
-  return results.sort((a, b) => a.name.localeCompare(b.name))
+  return results.sort((a, b) => a.name.localeCompare(b.name));
 }
 
 function main(): void {
-  console.log('\n============================================================')
-  console.log('Test Coverage Gate')
-  console.log('============================================================\n')
+  console.log('\n============================================================');
+  console.log('Test Coverage Gate');
+  console.log('============================================================\n');
 
-  const results = scan()
-  const noCoverage: PackageResult[] = []
-  const zeroCoverage: PackageResult[] = []
-  const withCoverage: PackageResult[] = []
+  const results = scan();
+  const noCoverage: PackageResult[] = [];
+  const zeroCoverage: PackageResult[] = [];
+  const withCoverage: PackageResult[] = [];
 
   for (const r of results) {
     if (!r.hasCoverageReport) {
-      noCoverage.push(r)
+      noCoverage.push(r);
     } else if (r.linePct === 0) {
-      zeroCoverage.push(r)
+      zeroCoverage.push(r);
     } else {
-      withCoverage.push(r)
+      withCoverage.push(r);
     }
   }
 
   // ── Packages with coverage data ──────────────────────────────────────────
   if (withCoverage.length > 0) {
-    console.log('✅ Packages with coverage data:')
+    console.log('✅ Packages with coverage data:');
     for (const r of withCoverage) {
-      const pct = r.linePct?.toFixed(1) ?? '?'
+      const pct = r.linePct?.toFixed(1) ?? '?';
       console.log(
         `   ${r.name.padEnd(35)} ${pct}% lines   (${r.testFiles} test files, ${r.sourceLoc} LOC)`,
-      )
+      );
     }
-    console.log()
+    console.log();
   }
 
   // ── Packages missing coverage reports ────────────────────────────────────
   if (noCoverage.length > 0) {
-    console.log('⚠️  No coverage report found (run `pnpm test:coverage` first):')
+    console.log('⚠️  No coverage report found (run `pnpm test:coverage` first):');
     for (const r of noCoverage) {
-      const testNote = r.testFiles === 0 ? '⚠ no tests' : `${r.testFiles} test files`
-      console.log(`   ${r.name.padEnd(35)} ${testNote}, ${r.sourceLoc} LOC`)
+      const testNote = r.testFiles === 0 ? '⚠ no tests' : `${r.testFiles} test files`;
+      console.log(`   ${r.name.padEnd(35)} ${testNote}, ${r.sourceLoc} LOC`);
     }
-    console.log()
+    console.log();
   }
 
   // ── Packages with 0% coverage ────────────────────────────────────────────
   if (zeroCoverage.length > 0) {
-    console.log('❌ Packages with 0% line coverage:')
+    console.log('❌ Packages with 0% line coverage:');
     for (const r of zeroCoverage) {
-      console.log(`   ${r.name.padEnd(35)} ${r.testFiles} test files, ${r.sourceLoc} LOC`)
+      console.log(`   ${r.name.padEnd(35)} ${r.testFiles} test files, ${r.sourceLoc} LOC`);
     }
-    console.log()
+    console.log();
   }
 
   // ── Summary ──────────────────────────────────────────────────────────────
-  console.log('============================================================')
-  console.log(`Scanned ${results.length} packages (>${MIN_LOC_THRESHOLD} LOC)`)
-  console.log(`  ✅ With coverage:   ${withCoverage.length}`)
-  console.log(`  ⚠  No report yet:  ${noCoverage.length}`)
-  console.log(`  ❌ Zero coverage:   ${zeroCoverage.length}`)
-  console.log('============================================================\n')
+  console.log('============================================================');
+  console.log(`Scanned ${results.length} packages (>${MIN_LOC_THRESHOLD} LOC)`);
+  console.log(`  ✅ With coverage:   ${withCoverage.length}`);
+  console.log(`  ⚠  No report yet:  ${noCoverage.length}`);
+  console.log(`  ❌ Zero coverage:   ${zeroCoverage.length}`);
+  console.log('============================================================\n');
 
   // Priority packages with no tests at all (always warn regardless of report)
-  const noTests = results.filter((r) => r.testFiles === 0)
+  const noTests = results.filter((r) => r.testFiles === 0);
   if (noTests.length > 0) {
-    console.log('⚠️  Packages with >100 LOC and zero test files:')
+    console.log('⚠️  Packages with >100 LOC and zero test files:');
     for (const r of noTests) {
-      console.log(`   ${r.name} (${r.sourceLoc} LOC)`)
+      console.log(`   ${r.name} (${r.sourceLoc} LOC)`);
     }
-    console.log()
+    console.log();
   }
 
   if (FAIL_ON_ZERO && zeroCoverage.length > 0) {
-    console.log('❌ Gate failed: packages with 0% coverage found')
-    process.exit(1)
+    console.log('❌ Gate failed: packages with 0% coverage found');
+    process.exit(1);
   }
 
   if (noCoverage.length > 0) {
-    console.log('ℹ  Run `pnpm test:coverage` then re-run this gate for full results.')
+    console.log('ℹ  Run `pnpm test:coverage` then re-run this gate for full results.');
   }
 
   if (zeroCoverage.length === 0 && noCoverage.length === 0) {
-    console.log('✅ Coverage gate passed — all packages have coverage data.')
+    console.log('✅ Coverage gate passed — all packages have coverage data.');
   }
 }
 
-main()
+main();

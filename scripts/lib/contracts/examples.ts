@@ -10,9 +10,9 @@
  * - zod - Runtime schema validation
  */
 
-import { z } from 'zod'
-import type { ScriptOutput } from '../output.js'
-import { defineScriptContract, validateInput, validateOutput } from './script-contracts.js'
+import { z } from 'zod';
+import type { ScriptOutput } from '../output.js';
+import { defineScriptContract, validateInput, validateOutput } from './script-contracts.js';
 
 // =============================================================================
 // Example 1: Database Migration Contract
@@ -58,7 +58,7 @@ export const DatabaseMigrationContract = defineScriptContract({
       input: { direction: 'down' as const, steps: 1, dryRun: false, force: false },
     },
   ],
-})
+});
 
 // =============================================================================
 // Example 2: Code Generation Contract
@@ -87,7 +87,7 @@ export const CodeGenContract = defineScriptContract({
     filesGenerated: z.array(z.string()),
     warnings: z.array(z.string()).optional(),
   }),
-})
+});
 
 // =============================================================================
 // Example 3: Performance Benchmark Contract
@@ -131,7 +131,7 @@ export const BenchmarkContract = defineScriptContract({
       })
       .optional(),
   }),
-})
+});
 
 // =============================================================================
 // Example Usage in a Script
@@ -142,7 +142,7 @@ export const BenchmarkContract = defineScriptContract({
  */
 export async function exampleMigrationHandler(args: unknown): Promise<ScriptOutput> {
   // Validate input
-  const inputValidation = validateInput(DatabaseMigrationContract, args)
+  const inputValidation = validateInput(DatabaseMigrationContract, args);
 
   if (!inputValidation.success) {
     return {
@@ -152,15 +152,15 @@ export async function exampleMigrationHandler(args: unknown): Promise<ScriptOutp
         message: 'Invalid input parameters',
         details: { errors: inputValidation.errors },
       },
-    }
+    };
   }
 
   // biome-ignore lint/style/noNonNullAssertion: Data guaranteed to exist after successful validation
-  const input = inputValidation.data!
+  const input = inputValidation.data!;
 
   // Use validated input
-  console.log(`Running migrations: ${input.direction}`)
-  console.log(`Dry run: ${input.dryRun}`)
+  console.log(`Running migrations: ${input.direction}`);
+  console.log(`Dry run: ${input.dryRun}`);
 
   // Perform operation (mock example)
   const result = {
@@ -171,10 +171,10 @@ export async function exampleMigrationHandler(args: unknown): Promise<ScriptOutp
       { name: '002_add_users', status: 'success' as const },
       { name: '003_add_posts', status: 'success' as const },
     ],
-  }
+  };
 
   // Validate output
-  const outputValidation = validateOutput(DatabaseMigrationContract, result)
+  const outputValidation = validateOutput(DatabaseMigrationContract, result);
 
   if (!outputValidation.success) {
     return {
@@ -184,13 +184,13 @@ export async function exampleMigrationHandler(args: unknown): Promise<ScriptOutp
         message: 'Output validation failed',
         details: { errors: outputValidation.errors },
       },
-    }
+    };
   }
 
   return {
     success: true,
     data: outputValidation.data,
-  }
+  };
 }
 
 /**
@@ -198,7 +198,7 @@ export async function exampleMigrationHandler(args: unknown): Promise<ScriptOutp
  */
 export async function exampleWithAsyncValidation(args: unknown): Promise<ScriptOutput> {
   // Parse and validate input
-  const result = DatabaseMigrationContract.input.safeParse(args)
+  const result = DatabaseMigrationContract.input.safeParse(args);
 
   if (!result.success) {
     return {
@@ -208,10 +208,10 @@ export async function exampleWithAsyncValidation(args: unknown): Promise<ScriptO
         message: 'Invalid arguments',
         details: result.error.flatten(),
       },
-    }
+    };
   }
 
-  const input = result.data
+  const input = result.data;
 
   // Additional async validation could go here
   // e.g., checking if migration files exist
@@ -219,5 +219,5 @@ export async function exampleWithAsyncValidation(args: unknown): Promise<ScriptO
   return {
     success: true,
     data: { message: `Validated: ${input.direction}` },
-  }
+  };
 }

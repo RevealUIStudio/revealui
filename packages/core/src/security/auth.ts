@@ -5,29 +5,29 @@
  * JWT-based auth was removed — session auth is handled by @revealui/auth.
  */
 
-import { createHmac, timingSafeEqual } from 'node:crypto'
+import { createHmac, timingSafeEqual } from 'node:crypto';
 
 export interface User {
-  id: string
-  email: string
-  username?: string
-  roles: string[]
-  permissions: string[]
-  metadata?: Record<string, unknown>
+  id: string;
+  email: string;
+  username?: string;
+  roles: string[];
+  permissions: string[];
+  metadata?: Record<string, unknown>;
 }
 
 /**
  * OAuth configuration
  */
 export interface OAuthConfig {
-  provider: 'google' | 'github' | 'microsoft' | 'custom'
-  clientId: string
-  clientSecret: string
-  redirectUri: string
-  scope?: string[]
-  authorizationUrl?: string
-  tokenUrl?: string
-  userInfoUrl?: string
+  provider: 'google' | 'github' | 'microsoft' | 'custom';
+  clientId: string;
+  clientSecret: string;
+  redirectUri: string;
+  scope?: string[];
+  authorizationUrl?: string;
+  tokenUrl?: string;
+  userInfoUrl?: string;
 }
 
 /**
@@ -52,20 +52,20 @@ export const OAuthProviders = {
     userInfoUrl: 'https://graph.microsoft.com/v1.0/me',
     scope: ['openid', 'email', 'profile'],
   },
-}
+};
 
 /**
  * OAuth client
  */
 export class OAuthClient {
-  private config: OAuthConfig
+  private config: OAuthConfig;
 
   constructor(config: OAuthConfig) {
     // Provider defaults fill in missing fields; user-provided config takes precedence
     this.config = {
       ...OAuthProviders[config.provider as keyof typeof OAuthProviders],
       ...config,
-    }
+    };
   }
 
   /**
@@ -77,25 +77,25 @@ export class OAuthClient {
       redirect_uri: this.config.redirectUri,
       response_type: 'code',
       scope: (this.config.scope || []).join(' '),
-    })
+    });
 
     if (state) {
-      params.append('state', state)
+      params.append('state', state);
     }
 
-    return `${this.config.authorizationUrl}?${params.toString()}`
+    return `${this.config.authorizationUrl}?${params.toString()}`;
   }
 
   /**
    * Exchange code for token
    */
   async exchangeCodeForToken(code: string): Promise<{
-    access_token: string
-    refresh_token?: string
-    expires_in: number
-    token_type: string
+    access_token: string;
+    refresh_token?: string;
+    expires_in: number;
+    token_type: string;
   }> {
-    if (!this.config.tokenUrl) throw new Error('tokenUrl is required for OAuth')
+    if (!this.config.tokenUrl) throw new Error('tokenUrl is required for OAuth');
     const response = await fetch(this.config.tokenUrl, {
       method: 'POST',
       headers: {
@@ -108,51 +108,51 @@ export class OAuthClient {
         grant_type: 'authorization_code',
         redirect_uri: this.config.redirectUri,
       }),
-    })
+    });
 
     if (!response.ok) {
-      let detail = ''
+      let detail = '';
       try {
-        const body = await response.text()
-        detail = `: ${response.status} ${body.slice(0, 200)}`
+        const body = await response.text();
+        detail = `: ${response.status} ${body.slice(0, 200)}`;
       } catch {
-        detail = `: ${response.status}`
+        detail = `: ${response.status}`;
       }
-      throw new Error(`Failed to exchange code for token${detail}`)
+      throw new Error(`Failed to exchange code for token${detail}`);
     }
 
-    return response.json()
+    return response.json();
   }
 
   /**
    * Get user info
    */
   async getUserInfo(accessToken: string): Promise<{
-    id: string
-    email: string
-    name?: string
-    picture?: string
+    id: string;
+    email: string;
+    name?: string;
+    picture?: string;
   }> {
-    if (!this.config.userInfoUrl) throw new Error('userInfoUrl is required for OAuth')
+    if (!this.config.userInfoUrl) throw new Error('userInfoUrl is required for OAuth');
     const response = await fetch(this.config.userInfoUrl, {
       headers: {
         // biome-ignore lint/style/useNamingConvention: HTTP header convention
         Authorization: `Bearer ${accessToken}`,
       },
-    })
+    });
 
     if (!response.ok) {
-      let detail = ''
+      let detail = '';
       try {
-        const body = await response.text()
-        detail = `: ${response.status} ${body.slice(0, 200)}`
+        const body = await response.text();
+        detail = `: ${response.status} ${body.slice(0, 200)}`;
       } catch {
-        detail = `: ${response.status}`
+        detail = `: ${response.status}`;
       }
-      throw new Error(`Failed to fetch user info${detail}`)
+      throw new Error(`Failed to fetch user info${detail}`);
     }
 
-    return response.json()
+    return response.json();
   }
 }
 
@@ -166,56 +166,56 @@ export class OAuthClient {
  * removed in a future major version.
  */
 
-const PH_ITERATIONS = 100000
-const PH_KEY_LENGTH = 64
-const PH_DIGEST = 'sha512'
+const PH_ITERATIONS = 100000;
+const PH_KEY_LENGTH = 64;
+const PH_DIGEST = 'sha512';
 
 /**
  * Hash password with PBKDF2 and random salt
  */
 async function hashPassword(password: string): Promise<string> {
-  const { pbkdf2, randomBytes: rb } = await import('node:crypto')
-  const salt = rb(16).toString('hex')
+  const { pbkdf2, randomBytes: rb } = await import('node:crypto');
+  const salt = rb(16).toString('hex');
 
   return new Promise((resolve, reject) => {
     pbkdf2(password, salt, PH_ITERATIONS, PH_KEY_LENGTH, PH_DIGEST, (err, derivedKey) => {
-      if (err) reject(err)
-      else resolve(`${salt}:${derivedKey.toString('hex')}`)
-    })
-  })
+      if (err) reject(err);
+      else resolve(`${salt}:${derivedKey.toString('hex')}`);
+    });
+  });
 }
 
 /**
  * Verify password against stored hash
  */
 async function verifyPassword(password: string, storedHash: string): Promise<boolean> {
-  const { pbkdf2, timingSafeEqual: tse } = await import('node:crypto')
-  const [salt, hash] = storedHash.split(':')
+  const { pbkdf2, timingSafeEqual: tse } = await import('node:crypto');
+  const [salt, hash] = storedHash.split(':');
 
   if (!(salt && hash)) {
-    return false
+    return false;
   }
 
   return new Promise((resolve, reject) => {
     pbkdf2(password, salt, PH_ITERATIONS, PH_KEY_LENGTH, PH_DIGEST, (err, derivedKey) => {
-      if (err) reject(err)
+      if (err) reject(err);
       else {
-        const derived = Buffer.from(derivedKey.toString('hex'), 'utf-8')
-        const expected = Buffer.from(hash, 'utf-8')
+        const derived = Buffer.from(derivedKey.toString('hex'), 'utf-8');
+        const expected = Buffer.from(hash, 'utf-8');
         if (derived.length !== expected.length) {
-          resolve(false)
+          resolve(false);
         } else {
-          resolve(tse(derived, expected))
+          resolve(tse(derived, expected));
         }
       }
-    })
-  })
+    });
+  });
 }
 
 export const PasswordHasher = {
   hash: hashPassword,
   verify: verifyPassword,
-} as const
+} as const;
 
 /**
  * Two-factor authentication
@@ -225,96 +225,96 @@ export const PasswordHasher = {
  * Base32 encode
  */
 function base32Encode(buffer: Uint8Array): string {
-  const alphabet = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ234567'
-  let result = ''
-  let bits = 0
-  let value = 0
+  const alphabet = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ234567';
+  let result = '';
+  let bits = 0;
+  let value = 0;
 
   for (const byte of buffer) {
-    if (byte === undefined) continue
-    value = (value << 8) | byte
-    bits += 8
+    if (byte === undefined) continue;
+    value = (value << 8) | byte;
+    bits += 8;
 
     while (bits >= 5) {
-      result += alphabet[(value >>> (bits - 5)) & 31]
-      bits -= 5
+      result += alphabet[(value >>> (bits - 5)) & 31];
+      bits -= 5;
     }
   }
 
   if (bits > 0) {
-    result += alphabet[(value << (5 - bits)) & 31]
+    result += alphabet[(value << (5 - bits)) & 31];
   }
 
-  return result
+  return result;
 }
 
 /**
  * HMAC-SHA1 implementation for TOTP
  */
 function totpHmac(key: string, message: string): Uint8Array {
-  const hmacDigest = createHmac('sha1', key).update(message).digest()
-  return new Uint8Array(hmacDigest)
+  const hmacDigest = createHmac('sha1', key).update(message).digest();
+  return new Uint8Array(hmacDigest);
 }
 
 /**
  * Generate TOTP secret
  */
 function generateSecret(): string {
-  const crypto = globalThis.crypto
+  const crypto = globalThis.crypto;
   if (!crypto) {
-    throw new Error('Crypto API not available')
+    throw new Error('Crypto API not available');
   }
 
-  const buffer = new Uint8Array(20)
-  crypto.getRandomValues(buffer)
-  return base32Encode(buffer)
+  const buffer = new Uint8Array(20);
+  crypto.getRandomValues(buffer);
+  return base32Encode(buffer);
 }
 
 /**
  * Generate TOTP code
  */
 function generateCode(secret: string, timestamp?: number): string {
-  const time = Math.floor((timestamp || Date.now()) / 30000)
-  const hmacDigest = totpHmac(secret, time.toString())
+  const time = Math.floor((timestamp || Date.now()) / 30000);
+  const hmacDigest = totpHmac(secret, time.toString());
   // biome-ignore lint/style/noNonNullAssertion: HMAC-SHA1 always produces 20 bytes; buffer indices are guaranteed valid
-  const offset = hmacDigest[hmacDigest.length - 1]! & 0x0f
+  const offset = hmacDigest[hmacDigest.length - 1]! & 0x0f;
   // biome-ignore lint/style/noNonNullAssertion: HMAC-SHA1 always produces 20 bytes; buffer indices are guaranteed valid
-  const b0 = hmacDigest[offset]! & 0x7f
+  const b0 = hmacDigest[offset]! & 0x7f;
   // biome-ignore lint/style/noNonNullAssertion: HMAC-SHA1 always produces 20 bytes; buffer indices are guaranteed valid
-  const b1 = hmacDigest[offset + 1]! & 0xff
+  const b1 = hmacDigest[offset + 1]! & 0xff;
   // biome-ignore lint/style/noNonNullAssertion: HMAC-SHA1 always produces 20 bytes; buffer indices are guaranteed valid
-  const b2 = hmacDigest[offset + 2]! & 0xff
+  const b2 = hmacDigest[offset + 2]! & 0xff;
   // biome-ignore lint/style/noNonNullAssertion: HMAC-SHA1 always produces 20 bytes; buffer indices are guaranteed valid
-  const b3 = hmacDigest[offset + 3]! & 0xff
-  const code = ((b0 << 24) | (b1 << 16) | (b2 << 8) | b3) % 1000000
+  const b3 = hmacDigest[offset + 3]! & 0xff;
+  const code = ((b0 << 24) | (b1 << 16) | (b2 << 8) | b3) % 1000000;
 
-  return code.toString().padStart(6, '0')
+  return code.toString().padStart(6, '0');
 }
 
 /**
  * Verify TOTP code
  */
 function verifyCode(secret: string, code: string, window: number = 1): boolean {
-  const timestamp = Date.now()
+  const timestamp = Date.now();
 
   // Check current and adjacent time windows
   for (let i = -window; i <= window; i++) {
-    const testTime = timestamp + i * 30000
-    const testCode = generateCode(secret, testTime)
+    const testTime = timestamp + i * 30000;
+    const testCode = generateCode(secret, testTime);
 
     if (
       testCode.length === code.length &&
       timingSafeEqual(Buffer.from(testCode), Buffer.from(code))
     ) {
-      return true
+      return true;
     }
   }
 
-  return false
+  return false;
 }
 
 export const TwoFactorAuth = {
   generateSecret,
   generateCode,
   verifyCode,
-} as const
+} as const;

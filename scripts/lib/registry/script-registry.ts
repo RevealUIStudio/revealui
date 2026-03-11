@@ -27,47 +27,47 @@
  * ```
  */
 
-import { mkdir, readFile, writeFile } from 'node:fs/promises'
-import { join } from 'node:path'
-import glob from 'fast-glob'
-import { ErrorCode, ScriptError } from '../errors.js'
+import { mkdir, readFile, writeFile } from 'node:fs/promises';
+import { join } from 'node:path';
+import glob from 'fast-glob';
+import { ErrorCode, ScriptError } from '../errors.js';
 import type {
   ScriptMetadata,
   ScriptRegistryEntry,
   ScriptRegistry as ScriptRegistryType,
   ScriptSearchCriteria,
   ScriptSearchResult,
-} from './script-metadata.js'
-import { ScriptScanner } from './script-scanner.js'
+} from './script-metadata.js';
+import { ScriptScanner } from './script-scanner.js';
 
 // =============================================================================
 // Constants
 // =============================================================================
 
-const REGISTRY_VERSION = '1.0.0'
-const REGISTRY_DIR = '.revealui'
-const REGISTRY_FILE = 'script-registry.json'
+const REGISTRY_VERSION = '1.0.0';
+const REGISTRY_DIR = '.revealui';
+const REGISTRY_FILE = 'script-registry.json';
 const SCRIPT_PATTERNS = [
   'scripts/**/*.ts',
   '!scripts/**/*.test.ts',
   '!scripts/**/*.spec.ts',
   '!scripts/**/types.ts',
   '!scripts/**/index.ts',
-]
+];
 
 // =============================================================================
 // Script Registry Class
 // =============================================================================
 
 export class ScriptRegistry {
-  private projectRoot: string
-  private registryPath: string
-  private cache: Map<string, ScriptMetadata> = new Map()
-  private registry: ScriptRegistryType | null = null
+  private projectRoot: string;
+  private registryPath: string;
+  private cache: Map<string, ScriptMetadata> = new Map();
+  private registry: ScriptRegistryType | null = null;
 
   constructor(options: { projectRoot: string }) {
-    this.projectRoot = options.projectRoot
-    this.registryPath = join(this.projectRoot, REGISTRY_DIR, REGISTRY_FILE)
+    this.projectRoot = options.projectRoot;
+    this.registryPath = join(this.projectRoot, REGISTRY_DIR, REGISTRY_FILE);
   }
 
   /**
@@ -76,18 +76,18 @@ export class ScriptRegistry {
   async generate(
     options: { verbose?: boolean; force?: boolean } = {},
   ): Promise<ScriptRegistryType> {
-    const { verbose = false, force = false } = options
+    const { verbose = false, force = false } = options;
 
     // Check if registry exists and is recent (unless force)
     if (!force && (await this.isRegistryFresh())) {
       if (verbose) {
-        console.log('Registry is fresh, loading from cache...')
+        console.log('Registry is fresh, loading from cache...');
       }
-      return this.load()
+      return this.load();
     }
 
     if (verbose) {
-      console.log('Scanning TypeScript scripts...')
+      console.log('Scanning TypeScript scripts...');
     }
 
     // Find all TypeScript script files
@@ -95,10 +95,10 @@ export class ScriptRegistry {
       cwd: this.projectRoot,
       absolute: true,
       ignore: ['node_modules/**'],
-    })
+    });
 
     if (verbose) {
-      console.log(`Found ${files.length} script files`)
+      console.log(`Found ${files.length} script files`);
     }
 
     // Scan each file
@@ -106,49 +106,49 @@ export class ScriptRegistry {
       projectRoot: this.projectRoot,
       extractPerformance: true,
       assessRisk: true,
-    })
+    });
 
-    const scripts: ScriptMetadata[] = []
-    const errors: Array<{ file: string; error: string }> = []
+    const scripts: ScriptMetadata[] = [];
+    const errors: Array<{ file: string; error: string }> = [];
 
     for (const file of files) {
       try {
-        const metadata = await scanner.scanScript(file)
+        const metadata = await scanner.scanScript(file);
         if (metadata) {
-          scripts.push(metadata)
-          this.cache.set(metadata.name, metadata)
+          scripts.push(metadata);
+          this.cache.set(metadata.name, metadata);
 
           if (verbose) {
-            console.log(`  ✓ ${metadata.name} (${metadata.commands.length} commands)`)
+            console.log(`  ✓ ${metadata.name} (${metadata.commands.length} commands)`);
           }
         }
       } catch (error) {
-        const errorMsg = error instanceof Error ? error.message : String(error)
-        errors.push({ file, error: errorMsg })
+        const errorMsg = error instanceof Error ? error.message : String(error);
+        errors.push({ file, error: errorMsg });
 
         if (verbose) {
-          console.warn(`  ✗ ${file}: ${errorMsg}`)
+          console.warn(`  ✗ ${file}: ${errorMsg}`);
         }
       }
     }
 
     if (verbose && errors.length > 0) {
-      console.warn(`\nEncountered ${errors.length} errors during scanning`)
+      console.warn(`\nEncountered ${errors.length} errors during scanning`);
     }
 
     // Build registry
-    this.registry = this.buildRegistry(scripts)
+    this.registry = this.buildRegistry(scripts);
 
     // Save to disk
-    await this.save()
+    await this.save();
 
     if (verbose) {
       console.log(
         `\nRegistry generated: ${scripts.length} scripts, ${this.registry.stats.totalCommands} commands`,
-      )
+      );
     }
 
-    return this.registry
+    return this.registry;
   }
 
   /**
@@ -156,19 +156,19 @@ export class ScriptRegistry {
    */
   async load(): Promise<ScriptRegistryType> {
     try {
-      const content = await readFile(this.registryPath, 'utf-8')
-      this.registry = JSON.parse(content)
+      const content = await readFile(this.registryPath, 'utf-8');
+      this.registry = JSON.parse(content);
 
       if (!this.registry) {
-        throw new ScriptError('Failed to parse registry', ErrorCode.EXECUTION_ERROR)
+        throw new ScriptError('Failed to parse registry', ErrorCode.EXECUTION_ERROR);
       }
 
-      return this.registry
+      return this.registry;
     } catch (error) {
       throw new ScriptError(
         `Failed to load registry: ${error instanceof Error ? error.message : String(error)}`,
         ErrorCode.EXECUTION_ERROR,
-      )
+      );
     }
   }
 
@@ -177,21 +177,21 @@ export class ScriptRegistry {
    */
   async save(): Promise<void> {
     if (!this.registry) {
-      throw new ScriptError('No registry to save', ErrorCode.INVALID_STATE)
+      throw new ScriptError('No registry to save', ErrorCode.INVALID_STATE);
     }
 
     try {
       // Ensure directory exists
-      await mkdir(join(this.projectRoot, REGISTRY_DIR), { recursive: true })
+      await mkdir(join(this.projectRoot, REGISTRY_DIR), { recursive: true });
 
       // Write registry
-      const content = JSON.stringify(this.registry, null, 2)
-      await writeFile(this.registryPath, content, 'utf-8')
+      const content = JSON.stringify(this.registry, null, 2);
+      await writeFile(this.registryPath, content, 'utf-8');
     } catch (error) {
       throw new ScriptError(
         `Failed to save registry: ${error instanceof Error ? error.message : String(error)}`,
         ErrorCode.EXECUTION_ERROR,
-      )
+      );
     }
   }
 
@@ -200,31 +200,31 @@ export class ScriptRegistry {
    */
   async search(criteria: ScriptSearchCriteria): Promise<ScriptSearchResult[]> {
     if (!this.registry) {
-      await this.load()
+      await this.load();
     }
 
     if (!this.registry) {
-      return []
+      return [];
     }
 
-    const results: ScriptSearchResult[] = []
+    const results: ScriptSearchResult[] = [];
 
     for (const script of this.registry.scripts) {
-      const match = this.matchesCriteria(script, criteria)
+      const match = this.matchesCriteria(script, criteria);
 
       if (match.matches) {
         results.push({
           script,
           score: match.score,
           matches: match.matchedFields,
-        })
+        });
       }
     }
 
     // Sort by score (highest first)
-    results.sort((a, b) => b.score - a.score)
+    results.sort((a, b) => b.score - a.score);
 
-    return results
+    return results;
   }
 
   /**
@@ -232,10 +232,10 @@ export class ScriptRegistry {
    */
   async getScript(name: string): Promise<ScriptRegistryEntry | null> {
     if (!this.registry) {
-      await this.load()
+      await this.load();
     }
 
-    return this.registry?.scripts.find((s) => s.name === name) || null
+    return this.registry?.scripts.find((s) => s.name === name) || null;
   }
 
   /**
@@ -243,10 +243,10 @@ export class ScriptRegistry {
    */
   async getByCategory(category: string): Promise<ScriptRegistryEntry[]> {
     if (!this.registry) {
-      await this.load()
+      await this.load();
     }
 
-    return this.registry?.byCategory[category] || []
+    return this.registry?.byCategory[category] || [];
   }
 
   /**
@@ -254,10 +254,10 @@ export class ScriptRegistry {
    */
   async getCategories(): Promise<string[]> {
     if (!this.registry) {
-      await this.load()
+      await this.load();
     }
 
-    return Object.keys(this.registry?.byCategory ?? {})
+    return Object.keys(this.registry?.byCategory ?? {});
   }
 
   /**
@@ -265,11 +265,11 @@ export class ScriptRegistry {
    */
   async getStats(): Promise<ScriptRegistryType['stats']> {
     if (!this.registry) {
-      await this.load()
+      await this.load();
     }
 
     // biome-ignore lint/style/noNonNullAssertion: registry is guaranteed to be loaded after this.load()
-    return this.registry!.stats
+    return this.registry!.stats;
   }
 
   // ===========================================================================
@@ -281,20 +281,20 @@ export class ScriptRegistry {
    */
   private async isRegistryFresh(): Promise<boolean> {
     try {
-      const registry = await this.load()
-      const registryTime = new Date(registry.generatedAt).getTime()
+      const registry = await this.load();
+      const registryTime = new Date(registry.generatedAt).getTime();
 
       // Check if any script has been modified since registry generation
       for (const script of registry.scripts) {
-        const scriptTime = new Date(script.lastModified).getTime()
+        const scriptTime = new Date(script.lastModified).getTime();
         if (scriptTime > registryTime) {
-          return false
+          return false;
         }
       }
 
-      return true
+      return true;
     } catch {
-      return false
+      return false;
     }
   }
 
@@ -303,15 +303,15 @@ export class ScriptRegistry {
    */
   private buildRegistry(scripts: ScriptMetadata[]): ScriptRegistryType {
     // Convert to registry entries
-    const entries = scripts.map(this.toRegistryEntry)
+    const entries = scripts.map(this.toRegistryEntry);
 
     // Group by category
-    const byCategory: Record<string, ScriptRegistryEntry[]> = {}
+    const byCategory: Record<string, ScriptRegistryEntry[]> = {};
     for (const entry of entries) {
       if (!byCategory[entry.category]) {
-        byCategory[entry.category] = []
+        byCategory[entry.category] = [];
       }
-      byCategory[entry.category].push(entry)
+      byCategory[entry.category].push(entry);
     }
 
     // Calculate statistics
@@ -322,7 +322,7 @@ export class ScriptRegistry {
       scriptsDeprecated: entries.filter((e) => e.deprecated).length,
       extendsBaseCLI: scripts.filter((s) => s.extendsBaseCLI).length,
       extendsEnhancedCLI: scripts.filter((s) => s.extendsEnhancedCLI).length,
-    }
+    };
 
     return {
       version: REGISTRY_VERSION,
@@ -331,7 +331,7 @@ export class ScriptRegistry {
       byCategory,
       scripts: entries,
       stats,
-    }
+    };
   }
 
   /**
@@ -351,7 +351,7 @@ export class ScriptRegistry {
       version: script.version,
       deprecated: script.deprecated?.isDeprecated,
       lastModified: script.lastModified.toISOString(),
-    }
+    };
   }
 
   /**
@@ -361,12 +361,12 @@ export class ScriptRegistry {
     script: ScriptRegistryEntry,
     criteria: ScriptSearchCriteria,
   ): { matches: boolean; score: number; matchedFields: Array<{ field: string; value: string }> } {
-    const matchedFields: Array<{ field: string; value: string }> = []
-    let score = 0
+    const matchedFields: Array<{ field: string; value: string }> = [];
+    let score = 0;
 
     // Category filter
     if (criteria.category && script.category !== criteria.category) {
-      return { matches: false, score: 0, matchedFields: [] }
+      return { matches: false, score: 0, matchedFields: [] };
     }
 
     // Dry-run filter
@@ -374,7 +374,7 @@ export class ScriptRegistry {
       criteria.supportsDryRun !== undefined &&
       script.supportsDryRun !== criteria.supportsDryRun
     ) {
-      return { matches: false, score: 0, matchedFields: [] }
+      return { matches: false, score: 0, matchedFields: [] };
     }
 
     // Confirmation filter
@@ -382,62 +382,62 @@ export class ScriptRegistry {
       criteria.requiresConfirmation !== undefined &&
       script.requiresConfirmation !== criteria.requiresConfirmation
     ) {
-      return { matches: false, score: 0, matchedFields: [] }
+      return { matches: false, score: 0, matchedFields: [] };
     }
 
     // Deprecated filter
     if (criteria.includeDeprecated === false && script.deprecated) {
-      return { matches: false, score: 0, matchedFields: [] }
+      return { matches: false, score: 0, matchedFields: [] };
     }
 
     // Command filter
     if (criteria.command && !script.commands.includes(criteria.command)) {
-      return { matches: false, score: 0, matchedFields: [] }
+      return { matches: false, score: 0, matchedFields: [] };
     }
 
     // Tag filter (any match)
     if (criteria.tags && criteria.tags.length > 0) {
-      const hasTag = criteria.tags.some((tag) => script.tags.includes(tag))
+      const hasTag = criteria.tags.some((tag) => script.tags.includes(tag));
       if (!hasTag) {
-        return { matches: false, score: 0, matchedFields: [] }
+        return { matches: false, score: 0, matchedFields: [] };
       }
-      matchedFields.push({ field: 'tags', value: criteria.tags.join(', ') })
-      score += 10
+      matchedFields.push({ field: 'tags', value: criteria.tags.join(', ') });
+      score += 10;
     }
 
     // Query search (name, description, tags)
     if (criteria.query) {
-      const query = criteria.query.toLowerCase()
-      let queryMatched = false
+      const query = criteria.query.toLowerCase();
+      let queryMatched = false;
 
       if (script.name.toLowerCase().includes(query)) {
-        matchedFields.push({ field: 'name', value: script.name })
-        score += 20
-        queryMatched = true
+        matchedFields.push({ field: 'name', value: script.name });
+        score += 20;
+        queryMatched = true;
       }
 
       if (script.description.toLowerCase().includes(query)) {
-        matchedFields.push({ field: 'description', value: script.description })
-        score += 10
-        queryMatched = true
+        matchedFields.push({ field: 'description', value: script.description });
+        score += 10;
+        queryMatched = true;
       }
 
-      const matchingTags = script.tags.filter((tag) => tag.toLowerCase().includes(query))
+      const matchingTags = script.tags.filter((tag) => tag.toLowerCase().includes(query));
       if (matchingTags.length > 0) {
-        matchedFields.push({ field: 'tags', value: matchingTags.join(', ') })
-        score += 5 * matchingTags.length
-        queryMatched = true
+        matchedFields.push({ field: 'tags', value: matchingTags.join(', ') });
+        score += 5 * matchingTags.length;
+        queryMatched = true;
       }
 
       if (!queryMatched) {
-        return { matches: false, score: 0, matchedFields: [] }
+        return { matches: false, score: 0, matchedFields: [] };
       }
     }
 
     // Base score for all matches
-    score += 1
+    score += 1;
 
-    return { matches: true, score, matchedFields }
+    return { matches: true, score, matchedFields };
   }
 }
 
@@ -449,5 +449,5 @@ export class ScriptRegistry {
  * Create a script registry instance
  */
 export function createScriptRegistry(projectRoot: string): ScriptRegistry {
-  return new ScriptRegistry({ projectRoot })
+  return new ScriptRegistry({ projectRoot });
 }

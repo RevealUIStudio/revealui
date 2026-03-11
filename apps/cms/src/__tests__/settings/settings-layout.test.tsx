@@ -1,14 +1,14 @@
-import { render, screen } from '@testing-library/react'
-import { describe, expect, it, vi } from 'vitest'
+import { render, screen } from '@testing-library/react';
+import { describe, expect, it, vi } from 'vitest';
 
 // Mock usePathname to return the account page path
-const mockPathname = vi.fn(() => '/admin/settings/account')
+const mockPathname = vi.fn(() => '/admin/settings/account');
 
 vi.mock('next/navigation', () => ({
   useRouter: () => ({ push: vi.fn(), replace: vi.fn(), prefetch: vi.fn() }),
   usePathname: () => mockPathname(),
   useSearchParams: () => new URLSearchParams(),
-}))
+}));
 
 // Mock next/link to render a regular anchor
 vi.mock('next/link', () => ({
@@ -17,17 +17,17 @@ vi.mock('next/link', () => ({
     children,
     ...props
   }: {
-    href: string
-    children: React.ReactNode
-    [key: string]: unknown
+    href: string;
+    children: React.ReactNode;
+    [key: string]: unknown;
   }) => (
     <a href={href} {...props}>
       {children}
     </a>
   ),
-}))
+}));
 
-import SettingsLayout from '../../app/(backend)/admin/settings/layout'
+import SettingsLayout from '../../app/(backend)/admin/settings/layout';
 
 describe('SettingsLayout', () => {
   it('renders sidebar with navigation links', () => {
@@ -35,86 +35,86 @@ describe('SettingsLayout', () => {
       <SettingsLayout>
         <div data-testid="child-content">Page content</div>
       </SettingsLayout>,
-    )
+    );
 
-    expect(screen.getByText('Back to Admin')).toBeInTheDocument()
-    expect(screen.getByText('Settings')).toBeInTheDocument()
-    expect(screen.getByText('Account')).toBeInTheDocument()
-    expect(screen.getByText('API Keys')).toBeInTheDocument()
-  })
+    expect(screen.getByText('Back to Admin')).toBeInTheDocument();
+    expect(screen.getByText('Settings')).toBeInTheDocument();
+    expect(screen.getByText('Account')).toBeInTheDocument();
+    expect(screen.getByText('API Keys')).toBeInTheDocument();
+  });
 
   it('renders children in the content area', () => {
     render(
       <SettingsLayout>
         <div data-testid="child-content">Page content</div>
       </SettingsLayout>,
-    )
+    );
 
-    expect(screen.getByTestId('child-content')).toBeInTheDocument()
-  })
+    expect(screen.getByTestId('child-content')).toBeInTheDocument();
+  });
 
   it('links back to admin dashboard', () => {
     render(
       <SettingsLayout>
         <div>Content</div>
       </SettingsLayout>,
-    )
+    );
 
-    const backLink = screen.getByText('Back to Admin')
-    expect(backLink.closest('a')).toHaveAttribute('href', '/admin')
-  })
+    const backLink = screen.getByText('Back to Admin');
+    expect(backLink.closest('a')).toHaveAttribute('href', '/admin');
+  });
 
   it('links Account to /admin/settings/account', () => {
     render(
       <SettingsLayout>
         <div>Content</div>
       </SettingsLayout>,
-    )
+    );
 
-    const accountLink = screen.getByText('Account')
-    expect(accountLink.closest('a')).toHaveAttribute('href', '/admin/settings/account')
-  })
+    const accountLink = screen.getByText('Account');
+    expect(accountLink.closest('a')).toHaveAttribute('href', '/admin/settings/account');
+  });
 
   it('links API Keys to /admin/settings/api-keys', () => {
     render(
       <SettingsLayout>
         <div>Content</div>
       </SettingsLayout>,
-    )
+    );
 
-    const apiKeysLink = screen.getByText('API Keys')
-    expect(apiKeysLink.closest('a')).toHaveAttribute('href', '/admin/settings/api-keys')
-  })
+    const apiKeysLink = screen.getByText('API Keys');
+    expect(apiKeysLink.closest('a')).toHaveAttribute('href', '/admin/settings/api-keys');
+  });
 
   it('highlights active Account link', () => {
-    mockPathname.mockReturnValue('/admin/settings/account')
+    mockPathname.mockReturnValue('/admin/settings/account');
 
     render(
       <SettingsLayout>
         <div>Content</div>
       </SettingsLayout>,
-    )
+    );
 
-    const accountLink = screen.getByText('Account').closest('a')
-    expect(accountLink?.className).toContain('bg-zinc-800')
-    expect(accountLink?.className).toContain('text-white')
-  })
+    const accountLink = screen.getByText('Account').closest('a');
+    expect(accountLink?.className).toContain('bg-zinc-800');
+    expect(accountLink?.className).toContain('text-white');
+  });
 
   it('highlights active API Keys link', () => {
-    mockPathname.mockReturnValue('/admin/settings/api-keys')
+    mockPathname.mockReturnValue('/admin/settings/api-keys');
 
     render(
       <SettingsLayout>
         <div>Content</div>
       </SettingsLayout>,
-    )
+    );
 
-    const apiKeysLink = screen.getByText('API Keys').closest('a')
-    expect(apiKeysLink?.className).toContain('bg-zinc-800')
-    expect(apiKeysLink?.className).toContain('text-white')
+    const apiKeysLink = screen.getByText('API Keys').closest('a');
+    expect(apiKeysLink?.className).toContain('bg-zinc-800');
+    expect(apiKeysLink?.className).toContain('text-white');
 
     // Account should NOT be highlighted
-    const accountLink = screen.getByText('Account').closest('a')
-    expect(accountLink?.className).not.toContain('bg-zinc-800')
-  })
-})
+    const accountLink = screen.getByText('Account').closest('a');
+    expect(accountLink?.className).not.toContain('bg-zinc-800');
+  });
+});

@@ -1,11 +1,11 @@
-'use client'
+'use client';
 
-import type { TextField } from '@revealui/core'
-import React from 'react'
+import type { TextField } from '@revealui/core';
+import React from 'react';
 
 interface PriceOption {
-  label: string
-  value: string
+  label: string;
+  value: string;
 }
 
 const fetchStripePrices = async (): Promise<PriceOption[]> => {
@@ -14,19 +14,19 @@ const fetchStripePrices = async (): Promise<PriceOption[]> => {
     headers: {
       'Content-Type': 'application/json',
     },
-  })
+  });
   if (!response.ok) {
-    throw new Error(`HTTP error! status: ${response.status}`)
+    throw new Error(`HTTP error! status: ${response.status}`);
   }
-  const data = await response.json()
+  const data = await response.json();
   if (data?.data) {
     return data.data.reduce(
       (acc: PriceOption[], item: { name: string; id: string }) => {
         acc.push({
           label: item.name || item.id,
           value: item.id,
-        })
-        return acc
+        });
+        return acc;
       },
       [
         {
@@ -34,37 +34,37 @@ const fetchStripePrices = async (): Promise<PriceOption[]> => {
           value: '',
         },
       ],
-    )
+    );
   }
-  return []
-}
+  return [];
+};
 
 const PricesSelect: React.FC<TextField> = (props) => {
   const { name, label, value, onChange } = props as TextField & {
-    value?: string
-    onChange?: (value: string) => void
-  }
-  const [options, setOptions] = React.useState<PriceOption[]>([])
-  const [loading, setLoading] = React.useState(true)
+    value?: string;
+    onChange?: (value: string) => void;
+  };
+  const [options, setOptions] = React.useState<PriceOption[]>([]);
+  const [loading, setLoading] = React.useState(true);
 
   React.useEffect(() => {
     const initializeOptions = async () => {
       try {
-        const fetchedOptions = await fetchStripePrices()
-        setOptions(fetchedOptions)
+        const fetchedOptions = await fetchStripePrices();
+        setOptions(fetchedOptions);
       } catch (_error) {
-        setOptions([])
+        setOptions([]);
       } finally {
-        setLoading(false)
+        setLoading(false);
       }
-    }
+    };
 
-    initializeOptions()
-  }, [])
+    initializeOptions();
+  }, []);
 
   const stripeBaseUrl = `https://dashboard.stripe.com/${
     import.meta.env.VITE_STRIPE_IS_TEST_KEY ? 'test/' : ''
-  }`
+  }`;
 
   return (
     <div>
@@ -126,7 +126,7 @@ const PricesSelect: React.FC<TextField> = (props) => {
         </div>
       )}
     </div>
-  )
-}
+  );
+};
 
-export default PricesSelect
+export default PricesSelect;

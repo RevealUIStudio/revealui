@@ -1,23 +1,23 @@
-'use client'
-import React from 'react'
-import { cn } from '../utils/cn.js'
+'use client';
+import React from 'react';
+import { cn } from '../utils/cn.js';
 
 // Context for managing checkbox state
 const CheckboxContext = React.createContext<{
-  state: boolean | 'indeterminate'
-  disabled?: boolean | undefined
-  onCheckedChange?: (this: void, checked: boolean | 'indeterminate') => void
-} | null>(null)
+  state: boolean | 'indeterminate';
+  disabled?: boolean | undefined;
+  onCheckedChange?: (this: void, checked: boolean | 'indeterminate') => void;
+} | null>(null);
 
 export interface CheckboxProps
   extends Omit<
     React.InputHTMLAttributes<HTMLInputElement>,
     'checked' | 'defaultChecked' | 'type' | 'onChange'
   > {
-  checked?: boolean
-  defaultChecked?: boolean
-  onCheckedChange?(this: void, checked: boolean | 'indeterminate'): void
-  ref?: React.Ref<HTMLInputElement>
+  checked?: boolean;
+  defaultChecked?: boolean;
+  onCheckedChange?(this: void, checked: boolean | 'indeterminate'): void;
+  ref?: React.Ref<HTMLInputElement>;
 }
 
 // Checkbox component
@@ -32,21 +32,21 @@ function Checkbox({
 }: CheckboxProps) {
   const [internalChecked, setInternalChecked] = React.useState<boolean | 'indeterminate'>(
     defaultChecked ?? false,
-  )
+  );
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    if (disabled) return
+    if (disabled) return;
 
-    const newChecked = e.target.checked
-    setInternalChecked(newChecked)
-    onCheckedChange?.(newChecked)
-  }
+    const newChecked = e.target.checked;
+    setInternalChecked(newChecked);
+    onCheckedChange?.(newChecked);
+  };
 
   React.useEffect(() => {
     if (checked !== undefined) {
-      setInternalChecked(checked)
+      setInternalChecked(checked);
     }
-  }, [checked])
+  }, [checked]);
 
   return (
     <CheckboxContext.Provider value={{ state: internalChecked, disabled, onCheckedChange }}>
@@ -62,13 +62,13 @@ function Checkbox({
         }
         ref={(el) => {
           if (el) {
-            el.indeterminate = internalChecked === 'indeterminate'
+            el.indeterminate = internalChecked === 'indeterminate';
           }
           if (ref) {
             if (typeof ref === 'function') {
-              ref(el)
+              ref(el);
             } else {
-              ;(ref as React.MutableRefObject<HTMLInputElement | null>).current = el
+              (ref as React.MutableRefObject<HTMLInputElement | null>).current = el;
             }
           }
         }}
@@ -87,18 +87,18 @@ function Checkbox({
         {...props}
       />
     </CheckboxContext.Provider>
-  )
+  );
 }
 
 export interface CheckboxIndicatorProps extends React.HTMLAttributes<HTMLSpanElement> {
-  ref?: React.Ref<HTMLSpanElement>
+  ref?: React.Ref<HTMLSpanElement>;
 }
 
 // CheckboxIndicator component
 function CheckboxIndicator({ className, ref, ...props }: CheckboxIndicatorProps) {
-  const context = React.use(CheckboxContext)
+  const context = React.use(CheckboxContext);
   if (!context) {
-    throw new Error('CheckboxIndicator must be used within a Checkbox')
+    throw new Error('CheckboxIndicator must be used within a Checkbox');
   }
 
   return (
@@ -117,8 +117,8 @@ function CheckboxIndicator({ className, ref, ...props }: CheckboxIndicatorProps)
       {context.state === true && '✔'}
       {context.state === 'indeterminate' && '−'}
     </span>
-  )
+  );
 }
 
 // Export components
-export { Checkbox, CheckboxIndicator }
+export { Checkbox, CheckboxIndicator };

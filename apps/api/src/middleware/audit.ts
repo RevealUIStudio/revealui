@@ -7,13 +7,13 @@
  * Enterprise-only: should only be active when isFeatureEnabled('auditLog') is true.
  */
 
-import { logger } from '@revealui/core/observability/logger'
-import type { AuditEventType, AuditSystem } from '@revealui/core/security'
-import type { MiddlewareHandler } from 'hono'
+import { logger } from '@revealui/core/observability/logger';
+import type { AuditEventType, AuditSystem } from '@revealui/core/security';
+import type { MiddlewareHandler } from 'hono';
 
 /** Tracks consecutive audit write failures for observability. */
-let auditWriteFailures = 0
-const FAILURE_LOG_INTERVAL = 10
+let auditWriteFailures = 0;
+const FAILURE_LOG_INTERVAL = 10;
 
 const METHOD_EVENT_MAP: Record<string, AuditEventType> = {
   GET: 'data.read',
@@ -21,19 +21,19 @@ const METHOD_EVENT_MAP: Record<string, AuditEventType> = {
   PUT: 'data.update',
   PATCH: 'data.update',
   DELETE: 'data.delete',
-}
+};
 
 /**
  * Extract the resource type from a URL path.
  * e.g. /api/tickets/boards/123 → 'tickets'
  */
 function extractResourceType(path: string): string {
-  const segments = path.split('/').filter(Boolean)
+  const segments = path.split('/').filter(Boolean);
   // Skip 'api' prefix, return the next segment
   if (segments[0] === 'api' && segments[1]) {
-    return segments[1]
+    return segments[1];
   }
-  return segments[0] ?? 'unknown'
+  return segments[0] ?? 'unknown';
 }
 
 /**
@@ -42,16 +42,16 @@ function extractResourceType(path: string): string {
  */
 export const auditMiddleware = (audit: AuditSystem): MiddlewareHandler => {
   return async (c, next) => {
-    const startTime = Date.now()
+    const startTime = Date.now();
 
-    await next()
+    await next();
 
     // Non-blocking audit log (fire and forget)
-    const method = c.req.method
-    const path = c.req.path
-    const status = c.res.status
-    const user = c.get('user') as { id: string } | undefined
-    const requestId = c.get('requestId') as string | undefined
+    const method = c.req.method;
+    const path = c.req.path;
+    const status = c.res.status;
+    const user = c.get('user') as { id: string } | undefined;
+    const requestId = c.get('requestId') as string | undefined;
 
     audit
       .log({
@@ -76,13 +76,13 @@ export const auditMiddleware = (audit: AuditSystem): MiddlewareHandler => {
         },
       })
       .catch((err: unknown) => {
-        auditWriteFailures++
+        auditWriteFailures++;
         if (auditWriteFailures % FAILURE_LOG_INTERVAL === 1) {
           logger.warn('Audit log write failed', {
             consecutiveFailures: auditWriteFailures,
             error: err instanceof Error ? err.message : String(err),
-          })
+          });
         }
-      })
-  }
-}
+      });
+  };
+};

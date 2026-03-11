@@ -7,15 +7,15 @@
  * durable record of every GDPR action taken.
  */
 
-import type { RevealDataObject, RevealUI } from '@revealui/core'
+import type { RevealDataObject, RevealUI } from '@revealui/core';
 
 export interface GDPRAuditEntry {
-  action: 'export' | 'delete'
-  userId: string
-  requestedBy?: string
-  collections?: string[]
-  timestamp: string
-  metadata?: Record<string, unknown>
+  action: 'export' | 'delete';
+  userId: string;
+  requestedBy?: string;
+  collections?: string[];
+  timestamp: string;
+  metadata?: Record<string, unknown>;
 }
 
 /**
@@ -33,13 +33,13 @@ export async function writeGDPRAuditEntry(
     await revealui.create({
       collection: 'gdpr_audit_log',
       data: entry as unknown as RevealDataObject,
-    })
+    });
   } catch {
     // Collection may not exist yet — fall back to structured log so the audit
     // trail is never silently lost.
     process.stdout.write(
       // biome-ignore lint/style/useNamingConvention: _source is an internal audit log field that must use this exact name for log parsing
       `${JSON.stringify({ level: 'audit', ...entry, _source: 'gdpr-audit-fallback' })}\n`,
-    )
+    );
   }
 }

@@ -1,67 +1,67 @@
-import type { Terminal } from '@xterm/xterm'
-import { useCallback, useEffect, useRef, useState } from 'react'
-import { useSsh } from '../../hooks/use-ssh'
-import type { SshConnectParams, SshHostKeyEvent } from '../../types'
-import Button from '../ui/Button'
-import ErrorAlert from '../ui/ErrorAlert'
-import StatusDot from '../ui/StatusDot'
-import ConnectForm from './ConnectForm'
-import TerminalView from './TerminalView'
+import type { Terminal } from '@xterm/xterm';
+import { useCallback, useEffect, useRef, useState } from 'react';
+import { useSsh } from '../../hooks/use-ssh';
+import type { SshConnectParams, SshHostKeyEvent } from '../../types';
+import Button from '../ui/Button';
+import ErrorAlert from '../ui/ErrorAlert';
+import StatusDot from '../ui/StatusDot';
+import ConnectForm from './ConnectForm';
+import TerminalView from './TerminalView';
 
 export default function TerminalPanel() {
-  const terminalRef = useRef<Terminal | null>(null)
-  const [hostKeyInfo, setHostKeyInfo] = useState<SshHostKeyEvent | null>(null)
-  const [lastParams, setLastParams] = useState<SshConnectParams | null>(null)
-  const [connectedAt, setConnectedAt] = useState<number | null>(null)
+  const terminalRef = useRef<Terminal | null>(null);
+  const [hostKeyInfo, setHostKeyInfo] = useState<SshHostKeyEvent | null>(null);
+  const [lastParams, setLastParams] = useState<SshConnectParams | null>(null);
+  const [connectedAt, setConnectedAt] = useState<number | null>(null);
 
   const handleData = useCallback((data: Uint8Array) => {
-    terminalRef.current?.write(data)
-  }, [])
+    terminalRef.current?.write(data);
+  }, []);
 
   const handleDisconnect = useCallback((reason: string) => {
-    terminalRef.current?.writeln(`\r\n\x1b[33m--- ${reason} ---\x1b[0m`)
-    setConnectedAt(null)
-  }, [])
+    terminalRef.current?.writeln(`\r\n\x1b[33m--- ${reason} ---\x1b[0m`);
+    setConnectedAt(null);
+  }, []);
 
   const handleHostKey = useCallback((event: SshHostKeyEvent) => {
-    setHostKeyInfo(event)
-  }, [])
+    setHostKeyInfo(event);
+  }, []);
 
   const { connected, connecting, error, connect, disconnect, send, resize } = useSsh({
     onData: handleData,
     onDisconnect: handleDisconnect,
     onHostKey: handleHostKey,
-  })
+  });
 
   const handleConnect = useCallback(
     (params: SshConnectParams) => {
-      setLastParams(params)
-      setConnectedAt(Date.now())
-      connect(params)
+      setLastParams(params);
+      setConnectedAt(Date.now());
+      connect(params);
     },
     [connect],
-  )
+  );
 
   const handleReconnect = useCallback(async () => {
-    if (!lastParams) return
-    await disconnect()
-    setConnectedAt(Date.now())
-    connect(lastParams)
-  }, [lastParams, disconnect, connect])
+    if (!lastParams) return;
+    await disconnect();
+    setConnectedAt(Date.now());
+    connect(lastParams);
+  }, [lastParams, disconnect, connect]);
 
   const handleTerminalData = useCallback(
     (data: string) => {
-      send(data)
+      send(data);
     },
     [send],
-  )
+  );
 
   const handleTerminalResize = useCallback(
     (cols: number, rows: number) => {
-      resize(cols, rows)
+      resize(cols, rows);
     },
     [resize],
-  )
+  );
 
   return (
     <div className="flex h-full flex-col gap-4">
@@ -118,36 +118,36 @@ export default function TerminalPanel() {
         </>
       )}
     </div>
-  )
+  );
 }
 
 function SessionTimer({ startTime }: { startTime: number }) {
-  const [elapsed, setElapsed] = useState('')
+  const [elapsed, setElapsed] = useState('');
 
   // Update every 30s — session duration doesn't need high precision
   useEffect(() => {
     const update = () => {
-      const seconds = Math.floor((Date.now() - startTime) / 1000)
-      const minutes = Math.floor(seconds / 60)
-      const hours = Math.floor(minutes / 60)
+      const seconds = Math.floor((Date.now() - startTime) / 1000);
+      const minutes = Math.floor(seconds / 60);
+      const hours = Math.floor(minutes / 60);
       if (hours > 0) {
-        setElapsed(`${hours}h ${minutes % 60}m`)
+        setElapsed(`${hours}h ${minutes % 60}m`);
       } else if (minutes > 0) {
-        setElapsed(`${minutes}m`)
+        setElapsed(`${minutes}m`);
       } else {
-        setElapsed(`${seconds}s`)
+        setElapsed(`${seconds}s`);
       }
-    }
-    update()
-    const id = setInterval(update, 30_000)
-    return () => clearInterval(id)
-  }, [startTime])
+    };
+    update();
+    const id = setInterval(update, 30_000);
+    return () => clearInterval(id);
+  }, [startTime]);
 
-  return <span className="text-neutral-500">{elapsed}</span>
+  return <span className="text-neutral-500">{elapsed}</span>;
 }
 
 function HostKeyBanner({ event, onDismiss }: { event: SshHostKeyEvent; onDismiss: () => void }) {
-  const isMismatch = event.status === 'mismatch'
+  const isMismatch = event.status === 'mismatch';
   return (
     <div
       className={`rounded-md border px-4 py-3 text-sm ${
@@ -179,5 +179,5 @@ function HostKeyBanner({ event, onDismiss }: { event: SshHostKeyEvent; onDismiss
         </Button>
       </div>
     </div>
-  )
+  );
 }

@@ -1,6 +1,6 @@
-import type * as React from 'react'
-import * as ReactDOM from 'react-dom'
-import { Slot } from './slot'
+import type * as React from 'react';
+import * as ReactDOM from 'react-dom';
+import { Slot } from './slot';
 
 const NODES = [
   'a',
@@ -19,38 +19,38 @@ const NODES = [
   'span',
   'svg',
   'ul',
-] as const
+] as const;
 
 type PrimitivePropsWithRef<E extends React.ElementType> = React.ComponentPropsWithRef<E> & {
-  asChild?: boolean
-}
+  asChild?: boolean;
+};
 
-type PrimitiveComponent<E extends React.ElementType> = React.FC<PrimitivePropsWithRef<E>>
+type PrimitiveComponent<E extends React.ElementType> = React.FC<PrimitivePropsWithRef<E>>;
 
 type Primitives = {
-  [E in (typeof NODES)[number]]: PrimitiveComponent<E>
-}
+  [E in (typeof NODES)[number]]: PrimitiveComponent<E>;
+};
 
 /* -------------------------------------------------------------------------------------------------
  * Primitive
  * -----------------------------------------------------------------------------------------------*/
 
-const Primitive = {} as Primitives
+const Primitive = {} as Primitives;
 
 for (const node of NODES) {
   function Node({ asChild, ref, ...primitiveProps }: PrimitivePropsWithRef<typeof node>) {
-    const Comp: React.ElementType = asChild ? Slot : node
+    const Comp: React.ElementType = asChild ? Slot : node;
 
     if (typeof window !== 'undefined') {
-      const radixWindow = window as unknown as Window & Record<symbol, boolean>
-      radixWindow[Symbol.for('radix-ui')] = true
+      const radixWindow = window as unknown as Window & Record<symbol, boolean>;
+      radixWindow[Symbol.for('radix-ui')] = true;
     }
 
-    return <Comp {...primitiveProps} ref={ref} />
+    return <Comp {...primitiveProps} ref={ref} />;
   }
 
-  Node.displayName = `Primitive.${node}`
-  ;(Primitive as Record<string, unknown>)[node] = Node
+  Node.displayName = `Primitive.${node}`;
+  (Primitive as Record<string, unknown>)[node] = Node;
 }
 
 /* -------------------------------------------------------------------------------------------------
@@ -95,12 +95,12 @@ for (const node of NODES) {
  */
 
 function dispatchDiscreteCustomEvent<E extends CustomEvent>(target: E['target'], event: E) {
-  if (target) ReactDOM.flushSync(() => target.dispatchEvent(event))
+  if (target) ReactDOM.flushSync(() => target.dispatchEvent(event));
 }
 
 /* -----------------------------------------------------------------------------------------------*/
 
-const Root = Primitive
+const Root = Primitive;
 
 export {
   Primitive,
@@ -108,5 +108,5 @@ export {
   Root,
   //
   dispatchDiscreteCustomEvent,
-}
-export type { PrimitivePropsWithRef }
+};
+export type { PrimitivePropsWithRef };

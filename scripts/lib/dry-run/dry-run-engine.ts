@@ -32,12 +32,12 @@
  * ```
  */
 
-import { exec as execCallback } from 'node:child_process'
-import { existsSync } from 'node:fs'
-import { mkdir, readFile, rm, rmdir, unlink, writeFile } from 'node:fs/promises'
-import { promisify } from 'node:util'
+import { exec as execCallback } from 'node:child_process';
+import { existsSync } from 'node:fs';
+import { mkdir, readFile, rm, rmdir, unlink, writeFile } from 'node:fs/promises';
+import { promisify } from 'node:util';
 
-const execAsync = promisify(execCallback)
+const execAsync = promisify(execCallback);
 
 // =============================================================================
 // Types
@@ -55,40 +55,40 @@ export type ChangeType =
   | 'db-insert'
   | 'db-update'
   | 'db-delete'
-  | 'command-exec'
+  | 'command-exec';
 
 /**
  * Impact level of a change
  */
-export type ImpactLevel = 'low' | 'medium' | 'high' | 'critical'
+export type ImpactLevel = 'low' | 'medium' | 'high' | 'critical';
 
 /**
  * Recorded change
  */
 export interface Change {
   /** Unique change ID */
-  id: string
+  id: string;
 
   /** Type of change */
-  type: ChangeType
+  type: ChangeType;
 
   /** Target (file path, table name, command) */
-  target: string
+  target: string;
 
   /** State before change */
-  before?: unknown
+  before?: unknown;
 
   /** State after change */
-  after?: unknown
+  after?: unknown;
 
   /** Impact level */
-  impact: ImpactLevel
+  impact: ImpactLevel;
 
   /** Timestamp */
-  timestamp: Date
+  timestamp: Date;
 
   /** Additional metadata */
-  metadata?: Record<string, unknown>
+  metadata?: Record<string, unknown>;
 }
 
 /**
@@ -96,13 +96,13 @@ export interface Change {
  */
 export interface DryRunOptions {
   /** Whether dry-run is enabled */
-  enabled: boolean
+  enabled: boolean;
 
   /** Automatically read file contents before write/delete */
-  captureBeforeState?: boolean
+  captureBeforeState?: boolean;
 
   /** Verbose logging */
-  verbose?: boolean
+  verbose?: boolean;
 }
 
 /**
@@ -110,13 +110,13 @@ export interface DryRunOptions {
  */
 export interface FSOperationResult {
   /** Whether operation would succeed */
-  success: boolean
+  success: boolean;
 
   /** Change ID */
-  changeId?: string
+  changeId?: string;
 
   /** Error if operation would fail */
-  error?: string
+  error?: string;
 }
 
 /**
@@ -124,16 +124,16 @@ export interface FSOperationResult {
  */
 export interface DBOperationResult {
   /** Whether operation would succeed */
-  success: boolean
+  success: boolean;
 
   /** Change ID */
-  changeId?: string
+  changeId?: string;
 
   /** Estimated affected rows */
-  affectedRows?: number
+  affectedRows?: number;
 
   /** Error if operation would fail */
-  error?: string
+  error?: string;
 }
 
 /**
@@ -141,16 +141,16 @@ export interface DBOperationResult {
  */
 export interface ExecResult {
   /** Whether command would succeed */
-  success: boolean
+  success: boolean;
 
   /** Change ID */
-  changeId?: string
+  changeId?: string;
 
   /** Simulated output */
-  stdout?: string
+  stdout?: string;
 
   /** Simulated error output */
-  stderr?: string
+  stderr?: string;
 }
 
 // =============================================================================
@@ -158,14 +158,14 @@ export interface ExecResult {
 // =============================================================================
 
 export class DryRunEngine {
-  private enabled: boolean
-  private changes: Change[] = []
-  private options: DryRunOptions
-  private changeCounter = 0
+  private enabled: boolean;
+  private changes: Change[] = [];
+  private options: DryRunOptions;
+  private changeCounter = 0;
 
   constructor(options: DryRunOptions) {
-    this.enabled = options.enabled
-    this.options = options
+    this.enabled = options.enabled;
+    this.options = options;
   }
 
   /**
@@ -181,14 +181,14 @@ export class DryRunEngine {
       encoding: BufferEncoding = 'utf-8',
     ): Promise<FSOperationResult> => {
       if (!this.enabled) {
-        await writeFile(path, content, encoding)
-        return { success: true }
+        await writeFile(path, content, encoding);
+        return { success: true };
       }
 
       const before =
         this.options.captureBeforeState && existsSync(path)
           ? await readFile(path, encoding)
-          : undefined
+          : undefined;
 
       const changeId = this.recordChange({
         type: 'file-write',
@@ -200,13 +200,13 @@ export class DryRunEngine {
           size: typeof content === 'string' ? content.length : content.length,
           encoding,
         },
-      })
+      });
 
       this.log(
         `[DRY-RUN] Would write ${path} (${typeof content === 'string' ? content.length : content.length} bytes)`,
-      )
+      );
 
-      return { success: true, changeId }
+      return { success: true, changeId };
     },
 
     /**
@@ -214,31 +214,31 @@ export class DryRunEngine {
      */
     deleteFile: async (path: string): Promise<FSOperationResult> => {
       if (!this.enabled) {
-        await unlink(path)
-        return { success: true }
+        await unlink(path);
+        return { success: true };
       }
 
       if (!existsSync(path)) {
         return {
           success: false,
           error: `File does not exist: ${path}`,
-        }
+        };
       }
 
       const before = this.options.captureBeforeState
         ? await readFile(path, 'utf-8').catch(() => undefined)
-        : undefined
+        : undefined;
 
       const changeId = this.recordChange({
         type: 'file-delete',
         target: path,
         before,
         impact: 'high',
-      })
+      });
 
-      this.log(`[DRY-RUN] Would delete ${path}`)
+      this.log(`[DRY-RUN] Would delete ${path}`);
 
-      return { success: true, changeId }
+      return { success: true, changeId };
     },
 
     /**
@@ -246,8 +246,8 @@ export class DryRunEngine {
      */
     mkdir: async (path: string, recursive = false): Promise<FSOperationResult> => {
       if (!this.enabled) {
-        await mkdir(path, { recursive })
-        return { success: true }
+        await mkdir(path, { recursive });
+        return { success: true };
       }
 
       const changeId = this.recordChange({
@@ -255,11 +255,11 @@ export class DryRunEngine {
         target: path,
         impact: 'low',
         metadata: { recursive },
-      })
+      });
 
-      this.log(`[DRY-RUN] Would create directory ${path}`)
+      this.log(`[DRY-RUN] Would create directory ${path}`);
 
-      return { success: true, changeId }
+      return { success: true, changeId };
     },
 
     /**
@@ -268,11 +268,11 @@ export class DryRunEngine {
     rmdir: async (path: string, recursive = false): Promise<FSOperationResult> => {
       if (!this.enabled) {
         if (recursive) {
-          await rm(path, { recursive: true, force: true })
+          await rm(path, { recursive: true, force: true });
         } else {
-          await rmdir(path)
+          await rmdir(path);
         }
-        return { success: true }
+        return { success: true };
       }
 
       const changeId = this.recordChange({
@@ -280,13 +280,13 @@ export class DryRunEngine {
         target: path,
         impact: 'high',
         metadata: { recursive },
-      })
+      });
 
-      this.log(`[DRY-RUN] Would remove directory ${path}`)
+      this.log(`[DRY-RUN] Would remove directory ${path}`);
 
-      return { success: true, changeId }
+      return { success: true, changeId };
     },
-  }
+  };
 
   /**
    * Database operations wrapper
@@ -299,11 +299,11 @@ export class DryRunEngine {
       if (!this.enabled) {
         // In non-dry-run mode, this would execute actual query
         // For now, just return success
-        return { success: true }
+        return { success: true };
       }
 
-      const queryType = this.detectQueryType(sql)
-      const affectedRows = this.estimateAffectedRows(sql)
+      const queryType = this.detectQueryType(sql);
+      const affectedRows = this.estimateAffectedRows(sql);
 
       const changeId = this.recordChange({
         type: queryType,
@@ -315,29 +315,29 @@ export class DryRunEngine {
           params,
           estimatedRows: affectedRows,
         },
-      })
+      });
 
-      this.log(`[DRY-RUN] Would execute query: ${sql}`)
+      this.log(`[DRY-RUN] Would execute query: ${sql}`);
 
       return {
         success: true,
         changeId,
         affectedRows,
-      }
+      };
     },
-  }
+  };
 
   /**
    * Execute external command (dry-run safe)
    */
   exec = async (command: string): Promise<ExecResult> => {
     if (!this.enabled) {
-      const { stdout, stderr } = await execAsync(command)
+      const { stdout, stderr } = await execAsync(command);
       return {
         success: true,
         stdout,
         stderr,
-      }
+      };
     }
 
     const changeId = this.recordChange({
@@ -347,81 +347,81 @@ export class DryRunEngine {
       metadata: {
         command,
       },
-    })
+    });
 
-    this.log(`[DRY-RUN] Would execute command: ${command}`)
+    this.log(`[DRY-RUN] Would execute command: ${command}`);
 
     return {
       success: true,
       changeId,
       stdout: `[DRY-RUN] Command would execute: ${command}`,
-    }
-  }
+    };
+  };
 
   /**
    * Get all recorded changes
    */
   getChanges(): Change[] {
-    return [...this.changes]
+    return [...this.changes];
   }
 
   /**
    * Get changes by type
    */
   getChangesByType(type: ChangeType): Change[] {
-    return this.changes.filter((c) => c.type === type)
+    return this.changes.filter((c) => c.type === type);
   }
 
   /**
    * Get changes by impact level
    */
   getChangesByImpact(impact: ImpactLevel): Change[] {
-    return this.changes.filter((c) => c.impact === impact)
+    return this.changes.filter((c) => c.impact === impact);
   }
 
   /**
    * Clear all recorded changes
    */
   clearChanges(): void {
-    this.changes = []
-    this.changeCounter = 0
+    this.changes = [];
+    this.changeCounter = 0;
   }
 
   /**
    * Get summary statistics
    */
   getSummary(): {
-    total: number
-    byType: Record<ChangeType, number>
-    byImpact: Record<ImpactLevel, number>
+    total: number;
+    byType: Record<ChangeType, number>;
+    byImpact: Record<ImpactLevel, number>;
   } {
-    const byType = {} as Record<ChangeType, number>
-    const byImpact = {} as Record<ImpactLevel, number>
+    const byType = {} as Record<ChangeType, number>;
+    const byImpact = {} as Record<ImpactLevel, number>;
 
     for (const change of this.changes) {
-      byType[change.type] = (byType[change.type] || 0) + 1
-      byImpact[change.impact] = (byImpact[change.impact] || 0) + 1
+      byType[change.type] = (byType[change.type] || 0) + 1;
+      byImpact[change.impact] = (byImpact[change.impact] || 0) + 1;
     }
 
     return {
       total: this.changes.length,
       byType,
       byImpact,
-    }
+    };
   }
 
   /**
    * Check if dry-run is enabled
    */
   isEnabled(): boolean {
-    return this.enabled
+    return this.enabled;
   }
 
   /**
    * Enable or disable dry-run mode
    */
   setEnabled(enabled: boolean): void {
-    this.enabled = enabled
+    this.enabled = enabled;
   }
 
   // ===========================================================================
@@ -432,15 +432,15 @@ export class DryRunEngine {
    * Record a change
    */
   private recordChange(change: Omit<Change, 'id' | 'timestamp'>): string {
-    const id = `change_${++this.changeCounter}`
+    const id = `change_${++this.changeCounter}`;
 
     this.changes.push({
       id,
       timestamp: new Date(),
       ...change,
-    })
+    });
 
-    return id
+    return id;
   }
 
   /**
@@ -448,7 +448,7 @@ export class DryRunEngine {
    */
   private log(message: string): void {
     if (this.options.verbose) {
-      console.log(message)
+      console.log(message);
     }
   }
 
@@ -458,33 +458,33 @@ export class DryRunEngine {
   private assessFileWriteImpact(path: string): ImpactLevel {
     // Critical system files
     if (path.includes('.env') || path.includes('package.json')) {
-      return 'critical'
+      return 'critical';
     }
 
     // High impact files
     if (path.includes('config') || path.includes('.json')) {
-      return 'high'
+      return 'high';
     }
 
     // Medium impact
     if (path.includes('.ts') || path.includes('.js')) {
-      return 'medium'
+      return 'medium';
     }
 
-    return 'low'
+    return 'low';
   }
 
   /**
    * Detect query type from SQL
    */
   private detectQueryType(sql: string): ChangeType {
-    const normalized = sql.trim().toUpperCase()
+    const normalized = sql.trim().toUpperCase();
 
-    if (normalized.startsWith('INSERT')) return 'db-insert'
-    if (normalized.startsWith('UPDATE')) return 'db-update'
-    if (normalized.startsWith('DELETE')) return 'db-delete'
+    if (normalized.startsWith('INSERT')) return 'db-insert';
+    if (normalized.startsWith('UPDATE')) return 'db-update';
+    if (normalized.startsWith('DELETE')) return 'db-delete';
 
-    return 'db-query'
+    return 'db-query';
   }
 
   /**
@@ -495,14 +495,14 @@ export class DryRunEngine {
       /FROM\s+([a-zA-Z_][a-zA-Z0-9_]*)/i,
       /INTO\s+([a-zA-Z_][a-zA-Z0-9_]*)/i,
       /UPDATE\s+([a-zA-Z_][a-zA-Z0-9_]*)/i,
-    ]
+    ];
 
     for (const pattern of patterns) {
-      const match = sql.match(pattern)
-      if (match) return match[1]
+      const match = sql.match(pattern);
+      if (match) return match[1];
     }
 
-    return null
+    return null;
   }
 
   /**
@@ -510,35 +510,35 @@ export class DryRunEngine {
    */
   private estimateAffectedRows(sql: string): number {
     // Simplified estimation
-    if (sql.includes('WHERE')) return 1
-    return 0 // Unknown
+    if (sql.includes('WHERE')) return 1;
+    return 0; // Unknown
   }
 
   /**
    * Assess database operation impact
    */
   private assessDBImpact(type: ChangeType): ImpactLevel {
-    if (type === 'db-delete') return 'critical'
-    if (type === 'db-update') return 'high'
-    if (type === 'db-insert') return 'medium'
-    return 'low'
+    if (type === 'db-delete') return 'critical';
+    if (type === 'db-update') return 'high';
+    if (type === 'db-insert') return 'medium';
+    return 'low';
   }
 
   /**
    * Assess command impact
    */
   private assessCommandImpact(command: string): ImpactLevel {
-    const dangerous = ['rm ', 'del ', 'DROP', 'DELETE', 'truncate']
+    const dangerous = ['rm ', 'del ', 'DROP', 'DELETE', 'truncate'];
 
     for (const word of dangerous) {
-      if (command.includes(word)) return 'critical'
+      if (command.includes(word)) return 'critical';
     }
 
     if (command.includes('install') || command.includes('update')) {
-      return 'medium'
+      return 'medium';
     }
 
-    return 'low'
+    return 'low';
   }
 }
 
@@ -550,5 +550,5 @@ export class DryRunEngine {
  * Create a dry-run engine instance
  */
 export function createDryRunEngine(options: DryRunOptions): DryRunEngine {
-  return new DryRunEngine(options)
+  return new DryRunEngine(options);
 }

@@ -4,14 +4,14 @@
  * Provides mocks for database operations
  */
 
-import type { DatabaseAdapter, DatabaseResult, RevealDocument } from '@revealui/core/types'
+import type { DatabaseAdapter, DatabaseResult, RevealDocument } from '@revealui/core/types';
 
 type MockDatabaseAdapter = DatabaseAdapter & {
   // biome-ignore lint/style/useNamingConvention: internal mock storage convention
-  __mockData?: Record<string, unknown[]>
-  close?: () => Promise<void>
-  transaction?: (callback: () => Promise<unknown>) => Promise<void>
-}
+  __mockData?: Record<string, unknown[]>;
+  close?: () => Promise<void>;
+  transaction?: (callback: () => Promise<unknown>) => Promise<void>;
+};
 
 /**
  * Create mock database adapter
@@ -22,59 +22,59 @@ export function createMockDatabase(): DatabaseAdapter {
     __mockData: {},
     init(): Promise<void> {
       // Mock initialization
-      return Promise.resolve()
+      return Promise.resolve();
     },
 
     connect(): Promise<void> {
       // Mock connection
-      return Promise.resolve()
+      return Promise.resolve();
     },
 
     close(): Promise<void> {
       // Mock close
-      return Promise.resolve()
+      return Promise.resolve();
     },
 
     disconnect(): Promise<void> {
       // Mock disconnect
-      return Promise.resolve()
+      return Promise.resolve();
     },
 
     query(query: string, _values: unknown[] = []): Promise<DatabaseResult> {
       // Mock query execution
       // In real implementation, this would parse query and return mock data
-      void _values
+      void _values;
 
       if (query.toLowerCase().trim().startsWith('select')) {
         // Mock SELECT query
-        const tableMatch = query.match(/from\s+(\w+)/i)
-        const tableName = tableMatch?.[1]
+        const tableMatch = query.match(/from\s+(\w+)/i);
+        const tableName = tableMatch?.[1];
         if (tableName) {
-          const rows = mockDb.__mockData?.[tableName] ?? []
+          const rows = mockDb.__mockData?.[tableName] ?? [];
 
           // Apply WHERE clause filtering if needed
-          const filteredRows = rows
+          const filteredRows = rows;
 
           return Promise.resolve({
             rows: filteredRows as RevealDocument[],
             rowCount: filteredRows.length,
-          })
+          });
         }
       }
 
       return Promise.resolve({
         rows: [],
         rowCount: 0,
-      })
+      });
     },
 
     async transaction(callback: () => Promise<unknown>): Promise<void> {
       // Mock transaction
-      await callback()
+      await callback();
     },
-  }
+  };
 
-  return mockDb
+  return mockDb;
 }
 
 /**
@@ -85,7 +85,7 @@ export function setMockTableData(
   tableName: string,
   data: unknown[],
 ): void {
-  const adapter = mockDb as MockDatabaseAdapter
-  adapter.__mockData = adapter.__mockData || {}
-  adapter.__mockData[tableName] = data
+  const adapter = mockDb as MockDatabaseAdapter;
+  adapter.__mockData = adapter.__mockData || {};
+  adapter.__mockData[tableName] = data;
 }

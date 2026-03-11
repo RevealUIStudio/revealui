@@ -5,9 +5,9 @@
  * The schema structure mirrors the Zod schemas in @revealui/contracts/entities.
  */
 
-import { index, integer, jsonb, pgTable, text, timestamp } from 'drizzle-orm/pg-core'
-import { sites } from './sites.js'
-import { users } from './users.js'
+import { index, integer, jsonb, pgTable, text, timestamp } from 'drizzle-orm/pg-core';
+import { sites } from './sites.js';
+import { users } from './users.js';
 
 // =============================================================================
 // Pages Table
@@ -62,7 +62,7 @@ export const pages = pgTable(
     index('pages_parent_id_idx').on(table.parentId),
     index('pages_site_id_idx').on(table.siteId),
   ],
-)
+);
 
 // =============================================================================
 // Page Revisions Table (for version history)
@@ -93,13 +93,13 @@ export const pageRevisions = pgTable('page_revisions', {
 
   // Timestamps
   createdAt: timestamp('created_at', { withTimezone: true }).defaultNow().notNull(),
-})
+});
 
 // =============================================================================
 // Type exports for Drizzle
 // =============================================================================
 
-export type Page = typeof pages.$inferSelect
-export type NewPage = typeof pages.$inferInsert
-export type PageRevision = typeof pageRevisions.$inferSelect
-export type NewPageRevision = typeof pageRevisions.$inferInsert
+export type Page = typeof pages.$inferSelect;
+export type NewPage = typeof pages.$inferInsert;
+export type PageRevision = typeof pageRevisions.$inferSelect;
+export type NewPageRevision = typeof pageRevisions.$inferInsert;

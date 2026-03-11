@@ -1,15 +1,15 @@
-import type { Block, CollectionConfig } from '@revealui/core'
+import type { Block, CollectionConfig } from '@revealui/core';
 
 const LayoutsField = {
   title: 'title',
   name: 'name',
   slug: 'slug',
   description: 'description',
-}
+};
 
-export type LayoutFieldKey = (typeof LayoutsField)[keyof typeof LayoutsField]
+export type LayoutFieldKey = (typeof LayoutsField)[keyof typeof LayoutsField];
 
-const blocks: Block[] = []
+const blocks: Block[] = [];
 
 const Layouts: CollectionConfig = {
   slug: LayoutsField.slug,
@@ -69,6 +69,6 @@ const Layouts: CollectionConfig = {
       ],
     },
   ],
-}
+};
 
-export default Layouts
+export default Layouts;

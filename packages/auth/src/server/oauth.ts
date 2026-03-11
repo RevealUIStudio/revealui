@@ -6,22 +6,22 @@
  * User upsert: links OAuth identities to local users via oauth_accounts table.
  */
 
-import crypto from 'node:crypto'
-import { logger } from '@revealui/core/observability/logger'
-import { getClient } from '@revealui/db/client'
-import { oauthAccounts, users } from '@revealui/db/schema'
-import { and, eq } from 'drizzle-orm'
-import type { User } from '../types.js'
-import { OAuthAccountConflictError } from './errors.js'
-import * as github from './providers/github.js'
-import * as google from './providers/google.js'
-import * as vercel from './providers/vercel.js'
+import crypto from 'node:crypto';
+import { logger } from '@revealui/core/observability/logger';
+import { getClient } from '@revealui/db/client';
+import { oauthAccounts, users } from '@revealui/db/schema';
+import { and, eq } from 'drizzle-orm';
+import type { User } from '../types.js';
+import { OAuthAccountConflictError } from './errors.js';
+import * as github from './providers/github.js';
+import * as google from './providers/google.js';
+import * as vercel from './providers/vercel.js';
 
 export interface ProviderUser {
-  id: string
-  email: string | null
-  name: string
-  avatarUrl: string | null
+  id: string;
+  email: string | null;
+  name: string;
+  avatarUrl: string | null;
 }
 
 // =============================================================================
@@ -39,18 +39,18 @@ export function generateOAuthState(
   provider: string,
   redirectTo: string,
 ): { state: string; cookieValue: string } {
-  const nonce = crypto.randomBytes(16).toString('hex')
-  const payload = JSON.stringify({ provider, redirectTo, nonce })
-  const state = Buffer.from(payload).toString('base64url')
-  const secret = process.env.REVEALUI_SECRET
+  const nonce = crypto.randomBytes(16).toString('hex');
+  const payload = JSON.stringify({ provider, redirectTo, nonce });
+  const state = Buffer.from(payload).toString('base64url');
+  const secret = process.env.REVEALUI_SECRET;
   if (!secret) {
     throw new Error(
       'REVEALUI_SECRET is required for OAuth state signing. ' +
         'Set it in your environment variables.',
-    )
+    );
   }
-  const hmac = crypto.createHmac('sha256', secret).update(state).digest('hex')
-  return { state, cookieValue: `${state}.${hmac}` }
+  const hmac = crypto.createHmac('sha256', secret).update(state).digest('hex');
+  return { state, cookieValue: `${state}.${hmac}` };
 }
 
 /**
@@ -62,52 +62,52 @@ export function verifyOAuthState(
   state: string | null | undefined,
   cookieValue: string | null | undefined,
 ): { provider: string; redirectTo: string } | null {
-  if (!(state && cookieValue)) return null
+  if (!(state && cookieValue)) return null;
 
-  const dotIdx = cookieValue.lastIndexOf('.')
-  if (dotIdx === -1) return null
+  const dotIdx = cookieValue.lastIndexOf('.');
+  if (dotIdx === -1) return null;
 
-  const storedState = cookieValue.substring(0, dotIdx)
-  const storedHmac = cookieValue.substring(dotIdx + 1)
+  const storedState = cookieValue.substring(0, dotIdx);
+  const storedHmac = cookieValue.substring(dotIdx + 1);
 
   // State from query param must match what's in the cookie (timing-safe)
   if (
     storedState.length !== state.length ||
     !crypto.timingSafeEqual(Buffer.from(storedState), Buffer.from(state))
   ) {
-    return null
+    return null;
   }
 
-  const secret = process.env.REVEALUI_SECRET
+  const secret = process.env.REVEALUI_SECRET;
   if (!secret) {
     throw new Error(
       'REVEALUI_SECRET is required for OAuth state verification. ' +
         'Set it in your environment variables.',
-    )
+    );
   }
-  const expectedHmac = crypto.createHmac('sha256', secret).update(state).digest('hex')
+  const expectedHmac = crypto.createHmac('sha256', secret).update(state).digest('hex');
 
   // Both are hex-encoded SHA-256 HMACs — must be exactly 64 hex characters.
   // Reject wrong-length inputs immediately; do NOT pad (padding enables forged matches
   // where a short storedHmac is zero-padded to collide with the expected hash).
-  if (storedHmac.length !== 64 || expectedHmac.length !== 64) return null
+  if (storedHmac.length !== 64 || expectedHmac.length !== 64) return null;
   try {
     if (!crypto.timingSafeEqual(Buffer.from(storedHmac, 'hex'), Buffer.from(expectedHmac, 'hex'))) {
-      return null
+      return null;
     }
   } catch {
-    return null
+    return null;
   }
 
   try {
     const parsed = JSON.parse(Buffer.from(state, 'base64url').toString()) as {
-      provider: string
-      redirectTo: string
-      nonce: string
-    }
-    return { provider: parsed.provider, redirectTo: parsed.redirectTo }
+      provider: string;
+      redirectTo: string;
+      nonce: string;
+    };
+    return { provider: parsed.provider, redirectTo: parsed.redirectTo };
   } catch {
-    return null
+    return null;
   }
 }
 
@@ -115,11 +115,11 @@ export function verifyOAuthState(
 // Provider Dispatch
 // =============================================================================
 
-const PROVIDERS = ['google', 'github', 'vercel'] as const
-type Provider = (typeof PROVIDERS)[number]
+const PROVIDERS = ['google', 'github', 'vercel'] as const;
+type Provider = (typeof PROVIDERS)[number];
 
 function isProvider(p: string): p is Provider {
-  return (PROVIDERS as readonly string[]).includes(p)
+  return (PROVIDERS as readonly string[]).includes(p);
 }
 
 function getClientId(provider: Provider): string {
@@ -127,21 +127,21 @@ function getClientId(provider: Provider): string {
     google: process.env.GOOGLE_CLIENT_ID,
     github: process.env.GITHUB_CLIENT_ID,
     vercel: process.env.VERCEL_CLIENT_ID,
-  }
-  const id = map[provider]
-  if (!id) throw new Error(`Missing client ID for provider: ${provider}`)
-  return id
+  };
+  const id = map[provider];
+  if (!id) throw new Error(`Missing client ID for provider: ${provider}`);
+  return id;
 }
 
 export function buildAuthUrl(provider: string, redirectUri: string, state: string): string {
-  if (!isProvider(provider)) throw new Error(`Unknown provider: ${provider}`)
-  const clientId = getClientId(provider)
+  if (!isProvider(provider)) throw new Error(`Unknown provider: ${provider}`);
+  const clientId = getClientId(provider);
   const builders: Record<Provider, typeof google.buildAuthUrl> = {
     google: google.buildAuthUrl,
     github: github.buildAuthUrl,
     vercel: vercel.buildAuthUrl,
-  }
-  return builders[provider](clientId, redirectUri, state)
+  };
+  return builders[provider](clientId, redirectUri, state);
 }
 
 export async function exchangeCode(
@@ -149,26 +149,26 @@ export async function exchangeCode(
   code: string,
   redirectUri: string,
 ): Promise<string> {
-  if (!isProvider(provider)) throw new Error(`Unknown provider: ${provider}`)
+  if (!isProvider(provider)) throw new Error(`Unknown provider: ${provider}`);
   const exchangers: Record<Provider, typeof google.exchangeCode> = {
     google: google.exchangeCode,
     github: github.exchangeCode,
     vercel: vercel.exchangeCode,
-  }
-  return exchangers[provider](code, redirectUri)
+  };
+  return exchangers[provider](code, redirectUri);
 }
 
 export async function fetchProviderUser(
   provider: string,
   accessToken: string,
 ): Promise<ProviderUser> {
-  if (!isProvider(provider)) throw new Error(`Unknown provider: ${provider}`)
+  if (!isProvider(provider)) throw new Error(`Unknown provider: ${provider}`);
   const fetchers: Record<Provider, typeof google.fetchUser> = {
     google: google.fetchUser,
     github: github.fetchUser,
     vercel: vercel.fetchUser,
-  }
-  return fetchers[provider](accessToken)
+  };
+  return fetchers[provider](accessToken);
 }
 
 // =============================================================================
@@ -186,7 +186,7 @@ export async function fetchProviderUser(
  * 5. Insert oauth_accounts row
  */
 export async function upsertOAuthUser(provider: string, providerUser: ProviderUser): Promise<User> {
-  const db = getClient()
+  const db = getClient();
 
   // 1. Check for existing linked account
   const [existingAccount] = await db
@@ -195,7 +195,7 @@ export async function upsertOAuthUser(provider: string, providerUser: ProviderUs
     .where(
       and(eq(oauthAccounts.provider, provider), eq(oauthAccounts.providerUserId, providerUser.id)),
     )
-    .limit(1)
+    .limit(1);
 
   if (existingAccount) {
     // Refresh provider metadata (name/email/avatar may have changed)
@@ -207,21 +207,21 @@ export async function upsertOAuthUser(provider: string, providerUser: ProviderUs
         providerAvatarUrl: providerUser.avatarUrl,
         updatedAt: new Date(),
       })
-      .where(eq(oauthAccounts.id, existingAccount.id))
+      .where(eq(oauthAccounts.id, existingAccount.id));
 
     const [user] = await db
       .select()
       .from(users)
       .where(eq(users.id, existingAccount.userId))
-      .limit(1)
+      .limit(1);
 
     if (!user) {
       logger.error(
         `oauth_accounts row ${existingAccount.id} references missing user ${existingAccount.userId}`,
-      )
-      throw new Error('OAuth account references a deleted user')
+      );
+      throw new Error('OAuth account references a deleted user');
     }
-    return user as User
+    return user as User;
   }
 
   // 2. Check for existing user by email — BLOCK auto-linking
@@ -230,25 +230,25 @@ export async function upsertOAuthUser(provider: string, providerUser: ProviderUs
   // who controls a provider email instantly owns the existing account.
   // Users must link providers explicitly from an authenticated session
   // via linkOAuthAccount().
-  let userId: string
-  let isNewUser = false
+  let userId: string;
+  let isNewUser = false;
 
   if (providerUser.email) {
     const [existingUser] = await db
       .select()
       .from(users)
       .where(eq(users.email, providerUser.email))
-      .limit(1)
+      .limit(1);
 
     if (existingUser) {
-      throw new OAuthAccountConflictError(providerUser.email)
+      throw new OAuthAccountConflictError(providerUser.email);
     }
 
-    isNewUser = true
-    userId = crypto.randomUUID()
+    isNewUser = true;
+    userId = crypto.randomUUID();
   } else {
-    isNewUser = true
-    userId = crypto.randomUUID()
+    isNewUser = true;
+    userId = crypto.randomUUID();
   }
 
   // 3. Create user if none found
@@ -261,7 +261,7 @@ export async function upsertOAuthUser(provider: string, providerUser: ProviderUs
       password: null,
       role: 'user',
       status: 'active',
-    })
+    });
   }
 
   // 4. Insert oauth_accounts link
@@ -273,11 +273,11 @@ export async function upsertOAuthUser(provider: string, providerUser: ProviderUs
     providerEmail: providerUser.email,
     providerName: providerUser.name,
     providerAvatarUrl: providerUser.avatarUrl,
-  })
+  });
 
-  const [user] = await db.select().from(users).where(eq(users.id, userId)).limit(1)
-  if (!user) throw new Error('Failed to fetch upserted OAuth user')
-  return user as User
+  const [user] = await db.select().from(users).where(eq(users.id, userId)).limit(1);
+  if (!user) throw new Error('Failed to fetch upserted OAuth user');
+  return user as User;
 }
 
 // =============================================================================
@@ -303,7 +303,7 @@ export async function linkOAuthAccount(
   provider: string,
   providerUser: ProviderUser,
 ): Promise<User> {
-  const db = getClient()
+  const db = getClient();
 
   // 1. Check if this provider identity is already linked to ANY user
   const [existingLink] = await db
@@ -312,7 +312,7 @@ export async function linkOAuthAccount(
     .where(
       and(eq(oauthAccounts.provider, provider), eq(oauthAccounts.providerUserId, providerUser.id)),
     )
-    .limit(1)
+    .limit(1);
 
   if (existingLink) {
     if (existingLink.userId === userId) {
@@ -325,33 +325,33 @@ export async function linkOAuthAccount(
           providerAvatarUrl: providerUser.avatarUrl,
           updatedAt: new Date(),
         })
-        .where(eq(oauthAccounts.id, existingLink.id))
+        .where(eq(oauthAccounts.id, existingLink.id));
 
-      const [user] = await db.select().from(users).where(eq(users.id, userId)).limit(1)
-      if (!user) throw new Error('Authenticated user not found in database')
-      return user as User
+      const [user] = await db.select().from(users).where(eq(users.id, userId)).limit(1);
+      if (!user) throw new Error('Authenticated user not found in database');
+      return user as User;
     }
     // Linked to a different user — cannot steal the identity
     throw new Error(
       'This provider account is already linked to another user. Unlink it from the other account first.',
-    )
+    );
   }
 
   // 2. Check the authenticated user exists
-  const [user] = await db.select().from(users).where(eq(users.id, userId)).limit(1)
-  if (!user) throw new Error('Authenticated user not found in database')
+  const [user] = await db.select().from(users).where(eq(users.id, userId)).limit(1);
+  if (!user) throw new Error('Authenticated user not found in database');
 
   // 3. Check if this user already has a link for this provider (different provider account)
   const [existingProviderLink] = await db
     .select()
     .from(oauthAccounts)
     .where(and(eq(oauthAccounts.userId, userId), eq(oauthAccounts.provider, provider)))
-    .limit(1)
+    .limit(1);
 
   if (existingProviderLink) {
     throw new Error(
       `You already have a ${provider} account linked. Unlink it first to connect a different one.`,
-    )
+    );
   }
 
   // 4. Create the link
@@ -363,10 +363,10 @@ export async function linkOAuthAccount(
     providerEmail: providerUser.email,
     providerName: providerUser.name,
     providerAvatarUrl: providerUser.avatarUrl,
-  })
+  });
 
-  logger.info(`Linked ${provider} account to user ${userId}`)
-  return user as User
+  logger.info(`Linked ${provider} account to user ${userId}`);
+  return user as User;
 }
 
 /**
@@ -380,43 +380,43 @@ export async function linkOAuthAccount(
  * @throws Error if unlinking would leave the user with no authentication method
  */
 export async function unlinkOAuthAccount(userId: string, provider: string): Promise<void> {
-  const db = getClient()
+  const db = getClient();
 
   // 1. Find the link to remove
   const [link] = await db
     .select()
     .from(oauthAccounts)
     .where(and(eq(oauthAccounts.userId, userId), eq(oauthAccounts.provider, provider)))
-    .limit(1)
+    .limit(1);
 
   if (!link) {
-    throw new Error(`No ${provider} account is linked to your account`)
+    throw new Error(`No ${provider} account is linked to your account`);
   }
 
   // 2. Safety check: ensure user won't be locked out
-  const [user] = await db.select().from(users).where(eq(users.id, userId)).limit(1)
-  if (!user) throw new Error('User not found')
+  const [user] = await db.select().from(users).where(eq(users.id, userId)).limit(1);
+  if (!user) throw new Error('User not found');
 
   const allLinks = await db
     .select({ id: oauthAccounts.id })
     .from(oauthAccounts)
-    .where(eq(oauthAccounts.userId, userId))
+    .where(eq(oauthAccounts.userId, userId));
 
-  const hasPassword = !!(user as User).password
-  const otherLinksCount = allLinks.length - 1
+  const hasPassword = !!(user as User).password;
+  const otherLinksCount = allLinks.length - 1;
 
   if (!hasPassword && otherLinksCount === 0) {
     throw new Error(
       'Cannot unlink your only sign-in method. Set a password first, or link another provider.',
-    )
+    );
   }
 
   // 3. Delete the link
   await db
     .delete(oauthAccounts)
-    .where(and(eq(oauthAccounts.userId, userId), eq(oauthAccounts.provider, provider)))
+    .where(and(eq(oauthAccounts.userId, userId), eq(oauthAccounts.provider, provider)));
 
-  logger.info(`Unlinked ${provider} account from user ${userId}`)
+  logger.info(`Unlinked ${provider} account from user ${userId}`);
 }
 
 /**
@@ -428,7 +428,7 @@ export async function unlinkOAuthAccount(userId: string, provider: string): Prom
 export async function getLinkedProviders(
   userId: string,
 ): Promise<Array<{ provider: string; providerEmail: string | null; providerName: string | null }>> {
-  const db = getClient()
+  const db = getClient();
 
   const links = await db
     .select({
@@ -437,7 +437,7 @@ export async function getLinkedProviders(
       providerName: oauthAccounts.providerName,
     })
     .from(oauthAccounts)
-    .where(eq(oauthAccounts.userId, userId))
+    .where(eq(oauthAccounts.userId, userId));
 
-  return links
+  return links;
 }

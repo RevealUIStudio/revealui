@@ -1,4 +1,4 @@
-import { defineConfig } from 'tsup'
+import { defineConfig } from 'tsup';
 
 export default defineConfig({
   entry: {
@@ -15,4 +15,4 @@ export default defineConfig({
   shims: true,
   target: 'node24',
   outDir: 'dist',
-})
+});

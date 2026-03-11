@@ -1,19 +1,19 @@
-import { getSession } from '@revealui/auth/server'
-import { ChatRequestContract } from '@revealui/contracts'
-import { apiClient } from '@revealui/core/admin/utils/apiClient'
-import { isFeatureEnabled } from '@revealui/core/features'
-import { logger } from '@revealui/core/utils/logger/server'
-import type { NextRequest } from 'next/server'
-import { rateLimit } from '@/lib/middleware/rate-limit'
+import { getSession } from '@revealui/auth/server';
+import { ChatRequestContract } from '@revealui/contracts';
+import { apiClient } from '@revealui/core/admin/utils/apiClient';
+import { isFeatureEnabled } from '@revealui/core/features';
+import { logger } from '@revealui/core/utils/logger/server';
+import type { NextRequest } from 'next/server';
+import { rateLimit } from '@/lib/middleware/rate-limit';
 import {
   createApplicationErrorResponse,
   createErrorResponse,
   createValidationErrorResponse,
-} from '@/lib/utils/error-response'
-import config from '../../../../revealui.config'
+} from '@/lib/utils/error-response';
+import config from '../../../../revealui.config';
 
-export const dynamic = 'force-dynamic'
-export const runtime = 'nodejs'
+export const dynamic = 'force-dynamic';
+export const runtime = 'nodejs';
 
 /**
  * Server-side Chat API with CMS Tools Integration
@@ -29,31 +29,31 @@ export const runtime = 'nodejs'
 const limiter = rateLimit({
   maxRequests: 10, // 10 requests per window (stricter for AI)
   windowMs: 60 * 1000, // 1 minute
-})
+});
 
 // Lazily-initialized tool registry (shared across requests in production)
-let toolRegistry: unknown = null
+let toolRegistry: unknown = null;
 
 /**
  * Dynamically import all @revealui/ai dependencies needed for chat.
  * Returns null if the Pro package is not installed.
  */
 async function loadChatAIDeps() {
-  const moduleNames = ['embeddings', 'llm/server', 'memory/vector', 'tools/cms', 'tools/registry']
+  const moduleNames = ['embeddings', 'llm/server', 'memory/vector', 'tools/cms', 'tools/registry'];
   const results = await Promise.all([
     import('@revealui/ai/embeddings').catch(() => null),
     import('@revealui/ai/llm/server').catch(() => null),
     import('@revealui/ai/memory/vector').catch(() => null),
     import('@revealui/ai/tools/cms').catch(() => null),
     import('@revealui/ai/tools/registry').catch(() => null),
-  ])
-  const [embeddingsMod, llmServerMod, vectorMod, cmsMod, registryMod] = results
+  ]);
+  const [embeddingsMod, llmServerMod, vectorMod, cmsMod, registryMod] = results;
 
   // Log which specific modules failed so operators can diagnose missing Pro deps
-  const failed = moduleNames.filter((_, i) => results[i] === null)
+  const failed = moduleNames.filter((_, i) => results[i] === null);
   if (failed.length > 0) {
-    logger.warn('AI modules unavailable (Pro package not installed?)', { missing: failed })
-    return null
+    logger.warn('AI modules unavailable (Pro package not installed?)', { missing: failed });
+    return null;
   }
   // All modules verified non-null by the early return above
   return {
@@ -64,21 +64,21 @@ async function loadChatAIDeps() {
     createCMSTools: cmsMod!.createCMSTools,
     // biome-ignore lint/style/useNamingConvention: class constructor reference
     ToolRegistry: registryMod!.ToolRegistry,
-  }
+  };
 }
 
 // Initialize CMS tools lazily (on first request)
 async function initializeCMSTools(deps: NonNullable<Awaited<ReturnType<typeof loadChatAIDeps>>>) {
   // Create registry on first call
   if (!toolRegistry) {
-    toolRegistry = new deps.ToolRegistry()
+    toolRegistry = new deps.ToolRegistry();
   }
 
-  const registry = toolRegistry as InstanceType<typeof deps.ToolRegistry>
+  const registry = toolRegistry as InstanceType<typeof deps.ToolRegistry>;
 
   // Only initialize if not already done
   if (registry.getAll().length > 0) {
-    return registry
+    return registry;
   }
 
   try {
@@ -98,83 +98,83 @@ async function initializeCMSTools(deps: NonNullable<Awaited<ReturnType<typeof lo
         description: `Global configuration for ${(g.label as string | undefined) || g.slug}`,
       })),
       // User context will be added per-request
-    })
+    });
 
     // Register all CMS tools
     for (const tool of cmsTools) {
-      registry.register(tool)
+      registry.register(tool);
     }
 
     logger.info('CMS tools initialized', {
       toolCount: cmsTools.length,
       tools: cmsTools.map((t: { name: string }) => t.name),
-    })
+    });
   } catch (error) {
-    logger.error('Failed to initialize CMS tools', { error })
-    throw error
+    logger.error('Failed to initialize CMS tools', { error });
+    throw error;
   }
 
-  return registry
+  return registry;
 }
 
 export async function POST(request: NextRequest) {
   // Dynamic import — @revealui/ai is an optional Pro dependency
-  const aiDeps = await loadChatAIDeps()
+  const aiDeps = await loadChatAIDeps();
   if (!aiDeps) {
     return new Response(JSON.stringify({ error: 'AI features require @revealui/ai (Pro)' }), {
       status: 503,
       headers: { 'Content-Type': 'application/json' },
-    })
+    });
   }
 
   // Initialize CMS tools on first request
-  let registry: Awaited<ReturnType<typeof initializeCMSTools>>
+  let registry: Awaited<ReturnType<typeof initializeCMSTools>>;
   try {
-    registry = await initializeCMSTools(aiDeps)
+    registry = await initializeCMSTools(aiDeps);
   } catch (_error) {
     return createApplicationErrorResponse(
       'Chat tools failed to initialize',
       'TOOLS_INIT_FAILED',
       500,
-    )
+    );
   }
 
   // Apply rate limiting
-  const rateLimitResponse = await limiter(request)
+  const rateLimitResponse = await limiter(request);
   if (rateLimitResponse) {
-    return rateLimitResponse
+    return rateLimitResponse;
   }
 
   // Require authenticated session with a Pro (or higher) license
-  const authSession = await getSession(request.headers)
+  const authSession = await getSession(request.headers);
   if (!authSession) {
     return new Response(JSON.stringify({ error: 'Unauthorized' }), {
       status: 401,
       headers: { 'Content-Type': 'application/json' },
-    })
+    });
   }
   if (!isFeatureEnabled('ai')) {
     return new Response(JSON.stringify({ error: 'Forbidden', reason: 'Pro license required' }), {
       status: 403,
       headers: { 'Content-Type': 'application/json' },
-    })
+    });
   }
 
   try {
     // Parse and validate request body
-    let body: unknown
+    let body: unknown;
     try {
-      body = await request.json()
+      body = await request.json();
     } catch (jsonError) {
       return createValidationErrorResponse('Invalid JSON in request body', 'body', null, {
         parseError: jsonError instanceof Error ? jsonError.message : 'Malformed JSON',
-      })
+      });
     }
 
-    const validationResult = ChatRequestContract.validate(body)
+    const validationResult = ChatRequestContract.validate(body);
 
     if (!validationResult.success) {
-      const firstIssue = validationResult.errors.issues[0]
+      const firstIssue = validationResult.errors.issues[0];
       return createValidationErrorResponse(
         firstIssue?.message || 'Validation failed',
         firstIssue?.path?.join('.') || 'body',
@@ -185,89 +185,89 @@ export async function POST(request: NextRequest) {
             message: issue.message,
           })),
         },
-      )
+      );
     }
 
-    const { messages } = validationResult.data
+    const { messages } = validationResult.data;
 
     // Get the last user message for vector search
-    const lastMessage = messages[messages.length - 1]
+    const lastMessage = messages[messages.length - 1];
     if (!lastMessage) {
-      return createApplicationErrorResponse('No messages provided', 'NO_MESSAGES', 400)
+      return createApplicationErrorResponse('No messages provided', 'NO_MESSAGES', 400);
     }
     // Extract plain text from the last message for vector search.
     // Multipart messages (vision) may include image parts — use text parts only.
-    const rawContent = lastMessage.content
+    const rawContent = lastMessage.content;
     const userMessage = Array.isArray(rawContent)
       ? rawContent
           .filter((p: { type: string }) => p.type === 'text')
           .map((p: { type: string; text?: string }) => p.text ?? '')
           .join(' ')
-      : String(rawContent)
+      : String(rawContent);
 
     // Create LLM client from env (supports Vultr, OpenAI, Anthropic)
     // biome-ignore lint/suspicious/noExplicitAny: LLMClient type from @revealui/ai (optional Pro dep) — typed chat() signature requires ToolCall[] but our generic messages use unknown[]
-    let llmClient: any
+    let llmClient: any;
     try {
       logger.info('Creating LLM client', {
         provider: process.env.LLM_PROVIDER,
         hasApiKey: !!process.env.VULTR_API_KEY,
         model: process.env.LLM_MODEL,
-      })
-      llmClient = aiDeps.createLLMClientFromEnv()
+      });
+      llmClient = aiDeps.createLLMClientFromEnv();
     } catch (_err) {
       return createApplicationErrorResponse(
         'LLM provider not configured',
         'LLM_NOT_CONFIGURED',
         503,
-      )
+      );
     }
 
     // 1. Generate embedding for the user's message and search for context
-    let memoryContext = ''
+    let memoryContext = '';
     if (process.env.ENABLE_VECTOR_MEMORY !== 'false') {
       try {
-        const queryEmbedding = await aiDeps.generateEmbedding(userMessage)
-        const vectorService = new aiDeps.VectorMemoryService()
+        const queryEmbedding = await aiDeps.generateEmbedding(userMessage);
+        const vectorService = new aiDeps.VectorMemoryService();
 
         const searchResults = await vectorService.searchSimilar(queryEmbedding.vector, {
           limit: 5,
           threshold: 0.7,
-        })
+        });
 
         if (searchResults.length > 0) {
-          memoryContext = searchResults.map((result) => `- ${result.memory.content}`).join('\n')
+          memoryContext = searchResults.map((result) => `- ${result.memory.content}`).join('\n');
         }
       } catch (error) {
         logger.error('Vector search error', {
           error: error instanceof Error ? error.message : String(error),
-        })
+        });
       }
     }
 
     // 2. Build enhanced system prompt with CMS capabilities
-    const systemPrompt = buildSystemPrompt(memoryContext)
+    const systemPrompt = buildSystemPrompt(memoryContext);
 
     // Enable caching for cost savings (system prompt + tools get cached)
-    const enableCache = process.env.LLM_ENABLE_CACHE === 'true'
+    const enableCache = process.env.LLM_ENABLE_CACHE === 'true';
 
     // 3. Get tool definitions for LLM
-    const toolDefinitions = registry.getToolDefinitions()
+    const toolDefinitions = registry.getToolDefinitions();
 
     logger.info('Chat request with tools', {
       messageCount: messages.length,
       toolCount: toolDefinitions.length,
       hasMemoryContext: memoryContext.length > 0,
-    })
+    });
 
     // 4. Start conversation loop (may require multiple turns for tool calls)
     const conversationMessages: Array<{
-      role: string
-      content: string
-      cacheControl?: { type: string }
-      toolCalls?: unknown[]
-      toolCallId?: string
-      name?: string
+      role: string;
+      content: string;
+      cacheControl?: { type: string };
+      toolCalls?: unknown[];
+      toolCallId?: string;
+      name?: string;
     }> = [
       {
         role: 'system',
@@ -276,14 +276,14 @@ export async function POST(request: NextRequest) {
         cacheControl: enableCache ? { type: 'ephemeral' } : undefined,
       },
       ...(messages as Array<{ role: string; content: string }>),
-    ]
+    ];
 
-    let finalResponse = ''
-    const maxIterations = 5 // Prevent infinite loops
-    let iteration = 0
+    let finalResponse = '';
+    const maxIterations = 5; // Prevent infinite loops
+    let iteration = 0;
 
     while (iteration < maxIterations) {
-      iteration++
+      iteration++;
 
       // Generate response from LLM with tools (with caching enabled)
       const chatResp = await llmClient.chat(conversationMessages, {
@@ -291,7 +291,7 @@ export async function POST(request: NextRequest) {
         temperature: 0.7,
         tools: toolDefinitions,
         enableCache, // Cache system prompt and tools (90% savings on hits)
-      })
+      });
 
       // Log cache usage for monitoring
       if (
@@ -305,7 +305,7 @@ export async function POST(request: NextRequest) {
           savingsPercent: chatResp.usage.cacheReadTokens
             ? Math.round((chatResp.usage.cacheReadTokens / chatResp.usage.promptTokens) * 100)
             : 0,
-        })
+        });
       }
 
       // Check if LLM wants to use tools
@@ -314,39 +314,39 @@ export async function POST(request: NextRequest) {
           toolCalls: chatResp.toolCalls.map(
             (tc: { function: { name: string } }) => tc.function.name,
           ),
-        })
+        });
 
         // Add assistant message with tool calls to conversation
         conversationMessages.push({
           role: 'assistant',
           content: chatResp.content || '',
           toolCalls: chatResp.toolCalls,
-        })
+        });
 
         // Execute each tool call
         for (const toolCall of chatResp.toolCalls) {
-          const { name: toolName, arguments: toolArgs } = toolCall.function
+          const { name: toolName, arguments: toolArgs } = toolCall.function;
 
           // Parse arguments if they're a JSON string
-          let parsedArgs: unknown
+          let parsedArgs: unknown;
           try {
-            parsedArgs = typeof toolArgs === 'string' ? JSON.parse(toolArgs) : toolArgs
+            parsedArgs = typeof toolArgs === 'string' ? JSON.parse(toolArgs) : toolArgs;
           } catch (parseError) {
             logger.error('Failed to parse tool arguments', {
               tool: toolName,
               arguments: toolArgs,
               error: parseError instanceof Error ? parseError.message : String(parseError),
-            })
-            parsedArgs = {}
+            });
+            parsedArgs = {};
           }
 
           logger.info('Executing tool', {
             tool: toolName,
             arguments: parsedArgs,
-          })
+          });
 
           // Execute the tool
-          const toolResult = await registry.execute(toolName, parsedArgs)
+          const toolResult = await registry.execute(toolName, parsedArgs);
 
           // Add tool result to conversation
           conversationMessages.push({
@@ -354,33 +354,33 @@ export async function POST(request: NextRequest) {
             content: JSON.stringify(toolResult),
             toolCallId: toolCall.id,
             name: toolName,
-          })
+          });
 
           logger.info('Tool execution result', {
             tool: toolName,
             success: toolResult.success,
             hasData: !!toolResult.data,
-          })
+          });
         }
 
         // Continue loop to let LLM process tool results
-        continue
+        continue;
       }
 
       // No more tool calls - we have the final response
-      finalResponse = chatResp.content || ''
-      break
+      finalResponse = chatResp.content || '';
+      break;
     }
 
     if (iteration >= maxIterations) {
-      logger.warn('Max iterations reached in tool execution loop')
+      logger.warn('Max iterations reached in tool execution loop');
       finalResponse =
         finalResponse ||
-        'I ran into a processing limit. Please try breaking your request into smaller steps.'
+        'I ran into a processing limit. Please try breaking your request into smaller steps.';
     }
 
     // Log response cache statistics
-    const cacheStats = llmClient.getResponseCacheStats()
+    const cacheStats = llmClient.getResponseCacheStats();
     if (cacheStats && cacheStats.hits + cacheStats.misses > 0) {
       logger.info('Response cache stats', {
         hits: cacheStats.hits,
@@ -388,11 +388,11 @@ export async function POST(request: NextRequest) {
         hitRate: `${cacheStats.hitRate}%`,
         size: cacheStats.size,
         evictions: cacheStats.evictions,
-      })
+      });
     }
 
     // Log semantic cache statistics
-    const semanticStats = llmClient.getSemanticCacheStats()
+    const semanticStats = llmClient.getSemanticCacheStats();
     if (semanticStats && semanticStats.totalQueries > 0) {
       logger.info('Semantic cache stats', {
         hits: semanticStats.hits,
@@ -400,17 +400,17 @@ export async function POST(request: NextRequest) {
         hitRate: `${semanticStats.hitRate}%`,
         avgSimilarity: semanticStats.avgSimilarity,
         totalQueries: semanticStats.totalQueries,
-      })
+      });
     }
 
     return new Response(JSON.stringify({ content: finalResponse }), {
       headers: { 'Content-Type': 'application/json' },
-    })
+    });
   } catch (error) {
     return createErrorResponse(error, {
       endpoint: '/api/chat',
       method: 'POST',
-    })
+    });
   }
 }
 
@@ -464,7 +464,7 @@ You: [Use find_documents with where: {status: "published"}] I found X published 
 - Be helpful and conversational, not robotic
 - Use tools appropriately - don't make assumptions about data structure
 
-${memoryContext ? `**Context from Previous Conversations:**\n${memoryContext}\n` : ''}`
+${memoryContext ? `**Context from Previous Conversations:**\n${memoryContext}\n` : ''}`;
 
-  return basePrompt
+  return basePrompt;
 }

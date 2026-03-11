@@ -34,42 +34,42 @@
  * - Attempting to use lenient mode at runtime will throw an error.
  */
 
-import { loadEnvironment } from './loader.js'
-import { type BrandingConfig, getBrandingConfig } from './modules/branding.js'
-import { type DatabaseConfig, getDatabaseConfig } from './modules/database.js'
+import { loadEnvironment } from './loader.js';
+import { type BrandingConfig, getBrandingConfig } from './modules/branding.js';
+import { type DatabaseConfig, getDatabaseConfig } from './modules/database.js';
 import {
   type DevToolsConfig,
   getOptionalConfig,
   type OptionalConfig,
   type SentryConfig,
   type SupabaseConfig,
-} from './modules/optional.js'
-import { getRevealConfig, type RevealConfig } from './modules/reveal.js'
-import { getStorageConfig, type StorageConfig } from './modules/storage.js'
-import { getStripeConfig, type StripeConfig } from './modules/stripe.js'
-import type { EnvConfig } from './schema.js'
-import { formatValidationErrors, validateAndThrow, validateEnvVars } from './validator.js'
+} from './modules/optional.js';
+import { getRevealConfig, type RevealConfig } from './modules/reveal.js';
+import { getStorageConfig, type StorageConfig } from './modules/storage.js';
+import { getStripeConfig, type StripeConfig } from './modules/stripe.js';
+import type { EnvConfig } from './schema.js';
+import { formatValidationErrors, validateAndThrow, validateEnvVars } from './validator.js';
 
 // =============================================================================
 // Main Config Interface
 // =============================================================================
 
 export interface Config {
-  database: DatabaseConfig
-  stripe: StripeConfig
-  storage: StorageConfig
-  reveal: RevealConfig
-  branding: BrandingConfig
-  optional: OptionalConfig
+  database: DatabaseConfig;
+  stripe: StripeConfig;
+  storage: StorageConfig;
+  reveal: RevealConfig;
+  branding: BrandingConfig;
+  optional: OptionalConfig;
   // Direct access to raw env (for edge cases)
-  env: EnvConfig
+  env: EnvConfig;
 }
 
 // =============================================================================
 // Config Creation
 // =============================================================================
 
-let cachedConfig: Config | null = null
+let cachedConfig: Config | null = null;
 
 /**
  * Check if we're in a build-time context where full validation isn't required
@@ -78,8 +78,8 @@ function isBuildTime(): boolean {
   // Recognized build-time contexts — env vars are not yet populated.
   const isNextBuild =
     process.env.NEXT_PHASE === 'phase-production-build' ||
-    process.env.NEXT_PHASE === 'phase-development-build'
-  const isTestEnv = process.env.NODE_ENV === 'test'
+    process.env.NEXT_PHASE === 'phase-development-build';
+  const isTestEnv = process.env.NODE_ENV === 'test';
 
   // SKIP_ENV_VALIDATION is only valid when a recognized build context is active
   // or when running tests.  If it appears in any other context (production runtime,
@@ -91,10 +91,10 @@ function isBuildTime(): boolean {
       'SKIP_ENV_VALIDATION=true is only valid during Next.js build phases (NEXT_PHASE) or ' +
         'in test environments (NODE_ENV=test). Remove it from all other environments — ' +
         'using it at runtime exposes build-time fallback secrets in production.',
-    )
+    );
   }
 
-  return isNextBuild || process.env.SKIP_ENV_VALIDATION === 'true'
+  return isNextBuild || process.env.SKIP_ENV_VALIDATION === 'true';
 }
 
 /**
@@ -102,8 +102,8 @@ function isBuildTime(): boolean {
  * Validates and throws if invalid (unless in build-time context)
  */
 function createConfig(strict: boolean = true): Config {
-  const envVars = loadEnvironment()
-  const isBuild = isBuildTime()
+  const envVars = loadEnvironment();
+  const isBuild = isBuildTime();
 
   // Runtime guard: prevent using lenient mode at runtime
   if (!(strict || isBuild)) {
@@ -111,7 +111,7 @@ function createConfig(strict: boolean = true): Config {
       'Cannot use lenient config mode at runtime. ' +
         'Set SKIP_ENV_VALIDATION=true only during builds. ' +
         'At runtime, all required environment variables must be set.',
-    )
+    );
   }
 
   // During build time, use lenient validation (only check format, not presence)
@@ -131,7 +131,7 @@ function createConfig(strict: boolean = true): Config {
       NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY:
         envVars.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY || 'pk_test_build',
       ...envVars,
-    } as EnvConfig
+    } as EnvConfig;
 
     return {
       database: getDatabaseConfig(partialEnv),
@@ -141,11 +141,11 @@ function createConfig(strict: boolean = true): Config {
       branding: getBrandingConfig(partialEnv),
       optional: getOptionalConfig(partialEnv),
       env: partialEnv,
-    }
+    };
   }
 
   // Runtime: Full validation
-  const validatedEnv = validateAndThrow(envVars)
+  const validatedEnv = validateAndThrow(envVars);
 
   return {
     database: getDatabaseConfig(validatedEnv),
@@ -155,7 +155,7 @@ function createConfig(strict: boolean = true): Config {
     branding: getBrandingConfig(validatedEnv),
     optional: getOptionalConfig(validatedEnv),
     env: validatedEnv,
-  }
+  };
 }
 
 // =============================================================================
@@ -170,16 +170,16 @@ function createConfig(strict: boolean = true): Config {
  */
 export function getConfig(strict: boolean = true): Config {
   if (!cachedConfig) {
-    cachedConfig = createConfig(strict)
+    cachedConfig = createConfig(strict);
   }
-  return cachedConfig
+  return cachedConfig;
 }
 
 /**
  * Reset the cached config (useful for testing)
  */
 export function resetConfig(): void {
-  cachedConfig = null
+  cachedConfig = null;
 }
 
 // =============================================================================
@@ -194,68 +194,68 @@ export function resetConfig(): void {
 // Helper to ensure config is initialized
 function ensureConfig(): Config {
   if (!cachedConfig) {
-    const isBuild = isBuildTime()
+    const isBuild = isBuildTime();
     // Use lenient mode (strict=false) during builds, strict mode (strict=true) at runtime
-    cachedConfig = createConfig(!isBuild)
+    cachedConfig = createConfig(!isBuild);
   }
-  return cachedConfig
+  return cachedConfig;
 }
 
 const configProxy = new Proxy({} as Config, {
   get(_target, prop: string | symbol) {
     // Lazy initialization - only validate when actually accessed
-    const config = ensureConfig()
+    const config = ensureConfig();
 
     // Type-safe property access
     if (typeof prop === 'string' && prop in config) {
-      return (config as unknown as Record<string, unknown>)[prop]
+      return (config as unknown as Record<string, unknown>)[prop];
     }
 
     // Handle symbol keys (e.g., Symbol.iterator, Symbol.toStringTag)
     if (typeof prop === 'symbol') {
       // Symbols require type assertion as TypeScript doesn't support symbol indexing well
       // This is a documented TypeScript limitation - see file header comments (lines 9-16)
-      return (config as unknown as Record<symbol, unknown>)[prop]
+      return (config as unknown as Record<symbol, unknown>)[prop];
     }
 
-    return undefined
+    return undefined;
   },
   ownKeys() {
     // Truly lazy: return known keys without initializing config
     // This allows Object.keys(config) without triggering validation
     if (cachedConfig) {
-      return Object.keys(cachedConfig)
+      return Object.keys(cachedConfig);
     }
 
     // Return known properties from Config interface without validation
-    return ['database', 'stripe', 'storage', 'reveal', 'branding', 'optional', 'env']
+    return ['database', 'stripe', 'storage', 'reveal', 'branding', 'optional', 'env'];
   },
   has(_target, prop) {
     // Truly lazy: check if property exists on Config interface without initializing
     // This allows 'database' in config checks without triggering validation
     if (cachedConfig) {
-      return prop in cachedConfig
+      return prop in cachedConfig;
     }
 
     // Known properties from Config interface - return true without initializing
-    const knownProps = ['database', 'stripe', 'storage', 'reveal', 'branding', 'optional', 'env']
+    const knownProps = ['database', 'stripe', 'storage', 'reveal', 'branding', 'optional', 'env'];
     if (typeof prop === 'string' && knownProps.includes(prop)) {
-      return true
+      return true;
     }
 
     // For unknown properties, return false without initializing
     // Unknown properties don't exist on the Config interface, so safe to return false
-    return false
+    return false;
   },
   getOwnPropertyDescriptor(_target, prop) {
     // Truly lazy: for known properties, return descriptor without initializing
     if (cachedConfig) {
-      return Object.getOwnPropertyDescriptor(cachedConfig, prop)
+      return Object.getOwnPropertyDescriptor(cachedConfig, prop);
     }
 
     // For known properties, return a descriptor without initializing
     // Use a getter to indicate the property exists but value is lazy
-    const knownProps = ['database', 'stripe', 'storage', 'reveal', 'branding', 'optional', 'env']
+    const knownProps = ['database', 'stripe', 'storage', 'reveal', 'branding', 'optional', 'env'];
     if (typeof prop === 'string' && knownProps.includes(prop)) {
       // Return a descriptor with a getter that will be called when value is accessed
       // This indicates the property exists without initializing the config
@@ -264,48 +264,48 @@ const configProxy = new Proxy({} as Config, {
         configurable: true,
         get: () => {
           // When the getter is called, initialize and return the actual value
-          const config = ensureConfig()
-          return (config as unknown as Record<string, unknown>)[prop]
+          const config = ensureConfig();
+          return (config as unknown as Record<string, unknown>)[prop];
         },
-      }
+      };
     }
 
     // For unknown properties, return undefined (property doesn't exist)
     // This avoids initializing config just to check for non-existent properties
-    return undefined
+    return undefined;
   },
   defineProperty(_target, prop, descriptor) {
     // Need to initialize to define property
-    const config = ensureConfig()
-    Object.defineProperty(config, prop, descriptor)
-    return true
+    const config = ensureConfig();
+    Object.defineProperty(config, prop, descriptor);
+    return true;
   },
   deleteProperty(_target, prop: string | symbol) {
-    const config = ensureConfig()
+    const config = ensureConfig();
     // Type-safe delete for string keys
     if (typeof prop === 'string' && prop in config) {
-      return Reflect.deleteProperty(config as unknown as Record<string, unknown>, prop)
+      return Reflect.deleteProperty(config as unknown as Record<string, unknown>, prop);
     }
     // Symbols require type assertion
     // This is a documented TypeScript limitation - see file header comments (lines 9-16)
     if (typeof prop === 'symbol') {
-      return Reflect.deleteProperty(config as unknown as Record<symbol, unknown>, prop)
+      return Reflect.deleteProperty(config as unknown as Record<symbol, unknown>, prop);
     }
-    return false
+    return false;
   },
   getPrototypeOf() {
-    return Object.prototype
+    return Object.prototype;
   },
   setPrototypeOf() {
     // Prevent prototype changes
-    return false
+    return false;
   },
-})
+});
 
-export default configProxy
+export default configProxy;
 
 // Export validation functions
-export { validateEnvVars, formatValidationErrors }
+export { validateEnvVars, formatValidationErrors };
 
 // Export shared RevealUI configuration functions
 export {
@@ -314,7 +314,7 @@ export {
   getSharedViteConfig,
   getSharedWebConfig,
   sharedConfig,
-} from './revealui.config.js'
+} from './revealui.config.js';
 
 // Export types (Config is already exported as interface above)
 export type {
@@ -328,8 +328,8 @@ export type {
   SentryConfig,
   DevToolsConfig,
   EnvConfig,
-}
+};
 
-export type { Environment } from './loader.js'
+export type { Environment } from './loader.js';
 // Export loader utilities (for advanced usage)
-export { detectEnvironment, loadEnvironment } from './loader.js'
+export { detectEnvironment, loadEnvironment } from './loader.js';

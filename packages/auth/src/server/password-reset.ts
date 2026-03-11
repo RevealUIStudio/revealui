@@ -5,26 +5,26 @@
  * Tokens are stored in the database with expiry and single-use enforcement.
  */
 
-import crypto from 'node:crypto'
-import { logger } from '@revealui/core/observability/logger'
-import { getClient } from '@revealui/db/client'
-import { passwordResetTokens, sessions, users } from '@revealui/db/schema'
-import bcrypt from 'bcryptjs'
-import { and, eq, gt, isNull } from 'drizzle-orm'
+import crypto from 'node:crypto';
+import { logger } from '@revealui/core/observability/logger';
+import { getClient } from '@revealui/db/client';
+import { passwordResetTokens, sessions, users } from '@revealui/db/schema';
+import bcrypt from 'bcryptjs';
+import { and, eq, gt, isNull } from 'drizzle-orm';
 
 export interface PasswordResetToken {
-  token: string
-  expiresAt: Date
+  token: string;
+  expiresAt: Date;
 }
 
 export interface PasswordResetResult {
-  success: boolean
-  error?: string
-  token?: string
-  tokenId?: string
+  success: boolean;
+  error?: string;
+  token?: string;
+  tokenId?: string;
 }
 
-const TOKEN_EXPIRY_MS = 15 * 60 * 1000 // 15 minutes
+const TOKEN_EXPIRY_MS = 15 * 60 * 1000; // 15 minutes
 
 /**
  * Hash a token using HMAC-SHA256 with a per-token salt.
@@ -35,14 +35,14 @@ const TOKEN_EXPIRY_MS = 15 * 60 * 1000 // 15 minutes
  * @param salt  - 16-byte random salt (hex string)
  */
 function hashToken(token: string, salt: string): string {
-  return crypto.createHmac('sha256', salt).update(token).digest('hex')
+  return crypto.createHmac('sha256', salt).update(token).digest('hex');
 }
 
 /**
  * Generate a 16-byte random salt (hex string).
  */
 function generateSalt(): string {
-  return crypto.randomBytes(16).toString('hex')
+  return crypto.randomBytes(16).toString('hex');
 }
 
 /**
@@ -53,20 +53,20 @@ function generateSalt(): string {
  */
 export async function generatePasswordResetToken(email: string): Promise<PasswordResetResult> {
   try {
-    const db = getClient()
+    const db = getClient();
 
     // Find user by email — intentionally does NOT check user.password.
     // OAuth-only users (password: null) can use this flow to set a password,
     // giving them a fallback login method independent of their OAuth provider.
     // This is safe because the reset link is sent to their verified email.
-    const [user] = await db.select().from(users).where(eq(users.email, email)).limit(1)
+    const [user] = await db.select().from(users).where(eq(users.email, email)).limit(1);
 
     if (!user) {
       // Don't reveal if user exists (security best practice)
       return {
         success: true,
         token: crypto.randomBytes(32).toString('hex'),
-      }
+      };
     }
 
     // Invalidate any existing unused reset tokens for this user before creating a new one.
@@ -75,14 +75,14 @@ export async function generatePasswordResetToken(email: string): Promise<Passwor
     await db
       .update(passwordResetTokens)
       .set({ usedAt: new Date() })
-      .where(and(eq(passwordResetTokens.userId, user.id), isNull(passwordResetTokens.usedAt)))
+      .where(and(eq(passwordResetTokens.userId, user.id), isNull(passwordResetTokens.usedAt)));
 
     // Generate secure token with per-token salt
-    const token = crypto.randomBytes(32).toString('hex')
-    const tokenSalt = generateSalt()
-    const tokenHash = hashToken(token, tokenSalt)
-    const expiresAt = new Date(Date.now() + TOKEN_EXPIRY_MS)
-    const id = crypto.randomUUID()
+    const token = crypto.randomBytes(32).toString('hex');
+    const tokenSalt = generateSalt();
+    const tokenHash = hashToken(token, tokenSalt);
+    const expiresAt = new Date(Date.now() + TOKEN_EXPIRY_MS);
+    const id = crypto.randomUUID();
 
     // Store hashed token + salt in database (salt is not secret, just unique)
     await db.insert(passwordResetTokens).values({
@@ -91,37 +91,37 @@ export async function generatePasswordResetToken(email: string): Promise<Passwor
       tokenHash,
       tokenSalt,
       expiresAt,
-    })
+    });
 
     return {
       success: true,
       token,
       tokenId: id,
-    }
+    };
   } catch (error) {
-    const errorMessage = error instanceof Error ? error.message : String(error)
+    const errorMessage = error instanceof Error ? error.message : String(error);
     const isSchemaError =
       errorMessage.includes('column') ||
       errorMessage.includes('relation') ||
-      errorMessage.includes('does not exist')
+      errorMessage.includes('does not exist');
 
     if (isSchemaError) {
       logger.error(
         'Password reset token generation failed due to DB schema mismatch. ' +
           'Ensure migration 0006_add_password_reset_token_salt.sql has been applied.',
         error instanceof Error ? error : new Error(String(error)),
-      )
+      );
     } else {
       logger.error(
         'Error generating password reset token',
         error instanceof Error ? error : new Error(String(error)),
-      )
+      );
     }
 
     return {
       success: false,
       error: 'Failed to generate reset token',
-    }
+    };
   }
 }
 
@@ -140,7 +140,7 @@ export async function validatePasswordResetToken(
   token: string,
 ): Promise<string | null> {
   try {
-    const db = getClient()
+    const db = getClient();
 
     // O(1) lookup by primary key, filtered to unexpired and unused tokens
     const [entry] = await db
@@ -153,27 +153,27 @@ export async function validatePasswordResetToken(
           isNull(passwordResetTokens.usedAt),
         ),
       )
-      .limit(1)
+      .limit(1);
 
     if (!entry) {
-      return null
+      return null;
     }
 
     // Verify the token hash using timing-safe comparison
-    const expectedHash = hashToken(token, entry.tokenSalt)
-    const expectedBuf = Buffer.from(expectedHash)
-    const actualBuf = Buffer.from(entry.tokenHash)
+    const expectedHash = hashToken(token, entry.tokenSalt);
+    const expectedBuf = Buffer.from(expectedHash);
+    const actualBuf = Buffer.from(entry.tokenHash);
     if (expectedBuf.length === actualBuf.length && crypto.timingSafeEqual(expectedBuf, actualBuf)) {
-      return entry.userId
+      return entry.userId;
     }
 
-    return null
+    return null;
   } catch (error) {
     logger.error(
       'Error validating password reset token',
       error instanceof Error ? error : new Error(String(error)),
-    )
-    return null
+    );
+    return null;
   }
 }
 
@@ -193,7 +193,7 @@ export async function resetPasswordWithToken(
   newPassword: string,
 ): Promise<PasswordResetResult> {
   try {
-    const db = getClient()
+    const db = getClient();
 
     // O(1) lookup by primary key, filtered to unexpired and unused tokens
     const [entry] = await db
@@ -206,66 +206,66 @@ export async function resetPasswordWithToken(
           isNull(passwordResetTokens.usedAt),
         ),
       )
-      .limit(1)
+      .limit(1);
 
     if (!entry) {
       return {
         success: false,
         error: 'Invalid or expired reset token',
-      }
+      };
     }
 
     // Verify the token hash using timing-safe comparison
-    const expectedHash = hashToken(token, entry.tokenSalt)
-    const expectedBuf = Buffer.from(expectedHash)
-    const actualBuf = Buffer.from(entry.tokenHash)
+    const expectedHash = hashToken(token, entry.tokenSalt);
+    const expectedBuf = Buffer.from(expectedHash);
+    const actualBuf = Buffer.from(entry.tokenHash);
     if (
       !(expectedBuf.length === actualBuf.length && crypto.timingSafeEqual(expectedBuf, actualBuf))
     ) {
       return {
         success: false,
         error: 'Invalid or expired reset token',
-      }
+      };
     }
 
     // Validate password strength
-    const { validatePasswordStrength } = await import('./password-validation.js')
-    const passwordValidation = validatePasswordStrength(newPassword)
+    const { validatePasswordStrength } = await import('./password-validation.js');
+    const passwordValidation = validatePasswordStrength(newPassword);
     if (!passwordValidation.valid) {
       return {
         success: false,
         error: passwordValidation.errors.join('. '),
-      }
+      };
     }
 
     // Hash new password
-    const password = await bcrypt.hash(newPassword, 12)
+    const password = await bcrypt.hash(newPassword, 12);
 
     // Update user password
-    await db.update(users).set({ password }).where(eq(users.id, entry.userId))
+    await db.update(users).set({ password }).where(eq(users.id, entry.userId));
 
     // Invalidate all existing sessions for this user so any attacker who had
     // a compromised session can no longer use it after the password change.
-    await db.delete(sessions).where(eq(sessions.userId, entry.userId))
+    await db.delete(sessions).where(eq(sessions.userId, entry.userId));
 
     // Mark token as used (single-use enforcement)
     await db
       .update(passwordResetTokens)
       .set({ usedAt: new Date() })
-      .where(eq(passwordResetTokens.id, entry.id))
+      .where(eq(passwordResetTokens.id, entry.id));
 
     return {
       success: true,
-    }
+    };
   } catch (error) {
     logger.error(
       'Error resetting password',
       error instanceof Error ? error : new Error(String(error)),
-    )
+    );
     return {
       success: false,
       error: 'Failed to reset password',
-    }
+    };
   }
 }
 
@@ -279,7 +279,7 @@ export async function resetPasswordWithToken(
  */
 export async function invalidatePasswordResetToken(tokenId: string, token: string): Promise<void> {
   try {
-    const db = getClient()
+    const db = getClient();
 
     // O(1) lookup by primary key
     const [entry] = await db
@@ -292,26 +292,26 @@ export async function invalidatePasswordResetToken(tokenId: string, token: strin
           isNull(passwordResetTokens.usedAt),
         ),
       )
-      .limit(1)
+      .limit(1);
 
     if (!entry) {
-      return
+      return;
     }
 
     // Verify the token hash before invalidating
-    const expectedHash = hashToken(token, entry.tokenSalt)
-    const expectedBuf = Buffer.from(expectedHash)
-    const actualBuf = Buffer.from(entry.tokenHash)
+    const expectedHash = hashToken(token, entry.tokenSalt);
+    const expectedBuf = Buffer.from(expectedHash);
+    const actualBuf = Buffer.from(entry.tokenHash);
     if (expectedBuf.length === actualBuf.length && crypto.timingSafeEqual(expectedBuf, actualBuf)) {
       await db
         .update(passwordResetTokens)
         .set({ usedAt: new Date() })
-        .where(eq(passwordResetTokens.id, entry.id))
+        .where(eq(passwordResetTokens.id, entry.id));
     }
   } catch (error) {
     logger.error(
       'Error invalidating password reset token',
       error instanceof Error ? error : new Error(String(error)),
-    )
+    );
   }
 }

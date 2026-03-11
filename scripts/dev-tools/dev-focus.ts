@@ -13,11 +13,11 @@
  * dev:focus to watch only what you're actively editing.
  */
 
-import { execFileSync } from 'node:child_process'
+import { execFileSync } from 'node:child_process';
 
-const rawArgs = process.argv.slice(2)
-const includeDeps = rawArgs.includes('--deps')
-const targets = rawArgs.filter((a) => a !== '--deps')
+const rawArgs = process.argv.slice(2);
+const includeDeps = rawArgs.includes('--deps');
+const targets = rawArgs.filter((a) => a !== '--deps');
 
 if (targets.length === 0) {
   console.error(
@@ -29,27 +29,27 @@ if (targets.length === 0) {
       '  pnpm dev:focus presentation     # Watch UI components only\n\n' +
       'Options:\n' +
       '  --deps   Also watch transitive dependencies (uses turbo ...filter)\n',
-  )
-  process.exit(1)
+  );
+  process.exit(1);
 }
 
 // Build turbo filter flags
 const filterFlags = targets.flatMap((target) => {
-  const prefix = includeDeps ? '...' : ''
-  return ['--filter', `${prefix}${target}`]
-})
+  const prefix = includeDeps ? '...' : '';
+  return ['--filter', `${prefix}${target}`];
+});
 
-const args = ['turbo', 'run', 'dev', '--parallel', ...filterFlags]
+const args = ['turbo', 'run', 'dev', '--parallel', ...filterFlags];
 
-console.log(`Starting focused dev: ${targets.join(', ')}${includeDeps ? ' (+ deps)' : ''}`)
-console.log(`Running: pnpm ${args.join(' ')}\n`)
+console.log(`Starting focused dev: ${targets.join(', ')}${includeDeps ? ' (+ deps)' : ''}`);
+console.log(`Running: pnpm ${args.join(' ')}\n`);
 
 try {
   execFileSync('pnpm', args, {
     stdio: 'inherit',
     cwd: new URL('../../', import.meta.url).pathname,
-  })
+  });
 } catch {
   // turbo killed by signal (Ctrl+C) — exit cleanly
-  process.exit(0)
+  process.exit(0);
 }

@@ -4,9 +4,9 @@
  * Unit tests for authentication functions.
  */
 
-import bcrypt from 'bcryptjs'
-import { beforeEach, describe, expect, it, vi } from 'vitest'
-import { signIn, signUp } from '../server/auth.js'
+import bcrypt from 'bcryptjs';
+import { beforeEach, describe, expect, it, vi } from 'vitest';
+import { signIn, signUp } from '../server/auth.js';
 
 // Mock database client
 const mockUser = {
@@ -16,7 +16,7 @@ const mockUser = {
   passwordHash: '',
   role: 'viewer',
   status: 'active',
-}
+};
 
 const mockDb = {
   select: vi.fn(() => ({
@@ -31,7 +31,7 @@ const mockDb = {
       returning: vi.fn(() => [mockUser]),
     })),
   })),
-}
+};
 
 // Mock config to avoid validation errors in tests
 vi.mock('@revealui/config', () => ({
@@ -40,11 +40,11 @@ vi.mock('@revealui/config', () => ({
       url: undefined, // No database in tests - use in-memory storage
     },
   },
-}))
+}));
 
 vi.mock('@revealui/db/client', () => ({
   getClient: vi.fn(() => mockDb),
-}))
+}));
 
 vi.mock('../server/session', () => ({
   createSession: vi.fn(async () => ({
@@ -55,12 +55,12 @@ vi.mock('../server/session', () => ({
       expiresAt: new Date(),
     },
   })),
-}))
+}));
 
 describe('Authentication', () => {
   beforeEach(() => {
-    vi.clearAllMocks()
-  })
+    vi.clearAllMocks();
+  });
 
   describe('signIn', () => {
     it('should return error if user not found', async () => {
@@ -70,15 +70,15 @@ describe('Authentication', () => {
             limit: vi.fn(() => []), // No user found
           })),
         })),
-      })
+      });
 
-      const result = await signIn('test@example.com', 'password')
-      expect(result.success).toBe(false)
-      expect(result.error).toBe('Invalid email or password')
-    })
+      const result = await signIn('test@example.com', 'password');
+      expect(result.success).toBe(false);
+      expect(result.error).toBe('Invalid email or password');
+    });
 
     it('should return error if password is invalid', async () => {
-      const hashedPassword = await bcrypt.hash('correct-password', 12)
+      const hashedPassword = await bcrypt.hash('correct-password', 12);
       mockDb.select.mockReturnValue({
         from: vi.fn(() => ({
           where: vi.fn(() => ({
@@ -90,12 +90,12 @@ describe('Authentication', () => {
             ]),
           })),
         })),
-      })
+      });
 
-      const result = await signIn('test@example.com', 'wrong-password')
-      expect(result.success).toBe(false)
-      expect(result.error).toBe('Invalid email or password')
-    })
+      const result = await signIn('test@example.com', 'wrong-password');
+      expect(result.success).toBe(false);
+      expect(result.error).toBe('Invalid email or password');
+    });
 
     it('should return error if user has no password hash', async () => {
       mockDb.select.mockReturnValue({
@@ -109,13 +109,13 @@ describe('Authentication', () => {
             ]),
           })),
         })),
-      })
+      });
 
-      const result = await signIn('test@example.com', 'password')
-      expect(result.success).toBe(false)
-      expect(result.error).toBe('Invalid email or password')
-    })
-  })
+      const result = await signIn('test@example.com', 'password');
+      expect(result.success).toBe(false);
+      expect(result.error).toBe('Invalid email or password');
+    });
+  });
 
   describe('signUp', () => {
     /** Helper: mock a select() chain returning the given rows */
@@ -126,58 +126,58 @@ describe('Authentication', () => {
             limit: vi.fn(() => rows),
           })),
         })),
-      }
+      };
     }
 
     it('should return error if user already exists', async () => {
-      vi.clearAllMocks()
+      vi.clearAllMocks();
 
       // First select (users table) returns existing user — OAuth check never reached
-      mockDb.select.mockReturnValueOnce(mockSelectChain([mockUser]))
+      mockDb.select.mockReturnValueOnce(mockSelectChain([mockUser]));
 
-      const result = await signUp('test@example.com', 'Password123', 'Test User')
-      expect(result.success).toBe(false)
-      expect(result.error).toBe('Unable to create account')
-    })
+      const result = await signUp('test@example.com', 'Password123', 'Test User');
+      expect(result.success).toBe(false);
+      expect(result.error).toBe('Unable to create account');
+    });
 
     it('should block signup when OAuth account exists with same email', async () => {
-      vi.clearAllMocks()
+      vi.clearAllMocks();
 
       // First select (users table): no password user
-      mockDb.select.mockReturnValueOnce(mockSelectChain([]))
+      mockDb.select.mockReturnValueOnce(mockSelectChain([]));
       // Second select (oauth_accounts table): OAuth account exists
-      mockDb.select.mockReturnValueOnce(mockSelectChain([{ id: 'oauth-acc-1' }]))
+      mockDb.select.mockReturnValueOnce(mockSelectChain([{ id: 'oauth-acc-1' }]));
 
-      const result = await signUp('oauth@example.com', 'Password123', 'Attacker')
-      expect(result.success).toBe(false)
-      expect(result.error).toBe('Unable to create account')
-    })
+      const result = await signUp('oauth@example.com', 'Password123', 'Attacker');
+      expect(result.success).toBe(false);
+      expect(result.error).toBe('Unable to create account');
+    });
 
     it('should create user and session on success', async () => {
-      vi.clearAllMocks()
+      vi.clearAllMocks();
 
       const newUser = {
         ...mockUser,
         id: 'new-user-123',
         email: 'new@example.com',
         name: 'New User',
-      }
+      };
 
       // First select (users table): no existing user
-      mockDb.select.mockReturnValueOnce(mockSelectChain([]))
+      mockDb.select.mockReturnValueOnce(mockSelectChain([]));
       // Second select (oauth_accounts table): no OAuth account
-      mockDb.select.mockReturnValueOnce(mockSelectChain([]))
+      mockDb.select.mockReturnValueOnce(mockSelectChain([]));
 
       mockDb.insert.mockReturnValue({
         values: vi.fn(() => ({
           returning: vi.fn(() => [newUser]),
         })),
-      })
+      });
 
-      const result = await signUp('new@example.com', 'Password123', 'New User')
-      expect(result.success).toBe(true)
-      expect(result.user).toBeDefined()
-      expect(result.sessionToken).toBeDefined()
-    })
-  })
-})
+      const result = await signUp('new@example.com', 'Password123', 'New User');
+      expect(result.success).toBe(true);
+      expect(result.user).toBeDefined();
+      expect(result.sessionToken).toBeDefined();
+    });
+  });
+});

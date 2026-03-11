@@ -1,25 +1,25 @@
-'use client'
+'use client';
 
-import Link from 'next/link'
-import { useRouter } from 'next/navigation'
-import { useState } from 'react'
-import { LicenseGate } from '@/lib/components/LicenseGate'
+import Link from 'next/link';
+import { useRouter } from 'next/navigation';
+import { useState } from 'react';
+import { LicenseGate } from '@/lib/components/LicenseGate';
 
 // =============================================================================
 // Template definitions
 // =============================================================================
 
-type TemplateKey = 'content' | 'code' | 'support' | 'analytics'
+type TemplateKey = 'content' | 'code' | 'support' | 'analytics';
 
 interface AgentTemplate {
-  key: TemplateKey
-  label: string
-  description: string
-  capabilities: string[]
-  model: string
-  temperature: number
-  maxTokens: number
-  systemPromptFn: (name: string) => string
+  key: TemplateKey;
+  label: string;
+  description: string;
+  capabilities: string[];
+  model: string;
+  temperature: number;
+  maxTokens: number;
+  systemPromptFn: (name: string) => string;
 }
 
 const TEMPLATES: AgentTemplate[] = [
@@ -70,63 +70,63 @@ const TEMPLATES: AgentTemplate[] = [
     systemPromptFn: (name) =>
       `You are ${name}, a data analyst. You query application metrics, identify trends, generate clear reports, and surface actionable insights for product and engineering teams. Always present data with context, highlight anomalies, and suggest next steps based on the findings.`,
   },
-]
+];
 
 // =============================================================================
 // Page
 // =============================================================================
 
 export default function NewAgentPage() {
-  const router = useRouter()
-  const apiUrl = (process.env.NEXT_PUBLIC_API_URL ?? 'https://api.revealui.com').trim()
+  const router = useRouter();
+  const apiUrl = (process.env.NEXT_PUBLIC_API_URL ?? 'https://api.revealui.com').trim();
 
-  const [selectedTemplate, setSelectedTemplate] = useState<TemplateKey | null>(null)
-  const [name, setName] = useState('')
-  const [description, setDescription] = useState('')
-  const [systemPrompt, setSystemPrompt] = useState('')
-  const [submitting, setSubmitting] = useState(false)
-  const [error, setError] = useState<string | null>(null)
+  const [selectedTemplate, setSelectedTemplate] = useState<TemplateKey | null>(null);
+  const [name, setName] = useState('');
+  const [description, setDescription] = useState('');
+  const [systemPrompt, setSystemPrompt] = useState('');
+  const [submitting, setSubmitting] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
   function applyTemplate(key: TemplateKey) {
-    const tpl = TEMPLATES.find((t) => t.key === key)
-    if (!tpl) return
-    setSelectedTemplate(key)
+    const tpl = TEMPLATES.find((t) => t.key === key);
+    if (!tpl) return;
+    setSelectedTemplate(key);
     // Pre-fill system prompt if not yet customised
     if (
       !systemPrompt.trim() ||
       (selectedTemplate && systemPrompt === getSystemPromptForTemplate(selectedTemplate, name))
     ) {
-      setSystemPrompt(tpl.systemPromptFn(name || tpl.label))
+      setSystemPrompt(tpl.systemPromptFn(name || tpl.label));
     }
   }
 
   function getSystemPromptForTemplate(key: TemplateKey, agentName: string): string {
-    const tpl = TEMPLATES.find((t) => t.key === key)
-    return tpl ? tpl.systemPromptFn(agentName || tpl.label) : ''
+    const tpl = TEMPLATES.find((t) => t.key === key);
+    return tpl ? tpl.systemPromptFn(agentName || tpl.label) : '';
   }
 
   function handleNameChange(val: string) {
-    setName(val)
+    setName(val);
     if (selectedTemplate) {
-      setSystemPrompt(getSystemPromptForTemplate(selectedTemplate, val))
+      setSystemPrompt(getSystemPromptForTemplate(selectedTemplate, val));
     }
   }
 
   async function handleSubmit(e: React.FormEvent) {
-    e.preventDefault()
-    if (!(selectedTemplate && name.trim())) return
+    e.preventDefault();
+    if (!(selectedTemplate && name.trim())) return;
 
-    const tpl = TEMPLATES.find((t) => t.key === selectedTemplate)
-    if (!tpl) return
+    const tpl = TEMPLATES.find((t) => t.key === selectedTemplate);
+    if (!tpl) return;
 
-    setSubmitting(true)
-    setError(null)
+    setSubmitting(true);
+    setError(null);
 
     const agentId = name
       .toLowerCase()
       .trim()
       .replace(/\s+/g, '-')
-      .replace(/[^a-z0-9-]/g, '')
+      .replace(/[^a-z0-9-]/g, '');
 
     const def = {
       id: agentId,
@@ -139,7 +139,7 @@ export default function NewAgentPage() {
       capabilities: tpl.capabilities,
       temperature: tpl.temperature,
       maxTokens: tpl.maxTokens,
-    }
+    };
 
     try {
       const res = await fetch(`${apiUrl}/a2a/agents`, {
@@ -147,28 +147,28 @@ export default function NewAgentPage() {
         headers: { 'Content-Type': 'application/json' },
         credentials: 'include',
         body: JSON.stringify(def),
-      })
+      });
 
       if (res.status === 409) {
-        setError(`An agent with ID "${agentId}" already exists. Choose a different name.`)
-        return
+        setError(`An agent with ID "${agentId}" already exists. Choose a different name.`);
+        return;
       }
 
       if (!res.ok) {
-        const json = (await res.json()) as { error?: string }
-        setError(json.error ?? `Server error ${res.status}`)
-        return
+        const json = (await res.json()) as { error?: string };
+        setError(json.error ?? `Server error ${res.status}`);
+        return;
       }
 
-      router.push('/admin/agents')
+      router.push('/admin/agents');
     } catch (e: unknown) {
-      setError(e instanceof Error ? e.message : 'Request failed')
+      setError(e instanceof Error ? e.message : 'Request failed');
     } finally {
-      setSubmitting(false)
+      setSubmitting(false);
     }
   }
 
-  const tpl = selectedTemplate ? TEMPLATES.find((t) => t.key === selectedTemplate) : null
+  const tpl = selectedTemplate ? TEMPLATES.find((t) => t.key === selectedTemplate) : null;
 
   return (
     <LicenseGate feature="ai">
@@ -345,7 +345,7 @@ export default function NewAgentPage() {
         </div>
       </div>
     </LicenseGate>
-  )
+  );
 }
 
 // =============================================================================
@@ -418,6 +418,6 @@ function TemplateIcon({ templateKey }: { templateKey: TemplateKey }) {
         />
       </svg>
     ),
-  }
-  return <>{icons[templateKey]}</>
+  };
+  return <>{icons[templateKey]}</>;
 }

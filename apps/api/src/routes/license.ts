@@ -1,14 +1,18 @@
-import { timingSafeEqual } from 'node:crypto'
-import { createRoute, OpenAPIHono, z } from '@hono/zod-openapi'
-import { getFeaturesForTier } from '@revealui/core/features'
-import { generateLicenseKey, type LicensePayload, validateLicenseKey } from '@revealui/core/license'
-import { logger } from '@revealui/core/observability/logger'
-import { getClient } from '@revealui/db'
-import { licenses } from '@revealui/db/schema'
-import { eq } from 'drizzle-orm'
-import { HTTPException } from 'hono/http-exception'
+import { timingSafeEqual } from 'node:crypto';
+import { createRoute, OpenAPIHono, z } from '@hono/zod-openapi';
+import { getFeaturesForTier } from '@revealui/core/features';
+import {
+  generateLicenseKey,
+  type LicensePayload,
+  validateLicenseKey,
+} from '@revealui/core/license';
+import { logger } from '@revealui/core/observability/logger';
+import { getClient } from '@revealui/db';
+import { licenses } from '@revealui/db/schema';
+import { eq } from 'drizzle-orm';
+import { HTTPException } from 'hono/http-exception';
 
-const app = new OpenAPIHono()
+const app = new OpenAPIHono();
 
 // ─── Schemas ─────────────────────────────────────────────────────────────────
 
@@ -17,7 +21,7 @@ const LicenseVerifyRequestSchema = z.object({
     description: 'JWT license key to verify',
     example: 'eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCJ9...',
   }),
-})
+});
 
 const LicenseVerifyResponseSchema = z.object({
   valid: z.boolean().openapi({ description: 'Whether the license is valid' }),
@@ -49,7 +53,7 @@ const LicenseVerifyResponseSchema = z.object({
     description: 'License expiration (ISO 8601)',
     example: '2027-02-16T00:00:00.000Z',
   }),
-})
+});
 
 const LicenseGenerateRequestSchema = z.object({
   tier: z.enum(['pro', 'max', 'enterprise']).openapi({
@@ -80,7 +84,7 @@ const LicenseGenerateRequestSchema = z.object({
     description: 'License duration in days (default: 365, max: 10 years)',
     example: 365,
   }),
-})
+});
 
 const LicenseGenerateResponseSchema = z.object({
   licenseKey: z.string().openapi({
@@ -92,11 +96,11 @@ const LicenseGenerateResponseSchema = z.object({
   customerId: z.string().openapi({
     description: 'Customer ID',
   }),
-})
+});
 
 const ErrorSchema = z.object({
   error: z.string().openapi({ example: 'Invalid license key' }),
-})
+});
 
 // ─── Routes ──────────────────────────────────────────────────────────────────
 
@@ -134,14 +138,14 @@ const verifyRoute = createRoute({
       description: 'Missing license key',
     },
   },
-})
+});
 
 app.openapi(verifyRoute, async (c) => {
-  const { licenseKey } = c.req.valid('json')
-  const publicKey = process.env.REVEALUI_LICENSE_PUBLIC_KEY
+  const { licenseKey } = c.req.valid('json');
+  const publicKey = process.env.REVEALUI_LICENSE_PUBLIC_KEY;
 
   if (!publicKey) {
-    logger.error('REVEALUI_LICENSE_PUBLIC_KEY not configured')
+    logger.error('REVEALUI_LICENSE_PUBLIC_KEY not configured');
     return c.json(
       {
         valid: false,
@@ -154,28 +158,28 @@ app.openapi(verifyRoute, async (c) => {
         expiresAt: null,
       },
       200,
-    )
+    );
   }
 
-  const payload = await validateLicenseKey(licenseKey, publicKey)
+  const payload = await validateLicenseKey(licenseKey, publicKey);
 
   if (!payload) {
     // JWT is invalid or expired. Check DB to distinguish between revoked (explicit
     // admin action) vs expired (JWT exp past) vs never-valid.
-    let reason: 'expired' | 'revoked' | 'invalid' = 'invalid'
+    let reason: 'expired' | 'revoked' | 'invalid' = 'invalid';
     try {
-      const db = getClient()
+      const db = getClient();
       const [row] = await db
         .select({ status: licenses.status })
         .from(licenses)
         .where(eq(licenses.licenseKey, licenseKey))
-        .limit(1)
-      if (row?.status === 'revoked') reason = 'revoked'
-      else if (row?.status === 'expired') reason = 'expired'
+        .limit(1);
+      if (row?.status === 'revoked') reason = 'revoked';
+      else if (row?.status === 'expired') reason = 'expired';
     } catch (err) {
       logger.warn('Failed to check DB license status during verify', {
         error: err instanceof Error ? err.message : 'unknown',
-      })
+      });
     }
 
     return c.json(
@@ -190,27 +194,27 @@ app.openapi(verifyRoute, async (c) => {
         expiresAt: null,
       },
       200,
-    )
+    );
   }
 
   // JWT is structurally valid — also check DB status to catch explicit revocations
   // (e.g., chargeback, refund, manual revoke) that may have occurred after the JWT
   // was issued but before its exp timestamp.
-  let dbRevoked = false
+  let dbRevoked = false;
   try {
-    const db = getClient()
+    const db = getClient();
     const [row] = await db
       .select({ status: licenses.status })
       .from(licenses)
       .where(eq(licenses.licenseKey, licenseKey))
-      .limit(1)
+      .limit(1);
     if (row?.status === 'revoked' || row?.status === 'expired') {
-      dbRevoked = true
+      dbRevoked = true;
     }
   } catch (err) {
     logger.warn('Failed to check DB revocation status during verify — trusting JWT', {
       error: err instanceof Error ? err.message : 'unknown',
-    })
+    });
   }
 
   if (dbRevoked) {
@@ -226,12 +230,12 @@ app.openapi(verifyRoute, async (c) => {
         expiresAt: null,
       },
       200,
-    )
+    );
   }
 
-  const features = getFeaturesForTier(payload.tier)
-  const defaultMaxSites = payload.tier === 'enterprise' ? null : (payload.maxSites ?? 5)
-  const defaultMaxUsers = payload.tier === 'enterprise' ? null : (payload.maxUsers ?? 25)
+  const features = getFeaturesForTier(payload.tier);
+  const defaultMaxSites = payload.tier === 'enterprise' ? null : (payload.maxSites ?? 5);
+  const defaultMaxUsers = payload.tier === 'enterprise' ? null : (payload.maxUsers ?? 25);
 
   return c.json(
     {
@@ -245,8 +249,8 @@ app.openapi(verifyRoute, async (c) => {
       expiresAt: payload.exp ? new Date(payload.exp * 1000).toISOString() : null,
     },
     200,
-  )
-})
+  );
+});
 
 // POST /api/license/generate — Admin-only: generate a new license key
 const generateRoute = createRoute({
@@ -291,34 +295,34 @@ const generateRoute = createRoute({
       description: 'Server error — missing private key configuration',
     },
   },
-})
+});
 
 app.openapi(generateRoute, async (c) => {
   // Admin authentication via API key header
-  const apiKey = c.req.header('X-Admin-API-Key')
-  const expectedKey = process.env.REVEALUI_ADMIN_API_KEY
+  const apiKey = c.req.header('X-Admin-API-Key');
+  const expectedKey = process.env.REVEALUI_ADMIN_API_KEY;
 
   if (!(expectedKey && apiKey)) {
-    throw new HTTPException(401, { message: 'Unauthorized' })
+    throw new HTTPException(401, { message: 'Unauthorized' });
   }
-  const a = Buffer.from(apiKey, 'utf-8')
-  const b = Buffer.from(expectedKey, 'utf-8')
+  const a = Buffer.from(apiKey, 'utf-8');
+  const b = Buffer.from(expectedKey, 'utf-8');
   // Reject on length mismatch — admin API key length is not a secret
   if (a.length !== b.length) {
-    throw new HTTPException(401, { message: 'Unauthorized' })
+    throw new HTTPException(401, { message: 'Unauthorized' });
   }
   if (!timingSafeEqual(a, b)) {
-    throw new HTTPException(401, { message: 'Unauthorized' })
+    throw new HTTPException(401, { message: 'Unauthorized' });
   }
 
-  const privateKey = process.env.REVEALUI_LICENSE_PRIVATE_KEY
+  const privateKey = process.env.REVEALUI_LICENSE_PRIVATE_KEY;
 
   if (!privateKey) {
-    logger.error('REVEALUI_LICENSE_PRIVATE_KEY not configured')
-    throw new HTTPException(500, { message: 'License signing not configured' })
+    logger.error('REVEALUI_LICENSE_PRIVATE_KEY not configured');
+    throw new HTTPException(500, { message: 'License signing not configured' });
   }
 
-  const { tier, customerId, domains, maxSites, maxUsers, expiresInDays } = c.req.valid('json')
+  const { tier, customerId, domains, maxSites, maxUsers, expiresInDays } = c.req.valid('json');
 
   const payload: Omit<LicensePayload, 'iat' | 'exp'> = {
     tier,
@@ -326,12 +330,12 @@ app.openapi(generateRoute, async (c) => {
     ...(domains && { domains }),
     ...(maxSites && { maxSites }),
     ...(maxUsers && { maxUsers }),
-  }
+  };
 
-  const expiresInSeconds = (expiresInDays ?? 365) * 24 * 60 * 60
-  const licenseKey = await generateLicenseKey(payload, privateKey, expiresInSeconds)
+  const expiresInSeconds = (expiresInDays ?? 365) * 24 * 60 * 60;
+  const licenseKey = await generateLicenseKey(payload, privateKey, expiresInSeconds);
 
-  logger.info('License key generated', { tier, customerId })
+  logger.info('License key generated', { tier, customerId });
 
   return c.json(
     {
@@ -340,8 +344,8 @@ app.openapi(generateRoute, async (c) => {
       customerId,
     },
     201,
-  )
-})
+  );
+});
 
 // GET /api/license/features — Public: list features per tier
 const featuresRoute = createRoute({
@@ -364,7 +368,7 @@ const featuresRoute = createRoute({
       description: 'Feature comparison by tier',
     },
   },
-})
+});
 
 app.openapi(featuresRoute, async (c) => {
   return c.json(
@@ -374,7 +378,7 @@ app.openapi(featuresRoute, async (c) => {
       enterprise: getFeaturesForTier('enterprise'),
     },
     200,
-  )
-})
+  );
+});
 
-export default app
+export default app;

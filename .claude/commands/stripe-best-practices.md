@@ -36,5 +36,4 @@ Apply Stripe best practices when implementing or reviewing payment code in this 
 - Webhook endpoint: `apps/cms` at `/api/webhooks/stripe` (NOT the API endpoint)
 - Stripe service: `packages/services/src/stripe/`
 - Billing routes: `apps/api/src/routes/billing.ts`
-- Pro price: `price_1T4YLE2Y57LKzXU73IX1OU0G`
-- Max prices: monthly `price_1T808v2Y57LKzXU7uZznG8Gz`, annual `price_1T808w2Y57LKzXU7bOw5wGKi`
+- Price IDs are managed via `pnpm stripe:seed` — see `scripts/setup/seed-stripe.ts`

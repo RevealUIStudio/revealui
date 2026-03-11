@@ -22,12 +22,12 @@
  * ```
  */
 
-import { exec } from 'node:child_process'
-import { existsSync } from 'node:fs'
-import { stat } from 'node:fs/promises'
-import { promisify } from 'node:util'
+import { exec } from 'node:child_process';
+import { existsSync } from 'node:fs';
+import { stat } from 'node:fs/promises';
+import { promisify } from 'node:util';
 
-const _execAsync = promisify(exec)
+const _execAsync = promisify(exec);
 
 // =============================================================================
 // Types
@@ -40,32 +40,32 @@ export type PostCheckType =
   | 'files' // File existence and properties
   | 'database' // Database state verification
   | 'output' // Output format validation
-  | 'side-effects' // Verify expected side effects
+  | 'side-effects'; // Verify expected side effects
 
 /**
  * Post-execution validation options
  */
 export interface PostValidationOptions {
   /** Checks to perform */
-  checks?: PostCheckType[]
+  checks?: PostCheckType[];
 
   /** Files that should exist */
-  expectedFiles?: string[]
+  expectedFiles?: string[];
 
   /** Files that should not exist */
-  unexpectedFiles?: string[]
+  unexpectedFiles?: string[];
 
   /** Expected file sizes (path: minBytes) */
-  expectedFileSizes?: Record<string, number>
+  expectedFileSizes?: Record<string, number>;
 
   /** Expected database record counts */
-  expectedRecords?: Record<string, number>
+  expectedRecords?: Record<string, number>;
 
   /** Expected output structure */
-  expectedOutput?: unknown
+  expectedOutput?: unknown;
 
   /** Custom validation functions */
-  customValidators?: Array<() => Promise<boolean>>
+  customValidators?: Array<() => Promise<boolean>>;
 }
 
 /**
@@ -73,16 +73,16 @@ export interface PostValidationOptions {
  */
 export interface PostValidationResult {
   /** Whether all checks passed */
-  passed: boolean
+  passed: boolean;
 
   /** Validation errors */
-  errors: string[]
+  errors: string[];
 
   /** Validation warnings */
-  warnings: string[]
+  warnings: string[];
 
   /** Check details */
-  details: Record<string, unknown>
+  details: Record<string, unknown>;
 }
 
 // =============================================================================
@@ -100,34 +100,34 @@ export class PostExecutionValidator {
       unexpectedFiles = [],
       expectedFileSizes = {},
       customValidators = [],
-    } = options
+    } = options;
 
-    const errors: string[] = []
-    const warnings: string[] = []
-    const details: Record<string, unknown> = {}
+    const errors: string[] = [];
+    const warnings: string[] = [];
+    const details: Record<string, unknown> = {};
 
     // Check files
     if (checks.includes('files')) {
-      const fileResult = await this.checkFiles(expectedFiles, unexpectedFiles, expectedFileSizes)
+      const fileResult = await this.checkFiles(expectedFiles, unexpectedFiles, expectedFileSizes);
 
       if (!fileResult.passed) {
-        errors.push(...fileResult.errors)
+        errors.push(...fileResult.errors);
       }
 
-      details.files = fileResult.details
+      details.files = fileResult.details;
     }
 
     // Run custom validators
     for (let i = 0; i < customValidators.length; i++) {
       try {
-        const passed = await customValidators[i]()
+        const passed = await customValidators[i]();
         if (!passed) {
-          errors.push(`Custom validator ${i + 1} failed`)
+          errors.push(`Custom validator ${i + 1} failed`);
         }
       } catch (error) {
         errors.push(
           `Custom validator ${i + 1} error: ${error instanceof Error ? error.message : String(error)}`,
-        )
+        );
       }
     }
 
@@ -136,7 +136,7 @@ export class PostExecutionValidator {
       errors,
       warnings,
       details,
-    }
+    };
   }
 
   /**
@@ -147,25 +147,25 @@ export class PostExecutionValidator {
     unexpectedFiles: string[],
     expectedSizes: Record<string, number>,
   ): Promise<{ passed: boolean; errors: string[]; details: Record<string, unknown> }> {
-    const errors: string[] = []
-    const details: Record<string, unknown> = {}
+    const errors: string[] = [];
+    const details: Record<string, unknown> = {};
 
     // Check expected files exist
     for (const file of expectedFiles) {
       if (!existsSync(file)) {
-        errors.push(`Expected file not found: ${file}`)
+        errors.push(`Expected file not found: ${file}`);
       } else {
-        details[file] = { exists: true }
+        details[file] = { exists: true };
 
         // Check size if specified
         if (expectedSizes[file]) {
-          const stats = await stat(file)
+          const stats = await stat(file);
           if (stats.size < expectedSizes[file]) {
             errors.push(
               `File ${file} is smaller than expected: ${stats.size} < ${expectedSizes[file]}`,
-            )
+            );
           }
-          details[file] = { exists: true, size: stats.size }
+          details[file] = { exists: true, size: stats.size };
         }
       }
     }
@@ -173,7 +173,7 @@ export class PostExecutionValidator {
     // Check unexpected files don't exist
     for (const file of unexpectedFiles) {
       if (existsSync(file)) {
-        errors.push(`Unexpected file found: ${file}`)
+        errors.push(`Unexpected file found: ${file}`);
       }
     }
 
@@ -181,7 +181,7 @@ export class PostExecutionValidator {
       passed: errors.length === 0,
       errors,
       details,
-    }
+    };
   }
 }
 
@@ -189,5 +189,5 @@ export class PostExecutionValidator {
  * Create a post-execution validator
  */
 export function createPostExecutionValidator(): PostExecutionValidator {
-  return new PostExecutionValidator()
+  return new PostExecutionValidator();
 }

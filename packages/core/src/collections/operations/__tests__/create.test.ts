@@ -4,26 +4,26 @@
  * Unit tests for the create operation function.
  */
 
-import { beforeEach, describe, expect, it, vi } from 'vitest'
+import { beforeEach, describe, expect, it, vi } from 'vitest';
 import type {
   DatabaseResult,
   RevealCollectionConfig,
   RevealCreateOptions,
-} from '../../../types/index.js'
-import { create } from '../create.js'
-import { findByID } from '../findById.js'
+} from '../../../types/index.js';
+import { create } from '../create.js';
+import { findByID } from '../findById.js';
 
 // Mock findByID
 vi.mock('../findById', () => ({
   findByID: vi.fn(),
-}))
+}));
 
 // Mock bcrypt
 vi.mock('bcryptjs', () => ({
   default: {
     hash: vi.fn(),
   },
-}))
+}));
 
 describe('create operation', () => {
   const mockConfig: RevealCollectionConfig = {
@@ -34,15 +34,15 @@ describe('create operation', () => {
       { name: 'password', type: 'password' },
       { name: 'tags', type: 'array' },
     ],
-  }
+  };
 
   const mockDb = {
     query: vi.fn(),
-  }
+  };
 
   beforeEach(() => {
-    vi.clearAllMocks()
-  })
+    vi.clearAllMocks();
+  });
 
   it('should create a document with required fields', async () => {
     const options: RevealCreateOptions = {
@@ -50,25 +50,25 @@ describe('create operation', () => {
         title: 'Test Document',
         email: 'test@example.com',
       },
-    }
+    };
 
     const mockCreatedDoc = {
       id: 'test-id',
       title: 'Test Document',
       email: 'test@example.com',
-    }
+    };
 
-    vi.mocked(findByID).mockResolvedValue(mockCreatedDoc as never)
-    mockDb.query.mockResolvedValue({ rows: [] } as DatabaseResult)
+    vi.mocked(findByID).mockResolvedValue(mockCreatedDoc as never);
+    mockDb.query.mockResolvedValue({ rows: [] } as DatabaseResult);
 
-    const result = await create(mockConfig, mockDb as never, options)
+    const result = await create(mockConfig, mockDb as never, options);
 
-    expect(result).toEqual(mockCreatedDoc)
-    expect(mockDb.query).toHaveBeenCalled()
+    expect(result).toEqual(mockCreatedDoc);
+    expect(mockDb.query).toHaveBeenCalled();
     expect(findByID).toHaveBeenCalledWith(mockConfig, mockDb, {
       id: expect.any(String),
-    })
-  })
+    });
+  });
 
   it('should throw error if required field is missing', async () => {
     const options: RevealCreateOptions = {
@@ -76,12 +76,12 @@ describe('create operation', () => {
         email: 'test@example.com',
         // title is required but missing
       },
-    }
+    };
 
     await expect(create(mockConfig, mockDb as never, options)).rejects.toThrow(
       "Field 'title' is required but was not provided",
-    )
-  })
+    );
+  });
 
   it('should validate email format', async () => {
     const options: RevealCreateOptions = {
@@ -89,12 +89,12 @@ describe('create operation', () => {
         title: 'Test',
         email: 'invalid-email',
       },
-    }
+    };
 
     await expect(create(mockConfig, mockDb as never, options)).rejects.toThrow(
       "Field 'email' must be a valid email address",
-    )
-  })
+    );
+  });
 
   it('should handle JSON fields correctly', async () => {
     const options: RevealCreateOptions = {
@@ -102,53 +102,53 @@ describe('create operation', () => {
         title: 'Test',
         tags: ['tag1', 'tag2'],
       },
-    }
+    };
 
     const mockCreatedDoc = {
       id: 'test-id',
       title: 'Test',
       tags: ['tag1', 'tag2'],
-    }
+    };
 
-    vi.mocked(findByID).mockResolvedValue(mockCreatedDoc as never)
-    mockDb.query.mockResolvedValue({ rows: [] } as DatabaseResult)
+    vi.mocked(findByID).mockResolvedValue(mockCreatedDoc as never);
+    mockDb.query.mockResolvedValue({ rows: [] } as DatabaseResult);
 
-    const result = await create(mockConfig, mockDb as never, options)
+    const result = await create(mockConfig, mockDb as never, options);
 
-    expect(result).toEqual(mockCreatedDoc)
+    expect(result).toEqual(mockCreatedDoc);
     // Verify _json column is included when JSON fields are present
-    const queryCall = mockDb.query.mock.calls.find((call) => call[0].includes('_json'))
-    expect(queryCall).toBeDefined()
-  })
+    const queryCall = mockDb.query.mock.calls.find((call) => call[0].includes('_json'));
+    expect(queryCall).toBeDefined();
+  });
 
   it('should throw error if document not found after creation', async () => {
     const options: RevealCreateOptions = {
       data: {
         title: 'Test',
       },
-    }
+    };
 
-    vi.mocked(findByID).mockResolvedValue(null)
-    mockDb.query.mockResolvedValue({ rows: [] } as DatabaseResult)
+    vi.mocked(findByID).mockResolvedValue(null);
+    mockDb.query.mockResolvedValue({ rows: [] } as DatabaseResult);
 
     await expect(create(mockConfig, mockDb as never, options)).rejects.toThrow(
       'Failed to retrieve created document',
-    )
-  })
+    );
+  });
 
   it('should return fallback data when db is null', async () => {
     const options: RevealCreateOptions = {
       data: {
         title: 'Test',
       },
-    }
+    };
 
-    const result = await create(mockConfig, null, options)
+    const result = await create(mockConfig, null, options);
 
-    expect(result).toHaveProperty('id')
-    expect(result.title).toBe('Test')
-    expect(mockDb.query).not.toHaveBeenCalled()
-  })
+    expect(result).toHaveProperty('id');
+    expect(result.title).toBe('Test');
+    expect(mockDb.query).not.toHaveBeenCalled();
+  });
 
   it('should run beforeValidate hooks before required field check', async () => {
     // Config with a required slug field that has a beforeValidate hook to generate it from title
@@ -163,33 +163,33 @@ describe('create operation', () => {
           hooks: {
             beforeValidate: [
               ({ value, data }: { value: unknown; data?: Record<string, unknown> }) => {
-                if (value) return value
-                const title = data?.title
-                return typeof title === 'string' ? title.replace(/ /g, '-').toLowerCase() : value
+                if (value) return value;
+                const title = data?.title;
+                return typeof title === 'string' ? title.replace(/ /g, '-').toLowerCase() : value;
               },
             ],
           },
         },
       ],
-    }
+    };
 
     // Submit data without a slug — the hook should generate it before the required check fires
     const options: RevealCreateOptions = {
       data: { title: 'Hello World' },
-    }
+    };
 
-    const mockCreatedDoc = { id: 'rvl_1', title: 'Hello World', slug: 'hello-world' }
-    vi.mocked(findByID).mockResolvedValue(mockCreatedDoc as never)
-    mockDb.query.mockResolvedValue({ rows: [] } as DatabaseResult)
+    const mockCreatedDoc = { id: 'rvl_1', title: 'Hello World', slug: 'hello-world' };
+    vi.mocked(findByID).mockResolvedValue(mockCreatedDoc as never);
+    mockDb.query.mockResolvedValue({ rows: [] } as DatabaseResult);
 
-    const result = await create(configWithSlugHook, mockDb as never, options)
+    const result = await create(configWithSlugHook, mockDb as never, options);
 
-    expect(result).toEqual(mockCreatedDoc)
+    expect(result).toEqual(mockCreatedDoc);
     // The INSERT should have included the hook-generated slug
-    const insertCall = mockDb.query.mock.calls[0]
-    expect(insertCall[0]).toContain('"slug"')
-    expect(insertCall[1]).toContain('hello-world')
-  })
+    const insertCall = mockDb.query.mock.calls[0];
+    expect(insertCall[0]).toContain('"slug"');
+    expect(insertCall[1]).toContain('hello-world');
+  });
 
   it('should run beforeChange hooks before DB write', async () => {
     // Config with a beforeChange hook that uppercases the title
@@ -208,21 +208,21 @@ describe('create operation', () => {
           },
         },
       ],
-    }
+    };
 
     const options: RevealCreateOptions = {
       data: { title: 'hello' },
-    }
+    };
 
-    const mockCreatedDoc = { id: 'rvl_2', title: 'HELLO' }
-    vi.mocked(findByID).mockResolvedValue(mockCreatedDoc as never)
-    mockDb.query.mockResolvedValue({ rows: [] } as DatabaseResult)
+    const mockCreatedDoc = { id: 'rvl_2', title: 'HELLO' };
+    vi.mocked(findByID).mockResolvedValue(mockCreatedDoc as never);
+    mockDb.query.mockResolvedValue({ rows: [] } as DatabaseResult);
 
-    await create(configWithHook, mockDb as never, options)
+    await create(configWithHook, mockDb as never, options);
 
     // The INSERT values array should contain the transformed (uppercased) title
-    const insertCall = mockDb.query.mock.calls[0]
-    expect(insertCall[1]).toContain('HELLO')
-    expect(insertCall[1]).not.toContain('hello')
-  })
-})
+    const insertCall = mockDb.query.mock.calls[0];
+    expect(insertCall[1]).toContain('HELLO');
+    expect(insertCall[1]).not.toContain('hello');
+  });
+});

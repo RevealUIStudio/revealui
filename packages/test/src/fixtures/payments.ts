@@ -4,23 +4,23 @@
  * Provides test data for payment-related tests
  */
 
-import { createTestId } from '../utils/test-helpers.js'
+import { createTestId } from '../utils/test-helpers.js';
 
 export interface TestPayment {
-  id: string
-  amount: number
-  currency: string
-  customerId: string
-  status: 'pending' | 'succeeded' | 'failed' | 'canceled'
-  paymentIntentId?: string
-  checkoutSessionId?: string
+  id: string;
+  amount: number;
+  currency: string;
+  customerId: string;
+  status: 'pending' | 'succeeded' | 'failed' | 'canceled';
+  paymentIntentId?: string;
+  checkoutSessionId?: string;
 }
 
 /**
  * Create a test payment
  */
 export function createTestPayment(overrides?: Partial<TestPayment>): TestPayment {
-  const testId = createTestId('payment')
+  const testId = createTestId('payment');
 
   return {
     id: overrides?.id || `payment_${testId}`,
@@ -31,7 +31,7 @@ export function createTestPayment(overrides?: Partial<TestPayment>): TestPayment
     paymentIntentId: overrides?.paymentIntentId || `pi_${testId}`,
     checkoutSessionId: overrides?.checkoutSessionId || `cs_${testId}`,
     ...overrides,
-  }
+  };
 }
 
 /**
@@ -41,7 +41,7 @@ export function createSuccessfulPayment(overrides?: Partial<TestPayment>): TestP
   return createTestPayment({
     status: 'succeeded',
     ...overrides,
-  })
+  });
 }
 
 /**
@@ -51,7 +51,7 @@ export function createFailedPayment(overrides?: Partial<TestPayment>): TestPayme
   return createTestPayment({
     status: 'failed',
     ...overrides,
-  })
+  });
 }
 
 /**
@@ -63,4 +63,4 @@ export const defaultTestPayments = {
   large: createTestPayment({ amount: 5000, status: 'succeeded' }), // $50.00
   pending: createTestPayment({ amount: 1000, status: 'pending' }),
   failed: createTestPayment({ amount: 1000, status: 'failed' }),
-}
+};

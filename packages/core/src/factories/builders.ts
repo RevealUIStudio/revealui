@@ -1,4 +1,4 @@
-import { createRevealUIInstance } from '../instance/RevealUIInstance.js'
+import { createRevealUIInstance } from '../instance/RevealUIInstance.js';
 import type {
   RevealConfig,
   RevealUIAccessRule,
@@ -6,7 +6,7 @@ import type {
   RevealUICollectionConfig,
   RevealUIField,
   RevealUIInstance,
-} from '../types/index.js'
+} from '../types/index.js';
 
 /**
  * Factory Functions
@@ -18,17 +18,17 @@ import type {
  * Creates a RevealUI instance (wrapper around createRevealUIInstance for backward compatibility)
  */
 export async function createRevealUI(config: RevealConfig): Promise<RevealUIInstance> {
-  return createRevealUIInstance(config)
+  return createRevealUIInstance(config);
 }
 
 /**
  * Creates a collection configuration with defaults
  */
 export function createRevealUICollection(options: {
-  slug: string
-  fields: RevealUIField[]
-  revealUI?: RevealUICollectionConfig['revealUI']
-  access?: RevealUICollectionConfig['access']
+  slug: string;
+  fields: RevealUIField[];
+  revealUI?: RevealUICollectionConfig['revealUI'];
+  access?: RevealUICollectionConfig['access'];
 }): RevealUICollectionConfig {
   return {
     slug: options.slug,
@@ -40,20 +40,20 @@ export function createRevealUICollection(options: {
       ...(options.revealUI || {}),
     },
     access: options.access,
-  }
+  };
 }
 
 /**
  * Creates a field configuration with defaults
  */
 export function createRevealUIField(options: {
-  name: string
-  type: RevealUIField['type']
-  label?: string
-  required?: boolean
-  revealUI?: RevealUIField['revealUI']
-  admin?: RevealUIField['admin']
-  validate?: RevealUIField['validate']
+  name: string;
+  type: RevealUIField['type'];
+  label?: string;
+  required?: boolean;
+  revealUI?: RevealUIField['revealUI'];
+  admin?: RevealUIField['admin'];
+  validate?: RevealUIField['validate'];
 }): RevealUIField {
   return {
     name: options.name,
@@ -70,17 +70,17 @@ export function createRevealUIField(options: {
     },
     admin: options.admin,
     validate: options.validate,
-  }
+  };
 }
 
 /**
  * Creates a block configuration with defaults
  */
 export function createRevealUIBlock(options: {
-  slug: string
-  fields: RevealUIField[]
-  revealUI?: RevealUIBlock['revealUI']
-  labels?: RevealUIBlock['labels']
+  slug: string;
+  fields: RevealUIField[];
+  revealUI?: RevealUIBlock['revealUI'];
+  labels?: RevealUIBlock['labels'];
 }): RevealUIBlock {
   return {
     slug: options.slug,
@@ -93,22 +93,22 @@ export function createRevealUIBlock(options: {
       ...options.revealUI,
     },
     labels: options.labels,
-  }
+  };
 }
 
 /**
  * Creates an access rule configuration
  */
 export function createRevealUIAccessRule(options: {
-  tenant?: string
-  user?: string
-  permissions?: RevealUIAccessRule['permissions']
-  condition?: RevealUIAccessRule['condition']
+  tenant?: string;
+  user?: string;
+  permissions?: RevealUIAccessRule['permissions'];
+  condition?: RevealUIAccessRule['condition'];
 }): RevealUIAccessRule {
   return {
     tenant: options.tenant,
     user: options.user,
     permissions: options.permissions,
     condition: options.condition,
-  }
+  };
 }

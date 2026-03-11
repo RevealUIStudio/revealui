@@ -31,10 +31,10 @@
  * ```
  */
 
-import { mkdir } from 'node:fs/promises'
-import { join } from 'node:path'
-import { PGlite } from '@electric-sql/pglite'
-import { ErrorCode, ScriptError } from '../errors.js'
+import { mkdir } from 'node:fs/promises';
+import { join } from 'node:path';
+import { PGlite } from '@electric-sql/pglite';
+import { ErrorCode, ScriptError } from '../errors.js';
 
 // =============================================================================
 // Types
@@ -45,22 +45,22 @@ import { ErrorCode, ScriptError } from '../errors.js'
  */
 export interface PhaseMetrics {
   /** Phase name */
-  name: string
+  name: string;
 
   /** Start time (ms since epoch) */
-  startTime: number
+  startTime: number;
 
   /** End time (ms since epoch) */
-  endTime: number
+  endTime: number;
 
   /** Duration in milliseconds */
-  durationMs: number
+  durationMs: number;
 
   /** Memory used in bytes */
-  memoryBytes: number
+  memoryBytes: number;
 
   /** Additional phase-specific data */
-  metadata: Record<string, unknown>
+  metadata: Record<string, unknown>;
 }
 
 /**
@@ -68,19 +68,19 @@ export interface PhaseMetrics {
  */
 export interface IOOperation {
   /** Operation type (database, filesystem, network) */
-  type: 'database' | 'filesystem' | 'network'
+  type: 'database' | 'filesystem' | 'network';
 
   /** Operation (read, write, query, etc.) */
-  operation: string
+  operation: string;
 
   /** Bytes transferred */
-  bytes: number
+  bytes: number;
 
   /** Duration in milliseconds */
-  durationMs: number
+  durationMs: number;
 
   /** Timestamp */
-  timestamp: number
+  timestamp: number;
 }
 
 /**
@@ -88,41 +88,41 @@ export interface IOOperation {
  */
 export interface PerformanceProfile {
   /** Unique execution ID */
-  executionId: string
+  executionId: string;
 
   /** Script name */
-  scriptName: string
+  scriptName: string;
 
   /** Command executed */
-  command: string
+  command: string;
 
   /** Overall timing */
   timing: {
-    startTime: number
-    endTime: number | null
-    durationMs: number | null
-  }
+    startTime: number;
+    endTime: number | null;
+    durationMs: number | null;
+  };
 
   /** Phase-by-phase breakdown */
-  phases: PhaseMetrics[]
+  phases: PhaseMetrics[];
 
   /** Memory usage */
   memory: {
-    startMb: number
-    peakMb: number
-    endMb: number | null
-  }
+    startMb: number;
+    peakMb: number;
+    endMb: number | null;
+  };
 
   /** I/O operations */
   io: {
-    totalOperations: number
-    totalBytes: number
-    totalDurationMs: number
-    operations: IOOperation[]
-  }
+    totalOperations: number;
+    totalBytes: number;
+    totalDurationMs: number;
+    operations: IOOperation[];
+  };
 
   /** Creation timestamp */
-  createdAt: Date
+  createdAt: Date;
 }
 
 /**
@@ -130,19 +130,19 @@ export interface PerformanceProfile {
  */
 export interface BottleneckInfo {
   /** Bottleneck type */
-  type: 'phase' | 'io' | 'memory'
+  type: 'phase' | 'io' | 'memory';
 
   /** Description */
-  description: string
+  description: string;
 
   /** Impact (percentage of total time) */
-  impactPercent: number
+  impactPercent: number;
 
   /** Recommendation */
-  recommendation: string
+  recommendation: string;
 
   /** Relevant metrics */
-  metrics: Record<string, unknown>
+  metrics: Record<string, unknown>;
 }
 
 // =============================================================================
@@ -150,18 +150,18 @@ export interface BottleneckInfo {
 // =============================================================================
 
 interface ProfileRow {
-  id: string
-  script_name: string
-  command: string
-  start_time: number
-  end_time: number | null
-  duration_ms: number | null
-  phases: string | PhaseMetrics[]
-  io_operations: string | IOOperation[]
-  memory_start_mb: number
-  memory_peak_mb: number
-  memory_end_mb: number | null
-  created_at: number
+  id: string;
+  script_name: string;
+  command: string;
+  start_time: number;
+  end_time: number | null;
+  duration_ms: number | null;
+  phases: string | PhaseMetrics[];
+  io_operations: string | IOOperation[];
+  memory_start_mb: number;
+  memory_peak_mb: number;
+  memory_end_mb: number | null;
+  created_at: number;
 }
 
 // =============================================================================
@@ -169,13 +169,13 @@ interface ProfileRow {
 // =============================================================================
 
 export class PerformanceProfiler {
-  private static instance: PerformanceProfiler | null = null
-  private db: PGlite | null = null
-  private dbPath: string
-  private activeProfiles: Map<string, { phases: PhaseMetrics[]; ios: IOOperation[] }> = new Map()
+  private static instance: PerformanceProfiler | null = null;
+  private db: PGlite | null = null;
+  private dbPath: string;
+  private activeProfiles: Map<string, { phases: PhaseMetrics[]; ios: IOOperation[] }> = new Map();
 
   private constructor(dbPath: string) {
-    this.dbPath = dbPath
+    this.dbPath = dbPath;
   }
 
   /**
@@ -183,13 +183,13 @@ export class PerformanceProfiler {
    */
   static async getInstance(projectRoot?: string): Promise<PerformanceProfiler> {
     if (!PerformanceProfiler.instance) {
-      const root = projectRoot || process.cwd()
-      const dbPath = join(root, '.revealui', 'script-management.db')
-      PerformanceProfiler.instance = new PerformanceProfiler(dbPath)
-      await PerformanceProfiler.instance.initialize()
+      const root = projectRoot || process.cwd();
+      const dbPath = join(root, '.revealui', 'script-management.db');
+      PerformanceProfiler.instance = new PerformanceProfiler(dbPath);
+      await PerformanceProfiler.instance.initialize();
     }
 
-    return PerformanceProfiler.instance
+    return PerformanceProfiler.instance;
   }
 
   /**
@@ -198,16 +198,16 @@ export class PerformanceProfiler {
   async initialize(): Promise<void> {
     try {
       // Ensure directory exists
-      await mkdir(join(this.dbPath, '..'), { recursive: true })
+      await mkdir(join(this.dbPath, '..'), { recursive: true });
 
       // Initialize PGlite
-      this.db = new PGlite(this.dbPath)
+      this.db = new PGlite(this.dbPath);
 
       // Create schema
-      await this.createSchema()
+      await this.createSchema();
     } catch (error) {
-      console.error('Failed to initialize performance profiler:', error)
-      throw error
+      console.error('Failed to initialize performance profiler:', error);
+      throw error;
     }
   }
 
@@ -215,7 +215,7 @@ export class PerformanceProfiler {
    * Create database schema
    */
   private async createSchema(): Promise<void> {
-    if (!this.db) throw new ScriptError('Database not initialized', ErrorCode.INVALID_STATE)
+    if (!this.db) throw new ScriptError('Database not initialized', ErrorCode.INVALID_STATE);
 
     await this.db.exec(`
       CREATE TABLE IF NOT EXISTS performance_profiles (
@@ -236,21 +236,21 @@ export class PerformanceProfiler {
       CREATE INDEX IF NOT EXISTS idx_profiles_script_name ON performance_profiles(script_name);
       CREATE INDEX IF NOT EXISTS idx_profiles_start_time ON performance_profiles(start_time);
       CREATE INDEX IF NOT EXISTS idx_profiles_duration ON performance_profiles(duration_ms);
-    `)
+    `);
   }
 
   /**
    * Start profiling an execution
    */
   async startProfile(scriptName: string, command: string): Promise<string> {
-    if (!this.db) throw new ScriptError('Database not initialized', ErrorCode.INVALID_STATE)
+    if (!this.db) throw new ScriptError('Database not initialized', ErrorCode.INVALID_STATE);
 
-    const executionId = this.generateExecutionId()
-    const startTime = Date.now()
-    const startMemory = this.getMemoryUsageMb()
+    const executionId = this.generateExecutionId();
+    const startTime = Date.now();
+    const startMemory = this.getMemoryUsageMb();
 
     // Initialize in-memory tracking
-    this.activeProfiles.set(executionId, { phases: [], ios: [] })
+    this.activeProfiles.set(executionId, { phases: [], ios: [] });
 
     // Store in database
     await this.db.query(
@@ -271,9 +271,9 @@ export class PerformanceProfiler {
         JSON.stringify([]),
         Date.now(),
       ],
-    )
+    );
 
-    return executionId
+    return executionId;
   }
 
   /**
@@ -284,21 +284,21 @@ export class PerformanceProfiler {
     phaseName: string,
     metadata: Record<string, unknown> = {},
   ): Promise<void> {
-    if (!this.db) throw new ScriptError('Database not initialized', ErrorCode.INVALID_STATE)
+    if (!this.db) throw new ScriptError('Database not initialized', ErrorCode.INVALID_STATE);
 
-    const active = this.activeProfiles.get(executionId)
+    const active = this.activeProfiles.get(executionId);
     if (!active) {
       throw new ScriptError(
         `No active profile found for execution: ${executionId}`,
         ErrorCode.NOT_FOUND,
-      )
+      );
     }
 
-    const now = Date.now()
+    const now = Date.now();
     const previousPhaseEndTime =
       active.phases.length > 0
         ? active.phases[active.phases.length - 1].endTime
-        : (await this.getProfile(executionId))?.timing.startTime || now
+        : (await this.getProfile(executionId))?.timing.startTime || now;
 
     const phase: PhaseMetrics = {
       name: phaseName,
@@ -307,12 +307,12 @@ export class PerformanceProfiler {
       durationMs: now - previousPhaseEndTime,
       memoryBytes: this.getMemoryUsageMb() * 1024 * 1024,
       metadata,
-    }
+    };
 
-    active.phases.push(phase)
+    active.phases.push(phase);
 
     // Update database
-    await this.updatePhases(executionId, active.phases)
+    await this.updatePhases(executionId, active.phases);
   }
 
   /**
@@ -325,14 +325,14 @@ export class PerformanceProfiler {
     bytes: number,
     durationMs: number,
   ): Promise<void> {
-    if (!this.db) throw new ScriptError('Database not initialized', ErrorCode.INVALID_STATE)
+    if (!this.db) throw new ScriptError('Database not initialized', ErrorCode.INVALID_STATE);
 
-    const active = this.activeProfiles.get(executionId)
+    const active = this.activeProfiles.get(executionId);
     if (!active) {
       throw new ScriptError(
         `No active profile found for execution: ${executionId}`,
         ErrorCode.NOT_FOUND,
-      )
+      );
     }
 
     const io: IOOperation = {
@@ -341,36 +341,36 @@ export class PerformanceProfiler {
       bytes,
       durationMs,
       timestamp: Date.now(),
-    }
+    };
 
-    active.ios.push(io)
+    active.ios.push(io);
 
     // Update database
-    await this.updateIOOperations(executionId, active.ios)
+    await this.updateIOOperations(executionId, active.ios);
   }
 
   /**
    * End profiling and finalize metrics
    */
   async endProfile(executionId: string): Promise<void> {
-    if (!this.db) throw new ScriptError('Database not initialized', ErrorCode.INVALID_STATE)
+    if (!this.db) throw new ScriptError('Database not initialized', ErrorCode.INVALID_STATE);
 
-    const active = this.activeProfiles.get(executionId)
+    const active = this.activeProfiles.get(executionId);
     if (!active) {
       throw new ScriptError(
         `No active profile found for execution: ${executionId}`,
         ErrorCode.NOT_FOUND,
-      )
+      );
     }
 
-    const profile = await this.getProfile(executionId)
+    const profile = await this.getProfile(executionId);
     if (!profile) {
-      throw new ScriptError(`Profile not found: ${executionId}`, ErrorCode.NOT_FOUND)
+      throw new ScriptError(`Profile not found: ${executionId}`, ErrorCode.NOT_FOUND);
     }
 
-    const endTime = Date.now()
-    const endMemory = this.getMemoryUsageMb()
-    const durationMs = endTime - profile.timing.startTime
+    const endTime = Date.now();
+    const endMemory = this.getMemoryUsageMb();
+    const durationMs = endTime - profile.timing.startTime;
 
     await this.db.query(
       `
@@ -382,27 +382,27 @@ export class PerformanceProfiler {
         WHERE id = $5
       `,
       [endTime, durationMs, endMemory, endMemory, executionId],
-    )
+    );
 
     // Clean up active tracking
-    this.activeProfiles.delete(executionId)
+    this.activeProfiles.delete(executionId);
   }
 
   /**
    * Get a performance profile
    */
   async getProfile(executionId: string): Promise<PerformanceProfile | null> {
-    if (!this.db) throw new ScriptError('Database not initialized', ErrorCode.INVALID_STATE)
+    if (!this.db) throw new ScriptError('Database not initialized', ErrorCode.INVALID_STATE);
 
     const result = await this.db.query('SELECT * FROM performance_profiles WHERE id = $1', [
       executionId,
-    ])
+    ]);
 
     if (result.rows.length === 0) {
-      return null
+      return null;
     }
 
-    return this.mapRowToProfile(result.rows[0] as unknown as ProfileRow)
+    return this.mapRowToProfile(result.rows[0] as unknown as ProfileRow);
   }
 
   /**
@@ -412,9 +412,9 @@ export class PerformanceProfiler {
     scriptName: string,
     options: { limit?: number } = {},
   ): Promise<PerformanceProfile[]> {
-    if (!this.db) throw new ScriptError('Database not initialized', ErrorCode.INVALID_STATE)
+    if (!this.db) throw new ScriptError('Database not initialized', ErrorCode.INVALID_STATE);
 
-    const { limit = 50 } = options
+    const { limit = 50 } = options;
 
     const result = await this.db.query(
       `SELECT * FROM performance_profiles
@@ -422,26 +422,26 @@ export class PerformanceProfiler {
        ORDER BY start_time DESC
        LIMIT $2`,
       [scriptName, limit],
-    )
+    );
 
-    return result.rows.map((row) => this.mapRowToProfile(row as unknown as ProfileRow))
+    return result.rows.map((row) => this.mapRowToProfile(row as unknown as ProfileRow));
   }
 
   /**
    * Analyze bottlenecks in an execution
    */
   async analyzeBottlenecks(executionId: string): Promise<BottleneckInfo[]> {
-    const profile = await this.getProfile(executionId)
+    const profile = await this.getProfile(executionId);
     if (!profile?.timing.durationMs) {
-      return []
+      return [];
     }
 
-    const bottlenecks: BottleneckInfo[] = []
-    const totalDuration = profile.timing.durationMs
+    const bottlenecks: BottleneckInfo[] = [];
+    const totalDuration = profile.timing.durationMs;
 
     // Analyze phases
     for (const phase of profile.phases) {
-      const impactPercent = (phase.durationMs / totalDuration) * 100
+      const impactPercent = (phase.durationMs / totalDuration) * 100;
 
       if (impactPercent > 30) {
         bottlenecks.push({
@@ -454,14 +454,14 @@ export class PerformanceProfiler {
             durationMs: phase.durationMs,
             memoryMb: (phase.memoryBytes / (1024 * 1024)).toFixed(2),
           },
-        })
+        });
       }
     }
 
     // Analyze I/O operations
-    const totalIOTime = profile.io.totalDurationMs
+    const totalIOTime = profile.io.totalDurationMs;
     if (totalIOTime > 0) {
-      const ioImpactPercent = (totalIOTime / totalDuration) * 100
+      const ioImpactPercent = (totalIOTime / totalDuration) * 100;
 
       if (ioImpactPercent > 40) {
         bottlenecks.push({
@@ -474,12 +474,12 @@ export class PerformanceProfiler {
             totalBytes: profile.io.totalBytes,
             totalDurationMs: totalIOTime,
           },
-        })
+        });
       }
     }
 
     // Analyze memory usage
-    const memoryGrowth = profile.memory.endMb ? profile.memory.endMb - profile.memory.startMb : 0
+    const memoryGrowth = profile.memory.endMb ? profile.memory.endMb - profile.memory.startMb : 0;
 
     if (memoryGrowth > 100) {
       bottlenecks.push({
@@ -493,10 +493,10 @@ export class PerformanceProfiler {
           endMb: profile.memory.endMb,
           growthMb: memoryGrowth,
         },
-      })
+      });
     }
 
-    return bottlenecks
+    return bottlenecks;
   }
 
   /**
@@ -504,8 +504,8 @@ export class PerformanceProfiler {
    */
   async close(): Promise<void> {
     if (this.db) {
-      await this.db.close()
-      this.db = null
+      await this.db.close();
+      this.db = null;
     }
   }
 
@@ -517,24 +517,24 @@ export class PerformanceProfiler {
    * Generate unique execution ID
    */
   private generateExecutionId(): string {
-    return `prof_${Date.now()}_${Math.random().toString(36).substring(2, 9)}`
+    return `prof_${Date.now()}_${Math.random().toString(36).substring(2, 9)}`;
   }
 
   /**
    * Get current memory usage in MB
    */
   private getMemoryUsageMb(): number {
-    const usage = process.memoryUsage()
-    return usage.heapUsed / (1024 * 1024)
+    const usage = process.memoryUsage();
+    return usage.heapUsed / (1024 * 1024);
   }
 
   /**
    * Update phases in database
    */
   private async updatePhases(executionId: string, phases: PhaseMetrics[]): Promise<void> {
-    if (!this.db) throw new ScriptError('Database not initialized', ErrorCode.INVALID_STATE)
+    if (!this.db) throw new ScriptError('Database not initialized', ErrorCode.INVALID_STATE);
 
-    const currentMemory = this.getMemoryUsageMb()
+    const currentMemory = this.getMemoryUsageMb();
 
     await this.db.query(
       `
@@ -544,19 +544,19 @@ export class PerformanceProfiler {
         WHERE id = $3
       `,
       [JSON.stringify(phases), currentMemory, executionId],
-    )
+    );
   }
 
   /**
    * Update I/O operations in database
    */
   private async updateIOOperations(executionId: string, ios: IOOperation[]): Promise<void> {
-    if (!this.db) throw new ScriptError('Database not initialized', ErrorCode.INVALID_STATE)
+    if (!this.db) throw new ScriptError('Database not initialized', ErrorCode.INVALID_STATE);
 
     await this.db.query('UPDATE performance_profiles SET io_operations = $1 WHERE id = $2', [
       JSON.stringify(ios),
       executionId,
-    ])
+    ]);
   }
 
   /**
@@ -567,19 +567,19 @@ export class PerformanceProfiler {
     const parseJsonField = <T>(field: string | T, defaultValue: T): T => {
       if (typeof field === 'string') {
         try {
-          return JSON.parse(field) as T
+          return JSON.parse(field) as T;
         } catch {
-          return defaultValue
+          return defaultValue;
         }
       }
-      return field ?? defaultValue
-    }
+      return field ?? defaultValue;
+    };
 
-    const phases = parseJsonField<PhaseMetrics[]>(row.phases, [])
-    const ioOperations = parseJsonField<IOOperation[]>(row.io_operations, [])
+    const phases = parseJsonField<PhaseMetrics[]>(row.phases, []);
+    const ioOperations = parseJsonField<IOOperation[]>(row.io_operations, []);
 
-    const totalIOBytes = ioOperations.reduce((sum, io) => sum + io.bytes, 0)
-    const totalIODuration = ioOperations.reduce((sum, io) => sum + io.durationMs, 0)
+    const totalIOBytes = ioOperations.reduce((sum, io) => sum + io.bytes, 0);
+    const totalIODuration = ioOperations.reduce((sum, io) => sum + io.durationMs, 0);
 
     return {
       executionId: row.id,
@@ -603,7 +603,7 @@ export class PerformanceProfiler {
         operations: ioOperations,
       },
       createdAt: new Date(Number(row.created_at)),
-    }
+    };
   }
 }
 
@@ -615,5 +615,5 @@ export class PerformanceProfiler {
  * Get performance profiler instance
  */
 export async function getProfiler(projectRoot?: string): Promise<PerformanceProfiler> {
-  return PerformanceProfiler.getInstance(projectRoot)
+  return PerformanceProfiler.getInstance(projectRoot);
 }

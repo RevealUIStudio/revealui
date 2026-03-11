@@ -10,42 +10,42 @@
  * - node:path - Path manipulation
  */
 
-import { appendFile, mkdir, readFile } from 'node:fs/promises'
-import { dirname, join } from 'node:path'
-import type { CodeChange, FixResult } from '../types.ts'
-import { fileExists } from './base.ts'
-import type { CleanupResult } from './cleanup-scheduler.ts'
+import { appendFile, mkdir, readFile } from 'node:fs/promises';
+import { dirname, join } from 'node:path';
+import type { CodeChange, FixResult } from '../types.ts';
+import { fileExists } from './base.ts';
+import type { CleanupResult } from './cleanup-scheduler.ts';
 
 // =============================================================================
 // Types
 // =============================================================================
 
 export interface AuditLogEntry {
-  timestamp: string
-  operation: 'analyze' | 'fix' | 'cleanup' | 'archive'
-  actor: 'automated' | 'manual'
+  timestamp: string;
+  operation: 'analyze' | 'fix' | 'cleanup' | 'archive';
+  actor: 'automated' | 'manual';
   details: {
-    issueId?: string
-    issuePattern?: string
-    filesAffected: number
-    changesApplied: number
-    success: boolean
-    errors?: string[]
-    warnings?: string[]
-  }
-  changes?: CodeChange[]
-  metadata?: Record<string, unknown>
+    issueId?: string;
+    issuePattern?: string;
+    filesAffected: number;
+    changesApplied: number;
+    success: boolean;
+    errors?: string[];
+    warnings?: string[];
+  };
+  changes?: CodeChange[];
+  metadata?: Record<string, unknown>;
 }
 
 export interface AuditLog {
-  entries: AuditLogEntry[]
+  entries: AuditLogEntry[];
   summary: {
-    totalOperations: number
-    successfulOperations: number
-    failedOperations: number
-    totalChanges: number
-    lastOperation?: string
-  }
+    totalOperations: number;
+    successfulOperations: number;
+    failedOperations: number;
+    totalChanges: number;
+    lastOperation?: string;
+  };
 }
 
 // =============================================================================
@@ -56,31 +56,31 @@ export interface AuditLog {
  * Get audit log file path
  */
 function getAuditLogPath(projectRoot: string): string {
-  return join(projectRoot, '.cursor/audit-log.jsonl')
+  return join(projectRoot, '.cursor/audit-log.jsonl');
 }
 
 /**
  * Get audit summary path
  */
 function getAuditSummaryPath(projectRoot: string): string {
-  return join(projectRoot, '.cursor/audit-summary.json')
+  return join(projectRoot, '.cursor/audit-summary.json');
 }
 
 /**
  * Write audit log entry
  */
 export async function writeAuditEntry(projectRoot: string, entry: AuditLogEntry): Promise<void> {
-  const logPath = getAuditLogPath(projectRoot)
+  const logPath = getAuditLogPath(projectRoot);
 
   // Ensure directory exists
-  await mkdir(dirname(logPath), { recursive: true })
+  await mkdir(dirname(logPath), { recursive: true });
 
   // Append entry as JSON line
-  const line = `${JSON.stringify(entry)}\n`
-  await appendFile(logPath, line, 'utf-8')
+  const line = `${JSON.stringify(entry)}\n`;
+  await appendFile(logPath, line, 'utf-8');
 
   // Update summary
-  await updateAuditSummary(projectRoot, entry)
+  await updateAuditSummary(projectRoot, entry);
 }
 
 /**
@@ -108,9 +108,9 @@ export async function logFixOperation(
     },
     changes: result.changes,
     metadata,
-  }
+  };
 
-  await writeAuditEntry(projectRoot, entry)
+  await writeAuditEntry(projectRoot, entry);
 }
 
 /**
@@ -133,9 +133,9 @@ export async function logCleanupOperation(
       warnings: result.warnings,
     },
     metadata: { ...result.details, ...metadata, taskId: result.taskId },
-  }
+  };
 
-  await writeAuditEntry(projectRoot, entry)
+  await writeAuditEntry(projectRoot, entry);
 }
 
 /**
@@ -157,9 +157,9 @@ export async function logAnalysisOperation(
       success: true,
     },
     metadata: { issuesFound, ...metadata },
-  }
+  };
 
-  await writeAuditEntry(projectRoot, entry)
+  await writeAuditEntry(projectRoot, entry);
 }
 
 // =============================================================================
@@ -170,50 +170,50 @@ export async function logAnalysisOperation(
  * Update audit summary
  */
 async function updateAuditSummary(projectRoot: string, entry: AuditLogEntry): Promise<void> {
-  const summaryPath = getAuditSummaryPath(projectRoot)
+  const summaryPath = getAuditSummaryPath(projectRoot);
 
   let summary: AuditLog['summary'] = {
     totalOperations: 0,
     successfulOperations: 0,
     failedOperations: 0,
     totalChanges: 0,
-  }
+  };
 
   // Load existing summary if it exists
   if (await fileExists(summaryPath)) {
     try {
-      const content = await readFile(summaryPath, 'utf-8')
-      summary = JSON.parse(content)
+      const content = await readFile(summaryPath, 'utf-8');
+      summary = JSON.parse(content);
     } catch {
       // Use default if file is corrupted
     }
   }
 
   // Update summary
-  summary.totalOperations++
+  summary.totalOperations++;
   if (entry.details.success) {
-    summary.successfulOperations++
+    summary.successfulOperations++;
   } else {
-    summary.failedOperations++
+    summary.failedOperations++;
   }
-  summary.totalChanges += entry.details.changesApplied
-  summary.lastOperation = entry.timestamp
+  summary.totalChanges += entry.details.changesApplied;
+  summary.lastOperation = entry.timestamp;
 
   // Write summary
-  await mkdir(dirname(summaryPath), { recursive: true })
-  await appendFile(summaryPath, JSON.stringify(summary, null, 2), 'utf-8')
+  await mkdir(dirname(summaryPath), { recursive: true });
+  await appendFile(summaryPath, JSON.stringify(summary, null, 2), 'utf-8');
 }
 
 /**
  * Get audit log summary
  */
 export async function getAuditSummary(projectRoot: string): Promise<AuditLog['summary']> {
-  const summaryPath = getAuditSummaryPath(projectRoot)
+  const summaryPath = getAuditSummaryPath(projectRoot);
 
   if (await fileExists(summaryPath)) {
     try {
-      const content = await readFile(summaryPath, 'utf-8')
-      return JSON.parse(content)
+      const content = await readFile(summaryPath, 'utf-8');
+      return JSON.parse(content);
     } catch {
       // Return default if file is corrupted
     }
@@ -224,36 +224,36 @@ export async function getAuditSummary(projectRoot: string): Promise<AuditLog['su
     successfulOperations: 0,
     failedOperations: 0,
     totalChanges: 0,
-  }
+  };
 }
 
 /**
  * Read audit log entries
  */
 export async function readAuditLog(projectRoot: string, limit = 100): Promise<AuditLogEntry[]> {
-  const logPath = getAuditLogPath(projectRoot)
+  const logPath = getAuditLogPath(projectRoot);
 
   if (!(await fileExists(logPath))) {
-    return []
+    return [];
   }
 
   try {
-    const content = await readFile(logPath, 'utf-8')
-    const lines = content.trim().split('\n')
+    const content = await readFile(logPath, 'utf-8');
+    const lines = content.trim().split('\n');
 
     // Parse JSONL format
-    const entries: AuditLogEntry[] = []
+    const entries: AuditLogEntry[] = [];
     for (const line of lines.slice(-limit)) {
       try {
-        entries.push(JSON.parse(line))
+        entries.push(JSON.parse(line));
       } catch {
         // Skip invalid lines
       }
     }
 
-    return entries
+    return entries;
   } catch {
-    return []
+    return [];
   }
 }
 
@@ -261,47 +261,47 @@ export async function readAuditLog(projectRoot: string, limit = 100): Promise<Au
  * Generate audit report
  */
 export async function generateAuditReport(projectRoot: string): Promise<string> {
-  const summary = await getAuditSummary(projectRoot)
-  const recentEntries = await readAuditLog(projectRoot, 20)
+  const summary = await getAuditSummary(projectRoot);
+  const recentEntries = await readAuditLog(projectRoot, 20);
 
-  const report: string[] = []
+  const report: string[] = [];
 
-  report.push('# Cohesion Engine Audit Report\n')
-  report.push(`Generated: ${new Date().toISOString()}\n`)
-  report.push('## Summary\n')
-  report.push(`- Total Operations: ${summary.totalOperations}`)
-  report.push(`- Successful: ${summary.successfulOperations}`)
-  report.push(`- Failed: ${summary.failedOperations}`)
-  report.push(`- Total Changes Applied: ${summary.totalChanges}`)
+  report.push('# Cohesion Engine Audit Report\n');
+  report.push(`Generated: ${new Date().toISOString()}\n`);
+  report.push('## Summary\n');
+  report.push(`- Total Operations: ${summary.totalOperations}`);
+  report.push(`- Successful: ${summary.successfulOperations}`);
+  report.push(`- Failed: ${summary.failedOperations}`);
+  report.push(`- Total Changes Applied: ${summary.totalChanges}`);
   report.push(
     `- Last Operation: ${summary.lastOperation ? new Date(summary.lastOperation).toLocaleString() : 'Never'}\n`,
-  )
+  );
 
-  report.push('## Recent Operations\n')
+  report.push('## Recent Operations\n');
 
   if (recentEntries.length === 0) {
-    report.push('No operations recorded yet.\n')
+    report.push('No operations recorded yet.\n');
   } else {
     for (const entry of recentEntries.reverse()) {
       report.push(
         `### ${entry.operation.toUpperCase()} - ${new Date(entry.timestamp).toLocaleString()}`,
-      )
-      report.push(`- Actor: ${entry.actor}`)
-      report.push(`- Success: ${entry.details.success ? '✓' : '✗'}`)
-      report.push(`- Files Affected: ${entry.details.filesAffected}`)
-      report.push(`- Changes Applied: ${entry.details.changesApplied}`)
+      );
+      report.push(`- Actor: ${entry.actor}`);
+      report.push(`- Success: ${entry.details.success ? '✓' : '✗'}`);
+      report.push(`- Files Affected: ${entry.details.filesAffected}`);
+      report.push(`- Changes Applied: ${entry.details.changesApplied}`);
 
       if (entry.details.errors && entry.details.errors.length > 0) {
-        report.push(`- Errors: ${entry.details.errors.join(', ')}`)
+        report.push(`- Errors: ${entry.details.errors.join(', ')}`);
       }
 
       if (entry.details.warnings && entry.details.warnings.length > 0) {
-        report.push(`- Warnings: ${entry.details.warnings.join(', ')}`)
+        report.push(`- Warnings: ${entry.details.warnings.join(', ')}`);
       }
 
-      report.push('')
+      report.push('');
     }
   }
 
-  return report.join('\n')
+  return report.join('\n');
 }

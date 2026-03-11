@@ -1,9 +1,9 @@
-'use client'
+'use client';
 
-import { LicenseGate } from '@/lib/components/LicenseGate'
-import { SystemHealthMonitor } from '@/lib/components/SystemHealthMonitor'
+import { LicenseGate } from '@/lib/components/LicenseGate';
+import { SystemHealthMonitor } from '@/lib/components/SystemHealthMonitor';
 
-export const dynamic = 'force-dynamic'
+export const dynamic = 'force-dynamic';
 
 export default function MonitoringPage() {
   return (
@@ -18,5 +18,5 @@ export default function MonitoringPage() {
         <SystemHealthMonitor />
       </div>
     </LicenseGate>
-  )
+  );
 }

@@ -10,16 +10,16 @@
 export async function register() {
   // Only run in Node.js runtime — skip Edge Runtime and build-time bundling
   if (typeof process === 'undefined' || !process.versions || !process.versions.node) {
-    return
+    return;
   }
 
   try {
     const [{ logger }, { validateRequiredEnvVars }] = await Promise.all([
       import('@revealui/core/observability/logger'),
       import('@/lib/utils/env-validation'),
-    ])
+    ]);
 
-    const environment = process.env.NODE_ENV || 'development'
+    const environment = process.env.NODE_ENV || 'development';
 
     // Never throw from instrumentation — it kills the entire runtime
     // Log errors but allow the app to start regardless
@@ -27,43 +27,43 @@ export async function register() {
       const result = validateRequiredEnvVars({
         failOnMissing: false,
         environment,
-      })
+      });
 
       if (!result.valid) {
-        const message = `Missing required environment variables: ${result.missing.join(', ')}`
-        logger.error('Environment validation failed', new Error(message))
+        const message = `Missing required environment variables: ${result.missing.join(', ')}`;
+        logger.error('Environment validation failed', new Error(message));
       }
 
       if (result.warnings.length > 0) {
-        logger.warn('Environment validation warnings', { warnings: result.warnings })
+        logger.warn('Environment validation warnings', { warnings: result.warnings });
       }
     } catch (error: unknown) {
-      const err = error instanceof Error ? error : new Error(String(error))
-      logger.warn('Environment validation error (non-fatal)', { message: err.message })
+      const err = error instanceof Error ? error : new Error(String(error));
+      logger.warn('Environment validation error (non-fatal)', { message: err.message });
     }
 
     if (process.env.NODE_ENV === 'production') {
       logger.info('Application started', {
         environment: process.env.NODE_ENV,
         version: process.env.npm_package_version,
-      })
+      });
 
       // Wire log transport — POST warn+ entries to API (avoids Edge bundling issues).
       // Next.js statically traces ALL imports in instrumentation.ts (even dynamic ones),
       // so we use fetch() instead of importing @revealui/db directly.
-      const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'https://api.revealui.com'
+      const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'https://api.revealui.com';
 
       // Circuit breaker: back off exponentially on consecutive failures
-      let telemetryFailures = 0
-      const maxBackoffFailures = 5 // after 5 consecutive failures, stop sending
+      let telemetryFailures = 0;
+      const maxBackoffFailures = 5; // after 5 consecutive failures, stop sending
 
       logger.addLogHandler((entry) => {
-        if (entry.level !== 'warn' && entry.level !== 'error' && entry.level !== 'fatal') return
+        if (entry.level !== 'warn' && entry.level !== 'error' && entry.level !== 'fatal') return;
 
         // Circuit breaker: skip if too many consecutive failures
-        if (telemetryFailures >= maxBackoffFailures) return
+        if (telemetryFailures >= maxBackoffFailures) return;
 
-        const data: Record<string, unknown> = {}
+        const data: Record<string, unknown> = {};
         if (entry.context && Object.keys(entry.context).length > 0) {
           // Copy only safe keys — never forward credentials or prototype-poisoning keys
           const BlockedKeys = new Set([
@@ -75,12 +75,12 @@ export async function register() {
             '__proto__',
             'constructor',
             'prototype',
-          ])
+          ]);
           for (const [k, v] of Object.entries(entry.context)) {
-            if (!BlockedKeys.has(k)) data[k] = v
+            if (!BlockedKeys.has(k)) data[k] = v;
           }
         }
-        if (entry.error) data.error = entry.error
+        if (entry.error) data.error = entry.error;
         fetch(`${apiUrl}/api/logs`, {
           method: 'POST',
           headers: {
@@ -98,29 +98,29 @@ export async function register() {
           }),
         })
           .then(() => {
-            telemetryFailures = 0 // reset on success
+            telemetryFailures = 0; // reset on success
           })
           .catch((err: unknown) => {
-            telemetryFailures++
+            telemetryFailures++;
             if (telemetryFailures === maxBackoffFailures) {
               process.stderr.write(
                 `[Instrumentation] Telemetry circuit breaker open after ${maxBackoffFailures} failures: ${err instanceof Error ? err.message : String(err)}\n`,
-              )
+              );
             }
-          })
-      })
+          });
+      });
 
       // Server-side error capture — POST unhandled rejections to the API error endpoint.
       process.on('unhandledRejection', (reason: unknown) => {
-        const err = reason instanceof Error ? reason : new Error(String(reason))
-        logger.error('Unhandled rejection in CMS server', err)
+        const err = reason instanceof Error ? reason : new Error(String(reason));
+        logger.error('Unhandled rejection in CMS server', err);
         // Sanitize stack trace — strip absolute file paths before sending to the API
         const sanitizedStack = err.stack
           ? err.stack
               .split('\n')
               .map((line) => line.replace(/\s+at .+[\\/]revealui[\\/]/gi, ' at <app>/'))
               .join('\n')
-          : undefined
+          : undefined;
         fetch(`${apiUrl}/api/errors`, {
           method: 'POST',
           headers: {
@@ -137,20 +137,20 @@ export async function register() {
           }),
         })
           .then(() => {
-            telemetryFailures = 0
+            telemetryFailures = 0;
           })
           .catch((fetchErr: unknown) => {
-            telemetryFailures++
+            telemetryFailures++;
             if (telemetryFailures === maxBackoffFailures) {
               process.stderr.write(
                 `[Instrumentation] Error telemetry circuit breaker open: ${fetchErr instanceof Error ? fetchErr.message : String(fetchErr)}\n`,
-              )
+              );
             }
-          })
-      })
+          });
+      });
     }
   } catch (error) {
     // Last-resort fallback — logger itself failed to load, no alternative available
-    console.error('[Instrumentation] Failed to initialize:', error) // ai-validator-ignore
+    console.error('[Instrumentation] Failed to initialize:', error); // ai-validator-ignore
   }
 }

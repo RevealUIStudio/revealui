@@ -1,17 +1,17 @@
-'use client'
+'use client';
 
-import { useAgentMemory } from '@revealui/sync'
-import { useState } from 'react'
+import { useAgentMemory } from '@revealui/sync';
+import { useState } from 'react';
 
 interface AgentMemoryProps {
-  agentId: string
+  agentId: string;
 }
 
 const MEMORY_TYPE_LABELS: Record<string, { label: string; color: string }> = {
   episodic: { label: 'Episodic', color: 'text-blue-400 bg-blue-500/10' },
   semantic: { label: 'Semantic', color: 'text-purple-400 bg-purple-500/10' },
   working: { label: 'Working', color: 'text-amber-400 bg-amber-500/10' },
-}
+};
 
 /**
  * Real-time agent memory viewer powered by @revealui/sync.
@@ -19,23 +19,23 @@ const MEMORY_TYPE_LABELS: Record<string, { label: string; color: string }> = {
  * via ElectricSQL shape subscriptions.
  */
 export function AgentMemory({ agentId }: AgentMemoryProps) {
-  const { memories, isLoading, error, remove } = useAgentMemory(agentId)
-  const [filter, setFilter] = useState<string | null>(null)
-  const [removingId, setRemovingId] = useState<string | null>(null)
+  const { memories, isLoading, error, remove } = useAgentMemory(agentId);
+  const [filter, setFilter] = useState<string | null>(null);
+  const [removingId, setRemovingId] = useState<string | null>(null);
 
-  const filtered = filter ? memories.filter((m) => m.type === filter) : memories
+  const filtered = filter ? memories.filter((m) => m.type === filter) : memories;
 
   // Sort by created_at descending (newest first)
   const sorted = [...filtered].sort(
     (a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime(),
-  )
+  );
 
   async function handleRemove(id: string) {
-    setRemovingId(id)
+    setRemovingId(id);
     try {
-      await remove(id)
+      await remove(id);
     } finally {
-      setRemovingId(null)
+      setRemovingId(null);
     }
   }
 
@@ -44,7 +44,7 @@ export function AgentMemory({ agentId }: AgentMemoryProps) {
       <div className="rounded-lg border border-red-800 bg-red-900/20 p-3 text-sm text-red-400">
         {error.message}
       </div>
-    )
+    );
   }
 
   return (
@@ -61,7 +61,7 @@ export function AgentMemory({ agentId }: AgentMemoryProps) {
           All ({memories.length})
         </button>
         {Object.entries(MEMORY_TYPE_LABELS).map(([type, { label }]) => {
-          const count = memories.filter((m) => m.type === type).length
+          const count = memories.filter((m) => m.type === type).length;
           return (
             <button
               key={type}
@@ -73,7 +73,7 @@ export function AgentMemory({ agentId }: AgentMemoryProps) {
             >
               {label} ({count})
             </button>
-          )
+          );
         })}
         {isLoading && (
           <div className="ml-auto h-3 w-3 animate-spin rounded-full border border-zinc-600 border-t-zinc-300" />
@@ -91,8 +91,8 @@ export function AgentMemory({ agentId }: AgentMemoryProps) {
             const typeInfo = MEMORY_TYPE_LABELS[memory.type] ?? {
               label: memory.type,
               color: 'text-zinc-400 bg-zinc-500/10',
-            }
-            const isExpired = memory.expires_at && new Date(memory.expires_at) < new Date()
+            };
+            const isExpired = memory.expires_at && new Date(memory.expires_at) < new Date();
 
             return (
               <li
@@ -138,22 +138,22 @@ export function AgentMemory({ agentId }: AgentMemoryProps) {
                   </button>
                 </div>
               </li>
-            )
+            );
           })}
         </ul>
       )}
     </div>
-  )
+  );
 }
 
 function formatRelativeTime(isoDate: string): string {
-  const diff = Date.now() - new Date(isoDate).getTime()
-  const seconds = Math.floor(diff / 1000)
-  if (seconds < 60) return 'just now'
-  const minutes = Math.floor(seconds / 60)
-  if (minutes < 60) return `${minutes}m ago`
-  const hours = Math.floor(minutes / 60)
-  if (hours < 24) return `${hours}h ago`
-  const days = Math.floor(hours / 24)
-  return `${days}d ago`
+  const diff = Date.now() - new Date(isoDate).getTime();
+  const seconds = Math.floor(diff / 1000);
+  if (seconds < 60) return 'just now';
+  const minutes = Math.floor(seconds / 60);
+  if (minutes < 60) return `${minutes}m ago`;
+  const hours = Math.floor(minutes / 60);
+  if (hours < 24) return `${hours}h ago`;
+  const days = Math.floor(hours / 24);
+  return `${days}d ago`;
 }

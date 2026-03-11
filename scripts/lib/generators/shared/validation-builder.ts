@@ -28,24 +28,24 @@
 /**
  * Severity level for validation messages
  */
-export type ValidationSeverity = 'error' | 'warning' | 'info' | 'success'
+export type ValidationSeverity = 'error' | 'warning' | 'info' | 'success';
 
 /**
  * Validation message
  */
 export interface ValidationMessage {
   /** Severity level */
-  severity: ValidationSeverity
+  severity: ValidationSeverity;
   /** Message text */
-  message: string
+  message: string;
   /** Optional file path */
-  file?: string
+  file?: string;
   /** Optional line number */
-  line?: number
+  line?: number;
   /** Optional code reference */
-  code?: string
+  code?: string;
   /** Optional context/details */
-  context?: Record<string, unknown>
+  context?: Record<string, unknown>;
 }
 
 /**
@@ -53,25 +53,25 @@ export interface ValidationMessage {
  */
 export interface ValidationResult {
   /** Whether validation passed (no errors) */
-  isValid: boolean
+  isValid: boolean;
   /** Error messages */
-  errors: ValidationMessage[]
+  errors: ValidationMessage[];
   /** Warning messages */
-  warnings: ValidationMessage[]
+  warnings: ValidationMessage[];
   /** Info messages */
-  info: ValidationMessage[]
+  info: ValidationMessage[];
   /** Success messages */
-  success: ValidationMessage[]
+  success: ValidationMessage[];
   /** All messages combined */
-  all: ValidationMessage[]
+  all: ValidationMessage[];
   /** Summary statistics */
   summary: {
-    totalErrors: number
-    totalWarnings: number
-    totalInfo: number
-    totalSuccess: number
-    totalMessages: number
-  }
+    totalErrors: number;
+    totalWarnings: number;
+    totalInfo: number;
+    totalSuccess: number;
+    totalMessages: number;
+  };
 }
 
 /**
@@ -79,13 +79,13 @@ export interface ValidationResult {
  */
 export interface MessageOptions {
   /** File path */
-  file?: string
+  file?: string;
   /** Line number */
-  line?: number
+  line?: number;
   /** Error/warning code */
-  code?: string
+  code?: string;
   /** Additional context */
-  context?: Record<string, unknown>
+  context?: Record<string, unknown>;
 }
 
 // =============================================================================
@@ -107,7 +107,7 @@ export interface MessageOptions {
  * ```
  */
 export class ValidationResultBuilder {
-  private messages: ValidationMessage[] = []
+  private messages: ValidationMessage[] = [];
 
   /**
    * Add an error message
@@ -121,8 +121,8 @@ export class ValidationResultBuilder {
       severity: 'error',
       message,
       ...options,
-    })
-    return this
+    });
+    return this;
   }
 
   /**
@@ -137,8 +137,8 @@ export class ValidationResultBuilder {
       severity: 'warning',
       message,
       ...options,
-    })
-    return this
+    });
+    return this;
   }
 
   /**
@@ -153,8 +153,8 @@ export class ValidationResultBuilder {
       severity: 'info',
       message,
       ...options,
-    })
-    return this
+    });
+    return this;
   }
 
   /**
@@ -169,8 +169,8 @@ export class ValidationResultBuilder {
       severity: 'success',
       message,
       ...options,
-    })
-    return this
+    });
+    return this;
   }
 
   /**
@@ -186,8 +186,8 @@ export class ValidationResultBuilder {
       severity,
       message,
       ...options,
-    })
-    return this
+    });
+    return this;
   }
 
   /**
@@ -197,8 +197,8 @@ export class ValidationResultBuilder {
    * @returns This builder for chaining
    */
   addMessages(messages: ValidationMessage[]): this {
-    this.messages.push(...messages)
-    return this
+    this.messages.push(...messages);
+    return this;
   }
 
   /**
@@ -208,8 +208,8 @@ export class ValidationResultBuilder {
    * @returns This builder for chaining
    */
   merge(otherBuilder: ValidationResultBuilder): this {
-    this.messages.push(...otherBuilder.messages)
-    return this
+    this.messages.push(...otherBuilder.messages);
+    return this;
   }
 
   /**
@@ -219,8 +219,8 @@ export class ValidationResultBuilder {
    * @returns This builder for chaining
    */
   mergeResult(result: ValidationResult): this {
-    this.messages.push(...result.all)
-    return this
+    this.messages.push(...result.all);
+    return this;
   }
 
   /**
@@ -229,8 +229,8 @@ export class ValidationResultBuilder {
    * @returns This builder for chaining
    */
   clear(): this {
-    this.messages = []
-    return this
+    this.messages = [];
+    return this;
   }
 
   /**
@@ -239,7 +239,7 @@ export class ValidationResultBuilder {
    * @returns True if there are errors
    */
   hasErrors(): boolean {
-    return this.messages.some((m) => m.severity === 'error')
+    return this.messages.some((m) => m.severity === 'error');
   }
 
   /**
@@ -248,7 +248,7 @@ export class ValidationResultBuilder {
    * @returns True if there are warnings
    */
   hasWarnings(): boolean {
-    return this.messages.some((m) => m.severity === 'warning')
+    return this.messages.some((m) => m.severity === 'warning');
   }
 
   /**
@@ -257,7 +257,7 @@ export class ValidationResultBuilder {
    * @returns Number of errors
    */
   getErrorCount(): number {
-    return this.messages.filter((m) => m.severity === 'error').length
+    return this.messages.filter((m) => m.severity === 'error').length;
   }
 
   /**
@@ -266,7 +266,7 @@ export class ValidationResultBuilder {
    * @returns Number of warnings
    */
   getWarningCount(): number {
-    return this.messages.filter((m) => m.severity === 'warning').length
+    return this.messages.filter((m) => m.severity === 'warning').length;
   }
 
   /**
@@ -275,10 +275,10 @@ export class ValidationResultBuilder {
    * @returns Validation result
    */
   build(): ValidationResult {
-    const errors = this.messages.filter((m) => m.severity === 'error')
-    const warnings = this.messages.filter((m) => m.severity === 'warning')
-    const info = this.messages.filter((m) => m.severity === 'info')
-    const success = this.messages.filter((m) => m.severity === 'success')
+    const errors = this.messages.filter((m) => m.severity === 'error');
+    const warnings = this.messages.filter((m) => m.severity === 'warning');
+    const info = this.messages.filter((m) => m.severity === 'info');
+    const success = this.messages.filter((m) => m.severity === 'success');
 
     return {
       isValid: errors.length === 0,
@@ -294,7 +294,7 @@ export class ValidationResultBuilder {
         totalSuccess: success.length,
         totalMessages: this.messages.length,
       },
-    }
+    };
   }
 
   /**
@@ -306,74 +306,74 @@ export class ValidationResultBuilder {
   buildFormatted(
     options: { includeSuccess?: boolean; includeInfo?: boolean; colorize?: boolean } = {},
   ): string {
-    const { includeSuccess = false, includeInfo = false, colorize = false } = options
-    const result = this.build()
+    const { includeSuccess = false, includeInfo = false, colorize = false } = options;
+    const result = this.build();
 
-    const lines: string[] = []
+    const lines: string[] = [];
 
     // Add errors
     if (result.errors.length > 0) {
-      lines.push(colorize ? '\x1b[31mErrors:\x1b[0m' : 'Errors:')
+      lines.push(colorize ? '\x1b[31mErrors:\x1b[0m' : 'Errors:');
       for (const error of result.errors) {
         const location = error.file
           ? error.line
             ? ` (${error.file}:${error.line})`
             : ` (${error.file})`
-          : ''
-        lines.push(`  - ${error.message}${location}`)
+          : '';
+        lines.push(`  - ${error.message}${location}`);
       }
-      lines.push('')
+      lines.push('');
     }
 
     // Add warnings
     if (result.warnings.length > 0) {
-      lines.push(colorize ? '\x1b[33mWarnings:\x1b[0m' : 'Warnings:')
+      lines.push(colorize ? '\x1b[33mWarnings:\x1b[0m' : 'Warnings:');
       for (const warning of result.warnings) {
         const location = warning.file
           ? warning.line
             ? ` (${warning.file}:${warning.line})`
             : ` (${warning.file})`
-          : ''
-        lines.push(`  - ${warning.message}${location}`)
+          : '';
+        lines.push(`  - ${warning.message}${location}`);
       }
-      lines.push('')
+      lines.push('');
     }
 
     // Add info (optional)
     if (includeInfo && result.info.length > 0) {
-      lines.push(colorize ? '\x1b[36mInfo:\x1b[0m' : 'Info:')
+      lines.push(colorize ? '\x1b[36mInfo:\x1b[0m' : 'Info:');
       for (const infoMsg of result.info) {
-        lines.push(`  - ${infoMsg.message}`)
+        lines.push(`  - ${infoMsg.message}`);
       }
-      lines.push('')
+      lines.push('');
     }
 
     // Add success (optional)
     if (includeSuccess && result.success.length > 0) {
-      lines.push(colorize ? '\x1b[32mSuccess:\x1b[0m' : 'Success:')
+      lines.push(colorize ? '\x1b[32mSuccess:\x1b[0m' : 'Success:');
       for (const successMsg of result.success) {
-        lines.push(`  - ${successMsg.message}`)
+        lines.push(`  - ${successMsg.message}`);
       }
-      lines.push('')
+      lines.push('');
     }
 
     // Add summary
-    lines.push('Summary:')
-    lines.push(`  Total: ${result.summary.totalMessages} messages`)
+    lines.push('Summary:');
+    lines.push(`  Total: ${result.summary.totalMessages} messages`);
     if (result.summary.totalErrors > 0) {
-      lines.push(`  Errors: ${result.summary.totalErrors}`)
+      lines.push(`  Errors: ${result.summary.totalErrors}`);
     }
     if (result.summary.totalWarnings > 0) {
-      lines.push(`  Warnings: ${result.summary.totalWarnings}`)
+      lines.push(`  Warnings: ${result.summary.totalWarnings}`);
     }
     if (result.summary.totalInfo > 0) {
-      lines.push(`  Info: ${result.summary.totalInfo}`)
+      lines.push(`  Info: ${result.summary.totalInfo}`);
     }
     if (result.summary.totalSuccess > 0) {
-      lines.push(`  Success: ${result.summary.totalSuccess}`)
+      lines.push(`  Success: ${result.summary.totalSuccess}`);
     }
 
-    return lines.join('\n')
+    return lines.join('\n');
   }
 }
 
@@ -400,17 +400,17 @@ export function createValidationResult(
   errors: string[] = [],
   warnings: string[] = [],
 ): ValidationResult {
-  const builder = new ValidationResultBuilder()
+  const builder = new ValidationResultBuilder();
 
   for (const error of errors) {
-    builder.addError(error)
+    builder.addError(error);
   }
 
   for (const warning of warnings) {
-    builder.addWarning(warning)
+    builder.addWarning(warning);
   }
 
-  return builder.build()
+  return builder.build();
 }
 
 /**
@@ -427,11 +427,11 @@ export function createValidationResult(
  * ```
  */
 export function mergeValidationResults(results: ValidationResult[]): ValidationResult {
-  const builder = new ValidationResultBuilder()
+  const builder = new ValidationResultBuilder();
 
   for (const result of results) {
-    builder.mergeResult(result)
+    builder.mergeResult(result);
   }
 
-  return builder.build()
+  return builder.build();
 }

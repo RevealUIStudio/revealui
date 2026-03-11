@@ -1,7 +1,7 @@
-import { useSetup } from '../../hooks/use-setup'
-import Button from '../ui/Button'
-import ErrorAlert from '../ui/ErrorAlert'
-import PanelHeader from '../ui/PanelHeader'
+import { useSetup } from '../../hooks/use-setup';
+import Button from '../ui/Button';
+import ErrorAlert from '../ui/ErrorAlert';
+import PanelHeader from '../ui/PanelHeader';
 import {
   DevPodRow,
   GitIdentityRow,
@@ -10,11 +10,11 @@ import {
   TailscaleRow,
   VaultRow,
   WslRow,
-} from './SetupRows'
+} from './SetupRows';
 
 /** Full-page version of setup — shown when navigating to the Setup page after first-run. */
 export default function SetupPage() {
-  const setup = useSetup()
+  const setup = useSetup();
 
   return (
     <div className="space-y-6">
@@ -39,5 +39,5 @@ export default function SetupPage() {
         <ProjectSetupRow />
       </div>
     </div>
-  )
+  );
 }

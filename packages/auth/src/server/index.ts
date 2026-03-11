@@ -5,14 +5,14 @@
  * Inspired by Better Auth and Neon Auth patterns.
  */
 
-export type { SignInResult, SignUpResult } from '../types.js'
-export { isSignupAllowed, signIn, signUp } from './auth.js'
+export type { SignInResult, SignUpResult } from '../types.js';
+export { isSignupAllowed, signIn, signUp } from './auth.js';
 export {
   clearFailedAttempts,
   getFailedAttemptCount,
   isAccountLocked,
   recordFailedAttempt,
-} from './brute-force.js'
+} from './brute-force.js';
 export {
   AuthError,
   AuthenticationError,
@@ -20,7 +20,7 @@ export {
   OAuthAccountConflictError,
   SessionError,
   TokenError,
-} from './errors.js'
+} from './errors.js';
 export {
   buildAuthUrl,
   exchangeCode,
@@ -32,35 +32,35 @@ export {
   unlinkOAuthAccount,
   upsertOAuthUser,
   verifyOAuthState,
-} from './oauth.js'
-export type { PasswordResetResult, PasswordResetToken } from './password-reset.js'
+} from './oauth.js';
+export type { PasswordResetResult, PasswordResetToken } from './password-reset.js';
 export {
   generatePasswordResetToken,
   invalidatePasswordResetToken,
   resetPasswordWithToken,
   validatePasswordResetToken,
-} from './password-reset.js'
+} from './password-reset.js';
 export {
   meetsMinimumPasswordRequirements,
   validatePasswordStrength,
-} from './password-validation.js'
+} from './password-validation.js';
 export {
   checkRateLimit,
   getRateLimitStatus,
   resetRateLimit,
-} from './rate-limit.js'
+} from './rate-limit.js';
 export {
   createSession,
   deleteAllUserSessions,
   deleteSession,
   getSession,
   rotateSession,
-} from './session.js'
-export type { Storage } from './storage/index.js'
+} from './session.js';
+export type { Storage } from './storage/index.js';
 export {
   createStorage,
   DatabaseStorage,
   getStorage,
   InMemoryStorage,
   resetStorage,
-} from './storage/index.js'
+} from './storage/index.js';

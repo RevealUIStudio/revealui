@@ -5,57 +5,57 @@
  */
 
 export interface MockApiResponse {
-  status: number
-  data: unknown
-  headers: Record<string, string>
+  status: number;
+  data: unknown;
+  headers: Record<string, string>;
 }
 
 export interface MockApiRequest {
-  url: string
-  method: string
-  headers: Record<string, string>
-  body?: unknown
+  url: string;
+  method: string;
+  headers: Record<string, string>;
+  body?: unknown;
 }
 
-const mockRequests: MockApiRequest[] = []
-const mockResponses: Map<string, MockApiResponse> = new Map()
-const rateLimitCounts: Map<string, number> = new Map()
+const mockRequests: MockApiRequest[] = [];
+const mockResponses: Map<string, MockApiResponse> = new Map();
+const rateLimitCounts: Map<string, number> = new Map();
 
 /**
  * Mock HTTP client
  */
 export function mockHttpRequest(options: {
-  url: string
-  method?: string
-  headers?: Record<string, string>
-  body?: unknown
+  url: string;
+  method?: string;
+  headers?: Record<string, string>;
+  body?: unknown;
 }): Promise<MockApiResponse> {
   const request: MockApiRequest = {
     url: options.url,
     method: options.method || 'GET',
     headers: options.headers || {},
     body: options.body,
-  }
+  };
 
-  mockRequests.push(request)
+  mockRequests.push(request);
 
   // Check for rate limiting
-  const rateLimitKey = `${request.method}:${request.url}`
-  const currentCount = rateLimitCounts.get(rateLimitKey) || 0
-  rateLimitCounts.set(rateLimitKey, currentCount + 1)
+  const rateLimitKey = `${request.method}:${request.url}`;
+  const currentCount = rateLimitCounts.get(rateLimitKey) || 0;
+  rateLimitCounts.set(rateLimitKey, currentCount + 1);
 
   if (currentCount >= 10) {
     return Promise.resolve({
       status: 429,
       data: { error: 'Rate limit exceeded' },
       headers: { 'Retry-After': '60' },
-    })
+    });
   }
 
   // Check for mocked response
-  const mockResponse = mockResponses.get(`${request.method}:${request.url}`)
+  const mockResponse = mockResponses.get(`${request.method}:${request.url}`);
   if (mockResponse) {
-    return Promise.resolve(mockResponse)
+    return Promise.resolve(mockResponse);
   }
 
   // Default success response
@@ -63,14 +63,14 @@ export function mockHttpRequest(options: {
     status: 200,
     data: { success: true },
     headers: { 'Content-Type': 'application/json' },
-  })
+  });
 }
 
 /**
  * Mock API response
  */
 export function setMockResponse(url: string, method: string, response: MockApiResponse): void {
-  mockResponses.set(`${method}:${url}`, response)
+  mockResponses.set(`${method}:${url}`, response);
 }
 
 /**
@@ -81,23 +81,23 @@ export function setMockError(url: string, method: string, status: number, error:
     status,
     data: error,
     headers: { 'Content-Type': 'application/json' },
-  })
+  });
 }
 
 /**
  * Get mock requests
  */
 export function getMockRequests(): MockApiRequest[] {
-  return [...mockRequests]
+  return [...mockRequests];
 }
 
 /**
  * Clear mock requests
  */
 export function clearMockRequests(): void {
-  mockRequests.length = 0
-  mockResponses.clear()
-  rateLimitCounts.clear()
+  mockRequests.length = 0;
+  mockResponses.clear();
+  rateLimitCounts.clear();
 }
 
 /**
@@ -118,5 +118,5 @@ export function createMockHttpClient() {
     setError: setMockError,
     getRequests: getMockRequests,
     clear: clearMockRequests,
-  }
+  };
 }

@@ -1,21 +1,21 @@
-'use client'
+'use client';
 
-import clsx from 'clsx'
-import type React from 'react'
-import { useId, useState } from 'react'
+import clsx from 'clsx';
+import type React from 'react';
+import { useId, useState } from 'react';
 
 export function Accordion({
   className,
   children,
 }: {
-  className?: string
-  children: React.ReactNode
+  className?: string;
+  children: React.ReactNode;
 }) {
   return (
     <div className={clsx('divide-y divide-zinc-200 dark:divide-zinc-700', className)}>
       {children}
     </div>
-  )
+  );
 }
 
 export function AccordionItem({
@@ -24,13 +24,13 @@ export function AccordionItem({
   className,
   children,
 }: {
-  title: React.ReactNode
-  defaultOpen?: boolean
-  className?: string
-  children: React.ReactNode
+  title: React.ReactNode;
+  defaultOpen?: boolean;
+  className?: string;
+  children: React.ReactNode;
 }) {
-  const [open, setOpen] = useState(defaultOpen)
-  const id = useId()
+  const [open, setOpen] = useState(defaultOpen);
+  const id = useId();
 
   return (
     <div className={className}>
@@ -72,5 +72,5 @@ export function AccordionItem({
         </div>
       )}
     </div>
-  )
+  );
 }

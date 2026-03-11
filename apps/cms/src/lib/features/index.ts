@@ -1,22 +1,22 @@
-'use server'
-import type { CustomComponent, Field, TextField } from '@revealui/core'
-import { deepMerge } from '@revealui/core'
-import { link } from '@/lib/fields/link'
+'use server';
+import type { CustomComponent, Field, TextField } from '@revealui/core';
+import { deepMerge } from '@revealui/core';
+import { link } from '@/lib/fields/link';
 
 type AdminComponents = Partial<
   Record<'Error' | 'Label' | 'Cell' | 'Field' | 'Filter', CustomComponent>
->
+>;
 
 type Admin = {
-  components?: AdminComponents
+  components?: AdminComponents;
   upload?: {
     collections?: {
       media?: {
-        fields?: Field[]
-      }
-    }
-  }
-}
+        fields?: Field[];
+      };
+    };
+  };
+};
 
 const richText = (overrides: Partial<{ admin: Admin }> = {}): TextField => {
   const defaultAdminConfig: Admin = {
@@ -65,16 +65,16 @@ const richText = (overrides: Partial<{ admin: Admin }> = {}): TextField => {
       // biome-ignore lint/style/useNamingConvention: RevealUI admin component keys are PascalCase.
       Filter: undefined,
     },
-  }
+  };
 
-  const adminConfig = deepMerge(defaultAdminConfig, overrides.admin || {})
+  const adminConfig = deepMerge(defaultAdminConfig, overrides.admin || {});
 
   return {
     type: 'richText',
     name: 'richText',
     required: true,
     admin: adminConfig,
-  } as unknown as TextField
-}
+  } as unknown as TextField;
+};
 
-export default richText
+export default richText;

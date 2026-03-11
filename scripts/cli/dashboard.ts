@@ -27,60 +27,60 @@
  * - node:perf_hooks - Performance measurement
  */
 
-import { writeFile } from 'node:fs/promises'
-import { freemem, totalmem } from 'node:os'
-import { join } from 'node:path'
-import { performance } from 'node:perf_hooks'
-import type { CommandDefinition, ParsedArgs } from '../lib/args.js'
-import { BuildCache } from '../lib/cache.js'
-import { ErrorCode } from '../lib/errors.js'
-import { getProjectRoot } from '../lib/paths.js'
-import { Telemetry } from '../lib/telemetry.js'
-import { formatBytes, formatDuration } from '../lib/utils.js'
-import { ExecutingCLI } from './_base.js'
+import { writeFile } from 'node:fs/promises';
+import { freemem, totalmem } from 'node:os';
+import { join } from 'node:path';
+import { performance } from 'node:perf_hooks';
+import type { CommandDefinition, ParsedArgs } from '../lib/args.js';
+import { BuildCache } from '../lib/cache.js';
+import { ErrorCode } from '../lib/errors.js';
+import { getProjectRoot } from '../lib/paths.js';
+import { Telemetry } from '../lib/telemetry.js';
+import { formatBytes, formatDuration } from '../lib/utils.js';
+import { ExecutingCLI } from './_base.js';
 
 interface DashboardData {
-  timestamp: number
+  timestamp: number;
   system: {
-    cpuUsage: number
-    memoryUsed: number
-    memoryTotal: number
-    memoryFree: number
-    uptime: number
-  }
+    cpuUsage: number;
+    memoryUsed: number;
+    memoryTotal: number;
+    memoryFree: number;
+    uptime: number;
+  };
   telemetry: {
-    totalEvents: number
-    counters: Record<string, number>
-    recentTimers: Array<{ name: string; duration: number }>
-    recentErrors: Array<{ name: string; message: string }>
-  }
+    totalEvents: number;
+    counters: Record<string, number>;
+    recentTimers: Array<{ name: string; duration: number }>;
+    recentErrors: Array<{ name: string; message: string }>;
+  };
   cache: {
-    hits: number
-    misses: number
-    size: number
-    entryCount: number
-  }
+    hits: number;
+    misses: number;
+    size: number;
+    entryCount: number;
+  };
   scripts: {
-    totalExecutions: number
-    averageDuration: number
-    failureRate: number
-    topScripts: Array<{ name: string; count: number }>
-  }
+    totalExecutions: number;
+    averageDuration: number;
+    failureRate: number;
+    topScripts: Array<{ name: string; count: number }>;
+  };
 }
 
 class DashboardCLI extends ExecutingCLI {
-  name = 'dashboard'
-  description = 'Performance monitoring and metrics dashboard'
-  protected enableExecutionLogging = true
+  name = 'dashboard';
+  description = 'Performance monitoring and metrics dashboard';
+  protected enableExecutionLogging = true;
 
-  private telemetry: Telemetry
-  private cache: BuildCache
-  private projectRoot: string = ''
+  private telemetry: Telemetry;
+  private cache: BuildCache;
+  private projectRoot: string = '';
 
   constructor() {
-    super()
-    this.telemetry = new Telemetry()
-    this.cache = new BuildCache()
+    super();
+    this.telemetry = new Telemetry();
+    this.cache = new BuildCache();
   }
 
   defineCommands(): CommandDefinition[] {
@@ -135,91 +135,91 @@ class DashboardCLI extends ExecutingCLI {
         description: 'Show quick performance summary',
         handler: async (args) => this.showSummary(args),
       },
-    ]
+    ];
   }
 
   /**
    * Launch interactive dashboard
    */
   private async runInteractive(args: ParsedArgs): Promise<number> {
-    this.projectRoot = await getProjectRoot(import.meta.url)
-    const refreshInterval = (args.refresh as number) || 5
+    this.projectRoot = await getProjectRoot(import.meta.url);
+    const refreshInterval = (args.refresh as number) || 5;
 
     if (!args.json) {
-      console.clear()
-      this.output.header('📊 Performance Dashboard')
-      console.log(`Refresh: ${refreshInterval}s | Press Ctrl+C to exit\n`)
+      console.clear();
+      this.output.header('📊 Performance Dashboard');
+      console.log(`Refresh: ${refreshInterval}s | Press Ctrl+C to exit\n`);
     }
 
-    const data = await this.collectData()
+    const data = await this.collectData();
 
     if (args.json) {
-      this.output.success({ data })
+      this.output.success({ data });
     } else {
-      this.renderDashboard(data)
+      this.renderDashboard(data);
     }
 
-    return 0
+    return 0;
   }
 
   /**
    * Watch mode with auto-refresh
    */
   private async runWatch(args: ParsedArgs): Promise<number> {
-    this.projectRoot = await getProjectRoot(import.meta.url)
-    const interval = (args.interval as number) || 3
+    this.projectRoot = await getProjectRoot(import.meta.url);
+    const interval = (args.interval as number) || 3;
 
-    console.clear()
-    this.output.header('📊 Performance Dashboard (Watch Mode)')
-    console.log(`Auto-refresh: ${interval}s | Press Ctrl+C to exit\n`)
+    console.clear();
+    this.output.header('📊 Performance Dashboard (Watch Mode)');
+    console.log(`Auto-refresh: ${interval}s | Press Ctrl+C to exit\n`);
 
     // Initial render
-    let data = await this.collectData()
-    this.renderDashboard(data)
+    let data = await this.collectData();
+    this.renderDashboard(data);
 
     // Auto-refresh loop
     const intervalId = setInterval(async () => {
-      console.clear()
-      this.output.header('📊 Performance Dashboard (Watch Mode)')
-      console.log(`Auto-refresh: ${interval}s | Press Ctrl+C to exit\n`)
+      console.clear();
+      this.output.header('📊 Performance Dashboard (Watch Mode)');
+      console.log(`Auto-refresh: ${interval}s | Press Ctrl+C to exit\n`);
 
-      data = await this.collectData()
-      this.renderDashboard(data)
-    }, interval * 1000)
+      data = await this.collectData();
+      this.renderDashboard(data);
+    }, interval * 1000);
 
     // Handle cleanup
     process.on('SIGINT', () => {
-      clearInterval(intervalId)
-      console.log('\n\n👋 Dashboard stopped')
-      process.exit(ErrorCode.SUCCESS)
-    })
+      clearInterval(intervalId);
+      console.log('\n\n👋 Dashboard stopped');
+      process.exit(ErrorCode.SUCCESS);
+    });
 
     // Keep process alive indefinitely
     return new Promise(() => {
       // Intentionally empty - this promise never resolves to keep the process running
-    })
+    });
   }
 
   /**
    * Generate HTML performance report
    */
   private async generateReport(args: ParsedArgs): Promise<number> {
-    this.projectRoot = await getProjectRoot(import.meta.url)
-    const outputPath = (args.output as string) || 'performance-report.html'
-    const days = (args.days as number) || 7
+    this.projectRoot = await getProjectRoot(import.meta.url);
+    const outputPath = (args.output as string) || 'performance-report.html';
+    const days = (args.days as number) || 7;
 
     if (!args.json) {
-      this.output.header('📄 Generating Performance Report')
-      console.log(`Output: ${outputPath}`)
-      console.log(`Period: Last ${days} days\n`)
+      this.output.header('📄 Generating Performance Report');
+      console.log(`Output: ${outputPath}`);
+      console.log(`Period: Last ${days} days\n`);
     }
 
     // Collect historical data
-    const endDate = new Date()
-    const startDate = new Date(endDate.getTime() - days * 24 * 60 * 60 * 1000)
-    const metrics = await this.telemetry.getMetrics(startDate, endDate)
-    const cacheStats = await this.cache.getStats()
-    const currentData = await this.collectData()
+    const endDate = new Date();
+    const startDate = new Date(endDate.getTime() - days * 24 * 60 * 60 * 1000);
+    const metrics = await this.telemetry.getMetrics(startDate, endDate);
+    const cacheStats = await this.cache.getStats();
+    const currentData = await this.collectData();
 
     // Generate HTML report
     const html = this.generateHTMLReport({
@@ -228,91 +228,91 @@ class DashboardCLI extends ExecutingCLI {
       cacheStats,
       startDate,
       endDate,
-    })
+    });
 
     // Write report
-    await writeFile(outputPath, html, 'utf-8')
+    await writeFile(outputPath, html, 'utf-8');
 
     if (args.json) {
-      this.output.success({ reportPath: outputPath, size: html.length })
+      this.output.success({ reportPath: outputPath, size: html.length });
     } else {
-      console.log(`✅ Report generated: ${outputPath}`)
-      console.log(`   Size: ${formatBytes(html.length)}`)
-      console.log(`\nOpen in browser: file://${join(this.projectRoot, outputPath)}`)
+      console.log(`✅ Report generated: ${outputPath}`);
+      console.log(`   Size: ${formatBytes(html.length)}`);
+      console.log(`\nOpen in browser: file://${join(this.projectRoot, outputPath)}`);
     }
 
-    return 0
+    return 0;
   }
 
   /**
    * Show quick summary
    */
   private async showSummary(args: ParsedArgs): Promise<number> {
-    this.projectRoot = await getProjectRoot(import.meta.url)
-    const data = await this.collectData()
+    this.projectRoot = await getProjectRoot(import.meta.url);
+    const data = await this.collectData();
 
     if (args.json) {
-      this.output.success({ summary: data })
-      return 0
+      this.output.success({ summary: data });
+      return 0;
     }
 
-    this.output.header('📊 Performance Summary')
+    this.output.header('📊 Performance Summary');
 
     // System
-    console.log('\n🖥️  System:')
-    console.log(`   CPU Usage:     ${data.system.cpuUsage.toFixed(1)}%`)
+    console.log('\n🖥️  System:');
+    console.log(`   CPU Usage:     ${data.system.cpuUsage.toFixed(1)}%`);
     console.log(
       `   Memory Used:   ${formatBytes(data.system.memoryUsed)} / ${formatBytes(data.system.memoryTotal)}`,
-    )
-    console.log(`   Memory Free:   ${formatBytes(data.system.memoryFree)}`)
+    );
+    console.log(`   Memory Free:   ${formatBytes(data.system.memoryFree)}`);
 
     // Telemetry
-    console.log('\n📈 Telemetry:')
-    console.log(`   Total Events:  ${data.telemetry.totalEvents}`)
-    console.log(`   Recent Errors: ${data.telemetry.recentErrors.length}`)
+    console.log('\n📈 Telemetry:');
+    console.log(`   Total Events:  ${data.telemetry.totalEvents}`);
+    console.log(`   Recent Errors: ${data.telemetry.recentErrors.length}`);
 
     // Cache
-    console.log('\n💾 Cache:')
+    console.log('\n💾 Cache:');
     console.log(
       `   Hit Rate:      ${data.cache.hits + data.cache.misses > 0 ? ((data.cache.hits / (data.cache.hits + data.cache.misses)) * 100).toFixed(1) : 0}%`,
-    )
-    console.log(`   Entries:       ${data.cache.entryCount}`)
-    console.log(`   Size:          ${formatBytes(data.cache.size)}`)
+    );
+    console.log(`   Entries:       ${data.cache.entryCount}`);
+    console.log(`   Size:          ${formatBytes(data.cache.size)}`);
 
     // Scripts
-    console.log('\n⚡ Scripts:')
-    console.log(`   Executions:    ${data.scripts.totalExecutions}`)
-    console.log(`   Avg Duration:  ${formatDuration(data.scripts.averageDuration)}`)
-    console.log(`   Failure Rate:  ${(data.scripts.failureRate * 100).toFixed(1)}%`)
+    console.log('\n⚡ Scripts:');
+    console.log(`   Executions:    ${data.scripts.totalExecutions}`);
+    console.log(`   Avg Duration:  ${formatDuration(data.scripts.averageDuration)}`);
+    console.log(`   Failure Rate:  ${(data.scripts.failureRate * 100).toFixed(1)}%`);
 
-    return 0
+    return 0;
   }
 
   /**
    * Collect all dashboard data
    */
   private async collectData(): Promise<DashboardData> {
-    const startTime = performance.now()
+    const startTime = performance.now();
 
     // System metrics
-    const memoryUsed = totalmem() - freemem()
-    const cpuUsagePercent = await this.getCPUUsage()
+    const memoryUsed = totalmem() - freemem();
+    const cpuUsagePercent = await this.getCPUUsage();
 
     // Telemetry metrics
-    const metrics = await this.telemetry.getMetrics()
+    const metrics = await this.telemetry.getMetrics();
     const totalEvents =
       Object.values(metrics.counters).reduce((sum, val) => sum + val, 0) +
       metrics.timers.length +
-      metrics.errors.length
+      metrics.errors.length;
 
     // Cache metrics
-    const cacheStats = await this.cache.getStats()
+    const cacheStats = await this.cache.getStats();
 
     // Script execution metrics
-    const scriptMetrics = this.extractScriptMetrics(metrics)
+    const scriptMetrics = this.extractScriptMetrics(metrics);
 
-    const endTime = performance.now()
-    const _collectionTime = endTime - startTime
+    const endTime = performance.now();
+    const _collectionTime = endTime - startTime;
 
     return {
       timestamp: Date.now(),
@@ -342,168 +342,168 @@ class DashboardCLI extends ExecutingCLI {
         entryCount: cacheStats.entryCount,
       },
       scripts: scriptMetrics,
-    }
+    };
   }
 
   /**
    * Get CPU usage percentage
    */
   private async getCPUUsage(): Promise<number> {
-    const startUsage = process.cpuUsage()
-    const startTime = performance.now()
+    const startUsage = process.cpuUsage();
+    const startTime = performance.now();
 
-    await new Promise((resolve) => setTimeout(resolve, 100))
+    await new Promise((resolve) => setTimeout(resolve, 100));
 
-    const endUsage = process.cpuUsage(startUsage)
-    const endTime = performance.now()
+    const endUsage = process.cpuUsage(startUsage);
+    const endTime = performance.now();
 
-    const elapsedTime = (endTime - startTime) * 1000 // Convert to microseconds
-    const totalUsage = endUsage.user + endUsage.system
+    const elapsedTime = (endTime - startTime) * 1000; // Convert to microseconds
+    const totalUsage = endUsage.user + endUsage.system;
 
-    return Math.min(100, (totalUsage / elapsedTime) * 100)
+    return Math.min(100, (totalUsage / elapsedTime) * 100);
   }
 
   /**
    * Extract script execution metrics from telemetry
    */
   private extractScriptMetrics(metrics: unknown): {
-    totalExecutions: number
-    averageDuration: number
-    failureRate: number
-    topScripts: Array<{ name: string; count: number }>
+    totalExecutions: number;
+    averageDuration: number;
+    failureRate: number;
+    topScripts: Array<{ name: string; count: number }>;
   } {
     const metricsData = metrics as {
-      timers: Array<{ name: string; duration?: number }>
-      errors: Array<{ name: string }>
-    }
+      timers: Array<{ name: string; duration?: number }>;
+      errors: Array<{ name: string }>;
+    };
     const scriptTimers = metricsData.timers.filter(
       (t) => t.name.includes('script') || t.name.includes('build') || t.name.includes('test'),
-    )
-    const totalExecutions = scriptTimers.length
+    );
+    const totalExecutions = scriptTimers.length;
     const averageDuration =
       totalExecutions > 0
         ? scriptTimers.reduce((sum: number, t) => sum + (t.duration || 0), 0) / totalExecutions
-        : 0
+        : 0;
 
     const scriptErrors = metricsData.errors.filter(
       (e) => e.name.includes('script') || e.name.includes('build') || e.name.includes('test'),
-    )
-    const failureRate = totalExecutions > 0 ? scriptErrors.length / totalExecutions : 0
+    );
+    const failureRate = totalExecutions > 0 ? scriptErrors.length / totalExecutions : 0;
 
     // Count script executions
-    const scriptCounts: Record<string, number> = {}
+    const scriptCounts: Record<string, number> = {};
     for (const timer of scriptTimers) {
-      scriptCounts[timer.name] = (scriptCounts[timer.name] || 0) + 1
+      scriptCounts[timer.name] = (scriptCounts[timer.name] || 0) + 1;
     }
 
     const topScripts = Object.entries(scriptCounts)
       .sort(([, a], [, b]) => b - a)
       .slice(0, 5)
-      .map(([name, count]) => ({ name, count }))
+      .map(([name, count]) => ({ name, count }));
 
     return {
       totalExecutions,
       averageDuration,
       failureRate,
       topScripts,
-    }
+    };
   }
 
   /**
    * Render terminal dashboard
    */
   private renderDashboard(data: DashboardData): void {
-    const width = process.stdout.columns || 80
+    const width = process.stdout.columns || 80;
 
     // Header
-    console.log('='.repeat(width))
-    console.log('  PERFORMANCE DASHBOARD')
-    console.log(`  ${new Date(data.timestamp).toLocaleString()}`)
-    console.log('='.repeat(width))
+    console.log('='.repeat(width));
+    console.log('  PERFORMANCE DASHBOARD');
+    console.log(`  ${new Date(data.timestamp).toLocaleString()}`);
+    console.log('='.repeat(width));
 
     // System Section
-    console.log('\n🖥️  SYSTEM')
-    console.log('─'.repeat(width))
+    console.log('\n🖥️  SYSTEM');
+    console.log('─'.repeat(width));
     this.renderMetric(
       'CPU Usage',
       `${data.system.cpuUsage.toFixed(1)}%`,
       this.getHealthIndicator(data.system.cpuUsage, 80, 50),
-    )
+    );
     this.renderMetric(
       'Memory Used',
       formatBytes(data.system.memoryUsed),
       this.getHealthIndicator((data.system.memoryUsed / data.system.memoryTotal) * 100, 90, 70),
-    )
-    this.renderMetric('Memory Free', formatBytes(data.system.memoryFree), '')
-    this.renderMetric('Uptime', formatDuration(data.system.uptime * 1000), '')
+    );
+    this.renderMetric('Memory Free', formatBytes(data.system.memoryFree), '');
+    this.renderMetric('Uptime', formatDuration(data.system.uptime * 1000), '');
 
     // Telemetry Section
-    console.log('\n📈 TELEMETRY')
-    console.log('─'.repeat(width))
-    this.renderMetric('Total Events', data.telemetry.totalEvents.toString(), '')
+    console.log('\n📈 TELEMETRY');
+    console.log('─'.repeat(width));
+    this.renderMetric('Total Events', data.telemetry.totalEvents.toString(), '');
     this.renderMetric(
       'Recent Errors',
       data.telemetry.recentErrors.length.toString(),
       data.telemetry.recentErrors.length > 0 ? '⚠️' : '✅',
-    )
+    );
 
     if (data.telemetry.recentTimers.length > 0) {
-      console.log('\n  Recent Operations:')
+      console.log('\n  Recent Operations:');
       for (const timer of data.telemetry.recentTimers.slice(-5)) {
-        console.log(`    • ${timer.name}: ${formatDuration(timer.duration)}`)
+        console.log(`    • ${timer.name}: ${formatDuration(timer.duration)}`);
       }
     }
 
     if (data.telemetry.recentErrors.length > 0) {
-      console.log('\n  Recent Errors:')
+      console.log('\n  Recent Errors:');
       for (const error of data.telemetry.recentErrors.slice(-3)) {
-        console.log(`    ⚠️  ${error.name}: ${error.message.substring(0, 60)}`)
+        console.log(`    ⚠️  ${error.name}: ${error.message.substring(0, 60)}`);
       }
     }
 
     // Cache Section
-    console.log('\n💾 CACHE')
-    console.log('─'.repeat(width))
+    console.log('\n💾 CACHE');
+    console.log('─'.repeat(width));
     const hitRate =
       data.cache.hits + data.cache.misses > 0
         ? (data.cache.hits / (data.cache.hits + data.cache.misses)) * 100
-        : 0
+        : 0;
     this.renderMetric(
       'Hit Rate',
       `${hitRate.toFixed(1)}%`,
       this.getHealthIndicator(hitRate, 30, 60),
-    )
-    this.renderMetric('Hits / Misses', `${data.cache.hits} / ${data.cache.misses}`, '')
-    this.renderMetric('Entries', data.cache.entryCount.toString(), '')
-    this.renderMetric('Size', formatBytes(data.cache.size), '')
+    );
+    this.renderMetric('Hits / Misses', `${data.cache.hits} / ${data.cache.misses}`, '');
+    this.renderMetric('Entries', data.cache.entryCount.toString(), '');
+    this.renderMetric('Size', formatBytes(data.cache.size), '');
 
     // Scripts Section
-    console.log('\n⚡ SCRIPTS')
-    console.log('─'.repeat(width))
-    this.renderMetric('Total Executions', data.scripts.totalExecutions.toString(), '')
-    this.renderMetric('Avg Duration', formatDuration(data.scripts.averageDuration), '')
+    console.log('\n⚡ SCRIPTS');
+    console.log('─'.repeat(width));
+    this.renderMetric('Total Executions', data.scripts.totalExecutions.toString(), '');
+    this.renderMetric('Avg Duration', formatDuration(data.scripts.averageDuration), '');
     this.renderMetric(
       'Failure Rate',
       `${(data.scripts.failureRate * 100).toFixed(1)}%`,
       data.scripts.failureRate > 0.1 ? '⚠️' : '✅',
-    )
+    );
 
     if (data.scripts.topScripts.length > 0) {
-      console.log('\n  Top Scripts:')
+      console.log('\n  Top Scripts:');
       for (const script of data.scripts.topScripts) {
-        console.log(`    • ${script.name}: ${script.count}x`)
+        console.log(`    • ${script.name}: ${script.count}x`);
       }
     }
 
-    console.log(`\n${'='.repeat(width)}`)
+    console.log(`\n${'='.repeat(width)}`);
   }
 
   /**
    * Render a metric row
    */
   private renderMetric(label: string, value: string, indicator: string): void {
-    const padding = ' '.repeat(Math.max(0, 20 - label.length))
-    console.log(`  ${label}${padding}${value} ${indicator}`)
+    const padding = ' '.repeat(Math.max(0, 20 - label.length));
+    console.log(`  ${label}${padding}${value} ${indicator}`);
   }
 
   /**
@@ -514,22 +514,22 @@ class DashboardCLI extends ExecutingCLI {
     criticalThreshold: number,
     warningThreshold: number,
   ): string {
-    if (value >= criticalThreshold) return '🔴'
-    if (value >= warningThreshold) return '🟡'
-    return '🟢'
+    if (value >= criticalThreshold) return '🔴';
+    if (value >= warningThreshold) return '🟡';
+    return '🟢';
   }
 
   /**
    * Generate HTML performance report
    */
   private generateHTMLReport(options: {
-    currentData: DashboardData
-    metrics: unknown
-    cacheStats: unknown
-    startDate: Date
-    endDate: Date
+    currentData: DashboardData;
+    metrics: unknown;
+    cacheStats: unknown;
+    startDate: Date;
+    endDate: Date;
   }): string {
-    const { currentData, metrics, cacheStats, startDate, endDate } = options
+    const { currentData, metrics, cacheStats, startDate, endDate } = options;
 
     return `<!DOCTYPE html>
 <html lang="en">
@@ -764,11 +764,11 @@ class DashboardCLI extends ExecutingCLI {
     </footer>
   </div>
 </body>
-</html>`
+</html>`;
   }
 }
 
 // Run CLI
-const cli = new DashboardCLI()
-const exitCode = await cli.run()
-process.exit(exitCode)
+const cli = new DashboardCLI();
+const exitCode = await cli.run();
+process.exit(exitCode);

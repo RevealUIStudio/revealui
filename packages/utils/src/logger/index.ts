@@ -7,40 +7,40 @@
 
 /* console-allowed */
 
-export type LogLevel = 'debug' | 'info' | 'warn' | 'error' | 'fatal'
+export type LogLevel = 'debug' | 'info' | 'warn' | 'error' | 'fatal';
 
 export interface LogContext {
-  [key: string]: unknown
-  userId?: string
-  requestId?: string
-  sessionId?: string
-  traceId?: string
-  spanId?: string
+  [key: string]: unknown;
+  userId?: string;
+  requestId?: string;
+  sessionId?: string;
+  traceId?: string;
+  spanId?: string;
 }
 
 export interface LogEntry {
-  timestamp: string
-  level: LogLevel
-  message: string
-  context?: LogContext
+  timestamp: string;
+  level: LogLevel;
+  message: string;
+  context?: LogContext;
   error?: {
-    name: string
-    message: string
-    stack?: string
-    cause?: unknown
-  }
-  metadata?: Record<string, unknown>
+    name: string;
+    message: string;
+    stack?: string;
+    cause?: unknown;
+  };
+  metadata?: Record<string, unknown>;
 }
 
 export interface LoggerConfig {
-  level?: LogLevel
-  enabled?: boolean
-  pretty?: boolean
-  includeTimestamp?: boolean
-  includeStack?: boolean
-  destination?: 'console' | 'file' | 'remote'
-  remoteUrl?: string
-  onLog?: (entry: LogEntry) => void
+  level?: LogLevel;
+  enabled?: boolean;
+  pretty?: boolean;
+  includeTimestamp?: boolean;
+  includeStack?: boolean;
+  destination?: 'console' | 'file' | 'remote';
+  remoteUrl?: string;
+  onLog?: (entry: LogEntry) => void;
 }
 
 const LOG_LEVELS: Record<LogLevel, number> = {
@@ -49,12 +49,12 @@ const LOG_LEVELS: Record<LogLevel, number> = {
   warn: 2,
   error: 3,
   fatal: 4,
-}
+};
 
 export class Logger {
-  private config: Required<LoggerConfig>
-  private context: LogContext = {}
-  private extraHandlers: Array<(entry: LogEntry) => void> = []
+  private config: Required<LoggerConfig>;
+  private context: LogContext = {};
+  private extraHandlers: Array<(entry: LogEntry) => void> = [];
 
   constructor(config: LoggerConfig = {}) {
     this.config = {
@@ -70,7 +70,7 @@ export class Logger {
         (() => {
           // No-op function
         }),
-    }
+    };
   }
 
   /**
@@ -78,42 +78,42 @@ export class Logger {
    * Called after every log entry, fire-and-forget. Must not throw.
    */
   addLogHandler(handler: (entry: LogEntry) => void): void {
-    this.extraHandlers.push(handler)
+    this.extraHandlers.push(handler);
   }
 
   /**
    * Set global context
    */
   setContext(context: LogContext): void {
-    this.context = { ...this.context, ...context }
+    this.context = { ...this.context, ...context };
   }
 
   /**
    * Clear global context
    */
   clearContext(): void {
-    this.context = {}
+    this.context = {};
   }
 
   /**
    * Debug log
    */
   debug(message: string, context?: LogContext): void {
-    this.log('debug', message, context)
+    this.log('debug', message, context);
   }
 
   /**
    * Info log
    */
   info(message: string, context?: LogContext): void {
-    this.log('info', message, context)
+    this.log('info', message, context);
   }
 
   /**
    * Warning log
    */
   warn(message: string, context?: LogContext): void {
-    this.log('warn', message, context)
+    this.log('warn', message, context);
   }
 
   /**
@@ -129,9 +129,9 @@ export class Logger {
             cause: error.cause,
           },
         }
-      : {}
+      : {};
 
-    this.log('error', message, { ...context, ...errorContext })
+    this.log('error', message, { ...context, ...errorContext });
   }
 
   /**
@@ -147,19 +147,19 @@ export class Logger {
             cause: error.cause,
           },
         }
-      : {}
+      : {};
 
-    this.log('fatal', message, { ...context, ...errorContext })
+    this.log('fatal', message, { ...context, ...errorContext });
   }
 
   /**
    * Core logging method
    */
   private log(level: LogLevel, message: string, context?: LogContext): void {
-    if (!this.config.enabled) return
+    if (!this.config.enabled) return;
 
     if (LOG_LEVELS[level] < LOG_LEVELS[this.config.level]) {
-      return
+      return;
     }
 
     const entry: LogEntry = {
@@ -167,24 +167,24 @@ export class Logger {
       level,
       message,
       context: { ...this.context, ...context },
-    }
+    };
 
     // Extract error if in context
     if (entry.context?.error) {
-      entry.error = entry.context.error as LogEntry['error']
-      entry.context.error = undefined
+      entry.error = entry.context.error as LogEntry['error'];
+      entry.context.error = undefined;
     }
 
     // Call custom handler
-    this.config.onLog(entry)
+    this.config.onLog(entry);
 
     // Call additional handlers (e.g. DB transport)
     for (const handler of this.extraHandlers) {
-      handler(entry)
+      handler(entry);
     }
 
     // Output log
-    this.output(entry)
+    this.output(entry);
   }
 
   /**
@@ -193,14 +193,14 @@ export class Logger {
   private output(entry: LogEntry): void {
     switch (this.config.destination) {
       case 'console':
-        this.outputConsole(entry)
-        break
+        this.outputConsole(entry);
+        break;
       case 'file':
-        this.outputFile(entry)
-        break
+        this.outputFile(entry);
+        break;
       case 'remote':
-        this.outputRemote(entry)
-        break
+        this.outputRemote(entry);
+        break;
     }
   }
 
@@ -208,22 +208,22 @@ export class Logger {
    * Output to console
    */
   private outputConsole(entry: LogEntry): void {
-    const output = this.config.pretty ? this.formatPretty(entry) : JSON.stringify(entry)
+    const output = this.config.pretty ? this.formatPretty(entry) : JSON.stringify(entry);
 
     switch (entry.level) {
       case 'debug':
-        console.debug(output)
-        break
+        console.debug(output);
+        break;
       case 'info':
-        console.info(output)
-        break
+        console.info(output);
+        break;
       case 'warn':
-        console.warn(output)
-        break
+        console.warn(output);
+        break;
       case 'error':
       case 'fatal':
-        console.error(output)
-        break
+        console.error(output);
+        break;
     }
   }
 
@@ -232,19 +232,19 @@ export class Logger {
    */
   private outputFile(entry: LogEntry): void {
     // Would require fs module - placeholder for server-side logging
-    console.log(JSON.stringify(entry))
+    console.log(JSON.stringify(entry));
   }
 
   /** Circuit breaker state for remote transport */
-  private remoteFailures = 0
-  private readonly maxRemoteFailures = 5
+  private remoteFailures = 0;
+  private readonly maxRemoteFailures = 5;
 
   /**
    * Output to remote service (with circuit breaker)
    */
   private async outputRemote(entry: LogEntry): Promise<void> {
-    if (!this.config.remoteUrl) return
-    if (this.remoteFailures >= this.maxRemoteFailures) return
+    if (!this.config.remoteUrl) return;
+    if (this.remoteFailures >= this.maxRemoteFailures) return;
 
     try {
       await fetch(this.config.remoteUrl, {
@@ -253,11 +253,11 @@ export class Logger {
           'Content-Type': 'application/json',
         },
         body: JSON.stringify(entry),
-      })
-      this.remoteFailures = 0
+      });
+      this.remoteFailures = 0;
     } catch {
-      this.remoteFailures++
-      this.outputConsole(entry)
+      this.remoteFailures++;
+      this.outputConsole(entry);
     }
   }
 
@@ -271,45 +271,45 @@ export class Logger {
       warn: '\x1b[33m', // Yellow
       error: '\x1b[31m', // Red
       fatal: '\x1b[35m', // Magenta
-    }
+    };
 
-    const reset = '\x1b[0m'
-    const color = levelColors[entry.level]
+    const reset = '\x1b[0m';
+    const color = levelColors[entry.level];
 
-    const parts: string[] = []
+    const parts: string[] = [];
 
     if (entry.timestamp) {
-      parts.push(`\x1b[90m${entry.timestamp}${reset}`)
+      parts.push(`\x1b[90m${entry.timestamp}${reset}`);
     }
 
-    parts.push(`${color}${entry.level.toUpperCase()}${reset}`)
-    parts.push(entry.message)
+    parts.push(`${color}${entry.level.toUpperCase()}${reset}`);
+    parts.push(entry.message);
 
     if (entry.context && Object.keys(entry.context).length > 0) {
-      parts.push(JSON.stringify(entry.context, null, 2))
+      parts.push(JSON.stringify(entry.context, null, 2));
     }
 
     if (entry.error) {
-      parts.push(`\n${color}Error: ${entry.error.message}${reset}`)
+      parts.push(`\n${color}Error: ${entry.error.message}${reset}`);
       if (entry.error.stack) {
-        parts.push(entry.error.stack)
+        parts.push(entry.error.stack);
       }
     }
 
-    return parts.join(' ')
+    return parts.join(' ');
   }
 
   /**
    * Create child logger with additional context
    */
   child(context: LogContext): Logger {
-    const childLogger = new Logger(this.config)
-    childLogger.setContext({ ...this.context, ...context })
+    const childLogger = new Logger(this.config);
+    childLogger.setContext({ ...this.context, ...context });
     // Share parent's extra handlers so DB transport applies to child loggers too
     for (const handler of this.extraHandlers) {
-      childLogger.addLogHandler(handler)
+      childLogger.addLogHandler(handler);
     }
-    return childLogger
+    return childLogger;
   }
 }
 
@@ -319,20 +319,20 @@ export class Logger {
 export const logger = new Logger({
   level: (process.env.LOG_LEVEL as LogLevel) || 'info',
   pretty: process.env.NODE_ENV !== 'production',
-})
+});
 
 /**
  * Create logger with context
  */
 export function createLogger(context: LogContext): Logger {
-  return logger.child(context)
+  return logger.child(context);
 }
 
 /**
  * Error logger
  */
 export function logError(error: Error, context?: LogContext): void {
-  logger.error(error.message, error, context)
+  logger.error(error.message, error, context);
 }
 
 /**
@@ -343,7 +343,7 @@ export function logAudit(action: string, context?: LogContext): void {
     ...context,
     audit: true,
     action,
-  })
+  });
 }
 
 /**
@@ -354,13 +354,13 @@ export function logQuery(query: string, duration: number, context?: LogContext):
     ...context,
     query,
     duration,
-  })
+  });
 
   if (duration > 1000) {
     logger.warn('Slow query detected', {
       ...context,
       query,
       duration,
-    })
+    });
   }
 }

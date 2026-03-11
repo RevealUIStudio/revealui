@@ -5,26 +5,26 @@
  */
 
 /// <reference types="react" />
-import React, { Component, type ReactNode } from 'react'
-import { logger } from '../observability/logger.js'
+import React, { Component, type ReactNode } from 'react';
+import { logger } from '../observability/logger.js';
 
 export interface ErrorInfo {
-  componentStack: string
+  componentStack: string;
 }
 
 export interface ErrorBoundaryProps {
-  children: ReactNode
-  fallback?: ReactNode | ((error: Error, errorInfo?: ErrorInfo) => ReactNode)
-  onError?: (error: Error, errorInfo?: ErrorInfo) => void
-  onReset?: () => void
-  resetKeys?: unknown[]
-  isolate?: boolean
+  children: ReactNode;
+  fallback?: ReactNode | ((error: Error, errorInfo?: ErrorInfo) => ReactNode);
+  onError?: (error: Error, errorInfo?: ErrorInfo) => void;
+  onReset?: () => void;
+  resetKeys?: unknown[];
+  isolate?: boolean;
 }
 
 export interface ErrorBoundaryState {
-  hasError: boolean
-  error: Error | null
-  errorInfo: ErrorInfo | null
+  hasError: boolean;
+  error: Error | null;
+  errorInfo: ErrorInfo | null;
 }
 
 /**
@@ -32,76 +32,76 @@ export interface ErrorBoundaryState {
  */
 export class ErrorBoundary extends Component<ErrorBoundaryProps, ErrorBoundaryState> {
   constructor(props: ErrorBoundaryProps) {
-    super(props)
+    super(props);
     this.state = {
       hasError: false,
       error: null,
       errorInfo: null,
-    }
+    };
   }
 
   static getDerivedStateFromError(error: Error): Partial<ErrorBoundaryState> {
     return {
       hasError: true,
       error,
-    }
+    };
   }
 
   componentDidCatch(error: Error, errorInfo: ErrorInfo): void {
     this.setState({
       errorInfo,
-    })
+    });
 
     // Call error handler
     if (this.props.onError) {
-      this.props.onError(error, errorInfo)
+      this.props.onError(error, errorInfo);
     }
 
     // Log error
     logger.error('Error caught by boundary', error, {
       componentStack: errorInfo.componentStack,
-    })
+    });
   }
 
   componentDidUpdate(prevProps: ErrorBoundaryProps): void {
-    const { resetKeys } = this.props
+    const { resetKeys } = this.props;
 
     // Reset error boundary if resetKeys change
     if (resetKeys && prevProps.resetKeys) {
       const hasResetKeyChanged = resetKeys.some((key, index) => {
-        return key !== prevProps.resetKeys?.[index]
-      })
+        return key !== prevProps.resetKeys?.[index];
+      });
 
       if (hasResetKeyChanged) {
-        this.reset()
+        this.reset();
       }
     }
   }
 
   reset = (): void => {
     if (this.props.onReset) {
-      this.props.onReset()
+      this.props.onReset();
     }
 
     this.setState({
       hasError: false,
       error: null,
       errorInfo: null,
-    })
-  }
+    });
+  };
 
   render(): ReactNode {
-    const { hasError, error, errorInfo } = this.state
-    const { children, fallback, isolate } = this.props
+    const { hasError, error, errorInfo } = this.state;
+    const { children, fallback, isolate } = this.props;
 
     if (hasError && error) {
       // Render fallback
       if (typeof fallback === 'function') {
-        return fallback(error, errorInfo ?? undefined)
+        return fallback(error, errorInfo ?? undefined);
       }
 
       if (fallback) {
-        return fallback
+        return fallback;
       }
 
       // Default error UI
@@ -112,10 +112,10 @@ export class ErrorBoundary extends Component<ErrorBoundaryProps, ErrorBoundarySt
           onReset={this.reset}
           isolate={isolate}
         />
-      )
+      );
     }
 
-    return children
+    return children;
   }
 }
 
@@ -123,10 +123,10 @@ export class ErrorBoundary extends Component<ErrorBoundaryProps, ErrorBoundarySt
  * Default Error Fallback Component
  */
 interface DefaultErrorFallbackProps {
-  error: Error
-  errorInfo?: ErrorInfo
-  onReset: () => void
-  isolate?: boolean
+  error: Error;
+  errorInfo?: ErrorInfo;
+  onReset: () => void;
+  isolate?: boolean;
 }
 
 function DefaultErrorFallback({
@@ -140,7 +140,7 @@ function DefaultErrorFallback({
       <div style={{ padding: '16px', border: '1px solid #f44336', borderRadius: '4px' }}>
         <p style={{ color: '#f44336', fontWeight: 'bold' }}>Something went wrong</p>
       </div>
-    )
+    );
   }
 
   return (
@@ -207,51 +207,51 @@ function DefaultErrorFallback({
         Try again
       </button>
     </div>
-  )
+  );
 }
 
 /**
  * Error Boundary with retry
  */
 export interface ErrorBoundaryWithRetryProps extends ErrorBoundaryProps {
-  maxRetries?: number
-  retryDelay?: number
+  maxRetries?: number;
+  retryDelay?: number;
 }
 
 export class ErrorBoundaryWithRetry extends Component<
   ErrorBoundaryWithRetryProps,
   ErrorBoundaryState & { retryCount: number }
 > {
-  private retryTimeout?: NodeJS.Timeout
+  private retryTimeout?: NodeJS.Timeout;
 
   constructor(props: ErrorBoundaryWithRetryProps) {
-    super(props)
+    super(props);
     this.state = {
       hasError: false,
       error: null,
       errorInfo: null,
       retryCount: 0,
-    }
+    };
   }
 
   static getDerivedStateFromError(error: Error): Partial<ErrorBoundaryState> {
     return {
       hasError: true,
       error,
-    }
+    };
   }
 
   componentDidCatch(error: Error, errorInfo: ErrorInfo): void {
     this.setState({
       errorInfo,
-    })
+    });
 
     if (this.props.onError) {
-      this.props.onError(error, errorInfo)
+      this.props.onError(error, errorInfo);
     }
 
     // Auto-retry if under max retries
-    const { maxRetries = 3, retryDelay = 1000 } = this.props
+    const { maxRetries = 3, retryDelay = 1000 } = this.props;
 
     if (this.state.retryCount < maxRetries) {
       this.retryTimeout = setTimeout(() => {
@@ -260,24 +260,24 @@ export class ErrorBoundaryWithRetry extends Component<
           error: null,
           errorInfo: null,
           retryCount: state.retryCount + 1,
-        }))
-      }, retryDelay)
+        }));
+      }, retryDelay);
     }
   }
 
   componentWillUnmount(): void {
     if (this.retryTimeout) {
-      clearTimeout(this.retryTimeout)
+      clearTimeout(this.retryTimeout);
     }
   }
 
   reset = (): void => {
     if (this.retryTimeout) {
-      clearTimeout(this.retryTimeout)
+      clearTimeout(this.retryTimeout);
     }
 
     if (this.props.onReset) {
-      this.props.onReset()
+      this.props.onReset();
     }
 
     this.setState({
@@ -285,12 +285,12 @@ export class ErrorBoundaryWithRetry extends Component<
       error: null,
       errorInfo: null,
       retryCount: 0,
-    })
-  }
+    });
+  };
 
   render(): ReactNode {
-    const { hasError, error, errorInfo, retryCount } = this.state
-    const { children, fallback, maxRetries = 3 } = this.props
+    const { hasError, error, errorInfo, retryCount } = this.state;
+    const { children, fallback, maxRetries = 3 } = this.props;
 
     if (hasError && error) {
       if (retryCount < maxRetries) {
@@ -300,15 +300,15 @@ export class ErrorBoundaryWithRetry extends Component<
               Retrying... (Attempt {retryCount + 1}/{maxRetries})
             </p>
           </div>
-        )
+        );
       }
 
       if (typeof fallback === 'function') {
-        return fallback(error, errorInfo ?? undefined)
+        return fallback(error, errorInfo ?? undefined);
       }
 
       if (fallback) {
-        return fallback
+        return fallback;
       }
 
       return (
@@ -317,10 +317,10 @@ export class ErrorBoundaryWithRetry extends Component<
           errorInfo={errorInfo ?? undefined}
           onReset={this.reset}
         />
-      )
+      );
     }
 
-    return children
+    return children;
   }
 }
 
@@ -335,32 +335,32 @@ export function withErrorBoundary<P extends object>(
     <ErrorBoundary {...errorBoundaryProps}>
       <Component {...props} />
     </ErrorBoundary>
-  )
+  );
 
-  Wrapped.displayName = `withErrorBoundary(${Component.displayName || Component.name})`
+  Wrapped.displayName = `withErrorBoundary(${Component.displayName || Component.name})`;
 
-  return Wrapped
+  return Wrapped;
 }
 
 /**
  * useErrorHandler hook
  */
 export function useErrorHandler(error?: Error | null): (error: Error) => void {
-  const [, setError] = React.useState<Error | null>(null)
+  const [, setError] = React.useState<Error | null>(null);
 
   React.useEffect(() => {
     if (error) {
       setError(() => {
-        throw error
-      })
+        throw error;
+      });
     }
-  }, [error])
+  }, [error]);
 
   return React.useCallback((err: Error) => {
     setError(() => {
-      throw err
-    })
-  }, [])
+      throw err;
+    });
+  }, []);
 }
 
 /**
@@ -371,8 +371,8 @@ export class NetworkError extends Error {
     message: string,
     public statusCode?: number,
   ) {
-    super(message)
-    this.name = 'NetworkError'
+    super(message);
+    this.name = 'NetworkError';
   }
 }
 
@@ -381,15 +381,15 @@ export class ValidationError extends Error {
     message: string,
     public fields?: Record<string, string>,
   ) {
-    super(message)
-    this.name = 'ValidationError'
+    super(message);
+    this.name = 'ValidationError';
   }
 }
 
 export class AuthenticationError extends Error {
   constructor(message: string) {
-    super(message)
-    this.name = 'AuthenticationError'
+    super(message);
+    this.name = 'AuthenticationError';
   }
 }
 
@@ -398,8 +398,8 @@ export class NotFoundError extends Error {
     message: string,
     public resource?: string,
   ) {
-    super(message)
-    this.name = 'NotFoundError'
+    super(message);
+    this.name = 'NotFoundError';
   }
 }
 
@@ -407,40 +407,40 @@ export class NotFoundError extends Error {
  * Error classification
  */
 export function isNetworkError(error: unknown): error is NetworkError {
-  return error instanceof NetworkError || (error instanceof Error && error.name === 'NetworkError')
+  return error instanceof NetworkError || (error instanceof Error && error.name === 'NetworkError');
 }
 
 export function isValidationError(error: unknown): error is ValidationError {
   return (
     error instanceof ValidationError || (error instanceof Error && error.name === 'ValidationError')
-  )
+  );
 }
 
 export function isAuthenticationError(error: unknown): error is AuthenticationError {
   return (
     error instanceof AuthenticationError ||
     (error instanceof Error && error.name === 'AuthenticationError')
-  )
+  );
 }
 
 export function isNotFoundError(error: unknown): error is NotFoundError {
   return (
     error instanceof NotFoundError || (error instanceof Error && error.name === 'NotFoundError')
-  )
+  );
 }
 
 /**
  * Error severity
  */
-export type ErrorSeverity = 'low' | 'medium' | 'high' | 'critical'
+export type ErrorSeverity = 'low' | 'medium' | 'high' | 'critical';
 
 export function getErrorSeverity(error: Error): ErrorSeverity {
-  if (isAuthenticationError(error)) return 'critical'
-  if (isNetworkError(error)) return 'high'
-  if (isValidationError(error)) return 'low'
-  if (isNotFoundError(error)) return 'medium'
+  if (isAuthenticationError(error)) return 'critical';
+  if (isNetworkError(error)) return 'high';
+  if (isValidationError(error)) return 'low';
+  if (isNotFoundError(error)) return 'medium';
 
-  return 'medium'
+  return 'medium';
 }
 
 /**
@@ -448,11 +448,11 @@ export function getErrorSeverity(error: Error): ErrorSeverity {
  */
 export function shouldRetryError(error: Error): boolean {
   if (isNetworkError(error)) {
-    const statusCode = (error as NetworkError).statusCode
+    const statusCode = (error as NetworkError).statusCode;
 
     // Retry on 5xx errors and network failures
-    return !statusCode || statusCode >= 500
+    return !statusCode || statusCode >= 500;
   }
 
-  return false
+  return false;
 }

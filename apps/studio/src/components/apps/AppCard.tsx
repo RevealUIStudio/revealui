@@ -1,48 +1,48 @@
-import { open } from '@tauri-apps/plugin-shell'
-import { useCallback, useEffect, useRef, useState } from 'react'
-import { readAppLog } from '../../lib/invoke'
-import type { AppStatus } from '../../types'
-import Button from '../ui/Button'
-import StatusDot from '../ui/StatusDot'
+import { open } from '@tauri-apps/plugin-shell';
+import { useCallback, useEffect, useRef, useState } from 'react';
+import { readAppLog } from '../../lib/invoke';
+import type { AppStatus } from '../../types';
+import Button from '../ui/Button';
+import StatusDot from '../ui/StatusDot';
 
 interface AppCardProps {
-  status: AppStatus
-  isOperating: boolean
-  onStart: () => void
-  onStop: () => void
+  status: AppStatus;
+  isOperating: boolean;
+  onStart: () => void;
+  onStop: () => void;
 }
 
 export default function AppCard({ status, isOperating, onStart, onStop }: AppCardProps) {
-  const { app, running } = status
-  const [showLogs, setShowLogs] = useState(false)
-  const [logContent, setLogContent] = useState('')
-  const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null)
+  const { app, running } = status;
+  const [showLogs, setShowLogs] = useState(false);
+  const [logContent, setLogContent] = useState('');
+  const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
   const fetchLog = useCallback(async () => {
     try {
-      const content = await readAppLog(app.name, 50)
-      setLogContent(content)
+      const content = await readAppLog(app.name, 50);
+      setLogContent(content);
     } catch {
-      setLogContent('[Failed to read log]')
+      setLogContent('[Failed to read log]');
     }
-  }, [app.name])
+  }, [app.name]);
 
   useEffect(() => {
     if (showLogs && running) {
-      fetchLog()
-      intervalRef.current = setInterval(fetchLog, 3000)
+      fetchLog();
+      intervalRef.current = setInterval(fetchLog, 3000);
     }
     return () => {
       if (intervalRef.current) {
-        clearInterval(intervalRef.current)
-        intervalRef.current = null
+        clearInterval(intervalRef.current);
+        intervalRef.current = null;
       }
-    }
-  }, [showLogs, running, fetchLog])
+    };
+  }, [showLogs, running, fetchLog]);
 
   const handleOpen = () => {
-    open(app.url)
-  }
+    open(app.url);
+  };
 
   return (
     <div className="rounded-lg border border-neutral-800 bg-neutral-900">
@@ -94,5 +94,5 @@ export default function AppCard({ status, isOperating, onStart, onStop }: AppCar
         </div>
       )}
     </div>
-  )
+  );
 }

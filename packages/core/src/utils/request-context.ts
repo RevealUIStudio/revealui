@@ -8,50 +8,50 @@
  * Do NOT import in client-side code or edge runtime.
  */
 
-import { AsyncLocalStorage } from 'node:async_hooks'
-import { randomUUID } from 'node:crypto'
+import { AsyncLocalStorage } from 'node:async_hooks';
+import { randomUUID } from 'node:crypto';
 
 /**
  * Request context data stored in AsyncLocalStorage
  */
 export interface RequestContext {
   /** Unique request identifier */
-  requestId: string
+  requestId: string;
 
   /** Request start timestamp */
-  startTime: number
+  startTime: number;
 
   /** User ID (if authenticated) */
-  userId?: string
+  userId?: string;
 
   /** IP address */
-  ip?: string
+  ip?: string;
 
   /** User agent */
-  userAgent?: string
+  userAgent?: string;
 
   /** Request path */
-  path?: string
+  path?: string;
 
   /** Request method */
-  method?: string
+  method?: string;
 
   /** Additional metadata */
-  metadata?: Record<string, unknown>
+  metadata?: Record<string, unknown>;
 }
 
 /**
  * AsyncLocalStorage for request context
  * Provides request-scoped storage without passing context through every function
  */
-const requestContextStorage = new AsyncLocalStorage<RequestContext>()
+const requestContextStorage = new AsyncLocalStorage<RequestContext>();
 
 /**
  * Generate a new request ID
  * Uses UUID v4 for guaranteed uniqueness
  */
 export function generateRequestId(): string {
-  return randomUUID()
+  return randomUUID();
 }
 
 /**
@@ -59,7 +59,7 @@ export function generateRequestId(): string {
  * Returns undefined if not in a request context
  */
 export function getRequestContext(): RequestContext | undefined {
-  return requestContextStorage.getStore()
+  return requestContextStorage.getStore();
 }
 
 /**
@@ -67,7 +67,7 @@ export function getRequestContext(): RequestContext | undefined {
  * Returns undefined if not in a request context
  */
 export function getRequestId(): string | undefined {
-  return getRequestContext()?.requestId
+  return getRequestContext()?.requestId;
 }
 
 /**
@@ -96,7 +96,7 @@ export function getRequestId(): string | undefined {
  * ```
  */
 export function runInRequestContext<T>(context: RequestContext, fn: () => T): T {
-  return requestContextStorage.run(context, fn)
+  return requestContextStorage.run(context, fn);
 }
 
 /**
@@ -110,9 +110,9 @@ export function runInRequestContext<T>(context: RequestContext, fn: () => T): T 
  * ```
  */
 export function updateRequestContext(updates: Partial<RequestContext>): void {
-  const current = getRequestContext()
+  const current = getRequestContext();
   if (current) {
-    Object.assign(current, updates)
+    Object.assign(current, updates);
   }
 }
 
@@ -131,16 +131,16 @@ export function updateRequestContext(updates: Partial<RequestContext>): void {
 export function extractRequestId(
   headers: Record<string, string | string[] | undefined>,
 ): string | undefined {
-  const headerNames = ['x-request-id', 'x-correlation-id', 'x-trace-id', 'request-id']
+  const headerNames = ['x-request-id', 'x-correlation-id', 'x-trace-id', 'request-id'];
 
   for (const name of headerNames) {
-    const value = headers[name]
+    const value = headers[name];
     if (value) {
-      return Array.isArray(value) ? value[0] : value
+      return Array.isArray(value) ? value[0] : value;
     }
   }
 
-  return undefined
+  return undefined;
 }
 
 /**
@@ -160,14 +160,14 @@ export function extractRequestId(
  * ```
  */
 export function createRequestContext(options: {
-  headers?: Record<string, string | string[] | undefined>
-  path?: string
-  method?: string
-  ip?: string
-  userId?: string
+  headers?: Record<string, string | string[] | undefined>;
+  path?: string;
+  method?: string;
+  ip?: string;
+  userId?: string;
 }): RequestContext {
   // Try to extract existing request ID from headers, or generate new one
-  const requestId = options.headers ? extractRequestId(options.headers) : undefined
+  const requestId = options.headers ? extractRequestId(options.headers) : undefined;
 
   return {
     requestId: requestId || generateRequestId(),
@@ -177,7 +177,7 @@ export function createRequestContext(options: {
     ip: options.ip,
     userId: options.userId,
     userAgent: options.headers?.['user-agent'] as string | undefined,
-  }
+  };
 }
 
 /**
@@ -186,10 +186,10 @@ export function createRequestContext(options: {
  * @returns Duration in ms, or undefined if not in request context
  */
 export function getRequestDuration(): number | undefined {
-  const context = getRequestContext()
-  if (!context) return undefined
+  const context = getRequestContext();
+  if (!context) return undefined;
 
-  return Date.now() - context.startTime
+  return Date.now() - context.startTime;
 }
 
 /**
@@ -210,10 +210,10 @@ export function getRequestDuration(): number | undefined {
  * ```
  */
 export function getRequestHeaders(): Record<string, string> {
-  const requestId = getRequestId()
-  if (!requestId) return {}
+  const requestId = getRequestId();
+  if (!requestId) return {};
 
   return {
     'x-request-id': requestId,
-  }
+  };
 }

@@ -5,8 +5,8 @@
  * The schema structure mirrors the Zod schemas in @revealui/contracts/entities.
  */
 
-import { integer, jsonb, pgTable, text, timestamp } from 'drizzle-orm/pg-core'
-import { users } from './users.js'
+import { integer, jsonb, pgTable, text, timestamp } from 'drizzle-orm/pg-core';
+import { users } from './users.js';
 
 // =============================================================================
 // Sites Table
@@ -48,7 +48,7 @@ export const sites = pgTable('sites', {
   createdAt: timestamp('created_at', { withTimezone: true }).defaultNow().notNull(),
   updatedAt: timestamp('updated_at', { withTimezone: true }).defaultNow().notNull(),
   publishedAt: timestamp('published_at', { withTimezone: true }),
-})
+});
 
 // =============================================================================
 // Site Collaborators Table (Many-to-Many: Sites <-> Users)
@@ -76,13 +76,13 @@ export const siteCollaborators = pgTable('site_collaborators', {
 
   // Timestamps
   addedAt: timestamp('added_at', { withTimezone: true }).defaultNow().notNull(),
-})
+});
 
 // =============================================================================
 // Type exports for Drizzle
 // =============================================================================
 
-export type Site = typeof sites.$inferSelect
-export type NewSite = typeof sites.$inferInsert
-export type SiteCollaborator = typeof siteCollaborators.$inferSelect
-export type NewSiteCollaborator = typeof siteCollaborators.$inferInsert
+export type Site = typeof sites.$inferSelect;
+export type NewSite = typeof sites.$inferInsert;
+export type SiteCollaborator = typeof siteCollaborators.$inferSelect;
+export type NewSiteCollaborator = typeof siteCollaborators.$inferInsert;

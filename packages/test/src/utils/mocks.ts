@@ -4,24 +4,24 @@
  * Provides common mocks for external services and dependencies
  */
 
-import { vi } from 'vitest'
+import { vi } from 'vitest';
 
 /**
  * Mock Stripe API responses
  */
 export const mockStripe: {
   customers: {
-    create: ReturnType<typeof vi.fn>
-    retrieve: ReturnType<typeof vi.fn>
-  }
+    create: ReturnType<typeof vi.fn>;
+    retrieve: ReturnType<typeof vi.fn>;
+  };
   checkout: {
     sessions: {
-      create: ReturnType<typeof vi.fn>
-    }
-  }
+      create: ReturnType<typeof vi.fn>;
+    };
+  };
   webhooks: {
-    constructEvent: ReturnType<typeof vi.fn>
-  }
+    constructEvent: ReturnType<typeof vi.fn>;
+  };
 } = {
   customers: {
     create: vi.fn().mockResolvedValue({
@@ -53,7 +53,7 @@ export const mockStripe: {
       },
     }),
   },
-}
+};
 
 /**
  * Create a chainable query builder mock
@@ -68,20 +68,20 @@ function createQueryBuilder() {
     single: vi.fn().mockResolvedValue({ data: null, error: null }),
     data: [],
     error: null,
-  }
-  return builder
+  };
+  return builder;
 }
 
 /**
  * Mock Supabase client
  */
 export const mockSupabase: {
-  from: ReturnType<typeof vi.fn>
+  from: ReturnType<typeof vi.fn>;
   auth: {
-    getUser: ReturnType<typeof vi.fn>
-    signInWithPassword: ReturnType<typeof vi.fn>
-    signOut: ReturnType<typeof vi.fn>
-  }
+    getUser: ReturnType<typeof vi.fn>;
+    signInWithPassword: ReturnType<typeof vi.fn>;
+    signOut: ReturnType<typeof vi.fn>;
+  };
 } = {
   from: vi.fn().mockImplementation(() => createQueryBuilder()),
   auth: {
@@ -100,7 +100,7 @@ export const mockSupabase: {
     }),
     signOut: vi.fn().mockResolvedValue({ data: null, error: null }),
   },
-}
+};
 
 /**
  * Mock HTTP fetch
@@ -113,23 +113,23 @@ export const mockFetch = (response: unknown, status = 200): ReturnType<typeof vi
     json: vi.fn().mockResolvedValue(response),
     text: vi.fn().mockResolvedValue(JSON.stringify(response)),
     headers: new Headers(),
-  } as unknown as Response)
-}
+  } as unknown as Response);
+};
 
 /**
  * Reset all mocks
  */
 export function resetAllMocks(): void {
   // Reset Stripe mocks
-  vi.mocked(mockStripe.customers.create).mockClear()
-  vi.mocked(mockStripe.customers.retrieve).mockClear()
-  vi.mocked(mockStripe.checkout.sessions.create).mockClear()
-  vi.mocked(mockStripe.webhooks.constructEvent).mockClear()
+  vi.mocked(mockStripe.customers.create).mockClear();
+  vi.mocked(mockStripe.customers.retrieve).mockClear();
+  vi.mocked(mockStripe.checkout.sessions.create).mockClear();
+  vi.mocked(mockStripe.webhooks.constructEvent).mockClear();
 
   // Reset Supabase mocks
-  vi.mocked(mockSupabase.from).mockClear()
-  vi.mocked(mockSupabase.from).mockImplementation(() => createQueryBuilder())
-  vi.mocked(mockSupabase.auth.getUser).mockClear()
-  vi.mocked(mockSupabase.auth.signInWithPassword).mockClear()
-  vi.mocked(mockSupabase.auth.signOut).mockClear()
+  vi.mocked(mockSupabase.from).mockClear();
+  vi.mocked(mockSupabase.from).mockImplementation(() => createQueryBuilder());
+  vi.mocked(mockSupabase.auth.getUser).mockClear();
+  vi.mocked(mockSupabase.auth.signInWithPassword).mockClear();
+  vi.mocked(mockSupabase.auth.signOut).mockClear();
 }

@@ -1,22 +1,22 @@
-'use client'
+'use client';
 
-import clsx from 'clsx'
-import type React from 'react'
-import { useCallback, useId, useRef } from 'react'
-import { createPortal } from 'react-dom'
-import { useEscapeKey } from '../hooks/use-escape-key.js'
-import { useFocusTrap } from '../hooks/use-focus-trap.js'
-import { useScrollLock } from '../hooks/use-scroll-lock.js'
-import { useTransition } from '../hooks/use-transition.js'
+import clsx from 'clsx';
+import type React from 'react';
+import { useCallback, useId, useRef } from 'react';
+import { createPortal } from 'react-dom';
+import { useEscapeKey } from '../hooks/use-escape-key.js';
+import { useFocusTrap } from '../hooks/use-focus-trap.js';
+import { useScrollLock } from '../hooks/use-scroll-lock.js';
+import { useTransition } from '../hooks/use-transition.js';
 
-type DrawerSide = 'left' | 'right' | 'top' | 'bottom'
+type DrawerSide = 'left' | 'right' | 'top' | 'bottom';
 
 const sideClasses: Record<DrawerSide, string> = {
   left: 'inset-y-0 left-0 h-full w-full max-w-sm data-closed:-translate-x-full',
   right: 'inset-y-0 right-0 h-full w-full max-w-sm data-closed:translate-x-full',
   top: 'inset-x-0 top-0 w-full max-h-[50vh] data-closed:-translate-y-full',
   bottom: 'inset-x-0 bottom-0 w-full max-h-[50vh] data-closed:translate-y-full',
-}
+};
 
 export function Drawer({
   open,
@@ -25,30 +25,30 @@ export function Drawer({
   className,
   children,
 }: {
-  open: boolean
-  onClose: () => void
-  side?: DrawerSide
-  className?: string
-  children: React.ReactNode
+  open: boolean;
+  onClose: () => void;
+  side?: DrawerSide;
+  className?: string;
+  children: React.ReactNode;
 }) {
-  const panelRef = useRef<HTMLDivElement>(null)
-  const titleId = useId()
+  const panelRef = useRef<HTMLDivElement>(null);
+  const titleId = useId();
 
-  const backdrop = useTransition(open)
-  const panel = useTransition(open)
+  const backdrop = useTransition(open);
+  const panel = useTransition(open);
 
-  useScrollLock(open)
-  useFocusTrap(panelRef, open)
-  useEscapeKey(onClose, open)
+  useScrollLock(open);
+  useFocusTrap(panelRef, open);
+  useEscapeKey(onClose, open);
 
   const handleBackdropClick = useCallback(
     (e: React.MouseEvent) => {
-      if (e.target === e.currentTarget) onClose()
+      if (e.target === e.currentTarget) onClose();
     },
     [onClose],
-  )
+  );
 
-  if (!(backdrop.mounted || panel.mounted)) return null
+  if (!(backdrop.mounted || panel.mounted)) return null;
 
   return createPortal(
     <div role="dialog" aria-modal="true" aria-labelledby={titleId}>
@@ -63,8 +63,8 @@ export function Drawer({
       {panel.mounted && (
         <div
           ref={(node) => {
-            ;(panelRef as React.MutableRefObject<HTMLDivElement | null>).current = node
-            ;(panel.nodeRef as React.MutableRefObject<HTMLElement | null>).current = node
+            (panelRef as React.MutableRefObject<HTMLDivElement | null>).current = node;
+            (panel.nodeRef as React.MutableRefObject<HTMLElement | null>).current = node;
           }}
           {...panel.transitionProps}
           className={clsx(
@@ -78,7 +78,7 @@ export function Drawer({
       )}
     </div>,
     document.body,
-  )
+  );
 }
 
 export function DrawerHeader({
@@ -86,9 +86,9 @@ export function DrawerHeader({
   className,
   children,
 }: {
-  onClose?: () => void
-  className?: string
-  children: React.ReactNode
+  onClose?: () => void;
+  className?: string;
+  children: React.ReactNode;
 }) {
   return (
     <div
@@ -116,11 +116,11 @@ export function DrawerHeader({
         </button>
       )}
     </div>
-  )
+  );
 }
 
 export function DrawerBody({ className, ...props }: React.ComponentPropsWithoutRef<'div'>) {
-  return <div {...props} className={clsx('px-6 py-4', className)} />
+  return <div {...props} className={clsx('px-6 py-4', className)} />;
 }
 
 export function DrawerFooter({ className, ...props }: React.ComponentPropsWithoutRef<'div'>) {
@@ -132,5 +132,5 @@ export function DrawerFooter({ className, ...props }: React.ComponentPropsWithou
         className,
       )}
     />
-  )
+  );
 }

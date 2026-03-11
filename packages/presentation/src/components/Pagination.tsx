@@ -1,7 +1,7 @@
-import type * as React from 'react'
-import { cn } from '../utils/cn.js'
-import type { ButtonProps } from './Button.js'
-import { buttonVariants } from './Button.js'
+import type * as React from 'react';
+import { cn } from '../utils/cn.js';
+import type { ButtonProps } from './Button.js';
+import { buttonVariants } from './Button.js';
 
 const ChevronLeft = ({ className }: { className?: string }) => {
   return (
@@ -16,8 +16,8 @@ const ChevronLeft = ({ className }: { className?: string }) => {
       <title>Previous page</title>
       <path strokeLinecap="round" strokeLinejoin="round" d="M15.75 19.5 8.25 12l7.5-7.5" />
     </svg>
-  )
-}
+  );
+};
 
 const ChevronRight = ({ className }: { className?: string }) => {
   return (
@@ -32,8 +32,8 @@ const ChevronRight = ({ className }: { className?: string }) => {
       <title>Next page</title>
       <path strokeLinecap="round" strokeLinejoin="round" d="m8.25 4.5 7.5 7.5-7.5 7.5" />
     </svg>
-  )
-}
+  );
+};
 
 const MoreHorizontal = ({ className }: { className?: string }) => {
   return (
@@ -48,10 +48,10 @@ const MoreHorizontal = ({ className }: { className?: string }) => {
       <circle cx="12" cy="3" r="3" fill="currentColor" />
       <circle cx="18" cy="3" r="3" fill="currentColor" />
     </svg>
-  )
-}
+  );
+};
 
-export type PaginationProps = React.ComponentProps<'nav'>
+export type PaginationProps = React.ComponentProps<'nav'>;
 
 const Pagination = ({ className, ...props }: PaginationProps) => (
   <nav
@@ -59,14 +59,14 @@ const Pagination = ({ className, ...props }: PaginationProps) => (
     className={cn('mx-auto flex w-full justify-center', className)}
     {...props}
   />
-)
+);
 
 function PaginationContent({
   className,
   ref,
   ...props
 }: React.ComponentProps<'ul'> & { ref?: React.Ref<HTMLUListElement> }) {
-  return <ul className={cn('flex flex-row items-center gap-1', className)} ref={ref} {...props} />
+  return <ul className={cn('flex flex-row items-center gap-1', className)} ref={ref} {...props} />;
 }
 
 function PaginationItem({
@@ -74,13 +74,13 @@ function PaginationItem({
   ref,
   ...props
 }: React.ComponentProps<'li'> & { ref?: React.Ref<HTMLLIElement> }) {
-  return <li className={cn('', className)} ref={ref} {...props} />
+  return <li className={cn('', className)} ref={ref} {...props} />;
 }
 
 export interface PaginationLinkProps
   extends Pick<ButtonProps, 'size'>,
     React.ComponentProps<'button'> {
-  isActive?: boolean
+  isActive?: boolean;
 }
 
 const PaginationLink = ({
@@ -103,9 +103,9 @@ const PaginationLink = ({
     )}
     {...props}
   />
-)
+);
 
-export type PaginationPreviousProps = React.ComponentProps<typeof PaginationLink>
+export type PaginationPreviousProps = React.ComponentProps<typeof PaginationLink>;
 
 const PaginationPrevious = ({ className, ...props }: PaginationPreviousProps) => (
   <PaginationLink
@@ -117,9 +117,9 @@ const PaginationPrevious = ({ className, ...props }: PaginationPreviousProps) =>
     <ChevronLeft className="size-4" />
     <span>Previous</span>
   </PaginationLink>
-)
+);
 
-export type PaginationNextProps = React.ComponentProps<typeof PaginationLink>
+export type PaginationNextProps = React.ComponentProps<typeof PaginationLink>;
 
 const PaginationNext = ({ className, ...props }: PaginationNextProps) => (
   <PaginationLink
@@ -131,9 +131,9 @@ const PaginationNext = ({ className, ...props }: PaginationNextProps) => (
     <span>Next</span>
     <ChevronRight className="size-4" />
   </PaginationLink>
-)
+);
 
-export type PaginationEllipsisProps = React.ComponentProps<'span'>
+export type PaginationEllipsisProps = React.ComponentProps<'span'>;
 
 const PaginationEllipsis = ({ className, ...props }: PaginationEllipsisProps) => (
   <span
@@ -144,7 +144,7 @@ const PaginationEllipsis = ({ className, ...props }: PaginationEllipsisProps) =>
     <MoreHorizontal className="size-4" />
     <span className="sr-only">More pages</span>
   </span>
-)
+);
 
 export {
   Pagination,
@@ -154,4 +154,4 @@ export {
   PaginationLink,
   PaginationNext,
   PaginationPrevious,
-}
+};

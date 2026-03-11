@@ -4,17 +4,17 @@
  * Sign in and sign up functionality with password hashing.
  */
 
-import { createHash, randomBytes } from 'node:crypto'
-import { logger } from '@revealui/core/observability/logger'
-import { getClient } from '@revealui/db/client'
-import { oauthAccounts, users } from '@revealui/db/schema'
-import bcrypt from 'bcryptjs'
-import { eq } from 'drizzle-orm'
-import type { SignInResult, SignUpResult, User } from '../types.js'
-import { clearFailedAttempts, isAccountLocked, recordFailedAttempt } from './brute-force.js'
-import { validatePasswordStrength } from './password-validation.js'
-import { checkRateLimit } from './rate-limit.js'
-import { createSession } from './session.js'
+import { createHash, randomBytes } from 'node:crypto';
+import { logger } from '@revealui/core/observability/logger';
+import { getClient } from '@revealui/db/client';
+import { oauthAccounts, users } from '@revealui/db/schema';
+import bcrypt from 'bcryptjs';
+import { eq } from 'drizzle-orm';
+import type { SignInResult, SignUpResult, User } from '../types.js';
+import { clearFailedAttempts, isAccountLocked, recordFailedAttempt } from './brute-force.js';
+import { validatePasswordStrength } from './password-validation.js';
+import { checkRateLimit } from './rate-limit.js';
+import { createSession } from './session.js';
 
 /**
  * Sign in with email and password
@@ -28,128 +28,128 @@ export async function signIn(
   email: string,
   password: string,
   options?: {
-    userAgent?: string
-    ipAddress?: string
+    userAgent?: string;
+    ipAddress?: string;
   },
 ): Promise<SignInResult> {
   try {
     // Rate limiting by IP address
-    const ipKey = options?.ipAddress || 'unknown'
-    const rateLimit = await checkRateLimit(`signin:${ipKey}`)
+    const ipKey = options?.ipAddress || 'unknown';
+    const rateLimit = await checkRateLimit(`signin:${ipKey}`);
     if (!rateLimit.allowed) {
       return {
         success: false,
         error: 'Too many login attempts. Please try again later.',
-      }
+      };
     }
 
     // Brute force protection by email
-    const bruteForceCheck = await isAccountLocked(email)
+    const bruteForceCheck = await isAccountLocked(email);
     if (bruteForceCheck.locked) {
       const lockMinutes = bruteForceCheck.lockUntil
         ? Math.ceil((bruteForceCheck.lockUntil - Date.now()) / (60 * 1000))
-        : 30
+        : 30;
       return {
         success: false,
         error: `Account locked due to too many failed attempts. Please try again in ${lockMinutes} minutes.`,
-      }
+      };
     }
 
-    let db: ReturnType<typeof getClient>
+    let db: ReturnType<typeof getClient>;
     try {
-      db = getClient()
+      db = getClient();
     } catch {
-      logger.error('Error getting database client')
+      logger.error('Error getting database client');
       return {
         success: false,
         error: 'Database connection failed',
-      }
+      };
     }
 
     // Find user by email
-    let user: User | undefined
+    let user: User | undefined;
     try {
-      const result = await db.select().from(users).where(eq(users.email, email)).limit(1)
-      user = result[0] as User | undefined
+      const result = await db.select().from(users).where(eq(users.email, email)).limit(1);
+      user = result[0] as User | undefined;
     } catch {
-      logger.error('Error querying user')
+      logger.error('Error querying user');
       return {
         success: false,
         error: 'Database error',
-      }
+      };
     }
 
     // Always return same error message to prevent user enumeration
-    const invalidCredentialsMessage = 'Invalid email or password'
+    const invalidCredentialsMessage = 'Invalid email or password';
 
     if (!user) {
-      await recordFailedAttempt(email)
+      await recordFailedAttempt(email);
       return {
         success: false,
         error: invalidCredentialsMessage,
-      }
+      };
     }
 
     // Check if user has a password (not OAuth-only user)
     if (!user.password) {
-      await recordFailedAttempt(email)
+      await recordFailedAttempt(email);
       return {
         success: false,
         error: invalidCredentialsMessage,
-      }
+      };
     }
 
     // Verify password hash
-    let isValid: boolean
+    let isValid: boolean;
     try {
-      isValid = await bcrypt.compare(password, user.password)
+      isValid = await bcrypt.compare(password, user.password);
     } catch {
-      logger.error('Error comparing password')
-      await recordFailedAttempt(email)
+      logger.error('Error comparing password');
+      await recordFailedAttempt(email);
       return {
         success: false,
         error: invalidCredentialsMessage,
-      }
+      };
     }
 
     if (!isValid) {
-      await recordFailedAttempt(email)
+      await recordFailedAttempt(email);
       return {
         success: false,
         error: invalidCredentialsMessage,
-      }
+      };
     }
 
     // Successful login - clear failed attempts
-    await clearFailedAttempts(email)
+    await clearFailedAttempts(email);
 
     // Create session
-    let token: string
+    let token: string;
     try {
       const sessionResult = await createSession(user.id, {
         userAgent: options?.userAgent || 'Unknown',
         ipAddress: options?.ipAddress || 'Unknown',
-      })
-      token = sessionResult.token
+      });
+      token = sessionResult.token;
     } catch {
-      logger.error('Error creating session')
+      logger.error('Error creating session');
       return {
         success: false,
         error: 'Failed to create session',
-      }
+      };
     }
 
     return {
       success: true,
       user,
       sessionToken: token,
-    }
+    };
   } catch {
-    logger.error('Unexpected error in signIn')
+    logger.error('Unexpected error in signIn');
     return {
       success: false,
       error: 'Unexpected error',
-    }
+    };
   }
 }
 
@@ -165,22 +165,22 @@ export async function signIn(
  * @returns true if signup is allowed
  */
 export function isSignupAllowed(email: string): boolean {
-  const signupOpen = process.env.REVEALUI_SIGNUP_OPEN
+  const signupOpen = process.env.REVEALUI_SIGNUP_OPEN;
   if (signupOpen === 'true') {
-    return true
+    return true;
   }
 
-  const whitelist = process.env.REVEALUI_SIGNUP_WHITELIST
+  const whitelist = process.env.REVEALUI_SIGNUP_WHITELIST;
   if (!whitelist) {
-    return true
+    return true;
   }
 
   const allowedEmails = whitelist
     .split(',')
     .map((e) => e.trim().toLowerCase())
-    .filter(Boolean)
+    .filter(Boolean);
 
-  return allowedEmails.includes(email.toLowerCase())
+  return allowedEmails.includes(email.toLowerCase());
 }
 
 /**
@@ -197,10 +197,10 @@ export async function signUp(
   password: string,
   name: string,
   options?: {
-    userAgent?: string
-    ipAddress?: string
-    tosAcceptedAt?: Date
-    tosVersion?: string
+    userAgent?: string;
+    ipAddress?: string;
+    tosAcceptedAt?: Date;
+    tosVersion?: string;
   },
 ): Promise<SignUpResult> {
   try {
@@ -209,59 +209,59 @@ export async function signUp(
       return {
         success: false,
         error: 'Signups are currently restricted. Contact the administrator for access.',
-      }
+      };
     }
 
     // Rate limiting by IP address
-    const ipKey = options?.ipAddress || 'unknown'
-    const rateLimit = await checkRateLimit(`signup:${ipKey}`)
+    const ipKey = options?.ipAddress || 'unknown';
+    const rateLimit = await checkRateLimit(`signup:${ipKey}`);
     if (!rateLimit.allowed) {
       return {
         success: false,
         error: 'Too many registration attempts. Please try again later.',
-      }
+      };
     }
 
     // Validate password strength
-    const passwordValidation = validatePasswordStrength(password)
+    const passwordValidation = validatePasswordStrength(password);
     if (!passwordValidation.valid) {
       return {
         success: false,
         error: passwordValidation.errors.join('. '),
-      }
+      };
     }
 
-    let db: ReturnType<typeof getClient>
+    let db: ReturnType<typeof getClient>;
     try {
-      db = getClient()
+      db = getClient();
     } catch {
-      logger.error('Error getting database client')
+      logger.error('Error getting database client');
       return {
         success: false,
         error: 'Database connection failed',
-      }
+      };
     }
 
     // Check if user already exists (by email in users table or OAuth accounts).
     // Both checks prevent account collision: a password signup must not collide
     // with an existing OAuth identity for the same email address.
-    let existing: User | undefined
+    let existing: User | undefined;
     try {
-      const result = await db.select().from(users).where(eq(users.email, email)).limit(1)
-      existing = result[0] as User | undefined
+      const result = await db.select().from(users).where(eq(users.email, email)).limit(1);
+      existing = result[0] as User | undefined;
     } catch {
-      logger.error('Error checking existing user')
+      logger.error('Error checking existing user');
       return {
         success: false,
         error: 'Database error',
-      }
+      };
     }
 
     if (existing) {
       return {
         success: false,
         error: 'Unable to create account',
-      }
+      };
     }
 
     // Block signup if an OAuth account already uses this email.
@@ -272,45 +272,45 @@ export async function signUp(
         .select({ id: oauthAccounts.id })
         .from(oauthAccounts)
         .where(eq(oauthAccounts.providerEmail, email))
-        .limit(1)
+        .limit(1);
 
       if (existingOAuth) {
         return {
           success: false,
           error: 'Unable to create account',
-        }
+        };
       }
     } catch {
-      logger.error('Error checking OAuth accounts')
+      logger.error('Error checking OAuth accounts');
       return {
         success: false,
         error: 'Database error',
-      }
+      };
     }
 
     // Hash password
-    let hashedPassword: string
+    let hashedPassword: string;
     try {
-      hashedPassword = await bcrypt.hash(password, 12)
+      hashedPassword = await bcrypt.hash(password, 12);
     } catch {
-      logger.error('Error hashing password')
+      logger.error('Error hashing password');
       return {
         success: false,
         error: 'Failed to process password',
-      }
+      };
     }
 
     // Generate email verification token.
     // Store the SHA-256 hash in the DB; send the raw token in the email link.
     // A DB breach cannot be used to verify arbitrary emails without the raw token.
-    const rawEmailVerificationToken = randomBytes(32).toString('hex')
+    const rawEmailVerificationToken = randomBytes(32).toString('hex');
     const emailVerificationToken = createHash('sha256')
       .update(rawEmailVerificationToken)
-      .digest('hex')
-    const emailVerificationTokenExpiresAt = new Date(Date.now() + 24 * 60 * 60 * 1000) // 24h
+      .digest('hex');
+    const emailVerificationTokenExpiresAt = new Date(Date.now() + 24 * 60 * 60 * 1000); // 24h
 
     // Create user
-    let user: User | undefined
+    let user: User | undefined;
     try {
       const result = await db
         .insert(users)
@@ -325,53 +325,53 @@ export async function signUp(
           tosAcceptedAt: options?.tosAcceptedAt ?? null,
           tosVersion: options?.tosVersion ?? null,
         })
-        .returning()
-      user = result[0] as User | undefined
+        .returning();
+      user = result[0] as User | undefined;
     } catch {
-      logger.error('Error creating user')
+      logger.error('Error creating user');
       return {
         success: false,
         error: 'Failed to create user',
-      }
+      };
     }
 
     if (!user) {
       return {
         success: false,
         error: 'User creation returned no result',
-      }
+      };
     }
 
     // Create session
-    let token: string
+    let token: string;
     try {
       const sessionResult = await createSession(user.id, {
         userAgent: options?.userAgent || 'Unknown',
         ipAddress: options?.ipAddress || 'Unknown',
-      })
-      token = sessionResult.token
+      });
+      token = sessionResult.token;
     } catch {
-      logger.error('Error creating session')
+      logger.error('Error creating session');
       return {
         success: false,
         error: 'Failed to create session',
-      }
+      };
     }
 
     // Return the raw (unhashed) token so the caller can include it in the
     // verification email link. The DB holds only the hash.
-    const userWithRawToken = { ...user, emailVerificationToken: rawEmailVerificationToken }
+    const userWithRawToken = { ...user, emailVerificationToken: rawEmailVerificationToken };
 
     return {
       success: true,
       user: userWithRawToken,
       sessionToken: token,
-    }
+    };
   } catch {
-    logger.error('Unexpected error in signUp')
+    logger.error('Unexpected error in signUp');
     return {
       success: false,
       error: 'Unexpected error',
-    }
+    };
   }
 }

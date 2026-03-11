@@ -8,14 +8,14 @@
  * CDN Cache Configuration
  */
 export interface CDNCacheConfig {
-  provider?: 'cloudflare' | 'vercel' | 'fastly' | 'custom'
-  zones?: string[]
-  ttl?: number
-  staleWhileRevalidate?: number
-  staleIfError?: number
-  bypassCache?: boolean
-  cacheKey?: string[]
-  varyHeaders?: string[]
+  provider?: 'cloudflare' | 'vercel' | 'fastly' | 'custom';
+  zones?: string[];
+  ttl?: number;
+  staleWhileRevalidate?: number;
+  staleIfError?: number;
+  bypassCache?: boolean;
+  cacheKey?: string[];
+  varyHeaders?: string[];
 }
 
 export const DEFAULT_CDN_CONFIG: CDNCacheConfig = {
@@ -26,67 +26,67 @@ export const DEFAULT_CDN_CONFIG: CDNCacheConfig = {
   bypassCache: false,
   cacheKey: ['url', 'headers.accept', 'headers.accept-encoding'],
   varyHeaders: ['Accept', 'Accept-Encoding'],
-}
+};
 
 /**
  * Generate Cache-Control header
  */
 export function generateCacheControl(config: {
-  maxAge?: number
-  sMaxAge?: number
-  staleWhileRevalidate?: number
-  staleIfError?: number
-  public?: boolean
-  private?: boolean
-  immutable?: boolean
-  noCache?: boolean
-  noStore?: boolean
+  maxAge?: number;
+  sMaxAge?: number;
+  staleWhileRevalidate?: number;
+  staleIfError?: number;
+  public?: boolean;
+  private?: boolean;
+  immutable?: boolean;
+  noCache?: boolean;
+  noStore?: boolean;
 }): string {
-  const directives: string[] = []
+  const directives: string[] = [];
 
   // Visibility
   if (config.noStore) {
-    directives.push('no-store')
-    return directives.join(', ')
+    directives.push('no-store');
+    return directives.join(', ');
   }
 
   if (config.noCache) {
-    directives.push('no-cache')
-    return directives.join(', ')
+    directives.push('no-cache');
+    return directives.join(', ');
   }
 
   if (config.public) {
-    directives.push('public')
+    directives.push('public');
   } else if (config.private) {
-    directives.push('private')
+    directives.push('private');
   }
 
   // Max age
   if (config.maxAge !== undefined) {
-    directives.push(`max-age=${config.maxAge}`)
+    directives.push(`max-age=${config.maxAge}`);
   }
 
   // Shared max age (CDN)
   if (config.sMaxAge !== undefined) {
-    directives.push(`s-maxage=${config.sMaxAge}`)
+    directives.push(`s-maxage=${config.sMaxAge}`);
   }
 
   // Stale-while-revalidate
   if (config.staleWhileRevalidate !== undefined) {
-    directives.push(`stale-while-revalidate=${config.staleWhileRevalidate}`)
+    directives.push(`stale-while-revalidate=${config.staleWhileRevalidate}`);
   }
 
   // Stale-if-error
   if (config.staleIfError !== undefined) {
-    directives.push(`stale-if-error=${config.staleIfError}`)
+    directives.push(`stale-if-error=${config.staleIfError}`);
   }
 
   // Immutable
   if (config.immutable) {
-    directives.push('immutable')
+    directives.push('immutable');
   }
 
-  return directives.join(', ')
+  return directives.join(', ');
 }
 
 /**
@@ -143,17 +143,17 @@ export const CDN_CACHE_PRESETS = {
     sMaxAge: 0,
     noCache: true,
   },
-} as const
+} as const;
 
 /**
  * CDN Purge Configuration
  */
 export interface CDNPurgeConfig {
-  provider: 'cloudflare' | 'vercel' | 'fastly'
-  apiKey?: string
-  apiSecret?: string
-  zoneId?: string
-  distributionId?: string
+  provider: 'cloudflare' | 'vercel' | 'fastly';
+  apiKey?: string;
+  apiSecret?: string;
+  zoneId?: string;
+  distributionId?: string;
 }
 
 /**
@@ -163,17 +163,17 @@ export async function purgeCDNCache(
   urls: string[],
   config: CDNPurgeConfig,
 ): Promise<{ success: boolean; purged: number; errors?: string[] }> {
-  const { provider } = config
+  const { provider } = config;
 
   switch (provider) {
     case 'cloudflare':
-      return purgeCloudflare(urls, config)
+      return purgeCloudflare(urls, config);
     case 'vercel':
-      return purgeVercel(urls, config)
+      return purgeVercel(urls, config);
     case 'fastly':
-      return purgeFastly(urls, config)
+      return purgeFastly(urls, config);
     default:
-      throw new Error(`Unsupported CDN provider: ${provider}`)
+      throw new Error(`Unsupported CDN provider: ${provider}`);
   }
 }
 
@@ -184,10 +184,10 @@ async function purgeCloudflare(
   urls: string[],
   config: CDNPurgeConfig,
 ): Promise<{ success: boolean; purged: number; errors?: string[] }> {
-  const { apiKey, zoneId } = config
+  const { apiKey, zoneId } = config;
 
   if (!(apiKey && zoneId)) {
-    throw new Error('Cloudflare API key and zone ID required')
+    throw new Error('Cloudflare API key and zone ID required');
   }
 
   try {
@@ -202,21 +202,21 @@ async function purgeCloudflare(
         },
         body: JSON.stringify({ files: urls }),
       },
-    )
+    );
 
-    const data = await response.json()
+    const data = await response.json();
 
     return {
       success: data.success,
       purged: urls.length,
       errors: data.errors,
-    }
+    };
   } catch (error) {
     return {
       success: false,
       purged: 0,
       errors: [error instanceof Error ? error.message : 'Unknown error'],
-    }
+    };
   }
 }
 
@@ -227,10 +227,10 @@ async function purgeVercel(
   urls: string[],
   config: CDNPurgeConfig,
 ): Promise<{ success: boolean; purged: number; errors?: string[] }> {
-  const { apiKey } = config
+  const { apiKey } = config;
 
   if (!apiKey) {
-    throw new Error('Vercel API token required')
+    throw new Error('Vercel API token required');
   }
 
   try {
@@ -242,21 +242,21 @@ async function purgeVercel(
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({ urls }),
-    })
+    });
 
-    const data = await response.json()
+    const data = await response.json();
 
     return {
       success: response.ok,
       purged: urls.length,
       errors: data.error ? [data.error.message] : undefined,
-    }
+    };
   } catch (error) {
     return {
       success: false,
       purged: 0,
       errors: [error instanceof Error ? error.message : 'Unknown error'],
-    }
+    };
   }
 }
 
@@ -267,10 +267,10 @@ async function purgeFastly(
   urls: string[],
   config: CDNPurgeConfig,
 ): Promise<{ success: boolean; purged: number; errors?: string[] }> {
-  const { apiKey } = config
+  const { apiKey } = config;
 
   if (!apiKey) {
-    throw new Error('Fastly API key required')
+    throw new Error('Fastly API key required');
   }
 
   try {
@@ -281,24 +281,24 @@ async function purgeFastly(
           headers: {
             'Fastly-Key': apiKey,
           },
-        })
+        });
 
-        return response.ok
+        return response.ok;
       }),
-    )
+    );
 
-    const purged = results.filter(Boolean).length
+    const purged = results.filter(Boolean).length;
 
     return {
       success: purged === urls.length,
       purged,
-    }
+    };
   } catch (error) {
     return {
       success: false,
       purged: 0,
       errors: [error instanceof Error ? error.message : 'Unknown error'],
-    }
+    };
   }
 }
 
@@ -309,11 +309,11 @@ export async function purgeCacheByTag(
   tags: string[],
   config: CDNPurgeConfig,
 ): Promise<{ success: boolean; purged: number; errors?: string[] }> {
-  const { provider, apiKey, zoneId } = config
+  const { provider, apiKey, zoneId } = config;
 
   if (provider === 'cloudflare') {
     if (!(apiKey && zoneId)) {
-      throw new Error('Cloudflare API key and zone ID required')
+      throw new Error('Cloudflare API key and zone ID required');
     }
 
     try {
@@ -328,25 +328,25 @@ export async function purgeCacheByTag(
           },
           body: JSON.stringify({ tags }),
         },
-      )
+      );
 
-      const data = await response.json()
+      const data = await response.json();
 
       return {
         success: data.success,
         purged: tags.length,
         errors: data.errors,
-      }
+      };
     } catch (error) {
       return {
         success: false,
         purged: 0,
         errors: [error instanceof Error ? error.message : 'Unknown error'],
-      }
+      };
     }
   }
 
-  throw new Error(`Cache tag purging not supported for ${provider}`)
+  throw new Error(`Cache tag purging not supported for ${provider}`);
 }
 
 /**
@@ -355,11 +355,11 @@ export async function purgeCacheByTag(
 export async function purgeAllCache(
   config: CDNPurgeConfig,
 ): Promise<{ success: boolean; errors?: string[] }> {
-  const { provider, apiKey, zoneId } = config
+  const { provider, apiKey, zoneId } = config;
 
   if (provider === 'cloudflare') {
     if (!(apiKey && zoneId)) {
-      throw new Error('Cloudflare API key and zone ID required')
+      throw new Error('Cloudflare API key and zone ID required');
     }
 
     try {
@@ -374,23 +374,23 @@ export async function purgeAllCache(
           },
           body: JSON.stringify({ purge_everything: true }),
         },
-      )
+      );
 
-      const data = await response.json()
+      const data = await response.json();
 
       return {
         success: data.success,
         errors: data.errors,
-      }
+      };
     } catch (error) {
       return {
         success: false,
         errors: [error instanceof Error ? error.message : 'Unknown error'],
-      }
+      };
     }
   }
 
-  throw new Error(`Purge all not supported for ${provider}`)
+  throw new Error(`Purge all not supported for ${provider}`);
 }
 
 /**
@@ -399,18 +399,18 @@ export async function purgeAllCache(
 export async function warmCDNCache(
   urls: string[],
   options: {
-    concurrency?: number
-    headers?: Record<string, string>
+    concurrency?: number;
+    headers?: Record<string, string>;
   } = {},
 ): Promise<{ warmed: number; failed: number; errors: string[] }> {
-  const { concurrency = 5, headers = {} } = options
+  const { concurrency = 5, headers = {} } = options;
 
-  const results: { success: boolean; error?: string }[] = []
-  const chunks: string[][] = []
+  const results: { success: boolean; error?: string }[] = [];
+  const chunks: string[][] = [];
 
   // Split into chunks
   for (let i = 0; i < urls.length; i += concurrency) {
-    chunks.push(urls.slice(i, i + concurrency))
+    chunks.push(urls.slice(i, i + concurrency));
   }
 
   // Warm cache in chunks
@@ -418,62 +418,62 @@ export async function warmCDNCache(
     const chunkResults = await Promise.all(
       chunk.map(async (url) => {
         try {
-          const response = await fetch(url, { headers })
+          const response = await fetch(url, { headers });
           return {
             success: response.ok,
             error: response.ok ? undefined : `${response.status} ${response.statusText}`,
-          }
+          };
         } catch (error) {
           return {
             success: false,
             error: error instanceof Error ? error.message : 'Unknown error',
-          }
+          };
         }
       }),
-    )
+    );
 
-    results.push(...chunkResults)
+    results.push(...chunkResults);
   }
 
-  const warmed = results.filter((r) => r.success).length
-  const failed = results.filter((r) => !r.success).length
-  const errors = results.flatMap((r) => (r.error ? [r.error] : []))
+  const warmed = results.filter((r) => r.success).length;
+  const failed = results.filter((r) => !r.success).length;
+  const errors = results.flatMap((r) => (r.error ? [r.error] : []));
 
-  return { warmed, failed, errors }
+  return { warmed, failed, errors };
 }
 
 /**
  * Generate cache tags
  */
 export function generateCacheTags(resource: {
-  type: string
-  id?: string | number
-  related?: string[]
+  type: string;
+  id?: string | number;
+  related?: string[];
 }): string[] {
-  const tags: string[] = []
+  const tags: string[] = [];
 
   // Type tag
-  tags.push(resource.type)
+  tags.push(resource.type);
 
   // ID tag
   if (resource.id) {
-    tags.push(`${resource.type}:${resource.id}`)
+    tags.push(`${resource.type}:${resource.id}`);
   }
 
   // Related tags
   if (resource.related) {
-    tags.push(...resource.related)
+    tags.push(...resource.related);
   }
 
-  return tags
+  return tags;
 }
 
 /**
  * Edge cache configuration for Vercel
  */
 export function generateVercelCacheConfig(preset: keyof typeof CDN_CACHE_PRESETS) {
-  const config = CDN_CACHE_PRESETS[preset]
-  const cacheControl = generateCacheControl(config)
+  const config = CDN_CACHE_PRESETS[preset];
+  const cacheControl = generateCacheControl(config);
 
   return {
     headers: {
@@ -481,7 +481,7 @@ export function generateVercelCacheConfig(preset: keyof typeof CDN_CACHE_PRESETS
       'CDN-Cache-Control': cacheControl,
       'Vercel-CDN-Cache-Control': cacheControl,
     },
-  }
+  };
 }
 
 /**
@@ -490,28 +490,28 @@ export function generateVercelCacheConfig(preset: keyof typeof CDN_CACHE_PRESETS
 export function generateCloudflareConfig(
   preset: keyof typeof CDN_CACHE_PRESETS,
   options: {
-    cacheTags?: string[]
-    bypassOnCookie?: string
+    cacheTags?: string[];
+    bypassOnCookie?: string;
   } = {},
 ) {
-  const config = CDN_CACHE_PRESETS[preset]
-  const cacheControl = generateCacheControl(config)
+  const config = CDN_CACHE_PRESETS[preset];
+  const cacheControl = generateCacheControl(config);
 
   const headers: Record<string, string> = {
     'Cache-Control': cacheControl,
-  }
+  };
 
   // Cache tags
   if (options.cacheTags && options.cacheTags.length > 0) {
-    headers['Cache-Tag'] = options.cacheTags.join(',')
+    headers['Cache-Tag'] = options.cacheTags.join(',');
   }
 
   // Bypass on cookie
   if (options.bypassOnCookie) {
-    headers['Cache-Control'] = `${cacheControl}, bypass=${options.bypassOnCookie}`
+    headers['Cache-Control'] = `${cacheControl}, bypass=${options.bypassOnCookie}`;
   }
 
-  return { headers }
+  return { headers };
 }
 
 /**
@@ -520,47 +520,47 @@ export function generateCloudflareConfig(
 export function shouldCacheResponse(status: number, headers: Headers): boolean {
   // Don't cache errors
   if (status >= 400) {
-    return false
+    return false;
   }
 
   // Check Cache-Control header
-  const cacheControl = headers.get('cache-control') || ''
+  const cacheControl = headers.get('cache-control') || '';
   if (
     cacheControl.includes('no-store') ||
     cacheControl.includes('no-cache') ||
     cacheControl.includes('private')
   ) {
-    return false
+    return false;
   }
 
-  return true
+  return true;
 }
 
 /**
  * Calculate cache TTL from headers
  */
 export function getCacheTTL(headers: Headers): number {
-  const cacheControl = headers.get('cache-control') || ''
+  const cacheControl = headers.get('cache-control') || '';
 
   // Check s-maxage first (CDN)
-  const sMaxAgeMatch = cacheControl.match(/s-maxage=(\d+)/)
+  const sMaxAgeMatch = cacheControl.match(/s-maxage=(\d+)/);
   if (sMaxAgeMatch?.[1]) {
-    return parseInt(sMaxAgeMatch[1], 10)
+    return parseInt(sMaxAgeMatch[1], 10);
   }
 
   // Check max-age
-  const maxAgeMatch = cacheControl.match(/max-age=(\d+)/)
+  const maxAgeMatch = cacheControl.match(/max-age=(\d+)/);
   if (maxAgeMatch?.[1]) {
-    return parseInt(maxAgeMatch[1], 10)
+    return parseInt(maxAgeMatch[1], 10);
   }
 
   // Check Expires header
-  const expires = headers.get('expires')
+  const expires = headers.get('expires');
   if (expires) {
-    const expiresDate = new Date(expires)
-    const now = new Date()
-    return Math.max(0, Math.floor((expiresDate.getTime() - now.getTime()) / 1000))
+    const expiresDate = new Date(expires);
+    const now = new Date();
+    return Math.max(0, Math.floor((expiresDate.getTime() - now.getTime()) / 1000));
   }
 
-  return 0
+  return 0;
 }

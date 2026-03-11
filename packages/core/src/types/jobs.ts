@@ -8,58 +8,58 @@
 /**
  * Job task status
  */
-export type JobTaskStatus = 'pending' | 'running' | 'completed' | 'failed' | 'cancelled'
+export type JobTaskStatus = 'pending' | 'running' | 'completed' | 'failed' | 'cancelled';
 
 /**
  * Job task priority
  */
-export type JobTaskPriority = 'low' | 'normal' | 'high' | 'urgent'
+export type JobTaskPriority = 'low' | 'normal' | 'high' | 'urgent';
 
 /**
  * Individual job task
  */
 export interface JobTask {
   /** Unique task identifier */
-  id: string
+  id: string;
 
   /** Task description */
-  description: string
+  description: string;
 
   /** Current task status */
-  status: JobTaskStatus
+  status: JobTaskStatus;
 
   /** Task progress (0.0 to 1.0) */
-  progress?: number
+  progress?: number;
 
   /** Task priority */
-  priority?: JobTaskPriority
+  priority?: JobTaskPriority;
 
   /** Task type/category */
-  type?: string
+  type?: string;
 
   /** Task metadata */
-  metadata?: Record<string, unknown>
+  metadata?: Record<string, unknown>;
 
   /** Created timestamp */
-  createdAt?: Date | string
+  createdAt?: Date | string;
 
   /** Updated timestamp */
-  updatedAt?: Date | string
+  updatedAt?: Date | string;
 
   /** Started timestamp */
-  startedAt?: Date | string
+  startedAt?: Date | string;
 
   /** Completed timestamp */
-  completedAt?: Date | string
+  completedAt?: Date | string;
 
   /** Error message if failed */
-  error?: string
+  error?: string;
 
   /** Retry count */
-  retries?: number
+  retries?: number;
 
   /** Maximum retries */
-  maxRetries?: number
+  maxRetries?: number;
 }
 
 /**
@@ -67,28 +67,28 @@ export interface JobTask {
  */
 export interface WorkflowStep {
   /** Step identifier */
-  id: string
+  id: string;
 
   /** Step name */
-  name: string
+  name: string;
 
   /** Step description */
-  description?: string
+  description?: string;
 
   /** Step type */
-  type: string
+  type: string;
 
   /** Step configuration */
-  config?: Record<string, unknown>
+  config?: Record<string, unknown>;
 
   /** Dependencies (step IDs that must complete first) */
-  dependencies?: string[]
+  dependencies?: string[];
 
   /** Step status */
-  status?: JobTaskStatus
+  status?: JobTaskStatus;
 
   /** Step result */
-  result?: unknown
+  result?: unknown;
 }
 
 /**
@@ -96,46 +96,46 @@ export interface WorkflowStep {
  */
 export interface JobWorkflow {
   /** Unique workflow identifier */
-  id: string
+  id: string;
 
   /** Workflow name */
-  name: string
+  name: string;
 
   /** Workflow description */
-  description?: string
+  description?: string;
 
   /** Workflow steps */
-  steps: WorkflowStep[]
+  steps: WorkflowStep[];
 
   /** Current step index */
-  currentStepIndex?: number
+  currentStepIndex?: number;
 
   /** Workflow status */
-  status: JobTaskStatus
+  status: JobTaskStatus;
 
   /** Workflow metadata */
-  metadata?: Record<string, unknown>
+  metadata?: Record<string, unknown>;
 
   /** Created timestamp */
-  createdAt?: Date | string
+  createdAt?: Date | string;
 
   /** Updated timestamp */
-  updatedAt?: Date | string
+  updatedAt?: Date | string;
 
   /** Started timestamp */
-  startedAt?: Date | string
+  startedAt?: Date | string;
 
   /** Completed timestamp */
-  completedAt?: Date | string
+  completedAt?: Date | string;
 
   /** Error message if failed */
-  error?: string
+  error?: string;
 
   /** Input data for workflow */
-  input?: Record<string, unknown>
+  input?: Record<string, unknown>;
 
   /** Output data from workflow */
-  output?: Record<string, unknown>
+  output?: Record<string, unknown>;
 }
 
 /**
@@ -144,8 +144,8 @@ export interface JobWorkflow {
  */
 export interface JobsConfig {
   /** Available task types and their configurations */
-  tasks: Record<string, JobTask> | JobTask[] | JobTask
+  tasks: Record<string, JobTask> | JobTask[] | JobTask;
 
   /** Available workflow types and their configurations */
-  workflows: Record<string, JobWorkflow> | JobWorkflow[] | JobWorkflow
+  workflows: Record<string, JobWorkflow> | JobWorkflow[] | JobWorkflow;
 }

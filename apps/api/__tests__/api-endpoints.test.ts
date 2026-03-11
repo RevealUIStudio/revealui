@@ -1,6 +1,6 @@
-import type { DatabaseClient } from '@revealui/db/client'
-import { afterAll, beforeAll, beforeEach, describe, expect, it, vi } from 'vitest'
-import app from '../src/index.js'
+import type { DatabaseClient } from '@revealui/db/client';
+import { afterAll, beforeAll, beforeEach, describe, expect, it, vi } from 'vitest';
+import app from '../src/index.js';
 
 /**
  * Integration Tests for apps/api
@@ -56,7 +56,7 @@ const { mockBoards, mockTickets } = vi.hoisted(() => ({
       updatedAt: new Date(),
     },
   ],
-}))
+}));
 
 const mockDb = {
   query: {},
@@ -64,7 +64,7 @@ const mockDb = {
   select: vi.fn(),
   update: vi.fn(),
   delete: vi.fn(),
-} as unknown as DatabaseClient
+} as unknown as DatabaseClient;
 
 // All @revealui/ai subpath mocks — prevents pnpm-store chain from loading
 // @revealui/config@0.2.0 (broken dist/loader) via @revealui/ai@0.1.x (npm, not workspace)
@@ -84,30 +84,30 @@ vi.mock('@revealui/ai', () => ({
   TicketAgentDispatcher: class TicketAgentDispatcher {},
   RPC_PARSE_ERROR: -32700,
   RPC_INVALID_REQUEST: -32600,
-}))
+}));
 vi.mock('@revealui/ai/llm/server', () => ({
   createLLMClientForUser: vi.fn(),
   LLMClient: class LLMClient {},
-}))
+}));
 vi.mock('@revealui/ai/llm/key-validator', () => ({
   validateProviderKey: vi.fn().mockResolvedValue({ valid: true }),
-}))
+}));
 vi.mock('@revealui/ai/orchestration/streaming-runtime', () => ({
   StreamingAgentRuntime: class StreamingAgentRuntime {},
-}))
+}));
 vi.mock('@revealui/ai/embeddings', () => ({
   generateEmbedding: vi.fn().mockResolvedValue([]),
-}))
+}));
 vi.mock('@revealui/ai/ingestion', () => ({
   IngestionPipeline: class IngestionPipeline {},
-}))
+}));
 
 // Mock the board queries module
 vi.mock('@revealui/db/queries/boards', () => ({
   getAllBoards: vi.fn().mockResolvedValue(mockBoards),
   getBoardById: vi.fn().mockImplementation((_db: unknown, id: string) => {
-    const board = mockBoards.find((b) => b.id === id)
-    return Promise.resolve(board ?? null)
+    const board = mockBoards.find((b) => b.id === id);
+    return Promise.resolve(board ?? null);
   }),
   getBoardBySlug: vi.fn().mockResolvedValue(mockBoards[0]),
   createBoard: vi.fn().mockResolvedValue(mockBoards[0]),
@@ -128,14 +128,14 @@ vi.mock('@revealui/db/queries/boards', () => ({
     ),
   updateColumn: vi.fn().mockResolvedValue({ id: 'col-1', name: 'Updated' }),
   deleteColumn: vi.fn().mockResolvedValue(undefined),
-}))
+}));
 
 // Mock the ticket queries module
 vi.mock('@revealui/db/queries/tickets', () => ({
   getTicketsByBoard: vi.fn().mockResolvedValue(mockTickets),
   getTicketById: vi.fn().mockImplementation((_db: unknown, id: string) => {
-    const ticket = mockTickets.find((t) => t.id === id)
-    return Promise.resolve(ticket ?? null)
+    const ticket = mockTickets.find((t) => t.id === id);
+    return Promise.resolve(ticket ?? null);
   }),
   getTicketByNumber: vi.fn().mockResolvedValue(mockTickets[0]),
   createTicket: vi.fn().mockResolvedValue(mockTickets[0]),
@@ -145,7 +145,7 @@ vi.mock('@revealui/db/queries/tickets', () => ({
   getSubtickets: vi.fn().mockResolvedValue([]),
   getTicketsByColumn: vi.fn().mockResolvedValue(mockTickets),
   getOverdueTickets: vi.fn().mockResolvedValue([]),
-}))
+}));
 
 // Mock the comment queries module
 vi.mock('@revealui/db/queries/ticket-comments', () => ({
@@ -165,7 +165,7 @@ vi.mock('@revealui/db/queries/ticket-comments', () => ({
     ),
   updateComment: vi.fn().mockResolvedValue({ id: 'comment-1', body: 'updated' }),
   deleteComment: vi.fn().mockResolvedValue(undefined),
-}))
+}));
 
 // Mock the provenance queries module
 // Note: inline data because vi.mock factories are hoisted before const declarations
@@ -190,19 +190,19 @@ vi.mock('@revealui/db/queries/code-provenance', () => {
     metadata: {},
     createdAt: new Date(),
     updatedAt: new Date(),
-  }
+  };
 
   return {
     getAllProvenance: vi.fn().mockResolvedValue([prov]),
     getProvenanceById: vi.fn().mockImplementation((_db: unknown, id: string) => {
-      return Promise.resolve(id === 'prov-1' ? prov : null)
+      return Promise.resolve(id === 'prov-1' ? prov : null);
     }),
     getProvenanceByFile: vi.fn().mockResolvedValue([prov]),
     getProvenanceByCommit: vi.fn().mockResolvedValue([prov]),
     getUnreviewedProvenance: vi.fn().mockResolvedValue([prov]),
     createProvenance: vi.fn().mockResolvedValue(prov),
     updateProvenance: vi.fn().mockImplementation((_db: unknown, id: string) => {
-      return Promise.resolve(id === 'prov-1' ? prov : null)
+      return Promise.resolve(id === 'prov-1' ? prov : null);
     }),
     updateReviewStatus: vi.fn().mockResolvedValue(prov),
     deleteProvenance: vi.fn().mockResolvedValue(undefined),
@@ -221,8 +221,8 @@ vi.mock('@revealui/db/queries/code-provenance', () => {
       metadata: {},
       createdAt: new Date(),
     }),
-  }
-})
+  };
+});
 
 // Mock the label queries module
 vi.mock('@revealui/db/queries/ticket-labels', () => ({
@@ -242,7 +242,7 @@ vi.mock('@revealui/db/queries/ticket-labels', () => ({
     .mockResolvedValue({ id: 'assign-1', ticketId: 'ticket-1', labelId: 'label-1' }),
   removeLabel: vi.fn().mockResolvedValue(undefined),
   getLabelsForTicket: vi.fn().mockResolvedValue([]),
-}))
+}));
 
 // Mock external I/O dependencies that hang in test environment
 vi.mock('@revealui/auth/server', () => ({
@@ -253,45 +253,45 @@ vi.mock('@revealui/auth/server', () => ({
     user: { id: 'test-user', email: 'test@example.com', role: 'admin' },
     session: { id: 'test-session', expiresAt: new Date(Date.now() + 86_400_000) },
   }),
-}))
+}));
 
 vi.mock('@revealui/core/license', () => ({
   getCurrentTier: vi.fn(() => 'free'),
   isLicensed: vi.fn(() => true),
   getLicensePayload: vi.fn(() => null),
   initializeLicense: vi.fn().mockResolvedValue('free'),
-}))
+}));
 
 vi.mock('@revealui/core/features', () => ({
   isFeatureEnabled: vi.fn(() => true),
   getRequiredTier: vi.fn(() => 'pro'),
-}))
+}));
 
 vi.mock('@revealui/core/observability/logger', () => ({
   logger: { info: vi.fn(), error: vi.fn(), warn: vi.fn(), debug: vi.fn() },
-}))
+}));
 
 // Mock the database middleware
 vi.mock('../src/middleware/db.js', () => ({
   dbMiddleware:
     () => async (c: { set: (key: string, value: unknown) => void }, next: () => Promise<void>) => {
-      c.set('db', mockDb)
-      await next()
+      c.set('db', mockDb);
+      await next();
     },
-}))
+}));
 
 describe('API Endpoints', () => {
   beforeAll(() => {
-    vi.stubEnv('NODE_ENV', 'test')
-  })
+    vi.stubEnv('NODE_ENV', 'test');
+  });
 
   afterAll(() => {
-    vi.unstubAllEnvs()
-  })
+    vi.unstubAllEnvs();
+  });
 
   beforeEach(() => {
-    vi.clearAllMocks()
-  })
+    vi.clearAllMocks();
+  });
 
   // =========================================================================
   // Health
@@ -299,12 +299,12 @@ describe('API Endpoints', () => {
 
   describe('GET /health', () => {
     it('should return healthy status', async () => {
-      const res = await app.request('/health')
-      expect(res.status).toBe(200)
-      const body = await res.json()
-      expect(body.status).toBe('ok')
-    })
-  })
+      const res = await app.request('/health');
+      expect(res.status).toBe(200);
+      const body = await res.json();
+      expect(body.status).toBe('ok');
+    });
+  });
 
   // =========================================================================
   // Boards
@@ -312,38 +312,38 @@ describe('API Endpoints', () => {
 
   describe('Boards API', () => {
     it('GET /api/tickets/boards — list boards', async () => {
-      const res = await app.request('/api/tickets/boards')
-      expect(res.status).toBe(200)
-      const body = await res.json()
-      expect(body.success).toBe(true)
-      expect(Array.isArray(body.data)).toBe(true)
-    })
+      const res = await app.request('/api/tickets/boards');
+      expect(res.status).toBe(200);
+      const body = await res.json();
+      expect(body.success).toBe(true);
+      expect(Array.isArray(body.data)).toBe(true);
+    });
 
     it('POST /api/tickets/boards — create board', async () => {
       const res = await app.request('/api/tickets/boards', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ name: 'New Board', slug: 'new-board' }),
-      })
-      expect(res.status).toBe(201)
-      const body = await res.json()
-      expect(body.success).toBe(true)
-    })
+      });
+      expect(res.status).toBe(201);
+      const body = await res.json();
+      expect(body.success).toBe(true);
+    });
 
     it('GET /api/tickets/boards/:id — get board', async () => {
-      const res = await app.request('/api/tickets/boards/board-1')
-      expect(res.status).toBe(200)
-      const body = await res.json()
-      expect(body.success).toBe(true)
-    })
+      const res = await app.request('/api/tickets/boards/board-1');
+      expect(res.status).toBe(200);
+      const body = await res.json();
+      expect(body.success).toBe(true);
+    });
 
     it('GET /api/tickets/boards/:id — 404 for missing board', async () => {
-      const res = await app.request('/api/tickets/boards/nonexistent')
-      expect(res.status).toBe(404)
-      const body = await res.json()
-      expect(body.success).toBe(false)
-    })
-  })
+      const res = await app.request('/api/tickets/boards/nonexistent');
+      expect(res.status).toBe(404);
+      const body = await res.json();
+      expect(body.success).toBe(false);
+    });
+  });
 
   // =========================================================================
   // Tickets
@@ -351,49 +351,49 @@ describe('API Endpoints', () => {
 
   describe('Tickets API', () => {
     it('GET /api/tickets/boards/:boardId/tickets — list tickets', async () => {
-      const res = await app.request('/api/tickets/boards/board-1/tickets')
-      expect(res.status).toBe(200)
-      const body = await res.json()
-      expect(body.success).toBe(true)
-      expect(Array.isArray(body.data)).toBe(true)
-    })
+      const res = await app.request('/api/tickets/boards/board-1/tickets');
+      expect(res.status).toBe(200);
+      const body = await res.json();
+      expect(body.success).toBe(true);
+      expect(Array.isArray(body.data)).toBe(true);
+    });
 
     it('POST /api/tickets/boards/:boardId/tickets — create ticket', async () => {
       const res = await app.request('/api/tickets/boards/board-1/tickets', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ title: 'New ticket' }),
-      })
-      expect(res.status).toBe(201)
-      const body = await res.json()
-      expect(body.success).toBe(true)
-    })
+      });
+      expect(res.status).toBe(201);
+      const body = await res.json();
+      expect(body.success).toBe(true);
+    });
 
     it('GET /api/tickets/tickets/:id — get ticket', async () => {
-      const res = await app.request('/api/tickets/tickets/ticket-1')
-      expect(res.status).toBe(200)
-      const body = await res.json()
-      expect(body.success).toBe(true)
-    })
+      const res = await app.request('/api/tickets/tickets/ticket-1');
+      expect(res.status).toBe(200);
+      const body = await res.json();
+      expect(body.success).toBe(true);
+    });
 
     it('GET /api/tickets/tickets/:id — 404 for missing ticket', async () => {
-      const res = await app.request('/api/tickets/tickets/nonexistent')
-      expect(res.status).toBe(404)
-      const body = await res.json()
-      expect(body.success).toBe(false)
-    })
+      const res = await app.request('/api/tickets/tickets/nonexistent');
+      expect(res.status).toBe(404);
+      const body = await res.json();
+      expect(body.success).toBe(false);
+    });
 
     it('POST /api/tickets/tickets/:id/move — move ticket', async () => {
       const res = await app.request('/api/tickets/tickets/ticket-1/move', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ columnId: 'col-2', sortOrder: 0 }),
-      })
-      expect(res.status).toBe(200)
-      const body = await res.json()
-      expect(body.success).toBe(true)
-    })
-  })
+      });
+      expect(res.status).toBe(200);
+      const body = await res.json();
+      expect(body.success).toBe(true);
+    });
+  });
 
   // =========================================================================
   // Comments
@@ -401,24 +401,24 @@ describe('API Endpoints', () => {
 
   describe('Comments API', () => {
     it('GET /api/tickets/tickets/:id/comments — list comments', async () => {
-      const res = await app.request('/api/tickets/tickets/ticket-1/comments')
-      expect(res.status).toBe(200)
-      const body = await res.json()
-      expect(body.success).toBe(true)
-      expect(Array.isArray(body.data)).toBe(true)
-    })
+      const res = await app.request('/api/tickets/tickets/ticket-1/comments');
+      expect(res.status).toBe(200);
+      const body = await res.json();
+      expect(body.success).toBe(true);
+      expect(Array.isArray(body.data)).toBe(true);
+    });
 
     it('POST /api/tickets/tickets/:id/comments — add comment', async () => {
       const res = await app.request('/api/tickets/tickets/ticket-1/comments', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ body: { content: 'Test comment' } }),
-      })
-      expect(res.status).toBe(201)
-      const body = await res.json()
-      expect(body.success).toBe(true)
-    })
-  })
+      });
+      expect(res.status).toBe(201);
+      const body = await res.json();
+      expect(body.success).toBe(true);
+    });
+  });
 
   // =========================================================================
   // Labels
@@ -426,24 +426,24 @@ describe('API Endpoints', () => {
 
   describe('Labels API', () => {
     it('GET /api/tickets/labels — list labels', async () => {
-      const res = await app.request('/api/tickets/labels')
-      expect(res.status).toBe(200)
-      const body = await res.json()
-      expect(body.success).toBe(true)
-      expect(Array.isArray(body.data)).toBe(true)
-    })
+      const res = await app.request('/api/tickets/labels');
+      expect(res.status).toBe(200);
+      const body = await res.json();
+      expect(body.success).toBe(true);
+      expect(Array.isArray(body.data)).toBe(true);
+    });
 
     it('POST /api/tickets/labels — create label', async () => {
       const res = await app.request('/api/tickets/labels', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ name: 'Bug', slug: 'bug', color: '#ff0000' }),
-      })
-      expect(res.status).toBe(201)
-      const body = await res.json()
-      expect(body.success).toBe(true)
-    })
-  })
+      });
+      expect(res.status).toBe(201);
+      const body = await res.json();
+      expect(body.success).toBe(true);
+    });
+  });
 
   // =========================================================================
   // Code Provenance
@@ -451,19 +451,19 @@ describe('API Endpoints', () => {
 
   describe('Provenance API', () => {
     it('GET /api/provenance — list provenance entries', async () => {
-      const res = await app.request('/api/provenance')
-      expect(res.status).toBe(200)
-      const body = await res.json()
-      expect(body.success).toBe(true)
-      expect(Array.isArray(body.data)).toBe(true)
-    })
+      const res = await app.request('/api/provenance');
+      expect(res.status).toBe(200);
+      const body = await res.json();
+      expect(body.success).toBe(true);
+      expect(Array.isArray(body.data)).toBe(true);
+    });
 
     it('GET /api/provenance?authorType=ai_generated — filter by author type', async () => {
-      const res = await app.request('/api/provenance?authorType=ai_generated')
-      expect(res.status).toBe(200)
-      const body = await res.json()
-      expect(body.success).toBe(true)
-    })
+      const res = await app.request('/api/provenance?authorType=ai_generated');
+      expect(res.status).toBe(200);
+      const body = await res.json();
+      expect(body.success).toBe(true);
+    });
 
     it('POST /api/provenance — create provenance entry', async () => {
       const res = await app.request('/api/provenance', {
@@ -476,54 +476,54 @@ describe('API Endpoints', () => {
           confidence: 0.9,
           linesOfCode: 50,
         }),
-      })
-      expect(res.status).toBe(201)
-      const body = await res.json()
-      expect(body.success).toBe(true)
-    })
+      });
+      expect(res.status).toBe(201);
+      const body = await res.json();
+      expect(body.success).toBe(true);
+    });
 
     it('GET /api/provenance/:id — get provenance entry', async () => {
-      const res = await app.request('/api/provenance/prov-1')
-      expect(res.status).toBe(200)
-      const body = await res.json()
-      expect(body.success).toBe(true)
-    })
+      const res = await app.request('/api/provenance/prov-1');
+      expect(res.status).toBe(200);
+      const body = await res.json();
+      expect(body.success).toBe(true);
+    });
 
     it('GET /api/provenance/:id — 404 for missing entry', async () => {
-      const res = await app.request('/api/provenance/nonexistent')
-      expect(res.status).toBe(404)
-      const body = await res.json()
-      expect(body.success).toBe(false)
-    })
+      const res = await app.request('/api/provenance/nonexistent');
+      expect(res.status).toBe(404);
+      const body = await res.json();
+      expect(body.success).toBe(false);
+    });
 
     it('PATCH /api/provenance/:id — update provenance entry', async () => {
       const res = await app.request('/api/provenance/prov-1', {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ confidence: 1.0 }),
-      })
-      expect(res.status).toBe(200)
-      const body = await res.json()
-      expect(body.success).toBe(true)
-    })
+      });
+      expect(res.status).toBe(200);
+      const body = await res.json();
+      expect(body.success).toBe(true);
+    });
 
     it('DELETE /api/provenance/:id — delete provenance entry', async () => {
       const res = await app.request('/api/provenance/prov-1', {
         method: 'DELETE',
-      })
-      expect(res.status).toBe(200)
-      const body = await res.json()
-      expect(body.success).toBe(true)
-    })
+      });
+      expect(res.status).toBe(200);
+      const body = await res.json();
+      expect(body.success).toBe(true);
+    });
 
     it('GET /api/provenance/stats — get aggregate statistics', async () => {
-      const res = await app.request('/api/provenance/stats')
-      expect(res.status).toBe(200)
-      const body = await res.json()
-      expect(body.success).toBe(true)
-      expect(body.data).toHaveProperty('byAuthorType')
-      expect(body.data).toHaveProperty('byReviewStatus')
-    })
+      const res = await app.request('/api/provenance/stats');
+      expect(res.status).toBe(200);
+      const body = await res.json();
+      expect(body.success).toBe(true);
+      expect(body.data).toHaveProperty('byAuthorType');
+      expect(body.data).toHaveProperty('byReviewStatus');
+    });
 
     it('POST /api/provenance/:id/review — add review', async () => {
       const res = await app.request('/api/provenance/prov-1/review', {
@@ -534,20 +534,20 @@ describe('API Endpoints', () => {
           status: 'approved',
           comment: 'Looks good',
         }),
-      })
-      expect(res.status).toBe(201)
-      const body = await res.json()
-      expect(body.success).toBe(true)
-    })
+      });
+      expect(res.status).toBe(201);
+      const body = await res.json();
+      expect(body.success).toBe(true);
+    });
 
     it('GET /api/provenance/:id/reviews — list reviews', async () => {
-      const res = await app.request('/api/provenance/prov-1/reviews')
-      expect(res.status).toBe(200)
-      const body = await res.json()
-      expect(body.success).toBe(true)
-      expect(Array.isArray(body.data)).toBe(true)
-    })
-  })
+      const res = await app.request('/api/provenance/prov-1/reviews');
+      expect(res.status).toBe(200);
+      const body = await res.json();
+      expect(body.success).toBe(true);
+      expect(Array.isArray(body.data)).toBe(true);
+    });
+  });
 
   // =========================================================================
   // CORS
@@ -557,8 +557,8 @@ describe('API Endpoints', () => {
     it('should include CORS headers for allowed origins', async () => {
       const res = await app.request('/health', {
         headers: { Origin: 'http://localhost:3000' },
-      })
-      expect(res.headers.get('access-control-allow-origin')).toBe('http://localhost:3000')
-    })
-  })
-})
+      });
+      expect(res.headers.get('access-control-allow-origin')).toBe('http://localhost:3000');
+    });
+  });
+});

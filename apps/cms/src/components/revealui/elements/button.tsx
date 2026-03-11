@@ -1,10 +1,10 @@
-import { clsx } from 'clsx/lite'
-import type { ComponentProps } from 'react'
+import { clsx } from 'clsx/lite';
+import type { ComponentProps } from 'react';
 
 const sizes = {
   md: 'px-3 py-1',
   lg: 'px-4 py-2',
-}
+};
 
 export function Button({
   size = 'md',
@@ -13,8 +13,8 @@ export function Button({
   className,
   ...props
 }: {
-  size?: keyof typeof sizes
-  color?: 'dark/light' | 'light'
+  size?: keyof typeof sizes;
+  color?: 'dark/light' | 'light';
 } & ComponentProps<'button'>) {
   return (
     <button
@@ -30,10 +30,10 @@ export function Button({
       )}
       {...props}
     />
-  )
+  );
 }
 
-import Link from 'next/link'
+import Link from 'next/link';
 
 export function ButtonLink({
   size = 'md',
@@ -42,9 +42,9 @@ export function ButtonLink({
   href,
   ...props
 }: {
-  href: string
-  size?: keyof typeof sizes
-  color?: 'dark/light' | 'light'
+  href: string;
+  size?: keyof typeof sizes;
+  color?: 'dark/light' | 'light';
 } & Omit<ComponentProps<typeof Link>, 'href'>) {
   return (
     <Link
@@ -60,7 +60,7 @@ export function ButtonLink({
       )}
       {...props}
     />
-  )
+  );
 }
 
 export function SoftButton({
@@ -69,7 +69,7 @@ export function SoftButton({
   className,
   ...props
 }: {
-  size?: keyof typeof sizes
+  size?: keyof typeof sizes;
 } & ComponentProps<'button'>) {
   return (
     <button
@@ -81,7 +81,7 @@ export function SoftButton({
       )}
       {...props}
     />
-  )
+  );
 }
 
 export function SoftButtonLink({
@@ -90,8 +90,8 @@ export function SoftButtonLink({
   className,
   ...props
 }: {
-  href: string
-  size?: keyof typeof sizes
+  href: string;
+  size?: keyof typeof sizes;
 } & Omit<ComponentProps<typeof Link>, 'href'>) {
   return (
     <Link
@@ -103,7 +103,7 @@ export function SoftButtonLink({
       )}
       {...props}
     />
-  )
+  );
 }
 
 export function PlainButton({
@@ -113,8 +113,8 @@ export function PlainButton({
   className,
   ...props
 }: {
-  size?: keyof typeof sizes
-  color?: 'dark/light' | 'light'
+  size?: keyof typeof sizes;
+  color?: 'dark/light' | 'light';
 } & ComponentProps<'button'>) {
   return (
     <button
@@ -129,7 +129,7 @@ export function PlainButton({
       )}
       {...props}
     />
-  )
+  );
 }
 
 export function PlainButtonLink({
@@ -139,9 +139,9 @@ export function PlainButtonLink({
   className,
   ...props
 }: {
-  href: string
-  size?: keyof typeof sizes
-  color?: 'dark/light' | 'light'
+  href: string;
+  size?: keyof typeof sizes;
+  color?: 'dark/light' | 'light';
 } & Omit<ComponentProps<typeof Link>, 'href'>) {
   return (
     <Link
@@ -156,5 +156,5 @@ export function PlainButtonLink({
       )}
       {...props}
     />
-  )
+  );
 }

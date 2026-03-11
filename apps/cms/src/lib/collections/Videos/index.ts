@@ -1,4 +1,4 @@
-import type { CollectionConfig } from '@revealui/core'
+import type { CollectionConfig } from '@revealui/core';
 
 const Videos: CollectionConfig = {
   slug: 'videos',
@@ -19,6 +19,6 @@ const Videos: CollectionConfig = {
       type: 'text',
     },
   ],
-}
+};
 
-export default Videos
+export default Videos;

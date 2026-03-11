@@ -1,7 +1,7 @@
-import { markSetupComplete, useSetup } from '../../hooks/use-setup'
-import Button from '../ui/Button'
-import ErrorAlert from '../ui/ErrorAlert'
-import Modal from '../ui/Modal'
+import { markSetupComplete, useSetup } from '../../hooks/use-setup';
+import Button from '../ui/Button';
+import ErrorAlert from '../ui/ErrorAlert';
+import Modal from '../ui/Modal';
 import {
   DevPodRow,
   GitIdentityRow,
@@ -10,26 +10,26 @@ import {
   TailscaleRow,
   VaultRow,
   WslRow,
-} from './SetupRows'
+} from './SetupRows';
 
 interface SetupWizardProps {
-  onClose: () => void
+  onClose: () => void;
 }
 
 export default function SetupWizard({ onClose }: SetupWizardProps) {
-  const setup = useSetup()
+  const setup = useSetup();
 
   const handleComplete = () => {
-    markSetupComplete()
-    onClose()
-  }
+    markSetupComplete();
+    onClose();
+  };
 
   const allDone =
     setup.status?.wsl_running &&
     setup.status?.nix_installed &&
     setup.status?.devbox_mounted &&
     !!setup.status?.git_name &&
-    !!setup.status?.git_email
+    !!setup.status?.git_email;
 
   return (
     <Modal
@@ -64,5 +64,5 @@ export default function SetupWizard({ onClose }: SetupWizardProps) {
         <ProjectSetupRow />
       </div>
     </Modal>
-  )
+  );
 }

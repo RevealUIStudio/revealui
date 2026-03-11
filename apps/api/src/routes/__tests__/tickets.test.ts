@@ -1,5 +1,5 @@
-import { Hono } from 'hono'
-import { describe, expect, it, vi } from 'vitest'
+import { Hono } from 'hono';
+import { describe, expect, it, vi } from 'vitest';
 
 // ---------------------------------------------------------------------------
 // Mock all DB query modules
@@ -15,7 +15,7 @@ vi.mock('@revealui/db/queries/boards', () => ({
   getColumnById: vi.fn(),
   updateColumn: vi.fn(),
   deleteColumn: vi.fn(),
-}))
+}));
 
 vi.mock('@revealui/db/queries/tickets', () => ({
   getTicketsByBoard: vi.fn(),
@@ -25,7 +25,7 @@ vi.mock('@revealui/db/queries/tickets', () => ({
   deleteTicket: vi.fn(),
   moveTicket: vi.fn(),
   getSubtickets: vi.fn(),
-}))
+}));
 
 vi.mock('@revealui/db/queries/ticket-comments', () => ({
   getCommentsByTicket: vi.fn(),
@@ -33,7 +33,7 @@ vi.mock('@revealui/db/queries/ticket-comments', () => ({
   getCommentById: vi.fn(),
   updateComment: vi.fn(),
   deleteComment: vi.fn(),
-}))
+}));
 
 vi.mock('@revealui/db/queries/ticket-labels', () => ({
   getAllLabels: vi.fn(),
@@ -44,25 +44,25 @@ vi.mock('@revealui/db/queries/ticket-labels', () => ({
   assignLabel: vi.fn(),
   removeLabel: vi.fn(),
   getLabelsForTicket: vi.fn(),
-}))
+}));
 
-import type { DatabaseClient } from '@revealui/db/client'
-import * as boardQueries from '@revealui/db/queries/boards'
-import * as commentQueries from '@revealui/db/queries/ticket-comments'
-import * as labelQueries from '@revealui/db/queries/ticket-labels'
-import * as ticketQueries from '@revealui/db/queries/tickets'
-import ticketsApp from '../tickets.js'
+import type { DatabaseClient } from '@revealui/db/client';
+import * as boardQueries from '@revealui/db/queries/boards';
+import * as commentQueries from '@revealui/db/queries/ticket-comments';
+import * as labelQueries from '@revealui/db/queries/ticket-labels';
+import * as ticketQueries from '@revealui/db/queries/tickets';
+import ticketsApp from '../tickets.js';
 
-const mb = vi.mocked(boardQueries)
-const mt = vi.mocked(ticketQueries)
-const mc = vi.mocked(commentQueries)
-const ml = vi.mocked(labelQueries)
+const mb = vi.mocked(boardQueries);
+const mt = vi.mocked(ticketQueries);
+const mc = vi.mocked(commentQueries);
+const ml = vi.mocked(labelQueries);
 
 // ---------------------------------------------------------------------------
 // Fixtures
 // ---------------------------------------------------------------------------
 
-const NOW = new Date().toISOString()
+const NOW = new Date().toISOString();
 
 function makeBoard(overrides = {}) {
   return {
@@ -76,7 +76,7 @@ function makeBoard(overrides = {}) {
     createdAt: NOW,
     updatedAt: NOW,
     ...overrides,
-  }
+  };
 }
 
 function makeColumn(overrides = {}) {
@@ -92,7 +92,7 @@ function makeColumn(overrides = {}) {
     createdAt: NOW,
     updatedAt: NOW,
     ...overrides,
-  }
+  };
 }
 
 function makeTicket(overrides = {}) {
@@ -119,7 +119,7 @@ function makeTicket(overrides = {}) {
     createdAt: NOW,
     updatedAt: NOW,
     ...overrides,
-  }
+  };
 }
 
 function makeComment(overrides = {}) {
@@ -131,7 +131,7 @@ function makeComment(overrides = {}) {
     createdAt: NOW,
     updatedAt: NOW,
     ...overrides,
-  }
+  };
 }
 
 function makeLabel(overrides = {}) {
@@ -145,7 +145,7 @@ function makeLabel(overrides = {}) {
     createdAt: NOW,
     updatedAt: NOW,
     ...overrides,
-  }
+  };
 }
 
 // ---------------------------------------------------------------------------
@@ -154,14 +154,14 @@ function makeLabel(overrides = {}) {
 
 function createApp(user?: { id: string; role: string }) {
   // biome-ignore lint/suspicious/noExplicitAny: test helper — Variables shape varies per endpoint
-  const app = new Hono<{ Variables: any }>()
+  const app = new Hono<{ Variables: any }>();
   app.use('*', async (c, next) => {
-    c.set('db', {} as DatabaseClient)
-    if (user) c.set('user', user)
-    await next()
-  })
-  app.route('/', ticketsApp)
-  return app
+    c.set('db', {} as DatabaseClient);
+    if (user) c.set('user', user);
+    await next();
+  });
+  app.route('/', ticketsApp);
+  return app;
 }
 
 function post(body: unknown) {
@@ -169,7 +169,7 @@ function post(body: unknown) {
     method: 'POST',
     body: JSON.stringify(body),
     headers: { 'Content-Type': 'application/json' },
-  }
+  };
 }
 
 function patch(body: unknown) {
@@ -177,12 +177,12 @@ function patch(body: unknown) {
     method: 'PATCH',
     body: JSON.stringify(body),
     headers: { 'Content-Type': 'application/json' },
-  }
+  };
 }
 
 // biome-ignore lint/suspicious/noExplicitAny: test helper — response shape varies per endpoint
 async function parseBody(res: Response): Promise<any> {
-  return res.json()
+  return res.json();
 }
 
 // ---------------------------------------------------------------------------
@@ -191,56 +191,56 @@ async function parseBody(res: Response): Promise<any> {
 
 describe('Boards', () => {
   it('GET /boards — returns board list', async () => {
-    mb.getAllBoards.mockResolvedValue([makeBoard()] as never)
-    const app = createApp()
-    const res = await app.request('/boards')
-    expect(res.status).toBe(200)
-    const body = await parseBody(res)
-    expect(body.success).toBe(true)
-    expect(body.data[0].id).toBe('board-1')
-  })
+    mb.getAllBoards.mockResolvedValue([makeBoard()] as never);
+    const app = createApp();
+    const res = await app.request('/boards');
+    expect(res.status).toBe(200);
+    const body = await parseBody(res);
+    expect(body.success).toBe(true);
+    expect(body.data[0].id).toBe('board-1');
+  });
 
   it('POST /boards — creates a board', async () => {
-    mb.createBoard.mockResolvedValue(makeBoard() as never)
-    const app = createApp()
-    const res = await app.request('/boards', post({ name: 'Main Board', slug: 'main-board' }))
-    expect(res.status).toBe(201)
-    const body = await parseBody(res)
-    expect(body.success).toBe(true)
-  })
+    mb.createBoard.mockResolvedValue(makeBoard() as never);
+    const app = createApp();
+    const res = await app.request('/boards', post({ name: 'Main Board', slug: 'main-board' }));
+    expect(res.status).toBe(201);
+    const body = await parseBody(res);
+    expect(body.success).toBe(true);
+  });
 
   it('GET /boards/:id — returns board by ID', async () => {
-    mb.getBoardById.mockResolvedValue(makeBoard() as never)
-    const app = createApp()
-    const res = await app.request('/boards/board-1')
-    expect(res.status).toBe(200)
-  })
+    mb.getBoardById.mockResolvedValue(makeBoard() as never);
+    const app = createApp();
+    const res = await app.request('/boards/board-1');
+    expect(res.status).toBe(200);
+  });
 
   it('GET /boards/:id — 404 for missing board', async () => {
-    mb.getBoardById.mockResolvedValue(null as never)
-    const app = createApp()
-    const res = await app.request('/boards/no-board')
-    expect(res.status).toBe(404)
-  })
+    mb.getBoardById.mockResolvedValue(null as never);
+    const app = createApp();
+    const res = await app.request('/boards/no-board');
+    expect(res.status).toBe(404);
+  });
 
   it('PATCH /boards/:id — updates board', async () => {
-    mb.getBoardById.mockResolvedValue(makeBoard() as never)
-    mb.updateBoard.mockResolvedValue(makeBoard({ name: 'Updated' }) as never)
-    const app = createApp()
-    const res = await app.request('/boards/board-1', patch({ name: 'Updated' }))
-    expect(res.status).toBe(200)
-  })
+    mb.getBoardById.mockResolvedValue(makeBoard() as never);
+    mb.updateBoard.mockResolvedValue(makeBoard({ name: 'Updated' }) as never);
+    const app = createApp();
+    const res = await app.request('/boards/board-1', patch({ name: 'Updated' }));
+    expect(res.status).toBe(200);
+  });
 
   it('DELETE /boards/:id — deletes board', async () => {
-    mb.getBoardById.mockResolvedValue(makeBoard() as never)
-    mb.deleteBoard.mockResolvedValue(undefined as never)
-    const app = createApp()
-    const res = await app.request('/boards/board-1', { method: 'DELETE' })
-    expect(res.status).toBe(200)
-    const body = await parseBody(res)
-    expect(body.success).toBe(true)
-  })
-})
+    mb.getBoardById.mockResolvedValue(makeBoard() as never);
+    mb.deleteBoard.mockResolvedValue(undefined as never);
+    const app = createApp();
+    const res = await app.request('/boards/board-1', { method: 'DELETE' });
+    expect(res.status).toBe(200);
+    const body = await parseBody(res);
+    expect(body.success).toBe(true);
+  });
+});
 
 // ---------------------------------------------------------------------------
 // Column tests
@@ -248,49 +248,49 @@ describe('Boards', () => {
 
 describe('Columns', () => {
   it('GET /boards/:boardId/columns — returns columns', async () => {
-    mb.getColumnsByBoard.mockResolvedValue([makeColumn()] as never)
-    const app = createApp()
-    const res = await app.request('/boards/board-1/columns')
-    expect(res.status).toBe(200)
-    const body = await parseBody(res)
-    expect(body.data[0].boardId).toBe('board-1')
-  })
+    mb.getColumnsByBoard.mockResolvedValue([makeColumn()] as never);
+    const app = createApp();
+    const res = await app.request('/boards/board-1/columns');
+    expect(res.status).toBe(200);
+    const body = await parseBody(res);
+    expect(body.data[0].boardId).toBe('board-1');
+  });
 
   it('POST /boards/:boardId/columns — creates column', async () => {
-    mb.createColumn.mockResolvedValue(makeColumn() as never)
-    const app = createApp()
+    mb.createColumn.mockResolvedValue(makeColumn() as never);
+    const app = createApp();
     const res = await app.request(
       '/boards/board-1/columns',
       post({ name: 'To Do', slug: 'to-do', position: 0 }),
-    )
-    expect(res.status).toBe(201)
-  })
+    );
+    expect(res.status).toBe(201);
+  });
 
   it('PATCH /columns/:id — updates column', async () => {
-    mb.getColumnById.mockResolvedValue(makeColumn() as never)
-    mb.getBoardById.mockResolvedValue(makeBoard() as never)
-    mb.updateColumn.mockResolvedValue(makeColumn({ name: 'In Progress' }) as never)
-    const app = createApp()
-    const res = await app.request('/columns/col-1', patch({ name: 'In Progress' }))
-    expect(res.status).toBe(200)
-  })
+    mb.getColumnById.mockResolvedValue(makeColumn() as never);
+    mb.getBoardById.mockResolvedValue(makeBoard() as never);
+    mb.updateColumn.mockResolvedValue(makeColumn({ name: 'In Progress' }) as never);
+    const app = createApp();
+    const res = await app.request('/columns/col-1', patch({ name: 'In Progress' }));
+    expect(res.status).toBe(200);
+  });
 
   it('PATCH /columns/:id — 404 for missing column', async () => {
-    mb.getColumnById.mockResolvedValue(null as never)
-    const app = createApp()
-    const res = await app.request('/columns/no-col', patch({ name: 'x' }))
-    expect(res.status).toBe(404)
-  })
+    mb.getColumnById.mockResolvedValue(null as never);
+    const app = createApp();
+    const res = await app.request('/columns/no-col', patch({ name: 'x' }));
+    expect(res.status).toBe(404);
+  });
 
   it('DELETE /columns/:id — deletes column', async () => {
-    mb.getColumnById.mockResolvedValue(makeColumn() as never)
-    mb.getBoardById.mockResolvedValue(makeBoard() as never)
-    mb.deleteColumn.mockResolvedValue(undefined as never)
-    const app = createApp()
-    const res = await app.request('/columns/col-1', { method: 'DELETE' })
-    expect(res.status).toBe(200)
-  })
-})
+    mb.getColumnById.mockResolvedValue(makeColumn() as never);
+    mb.getBoardById.mockResolvedValue(makeBoard() as never);
+    mb.deleteColumn.mockResolvedValue(undefined as never);
+    const app = createApp();
+    const res = await app.request('/columns/col-1', { method: 'DELETE' });
+    expect(res.status).toBe(200);
+  });
+});
 
 // ---------------------------------------------------------------------------
 // Ticket tests
@@ -298,120 +298,120 @@ describe('Columns', () => {
 
 describe('Tickets', () => {
   it('GET /boards/:boardId/tickets — returns ticket list', async () => {
-    mb.getBoardById.mockResolvedValue(makeBoard() as never)
-    mt.getTicketsByBoard.mockResolvedValue([makeTicket()] as never)
-    const app = createApp()
-    const res = await app.request('/boards/board-1/tickets')
-    expect(res.status).toBe(200)
-    const body = await parseBody(res)
-    expect(body.data[0].id).toBe('ticket-1')
-  })
+    mb.getBoardById.mockResolvedValue(makeBoard() as never);
+    mt.getTicketsByBoard.mockResolvedValue([makeTicket()] as never);
+    const app = createApp();
+    const res = await app.request('/boards/board-1/tickets');
+    expect(res.status).toBe(200);
+    const body = await parseBody(res);
+    expect(body.data[0].id).toBe('ticket-1');
+  });
 
   it('POST /boards/:boardId/tickets — creates ticket', async () => {
-    mt.createTicket.mockResolvedValue(makeTicket() as never)
-    const app = createApp()
-    const res = await app.request('/boards/board-1/tickets', post({ title: 'Fix bug' }))
-    expect(res.status).toBe(201)
-  })
+    mt.createTicket.mockResolvedValue(makeTicket() as never);
+    const app = createApp();
+    const res = await app.request('/boards/board-1/tickets', post({ title: 'Fix bug' }));
+    expect(res.status).toBe(201);
+  });
 
   it('POST /boards/:boardId/tickets — 400 when title is missing', async () => {
-    const app = createApp()
-    const res = await app.request('/boards/board-1/tickets', post({}))
-    expect(res.status).toBe(400)
-  })
+    const app = createApp();
+    const res = await app.request('/boards/board-1/tickets', post({}));
+    expect(res.status).toBe(400);
+  });
 
   it('GET /tickets/:id — returns ticket by ID', async () => {
-    mt.getTicketById.mockResolvedValue(makeTicket() as never)
-    const app = createApp()
-    const res = await app.request('/tickets/ticket-1')
-    expect(res.status).toBe(200)
-    const body = await parseBody(res)
-    expect(body.data.title).toBe('Fix bug')
-  })
+    mt.getTicketById.mockResolvedValue(makeTicket() as never);
+    const app = createApp();
+    const res = await app.request('/tickets/ticket-1');
+    expect(res.status).toBe(200);
+    const body = await parseBody(res);
+    expect(body.data.title).toBe('Fix bug');
+  });
 
   it('GET /tickets/:id — 404 for missing ticket', async () => {
-    mt.getTicketById.mockResolvedValue(null as never)
-    const app = createApp()
-    const res = await app.request('/tickets/missing')
-    expect(res.status).toBe(404)
-  })
+    mt.getTicketById.mockResolvedValue(null as never);
+    const app = createApp();
+    const res = await app.request('/tickets/missing');
+    expect(res.status).toBe(404);
+  });
 
   it('PATCH /tickets/:id — updates ticket', async () => {
-    mt.getTicketById.mockResolvedValue(makeTicket() as never)
-    mb.getBoardById.mockResolvedValue(makeBoard() as never)
-    mt.updateTicket.mockResolvedValue(makeTicket({ status: 'closed' }) as never)
-    const app = createApp()
-    const res = await app.request('/tickets/ticket-1', patch({ status: 'closed' }))
-    expect(res.status).toBe(200)
-  })
+    mt.getTicketById.mockResolvedValue(makeTicket() as never);
+    mb.getBoardById.mockResolvedValue(makeBoard() as never);
+    mt.updateTicket.mockResolvedValue(makeTicket({ status: 'closed' }) as never);
+    const app = createApp();
+    const res = await app.request('/tickets/ticket-1', patch({ status: 'closed' }));
+    expect(res.status).toBe(200);
+  });
 
   it('PATCH /tickets/:id — 404 for missing ticket', async () => {
-    mt.updateTicket.mockResolvedValue(null as never)
-    const app = createApp()
-    const res = await app.request('/tickets/no-ticket', patch({ status: 'closed' }))
-    expect(res.status).toBe(404)
-  })
+    mt.updateTicket.mockResolvedValue(null as never);
+    const app = createApp();
+    const res = await app.request('/tickets/no-ticket', patch({ status: 'closed' }));
+    expect(res.status).toBe(404);
+  });
 
   it('DELETE /tickets/:id — deletes ticket (admin user)', async () => {
-    mt.getTicketById.mockResolvedValue(makeTicket() as never)
-    mb.getBoardById.mockResolvedValue(makeBoard() as never)
-    mt.deleteTicket.mockResolvedValue(undefined as never)
-    const app = createApp({ id: 'admin-1', role: 'admin' })
-    const res = await app.request('/tickets/ticket-1', { method: 'DELETE' })
-    expect(res.status).toBe(200)
-  })
+    mt.getTicketById.mockResolvedValue(makeTicket() as never);
+    mb.getBoardById.mockResolvedValue(makeBoard() as never);
+    mt.deleteTicket.mockResolvedValue(undefined as never);
+    const app = createApp({ id: 'admin-1', role: 'admin' });
+    const res = await app.request('/tickets/ticket-1', { method: 'DELETE' });
+    expect(res.status).toBe(200);
+  });
 
   it('DELETE /tickets/:id — deletes ticket (board owner)', async () => {
-    mt.getTicketById.mockResolvedValue(makeTicket() as never)
-    mb.getBoardById.mockResolvedValue(makeBoard({ ownerId: 'user-1' }) as never)
-    mt.deleteTicket.mockResolvedValue(undefined as never)
-    const app = createApp({ id: 'user-1', role: 'member' })
-    const res = await app.request('/tickets/ticket-1', { method: 'DELETE' })
-    expect(res.status).toBe(200)
-  })
+    mt.getTicketById.mockResolvedValue(makeTicket() as never);
+    mb.getBoardById.mockResolvedValue(makeBoard({ ownerId: 'user-1' }) as never);
+    mt.deleteTicket.mockResolvedValue(undefined as never);
+    const app = createApp({ id: 'user-1', role: 'member' });
+    const res = await app.request('/tickets/ticket-1', { method: 'DELETE' });
+    expect(res.status).toBe(200);
+  });
 
   it('DELETE /tickets/:id — 403 for non-owner non-admin', async () => {
-    mt.getTicketById.mockResolvedValue(makeTicket() as never)
-    mb.getBoardById.mockResolvedValue(makeBoard({ ownerId: 'other-user' }) as never)
-    const app = createApp({ id: 'user-1', role: 'member' })
-    const res = await app.request('/tickets/ticket-1', { method: 'DELETE' })
-    expect(res.status).toBe(403)
-  })
+    mt.getTicketById.mockResolvedValue(makeTicket() as never);
+    mb.getBoardById.mockResolvedValue(makeBoard({ ownerId: 'other-user' }) as never);
+    const app = createApp({ id: 'user-1', role: 'member' });
+    const res = await app.request('/tickets/ticket-1', { method: 'DELETE' });
+    expect(res.status).toBe(403);
+  });
 
   it('POST /tickets/:id/move — moves ticket to column', async () => {
-    mt.getTicketById.mockResolvedValue(makeTicket() as never)
-    mb.getBoardById.mockResolvedValue(makeBoard() as never)
-    mt.moveTicket.mockResolvedValue(makeTicket({ columnId: 'col-2' }) as never)
-    const app = createApp()
+    mt.getTicketById.mockResolvedValue(makeTicket() as never);
+    mb.getBoardById.mockResolvedValue(makeBoard() as never);
+    mt.moveTicket.mockResolvedValue(makeTicket({ columnId: 'col-2' }) as never);
+    const app = createApp();
     const res = await app.request(
       '/tickets/ticket-1/move',
       post({ columnId: 'col-2', sortOrder: 0 }),
-    )
-    expect(res.status).toBe(200)
-    const body = await parseBody(res)
-    expect(body.data.columnId).toBe('col-2')
-  })
+    );
+    expect(res.status).toBe(200);
+    const body = await parseBody(res);
+    expect(body.data.columnId).toBe('col-2');
+  });
 
   it('POST /tickets/:id/move — 404 when ticket not found', async () => {
-    mt.getTicketById.mockResolvedValue(null as never)
-    const app = createApp()
-    const res = await app.request('/tickets/bad/move', post({ columnId: 'col-1', sortOrder: 0 }))
-    expect(res.status).toBe(404)
-  })
+    mt.getTicketById.mockResolvedValue(null as never);
+    const app = createApp();
+    const res = await app.request('/tickets/bad/move', post({ columnId: 'col-1', sortOrder: 0 }));
+    expect(res.status).toBe(404);
+  });
 
   it('GET /tickets/:id/subtasks — returns subtasks', async () => {
-    mt.getTicketById.mockResolvedValue(makeTicket() as never)
-    mb.getBoardById.mockResolvedValue(makeBoard() as never)
+    mt.getTicketById.mockResolvedValue(makeTicket() as never);
+    mb.getBoardById.mockResolvedValue(makeBoard() as never);
     mt.getSubtickets.mockResolvedValue([
       makeTicket({ id: 'sub-1', parentTicketId: 'ticket-1' }),
-    ] as never)
-    const app = createApp()
-    const res = await app.request('/tickets/ticket-1/subtasks')
-    expect(res.status).toBe(200)
-    const body = await parseBody(res)
-    expect(body.data[0].parentTicketId).toBe('ticket-1')
-  })
-})
+    ] as never);
+    const app = createApp();
+    const res = await app.request('/tickets/ticket-1/subtasks');
+    expect(res.status).toBe(200);
+    const body = await parseBody(res);
+    expect(body.data[0].parentTicketId).toBe('ticket-1');
+  });
+});
 
 // ---------------------------------------------------------------------------
 // Comment tests
@@ -419,52 +419,52 @@ describe('Tickets', () => {
 
 describe('Comments', () => {
   it('GET /tickets/:id/comments — returns comment list', async () => {
-    mt.getTicketById.mockResolvedValue(makeTicket() as never)
-    mb.getBoardById.mockResolvedValue(makeBoard() as never)
-    mc.getCommentsByTicket.mockResolvedValue([makeComment()] as never)
-    const app = createApp()
-    const res = await app.request('/tickets/ticket-1/comments')
-    expect(res.status).toBe(200)
-    const body = await parseBody(res)
-    expect(body.data[0].ticketId).toBe('ticket-1')
-  })
+    mt.getTicketById.mockResolvedValue(makeTicket() as never);
+    mb.getBoardById.mockResolvedValue(makeBoard() as never);
+    mc.getCommentsByTicket.mockResolvedValue([makeComment()] as never);
+    const app = createApp();
+    const res = await app.request('/tickets/ticket-1/comments');
+    expect(res.status).toBe(200);
+    const body = await parseBody(res);
+    expect(body.data[0].ticketId).toBe('ticket-1');
+  });
 
   it('POST /tickets/:id/comments — creates comment', async () => {
-    mt.getTicketById.mockResolvedValue(makeTicket() as never)
-    mb.getBoardById.mockResolvedValue(makeBoard() as never)
-    mc.createComment.mockResolvedValue(makeComment() as never)
-    const app = createApp()
-    const res = await app.request('/tickets/ticket-1/comments', post({ body: { type: 'doc' } }))
-    expect(res.status).toBe(201)
-  })
+    mt.getTicketById.mockResolvedValue(makeTicket() as never);
+    mb.getBoardById.mockResolvedValue(makeBoard() as never);
+    mc.createComment.mockResolvedValue(makeComment() as never);
+    const app = createApp();
+    const res = await app.request('/tickets/ticket-1/comments', post({ body: { type: 'doc' } }));
+    expect(res.status).toBe(201);
+  });
 
   it('PATCH /comments/:id — updates comment', async () => {
-    mc.getCommentById.mockResolvedValue(makeComment() as never)
-    mt.getTicketById.mockResolvedValue(makeTicket() as never)
-    mb.getBoardById.mockResolvedValue(makeBoard() as never)
-    mc.updateComment.mockResolvedValue(makeComment() as never)
-    const app = createApp()
-    const res = await app.request('/comments/comment-1', patch({ body: { type: 'doc' } }))
-    expect(res.status).toBe(200)
-  })
+    mc.getCommentById.mockResolvedValue(makeComment() as never);
+    mt.getTicketById.mockResolvedValue(makeTicket() as never);
+    mb.getBoardById.mockResolvedValue(makeBoard() as never);
+    mc.updateComment.mockResolvedValue(makeComment() as never);
+    const app = createApp();
+    const res = await app.request('/comments/comment-1', patch({ body: { type: 'doc' } }));
+    expect(res.status).toBe(200);
+  });
 
   it('PATCH /comments/:id — 404 for missing comment', async () => {
-    mc.getCommentById.mockResolvedValue(null as never)
-    const app = createApp()
-    const res = await app.request('/comments/no-comment', patch({ body: { type: 'doc' } }))
-    expect(res.status).toBe(404)
-  })
+    mc.getCommentById.mockResolvedValue(null as never);
+    const app = createApp();
+    const res = await app.request('/comments/no-comment', patch({ body: { type: 'doc' } }));
+    expect(res.status).toBe(404);
+  });
 
   it('DELETE /comments/:id — deletes comment', async () => {
-    mc.getCommentById.mockResolvedValue(makeComment() as never)
-    mt.getTicketById.mockResolvedValue(makeTicket() as never)
-    mb.getBoardById.mockResolvedValue(makeBoard() as never)
-    mc.deleteComment.mockResolvedValue(undefined as never)
-    const app = createApp()
-    const res = await app.request('/comments/comment-1', { method: 'DELETE' })
-    expect(res.status).toBe(200)
-  })
-})
+    mc.getCommentById.mockResolvedValue(makeComment() as never);
+    mt.getTicketById.mockResolvedValue(makeTicket() as never);
+    mb.getBoardById.mockResolvedValue(makeBoard() as never);
+    mc.deleteComment.mockResolvedValue(undefined as never);
+    const app = createApp();
+    const res = await app.request('/comments/comment-1', { method: 'DELETE' });
+    expect(res.status).toBe(200);
+  });
+});
 
 // ---------------------------------------------------------------------------
 // Label tests
@@ -472,77 +472,77 @@ describe('Comments', () => {
 
 describe('Labels', () => {
   it('GET /labels — returns label list', async () => {
-    ml.getAllLabels.mockResolvedValue([makeLabel()] as never)
-    const app = createApp()
-    const res = await app.request('/labels')
-    expect(res.status).toBe(200)
-    const body = await parseBody(res)
-    expect(body.data[0].name).toBe('bug')
-  })
+    ml.getAllLabels.mockResolvedValue([makeLabel()] as never);
+    const app = createApp();
+    const res = await app.request('/labels');
+    expect(res.status).toBe(200);
+    const body = await parseBody(res);
+    expect(body.data[0].name).toBe('bug');
+  });
 
   it('POST /labels — creates label', async () => {
-    ml.createLabel.mockResolvedValue(makeLabel() as never)
-    const app = createApp()
-    const res = await app.request('/labels', post({ name: 'bug', slug: 'bug' }))
-    expect(res.status).toBe(201)
-  })
+    ml.createLabel.mockResolvedValue(makeLabel() as never);
+    const app = createApp();
+    const res = await app.request('/labels', post({ name: 'bug', slug: 'bug' }));
+    expect(res.status).toBe(201);
+  });
 
   it('PATCH /labels/:id — updates label', async () => {
-    ml.getLabelById.mockResolvedValue(makeLabel() as never)
-    ml.updateLabel.mockResolvedValue(makeLabel({ name: 'feature' }) as never)
-    const app = createApp()
-    const res = await app.request('/labels/label-1', patch({ name: 'feature' }))
-    expect(res.status).toBe(200)
-  })
+    ml.getLabelById.mockResolvedValue(makeLabel() as never);
+    ml.updateLabel.mockResolvedValue(makeLabel({ name: 'feature' }) as never);
+    const app = createApp();
+    const res = await app.request('/labels/label-1', patch({ name: 'feature' }));
+    expect(res.status).toBe(200);
+  });
 
   it('PATCH /labels/:id — 404 for missing label', async () => {
-    ml.getLabelById.mockResolvedValue(null as never)
-    const app = createApp()
-    const res = await app.request('/labels/no-label', patch({ name: 'x' }))
-    expect(res.status).toBe(404)
-  })
+    ml.getLabelById.mockResolvedValue(null as never);
+    const app = createApp();
+    const res = await app.request('/labels/no-label', patch({ name: 'x' }));
+    expect(res.status).toBe(404);
+  });
 
   it('DELETE /labels/:id — deletes label', async () => {
-    ml.getLabelById.mockResolvedValue(makeLabel() as never)
-    ml.deleteLabel.mockResolvedValue(undefined as never)
-    const app = createApp()
-    const res = await app.request('/labels/label-1', { method: 'DELETE' })
-    expect(res.status).toBe(200)
-  })
+    ml.getLabelById.mockResolvedValue(makeLabel() as never);
+    ml.deleteLabel.mockResolvedValue(undefined as never);
+    const app = createApp();
+    const res = await app.request('/labels/label-1', { method: 'DELETE' });
+    expect(res.status).toBe(200);
+  });
 
   it('POST /tickets/:id/labels — assigns label to ticket', async () => {
-    mt.getTicketById.mockResolvedValue(makeTicket() as never)
-    mb.getBoardById.mockResolvedValue(makeBoard() as never)
+    mt.getTicketById.mockResolvedValue(makeTicket() as never);
+    mb.getBoardById.mockResolvedValue(makeBoard() as never);
     ml.assignLabel.mockResolvedValue({
       id: 'assign-1',
       ticketId: 'ticket-1',
       labelId: 'label-1',
       assignedAt: new Date(),
-    } as never)
-    const app = createApp()
-    const res = await app.request('/tickets/ticket-1/labels', post({ labelId: 'label-1' }))
-    expect(res.status).toBe(201)
-    const body = await parseBody(res)
-    expect(body.data.labelId).toBe('label-1')
-  })
+    } as never);
+    const app = createApp();
+    const res = await app.request('/tickets/ticket-1/labels', post({ labelId: 'label-1' }));
+    expect(res.status).toBe(201);
+    const body = await parseBody(res);
+    expect(body.data.labelId).toBe('label-1');
+  });
 
   it('GET /tickets/:id/labels — returns labels for ticket', async () => {
-    mt.getTicketById.mockResolvedValue(makeTicket() as never)
-    mb.getBoardById.mockResolvedValue(makeBoard() as never)
-    ml.getLabelsForTicket.mockResolvedValue([makeLabel()] as never)
-    const app = createApp()
-    const res = await app.request('/tickets/ticket-1/labels')
-    expect(res.status).toBe(200)
-    const body = await parseBody(res)
-    expect(body.data[0].name).toBe('bug')
-  })
+    mt.getTicketById.mockResolvedValue(makeTicket() as never);
+    mb.getBoardById.mockResolvedValue(makeBoard() as never);
+    ml.getLabelsForTicket.mockResolvedValue([makeLabel()] as never);
+    const app = createApp();
+    const res = await app.request('/tickets/ticket-1/labels');
+    expect(res.status).toBe(200);
+    const body = await parseBody(res);
+    expect(body.data[0].name).toBe('bug');
+  });
 
   it('DELETE /tickets/:id/labels/:labelId — removes label from ticket', async () => {
-    mt.getTicketById.mockResolvedValue(makeTicket() as never)
-    mb.getBoardById.mockResolvedValue(makeBoard() as never)
-    ml.removeLabel.mockResolvedValue(undefined as never)
-    const app = createApp()
-    const res = await app.request('/tickets/ticket-1/labels/label-1', { method: 'DELETE' })
-    expect(res.status).toBe(200)
-  })
-})
+    mt.getTicketById.mockResolvedValue(makeTicket() as never);
+    mb.getBoardById.mockResolvedValue(makeBoard() as never);
+    ml.removeLabel.mockResolvedValue(undefined as never);
+    const app = createApp();
+    const res = await app.request('/tickets/ticket-1/labels/label-1', { method: 'DELETE' });
+    expect(res.status).toBe(200);
+  });
+});

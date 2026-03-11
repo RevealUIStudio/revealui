@@ -11,26 +11,26 @@
  * - node:path - Path manipulation utilities
  */
 
-import { access, readFile } from 'node:fs/promises'
-import { join } from 'node:path'
-import { ErrorCode } from '../../lib/errors.js'
-import { createLogger, type Logger } from '../logger.js'
-import { getProjectRoot } from '../paths.js'
+import { access, readFile } from 'node:fs/promises';
+import { join } from 'node:path';
+import { ErrorCode } from '../../lib/errors.js';
+import { createLogger, type Logger } from '../logger.js';
+import { getProjectRoot } from '../paths.js';
 
 export interface EnvVariable {
-  name: string
-  required: boolean
-  description: string
-  validator?: (value: string) => boolean
-  sensitive?: boolean
-  defaultValue?: string
+  name: string;
+  required: boolean;
+  description: string;
+  validator?: (value: string) => boolean;
+  sensitive?: boolean;
+  defaultValue?: string;
 }
 
 export interface EnvValidationResult {
-  valid: boolean
-  missing: string[]
-  invalid: string[]
-  warnings: string[]
+  valid: boolean;
+  missing: string[];
+  invalid: string[];
+  warnings: string[];
 }
 
 /**
@@ -51,7 +51,7 @@ export const REQUIRED_ENV_VARS: EnvVariable[] = [
     validator: (v) => v.startsWith('postgresql://') || v.startsWith('postgres://'),
     sensitive: true,
   },
-]
+];
 
 /**
  * Optional environment variables
@@ -95,7 +95,7 @@ export const OPTIONAL_ENV_VARS: EnvVariable[] = [
     validator: (v) => v.startsWith('postgresql://') || v.startsWith('postgres://'),
     sensitive: true,
   },
-]
+];
 
 /**
  * Validates environment variables against the specification.
@@ -113,32 +113,32 @@ export function validateEnv(
   variables: EnvVariable[] = [...REQUIRED_ENV_VARS, ...OPTIONAL_ENV_VARS],
   env: Record<string, string | undefined> = process.env,
 ): EnvValidationResult {
-  const missing: string[] = []
-  const invalid: string[] = []
-  const warnings: string[] = []
+  const missing: string[] = [];
+  const invalid: string[] = [];
+  const warnings: string[] = [];
 
   for (const variable of variables) {
-    const value = env[variable.name]
+    const value = env[variable.name];
 
     if (!value) {
       if (variable.required) {
-        missing.push(variable.name)
+        missing.push(variable.name);
       } else if (!variable.defaultValue) {
-        warnings.push(`${variable.name} is not set (optional)`)
+        warnings.push(`${variable.name} is not set (optional)`);
       }
-      continue
+      continue;
     }
 
     if (variable.validator && !variable.validator(value)) {
-      invalid.push(variable.name)
+      invalid.push(variable.name);
     }
   }
 
   // Check for DATABASE_URL fallback
   if (missing.includes('POSTGRES_URL') && env.DATABASE_URL) {
-    const idx = missing.indexOf('POSTGRES_URL')
-    missing.splice(idx, 1)
-    warnings.push('Using DATABASE_URL as fallback for POSTGRES_URL')
+    const idx = missing.indexOf('POSTGRES_URL');
+    missing.splice(idx, 1);
+    warnings.push('Using DATABASE_URL as fallback for POSTGRES_URL');
   }
 
   return {
@@ -146,7 +146,7 @@ export function validateEnv(
     missing,
     invalid,
     warnings,
-  }
+  };
 }
 
 /**
@@ -158,48 +158,48 @@ export function validateEnv(
 export async function validateEnvWithLogging(
   options: { logger?: Logger; exitOnError?: boolean; importMetaUrl?: string } = {},
 ): Promise<boolean> {
-  const logger = options.logger || createLogger()
-  const result = validateEnv()
+  const logger = options.logger || createLogger();
+  const result = validateEnv();
 
   if (result.valid) {
-    logger.success('Environment validation passed')
+    logger.success('Environment validation passed');
     for (const warning of result.warnings) {
-      logger.warn(warning)
+      logger.warn(warning);
     }
-    return true
+    return true;
   }
 
-  logger.error('Environment validation failed')
+  logger.error('Environment validation failed');
 
   if (result.missing.length > 0) {
-    logger.error(`Missing required variables: ${result.missing.join(', ')}`)
+    logger.error(`Missing required variables: ${result.missing.join(', ')}`);
     for (const name of result.missing) {
-      const variable = [...REQUIRED_ENV_VARS, ...OPTIONAL_ENV_VARS].find((v) => v.name === name)
+      const variable = [...REQUIRED_ENV_VARS, ...OPTIONAL_ENV_VARS].find((v) => v.name === name);
       if (variable) {
-        logger.info(`  ${name}: ${variable.description}`)
+        logger.info(`  ${name}: ${variable.description}`);
       }
     }
   }
 
   if (result.invalid.length > 0) {
-    logger.error(`Invalid variables: ${result.invalid.join(', ')}`)
+    logger.error(`Invalid variables: ${result.invalid.join(', ')}`);
     for (const name of result.invalid) {
-      const variable = [...REQUIRED_ENV_VARS, ...OPTIONAL_ENV_VARS].find((v) => v.name === name)
+      const variable = [...REQUIRED_ENV_VARS, ...OPTIONAL_ENV_VARS].find((v) => v.name === name);
       if (variable) {
-        logger.info(`  ${name}: ${variable.description}`)
+        logger.info(`  ${name}: ${variable.description}`);
       }
     }
   }
 
   for (const warning of result.warnings) {
-    logger.warn(warning)
+    logger.warn(warning);
   }
 
   if (options.exitOnError) {
-    process.exit(ErrorCode.EXECUTION_ERROR)
+    process.exit(ErrorCode.EXECUTION_ERROR);
   }
 
-  return false
+  return false;
 }
 
 /**
@@ -207,11 +207,11 @@ export async function validateEnvWithLogging(
  */
 export async function envFileExists(importMetaUrl: string): Promise<boolean> {
   try {
-    const root = await getProjectRoot(importMetaUrl)
-    await access(join(root, '.env'))
-    return true
+    const root = await getProjectRoot(importMetaUrl);
+    await access(join(root, '.env'));
+    return true;
   } catch {
-    return false
+    return false;
   }
 }
 
@@ -220,11 +220,11 @@ export async function envFileExists(importMetaUrl: string): Promise<boolean> {
  */
 export async function devEnvFileExists(importMetaUrl: string): Promise<boolean> {
   try {
-    const root = await getProjectRoot(importMetaUrl)
-    await access(join(root, '.env.development.local'))
-    return true
+    const root = await getProjectRoot(importMetaUrl);
+    await access(join(root, '.env.development.local'));
+    return true;
   } catch {
-    return false
+    return false;
   }
 }
 
@@ -232,37 +232,37 @@ export async function devEnvFileExists(importMetaUrl: string): Promise<boolean> 
  * Reads and parses an env file.
  */
 export async function parseEnvFile(filePath: string): Promise<Record<string, string>> {
-  const content = await readFile(filePath, 'utf-8')
-  const env: Record<string, string> = {}
+  const content = await readFile(filePath, 'utf-8');
+  const env: Record<string, string> = {};
 
   for (const line of content.split('\n')) {
-    const trimmed = line.trim()
+    const trimmed = line.trim();
 
     // Skip comments and empty lines
     if (!trimmed || trimmed.startsWith('#')) {
-      continue
+      continue;
     }
 
-    const eqIndex = trimmed.indexOf('=')
+    const eqIndex = trimmed.indexOf('=');
     if (eqIndex === -1) {
-      continue
+      continue;
     }
 
-    const key = trimmed.substring(0, eqIndex).trim()
-    let value = trimmed.substring(eqIndex + 1).trim()
+    const key = trimmed.substring(0, eqIndex).trim();
+    let value = trimmed.substring(eqIndex + 1).trim();
 
     // Remove quotes if present
     if (
       (value.startsWith('"') && value.endsWith('"')) ||
       (value.startsWith("'") && value.endsWith("'"))
     ) {
-      value = value.slice(1, -1)
+      value = value.slice(1, -1);
     }
 
-    env[key] = value
+    env[key] = value;
   }
 
-  return env
+  return env;
 }
 
 /**
@@ -270,15 +270,15 @@ export async function parseEnvFile(filePath: string): Promise<Record<string, str
  */
 export function detectEnvironment(): 'development' | 'test' | 'production' | 'ci' {
   if (process.env.CI) {
-    return 'ci'
+    return 'ci';
   }
   if (process.env.NODE_ENV === 'test') {
-    return 'test'
+    return 'test';
   }
   if (process.env.NODE_ENV === 'production') {
-    return 'production'
+    return 'production';
   }
-  return 'development'
+  return 'development';
 }
 
 /**
@@ -292,5 +292,5 @@ export function isCI(): boolean {
       process.env.CIRCLECI ||
       process.env.TRAVIS ||
       process.env.JENKINS_URL,
-  )
+  );
 }

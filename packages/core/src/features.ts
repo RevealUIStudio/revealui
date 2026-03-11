@@ -9,42 +9,42 @@
  * - ./license.ts - License validation and tier checking
  */
 
-import { isLicensed, type LicenseTier } from './license.js'
+import { isLicensed, type LicenseTier } from './license.js';
 
 /** All gated features in RevealUI */
 export interface FeatureFlags {
   /** AI agent system (Pro: 1 provider, Enterprise: all providers) */
-  ai: boolean
+  ai: boolean;
   /** AI memory system — working + episodic + vector (Max: basic, Enterprise: full) */
-  aiMemory: boolean
+  aiMemory: boolean;
   /** MCP server integration */
-  mcp: boolean
+  mcp: boolean;
   /** Editor integration daemon */
-  editors: boolean
+  editors: boolean;
   /** AI harness integration (Claude Code, Cursor, Copilot coordination) */
-  harnesses: boolean
+  harnesses: boolean;
   /** Built-in Stripe payment processing */
-  payments: boolean
+  payments: boolean;
   /** Multi-tenant site management */
-  multiTenant: boolean
+  multiTenant: boolean;
   /** White-label admin dashboard */
-  whiteLabel: boolean
+  whiteLabel: boolean;
   /** SSO/SAML authentication */
-  sso: boolean
+  sso: boolean;
   /** BYOK server-side key storage (Max+) */
-  byokServerSide: boolean
+  byokServerSide: boolean;
   /** Multi-provider AI (Max+: 2 providers, Enterprise: all providers) */
-  aiMultiProvider: boolean
+  aiMultiProvider: boolean;
   /** Audit logging and compliance trail */
-  auditLog: boolean
+  auditLog: boolean;
   /** Full real-time sync with conflict resolution */
-  advancedSync: boolean
+  advancedSync: boolean;
   /** Monitoring dashboard */
-  dashboard: boolean
+  dashboard: boolean;
   /** Custom domain mapping */
-  customDomain: boolean
+  customDomain: boolean;
   /** Analytics and conversion tracking */
-  analytics: boolean
+  analytics: boolean;
 }
 
 /** Feature-to-tier mapping: minimum tier required for each feature */
@@ -65,7 +65,7 @@ const featureTierMap: Record<keyof FeatureFlags, LicenseTier> = {
   multiTenant: 'enterprise',
   whiteLabel: 'enterprise',
   sso: 'enterprise',
-}
+};
 
 /**
  * Returns the current feature flags based on the active license tier.
@@ -81,13 +81,13 @@ const featureTierMap: Record<keyof FeatureFlags, LicenseTier> = {
  * ```
  */
 export function getFeatures(): FeatureFlags {
-  const flags = {} as FeatureFlags
+  const flags = {} as FeatureFlags;
 
   for (const [feature, requiredTier] of Object.entries(featureTierMap)) {
-    flags[feature as keyof FeatureFlags] = isLicensed(requiredTier)
+    flags[feature as keyof FeatureFlags] = isLicensed(requiredTier);
   }
 
-  return flags
+  return flags;
 }
 
 /**
@@ -103,8 +103,8 @@ export function getFeatures(): FeatureFlags {
  * ```
  */
 export function isFeatureEnabled(feature: keyof FeatureFlags): boolean {
-  const requiredTier = featureTierMap[feature]
-  return isLicensed(requiredTier)
+  const requiredTier = featureTierMap[feature];
+  return isLicensed(requiredTier);
 }
 
 /**
@@ -116,25 +116,25 @@ export function getFeaturesForTier(tier: LicenseTier): FeatureFlags {
     pro: 1,
     max: 2,
     enterprise: 3,
-  }
+  };
 
-  const flags = {} as FeatureFlags
+  const flags = {} as FeatureFlags;
 
   for (const [feature, requiredTier] of Object.entries(featureTierMap)) {
-    flags[feature as keyof FeatureFlags] = tierRank[tier] >= tierRank[requiredTier]
+    flags[feature as keyof FeatureFlags] = tierRank[tier] >= tierRank[requiredTier];
   }
 
-  return flags
+  return flags;
 }
 
 /**
  * Returns the minimum tier required for a given feature.
  */
 export function getRequiredTier(feature: keyof FeatureFlags): LicenseTier {
-  return featureTierMap[feature]
+  return featureTierMap[feature];
 }
 
 /**
  * Returns the current license tier. Convenience re-export.
  */
-export { getCurrentTier } from './license.js'
+export { getCurrentTier } from './license.js';

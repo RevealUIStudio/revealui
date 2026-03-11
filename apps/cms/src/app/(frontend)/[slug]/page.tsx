@@ -1,36 +1,36 @@
-import { logger } from '@revealui/core/observability/logger'
-import type { Page as PageType } from '@revealui/core/types/cms'
-import type { Metadata } from 'next'
-import { draftMode } from 'next/headers'
-import { cache } from 'react'
-import { RenderBlocks } from '@/lib/blocks/RenderBlocks'
-import { RevealUIRedirects } from '@/lib/components/RevealUIRedirects'
-import { RenderHero } from '@/lib/heros/RenderHero'
-import { generateMeta } from '@/lib/utilities/generateMeta'
-import { getRevealUIInstance } from '@/lib/utilities/revealui-singleton'
+import { logger } from '@revealui/core/observability/logger';
+import type { Page as PageType } from '@revealui/core/types/cms';
+import type { Metadata } from 'next';
+import { draftMode } from 'next/headers';
+import { cache } from 'react';
+import { RenderBlocks } from '@/lib/blocks/RenderBlocks';
+import { RevealUIRedirects } from '@/lib/components/RevealUIRedirects';
+import { RenderHero } from '@/lib/heros/RenderHero';
+import { generateMeta } from '@/lib/utilities/generateMeta';
+import { getRevealUIInstance } from '@/lib/utilities/revealui-singleton';
 
 // Force dynamic rendering to prevent build-time RevealUI CMS initialization
-export const dynamic = 'force-dynamic'
-export const dynamicParams = true
+export const dynamic = 'force-dynamic';
+export const dynamicParams = true;
 
 // Removed generateStaticParams to prevent build-time initialization
 // Pages will be generated on-demand at request time
 
 export default async function Page({ params }: { params: Promise<{ slug?: string }> }) {
-  const { slug = 'home' } = await params
-  const url = `/${slug}`
+  const { slug = 'home' } = await params;
+  const url = `/${slug}`;
 
   // let page: PageType | null;
 
   const page = await queryPageBySlug({
     slug,
-  })
+  });
 
   if (!page) {
-    return <RevealUIRedirects url={url} />
+    return <RevealUIRedirects url={url} />;
   }
 
-  const { hero, layout } = page
+  const { hero, layout } = page;
 
   return (
     <article className="pt-16 pb-24">
@@ -42,13 +42,13 @@ export default async function Page({ params }: { params: Promise<{ slug?: string
         <RenderBlocks blocks={layout as unknown as PageType['layout']} />
       )}
     </article>
-  )
+  );
 }
 
 export async function generateMetadata({
   params,
 }: {
-  params: Promise<{ slug?: string }>
+  params: Promise<{ slug?: string }>;
 }): Promise<Metadata> {
   // During build, return minimal metadata to avoid database connections
   if (
@@ -56,33 +56,33 @@ export async function generateMetadata({
     !process.env.POSTGRES_URL &&
     !process.env.DATABASE_URL
   ) {
-    const { slug = 'home' } = await params
-    return { title: slug }
+    const { slug = 'home' } = await params;
+    return { title: slug };
   }
 
   try {
-    const { slug = 'home' } = await params
+    const { slug = 'home' } = await params;
     const page = await queryPageBySlug({
       slug,
-    })
-    return generateMeta({ doc: page })
+    });
+    return generateMeta({ doc: page });
   } catch {
     // If database isn't available, return minimal metadata
-    const { slug = 'home' } = await params
-    return { title: slug }
+    const { slug = 'home' } = await params;
+    return { title: slug };
   }
 }
 
 const queryPageBySlug = cache(async ({ slug }: { slug: string }) => {
   // Skip database queries during build
-  const isBuildTime = process.env.NEXT_PHASE === 'phase-production-build'
+  const isBuildTime = process.env.NEXT_PHASE === 'phase-production-build';
   if (isBuildTime) {
-    return null
+    return null;
   }
 
   try {
-    const { isEnabled: draft } = await draftMode()
-    const revealui = await getRevealUIInstance()
+    const { isEnabled: draft } = await draftMode();
+    const revealui = await getRevealUIInstance();
 
     const result = await revealui.find({
       collection: 'pages',
@@ -94,9 +94,9 @@ const queryPageBySlug = cache(async ({ slug }: { slug: string }) => {
           equals: slug,
         },
       },
-    })
+    });
 
-    return result.docs?.[0] || null
+    return result.docs?.[0] || null;
   } catch (error) {
     logger.error(
       '[RevealUI] Error fetching page',
@@ -104,7 +104,7 @@ const queryPageBySlug = cache(async ({ slug }: { slug: string }) => {
       {
         slug,
       },
-    )
-    return null
+    );
+    return null;
   }
-})
+});

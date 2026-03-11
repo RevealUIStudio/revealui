@@ -1,11 +1,11 @@
-const API_URL = process.env.NEXT_PUBLIC_SERVER_URL || 'http://localhost:4000'
+const API_URL = process.env.NEXT_PUBLIC_SERVER_URL || 'http://localhost:4000';
 
 interface Post {
-  id: string
-  title: string
-  slug: string
-  status: string
-  publishedAt: string | null
+  id: string;
+  title: string;
+  slug: string;
+  status: string;
+  publishedAt: string | null;
 }
 
 async function getPosts(): Promise<Post[]> {
@@ -15,17 +15,17 @@ async function getPosts(): Promise<Post[]> {
       {
         cache: 'no-store',
       },
-    )
-    if (!res.ok) return []
-    const data = await res.json()
-    return data.docs ?? []
+    );
+    if (!res.ok) return [];
+    const data = await res.json();
+    return data.docs ?? [];
   } catch {
-    return []
+    return [];
   }
 }
 
 export default async function PostsPage() {
-  const posts = await getPosts()
+  const posts = await getPosts();
 
   return (
     <main className="mx-auto max-w-2xl px-4 py-16">
@@ -57,5 +57,5 @@ export default async function PostsPage() {
         </ul>
       )}
     </main>
-  )
+  );
 }

@@ -9,5 +9,5 @@
  * - scripts/lib/contracts/validation.ts - Contract validation utilities
  */
 
-export * from './script-contracts.js'
-export * from './validation.js'
+export * from './script-contracts.js';
+export * from './validation.js';

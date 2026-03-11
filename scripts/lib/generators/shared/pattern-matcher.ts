@@ -29,15 +29,15 @@
  */
 export interface JsDocMatch {
   /** Full JSDoc comment block */
-  fullMatch: string
+  fullMatch: string;
   /** JSDoc description (first paragraph) */
-  description: string
+  description: string;
   /** Line number where JSDoc starts */
-  line: number
+  line: number;
   /** Associated code following the JSDoc */
-  associatedCode?: string
+  associatedCode?: string;
   /** Extracted tags */
-  tags: JsDocTag[]
+  tags: JsDocTag[];
 }
 
 /**
@@ -45,9 +45,9 @@ export interface JsDocMatch {
  */
 export interface JsDocTag {
   /** Tag name (e.g., 'param', 'returns') */
-  name: string
+  name: string;
   /** Tag value/description */
-  value: string
+  value: string;
 }
 
 /**
@@ -55,15 +55,15 @@ export interface JsDocTag {
  */
 export interface ExportMatch {
   /** Export type (function, const, class, etc.) */
-  type: string
+  type: string;
   /** Exported name */
-  name: string
+  name: string;
   /** Full export statement */
-  statement: string
+  statement: string;
   /** Line number */
-  line: number
+  line: number;
   /** Whether it's a default export */
-  isDefault: boolean
+  isDefault: boolean;
 }
 
 /**
@@ -71,23 +71,23 @@ export interface ExportMatch {
  */
 export interface ImportMatch {
   /** Imported names */
-  names: string[]
+  names: string[];
   /** Module path */
-  from: string
+  from: string;
   /** Full import statement */
-  statement: string
+  statement: string;
   /** Whether it's a default import */
-  isDefault: boolean
+  isDefault: boolean;
   /** Whether it's a namespace import (import * as) */
-  isNamespace: boolean
+  isNamespace: boolean;
   /** Namespace alias if applicable */
-  namespaceAlias?: string
+  namespaceAlias?: string;
 }
 
 /**
  * Export type filter
  */
-export type ExportType = 'function' | 'const' | 'class' | 'interface' | 'type' | 'all'
+export type ExportType = 'function' | 'const' | 'class' | 'interface' | 'type' | 'all';
 
 // =============================================================================
 // JSDoc Matching
@@ -108,55 +108,55 @@ export type ExportType = 'function' | 'const' | 'class' | 'interface' | 'type' |
  * ```
  */
 export function matchJSDoc(content: string): JsDocMatch[] {
-  const matches: JsDocMatch[] = []
-  const lines = content.split('\n')
+  const matches: JsDocMatch[] = [];
+  const lines = content.split('\n');
 
   // Regex to match JSDoc blocks: /**  ... */
-  const jsdocRegex = /\/\*\*[\s\S]*?\*\//g
-  let match: RegExpExecArray | null
+  const jsdocRegex = /\/\*\*[\s\S]*?\*\//g;
+  let match: RegExpExecArray | null;
 
-  match = jsdocRegex.exec(content)
+  match = jsdocRegex.exec(content);
   while (match !== null) {
-    const fullMatch = match[0]
-    const startIndex = match.index
+    const fullMatch = match[0];
+    const startIndex = match.index;
 
     // Calculate line number
-    const lineNumber = content.substring(0, startIndex).split('\n').length
+    const lineNumber = content.substring(0, startIndex).split('\n').length;
 
     // Extract description (first paragraph before any @tags)
     const cleanedDoc = fullMatch
       .replace(/^\/\*\*/, '') // Remove /**
       .replace(/\*\/$/, '') // Remove */
-      .replace(/^\s*\*\s?/gm, '') // Remove leading * from each line
+      .replace(/^\s*\*\s?/gm, ''); // Remove leading * from each line
 
-    const parts = cleanedDoc.split(/\n\s*@/)
-    const description = parts[0].trim()
+    const parts = cleanedDoc.split(/\n\s*@/);
+    const description = parts[0].trim();
 
     // Extract tags
-    const tags: JsDocTag[] = []
+    const tags: JsDocTag[] = [];
     for (let i = 1; i < parts.length; i++) {
-      const tagContent = parts[i].trim()
-      const spaceIndex = tagContent.indexOf(' ')
+      const tagContent = parts[i].trim();
+      const spaceIndex = tagContent.indexOf(' ');
       if (spaceIndex > 0) {
         tags.push({
           name: tagContent.substring(0, spaceIndex),
           value: tagContent.substring(spaceIndex + 1).trim(),
-        })
+        });
       } else {
         tags.push({
           name: tagContent,
           value: '',
-        })
+        });
       }
     }
 
     // Try to find associated code (next non-empty line after JSDoc)
-    let associatedCode: string | undefined
+    let associatedCode: string | undefined;
     for (let i = lineNumber; i < lines.length; i++) {
-      const line = lines[i].trim()
+      const line = lines[i].trim();
       if (line && !line.startsWith('*') && !line.startsWith('*/')) {
-        associatedCode = line
-        break
+        associatedCode = line;
+        break;
       }
     }
 
@@ -166,11 +166,11 @@ export function matchJSDoc(content: string): JsDocMatch[] {
       line: lineNumber,
       associatedCode,
       tags,
-    })
-    match = jsdocRegex.exec(content)
+    });
+    match = jsdocRegex.exec(content);
   }
 
-  return matches
+  return matches;
 }
 
 // =============================================================================
@@ -191,8 +191,8 @@ export function matchJSDoc(content: string): JsDocMatch[] {
  * ```
  */
 export function matchExports(content: string, type: ExportType = 'all'): ExportMatch[] {
-  const matches: ExportMatch[] = []
-  const _lines = content.split('\n')
+  const matches: ExportMatch[] = [];
+  const _lines = content.split('\n');
 
   // Patterns for different export types
   const patterns: Record<string, RegExp> = {
@@ -202,26 +202,26 @@ export function matchExports(content: string, type: ExportType = 'all'): ExportM
     interface: /export\s+interface\s+(\w+)/g,
     type: /export\s+type\s+(\w+)/g,
     default: /export\s+default\s+(\w+|function|class)/g,
-  }
+  };
 
   // Select patterns based on type filter
   const selectedPatterns: [string, RegExp | undefined][] =
-    type === 'all' ? Object.entries(patterns) : [[type, patterns[type as keyof typeof patterns]]]
+    type === 'all' ? Object.entries(patterns) : [[type, patterns[type as keyof typeof patterns]]];
 
   for (const [exportType, pattern] of selectedPatterns) {
-    if (!(pattern instanceof RegExp)) continue
+    if (!(pattern instanceof RegExp)) continue;
 
-    let match: RegExpExecArray | null
-    const regex = new RegExp(pattern.source, pattern.flags)
+    let match: RegExpExecArray | null;
+    const regex = new RegExp(pattern.source, pattern.flags);
 
-    match = regex.exec(content)
+    match = regex.exec(content);
     while (match !== null) {
-      const statement = match[0]
-      const name = match[match.length - 1] // Last capture group is the name
-      const startIndex = match.index
+      const statement = match[0];
+      const name = match[match.length - 1]; // Last capture group is the name
+      const startIndex = match.index;
 
       // Calculate line number
-      const lineNumber = content.substring(0, startIndex).split('\n').length
+      const lineNumber = content.substring(0, startIndex).split('\n').length;
 
       matches.push({
         type: exportType,
@@ -229,12 +229,12 @@ export function matchExports(content: string, type: ExportType = 'all'): ExportM
         statement,
         line: lineNumber,
         isDefault: exportType === 'default',
-      })
-      match = regex.exec(content)
+      });
+      match = regex.exec(content);
     }
   }
 
-  return matches
+  return matches;
 }
 
 // =============================================================================
@@ -256,19 +256,19 @@ export function matchExports(content: string, type: ExportType = 'all'): ExportM
  * ```
  */
 export function matchImports(content: string): ImportMatch[] {
-  const matches: ImportMatch[] = []
+  const matches: ImportMatch[] = [];
 
   // Pattern for named imports: import { foo, bar } from 'module'
-  const namedImportRegex = /import\s+\{([^}]+)\}\s+from\s+['"]([^'"]+)['"]/g
-  let match: RegExpExecArray | null
+  const namedImportRegex = /import\s+\{([^}]+)\}\s+from\s+['"]([^'"]+)['"]/g;
+  let match: RegExpExecArray | null;
 
-  match = namedImportRegex.exec(content)
+  match = namedImportRegex.exec(content);
   while (match !== null) {
     const names = match[1]
       .split(',')
       .map((n) => n.trim())
-      .filter(Boolean)
-    const from = match[2]
+      .filter(Boolean);
+    const from = match[2];
 
     matches.push({
       names,
@@ -276,16 +276,16 @@ export function matchImports(content: string): ImportMatch[] {
       statement: match[0],
       isDefault: false,
       isNamespace: false,
-    })
-    match = namedImportRegex.exec(content)
+    });
+    match = namedImportRegex.exec(content);
   }
 
   // Pattern for default imports: import foo from 'module'
-  const defaultImportRegex = /import\s+(\w+)\s+from\s+['"]([^'"]+)['"]/g
-  match = defaultImportRegex.exec(content)
+  const defaultImportRegex = /import\s+(\w+)\s+from\s+['"]([^'"]+)['"]/g;
+  match = defaultImportRegex.exec(content);
   while (match !== null) {
-    const name = match[1]
-    const from = match[2]
+    const name = match[1];
+    const from = match[2];
 
     matches.push({
       names: [name],
@@ -293,16 +293,16 @@ export function matchImports(content: string): ImportMatch[] {
       statement: match[0],
       isDefault: true,
       isNamespace: false,
-    })
-    match = defaultImportRegex.exec(content)
+    });
+    match = defaultImportRegex.exec(content);
   }
 
   // Pattern for namespace imports: import * as foo from 'module'
-  const namespaceImportRegex = /import\s+\*\s+as\s+(\w+)\s+from\s+['"]([^'"]+)['"]/g
-  match = namespaceImportRegex.exec(content)
+  const namespaceImportRegex = /import\s+\*\s+as\s+(\w+)\s+from\s+['"]([^'"]+)['"]/g;
+  match = namespaceImportRegex.exec(content);
   while (match !== null) {
-    const alias = match[1]
-    const from = match[2]
+    const alias = match[1];
+    const from = match[2];
 
     matches.push({
       names: [alias],
@@ -311,11 +311,11 @@ export function matchImports(content: string): ImportMatch[] {
       isDefault: false,
       isNamespace: true,
       namespaceAlias: alias,
-    })
-    match = namespaceImportRegex.exec(content)
+    });
+    match = namespaceImportRegex.exec(content);
   }
 
-  return matches
+  return matches;
 }
 
 // =============================================================================
@@ -335,22 +335,22 @@ export function matchImports(content: string): ImportMatch[] {
  * ```
  */
 export function matchHTTPMethods(content: string): string[] {
-  const methods: string[] = []
-  const methodNames = ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'HEAD', 'OPTIONS']
+  const methods: string[] = [];
+  const methodNames = ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'HEAD', 'OPTIONS'];
 
   for (const method of methodNames) {
     const patterns = [
       `export async function ${method}`,
       `export function ${method}`,
       `export const ${method}`,
-    ]
+    ];
 
     if (patterns.some((pattern) => content.includes(pattern))) {
-      methods.push(method)
+      methods.push(method);
     }
   }
 
-  return methods
+  return methods;
 }
 
 // =============================================================================
@@ -370,8 +370,8 @@ export function matchHTTPMethods(content: string): string[] {
  * ```
  */
 export function matchContracts(content: string): string[] {
-  const matches = content.match(/export const (\w+Contract)/g) || []
-  return matches.map((m) => m.replace('export const ', ''))
+  const matches = content.match(/export const (\w+Contract)/g) || [];
+  return matches.map((m) => m.replace('export const ', ''));
 }
 
 /**
@@ -387,8 +387,8 @@ export function matchContracts(content: string): string[] {
  * ```
  */
 export function matchSchemas(content: string): string[] {
-  const matches = content.match(/export const (\w+(Select|Insert)Schema)/g) || []
-  return matches.map((m) => m.replace('export const ', ''))
+  const matches = content.match(/export const (\w+(Select|Insert)Schema)/g) || [];
+  return matches.map((m) => m.replace('export const ', ''));
 }
 
 /**
@@ -404,13 +404,13 @@ export function matchSchemas(content: string): string[] {
  * ```
  */
 export function matchTables(content: string): string[] {
-  const matches = content.match(/export const (\w+)\s*=\s*pgTable/g) || []
+  const matches = content.match(/export const (\w+)\s*=\s*pgTable/g) || [];
   return matches
     .map((m) => {
-      const match = /export const (\w+)/.exec(m)
-      return match ? match[1] : ''
+      const match = /export const (\w+)/.exec(m);
+      return match ? match[1] : '';
     })
-    .filter(Boolean)
+    .filter(Boolean);
 }
 
 // =============================================================================
@@ -436,17 +436,17 @@ export function matchAnyTypes(content: string): number {
     /<any>/g, // <any>
     /\(any\)/g, // (any)
     /Array<any>/g, // Array<any>
-  ]
+  ];
 
-  let count = 0
+  let count = 0;
   for (const pattern of patterns) {
-    const matches = content.match(pattern)
+    const matches = content.match(pattern);
     if (matches) {
-      count += matches.length
+      count += matches.length;
     }
   }
 
-  return count
+  return count;
 }
 
 /**
@@ -463,5 +463,5 @@ export function matchAnyTypes(content: string): number {
  * ```
  */
 export function hasImportFrom(content: string, module: string): boolean {
-  return content.includes(`from '${module}'`) || content.includes(`from "${module}"`)
+  return content.includes(`from '${module}'`) || content.includes(`from "${module}"`);
 }

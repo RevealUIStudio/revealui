@@ -4,10 +4,10 @@
  * Tests alert delivery through different channels with request context integration
  */
 
-import { beforeEach, describe, expect, it, vi } from 'vitest'
-import { type RequestContext, runInRequestContext } from '../../utils/request-context.js'
-import { AlertManager, type SentryClient } from '../alerts.js'
-import type { Alert } from '../types.js'
+import { beforeEach, describe, expect, it, vi } from 'vitest';
+import { type RequestContext, runInRequestContext } from '../../utils/request-context.js';
+import { AlertManager, type SentryClient } from '../alerts.js';
+import type { Alert } from '../types.js';
 
 // Mock logger - must match the import path used by AlertManager
 vi.mock('../../utils/logger-server.js', () => ({
@@ -17,29 +17,29 @@ vi.mock('../../utils/logger-server.js', () => ({
     info: vi.fn(),
     debug: vi.fn(),
   },
-}))
+}));
 
 describe('Alert Integration', () => {
-  let mockSentryClient: SentryClient
-  let logger: unknown
+  let mockSentryClient: SentryClient;
+  let logger: unknown;
 
   beforeEach(async () => {
-    vi.clearAllMocks()
+    vi.clearAllMocks();
 
     // Import logger - must match the mocked path
-    const loggerModule = await import('../../utils/logger-server.js')
-    logger = loggerModule.logger
+    const loggerModule = await import('../../utils/logger-server.js');
+    logger = loggerModule.logger;
 
     // Create mock Sentry client
     mockSentryClient = {
       captureMessage: vi.fn(),
       setUser: vi.fn(),
-    }
-  })
+    };
+  });
 
   describe('sendAlert', () => {
     it('should send alert through logger channel', () => {
-      const manager = new AlertManager({ channels: ['logger'] }, null)
+      const manager = new AlertManager({ channels: ['logger'] }, null);
 
       const alert: Alert = {
         level: 'warning',
@@ -48,9 +48,9 @@ describe('Alert Integration', () => {
         threshold: 80,
         message: 'High CPU usage detected',
         timestamp: Date.now(),
-      }
+      };
 
-      manager.sendAlert(alert)
+      manager.sendAlert(alert);
 
       expect(logger.warn).toHaveBeenCalledWith(
         'High CPU usage detected',
@@ -59,11 +59,11 @@ describe('Alert Integration', () => {
           value: 85,
           threshold: 80,
         }),
-      )
-    })
+      );
+    });
 
     it('should send critical alert through error logger', () => {
-      const manager = new AlertManager({ channels: ['logger'] }, null)
+      const manager = new AlertManager({ channels: ['logger'] }, null);
 
       const alert: Alert = {
         level: 'critical',
@@ -72,9 +72,9 @@ describe('Alert Integration', () => {
         threshold: 95,
         message: 'Critical memory usage',
         timestamp: Date.now(),
-      }
+      };
 
-      manager.sendAlert(alert)
+      manager.sendAlert(alert);
 
       expect(logger.error).toHaveBeenCalledWith(
         'Critical memory usage',
@@ -83,11 +83,11 @@ describe('Alert Integration', () => {
           value: 98,
           threshold: 95,
         }),
-      )
-    })
+      );
+    });
 
     it('should include request context in logger output', () => {
-      const manager = new AlertManager({ channels: ['logger'] }, null)
+      const manager = new AlertManager({ channels: ['logger'] }, null);
 
       const context: RequestContext = {
         requestId: 'req-123',
@@ -96,7 +96,7 @@ describe('Alert Integration', () => {
         path: '/api/users',
         method: 'GET',
         ip: '192.168.1.1',
-      }
+      };
 
       const alert: Alert = {
         level: 'warning',
@@ -105,11 +105,11 @@ describe('Alert Integration', () => {
         threshold: 2000,
         message: 'Slow response detected',
         timestamp: Date.now(),
-      }
+      };
 
       runInRequestContext(context, () => {
-        manager.sendAlert(alert)
-      })
+        manager.sendAlert(alert);
+      });
 
       expect(logger.warn).toHaveBeenCalledWith(
         'Slow response detected',
@@ -120,11 +120,11 @@ describe('Alert Integration', () => {
           method: 'GET',
           ip: '192.168.1.1',
         }),
-      )
-    })
+      );
+    });
 
     it('should not include request context when not in context', () => {
-      const manager = new AlertManager({ channels: ['logger'] }, null)
+      const manager = new AlertManager({ channels: ['logger'] }, null);
 
       const alert: Alert = {
         level: 'warning',
@@ -133,26 +133,26 @@ describe('Alert Integration', () => {
         threshold: 80,
         message: 'High disk usage',
         timestamp: Date.now(),
-      }
+      };
 
-      manager.sendAlert(alert)
+      manager.sendAlert(alert);
 
-      const logCall = logger.warn.mock.calls[0]
-      expect(logCall).toBeDefined()
+      const logCall = logger.warn.mock.calls[0];
+      expect(logCall).toBeDefined();
 
-      const logData = logCall?.[1]
-      expect(logData).not.toHaveProperty('userId')
-      expect(logData).not.toHaveProperty('path')
-      expect(logData).not.toHaveProperty('method')
-    })
-  })
+      const logData = logCall?.[1];
+      expect(logData).not.toHaveProperty('userId');
+      expect(logData).not.toHaveProperty('path');
+      expect(logData).not.toHaveProperty('method');
+    });
+  });
 
   describe('Sentry Integration', () => {
     it('should not send warning alerts to Sentry', () => {
       const manager = new AlertManager(
         { channels: ['sentry'], sentryProductionOnly: false, aggregateInProduction: false },
         mockSentryClient,
-      )
+      );
 
       const alert: Alert = {
         level: 'warning',
@@ -161,18 +161,18 @@ describe('Alert Integration', () => {
         threshold: 80,
         message: 'High CPU usage',
         timestamp: Date.now(),
-      }
+      };
 
-      manager.sendAlert(alert)
+      manager.sendAlert(alert);
 
-      expect(mockSentryClient.captureMessage).not.toHaveBeenCalled()
-    })
+      expect(mockSentryClient.captureMessage).not.toHaveBeenCalled();
+    });
 
     it('should send critical alerts to Sentry', () => {
       const manager = new AlertManager(
         { channels: ['sentry'], sentryProductionOnly: false, aggregateInProduction: false },
         mockSentryClient,
-      )
+      );
 
       const alert: Alert = {
         level: 'critical',
@@ -181,9 +181,9 @@ describe('Alert Integration', () => {
         threshold: 95,
         message: 'Critical memory usage',
         timestamp: Date.now(),
-      }
+      };
 
-      manager.sendAlert(alert)
+      manager.sendAlert(alert);
 
       expect(mockSentryClient.captureMessage).toHaveBeenCalledWith(
         'Critical memory usage',
@@ -198,19 +198,19 @@ describe('Alert Integration', () => {
             threshold: 95,
           }),
         }),
-      )
-    })
+      );
+    });
 
     it('should include request ID in Sentry tags', () => {
       const manager = new AlertManager(
         { channels: ['sentry'], sentryProductionOnly: false, aggregateInProduction: false },
         mockSentryClient,
-      )
+      );
 
       const context: RequestContext = {
         requestId: 'req-123',
         startTime: Date.now(),
-      }
+      };
 
       const alert: Alert = {
         level: 'critical',
@@ -219,11 +219,11 @@ describe('Alert Integration', () => {
         threshold: 10,
         message: 'High error rate detected',
         timestamp: Date.now(),
-      }
+      };
 
       runInRequestContext(context, () => {
-        manager.sendAlert(alert)
-      })
+        manager.sendAlert(alert);
+      });
 
       expect(mockSentryClient.captureMessage).toHaveBeenCalledWith(
         'High error rate detected',
@@ -232,14 +232,14 @@ describe('Alert Integration', () => {
             request_id: 'req-123',
           }),
         }),
-      )
-    })
+      );
+    });
 
     it('should include full request context in Sentry extra', () => {
       const manager = new AlertManager(
         { channels: ['sentry'], sentryProductionOnly: false, aggregateInProduction: false },
         mockSentryClient,
-      )
+      );
 
       const context: RequestContext = {
         requestId: 'req-123',
@@ -249,7 +249,7 @@ describe('Alert Integration', () => {
         method: 'POST',
         ip: '10.0.0.1',
         userAgent: 'Mozilla/5.0',
-      }
+      };
 
       const alert: Alert = {
         level: 'critical',
@@ -258,11 +258,11 @@ describe('Alert Integration', () => {
         threshold: 5,
         message: 'Database error spike',
         timestamp: Date.now(),
-      }
+      };
 
       runInRequestContext(context, () => {
-        manager.sendAlert(alert)
-      })
+        manager.sendAlert(alert);
+      });
 
       expect(mockSentryClient.captureMessage).toHaveBeenCalledWith(
         'Database error spike',
@@ -284,21 +284,21 @@ describe('Alert Integration', () => {
             }),
           }),
         }),
-      )
-    })
+      );
+    });
 
     it('should set Sentry user context when userId is available', () => {
       const manager = new AlertManager(
         { channels: ['sentry'], sentryProductionOnly: false, aggregateInProduction: false },
         mockSentryClient,
-      )
+      );
 
       const context: RequestContext = {
         requestId: 'req-123',
         startTime: Date.now(),
         userId: 'user-789',
         ip: '192.168.1.100',
-      }
+      };
 
       const alert: Alert = {
         level: 'critical',
@@ -307,28 +307,28 @@ describe('Alert Integration', () => {
         threshold: 50,
         message: 'Authentication failure spike',
         timestamp: Date.now(),
-      }
+      };
 
       runInRequestContext(context, () => {
-        manager.sendAlert(alert)
-      })
+        manager.sendAlert(alert);
+      });
 
       expect(mockSentryClient.setUser).toHaveBeenCalledWith({
         id: 'user-789',
         ip_address: '192.168.1.100',
-      })
-    })
+      });
+    });
 
     it('should not set Sentry user context when userId is not available', () => {
       const manager = new AlertManager(
         { channels: ['sentry'], sentryProductionOnly: false, aggregateInProduction: false },
         mockSentryClient,
-      )
+      );
 
       const context: RequestContext = {
         requestId: 'req-123',
         startTime: Date.now(),
-      }
+      };
 
       const alert: Alert = {
         level: 'critical',
@@ -337,27 +337,27 @@ describe('Alert Integration', () => {
         threshold: 90,
         message: 'System overload',
         timestamp: Date.now(),
-      }
+      };
 
       runInRequestContext(context, () => {
-        manager.sendAlert(alert)
-      })
+        manager.sendAlert(alert);
+      });
 
-      expect(mockSentryClient.setUser).not.toHaveBeenCalled()
-    })
+      expect(mockSentryClient.setUser).not.toHaveBeenCalled();
+    });
 
     it('should handle Sentry errors gracefully', () => {
       const brokenSentryClient: SentryClient = {
         captureMessage: vi.fn(() => {
-          throw new Error('Sentry error')
+          throw new Error('Sentry error');
         }),
         setUser: vi.fn(),
-      }
+      };
 
       const manager = new AlertManager(
         { channels: ['sentry'], sentryProductionOnly: false, aggregateInProduction: false },
         brokenSentryClient,
-      )
+      );
 
       const alert: Alert = {
         level: 'critical',
@@ -366,24 +366,24 @@ describe('Alert Integration', () => {
         threshold: 50,
         message: 'Test alert',
         timestamp: Date.now(),
-      }
+      };
 
       // Should not throw
-      expect(() => manager.sendAlert(alert)).not.toThrow()
+      expect(() => manager.sendAlert(alert)).not.toThrow();
 
       expect(logger.debug).toHaveBeenCalledWith(
         'Sentry not available for alert delivery',
         expect.objectContaining({
           error: expect.any(Error),
         }),
-      )
-    })
+      );
+    });
 
     it('should not send to Sentry when client is null', () => {
       const manager = new AlertManager(
         { channels: ['sentry'], sentryProductionOnly: false, aggregateInProduction: false },
         null,
-      )
+      );
 
       const alert: Alert = {
         level: 'critical',
@@ -392,13 +392,13 @@ describe('Alert Integration', () => {
         threshold: 50,
         message: 'Test alert',
         timestamp: Date.now(),
-      }
+      };
 
-      manager.sendAlert(alert)
+      manager.sendAlert(alert);
 
-      expect(logger.debug).toHaveBeenCalledWith('Sentry not available for alert delivery')
-    })
-  })
+      expect(logger.debug).toHaveBeenCalledWith('Sentry not available for alert delivery');
+    });
+  });
 
   describe('Multiple Channels', () => {
     it('should send alert through multiple channels', () => {
@@ -409,7 +409,7 @@ describe('Alert Integration', () => {
           aggregateInProduction: false,
         },
         mockSentryClient,
-      )
+      );
 
       const alert: Alert = {
         level: 'critical',
@@ -418,13 +418,13 @@ describe('Alert Integration', () => {
         threshold: 90,
         message: 'Critical CPU usage',
         timestamp: Date.now(),
-      }
+      };
 
-      manager.sendAlert(alert)
+      manager.sendAlert(alert);
 
-      expect(logger.error).toHaveBeenCalled()
-      expect(mockSentryClient.captureMessage).toHaveBeenCalled()
-    })
+      expect(logger.error).toHaveBeenCalled();
+      expect(mockSentryClient.captureMessage).toHaveBeenCalled();
+    });
 
     it('should send to logger but not Sentry for warnings', () => {
       const manager = new AlertManager(
@@ -434,7 +434,7 @@ describe('Alert Integration', () => {
           aggregateInProduction: false,
         },
         mockSentryClient,
-      )
+      );
 
       const alert: Alert = {
         level: 'warning',
@@ -443,18 +443,18 @@ describe('Alert Integration', () => {
         threshold: 70,
         message: 'Elevated memory usage',
         timestamp: Date.now(),
-      }
+      };
 
-      manager.sendAlert(alert)
+      manager.sendAlert(alert);
 
-      expect(logger.warn).toHaveBeenCalled()
-      expect(mockSentryClient.captureMessage).not.toHaveBeenCalled()
-    })
-  })
+      expect(logger.warn).toHaveBeenCalled();
+      expect(mockSentryClient.captureMessage).not.toHaveBeenCalled();
+    });
+  });
 
   describe('sendAlerts', () => {
     it('should send multiple alerts', () => {
-      const manager = new AlertManager({ channels: ['logger'] }, null)
+      const manager = new AlertManager({ channels: ['logger'] }, null);
 
       const alerts: Alert[] = [
         {
@@ -473,33 +473,33 @@ describe('Alert Integration', () => {
           message: 'Critical memory',
           timestamp: Date.now(),
         },
-      ]
+      ];
 
-      manager.sendAlerts(alerts)
+      manager.sendAlerts(alerts);
 
-      expect(logger.warn).toHaveBeenCalledTimes(1)
-      expect(logger.error).toHaveBeenCalledTimes(1)
-    })
-  })
+      expect(logger.warn).toHaveBeenCalledTimes(1);
+      expect(logger.error).toHaveBeenCalledTimes(1);
+    });
+  });
 
   describe('Alert Stats', () => {
     it('should return alert queue stats', () => {
-      const manager = new AlertManager({}, null)
+      const manager = new AlertManager({}, null);
 
-      const stats = manager.getStats()
+      const stats = manager.getStats();
 
-      expect(stats).toHaveProperty('queueSize')
-      expect(stats).toHaveProperty('lastAggregationTime')
-      expect(stats).toHaveProperty('aggregationEnabled')
-    })
-  })
+      expect(stats).toHaveProperty('queueSize');
+      expect(stats).toHaveProperty('lastAggregationTime');
+      expect(stats).toHaveProperty('aggregationEnabled');
+    });
+  });
 
   describe('Cleanup', () => {
     it('should dispose resources properly', () => {
-      const manager = new AlertManager({ aggregateInProduction: false }, null)
+      const manager = new AlertManager({ aggregateInProduction: false }, null);
 
       // Should not throw
-      expect(() => manager.dispose()).not.toThrow()
-    })
-  })
-})
+      expect(() => manager.dispose()).not.toThrow();
+    });
+  });
+});

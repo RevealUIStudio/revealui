@@ -1,22 +1,22 @@
-import type { CheckboxField, Field, TextField } from '@revealui/core'
-import { formatSlugHook } from '@/lib/fields/slug/formatSlugHook'
+import type { CheckboxField, Field, TextField } from '@revealui/core';
+import { formatSlugHook } from '@/lib/fields/slug/formatSlugHook';
 
 // Type for single field validation
 type TextFieldSingleValidation = (
   value: unknown,
   options?: unknown,
-) => boolean | string | Promise<boolean | string>
+) => boolean | string | Promise<boolean | string>;
 
 type Overrides = {
-  slugOverrides?: Partial<TextField>
-  checkboxOverrides?: Partial<CheckboxField>
-}
+  slugOverrides?: Partial<TextField>;
+  checkboxOverrides?: Partial<CheckboxField>;
+};
 
 // Return type is Field[] for compatibility with collection field arrays
-type Slug = (fieldToUse?: Field | string, overrides?: Overrides) => Field[]
+type Slug = (fieldToUse?: Field | string, overrides?: Overrides) => Field[];
 
 export const slugField: Slug = (fieldToUse = 'title', overrides = {}) => {
-  const { slugOverrides = {}, checkboxOverrides = {} } = overrides
+  const { slugOverrides = {}, checkboxOverrides = {} } = overrides;
 
   const checkBoxField: CheckboxField = {
     name: 'slugLock',
@@ -27,7 +27,7 @@ export const slugField: Slug = (fieldToUse = 'title', overrides = {}) => {
       position: 'sidebar',
     },
     ...checkboxOverrides,
-  }
+  };
 
   const slugField: TextField = {
     name: 'slug',
@@ -59,7 +59,7 @@ export const slugField: Slug = (fieldToUse = 'title', overrides = {}) => {
     minLength: 1, // Adjust as necessary
     maxLength: 150, // Adjust as necessary
     ...slugOverrides, // Spread any other overrides
-  }
+  };
 
-  return [slugField, checkBoxField] as Field[]
-}
+  return [slugField, checkBoxField] as Field[];
+};

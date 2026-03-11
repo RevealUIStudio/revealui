@@ -1,35 +1,35 @@
-import Image from 'next/image'
+import Image from 'next/image';
 
-const API_URL = process.env.NEXT_PUBLIC_SERVER_URL || 'http://localhost:4000'
+const API_URL = process.env.NEXT_PUBLIC_SERVER_URL || 'http://localhost:4000';
 
 interface Product {
-  id: string
-  name: string
-  slug: string
-  price: number
-  status: string
-  image?: { url: string; alt?: string } | null
+  id: string;
+  name: string;
+  slug: string;
+  price: number;
+  status: string;
+  image?: { url: string; alt?: string } | null;
 }
 
 function formatPrice(cents: number): string {
-  return `$${(cents / 100).toFixed(2)}`
+  return `$${(cents / 100).toFixed(2)}`;
 }
 
 async function getProducts(): Promise<Product[]> {
   try {
     const res = await fetch(`${API_URL}/api/products?where[status][equals]=active&sort=name`, {
       cache: 'no-store',
-    })
-    if (!res.ok) return []
-    const data = await res.json()
-    return data.docs ?? []
+    });
+    if (!res.ok) return [];
+    const data = await res.json();
+    return data.docs ?? [];
   } catch {
-    return []
+    return [];
   }
 }
 
 export default async function ProductsPage() {
-  const products = await getProducts()
+  const products = await getProducts();
 
   return (
     <main className="mx-auto max-w-4xl px-4 py-16">
@@ -68,5 +68,5 @@ export default async function ProductsPage() {
         </div>
       )}
     </main>
-  )
+  );
 }

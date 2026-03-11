@@ -23,9 +23,9 @@ export const RevealOperators = [
   'less_than',
   'like',
   'near',
-] as const
+] as const;
 
-export type RevealOperator = (typeof RevealOperators)[number]
+export type RevealOperator = (typeof RevealOperators)[number];
 
 // =============================================================================
 // VALUES
@@ -39,9 +39,9 @@ export type RevealValue =
   | null
   | Date
   | RevealValue[]
-  | { [key: string]: RevealValue }
+  | { [key: string]: RevealValue };
 
-export type RevealDataObject = { [key: string]: RevealValue }
+export type RevealDataObject = { [key: string]: RevealValue };
 
 // =============================================================================
 // WHERE CLAUSES
@@ -49,23 +49,23 @@ export type RevealDataObject = { [key: string]: RevealValue }
 
 /** Single field where condition */
 export type RevealWhereField = {
-  [K in RevealOperator]?: RevealValue
-}
+  [K in RevealOperator]?: RevealValue;
+};
 
 /** Complete where clause with and/or support */
 export type RevealWhere =
   | { [key: string]: RevealWhereField }
   | { and: RevealWhere[] }
   | { or: RevealWhere[] }
-  | { and: RevealWhere[]; or: RevealWhere[] }
+  | { and: RevealWhere[]; or: RevealWhere[] };
 
 // =============================================================================
 // SORT & SELECT
 // =============================================================================
 
-export type RevealSort = string | string[]
+export type RevealSort = string | string[];
 
-export type RevealSelect = string[] | { [key: string]: boolean | RevealSelect }
+export type RevealSelect = string[] | { [key: string]: boolean | RevealSelect };
 
 // =============================================================================
 // DOCUMENTS
@@ -73,15 +73,15 @@ export type RevealSelect = string[] | { [key: string]: boolean | RevealSelect }
 
 /** RevealUI's document model */
 export interface RevealDocument {
-  id: string | number
-  [key: string]: RevealValue | undefined
+  id: string | number;
+  [key: string]: RevealValue | undefined;
 }
 
 export interface RevealDocumentWithMeta extends RevealDocument {
-  createdAt?: string
-  updatedAt?: string
+  createdAt?: string;
+  updatedAt?: string;
   // biome-ignore lint/style/useNamingConvention: RevealUI document status field
-  _status?: 'draft' | 'published'
+  _status?: 'draft' | 'published';
 }
 
 // =============================================================================
@@ -89,19 +89,19 @@ export interface RevealDocumentWithMeta extends RevealDocument {
 // =============================================================================
 
 /** Generic document type with ID */
-export type TypeWithID = RevealDocument
+export type TypeWithID = RevealDocument;
 
 /** Populate configuration */
-export type PopulateType = Record<string, string[] | boolean> | boolean
+export type PopulateType = Record<string, string[] | boolean> | boolean;
 
 /** Select configuration */
-export type SelectType = Record<string, boolean | Record<string, boolean>> | string[]
+export type SelectType = Record<string, boolean | Record<string, boolean>> | string[];
 
 /** JSON object type */
-export type JsonObject = Record<string, unknown>
+export type JsonObject = Record<string, unknown>;
 
 /** Where clause alias for CMS compatibility */
-export type WhereClause = Record<string, unknown>
+export type WhereClause = Record<string, unknown>;
 
 // =============================================================================
 // LOCALE & SELECT MODE
@@ -111,14 +111,14 @@ export type WhereClause = Record<string, unknown>
  * Typed fallback locale configuration
  * Used for localization fallback chains
  */
-export type TypedFallbackLocale = string | false | null
+export type TypedFallbackLocale = string | false | null;
 
 /**
  * Select mode for population control
  * - 'include': Include only specified fields
  * - 'exclude': Exclude specified fields
  */
-export type SelectMode = 'include' | 'exclude'
+export type SelectMode = 'include' | 'exclude';
 
 // =============================================================================
 // RELATIONSHIP TYPES
@@ -130,28 +130,28 @@ export type SelectMode = 'include' | 'exclude'
  */
 export interface RelationshipMetadata {
   /** The path/name of this field in the collection */
-  path?: string
+  path?: string;
   /** The field name in the collection */
-  fieldName?: string
+  fieldName?: string;
   /** The collection(s) this field relates to */
-  relationTo: string | string[]
+  relationTo: string | string[];
   /** Whether this field has many relations */
-  hasMany?: boolean
+  hasMany?: boolean;
   /** Max depth for population */
-  maxDepth?: number
+  maxDepth?: number;
   /** Whether the field is localized */
-  localized?: boolean
+  localized?: boolean;
   /** How this relationship is stored in the database */
-  storageType?: 'direct_fk' | 'junction_table' | 'polymorphic'
+  storageType?: 'direct_fk' | 'junction_table' | 'polymorphic';
   /** Foreign key column name */
-  fkColumnName?: string
+  fkColumnName?: string;
   /** Table name for junction tables */
-  tableName?: string
+  tableName?: string;
   /** The name of the field in the collection */
-  collection?: string
+  collection?: string;
   /** Field depth in nested structure */
-  depth?: number
+  depth?: number;
 }
 
 /** Document type alias for CMS compatibility */
-export type Document = RevealDocument
+export type Document = RevealDocument;

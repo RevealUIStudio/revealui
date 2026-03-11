@@ -1,12 +1,12 @@
-import type React from 'react'
-import { cn } from '../utils/cn.js'
+import type React from 'react';
+import { cn } from '../utils/cn.js';
 
 export interface TextProps extends React.HTMLAttributes<HTMLParagraphElement> {
-  as?: 'p' | 'span' | 'div'
-  size?: 'xs' | 'sm' | 'base' | 'lg' | 'xl' | '2xl'
-  weight?: 'normal' | 'medium' | 'semibold' | 'bold'
-  color?: 'default' | 'muted' | 'primary' | 'secondary' | 'destructive'
-  ref?: React.Ref<HTMLParagraphElement>
+  as?: 'p' | 'span' | 'div';
+  size?: 'xs' | 'sm' | 'base' | 'lg' | 'xl' | '2xl';
+  weight?: 'normal' | 'medium' | 'semibold' | 'bold';
+  color?: 'default' | 'muted' | 'primary' | 'secondary' | 'destructive';
+  ref?: React.Ref<HTMLParagraphElement>;
 }
 
 /**
@@ -37,9 +37,9 @@ function Text({
     color === 'secondary' && 'text-secondary-foreground',
     color === 'destructive' && 'text-destructive',
     className,
-  )
+  );
 
-  return <Component ref={ref} className={textClasses} {...props} />
+  return <Component ref={ref} className={textClasses} {...props} />;
 }
 
-export { Text }
+export { Text };

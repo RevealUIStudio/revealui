@@ -23,20 +23,20 @@
  *   pnpm validate:env
  */
 
-import { dirname, resolve } from 'node:path'
-import { fileURLToPath } from 'node:url'
-import { config } from 'dotenv'
-import { ErrorCode } from '../lib/errors.js'
-import { createLogger } from '../lib/logger.js'
-import { getProjectRoot } from '../lib/paths.js'
+import { dirname, resolve } from 'node:path';
+import { fileURLToPath } from 'node:url';
+import { config } from 'dotenv';
+import { ErrorCode } from '../lib/errors.js';
+import { createLogger } from '../lib/logger.js';
+import { getProjectRoot } from '../lib/paths.js';
 
-const logger = createLogger()
+const logger = createLogger();
 
-const __filename = fileURLToPath(import.meta.url)
-const __dirname = dirname(__filename)
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = dirname(__filename);
 
 // Load environment variables from project root
-config({ path: resolve(__dirname, '../../.env.development.local') })
+config({ path: resolve(__dirname, '../../.env.development.local') });
 
 // Required variables (must be present)
 const required: string[] = [
@@ -48,7 +48,7 @@ const required: string[] = [
   'STRIPE_SECRET_KEY',
   'STRIPE_WEBHOOK_SECRET',
   'NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY',
-]
+];
 
 // Optional variables (documented but not required)
 const optional: string[] = [
@@ -69,147 +69,149 @@ const optional: string[] = [
   'SUPABASE_SERVICE_ROLE_KEY',
   'STRIPE_PROXY',
   'SKIP_ONINIT',
-]
+];
 
 // Naming convention patterns
 const namingConventions = {
   revealUI: /^REVEALUI_/, // RevealUI-specific server-side variables
   nextPublic: /^NEXT_PUBLIC_/, // Next.js client-side variables
   standard: /^(STRIPE_|BLOB_|SENTRY_|SUPABASE_|NEON_|ELECTRIC_|SKIP_|NODE_)/, // Standard third-party prefixes
-}
+};
 
 async function validateEnvironment() {
   try {
-    await getProjectRoot(import.meta.url)
-    logger.header('Environment Variable Validation')
+    await getProjectRoot(import.meta.url);
+    logger.header('Environment Variable Validation');
 
     // Check required variables
-    const missing: string[] = []
-    const present: string[] = []
-    const warnings: string[] = []
+    const missing: string[] = [];
+    const present: string[] = [];
+    const warnings: string[] = [];
 
     required.forEach((key) => {
       // Special handling for POSTGRES_URL - also check DATABASE_URL as fallback
       if (key === 'POSTGRES_URL') {
         if (!(process.env.POSTGRES_URL || process.env.DATABASE_URL)) {
-          missing.push(key)
+          missing.push(key);
         } else {
-          present.push(key)
+          present.push(key);
           // Warn if using DATABASE_URL instead of POSTGRES_URL
           if (process.env.DATABASE_URL && !process.env.POSTGRES_URL) {
             warnings.push(
               '⚠️  Using DATABASE_URL instead of POSTGRES_URL (consider standardizing to POSTGRES_URL)',
-            )
+            );
           }
         }
       } else if (!process.env[key]) {
-        missing.push(key)
+        missing.push(key);
       } else {
-        present.push(key)
+        present.push(key);
       }
-    })
+    });
 
     // Check for deprecated variables
     if (process.env.REVEALUI_WHITELISTORIGINS && !process.env.REVEALUI_CORS_ORIGINS) {
-      warnings.push('⚠️  REVEALUI_WHITELISTORIGINS is deprecated, use REVEALUI_CORS_ORIGINS instead')
+      warnings.push(
+        '⚠️  REVEALUI_WHITELISTORIGINS is deprecated, use REVEALUI_CORS_ORIGINS instead',
+      );
     }
 
     // Check naming conventions for all env vars
-    const allEnvVars = Object.keys(process.env)
+    const allEnvVars = Object.keys(process.env);
     const nonStandardVars = allEnvVars.filter((key) => {
       // Skip Node.js built-in vars
-      if (key.startsWith('npm_') || key.startsWith('NPM_')) return false
-      if (key === 'NODE_ENV' || key === 'NODE_OPTIONS') return false
-      if (key === 'PATH' || key === 'HOME' || key === 'USER') return false
+      if (key.startsWith('npm_') || key.startsWith('NPM_')) return false;
+      if (key === 'NODE_ENV' || key === 'NODE_OPTIONS') return false;
+      if (key === 'PATH' || key === 'HOME' || key === 'USER') return false;
 
       // Check if it follows any naming convention
       const followsConvention =
         namingConventions.revealUI.test(key) ||
         namingConventions.nextPublic.test(key) ||
-        namingConventions.standard.test(key)
+        namingConventions.standard.test(key);
 
-      return !followsConvention
-    })
+      return !followsConvention;
+    });
 
     if (nonStandardVars.length > 0) {
       warnings.push(
         `⚠️  Non-standard variable names found (consider using REVEALUI_* or NEXT_PUBLIC_* prefixes): ${nonStandardVars.join(', ')}`,
-      )
+      );
     }
 
     // Display results
     if (present.length > 0) {
-      logger.success('Required Variables Present:')
+      logger.success('Required Variables Present:');
       present.forEach((key) => {
-        const value = process.env[key] || process.env.DATABASE_URL // For POSTGRES_URL fallback
+        const value = process.env[key] || process.env.DATABASE_URL; // For POSTGRES_URL fallback
         const masked =
           key.includes('SECRET') || key.includes('TOKEN') || key.includes('PASSWORD')
             ? `${value?.substring(0, 10)}...`
-            : value?.substring(0, 50)
-        logger.info(`   ${key}: ${masked}`)
-      })
-      logger.info('')
+            : value?.substring(0, 50);
+        logger.info(`   ${key}: ${masked}`);
+      });
+      logger.info('');
     }
 
     // Show optional variables that are set
-    const optionalPresent = optional.filter((key) => process.env[key])
+    const optionalPresent = optional.filter((key) => process.env[key]);
     if (optionalPresent.length > 0) {
-      logger.info('ℹ️  Optional Variables Present:')
+      logger.info('ℹ️  Optional Variables Present:');
       optionalPresent.forEach((key) => {
-        const value = process.env[key]
+        const value = process.env[key];
         const masked =
           key.includes('SECRET') ||
           key.includes('TOKEN') ||
           key.includes('PASSWORD') ||
           key.includes('KEY')
             ? `${value?.substring(0, 10)}...`
-            : value?.substring(0, 50)
-        logger.info(`   ${key}: ${masked}`)
-      })
-      logger.info('')
+            : value?.substring(0, 50);
+        logger.info(`   ${key}: ${masked}`);
+      });
+      logger.info('');
     }
 
     if (missing.length > 0) {
-      logger.error('Missing Required Variables:')
+      logger.error('Missing Required Variables:');
       missing.forEach((key) => {
-        logger.error(`   ${key}`)
-      })
-      logger.error('\n❌ Environment validation FAILED\n')
-      logger.info('💡 Fix:')
-      logger.info('   1. Copy .env.template to .env.development.local')
-      logger.info('   2. Fill in all required values')
-      logger.info('   3. Run this script again\n')
-      process.exit(ErrorCode.CONFIG_ERROR)
+        logger.error(`   ${key}`);
+      });
+      logger.error('\n❌ Environment validation FAILED\n');
+      logger.info('💡 Fix:');
+      logger.info('   1. Copy .env.template to .env.development.local');
+      logger.info('   2. Fill in all required values');
+      logger.info('   3. Run this script again\n');
+      process.exit(ErrorCode.CONFIG_ERROR);
     }
 
     // Validate specific formats
-    logger.info('🔍 Validating Formats...\n')
+    logger.info('🔍 Validating Formats...\n');
 
     // Check REVEALUI_SECRET length
     if (process.env.REVEALUI_SECRET && process.env.REVEALUI_SECRET.length < 32) {
-      warnings.push('⚠️  REVEALUI_SECRET should be at least 32 characters')
+      warnings.push('⚠️  REVEALUI_SECRET should be at least 32 characters');
     }
 
     // Check URLs have protocol
-    const urlVars = ['REVEALUI_PUBLIC_SERVER_URL', 'NEXT_PUBLIC_SERVER_URL']
+    const urlVars = ['REVEALUI_PUBLIC_SERVER_URL', 'NEXT_PUBLIC_SERVER_URL'];
     urlVars.forEach((key) => {
-      const url = process.env[key]
+      const url = process.env[key];
       if (url && !url.startsWith('http://') && !url.startsWith('https://')) {
-        warnings.push(`⚠️  ${key} should start with http:// or https://`)
+        warnings.push(`⚠️  ${key} should start with http:// or https://`);
       }
-    })
+    });
 
     // Check that server URLs match
     if (process.env.REVEALUI_PUBLIC_SERVER_URL && process.env.NEXT_PUBLIC_SERVER_URL) {
       if (process.env.REVEALUI_PUBLIC_SERVER_URL !== process.env.NEXT_PUBLIC_SERVER_URL) {
-        warnings.push('⚠️  REVEALUI_PUBLIC_SERVER_URL and NEXT_PUBLIC_SERVER_URL should match')
+        warnings.push('⚠️  REVEALUI_PUBLIC_SERVER_URL and NEXT_PUBLIC_SERVER_URL should match');
       }
     }
 
     // Check POSTGRES_URL format
-    const dbUrl = process.env.POSTGRES_URL || process.env.DATABASE_URL
+    const dbUrl = process.env.POSTGRES_URL || process.env.DATABASE_URL;
     if (dbUrl && !dbUrl.startsWith('postgresql://') && !dbUrl.startsWith('postgres://')) {
-      warnings.push('⚠️  POSTGRES_URL should start with postgresql:// or postgres://')
+      warnings.push('⚠️  POSTGRES_URL should start with postgresql:// or postgres://');
     }
 
     // Check Stripe test mode in development
@@ -217,7 +219,7 @@ async function validateEnvironment() {
       if (process.env.STRIPE_SECRET_KEY && !process.env.STRIPE_SECRET_KEY.includes('test')) {
         warnings.push(
           '⚠️  Using LIVE Stripe key in development! Use test keys (sk_test_...) for local dev',
-        )
+        );
       }
       if (
         process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY &&
@@ -225,7 +227,7 @@ async function validateEnvironment() {
       ) {
         warnings.push(
           '⚠️  Using LIVE Stripe publishable key in development! Use test keys (pk_test_...) for local dev',
-        )
+        );
       }
     }
 
@@ -235,45 +237,45 @@ async function validateEnvironment() {
         process.env.REVEALUI_PUBLIC_SERVER_URL &&
         !process.env.REVEALUI_PUBLIC_SERVER_URL.startsWith('https://')
       ) {
-        logger.error('ERROR: Production REVEALUI_PUBLIC_SERVER_URL must use HTTPS')
-        process.exit(ErrorCode.CONFIG_ERROR)
+        logger.error('ERROR: Production REVEALUI_PUBLIC_SERVER_URL must use HTTPS');
+        process.exit(ErrorCode.CONFIG_ERROR);
       }
       if (process.env.STRIPE_SECRET_KEY?.includes('test')) {
         warnings.push(
           '⚠️  Using TEST Stripe key in production! Use live keys (sk_live_...) for production',
-        )
+        );
       }
     }
 
     // Display warnings
     if (warnings.length > 0) {
-      logger.warning('Warnings:')
+      logger.warning('Warnings:');
       warnings.forEach((warning) => {
-        logger.warning(`   ${warning}`)
-      })
-      logger.info('')
+        logger.warning(`   ${warning}`);
+      });
+      logger.info('');
     }
 
-    logger.success('All format validations passed\n')
+    logger.success('All format validations passed\n');
 
     // Summary
-    logger.header('Environment Validation Successful')
-    logger.info(`   Required Variables: ${present.length}/${required.length} present`)
-    logger.info(`   Optional Variables: ${optionalPresent.length}/${optional.length} present`)
-    logger.info(`   Environment: ${process.env.NODE_ENV || 'development'}`)
+    logger.header('Environment Validation Successful');
+    logger.info(`   Required Variables: ${present.length}/${required.length} present`);
+    logger.info(`   Optional Variables: ${optionalPresent.length}/${optional.length} present`);
+    logger.info(`   Environment: ${process.env.NODE_ENV || 'development'}`);
     if (warnings.length > 0) {
-      logger.info(`   Warnings: ${warnings.length}`)
+      logger.info(`   Warnings: ${warnings.length}`);
     }
-    logger.info('')
-    logger.success('🚀 Ready to start development!')
-    logger.info('')
-    logger.info('💡 Tip: See .env.template for all available variables and documentation\n')
+    logger.info('');
+    logger.success('🚀 Ready to start development!');
+    logger.info('');
+    logger.info('💡 Tip: See .env.template for all available variables and documentation\n');
   } catch (error) {
-    logger.error(`Script failed: ${error instanceof Error ? error.message : String(error)}`)
+    logger.error(`Script failed: ${error instanceof Error ? error.message : String(error)}`);
     if (error instanceof Error && error.stack) {
-      logger.error(`Stack trace: ${error.stack}`)
+      logger.error(`Stack trace: ${error.stack}`);
     }
-    process.exit(ErrorCode.EXECUTION_ERROR)
+    process.exit(ErrorCode.EXECUTION_ERROR);
   }
 }
 
@@ -282,11 +284,11 @@ async function validateEnvironment() {
  */
 async function main() {
   try {
-    await validateEnvironment()
+    await validateEnvironment();
   } catch (error) {
-    logger.error(`Script failed: ${error instanceof Error ? error.message : String(error)}`)
-    process.exit(ErrorCode.EXECUTION_ERROR)
+    logger.error(`Script failed: ${error instanceof Error ? error.message : String(error)}`);
+    process.exit(ErrorCode.EXECUTION_ERROR);
   }
 }
 
-main()
+main();

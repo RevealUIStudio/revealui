@@ -5,41 +5,41 @@
  * Falls back to logging in development.
  */
 
-import { logger } from '@revealui/core/observability/logger'
+import { logger } from '@revealui/core/observability/logger';
 
 interface EmailOptions {
-  to: string
-  subject: string
-  html: string
-  text?: string
+  to: string;
+  subject: string;
+  html: string;
+  text?: string;
 }
 
 function sanitizeEmailHeader(value: string): string {
   // Strip CR and LF to prevent header injection via to/subject fields
-  return value.replace(/[\r\n]/g, '')
+  return value.replace(/[\r\n]/g, '');
 }
 
 export async function sendEmail(options: EmailOptions): Promise<void> {
-  const apiKey = process.env.RESEND_API_KEY
-  const fromEmail = process.env.RESEND_FROM_EMAIL ?? process.env.EMAIL_FROM
+  const apiKey = process.env.RESEND_API_KEY;
+  const fromEmail = process.env.RESEND_FROM_EMAIL ?? process.env.EMAIL_FROM;
   if (!fromEmail && process.env.NODE_ENV !== 'development') {
-    logger.warn('RESEND_FROM_EMAIL is not set — emails will use noreply@revealui.com as sender')
+    logger.warn('RESEND_FROM_EMAIL is not set — emails will use noreply@revealui.com as sender');
   }
-  const resolvedFrom = fromEmail ?? 'noreply@revealui.com'
+  const resolvedFrom = fromEmail ?? 'noreply@revealui.com';
 
   if (!apiKey) {
     if (process.env.NODE_ENV === 'development') {
       logger.debug('Mock email sent (no RESEND_API_KEY)', {
         to: options.to,
         subject: options.subject,
-      })
-      return
+      });
+      return;
     }
     logger.warn('Email not sent — RESEND_API_KEY not configured', {
       to: options.to,
       subject: options.subject,
-    })
-    return
+    });
+    return;
   }
 
   const response = await fetch('https://api.resend.com/emails', {
@@ -56,10 +56,10 @@ export async function sendEmail(options: EmailOptions): Promise<void> {
       html: options.html,
       text: options.text,
     }),
-  })
+  });
 
   if (!response.ok) {
-    const body = await response.text()
-    throw new Error(`Resend API error (${response.status}): ${body}`)
+    const body = await response.text();
+    throw new Error(`Resend API error (${response.status}): ${body}`);
   }
 }

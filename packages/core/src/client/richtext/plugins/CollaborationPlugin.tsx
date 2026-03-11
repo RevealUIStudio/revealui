@@ -1,18 +1,18 @@
-'use client'
+'use client';
 
-import { CollaborationPlugin as LexicalCollaborationPlugin } from '@lexical/react/LexicalCollaborationPlugin'
-import type { Provider } from '@lexical/yjs'
-import { useRef } from 'react'
-import type { Doc } from 'yjs'
+import { CollaborationPlugin as LexicalCollaborationPlugin } from '@lexical/react/LexicalCollaborationPlugin';
+import type { Provider } from '@lexical/yjs';
+import { useRef } from 'react';
+import type { Doc } from 'yjs';
 
 export interface CollaborationPluginProps {
-  id: string
-  providerFactory: (id: string, yjsDocMap: Map<string, Doc>) => Provider
-  shouldBootstrap: boolean
-  username?: string
-  cursorColor?: string
-  clientType?: 'human' | 'agent'
-  agentModel?: string
+  id: string;
+  providerFactory: (id: string, yjsDocMap: Map<string, Doc>) => Provider;
+  shouldBootstrap: boolean;
+  username?: string;
+  cursorColor?: string;
+  clientType?: 'human' | 'agent';
+  agentModel?: string;
 }
 
 export function CollaborationPlugin({
@@ -24,7 +24,7 @@ export function CollaborationPlugin({
   clientType = 'human',
   agentModel,
 }: CollaborationPluginProps) {
-  const cursorsContainerRef = useRef<HTMLDivElement>(null)
+  const cursorsContainerRef = useRef<HTMLDivElement>(null);
 
   return (
     <>
@@ -39,5 +39,5 @@ export function CollaborationPlugin({
       />
       <div ref={cursorsContainerRef} className="collab-cursors-container" />
     </>
-  )
+  );
 }

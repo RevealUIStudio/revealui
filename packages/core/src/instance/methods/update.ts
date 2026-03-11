@@ -4,39 +4,39 @@
  * Updates an existing document in a collection with hook handling.
  */
 
-import type { RevealRequest as ContractsRevealRequest } from '@revealui/contracts/cms'
-import type { RevealDocument, RevealUIInstance, RevealUpdateOptions } from '../../types/index.js'
-import { callHooks } from './hooks.js'
+import type { RevealRequest as ContractsRevealRequest } from '@revealui/contracts/cms';
+import type { RevealDocument, RevealUIInstance, RevealUpdateOptions } from '../../types/index.js';
+import { callHooks } from './hooks.js';
 
 export async function update(
   instance: RevealUIInstance,
   ensureDbConnected: () => Promise<void>,
   options: RevealUpdateOptions & { collection: string },
 ): Promise<RevealDocument> {
-  await ensureDbConnected()
-  const { collection, req } = options
+  await ensureDbConnected();
+  const { collection, req } = options;
 
   if (!instance.collections[collection]) {
-    throw new Error(`Collection '${collection}' not found`)
+    throw new Error(`Collection '${collection}' not found`);
   }
 
-  const collectionConfig = instance.config.collections?.find((c) => c.slug === collection)
+  const collectionConfig = instance.config.collections?.find((c) => c.slug === collection);
 
   // Enforce collection-level access control
   if (collectionConfig?.access?.update && options.req) {
     const canUpdate = await collectionConfig.access.update({
       req: options.req as unknown as ContractsRevealRequest,
       id: options.id,
-    })
+    });
     if (!canUpdate) {
-      throw new Error('Access denied: you do not have permission to update in this collection')
+      throw new Error('Access denied: you do not have permission to update in this collection');
     }
   }
 
   const previousDoc = await instance.collections[collection].findByID({
     id: options.id,
-  })
-  let doc = await instance.collections[collection].update(options)
+  });
+  let doc = await instance.collections[collection].update(options);
 
   // Call afterChange hooks
   if (collectionConfig?.hooks?.afterChange && req) {
@@ -53,8 +53,8 @@ export async function update(
         },
       },
       instance,
-    )
+    );
   }
 
-  return doc
+  return doc;
 }

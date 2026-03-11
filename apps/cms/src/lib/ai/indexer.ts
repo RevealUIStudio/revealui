@@ -11,43 +11,43 @@
  * when the package is not installed.
  */
 
-import { getRestClient } from '@revealui/db/client'
+import { getRestClient } from '@revealui/db/client';
 
 let indexerInstance: {
   onDocumentChanged: (event: {
-    collection: string
-    id: string
-    operation: 'create' | 'update' | 'delete'
-    doc?: Record<string, unknown>
-    workspaceId?: string
-  }) => Promise<void>
-} | null = null
+    collection: string;
+    id: string;
+    operation: 'create' | 'update' | 'delete';
+    doc?: Record<string, unknown>;
+    workspaceId?: string;
+  }) => Promise<void>;
+} | null = null;
 
 async function getIndexer(): Promise<typeof indexerInstance> {
-  if (indexerInstance) return indexerInstance
+  if (indexerInstance) return indexerInstance;
 
   const [embeddingsMod, ingestionMod] = await Promise.all([
     import('@revealui/ai/embeddings').catch(() => null),
     import('@revealui/ai/ingestion').catch(() => null),
-  ])
+  ]);
 
-  if (!(embeddingsMod && ingestionMod)) return null
+  if (!(embeddingsMod && ingestionMod)) return null;
 
-  const db = getRestClient()
+  const db = getRestClient();
   const embeddingFn = async (text: string): Promise<number[]> => {
-    const result = await embeddingsMod.generateEmbedding(text)
-    return result.vector
-  }
+    const result = await embeddingsMod.generateEmbedding(text);
+    return result.vector;
+  };
 
-  const pipeline = new ingestionMod.IngestionPipeline(db, embeddingFn)
+  const pipeline = new ingestionMod.IngestionPipeline(db, embeddingFn);
 
   indexerInstance = new ingestionMod.CmsIndexer({
     ingestionPipeline: pipeline,
     enabledCollections: ['posts', 'pages'],
     defaultWorkspaceId: process.env.DEFAULT_WORKSPACE_ID ?? 'default',
-  })
+  });
 
-  return indexerInstance
+  return indexerInstance;
 }
 
-export { getIndexer }
+export { getIndexer };

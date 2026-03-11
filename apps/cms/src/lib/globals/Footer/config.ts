@@ -1,6 +1,6 @@
-import type { GlobalConfig } from '@revealui/core'
-import { link } from '@/lib/fields/link'
-import { revalidateFooter } from './hooks/revalidateFooter'
+import type { GlobalConfig } from '@revealui/core';
+import { link } from '@/lib/fields/link';
+import { revalidateFooter } from './hooks/revalidateFooter';
 
 export const Footer: GlobalConfig = {
   slug: 'footer',
@@ -23,4 +23,4 @@ export const Footer: GlobalConfig = {
     // @ts-expect-error - Hook signatures are flexible and runtime-compatible
     afterChange: [revalidateFooter],
   },
-}
+};

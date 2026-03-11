@@ -7,8 +7,12 @@
  * @module @revealui/contracts/actions
  */
 
-import type { AgentDefinition } from '@revealui/contracts/agents'
-import type { AgentActionDefinition, AgentConstraint, DualEntity } from '../representation/index.js'
+import type { AgentDefinition } from '@revealui/contracts/agents';
+import type {
+  AgentActionDefinition,
+  AgentConstraint,
+  DualEntity,
+} from '../representation/index.js';
 
 // =============================================================================
 // Types
@@ -16,44 +20,44 @@ import type { AgentActionDefinition, AgentConstraint, DualEntity } from '../repr
 
 export interface ActionValidationContext {
   /** The entity being acted upon */
-  entity: DualEntity
+  entity: DualEntity;
 
   /** The action name (e.g., 'update', 'delete', 'addBlock') */
-  action: string
+  action: string;
 
   /** The agent attempting the action */
-  agent: AgentDefinition
+  agent: AgentDefinition;
 
   /** Proposed changes (for update/create actions) */
-  changes?: Record<string, unknown>
+  changes?: Record<string, unknown>;
 
   /** User permissions (for permission-based constraints) */
-  permissions?: string[]
+  permissions?: string[];
 
   /** Additional context */
-  context?: Record<string, unknown>
+  context?: Record<string, unknown>;
 }
 
 export interface ActionValidationSuccess {
-  success: true
-  allowed: true
-  warnings?: string[]
+  success: true;
+  allowed: true;
+  warnings?: string[];
 }
 
 export interface ActionValidationFailure {
-  success: false
-  allowed: false
-  errors: ActionValidationError[]
+  success: false;
+  allowed: false;
+  errors: ActionValidationError[];
 }
 
 export interface ActionValidationError {
-  code: string
-  message: string
-  field?: string
-  constraint?: AgentConstraint
+  code: string;
+  message: string;
+  field?: string;
+  constraint?: AgentConstraint;
 }
 
-export type ActionValidationResult = ActionValidationSuccess | ActionValidationFailure
+export type ActionValidationResult = ActionValidationSuccess | ActionValidationFailure;
 
 // =============================================================================
 // Constraint Checking
@@ -66,23 +70,23 @@ function checkConstraints(
   entity: DualEntity,
   changes: Record<string, unknown> | undefined,
 ): ActionValidationResult {
-  if (!changes) return { success: true, allowed: true }
+  if (!changes) return { success: true, allowed: true };
 
-  const constraints = entity.agent?.constraints || []
-  const errors: ActionValidationError[] = []
+  const constraints = entity.agent?.constraints || [];
+  const errors: ActionValidationError[] = [];
 
   for (const constraint of constraints) {
-    const result = checkSingleConstraint(constraint, entity, changes)
+    const result = checkSingleConstraint(constraint, entity, changes);
     if (!result.allowed) {
-      errors.push(...result.errors)
+      errors.push(...result.errors);
     }
   }
 
   if (errors.length > 0) {
-    return { success: false, allowed: false, errors }
+    return { success: false, allowed: false, errors };
   }
 
-  return { success: true, allowed: true }
+  return { success: true, allowed: true };
 }
 
 /**
@@ -93,14 +97,14 @@ function checkSingleConstraint(
   entity: DualEntity,
   changes: Record<string, unknown>,
 ): ActionValidationResult {
-  const { type, field, params, message } = constraint
+  const { type, field, params, message } = constraint;
 
   // If constraint applies to a specific field, only check if that field is changing
   if (field && !(field in changes)) {
-    return { success: true, allowed: true }
+    return { success: true, allowed: true };
   }
 
-  const value = field ? changes[field] : changes
+  const value = field ? changes[field] : changes;
 
   switch (type) {
     case 'readonly':
@@ -116,9 +120,9 @@ function checkSingleConstraint(
               constraint,
             },
           ],
-        }
+        };
       }
-      break
+      break;
 
     case 'required':
       if (field && (!value || value === '')) {
@@ -133,13 +137,13 @@ function checkSingleConstraint(
               constraint,
             },
           ],
-        }
+        };
       }
-      break
+      break;
 
     case 'immutable': {
       // Check if field already has a value (immutable after creation)
-      const currentValue = field ? (entity as Record<string, unknown>)[field] : entity
+      const currentValue = field ? (entity as Record<string, unknown>)[field] : entity;
       if (currentValue !== undefined && value !== currentValue) {
         return {
           success: false,
@@ -152,15 +156,15 @@ function checkSingleConstraint(
               constraint,
             },
           ],
-        }
+        };
       }
-      break
+      break;
     }
 
     case 'range':
       if (typeof value === 'number' && params) {
-        const min = params.min as number | undefined
-        const max = params.max as number | undefined
+        const min = params.min as number | undefined;
+        const max = params.max as number | undefined;
         if ((min !== undefined && value < min) || (max !== undefined && value > max)) {
           return {
             success: false,
@@ -173,16 +177,16 @@ function checkSingleConstraint(
                 constraint,
               },
             ],
-          }
+          };
         }
       }
-      break
+      break;
 
     case 'pattern': {
       if (typeof value === 'string') {
-        const pattern = typeof params?.pattern === 'string' ? params.pattern : null
+        const pattern = typeof params?.pattern === 'string' ? params.pattern : null;
         if (pattern) {
-          const regex = new RegExp(pattern)
+          const regex = new RegExp(pattern);
           if (!regex.test(value)) {
             return {
               success: false,
@@ -195,24 +199,24 @@ function checkSingleConstraint(
                   constraint,
                 },
               ],
-            }
+            };
           }
         }
       }
-      break
+      break;
     }
 
     case 'capability':
       // Handled separately in checkCapabilities
-      break
+      break;
 
     case 'permission':
       // Handled separately in checkPermissions
-      break
+      break;
 
     case 'custom': {
       // Custom constraint logic would be evaluated here
-      const validator = params?.validator
+      const validator = params?.validator;
       if (typeof validator === 'function') {
         const customResult = (
           validator as (
@@ -220,7 +224,7 @@ function checkSingleConstraint(
             entity: DualEntity,
             changes: Record<string, unknown>,
           ) => boolean
-        )(value, entity, changes)
+        )(value, entity, changes);
         if (!customResult) {
           return {
             success: false,
@@ -233,14 +237,14 @@ function checkSingleConstraint(
                 constraint,
               },
             ],
-          }
+          };
         }
       }
-      break
+      break;
     }
   }
 
-  return { success: true, allowed: true }
+  return { success: true, allowed: true };
 }
 
 // =============================================================================
@@ -254,8 +258,8 @@ function checkCapabilities(
   agent: AgentDefinition,
   requiredCapabilities: string[],
 ): ActionValidationResult {
-  const agentCapabilities = agent.capabilities || []
-  const missing = requiredCapabilities.filter((cap: string) => !agentCapabilities.includes(cap))
+  const agentCapabilities = agent.capabilities || [];
+  const missing = requiredCapabilities.filter((cap: string) => !agentCapabilities.includes(cap));
 
   if (missing.length > 0) {
     return {
@@ -267,10 +271,10 @@ function checkCapabilities(
           message: `Agent missing required capabilities: ${missing.join(', ')}`,
         },
       ],
-    }
+    };
   }
 
-  return { success: true, allowed: true }
+  return { success: true, allowed: true };
 }
 
 // =============================================================================
@@ -287,10 +291,10 @@ function checkPermissions(
   // If action doesn't require permissions, allow it
   const requiredPermissions = actionDef.requiredCapabilities
     ?.filter((cap: string) => cap.startsWith('permission:'))
-    .map((cap: string) => cap.replace('permission:', ''))
+    .map((cap: string) => cap.replace('permission:', ''));
 
   if (!requiredPermissions || requiredPermissions.length === 0) {
-    return { success: true, allowed: true }
+    return { success: true, allowed: true };
   }
 
   if (!permissions || permissions.length === 0) {
@@ -303,10 +307,10 @@ function checkPermissions(
           message: `Action requires permissions: ${requiredPermissions.join(', ')}`,
         },
       ],
-    }
+    };
   }
 
-  const missing = requiredPermissions.filter((perm: string) => !permissions.includes(perm))
+  const missing = requiredPermissions.filter((perm: string) => !permissions.includes(perm));
 
   if (missing.length > 0) {
     return {
@@ -318,10 +322,10 @@ function checkPermissions(
           message: `Missing permissions: ${missing.join(', ')}`,
         },
       ],
-    }
+    };
   }
 
-  return { success: true, allowed: true }
+  return { success: true, allowed: true };
 }
 
 // =============================================================================
@@ -334,10 +338,10 @@ function checkPermissions(
  * This is the main entry point for action validation in @revealui/contracts/actions
  */
 export function validateAction(context: ActionValidationContext): ActionValidationResult {
-  const { entity, action, agent, changes, permissions } = context
+  const { entity, action, agent, changes, permissions } = context;
 
   // 1. Check if action is defined on entity
-  const actionDef = entity.agent?.actions?.find((a: AgentActionDefinition) => a.name === action)
+  const actionDef = entity.agent?.actions?.find((a: AgentActionDefinition) => a.name === action);
   if (!actionDef) {
     return {
       success: false,
@@ -348,7 +352,7 @@ export function validateAction(context: ActionValidationContext): ActionValidati
           message: `Action '${action}' is not available on this entity`,
         },
       ],
-    }
+    };
   }
 
   // 2. Check if action is destructive and requires confirmation
@@ -362,29 +366,29 @@ export function validateAction(context: ActionValidationContext): ActionValidati
           message: `Action '${action}' is destructive and requires confirmation`,
         },
       ],
-    }
+    };
   }
 
   // 3. Check constraints
-  const constraintResult = checkConstraints(entity, changes)
+  const constraintResult = checkConstraints(entity, changes);
   if (!constraintResult.success) {
-    return constraintResult
+    return constraintResult;
   }
 
   // 4. Check capabilities
   if (actionDef.requiredCapabilities) {
-    const capabilityResult = checkCapabilities(agent, actionDef.requiredCapabilities)
+    const capabilityResult = checkCapabilities(agent, actionDef.requiredCapabilities);
     if (!capabilityResult.success) {
-      return capabilityResult
+      return capabilityResult;
     }
   }
 
   // 5. Check permissions
-  const permissionResult = checkPermissions(permissions, actionDef)
+  const permissionResult = checkPermissions(permissions, actionDef);
   if (!permissionResult.success) {
-    return permissionResult
+    return permissionResult;
   }
 
   // All checks passed
-  return { success: true, allowed: true }
+  return { success: true, allowed: true };
 }

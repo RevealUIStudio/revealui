@@ -1,4 +1,4 @@
-'use client'
+'use client';
 
 /**
  * RevealUI Rich Text Editor - Image Node
@@ -13,56 +13,56 @@ import type {
   LexicalNode,
   NodeKey,
   Spread,
-} from 'lexical'
-import { $applyNodeReplacement, createCommand } from 'lexical'
-import * as React from 'react'
-import { DecoratorBlockNode, type SerializedDecoratorBlockNode } from './DecoratorBlockNode.js'
+} from 'lexical';
+import { $applyNodeReplacement, createCommand } from 'lexical';
+import * as React from 'react';
+import { DecoratorBlockNode, type SerializedDecoratorBlockNode } from './DecoratorBlockNode.js';
 
 const ImageComponent = React.lazy(() =>
   import('../components/ImageNodeComponent.js').then((module) => ({
     default: module.ImageNodeComponent,
   })),
-)
+);
 
 export type ImageNodeData = {
-  src: string
-  alt?: string
-  width?: number
-  height?: number
-  caption?: string
-}
+  src: string;
+  alt?: string;
+  width?: number;
+  height?: number;
+  caption?: string;
+};
 
 export type SerializedImageNode = Spread<
   {
-    children?: never
-    type: 'image'
-    fields: ImageNodeData
+    children?: never;
+    type: 'image';
+    fields: ImageNodeData;
   },
   SerializedDecoratorBlockNode
->
+>;
 
 export const INSERT_IMAGE_COMMAND: LexicalCommand<ImageNodeData> =
-  createCommand('INSERT_IMAGE_COMMAND')
+  createCommand('INSERT_IMAGE_COMMAND');
 
 export const OPEN_IMAGE_UPLOAD_COMMAND: LexicalCommand<{
-  data?: ImageNodeData | null
-  nodeKey?: string
-}> = createCommand('OPEN_IMAGE_UPLOAD_COMMAND')
+  data?: ImageNodeData | null;
+  nodeKey?: string;
+}> = createCommand('OPEN_IMAGE_UPLOAD_COMMAND');
 
 export class ImageNode extends DecoratorBlockNode {
-  __data: ImageNodeData
+  __data: ImageNodeData;
 
   constructor({
     data,
     format,
     key,
   }: {
-    data: ImageNodeData
-    format?: ElementFormatType
-    key?: NodeKey
+    data: ImageNodeData;
+    format?: ElementFormatType;
+    key?: NodeKey;
   }) {
-    super(format, key)
-    this.__data = data
+    super(format, key);
+    this.__data = data;
   }
 
   static clone(node: ImageNode): ImageNode {
@@ -70,11 +70,11 @@ export class ImageNode extends DecoratorBlockNode {
       data: node.__data,
       format: node.__format,
       key: node.__key,
-    })
+    });
   }
 
   static getType(): string {
-    return 'image'
+    return 'image';
   }
 
   /**
@@ -87,39 +87,39 @@ export class ImageNode extends DecoratorBlockNode {
       width: serializedNode.fields.width,
       height: serializedNode.fields.height,
       caption: serializedNode.fields.caption,
-    }
-    const node = $createImageNode(importedData)
-    node.setFormat(serializedNode.format)
-    return node
+    };
+    const node = $createImageNode(importedData);
+    node.setFormat(serializedNode.format);
+    return node;
   }
 
   /**
    * Render React component for the image
    */
   decorate(): React.ReactElement {
-    return <ImageComponent nodeKey={this.__key} data={this.__data} />
+    return <ImageComponent nodeKey={this.__key} data={this.__data} />;
   }
 
   exportDOM(): DOMExportOutput {
-    const img = document.createElement('img')
-    img.setAttribute('src', this.__data.src)
+    const img = document.createElement('img');
+    img.setAttribute('src', this.__data.src);
     if (this.__data.alt) {
-      img.setAttribute('alt', this.__data.alt)
+      img.setAttribute('alt', this.__data.alt);
     }
     if (this.__data.width) {
-      img.setAttribute('width', String(this.__data.width))
+      img.setAttribute('width', String(this.__data.width));
     }
     if (this.__data.height) {
-      img.setAttribute('height', String(this.__data.height))
+      img.setAttribute('height', String(this.__data.height));
     }
-    const container = document.createElement('figure')
-    container.appendChild(img)
+    const container = document.createElement('figure');
+    container.appendChild(img);
     if (this.__data.caption) {
-      const caption = document.createElement('figcaption')
-      caption.textContent = this.__data.caption
-      container.appendChild(caption)
+      const caption = document.createElement('figcaption');
+      caption.textContent = this.__data.caption;
+      container.appendChild(caption);
     }
-    return { element: container }
+    return { element: container };
   }
 
   exportJSON(): SerializedImageNode {
@@ -128,20 +128,20 @@ export class ImageNode extends DecoratorBlockNode {
       fields: this.getData(),
       type: 'image',
       version: 1,
-    }
+    };
   }
 
   getData(): ImageNodeData {
-    return this.getLatest().__data
+    return this.getLatest().__data;
   }
 
   setData(data: ImageNodeData): void {
-    const writable = this.getWritable()
-    writable.__data = data
+    const writable = this.getWritable();
+    writable.__data = data;
   }
 
   getTextContent(): string {
-    return '\n'
+    return '\n';
   }
 }
 
@@ -150,9 +150,9 @@ export function $createImageNode(data: ImageNodeData): ImageNode {
     new ImageNode({
       data,
     }),
-  )
+  );
 }
 
 export function $isImageNode(node: LexicalNode | null | undefined): node is ImageNode {
-  return node instanceof ImageNode
+  return node instanceof ImageNode;
 }

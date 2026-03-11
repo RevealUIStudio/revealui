@@ -4,19 +4,19 @@
  * Unit tests for the find instance method.
  */
 
-import { beforeEach, describe, expect, it, vi } from 'vitest'
+import { beforeEach, describe, expect, it, vi } from 'vitest';
 import type {
   RevealFindOptions,
   RevealPaginatedResult,
   RevealRequest,
   RevealUIInstance,
-} from '../../../types/index.js'
-import { find } from '../find.js'
+} from '../../../types/index.js';
+import { find } from '../find.js';
 
 // Mock getDataLoader
 vi.mock('../../../dataloader', () => ({
   getDataLoader: vi.fn(() => ({})),
-}))
+}));
 
 describe('find method', () => {
   const mockInstance: RevealUIInstance = {
@@ -38,20 +38,20 @@ describe('find method', () => {
       debug: vi.fn(),
     },
     secret: undefined,
-  }
+  };
 
-  const mockEnsureDbConnected = vi.fn().mockResolvedValue(undefined)
+  const mockEnsureDbConnected = vi.fn().mockResolvedValue(undefined);
 
   beforeEach(() => {
-    vi.clearAllMocks()
-  })
+    vi.clearAllMocks();
+  });
 
   it('should call collection find method', async () => {
     const options: RevealFindOptions & { collection: string } = {
       collection: 'test-collection',
       limit: 10,
       page: 1,
-    }
+    };
 
     const mockResult: RevealPaginatedResult = {
       docs: [{ id: '1', title: 'Test' }],
@@ -64,26 +64,26 @@ describe('find method', () => {
       hasNextPage: false,
       prevPage: null,
       nextPage: null,
-    }
+    };
 
-    vi.mocked(mockInstance.collections['test-collection'].find).mockResolvedValue(mockResult)
+    vi.mocked(mockInstance.collections['test-collection'].find).mockResolvedValue(mockResult);
 
-    const result = await find(mockInstance, mockEnsureDbConnected, options)
+    const result = await find(mockInstance, mockEnsureDbConnected, options);
 
-    expect(result).toEqual(mockResult)
-    expect(mockEnsureDbConnected).toHaveBeenCalled()
-    expect(mockInstance.collections['test-collection'].find).toHaveBeenCalledWith(options)
-  })
+    expect(result).toEqual(mockResult);
+    expect(mockEnsureDbConnected).toHaveBeenCalled();
+    expect(mockInstance.collections['test-collection'].find).toHaveBeenCalledWith(options);
+  });
 
   it('should throw error if collection not found', async () => {
     const options: RevealFindOptions & { collection: string } = {
       collection: 'non-existent',
-    }
+    };
 
     await expect(find(mockInstance, mockEnsureDbConnected, options)).rejects.toThrow(
       "Collection 'non-existent' not found",
-    )
-  })
+    );
+  });
 
   it('should initialize DataLoader if not present', async () => {
     const options: RevealFindOptions & { collection: string; req?: RevealRequest } = {
@@ -91,7 +91,7 @@ describe('find method', () => {
       req: {
         dataLoader: undefined,
       },
-    }
+    };
 
     const mockResult: RevealPaginatedResult = {
       docs: [],
@@ -104,13 +104,13 @@ describe('find method', () => {
       hasNextPage: false,
       prevPage: null,
       nextPage: null,
-    }
+    };
 
-    vi.mocked(mockInstance.collections['test-collection'].find).mockResolvedValue(mockResult)
+    vi.mocked(mockInstance.collections['test-collection'].find).mockResolvedValue(mockResult);
 
-    await find(mockInstance, mockEnsureDbConnected, options)
+    await find(mockInstance, mockEnsureDbConnected, options);
 
-    expect(options.req?.dataLoader).toBeDefined()
-    expect(options.req?.revealui).toBe(mockInstance)
-  })
-})
+    expect(options.req?.dataLoader).toBeDefined();
+    expect(options.req?.revealui).toBe(mockInstance);
+  });
+});

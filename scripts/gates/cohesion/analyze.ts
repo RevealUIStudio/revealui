@@ -15,15 +15,15 @@
  * - node:path - Path manipulation utilities (join, dynamic import)
  */
 
-import { ErrorCode } from '../../lib/errors.js'
-import type { CohesionAnalysis, CohesionIssue, PatternAnalysis } from '../../types.ts'
-import { logAnalysisOperation } from '../../utils/audit-logger.ts'
-import { createLogger, getProjectRoot } from '../../utils/base.ts'
-import { patternInstanceToCodeLocation } from '../../utils/extraction.ts'
-import { calculateGrade, generateMetrics } from '../../utils/metrics.ts'
-import { analyzePattern, COMMON_PATTERNS, findSourceFiles } from '../../utils/patterns.ts'
+import { ErrorCode } from '../../lib/errors.js';
+import type { CohesionAnalysis, CohesionIssue, PatternAnalysis } from '../../types.ts';
+import { logAnalysisOperation } from '../../utils/audit-logger.ts';
+import { createLogger, getProjectRoot } from '../../utils/base.ts';
+import { patternInstanceToCodeLocation } from '../../utils/extraction.ts';
+import { calculateGrade, generateMetrics } from '../../utils/metrics.ts';
+import { analyzePattern, COMMON_PATTERNS, findSourceFiles } from '../../utils/patterns.ts';
 
-const logger = createLogger()
+const logger = createLogger();
 
 /**
  * Convert pattern analysis to cohesion issue
@@ -31,7 +31,7 @@ const logger = createLogger()
 async function patternAnalysisToIssue(analysis: PatternAnalysis): Promise<CohesionIssue> {
   const evidence = await Promise.all(
     analysis.instances.slice(0, 10).map((instance) => patternInstanceToCodeLocation(instance)),
-  )
+  );
 
   return {
     id: `issue-${analysis.pattern}`,
@@ -43,62 +43,62 @@ async function patternAnalysisToIssue(analysis: PatternAnalysis): Promise<Cohesi
     pattern: analysis.pattern,
     count: analysis.total,
     recommendation: `Consider extracting this pattern into a shared utility or fixing the root cause.`,
-  }
+  };
 }
 
 /**
  * Main analysis function
  */
 async function analyze(): Promise<CohesionAnalysis> {
-  const projectRoot = await getProjectRoot(import.meta.url)
+  const projectRoot = await getProjectRoot(import.meta.url);
 
-  logger.header('Cohesion Engine - Analysis')
+  logger.header('Cohesion Engine - Analysis');
 
   // Find source files
-  logger.info('Scanning for source files...')
+  logger.info('Scanning for source files...');
   const targetDirectories = [
     `${projectRoot}/apps/cms/src`,
     `${projectRoot}/apps/mainframe/src`,
     `${projectRoot}/packages/core/src`,
-  ]
+  ];
 
-  const allFiles: string[] = []
+  const allFiles: string[] = [];
   for (const dir of targetDirectories) {
     try {
-      const files = await findSourceFiles(dir)
-      allFiles.push(...files)
+      const files = await findSourceFiles(dir);
+      allFiles.push(...files);
     } catch (_error) {
-      logger.warning(`Could not scan directory: ${dir}`)
+      logger.warning(`Could not scan directory: ${dir}`);
     }
   }
 
-  logger.success(`Found ${allFiles.length} source files`)
+  logger.success(`Found ${allFiles.length} source files`);
 
   // Analyze patterns
-  logger.info('Analyzing patterns...')
-  const analyses: PatternAnalysis[] = []
+  logger.info('Analyzing patterns...');
+  const analyses: PatternAnalysis[] = [];
 
   for (const matcher of COMMON_PATTERNS) {
-    logger.info(`  Checking for: ${matcher.description}...`)
-    const analysis = await analyzePattern(allFiles, matcher)
+    logger.info(`  Checking for: ${matcher.description}...`);
+    const analysis = await analyzePattern(allFiles, matcher);
     if (analysis.total > 0) {
-      analyses.push(analysis)
+      analyses.push(analysis);
       logger.info(
         `    Found ${analysis.total} instances in ${new Set(analysis.instances.map((i) => i.file)).size} files`,
-      )
+      );
     }
   }
 
   // Generate issues
-  logger.info('Generating issues...')
-  const issues = await Promise.all(analyses.map((a) => patternAnalysisToIssue(a)))
+  logger.info('Generating issues...');
+  const issues = await Promise.all(analyses.map((a) => patternAnalysisToIssue(a)));
 
   // Generate metrics
-  logger.info('Generating metrics...')
-  const metrics = generateMetrics(analyses)
+  logger.info('Generating metrics...');
+  const metrics = generateMetrics(analyses);
 
   // Calculate grade
-  const grade = calculateGrade(analyses)
+  const grade = calculateGrade(analyses);
 
   // Generate summary
   const summary = {
@@ -108,22 +108,22 @@ async function analyze(): Promise<CohesionAnalysis> {
     mediumIssues: issues.filter((i) => i.severity === 'MEDIUM').length,
     lowIssues: issues.filter((i) => i.severity === 'LOW').length,
     overallGrade: grade,
-  }
+  };
 
   const analysis: CohesionAnalysis = {
     timestamp: new Date().toISOString(),
     issues,
     metrics,
     summary,
-  }
+  };
 
-  logger.success('Analysis complete!')
+  logger.success('Analysis complete!');
   logger.info(
     `Found ${summary.totalIssues} issues (${summary.criticalIssues} critical, ${summary.highIssues} high)`,
-  )
-  logger.info(`Overall Grade: ${grade}`)
+  );
+  logger.info(`Overall Grade: ${grade}`);
 
-  return analysis
+  return analysis;
 }
 
 /**
@@ -131,32 +131,32 @@ async function analyze(): Promise<CohesionAnalysis> {
  */
 async function main() {
   try {
-    const projectRoot = await getProjectRoot(import.meta.url)
-    const analysis = await analyze()
+    const projectRoot = await getProjectRoot(import.meta.url);
+    const analysis = await analyze();
 
     // Output JSON to file
-    const { writeFile } = await import('node:fs/promises')
-    const { join } = await import('node:path')
-    const outputPath = join(projectRoot, '.cursor/cohesion-analysis.json')
+    const { writeFile } = await import('node:fs/promises');
+    const { join } = await import('node:path');
+    const outputPath = join(projectRoot, '.cursor/cohesion-analysis.json');
 
-    await writeFile(outputPath, JSON.stringify(analysis, null, 2))
+    await writeFile(outputPath, JSON.stringify(analysis, null, 2));
 
-    logger.success(`Analysis saved to: ${outputPath}`)
-    logger.info('Run "pnpm cohesion:assess" to generate assessment document')
+    logger.success(`Analysis saved to: ${outputPath}`);
+    logger.info('Run "pnpm cohesion:assess" to generate assessment document');
 
     // Log analysis operation to audit log
-    const filesAffectedMetric = analysis.metrics.find((m) => m.name === 'Files Affected')
-    const filesScanned = filesAffectedMetric?.value || 0
+    const filesAffectedMetric = analysis.metrics.find((m) => m.name === 'Files Affected');
+    const filesScanned = filesAffectedMetric?.value || 0;
 
     await logAnalysisOperation(projectRoot, analysis.summary.totalIssues, filesScanned, {
       grade: analysis.summary.overallGrade,
       criticalIssues: analysis.summary.criticalIssues,
       highIssues: analysis.summary.highIssues,
-    })
+    });
   } catch (error) {
-    logger.error(error instanceof Error ? error.message : String(error))
-    process.exit(ErrorCode.EXECUTION_ERROR)
+    logger.error(error instanceof Error ? error.message : String(error));
+    process.exit(ErrorCode.EXECUTION_ERROR);
   }
 }
 
-main()
+main();

@@ -7,18 +7,18 @@
  * @module @revealui/core/types/config
  */
 
-import type { CollectionConfig, GlobalConfig, UnknownRecord } from '@revealui/contracts/cms'
-import type { RevealDocument } from './query.js'
-import type { RevealRequest } from './request.js'
-import type { DatabaseAdapter, RevealUIInstance } from './runtime.js'
-import type { RevealUser } from './user.js'
+import type { CollectionConfig, GlobalConfig, UnknownRecord } from '@revealui/contracts/cms';
+import type { RevealDocument } from './query.js';
+import type { RevealRequest } from './request.js';
+import type { DatabaseAdapter, RevealUIInstance } from './runtime.js';
+import type { RevealUser } from './user.js';
 
 // =============================================================================
 // HOOK TYPES
 // =============================================================================
 
-type RevealAfterChangeOperation = 'create' | 'update' | 'delete' | (string & {})
-type RevealBeforeChangeOperation = 'create' | 'update' | (string & {})
+type RevealAfterChangeOperation = 'create' | 'update' | 'delete' | (string & {});
+type RevealBeforeChangeOperation = 'create' | 'update' | (string & {});
 
 /**
  * RevealUI's hook context
@@ -27,64 +27,64 @@ type RevealBeforeChangeOperation = 'create' | 'update' | (string & {})
  * All fields are optional to allow compatibility with base hook types.
  */
 export interface RevealHookContext extends Record<string, unknown> {
-  revealui?: RevealUIInstance
-  collection?: string
-  global?: string
-  operation?: 'create' | 'read' | 'update' | 'delete'
-  previousDoc?: RevealDocument
-  req?: RevealRequest
+  revealui?: RevealUIInstance;
+  collection?: string;
+  global?: string;
+  operation?: 'create' | 'read' | 'update' | 'delete';
+  previousDoc?: RevealDocument;
+  req?: RevealRequest;
 }
 
 /** After change hook function signature */
 export type RevealAfterChangeHook<T = unknown> = (args: {
-  doc: T
-  context?: RevealHookContext
-  req: RevealRequest
-  operation: RevealAfterChangeOperation
-  previousDoc?: T
-  collection?: string
-}) => Promise<T | undefined> | T | undefined
+  doc: T;
+  context?: RevealHookContext;
+  req: RevealRequest;
+  operation: RevealAfterChangeOperation;
+  previousDoc?: T;
+  collection?: string;
+}) => Promise<T | undefined> | T | undefined;
 
 /** Alias for global hooks */
-export type GlobalAfterChangeHook<T = unknown> = RevealAfterChangeHook<T>
+export type GlobalAfterChangeHook<T = unknown> = RevealAfterChangeHook<T>;
 
 /** Before change hook function signature */
 export type RevealBeforeChangeHook<T = unknown> = (args: {
-  data: T
-  context?: RevealHookContext
-  req: RevealRequest
-  operation: RevealBeforeChangeOperation
-  originalDoc?: T
-  collection?: string
-}) => Promise<T> | T
+  data: T;
+  context?: RevealHookContext;
+  req: RevealRequest;
+  operation: RevealBeforeChangeOperation;
+  originalDoc?: T;
+  collection?: string;
+}) => Promise<T> | T;
 
 /** After read hook function signature */
 export type RevealAfterReadHook = (args: {
-  doc: RevealDocument
-  context?: RevealHookContext
-  req: RevealRequest
-  findMany: boolean
-  query?: unknown
-}) => Promise<RevealDocument> | RevealDocument
+  doc: RevealDocument;
+  context?: RevealHookContext;
+  req: RevealRequest;
+  findMany: boolean;
+  query?: unknown;
+}) => Promise<RevealDocument> | RevealDocument;
 
 /** RevealUI's collection hooks - Generic to support typed hooks */
 export interface RevealCollectionHooks<T = unknown> {
-  beforeChange?: RevealBeforeChangeHook<T>[]
-  afterChange?: RevealAfterChangeHook<T>[]
-  beforeRead?: ((context: RevealHookContext) => Promise<void> | void)[]
-  afterRead?: RevealAfterReadHook[]
+  beforeChange?: RevealBeforeChangeHook<T>[];
+  afterChange?: RevealAfterChangeHook<T>[];
+  beforeRead?: ((context: RevealHookContext) => Promise<void> | void)[];
+  afterRead?: RevealAfterReadHook[];
   beforeDelete?: ((args: {
-    req: RevealRequest
-    id: string | number
-    context?: RevealHookContext
-  }) => Promise<void> | void)[]
+    req: RevealRequest;
+    id: string | number;
+    context?: RevealHookContext;
+  }) => Promise<void> | void)[];
   afterDelete?: ((args: {
-    doc: RevealDocument
-    id: string | number
-    req: RevealRequest
-    context?: RevealHookContext
-  }) => Promise<void> | void)[]
-  afterLogin?: ((args: { req: RevealRequest; user: RevealUser }) => Promise<void> | void)[]
+    doc: RevealDocument;
+    id: string | number;
+    req: RevealRequest;
+    context?: RevealHookContext;
+  }) => Promise<void> | void)[];
+  afterLogin?: ((args: { req: RevealRequest; user: RevealUser }) => Promise<void> | void)[];
 }
 
 // =============================================================================
@@ -94,50 +94,50 @@ export interface RevealCollectionHooks<T = unknown> {
 /** RevealUI's main configuration */
 export interface RevealConfig {
   // biome-ignore lint/suspicious/noExplicitAny: Config can contain collections of any document type
-  collections?: RevealCollectionConfig<any>[]
+  collections?: RevealCollectionConfig<any>[];
   // biome-ignore lint/suspicious/noExplicitAny: Config can contain globals of any document type
-  globals?: RevealGlobalConfig<any>[]
-  serverURL?: string
-  secret?: string
-  db?: DatabaseAdapter | null
+  globals?: RevealGlobalConfig<any>[];
+  serverURL?: string;
+  secret?: string;
+  db?: DatabaseAdapter | null;
   admin?: {
-    user?: string
+    user?: string;
     components?: {
-      beforeNavLinks?: string[]
-      beforeDashboard?: string[]
-      beforeLogin?: string[]
+      beforeNavLinks?: string[];
+      beforeDashboard?: string[];
+      beforeLogin?: string[];
       graphics?: {
         // biome-ignore lint/style/useNamingConvention: Matches admin config shape.
-        Icon?: string
+        Icon?: string;
         // biome-ignore lint/style/useNamingConvention: Matches admin config shape.
-        Logo?: string
-      }
-    }
+        Logo?: string;
+      };
+    };
     meta?: {
-      titleSuffix?: string
+      titleSuffix?: string;
       icons?: Array<{
-        url: string
-        rel?: string
-        sizes?: string
-        type?: string
-      }>
-    }
+        url: string;
+        rel?: string;
+        sizes?: string;
+        type?: string;
+      }>;
+    };
     importMap?: {
-      autoGenerate?: boolean
-      baseDir?: string
-    }
+      autoGenerate?: boolean;
+      baseDir?: string;
+    };
     livePreview?: {
-      url?: (params: { data: unknown; locale?: string }) => string
-    }
-  }
-  onInit?: (revealui: RevealUIInstance) => Promise<void> | void
+      url?: (params: { data: unknown; locale?: string }) => string;
+    };
+  };
+  onInit?: (revealui: RevealUIInstance) => Promise<void> | void;
   /** RevealUI-specific configuration options */
   revealUI?: {
-    multiTenant?: boolean
-    auditLog?: boolean
-    permissions?: string[]
-    theme?: string
-  }
+    multiTenant?: boolean;
+    auditLog?: boolean;
+    permissions?: string[];
+    theme?: string;
+  };
 }
 
 /**
@@ -150,8 +150,8 @@ export interface RevealConfig {
  * enabling type-safe hooks that work with collection-specific types.
  */
 export type RevealCollectionConfig<T = UnknownRecord> = Omit<CollectionConfig<T>, 'hooks'> & {
-  hooks?: RevealCollectionHooks<T>
-}
+  hooks?: RevealCollectionHooks<T>;
+};
 
 /**
  * Extended global config with RevealUI features
@@ -163,5 +163,5 @@ export type RevealCollectionConfig<T = UnknownRecord> = Omit<CollectionConfig<T>
  * enabling type-safe hooks that work with global-specific types.
  */
 export type RevealGlobalConfig<T = UnknownRecord> = Omit<GlobalConfig, 'hooks'> & {
-  hooks?: Omit<RevealCollectionHooks<T>, 'beforeDelete' | 'afterDelete'>
-}
+  hooks?: Omit<RevealCollectionHooks<T>, 'beforeDelete' | 'afterDelete'>;
+};

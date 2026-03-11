@@ -1,4 +1,4 @@
-import { beforeEach, describe, expect, it, vi } from 'vitest'
+import { beforeEach, describe, expect, it, vi } from 'vitest';
 import {
   createPage,
   deletePage,
@@ -6,7 +6,7 @@ import {
   getPageByPath,
   getPagesBySite,
   updatePage,
-} from '../pages.js'
+} from '../pages.js';
 
 // ---------------------------------------------------------------------------
 // Mock helpers
@@ -18,17 +18,17 @@ function createSelectChain(result: unknown[] = []) {
     where: vi.fn().mockReturnThis(),
     orderBy: vi.fn().mockResolvedValue(result),
     limit: vi.fn().mockResolvedValue(result),
-  }
-  chain.from.mockReturnValue(chain)
-  chain.where.mockReturnValue(chain)
-  return chain
+  };
+  chain.from.mockReturnValue(chain);
+  chain.where.mockReturnValue(chain);
+  return chain;
 }
 
 function createInsertChain(result: unknown[] = []) {
   return {
     values: vi.fn().mockReturnThis(),
     returning: vi.fn().mockResolvedValue(result),
-  }
+  };
 }
 
 function createUpdateChain(result: unknown[] = []) {
@@ -36,13 +36,13 @@ function createUpdateChain(result: unknown[] = []) {
     set: vi.fn().mockReturnThis(),
     where: vi.fn().mockReturnThis(),
     returning: vi.fn().mockResolvedValue(result),
-  }
+  };
 }
 
 function createDeleteChain() {
   return {
     where: vi.fn().mockResolvedValue(undefined),
-  }
+  };
 }
 
 function createMockDb() {
@@ -51,203 +51,203 @@ function createMockDb() {
     insert: vi.fn(),
     update: vi.fn(),
     delete: vi.fn(),
-  }
+  };
 }
 
-type MockDb = ReturnType<typeof createMockDb>
+type MockDb = ReturnType<typeof createMockDb>;
 
 // ---------------------------------------------------------------------------
 // Tests
 // ---------------------------------------------------------------------------
 
 describe('page queries', () => {
-  let db: MockDb
+  let db: MockDb;
 
   beforeEach(() => {
-    vi.clearAllMocks()
-    db = createMockDb()
-  })
+    vi.clearAllMocks();
+    db = createMockDb();
+  });
 
   // ---- getPagesBySite -----------------------------------------------------
 
   describe('getPagesBySite', () => {
     it('returns pages for a site', async () => {
-      const pages = [{ id: 'p1', siteId: 's1', path: '/about' }]
-      const chain = createSelectChain(pages)
-      db.select.mockReturnValue(chain)
+      const pages = [{ id: 'p1', siteId: 's1', path: '/about' }];
+      const chain = createSelectChain(pages);
+      db.select.mockReturnValue(chain);
 
-      const result = await getPagesBySite(db as never, 's1')
+      const result = await getPagesBySite(db as never, 's1');
 
-      expect(result).toEqual(pages)
-      expect(chain.where).toHaveBeenCalled()
-    })
+      expect(result).toEqual(pages);
+      expect(chain.where).toHaveBeenCalled();
+    });
 
     it('filters by status when provided', async () => {
-      const pages = [{ id: 'p1', status: 'published' }]
-      const chain = createSelectChain(pages)
-      db.select.mockReturnValue(chain)
+      const pages = [{ id: 'p1', status: 'published' }];
+      const chain = createSelectChain(pages);
+      db.select.mockReturnValue(chain);
 
-      const result = await getPagesBySite(db as never, 's1', { status: 'published' })
+      const result = await getPagesBySite(db as never, 's1', { status: 'published' });
 
-      expect(result).toEqual(pages)
-      expect(chain.where).toHaveBeenCalled()
-    })
+      expect(result).toEqual(pages);
+      expect(chain.where).toHaveBeenCalled();
+    });
 
     it('returns empty array when no pages', async () => {
-      const chain = createSelectChain([])
-      db.select.mockReturnValue(chain)
+      const chain = createSelectChain([]);
+      db.select.mockReturnValue(chain);
 
-      const result = await getPagesBySite(db as never, 's1')
+      const result = await getPagesBySite(db as never, 's1');
 
-      expect(result).toEqual([])
-    })
-  })
+      expect(result).toEqual([]);
+    });
+  });
 
   // ---- getPageById --------------------------------------------------------
 
   describe('getPageById', () => {
     it('returns a page when found', async () => {
-      const page = { id: 'p1', title: 'About Us' }
-      const chain = createSelectChain([page])
-      db.select.mockReturnValue(chain)
+      const page = { id: 'p1', title: 'About Us' };
+      const chain = createSelectChain([page]);
+      db.select.mockReturnValue(chain);
 
-      const result = await getPageById(db as never, 'p1')
+      const result = await getPageById(db as never, 'p1');
 
-      expect(result).toEqual(page)
-      expect(chain.limit).toHaveBeenCalledWith(1)
-    })
+      expect(result).toEqual(page);
+      expect(chain.limit).toHaveBeenCalledWith(1);
+    });
 
     it('returns null when not found', async () => {
-      const chain = createSelectChain([])
-      db.select.mockReturnValue(chain)
+      const chain = createSelectChain([]);
+      db.select.mockReturnValue(chain);
 
-      const result = await getPageById(db as never, 'nonexistent')
+      const result = await getPageById(db as never, 'nonexistent');
 
-      expect(result).toBeNull()
-    })
-  })
+      expect(result).toBeNull();
+    });
+  });
 
   // ---- getPageByPath ------------------------------------------------------
 
   describe('getPageByPath', () => {
     it('returns a page by site and path', async () => {
-      const page = { id: 'p1', siteId: 's1', path: '/contact' }
-      const chain = createSelectChain([page])
-      db.select.mockReturnValue(chain)
+      const page = { id: 'p1', siteId: 's1', path: '/contact' };
+      const chain = createSelectChain([page]);
+      db.select.mockReturnValue(chain);
 
-      const result = await getPageByPath(db as never, 's1', '/contact')
+      const result = await getPageByPath(db as never, 's1', '/contact');
 
-      expect(result).toEqual(page)
-      expect(chain.where).toHaveBeenCalled()
-    })
+      expect(result).toEqual(page);
+      expect(chain.where).toHaveBeenCalled();
+    });
 
     it('returns null when no matching page', async () => {
-      const chain = createSelectChain([])
-      db.select.mockReturnValue(chain)
+      const chain = createSelectChain([]);
+      db.select.mockReturnValue(chain);
 
-      const result = await getPageByPath(db as never, 's1', '/nonexistent')
+      const result = await getPageByPath(db as never, 's1', '/nonexistent');
 
-      expect(result).toBeNull()
-    })
-  })
+      expect(result).toBeNull();
+    });
+  });
 
   // ---- createPage ---------------------------------------------------------
 
   describe('createPage', () => {
     it('creates and returns a page', async () => {
-      const data = { id: 'p1', siteId: 's1', title: 'New Page', path: '/new' }
-      const chain = createInsertChain([data])
-      db.insert.mockReturnValue(chain)
+      const data = { id: 'p1', siteId: 's1', title: 'New Page', path: '/new' };
+      const chain = createInsertChain([data]);
+      db.insert.mockReturnValue(chain);
 
-      const result = await createPage(db as never, data as never)
+      const result = await createPage(db as never, data as never);
 
-      expect(result).toEqual(data)
-      expect(chain.values).toHaveBeenCalledWith(data)
-    })
+      expect(result).toEqual(data);
+      expect(chain.values).toHaveBeenCalledWith(data);
+    });
 
     it('returns null when insert returns empty', async () => {
-      const chain = createInsertChain([])
-      db.insert.mockReturnValue(chain)
+      const chain = createInsertChain([]);
+      db.insert.mockReturnValue(chain);
 
-      const result = await createPage(db as never, {} as never)
+      const result = await createPage(db as never, {} as never);
 
-      expect(result).toBeNull()
-    })
-  })
+      expect(result).toBeNull();
+    });
+  });
 
   // ---- updatePage ---------------------------------------------------------
 
   describe('updatePage', () => {
     it('updates and returns the page', async () => {
-      const updated = { id: 'p1', title: 'Updated' }
-      const chain = createUpdateChain([updated])
-      db.update.mockReturnValue(chain)
+      const updated = { id: 'p1', title: 'Updated' };
+      const chain = createUpdateChain([updated]);
+      db.update.mockReturnValue(chain);
 
-      const result = await updatePage(db as never, 'p1', { title: 'Updated' } as never)
+      const result = await updatePage(db as never, 'p1', { title: 'Updated' } as never);
 
-      expect(result).toEqual(updated)
-      expect(chain.set).toHaveBeenCalled()
-    })
+      expect(result).toEqual(updated);
+      expect(chain.set).toHaveBeenCalled();
+    });
 
     it('returns null when page does not exist', async () => {
-      const chain = createUpdateChain([])
-      db.update.mockReturnValue(chain)
+      const chain = createUpdateChain([]);
+      db.update.mockReturnValue(chain);
 
-      const result = await updatePage(db as never, 'nonexistent', {} as never)
+      const result = await updatePage(db as never, 'nonexistent', {} as never);
 
-      expect(result).toBeNull()
-    })
-  })
+      expect(result).toBeNull();
+    });
+  });
 
   // ---- deletePage ---------------------------------------------------------
 
   describe('deletePage', () => {
     it('deletes a page by id', async () => {
-      const chain = createDeleteChain()
-      db.delete.mockReturnValue(chain)
+      const chain = createDeleteChain();
+      db.delete.mockReturnValue(chain);
 
-      await deletePage(db as never, 'p1')
+      await deletePage(db as never, 'p1');
 
-      expect(db.delete).toHaveBeenCalled()
-      expect(chain.where).toHaveBeenCalled()
-    })
-  })
+      expect(db.delete).toHaveBeenCalled();
+      expect(chain.where).toHaveBeenCalled();
+    });
+  });
 
   // ---- error handling -----------------------------------------------------
 
   describe('error handling', () => {
     it('propagates select errors', async () => {
-      const chain = createSelectChain()
-      chain.orderBy.mockRejectedValue(new Error('connection refused'))
-      db.select.mockReturnValue(chain)
+      const chain = createSelectChain();
+      chain.orderBy.mockRejectedValue(new Error('connection refused'));
+      db.select.mockReturnValue(chain);
 
-      await expect(getPagesBySite(db as never, 's1')).rejects.toThrow('connection refused')
-    })
+      await expect(getPagesBySite(db as never, 's1')).rejects.toThrow('connection refused');
+    });
 
     it('propagates insert errors', async () => {
-      const chain = createInsertChain()
-      chain.returning.mockRejectedValue(new Error('duplicate path'))
-      db.insert.mockReturnValue(chain)
+      const chain = createInsertChain();
+      chain.returning.mockRejectedValue(new Error('duplicate path'));
+      db.insert.mockReturnValue(chain);
 
-      await expect(createPage(db as never, {} as never)).rejects.toThrow('duplicate path')
-    })
+      await expect(createPage(db as never, {} as never)).rejects.toThrow('duplicate path');
+    });
 
     it('propagates update errors', async () => {
-      const chain = createUpdateChain()
-      chain.returning.mockRejectedValue(new Error('serialization failure'))
-      db.update.mockReturnValue(chain)
+      const chain = createUpdateChain();
+      chain.returning.mockRejectedValue(new Error('serialization failure'));
+      db.update.mockReturnValue(chain);
 
       await expect(updatePage(db as never, 'p1', {} as never)).rejects.toThrow(
         'serialization failure',
-      )
-    })
+      );
+    });
 
     it('propagates delete errors', async () => {
-      const chain = createDeleteChain()
-      chain.where.mockRejectedValue(new Error('cascade violation'))
-      db.delete.mockReturnValue(chain)
+      const chain = createDeleteChain();
+      chain.where.mockRejectedValue(new Error('cascade violation'));
+      db.delete.mockReturnValue(chain);
 
-      await expect(deletePage(db as never, 'p1')).rejects.toThrow('cascade violation')
-    })
-  })
-})
+      await expect(deletePage(db as never, 'p1')).rejects.toThrow('cascade violation');
+    });
+  });
+});

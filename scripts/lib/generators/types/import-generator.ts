@@ -17,16 +17,16 @@
  * ```
  */
 
-import * as ts from 'typescript'
-import type { TableMapping } from './table-discovery.js'
+import * as ts from 'typescript';
+import type { TableMapping } from './table-discovery.js';
 
 // =============================================================================
 // Types
 // =============================================================================
 
 export interface ParsedImport {
-  tables: string[]
-  path: string
+  tables: string[];
+  path: string;
 }
 
 // =============================================================================
@@ -55,31 +55,31 @@ export interface ParsedImport {
  * ```
  */
 export function generateNeonImports(tableMapping: TableMapping): string {
-  const imports: string[] = []
+  const imports: string[] = [];
 
   // Get sorted sub-module names for deterministic ordering
   const subModules = Object.keys(tableMapping)
     .filter((subModule) => tableMapping[subModule].length > 0)
-    .sort()
+    .sort();
 
   // Generate imports in sorted order
   for (const subModulePath of subModules) {
-    const tables = tableMapping[subModulePath]
+    const tables = tableMapping[subModulePath];
 
     if (tables.length === 1) {
       // Single-line import for single table
-      imports.push(`import { ${tables[0]} } from '@revealui/db/schema/${subModulePath}'`)
+      imports.push(`import { ${tables[0]} } from '@revealui/db/schema/${subModulePath}'`);
     } else {
       // Multi-line import for multiple tables
-      const tablesList = tables.map((t) => `  ${t}`).join(',\n')
-      imports.push(`import {\n${tablesList},\n} from '@revealui/db/schema/${subModulePath}'`)
+      const tablesList = tables.map((t) => `  ${t}`).join(',\n');
+      imports.push(`import {\n${tablesList},\n} from '@revealui/db/schema/${subModulePath}'`);
     }
   }
 
   return `// Import table definitions from db package sub-modules
 // TypeScript with node16 module resolution requires explicit sub-module exports
 // This import block is automatically generated based on actual table exports
-${imports.join('\n')}`
+${imports.join('\n')}`;
 }
 
 // =============================================================================
@@ -103,44 +103,44 @@ ${imports.join('\n')}`
  * ```
  */
 export function parseImports(content: string): ParsedImport[] {
-  const sourceFile = ts.createSourceFile('temp.ts', content, ts.ScriptTarget.Latest, true)
+  const sourceFile = ts.createSourceFile('temp.ts', content, ts.ScriptTarget.Latest, true);
 
-  const imports: ParsedImport[] = []
+  const imports: ParsedImport[] = [];
 
   function visit(node: ts.Node) {
     if (ts.isImportDeclaration(node)) {
-      const importPath = node.moduleSpecifier
+      const importPath = node.moduleSpecifier;
       if (ts.isStringLiteral(importPath)) {
-        const path = importPath.text
+        const path = importPath.text;
 
         // Only process imports from @revealui/db/schema/*
         if (path.startsWith('@revealui/db/schema/')) {
-          const tables: string[] = []
+          const tables: string[] = [];
 
           if (node.importClause) {
             // Handle named imports: import { table1, table2 } from ...
             if (node.importClause.namedBindings) {
               if (ts.isNamedImports(node.importClause.namedBindings)) {
                 for (const element of node.importClause.namedBindings.elements) {
-                  const name = element.name.text
-                  tables.push(name)
+                  const name = element.name.text;
+                  tables.push(name);
                 }
               }
             }
           }
 
           if (tables.length > 0) {
-            imports.push({ tables, path })
+            imports.push({ tables, path });
           }
         }
       }
     }
 
-    ts.forEachChild(node, visit)
+    ts.forEachChild(node, visit);
   }
 
-  ts.forEachChild(sourceFile, visit)
-  return imports
+  ts.forEachChild(sourceFile, visit);
+  return imports;
 }
 
 /**
@@ -151,10 +151,10 @@ export function parseImports(content: string): ParsedImport[] {
  */
 export function formatImport(imp: ParsedImport): string {
   if (imp.tables.length === 1) {
-    return `import { ${imp.tables[0]} } from '${imp.path}'`
+    return `import { ${imp.tables[0]} } from '${imp.path}'`;
   } else {
-    const tablesList = imp.tables.join(', ')
-    return `import { ${tablesList} } from '${imp.path}'`
+    const tablesList = imp.tables.join(', ');
+    return `import { ${tablesList} } from '${imp.path}'`;
   }
 }
 
@@ -165,7 +165,7 @@ export function formatImport(imp: ParsedImport): string {
  * @returns Flat array of all table names
  */
 export function getAllImportedTables(imports: ParsedImport[]): string[] {
-  return imports.flatMap((imp) => imp.tables)
+  return imports.flatMap((imp) => imp.tables);
 }
 
 /**
@@ -179,5 +179,5 @@ export function findImportForTable(
   imports: ParsedImport[],
   tableName: string,
 ): ParsedImport | undefined {
-  return imports.find((imp) => imp.tables.includes(tableName))
+  return imports.find((imp) => imp.tables.includes(tableName));
 }

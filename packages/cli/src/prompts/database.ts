@@ -2,12 +2,12 @@
  * Database configuration prompts
  */
 
-import inquirer from 'inquirer'
-import { validateNeonUrl } from '../validators/credentials.js'
+import inquirer from 'inquirer';
+import { validateNeonUrl } from '../validators/credentials.js';
 
 export interface DatabaseConfig {
-  provider: 'neon' | 'supabase' | 'local' | 'skip'
-  postgresUrl?: string
+  provider: 'neon' | 'supabase' | 'local' | 'skip';
+  postgresUrl?: string;
 }
 
 export async function promptDatabaseConfig(): Promise<DatabaseConfig> {
@@ -36,10 +36,10 @@ export async function promptDatabaseConfig(): Promise<DatabaseConfig> {
       ],
       default: 'neon',
     },
-  ])
+  ]);
 
   if (provider === 'skip') {
-    return { provider: 'skip' }
+    return { provider: 'skip' };
   }
 
   if (provider === 'local') {
@@ -50,12 +50,12 @@ export async function promptDatabaseConfig(): Promise<DatabaseConfig> {
         message: 'Enter your PostgreSQL connection string:',
         default: 'postgresql://postgres:postgres@localhost:5432/revealui',
         validate: async (input: string) => {
-          const result = await validateNeonUrl(input)
-          return result.valid ? true : result.message || 'Invalid database URL'
+          const result = await validateNeonUrl(input);
+          return result.valid ? true : result.message || 'Invalid database URL';
         },
       },
-    ])
-    return { provider: 'local', postgresUrl }
+    ]);
+    return { provider: 'local', postgresUrl };
   }
 
   // For Neon or Supabase, get the connection string
@@ -66,13 +66,13 @@ export async function promptDatabaseConfig(): Promise<DatabaseConfig> {
       message: `Enter your ${provider === 'neon' ? 'Neon' : 'Supabase'} database connection string:`,
       validate: async (input: string) => {
         if (!input || input.trim() === '') {
-          return 'Database URL is required'
+          return 'Database URL is required';
         }
-        const result = await validateNeonUrl(input)
-        return result.valid ? true : result.message || 'Invalid database URL'
+        const result = await validateNeonUrl(input);
+        return result.valid ? true : result.message || 'Invalid database URL';
       },
     },
-  ])
+  ]);
 
-  return { provider, postgresUrl }
+  return { provider, postgresUrl };
 }

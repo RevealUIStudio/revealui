@@ -4,20 +4,20 @@
  * Displays a metric panel with value, trend, and status indicators
  */
 
-import type React from 'react'
+import type React from 'react';
 
 export interface DataPanelProps {
-  title: string
-  value: number | string
-  unit?: string
-  trend?: number
-  status?: 'healthy' | 'warning' | 'critical'
-  loading?: boolean
-  error?: string
-  onClick?: () => void
-  className?: string
-  style?: React.CSSProperties
-  'aria-label'?: string
+  title: string;
+  value: number | string;
+  unit?: string;
+  trend?: number;
+  status?: 'healthy' | 'warning' | 'critical';
+  loading?: boolean;
+  error?: string;
+  onClick?: () => void;
+  className?: string;
+  style?: React.CSSProperties;
+  'aria-label'?: string;
 }
 
 export function DataPanel({
@@ -35,43 +35,43 @@ export function DataPanel({
   ref,
 }: DataPanelProps & { ref?: React.Ref<HTMLDivElement> }) {
   const formatValue = (val: number | string): string => {
-    if (typeof val === 'string') return val
+    if (typeof val === 'string') return val;
 
     // Handle special numeric values
     if (!Number.isFinite(val)) {
       if (val === Number.POSITIVE_INFINITY || val === Number.NEGATIVE_INFINITY) {
-        return 'Infinity'
+        return 'Infinity';
       }
       if (Number.isNaN(val)) {
-        return 'Invalid'
+        return 'Invalid';
       }
     }
 
     // Format large numbers with commas
     return val.toLocaleString('en-US', {
       maximumFractionDigits: 2,
-    })
-  }
+    });
+  };
 
   const getStatusColor = () => {
     switch (status) {
       case 'healthy':
-        return 'bg-green-500'
+        return 'bg-green-500';
       case 'warning':
-        return 'bg-yellow-500'
+        return 'bg-yellow-500';
       case 'critical':
-        return 'bg-red-500'
+        return 'bg-red-500';
       default:
-        return 'bg-gray-500'
+        return 'bg-gray-500';
     }
-  }
+  };
 
   const getTrendAriaLabel = (): string => {
-    if (trend === undefined) return ''
-    if (trend > 0) return `trending up by ${trend.toFixed(1)} percent`
-    if (trend < 0) return `trending down by ${Math.abs(trend).toFixed(1)} percent`
-    return 'no change'
-  }
+    if (trend === undefined) return '';
+    if (trend > 0) return `trending up by ${trend.toFixed(1)} percent`;
+    if (trend < 0) return `trending down by ${Math.abs(trend).toFixed(1)} percent`;
+    return 'no change';
+  };
 
   if (loading) {
     return (
@@ -88,7 +88,7 @@ export function DataPanel({
           <div className="h-8 bg-gray-200 dark:bg-gray-700 rounded w-3/4"></div>
         </div>
       </output>
-    )
+    );
   }
 
   if (error) {
@@ -120,11 +120,11 @@ export function DataPanel({
           <p className="font-medium">{error}</p>
         </div>
       </div>
-    )
+    );
   }
 
-  const panelId = `data-panel-${title.replace(/\s+/g, '-').toLowerCase()}`
-  const Component = onClick ? 'button' : 'div'
+  const panelId = `data-panel-${title.replace(/\s+/g, '-').toLowerCase()}`;
+  const Component = onClick ? 'button' : 'div';
 
   return (
     <Component
@@ -212,5 +212,5 @@ export function DataPanel({
         </output>
       )}
     </Component>
-  )
+  );
 }

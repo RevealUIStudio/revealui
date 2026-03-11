@@ -4,47 +4,47 @@
  * Implements HTTP caching for API responses
  */
 
-import { type NextRequest, NextResponse } from 'next/server'
-import { logger } from '../observability/logger.js'
+import { type NextRequest, NextResponse } from 'next/server';
+import { logger } from '../observability/logger.js';
 
 interface CacheOptions {
-  ttl?: number // Time to live in seconds
-  staleWhileRevalidate?: number // SWR time in seconds
-  tags?: string[] // Cache tags for invalidation
-  vary?: string[] // Vary headers
-  private?: boolean // Cache-Control: private vs public
-  noStore?: boolean // Disable caching
+  ttl?: number; // Time to live in seconds
+  staleWhileRevalidate?: number; // SWR time in seconds
+  tags?: string[]; // Cache tags for invalidation
+  vary?: string[]; // Vary headers
+  private?: boolean; // Cache-Control: private vs public
+  noStore?: boolean; // Disable caching
 }
 
 interface CacheEntry {
   response: {
-    body: string
-    status: number
-    statusText: string
-    headers: Record<string, string>
-  }
-  timestamp: number
-  ttl: number
-  tags: string[]
+    body: string;
+    status: number;
+    statusText: string;
+    headers: Record<string, string>;
+  };
+  timestamp: number;
+  ttl: number;
+  tags: string[];
 }
 
 // In-memory cache store (replace with Redis in production)
-const cacheStore = new Map<string, CacheEntry>()
+const cacheStore = new Map<string, CacheEntry>();
 
 /**
  * Generate cache key from request
  */
 export function generateCacheKey(request: NextRequest): string {
-  const url = new URL(request.url)
-  const method = request.method
-  const path = url.pathname
-  const query = url.searchParams.toString()
+  const url = new URL(request.url);
+  const method = request.method;
+  const path = url.pathname;
+  const query = url.searchParams.toString();
 
   // Include authorization in key for private caches
-  const auth = request.headers.get('authorization') || ''
-  const authHash = auth ? btoa(auth).substring(0, 8) : ''
+  const auth = request.headers.get('authorization') || '';
+  const authHash = auth ? btoa(auth).substring(0, 8) : '';
 
-  return `${method}:${path}${query ? `?${query}` : ''}${authHash ? `:${authHash}` : ''}`
+  return `${method}:${path}${query ? `?${query}` : ''}${authHash ? `:${authHash}` : ''}`;
 }
 
 /**
@@ -53,52 +53,52 @@ export function generateCacheKey(request: NextRequest): string {
 function isCacheable(request: NextRequest, response: NextResponse): boolean {
   // Only cache GET and HEAD requests
   if (!['GET', 'HEAD'].includes(request.method)) {
-    return false
+    return false;
   }
 
   // Don't cache error responses
   if (response.status >= 400) {
-    return false
+    return false;
   }
 
   // Check for Cache-Control: no-store
-  const cacheControl = response.headers.get('cache-control') || ''
+  const cacheControl = response.headers.get('cache-control') || '';
   if (cacheControl.includes('no-store') || cacheControl.includes('no-cache')) {
-    return false
+    return false;
   }
 
-  return true
+  return true;
 }
 
 /**
  * Get cached response
  */
 export async function getCachedResponse(request: NextRequest): Promise<NextResponse | null> {
-  const key = generateCacheKey(request)
-  const entry = cacheStore.get(key)
+  const key = generateCacheKey(request);
+  const entry = cacheStore.get(key);
 
   if (!entry) {
-    return null
+    return null;
   }
 
-  const age = Math.floor((Date.now() - entry.timestamp) / 1000)
+  const age = Math.floor((Date.now() - entry.timestamp) / 1000);
 
   // Check if expired
   if (age > entry.ttl) {
-    cacheStore.delete(key)
-    return null
+    cacheStore.delete(key);
+    return null;
   }
 
   // Create response from cache
-  const headers = new Headers(entry.response.headers)
-  headers.set('X-Cache', 'HIT')
-  headers.set('Age', age.toString())
+  const headers = new Headers(entry.response.headers);
+  headers.set('X-Cache', 'HIT');
+  headers.set('Age', age.toString());
 
   return new NextResponse(entry.response.body, {
     status: entry.response.status,
     statusText: entry.response.statusText,
     headers,
-  })
+  });
 }
 
 /**
@@ -109,15 +109,15 @@ export async function setCachedResponse(
   response: NextResponse,
   options: CacheOptions = {},
 ): Promise<void> {
-  const key = generateCacheKey(request)
+  const key = generateCacheKey(request);
 
   // Don't cache if not cacheable
   if (!isCacheable(request, response)) {
-    return
+    return;
   }
 
   // Get response body
-  const body = await response.clone().text()
+  const body = await response.clone().text();
 
   // Create cache entry
   const entry: CacheEntry = {
@@ -130,90 +130,90 @@ export async function setCachedResponse(
     timestamp: Date.now(),
     ttl: options.ttl || 300, // 5 minutes default
     tags: options.tags || [],
-  }
+  };
 
-  cacheStore.set(key, entry)
+  cacheStore.set(key, entry);
 }
 
 /**
  * Invalidate cache by key
  */
 export function invalidateCacheKey(key: string): void {
-  cacheStore.delete(key)
+  cacheStore.delete(key);
 }
 
 /**
  * Invalidate cache by pattern
  */
 export function invalidateCachePattern(pattern: string): number {
-  let count = 0
-  const regex = new RegExp(pattern.replace('*', '.*'))
+  let count = 0;
+  const regex = new RegExp(pattern.replace('*', '.*'));
 
   for (const key of cacheStore.keys()) {
     if (regex.test(key)) {
-      cacheStore.delete(key)
-      count++
+      cacheStore.delete(key);
+      count++;
     }
   }
 
-  return count
+  return count;
 }
 
 /**
  * Invalidate cache by tags
  */
 export function invalidateCacheTags(tags: string[]): number {
-  let count = 0
+  let count = 0;
 
   for (const [key, entry] of cacheStore.entries()) {
     if (entry.tags.some((tag) => tags.includes(tag))) {
-      cacheStore.delete(key)
-      count++
+      cacheStore.delete(key);
+      count++;
     }
   }
 
-  return count
+  return count;
 }
 
 /**
  * Clear all cache
  */
 export function clearCache(): void {
-  cacheStore.clear()
+  cacheStore.clear();
 }
 
 /**
  * Set Cache-Control headers
  */
 export function setCacheHeaders(response: NextResponse, options: CacheOptions): NextResponse {
-  const { ttl = 300, staleWhileRevalidate, private: isPrivate, noStore } = options
+  const { ttl = 300, staleWhileRevalidate, private: isPrivate, noStore } = options;
 
   if (noStore) {
-    response.headers.set('Cache-Control', 'no-store')
-    return response
+    response.headers.set('Cache-Control', 'no-store');
+    return response;
   }
 
-  const directives: string[] = []
+  const directives: string[] = [];
 
   // Public or private
-  directives.push(isPrivate ? 'private' : 'public')
+  directives.push(isPrivate ? 'private' : 'public');
 
   // Max age
-  directives.push(`max-age=${ttl}`)
+  directives.push(`max-age=${ttl}`);
 
   // Stale while revalidate
   if (staleWhileRevalidate) {
-    directives.push(`stale-while-revalidate=${staleWhileRevalidate}`)
+    directives.push(`stale-while-revalidate=${staleWhileRevalidate}`);
   }
 
   // Vary headers
   if (options.vary) {
-    response.headers.set('Vary', options.vary.join(', '))
+    response.headers.set('Vary', options.vary.join(', '));
   }
 
-  response.headers.set('Cache-Control', directives.join(', '))
+  response.headers.set('Cache-Control', directives.join(', '));
 
-  return response
+  return response;
 }
 
 /**
@@ -222,46 +222,46 @@ export function setCacheHeaders(response: NextResponse, options: CacheOptions): 
 export function createCacheMiddleware(options: CacheOptions = {}) {
   return async (request: NextRequest, next: () => Promise<NextResponse>) => {
     // Try to get from cache
-    const cached = await getCachedResponse(request)
+    const cached = await getCachedResponse(request);
     if (cached) {
-      return cached
+      return cached;
     }
 
     // Get fresh response
-    const response = await next()
+    const response = await next();
 
     // Set cache headers
-    setCacheHeaders(response, options)
+    setCacheHeaders(response, options);
 
     // Cache response
-    await setCachedResponse(request, response, options)
+    await setCachedResponse(request, response, options);
 
     // Set X-Cache: MISS header
-    response.headers.set('X-Cache', 'MISS')
+    response.headers.set('X-Cache', 'MISS');
 
-    return response
-  }
+    return response;
+  };
 }
 
 /**
  * Get cache statistics
  */
 export function getCacheStats() {
-  const now = Date.now()
-  let totalSize = 0
-  let expired = 0
-  let valid = 0
+  const now = Date.now();
+  let totalSize = 0;
+  let expired = 0;
+  let valid = 0;
 
   for (const entry of cacheStore.values()) {
-    const age = Math.floor((now - entry.timestamp) / 1000)
-    const size = new Blob([entry.response.body]).size
+    const age = Math.floor((now - entry.timestamp) / 1000);
+    const size = new Blob([entry.response.body]).size;
 
-    totalSize += size
+    totalSize += size;
 
     if (age > entry.ttl) {
-      expired++
+      expired++;
     } else {
-      valid++
+      valid++;
     }
   }
 
@@ -271,26 +271,26 @@ export function getCacheStats() {
     expiredEntries: expired,
     totalSize,
     averageSize: cacheStore.size > 0 ? totalSize / cacheStore.size : 0,
-  }
+  };
 }
 
 /**
  * Purge expired entries
  */
 export function purgeExpiredCache(): number {
-  const now = Date.now()
-  let purged = 0
+  const now = Date.now();
+  let purged = 0;
 
   for (const [key, entry] of cacheStore.entries()) {
-    const age = Math.floor((now - entry.timestamp) / 1000)
+    const age = Math.floor((now - entry.timestamp) / 1000);
 
     if (age > entry.ttl) {
-      cacheStore.delete(key)
-      purged++
+      cacheStore.delete(key);
+      purged++;
     }
   }
 
-  return purged
+  return purged;
 }
 
 /**
@@ -298,11 +298,11 @@ export function purgeExpiredCache(): number {
  */
 export function startCacheCleanup(intervalMs: number = 60000): NodeJS.Timeout {
   return setInterval(() => {
-    const purged = purgeExpiredCache()
+    const purged = purgeExpiredCache();
     if (purged > 0) {
-      logger.info('Purged expired cache entries', { count: purged })
+      logger.info('Purged expired cache entries', { count: purged });
     }
-  }, intervalMs)
+  }, intervalMs);
 }
 
 /**
@@ -310,20 +310,20 @@ export function startCacheCleanup(intervalMs: number = 60000): NodeJS.Timeout {
  */
 export function withETag(response: NextResponse, content: string): NextResponse {
   // Generate ETag from content hash
-  const hash = btoa(content).substring(0, 16)
-  const etag = `"${hash}"`
+  const hash = btoa(content).substring(0, 16);
+  const etag = `"${hash}"`;
 
-  response.headers.set('ETag', etag)
+  response.headers.set('ETag', etag);
 
-  return response
+  return response;
 }
 
 /**
  * Check if request has matching ETag
  */
 export function checkETag(request: NextRequest, etag: string): boolean {
-  const ifNoneMatch = request.headers.get('if-none-match')
-  return ifNoneMatch === etag
+  const ifNoneMatch = request.headers.get('if-none-match');
+  return ifNoneMatch === etag;
 }
 
 /**
@@ -333,7 +333,7 @@ export function createNotModifiedResponse(): NextResponse {
   return new NextResponse(null, {
     status: 304,
     statusText: 'Not Modified',
-  })
+  });
 }
 
 /**
@@ -386,7 +386,7 @@ export const CACHE_PRESETS = {
     ttl: 3600,
     private: false,
   },
-} as const
+} as const;
 
 /**
  * Cache API response
@@ -396,23 +396,23 @@ export async function cacheAPIResponse<T>(
   responseFn: () => Promise<T>,
   options: CacheOptions = {},
 ): Promise<{ data: T; cached: boolean }> {
-  const cacheKey = `api:${key}`
-  const entry = cacheStore.get(cacheKey)
+  const cacheKey = `api:${key}`;
+  const entry = cacheStore.get(cacheKey);
 
   // Check cache
   if (entry) {
-    const age = Math.floor((Date.now() - entry.timestamp) / 1000)
+    const age = Math.floor((Date.now() - entry.timestamp) / 1000);
 
     if (age <= entry.ttl) {
       return {
         data: JSON.parse(entry.response.body),
         cached: true,
-      }
+      };
     }
   }
 
   // Get fresh data
-  const data = await responseFn()
+  const data = await responseFn();
 
   // Cache it
   const cacheEntry: CacheEntry = {
@@ -425,12 +425,12 @@ export async function cacheAPIResponse<T>(
     timestamp: Date.now(),
     ttl: options.ttl || 300,
     tags: options.tags || [],
-  }
+  };
 
-  cacheStore.set(cacheKey, cacheEntry)
+  cacheStore.set(cacheKey, cacheEntry);
 
   return {
     data,
     cached: false,
-  }
+  };
 }

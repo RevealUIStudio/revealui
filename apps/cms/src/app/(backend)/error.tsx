@@ -1,11 +1,11 @@
-'use client'
+'use client';
 
 export default function BackendError({
   error,
   reset,
 }: {
-  error: Error & { digest?: string }
-  reset: () => void
+  error: Error & { digest?: string };
+  reset: () => void;
 }) {
   return (
     <div className="flex min-h-[50vh] flex-col items-center justify-center gap-4 p-8">
@@ -22,5 +22,5 @@ export default function BackendError({
         Try again
       </button>
     </div>
-  )
+  );
 }

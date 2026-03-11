@@ -4,16 +4,16 @@
  * React hook for signing in a user.
  */
 
-'use client'
+'use client';
 
-import { useCallback, useRef, useState } from 'react'
-import { z } from 'zod/v4'
-import type { User } from '../types.js'
+import { useCallback, useRef, useState } from 'react';
+import { z } from 'zod/v4';
+import type { User } from '../types.js';
 
 // Validation schemas for sign-in response
 const SignInErrorResponseSchema = z.object({
   error: z.string().optional(),
-})
+});
 
 const SignInSuccessResponseSchema = z.object({
   user: z
@@ -23,17 +23,17 @@ const SignInSuccessResponseSchema = z.object({
       name: z.string().nullable().optional(),
     })
     .passthrough(), // Allow all other User properties
-})
+});
 
 export interface SignInInput {
-  email: string
-  password: string
+  email: string;
+  password: string;
 }
 
 export interface UseSignInResult {
-  signIn: (input: SignInInput) => Promise<{ success: boolean; user?: User; error?: string }>
-  isLoading: boolean
-  error: Error | null
+  signIn: (input: SignInInput) => Promise<{ success: boolean; user?: User; error?: string }>;
+  isLoading: boolean;
+  error: Error | null;
 }
 
 /**
@@ -57,19 +57,19 @@ export interface UseSignInResult {
  * ```
  */
 export function useSignIn(): UseSignInResult {
-  const [isLoading, setIsLoading] = useState(false)
-  const [error, setError] = useState<Error | null>(null)
-  const abortControllerRef = useRef<AbortController | null>(null)
+  const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState<Error | null>(null);
+  const abortControllerRef = useRef<AbortController | null>(null);
 
   const signIn = useCallback(async (input: SignInInput) => {
     // Abort any in-flight request
-    abortControllerRef.current?.abort()
-    const controller = new AbortController()
-    abortControllerRef.current = controller
+    abortControllerRef.current?.abort();
+    const controller = new AbortController();
+    abortControllerRef.current = controller;
 
     try {
-      setIsLoading(true)
-      setError(null)
+      setIsLoading(true);
+      setError(null);
 
       const response = await fetch('/api/auth/sign-in', {
         method: 'POST',
@@ -79,43 +79,43 @@ export function useSignIn(): UseSignInResult {
         credentials: 'include',
         body: JSON.stringify(input),
         signal: controller.signal,
-      })
+      });
 
-      const json: unknown = await response.json()
+      const json: unknown = await response.json();
 
       if (!response.ok) {
-        const errorData = SignInErrorResponseSchema.parse(json)
+        const errorData = SignInErrorResponseSchema.parse(json);
         return {
           success: false,
           error: errorData.error || 'Failed to sign in',
-        }
+        };
       }
 
-      const successData = SignInSuccessResponseSchema.parse(json)
+      const successData = SignInSuccessResponseSchema.parse(json);
       return {
         success: true,
         // Type assertion through unknown is safe because Zod validation ensures the shape is correct
         // The API returns serialized data, so we cast to expected type
         user: successData.user as unknown as User,
-      }
+      };
     } catch (err) {
       if (err instanceof DOMException && err.name === 'AbortError') {
-        return { success: false, error: 'Request was cancelled' }
+        return { success: false, error: 'Request was cancelled' };
       }
-      const error = err instanceof Error ? err : new Error(String(err))
-      setError(error)
+      const error = err instanceof Error ? err : new Error(String(err));
+      setError(error);
       return {
         success: false,
         error: error.message,
-      }
+      };
     } finally {
-      setIsLoading(false)
+      setIsLoading(false);
     }
-  }, [])
+  }, []);
 
   return {
     signIn,
     isLoading,
     error,
-  }
+  };
 }

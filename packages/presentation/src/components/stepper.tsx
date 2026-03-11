@@ -1,27 +1,27 @@
-import clsx from 'clsx'
+import clsx from 'clsx';
 
-type StepStatus = 'complete' | 'current' | 'upcoming'
+type StepStatus = 'complete' | 'current' | 'upcoming';
 
 export type StepperStep = {
-  label: string
-  description?: string
-  status: StepStatus
-}
+  label: string;
+  description?: string;
+  status: StepStatus;
+};
 
 export function Stepper({
   steps,
   orientation = 'horizontal',
   className,
 }: {
-  steps: StepperStep[]
-  orientation?: 'horizontal' | 'vertical'
-  className?: string
+  steps: StepperStep[];
+  orientation?: 'horizontal' | 'vertical';
+  className?: string;
 }) {
   return orientation === 'vertical' ? (
     <StepperVertical steps={steps} className={className} />
   ) : (
     <StepperHorizontal steps={steps} className={className} />
-  )
+  );
 }
 
 function StepIcon({ status }: { status: StepStatus }) {
@@ -38,20 +38,20 @@ function StepIcon({ status }: { status: StepStatus }) {
           />
         </svg>
       </span>
-    )
+    );
   }
   if (status === 'current') {
     return (
       <span className="flex size-8 items-center justify-center rounded-full border-2 border-blue-600 bg-white dark:bg-zinc-900">
         <span className="size-2.5 rounded-full bg-blue-600" />
       </span>
-    )
+    );
   }
   return (
     <span className="flex size-8 items-center justify-center rounded-full border-2 border-zinc-300 bg-white dark:border-zinc-600 dark:bg-zinc-900">
       <span className="size-2.5 rounded-full bg-transparent" />
     </span>
-  )
+  );
 }
 
 function StepperHorizontal({ steps, className }: { steps: StepperStep[]; className?: string }) {
@@ -59,7 +59,7 @@ function StepperHorizontal({ steps, className }: { steps: StepperStep[]; classNa
     <nav aria-label="Progress">
       <ol className={clsx('flex items-center', className)}>
         {steps.map((step, index) => {
-          const isLast = index === steps.length - 1
+          const isLast = index === steps.length - 1;
           return (
             <li
               // biome-ignore lint/suspicious/noArrayIndexKey: stepper steps are positionally ordered with no stable ID
@@ -92,11 +92,11 @@ function StepperHorizontal({ steps, className }: { steps: StepperStep[]; classNa
                 />
               )}
             </li>
-          )
+          );
         })}
       </ol>
     </nav>
-  )
+  );
 }
 
 function StepperVertical({ steps, className }: { steps: StepperStep[]; className?: string }) {
@@ -104,7 +104,7 @@ function StepperVertical({ steps, className }: { steps: StepperStep[]; className
     <nav aria-label="Progress">
       <ol className={clsx('space-y-0', className)}>
         {steps.map((step, index) => {
-          const isLast = index === steps.length - 1
+          const isLast = index === steps.length - 1;
           return (
             <li
               // biome-ignore lint/suspicious/noArrayIndexKey: stepper steps are positionally ordered with no stable ID
@@ -144,9 +144,9 @@ function StepperVertical({ steps, className }: { steps: StepperStep[]; className
                 )}
               </div>
             </li>
-          )
+          );
         })}
       </ol>
     </nav>
-  )
+  );
 }

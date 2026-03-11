@@ -1,6 +1,6 @@
-import type { GlobalConfig } from '@revealui/core'
+import type { GlobalConfig } from '@revealui/core';
 
-import { link } from '@/lib/fields/link'
+import { link } from '@/lib/fields/link';
 
 export const MainMenu: GlobalConfig = {
   slug: 'main-menu',
@@ -20,4 +20,4 @@ export const MainMenu: GlobalConfig = {
       ],
     },
   ],
-}
+};

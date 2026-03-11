@@ -1,16 +1,16 @@
-'use server'
+'use server';
 
 import {
   StripePriceListSchema,
   StripeProductDataSchema,
   StripeProductIDSchema,
-} from '@revealui/contracts/entities'
-import type { RevealBeforeChangeHook } from '@revealui/core'
-import type { Product } from '@revealui/core/types/cms'
-import { LRUCache } from '@revealui/core/utils/cache'
-import type Stripe from 'stripe'
+} from '@revealui/contracts/entities';
+import type { RevealBeforeChangeHook } from '@revealui/core';
+import type { Product } from '@revealui/core/types/cms';
+import { LRUCache } from '@revealui/core/utils/cache';
+import type Stripe from 'stripe';
 
-const logs = false
+const logs = false;
 
 /**
  * Products beforeChange Hook - Enhanced Validation
@@ -35,12 +35,12 @@ const logs = false
 const productCache = new LRUCache<string, Stripe.Product>({
   maxSize: 100,
   ttlMs: 5 * 60 * 1000, // 5 minutes
-})
+});
 
 const pricesCache = new LRUCache<string, Stripe.ApiList<Stripe.Price>>({
   maxSize: 100,
   ttlMs: 5 * 60 * 1000, // 5 minutes
-})
+});
 
 // =============================================================================
 // Validation Helpers
@@ -52,22 +52,22 @@ const pricesCache = new LRUCache<string, Stripe.ApiList<Stripe.Price>>({
  * @returns Validation result with optional error message
  */
 function validateStripeProductID(productId: string | null | undefined): {
-  valid: boolean
-  error?: string
+  valid: boolean;
+  error?: string;
 } {
   if (!productId) {
-    return { valid: false, error: 'Stripe Product ID is required' }
+    return { valid: false, error: 'Stripe Product ID is required' };
   }
 
-  const result = StripeProductIDSchema.safeParse(productId)
+  const result = StripeProductIDSchema.safeParse(productId);
   if (!result.success) {
     return {
       valid: false,
       error: result.error.issues[0]?.message || 'Invalid Stripe Product ID format',
-    }
+    };
   }
 
-  return { valid: true }
+  return { valid: true };
 }
 
 /**
@@ -76,18 +76,18 @@ function validateStripeProductID(productId: string | null | undefined): {
  * @returns Validation result with optional error message
  */
 function validateStripeProductData(productData: unknown): {
-  valid: boolean
-  error?: string
+  valid: boolean;
+  error?: string;
 } {
-  const result = StripeProductDataSchema.safeParse(productData)
+  const result = StripeProductDataSchema.safeParse(productData);
   if (!result.success) {
     return {
       valid: false,
       error: result.error.issues[0]?.message || 'Invalid Stripe product data structure',
-    }
+    };
   }
 
-  return { valid: true }
+  return { valid: true };
 }
 
 /**
@@ -96,18 +96,18 @@ function validateStripeProductData(productData: unknown): {
  * @returns Validation result with optional error message
  */
 function validateStripePriceList(priceList: unknown): {
-  valid: boolean
-  error?: string
+  valid: boolean;
+  error?: string;
 } {
-  const result = StripePriceListSchema.safeParse(priceList)
+  const result = StripePriceListSchema.safeParse(priceList);
   if (!result.success) {
     return {
       valid: false,
       error: result.error.issues[0]?.message || 'Invalid Stripe price list structure',
-    }
+    };
   }
 
-  return { valid: true }
+  return { valid: true };
 }
 
 // =============================================================================
@@ -124,7 +124,7 @@ async function cachedRetrieveProduct(
   stripe: Awaited<typeof import('@revealui/services')>['protectedStripe'],
   productId: string,
 ): Promise<Stripe.Product> {
-  return productCache.fetch(`product_${productId}`, () => stripe.products.retrieve(productId))
+  return productCache.fetch(`product_${productId}`, () => stripe.products.retrieve(productId));
 }
 
 /**
@@ -142,7 +142,7 @@ async function cachedListPrices(
       product: productId,
       limit: 100,
     }),
-  )
+  );
 }
 
 // =============================================================================
@@ -150,89 +150,89 @@ async function cachedListPrices(
 // =============================================================================
 
 export const beforeProductChange: RevealBeforeChangeHook<Product> = async ({ req, data }) => {
-  const revealui = req?.revealui
+  const revealui = req?.revealui;
   const newDoc: Product = {
     ...data,
     skipSync: false, // Reset to false so changes continue to sync
-  }
+  };
 
   // Dynamic import — @revealui/services is an optional Pro dependency
-  const services = await import('@revealui/services').catch(() => null)
+  const services = await import('@revealui/services').catch(() => null);
   if (!services) {
     // Allow drafts without Stripe, but block published products
     if (data.stripeProductID || data._status === 'published') {
-      throw new Error('Stripe features require @revealui/services (Pro)')
+      throw new Error('Stripe features require @revealui/services (Pro)');
     }
-    return newDoc
+    return newDoc;
   }
 
   // Skip validation if skipSync flag is set
   if (data.skipSync) {
-    if (logs) revealui?.logger?.info('Skipping product validation (skipSync=true)')
-    return newDoc
+    if (logs) revealui?.logger?.info('Skipping product validation (skipSync=true)');
+    return newDoc;
   }
 
   // Skip Stripe integration if no product ID provided
   if (!data.stripeProductID) {
     // Allow draft products without Stripe product
     if (data._status !== 'published') {
-      if (logs) revealui?.logger?.info('Draft product without Stripe ID, skipping validation')
-      return newDoc
+      if (logs) revealui?.logger?.info('Draft product without Stripe ID, skipping validation');
+      return newDoc;
     }
 
     // Published products must have Stripe product
-    throw new Error('Published products must have a valid Stripe Product ID')
+    throw new Error('Published products must have a valid Stripe Product ID');
   }
 
   // =============================================================================
   // Step 1: Validate Stripe Product ID format
   // =============================================================================
-  const formatValidation = validateStripeProductID(data.stripeProductID)
+  const formatValidation = validateStripeProductID(data.stripeProductID);
   if (!formatValidation.valid) {
-    throw new Error(`Invalid Stripe Product ID: ${formatValidation.error}`)
+    throw new Error(`Invalid Stripe Product ID: ${formatValidation.error}`);
   }
 
-  if (logs) revealui?.logger?.info(`Validating Stripe product: ${data.stripeProductID}`)
+  if (logs) revealui?.logger?.info(`Validating Stripe product: ${data.stripeProductID}`);
 
   // =============================================================================
   // Step 2: Fetch and validate Stripe product data
   // =============================================================================
-  let stripeProduct: Stripe.Product
+  let stripeProduct: Stripe.Product;
   try {
-    stripeProduct = await cachedRetrieveProduct(services.protectedStripe, data.stripeProductID)
-    if (logs) revealui?.logger?.info(`Found Stripe product: ${stripeProduct.name}`)
+    stripeProduct = await cachedRetrieveProduct(services.protectedStripe, data.stripeProductID);
+    if (logs) revealui?.logger?.info(`Found Stripe product: ${stripeProduct.name}`);
 
     // Validate product data structure
-    const productValidation = validateStripeProductData(stripeProduct)
+    const productValidation = validateStripeProductData(stripeProduct);
     if (!productValidation.valid) {
-      throw new Error(`Invalid product data from Stripe: ${productValidation.error}`)
+      throw new Error(`Invalid product data from Stripe: ${productValidation.error}`);
     }
   } catch (error) {
     const errorMessage =
-      error instanceof Error ? error.message : 'Unknown error fetching product from Stripe'
-    revealui?.logger?.error(`Error validating Stripe product: ${errorMessage}`)
-    throw new Error(`Failed to validate Stripe product: ${errorMessage}`)
+      error instanceof Error ? error.message : 'Unknown error fetching product from Stripe';
+    revealui?.logger?.error(`Error validating Stripe product: ${errorMessage}`);
+    throw new Error(`Failed to validate Stripe product: ${errorMessage}`);
   }
 
   // =============================================================================
   // Step 3: Fetch and validate price list
   // =============================================================================
   try {
-    const priceList = await cachedListPrices(services.protectedStripe, data.stripeProductID)
-    if (logs) revealui?.logger?.info(`Found ${priceList.data.length} prices for product`)
+    const priceList = await cachedListPrices(services.protectedStripe, data.stripeProductID);
+    if (logs) revealui?.logger?.info(`Found ${priceList.data.length} prices for product`);
 
     // Validate price list structure
-    const priceValidation = validateStripePriceList(priceList)
+    const priceValidation = validateStripePriceList(priceList);
     if (!priceValidation.valid) {
-      throw new Error(`Invalid price list from Stripe: ${priceValidation.error}`)
+      throw new Error(`Invalid price list from Stripe: ${priceValidation.error}`);
     }
 
     // Store validated price list
-    newDoc.priceJSON = JSON.stringify(priceList)
+    newDoc.priceJSON = JSON.stringify(priceList);
   } catch (error) {
     const errorMessage =
-      error instanceof Error ? error.message : 'Unknown error fetching prices from Stripe'
-    revealui?.logger?.error(`Error fetching prices: ${errorMessage}`)
+      error instanceof Error ? error.message : 'Unknown error fetching prices from Stripe';
+    revealui?.logger?.error(`Error fetching prices: ${errorMessage}`);
     // Don't throw here - product can exist without prices
     // Just log the error and continue
   }
@@ -243,9 +243,9 @@ export const beforeProductChange: RevealBeforeChangeHook<Product> = async ({ req
 
   // Published products must be active in Stripe
   if (data._status === 'published' && !stripeProduct.active) {
-    throw new Error('Cannot publish product: Stripe product is not active')
+    throw new Error('Cannot publish product: Stripe product is not active');
   }
 
-  if (logs) revealui?.logger?.info('Product validation successful')
-  return newDoc
-}
+  if (logs) revealui?.logger?.info('Product validation successful');
+  return newDoc;
+};

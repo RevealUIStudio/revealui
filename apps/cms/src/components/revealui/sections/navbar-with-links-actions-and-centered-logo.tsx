@@ -1,7 +1,7 @@
-import { ElDialog, ElDialogPanel } from '@tailwindplus/elements/react'
-import { clsx } from 'clsx/lite'
-import Link from 'next/link'
-import type { ComponentProps, ReactNode } from 'react'
+import { ElDialog, ElDialogPanel } from '@tailwindplus/elements/react';
+import { clsx } from 'clsx/lite';
+import Link from 'next/link';
+import type { ComponentProps, ReactNode } from 'react';
 
 export function NavbarLink({
   children,
@@ -35,7 +35,7 @@ export function NavbarLink({
         </svg>
       </span>
     </Link>
-  )
+  );
 }
 
 export function NavbarLogo({
@@ -43,7 +43,7 @@ export function NavbarLogo({
   href,
   ...props
 }: { href: string } & Omit<ComponentProps<typeof Link>, 'href'>) {
-  return <Link href={href} {...props} className={clsx('inline-flex items-stretch', className)} />
+  return <Link href={href} {...props} className={clsx('inline-flex items-stretch', className)} />;
 }
 
 export function NavbarWithLinksActionsAndCenteredLogo({
@@ -53,9 +53,9 @@ export function NavbarWithLinksActionsAndCenteredLogo({
   className,
   ...props
 }: {
-  links: ReactNode
-  logo: ReactNode
-  actions: ReactNode
+  links: ReactNode;
+  logo: ReactNode;
+  actions: ReactNode;
 } & ComponentProps<'header'>) {
   return (
     <header
@@ -120,5 +120,5 @@ export function NavbarWithLinksActionsAndCenteredLogo({
         </ElDialog>
       </nav>
     </header>
-  )
+  );
 }

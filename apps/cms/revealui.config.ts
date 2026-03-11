@@ -1,9 +1,9 @@
 // Build: 2026-03-02
-import path from 'node:path'
-import { fileURLToPath } from 'node:url'
-import { getSharedCMSConfig } from '@revealui/config/revealui'
-import type { CollectionConfig, Field } from '@revealui/contracts/cms'
-import type { RevealUIField, RevealUIInstance } from '@revealui/core'
+import path from 'node:path';
+import { fileURLToPath } from 'node:url';
+import { getSharedCMSConfig } from '@revealui/config/revealui';
+import type { CollectionConfig, Field } from '@revealui/contracts/cms';
+import type { RevealUIField, RevealUIInstance } from '@revealui/core';
 import {
   BoldFeature,
   buildConfig,
@@ -19,44 +19,44 @@ import {
   UnderlineFeature,
   universalPostgresAdapter,
   vercelBlobStorage,
-} from '@revealui/core'
-import { en } from '@revealui/core/admin/i18n/en'
-import sharp from 'sharp'
+} from '@revealui/core';
+import { en } from '@revealui/core/admin/i18n/en';
+import sharp from 'sharp';
 // Import shared configuration from @revealui/config
-import Banners from '@/lib/collections/Banners'
-import Cards from '@/lib/collections/Cards'
-import Categories from '@/lib/collections/Categories'
-import Contents from '@/lib/collections/Contents'
-import { Conversations } from '@/lib/collections/Conversations'
-import Events from '@/lib/collections/Events'
-import Heros from '@/lib/collections/Heros'
-import Layouts from '@/lib/collections/Layouts'
-import { Media } from '@/lib/collections/Media'
-import { Orders } from '@/lib/collections/Orders'
-import { Pages } from '@/lib/collections/Pages/index'
-import { Posts } from '@/lib/collections/Posts'
-import Prices from '@/lib/collections/Prices'
-import Products from '@/lib/collections/Products'
-import Subscriptions from '@/lib/collections/Subscriptions'
-import Tags from '@/lib/collections/Tags'
-import { Tenants } from '@/lib/collections/Tenants'
-import Users from '@/lib/collections/Users'
-import { Footer, Header, Settings } from '@/lib/globals'
-import { revalidateRedirects } from '@/lib/hooks/revalidateRedirects'
+import Banners from '@/lib/collections/Banners';
+import Cards from '@/lib/collections/Cards';
+import Categories from '@/lib/collections/Categories';
+import Contents from '@/lib/collections/Contents';
+import { Conversations } from '@/lib/collections/Conversations';
+import Events from '@/lib/collections/Events';
+import Heros from '@/lib/collections/Heros';
+import Layouts from '@/lib/collections/Layouts';
+import { Media } from '@/lib/collections/Media';
+import { Orders } from '@/lib/collections/Orders';
+import { Pages } from '@/lib/collections/Pages/index';
+import { Posts } from '@/lib/collections/Posts';
+import Prices from '@/lib/collections/Prices';
+import Products from '@/lib/collections/Products';
+import Subscriptions from '@/lib/collections/Subscriptions';
+import Tags from '@/lib/collections/Tags';
+import { Tenants } from '@/lib/collections/Tenants';
+import Users from '@/lib/collections/Users';
+import { Footer, Header, Settings } from '@/lib/globals';
+import { revalidateRedirects } from '@/lib/hooks/revalidateRedirects';
 
 // import { ChatGPTAssistant } from "reveal";
 // import { EmbedFeature } from "@/features/embed/feature.server";
 
-const filename = fileURLToPath(import.meta.url)
-const dirname = path.dirname(filename)
+const filename = fileURLToPath(import.meta.url);
+const dirname = path.dirname(filename);
 
 // Calculate project root (always absolute from file location)
 // This ensures .revealui/cache/ is always created in the project root,
 // regardless of where commands are run from (apps/, apps/cms/, etc.)
-const _projectRoot = path.resolve(dirname, '../..')
+const _projectRoot = path.resolve(dirname, '../..');
 
 // Get shared config as fallback for serverURL and secret
-const sharedConfig = getSharedCMSConfig()
+const sharedConfig = getSharedCMSConfig();
 
 export default buildConfig({
   serverURL: (process.env.REVEALUI_PUBLIC_SERVER_URL || sharedConfig.serverURL).trim(),
@@ -89,12 +89,12 @@ export default buildConfig({
     livePreview: {
       url: ({ data, locale }: { data: unknown; locale?: string }) => {
         const typedData = data as {
-          tenant?: { domains?: Array<{ domain: string }> }
-          slug?: string
-        }
+          tenant?: { domains?: Array<{ domain: string }> };
+          slug?: string;
+        };
         return `${typedData.tenant?.domains?.[0]?.domain || ''}${
           typedData.slug === 'posts' ? `/posts/${typedData.slug}` : `/${typedData.slug || ''}`
-        }${locale ? `?locale=${locale}` : ''}`
+        }${locale ? `?locale=${locale}` : ''}`;
       },
       collections: ['pages'],
       breakpoints: [
@@ -171,7 +171,7 @@ export default buildConfig({
         LinkFeature({
           enabledCollections: ['pages', 'posts'],
         }),
-      ]
+      ];
     },
   }),
 
@@ -199,10 +199,10 @@ export default buildConfig({
                 admin: {
                   description: 'You will need to rebuild the website when changing this field.',
                 },
-              }
+              };
             }
-            return field
-          })
+            return field;
+          });
         },
         hooks: {
           // @ts-expect-error - revalidateRedirects has a flexible signature that works at runtime
@@ -228,13 +228,13 @@ export default buildConfig({
                       HeadingFeature({
                         enabledHeadingSizes: ['h1', 'h2', 'h3', 'h4'],
                       }),
-                    ]
+                    ];
                   },
                 }),
-              }
+              };
             }
-            return field
-          })
+            return field;
+          });
         },
       },
     }),
@@ -262,10 +262,10 @@ export default buildConfig({
   ] as CollectionConfig<any>[],
   // Programmatically create first user on initialization if none exists
   onInit: async (instance: unknown) => {
-    const revealui = instance as RevealUIInstance
+    const revealui = instance as RevealUIInstance;
     // Skip onInit in test environment to avoid database access before tables exist
     if (process.env.SKIP_ONINIT === 'true' || process.env.NODE_ENV === 'test') {
-      return
+      return;
     }
 
     // Check if any users exist
@@ -273,27 +273,27 @@ export default buildConfig({
       collection: 'users',
       limit: 1,
       depth: 0,
-    })
+    });
 
     // If no users exist, create the first admin user
     if (existingUsers.totalDocs === 0) {
-      const adminEmail = process.env.REVEALUI_ADMIN_EMAIL
-      const adminPassword = process.env.REVEALUI_ADMIN_PASSWORD
+      const adminEmail = process.env.REVEALUI_ADMIN_EMAIL;
+      const adminPassword = process.env.REVEALUI_ADMIN_PASSWORD;
 
       // SECURITY: Require credentials from environment - no hardcoded defaults
       if (!(adminEmail && adminPassword)) {
         revealui.logger.warn(
           'No users exist. Set REVEALUI_ADMIN_EMAIL and REVEALUI_ADMIN_PASSWORD environment variables to create initial admin user.',
-        )
-        return
+        );
+        return;
       }
 
       // Validate password strength
       if (adminPassword.length < 12) {
         revealui.logger.error(
           'REVEALUI_ADMIN_PASSWORD must be at least 12 characters. Initial admin user not created.',
-        )
-        return
+        );
+        return;
       }
 
       try {
@@ -305,12 +305,12 @@ export default buildConfig({
             password: adminPassword,
             roles: ['user-super-admin'],
           },
-        })
+        });
 
-        revealui.logger.info(`First admin user created: ${adminEmail}`)
+        revealui.logger.info(`First admin user created: ${adminEmail}`);
       } catch (error) {
-        revealui.logger.error(`Failed to create first admin user: ${error}`)
+        revealui.logger.error(`Failed to create first admin user: ${error}`);
       }
     }
   },
-})
+});

@@ -6,5 +6,5 @@ export default function BackendLoading() {
         <p className="text-sm text-neutral-500">Loading...</p>
       </div>
     </div>
-  )
+  );
 }

@@ -10,35 +10,35 @@
  * - node:child_process - Process spawning
  */
 
-import { type SpawnOptions, spawn } from 'node:child_process'
+import { type SpawnOptions, spawn } from 'node:child_process';
 import {
   type ProcessMetadata,
   registerProcess,
   updateProcessStatus,
-} from '@revealui/core/monitoring'
-import { createLogger, type Logger } from './logger.js'
+} from '@revealui/core/monitoring';
+import { createLogger, type Logger } from './logger.js';
 
 export interface ScriptResult {
-  success: boolean
-  message: string
-  exitCode: number
-  stdout?: string
-  stderr?: string
+  success: boolean;
+  message: string;
+  exitCode: number;
+  stdout?: string;
+  stderr?: string;
 }
 
 export interface ExecOptions extends SpawnOptions {
   /** Timeout in milliseconds (default: 120000 = 2 minutes) */
-  timeout?: number
+  timeout?: number;
   /** Capture stdout/stderr instead of inheriting (default: false) */
-  capture?: boolean
+  capture?: boolean;
   /** Logger instance for output */
-  logger?: Logger
+  logger?: Logger;
   /** Working directory */
-  cwd?: string
+  cwd?: string;
   /** Environment variables to merge with process.env */
-  env?: Record<string, string>
+  env?: Record<string, string>;
   /** Process metadata for tracking */
-  metadata?: ProcessMetadata
+  metadata?: ProcessMetadata;
 }
 
 /** Kill the entire process group to prevent orphaned child processes */
@@ -47,13 +47,13 @@ function killProcessGroup(child: ReturnType<typeof spawn>, signal: NodeJS.Signal
     try {
       // Kill the process group (negative PID) on Unix
       if (process.platform !== 'win32') {
-        process.kill(-child.pid, signal)
+        process.kill(-child.pid, signal);
       } else {
-        child.kill(signal)
+        child.kill(signal);
       }
     } catch {
       // Process may have already exited
-      child.kill(signal)
+      child.kill(signal);
     }
   }
 }
@@ -87,14 +87,14 @@ export async function execCommand(
     env,
     metadata,
     ...spawnOptions
-  } = options
+  } = options;
 
-  const logger = customLogger || createLogger({ level: 'silent' })
+  const logger = customLogger || createLogger({ level: 'silent' });
 
   return new Promise((resolve) => {
-    const mergedEnv = env ? { ...process.env, ...env } : process.env
+    const mergedEnv = env ? { ...process.env, ...env } : process.env;
 
-    const isWindows = process.platform === 'win32'
+    const isWindows = process.platform === 'win32';
     const child = spawn(command, args, {
       cwd,
       env: mergedEnv,
@@ -102,58 +102,58 @@ export async function execCommand(
       shell: isWindows,
       detached: !isWindows,
       ...spawnOptions,
-    })
+    });
 
     // Register process in monitoring system
     if (child.pid) {
-      registerProcess(child.pid, command, args, 'exec', metadata, process.pid)
+      registerProcess(child.pid, command, args, 'exec', metadata, process.pid);
     }
 
-    let stdout = ''
-    let stderr = ''
-    let killed = false
-    let gracefulKillAttempted = false
+    let stdout = '';
+    let stderr = '';
+    let killed = false;
+    let gracefulKillAttempted = false;
 
     // Set up timeout with graceful shutdown
     const timeoutId = setTimeout(() => {
       if (!gracefulKillAttempted) {
         // First attempt: graceful SIGTERM
-        gracefulKillAttempted = true
-        logger.warn(`Command timeout approaching, sending SIGTERM: ${command} ${args.join(' ')}`)
-        killProcessGroup(child, 'SIGTERM')
+        gracefulKillAttempted = true;
+        logger.warn(`Command timeout approaching, sending SIGTERM: ${command} ${args.join(' ')}`);
+        killProcessGroup(child, 'SIGTERM');
 
         // Second attempt after 5s: force SIGKILL
         setTimeout(() => {
           if (!killed) {
-            killed = true
+            killed = true;
             logger.error(
               `Command force-killed after ${timeout + 5000}ms: ${command} ${args.join(' ')}`,
-            )
-            killProcessGroup(child, 'SIGKILL')
+            );
+            killProcessGroup(child, 'SIGKILL');
           }
-        }, 5000)
+        }, 5000);
       }
-    }, timeout)
+    }, timeout);
 
     // Capture output if requested
     if (capture && child.stdout) {
       child.stdout.on('data', (data) => {
-        stdout += data.toString()
-      })
+        stdout += data.toString();
+      });
     }
 
     if (capture && child.stderr) {
       child.stderr.on('data', (data) => {
-        stderr += data.toString()
-      })
+        stderr += data.toString();
+      });
     }
 
     child.on('error', (error) => {
-      clearTimeout(timeoutId)
+      clearTimeout(timeoutId);
 
       // Update process status
       if (child.pid) {
-        updateProcessStatus(child.pid, 'failed', 1)
+        updateProcessStatus(child.pid, 'failed', 1);
       }
 
       resolve({
@@ -162,20 +162,20 @@ export async function execCommand(
         exitCode: 1,
         stdout: capture ? stdout : undefined,
         stderr: capture ? stderr : undefined,
-      })
-    })
+      });
+    });
 
     child.on('close', (code, signal) => {
-      clearTimeout(timeoutId)
+      clearTimeout(timeoutId);
 
       // Update process status
       if (child.pid) {
         if (killed || signal) {
-          updateProcessStatus(child.pid, 'killed', code ?? undefined, signal ?? undefined)
+          updateProcessStatus(child.pid, 'killed', code ?? undefined, signal ?? undefined);
         } else if (code === 0) {
-          updateProcessStatus(child.pid, 'completed', code)
+          updateProcessStatus(child.pid, 'completed', code);
         } else {
-          updateProcessStatus(child.pid, 'failed', code ?? 1)
+          updateProcessStatus(child.pid, 'failed', code ?? 1);
         }
       }
 
@@ -186,8 +186,8 @@ export async function execCommand(
           exitCode: code ?? 124,
           stdout: capture ? stdout : undefined,
           stderr: capture ? stderr : undefined,
-        })
-        return
+        });
+        return;
       }
 
       resolve({
@@ -196,23 +196,23 @@ export async function execCommand(
         exitCode: code ?? 1,
         stdout: capture ? stdout : undefined,
         stderr: capture ? stderr : undefined,
-      })
-    })
+      });
+    });
 
     // Forward signals to child process to prevent zombies
     const signalHandler = (signal: NodeJS.Signals) => {
-      killProcessGroup(child, signal)
-    }
+      killProcessGroup(child, signal);
+    };
 
-    process.on('SIGTERM', signalHandler)
-    process.on('SIGINT', signalHandler)
+    process.on('SIGTERM', signalHandler);
+    process.on('SIGINT', signalHandler);
 
     // Clean up signal handlers when child exits
     child.on('exit', () => {
-      process.off('SIGTERM', signalHandler)
-      process.off('SIGINT', signalHandler)
-    })
-  })
+      process.off('SIGTERM', signalHandler);
+      process.off('SIGINT', signalHandler);
+    });
+  });
 }
 
 /**
@@ -231,18 +231,18 @@ export async function execSequence(
   commands: Array<[string, string[], ExecOptions?]>,
   options: ExecOptions = {},
 ): Promise<{ success: boolean; results: ScriptResult[] }> {
-  const results: ScriptResult[] = []
+  const results: ScriptResult[] = [];
 
   for (const [command, args, cmdOptions] of commands) {
-    const result = await execCommand(command, args, { ...options, ...cmdOptions })
-    results.push(result)
+    const result = await execCommand(command, args, { ...options, ...cmdOptions });
+    results.push(result);
 
     if (!result.success) {
-      return { success: false, results }
+      return { success: false, results };
     }
   }
 
-  return { success: true, results }
+  return { success: true, results };
 }
 
 /**
@@ -262,12 +262,12 @@ export async function execParallel(
 ): Promise<{ success: boolean; results: ScriptResult[] }> {
   const promises = commands.map(([command, args, cmdOptions]) =>
     execCommand(command, args, { ...options, ...cmdOptions }),
-  )
+  );
 
-  const results = await Promise.all(promises)
-  const success = results.every((r) => r.success)
+  const results = await Promise.all(promises);
+  const success = results.every((r) => r.success);
 
-  return { success, results }
+  return { success, results };
 }
 
 /**
@@ -283,10 +283,10 @@ export async function runPnpmScript(
   script: string,
   options: ExecOptions & { filter?: string } = {},
 ): Promise<ScriptResult> {
-  const { filter, ...execOptions } = options
-  const args = filter ? ['--filter', filter, script] : [script]
+  const { filter, ...execOptions } = options;
+  const args = filter ? ['--filter', filter, script] : [script];
 
-  return execCommand('pnpm', args, execOptions)
+  return execCommand('pnpm', args, execOptions);
 }
 
 /**
@@ -300,12 +300,12 @@ export async function runPnpmScript(
  * ```
  */
 export async function commandExists(command: string): Promise<boolean> {
-  const checkCmd = process.platform === 'win32' ? 'where' : 'which'
+  const checkCmd = process.platform === 'win32' ? 'where' : 'which';
 
   try {
-    const result = await execCommand(checkCmd, [command], { capture: true })
-    return result.success
+    const result = await execCommand(checkCmd, [command], { capture: true });
+    return result.success;
   } catch {
-    return false
+    return false;
   }
 }

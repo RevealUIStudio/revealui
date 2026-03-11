@@ -1,7 +1,7 @@
-'use client'
+'use client';
 
-import clsx from 'clsx'
-import type React from 'react'
+import clsx from 'clsx';
+import type React from 'react';
 import {
   Children,
   createContext,
@@ -14,40 +14,40 @@ import {
   useMemo,
   useRef,
   useState,
-} from 'react'
-import { createPortal } from 'react-dom'
-import { useClickOutside } from '../hooks/use-click-outside.js'
-import { useControllableState } from '../hooks/use-controllable-state.js'
-import { useEscapeKey } from '../hooks/use-escape-key.js'
-import { usePopover } from '../hooks/use-popover.js'
-import { useTransition } from '../hooks/use-transition.js'
+} from 'react';
+import { createPortal } from 'react-dom';
+import { useClickOutside } from '../hooks/use-click-outside.js';
+import { useControllableState } from '../hooks/use-controllable-state.js';
+import { useEscapeKey } from '../hooks/use-escape-key.js';
+import { usePopover } from '../hooks/use-popover.js';
+import { useTransition } from '../hooks/use-transition.js';
 
 // ---------------------------------------------------------------------------
 // Context
 // ---------------------------------------------------------------------------
 
 interface ListboxContextValue<T = unknown> {
-  value: T
-  setValue: (v: T) => void
-  open: boolean
-  setOpen: (open: boolean) => void
-  disabled: boolean
-  activeIndex: number
-  setActiveIndex: (index: number) => void
-  registerOption: (index: number, value: T, el: HTMLElement | null) => void
-  optionCount: number
-  buttonId: string
-  listId: string
+  value: T;
+  setValue: (v: T) => void;
+  open: boolean;
+  setOpen: (open: boolean) => void;
+  disabled: boolean;
+  activeIndex: number;
+  setActiveIndex: (index: number) => void;
+  registerOption: (index: number, value: T, el: HTMLElement | null) => void;
+  optionCount: number;
+  buttonId: string;
+  listId: string;
 }
 
-const ListboxContext = createContext<ListboxContextValue | null>(null)
+const ListboxContext = createContext<ListboxContextValue | null>(null);
 
 function useListboxContext(): ListboxContextValue {
-  const ctx = use(ListboxContext)
+  const ctx = use(ListboxContext);
   if (!ctx) {
-    throw new Error('Listbox compound components must be used within <Listbox>')
+    throw new Error('Listbox compound components must be used within <Listbox>');
   }
-  return ctx
+  return ctx;
 }
 
 // ---------------------------------------------------------------------------
@@ -55,38 +55,38 @@ function useListboxContext(): ListboxContextValue {
 // ---------------------------------------------------------------------------
 
 function countOptions(children: ReactNode): number {
-  let count = 0
+  let count = 0;
   Children.forEach(children, (child) => {
-    if (!isValidElement(child)) return
+    if (!isValidElement(child)) return;
     if ((child.type as unknown) === ListboxOption) {
-      count++
+      count++;
     }
-  })
-  return count
+  });
+  return count;
 }
 
 // ---------------------------------------------------------------------------
 // OptionIndexProvider
 // ---------------------------------------------------------------------------
 
-const OptionIndexContext = createContext<number>(-1)
+const OptionIndexContext = createContext<number>(-1);
 
 function OptionIndexProvider({ children }: { children: ReactNode }) {
-  let index = 0
+  let index = 0;
   return (
     <>
       {Children.map(children, (child) => {
-        if (!isValidElement(child)) return child
+        if (!isValidElement(child)) return child;
         if ((child.type as unknown) === ListboxOption) {
-          const currentIndex = index++
+          const currentIndex = index++;
           return (
             <OptionIndexContext.Provider value={currentIndex}>{child}</OptionIndexContext.Provider>
-          )
+          );
         }
-        return child
+        return child;
       })}
     </>
-  )
+  );
 }
 
 // ---------------------------------------------------------------------------
@@ -105,143 +105,143 @@ export function Listbox<T>({
   disabled = false,
   name,
 }: {
-  className?: string
-  placeholder?: React.ReactNode
-  autoFocus?: boolean
-  'aria-label'?: string
-  children?: ReactNode
-  value?: T
-  defaultValue?: T
-  onChange?: (value: T) => void
-  disabled?: boolean
-  name?: string
+  className?: string;
+  placeholder?: React.ReactNode;
+  autoFocus?: boolean;
+  'aria-label'?: string;
+  children?: ReactNode;
+  value?: T;
+  defaultValue?: T;
+  onChange?: (value: T) => void;
+  disabled?: boolean;
+  name?: string;
 }) {
   const [value, setValue] = useControllableState<T>({
     value: controlledValue,
     defaultValue: defaultValue as T,
     onChange,
-  })
+  });
 
-  const [open, setOpen] = useState(false)
-  const [activeIndex, setActiveIndex] = useState(-1)
-  const [optionCount, setOptionCount] = useState(0)
+  const [open, setOpen] = useState(false);
+  const [activeIndex, setActiveIndex] = useState(-1);
+  const [optionCount, setOptionCount] = useState(0);
 
-  const buttonId = useId()
-  const listId = useId()
+  const buttonId = useId();
+  const listId = useId();
 
-  const optionMapRef = useRef<Map<number, { value: T; element: HTMLElement | null }>>(new Map())
+  const optionMapRef = useRef<Map<number, { value: T; element: HTMLElement | null }>>(new Map());
 
   const registerOption = useCallback((index: number, optValue: T, element: HTMLElement | null) => {
-    optionMapRef.current.set(index, { value: optValue, element })
-  }, [])
+    optionMapRef.current.set(index, { value: optValue, element });
+  }, []);
 
   useEffect(() => {
-    setOptionCount(countOptions(options))
-  }, [options])
+    setOptionCount(countOptions(options));
+  }, [options]);
 
   const { triggerRef, popoverRef, popoverProps } = usePopover({
     open,
     anchor: 'selection start',
     gap: 0,
     padding: 16,
-  })
+  });
 
-  const { mounted, nodeRef, transitionProps } = useTransition(open)
+  const { mounted, nodeRef, transitionProps } = useTransition(open);
 
-  useClickOutside([triggerRef, popoverRef], () => setOpen(false), open)
+  useClickOutside([triggerRef, popoverRef], () => setOpen(false), open);
 
   useEscapeKey(() => {
-    setOpen(false)
-    triggerRef.current?.focus()
-  }, open)
+    setOpen(false);
+    triggerRef.current?.focus();
+  }, open);
 
   const selectActiveOption = useCallback(() => {
-    const entry = optionMapRef.current.get(activeIndex)
+    const entry = optionMapRef.current.get(activeIndex);
     if (entry) {
-      setValue(entry.value)
-      setOpen(false)
-      triggerRef.current?.focus()
+      setValue(entry.value);
+      setOpen(false);
+      triggerRef.current?.focus();
     }
-  }, [activeIndex, setValue, triggerRef])
+  }, [activeIndex, setValue, triggerRef]);
 
   const handleOptionsKeyDown = useCallback(
     (e: React.KeyboardEvent) => {
       switch (e.key) {
         case 'ArrowDown': {
-          e.preventDefault()
+          e.preventDefault();
           setActiveIndex((prev) => {
-            const next = prev + 1
-            return next >= optionCount ? 0 : next
-          })
-          break
+            const next = prev + 1;
+            return next >= optionCount ? 0 : next;
+          });
+          break;
         }
         case 'ArrowUp': {
-          e.preventDefault()
+          e.preventDefault();
           setActiveIndex((prev) => {
-            const next = prev - 1
-            return next < 0 ? optionCount - 1 : next
-          })
-          break
+            const next = prev - 1;
+            return next < 0 ? optionCount - 1 : next;
+          });
+          break;
         }
         case 'Home': {
-          e.preventDefault()
-          setActiveIndex(0)
-          break
+          e.preventDefault();
+          setActiveIndex(0);
+          break;
         }
         case 'End': {
-          e.preventDefault()
-          setActiveIndex(optionCount - 1)
-          break
+          e.preventDefault();
+          setActiveIndex(optionCount - 1);
+          break;
         }
         case 'Enter':
         case ' ': {
-          e.preventDefault()
-          selectActiveOption()
-          break
+          e.preventDefault();
+          selectActiveOption();
+          break;
         }
       }
     },
     [optionCount, selectActiveOption],
-  )
+  );
 
   useEffect(() => {
-    if (!open || activeIndex < 0) return
-    const entry = optionMapRef.current.get(activeIndex)
-    entry?.element?.scrollIntoView({ block: 'nearest' })
-  }, [activeIndex, open])
+    if (!open || activeIndex < 0) return;
+    const entry = optionMapRef.current.get(activeIndex);
+    entry?.element?.scrollIntoView({ block: 'nearest' });
+  }, [activeIndex, open]);
 
   useEffect(() => {
     if (open) {
-      let selectedIdx = -1
+      let selectedIdx = -1;
       for (const [idx, entry] of optionMapRef.current.entries()) {
         if (entry.value === value) {
-          selectedIdx = idx
-          break
+          selectedIdx = idx;
+          break;
         }
       }
-      setActiveIndex(selectedIdx >= 0 ? selectedIdx : 0)
+      setActiveIndex(selectedIdx >= 0 ? selectedIdx : 0);
     }
-  }, [open, value])
+  }, [open, value]);
 
   useEffect(() => {
     if (mounted && popoverRef.current) {
-      popoverRef.current.focus({ preventScroll: true })
+      popoverRef.current.focus({ preventScroll: true });
     }
-  }, [mounted, popoverRef])
+  }, [mounted, popoverRef]);
 
   const selectedContent = useMemo(() => {
-    let matched: ReactNode = null
+    let matched: ReactNode = null;
     Children.forEach(options, (child) => {
-      if (!isValidElement(child)) return
+      if (!isValidElement(child)) return;
       if (
         (child.type as unknown) === ListboxOption &&
         (child.props as { value?: unknown }).value === value
       ) {
-        matched = (child.props as { children?: ReactNode }).children
+        matched = (child.props as { children?: ReactNode }).children;
       }
-    })
-    return matched
-  }, [options, value])
+    });
+    return matched;
+  }, [options, value]);
 
   const ctx = useMemo<ListboxContextValue<T>>(
     () => ({
@@ -262,24 +262,24 @@ export function Listbox<T>({
       listId,
     }),
     [value, setValue, open, disabled, activeIndex, registerOption, optionCount, buttonId, listId],
-  )
+  );
 
   const handleButtonClick = useCallback(() => {
     if (!disabled) {
-      setOpen((prev) => !prev)
+      setOpen((prev) => !prev);
     }
-  }, [disabled])
+  }, [disabled]);
 
   const handleButtonKeyDown = useCallback(
     (e: React.KeyboardEvent) => {
-      if (disabled) return
+      if (disabled) return;
       if (e.key === 'ArrowDown' || e.key === 'ArrowUp' || e.key === 'Enter' || e.key === ' ') {
-        e.preventDefault()
-        setOpen(true)
+        e.preventDefault();
+        setOpen(true);
       }
     },
     [disabled],
-  )
+  );
 
   const selectedSharedClasses = clsx(
     'flex min-w-0 items-center',
@@ -287,14 +287,14 @@ export function Listbox<T>({
     '*:data-[slot=icon]:text-zinc-500 group-data-focus/option:*:data-[slot=icon]:text-white dark:*:data-[slot=icon]:text-zinc-400',
     'forced-colors:*:data-[slot=icon]:text-[CanvasText] forced-colors:group-data-focus/option:*:data-[slot=icon]:text-[Canvas]',
     '*:data-[slot=avatar]:-mx-0.5 *:data-[slot=avatar]:size-6 sm:*:data-[slot=avatar]:size-5',
-  )
+  );
 
   const displayContent =
     selectedContent != null ? (
       <span className={selectedSharedClasses}>{selectedContent}</span>
     ) : placeholder ? (
       <span className="block truncate text-zinc-500">{placeholder}</span>
-    ) : null
+    ) : null;
 
   return (
     <ListboxContext.Provider value={ctx as ListboxContextValue}>
@@ -368,8 +368,8 @@ export function Listbox<T>({
         createPortal(
           <div
             ref={(node) => {
-              ;(popoverRef as React.MutableRefObject<HTMLElement | null>).current = node
-              ;(nodeRef as React.MutableRefObject<HTMLElement | null>).current = node
+              (popoverRef as React.MutableRefObject<HTMLElement | null>).current = node;
+              (nodeRef as React.MutableRefObject<HTMLElement | null>).current = node;
             }}
             {...popoverProps}
             {...transitionProps}
@@ -399,7 +399,7 @@ export function Listbox<T>({
           document.body,
         )}
     </ListboxContext.Provider>
-  )
+  );
 }
 
 // ---------------------------------------------------------------------------
@@ -412,21 +412,21 @@ export function ListboxOption<T>({
   value: optionValue,
   disabled: optionDisabled = false,
 }: {
-  className?: string
-  children?: ReactNode
-  value: T
-  disabled?: boolean
+  className?: string;
+  children?: ReactNode;
+  value: T;
+  disabled?: boolean;
 }) {
-  const ctx = useListboxContext()
-  const index = use(OptionIndexContext)
-  const optionRef = useRef<HTMLDivElement>(null)
+  const ctx = useListboxContext();
+  const index = use(OptionIndexContext);
+  const optionRef = useRef<HTMLDivElement>(null);
 
-  const isSelected = ctx.value === optionValue
-  const isFocused = ctx.activeIndex === index
+  const isSelected = ctx.value === optionValue;
+  const isFocused = ctx.activeIndex === index;
 
   useEffect(() => {
-    ctx.registerOption(index, optionValue, optionRef.current)
-  }, [index, optionValue, ctx.registerOption, ctx])
+    ctx.registerOption(index, optionValue, optionRef.current);
+  }, [index, optionValue, ctx.registerOption, ctx]);
 
   const sharedClasses = clsx(
     'flex min-w-0 items-center',
@@ -434,19 +434,19 @@ export function ListboxOption<T>({
     '*:data-[slot=icon]:text-zinc-500 group-data-focus/option:*:data-[slot=icon]:text-white dark:*:data-[slot=icon]:text-zinc-400',
     'forced-colors:*:data-[slot=icon]:text-[CanvasText] forced-colors:group-data-focus/option:*:data-[slot=icon]:text-[Canvas]',
     '*:data-[slot=avatar]:-mx-0.5 *:data-[slot=avatar]:size-6 sm:*:data-[slot=avatar]:size-5',
-  )
+  );
 
   const handleClick = useCallback(() => {
-    if (optionDisabled) return
-    ctx.setValue(optionValue)
-    ctx.setOpen(false)
-  }, [optionDisabled, ctx.setValue, ctx.setOpen, optionValue, ctx])
+    if (optionDisabled) return;
+    ctx.setValue(optionValue);
+    ctx.setOpen(false);
+  }, [optionDisabled, ctx.setValue, ctx.setOpen, optionValue, ctx]);
 
   const handlePointerEnter = useCallback(() => {
     if (!optionDisabled) {
-      ctx.setActiveIndex(index)
+      ctx.setActiveIndex(index);
     }
-  }, [optionDisabled, ctx.setActiveIndex, index, ctx])
+  }, [optionDisabled, ctx.setActiveIndex, index, ctx]);
 
   return (
     <div
@@ -478,7 +478,7 @@ export function ListboxOption<T>({
       </svg>
       <span className={clsx(className, sharedClasses, 'col-start-2')}>{children}</span>
     </div>
-  )
+  );
 }
 
 // ---------------------------------------------------------------------------
@@ -491,7 +491,7 @@ export function ListboxLabel({ className, ...props }: React.ComponentPropsWithou
       {...props}
       className={clsx(className, 'ml-2.5 truncate first:ml-0 sm:ml-2 sm:first:ml-0')}
     />
-  )
+  );
 }
 
 // ---------------------------------------------------------------------------
@@ -513,5 +513,5 @@ export function ListboxDescription({
     >
       <span className="flex-1 truncate">{children}</span>
     </span>
-  )
+  );
 }

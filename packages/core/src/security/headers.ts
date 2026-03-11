@@ -5,43 +5,43 @@
  */
 
 export interface SecurityHeadersConfig {
-  contentSecurityPolicy?: string | ContentSecurityPolicyConfig
-  strictTransportSecurity?: boolean | HSTSConfig
-  xFrameOptions?: 'DENY' | 'SAMEORIGIN' | string
-  xContentTypeOptions?: boolean
-  referrerPolicy?: ReferrerPolicyValue
-  permissionsPolicy?: string | PermissionsPolicyConfig
-  crossOriginEmbedderPolicy?: 'require-corp' | 'credentialless'
-  crossOriginOpenerPolicy?: 'same-origin' | 'same-origin-allow-popups' | 'unsafe-none'
-  crossOriginResourcePolicy?: 'same-origin' | 'same-site' | 'cross-origin'
+  contentSecurityPolicy?: string | ContentSecurityPolicyConfig;
+  strictTransportSecurity?: boolean | HSTSConfig;
+  xFrameOptions?: 'DENY' | 'SAMEORIGIN' | string;
+  xContentTypeOptions?: boolean;
+  referrerPolicy?: ReferrerPolicyValue;
+  permissionsPolicy?: string | PermissionsPolicyConfig;
+  crossOriginEmbedderPolicy?: 'require-corp' | 'credentialless';
+  crossOriginOpenerPolicy?: 'same-origin' | 'same-origin-allow-popups' | 'unsafe-none';
+  crossOriginResourcePolicy?: 'same-origin' | 'same-site' | 'cross-origin';
 }
 
 export interface ContentSecurityPolicyConfig {
-  defaultSrc?: string[]
-  scriptSrc?: string[]
-  styleSrc?: string[]
-  imgSrc?: string[]
-  fontSrc?: string[]
-  connectSrc?: string[]
-  frameSrc?: string[]
-  objectSrc?: string[]
-  mediaSrc?: string[]
-  workerSrc?: string[]
-  childSrc?: string[]
-  formAction?: string[]
-  frameAncestors?: string[]
-  baseUri?: string[]
-  manifestSrc?: string[]
-  upgradeInsecureRequests?: boolean
-  blockAllMixedContent?: boolean
-  reportUri?: string
-  reportTo?: string
+  defaultSrc?: string[];
+  scriptSrc?: string[];
+  styleSrc?: string[];
+  imgSrc?: string[];
+  fontSrc?: string[];
+  connectSrc?: string[];
+  frameSrc?: string[];
+  objectSrc?: string[];
+  mediaSrc?: string[];
+  workerSrc?: string[];
+  childSrc?: string[];
+  formAction?: string[];
+  frameAncestors?: string[];
+  baseUri?: string[];
+  manifestSrc?: string[];
+  upgradeInsecureRequests?: boolean;
+  blockAllMixedContent?: boolean;
+  reportUri?: string;
+  reportTo?: string;
 }
 
 export interface HSTSConfig {
-  maxAge: number
-  includeSubDomains?: boolean
-  preload?: boolean
+  maxAge: number;
+  includeSubDomains?: boolean;
+  preload?: boolean;
 }
 
 export type ReferrerPolicyValue =
@@ -52,104 +52,104 @@ export type ReferrerPolicyValue =
   | 'same-origin'
   | 'strict-origin'
   | 'strict-origin-when-cross-origin'
-  | 'unsafe-url'
+  | 'unsafe-url';
 
 export interface PermissionsPolicyConfig {
-  accelerometer?: string[]
-  ambientLightSensor?: string[]
-  autoplay?: string[]
-  battery?: string[]
-  camera?: string[]
-  displayCapture?: string[]
-  documentDomain?: string[]
-  encryptedMedia?: string[]
-  fullscreen?: string[]
-  geolocation?: string[]
-  gyroscope?: string[]
-  magnetometer?: string[]
-  microphone?: string[]
-  midi?: string[]
-  payment?: string[]
-  pictureInPicture?: string[]
-  publicKeyCredentials?: string[]
-  screenWakeLock?: string[]
-  syncXhr?: string[]
-  usb?: string[]
-  webShare?: string[]
-  xrSpatialTracking?: string[]
+  accelerometer?: string[];
+  ambientLightSensor?: string[];
+  autoplay?: string[];
+  battery?: string[];
+  camera?: string[];
+  displayCapture?: string[];
+  documentDomain?: string[];
+  encryptedMedia?: string[];
+  fullscreen?: string[];
+  geolocation?: string[];
+  gyroscope?: string[];
+  magnetometer?: string[];
+  microphone?: string[];
+  midi?: string[];
+  payment?: string[];
+  pictureInPicture?: string[];
+  publicKeyCredentials?: string[];
+  screenWakeLock?: string[];
+  syncXhr?: string[];
+  usb?: string[];
+  webShare?: string[];
+  xrSpatialTracking?: string[];
 }
 
 export interface CORSConfig {
-  origin?: string | string[] | ((origin: string) => boolean)
-  methods?: string[]
-  allowedHeaders?: string[]
-  exposedHeaders?: string[]
-  credentials?: boolean
-  maxAge?: number
-  preflightContinue?: boolean
-  optionsSuccessStatus?: number
+  origin?: string | string[] | ((origin: string) => boolean);
+  methods?: string[];
+  allowedHeaders?: string[];
+  exposedHeaders?: string[];
+  credentials?: boolean;
+  maxAge?: number;
+  preflightContinue?: boolean;
+  optionsSuccessStatus?: number;
 }
 
 /**
  * Security headers manager
  */
 export class SecurityHeaders {
-  private config: SecurityHeadersConfig
+  private config: SecurityHeadersConfig;
 
   constructor(config: SecurityHeadersConfig = {}) {
-    this.config = config
+    this.config = config;
   }
 
   /**
    * Get all security headers
    */
   getHeaders(): Record<string, string> {
-    const headers: Record<string, string> = {}
+    const headers: Record<string, string> = {};
 
     // Content Security Policy
     if (this.config.contentSecurityPolicy) {
-      headers['Content-Security-Policy'] = this.buildCSP(this.config.contentSecurityPolicy)
+      headers['Content-Security-Policy'] = this.buildCSP(this.config.contentSecurityPolicy);
     }
 
     // Strict Transport Security
     if (this.config.strictTransportSecurity) {
-      headers['Strict-Transport-Security'] = this.buildHSTS(this.config.strictTransportSecurity)
+      headers['Strict-Transport-Security'] = this.buildHSTS(this.config.strictTransportSecurity);
     }
 
     // X-Frame-Options
     if (this.config.xFrameOptions) {
-      headers['X-Frame-Options'] = this.config.xFrameOptions
+      headers['X-Frame-Options'] = this.config.xFrameOptions;
     }
 
     // X-Content-Type-Options
     if (this.config.xContentTypeOptions !== false) {
-      headers['X-Content-Type-Options'] = 'nosniff'
+      headers['X-Content-Type-Options'] = 'nosniff';
     }
 
     // Referrer-Policy
     if (this.config.referrerPolicy) {
-      headers['Referrer-Policy'] = this.config.referrerPolicy
+      headers['Referrer-Policy'] = this.config.referrerPolicy;
     }
 
     // Permissions-Policy
     if (this.config.permissionsPolicy) {
-      headers['Permissions-Policy'] = this.buildPermissionsPolicy(this.config.permissionsPolicy)
+      headers['Permissions-Policy'] = this.buildPermissionsPolicy(this.config.permissionsPolicy);
     }
 
     // Cross-Origin headers
     if (this.config.crossOriginEmbedderPolicy) {
-      headers['Cross-Origin-Embedder-Policy'] = this.config.crossOriginEmbedderPolicy
+      headers['Cross-Origin-Embedder-Policy'] = this.config.crossOriginEmbedderPolicy;
     }
 
     if (this.config.crossOriginOpenerPolicy) {
-      headers['Cross-Origin-Opener-Policy'] = this.config.crossOriginOpenerPolicy
+      headers['Cross-Origin-Opener-Policy'] = this.config.crossOriginOpenerPolicy;
     }
 
     if (this.config.crossOriginResourcePolicy) {
-      headers['Cross-Origin-Resource-Policy'] = this.config.crossOriginResourcePolicy
+      headers['Cross-Origin-Resource-Policy'] = this.config.crossOriginResourcePolicy;
     }
 
-    return headers
+    return headers;
   }
 
   /**
@@ -157,50 +157,50 @@ export class SecurityHeaders {
    */
   private buildCSP(config: string | ContentSecurityPolicyConfig): string {
     if (typeof config === 'string') {
-      return config
+      return config;
     }
 
-    const directives: string[] = []
+    const directives: string[] = [];
 
     const addDirective = (name: string, values?: string[]) => {
       if (values && values.length > 0) {
-        directives.push(`${name} ${values.join(' ')}`)
+        directives.push(`${name} ${values.join(' ')}`);
       }
-    }
+    };
 
-    addDirective('default-src', config.defaultSrc)
-    addDirective('script-src', config.scriptSrc)
-    addDirective('style-src', config.styleSrc)
-    addDirective('img-src', config.imgSrc)
-    addDirective('font-src', config.fontSrc)
-    addDirective('connect-src', config.connectSrc)
-    addDirective('frame-src', config.frameSrc)
-    addDirective('object-src', config.objectSrc)
-    addDirective('media-src', config.mediaSrc)
-    addDirective('worker-src', config.workerSrc)
-    addDirective('child-src', config.childSrc)
-    addDirective('form-action', config.formAction)
-    addDirective('frame-ancestors', config.frameAncestors)
-    addDirective('base-uri', config.baseUri)
-    addDirective('manifest-src', config.manifestSrc)
+    addDirective('default-src', config.defaultSrc);
+    addDirective('script-src', config.scriptSrc);
+    addDirective('style-src', config.styleSrc);
+    addDirective('img-src', config.imgSrc);
+    addDirective('font-src', config.fontSrc);
+    addDirective('connect-src', config.connectSrc);
+    addDirective('frame-src', config.frameSrc);
+    addDirective('object-src', config.objectSrc);
+    addDirective('media-src', config.mediaSrc);
+    addDirective('worker-src', config.workerSrc);
+    addDirective('child-src', config.childSrc);
+    addDirective('form-action', config.formAction);
+    addDirective('frame-ancestors', config.frameAncestors);
+    addDirective('base-uri', config.baseUri);
+    addDirective('manifest-src', config.manifestSrc);
 
     if (config.upgradeInsecureRequests) {
-      directives.push('upgrade-insecure-requests')
+      directives.push('upgrade-insecure-requests');
     }
 
     if (config.blockAllMixedContent) {
-      directives.push('block-all-mixed-content')
+      directives.push('block-all-mixed-content');
     }
 
     if (config.reportUri) {
-      directives.push(`report-uri ${config.reportUri}`)
+      directives.push(`report-uri ${config.reportUri}`);
     }
 
     if (config.reportTo) {
-      directives.push(`report-to ${config.reportTo}`)
+      directives.push(`report-to ${config.reportTo}`);
     }
 
-    return directives.join('; ')
+    return directives.join('; ');
   }
 
   /**
@@ -208,25 +208,25 @@ export class SecurityHeaders {
    */
   private buildHSTS(config: boolean | HSTSConfig): string {
     if (config === true) {
-      return 'max-age=31536000; includeSubDomains'
+      return 'max-age=31536000; includeSubDomains';
     }
 
     if (config === false) {
-      return ''
+      return '';
     }
 
     // config is now HSTSConfig
-    const parts = [`max-age=${config.maxAge}`]
+    const parts = [`max-age=${config.maxAge}`];
 
     if (config.includeSubDomains) {
-      parts.push('includeSubDomains')
+      parts.push('includeSubDomains');
     }
 
     if (config.preload) {
-      parts.push('preload')
+      parts.push('preload');
     }
 
-    return parts.join('; ')
+    return parts.join('; ');
   }
 
   /**
@@ -234,36 +234,36 @@ export class SecurityHeaders {
    */
   private buildPermissionsPolicy(config: string | PermissionsPolicyConfig): string {
     if (typeof config === 'string') {
-      return config
+      return config;
     }
 
-    const policies: string[] = []
+    const policies: string[] = [];
 
     Object.entries(config).forEach(([feature, origins]) => {
       if (!origins || origins.length === 0) {
-        policies.push(`${feature}=()`)
+        policies.push(`${feature}=()`);
       } else if (origins.includes('*')) {
-        policies.push(`${feature}=*`)
+        policies.push(`${feature}=*`);
       } else {
-        const originsList = origins.map((o: string) => `"${o}"`).join(' ')
-        policies.push(`${feature}=(${originsList})`)
+        const originsList = origins.map((o: string) => `"${o}"`).join(' ');
+        policies.push(`${feature}=(${originsList})`);
       }
-    })
+    });
 
-    return policies.join(', ')
+    return policies.join(', ');
   }
 
   /**
    * Apply headers to response
    */
   applyHeaders(response: Response): Response {
-    const headers = this.getHeaders()
+    const headers = this.getHeaders();
 
     Object.entries(headers).forEach(([name, value]) => {
-      response.headers.set(name, value)
-    })
+      response.headers.set(name, value);
+    });
 
-    return response
+    return response;
   }
 }
 
@@ -271,7 +271,7 @@ export class SecurityHeaders {
  * CORS manager
  */
 export class CORSManager {
-  private config: Required<CORSConfig>
+  private config: Required<CORSConfig>;
 
   constructor(config: CORSConfig = {}) {
     this.config = {
@@ -283,92 +283,92 @@ export class CORSManager {
       maxAge: config.maxAge || 86400,
       preflightContinue: config.preflightContinue ?? false,
       optionsSuccessStatus: config.optionsSuccessStatus || 204,
-    }
+    };
   }
 
   /**
    * Check if origin is allowed
    */
   isOriginAllowed(origin: string): boolean {
-    const { origin: allowedOrigin } = this.config
+    const { origin: allowedOrigin } = this.config;
 
     if (allowedOrigin === '*') {
-      return true
+      return true;
     }
 
     if (typeof allowedOrigin === 'function') {
-      return allowedOrigin(origin)
+      return allowedOrigin(origin);
     }
 
     if (typeof allowedOrigin === 'string') {
-      return origin === allowedOrigin
+      return origin === allowedOrigin;
     }
 
     if (Array.isArray(allowedOrigin)) {
-      return allowedOrigin.includes(origin)
+      return allowedOrigin.includes(origin);
     }
 
-    return false
+    return false;
   }
 
   /**
    * Get CORS headers
    */
   getCORSHeaders(origin: string): Record<string, string> {
-    const headers: Record<string, string> = {}
+    const headers: Record<string, string> = {};
 
     // Access-Control-Allow-Origin
     if (this.isOriginAllowed(origin)) {
-      headers['Access-Control-Allow-Origin'] = this.config.origin === '*' ? '*' : origin
+      headers['Access-Control-Allow-Origin'] = this.config.origin === '*' ? '*' : origin;
     }
 
     // Access-Control-Allow-Credentials — incompatible with origin: '*' per Fetch spec
     if (this.config.credentials && this.config.origin !== '*') {
-      headers['Access-Control-Allow-Credentials'] = 'true'
+      headers['Access-Control-Allow-Credentials'] = 'true';
     }
 
     // Access-Control-Expose-Headers
     if (this.config.exposedHeaders.length > 0) {
-      headers['Access-Control-Expose-Headers'] = this.config.exposedHeaders.join(', ')
+      headers['Access-Control-Expose-Headers'] = this.config.exposedHeaders.join(', ');
     }
 
-    return headers
+    return headers;
   }
 
   /**
    * Get preflight headers
    */
   getPreflightHeaders(origin: string): Record<string, string> {
-    const headers = this.getCORSHeaders(origin)
+    const headers = this.getCORSHeaders(origin);
 
     // Access-Control-Allow-Methods
-    headers['Access-Control-Allow-Methods'] = this.config.methods.join(', ')
+    headers['Access-Control-Allow-Methods'] = this.config.methods.join(', ');
 
     // Access-Control-Allow-Headers
-    headers['Access-Control-Allow-Headers'] = this.config.allowedHeaders.join(', ')
+    headers['Access-Control-Allow-Headers'] = this.config.allowedHeaders.join(', ');
 
     // Access-Control-Max-Age
-    headers['Access-Control-Max-Age'] = this.config.maxAge.toString()
+    headers['Access-Control-Max-Age'] = this.config.maxAge.toString();
 
-    return headers
+    return headers;
   }
 
   /**
    * Handle CORS request
    */
   handleRequest(request: Request): Response | null {
-    const origin = request.headers.get('Origin')
+    const origin = request.headers.get('Origin');
 
     if (!origin) {
-      return null
+      return null;
     }
 
     // Handle preflight
     if (request.method === 'OPTIONS') {
-      return this.handlePreflight(request, origin)
+      return this.handlePreflight(request, origin);
     }
 
-    return null
+    return null;
   }
 
   /**
@@ -376,15 +376,15 @@ export class CORSManager {
    */
   handlePreflight(_request: Request, origin: string): Response {
     if (!this.isOriginAllowed(origin)) {
-      return new Response(null, { status: 403 })
+      return new Response(null, { status: 403 });
     }
 
-    const headers = this.getPreflightHeaders(origin)
+    const headers = this.getPreflightHeaders(origin);
 
     return new Response(null, {
       status: this.config.optionsSuccessStatus,
       headers,
-    })
+    });
   }
 
   /**
@@ -392,16 +392,16 @@ export class CORSManager {
    */
   applyHeaders(response: Response, origin: string): Response {
     if (!this.isOriginAllowed(origin)) {
-      return response
+      return response;
     }
 
-    const headers = this.getCORSHeaders(origin)
+    const headers = this.getCORSHeaders(origin);
 
     Object.entries(headers).forEach(([name, value]) => {
-      response.headers.set(name, value)
-    })
+      response.headers.set(name, value);
+    });
 
-    return response
+    return response;
   }
 }
 
@@ -469,7 +469,7 @@ export const SecurityPresets = {
     xContentTypeOptions: true,
     referrerPolicy: 'no-referrer-when-downgrade',
   }),
-}
+};
 
 /**
  * Common CORS presets
@@ -499,28 +499,46 @@ export const CORSPresets = {
   }),
 
   /**
-   * Permissive CORS (all origins)
+   * Permissive CORS (all origins) — development only.
+   * Logs a warning if used when NODE_ENV === 'production'.
    */
-  permissive: (): CORSConfig => ({
-    origin: '*',
-    methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
-    allowedHeaders: ['*'],
-    credentials: false,
-    maxAge: 86400,
-  }),
+  permissive: (): CORSConfig => {
+    if (process.env.NODE_ENV === 'production') {
+      // biome-ignore lint/suspicious/noConsole: security warning must be visible
+      console.warn(
+        '[SecurityPresets] CORS permissive preset used in production — this allows all origins. Use moderate() with explicit origins instead.',
+      );
+    }
+    return {
+      origin: '*',
+      methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
+      allowedHeaders: ['*'],
+      credentials: false,
+      maxAge: 86400,
+    };
+  },
 
   /**
-   * API CORS (for public APIs)
+   * API CORS (public read-only APIs) — credentials disabled.
+   * Logs a warning if used when NODE_ENV === 'production'.
    */
-  api: (): CORSConfig => ({
-    origin: '*',
-    methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH'],
-    allowedHeaders: ['Content-Type', 'Authorization', 'X-API-Key'],
-    exposedHeaders: ['X-RateLimit-Limit', 'X-RateLimit-Remaining', 'X-RateLimit-Reset'],
-    credentials: false,
-    maxAge: 86400,
-  }),
-}
+  api: (): CORSConfig => {
+    if (process.env.NODE_ENV === 'production') {
+      // biome-ignore lint/suspicious/noConsole: security warning must be visible
+      console.warn(
+        '[SecurityPresets] CORS api preset uses origin:"*". For production, pass explicit origins to moderate() instead.',
+      );
+    }
+    return {
+      origin: '*',
+      methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH'],
+      allowedHeaders: ['Content-Type', 'Authorization', 'X-API-Key'],
+      exposedHeaders: ['X-RateLimit-Limit', 'X-RateLimit-Remaining', 'X-RateLimit-Reset'],
+      credentials: false,
+      maxAge: 86400,
+    };
+  },
+};
 
 /**
  * Security middleware creator
@@ -529,33 +547,33 @@ export function createSecurityMiddleware(
   securityConfig?: SecurityHeadersConfig,
   corsConfig?: CORSConfig,
 ) {
-  const security = new SecurityHeaders(securityConfig)
-  const cors = new CORSManager(corsConfig)
+  const security = new SecurityHeaders(securityConfig);
+  const cors = new CORSManager(corsConfig);
 
   return async (request: Request, next: () => Promise<Response>): Promise<Response> => {
-    const origin = request.headers.get('Origin')
+    const origin = request.headers.get('Origin');
 
     // Handle CORS preflight
     if (origin && request.method === 'OPTIONS') {
-      const preflightResponse = cors.handleRequest(request)
+      const preflightResponse = cors.handleRequest(request);
       if (preflightResponse) {
-        return preflightResponse
+        return preflightResponse;
       }
     }
 
     // Process request
-    const response = await next()
+    const response = await next();
 
     // Apply security headers
-    security.applyHeaders(response)
+    security.applyHeaders(response);
 
     // Apply CORS headers
     if (origin) {
-      cors.applyHeaders(response, origin)
+      cors.applyHeaders(response, origin);
     }
 
-    return response
-  }
+    return response;
+  };
 }
 
 /**
@@ -567,7 +585,7 @@ export function setRateLimitHeaders(
   remaining: number,
   reset: number,
 ): void {
-  response.headers.set('X-RateLimit-Limit', limit.toString())
-  response.headers.set('X-RateLimit-Remaining', remaining.toString())
-  response.headers.set('X-RateLimit-Reset', reset.toString())
+  response.headers.set('X-RateLimit-Limit', limit.toString());
+  response.headers.set('X-RateLimit-Remaining', remaining.toString());
+  response.headers.set('X-RateLimit-Reset', reset.toString());
 }

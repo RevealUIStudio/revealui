@@ -12,22 +12,22 @@
  *   was created manually and you want to hand it to the agent system.
  */
 
-import { createRoute, OpenAPIHono, z } from '@hono/zod-openapi'
-import type { DatabaseClient } from '@revealui/db/client'
-import * as boardQueries from '@revealui/db/queries/boards'
-import * as commentQueries from '@revealui/db/queries/ticket-comments'
-import * as ticketQueries from '@revealui/db/queries/tickets'
-import { agentMemories } from '@revealui/db/schema/agents'
+import { createRoute, OpenAPIHono, z } from '@hono/zod-openapi';
+import type { DatabaseClient } from '@revealui/db/client';
+import * as boardQueries from '@revealui/db/queries/boards';
+import * as commentQueries from '@revealui/db/queries/ticket-comments';
+import * as ticketQueries from '@revealui/db/queries/tickets';
+import { agentMemories } from '@revealui/db/schema/agents';
 
 type Variables = {
-  db: DatabaseClient
-  tenant?: { id: string }
-}
+  db: DatabaseClient;
+  tenant?: { id: string };
+};
 
 // biome-ignore lint/style/useNamingConvention: Hono requires Variables key
-const app = new OpenAPIHono<{ Variables: Variables }>()
+const app = new OpenAPIHono<{ Variables: Variables }>();
 
-const ErrorSchema = z.object({ success: z.literal(false), error: z.string() })
+const ErrorSchema = z.object({ success: z.literal(false), error: z.string() });
 
 // =============================================================================
 // POST /api/agent-tasks — natural language → ticket → agent → outcome
@@ -79,17 +79,17 @@ app.openapi(
     },
   }),
   async (c) => {
-    const db = c.get('db')
-    const tenant = c.get('tenant')
-    const { instruction, boardId, priority } = c.req.valid('json')
+    const db = c.get('db');
+    const tenant = c.get('tenant');
+    const { instruction, boardId, priority } = c.req.valid('json');
 
     // Verify board exists and caller is in the same tenant
-    const board = await boardQueries.getBoardById(db, boardId)
+    const board = await boardQueries.getBoardById(db, boardId);
     if (!board) {
-      return c.json({ success: false as const, error: `Board "${boardId}" not found` }, 400)
+      return c.json({ success: false as const, error: `Board "${boardId}" not found` }, 400);
     }
     if (board.tenantId && board.tenantId !== tenant?.id) {
-      return c.json({ success: false as const, error: `Board "${boardId}" not found` }, 400)
+      return c.json({ success: false as const, error: `Board "${boardId}" not found` }, 400);
     }
 
     // Create the ticket — the agent's work item
@@ -100,17 +100,17 @@ app.openapi(
       status: 'in_progress',
       priority,
       type: 'task',
-    })
+    });
 
     if (!ticket) {
-      return c.json({ success: false as const, error: 'Failed to create ticket' }, 400)
+      return c.json({ success: false as const, error: 'Failed to create ticket' }, 400);
     }
 
     // Build the dispatcher with DB-backed ticket mutation client
-    const dispatcher = await buildDispatcher(db, tenant?.id)
+    const dispatcher = await buildDispatcher(db, tenant?.id);
     if (!dispatcher) {
       // AI not configured — return the ticket but note it was not dispatched
-      await ticketQueries.updateTicket(db, ticket.id, { status: 'open' })
+      await ticketQueries.updateTicket(db, ticket.id, { status: 'open' });
       return c.json(
         {
           success: false as const,
@@ -118,18 +118,18 @@ app.openapi(
             'AI agent not configured. Set ANTHROPIC_API_KEY, OPENAI_API_KEY, or GROQ_API_KEY (or OLLAMA_BASE_URL for local inference).',
         },
         503,
-      )
+      );
     }
 
     // Dispatch agent with timeout, persist outcome to memory
-    const dispatchResult = await dispatchWithTimeout(db, dispatcher, ticket)
+    const dispatchResult = await dispatchWithTimeout(db, dispatcher, ticket);
     if (!dispatchResult.success) {
-      return c.json({ success: false as const, error: dispatchResult.error }, 503)
+      return c.json({ success: false as const, error: dispatchResult.error }, 503);
     }
-    const { result } = dispatchResult
+    const { result } = dispatchResult;
 
     // Re-fetch final ticket state
-    const finalTicket = await ticketQueries.getTicketById(db, ticket.id)
+    const finalTicket = await ticketQueries.getTicketById(db, ticket.id);
 
     return c.json(
       {
@@ -140,9 +140,9 @@ app.openapi(
         status: finalTicket?.status ?? (result.success ? 'done' : 'blocked'),
       },
       200,
-    )
+    );
   },
-)
+);
 
 // =============================================================================
 // POST /api/agent-tasks/:ticketId/dispatch — dispatch an existing ticket
@@ -184,20 +184,20 @@ app.openapi(
     },
   }),
   async (c) => {
-    const db = c.get('db')
-    const tenant = c.get('tenant')
-    const { ticketId } = c.req.valid('param')
+    const db = c.get('db');
+    const tenant = c.get('tenant');
+    const { ticketId } = c.req.valid('param');
 
-    const ticket = await ticketQueries.getTicketById(db, ticketId)
+    const ticket = await ticketQueries.getTicketById(db, ticketId);
     if (!ticket) {
-      return c.json({ success: false as const, error: 'Ticket not found' }, 404)
+      return c.json({ success: false as const, error: 'Ticket not found' }, 404);
     }
-    const board = await boardQueries.getBoardById(db, ticket.boardId)
+    const board = await boardQueries.getBoardById(db, ticket.boardId);
     if (tenant && board?.tenantId && board.tenantId !== tenant.id) {
-      return c.json({ success: false as const, error: 'Ticket not found' }, 404)
+      return c.json({ success: false as const, error: 'Ticket not found' }, 404);
     }
 
-    const dispatcher = await buildDispatcher(db, tenant?.id)
+    const dispatcher = await buildDispatcher(db, tenant?.id);
     if (!dispatcher) {
       return c.json(
         {
@@ -206,20 +206,20 @@ app.openapi(
             'AI agent not configured. Set ANTHROPIC_API_KEY, OPENAI_API_KEY, or GROQ_API_KEY (or OLLAMA_BASE_URL for local inference).',
         },
         503,
-      )
+      );
     }
 
     // Mark in_progress before dispatch
-    await ticketQueries.updateTicket(db, ticketId, { status: 'in_progress' })
+    await ticketQueries.updateTicket(db, ticketId, { status: 'in_progress' });
 
     // Dispatch agent with timeout, persist outcome to memory
-    const dispatchResult = await dispatchWithTimeout(db, dispatcher, ticket)
+    const dispatchResult = await dispatchWithTimeout(db, dispatcher, ticket);
     if (!dispatchResult.success) {
-      return c.json({ success: false as const, error: dispatchResult.error }, 503)
+      return c.json({ success: false as const, error: dispatchResult.error }, 503);
     }
-    const { result } = dispatchResult
+    const { result } = dispatchResult;
 
-    const finalTicket = await ticketQueries.getTicketById(db, ticketId)
+    const finalTicket = await ticketQueries.getTicketById(db, ticketId);
 
     return c.json(
       {
@@ -229,16 +229,16 @@ app.openapi(
         status: finalTicket?.status ?? (result.success ? 'done' : 'blocked'),
       },
       200,
-    )
+    );
   },
-)
+);
 
 // =============================================================================
 // Helpers
 // =============================================================================
 
 /** Agent dispatch timeout — configurable via AGENT_TIMEOUT_MS env var */
-const AGENT_TIMEOUT_MS = Number(process.env.AGENT_TIMEOUT_MS) || 120_000
+const AGENT_TIMEOUT_MS = Number(process.env.AGENT_TIMEOUT_MS) || 120_000;
 
 /**
  * Dispatch an agent for a ticket with a timeout guard, then persist the
@@ -248,32 +248,32 @@ async function dispatchWithTimeout(
   db: DatabaseClient,
   dispatcher: {
     dispatch: (ticket: Record<string, unknown>) => Promise<{
-      success: boolean
-      output?: string
-      metadata?: { executionTime?: number; tokensUsed?: number }
-    }>
+      success: boolean;
+      output?: string;
+      metadata?: { executionTime?: number; tokensUsed?: number };
+    }>;
   },
   ticket: { id: string; title: string; description: unknown; type: string; priority: string },
 ): Promise<
   | {
-      success: true
+      success: true;
       result: {
-        success: boolean
-        output?: string
-        metadata?: { executionTime?: number; tokensUsed?: number }
-      }
+        success: boolean;
+        output?: string;
+        metadata?: { executionTime?: number; tokensUsed?: number };
+      };
     }
   | { success: false; error: string }
 > {
-  let timeoutHandle: ReturnType<typeof setTimeout> | undefined
+  let timeoutHandle: ReturnType<typeof setTimeout> | undefined;
   const timeoutPromise = new Promise<never>((_, reject) => {
     timeoutHandle = setTimeout(
       () => reject(new Error('Agent dispatch timed out')),
       AGENT_TIMEOUT_MS,
-    )
-  })
+    );
+  });
 
-  let result: Awaited<ReturnType<typeof dispatcher.dispatch>>
+  let result: Awaited<ReturnType<typeof dispatcher.dispatch>>;
   try {
     result = await Promise.race([
       dispatcher
@@ -286,20 +286,20 @@ async function dispatchWithTimeout(
         })
         .finally(() => clearTimeout(timeoutHandle)),
       timeoutPromise,
-    ])
+    ]);
   } catch (dispatchErr) {
-    clearTimeout(timeoutHandle)
-    await ticketQueries.updateTicket(db, ticket.id, { status: 'blocked' })
+    clearTimeout(timeoutHandle);
+    await ticketQueries.updateTicket(db, ticket.id, { status: 'blocked' });
     const isTimeout =
-      dispatchErr instanceof Error && dispatchErr.message === 'Agent dispatch timed out'
+      dispatchErr instanceof Error && dispatchErr.message === 'Agent dispatch timed out';
     return {
       success: false,
       error: isTimeout ? 'Agent timed out after 2 minutes' : 'Agent dispatch failed',
-    }
+    };
   }
 
   if (!result.success) {
-    await ticketQueries.updateTicket(db, ticket.id, { status: 'blocked' })
+    await ticketQueries.updateTicket(db, ticket.id, { status: 'blocked' });
   }
 
   // Persist agent outcome to agent_memories (best-effort)
@@ -322,13 +322,13 @@ async function dispatchWithTimeout(
           executionTime: result.metadata?.executionTime,
           tokensUsed: result.metadata?.tokensUsed,
         },
-      })
+      });
     } catch {
       // Memory persistence is best-effort — don't fail the request
     }
   }
 
-  return { success: true, result }
+  return { success: true, result };
 }
 
 /**
@@ -340,19 +340,19 @@ async function buildDispatcher(
   _tenantId: string | undefined,
 ): Promise<{
   dispatch: (ticket: Record<string, unknown>) => Promise<{
-    success: boolean
-    output?: string
-    metadata?: { executionTime?: number; tokensUsed?: number }
-  }>
+    success: boolean;
+    output?: string;
+    metadata?: { executionTime?: number; tokensUsed?: number };
+  }>;
 } | null> {
-  const aiMod = await import('@revealui/ai').catch(() => null)
-  if (!aiMod) return null
+  const aiMod = await import('@revealui/ai').catch(() => null);
+  if (!aiMod) return null;
 
-  let llmClient: unknown
+  let llmClient: unknown;
   try {
-    llmClient = aiMod.createLLMClientFromEnv()
+    llmClient = aiMod.createLLMClientFromEnv();
   } catch {
-    return null
+    return null;
   }
 
   // TicketMutationClient backed by real DB queries
@@ -361,30 +361,30 @@ async function buildDispatcher(
       id: string,
       data: { status?: string; columnId?: string; metadata?: Record<string, unknown> },
     ) {
-      return ticketQueries.updateTicket(db, id, data)
+      return ticketQueries.updateTicket(db, id, data);
     },
     async createComment(id: string, body: Record<string, unknown>) {
       return commentQueries.createComment(db, {
         id: crypto.randomUUID(),
         ticketId: id,
         body,
-      })
+      });
     },
-  }
+  };
 
   // CMSAPIClient — routes through the CMS REST API if configured, otherwise no-ops
-  const cmsBaseUrl = process.env.CMS_URL ?? process.env.NEXT_PUBLIC_CMS_URL
-  const apiClient = buildCMSClient(cmsBaseUrl)
+  const cmsBaseUrl = process.env.CMS_URL ?? process.env.NEXT_PUBLIC_CMS_URL;
+  const apiClient = buildCMSClient(cmsBaseUrl);
 
   // Type assertions needed: TicketAgentDispatcher comes from Pro package with its own
   // type resolution path. llmClient is unknown from dynamic import; the dispatcher's
   // dispatch() accepts TicketInput (narrower than Record<string, unknown>).
-  type DispatcherConfig = ConstructorParameters<typeof aiMod.TicketAgentDispatcher>[0]
+  type DispatcherConfig = ConstructorParameters<typeof aiMod.TicketAgentDispatcher>[0];
   return new aiMod.TicketAgentDispatcher({
     llmClient: llmClient as DispatcherConfig['llmClient'],
     apiClient,
     ticketClient,
-  }) as unknown as NonNullable<Awaited<ReturnType<typeof buildDispatcher>>>
+  }) as unknown as NonNullable<Awaited<ReturnType<typeof buildDispatcher>>>;
 }
 
 /**
@@ -394,8 +394,8 @@ async function buildDispatcher(
 function buildCMSClient(baseUrl: string | undefined) {
   if (!baseUrl) {
     const stub = async () => {
-      throw new Error('CMS_URL not configured. Set CMS_URL to connect the agent to the CMS.')
-    }
+      throw new Error('CMS_URL not configured. Set CMS_URL to connect the agent to the CMS.');
+    };
     return {
       find: stub,
       findById: stub,
@@ -404,46 +404,46 @@ function buildCMSClient(baseUrl: string | undefined) {
       delete: stub,
       findGlobal: stub,
       updateGlobal: stub,
-    }
+    };
   }
 
   const headers = () => ({
     'Content-Type': 'application/json',
     // biome-ignore lint/style/useNamingConvention: Authorization is the correct HTTP header name
     ...(process.env.CMS_API_KEY ? { Authorization: `Bearer ${process.env.CMS_API_KEY}` } : {}),
-  })
+  });
 
   return {
     async find(options: {
-      collection: string
-      page?: number
-      limit?: number
-      where?: Record<string, unknown>
-      sort?: string
+      collection: string;
+      page?: number;
+      limit?: number;
+      where?: Record<string, unknown>;
+      sort?: string;
     }) {
-      const params = new URLSearchParams()
-      if (options.page) params.set('page', String(options.page))
-      if (options.limit) params.set('limit', String(options.limit))
-      if (options.sort) params.set('sort', options.sort)
+      const params = new URLSearchParams();
+      if (options.page) params.set('page', String(options.page));
+      if (options.limit) params.set('limit', String(options.limit));
+      if (options.sort) params.set('sort', options.sort);
       const res = await fetch(`${baseUrl}/api/${options.collection}?${params}`, {
         headers: headers(),
-      })
-      if (!res.ok) throw new Error(`CMS find failed: ${res.statusText}`)
-      const body: unknown = await res.json()
+      });
+      if (!res.ok) throw new Error(`CMS find failed: ${res.statusText}`);
+      const body: unknown = await res.json();
       const data =
-        body !== null && typeof body === 'object' ? (body as Record<string, unknown>) : {}
+        body !== null && typeof body === 'object' ? (body as Record<string, unknown>) : {};
       return {
         docs: Array.isArray(data.docs) ? (data.docs as unknown[]) : undefined,
         totalDocs: typeof data.totalDocs === 'number' ? data.totalDocs : undefined,
         page: typeof data.page === 'number' ? data.page : undefined,
         totalPages: typeof data.totalPages === 'number' ? data.totalPages : undefined,
-      }
+      };
     },
 
     async findById(collection: string, id: string) {
-      const res = await fetch(`${baseUrl}/api/${collection}/${id}`, { headers: headers() })
-      if (!res.ok) throw new Error(`CMS findById failed: ${res.statusText}`)
-      return res.json()
+      const res = await fetch(`${baseUrl}/api/${collection}/${id}`, { headers: headers() });
+      if (!res.ok) throw new Error(`CMS findById failed: ${res.statusText}`);
+      return res.json();
     },
 
     async create(options: { collection: string; data: Record<string, unknown> }) {
@@ -451,9 +451,9 @@ function buildCMSClient(baseUrl: string | undefined) {
         method: 'POST',
         headers: headers(),
         body: JSON.stringify(options.data),
-      })
-      if (!res.ok) throw new Error(`CMS create failed: ${res.statusText}`)
-      return res.json()
+      });
+      if (!res.ok) throw new Error(`CMS create failed: ${res.statusText}`);
+      return res.json();
     },
 
     async update(options: { collection: string; id: string; data: Record<string, unknown> }) {
@@ -461,26 +461,26 @@ function buildCMSClient(baseUrl: string | undefined) {
         method: 'PATCH',
         headers: headers(),
         body: JSON.stringify(options.data),
-      })
-      if (!res.ok) throw new Error(`CMS update failed: ${res.statusText}`)
-      return res.json()
+      });
+      if (!res.ok) throw new Error(`CMS update failed: ${res.statusText}`);
+      return res.json();
     },
 
     async delete(options: { collection: string; id: string }) {
       const res = await fetch(`${baseUrl}/api/${options.collection}/${options.id}`, {
         method: 'DELETE',
         headers: headers(),
-      })
-      if (!res.ok) throw new Error(`CMS delete failed: ${res.statusText}`)
+      });
+      if (!res.ok) throw new Error(`CMS delete failed: ${res.statusText}`);
     },
 
     async findGlobal(options: { slug: string; depth?: number }) {
-      const params = options.depth !== undefined ? `?depth=${options.depth}` : ''
+      const params = options.depth !== undefined ? `?depth=${options.depth}` : '';
       const res = await fetch(`${baseUrl}/api/globals/${options.slug}${params}`, {
         headers: headers(),
-      })
-      if (!res.ok) throw new Error(`CMS findGlobal failed: ${res.statusText}`)
-      return res.json()
+      });
+      if (!res.ok) throw new Error(`CMS findGlobal failed: ${res.statusText}`);
+      return res.json();
     },
 
     async updateGlobal(options: { slug: string; data: Record<string, unknown> }) {
@@ -488,11 +488,11 @@ function buildCMSClient(baseUrl: string | undefined) {
         method: 'POST',
         headers: headers(),
         body: JSON.stringify(options.data),
-      })
-      if (!res.ok) throw new Error(`CMS updateGlobal failed: ${res.statusText}`)
-      return res.json()
+      });
+      if (!res.ok) throw new Error(`CMS updateGlobal failed: ${res.statusText}`);
+      return res.json();
     },
-  }
+  };
 }
 
-export default app
+export default app;

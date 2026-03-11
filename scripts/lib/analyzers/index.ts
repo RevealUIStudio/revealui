@@ -18,4 +18,4 @@ export {
   ConsoleAnalyzer,
   type ConsoleUsage,
   categorizeFile,
-} from './console-analyzer.js'
+} from './console-analyzer.js';

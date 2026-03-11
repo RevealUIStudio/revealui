@@ -10,13 +10,13 @@
  * - Labels are tenant-scoped when tenantId is set
  */
 
-import { z } from 'zod/v4'
+import { z } from 'zod/v4';
 
 // =============================================================================
 // Constants
 // =============================================================================
 
-export const TICKET_LABEL_SCHEMA_VERSION = 1
+export const TICKET_LABEL_SCHEMA_VERSION = 1;
 
 export const LABEL_LIMITS = {
   MIN_NAME_LENGTH: 1,
@@ -25,7 +25,7 @@ export const LABEL_LIMITS = {
   MAX_SLUG_LENGTH: 100,
   MAX_DESCRIPTION_LENGTH: 500,
   MAX_COLOR_LENGTH: 20,
-} as const
+} as const;
 
 // =============================================================================
 // Schema
@@ -45,10 +45,10 @@ export const TicketLabelObjectSchema = z.object({
   tenantId: z.string().nullable().optional(),
   createdAt: z.date(),
   updatedAt: z.date(),
-})
+});
 
-export const TicketLabelSchema = TicketLabelObjectSchema
-export type TicketLabel = z.infer<typeof TicketLabelSchema>
+export const TicketLabelSchema = TicketLabelObjectSchema;
+export type TicketLabel = z.infer<typeof TicketLabelSchema>;
 
 export const TicketLabelInsertSchema = TicketLabelObjectSchema.omit({
   createdAt: true,
@@ -56,9 +56,9 @@ export const TicketLabelInsertSchema = TicketLabelObjectSchema.omit({
 }).extend({
   createdAt: z.date().optional(),
   updatedAt: z.date().optional(),
-})
+});
 
-export type TicketLabelInsert = z.infer<typeof TicketLabelInsertSchema>
+export type TicketLabelInsert = z.infer<typeof TicketLabelInsertSchema>;
 
 // =============================================================================
 // Helpers
@@ -69,7 +69,7 @@ export function createLabelInsert(
   slug: string,
   options?: { id?: string; color?: string; description?: string; tenantId?: string },
 ): TicketLabelInsert {
-  const now = new Date()
+  const now = new Date();
   return {
     id: options?.id ?? crypto.randomUUID(),
     schemaVersion: String(TICKET_LABEL_SCHEMA_VERSION),
@@ -80,7 +80,7 @@ export function createLabelInsert(
     tenantId: options?.tenantId ?? null,
     createdAt: now,
     updatedAt: now,
-  }
+  };
 }
 
 export function generateLabelSlug(name: string): string {
@@ -90,5 +90,5 @@ export function generateLabelSlug(name: string): string {
     .replace(/[^\w\s-]/g, '')
     .replace(/[\s_-]+/g, '-')
     .replace(/^-+|-+$/g, '')
-    .slice(0, LABEL_LIMITS.MAX_SLUG_LENGTH)
+    .slice(0, LABEL_LIMITS.MAX_SLUG_LENGTH);
 }

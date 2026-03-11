@@ -14,6 +14,6 @@ const cssVariables = {
     base1000: 'rgb(0, 0, 0)',
     error500: 'rgb(255, 111, 118)',
   },
-}
+};
 
-export default cssVariables
+export default cssVariables;

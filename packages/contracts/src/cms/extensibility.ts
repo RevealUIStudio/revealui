@@ -9,8 +9,8 @@
  * @module @revealui/contracts/core/contracts/extensibility
  */
 
-import { z } from 'zod/v4'
-import type { CollectionConfig, Field } from './config.js'
+import { z } from 'zod/v4';
+import type { CollectionConfig, Field } from './config.js';
 
 // ============================================
 // CUSTOM FIELD TYPE REGISTRY
@@ -21,33 +21,33 @@ import type { CollectionConfig, Field } from './config.js'
  */
 export interface CustomFieldTypeConfig {
   /** Zod schema for validating field config (optional) */
-  schema?: z.ZodType<unknown>
+  schema?: z.ZodType<unknown>;
 
   /** Default value for this field type */
-  defaultValue?: unknown
+  defaultValue?: unknown;
 
   /** Custom validation function for field values */
-  validate?: (value: unknown) => boolean | string
+  validate?: (value: unknown) => boolean | string;
 
   /** Description for documentation */
-  description?: string
+  description?: string;
 
   /** Whether this field can have nested fields */
-  hasNestedFields?: boolean
+  hasNestedFields?: boolean;
 
   /** Additional metadata */
-  meta?: Record<string, unknown>
+  meta?: Record<string, unknown>;
 }
 
 /**
  * Registry of custom field types
  */
 export interface CustomFieldTypeRegistry {
-  [typeName: string]: CustomFieldTypeConfig
+  [typeName: string]: CustomFieldTypeConfig;
 }
 
 // Global registry instance
-const customFieldTypeRegistry: CustomFieldTypeRegistry = {}
+const customFieldTypeRegistry: CustomFieldTypeRegistry = {};
 
 /**
  * Register a custom field type
@@ -70,28 +70,28 @@ const customFieldTypeRegistry: CustomFieldTypeRegistry = {}
  */
 export function registerCustomFieldType(typeName: string, config: CustomFieldTypeConfig): void {
   // Silently overwrite existing types - last registration wins
-  customFieldTypeRegistry[typeName] = config
+  customFieldTypeRegistry[typeName] = config;
 }
 
 /**
  * Get a registered custom field type
  */
 export function getCustomFieldType(typeName: string): CustomFieldTypeConfig | undefined {
-  return customFieldTypeRegistry[typeName]
+  return customFieldTypeRegistry[typeName];
 }
 
 /**
  * Get all registered custom field types
  */
 export function getCustomFieldTypes(): CustomFieldTypeRegistry {
-  return { ...customFieldTypeRegistry }
+  return { ...customFieldTypeRegistry };
 }
 
 /**
  * Unregister a custom field type (mainly for testing)
  */
 export function unregisterCustomFieldType(typeName: string): void {
-  Reflect.deleteProperty(customFieldTypeRegistry, typeName)
+  Reflect.deleteProperty(customFieldTypeRegistry, typeName);
 }
 
 /**
@@ -99,7 +99,7 @@ export function unregisterCustomFieldType(typeName: string): void {
  */
 export function clearCustomFieldTypes(): void {
   for (const key of Object.keys(customFieldTypeRegistry)) {
-    Reflect.deleteProperty(customFieldTypeRegistry, key)
+    Reflect.deleteProperty(customFieldTypeRegistry, key);
   }
 }
 
@@ -129,22 +129,22 @@ export const BUILTIN_FIELD_TYPES = [
   'json',
   'point',
   'ui',
-] as const
+] as const;
 
-export type BuiltinFieldType = (typeof BUILTIN_FIELD_TYPES)[number]
+export type BuiltinFieldType = (typeof BUILTIN_FIELD_TYPES)[number];
 
 /**
  * Check if a field type is valid (built-in or custom)
  */
 export function isValidFieldType(type: string): boolean {
-  return BUILTIN_FIELD_TYPES.includes(type as BuiltinFieldType) || type in customFieldTypeRegistry
+  return BUILTIN_FIELD_TYPES.includes(type as BuiltinFieldType) || type in customFieldTypeRegistry;
 }
 
 /**
  * Get all valid field types (built-in + custom)
  */
 export function getValidFieldTypes(): string[] {
-  return [...BUILTIN_FIELD_TYPES, ...Object.keys(customFieldTypeRegistry)]
+  return [...BUILTIN_FIELD_TYPES, ...Object.keys(customFieldTypeRegistry)];
 }
 
 /**
@@ -155,7 +155,7 @@ export function getValidFieldTypes(): string[] {
  */
 export const ExtendedFieldTypeSchema = z.string().refine((type) => isValidFieldType(type), {
   message: `Invalid field type. Valid types: ${getValidFieldTypes().join(', ')}`,
-})
+});
 
 // ============================================
 // PLUGIN FIELD EXTENSIONS
@@ -168,29 +168,29 @@ export const ExtendedFieldTypeSchema = z.string().refine((type) => isValidFieldT
  */
 export interface PluginFieldExtension {
   /** Plugin name (for debugging and conflict resolution) */
-  pluginName: string
+  pluginName: string;
 
   /** Priority for ordering when multiple plugins add fields (higher = later) */
-  priority?: number
+  priority?: number;
 
   /** Fields to add to ALL collections */
-  globalFields?: Field[]
+  globalFields?: Field[];
 
   /** Fields to add to specific collections (by slug) */
-  collectionFields?: Record<string, Field[]>
+  collectionFields?: Record<string, Field[]>;
 
   /** Custom field type definitions provided by this plugin */
   customFieldTypes?: Array<{
-    name: string
-    config: CustomFieldTypeConfig
-  }>
+    name: string;
+    config: CustomFieldTypeConfig;
+  }>;
 
   /** Hook to modify collection config before finalization */
-  beforeFinalize?: (config: CollectionConfig) => CollectionConfig
+  beforeFinalize?: (config: CollectionConfig) => CollectionConfig;
 }
 
 // Registry of plugin extensions
-const pluginExtensions: PluginFieldExtension[] = []
+const pluginExtensions: PluginFieldExtension[] = [];
 
 /**
  * Register a plugin field extension
@@ -215,28 +215,28 @@ export function registerPluginExtension(extension: PluginFieldExtension): void {
   // Register any custom field types from this plugin
   if (extension.customFieldTypes) {
     for (const { name, config } of extension.customFieldTypes) {
-      registerCustomFieldType(name, config)
+      registerCustomFieldType(name, config);
     }
   }
 
-  pluginExtensions.push(extension)
+  pluginExtensions.push(extension);
 
   // Sort by priority
-  pluginExtensions.sort((a, b) => (a.priority ?? 0) - (b.priority ?? 0))
+  pluginExtensions.sort((a, b) => (a.priority ?? 0) - (b.priority ?? 0));
 }
 
 /**
  * Get all registered plugin extensions
  */
 export function getPluginExtensions(): PluginFieldExtension[] {
-  return [...pluginExtensions]
+  return [...pluginExtensions];
 }
 
 /**
  * Clear all plugin extensions (mainly for testing)
  */
 export function clearPluginExtensions(): void {
-  pluginExtensions.length = 0
+  pluginExtensions.length = 0;
 }
 
 /**
@@ -248,8 +248,8 @@ export function clearPluginExtensions(): void {
  * @returns The config with plugin fields added
  */
 export function applyPluginExtensions(config: CollectionConfig): CollectionConfig {
-  let result: CollectionConfig = { ...config, fields: [...config.fields] }
-  const { slug } = config
+  let result: CollectionConfig = { ...config, fields: [...config.fields] };
+  const { slug } = config;
 
   for (const extension of pluginExtensions) {
     // Add global fields
@@ -257,27 +257,27 @@ export function applyPluginExtensions(config: CollectionConfig): CollectionConfi
       result = {
         ...result,
         fields: [...result.fields, ...extension.globalFields],
-      }
+      };
     }
 
     // Add collection-specific fields
     if (extension.collectionFields && slug in extension.collectionFields) {
-      const collectionSpecificFields = extension.collectionFields[slug]
+      const collectionSpecificFields = extension.collectionFields[slug];
       if (collectionSpecificFields) {
         result = {
           ...result,
           fields: [...result.fields, ...collectionSpecificFields],
-        }
+        };
       }
     }
 
     // Apply beforeFinalize hook
     if (extension.beforeFinalize) {
-      result = extension.beforeFinalize(result)
+      result = extension.beforeFinalize(result);
     }
   }
 
-  return result
+  return result;
 }
 
 // ============================================
@@ -289,27 +289,27 @@ export function applyPluginExtensions(config: CollectionConfig): CollectionConfi
  */
 export interface CustomValidationRule {
   /** Rule name (for error messages) */
-  name: string
+  name: string;
 
   /** Validation function */
-  validate: (value: unknown, options?: unknown) => boolean | string
+  validate: (value: unknown, options?: unknown) => boolean | string;
 
   /** Default error message */
-  message?: string
+  message?: string;
 
   /** Description for documentation */
-  description?: string
+  description?: string;
 }
 
 /**
  * Registry of custom validation rules
  */
 export interface ValidationRuleRegistry {
-  [ruleName: string]: CustomValidationRule
+  [ruleName: string]: CustomValidationRule;
 }
 
 // Global validation rules registry
-const validationRules: ValidationRuleRegistry = {}
+const validationRules: ValidationRuleRegistry = {};
 
 /**
  * Register a custom validation rule
@@ -330,21 +330,21 @@ const validationRules: ValidationRuleRegistry = {}
  * ```
  */
 export function registerValidationRule(rule: CustomValidationRule): void {
-  validationRules[rule.name] = rule
+  validationRules[rule.name] = rule;
 }
 
 /**
  * Get a validation rule by name
  */
 export function getValidationRule(name: string): CustomValidationRule | undefined {
-  return validationRules[name]
+  return validationRules[name];
 }
 
 /**
  * Get all registered validation rules
  */
 export function getValidationRules(): ValidationRuleRegistry {
-  return { ...validationRules }
+  return { ...validationRules };
 }
 
 /**
@@ -355,11 +355,11 @@ export function runValidationRule(
   value: unknown,
   options?: unknown,
 ): boolean | string {
-  const rule = validationRules[ruleName]
+  const rule = validationRules[ruleName];
   if (!rule) {
-    return `Unknown validation rule: ${ruleName}`
+    return `Unknown validation rule: ${ruleName}`;
   }
-  return rule.validate(value, options)
+  return rule.validate(value, options);
 }
 
 // ============================================
@@ -372,50 +372,50 @@ export function runValidationRule(
  * Later fields override earlier fields with the same name.
  */
 export function mergeFields(base: Field[], additions: Field[]): Field[] {
-  const fieldMap = new Map<string, Field>()
+  const fieldMap = new Map<string, Field>();
 
   // Add base fields
   for (const field of base) {
-    const { name } = field
+    const { name } = field;
     if (name) {
-      fieldMap.set(name, field)
+      fieldMap.set(name, field);
     }
   }
 
   // Override/add additional fields
   for (const field of additions) {
-    const { name } = field
+    const { name } = field;
     if (name) {
-      fieldMap.set(name, field)
+      fieldMap.set(name, field);
     }
   }
 
   // Rebuild array, preserving order of base with additions at end
-  const result: Field[] = []
-  const addedNames = new Set<string>()
+  const result: Field[] = [];
+  const addedNames = new Set<string>();
 
   for (const field of base) {
-    const { name } = field
+    const { name } = field;
     if (name) {
-      const mappedField = fieldMap.get(name)
+      const mappedField = fieldMap.get(name);
       if (mappedField) {
-        result.push(mappedField)
-        addedNames.add(name)
-        continue
+        result.push(mappedField);
+        addedNames.add(name);
+        continue;
       }
     }
-    result.push(field)
+    result.push(field);
   }
 
   // Add any new fields not in base
   for (const field of additions) {
-    const { name } = field
+    const { name } = field;
     if (name && !addedNames.has(name)) {
-      result.push(field)
+      result.push(field);
     }
   }
 
-  return result
+  return result;
 }
 
 /**
@@ -425,18 +425,18 @@ export function mergeCollectionConfigs(
   base: CollectionConfig,
   overrides: Partial<CollectionConfig>,
 ): CollectionConfig {
-  const baseAccess = base.access ?? {}
-  const baseHooks = base.hooks ?? {}
-  const baseAdmin = base.admin ?? {}
+  const baseAccess = base.access ?? {};
+  const baseHooks = base.hooks ?? {};
+  const baseAdmin = base.admin ?? {};
 
   const result: CollectionConfig = {
     ...base,
     ...overrides,
     fields: overrides.fields ? mergeFields(base.fields, overrides.fields) : base.fields,
-  }
+  };
 
   if (overrides.access) {
-    result.access = { ...baseAccess, ...overrides.access }
+    result.access = { ...baseAccess, ...overrides.access };
   }
 
   if (overrides.hooks) {
@@ -446,12 +446,12 @@ export function mergeCollectionConfigs(
       // Merge hook arrays
       beforeChange: [...(baseHooks.beforeChange ?? []), ...(overrides.hooks.beforeChange ?? [])],
       afterChange: [...(baseHooks.afterChange ?? []), ...(overrides.hooks.afterChange ?? [])],
-    }
+    };
   }
 
   if (overrides.admin) {
-    result.admin = { ...baseAdmin, ...overrides.admin }
+    result.admin = { ...baseAdmin, ...overrides.admin };
   }
 
-  return result
+  return result;
 }

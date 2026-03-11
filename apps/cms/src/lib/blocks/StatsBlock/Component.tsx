@@ -1,20 +1,20 @@
-import Image from 'next/image'
-import type React from 'react'
-import { cn } from '@/lib/styles/classnames'
+import Image from 'next/image';
+import type React from 'react';
+import { cn } from '@/lib/styles/classnames';
 
 export interface StatItem {
-  label: string
-  value: string
-  icon?: string
+  label: string;
+  value: string;
+  icon?: string;
 }
 
 export interface StatsBlockProps {
-  className?: string
-  style: 'info' | 'warning' | 'error' | 'success'
-  stats: StatItem[]
-  id?: number | null
-  blockName?: string | null
-  blockType: 'stats'
+  className?: string;
+  style: 'info' | 'warning' | 'error' | 'success';
+  stats: StatItem[];
+  id?: number | null;
+  blockName?: string | null;
+  blockType: 'stats';
 }
 
 export const StatsBlock: React.FC<StatsBlockProps> = ({ className, stats, style }) => {
@@ -53,5 +53,5 @@ export const StatsBlock: React.FC<StatsBlockProps> = ({ className, stats, style 
         </div>
       </div>
     </div>
-  )
-}
+  );
+};

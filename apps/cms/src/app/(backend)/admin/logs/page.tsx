@@ -1,19 +1,19 @@
-import { getClient } from '@revealui/db'
-import { appLogs } from '@revealui/db/schema'
-import { and, desc, eq, type SQL } from 'drizzle-orm'
-import Link from 'next/link'
-import { LicenseGate } from '@/lib/components/LicenseGate'
+import { getClient } from '@revealui/db';
+import { appLogs } from '@revealui/db/schema';
+import { and, desc, eq, type SQL } from 'drizzle-orm';
+import Link from 'next/link';
+import { LicenseGate } from '@/lib/components/LicenseGate';
 
-export const dynamic = 'force-dynamic'
+export const dynamic = 'force-dynamic';
 
 const LEVEL_STYLES: Record<string, string> = {
   fatal: 'bg-red-900 text-red-200',
   error: 'bg-red-700 text-red-100',
   warn: 'bg-yellow-700 text-yellow-100',
-}
+};
 
-const APPS = ['cms', 'api', 'marketing'] as const
-const LEVELS = ['warn', 'error', 'fatal'] as const
+const APPS = ['cms', 'api', 'marketing'] as const;
+const LEVELS = ['warn', 'error', 'fatal'] as const;
 
 function formatTime(date: Date): string {
   return new Intl.DateTimeFormat('en-US', {
@@ -24,50 +24,50 @@ function formatTime(date: Date): string {
     second: '2-digit',
     hour12: false,
     timeZoneName: 'short',
-  }).format(date)
+  }).format(date);
 }
 
 interface PageProps {
-  searchParams: Promise<{ app?: string; level?: string; limit?: string }>
+  searchParams: Promise<{ app?: string; level?: string; limit?: string }>;
 }
 
 export default async function LogsPage({ searchParams }: PageProps) {
-  const params = await searchParams
-  const filterApp = APPS.includes(params.app as (typeof APPS)[number]) ? params.app : undefined
+  const params = await searchParams;
+  const filterApp = APPS.includes(params.app as (typeof APPS)[number]) ? params.app : undefined;
   const filterLevel = LEVELS.includes(params.level as (typeof LEVELS)[number])
     ? params.level
-    : undefined
-  const limit = Math.min(Number(params.limit) || 200, 1000)
+    : undefined;
+  const limit = Math.min(Number(params.limit) || 200, 1000);
 
-  let rows: (typeof appLogs.$inferSelect)[] = []
-  let dbError: string | null = null
+  let rows: (typeof appLogs.$inferSelect)[] = [];
+  let dbError: string | null = null;
 
   try {
-    const db = getClient()
-    const clauses: SQL[] = []
-    if (filterApp) clauses.push(eq(appLogs.app, filterApp))
-    if (filterLevel) clauses.push(eq(appLogs.level, filterLevel))
+    const db = getClient();
+    const clauses: SQL[] = [];
+    if (filterApp) clauses.push(eq(appLogs.app, filterApp));
+    if (filterLevel) clauses.push(eq(appLogs.level, filterLevel));
     const whereClause =
-      clauses.length === 0 ? undefined : clauses.length === 1 ? clauses[0] : and(...clauses)
+      clauses.length === 0 ? undefined : clauses.length === 1 ? clauses[0] : and(...clauses);
 
     rows = await db
       .select()
       .from(appLogs)
       .where(whereClause)
       .orderBy(desc(appLogs.timestamp))
-      .limit(limit)
+      .limit(limit);
   } catch (err) {
-    dbError = err instanceof Error ? err.message : String(err)
+    dbError = err instanceof Error ? err.message : String(err);
   }
 
   function filterUrl(overrides: Record<string, string | undefined>) {
-    const p = new URLSearchParams()
-    const next = { app: filterApp, level: filterLevel, ...overrides }
+    const p = new URLSearchParams();
+    const next = { app: filterApp, level: filterLevel, ...overrides };
     for (const [k, v] of Object.entries(next)) {
-      if (v) p.set(k, v)
+      if (v) p.set(k, v);
     }
-    const qs = p.toString()
-    return `/admin/logs${qs ? `?${qs}` : ''}`
+    const qs = p.toString();
+    return `/admin/logs${qs ? `?${qs}` : ''}`;
   }
 
   return (
@@ -204,5 +204,5 @@ export default async function LogsPage({ searchParams }: PageProps) {
         )}
       </div>
     </LicenseGate>
-  )
+  );
 }

@@ -1,4 +1,4 @@
-'use client'
+'use client';
 
 /**
  * RevealUI Rich Text Editor - DecoratorBlockNode Base Class
@@ -13,36 +13,36 @@ import {
   type NodeKey,
   type SerializedLexicalNode,
   type Spread,
-} from 'lexical'
-import type { JSX } from 'react'
+} from 'lexical';
+import type { JSX } from 'react';
 
 export type SerializedDecoratorBlockNode<
   T extends Record<string, unknown> = Record<string, unknown>,
 > = Spread<
   {
-    format: ElementFormatType
-    fields: T
+    format: ElementFormatType;
+    fields: T;
   },
   SerializedLexicalNode
->
+>;
 
 export abstract class DecoratorBlockNode<
   T extends Record<string, unknown> = Record<string, unknown>,
 > extends DecoratorNode<JSX.Element> {
-  __format: ElementFormatType
+  __format: ElementFormatType;
 
   constructor(format?: ElementFormatType, key?: NodeKey) {
-    super(key)
-    this.__format = format || ''
+    super(key);
+    this.__format = format || '';
   }
 
   getFormat(): ElementFormatType {
-    return this.getLatest().__format
+    return this.getLatest().__format;
   }
 
   setFormat(format: ElementFormatType): void {
-    const writable = this.getWritable()
-    writable.__format = format
+    const writable = this.getWritable();
+    writable.__format = format;
   }
 
   exportJSON(): SerializedDecoratorBlockNode<T> {
@@ -50,6 +50,6 @@ export abstract class DecoratorBlockNode<
       ...super.exportJSON(),
       format: this.__format,
       fields: {} as T,
-    }
+    };
   }
 }

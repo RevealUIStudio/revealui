@@ -1,9 +1,9 @@
 // Vercel serverless function entry point
 // Uses @hono/node-server/vercel adapter to convert Hono app to Node.js handler
-import { handle } from '@hono/node-server/vercel'
-import app from '../dist/index.js'
+import { handle } from '@hono/node-server/vercel';
+import app from '../dist/index.js';
 
-const honoHandler = handle(app)
+const honoHandler = handle(app);
 
 /**
  * Pre-buffer the request body before passing to the Hono adapter.
@@ -16,13 +16,13 @@ const honoHandler = handle(app)
  */
 export default async function handler(req, res) {
   if (req.method !== 'GET' && req.method !== 'HEAD' && !req.rawBody) {
-    const chunks = []
+    const chunks = [];
     await new Promise((resolve, reject) => {
-      req.on('data', (chunk) => chunks.push(chunk))
-      req.on('end', resolve)
-      req.on('error', reject)
-    })
-    req.rawBody = Buffer.concat(chunks)
+      req.on('data', (chunk) => chunks.push(chunk));
+      req.on('end', resolve);
+      req.on('error', reject);
+    });
+    req.rawBody = Buffer.concat(chunks);
   }
-  return honoHandler(req, res)
+  return honoHandler(req, res);
 }

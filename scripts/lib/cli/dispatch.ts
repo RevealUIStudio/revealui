@@ -13,9 +13,9 @@
  * - scripts/lib/exec.ts - Command execution for subprocess mode
  */
 
-import type { ParsedArgs } from '../args.js'
-import { ErrorCode, notFound, ScriptError } from '../errors.js'
-import { execCommand } from '../exec.js'
+import type { ParsedArgs } from '../args.js';
+import { ErrorCode, notFound, ScriptError } from '../errors.js';
+import { execCommand } from '../exec.js';
 
 /**
  * Dispatch mode
@@ -23,24 +23,24 @@ import { execCommand } from '../exec.js'
  * - 'subprocess': Spawns new process with pnpm tsx (isolated, better for long-running tasks)
  * - 'auto': Chooses best mode based on script characteristics (default)
  */
-export type DispatchMode = 'import' | 'subprocess' | 'auto'
+export type DispatchMode = 'import' | 'subprocess' | 'auto';
 
 /**
  * Options for command dispatch
  */
 export interface DispatchOptions {
   /** Dispatch mode (default: 'auto') */
-  mode?: DispatchMode
+  mode?: DispatchMode;
   /** Working directory for subprocess mode */
-  cwd?: string
+  cwd?: string;
   /** Additional arguments to pass to the script */
-  args?: ParsedArgs
+  args?: ParsedArgs;
   /** Environment variables for subprocess mode */
-  env?: Record<string, string>
+  env?: Record<string, string>;
   /** Timeout for subprocess in milliseconds */
-  timeout?: number
+  timeout?: number;
   /** Whether to capture output (subprocess mode only) */
-  captureOutput?: boolean
+  captureOutput?: boolean;
 }
 
 /**
@@ -48,17 +48,17 @@ export interface DispatchOptions {
  */
 export interface DispatchResult {
   /** Whether the command succeeded */
-  success: boolean
+  success: boolean;
   /** Output from the command (if captureOutput was true) */
-  output?: string
+  output?: string;
   /** Error message if command failed */
-  error?: string
+  error?: string;
   /** Exit code (subprocess mode only) */
-  exitCode?: number
+  exitCode?: number;
   /** Dispatch mode that was used */
-  mode: DispatchMode
+  mode: DispatchMode;
   /** Script path that was executed */
-  scriptPath: string
+  scriptPath: string;
 }
 
 /**
@@ -69,16 +69,16 @@ export interface DispatchResult {
  * - Everything else can use import mode (faster)
  */
 function shouldUseSubprocess(scriptPath: string): boolean {
-  const path = scriptPath.toLowerCase()
+  const path = scriptPath.toLowerCase();
 
   // Long-running or resource-intensive tasks
-  if (path.includes('/workflows/')) return true
-  if (path.includes('build')) return true
-  if (path.includes('deploy')) return true
-  if (path.includes('release')) return true
+  if (path.includes('/workflows/')) return true;
+  if (path.includes('build')) return true;
+  if (path.includes('deploy')) return true;
+  if (path.includes('release')) return true;
 
   // Short analysis/validation scripts can use import
-  return false
+  return false;
 }
 
 /**
@@ -91,16 +91,16 @@ async function dispatchImport(
 ): Promise<DispatchResult> {
   try {
     // Import the script module
-    await import(scriptPath)
+    await import(scriptPath);
 
     return {
       success: true,
       mode: 'import',
       scriptPath,
-    }
+    };
   } catch (error) {
     if ((error as NodeJS.ErrnoException).code === 'ERR_MODULE_NOT_FOUND') {
-      throw notFound('Script', scriptPath)
+      throw notFound('Script', scriptPath);
     }
 
     return {
@@ -108,7 +108,7 @@ async function dispatchImport(
       mode: 'import',
       scriptPath,
       error: error instanceof Error ? error.message : String(error),
-    }
+    };
   }
 }
 
@@ -120,28 +120,28 @@ async function dispatchSubprocess(
   scriptPath: string,
   options: DispatchOptions = {},
 ): Promise<DispatchResult> {
-  const { cwd, args, env = {}, timeout, captureOutput = false } = options
+  const { cwd, args, env = {}, timeout, captureOutput = false } = options;
 
   // Build command arguments
-  const cmdArgs = ['tsx', scriptPath]
+  const cmdArgs = ['tsx', scriptPath];
 
   // Add parsed arguments to command
-  if (args?.command) cmdArgs.push(args.command)
+  if (args?.command) cmdArgs.push(args.command);
 
   // Add flags
   if (args?.flags) {
     Object.entries(args.flags).forEach(([key, value]) => {
       if (typeof value === 'boolean' && value) {
-        cmdArgs.push(`--${key}`)
+        cmdArgs.push(`--${key}`);
       } else if (value !== undefined && value !== false) {
-        cmdArgs.push(`--${key}`, String(value))
+        cmdArgs.push(`--${key}`, String(value));
       }
-    })
+    });
   }
 
   // Add positional arguments
   if (args?.positional && args.positional.length > 0) {
-    cmdArgs.push(...args.positional.map(String))
+    cmdArgs.push(...args.positional.map(String));
   }
 
   try {
@@ -149,7 +149,7 @@ async function dispatchSubprocess(
       cwd,
       env,
       timeout,
-    })
+    });
 
     return {
       success: result.success,
@@ -158,7 +158,7 @@ async function dispatchSubprocess(
       output: captureOutput ? result.stdout : undefined,
       error: result.success ? undefined : result.stderr,
       exitCode: result.exitCode,
-    }
+    };
   } catch (error) {
     return {
       success: false,
@@ -166,7 +166,7 @@ async function dispatchSubprocess(
       scriptPath,
       error: error instanceof Error ? error.message : String(error),
       exitCode: ErrorCode.EXECUTION_ERROR,
-    }
+    };
   }
 }
 
@@ -201,21 +201,21 @@ export async function dispatchCommand(
   scriptPath: string,
   options: DispatchOptions = {},
 ): Promise<DispatchResult> {
-  const { mode = 'auto' } = options
+  const { mode = 'auto' } = options;
 
   // Determine dispatch mode
-  let actualMode: Exclude<DispatchMode, 'auto'>
+  let actualMode: Exclude<DispatchMode, 'auto'>;
   if (mode === 'auto') {
-    actualMode = shouldUseSubprocess(scriptPath) ? 'subprocess' : 'import'
+    actualMode = shouldUseSubprocess(scriptPath) ? 'subprocess' : 'import';
   } else {
-    actualMode = mode
+    actualMode = mode;
   }
 
   // Dispatch based on mode
   if (actualMode === 'import') {
-    return dispatchImport(scriptPath, options)
+    return dispatchImport(scriptPath, options);
   } else {
-    return dispatchSubprocess(scriptPath, options)
+    return dispatchSubprocess(scriptPath, options);
   }
 }
 
@@ -253,7 +253,7 @@ export async function dispatchOrThrow(
   scriptPath: string,
   options: DispatchOptions = {},
 ): Promise<void> {
-  const result = await dispatchCommand(scriptPath, options)
+  const result = await dispatchCommand(scriptPath, options);
 
   if (!result.success) {
     throw new ScriptError(
@@ -270,6 +270,6 @@ export async function dispatchOrThrow(
           'Review the error message above for details',
         ],
       },
-    )
+    );
   }
 }

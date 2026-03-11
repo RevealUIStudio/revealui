@@ -1,12 +1,12 @@
-import type { Block } from '@revealui/core'
+import type { Block } from '@revealui/core';
 
 import {
   FixedToolbarFeature,
   HeadingFeature,
   InlineToolbarFeature,
   lexicalEditor,
-} from '@revealui/core/richtext'
-import { linkGroup } from '@/lib/fields/linkGroup'
+} from '@revealui/core/richtext';
+import { linkGroup } from '@/lib/fields/linkGroup';
 
 export const CallToAction: Block = {
   slug: 'cta',
@@ -22,7 +22,7 @@ export const CallToAction: Block = {
             HeadingFeature({ enabledHeadingSizes: ['h1', 'h2', 'h3', 'h4'] }),
             FixedToolbarFeature(),
             InlineToolbarFeature(),
-          ]
+          ];
         },
       }),
       label: false,
@@ -38,4 +38,4 @@ export const CallToAction: Block = {
     plural: 'Calls to Action',
     singular: 'Call to Action',
   },
-}
+};

@@ -14,43 +14,43 @@
  * @module @revealui/contracts/foundation
  */
 
-import type { ZodError, z } from 'zod/v4'
+import type { ZodError, z } from 'zod/v4';
 
 /**
  * Validation result from contract validation
  */
 export interface ContractValidationSuccess<T> {
-  success: true
-  data: T
-  errors?: never
+  success: true;
+  data: T;
+  errors?: never;
 }
 
 export interface ContractValidationFailure {
-  success: false
-  data?: never
-  errors: ZodError
+  success: false;
+  data?: never;
+  errors: ZodError;
 }
 
-export type ContractValidationResult<T> = ContractValidationSuccess<T> | ContractValidationFailure
+export type ContractValidationResult<T> = ContractValidationSuccess<T> | ContractValidationFailure;
 
 /**
  * Contract metadata for documentation and versioning
  */
 export interface ContractMetadata {
   /** Contract name/identifier */
-  name: string
+  name: string;
   /** Contract version for migration support */
-  version: string
+  version: string;
   /** Human-readable description */
-  description?: string
+  description?: string;
   /** Documentation URL */
-  docsUrl?: string
+  docsUrl?: string;
   /** Tags for categorization */
-  tags?: string[]
+  tags?: string[];
   /** Deprecation notice if applicable */
-  deprecated?: boolean
+  deprecated?: boolean;
   /** Deprecation message */
-  deprecatedMessage?: string
+  deprecatedMessage?: string;
 }
 
 /**
@@ -92,13 +92,13 @@ export interface ContractMetadata {
  */
 export interface Contract<T> {
   /** Contract metadata */
-  readonly metadata: ContractMetadata
+  readonly metadata: ContractMetadata;
 
   /**
    * Zod schema for runtime validation
    * This is the single source of truth for the data structure
    */
-  readonly schema: z.ZodSchema<T>
+  readonly schema: z.ZodSchema<T>;
 
   /**
    * Validate data against the contract
@@ -107,7 +107,7 @@ export interface Contract<T> {
    * @param data - Unknown data to validate
    * @returns Validation result with typed data on success, errors on failure
    */
-  validate(data: unknown): ContractValidationResult<T>
+  validate(data: unknown): ContractValidationResult<T>;
 
   /**
    * Type guard function
@@ -117,7 +117,7 @@ export interface Contract<T> {
    * @param data - Unknown data to check
    * @returns True if data is valid, false otherwise
    */
-  isType(data: unknown): data is T
+  isType(data: unknown): data is T;
 
   /**
    * Parse data and throw on validation failure
@@ -127,7 +127,7 @@ export interface Contract<T> {
    * @returns Typed data
    * @throws ZodError if validation fails
    */
-  parse(data: unknown): T
+  parse(data: unknown): T;
 
   /**
    * Safe parse - returns result without throwing
@@ -136,7 +136,7 @@ export interface Contract<T> {
    * @param data - Unknown data to parse
    * @returns Validation result
    */
-  safeParse(data: unknown): ContractValidationResult<T>
+  safeParse(data: unknown): ContractValidationResult<T>;
 }
 
 /**
@@ -149,28 +149,28 @@ export interface Contract<T> {
  * type User = ContractType<typeof UserContract>
  * ```
  */
-export type ContractType<C extends Contract<unknown>> = C extends Contract<infer T> ? T : never
+export type ContractType<C extends Contract<unknown>> = C extends Contract<infer T> ? T : never;
 
 /**
  * Options for creating a contract
  */
 export interface CreateContractOptions<T> {
   /** Contract name/identifier */
-  name: string
+  name: string;
   /** Contract version */
-  version: string
+  version: string;
   /** Zod schema for validation */
-  schema: z.ZodSchema<T>
+  schema: z.ZodSchema<T>;
   /** Optional description */
-  description?: string
+  description?: string;
   /** Optional documentation URL */
-  docsUrl?: string
+  docsUrl?: string;
   /** Optional tags */
-  tags?: string[]
+  tags?: string[];
   /** Optional deprecation flag */
-  deprecated?: boolean
+  deprecated?: boolean;
   /** Optional deprecation message */
-  deprecatedMessage?: string
+  deprecatedMessage?: string;
 }
 
 /**
@@ -201,7 +201,7 @@ export interface CreateContractOptions<T> {
  */
 export function createContract<T>(options: CreateContractOptions<T>): Contract<T> {
   const { name, version, schema, description, docsUrl, tags, deprecated, deprecatedMessage } =
-    options
+    options;
 
   const metadata: ContractMetadata = {
     name,
@@ -211,38 +211,38 @@ export function createContract<T>(options: CreateContractOptions<T>): Contract<T
     ...(tags && { tags }),
     ...(deprecated !== undefined && { deprecated }),
     ...(deprecatedMessage && { deprecatedMessage }),
-  }
+  };
 
   return {
     metadata,
     schema,
 
     validate(data: unknown): ContractValidationResult<T> {
-      const result = schema.safeParse(data)
+      const result = schema.safeParse(data);
       if (result.success) {
         return {
           success: true,
           data: result.data,
-        } as ContractValidationSuccess<T>
+        } as ContractValidationSuccess<T>;
       }
       return {
         success: false,
         errors: result.error,
-      } as ContractValidationFailure
+      } as ContractValidationFailure;
     },
 
     isType(data: unknown): data is T {
-      return schema.safeParse(data).success
+      return schema.safeParse(data).success;
     },
 
     parse(data: unknown): T {
-      return schema.parse(data)
+      return schema.parse(data);
     },
 
     safeParse(data: unknown): ContractValidationResult<T> {
-      return this.validate(data)
+      return this.validate(data);
     },
-  }
+  };
 }
 
 /**
@@ -250,59 +250,59 @@ export function createContract<T>(options: CreateContractOptions<T>): Contract<T
  * Allows lookup and versioning of contracts
  */
 class ContractRegistry {
-  private contracts = new Map<string, Contract<unknown>>()
+  private contracts = new Map<string, Contract<unknown>>();
 
   /**
    * Register a contract
    */
   register<T>(contract: Contract<T>): void {
-    const key = `${contract.metadata.name}@${contract.metadata.version}`
-    this.contracts.set(key, contract as Contract<unknown>)
+    const key = `${contract.metadata.name}@${contract.metadata.version}`;
+    this.contracts.set(key, contract as Contract<unknown>);
   }
 
   /**
    * Get a contract by name and version
    */
   get<T>(name: string, version: string): Contract<T> | undefined {
-    const key = `${name}@${version}`
-    return this.contracts.get(key) as Contract<T> | undefined
+    const key = `${name}@${version}`;
+    return this.contracts.get(key) as Contract<T> | undefined;
   }
 
   /**
    * Get the latest version of a contract
    */
   getLatest<T>(name: string): Contract<T> | undefined {
-    let latest: Contract<unknown> | undefined
-    let latestVersion = '0.0.0'
+    let latest: Contract<unknown> | undefined;
+    let latestVersion = '0.0.0';
 
     for (const contract of Array.from(this.contracts.values())) {
       if (contract.metadata.name === name) {
         if (contract.metadata.version > latestVersion) {
-          latestVersion = contract.metadata.version
-          latest = contract
+          latestVersion = contract.metadata.version;
+          latest = contract;
         }
       }
     }
 
-    return latest as Contract<T> | undefined
+    return latest as Contract<T> | undefined;
   }
 
   /**
    * List all registered contracts
    */
   list(): Contract<unknown>[] {
-    return Array.from(this.contracts.values())
+    return Array.from(this.contracts.values());
   }
 
   /**
    * Clear all contracts (useful for testing)
    */
   clear(): void {
-    this.contracts.clear()
+    this.contracts.clear();
   }
 }
 
 /**
  * Global contract registry instance
  */
-export const contractRegistry = new ContractRegistry()
+export const contractRegistry = new ContractRegistry();

@@ -32,13 +32,13 @@
  * - node:perf_hooks - Performance measurement
  */
 
-import { mkdir, readFile, writeFile } from 'node:fs/promises'
-import { join } from 'node:path'
-import { createLogger } from './logger.js'
-import { getProjectRoot } from './paths.js'
-import { fileExists, formatBytes, formatDuration } from './utils.js'
+import { mkdir, readFile, writeFile } from 'node:fs/promises';
+import { join } from 'node:path';
+import { createLogger } from './logger.js';
+import { getProjectRoot } from './paths.js';
+import { fileExists, formatBytes, formatDuration } from './utils.js';
 
-const logger = createLogger({ prefix: 'Telemetry' })
+const logger = createLogger({ prefix: 'Telemetry' });
 
 // =============================================================================
 // Types
@@ -46,76 +46,76 @@ const logger = createLogger({ prefix: 'Telemetry' })
 
 export interface MetricEvent {
   /** Event name */
-  name: string
+  name: string;
   /** Event type */
-  type: 'counter' | 'timer' | 'gauge' | 'error'
+  type: 'counter' | 'timer' | 'gauge' | 'error';
   /** Event value */
-  value: number
+  value: number;
   /** Timestamp */
-  timestamp: number
+  timestamp: number;
   /** Additional metadata */
-  metadata?: Record<string, unknown>
+  metadata?: Record<string, unknown>;
 }
 
 export interface TimerHandle {
   /** Stop the timer and record duration */
-  stop: (metadata?: Record<string, unknown>) => number
+  stop: (metadata?: Record<string, unknown>) => number;
   /** Get elapsed time without stopping */
-  elapsed: () => number
+  elapsed: () => number;
 }
 
 export interface AggregatedMetrics {
   /** Total events */
-  totalEvents: number
+  totalEvents: number;
   /** Events by type */
-  eventsByType: Record<string, number>
+  eventsByType: Record<string, number>;
   /** Script execution stats */
   scripts: {
-    totalExecutions: number
-    averageDuration: number
-    slowest: Array<{ name: string; duration: number }>
-    fastest: Array<{ name: string; duration: number }>
-    failures: number
-  }
+    totalExecutions: number;
+    averageDuration: number;
+    slowest: Array<{ name: string; duration: number }>;
+    fastest: Array<{ name: string; duration: number }>;
+    failures: number;
+  };
   /** Cache performance */
   cache: {
-    hits: number
-    misses: number
-    hitRate: number
-    totalSize: number
-    formattedSize: string
-  }
+    hits: number;
+    misses: number;
+    hitRate: number;
+    totalSize: number;
+    formattedSize: string;
+  };
   /** Error tracking */
   errors: {
-    total: number
-    byType: Record<string, number>
-    recent: Array<{ name: string; timestamp: number; message?: string }>
-  }
+    total: number;
+    byType: Record<string, number>;
+    recent: Array<{ name: string; timestamp: number; message?: string }>;
+  };
   /** Performance metrics */
   performance: {
-    averageScriptDuration: number
-    totalDuration: number
-    formattedTotalDuration: string
-  }
+    averageScriptDuration: number;
+    totalDuration: number;
+    formattedTotalDuration: string;
+  };
   /** Time period */
   period: {
-    start: number
-    end: number
-    duration: number
-  }
+    start: number;
+    end: number;
+    duration: number;
+  };
 }
 
 export interface TelemetryOptions {
   /** Storage directory for metrics */
-  storageDir?: string
+  storageDir?: string;
   /** Enable persistent storage */
-  persistent?: boolean
+  persistent?: boolean;
   /** Auto-flush interval in ms (0 = disabled) */
-  autoFlushInterval?: number
+  autoFlushInterval?: number;
   /** Maximum events in memory before flush */
-  maxEventsInMemory?: number
+  maxEventsInMemory?: number;
   /** Enable verbose logging */
-  verbose?: boolean
+  verbose?: boolean;
 }
 
 // =============================================================================
@@ -123,26 +123,26 @@ export interface TelemetryOptions {
 // =============================================================================
 
 export class Telemetry {
-  private events: MetricEvent[] = []
-  private storageDir: string
-  private persistent: boolean
-  private autoFlushInterval: number
-  private maxEventsInMemory: number
-  private verbose: boolean
-  private timers: Map<string, number> = new Map()
-  private flushTimer: NodeJS.Timeout | null = null
-  private projectRoot: string | null = null
+  private events: MetricEvent[] = [];
+  private storageDir: string;
+  private persistent: boolean;
+  private autoFlushInterval: number;
+  private maxEventsInMemory: number;
+  private verbose: boolean;
+  private timers: Map<string, number> = new Map();
+  private flushTimer: NodeJS.Timeout | null = null;
+  private projectRoot: string | null = null;
 
   constructor(options: TelemetryOptions = {}) {
-    this.storageDir = options.storageDir ?? '.telemetry'
-    this.persistent = options.persistent ?? true
-    this.autoFlushInterval = options.autoFlushInterval ?? 60_000 // 1 minute
-    this.maxEventsInMemory = options.maxEventsInMemory ?? 1000
-    this.verbose = options.verbose ?? false
+    this.storageDir = options.storageDir ?? '.telemetry';
+    this.persistent = options.persistent ?? true;
+    this.autoFlushInterval = options.autoFlushInterval ?? 60_000; // 1 minute
+    this.maxEventsInMemory = options.maxEventsInMemory ?? 1000;
+    this.verbose = options.verbose ?? false;
 
     // Start auto-flush if enabled
     if (this.autoFlushInterval > 0 && this.persistent) {
-      this.startAutoFlush()
+      this.startAutoFlush();
     }
   }
 
@@ -151,26 +151,26 @@ export class Telemetry {
    */
   private async getRoot(): Promise<string> {
     if (!this.projectRoot) {
-      this.projectRoot = await getProjectRoot(import.meta.url)
+      this.projectRoot = await getProjectRoot(import.meta.url);
     }
-    return this.projectRoot
+    return this.projectRoot;
   }
 
   /**
    * Get storage directory path.
    */
   private async getStorageDir(): Promise<string> {
-    const root = await this.getRoot()
-    return join(root, this.storageDir)
+    const root = await this.getRoot();
+    return join(root, this.storageDir);
   }
 
   /**
    * Get metrics file path for a given date.
    */
   private async getMetricsFilePath(date: Date = new Date()): Promise<string> {
-    const dir = await this.getStorageDir()
-    const dateStr = date.toISOString().split('T')[0] // YYYY-MM-DD
-    return join(dir, `metrics-${dateStr}.json`)
+    const dir = await this.getStorageDir();
+    const dateStr = date.toISOString().split('T')[0]; // YYYY-MM-DD
+    return join(dir, `metrics-${dateStr}.json`);
   }
 
   /**
@@ -178,41 +178,41 @@ export class Telemetry {
    */
   private startAutoFlush(): void {
     if (this.flushTimer) {
-      return
+      return;
     }
 
     this.flushTimer = setInterval(() => {
       this.flush().catch((error) => {
-        logger.warn(`Auto-flush failed: ${error.message}`)
-      })
-    }, this.autoFlushInterval)
+        logger.warn(`Auto-flush failed: ${error.message}`);
+      });
+    }, this.autoFlushInterval);
 
     // Cleanup on process exit
     process.on('beforeExit', () => {
       if (this.flushTimer) {
-        clearInterval(this.flushTimer)
+        clearInterval(this.flushTimer);
       }
       this.flush().catch(() => {
         // Ignore flush errors on exit
-      })
-    })
+      });
+    });
   }
 
   /**
    * Record a metric event.
    */
   private record(event: MetricEvent): void {
-    this.events.push(event)
+    this.events.push(event);
 
     if (this.verbose) {
-      logger.info(`[${event.type}] ${event.name}: ${event.value}`)
+      logger.info(`[${event.type}] ${event.name}: ${event.value}`);
     }
 
     // Auto-flush if we hit the memory limit
     if (this.events.length >= this.maxEventsInMemory && this.persistent) {
       this.flush().catch((error) => {
-        logger.warn(`Auto-flush failed: ${error.message}`)
-      })
+        logger.warn(`Auto-flush failed: ${error.message}`);
+      });
     }
   }
 
@@ -226,22 +226,22 @@ export class Telemetry {
       value,
       timestamp: Date.now(),
       metadata,
-    })
+    });
   }
 
   /**
    * Start a timer.
    */
   startTimer(name: string, metadata?: Record<string, unknown>): TimerHandle {
-    const startTime = Date.now()
-    const timerId = `${name}-${startTime}`
-    this.timers.set(timerId, startTime)
+    const startTime = Date.now();
+    const timerId = `${name}-${startTime}`;
+    this.timers.set(timerId, startTime);
 
     return {
       stop: (additionalMetadata?: Record<string, unknown>) => {
-        const endTime = Date.now()
-        const duration = endTime - startTime
-        this.timers.delete(timerId)
+        const endTime = Date.now();
+        const duration = endTime - startTime;
+        this.timers.delete(timerId);
 
         this.record({
           name,
@@ -249,14 +249,14 @@ export class Telemetry {
           value: duration,
           timestamp: endTime,
           metadata: { ...metadata, ...additionalMetadata },
-        })
+        });
 
-        return duration
+        return duration;
       },
       elapsed: () => {
-        return Date.now() - startTime
+        return Date.now() - startTime;
       },
-    }
+    };
   }
 
   /**
@@ -269,14 +269,14 @@ export class Telemetry {
       value,
       timestamp: Date.now(),
       metadata,
-    })
+    });
   }
 
   /**
    * Track an error.
    */
   trackError(name: string, error: Error | string, metadata?: Record<string, unknown>): void {
-    const errorMessage = error instanceof Error ? error.message : error
+    const errorMessage = error instanceof Error ? error.message : error;
 
     this.record({
       name,
@@ -288,7 +288,7 @@ export class Telemetry {
         message: errorMessage,
         stack: error instanceof Error ? error.stack : undefined,
       },
-    })
+    });
   }
 
   /**
@@ -296,38 +296,38 @@ export class Telemetry {
    */
   async flush(): Promise<void> {
     if (!this.persistent || this.events.length === 0) {
-      return
+      return;
     }
 
-    const dir = await this.getStorageDir()
-    await mkdir(dir, { recursive: true })
+    const dir = await this.getStorageDir();
+    await mkdir(dir, { recursive: true });
 
-    const filePath = await this.getMetricsFilePath()
-    const eventsToFlush = [...this.events]
-    this.events = []
+    const filePath = await this.getMetricsFilePath();
+    const eventsToFlush = [...this.events];
+    this.events = [];
 
     try {
       // Load existing events for today
-      let existingEvents: MetricEvent[] = []
+      let existingEvents: MetricEvent[] = [];
       if (await fileExists(filePath)) {
-        const content = await readFile(filePath, 'utf-8')
-        existingEvents = JSON.parse(content)
+        const content = await readFile(filePath, 'utf-8');
+        existingEvents = JSON.parse(content);
       }
 
       // Append new events
-      const allEvents = [...existingEvents, ...eventsToFlush]
+      const allEvents = [...existingEvents, ...eventsToFlush];
 
       // Write back
-      await writeFile(filePath, JSON.stringify(allEvents, null, 2))
+      await writeFile(filePath, JSON.stringify(allEvents, null, 2));
 
       if (this.verbose) {
-        logger.info(`Flushed ${eventsToFlush.length} events to ${filePath}`)
+        logger.info(`Flushed ${eventsToFlush.length} events to ${filePath}`);
       }
     } catch (error) {
-      logger.error(`Failed to flush events: ${error}`)
+      logger.error(`Failed to flush events: ${error}`);
       // Put events back in memory
-      this.events.unshift(...eventsToFlush)
-      throw error
+      this.events.unshift(...eventsToFlush);
+      throw error;
     }
   }
 
@@ -335,34 +335,34 @@ export class Telemetry {
    * Load events from storage.
    */
   async loadEvents(startDate?: Date, endDate: Date = new Date()): Promise<MetricEvent[]> {
-    const dir = await this.getStorageDir()
+    const dir = await this.getStorageDir();
 
     if (!(await fileExists(dir))) {
-      return []
+      return [];
     }
 
-    const allEvents: MetricEvent[] = []
-    const start = startDate || new Date(endDate.getTime() - 7 * 24 * 60 * 60 * 1000) // Default: last 7 days
+    const allEvents: MetricEvent[] = [];
+    const start = startDate || new Date(endDate.getTime() - 7 * 24 * 60 * 60 * 1000); // Default: last 7 days
 
     // Iterate through each day
-    const currentDate = new Date(start)
+    const currentDate = new Date(start);
     while (currentDate <= endDate) {
-      const filePath = await this.getMetricsFilePath(currentDate)
+      const filePath = await this.getMetricsFilePath(currentDate);
 
       if (await fileExists(filePath)) {
         try {
-          const content = await readFile(filePath, 'utf-8')
-          const events: MetricEvent[] = JSON.parse(content)
-          allEvents.push(...events)
+          const content = await readFile(filePath, 'utf-8');
+          const events: MetricEvent[] = JSON.parse(content);
+          allEvents.push(...events);
         } catch (error) {
-          logger.warn(`Failed to load metrics from ${filePath}: ${error}`)
+          logger.warn(`Failed to load metrics from ${filePath}: ${error}`);
         }
       }
 
-      currentDate.setDate(currentDate.getDate() + 1)
+      currentDate.setDate(currentDate.getDate() + 1);
     }
 
-    return allEvents
+    return allEvents;
   }
 
   /**
@@ -371,66 +371,66 @@ export class Telemetry {
   async getMetrics(startDate?: Date, endDate: Date = new Date()): Promise<AggregatedMetrics> {
     // Flush current events first
     if (this.persistent) {
-      await this.flush()
+      await this.flush();
     }
 
     // Load events from storage
-    const events = await this.loadEvents(startDate, endDate)
+    const events = await this.loadEvents(startDate, endDate);
 
     // Include in-memory events
-    const allEvents = [...events, ...this.events]
+    const allEvents = [...events, ...this.events];
 
     // Aggregate metrics
-    const eventsByType: Record<string, number> = {}
-    const scriptExecutions: Array<{ name: string; duration: number }> = []
-    let cacheHits = 0
-    let cacheMisses = 0
-    let totalCacheSize = 0
-    const errorsByType: Record<string, number> = {}
-    const recentErrors: Array<{ name: string; timestamp: number; message?: string }> = []
-    let totalDuration = 0
+    const eventsByType: Record<string, number> = {};
+    const scriptExecutions: Array<{ name: string; duration: number }> = [];
+    let cacheHits = 0;
+    let cacheMisses = 0;
+    let totalCacheSize = 0;
+    const errorsByType: Record<string, number> = {};
+    const recentErrors: Array<{ name: string; timestamp: number; message?: string }> = [];
+    let totalDuration = 0;
 
     for (const event of allEvents) {
-      eventsByType[event.type] = (eventsByType[event.type] || 0) + 1
+      eventsByType[event.type] = (eventsByType[event.type] || 0) + 1;
 
       if (event.type === 'timer') {
-        scriptExecutions.push({ name: event.name, duration: event.value })
-        totalDuration += event.value
+        scriptExecutions.push({ name: event.name, duration: event.value });
+        totalDuration += event.value;
       } else if (event.type === 'counter') {
         if (event.name.includes('cache-hit')) {
-          cacheHits += event.value
+          cacheHits += event.value;
         } else if (event.name.includes('cache-miss')) {
-          cacheMisses += event.value
+          cacheMisses += event.value;
         }
       } else if (event.type === 'gauge' && event.name.includes('cache-size')) {
-        totalCacheSize = event.value
+        totalCacheSize = event.value;
       } else if (event.type === 'error') {
-        errorsByType[event.name] = (errorsByType[event.name] || 0) + 1
+        errorsByType[event.name] = (errorsByType[event.name] || 0) + 1;
         recentErrors.push({
           name: event.name,
           timestamp: event.timestamp,
           message: event.metadata?.message as string | undefined,
-        })
+        });
       }
     }
 
     // Sort executions by duration
-    scriptExecutions.sort((a, b) => b.duration - a.duration)
+    scriptExecutions.sort((a, b) => b.duration - a.duration);
 
     // Calculate averages
     const averageDuration =
-      scriptExecutions.length > 0 ? totalDuration / scriptExecutions.length : 0
+      scriptExecutions.length > 0 ? totalDuration / scriptExecutions.length : 0;
 
     // Get slowest and fastest
-    const slowest = scriptExecutions.slice(0, 5)
-    const fastest = scriptExecutions.slice(-5).reverse()
+    const slowest = scriptExecutions.slice(0, 5);
+    const fastest = scriptExecutions.slice(-5).reverse();
 
     // Calculate cache hit rate
-    const totalCacheRequests = cacheHits + cacheMisses
-    const cacheHitRate = totalCacheRequests > 0 ? (cacheHits / totalCacheRequests) * 100 : 0
+    const totalCacheRequests = cacheHits + cacheMisses;
+    const cacheHitRate = totalCacheRequests > 0 ? (cacheHits / totalCacheRequests) * 100 : 0;
 
     // Sort recent errors by timestamp
-    recentErrors.sort((a, b) => b.timestamp - a.timestamp)
+    recentErrors.sort((a, b) => b.timestamp - a.timestamp);
 
     return {
       totalEvents: allEvents.length,
@@ -465,15 +465,15 @@ export class Telemetry {
         duration:
           endDate.getTime() - (startDate?.getTime() || allEvents[0]?.timestamp || Date.now()),
       },
-    }
+    };
   }
 
   /**
    * Clear all metrics.
    */
   clear(): void {
-    this.events = []
-    this.timers.clear()
+    this.events = [];
+    this.timers.clear();
   }
 
   /**
@@ -481,12 +481,12 @@ export class Telemetry {
    */
   async stop(): Promise<void> {
     if (this.flushTimer) {
-      clearInterval(this.flushTimer)
-      this.flushTimer = null
+      clearInterval(this.flushTimer);
+      this.flushTimer = null;
     }
 
     if (this.persistent) {
-      await this.flush()
+      await this.flush();
     }
   }
 }
@@ -495,7 +495,7 @@ export class Telemetry {
 // Singleton Instance
 // =============================================================================
 
-let globalTelemetry: Telemetry | null = null
+let globalTelemetry: Telemetry | null = null;
 
 /**
  * Get the global telemetry instance.
@@ -506,19 +506,19 @@ export function getTelemetry(): Telemetry {
       persistent: true,
       autoFlushInterval: 60_000, // 1 minute
       verbose: false,
-    })
+    });
   }
-  return globalTelemetry
+  return globalTelemetry;
 }
 
 /**
  * Global telemetry instance.
  */
-export const telemetry = getTelemetry()
+export const telemetry = getTelemetry();
 
 /**
  * Create a new telemetry instance.
  */
 export function createTelemetry(options?: TelemetryOptions): Telemetry {
-  return new Telemetry(options)
+  return new Telemetry(options);
 }

@@ -1,8 +1,8 @@
-import { ElCopyable } from '@tailwindplus/elements/react'
-import { clsx } from 'clsx/lite'
-import type { ComponentProps, ReactNode } from 'react'
-import { CheckmarkIcon } from '@/components/revealui/icons/checkmark-icon'
-import { Squares2StackedIcon } from '@/components/revealui/icons/squares-2-stacked-icon'
+import { ElCopyable } from '@tailwindplus/elements/react';
+import { clsx } from 'clsx/lite';
+import type { ComponentProps, ReactNode } from 'react';
+import { CheckmarkIcon } from '@/components/revealui/icons/checkmark-icon';
+import { Squares2StackedIcon } from '@/components/revealui/icons/squares-2-stacked-icon';
 
 export function InstallCommand({
   snippet,
@@ -10,8 +10,8 @@ export function InstallCommand({
   className,
   ...props
 }: {
-  snippet: ReactNode
-  variant?: 'normal' | 'overlay'
+  snippet: ReactNode;
+  variant?: 'normal' | 'overlay';
 } & ComponentProps<'div'>) {
   return (
     <div
@@ -37,5 +37,5 @@ export function InstallCommand({
         <CheckmarkIcon className="not-group-data-copied:hidden" />
       </button>
     </div>
-  )
+  );
 }

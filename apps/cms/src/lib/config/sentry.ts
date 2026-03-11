@@ -9,7 +9,7 @@
  * 3. Create sentry.client.config.ts and sentry.server.config.ts
  */
 
-import type * as Sentry from '@sentry/nextjs'
+import type * as Sentry from '@sentry/nextjs';
 
 export const sentryConfig: Parameters<typeof Sentry.init>[0] = {
   dsn: process.env.NEXT_PUBLIC_SENTRY_DSN,
@@ -43,14 +43,14 @@ export const sentryConfig: Parameters<typeof Sentry.init>[0] = {
     // Don't send events in development
     if (process.env.NODE_ENV !== 'production') {
       // In development, events are logged but not sent to Sentry
-      return null
+      return null;
     }
 
     // Filter out sensitive data
-    const request = event.request
+    const request = event.request;
     if (request) {
       if (request.cookies) {
-        request.cookies = undefined
+        request.cookies = undefined;
       }
 
       // Redact authorization headers
@@ -58,23 +58,23 @@ export const sentryConfig: Parameters<typeof Sentry.init>[0] = {
         request.headers = Object.keys(request.headers).reduce(
           (acc, key) => {
             if (key.toLowerCase() === 'authorization') {
-              acc[key] = '[Redacted]'
+              acc[key] = '[Redacted]';
             } else {
-              const headerValue = request.headers?.[key]
+              const headerValue = request.headers?.[key];
               if (headerValue) {
-                acc[key] = headerValue
+                acc[key] = headerValue;
               }
             }
-            return acc
+            return acc;
           },
           {} as Record<string, string>,
-        )
+        );
       }
     }
 
-    return event
+    return event;
   },
-}
+};
 
 /**
  * Instructions to complete Sentry setup:

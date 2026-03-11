@@ -1,27 +1,27 @@
 // External type imports
-import type { PopulateType, RevealRequest, TypedFallbackLocale } from '../types/index.js'
+import type { PopulateType, RevealRequest, TypedFallbackLocale } from '../types/index.js';
 
 // Request type for population
 interface PopulateRequest {
   revealui?: {
-    collections?: Record<string, { config?: { defaultPopulate?: unknown } }>
-    config?: { collections?: unknown[] }
-  }
+    collections?: Record<string, { config?: { defaultPopulate?: unknown } }>;
+    config?: { collections?: unknown[] };
+  };
   dataLoader?: {
-    load?: (key: string) => Promise<unknown>
-    find?: (options: unknown) => Promise<unknown>
-  }
+    load?: (key: string) => Promise<unknown>;
+    find?: (options: unknown) => Promise<unknown>;
+  };
 }
 
 // Field types for relationship population
 interface PopulateRelationshipField {
-  type: 'relationship' | 'upload' | 'join'
-  name: string
-  relationTo?: string | string[]
-  collection?: string | string[]
-  hasMany?: boolean
-  maxDepth?: number
-  localized?: boolean
+  type: 'relationship' | 'upload' | 'join';
+  name: string;
+  relationTo?: string | string[];
+  collection?: string | string[];
+  hasMany?: boolean;
+  maxDepth?: number;
+  localized?: boolean;
 }
 
 import {
@@ -29,24 +29,24 @@ import {
   fieldHasMaxDepth,
   fieldShouldBeLocalized,
   fieldSupportsMany,
-} from '../fields/config/types.js'
+} from '../fields/config/types.js';
 
 type PopulateArgs = {
-  currentDepth: number
-  data: unknown
-  dataReference: Record<string, unknown>
-  depth: number
-  draft: boolean
-  fallbackLocale: TypedFallbackLocale
-  field: PopulateRelationshipField
-  index?: number
-  key?: string
-  locale: null | string
-  overrideAccess: boolean
-  populateArg?: PopulateType
-  req: PopulateRequest
-  showHiddenFields: boolean
-}
+  currentDepth: number;
+  data: unknown;
+  dataReference: Record<string, unknown>;
+  depth: number;
+  draft: boolean;
+  fallbackLocale: TypedFallbackLocale;
+  field: PopulateRelationshipField;
+  index?: number;
+  key?: string;
+  locale: null | string;
+  overrideAccess: boolean;
+  populateArg?: PopulateType;
+  req: PopulateRequest;
+  showHiddenFields: boolean;
+};
 
 /**
  * Populate a single relationship field
@@ -77,32 +77,32 @@ const populate = async ({
     loadRelatedDocument,
     applyNestedPopulation,
     updateDocumentWithPopulatedValue,
-  } = await import('./populate-helpers.js')
+  } = await import('./populate-helpers.js');
 
   // Step 1: Extract relationship information
-  const { relationName, id, relatedCollection } = extractRelationInfo(field, data, req)
+  const { relationName, id, relatedCollection } = extractRelationInfo(field, data, req);
 
   if (!relatedCollection) {
-    return // No collection to populate from
+    return; // No collection to populate from
   }
 
   // Step 2: Check if we should populate
-  let relationshipValue: unknown
+  let relationshipValue: unknown;
   if (shouldPopulateRelationship(currentDepth, depth) && req.dataLoader?.load) {
     const collectionConfig: {
-      slug?: string
-      fields?: unknown[]
-      defaultPopulate?: unknown
+      slug?: string;
+      fields?: unknown[];
+      defaultPopulate?: unknown;
     } =
       (
         relatedCollection as {
           config?: {
-            slug?: string
-            fields?: unknown[]
-            defaultPopulate?: unknown
-          }
+            slug?: string;
+            fields?: unknown[];
+            defaultPopulate?: unknown;
+          };
         }
-      ).config || relatedCollection
+      ).config || relatedCollection;
 
     // Step 3: Load the related document
     relationshipValue = await loadRelatedDocument({
@@ -118,7 +118,7 @@ const populate = async ({
       populateArg,
       showHiddenFields,
       req,
-    })
+    });
 
     // Step 4: Recursively populate nested relationships
     if (relationshipValue && currentDepth < depth) {
@@ -134,13 +134,13 @@ const populate = async ({
         populateArg,
         showHiddenFields,
         req: req as RevealRequest,
-      })
+      });
     }
   }
 
   // Step 5: Fall back to ID if no value loaded
   if (!relationshipValue) {
-    relationshipValue = id
+    relationshipValue = id;
   }
 
   // Step 6: Update the document with the populated value
@@ -149,22 +149,22 @@ const populate = async ({
     field,
     relationshipValue,
     location: { index, key },
-  })
-}
+  });
+};
 
 type PromiseArgs = {
-  currentDepth: number
-  depth: number
-  draft: boolean
-  fallbackLocale: TypedFallbackLocale
-  field: PopulateRelationshipField
-  locale: null | string
-  overrideAccess: boolean
-  populate?: PopulateType
-  req: PopulateRequest
-  showHiddenFields: boolean
-  siblingDoc: Record<string, unknown>
-}
+  currentDepth: number;
+  depth: number;
+  draft: boolean;
+  fallbackLocale: TypedFallbackLocale;
+  field: PopulateRelationshipField;
+  locale: null | string;
+  overrideAccess: boolean;
+  populate?: PopulateType;
+  req: PopulateRequest;
+  showHiddenFields: boolean;
+  siblingDoc: Record<string, unknown>;
+};
 
 export const relationshipPopulationPromise = async ({
   currentDepth,
@@ -179,16 +179,16 @@ export const relationshipPopulationPromise = async ({
   showHiddenFields,
   siblingDoc,
 }: PromiseArgs): Promise<void> => {
-  const resultingDoc = siblingDoc
-  const fieldForChecks = field as Field
-  const maxDepth = fieldHasMaxDepth(fieldForChecks) ? field.maxDepth : undefined
-  const populateDepth = maxDepth !== undefined && maxDepth < depth ? maxDepth : depth
-  const rowPromises: Promise<void>[] = []
-  const siblingFieldValue = siblingDoc[field.name]
+  const resultingDoc = siblingDoc;
+  const fieldForChecks = field as Field;
+  const maxDepth = fieldHasMaxDepth(fieldForChecks) ? field.maxDepth : undefined;
+  const populateDepth = maxDepth !== undefined && maxDepth < depth ? maxDepth : depth;
+  const rowPromises: Promise<void>[] = [];
+  const siblingFieldValue = siblingDoc[field.name];
   const siblingFieldRecord =
     typeof siblingFieldValue === 'object' && siblingFieldValue !== null
       ? (siblingFieldValue as Record<string, unknown>)
-      : null
+      : null;
 
   if (field.type === 'join' || (fieldSupportsMany(fieldForChecks) && field.hasMany)) {
     if (
@@ -197,9 +197,9 @@ export const relationshipPopulationPromise = async ({
       siblingFieldRecord
     ) {
       Object.keys(siblingFieldRecord).forEach((localeKey) => {
-        const localeValue = siblingFieldRecord[localeKey]
+        const localeValue = siblingFieldRecord[localeKey];
         if (Array.isArray(localeValue)) {
-          const localeValues = localeValue as unknown[]
+          const localeValues = localeValue as unknown[];
           localeValues.forEach((_, index) => {
             const rowPromise = async () => {
               await populate({
@@ -217,24 +217,24 @@ export const relationshipPopulationPromise = async ({
                 populateArg: populateArg || undefined,
                 req,
                 showHiddenFields,
-              })
-            }
-            rowPromises.push(rowPromise())
-          })
+              });
+            };
+            rowPromises.push(rowPromise());
+          });
         }
-      })
+      });
     } else if (
       Array.isArray(siblingFieldValue) ||
       Array.isArray(siblingFieldRecord?.docs) ||
       Array.isArray(siblingDoc[`${field.name}_ids`])
     ) {
-      const docsValue = siblingFieldRecord?.docs
-      const idsValue = siblingDoc[`${field.name}_ids`]
+      const docsValue = siblingFieldRecord?.docs;
+      const idsValue = siblingDoc[`${field.name}_ids`];
       const relationshipArray = Array.isArray(siblingFieldValue)
         ? (siblingFieldValue as unknown[])
         : Array.isArray(docsValue)
           ? (docsValue as unknown[])
-          : (idsValue as unknown[])
+          : (idsValue as unknown[]);
 
       relationshipArray.forEach((relatedDoc, index) => {
         const rowPromise = async () => {
@@ -242,8 +242,8 @@ export const relationshipPopulationPromise = async ({
             const relatedDocRecord =
               typeof relatedDoc === 'object' && relatedDoc !== null
                 ? (relatedDoc as Record<string, unknown>)
-                : null
-            const relatedId = relatedDocRecord?.id
+                : null;
+            const relatedId = relatedDocRecord?.id;
             await populate({
               currentDepth,
               data:
@@ -261,12 +261,12 @@ export const relationshipPopulationPromise = async ({
               populateArg: populateArg || undefined,
               req,
               showHiddenFields,
-            })
+            });
           }
-        }
+        };
 
-        rowPromises.push(rowPromise())
-      })
+        rowPromises.push(rowPromise());
+      });
     }
   } else if (field.localized && locale === 'all' && siblingFieldRecord) {
     Object.keys(siblingFieldRecord).forEach((localeKey) => {
@@ -285,15 +285,15 @@ export const relationshipPopulationPromise = async ({
           populateArg: populateArg || undefined,
           req,
           showHiddenFields,
-        })
-      }
-      rowPromises.push(rowPromise())
-    })
+        });
+      };
+      rowPromises.push(rowPromise());
+    });
 
-    await Promise.all(rowPromises)
+    await Promise.all(rowPromises);
   } else if (siblingFieldValue || siblingDoc[`${field.name}_id`]) {
     // For relationships, the data might be in the FK column
-    const relationshipData = siblingFieldValue || siblingDoc[`${field.name}_id`]
+    const relationshipData = siblingFieldValue || siblingDoc[`${field.name}_id`];
     await populate({
       currentDepth,
       data: relationshipData,
@@ -307,7 +307,7 @@ export const relationshipPopulationPromise = async ({
       populateArg: populateArg || undefined,
       req,
       showHiddenFields,
-    })
+    });
   }
-  await Promise.all(rowPromises)
-}
+  await Promise.all(rowPromises);
+};

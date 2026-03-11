@@ -1,7 +1,7 @@
-import clsx from 'clsx'
-import type React from 'react'
+import clsx from 'clsx';
+import type React from 'react';
 
-type CalloutVariant = 'info' | 'warning' | 'error' | 'success' | 'tip'
+type CalloutVariant = 'info' | 'warning' | 'error' | 'success' | 'tip';
 
 const variantStyles: Record<CalloutVariant, { wrapper: string; icon: string; iconChar: string }> = {
   info: {
@@ -29,7 +29,7 @@ const variantStyles: Record<CalloutVariant, { wrapper: string; icon: string; ico
     icon: 'text-violet-600 dark:text-violet-400',
     iconChar: '★',
   },
-}
+};
 
 export function Callout({
   variant = 'info',
@@ -38,13 +38,13 @@ export function Callout({
   className,
   children,
 }: {
-  variant?: CalloutVariant
-  title?: string
-  icon?: React.ReactNode
-  className?: string
-  children: React.ReactNode
+  variant?: CalloutVariant;
+  title?: string;
+  icon?: React.ReactNode;
+  className?: string;
+  children: React.ReactNode;
 }) {
-  const styles = variantStyles[variant]
+  const styles = variantStyles[variant];
 
   return (
     <div role="note" className={clsx('rounded-xl p-4 ring-1', styles.wrapper, className)}>
@@ -60,5 +60,5 @@ export function Callout({
         </div>
       </div>
     </div>
-  )
+  );
 }

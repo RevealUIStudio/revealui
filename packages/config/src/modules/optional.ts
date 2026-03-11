@@ -2,31 +2,31 @@
  * @revealui/config - Optional Configuration Modules
  */
 
-import type { EnvConfig } from '../schema.js'
+import type { EnvConfig } from '../schema.js';
 
 export interface SupabaseConfig {
-  url?: string
-  anonKey?: string
-  serviceRoleKey?: string
-  databaseUri?: string
+  url?: string;
+  anonKey?: string;
+  serviceRoleKey?: string;
+  databaseUri?: string;
 }
 
 export interface SentryConfig {
-  dsn?: string
-  authToken?: string
-  org?: string
-  project?: string
+  dsn?: string;
+  authToken?: string;
+  org?: string;
+  project?: string;
 }
 
 export interface DevToolsConfig {
-  neonApiKey?: string
-  skipOnInit?: boolean
+  neonApiKey?: string;
+  skipOnInit?: boolean;
 }
 
 export interface OptionalConfig {
-  supabase: SupabaseConfig
-  sentry: SentryConfig
-  devTools: DevToolsConfig
+  supabase: SupabaseConfig;
+  sentry: SentryConfig;
+  devTools: DevToolsConfig;
 }
 
 export function getSupabaseConfig(env: EnvConfig): SupabaseConfig {
@@ -35,7 +35,7 @@ export function getSupabaseConfig(env: EnvConfig): SupabaseConfig {
     anonKey: env.NEXT_PUBLIC_SUPABASE_ANON_KEY || undefined,
     serviceRoleKey: env.SUPABASE_SERVICE_ROLE_KEY || undefined,
     databaseUri: env.SUPABASE_DATABASE_URI || undefined,
-  }
+  };
 }
 
 export function getSentryConfig(env: EnvConfig): SentryConfig {
@@ -44,14 +44,14 @@ export function getSentryConfig(env: EnvConfig): SentryConfig {
     authToken: env.SENTRY_AUTH_TOKEN || undefined,
     org: env.SENTRY_ORG || undefined,
     project: env.SENTRY_PROJECT || undefined,
-  }
+  };
 }
 
 export function getDevToolsConfig(env: EnvConfig): DevToolsConfig {
   return {
     neonApiKey: env.NEON_API_KEY || undefined,
     skipOnInit: env.SKIP_ONINIT === 'true',
-  }
+  };
 }
 
 export function getOptionalConfig(env: EnvConfig): OptionalConfig {
@@ -59,5 +59,5 @@ export function getOptionalConfig(env: EnvConfig): OptionalConfig {
     supabase: getSupabaseConfig(env),
     sentry: getSentryConfig(env),
     devTools: getDevToolsConfig(env),
-  }
+  };
 }

@@ -1,20 +1,20 @@
-import { useEffect, useRef } from 'react'
+import { useEffect, useRef } from 'react';
 
 export function useEscapeKey(onEscape: () => void, enabled = true): void {
-  const callbackRef = useRef(onEscape)
-  callbackRef.current = onEscape
+  const callbackRef = useRef(onEscape);
+  callbackRef.current = onEscape;
 
   useEffect(() => {
-    if (!enabled) return
+    if (!enabled) return;
 
     function handleKeyDown(e: KeyboardEvent) {
       if (e.key === 'Escape') {
-        e.stopPropagation()
-        callbackRef.current()
+        e.stopPropagation();
+        callbackRef.current();
       }
     }
 
-    document.addEventListener('keydown', handleKeyDown)
-    return () => document.removeEventListener('keydown', handleKeyDown)
-  }, [enabled])
+    document.addEventListener('keydown', handleKeyDown);
+    return () => document.removeEventListener('keydown', handleKeyDown);
+  }, [enabled]);
 }

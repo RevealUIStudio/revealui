@@ -3,5 +3,5 @@ export {
   defaultLogger,
   Logger,
   type RevealUILogger,
-} from './logger.js'
-export { createRevealUIInstance } from './RevealUIInstance.js'
+} from './logger.js';
+export { createRevealUIInstance } from './RevealUIInstance.js';

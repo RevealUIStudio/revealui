@@ -10,17 +10,17 @@
  * proxy when imported from server code (API routes), stripping all methods.
  */
 
-export type LogLevel = 'debug' | 'info' | 'warn' | 'error'
+export type LogLevel = 'debug' | 'info' | 'warn' | 'error';
 
 export interface LogContext {
-  [key: string]: unknown
+  [key: string]: unknown;
 }
 
 export interface Logger {
-  debug(message: string, context?: LogContext): void
-  info(message: string, context?: LogContext): void
-  warn(message: string, context?: LogContext): void
-  error(message: string, context?: LogContext): void
+  debug(message: string, context?: LogContext): void;
+  info(message: string, context?: LogContext): void;
+  warn(message: string, context?: LogContext): void;
+  error(message: string, context?: LogContext): void;
 }
 
 /**
@@ -29,36 +29,36 @@ export interface Logger {
  */
 class ClientLogger implements Logger {
   private formatMessage(level: LogLevel, message: string, context?: LogContext): string {
-    const timestamp = new Date().toISOString()
-    const prefix = `[${timestamp}] [RevealUI] [${level.toUpperCase()}]`
+    const timestamp = new Date().toISOString();
+    const prefix = `[${timestamp}] [RevealUI] [${level.toUpperCase()}]`;
 
     if (context && Object.keys(context).length > 0) {
-      return `${prefix} ${message} ${JSON.stringify(context)}`
+      return `${prefix} ${message} ${JSON.stringify(context)}`;
     }
 
-    return `${prefix} ${message}`
+    return `${prefix} ${message}`;
   }
 
   debug(message: string, context?: LogContext): void {
     if (process.env.NODE_ENV !== 'production') {
-      console.debug(this.formatMessage('debug', message, context))
+      console.debug(this.formatMessage('debug', message, context));
     }
   }
 
   info(message: string, context?: LogContext): void {
     if (process.env.NODE_ENV !== 'production') {
-      console.info(this.formatMessage('info', message, context))
+      console.info(this.formatMessage('info', message, context));
     }
   }
 
   warn(message: string, context?: LogContext): void {
     if (process.env.NODE_ENV !== 'production') {
-      console.warn(this.formatMessage('warn', message, context))
+      console.warn(this.formatMessage('warn', message, context));
     }
   }
 
   error(message: string, context?: LogContext): void {
-    console.error(this.formatMessage('error', message, context))
+    console.error(this.formatMessage('error', message, context));
   }
 }
 
@@ -68,10 +68,10 @@ class ClientLogger implements Logger {
  * @returns Logger instance safe for client-side use
  */
 export function createLogger(): Logger {
-  return new ClientLogger()
+  return new ClientLogger();
 }
 
 /**
  * Default client-safe logger instance
  */
-export const logger = createLogger()
+export const logger = createLogger();

@@ -4,53 +4,53 @@
  */
 
 export interface MainInfo {
-  id: number
-  title: string
-  subtitle: string
-  description: string
-  image: string
+  id: number;
+  title: string;
+  subtitle: string;
+  description: string;
+  image: string;
 }
 
 export interface ContentSectionProps {
-  info: MainInfo
-  index: number
+  info: MainInfo;
+  index: number;
 }
 
 export interface Video {
-  url: string
+  url: string;
 }
 
 export interface CardData {
-  name: string
-  image: string
-  label: string
-  cta: string
-  href: string
-  loading?: 'eager' | 'lazy'
+  name: string;
+  image: string;
+  label: string;
+  cta: string;
+  href: string;
+  loading?: 'eager' | 'lazy';
 }
 
 export interface HeroProps {
-  id: number
-  image: string
-  videos: string
-  altText: string
-  href: string
+  id: number;
+  image: string;
+  videos: string;
+  altText: string;
+  href: string;
 }
 
 export interface EventData {
-  id: number
-  title: string
-  name?: string
-  description?: string
-  image?: string
-  alt?: string
+  id: number;
+  title: string;
+  name?: string;
+  description?: string;
+  image?: string;
+  alt?: string;
 }
 
 export interface BannerProps {
-  id: number
-  title?: string
-  description?: string
-  image?: string
-  link?: string
-  alt?: string
+  id: number;
+  title?: string;
+  description?: string;
+  image?: string;
+  link?: string;
+  alt?: string;
 }

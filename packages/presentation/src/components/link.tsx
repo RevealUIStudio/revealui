@@ -10,14 +10,14 @@
  * https://catalyst.tailwindui.com/docs#client-side-router-integration
  */
 
-import type React from 'react'
-import { useDataInteractive } from '../hooks/use-data-interactive.js'
+import type React from 'react';
+import { useDataInteractive } from '../hooks/use-data-interactive.js';
 
 export function Link({
   ref,
   ...props
 }: { href: string; ref?: React.Ref<HTMLAnchorElement> } & React.ComponentPropsWithoutRef<'a'>) {
-  const interactiveProps = useDataInteractive()
+  const interactiveProps = useDataInteractive();
 
-  return <a {...props} {...interactiveProps} ref={ref} />
+  return <a {...props} {...interactiveProps} ref={ref} />;
 }

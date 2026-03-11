@@ -21,7 +21,7 @@
  *   pnpm manage:docs reset
  */
 
-import { execSync } from 'node:child_process'
+import { execSync } from 'node:child_process';
 import {
   existsSync,
   lstatSync,
@@ -30,50 +30,50 @@ import {
   readFileSync,
   renameSync,
   writeFileSync,
-} from 'node:fs'
-import { join, relative } from 'node:path'
-import { ErrorCode } from '../lib/errors.js'
-import { createLogger } from '../lib/index.js'
+} from 'node:fs';
+import { join, relative } from 'node:path';
+import { ErrorCode } from '../lib/errors.js';
+import { createLogger } from '../lib/index.js';
 
-const logger = createLogger({ prefix: 'DocManager' })
+const logger = createLogger({ prefix: 'DocManager' });
 
 /**
  * Run comprehensive documentation validation
  */
 async function validateDocs(): Promise<boolean> {
-  logger.header('Documentation Validation')
-  logger.info('Running comprehensive validation...')
+  logger.header('Documentation Validation');
+  logger.info('Running comprehensive validation...');
 
   try {
     // Check if validator exists
-    const validatorPath = 'scripts/validate/validate-docs-comprehensive.ts'
+    const validatorPath = 'scripts/validate/validate-docs-comprehensive.ts';
     if (!existsSync(validatorPath)) {
-      logger.warning(`Validator not found: ${validatorPath}`)
-      logger.info('Performing basic validation instead...')
-      return await basicValidation()
+      logger.warning(`Validator not found: ${validatorPath}`);
+      logger.info('Performing basic validation instead...');
+      return await basicValidation();
     }
 
     // Run comprehensive validator
     const result = execSync(`tsx ${validatorPath}`, {
       encoding: 'utf8',
       stdio: 'pipe',
-    })
+    });
 
-    logger.info('Validation output:')
-    console.log(result)
+    logger.info('Validation output:');
+    console.log(result);
 
-    logger.success('Documentation validation passed')
-    return true
+    logger.success('Documentation validation passed');
+    return true;
   } catch (error) {
     if (error instanceof Error && 'status' in error && error.status === 0) {
-      logger.success('Documentation validation passed')
-      return true
+      logger.success('Documentation validation passed');
+      return true;
     }
-    logger.error('Documentation validation failed')
+    logger.error('Documentation validation failed');
     if (error instanceof Error && 'stdout' in error) {
-      console.log(error.stdout)
+      console.log(error.stdout);
     }
-    return false
+    return false;
   }
 }
 
@@ -81,7 +81,7 @@ async function validateDocs(): Promise<boolean> {
  * Basic validation when comprehensive validator is not available
  */
 async function basicValidation(): Promise<boolean> {
-  logger.info('Running basic validation checks...')
+  logger.info('Running basic validation checks...');
 
   const checks = [
     {
@@ -100,45 +100,45 @@ async function basicValidation(): Promise<boolean> {
       name: 'No broken symlinks in docs/',
       check: () => !hasBreakSymlinks('docs'),
     },
-  ]
+  ];
 
-  let allPassed = true
+  let allPassed = true;
   for (const { name, check } of checks) {
-    const passed = check()
-    logger.info(`${passed ? '✅' : '❌'} ${name}`)
-    if (!passed) allPassed = false
+    const passed = check();
+    logger.info(`${passed ? '✅' : '❌'} ${name}`);
+    if (!passed) allPassed = false;
   }
 
-  return allPassed
+  return allPassed;
 }
 
 /**
  * Check for broken symlinks in a directory
  */
 function hasBreakSymlinks(dir: string): boolean {
-  if (!existsSync(dir)) return false
+  if (!existsSync(dir)) return false;
 
-  const files = readdirSync(dir, { recursive: true, withFileTypes: true })
+  const files = readdirSync(dir, { recursive: true, withFileTypes: true });
   for (const file of files) {
-    const fullPath = join(file.path, file.name)
+    const fullPath = join(file.path, file.name);
     if (file.isSymbolicLink()) {
       try {
-        lstatSync(fullPath)
+        lstatSync(fullPath);
       } catch {
-        logger.warning(`Broken symlink: ${fullPath}`)
-        return true
+        logger.warning(`Broken symlink: ${fullPath}`);
+        return true;
       }
     }
   }
-  return false
+  return false;
 }
 
 /**
  * Organize documentation into standard folders
  */
 async function organizeDocs(): Promise<void> {
-  logger.header('Documentation Organization')
-  logger.info('Reorganizing docs into standard folders...')
+  logger.header('Documentation Organization');
+  logger.info('Reorganizing docs into standard folders...');
 
   // Define standard folder structure
   const folders = {
@@ -150,88 +150,88 @@ async function organizeDocs(): Promise<void> {
     'docs/architecture': 'Architecture documentation',
     'docs/archive': 'Archived documentation',
     'docs/.drafts': 'Draft documentation (work in progress)',
-  }
+  };
 
   // Create folders if they don't exist
   for (const [folder, description] of Object.entries(folders)) {
     if (!existsSync(folder)) {
-      logger.info(`Creating: ${folder} - ${description}`)
-      mkdirSync(folder, { recursive: true })
+      logger.info(`Creating: ${folder} - ${description}`);
+      mkdirSync(folder, { recursive: true });
     } else {
-      logger.info(`✅ ${folder} exists`)
+      logger.info(`✅ ${folder} exists`);
     }
   }
 
   // Create .gitkeep files in empty directories
   for (const folder of Object.keys(folders)) {
-    const gitkeep = join(folder, '.gitkeep')
+    const gitkeep = join(folder, '.gitkeep');
     if (!existsSync(gitkeep)) {
-      const files = readdirSync(folder)
+      const files = readdirSync(folder);
       if (files.length === 0) {
-        writeFileSync(gitkeep, '# This file keeps the directory in git\n')
-        logger.info(`Created .gitkeep in ${folder}`)
+        writeFileSync(gitkeep, '# This file keeps the directory in git\n');
+        logger.info(`Created .gitkeep in ${folder}`);
       }
     }
   }
 
-  logger.success('Documentation organization complete')
+  logger.success('Documentation organization complete');
 }
 
 /**
  * Archive stale documentation files
  */
 async function archiveDocs(daysOld = 90): Promise<void> {
-  logger.header('Documentation Archival')
-  logger.info(`Archiving files older than ${daysOld} days...`)
+  logger.header('Documentation Archival');
+  logger.info(`Archiving files older than ${daysOld} days...`);
 
-  const archiveDir = 'docs/archive'
+  const archiveDir = 'docs/archive';
   if (!existsSync(archiveDir)) {
-    mkdirSync(archiveDir, { recursive: true })
+    mkdirSync(archiveDir, { recursive: true });
   }
 
-  const docsDir = 'docs'
-  const now = Date.now()
-  const cutoff = now - daysOld * 24 * 60 * 60 * 1000
+  const docsDir = 'docs';
+  const now = Date.now();
+  const cutoff = now - daysOld * 24 * 60 * 60 * 1000;
 
-  let archivedCount = 0
+  let archivedCount = 0;
 
   // Scan docs directory (excluding archive and .drafts)
-  const files = readdirSync(docsDir, { recursive: true, withFileTypes: true })
+  const files = readdirSync(docsDir, { recursive: true, withFileTypes: true });
   for (const file of files) {
-    if (!file.isFile()) continue
+    if (!file.isFile()) continue;
 
-    const fullPath = join(file.path, file.name)
-    const relativePath = relative(docsDir, fullPath)
+    const fullPath = join(file.path, file.name);
+    const relativePath = relative(docsDir, fullPath);
 
     // Skip archive and drafts directories
     if (relativePath.startsWith('archive/') || relativePath.startsWith('.drafts/')) {
-      continue
+      continue;
     }
 
     // Skip .gitkeep files
-    if (file.name === '.gitkeep') continue
+    if (file.name === '.gitkeep') continue;
 
     // Check file age
-    const stats = lstatSync(fullPath)
+    const stats = lstatSync(fullPath);
     if (stats.mtimeMs < cutoff) {
-      const archivePath = join(archiveDir, relativePath)
-      const archiveParent = join(archivePath, '..')
+      const archivePath = join(archiveDir, relativePath);
+      const archiveParent = join(archivePath, '..');
 
       // Create parent directory if needed
       if (!existsSync(archiveParent)) {
-        mkdirSync(archiveParent, { recursive: true })
+        mkdirSync(archiveParent, { recursive: true });
       }
 
-      logger.info(`Archiving: ${relativePath}`)
-      renameSync(fullPath, archivePath)
-      archivedCount++
+      logger.info(`Archiving: ${relativePath}`);
+      renameSync(fullPath, archivePath);
+      archivedCount++;
     }
   }
 
   if (archivedCount === 0) {
-    logger.info('No files to archive')
+    logger.info('No files to archive');
   } else {
-    logger.success(`Archived ${archivedCount} file(s)`)
+    logger.success(`Archived ${archivedCount} file(s)`);
   }
 }
 
@@ -239,17 +239,17 @@ async function archiveDocs(daysOld = 90): Promise<void> {
  * Planning phase: Design documentation structure
  */
 async function planDocs(topic: string): Promise<void> {
-  logger.header('Documentation Planning Phase')
-  logger.info(`Topic: ${topic}`)
+  logger.header('Documentation Planning Phase');
+  logger.info(`Topic: ${topic}`);
 
   // Create drafts directory if it doesn't exist
-  const draftsDir = 'docs/.drafts'
+  const draftsDir = 'docs/.drafts';
   if (!existsSync(draftsDir)) {
-    mkdirSync(draftsDir, { recursive: true })
+    mkdirSync(draftsDir, { recursive: true });
   }
 
   // Create planning document
-  const planFile = join(draftsDir, `${sanitizeFilename(topic)}-plan.md`)
+  const planFile = join(draftsDir, `${sanitizeFilename(topic)}-plan.md`);
 
   const planTemplate = `# Documentation Plan: ${topic}
 
@@ -314,30 +314,30 @@ Who is this documentation for?
 ---
 
 **Next Step**: Fill out this plan, then proceed to Creation phase
-`
+`;
 
-  writeFileSync(planFile, planTemplate)
-  logger.success(`Plan created: ${planFile}`)
-  logger.info('Fill out the plan before proceeding to Creation phase')
-  logger.info(`Edit: ${planFile}`)
+  writeFileSync(planFile, planTemplate);
+  logger.success(`Plan created: ${planFile}`);
+  logger.info('Fill out the plan before proceeding to Creation phase');
+  logger.info(`Edit: ${planFile}`);
 }
 
 /**
  * Creation phase: Write documentation content
  */
 async function createDocs(topic: string): Promise<void> {
-  logger.header('Documentation Creation Phase')
-  logger.info(`Topic: ${topic}`)
+  logger.header('Documentation Creation Phase');
+  logger.info(`Topic: ${topic}`);
 
-  const draftsDir = 'docs/.drafts'
-  const planFile = join(draftsDir, `${sanitizeFilename(topic)}-plan.md`)
-  const draftFile = join(draftsDir, `${sanitizeFilename(topic)}.md`)
+  const draftsDir = 'docs/.drafts';
+  const planFile = join(draftsDir, `${sanitizeFilename(topic)}-plan.md`);
+  const draftFile = join(draftsDir, `${sanitizeFilename(topic)}.md`);
 
   // Check if plan exists
   if (!existsSync(planFile)) {
-    logger.warning(`Plan not found: ${planFile}`)
-    logger.info('Run planning phase first')
-    return
+    logger.warning(`Plan not found: ${planFile}`);
+    logger.info('Run planning phase first');
+    return;
   }
 
   // Create draft document from plan
@@ -393,128 +393,128 @@ External references if any.
 ---
 
 **Next Step**: Fill out this document, then proceed to Implementation phase
-`
+`;
 
   if (!existsSync(draftFile)) {
-    writeFileSync(draftFile, docTemplate)
-    logger.success(`Draft created: ${draftFile}`)
+    writeFileSync(draftFile, docTemplate);
+    logger.success(`Draft created: ${draftFile}`);
   } else {
-    logger.info(`Draft already exists: ${draftFile}`)
+    logger.info(`Draft already exists: ${draftFile}`);
   }
 
-  logger.info('Write the documentation content before proceeding to Implementation phase')
-  logger.info(`Edit: ${draftFile}`)
+  logger.info('Write the documentation content before proceeding to Implementation phase');
+  logger.info(`Edit: ${draftFile}`);
 
   // Run validation on draft
-  logger.info('Running validation on draft...')
-  await validateDocs()
+  logger.info('Running validation on draft...');
+  await validateDocs();
 }
 
 /**
  * Implementation phase: Move docs to final location
  */
 async function implementDocs(topic: string): Promise<void> {
-  logger.header('Documentation Implementation Phase')
-  logger.info(`Topic: ${topic}`)
+  logger.header('Documentation Implementation Phase');
+  logger.info(`Topic: ${topic}`);
 
-  const draftsDir = 'docs/.drafts'
-  const draftFile = join(draftsDir, `${sanitizeFilename(topic)}.md`)
+  const draftsDir = 'docs/.drafts';
+  const draftFile = join(draftsDir, `${sanitizeFilename(topic)}.md`);
 
   // Check if draft exists
   if (!existsSync(draftFile)) {
-    logger.error(`Draft not found: ${draftFile}`)
-    logger.info('Run creation phase first')
-    return
+    logger.error(`Draft not found: ${draftFile}`);
+    logger.info('Run creation phase first');
+    return;
   }
 
   // Determine target location based on content
-  logger.info('Determining target location...')
-  const targetDir = await determineTargetDirectory(draftFile)
-  const targetFile = join(targetDir, `${sanitizeFilename(topic)}.md`)
+  logger.info('Determining target location...');
+  const targetDir = await determineTargetDirectory(draftFile);
+  const targetFile = join(targetDir, `${sanitizeFilename(topic)}.md`);
 
   // Create target directory if needed
   if (!existsSync(targetDir)) {
-    mkdirSync(targetDir, { recursive: true })
+    mkdirSync(targetDir, { recursive: true });
   }
 
   // Move draft to final location
-  logger.info(`Moving draft to: ${targetFile}`)
-  renameSync(draftFile, targetFile)
+  logger.info(`Moving draft to: ${targetFile}`);
+  renameSync(draftFile, targetFile);
 
   // Clean up plan file
-  const planFile = join(draftsDir, `${sanitizeFilename(topic)}-plan.md`)
+  const planFile = join(draftsDir, `${sanitizeFilename(topic)}-plan.md`);
   if (existsSync(planFile)) {
-    const archivePlan = join('docs/archive', `${sanitizeFilename(topic)}-plan.md`)
-    logger.info(`Archiving plan: ${archivePlan}`)
-    renameSync(planFile, archivePlan)
+    const archivePlan = join('docs/archive', `${sanitizeFilename(topic)}-plan.md`);
+    logger.info(`Archiving plan: ${archivePlan}`);
+    renameSync(planFile, archivePlan);
   }
 
-  logger.success(`Documentation implemented: ${targetFile}`)
-  logger.info('Update CHANGELOG.md to document this addition')
+  logger.success(`Documentation implemented: ${targetFile}`);
+  logger.info('Update CHANGELOG.md to document this addition');
 
   // Run validation
-  logger.info('Running final validation...')
-  await validateDocs()
+  logger.info('Running final validation...');
+  await validateDocs();
 }
 
 /**
  * Determine target directory for documentation based on content
  */
 async function determineTargetDirectory(draftFile: string): Promise<string> {
-  const content = readFileSync(draftFile, 'utf8').toLowerCase()
+  const content = readFileSync(draftFile, 'utf8').toLowerCase();
 
   // Simple heuristic based on content keywords
   if (content.includes('api') || content.includes('endpoint')) {
-    return 'docs/api'
+    return 'docs/api';
   }
   if (content.includes('guide') || content.includes('tutorial') || content.includes('how to')) {
-    return 'docs/guides'
+    return 'docs/guides';
   }
   if (content.includes('test') || content.includes('testing')) {
-    return 'docs/testing'
+    return 'docs/testing';
   }
   if (content.includes('deploy') || content.includes('deployment')) {
-    return 'docs/deployment'
+    return 'docs/deployment';
   }
   if (content.includes('architecture') || content.includes('design')) {
-    return 'docs/architecture'
+    return 'docs/architecture';
   }
   if (content.includes('develop') || content.includes('development')) {
-    return 'docs/development'
+    return 'docs/development';
   }
 
   // Default to docs root
-  return 'docs'
+  return 'docs';
 }
 
 /**
  * Reset phase: Cleanup and archive stale docs
  */
 async function resetDocs(): Promise<void> {
-  logger.header('Documentation Reset Phase')
-  logger.info('Cleaning up and archiving stale documentation...')
+  logger.header('Documentation Reset Phase');
+  logger.info('Cleaning up and archiving stale documentation...');
 
   // Archive old docs (>90 days)
-  await archiveDocs(90)
+  await archiveDocs(90);
 
   // Clean up empty .drafts
-  const draftsDir = 'docs/.drafts'
+  const draftsDir = 'docs/.drafts';
   if (existsSync(draftsDir)) {
-    const files = readdirSync(draftsDir).filter((f) => f !== '.gitkeep')
+    const files = readdirSync(draftsDir).filter((f) => f !== '.gitkeep');
     if (files.length === 0) {
-      logger.info('No drafts to clean up')
+      logger.info('No drafts to clean up');
     } else {
-      logger.info(`Found ${files.length} draft(s) in ${draftsDir}`)
-      logger.warning('Review and handle remaining drafts manually')
+      logger.info(`Found ${files.length} draft(s) in ${draftsDir}`);
+      logger.warning('Review and handle remaining drafts manually');
     }
   }
 
   // Run final validation
-  logger.info('Running final validation...')
-  await validateDocs()
+  logger.info('Running final validation...');
+  await validateDocs();
 
-  logger.success('Reset phase complete')
-  logger.info('Update CHANGELOG.md to document archival activities')
+  logger.success('Reset phase complete');
+  logger.info('Update CHANGELOG.md to document archival activities');
 }
 
 /**
@@ -524,7 +524,7 @@ function sanitizeFilename(name: string): string {
   return name
     .toLowerCase()
     .replace(/[^a-z0-9]+/g, '-')
-    .replace(/^-|-$/g, '')
+    .replace(/^-|-$/g, '');
 }
 
 /**
@@ -560,87 +560,87 @@ Workflow:
   2. create <topic>     - Create draft document from plan
   3. implement <topic>  - Move draft to appropriate docs/ subdirectory
   4. reset              - Archive old docs, cleanup
-`)
+`);
 }
 
 /**
  * Main CLI entry point
  */
 async function main() {
-  const args = process.argv.slice(2)
-  const command = args[0]
+  const args = process.argv.slice(2);
+  const command = args[0];
 
   if (!command || command === '--help' || command === '-h') {
-    displayHelp()
-    return
+    displayHelp();
+    return;
   }
 
   try {
     switch (command) {
       case 'validate':
-        await validateDocs()
-        break
+        await validateDocs();
+        break;
 
       case 'organize':
-        await organizeDocs()
-        break
+        await organizeDocs();
+        break;
 
       case 'archive': {
-        const daysIndex = args.indexOf('--days')
-        const days = daysIndex >= 0 ? Number.parseInt(args[daysIndex + 1], 10) : 90
-        await archiveDocs(days)
-        break
+        const daysIndex = args.indexOf('--days');
+        const days = daysIndex >= 0 ? Number.parseInt(args[daysIndex + 1], 10) : 90;
+        await archiveDocs(days);
+        break;
       }
 
       case 'plan': {
-        const topic = args.slice(1).join(' ')
+        const topic = args.slice(1).join(' ');
         if (!topic) {
-          logger.error('Topic required: pnpm manage:docs plan <topic>')
-          process.exit(ErrorCode.EXECUTION_ERROR)
+          logger.error('Topic required: pnpm manage:docs plan <topic>');
+          process.exit(ErrorCode.EXECUTION_ERROR);
         }
-        await planDocs(topic)
-        break
+        await planDocs(topic);
+        break;
       }
 
       case 'create': {
-        const topic = args.slice(1).join(' ')
+        const topic = args.slice(1).join(' ');
         if (!topic) {
-          logger.error('Topic required: pnpm manage:docs create <topic>')
-          process.exit(ErrorCode.EXECUTION_ERROR)
+          logger.error('Topic required: pnpm manage:docs create <topic>');
+          process.exit(ErrorCode.EXECUTION_ERROR);
         }
-        await createDocs(topic)
-        break
+        await createDocs(topic);
+        break;
       }
 
       case 'implement': {
-        const topic = args.slice(1).join(' ')
+        const topic = args.slice(1).join(' ');
         if (!topic) {
-          logger.error('Topic required: pnpm manage:docs implement <topic>')
-          process.exit(ErrorCode.EXECUTION_ERROR)
+          logger.error('Topic required: pnpm manage:docs implement <topic>');
+          process.exit(ErrorCode.EXECUTION_ERROR);
         }
-        await implementDocs(topic)
-        break
+        await implementDocs(topic);
+        break;
       }
 
       case 'reset':
-        await resetDocs()
-        break
+        await resetDocs();
+        break;
 
       default:
-        logger.error(`Unknown command: ${command}`)
-        displayHelp()
-        process.exit(ErrorCode.EXECUTION_ERROR)
+        logger.error(`Unknown command: ${command}`);
+        displayHelp();
+        process.exit(ErrorCode.EXECUTION_ERROR);
     }
   } catch (error) {
-    logger.error('Command failed:', error)
-    process.exit(ErrorCode.EXECUTION_ERROR)
+    logger.error('Command failed:', error);
+    process.exit(ErrorCode.EXECUTION_ERROR);
   }
 }
 
 // Run if called directly
 if (import.meta.url === `file://${process.argv[1]}`) {
   main().catch((error) => {
-    logger.error('Script failed:', error)
-    process.exit(ErrorCode.EXECUTION_ERROR)
-  })
+    logger.error('Script failed:', error);
+    process.exit(ErrorCode.EXECUTION_ERROR);
+  });
 }

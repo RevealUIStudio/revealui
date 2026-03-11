@@ -1,10 +1,10 @@
-'use client'
+'use client';
 
-import React from 'react'
+import React from 'react';
 
 interface ProductOption {
-  label: string
-  value: string
+  label: string;
+  value: string;
 }
 
 const fetchStripeProducts = async (): Promise<ProductOption[]> => {
@@ -13,19 +13,19 @@ const fetchStripeProducts = async (): Promise<ProductOption[]> => {
     headers: {
       'Content-Type': 'application/json',
     },
-  })
+  });
   if (!response.ok) {
-    throw new Error(`HTTP error! status: ${response.status}`)
+    throw new Error(`HTTP error! status: ${response.status}`);
   }
-  const data = await response.json()
+  const data = await response.json();
   if (data?.data) {
     return data.data.reduce(
       (acc: ProductOption[], item: { name: string; id: string }) => {
         acc.push({
           label: item.name || item.id,
           value: item.id,
-        })
-        return acc
+        });
+        return acc;
       },
       [
         {
@@ -33,39 +33,39 @@ const fetchStripeProducts = async (): Promise<ProductOption[]> => {
           value: '',
         },
       ],
-    )
+    );
   }
-  return []
-}
+  return [];
+};
 
 export const ProductSelect = (props: {
-  name: string
-  label: string
-  value?: string
-  onChange?: (value: string) => void
+  name: string;
+  label: string;
+  value?: string;
+  onChange?: (value: string) => void;
 }) => {
-  const { name, label, value, onChange } = props
-  const [options, setOptions] = React.useState<ProductOption[]>([])
-  const [loading, setLoading] = React.useState(true)
+  const { name, label, value, onChange } = props;
+  const [options, setOptions] = React.useState<ProductOption[]>([]);
+  const [loading, setLoading] = React.useState(true);
 
   React.useEffect(() => {
     const initializeOptions = async () => {
       try {
-        const fetchedOptions = await fetchStripeProducts()
-        setOptions(fetchedOptions)
+        const fetchedOptions = await fetchStripeProducts();
+        setOptions(fetchedOptions);
       } catch (_error) {
-        setOptions([])
+        setOptions([]);
       } finally {
-        setLoading(false)
+        setLoading(false);
       }
-    }
+    };
 
-    initializeOptions()
-  }, [])
+    initializeOptions();
+  }, []);
 
   const stripeBaseUrl = `https://dashboard.stripe.com/${
     import.meta.env.VITE_STRIPE_IS_TEST_KEY ? 'test/' : ''
-  }`
+  }`;
 
   return (
     <div>
@@ -127,5 +127,5 @@ export const ProductSelect = (props: {
         </div>
       )}
     </div>
-  )
-}
+  );
+};

@@ -1,20 +1,20 @@
-import type { RevealCollectionConfig } from '@revealui/core'
-import type { Page } from '@revealui/core/types/cms'
-import { authenticated } from '@/lib/access'
-import { authenticatedOrPublished } from '@/lib/access/roles/authenticatedOrPublished'
-import { ArchiveBlock } from '@/lib/blocks/ArchiveBlock/config'
-import { Banner } from '@/lib/blocks/Banner/config'
-import { CallToAction } from '@/lib/blocks/CallToAction/config'
-import { Code } from '@/lib/blocks/Code/config'
-import { Content } from '@/lib/blocks/Content/config'
-import { FormBlock } from '@/lib/blocks/Form/config'
-import { MediaBlock } from '@/lib/blocks/MediaBlock/config'
-import { slugField } from '@/lib/fields/slug/index'
-import { hero } from '@/lib/heros/config'
-import { populatePublishedAt } from '@/lib/hooks/populatePublishedAt'
-import { generatePreviewPath } from '@/lib/utilities/generatePreviewPath'
-import { indexPage } from './hooks/indexPage'
-import { revalidatePage } from './hooks/revalidatePage'
+import type { RevealCollectionConfig } from '@revealui/core';
+import type { Page } from '@revealui/core/types/cms';
+import { authenticated } from '@/lib/access';
+import { authenticatedOrPublished } from '@/lib/access/roles/authenticatedOrPublished';
+import { ArchiveBlock } from '@/lib/blocks/ArchiveBlock/config';
+import { Banner } from '@/lib/blocks/Banner/config';
+import { CallToAction } from '@/lib/blocks/CallToAction/config';
+import { Code } from '@/lib/blocks/Code/config';
+import { Content } from '@/lib/blocks/Content/config';
+import { FormBlock } from '@/lib/blocks/Form/config';
+import { MediaBlock } from '@/lib/blocks/MediaBlock/config';
+import { slugField } from '@/lib/fields/slug/index';
+import { hero } from '@/lib/heros/config';
+import { populatePublishedAt } from '@/lib/hooks/populatePublishedAt';
+import { generatePreviewPath } from '@/lib/utilities/generatePreviewPath';
+import { indexPage } from './hooks/indexPage';
+import { revalidatePage } from './hooks/revalidatePage';
 export const Pages: RevealCollectionConfig<Page> = {
   slug: 'pages',
   access: {
@@ -29,8 +29,8 @@ export const Pages: RevealCollectionConfig<Page> = {
       url: ({ data }: { data: Record<string, unknown> }) => {
         const path = generatePreviewPath({
           path: `/${typeof data?.slug === 'string' ? data.slug : ''}`,
-        })
-        return `${process.env.NEXT_PUBLIC_SERVER_URL}${path}`
+        });
+        return `${process.env.NEXT_PUBLIC_SERVER_URL}${path}`;
       },
     },
     preview: (doc: Record<string, unknown>) =>
@@ -105,4 +105,4 @@ export const Pages: RevealCollectionConfig<Page> = {
     },
     maxPerDoc: 50,
   },
-}
+};

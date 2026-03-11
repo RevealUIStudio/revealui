@@ -7,8 +7,8 @@
  * out prevents crashes from unexpected driver behavior or schema migrations.
  */
 
-import { defaultLogger } from '../instance/logger.js'
-import type { RevealDocument } from '../types/index.js'
+import { defaultLogger } from '../instance/logger.js';
+import type { RevealDocument } from '../types/index.js';
 
 /**
  * Validate that a raw database row is a valid RevealDocument.
@@ -22,20 +22,20 @@ import type { RevealDocument } from '../types/index.js'
  */
 export function safeParseRevealDocument(row: unknown): RevealDocument | null {
   if (row === null || typeof row !== 'object') {
-    defaultLogger.warn('Database row is not an object — skipping', { row })
-    return null
+    defaultLogger.warn('Database row is not an object — skipping', { row });
+    return null;
   }
 
-  const r = row as Record<string, unknown>
+  const r = row as Record<string, unknown>;
 
   if (typeof r.id !== 'string' && typeof r.id !== 'number') {
     defaultLogger.warn('Database row missing required id field — skipping', {
       keys: Object.keys(r),
-    })
-    return null
+    });
+    return null;
   }
 
-  return r as unknown as RevealDocument
+  return r as unknown as RevealDocument;
 }
 
 /**
@@ -45,5 +45,5 @@ export function safeParseRevealDocument(row: unknown): RevealDocument | null {
 export function safeParseRevealDocuments(rows: unknown[]): RevealDocument[] {
   return rows
     .map((row) => safeParseRevealDocument(row))
-    .filter((doc): doc is RevealDocument => doc !== null)
+    .filter((doc): doc is RevealDocument => doc !== null);
 }

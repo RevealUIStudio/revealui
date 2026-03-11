@@ -5,7 +5,7 @@
  * Used by the storage abstraction for distributed rate limiting.
  */
 
-import { integer, pgTable, text, timestamp } from 'drizzle-orm/pg-core'
+import { integer, pgTable, text, timestamp } from 'drizzle-orm/pg-core';
 
 // =============================================================================
 // Rate Limits Table
@@ -24,7 +24,7 @@ export const rateLimits = pgTable('rate_limits', {
   // Timestamps
   createdAt: timestamp('created_at', { withTimezone: true }).defaultNow().notNull(),
   updatedAt: timestamp('updated_at', { withTimezone: true }).defaultNow().notNull(),
-})
+});
 
 // =============================================================================
 // Failed Attempts Table
@@ -46,13 +46,13 @@ export const failedAttempts = pgTable('failed_attempts', {
   // Timestamps
   createdAt: timestamp('created_at', { withTimezone: true }).defaultNow().notNull(),
   updatedAt: timestamp('updated_at', { withTimezone: true }).defaultNow().notNull(),
-})
+});
 
 // =============================================================================
 // Type exports
 // =============================================================================
 
-export type RateLimit = typeof rateLimits.$inferSelect
-export type NewRateLimit = typeof rateLimits.$inferInsert
-export type FailedAttempt = typeof failedAttempts.$inferSelect
-export type NewFailedAttempt = typeof failedAttempts.$inferInsert
+export type RateLimit = typeof rateLimits.$inferSelect;
+export type NewRateLimit = typeof rateLimits.$inferInsert;
+export type FailedAttempt = typeof failedAttempts.$inferSelect;
+export type NewFailedAttempt = typeof failedAttempts.$inferInsert;

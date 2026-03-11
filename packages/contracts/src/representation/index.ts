@@ -12,7 +12,7 @@
  * @revealui/actions and @revealui/ai packages at runtime.
  */
 
-import { z } from 'zod/v4'
+import { z } from 'zod/v4';
 
 // =============================================================================
 // Schema Version
@@ -22,7 +22,7 @@ import { z } from 'zod/v4'
  * Current schema version for the representation layer.
  * Increment when making breaking changes to schemas.
  */
-export const REPRESENTATION_SCHEMA_VERSION = 1
+export const REPRESENTATION_SCHEMA_VERSION = 1;
 
 // =============================================================================
 // Embedding Configuration
@@ -40,15 +40,15 @@ export const EMBEDDING_DIMENSIONS = {
   'cohere-embed-multilingual-v3': 1024,
   'voyage-large-2': 1536,
   custom: 0, // Variable dimension, must be specified
-} as const
+} as const;
 
-export type EmbeddingModel = keyof typeof EMBEDDING_DIMENSIONS
+export type EmbeddingModel = keyof typeof EMBEDDING_DIMENSIONS;
 
 /**
  * Default embedding model and dimension
  */
-export const DEFAULT_EMBEDDING_MODEL: EmbeddingModel = 'openai-text-embedding-3-small'
-export const DEFAULT_EMBEDDING_DIMENSION = EMBEDDING_DIMENSIONS[DEFAULT_EMBEDDING_MODEL]
+export const DEFAULT_EMBEDDING_MODEL: EmbeddingModel = 'openai-text-embedding-3-small';
+export const DEFAULT_EMBEDDING_DIMENSION = EMBEDDING_DIMENSIONS[DEFAULT_EMBEDDING_MODEL];
 
 // =============================================================================
 // Embedding Schema
@@ -73,9 +73,9 @@ export const EmbeddingSchema = z
   })
   .refine((data) => data.vector.length === data.dimension, {
     message: 'Embedding vector length must match specified dimension',
-  })
+  });
 
-export type Embedding = z.infer<typeof EmbeddingSchema>
+export type Embedding = z.infer<typeof EmbeddingSchema>;
 
 /**
  * Creates an embedding with validation
@@ -84,16 +84,16 @@ export function createEmbedding(
   vector: number[],
   model: string = DEFAULT_EMBEDDING_MODEL,
 ): Embedding {
-  const dimension = vector.length
+  const dimension = vector.length;
 
   // Validate against known models if model is known
   if (model in EMBEDDING_DIMENSIONS) {
-    const expectedDimension = EMBEDDING_DIMENSIONS[model as EmbeddingModel]
+    const expectedDimension = EMBEDDING_DIMENSIONS[model as EmbeddingModel];
     // 0 means custom/variable dimension, skip validation
     if (expectedDimension !== 0 && expectedDimension !== dimension) {
       throw new Error(
         `Embedding dimension mismatch: expected ${expectedDimension} for model ${model}, got ${dimension}`,
-      )
+      );
     }
   }
 
@@ -102,7 +102,7 @@ export function createEmbedding(
     vector,
     dimension,
     generatedAt: new Date().toISOString(),
-  }
+  };
 }
 
 // =============================================================================
@@ -133,9 +133,9 @@ export const HumanRepresentationSchema = z.object({
 
   /** Help text for this entity */
   helpText: z.string().optional(),
-})
+});
 
-export type HumanRepresentation = z.infer<typeof HumanRepresentationSchema>
+export type HumanRepresentation = z.infer<typeof HumanRepresentationSchema>;
 
 // =============================================================================
 // Agent Constraint
@@ -166,9 +166,9 @@ export const AgentConstraintSchema = z.object({
 
   /** Human-readable explanation of the constraint */
   message: z.string().optional(),
-})
+});
 
-export type AgentConstraint = z.infer<typeof AgentConstraintSchema>
+export type AgentConstraint = z.infer<typeof AgentConstraintSchema>;
 
 // =============================================================================
 // Agent Action
@@ -212,9 +212,9 @@ export const AgentActionDefinitionSchema = z.object({
 
   /** Whether this action is destructive (defaults to false if not specified) */
   destructive: z.boolean().optional(),
-})
+});
 
-export type AgentActionDefinition = z.infer<typeof AgentActionDefinitionSchema>
+export type AgentActionDefinition = z.infer<typeof AgentActionDefinitionSchema>;
 
 // =============================================================================
 // Agent Relation
@@ -245,9 +245,9 @@ export const AgentRelationSchema = z.object({
 
   /** Additional metadata */
   metadata: z.record(z.string(), z.unknown()).optional(),
-})
+});
 
-export type AgentRelation = z.infer<typeof AgentRelationSchema>
+export type AgentRelation = z.infer<typeof AgentRelationSchema>;
 
 // =============================================================================
 // Agent Representation
@@ -283,9 +283,9 @@ export const AgentRepresentationSchema = z.object({
 
   /** Priority/importance score (0-1) */
   priority: z.number().min(0).max(1).optional(),
-})
+});
 
-export type AgentRepresentation = z.infer<typeof AgentRepresentationSchema>
+export type AgentRepresentation = z.infer<typeof AgentRepresentationSchema>;
 
 // =============================================================================
 // Dual Entity
@@ -312,9 +312,9 @@ export const DualEntitySchema = z.object({
 
   /** ISO timestamp of last update */
   updatedAt: z.string().datetime(),
-})
+});
 
-export type DualEntity = z.infer<typeof DualEntitySchema>
+export type DualEntity = z.infer<typeof DualEntitySchema>;
 
 // =============================================================================
 // Translation Utilities
@@ -324,12 +324,12 @@ export type DualEntity = z.infer<typeof DualEntitySchema>
  * Generates a human representation from structured data
  */
 export function toHumanRepresentation(data: {
-  name?: string
-  title?: string
-  description?: string
-  type?: string
-  icon?: string
-  color?: string
+  name?: string;
+  title?: string;
+  description?: string;
+  type?: string;
+  icon?: string;
+  color?: string;
 }): HumanRepresentation {
   return {
     label: data.name || data.title || 'Untitled',
@@ -337,7 +337,7 @@ export function toHumanRepresentation(data: {
     preview: data.description?.slice(0, 100),
     icon: data.icon,
     color: data.color,
-  }
+  };
 }
 
 /**
@@ -350,27 +350,27 @@ export function toAgentRepresentation(
   return {
     semanticType,
     ...options,
-  }
+  };
 }
 
 /**
  * Creates timestamps for new entities
  */
 export function createTimestamps(): { createdAt: string; updatedAt: string } {
-  const now = new Date().toISOString()
-  return { createdAt: now, updatedAt: now }
+  const now = new Date().toISOString();
+  return { createdAt: now, updatedAt: now };
 }
 
 /**
  * Updates the updatedAt timestamp
  */
 export function updateTimestamp(): { updatedAt: string } {
-  return { updatedAt: new Date().toISOString() }
+  return { updatedAt: new Date().toISOString() };
 }
 
 /**
  * Creates a new version of an entity (for versioned updates)
  */
 export function incrementVersion(currentVersion: number): number {
-  return currentVersion + 1
+  return currentVersion + 1;
 }

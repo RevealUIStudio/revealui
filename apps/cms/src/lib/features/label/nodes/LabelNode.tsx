@@ -1,10 +1,10 @@
-'use client'
+'use client';
 
-import './index.css'
+import './index.css';
 import {
   DecoratorBlockNode,
   type SerializedDecoratorBlockNode,
-} from '@revealui/core/richtext/client'
+} from '@revealui/core/richtext/client';
 import type {
   DOMExportOutput,
   ElementFormatType,
@@ -12,56 +12,56 @@ import type {
   LexicalNode,
   NodeKey,
   Spread,
-} from 'lexical'
-import { $applyNodeReplacement, createCommand } from 'lexical'
-import * as React from 'react'
+} from 'lexical';
+import { $applyNodeReplacement, createCommand } from 'lexical';
+import * as React from 'react';
 
 // Lazy load the LabelComponent
 const LabelComponent = React.lazy(() =>
   import('../components/LabelNodeComponent.js').then((module) => ({
     default: module.default,
   })),
-)
+);
 
 // Define the data type for the LabelNode
 export type LabelNodeData = {
-  url: string
-}
+  url: string;
+};
 
 // Define the serialized format for the LabelNode
 export type SerializedLabelNode = Spread<
   {
-    children?: never // required so that our typed editor state doesn't automatically add children
-    type: 'label'
-    fields: LabelNodeData
+    children?: never; // required so that our typed editor state doesn't automatically add children
+    type: 'label';
+    fields: LabelNodeData;
   },
   SerializedDecoratorBlockNode
->
+>;
 
 // Define commands for inserting the label and opening the label drawer
 export const INSERT_LABEL_COMMAND: LexicalCommand<LabelNodeData> =
-  createCommand('INSERT_LABEL_COMMAND')
+  createCommand('INSERT_LABEL_COMMAND');
 
 export const OPEN_LABEL_DRAWER_COMMAND: LexicalCommand<{
-  data?: LabelNodeData | null
-  nodeKey?: string
-}> = createCommand('OPEN_LABEL_DRAWER_COMMAND')
+  data?: LabelNodeData | null;
+  nodeKey?: string;
+}> = createCommand('OPEN_LABEL_DRAWER_COMMAND');
 
 // Define the LabelNode class
 export class LabelNode extends DecoratorBlockNode {
-  __data: LabelNodeData
+  __data: LabelNodeData;
 
   constructor({
     data,
     format,
     key,
   }: {
-    data: LabelNodeData
-    format?: ElementFormatType
-    key?: NodeKey
+    data: LabelNodeData;
+    format?: ElementFormatType;
+    key?: NodeKey;
   }) {
-    super(format, key)
-    this.__data = data
+    super(format, key);
+    this.__data = data;
   }
 
   static clone(node: LabelNode): LabelNode {
@@ -69,28 +69,28 @@ export class LabelNode extends DecoratorBlockNode {
       data: node.__data,
       format: node.__format,
       key: node.__key,
-    })
+    });
   }
 
   static getType(): string {
-    return 'label'
+    return 'label';
   }
 
   static importJSON(serializedNode: SerializedLabelNode): LabelNode {
     const importedData: LabelNodeData = {
       url: serializedNode.fields.url,
-    }
-    const node = $createLabelNode(importedData)
-    node.setFormat(serializedNode.format)
-    return node
+    };
+    const node = $createLabelNode(importedData);
+    node.setFormat(serializedNode.format);
+    return node;
   }
 
   decorate(): React.ReactElement {
-    return <LabelComponent nodeKey={this.__key} data={this.__data} />
+    return <LabelComponent nodeKey={this.__key} data={this.__data} />;
   }
 
   exportDOM(): DOMExportOutput {
-    return { element: document.createElement('div') }
+    return { element: document.createElement('div') };
   }
 
   exportJSON(): SerializedLabelNode {
@@ -99,20 +99,20 @@ export class LabelNode extends DecoratorBlockNode {
       fields: this.getData(),
       type: 'label',
       version: 2,
-    }
+    };
   }
 
   getData(): LabelNodeData {
-    return this.getLatest().__data
+    return this.getLatest().__data;
   }
 
   setData(data: LabelNodeData): void {
-    const writable = this.getWritable()
-    writable.__data = data
+    const writable = this.getWritable();
+    writable.__data = data;
   }
 
   getTextContent(): string {
-    return '\n'
+    return '\n';
   }
 }
 
@@ -122,11 +122,11 @@ export function $createLabelNode(data: LabelNodeData): LabelNode {
     new LabelNode({
       data,
     }),
-  )
+  );
 }
 
 export function $isLabelNode(node: LexicalNode | null | undefined): node is LabelNode {
-  return node instanceof LabelNode
+  return node instanceof LabelNode;
 }
 
 // // 'use server'

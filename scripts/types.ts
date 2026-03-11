@@ -3,25 +3,25 @@
  */
 
 export interface RevState {
-  active: boolean
-  iteration: number
-  max_iterations: number
-  completion_promise: string | null
-  started_at: string
-  prompt_file: string
-  completion_marker: string
+  active: boolean;
+  iteration: number;
+  max_iterations: number;
+  completion_promise: string | null;
+  started_at: string;
+  prompt_file: string;
+  completion_marker: string;
 }
 
 export interface RevStateFile {
-  frontmatter: RevState
-  prompt: string
+  frontmatter: RevState;
+  prompt: string;
 }
 
 export interface RevStartOptions {
-  prompt: string
-  maxIterations?: number
-  completionPromise?: string
-  brutalHonesty?: boolean // Default: true for cohesion workflows
+  prompt: string;
+  maxIterations?: number;
+  completionPromise?: string;
+  brutalHonesty?: boolean; // Default: true for cohesion workflows
 }
 
 /**
@@ -29,102 +29,102 @@ export interface RevStartOptions {
  */
 
 export interface PatternInstance {
-  file: string
-  line: number
-  code: string
+  file: string;
+  line: number;
+  code: string;
   context?: {
-    before?: string
-    after?: string
-  }
+    before?: string;
+    after?: string;
+  };
 }
 
 export interface PatternAnalysis {
-  pattern: string
-  description: string
-  instances: PatternInstance[]
-  total: number
-  variations: number
-  severity: 'CRITICAL' | 'HIGH' | 'MEDIUM' | 'LOW'
-  impact: string
+  pattern: string;
+  description: string;
+  instances: PatternInstance[];
+  total: number;
+  variations: number;
+  severity: 'CRITICAL' | 'HIGH' | 'MEDIUM' | 'LOW';
+  impact: string;
 }
 
 export interface Metric {
-  name: string
-  value: number
-  files?: string[]
-  percentage?: number
-  description?: string
+  name: string;
+  value: number;
+  files?: string[];
+  percentage?: number;
+  description?: string;
 }
 
 export interface CodeLocation {
-  file: string
-  line: number
-  code: string
+  file: string;
+  line: number;
+  code: string;
   context?: {
-    before?: string[]
-    after?: string[]
-  }
+    before?: string[];
+    after?: string[];
+  };
 }
 
 export interface CohesionIssue {
-  id: string
-  title: string
-  severity: 'CRITICAL' | 'HIGH' | 'MEDIUM' | 'LOW'
-  impact: string
-  description: string
-  evidence: CodeLocation[]
-  pattern?: string
-  count?: number
-  recommendation?: string
+  id: string;
+  title: string;
+  severity: 'CRITICAL' | 'HIGH' | 'MEDIUM' | 'LOW';
+  impact: string;
+  description: string;
+  evidence: CodeLocation[];
+  pattern?: string;
+  count?: number;
+  recommendation?: string;
 }
 
 export interface CohesionAnalysis {
-  timestamp: string
-  issues: CohesionIssue[]
-  metrics: Metric[]
+  timestamp: string;
+  issues: CohesionIssue[];
+  metrics: Metric[];
   summary: {
-    totalIssues: number
-    criticalIssues: number
-    highIssues: number
-    mediumIssues: number
-    lowIssues: number
-    overallGrade: string
-  }
+    totalIssues: number;
+    criticalIssues: number;
+    highIssues: number;
+    mediumIssues: number;
+    lowIssues: number;
+    overallGrade: string;
+  };
 }
 
 export interface FixStrategy {
-  id: string
-  name: string
-  description: string
-  targetIssues: string[] // Issue IDs
+  id: string;
+  name: string;
+  description: string;
+  targetIssues: string[]; // Issue IDs
   safety: {
-    requiresTypeCheck: boolean
-    requiresBuild: boolean
-    requiresTests: boolean
-    rollbackSupported: boolean
-  }
-  apply: (issue: CohesionIssue, dryRun?: boolean) => Promise<FixResult>
+    requiresTypeCheck: boolean;
+    requiresBuild: boolean;
+    requiresTests: boolean;
+    rollbackSupported: boolean;
+  };
+  apply: (issue: CohesionIssue, dryRun?: boolean) => Promise<FixResult>;
 }
 
 export interface FixResult {
-  success: boolean
-  file: string
-  changes: CodeChange[]
-  errors?: string[]
-  warnings?: string[]
+  success: boolean;
+  file: string;
+  changes: CodeChange[];
+  errors?: string[];
+  warnings?: string[];
 }
 
 export interface CodeChange {
-  file: string
-  line: number
-  before: string
-  after: string
+  file: string;
+  line: number;
+  before: string;
+  after: string;
 }
 
 export interface CohesionConfig {
-  targetDirectories: string[]
-  ignorePatterns: string[]
-  fixTypes: string[]
-  dryRun: boolean
-  maxIssues?: number
+  targetDirectories: string[];
+  ignorePatterns: string[];
+  fixTypes: string[];
+  dryRun: boolean;
+  maxIssues?: number;
 }

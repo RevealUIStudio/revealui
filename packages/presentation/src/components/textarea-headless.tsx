@@ -1,15 +1,15 @@
-import clsx from 'clsx'
-import type React from 'react'
-import { useDataInteractive } from '../hooks/use-data-interactive.js'
-import { useFieldControlProps } from '../hooks/use-field-context.js'
+import clsx from 'clsx';
+import type React from 'react';
+import { useDataInteractive } from '../hooks/use-data-interactive.js';
+import { useFieldControlProps } from '../hooks/use-field-context.js';
 
 type TextareaProps = {
-  className?: string
-  resizable?: boolean
-  disabled?: boolean
-  invalid?: boolean
-  ref?: React.Ref<HTMLTextAreaElement>
-} & Omit<React.ComponentPropsWithoutRef<'textarea'>, 'className'>
+  className?: string;
+  resizable?: boolean;
+  disabled?: boolean;
+  invalid?: boolean;
+  ref?: React.Ref<HTMLTextAreaElement>;
+} & Omit<React.ComponentPropsWithoutRef<'textarea'>, 'className'>;
 
 export function Textarea({
   className,
@@ -19,8 +19,8 @@ export function Textarea({
   ref,
   ...props
 }: TextareaProps) {
-  const interactiveProps = useDataInteractive({ disabled })
-  const fieldProps = useFieldControlProps()
+  const interactiveProps = useDataInteractive({ disabled });
+  const fieldProps = useFieldControlProps();
 
   return (
     <span
@@ -67,5 +67,5 @@ export function Textarea({
         ])}
       />
     </span>
-  )
+  );
 }

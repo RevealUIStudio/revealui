@@ -83,4 +83,4 @@ export type {
   // Individual table types
   UsersRow,
   UsersUpdate,
-} from './database.js'
+} from './database.js';

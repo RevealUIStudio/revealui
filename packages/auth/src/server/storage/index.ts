@@ -8,62 +8,62 @@
  * ElectricSQL handles client-side sync, database handles server-side storage.
  */
 
-import config from '@revealui/config'
-import { logger } from '@revealui/core/observability/logger'
-import { DatabaseStorage } from './database.js'
-import { InMemoryStorage } from './in-memory.js'
-import type { Storage } from './interface.js'
+import config from '@revealui/config';
+import { logger } from '@revealui/core/observability/logger';
+import { DatabaseStorage } from './database.js';
+import { InMemoryStorage } from './in-memory.js';
+import type { Storage } from './interface.js';
 
-let globalStorage: Storage | null = null
+let globalStorage: Storage | null = null;
 
 /**
  * Get or create storage instance
  */
 export function getStorage(): Storage {
   if (globalStorage) {
-    return globalStorage
+    return globalStorage;
   }
 
   // Priority: Database > In-Memory
   // Try config first (may throw ConfigValidationError if unrelated env vars are missing),
   // then fall back to process.env so Vercel deployments with a valid DATABASE_URL
   // don't silently degrade to per-instance InMemoryStorage.
-  let dbUrl: string | undefined
+  let dbUrl: string | undefined;
   try {
-    const configUrl = config?.database?.url
+    const configUrl = config?.database?.url;
     if (typeof configUrl === 'string' && configUrl) {
-      dbUrl = configUrl
+      dbUrl = configUrl;
     }
   } catch {
     // Config validation failed — try process.env fallback below
   }
-  dbUrl = dbUrl || process.env.POSTGRES_URL || process.env.DATABASE_URL
+  dbUrl = dbUrl || process.env.POSTGRES_URL || process.env.DATABASE_URL;
 
   if (dbUrl) {
     try {
-      globalStorage = new DatabaseStorage(dbUrl)
-      return globalStorage
+      globalStorage = new DatabaseStorage(dbUrl);
+      return globalStorage;
     } catch (error) {
       if (process.env.NODE_ENV === 'production') {
         throw new Error(
           `Rate limiting requires database storage in production. DatabaseStorage failed: ${error instanceof Error ? error.message : String(error)}`,
-        )
+        );
       }
       logger.warn('Failed to create DatabaseStorage, falling back to InMemoryStorage', {
         error: error instanceof Error ? error.message : String(error),
-      })
+      });
     }
   }
 
   if (process.env.NODE_ENV === 'production') {
     throw new Error(
       'Rate limiting requires DATABASE_URL or POSTGRES_URL in production. In-memory storage is not safe for distributed deployments.',
-    )
+    );
   }
 
   // Fallback to in-memory (development only)
-  globalStorage = new InMemoryStorage()
-  return globalStorage
+  globalStorage = new InMemoryStorage();
+  return globalStorage;
 }
 
 /**
@@ -74,7 +74,7 @@ export function createStorage(): Storage {
   try {
     if (config?.database?.url) {
       try {
-        return new DatabaseStorage()
+        return new DatabaseStorage();
       } catch {
         // Fall through to in-memory
       }
@@ -83,17 +83,17 @@ export function createStorage(): Storage {
     // Config validation failed — fall through to in-memory
   }
 
-  return new InMemoryStorage()
+  return new InMemoryStorage();
 }
 
 /**
  * Reset global storage (for testing)
  */
 export function resetStorage(): void {
-  globalStorage = null
+  globalStorage = null;
 }
 
-export { DatabaseStorage } from './database.js'
+export { DatabaseStorage } from './database.js';
 // Export storage implementations
-export { InMemoryStorage } from './in-memory.js'
-export type { Storage } from './interface.js'
+export { InMemoryStorage } from './in-memory.js';
+export type { Storage } from './interface.js';
