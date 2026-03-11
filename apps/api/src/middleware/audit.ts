@@ -7,8 +7,13 @@
  * Enterprise-only: should only be active when isFeatureEnabled('auditLog') is true.
  */
 
+import { logger } from '@revealui/core/observability/logger'
 import type { AuditEventType, AuditSystem } from '@revealui/core/security'
 import type { MiddlewareHandler } from 'hono'
+
+/** Tracks consecutive audit write failures for observability. */
+let auditWriteFailures = 0
+const FAILURE_LOG_INTERVAL = 10
 
 const METHOD_EVENT_MAP: Record<string, AuditEventType> = {
   GET: 'data.read',
@@ -70,8 +75,14 @@ export const auditMiddleware = (audit: AuditSystem): MiddlewareHandler => {
           requestId,
         },
       })
-      .catch(() => {
-        // Audit logging must never crash the request
+      .catch((err: unknown) => {
+        auditWriteFailures++
+        if (auditWriteFailures % FAILURE_LOG_INTERVAL === 1) {
+          logger.warn('Audit log write failed', {
+            consecutiveFailures: auditWriteFailures,
+            error: err instanceof Error ? err.message : String(err),
+          })
+        }
       })
   }
 }

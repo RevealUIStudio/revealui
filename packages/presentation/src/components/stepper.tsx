@@ -61,8 +61,8 @@ function StepperHorizontal({ steps, className }: { steps: StepperStep[]; classNa
         {steps.map((step, index) => {
           const isLast = index === steps.length - 1
           return (
-            // biome-ignore lint/suspicious/noArrayIndexKey: stepper steps are positionally ordered with no stable ID
             <li
+              // biome-ignore lint/suspicious/noArrayIndexKey: stepper steps are positionally ordered with no stable ID
               key={index}
               aria-current={step.status === 'current' ? 'step' : undefined}
               className={clsx('flex items-center', !isLast && 'flex-1')}
@@ -106,8 +106,8 @@ function StepperVertical({ steps, className }: { steps: StepperStep[]; className
         {steps.map((step, index) => {
           const isLast = index === steps.length - 1
           return (
-            // biome-ignore lint/suspicious/noArrayIndexKey: stepper steps are positionally ordered with no stable ID
             <li
+              // biome-ignore lint/suspicious/noArrayIndexKey: stepper steps are positionally ordered with no stable ID
               key={index}
               aria-current={step.status === 'current' ? 'step' : undefined}
               className="relative flex gap-4"

@@ -193,7 +193,7 @@ export function sanitizeLogData(data: Record<string, unknown>): Record<string, u
   for (const [key, value] of Object.entries(data)) {
     const lowerKey = key.toLowerCase()
 
-    if (sensitiveKeys.some((sensitive) => lowerKey.includes(sensitive))) {
+    if (sensitiveKeys.some((sensitive) => lowerKey.includes(sensitive.toLowerCase()))) {
       sanitized[key] = '[REDACTED]'
     } else if (typeof value === 'object' && value !== null && !Array.isArray(value)) {
       sanitized[key] = sanitizeLogData(value as Record<string, unknown>)

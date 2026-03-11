@@ -235,11 +235,16 @@ export class Logger {
     console.log(JSON.stringify(entry))
   }
 
+  /** Circuit breaker state for remote transport */
+  private remoteFailures = 0
+  private readonly maxRemoteFailures = 5
+
   /**
-   * Output to remote service
+   * Output to remote service (with circuit breaker)
    */
   private async outputRemote(entry: LogEntry): Promise<void> {
     if (!this.config.remoteUrl) return
+    if (this.remoteFailures >= this.maxRemoteFailures) return
 
     try {
       await fetch(this.config.remoteUrl, {
@@ -249,9 +254,9 @@ export class Logger {
         },
         body: JSON.stringify(entry),
       })
-    } catch (error) {
-      // Fallback to console if remote fails
-      console.error('Failed to send log to remote:', error)
+      this.remoteFailures = 0
+    } catch {
+      this.remoteFailures++
       this.outputConsole(entry)
     }
   }
