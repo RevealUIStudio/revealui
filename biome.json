@@ -226,11 +226,11 @@
       "linter": {
         "rules": {
           "suspicious": {
-            "noExplicitAny": "warn",
+            "noExplicitAny": "error",
             "noEmptyBlockStatements": "off"
           },
           "correctness": {
-            "noUnusedVariables": "warn"
+            "noUnusedVariables": "error"
           },
           "style": {
             "useNamingConvention": "off",
