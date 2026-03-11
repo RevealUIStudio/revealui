@@ -1,12 +1,12 @@
-import { useState } from 'react'
-import { useVault } from '../../hooks/use-vault'
-import Button from '../ui/Button'
-import ErrorAlert from '../ui/ErrorAlert'
-import CreateSecretDialog from './CreateSecretDialog'
-import NamespaceFilter from './NamespaceFilter'
-import SearchBar from './SearchBar'
-import SecretDetail from './SecretDetail'
-import SecretList from './SecretList'
+import { useState } from 'react';
+import { useVault } from '../../hooks/use-vault';
+import Button from '../ui/Button';
+import ErrorAlert from '../ui/ErrorAlert';
+import CreateSecretDialog from './CreateSecretDialog';
+import NamespaceFilter from './NamespaceFilter';
+import SearchBar from './SearchBar';
+import SecretDetail from './SecretDetail';
+import SecretList from './SecretList';
 
 export default function VaultPanel() {
   const {
@@ -26,12 +26,12 @@ export default function VaultPanel() {
     deleteSecret,
     setSearchQuery,
     setActiveNamespace,
-  } = useVault()
+  } = useVault();
 
-  const [showCreate, setShowCreate] = useState(false)
+  const [showCreate, setShowCreate] = useState(false);
 
   if (loading) {
-    return <VaultSkeleton />
+    return <VaultSkeleton />;
   }
 
   if (!initialized) {
@@ -61,7 +61,7 @@ export default function VaultPanel() {
           Initialize Vault
         </Button>
       </div>
-    )
+    );
   }
 
   return (
@@ -114,7 +114,7 @@ export default function VaultPanel() {
         <CreateSecretDialog onConfirm={createSecret} onClose={() => setShowCreate(false)} />
       )}
     </div>
-  )
+  );
 }
 
 function VaultSkeleton() {
@@ -142,5 +142,5 @@ function VaultSkeleton() {
         <div className="flex-1" />
       </div>
     </div>
-  )
+  );
 }

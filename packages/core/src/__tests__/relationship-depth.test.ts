@@ -1,16 +1,16 @@
-import { beforeEach, describe, expect, it } from 'vitest'
-import { createRevealUIInstance, flattenResult } from '../revealui.js'
+import { beforeEach, describe, expect, it } from 'vitest';
+import { createRevealUIInstance, flattenResult } from '../revealui.js';
 import type {
   DatabaseAdapter,
   RevealCollectionConfig,
   RevealConfig,
   RevealUIInstance,
-} from '../types/index.js'
+} from '../types/index.js';
 
 // Mock database for testing
 const mockDb: DatabaseAdapter = {
   query: async (query: string, values: unknown[] = []) => {
-    void values
+    void values;
     // Mock responses for posts collection
     if (query.includes('SELECT') && query.includes('posts') && query.includes('WHERE id')) {
       return {
@@ -22,7 +22,7 @@ const mockDb: DatabaseAdapter = {
           },
         ],
         rowCount: 1,
-      }
+      };
     }
     // Mock responses for users collection (for relationship population)
     if (query.includes('SELECT') && query.includes('users') && query.includes('WHERE id')) {
@@ -34,14 +34,14 @@ const mockDb: DatabaseAdapter = {
           },
         ],
         rowCount: 1,
-      }
+      };
     }
-    return { rows: [], rowCount: 0 }
+    return { rows: [], rowCount: 0 };
   },
   init: async () => undefined,
   connect: async () => undefined,
   disconnect: async () => undefined,
-}
+};
 
 // Test configuration
 const testConfig: RevealConfig = {
@@ -66,14 +66,14 @@ const testConfig: RevealConfig = {
     } as RevealCollectionConfig,
   ],
   db: mockDb,
-}
+};
 
 describe('Relationship Depth Support', () => {
-  let revealui: RevealUIInstance
+  let revealui: RevealUIInstance;
 
   beforeEach(async () => {
-    revealui = await createRevealUIInstance(testConfig)
-  })
+    revealui = await createRevealUIInstance(testConfig);
+  });
 
   it('should validate depth parameter range', async () => {
     // Test invalid depth values
@@ -83,7 +83,7 @@ describe('Relationship Depth Support', () => {
         id: 'post-1',
         depth: -1,
       }),
-    ).rejects.toThrow('Depth must be between 0 and 3')
+    ).rejects.toThrow('Depth must be between 0 and 3');
 
     await expect(
       revealui.findByID({
@@ -91,22 +91,22 @@ describe('Relationship Depth Support', () => {
         id: 'post-1',
         depth: 5,
       }),
-    ).rejects.toThrow('Depth must be between 0 and 3')
-  })
+    ).rejects.toThrow('Depth must be between 0 and 3');
+  });
 
   it('should work with depth 0 (no relationships)', async () => {
     const result = await revealui.findByID({
       collection: 'posts',
       id: 'post-1',
       depth: 0,
-    })
+    });
 
-    expect(result).toBeDefined()
-    expect(result?.id).toBe('post-1')
-    expect(result?.title).toBe('Test Post')
+    expect(result).toBeDefined();
+    expect(result?.id).toBe('post-1');
+    expect(result?.title).toBe('Test Post');
     // Should not have populated author relationship
-    expect(result?.author).toBeUndefined()
-  })
+    expect(result?.author).toBeUndefined();
+  });
 
   it('should populate relationships with depth 1', async () => {
     // Create a mock request object with proper context
@@ -116,27 +116,27 @@ describe('Relationship Depth Support', () => {
       locale: 'en',
       fallbackLocale: 'en',
       transactionID: 'test',
-    }
+    };
 
     const result = await revealui.findByID({
       collection: 'posts',
       id: 'post-1',
       depth: 1,
       req: mockReq,
-    })
+    });
 
-    expect(result).toBeDefined()
-    expect(result?.id).toBe('post-1')
-    expect(result?.title).toBe('Test Post')
+    expect(result).toBeDefined();
+    expect(result?.id).toBe('post-1');
+    expect(result?.title).toBe('Test Post');
     // The relationship population uses DataLoader which queries the users collection
     // The afterRead hook should populate the author field
     // Note: This test may need adjustment based on actual DataLoader implementation
     // For now, we verify the document structure is correct
-    expect(result).toHaveProperty('id', 'post-1')
-    expect(result).toHaveProperty('title', 'Test Post')
+    expect(result).toHaveProperty('id', 'post-1');
+    expect(result).toHaveProperty('title', 'Test Post');
     // Author relationship should be populated if DataLoader is working
     // If not populated, it means DataLoader needs proper setup in the test
-  })
+  });
 
   it('should flatten dotted notation results', async () => {
     // Test the flattenResult function directly
@@ -147,9 +147,9 @@ describe('Relationship Depth Support', () => {
       'author.title': 'John Doe',
       'author.id': 'user-1',
       'category.name': 'Tech',
-    }
+    };
 
-    const result = flattenResult(input)
+    const result = flattenResult(input);
 
     expect(result).toEqual({
       id: 'post-1',
@@ -161,6 +161,6 @@ describe('Relationship Depth Support', () => {
       category: {
         name: 'Tech',
       },
-    })
-  })
-})
+    });
+  });
+});

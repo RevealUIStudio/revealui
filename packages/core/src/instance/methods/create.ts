@@ -4,36 +4,36 @@
  * Creates a new document in a collection with hook handling.
  */
 
-import type { RevealRequest as ContractsRevealRequest } from '@revealui/contracts/cms'
-import type { RevealCreateOptions, RevealDocument, RevealUIInstance } from '../../types/index.js'
-import { callHooks } from './hooks.js'
+import type { RevealRequest as ContractsRevealRequest } from '@revealui/contracts/cms';
+import type { RevealCreateOptions, RevealDocument, RevealUIInstance } from '../../types/index.js';
+import { callHooks } from './hooks.js';
 
 export async function create(
   instance: RevealUIInstance,
   ensureDbConnected: () => Promise<void>,
   options: RevealCreateOptions & { collection: string },
 ): Promise<RevealDocument> {
-  await ensureDbConnected()
-  const { collection, req } = options
+  await ensureDbConnected();
+  const { collection, req } = options;
 
   if (!instance.collections[collection]) {
-    throw new Error(`Collection '${collection}' not found`)
+    throw new Error(`Collection '${collection}' not found`);
   }
 
-  const collectionConfig = instance.config.collections?.find((c) => c.slug === collection)
+  const collectionConfig = instance.config.collections?.find((c) => c.slug === collection);
 
   // Enforce collection-level access control
   if (collectionConfig?.access?.create && options.req) {
     const canCreate = await collectionConfig.access.create({
       req: options.req as unknown as ContractsRevealRequest,
       data: options.data,
-    })
+    });
     if (!canCreate) {
-      throw new Error('Access denied: you do not have permission to create in this collection')
+      throw new Error('Access denied: you do not have permission to create in this collection');
     }
   }
 
-  let doc = await instance.collections[collection].create(options)
+  let doc = await instance.collections[collection].create(options);
 
   // Call afterChange hooks
   if (collectionConfig?.hooks?.afterChange && req) {
@@ -49,8 +49,8 @@ export async function create(
         },
       },
       instance,
-    )
+    );
   }
 
-  return doc
+  return doc;
 }

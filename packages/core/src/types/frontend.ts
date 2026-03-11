@@ -11,48 +11,48 @@
  */
 export interface Config {
   // biome-ignore lint/style/useNamingConvention: Matches Next.js layout registration.
-  Layout?: React.ComponentType<unknown>
-  [key: string]: unknown
+  Layout?: React.ComponentType<unknown>;
+  [key: string]: unknown;
 }
 
 /**
  * Page context provided to page components.
  */
 export interface PageContext {
-  url: string
-  urlOriginal: string
-  urlPathname: string
+  url: string;
+  urlOriginal: string;
+  urlPathname: string;
   urlParsed: {
-    pathname: string
-    search: Record<string, string>
-    hash: string
-  }
-  routeParams: Record<string, string>
-  [key: string]: unknown
+    pathname: string;
+    search: Record<string, string>;
+    hash: string;
+  };
+  routeParams: Record<string, string>;
+  [key: string]: unknown;
 }
 
 /**
  * Initial page context data.
  */
 export interface PageContextInit {
-  url: string
-  urlOriginal: string
-  urlPathname: string
+  url: string;
+  urlOriginal: string;
+  urlPathname: string;
   urlParsed: {
-    pathname: string
-    search: Record<string, string>
-    hash: string
-  }
-  routeParams: Record<string, string>
-  [key: string]: unknown
+    pathname: string;
+    search: Record<string, string>;
+    hash: string;
+  };
+  routeParams: Record<string, string>;
+  [key: string]: unknown;
 }
 
 /**
  * Async function called when a page transition starts.
  */
-export type OnPageTransitionStartAsync = () => void | Promise<void>
+export type OnPageTransitionStartAsync = () => void | Promise<void>;
 
 /**
  * Async function called when a page transition ends.
  */
-export type OnPageTransitionEndAsync = () => void | Promise<void>
+export type OnPageTransitionEndAsync = () => void | Promise<void>;

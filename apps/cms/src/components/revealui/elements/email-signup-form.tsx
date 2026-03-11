@@ -1,6 +1,6 @@
-import { clsx } from 'clsx/lite'
-import type { ComponentProps, ReactNode } from 'react'
-import { Button } from './button.js'
+import { clsx } from 'clsx/lite';
+import type { ComponentProps, ReactNode } from 'react';
+import { Button } from './button.js';
 
 export function EmailSignupForm({
   label = 'Email address',
@@ -10,10 +10,10 @@ export function EmailSignupForm({
   className,
   ...props
 }: {
-  label?: string
-  placeholder?: string
-  cta: ReactNode
-  variant?: 'normal' | 'overlay'
+  label?: string;
+  placeholder?: string;
+  cta: ReactNode;
+  variant?: 'normal' | 'overlay';
 } & ComponentProps<'form'>) {
   return (
     <form
@@ -39,5 +39,5 @@ export function EmailSignupForm({
         {cta}
       </Button>
     </form>
-  )
+  );
 }

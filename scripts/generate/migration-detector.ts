@@ -17,79 +17,79 @@
  * Usage: pnpm types:migration-check
  */
 
-import { execSync } from 'node:child_process'
-import { existsSync, readFileSync, writeFileSync } from 'node:fs'
-import { join } from 'node:path'
-import { ErrorCode, ScriptError } from '../lib/errors.js'
+import { execSync } from 'node:child_process';
+import { existsSync, readFileSync, writeFileSync } from 'node:fs';
+import { join } from 'node:path';
+import { ErrorCode, ScriptError } from '../lib/errors.js';
 
-const rootDir = join(import.meta.dirname, '../..')
-const snapshotFile = join(rootDir, '.type-system-snapshot.json')
+const rootDir = join(import.meta.dirname, '../..');
+const snapshotFile = join(rootDir, '.type-system-snapshot.json');
 
 interface TableSnapshot {
-  name: string
+  name: string;
   fields: Array<{
-    name: string
-    type: string
-    required: boolean
-    hasDefault: boolean
-  }>
+    name: string;
+    type: string;
+    required: boolean;
+    hasDefault: boolean;
+  }>;
 }
 
 interface SystemSnapshot {
-  timestamp: string
-  commit: string
-  tables: TableSnapshot[]
+  timestamp: string;
+  commit: string;
+  tables: TableSnapshot[];
 }
 
 interface MigrationIssue {
-  severity: 'breaking' | 'warning' | 'info'
+  severity: 'breaking' | 'warning' | 'info';
   type:
     | 'table-removed'
     | 'field-removed'
     | 'field-type-changed'
     | 'field-now-required'
     | 'table-added'
-    | 'field-added'
-  table: string
-  field?: string
-  details: string
-  migration?: string
+    | 'field-added';
+  table: string;
+  field?: string;
+  details: string;
+  migration?: string;
 }
 
 /**
  * Extract table structure from generated Zod schemas
  */
 function extractTableStructure(): TableSnapshot[] {
-  const zodSchemasPath = join(rootDir, 'packages/contracts/src/generated/zod-schemas.ts')
+  const zodSchemasPath = join(rootDir, 'packages/contracts/src/generated/zod-schemas.ts');
 
   if (!existsSync(zodSchemasPath)) {
     throw new ScriptError(
       'Generated schemas not found. Run: pnpm generate:all',
       ErrorCode.NOT_FOUND,
-    )
+    );
   }
 
-  const content = readFileSync(zodSchemasPath, 'utf-8')
-  const tables: TableSnapshot[] = []
+  const content = readFileSync(zodSchemasPath, 'utf-8');
+  const tables: TableSnapshot[] = [];
 
   // This is a simplified extraction - in production, you'd want to use TS compiler API
-  const tableMatches = content.match(/export const (\w+)SelectSchema = createSelectSchema/g) || []
+  const tableMatches = content.match(/export const (\w+)SelectSchema = createSelectSchema/g) || [];
 
   for (const match of tableMatches) {
     const tableName = match
       .replace('export const ', '')
       .replace('SelectSchema = createSelectSchema', '')
-      .trim()
+      .trim();
 
     // For now, we'll track basic info
     // In production, parse the actual schema structure
     tables.push({
       name: tableName,
       fields: [], // Would need deeper parsing
-    })
+    });
   }
 
-  return tables
+  return tables;
 }
 
 /**
@@ -100,9 +100,9 @@ function getCurrentCommit(): string {
     return execSync('git rev-parse --short HEAD', {
       cwd: rootDir,
       encoding: 'utf-8',
-    }).trim()
+    }).trim();
   } catch {
-    return 'unknown'
+    return 'unknown';
   }
 }
 
@@ -110,20 +110,20 @@ function getCurrentCommit(): string {
  * Create snapshot of current schema
  */
 function createSnapshot(): SystemSnapshot {
-  console.log('📸 Creating schema snapshot...\n')
+  console.log('📸 Creating schema snapshot...\n');
 
-  const tables = extractTableStructure()
+  const tables = extractTableStructure();
 
   const snapshot: SystemSnapshot = {
     timestamp: new Date().toISOString(),
     commit: getCurrentCommit(),
     tables,
-  }
+  };
 
-  writeFileSync(snapshotFile, JSON.stringify(snapshot, null, 2))
-  console.log(`✅ Snapshot saved: ${tables.length} tables`)
+  writeFileSync(snapshotFile, JSON.stringify(snapshot, null, 2));
+  console.log(`✅ Snapshot saved: ${tables.length} tables`);
 
-  return snapshot
+  return snapshot;
 }
 
 /**
@@ -131,21 +131,21 @@ function createSnapshot(): SystemSnapshot {
  */
 function loadSnapshot(): SystemSnapshot | null {
   if (!existsSync(snapshotFile)) {
-    return null
+    return null;
   }
 
-  const content = readFileSync(snapshotFile, 'utf-8')
-  return JSON.parse(content)
+  const content = readFileSync(snapshotFile, 'utf-8');
+  return JSON.parse(content);
 }
 
 /**
  * Compare snapshots and detect migrations
  */
 function detectMigrations(previous: SystemSnapshot, current: SystemSnapshot): MigrationIssue[] {
-  const issues: MigrationIssue[] = []
+  const issues: MigrationIssue[] = [];
 
-  const prevTableMap = new Map(previous.tables.map((t) => [t.name, t]))
-  const currTableMap = new Map(current.tables.map((t) => [t.name, t]))
+  const prevTableMap = new Map(previous.tables.map((t) => [t.name, t]));
+  const currTableMap = new Map(current.tables.map((t) => [t.name, t]));
 
   // Check for removed tables
   for (const [tableName, _table] of prevTableMap) {
@@ -162,7 +162,7 @@ DROP TABLE IF EXISTS ${tableName};
 -- Or if you want to preserve data:
 -- ALTER TABLE ${tableName} RENAME TO ${tableName}_archived;
         `.trim(),
-      })
+      });
     }
   }
 
@@ -174,17 +174,17 @@ DROP TABLE IF EXISTS ${tableName};
         type: 'table-added',
         table: tableName,
         details: `New table '${tableName}' was added`,
-      })
+      });
     }
   }
 
   // For existing tables, check field changes
   for (const [tableName, prevTable] of prevTableMap) {
-    const currTable = currTableMap.get(tableName)
-    if (!currTable) continue
+    const currTable = currTableMap.get(tableName);
+    if (!currTable) continue;
 
-    const prevFields = new Map(prevTable.fields.map((f) => [f.name, f]))
-    const currFields = new Map(currTable.fields.map((f) => [f.name, f]))
+    const prevFields = new Map(prevTable.fields.map((f) => [f.name, f]));
+    const currFields = new Map(currTable.fields.map((f) => [f.name, f]));
 
     // Check for removed fields
     for (const [fieldName, _field] of prevFields) {
@@ -199,14 +199,14 @@ DROP TABLE IF EXISTS ${tableName};
 -- Migration needed: Remove field
 ALTER TABLE ${tableName} DROP COLUMN ${fieldName};
           `.trim(),
-        })
+        });
       }
     }
 
     // Check for added fields
     for (const [fieldName, field] of currFields) {
       if (!prevFields.has(fieldName)) {
-        const severity = field.required && !field.hasDefault ? 'breaking' : 'warning'
+        const severity = field.required && !field.hasDefault ? 'breaking' : 'warning';
         issues.push({
           severity,
           type: 'field-added',
@@ -228,14 +228,14 @@ UPDATE ${tableName} SET ${fieldName} = 'default_value' WHERE ${fieldName} IS NUL
 ALTER TABLE ${tableName} ALTER COLUMN ${fieldName} SET NOT NULL;
           `.trim()
               : undefined,
-        })
+        });
       }
     }
 
     // Check for type changes
     for (const [fieldName, prevField] of prevFields) {
-      const currField = currFields.get(fieldName)
-      if (!currField) continue
+      const currField = currFields.get(fieldName);
+      if (!currField) continue;
 
       if (prevField.type !== currField.type) {
         issues.push({
@@ -248,7 +248,7 @@ ALTER TABLE ${tableName} ALTER COLUMN ${fieldName} SET NOT NULL;
 -- Migration needed: Change field type
 ALTER TABLE ${tableName} ALTER COLUMN ${fieldName} TYPE ${currField.type} USING ${fieldName}::${currField.type};
           `.trim(),
-        })
+        });
       }
 
       // Check if field became required
@@ -265,12 +265,12 @@ ALTER TABLE ${tableName} ALTER COLUMN ${fieldName} TYPE ${currField.type} USING 
 UPDATE ${tableName} SET ${fieldName} = 'default_value' WHERE ${fieldName} IS NULL;
 ALTER TABLE ${tableName} ALTER COLUMN ${fieldName} SET NOT NULL;
           `.trim(),
-        })
+        });
       }
     }
   }
 
-  return issues
+  return issues;
 }
 
 /**
@@ -281,114 +281,114 @@ function displayReport(
   previous: SystemSnapshot,
   current: SystemSnapshot,
 ): void {
-  console.log('\n🔍 Schema Migration Analysis\n')
-  console.log('='.repeat(70))
+  console.log('\n🔍 Schema Migration Analysis\n');
+  console.log('='.repeat(70));
 
-  console.log(`\nComparing:`)
-  console.log(`  Previous: ${previous.commit} (${new Date(previous.timestamp).toLocaleString()})`)
-  console.log(`  Current:  ${current.commit} (${new Date(current.timestamp).toLocaleString()})`)
+  console.log(`\nComparing:`);
+  console.log(`  Previous: ${previous.commit} (${new Date(previous.timestamp).toLocaleString()})`);
+  console.log(`  Current:  ${current.commit} (${new Date(current.timestamp).toLocaleString()})`);
 
   if (issues.length === 0) {
-    console.log('\n✅ No breaking changes detected!\n')
-    return
+    console.log('\n✅ No breaking changes detected!\n');
+    return;
   }
 
-  const breaking = issues.filter((i) => i.severity === 'breaking')
-  const warnings = issues.filter((i) => i.severity === 'warning')
-  const info = issues.filter((i) => i.severity === 'info')
+  const breaking = issues.filter((i) => i.severity === 'breaking');
+  const warnings = issues.filter((i) => i.severity === 'warning');
+  const info = issues.filter((i) => i.severity === 'info');
 
-  console.log(`\nFound ${issues.length} changes:`)
-  console.log(`  Breaking: ${breaking.length}`)
-  console.log(`  Warnings: ${warnings.length}`)
-  console.log(`  Info:     ${info.length}`)
+  console.log(`\nFound ${issues.length} changes:`);
+  console.log(`  Breaking: ${breaking.length}`);
+  console.log(`  Warnings: ${warnings.length}`);
+  console.log(`  Info:     ${info.length}`);
 
   if (breaking.length > 0) {
-    console.log('\n❌ Breaking Changes:\n')
+    console.log('\n❌ Breaking Changes:\n');
     for (const issue of breaking) {
-      console.log(`  ${issue.table}${issue.field ? `.${issue.field}` : ''}`)
-      console.log(`    ${issue.details}`)
+      console.log(`  ${issue.table}${issue.field ? `.${issue.field}` : ''}`);
+      console.log(`    ${issue.details}`);
       if (issue.migration) {
-        console.log(`\n    Migration SQL:`)
+        console.log(`\n    Migration SQL:`);
         for (const line of issue.migration.split('\n')) {
-          console.log(`    ${line}`)
+          console.log(`    ${line}`);
         }
       }
-      console.log('')
+      console.log('');
     }
   }
 
   if (warnings.length > 0) {
-    console.log('\n⚠️  Warnings:\n')
+    console.log('\n⚠️  Warnings:\n');
     for (const issue of warnings) {
-      console.log(`  ${issue.table}${issue.field ? `.${issue.field}` : ''}`)
-      console.log(`    ${issue.details}`)
-      console.log('')
+      console.log(`  ${issue.table}${issue.field ? `.${issue.field}` : ''}`);
+      console.log(`    ${issue.details}`);
+      console.log('');
     }
   }
 
   if (info.length > 0) {
-    console.log('\nℹ️  Info:\n')
+    console.log('\nℹ️  Info:\n');
     for (const issue of info) {
-      console.log(`  ${issue.table}${issue.field ? `.${issue.field}` : ''}`)
-      console.log(`    ${issue.details}`)
-      console.log('')
+      console.log(`  ${issue.table}${issue.field ? `.${issue.field}` : ''}`);
+      console.log(`    ${issue.details}`);
+      console.log('');
     }
   }
 
-  console.log('='.repeat(70))
+  console.log('='.repeat(70));
 
   if (breaking.length > 0) {
-    console.log('\n⚠️  IMPORTANT: Breaking changes detected!')
-    console.log('Review migration SQL above before deploying.\n')
+    console.log('\n⚠️  IMPORTANT: Breaking changes detected!');
+    console.log('Review migration SQL above before deploying.\n');
   }
 }
 
 // Main execution
-const command = process.argv[2] || 'check'
+const command = process.argv[2] || 'check';
 
 if (command === 'snapshot' || command === 'save') {
-  createSnapshot()
+  createSnapshot();
 } else if (command === 'check' || command === 'compare') {
-  const previous = loadSnapshot()
+  const previous = loadSnapshot();
 
   if (!previous) {
-    console.log('ℹ️  No previous snapshot found.')
-    console.log('Creating initial snapshot...\n')
-    createSnapshot()
-    console.log('\nRun this command again after making schema changes to detect migrations.')
+    console.log('ℹ️  No previous snapshot found.');
+    console.log('Creating initial snapshot...\n');
+    createSnapshot();
+    console.log('\nRun this command again after making schema changes to detect migrations.');
   } else {
     // Generate current types and create new snapshot
-    console.log('🔄 Generating current types...\n')
-    execSync('pnpm generate:all', { cwd: rootDir, stdio: 'inherit' })
+    console.log('🔄 Generating current types...\n');
+    execSync('pnpm generate:all', { cwd: rootDir, stdio: 'inherit' });
 
     const current = {
       timestamp: new Date().toISOString(),
       commit: getCurrentCommit(),
       tables: extractTableStructure(),
-    }
+    };
 
-    const issues = detectMigrations(previous, current)
-    displayReport(issues, previous, current)
+    const issues = detectMigrations(previous, current);
+    displayReport(issues, previous, current);
 
     // Prompt to update snapshot
-    console.log('\nTo update the snapshot after reviewing:')
-    console.log('  pnpm types:migration-check snapshot')
+    console.log('\nTo update the snapshot after reviewing:');
+    console.log('  pnpm types:migration-check snapshot');
   }
 } else if (command === 'diff') {
-  const previous = loadSnapshot()
+  const previous = loadSnapshot();
   if (!previous) {
-    console.log('❌ No previous snapshot found. Run: pnpm types:migration-check snapshot')
-    process.exit(ErrorCode.MISSING_CONFIG)
+    console.log('❌ No previous snapshot found. Run: pnpm types:migration-check snapshot');
+    process.exit(ErrorCode.MISSING_CONFIG);
   }
 
-  console.log('Previous snapshot:')
-  console.log(`  Commit: ${previous.commit}`)
-  console.log(`  Date:   ${new Date(previous.timestamp).toLocaleString()}`)
-  console.log(`  Tables: ${previous.tables.length}`)
+  console.log('Previous snapshot:');
+  console.log(`  Commit: ${previous.commit}`);
+  console.log(`  Date:   ${new Date(previous.timestamp).toLocaleString()}`);
+  console.log(`  Tables: ${previous.tables.length}`);
 } else {
-  console.log('Schema Migration Detector\n')
-  console.log('Usage:')
-  console.log('  pnpm types:migration-check           - Check for migrations')
-  console.log('  pnpm types:migration-check snapshot  - Create/update snapshot')
-  console.log('  pnpm types:migration-check diff      - Show snapshot info')
+  console.log('Schema Migration Detector\n');
+  console.log('Usage:');
+  console.log('  pnpm types:migration-check           - Check for migrations');
+  console.log('  pnpm types:migration-check snapshot  - Create/update snapshot');
+  console.log('  pnpm types:migration-check diff      - Show snapshot info');
 }

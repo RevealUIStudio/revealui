@@ -4,9 +4,9 @@
  * Tests for the system health monitoring panel
  */
 
-import { render, screen, waitFor } from '@testing-library/react'
-import { beforeEach, describe, expect, it, vi } from 'vitest'
-import { type HealthData, SystemHealthPanel } from '../../lib/components/SystemHealthPanel'
+import { render, screen, waitFor } from '@testing-library/react';
+import { beforeEach, describe, expect, it, vi } from 'vitest';
+import { type HealthData, SystemHealthPanel } from '../../lib/components/SystemHealthPanel';
 
 describe('SystemHealthPanel', () => {
   const mockHealthData = {
@@ -29,49 +29,49 @@ describe('SystemHealthPanel', () => {
       },
     },
     timestamp: Date.now(),
-  }
+  };
 
   beforeEach(() => {
-    vi.clearAllMocks()
-  })
+    vi.clearAllMocks();
+  });
 
   describe('Rendering', () => {
     it('should render without crashing', () => {
-      render(<SystemHealthPanel data={mockHealthData} />)
+      render(<SystemHealthPanel data={mockHealthData} />);
 
-      expect(screen.getByText(/system health/i)).toBeInTheDocument()
-    })
+      expect(screen.getByText(/system health/i)).toBeInTheDocument();
+    });
 
     it('should display overall status', () => {
-      render(<SystemHealthPanel data={mockHealthData} />)
+      render(<SystemHealthPanel data={mockHealthData} />);
 
-      expect(screen.getByText(/healthy/i)).toBeInTheDocument()
-    })
+      expect(screen.getByText(/healthy/i)).toBeInTheDocument();
+    });
 
     it('should render all health checks', () => {
-      render(<SystemHealthPanel data={mockHealthData} />)
+      render(<SystemHealthPanel data={mockHealthData} />);
 
-      expect(screen.getByText(/database/i)).toBeInTheDocument()
-      expect(screen.getByText(/cache/i)).toBeInTheDocument()
-      expect(screen.getByText(/storage/i)).toBeInTheDocument()
-    })
+      expect(screen.getByText(/database/i)).toBeInTheDocument();
+      expect(screen.getByText(/cache/i)).toBeInTheDocument();
+      expect(screen.getByText(/storage/i)).toBeInTheDocument();
+    });
 
     it('should display latency for each check', () => {
-      render(<SystemHealthPanel data={mockHealthData} />)
+      render(<SystemHealthPanel data={mockHealthData} />);
 
-      expect(screen.getByText(/\(15\s+ms\)/i)).toBeInTheDocument()
-      expect(screen.getByText(/\(5\s+ms\)/i)).toBeInTheDocument()
-      expect(screen.getByText(/\(20\s+ms\)/i)).toBeInTheDocument()
-    })
-  })
+      expect(screen.getByText(/\(15\s+ms\)/i)).toBeInTheDocument();
+      expect(screen.getByText(/\(5\s+ms\)/i)).toBeInTheDocument();
+      expect(screen.getByText(/\(20\s+ms\)/i)).toBeInTheDocument();
+    });
+  });
 
   describe('Status Display', () => {
     it('should show healthy status with green indicator', () => {
-      render(<SystemHealthPanel data={mockHealthData} />)
+      render(<SystemHealthPanel data={mockHealthData} />);
 
-      const healthyIndicators = screen.getAllByTestId('status-healthy')
-      expect(healthyIndicators.length).toBeGreaterThan(0)
-    })
+      const healthyIndicators = screen.getAllByTestId('status-healthy');
+      expect(healthyIndicators.length).toBeGreaterThan(0);
+    });
 
     it('should show warning status with yellow indicator', () => {
       const warningData = {
@@ -85,12 +85,12 @@ describe('SystemHealthPanel', () => {
             latency: 150,
           },
         },
-      }
+      };
 
-      render(<SystemHealthPanel data={warningData} />)
+      render(<SystemHealthPanel data={warningData} />);
 
-      expect(screen.getByTestId('status-warning')).toBeInTheDocument()
-    })
+      expect(screen.getByTestId('status-warning')).toBeInTheDocument();
+    });
 
     it('should show critical status with red indicator', () => {
       const criticalData = {
@@ -104,224 +104,224 @@ describe('SystemHealthPanel', () => {
             message: 'Database is down',
           },
         },
-      }
+      };
 
-      render(<SystemHealthPanel data={criticalData} />)
+      render(<SystemHealthPanel data={criticalData} />);
 
-      expect(screen.getByTestId('status-critical')).toBeInTheDocument()
-    })
+      expect(screen.getByTestId('status-critical')).toBeInTheDocument();
+    });
 
     it('should display status messages', async () => {
-      render(<SystemHealthPanel data={mockHealthData} />)
+      render(<SystemHealthPanel data={mockHealthData} />);
 
       // Status messages are shown in expanded view
-      const databaseCheck = screen.getByTestId('database-check-name')
-      await databaseCheck.click()
+      const databaseCheck = screen.getByTestId('database-check-name');
+      await databaseCheck.click();
 
-      expect(screen.getByText(/database is responding normally/i)).toBeInTheDocument()
-    })
-  })
+      expect(screen.getByText(/database is responding normally/i)).toBeInTheDocument();
+    });
+  });
 
   describe('Loading State', () => {
     it('should show loading indicator when loading', () => {
-      render(<SystemHealthPanel loading={true} />)
+      render(<SystemHealthPanel loading={true} />);
 
-      expect(screen.getByRole('status', { name: /loading/i })).toBeInTheDocument()
-    })
+      expect(screen.getByRole('status', { name: /loading/i })).toBeInTheDocument();
+    });
 
     it('should not display data when loading', () => {
-      render(<SystemHealthPanel data={mockHealthData} loading={true} />)
+      render(<SystemHealthPanel data={mockHealthData} loading={true} />);
 
-      expect(screen.queryByText(/database/i)).not.toBeInTheDocument()
-    })
+      expect(screen.queryByText(/database/i)).not.toBeInTheDocument();
+    });
 
     it('should show skeleton UI when loading', () => {
-      const { container } = render(<SystemHealthPanel loading={true} />)
+      const { container } = render(<SystemHealthPanel loading={true} />);
 
-      const skeletons = container.querySelectorAll('[data-skeleton="true"]')
-      expect(skeletons.length).toBeGreaterThan(0)
-    })
-  })
+      const skeletons = container.querySelectorAll('[data-skeleton="true"]');
+      expect(skeletons.length).toBeGreaterThan(0);
+    });
+  });
 
   describe('Error State', () => {
     it('should display error message', () => {
-      render(<SystemHealthPanel error="Failed to load health data" />)
+      render(<SystemHealthPanel error="Failed to load health data" />);
 
-      expect(screen.getByText(/failed to load/i)).toBeInTheDocument()
-    })
+      expect(screen.getByText(/failed to load/i)).toBeInTheDocument();
+    });
 
     it('should show retry button on error', () => {
-      render(<SystemHealthPanel error="Error" />)
+      render(<SystemHealthPanel error="Error" />);
 
-      expect(screen.getByRole('button', { name: /retry/i })).toBeInTheDocument()
-    })
+      expect(screen.getByRole('button', { name: /retry/i })).toBeInTheDocument();
+    });
 
     it('should call onRetry when retry clicked', async () => {
-      const onRetry = vi.fn()
+      const onRetry = vi.fn();
 
-      render(<SystemHealthPanel error="Error" onRetry={onRetry} />)
+      render(<SystemHealthPanel error="Error" onRetry={onRetry} />);
 
-      const retryButton = screen.getByRole('button', { name: /retry/i })
-      await retryButton.click()
+      const retryButton = screen.getByRole('button', { name: /retry/i });
+      await retryButton.click();
 
-      expect(onRetry).toHaveBeenCalledOnce()
-    })
-  })
+      expect(onRetry).toHaveBeenCalledOnce();
+    });
+  });
 
   describe('Auto-Refresh', () => {
     it('should refresh data at interval', async () => {
-      vi.useFakeTimers()
-      const onRefresh = vi.fn()
+      vi.useFakeTimers();
+      const onRefresh = vi.fn();
 
       render(
         <SystemHealthPanel data={mockHealthData} onRefresh={onRefresh} refreshInterval={5000} />,
-      )
+      );
 
       // Fast-forward 5 seconds
-      await vi.advanceTimersByTimeAsync(5000)
+      await vi.advanceTimersByTimeAsync(5000);
 
-      expect(onRefresh).toHaveBeenCalled()
+      expect(onRefresh).toHaveBeenCalled();
 
-      vi.useRealTimers()
-    })
+      vi.useRealTimers();
+    });
 
     it('should not refresh when refreshInterval is 0', async () => {
-      vi.useFakeTimers()
-      const onRefresh = vi.fn()
+      vi.useFakeTimers();
+      const onRefresh = vi.fn();
 
-      render(<SystemHealthPanel data={mockHealthData} onRefresh={onRefresh} refreshInterval={0} />)
+      render(<SystemHealthPanel data={mockHealthData} onRefresh={onRefresh} refreshInterval={0} />);
 
-      vi.advanceTimersByTime(10000)
+      vi.advanceTimersByTime(10000);
 
-      expect(onRefresh).not.toHaveBeenCalled()
+      expect(onRefresh).not.toHaveBeenCalled();
 
-      vi.useRealTimers()
-    })
+      vi.useRealTimers();
+    });
 
     it('should stop refreshing when unmounted', () => {
-      vi.useFakeTimers()
-      const onRefresh = vi.fn()
+      vi.useFakeTimers();
+      const onRefresh = vi.fn();
 
       const { unmount } = render(
         <SystemHealthPanel data={mockHealthData} onRefresh={onRefresh} refreshInterval={1000} />,
-      )
+      );
 
-      unmount()
+      unmount();
 
-      vi.advanceTimersByTime(5000)
+      vi.advanceTimersByTime(5000);
 
-      expect(onRefresh).not.toHaveBeenCalled()
+      expect(onRefresh).not.toHaveBeenCalled();
 
-      vi.useRealTimers()
-    })
-  })
+      vi.useRealTimers();
+    });
+  });
 
   describe('Timestamp Display', () => {
     it('should show last updated timestamp', () => {
-      render(<SystemHealthPanel data={mockHealthData} />)
+      render(<SystemHealthPanel data={mockHealthData} />);
 
-      expect(screen.getByText(/last updated/i)).toBeInTheDocument()
-    })
+      expect(screen.getByText(/last updated/i)).toBeInTheDocument();
+    });
 
     it('should format timestamp as relative time', () => {
-      const pastTime = Date.now() - 60000 // 1 minute ago
+      const pastTime = Date.now() - 60000; // 1 minute ago
 
-      render(<SystemHealthPanel data={{ ...mockHealthData, timestamp: pastTime }} />)
+      render(<SystemHealthPanel data={{ ...mockHealthData, timestamp: pastTime }} />);
 
-      expect(screen.getByText(/1 minute ago|a minute ago/i)).toBeInTheDocument()
-    })
+      expect(screen.getByText(/1 minute ago|a minute ago/i)).toBeInTheDocument();
+    });
 
     it('should update timestamp on refresh', async () => {
-      const { rerender } = render(<SystemHealthPanel data={mockHealthData} />)
+      const { rerender } = render(<SystemHealthPanel data={mockHealthData} />);
 
       const newData = {
         ...mockHealthData,
         timestamp: Date.now(), // Current time (should show as seconds ago)
-      }
+      };
 
-      rerender(<SystemHealthPanel data={newData} />)
+      rerender(<SystemHealthPanel data={newData} />);
 
       await waitFor(() => {
         // Should show as "Xs ago" where X is a small number
-        expect(screen.getByText(/\d+s ago/i)).toBeInTheDocument()
-      })
-    })
-  })
+        expect(screen.getByText(/\d+s ago/i)).toBeInTheDocument();
+      });
+    });
+  });
 
   describe('Detailed View', () => {
     it('should expand to show details when clicked', async () => {
-      render(<SystemHealthPanel data={mockHealthData} />)
+      render(<SystemHealthPanel data={mockHealthData} />);
 
-      const databaseCheck = screen.getByTestId('database-check-name')
-      await databaseCheck.click()
+      const databaseCheck = screen.getByTestId('database-check-name');
+      await databaseCheck.click();
 
-      expect(screen.getByText(/database is responding normally/i)).toBeVisible()
-    })
+      expect(screen.getByText(/database is responding normally/i)).toBeVisible();
+    });
 
     it('should collapse details when clicked again', async () => {
-      render(<SystemHealthPanel data={mockHealthData} />)
+      render(<SystemHealthPanel data={mockHealthData} />);
 
-      const databaseCheck = screen.getByTestId('database-check-name')
+      const databaseCheck = screen.getByTestId('database-check-name');
 
       // Expand
-      await databaseCheck.click()
-      expect(screen.getByText(/database is responding normally/i)).toBeVisible()
+      await databaseCheck.click();
+      expect(screen.getByText(/database is responding normally/i)).toBeVisible();
 
       // Collapse
-      await databaseCheck.click()
-      expect(screen.queryByText(/database is responding normally/i)).not.toBeInTheDocument()
-    })
+      await databaseCheck.click();
+      expect(screen.queryByText(/database is responding normally/i)).not.toBeInTheDocument();
+    });
 
     it('should show technical details in expanded view', async () => {
-      render(<SystemHealthPanel data={mockHealthData} />)
+      render(<SystemHealthPanel data={mockHealthData} />);
 
-      const databaseCheck = screen.getByTestId('database-check-name')
-      await databaseCheck.click()
+      const databaseCheck = screen.getByTestId('database-check-name');
+      await databaseCheck.click();
 
       // Check for the "Status:" label which only appears in expanded view
-      expect(screen.getByText(/status:/i)).toBeInTheDocument()
-      expect(screen.getByText(/latency:/i)).toBeInTheDocument()
-    })
-  })
+      expect(screen.getByText(/status:/i)).toBeInTheDocument();
+      expect(screen.getByText(/latency:/i)).toBeInTheDocument();
+    });
+  });
 
   describe('Accessibility', () => {
     it('should have proper heading hierarchy', () => {
-      render(<SystemHealthPanel data={mockHealthData} />)
+      render(<SystemHealthPanel data={mockHealthData} />);
 
-      const heading = screen.getByRole('heading', { level: 2 })
-      expect(heading).toHaveTextContent(/system health/i)
-    })
+      const heading = screen.getByRole('heading', { level: 2 });
+      expect(heading).toHaveTextContent(/system health/i);
+    });
 
     it('should have aria-labels for status indicators', () => {
-      render(<SystemHealthPanel data={mockHealthData} />)
+      render(<SystemHealthPanel data={mockHealthData} />);
 
-      const statusIndicators = screen.getAllByLabelText(/status/i)
-      expect(statusIndicators.length).toBeGreaterThan(0)
-    })
+      const statusIndicators = screen.getAllByLabelText(/status/i);
+      expect(statusIndicators.length).toBeGreaterThan(0);
+    });
 
     it('should announce status changes to screen readers', () => {
-      const { rerender } = render(<SystemHealthPanel data={mockHealthData} />)
+      const { rerender } = render(<SystemHealthPanel data={mockHealthData} />);
 
       const criticalData = {
         ...mockHealthData,
         status: 'critical' as const,
-      }
+      };
 
-      rerender(<SystemHealthPanel data={criticalData} />)
+      rerender(<SystemHealthPanel data={criticalData} />);
 
-      const liveRegion = screen.getByRole('status')
-      expect(liveRegion).toBeInTheDocument()
-    })
+      const liveRegion = screen.getByRole('status');
+      expect(liveRegion).toBeInTheDocument();
+    });
 
     it('should be keyboard navigable', () => {
-      render(<SystemHealthPanel data={mockHealthData} />)
+      render(<SystemHealthPanel data={mockHealthData} />);
 
-      const interactiveElements = screen.getAllByRole('button')
+      const interactiveElements = screen.getAllByRole('button');
       interactiveElements.forEach((element) => {
-        expect(element).not.toHaveAttribute('tabindex', '-1')
-      })
-    })
-  })
+        expect(element).not.toHaveAttribute('tabindex', '-1');
+      });
+    });
+  });
 
   describe('Edge Cases', () => {
     it('should handle empty checks object', () => {
@@ -329,12 +329,12 @@ describe('SystemHealthPanel', () => {
         status: 'healthy' as const,
         checks: {},
         timestamp: Date.now(),
-      }
+      };
 
-      render(<SystemHealthPanel data={emptyData} />)
+      render(<SystemHealthPanel data={emptyData} />);
 
-      expect(screen.getByText(/no health checks/i)).toBeInTheDocument()
-    })
+      expect(screen.getByText(/no health checks/i)).toBeInTheDocument();
+    });
 
     it('should handle missing latency data', () => {
       const dataWithoutLatency = {
@@ -345,12 +345,12 @@ describe('SystemHealthPanel', () => {
             message: 'OK',
           },
         },
-      }
+      };
 
-      render(<SystemHealthPanel data={dataWithoutLatency as unknown as HealthData} />)
+      render(<SystemHealthPanel data={dataWithoutLatency as unknown as HealthData} />);
 
-      expect(screen.queryByText(/ms/i)).not.toBeInTheDocument()
-    })
+      expect(screen.queryByText(/ms/i)).not.toBeInTheDocument();
+    });
 
     it('should handle very high latency values', () => {
       const highLatencyData = {
@@ -362,22 +362,22 @@ describe('SystemHealthPanel', () => {
             message: 'Slow response',
           },
         },
-      }
+      };
 
-      render(<SystemHealthPanel data={highLatencyData} />)
+      render(<SystemHealthPanel data={highLatencyData} />);
 
-      expect(screen.getByText(/5000|5,000/)).toBeInTheDocument()
-    })
+      expect(screen.getByText(/5000|5,000/)).toBeInTheDocument();
+    });
 
     it('should handle missing status', () => {
       const noStatusData = {
         checks: mockHealthData.checks,
         timestamp: Date.now(),
-      }
+      };
 
-      render(<SystemHealthPanel data={noStatusData as unknown as HealthData} />)
+      render(<SystemHealthPanel data={noStatusData as unknown as HealthData} />);
 
-      expect(screen.getByText(/unknown/i)).toBeInTheDocument()
-    })
-  })
-})
+      expect(screen.getByText(/unknown/i)).toBeInTheDocument();
+    });
+  });
+});

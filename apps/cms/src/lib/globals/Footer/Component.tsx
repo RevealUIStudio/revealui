@@ -1,31 +1,31 @@
-import Link from 'next/link'
-import { CMSLink } from '@/lib/components/Link/index'
-import { ThemeSelector } from '@/lib/providers/Theme/ThemeSelector/index'
-import { getCachedGlobal } from '@/lib/utilities/getGlobals'
+import Link from 'next/link';
+import { CMSLink } from '@/lib/components/Link/index';
+import { ThemeSelector } from '@/lib/providers/Theme/ThemeSelector/index';
+import { getCachedGlobal } from '@/lib/utilities/getGlobals';
 
 // Define the NavItem type with constrained type property
 export interface NavItem {
   link: {
-    type?: 'custom' | 'reference' | null // Constrain type to specific values
-    url?: string | null // Optional URL for custom links
+    type?: 'custom' | 'reference' | null; // Constrain type to specific values
+    url?: string | null; // Optional URL for custom links
     reference?: {
-      relationTo: 'pages' | 'posts' // Relation type
-      value: string | number // Reference value (ID or slug)
-    } | null // Reference link
-  }
+      relationTo: 'pages' | 'posts'; // Relation type
+      value: string | number; // Reference value (ID or slug)
+    } | null; // Reference link
+  };
 }
 
 // Define the FooterType interface
 export interface FooterType {
-  navItems: NavItem[] // Array of navigation items
+  navItems: NavItem[]; // Array of navigation items
 }
 
 // Define the Footer component
 export async function Footer() {
   // Ensure "footer" is a valid key in Config["globals"]
-  const footer = (await getCachedGlobal('footer')()) as FooterType | null
+  const footer = (await getCachedGlobal('footer')()) as FooterType | null;
 
-  const navItems = footer?.navItems || []
+  const navItems = footer?.navItems || [];
 
   return (
     <footer className="border-t border-border bg-black dark:bg-card text-white">
@@ -50,13 +50,13 @@ export async function Footer() {
                 (link.reference
                   ? `${link.reference.relationTo}:${link.reference.value}`
                   : undefined) ??
-                'unknown'
+                'unknown';
 
-              return <CMSLink className="text-white" key={key} {...link} />
+              return <CMSLink className="text-white" key={key} {...link} />;
             })}
           </nav>
         </div>
       </div>
     </footer>
-  )
+  );
 }

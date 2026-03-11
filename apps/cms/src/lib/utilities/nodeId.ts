@@ -6,11 +6,11 @@
  * to maintain proper CRDT semantics.
  */
 
-import { randomUUID } from 'node:crypto'
-import { cookies } from 'next/headers'
+import { randomUUID } from 'node:crypto';
+import { cookies } from 'next/headers';
 
-const NODE_ID_COOKIE_NAME = 'revealui-node-id'
-const NODE_ID_HEADER_NAME = 'x-revealui-node-id'
+const NODE_ID_COOKIE_NAME = 'revealui-node-id';
+const NODE_ID_HEADER_NAME = 'x-revealui-node-id';
 
 /**
  * Gets the node ID from the request.
@@ -26,31 +26,31 @@ const NODE_ID_HEADER_NAME = 'x-revealui-node-id'
 export async function getNodeId(request?: Request): Promise<string> {
   // Try to get from header first (for API clients)
   if (request) {
-    const headerNodeId = request.headers.get(NODE_ID_HEADER_NAME)
+    const headerNodeId = request.headers.get(NODE_ID_HEADER_NAME);
     if (headerNodeId) {
-      return headerNodeId
+      return headerNodeId;
     }
   }
 
   // Try to get from cookie (for browser clients)
-  const cookieStore = await cookies()
-  const cookieNodeId = cookieStore.get(NODE_ID_COOKIE_NAME)?.value
+  const cookieStore = await cookies();
+  const cookieNodeId = cookieStore.get(NODE_ID_COOKIE_NAME)?.value;
 
   if (cookieNodeId) {
-    return cookieNodeId
+    return cookieNodeId;
   }
 
   // Generate new node ID and set cookie
-  const newNodeId = randomUUID()
+  const newNodeId = randomUUID();
   cookieStore.set(NODE_ID_COOKIE_NAME, newNodeId, {
     httpOnly: true,
     secure: process.env.NODE_ENV === 'production',
     sameSite: 'lax',
     maxAge: 60 * 60 * 24 * 365, // 1 year
     path: '/',
-  })
+  });
 
-  return newNodeId
+  return newNodeId;
 }
 
 /**
@@ -62,20 +62,20 @@ export async function getNodeId(request?: Request): Promise<string> {
  * @returns Node ID string (UUID)
  * @throws Error if sessionId is invalid or database operation fails
  */
-type Database = Awaited<ReturnType<typeof import('@revealui/db/client').getClient>>
+type Database = Awaited<ReturnType<typeof import('@revealui/db/client').getClient>>;
 
 export async function getNodeIdFromSession(sessionId: string, db?: Database): Promise<string> {
   if (!sessionId || typeof sessionId !== 'string' || sessionId.trim().length === 0) {
-    throw new Error('Invalid sessionId: must be a non-empty string')
+    throw new Error('Invalid sessionId: must be a non-empty string');
   }
 
-  const { getClient } = await import('@revealui/db/client')
-  const nodeIdModule = await import('@revealui/ai/memory/services')
+  const { getClient } = await import('@revealui/db/client');
+  const nodeIdModule = await import('@revealui/ai/memory/services');
 
-  const database = db || getClient()
-  const service = new nodeIdModule.NodeIdService(database)
+  const database = db || getClient();
+  const service = new nodeIdModule.NodeIdService(database);
 
-  return service.getNodeId('session', sessionId)
+  return service.getNodeId('session', sessionId);
 }
 
 /**
@@ -89,14 +89,14 @@ export async function getNodeIdFromSession(sessionId: string, db?: Database): Pr
  */
 export async function getNodeIdFromUser(userId: string, db?: Database): Promise<string> {
   if (!userId || typeof userId !== 'string' || userId.trim().length === 0) {
-    throw new Error('Invalid userId: must be a non-empty string')
+    throw new Error('Invalid userId: must be a non-empty string');
   }
 
-  const { getClient } = await import('@revealui/db/client')
-  const nodeIdModule = await import('@revealui/ai/memory/services')
+  const { getClient } = await import('@revealui/db/client');
+  const nodeIdModule = await import('@revealui/ai/memory/services');
 
-  const database = db || getClient()
-  const service = new nodeIdModule.NodeIdService(database)
+  const database = db || getClient();
+  const service = new nodeIdModule.NodeIdService(database);
 
-  return service.getNodeId('user', userId)
+  return service.getNodeId('user', userId);
 }

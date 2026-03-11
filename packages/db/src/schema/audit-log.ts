@@ -6,7 +6,7 @@
  * ever be performed on this table.
  */
 
-import { index, jsonb, pgTable, text, timestamp } from 'drizzle-orm/pg-core'
+import { index, jsonb, pgTable, text, timestamp } from 'drizzle-orm/pg-core';
 
 // =============================================================================
 // Audit Log Table
@@ -48,10 +48,10 @@ export const auditLog = pgTable(
     index('audit_log_timestamp_idx').on(table.timestamp),
     index('audit_log_severity_idx').on(table.severity),
   ],
-)
+);
 
 /** Row type for select queries */
-export type AuditLogRow = typeof auditLog.$inferSelect
+export type AuditLogRow = typeof auditLog.$inferSelect;
 
 /** Insert type for new records */
-export type AuditLogInsert = typeof auditLog.$inferInsert
+export type AuditLogInsert = typeof auditLog.$inferInsert;

@@ -1,8 +1,8 @@
-import type * as React from 'react'
-import { Primitive } from '.' // Adjust import according to your structure
+import type * as React from 'react';
+import { Primitive } from '.'; // Adjust import according to your structure
 
-type LabelElement = HTMLLabelElement
-type LabelProps = React.ComponentPropsWithoutRef<'label'>
+type LabelElement = HTMLLabelElement;
+type LabelProps = React.ComponentPropsWithoutRef<'label'>;
 
 function Label({ ref, ...props }: LabelProps & { ref?: React.Ref<LabelElement> }) {
   return (
@@ -11,15 +11,15 @@ function Label({ ref, ...props }: LabelProps & { ref?: React.Ref<LabelElement> }
       {...props}
       ref={ref}
       onMouseDown={(event) => {
-        const target = event.target as HTMLElement
-        if (target.closest('button, input, select, textarea')) return
+        const target = event.target as HTMLElement;
+        if (target.closest('button, input, select, textarea')) return;
 
-        props.onMouseDown?.(event)
-        if (!event.defaultPrevented && event.detail > 1) event.preventDefault()
+        props.onMouseDown?.(event);
+        if (!event.defaultPrevented && event.detail > 1) event.preventDefault();
       }}
     />
-  )
+  );
 }
 
-export { Label }
-export type { LabelProps }
+export { Label };
+export type { LabelProps };

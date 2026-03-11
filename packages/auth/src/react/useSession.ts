@@ -5,11 +5,11 @@
  * Inspired by Better Auth and TanStack Start patterns.
  */
 
-'use client'
+'use client';
 
-import { useCallback, useEffect, useRef, useState } from 'react'
-import { z } from 'zod/v4'
-import type { AuthSession } from '../types.js'
+import { useCallback, useEffect, useRef, useState } from 'react';
+import { z } from 'zod/v4';
+import type { AuthSession } from '../types.js';
 
 // Validation schema for session response - uses passthrough to allow all User properties
 const AuthSessionSchema = z.object({
@@ -26,13 +26,13 @@ const AuthSessionSchema = z.object({
       name: z.string().nullable().optional(),
     })
     .passthrough(), // Allow all other User properties
-})
+});
 
 export interface UseSessionResult {
-  data: AuthSession | null
-  isLoading: boolean
-  error: Error | null
-  refetch: () => Promise<void>
+  data: AuthSession | null;
+  isLoading: boolean;
+  error: Error | null;
+  refetch: () => Promise<void>;
 }
 
 /**
@@ -53,64 +53,64 @@ export interface UseSessionResult {
  * ```
  */
 export function useSession(): UseSessionResult {
-  const [data, setData] = useState<AuthSession | null>(null)
-  const [isLoading, setIsLoading] = useState(true)
-  const [error, setError] = useState<Error | null>(null)
-  const abortControllerRef = useRef<AbortController | null>(null)
+  const [data, setData] = useState<AuthSession | null>(null);
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState<Error | null>(null);
+  const abortControllerRef = useRef<AbortController | null>(null);
 
   const fetchSession = useCallback(async () => {
     // Abort any in-flight request
-    abortControllerRef.current?.abort()
-    const controller = new AbortController()
-    abortControllerRef.current = controller
+    abortControllerRef.current?.abort();
+    const controller = new AbortController();
+    abortControllerRef.current = controller;
 
     try {
-      setIsLoading(true)
-      setError(null)
+      setIsLoading(true);
+      setError(null);
 
       const response = await fetch('/api/auth/session', {
         credentials: 'include',
         signal: controller.signal,
-      })
+      });
 
       if (!response.ok) {
         if (response.status === 401) {
-          setData(null)
-          return
+          setData(null);
+          return;
         }
-        throw new Error(`Failed to fetch session: ${response.statusText}`)
+        throw new Error(`Failed to fetch session: ${response.statusText}`);
       }
 
-      const json: unknown = await response.json()
-      const validated = AuthSessionSchema.parse(json)
+      const json: unknown = await response.json();
+      const validated = AuthSessionSchema.parse(json);
       // Type assertion through unknown is safe because Zod validation ensures the shape is correct
       // The API returns serialized data (Dates as strings), so we cast to expected type
-      setData(validated as unknown as AuthSession)
+      setData(validated as unknown as AuthSession);
     } catch (err) {
       if (err instanceof DOMException && err.name === 'AbortError') {
-        return
+        return;
       }
-      const error = err instanceof Error ? err : new Error(String(err))
-      setError(error)
-      setData(null)
+      const error = err instanceof Error ? err : new Error(String(err));
+      setError(error);
+      setData(null);
     } finally {
-      setIsLoading(false)
+      setIsLoading(false);
     }
-  }, [])
+  }, []);
 
   useEffect(() => {
-    void fetchSession()
+    void fetchSession();
 
     return () => {
       // Clean up: abort in-flight request on unmount
-      abortControllerRef.current?.abort()
-    }
-  }, [fetchSession])
+      abortControllerRef.current?.abort();
+    };
+  }, [fetchSession]);
 
   return {
     data,
     isLoading,
     error,
     refetch: fetchSession,
-  }
+  };
 }

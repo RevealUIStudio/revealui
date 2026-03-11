@@ -6,14 +6,14 @@
  */
 
 // Layout Components - Server Safe
-export { AuthLayout } from './components/auth-layout.js'
+export { AuthLayout } from './components/auth-layout.js';
 
 // CVA Components - Server Safe
 export {
   Button as ButtonCVA,
   type ButtonProps,
   buttonVariants,
-} from './components/Button.js'
+} from './components/Button.js';
 
 export {
   Card,
@@ -22,13 +22,13 @@ export {
   CardFooter,
   CardHeader,
   CardTitle,
-} from './components/Card.js'
+} from './components/Card.js';
 
-export { FormLabel, type FormLabelProps } from './components/FormLabel.js'
+export { FormLabel, type FormLabelProps } from './components/FormLabel.js';
 
-export { Input as InputCVA, type InputProps } from './components/Input.js'
+export { Input as InputCVA, type InputProps } from './components/Input.js';
 
-export { Label, type LabelProps } from './components/Label.js'
+export { Label, type LabelProps } from './components/Label.js';
 
 export {
   Pagination,
@@ -43,25 +43,25 @@ export {
   PaginationPrevious,
   type PaginationPreviousProps,
   type PaginationProps,
-} from './components/Pagination.js'
+} from './components/Pagination.js';
 
 export {
   PricingTable,
   type PricingTableProps,
   type PricingTier,
-} from './components/pricing-table.js'
+} from './components/pricing-table.js';
 
-export { Textarea as TextareaCVA, type TextareaProps } from './components/Textarea.js'
+export { Textarea as TextareaCVA, type TextareaProps } from './components/Textarea.js';
 
 // Note: Checkbox and Select CVA versions use state and are in client.ts
 
 // Primitives - Server Safe
-export { Box, type BoxProps } from './primitives/Box.js'
-export { Flex, type FlexProps } from './primitives/Flex.js'
-export { Grid, type GridProps } from './primitives/Grid.js'
-export { Heading, type HeadingProps } from './primitives/Heading.js'
-export { Slot, type SlotProps } from './primitives/Slot.js'
-export { Text, type TextProps } from './primitives/Text.js'
+export { Box, type BoxProps } from './primitives/Box.js';
+export { Flex, type FlexProps } from './primitives/Flex.js';
+export { Grid, type GridProps } from './primitives/Grid.js';
+export { Heading, type HeadingProps } from './primitives/Heading.js';
+export { Slot, type SlotProps } from './primitives/Slot.js';
+export { Text, type TextProps } from './primitives/Text.js';
 
 // Utils
-export { cn } from './utils/cn.js'
+export { cn } from './utils/cn.js';

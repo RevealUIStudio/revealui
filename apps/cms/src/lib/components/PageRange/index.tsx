@@ -1,25 +1,25 @@
 const defaultLabels = {
   plural: 'Docs',
   singular: 'Doc',
-}
+};
 
 const defaultCollectionLabels = {
   posts: {
     plural: 'Posts',
     singular: 'Post',
   },
-}
+};
 
 export const PageRange: React.FC<{
-  className?: string
-  collection?: keyof typeof defaultCollectionLabels // Use strict key types
+  className?: string;
+  collection?: keyof typeof defaultCollectionLabels; // Use strict key types
   collectionLabels?: {
-    plural?: string
-    singular?: string
-  }
-  currentPage?: number
-  limit?: number
-  totalDocs?: number
+    plural?: string;
+    singular?: string;
+  };
+  currentPage?: number;
+  limit?: number;
+  totalDocs?: number;
 }> = (props) => {
   const {
     className,
@@ -28,16 +28,16 @@ export const PageRange: React.FC<{
     currentPage,
     limit,
     totalDocs,
-  } = props
+  } = props;
 
-  let indexStart = (currentPage ? currentPage - 1 : 1) * (limit || 1) + 1
-  if (totalDocs && indexStart > totalDocs) indexStart = 0
+  let indexStart = (currentPage ? currentPage - 1 : 1) * (limit || 1) + 1;
+  if (totalDocs && indexStart > totalDocs) indexStart = 0;
 
-  let indexEnd = (currentPage || 1) * (limit || 1)
-  if (totalDocs && indexEnd > totalDocs) indexEnd = totalDocs
+  let indexEnd = (currentPage || 1) * (limit || 1);
+  if (totalDocs && indexEnd > totalDocs) indexEnd = totalDocs;
 
   const { plural, singular } =
-    collectionLabelsFromProps || defaultCollectionLabels[collection || 'posts'] || defaultLabels
+    collectionLabelsFromProps || defaultCollectionLabels[collection || 'posts'] || defaultLabels;
 
   return (
     <div className={[className, 'font-semibold'].filter(Boolean).join(' ')}>
@@ -48,8 +48,8 @@ export const PageRange: React.FC<{
           totalDocs > 1 ? plural : singular
         }`}
     </div>
-  )
-}
+  );
+};
 
 // import React from 'react'
 

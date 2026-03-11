@@ -1,4 +1,4 @@
-import { renderMarkdown } from '../utils/markdown'
+import { renderMarkdown } from '../utils/markdown';
 
 export function HomePage() {
   const content = `# RevealUI Documentation
@@ -59,7 +59,7 @@ See the [Quick Start guide](/docs/QUICK_START) for the full walkthrough, or brow
 ## Contributing
 
 Found an issue or want to improve the docs? See our [Contributing Guide](https://github.com/RevealUIStudio/revealui/blob/main/CONTRIBUTING.md).
-`
+`;
 
-  return <div>{renderMarkdown(content)}</div>
+  return <div>{renderMarkdown(content)}</div>;
 }

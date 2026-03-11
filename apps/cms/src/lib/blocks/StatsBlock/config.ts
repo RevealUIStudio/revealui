@@ -1,5 +1,5 @@
 // blocks/StatsBlock.ts
-import type { Block } from '@revealui/core'
+import type { Block } from '@revealui/core';
 
 export const StatsBlock: Block = {
   slug: 'stats-block', // Unique identifier for the block
@@ -48,4 +48,4 @@ export const StatsBlock: Block = {
     },
   ],
   interfaceName: 'StatsBlock',
-}
+};

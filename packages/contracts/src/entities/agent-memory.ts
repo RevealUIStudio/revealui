@@ -15,13 +15,13 @@
  * - Scoped to site and/or agent
  */
 
-import { z } from 'zod/v4'
+import { z } from 'zod/v4';
 
 // =============================================================================
 // Constants
 // =============================================================================
 
-export const AGENT_MEMORY_SCHEMA_VERSION = 1
+export const AGENT_MEMORY_SCHEMA_VERSION = 1;
 
 // Memory types
 export const MEMORY_TYPES = [
@@ -33,9 +33,9 @@ export const MEMORY_TYPES = [
   'correction',
   'skill',
   'warning',
-] as const
+] as const;
 
-export type MemoryType = (typeof MEMORY_TYPES)[number]
+export type MemoryType = (typeof MEMORY_TYPES)[number];
 
 // Source types for memory provenance
 export const SOURCE_TYPES = [
@@ -47,23 +47,23 @@ export const SOURCE_TYPES = [
   'correction',
   'inference',
   'import',
-] as const
+] as const;
 
-export type SourceType = (typeof SOURCE_TYPES)[number]
+export type SourceType = (typeof SOURCE_TYPES)[number];
 
 // Embedding configuration (same as AgentContext)
 export const MEMORY_EMBEDDING_CONFIG = {
   DIMENSIONS: 1536,
   MIN_VALUE: -1.0,
   MAX_VALUE: 1.0,
-} as const
+} as const;
 
 // Access tracking thresholds
 export const ACCESS_THRESHOLDS = {
   FREQUENTLY_ACCESSED: 10,
   RARELY_ACCESSED: 2,
   STALE_DAYS: 30,
-} as const
+} as const;
 
 // Importance scores
 export const IMPORTANCE_LEVELS = {
@@ -72,7 +72,7 @@ export const IMPORTANCE_LEVELS = {
   MEDIUM: 0.5,
   LOW: 0.3,
   MINIMAL: 0.1,
-} as const
+} as const;
 
 // =============================================================================
 // Base Schemas
@@ -88,9 +88,9 @@ export const MemorySourceSchema = z.object({
   userId: z.string().optional(),
   timestamp: z.date().optional(),
   context: z.record(z.string(), z.unknown()).optional(),
-})
+});
 
-export type MemorySource = z.infer<typeof MemorySourceSchema>
+export type MemorySource = z.infer<typeof MemorySourceSchema>;
 
 /**
  * Embedding metadata schema
@@ -100,9 +100,9 @@ export const EmbeddingMetadataSchema = z.object({
   dimensions: z.number().int().default(MEMORY_EMBEDDING_CONFIG.DIMENSIONS),
   generatedAt: z.date(),
   version: z.string().optional(),
-})
+});
 
-export type EmbeddingMetadata = z.infer<typeof EmbeddingMetadataSchema>
+export type EmbeddingMetadata = z.infer<typeof EmbeddingMetadataSchema>;
 
 /**
  * Memory metadata schema
@@ -113,9 +113,9 @@ export const MemoryMetadataSchema = z.object({
   category: z.string().optional(),
   confidence: z.number().min(0).max(1).optional(),
   relatedMemories: z.array(z.string()).optional(),
-})
+});
 
-export type MemoryMetadata = z.infer<typeof MemoryMetadataSchema>
+export type MemoryMetadata = z.infer<typeof MemoryMetadataSchema>;
 
 /**
  * Embedding vector schema (1536 dimensions)
@@ -135,9 +135,9 @@ export const MemoryEmbeddingVectorSchema = z
     {
       message: `All embedding values must be between ${MEMORY_EMBEDDING_CONFIG.MIN_VALUE} and ${MEMORY_EMBEDDING_CONFIG.MAX_VALUE}`,
     },
-  )
+  );
 
-export type MemoryEmbeddingVector = z.infer<typeof MemoryEmbeddingVectorSchema>
+export type MemoryEmbeddingVector = z.infer<typeof MemoryEmbeddingVectorSchema>;
 
 // =============================================================================
 // Base AgentMemory Schema
@@ -164,7 +164,7 @@ export const AgentMemoryObjectSchema = z.object({
   agentId: z.string().nullable().optional(),
   createdAt: z.date(),
   expiresAt: z.date().nullable().optional(),
-})
+});
 
 /**
  * Agent Memory schema with validation rules
@@ -173,9 +173,9 @@ export const AgentMemoryBaseSchema = AgentMemoryObjectSchema.refine(
   (data) => {
     // If verified, must have verifiedBy and verifiedAt
     if (data.verified) {
-      return data.verifiedBy !== null && data.verifiedAt !== null
+      return data.verifiedBy !== null && data.verifiedAt !== null;
     }
-    return true
+    return true;
   },
   {
     message: 'Verified memories must have verifiedBy and verifiedAt',
@@ -185,17 +185,17 @@ export const AgentMemoryBaseSchema = AgentMemoryObjectSchema.refine(
   (data) => {
     // If expiresAt exists, it must be in the future
     if (data.expiresAt) {
-      return data.expiresAt > new Date()
+      return data.expiresAt > new Date();
     }
-    return true
+    return true;
   },
   {
     message: 'Memory expiration must be in the future',
     path: ['expiresAt'],
   },
-)
+);
 
-export const AgentMemorySchema = AgentMemoryBaseSchema
+export const AgentMemorySchema = AgentMemoryBaseSchema;
 
 // =============================================================================
 // Insert Schema
@@ -212,14 +212,14 @@ export const AgentMemoryInsertSchema = AgentMemoryObjectSchema.omit({
   createdAt: z.date().optional(),
   accessCount: z.number().int().optional(),
   accessedAt: z.date().nullable().optional(),
-})
+});
 
 // =============================================================================
 // Type Exports
 // =============================================================================
 
-export type AgentMemory = z.infer<typeof AgentMemorySchema>
-export type AgentMemoryInsert = z.infer<typeof AgentMemoryInsertSchema>
+export type AgentMemory = z.infer<typeof AgentMemorySchema>;
+export type AgentMemoryInsert = z.infer<typeof AgentMemoryInsertSchema>;
 
 // =============================================================================
 // Memory Type Helpers
@@ -229,42 +229,42 @@ export type AgentMemoryInsert = z.infer<typeof AgentMemoryInsertSchema>
  * Check if memory is a fact
  */
 export function isFactMemory(memory: AgentMemory): boolean {
-  return memory.type === 'fact'
+  return memory.type === 'fact';
 }
 
 /**
  * Check if memory is a preference
  */
 export function isPreferenceMemory(memory: AgentMemory): boolean {
-  return memory.type === 'preference'
+  return memory.type === 'preference';
 }
 
 /**
  * Check if memory is a decision
  */
 export function isDecisionMemory(memory: AgentMemory): boolean {
-  return memory.type === 'decision'
+  return memory.type === 'decision';
 }
 
 /**
  * Check if memory is feedback
  */
 export function isFeedbackMemory(memory: AgentMemory): boolean {
-  return memory.type === 'feedback'
+  return memory.type === 'feedback';
 }
 
 /**
  * Check if memory is a correction
  */
 export function isCorrectionMemory(memory: AgentMemory): boolean {
-  return memory.type === 'correction'
+  return memory.type === 'correction';
 }
 
 /**
  * Check if memory is a warning
  */
 export function isWarningMemory(memory: AgentMemory): boolean {
-  return memory.type === 'warning'
+  return memory.type === 'warning';
 }
 
 // =============================================================================
@@ -275,14 +275,14 @@ export function isWarningMemory(memory: AgentMemory): boolean {
  * Check if memory is verified
  */
 export function isVerified(memory: AgentMemory): boolean {
-  return memory.verified === true
+  return memory.verified === true;
 }
 
 /**
  * Check if memory needs verification
  */
 export function needsVerification(memory: AgentMemory): boolean {
-  return !memory.verified && (memory.type === 'fact' || memory.type === 'correction')
+  return !memory.verified && (memory.type === 'fact' || memory.type === 'correction');
 }
 
 /**
@@ -293,7 +293,7 @@ export function createVerification(verifiedBy: string): Partial<AgentMemory> {
     verified: true,
     verifiedBy,
     verifiedAt: new Date(),
-  }
+  };
 }
 
 /**
@@ -304,7 +304,7 @@ export function revokeVerification(): Partial<AgentMemory> {
     verified: false,
     verifiedBy: null,
     verifiedAt: null,
-  }
+  };
 }
 
 // =============================================================================
@@ -315,43 +315,43 @@ export function revokeVerification(): Partial<AgentMemory> {
  * Check if memory is expired
  */
 export function isExpired(memory: AgentMemory): boolean {
-  if (!memory.expiresAt) return false
-  return memory.expiresAt <= new Date()
+  if (!memory.expiresAt) return false;
+  return memory.expiresAt <= new Date();
 }
 
 /**
  * Check if memory is permanent (no expiration)
  */
 export function isPermanent(memory: AgentMemory): boolean {
-  return memory.expiresAt === null || memory.expiresAt === undefined
+  return memory.expiresAt === null || memory.expiresAt === undefined;
 }
 
 /**
  * Calculate time until expiration in milliseconds
  */
 export function getTimeUntilExpiration(memory: AgentMemory): number | null {
-  if (!memory.expiresAt) return null
-  const now = Date.now()
-  const expiresAt = memory.expiresAt.getTime()
-  return Math.max(0, expiresAt - now)
+  if (!memory.expiresAt) return null;
+  const now = Date.now();
+  const expiresAt = memory.expiresAt.getTime();
+  return Math.max(0, expiresAt - now);
 }
 
 /**
  * Check if memory is near expiration (< 24 hours)
  */
 export function isNearExpiration(memory: AgentMemory, thresholdHours = 24): boolean {
-  const timeRemaining = getTimeUntilExpiration(memory)
-  if (timeRemaining === null) return false
-  const thresholdMs = thresholdHours * 60 * 60 * 1000
-  return timeRemaining > 0 && timeRemaining < thresholdMs
+  const timeRemaining = getTimeUntilExpiration(memory);
+  if (timeRemaining === null) return false;
+  const thresholdMs = thresholdHours * 60 * 60 * 1000;
+  return timeRemaining > 0 && timeRemaining < thresholdMs;
 }
 
 /**
  * Create expiration date from duration in days
  */
 export function createExpirationDate(daysFromNow: number): Date {
-  const now = new Date()
-  return new Date(now.getTime() + daysFromNow * 24 * 60 * 60 * 1000)
+  const now = new Date();
+  return new Date(now.getTime() + daysFromNow * 24 * 60 * 60 * 1000);
 }
 
 // =============================================================================
@@ -362,14 +362,14 @@ export function createExpirationDate(daysFromNow: number): Date {
  * Check if memory is frequently accessed
  */
 export function isFrequentlyAccessed(memory: AgentMemory): boolean {
-  return memory.accessCount >= ACCESS_THRESHOLDS.FREQUENTLY_ACCESSED
+  return memory.accessCount >= ACCESS_THRESHOLDS.FREQUENTLY_ACCESSED;
 }
 
 /**
  * Check if memory is rarely accessed
  */
 export function isRarelyAccessed(memory: AgentMemory): boolean {
-  return memory.accessCount <= ACCESS_THRESHOLDS.RARELY_ACCESSED
+  return memory.accessCount <= ACCESS_THRESHOLDS.RARELY_ACCESSED;
 }
 
 /**
@@ -379,9 +379,9 @@ export function isStale(
   memory: AgentMemory,
   thresholdDays = ACCESS_THRESHOLDS.STALE_DAYS,
 ): boolean {
-  if (!memory.accessedAt) return true
-  const daysSinceAccess = (Date.now() - memory.accessedAt.getTime()) / (1000 * 60 * 60 * 24)
-  return daysSinceAccess > thresholdDays
+  if (!memory.accessedAt) return true;
+  const daysSinceAccess = (Date.now() - memory.accessedAt.getTime()) / (1000 * 60 * 60 * 24);
+  return daysSinceAccess > thresholdDays;
 }
 
 /**
@@ -391,16 +391,16 @@ export function recordAccess(): Partial<AgentMemory> {
   return {
     accessCount: undefined, // Will be incremented by DB
     accessedAt: new Date(),
-  }
+  };
 }
 
 /**
  * Get access frequency category
  */
 export function getAccessFrequency(memory: AgentMemory): 'high' | 'medium' | 'low' {
-  if (memory.accessCount >= ACCESS_THRESHOLDS.FREQUENTLY_ACCESSED) return 'high'
-  if (memory.accessCount <= ACCESS_THRESHOLDS.RARELY_ACCESSED) return 'low'
-  return 'medium'
+  if (memory.accessCount >= ACCESS_THRESHOLDS.FREQUENTLY_ACCESSED) return 'high';
+  if (memory.accessCount <= ACCESS_THRESHOLDS.RARELY_ACCESSED) return 'low';
+  return 'medium';
 }
 
 // =============================================================================
@@ -411,37 +411,37 @@ export function getAccessFrequency(memory: AgentMemory): 'high' | 'medium' | 'lo
  * Get memory importance from metadata
  */
 export function getImportance(memory: AgentMemory): number {
-  return memory.metadata?.importance ?? IMPORTANCE_LEVELS.MEDIUM
+  return memory.metadata?.importance ?? IMPORTANCE_LEVELS.MEDIUM;
 }
 
 /**
  * Check if memory is critical importance
  */
 export function isCriticalImportance(memory: AgentMemory): boolean {
-  return getImportance(memory) >= IMPORTANCE_LEVELS.CRITICAL
+  return getImportance(memory) >= IMPORTANCE_LEVELS.CRITICAL;
 }
 
 /**
  * Get importance category
  */
 export function getImportanceCategory(memory: AgentMemory): 'critical' | 'high' | 'medium' | 'low' {
-  const importance = getImportance(memory)
-  if (importance >= IMPORTANCE_LEVELS.CRITICAL) return 'critical'
-  if (importance >= IMPORTANCE_LEVELS.HIGH) return 'high'
-  if (importance >= IMPORTANCE_LEVELS.MEDIUM) return 'medium'
-  return 'low'
+  const importance = getImportance(memory);
+  if (importance >= IMPORTANCE_LEVELS.CRITICAL) return 'critical';
+  if (importance >= IMPORTANCE_LEVELS.HIGH) return 'high';
+  if (importance >= IMPORTANCE_LEVELS.MEDIUM) return 'medium';
+  return 'low';
 }
 
 /**
  * Calculate composite relevance score
  */
 export function calculateRelevanceScore(memory: AgentMemory): number {
-  const importance = getImportance(memory)
-  const accessFactor = Math.min(memory.accessCount / 100, 1.0) * 0.3
-  const verificationBonus = memory.verified ? 0.2 : 0
-  const stalePenalty = isStale(memory) ? -0.2 : 0
+  const importance = getImportance(memory);
+  const accessFactor = Math.min(memory.accessCount / 100, 1.0) * 0.3;
+  const verificationBonus = memory.verified ? 0.2 : 0;
+  const stalePenalty = isStale(memory) ? -0.2 : 0;
 
-  return Math.max(0, Math.min(1, importance + accessFactor + verificationBonus + stalePenalty))
+  return Math.max(0, Math.min(1, importance + accessFactor + verificationBonus + stalePenalty));
 }
 
 // =============================================================================
@@ -452,20 +452,20 @@ export function calculateRelevanceScore(memory: AgentMemory): number {
  * Check if memory has valid embedding
  */
 export function hasValidEmbedding(memory: AgentMemory): boolean {
-  if (!memory.embedding) return false
+  if (!memory.embedding) return false;
   return (
     memory.embedding.length === MEMORY_EMBEDDING_CONFIG.DIMENSIONS &&
     memory.embedding.every(
       (val) => val >= MEMORY_EMBEDDING_CONFIG.MIN_VALUE && val <= MEMORY_EMBEDDING_CONFIG.MAX_VALUE,
     )
-  )
+  );
 }
 
 /**
  * Check if memory has embedding metadata
  */
 export function hasEmbeddingMetadata(memory: AgentMemory): boolean {
-  return memory.embeddingMetadata !== null && memory.embeddingMetadata !== undefined
+  return memory.embeddingMetadata !== null && memory.embeddingMetadata !== undefined;
 }
 
 // =============================================================================
@@ -476,21 +476,21 @@ export function hasEmbeddingMetadata(memory: AgentMemory): boolean {
  * Check if memory is scoped to a site
  */
 export function isSiteScoped(memory: AgentMemory): boolean {
-  return memory.siteId !== null && memory.siteId !== undefined
+  return memory.siteId !== null && memory.siteId !== undefined;
 }
 
 /**
  * Check if memory is scoped to an agent
  */
 export function isAgentScoped(memory: AgentMemory): boolean {
-  return memory.agentId !== null && memory.agentId !== undefined
+  return memory.agentId !== null && memory.agentId !== undefined;
 }
 
 /**
  * Check if memory is global (not scoped)
  */
 export function isGlobalMemory(memory: AgentMemory): boolean {
-  return !(isSiteScoped(memory) || isAgentScoped(memory))
+  return !(isSiteScoped(memory) || isAgentScoped(memory));
 }
 
 // =============================================================================
@@ -505,16 +505,16 @@ export function createAgentMemoryInsert(
   type: MemoryType,
   source: MemorySource,
   options?: {
-    id?: string
-    embedding?: number[]
-    embeddingMetadata?: EmbeddingMetadata
-    metadata?: MemoryMetadata
-    siteId?: string
-    agentId?: string
-    expiresAt?: Date
+    id?: string;
+    embedding?: number[];
+    embeddingMetadata?: EmbeddingMetadata;
+    metadata?: MemoryMetadata;
+    siteId?: string;
+    agentId?: string;
+    expiresAt?: Date;
   },
 ): AgentMemoryInsert {
-  const now = new Date()
+  const now = new Date();
 
   return {
     id: options?.id ?? crypto.randomUUID(),
@@ -532,42 +532,42 @@ export function createAgentMemoryInsert(
     agentId: options?.agentId ?? null,
     createdAt: now,
     expiresAt: options?.expiresAt ?? null,
-  }
+  };
 }
 
 /**
  * Update memory with new data
  */
 export function updateAgentMemory(updates: {
-  content?: string
-  metadata?: MemoryMetadata
-  embedding?: number[] | null
-  embeddingMetadata?: EmbeddingMetadata | null
-  expiresAt?: Date | null
+  content?: string;
+  metadata?: MemoryMetadata;
+  embedding?: number[] | null;
+  embeddingMetadata?: EmbeddingMetadata | null;
+  expiresAt?: Date | null;
 }): Partial<AgentMemory> {
-  const result: Partial<AgentMemory> = {}
+  const result: Partial<AgentMemory> = {};
 
   if (updates.content !== undefined) {
-    result.content = updates.content
+    result.content = updates.content;
   }
 
   if (updates.metadata !== undefined) {
-    result.metadata = updates.metadata
+    result.metadata = updates.metadata;
   }
 
   if (updates.embedding !== undefined) {
-    result.embedding = updates.embedding
+    result.embedding = updates.embedding;
   }
 
   if (updates.embeddingMetadata !== undefined) {
-    result.embeddingMetadata = updates.embeddingMetadata
+    result.embeddingMetadata = updates.embeddingMetadata;
   }
 
   if (updates.expiresAt !== undefined) {
-    result.expiresAt = updates.expiresAt
+    result.expiresAt = updates.expiresAt;
   }
 
-  return result
+  return result;
 }
 
 // =============================================================================
@@ -580,22 +580,22 @@ export function updateAgentMemory(updates: {
 export interface AgentMemoryWithComputed extends AgentMemory {
   // biome-ignore lint/style/useNamingConvention: _computed is a conventional computed-field marker
   _computed: {
-    isExpired: boolean
-    isPermanent: boolean
-    isVerified: boolean
-    needsVerification: boolean
-    hasEmbedding: boolean
-    embeddingValid: boolean
-    accessFrequency: 'high' | 'medium' | 'low'
-    isStale: boolean
-    importance: number
-    importanceCategory: 'critical' | 'high' | 'medium' | 'low'
-    relevanceScore: number
-    timeUntilExpiration: number | null
-    isSiteScoped: boolean
-    isAgentScoped: boolean
-    isGlobal: boolean
-  }
+    isExpired: boolean;
+    isPermanent: boolean;
+    isVerified: boolean;
+    needsVerification: boolean;
+    hasEmbedding: boolean;
+    embeddingValid: boolean;
+    accessFrequency: 'high' | 'medium' | 'low';
+    isStale: boolean;
+    importance: number;
+    importanceCategory: 'critical' | 'high' | 'medium' | 'low';
+    relevanceScore: number;
+    timeUntilExpiration: number | null;
+    isSiteScoped: boolean;
+    isAgentScoped: boolean;
+    isGlobal: boolean;
+  };
 }
 
 /**
@@ -622,7 +622,7 @@ export function agentMemoryToHuman(memory: AgentMemory): AgentMemoryWithComputed
       isAgentScoped: isAgentScoped(memory),
       isGlobal: isGlobalMemory(memory),
     },
-  }
+  };
 }
 
 /**
@@ -630,26 +630,26 @@ export function agentMemoryToHuman(memory: AgentMemory): AgentMemoryWithComputed
  */
 export interface AgentMemoryAgent extends AgentMemory {
   agentMetadata: {
-    expired: boolean
-    permanent: boolean
-    verified: boolean
-    embeddingPresent: boolean
-    embeddingDimensions: number | null
-    accessCount: number
-    lastAccessed: Date | null
-    relevanceScore: number
-    scope: 'site' | 'agent' | 'global'
-  }
+    expired: boolean;
+    permanent: boolean;
+    verified: boolean;
+    embeddingPresent: boolean;
+    embeddingDimensions: number | null;
+    accessCount: number;
+    lastAccessed: Date | null;
+    relevanceScore: number;
+    scope: 'site' | 'agent' | 'global';
+  };
 }
 
 /**
  * Convert agent memory to agent-compatible format
  */
 export function agentMemoryToAgent(memory: AgentMemory): AgentMemoryAgent {
-  let scope: 'site' | 'agent' | 'global'
-  if (isSiteScoped(memory)) scope = 'site'
-  else if (isAgentScoped(memory)) scope = 'agent'
-  else scope = 'global'
+  let scope: 'site' | 'agent' | 'global';
+  if (isSiteScoped(memory)) scope = 'site';
+  else if (isAgentScoped(memory)) scope = 'agent';
+  else scope = 'global';
 
   return {
     ...memory,
@@ -664,7 +664,7 @@ export function agentMemoryToAgent(memory: AgentMemory): AgentMemoryAgent {
       relevanceScore: calculateRelevanceScore(memory),
       scope,
     },
-  }
+  };
 }
 
 /**
@@ -691,7 +691,7 @@ export const AgentMemoryWithComputedSchema = AgentMemorySchema.and(
       isGlobal: z.boolean(),
     }),
   }),
-)
+);
 
 /**
  * Zod schema for agent memory with agent metadata
@@ -710,4 +710,4 @@ export const AgentMemoryAgentSchema = AgentMemorySchema.and(
       scope: z.enum(['site', 'agent', 'global']),
     }),
   }),
-)
+);

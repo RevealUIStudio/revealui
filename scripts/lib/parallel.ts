@@ -32,11 +32,11 @@
  * - node:events - Event emitter for progress tracking
  */
 
-import { EventEmitter } from 'node:events'
-import { createLogger } from './logger.js'
-import { telemetry } from './telemetry.js'
+import { EventEmitter } from 'node:events';
+import { createLogger } from './logger.js';
+import { telemetry } from './telemetry.js';
 
-const logger = createLogger({ prefix: 'Parallel' })
+const logger = createLogger({ prefix: 'Parallel' });
 
 // =============================================================================
 // Types
@@ -44,61 +44,61 @@ const logger = createLogger({ prefix: 'Parallel' })
 
 export interface ParallelOptions {
   /** Maximum number of concurrent tasks (default: 5) */
-  concurrency?: number
+  concurrency?: number;
   /** Timeout for each task in ms (0 = no timeout) */
-  timeout?: number
+  timeout?: number;
   /** Stop on first error (default: false) */
-  stopOnError?: boolean
+  stopOnError?: boolean;
   /** Enable verbose logging */
-  verbose?: boolean
+  verbose?: boolean;
   /** Task execution mode */
-  mode?: 'parallel' | 'sequential'
+  mode?: 'parallel' | 'sequential';
 }
 
 export interface TaskResult<T> {
   /** Task index */
-  index: number
+  index: number;
   /** Task result (if successful) */
-  result?: T
+  result?: T;
   /** Error (if failed) */
-  error?: Error
+  error?: Error;
   /** Execution duration in ms */
-  duration: number
+  duration: number;
   /** Task status */
-  status: 'success' | 'error' | 'timeout'
+  status: 'success' | 'error' | 'timeout';
 }
 
 export interface ProgressEvent {
   /** Number of completed tasks */
-  completed: number
+  completed: number;
   /** Total number of tasks */
-  total: number
+  total: number;
   /** Progress percentage (0-100) */
-  percentage: number
+  percentage: number;
   /** Recently completed task result */
-  lastResult?: TaskResult<unknown>
+  lastResult?: TaskResult<unknown>;
 }
 
-export type Task<T> = () => Promise<T> | T
+export type Task<T> = () => Promise<T> | T;
 
 // =============================================================================
 // Parallel Executor
 // =============================================================================
 
 export class ParallelExecutor<T = unknown> extends EventEmitter {
-  private concurrency: number
-  private timeout: number
-  private stopOnError: boolean
-  private verbose: boolean
-  private mode: 'parallel' | 'sequential'
+  private concurrency: number;
+  private timeout: number;
+  private stopOnError: boolean;
+  private verbose: boolean;
+  private mode: 'parallel' | 'sequential';
 
   constructor(options: ParallelOptions = {}) {
-    super()
-    this.concurrency = options.concurrency ?? 5
-    this.timeout = options.timeout ?? 0
-    this.stopOnError = options.stopOnError ?? false
-    this.verbose = options.verbose ?? false
-    this.mode = options.mode ?? 'parallel'
+    super();
+    this.concurrency = options.concurrency ?? 5;
+    this.timeout = options.timeout ?? 0;
+    this.stopOnError = options.stopOnError ?? false;
+    this.verbose = options.verbose ?? false;
+    this.mode = options.mode ?? 'parallel';
   }
 
   /**
@@ -106,47 +106,47 @@ export class ParallelExecutor<T = unknown> extends EventEmitter {
    */
   async run(tasks: Array<Task<T>>): Promise<Array<TaskResult<T>>> {
     if (this.mode === 'sequential') {
-      return this.runSequential(tasks)
+      return this.runSequential(tasks);
     }
 
-    const results: Array<TaskResult<T>> = []
-    const activePromises = new Set<Promise<void>>()
-    let currentIndex = 0
-    let completedCount = 0
-    let hasError = false
+    const results: Array<TaskResult<T>> = [];
+    const activePromises = new Set<Promise<void>>();
+    let currentIndex = 0;
+    let completedCount = 0;
+    let hasError = false;
 
     const executeTask = async (index: number): Promise<void> => {
-      const task = tasks[index]
-      const startTime = Date.now()
+      const task = tasks[index];
+      const startTime = Date.now();
 
       try {
         if (this.verbose) {
-          logger.info(`Starting task ${index + 1}/${tasks.length}`)
+          logger.info(`Starting task ${index + 1}/${tasks.length}`);
         }
 
         // Execute task with optional timeout
-        let result: T
+        let result: T;
         if (this.timeout > 0) {
-          result = await this.executeWithTimeout(task, this.timeout)
+          result = await this.executeWithTimeout(task, this.timeout);
         } else {
-          result = await Promise.resolve(task())
+          result = await Promise.resolve(task());
         }
 
-        const duration = Date.now() - startTime
+        const duration = Date.now() - startTime;
 
         const taskResult: TaskResult<T> = {
           index,
           result,
           duration,
           status: 'success',
-        }
+        };
 
-        results[index] = taskResult
-        completedCount++
+        results[index] = taskResult;
+        completedCount++;
 
         // Track telemetry
-        telemetry.counter('parallel-task-success')
-        telemetry.startTimer('parallel-task-duration').stop({ index, duration })
+        telemetry.counter('parallel-task-success');
+        telemetry.startTimer('parallel-task-duration').stop({ index, duration });
 
         // Emit progress
         this.emit('progress', {
@@ -154,28 +154,28 @@ export class ParallelExecutor<T = unknown> extends EventEmitter {
           total: tasks.length,
           percentage: (completedCount / tasks.length) * 100,
           lastResult: taskResult,
-        } as ProgressEvent)
+        } as ProgressEvent);
 
         if (this.verbose) {
-          logger.success(`Task ${index + 1}/${tasks.length} completed in ${duration}ms`)
+          logger.success(`Task ${index + 1}/${tasks.length} completed in ${duration}ms`);
         }
       } catch (error) {
-        const duration = Date.now() - startTime
-        const isTimeout = error instanceof Error && error.name === 'TimeoutError'
+        const duration = Date.now() - startTime;
+        const isTimeout = error instanceof Error && error.name === 'TimeoutError';
 
         const taskResult: TaskResult<T> = {
           index,
           error: error instanceof Error ? error : new Error(String(error)),
           duration,
           status: isTimeout ? 'timeout' : 'error',
-        }
+        };
 
-        results[index] = taskResult
-        completedCount++
+        results[index] = taskResult;
+        completedCount++;
 
         // Track telemetry
-        telemetry.counter(isTimeout ? 'parallel-task-timeout' : 'parallel-task-error')
-        telemetry.trackError('parallel-task-failed', error as Error, { index })
+        telemetry.counter(isTimeout ? 'parallel-task-timeout' : 'parallel-task-error');
+        telemetry.trackError('parallel-task-failed', error as Error, { index });
 
         // Emit progress
         this.emit('progress', {
@@ -183,119 +183,119 @@ export class ParallelExecutor<T = unknown> extends EventEmitter {
           total: tasks.length,
           percentage: (completedCount / tasks.length) * 100,
           lastResult: taskResult,
-        } as ProgressEvent)
+        } as ProgressEvent);
 
         // Emit error
         this.emit('error', {
           index,
           error: taskResult.error,
           isTimeout,
-        })
+        });
 
         if (this.verbose) {
           logger.error(
             `Task ${index + 1}/${tasks.length} failed: ${taskResult.error?.message ?? 'Unknown error'}`,
-          )
+          );
         }
 
         if (this.stopOnError) {
-          hasError = true
+          hasError = true;
         }
       }
-    }
+    };
 
     // Process tasks with concurrency control
     while (currentIndex < tasks.length && !hasError) {
       // Fill up to concurrency limit
       while (activePromises.size < this.concurrency && currentIndex < tasks.length) {
-        const index = currentIndex++
+        const index = currentIndex++;
         const promise = executeTask(index).then(() => {
-          activePromises.delete(promise)
-        })
-        activePromises.add(promise)
+          activePromises.delete(promise);
+        });
+        activePromises.add(promise);
       }
 
       // Wait for at least one task to complete
       if (activePromises.size > 0) {
-        await Promise.race(activePromises)
+        await Promise.race(activePromises);
       }
     }
 
     // Wait for all remaining tasks
-    await Promise.all(activePromises)
+    await Promise.all(activePromises);
 
-    return results
+    return results;
   }
 
   /**
    * Execute tasks sequentially.
    */
   private async runSequential(tasks: Array<Task<T>>): Promise<Array<TaskResult<T>>> {
-    const results: Array<TaskResult<T>> = []
+    const results: Array<TaskResult<T>> = [];
 
     for (let index = 0; index < tasks.length; index++) {
-      const task = tasks[index]
-      const startTime = Date.now()
+      const task = tasks[index];
+      const startTime = Date.now();
 
       try {
         if (this.verbose) {
-          logger.info(`Starting task ${index + 1}/${tasks.length}`)
+          logger.info(`Starting task ${index + 1}/${tasks.length}`);
         }
 
-        let result: T
+        let result: T;
         if (this.timeout > 0) {
-          result = await this.executeWithTimeout(task, this.timeout)
+          result = await this.executeWithTimeout(task, this.timeout);
         } else {
-          result = await Promise.resolve(task())
+          result = await Promise.resolve(task());
         }
 
-        const duration = Date.now() - startTime
+        const duration = Date.now() - startTime;
 
         results.push({
           index,
           result,
           duration,
           status: 'success',
-        })
+        });
 
-        telemetry.counter('sequential-task-success')
+        telemetry.counter('sequential-task-success');
 
         this.emit('progress', {
           completed: index + 1,
           total: tasks.length,
           percentage: ((index + 1) / tasks.length) * 100,
-        } as ProgressEvent)
+        } as ProgressEvent);
 
         if (this.verbose) {
-          logger.success(`Task ${index + 1}/${tasks.length} completed in ${duration}ms`)
+          logger.success(`Task ${index + 1}/${tasks.length} completed in ${duration}ms`);
         }
       } catch (error) {
-        const duration = Date.now() - startTime
-        const isTimeout = error instanceof Error && error.name === 'TimeoutError'
+        const duration = Date.now() - startTime;
+        const isTimeout = error instanceof Error && error.name === 'TimeoutError';
 
         results.push({
           index,
           error: error instanceof Error ? error : new Error(String(error)),
           duration,
           status: isTimeout ? 'timeout' : 'error',
-        })
+        });
 
-        telemetry.counter(isTimeout ? 'sequential-task-timeout' : 'sequential-task-error')
-        telemetry.trackError('sequential-task-failed', error as Error, { index })
+        telemetry.counter(isTimeout ? 'sequential-task-timeout' : 'sequential-task-error');
+        telemetry.trackError('sequential-task-failed', error as Error, { index });
 
         this.emit('error', {
           index,
           error,
           isTimeout,
-        })
+        });
 
         if (this.stopOnError) {
-          break
+          break;
         }
       }
     }
 
-    return results
+    return results;
   }
 
   /**
@@ -304,29 +304,29 @@ export class ParallelExecutor<T = unknown> extends EventEmitter {
   private async executeWithTimeout(task: Task<T>, timeout: number): Promise<T> {
     return new Promise((resolve, reject) => {
       const timer = setTimeout(() => {
-        const error = new Error(`Task timed out after ${timeout}ms`)
-        error.name = 'TimeoutError'
-        reject(error)
-      }, timeout)
+        const error = new Error(`Task timed out after ${timeout}ms`);
+        error.name = 'TimeoutError';
+        reject(error);
+      }, timeout);
 
       Promise.resolve(task())
         .then((result) => {
-          clearTimeout(timer)
-          resolve(result)
+          clearTimeout(timer);
+          resolve(result);
         })
         .catch((error) => {
-          clearTimeout(timer)
-          reject(error)
-        })
-    })
+          clearTimeout(timer);
+          reject(error);
+        });
+    });
   }
 
   /**
    * Get success rate from results.
    */
   static getSuccessRate(results: Array<TaskResult<unknown>>): number {
-    const successCount = results.filter((r) => r.status === 'success').length
-    return (successCount / results.length) * 100
+    const successCount = results.filter((r) => r.status === 'success').length;
+    return (successCount / results.length) * 100;
   }
 
   /**
@@ -334,14 +334,14 @@ export class ParallelExecutor<T = unknown> extends EventEmitter {
    */
   static getErrors(results: Array<TaskResult<unknown>>): Error[] {
     // biome-ignore lint/style/noNonNullAssertion: Filter ensures error exists
-    return results.filter((r) => r.error).map((r) => r.error!)
+    return results.filter((r) => r.error).map((r) => r.error!);
   }
 
   /**
    * Check if all tasks succeeded.
    */
   static allSucceeded(results: Array<TaskResult<unknown>>): boolean {
-    return results.every((r) => r.status === 'success')
+    return results.every((r) => r.status === 'success');
   }
 }
 
@@ -364,8 +364,8 @@ export async function parallel<T>(
   tasks: Array<Task<T>>,
   options?: ParallelOptions,
 ): Promise<Array<TaskResult<T>>> {
-  const executor = new ParallelExecutor<T>(options)
-  return await executor.run(tasks)
+  const executor = new ParallelExecutor<T>(options);
+  return await executor.run(tasks);
 }
 
 /**
@@ -383,8 +383,8 @@ export async function sequential<T>(
   const executor = new ParallelExecutor<T>({
     ...options,
     mode: 'sequential',
-  })
-  return await executor.run(tasks)
+  });
+  return await executor.run(tasks);
 }
 
 /**
@@ -404,17 +404,17 @@ export async function parallelMap<T, R>(
   mapper: (item: T, index: number) => Promise<R> | R,
   options?: ParallelOptions,
 ): Promise<R[]> {
-  const tasks = items.map((item, index) => () => Promise.resolve(mapper(item, index)))
-  const results = await parallel(tasks, options)
+  const tasks = items.map((item, index) => () => Promise.resolve(mapper(item, index)));
+  const results = await parallel(tasks, options);
 
   // Throw if any task failed and stopOnError is true
   if (options?.stopOnError && !ParallelExecutor.allSucceeded(results)) {
-    const errors = ParallelExecutor.getErrors(results)
-    throw new AggregateError(errors, 'Parallel map failed')
+    const errors = ParallelExecutor.getErrors(results);
+    throw new AggregateError(errors, 'Parallel map failed');
   }
 
   // biome-ignore lint/style/noNonNullAssertion: All tasks succeeded if we reach here
-  return results.map((r) => r.result!)
+  return results.map((r) => r.result!);
 }
 
 /**
@@ -434,10 +434,10 @@ export async function parallelFilter<T>(
   predicate: (item: T, index: number) => Promise<boolean> | boolean,
   options?: ParallelOptions,
 ): Promise<T[]> {
-  const tasks = items.map((item, index) => () => Promise.resolve(predicate(item, index)))
-  const results = await parallel(tasks, options)
+  const tasks = items.map((item, index) => () => Promise.resolve(predicate(item, index)));
+  const results = await parallel(tasks, options);
 
-  return items.filter((_, index) => results[index].result === true)
+  return items.filter((_, index) => results[index].result === true);
 }
 
 /**
@@ -457,14 +457,14 @@ export async function batch<T, R>(
   processor: (batch: T[]) => Promise<R> | R,
   options: ParallelOptions & { batchSize: number },
 ): Promise<R[]> {
-  const batches: T[][] = []
+  const batches: T[][] = [];
   for (let i = 0; i < items.length; i += options.batchSize) {
-    batches.push(items.slice(i, i + options.batchSize))
+    batches.push(items.slice(i, i + options.batchSize));
   }
 
-  const tasks = batches.map((batch) => () => Promise.resolve(processor(batch)))
-  const results = await parallel(tasks, options)
+  const tasks = batches.map((batch) => () => Promise.resolve(processor(batch)));
+  const results = await parallel(tasks, options);
 
   // biome-ignore lint/style/noNonNullAssertion: Parallel execution guarantees results
-  return results.map((r) => r.result!)
+  return results.map((r) => r.result!);
 }

@@ -7,56 +7,58 @@
  * `intent=link` in the state so the callback knows to link rather than sign in.
  */
 
-import { generateOAuthState, getSession } from '@revealui/auth/server'
-import { type NextRequest, NextResponse } from 'next/server'
+import { generateOAuthState, getSession } from '@revealui/auth/server';
+import { type NextRequest, NextResponse } from 'next/server';
 
-export const dynamic = 'force-dynamic'
-export const runtime = 'nodejs'
+export const dynamic = 'force-dynamic';
+export const runtime = 'nodejs';
 
-const ALLOWED_PROVIDERS = ['google', 'github', 'vercel'] as const
+const ALLOWED_PROVIDERS = ['google', 'github', 'vercel'] as const;
 
 export async function GET(
   request: NextRequest,
   { params }: { params: Promise<{ provider: string }> },
 ): Promise<NextResponse> {
-  const { provider } = await params
+  const { provider } = await params;
 
   const baseUrl =
-    process.env.NEXT_PUBLIC_APP_URL ?? process.env.NEXT_PUBLIC_SERVER_URL ?? 'http://localhost:4000'
+    process.env.NEXT_PUBLIC_APP_URL ??
+    process.env.NEXT_PUBLIC_SERVER_URL ??
+    'http://localhost:4000';
 
   if (!(ALLOWED_PROVIDERS as readonly string[]).includes(provider)) {
-    return NextResponse.json({ error: 'Unknown provider' }, { status: 404 })
+    return NextResponse.json({ error: 'Unknown provider' }, { status: 404 });
   }
 
   // Require authentication — only logged-in users can link providers
-  const sessionData = await getSession(request.headers)
+  const sessionData = await getSession(request.headers);
   if (!sessionData) {
-    return NextResponse.redirect(new URL('/login?error=session_required', baseUrl))
+    return NextResponse.redirect(new URL('/login?error=session_required', baseUrl));
   }
 
   // Use the same OAuth initiation flow but with a link-specific redirect
   // The callback will check for the link_oauth_state cookie to distinguish
   // link flow from login flow.
-  const redirectTo = request.nextUrl.searchParams.get('redirectTo') ?? '/admin/settings'
-  const { state, cookieValue } = generateOAuthState(provider, redirectTo)
+  const redirectTo = request.nextUrl.searchParams.get('redirectTo') ?? '/admin/settings';
+  const { state, cookieValue } = generateOAuthState(provider, redirectTo);
 
   // Build the auth URL using the link callback endpoint
-  const redirectUri = `${baseUrl}/api/auth/link/callback/${provider}`
+  const redirectUri = `${baseUrl}/api/auth/link/callback/${provider}`;
 
   // Import buildAuthUrl dynamically to reuse the same provider dispatch
-  const { buildAuthUrl } = await import('@revealui/auth/server')
+  const { buildAuthUrl } = await import('@revealui/auth/server');
 
-  let authUrl: string
+  let authUrl: string;
   try {
-    authUrl = buildAuthUrl(provider, redirectUri, state)
+    authUrl = buildAuthUrl(provider, redirectUri, state);
   } catch (err) {
-    const message = err instanceof Error ? err.message : 'OAuth not configured'
+    const message = err instanceof Error ? err.message : 'OAuth not configured';
     return NextResponse.redirect(
       new URL(`/admin/settings?error=${encodeURIComponent(message)}`, baseUrl),
-    )
+    );
   }
 
-  const response = NextResponse.redirect(authUrl)
+  const response = NextResponse.redirect(authUrl);
 
   // Use a separate cookie name so the link callback can distinguish itself
   response.cookies.set('link_oauth_state', cookieValue, {
@@ -65,7 +67,7 @@ export async function GET(
     path: '/',
     maxAge: 300,
     secure: process.env.NODE_ENV === 'production',
-  })
+  });
 
-  return response
+  return response;
 }

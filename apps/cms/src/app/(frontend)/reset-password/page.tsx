@@ -1,4 +1,4 @@
-'use client'
+'use client';
 
 import {
   AuthLayout,
@@ -10,42 +10,42 @@ import {
   CardTitle,
   FormLabel,
   InputCVA as Input,
-} from '@revealui/presentation/server'
-import Link from 'next/link'
-import { useSearchParams } from 'next/navigation'
-import { type FormEvent, Suspense, useState } from 'react'
+} from '@revealui/presentation/server';
+import Link from 'next/link';
+import { useSearchParams } from 'next/navigation';
+import { type FormEvent, Suspense, useState } from 'react';
 
 function RequestResetForm() {
-  const [email, setEmail] = useState('')
-  const [isLoading, setIsLoading] = useState(false)
-  const [error, setError] = useState<string | null>(null)
-  const [success, setSuccess] = useState(false)
+  const [email, setEmail] = useState('');
+  const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const [success, setSuccess] = useState(false);
 
   const handleSubmit = async (e: FormEvent) => {
-    e.preventDefault()
-    setError(null)
-    setIsLoading(true)
+    e.preventDefault();
+    setError(null);
+    setIsLoading(true);
 
     try {
       const response = await fetch('/api/auth/password-reset', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ email }),
-      })
+      });
 
       if (!response.ok) {
-        const data = (await response.json()) as { error?: string }
-        setError(data.error || 'Failed to send reset email')
-        return
+        const data = (await response.json()) as { error?: string };
+        setError(data.error || 'Failed to send reset email');
+        return;
       }
 
-      setSuccess(true)
+      setSuccess(true);
     } catch {
-      setError('Network error. Please try again.')
+      setError('Network error. Please try again.');
     } finally {
-      setIsLoading(false)
+      setIsLoading(false);
     }
-  }
+  };
 
   if (success) {
     return (
@@ -66,7 +66,7 @@ function RequestResetForm() {
           </CardContent>
         </Card>
       </AuthLayout>
-    )
+    );
   }
 
   return (
@@ -112,40 +112,40 @@ function RequestResetForm() {
         </CardContent>
       </Card>
     </AuthLayout>
-  )
+  );
 }
 
 function ResetWithTokenForm({ token }: { token: string }) {
-  const [password, setPassword] = useState('')
-  const [isLoading, setIsLoading] = useState(false)
-  const [error, setError] = useState<string | null>(null)
-  const [success, setSuccess] = useState(false)
+  const [password, setPassword] = useState('');
+  const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const [success, setSuccess] = useState(false);
 
   const handleSubmit = async (e: FormEvent) => {
-    e.preventDefault()
-    setError(null)
-    setIsLoading(true)
+    e.preventDefault();
+    setError(null);
+    setIsLoading(true);
 
     try {
       const response = await fetch('/api/auth/password-reset', {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ token, password }),
-      })
+      });
 
       if (!response.ok) {
-        const data = (await response.json()) as { error?: string }
-        setError(data.error || 'Failed to reset password')
-        return
+        const data = (await response.json()) as { error?: string };
+        setError(data.error || 'Failed to reset password');
+        return;
       }
 
-      setSuccess(true)
+      setSuccess(true);
     } catch {
-      setError('Network error. Please try again.')
+      setError('Network error. Please try again.');
     } finally {
-      setIsLoading(false)
+      setIsLoading(false);
     }
-  }
+  };
 
   if (success) {
     return (
@@ -162,7 +162,7 @@ function ResetWithTokenForm({ token }: { token: string }) {
           </CardContent>
         </Card>
       </AuthLayout>
-    )
+    );
   }
 
   return (
@@ -204,7 +204,7 @@ function ResetWithTokenForm({ token }: { token: string }) {
         </CardContent>
       </Card>
     </AuthLayout>
-  )
+  );
 }
 
 export default function ResetPasswordPage() {
@@ -229,16 +229,16 @@ export default function ResetPasswordPage() {
     >
       <ResetPasswordContent />
     </Suspense>
-  )
+  );
 }
 
 function ResetPasswordContent() {
-  const searchParams = useSearchParams()
-  const token = searchParams.get('token')
+  const searchParams = useSearchParams();
+  const token = searchParams.get('token');
 
   if (token) {
-    return <ResetWithTokenForm token={token} />
+    return <ResetWithTokenForm token={token} />;
   }
 
-  return <RequestResetForm />
+  return <RequestResetForm />;
 }

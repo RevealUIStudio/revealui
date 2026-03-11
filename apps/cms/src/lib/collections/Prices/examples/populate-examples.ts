@@ -5,9 +5,9 @@
  * in the Prices collection using RevealUI's Populate API.
  */
 
-import type { PriceWithCategories, PriceWithRelated } from '@revealui/contracts/entities'
-import type { RevealDocument, RevealUIInstance } from '@revealui/core'
-import type { Price } from '@revealui/core/types/cms'
+import type { PriceWithCategories, PriceWithRelated } from '@revealui/contracts/entities';
+import type { RevealDocument, RevealUIInstance } from '@revealui/core';
+import type { Price } from '@revealui/core/types/cms';
 
 // =============================================================================
 // Example 1: Fetch with Automatic Population
@@ -24,7 +24,7 @@ export async function getPriceWithRelationships(
     collection: 'prices',
     id: priceId,
     depth: 1, // Populate categories and relatedPrices (1 level deep)
-  })) as Price | null
+  })) as Price | null;
 }
 
 /**
@@ -41,9 +41,9 @@ export async function getPublishedPricesWithCategories(
     },
     depth: 1, // Populate categories
     limit: 100,
-  })
+  });
 
-  return result.docs as PriceWithCategories[]
+  return result.docs as PriceWithCategories[];
 }
 
 // =============================================================================
@@ -64,20 +64,20 @@ export async function lazyPopulatePrices(revealui: RevealUIInstance) {
     // biome-ignore lint/style/useNamingConvention: _status is a RevealUI CMS query field required by the framework
     where: { _status: { equals: 'published' } },
     depth: 0, // No population
-  })
+  });
 
   // Example only — log removed for production
 
   // Step 2: Populate relationships when needed (e.g., user clicks "Show details")
-  const firstPrice = result.docs[0]
+  const firstPrice = result.docs[0];
   if (firstPrice) {
     // _populated holds the fully hydrated price — use it in your application code
     const _populated = await revealui.populate('prices', firstPrice, {
       depth: 1,
-    })
+    });
   }
 
-  return result.docs
+  return result.docs;
 }
 
 // =============================================================================
@@ -101,17 +101,17 @@ export async function batchPopulatePrices(
         depth: 0,
       }),
     ),
-  )
+  );
 
   // Filter out nulls
-  const validPrices = prices.filter((p) => p !== null)
+  const validPrices = prices.filter((p) => p !== null);
 
   // Populate all at once (uses DataLoader batching internally)
   const populated = await revealui.populate('prices', validPrices as unknown as RevealDocument[], {
     depth: 1,
-  })
+  });
 
-  return (Array.isArray(populated) ? populated : [populated]) as unknown as Price[]
+  return (Array.isArray(populated) ? populated : [populated]) as unknown as Price[];
 }
 
 // =============================================================================
@@ -132,9 +132,9 @@ export async function getpricesWithCategoriesOnly(
       categories: true, // Populate categories
       relatedPrices: false, // Skip related prices
     },
-  })
+  });
 
-  return result.docs as PriceWithCategories[]
+  return result.docs as PriceWithCategories[];
 }
 
 // =============================================================================
@@ -153,13 +153,13 @@ export async function getPriceWithDeepRelationships(
     collection: 'prices',
     id: priceId,
     depth: 2, // Populate 2 levels deep
-  })
+  });
 
-  if (!price) return null
+  if (!price) return null;
 
   // Note: relatedPrices has maxDepth: 1, so it won't populate deeper
   // This prevents infinite loops and performance issues
-  return price as PriceWithRelated
+  return price as PriceWithRelated;
 }
 
 // =============================================================================
@@ -179,10 +179,10 @@ export async function generatePriceContextForAI(
     collection: 'prices',
     id: priceId,
     depth: 2,
-  })
+  });
 
   if (!price) {
-    throw new Error(`Price ${priceId} not found`)
+    throw new Error(`Price ${priceId} not found`);
   }
 
   // Build context string
@@ -209,9 +209,9 @@ Related Prices: ${
           .join(', ')
       : 'None'
   }
-  `.trim()
+  `.trim();
 
-  return context
+  return context;
 }
 
 // =============================================================================
@@ -226,20 +226,20 @@ export async function enrichPriceForAPI(
   revealui: RevealUIInstance,
   priceId: string | number,
 ): Promise<{
-  id: number | string
-  title: string
-  stripePriceID: string | null
-  categories: Array<{ id: number; name: string }>
-  relatedPrices: Array<{ id: number; title: string }>
+  id: number | string;
+  title: string;
+  stripePriceID: string | null;
+  categories: Array<{ id: number; name: string }>;
+  relatedPrices: Array<{ id: number; title: string }>;
 }> {
   const price = await revealui.findByID({
     collection: 'prices',
     id: priceId,
     depth: 1,
-  })
+  });
 
   if (!price) {
-    throw new Error(`Price ${priceId} not found`)
+    throw new Error(`Price ${priceId} not found`);
   }
 
   // Transform to API shape
@@ -259,5 +259,5 @@ export async function enrichPriceForAPI(
           ? { id: p.id as number, title: p.title as string }
           : { id: p as unknown as number, title: 'Unknown' },
       ) || [],
-  }
+  };
 }

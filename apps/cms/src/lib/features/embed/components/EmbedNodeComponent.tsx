@@ -1,43 +1,43 @@
-import { useLexicalComposerContext } from '@revealui/core/richtext/client'
-import { $getNodeByKey } from 'lexical'
-import type React from 'react'
-import { useCallback } from 'react'
-import { type EmbedNodeData, OPEN_EMBED_DRAWER_COMMAND } from '../nodes/EmbedNode'
+import { useLexicalComposerContext } from '@revealui/core/richtext/client';
+import { $getNodeByKey } from 'lexical';
+import type React from 'react';
+import { useCallback } from 'react';
+import { type EmbedNodeData, OPEN_EMBED_DRAWER_COMMAND } from '../nodes/EmbedNode';
 
 // Simple button component placeholder
 const Button: React.FC<{
-  buttonStyle?: string
-  className?: string
-  el?: string
-  icon?: string
-  onClick?: (e: React.MouseEvent) => void
-  round?: boolean
-  tooltip?: string
-  children?: React.ReactNode
+  buttonStyle?: string;
+  className?: string;
+  el?: string;
+  icon?: string;
+  onClick?: (e: React.MouseEvent) => void;
+  round?: boolean;
+  tooltip?: string;
+  children?: React.ReactNode;
 }> = ({ onClick, tooltip, children, className }) => (
   <button type="button" onClick={onClick} title={tooltip} className={className}>
     {children || tooltip}
   </button>
-)
+);
 
 type Props = {
-  data: EmbedNodeData
-  nodeKey: string
-}
+  data: EmbedNodeData;
+  nodeKey: string;
+};
 
 export const EmbedNodeComponent: React.FC<Props> = (props) => {
-  const { data, nodeKey } = props
-  const [editor] = useLexicalComposerContext()
-  const videoSrc = `https://www.youtube.com/embed/${data.url.split('v=')[1]}`
+  const { data, nodeKey } = props;
+  const [editor] = useLexicalComposerContext();
+  const videoSrc = `https://www.youtube.com/embed/${data.url.split('v=')[1]}`;
 
   const removeEmbed = useCallback(() => {
     editor.update(() => {
-      const foundNode = $getNodeByKey(nodeKey)
+      const foundNode = $getNodeByKey(nodeKey);
       if (foundNode) {
-        foundNode.remove()
+        foundNode.remove();
       }
-    })
-  }, [editor, nodeKey])
+    });
+  }, [editor, nodeKey]);
 
   return (
     <div className="embed-node shadow-sm p-3 pt-2 bg-gray-100 border border-gray-200 font-body mb-6 w-[560px]">
@@ -53,7 +53,7 @@ export const EmbedNodeComponent: React.FC<Props> = (props) => {
               editor.dispatchCommand(OPEN_EMBED_DRAWER_COMMAND, {
                 data,
                 nodeKey,
-              })
+              });
             }}
             round
             tooltip="Swap Embed"
@@ -63,8 +63,8 @@ export const EmbedNodeComponent: React.FC<Props> = (props) => {
             className="embed-node__removeButton"
             icon="x"
             onClick={(e: React.MouseEvent) => {
-              e.preventDefault()
-              removeEmbed()
+              e.preventDefault();
+              removeEmbed();
             }}
             round
             tooltip="Remove Embed"
@@ -80,5 +80,5 @@ export const EmbedNodeComponent: React.FC<Props> = (props) => {
         allowFullScreen
       ></iframe>
     </div>
-  )
-}
+  );
+};

@@ -1,7 +1,7 @@
-import clsx from 'clsx'
-import type React from 'react'
+import clsx from 'clsx';
+import type React from 'react';
 
-type TrendDirection = 'up' | 'down' | 'neutral'
+type TrendDirection = 'up' | 'down' | 'neutral';
 
 export function Stat({
   label,
@@ -12,21 +12,21 @@ export function Stat({
   icon,
   className,
 }: {
-  label: string
-  value: React.ReactNode
-  change?: string
-  trend?: TrendDirection
-  description?: string
-  icon?: React.ReactNode
-  className?: string
+  label: string;
+  value: React.ReactNode;
+  change?: string;
+  trend?: TrendDirection;
+  description?: string;
+  icon?: React.ReactNode;
+  className?: string;
 }) {
   const trendColor = {
     up: 'text-green-600 dark:text-green-400',
     down: 'text-red-600 dark:text-red-400',
     neutral: 'text-zinc-500 dark:text-zinc-400',
-  }
+  };
 
-  const trendArrow = { up: '↑', down: '↓', neutral: '→' }
+  const trendArrow = { up: '↑', down: '↓', neutral: '→' };
 
   return (
     <div
@@ -55,19 +55,19 @@ export function Stat({
         </div>
       )}
     </div>
-  )
+  );
 }
 
 export function StatGroup({
   className,
   children,
 }: {
-  className?: string
-  children: React.ReactNode
+  className?: string;
+  children: React.ReactNode;
 }) {
   return (
     <div className={clsx('grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4', className)}>
       {children}
     </div>
-  )
+  );
 }

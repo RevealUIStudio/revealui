@@ -14,8 +14,8 @@ import type {
   Field,
   GlobalConfig,
   RevealRequest,
-} from '@revealui/contracts/cms'
-import { describe, expect, it } from 'vitest'
+} from '@revealui/contracts/cms';
+import { describe, expect, it } from 'vitest';
 
 // Type-level compatibility assertions
 // These won't run at runtime, but will cause TypeScript errors if types are incompatible
@@ -26,9 +26,9 @@ describe('Type Compatibility Assertions', () => {
       const config: CollectionConfig = {
         slug: 'posts',
         fields: [{ type: 'text', name: 'title' }],
-      }
-      expect(config.slug).toBe('posts')
-    })
+      };
+      expect(config.slug).toBe('posts');
+    });
 
     it('accepts collection with all common options', () => {
       const config: CollectionConfig = {
@@ -53,18 +53,18 @@ describe('Type Compatibility Assertions', () => {
         hooks: {
           afterChange: [({ doc }) => doc],
         },
-      }
-      expect(config.slug).toBe('posts')
-    })
+      };
+      expect(config.slug).toBe('posts');
+    });
 
     it('accepts collection with auth', () => {
       const config: CollectionConfig = {
         slug: 'users',
         auth: true,
         fields: [{ type: 'text', name: 'name' }],
-      }
-      expect(config.auth).toBe(true)
-    })
+      };
+      expect(config.auth).toBe(true);
+    });
 
     it('accepts collection with upload', () => {
       const config: CollectionConfig = {
@@ -74,19 +74,19 @@ describe('Type Compatibility Assertions', () => {
           mimeTypes: ['image/*'],
         },
         fields: [],
-      }
-      expect(config.upload).toBeDefined()
-    })
-  })
+      };
+      expect(config.upload).toBeDefined();
+    });
+  });
 
   describe('GlobalConfig', () => {
     it('accepts minimal global', () => {
       const config: GlobalConfig = {
         slug: 'settings',
         fields: [{ type: 'text', name: 'siteName' }],
-      }
-      expect(config.slug).toBe('settings')
-    })
+      };
+      expect(config.slug).toBe('settings');
+    });
 
     it('accepts global with access', () => {
       const config: GlobalConfig = {
@@ -96,10 +96,10 @@ describe('Type Compatibility Assertions', () => {
           read: () => true,
           update: ({ req }) => Boolean(req?.user),
         },
-      }
-      expect(config.access).toBeDefined()
-    })
-  })
+      };
+      expect(config.access).toBeDefined();
+    });
+  });
 
   describe('Field', () => {
     it('accepts text field', () => {
@@ -109,9 +109,9 @@ describe('Type Compatibility Assertions', () => {
         required: true,
         minLength: 1,
         maxLength: 200,
-      }
-      expect(field.type).toBe('text')
-    })
+      };
+      expect(field.type).toBe('text');
+    });
 
     it('accepts relationship field', () => {
       const field: Field = {
@@ -119,9 +119,9 @@ describe('Type Compatibility Assertions', () => {
         name: 'author',
         relationTo: 'users',
         hasMany: false,
-      }
-      expect(field.type).toBe('relationship')
-    })
+      };
+      expect(field.type).toBe('relationship');
+    });
 
     it('accepts array field with nested fields', () => {
       const field: Field = {
@@ -131,9 +131,9 @@ describe('Type Compatibility Assertions', () => {
           { type: 'text', name: 'label' },
           { type: 'number', name: 'value' },
         ],
-      }
-      expect(field.type).toBe('array')
-    })
+      };
+      expect(field.type).toBe('array');
+    });
 
     it('accepts blocks field', () => {
       const field: Field = {
@@ -145,9 +145,9 @@ describe('Type Compatibility Assertions', () => {
             fields: [{ type: 'text', name: 'heading' }],
           },
         ],
-      }
-      expect(field.type).toBe('blocks')
-    })
+      };
+      expect(field.type).toBe('blocks');
+    });
 
     it('accepts field with admin config', () => {
       const field: Field = {
@@ -159,100 +159,100 @@ describe('Type Compatibility Assertions', () => {
           readOnly: false,
           hidden: false,
         },
-      }
-      expect(field.admin).toBeDefined()
-    })
-  })
+      };
+      expect(field.admin).toBeDefined();
+    });
+  });
 
   describe('AccessFunction', () => {
     it('accepts simple access function', () => {
-      const emptyReq: RevealRequest = {}
-      const access: AccessFunction = () => true
-      expect(access({ req: emptyReq })).toBe(true)
-    })
+      const emptyReq: RevealRequest = {};
+      const access: AccessFunction = () => true;
+      expect(access({ req: emptyReq })).toBe(true);
+    });
 
     it('accepts access function with req parameter', () => {
-      const userReq: RevealRequest = { user: { id: '1' } }
+      const userReq: RevealRequest = { user: { id: '1' } };
       const access: AccessFunction = ({ req }) => {
-        return Boolean(req?.user)
-      }
-      expect(access({ req: userReq })).toBe(true)
-    })
+        return Boolean(req?.user);
+      };
+      expect(access({ req: userReq })).toBe(true);
+    });
 
     it('accepts async access function', async () => {
-      const userReq: RevealRequest = { user: { id: '1' } }
+      const userReq: RevealRequest = { user: { id: '1' } };
       const access: AccessFunction = async ({ req }) => {
-        return Boolean(req?.user)
-      }
-      const result = await access({ req: userReq })
-      expect(result).toBe(true)
-    })
+        return Boolean(req?.user);
+      };
+      const result = await access({ req: userReq });
+      expect(result).toBe(true);
+    });
 
     it('accepts access function returning where clause', () => {
-      const userReq: RevealRequest = { user: { id: '1' } }
+      const userReq: RevealRequest = { user: { id: '1' } };
       const access: AccessFunction = ({ req }) => {
-        if (!req?.user) return false
+        if (!req?.user) return false;
         return {
           author: { equals: req.user.id },
-        }
-      }
-      const result = access({ req: userReq })
-      expect(result).toEqual({ author: { equals: '1' } })
-    })
-  })
+        };
+      };
+      const result = access({ req: userReq });
+      expect(result).toEqual({ author: { equals: '1' } });
+    });
+  });
 
   describe('CollectionAfterChangeHook', () => {
     it('accepts typed hook', () => {
       interface Post {
-        id: string
-        title: string
+        id: string;
+        title: string;
       }
 
       const hook: CollectionAfterChangeHook<Post> = ({ doc, operation }) => {
-        console.log(`${operation}: ${doc.title}`)
-        return doc
-      }
+        console.log(`${operation}: ${doc.title}`);
+        return doc;
+      };
 
-      const emptyReq: RevealRequest = {}
+      const emptyReq: RevealRequest = {};
       const result = hook({
         doc: { id: '1', title: 'Test' },
         operation: 'create',
         req: emptyReq,
         previousDoc: { id: '1', title: 'Test' },
         context: {},
-      })
-      expect(result).toEqual({ id: '1', title: 'Test' })
-    })
+      });
+      expect(result).toEqual({ id: '1', title: 'Test' });
+    });
 
     it('accepts async hook', async () => {
       const hook: CollectionAfterChangeHook = async ({ doc }) => {
-        await Promise.resolve()
-        return doc
-      }
+        await Promise.resolve();
+        return doc;
+      };
 
-      const emptyReq: RevealRequest = {}
+      const emptyReq: RevealRequest = {};
       const result = await hook({
         doc: { id: '1' },
         operation: 'update',
         req: emptyReq,
         previousDoc: { id: '1' },
         context: {},
-      })
-      expect(result).toEqual({ id: '1' })
-    })
-  })
-})
+      });
+      expect(result).toEqual({ id: '1' });
+    });
+  });
+});
 
 describe('Real-world Config Patterns', () => {
   it('creates a blog posts collection', () => {
     interface Post {
-      id: string
-      title: string
-      slug: string
-      content: unknown
-      author: string
-      publishedAt?: Date
-      status: 'draft' | 'published'
+      id: string;
+      title: string;
+      slug: string;
+      content: unknown;
+      author: string;
+      publishedAt?: Date;
+      status: 'draft' | 'published';
     }
 
     const Posts: CollectionConfig<Post> = {
@@ -322,23 +322,23 @@ describe('Real-world Config Patterns', () => {
           ({ data, operation }) => {
             if (operation === 'create' && !data.slug) {
               // Auto-generate slug from title
-              data.slug = data.title?.toLowerCase().replace(/\s+/g, '-')
+              data.slug = data.title?.toLowerCase().replace(/\s+/g, '-');
             }
-            return data
+            return data;
           },
         ],
         afterChange: [
           ({ doc, operation }) => {
-            console.log(`Post ${operation}:`, doc.title)
-            return doc
+            console.log(`Post ${operation}:`, doc.title);
+            return doc;
           },
         ],
       },
-    }
+    };
 
-    expect(Posts.slug).toBe('posts')
-    expect(Posts.fields.length).toBeGreaterThan(0)
-  })
+    expect(Posts.slug).toBe('posts');
+    expect(Posts.fields.length).toBeGreaterThan(0);
+  });
 
   it('creates a users collection with auth', () => {
     const Users: CollectionConfig = {
@@ -371,16 +371,16 @@ describe('Real-world Config Patterns', () => {
         read: () => true,
         create: ({ req }) => req?.user?.roles?.includes('admin') ?? false,
         update: ({ req, id }) => {
-          if (req?.user?.roles?.includes('admin')) return true
-          return req?.user?.id === id
+          if (req?.user?.roles?.includes('admin')) return true;
+          return req?.user?.id === id;
         },
         delete: ({ req }) => req?.user?.roles?.includes('admin') ?? false,
       },
-    }
+    };
 
-    expect(Users.slug).toBe('users')
-    expect(Users.auth).toBeDefined()
-  })
+    expect(Users.slug).toBe('users');
+    expect(Users.auth).toBeDefined();
+  });
 
   it('creates a media collection with upload', () => {
     const Media: CollectionConfig = {
@@ -414,11 +414,11 @@ describe('Real-world Config Patterns', () => {
         read: () => true,
         create: ({ req }) => Boolean(req?.user),
       },
-    }
+    };
 
-    expect(Media.slug).toBe('media')
-    expect(Media.upload).toBeDefined()
-  })
+    expect(Media.slug).toBe('media');
+    expect(Media.upload).toBeDefined();
+  });
 
   it('creates a settings global', () => {
     const Settings: GlobalConfig = {
@@ -450,8 +450,8 @@ describe('Real-world Config Patterns', () => {
         read: () => true,
         update: ({ req }) => req?.user?.roles?.includes('admin') ?? false,
       },
-    }
+    };
 
-    expect(Settings.slug).toBe('settings')
-  })
-})
+    expect(Settings.slug).toBe('settings');
+  });
+});

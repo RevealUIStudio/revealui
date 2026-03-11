@@ -15,8 +15,8 @@
  *   pnpm db:seed -- --content-only  # Seed sample content only
  */
 
-import config from '@reveal-config'
-import { getRevealUI } from '@revealui/core'
+import config from '@reveal-config';
+import { getRevealUI } from '@revealui/core';
 
 const logger = {
   header: (msg: string) =>
@@ -24,7 +24,7 @@ const logger = {
   info: (msg: string) => process.stdout.write(`${msg}\n`),
   success: (msg: string) => process.stdout.write(`\x1b[32m${msg}\x1b[0m\n`),
   error: (msg: string) => process.stderr.write(`\x1b[31m${msg}\x1b[0m\n`),
-}
+};
 
 // --- Lexical richText helpers ---
 
@@ -37,7 +37,7 @@ function heading(text: string, tag: 'h2' | 'h3' | 'h4' = 'h2') {
     indent: 0,
     tag,
     version: 1,
-  }
+  };
 }
 
 function paragraph(text: string) {
@@ -50,7 +50,7 @@ function paragraph(text: string) {
     textFormat: 0,
     textStyle: '',
     version: 1,
-  }
+  };
 }
 
 function richTextDoc(...nodes: unknown[]) {
@@ -63,7 +63,7 @@ function richTextDoc(...nodes: unknown[]) {
       indent: 0,
       version: 1,
     },
-  }
+  };
 }
 
 // --- Seed Data ---
@@ -149,7 +149,7 @@ const pages = [
       },
     ],
   },
-]
+];
 
 const sampleContent = {
   contents: [
@@ -229,7 +229,7 @@ const sampleContent = {
       ],
     },
   ],
-}
+};
 
 // --- Seed Functions ---
 
@@ -240,27 +240,27 @@ async function seedCollection(
   identifierField: string,
   label: string,
 ) {
-  logger.info(`\nSeeding ${label}...`)
+  logger.info(`\nSeeding ${label}...`);
   for (const item of items) {
-    const identifier = String(item[identifierField])
+    const identifier = String(item[identifierField]);
     try {
       const existing = await revealui.find({
         collection,
         where: { [identifierField]: { equals: item[identifierField] } } as never,
         limit: 1,
-      })
+      });
 
       if (existing.docs && existing.docs.length > 0) {
-        logger.info(`   Skipping "${identifier}" (already exists)`)
-        continue
+        logger.info(`   Skipping "${identifier}" (already exists)`);
+        continue;
       }
 
-      await revealui.create({ collection, data: item as never })
-      logger.success(`   Created: "${identifier}"`)
+      await revealui.create({ collection, data: item as never });
+      logger.success(`   Created: "${identifier}"`);
     } catch (error) {
       logger.error(
         `   Error creating "${identifier}": ${error instanceof Error ? error.message : String(error)}`,
-      )
+      );
     }
   }
 }
@@ -268,93 +268,93 @@ async function seedCollection(
 async function getOrCreateDefaultSite(
   revealui: Awaited<ReturnType<typeof getRevealUI>>,
 ): Promise<string> {
-  const db = revealui.db
-  if (!db) throw new Error('No database connection')
+  const db = revealui.db;
+  if (!db) throw new Error('No database connection');
 
   // Check for existing site
-  const existing = await db.query('SELECT id FROM sites LIMIT 1')
+  const existing = await db.query('SELECT id FROM sites LIMIT 1');
   if (existing.rows.length > 0) {
-    const row = existing.rows[0] as { id: string }
-    logger.info(`   Using existing site: ${row.id}`)
-    return row.id
+    const row = existing.rows[0] as { id: string };
+    logger.info(`   Using existing site: ${row.id}`);
+    return row.id;
   }
 
   // Get admin user to set as site owner
   // Production uses role='user-super-admin'; local dev may use role='admin'
   const userResult = await db.query(
     "SELECT id FROM users WHERE role IN ('admin', 'user-super-admin') LIMIT 1",
-  )
-  if (!userResult.rows.length) throw new Error('Admin user not found — run user seed first')
-  const adminId = (userResult.rows[0] as { id: string }).id
+  );
+  if (!userResult.rows.length) throw new Error('Admin user not found — run user seed first');
+  const adminId = (userResult.rows[0] as { id: string }).id;
 
   // Create a default site
-  const siteId = `site_${Date.now()}_default`
+  const siteId = `site_${Date.now()}_default`;
   await db.query(
     `INSERT INTO sites (id, schema_version, owner_id, name, slug, status) VALUES ($1, '1', $2, 'RevealUI', 'revealui', 'published')`,
     [siteId, adminId],
-  )
-  logger.success(`   Created default site: ${siteId}`)
-  return siteId
+  );
+  logger.success(`   Created default site: ${siteId}`);
+  return siteId;
 }
 
 async function seedPages(revealui: Awaited<ReturnType<typeof getRevealUI>>) {
-  const siteId = await getOrCreateDefaultSite(revealui)
-  const pagesWithSite = pages.map((p) => ({ ...p, site_id: siteId }))
-  await seedCollection(revealui, 'pages', pagesWithSite, 'slug', 'Pages')
+  const siteId = await getOrCreateDefaultSite(revealui);
+  const pagesWithSite = pages.map((p) => ({ ...p, site_id: siteId }));
+  await seedCollection(revealui, 'pages', pagesWithSite, 'slug', 'Pages');
 }
 
 async function seedContent(revealui: Awaited<ReturnType<typeof getRevealUI>>) {
-  await seedCollection(revealui, 'contents', sampleContent.contents, 'name', 'Contents')
-  await seedCollection(revealui, 'cards', sampleContent.cards, 'name', 'Cards')
-  await seedCollection(revealui, 'heros', sampleContent.heros, 'href', 'Heros')
-  await seedCollection(revealui, 'events', sampleContent.events, 'title', 'Events')
-  await seedCollection(revealui, 'banners', sampleContent.banners, 'heading', 'Banners')
+  await seedCollection(revealui, 'contents', sampleContent.contents, 'name', 'Contents');
+  await seedCollection(revealui, 'cards', sampleContent.cards, 'name', 'Cards');
+  await seedCollection(revealui, 'heros', sampleContent.heros, 'href', 'Heros');
+  await seedCollection(revealui, 'events', sampleContent.events, 'title', 'Events');
+  await seedCollection(revealui, 'banners', sampleContent.banners, 'heading', 'Banners');
 }
 
 // --- Main ---
 
 async function main() {
   try {
-    const args = process.argv.slice(2)
-    const pagesOnly = args.includes('--pages-only')
-    const contentOnly = args.includes('--content-only')
+    const args = process.argv.slice(2);
+    const pagesOnly = args.includes('--pages-only');
+    const contentOnly = args.includes('--content-only');
 
-    logger.header('RevealUI Seed')
-    logger.info('Initializing CMS...\n')
+    logger.header('RevealUI Seed');
+    logger.info('Initializing CMS...\n');
 
-    const revealuiConfig = await config
-    const revealui = await getRevealUI({ config: revealuiConfig })
+    const revealuiConfig = await config;
+    const revealui = await getRevealUI({ config: revealuiConfig });
 
     if (!contentOnly) {
-      await seedPages(revealui)
+      await seedPages(revealui);
     }
 
     if (!pagesOnly) {
-      await seedContent(revealui)
+      await seedContent(revealui);
     }
 
-    logger.success('\nSeeding completed!')
+    logger.success('\nSeeding completed!');
 
     if (!contentOnly) {
-      logger.info('\nPages:')
+      logger.info('\nPages:');
       for (const page of pages) {
-        logger.info(`   /${page.slug} — ${page.title}`)
+        logger.info(`   /${page.slug} — ${page.title}`);
       }
     }
 
-    logger.info('\nNext steps:')
-    logger.info('   1. Visit /admin to manage content')
-    logger.info('   2. Visit / to see the home page')
-    logger.info('   3. Add images via Media collection\n')
+    logger.info('\nNext steps:');
+    logger.info('   1. Visit /admin to manage content');
+    logger.info('   2. Visit / to see the home page');
+    logger.info('   3. Add images via Media collection\n');
   } catch (error) {
-    logger.error(`Fatal error: ${error instanceof Error ? error.message : String(error)}`)
+    logger.error(`Fatal error: ${error instanceof Error ? error.message : String(error)}`);
     if (error instanceof Error && error.stack) {
-      logger.error(`Stack: ${error.stack}`)
+      logger.error(`Stack: ${error.stack}`);
     }
-    process.exit(1)
+    process.exit(1);
   }
 }
 
-main()
+main();
 
-export { pages, sampleContent, seedContent, seedPages }
+export { pages, sampleContent, seedContent, seedPages };

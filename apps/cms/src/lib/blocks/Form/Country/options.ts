@@ -979,4 +979,4 @@ export const countryOptions = [
     label: 'Zimbabwe',
     value: 'ZW',
   },
-]
+];

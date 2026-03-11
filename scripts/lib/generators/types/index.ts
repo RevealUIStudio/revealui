@@ -20,9 +20,9 @@
  */
 
 // Import Generation
-export * from './import-generator.js'
+export * from './import-generator.js';
 // Table Discovery
-export * from './table-discovery.js'
+export * from './table-discovery.js';
 
 // Type Transformation
-export * from './type-transformer.js'
+export * from './type-transformer.js';

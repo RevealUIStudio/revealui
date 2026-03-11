@@ -3,21 +3,21 @@ import type {
   RevealUIAccessResult,
   RevealUIAccessRule,
   RevealUIPermission,
-} from '../types/index.js'
+} from '../types/index.js';
 
 // Create a RevealUI access rule
 export function createRevealUIAccessRule(options: {
-  tenant?: string
-  user?: string
-  permissions?: RevealUIPermission[]
-  condition?: (context: RevealUIAccessContext) => RevealUIAccessResult
+  tenant?: string;
+  user?: string;
+  permissions?: RevealUIPermission[];
+  condition?: (context: RevealUIAccessContext) => RevealUIAccessResult;
 }): RevealUIAccessRule {
   return {
     tenant: options.tenant,
     user: options.user,
     permissions: options.permissions,
     condition: options.condition,
-  }
+  };
 }
 
 // Convert from a simple permission-based rule to RevealUI access rule
@@ -26,59 +26,59 @@ export function convertToRevealUIAccessRule(permissions: RevealUIPermission[]): 
     permissions,
     condition: (context: RevealUIAccessContext) => {
       // Check if user has required permissions
-      if (!context.user) return false
+      if (!context.user) return false;
 
       const userPermissions = context.user.revealUI?.isSuperAdmin
         ? ['create', 'read', 'update', 'delete', 'publish', 'admin']
-        : context.user.roles || []
+        : context.user.roles || [];
 
       return permissions.every(
         (permission) => userPermissions.includes(permission) || userPermissions.includes('admin'),
-      )
+      );
     },
-  })
+  });
 }
 
 // Create an enhanced access rule with tenant scoping
 export function createEnhancedAccessRule(options: {
-  permissions: RevealUIPermission[]
-  tenantScoped?: boolean
-  allowSuperAdmin?: boolean
-  customCondition?: (context: RevealUIAccessContext) => RevealUIAccessResult
+  permissions: RevealUIPermission[];
+  tenantScoped?: boolean;
+  allowSuperAdmin?: boolean;
+  customCondition?: (context: RevealUIAccessContext) => RevealUIAccessResult;
 }): RevealUIAccessRule {
   return createRevealUIAccessRule({
     permissions: options.permissions,
     condition: (context: RevealUIAccessContext) => {
       // Check super admin override
       if (options.allowSuperAdmin !== false && context.user?.revealUI?.isSuperAdmin) {
-        return true
+        return true;
       }
 
       // Check custom condition first
       if (options.customCondition) {
-        const customResult = options.customCondition(context)
+        const customResult = options.customCondition(context);
         if (customResult !== true) {
-          return customResult
+          return customResult;
         }
       }
 
       // Check tenant scoping
       if (options.tenantScoped && context.tenant) {
-        const userTenants = context.user?.tenants || []
+        const userTenants = context.user?.tenants || [];
         if (!userTenants.includes(context.tenant.id)) {
-          return false
+          return false;
         }
       }
 
       // Check permissions
-      if (!context.user) return false
+      if (!context.user) return false;
 
-      const userPermissions = context.user.roles || []
+      const userPermissions = context.user.roles || [];
       return options.permissions.every(
         (permission) => userPermissions.includes(permission) || userPermissions.includes('admin'),
-      )
+      );
     },
-  })
+  });
 }
 
 // Evaluate an access rule against a context
@@ -88,37 +88,37 @@ export function evaluateRevealUIAccessRule(
 ): RevealUIAccessResult {
   // Check tenant constraint
   if (rule.tenant && context.tenant?.id !== rule.tenant) {
-    return false
+    return false;
   }
 
   // Check user constraint
   if (rule.user && context.user?.id !== rule.user) {
-    return false
+    return false;
   }
 
   // Check permissions
   if (rule.permissions && rule.permissions.length > 0) {
-    if (!context.user) return false
+    if (!context.user) return false;
 
     const userPermissions = context.user.revealUI?.isSuperAdmin
       ? ['create', 'read', 'update', 'delete', 'publish', 'admin']
-      : context.user.roles || []
+      : context.user.roles || [];
 
     const hasPermission = rule.permissions.every(
       (permission) => userPermissions.includes(permission) || userPermissions.includes('admin'),
-    )
+    );
 
     if (!hasPermission) {
-      return false
+      return false;
     }
   }
 
   // Check custom condition
   if (rule.condition) {
-    return rule.condition(context)
+    return rule.condition(context);
   }
 
-  return true
+  return true;
 }
 
 // Combine multiple access rules with OR logic
@@ -129,10 +129,10 @@ export function combineRevealUIAccessRules(
   return createRevealUIAccessRule({
     condition: (context: RevealUIAccessContext) => {
       if (operator === 'OR') {
-        return rules.some((rule) => evaluateRevealUIAccessRule(rule, context) === true)
+        return rules.some((rule) => evaluateRevealUIAccessRule(rule, context) === true);
       } else {
-        return rules.every((rule) => evaluateRevealUIAccessRule(rule, context) === true)
+        return rules.every((rule) => evaluateRevealUIAccessRule(rule, context) === true);
       }
     },
-  })
+  });
 }

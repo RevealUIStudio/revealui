@@ -5,21 +5,21 @@
  * Do NOT import in client-side code or edge runtime.
  */
 
-import { del, put } from '@vercel/blob'
-import { defaultLogger } from '../instance/logger.js'
-import type { Plugin } from '../types/index.js'
+import { del, put } from '@vercel/blob';
+import { defaultLogger } from '../instance/logger.js';
+import type { Plugin } from '../types/index.js';
 
 export interface VercelBlobStorageConfig {
-  enabled?: boolean
+  enabled?: boolean;
   collections?: {
-    [key: string]: boolean
-  }
-  token?: string
-  prefix?: string
+    [key: string]: boolean;
+  };
+  token?: string;
+  prefix?: string;
 }
 
 export function vercelBlobStorage(config: VercelBlobStorageConfig): Plugin {
-  const prefix = config.prefix || 'uploads'
+  const prefix = config.prefix || 'uploads';
 
   return (incomingConfig) => {
     // Add storage functionality to collections
@@ -40,27 +40,27 @@ export function vercelBlobStorage(config: VercelBlobStorageConfig): Plugin {
                 adapter: {
                   name: 'vercel-blob',
                   generateURL: (file: { filename: string }) => {
-                    return `${prefix}/${file.filename}`
+                    return `${prefix}/${file.filename}`;
                   },
                   upload: async (file: {
-                    name: string
-                    data: Buffer
-                    size: number
-                    mimetype: string
-                    width?: number
-                    height?: number
+                    name: string;
+                    data: Buffer;
+                    size: number;
+                    mimetype: string;
+                    width?: number;
+                    height?: number;
                   }) => {
                     try {
-                      const filePath = `${prefix}/${collection.slug}/${Date.now()}-${file.name}`
+                      const filePath = `${prefix}/${collection.slug}/${Date.now()}-${file.name}`;
                       if (!config.token) {
-                        throw new Error('Vercel blob token is required but not configured')
+                        throw new Error('Vercel blob token is required but not configured');
                       }
 
                       const blob = await put(filePath, file.data, {
                         access: 'public',
                         token: config.token,
                         addRandomSuffix: false,
-                      })
+                      });
 
                       return {
                         url: blob.url,
@@ -69,10 +69,10 @@ export function vercelBlobStorage(config: VercelBlobStorageConfig): Plugin {
                         mimeType: file.mimetype,
                         width: file.width,
                         height: file.height,
-                      }
+                      };
                     } catch (error) {
-                      defaultLogger.error('Vercel Blob upload error:', error)
-                      throw error
+                      defaultLogger.error('Vercel Blob upload error:', error);
+                      throw error;
                     }
                   },
                   delete: async (filename: string) => {
@@ -80,27 +80,27 @@ export function vercelBlobStorage(config: VercelBlobStorageConfig): Plugin {
                       // Extract the blob URL from filename or construct it
                       const blobUrl = filename.startsWith('http')
                         ? filename
-                        : `${prefix}/${filename}`
+                        : `${prefix}/${filename}`;
 
-                      await del(blobUrl)
+                      await del(blobUrl);
                     } catch (error) {
-                      defaultLogger.error('Vercel Blob delete error:', error)
-                      throw error
+                      defaultLogger.error('Vercel Blob delete error:', error);
+                      throw error;
                     }
                   },
                   generateFileURL: (file: { filename: string }) => {
-                    return `${prefix}/${collection.slug}/${file.filename}`
+                    return `${prefix}/${collection.slug}/${file.filename}`;
                   },
                 },
               },
             ],
-          }
+          };
 
-          collection.upload = uploadConfig
+          collection.upload = uploadConfig;
         }
       }
     }
 
-    return incomingConfig
-  }
+    return incomingConfig;
+  };
 }

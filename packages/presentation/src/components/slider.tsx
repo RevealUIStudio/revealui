@@ -1,8 +1,8 @@
-'use client'
+'use client';
 
-import clsx from 'clsx'
-import type React from 'react'
-import { useCallback, useId, useState } from 'react'
+import clsx from 'clsx';
+import type React from 'react';
+import { useCallback, useId, useState } from 'react';
 
 export function Slider({
   value: controlledValue,
@@ -16,31 +16,31 @@ export function Slider({
   showValue = false,
   className,
 }: {
-  value?: number
-  defaultValue?: number
-  min?: number
-  max?: number
-  step?: number
-  onChange?: (value: number) => void
-  disabled?: boolean
-  label?: string
-  showValue?: boolean
-  className?: string
+  value?: number;
+  defaultValue?: number;
+  min?: number;
+  max?: number;
+  step?: number;
+  onChange?: (value: number) => void;
+  disabled?: boolean;
+  label?: string;
+  showValue?: boolean;
+  className?: string;
 }) {
-  const [internalValue, setInternalValue] = useState(defaultValue)
-  const value = controlledValue ?? internalValue
-  const id = useId()
+  const [internalValue, setInternalValue] = useState(defaultValue);
+  const value = controlledValue ?? internalValue;
+  const id = useId();
 
   const handleChange = useCallback(
     (e: React.ChangeEvent<HTMLInputElement>) => {
-      const next = Number(e.target.value)
-      setInternalValue(next)
-      onChange?.(next)
+      const next = Number(e.target.value);
+      setInternalValue(next);
+      onChange?.(next);
     },
     [onChange],
-  )
+  );
 
-  const percentage = ((value - min) / (max - min)) * 100
+  const percentage = ((value - min) / (max - min)) * 100;
 
   return (
     <div className={clsx('w-full', className)}>
@@ -77,5 +77,5 @@ export function Slider({
         )}
       />
     </div>
-  )
+  );
 }

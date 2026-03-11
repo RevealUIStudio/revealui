@@ -6,8 +6,8 @@
  * Only the last 4 characters are stored in plaintext (keyHint) for UI display.
  */
 
-import { boolean, index, pgTable, text, timestamp } from 'drizzle-orm/pg-core'
-import { users } from './users.js'
+import { boolean, index, pgTable, text, timestamp } from 'drizzle-orm/pg-core';
+import { users } from './users.js';
 
 // =============================================================================
 // User API Keys Table
@@ -44,10 +44,10 @@ export const userApiKeys = pgTable(
     index('user_api_keys_user_id_idx').on(table.userId),
     index('user_api_keys_user_provider_idx').on(table.userId, table.provider),
   ],
-)
+);
 
-export type UserApiKey = typeof userApiKeys.$inferSelect
-export type NewUserApiKey = typeof userApiKeys.$inferInsert
+export type UserApiKey = typeof userApiKeys.$inferSelect;
+export type NewUserApiKey = typeof userApiKeys.$inferInsert;
 
 // =============================================================================
 // Tenant Provider Configs Table
@@ -76,7 +76,7 @@ export const tenantProviderConfigs = pgTable(
     updatedAt: timestamp('updated_at', { withTimezone: true }).defaultNow().notNull(),
   },
   (table) => [index('tenant_provider_configs_user_id_idx').on(table.userId)],
-)
+);
 
-export type TenantProviderConfig = typeof tenantProviderConfigs.$inferSelect
-export type NewTenantProviderConfig = typeof tenantProviderConfigs.$inferInsert
+export type TenantProviderConfig = typeof tenantProviderConfigs.$inferSelect;
+export type NewTenantProviderConfig = typeof tenantProviderConfigs.$inferInsert;

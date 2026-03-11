@@ -16,44 +16,44 @@
  *   - Invalid X-PAYMENT-PAYLOAD header → HTTP 402 with error detail
  */
 
-import { getMaxAgentTasks } from '@revealui/core/license'
-import { logger } from '@revealui/core/observability/logger'
-import { getClient } from '@revealui/db'
-import { agentTaskUsage } from '@revealui/db/schema'
-import { and, eq, sql } from 'drizzle-orm'
-import type { Context, Next } from 'hono'
+import { getMaxAgentTasks } from '@revealui/core/license';
+import { logger } from '@revealui/core/observability/logger';
+import { getClient } from '@revealui/db';
+import { agentTaskUsage } from '@revealui/db/schema';
+import { and, eq, sql } from 'drizzle-orm';
+import type { Context, Next } from 'hono';
 import {
   buildPaymentRequired,
   encodePaymentRequired,
   getX402Config,
   verifyPayment,
-} from './x402.js'
+} from './x402.js';
 
 /** Tracks consecutive DB write failures for observability. */
-let quotaWriteFailures = 0
-const FAILURE_LOG_INTERVAL = 10
+let quotaWriteFailures = 0;
+const FAILURE_LOG_INTERVAL = 10;
 
 function onQuotaWriteError(err: unknown): void {
-  quotaWriteFailures++
+  quotaWriteFailures++;
   if (quotaWriteFailures % FAILURE_LOG_INTERVAL === 1) {
     logger.warn('Task quota DB write failed', {
       consecutiveFailures: quotaWriteFailures,
       error: err instanceof Error ? err.message : String(err),
-    })
+    });
   }
 }
 
 interface UserContext {
-  id: string
-  email: string | null
-  name: string
-  role: string
+  id: string;
+  email: string | null;
+  name: string;
+  role: string;
 }
 
 /** Returns the UTC timestamp for the start of the current calendar month. */
 function cycleStart(): Date {
-  const now = new Date()
-  return new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), 1))
+  const now = new Date();
+  return new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), 1));
 }
 
 export async function requireTaskQuota(
@@ -62,15 +62,15 @@ export async function requireTaskQuota(
   next: Next,
   // biome-ignore lint/suspicious/noConfusingVoidType: Hono middleware must return Response | void
 ): Promise<Response | void> {
-  const user = c.get('user')
+  const user = c.get('user');
   if (!user) {
     // No auth — feature gate already handles this; just pass through
-    return next()
+    return next();
   }
 
-  const quota = getMaxAgentTasks()
-  const db = getClient()
-  const cycle = cycleStart()
+  const quota = getMaxAgentTasks();
+  const db = getClient();
+  const cycle = cycleStart();
 
   if (quota === Infinity) {
     // Enterprise/Forge: increment for metering, never block
@@ -81,8 +81,8 @@ export async function requireTaskQuota(
         target: [agentTaskUsage.userId, agentTaskUsage.cycleStart],
         set: { count: sql`${agentTaskUsage.count} + 1`, updatedAt: new Date() },
       })
-      .catch(onQuotaWriteError)
-    return next()
+      .catch(onQuotaWriteError);
+    return next();
   }
 
   // Fetch current count for this billing cycle
@@ -90,9 +90,9 @@ export async function requireTaskQuota(
     .select({ count: agentTaskUsage.count })
     .from(agentTaskUsage)
     .where(and(eq(agentTaskUsage.userId, user.id), eq(agentTaskUsage.cycleStart, cycle)))
-    .limit(1)
+    .limit(1);
 
-  const current = row?.count ?? 0
+  const current = row?.count ?? 0;
 
   if (current >= quota) {
     // Track overage for billing reports (fire-and-forget)
@@ -103,31 +103,31 @@ export async function requireTaskQuota(
         target: [agentTaskUsage.userId, agentTaskUsage.cycleStart],
         set: { overage: sql`${agentTaskUsage.overage} + 1`, updatedAt: new Date() },
       })
-      .catch(onQuotaWriteError)
+      .catch(onQuotaWriteError);
 
-    const x402 = getX402Config()
+    const x402 = getX402Config();
     const resetAt = new Date(
       Date.UTC(cycle.getUTCFullYear(), cycle.getUTCMonth() + 1, 1),
-    ).toISOString()
+    ).toISOString();
 
     if (x402.enabled && x402.receivingAddress) {
       // x402 payment path — agents can pay USDC per task instead of hard-blocking
-      const parsedUrl = new URL(c.req.url)
-      const resource = `${parsedUrl.origin}${parsedUrl.pathname}`
-      const payloadHeader = c.req.header('X-PAYMENT-PAYLOAD')
+      const parsedUrl = new URL(c.req.url);
+      const resource = `${parsedUrl.origin}${parsedUrl.pathname}`;
+      const payloadHeader = c.req.header('X-PAYMENT-PAYLOAD');
 
       if (payloadHeader) {
         // Verify the payment proof the agent sent
-        const result = await verifyPayment(payloadHeader, resource)
+        const result = await verifyPayment(payloadHeader, resource);
 
         if (result.valid) {
           logger.info('x402 payment accepted — task quota bypassed', {
             userId: user.id,
             resource,
             used: current,
-          })
+          });
           // Allow through without incrementing quota (it's a paid overage call)
-          return next()
+          return next();
         }
 
         return c.json(
@@ -138,11 +138,11 @@ export async function requireTaskQuota(
             currency: 'USDC',
           },
           402,
-        )
+        );
       }
 
       // No payment header — return 402 with x402 payment requirements
-      const paymentRequired = buildPaymentRequired(resource)
+      const paymentRequired = buildPaymentRequired(resource);
       return c.json(
         {
           payment_required: true,
@@ -155,7 +155,7 @@ export async function requireTaskQuota(
         },
         402,
         { 'X-PAYMENT-REQUIRED': encodePaymentRequired(paymentRequired) },
-      )
+      );
     }
 
     // x402 disabled → existing 429 behavior (no behavioral change for subscribers)
@@ -167,7 +167,7 @@ export async function requireTaskQuota(
         resetAt,
       },
       429,
-    )
+    );
   }
 
   // Increment atomically (fire-and-forget — task proceeds regardless of DB write result)
@@ -178,7 +178,7 @@ export async function requireTaskQuota(
       target: [agentTaskUsage.userId, agentTaskUsage.cycleStart],
       set: { count: sql`${agentTaskUsage.count} + 1`, updatedAt: new Date() },
     })
-    .catch(onQuotaWriteError)
+    .catch(onQuotaWriteError);
 
-  return next()
+  return next();
 }

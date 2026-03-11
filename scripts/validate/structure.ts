@@ -11,15 +11,15 @@
  * - node:path - Path manipulation utilities (join)
  */
 
-import { execSync } from 'node:child_process'
-import { existsSync, readdirSync, statSync } from 'node:fs'
-import { join } from 'node:path'
+import { execSync } from 'node:child_process';
+import { existsSync, readdirSync, statSync } from 'node:fs';
+import { join } from 'node:path';
 
 interface ValidationRule {
-  path: string
-  type: 'directory' | 'file'
-  description: string
-  required?: boolean
+  path: string;
+  type: 'directory' | 'file';
+  description: string;
+  required?: boolean;
 }
 
 const VALIDATION_RULES: ValidationRule[] = [
@@ -200,66 +200,66 @@ const VALIDATION_RULES: ValidationRule[] = [
     description: 'License file',
     required: false,
   },
-]
+];
 
 class StructureValidator {
   validate(): boolean {
-    console.log('🔍 Validating Reorganized Structure\n')
+    console.log('🔍 Validating Reorganized Structure\n');
 
-    let allValid = true
+    let allValid = true;
     const results: Array<{
-      rule: ValidationRule
-      valid: boolean
-      message: string
-    }> = []
+      rule: ValidationRule;
+      valid: boolean;
+      message: string;
+    }> = [];
 
     for (const rule of VALIDATION_RULES) {
-      const exists = existsSync(rule.path)
+      const exists = existsSync(rule.path);
 
       if (rule.required && !exists) {
         results.push({
           rule,
           valid: false,
           message: `❌ MISSING: ${rule.path} - ${rule.description}`,
-        })
-        allValid = false
+        });
+        allValid = false;
       } else if (exists) {
         // Check if it's the right type
-        const stats = statSync(rule.path)
+        const stats = statSync(rule.path);
         const isCorrectType =
           (rule.type === 'directory' && stats.isDirectory()) ||
-          (rule.type === 'file' && stats.isFile())
+          (rule.type === 'file' && stats.isFile());
 
         if (!isCorrectType) {
           results.push({
             rule,
             valid: false,
             message: `❌ WRONG TYPE: ${rule.path} - Expected ${rule.type}, got ${stats.isDirectory() ? 'directory' : 'file'}`,
-          })
-          allValid = false
+          });
+          allValid = false;
         } else {
           results.push({
             rule,
             valid: true,
             message: `✅ OK: ${rule.path} - ${rule.description}`,
-          })
+          });
         }
       } else if (!rule.required) {
         results.push({
           rule,
           valid: true,
           message: `⚠️  OPTIONAL: ${rule.path} - ${rule.description} (not present)`,
-        })
+        });
       }
     }
 
     // Print results
     for (const result of results) {
-      console.log(result.message)
+      console.log(result.message);
     }
 
     // Additional validations
-    console.log('\n🔍 Additional Validations:')
+    console.log('\n🔍 Additional Validations:');
 
     // Check for remaining scattered files
     const AllowedRootDirs = [
@@ -282,7 +282,7 @@ class StructureValidator {
       '.direnv',
       '.archive',
       '.revealui',
-    ]
+    ];
 
     const AllowedRootFiles = [
       // Documentation
@@ -330,27 +330,27 @@ class StructureValidator {
       // Reports (consider moving to reports/ folder)
       'CODE-QUALITY-REPORT.json',
       'TYPE-USAGE-REPORT.json',
-    ]
+    ];
 
     const rootFiles = readdirSync('.').filter(
       (file) => !(file.startsWith('.') || AllowedRootDirs.includes(file)),
-    )
+    );
 
     // Core project files that belong in root
-    const coreProjectFiles = AllowedRootFiles
+    const coreProjectFiles = AllowedRootFiles;
 
     const scatteredFiles = rootFiles.filter((file) => {
-      const stats = statSync(file)
-      return stats.isFile() && !coreProjectFiles.includes(file)
-    })
+      const stats = statSync(file);
+      return stats.isFile() && !coreProjectFiles.includes(file);
+    });
 
     if (scatteredFiles.length > 0) {
-      console.log(`\n⚠️  Remaining scattered files in root (warning only):`)
+      console.log(`\n⚠️  Remaining scattered files in root (warning only):`);
       scatteredFiles.forEach((file) => {
-        console.log(`   - ${file}`)
-      })
+        console.log(`   - ${file}`);
+      });
     } else {
-      console.log('\n✅ No scattered files in root')
+      console.log('\n✅ No scattered files in root');
     }
 
     // Check for unauthorized markdown files in root
@@ -366,110 +366,112 @@ class StructureValidator {
           'SECURITY.md',
           'DEVELOPER_EXPERIENCE_COHESION_ANALYSIS.md',
         ].includes(file),
-    )
+    );
 
     if (rootMarkdownFiles.length > 0) {
-      console.log(`\n❌ Unauthorized markdown files in root (should be in docs/):`)
+      console.log(`\n❌ Unauthorized markdown files in root (should be in docs/):`);
       rootMarkdownFiles.forEach((file) => {
-        console.log(`   - ${file}`)
-      })
-      allValid = false
+        console.log(`   - ${file}`);
+      });
+      allValid = false;
     } else {
-      console.log('✅ Only authorized markdown files in root')
+      console.log('✅ Only authorized markdown files in root');
     }
 
     // Check infrastructure structure
-    const infrastructureDir = 'infrastructure'
-    const RequiredInfrastructureSubdirs = ['docker', 'k8s']
+    const infrastructureDir = 'infrastructure';
+    const RequiredInfrastructureSubdirs = ['docker', 'k8s'];
 
     if (existsSync(infrastructureDir)) {
-      console.log('\n🔍 Checking infrastructure structure...')
+      console.log('\n🔍 Checking infrastructure structure...');
       for (const subdir of RequiredInfrastructureSubdirs) {
-        const subdirPath = join(infrastructureDir, subdir)
+        const subdirPath = join(infrastructureDir, subdir);
         if (!existsSync(subdirPath)) {
-          console.log(`❌ Missing ${subdirPath}`)
-          allValid = false
+          console.log(`❌ Missing ${subdirPath}`);
+          allValid = false;
         } else {
-          console.log(`✅ ${subdirPath} exists`)
+          console.log(`✅ ${subdirPath} exists`);
         }
       }
     }
 
     // Check that k8s/ and docker/ are not in root
     if (existsSync('k8s')) {
-      console.log('\n❌ k8s/ found in root - should be in infrastructure/')
-      allValid = false
+      console.log('\n❌ k8s/ found in root - should be in infrastructure/');
+      allValid = false;
     }
     if (existsSync('docker')) {
-      console.log('\n❌ docker/ found in root - should be in infrastructure/')
-      allValid = false
+      console.log('\n❌ docker/ found in root - should be in infrastructure/');
+      allValid = false;
     }
 
     // Check that package-templates is not in root
     if (existsSync('package-templates')) {
-      console.log('\n❌ package-templates/ found in root - should be in .revealui/templates/')
-      allValid = false
+      console.log('\n❌ package-templates/ found in root - should be in .revealui/templates/');
+      allValid = false;
     }
 
     // Check that templates exist
     if (!existsSync('.revealui/templates')) {
-      console.log('\n❌ .revealui/templates/ directory not found')
-      allValid = false
+      console.log('\n❌ .revealui/templates/ directory not found');
+      allValid = false;
     } else {
-      console.log('✅ .revealui/templates/ directory exists')
+      console.log('✅ .revealui/templates/ directory exists');
     }
 
     // Check that mcp is not in root
     if (existsSync('mcp')) {
-      console.log('\n❌ mcp/ found in root - should be in packages/mcp/')
-      allValid = false
+      console.log('\n❌ mcp/ found in root - should be in packages/mcp/');
+      allValid = false;
     }
 
     // Check package structure consistency
-    console.log('\n🔍 Checking package structure consistency...')
-    const packagesDir = 'packages'
+    console.log('\n🔍 Checking package structure consistency...');
+    const packagesDir = 'packages';
     // Packages exempt from src/ and __tests__ checks — thin wrappers or delegation-only packages
-    const srcExempt = new Set(['create-revealui', 'PACKAGE-CONVENTIONS.md'])
+    const srcExempt = new Set(['create-revealui', 'PACKAGE-CONVENTIONS.md']);
     if (existsSync(packagesDir)) {
       const packages = readdirSync(packagesDir).filter((item) =>
         statSync(join(packagesDir, item)).isDirectory(),
-      )
+      );
 
       for (const pkg of packages) {
-        const pkgPath = join(packagesDir, pkg)
-        const hasSrc = existsSync(join(pkgPath, 'src'))
+        const pkgPath = join(packagesDir, pkg);
+        const hasSrc = existsSync(join(pkgPath, 'src'));
         const hasTests =
-          existsSync(join(pkgPath, '__tests__')) || existsSync(join(pkgPath, 'src', '__tests__'))
-        const hasPackageJson = existsSync(join(pkgPath, 'package.json'))
+          existsSync(join(pkgPath, '__tests__')) || existsSync(join(pkgPath, 'src', '__tests__'));
+        const hasPackageJson = existsSync(join(pkgPath, 'package.json'));
 
         if (!srcExempt.has(pkg)) {
           if (!hasSrc) {
-            console.log(`⚠️  Package ${pkg} missing src/ directory`)
-            allValid = false
+            console.log(`⚠️  Package ${pkg} missing src/ directory`);
+            allValid = false;
           }
           if (!hasTests) {
-            console.log(`⚠️  Package ${pkg} missing __tests__ directory`)
+            console.log(`⚠️  Package ${pkg} missing __tests__ directory`);
           }
         }
         if (!hasPackageJson) {
-          console.log(`❌ Package ${pkg} missing package.json`)
-          allValid = false
+          console.log(`❌ Package ${pkg} missing package.json`);
+          allValid = false;
         }
       }
     }
 
     // Check dual-database boundary enforcement
-    console.log('\n🔍 Checking dual-DB boundary (Supabase outside permitted paths)...')
-    this.checkDualDbBoundary(results)
+    console.log('\n🔍 Checking dual-DB boundary (Supabase outside permitted paths)...');
+    this.checkDualDbBoundary(results);
 
-    console.log(`\n${allValid ? '✅' : '❌'} Overall validation: ${allValid ? 'PASSED' : 'FAILED'}`)
+    console.log(
+      `\n${allValid ? '✅' : '❌'} Overall validation: ${allValid ? 'PASSED' : 'FAILED'}`,
+    );
 
     if (!allValid) {
-      console.log('\n💡 Fix issues and re-run validation:')
-      console.log('pnpm run validate:structure')
+      console.log('\n💡 Fix issues and re-run validation:');
+      console.log('pnpm run validate:structure');
     }
 
-    return allValid
+    return allValid;
   }
 
   /**
@@ -489,19 +491,19 @@ class StructureValidator {
       'packages/mcp/src',
       // Integration tests for Supabase services are expected to import supabase-js
       'packages/test/src/integration',
-    ]
+    ];
 
-    let output = ''
+    let output = '';
     try {
       // Use grep to find all TypeScript files importing @supabase/supabase-js.
       // Exclude .claude/worktrees/ — those are agent sandbox directories, not production source.
       output = execSync(
         `grep -r --include="*.ts" --include="*.tsx" --exclude-dir=".next" --exclude-dir="dist" --exclude-dir="node_modules" --exclude-dir=".turbo" --exclude-dir="worktrees" -l "@supabase/supabase-js" . 2>/dev/null || true`,
         { encoding: 'utf8', cwd: process.cwd() },
-      )
+      );
     } catch {
       // grep exits non-zero if no matches — that's fine
-      output = ''
+      output = '';
     }
 
     const files = output
@@ -518,59 +520,59 @@ class StructureValidator {
           !f.includes('node_modules') &&
           !f.includes('/dist/') &&
           !f.startsWith('.claude/worktrees/'),
-      )
+      );
 
-    const violations: string[] = []
-    const permitted: string[] = []
+    const violations: string[] = [];
+    const permitted: string[] = [];
 
     for (const file of files) {
-      const isAllowed = AllowedSupabasePaths.some((allowedPath) => file.startsWith(allowedPath))
+      const isAllowed = AllowedSupabasePaths.some((allowedPath) => file.startsWith(allowedPath));
       // Also allow app-level supabase utility directories
-      const isAppAllowed = /^apps\/[^/]+\/src\/lib\/supabase\//.test(file)
+      const isAppAllowed = /^apps\/[^/]+\/src\/lib\/supabase\//.test(file);
 
       if (isAllowed || isAppAllowed) {
-        permitted.push(file)
+        permitted.push(file);
       } else {
-        violations.push(file)
+        violations.push(file);
       }
     }
 
     if (permitted.length > 0) {
-      console.log(`✅ ${permitted.length} file(s) use Supabase within permitted paths`)
+      console.log(`✅ ${permitted.length} file(s) use Supabase within permitted paths`);
     }
 
     if (violations.length > 0) {
       console.log(
         `⚠️  ${violations.length} file(s) import @supabase/supabase-js outside permitted paths:`,
-      )
+      );
       for (const v of violations) {
-        console.log(`   - ${v}`)
+        console.log(`   - ${v}`);
       }
       console.log(
         '   Permitted paths: packages/db/src/vector, packages/db/src/auth, packages/auth/src, packages/ai/src, packages/services/src/supabase, packages/mcp/src, packages/test/src/integration, apps/*/src/lib/supabase/',
-      )
-      console.log('   See .claude/rules/database.md for the dual-DB boundary policy.')
+      );
+      console.log('   See .claude/rules/database.md for the dual-DB boundary policy.');
     } else if (files.length === 0) {
-      console.log('✅ No @supabase/supabase-js imports found (or grep unavailable)')
+      console.log('✅ No @supabase/supabase-js imports found (or grep unavailable)');
     } else {
-      console.log('✅ All Supabase imports are within permitted paths')
+      console.log('✅ All Supabase imports are within permitted paths');
     }
   }
 }
 
 // CLI interface
 async function main() {
-  console.log('🎯 RevealUI Structure Validation')
-  console.log('='.repeat(40))
+  console.log('🎯 RevealUI Structure Validation');
+  console.log('='.repeat(40));
 
-  const validator = new StructureValidator()
-  const success = validator.validate()
+  const validator = new StructureValidator();
+  const success = validator.validate();
 
-  process.exit(success ? 0 : 1)
+  process.exit(success ? 0 : 1);
 }
 
 if (import.meta.url === `file://${process.argv[1]}`) {
-  main()
+  main();
 }
 
-export { StructureValidator, VALIDATION_RULES }
+export { StructureValidator, VALIDATION_RULES };

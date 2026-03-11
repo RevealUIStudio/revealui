@@ -15,7 +15,7 @@ export type {
   StateField,
   TextareaField,
   TextField,
-} from './form-builder.js'
-export { formBuilderPlugin } from './form-builder.js'
-export { nestedDocsPlugin } from './nested-docs.js'
-export { redirectsPlugin } from './redirects.js'
+} from './form-builder.js';
+export { formBuilderPlugin } from './form-builder.js';
+export { nestedDocsPlugin } from './nested-docs.js';
+export { redirectsPlugin } from './redirects.js';

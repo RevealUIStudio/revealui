@@ -3,4 +3,4 @@ export {
   buildWhereClause,
   extractWhereValues,
   type ParameterStyle,
-} from './queryBuilder.js'
+} from './queryBuilder.js';

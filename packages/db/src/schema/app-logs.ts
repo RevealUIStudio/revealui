@@ -1,4 +1,4 @@
-import { index, jsonb, pgTable, text, timestamp } from 'drizzle-orm/pg-core'
+import { index, jsonb, pgTable, text, timestamp } from 'drizzle-orm/pg-core';
 
 /**
  * Structured application logs — warn and above, all apps.
@@ -26,4 +26,4 @@ export const appLogs = pgTable(
     index('app_logs_timestamp_idx').on(table.timestamp),
     index('app_logs_app_level_idx').on(table.app, table.level),
   ],
-)
+);

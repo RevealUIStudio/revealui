@@ -1,4 +1,4 @@
-import type { Block } from '@revealui/core'
+import type { Block } from '@revealui/core';
 // import Contents from "../../collections/Contents/index.js";
 
 export const ReusableContent: Block = {
@@ -13,7 +13,7 @@ export const ReusableContent: Block = {
       // relationTo: [Contents.slug],
     },
   ],
-}
+};
 
 // import { Block } from '@revealui/core'
 // import Contents from '../../../collections/Contents'

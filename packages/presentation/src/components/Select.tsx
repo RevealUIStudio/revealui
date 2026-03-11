@@ -1,8 +1,8 @@
-'use client'
+'use client';
 
-import type React from 'react'
-import { Box, type BoxProps } from '../primitives/Box.js'
-import { cn } from '../utils/cn.js'
+import type React from 'react';
+import { Box, type BoxProps } from '../primitives/Box.js';
+import { cn } from '../utils/cn.js';
 
 const Check = ({ className }: { className?: string }) => {
   return (
@@ -17,8 +17,8 @@ const Check = ({ className }: { className?: string }) => {
       <title>Selected</title>
       <path strokeLinecap="round" strokeLinejoin="round" d="M6 12l4 4L18 8" />
     </svg>
-  )
-}
+  );
+};
 
 const ChevronUp = ({ className }: { className?: string }) => {
   return (
@@ -33,8 +33,8 @@ const ChevronUp = ({ className }: { className?: string }) => {
       <title>Scroll up</title>
       <path strokeLinecap="round" strokeLinejoin="round" d="M19.5 15.75l-7.5-7.5-7.5 7.5" />
     </svg>
-  )
-}
+  );
+};
 
 const ChevronDown = ({ className }: { className?: string }) => {
   return (
@@ -49,12 +49,12 @@ const ChevronDown = ({ className }: { className?: string }) => {
       <title>Scroll down</title>
       <path strokeLinecap="round" strokeLinejoin="round" d="M4.5 8.25l7.5 7.5 7.5-7.5" />
     </svg>
-  )
-}
+  );
+};
 
 export interface SelectProps extends BoxProps {
-  onValueChange?: (value: string) => void
-  value?: string
+  onValueChange?: (value: string) => void;
+  value?: string;
 }
 
 function Select({ children, className, ref, ...props }: SelectProps) {
@@ -62,7 +62,7 @@ function Select({ children, className, ref, ...props }: SelectProps) {
     <Box ref={ref} className={cn(className)} {...props}>
       {children}
     </Box>
-  )
+  );
 }
 
 function SelectGroup({ children, className, ref, ...props }: BoxProps) {
@@ -70,12 +70,12 @@ function SelectGroup({ children, className, ref, ...props }: BoxProps) {
     <Box ref={ref} className={cn(className)} {...props}>
       {children}
     </Box>
-  )
+  );
 }
 
 export interface SelectValueProps extends BoxProps {
-  placeholder?: string
-  value?: string
+  placeholder?: string;
+  value?: string;
 }
 
 function SelectValue({
@@ -89,10 +89,10 @@ function SelectValue({
     <span ref={ref} {...props}>
       {children || placeholder || value}
     </span>
-  )
+  );
 }
 
-export type SelectTriggerProps = BoxProps
+export type SelectTriggerProps = BoxProps;
 
 function SelectTrigger({ children, className, ref, ...props }: SelectTriggerProps) {
   return (
@@ -107,12 +107,12 @@ function SelectTrigger({ children, className, ref, ...props }: SelectTriggerProp
       {children}
       <ChevronDown className="size-4 opacity-50" />
     </Box>
-  )
+  );
 }
 
 export type SelectScrollUpButtonProps = React.ButtonHTMLAttributes<HTMLButtonElement> & {
-  ref?: React.Ref<HTMLButtonElement>
-}
+  ref?: React.Ref<HTMLButtonElement>;
+};
 
 function SelectScrollUpButton({ className, ref, ...props }: SelectScrollUpButtonProps) {
   return (
@@ -123,12 +123,12 @@ function SelectScrollUpButton({ className, ref, ...props }: SelectScrollUpButton
     >
       <ChevronUp className="size-4" />
     </button>
-  )
+  );
 }
 
 export type SelectScrollDownButtonProps = React.ButtonHTMLAttributes<HTMLButtonElement> & {
-  ref?: React.Ref<HTMLButtonElement>
-}
+  ref?: React.Ref<HTMLButtonElement>;
+};
 
 function SelectScrollDownButton({ className, ref, ...props }: SelectScrollDownButtonProps) {
   return (
@@ -139,10 +139,10 @@ function SelectScrollDownButton({ className, ref, ...props }: SelectScrollDownBu
     >
       <ChevronDown className="size-4" />
     </button>
-  )
+  );
 }
 
-export type SelectContentProps = BoxProps
+export type SelectContentProps = BoxProps;
 
 function SelectContent({ children, className, ref, ...props }: SelectContentProps) {
   return (
@@ -158,21 +158,21 @@ function SelectContent({ children, className, ref, ...props }: SelectContentProp
       <div className="p-1">{children}</div>
       <SelectScrollDownButton />
     </Box>
-  )
+  );
 }
 
 export type SelectLabelProps = React.HTMLAttributes<HTMLDivElement> & {
-  ref?: React.Ref<HTMLDivElement>
-}
+  ref?: React.Ref<HTMLDivElement>;
+};
 
 function SelectLabel({ className, ref, ...props }: SelectLabelProps) {
   return (
     <div className={cn('py-1.5 pl-8 pr-2 text-sm font-semibold', className)} ref={ref} {...props} />
-  )
+  );
 }
 
 export interface SelectItemProps extends BoxProps {
-  value?: string
+  value?: string;
 }
 
 function SelectItem({ children, className, value, ref, ...props }: SelectItemProps) {
@@ -191,13 +191,13 @@ function SelectItem({ children, className, value, ref, ...props }: SelectItemPro
       </span>
       <span>{children}</span>
     </Box>
-  )
+  );
 }
 
-export type SelectSeparatorProps = BoxProps
+export type SelectSeparatorProps = BoxProps;
 
 function SelectSeparator({ className, ref, ...props }: SelectSeparatorProps) {
-  return <Box className={cn('-mx-1 my-1 h-px bg-muted', className)} ref={ref} {...props} />
+  return <Box className={cn('-mx-1 my-1 h-px bg-muted', className)} ref={ref} {...props} />;
 }
 
 export {
@@ -211,4 +211,4 @@ export {
   SelectSeparator,
   SelectTrigger,
   SelectValue,
-}
+};

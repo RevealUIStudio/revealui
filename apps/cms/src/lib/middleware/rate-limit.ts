@@ -4,28 +4,28 @@
  * Wraps API route handlers with rate limiting protection.
  */
 
-import { checkRateLimit } from '@revealui/auth/server'
-import { logger } from '@revealui/core/observability/logger'
-import { type NextRequest, NextResponse } from 'next/server'
+import { checkRateLimit } from '@revealui/auth/server';
+import { logger } from '@revealui/core/observability/logger';
+import { type NextRequest, NextResponse } from 'next/server';
 
 /**
  * NextRequest with optional IP property (added by edge runtime)
  */
 interface NextRequestWithIP extends NextRequest {
-  ip?: string
+  ip?: string;
 }
 
 export interface RateLimitOptions {
-  maxAttempts?: number
-  windowMs?: number
-  keyPrefix?: string
+  maxAttempts?: number;
+  windowMs?: number;
+  keyPrefix?: string;
   /** If true, reject the request when the rate-limit store is unavailable (default: false) */
-  failClosed?: boolean
+  failClosed?: boolean;
 }
 
 export interface RateLimitConfig {
-  maxRequests: number
-  windowMs: number
+  maxRequests: number;
+  windowMs: number;
 }
 
 export const rateLimitConfigs = {
@@ -45,7 +45,7 @@ export const rateLimitConfigs = {
     maxRequests: 10,
     windowMs: 60 * 1000, // 1 minute
   },
-}
+};
 
 /**
  * Creates a rate limit middleware function
@@ -56,26 +56,26 @@ export const rateLimitConfigs = {
  * not the leftmost (which is attacker-controlled in multi-hop scenarios).
  */
 function extractTrustedIp(request: NextRequest): string {
-  const xff = request.headers.get('x-forwarded-for')
+  const xff = request.headers.get('x-forwarded-for');
   if (xff) {
-    const ips = xff.split(',').map((s) => s.trim())
-    const last = ips[ips.length - 1]
-    if (last) return last
+    const ips = xff.split(',').map((s) => s.trim());
+    const last = ips[ips.length - 1];
+    if (last) return last;
   }
-  return request.headers.get('x-real-ip') || (request as NextRequestWithIP).ip || 'unknown'
+  return request.headers.get('x-real-ip') || (request as NextRequestWithIP).ip || 'unknown';
 }
 
 export function rateLimit(config: RateLimitConfig) {
   return async (request: NextRequest): Promise<NextResponse | null> => {
-    const ipAddress = extractTrustedIp(request)
+    const ipAddress = extractTrustedIp(request);
 
-    const rateLimitKey = `rate_limit:${ipAddress}`
+    const rateLimitKey = `rate_limit:${ipAddress}`;
 
     try {
       const result = await checkRateLimit(rateLimitKey, {
         maxAttempts: config.maxRequests,
         windowMs: config.windowMs,
-      })
+      });
 
       if (!result.allowed) {
         return NextResponse.json(
@@ -92,16 +92,16 @@ export function rateLimit(config: RateLimitConfig) {
               'X-RateLimit-Reset': String(result.resetAt),
             },
           },
-        )
+        );
       }
     } catch (error) {
       logger.warn('Rate limit check failed, allowing request', {
         error: error instanceof Error ? error.message : String(error),
-      })
+      });
     }
 
-    return null
-  }
+    return null;
+  };
 }
 
 /**
@@ -117,34 +117,34 @@ export function withRateLimit(
 ): (request: NextRequest) => Promise<NextResponse> {
   return async (request: NextRequest) => {
     // Get IP address for rate limiting
-    const ipAddress = extractTrustedIp(request)
+    const ipAddress = extractTrustedIp(request);
 
     // Create rate limit key
-    const keyPrefix = options.keyPrefix || 'api'
-    const rateLimitKey = `${keyPrefix}:${ipAddress}`
+    const keyPrefix = options.keyPrefix || 'api';
+    const rateLimitKey = `${keyPrefix}:${ipAddress}`;
 
     // Check rate limit separately so errors don't catch handler failures
-    let rateLimit: { allowed: boolean; remaining: number; resetAt: number } | null = null
+    let rateLimit: { allowed: boolean; remaining: number; resetAt: number } | null = null;
     try {
       rateLimit = await checkRateLimit(rateLimitKey, {
         maxAttempts: options.maxAttempts || 10,
         windowMs: options.windowMs || 15 * 60 * 1000, // 15 minutes
-      })
+      });
     } catch (error) {
       if (options.failClosed) {
         logger.error(
           'Rate limit check failed, rejecting request (fail-closed)',
           error instanceof Error ? error : undefined,
           { error: error instanceof Error ? error.message : String(error) },
-        )
+        );
         return NextResponse.json(
           { error: 'Service temporarily unavailable. Please try again later.' },
           { status: 503 },
-        )
+        );
       }
       logger.warn('Rate limit check failed, allowing request', {
         error: error instanceof Error ? error.message : String(error),
-      })
+      });
     }
 
     if (rateLimit && !rateLimit.allowed) {
@@ -162,34 +162,34 @@ export function withRateLimit(
             'X-RateLimit-Reset': String(rateLimit.resetAt),
           },
         },
-      )
+      );
     }
 
     // Call handler outside the rate-limit try/catch to avoid double-call on body-reading errors
-    let response: NextResponse
+    let response: NextResponse;
     try {
-      response = await handler(request)
+      response = await handler(request);
     } catch (handlerError) {
       logger.error(
         'Unhandled error in rate-limited handler',
         handlerError instanceof Error ? handlerError : new Error(String(handlerError)),
         { keyPrefix },
-      )
+      );
       return NextResponse.json(
         {
           error: 'INTERNAL_ERROR',
           message: handlerError instanceof Error ? handlerError.message : 'Internal server error',
         },
         { status: 500 },
-      )
+      );
     }
 
     if (rateLimit) {
-      response.headers.set('X-RateLimit-Limit', String(options.maxAttempts || 10))
-      response.headers.set('X-RateLimit-Remaining', String(rateLimit.remaining))
-      response.headers.set('X-RateLimit-Reset', String(rateLimit.resetAt))
+      response.headers.set('X-RateLimit-Limit', String(options.maxAttempts || 10));
+      response.headers.set('X-RateLimit-Remaining', String(rateLimit.remaining));
+      response.headers.set('X-RateLimit-Reset', String(rateLimit.resetAt));
     }
 
-    return response
-  }
+    return response;
+  };
 }

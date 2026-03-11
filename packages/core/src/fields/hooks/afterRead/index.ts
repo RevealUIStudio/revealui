@@ -7,35 +7,35 @@ import type {
   SanitizedGlobalConfig,
   SelectType,
   TypedFallbackLocale,
-} from '../../../types/index.js'
+} from '../../../types/index.js';
 
-import { getSelectMode } from '../../../utils/getSelectMode.js'
-import { traverseFields } from './traverseFields.js'
+import { getSelectMode } from '../../../utils/getSelectMode.js';
+import { traverseFields } from './traverseFields.js';
 
 export type AfterReadArgs<T extends JsonObject> = {
-  collection: null | SanitizedCollectionConfig
-  context: RequestContext
-  currentDepth?: number
-  depth: number
-  doc: T
-  draft: boolean
-  fallbackLocale: TypedFallbackLocale
-  findMany?: boolean
+  collection: null | SanitizedCollectionConfig;
+  context: RequestContext;
+  currentDepth?: number;
+  depth: number;
+  doc: T;
+  draft: boolean;
+  fallbackLocale: TypedFallbackLocale;
+  findMany?: boolean;
   /**
    * Controls whether locales should be flattened into the requested locale.
    * E.g.: { [locale]: fields } -> fields
    *
    * @default true
    */
-  flattenLocales?: boolean
-  global: null | SanitizedGlobalConfig
-  locale: string
-  overrideAccess: boolean
-  populate?: PopulateType
-  req: RevealRequest
-  select?: SelectType
-  showHiddenFields: boolean
-}
+  flattenLocales?: boolean;
+  global: null | SanitizedGlobalConfig;
+  locale: string;
+  overrideAccess: boolean;
+  populate?: PopulateType;
+  req: RevealRequest;
+  select?: SelectType;
+  showHiddenFields: boolean;
+};
 
 /**
  * This function is responsible for the following actions, in order:
@@ -65,23 +65,23 @@ export async function afterRead<T extends JsonObject>(args: AfterReadArgs<T>): P
     req,
     select,
     showHiddenFields,
-  } = args
+  } = args;
 
-  const fieldPromises: Promise<void>[] = []
-  const populationPromises: Promise<void>[] = []
+  const fieldPromises: Promise<void>[] = [];
+  const populationPromises: Promise<void>[] = [];
 
   // Get depth configuration with defaults
   // Note: defaultDepth and maxDepth are query-level, not config-level properties
-  const defaultDepth = 1
-  const maxDepth = 10
+  const defaultDepth = 1;
+  const maxDepth = 10;
 
   let depth =
-    incomingDepth || incomingDepth === 0 ? parseInt(String(incomingDepth), 10) : defaultDepth
+    incomingDepth || incomingDepth === 0 ? parseInt(String(incomingDepth), 10) : defaultDepth;
   if (depth > maxDepth) {
-    depth = maxDepth
+    depth = maxDepth;
   }
 
-  const currentDepth = incomingCurrentDepth || 1
+  const currentDepth = incomingCurrentDepth || 1;
 
   traverseFields({
     collection,
@@ -109,7 +109,7 @@ export async function afterRead<T extends JsonObject>(args: AfterReadArgs<T>): P
     selectMode: select ? getSelectMode(select) : undefined,
     showHiddenFields,
     siblingDoc: incomingDoc,
-  })
+  });
 
   /**
    * Await all field and population promises in parallel.
@@ -117,20 +117,20 @@ export async function afterRead<T extends JsonObject>(args: AfterReadArgs<T>): P
    * awaited in the first run.
    * This is why we need to loop again to process the new field promises, until there are no more field promises left.
    */
-  let iterations = 0
+  let iterations = 0;
   while (fieldPromises.length > 0 || populationPromises.length > 0) {
-    const currentFieldPromises = fieldPromises.splice(0, fieldPromises.length)
-    const currentPopulationPromises = populationPromises.splice(0, populationPromises.length)
+    const currentFieldPromises = fieldPromises.splice(0, fieldPromises.length);
+    const currentPopulationPromises = populationPromises.splice(0, populationPromises.length);
 
-    await Promise.all(currentFieldPromises)
-    await Promise.all(currentPopulationPromises)
+    await Promise.all(currentFieldPromises);
+    await Promise.all(currentPopulationPromises);
 
-    iterations++
+    iterations++;
     if (iterations >= 100) {
       throw new Error(
         'Infinite afterRead promise loop detected. A hook is likely adding field promises in an infinitely recursive way.',
-      )
+      );
     }
   }
-  return incomingDoc
+  return incomingDoc;
 }

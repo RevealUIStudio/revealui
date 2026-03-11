@@ -20,19 +20,19 @@
  * - Scripts: pnpm playwright test
  */
 
-import type { ChildProcess } from 'node:child_process'
-import { spawn } from 'node:child_process'
-import { createLogger } from '@revealui/scripts'
+import type { ChildProcess } from 'node:child_process';
+import { spawn } from 'node:child_process';
+import { createLogger } from '@revealui/scripts';
 
-const logger = createLogger()
+const logger = createLogger();
 
 interface ServerProcess {
-  name: string
-  process: ChildProcess
-  port?: number
+  name: string;
+  process: ChildProcess;
+  port?: number;
 }
 
-const servers: ServerProcess[] = []
+const servers: ServerProcess[] = [];
 
 /**
  * Start an MCP server
@@ -43,63 +43,63 @@ async function startMcpServer(
   args: string[],
   port?: number,
 ): Promise<ServerProcess> {
-  logger.info(`Starting ${name}...`)
+  logger.info(`Starting ${name}...`);
 
   const childProcess = spawn(command, args, {
     stdio: 'pipe',
     env: {
       ...process.env,
     },
-  })
+  });
 
   childProcess.stdout?.on('data', (data) => {
-    logger.debug(`[${name}] ${data.toString().trim()}`)
-  })
+    logger.debug(`[${name}] ${data.toString().trim()}`);
+  });
 
   childProcess.stderr?.on('data', (data) => {
-    logger.debug(`[${name}] ${data.toString().trim()}`)
-  })
+    logger.debug(`[${name}] ${data.toString().trim()}`);
+  });
 
   childProcess.on('error', (error) => {
-    logger.error(`[${name}] Error: ${error.message}`)
-  })
+    logger.error(`[${name}] Error: ${error.message}`);
+  });
 
   // Wait a bit for server to start
-  await new Promise((resolve) => setTimeout(resolve, 2000))
+  await new Promise((resolve) => setTimeout(resolve, 2000));
 
-  const serverProcess: ServerProcess = { name, process: childProcess, port }
-  servers.push(serverProcess)
+  const serverProcess: ServerProcess = { name, process: childProcess, port };
+  servers.push(serverProcess);
 
-  logger.success(`${name} started${port ? ` on port ${port}` : ''}`)
+  logger.success(`${name} started${port ? ` on port ${port}` : ''}`);
 
-  return serverProcess
+  return serverProcess;
 }
 
 /**
  * Stop all MCP servers
  */
 async function stopAllServers(): Promise<void> {
-  logger.info('Stopping all MCP servers...')
+  logger.info('Stopping all MCP servers...');
 
   for (const server of servers) {
     try {
-      server.process.kill('SIGTERM')
-      logger.info(`Stopped ${server.name}`)
+      server.process.kill('SIGTERM');
+      logger.info(`Stopped ${server.name}`);
     } catch (error) {
       logger.error(
         `Error stopping ${server.name}: ${error instanceof Error ? error.message : 'Unknown'}`,
-      )
+      );
     }
   }
 
-  servers.length = 0
+  servers.length = 0;
 }
 
 /**
  * Run Playwright tests
  */
 async function runTests(args: string[]): Promise<number> {
-  logger.header('Running E2E Tests')
+  logger.header('Running E2E Tests');
 
   return new Promise((resolve) => {
     const testProcess = spawn('pnpm', ['playwright', 'test', ...args], {
@@ -109,92 +109,92 @@ async function runTests(args: string[]): Promise<number> {
         // Enable MCP integration
         MCP_ENABLED: 'true',
       },
-    })
+    });
 
     testProcess.on('exit', (code) => {
-      resolve(code || 0)
-    })
+      resolve(code || 0);
+    });
 
     testProcess.on('error', (error) => {
-      logger.error(`Test execution error: ${error.message}`)
-      resolve(1)
-    })
-  })
+      logger.error(`Test execution error: ${error.message}`);
+      resolve(1);
+    });
+  });
 }
 
 /**
  * Main function
  */
 async function main(): Promise<void> {
-  const args = process.argv.slice(2)
+  const args = process.argv.slice(2);
 
-  logger.header('E2E Tests with MCP Servers')
-  logger.info('This script will:')
-  logger.info('  1. Start all necessary MCP servers')
-  logger.info('  2. Run Playwright E2E tests')
-  logger.info('  3. Clean up and stop servers')
-  logger.info('')
+  logger.header('E2E Tests with MCP Servers');
+  logger.info('This script will:');
+  logger.info('  1. Start all necessary MCP servers');
+  logger.info('  2. Run Playwright E2E tests');
+  logger.info('  3. Clean up and stop servers');
+  logger.info('');
 
   try {
     // Start MCP servers
-    logger.header('Starting MCP Servers')
+    logger.header('Starting MCP Servers');
 
     // Only start servers if credentials are available
     if (process.env.NEON_API_KEY) {
-      await startMcpServer('Neon Database', 'pnpm', ['mcp:neon'])
+      await startMcpServer('Neon Database', 'pnpm', ['mcp:neon']);
     } else {
-      logger.warn('Skipping Neon MCP (no NEON_API_KEY)')
+      logger.warn('Skipping Neon MCP (no NEON_API_KEY)');
     }
 
     if (process.env.STRIPE_SECRET_KEY) {
-      await startMcpServer('Stripe', 'pnpm', ['mcp:stripe'])
+      await startMcpServer('Stripe', 'pnpm', ['mcp:stripe']);
     } else {
-      logger.warn('Skipping Stripe MCP (no STRIPE_SECRET_KEY)')
+      logger.warn('Skipping Stripe MCP (no STRIPE_SECRET_KEY)');
     }
 
     // Playwright MCP doesn't need credentials
-    await startMcpServer('Playwright', 'pnpm', ['mcp:playwright'])
+    await startMcpServer('Playwright', 'pnpm', ['mcp:playwright']);
 
-    logger.info('')
-    logger.success('All MCP servers started!')
-    logger.info('')
+    logger.info('');
+    logger.success('All MCP servers started!');
+    logger.info('');
 
     // Run tests
-    const exitCode = await runTests(args)
+    const exitCode = await runTests(args);
 
-    logger.info('')
+    logger.info('');
 
     if (exitCode === 0) {
-      logger.success('✅ All tests passed!')
+      logger.success('✅ All tests passed!');
     } else {
-      logger.error(`❌ Tests failed with exit code ${exitCode}`)
+      logger.error(`❌ Tests failed with exit code ${exitCode}`);
     }
 
     // Clean up
-    await stopAllServers()
+    await stopAllServers();
 
-    process.exit(exitCode)
+    process.exit(exitCode);
   } catch (error) {
-    logger.error(`Fatal error: ${error instanceof Error ? error.message : 'Unknown'}`)
+    logger.error(`Fatal error: ${error instanceof Error ? error.message : 'Unknown'}`);
 
     // Ensure cleanup happens
-    await stopAllServers()
+    await stopAllServers();
 
-    process.exit(1)
+    process.exit(1);
   }
 }
 
 // Handle termination signals
 process.on('SIGINT', async () => {
-  logger.info('\n🛑 Received SIGINT, cleaning up...')
-  await stopAllServers()
-  process.exit(130)
-})
+  logger.info('\n🛑 Received SIGINT, cleaning up...');
+  await stopAllServers();
+  process.exit(130);
+});
 
 process.on('SIGTERM', async () => {
-  logger.info('\n🛑 Received SIGTERM, cleaning up...')
-  await stopAllServers()
-  process.exit(143)
-})
+  logger.info('\n🛑 Received SIGTERM, cleaning up...');
+  await stopAllServers();
+  process.exit(143);
+});
 
-main()
+main();

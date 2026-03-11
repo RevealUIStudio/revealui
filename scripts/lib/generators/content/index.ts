@@ -22,11 +22,11 @@
  */
 
 // API Documentation
-export * from './api-docs.js'
+export * from './api-docs.js';
 // Documentation Assessment
-export * from './assessment.js'
+export * from './assessment.js';
 
 // JSDoc Extraction
-export * from './jsdoc-extractor.js'
+export * from './jsdoc-extractor.js';
 // Package README Generation
-export * from './package-readme.js'
+export * from './package-readme.js';

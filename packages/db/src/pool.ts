@@ -4,13 +4,13 @@
  * Configured for high performance and reliability
  */
 
-import { getSSLConfig } from '@revealui/utils/database'
-import { logger } from '@revealui/utils/logger'
-import { Pool, type PoolClient, type PoolConfig } from 'pg'
+import { getSSLConfig } from '@revealui/utils/database';
+import { logger } from '@revealui/utils/logger';
+import { Pool, type PoolClient, type PoolConfig } from 'pg';
 
 // Extend PoolClient to include processID which exists at runtime but not in types
 interface PoolClientWithPID extends PoolClient {
-  processID?: number
+  processID?: number;
 }
 
 /**
@@ -18,13 +18,13 @@ interface PoolClientWithPID extends PoolClient {
  */
 function getPoolSSLConfig(): PoolConfig['ssl'] {
   // If DATABASE_URL is available, use it to determine SSL config
-  const databaseUrl = process.env.DATABASE_URL || process.env.POSTGRES_URL
+  const databaseUrl = process.env.DATABASE_URL || process.env.POSTGRES_URL;
   if (databaseUrl) {
-    return getSSLConfig(databaseUrl)
+    return getSSLConfig(databaseUrl);
   }
 
   // Fallback to legacy DATABASE_SSL environment variable
-  return process.env.DATABASE_SSL === 'true' ? { rejectUnauthorized: true } : false
+  return process.env.DATABASE_SSL === 'true' ? { rejectUnauthorized: true } : false;
 }
 
 /**
@@ -40,7 +40,7 @@ function assertProductionConfig(): void {
     !process.env.DATABASE_URL &&
     !process.env.POSTGRES_URL
   ) {
-    throw new Error('DATABASE_HOST (or DATABASE_URL / POSTGRES_URL) must be set in production')
+    throw new Error('DATABASE_HOST (or DATABASE_URL / POSTGRES_URL) must be set in production');
   }
 }
 
@@ -96,15 +96,15 @@ const poolConfig: PoolConfig = {
 
   // Application name (shows in pg_stat_activity)
   application_name: process.env.APP_NAME || 'revealui',
-}
+};
 
 /**
  * Create connection pool
  * Note: assertProductionConfig() defers the check to pool-creation time,
  * not module-parse time, so tree-shaking and type-only imports don't crash.
  */
-assertProductionConfig()
-export const pool = new Pool(poolConfig)
+assertProductionConfig();
+export const pool = new Pool(poolConfig);
 
 // ===========================================================================
 // ERROR HANDLING
@@ -114,99 +114,99 @@ pool.on('error', (err) => {
   logger.error(
     'Unexpected error on idle database client',
     err instanceof Error ? err : new Error(String(err)),
-  )
-})
+  );
+});
 
 pool.on('connect', (client) => {
-  const pid = (client as PoolClientWithPID).processID
-  logger.info(`Database connection established (PID: ${pid})`)
+  const pid = (client as PoolClientWithPID).processID;
+  logger.info(`Database connection established (PID: ${pid})`);
 
   void (async () => {
     try {
       // Set timezone
-      await client.query("SET timezone TO 'UTC'")
+      await client.query("SET timezone TO 'UTC'");
 
       // Set statement timeout
-      await client.query(`SET statement_timeout TO ${poolConfig.statement_timeout || 10000}`)
+      await client.query(`SET statement_timeout TO ${poolConfig.statement_timeout || 10000}`);
 
       // Enable query statistics
-      await client.query('SET track_io_timing = on')
+      await client.query('SET track_io_timing = on');
     } catch (error) {
       logger.error(
         'Error initializing database client',
         error instanceof Error ? error : new Error(String(error)),
-      )
+      );
     }
-  })()
-})
+  })();
+});
 
 pool.on('acquire', (client) => {
-  const pid = (client as PoolClientWithPID).processID
-  logger.debug(`Database client acquired (PID: ${pid})`)
-})
+  const pid = (client as PoolClientWithPID).processID;
+  logger.debug(`Database client acquired (PID: ${pid})`);
+});
 
 pool.on('remove', (client) => {
-  const pid = (client as PoolClientWithPID).processID
-  logger.info(`Database client removed (PID: ${pid})`)
-})
+  const pid = (client as PoolClientWithPID).processID;
+  logger.info(`Database client removed (PID: ${pid})`);
+});
 
 // ===========================================================================
 // GRACEFUL SHUTDOWN
 // ===========================================================================
 
 async function gracefulShutdown(signal: string) {
-  logger.info('Closing database pool', { signal })
+  logger.info('Closing database pool', { signal });
 
   try {
-    await pool.end()
-    logger.info('Database pool closed successfully')
-    process.exit(0)
+    await pool.end();
+    logger.info('Database pool closed successfully');
+    process.exit(0);
   } catch (error) {
     logger.error(
       'Error closing database pool',
       error instanceof Error ? error : new Error(String(error)),
-    )
-    process.exit(1)
+    );
+    process.exit(1);
   }
 }
 
-process.on('SIGTERM', () => void gracefulShutdown('SIGTERM'))
-process.on('SIGINT', () => void gracefulShutdown('SIGINT'))
+process.on('SIGTERM', () => void gracefulShutdown('SIGTERM'));
+process.on('SIGINT', () => void gracefulShutdown('SIGINT'));
 
 // ===========================================================================
 // HEALTH CHECK
 // ===========================================================================
 
 export async function checkDatabaseHealth(): Promise<{
-  healthy: boolean
+  healthy: boolean;
   stats: {
-    totalCount: number
-    idleCount: number
-    waitingCount: number
-  }
+    totalCount: number;
+    idleCount: number;
+    waitingCount: number;
+  };
 }> {
   try {
     // Test connection
-    const client = await pool.connect()
-    await client.query('SELECT 1')
-    client.release()
+    const client = await pool.connect();
+    await client.query('SELECT 1');
+    client.release();
 
     // Get pool stats
     const stats = {
       totalCount: pool.totalCount,
       idleCount: pool.idleCount,
       waitingCount: pool.waitingCount,
-    }
+    };
 
     return {
       healthy: true,
       stats,
-    }
+    };
   } catch (error) {
     logger.error(
       'Database health check failed',
       error instanceof Error ? error : new Error(String(error)),
-    )
+    );
     return {
       healthy: false,
       stats: {
@@ -214,7 +214,7 @@ export async function checkDatabaseHealth(): Promise<{
         idleCount: pool.idleCount,
         waitingCount: pool.waitingCount,
       },
-    }
+    };
   }
 }
 
@@ -223,12 +223,12 @@ export async function checkDatabaseHealth(): Promise<{
 // ===========================================================================
 
 export function getPoolStats(): {
-  totalCount: number
-  idleCount: number
-  waitingCount: number
-  maxConnections: number | undefined
-  minConnections: number | undefined
-  utilization: number
+  totalCount: number;
+  idleCount: number;
+  waitingCount: number;
+  maxConnections: number | undefined;
+  minConnections: number | undefined;
+  utilization: number;
 } {
   return {
     totalCount: pool.totalCount, // Total clients
@@ -237,7 +237,7 @@ export function getPoolStats(): {
     maxConnections: poolConfig.max,
     minConnections: poolConfig.min,
     utilization: ((pool.totalCount - pool.idleCount) / (poolConfig.max || 20)) * 100,
-  }
+  };
 }
 
 /**
@@ -245,25 +245,25 @@ export function getPoolStats(): {
  */
 export function startPoolMonitoring(intervalMs: number = 60000): ReturnType<typeof setInterval> {
   return setInterval(() => {
-    const stats = getPoolStats()
+    const stats = getPoolStats();
     logger.info('Database pool stats', {
       ...stats,
       utilizationPercent: `${stats.utilization.toFixed(1)}%`,
       timestamp: new Date().toISOString(),
-    })
+    });
 
     // Warn if pool is near capacity
     if (stats.utilization > 80) {
-      logger.warn('Database pool utilization high', { utilization: stats.utilization })
+      logger.warn('Database pool utilization high', { utilization: stats.utilization });
     }
 
     // Warn if many requests are waiting
     if (stats.waitingCount > 5) {
       logger.warn('Many requests waiting for database connection', {
         waitingCount: stats.waitingCount,
-      })
+      });
     }
-  }, intervalMs)
+  }, intervalMs);
 }
 
 // ===========================================================================
@@ -274,33 +274,36 @@ export function startPoolMonitoring(intervalMs: number = 60000): ReturnType<type
  * Pre-warm the connection pool
  */
 export async function warmupPool(): Promise<void> {
-  logger.info('Warming up database pool')
+  logger.info('Warming up database pool');
 
-  const warmupConnections = Math.min(poolConfig.min || 5, poolConfig.max || 20)
-  const clients = []
+  const warmupConnections = Math.min(poolConfig.min || 5, poolConfig.max || 20);
+  const clients = [];
 
   try {
     // Acquire minimum connections
     for (let i = 0; i < warmupConnections; i++) {
-      const client = await pool.connect()
-      clients.push(client)
+      const client = await pool.connect();
+      clients.push(client);
     }
 
-    logger.info(`Warmed up ${warmupConnections} database connections`)
+    logger.info(`Warmed up ${warmupConnections} database connections`);
 
     // Release all clients
     for (const client of clients) {
-      client.release()
+      client.release();
     }
   } catch (error) {
-    logger.error('Error warming up pool', error instanceof Error ? error : new Error(String(error)))
+    logger.error(
+      'Error warming up pool',
+      error instanceof Error ? error : new Error(String(error)),
+    );
 
     // Release any acquired clients
     for (const client of clients) {
-      client.release()
+      client.release();
     }
 
-    throw error
+    throw error;
   }
 }
 
@@ -308,4 +311,4 @@ export async function warmupPool(): Promise<void> {
 // EXPORTS
 // ===========================================================================
 
-export default pool
+export default pool;

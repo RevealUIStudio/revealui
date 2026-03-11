@@ -1,5 +1,5 @@
-import type { CollectionConfig } from '@revealui/core'
-import { anyone, authenticated, isAdmin } from '@/lib/access'
+import type { CollectionConfig } from '@revealui/core';
+import { anyone, authenticated, isAdmin } from '@/lib/access';
 
 const Banners: CollectionConfig = {
   slug: 'banners',
@@ -73,6 +73,6 @@ const Banners: CollectionConfig = {
       ],
     },
   ],
-}
+};
 
-export default Banners
+export default Banners;

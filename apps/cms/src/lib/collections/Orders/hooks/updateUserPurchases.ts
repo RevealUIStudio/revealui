@@ -1,12 +1,12 @@
-import type { RevealAfterChangeHook } from '@revealui/core'
-import type { Order } from '@revealui/core/types/cms'
+import type { RevealAfterChangeHook } from '@revealui/core';
+import type { Order } from '@revealui/core/types/cms';
 
 export const updateUserPurchases: RevealAfterChangeHook<Order> = async ({
   doc,
   req,
   operation,
 }) => {
-  const { revealui } = req
+  const { revealui } = req;
 
   if (
     (operation === 'create' || operation === 'update') &&
@@ -16,13 +16,13 @@ export const updateUserPurchases: RevealAfterChangeHook<Order> = async ({
     revealui
   ) {
     const orderedBy =
-      typeof doc.orderedBy === 'string' ? doc.orderedBy : doc.orderedBy.toLocaleString()
+      typeof doc.orderedBy === 'string' ? doc.orderedBy : doc.orderedBy.toLocaleString();
     // typeof doc.orderedBy === "string" ? doc.orderedBy : doc.orderedBy.id;
 
     const user = await revealui.findByID({
       collection: 'users',
       id: orderedBy,
-    })
+    });
 
     if (user) {
       // Collect existing purchase IDs
@@ -30,17 +30,17 @@ export const updateUserPurchases: RevealAfterChangeHook<Order> = async ({
         ? ((user as Record<string, unknown>).purchases as Array<string | { id: string }>).map(
             (purchase) => (typeof purchase === 'string' ? purchase : purchase.id),
           )
-        : []
+        : [];
 
       // Extract new product IDs from order items
       const newProductIds: string[] = (
         doc.items as unknown as Array<{ product: string | { id: string } }>
       )
         .map((item) => (typeof item.product === 'string' ? item.product : item.product?.id))
-        .filter((id): id is string => typeof id === 'string')
+        .filter((id): id is string => typeof id === 'string');
 
       // Merge and deduplicate
-      const allPurchases = [...new Set([...existingPurchases, ...newProductIds])]
+      const allPurchases = [...new Set([...existingPurchases, ...newProductIds])];
 
       await revealui.update({
         collection: 'users',
@@ -48,9 +48,9 @@ export const updateUserPurchases: RevealAfterChangeHook<Order> = async ({
         data: {
           purchases: allPurchases,
         },
-      })
+      });
     }
   }
 
-  return doc
-}
+  return doc;
+};

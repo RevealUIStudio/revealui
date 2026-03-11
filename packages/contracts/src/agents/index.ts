@@ -9,15 +9,15 @@
  * The actual agent runtime is implemented in @revealui/ai package.
  */
 
-import { z } from 'zod/v4'
-import { createContract } from '../foundation/contract.js'
-import { type Embedding, EmbeddingSchema } from '../representation/index.js'
+import { z } from 'zod/v4';
+import { createContract } from '../foundation/contract.js';
+import { type Embedding, EmbeddingSchema } from '../representation/index.js';
 
 // =============================================================================
 // Schema Versions
 // =============================================================================
 
-export const AGENT_SCHEMA_VERSION = 1
+export const AGENT_SCHEMA_VERSION = 1;
 
 // =============================================================================
 // Agent Context
@@ -54,9 +54,9 @@ export const AgentContextSchema = z.object({
 
   /** When this context was last updated */
   updatedAt: z.string().datetime(),
-})
+});
 
-export type AgentContext = z.infer<typeof AgentContextSchema>
+export type AgentContext = z.infer<typeof AgentContextSchema>;
 
 // =============================================================================
 // Memory Type
@@ -71,9 +71,9 @@ export const MemoryTypeSchema = z.enum([
   'correction', // A correction to previous behavior
   'skill', // A learned skill or pattern
   'warning', // Something to avoid
-])
+]);
 
-export type MemoryType = z.infer<typeof MemoryTypeSchema>
+export type MemoryType = z.infer<typeof MemoryTypeSchema>;
 
 // =============================================================================
 // Memory Source
@@ -91,9 +91,9 @@ export const MemorySourceSchema = z.object({
 
   /** Confidence in this source (0-1) */
   confidence: z.number().min(0).max(1).default(1),
-})
+});
 
-export type MemorySource = z.infer<typeof MemorySourceSchema>
+export type MemorySource = z.infer<typeof MemorySourceSchema>;
 
 // =============================================================================
 // Agent Memory
@@ -155,9 +155,9 @@ export const AgentMemorySchema = z.object({
 
   /** Whether this memory has been verified by a human */
   verified: z.boolean().default(false),
-})
+});
 
-export type AgentMemory = z.infer<typeof AgentMemorySchema>
+export type AgentMemory = z.infer<typeof AgentMemorySchema>;
 
 /**
  * Agent Memory Contract
@@ -169,7 +169,7 @@ export const AgentMemoryContract = createContract({
   version: '1',
   description: 'Validates agent memory data',
   schema: AgentMemorySchema,
-})
+});
 
 // =============================================================================
 // Agent Action Record
@@ -230,9 +230,9 @@ export const AgentActionRecordSchema = z.object({
 
   /** Timestamp */
   timestamp: z.string().datetime(),
-})
+});
 
-export type AgentActionRecord = z.infer<typeof AgentActionRecordSchema>
+export type AgentActionRecord = z.infer<typeof AgentActionRecordSchema>;
 
 // =============================================================================
 // Conversation Message
@@ -289,9 +289,9 @@ export const ConversationMessageSchema = z.object({
 
   /** Timestamp */
   timestamp: z.string().datetime(),
-})
+});
 
-export type ConversationMessage = z.infer<typeof ConversationMessageSchema>
+export type ConversationMessage = z.infer<typeof ConversationMessageSchema>;
 
 // =============================================================================
 // Conversation
@@ -341,9 +341,9 @@ export const ConversationSchema = z.object({
   /** Timestamps */
   createdAt: z.string().datetime(),
   updatedAt: z.string().datetime(),
-})
+});
 
-export type Conversation = z.infer<typeof ConversationSchema>
+export type Conversation = z.infer<typeof ConversationSchema>;
 
 // =============================================================================
 // Intent Classification
@@ -367,9 +367,9 @@ export const IntentTypeSchema = z.enum([
   'confirm', // Confirm an action
   'cancel', // Cancel an action
   'unknown', // Could not classify
-])
+]);
 
-export type IntentType = z.infer<typeof IntentTypeSchema>
+export type IntentType = z.infer<typeof IntentTypeSchema>;
 
 /**
  * Classified user intent
@@ -417,9 +417,9 @@ export const IntentSchema = z.object({
 
   /** Whether this requires confirmation */
   requiresConfirmation: z.boolean().default(false),
-})
+});
 
-export type Intent = z.infer<typeof IntentSchema>
+export type Intent = z.infer<typeof IntentSchema>;
 
 // =============================================================================
 // Tool Definition
@@ -430,16 +430,16 @@ export type Intent = z.infer<typeof IntentSchema>
  * Note: Uses explicit interface to handle recursive type (items, properties)
  */
 export interface ToolParameter {
-  type: 'string' | 'number' | 'boolean' | 'object' | 'array'
-  description: string
-  required?: boolean | undefined
-  enum?: string[] | undefined
-  default?: unknown
-  minimum?: number | undefined
-  maximum?: number | undefined
-  pattern?: string | undefined
-  items?: ToolParameter | undefined
-  properties?: Record<string, ToolParameter> | undefined
+  type: 'string' | 'number' | 'boolean' | 'object' | 'array';
+  description: string;
+  required?: boolean | undefined;
+  enum?: string[] | undefined;
+  default?: unknown;
+  minimum?: number | undefined;
+  maximum?: number | undefined;
+  pattern?: string | undefined;
+  items?: ToolParameter | undefined;
+  properties?: Record<string, ToolParameter> | undefined;
 }
 
 export const ToolParameterSchema: z.ZodType<ToolParameter> = z.object({
@@ -455,7 +455,7 @@ export const ToolParameterSchema: z.ZodType<ToolParameter> = z.object({
   properties: z
     .lazy((): z.ZodType<Record<string, ToolParameter>> => z.record(z.string(), ToolParameterSchema))
     .optional(),
-})
+});
 
 /**
  * Definition of a tool an agent can use
@@ -497,9 +497,9 @@ export const ToolDefinitionSchema = z.object({
 
   /** Rate limit (calls per minute) */
   rateLimit: z.number().int().positive().optional(),
-})
+});
 
-export type ToolDefinition = z.infer<typeof ToolDefinitionSchema>
+export type ToolDefinition = z.infer<typeof ToolDefinitionSchema>;
 
 // =============================================================================
 // Agent Definition
@@ -549,9 +549,9 @@ export const AgentDefinitionSchema = z.object({
       tokensPerMinute: z.number().int().positive().optional(),
     })
     .optional(),
-})
+});
 
-export type AgentDefinition = z.infer<typeof AgentDefinitionSchema>
+export type AgentDefinition = z.infer<typeof AgentDefinitionSchema>;
 
 // =============================================================================
 // Memory Item (for ElectricSQL sync)
@@ -562,14 +562,14 @@ export type AgentDefinition = z.infer<typeof AgentDefinitionSchema>
  * Used for working memory and episodic memory sync
  */
 export interface MemoryItem {
-  id: string
-  userId: string
-  agentId: string
-  content: string
-  context: Record<string, unknown>
-  importance: number
-  createdAt: Date
-  expiresAt?: Date
+  id: string;
+  userId: string;
+  agentId: string;
+  content: string;
+  context: Record<string, unknown>;
+  importance: number;
+  createdAt: Date;
+  expiresAt?: Date;
 }
 
 // =============================================================================
@@ -611,9 +611,9 @@ export const AgentStateSchema = z.object({
       progress: z.number().min(0).max(1).optional(),
     })
     .optional(),
-})
+});
 
-export type AgentState = z.infer<typeof AgentStateSchema>
+export type AgentState = z.infer<typeof AgentStateSchema>;
 
 // =============================================================================
 // Factory Functions
@@ -627,7 +627,7 @@ export function createAgentContext(
   agentId: string,
   context: Record<string, unknown> = {},
 ): AgentContext {
-  const now = new Date().toISOString()
+  const now = new Date().toISOString();
   return {
     id: `${sessionId}:${agentId}`,
     version: AGENT_SCHEMA_VERSION,
@@ -637,7 +637,7 @@ export function createAgentContext(
     priority: 0.5,
     createdAt: now,
     updatedAt: now,
-  }
+  };
 }
 
 /**
@@ -651,7 +651,7 @@ export function createAgentMemory(
   metadata?: AgentMemory['metadata'],
   embedding?: Embedding,
 ): AgentMemory {
-  const now = new Date().toISOString()
+  const now = new Date().toISOString();
   return {
     id,
     version: AGENT_SCHEMA_VERSION,
@@ -664,7 +664,7 @@ export function createAgentMemory(
     accessedAt: now,
     accessCount: 0,
     verified: false,
-  }
+  };
 }
 
 /**
@@ -677,7 +677,7 @@ export function createConversation(
   agentId: string,
   metadata?: Conversation['metadata'],
 ): Conversation {
-  const now = new Date().toISOString()
+  const now = new Date().toISOString();
   return {
     id,
     version: AGENT_SCHEMA_VERSION,
@@ -689,7 +689,7 @@ export function createConversation(
     metadata,
     createdAt: now,
     updatedAt: now,
-  }
+  };
 }
 
 /**
@@ -707,5 +707,5 @@ export function createMessage(
     content,
     data,
     timestamp: new Date().toISOString(),
-  }
+  };
 }

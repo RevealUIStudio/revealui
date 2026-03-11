@@ -4,31 +4,31 @@
  * Utility functions for setting up, running, and cleaning up memory tests.
  */
 
-import { generateEmbedding } from '@revealui/ai/embeddings'
-import type { AgentMemory } from '@revealui/contracts/agents'
-import { getVectorClient, resetClient } from '@revealui/db/client'
-import { agentMemories } from '@revealui/db/schema/vector'
-import { eq } from 'drizzle-orm'
+import { generateEmbedding } from '@revealui/ai/embeddings';
+import type { AgentMemory } from '@revealui/contracts/agents';
+import { getVectorClient, resetClient } from '@revealui/db/client';
+import { agentMemories } from '@revealui/db/schema/vector';
+import { eq } from 'drizzle-orm';
 
 /**
  * Generate a unique test memory ID
  */
 export function generateTestMemoryId(prefix = 'test-mem'): string {
-  return `${prefix}-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`
+  return `${prefix}-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
 }
 
 /**
  * Generate a unique test user ID
  */
 export function generateTestUserId(prefix = 'test-user'): string {
-  return `${prefix}-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`
+  return `${prefix}-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
 }
 
 /**
  * Create a test memory with optional embedding
  */
 export async function createTestMemory(overrides: Partial<AgentMemory> = {}): Promise<AgentMemory> {
-  const embedding = overrides.embedding || (await generateEmbedding('Test memory content'))
+  const embedding = overrides.embedding || (await generateEmbedding('Test memory content'));
 
   return {
     id: generateTestMemoryId(),
@@ -43,29 +43,29 @@ export async function createTestMemory(overrides: Partial<AgentMemory> = {}): Pr
     accessCount: 0,
     verified: false,
     ...overrides,
-  }
+  };
 }
 
 /**
  * Clean up test memories by ID
  */
 export async function cleanupTestMemories(ids: string[]): Promise<void> {
-  if (ids.length === 0) return
+  if (ids.length === 0) return;
 
   try {
-    resetClient()
-    const db = getVectorClient()
+    resetClient();
+    const db = getVectorClient();
 
     for (const id of ids) {
       try {
-        await db.delete(agentMemories).where(eq(agentMemories.id, id))
+        await db.delete(agentMemories).where(eq(agentMemories.id, id));
       } catch (error) {
         // Ignore cleanup errors (memory might not exist)
-        console.warn(`Failed to cleanup memory ${id}:`, error)
+        console.warn(`Failed to cleanup memory ${id}:`, error);
       }
     }
   } catch (error) {
-    console.warn('Error during cleanup:', error)
+    console.warn('Error during cleanup:', error);
   }
 }
 
@@ -74,16 +74,16 @@ export async function cleanupTestMemories(ids: string[]): Promise<void> {
  */
 export async function verifyMemoryExists(id: string): Promise<boolean> {
   try {
-    resetClient()
-    const db = getVectorClient()
+    resetClient();
+    const db = getVectorClient();
 
     const result = await db.query.agentMemories.findFirst({
       where: eq(agentMemories.id, id),
-    })
+    });
 
-    return result !== undefined
+    return result !== undefined;
   } catch {
-    return false
+    return false;
   }
 }
 
@@ -92,29 +92,29 @@ export async function verifyMemoryExists(id: string): Promise<boolean> {
  */
 export async function getMemoryFromDb(id: string): Promise<AgentMemory | null> {
   try {
-    resetClient()
-    const db = getVectorClient()
+    resetClient();
+    const db = getVectorClient();
 
     const result = await db.query.agentMemories.findFirst({
       where: eq(agentMemories.id, id),
-    })
+    });
 
-    if (!result) return null
+    if (!result) return null;
 
     // Convert database format to AgentMemory format
-    let embedding: AgentMemory['embedding']
+    let embedding: AgentMemory['embedding'];
     if (result.embeddingMetadata) {
       const metadata = result.embeddingMetadata as {
-        model: string
-        dimension: number
-        generatedAt: string
-      }
+        model: string;
+        dimension: number;
+        generatedAt: string;
+      };
       embedding = {
         vector: Array.isArray(result.embedding) ? result.embedding : [],
         model: metadata.model,
         dimension: metadata.dimension,
         generatedAt: metadata.generatedAt,
-      }
+      };
     }
 
     return {
@@ -129,10 +129,10 @@ export async function getMemoryFromDb(id: string): Promise<AgentMemory | null> {
       accessedAt: result.accessedAt?.toISOString() || new Date().toISOString(),
       verified: result.verified,
       createdAt: result.createdAt.toISOString(),
-    }
+    };
   } catch (error) {
-    console.error('Error getting memory from database:', error)
-    return null
+    console.error('Error getting memory from database:', error);
+    return null;
   }
 }
 
@@ -144,48 +144,48 @@ export async function waitFor(
   timeout = 5000,
   interval = 100,
 ): Promise<boolean> {
-  const startTime = Date.now()
+  const startTime = Date.now();
 
   while (Date.now() - startTime < timeout) {
     if (await condition()) {
-      return true
+      return true;
     }
-    await new Promise((resolve) => setTimeout(resolve, interval))
+    await new Promise((resolve) => setTimeout(resolve, interval));
   }
 
-  return false
+  return false;
 }
 
 /**
  * Test data factory for creating multiple test memories
  */
 export class TestMemoryFactory {
-  private createdIds: string[] = []
+  private createdIds: string[] = [];
 
   async create(overrides: Partial<AgentMemory> = {}): Promise<AgentMemory> {
-    const memory = await createTestMemory(overrides)
-    this.createdIds.push(memory.id)
-    return memory
+    const memory = await createTestMemory(overrides);
+    this.createdIds.push(memory.id);
+    return memory;
   }
 
   async createBatch(count: number, overrides: Partial<AgentMemory> = {}): Promise<AgentMemory[]> {
-    const memories: AgentMemory[] = []
+    const memories: AgentMemory[] = [];
     for (let i = 0; i < count; i++) {
       const memory = await this.create({
         ...overrides,
         content: `${overrides.content || 'Test memory'} ${i + 1}`,
-      })
-      memories.push(memory)
+      });
+      memories.push(memory);
     }
-    return memories
+    return memories;
   }
 
   getCreatedIds(): string[] {
-    return [...this.createdIds]
+    return [...this.createdIds];
   }
 
   async cleanup(): Promise<void> {
-    await cleanupTestMemories(this.createdIds)
-    this.createdIds = []
+    await cleanupTestMemories(this.createdIds);
+    this.createdIds = [];
   }
 }

@@ -4,6 +4,6 @@ const Icon = () => (
       R
     </div>
   </div>
-)
+);
 
-export default Icon
+export default Icon;

@@ -1,22 +1,22 @@
-import type { Post } from '@revealui/core/types/cms'
-import type { Metadata } from 'next/types'
-import { CollectionArchive } from '@/lib/components/CollectionArchive'
-import { PageRange } from '@/lib/components/PageRange'
-import { Pagination } from '@/lib/components/Pagination'
-import { getRevealUIInstance } from '@/lib/utilities/revealui-singleton'
+import type { Post } from '@revealui/core/types/cms';
+import type { Metadata } from 'next/types';
+import { CollectionArchive } from '@/lib/components/CollectionArchive';
+import { PageRange } from '@/lib/components/PageRange';
+import { Pagination } from '@/lib/components/Pagination';
+import { getRevealUIInstance } from '@/lib/utilities/revealui-singleton';
 
 // Force dynamic rendering to prevent build-time RevealUI CMS initialization
-export const dynamic = 'force-dynamic'
-export const dynamicParams = true
+export const dynamic = 'force-dynamic';
+export const dynamicParams = true;
 
 export default async function Page() {
-  const revealui = await getRevealUIInstance()
+  const revealui = await getRevealUIInstance();
 
   const posts = await revealui.find({
     collection: 'posts',
     depth: 1,
     limit: 12,
-  })
+  });
 
   return (
     <div className="pt-24 pb-24">
@@ -43,11 +43,11 @@ export default async function Page() {
         )}
       </div>
     </div>
-  )
+  );
 }
 
 export function generateMetadata(): Metadata {
   return {
     title: `RevealUI Posts`,
-  }
+  };
 }

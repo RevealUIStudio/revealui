@@ -15,18 +15,18 @@
  * - Author cascades to null on user deletion
  */
 
-import { z } from 'zod/v4'
+import { z } from 'zod/v4';
 
 // =============================================================================
 // Constants
 // =============================================================================
 
-export const POST_SCHEMA_VERSION = 1
+export const POST_SCHEMA_VERSION = 1;
 
 // Post status values
-export const POST_STATUSES = ['draft', 'published', 'archived'] as const
+export const POST_STATUSES = ['draft', 'published', 'archived'] as const;
 
-export type PostStatus = (typeof POST_STATUSES)[number]
+export type PostStatus = (typeof POST_STATUSES)[number];
 
 // Lexical editor node types
 export const LEXICAL_NODE_TYPES = [
@@ -39,9 +39,9 @@ export const LEXICAL_NODE_TYPES = [
   'text',
   'link',
   'image',
-] as const
+] as const;
 
-export type LexicalNodeType = (typeof LEXICAL_NODE_TYPES)[number]
+export type LexicalNodeType = (typeof LEXICAL_NODE_TYPES)[number];
 
 // Post limits
 export const POST_LIMITS = {
@@ -51,7 +51,7 @@ export const POST_LIMITS = {
   MAX_SLUG_LENGTH: 200,
   MAX_EXCERPT_LENGTH: 500,
   MAX_CATEGORIES: 10,
-} as const
+} as const;
 
 // =============================================================================
 // Base Schemas
@@ -69,9 +69,9 @@ export const LexicalContentSchema = z.object({
     type: z.string(),
     version: z.number().optional(),
   }),
-})
+});
 
-export type LexicalContent = z.infer<typeof LexicalContentSchema>
+export type LexicalContent = z.infer<typeof LexicalContentSchema>;
 
 /**
  * Post meta (SEO) schema
@@ -87,9 +87,9 @@ export const PostMetaSchema = z.object({
   canonicalUrl: z.string().optional(),
   noIndex: z.boolean().optional(),
   noFollow: z.boolean().optional(),
-})
+});
 
-export type PostMeta = z.infer<typeof PostMetaSchema>
+export type PostMeta = z.infer<typeof PostMetaSchema>;
 
 // =============================================================================
 // Base Post Schema
@@ -127,7 +127,7 @@ export const PostObjectSchema = z.object({
   createdAt: z.date(),
   updatedAt: z.date(),
   publishedAt: z.date().nullable().optional(),
-})
+});
 
 /**
  * Post schema with validation rules
@@ -136,9 +136,9 @@ export const PostBaseSchema = PostObjectSchema.refine(
   (data) => {
     // If published, must have publishedAt timestamp
     if (data.status === 'published' && data.published) {
-      return data.publishedAt !== null && data.publishedAt !== undefined
+      return data.publishedAt !== null && data.publishedAt !== undefined;
     }
-    return true
+    return true;
   },
   {
     message: 'Published posts must have a publishedAt timestamp',
@@ -148,20 +148,20 @@ export const PostBaseSchema = PostObjectSchema.refine(
   (data) => {
     // Published flag should match status
     if (data.status === 'published') {
-      return data.published === true
+      return data.published === true;
     }
     if (data.status === 'draft' || data.status === 'archived') {
-      return data.published === false
+      return data.published === false;
     }
-    return true
+    return true;
   },
   {
     message: 'Published flag must match status',
     path: ['published'],
   },
-)
+);
 
-export const PostSchema = PostBaseSchema
+export const PostSchema = PostBaseSchema;
 
 // =============================================================================
 // Insert Schema
@@ -176,14 +176,14 @@ export const PostInsertSchema = PostObjectSchema.omit({
 }).extend({
   createdAt: z.date().optional(),
   updatedAt: z.date().optional(),
-})
+});
 
 // =============================================================================
 // Type Exports
 // =============================================================================
 
-export type Post = z.infer<typeof PostSchema>
-export type PostInsert = z.infer<typeof PostInsertSchema>
+export type Post = z.infer<typeof PostSchema>;
+export type PostInsert = z.infer<typeof PostInsertSchema>;
 
 // =============================================================================
 // Status Helpers
@@ -193,21 +193,21 @@ export type PostInsert = z.infer<typeof PostInsertSchema>
  * Check if post is draft
  */
 export function isDraft(post: Post): boolean {
-  return post.status === 'draft'
+  return post.status === 'draft';
 }
 
 /**
  * Check if post is published
  */
 export function isPublished(post: Post): boolean {
-  return post.status === 'published' && post.published === true
+  return post.status === 'published' && post.published === true;
 }
 
 /**
  * Check if post is archived
  */
 export function isArchived(post: Post): boolean {
-  return post.status === 'archived'
+  return post.status === 'archived';
 }
 
 /**
@@ -219,7 +219,7 @@ export function isPublishable(post: Post): boolean {
     post.slug.length > 0 &&
     post.content !== null &&
     post.content !== undefined
-  )
+  );
 }
 
 /**
@@ -230,8 +230,8 @@ export function getStatusLabel(status: PostStatus): string {
     draft: 'Draft',
     published: 'Published',
     archived: 'Archived',
-  }
-  return labels[status]
+  };
+  return labels[status];
 }
 
 // =============================================================================
@@ -247,7 +247,7 @@ export function createPublishUpdate(): Partial<Post> {
     published: true,
     publishedAt: new Date(),
     updatedAt: new Date(),
-  }
+  };
 }
 
 /**
@@ -258,7 +258,7 @@ export function createUnpublishUpdate(): Partial<Post> {
     status: 'draft',
     published: false,
     updatedAt: new Date(),
-  }
+  };
 }
 
 /**
@@ -269,7 +269,7 @@ export function createArchiveUpdate(): Partial<Post> {
     status: 'archived',
     published: false,
     updatedAt: new Date(),
-  }
+  };
 }
 
 /**
@@ -280,7 +280,7 @@ export function createRestoreUpdate(): Partial<Post> {
     status: 'draft',
     published: false,
     updatedAt: new Date(),
-  }
+  };
 }
 
 // =============================================================================
@@ -291,55 +291,55 @@ export function createRestoreUpdate(): Partial<Post> {
  * Check if post has content
  */
 export function hasContent(post: Post): boolean {
-  return post.content !== null && post.content !== undefined
+  return post.content !== null && post.content !== undefined;
 }
 
 /**
  * Check if post has excerpt
  */
 export function hasExcerpt(post: Post): boolean {
-  return post.excerpt !== null && post.excerpt !== undefined && post.excerpt.length > 0
+  return post.excerpt !== null && post.excerpt !== undefined && post.excerpt.length > 0;
 }
 
 /**
  * Check if post has featured image
  */
 export function hasFeaturedImage(post: Post): boolean {
-  return post.featuredImageId !== null && post.featuredImageId !== undefined
+  return post.featuredImageId !== null && post.featuredImageId !== undefined;
 }
 
 /**
  * Estimate reading time in minutes
  */
 export function estimateReadingTime(post: Post): number {
-  if (!hasContent(post)) return 0
+  if (!hasContent(post)) return 0;
 
   // Rough estimate: 200 words per minute
-  const wordCount = estimateWordCount(post)
-  return Math.max(1, Math.ceil(wordCount / 200))
+  const wordCount = estimateWordCount(post);
+  return Math.max(1, Math.ceil(wordCount / 200));
 }
 
 /**
  * Estimate word count from content
  */
 export function estimateWordCount(post: Post): number {
-  if (!hasContent(post)) return 0
+  if (!hasContent(post)) return 0;
 
   // Count words in title
-  let wordCount = post.title.split(/\s+/).length
+  let wordCount = post.title.split(/\s+/).length;
 
   // Count words in excerpt
   if (hasExcerpt(post)) {
-    wordCount += (post.excerpt ?? '').split(/\s+/).length
+    wordCount += (post.excerpt ?? '').split(/\s+/).length;
   }
 
   // Rough estimate from content JSON
   if (post.content) {
-    const contentText = JSON.stringify(post.content.root.children)
-    wordCount += contentText.split(/\s+/).length / 2 // Rough estimate
+    const contentText = JSON.stringify(post.content.root.children);
+    wordCount += contentText.split(/\s+/).length / 2; // Rough estimate
   }
 
-  return Math.floor(wordCount)
+  return Math.floor(wordCount);
 }
 
 // =============================================================================
@@ -350,14 +350,14 @@ export function estimateWordCount(post: Post): number {
  * Check if post has author
  */
 export function hasAuthor(post: Post): boolean {
-  return post.authorId !== null && post.authorId !== undefined
+  return post.authorId !== null && post.authorId !== undefined;
 }
 
 /**
  * Check if post is authored by specific user
  */
 export function isAuthoredBy(post: Post, userId: string): boolean {
-  return post.authorId === userId
+  return post.authorId === userId;
 }
 
 // =============================================================================
@@ -368,32 +368,32 @@ export function isAuthoredBy(post: Post, userId: string): boolean {
  * Check if post has categories
  */
 export function hasCategories(post: Post): boolean {
-  return post.categories.length > 0
+  return post.categories.length > 0;
 }
 
 /**
  * Check if post has specific category
  */
 export function hasCategory(post: Post, category: string): boolean {
-  return post.categories.includes(category)
+  return post.categories.includes(category);
 }
 
 /**
  * Add category to post
  */
 export function addCategory(post: Post, category: string): string[] {
-  if (hasCategory(post, category)) return post.categories
+  if (hasCategory(post, category)) return post.categories;
   if (post.categories.length >= POST_LIMITS.MAX_CATEGORIES) {
-    throw new Error(`Cannot exceed ${POST_LIMITS.MAX_CATEGORIES} categories`)
+    throw new Error(`Cannot exceed ${POST_LIMITS.MAX_CATEGORIES} categories`);
   }
-  return [...post.categories, category]
+  return [...post.categories, category];
 }
 
 /**
  * Remove category from post
  */
 export function removeCategory(post: Post, category: string): string[] {
-  return post.categories.filter((c) => c !== category)
+  return post.categories.filter((c) => c !== category);
 }
 
 // =============================================================================
@@ -404,28 +404,28 @@ export function removeCategory(post: Post, category: string): string[] {
  * Check if post has SEO meta
  */
 export function hasMeta(post: Post): boolean {
-  return post.meta !== null && post.meta !== undefined
+  return post.meta !== null && post.meta !== undefined;
 }
 
 /**
  * Get effective SEO title (meta.title or post.title)
  */
 export function getEffectiveSeoTitle(post: Post): string {
-  return post.meta?.title ?? post.title
+  return post.meta?.title ?? post.title;
 }
 
 /**
  * Get effective SEO description (meta.description or excerpt)
  */
 export function getEffectiveSeoDescription(post: Post): string | null {
-  return post.meta?.description ?? post.excerpt ?? null
+  return post.meta?.description ?? post.excerpt ?? null;
 }
 
 /**
  * Check if post is indexed by search engines
  */
 export function isIndexable(post: Post): boolean {
-  return !(post.meta?.noIndex === true)
+  return !(post.meta?.noIndex === true);
 }
 
 // =============================================================================
@@ -442,14 +442,14 @@ export function generateSlug(title: string): string {
     .replace(/[^\w\s-]/g, '') // Remove special chars
     .replace(/[\s_-]+/g, '-') // Replace spaces and underscores with hyphens
     .replace(/^-+|-+$/g, '') // Remove leading/trailing hyphens
-    .slice(0, POST_LIMITS.MAX_SLUG_LENGTH)
+    .slice(0, POST_LIMITS.MAX_SLUG_LENGTH);
 }
 
 /**
  * Validate slug format
  */
 export function isValidSlug(slug: string): boolean {
-  return /^[a-z0-9]+(?:-[a-z0-9]+)*$/.test(slug)
+  return /^[a-z0-9]+(?:-[a-z0-9]+)*$/.test(slug);
 }
 
 // =============================================================================
@@ -460,44 +460,44 @@ export function isValidSlug(slug: string): boolean {
  * Get post age in milliseconds
  */
 export function getPostAge(post: Post): number {
-  return Date.now() - post.createdAt.getTime()
+  return Date.now() - post.createdAt.getTime();
 }
 
 /**
  * Get post age in days
  */
 export function getPostAgeInDays(post: Post): number {
-  return Math.floor(getPostAge(post) / (1000 * 60 * 60 * 24))
+  return Math.floor(getPostAge(post) / (1000 * 60 * 60 * 24));
 }
 
 /**
  * Get time since last update in milliseconds
  */
 export function getTimeSinceUpdate(post: Post): number {
-  return Date.now() - post.updatedAt.getTime()
+  return Date.now() - post.updatedAt.getTime();
 }
 
 /**
  * Get time since publication in milliseconds
  */
 export function getTimeSincePublication(post: Post): number | null {
-  if (!post.publishedAt) return null
-  return Date.now() - post.publishedAt.getTime()
+  if (!post.publishedAt) return null;
+  return Date.now() - post.publishedAt.getTime();
 }
 
 /**
  * Check if post is recent (< 7 days old)
  */
 export function isRecentPost(post: Post, daysThreshold = 7): boolean {
-  return getPostAgeInDays(post) < daysThreshold
+  return getPostAgeInDays(post) < daysThreshold;
 }
 
 /**
  * Check if post was recently updated (< 24 hours)
  */
 export function isRecentlyUpdated(post: Post, hoursThreshold = 24): boolean {
-  const hoursSinceUpdate = getTimeSinceUpdate(post) / (1000 * 60 * 60)
-  return hoursSinceUpdate < hoursThreshold
+  const hoursSinceUpdate = getTimeSinceUpdate(post) / (1000 * 60 * 60);
+  return hoursSinceUpdate < hoursThreshold;
 }
 
 // =============================================================================
@@ -511,18 +511,18 @@ export function createPostInsert(
   title: string,
   slug: string,
   options?: {
-    id?: string
-    excerpt?: string | null
-    content?: LexicalContent | null
-    featuredImageId?: string | null
-    authorId?: string | null
-    status?: PostStatus
-    meta?: PostMeta | null
-    categories?: string[]
+    id?: string;
+    excerpt?: string | null;
+    content?: LexicalContent | null;
+    featuredImageId?: string | null;
+    authorId?: string | null;
+    status?: PostStatus;
+    meta?: PostMeta | null;
+    categories?: string[];
   },
 ): PostInsert {
-  const now = new Date()
-  const status = options?.status ?? 'draft'
+  const now = new Date();
+  const status = options?.status ?? 'draft';
 
   return {
     id: options?.id ?? crypto.randomUUID(),
@@ -540,34 +540,34 @@ export function createPostInsert(
     createdAt: now,
     updatedAt: now,
     publishedAt: status === 'published' ? now : null,
-  }
+  };
 }
 
 /**
  * Update post data
  */
 export function updatePost(updates: {
-  title?: string
-  slug?: string
-  excerpt?: string | null
-  content?: LexicalContent | null
-  featuredImageId?: string | null
-  meta?: PostMeta | null
-  categories?: string[]
+  title?: string;
+  slug?: string;
+  excerpt?: string | null;
+  content?: LexicalContent | null;
+  featuredImageId?: string | null;
+  meta?: PostMeta | null;
+  categories?: string[];
 }): Partial<Post> {
   const result: Partial<Post> = {
     updatedAt: new Date(),
-  }
+  };
 
-  if (updates.title !== undefined) result.title = updates.title
-  if (updates.slug !== undefined) result.slug = updates.slug
-  if (updates.excerpt !== undefined) result.excerpt = updates.excerpt
-  if (updates.content !== undefined) result.content = updates.content
-  if (updates.featuredImageId !== undefined) result.featuredImageId = updates.featuredImageId
-  if (updates.meta !== undefined) result.meta = updates.meta
-  if (updates.categories !== undefined) result.categories = updates.categories
+  if (updates.title !== undefined) result.title = updates.title;
+  if (updates.slug !== undefined) result.slug = updates.slug;
+  if (updates.excerpt !== undefined) result.excerpt = updates.excerpt;
+  if (updates.content !== undefined) result.content = updates.content;
+  if (updates.featuredImageId !== undefined) result.featuredImageId = updates.featuredImageId;
+  if (updates.meta !== undefined) result.meta = updates.meta;
+  if (updates.categories !== undefined) result.categories = updates.categories;
 
-  return result
+  return result;
 }
 
 // =============================================================================
@@ -580,25 +580,25 @@ export function updatePost(updates: {
 export interface PostWithComputed extends Post {
   // biome-ignore lint/style/useNamingConvention: _computed is a conventional computed-field marker
   _computed: {
-    isDraft: boolean
-    isPublished: boolean
-    isArchived: boolean
-    isPublishable: boolean
-    hasContent: boolean
-    hasExcerpt: boolean
-    hasFeaturedImage: boolean
-    hasAuthor: boolean
-    hasCategories: boolean
-    hasMeta: boolean
-    isIndexable: boolean
-    estimatedWordCount: number
-    estimatedReadingTime: number
-    ageInDays: number
-    isRecent: boolean
-    isRecentlyUpdated: boolean
-    effectiveSeoTitle: string
-    effectiveSeoDescription: string | null
-  }
+    isDraft: boolean;
+    isPublished: boolean;
+    isArchived: boolean;
+    isPublishable: boolean;
+    hasContent: boolean;
+    hasExcerpt: boolean;
+    hasFeaturedImage: boolean;
+    hasAuthor: boolean;
+    hasCategories: boolean;
+    hasMeta: boolean;
+    isIndexable: boolean;
+    estimatedWordCount: number;
+    estimatedReadingTime: number;
+    ageInDays: number;
+    isRecent: boolean;
+    isRecentlyUpdated: boolean;
+    effectiveSeoTitle: string;
+    effectiveSeoDescription: string | null;
+  };
 }
 
 /**
@@ -628,7 +628,7 @@ export function postToHuman(post: Post): PostWithComputed {
       effectiveSeoTitle: getEffectiveSeoTitle(post),
       effectiveSeoDescription: getEffectiveSeoDescription(post),
     },
-  }
+  };
 }
 
 /**
@@ -636,16 +636,16 @@ export function postToHuman(post: Post): PostWithComputed {
  */
 export interface PostAgent extends Post {
   metadata: {
-    status: PostStatus
-    published: boolean
-    hasContent: boolean
-    wordCount: number
-    readingTimeMinutes: number
-    categoryCount: number
-    ageMs: number
-    timeSincePublicationMs: number | null
-    isIndexable: boolean
-  }
+    status: PostStatus;
+    published: boolean;
+    hasContent: boolean;
+    wordCount: number;
+    readingTimeMinutes: number;
+    categoryCount: number;
+    ageMs: number;
+    timeSincePublicationMs: number | null;
+    isIndexable: boolean;
+  };
 }
 
 /**
@@ -665,7 +665,7 @@ export function postToAgent(post: Post): PostAgent {
       timeSincePublicationMs: getTimeSincePublication(post),
       isIndexable: isIndexable(post),
     },
-  }
+  };
 }
 
 /**
@@ -695,7 +695,7 @@ export const PostWithComputedSchema = PostSchema.and(
       effectiveSeoDescription: z.string().nullable(),
     }),
   }),
-)
+);
 
 /**
  * Zod schema for post with agent metadata
@@ -714,4 +714,4 @@ export const PostAgentSchema = PostSchema.and(
       isIndexable: z.boolean(),
     }),
   }),
-)
+);

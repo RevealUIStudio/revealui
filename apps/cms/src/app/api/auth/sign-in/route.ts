@@ -6,37 +6,37 @@
  * Authenticates a user with email and password.
  */
 
-import { signIn } from '@revealui/auth/server'
-import { SignInRequestContract } from '@revealui/contracts'
-import { logger } from '@revealui/core/utils/logger'
-import { type NextRequest, NextResponse } from 'next/server'
-import { withRateLimit } from '@/lib/middleware/rate-limit'
+import { signIn } from '@revealui/auth/server';
+import { SignInRequestContract } from '@revealui/contracts';
+import { logger } from '@revealui/core/utils/logger';
+import { type NextRequest, NextResponse } from 'next/server';
+import { withRateLimit } from '@/lib/middleware/rate-limit';
 import {
   createApplicationErrorResponse,
   createErrorResponse,
   createValidationErrorResponse,
-} from '@/lib/utils/error-response'
+} from '@/lib/utils/error-response';
 
-export const dynamic = 'force-dynamic'
-export const runtime = 'nodejs'
+export const dynamic = 'force-dynamic';
+export const runtime = 'nodejs';
 
 async function signInHandler(request: NextRequest): Promise<NextResponse> {
   try {
-    let body: unknown
+    let body: unknown;
     try {
-      body = await request.json()
+      body = await request.json();
     } catch (jsonError) {
       return createValidationErrorResponse('Invalid JSON in request body', 'body', null, {
         parseError: jsonError instanceof Error ? jsonError.message : 'Malformed JSON',
-      })
+      });
     }
 
     // Validate request body using contract
-    const validationResult = SignInRequestContract.validate(body)
+    const validationResult = SignInRequestContract.validate(body);
 
     if (!validationResult.success) {
       // Extract first validation error for user-friendly response
-      const firstIssue = validationResult.errors.issues[0]
+      const firstIssue = validationResult.errors.issues[0];
       return createValidationErrorResponse(
         firstIssue?.message || 'Validation failed',
         firstIssue?.path?.join('.') || 'body',
@@ -47,31 +47,31 @@ async function signInHandler(request: NextRequest): Promise<NextResponse> {
             message: issue.message,
           })),
         },
-      )
+      );
     }
 
     // Contract automatically sanitizes email (lowercase, trim)
-    const { email: sanitizedEmail, password } = validationResult.data
+    const { email: sanitizedEmail, password } = validationResult.data;
 
     // Get user agent and IP address for session tracking
-    const userAgent = request.headers.get('user-agent') || undefined
-    const xff = request.headers.get('x-forwarded-for')
+    const userAgent = request.headers.get('user-agent') || undefined;
+    const xff = request.headers.get('x-forwarded-for');
     const ipAddress =
       (xff ? xff.split(',').pop()?.trim() : undefined) ||
       request.headers.get('x-real-ip') ||
-      undefined
+      undefined;
 
     const result = await signIn(sanitizedEmail, password, {
       userAgent,
       ipAddress,
-    })
+    });
 
     if (!result.success) {
       return createApplicationErrorResponse(
         result.error || 'Invalid email or password',
         'INVALID_CREDENTIALS',
         401,
-      )
+      );
     }
 
     // Create response with user data
@@ -83,7 +83,7 @@ async function signInHandler(request: NextRequest): Promise<NextResponse> {
         avatarUrl: result.user?.avatarUrl,
         role: result.user?.role,
       },
-    })
+    });
 
     // Set session cookie
     if (result.sessionToken) {
@@ -99,21 +99,21 @@ async function signInHandler(request: NextRequest): Promise<NextResponse> {
                 if (!process.env.SESSION_COOKIE_DOMAIN) {
                   throw new Error(
                     'SESSION_COOKIE_DOMAIN env var is required in production. Set it to your root domain (e.g. ".example.com").',
-                  )
+                  );
                 }
-                return process.env.SESSION_COOKIE_DOMAIN
+                return process.env.SESSION_COOKIE_DOMAIN;
               })()
             : undefined,
-      })
+      });
     }
 
-    return response
+    return response;
   } catch (error) {
-    logger.error('Error signing in', { error })
+    logger.error('Error signing in', { error });
     return createErrorResponse(error, {
       endpoint: '/api/auth/sign-in',
       operation: 'sign_in',
-    })
+    });
   }
 }
 
@@ -123,4 +123,4 @@ export const POST = withRateLimit(signInHandler, {
   windowMs: 15 * 60 * 1000, // 15 minutes
   keyPrefix: 'signin',
   failClosed: true,
-})
+});

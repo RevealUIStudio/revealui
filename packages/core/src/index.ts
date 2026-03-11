@@ -2,16 +2,16 @@
 
 // Export core (server-side) functionality - now directly in root after flattening
 // REST API
-export { createRESTHandlers, handleRESTRequest } from './api/rest.js'
+export { createRESTHandlers, handleRESTRequest } from './api/rest.js';
 // Auth utilities
-export { anyone, authenticated } from './auth/access.js'
+export { anyone, authenticated } from './auth/access.js';
 export type {
   FloatingToolbarPluginProps,
   ImageNodeData,
   RichTextEditorProps,
   SerializedImageNode,
   ToolbarPluginProps,
-} from './client/index.js'
+} from './client/index.js';
 // Export client (client-side) - but exclude RichTextEditor to avoid conflict with type
 // Consumers should import RichTextEditor component from '@revealui/core/richtext/client' directly
 export {
@@ -44,14 +44,14 @@ export {
   // Hooks
   useRevealUI,
   withRevealUIAccess,
-} from './client/index.js'
+} from './client/index.js';
 // Configuration
-export { buildConfig } from './config/index.js'
-export { getRevealUI } from './config/runtime.js'
-export { deepMerge } from './config/utils.js'
+export { buildConfig } from './config/index.js';
+export { getRevealUI } from './config/runtime.js';
+export { deepMerge } from './config/utils.js';
 // Database adapters (PGlite/PostgreSQL only - SQLite support removed)
-export type { UniversalPostgresAdapterConfig } from './database/universal-postgres.js'
-export { universalPostgresAdapter } from './database/universal-postgres.js'
+export type { UniversalPostgresAdapterConfig } from './database/universal-postgres.js';
+export { universalPostgresAdapter } from './database/universal-postgres.js';
 // Factory functions
 export {
   createRevealUI,
@@ -59,14 +59,14 @@ export {
   createRevealUIBlock,
   createRevealUICollection,
   createRevealUIField,
-} from './factories/index.js'
+} from './factories/index.js';
 export {
   type FeatureFlags,
   getFeatures,
   getFeaturesForTier,
   getRequiredTier,
   isFeatureEnabled,
-} from './features.js'
+} from './features.js';
 // License and feature flags
 export {
   configureLicenseCache,
@@ -82,16 +82,16 @@ export {
   type LicenseTier,
   resetLicenseState,
   validateLicenseKey,
-} from './license.js'
+} from './license.js';
 // Next.js integration
 export {
   getRevealUI as getRevealUINext,
   withRevealUI,
-} from './nextjs/index.js'
+} from './nextjs/index.js';
 // Plugins
-export { formBuilderPlugin } from './plugins/form-builder.js'
-export { nestedDocsPlugin } from './plugins/nested-docs.js'
-export { redirectsPlugin } from './plugins/redirects.js'
+export { formBuilderPlugin } from './plugins/form-builder.js';
+export { nestedDocsPlugin } from './plugins/nested-docs.js';
+export { redirectsPlugin } from './plugins/redirects.js';
 // Core RevealUI CMS implementation
 export {
   // Field traversal utilities
@@ -121,7 +121,7 @@ export {
   relationshipPopulationPromise,
   validateRelationshipMetadata,
   withNullableJSONSchemaType,
-} from './revealui.js'
+} from './revealui.js';
 // Rich text editor
 export {
   BoldFeature,
@@ -132,13 +132,13 @@ export {
   lexicalEditor,
   TreeViewFeature,
   UnderlineFeature,
-} from './richtext/index.js'
+} from './richtext/index.js';
 // Storage adapters
-export { vercelBlobStorage } from './storage/vercel-blob.js'
+export { vercelBlobStorage } from './storage/vercel-blob.js';
 // Note: Logger class is exported from ./revealui.ts (instance/logger.js), not from utils/logger.js
-export { LRUCache, type LRUCacheOptions } from './utils/cache.js'
+export { LRUCache, type LRUCacheOptions } from './utils/cache.js';
 // Deep clone utility
-export { deepClone } from './utils/deep-clone.js'
+export { deepClone } from './utils/deep-clone.js';
 // Error response utilities (framework-agnostic)
 export {
   createApplicationErrorResponseData,
@@ -146,22 +146,22 @@ export {
   createSuccessResponseData,
   createValidationErrorResponseData,
   type ErrorResponseData,
-} from './utils/error-responses.js'
+} from './utils/error-responses.js';
 export {
   ApplicationError,
   handleApiError,
   handleDatabaseError,
   ValidationError,
-} from './utils/errors.js'
+} from './utils/errors.js';
 // Utilities
 export {
   createLogger,
   type LogContext,
   type LogLevel,
   logger,
-} from './utils/logger.js'
+} from './utils/logger.js';
 // Type guards
-export { flattenFields, isJsonFieldType, isObject } from './utils/type-guards.js'
+export { flattenFields, isJsonFieldType, isObject } from './utils/type-guards.js';
 
 // =============================================================================
 // BASE TYPES FROM SCHEMA (Single Source of Truth)
@@ -226,7 +226,7 @@ export {
   toSlug,
   validateWithErrors,
   type Where,
-} from '@revealui/contracts/cms'
+} from '@revealui/contracts/cms';
 
 // =============================================================================
 // REVEALUI-SPECIFIC TYPES
@@ -311,13 +311,13 @@ export type {
   StorageAdapter,
   TypeWithID,
   WhereClause,
-} from './types/index.js'
+} from './types/index.js';
 
 // =============================================================================
 // ADDITIONAL TYPE EXPORTS
 // =============================================================================
 
-export { serializeLexicalState } from './richtext/index.js'
+export { serializeLexicalState } from './richtext/index.js';
 export type {
   // Additional framework types
   Access,
@@ -372,7 +372,7 @@ export type {
   // Validation
   ValidationResult,
   VersionConfig,
-} from './types/index.js'
+} from './types/index.js';
 
 // =============================================================================
 // TYPE DOCUMENTATION

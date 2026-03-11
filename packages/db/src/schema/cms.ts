@@ -4,8 +4,8 @@
  * These tables provide content management functionality for the CMS app.
  */
 
-import { boolean, index, integer, jsonb, pgTable, text, timestamp } from 'drizzle-orm/pg-core'
-import { users } from './users.js'
+import { boolean, index, integer, jsonb, pgTable, text, timestamp } from 'drizzle-orm/pg-core';
+import { users } from './users.js';
 
 // =============================================================================
 // Posts Table
@@ -52,7 +52,7 @@ export const posts = pgTable(
     publishedAt: timestamp('published_at', { withTimezone: true }),
   },
   (table) => [index('posts_author_id_idx').on(table.authorId)],
-)
+);
 
 // =============================================================================
 // Media Table
@@ -94,7 +94,7 @@ export const media = pgTable('media', {
   // Timestamps
   createdAt: timestamp('created_at', { withTimezone: true }).defaultNow().notNull(),
   updatedAt: timestamp('updated_at', { withTimezone: true }).defaultNow().notNull(),
-})
+});
 
 // =============================================================================
 // Global: Header
@@ -111,10 +111,10 @@ export const globalHeader = pgTable('global_header', {
   navItems: jsonb('nav_items')
     .$type<
       Array<{
-        label: string
-        url: string
-        newTab?: boolean
-        children?: Array<{ label: string; url: string; newTab?: boolean }>
+        label: string;
+        url: string;
+        newTab?: boolean;
+        children?: Array<{ label: string; url: string; newTab?: boolean }>;
       }>
     >()
     .default([]),
@@ -125,7 +125,7 @@ export const globalHeader = pgTable('global_header', {
   // Timestamps
   createdAt: timestamp('created_at', { withTimezone: true }).defaultNow().notNull(),
   updatedAt: timestamp('updated_at', { withTimezone: true }).defaultNow().notNull(),
-})
+});
 
 // =============================================================================
 // Global: Footer
@@ -142,8 +142,8 @@ export const globalFooter = pgTable('global_footer', {
   columns: jsonb('columns')
     .$type<
       Array<{
-        label: string
-        links: Array<{ label: string; url: string; newTab?: boolean }>
+        label: string;
+        links: Array<{ label: string; url: string; newTab?: boolean }>;
       }>
     >()
     .default([]),
@@ -155,8 +155,8 @@ export const globalFooter = pgTable('global_footer', {
   socialLinks: jsonb('social_links')
     .$type<
       Array<{
-        platform: string
-        url: string
+        platform: string;
+        url: string;
       }>
     >()
     .default([]),
@@ -164,7 +164,7 @@ export const globalFooter = pgTable('global_footer', {
   // Timestamps
   createdAt: timestamp('created_at', { withTimezone: true }).defaultNow().notNull(),
   updatedAt: timestamp('updated_at', { withTimezone: true }).defaultNow().notNull(),
-})
+});
 
 // =============================================================================
 // Global: Settings
@@ -200,19 +200,19 @@ export const globalSettings = pgTable('global_settings', {
   // Timestamps
   createdAt: timestamp('created_at', { withTimezone: true }).defaultNow().notNull(),
   updatedAt: timestamp('updated_at', { withTimezone: true }).defaultNow().notNull(),
-})
+});
 
 // =============================================================================
 // Type exports for Drizzle
 // =============================================================================
 
-export type Post = typeof posts.$inferSelect
-export type NewPost = typeof posts.$inferInsert
-export type Media = typeof media.$inferSelect
-export type NewMedia = typeof media.$inferInsert
-export type GlobalHeader = typeof globalHeader.$inferSelect
-export type NewGlobalHeader = typeof globalHeader.$inferInsert
-export type GlobalFooter = typeof globalFooter.$inferSelect
-export type NewGlobalFooter = typeof globalFooter.$inferInsert
-export type GlobalSettings = typeof globalSettings.$inferSelect
-export type NewGlobalSettings = typeof globalSettings.$inferInsert
+export type Post = typeof posts.$inferSelect;
+export type NewPost = typeof posts.$inferInsert;
+export type Media = typeof media.$inferSelect;
+export type NewMedia = typeof media.$inferInsert;
+export type GlobalHeader = typeof globalHeader.$inferSelect;
+export type NewGlobalHeader = typeof globalHeader.$inferInsert;
+export type GlobalFooter = typeof globalFooter.$inferSelect;
+export type NewGlobalFooter = typeof globalFooter.$inferInsert;
+export type GlobalSettings = typeof globalSettings.$inferSelect;
+export type NewGlobalSettings = typeof globalSettings.$inferInsert;

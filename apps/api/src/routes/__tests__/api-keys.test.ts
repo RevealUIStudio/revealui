@@ -1,21 +1,21 @@
-import { Hono } from 'hono'
-import { beforeEach, describe, expect, it, vi } from 'vitest'
+import { Hono } from 'hono';
+import { beforeEach, describe, expect, it, vi } from 'vitest';
 
 // ---------------------------------------------------------------------------
 // Mock dependencies
 // ---------------------------------------------------------------------------
 vi.mock('@revealui/core/observability/logger', () => ({
   logger: { info: vi.fn(), error: vi.fn(), warn: vi.fn(), debug: vi.fn() },
-}))
+}));
 
 vi.mock('@revealui/db', () => ({
   getClient: vi.fn(),
-}))
+}));
 
 vi.mock('@revealui/db/crypto', () => ({
   encryptApiKey: vi.fn((key: string) => `encrypted:${key}`),
   redactApiKey: vi.fn((key: string) => `${key.slice(0, 4)}...${key.slice(-4)}`),
-}))
+}));
 
 vi.mock('@revealui/db/schema', () => ({
   tenantProviderConfigs: {
@@ -36,57 +36,57 @@ vi.mock('@revealui/db/schema', () => ({
     lastUsedAt: 'lastUsedAt',
     updatedAt: 'updatedAt',
   },
-}))
+}));
 
 // Mock @revealui/ai key validation (dynamic import in route)
 vi.mock('@revealui/ai/llm/key-validator', () => ({
   validateProviderKey: vi.fn().mockResolvedValue({ valid: true }),
-}))
+}));
 
-import { getClient } from '@revealui/db'
-import type { HTTPException } from 'hono/http-exception'
-import { errorHandler } from '../../middleware/error.js'
-import apiKeysApp from '../api-keys.js'
+import { getClient } from '@revealui/db';
+import type { HTTPException } from 'hono/http-exception';
+import { errorHandler } from '../../middleware/error.js';
+import apiKeysApp from '../api-keys.js';
 
 vi.mock('../../middleware/error.js', async () => {
-  const { HTTPException } = await import('hono/http-exception')
+  const { HTTPException } = await import('hono/http-exception');
   return {
     errorHandler: (err: unknown, c: { json: (...args: unknown[]) => unknown }) => {
       if (err instanceof HTTPException) {
         return c.json(
           { error: (err as HTTPException).message, code: `HTTP_${(err as HTTPException).status}` },
           (err as HTTPException).status,
-        )
+        );
       }
-      return c.json({ error: 'Internal error' }, 500)
+      return c.json({ error: 'Internal error' }, 500);
     },
-  }
-})
+  };
+});
 
-const mockedGetClient = vi.mocked(getClient)
+const mockedGetClient = vi.mocked(getClient);
 
 // ---------------------------------------------------------------------------
 // Helpers
 // ---------------------------------------------------------------------------
 interface MockUser {
-  id: string
-  email: string
-  name: string
-  role: string
+  id: string;
+  email: string;
+  name: string;
+  role: string;
 }
 
 function createApp(user?: MockUser) {
   // biome-ignore lint/suspicious/noExplicitAny: test helper
-  const app = new Hono<{ Variables: { user: any } }>()
+  const app = new Hono<{ Variables: { user: any } }>();
   if (user) {
     app.use('*', async (c, next) => {
-      c.set('user', user)
-      await next()
-    })
+      c.set('user', user);
+      await next();
+    });
   }
-  app.route('/api-keys', apiKeysApp)
-  app.onError(errorHandler)
-  return app
+  app.route('/api-keys', apiKeysApp);
+  app.onError(errorHandler);
+  return app;
 }
 
 // biome-ignore lint/suspicious/noExplicitAny: test helper — Hono generics vary per test
@@ -95,36 +95,36 @@ function jsonPost(app: Hono<any>, path: string, body: unknown) {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify(body),
-  })
+  });
 }
 
 // biome-ignore lint/suspicious/noExplicitAny: test helper
 async function parseBody(res: Response): Promise<any> {
-  return res.json()
+  return res.json();
 }
 
-const testUser: MockUser = { id: 'user-1', email: 'test@example.com', name: 'Test', role: 'admin' }
+const testUser: MockUser = { id: 'user-1', email: 'test@example.com', name: 'Test', role: 'admin' };
 
 // ---------------------------------------------------------------------------
 // Tests
 // ---------------------------------------------------------------------------
 describe('api-keys routes', () => {
-  let mockInsertValues: ReturnType<typeof vi.fn>
-  let mockSelectFrom: ReturnType<typeof vi.fn>
-  let mockDeleteWhere: ReturnType<typeof vi.fn>
-  let mockUpdateSet: ReturnType<typeof vi.fn>
+  let mockInsertValues: ReturnType<typeof vi.fn>;
+  let mockSelectFrom: ReturnType<typeof vi.fn>;
+  let mockDeleteWhere: ReturnType<typeof vi.fn>;
+  let mockUpdateSet: ReturnType<typeof vi.fn>;
 
   beforeEach(() => {
-    vi.clearAllMocks()
+    vi.clearAllMocks();
 
-    mockInsertValues = vi.fn().mockResolvedValue(undefined)
-    mockDeleteWhere = vi.fn().mockResolvedValue(undefined)
-    mockUpdateSet = vi.fn().mockReturnValue({ where: vi.fn().mockResolvedValue(undefined) })
+    mockInsertValues = vi.fn().mockResolvedValue(undefined);
+    mockDeleteWhere = vi.fn().mockResolvedValue(undefined);
+    mockUpdateSet = vi.fn().mockReturnValue({ where: vi.fn().mockResolvedValue(undefined) });
     mockSelectFrom = vi.fn().mockReturnValue({
       where: vi.fn().mockReturnValue({
         limit: vi.fn().mockResolvedValue([]),
       }),
-    })
+    });
 
     mockedGetClient.mockReturnValue({
       insert: vi.fn().mockReturnValue({ values: mockInsertValues }),
@@ -132,62 +132,62 @@ describe('api-keys routes', () => {
       delete: vi.fn().mockReturnValue({ where: mockDeleteWhere }),
       update: vi.fn().mockReturnValue({ set: mockUpdateSet }),
       // biome-ignore lint/suspicious/noExplicitAny: test mock
-    } as any)
-  })
+    } as any);
+  });
 
   describe('POST /api-keys (create key)', () => {
     it('returns 401 when unauthenticated', async () => {
-      const app = createApp()
+      const app = createApp();
 
       const res = await jsonPost(app, '/api-keys', {
         provider: 'anthropic',
         apiKey: 'sk-ant-test-12345678',
-      })
+      });
 
-      expect(res.status).toBe(401)
-    })
+      expect(res.status).toBe(401);
+    });
 
     it('creates a key and returns id + keyHint', async () => {
-      const app = createApp(testUser)
+      const app = createApp(testUser);
 
       const res = await jsonPost(app, '/api-keys', {
         provider: 'anthropic',
         apiKey: 'sk-ant-test-12345678',
-      })
+      });
 
-      expect(res.status).toBe(201)
-      const body = await parseBody(res)
-      expect(body.id).toMatch(/^key_/)
-      expect(body.keyHint).toBeDefined()
-    })
+      expect(res.status).toBe(201);
+      const body = await parseBody(res);
+      expect(body.id).toMatch(/^key_/);
+      expect(body.keyHint).toBeDefined();
+    });
 
     it('rejects invalid provider', async () => {
-      const app = createApp(testUser)
+      const app = createApp(testUser);
 
       const res = await jsonPost(app, '/api-keys', {
         provider: 'invalid-provider',
         apiKey: 'sk-test-12345678',
-      })
+      });
 
-      expect(res.status).toBe(400)
-    })
+      expect(res.status).toBe(400);
+    });
 
     it('rejects apiKey shorter than 8 chars', async () => {
-      const app = createApp(testUser)
+      const app = createApp(testUser);
 
       const res = await jsonPost(app, '/api-keys', {
         provider: 'anthropic',
         apiKey: 'short',
-      })
+      });
 
-      expect(res.status).toBe(400)
-    })
+      expect(res.status).toBe(400);
+    });
 
     it('accepts all valid providers', async () => {
-      const providers = ['openai', 'anthropic', 'groq', 'ollama', 'huggingface', 'vultr']
+      const providers = ['openai', 'anthropic', 'groq', 'ollama', 'huggingface', 'vultr'];
 
       for (const provider of providers) {
-        vi.clearAllMocks()
+        vi.clearAllMocks();
         mockedGetClient.mockReturnValue({
           insert: vi.fn().mockReturnValue({ values: vi.fn().mockResolvedValue(undefined) }),
           select: vi.fn().mockReturnValue({
@@ -201,26 +201,26 @@ describe('api-keys routes', () => {
             set: vi.fn().mockReturnValue({ where: vi.fn().mockResolvedValue(undefined) }),
           }),
           // biome-ignore lint/suspicious/noExplicitAny: test mock
-        } as any)
+        } as any);
 
-        const app = createApp(testUser)
+        const app = createApp(testUser);
         const res = await jsonPost(app, `/api-keys`, {
           provider,
           apiKey: 'sk-test-key-12345678',
-        })
-        expect(res.status).toBe(201)
+        });
+        expect(res.status).toBe(201);
       }
-    })
-  })
+    });
+  });
 
   describe('GET /api-keys (list keys)', () => {
     it('returns 401 when unauthenticated', async () => {
-      const app = createApp()
+      const app = createApp();
 
-      const res = await app.request('/api-keys')
+      const res = await app.request('/api-keys');
 
-      expect(res.status).toBe(401)
-    })
+      expect(res.status).toBe(401);
+    });
 
     it('returns empty list when no keys stored', async () => {
       mockedGetClient.mockReturnValue({
@@ -230,19 +230,19 @@ describe('api-keys routes', () => {
           }),
         }),
         // biome-ignore lint/suspicious/noExplicitAny: test mock
-      } as any)
+      } as any);
 
-      const app = createApp(testUser)
+      const app = createApp(testUser);
 
-      const res = await app.request('/api-keys')
+      const res = await app.request('/api-keys');
 
-      expect(res.status).toBe(200)
-      const body = await parseBody(res)
-      expect(body.keys).toEqual([])
-    })
+      expect(res.status).toBe(200);
+      const body = await parseBody(res);
+      expect(body.keys).toEqual([]);
+    });
 
     it('returns key summaries without plaintext', async () => {
-      const now = new Date()
+      const now = new Date();
       mockedGetClient.mockReturnValue({
         select: vi.fn().mockReturnValue({
           from: vi.fn().mockReturnValue({
@@ -259,32 +259,32 @@ describe('api-keys routes', () => {
           }),
         }),
         // biome-ignore lint/suspicious/noExplicitAny: test mock
-      } as any)
+      } as any);
 
-      const app = createApp(testUser)
+      const app = createApp(testUser);
 
-      const res = await app.request('/api-keys')
+      const res = await app.request('/api-keys');
 
-      expect(res.status).toBe(200)
-      const body = await parseBody(res)
-      expect(body.keys).toHaveLength(1)
-      expect(body.keys[0].id).toBe('key_abc')
-      expect(body.keys[0].provider).toBe('anthropic')
-      expect(body.keys[0].keyHint).toBe('sk-a...5678')
+      expect(res.status).toBe(200);
+      const body = await parseBody(res);
+      expect(body.keys).toHaveLength(1);
+      expect(body.keys[0].id).toBe('key_abc');
+      expect(body.keys[0].provider).toBe('anthropic');
+      expect(body.keys[0].keyHint).toBe('sk-a...5678');
       // Ensure no plaintext key is returned
-      expect(body.keys[0].encryptedKey).toBeUndefined()
-      expect(body.keys[0].apiKey).toBeUndefined()
-    })
-  })
+      expect(body.keys[0].encryptedKey).toBeUndefined();
+      expect(body.keys[0].apiKey).toBeUndefined();
+    });
+  });
 
   describe('DELETE /api-keys/:id', () => {
     it('returns 401 when unauthenticated', async () => {
-      const app = createApp()
+      const app = createApp();
 
-      const res = await app.request('/api-keys/key_abc', { method: 'DELETE' })
+      const res = await app.request('/api-keys/key_abc', { method: 'DELETE' });
 
-      expect(res.status).toBe(401)
-    })
+      expect(res.status).toBe(401);
+    });
 
     it('returns 404 when key does not exist', async () => {
       mockedGetClient.mockReturnValue({
@@ -294,17 +294,17 @@ describe('api-keys routes', () => {
           }),
         }),
         // biome-ignore lint/suspicious/noExplicitAny: test mock
-      } as any)
+      } as any);
 
-      const app = createApp(testUser)
+      const app = createApp(testUser);
 
-      const res = await app.request('/api-keys/key_nonexistent', { method: 'DELETE' })
+      const res = await app.request('/api-keys/key_nonexistent', { method: 'DELETE' });
 
-      expect(res.status).toBe(404)
-    })
+      expect(res.status).toBe(404);
+    });
 
     it('deletes existing key', async () => {
-      const mockDelete = vi.fn().mockReturnValue({ where: vi.fn().mockResolvedValue(undefined) })
+      const mockDelete = vi.fn().mockReturnValue({ where: vi.fn().mockResolvedValue(undefined) });
       mockedGetClient.mockReturnValue({
         select: vi.fn().mockReturnValue({
           from: vi.fn().mockReturnValue({
@@ -313,28 +313,28 @@ describe('api-keys routes', () => {
         }),
         delete: mockDelete,
         // biome-ignore lint/suspicious/noExplicitAny: test mock
-      } as any)
+      } as any);
 
-      const app = createApp(testUser)
+      const app = createApp(testUser);
 
-      const res = await app.request('/api-keys/key_abc', { method: 'DELETE' })
+      const res = await app.request('/api-keys/key_abc', { method: 'DELETE' });
 
-      expect(res.status).toBe(200)
-      const body = await parseBody(res)
-      expect(body.deleted).toBe(true)
-    })
-  })
+      expect(res.status).toBe(200);
+      const body = await parseBody(res);
+      expect(body.deleted).toBe(true);
+    });
+  });
 
   describe('POST /api-keys/:id/rotate', () => {
     it('returns 401 when unauthenticated', async () => {
-      const app = createApp()
+      const app = createApp();
 
       const res = await jsonPost(app, '/api-keys/key_abc/rotate', {
         apiKey: 'sk-new-key-12345678',
-      })
+      });
 
-      expect(res.status).toBe(401)
-    })
+      expect(res.status).toBe(401);
+    });
 
     it('returns 404 when key does not exist', async () => {
       mockedGetClient.mockReturnValue({
@@ -344,16 +344,16 @@ describe('api-keys routes', () => {
           }),
         }),
         // biome-ignore lint/suspicious/noExplicitAny: test mock
-      } as any)
+      } as any);
 
-      const app = createApp(testUser)
+      const app = createApp(testUser);
 
       const res = await jsonPost(app, '/api-keys/key_nonexistent/rotate', {
         apiKey: 'sk-new-key-12345678',
-      })
+      });
 
-      expect(res.status).toBe(404)
-    })
+      expect(res.status).toBe(404);
+    });
 
     it('rotates existing key and returns updated hint', async () => {
       mockedGetClient.mockReturnValue({
@@ -366,28 +366,28 @@ describe('api-keys routes', () => {
           set: vi.fn().mockReturnValue({ where: vi.fn().mockResolvedValue(undefined) }),
         }),
         // biome-ignore lint/suspicious/noExplicitAny: test mock
-      } as any)
+      } as any);
 
-      const app = createApp(testUser)
+      const app = createApp(testUser);
 
       const res = await jsonPost(app, '/api-keys/key_abc/rotate', {
         apiKey: 'sk-new-rotated-key-1234',
-      })
+      });
 
-      expect(res.status).toBe(200)
-      const body = await parseBody(res)
-      expect(body.id).toBe('key_abc')
-      expect(body.keyHint).toBeDefined()
-    })
+      expect(res.status).toBe(200);
+      const body = await parseBody(res);
+      expect(body.id).toBe('key_abc');
+      expect(body.keyHint).toBeDefined();
+    });
 
     it('rejects new key shorter than 8 chars', async () => {
-      const app = createApp(testUser)
+      const app = createApp(testUser);
 
       const res = await jsonPost(app, '/api-keys/key_abc/rotate', {
         apiKey: 'short',
-      })
+      });
 
-      expect(res.status).toBe(400)
-    })
-  })
-})
+      expect(res.status).toBe(400);
+    });
+  });
+});

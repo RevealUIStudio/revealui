@@ -12,5 +12,5 @@
  * @returns Formatted full name string
  */
 export function formatUserName(firstName: string, lastName: string): string {
-  return `${firstName} ${lastName}`
+  return `${firstName} ${lastName}`;
 }

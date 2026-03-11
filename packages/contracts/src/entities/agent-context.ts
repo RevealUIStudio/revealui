@@ -12,20 +12,20 @@
  * - Automatic versioning for schema migrations
  */
 
-import { z } from 'zod/v4'
+import { z } from 'zod/v4';
 
 // =============================================================================
 // Constants
 // =============================================================================
 
-export const AGENT_CONTEXT_SCHEMA_VERSION = 1
+export const AGENT_CONTEXT_SCHEMA_VERSION = 1;
 
 // Embedding configuration (OpenAI ada-002 standard)
 export const EMBEDDING_CONFIG = {
   DIMENSIONS: 1536,
   MIN_VALUE: -1.0,
   MAX_VALUE: 1.0,
-} as const
+} as const;
 
 // Priority configuration
 export const PRIORITY_CONFIG = {
@@ -34,7 +34,7 @@ export const PRIORITY_CONFIG = {
   DEFAULT: 0.5,
   HIGH: 0.8,
   LOW: 0.2,
-} as const
+} as const;
 
 // Context data limits
 export const CONTEXT_LIMITS = {
@@ -42,7 +42,7 @@ export const CONTEXT_LIMITS = {
   MAX_KEY_LENGTH: 256,
   MAX_VALUE_SIZE_BYTES: 1_000_000, // 1MB
   MAX_TOTAL_SIZE_BYTES: 10_000_000, // 10MB
-} as const
+} as const;
 
 // =============================================================================
 // Base AgentContext Schema
@@ -63,9 +63,9 @@ export const EmbeddingVectorSchema = z
     {
       message: `All embedding values must be between ${EMBEDDING_CONFIG.MIN_VALUE} and ${EMBEDDING_CONFIG.MAX_VALUE}`,
     },
-  )
+  );
 
-export type EmbeddingVector = z.infer<typeof EmbeddingVectorSchema>
+export type EmbeddingVector = z.infer<typeof EmbeddingVectorSchema>;
 
 /**
  * Agent Context object schema
@@ -84,7 +84,7 @@ export const AgentContextObjectSchema = z.object({
   embedding: EmbeddingVectorSchema.nullable().optional(),
   createdAt: z.date(),
   updatedAt: z.date(),
-})
+});
 
 /**
  * Agent Context schema with validation rules
@@ -92,8 +92,8 @@ export const AgentContextObjectSchema = z.object({
 export const AgentContextBaseSchema = AgentContextObjectSchema.refine(
   (data) => {
     // Validate ID matches sessionId:agentId format
-    const expectedId = `${data.sessionId}:${data.agentId}`
-    return data.id === expectedId
+    const expectedId = `${data.sessionId}:${data.agentId}`;
+    return data.id === expectedId;
   },
   {
     message: 'Context ID must match format sessionId:agentId',
@@ -102,16 +102,16 @@ export const AgentContextBaseSchema = AgentContextObjectSchema.refine(
 ).refine(
   (data) => {
     // Validate context data size
-    const keys = Object.keys(data.context)
-    return keys.length <= CONTEXT_LIMITS.MAX_KEYS
+    const keys = Object.keys(data.context);
+    return keys.length <= CONTEXT_LIMITS.MAX_KEYS;
   },
   {
     message: `Context cannot have more than ${CONTEXT_LIMITS.MAX_KEYS} keys`,
     path: ['context'],
   },
-)
+);
 
-export const AgentContextSchema = AgentContextBaseSchema
+export const AgentContextSchema = AgentContextBaseSchema;
 
 // =============================================================================
 // Insert Schema
@@ -126,14 +126,14 @@ export const AgentContextInsertSchema = AgentContextObjectSchema.omit({
 }).extend({
   createdAt: z.date().optional(),
   updatedAt: z.date().optional(),
-})
+});
 
 // =============================================================================
 // Type Exports
 // =============================================================================
 
-export type AgentContext = z.infer<typeof AgentContextSchema>
-export type AgentContextInsert = z.infer<typeof AgentContextInsertSchema>
+export type AgentContext = z.infer<typeof AgentContextSchema>;
+export type AgentContextInsert = z.infer<typeof AgentContextInsertSchema>;
 
 // =============================================================================
 // ID Generation
@@ -143,29 +143,29 @@ export type AgentContextInsert = z.infer<typeof AgentContextInsertSchema>
  * Generate agent context ID from sessionId and agentId
  */
 export function generateContextId(sessionId: string, agentId: string): string {
-  return `${sessionId}:${agentId}`
+  return `${sessionId}:${agentId}`;
 }
 
 /**
  * Parse agent context ID into components
  */
 export function parseContextId(contextId: string): { sessionId: string; agentId: string } | null {
-  const parts = contextId.split(':')
+  const parts = contextId.split(':');
   if (parts.length !== 2) {
-    return null
+    return null;
   }
-  const [sessionId, agentId] = parts
+  const [sessionId, agentId] = parts;
   if (!(sessionId && agentId)) {
-    return null
+    return null;
   }
-  return { sessionId, agentId }
+  return { sessionId, agentId };
 }
 
 /**
  * Validate context ID format
  */
 export function isValidContextId(contextId: string): boolean {
-  return parseContextId(contextId) !== null
+  return parseContextId(contextId) !== null;
 }
 
 // =============================================================================
@@ -176,30 +176,30 @@ export function isValidContextId(contextId: string): boolean {
  * Check if priority is high (>= 0.8)
  */
 export function isHighPriority(context: AgentContext): boolean {
-  return context.priority >= PRIORITY_CONFIG.HIGH
+  return context.priority >= PRIORITY_CONFIG.HIGH;
 }
 
 /**
  * Check if priority is low (<= 0.2)
  */
 export function isLowPriority(context: AgentContext): boolean {
-  return context.priority <= PRIORITY_CONFIG.LOW
+  return context.priority <= PRIORITY_CONFIG.LOW;
 }
 
 /**
  * Get priority category
  */
 export function getPriorityCategory(priority: number): 'high' | 'medium' | 'low' {
-  if (priority >= PRIORITY_CONFIG.HIGH) return 'high'
-  if (priority <= PRIORITY_CONFIG.LOW) return 'low'
-  return 'medium'
+  if (priority >= PRIORITY_CONFIG.HIGH) return 'high';
+  if (priority <= PRIORITY_CONFIG.LOW) return 'low';
+  return 'medium';
 }
 
 /**
  * Normalize priority to valid range
  */
 export function normalizePriority(priority: number): number {
-  return Math.max(PRIORITY_CONFIG.MIN, Math.min(PRIORITY_CONFIG.MAX, priority))
+  return Math.max(PRIORITY_CONFIG.MIN, Math.min(PRIORITY_CONFIG.MAX, priority));
 }
 
 // =============================================================================
@@ -210,7 +210,7 @@ export function normalizePriority(priority: number): number {
  * Validate embedding dimensions
  */
 export function validateEmbeddingDimensions(embedding: number[]): boolean {
-  return embedding.length === EMBEDDING_CONFIG.DIMENSIONS
+  return embedding.length === EMBEDDING_CONFIG.DIMENSIONS;
 }
 
 /**
@@ -219,26 +219,26 @@ export function validateEmbeddingDimensions(embedding: number[]): boolean {
 export function validateEmbeddingValues(embedding: number[]): boolean {
   return embedding.every(
     (val) => val >= EMBEDDING_CONFIG.MIN_VALUE && val <= EMBEDDING_CONFIG.MAX_VALUE,
-  )
+  );
 }
 
 /**
  * Check if context has valid embedding
  */
 export function hasValidEmbedding(context: AgentContext): boolean {
-  if (!context.embedding) return false
+  if (!context.embedding) return false;
   return (
     validateEmbeddingDimensions(context.embedding) && validateEmbeddingValues(context.embedding)
-  )
+  );
 }
 
 /**
  * Normalize embedding vector (L2 normalization)
  */
 export function normalizeEmbedding(embedding: number[]): number[] {
-  const magnitude = Math.sqrt(embedding.reduce((sum, val) => sum + val * val, 0))
-  if (magnitude === 0) return embedding
-  return embedding.map((val) => val / magnitude)
+  const magnitude = Math.sqrt(embedding.reduce((sum, val) => sum + val * val, 0));
+  if (magnitude === 0) return embedding;
+  return embedding.map((val) => val / magnitude);
 }
 
 /**
@@ -246,23 +246,23 @@ export function normalizeEmbedding(embedding: number[]): number[] {
  */
 export function calculateCosineSimilarity(embedding1: number[], embedding2: number[]): number {
   if (embedding1.length !== embedding2.length) {
-    throw new Error('Embeddings must have same dimensions')
+    throw new Error('Embeddings must have same dimensions');
   }
 
-  let dotProduct = 0
-  let mag1 = 0
-  let mag2 = 0
+  let dotProduct = 0;
+  let mag1 = 0;
+  let mag2 = 0;
 
   for (let i = 0; i < embedding1.length; i++) {
-    const val1 = embedding1[i] ?? 0
-    const val2 = embedding2[i] ?? 0
-    dotProduct += val1 * val2
-    mag1 += val1 * val1
-    mag2 += val2 * val2
+    const val1 = embedding1[i] ?? 0;
+    const val2 = embedding2[i] ?? 0;
+    dotProduct += val1 * val2;
+    mag1 += val1 * val1;
+    mag2 += val2 * val2;
   }
 
-  const magnitude = Math.sqrt(mag1) * Math.sqrt(mag2)
-  return magnitude === 0 ? 0 : dotProduct / magnitude
+  const magnitude = Math.sqrt(mag1) * Math.sqrt(mag2);
+  return magnitude === 0 ? 0 : dotProduct / magnitude;
 }
 
 // =============================================================================
@@ -279,22 +279,22 @@ export function validateContextKey(key: string): boolean {
     !key.startsWith('_') && // Reserved prefix
     !key.includes('..') && // Prevent path traversal
     !/[<>{}\\]/.test(key) // Prevent injection
-  )
+  );
 }
 
 /**
  * Estimate context data size in bytes
  */
 export function estimateContextSize(context: Record<string, unknown>): number {
-  return new Blob([JSON.stringify(context)]).size
+  return new Blob([JSON.stringify(context)]).size;
 }
 
 /**
  * Validate context data doesn't exceed size limits
  */
 export function validateContextSize(context: Record<string, unknown>): boolean {
-  const size = estimateContextSize(context)
-  return size <= CONTEXT_LIMITS.MAX_TOTAL_SIZE_BYTES
+  const size = estimateContextSize(context);
+  return size <= CONTEXT_LIMITS.MAX_TOTAL_SIZE_BYTES;
 }
 
 /**
@@ -302,60 +302,60 @@ export function validateContextSize(context: Record<string, unknown>): boolean {
  */
 export function hasCircularReference(obj: unknown, seen = new WeakSet()): boolean {
   if (obj === null || typeof obj !== 'object') {
-    return false
+    return false;
   }
 
   if (seen.has(obj)) {
-    return true
+    return true;
   }
 
-  seen.add(obj)
+  seen.add(obj);
 
   if (Array.isArray(obj)) {
-    return obj.some((item) => hasCircularReference(item, seen))
+    return obj.some((item) => hasCircularReference(item, seen));
   }
 
   return Object.values(obj as Record<string, unknown>).some((value) =>
     hasCircularReference(value, seen),
-  )
+  );
 }
 
 /**
  * Validate context data for security and consistency
  */
 export function validateContextData(context: Record<string, unknown>): {
-  valid: boolean
-  errors: string[]
+  valid: boolean;
+  errors: string[];
 } {
-  const errors: string[] = []
+  const errors: string[] = [];
 
   // Check key count
   if (Object.keys(context).length > CONTEXT_LIMITS.MAX_KEYS) {
-    errors.push(`Context has too many keys (max ${CONTEXT_LIMITS.MAX_KEYS})`)
+    errors.push(`Context has too many keys (max ${CONTEXT_LIMITS.MAX_KEYS})`);
   }
 
   // Check each key
   for (const key of Object.keys(context)) {
     if (!validateContextKey(key)) {
-      errors.push(`Invalid context key: ${key}`)
+      errors.push(`Invalid context key: ${key}`);
     }
   }
 
   // Check for circular references
   if (hasCircularReference(context)) {
-    errors.push('Context contains circular references')
+    errors.push('Context contains circular references');
   }
 
   // Check total size
   if (!validateContextSize(context)) {
-    const size = estimateContextSize(context)
-    errors.push(`Context too large: ${size} bytes (max ${CONTEXT_LIMITS.MAX_TOTAL_SIZE_BYTES})`)
+    const size = estimateContextSize(context);
+    errors.push(`Context too large: ${size} bytes (max ${CONTEXT_LIMITS.MAX_TOTAL_SIZE_BYTES})`);
   }
 
   return {
     valid: errors.length === 0,
     errors,
-  }
+  };
 }
 
 // =============================================================================
@@ -369,12 +369,12 @@ export function createAgentContextInsert(
   sessionId: string,
   agentId: string,
   options?: {
-    context?: Record<string, unknown>
-    priority?: number
-    embedding?: number[]
+    context?: Record<string, unknown>;
+    priority?: number;
+    embedding?: number[];
   },
 ): AgentContextInsert {
-  const now = new Date()
+  const now = new Date();
 
   return {
     id: generateContextId(sessionId, agentId),
@@ -389,34 +389,34 @@ export function createAgentContextInsert(
     embedding: options?.embedding ?? null,
     createdAt: now,
     updatedAt: now,
-  }
+  };
 }
 
 /**
  * Update context data with validation
  */
 export function updateAgentContext(updates: {
-  context?: Record<string, unknown>
-  priority?: number
-  embedding?: number[] | null
+  context?: Record<string, unknown>;
+  priority?: number;
+  embedding?: number[] | null;
 }): Partial<AgentContext> {
   const result: Partial<AgentContext> = {
     updatedAt: new Date(),
-  }
+  };
 
   if (updates.context !== undefined) {
-    result.context = updates.context
+    result.context = updates.context;
   }
 
   if (updates.priority !== undefined) {
-    result.priority = normalizePriority(updates.priority)
+    result.priority = normalizePriority(updates.priority);
   }
 
   if (updates.embedding !== undefined) {
-    result.embedding = updates.embedding
+    result.embedding = updates.embedding;
   }
 
-  return result
+  return result;
 }
 
 // =============================================================================
@@ -429,22 +429,22 @@ export function updateAgentContext(updates: {
 export interface AgentContextWithComputed extends AgentContext {
   // biome-ignore lint/style/useNamingConvention: _computed is a conventional computed-field marker
   _computed: {
-    hasEmbedding: boolean
-    embeddingValid: boolean
-    priorityCategory: 'high' | 'medium' | 'low'
-    contextKeyCount: number
-    contextSizeBytes: number
-    isHighPriority: boolean
-    isLowPriority: boolean
-    parsedId: { sessionId: string; agentId: string }
-  }
+    hasEmbedding: boolean;
+    embeddingValid: boolean;
+    priorityCategory: 'high' | 'medium' | 'low';
+    contextKeyCount: number;
+    contextSizeBytes: number;
+    isHighPriority: boolean;
+    isLowPriority: boolean;
+    parsedId: { sessionId: string; agentId: string };
+  };
 }
 
 /**
  * Convert agent context to format with computed fields
  */
 export function agentContextToHuman(context: AgentContext): AgentContextWithComputed {
-  const parsedId = parseContextId(context.id)
+  const parsedId = parseContextId(context.id);
 
   return {
     ...context,
@@ -459,7 +459,7 @@ export function agentContextToHuman(context: AgentContext): AgentContextWithComp
       isLowPriority: isLowPriority(context),
       parsedId: parsedId ?? { sessionId: '', agentId: '' },
     },
-  }
+  };
 }
 
 /**
@@ -467,12 +467,12 @@ export function agentContextToHuman(context: AgentContext): AgentContextWithComp
  */
 export interface AgentContextAgent extends AgentContext {
   metadata: {
-    embeddingPresent: boolean
-    embeddingDimensions: number | null
-    priorityLevel: 'high' | 'medium' | 'low'
-    contextSize: number
-    keyCount: number
-  }
+    embeddingPresent: boolean;
+    embeddingDimensions: number | null;
+    priorityLevel: 'high' | 'medium' | 'low';
+    contextSize: number;
+    keyCount: number;
+  };
 }
 
 /**
@@ -488,7 +488,7 @@ export function agentContextToAgent(context: AgentContext): AgentContextAgent {
       contextSize: estimateContextSize(context.context),
       keyCount: Object.keys(context.context).length,
     },
-  }
+  };
 }
 
 /**
@@ -511,7 +511,7 @@ export const AgentContextWithComputedSchema = AgentContextSchema.and(
       }),
     }),
   }),
-)
+);
 
 /**
  * Zod schema for agent context with agent metadata
@@ -526,4 +526,4 @@ export const AgentContextAgentSchema = AgentContextSchema.and(
       keyCount: z.number().int(),
     }),
   }),
-)
+);

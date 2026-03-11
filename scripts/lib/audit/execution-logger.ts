@@ -36,11 +36,11 @@
  * ```
  */
 
-import { mkdir } from 'node:fs/promises'
-import { hostname } from 'node:os'
-import { join } from 'node:path'
-import { PGlite } from '@electric-sql/pglite'
-import { ErrorCode, ScriptError } from '../errors.js'
+import { mkdir } from 'node:fs/promises';
+import { hostname } from 'node:os';
+import { join } from 'node:path';
+import { PGlite } from '@electric-sql/pglite';
+import { ErrorCode, ScriptError } from '../errors.js';
 
 // =============================================================================
 // Types
@@ -51,58 +51,58 @@ import { ErrorCode, ScriptError } from '../errors.js'
  */
 export interface ExecutionRecord {
   /** Unique execution ID */
-  id: string
+  id: string;
 
   /** Script name (e.g., 'db', 'workflow') */
-  scriptName: string
+  scriptName: string;
 
   /** Command executed (e.g., 'migrate', 'backup') */
-  command: string
+  command: string;
 
   /** Command-line arguments */
-  args: string[]
+  args: string[];
 
   /** Environment (development, production, CI) */
-  environment: string
+  environment: string;
 
   /** User who executed the script */
-  user: string
+  user: string;
 
   /** Hostname where script was executed */
-  hostname: string
+  hostname: string;
 
   /** Execution start timestamp */
-  startedAt: Date
+  startedAt: Date;
 
   /** Execution end timestamp */
-  endedAt: Date | null
+  endedAt: Date | null;
 
   /** Duration in milliseconds */
-  durationMs: number | null
+  durationMs: number | null;
 
   /** Whether execution succeeded */
-  success: boolean | null
+  success: boolean | null;
 
   /** Exit code */
-  exitCode: number | null
+  exitCode: number | null;
 
   /** Output data (JSON) */
-  output: Record<string, unknown> | null
+  output: Record<string, unknown> | null;
 
   /** Error information */
-  error: string | null
+  error: string | null;
 
   /** Working directory */
-  cwd: string
+  cwd: string;
 
   /** Node version */
-  nodeVersion: string
+  nodeVersion: string;
 
   /** Git commit hash (if available) */
-  gitCommit: string | null
+  gitCommit: string | null;
 
   /** Git branch (if available) */
-  gitBranch: string | null
+  gitBranch: string | null;
 }
 
 /**
@@ -110,16 +110,16 @@ export interface ExecutionRecord {
  */
 export interface StartExecutionOptions {
   /** Script name */
-  scriptName: string
+  scriptName: string;
 
   /** Command name */
-  command: string
+  command: string;
 
   /** Command-line arguments */
-  args?: string[]
+  args?: string[];
 
   /** Additional metadata */
-  metadata?: Record<string, unknown>
+  metadata?: Record<string, unknown>;
 }
 
 /**
@@ -127,16 +127,16 @@ export interface StartExecutionOptions {
  */
 export interface EndExecutionOptions {
   /** Whether execution succeeded */
-  success: boolean
+  success: boolean;
 
   /** Exit code */
-  exitCode?: number
+  exitCode?: number;
 
   /** Output data */
-  output?: Record<string, unknown>
+  output?: Record<string, unknown>;
 
   /** Error message */
-  error?: string
+  error?: string;
 }
 
 /**
@@ -144,34 +144,34 @@ export interface EndExecutionOptions {
  */
 export interface HistoryQueryOptions {
   /** Filter by script name */
-  scriptName?: string
+  scriptName?: string;
 
   /** Filter by command */
-  command?: string
+  command?: string;
 
   /** Filter by success status */
-  success?: boolean
+  success?: boolean;
 
   /** Only failed executions */
-  failedOnly?: boolean
+  failedOnly?: boolean;
 
   /** Start date filter */
-  startDate?: Date
+  startDate?: Date;
 
   /** End date filter */
-  endDate?: Date
+  endDate?: Date;
 
   /** Limit number of results */
-  limit?: number
+  limit?: number;
 
   /** Offset for pagination */
-  offset?: number
+  offset?: number;
 
   /** Order by field */
-  orderBy?: 'startedAt' | 'durationMs'
+  orderBy?: 'startedAt' | 'durationMs';
 
   /** Order direction */
-  orderDirection?: 'ASC' | 'DESC'
+  orderDirection?: 'ASC' | 'DESC';
 }
 
 /**
@@ -179,35 +179,35 @@ export interface HistoryQueryOptions {
  */
 export interface ExecutionStats {
   /** Total executions */
-  totalExecutions: number
+  totalExecutions: number;
 
   /** Successful executions */
-  successfulExecutions: number
+  successfulExecutions: number;
 
   /** Failed executions */
-  failedExecutions: number
+  failedExecutions: number;
 
   /** Success rate (0-1) */
-  successRate: number
+  successRate: number;
 
   /** Average duration in milliseconds */
-  avgDurationMs: number
+  avgDurationMs: number;
 
   /** Most executed scripts */
   topScripts: Array<{
-    scriptName: string
-    command: string
-    count: number
-    avgDurationMs: number
-  }>
+    scriptName: string;
+    command: string;
+    count: number;
+    avgDurationMs: number;
+  }>;
 
   /** Recent failures */
   recentFailures: Array<{
-    scriptName: string
-    command: string
-    timestamp: Date
-    error: string
-  }>
+    scriptName: string;
+    command: string;
+    timestamp: Date;
+    error: string;
+  }>;
 }
 
 // =============================================================================
@@ -215,12 +215,12 @@ export interface ExecutionStats {
 // =============================================================================
 
 export class ExecutionLogger {
-  private static instance: ExecutionLogger | null = null
-  private db: PGlite | null = null
-  private dbPath: string
+  private static instance: ExecutionLogger | null = null;
+  private db: PGlite | null = null;
+  private dbPath: string;
 
   private constructor(dbPath: string) {
-    this.dbPath = dbPath
+    this.dbPath = dbPath;
   }
 
   /**
@@ -228,13 +228,13 @@ export class ExecutionLogger {
    */
   static async getInstance(projectRoot?: string): Promise<ExecutionLogger> {
     if (!ExecutionLogger.instance) {
-      const root = projectRoot || process.cwd()
-      const dbPath = join(root, '.revealui', 'execution-logs.db')
-      ExecutionLogger.instance = new ExecutionLogger(dbPath)
-      await ExecutionLogger.instance.initialize()
+      const root = projectRoot || process.cwd();
+      const dbPath = join(root, '.revealui', 'execution-logs.db');
+      ExecutionLogger.instance = new ExecutionLogger(dbPath);
+      await ExecutionLogger.instance.initialize();
     }
 
-    return ExecutionLogger.instance
+    return ExecutionLogger.instance;
   }
 
   /**
@@ -243,16 +243,16 @@ export class ExecutionLogger {
   private async initialize(): Promise<void> {
     try {
       // Ensure directory exists
-      await mkdir(join(this.dbPath, '..'), { recursive: true })
+      await mkdir(join(this.dbPath, '..'), { recursive: true });
 
       // Initialize PGlite
-      this.db = new PGlite(this.dbPath)
+      this.db = new PGlite(this.dbPath);
 
       // Create schema
-      await this.createSchema()
+      await this.createSchema();
     } catch (error) {
-      console.error('Failed to initialize execution logger:', error)
-      throw error
+      console.error('Failed to initialize execution logger:', error);
+      throw error;
     }
   }
 
@@ -260,7 +260,7 @@ export class ExecutionLogger {
    * Create database schema
    */
   private async createSchema(): Promise<void> {
-    if (!this.db) throw new ScriptError('Database not initialized', ErrorCode.INVALID_STATE)
+    if (!this.db) throw new ScriptError('Database not initialized', ErrorCode.INVALID_STATE);
 
     await this.db.exec(`
       CREATE TABLE IF NOT EXISTS executions (
@@ -290,19 +290,19 @@ export class ExecutionLogger {
       CREATE INDEX IF NOT EXISTS idx_executions_started_at ON executions(started_at);
       CREATE INDEX IF NOT EXISTS idx_executions_success ON executions(success);
       CREATE INDEX IF NOT EXISTS idx_executions_script_command ON executions(script_name, command);
-    `)
+    `);
   }
 
   /**
    * Start tracking a script execution
    */
   async startExecution(options: StartExecutionOptions): Promise<string> {
-    if (!this.db) throw new ScriptError('Database not initialized', ErrorCode.INVALID_STATE)
+    if (!this.db) throw new ScriptError('Database not initialized', ErrorCode.INVALID_STATE);
 
-    const id = this.generateExecutionId()
-    const environment = this.detectEnvironment()
-    const user = process.env.USER || process.env.USERNAME || 'unknown'
-    const gitInfo = await this.getGitInfo()
+    const id = this.generateExecutionId();
+    const environment = this.detectEnvironment();
+    const user = process.env.USER || process.env.USERNAME || 'unknown';
+    const gitInfo = await this.getGitInfo();
 
     await this.db.query(
       `
@@ -325,16 +325,16 @@ export class ExecutionLogger {
         gitInfo.commit,
         gitInfo.branch,
       ],
-    )
+    );
 
-    return id
+    return id;
   }
 
   /**
    * End tracking a script execution
    */
   async endExecution(executionId: string, options: EndExecutionOptions): Promise<void> {
-    if (!this.db) throw new ScriptError('Database not initialized', ErrorCode.INVALID_STATE)
+    if (!this.db) throw new ScriptError('Database not initialized', ErrorCode.INVALID_STATE);
 
     // Get start time to calculate duration
     const result = await this.db.query<{ started_at: string }>(
@@ -342,15 +342,15 @@ export class ExecutionLogger {
       SELECT started_at FROM executions WHERE id = $1
     `,
       [executionId],
-    )
+    );
 
     if (result.rows.length === 0) {
-      throw new ScriptError(`Execution not found: ${executionId}`, ErrorCode.NOT_FOUND)
+      throw new ScriptError(`Execution not found: ${executionId}`, ErrorCode.NOT_FOUND);
     }
 
-    const startTime = new Date(result.rows[0].started_at).getTime()
-    const endTime = Date.now()
-    const durationMs = endTime - startTime
+    const startTime = new Date(result.rows[0].started_at).getTime();
+    const endTime = Date.now();
+    const durationMs = endTime - startTime;
 
     await this.db.query(
       `
@@ -372,14 +372,14 @@ export class ExecutionLogger {
         options.error || null,
         executionId,
       ],
-    )
+    );
   }
 
   /**
    * Get execution history
    */
   async getHistory(options: HistoryQueryOptions = {}): Promise<ExecutionRecord[]> {
-    if (!this.db) throw new ScriptError('Database not initialized', ErrorCode.INVALID_STATE)
+    if (!this.db) throw new ScriptError('Database not initialized', ErrorCode.INVALID_STATE);
 
     const {
       scriptName,
@@ -392,76 +392,76 @@ export class ExecutionLogger {
       offset = 0,
       orderBy = 'startedAt',
       orderDirection = 'DESC',
-    } = options
+    } = options;
 
-    const conditions: string[] = []
-    const params: unknown[] = []
-    let paramIndex = 1
+    const conditions: string[] = [];
+    const params: unknown[] = [];
+    let paramIndex = 1;
 
     if (scriptName) {
-      conditions.push(`script_name = $${paramIndex++}`)
-      params.push(scriptName)
+      conditions.push(`script_name = $${paramIndex++}`);
+      params.push(scriptName);
     }
 
     if (command) {
-      conditions.push(`command = $${paramIndex++}`)
-      params.push(command)
+      conditions.push(`command = $${paramIndex++}`);
+      params.push(command);
     }
 
     if (success !== undefined) {
-      conditions.push(`success = $${paramIndex++}`)
-      params.push(success)
+      conditions.push(`success = $${paramIndex++}`);
+      params.push(success);
     }
 
     if (failedOnly) {
-      conditions.push(`success = false`)
+      conditions.push(`success = false`);
     }
 
     if (startDate) {
-      conditions.push(`started_at >= $${paramIndex++}`)
-      params.push(startDate.toISOString())
+      conditions.push(`started_at >= $${paramIndex++}`);
+      params.push(startDate.toISOString());
     }
 
     if (endDate) {
-      conditions.push(`started_at <= $${paramIndex++}`)
-      params.push(endDate.toISOString())
+      conditions.push(`started_at <= $${paramIndex++}`);
+      params.push(endDate.toISOString());
     }
 
-    const whereClause = conditions.length > 0 ? `WHERE ${conditions.join(' AND ')}` : ''
-    const orderByField = orderBy === 'startedAt' ? 'started_at' : 'duration_ms'
+    const whereClause = conditions.length > 0 ? `WHERE ${conditions.join(' AND ')}` : '';
+    const orderByField = orderBy === 'startedAt' ? 'started_at' : 'duration_ms';
 
     const query = `
       SELECT * FROM executions
       ${whereClause}
       ORDER BY ${orderByField} ${orderDirection}
       LIMIT $${paramIndex++} OFFSET $${paramIndex++}
-    `
+    `;
 
-    params.push(limit, offset)
+    params.push(limit, offset);
 
-    const result = await this.db.query(query, params)
+    const result = await this.db.query(query, params);
 
-    return result.rows.map(this.mapRowToRecord)
+    return result.rows.map(this.mapRowToRecord);
   }
 
   /**
    * Get execution statistics
    */
   async getStats(options: { scriptName?: string; days?: number } = {}): Promise<ExecutionStats> {
-    if (!this.db) throw new ScriptError('Database not initialized', ErrorCode.INVALID_STATE)
+    if (!this.db) throw new ScriptError('Database not initialized', ErrorCode.INVALID_STATE);
 
-    const { scriptName, days = 30 } = options
+    const { scriptName, days = 30 } = options;
 
     const whereClause = scriptName
       ? `WHERE script_name = '${scriptName}' AND started_at >= NOW() - INTERVAL '${days} days'`
-      : `WHERE started_at >= NOW() - INTERVAL '${days} days'`
+      : `WHERE started_at >= NOW() - INTERVAL '${days} days'`;
 
     // Get overall stats
     const statsResult = await this.db.query<{
-      total: number
-      successful: number
-      failed: number
-      avg_duration: number
+      total: number;
+      successful: number;
+      failed: number;
+      avg_duration: number;
     }>(`
       SELECT
         COUNT(*) as total,
@@ -470,16 +470,16 @@ export class ExecutionLogger {
         AVG(duration_ms) FILTER (WHERE duration_ms IS NOT NULL) as avg_duration
       FROM executions
       ${whereClause}
-    `)
+    `);
 
-    const stats = statsResult.rows[0]
+    const stats = statsResult.rows[0];
 
     // Get top scripts
     const topScriptsResult = await this.db.query<{
-      script_name: string
-      command: string
-      count: number
-      avg_duration: number
+      script_name: string;
+      command: string;
+      count: number;
+      avg_duration: number;
     }>(`
       SELECT
         script_name,
@@ -491,21 +491,21 @@ export class ExecutionLogger {
       GROUP BY script_name, command
       ORDER BY count DESC
       LIMIT 10
-    `)
+    `);
 
     // Get recent failures
     const failuresResult = await this.db.query<{
-      script_name: string
-      command: string
-      started_at: string
-      error: string
+      script_name: string;
+      command: string;
+      started_at: string;
+      error: string;
     }>(`
       SELECT script_name, command, started_at, error
       FROM executions
       WHERE success = false ${scriptName ? `AND script_name = '${scriptName}'` : ''}
       ORDER BY started_at DESC
       LIMIT 10
-    `)
+    `);
 
     return {
       totalExecutions: Number(stats.total),
@@ -525,37 +525,37 @@ export class ExecutionLogger {
         timestamp: new Date(row.started_at),
         error: row.error || 'Unknown error',
       })),
-    }
+    };
   }
 
   /**
    * Get a specific execution record
    */
   async getExecution(executionId: string): Promise<ExecutionRecord | null> {
-    if (!this.db) throw new ScriptError('Database not initialized', ErrorCode.INVALID_STATE)
+    if (!this.db) throw new ScriptError('Database not initialized', ErrorCode.INVALID_STATE);
 
-    const result = await this.db.query('SELECT * FROM executions WHERE id = $1', [executionId])
+    const result = await this.db.query('SELECT * FROM executions WHERE id = $1', [executionId]);
 
     if (result.rows.length === 0) {
-      return null
+      return null;
     }
 
-    return this.mapRowToRecord(result.rows[0])
+    return this.mapRowToRecord(result.rows[0]);
   }
 
   /**
    * Clean up old execution records
    */
   async cleanup(daysToKeep: number = 90): Promise<number> {
-    if (!this.db) throw new ScriptError('Database not initialized', ErrorCode.INVALID_STATE)
+    if (!this.db) throw new ScriptError('Database not initialized', ErrorCode.INVALID_STATE);
 
     const result = await this.db.query<{ count: number }>(`
       DELETE FROM executions
       WHERE started_at < NOW() - INTERVAL '${daysToKeep} days'
       RETURNING id
-    `)
+    `);
 
-    return result.rows.length
+    return result.rows.length;
   }
 
   /**
@@ -563,8 +563,8 @@ export class ExecutionLogger {
    */
   async close(): Promise<void> {
     if (this.db) {
-      await this.db.close()
-      this.db = null
+      await this.db.close();
+      this.db = null;
     }
   }
 
@@ -576,17 +576,17 @@ export class ExecutionLogger {
    * Generate unique execution ID
    */
   private generateExecutionId(): string {
-    return `exec_${Date.now()}_${Math.random().toString(36).substring(2, 9)}`
+    return `exec_${Date.now()}_${Math.random().toString(36).substring(2, 9)}`;
   }
 
   /**
    * Detect execution environment
    */
   private detectEnvironment(): string {
-    if (process.env.CI) return 'ci'
-    if (process.env.NODE_ENV === 'production') return 'production'
-    if (process.env.NODE_ENV === 'test') return 'test'
-    return 'development'
+    if (process.env.CI) return 'ci';
+    if (process.env.NODE_ENV === 'production') return 'production';
+    if (process.env.NODE_ENV === 'test') return 'test';
+    return 'development';
   }
 
   /**
@@ -594,14 +594,14 @@ export class ExecutionLogger {
    */
   private async getGitInfo(): Promise<{ commit: string | null; branch: string | null }> {
     try {
-      const { execSync } = await import('node:child_process')
+      const { execSync } = await import('node:child_process');
 
-      const commit = execSync('git rev-parse HEAD', { encoding: 'utf-8' }).trim()
-      const branch = execSync('git rev-parse --abbrev-ref HEAD', { encoding: 'utf-8' }).trim()
+      const commit = execSync('git rev-parse HEAD', { encoding: 'utf-8' }).trim();
+      const branch = execSync('git rev-parse --abbrev-ref HEAD', { encoding: 'utf-8' }).trim();
 
-      return { commit, branch }
+      return { commit, branch };
     } catch {
-      return { commit: null, branch: null }
+      return { commit: null, branch: null };
     }
   }
 
@@ -615,13 +615,13 @@ export class ExecutionLogger {
     const parseJsonField = (field: any, defaultValue: any) => {
       if (typeof field === 'string') {
         try {
-          return JSON.parse(field)
+          return JSON.parse(field);
         } catch {
-          return defaultValue
+          return defaultValue;
         }
       }
-      return field ?? defaultValue
-    }
+      return field ?? defaultValue;
+    };
 
     return {
       id: row.id,
@@ -642,7 +642,7 @@ export class ExecutionLogger {
       nodeVersion: row.node_version,
       gitCommit: row.git_commit,
       gitBranch: row.git_branch,
-    }
+    };
   }
 }
 
@@ -654,5 +654,5 @@ export class ExecutionLogger {
  * Get execution logger instance
  */
 export async function getExecutionLogger(projectRoot?: string): Promise<ExecutionLogger> {
-  return ExecutionLogger.getInstance(projectRoot)
+  return ExecutionLogger.getInstance(projectRoot);
 }

@@ -1,12 +1,12 @@
-import React from 'react'
-import { Slot } from '@/lib/components/ui/primitives/slot'
-import { useComposedRefs } from '@/lib/components/ui/primitives/useComposedRefs'
-import { createContextScope, type Scope } from './createContext'
+import React from 'react';
+import { Slot } from '@/lib/components/ui/primitives/slot';
+import { useComposedRefs } from '@/lib/components/ui/primitives/useComposedRefs';
+import { createContextScope, type Scope } from './createContext';
 
-type SlotProps = React.ComponentPropsWithoutRef<typeof Slot>
-type CollectionElement = HTMLElement
+type SlotProps = React.ComponentPropsWithoutRef<typeof Slot>;
+type CollectionElement = HTMLElement;
 interface CollectionProps extends SlotProps {
-  scope: string | undefined
+  scope: string | undefined;
 }
 
 // We have resorted to returning slots directly rather than exposing primitives that can then
@@ -21,13 +21,13 @@ function createCollection<ItemElement extends HTMLElement, ItemData = Record<str
    * CollectionProvider
    * ---------------------------------------------------------------------------------------------*/
 
-  const ProviderName = `${name}CollectionProvider`
-  const [createCollectionContext, createCollectionScope] = createContextScope(ProviderName)
+  const ProviderName = `${name}CollectionProvider`;
+  const [createCollectionContext, createCollectionScope] = createContextScope(ProviderName);
 
   type ContextValue = {
-    collectionRef: React.RefObject<CollectionElement | null>
-    itemMap: Map<React.RefObject<ItemElement>, { ref: React.RefObject<ItemElement> } & ItemData>
-  }
+    collectionRef: React.RefObject<CollectionElement | null>;
+    itemMap: Map<React.RefObject<ItemElement>, { ref: React.RefObject<ItemElement> } & ItemData>;
+  };
 
   const [CollectionProviderImpl, useCollectionContext] = createCollectionContext<ContextValue>(
     ProviderName,
@@ -35,15 +35,15 @@ function createCollection<ItemElement extends HTMLElement, ItemData = Record<str
       collectionRef: { current: null },
       itemMap: new Map(),
     },
-  )
+  );
 
   const CollectionProvider: React.FC<{
-    children?: React.ReactNode
-    scope: string | undefined
+    children?: React.ReactNode;
+    scope: string | undefined;
   }> = (props) => {
-    const { scope, children } = props
-    const ref = React.useRef<CollectionElement>(null)
-    const itemMap = React.useRef<ContextValue['itemMap']>(new Map()).current
+    const { scope, children } = props;
+    const ref = React.useRef<CollectionElement>(null);
+    const itemMap = React.useRef<ContextValue['itemMap']>(new Map()).current;
     return (
       <CollectionProviderImpl
         scope={scope as unknown as Scope<ContextValue>}
@@ -52,16 +52,16 @@ function createCollection<ItemElement extends HTMLElement, ItemData = Record<str
       >
         {children}
       </CollectionProviderImpl>
-    )
-  }
+    );
+  };
 
-  CollectionProvider.displayName = ProviderName
+  CollectionProvider.displayName = ProviderName;
 
   /* -----------------------------------------------------------------------------------------------
    * CollectionSlot
    * ---------------------------------------------------------------------------------------------*/
 
-  const CollectionSlotName = `${name}CollectionSlot`
+  const CollectionSlotName = `${name}CollectionSlot`;
 
   function CollectionSlot({
     scope,
@@ -71,24 +71,24 @@ function createCollection<ItemElement extends HTMLElement, ItemData = Record<str
     const context = useCollectionContext(
       CollectionSlotName,
       scope as Scope<ContextValue | undefined>,
-    )
-    const composedRefs = useComposedRefs(forwardedRef, context.collectionRef)
-    return <Slot ref={composedRefs}>{children}</Slot>
+    );
+    const composedRefs = useComposedRefs(forwardedRef, context.collectionRef);
+    return <Slot ref={composedRefs}>{children}</Slot>;
   }
 
-  CollectionSlot.displayName = CollectionSlotName
+  CollectionSlot.displayName = CollectionSlotName;
 
   /* -----------------------------------------------------------------------------------------------
    * CollectionItem
    * ---------------------------------------------------------------------------------------------*/
 
-  const ItemSlotName = `${name}CollectionItemSlot`
-  const ItemDataAttr = 'data-radix-collection-item'
+  const ItemSlotName = `${name}CollectionItemSlot`;
+  const ItemDataAttr = 'data-radix-collection-item';
 
   type CollectionItemSlotProps = ItemData & {
-    children: React.ReactNode
-    scope: string | undefined
-  }
+    children: React.ReactNode;
+    scope: string | undefined;
+  };
 
   function CollectionItemSlot({
     scope,
@@ -96,9 +96,9 @@ function createCollection<ItemElement extends HTMLElement, ItemData = Record<str
     ref: forwardedRef,
     ...itemData
   }: CollectionItemSlotProps & { ref?: React.Ref<ItemElement> }) {
-    const ref = React.useRef<ItemElement | null>(null)
-    const composedRefs = useComposedRefs(forwardedRef, ref)
-    const context = useCollectionContext(ItemSlotName, scope as Scope<ContextValue | undefined>)
+    const ref = React.useRef<ItemElement | null>(null);
+    const composedRefs = useComposedRefs(forwardedRef, ref);
+    const context = useCollectionContext(ItemSlotName, scope as Scope<ContextValue | undefined>);
 
     React.useEffect(() => {
       // ref type is MutableRefObject but Map expects RefObject - compatible at runtime
@@ -108,18 +108,18 @@ function createCollection<ItemElement extends HTMLElement, ItemData = Record<str
           ref: ref as React.RefObject<ItemElement>,
           ...itemData,
         } as { ref: React.RefObject<ItemElement> } & ItemData,
-      )
-      return () => void context.itemMap.delete(ref as React.RefObject<ItemElement>)
-    })
+      );
+      return () => void context.itemMap.delete(ref as React.RefObject<ItemElement>);
+    });
 
     return (
       <Slot {...{ [ItemDataAttr]: '' }} ref={composedRefs}>
         {children}
       </Slot>
-    )
+    );
   }
 
-  CollectionItemSlot.displayName = ItemSlotName
+  CollectionItemSlot.displayName = ItemSlotName;
 
   /* -----------------------------------------------------------------------------------------------
    * useCollection
@@ -129,25 +129,25 @@ function createCollection<ItemElement extends HTMLElement, ItemData = Record<str
     const context = useCollectionContext(
       `${name}CollectionConsumer`,
       scope as Scope<ContextValue | undefined>,
-    )
+    );
 
     const getItems = React.useCallback(() => {
-      const collectionNode = context.collectionRef.current
-      if (!collectionNode) return []
-      const orderedNodes = Array.from(collectionNode.querySelectorAll(`[${ItemDataAttr}]`))
-      const items = Array.from(context.itemMap.values())
+      const collectionNode = context.collectionRef.current;
+      if (!collectionNode) return [];
+      const orderedNodes = Array.from(collectionNode.querySelectorAll(`[${ItemDataAttr}]`));
+      const items = Array.from(context.itemMap.values());
       const orderedItems = items.sort((a, b) => {
         // ref.current is guaranteed to exist here since items are from itemMap
         // which only contains items with valid refs
-        const aRef = a.ref.current
-        const bRef = b.ref.current
-        if (!(aRef && bRef)) return 0
-        return orderedNodes.indexOf(aRef) - orderedNodes.indexOf(bRef)
-      })
-      return orderedItems
-    }, [context.collectionRef, context.itemMap])
+        const aRef = a.ref.current;
+        const bRef = b.ref.current;
+        if (!(aRef && bRef)) return 0;
+        return orderedNodes.indexOf(aRef) - orderedNodes.indexOf(bRef);
+      });
+      return orderedItems;
+    }, [context.collectionRef, context.itemMap]);
 
-    return getItems
+    return getItems;
   }
 
   return [
@@ -161,8 +161,8 @@ function createCollection<ItemElement extends HTMLElement, ItemData = Record<str
     },
     useCollection,
     createCollectionScope,
-  ] as const
+  ] as const;
 }
 
-export { createCollection }
-export type { CollectionProps }
+export { createCollection };
+export type { CollectionProps };

@@ -17,27 +17,27 @@
  * ```
  */
 
-import type { WorkflowStep } from '../../lib/state/index.js'
+import type { WorkflowStep } from '../../lib/state/index.js';
 
 export interface DeployWorkflowConfig {
   /** Target environment */
-  environment: 'development' | 'staging' | 'production'
+  environment: 'development' | 'staging' | 'production';
   /** Git branch to deploy */
-  branch?: string
+  branch?: string;
   /** Require manual approval before deployment */
-  requireApproval?: boolean
+  requireApproval?: boolean;
   /** Run smoke tests after deployment */
-  runSmokeTests?: boolean
+  runSmokeTests?: boolean;
   /** Deployment strategy */
-  strategy?: 'rolling' | 'blue-green' | 'canary'
+  strategy?: 'rolling' | 'blue-green' | 'canary';
   /** Rollback on failure */
-  autoRollback?: boolean
+  autoRollback?: boolean;
 }
 
 export function createDeployWorkflow(config: DeployWorkflowConfig): {
-  id: string
-  name: string
-  steps: WorkflowStep[]
+  id: string;
+  name: string;
+  steps: WorkflowStep[];
 } {
   const {
     environment,
@@ -46,7 +46,7 @@ export function createDeployWorkflow(config: DeployWorkflowConfig): {
     runSmokeTests = true,
     strategy = 'rolling',
     autoRollback = true,
-  } = config
+  } = config;
 
   const steps: WorkflowStep[] = [
     // Step 1: Pre-deployment checks
@@ -62,7 +62,7 @@ export function createDeployWorkflow(config: DeployWorkflowConfig): {
         return {
           success: true,
           message: 'Pre-deployment checks passed',
-        }
+        };
       },
       onSuccess: 'build',
       onFailure: 'abort',
@@ -79,7 +79,7 @@ export function createDeployWorkflow(config: DeployWorkflowConfig): {
         return {
           success: true,
           message: 'Build completed successfully',
-        }
+        };
       },
       onSuccess: 'test',
       onFailure: 'abort',
@@ -96,7 +96,7 @@ export function createDeployWorkflow(config: DeployWorkflowConfig): {
         return {
           success: true,
           message: 'All tests passed',
-        }
+        };
       },
       onSuccess: requireApproval ? 'approval' : 'deploy',
       onFailure: 'abort',
@@ -114,7 +114,7 @@ export function createDeployWorkflow(config: DeployWorkflowConfig): {
               return {
                 success: true,
                 message: 'Deployment approved',
-              }
+              };
             },
             onSuccess: 'deploy',
             onFailure: 'abort',
@@ -133,7 +133,7 @@ export function createDeployWorkflow(config: DeployWorkflowConfig): {
         return {
           success: true,
           message: `Deployed to ${environment}`,
-        }
+        };
       },
       onSuccess: runSmokeTests ? 'smoke-tests' : 'complete',
       onFailure: autoRollback ? 'rollback' : 'abort',
@@ -152,7 +152,7 @@ export function createDeployWorkflow(config: DeployWorkflowConfig): {
               return {
                 success: true,
                 message: 'Smoke tests passed',
-              }
+              };
             },
             onSuccess: 'complete',
             onFailure: autoRollback ? 'rollback' : 'abort',
@@ -172,7 +172,7 @@ export function createDeployWorkflow(config: DeployWorkflowConfig): {
               return {
                 success: true,
                 message: 'Rolled back to previous version',
-              }
+              };
             },
             onSuccess: 'abort',
             onFailure: 'abort',
@@ -191,7 +191,7 @@ export function createDeployWorkflow(config: DeployWorkflowConfig): {
         return {
           success: true,
           message: `Deployment to ${environment} completed successfully`,
-        }
+        };
       },
       onSuccess: undefined,
       onFailure: undefined,
@@ -208,18 +208,18 @@ export function createDeployWorkflow(config: DeployWorkflowConfig): {
         return {
           success: false,
           message: 'Deployment aborted',
-        }
+        };
       },
       onSuccess: undefined,
       onFailure: undefined,
     },
-  ]
+  ];
 
   return {
     id: `deploy-${environment}-${Date.now()}`,
     name: `Deploy to ${environment}`,
     steps,
-  }
+  };
 }
 
 /**
@@ -251,4 +251,4 @@ export const deployPresets = {
       strategy: 'blue-green',
       autoRollback: true,
     }),
-}
+};

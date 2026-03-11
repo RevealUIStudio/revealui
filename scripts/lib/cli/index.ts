@@ -13,4 +13,4 @@ export {
   type DispatchResult,
   dispatchCommand,
   dispatchOrThrow,
-} from './dispatch.js'
+} from './dispatch.js';

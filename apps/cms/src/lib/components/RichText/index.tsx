@@ -1,30 +1,30 @@
-import type React from 'react'
-import { cn } from '@/lib/styles/classnames'
-import { serializeLexical } from './serialize'
+import type React from 'react';
+import { cn } from '@/lib/styles/classnames';
+import { serializeLexical } from './serialize';
 
 // Rich text content type (Lexical format)
 export interface RichTextContent {
   root: {
-    type: string
+    type: string;
     children: Array<{
-      type: string
-      version: number
-      [key: string]: unknown
-    }>
-    direction: ('ltr' | 'rtl') | null
-    format: 'left' | 'start' | 'center' | 'right' | 'end' | 'justify' | ''
-    indent: number
-    version: number
-  }
-  [key: string]: unknown
+      type: string;
+      version: number;
+      [key: string]: unknown;
+    }>;
+    direction: ('ltr' | 'rtl') | null;
+    format: 'left' | 'start' | 'center' | 'right' | 'end' | 'justify' | '';
+    indent: number;
+    version: number;
+  };
+  [key: string]: unknown;
 }
 
 type Props = {
-  className?: string
-  content: RichTextContent | null | undefined
-  enableGutter?: boolean
-  enableProse?: boolean
-}
+  className?: string;
+  content: RichTextContent | null | undefined;
+  enableGutter?: boolean;
+  enableProse?: boolean;
+};
 
 // Main RichText component
 const RichText: React.FC<Props> = ({
@@ -34,7 +34,7 @@ const RichText: React.FC<Props> = ({
   enableProse = true,
 }) => {
   if (!content?.root) {
-    return null
+    return null;
   }
 
   return (
@@ -52,7 +52,7 @@ const RichText: React.FC<Props> = ({
         nodes: content.root.children,
       })}
     </div>
-  )
-}
+  );
+};
 
-export default RichText
+export default RichText;

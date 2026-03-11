@@ -6,7 +6,7 @@
  * where in-memory deduplication would fail.
  */
 
-import { index, pgTable, text, timestamp } from 'drizzle-orm/pg-core'
+import { index, pgTable, text, timestamp } from 'drizzle-orm/pg-core';
 
 export const processedWebhookEvents = pgTable(
   'processed_webhook_events',
@@ -21,7 +21,7 @@ export const processedWebhookEvents = pgTable(
     processedAt: timestamp('processed_at', { withTimezone: true }).defaultNow().notNull(),
   },
   (table) => [index('webhook_events_processed_at_idx').on(table.processedAt)],
-)
+);
 
-export type ProcessedWebhookEventRow = typeof processedWebhookEvents.$inferSelect
-export type ProcessedWebhookEventInsert = typeof processedWebhookEvents.$inferInsert
+export type ProcessedWebhookEventRow = typeof processedWebhookEvents.$inferSelect;
+export type ProcessedWebhookEventInsert = typeof processedWebhookEvents.$inferInsert;

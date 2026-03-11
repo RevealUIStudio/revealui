@@ -1,8 +1,8 @@
-import { clsx } from 'clsx/lite'
-import Link from 'next/link'
-import type { ComponentProps, ReactNode } from 'react'
-import { Container } from '@/components/revealui/elements/container'
-import { ArrowNarrowRightIcon } from '@/components/revealui/icons/arrow-narrow-right-icon'
+import { clsx } from 'clsx/lite';
+import Link from 'next/link';
+import type { ComponentProps, ReactNode } from 'react';
+import { Container } from '@/components/revealui/elements/container';
+import { ArrowNarrowRightIcon } from '@/components/revealui/icons/arrow-narrow-right-icon';
 
 export function FooterCategory({
   title,
@@ -14,7 +14,7 @@ export function FooterCategory({
       <h3>{title}</h3>
       <ul className="mt-2 flex flex-col gap-2">{children}</ul>
     </div>
-  )
+  );
 }
 
 export function FooterLink({
@@ -26,7 +26,7 @@ export function FooterLink({
     <li className={clsx('text-mist-700 dark:text-mist-400', className)}>
       <Link href={href} {...props} />
     </li>
-  )
+  );
 }
 
 export function SocialLink({
@@ -35,8 +35,8 @@ export function SocialLink({
   className,
   ...props
 }: {
-  href: string
-  name: string
+  href: string;
+  name: string;
 } & Omit<ComponentProps<'a'>, 'href'>) {
   // Social links can use <a> tags for external links
   return (
@@ -48,7 +48,7 @@ export function SocialLink({
       className={clsx('text-mist-950 *:size-6 dark:text-white', className)}
       {...props}
     />
-  )
+  );
 }
 
 export function NewsletterForm({
@@ -57,8 +57,8 @@ export function NewsletterForm({
   className,
   ...props
 }: {
-  headline: ReactNode
-  subheadline: ReactNode
+  headline: ReactNode;
+  subheadline: ReactNode;
 } & ComponentProps<'form'>) {
   return (
     <form className={clsx('flex max-w-sm flex-col gap-2', className)} {...props}>
@@ -80,7 +80,7 @@ export function NewsletterForm({
         </button>
       </div>
     </form>
-  )
+  );
 }
 
 export function FooterWithNewsletterFormCategoriesAndSocialIcons({
@@ -91,10 +91,10 @@ export function FooterWithNewsletterFormCategoriesAndSocialIcons({
   className,
   ...props
 }: {
-  cta: ReactNode
-  links: ReactNode
-  fineprint: ReactNode
-  socialLinks?: ReactNode
+  cta: ReactNode;
+  links: ReactNode;
+  fineprint: ReactNode;
+  socialLinks?: ReactNode;
 } & ComponentProps<'footer'>) {
   return (
     <footer className={clsx('pt-16', className)} {...props}>
@@ -113,5 +113,5 @@ export function FooterWithNewsletterFormCategoriesAndSocialIcons({
         </Container>
       </div>
     </footer>
-  )
+  );
 }

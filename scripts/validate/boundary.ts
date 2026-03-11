@@ -15,17 +15,17 @@
  *                     router, setup, sync, dev, test, utils
  */
 
-import { existsSync, readdirSync, readFileSync } from 'node:fs'
-import { extname, join, relative } from 'node:path'
-import { fileURLToPath } from 'node:url'
+import { existsSync, readdirSync, readFileSync } from 'node:fs';
+import { extname, join, relative } from 'node:path';
+import { fileURLToPath } from 'node:url';
 
 // =============================================================================
 // Constants
 // =============================================================================
 
-const REPO_ROOT = join(fileURLToPath(import.meta.url), '..', '..', '..')
+const REPO_ROOT = join(fileURLToPath(import.meta.url), '..', '..', '..');
 
-const PACKAGES_DIR = join(REPO_ROOT, 'packages')
+const PACKAGES_DIR = join(REPO_ROOT, 'packages');
 
 // Packages distributed under LICENSE.commercial (must not leak into OSS source)
 const COMMERCIAL_PACKAGES = [
@@ -34,7 +34,7 @@ const COMMERCIAL_PACKAGES = [
   '@revealui/editors',
   '@revealui/services',
   '@revealui/harnesses',
-]
+];
 
 // OSS package directory names (packages that must not import commercial ones)
 const OSS_PACKAGE_NAMES = [
@@ -51,7 +51,7 @@ const OSS_PACKAGE_NAMES = [
   'sync',
   'test',
   'utils',
-]
+];
 
 // Patterns that must not appear in published package source
 const INTERNAL_SOURCE_PATTERNS: Array<{ pattern: RegExp; reason: string }> = [
@@ -83,33 +83,33 @@ const INTERNAL_SOURCE_PATTERNS: Array<{ pattern: RegExp; reason: string }> = [
     pattern: /RevealUIStudio\//,
     reason: 'GitHub org path reference (internal)',
   },
-]
+];
 
 // Directory names that must not appear in package.json `files` arrays
-const INTERNAL_FILE_DIRS = ['.claude', 'business', 'docs', 'scripts', 'MASTER_PLAN']
+const INTERNAL_FILE_DIRS = ['.claude', 'business', 'docs', 'scripts', 'MASTER_PLAN'];
 
 // Source file extensions to scan
-const SOURCE_EXTENSIONS = new Set(['.ts', '.tsx', '.js', '.jsx', '.mts', '.mjs'])
+const SOURCE_EXTENSIONS = new Set(['.ts', '.tsx', '.js', '.jsx', '.mts', '.mjs']);
 
 // =============================================================================
 // File Utilities
 // =============================================================================
 
 function collectSourceFiles(dir: string, files: string[] = []): string[] {
-  if (!existsSync(dir)) return files
+  if (!existsSync(dir)) return files;
   for (const entry of readdirSync(dir, { withFileTypes: true })) {
-    const fullPath = join(dir, entry.name)
+    const fullPath = join(dir, entry.name);
     if (entry.isDirectory()) {
       // Skip dist/, node_modules/, __tests__/, __mocks__/
       if (['dist', 'node_modules', '__tests__', '__mocks__', '.turbo'].includes(entry.name)) {
-        continue
+        continue;
       }
-      collectSourceFiles(fullPath, files)
+      collectSourceFiles(fullPath, files);
     } else if (SOURCE_EXTENSIONS.has(extname(entry.name))) {
-      files.push(fullPath)
+      files.push(fullPath);
     }
   }
-  return files
+  return files;
 }
 
 // =============================================================================
@@ -117,10 +117,10 @@ function collectSourceFiles(dir: string, files: string[] = []): string[] {
 // =============================================================================
 
 function isPrivatePackage(pkgName: string): boolean {
-  const pkgJsonPath = join(PACKAGES_DIR, pkgName, 'package.json')
-  if (!existsSync(pkgJsonPath)) return false
-  const pkg = JSON.parse(readFileSync(pkgJsonPath, 'utf8')) as { private?: boolean }
-  return pkg.private === true
+  const pkgJsonPath = join(PACKAGES_DIR, pkgName, 'package.json');
+  if (!existsSync(pkgJsonPath)) return false;
+  const pkg = JSON.parse(readFileSync(pkgJsonPath, 'utf8')) as { private?: boolean };
+  return pkg.private === true;
 }
 
 // =============================================================================
@@ -128,32 +128,32 @@ function isPrivatePackage(pkgName: string): boolean {
 // =============================================================================
 
 function checkOssImportBoundary(): string[] {
-  const violations: string[] = []
+  const violations: string[] = [];
 
   for (const pkgName of OSS_PACKAGE_NAMES) {
     // Private packages are dev-only and not published — skip them
-    if (isPrivatePackage(pkgName)) continue
+    if (isPrivatePackage(pkgName)) continue;
 
-    const srcDir = join(PACKAGES_DIR, pkgName, 'src')
-    const files = collectSourceFiles(srcDir)
+    const srcDir = join(PACKAGES_DIR, pkgName, 'src');
+    const files = collectSourceFiles(srcDir);
 
     for (const file of files) {
-      const content = readFileSync(file, 'utf8')
-      const relPath = relative(REPO_ROOT, file)
+      const content = readFileSync(file, 'utf8');
+      const relPath = relative(REPO_ROOT, file);
 
       for (const commercial of COMMERCIAL_PACKAGES) {
         // Match both: from '@revealui/ai' and from '@revealui/ai/something'
         const importPattern = new RegExp(
           `from ['"]${commercial.replace('/', '\\/')}(\\/[^'"]*)?['"]`,
-        )
+        );
         if (importPattern.test(content)) {
-          violations.push(`  ${relPath}: OSS package imports commercial package ${commercial}`)
+          violations.push(`  ${relPath}: OSS package imports commercial package ${commercial}`);
         }
       }
     }
   }
 
-  return violations
+  return violations;
 }
 
 // =============================================================================
@@ -161,31 +161,31 @@ function checkOssImportBoundary(): string[] {
 // =============================================================================
 
 function checkInternalReferences(): string[] {
-  const violations: string[] = []
+  const violations: string[] = [];
   const allPackageNames = readdirSync(PACKAGES_DIR, { withFileTypes: true })
     .filter((e) => e.isDirectory())
-    .map((e) => e.name)
+    .map((e) => e.name);
 
   for (const pkgName of allPackageNames) {
     // Private packages are dev-only and not published — skip them
-    if (isPrivatePackage(pkgName)) continue
+    if (isPrivatePackage(pkgName)) continue;
 
-    const srcDir = join(PACKAGES_DIR, pkgName, 'src')
-    const files = collectSourceFiles(srcDir)
+    const srcDir = join(PACKAGES_DIR, pkgName, 'src');
+    const files = collectSourceFiles(srcDir);
 
     for (const file of files) {
-      const content = readFileSync(file, 'utf8')
-      const relPath = relative(REPO_ROOT, file)
+      const content = readFileSync(file, 'utf8');
+      const relPath = relative(REPO_ROOT, file);
 
       for (const { pattern, reason } of INTERNAL_SOURCE_PATTERNS) {
         if (pattern.test(content)) {
-          violations.push(`  ${relPath}: contains ${reason}`)
+          violations.push(`  ${relPath}: contains ${reason}`);
         }
       }
     }
   }
 
-  return violations
+  return violations;
 }
 
 // =============================================================================
@@ -193,36 +193,36 @@ function checkInternalReferences(): string[] {
 // =============================================================================
 
 function checkFilesFields(): string[] {
-  const violations: string[] = []
+  const violations: string[] = [];
   const allPackageNames = readdirSync(PACKAGES_DIR, { withFileTypes: true })
     .filter((e) => e.isDirectory())
-    .map((e) => e.name)
+    .map((e) => e.name);
 
   for (const pkgName of allPackageNames) {
-    const pkgJsonPath = join(PACKAGES_DIR, pkgName, 'package.json')
-    if (!existsSync(pkgJsonPath)) continue
+    const pkgJsonPath = join(PACKAGES_DIR, pkgName, 'package.json');
+    if (!existsSync(pkgJsonPath)) continue;
 
     const pkg = JSON.parse(readFileSync(pkgJsonPath, 'utf8')) as {
-      files?: string[]
-      private?: boolean
-    }
+      files?: string[];
+      private?: boolean;
+    };
 
     // Skip private packages (harnesses, editors, etc.) — they're not published
-    if (pkg.private) continue
+    if (pkg.private) continue;
 
-    const files = pkg.files ?? []
+    const files = pkg.files ?? [];
     for (const entry of files) {
       for (const internalDir of INTERNAL_FILE_DIRS) {
         if (entry.includes(internalDir)) {
           violations.push(
             `  packages/${pkgName}/package.json: "files" includes internal path "${entry}"`,
-          )
+          );
         }
       }
     }
   }
 
-  return violations
+  return violations;
 }
 
 // =============================================================================
@@ -230,50 +230,50 @@ function checkFilesFields(): string[] {
 // =============================================================================
 
 function main(): void {
-  const Sep = '='.repeat(60)
-  console.log(`\n${Sep}`)
-  console.log('Internal/Productized Boundary Validation (Phase 2.11)')
-  console.log(Sep)
+  const Sep = '='.repeat(60);
+  console.log(`\n${Sep}`);
+  console.log('Internal/Productized Boundary Validation (Phase 2.11)');
+  console.log(Sep);
 
-  const allViolations: string[] = []
+  const allViolations: string[] = [];
 
-  console.log('\n→ Check 1: OSS packages do not import commercial packages')
-  const importViolations = checkOssImportBoundary()
+  console.log('\n→ Check 1: OSS packages do not import commercial packages');
+  const importViolations = checkOssImportBoundary();
   if (importViolations.length === 0) {
-    console.log('  ✓ No cross-license import violations')
+    console.log('  ✓ No cross-license import violations');
   } else {
-    for (const v of importViolations) console.log(v)
-    allViolations.push(...importViolations)
+    for (const v of importViolations) console.log(v);
+    allViolations.push(...importViolations);
   }
 
-  console.log('\n→ Check 2: No internal dev references in package source')
-  const refViolations = checkInternalReferences()
+  console.log('\n→ Check 2: No internal dev references in package source');
+  const refViolations = checkInternalReferences();
   if (refViolations.length === 0) {
-    console.log('  ✓ No internal references found in published package source')
+    console.log('  ✓ No internal references found in published package source');
   } else {
-    for (const v of refViolations) console.log(v)
-    allViolations.push(...refViolations)
+    for (const v of refViolations) console.log(v);
+    allViolations.push(...refViolations);
   }
 
-  console.log('\n→ Check 3: Package `files` fields are clean')
-  const filesViolations = checkFilesFields()
+  console.log('\n→ Check 3: Package `files` fields are clean');
+  const filesViolations = checkFilesFields();
   if (filesViolations.length === 0) {
-    console.log('  ✓ All package `files` fields are clean')
+    console.log('  ✓ All package `files` fields are clean');
   } else {
-    for (const v of filesViolations) console.log(v)
-    allViolations.push(...filesViolations)
+    for (const v of filesViolations) console.log(v);
+    allViolations.push(...filesViolations);
   }
 
-  console.log(`\n${Sep}`)
+  console.log(`\n${Sep}`);
 
   if (allViolations.length > 0) {
-    console.log(`✗ Boundary validation: ${allViolations.length} violation(s) found`)
-    console.log(Sep)
-    process.exit(1)
+    console.log(`✗ Boundary validation: ${allViolations.length} violation(s) found`);
+    console.log(Sep);
+    process.exit(1);
   }
 
-  console.log('✓ Boundary validation passed — internal/productized boundary is clean')
-  console.log(`${Sep}\n`)
+  console.log('✓ Boundary validation passed — internal/productized boundary is clean');
+  console.log(`${Sep}\n`);
 }
 
-main()
+main();

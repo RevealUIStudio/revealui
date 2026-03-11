@@ -5,7 +5,7 @@
  * The schema structure mirrors the Zod schemas in @revealui/contracts/entities.
  */
 
-import { boolean, index, jsonb, pgTable, text, timestamp, uniqueIndex } from 'drizzle-orm/pg-core'
+import { boolean, index, jsonb, pgTable, text, timestamp, uniqueIndex } from 'drizzle-orm/pg-core';
 
 // =============================================================================
 // Users Table
@@ -77,7 +77,7 @@ export const users = pgTable(
     index('users_stripe_customer_id_idx').on(table.stripeCustomerId),
     index('users_ssh_key_fingerprint_idx').on(table.sshKeyFingerprint),
   ],
-)
+);
 
 // =============================================================================
 // Sessions Table
@@ -117,13 +117,13 @@ export const sessions = pgTable(
     index('sessions_token_hash_idx').on(table.tokenHash),
     index('sessions_expires_at_idx').on(table.expiresAt),
   ],
-)
+);
 
 // =============================================================================
 // Type exports for Drizzle
 // =============================================================================
 
-export type User = typeof users.$inferSelect
-export type NewUser = typeof users.$inferInsert
-export type Session = typeof sessions.$inferSelect
-export type NewSession = typeof sessions.$inferInsert
+export type User = typeof users.$inferSelect;
+export type NewUser = typeof users.$inferInsert;
+export type Session = typeof sessions.$inferSelect;
+export type NewSession = typeof sessions.$inferInsert;

@@ -1,7 +1,7 @@
-import config from '@revealui/config'
-import { buildConfig, universalPostgresAdapter } from '@revealui/core'
-import sharp from 'sharp'
-import { Posts } from './src/collections/Posts'
+import config from '@revealui/config';
+import { buildConfig, universalPostgresAdapter } from '@revealui/core';
+import sharp from 'sharp';
+import { Posts } from './src/collections/Posts';
 
 export default buildConfig({
   serverURL: config.reveal.publicServerURL || 'http://localhost:4000',
@@ -16,4 +16,4 @@ export default buildConfig({
   globals: [],
   plugins: [],
   sharp,
-})
+});

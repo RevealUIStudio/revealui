@@ -14,4 +14,4 @@ export {
   type CreateContractOptions,
   contractRegistry,
   createContract,
-} from './contract.js'
+} from './contract.js';

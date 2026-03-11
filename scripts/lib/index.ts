@@ -44,7 +44,7 @@ export {
   ConsoleAnalyzer,
   type ConsoleUsage,
   categorizeFile,
-} from './analyzers/index.js'
+} from './analyzers/index.js';
 // Argument Parsing
 export {
   type ArgDefinition,
@@ -58,7 +58,7 @@ export {
   type ParserConfig,
   parseArgs,
   validateRequiredArgs,
-} from './args.js'
+} from './args.js';
 // Build Caching
 export {
   BuildCache,
@@ -66,7 +66,7 @@ export {
   type CacheEntry,
   type CacheStats,
   createCache,
-} from './cache.js'
+} from './cache.js';
 // CLI Utilities (Unified Command Dispatcher)
 export {
   type DispatchMode,
@@ -74,7 +74,7 @@ export {
   type DispatchResult,
   dispatchCommand,
   dispatchOrThrow,
-} from './cli/index.js'
+} from './cli/index.js';
 // Unified Error System (merged from error-handler.ts and errors.ts)
 export {
   configError,
@@ -95,7 +95,7 @@ export {
   withEnhancedErrors,
   withErrorHandling,
   wrapError,
-} from './errors.js'
+} from './errors.js';
 // Execution
 export {
   commandExists,
@@ -105,7 +105,7 @@ export {
   execSequence,
   runPnpmScript,
   type ScriptResult,
-} from './exec.js'
+} from './exec.js';
 // Logger
 export {
   createLogger,
@@ -114,7 +114,7 @@ export {
   type LoggerOptions,
   type LogLevel,
   logger,
-} from './logger.js'
+} from './logger.js';
 // Dual-Mode Output
 export {
   createOutput,
@@ -126,7 +126,7 @@ export {
   type OutputMode,
   ok,
   type ScriptOutput,
-} from './output.js'
+} from './output.js';
 // Parallel Execution
 export {
   batch,
@@ -139,7 +139,7 @@ export {
   sequential,
   type Task,
   type TaskResult,
-} from './parallel.js'
+} from './parallel.js';
 // Paths
 export {
   clearProjectRootCache,
@@ -149,7 +149,7 @@ export {
   getProjectRootSync,
   paths,
   resolvePath,
-} from './paths.js'
+} from './paths.js';
 // State Management
 export {
   type ApprovalRequest,
@@ -166,7 +166,7 @@ export {
   type WorkflowStatus,
   type WorkflowStep,
   type WorkflowStepState,
-} from './state/index.js'
+} from './state/index.js';
 // Telemetry & Monitoring
 export {
   type AggregatedMetrics,
@@ -177,7 +177,7 @@ export {
   type TelemetryOptions,
   type TimerHandle,
   telemetry,
-} from './telemetry.js'
+} from './telemetry.js';
 // Utility functions migrated from base.ts
 export {
   confirm,
@@ -201,7 +201,7 @@ export {
   validateDependencies,
   waitFor,
   writeFileContent,
-} from './utils.js'
+} from './utils.js';
 // Validation
 export {
   AGENT_TABLES,
@@ -225,7 +225,7 @@ export {
   validateEnv,
   validateEnvWithLogging,
   validateTables,
-} from './validation/index.js'
+} from './validation/index.js';
 // Documentation Validators (Phase 1 - Consolidated)
 export {
   calculateJSDocCoverage,
@@ -243,4 +243,4 @@ export {
   validateJSDoc,
   validateLinks,
   validateScriptRefs,
-} from './validators/index.js'
+} from './validators/index.js';

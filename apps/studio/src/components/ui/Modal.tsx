@@ -1,18 +1,18 @@
-import type { ReactNode } from 'react'
+import type { ReactNode } from 'react';
 
 const maxWidthMap = {
   sm: 'max-w-sm',
   md: 'max-w-md',
   lg: 'max-w-lg',
-} as const
+} as const;
 
 interface ModalProps {
-  title: string
-  open: boolean
-  onClose: () => void
-  children: ReactNode
-  footer?: ReactNode
-  maxWidth?: keyof typeof maxWidthMap
+  title: string;
+  open: boolean;
+  onClose: () => void;
+  children: ReactNode;
+  footer?: ReactNode;
+  maxWidth?: keyof typeof maxWidthMap;
 }
 
 export default function Modal({
@@ -23,7 +23,7 @@ export default function Modal({
   footer,
   maxWidth = 'md',
 }: ModalProps) {
-  if (!open) return null
+  if (!open) return null;
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70">
@@ -63,5 +63,5 @@ export default function Modal({
         )}
       </div>
     </div>
-  )
+  );
 }

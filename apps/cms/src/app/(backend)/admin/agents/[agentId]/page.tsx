@@ -1,112 +1,112 @@
-'use client'
+'use client';
 
-import type { A2AAgentCard } from '@revealui/contracts'
-import Link from 'next/link'
-import { useRouter } from 'next/navigation'
-import { use, useEffect, useState } from 'react'
-import { AgentMemory } from '@/lib/components/agents/agent-memory'
-import { TaskHistory } from '@/lib/components/agents/task-history'
-import { TaskTester } from '@/lib/components/agents/task-tester'
-import { LicenseGate } from '@/lib/components/LicenseGate'
+import type { A2AAgentCard } from '@revealui/contracts';
+import Link from 'next/link';
+import { useRouter } from 'next/navigation';
+import { use, useEffect, useState } from 'react';
+import { AgentMemory } from '@/lib/components/agents/agent-memory';
+import { TaskHistory } from '@/lib/components/agents/task-history';
+import { TaskTester } from '@/lib/components/agents/task-tester';
+import { LicenseGate } from '@/lib/components/LicenseGate';
 
 interface PageProps {
-  params: Promise<{ agentId: string }>
+  params: Promise<{ agentId: string }>;
 }
 
 interface AgentDef {
-  name: string
-  description: string
-  systemPrompt: string
+  name: string;
+  description: string;
+  systemPrompt: string;
 }
 
-const BUILTIN_AGENTS = new Set(['revealui-creator', 'revealui-ticket-agent'])
+const BUILTIN_AGENTS = new Set(['revealui-creator', 'revealui-ticket-agent']);
 
 export default function AgentDetailPage({ params }: PageProps) {
-  const { agentId } = use(params)
-  const router = useRouter()
-  const [card, setCard] = useState<A2AAgentCard | null>(null)
-  const [loading, setLoading] = useState(true)
-  const [error, setError] = useState<string | null>(null)
+  const { agentId } = use(params);
+  const router = useRouter();
+  const [card, setCard] = useState<A2AAgentCard | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
   // Edit state
-  const [isEditing, setIsEditing] = useState(false)
-  const [loadingDef, setLoadingDef] = useState(false)
-  const [editName, setEditName] = useState('')
-  const [editDescription, setEditDescription] = useState('')
-  const [editSystemPrompt, setEditSystemPrompt] = useState('')
-  const [saving, setSaving] = useState(false)
-  const [saveError, setSaveError] = useState<string | null>(null)
+  const [isEditing, setIsEditing] = useState(false);
+  const [loadingDef, setLoadingDef] = useState(false);
+  const [editName, setEditName] = useState('');
+  const [editDescription, setEditDescription] = useState('');
+  const [editSystemPrompt, setEditSystemPrompt] = useState('');
+  const [saving, setSaving] = useState(false);
+  const [saveError, setSaveError] = useState<string | null>(null);
 
   // Task history refresh
-  const [taskRefreshKey, setTaskRefreshKey] = useState(0)
+  const [taskRefreshKey, setTaskRefreshKey] = useState(0);
 
   // Retire state
-  const [isConfirmingRetire, setIsConfirmingRetire] = useState(false)
-  const [retiring, setRetiring] = useState(false)
-  const [retireError, setRetireError] = useState<string | null>(null)
+  const [isConfirmingRetire, setIsConfirmingRetire] = useState(false);
+  const [retiring, setRetiring] = useState(false);
+  const [retireError, setRetireError] = useState<string | null>(null);
 
-  const apiUrl = (process.env.NEXT_PUBLIC_API_URL ?? 'https://api.revealui.com').trim()
+  const apiUrl = (process.env.NEXT_PUBLIC_API_URL ?? 'https://api.revealui.com').trim();
 
   useEffect(() => {
     fetch(`${apiUrl}/a2a/agents/${encodeURIComponent(agentId)}`, { credentials: 'include' })
       .then((r) => {
-        if (!r.ok) throw new Error(`Agent '${agentId}' not found`)
-        return r.json()
+        if (!r.ok) throw new Error(`Agent '${agentId}' not found`);
+        return r.json();
       })
       .then((data: A2AAgentCard) => setCard(data))
       .catch((e: unknown) => setError(e instanceof Error ? e.message : 'Failed to load agent'))
-      .finally(() => setLoading(false))
-  }, [agentId, apiUrl])
+      .finally(() => setLoading(false));
+  }, [agentId, apiUrl]);
 
   async function handleEditStart() {
-    setLoadingDef(true)
-    setSaveError(null)
+    setLoadingDef(true);
+    setSaveError(null);
     try {
       const res = await fetch(`${apiUrl}/a2a/agents/${encodeURIComponent(agentId)}/def`, {
         credentials: 'include',
-      })
-      if (!res.ok) throw new Error('Failed to load agent definition')
-      const data = (await res.json()) as { def: AgentDef }
-      setEditName(data.def.name)
-      setEditDescription(data.def.description)
-      setEditSystemPrompt(data.def.systemPrompt)
-      setIsEditing(true)
+      });
+      if (!res.ok) throw new Error('Failed to load agent definition');
+      const data = (await res.json()) as { def: AgentDef };
+      setEditName(data.def.name);
+      setEditDescription(data.def.description);
+      setEditSystemPrompt(data.def.systemPrompt);
+      setIsEditing(true);
     } catch (e: unknown) {
-      setSaveError(e instanceof Error ? e.message : 'Failed to load agent')
+      setSaveError(e instanceof Error ? e.message : 'Failed to load agent');
     } finally {
-      setLoadingDef(false)
+      setLoadingDef(false);
     }
   }
 
   function handleEditCancel() {
-    setIsEditing(false)
-    setSaveError(null)
+    setIsEditing(false);
+    setSaveError(null);
   }
 
   async function handleRetire() {
-    setRetiring(true)
-    setRetireError(null)
+    setRetiring(true);
+    setRetireError(null);
     try {
       const res = await fetch(`${apiUrl}/a2a/agents/${encodeURIComponent(agentId)}`, {
         method: 'DELETE',
         credentials: 'include',
-      })
+      });
       if (!res.ok) {
-        const json = (await res.json()) as { error?: string }
-        setRetireError(json.error ?? `Server error ${res.status}`)
-        return
+        const json = (await res.json()) as { error?: string };
+        setRetireError(json.error ?? `Server error ${res.status}`);
+        return;
       }
-      router.push('/admin/agents')
+      router.push('/admin/agents');
     } catch (e: unknown) {
-      setRetireError(e instanceof Error ? e.message : 'Retire failed')
+      setRetireError(e instanceof Error ? e.message : 'Retire failed');
     } finally {
-      setRetiring(false)
+      setRetiring(false);
     }
   }
 
   async function handleSave() {
-    setSaving(true)
-    setSaveError(null)
+    setSaving(true);
+    setSaveError(null);
     try {
       const res = await fetch(`${apiUrl}/a2a/agents/${encodeURIComponent(agentId)}`, {
         method: 'PUT',
@@ -117,19 +117,19 @@ export default function AgentDetailPage({ params }: PageProps) {
           description: editDescription.trim(),
           systemPrompt: editSystemPrompt.trim(),
         }),
-      })
+      });
       if (!res.ok) {
-        const json = (await res.json()) as { error?: string }
-        setSaveError(json.error ?? `Server error ${res.status}`)
-        return
+        const json = (await res.json()) as { error?: string };
+        setSaveError(json.error ?? `Server error ${res.status}`);
+        return;
       }
-      const data = (await res.json()) as { card: A2AAgentCard }
-      setCard(data.card)
-      setIsEditing(false)
+      const data = (await res.json()) as { card: A2AAgentCard };
+      setCard(data.card);
+      setIsEditing(false);
     } catch (e: unknown) {
-      setSaveError(e instanceof Error ? e.message : 'Save failed')
+      setSaveError(e instanceof Error ? e.message : 'Save failed');
     } finally {
-      setSaving(false)
+      setSaving(false);
     }
   }
 
@@ -370,8 +370,8 @@ export default function AgentDetailPage({ params }: PageProps) {
                           <button
                             type="button"
                             onClick={() => {
-                              setIsConfirmingRetire(false)
-                              setRetireError(null)
+                              setIsConfirmingRetire(false);
+                              setRetireError(null);
                             }}
                             disabled={retiring}
                             className="rounded-lg border border-zinc-700 px-4 py-2 text-sm font-medium text-zinc-300 transition-colors hover:border-zinc-600 hover:text-zinc-100"
@@ -431,5 +431,5 @@ export default function AgentDetailPage({ params }: PageProps) {
         </div>
       </div>
     </LicenseGate>
-  )
+  );
 }

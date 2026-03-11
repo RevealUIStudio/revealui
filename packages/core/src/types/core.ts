@@ -111,9 +111,9 @@ import type {
   TypedFallbackLocale,
   TypeWithID,
   WhereClause,
-} from './index.js'
+} from './index.js';
 
-import { RevealOperators } from './index.js'
+import { RevealOperators } from './index.js';
 
 // Re-export all types
 export type {
@@ -224,7 +224,7 @@ export type {
   RevealUISchemaArgs,
   RevealUITraverseFieldsArgs,
   RevealUITraverseFieldsResult,
-}
+};
 
 // Re-export values (non-type exports)
-export { RevealOperators }
+export { RevealOperators };

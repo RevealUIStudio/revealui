@@ -1,13 +1,13 @@
-import { CheckboxCVA as CheckboxUi } from '@revealui/presentation/client'
-import type React from 'react'
-import { useFormContext } from 'react-hook-form'
-import { FormFieldError } from '@/lib/blocks/Form/Error'
-import type { BaseFormFieldProps } from '@/lib/blocks/Form/types'
-import { Width } from '@/lib/blocks/Form/Width'
-import { Label } from '@/lib/components/ui/primitives/label'
+import { CheckboxCVA as CheckboxUi } from '@revealui/presentation/client';
+import type React from 'react';
+import { useFormContext } from 'react-hook-form';
+import { FormFieldError } from '@/lib/blocks/Form/Error';
+import type { BaseFormFieldProps } from '@/lib/blocks/Form/types';
+import { Width } from '@/lib/blocks/Form/Width';
+import { Label } from '@/lib/components/ui/primitives/label';
 
 interface CheckboxFieldProps extends BaseFormFieldProps {
-  defaultValue?: boolean
+  defaultValue?: boolean;
 }
 
 export const Checkbox: React.FC<CheckboxFieldProps> = ({
@@ -19,8 +19,8 @@ export const Checkbox: React.FC<CheckboxFieldProps> = ({
   required: requiredFromProps,
   width,
 }) => {
-  const props = register(name, { required: requiredFromProps })
-  const { setValue } = useFormContext()
+  const props = register(name, { required: requiredFromProps });
+  const { setValue } = useFormContext();
 
   return (
     <Width width={width}>
@@ -30,12 +30,12 @@ export const Checkbox: React.FC<CheckboxFieldProps> = ({
           id={name}
           {...props}
           onCheckedChange={(checked: boolean) => {
-            setValue(props.name, checked)
+            setValue(props.name, checked);
           }}
         />
         <Label htmlFor={name}>{label}</Label>
       </div>
       {requiredFromProps && errors[name] && <FormFieldError />}
     </Width>
-  )
-}
+  );
+};

@@ -16,28 +16,28 @@
  * Stripe test card: 4242 4242 4242 4242, any future expiry, any CVC
  */
 
-import { expect, test } from '@playwright/test'
+import { expect, test } from '@playwright/test';
 
-const CMS_BASE = process.env.PLAYWRIGHT_BASE_URL || 'http://localhost:4000'
+const CMS_BASE = process.env.PLAYWRIGHT_BASE_URL || 'http://localhost:4000';
 // Billing endpoints live on the API (migrated from CMS in Session 19)
-const API_BASE = process.env.API_BASE_URL || 'http://localhost:3004'
-const ADMIN_EMAIL = process.env.CMS_ADMIN_EMAIL || 'admin@example.com'
-const ADMIN_PASSWORD = process.env.CMS_ADMIN_PASSWORD || ''
-const STRIPE_KEY = process.env.STRIPE_SECRET_KEY || ''
+const API_BASE = process.env.API_BASE_URL || 'http://localhost:3004';
+const ADMIN_EMAIL = process.env.CMS_ADMIN_EMAIL || 'admin@example.com';
+const ADMIN_PASSWORD = process.env.CMS_ADMIN_PASSWORD || '';
+const STRIPE_KEY = process.env.STRIPE_SECRET_KEY || '';
 
 // Skip when Stripe test keys or admin credentials are not configured
 test.beforeAll(async ({ request }) => {
   if (!(ADMIN_PASSWORD && STRIPE_KEY.startsWith('sk_test_'))) {
-    test.skip()
-    return
+    test.skip();
+    return;
   }
   try {
-    const res = await request.get(`${CMS_BASE}/api/health`, { timeout: 3000 })
-    if (!res.ok()) test.skip()
+    const res = await request.get(`${CMS_BASE}/api/health`, { timeout: 3000 });
+    if (!res.ok()) test.skip();
   } catch {
-    test.skip()
+    test.skip();
   }
-})
+});
 
 // ---------------------------------------------------------------------------
 // Auth helper
@@ -46,16 +46,16 @@ test.beforeAll(async ({ request }) => {
 async function signIn(page: import('@playwright/test').Page) {
   // CMS login page is at /login (not /admin/login — that redirects to /login).
   // After successful sign-in, router.push('/') navigates away from /login.
-  await page.goto(`${CMS_BASE}/login`, { waitUntil: 'domcontentloaded' })
-  await page.getByLabel(/email/i).fill(ADMIN_EMAIL)
+  await page.goto(`${CMS_BASE}/login`, { waitUntil: 'domcontentloaded' });
+  await page.getByLabel(/email/i).fill(ADMIN_EMAIL);
   await page
     .getByLabel(/password/i)
     .first()
-    .fill(ADMIN_PASSWORD)
-  await page.getByRole('button', { name: /sign in|log in/i }).click()
+    .fill(ADMIN_PASSWORD);
+  await page.getByRole('button', { name: /sign in|log in/i }).click();
   await page.waitForFunction(() => !window.location.pathname.includes('/login'), {
     timeout: 10000,
-  })
+  });
 }
 
 // ---------------------------------------------------------------------------
@@ -63,44 +63,44 @@ async function signIn(page: import('@playwright/test').Page) {
 // ---------------------------------------------------------------------------
 
 test.describe('Product management', () => {
-  const productName = `E2E Product ${Date.now()}`
+  const productName = `E2E Product ${Date.now()}`;
 
   test('admin can create a product', async ({ page }) => {
-    await signIn(page)
+    await signIn(page);
     await page.goto(`${CMS_BASE}/admin/collections/products/create`, {
       waitUntil: 'domcontentloaded',
-    })
+    });
 
     await page
       .getByLabel(/title|name/i)
       .first()
-      .fill(productName)
+      .fill(productName);
 
-    const slugField = page.getByLabel(/slug/i)
+    const slugField = page.getByLabel(/slug/i);
     if (await slugField.isVisible()) {
-      await slugField.fill(`e2e-product-${Date.now()}`)
+      await slugField.fill(`e2e-product-${Date.now()}`);
     }
 
-    await page.getByRole('button', { name: /save/i }).first().click()
-    await expect(page.getByText(/saved|created/i)).toBeVisible({ timeout: 5000 })
-  })
+    await page.getByRole('button', { name: /save/i }).first().click();
+    await expect(page.getByText(/saved|created/i)).toBeVisible({ timeout: 5000 });
+  });
 
   test('admin can add a price to a product', async ({ page }) => {
-    await signIn(page)
+    await signIn(page);
     await page.goto(`${CMS_BASE}/admin/collections/prices/create`, {
       waitUntil: 'domcontentloaded',
-    })
+    });
 
     // Set amount
-    const amountField = page.getByLabel(/amount|price/i).first()
+    const amountField = page.getByLabel(/amount|price/i).first();
     if (await amountField.isVisible()) {
-      await amountField.fill('999')
+      await amountField.fill('999');
     }
 
-    await page.getByRole('button', { name: /save/i }).first().click()
-    await expect(page.getByText(/saved|created/i)).toBeVisible({ timeout: 5000 })
-  })
-})
+    await page.getByRole('button', { name: /save/i }).first().click();
+    await expect(page.getByText(/saved|created/i)).toBeVisible({ timeout: 5000 });
+  });
+});
 
 // ---------------------------------------------------------------------------
 // Checkout flow (Stripe test mode)
@@ -113,75 +113,75 @@ test.describe('Checkout flow', () => {
       `${CMS_BASE}/checkout`,
       `${CMS_BASE}/shop/checkout`,
       `${CMS_BASE}/api/checkout`,
-    ]
+    ];
 
-    let found = false
+    let found = false;
     for (const url of checkoutUrls) {
       const response = await page
         .goto(url, { waitUntil: 'domcontentloaded', timeout: 5000 })
-        .catch(() => null)
+        .catch(() => null);
       if (response && response.status() < 400) {
-        found = true
-        break
+        found = true;
+        break;
       }
     }
 
     if (!found) {
-      test.skip()
-      return
+      test.skip();
+      return;
     }
 
     // Stripe Elements should be present
-    const stripeFrame = page.frameLocator('iframe[src*="stripe"]').first()
-    await expect(stripeFrame.getByLabel(/card number/i)).toBeVisible({ timeout: 10000 })
-  })
+    const stripeFrame = page.frameLocator('iframe[src*="stripe"]').first();
+    await expect(stripeFrame.getByLabel(/card number/i)).toBeVisible({ timeout: 10000 });
+  });
 
   test('checkout with Stripe test card completes', async ({ page }) => {
     // Navigate to checkout with a test product
     const response = await page
       .goto(`${CMS_BASE}/checkout?test=1`, { waitUntil: 'domcontentloaded', timeout: 5000 })
-      .catch(() => null)
+      .catch(() => null);
 
     if (!response || response.status() >= 400) {
-      test.skip()
-      return
+      test.skip();
+      return;
     }
 
-    const stripeFrame = page.frameLocator('iframe[src*="stripe"]').first()
-    const cardNumber = stripeFrame.getByLabel(/card number/i)
+    const stripeFrame = page.frameLocator('iframe[src*="stripe"]').first();
+    const cardNumber = stripeFrame.getByLabel(/card number/i);
 
     if (!(await cardNumber.isVisible({ timeout: 5000 }).catch(() => false))) {
-      test.skip()
-      return
+      test.skip();
+      return;
     }
 
     // Fill in Stripe test card
-    await cardNumber.fill('4242424242424242')
-    await stripeFrame.getByLabel(/expiry|expiration/i).fill('12/30')
-    await stripeFrame.getByLabel(/cvc|cvv|security/i).fill('123')
+    await cardNumber.fill('4242424242424242');
+    await stripeFrame.getByLabel(/expiry|expiration/i).fill('12/30');
+    await stripeFrame.getByLabel(/cvc|cvv|security/i).fill('123');
 
-    const zipField = stripeFrame.getByLabel(/zip|postal/i)
+    const zipField = stripeFrame.getByLabel(/zip|postal/i);
     if (await zipField.isVisible()) {
-      await zipField.fill('10001')
+      await zipField.fill('10001');
     }
 
-    await page.getByRole('button', { name: /pay|complete|subscribe|checkout/i }).click()
+    await page.getByRole('button', { name: /pay|complete|subscribe|checkout/i }).click();
 
     // Should redirect to success page
-    await page.waitForURL(/success|thank|confirmation/i, { timeout: 15000 }).catch(() => null)
-    const url = page.url()
+    await page.waitForURL(/success|thank|confirmation/i, { timeout: 15000 }).catch(() => null);
+    const url = page.url();
     const hasSuccess =
-      url.includes('success') || url.includes('thank') || url.includes('confirmation')
+      url.includes('success') || url.includes('thank') || url.includes('confirmation');
 
     // Also accept if still on checkout with a success message
     const successMsg = await page
       .getByText(/success|payment.*complete|thank you/i)
       .isVisible()
-      .catch(() => false)
+      .catch(() => false);
 
-    expect(hasSuccess || successMsg).toBe(true)
-  })
-})
+    expect(hasSuccess || successMsg).toBe(true);
+  });
+});
 
 // ---------------------------------------------------------------------------
 // Webhook simulation (via API direct call)
@@ -193,8 +193,8 @@ test.describe('Stripe webhook', () => {
     const response = await request.post(`${API_BASE}/api/webhooks/stripe`, {
       data: JSON.stringify({ type: 'test' }),
       headers: { 'Content-Type': 'application/json' },
-    })
+    });
     // Should return 400 (bad signature) not 404 (missing) or 500 (crash)
-    expect([400, 401, 403]).toContain(response.status())
-  })
-})
+    expect([400, 401, 403]).toContain(response.status());
+  });
+});

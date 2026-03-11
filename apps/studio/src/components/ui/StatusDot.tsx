@@ -3,18 +3,18 @@ const colorMap = {
   warn: 'bg-yellow-500',
   error: 'bg-red-500',
   off: 'bg-neutral-600',
-} as const
+} as const;
 
 const sizeMap = {
   sm: 'size-2',
   md: 'size-2.5',
-} as const
+} as const;
 
 interface StatusDotProps {
-  status: keyof typeof colorMap
-  size?: keyof typeof sizeMap
-  pulse?: boolean
-  className?: string
+  status: keyof typeof colorMap;
+  size?: keyof typeof sizeMap;
+  pulse?: boolean;
+  className?: string;
 }
 
 export default function StatusDot({
@@ -28,5 +28,5 @@ export default function StatusDot({
       className={`inline-block shrink-0 rounded-full ${colorMap[status]} ${sizeMap[size]} ${pulse ? 'animate-pulse' : ''} ${className}`}
       aria-hidden="true"
     />
-  )
+  );
 }

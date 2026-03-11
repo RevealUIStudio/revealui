@@ -1,5 +1,5 @@
-import { clsx } from 'clsx/lite'
-import type { ComponentProps } from 'react'
+import { clsx } from 'clsx/lite';
+import type { ComponentProps } from 'react';
 
 export function Document({ children, className, ...props }: ComponentProps<'div'>) {
   return (
@@ -12,5 +12,5 @@ export function Document({ children, className, ...props }: ComponentProps<'div'
     >
       {children}
     </div>
-  )
+  );
 }

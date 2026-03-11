@@ -1,13 +1,13 @@
-'use client'
+'use client';
 
-import { useEffect } from 'react'
+import { useEffect } from 'react';
 
 export default function GlobalError({
   error,
   reset,
 }: {
-  error: Error & { digest?: string }
-  reset: () => void
+  error: Error & { digest?: string };
+  reset: () => void;
 }) {
   useEffect(() => {
     // Fire-and-forget — never let capture failure affect the error UI
@@ -28,8 +28,8 @@ export default function GlobalError({
       }),
     }).catch(() => {
       // Intentionally silent — capturing errors must never throw
-    })
-  }, [error])
+    });
+  }, [error]);
 
   return (
     <html lang="en">
@@ -54,5 +54,5 @@ export default function GlobalError({
         </div>
       </body>
     </html>
-  )
+  );
 }

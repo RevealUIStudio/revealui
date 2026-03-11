@@ -1,15 +1,15 @@
-import type { Field } from '@revealui/core'
+import type { Field } from '@revealui/core';
 
 import {
   FixedToolbarFeature,
   HeadingFeature,
   InlineToolbarFeature,
   lexicalEditor,
-} from '@revealui/core/richtext'
-import { linkGroup } from '@/lib/fields/linkGroup'
+} from '@revealui/core/richtext';
+import { linkGroup } from '@/lib/fields/linkGroup';
 
 interface HeroData {
-  type?: 'none' | 'highImpact' | 'mediumImpact' | 'lowImpact'
+  type?: 'none' | 'highImpact' | 'mediumImpact' | 'lowImpact';
 }
 
 export const hero: Field = {
@@ -51,7 +51,7 @@ export const hero: Field = {
             HeadingFeature({ enabledHeadingSizes: ['h1', 'h2', 'h3', 'h4'] }),
             FixedToolbarFeature(),
             InlineToolbarFeature(),
-          ]
+          ];
         },
       }),
       label: false,
@@ -73,4 +73,4 @@ export const hero: Field = {
     },
   ],
   label: false,
-}
+};

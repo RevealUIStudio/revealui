@@ -1,30 +1,30 @@
-import { cn } from '../utils/cn.js'
+import { cn } from '../utils/cn.js';
 
 // =============================================================================
 // Types (mirrors @revealui/contracts/pricing — no import to avoid coupling)
 // =============================================================================
 
 export interface PricingTier {
-  id: string
-  name: string
-  price?: string
-  period?: string
-  description: string
-  features: string[]
-  cta: string
-  ctaHref: string
-  highlighted: boolean
+  id: string;
+  name: string;
+  price?: string;
+  period?: string;
+  description: string;
+  features: string[];
+  cta: string;
+  ctaHref: string;
+  highlighted: boolean;
 }
 
 export interface PricingTableProps {
-  tiers: PricingTier[]
+  tiers: PricingTier[];
   /** Highlights the active plan tier */
-  currentTier?: string
+  currentTier?: string;
   /** Compact (horizontal row) vs full (grid) layout */
-  compact?: boolean
+  compact?: boolean;
   /** Callback when a tier is selected */
-  onSelectTier?: (id: string) => void
-  className?: string
+  onSelectTier?: (id: string) => void;
+  className?: string;
 }
 
 // =============================================================================
@@ -45,7 +45,7 @@ function CheckIcon() {
         clipRule="evenodd"
       />
     </svg>
-  )
+  );
 }
 
 // =============================================================================
@@ -71,7 +71,7 @@ export function PricingTable({
           />
         ))}
       </div>
-    )
+    );
   }
 
   return (
@@ -92,7 +92,7 @@ export function PricingTable({
         />
       ))}
     </div>
-  )
+  );
 }
 
 // =============================================================================
@@ -104,11 +104,11 @@ function PricingCardFull({
   isCurrent,
   onSelect,
 }: {
-  tier: PricingTier
-  isCurrent: boolean
-  onSelect?: (id: string) => void
+  tier: PricingTier;
+  isCurrent: boolean;
+  onSelect?: (id: string) => void;
 }) {
-  const isHighlighted = tier.highlighted && !isCurrent
+  const isHighlighted = tier.highlighted && !isCurrent;
 
   return (
     <div
@@ -186,7 +186,7 @@ function PricingCardFull({
         </a>
       )}
     </div>
-  )
+  );
 }
 
 // =============================================================================
@@ -198,9 +198,9 @@ function PricingCardCompact({
   isCurrent,
   onSelect,
 }: {
-  tier: PricingTier
-  isCurrent: boolean
-  onSelect?: (id: string) => void
+  tier: PricingTier;
+  isCurrent: boolean;
+  onSelect?: (id: string) => void;
 }) {
   return (
     <div
@@ -263,5 +263,5 @@ function PricingCardCompact({
         </a>
       )}
     </div>
-  )
+  );
 }

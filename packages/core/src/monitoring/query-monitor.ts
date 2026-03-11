@@ -4,56 +4,56 @@
  * Tracks query execution time and logs slow queries
  */
 
-import { logger } from '../observability/logger.js'
+import { logger } from '../observability/logger.js';
 
 interface QueryMetric {
-  name: string
-  duration: number
-  success: boolean
-  error?: unknown
-  timestamp: number
+  name: string;
+  duration: number;
+  success: boolean;
+  error?: unknown;
+  timestamp: number;
 }
 
 interface SlowQueryLog {
-  query: string
-  duration: number
-  parameters?: unknown[]
-  timestamp: number
-  stackTrace?: string
+  query: string;
+  duration: number;
+  parameters?: unknown[];
+  timestamp: number;
+  stackTrace?: string;
 }
 
-const queryMetrics: QueryMetric[] = []
-const slowQueryLogs: SlowQueryLog[] = []
+const queryMetrics: QueryMetric[] = [];
+const slowQueryLogs: SlowQueryLog[] = [];
 
 // Configuration
-const SLOW_QUERY_THRESHOLD = 100 // milliseconds
-const MAX_METRICS_STORED = 1000
-const MAX_SLOW_QUERIES_STORED = 100
+const SLOW_QUERY_THRESHOLD = 100; // milliseconds
+const MAX_METRICS_STORED = 1000;
+const MAX_SLOW_QUERIES_STORED = 100;
 
 /**
  * Monitor a database query execution
  */
 export async function monitorQuery<T>(name: string, queryFn: () => Promise<T>): Promise<T> {
-  const start = Date.now()
+  const start = Date.now();
 
   try {
-    const result = await queryFn()
-    const duration = Date.now() - start
+    const result = await queryFn();
+    const duration = Date.now() - start;
 
     recordQueryMetric({
       name,
       duration,
       success: true,
       timestamp: start,
-    })
+    });
 
     if (duration > SLOW_QUERY_THRESHOLD) {
-      logger.warn('Slow query detected', { query: name, duration })
+      logger.warn('Slow query detected', { query: name, duration });
     }
 
-    return result
+    return result;
   } catch (error) {
-    const duration = Date.now() - start
+    const duration = Date.now() - start;
 
     recordQueryMetric({
       name,
@@ -61,9 +61,9 @@ export async function monitorQuery<T>(name: string, queryFn: () => Promise<T>): 
       success: false,
       error,
       timestamp: start,
-    })
+    });
 
-    throw error
+    throw error;
   }
 }
 
@@ -71,11 +71,11 @@ export async function monitorQuery<T>(name: string, queryFn: () => Promise<T>): 
  * Record query metric
  */
 function recordQueryMetric(metric: QueryMetric): void {
-  queryMetrics.push(metric)
+  queryMetrics.push(metric);
 
   // Limit stored metrics
   if (queryMetrics.length > MAX_METRICS_STORED) {
-    queryMetrics.shift()
+    queryMetrics.shift();
   }
 }
 
@@ -89,20 +89,20 @@ export function logSlowQuery(query: string, duration: number, parameters?: unkno
     parameters,
     timestamp: Date.now(),
     stackTrace: new Error().stack,
-  }
+  };
 
-  slowQueryLogs.push(log)
+  slowQueryLogs.push(log);
 
   // Limit stored logs
   if (slowQueryLogs.length > MAX_SLOW_QUERIES_STORED) {
-    slowQueryLogs.shift()
+    slowQueryLogs.shift();
   }
 
   logger.warn('Slow query logged', {
     query,
     duration,
     parameters,
-  })
+  });
 }
 
 /**
@@ -117,12 +117,12 @@ export function getQueryStats() {
       minDuration: 0,
       successRate: 0,
       slowQueries: 0,
-    }
+    };
   }
 
-  const durations = queryMetrics.map((m) => m.duration)
-  const successCount = queryMetrics.filter((m) => m.success).length
-  const slowQueriesCount = queryMetrics.filter((m) => m.duration > SLOW_QUERY_THRESHOLD).length
+  const durations = queryMetrics.map((m) => m.duration);
+  const successCount = queryMetrics.filter((m) => m.success).length;
+  const slowQueriesCount = queryMetrics.filter((m) => m.duration > SLOW_QUERY_THRESHOLD).length;
 
   return {
     totalQueries: queryMetrics.length,
@@ -132,21 +132,21 @@ export function getQueryStats() {
     successRate: (successCount / queryMetrics.length) * 100,
     slowQueries: slowQueriesCount,
     slowQueryRate: (slowQueriesCount / queryMetrics.length) * 100,
-  }
+  };
 }
 
 /**
  * Get slow query logs
  */
 export function getSlowQueries(): SlowQueryLog[] {
-  return [...slowQueryLogs].sort((a, b) => b.duration - a.duration)
+  return [...slowQueryLogs].sort((a, b) => b.duration - a.duration);
 }
 
 /**
  * Get queries by name
  */
 export function getQueriesByName(name: string): QueryMetric[] {
-  return queryMetrics.filter((m) => m.name === name)
+  return queryMetrics.filter((m) => m.name === name);
 }
 
 /**
@@ -154,37 +154,37 @@ export function getQueriesByName(name: string): QueryMetric[] {
  */
 export function getQueryPercentiles() {
   if (queryMetrics.length === 0) {
-    return { p50: 0, p95: 0, p99: 0 }
+    return { p50: 0, p95: 0, p99: 0 };
   }
 
-  const sortedDurations = queryMetrics.map((m) => m.duration).sort((a, b) => a - b)
+  const sortedDurations = queryMetrics.map((m) => m.duration).sort((a, b) => a - b);
 
-  const p50Index = Math.floor(sortedDurations.length * 0.5)
-  const p95Index = Math.floor(sortedDurations.length * 0.95)
-  const p99Index = Math.floor(sortedDurations.length * 0.99)
+  const p50Index = Math.floor(sortedDurations.length * 0.5);
+  const p95Index = Math.floor(sortedDurations.length * 0.95);
+  const p99Index = Math.floor(sortedDurations.length * 0.99);
 
   return {
     p50: sortedDurations[p50Index] || 0,
     p95: sortedDurations[p95Index] || 0,
     p99: sortedDurations[p99Index] || 0,
-  }
+  };
 }
 
 /**
  * Clear all metrics
  */
 export function clearQueryMetrics(): void {
-  queryMetrics.length = 0
-  slowQueryLogs.length = 0
+  queryMetrics.length = 0;
+  slowQueryLogs.length = 0;
 }
 
 /**
  * Get query report
  */
 export function getQueryReport() {
-  const stats = getQueryStats()
-  const percentiles = getQueryPercentiles()
-  const slowQueries = getSlowQueries().slice(0, 10) // Top 10 slowest
+  const stats = getQueryStats();
+  const percentiles = getQueryPercentiles();
+  const slowQueries = getSlowQueries().slice(0, 10); // Top 10 slowest
 
   return {
     summary: {
@@ -193,24 +193,24 @@ export function getQueryReport() {
     },
     slowQueries,
     topQueries: getTopQueriesByDuration(),
-  }
+  };
 }
 
 /**
  * Get top queries by total duration
  */
 function getTopQueriesByDuration() {
-  const queryGroups = new Map<string, { count: number; totalDuration: number }>()
+  const queryGroups = new Map<string, { count: number; totalDuration: number }>();
 
   for (const metric of queryMetrics) {
     const existing = queryGroups.get(metric.name) || {
       count: 0,
       totalDuration: 0,
-    }
+    };
     queryGroups.set(metric.name, {
       count: existing.count + 1,
       totalDuration: existing.totalDuration + metric.duration,
-    })
+    });
   }
 
   return Array.from(queryGroups.entries())
@@ -221,7 +221,7 @@ function getTopQueriesByDuration() {
       avgDuration: data.totalDuration / data.count,
     }))
     .sort((a, b) => b.totalDuration - a.totalDuration)
-    .slice(0, 10)
+    .slice(0, 10);
 }
 
 /**
@@ -232,8 +232,8 @@ export function createMonitoredQuery<T extends (...args: unknown[]) => Promise<u
   queryFn: T,
 ): T {
   return (async (...args: unknown[]) => {
-    return monitorQuery(name, () => queryFn(...args))
-  }) as T
+    return monitorQuery(name, () => queryFn(...args));
+  }) as T;
 }
 
 /**
@@ -242,11 +242,11 @@ export function createMonitoredQuery<T extends (...args: unknown[]) => Promise<u
 export async function measureQuery<T>(
   query: () => Promise<T>,
 ): Promise<{ result: T; duration: number }> {
-  const start = Date.now()
-  const result = await query()
-  const duration = Date.now() - start
+  const start = Date.now();
+  const result = await query();
+  const duration = Date.now() - start;
 
-  return { result, duration }
+  return { result, duration };
 }
 
 /**
@@ -260,5 +260,5 @@ export function exportMetrics() {
     },
     slowQueries: getSlowQueries().length,
     timestamp: Date.now(),
-  }
+  };
 }

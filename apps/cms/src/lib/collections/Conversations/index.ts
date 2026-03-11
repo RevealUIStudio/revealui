@@ -1,5 +1,5 @@
-import type { CollectionConfig } from '@revealui/core'
-import { authenticated, isAdmin } from '@/lib/access'
+import type { CollectionConfig } from '@revealui/core';
+import { authenticated, isAdmin } from '@/lib/access';
 
 /**
  * Conversations Collection
@@ -17,22 +17,22 @@ export const Conversations: CollectionConfig = {
   access: {
     create: authenticated,
     read: ({ req }) => {
-      const user = req?.user as { id?: string } | null
-      if (!user?.id) return false
-      if (isAdmin({ req })) return true
-      return { user_id: { equals: user.id } }
+      const user = req?.user as { id?: string } | null;
+      if (!user?.id) return false;
+      if (isAdmin({ req })) return true;
+      return { user_id: { equals: user.id } };
     },
     update: ({ req }) => {
-      const user = req?.user as { id?: string } | null
-      if (!user?.id) return false
-      if (isAdmin({ req })) return true
-      return { user_id: { equals: user.id } }
+      const user = req?.user as { id?: string } | null;
+      if (!user?.id) return false;
+      if (isAdmin({ req })) return true;
+      return { user_id: { equals: user.id } };
     },
     delete: ({ req }) => {
-      const user = req?.user as { id?: string } | null
-      if (!user?.id) return false
-      if (isAdmin({ req })) return true
-      return { user_id: { equals: user.id } }
+      const user = req?.user as { id?: string } | null;
+      if (!user?.id) return false;
+      if (isAdmin({ req })) return true;
+      return { user_id: { equals: user.id } };
     },
   },
   admin: {
@@ -150,4 +150,4 @@ export const Conversations: CollectionConfig = {
       },
     },
   ],
-}
+};

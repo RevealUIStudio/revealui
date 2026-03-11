@@ -12,92 +12,92 @@
  * - node:path - Path manipulation utilities (join)
  */
 
-import { join } from 'node:path'
-import { PGlite } from '@electric-sql/pglite'
-import { ErrorCode, ScriptError } from '../errors.js'
-import { type Deprecation, getDeprecationManager } from '../versioning/deprecation-manager.js'
-import { getVersionManager, type VersionInfo } from '../versioning/script-version.js'
+import { join } from 'node:path';
+import { PGlite } from '@electric-sql/pglite';
+import { ErrorCode, ScriptError } from '../errors.js';
+import { type Deprecation, getDeprecationManager } from '../versioning/deprecation-manager.js';
+import { getVersionManager, type VersionInfo } from '../versioning/script-version.js';
 
 /**
  * Migration step types
  */
-export type MigrationStepType = 'manual' | 'automated' | 'validation'
+export type MigrationStepType = 'manual' | 'automated' | 'validation';
 
 /**
  * Migration step severity levels
  */
-export type MigrationSeverity = 'critical' | 'high' | 'medium' | 'low'
+export type MigrationSeverity = 'critical' | 'high' | 'medium' | 'low';
 
 /**
  * Individual migration step
  */
 export interface MigrationStep {
-  id: string
-  title: string
-  type: MigrationStepType
-  severity: MigrationSeverity
-  description: string
-  reason?: string
-  notes?: string[]
-  codeExampleBefore?: string
-  codeExampleAfter?: string
-  automation?: () => Promise<void>
-  validation?: () => Promise<{ valid: boolean; message?: string }>
+  id: string;
+  title: string;
+  type: MigrationStepType;
+  severity: MigrationSeverity;
+  description: string;
+  reason?: string;
+  notes?: string[];
+  codeExampleBefore?: string;
+  codeExampleAfter?: string;
+  automation?: () => Promise<void>;
+  validation?: () => Promise<{ valid: boolean; message?: string }>;
 }
 
 /**
  * Migration plan structure
  */
 export interface MigrationPlan {
-  scriptName: string
-  fromVersion: string
-  toVersion: string
-  isBreakingChange: boolean
-  estimatedDuration: string
-  generatedAt: Date
-  prerequisites: string[]
-  steps: MigrationStep[]
-  postMigrationTasks: string[]
+  scriptName: string;
+  fromVersion: string;
+  toVersion: string;
+  isBreakingChange: boolean;
+  estimatedDuration: string;
+  generatedAt: Date;
+  prerequisites: string[];
+  steps: MigrationStep[];
+  postMigrationTasks: string[];
 }
 
 /**
  * Migration execution result
  */
 export interface MigrationResult {
-  success: boolean
-  stepsCompleted: number
-  totalSteps: number
-  errors: string[]
-  warnings: string[]
+  success: boolean;
+  stepsCompleted: number;
+  totalSteps: number;
+  errors: string[];
+  warnings: string[];
   manualStepsRemaining: Array<{
-    title: string
-    description: string
-    severity: MigrationSeverity
-    notes?: string[]
-  }>
+    title: string;
+    description: string;
+    severity: MigrationSeverity;
+    notes?: string[];
+  }>;
   validationResults: Array<{
-    step: string
-    passed: boolean
-    message?: string
-  }>
+    step: string;
+    passed: boolean;
+    message?: string;
+  }>;
 }
 
 /**
  * Version comparison result
  */
 export interface VersionComparison {
-  scriptName: string
-  fromVersion: VersionInfo
-  toVersion: VersionInfo
+  scriptName: string;
+  fromVersion: VersionInfo;
+  toVersion: VersionInfo;
   breakingChanges: Array<{
-    type: string
-    what: string
-    why: string
-    migration: string
-  }>
-  newFeatures: string[]
-  deprecations: Deprecation[]
-  changelog: string[]
+    type: string;
+    what: string;
+    why: string;
+    migration: string;
+  }>;
+  newFeatures: string[];
+  deprecations: Deprecation[];
+  changelog: string[];
 }
 
 /**
@@ -121,51 +121,51 @@ export class MigrationHelper {
     fromVersion: string,
     toVersion: string,
   ): Promise<MigrationPlan> {
-    const versionManager = await getVersionManager(this.projectRoot)
+    const versionManager = await getVersionManager(this.projectRoot);
 
-    const from = await versionManager.getVersion(scriptName, fromVersion)
-    const to = await versionManager.getVersion(scriptName, toVersion)
+    const from = await versionManager.getVersion(scriptName, fromVersion);
+    const to = await versionManager.getVersion(scriptName, toVersion);
 
     if (!from) {
-      throw new ScriptError(`Version not found: ${scriptName}@${fromVersion}`, ErrorCode.NOT_FOUND)
+      throw new ScriptError(`Version not found: ${scriptName}@${fromVersion}`, ErrorCode.NOT_FOUND);
     }
 
     if (!to) {
-      throw new ScriptError(`Version not found: ${scriptName}@${toVersion}`, ErrorCode.NOT_FOUND)
+      throw new ScriptError(`Version not found: ${scriptName}@${toVersion}`, ErrorCode.NOT_FOUND);
     }
 
     // Generate migration steps
-    const steps = await this.generateMigrationSteps(scriptName, from, to)
+    const steps = await this.generateMigrationSteps(scriptName, from, to);
 
     // Determine if breaking change
-    const isBreakingChange = (to.breakingChanges?.length ?? 0) > 0
+    const isBreakingChange = (to.breakingChanges?.length ?? 0) > 0;
 
     // Estimate duration based on steps
-    const criticalSteps = steps.filter((s) => s.severity === 'critical').length
-    const highSteps = steps.filter((s) => s.severity === 'high').length
-    const mediumSteps = steps.filter((s) => s.severity === 'medium').length
+    const criticalSteps = steps.filter((s) => s.severity === 'critical').length;
+    const highSteps = steps.filter((s) => s.severity === 'high').length;
+    const mediumSteps = steps.filter((s) => s.severity === 'medium').length;
 
-    let estimatedMinutes = criticalSteps * 30 + highSteps * 15 + mediumSteps * 5
-    estimatedMinutes = Math.max(estimatedMinutes, 5) // Minimum 5 minutes
+    let estimatedMinutes = criticalSteps * 30 + highSteps * 15 + mediumSteps * 5;
+    estimatedMinutes = Math.max(estimatedMinutes, 5); // Minimum 5 minutes
 
     const estimatedDuration =
       estimatedMinutes >= 60
         ? `${Math.round(estimatedMinutes / 60)} hour${estimatedMinutes >= 120 ? 's' : ''}`
-        : `${estimatedMinutes} minutes`
+        : `${estimatedMinutes} minutes`;
 
     // Build prerequisites
-    const prerequisites: string[] = []
+    const prerequisites: string[] = [];
 
     if (to.requiredDependencies && Object.keys(to.requiredDependencies).length > 0) {
-      prerequisites.push('Install required dependencies:')
+      prerequisites.push('Install required dependencies:');
       for (const [pkg, version] of Object.entries(to.requiredDependencies)) {
-        prerequisites.push(`  - ${pkg}@${version}`)
+        prerequisites.push(`  - ${pkg}@${version}`);
       }
     }
 
     if (isBreakingChange) {
-      prerequisites.push('Create a backup of your current setup')
-      prerequisites.push('Review breaking changes documentation')
+      prerequisites.push('Create a backup of your current setup');
+      prerequisites.push('Review breaking changes documentation');
     }
 
     // Post-migration tasks
@@ -173,7 +173,7 @@ export class MigrationHelper {
       'Run tests to verify migration',
       'Update documentation',
       'Review changelog for additional changes',
-    ]
+    ];
 
     return {
       scriptName,
@@ -185,7 +185,7 @@ export class MigrationHelper {
       prerequisites,
       steps,
       postMigrationTasks,
-    }
+    };
   }
 
   /**
@@ -196,14 +196,14 @@ export class MigrationHelper {
     _from: VersionInfo,
     to: VersionInfo,
   ): Promise<MigrationStep[]> {
-    const steps: MigrationStep[] = []
-    let stepCounter = 1
+    const steps: MigrationStep[] = [];
+    let stepCounter = 1;
 
     // Check for required dependencies
     if (to.requiredDependencies && Object.keys(to.requiredDependencies).length > 0) {
       const deps = Object.entries(to.requiredDependencies)
         .map(([pkg, version]) => `${pkg}@${version}`)
-        .join(', ')
+        .join(', ');
 
       steps.push({
         id: `step-${stepCounter++}`,
@@ -213,15 +213,15 @@ export class MigrationHelper {
         description: `Ensure the following dependencies are installed: ${deps}`,
         validation: async () => {
           // Placeholder - in real implementation would check package.json
-          return { valid: true }
+          return { valid: true };
         },
-      })
+      });
     }
 
     // Parse breaking changes
     if (to.breakingChanges && to.breakingChanges.length > 0) {
       for (const change of to.breakingChanges) {
-        const parsed = this.parseBreakingChange(change)
+        const parsed = this.parseBreakingChange(change);
 
         steps.push({
           id: `step-${stepCounter++}`,
@@ -236,13 +236,13 @@ export class MigrationHelper {
               ? `This ${parsed.what} was removed in ${to.version}`
               : undefined,
           ].filter(Boolean) as string[],
-        })
+        });
       }
     }
 
     // Check for deprecations that were removed
-    const deprecationManager = await getDeprecationManager(this.projectRoot)
-    const deprecations = await deprecationManager.getDeprecations(scriptName)
+    const deprecationManager = await getDeprecationManager(this.projectRoot);
+    const deprecations = await deprecationManager.getDeprecations(scriptName);
 
     for (const deprecation of deprecations) {
       // Check if this deprecation's removal version matches the target version
@@ -257,7 +257,7 @@ export class MigrationHelper {
           notes: [
             deprecation.alternative ? `Use ${deprecation.alternative} instead` : undefined,
           ].filter(Boolean) as string[],
-        })
+        });
       }
     }
 
@@ -270,11 +270,11 @@ export class MigrationHelper {
       description: 'Run tests and verify everything works correctly',
       validation: async () => {
         // Placeholder - in real implementation would run tests
-        return { valid: true, message: 'Manual verification required' }
+        return { valid: true, message: 'Manual verification required' };
       },
-    })
+    });
 
-    return steps
+    return steps;
   }
 
   /**
@@ -282,12 +282,12 @@ export class MigrationHelper {
    * Format: "type: what | why | migration"
    */
   private parseBreakingChange(change: string): {
-    type: string
-    what: string
-    why: string
-    migration: string
+    type: string;
+    what: string;
+    why: string;
+    migration: string;
   } {
-    const match = change.match(/^([^:]+):\s*([^|]+)\s*\|\s*([^|]+)\s*\|\s*(.+)$/)
+    const match = change.match(/^([^:]+):\s*([^|]+)\s*\|\s*([^|]+)\s*\|\s*(.+)$/);
 
     if (!match) {
       return {
@@ -295,7 +295,7 @@ export class MigrationHelper {
         what: change,
         why: 'See changelog',
         migration: 'Update your code accordingly',
-      }
+      };
     }
 
     return {
@@ -303,7 +303,7 @@ export class MigrationHelper {
       what: match[2].trim(),
       why: match[3].trim(),
       migration: match[4].trim(),
-    }
+    };
   }
 
   /**
@@ -312,17 +312,17 @@ export class MigrationHelper {
   private getBreakingChangeSeverity(type: string): MigrationSeverity {
     switch (type.toLowerCase()) {
       case 'removed':
-        return 'critical'
+        return 'critical';
       case 'changed-signature':
-        return 'high'
+        return 'high';
       case 'renamed':
-        return 'medium'
+        return 'medium';
       case 'changed-behavior':
-        return 'high'
+        return 'high';
       case 'moved':
-        return 'medium'
+        return 'medium';
       default:
-        return 'medium'
+        return 'medium';
     }
   }
 
@@ -338,28 +338,28 @@ export class MigrationHelper {
       warnings: [],
       manualStepsRemaining: [],
       validationResults: [],
-    }
+    };
 
     for (const step of plan.steps) {
       try {
         if (step.type === 'automated' && step.automation && !dryRun) {
           // Execute automated step
-          await step.automation()
-          result.stepsCompleted++
+          await step.automation();
+          result.stepsCompleted++;
         } else if (step.type === 'validation' && step.validation) {
           // Execute validation
-          const validationResult = await step.validation()
+          const validationResult = await step.validation();
           result.validationResults.push({
             step: step.title,
             passed: validationResult.valid,
             message: validationResult.message,
-          })
+          });
 
           if (!validationResult.valid) {
-            result.errors.push(`Validation failed: ${step.title} - ${validationResult.message}`)
-            result.success = false
+            result.errors.push(`Validation failed: ${step.title} - ${validationResult.message}`);
+            result.success = false;
           } else {
-            result.stepsCompleted++
+            result.stepsCompleted++;
           }
         } else if (step.type === 'manual') {
           // Add to manual steps
@@ -368,19 +368,19 @@ export class MigrationHelper {
             description: step.description,
             severity: step.severity,
             notes: step.notes,
-          })
-          result.warnings.push(`Manual step required: ${step.title}`)
+          });
+          result.warnings.push(`Manual step required: ${step.title}`);
         } else {
           // Skip in dry-run or no automation defined
-          result.stepsCompleted++
+          result.stepsCompleted++;
         }
       } catch (error) {
-        result.errors.push(`Failed to execute step "${step.title}": ${error}`)
-        result.success = false
+        result.errors.push(`Failed to execute step "${step.title}": ${error}`);
+        result.success = false;
       }
     }
 
-    return result
+    return result;
   }
 
   /**
@@ -391,39 +391,39 @@ export class MigrationHelper {
     fromVersion: string,
     toVersion: string,
   ): Promise<VersionComparison> {
-    const versionManager = await getVersionManager(this.projectRoot)
-    const deprecationManager = await getDeprecationManager(this.projectRoot)
+    const versionManager = await getVersionManager(this.projectRoot);
+    const deprecationManager = await getDeprecationManager(this.projectRoot);
 
-    const from = await versionManager.getVersion(scriptName, fromVersion)
-    const to = await versionManager.getVersion(scriptName, toVersion)
+    const from = await versionManager.getVersion(scriptName, fromVersion);
+    const to = await versionManager.getVersion(scriptName, toVersion);
 
     if (!from) {
-      throw new ScriptError(`Version not found: ${scriptName}@${fromVersion}`, ErrorCode.NOT_FOUND)
+      throw new ScriptError(`Version not found: ${scriptName}@${fromVersion}`, ErrorCode.NOT_FOUND);
     }
 
     if (!to) {
-      throw new ScriptError(`Version not found: ${scriptName}@${toVersion}`, ErrorCode.NOT_FOUND)
+      throw new ScriptError(`Version not found: ${scriptName}@${toVersion}`, ErrorCode.NOT_FOUND);
     }
 
     // Parse breaking changes
     const breakingChanges = (to.breakingChanges || []).map((change) => {
-      const parsed = this.parseBreakingChange(change)
+      const parsed = this.parseBreakingChange(change);
       return {
         type: this.capitalizeFirst(parsed.type),
         what: parsed.what,
         why: parsed.why,
         migration: parsed.migration,
-      }
-    })
+      };
+    });
 
     // Extract new features from changelog (simplified)
-    const changelog = to.changelog ? to.changelog.filter(Boolean) : []
+    const changelog = to.changelog ? to.changelog.filter(Boolean) : [];
     const newFeatures = changelog.filter(
       (line) => !breakingChanges.some((bc) => line.includes(bc.what)),
-    )
+    );
 
     // Get deprecations for this version
-    const deprecations = await deprecationManager.getDeprecationsByVersion(scriptName, toVersion)
+    const deprecations = await deprecationManager.getDeprecationsByVersion(scriptName, toVersion);
 
     return {
       scriptName,
@@ -433,47 +433,47 @@ export class MigrationHelper {
       newFeatures,
       deprecations,
       changelog,
-    }
+    };
   }
 
   /**
    * Generate a migration checklist
    */
   async generateChecklist(plan: MigrationPlan): Promise<string> {
-    const lines: string[] = []
+    const lines: string[] = [];
 
-    lines.push(`Migration Checklist: ${plan.scriptName} ${plan.fromVersion} → ${plan.toVersion}`)
-    lines.push('')
+    lines.push(`Migration Checklist: ${plan.scriptName} ${plan.fromVersion} → ${plan.toVersion}`);
+    lines.push('');
 
     if (plan.prerequisites.length > 0) {
-      lines.push('Prerequisites:')
+      lines.push('Prerequisites:');
       for (const prereq of plan.prerequisites) {
-        lines.push(`  [ ] ${prereq}`)
+        lines.push(`  [ ] ${prereq}`);
       }
-      lines.push('')
+      lines.push('');
     }
 
-    lines.push('Migration Steps:')
+    lines.push('Migration Steps:');
     for (const step of plan.steps) {
-      const severityIcon = this.getSeverityIcon(step.severity)
-      lines.push(`  [ ] ${severityIcon} ${step.title}`)
-      lines.push(`      ${step.description}`)
+      const severityIcon = this.getSeverityIcon(step.severity);
+      lines.push(`  [ ] ${severityIcon} ${step.title}`);
+      lines.push(`      ${step.description}`);
       if (step.notes && step.notes.length > 0) {
         for (const note of step.notes) {
-          lines.push(`      • ${note}`)
+          lines.push(`      • ${note}`);
         }
       }
-      lines.push('')
+      lines.push('');
     }
 
     if (plan.postMigrationTasks.length > 0) {
-      lines.push('Post-Migration:')
+      lines.push('Post-Migration:');
       for (const task of plan.postMigrationTasks) {
-        lines.push(`  [ ] ${task}`)
+        lines.push(`  [ ] ${task}`);
       }
     }
 
-    return lines.join('\n')
+    return lines.join('\n');
   }
 
   /**
@@ -482,15 +482,15 @@ export class MigrationHelper {
   private getSeverityIcon(severity: MigrationSeverity): string {
     switch (severity) {
       case 'critical':
-        return '🚨'
+        return '🚨';
       case 'high':
-        return '⚠️ '
+        return '⚠️ ';
       case 'medium':
-        return '⚠️ '
+        return '⚠️ ';
       case 'low':
-        return 'ℹ️ '
+        return 'ℹ️ ';
       default:
-        return '•'
+        return '•';
     }
   }
 
@@ -498,21 +498,21 @@ export class MigrationHelper {
    * Capitalize first letter
    */
   private capitalizeFirst(str: string): string {
-    return str.charAt(0).toUpperCase() + str.slice(1)
+    return str.charAt(0).toUpperCase() + str.slice(1);
   }
 }
 
-let migrationHelperInstance: MigrationHelper | null = null
+let migrationHelperInstance: MigrationHelper | null = null;
 
 export async function getMigrationHelper(projectRoot: string): Promise<MigrationHelper> {
   if (!migrationHelperInstance) {
-    const dataDir = join(projectRoot, '.revealui')
-    const dbPath = join(dataDir, 'script-management.db')
+    const dataDir = join(projectRoot, '.revealui');
+    const dbPath = join(dataDir, 'script-management.db');
 
-    const db = new PGlite(dbPath)
-    migrationHelperInstance = new MigrationHelper(db, projectRoot)
-    await migrationHelperInstance.initialize()
+    const db = new PGlite(dbPath);
+    migrationHelperInstance = new MigrationHelper(db, projectRoot);
+    await migrationHelperInstance.initialize();
   }
 
-  return migrationHelperInstance
+  return migrationHelperInstance;
 }

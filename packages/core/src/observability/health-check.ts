@@ -4,97 +4,97 @@
  * Provides health and readiness checks for the application
  */
 
-import { execFile } from 'node:child_process'
-import { promisify } from 'node:util'
-import { logger } from './logger.js'
+import { execFile } from 'node:child_process';
+import { promisify } from 'node:util';
+import { logger } from './logger.js';
 
-const execFileAsync = promisify(execFile)
+const execFileAsync = promisify(execFile);
 
-export type HealthStatus = 'healthy' | 'degraded' | 'unhealthy'
+export type HealthStatus = 'healthy' | 'degraded' | 'unhealthy';
 
 export interface HealthCheck {
-  name: string
-  check: () => Promise<HealthCheckResult>
-  critical?: boolean
-  timeout?: number
+  name: string;
+  check: () => Promise<HealthCheckResult>;
+  critical?: boolean;
+  timeout?: number;
 }
 
 export interface HealthCheckResult {
-  status: HealthStatus
-  message?: string
-  details?: Record<string, unknown>
-  duration?: number
-  timestamp?: string
+  status: HealthStatus;
+  message?: string;
+  details?: Record<string, unknown>;
+  duration?: number;
+  timestamp?: string;
 }
 
 export interface SystemHealth {
-  status: HealthStatus
-  checks: Record<string, HealthCheckResult>
-  timestamp: string
-  uptime: number
-  version?: string
+  status: HealthStatus;
+  checks: Record<string, HealthCheckResult>;
+  timestamp: string;
+  uptime: number;
+  version?: string;
 }
 
 export class HealthCheckSystem {
-  private checks: Map<string, HealthCheck> = new Map()
-  private startTime: number = Date.now()
+  private checks: Map<string, HealthCheck> = new Map();
+  private startTime: number = Date.now();
 
   /**
    * Register a health check
    */
   register(check: HealthCheck): void {
-    this.checks.set(check.name, check)
+    this.checks.set(check.name, check);
   }
 
   /**
    * Unregister a health check
    */
   unregister(name: string): void {
-    this.checks.delete(name)
+    this.checks.delete(name);
   }
 
   /**
    * Run all health checks
    */
   async checkHealth(): Promise<SystemHealth> {
-    const results: Record<string, HealthCheckResult> = {}
-    let overallStatus: HealthStatus = 'healthy'
+    const results: Record<string, HealthCheckResult> = {};
+    let overallStatus: HealthStatus = 'healthy';
 
     for (const [name, check] of this.checks) {
-      const startTime = Date.now()
+      const startTime = Date.now();
 
       try {
-        const timeout = check.timeout || 5000
-        const result = await this.runWithTimeout(check.check(), timeout)
+        const timeout = check.timeout || 5000;
+        const result = await this.runWithTimeout(check.check(), timeout);
 
         results[name] = {
           ...result,
           duration: Date.now() - startTime,
           timestamp: new Date().toISOString(),
-        }
+        };
 
         // Update overall status
         if (check.critical && result.status === 'unhealthy') {
-          overallStatus = 'unhealthy'
+          overallStatus = 'unhealthy';
         } else if (result.status === 'degraded' && overallStatus === 'healthy') {
-          overallStatus = 'degraded'
+          overallStatus = 'degraded';
         } else if (result.status === 'unhealthy' && overallStatus !== 'unhealthy') {
-          overallStatus = 'degraded'
+          overallStatus = 'degraded';
         }
       } catch (error) {
-        const duration = Date.now() - startTime
+        const duration = Date.now() - startTime;
 
         results[name] = {
           status: 'unhealthy',
           message: error instanceof Error ? error.message : 'Check failed',
           duration,
           timestamp: new Date().toISOString(),
-        }
+        };
 
         if (check.critical) {
-          overallStatus = 'unhealthy'
+          overallStatus = 'unhealthy';
         } else if (overallStatus === 'healthy') {
-          overallStatus = 'degraded'
+          overallStatus = 'degraded';
         }
       }
     }
@@ -105,7 +105,7 @@ export class HealthCheckSystem {
       timestamp: new Date().toISOString(),
       uptime: Date.now() - this.startTime,
       version: process.env.APP_VERSION,
-    }
+    };
   }
 
   /**
@@ -117,21 +117,21 @@ export class HealthCheckSystem {
       new Promise<T>((_, reject) =>
         setTimeout(() => reject(new Error('Check timeout')), timeoutMs),
       ),
-    ])
+    ]);
   }
 
   /**
    * Get uptime in seconds
    */
   getUptime(): number {
-    return Math.floor((Date.now() - this.startTime) / 1000)
+    return Math.floor((Date.now() - this.startTime) / 1000);
   }
 }
 
 /**
  * Default health check system
  */
-export const healthCheck = new HealthCheckSystem()
+export const healthCheck = new HealthCheckSystem();
 
 /**
  * Database health check
@@ -142,12 +142,12 @@ export function createDatabaseHealthCheck(queryFn: () => Promise<void>): HealthC
     critical: true,
     timeout: 5000,
     check: async () => {
-      const startTime = Date.now()
+      const startTime = Date.now();
 
       try {
-        await queryFn()
+        await queryFn();
 
-        const duration = Date.now() - startTime
+        const duration = Date.now() - startTime;
 
         return {
           status: duration > 1000 ? 'degraded' : 'healthy',
@@ -155,15 +155,15 @@ export function createDatabaseHealthCheck(queryFn: () => Promise<void>): HealthC
           details: {
             responseTime: duration,
           },
-        }
+        };
       } catch (error) {
         return {
           status: 'unhealthy',
           message: error instanceof Error ? error.message : 'Database connection failed',
-        }
+        };
       }
     },
-  }
+  };
 }
 
 /**
@@ -175,19 +175,19 @@ export function createRedisHealthCheck(pingFn: () => Promise<string>): HealthChe
     critical: false,
     timeout: 3000,
     check: async () => {
-      const startTime = Date.now()
+      const startTime = Date.now();
 
       try {
-        const response = await pingFn()
+        const response = await pingFn();
 
         if (response !== 'PONG') {
           return {
             status: 'unhealthy',
             message: 'Redis ping failed',
-          }
+          };
         }
 
-        const duration = Date.now() - startTime
+        const duration = Date.now() - startTime;
 
         return {
           status: duration > 500 ? 'degraded' : 'healthy',
@@ -195,15 +195,15 @@ export function createRedisHealthCheck(pingFn: () => Promise<string>): HealthChe
           details: {
             responseTime: duration,
           },
-        }
+        };
       } catch (error) {
         return {
           status: 'unhealthy',
           message: error instanceof Error ? error.message : 'Redis connection failed',
-        }
+        };
       }
     },
-  }
+  };
 }
 
 /**
@@ -219,21 +219,21 @@ export function createMemoryHealthCheck(thresholdPercent: number = 90): HealthCh
         return {
           status: 'healthy',
           message: 'Memory check not available',
-        }
+        };
       }
 
-      const usage = process.memoryUsage()
-      const usedPercent = (usage.heapUsed / usage.heapTotal) * 100
+      const usage = process.memoryUsage();
+      const usedPercent = (usage.heapUsed / usage.heapTotal) * 100;
 
-      let status: HealthStatus = 'healthy'
-      let message = 'Memory usage normal'
+      let status: HealthStatus = 'healthy';
+      let message = 'Memory usage normal';
 
       if (usedPercent > thresholdPercent) {
-        status = 'unhealthy'
-        message = 'Memory usage critical'
+        status = 'unhealthy';
+        message = 'Memory usage critical';
       } else if (usedPercent > thresholdPercent * 0.8) {
-        status = 'degraded'
-        message = 'Memory usage high'
+        status = 'degraded';
+        message = 'Memory usage high';
       }
 
       return {
@@ -246,9 +246,9 @@ export function createMemoryHealthCheck(thresholdPercent: number = 90): HealthCh
           external: usage.external,
           rss: usage.rss,
         },
-      }
+      };
     },
-  }
+  };
 }
 
 /**
@@ -261,23 +261,23 @@ export function createDiskHealthCheck(thresholdPercent: number = 90): HealthChec
     timeout: 2000,
     check: async (): Promise<HealthCheckResult> => {
       try {
-        const { stdout } = await execFileAsync('df', ['-P', '/'])
+        const { stdout } = await execFileAsync('df', ['-P', '/']);
         // df -P output: "Filesystem  1024-blocks  Used  Available  Capacity%  Mounted"
-        const lines = stdout.trim().split('\n')
-        const dataLine = lines[1]
-        if (!dataLine) throw new Error('Unexpected df output format')
+        const lines = stdout.trim().split('\n');
+        const dataLine = lines[1];
+        if (!dataLine) throw new Error('Unexpected df output format');
 
-        const parts = dataLine.split(/\s+/)
-        const usedPercent = Number.parseInt(parts[4] ?? '0', 10)
-        const availableKb = Number.parseInt(parts[3] ?? '0', 10)
-        const availableMb = Math.round(availableKb / 1024)
+        const parts = dataLine.split(/\s+/);
+        const usedPercent = Number.parseInt(parts[4] ?? '0', 10);
+        const availableKb = Number.parseInt(parts[3] ?? '0', 10);
+        const availableMb = Math.round(availableKb / 1024);
 
         const status: HealthStatus =
           usedPercent >= thresholdPercent
             ? 'unhealthy'
             : usedPercent >= thresholdPercent - 10
               ? 'degraded'
-              : 'healthy'
+              : 'healthy';
 
         return {
           status,
@@ -286,18 +286,18 @@ export function createDiskHealthCheck(thresholdPercent: number = 90): HealthChec
               ? `Disk usage ${usedPercent}% (${availableMb} MB free)`
               : `Disk usage ${usedPercent}% exceeds threshold ${thresholdPercent}% (${availableMb} MB free)`,
           details: { usedPercent, availableMb, thresholdPercent },
-        }
+        };
       } catch (err) {
         logger.warn('Disk health check failed', {
           error: err instanceof Error ? err.message : String(err),
-        })
+        });
         return {
           status: 'degraded',
           message: 'Disk check unavailable',
-        }
+        };
       }
     },
-  }
+  };
 }
 
 /**
@@ -309,11 +309,11 @@ export function createAPIHealthCheck(url: string, expectedStatus: number = 200):
     critical: false,
     timeout: 10000,
     check: async () => {
-      const startTime = Date.now()
+      const startTime = Date.now();
 
       try {
-        const response = await fetch(url)
-        const duration = Date.now() - startTime
+        const response = await fetch(url);
+        const duration = Date.now() - startTime;
 
         if (response.status !== expectedStatus) {
           return {
@@ -323,7 +323,7 @@ export function createAPIHealthCheck(url: string, expectedStatus: number = 200):
               status: response.status,
               responseTime: duration,
             },
-          }
+          };
         }
 
         return {
@@ -333,15 +333,15 @@ export function createAPIHealthCheck(url: string, expectedStatus: number = 200):
             status: response.status,
             responseTime: duration,
           },
-        }
+        };
       } catch (error) {
         return {
           status: 'unhealthy',
           message: error instanceof Error ? error.message : 'API unreachable',
-        }
+        };
       }
     },
-  }
+  };
 }
 
 /**
@@ -356,7 +356,7 @@ export function createCustomHealthCheck(
     name,
     critical,
     check: checkFn,
-  }
+  };
 }
 
 /**
@@ -364,9 +364,9 @@ export function createCustomHealthCheck(
  */
 export function createHealthEndpoint() {
   return async (): Promise<Response> => {
-    const health = await healthCheck.checkHealth()
+    const health = await healthCheck.checkHealth();
 
-    const status = health.status === 'healthy' ? 200 : health.status === 'degraded' ? 200 : 503
+    const status = health.status === 'healthy' ? 200 : health.status === 'degraded' ? 200 : 503;
 
     return new Response(JSON.stringify(health, null, 2), {
       status,
@@ -374,8 +374,8 @@ export function createHealthEndpoint() {
         'Content-Type': 'application/json',
         'Cache-Control': 'no-cache, no-store, must-revalidate',
       },
-    })
-  }
+    });
+  };
 }
 
 /**
@@ -383,12 +383,12 @@ export function createHealthEndpoint() {
  */
 export function createReadinessEndpoint() {
   return async (): Promise<Response> => {
-    const health = await healthCheck.checkHealth()
+    const health = await healthCheck.checkHealth();
 
     // Only return 200 if all critical checks are healthy
-    const ready = health.status !== 'unhealthy'
+    const ready = health.status !== 'unhealthy';
 
-    const status = ready ? 200 : 503
+    const status = ready ? 200 : 503;
 
     return new Response(
       JSON.stringify(
@@ -407,8 +407,8 @@ export function createReadinessEndpoint() {
           'Cache-Control': 'no-cache, no-store, must-revalidate',
         },
       },
-    )
-  }
+    );
+  };
 }
 
 /**
@@ -434,8 +434,8 @@ export function createLivenessEndpoint() {
           'Cache-Control': 'no-cache, no-store, must-revalidate',
         },
       },
-    )
-  }
+    );
+  };
 }
 
 /**
@@ -445,25 +445,25 @@ export async function monitorHealth(
   intervalMs: number = 30000,
   onStatusChange?: (status: HealthStatus) => void,
 ): Promise<NodeJS.Timeout> {
-  let lastStatus: HealthStatus | null = null
+  let lastStatus: HealthStatus | null = null;
 
   const monitor = async () => {
-    const health = await healthCheck.checkHealth()
+    const health = await healthCheck.checkHealth();
 
     if (health.status !== lastStatus) {
-      logger.info('Health status changed', { from: lastStatus, to: health.status })
+      logger.info('Health status changed', { from: lastStatus, to: health.status });
 
       if (onStatusChange) {
-        onStatusChange(health.status)
+        onStatusChange(health.status);
       }
 
-      lastStatus = health.status
+      lastStatus = health.status;
     }
-  }
+  };
 
   // Run immediately
-  await monitor()
+  await monitor();
 
   // Then run on interval
-  return setInterval(monitor, intervalMs)
+  return setInterval(monitor, intervalMs);
 }

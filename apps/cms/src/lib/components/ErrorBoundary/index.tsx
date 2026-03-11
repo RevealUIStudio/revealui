@@ -5,53 +5,53 @@
  * Prevents the entire application from crashing when a component fails.
  */
 
-'use client'
+'use client';
 
-import { logger } from '@revealui/core/utils/logger'
-import React, { Component, type ReactNode } from 'react'
+import { logger } from '@revealui/core/utils/logger';
+import React, { Component, type ReactNode } from 'react';
 
 interface ErrorBoundaryProps {
-  children: ReactNode
-  fallback?: ReactNode
-  onError?: (error: Error, errorInfo: React.ErrorInfo) => void
+  children: ReactNode;
+  fallback?: ReactNode;
+  onError?: (error: Error, errorInfo: React.ErrorInfo) => void;
 }
 
 interface ErrorBoundaryState {
-  hasError: boolean
-  error: Error | null
-  errorInfo: React.ErrorInfo | null
+  hasError: boolean;
+  error: Error | null;
+  errorInfo: React.ErrorInfo | null;
 }
 
 export class ErrorBoundary extends Component<ErrorBoundaryProps, ErrorBoundaryState> {
   constructor(props: ErrorBoundaryProps) {
-    super(props)
+    super(props);
     this.state = {
       hasError: false,
       error: null,
       errorInfo: null,
-    }
+    };
   }
 
   static getDerivedStateFromError(error: Error): Partial<ErrorBoundaryState> {
     return {
       hasError: true,
       error,
-    }
+    };
   }
 
   componentDidCatch(error: Error, errorInfo: React.ErrorInfo): void {
     // Log error for debugging
-    logger.error('ErrorBoundary caught an error', { error, errorInfo })
+    logger.error('ErrorBoundary caught an error', { error, errorInfo });
 
     // Update state with error info
     this.setState({
       error,
       errorInfo,
-    })
+    });
 
     // Call optional error handler
     if (this.props.onError) {
-      this.props.onError(error, errorInfo)
+      this.props.onError(error, errorInfo);
     }
 
     // You could also log to an error reporting service here
@@ -63,14 +63,14 @@ export class ErrorBoundary extends Component<ErrorBoundaryProps, ErrorBoundarySt
       hasError: false,
       error: null,
       errorInfo: null,
-    })
-  }
+    });
+  };
 
   render(): ReactNode {
     if (this.state.hasError) {
       // Use custom fallback if provided
       if (this.props.fallback) {
-        return this.props.fallback
+        return this.props.fallback;
       }
 
       // Default error UI
@@ -111,10 +111,10 @@ export class ErrorBoundary extends Component<ErrorBoundaryProps, ErrorBoundarySt
             </button>
           </div>
         </div>
-      )
+      );
     }
 
-    return this.props.children
+    return this.props.children;
   }
 }
 
@@ -131,6 +131,6 @@ export function withErrorBoundary<P extends object>(
       <ErrorBoundary fallback={fallback}>
         <Component {...props} />
       </ErrorBoundary>
-    )
-  }
+    );
+  };
 }

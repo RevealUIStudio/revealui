@@ -11,14 +11,14 @@ import type {
   ConsentType,
   DataDeletionRequest,
   GDPRStorage,
-} from '@revealui/core/security'
-import { getClient } from '@revealui/db'
-import { gdprConsents, gdprDeletionRequests } from '@revealui/db/schema'
-import { and, eq } from 'drizzle-orm'
+} from '@revealui/core/security';
+import { getClient } from '@revealui/db';
+import { gdprConsents, gdprDeletionRequests } from '@revealui/db/schema';
+import { and, eq } from 'drizzle-orm';
 
 export class DrizzleGDPRStorage implements GDPRStorage {
   private get db() {
-    return getClient()
+    return getClient();
   }
 
   // ── Consent Records ──────────────────────────────────────────────
@@ -48,7 +48,7 @@ export class DrizzleGDPRStorage implements GDPRStorage {
           version: record.version,
           metadata: record.metadata ?? null,
         },
-      })
+      });
   }
 
   async getConsent(userId: string, type: ConsentType): Promise<ConsentRecord | undefined> {
@@ -56,21 +56,21 @@ export class DrizzleGDPRStorage implements GDPRStorage {
       .select()
       .from(gdprConsents)
       .where(and(eq(gdprConsents.userId, userId), eq(gdprConsents.type, type)))
-      .limit(1)
+      .limit(1);
 
-    if (rows.length === 0) return undefined
-    return this.toConsentRecord(rows[0])
+    if (rows.length === 0) return undefined;
+    return this.toConsentRecord(rows[0]);
   }
 
   async getConsentsByUser(userId: string): Promise<ConsentRecord[]> {
-    const rows = await this.db.select().from(gdprConsents).where(eq(gdprConsents.userId, userId))
+    const rows = await this.db.select().from(gdprConsents).where(eq(gdprConsents.userId, userId));
 
-    return rows.map((row) => this.toConsentRecord(row))
+    return rows.map((row) => this.toConsentRecord(row));
   }
 
   async getAllConsents(): Promise<ConsentRecord[]> {
-    const rows = await this.db.select().from(gdprConsents)
-    return rows.map((row) => this.toConsentRecord(row))
+    const rows = await this.db.select().from(gdprConsents);
+    return rows.map((row) => this.toConsentRecord(row));
   }
 
   // ── Deletion Requests ────────────────────────────────────────────
@@ -97,7 +97,7 @@ export class DrizzleGDPRStorage implements GDPRStorage {
           retainedData: request.retainedData ?? null,
           deletedData: request.deletedData ?? null,
         },
-      })
+      });
   }
 
   async getDeletionRequest(requestId: string): Promise<DataDeletionRequest | undefined> {
@@ -105,19 +105,19 @@ export class DrizzleGDPRStorage implements GDPRStorage {
       .select()
       .from(gdprDeletionRequests)
       .where(eq(gdprDeletionRequests.id, requestId))
-      .limit(1)
+      .limit(1);
 
-    if (rows.length === 0) return undefined
-    return this.toDeletionRequest(rows[0])
+    if (rows.length === 0) return undefined;
+    return this.toDeletionRequest(rows[0]);
   }
 
   async getDeletionRequestsByUser(userId: string): Promise<DataDeletionRequest[]> {
     const rows = await this.db
       .select()
       .from(gdprDeletionRequests)
-      .where(eq(gdprDeletionRequests.userId, userId))
+      .where(eq(gdprDeletionRequests.userId, userId));
 
-    return rows.map((row) => this.toDeletionRequest(row))
+    return rows.map((row) => this.toDeletionRequest(row));
   }
 
   // ── Mappers ──────────────────────────────────────────────────────
@@ -133,7 +133,7 @@ export class DrizzleGDPRStorage implements GDPRStorage {
       source: row.source as ConsentRecord['source'],
       version: row.version,
       metadata: row.metadata ?? undefined,
-    }
+    };
   }
 
   private toDeletionRequest(row: typeof gdprDeletionRequests.$inferSelect): DataDeletionRequest {
@@ -147,6 +147,6 @@ export class DrizzleGDPRStorage implements GDPRStorage {
       reason: row.reason ?? undefined,
       retainedData: row.retainedData ?? undefined,
       deletedData: row.deletedData ?? undefined,
-    }
+    };
   }
 }

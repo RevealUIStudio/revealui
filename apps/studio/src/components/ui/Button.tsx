@@ -1,4 +1,4 @@
-import type { ButtonHTMLAttributes } from 'react'
+import type { ButtonHTMLAttributes } from 'react';
 
 const variantStyles = {
   primary: 'bg-orange-600 text-white font-medium hover:bg-orange-500',
@@ -6,21 +6,21 @@ const variantStyles = {
   ghost: 'text-neutral-400 hover:text-neutral-200',
   danger: 'bg-red-900/40 text-red-400 hover:bg-red-900/60',
   success: 'bg-green-700 text-white font-medium hover:bg-green-600',
-} as const
+} as const;
 
 const sizeStyles = {
   sm: 'px-2.5 py-1 text-xs rounded',
   md: 'px-3 py-1.5 text-sm rounded-md',
   lg: 'px-4 py-2 text-sm rounded-md',
-} as const
+} as const;
 
-export type ButtonVariant = keyof typeof variantStyles
-export type ButtonSize = keyof typeof sizeStyles
+export type ButtonVariant = keyof typeof variantStyles;
+export type ButtonSize = keyof typeof sizeStyles;
 
 interface ButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> {
-  variant?: ButtonVariant
-  size?: ButtonSize
-  loading?: boolean
+  variant?: ButtonVariant;
+  size?: ButtonSize;
+  loading?: boolean;
 }
 
 export default function Button({
@@ -63,5 +63,5 @@ export default function Button({
       )}
       {children}
     </button>
-  )
+  );
 }

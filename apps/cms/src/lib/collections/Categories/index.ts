@@ -1,6 +1,6 @@
-import type { CollectionConfig } from '@revealui/core'
-import { anyone, isAdmin } from '@/lib/access'
-import { slugField } from '@/lib/fields/slug/index'
+import type { CollectionConfig } from '@revealui/core';
+import { anyone, isAdmin } from '@/lib/access';
+import { slugField } from '@/lib/fields/slug/index';
 
 const Categories: CollectionConfig = {
   slug: 'categories',
@@ -26,6 +26,6 @@ const Categories: CollectionConfig = {
     //   relationTo: "media",
     // },
   ],
-}
+};
 
-export default Categories
+export default Categories;

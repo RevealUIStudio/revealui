@@ -1,4 +1,4 @@
-import type { GlobalConfig } from '@revealui/core'
+import type { GlobalConfig } from '@revealui/core';
 
 export const Settings: GlobalConfig = {
   slug: 'settings',
@@ -17,4 +17,4 @@ export const Settings: GlobalConfig = {
       label: 'Products page',
     },
   ],
-}
+};

@@ -1,6 +1,6 @@
-import type { PricingResponse } from '@revealui/contracts/pricing'
-import type { Metadata } from 'next'
-import { Footer } from '@/components/Footer'
+import type { PricingResponse } from '@revealui/contracts/pricing';
+import type { Metadata } from 'next';
+import { Footer } from '@/components/Footer';
 
 export const metadata: Metadata = {
   title: 'Pricing — RevealUI',
@@ -12,21 +12,21 @@ export const metadata: Metadata = {
       'Start free. Subscribe, pay per agent task, or buy a one-time license. Three ways to use RevealUI.',
     type: 'website',
   },
-}
+};
 
 // Resolve CTA hrefs for marketing context (absolute URLs for signup)
-const cmsUrl = process.env.NEXT_PUBLIC_CMS_URL || 'https://cms.revealui.com'
+const cmsUrl = process.env.NEXT_PUBLIC_CMS_URL || 'https://cms.revealui.com';
 
 async function getPricing(): Promise<PricingResponse | null> {
-  const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'https://api.revealui.com'
+  const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'https://api.revealui.com';
   try {
     const res = await fetch(`${apiUrl}/api/pricing`, {
       next: { revalidate: 3600 },
-    })
-    if (!res.ok) return null
-    return (await res.json()) as PricingResponse
+    });
+    if (!res.ok) return null;
+    return (await res.json()) as PricingResponse;
   } catch {
-    return null
+    return null;
   }
 }
 
@@ -75,21 +75,21 @@ const faqs = [
     answer:
       'Yes! If you need more than what the Forge tier offers, contact us at support@revealui.com to discuss custom pricing and SLAs.',
   },
-]
+];
 
 // ---------------------------------------------------------------------------
 // Page
 // ---------------------------------------------------------------------------
 
 export default async function PricingPage() {
-  const pricing = await getPricing()
+  const pricing = await getPricing();
 
   const tiers = (pricing?.subscriptions ?? []).map((tier) => ({
     ...tier,
     ctaHref: tier.ctaHref.startsWith('/') ? `${cmsUrl}${tier.ctaHref}` : tier.ctaHref,
-  }))
-  const creditBundles = pricing?.credits ?? []
-  const perpetualTiers = pricing?.perpetual ?? []
+  }));
+  const creditBundles = pricing?.credits ?? [];
+  const perpetualTiers = pricing?.perpetual ?? [];
 
   return (
     <div className="min-h-screen bg-white">
@@ -350,5 +350,5 @@ export default async function PricingPage() {
 
       <Footer />
     </div>
-  )
+  );
 }

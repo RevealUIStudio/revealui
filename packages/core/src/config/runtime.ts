@@ -1,11 +1,11 @@
-import type { Config as ContractsConfig } from '@revealui/contracts/cms'
-import type { RevealConfig, RevealUIInstance } from '../types/index.js'
+import type { Config as ContractsConfig } from '@revealui/contracts/cms';
+import type { RevealConfig, RevealUIInstance } from '../types/index.js';
 
 /** Accepted config types for getRevealUI */
-type AcceptedConfig = RevealConfig | ContractsConfig | Record<string, unknown>
+type AcceptedConfig = RevealConfig | ContractsConfig | Record<string, unknown>;
 
-let revealInstance: RevealUIInstance | null = null
-let configInstance: AcceptedConfig | null = null
+let revealInstance: RevealUIInstance | null = null;
+let configInstance: AcceptedConfig | null = null;
 
 /**
  * Creates or returns a cached RevealUI instance
@@ -23,21 +23,21 @@ let configInstance: AcceptedConfig | null = null
 export async function getRevealUI(options: { config: AcceptedConfig }): Promise<RevealUIInstance> {
   // In development, always create a new instance to support HMR
   if (process.env.NODE_ENV === 'development') {
-    revealInstance = null
-    configInstance = null
+    revealInstance = null;
+    configInstance = null;
   }
 
   if (revealInstance && configInstance === options.config) {
-    return revealInstance
+    return revealInstance;
   }
 
   // Import the RevealUI implementation
-  const { createRevealUIInstance } = await import('../revealui.js')
+  const { createRevealUIInstance } = await import('../revealui.js');
 
   // Type assertion is safe here: generated Config types are runtime-compatible with RevealConfig
   // even though TypeScript sees them as structurally different types
-  revealInstance = await createRevealUIInstance(options.config as RevealConfig)
-  configInstance = options.config as RevealConfig
+  revealInstance = await createRevealUIInstance(options.config as RevealConfig);
+  configInstance = options.config as RevealConfig;
 
-  return revealInstance
+  return revealInstance;
 }

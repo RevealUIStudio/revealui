@@ -8,30 +8,30 @@
  * authenticated users can subscribe to any agent's memories.
  */
 
-import { getSession } from '@revealui/auth/server'
-import { logger } from '@revealui/core/utils/logger'
-import type { NextRequest, NextResponse } from 'next/server'
-import { prepareElectricUrl, proxyElectricRequest } from '@/lib/api/electric-proxy'
+import { getSession } from '@revealui/auth/server';
+import { logger } from '@revealui/core/utils/logger';
+import type { NextRequest, NextResponse } from 'next/server';
+import { prepareElectricUrl, proxyElectricRequest } from '@/lib/api/electric-proxy';
 import {
   createApplicationErrorResponse,
   createErrorResponse,
   createValidationErrorResponse,
-} from '@/lib/utils/error-response'
+} from '@/lib/utils/error-response';
 
-export const dynamic = 'force-dynamic'
-export const runtime = 'nodejs'
+export const dynamic = 'force-dynamic';
+export const runtime = 'nodejs';
 
 export async function GET(request: NextRequest): Promise<NextResponse> {
   try {
     // Validate session using RevealUI auth
-    const session = await getSession(request.headers)
+    const session = await getSession(request.headers);
 
     if (!session) {
-      return createApplicationErrorResponse('Unauthorized', 'UNAUTHORIZED', 401)
+      return createApplicationErrorResponse('Unauthorized', 'UNAUTHORIZED', 401);
     }
 
     // Caller supplies the agent_id to scope memories to a specific agent
-    const agentId = new URL(request.url).searchParams.get('agent_id')
+    const agentId = new URL(request.url).searchParams.get('agent_id');
     if (!agentId || agentId.trim().length === 0) {
       return createValidationErrorResponse(
         'agent_id query parameter is required',
@@ -40,7 +40,7 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
         {
           example: '/api/shapes/agent-memories?agent_id=assistant',
         },
-      )
+      );
     }
 
     // Validate agent_id is safe to inline (alphanumeric, hyphens, underscores only)
@@ -49,20 +49,20 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
         'agent_id must contain only alphanumeric characters, hyphens, and underscores',
         'agent_id',
         agentId,
-      )
+      );
     }
 
     // Build the ElectricSQL URL with row-level filtering
-    const originUrl = prepareElectricUrl(request.url)
-    originUrl.searchParams.set('table', 'agent_memories')
-    originUrl.searchParams.set('where', `agent_id = '${agentId}'`)
+    const originUrl = prepareElectricUrl(request.url);
+    originUrl.searchParams.set('table', 'agent_memories');
+    originUrl.searchParams.set('where', `agent_id = '${agentId}'`);
 
-    return proxyElectricRequest(originUrl)
+    return proxyElectricRequest(originUrl);
   } catch (error) {
-    logger.error('Error proxying agent memories shape', { error })
+    logger.error('Error proxying agent memories shape', { error });
     return createErrorResponse(error, {
       endpoint: '/api/shapes/agent-memories',
       operation: 'agent_memories_proxy',
-    })
+    });
   }
 }

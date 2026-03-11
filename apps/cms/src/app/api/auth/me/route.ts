@@ -6,32 +6,32 @@
  * Returns the current authenticated user.
  */
 
-import { getLinkedProviders, getSession } from '@revealui/auth/server'
-import { logger } from '@revealui/core/utils/logger'
-import { type NextRequest, NextResponse } from 'next/server'
-import { createApplicationErrorResponse, createErrorResponse } from '@/lib/utils/error-response'
+import { getLinkedProviders, getSession } from '@revealui/auth/server';
+import { logger } from '@revealui/core/utils/logger';
+import { type NextRequest, NextResponse } from 'next/server';
+import { createApplicationErrorResponse, createErrorResponse } from '@/lib/utils/error-response';
 
-export const dynamic = 'force-dynamic'
-export const runtime = 'nodejs'
+export const dynamic = 'force-dynamic';
+export const runtime = 'nodejs';
 
 export async function GET(request: NextRequest): Promise<NextResponse> {
   try {
-    const session = await getSession(request.headers)
+    const session = await getSession(request.headers);
 
     if (!session) {
-      return createApplicationErrorResponse('Unauthorized', 'UNAUTHORIZED', 401)
+      return createApplicationErrorResponse('Unauthorized', 'UNAUTHORIZED', 401);
     }
 
     // Fetch linked OAuth providers for the account settings UI
     let linkedProviders: Array<{
-      provider: string
-      providerEmail: string | null
-      providerName: string | null
-    }> = []
+      provider: string;
+      providerEmail: string | null;
+      providerName: string | null;
+    }> = [];
     try {
-      linkedProviders = await getLinkedProviders(session.user.id)
+      linkedProviders = await getLinkedProviders(session.user.id);
     } catch (err) {
-      logger.warn('Failed to fetch linked providers', { userId: session.user.id, error: err })
+      logger.warn('Failed to fetch linked providers', { userId: session.user.id, error: err });
     }
 
     return NextResponse.json({
@@ -50,12 +50,12 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
         })),
         hasPassword: !!session.user.password,
       },
-    })
+    });
   } catch (error) {
-    logger.error('Error getting current user', { error })
+    logger.error('Error getting current user', { error });
     return createErrorResponse(error, {
       endpoint: '/api/auth/me',
       operation: 'get_current_user',
-    })
+    });
   }
 }

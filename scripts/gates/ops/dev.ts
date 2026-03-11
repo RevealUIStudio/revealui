@@ -18,36 +18,36 @@
  * - node:url - URL utilities (fileURLToPath)
  */
 
-import { dirname, resolve } from 'node:path'
-import { fileURLToPath } from 'node:url'
-import concurrently from 'concurrently'
-import { ErrorCode } from '../../lib/errors.js'
+import { dirname, resolve } from 'node:path';
+import { fileURLToPath } from 'node:url';
+import concurrently from 'concurrently';
+import { ErrorCode } from '../../lib/errors.js';
 import {
   displayMonitoringSummary,
   startDevMonitoring,
   startPeriodicStatusLogging,
   stopDevMonitoring,
   stopPeriodicStatusLogging,
-} from '../../lib/monitoring/process-tracker.js'
-import { createLogger, getProjectRoot } from '../../utils/base.ts'
+} from '../../lib/monitoring/process-tracker.js';
+import { createLogger, getProjectRoot } from '../../utils/base.ts';
 
-const logger = createLogger()
+const logger = createLogger();
 
-const __filename = fileURLToPath(import.meta.url)
-const __dirname = dirname(__filename)
-const rootDir = resolve(__dirname, '..')
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = dirname(__filename);
+const rootDir = resolve(__dirname, '..');
 
 async function runDev() {
-  let statusInterval: NodeJS.Timeout | null = null
+  let statusInterval: NodeJS.Timeout | null = null;
 
   try {
-    await getProjectRoot(import.meta.url)
+    await getProjectRoot(import.meta.url);
 
     // Start monitoring
-    startDevMonitoring()
+    startDevMonitoring();
 
     // Start periodic status logging (every 5 minutes)
-    statusInterval = startPeriodicStatusLogging(5 * 60 * 1000)
+    statusInterval = startPeriodicStatusLogging(5 * 60 * 1000);
 
     const commands = [
       {
@@ -62,11 +62,11 @@ async function runDev() {
         prefixColor: 'green',
         cwd: rootDir,
       },
-    ]
+    ];
 
-    logger.header('Starting RevealUI Development Environment')
-    logger.info('Process monitoring enabled - /api/health-monitoring available')
-    logger.info('Zombie detection running (30s interval)')
+    logger.header('Starting RevealUI Development Environment');
+    logger.info('Process monitoring enabled - /api/health-monitoring available');
+    logger.info('Zombie detection running (30s interval)');
 
     await concurrently(commands, {
       killOthers: ['failure', 'success'],
@@ -74,24 +74,24 @@ async function runDev() {
       restartDelay: 1000,
       prefix: '[{name}]',
       timestampFormat: 'HH:mm:ss',
-    })
+    });
   } catch (error) {
-    logger.error('Development environment failed to start')
+    logger.error('Development environment failed to start');
     if (error instanceof Error && error.stack) {
-      logger.error(`Stack trace: ${error.stack}`)
+      logger.error(`Stack trace: ${error.stack}`);
     }
-    process.exit(ErrorCode.EXECUTION_ERROR)
+    process.exit(ErrorCode.EXECUTION_ERROR);
   } finally {
     // Stop periodic logging
     if (statusInterval) {
-      stopPeriodicStatusLogging(statusInterval)
+      stopPeriodicStatusLogging(statusInterval);
     }
 
     // Display summary
-    displayMonitoringSummary()
+    displayMonitoringSummary();
 
     // Stop monitoring
-    stopDevMonitoring()
+    stopDevMonitoring();
   }
 }
 
@@ -100,28 +100,28 @@ async function runDev() {
  */
 async function main() {
   // Handle graceful shutdown
-  let isShuttingDown = false
+  let isShuttingDown = false;
 
   const handleShutdown = (signal: string) => {
-    if (isShuttingDown) return
-    isShuttingDown = true
+    if (isShuttingDown) return;
+    isShuttingDown = true;
 
-    logger.info(`Received ${signal}, shutting down gracefully...`)
+    logger.info(`Received ${signal}, shutting down gracefully...`);
     // The cleanup will be handled by the cleanup manager
     // Just display the summary here
-    displayMonitoringSummary()
-  }
+    displayMonitoringSummary();
+  };
 
-  process.on('SIGINT', () => handleShutdown('SIGINT'))
-  process.on('SIGTERM', () => handleShutdown('SIGTERM'))
+  process.on('SIGINT', () => handleShutdown('SIGINT'));
+  process.on('SIGTERM', () => handleShutdown('SIGTERM'));
 
   try {
-    await runDev()
+    await runDev();
   } catch (error) {
-    logger.error(`Script failed: ${error instanceof Error ? error.message : String(error)}`)
-    displayMonitoringSummary()
-    process.exit(ErrorCode.EXECUTION_ERROR)
+    logger.error(`Script failed: ${error instanceof Error ? error.message : String(error)}`);
+    displayMonitoringSummary();
+    process.exit(ErrorCode.EXECUTION_ERROR);
   }
 }
 
-main()
+main();

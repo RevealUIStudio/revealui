@@ -1,8 +1,8 @@
-import type { ReactNode } from 'react'
+import type { ReactNode } from 'react';
 
 interface PanelHeaderProps {
-  title: string
-  action?: ReactNode
+  title: string;
+  action?: ReactNode;
 }
 
 export default function PanelHeader({ title, action }: PanelHeaderProps) {
@@ -11,5 +11,5 @@ export default function PanelHeader({ title, action }: PanelHeaderProps) {
       <h1 className="text-xl font-semibold">{title}</h1>
       {action}
     </div>
-  )
+  );
 }

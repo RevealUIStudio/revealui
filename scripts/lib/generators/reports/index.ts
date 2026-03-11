@@ -19,7 +19,7 @@
  */
 
 // Coverage Calculation
-export * from './coverage.js'
+export * from './coverage.js';
 
 // Report Formatting
-export * from './formatter.js'
+export * from './formatter.js';

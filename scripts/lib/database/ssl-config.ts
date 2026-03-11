@@ -14,7 +14,7 @@
  * PostgreSQL SSL configuration options
  */
 export interface SSLConfig {
-  rejectUnauthorized: boolean
+  rejectUnauthorized: boolean;
 }
 
 /**
@@ -27,31 +27,31 @@ export interface SSLConfig {
 export function getSSLConfig(connectionString: string): SSLConfig | false | undefined {
   try {
     // Parse connection string
-    const url = new URL(connectionString)
-    const sslmode = url.searchParams.get('sslmode')
+    const url = new URL(connectionString);
+    const sslmode = url.searchParams.get('sslmode');
 
     // No SSL if sslmode is explicitly disabled
     if (sslmode === 'disable') {
-      return false
+      return false;
     }
 
     // No sslmode specified - return undefined to use driver defaults
     if (!sslmode) {
-      return undefined
+      return undefined;
     }
 
     // Environment override for local development with self-signed certificates
     // This should ONLY be used in development environments
     if (process.env.DATABASE_SSL_REJECT_UNAUTHORIZED === 'false') {
-      return { rejectUnauthorized: false }
+      return { rejectUnauthorized: false };
     }
 
     // Default: verify certificates (security best practice)
     // Handles: require, verify-full, verify-ca, prefer
-    return { rejectUnauthorized: true }
+    return { rejectUnauthorized: true };
   } catch (_error) {
     // If URL parsing fails, assume local connection - return undefined for defaults
     // Silently fallback to driver defaults for invalid connection strings
-    return undefined
+    return undefined;
   }
 }

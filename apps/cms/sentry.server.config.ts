@@ -6,8 +6,8 @@
  * and middleware errors.
  */
 
-import * as Sentry from '@sentry/nextjs'
-import { sentryConfig } from './src/lib/config/sentry'
+import * as Sentry from '@sentry/nextjs';
+import { sentryConfig } from './src/lib/config/sentry';
 
 Sentry.init({
   ...sentryConfig,
@@ -34,17 +34,17 @@ Sentry.init({
   // Capture all unhandled rejections
   beforeSend(event, hint) {
     // Call the base beforeSend from sentryConfig
-    const filteredEvent = sentryConfig.beforeSend?.(event, hint)
-    if (!filteredEvent) return null
+    const filteredEvent = sentryConfig.beforeSend?.(event, hint);
+    if (!filteredEvent) return null;
 
     // Add server-specific context
     if (filteredEvent.contexts) {
       filteredEvent.contexts.runtime = {
         name: 'node',
         version: process.version,
-      }
+      };
     }
 
-    return filteredEvent
+    return filteredEvent;
   },
-})
+});

@@ -10,15 +10,15 @@
  * - GET  /api/terminal-auth/lookup — lookup user by SSH fingerprint
  */
 
-import { randomInt, timingSafeEqual } from 'node:crypto'
-import { zValidator } from '@hono/zod-validator'
-import { getStorage, type Storage } from '@revealui/auth/server'
-import { logger } from '@revealui/core/observability/logger'
-import type { DatabaseClient } from '@revealui/db/client'
-import { eq } from 'drizzle-orm'
-import { Hono } from 'hono'
-import { z } from 'zod/v4'
-import { sendEmail } from '../lib/email.js'
+import { randomInt, timingSafeEqual } from 'node:crypto';
+import { zValidator } from '@hono/zod-validator';
+import { getStorage, type Storage } from '@revealui/auth/server';
+import { logger } from '@revealui/core/observability/logger';
+import type { DatabaseClient } from '@revealui/db/client';
+import { eq } from 'drizzle-orm';
+import { Hono } from 'hono';
+import { z } from 'zod/v4';
+import { sendEmail } from '../lib/email.js';
 
 // =============================================================================
 // Configuration
@@ -26,23 +26,23 @@ import { sendEmail } from '../lib/email.js'
 
 export interface TerminalAuthConfig {
   /** OTP time-to-live in milliseconds (default: 5 minutes) */
-  otpTtlMs: number
+  otpTtlMs: number;
   /** OTP length in digits (default: 6) */
-  otpLength: number
+  otpLength: number;
   /** Custom storage backend (default: auto-detected via getStorage()) */
-  storage?: Storage
+  storage?: Storage;
 }
 
 const DEFAULT_CONFIG: TerminalAuthConfig = {
   otpTtlMs: 5 * 60 * 1000,
   otpLength: 6,
-}
+};
 
-let config: TerminalAuthConfig = { ...DEFAULT_CONFIG }
+let config: TerminalAuthConfig = { ...DEFAULT_CONFIG };
 
 /** Override default terminal auth config (useful for testing) */
 export function configureTerminalAuth(overrides: Partial<TerminalAuthConfig>): void {
-  config = { ...DEFAULT_CONFIG, ...overrides }
+  config = { ...DEFAULT_CONFIG, ...overrides };
 }
 
 // =============================================================================
@@ -53,39 +53,39 @@ export function configureTerminalAuth(overrides: Partial<TerminalAuthConfig>): v
 // =============================================================================
 
 interface PendingOtp {
-  code: string
-  fingerprint: string
-  email: string
+  code: string;
+  fingerprint: string;
+  email: string;
 }
 
-const OTP_KEY_PREFIX = 'terminal-otp:'
+const OTP_KEY_PREFIX = 'terminal-otp:';
 
 function getOtpStorage(): Storage {
-  return config.storage ?? getStorage()
+  return config.storage ?? getStorage();
 }
 
 function generateOtp(): string {
-  const min = 10 ** (config.otpLength - 1)
-  const max = 10 ** config.otpLength
-  return randomInt(min, max).toString()
+  const min = 10 ** (config.otpLength - 1);
+  const max = 10 ** config.otpLength;
+  return randomInt(min, max).toString();
 }
 
 async function storeOtp(email: string, otp: PendingOtp): Promise<void> {
-  const storage = getOtpStorage()
-  const ttlSeconds = Math.ceil(config.otpTtlMs / 1000)
-  await storage.set(`${OTP_KEY_PREFIX}${email}`, JSON.stringify(otp), ttlSeconds)
+  const storage = getOtpStorage();
+  const ttlSeconds = Math.ceil(config.otpTtlMs / 1000);
+  await storage.set(`${OTP_KEY_PREFIX}${email}`, JSON.stringify(otp), ttlSeconds);
 }
 
 async function getOtp(email: string): Promise<PendingOtp | null> {
-  const storage = getOtpStorage()
-  const data = await storage.get(`${OTP_KEY_PREFIX}${email}`)
-  if (!data) return null
-  return JSON.parse(data) as PendingOtp
+  const storage = getOtpStorage();
+  const data = await storage.get(`${OTP_KEY_PREFIX}${email}`);
+  if (!data) return null;
+  return JSON.parse(data) as PendingOtp;
 }
 
 async function deleteOtp(email: string): Promise<void> {
-  const storage = getOtpStorage()
-  await storage.del(`${OTP_KEY_PREFIX}${email}`)
+  const storage = getOtpStorage();
+  await storage.del(`${OTP_KEY_PREFIX}${email}`);
 }
 
 /** Clear OTP store (for testing) */
@@ -98,21 +98,21 @@ export function clearOtpStore(): void {
 // =============================================================================
 
 type Variables = {
-  db?: DatabaseClient
-}
+  db?: DatabaseClient;
+};
 
 // biome-ignore lint/style/useNamingConvention: Hono requires PascalCase `Variables` in its generic type parameter
-const terminalAuth = new Hono<{ Variables: Variables }>()
+const terminalAuth = new Hono<{ Variables: Variables }>();
 
 const linkSchema = z.object({
   fingerprint: z.string().min(1),
   email: z.email(),
-})
+});
 
 const verifySchema = z.object({
   email: z.email(),
   code: z.string().min(6).max(6),
-})
+});
 
 /**
  * POST /api/terminal-auth/link
@@ -121,17 +121,17 @@ const verifySchema = z.object({
  * Sends a one-time verification code to the email.
  */
 terminalAuth.post('/link', zValidator('json', linkSchema), async (c) => {
-  const { fingerprint, email } = c.req.valid('json')
+  const { fingerprint, email } = c.req.valid('json');
 
   // Check if fingerprint already linked to a user
-  const db = c.get('db')
+  const db = c.get('db');
   if (db) {
-    const { users } = await import('@revealui/db/schema/users')
+    const { users } = await import('@revealui/db/schema/users');
     const [existing] = await db
       .select({ id: users.id, email: users.email })
       .from(users)
       .where(eq(users.sshKeyFingerprint, fingerprint))
-      .limit(1)
+      .limit(1);
 
     if (existing) {
       return c.json(
@@ -140,13 +140,13 @@ terminalAuth.post('/link', zValidator('json', linkSchema), async (c) => {
           error: `This SSH key is already linked to ${existing.email}`,
         },
         409,
-      )
+      );
     }
   }
 
   // Generate and store OTP (TTL handled by storage layer)
-  const code = generateOtp()
-  await storeOtp(email, { code, fingerprint, email })
+  const code = generateOtp();
+  await storeOtp(email, { code, fingerprint, email });
 
   // Send verification email
   try {
@@ -161,19 +161,19 @@ terminalAuth.post('/link', zValidator('json', linkSchema), async (c) => {
         <p style="color: #666; font-size: 12px;">If you didn't request this, you can safely ignore this email.</p>
       `,
       text: `Your RevealUI Terminal verification code: ${code}\n\nThis code expires in 5 minutes.`,
-    })
+    });
   } catch (err) {
     logger.error('Failed to send terminal auth OTP email', err instanceof Error ? err : undefined, {
       email,
-    })
-    return c.json({ success: false, error: 'Failed to send verification email' }, 500)
+    });
+    return c.json({ success: false, error: 'Failed to send verification email' }, 500);
   }
 
   return c.json({
     success: true,
     message: `Verification code sent to ${email}`,
-  })
-})
+  });
+});
 
 /**
  * POST /api/terminal-auth/verify
@@ -182,41 +182,41 @@ terminalAuth.post('/link', zValidator('json', linkSchema), async (c) => {
  * On success, stores the fingerprint in the user's record.
  */
 terminalAuth.post('/verify', zValidator('json', verifySchema), async (c) => {
-  const { email, code } = c.req.valid('json')
+  const { email, code } = c.req.valid('json');
 
   // Validate OTP (expiry is handled by storage TTL — if it's gone, it expired)
-  const pending = await getOtp(email)
+  const pending = await getOtp(email);
   if (!pending) {
-    return c.json({ success: false, error: 'No pending verification or code has expired' }, 400)
+    return c.json({ success: false, error: 'No pending verification or code has expired' }, 400);
   }
 
   const codeMatch =
     pending.code.length === code.length &&
-    timingSafeEqual(Buffer.from(pending.code), Buffer.from(code))
+    timingSafeEqual(Buffer.from(pending.code), Buffer.from(code));
   if (!codeMatch) {
-    return c.json({ success: false, error: 'Invalid verification code' }, 400)
+    return c.json({ success: false, error: 'Invalid verification code' }, 400);
   }
 
   // OTP valid — consume it
-  await deleteOtp(email)
+  await deleteOtp(email);
 
   // Link fingerprint to user
-  const db = c.get('db')
+  const db = c.get('db');
   if (!db) {
-    return c.json({ success: false, error: 'Database not available' }, 503)
+    return c.json({ success: false, error: 'Database not available' }, 503);
   }
 
-  const { users } = await import('@revealui/db/schema/users')
+  const { users } = await import('@revealui/db/schema/users');
 
   // Find user by email
   const [user] = await db
     .select({ id: users.id, role: users.role })
     .from(users)
     .where(eq(users.email, email))
-    .limit(1)
+    .limit(1);
 
   if (!user) {
-    return c.json({ success: false, error: 'No account found for this email' }, 404)
+    return c.json({ success: false, error: 'No account found for this email' }, 404);
   }
 
   // Store SSH fingerprint on user record
@@ -226,20 +226,20 @@ terminalAuth.post('/verify', zValidator('json', verifySchema), async (c) => {
       sshKeyFingerprint: pending.fingerprint,
       updatedAt: new Date(),
     })
-    .where(eq(users.id, user.id))
+    .where(eq(users.id, user.id));
 
   logger.info('SSH key linked to user via terminal auth', {
     userId: user.id,
     fingerprint: pending.fingerprint,
-  })
+  });
 
   return c.json({
     success: true,
     email,
     userId: user.id,
     message: 'SSH key linked successfully',
-  })
-})
+  });
+});
 
 /**
  * GET /api/terminal-auth/lookup
@@ -248,18 +248,18 @@ terminalAuth.post('/verify', zValidator('json', verifySchema), async (c) => {
  * Returns 404 if the fingerprint is not linked to any account.
  */
 terminalAuth.get('/lookup', async (c) => {
-  const fingerprint = c.req.query('fingerprint')
+  const fingerprint = c.req.query('fingerprint');
 
   if (!fingerprint) {
-    return c.json({ error: 'fingerprint query parameter required' }, 400)
+    return c.json({ error: 'fingerprint query parameter required' }, 400);
   }
 
-  const db = c.get('db')
+  const db = c.get('db');
   if (!db) {
-    return c.json({ error: 'Database not available' }, 503)
+    return c.json({ error: 'Database not available' }, 503);
   }
 
-  const { users } = await import('@revealui/db/schema/users')
+  const { users } = await import('@revealui/db/schema/users');
 
   const [user] = await db
     .select({
@@ -270,10 +270,10 @@ terminalAuth.get('/lookup', async (c) => {
     })
     .from(users)
     .where(eq(users.sshKeyFingerprint, fingerprint))
-    .limit(1)
+    .limit(1);
 
   if (!user) {
-    return c.json({ error: 'User not found' }, 404)
+    return c.json({ error: 'User not found' }, 404);
   }
 
   return c.json({
@@ -284,7 +284,7 @@ terminalAuth.get('/lookup', async (c) => {
       name: user.name,
       role: user.role,
     },
-  })
-})
+  });
+});
 
-export default terminalAuth
+export default terminalAuth;

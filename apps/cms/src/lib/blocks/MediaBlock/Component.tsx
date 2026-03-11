@@ -1,23 +1,23 @@
-import { ImageBlockSchema, VideoBlockSchema } from '@revealui/contracts/content'
-import type { Page } from '@revealui/core/types/cms'
-import { logger } from '@revealui/core/utils/logger'
-import type { StaticImageData } from 'next/image'
-import type React from 'react'
-import { memo } from 'react'
-import { Media } from '@/lib/components/Media/index'
-import RichText, { type RichTextContent } from '@/lib/components/RichText/index'
-import { cn } from '@/lib/styles/classnames'
+import { ImageBlockSchema, VideoBlockSchema } from '@revealui/contracts/content';
+import type { Page } from '@revealui/core/types/cms';
+import { logger } from '@revealui/core/utils/logger';
+import type { StaticImageData } from 'next/image';
+import type React from 'react';
+import { memo } from 'react';
+import { Media } from '@/lib/components/Media/index';
+import RichText, { type RichTextContent } from '@/lib/components/RichText/index';
+import { cn } from '@/lib/styles/classnames';
 
 type Props = Extract<Page['layout'][0], { blockType: 'mediaBlock' }> & {
-  breakout?: boolean
-  captionClassName?: string
-  className?: string
-  enableGutter?: boolean
-  id?: string
-  imgClassName?: string
-  staticImage?: StaticImageData
-  disableInnerContainer?: boolean
-}
+  breakout?: boolean;
+  captionClassName?: string;
+  className?: string;
+  enableGutter?: boolean;
+  id?: string;
+  imgClassName?: string;
+  staticImage?: StaticImageData;
+  disableInnerContainer?: boolean;
+};
 
 export const MediaBlock: React.FC<Props> = memo((props) => {
   const {
@@ -29,7 +29,7 @@ export const MediaBlock: React.FC<Props> = memo((props) => {
     position = 'default',
     staticImage,
     disableInnerContainer,
-  } = props
+  } = props;
 
   // Runtime validation with ImageBlockSchema or VideoBlockSchema
   // Determine block type based on media type (simplified - assumes image by default)
@@ -39,31 +39,31 @@ export const MediaBlock: React.FC<Props> = memo((props) => {
       typeof media === 'object' &&
       'mimeType' in media &&
       typeof media.mimeType === 'string' &&
-      media.mimeType.startsWith('video/')
+      media.mimeType.startsWith('video/');
 
-    const blockType = isVideo ? 'video' : 'image'
+    const blockType = isVideo ? 'video' : 'image';
     const blockData = {
       type: blockType as 'video' | 'image',
       data: {
         src: media && typeof media === 'object' && 'url' in media ? String(media.url) : '',
         alt: media && typeof media === 'object' && 'alt' in media ? String(media.alt || '') : '',
       },
-    }
+    };
 
     if (isVideo) {
-      VideoBlockSchema.parse(blockData)
+      VideoBlockSchema.parse(blockData);
     } else {
-      ImageBlockSchema.parse(blockData)
+      ImageBlockSchema.parse(blockData);
     }
   } catch (error) {
     if (process.env.NODE_ENV === 'development') {
-      logger.warn('MediaBlock validation warning', { error })
+      logger.warn('MediaBlock validation warning', { error });
     }
   }
 
-  let caption: unknown
-  if (media && typeof media === 'object') caption = media.caption
-  const hasCaption = Boolean(caption)
+  let caption: unknown;
+  if (media && typeof media === 'object') caption = media.caption;
+  const hasCaption = Boolean(caption);
 
   return (
     <div
@@ -111,7 +111,7 @@ export const MediaBlock: React.FC<Props> = memo((props) => {
         </div>
       )}
     </div>
-  )
-})
+  );
+});
 
-MediaBlock.displayName = 'MediaBlock'
+MediaBlock.displayName = 'MediaBlock';

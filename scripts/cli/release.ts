@@ -43,18 +43,18 @@
  * - External: npm - Package publishing
  */
 
-import { writeFileSync } from 'node:fs'
-import { resolve } from 'node:path'
-import type { ParsedArgs } from '../lib/args.js'
-import { ErrorCode } from '../lib/errors.js'
-import { execCommand } from '../lib/index.js'
-import { fail, ok } from '../lib/output.js'
-import { type CommandDefinition, ExecutingCLI } from './_base.js'
+import { writeFileSync } from 'node:fs';
+import { resolve } from 'node:path';
+import type { ParsedArgs } from '../lib/args.js';
+import { ErrorCode } from '../lib/errors.js';
+import { execCommand } from '../lib/index.js';
+import { fail, ok } from '../lib/output.js';
+import { type CommandDefinition, ExecutingCLI } from './_base.js';
 
 class ReleaseCLI extends ExecutingCLI {
-  name = 'release'
-  description = 'Version management and publishing'
-  protected enableExecutionLogging = true
+  name = 'release';
+  description = 'Version management and publishing';
+  protected enableExecutionLogging = true;
 
   defineGlobalArgs() {
     return [
@@ -82,7 +82,7 @@ class ReleaseCLI extends ExecutingCLI {
         description: 'Simulate release without publishing',
         default: false,
       },
-    ]
+    ];
   }
 
   defineCommands(): CommandDefinition[] {
@@ -165,7 +165,7 @@ class ReleaseCLI extends ExecutingCLI {
         description: 'Simulate a complete release without publishing',
         handler: async (args) => this.dryRun(args),
       },
-    ]
+    ];
   }
 
   /**
@@ -175,13 +175,13 @@ class ReleaseCLI extends ExecutingCLI {
   private async showStatus(_args: ParsedArgs) {
     const result = await execCommand('pnpm', ['changeset', 'status', '--verbose'], {
       cwd: this.projectRoot,
-    })
+    });
 
     if (!result.success) {
-      return fail('No changesets found or changeset status failed', ErrorCode.EXECUTION_ERROR)
+      return fail('No changesets found or changeset status failed', ErrorCode.EXECUTION_ERROR);
     }
 
-    return ok({ message: 'Changeset status shown above' })
+    return ok({ message: 'Changeset status shown above' });
   }
 
   /**
@@ -198,98 +198,98 @@ class ReleaseCLI extends ExecutingCLI {
    * Use --dry-run to skip steps 4–6.
    */
   private async releaseOss(args: ParsedArgs) {
-    const isDryRun = Boolean(args['dry-run'])
+    const isDryRun = Boolean(args['dry-run']);
 
     if (isDryRun) {
-      console.log('\n[dry-run] OSS release — steps 4–6 will be skipped\n')
+      console.log('\n[dry-run] OSS release — steps 4–6 will be skipped\n');
     }
 
     // Step 1: Confirm pending changesets
-    console.log('\nStep 1: Checking for pending changesets...')
+    console.log('\nStep 1: Checking for pending changesets...');
     const statusResult = await execCommand('pnpm', ['changeset', 'status'], {
       cwd: this.projectRoot,
       capture: true,
-    })
+    });
     if (!statusResult.success) {
       return fail(
         'No pending changesets found. Run "pnpm changeset" to create one.',
         ErrorCode.VALIDATION_ERROR,
-      )
+      );
     }
 
     // Step 2: Apply version bumps
-    console.log('\nStep 2: Applying version bumps (pnpm changeset version)...')
+    console.log('\nStep 2: Applying version bumps (pnpm changeset version)...');
     const versionResult = await execCommand('pnpm', ['changeset', 'version'], {
       cwd: this.projectRoot,
-    })
+    });
     if (!versionResult.success) {
-      return fail('changeset version failed', ErrorCode.EXECUTION_ERROR)
+      return fail('changeset version failed', ErrorCode.EXECUTION_ERROR);
     }
 
     // Step 3: Build all packages
-    console.log('\nStep 3: Building all packages...')
+    console.log('\nStep 3: Building all packages...');
     const buildResult = await execCommand('pnpm', ['build'], {
       cwd: this.projectRoot,
       env: { SKIP_ENV_VALIDATION: 'true' },
       timeout: 900000,
-    })
+    });
     if (!buildResult.success) {
-      return fail('Build failed — fix errors before publishing', ErrorCode.EXECUTION_ERROR)
+      return fail('Build failed — fix errors before publishing', ErrorCode.EXECUTION_ERROR);
     }
 
     if (isDryRun) {
-      console.log('\n[dry-run] Skipping publish, GitHub releases, and git push.')
-      return ok({ message: 'Dry run complete — no packages published', dryRun: true })
+      console.log('\n[dry-run] Skipping publish, GitHub releases, and git push.');
+      return ok({ message: 'Dry run complete — no packages published', dryRun: true });
     }
 
     // Step 4: Publish to npm, capture published packages from output
-    console.log('\nStep 4: Publishing to npm (pnpm changeset publish)...')
+    console.log('\nStep 4: Publishing to npm (pnpm changeset publish)...');
     const publishResult = await execCommand('pnpm', ['changeset', 'publish'], {
       cwd: this.projectRoot,
       capture: true,
-    })
+    });
     if (!publishResult.success) {
-      return fail('Publish failed', ErrorCode.EXECUTION_ERROR)
+      return fail('Publish failed', ErrorCode.EXECUTION_ERROR);
     }
 
     // Parse published packages from changeset output
     // changeset publish prints: "New tag: @scope/pkg@version"
-    const publishedTags: string[] = []
+    const publishedTags: string[] = [];
     for (const line of (publishResult.stdout ?? '').split('\n')) {
-      const match = /New tag:\s+(.+)/.exec(line.trim())
+      const match = /New tag:\s+(.+)/.exec(line.trim());
       if (match?.[1]) {
-        publishedTags.push(match[1].trim())
+        publishedTags.push(match[1].trim());
       }
     }
 
     // Step 5: Create GitHub releases for each published package
     if (publishedTags.length > 0) {
-      console.log(`\nStep 5: Creating GitHub releases for ${publishedTags.length} package(s)...`)
+      console.log(`\nStep 5: Creating GitHub releases for ${publishedTags.length} package(s)...`);
       for (const tag of publishedTags) {
-        console.log(`  Creating release: ${tag}`)
+        console.log(`  Creating release: ${tag}`);
         const releaseResult = await execCommand(
           'gh',
           ['release', 'create', tag, '--title', tag, '--generate-notes', '--latest=false'],
           { cwd: this.projectRoot },
-        )
+        );
         if (!releaseResult.success) {
-          console.warn(`  Warning: Could not create GitHub release for ${tag}`)
+          console.warn(`  Warning: Could not create GitHub release for ${tag}`);
         }
       }
     } else {
-      console.log('\nStep 5: No packages published (nothing to release on GitHub)')
+      console.log('\nStep 5: No packages published (nothing to release on GitHub)');
     }
 
     // Step 6: Push tags
     if (!args.noPush) {
-      console.log('\nStep 6: Pushing tags to remote...')
-      await execCommand('git', ['push', '--follow-tags'], { cwd: this.projectRoot })
+      console.log('\nStep 6: Pushing tags to remote...');
+      await execCommand('git', ['push', '--follow-tags'], { cwd: this.projectRoot });
     }
 
     return ok({
       message: `OSS release complete. Published ${publishedTags.length} package(s).`,
       published: publishedTags,
-    })
+    });
   }
 
   /**
@@ -302,13 +302,13 @@ class ReleaseCLI extends ExecutingCLI {
    * Use --dry-run to preview without publishing.
    */
   private async releasePro(args: ParsedArgs) {
-    const isDryRun = Boolean(args['dry-run'])
-    const ProPackages = ['ai', 'mcp', 'editors', 'services', 'harnesses']
-    const { readFile } = await import('node:fs/promises')
-    const { join } = await import('node:path')
+    const isDryRun = Boolean(args['dry-run']);
+    const ProPackages = ['ai', 'mcp', 'editors', 'services', 'harnesses'];
+    const { readFile } = await import('node:fs/promises');
+    const { join } = await import('node:path');
 
     if (isDryRun) {
-      console.log('\n[dry-run] Pro release — publish commands will include --dry-run\n')
+      console.log('\n[dry-run] Pro release — publish commands will include --dry-run\n');
     }
 
     // Check NODE_AUTH_TOKEN
@@ -316,19 +316,19 @@ class ReleaseCLI extends ExecutingCLI {
       return fail(
         'NODE_AUTH_TOKEN is required for Pro package publishing.\nSet it to a GitHub PAT with write:packages scope.',
         ErrorCode.CONFIG_ERROR,
-      )
+      );
     }
 
     // Prerequisite check: verify "private": true has been removed
-    console.log('\nChecking Pro package prerequisites...')
-    const stillPrivate: string[] = []
+    console.log('\nChecking Pro package prerequisites...');
+    const stillPrivate: string[] = [];
     for (const pkg of ProPackages) {
       try {
-        const pkgJsonPath = join(this.projectRoot, 'packages', pkg, 'package.json')
-        const raw = await readFile(pkgJsonPath, 'utf8')
-        const parsed = JSON.parse(raw) as { private?: boolean }
+        const pkgJsonPath = join(this.projectRoot, 'packages', pkg, 'package.json');
+        const raw = await readFile(pkgJsonPath, 'utf8');
+        const parsed = JSON.parse(raw) as { private?: boolean };
         if (parsed.private === true) {
-          stillPrivate.push(`@revealui/${pkg}`)
+          stillPrivate.push(`@revealui/${pkg}`);
         }
       } catch {
         // Package might not exist yet
@@ -339,29 +339,29 @@ class ReleaseCLI extends ExecutingCLI {
       return fail(
         `The following Pro packages still have "private": true and cannot be published:\n${stillPrivate.map((p) => `  - ${p}`).join('\n')}\n\nRemove "private": true from each package.json before running Pro release.`,
         ErrorCode.VALIDATION_ERROR,
-      )
+      );
     }
 
     // Build each Pro package
-    console.log('\nBuilding Pro packages...')
+    console.log('\nBuilding Pro packages...');
     for (const pkg of ProPackages) {
-      console.log(`  Building @revealui/${pkg}...`)
+      console.log(`  Building @revealui/${pkg}...`);
       const buildResult = await execCommand('pnpm', ['--filter', `@revealui/${pkg}`, 'build'], {
         cwd: this.projectRoot,
         env: { SKIP_ENV_VALIDATION: 'true' },
         timeout: 300000,
-      })
+      });
       if (!buildResult.success) {
-        return fail(`Build failed for @revealui/${pkg}`, ErrorCode.EXECUTION_ERROR)
+        return fail(`Build failed for @revealui/${pkg}`, ErrorCode.EXECUTION_ERROR);
       }
     }
 
     // Publish each Pro package to GitHub Packages
-    console.log('\nPublishing Pro packages to GitHub Packages...')
-    const publishArgs = isDryRun ? ['--no-git-checks', '--dry-run'] : ['--no-git-checks']
+    console.log('\nPublishing Pro packages to GitHub Packages...');
+    const publishArgs = isDryRun ? ['--no-git-checks', '--dry-run'] : ['--no-git-checks'];
 
     for (const pkg of ProPackages) {
-      console.log(`  ${isDryRun ? '[dry-run] ' : ''}Publishing @revealui/${pkg}...`)
+      console.log(`  ${isDryRun ? '[dry-run] ' : ''}Publishing @revealui/${pkg}...`);
       const publishResult = await execCommand(
         'pnpm',
         ['--filter', `@revealui/${pkg}`, 'publish', ...publishArgs],
@@ -369,9 +369,9 @@ class ReleaseCLI extends ExecutingCLI {
           cwd: this.projectRoot,
           env: { NODE_AUTH_TOKEN: process.env.NODE_AUTH_TOKEN ?? '' },
         },
-      )
+      );
       if (!(publishResult.success || isDryRun)) {
-        return fail(`Publish failed for @revealui/${pkg}`, ErrorCode.EXECUTION_ERROR)
+        return fail(`Publish failed for @revealui/${pkg}`, ErrorCode.EXECUTION_ERROR);
       }
     }
 
@@ -381,32 +381,32 @@ class ReleaseCLI extends ExecutingCLI {
         : `Pro packages published to GitHub Packages`,
       packages: ProPackages.map((p) => `@revealui/${p}`),
       dryRun: isDryRun,
-    })
+    });
   }
 
   /**
    * Bump version using changesets
    */
   private async bumpVersion(args: ParsedArgs) {
-    const versionType = args.type as string
+    const versionType = args.type as string;
 
     if (!['major', 'minor', 'patch'].includes(versionType)) {
-      return fail('Version type must be major, minor, or patch', ErrorCode.VALIDATION_ERROR)
+      return fail('Version type must be major, minor, or patch', ErrorCode.VALIDATION_ERROR);
     }
 
     // Use changesets for version bumping
     const result = await execCommand('pnpm', ['changeset', 'version'], {
       cwd: this.projectRoot,
-    })
+    });
 
     if (!result.success) {
-      return fail('Version bump failed', ErrorCode.EXECUTION_ERROR)
+      return fail('Version bump failed', ErrorCode.EXECUTION_ERROR);
     }
 
     return ok({
       message: `Version bumped to ${versionType}`,
       type: versionType,
-    })
+    });
   }
 
   /**
@@ -416,40 +416,40 @@ class ReleaseCLI extends ExecutingCLI {
     // Check what would be published
     const statusResult = await execCommand('pnpm', ['changeset', 'status'], {
       cwd: this.projectRoot,
-    })
+    });
 
     if (!statusResult.success) {
-      return fail('Failed to get release preview', ErrorCode.EXECUTION_ERROR)
+      return fail('Failed to get release preview', ErrorCode.EXECUTION_ERROR);
     }
 
-    return ok({ message: 'Release preview complete' })
+    return ok({ message: 'Release preview complete' });
   }
 
   /**
    * Generate changelog
    */
   private async generateChangelog(args: ParsedArgs) {
-    const outputFile = args.output ? String(args.output) : 'CHANGELOG.md'
-    const since = args.since ? String(args.since) : undefined
+    const outputFile = args.output ? String(args.output) : 'CHANGELOG.md';
+    const since = args.since ? String(args.since) : undefined;
 
     // Get the most recent git tag as the base, or use --since override
-    let fromRef = since
+    let fromRef = since;
     if (!fromRef) {
       const tagResult = await execCommand('git', ['describe', '--tags', '--abbrev=0'], {
         cwd: this.projectRoot,
-      })
-      fromRef = tagResult.success ? (tagResult.stdout ?? '').trim() : undefined
+      });
+      fromRef = tagResult.success ? (tagResult.stdout ?? '').trim() : undefined;
     }
 
-    const logArgs = ['log', '--pretty=format:%H|%s|%an|%ad', '--date=short', '--no-merges']
-    if (fromRef) logArgs.push(`${fromRef}..HEAD`)
+    const logArgs = ['log', '--pretty=format:%H|%s|%an|%ad', '--date=short', '--no-merges'];
+    if (fromRef) logArgs.push(`${fromRef}..HEAD`);
 
-    const logResult = await execCommand('git', logArgs, { cwd: this.projectRoot })
+    const logResult = await execCommand('git', logArgs, { cwd: this.projectRoot });
     if (!logResult.success) {
-      return fail('Failed to read git log', ErrorCode.EXECUTION_ERROR)
+      return fail('Failed to read git log', ErrorCode.EXECUTION_ERROR);
     }
 
-    const lines = (logResult.stdout ?? '').trim().split('\n').filter(Boolean)
+    const lines = (logResult.stdout ?? '').trim().split('\n').filter(Boolean);
 
     // Parse conventional commits into sections
     const sections: Record<string, string[]> = {
@@ -461,7 +461,7 @@ class ReleaseCLI extends ExecutingCLI {
       test: [],
       chore: [],
       other: [],
-    }
+    };
     const labelMap: Record<string, string> = {
       feat: 'Features',
       fix: 'Bug Fixes',
@@ -471,117 +471,117 @@ class ReleaseCLI extends ExecutingCLI {
       test: 'Tests',
       chore: 'Chores',
       other: 'Other Changes',
-    }
+    };
 
     for (const line of lines) {
-      const [hash, subject] = line.split('|')
-      if (!subject) continue
-      const match = subject.match(/^(\w+)(?:\(([^)]+)\))?(!)?:\s*(.+)$/)
+      const [hash, subject] = line.split('|');
+      if (!subject) continue;
+      const match = subject.match(/^(\w+)(?:\(([^)]+)\))?(!)?:\s*(.+)$/);
       if (match) {
-        const [, type, scope, breaking, desc] = match
+        const [, type, scope, breaking, desc] = match;
         const entry = scope
           ? `- **${scope}**: ${desc}${breaking ? ' (**BREAKING**)' : ''} (${hash?.slice(0, 8)})`
-          : `- ${desc}${breaking ? ' (**BREAKING**)' : ''} (${hash?.slice(0, 8)})`
-        const bucket = sections[type ?? ''] !== undefined ? (type ?? 'other') : 'other'
-        sections[bucket]?.push(entry)
+          : `- ${desc}${breaking ? ' (**BREAKING**)' : ''} (${hash?.slice(0, 8)})`;
+        const bucket = sections[type ?? ''] !== undefined ? (type ?? 'other') : 'other';
+        sections[bucket]?.push(entry);
       } else {
-        sections.other?.push(`- ${subject} (${hash?.slice(0, 8)})`)
+        sections.other?.push(`- ${subject} (${hash?.slice(0, 8)})`);
       }
     }
 
-    const dateStr = new Date().toISOString().slice(0, 10)
+    const dateStr = new Date().toISOString().slice(0, 10);
     const header = fromRef
       ? `## Changes since ${fromRef} (${dateStr})\n`
-      : `## Changelog (${dateStr})\n`
+      : `## Changelog (${dateStr})\n`;
 
     const body = Object.entries(sections)
       .filter(([, entries]) => entries.length > 0)
       .map(([type, entries]) => `### ${labelMap[type]}\n\n${entries.join('\n')}`)
-      .join('\n\n')
+      .join('\n\n');
 
-    const content = `${header}\n${body || '_No changes_'}\n`
+    const content = `${header}\n${body || '_No changes_'}\n`;
 
-    const outPath = resolve(this.projectRoot, outputFile)
-    writeFileSync(outPath, content, 'utf-8')
+    const outPath = resolve(this.projectRoot, outputFile);
+    writeFileSync(outPath, content, 'utf-8');
 
     return ok({
       message: `Changelog written to ${outputFile}`,
       output: outPath,
       commits: lines.length,
       since: fromRef ?? 'beginning',
-    })
+    });
   }
 
   /**
    * Publish packages to npm
    */
   private async publishPackages(args: ParsedArgs) {
-    const tag = args.tag ? String(args.tag) : 'latest'
+    const tag = args.tag ? String(args.tag) : 'latest';
 
     // Use changesets to publish
-    const cmdArgs = ['changeset', 'publish']
+    const cmdArgs = ['changeset', 'publish'];
     if (tag !== 'latest') {
-      cmdArgs.push('--tag', tag)
+      cmdArgs.push('--tag', tag);
     }
 
     const result = await execCommand('pnpm', cmdArgs, {
       cwd: this.projectRoot,
-    })
+    });
 
     if (!result.success) {
-      return fail('Publishing failed', ErrorCode.EXECUTION_ERROR)
+      return fail('Publishing failed', ErrorCode.EXECUTION_ERROR);
     }
 
     // Push tags unless --no-push specified
     if (!args.noPush) {
       await execCommand('git', ['push', '--follow-tags'], {
         cwd: this.projectRoot,
-      })
+      });
     }
 
     return ok({
       message: 'Packages published successfully',
       tag,
-    })
+    });
   }
 
   /**
    * Create git release tag
    */
   private async createTag(args: ParsedArgs) {
-    const version = args.version as string
+    const version = args.version as string;
 
     if (!version) {
-      return fail('Version tag required', ErrorCode.VALIDATION_ERROR)
+      return fail('Version tag required', ErrorCode.VALIDATION_ERROR);
     }
 
     // Validate version format (v1.2.3)
     if (!/^v?\d+\.\d+\.\d+/.test(version)) {
-      return fail('Invalid version format. Use v1.2.3 or 1.2.3', ErrorCode.VALIDATION_ERROR)
+      return fail('Invalid version format. Use v1.2.3 or 1.2.3', ErrorCode.VALIDATION_ERROR);
     }
 
-    const tagName = version.startsWith('v') ? version : `v${version}`
+    const tagName = version.startsWith('v') ? version : `v${version}`;
 
     // Create annotated tag
     const result = await execCommand('git', ['tag', '-a', tagName, '-m', `Release ${tagName}`], {
       cwd: this.projectRoot,
-    })
+    });
 
     if (!result.success) {
-      return fail('Failed to create tag', ErrorCode.EXECUTION_ERROR)
+      return fail('Failed to create tag', ErrorCode.EXECUTION_ERROR);
     }
 
     // Push tag unless --no-push specified
     if (!args.noPush) {
       await execCommand('git', ['push', 'origin', tagName], {
         cwd: this.projectRoot,
-      })
+      });
     }
 
     return ok({
       message: `Tag ${tagName} created`,
       tag: tagName,
-    })
+    });
   }
 
   /**
@@ -589,21 +589,21 @@ class ReleaseCLI extends ExecutingCLI {
    */
   private async dryRun(args: ParsedArgs) {
     // Run preview
-    await this.previewRelease(args)
+    await this.previewRelease(args);
 
     // Show what would be published
     const result = await execCommand('pnpm', ['changeset', 'status', '--verbose'], {
       cwd: this.projectRoot,
-    })
+    });
 
     if (!result.success) {
-      return fail('Dry run failed', ErrorCode.EXECUTION_ERROR)
+      return fail('Dry run failed', ErrorCode.EXECUTION_ERROR);
     }
 
     return ok({
       message: 'Dry run complete - no changes made',
       note: 'Use "release publish" to actually publish packages',
-    })
+    });
   }
 }
 
@@ -611,5 +611,5 @@ class ReleaseCLI extends ExecutingCLI {
 // CLI Entry Point
 // =============================================================================
 
-const cli = new ReleaseCLI()
-await cli.run()
+const cli = new ReleaseCLI();
+await cli.run();

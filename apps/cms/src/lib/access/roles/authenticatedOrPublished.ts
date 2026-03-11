@@ -1,8 +1,8 @@
-import type { AccessArgs, AccessFunction } from '@revealui/core'
+import type { AccessArgs, AccessFunction } from '@revealui/core';
 
 export const authenticatedOrPublished: AccessFunction = ({ req }: AccessArgs) => {
   if (req?.user) {
-    return true
+    return true;
   }
 
   return {
@@ -10,5 +10,5 @@ export const authenticatedOrPublished: AccessFunction = ({ req }: AccessArgs) =>
     _status: {
       equals: 'published',
     },
-  }
-}
+  };
+};

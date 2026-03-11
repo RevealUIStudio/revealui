@@ -20,10 +20,10 @@
  */
 
 // Re-export file scanner utilities
-export * from './file-scanner.js'
+export * from './file-scanner.js';
 
 // Re-export pattern matcher utilities
-export * from './pattern-matcher.js'
+export * from './pattern-matcher.js';
 
 // Re-export validation builder utilities
-export * from './validation-builder.js'
+export * from './validation-builder.js';

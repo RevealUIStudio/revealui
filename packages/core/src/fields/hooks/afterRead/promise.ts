@@ -1,4 +1,4 @@
-import { relationshipPopulationPromise } from '../../../relationships/population.js'
+import { relationshipPopulationPromise } from '../../../relationships/population.js';
 import type {
   JsonObject,
   PopulateType,
@@ -9,52 +9,52 @@ import type {
   SelectMode,
   SelectType,
   TypedFallbackLocale,
-} from '../../../types/index.js'
-import { stripUnselectedFields } from '../../../utils/stripUnselectedFields.js'
-import type { Block, Field, TabAsField } from '../../config/types.js'
-import type { AfterReadArgs } from './index.js'
-import { traverseFields } from './traverseFields.js'
+} from '../../../types/index.js';
+import { stripUnselectedFields } from '../../../utils/stripUnselectedFields.js';
+import type { Block, Field, TabAsField } from '../../config/types.js';
+import type { AfterReadArgs } from './index.js';
+import { traverseFields } from './traverseFields.js';
 
 type Args = {
   /**
    * Data of the nearest parent block. If no parent block exists, this will be the `undefined`
    */
-  blockData?: JsonObject
-  collection: null | SanitizedCollectionConfig
-  context: RequestContext
-  currentDepth: number
-  depth: number
-  doc: JsonObject
-  draft: boolean
-  fallbackLocale: TypedFallbackLocale
-  field: Field | TabAsField
-  fieldIndex: number
+  blockData?: JsonObject;
+  collection: null | SanitizedCollectionConfig;
+  context: RequestContext;
+  currentDepth: number;
+  depth: number;
+  doc: JsonObject;
+  draft: boolean;
+  fallbackLocale: TypedFallbackLocale;
+  field: Field | TabAsField;
+  fieldIndex: number;
   /**
    * fieldPromises are used for things like field hooks. They should be awaited before awaiting populationPromises
    */
-  fieldPromises: Promise<void>[]
-  findMany: boolean
-  global: null | SanitizedGlobalConfig
-  locale: null | string
-  overrideAccess: boolean
-  parentIndexPath: string
+  fieldPromises: Promise<void>[];
+  findMany: boolean;
+  global: null | SanitizedGlobalConfig;
+  locale: null | string;
+  overrideAccess: boolean;
+  parentIndexPath: string;
   /**
    * @todo make required in v4.0
    */
-  parentIsLocalized?: boolean
-  parentPath: string
-  parentSchemaPath: string
-  populate?: PopulateType
-  populationPromises: Promise<void>[]
-  req: RevealRequest
-  select?: SelectType
-  selectMode?: SelectMode
-  showHiddenFields: boolean
-  siblingDoc: JsonObject
-  siblingFields?: (Field | TabAsField)[]
-  triggerAccessControl?: boolean
-  triggerHooks?: boolean
-} & Required<Pick<AfterReadArgs<JsonObject>, 'flattenLocales'>>
+  parentIsLocalized?: boolean;
+  parentPath: string;
+  parentSchemaPath: string;
+  populate?: PopulateType;
+  populationPromises: Promise<void>[];
+  req: RevealRequest;
+  select?: SelectType;
+  selectMode?: SelectMode;
+  showHiddenFields: boolean;
+  siblingDoc: JsonObject;
+  siblingFields?: (Field | TabAsField)[];
+  triggerAccessControl?: boolean;
+  triggerHooks?: boolean;
+} & Required<Pick<AfterReadArgs<JsonObject>, 'flattenLocales'>>;
 
 // This function is responsible for the following actions, in order:
 // - Remove hidden fields from response
@@ -94,13 +94,13 @@ export const promise = async ({
   triggerHooks = true,
 }: Args): Promise<void> => {
   const isJsonObject = (value: unknown): value is JsonObject =>
-    typeof value === 'object' && value !== null && !Array.isArray(value)
+    typeof value === 'object' && value !== null && !Array.isArray(value);
 
-  const fieldName = field.name || ''
-  const fieldPath = `${parentPath}${fieldName}`
+  const fieldName = field.name || '';
+  const fieldPath = `${parentPath}${fieldName}`;
 
   // Exit early if field is not selected
-  const selectObj = select as Record<string, unknown> | undefined
+  const selectObj = select as Record<string, unknown> | undefined;
   if (
     select &&
     selectMode === 'include' &&
@@ -108,7 +108,7 @@ export const promise = async ({
     !selectObj?.[`${fieldName}.*`] &&
     !selectObj?.[fieldPath]
   ) {
-    return
+    return;
   }
 
   // Strip unselected sub-fields
@@ -122,7 +122,7 @@ export const promise = async ({
       field,
       select: selectObj[fieldName] as SelectType,
       siblingDoc,
-    })
+    });
   }
 
   // Execute beforeRead field hook
@@ -141,7 +141,7 @@ export const promise = async ({
         select,
         showHiddenFields,
         siblingDoc,
-      })
+      });
     }
   }
 
@@ -157,44 +157,44 @@ export const promise = async ({
         draft,
         fallbackLocale,
         field: field as {
-          type: 'relationship' | 'upload' | 'join'
-          name: string
-          relationTo?: string | string[]
-          collection?: string | string[]
-          hasMany?: boolean
-          maxDepth?: number
-          localized?: boolean
+          type: 'relationship' | 'upload' | 'join';
+          name: string;
+          relationTo?: string | string[];
+          collection?: string | string[];
+          hasMany?: boolean;
+          maxDepth?: number;
+          localized?: boolean;
         },
         locale,
         overrideAccess,
         populate: populate,
         req: req as {
           revealui?: {
-            collections?: Record<string, { config?: { defaultPopulate?: unknown } }>
-            config?: { collections?: unknown[] }
-          }
+            collections?: Record<string, { config?: { defaultPopulate?: unknown } }>;
+            config?: { collections?: unknown[] };
+          };
           dataLoader?: {
-            load?: (key: string) => Promise<unknown>
-            find?: (options: unknown) => Promise<unknown>
-          }
-          transactionID?: string | number | null
+            load?: (key: string) => Promise<unknown>;
+            find?: (options: unknown) => Promise<unknown>;
+          };
+          transactionID?: string | number | null;
         },
         showHiddenFields,
         siblingDoc,
       }),
-    )
+    );
   }
 
   // Handle field types that have nested fields
   switch (field.type) {
     case 'array': {
-      const rows = siblingDoc[fieldName]
+      const rows = siblingDoc[fieldName];
       if (Array.isArray(rows)) {
         rows.forEach((rowData, rowIndex) => {
           if (isJsonObject(rowData)) {
             // Array fields have a fields property
             const arrayFieldFields =
-              'fields' in field && Array.isArray(field.fields) ? field.fields : []
+              'fields' in field && Array.isArray(field.fields) ? field.fields : [];
             traverseFields({
               blockData,
               collection,
@@ -222,22 +222,22 @@ export const promise = async ({
               selectMode,
               showHiddenFields,
               siblingDoc: rowData,
-            })
+            });
           }
-        })
+        });
       }
-      break
+      break;
     }
 
     case 'blocks': {
-      const blockData = siblingDoc[fieldName]
+      const blockData = siblingDoc[fieldName];
       if (Array.isArray(blockData)) {
         blockData.forEach((block, blockIndex) => {
           if (isJsonObject(block)) {
-            const blocksField = field as { blocks?: Block[] }
+            const blocksField = field as { blocks?: Block[] };
             const blockConfig = blocksField.blocks?.find(
               (blockConf: Block) => blockConf.slug === (block as { blockType?: unknown }).blockType,
-            )
+            );
 
             if (blockConfig) {
               traverseFields({
@@ -267,16 +267,16 @@ export const promise = async ({
                 selectMode,
                 showHiddenFields,
                 siblingDoc: block,
-              })
+              });
             }
           }
-        })
+        });
       }
-      break
+      break;
     }
 
     default:
-      break
+      break;
   }
 
   // Execute afterRead field hook
@@ -296,7 +296,7 @@ export const promise = async ({
         select,
         showHiddenFields,
         siblingDoc,
-      })
+      });
     }
   }
-}
+};

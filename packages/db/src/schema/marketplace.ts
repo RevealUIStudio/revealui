@@ -11,8 +11,8 @@
  * which exceeds typical per-call amounts.
  */
 
-import { integer, jsonb, pgTable, text, timestamp } from 'drizzle-orm/pg-core'
-import { users } from './users.js'
+import { integer, jsonb, pgTable, text, timestamp } from 'drizzle-orm/pg-core';
+import { users } from './users.js';
 
 // =============================================================================
 // Marketplace Servers
@@ -78,7 +78,7 @@ export const marketplaceServers = pgTable('marketplace_servers', {
 
   createdAt: timestamp('created_at', { withTimezone: true }).defaultNow().notNull(),
   updatedAt: timestamp('updated_at', { withTimezone: true }).defaultNow().notNull(),
-})
+});
 
 // =============================================================================
 // Marketplace Transactions
@@ -133,13 +133,13 @@ export const marketplaceTransactions = pgTable('marketplace_transactions', {
   metadata: jsonb('metadata').$type<Record<string, unknown>>().default({}),
 
   createdAt: timestamp('created_at', { withTimezone: true }).defaultNow().notNull(),
-})
+});
 
 // =============================================================================
 // Type exports
 // =============================================================================
 
-export type MarketplaceServer = typeof marketplaceServers.$inferSelect
-export type NewMarketplaceServer = typeof marketplaceServers.$inferInsert
-export type MarketplaceTransaction = typeof marketplaceTransactions.$inferSelect
-export type NewMarketplaceTransaction = typeof marketplaceTransactions.$inferInsert
+export type MarketplaceServer = typeof marketplaceServers.$inferSelect;
+export type NewMarketplaceServer = typeof marketplaceServers.$inferInsert;
+export type MarketplaceTransaction = typeof marketplaceTransactions.$inferSelect;
+export type NewMarketplaceTransaction = typeof marketplaceTransactions.$inferInsert;

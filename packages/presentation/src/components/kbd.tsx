@@ -1,5 +1,5 @@
-import clsx from 'clsx'
-import type React from 'react'
+import clsx from 'clsx';
+import type React from 'react';
 
 export function Kbd({ className, children, ...props }: React.ComponentPropsWithoutRef<'kbd'>) {
   return (
@@ -12,7 +12,7 @@ export function Kbd({ className, children, ...props }: React.ComponentPropsWitho
     >
       {children}
     </kbd>
-  )
+  );
 }
 
 export function KbdShortcut({
@@ -20,9 +20,9 @@ export function KbdShortcut({
   separator = '+',
   className,
 }: {
-  keys: string[]
-  separator?: string
-  className?: string
+  keys: string[];
+  separator?: string;
+  className?: string;
 }) {
   return (
     <span className={clsx('inline-flex items-center gap-1', className)}>
@@ -34,5 +34,5 @@ export function KbdShortcut({
         </span>
       ))}
     </span>
-  )
+  );
 }

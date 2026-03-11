@@ -206,3 +206,6 @@ packages/mcp/
 packages/editors/
 packages/services/
 packages/harnesses/
+
+# opensrc — fetched package source code
+opensrc/

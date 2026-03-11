@@ -8,15 +8,15 @@
  * Post fixture type
  */
 export interface PostFixture {
-  title: string
-  slug: string
-  content: string
-  excerpt?: string
-  authorId: string
-  publishedAt?: Date
-  status: 'draft' | 'published' | 'archived'
-  tags?: string[]
-  featuredImage?: string
+  title: string;
+  slug: string;
+  content: string;
+  excerpt?: string;
+  authorId: string;
+  publishedAt?: Date;
+  status: 'draft' | 'published' | 'archived';
+  tags?: string[];
+  featuredImage?: string;
 }
 
 /**
@@ -78,15 +78,15 @@ export const postFixtures = {
     status: 'published' as const,
     tags: ['long', 'content'],
   },
-} as const
+} as const;
 
 /**
  * Post factory - creates a post with default values + overrides
  */
-let postCounter = 0
+let postCounter = 0;
 
 export function createPostFixture(overrides: Partial<PostFixture> = {}): PostFixture {
-  postCounter++
+  postCounter++;
 
   return {
     title: `Test Post ${postCounter}`,
@@ -98,7 +98,7 @@ export function createPostFixture(overrides: Partial<PostFixture> = {}): PostFix
     status: 'published',
     tags: ['test'],
     ...overrides,
-  }
+  };
 }
 
 /**
@@ -108,7 +108,7 @@ export function createPostsFixture(
   count: number,
   overrides: Partial<PostFixture> = {},
 ): PostFixture[] {
-  return Array.from({ length: count }, () => createPostFixture(overrides))
+  return Array.from({ length: count }, () => createPostFixture(overrides));
 }
 
 /**
@@ -119,12 +119,12 @@ export function createPostsForAuthor(
   count: number,
   overrides: Partial<PostFixture> = {},
 ): PostFixture[] {
-  return createPostsFixture(count, { authorId, ...overrides })
+  return createPostsFixture(count, { authorId, ...overrides });
 }
 
 /**
  * Reset the post counter (for test isolation)
  */
 export function resetPostCounter(): void {
-  postCounter = 0
+  postCounter = 0;
 }

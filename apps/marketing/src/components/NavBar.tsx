@@ -1,16 +1,16 @@
-'use client'
+'use client';
 
-import Link from 'next/link'
-import { useState } from 'react'
+import Link from 'next/link';
+import { useState } from 'react';
 
 const navLinks = [
   { label: 'Docs', href: 'https://docs.revealui.com' },
   { label: 'Pricing', href: '/pricing' },
   { label: 'Sponsor', href: '/sponsor' },
-]
+];
 
 export function NavBar() {
-  const [open, setOpen] = useState(false)
+  const [open, setOpen] = useState(false);
 
   return (
     <header className="sticky top-0 z-50 bg-white/80 backdrop-blur-md border-b border-gray-950/5">
@@ -118,5 +118,5 @@ export function NavBar() {
         </div>
       )}
     </header>
-  )
+  );
 }

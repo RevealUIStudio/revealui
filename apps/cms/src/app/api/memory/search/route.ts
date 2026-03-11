@@ -6,19 +6,19 @@
  * This endpoint uses Supabase vector database for semantic search.
  */
 
-import { checkRateLimit, getSession } from '@revealui/auth/server'
-import { logger } from '@revealui/core/observability/logger'
-import { type NextRequest, NextResponse } from 'next/server'
-import { createErrorResponse, createValidationErrorResponse } from '@/lib/utils/error-response'
+import { checkRateLimit, getSession } from '@revealui/auth/server';
+import { logger } from '@revealui/core/observability/logger';
+import { type NextRequest, NextResponse } from 'next/server';
+import { createErrorResponse, createValidationErrorResponse } from '@/lib/utils/error-response';
 
 /** Rate limit: 30 requests per minute per user */
 const MEMORY_SEARCH_RATE_LIMIT = {
   maxAttempts: 30,
   windowMs: 60 * 1000,
-} as const
+} as const;
 
-export const dynamic = 'force-dynamic'
-export const runtime = 'nodejs'
+export const dynamic = 'force-dynamic';
+export const runtime = 'nodejs';
 
 /**
  * POST /api/memory/search
@@ -39,16 +39,16 @@ export const runtime = 'nodejs'
  */
 export async function POST(request: NextRequest): Promise<NextResponse> {
   try {
-    const authSession = await getSession(request.headers)
+    const authSession = await getSession(request.headers);
     if (!authSession) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
     // Rate limit per user
     const rateLimit = await checkRateLimit(
       `memory_search:${authSession.user.id}`,
       MEMORY_SEARCH_RATE_LIMIT,
-    )
+    );
     if (!rateLimit.allowed) {
       return NextResponse.json(
         {
@@ -59,26 +59,26 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
           status: 429,
           headers: { 'Retry-After': String(Math.ceil((rateLimit.resetAt - Date.now()) / 1000)) },
         },
-      )
+      );
     }
 
-    let body: unknown
+    let body: unknown;
     try {
-      body = await request.json()
+      body = await request.json();
     } catch (jsonError) {
       return createValidationErrorResponse('Invalid JSON in request body', 'body', null, {
         parseError: jsonError instanceof Error ? jsonError.message : 'Malformed JSON',
-      })
+      });
     }
 
     if (!body || typeof body !== 'object') {
-      return createValidationErrorResponse('Request body must be an object', 'body', body)
+      return createValidationErrorResponse('Request body must be an object', 'body', body);
     }
 
     const { queryEmbedding, options } = body as {
-      queryEmbedding?: unknown
-      options?: unknown
-    }
+      queryEmbedding?: unknown;
+      options?: unknown;
+    };
 
     // Validate query embedding
     if (!Array.isArray(queryEmbedding)) {
@@ -86,10 +86,10 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
         'queryEmbedding must be an array of numbers',
         'queryEmbedding',
         queryEmbedding,
-      )
+      );
     }
 
-    const expectedDim = Number(process.env.EMBEDDING_DIMENSIONS ?? 1536)
+    const expectedDim = Number(process.env.EMBEDDING_DIMENSIONS ?? 1536);
     if (queryEmbedding.length !== expectedDim) {
       return createValidationErrorResponse(
         `queryEmbedding must have ${expectedDim} dimensions, got ${queryEmbedding.length}`,
@@ -99,7 +99,7 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
           expected: expectedDim,
           actual: queryEmbedding.length,
         },
-      )
+      );
     }
 
     // Validate all elements are numbers
@@ -108,31 +108,34 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
         'queryEmbedding must contain only numbers',
         'queryEmbedding',
         queryEmbedding,
-      )
+      );
     }
 
     // Perform search — enforce userId so non-admins can only search their own memories
-    const mod = await import('@revealui/ai/memory/vector').catch(() => null)
+    const mod = await import('@revealui/ai/memory/vector').catch(() => null);
     if (!mod) {
-      return NextResponse.json({ error: 'AI features require @revealui/ai (Pro)' }, { status: 503 })
+      return NextResponse.json(
+        { error: 'AI features require @revealui/ai (Pro)' },
+        { status: 503 },
+      );
     }
-    const service = new mod.VectorMemoryService()
+    const service = new mod.VectorMemoryService();
     const safeOptions = {
       ...((options as Record<string, unknown>) ?? {}),
       ...(authSession.user.role !== 'admin' ? { userId: authSession.user.id } : {}),
-    }
-    const results = await service.searchSimilar(queryEmbedding, safeOptions)
+    };
+    const results = await service.searchSimilar(queryEmbedding, safeOptions);
 
     return NextResponse.json({
       success: true,
       results,
       count: results.length,
-    })
+    });
   } catch (error) {
-    logger.error('Error searching memories', error instanceof Error ? error : undefined)
+    logger.error('Error searching memories', error instanceof Error ? error : undefined);
     return createErrorResponse(error, {
       endpoint: '/api/memory/search',
       operation: 'memory_search',
-    })
+    });
   }
 }

@@ -1,4 +1,4 @@
-import type { AccessArgs, CollectionConfig } from '@revealui/core'
+import type { AccessArgs, CollectionConfig } from '@revealui/core';
 
 const Cards: CollectionConfig = {
   slug: 'cards',
@@ -38,6 +38,6 @@ const Cards: CollectionConfig = {
       defaultValue: 'eager',
     },
   ],
-}
+};
 
-export default Cards
+export default Cards;

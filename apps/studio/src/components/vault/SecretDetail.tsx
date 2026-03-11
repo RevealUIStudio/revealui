@@ -1,34 +1,34 @@
-import { useState } from 'react'
-import { vaultCopy } from '../../lib/invoke'
-import Button from '../ui/Button'
+import { useState } from 'react';
+import { vaultCopy } from '../../lib/invoke';
+import Button from '../ui/Button';
 
 interface SecretDetailProps {
-  path: string | null
-  value: string | null
-  loading: boolean
+  path: string | null;
+  value: string | null;
+  loading: boolean;
 }
 
 export default function SecretDetail({ path, value, loading }: SecretDetailProps) {
-  const [revealed, setRevealed] = useState(false)
-  const [copied, setCopied] = useState(false)
+  const [revealed, setRevealed] = useState(false);
+  const [copied, setCopied] = useState(false);
 
   const handleCopy = async () => {
-    if (!value) return
+    if (!value) return;
     try {
-      await vaultCopy(value)
-      setCopied(true)
-      setTimeout(() => setCopied(false), 2000)
+      await vaultCopy(value);
+      setCopied(true);
+      setTimeout(() => setCopied(false), 2000);
     } catch {
       // clipboard unavailable
     }
-  }
+  };
 
   if (!path) {
     return (
       <div className="flex flex-1 items-center justify-center text-sm text-neutral-500">
         Select a secret to view its value
       </div>
-    )
+    );
   }
 
   return (
@@ -64,5 +64,5 @@ export default function SecretDetail({ path, value, loading }: SecretDetailProps
         </Button>
       </div>
     </div>
-  )
+  );
 }

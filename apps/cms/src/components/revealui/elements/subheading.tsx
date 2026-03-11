@@ -1,5 +1,5 @@
-import { clsx } from 'clsx/lite'
-import type { ComponentProps } from 'react'
+import { clsx } from 'clsx/lite';
+import type { ComponentProps } from 'react';
 
 export function Subheading({ children, className, ...props }: ComponentProps<'h2'>) {
   return (
@@ -12,5 +12,5 @@ export function Subheading({ children, className, ...props }: ComponentProps<'h2
     >
       {children}
     </h2>
-  )
+  );
 }

@@ -1,16 +1,16 @@
-import { useState } from 'react'
-import { useTunnel } from '../../hooks/use-tunnel'
-import type { TailscalePeer } from '../../types'
-import Button from '../ui/Button'
-import ErrorAlert from '../ui/ErrorAlert'
-import PanelHeader from '../ui/PanelHeader'
-import StatusDot from '../ui/StatusDot'
+import { useState } from 'react';
+import { useTunnel } from '../../hooks/use-tunnel';
+import type { TailscalePeer } from '../../types';
+import Button from '../ui/Button';
+import ErrorAlert from '../ui/ErrorAlert';
+import PanelHeader from '../ui/PanelHeader';
+import StatusDot from '../ui/StatusDot';
 
 export default function TunnelPanel() {
-  const { status, loading, error, toggling, up, down, refresh } = useTunnel()
+  const { status, loading, error, toggling, up, down, refresh } = useTunnel();
 
   if (loading && !status) {
-    return <TunnelSkeleton />
+    return <TunnelSkeleton />;
   }
 
   return (
@@ -72,7 +72,7 @@ export default function TunnelPanel() {
         <p className="text-sm text-neutral-500">No peers connected.</p>
       )}
     </div>
-  )
+  );
 }
 
 function TunnelSkeleton() {
@@ -86,32 +86,32 @@ function TunnelSkeleton() {
         ))}
       </div>
     </div>
-  )
+  );
 }
 
 function OsBadge({ os }: { os: string }) {
-  const normalized = os.toLowerCase()
+  const normalized = os.toLowerCase();
   const { label, className } = normalized.includes('windows')
     ? { label: 'Windows', className: 'bg-blue-900/40 text-blue-300' }
     : normalized.includes('linux')
       ? { label: 'Linux', className: 'bg-orange-900/40 text-orange-300' }
       : normalized.includes('mac') || normalized.includes('darwin')
         ? { label: 'macOS', className: 'bg-purple-900/40 text-purple-300' }
-        : { label: os, className: 'bg-neutral-800 text-neutral-400' }
+        : { label: os, className: 'bg-neutral-800 text-neutral-400' };
 
   return (
     <span className={`rounded px-1.5 py-0.5 text-[10px] font-medium ${className}`}>{label}</span>
-  )
+  );
 }
 
 function PeerCard({ peer }: { peer: TailscalePeer }) {
-  const [copied, setCopied] = useState(false)
+  const [copied, setCopied] = useState(false);
 
   const copyIp = async () => {
-    await navigator.clipboard.writeText(peer.ip)
-    setCopied(true)
-    setTimeout(() => setCopied(false), 2000)
-  }
+    await navigator.clipboard.writeText(peer.ip);
+    setCopied(true);
+    setTimeout(() => setCopied(false), 2000);
+  };
 
   return (
     <div className="flex items-center justify-between rounded-lg border border-neutral-800 bg-neutral-900 px-4 py-3">
@@ -129,5 +129,5 @@ function PeerCard({ peer }: { peer: TailscalePeer }) {
         {copied ? 'Copied!' : 'Copy IP'}
       </Button>
     </div>
-  )
+  );
 }

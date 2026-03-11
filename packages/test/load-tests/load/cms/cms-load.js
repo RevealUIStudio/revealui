@@ -5,15 +5,15 @@
  * Run with: k6 run packages/test/load-tests/cms-load.js
  */
 
-import { check, sleep } from 'k6'
-import http from 'k6/http'
-import { Rate, Trend } from 'k6/metrics'
+import { check, sleep } from 'k6';
+import http from 'k6/http';
+import { Rate, Trend } from 'k6/metrics';
 
 // Custom metrics
-const contentRetrievalRate = new Rate('content_retrieval_success_rate')
-const contentCreationRate = new Rate('content_creation_success_rate')
-const contentRetrievalTime = new Trend('content_retrieval_time')
-const contentCreationTime = new Trend('content_creation_time')
+const contentRetrievalRate = new Rate('content_retrieval_success_rate');
+const contentCreationRate = new Rate('content_creation_success_rate');
+const contentRetrievalTime = new Trend('content_retrieval_time');
+const contentCreationTime = new Trend('content_creation_time');
 
 // Test configuration
 export const options = {
@@ -28,35 +28,35 @@ export const options = {
     http_req_failed: ['rate<0.01'], // Less than 1% of requests should fail
     content_retrieval_success_rate: ['rate>0.99'], // 99% success rate
   },
-}
+};
 
 // biome-ignore lint/correctness/noUndeclaredVariables: k6 global
-const BASE_URL = __ENV.BASE_URL || 'http://localhost:4000'
+const BASE_URL = __ENV.BASE_URL || 'http://localhost:4000';
 // biome-ignore lint/correctness/noUndeclaredVariables: k6 global
-const AUTH_TOKEN = __ENV.AUTH_TOKEN || ''
+const AUTH_TOKEN = __ENV.AUTH_TOKEN || '';
 
 export default function () {
   // Test content retrieval
-  const retrievalStart = Date.now()
+  const retrievalStart = Date.now();
   const retrievalRes = http.get(`${BASE_URL}/api/pages`, {
     headers: {
       // biome-ignore lint/style/useNamingConvention: standard HTTP header name
       Authorization: AUTH_TOKEN ? `Bearer ${AUTH_TOKEN}` : '',
     },
-  })
+  });
 
   const retrievalSuccess = check(retrievalRes, {
     'retrieval status is 200': (r) => r.status === 200,
-  })
+  });
 
-  contentRetrievalRate.add(retrievalSuccess)
-  contentRetrievalTime.add(Date.now() - retrievalStart)
+  contentRetrievalRate.add(retrievalSuccess);
+  contentRetrievalTime.add(Date.now() - retrievalStart);
 
-  sleep(0.5)
+  sleep(0.5);
 
   // Test content creation (if authenticated)
   if (AUTH_TOKEN) {
-    const creationStart = Date.now()
+    const creationStart = Date.now();
     const creationRes = http.post(
       `${BASE_URL}/api/pages`,
       JSON.stringify({
@@ -70,15 +70,15 @@ export default function () {
           Authorization: `Bearer ${AUTH_TOKEN}`,
         },
       },
-    )
+    );
 
     const creationSuccess = check(creationRes, {
       'creation status is 200 or 201': (r) => r.status === 200 || r.status === 201,
-    })
+    });
 
-    contentCreationRate.add(creationSuccess)
-    contentCreationTime.add(Date.now() - creationStart)
+    contentCreationRate.add(creationSuccess);
+    contentCreationTime.add(Date.now() - creationStart);
   }
 
-  sleep(1)
+  sleep(1);
 }

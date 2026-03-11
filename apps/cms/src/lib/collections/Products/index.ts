@@ -1,15 +1,15 @@
-import type { RevealCollectionConfig } from '@revealui/core'
-import type { Product } from '@revealui/core/types/cms'
-import { isAdmin } from '@/lib/access'
-import { ArchiveBlock } from '@/lib/blocks/ArchiveBlock/config'
-import { CallToAction } from '@/lib/blocks/CallToAction/config'
-import { MediaBlock } from '@/lib/blocks/MediaBlock/config'
-import { populateArchiveBlock } from '@/lib/hooks'
-import { checkUserPurchases } from './access/checkUserPurchases'
-import { beforeProductChange } from './hooks/beforeChange'
-import { deleteProductFromCarts } from './hooks/deleteProductFromCarts'
-import { enrichProduct } from './hooks/enrichProduct'
-import { revalidateProduct } from './hooks/revalidateProduct'
+import type { RevealCollectionConfig } from '@revealui/core';
+import type { Product } from '@revealui/core/types/cms';
+import { isAdmin } from '@/lib/access';
+import { ArchiveBlock } from '@/lib/blocks/ArchiveBlock/config';
+import { CallToAction } from '@/lib/blocks/CallToAction/config';
+import { MediaBlock } from '@/lib/blocks/MediaBlock/config';
+import { populateArchiveBlock } from '@/lib/hooks';
+import { checkUserPurchases } from './access/checkUserPurchases';
+import { beforeProductChange } from './hooks/beforeChange';
+import { deleteProductFromCarts } from './hooks/deleteProductFromCarts';
+import { enrichProduct } from './hooks/enrichProduct';
+import { revalidateProduct } from './hooks/revalidateProduct';
 
 const Products: RevealCollectionConfig<Product> = {
   slug: 'products',
@@ -20,7 +20,7 @@ const Products: RevealCollectionConfig<Product> = {
       // Use the cookie-based JWT preview route — no secret in the URL
       return `${import.meta.env.REVEALUI_PUBLIC_SERVER_URL}/next/preview?path=${encodeURIComponent(
         `/products/${doc.slug}`,
-      )}`
+      )}`;
     },
   },
   hooks: {
@@ -58,9 +58,9 @@ const Products: RevealCollectionConfig<Product> = {
           // biome-ignore lint/style/useNamingConvention: _status is a RevealUI CMS internal field name required by the framework
           ({ siblingData, value }: { siblingData?: { _status?: string }; value: unknown }) => {
             if (siblingData?._status === 'published' && !value) {
-              return new Date()
+              return new Date();
             }
-            return value
+            return value;
           },
         ],
       },
@@ -136,7 +136,7 @@ const Products: RevealCollectionConfig<Product> = {
           id: {
             not_in: id ? [id] : [],
           },
-        }
+        };
       },
     },
     {
@@ -150,6 +150,6 @@ const Products: RevealCollectionConfig<Product> = {
       },
     },
   ],
-}
+};
 
-export default Products
+export default Products;

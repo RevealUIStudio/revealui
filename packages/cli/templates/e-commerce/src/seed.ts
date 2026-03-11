@@ -5,14 +5,14 @@
  * Usage: pnpm db:seed (requires the dev server to be running)
  */
 
-const API_URL = process.env.NEXT_PUBLIC_SERVER_URL || 'http://localhost:4000'
+const API_URL = process.env.NEXT_PUBLIC_SERVER_URL || 'http://localhost:4000';
 
 interface SeedProduct {
-  name: string
-  slug: string
-  description: string
-  price: number
-  status: string
+  name: string;
+  slug: string;
+  description: string;
+  price: number;
+  status: string;
 }
 
 const products: SeedProduct[] = [
@@ -39,13 +39,13 @@ const products: SeedProduct[] = [
     price: 4999,
     status: 'active',
   },
-]
+];
 
-const log = (...args: unknown[]) => process.stdout.write(`${args.join(' ')}\n`)
-const logErr = (...args: unknown[]) => process.stderr.write(`${args.join(' ')}\n`)
+const log = (...args: unknown[]) => process.stdout.write(`${args.join(' ')}\n`);
+const logErr = (...args: unknown[]) => process.stderr.write(`${args.join(' ')}\n`);
 
 async function seed(): Promise<void> {
-  log(`Seeding products to ${API_URL}...`)
+  log(`Seeding products to ${API_URL}...`);
 
   for (const product of products) {
     try {
@@ -53,20 +53,20 @@ async function seed(): Promise<void> {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(product),
-      })
+      });
 
       if (res.ok) {
-        log(`  Created: ${product.name}`)
+        log(`  Created: ${product.name}`);
       } else {
-        const error = await res.text()
-        logErr(`  Failed to create "${product.name}": ${error}`)
+        const error = await res.text();
+        logErr(`  Failed to create "${product.name}": ${error}`);
       }
     } catch (err) {
-      logErr(`  Error creating "${product.name}":`, err)
+      logErr(`  Error creating "${product.name}":`, err);
     }
   }
 
-  log('Seeding complete.')
+  log('Seeding complete.');
 }
 
-seed()
+seed();

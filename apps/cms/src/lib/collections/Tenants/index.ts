@@ -1,9 +1,9 @@
-import type { RevealCollectionConfig } from '@revealui/core'
-import type { Tenant } from '@revealui/core/types/cms'
-import { isSuperAdmin } from '@/lib/access'
-import { Role } from '@/lib/access/permissions/roles'
-import { isTenantAdminOrSuperAdmin } from '@/lib/access/tenants/isTenantAdminOrSuperAdmin'
-import { createTenant, recordLastLoggedInTenant } from '@/lib/hooks/index'
+import type { RevealCollectionConfig } from '@revealui/core';
+import type { Tenant } from '@revealui/core/types/cms';
+import { isSuperAdmin } from '@/lib/access';
+import { Role } from '@/lib/access/permissions/roles';
+import { isTenantAdminOrSuperAdmin } from '@/lib/access/tenants/isTenantAdminOrSuperAdmin';
+import { createTenant, recordLastLoggedInTenant } from '@/lib/hooks/index';
 
 export const Tenants: RevealCollectionConfig<Tenant> = {
   slug: 'tenants',
@@ -49,4 +49,4 @@ export const Tenants: RevealCollectionConfig<Tenant> = {
     afterChange: [createTenant as never],
     afterLogin: [recordLastLoggedInTenant as never],
   },
-}
+};

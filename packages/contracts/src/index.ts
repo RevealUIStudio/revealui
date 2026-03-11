@@ -29,7 +29,7 @@
  */
 
 // Re-export zod for consumers
-export { z } from 'zod/v4'
+export { z } from 'zod/v4';
 
 // =============================================================================
 // Foundation
@@ -45,7 +45,7 @@ export {
   type CreateContractOptions,
   contractRegistry,
   createContract,
-} from './foundation/index.js'
+} from './foundation/index.js';
 
 // =============================================================================
 // Representation Layer (Human + Agent)
@@ -77,7 +77,7 @@ export {
   toAgentRepresentation,
   toHumanRepresentation,
   updateTimestamp,
-} from './representation/index.js'
+} from './representation/index.js';
 
 // =============================================================================
 // Core Entities
@@ -104,7 +104,7 @@ export {
   PageStatusSchema,
   type UpdatePageInput,
   UpdatePageInputSchema,
-} from './entities/page.js'
+} from './entities/page.js';
 
 export {
   type CreateSiteInput,
@@ -127,7 +127,7 @@ export {
   SiteThemeSchema,
   type UpdateSiteInput,
   UpdateSiteInputSchema,
-} from './entities/site.js'
+} from './entities/site.js';
 
 export {
   type CreateUserInput,
@@ -149,7 +149,7 @@ export {
   UserStatusSchema,
   type UserType,
   UserTypeSchema,
-} from './entities/user.js'
+} from './entities/user.js';
 
 // =============================================================================
 // Content Blocks
@@ -216,7 +216,7 @@ export {
   type VideoBlock,
   VideoBlockSchema,
   walkBlocks,
-} from './content/index.js'
+} from './content/index.js';
 
 // =============================================================================
 // Agents
@@ -255,7 +255,7 @@ export {
   ToolDefinitionSchema,
   type ToolParameter,
   ToolParameterSchema,
-} from './agents/index.js'
+} from './agents/index.js';
 
 // =============================================================================
 // A2A Protocol Contracts
@@ -292,7 +292,7 @@ export {
   A2ATaskStatusSchema,
   agentDefinitionToCard,
   toolDefinitionToSkill,
-} from './a2a/index.js'
+} from './a2a/index.js';
 
 // =============================================================================
 // CMS Contracts
@@ -304,7 +304,7 @@ export {
   isCollectionConfig,
   parseCollection,
   validateCollection,
-} from './cms/collection.js'
+} from './cms/collection.js';
 export {
   type CollectionConfig,
   type Config,
@@ -316,24 +316,24 @@ export {
   type SanitizedConfig,
   type TypedCollectionConfig,
   type TypedGlobalConfig,
-} from './cms/config.js'
+} from './cms/config.js';
 export {
   ConfigContract,
   type ConfigContractType,
   isConfigStructure,
   parseConfigStructure,
   validateConfigStructure,
-} from './cms/config-contract.js'
+} from './cms/config-contract.js';
 
 export {
   ConfigValidationError,
   safeValidate,
   type ValidationResult,
   validateWithErrors,
-} from './cms/errors.js'
+} from './cms/errors.js';
 
 // Re-export all CMS contracts from the main CMS index
-export * from './cms/index.js'
+export * from './cms/index.js';
 
 // =============================================================================
 // Database Bridges
@@ -359,7 +359,7 @@ export {
   type TableName,
   type TableRowType,
   type TableUpdateType,
-} from './database/index.js'
+} from './database/index.js';
 
 // =============================================================================
 // Generated Database Types
@@ -433,7 +433,7 @@ export type {
   UsersInsert,
   UsersRow,
   UsersUpdate,
-} from './generated/database.js'
+} from './generated/database.js';
 
 // =============================================================================
 // API Contracts
@@ -452,14 +452,14 @@ export {
   type SignUpRequest,
   SignUpRequestContract,
   SignUpRequestSchema,
-} from './api/auth.js'
+} from './api/auth.js';
 export {
   type ChatMessage,
   ChatMessageSchema,
   type ChatRequest,
   ChatRequestContract,
   ChatRequestSchema,
-} from './api/chat.js'
+} from './api/chat.js';
 export {
   type GDPRDeleteRequest,
   GDPRDeleteRequestContract,
@@ -467,13 +467,13 @@ export {
   type GDPRExportRequest,
   GDPRExportRequestContract,
   GDPRExportRequestSchema,
-} from './api/gdpr.js'
+} from './api/gdpr.js';
 
 // =============================================================================
 // LLM Providers
 // =============================================================================
 
-export { LLM_PROVIDERS, type LLMProvider } from './providers.js'
+export { LLM_PROVIDERS, type LLMProvider } from './providers.js';
 
 // =============================================================================
 // Pricing
@@ -497,7 +497,7 @@ export {
   TIER_LABELS,
   TIER_LIMITS,
   type TierLimits,
-} from './pricing.js'
+} from './pricing.js';
 
 // =============================================================================
 // Actions
@@ -510,4 +510,4 @@ export {
   type ActionValidationResult,
   type ActionValidationSuccess,
   validateAction,
-} from './actions/index.js'
+} from './actions/index.js';

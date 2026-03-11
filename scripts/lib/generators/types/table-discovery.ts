@@ -17,11 +17,11 @@
  * ```
  */
 
-import { discoverTables } from '../../../../packages/db/src/types/discover.js'
-import { ErrorCode, ScriptError } from '../../errors.js'
-import { createLogger } from '../../index.js'
+import { discoverTables } from '../../../../packages/db/src/types/discover.js';
+import { ErrorCode, ScriptError } from '../../errors.js';
+import { createLogger } from '../../index.js';
 
-const logger = createLogger({ prefix: 'TableDiscovery' })
+const logger = createLogger({ prefix: 'TableDiscovery' });
 
 // =============================================================================
 // Types
@@ -31,7 +31,7 @@ const logger = createLogger({ prefix: 'TableDiscovery' })
  * Maps sub-module names to their table exports
  */
 export interface TableMapping {
-  [subModule: string]: string[]
+  [subModule: string]: string[];
 }
 
 // =============================================================================
@@ -53,42 +53,42 @@ export interface TableMapping {
  * ```
  */
 export function discoverTableMappings(): TableMapping {
-  const discoveryResult = discoverTables()
-  const { tables, errors } = discoveryResult
+  const discoveryResult = discoverTables();
+  const { tables, errors } = discoveryResult;
 
   // Log discovery errors as warnings
   if (errors.length > 0) {
     for (const error of errors) {
       const location = error.position
         ? `${error.file}:${error.position.line}:${error.position.column}`
-        : error.file
+        : error.file;
       logger.warning(
         `Table discovery warning in ${location}: ${error.message}${error.context ? ` (${error.context})` : ''}`,
-      )
+      );
     }
   }
 
   // Group tables by their sourceFile (sub-module name)
-  const mapping: TableMapping = {}
+  const mapping: TableMapping = {};
 
   for (const table of tables) {
     // Extract sub-module name from sourceFile (e.g., "agents.ts" -> "agents")
     // sourceFile is relative to schema directory, so it's just the filename
-    const subModule = table.sourceFile.replace(/\.ts$/, '')
+    const subModule = table.sourceFile.replace(/\.ts$/, '');
 
     if (!mapping[subModule]) {
-      mapping[subModule] = []
+      mapping[subModule] = [];
     }
 
-    mapping[subModule].push(table.variableName)
+    mapping[subModule].push(table.variableName);
   }
 
   // Sort tables within each sub-module for consistency
   for (const subModule in mapping) {
-    mapping[subModule].sort()
+    mapping[subModule].sort();
   }
 
-  return mapping
+  return mapping;
 }
 
 /**
@@ -98,7 +98,7 @@ export function discoverTableMappings(): TableMapping {
  * @returns Total number of tables
  */
 export function getTotalTableCount(mapping: TableMapping): number {
-  return Object.values(mapping).flat().length
+  return Object.values(mapping).flat().length;
 }
 
 /**
@@ -108,7 +108,7 @@ export function getTotalTableCount(mapping: TableMapping): number {
  * @returns Number of sub-modules
  */
 export function getSubModuleCount(mapping: TableMapping): number {
-  return Object.keys(mapping).length
+  return Object.keys(mapping).length;
 }
 
 /**
@@ -118,8 +118,8 @@ export function getSubModuleCount(mapping: TableMapping): number {
  * @throws Error if no tables found
  */
 export function validateTableMapping(mapping: TableMapping): void {
-  const totalTables = getTotalTableCount(mapping)
-  const subModuleCount = getSubModuleCount(mapping)
+  const totalTables = getTotalTableCount(mapping);
+  const subModuleCount = getSubModuleCount(mapping);
 
   if (totalTables === 0) {
     const errorMessage = [
@@ -134,11 +134,11 @@ export function validateTableMapping(mapping: TableMapping): void {
       '  - Ensure packages/db/src/schema/*.ts files contain pgTable exports',
       '  - Run: pnpm --filter @revealui/db generate:types',
       '  - Then retry this script',
-    ].join('\n')
-    throw new ScriptError(errorMessage, ErrorCode.NOT_FOUND)
+    ].join('\n');
+    throw new ScriptError(errorMessage, ErrorCode.NOT_FOUND);
   }
 
   logger.info(
     `Discovered ${totalTables} tables across ${subModuleCount} sub-module${subModuleCount !== 1 ? 's' : ''}`,
-  )
+  );
 }

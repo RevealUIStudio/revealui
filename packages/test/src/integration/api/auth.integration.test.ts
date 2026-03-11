@@ -4,32 +4,32 @@
  * Tests authentication flow from API calls to JWT generation and validation
  */
 
-import type { RevealRequest, RevealUIInstance } from '@revealui/core'
-import bcrypt from 'bcryptjs'
-import { afterAll, beforeAll, describe, expect, it } from 'vitest'
+import type { RevealRequest, RevealUIInstance } from '@revealui/core';
+import bcrypt from 'bcryptjs';
+import { afterAll, beforeAll, describe, expect, it } from 'vitest';
 import {
   cleanupTestData,
   generateUniqueTestEmail,
   getTestRevealUI,
   trackTestData,
-} from '../../utils/integration-helpers.js'
+} from '../../utils/integration-helpers.js';
 
 describe('Authentication Integration', () => {
-  let revealui: RevealUIInstance
-  let testUserId: string | number
-  let testEmail: string
-  const testPassword = 'TestPassword123!'
-  let hashedPassword: string
+  let revealui: RevealUIInstance;
+  let testUserId: string | number;
+  let testEmail: string;
+  const testPassword = 'TestPassword123!';
+  let hashedPassword: string;
 
   function createRequest(user: unknown): RevealRequest {
-    return { user } as unknown as RevealRequest
+    return { user } as unknown as RevealRequest;
   }
 
   beforeAll(async () => {
-    revealui = await getTestRevealUI()
+    revealui = await getTestRevealUI();
     // Create unique test user for all tests in this suite
-    testEmail = generateUniqueTestEmail('test-auth')
-    hashedPassword = await bcrypt.hash(testPassword, 10)
+    testEmail = generateUniqueTestEmail('test-auth');
+    hashedPassword = await bcrypt.hash(testPassword, 10);
 
     // Create user once for all tests
     const user = await revealui.create({
@@ -39,39 +39,39 @@ describe('Authentication Integration', () => {
         password: hashedPassword,
         roles: ['user-admin'],
       },
-    })
-    testUserId = user.id
-    trackTestData('users', String(testUserId))
-  })
+    });
+    testUserId = user.id;
+    trackTestData('users', String(testUserId));
+  });
 
   afterAll(async () => {
     // Cleanup tracked data created in beforeAll
     // This ensures the user created for all tests gets cleaned up
-    await cleanupTestData()
-  })
+    await cleanupTestData();
+  });
 
   describe('User Registration and Login Flow', () => {
     it('should create user and login successfully', async () => {
       // User was created in beforeAll, verify it exists
       // First verify the user was created with expected fields
       if (!testUserId) {
-        throw new Error('testUserId not set in beforeAll')
+        throw new Error('testUserId not set in beforeAll');
       }
 
       const user = await revealui.findByID({
         collection: 'users',
         id: String(testUserId),
-      })
+      });
 
       if (!user) {
         throw new Error(
           `User with id ${testUserId} not found. User was created in beforeAll but cannot be retrieved.`,
-        )
+        );
       }
 
-      expect(user.email).toBe(testEmail)
-      expect(user.roles).toContain('user-admin')
-    })
+      expect(user.email).toBe(testEmail);
+      expect(user.roles).toContain('user-admin');
+    });
 
     it('should login with valid credentials and receive JWT', async () => {
       const result = await revealui.login({
@@ -80,14 +80,14 @@ describe('Authentication Integration', () => {
           email: testEmail,
           password: testPassword,
         },
-      })
+      });
 
-      expect(result.user).toBeDefined()
-      expect(result.user.email).toBe(testEmail)
-      expect(result.token).toBeDefined()
-      expect(typeof result.token).toBe('string')
-      expect(result.token.length).toBeGreaterThan(0)
-    })
+      expect(result.user).toBeDefined();
+      expect(result.user.email).toBe(testEmail);
+      expect(result.token).toBeDefined();
+      expect(typeof result.token).toBe('string');
+      expect(result.token.length).toBeGreaterThan(0);
+    });
 
     it('should reject login with invalid password', async () => {
       await expect(
@@ -98,8 +98,8 @@ describe('Authentication Integration', () => {
             password: 'WrongPassword123!',
           },
         }),
-      ).rejects.toThrow()
-    })
+      ).rejects.toThrow();
+    });
 
     it('should reject login with non-existent email', async () => {
       await expect(
@@ -110,9 +110,9 @@ describe('Authentication Integration', () => {
             password: testPassword,
           },
         }),
-      ).rejects.toThrow()
-    })
-  })
+      ).rejects.toThrow();
+    });
+  });
 
   describe('JWT Validation', () => {
     it('should validate JWT and return user', async () => {
@@ -123,9 +123,9 @@ describe('Authentication Integration', () => {
           email: testEmail,
           password: testPassword,
         },
-      })
+      });
 
-      expect(loginResult.token).toBeDefined()
+      expect(loginResult.token).toBeDefined();
 
       // Verify user can access authenticated endpoints
       const meResult = await revealui.find({
@@ -136,12 +136,12 @@ describe('Authentication Integration', () => {
           },
         },
         req: createRequest(loginResult.user),
-      })
+      });
 
-      expect(meResult.docs.length).toBeGreaterThan(0)
-      expect(meResult.docs[0].email).toBe(testEmail)
-    })
-  })
+      expect(meResult.docs.length).toBeGreaterThan(0);
+      expect(meResult.docs[0].email).toBe(testEmail);
+    });
+  });
 
   describe('Session Management', () => {
     it('should maintain session across requests', async () => {
@@ -151,10 +151,10 @@ describe('Authentication Integration', () => {
           email: testEmail,
           password: testPassword,
         },
-      })
+      });
 
       // Make multiple authenticated requests
-      const req = createRequest(loginResult.user)
+      const req = createRequest(loginResult.user);
 
       const query1 = await revealui.find({
         collection: 'users',
@@ -164,7 +164,7 @@ describe('Authentication Integration', () => {
           },
         },
         req,
-      })
+      });
 
       const query2 = await revealui.find({
         collection: 'users',
@@ -174,18 +174,18 @@ describe('Authentication Integration', () => {
           },
         },
         req,
-      })
+      });
 
-      expect(query1.docs[0].id).toBe(query2.docs[0].id)
-    })
-  })
+      expect(query1.docs[0].id).toBe(query2.docs[0].id);
+    });
+  });
 
   describe('Multi-tenant Authentication', () => {
     it('should support tenant-scoped user creation', async () => {
-      const tenantEmail = `tenant-user-${Date.now()}@example.com`
+      const tenantEmail = `tenant-user-${Date.now()}@example.com`;
 
       // Hash password before creating user
-      const hashedPassword = await bcrypt.hash(testPassword, 10)
+      const hashedPassword = await bcrypt.hash(testPassword, 10);
       const user = await revealui.create({
         collection: 'users',
         data: {
@@ -199,14 +199,14 @@ describe('Authentication Integration', () => {
             },
           ],
         },
-      })
+      });
 
-      trackTestData('users', String(user.id))
+      trackTestData('users', String(user.id));
 
-      expect(user.email).toBe(tenantEmail)
-      expect(user.tenants).toBeDefined()
-      const tenants = Array.isArray(user.tenants) ? user.tenants : []
-      expect(tenants.length).toBeGreaterThan(0)
-    })
-  })
-})
+      expect(user.email).toBe(tenantEmail);
+      expect(user.tenants).toBeDefined();
+      const tenants = Array.isArray(user.tenants) ? user.tenants : [];
+      expect(tenants.length).toBeGreaterThan(0);
+    });
+  });
+});

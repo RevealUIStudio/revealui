@@ -1,24 +1,24 @@
-import type { Post } from '@revealui/core/types/cms'
-import type { Metadata } from 'next/types'
-import { CollectionArchive } from '@/lib/components/CollectionArchive'
-import { PageRange } from '@/lib/components/PageRange'
-import { Pagination } from '@/lib/components/Pagination'
-import { getRevealUIInstance } from '@/lib/utilities/revealui-singleton'
+import type { Post } from '@revealui/core/types/cms';
+import type { Metadata } from 'next/types';
+import { CollectionArchive } from '@/lib/components/CollectionArchive';
+import { PageRange } from '@/lib/components/PageRange';
+import { Pagination } from '@/lib/components/Pagination';
+import { getRevealUIInstance } from '@/lib/utilities/revealui-singleton';
 
 // Force dynamic rendering to prevent build-time RevealUI CMS initialization
-export const dynamic = 'force-dynamic'
-export const dynamicParams = true
+export const dynamic = 'force-dynamic';
+export const dynamicParams = true;
 
 export default async function Page({ params }: { params: Promise<{ pageNumber?: number }> }) {
-  const { pageNumber = 2 } = await params
-  const revealui = await getRevealUIInstance()
+  const { pageNumber = 2 } = await params;
+  const revealui = await getRevealUIInstance();
 
   const posts = await revealui.find({
     collection: 'posts',
     depth: 1,
     limit: 12,
     page: pageNumber,
-  })
+  });
 
   return (
     <div className="pt-24 pb-24">
@@ -45,18 +45,18 @@ export default async function Page({ params }: { params: Promise<{ pageNumber?: 
         )}
       </div>
     </div>
-  )
+  );
 }
 
 export async function generateMetadata({
   params,
 }: {
-  params: Promise<{ pageNumber?: number }>
+  params: Promise<{ pageNumber?: number }>;
 }): Promise<Metadata> {
-  const { pageNumber = 2 } = await params
+  const { pageNumber = 2 } = await params;
   return {
     title: `RevealUI Posts Page ${pageNumber}`,
-  }
+  };
 }
 
 // Removed generateStaticParams to prevent build-time initialization

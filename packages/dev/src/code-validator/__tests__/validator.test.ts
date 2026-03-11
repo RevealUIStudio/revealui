@@ -2,9 +2,9 @@
  * Code Validator Tests
  */
 
-import { describe, expect, it } from 'vitest'
-import type { CodeStandards } from '../types.js'
-import { CodeValidator } from '../validator.js'
+import { describe, expect, it } from 'vitest';
+import type { CodeStandards } from '../types.js';
+import { CodeValidator } from '../validator.js';
 
 const testStandards: CodeStandards = {
   title: 'Test Standards',
@@ -31,63 +31,63 @@ const testStandards: CodeStandards = {
     showContext: true,
     contextLines: 2,
   },
-}
+};
 
 describe('CodeValidator', () => {
   it('validates clean code', () => {
-    const validator = new CodeValidator(testStandards)
+    const validator = new CodeValidator(testStandards);
     const code = `
       function foo() {
         return 'hello'
       }
-    `
+    `;
 
-    const result = validator.validate(code)
+    const result = validator.validate(code);
 
-    expect(result.valid).toBe(true)
-    expect(result.violations).toHaveLength(0)
-    expect(result.errors).toBe(0)
-    expect(result.warnings).toBe(0)
-  })
+    expect(result.valid).toBe(true);
+    expect(result.violations).toHaveLength(0);
+    expect(result.errors).toBe(0);
+    expect(result.warnings).toBe(0);
+  });
 
   it('detects console.log violations', () => {
-    const validator = new CodeValidator(testStandards)
+    const validator = new CodeValidator(testStandards);
     const code = `
       function foo() {
         console.log('debug')
         return 'hello'
       }
-    `
+    `;
 
-    const result = validator.validate(code)
+    const result = validator.validate(code);
 
-    expect(result.valid).toBe(false)
-    expect(result.violations).toHaveLength(1)
-    expect(result.violations[0]?.ruleId).toBe('no-console-log')
-    expect(result.violations[0]?.severity).toBe('error')
-    expect(result.errors).toBe(1)
-  })
+    expect(result.valid).toBe(false);
+    expect(result.violations).toHaveLength(1);
+    expect(result.violations[0]?.ruleId).toBe('no-console-log');
+    expect(result.violations[0]?.severity).toBe('error');
+    expect(result.errors).toBe(1);
+  });
 
   it('detects any type violations', () => {
-    const validator = new CodeValidator(testStandards)
+    const validator = new CodeValidator(testStandards);
     const code = `
       function foo(data: any) {
         return data
       }
-    `
+    `;
 
-    const result = validator.validate(code)
+    const result = validator.validate(code);
 
-    expect(result.valid).toBe(true) // warnings don't make it invalid
-    expect(result.violations).toHaveLength(1)
-    expect(result.violations[0]?.ruleId).toBe('no-any')
-    expect(result.violations[0]?.severity).toBe('warning')
-    expect(result.warnings).toBe(1)
-  })
+    expect(result.valid).toBe(true); // warnings don't make it invalid
+    expect(result.violations).toHaveLength(1);
+    expect(result.violations[0]?.ruleId).toBe('no-any');
+    expect(result.violations[0]?.severity).toBe('warning');
+    expect(result.warnings).toBe(1);
+  });
 
   it('respects path exemptions', () => {
-    const rule0 = testStandards.rules[0]
-    if (!rule0) throw new Error('Rule 0 not found')
+    const rule0 = testStandards.rules[0];
+    if (!rule0) throw new Error('Rule 0 not found');
 
     const standardsWithExemptions: CodeStandards = {
       ...testStandards,
@@ -99,21 +99,21 @@ describe('CodeValidator', () => {
           },
         },
       ],
-    }
+    };
 
-    const validator = new CodeValidator(standardsWithExemptions)
-    const code = `console.log('test')`
+    const validator = new CodeValidator(standardsWithExemptions);
+    const code = `console.log('test')`;
 
-    const result = validator.validate(code, { filePath: 'src/foo.test.ts' })
+    const result = validator.validate(code, { filePath: 'src/foo.test.ts' });
 
-    expect(result.valid).toBe(true)
-    expect(result.violations).toHaveLength(0)
-    expect(result.stats.exemptionsApplied).toBe(1)
-  })
+    expect(result.valid).toBe(true);
+    expect(result.violations).toHaveLength(0);
+    expect(result.stats.exemptionsApplied).toBe(1);
+  });
 
   it('respects comment exemptions', () => {
-    const rule0 = testStandards.rules[0]
-    if (!rule0) throw new Error('Rule 0 not found')
+    const rule0 = testStandards.rules[0];
+    if (!rule0) throw new Error('Rule 0 not found');
 
     const standardsWithExemptions: CodeStandards = {
       ...testStandards,
@@ -125,31 +125,31 @@ describe('CodeValidator', () => {
           },
         },
       ],
-    }
+    };
 
-    const validator = new CodeValidator(standardsWithExemptions)
+    const validator = new CodeValidator(standardsWithExemptions);
     const code = `
       console.log('normal') // This should fail
       console.log('ignored') // ai-validator-ignore
-    `
+    `;
 
-    const result = validator.validate(code)
+    const result = validator.validate(code);
 
-    expect(result.violations).toHaveLength(1) // Only first console.log
-    expect(result.violations[0]?.line).toBe(2)
-  })
+    expect(result.violations).toHaveLength(1); // Only first console.log
+    expect(result.violations[0]?.line).toBe(2);
+  });
 
   it('formats results correctly', () => {
-    const validator = new CodeValidator(testStandards)
-    const code = `console.log('test')`
+    const validator = new CodeValidator(testStandards);
+    const code = `console.log('test')`;
 
-    const result = validator.validate(code)
-    const formatted = validator.formatResult(result, { colors: false })
+    const result = validator.validate(code);
+    const formatted = validator.formatResult(result, { colors: false });
 
-    expect(formatted).toContain('✗ Code violations found')
-    expect(formatted).toContain('ERROR [no-console-log]')
-    expect(formatted).toContain('1 errors, 0 warnings')
-  })
+    expect(formatted).toContain('✗ Code violations found');
+    expect(formatted).toContain('ERROR [no-console-log]');
+    expect(formatted).toContain('1 errors, 0 warnings');
+  });
 
   it('auto-fixes violations', () => {
     const standardsWithAutoFix: CodeStandards = {
@@ -164,46 +164,46 @@ describe('CodeValidator', () => {
           },
         ],
       },
-    }
+    };
 
-    const validator = new CodeValidator(standardsWithAutoFix)
-    const code = `console.log('test')`
+    const validator = new CodeValidator(standardsWithAutoFix);
+    const code = `console.log('test')`;
 
-    const { code: fixedCode, fixesApplied } = validator.autoFix(code)
+    const { code: fixedCode, fixesApplied } = validator.autoFix(code);
 
-    expect(fixesApplied).toBe(1)
-    expect(fixedCode).toBe(`// FIXME: logger.info('test')`)
-  })
+    expect(fixesApplied).toBe(1);
+    expect(fixedCode).toBe(`// FIXME: logger.info('test')`);
+  });
 
   it('provides context lines', () => {
-    const validator = new CodeValidator(testStandards)
+    const validator = new CodeValidator(testStandards);
     const code = `
       function foo() {
         const x = 1
         console.log(x)
         return x
       }
-    `
+    `;
 
-    const result = validator.validate(code)
+    const result = validator.validate(code);
 
-    expect(result.violations[0]?.context).toBeDefined()
-    expect(result.violations[0]?.context?.length).toBeGreaterThan(0)
-    expect(result.violations[0]?.context?.some((line) => line.includes('>'))).toBe(true)
-  })
+    expect(result.violations[0]?.context).toBeDefined();
+    expect(result.violations[0]?.context?.length).toBeGreaterThan(0);
+    expect(result.violations[0]?.context?.some((line) => line.includes('>'))).toBe(true);
+  });
 
   it('counts stats correctly', () => {
-    const validator = new CodeValidator(testStandards)
+    const validator = new CodeValidator(testStandards);
     const code = `
       console.log('one')
       console.log('two')
       const foo: any = {}
-    `
+    `;
 
-    const result = validator.validate(code)
+    const result = validator.validate(code);
 
-    expect(result.stats.linesScanned).toBe(5)
-    expect(result.stats.rulesApplied).toBe(2)
-    expect(result.violations).toHaveLength(3) // 2 console.log + 1 any
-  })
-})
+    expect(result.stats.linesScanned).toBe(5);
+    expect(result.stats.rulesApplied).toBe(2);
+    expect(result.violations).toHaveLength(3); // 2 console.log + 1 any
+  });
+});

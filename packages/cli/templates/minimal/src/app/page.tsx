@@ -14,5 +14,5 @@ export default function HomePage() {
         customize this page.
       </p>
     </main>
-  )
+  );
 }

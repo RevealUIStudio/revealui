@@ -43,23 +43,23 @@
  * - Scripts: Domain CLIs (ops, check, state, assets, info) and legacy CLIs
  */
 
-import { spawn } from 'node:child_process'
-import { readFileSync } from 'node:fs'
-import { dirname, join } from 'node:path'
-import { fileURLToPath } from 'node:url'
-import { ErrorCode } from '../lib/errors.js'
+import { spawn } from 'node:child_process';
+import { readFileSync } from 'node:fs';
+import { dirname, join } from 'node:path';
+import { fileURLToPath } from 'node:url';
+import { ErrorCode } from '../lib/errors.js';
 
-const __filename = fileURLToPath(import.meta.url)
-const __dirname = dirname(__filename)
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = dirname(__filename);
 
 // =============================================================================
 // CLI Registry
 // =============================================================================
 
 interface CLIDefinition {
-  name: string
-  description: string
-  script: string
+  name: string;
+  description: string;
+  script: string;
 }
 
 // New domain-focused CLIs (v2)
@@ -89,7 +89,7 @@ const DOMAIN_CLIS: CLIDefinition[] = [
     description: 'Information & discovery (explore, deps, version, analytics)',
     script: './info.ts',
   },
-]
+];
 
 // Legacy CLIs (deprecated - forward to new domain CLIs)
 const LEGACY_CLIS: CLIDefinition[] = [
@@ -188,7 +188,7 @@ const LEGACY_CLIS: CLIDefinition[] = [
     description: '[DEPRECATED] Use: info analytics (Analytics)',
     script: './analytics.ts',
   },
-]
+];
 
 // Other CLIs (not consolidated)
 const OTHER_CLIS: CLIDefinition[] = [
@@ -212,74 +212,74 @@ const OTHER_CLIS: CLIDefinition[] = [
     description: 'Script management utilities',
     script: './scripts.ts',
   },
-]
+];
 
 // All available CLIs (domain first, then others, then legacy)
-const AVAILABLE_CLIS: CLIDefinition[] = [...DOMAIN_CLIS, ...OTHER_CLIS, ...LEGACY_CLIS]
+const AVAILABLE_CLIS: CLIDefinition[] = [...DOMAIN_CLIS, ...OTHER_CLIS, ...LEGACY_CLIS];
 
 // =============================================================================
 // Helper Functions
 // =============================================================================
 
 function showHelp() {
-  console.log('revealui')
-  console.log()
-  console.log('Unified CLI for RevealUI development and operations')
-  console.log()
-  console.log('Usage:')
-  console.log('  revealui <cli> <command> [options]')
-  console.log()
-  console.log('Domain CLIs (v2 - RECOMMENDED):')
-  console.log()
+  console.log('revealui');
+  console.log();
+  console.log('Unified CLI for RevealUI development and operations');
+  console.log();
+  console.log('Usage:');
+  console.log('  revealui <cli> <command> [options]');
+  console.log();
+  console.log('Domain CLIs (v2 - RECOMMENDED):');
+  console.log();
 
-  const maxNameLength = Math.max(...AVAILABLE_CLIS.map((cli) => cli.name.length))
+  const maxNameLength = Math.max(...AVAILABLE_CLIS.map((cli) => cli.name.length));
 
   for (const cli of DOMAIN_CLIS) {
-    const padding = ' '.repeat(maxNameLength - cli.name.length + 2)
-    console.log(`  ${cli.name}${padding}${cli.description}`)
+    const padding = ' '.repeat(maxNameLength - cli.name.length + 2);
+    console.log(`  ${cli.name}${padding}${cli.description}`);
   }
 
-  console.log()
-  console.log('Other CLIs:')
-  console.log()
+  console.log();
+  console.log('Other CLIs:');
+  console.log();
 
   for (const cli of OTHER_CLIS) {
-    const padding = ' '.repeat(maxNameLength - cli.name.length + 2)
-    console.log(`  ${cli.name}${padding}${cli.description}`)
+    const padding = ' '.repeat(maxNameLength - cli.name.length + 2);
+    console.log(`  ${cli.name}${padding}${cli.description}`);
   }
 
-  console.log()
-  console.log('Legacy CLIs (deprecated, use --help for migration guide):')
-  console.log()
+  console.log();
+  console.log('Legacy CLIs (deprecated, use --help for migration guide):');
+  console.log();
 
   for (const cli of LEGACY_CLIS) {
-    const padding = ' '.repeat(maxNameLength - cli.name.length + 2)
-    console.log(`  ${cli.name}${padding}${cli.description}`)
+    const padding = ' '.repeat(maxNameLength - cli.name.length + 2);
+    console.log(`  ${cli.name}${padding}${cli.description}`);
   }
 
-  console.log()
-  console.log('Global Options:')
-  console.log('  --json       Output in JSON format')
-  console.log('  --help       Show this help message')
-  console.log('  --version    Show version')
-  console.log()
-  console.log('Examples (new domain CLIs):')
-  console.log('  revealui ops fix-imports --dry-run')
-  console.log('  revealui check analyze --json')
-  console.log('  revealui state workflow:start build')
-  console.log('  revealui assets types:generate')
-  console.log('  revealui info deps:graph')
-  console.log()
-  console.log('For help on a specific CLI, use:')
-  console.log('  revealui <cli> --help')
-  console.log()
+  console.log();
+  console.log('Global Options:');
+  console.log('  --json       Output in JSON format');
+  console.log('  --help       Show this help message');
+  console.log('  --version    Show version');
+  console.log();
+  console.log('Examples (new domain CLIs):');
+  console.log('  revealui ops fix-imports --dry-run');
+  console.log('  revealui check analyze --json');
+  console.log('  revealui state workflow:start build');
+  console.log('  revealui assets types:generate');
+  console.log('  revealui info deps:graph');
+  console.log();
+  console.log('For help on a specific CLI, use:');
+  console.log('  revealui <cli> --help');
+  console.log();
 }
 
 function showVersion() {
   // Read version from root package.json at runtime
-  const pkgPath = new URL('../../package.json', import.meta.url)
-  const pkg = JSON.parse(readFileSync(pkgPath, 'utf-8')) as { version?: string }
-  console.log(`revealui v${pkg.version ?? '0.0.0'}`)
+  const pkgPath = new URL('../../package.json', import.meta.url);
+  const pkg = JSON.parse(readFileSync(pkgPath, 'utf-8')) as { version?: string };
+  console.log(`revealui v${pkg.version ?? '0.0.0'}`);
 }
 
 // =============================================================================
@@ -287,38 +287,38 @@ function showVersion() {
 // =============================================================================
 
 async function routeToCLI(cliName: string, args: string[]): Promise<number> {
-  const cli = AVAILABLE_CLIS.find((c) => c.name === cliName)
+  const cli = AVAILABLE_CLIS.find((c) => c.name === cliName);
 
   if (!cli) {
-    console.error(`Error: Unknown CLI "${cliName}"`)
-    console.error()
-    console.error('Available CLIs:')
+    console.error(`Error: Unknown CLI "${cliName}"`);
+    console.error();
+    console.error('Available CLIs:');
     for (const c of AVAILABLE_CLIS) {
-      console.error(`  - ${c.name}`)
+      console.error(`  - ${c.name}`);
     }
-    console.error()
-    console.error('Run "revealui --help" for more information')
-    return 1
+    console.error();
+    console.error('Run "revealui --help" for more information');
+    return 1;
   }
 
-  const scriptPath = join(__dirname, cli.script)
+  const scriptPath = join(__dirname, cli.script);
 
   // Execute the CLI script with tsx
   return new Promise((resolve) => {
     const child = spawn('tsx', [scriptPath, ...args], {
       stdio: 'inherit',
       env: process.env,
-    })
+    });
 
     child.on('exit', (code) => {
-      resolve(code || 0)
-    })
+      resolve(code || 0);
+    });
 
     child.on('error', (error) => {
-      console.error(`Failed to execute ${cliName}:`, error.message)
-      resolve(1)
-    })
-  })
+      console.error(`Failed to execute ${cliName}:`, error.message);
+      resolve(1);
+    });
+  });
 }
 
 // =============================================================================
@@ -326,32 +326,32 @@ async function routeToCLI(cliName: string, args: string[]): Promise<number> {
 // =============================================================================
 
 async function main() {
-  const args = process.argv.slice(2)
+  const args = process.argv.slice(2);
 
   // Handle no args - show help
   if (args.length === 0) {
-    showHelp()
-    return 0
+    showHelp();
+    return 0;
   }
 
   // Handle global version flag
   if (args[0] === '--version' || args[0] === '-v') {
-    showVersion()
-    return 0
+    showVersion();
+    return 0;
   }
 
   // Handle global help flag (only if first arg)
   if (args[0] === '--help' || args[0] === '-h') {
-    showHelp()
-    return 0
+    showHelp();
+    return 0;
   }
 
   // Route to specific CLI (even if --help is present, let the sub-CLI handle it)
-  const cliName = args[0]
-  const cliArgs = args.slice(1)
+  const cliName = args[0];
+  const cliArgs = args.slice(1);
 
-  const exitCode = await routeToCLI(cliName, cliArgs)
-  return exitCode
+  const exitCode = await routeToCLI(cliName, cliArgs);
+  return exitCode;
 }
 
 // =============================================================================
@@ -360,12 +360,12 @@ async function main() {
 
 main()
   .then((code) => {
-    process.exit(code)
+    process.exit(code);
   })
   .catch((error) => {
-    console.error('Fatal error:', error.message)
+    console.error('Fatal error:', error.message);
     if (error.stack) {
-      console.error(error.stack)
+      console.error(error.stack);
     }
-    process.exit(ErrorCode.EXECUTION_ERROR)
-  })
+    process.exit(ErrorCode.EXECUTION_ERROR);
+  });

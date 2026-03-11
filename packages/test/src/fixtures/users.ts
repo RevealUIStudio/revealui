@@ -4,22 +4,22 @@
  * Provides test data for user-related tests
  */
 
-import { createTestId } from '../utils/test-helpers.js'
+import { createTestId } from '../utils/test-helpers.js';
 
 export interface TestUser {
-  id: string
-  email: string
-  password: string
-  name?: string
-  role?: 'admin' | 'user' | 'guest'
-  tenantId?: string
+  id: string;
+  email: string;
+  password: string;
+  name?: string;
+  role?: 'admin' | 'user' | 'guest';
+  tenantId?: string;
 }
 
 /**
  * Create a test user with unique email
  */
 export function createTestUser(overrides?: Partial<TestUser>): TestUser {
-  const testId = createTestId('user')
+  const testId = createTestId('user');
 
   return {
     id: overrides?.id || `user_${testId}`,
@@ -29,7 +29,7 @@ export function createTestUser(overrides?: Partial<TestUser>): TestUser {
     role: overrides?.role || 'user',
     tenantId: overrides?.tenantId || `tenant_${testId}`,
     ...overrides,
-  }
+  };
 }
 
 /**
@@ -40,14 +40,14 @@ export function createAdminUser(overrides?: Partial<TestUser>): TestUser {
     role: 'admin',
     email: `admin-${createTestId()}@example.com`,
     ...overrides,
-  })
+  });
 }
 
 /**
  * Create multiple test users
  */
 export function createTestUsers(count: number, overrides?: Partial<TestUser>): TestUser[] {
-  return Array.from({ length: count }, () => createTestUser(overrides))
+  return Array.from({ length: count }, () => createTestUser(overrides));
 }
 
 /**
@@ -75,4 +75,4 @@ export const defaultTestUsers = {
     role: 'guest' as const,
     name: 'Guest User',
   },
-}
+};

@@ -1,27 +1,27 @@
-'use client'
+'use client';
 
-import { useSearchParams } from 'next/navigation'
-import { Suspense, useCallback, useEffect, useState } from 'react'
+import { useSearchParams } from 'next/navigation';
+import { Suspense, useCallback, useEffect, useState } from 'react';
 
 // =============================================================================
 // Types
 // =============================================================================
 
-type OAuthProvider = 'github' | 'google' | 'vercel'
+type OAuthProvider = 'github' | 'google' | 'vercel';
 
 interface LinkedProvider {
-  provider: OAuthProvider
-  email: string | null
-  name: string | null
+  provider: OAuthProvider;
+  email: string | null;
+  name: string | null;
 }
 
 interface UserProfile {
-  id: string
-  email: string
-  name: string | null
-  role: string
-  hasPassword: boolean
-  linkedProviders: LinkedProvider[]
+  id: string;
+  email: string;
+  name: string | null;
+  role: string;
+  hasPassword: boolean;
+  linkedProviders: LinkedProvider[];
 }
 
 // =============================================================================
@@ -29,9 +29,9 @@ interface UserProfile {
 // =============================================================================
 
 const PROVIDERS: {
-  id: OAuthProvider
-  label: string
-  description: string
+  id: OAuthProvider;
+  label: string;
+  description: string;
 }[] = [
   {
     id: 'github',
@@ -48,7 +48,7 @@ const PROVIDERS: {
     label: 'Vercel',
     description: 'Sign in with your Vercel account',
   },
-]
+];
 
 // =============================================================================
 // Provider icon SVGs
@@ -59,7 +59,7 @@ function GitHubIcon({ className }: { className?: string }) {
     <svg className={className} viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
       <path d="M12 2C6.477 2 2 6.484 2 12.017c0 4.425 2.865 8.18 6.839 9.504.5.092.682-.217.682-.483 0-.237-.008-.868-.013-1.703-2.782.605-3.369-1.343-3.369-1.343-.454-1.158-1.11-1.466-1.11-1.466-.908-.62.069-.608.069-.608 1.003.07 1.531 1.032 1.531 1.032.892 1.53 2.341 1.088 2.91.832.092-.647.35-1.088.636-1.338-2.22-.253-4.555-1.113-4.555-4.951 0-1.093.39-1.988 1.029-2.688-.103-.253-.446-1.272.098-2.65 0 0 .84-.27 2.75 1.026A9.564 9.564 0 0112 6.844c.85.004 1.705.115 2.504.337 1.909-1.296 2.747-1.027 2.747-1.027.546 1.379.202 2.398.1 2.651.64.7 1.028 1.595 1.028 2.688 0 3.848-2.339 4.695-4.566 4.943.359.309.678.92.678 1.855 0 1.338-.012 2.419-.012 2.747 0 .268.18.58.688.482A10.019 10.019 0 0022 12.017C22 6.484 17.522 2 12 2z" />
     </svg>
-  )
+  );
 }
 
 function GoogleIcon({ className }: { className?: string }) {
@@ -70,7 +70,7 @@ function GoogleIcon({ className }: { className?: string }) {
       <path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z" />
       <path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" />
     </svg>
-  )
+  );
 }
 
 function VercelIcon({ className }: { className?: string }) {
@@ -78,14 +78,14 @@ function VercelIcon({ className }: { className?: string }) {
     <svg className={className} viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
       <path d="M12 2L2 19.5h20L12 2z" />
     </svg>
-  )
+  );
 }
 
 const PROVIDER_ICONS: Record<OAuthProvider, typeof GitHubIcon> = {
   github: GitHubIcon,
   google: GoogleIcon,
   vercel: VercelIcon,
-}
+};
 
 // =============================================================================
 // Page component
@@ -105,102 +105,102 @@ export default function AccountSettingsPage() {
     >
       <AccountSettingsContent />
     </Suspense>
-  )
+  );
 }
 
 function AccountSettingsContent() {
-  const searchParams = useSearchParams()
-  const [user, setUser] = useState<UserProfile | null>(null)
-  const [loading, setLoading] = useState(true)
-  const [unlinking, setUnlinking] = useState<OAuthProvider | null>(null)
-  const [error, setError] = useState<string | null>(null)
-  const [success, setSuccess] = useState<string | null>(null)
+  const searchParams = useSearchParams();
+  const [user, setUser] = useState<UserProfile | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [unlinking, setUnlinking] = useState<OAuthProvider | null>(null);
+  const [error, setError] = useState<string | null>(null);
+  const [success, setSuccess] = useState<string | null>(null);
 
   const fetchUser = useCallback(async () => {
     try {
-      const res = await fetch('/api/auth/me')
-      if (!res.ok) return
-      const data = (await res.json()) as { user: UserProfile }
-      setUser(data.user)
+      const res = await fetch('/api/auth/me');
+      if (!res.ok) return;
+      const data = (await res.json()) as { user: UserProfile };
+      setUser(data.user);
     } finally {
-      setLoading(false)
+      setLoading(false);
     }
-  }, [])
+  }, []);
 
   useEffect(() => {
-    void fetchUser()
-  }, [fetchUser])
+    void fetchUser();
+  }, [fetchUser]);
 
   // Handle redirect params from OAuth linking callback
   useEffect(() => {
-    const linked = searchParams.get('linked')
-    const errorParam = searchParams.get('error')
+    const linked = searchParams.get('linked');
+    const errorParam = searchParams.get('error');
 
     if (linked) {
-      const label = PROVIDERS.find((p) => p.id === linked)?.label ?? linked
-      setSuccess(`${label} account linked successfully.`)
+      const label = PROVIDERS.find((p) => p.id === linked)?.label ?? linked;
+      setSuccess(`${label} account linked successfully.`);
       // Refresh user data to show the new link
-      void fetchUser()
+      void fetchUser();
       // Clean URL without triggering navigation
-      window.history.replaceState(null, '', '/admin/settings/account')
+      window.history.replaceState(null, '', '/admin/settings/account');
     }
     if (errorParam) {
-      setError(decodeURIComponent(errorParam))
-      window.history.replaceState(null, '', '/admin/settings/account')
+      setError(decodeURIComponent(errorParam));
+      window.history.replaceState(null, '', '/admin/settings/account');
     }
-  }, [searchParams, fetchUser])
+  }, [searchParams, fetchUser]);
 
   // Auto-dismiss messages
   useEffect(() => {
-    if (!success) return
-    const timer = setTimeout(() => setSuccess(null), 5000)
-    return () => clearTimeout(timer)
-  }, [success])
+    if (!success) return;
+    const timer = setTimeout(() => setSuccess(null), 5000);
+    return () => clearTimeout(timer);
+  }, [success]);
 
   useEffect(() => {
-    if (!error) return
-    const timer = setTimeout(() => setError(null), 8000)
-    return () => clearTimeout(timer)
-  }, [error])
+    if (!error) return;
+    const timer = setTimeout(() => setError(null), 8000);
+    return () => clearTimeout(timer);
+  }, [error]);
 
   function handleLink(provider: OAuthProvider) {
-    const redirectTo = '/admin/settings/account'
-    window.location.href = `/api/auth/link/${provider}?redirectTo=${encodeURIComponent(redirectTo)}`
+    const redirectTo = '/admin/settings/account';
+    window.location.href = `/api/auth/link/${provider}?redirectTo=${encodeURIComponent(redirectTo)}`;
   }
 
   async function handleUnlink(provider: OAuthProvider) {
-    const label = PROVIDERS.find((p) => p.id === provider)?.label ?? provider
+    const label = PROVIDERS.find((p) => p.id === provider)?.label ?? provider;
     const confirmed = window.confirm(
       `Unlink ${label}? You'll no longer be able to sign in with this account.`,
-    )
-    if (!confirmed) return
+    );
+    if (!confirmed) return;
 
-    setUnlinking(provider)
-    setError(null)
+    setUnlinking(provider);
+    setError(null);
 
     try {
       const res = await fetch('/api/auth/unlink', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ provider }),
-      })
+      });
 
       if (res.ok) {
-        const label = PROVIDERS.find((p) => p.id === provider)?.label ?? provider
-        setSuccess(`${label} account unlinked.`)
-        await fetchUser()
+        const label = PROVIDERS.find((p) => p.id === provider)?.label ?? provider;
+        setSuccess(`${label} account unlinked.`);
+        await fetchUser();
       } else {
-        const data = (await res.json()) as { error?: string }
-        setError(data.error ?? 'Failed to unlink account.')
+        const data = (await res.json()) as { error?: string };
+        setError(data.error ?? 'Failed to unlink account.');
       }
     } catch {
-      setError('Network error. Please try again.')
+      setError('Network error. Please try again.');
     } finally {
-      setUnlinking(null)
+      setUnlinking(null);
     }
   }
 
-  const linkedSet = new Set(user?.linkedProviders.map((lp) => lp.provider) ?? [])
+  const linkedSet = new Set(user?.linkedProviders.map((lp) => lp.provider) ?? []);
 
   return (
     <div className="min-h-screen">
@@ -273,10 +273,10 @@ function AccountSettingsContent() {
 
               <div className="mt-5 space-y-3">
                 {PROVIDERS.map((provider) => {
-                  const isLinked = linkedSet.has(provider.id)
-                  const linkedInfo = user.linkedProviders.find((lp) => lp.provider === provider.id)
-                  const isUnlinking = unlinking === provider.id
-                  const Icon = PROVIDER_ICONS[provider.id]
+                  const isLinked = linkedSet.has(provider.id);
+                  const linkedInfo = user.linkedProviders.find((lp) => lp.provider === provider.id);
+                  const isUnlinking = unlinking === provider.id;
+                  const Icon = PROVIDER_ICONS[provider.id];
 
                   return (
                     <div
@@ -317,7 +317,7 @@ function AccountSettingsContent() {
                         </button>
                       )}
                     </div>
-                  )
+                  );
                 })}
               </div>
 
@@ -339,5 +339,5 @@ function AccountSettingsContent() {
         )}
       </div>
     </div>
-  )
+  );
 }

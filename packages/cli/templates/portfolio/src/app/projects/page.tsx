@@ -1,32 +1,32 @@
-import Image from 'next/image'
+import Image from 'next/image';
 
-const API_URL = process.env.NEXT_PUBLIC_SERVER_URL || 'http://localhost:4000'
+const API_URL = process.env.NEXT_PUBLIC_SERVER_URL || 'http://localhost:4000';
 
 interface Project {
-  id: string
-  title: string
-  slug: string
-  description: unknown
-  tags?: Array<{ tag: string }>
-  link?: string
-  image?: { url: string; alt?: string } | null
+  id: string;
+  title: string;
+  slug: string;
+  description: unknown;
+  tags?: Array<{ tag: string }>;
+  link?: string;
+  image?: { url: string; alt?: string } | null;
 }
 
 async function getProjects(): Promise<Project[]> {
   try {
     const res = await fetch(`${API_URL}/api/projects?sort=-createdAt`, {
       cache: 'no-store',
-    })
-    if (!res.ok) return []
-    const data = await res.json()
-    return data.docs ?? []
+    });
+    if (!res.ok) return [];
+    const data = await res.json();
+    return data.docs ?? [];
   } catch {
-    return []
+    return [];
   }
 }
 
 export default async function ProjectsPage() {
-  const projects = await getProjects()
+  const projects = await getProjects();
 
   return (
     <main className="mx-auto max-w-4xl px-4 py-16">
@@ -81,5 +81,5 @@ export default async function ProjectsPage() {
         </div>
       )}
     </main>
-  )
+  );
 }

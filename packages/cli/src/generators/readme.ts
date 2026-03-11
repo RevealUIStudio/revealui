@@ -2,9 +2,9 @@
  * Project README generator
  */
 
-import fs from 'node:fs/promises'
-import path from 'node:path'
-import type { ProjectConfig } from '../prompts/project.js'
+import fs from 'node:fs/promises';
+import path from 'node:path';
+import type { ProjectConfig } from '../prompts/project.js';
 
 export async function generateReadme(
   projectPath: string,
@@ -107,7 +107,7 @@ This project was created using the **${projectConfig.template}** template.
 ## License
 
 MIT
-`
+`;
 
-  await fs.writeFile(path.join(projectPath, 'README.md'), readme, 'utf-8')
+  await fs.writeFile(path.join(projectPath, 'README.md'), readme, 'utf-8');
 }

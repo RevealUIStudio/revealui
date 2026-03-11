@@ -14,14 +14,14 @@
  * - Business logic and computed fields
  */
 
-import { z } from 'zod/v4'
+import { z } from 'zod/v4';
 import {
   createTimestamps,
   DualEntitySchema,
   REPRESENTATION_SCHEMA_VERSION,
   toAgentRepresentation,
   toHumanRepresentation,
-} from '../representation/index.js'
+} from '../representation/index.js';
 // NOTE: Auto-generated base schema available for future tight integration:
 // import { SitesSelectSchema, SitesInsertSchema } from '../generated/zod-schemas.js'
 
@@ -29,16 +29,16 @@ import {
 // Schema Version
 // =============================================================================
 
-export const SITE_SCHEMA_VERSION = 1
+export const SITE_SCHEMA_VERSION = 1;
 
 // =============================================================================
 // Site Status
 // =============================================================================
 
-export const SITE_STATUSES = ['draft', 'published', 'archived', 'maintenance'] as const
+export const SITE_STATUSES = ['draft', 'published', 'archived', 'maintenance'] as const;
 
-export const SiteStatusSchema = z.enum(SITE_STATUSES)
-export type SiteStatus = (typeof SITE_STATUSES)[number]
+export const SiteStatusSchema = z.enum(SITE_STATUSES);
+export type SiteStatus = (typeof SITE_STATUSES)[number];
 
 // =============================================================================
 // Site Theme
@@ -89,9 +89,9 @@ export const SiteThemeSchema = z.object({
 
   /** Custom CSS variables */
   customVariables: z.record(z.string(), z.string()).optional(),
-})
+});
 
-export type SiteTheme = z.infer<typeof SiteThemeSchema>
+export type SiteTheme = z.infer<typeof SiteThemeSchema>;
 
 // =============================================================================
 // Site SEO
@@ -118,9 +118,9 @@ export const SiteSeoSchema = z.object({
 
   /** Robots directive */
   robots: z.string().optional(),
-})
+});
 
-export type SiteSeo = z.infer<typeof SiteSeoSchema>
+export type SiteSeo = z.infer<typeof SiteSeoSchema>;
 
 // =============================================================================
 // Site Settings
@@ -183,9 +183,9 @@ export const SiteSettingsSchema = z.object({
       }),
     )
     .optional(),
-})
+});
 
-export type SiteSettings = z.infer<typeof SiteSettingsSchema>
+export type SiteSettings = z.infer<typeof SiteSettingsSchema>;
 
 // =============================================================================
 // Site Collaborator
@@ -196,9 +196,9 @@ export const SiteCollaboratorSchema = z.object({
   role: z.enum(['admin', 'editor', 'viewer']),
   addedAt: z.string().datetime(),
   addedBy: z.string(),
-})
+});
 
-export type SiteCollaborator = z.infer<typeof SiteCollaboratorSchema>
+export type SiteCollaborator = z.infer<typeof SiteCollaboratorSchema>;
 
 // =============================================================================
 // Site Schema
@@ -244,9 +244,9 @@ export const SiteSchema = DualEntitySchema.extend({
 
   /** Last published timestamp */
   publishedAt: z.string().datetime().optional(),
-})
+});
 
-export type Site = z.infer<typeof SiteSchema>
+export type Site = z.infer<typeof SiteSchema>;
 
 // =============================================================================
 // Site Creation
@@ -264,15 +264,15 @@ export const CreateSiteInputSchema = z.object({
   templateId: z.string().optional(),
   settings: SiteSettingsSchema.partial().optional(),
   theme: SiteThemeSchema.optional(),
-})
+});
 
-export type CreateSiteInput = z.infer<typeof CreateSiteInputSchema>
+export type CreateSiteInput = z.infer<typeof CreateSiteInputSchema>;
 
 /**
  * Creates a new site with dual representation
  */
 export function createSite(id: string, input: CreateSiteInput): Site {
-  const timestamps = createTimestamps()
+  const timestamps = createTimestamps();
 
   const settings: SiteSettings = {
     language: input.settings?.language ?? 'en',
@@ -283,7 +283,7 @@ export function createSite(id: string, input: CreateSiteInput): Site {
       seo: input.settings.seo,
       analyticsId: input.settings.analyticsId,
     }),
-  }
+  };
 
   return {
     id,
@@ -377,7 +377,7 @@ export function createSite(id: string, input: CreateSiteInput): Site {
       keywords: [input.name.toLowerCase(), input.slug, 'site', 'website'],
     }),
     ...timestamps,
-  }
+  };
 }
 
 // =============================================================================
@@ -390,9 +390,9 @@ export const UpdateSiteInputSchema = z.object({
   status: SiteStatusSchema.optional(),
   settings: SiteSettingsSchema.partial().optional(),
   theme: SiteThemeSchema.partial().optional(),
-})
+});
 
-export type UpdateSiteInput = z.infer<typeof UpdateSiteInputSchema>
+export type UpdateSiteInput = z.infer<typeof UpdateSiteInputSchema>;
 
 // =============================================================================
 // Site Utilities
@@ -407,21 +407,21 @@ export function canUserPerformAction(
   action: 'view' | 'edit' | 'admin' | 'delete',
 ): boolean {
   // Owner can do everything
-  if (site.ownerId === userId) return true
+  if (site.ownerId === userId) return true;
 
-  const collaborator = site.collaborators.find((c) => c.userId === userId)
-  if (!collaborator) return false
+  const collaborator = site.collaborators.find((c) => c.userId === userId);
+  if (!collaborator) return false;
 
   switch (action) {
     case 'view':
-      return true
+      return true;
     case 'edit':
-      return collaborator.role === 'editor' || collaborator.role === 'admin'
+      return collaborator.role === 'editor' || collaborator.role === 'admin';
     case 'admin':
     case 'delete':
-      return collaborator.role === 'admin'
+      return collaborator.role === 'admin';
     default:
-      return false
+      return false;
   }
 }
 
@@ -429,5 +429,5 @@ export function canUserPerformAction(
  * Checks if an agent can edit this site
  */
 export function canAgentEditSite(site: Site): boolean {
-  return site.settings.allowAgentEdits
+  return site.settings.allowAgentEdits;
 }

@@ -11,13 +11,13 @@
  * The `type` field determines which data shape is valid.
  */
 
-import { z } from 'zod/v4'
+import { z } from 'zod/v4';
 
 // =============================================================================
 // Schema Version
 // =============================================================================
 
-export const BLOCK_SCHEMA_VERSION = 1
+export const BLOCK_SCHEMA_VERSION = 1;
 
 // =============================================================================
 // Block Style Schema (shared across all blocks)
@@ -50,9 +50,9 @@ export const BlockStyleSchema = z.object({
 
   /** Inline styles (escape hatch) */
   style: z.record(z.string(), z.string()).optional(),
-})
+});
 
-export type BlockStyle = z.infer<typeof BlockStyleSchema>
+export type BlockStyle = z.infer<typeof BlockStyleSchema>;
 
 // =============================================================================
 // Block Metadata Schema (shared across all blocks)
@@ -79,9 +79,9 @@ export const BlockMetaSchema = z.object({
 
   /** Timestamp of last edit */
   lastEditedAt: z.string().datetime().optional(),
-})
+});
 
-export type BlockMeta = z.infer<typeof BlockMetaSchema>
+export type BlockMeta = z.infer<typeof BlockMetaSchema>;
 
 // =============================================================================
 // Base Block Schema (common fields)
@@ -96,7 +96,7 @@ const BaseBlockSchema = z.object({
 
   /** Block metadata */
   meta: BlockMetaSchema.optional(),
-})
+});
 
 // =============================================================================
 // Text Block
@@ -110,9 +110,9 @@ export const TextBlockSchema = BaseBlockSchema.extend({
     /** Format of the content */
     format: z.enum(['plain', 'markdown', 'html', 'tiptap']).default('markdown'),
   }),
-})
+});
 
-export type TextBlock = z.infer<typeof TextBlockSchema>
+export type TextBlock = z.infer<typeof TextBlockSchema>;
 
 // =============================================================================
 // Heading Block
@@ -125,9 +125,9 @@ export const HeadingBlockSchema = BaseBlockSchema.extend({
     level: z.enum(['h1', 'h2', 'h3', 'h4', 'h5', 'h6']),
     anchor: z.string().optional(),
   }),
-})
+});
 
-export type HeadingBlock = z.infer<typeof HeadingBlockSchema>
+export type HeadingBlock = z.infer<typeof HeadingBlockSchema>;
 
 // =============================================================================
 // Quote Block
@@ -140,9 +140,9 @@ export const QuoteBlockSchema = BaseBlockSchema.extend({
     attribution: z.string().optional(),
     cite: z.url().optional(),
   }),
-})
+});
 
-export type QuoteBlock = z.infer<typeof QuoteBlockSchema>
+export type QuoteBlock = z.infer<typeof QuoteBlockSchema>;
 
 // =============================================================================
 // Code Block
@@ -157,9 +157,9 @@ export const CodeBlockSchema = BaseBlockSchema.extend({
     showLineNumbers: z.boolean().default(false),
     highlightLines: z.array(z.number().int()).optional(),
   }),
-})
+});
 
-export type CodeBlock = z.infer<typeof CodeBlockSchema>
+export type CodeBlock = z.infer<typeof CodeBlockSchema>;
 
 // =============================================================================
 // Image Block
@@ -175,9 +175,9 @@ export const ImageBlockSchema = BaseBlockSchema.extend({
     height: z.number().int().positive().optional(),
     loading: z.enum(['lazy', 'eager']).default('lazy'),
   }),
-})
+});
 
-export type ImageBlock = z.infer<typeof ImageBlockSchema>
+export type ImageBlock = z.infer<typeof ImageBlockSchema>;
 
 // =============================================================================
 // Video Block
@@ -193,9 +193,9 @@ export const VideoBlockSchema = BaseBlockSchema.extend({
     muted: z.boolean().default(false),
     controls: z.boolean().default(true),
   }),
-})
+});
 
-export type VideoBlock = z.infer<typeof VideoBlockSchema>
+export type VideoBlock = z.infer<typeof VideoBlockSchema>;
 
 // =============================================================================
 // Embed Block
@@ -209,9 +209,9 @@ export const EmbedBlockSchema = BaseBlockSchema.extend({
     html: z.string().optional(),
     aspectRatio: z.string().optional(),
   }),
-})
+});
 
-export type EmbedBlock = z.infer<typeof EmbedBlockSchema>
+export type EmbedBlock = z.infer<typeof EmbedBlockSchema>;
 
 // =============================================================================
 // Button Block
@@ -226,9 +226,9 @@ export const ButtonBlockSchema = BaseBlockSchema.extend({
     variant: z.enum(['primary', 'secondary', 'outline', 'ghost']).default('primary'),
     size: z.enum(['sm', 'md', 'lg']).default('md'),
   }),
-})
+});
 
-export type ButtonBlock = z.infer<typeof ButtonBlockSchema>
+export type ButtonBlock = z.infer<typeof ButtonBlockSchema>;
 
 // =============================================================================
 // Divider Block
@@ -240,9 +240,9 @@ export const DividerBlockSchema = BaseBlockSchema.extend({
     variant: z.enum(['solid', 'dashed', 'dotted']).default('solid'),
     thickness: z.string().optional(),
   }),
-})
+});
 
-export type DividerBlock = z.infer<typeof DividerBlockSchema>
+export type DividerBlock = z.infer<typeof DividerBlockSchema>;
 
 // =============================================================================
 // Spacer Block
@@ -253,9 +253,9 @@ export const SpacerBlockSchema = BaseBlockSchema.extend({
   data: z.object({
     height: z.string().default('2rem'),
   }),
-})
+});
 
-export type SpacerBlock = z.infer<typeof SpacerBlockSchema>
+export type SpacerBlock = z.infer<typeof SpacerBlockSchema>;
 
 // =============================================================================
 // List Block
@@ -273,9 +273,9 @@ export const ListBlockSchema = BaseBlockSchema.extend({
     ),
     variant: z.enum(['unordered', 'ordered', 'checklist']).default('unordered'),
   }),
-})
+});
 
-export type ListBlock = z.infer<typeof ListBlockSchema>
+export type ListBlock = z.infer<typeof ListBlockSchema>;
 
 // =============================================================================
 // Table Block
@@ -298,9 +298,9 @@ export const TableBlockSchema = BaseBlockSchema.extend({
     ),
     caption: z.string().optional(),
   }),
-})
+});
 
-export type TableBlock = z.infer<typeof TableBlockSchema>
+export type TableBlock = z.infer<typeof TableBlockSchema>;
 
 // =============================================================================
 // Columns Block (recursive - contains other blocks)
@@ -323,9 +323,9 @@ export const ColumnsBlockSchema = BaseBlockSchema.extend({
     ),
     gap: z.string().optional(),
   }),
-})
+});
 
-export type ColumnsBlock = z.infer<typeof ColumnsBlockSchema>
+export type ColumnsBlock = z.infer<typeof ColumnsBlockSchema>;
 
 // =============================================================================
 // Grid Block (recursive - contains other blocks)
@@ -344,9 +344,9 @@ export const GridBlockSchema = BaseBlockSchema.extend({
       }),
     ),
   }),
-})
+});
 
-export type GridBlock = z.infer<typeof GridBlockSchema>
+export type GridBlock = z.infer<typeof GridBlockSchema>;
 
 // =============================================================================
 // Accordion Block (recursive - contains other blocks)
@@ -365,9 +365,9 @@ export const AccordionBlockSchema = BaseBlockSchema.extend({
     ),
     allowMultiple: z.boolean().optional(),
   }),
-})
+});
 
-export type AccordionBlock = z.infer<typeof AccordionBlockSchema>
+export type AccordionBlock = z.infer<typeof AccordionBlockSchema>;
 
 // =============================================================================
 // Tabs Block (recursive - contains other blocks)
@@ -385,9 +385,9 @@ export const TabsBlockSchema = BaseBlockSchema.extend({
     ),
     defaultTab: z.string().optional(),
   }),
-})
+});
 
-export type TabsBlock = z.infer<typeof TabsBlockSchema>
+export type TabsBlock = z.infer<typeof TabsBlockSchema>;
 
 // =============================================================================
 // Form Block
@@ -427,9 +427,9 @@ export const FormBlockSchema = BaseBlockSchema.extend({
     ),
     submitText: z.string().default('Submit'),
   }),
-})
+});
 
-export type FormBlock = z.infer<typeof FormBlockSchema>
+export type FormBlock = z.infer<typeof FormBlockSchema>;
 
 // =============================================================================
 // HTML Block (escape hatch)
@@ -442,9 +442,9 @@ export const HtmlBlockSchema = BaseBlockSchema.extend({
     /** Whether to sanitize (default: true for security) */
     sanitize: z.boolean().default(true),
   }),
-})
+});
 
-export type HtmlBlock = z.infer<typeof HtmlBlockSchema>
+export type HtmlBlock = z.infer<typeof HtmlBlockSchema>;
 
 // =============================================================================
 // Component Block (for custom components)
@@ -460,9 +460,9 @@ export const ComponentBlockSchema = BaseBlockSchema.extend({
     /** Source of the component */
     source: z.enum(['builtin', 'custom', 'marketplace']).default('builtin'),
   }),
-})
+});
 
-export type ComponentBlock = z.infer<typeof ComponentBlockSchema>
+export type ComponentBlock = z.infer<typeof ComponentBlockSchema>;
 
 // =============================================================================
 // Block Union (Discriminated by `type`)
@@ -496,9 +496,9 @@ export const BlockSchema = z.union([
   FormBlockSchema,
   HtmlBlockSchema,
   ComponentBlockSchema,
-])
+]);
 
-export type Block = z.infer<typeof BlockSchema>
+export type Block = z.infer<typeof BlockSchema>;
 
 // =============================================================================
 // Block Type Enum (for type checking)
@@ -524,9 +524,9 @@ export const BlockTypes = [
   'form',
   'html',
   'component',
-] as const
+] as const;
 
-export type BlockType = (typeof BlockTypes)[number]
+export type BlockType = (typeof BlockTypes)[number];
 
 // =============================================================================
 // Block Factories
@@ -545,7 +545,7 @@ export function createTextBlock(
     type: 'text',
     data: { content, format },
     meta: { version: BLOCK_SCHEMA_VERSION },
-  }
+  };
 }
 
 /**
@@ -561,7 +561,7 @@ export function createHeadingBlock(
     type: 'heading',
     data: { text, level },
     meta: { version: BLOCK_SCHEMA_VERSION },
-  }
+  };
 }
 
 /**
@@ -578,7 +578,7 @@ export function createImageBlock(
     type: 'image',
     data: { src, alt, loading: 'lazy', ...options },
     meta: { version: BLOCK_SCHEMA_VERSION },
-  }
+  };
 }
 
 /**
@@ -589,9 +589,9 @@ export function createCodeBlock(
   code: string,
   language?: string,
   options?: {
-    filename?: string
-    showLineNumbers?: boolean
-    highlightLines?: number[]
+    filename?: string;
+    showLineNumbers?: boolean;
+    highlightLines?: number[];
   },
 ): CodeBlock {
   return {
@@ -599,7 +599,7 @@ export function createCodeBlock(
     type: 'code',
     data: { code, language, showLineNumbers: false, ...options },
     meta: { version: BLOCK_SCHEMA_VERSION },
-  }
+  };
 }
 
 // =============================================================================
@@ -607,29 +607,29 @@ export function createCodeBlock(
 // =============================================================================
 
 export function isTextBlock(block: Block): block is TextBlock {
-  return block.type === 'text'
+  return block.type === 'text';
 }
 
 export function isHeadingBlock(block: Block): block is HeadingBlock {
-  return block.type === 'heading'
+  return block.type === 'heading';
 }
 
 export function isImageBlock(block: Block): block is ImageBlock {
-  return block.type === 'image'
+  return block.type === 'image';
 }
 
 export function isColumnsBlock(block: Block): block is ColumnsBlock {
-  return block.type === 'columns'
+  return block.type === 'columns';
 }
 
 export function isGridBlock(block: Block): block is GridBlock {
-  return block.type === 'grid'
+  return block.type === 'grid';
 }
 
 export function isContainerBlock(
   block: Block,
 ): block is ColumnsBlock | GridBlock | AccordionBlock | TabsBlock {
-  return ['columns', 'grid', 'accordion', 'tabs'].includes(block.type)
+  return ['columns', 'grid', 'accordion', 'tabs'].includes(block.type);
 }
 
 // =============================================================================
@@ -649,23 +649,23 @@ export function walkBlocks(
   path: string[] = [],
 ): void {
   for (const block of blocks) {
-    callback(block, [...path, block.id])
+    callback(block, [...path, block.id]);
 
     if (block.type === 'columns') {
       for (const col of block.data.columns) {
-        walkBlocks(col.blocks as Block[], callback, [...path, block.id, col.id])
+        walkBlocks(col.blocks as Block[], callback, [...path, block.id, col.id]);
       }
     } else if (block.type === 'grid') {
       for (const item of block.data.items) {
-        walkBlocks(item.blocks as Block[], callback, [...path, block.id, item.id])
+        walkBlocks(item.blocks as Block[], callback, [...path, block.id, item.id]);
       }
     } else if (block.type === 'accordion') {
       for (const item of block.data.items) {
-        walkBlocks(item.blocks as Block[], callback, [...path, block.id, item.id])
+        walkBlocks(item.blocks as Block[], callback, [...path, block.id, item.id]);
       }
     } else if (block.type === 'tabs') {
       for (const tab of block.data.tabs) {
-        walkBlocks(tab.blocks as Block[], callback, [...path, block.id, tab.id])
+        walkBlocks(tab.blocks as Block[], callback, [...path, block.id, tab.id]);
       }
     }
   }
@@ -675,20 +675,20 @@ export function walkBlocks(
  * Finds a block by ID (recursively)
  */
 export function findBlockById(blocks: Block[], id: string): Block | undefined {
-  let found: Block | undefined
+  let found: Block | undefined;
   walkBlocks(blocks, (block) => {
     if (block.id === id) {
-      found = block
+      found = block;
     }
-  })
-  return found
+  });
+  return found;
 }
 
 /**
  * Counts all blocks including nested ones
  */
 export function countBlocks(blocks: Block[]): number {
-  let count = 0
-  walkBlocks(blocks, () => count++)
-  return count
+  let count = 0;
+  walkBlocks(blocks, () => count++);
+  return count;
 }

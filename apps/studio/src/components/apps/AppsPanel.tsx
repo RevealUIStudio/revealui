@@ -1,11 +1,11 @@
-import { useApps } from '../../hooks/use-apps'
-import Button from '../ui/Button'
-import ErrorAlert from '../ui/ErrorAlert'
-import PanelHeader from '../ui/PanelHeader'
-import AppCard from './AppCard'
+import { useApps } from '../../hooks/use-apps';
+import Button from '../ui/Button';
+import ErrorAlert from '../ui/ErrorAlert';
+import PanelHeader from '../ui/PanelHeader';
+import AppCard from './AppCard';
 
 export default function AppsPanel() {
-  const { apps, loading, error, operating, refresh, start, stop } = useApps()
+  const { apps, loading, error, operating, refresh, start, stop } = useApps();
 
   return (
     <div className="space-y-6">
@@ -42,5 +42,5 @@ export default function AppsPanel() {
         </div>
       )}
     </div>
-  )
+  );
 }

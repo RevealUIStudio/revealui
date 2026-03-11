@@ -10,10 +10,10 @@ import {
   createApplicationErrorResponseData,
   createErrorResponseData,
   createValidationErrorResponseData,
-} from '@revealui/core/utils/error-responses'
-import { handleApiError } from '@revealui/core/utils/errors'
-import { NextResponse } from 'next/server'
-import type { ErrorResponse } from './error-types'
+} from '@revealui/core/utils/error-responses';
+import { handleApiError } from '@revealui/core/utils/errors';
+import { NextResponse } from 'next/server';
+import type { ErrorResponse } from './error-types';
 
 /**
  * Create a standardized error response for API routes
@@ -26,10 +26,10 @@ export function createErrorResponse(
   error: unknown,
   context?: Record<string, unknown>,
 ): NextResponse<ErrorResponse> {
-  const handled = handleApiError(error, context)
-  const responseData = createErrorResponseData(error, context)
+  const handled = handleApiError(error, context);
+  const responseData = createErrorResponseData(error, context);
 
-  return NextResponse.json(responseData, { status: handled.statusCode })
+  return NextResponse.json(responseData, { status: handled.statusCode });
 }
 
 /**
@@ -47,8 +47,8 @@ export function createValidationErrorResponse(
   value: unknown,
   details?: Record<string, unknown>,
 ): NextResponse<ErrorResponse> {
-  const responseData = createValidationErrorResponseData(message, field, value, details)
-  return NextResponse.json(responseData, { status: 400 })
+  const responseData = createValidationErrorResponseData(message, field, value, details);
+  return NextResponse.json(responseData, { status: 400 });
 }
 
 /**
@@ -66,8 +66,8 @@ export function createApplicationErrorResponse(
   statusCode = 500,
   context?: Record<string, unknown>,
 ): NextResponse<ErrorResponse> {
-  const responseData = createApplicationErrorResponseData(message, code, statusCode, context)
-  return NextResponse.json(responseData, { status: statusCode })
+  const responseData = createApplicationErrorResponseData(message, code, statusCode, context);
+  return NextResponse.json(responseData, { status: statusCode });
 }
 
 /**
@@ -78,5 +78,5 @@ export function createApplicationErrorResponse(
  * @returns NextResponse with data
  */
 export function createSuccessResponse<T>(data: T, statusCode = 200): NextResponse<T> {
-  return NextResponse.json(data, { status: statusCode })
+  return NextResponse.json(data, { status: statusCode });
 }

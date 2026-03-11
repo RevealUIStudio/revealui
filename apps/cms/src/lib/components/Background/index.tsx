@@ -4,7 +4,7 @@ const Background = () => {
       <div className="blur" />
       <div className="gradient" />
     </div>
-  )
-}
+  );
+};
 
-export default Background
+export default Background;

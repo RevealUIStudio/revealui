@@ -13,22 +13,22 @@
  * test config so each test suite gets an isolated instance.
  */
 
-import type { RevealUIInstance } from '@revealui/core'
-import { getRevealUI } from '@revealui/core/nextjs'
-import config from '../../../revealui.config'
+import type { RevealUIInstance } from '@revealui/core';
+import { getRevealUI } from '@revealui/core/nextjs';
+import config from '../../../revealui.config';
 
-let _instance: RevealUIInstance | null = null
+let _instance: RevealUIInstance | null = null;
 
 export async function getRevealUIInstance(): Promise<RevealUIInstance> {
   if (!_instance) {
-    _instance = await getRevealUI({ config })
+    _instance = await getRevealUI({ config });
   }
-  return _instance
+  return _instance;
 }
 
 /**
  * Reset the cached instance. Useful for testing and hot-reload scenarios.
  */
 export function resetRevealUIInstance(): void {
-  _instance = null
+  _instance = null;
 }

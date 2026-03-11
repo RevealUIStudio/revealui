@@ -21,42 +21,42 @@
  * ```
  */
 
-import { readFile } from 'node:fs/promises'
-import { join } from 'node:path'
-import { ErrorCode } from '../../lib/errors.js'
-import { getProjectRoot } from '../../lib/paths.js'
+import { readFile } from 'node:fs/promises';
+import { join } from 'node:path';
+import { ErrorCode } from '../../lib/errors.js';
+import { getProjectRoot } from '../../lib/paths.js';
 
 // =============================================================================
 // Types
 // =============================================================================
 
 interface PackageValidation {
-  name: string
-  path: string
-  type: 'root' | 'app' | 'library' | 'tool' | 'infrastructure'
-  missingScripts: string[]
-  incorrectScripts: Array<{ name: string; expected: string; actual: string }>
-  extraScripts: string[]
-  score: number
-  status: 'pass' | 'warning' | 'fail'
+  name: string;
+  path: string;
+  type: 'root' | 'app' | 'library' | 'tool' | 'infrastructure';
+  missingScripts: string[];
+  incorrectScripts: Array<{ name: string; expected: string; actual: string }>;
+  extraScripts: string[];
+  score: number;
+  status: 'pass' | 'warning' | 'fail';
 }
 
 interface ValidationReport {
   summary: {
-    totalPackages: number
-    passed: number
-    warnings: number
-    failed: number
-    averageScore: number
-  }
-  validations: PackageValidation[]
-  recommendations: string[]
+    totalPackages: number;
+    passed: number;
+    warnings: number;
+    failed: number;
+    averageScore: number;
+  };
+  validations: PackageValidation[];
+  recommendations: string[];
 }
 
 interface Template {
-  scripts: Record<string, string>
-  required: string[]
-  optional: string[]
+  scripts: Record<string, string>;
+  required: string[];
+  optional: string[];
 }
 
 // =============================================================================
@@ -107,10 +107,10 @@ const TEMPLATES: Record<string, Template> = {
     required: ['build', 'dev', 'lint', 'typecheck', 'test'],
     optional: ['test:watch', 'test:coverage', 'clean'],
   },
-}
+};
 
 // Root package is special - it orchestrates, doesn't need validation
-const SKIP_PACKAGES = ['reveal-ui']
+const SKIP_PACKAGES = ['reveal-ui'];
 
 // =============================================================================
 // Package Discovery
@@ -144,7 +144,7 @@ const PACKAGE_PATHS = [
 
   // Infrastructure
   { path: './infrastructure/opencode-server/pulumi-vultr/package.json', type: 'library' as const },
-]
+];
 
 // =============================================================================
 // Validation Logic
@@ -159,52 +159,52 @@ async function validatePackage(
   type: 'app' | 'library' | 'tool' | 'infrastructure',
 ): Promise<PackageValidation | null> {
   try {
-    const fullPath = join(projectRoot, packagePath)
-    const content = await readFile(fullPath, 'utf-8')
-    const pkg = JSON.parse(content)
+    const fullPath = join(projectRoot, packagePath);
+    const content = await readFile(fullPath, 'utf-8');
+    const pkg = JSON.parse(content);
 
     // Skip packages in skip list
     if (SKIP_PACKAGES.includes(pkg.name)) {
-      return null
+      return null;
     }
 
-    const template = TEMPLATES[type === 'infrastructure' ? 'library' : type]
-    const actualScripts = pkg.scripts || {}
+    const template = TEMPLATES[type === 'infrastructure' ? 'library' : type];
+    const actualScripts = pkg.scripts || {};
 
     // Check for missing required scripts
-    const missingScripts = template.required.filter((script) => !actualScripts[script])
+    const missingScripts = template.required.filter((script) => !actualScripts[script]);
 
     // Check for incorrect script implementations
-    const incorrectScripts: Array<{ name: string; expected: string; actual: string }> = []
+    const incorrectScripts: Array<{ name: string; expected: string; actual: string }> = [];
     for (const [scriptName, expectedCommand] of Object.entries(template.scripts)) {
-      const actualCommand = actualScripts[scriptName]
+      const actualCommand = actualScripts[scriptName];
       if (actualCommand && !isCommandSimilar(actualCommand, expectedCommand)) {
         incorrectScripts.push({
           name: scriptName,
           expected: expectedCommand,
           actual: actualCommand,
-        })
+        });
       }
     }
 
     // Extra scripts (not in template) - informational only
-    const templateScriptNames = new Set(Object.keys(template.scripts))
+    const templateScriptNames = new Set(Object.keys(template.scripts));
     const extraScripts = Object.keys(actualScripts).filter(
       (name) => !(templateScriptNames.has(name) || name.startsWith('//')),
-    )
+    );
 
     // Calculate health score (0-100)
-    const requiredMet = template.required.length - missingScripts.length
-    const requiredScore = (requiredMet / template.required.length) * 70
-    const correctnessScore = incorrectScripts.length === 0 ? 30 : 15
-    const score = Math.round(requiredScore + correctnessScore)
+    const requiredMet = template.required.length - missingScripts.length;
+    const requiredScore = (requiredMet / template.required.length) * 70;
+    const correctnessScore = incorrectScripts.length === 0 ? 30 : 15;
+    const score = Math.round(requiredScore + correctnessScore);
 
     // Determine status
-    let status: 'pass' | 'warning' | 'fail' = 'pass'
+    let status: 'pass' | 'warning' | 'fail' = 'pass';
     if (missingScripts.length > 0) {
-      status = 'fail'
+      status = 'fail';
     } else if (incorrectScripts.length > 2) {
-      status = 'warning'
+      status = 'warning';
     }
 
     return {
@@ -216,10 +216,10 @@ async function validatePackage(
       extraScripts,
       score,
       status,
-    }
+    };
   } catch (error) {
-    console.warn(`Failed to validate ${packagePath}:`, error)
-    return null
+    console.warn(`Failed to validate ${packagePath}:`, error);
+    return null;
   }
 }
 
@@ -228,73 +228,73 @@ async function validatePackage(
  */
 function isCommandSimilar(actual: string, expected: string): boolean {
   // Exact match
-  if (actual === expected) return true
+  if (actual === expected) return true;
 
   // Handle framework variations (e.g., "next build" matches "next build | vite build")
   if (expected.includes('|')) {
-    const variants = expected.split('|').map((v) => v.trim())
-    return variants.some((variant) => actual.includes(variant) || variant.includes(actual.trim()))
+    const variants = expected.split('|').map((v) => v.trim());
+    return variants.some((variant) => actual.includes(variant) || variant.includes(actual.trim()));
   }
 
   // Handle minor variations (--watch vs -w, etc.)
-  const normalizedActual = actual.replace(/\s+/g, ' ').trim()
-  const normalizedExpected = expected.replace(/\s+/g, ' ').trim()
+  const normalizedActual = actual.replace(/\s+/g, ' ').trim();
+  const normalizedExpected = expected.replace(/\s+/g, ' ').trim();
 
   // If the core command is the same
-  const actualBase = normalizedActual.split(' ')[0]
-  const expectedBase = normalizedExpected.split(' ')[0]
-  if (actualBase !== expectedBase) return false
+  const actualBase = normalizedActual.split(' ')[0];
+  const expectedBase = normalizedExpected.split(' ')[0];
+  if (actualBase !== expectedBase) return false;
 
   // Allow flag variations
-  return true
+  return true;
 }
 
 /**
  * Generate validation report
  */
 async function generateValidationReport(packageFilter?: string): Promise<ValidationReport> {
-  const projectRoot = await getProjectRoot(import.meta.url)
+  const projectRoot = await getProjectRoot(import.meta.url);
 
-  let packagesToValidate = PACKAGE_PATHS
+  let packagesToValidate = PACKAGE_PATHS;
 
   // Filter by package if specified
   if (packageFilter) {
     packagesToValidate = packagesToValidate.filter((p) =>
       p.path.includes(packageFilter.replace('@revealui/', '')),
-    )
+    );
   }
 
   // Validate all packages
   const validationResults = await Promise.all(
     packagesToValidate.map((p) => validatePackage(projectRoot, p.path, p.type)),
-  )
+  );
 
-  const validations = validationResults.filter((v): v is PackageValidation => v !== null)
+  const validations = validationResults.filter((v): v is PackageValidation => v !== null);
 
   // Calculate summary
-  const passed = validations.filter((v) => v.status === 'pass').length
-  const warnings = validations.filter((v) => v.status === 'warning').length
-  const failed = validations.filter((v) => v.status === 'fail').length
+  const passed = validations.filter((v) => v.status === 'pass').length;
+  const warnings = validations.filter((v) => v.status === 'warning').length;
+  const failed = validations.filter((v) => v.status === 'fail').length;
   const averageScore =
     validations.length > 0
       ? validations.reduce((sum, v) => sum + v.score, 0) / validations.length
-      : 0
+      : 0;
 
   // Generate recommendations
-  const recommendations: string[] = []
+  const recommendations: string[] = [];
 
-  const failedPackages = validations.filter((v) => v.status === 'fail')
+  const failedPackages = validations.filter((v) => v.status === 'fail');
   if (failedPackages.length > 0) {
     recommendations.push(
       `${failedPackages.length} packages are missing required scripts. Run 'pnpm maintain:fix-scripts' to auto-fix.`,
-    )
+    );
   }
 
-  const lowScorePackages = validations.filter((v) => v.score < 70)
+  const lowScorePackages = validations.filter((v) => v.score < 70);
   if (lowScorePackages.length > 0) {
     recommendations.push(
       `${lowScorePackages.length} packages have low health scores (<70). Review and align with templates.`,
-    )
+    );
   }
 
   return {
@@ -307,48 +307,48 @@ async function generateValidationReport(packageFilter?: string): Promise<Validat
     },
     validations,
     recommendations,
-  }
+  };
 }
 
 /**
  * Print validation report
  */
 function printReport(report: ValidationReport, strict: boolean): void {
-  console.log('\n✅ Package Script Validation Report')
-  console.log('='.repeat(80))
+  console.log('\n✅ Package Script Validation Report');
+  console.log('='.repeat(80));
 
   // Summary
-  console.log('\n📊 Summary:')
-  console.log(`   Total Packages:    ${report.summary.totalPackages}`)
-  console.log(`   ✅ Passed:          ${report.summary.passed}`)
-  console.log(`   ⚠️  Warnings:        ${report.summary.warnings}`)
-  console.log(`   ❌ Failed:          ${report.summary.failed}`)
-  console.log(`   📈 Average Score:   ${report.summary.averageScore.toFixed(1)}/100`)
+  console.log('\n📊 Summary:');
+  console.log(`   Total Packages:    ${report.summary.totalPackages}`);
+  console.log(`   ✅ Passed:          ${report.summary.passed}`);
+  console.log(`   ⚠️  Warnings:        ${report.summary.warnings}`);
+  console.log(`   ❌ Failed:          ${report.summary.failed}`);
+  console.log(`   📈 Average Score:   ${report.summary.averageScore.toFixed(1)}/100`);
 
   // Failed packages
-  const failedValidations = report.validations.filter((v) => v.status === 'fail')
+  const failedValidations = report.validations.filter((v) => v.status === 'fail');
   if (failedValidations.length > 0) {
-    console.log('\n❌ Failed Packages:')
+    console.log('\n❌ Failed Packages:');
     for (const validation of failedValidations) {
-      console.log(`\n   ${validation.name} (score: ${validation.score}/100)`)
+      console.log(`\n   ${validation.name} (score: ${validation.score}/100)`);
       if (validation.missingScripts.length > 0) {
-        console.log(`      Missing: ${validation.missingScripts.join(', ')}`)
+        console.log(`      Missing: ${validation.missingScripts.join(', ')}`);
       }
     }
   }
 
   // Warning packages
-  const warningValidations = report.validations.filter((v) => v.status === 'warning')
+  const warningValidations = report.validations.filter((v) => v.status === 'warning');
   if (warningValidations.length > 0) {
-    console.log('\n⚠️  Warnings:')
+    console.log('\n⚠️  Warnings:');
     for (const validation of warningValidations) {
-      console.log(`\n   ${validation.name} (score: ${validation.score}/100)`)
+      console.log(`\n   ${validation.name} (score: ${validation.score}/100)`);
       if (validation.incorrectScripts.length > 0) {
-        console.log(`      Incorrect implementations: ${validation.incorrectScripts.length}`)
+        console.log(`      Incorrect implementations: ${validation.incorrectScripts.length}`);
         for (const incorrect of validation.incorrectScripts.slice(0, 3)) {
-          console.log(`        • ${incorrect.name}`)
-          console.log(`          Expected: ${incorrect.expected}`)
-          console.log(`          Actual:   ${incorrect.actual}`)
+          console.log(`        • ${incorrect.name}`);
+          console.log(`          Expected: ${incorrect.expected}`);
+          console.log(`          Actual:   ${incorrect.actual}`);
         }
       }
     }
@@ -356,21 +356,21 @@ function printReport(report: ValidationReport, strict: boolean): void {
 
   // Recommendations
   if (report.recommendations.length > 0) {
-    console.log('\n💡 Recommendations:')
+    console.log('\n💡 Recommendations:');
     for (const rec of report.recommendations) {
-      console.log(`   • ${rec}`)
+      console.log(`   • ${rec}`);
     }
   }
 
-  console.log(`\n${'='.repeat(80)}`)
+  console.log(`\n${'='.repeat(80)}`);
 
   // Exit status
   if (failedValidations.length > 0) {
-    console.log('❌ Validation failed\n')
+    console.log('❌ Validation failed\n');
   } else if (strict && warningValidations.length > 0) {
-    console.log('⚠️  Validation passed with warnings (strict mode)\n')
+    console.log('⚠️  Validation passed with warnings (strict mode)\n');
   } else {
-    console.log('✅ Validation passed\n')
+    console.log('✅ Validation passed\n');
   }
 }
 
@@ -379,30 +379,30 @@ function printReport(report: ValidationReport, strict: boolean): void {
 // =============================================================================
 
 async function main() {
-  const args = process.argv.slice(2)
-  const json = args.includes('--json')
-  const strict = args.includes('--strict')
+  const args = process.argv.slice(2);
+  const json = args.includes('--json');
+  const strict = args.includes('--strict');
 
-  const packageIndex = args.indexOf('--package')
-  const packageFilter = packageIndex >= 0 ? args[packageIndex + 1] : undefined
+  const packageIndex = args.indexOf('--package');
+  const packageFilter = packageIndex >= 0 ? args[packageIndex + 1] : undefined;
 
-  const report = await generateValidationReport(packageFilter)
+  const report = await generateValidationReport(packageFilter);
 
   if (json) {
-    console.log(JSON.stringify(report, null, 2))
+    console.log(JSON.stringify(report, null, 2));
   } else {
-    printReport(report, strict)
+    printReport(report, strict);
   }
 
   // Exit with appropriate code
   if (report.summary.failed > 0) {
-    process.exit(ErrorCode.VALIDATION_ERROR)
+    process.exit(ErrorCode.VALIDATION_ERROR);
   } else if (strict && report.summary.warnings > 0) {
-    process.exit(ErrorCode.VALIDATION_ERROR)
+    process.exit(ErrorCode.VALIDATION_ERROR);
   }
 }
 
 main().catch((error) => {
-  console.error('Error:', error)
-  process.exit(ErrorCode.EXECUTION_ERROR)
-})
+  console.error('Error:', error);
+  process.exit(ErrorCode.EXECUTION_ERROR);
+});

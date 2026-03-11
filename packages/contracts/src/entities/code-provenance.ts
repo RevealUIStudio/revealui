@@ -16,40 +16,40 @@
  * - AI involvement = ai_generated || ai_assisted || mixed
  */
 
-import { z } from 'zod/v4'
+import { z } from 'zod/v4';
 
 // =============================================================================
 // Constants
 // =============================================================================
 
-export const PROVENANCE_SCHEMA_VERSION = 1
+export const PROVENANCE_SCHEMA_VERSION = 1;
 
-export const AUTHOR_TYPES = ['ai_generated', 'human_written', 'ai_assisted', 'mixed'] as const
-export type AuthorType = (typeof AUTHOR_TYPES)[number]
+export const AUTHOR_TYPES = ['ai_generated', 'human_written', 'ai_assisted', 'mixed'] as const;
+export type AuthorType = (typeof AUTHOR_TYPES)[number];
 
 export const REVIEW_STATUSES = [
   'unreviewed',
   'human_reviewed',
   'ai_reviewed',
   'human_and_ai_reviewed',
-] as const
-export type ReviewStatus = (typeof REVIEW_STATUSES)[number]
+] as const;
+export type ReviewStatus = (typeof REVIEW_STATUSES)[number];
 
 export const REVIEW_TYPES = [
   'human_review',
   'ai_review',
   'human_approval',
   'ai_suggestion',
-] as const
-export type ReviewType = (typeof REVIEW_TYPES)[number]
+] as const;
+export type ReviewType = (typeof REVIEW_TYPES)[number];
 
-export const REVIEW_DECISIONS = ['approved', 'rejected', 'needs_changes', 'informational'] as const
-export type ReviewDecision = (typeof REVIEW_DECISIONS)[number]
+export const REVIEW_DECISIONS = ['approved', 'rejected', 'needs_changes', 'informational'] as const;
+export type ReviewDecision = (typeof REVIEW_DECISIONS)[number];
 
 export const PROVENANCE_LIMITS = {
   MAX_FILE_PATH_LENGTH: 1000,
   MAX_FUNCTION_NAME_LENGTH: 200,
-} as const
+} as const;
 
 // =============================================================================
 // Zod Schemas — Provenance
@@ -75,10 +75,10 @@ export const ProvenanceObjectSchema = z.object({
   metadata: z.unknown().nullable().optional(),
   createdAt: z.date(),
   updatedAt: z.date(),
-})
+});
 
-export const ProvenanceSchema = ProvenanceObjectSchema
-export type Provenance = z.infer<typeof ProvenanceSchema>
+export const ProvenanceSchema = ProvenanceObjectSchema;
+export type Provenance = z.infer<typeof ProvenanceSchema>;
 
 export const ProvenanceInsertSchema = ProvenanceObjectSchema.omit({
   createdAt: true,
@@ -86,9 +86,9 @@ export const ProvenanceInsertSchema = ProvenanceObjectSchema.omit({
 }).extend({
   createdAt: z.date().optional(),
   updatedAt: z.date().optional(),
-})
+});
 
-export type ProvenanceInsert = z.infer<typeof ProvenanceInsertSchema>
+export type ProvenanceInsert = z.infer<typeof ProvenanceInsertSchema>;
 
 // =============================================================================
 // Zod Schemas — Code Review
@@ -103,41 +103,41 @@ export const CodeReviewObjectSchema = z.object({
   comment: z.string().nullable().optional(),
   metadata: z.unknown().nullable().optional(),
   createdAt: z.date(),
-})
+});
 
-export const CodeReviewSchema = CodeReviewObjectSchema
-export type CodeReview = z.infer<typeof CodeReviewSchema>
+export const CodeReviewSchema = CodeReviewObjectSchema;
+export type CodeReview = z.infer<typeof CodeReviewSchema>;
 
 export const CodeReviewInsertSchema = CodeReviewObjectSchema.omit({
   createdAt: true,
 }).extend({
   createdAt: z.date().optional(),
-})
+});
 
-export type CodeReviewInsert = z.infer<typeof CodeReviewInsertSchema>
+export type CodeReviewInsert = z.infer<typeof CodeReviewInsertSchema>;
 
 // =============================================================================
 // Value Functions — Author Type Predicates
 // =============================================================================
 
 export function isAiGenerated(entry: Provenance): boolean {
-  return entry.authorType === 'ai_generated'
+  return entry.authorType === 'ai_generated';
 }
 
 export function isHumanWritten(entry: Provenance): boolean {
-  return entry.authorType === 'human_written'
+  return entry.authorType === 'human_written';
 }
 
 export function isAiAssisted(entry: Provenance): boolean {
-  return entry.authorType === 'ai_assisted'
+  return entry.authorType === 'ai_assisted';
 }
 
 export function isMixedAuthorship(entry: Provenance): boolean {
-  return entry.authorType === 'mixed'
+  return entry.authorType === 'mixed';
 }
 
 export function hasAiInvolvement(entry: Provenance): boolean {
-  return entry.authorType !== 'human_written'
+  return entry.authorType !== 'human_written';
 }
 
 export function getAuthorTypeLabel(type: AuthorType): string {
@@ -146,8 +146,8 @@ export function getAuthorTypeLabel(type: AuthorType): string {
     human_written: 'Human Written',
     ai_assisted: 'AI Assisted',
     mixed: 'Mixed',
-  }
-  return labels[type]
+  };
+  return labels[type];
 }
 
 // =============================================================================
@@ -155,27 +155,27 @@ export function getAuthorTypeLabel(type: AuthorType): string {
 // =============================================================================
 
 export function isUnreviewed(entry: Provenance): boolean {
-  return entry.reviewStatus === 'unreviewed'
+  return entry.reviewStatus === 'unreviewed';
 }
 
 export function isHumanReviewed(entry: Provenance): boolean {
-  return entry.reviewStatus === 'human_reviewed' || entry.reviewStatus === 'human_and_ai_reviewed'
+  return entry.reviewStatus === 'human_reviewed' || entry.reviewStatus === 'human_and_ai_reviewed';
 }
 
 export function isAiReviewed(entry: Provenance): boolean {
-  return entry.reviewStatus === 'ai_reviewed' || entry.reviewStatus === 'human_and_ai_reviewed'
+  return entry.reviewStatus === 'ai_reviewed' || entry.reviewStatus === 'human_and_ai_reviewed';
 }
 
 export function isFullyReviewed(entry: Provenance): boolean {
-  return entry.reviewStatus === 'human_and_ai_reviewed'
+  return entry.reviewStatus === 'human_and_ai_reviewed';
 }
 
 export function needsReview(entry: Provenance): boolean {
-  return isUnreviewed(entry) && hasAiInvolvement(entry)
+  return isUnreviewed(entry) && hasAiInvolvement(entry);
 }
 
 export function needsHumanReview(entry: Provenance): boolean {
-  return hasAiInvolvement(entry) && !isHumanReviewed(entry)
+  return hasAiInvolvement(entry) && !isHumanReviewed(entry);
 }
 
 export function getReviewStatusLabel(status: ReviewStatus): string {
@@ -184,8 +184,8 @@ export function getReviewStatusLabel(status: ReviewStatus): string {
     human_reviewed: 'Human Reviewed',
     ai_reviewed: 'AI Reviewed',
     human_and_ai_reviewed: 'Human & AI Reviewed',
-  }
-  return labels[status]
+  };
+  return labels[status];
 }
 
 // =============================================================================
@@ -193,48 +193,48 @@ export function getReviewStatusLabel(status: ReviewStatus): string {
 // =============================================================================
 
 export function isHighConfidence(entry: Provenance): boolean {
-  return entry.confidence >= 0.8
+  return entry.confidence >= 0.8;
 }
 
 export function isLowConfidence(entry: Provenance): boolean {
-  return entry.confidence < 0.5
+  return entry.confidence < 0.5;
 }
 
 export function getConfidenceLabel(entry: Provenance): string {
-  if (entry.confidence >= 0.8) return 'High'
-  if (entry.confidence >= 0.5) return 'Medium'
-  return 'Low'
+  if (entry.confidence >= 0.8) return 'High';
+  if (entry.confidence >= 0.5) return 'Medium';
+  return 'Low';
 }
 
 // =============================================================================
 // Value Functions — Time-based
 // =============================================================================
 
-const MS_PER_DAY = 1000 * 60 * 60 * 24
-const STALE_THRESHOLD_DAYS = 90
-const RECENTLY_REVIEWED_DAYS = 7
+const MS_PER_DAY = 1000 * 60 * 60 * 24;
+const STALE_THRESHOLD_DAYS = 90;
+const RECENTLY_REVIEWED_DAYS = 7;
 
 export function getProvenanceAge(entry: Provenance): number {
-  return Date.now() - entry.createdAt.getTime()
+  return Date.now() - entry.createdAt.getTime();
 }
 
 export function getProvenanceAgeInDays(entry: Provenance): number {
-  return Math.floor(getProvenanceAge(entry) / MS_PER_DAY)
+  return Math.floor(getProvenanceAge(entry) / MS_PER_DAY);
 }
 
 export function getTimeSinceReview(entry: Provenance): number | null {
-  if (!entry.reviewedAt) return null
-  return Date.now() - entry.reviewedAt.getTime()
+  if (!entry.reviewedAt) return null;
+  return Date.now() - entry.reviewedAt.getTime();
 }
 
 export function isStale(entry: Provenance): boolean {
-  return getProvenanceAgeInDays(entry) > STALE_THRESHOLD_DAYS && isUnreviewed(entry)
+  return getProvenanceAgeInDays(entry) > STALE_THRESHOLD_DAYS && isUnreviewed(entry);
 }
 
 export function isRecentlyReviewed(entry: Provenance): boolean {
-  const timeSince = getTimeSinceReview(entry)
-  if (timeSince === null) return false
-  return timeSince < RECENTLY_REVIEWED_DAYS * MS_PER_DAY
+  const timeSince = getTimeSinceReview(entry);
+  if (timeSince === null) return false;
+  return timeSince < RECENTLY_REVIEWED_DAYS * MS_PER_DAY;
 }
 
 // =============================================================================
@@ -242,11 +242,11 @@ export function isRecentlyReviewed(entry: Provenance): boolean {
 // =============================================================================
 
 export function isFileLevel(entry: Provenance): boolean {
-  return !entry.functionName
+  return !entry.functionName;
 }
 
 export function isFunctionLevel(entry: Provenance): boolean {
-  return !!entry.functionName
+  return !!entry.functionName;
 }
 
 export function hasLineRange(entry: Provenance): boolean {
@@ -255,15 +255,15 @@ export function hasLineRange(entry: Provenance): boolean {
     entry.lineStart !== undefined &&
     entry.lineEnd !== null &&
     entry.lineEnd !== undefined
-  )
+  );
 }
 
 export function hasGitInfo(entry: Provenance): boolean {
-  return !!entry.gitCommitHash
+  return !!entry.gitCommitHash;
 }
 
 export function hasAiModel(entry: Provenance): boolean {
-  return !!entry.aiModel
+  return !!entry.aiModel;
 }
 
 // =============================================================================
@@ -271,70 +271,70 @@ export function hasAiModel(entry: Provenance): boolean {
 // =============================================================================
 
 export function calculateAiPercentage(entries: Provenance[]): number {
-  if (entries.length === 0) return 0
-  const totalLines = entries.reduce((sum, e) => sum + e.linesOfCode, 0)
-  if (totalLines === 0) return 0
+  if (entries.length === 0) return 0;
+  const totalLines = entries.reduce((sum, e) => sum + e.linesOfCode, 0);
+  if (totalLines === 0) return 0;
   const aiLines = entries
     .filter((e) => hasAiInvolvement(e))
-    .reduce((sum, e) => sum + e.linesOfCode, 0)
-  return (aiLines / totalLines) * 100
+    .reduce((sum, e) => sum + e.linesOfCode, 0);
+  return (aiLines / totalLines) * 100;
 }
 
 export function calculateReviewCoverage(entries: Provenance[]): number {
-  if (entries.length === 0) return 0
-  const reviewed = entries.filter((e) => !isUnreviewed(e)).length
-  return (reviewed / entries.length) * 100
+  if (entries.length === 0) return 0;
+  const reviewed = entries.filter((e) => !isUnreviewed(e)).length;
+  return (reviewed / entries.length) * 100;
 }
 
 export function calculateHumanReviewCoverage(entries: Provenance[]): number {
-  if (entries.length === 0) return 0
-  const humanReviewed = entries.filter((e) => isHumanReviewed(e)).length
-  return (humanReviewed / entries.length) * 100
+  if (entries.length === 0) return 0;
+  const humanReviewed = entries.filter((e) => isHumanReviewed(e)).length;
+  return (humanReviewed / entries.length) * 100;
 }
 
 export function getEntriesByAuthorType(entries: Provenance[], type: AuthorType): Provenance[] {
-  return entries.filter((e) => e.authorType === type)
+  return entries.filter((e) => e.authorType === type);
 }
 
 export function getUnreviewedEntries(entries: Provenance[]): Provenance[] {
-  return entries.filter(isUnreviewed)
+  return entries.filter(isUnreviewed);
 }
 
 export function getEntriesNeedingHumanReview(entries: Provenance[]): Provenance[] {
-  return entries.filter(needsHumanReview)
+  return entries.filter(needsHumanReview);
 }
 
 interface PackageSummary {
-  packageName: string
-  totalEntries: number
-  totalLines: number
-  aiPercentage: number
-  reviewCoverage: number
-  humanReviewCoverage: number
+  packageName: string;
+  totalEntries: number;
+  totalLines: number;
+  aiPercentage: number;
+  reviewCoverage: number;
+  humanReviewCoverage: number;
 }
 
 export function summarizeByPackage(entries: Provenance[]): Map<string, PackageSummary> {
-  const grouped = new Map<string, Provenance[]>()
+  const grouped = new Map<string, Provenance[]>();
 
   for (const entry of entries) {
     // Extract package name from filePath (e.g. "packages/core/src/foo.ts" → "packages/core")
-    const parts = entry.filePath.split('/')
+    const parts = entry.filePath.split('/');
     const packageName =
       parts[0] === 'packages' && parts.length >= 2
         ? `${parts[0]}/${parts[1]}`
         : parts[0] === 'apps' && parts.length >= 2
           ? `${parts[0]}/${parts[1]}`
-          : (parts[0] ?? 'root')
+          : (parts[0] ?? 'root');
 
-    const existing = grouped.get(packageName)
+    const existing = grouped.get(packageName);
     if (existing) {
-      existing.push(entry)
+      existing.push(entry);
     } else {
-      grouped.set(packageName, [entry])
+      grouped.set(packageName, [entry]);
     }
   }
 
-  const result = new Map<string, PackageSummary>()
+  const result = new Map<string, PackageSummary>();
 
   for (const [packageName, packageEntries] of grouped) {
     result.set(packageName, {
@@ -344,10 +344,10 @@ export function summarizeByPackage(entries: Provenance[]): Map<string, PackageSu
       aiPercentage: calculateAiPercentage(packageEntries),
       reviewCoverage: calculateReviewCoverage(packageEntries),
       humanReviewCoverage: calculateHumanReviewCoverage(packageEntries),
-    })
+    });
   }
 
-  return result
+  return result;
 }
 
 // =============================================================================
@@ -357,22 +357,22 @@ export function summarizeByPackage(entries: Provenance[]): Map<string, PackageSu
 export interface ProvenanceWithComputed extends Provenance {
   // biome-ignore lint/style/useNamingConvention: _computed is a conventional computed-field marker
   _computed: {
-    isAiGenerated: boolean
-    isHumanWritten: boolean
-    isAiAssisted: boolean
-    hasAiInvolvement: boolean
-    isUnreviewed: boolean
-    isHumanReviewed: boolean
-    needsReview: boolean
-    needsHumanReview: boolean
-    isHighConfidence: boolean
-    isStale: boolean
-    ageInDays: number
-    timeSinceReview: number | null
-    authorTypeLabel: string
-    reviewStatusLabel: string
-    confidenceLabel: string
-  }
+    isAiGenerated: boolean;
+    isHumanWritten: boolean;
+    isAiAssisted: boolean;
+    hasAiInvolvement: boolean;
+    isUnreviewed: boolean;
+    isHumanReviewed: boolean;
+    needsReview: boolean;
+    needsHumanReview: boolean;
+    isHighConfidence: boolean;
+    isStale: boolean;
+    ageInDays: number;
+    timeSinceReview: number | null;
+    authorTypeLabel: string;
+    reviewStatusLabel: string;
+    confidenceLabel: string;
+  };
 }
 
 export function provenanceToHuman(entry: Provenance): ProvenanceWithComputed {
@@ -396,7 +396,7 @@ export function provenanceToHuman(entry: Provenance): ProvenanceWithComputed {
       reviewStatusLabel: getReviewStatusLabel(entry.reviewStatus),
       confidenceLabel: getConfidenceLabel(entry),
     },
-  }
+  };
 }
 
 // =============================================================================
@@ -407,20 +407,20 @@ export function createProvenanceInsert(
   filePath: string,
   authorType: AuthorType,
   options?: {
-    id?: string
-    functionName?: string
-    lineStart?: number
-    lineEnd?: number
-    aiModel?: string
-    aiSessionId?: string
-    gitCommitHash?: string
-    gitAuthor?: string
-    confidence?: number
-    linesOfCode?: number
-    metadata?: unknown
+    id?: string;
+    functionName?: string;
+    lineStart?: number;
+    lineEnd?: number;
+    aiModel?: string;
+    aiSessionId?: string;
+    gitCommitHash?: string;
+    gitAuthor?: string;
+    confidence?: number;
+    linesOfCode?: number;
+    metadata?: unknown;
   },
 ): ProvenanceInsert {
-  const now = new Date()
+  const now = new Date();
   return {
     id: options?.id ?? crypto.randomUUID(),
     schemaVersion: String(PROVENANCE_SCHEMA_VERSION),
@@ -441,7 +441,7 @@ export function createProvenanceInsert(
     metadata: options?.metadata ?? null,
     createdAt: now,
     updatedAt: now,
-  }
+  };
 }
 
 export function createCodeReviewInsert(
@@ -449,10 +449,10 @@ export function createCodeReviewInsert(
   reviewType: ReviewType,
   status: ReviewDecision,
   options?: {
-    id?: string
-    reviewerId?: string
-    comment?: string
-    metadata?: unknown
+    id?: string;
+    reviewerId?: string;
+    comment?: string;
+    metadata?: unknown;
   },
 ): CodeReviewInsert {
   return {
@@ -464,5 +464,5 @@ export function createCodeReviewInsert(
     comment: options?.comment ?? null,
     metadata: options?.metadata ?? null,
     createdAt: new Date(),
-  }
+  };
 }

@@ -1,29 +1,29 @@
-'use client'
+'use client';
 
-import React, { useState } from 'react'
-import { useTheme } from '..'
-import type { Theme } from './types'
-import { themeLocalStorageKey } from './types'
+import React, { useState } from 'react';
+import { useTheme } from '..';
+import type { Theme } from './types';
+import { themeLocalStorageKey } from './types';
 
 export const ThemeSelector: React.FC = () => {
-  const { setTheme } = useTheme()
-  const [value, setValue] = useState('')
+  const { setTheme } = useTheme();
+  const [value, setValue] = useState('');
 
   const onThemeChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
-    const themeToSet = e.target.value
+    const themeToSet = e.target.value;
     if (themeToSet === 'auto') {
-      setTheme(null)
-      setValue('auto')
+      setTheme(null);
+      setValue('auto');
     } else {
-      setTheme(themeToSet as Theme)
-      setValue(themeToSet)
+      setTheme(themeToSet as Theme);
+      setValue(themeToSet);
     }
-  }
+  };
 
   React.useEffect(() => {
-    const preference = window.localStorage.getItem(themeLocalStorageKey)
-    setValue(preference ?? 'auto')
-  }, [])
+    const preference = window.localStorage.getItem(themeLocalStorageKey);
+    setValue(preference ?? 'auto');
+  }, []);
 
   return (
     <span className="group relative block">
@@ -54,5 +54,5 @@ export const ThemeSelector: React.FC = () => {
         </svg>
       </span>
     </span>
-  )
-}
+  );
+};

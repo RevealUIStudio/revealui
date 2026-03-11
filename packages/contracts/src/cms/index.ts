@@ -19,7 +19,7 @@ export {
   type CreateContractOptions,
   contractRegistry,
   createContract,
-} from '../foundation/contract.js'
+} from '../foundation/contract.js';
 
 // ============================================
 // CORE CONTRACTS
@@ -33,12 +33,12 @@ export {
   isCollectionConfig,
   parseCollection,
   validateCollection,
-} from './collection.js'
+} from './collection.js';
 export type {
   RevealUICollectionConfig,
   RevealUIExtensions,
   RevealUIGlobalConfig,
-} from './compat.js'
+} from './compat.js';
 // ============================================
 // CMS COMPATIBILITY
 // ============================================
@@ -53,7 +53,7 @@ export {
   toCMSConfig,
   toCMSGlobalConfig,
   toSlug,
-} from './compat.js'
+} from './compat.js';
 
 export type {
   AdminConfig,
@@ -68,12 +68,12 @@ export type {
   TypedCollectionConfig,
   TypedGlobalConfig,
   UnknownRecord,
-} from './config.js'
+} from './config.js';
 export {
   defineCollection,
   defineField,
   defineGlobal,
-} from './config.js'
+} from './config.js';
 // ============================================
 // CONFIG CONTRACTS
 // ============================================
@@ -83,7 +83,7 @@ export {
   isConfigStructure,
   parseConfigStructure,
   validateConfigStructure,
-} from './config-contract.js'
+} from './config-contract.js';
 // ============================================
 // ERROR HANDLING
 // ============================================
@@ -92,7 +92,7 @@ export {
   safeValidate,
   type ValidationResult,
   validateWithErrors,
-} from './errors.js'
+} from './errors.js';
 // ============================================
 // EXTENSIBILITY
 // ============================================
@@ -102,7 +102,7 @@ export type {
   CustomValidationRule,
   PluginFieldExtension,
   ValidationRuleRegistry,
-} from './extensibility.js'
+} from './extensibility.js';
 export {
   applyPluginExtensions,
   BUILTIN_FIELD_TYPES,
@@ -124,7 +124,7 @@ export {
   registerValidationRule,
   runValidationRule,
   unregisterCustomFieldType,
-} from './extensibility.js'
+} from './extensibility.js';
 // ============================================
 // FIELD CONTRACTS
 // ============================================
@@ -141,7 +141,7 @@ export {
   isTextField,
   parseField,
   validateField,
-} from './field.js'
+} from './field.js';
 // ============================================
 // FUNCTION CONTRACTS (TypeScript-only types)
 // ============================================
@@ -191,7 +191,7 @@ export type {
   RevealCMSInstance,
   RevealRequest,
   Where,
-} from './functions.js'
+} from './functions.js';
 // ============================================
 // GLOBAL CONTRACTS
 // ============================================
@@ -202,7 +202,7 @@ export {
   isGlobalConfig,
   parseGlobal,
   validateGlobal,
-} from './global.js'
+} from './global.js';
 export type {
   ArrayField,
   AuthConfig,
@@ -235,7 +235,7 @@ export type {
   TypeScriptConfig,
   UploadConfig,
   VersionConfig,
-} from './structure.js'
+} from './structure.js';
 // ============================================
 // STRUCTURE SCHEMAS (Zod)
 // ============================================
@@ -280,4 +280,4 @@ export {
   UploadConfigSchema,
   VersionConfigSchema,
   VersionsConfigSchema,
-} from './structure.js'
+} from './structure.js';

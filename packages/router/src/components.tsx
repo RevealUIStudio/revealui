@@ -1,17 +1,17 @@
-import type React from 'react'
-import { Component, createContext, use, useEffect, useSyncExternalStore } from 'react'
-import type { Router } from './router'
-import type { NavigateOptions, RouteMatch } from './types'
+import type React from 'react';
+import { Component, createContext, use, useEffect, useSyncExternalStore } from 'react';
+import type { Router } from './router';
+import type { NavigateOptions, RouteMatch } from './types';
 
 /**
  * Router context
  */
-const RouterContext = createContext<Router | null>(null)
+const RouterContext = createContext<Router | null>(null);
 
 /**
  * Current match context
  */
-const MatchContext = createContext<RouteMatch | null>(null)
+const MatchContext = createContext<RouteMatch | null>(null);
 
 /**
  * RouterProvider - Provides router instance to the app
@@ -20,37 +20,37 @@ export function RouterProvider({
   router,
   children,
 }: {
-  router: Router
-  children: React.ReactNode
+  router: Router;
+  children: React.ReactNode;
 }) {
-  return <RouterContext.Provider value={router}>{children}</RouterContext.Provider>
+  return <RouterContext.Provider value={router}>{children}</RouterContext.Provider>;
 }
 
 /**
  * Routes - Renders the matched route component
  */
 export function Routes() {
-  const router = useRouter()
-  const options = router.getOptions()
+  const router = useRouter();
+  const options = router.getOptions();
 
   // Subscribe to router changes
   const match = useSyncExternalStore(
     (callback) => router.subscribe(callback),
     () => router.getCurrentMatch(),
     () => router.getCurrentMatch(), // Server-side snapshot (same as client)
-  )
+  );
 
   if (!match) {
-    const CustomNotFound = options.notFound
-    return CustomNotFound ? <CustomNotFound /> : <NotFound />
+    const CustomNotFound = options.notFound;
+    return CustomNotFound ? <CustomNotFound /> : <NotFound />;
   }
 
-  const { route, params, data } = match
-  const RouteComponent = route.component
-  const Layout = route.layout
+  const { route, params, data } = match;
+  const RouteComponent = route.component;
+  const Layout = route.layout;
 
-  const element = <RouteComponent params={params} data={data} />
-  const wrapped = Layout ? <Layout>{element}</Layout> : element
+  const element = <RouteComponent params={params} data={data} />;
+  const wrapped = Layout ? <Layout>{element}</Layout> : element;
 
   return (
     <MatchContext.Provider value={match}>
@@ -60,7 +60,7 @@ export function Routes() {
         wrapped
       )}
     </MatchContext.Provider>
-  )
+  );
 }
 
 /**
@@ -75,91 +75,91 @@ export function Link({
   onClick,
   ...props
 }: {
-  to: string
-  replace?: boolean
-  children: React.ReactNode
-  className?: string
-  style?: React.CSSProperties
-  onClick?: (e: React.MouseEvent<HTMLAnchorElement>) => void
-  [key: string]: unknown
+  to: string;
+  replace?: boolean;
+  children: React.ReactNode;
+  className?: string;
+  style?: React.CSSProperties;
+  onClick?: (e: React.MouseEvent<HTMLAnchorElement>) => void;
+  [key: string]: unknown;
 }) {
-  const router = useRouter()
+  const router = useRouter();
 
   const handleClick = (e: React.MouseEvent<HTMLAnchorElement>) => {
     // Call custom onClick if provided
-    onClick?.(e)
+    onClick?.(e);
 
     // Don't navigate if default was prevented
     if (e.defaultPrevented) {
-      return
+      return;
     }
 
     // Only handle left clicks
     if (e.button !== 0) {
-      return
+      return;
     }
 
     // Ignore if modifier keys are pressed
     if (e.metaKey || e.ctrlKey || e.shiftKey || e.altKey) {
-      return
+      return;
     }
 
-    e.preventDefault()
-    router.navigate(to, { replace })
-  }
+    e.preventDefault();
+    router.navigate(to, { replace });
+  };
 
   return (
     <a href={to} onClick={handleClick} className={className} style={style} {...props}>
       {children}
     </a>
-  )
+  );
 }
 
 /**
  * useRouter - Hook to access router instance
  */
 export function useRouter(): Router {
-  const router = use(RouterContext)
+  const router = use(RouterContext);
 
   if (!router) {
-    throw new Error('useRouter must be used within a RouterProvider')
+    throw new Error('useRouter must be used within a RouterProvider');
   }
 
-  return router
+  return router;
 }
 
 /**
  * useMatch - Hook to access current route match
  */
 export function useMatch(): RouteMatch | null {
-  return use(MatchContext)
+  return use(MatchContext);
 }
 
 /**
  * useParams - Hook to access route parameters
  */
 export function useParams<T = Record<string, string>>(): T {
-  const match = useMatch()
-  return (match?.params as T) || ({} as T)
+  const match = useMatch();
+  return (match?.params as T) || ({} as T);
 }
 
 /**
  * useData - Hook to access route data
  */
 export function useData<T = unknown>(): T | undefined {
-  const match = useMatch()
-  return match?.data as T | undefined
+  const match = useMatch();
+  return match?.data as T | undefined;
 }
 
 /**
  * useNavigate - Hook to get navigation function
  */
 export function useNavigate() {
-  const router = useRouter()
+  const router = useRouter();
 
   return (to: string, options?: NavigateOptions) => {
-    router.navigate(to, options)
-  }
+    router.navigate(to, options);
+  };
 }
 
 /**
@@ -172,7 +172,7 @@ function NotFound() {
       <p>The page you're looking for doesn't exist.</p>
       <Link to="/">Go Home</Link>
     </div>
-  )
+  );
 }
 
 /**
@@ -183,23 +183,23 @@ class RouteErrorBoundary extends Component<
   { error: Error | null }
 > {
   constructor(props: {
-    fallback: React.ComponentType<{ error: Error }>
-    children: React.ReactNode
+    fallback: React.ComponentType<{ error: Error }>;
+    children: React.ReactNode;
   }) {
-    super(props)
-    this.state = { error: null }
+    super(props);
+    this.state = { error: null };
   }
 
   static getDerivedStateFromError(error: Error): { error: Error } {
-    return { error }
+    return { error };
   }
 
   render() {
     if (this.state.error) {
-      const Fallback = this.props.fallback
-      return <Fallback error={this.state.error} />
+      const Fallback = this.props.fallback;
+      return <Fallback error={this.state.error} />;
     }
-    return this.props.children
+    return this.props.children;
   }
 }
 
@@ -207,11 +207,11 @@ class RouteErrorBoundary extends Component<
  * Navigate - Component for declarative navigation
  */
 export function Navigate({ to, replace = false }: { to: string; replace?: boolean }) {
-  const router = useRouter()
+  const router = useRouter();
 
   useEffect(() => {
-    router.navigate(to, { replace })
-  }, [to, replace, router])
+    router.navigate(to, { replace });
+  }, [to, replace, router]);
 
-  return null
+  return null;
 }

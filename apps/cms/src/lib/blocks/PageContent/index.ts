@@ -1,4 +1,4 @@
-import type { Block } from '@revealui/core'
+import type { Block } from '@revealui/core';
 
 export const PageContent: Block = {
   slug: 'pageContent',
@@ -14,4 +14,4 @@ export const PageContent: Block = {
       },
     },
   ],
-}
+};

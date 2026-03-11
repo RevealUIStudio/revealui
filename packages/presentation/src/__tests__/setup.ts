@@ -3,7 +3,7 @@
  * Configures testing environment for React component tests
  */
 
-import '@testing-library/jest-dom'
+import '@testing-library/jest-dom';
 
 // jsdom does not implement navigator.clipboard — install a global stub
 // so components that call navigator.clipboard.writeText don't throw
@@ -15,5 +15,5 @@ if (typeof navigator !== 'undefined') {
     },
     writable: true,
     configurable: true,
-  })
+  });
 }

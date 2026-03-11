@@ -1,10 +1,10 @@
-import type { RevealCollectionConfig } from '@revealui/core'
-import type { Order } from '@revealui/core/types/cms'
-import { isAdmin, isAdminOrLoggedIn } from '@/lib/access'
-import { adminsOrOrderedBy } from './access/adminsOrOrderedBy'
-import { clearUserCart } from './hooks/clearUserCart'
-import { populateOrderedBy } from './hooks/populateOrderedBy'
-import { updateUserPurchases } from './hooks/updateUserPurchases'
+import type { RevealCollectionConfig } from '@revealui/core';
+import type { Order } from '@revealui/core/types/cms';
+import { isAdmin, isAdminOrLoggedIn } from '@/lib/access';
+import { adminsOrOrderedBy } from './access/adminsOrOrderedBy';
+import { clearUserCart } from './hooks/clearUserCart';
+import { populateOrderedBy } from './hooks/populateOrderedBy';
+import { updateUserPurchases } from './hooks/updateUserPurchases';
 
 export const Orders: RevealCollectionConfig<Order> = {
   slug: 'orders',
@@ -69,4 +69,4 @@ export const Orders: RevealCollectionConfig<Order> = {
       ],
     },
   ],
-}
+};

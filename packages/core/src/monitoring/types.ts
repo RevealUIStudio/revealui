@@ -15,7 +15,7 @@ export type ProcessSource =
   | 'ai-runtime' // AI agent runtime tasks
   | 'dev-server' // Development servers
   | 'database' // Database connections
-  | 'unknown' // Unidentified source
+  | 'unknown'; // Unidentified source
 
 /**
  * Status of a tracked process
@@ -25,13 +25,13 @@ export type ProcessStatus =
   | 'completed' // Exited successfully (code 0)
   | 'failed' // Exited with error (code !== 0)
   | 'zombie' // Defunct process
-  | 'killed' // Terminated by signal
+  | 'killed'; // Terminated by signal
 
 /**
  * Tracked process metadata
  */
 export interface ProcessMetadata {
-  [key: string]: string | number | boolean | undefined
+  [key: string]: string | number | boolean | undefined;
 }
 
 /**
@@ -39,37 +39,37 @@ export interface ProcessMetadata {
  */
 export interface TrackedProcess {
   /** Process ID */
-  pid: number
+  pid: number;
 
   /** Command executed */
-  command: string
+  command: string;
 
   /** Command arguments */
-  args: string[]
+  args: string[];
 
   /** Process source */
-  source: ProcessSource
+  source: ProcessSource;
 
   /** Current status */
-  status: ProcessStatus
+  status: ProcessStatus;
 
   /** Start timestamp */
-  startTime: number
+  startTime: number;
 
   /** End timestamp (if completed/failed/killed) */
-  endTime?: number
+  endTime?: number;
 
   /** Exit code (if completed/failed) */
-  exitCode?: number
+  exitCode?: number;
 
   /** Signal that killed process (if killed) */
-  signal?: string
+  signal?: string;
 
   /** Custom metadata */
-  metadata?: ProcessMetadata
+  metadata?: ProcessMetadata;
 
   /** Parent process ID */
-  ppid?: number
+  ppid?: number;
 }
 
 /**
@@ -77,19 +77,19 @@ export interface TrackedProcess {
  */
 export interface ZombieProcess {
   /** Process ID */
-  pid: number
+  pid: number;
 
   /** Parent process ID */
-  ppid: number
+  ppid: number;
 
   /** Command name */
-  command: string
+  command: string;
 
   /** When zombie was first detected */
-  detectedAt: number
+  detectedAt: number;
 
   /** Associated tracked process (if available) */
-  trackedProcess?: TrackedProcess
+  trackedProcess?: TrackedProcess;
 }
 
 /**
@@ -97,16 +97,16 @@ export interface ZombieProcess {
  */
 export interface PoolMetrics {
   /** Total connections in pool */
-  totalCount: number
+  totalCount: number;
 
   /** Idle connections */
-  idleCount: number
+  idleCount: number;
 
   /** Waiting requests */
-  waitingCount: number
+  waitingCount: number;
 
   /** Pool name/identifier */
-  name: string
+  name: string;
 }
 
 /**
@@ -116,62 +116,62 @@ export interface HealthMetrics {
   /** System information */
   system: {
     /** Memory usage in MB */
-    memoryUsage: number
+    memoryUsage: number;
 
     /** CPU usage percentage */
-    cpuUsage: number
+    cpuUsage: number;
 
     /** Uptime in seconds */
-    uptime: number
+    uptime: number;
 
     /** Platform */
-    platform: string
+    platform: string;
 
     /** Node.js version */
-    nodeVersion: string
-  }
+    nodeVersion: string;
+  };
 
   /** Process statistics */
   processes: {
     /** Active running processes */
-    active: number
+    active: number;
 
     /** Zombie processes */
-    zombies: number
+    zombies: number;
 
     /** Failed processes */
-    failed: number
+    failed: number;
 
     /** Process spawn rate (per minute) */
-    spawnRate: number
+    spawnRate: number;
 
     /** Processes by source */
-    bySource: Record<ProcessSource, number>
-  }
+    bySource: Record<ProcessSource, number>;
+  };
 
   /** Database pool metrics */
   database: {
     /** REST database pools */
-    rest: PoolMetrics[]
+    rest: PoolMetrics[];
 
     /** Vector database pools */
-    vector: PoolMetrics[]
-  }
+    vector: PoolMetrics[];
+  };
 
   /** Recent zombie processes */
-  recentZombies: ZombieProcess[]
+  recentZombies: ZombieProcess[];
 
   /** Active alerts */
-  alerts: Alert[]
+  alerts: Alert[];
 
   /** Timestamp of metrics collection */
-  timestamp: number
+  timestamp: number;
 }
 
 /**
  * Alert severity level
  */
-export type AlertLevel = 'warning' | 'critical'
+export type AlertLevel = 'warning' | 'critical';
 
 /**
  * Alert metric type
@@ -181,29 +181,29 @@ export type AlertMetric =
   | 'memory'
   | 'active_processes'
   | 'database_waiting'
-  | 'spawn_rate'
+  | 'spawn_rate';
 
 /**
  * Alert definition
  */
 export interface Alert {
   /** Alert severity */
-  level: AlertLevel
+  level: AlertLevel;
 
   /** Metric that triggered alert */
-  metric: AlertMetric
+  metric: AlertMetric;
 
   /** Human-readable message */
-  message: string
+  message: string;
 
   /** Current value */
-  value: number
+  value: number;
 
   /** Threshold that was exceeded */
-  threshold: number
+  threshold: number;
 
   /** Timestamp when alert was triggered */
-  timestamp: number
+  timestamp: number;
 }
 
 /**
@@ -211,51 +211,51 @@ export interface Alert {
  */
 export interface AlertThresholds {
   zombies: {
-    warning: number
-    critical: number
-  }
+    warning: number;
+    critical: number;
+  };
   memory: {
-    warning: number // MB
-    critical: number // MB
-  }
+    warning: number; // MB
+    critical: number; // MB
+  };
   processes: {
     active: {
-      warning: number
-      critical: number
-    }
-  }
+      warning: number;
+      critical: number;
+    };
+  };
   database: {
     waiting: {
-      warning: number
-      critical: number
-    }
-  }
+      warning: number;
+      critical: number;
+    };
+  };
   spawnRate: {
-    warning: number // per minute
-    critical: number // per minute
-  }
+    warning: number; // per minute
+    critical: number; // per minute
+  };
 }
 
 /**
  * Cleanup handler function
  */
-export type CleanupHandler = () => void | Promise<void>
+export type CleanupHandler = () => void | Promise<void>;
 
 /**
  * Cleanup handler registration
  */
 export interface CleanupRegistration {
   /** Handler ID */
-  id: string
+  id: string;
 
   /** Handler function */
-  handler: CleanupHandler
+  handler: CleanupHandler;
 
   /** Priority (higher executes first) */
-  priority: number
+  priority: number;
 
   /** Handler description */
-  description: string
+  description: string;
 }
 
 /**
@@ -263,25 +263,25 @@ export interface CleanupRegistration {
  */
 export interface RegistryStats {
   /** Total processes tracked */
-  total: number
+  total: number;
 
   /** Currently running */
-  running: number
+  running: number;
 
   /** Completed successfully */
-  completed: number
+  completed: number;
 
   /** Failed */
-  failed: number
+  failed: number;
 
   /** Zombies detected */
-  zombies: number
+  zombies: number;
 
   /** Killed by signal */
-  killed: number
+  killed: number;
 
   /** Processes by source */
-  bySource: Record<ProcessSource, number>
+  bySource: Record<ProcessSource, number>;
 }
 
 /**
@@ -289,22 +289,22 @@ export interface RegistryStats {
  */
 export interface MonitoringConfig {
   /** Enable process monitoring */
-  enabled: boolean
+  enabled: boolean;
 
   /** Zombie detection interval (ms) */
-  zombieDetectionInterval: number
+  zombieDetectionInterval: number;
 
   /** Health check interval (ms) */
-  healthCheckInterval: number
+  healthCheckInterval: number;
 
   /** Alert thresholds */
-  alertThresholds: AlertThresholds
+  alertThresholds: AlertThresholds;
 
   /** Maximum tracked processes to keep in history */
-  maxHistorySize: number
+  maxHistorySize: number;
 
   /** Maximum zombies to track */
-  maxZombieHistory: number
+  maxZombieHistory: number;
 }
 
 /**
@@ -342,4 +342,4 @@ export const DEFAULT_MONITORING_CONFIG: MonitoringConfig = {
   },
   maxHistorySize: 1000,
   maxZombieHistory: 50,
-}
+};

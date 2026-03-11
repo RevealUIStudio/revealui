@@ -27,68 +27,68 @@
  * ```
  */
 
-import { ErrorCode, ScriptError } from './errors.js'
+import { ErrorCode, ScriptError } from './errors.js';
 
 // =============================================================================
 // Types
 // =============================================================================
 
-export type ArgType = 'string' | 'boolean' | 'number'
+export type ArgType = 'string' | 'boolean' | 'number';
 
 export interface ArgDefinition<T extends ArgType = ArgType> {
   /** Argument name (used as --name) */
-  name: string
+  name: string;
   /** Short flag (used as -x) */
-  short?: string
+  short?: string;
   /** Value type */
-  type: T
+  type: T;
   /** Whether this argument is required */
-  required?: boolean
+  required?: boolean;
   /** Default value if not provided */
-  default?: T extends 'string' ? string : T extends 'number' ? number : boolean
+  default?: T extends 'string' ? string : T extends 'number' ? number : boolean;
   /** Description for help text */
-  description: string
+  description: string;
 }
 
 export interface CommandDefinition {
   /** Command name */
-  name: string
+  name: string;
   /** Command description for help text */
-  description: string
+  description: string;
   /** Command-specific arguments */
-  args?: ArgDefinition[]
+  args?: ArgDefinition[];
 }
 
 export interface ParserConfig {
   /** CLI name for help text */
-  name: string
+  name: string;
   /** CLI description */
-  description: string
+  description: string;
   /** Global argument definitions */
-  args?: ArgDefinition[]
+  args?: ArgDefinition[];
   /** Available commands */
-  commands?: CommandDefinition[]
+  commands?: CommandDefinition[];
   /** Positional argument names (for help text) */
-  positionalNames?: string[]
+  positionalNames?: string[];
 }
 
 export interface ParsedArgs {
   /** The command (first positional if matches known command) */
-  command?: string
+  command?: string;
   /** Positional arguments (after command) */
-  positional: string[]
+  positional: string[];
   /** Parsed flag values */
-  flags: Record<string, string | number | boolean | undefined>
+  flags: Record<string, string | number | boolean | undefined>;
   /** Whether help was requested */
-  help: boolean
+  help: boolean;
   /** Raw argv for debugging */
-  raw: string[]
+  raw: string[];
 }
 
 export interface ArgParser {
-  config: ParserConfig
-  parse: (argv: string[]) => ParsedArgs
-  generateHelp: (command?: string) => string
+  config: ParserConfig;
+  parse: (argv: string[]) => ParsedArgs;
+  generateHelp: (command?: string) => string;
 }
 
 // =============================================================================
@@ -103,7 +103,7 @@ export function defineArgs(config: ParserConfig): ArgParser {
     config,
     parse: (argv: string[]) => parseArgs(argv, config),
     generateHelp: (command?: string) => generateHelp(config, command),
-  }
+  };
 }
 
 /**
@@ -116,134 +116,134 @@ export function parseArgs(argv: string[], config: ParserConfig): ParsedArgs {
     flags: {},
     help: false,
     raw: argv,
-  }
+  };
 
   // Build lookup maps for flags
-  const argsByName = new Map<string, ArgDefinition>()
-  const argsByShort = new Map<string, ArgDefinition>()
-  const commands = new Set(config.commands?.map((c) => c.name) ?? [])
+  const argsByName = new Map<string, ArgDefinition>();
+  const argsByShort = new Map<string, ArgDefinition>();
+  const commands = new Set(config.commands?.map((c) => c.name) ?? []);
 
   // Add global args
   for (const arg of config.args ?? []) {
-    argsByName.set(arg.name, arg)
+    argsByName.set(arg.name, arg);
     if (arg.short) {
-      argsByShort.set(arg.short, arg)
+      argsByShort.set(arg.short, arg);
     }
     // Set defaults
     if (arg.default !== undefined) {
-      result.flags[arg.name] = arg.default
+      result.flags[arg.name] = arg.default;
     } else if (arg.type === 'boolean') {
-      result.flags[arg.name] = false
+      result.flags[arg.name] = false;
     }
   }
 
-  let i = 0
+  let i = 0;
   while (i < argv.length) {
-    const token = argv[i]
+    const token = argv[i];
 
     // Check for help flags
     if (token === '--help' || token === '-h') {
-      result.help = true
-      i++
-      continue
+      result.help = true;
+      i++;
+      continue;
     }
 
     // Long flag: --name or --name=value
     if (token.startsWith('--')) {
-      const eqIndex = token.indexOf('=')
-      let name: string
-      let value: string | undefined
+      const eqIndex = token.indexOf('=');
+      let name: string;
+      let value: string | undefined;
 
       if (eqIndex !== -1) {
-        name = token.slice(2, eqIndex)
-        value = token.slice(eqIndex + 1)
+        name = token.slice(2, eqIndex);
+        value = token.slice(eqIndex + 1);
       } else {
-        name = token.slice(2)
+        name = token.slice(2);
       }
 
-      const argDef = argsByName.get(name)
+      const argDef = argsByName.get(name);
 
       if (argDef) {
-        result.flags[name] = parseValue(argDef, value, argv, i)
+        result.flags[name] = parseValue(argDef, value, argv, i);
         if (argDef.type !== 'boolean' && value === undefined) {
-          i++ // Skip next token (consumed as value)
+          i++; // Skip next token (consumed as value)
         }
       } else {
         // Unknown flag - store as string
         if (value !== undefined) {
-          result.flags[name] = value
+          result.flags[name] = value;
         } else if (argv[i + 1] && !argv[i + 1].startsWith('-')) {
-          result.flags[name] = argv[++i]
+          result.flags[name] = argv[++i];
         } else {
-          result.flags[name] = true
+          result.flags[name] = true;
         }
       }
-      i++
-      continue
+      i++;
+      continue;
     }
 
     // Short flag: -j or -i value
     if (token.startsWith('-') && token.length > 1) {
-      const short = token.slice(1)
+      const short = token.slice(1);
 
       // Handle combined short flags like -jv
       if (short.length > 1 && !argsByShort.has(short)) {
         for (const char of short) {
-          const argDef = argsByShort.get(char)
+          const argDef = argsByShort.get(char);
           if (argDef && argDef.type === 'boolean') {
-            result.flags[argDef.name] = true
+            result.flags[argDef.name] = true;
           }
         }
-        i++
-        continue
+        i++;
+        continue;
       }
 
-      const argDef = argsByShort.get(short)
+      const argDef = argsByShort.get(short);
 
       if (argDef) {
-        result.flags[argDef.name] = parseValue(argDef, undefined, argv, i)
+        result.flags[argDef.name] = parseValue(argDef, undefined, argv, i);
         if (argDef.type !== 'boolean') {
-          i++ // Skip next token (consumed as value)
+          i++; // Skip next token (consumed as value)
         }
       } else {
         // Unknown short flag
         if (argv[i + 1] && !argv[i + 1].startsWith('-')) {
-          result.flags[short] = argv[++i]
+          result.flags[short] = argv[++i];
         } else {
-          result.flags[short] = true
+          result.flags[short] = true;
         }
       }
-      i++
-      continue
+      i++;
+      continue;
     }
 
     // Positional argument
     if (result.command === undefined && commands.has(token)) {
       // First positional matches a command
-      result.command = token
+      result.command = token;
 
       // Add command-specific args to lookup
-      const commandDef = config.commands?.find((c) => c.name === token)
+      const commandDef = config.commands?.find((c) => c.name === token);
       if (commandDef?.args) {
         for (const arg of commandDef.args) {
-          argsByName.set(arg.name, arg)
+          argsByName.set(arg.name, arg);
           if (arg.short) {
-            argsByShort.set(arg.short, arg)
+            argsByShort.set(arg.short, arg);
           }
           if (arg.default !== undefined) {
-            result.flags[arg.name] = arg.default
+            result.flags[arg.name] = arg.default;
           } else if (arg.type === 'boolean') {
-            result.flags[arg.name] = false
+            result.flags[arg.name] = false;
           }
         }
       }
     } else {
-      result.positional.push(token)
+      result.positional.push(token);
     }
-    i++
+    i++;
   }
 
-  return result
+  return result;
 }
 
 /**
@@ -257,35 +257,35 @@ function parseValue(
 ): string | number | boolean {
   if (argDef.type === 'boolean') {
     if (inlineValue !== undefined) {
-      return inlineValue.toLowerCase() === 'true' || inlineValue === '1'
+      return inlineValue.toLowerCase() === 'true' || inlineValue === '1';
     }
-    return true
+    return true;
   }
 
-  const value = inlineValue ?? argv[currentIndex + 1]
+  const value = inlineValue ?? argv[currentIndex + 1];
 
   if (value === undefined || value.startsWith('-')) {
     if (argDef.required) {
       throw new ScriptError(
         `Argument --${argDef.name} requires a value`,
         ErrorCode.VALIDATION_ERROR,
-      )
+      );
     }
-    return argDef.default as string | number
+    return argDef.default as string | number;
   }
 
   if (argDef.type === 'number') {
-    const num = Number(value)
+    const num = Number(value);
     if (Number.isNaN(num)) {
       throw new ScriptError(
         `Argument --${argDef.name} must be a number, got: ${value}`,
         ErrorCode.VALIDATION_ERROR,
-      )
+      );
     }
-    return num
+    return num;
   }
 
-  return value
+  return value;
 }
 
 // =============================================================================
@@ -296,83 +296,83 @@ function parseValue(
  * Generate help text for the CLI
  */
 export function generateHelp(config: ParserConfig, command?: string): string {
-  const lines: string[] = []
+  const lines: string[] = [];
 
   // Header
-  lines.push(config.name)
-  lines.push('')
-  lines.push(config.description)
-  lines.push('')
+  lines.push(config.name);
+  lines.push('');
+  lines.push(config.description);
+  lines.push('');
 
   // Usage
-  const positionalStr = config.positionalNames?.map((n) => `<${n}>`).join(' ') ?? ''
+  const positionalStr = config.positionalNames?.map((n) => `<${n}>`).join(' ') ?? '';
   if (config.commands?.length) {
-    lines.push('Usage:')
-    lines.push(`  ${config.name} <command> [options] ${positionalStr}`)
-    lines.push('')
+    lines.push('Usage:');
+    lines.push(`  ${config.name} <command> [options] ${positionalStr}`);
+    lines.push('');
   } else {
-    lines.push('Usage:')
-    lines.push(`  ${config.name} [options] ${positionalStr}`)
-    lines.push('')
+    lines.push('Usage:');
+    lines.push(`  ${config.name} [options] ${positionalStr}`);
+    lines.push('');
   }
 
   // Commands
   if (config.commands?.length && !command) {
-    lines.push('Commands:')
-    const maxLen = Math.max(...config.commands.map((c) => c.name.length))
+    lines.push('Commands:');
+    const maxLen = Math.max(...config.commands.map((c) => c.name.length));
     for (const cmd of config.commands) {
-      lines.push(`  ${cmd.name.padEnd(maxLen + 2)} ${cmd.description}`)
+      lines.push(`  ${cmd.name.padEnd(maxLen + 2)} ${cmd.description}`);
     }
-    lines.push('')
+    lines.push('');
   }
 
   // Command-specific help
   if (command) {
-    const cmdDef = config.commands?.find((c) => c.name === command)
+    const cmdDef = config.commands?.find((c) => c.name === command);
     if (cmdDef) {
-      lines.push(`Command: ${command}`)
-      lines.push(`  ${cmdDef.description}`)
-      lines.push('')
+      lines.push(`Command: ${command}`);
+      lines.push(`  ${cmdDef.description}`);
+      lines.push('');
 
       if (cmdDef.args?.length) {
-        lines.push('Command Options:')
-        lines.push(...formatArgs(cmdDef.args))
-        lines.push('')
+        lines.push('Command Options:');
+        lines.push(...formatArgs(cmdDef.args));
+        lines.push('');
       }
     }
   }
 
   // Global options
   if (config.args?.length) {
-    lines.push('Options:')
-    lines.push(...formatArgs(config.args))
-    lines.push('')
+    lines.push('Options:');
+    lines.push(...formatArgs(config.args));
+    lines.push('');
   }
 
   // Built-in options
-  lines.push('  -h, --help       Show this help message')
+  lines.push('  -h, --help       Show this help message');
 
-  return lines.join('\n')
+  return lines.join('\n');
 }
 
 /**
  * Format argument definitions for help text
  */
 function formatArgs(args: ArgDefinition[]): string[] {
-  const lines: string[] = []
+  const lines: string[] = [];
 
   for (const arg of args) {
-    const short = arg.short ? `-${arg.short}, ` : '    '
-    const long = `--${arg.name}`
-    const typeHint = arg.type !== 'boolean' ? ` <${arg.type}>` : ''
-    const defaultHint = arg.default !== undefined ? ` (default: ${arg.default})` : ''
-    const requiredHint = arg.required ? ' (required)' : ''
+    const short = arg.short ? `-${arg.short}, ` : '    ';
+    const long = `--${arg.name}`;
+    const typeHint = arg.type !== 'boolean' ? ` <${arg.type}>` : '';
+    const defaultHint = arg.default !== undefined ? ` (default: ${arg.default})` : '';
+    const requiredHint = arg.required ? ' (required)' : '';
 
-    lines.push(`  ${short}${long}${typeHint}${defaultHint}${requiredHint}`)
-    lines.push(`        ${arg.description}`)
+    lines.push(`  ${short}${long}${typeHint}${defaultHint}${requiredHint}`);
+    lines.push(`        ${arg.description}`);
   }
 
-  return lines
+  return lines;
 }
 
 // =============================================================================
@@ -386,20 +386,20 @@ export function validateRequiredArgs(
   args: ParsedArgs,
   config: ParserConfig,
 ): { valid: boolean; missing: string[] } {
-  const missing: string[] = []
+  const missing: string[] = [];
 
   const allArgs = [
     ...(config.args ?? []),
     ...(args.command ? (config.commands?.find((c) => c.name === args.command)?.args ?? []) : []),
-  ]
+  ];
 
   for (const arg of allArgs) {
     if (arg.required && args.flags[arg.name] === undefined) {
-      missing.push(arg.name)
+      missing.push(arg.name);
     }
   }
 
-  return { valid: missing.length === 0, missing }
+  return { valid: missing.length === 0, missing };
 }
 
 /**
@@ -410,7 +410,7 @@ export function getFlag<T extends string | number | boolean>(
   name: string,
   defaultValue: T,
 ): T {
-  const value = args.flags[name]
-  if (value === undefined) return defaultValue
-  return value as T
+  const value = args.flags[name];
+  if (value === undefined) return defaultValue;
+  return value as T;
 }

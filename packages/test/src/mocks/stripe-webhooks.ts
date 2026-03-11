@@ -1,4 +1,4 @@
-import crypto from 'node:crypto'
+import crypto from 'node:crypto';
 
 export function createWebhookPayload(type: string, data: Record<string, unknown>): string {
   return JSON.stringify({
@@ -7,14 +7,14 @@ export function createWebhookPayload(type: string, data: Record<string, unknown>
     data: { object: data },
     created: Math.floor(Date.now() / 1000),
     livemode: false,
-  })
+  });
 }
 
 export function createValidWebhookSignature(payload: string, secret: string): string {
-  const timestamp = Math.floor(Date.now() / 1000)
-  const signedPayload = `${timestamp}.${payload}`
-  const signature = crypto.createHmac('sha256', secret).update(signedPayload).digest('hex')
-  return `t=${timestamp},v1=${signature}`
+  const timestamp = Math.floor(Date.now() / 1000);
+  const signedPayload = `${timestamp}.${payload}`;
+  const signature = crypto.createHmac('sha256', secret).update(signedPayload).digest('hex');
+  return `t=${timestamp},v1=${signature}`;
 }
 
 export const mockPaymentIntentSucceeded = (overrides?: Record<string, unknown>) => ({
@@ -25,7 +25,7 @@ export const mockPaymentIntentSucceeded = (overrides?: Record<string, unknown>) 
   status: 'succeeded',
   customer: 'cus_test123',
   ...overrides,
-})
+});
 
 export const mockSubscriptionCreated = (overrides?: Record<string, unknown>) => ({
   id: `sub_test_${Date.now()}`,
@@ -34,4 +34,4 @@ export const mockSubscriptionCreated = (overrides?: Record<string, unknown>) => 
   status: 'active',
   current_period_end: Math.floor(Date.now() / 1000) + 30 * 24 * 60 * 60,
   ...overrides,
-})
+});

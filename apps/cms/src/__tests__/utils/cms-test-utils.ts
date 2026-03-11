@@ -3,38 +3,38 @@
  * Helper functions for testing RevealUI CMS collections and authentication
  */
 
-import { randomUUID } from 'node:crypto'
-import type { RevealUIInstance } from '@revealui/core'
-import { getRevealUI } from '@revealui/core'
+import { randomUUID } from 'node:crypto';
+import type { RevealUIInstance } from '@revealui/core';
+import { getRevealUI } from '@revealui/core';
 
-let revealuiInstance: RevealUIInstance | null = null
+let revealuiInstance: RevealUIInstance | null = null;
 
 type TestTenantAssignment = {
-  tenant: number | string
-  roles: string[]
-}
+  tenant: number | string;
+  roles: string[];
+};
 
 type TestUser = {
-  id: string | number
-  email: string
-  roles?: string[]
-  tenants?: TestTenantAssignment[]
-} & Record<string, unknown>
+  id: string | number;
+  email: string;
+  roles?: string[];
+  tenants?: TestTenantAssignment[];
+} & Record<string, unknown>;
 
 type TestUserInput = {
-  email: string
-  password: string
-  roles: string[]
-  tenants?: TestTenantAssignment[]
-}
+  email: string;
+  password: string;
+  roles: string[];
+  tenants?: TestTenantAssignment[];
+};
 
-type TestTenant = { id: string | number } & Record<string, unknown>
+type TestTenant = { id: string | number } & Record<string, unknown>;
 
 /**
  * Clear the cached RevealUI instance (useful for test cleanup)
  */
 export function clearTestRevealUI(): void {
-  revealuiInstance = null
+  revealuiInstance = null;
 }
 
 /**
@@ -46,8 +46,8 @@ export async function getTestRevealUI(): Promise<RevealUIInstance> {
     // Lazy import: avoid loading all collections (including @revealui/ai) at module
     // level, since clearTestRevealUI() doesn't need config and many tests mock
     // everything at the route level without needing a real RevealUI instance.
-    const { default: config } = await import('@reveal-config')
-    revealuiInstance = await getRevealUI({ config })
+    const { default: config } = await import('@reveal-config');
+    revealuiInstance = await getRevealUI({ config });
     // Trigger database initialization by making a lightweight query
     // This ensures tables are created before any test queries
     try {
@@ -55,13 +55,13 @@ export async function getTestRevealUI(): Promise<RevealUIInstance> {
         collection: 'users',
         limit: 0,
         depth: 0,
-      })
+      });
     } catch (_error) {
       // Ignore errors - tables will be created on first real query
       // This is just to trigger initialization
     }
   }
-  return revealuiInstance
+  return revealuiInstance;
 }
 
 /**
@@ -74,7 +74,7 @@ export async function createTestUser(
   tenantId?: number | string,
   tenantRoles?: string[],
 ): Promise<{ user: TestUser; token: string }> {
-  const revealui = await getTestRevealUI()
+  const revealui = await getTestRevealUI();
 
   // Check if user already exists
   const existingUser = await revealui.find({
@@ -84,7 +84,7 @@ export async function createTestUser(
         equals: email,
       },
     },
-  })
+  });
 
   if (existingUser.docs.length > 0) {
     // User exists, try to login
@@ -92,15 +92,15 @@ export async function createTestUser(
       const loginResult = await revealui.login({
         collection: 'users',
         data: { email, password },
-      })
-      return { user: loginResult.user as TestUser, token: String(loginResult.token ?? '') }
+      });
+      return { user: loginResult.user as TestUser, token: String(loginResult.token ?? '') };
     } catch (_error) {
       // If login fails, delete and recreate
       if (existingUser.docs[0]) {
         await revealui.delete({
           collection: 'users',
           id: existingUser.docs[0].id,
-        })
+        });
       }
     }
   }
@@ -110,7 +110,7 @@ export async function createTestUser(
     email,
     password,
     roles,
-  }
+  };
 
   // Add tenant if provided
   if (tenantId && tenantRoles) {
@@ -119,22 +119,22 @@ export async function createTestUser(
         tenant: tenantId,
         roles: tenantRoles,
       },
-    ]
+    ];
   }
 
   // Create new user
   const user = (await revealui.create({
     collection: 'users',
     data: userData,
-  })) as TestUser
+  })) as TestUser;
 
   // Login to get token
   const loginResult = await revealui.login({
     collection: 'users',
     data: { email, password },
-  })
+  });
 
-  return { user, token: String(loginResult.token ?? '') }
+  return { user, token: String(loginResult.token ?? '') };
 }
 
 /**
@@ -149,7 +149,7 @@ export async function createTestUser(
  */
 export async function deleteTestUser(email: string): Promise<{ success: boolean; error?: string }> {
   try {
-    const revealui = await getTestRevealUI()
+    const revealui = await getTestRevealUI();
 
     // Use find with specific email to avoid race conditions
     const result = await revealui.find({
@@ -160,15 +160,15 @@ export async function deleteTestUser(email: string): Promise<{ success: boolean;
         },
       },
       limit: 1, // Only need one result
-    })
+    });
 
     if (result.docs.length > 0 && result.docs[0]) {
       // Delete the user - this operation is atomic
       await revealui.delete({
         collection: 'users',
         id: result.docs[0].id,
-      })
-      return { success: true }
+      });
+      return { success: true };
     }
 
     // User doesn't exist - this is fine, not an error
@@ -176,10 +176,10 @@ export async function deleteTestUser(email: string): Promise<{ success: boolean;
     // 1. User was already deleted by another test (parallel execution)
     // 2. User never existed (cleanup before creation)
     // 3. User was deleted in a previous test run
-    return { success: true }
+    return { success: true };
   } catch (error) {
     // Handle errors gracefully - user might already be deleted by another test
-    const errorMessage = error instanceof Error ? error.message : String(error)
+    const errorMessage = error instanceof Error ? error.message : String(error);
 
     // If it's a "not found" error, that's fine - user already deleted
     if (
@@ -187,7 +187,7 @@ export async function deleteTestUser(email: string): Promise<{ success: boolean;
       errorMessage.includes('does not exist') ||
       errorMessage.includes('No document found')
     ) {
-      return { success: true }
+      return { success: true };
     }
 
     // For UNIQUE constraint errors, the user might have been created/deleted
@@ -199,12 +199,12 @@ export async function deleteTestUser(email: string): Promise<{ success: boolean;
     ) {
       // This is a race condition - user was created by another test
       // Return success since our goal is just to ensure user doesn't exist
-      return { success: true }
+      return { success: true };
     }
 
     // For other errors, log but don't throw (prevents test failures from cleanup)
     // These are unexpected but shouldn't break tests
-    return { success: false, error: errorMessage }
+    return { success: false, error: errorMessage };
   }
 }
 
@@ -222,8 +222,8 @@ export async function deleteTestUser(email: string): Promise<{ success: boolean;
  * ```
  */
 export function generateUniqueTestEmail(prefix = 'test'): string {
-  const uuid = randomUUID()
-  return `${prefix}-${uuid}@example.com`
+  const uuid = randomUUID();
+  return `${prefix}-${uuid}@example.com`;
 }
 
 /**
@@ -233,17 +233,17 @@ export function generateUniqueTestEmail(prefix = 'test'): string {
  * or explicit deletion in test teardown.
  */
 export async function cleanupTestUsers(): Promise<void> {
-  const _revealui = await getTestRevealUI()
+  const _revealui = await getTestRevealUI();
   const testEmails = [
     'test@example.com',
     'test-admin@example.com',
     'test-superadmin@example.com',
     'test-tenant-admin@example.com',
     'test-user@example.com',
-  ]
+  ];
 
   for (const email of testEmails) {
-    await deleteTestUser(email)
+    await deleteTestUser(email);
   }
 }
 
@@ -251,23 +251,23 @@ export async function cleanupTestUsers(): Promise<void> {
  * Verify token is a valid opaque session token (non-empty hex string)
  */
 export function verifyTokenStructure(token: string): {
-  valid: boolean
-  error?: string
+  valid: boolean;
+  error?: string;
 } {
   if (!token || typeof token !== 'string') {
-    return { valid: false, error: 'Token is empty or not a string' }
+    return { valid: false, error: 'Token is empty or not a string' };
   }
   if (token.length === 0) {
-    return { valid: false, error: 'Token is empty' }
+    return { valid: false, error: 'Token is empty' };
   }
-  return { valid: true }
+  return { valid: true };
 }
 
 /**
  * Create a test tenant
  */
 export async function createTestTenant(name: string, url: string): Promise<TestTenant> {
-  const revealui = await getTestRevealUI()
+  const revealui = await getTestRevealUI();
 
   const tenant = (await revealui.create({
     collection: 'tenants',
@@ -276,21 +276,21 @@ export async function createTestTenant(name: string, url: string): Promise<TestT
       domains: url ? [{ domain: url }] : [],
       roles: ['user'],
     },
-  })) as TestTenant
+  })) as TestTenant;
 
-  return tenant
+  return tenant;
 }
 
 /**
  * Delete a test tenant
  */
 export async function deleteTestTenant(id: string | number): Promise<void> {
-  const revealui = await getTestRevealUI()
+  const revealui = await getTestRevealUI();
   try {
     await revealui.delete({
       collection: 'tenants',
       id,
-    })
+    });
   } catch (_error) {
     // Tenant might not exist, ignore
   }

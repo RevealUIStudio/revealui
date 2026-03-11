@@ -1,5 +1,5 @@
-import type { CollectionConfig } from '@revealui/core'
-import { anyone, authenticated, isAdmin } from '@/lib/access'
+import type { CollectionConfig } from '@revealui/core';
+import { anyone, authenticated, isAdmin } from '@/lib/access';
 
 const Info: CollectionConfig = {
   slug: 'info',
@@ -41,6 +41,6 @@ const Info: CollectionConfig = {
       required: true,
     },
   ],
-}
+};
 
-export default Info
+export default Info;

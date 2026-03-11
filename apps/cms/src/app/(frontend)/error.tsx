@@ -1,11 +1,11 @@
-'use client'
+'use client';
 
 export default function FrontendError({
   error,
   reset,
 }: {
-  error: Error & { digest?: string }
-  reset: () => void
+  error: Error & { digest?: string };
+  reset: () => void;
 }) {
   return (
     <div className="flex min-h-[60vh] flex-col items-center justify-center gap-6 px-4 py-16">
@@ -22,5 +22,5 @@ export default function FrontendError({
         Try again
       </button>
     </div>
-  )
+  );
 }

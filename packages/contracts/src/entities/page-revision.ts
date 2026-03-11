@@ -13,13 +13,13 @@
  * - createdBy tracks who made the change
  */
 
-import { z } from 'zod/v4'
+import { z } from 'zod/v4';
 
 // =============================================================================
 // Constants
 // =============================================================================
 
-export const PAGE_REVISION_SCHEMA_VERSION = 1
+export const PAGE_REVISION_SCHEMA_VERSION = 1;
 
 // Change types for categorizing revisions
 export const CHANGE_TYPES = [
@@ -35,16 +35,16 @@ export const CHANGE_TYPES = [
   'block_remove',
   'block_edit',
   'manual_save',
-] as const
+] as const;
 
-export type ChangeType = (typeof CHANGE_TYPES)[number]
+export type ChangeType = (typeof CHANGE_TYPES)[number];
 
 // Revision retention policies
 export const REVISION_RETENTION = {
   MAX_REVISIONS_PER_PAGE: 100,
   DAYS_TO_KEEP: 90,
   ALWAYS_KEEP_PUBLISHED: true,
-} as const
+} as const;
 
 // =============================================================================
 // Base Schemas
@@ -57,9 +57,9 @@ export const BlockSchema = z.object({
   id: z.string(),
   type: z.string(),
   data: z.record(z.string(), z.unknown()).optional(),
-})
+});
 
-export type Block = z.infer<typeof BlockSchema>
+export type Block = z.infer<typeof BlockSchema>;
 
 /**
  * SEO metadata schema (matches Page seo)
@@ -71,9 +71,9 @@ export const SeoMetadataSchema = z.object({
   ogImage: z.string().optional(),
   noIndex: z.boolean().optional(),
   canonicalUrl: z.string().optional(),
-})
+});
 
-export type SeoMetadata = z.infer<typeof SeoMetadataSchema>
+export type SeoMetadata = z.infer<typeof SeoMetadataSchema>;
 
 // =============================================================================
 // Base PageRevision Schema
@@ -92,7 +92,7 @@ export const PageRevisionObjectSchema = z.object({
   seo: SeoMetadataSchema.nullable().optional(),
   changeDescription: z.string().nullable().optional(),
   createdAt: z.date(),
-})
+});
 
 /**
  * Page Revision schema with validation rules
@@ -100,15 +100,15 @@ export const PageRevisionObjectSchema = z.object({
 export const PageRevisionBaseSchema = PageRevisionObjectSchema.refine(
   (data) => {
     // Revision number must be >= 1
-    return data.revisionNumber >= 1
+    return data.revisionNumber >= 1;
   },
   {
     message: 'Revision number must be at least 1',
     path: ['revisionNumber'],
   },
-)
+);
 
-export const PageRevisionSchema = PageRevisionBaseSchema
+export const PageRevisionSchema = PageRevisionBaseSchema;
 
 // =============================================================================
 // Insert Schema
@@ -121,14 +121,14 @@ export const PageRevisionInsertSchema = PageRevisionObjectSchema.omit({
   createdAt: true,
 }).extend({
   createdAt: z.date().optional(),
-})
+});
 
 // =============================================================================
 // Type Exports
 // =============================================================================
 
-export type PageRevision = z.infer<typeof PageRevisionSchema>
-export type PageRevisionInsert = z.infer<typeof PageRevisionInsertSchema>
+export type PageRevision = z.infer<typeof PageRevisionSchema>;
+export type PageRevisionInsert = z.infer<typeof PageRevisionInsertSchema>;
 
 // =============================================================================
 // Revision Number Helpers
@@ -138,21 +138,21 @@ export type PageRevisionInsert = z.infer<typeof PageRevisionInsertSchema>
  * Check if this is the first revision
  */
 export function isFirstRevision(revision: PageRevision): boolean {
-  return revision.revisionNumber === 1
+  return revision.revisionNumber === 1;
 }
 
 /**
  * Get next revision number
  */
 export function getNextRevisionNumber(currentRevision: PageRevision): number {
-  return currentRevision.revisionNumber + 1
+  return currentRevision.revisionNumber + 1;
 }
 
 /**
  * Calculate revision number from count
  */
 export function calculateRevisionNumber(existingCount: number): number {
-  return existingCount + 1
+  return existingCount + 1;
 }
 
 // =============================================================================
@@ -163,55 +163,55 @@ export function calculateRevisionNumber(existingCount: number): number {
  * Count blocks in revision
  */
 export function getBlockCount(revision: PageRevision): number {
-  return revision.blocks.length
+  return revision.blocks.length;
 }
 
 /**
  * Check if revision has blocks
  */
 export function hasBlocks(revision: PageRevision): boolean {
-  return revision.blocks.length > 0
+  return revision.blocks.length > 0;
 }
 
 /**
  * Check if revision has SEO metadata
  */
 export function hasSeoMetadata(revision: PageRevision): boolean {
-  return revision.seo !== null && revision.seo !== undefined
+  return revision.seo !== null && revision.seo !== undefined;
 }
 
 /**
  * Estimate word count from blocks (simplified)
  */
 export function estimateWordCount(revision: PageRevision): number {
-  let wordCount = 0
+  let wordCount = 0;
 
   // Count words in title
-  wordCount += revision.title.split(/\s+/).length
+  wordCount += revision.title.split(/\s+/).length;
 
   // Count words in blocks (rough estimate from JSON)
   for (const block of revision.blocks) {
     if (block.data) {
-      const blockText = JSON.stringify(block.data)
-      wordCount += blockText.split(/\s+/).length / 2 // Rough estimate
+      const blockText = JSON.stringify(block.data);
+      wordCount += blockText.split(/\s+/).length / 2; // Rough estimate
     }
   }
 
-  return Math.floor(wordCount)
+  return Math.floor(wordCount);
 }
 
 /**
  * Get block by ID
  */
 export function getBlockById(revision: PageRevision, blockId: string): Block | undefined {
-  return revision.blocks.find((block) => block.id === blockId)
+  return revision.blocks.find((block) => block.id === blockId);
 }
 
 /**
  * Get blocks by type
  */
 export function getBlocksByType(revision: PageRevision, type: string): Block[] {
-  return revision.blocks.filter((block) => block.type === type)
+  return revision.blocks.filter((block) => block.type === type);
 }
 
 // =============================================================================
@@ -226,29 +226,29 @@ export function hasChangeDescription(revision: PageRevision): boolean {
     revision.changeDescription !== null &&
     revision.changeDescription !== undefined &&
     revision.changeDescription.length > 0
-  )
+  );
 }
 
 /**
  * Parse change type from description
  */
 export function inferChangeType(revision: PageRevision): ChangeType | 'unknown' {
-  if (!hasChangeDescription(revision)) return 'unknown'
+  if (!hasChangeDescription(revision)) return 'unknown';
 
-  const description = revision.changeDescription?.toLowerCase() ?? ''
+  const description = revision.changeDescription?.toLowerCase() ?? '';
 
-  if (description.includes('publish')) return 'publish'
-  if (description.includes('unpublish')) return 'unpublish'
-  if (description.includes('archive')) return 'archive'
-  if (description.includes('restore')) return 'restore'
-  if (description.includes('seo')) return 'seo_update'
-  if (description.includes('add') && description.includes('block')) return 'block_add'
-  if (description.includes('remove') && description.includes('block')) return 'block_remove'
-  if (description.includes('edit') && description.includes('block')) return 'block_edit'
-  if (description.includes('create')) return 'create'
-  if (description.includes('reorder')) return 'reorder'
+  if (description.includes('publish')) return 'publish';
+  if (description.includes('unpublish')) return 'unpublish';
+  if (description.includes('archive')) return 'archive';
+  if (description.includes('restore')) return 'restore';
+  if (description.includes('seo')) return 'seo_update';
+  if (description.includes('add') && description.includes('block')) return 'block_add';
+  if (description.includes('remove') && description.includes('block')) return 'block_remove';
+  if (description.includes('edit') && description.includes('block')) return 'block_edit';
+  if (description.includes('create')) return 'create';
+  if (description.includes('reorder')) return 'reorder';
 
-  return 'edit'
+  return 'edit';
 }
 
 /**
@@ -268,10 +268,10 @@ export function generateChangeDescription(changeType: ChangeType, details?: stri
     block_remove: 'Removed block',
     block_edit: 'Edited block',
     manual_save: 'Manual save',
-  }
+  };
 
-  const baseDescription = descriptions[changeType]
-  return details ? `${baseDescription}: ${details}` : baseDescription
+  const baseDescription = descriptions[changeType];
+  return details ? `${baseDescription}: ${details}` : baseDescription;
 }
 
 // =============================================================================
@@ -285,39 +285,39 @@ export function compareRevisions(
   oldRevision: PageRevision,
   newRevision: PageRevision,
 ): {
-  titleChanged: boolean
-  blocksChanged: boolean
-  seoChanged: boolean
-  blockCountChanged: boolean
+  titleChanged: boolean;
+  blocksChanged: boolean;
+  seoChanged: boolean;
+  blockCountChanged: boolean;
 } {
   return {
     titleChanged: oldRevision.title !== newRevision.title,
     blocksChanged: JSON.stringify(oldRevision.blocks) !== JSON.stringify(newRevision.blocks),
     seoChanged: JSON.stringify(oldRevision.seo) !== JSON.stringify(newRevision.seo),
     blockCountChanged: oldRevision.blocks.length !== newRevision.blocks.length,
-  }
+  };
 }
 
 /**
  * Detect what changed between revisions
  */
 export function detectChanges(oldRevision: PageRevision, newRevision: PageRevision): string[] {
-  const changes: string[] = []
-  const comparison = compareRevisions(oldRevision, newRevision)
+  const changes: string[] = [];
+  const comparison = compareRevisions(oldRevision, newRevision);
 
   if (comparison.titleChanged) {
-    changes.push(`Title: "${oldRevision.title}" → "${newRevision.title}"`)
+    changes.push(`Title: "${oldRevision.title}" → "${newRevision.title}"`);
   }
 
   if (comparison.blockCountChanged) {
-    changes.push(`Blocks: ${oldRevision.blocks.length} → ${newRevision.blocks.length}`)
+    changes.push(`Blocks: ${oldRevision.blocks.length} → ${newRevision.blocks.length}`);
   }
 
   if (comparison.seoChanged) {
-    changes.push('SEO metadata updated')
+    changes.push('SEO metadata updated');
   }
 
-  return changes
+  return changes;
 }
 
 // =============================================================================
@@ -328,22 +328,22 @@ export function detectChanges(oldRevision: PageRevision, newRevision: PageRevisi
  * Get revision age in milliseconds
  */
 export function getRevisionAge(revision: PageRevision): number {
-  return Date.now() - revision.createdAt.getTime()
+  return Date.now() - revision.createdAt.getTime();
 }
 
 /**
  * Get revision age in days
  */
 export function getRevisionAgeInDays(revision: PageRevision): number {
-  return Math.floor(getRevisionAge(revision) / (1000 * 60 * 60 * 24))
+  return Math.floor(getRevisionAge(revision) / (1000 * 60 * 60 * 24));
 }
 
 /**
  * Check if revision is recent (< 24 hours)
  */
 export function isRecentRevision(revision: PageRevision, hoursThreshold = 24): boolean {
-  const ageInHours = getRevisionAge(revision) / (1000 * 60 * 60)
-  return ageInHours < hoursThreshold
+  const ageInHours = getRevisionAge(revision) / (1000 * 60 * 60);
+  return ageInHours < hoursThreshold;
 }
 
 /**
@@ -353,7 +353,7 @@ export function isEligibleForCleanup(
   revision: PageRevision,
   daysThreshold = REVISION_RETENTION.DAYS_TO_KEEP,
 ): boolean {
-  return getRevisionAgeInDays(revision) > daysThreshold
+  return getRevisionAgeInDays(revision) > daysThreshold;
 }
 
 // =============================================================================
@@ -364,14 +364,14 @@ export function isEligibleForCleanup(
  * Check if revision has known author
  */
 export function hasAuthor(revision: PageRevision): boolean {
-  return revision.createdBy !== null && revision.createdBy !== undefined
+  return revision.createdBy !== null && revision.createdBy !== undefined;
 }
 
 /**
  * Check if revision was created by specific user
  */
 export function isCreatedBy(revision: PageRevision, userId: string): boolean {
-  return revision.createdBy === userId
+  return revision.createdBy === userId;
 }
 
 // =============================================================================
@@ -387,10 +387,10 @@ export function createPageRevisionInsert(
   title: string,
   blocks: Block[],
   options?: {
-    id?: string
-    seo?: SeoMetadata | null
-    changeDescription?: string | null
-    createdBy?: string | null
+    id?: string;
+    seo?: SeoMetadata | null;
+    changeDescription?: string | null;
+    createdBy?: string | null;
   },
 ): PageRevisionInsert {
   return {
@@ -403,7 +403,7 @@ export function createPageRevisionInsert(
     changeDescription: options?.changeDescription ?? null,
     createdBy: options?.createdBy ?? null,
     createdAt: new Date(),
-  }
+  };
 }
 
 /**
@@ -413,25 +413,25 @@ export function createRevisionFromSnapshot(
   pageId: string,
   revisionNumber: number,
   snapshot: {
-    title: string
-    blocks: Block[]
-    seo?: SeoMetadata | null
+    title: string;
+    blocks: Block[];
+    seo?: SeoMetadata | null;
   },
   options?: {
-    changeDescription?: string
-    changeType?: ChangeType
-    createdBy?: string
+    changeDescription?: string;
+    changeType?: ChangeType;
+    createdBy?: string;
   },
 ): PageRevisionInsert {
   const changeDescription =
     options?.changeDescription ??
-    (options?.changeType ? generateChangeDescription(options.changeType) : null)
+    (options?.changeType ? generateChangeDescription(options.changeType) : null);
 
   return createPageRevisionInsert(pageId, revisionNumber, snapshot.title, snapshot.blocks, {
     seo: snapshot.seo,
     changeDescription,
     createdBy: options?.createdBy,
-  })
+  });
 }
 
 // =============================================================================
@@ -444,17 +444,17 @@ export function createRevisionFromSnapshot(
 export interface PageRevisionWithComputed extends PageRevision {
   // biome-ignore lint/style/useNamingConvention: _computed is a conventional computed-field marker
   _computed: {
-    isFirstRevision: boolean
-    blockCount: number
-    hasBlocks: boolean
-    hasSeoMetadata: boolean
-    hasChangeDescription: boolean
-    hasAuthor: boolean
-    estimatedWordCount: number
-    ageInDays: number
-    isRecent: boolean
-    inferredChangeType: ChangeType | 'unknown'
-  }
+    isFirstRevision: boolean;
+    blockCount: number;
+    hasBlocks: boolean;
+    hasSeoMetadata: boolean;
+    hasChangeDescription: boolean;
+    hasAuthor: boolean;
+    estimatedWordCount: number;
+    ageInDays: number;
+    isRecent: boolean;
+    inferredChangeType: ChangeType | 'unknown';
+  };
 }
 
 /**
@@ -476,7 +476,7 @@ export function pageRevisionToHuman(revision: PageRevision): PageRevisionWithCom
       isRecent: isRecentRevision(revision),
       inferredChangeType: inferChangeType(revision),
     },
-  }
+  };
 }
 
 /**
@@ -484,14 +484,14 @@ export function pageRevisionToHuman(revision: PageRevision): PageRevisionWithCom
  */
 export interface PageRevisionAgent extends PageRevision {
   metadata: {
-    revisionNumber: number
-    isFirstRevision: boolean
-    blockCount: number
-    wordCount: number
-    hasAuthor: boolean
-    ageMs: number
-    changeType: ChangeType | 'unknown'
-  }
+    revisionNumber: number;
+    isFirstRevision: boolean;
+    blockCount: number;
+    wordCount: number;
+    hasAuthor: boolean;
+    ageMs: number;
+    changeType: ChangeType | 'unknown';
+  };
 }
 
 /**
@@ -509,7 +509,7 @@ export function pageRevisionToAgent(revision: PageRevision): PageRevisionAgent {
       ageMs: getRevisionAge(revision),
       changeType: inferChangeType(revision),
     },
-  }
+  };
 }
 
 /**
@@ -531,7 +531,7 @@ export const PageRevisionWithComputedSchema = PageRevisionSchema.and(
       inferredChangeType: z.enum([...CHANGE_TYPES, 'unknown']),
     }),
   }),
-)
+);
 
 /**
  * Zod schema for page revision with agent metadata
@@ -548,4 +548,4 @@ export const PageRevisionAgentSchema = PageRevisionSchema.and(
       changeType: z.enum([...CHANGE_TYPES, 'unknown']),
     }),
   }),
-)
+);

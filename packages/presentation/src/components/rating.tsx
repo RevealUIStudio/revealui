@@ -1,7 +1,7 @@
-'use client'
+'use client';
 
-import clsx from 'clsx'
-import { useCallback, useId, useState } from 'react'
+import clsx from 'clsx';
+import { useCallback, useId, useState } from 'react';
 
 export function Rating({
   value: controlledValue,
@@ -13,32 +13,32 @@ export function Rating({
   label,
   className,
 }: {
-  value?: number
-  defaultValue?: number
-  max?: number
-  onChange?: (value: number) => void
-  readOnly?: boolean
-  size?: 'sm' | 'md' | 'lg'
-  label?: string
-  className?: string
+  value?: number;
+  defaultValue?: number;
+  max?: number;
+  onChange?: (value: number) => void;
+  readOnly?: boolean;
+  size?: 'sm' | 'md' | 'lg';
+  label?: string;
+  className?: string;
 }) {
-  const [internalValue, setInternalValue] = useState(defaultValue)
-  const [hovered, setHovered] = useState(0)
-  const id = useId()
+  const [internalValue, setInternalValue] = useState(defaultValue);
+  const [hovered, setHovered] = useState(0);
+  const id = useId();
 
-  const value = controlledValue ?? internalValue
-  const sizeClass = { sm: 'size-4', md: 'size-6', lg: 'size-8' }[size]
+  const value = controlledValue ?? internalValue;
+  const sizeClass = { sm: 'size-4', md: 'size-6', lg: 'size-8' }[size];
 
   const handleClick = useCallback(
     (star: number) => {
-      if (readOnly) return
-      setInternalValue(star)
-      onChange?.(star)
+      if (readOnly) return;
+      setInternalValue(star);
+      onChange?.(star);
     },
     [readOnly, onChange],
-  )
+  );
 
-  const display = hovered > 0 ? hovered : value
+  const display = hovered > 0 ? hovered : value;
 
   return (
     <div className={className}>
@@ -55,8 +55,8 @@ export function Rating({
         className="flex items-center gap-0.5"
       >
         {Array.from({ length: max }).map((_, i) => {
-          const star = i + 1
-          const filled = star <= display
+          const star = i + 1;
+          const filled = star <= display;
           return (
             // biome-ignore lint/a11y/useAriaPropsSupportedByRole: aria-checked and aria-label are valid on role="radio" per WAI-ARIA spec
             <button
@@ -90,9 +90,9 @@ export function Rating({
                 <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
               </svg>
             </button>
-          )
+          );
         })}
       </div>
     </div>
-  )
+  );
 }

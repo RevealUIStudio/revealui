@@ -24,7 +24,7 @@ export function ValueProposition() {
       accent: 'bg-emerald-600',
       href: 'https://docs.revealui.com/docs/REFERENCE',
     },
-  ]
+  ];
 
   return (
     <section className="py-24 bg-white sm:py-32">
@@ -74,5 +74,5 @@ export function ValueProposition() {
         </div>
       </div>
     </section>
-  )
+  );
 }

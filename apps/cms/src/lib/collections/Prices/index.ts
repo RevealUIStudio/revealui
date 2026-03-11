@@ -19,18 +19,18 @@
  * ```
  */
 
-import type { RevealCollectionConfig } from '@revealui/core'
-import type { Price } from '@revealui/core/types/cms'
-import { isAdmin } from '@/lib/access'
-import { ArchiveBlock } from '@/lib/blocks/ArchiveBlock/config'
-import { CallToAction } from '@/lib/blocks/CallToAction/config'
-import { MediaBlock } from '@/lib/blocks/MediaBlock/config'
-import { populateArchiveBlock } from '@/lib/hooks'
-import { checkUserPurchases } from './access/checkUserPurchases'
-import { beforePriceChange } from './hooks/beforeChange'
-import { calculatePrice } from './hooks/calculatePrice'
-import { deletePriceFromCarts } from './hooks/deletePriceFromCarts'
-import { revalidatePrice } from './hooks/revalidatePrice'
+import type { RevealCollectionConfig } from '@revealui/core';
+import type { Price } from '@revealui/core/types/cms';
+import { isAdmin } from '@/lib/access';
+import { ArchiveBlock } from '@/lib/blocks/ArchiveBlock/config';
+import { CallToAction } from '@/lib/blocks/CallToAction/config';
+import { MediaBlock } from '@/lib/blocks/MediaBlock/config';
+import { populateArchiveBlock } from '@/lib/hooks';
+import { checkUserPurchases } from './access/checkUserPurchases';
+import { beforePriceChange } from './hooks/beforeChange';
+import { calculatePrice } from './hooks/calculatePrice';
+import { deletePriceFromCarts } from './hooks/deletePriceFromCarts';
+import { revalidatePrice } from './hooks/revalidatePrice';
 
 const Prices: RevealCollectionConfig<Price> = {
   slug: 'prices',
@@ -40,7 +40,7 @@ const Prices: RevealCollectionConfig<Price> = {
     preview: (doc: Record<string, unknown>) => {
       return `${import.meta.env.REVEALUI_PUBLIC_SERVER_URL}/api/preview?url=${encodeURIComponent(
         `${import.meta.env.REVEALUI_PUBLIC_SERVER_URL}/prices/${doc.slug}`,
-      )}&secret=${import.meta.env.REVEALUI_DRAFT_SECRET}`
+      )}&secret=${import.meta.env.REVEALUI_DRAFT_SECRET}`;
     },
   },
   hooks: {
@@ -78,9 +78,9 @@ const Prices: RevealCollectionConfig<Price> = {
           // biome-ignore lint/style/useNamingConvention: _status is a RevealUI CMS internal field name required by the framework
           ({ siblingData, value }: { siblingData?: { _status?: string }; value: unknown }) => {
             if (siblingData?._status === 'published' && !value) {
-              return new Date()
+              return new Date();
             }
-            return value
+            return value;
           },
         ],
       },
@@ -162,7 +162,7 @@ const Prices: RevealCollectionConfig<Price> = {
           id: {
             not_in: id ? [id] : [],
           },
-        }
+        };
       },
     },
     {
@@ -176,6 +176,6 @@ const Prices: RevealCollectionConfig<Price> = {
       },
     },
   ],
-}
+};
 
-export default Prices
+export default Prices;

@@ -1,78 +1,82 @@
-'use client'
-import type React from 'react'
-import { lazy, Suspense, useState } from 'react'
-import type { RichTextEditor as RichTextEditorConfig } from '../../../richtext/index.js'
-import type { RevealCollectionConfig, RevealDocument, RevealUIField } from '../../../types/index.js'
+'use client';
+import type React from 'react';
+import { lazy, Suspense, useState } from 'react';
+import type { RichTextEditor as RichTextEditorConfig } from '../../../richtext/index.js';
+import type {
+  RevealCollectionConfig,
+  RevealDocument,
+  RevealUIField,
+} from '../../../types/index.js';
 
 // Lazy-loaded so Lexical (~1.2MB) is only bundled for edit pages with richText
 // fields — list/dashboard pages skip the entire Lexical chunk.
 const RichTextEditor = lazy(() =>
   import('../../richtext/RichTextEditor.js').then((m) => ({ default: m.RichTextEditor })),
-)
+);
 
 // Helper to resolve field label to a string
-type LabelResolver = (args: { t: (key: string) => string }) => string
+type LabelResolver = (args: { t: (key: string) => string }) => string;
 
 function getFieldLabel(field: RevealUIField): string {
-  const { label } = field
+  const { label } = field;
   if (typeof label === 'function') {
-    return (label as LabelResolver)({ t: (key) => key })
+    return (label as LabelResolver)({ t: (key) => key });
   }
   if (typeof label === 'string') {
-    return label
+    return label;
   }
-  return typeof field.name === 'string' ? field.name : 'Field'
+  return typeof field.name === 'string' ? field.name : 'Field';
 }
 
 function formatTextValue(value: unknown): string {
-  if (value === null || value === undefined) return ''
-  if (typeof value === 'string') return value
+  if (value === null || value === undefined) return '';
+  if (typeof value === 'string') return value;
   if (typeof value === 'number' || typeof value === 'boolean' || typeof value === 'bigint') {
-    return String(value)
+    return String(value);
   }
-  if (typeof value === 'symbol') return value.description ?? value.toString()
-  if (typeof value === 'function') return value.name || 'function'
-  return JSON.stringify(value)
+  if (typeof value === 'symbol') return value.description ?? value.toString();
+  if (typeof value === 'function') return value.name || 'function';
+  return JSON.stringify(value);
 }
 
 function formatDateInputValue(value: unknown): string {
   if (value instanceof Date) {
-    return value.toISOString().slice(0, 16)
+    return value.toISOString().slice(0, 16);
   }
   if (typeof value === 'string' || typeof value === 'number') {
-    const parsed = new Date(value)
-    return Number.isNaN(parsed.getTime()) ? '' : parsed.toISOString().slice(0, 16)
+    const parsed = new Date(value);
+    return Number.isNaN(parsed.getTime()) ? '' : parsed.toISOString().slice(0, 16);
   }
-  return ''
+  return '';
 }
 
 // Flatten tabs/rows and skip sidebar/hidden/disabled fields
 function getVisibleFields(fields: RevealUIField[]): RevealUIField[] {
-  const result: RevealUIField[] = []
+  const result: RevealUIField[] = [];
   for (const field of fields) {
     if (field.admin?.position === 'sidebar' || field.admin?.hidden || field.admin?.disabled) {
-      continue
+      continue;
     }
-    const anyField = field as unknown as Record<string, unknown>
+    const anyField = field as unknown as Record<string, unknown>;
     if (field.type === 'tabs' && Array.isArray(anyField.tabs)) {
       for (const tab of anyField.tabs as Array<{ fields?: RevealUIField[] }>) {
-        result.push(...getVisibleFields(tab.fields ?? []))
+        result.push(...getVisibleFields(tab.fields ?? []));
       }
     } else if (field.type === 'row' && Array.isArray(anyField.fields)) {
-      result.push(...getVisibleFields(anyField.fields as RevealUIField[]))
+      result.push(...getVisibleFields(anyField.fields as RevealUIField[]));
     } else {
-      result.push(field)
+      result.push(field);
     }
   }
-  return result
+  return result;
 }
 
 interface DocumentFormProps {
-  collection: RevealCollectionConfig
-  document?: RevealDocument
-  onSave: (data: Record<string, unknown>) => void
-  onCancel: () => void
-  isLoading?: boolean
+  collection: RevealCollectionConfig;
+  document?: RevealDocument;
+  onSave: (data: Record<string, unknown>) => void;
+  onCancel: () => void;
+  isLoading?: boolean;
 }
 
 export function DocumentForm({
@@ -82,18 +86,18 @@ export function DocumentForm({
   onCancel,
   isLoading = false,
 }: DocumentFormProps) {
-  const [formData, setFormData] = useState<Record<string, unknown>>(document || {})
+  const [formData, setFormData] = useState<Record<string, unknown>>(document || {});
 
-  const visibleFields = getVisibleFields(collection.fields)
+  const visibleFields = getVisibleFields(collection.fields);
 
   const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault()
-    onSave(formData)
-  }
+    e.preventDefault();
+    onSave(formData);
+  };
 
   const handleFieldChange = (fieldName: string, value: unknown) => {
-    setFormData((prev) => ({ ...prev, [fieldName]: value }))
-  }
+    setFormData((prev) => ({ ...prev, [fieldName]: value }));
+  };
 
   return (
     <div className="bg-white shadow overflow-hidden sm:rounded-lg">
@@ -138,18 +142,18 @@ export function DocumentForm({
         </form>
       </div>
     </div>
-  )
+  );
 }
 
 interface FieldInputProps {
-  field: RevealUIField
-  value: unknown
-  onChange: (value: unknown) => void
+  field: RevealUIField;
+  value: unknown;
+  onChange: (value: unknown) => void;
 }
 
 function FieldInput({ field, value, onChange }: FieldInputProps) {
   const baseClasses =
-    'mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm'
+    'mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm';
 
   switch (field.type) {
     case 'text':
@@ -162,7 +166,7 @@ function FieldInput({ field, value, onChange }: FieldInputProps) {
           className={baseClasses}
           required={field.required}
         />
-      )
+      );
 
     case 'textarea':
       return (
@@ -174,7 +178,7 @@ function FieldInput({ field, value, onChange }: FieldInputProps) {
           className={baseClasses}
           required={field.required}
         />
-      )
+      );
 
     case 'number':
       return (
@@ -188,7 +192,7 @@ function FieldInput({ field, value, onChange }: FieldInputProps) {
           min={field.min}
           max={field.max}
         />
-      )
+      );
 
     case 'checkbox':
       return (
@@ -199,7 +203,7 @@ function FieldInput({ field, value, onChange }: FieldInputProps) {
           onChange={(e) => onChange(e.target.checked)}
           className="h-4 w-4 text-indigo-600 focus:ring-indigo-500 border-gray-300 rounded"
         />
-      )
+      );
 
     case 'select':
       return (
@@ -212,16 +216,16 @@ function FieldInput({ field, value, onChange }: FieldInputProps) {
         >
           <option value="">Select an option</option>
           {field.options?.map((option) => {
-            const value = typeof option === 'string' ? option : option.value
-            const label = typeof option === 'string' ? option : option.label
+            const value = typeof option === 'string' ? option : option.value;
+            const label = typeof option === 'string' ? option : option.label;
             return (
               <option key={value} value={value}>
                 {label}
               </option>
-            )
+            );
           })}
         </select>
-      )
+      );
 
     case 'date':
       return (
@@ -233,10 +237,10 @@ function FieldInput({ field, value, onChange }: FieldInputProps) {
           className={baseClasses}
           required={field.required}
         />
-      )
+      );
 
     case 'richText': {
-      const editorConfig = (field as { editor?: RichTextEditorConfig }).editor
+      const editorConfig = (field as { editor?: RichTextEditorConfig }).editor;
       return (
         <Suspense
           fallback={
@@ -253,7 +257,7 @@ function FieldInput({ field, value, onChange }: FieldInputProps) {
             className="border border-gray-300 rounded-md"
           />
         </Suspense>
-      )
+      );
     }
 
     default:
@@ -266,6 +270,6 @@ function FieldInput({ field, value, onChange }: FieldInputProps) {
           className={baseClasses}
           required={field.required}
         />
-      )
+      );
   }
 }

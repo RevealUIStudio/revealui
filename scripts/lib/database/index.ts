@@ -10,7 +10,7 @@
  * - scripts/lib/database/transaction-manager.ts - Transaction wrappers
  */
 
-export * from './backup-manager.js'
-export * from './connection.js'
-export * from './safety-checks.js'
-export * from './transaction-manager.js'
+export * from './backup-manager.js';
+export * from './connection.js';
+export * from './safety-checks.js';
+export * from './transaction-manager.js';

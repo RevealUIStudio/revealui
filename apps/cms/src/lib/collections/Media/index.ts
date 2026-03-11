@@ -1,6 +1,6 @@
-import type { CollectionConfig } from '@revealui/core'
-import { FixedToolbarFeature, InlineToolbarFeature, lexicalEditor } from '@revealui/core/richtext'
-import { authenticated } from '@/lib/access'
+import type { CollectionConfig } from '@revealui/core';
+import { FixedToolbarFeature, InlineToolbarFeature, lexicalEditor } from '@revealui/core/richtext';
+import { authenticated } from '@/lib/access';
 
 export const Media: CollectionConfig = {
   slug: 'media',
@@ -21,7 +21,7 @@ export const Media: CollectionConfig = {
       type: 'richText',
       editor: lexicalEditor({
         features: ({ rootFeatures }) => {
-          return [...rootFeatures, FixedToolbarFeature(), InlineToolbarFeature()]
+          return [...rootFeatures, FixedToolbarFeature(), InlineToolbarFeature()];
         },
       }),
     },
@@ -32,4 +32,4 @@ export const Media: CollectionConfig = {
   upload: {
     mimeTypes: ['image/jpeg', 'image/jpg', 'image/png', 'image/webp', 'image/gif'],
   },
-}
+};

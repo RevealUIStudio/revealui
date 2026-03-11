@@ -8,20 +8,20 @@
  * Only persists warn/error/fatal levels. Debug/info entries are dropped.
  */
 
-import { createRoute, OpenAPIHono } from '@hono/zod-openapi'
-import { getClient } from '@revealui/db'
-import { appLogs } from '@revealui/db/schema'
-import { HTTPException } from 'hono/http-exception'
-import { z } from 'zod/v4'
+import { createRoute, OpenAPIHono } from '@hono/zod-openapi';
+import { getClient } from '@revealui/db';
+import { appLogs } from '@revealui/db/schema';
+import { HTTPException } from 'hono/http-exception';
+import { z } from 'zod/v4';
 
 // Minimal stderr fallback — avoids importing the full logger bundle in this hot path
 function logTransportError(err: unknown): void {
   process.stderr.write(
     `[log-ingest] failed to persist log entry: ${err instanceof Error ? err.message : String(err)}\n`,
-  )
+  );
 }
 
-const app = new OpenAPIHono()
+const app = new OpenAPIHono();
 
 const LogPayloadSchema = z.object({
   level: z.enum(['warn', 'error', 'fatal']),
@@ -33,10 +33,10 @@ const LogPayloadSchema = z.object({
   environment: z.string().max(50).optional(),
   requestId: z.string().max(255).optional(),
   data: z.record(z.string(), z.unknown()).optional(),
-})
+});
 
-const LogResponseSchema = z.object({ received: z.boolean() })
-const ErrorSchema = z.object({ error: z.string() })
+const LogResponseSchema = z.object({ received: z.boolean() });
+const ErrorSchema = z.object({ error: z.string() });
 
 const logRoute = createRoute({
   method: 'post',
@@ -64,26 +64,26 @@ const logRoute = createRoute({
       description: 'Forbidden — missing or invalid X-Internal-Token',
     },
   },
-})
+});
 
 app.openapi(logRoute, async (c) => {
   // Verify shared secret — rejects requests not originating from trusted RevealUI apps
-  const { timingSafeEqual } = await import('node:crypto')
-  const token = c.req.header('X-Internal-Token')
-  const secret = process.env.REVEALUI_SECRET
+  const { timingSafeEqual } = await import('node:crypto');
+  const token = c.req.header('X-Internal-Token');
+  const secret = process.env.REVEALUI_SECRET;
   if (!(secret && token)) {
-    return c.json({ error: 'Forbidden' }, 403)
+    return c.json({ error: 'Forbidden' }, 403);
   }
-  const a = Buffer.from(token)
-  const b = Buffer.from(secret)
+  const a = Buffer.from(token);
+  const b = Buffer.from(secret);
   if (a.length !== b.length || !timingSafeEqual(a, b)) {
-    return c.json({ error: 'Forbidden' }, 403)
+    return c.json({ error: 'Forbidden' }, 403);
   }
 
-  const payload = c.req.valid('json')
+  const payload = c.req.valid('json');
 
-  const db = getClient()
-  ;(async () => {
+  const db = getClient();
+  (async () => {
     await db.insert(appLogs).values({
       level: payload.level,
       message: payload.message,
@@ -92,19 +92,19 @@ app.openapi(logRoute, async (c) => {
       requestId: payload.requestId ?? null,
       userId: null, // userId is not accepted from untrusted clients
       data: payload.data ?? null,
-    })
+    });
   })().catch((err: unknown) => {
     // Fire-and-forget — never propagate log transport errors to callers,
     // but do record the failure so it surfaces in process monitoring.
-    logTransportError(err)
-  })
+    logTransportError(err);
+  });
 
-  return c.json({ received: true }, 202)
-})
+  return c.json({ received: true }, 202);
+});
 
 // Silently drop unknown routes under /api/logs
 app.notFound((_c) => {
-  throw new HTTPException(404, { message: 'Not found' })
-})
+  throw new HTTPException(404, { message: 'Not found' });
+});
 
-export default app
+export default app;

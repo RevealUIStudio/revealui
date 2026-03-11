@@ -1,5 +1,5 @@
-import type { CollectionConfig } from '@revealui/core'
-import { isAdmin } from '@/lib/access'
+import type { CollectionConfig } from '@revealui/core';
+import { isAdmin } from '@/lib/access';
 
 const Subscriptions: CollectionConfig = {
   slug: 'subscriptions',
@@ -122,6 +122,6 @@ const Subscriptions: CollectionConfig = {
       type: 'json',
     },
   ],
-}
+};
 
-export default Subscriptions
+export default Subscriptions;

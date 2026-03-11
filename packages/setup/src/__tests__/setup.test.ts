@@ -1,31 +1,31 @@
-import { mkdtemp, readFile, rm, writeFile } from 'node:fs/promises'
-import { tmpdir } from 'node:os'
-import { join } from 'node:path'
-import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
+import { mkdtemp, readFile, rm, writeFile } from 'node:fs/promises';
+import { tmpdir } from 'node:os';
+import { join } from 'node:path';
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
 // Mock inquirer
 vi.mock('inquirer', () => ({
   default: {
     prompt: vi.fn(),
   },
-}))
+}));
 
-import inquirer from 'inquirer'
-import { setupEnvironment } from '../environment/setup.js'
+import inquirer from 'inquirer';
+import { setupEnvironment } from '../environment/setup.js';
 
-const mockPrompt = vi.mocked(inquirer.prompt)
+const mockPrompt = vi.mocked(inquirer.prompt);
 
 describe('setupEnvironment', () => {
-  let tempDir: string
+  let tempDir: string;
 
   beforeEach(async () => {
-    tempDir = await mkdtemp(join(tmpdir(), 'setup-test-'))
-    vi.clearAllMocks()
-  })
+    tempDir = await mkdtemp(join(tmpdir(), 'setup-test-'));
+    vi.clearAllMocks();
+  });
 
   afterEach(async () => {
-    await rm(tempDir, { recursive: true, force: true })
-  })
+    await rm(tempDir, { recursive: true, force: true });
+  });
 
   const silentLogger = {
     debug: vi.fn(),
@@ -40,22 +40,22 @@ describe('setupEnvironment', () => {
     group: vi.fn(),
     groupEnd: vi.fn(),
     progress: vi.fn(),
-  }
+  };
 
   it('fails when template file does not exist', async () => {
     const result = await setupEnvironment({
       projectRoot: tempDir,
       interactive: false,
       logger: silentLogger,
-    })
-    expect(result.success).toBe(false)
-    expect(result.missing.length).toBeGreaterThan(0)
-  })
+    });
+    expect(result.success).toBe(false);
+    expect(result.missing.length).toBeGreaterThan(0);
+  });
 
   it('copies template to output path', async () => {
-    const templatePath = join(tempDir, '.env.template')
-    const outputPath = join(tempDir, '.env.development.local')
-    await writeFile(templatePath, 'KEY=value\n')
+    const templatePath = join(tempDir, '.env.template');
+    const outputPath = join(tempDir, '.env.development.local');
+    await writeFile(templatePath, 'KEY=value\n');
 
     const result = await setupEnvironment({
       projectRoot: tempDir,
@@ -64,18 +64,18 @@ describe('setupEnvironment', () => {
       interactive: false,
       generateOnly: true,
       logger: silentLogger,
-    })
+    });
 
-    expect(result.success).toBe(true)
-    const content = await readFile(outputPath, 'utf-8')
-    expect(content).toContain('KEY')
-  })
+    expect(result.success).toBe(true);
+    const content = await readFile(outputPath, 'utf-8');
+    expect(content).toContain('KEY');
+  });
 
   it('does not overwrite existing file in non-interactive mode without force', async () => {
-    const templatePath = join(tempDir, '.env.template')
-    const outputPath = join(tempDir, '.env.development.local')
-    await writeFile(templatePath, 'KEY=value\n')
-    await writeFile(outputPath, 'EXISTING=yes\n')
+    const templatePath = join(tempDir, '.env.template');
+    const outputPath = join(tempDir, '.env.development.local');
+    await writeFile(templatePath, 'KEY=value\n');
+    await writeFile(outputPath, 'EXISTING=yes\n');
 
     const result = await setupEnvironment({
       projectRoot: tempDir,
@@ -84,18 +84,18 @@ describe('setupEnvironment', () => {
       interactive: false,
       force: false,
       logger: silentLogger,
-    })
+    });
 
-    expect(result.success).toBe(false)
-    const content = await readFile(outputPath, 'utf-8')
-    expect(content).toBe('EXISTING=yes\n')
-  })
+    expect(result.success).toBe(false);
+    const content = await readFile(outputPath, 'utf-8');
+    expect(content).toBe('EXISTING=yes\n');
+  });
 
   it('overwrites existing file when force is true', async () => {
-    const templatePath = join(tempDir, '.env.template')
-    const outputPath = join(tempDir, '.env.development.local')
-    await writeFile(templatePath, 'NEW_KEY=new\n')
-    await writeFile(outputPath, 'OLD_KEY=old\n')
+    const templatePath = join(tempDir, '.env.template');
+    const outputPath = join(tempDir, '.env.development.local');
+    await writeFile(templatePath, 'NEW_KEY=new\n');
+    await writeFile(outputPath, 'OLD_KEY=old\n');
 
     const result = await setupEnvironment({
       projectRoot: tempDir,
@@ -105,17 +105,17 @@ describe('setupEnvironment', () => {
       force: true,
       generateOnly: true,
       logger: silentLogger,
-    })
+    });
 
-    expect(result.success).toBe(true)
-    const content = await readFile(outputPath, 'utf-8')
-    expect(content).toContain('NEW_KEY')
-  })
+    expect(result.success).toBe(true);
+    const content = await readFile(outputPath, 'utf-8');
+    expect(content).toContain('NEW_KEY');
+  });
 
   it('generates secrets in generateOnly mode', async () => {
-    const templatePath = join(tempDir, '.env.template')
-    const outputPath = join(tempDir, '.env.development.local')
-    await writeFile(templatePath, 'REVEALUI_SECRET=placeholder\n')
+    const templatePath = join(tempDir, '.env.template');
+    const outputPath = join(tempDir, '.env.development.local');
+    await writeFile(templatePath, 'REVEALUI_SECRET=placeholder\n');
 
     const result = await setupEnvironment({
       projectRoot: tempDir,
@@ -124,19 +124,19 @@ describe('setupEnvironment', () => {
       interactive: false,
       generateOnly: true,
       logger: silentLogger,
-    })
+    });
 
-    expect(result.success).toBe(true)
-    const content = await readFile(outputPath, 'utf-8')
-    expect(content).not.toContain('placeholder')
-  })
+    expect(result.success).toBe(true);
+    const content = await readFile(outputPath, 'utf-8');
+    expect(content).not.toContain('placeholder');
+  });
 
   it('uses custom variables when provided', async () => {
-    const templatePath = join(tempDir, '.env.template')
-    const outputPath = join(tempDir, '.env.development.local')
-    await writeFile(templatePath, 'MY_VAR=\n')
+    const templatePath = join(tempDir, '.env.template');
+    const outputPath = join(tempDir, '.env.development.local');
+    await writeFile(templatePath, 'MY_VAR=\n');
 
-    const customVars = [{ name: 'MY_VAR', description: 'A custom var', required: true }]
+    const customVars = [{ name: 'MY_VAR', description: 'A custom var', required: true }];
 
     const result = await setupEnvironment({
       projectRoot: tempDir,
@@ -145,18 +145,18 @@ describe('setupEnvironment', () => {
       interactive: false,
       customVariables: customVars,
       logger: silentLogger,
-    })
+    });
 
-    expect(result.missing).toContain('MY_VAR')
-  })
+    expect(result.missing).toContain('MY_VAR');
+  });
 
   it('prompts for overwrite in interactive mode when file exists', async () => {
-    const templatePath = join(tempDir, '.env.template')
-    const outputPath = join(tempDir, '.env.development.local')
-    await writeFile(templatePath, 'KEY=value\n')
-    await writeFile(outputPath, 'EXISTING=yes\n')
+    const templatePath = join(tempDir, '.env.template');
+    const outputPath = join(tempDir, '.env.development.local');
+    await writeFile(templatePath, 'KEY=value\n');
+    await writeFile(outputPath, 'EXISTING=yes\n');
 
-    mockPrompt.mockResolvedValueOnce({ overwrite: false })
+    mockPrompt.mockResolvedValueOnce({ overwrite: false });
 
     const result = await setupEnvironment({
       projectRoot: tempDir,
@@ -164,9 +164,9 @@ describe('setupEnvironment', () => {
       outputPath,
       interactive: true,
       logger: silentLogger,
-    })
+    });
 
-    expect(result.success).toBe(false)
-    expect(mockPrompt).toHaveBeenCalled()
-  })
-})
+    expect(result.success).toBe(false);
+    expect(mockPrompt).toHaveBeenCalled();
+  });
+});

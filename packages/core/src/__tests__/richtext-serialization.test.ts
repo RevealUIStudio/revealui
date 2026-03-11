@@ -5,11 +5,11 @@
  * Uses renderToStaticMarkup to verify React element output.
  */
 
-import type { SerializedEditorState } from 'lexical'
-import ReactDOMServer from 'react-dom/server'
-import { describe, expect, it } from 'vitest'
-import { serializeLexicalStateClient } from '../richtext/exports/client/rcc.js'
-import { serializeLexicalState } from '../richtext/exports/server/rsc.js'
+import type { SerializedEditorState } from 'lexical';
+import ReactDOMServer from 'react-dom/server';
+import { describe, expect, it } from 'vitest';
+import { serializeLexicalStateClient } from '../richtext/exports/client/rcc.js';
+import { serializeLexicalState } from '../richtext/exports/server/rsc.js';
 
 // ============================================
 // TEST FIXTURES
@@ -25,17 +25,17 @@ function makeState(children: unknown[]): SerializedEditorState {
       type: 'root',
       version: 1,
     },
-  }
+  };
 }
 
 function renderRsc(state: SerializedEditorState): string {
-  const el = serializeLexicalState(state)
-  return el ? ReactDOMServer.renderToStaticMarkup(el) : ''
+  const el = serializeLexicalState(state);
+  return el ? ReactDOMServer.renderToStaticMarkup(el) : '';
 }
 
 function renderRcc(state: SerializedEditorState): string {
-  const el = serializeLexicalStateClient(state)
-  return el ? ReactDOMServer.renderToStaticMarkup(el) : ''
+  const el = serializeLexicalStateClient(state);
+  return el ? ReactDOMServer.renderToStaticMarkup(el) : '';
 }
 
 const plainParagraph = makeState([
@@ -47,7 +47,7 @@ const plainParagraph = makeState([
     indent: 0,
     version: 1,
   },
-])
+]);
 
 const boldText = makeState([
   {
@@ -58,7 +58,7 @@ const boldText = makeState([
     indent: 0,
     version: 1,
   },
-])
+]);
 
 const italicText = makeState([
   {
@@ -69,7 +69,7 @@ const italicText = makeState([
     indent: 0,
     version: 1,
   },
-])
+]);
 
 const heading = makeState([
   {
@@ -81,7 +81,7 @@ const heading = makeState([
     indent: 0,
     version: 1,
   },
-])
+]);
 
 const quote = makeState([
   {
@@ -92,7 +92,7 @@ const quote = makeState([
     indent: 0,
     version: 1,
   },
-])
+]);
 
 const unorderedList = makeState([
   {
@@ -123,7 +123,7 @@ const unorderedList = makeState([
     indent: 0,
     version: 1,
   },
-])
+]);
 
 const link = makeState([
   {
@@ -145,7 +145,7 @@ const link = makeState([
     indent: 0,
     version: 1,
   },
-])
+]);
 
 const linebreak = makeState([
   {
@@ -160,9 +160,9 @@ const linebreak = makeState([
     indent: 0,
     version: 1,
   },
-])
+]);
 
-const horizontalRule = makeState([{ type: 'horizontalrule', version: 1 }])
+const horizontalRule = makeState([{ type: 'horizontalrule', version: 1 }]);
 
 const codeBlock = makeState([
   {
@@ -173,7 +173,7 @@ const codeBlock = makeState([
     indent: 0,
     version: 1,
   },
-])
+]);
 
 const mixedFormatting = makeState([
   {
@@ -189,7 +189,7 @@ const mixedFormatting = makeState([
     indent: 0,
     version: 1,
   },
-])
+]);
 
 // ============================================
 // RSC SERIALIZER TESTS
@@ -197,92 +197,92 @@ const mixedFormatting = makeState([
 
 describe('serializeLexicalState (RSC)', () => {
   it('returns null for null input', () => {
-    expect(serializeLexicalState(null)).toBeNull()
-  })
+    expect(serializeLexicalState(null)).toBeNull();
+  });
 
   it('returns null for undefined input', () => {
-    expect(serializeLexicalState(undefined)).toBeNull()
-  })
+    expect(serializeLexicalState(undefined)).toBeNull();
+  });
 
   it('returns null for empty root', () => {
     expect(
       serializeLexicalState({
         root: { children: [], direction: 'ltr', format: '', indent: 0, type: 'root', version: 1 },
       }),
-    ).toBeNull()
-  })
+    ).toBeNull();
+  });
 
   it('serializes a plain paragraph', () => {
-    const html = renderRsc(plainParagraph)
-    expect(html).toContain('<p>')
-    expect(html).toContain('Hello world')
-  })
+    const html = renderRsc(plainParagraph);
+    expect(html).toContain('<p>');
+    expect(html).toContain('Hello world');
+  });
 
   it('serializes bold text', () => {
-    const html = renderRsc(boldText)
-    expect(html).toContain('<strong>')
-    expect(html).toContain('Bold')
-  })
+    const html = renderRsc(boldText);
+    expect(html).toContain('<strong>');
+    expect(html).toContain('Bold');
+  });
 
   it('serializes italic text', () => {
-    const html = renderRsc(italicText)
-    expect(html).toContain('<em>')
-    expect(html).toContain('Italic')
-  })
+    const html = renderRsc(italicText);
+    expect(html).toContain('<em>');
+    expect(html).toContain('Italic');
+  });
 
   it('serializes headings', () => {
-    const html = renderRsc(heading)
-    expect(html).toContain('<h2>')
-    expect(html).toContain('Title')
-  })
+    const html = renderRsc(heading);
+    expect(html).toContain('<h2>');
+    expect(html).toContain('Title');
+  });
 
   it('serializes blockquotes', () => {
-    const html = renderRsc(quote)
-    expect(html).toContain('<blockquote>')
-    expect(html).toContain('A wise quote')
-  })
+    const html = renderRsc(quote);
+    expect(html).toContain('<blockquote>');
+    expect(html).toContain('A wise quote');
+  });
 
   it('serializes unordered lists', () => {
-    const html = renderRsc(unorderedList)
-    expect(html).toContain('<ul>')
-    expect(html).toContain('<li')
-    expect(html).toContain('Item 1')
-    expect(html).toContain('Item 2')
-  })
+    const html = renderRsc(unorderedList);
+    expect(html).toContain('<ul>');
+    expect(html).toContain('<li');
+    expect(html).toContain('Item 1');
+    expect(html).toContain('Item 2');
+  });
 
   it('serializes links with target', () => {
-    const html = renderRsc(link)
-    expect(html).toContain('href="https://example.com"')
-    expect(html).toContain('target="_blank"')
-    expect(html).toContain('Click here')
-  })
+    const html = renderRsc(link);
+    expect(html).toContain('href="https://example.com"');
+    expect(html).toContain('target="_blank"');
+    expect(html).toContain('Click here');
+  });
 
   it('serializes linebreaks', () => {
-    const html = renderRsc(linebreak)
-    expect(html).toContain('<br')
-    expect(html).toContain('Line 1')
-    expect(html).toContain('Line 2')
-  })
+    const html = renderRsc(linebreak);
+    expect(html).toContain('<br');
+    expect(html).toContain('Line 1');
+    expect(html).toContain('Line 2');
+  });
 
   it('serializes horizontal rules', () => {
-    const html = renderRsc(horizontalRule)
-    expect(html).toContain('<hr')
-  })
+    const html = renderRsc(horizontalRule);
+    expect(html).toContain('<hr');
+  });
 
   it('serializes code blocks', () => {
-    const html = renderRsc(codeBlock)
-    expect(html).toContain('<pre>')
-    expect(html).toContain('<code>')
-    expect(html).toContain('const x = 1')
-  })
+    const html = renderRsc(codeBlock);
+    expect(html).toContain('<pre>');
+    expect(html).toContain('<code>');
+    expect(html).toContain('const x = 1');
+  });
 
   it('serializes mixed formatting', () => {
-    const html = renderRsc(mixedFormatting)
-    expect(html).toContain('Normal ')
-    expect(html).toContain('<strong>')
-    expect(html).toContain('<em>')
-  })
-})
+    const html = renderRsc(mixedFormatting);
+    expect(html).toContain('Normal ');
+    expect(html).toContain('<strong>');
+    expect(html).toContain('<em>');
+  });
+});
 
 // ============================================
 // RCC SERIALIZER TESTS
@@ -290,72 +290,72 @@ describe('serializeLexicalState (RSC)', () => {
 
 describe('serializeLexicalStateClient (RCC)', () => {
   it('returns null for null input', () => {
-    expect(serializeLexicalStateClient(null)).toBeNull()
-  })
+    expect(serializeLexicalStateClient(null)).toBeNull();
+  });
 
   it('returns null for undefined input', () => {
-    expect(serializeLexicalStateClient(undefined)).toBeNull()
-  })
+    expect(serializeLexicalStateClient(undefined)).toBeNull();
+  });
 
   it('serializes a plain paragraph', () => {
-    const html = renderRcc(plainParagraph)
-    expect(html).toContain('<p>')
-    expect(html).toContain('Hello world')
-  })
+    const html = renderRcc(plainParagraph);
+    expect(html).toContain('<p>');
+    expect(html).toContain('Hello world');
+  });
 
   it('serializes bold text', () => {
-    const html = renderRcc(boldText)
-    expect(html).toContain('<strong>')
-    expect(html).toContain('Bold')
-  })
+    const html = renderRcc(boldText);
+    expect(html).toContain('<strong>');
+    expect(html).toContain('Bold');
+  });
 
   it('serializes italic text', () => {
-    const html = renderRcc(italicText)
-    expect(html).toContain('<em>')
-    expect(html).toContain('Italic')
-  })
+    const html = renderRcc(italicText);
+    expect(html).toContain('<em>');
+    expect(html).toContain('Italic');
+  });
 
   it('serializes headings', () => {
-    const html = renderRcc(heading)
-    expect(html).toContain('<h2>')
-    expect(html).toContain('Title')
-  })
+    const html = renderRcc(heading);
+    expect(html).toContain('<h2>');
+    expect(html).toContain('Title');
+  });
 
   it('serializes blockquotes', () => {
-    const html = renderRcc(quote)
-    expect(html).toContain('<blockquote>')
-    expect(html).toContain('A wise quote')
-  })
+    const html = renderRcc(quote);
+    expect(html).toContain('<blockquote>');
+    expect(html).toContain('A wise quote');
+  });
 
   it('serializes unordered lists', () => {
-    const html = renderRcc(unorderedList)
-    expect(html).toContain('<ul>')
-    expect(html).toContain('<li')
-    expect(html).toContain('Item 1')
-  })
+    const html = renderRcc(unorderedList);
+    expect(html).toContain('<ul>');
+    expect(html).toContain('<li');
+    expect(html).toContain('Item 1');
+  });
 
   it('serializes linebreaks', () => {
-    const html = renderRcc(linebreak)
-    expect(html).toContain('<br')
-  })
+    const html = renderRcc(linebreak);
+    expect(html).toContain('<br');
+  });
 
   it('serializes horizontal rules', () => {
-    const html = renderRcc(horizontalRule)
-    expect(html).toContain('<hr')
-  })
+    const html = renderRcc(horizontalRule);
+    expect(html).toContain('<hr');
+  });
 
   it('serializes code blocks', () => {
-    const html = renderRcc(codeBlock)
-    expect(html).toContain('<pre>')
-    expect(html).toContain('<code>')
-  })
+    const html = renderRcc(codeBlock);
+    expect(html).toContain('<pre>');
+    expect(html).toContain('<code>');
+  });
 
   it('serializes mixed formatting', () => {
-    const html = renderRcc(mixedFormatting)
-    expect(html).toContain('<strong>')
-    expect(html).toContain('<em>')
-  })
-})
+    const html = renderRcc(mixedFormatting);
+    expect(html).toContain('<strong>');
+    expect(html).toContain('<em>');
+  });
+});
 
 // ============================================
 // RSC vs RCC PARITY TESTS
@@ -372,20 +372,20 @@ describe('RSC / RCC serializer parity', () => {
     ['linebreak', linebreak],
     ['horizontal rule', horizontalRule],
     ['code block', codeBlock],
-  ] as const
+  ] as const;
 
   it.each(fixtures)('%s produces equivalent output', (_name, state) => {
-    const rsc = renderRsc(state as SerializedEditorState)
-    const rcc = renderRcc(state as SerializedEditorState)
+    const rsc = renderRsc(state as SerializedEditorState);
+    const rcc = renderRcc(state as SerializedEditorState);
 
     // Both should produce non-empty output
-    expect(rsc.length).toBeGreaterThan(0)
-    expect(rcc.length).toBeGreaterThan(0)
+    expect(rsc.length).toBeGreaterThan(0);
+    expect(rcc.length).toBeGreaterThan(0);
 
     // Both should contain the same primary HTML elements
     // (exact attribute order may differ, so we check key content)
-    const rscTags = rsc.match(/<\w+/g) || []
-    const rccTags = rcc.match(/<\w+/g) || []
-    expect(rccTags).toEqual(rscTags)
-  })
-})
+    const rscTags = rsc.match(/<\w+/g) || [];
+    const rccTags = rcc.match(/<\w+/g) || [];
+    expect(rccTags).toEqual(rscTags);
+  });
+});

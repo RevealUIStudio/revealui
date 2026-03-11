@@ -1,7 +1,7 @@
 interface NamespaceFilterProps {
-  namespaces: string[]
-  active: string | null
-  onChange: (ns: string | null) => void
+  namespaces: string[];
+  active: string | null;
+  onChange: (ns: string | null) => void;
 }
 
 export default function NamespaceFilter({ namespaces, active, onChange }: NamespaceFilterProps) {
@@ -39,5 +39,5 @@ export default function NamespaceFilter({ namespaces, active, onChange }: Namesp
         <p className="px-2 py-1 text-xs text-neutral-600">No namespaces</p>
       )}
     </div>
-  )
+  );
 }

@@ -9,21 +9,21 @@
  * - node:path - Path manipulation
  */
 
-import { readdir, readFile, stat } from 'node:fs/promises'
-import { join } from 'node:path'
-import type { PatternAnalysis, PatternInstance } from '../types.ts'
+import { readdir, readFile, stat } from 'node:fs/promises';
+import { join } from 'node:path';
+import type { PatternAnalysis, PatternInstance } from '../types.ts';
 
 // =============================================================================
 // Pattern Matchers
 // =============================================================================
 
 export interface PatternMatcher {
-  pattern: string
-  description: string
-  severity: 'CRITICAL' | 'HIGH' | 'MEDIUM' | 'LOW'
-  impact: string
-  regex: RegExp
-  multiline?: boolean
+  pattern: string;
+  description: string;
+  severity: 'CRITICAL' | 'HIGH' | 'MEDIUM' | 'LOW';
+  impact: string;
+  regex: RegExp;
+  multiline?: boolean;
 }
 
 export const COMMON_PATTERNS: PatternMatcher[] = [
@@ -83,7 +83,7 @@ export const COMMON_PATTERNS: PatternMatcher[] = [
     impact: 'Technical debt marker, may indicate incomplete work',
     regex: /\/\/\s*TODO:|\/\*\s*TODO:/gi,
   },
-]
+];
 
 // =============================================================================
 // File Operations
@@ -93,15 +93,15 @@ export const COMMON_PATTERNS: PatternMatcher[] = [
  * Recursively find all source files in a directory
  */
 export async function findSourceFiles(directory: string): Promise<string[]> {
-  const files: string[] = []
+  const files: string[] = [];
 
   async function scan(dir: string) {
     try {
-      const entries = await readdir(dir)
+      const entries = await readdir(dir);
 
       for (const entry of entries) {
-        const fullPath = join(dir, entry)
-        const stats = await stat(fullPath)
+        const fullPath = join(dir, entry);
+        const stats = await stat(fullPath);
 
         if (stats.isDirectory()) {
           // Skip common ignore patterns
@@ -113,7 +113,7 @@ export async function findSourceFiles(directory: string): Promise<string[]> {
             entry !== '__tests__' &&
             entry !== 'coverage'
           ) {
-            await scan(fullPath)
+            await scan(fullPath);
           }
         } else if (stats.isFile()) {
           // Include TypeScript and JavaScript files
@@ -131,7 +131,7 @@ export async function findSourceFiles(directory: string): Promise<string[]> {
                 entry.endsWith('.d.ts')
               )
             ) {
-              files.push(fullPath)
+              files.push(fullPath);
             }
           }
         }
@@ -141,8 +141,8 @@ export async function findSourceFiles(directory: string): Promise<string[]> {
     }
   }
 
-  await scan(directory)
-  return files
+  await scan(directory);
+  return files;
 }
 
 // =============================================================================
@@ -156,30 +156,30 @@ export async function analyzePattern(
   files: string[],
   matcher: PatternMatcher,
 ): Promise<PatternAnalysis> {
-  const instances: PatternInstance[] = []
-  const seenCodes = new Set<string>()
+  const instances: PatternInstance[] = [];
+  const seenCodes = new Set<string>();
 
   for (const file of files) {
     try {
-      const content = await readFile(file, 'utf-8')
-      const lines = content.split('\n')
+      const content = await readFile(file, 'utf-8');
+      const lines = content.split('\n');
 
       // Reset regex lastIndex for global regex
-      matcher.regex.lastIndex = 0
+      matcher.regex.lastIndex = 0;
 
-      let match = matcher.regex.exec(content)
+      let match = matcher.regex.exec(content);
       while (match !== null) {
         // Find the line number where this match occurs
-        let charCount = 0
-        let lineNumber = 0
-        let lineContent = ''
+        let charCount = 0;
+        let lineNumber = 0;
+        let lineContent = '';
 
         for (let i = 0; i < lines.length; i++) {
-          charCount += lines[i].length + 1 // +1 for newline
+          charCount += lines[i].length + 1; // +1 for newline
           if (charCount > match.index) {
-            lineNumber = i + 1
-            lineContent = lines[i].trim()
-            break
+            lineNumber = i + 1;
+            lineContent = lines[i].trim();
+            break;
           }
         }
 
@@ -187,12 +187,12 @@ export async function analyzePattern(
           file,
           line: lineNumber,
           code: lineContent,
-        })
+        });
 
         // Track unique code patterns
-        seenCodes.add(lineContent)
+        seenCodes.add(lineContent);
 
-        match = matcher.regex.exec(content)
+        match = matcher.regex.exec(content);
       }
     } catch (_error) {
       // Skip files that can't be read
@@ -207,5 +207,5 @@ export async function analyzePattern(
     variations: seenCodes.size,
     severity: matcher.severity,
     impact: matcher.impact,
-  }
+  };
 }

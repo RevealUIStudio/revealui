@@ -11,4 +11,4 @@ export {
   type ActionValidationResult,
   type ActionValidationSuccess,
   validateAction,
-} from './action-validator.js'
+} from './action-validator.js';

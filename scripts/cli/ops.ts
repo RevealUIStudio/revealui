@@ -37,16 +37,16 @@
  * - Scripts: Individual command scripts in commandMap (dispatched at runtime)
  */
 
-import { execSync } from 'node:child_process'
-import { resolve } from 'node:path'
-import { fileURLToPath } from 'node:url'
-import type { ParsedArgs } from '../lib/args.js'
-import { type CommandDefinition, DispatcherCLI, runCLI } from './_base.js'
+import { execSync } from 'node:child_process';
+import { resolve } from 'node:path';
+import { fileURLToPath } from 'node:url';
+import type { ParsedArgs } from '../lib/args.js';
+import { type CommandDefinition, DispatcherCLI, runCLI } from './_base.js';
 
 class OpsCLI extends DispatcherCLI {
-  name = 'ops'
-  description = 'Operations and maintenance commands'
-  protected enableExecutionLogging = true
+  name = 'ops';
+  description = 'Operations and maintenance commands';
+  protected enableExecutionLogging = true;
 
   protected commandMap = {
     // Maintenance commands
@@ -67,7 +67,7 @@ class OpsCLI extends DispatcherCLI {
     'rollback:list': 'scripts/commands/ops/rollback-list.ts',
     'rollback:restore': 'scripts/commands/ops/rollback-restore.ts',
     'rollback:clear': 'scripts/commands/ops/rollback-clear.ts',
-  }
+  };
 
   defineGlobalArgs() {
     return [
@@ -83,7 +83,7 @@ class OpsCLI extends DispatcherCLI {
         type: 'string' as const,
         description: 'Glob pattern to filter files',
       },
-    ]
+    ];
   }
 
   defineCommands(): CommandDefinition[] {
@@ -279,7 +279,7 @@ class OpsCLI extends DispatcherCLI {
         confirmPrompt: 'This will rollback changes. Continue?',
         handler: async (args) => this.rollback(args),
       },
-    ]
+    ];
   }
 
   // ===========================================================================
@@ -289,19 +289,19 @@ class OpsCLI extends DispatcherCLI {
   private async clean(args: ParsedArgs) {
     // Delegate to the root package.json "clean" script which removes dist/, node_modules/,
     // .next/, and .turbo/ directories across all workspaces.
-    const repoRoot = resolve(fileURLToPath(import.meta.url), '../../../')
-    const deep = args.flags.deep as boolean | undefined
+    const repoRoot = resolve(fileURLToPath(import.meta.url), '../../../');
+    const deep = args.flags.deep as boolean | undefined;
 
     if (args.flags.json) {
-      console.log(JSON.stringify({ status: 'running', target: deep ? 'full' : 'build-artifacts' }))
+      console.log(JSON.stringify({ status: 'running', target: deep ? 'full' : 'build-artifacts' }));
     } else {
       console.log(
         deep ? 'Removing node_modules + build artifacts...' : 'Removing build artifacts...',
-      )
+      );
     }
 
-    const script = deep ? 'clean:install' : 'clean'
-    execSync(`pnpm ${script}`, { cwd: repoRoot, stdio: 'inherit' })
+    const script = deep ? 'clean:install' : 'clean';
+    execSync(`pnpm ${script}`, { cwd: repoRoot, stdio: 'inherit' });
 
     return {
       success: true,
@@ -309,88 +309,88 @@ class OpsCLI extends DispatcherCLI {
       message: deep
         ? 'Cleaned build artifacts and reinstalled dependencies'
         : 'Cleaned build artifacts',
-    }
+    };
   }
 
   private async migratePlan(args: ParsedArgs) {
-    const { getMigrationHelper } = await import('../lib/migration/migration-helper.js')
-    const helper = await getMigrationHelper()
+    const { getMigrationHelper } = await import('../lib/migration/migration-helper.js');
+    const helper = await getMigrationHelper();
 
-    const script = args.flags.script as string
-    const from = args.flags.from as string
-    const to = args.flags.to as string
+    const script = args.flags.script as string;
+    const from = args.flags.from as string;
+    const to = args.flags.to as string;
 
-    const plan = await helper.generatePlan(script, from, to)
+    const plan = await helper.generatePlan(script, from, to);
 
     if (args.flags.json) {
-      return { success: true, data: plan, message: 'Migration plan generated' }
+      return { success: true, data: plan, message: 'Migration plan generated' };
     }
 
-    console.log('\nMigration Plan:')
-    console.log(`Script: ${script}`)
-    console.log(`From: ${from} → To: ${to}`)
-    console.log(`\nSteps: ${plan.steps.length}`)
+    console.log('\nMigration Plan:');
+    console.log(`Script: ${script}`);
+    console.log(`From: ${from} → To: ${to}`);
+    console.log(`\nSteps: ${plan.steps.length}`);
     for (const step of plan.steps) {
-      console.log(`  - ${step.description}`)
+      console.log(`  - ${step.description}`);
     }
 
-    return { success: true, data: plan, message: 'Migration plan generated' }
+    return { success: true, data: plan, message: 'Migration plan generated' };
   }
 
   private async migrateExecute(args: ParsedArgs) {
-    const { getMigrationHelper } = await import('../lib/migration/migration-helper.js')
-    const helper = await getMigrationHelper()
+    const { getMigrationHelper } = await import('../lib/migration/migration-helper.js');
+    const helper = await getMigrationHelper();
 
-    const script = args.flags.script as string
-    const from = args.flags.from as string
-    const to = args.flags.to as string
-    const dryRun = args.flags['dry-run'] as boolean
+    const script = args.flags.script as string;
+    const from = args.flags.from as string;
+    const to = args.flags.to as string;
+    const dryRun = args.flags['dry-run'] as boolean;
 
-    const result = await helper.executeMigration(script, from, to, { dryRun })
+    const result = await helper.executeMigration(script, from, to, { dryRun });
 
     return {
       success: result.success,
       data: result,
       message: result.success ? 'Migration executed successfully' : 'Migration failed',
-    }
+    };
   }
 
   private async migrateCompare(args: ParsedArgs) {
-    const { getMigrationHelper } = await import('../lib/migration/migration-helper.js')
-    const helper = await getMigrationHelper()
+    const { getMigrationHelper } = await import('../lib/migration/migration-helper.js');
+    const helper = await getMigrationHelper();
 
-    const script = args.flags.script as string
-    const from = args.flags.from as string
-    const to = args.flags.to as string
+    const script = args.flags.script as string;
+    const from = args.flags.from as string;
+    const to = args.flags.to as string;
 
-    const comparison = await helper.compareVersions(script, from, to)
+    const comparison = await helper.compareVersions(script, from, to);
 
     if (args.flags.json) {
-      return { success: true, data: comparison, message: 'Versions compared' }
+      return { success: true, data: comparison, message: 'Versions compared' };
     }
 
-    console.log('\nVersion Comparison:')
-    console.log(`Script: ${script}`)
-    console.log(`From: ${from}`)
-    console.log(`To: ${to}`)
-    console.log(`\nDifferences: ${comparison.differences.length}`)
+    console.log('\nVersion Comparison:');
+    console.log(`Script: ${script}`);
+    console.log(`From: ${from}`);
+    console.log(`To: ${to}`);
+    console.log(`\nDifferences: ${comparison.differences.length}`);
     for (const diff of comparison.differences) {
-      console.log(`  - ${diff.type}: ${diff.description}`)
+      console.log(`  - ${diff.type}: ${diff.description}`);
     }
 
-    return { success: true, data: comparison, message: 'Versions compared' }
+    return { success: true, data: comparison, message: 'Versions compared' };
   }
 
   private async rollback(args: ParsedArgs) {
-    const { RollbackManager } = await import('../lib/rollback/manager.js')
-    const manager = new RollbackManager(this.projectRoot)
+    const { RollbackManager } = await import('../lib/rollback/manager.js');
+    const manager = new RollbackManager(this.projectRoot);
 
-    const checkpointId = args.flags.checkpoint as string | undefined
+    const checkpointId = args.flags.checkpoint as string | undefined;
 
     if (checkpointId) {
-      await manager.rollback(checkpointId)
+      await manager.rollback(checkpointId);
     } else {
-      await manager.rollbackLast()
+      await manager.rollbackLast();
     }
 
     return {
@@ -399,13 +399,13 @@ class OpsCLI extends DispatcherCLI {
       message: checkpointId
         ? `Rolled back to checkpoint: ${checkpointId}`
         : 'Rolled back to last checkpoint',
-    }
+    };
   }
 }
 
 // Run CLI if called directly
 if (import.meta.url === `file://${process.argv[1]}`) {
-  runCLI(OpsCLI).catch(console.error)
+  runCLI(OpsCLI).catch(console.error);
 }
 
-export { OpsCLI }
+export { OpsCLI };

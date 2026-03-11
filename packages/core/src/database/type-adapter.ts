@@ -7,7 +7,7 @@
  * @module revealui/core/database/type-adapter
  */
 
-import type { Contract } from '@revealui/contracts/foundation'
+import type { Contract } from '@revealui/contracts/foundation';
 
 /**
  * Convert database row to RevealUI document type
@@ -18,7 +18,7 @@ import type { Contract } from '@revealui/contracts/foundation'
  * @returns RevealUI document
  */
 export function dbRowToRevealUIDoc<TDoc, TDbRow>(dbRow: TDbRow): TDoc {
-  return dbRow as unknown as TDoc
+  return dbRow as unknown as TDoc;
 }
 
 /**
@@ -30,7 +30,7 @@ export function dbRowToRevealUIDoc<TDoc, TDbRow>(dbRow: TDbRow): TDoc {
  * @returns Database insert type
  */
 export function revealUIDocToDbInsert<TDoc, TInsert>(doc: TDoc): TInsert {
-  return doc as unknown as TInsert
+  return doc as unknown as TInsert;
 }
 
 /**
@@ -48,7 +48,7 @@ export function dbRowToContract<TContract, TDbRow>(
   contract: Contract<TContract>,
   dbRow: TDbRow,
 ): TContract {
-  return contract.parse(dbRow)
+  return contract.parse(dbRow);
 }
 
 /**
@@ -59,18 +59,18 @@ export function dbRowToContract<TContract, TDbRow>(
 type DatabaseLike = {
   public: {
     // biome-ignore lint/style/useNamingConvention: mirrors Supabase generated Database type shape
-    Tables: Record<string, { Row: unknown; Insert: unknown; Update: unknown }>
-  }
-}
+    Tables: Record<string, { Row: unknown; Insert: unknown; Update: unknown }>;
+  };
+};
 
 export type TableContractMapping<T extends DatabaseLike> = {
   [K in keyof T['public']['Tables']]?: T['public']['Tables'][K] extends {
     // biome-ignore lint/style/useNamingConvention: Supabase schema shape.
-    Row: infer R
+    Row: infer R;
   }
     ? Contract<R>
-    : never
-}
+    : never;
+};
 
 /**
  * Create a type-safe adapter for a specific table
@@ -94,30 +94,30 @@ export type TableContractMapping<T extends DatabaseLike> = {
 export function createTableAdapter<T extends DatabaseLike, N extends keyof T['public']['Tables']>(
   contract?: T['public']['Tables'][N] extends {
     // biome-ignore lint/style/useNamingConvention: Supabase schema shape.
-    Row: infer R
+    Row: infer R;
   }
     ? Contract<R>
     : never,
 ) {
-  type TableType = T['public']['Tables'][N]
+  type TableType = T['public']['Tables'][N];
   type RowType = TableType extends {
     // biome-ignore lint/style/useNamingConvention: Supabase schema shape.
-    Row: infer R
+    Row: infer R;
   }
     ? R
-    : never
+    : never;
   type InsertType = TableType extends {
     // biome-ignore lint/style/useNamingConvention: Supabase schema shape.
-    Insert: infer I
+    Insert: infer I;
   }
     ? I
-    : never
+    : never;
   type UpdateType = TableType extends {
     // biome-ignore lint/style/useNamingConvention: Supabase schema shape.
-    Update: infer U
+    Update: infer U;
   }
     ? U
-    : never
+    : never;
 
   return {
     /**
@@ -133,24 +133,24 @@ export function createTableAdapter<T extends DatabaseLike, N extends keyof T['pu
       if (contract) {
         // TypeScript's conditional type ensures contract is Contract<RowType> when defined,
         // but runtime narrowing doesn't preserve this. The assertion is type-safe.
-        const validated = (contract as Contract<RowType>).parse(dbRow)
-        return validated
+        const validated = (contract as Contract<RowType>).parse(dbRow);
+        return validated;
       }
-      return dbRow
+      return dbRow;
     },
 
     /**
      * Convert contract-validated entity to database insert
      */
     toInsert(data: RowType): InsertType {
-      return data as unknown as InsertType
+      return data as unknown as InsertType;
     },
 
     /**
      * Convert contract-validated entity to database update
      */
     toUpdate(data: Partial<RowType>): UpdateType {
-      return data as unknown as UpdateType
+      return data as unknown as UpdateType;
     },
-  }
+  };
 }

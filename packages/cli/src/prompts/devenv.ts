@@ -2,11 +2,11 @@
  * Development environment configuration prompts
  */
 
-import inquirer from 'inquirer'
+import inquirer from 'inquirer';
 
 export interface DevEnvConfig {
-  createDevContainer: boolean
-  createDevbox: boolean
+  createDevContainer: boolean;
+  createDevbox: boolean;
 }
 
 export async function promptDevEnvConfig(): Promise<DevEnvConfig> {
@@ -23,7 +23,7 @@ export async function promptDevEnvConfig(): Promise<DevEnvConfig> {
       message: 'Create Devbox configuration for Nix-powered development?',
       default: true,
     },
-  ])
+  ]);
 
-  return answers
+  return answers;
 }

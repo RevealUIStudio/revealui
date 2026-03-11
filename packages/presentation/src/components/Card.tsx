@@ -1,5 +1,5 @@
-import type React from 'react'
-import { cn } from '../utils/cn.js'
+import type React from 'react';
+import { cn } from '../utils/cn.js';
 
 function Card({
   className,
@@ -12,7 +12,7 @@ function Card({
       ref={ref}
       {...props}
     />
-  )
+  );
 }
 
 function CardHeader({
@@ -20,7 +20,7 @@ function CardHeader({
   ref,
   ...props
 }: React.HTMLAttributes<HTMLDivElement> & { ref?: React.Ref<HTMLDivElement> }) {
-  return <div className={cn('flex flex-col space-y-1.5 p-6', className)} ref={ref} {...props} />
+  return <div className={cn('flex flex-col space-y-1.5 p-6', className)} ref={ref} {...props} />;
 }
 
 function CardTitle({
@@ -34,7 +34,7 @@ function CardTitle({
       ref={ref}
       {...props}
     />
-  )
+  );
 }
 
 function CardDescription({
@@ -42,7 +42,7 @@ function CardDescription({
   ref,
   ...props
 }: React.HTMLAttributes<HTMLParagraphElement> & { ref?: React.Ref<HTMLParagraphElement> }) {
-  return <p className={cn('text-sm text-muted-foreground', className)} ref={ref} {...props} />
+  return <p className={cn('text-sm text-muted-foreground', className)} ref={ref} {...props} />;
 }
 
 function CardContent({
@@ -50,7 +50,7 @@ function CardContent({
   ref,
   ...props
 }: React.HTMLAttributes<HTMLDivElement> & { ref?: React.Ref<HTMLDivElement> }) {
-  return <div className={cn('p-6 pt-0', className)} ref={ref} {...props} />
+  return <div className={cn('p-6 pt-0', className)} ref={ref} {...props} />;
 }
 
 function CardFooter({
@@ -58,7 +58,7 @@ function CardFooter({
   ref,
   ...props
 }: React.HTMLAttributes<HTMLDivElement> & { ref?: React.Ref<HTMLDivElement> }) {
-  return <div className={cn('flex items-center p-6 pt-0', className)} ref={ref} {...props} />
+  return <div className={cn('flex items-center p-6 pt-0', className)} ref={ref} {...props} />;
 }
 
-export { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle }
+export { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle };

@@ -1,4 +1,4 @@
-import type { SVGProps } from 'react'
+import type { SVGProps } from 'react';
 
 export function EmbedIcon(props: SVGProps<SVGSVGElement>) {
   return (
@@ -17,5 +17,5 @@ export function EmbedIcon(props: SVGProps<SVGSVGElement>) {
       ></path>
       <path fill="white" d="m102.421 128.06l66.328-38.418l-66.328-38.418z"></path>
     </svg>
-  )
+  );
 }

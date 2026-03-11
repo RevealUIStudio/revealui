@@ -1,21 +1,21 @@
-'use client'
+'use client';
 
 import {
   FEATURE_LABELS,
   type LicenseTierId,
   SUBSCRIPTION_TIERS,
   TIER_LIMITS,
-} from '@revealui/contracts/pricing'
-import type { FeatureFlags } from '@revealui/core/features'
-import { PricingTable } from '@revealui/presentation'
-import { useLicense } from '@/lib/providers/LicenseProvider'
+} from '@revealui/contracts/pricing';
+import type { FeatureFlags } from '@revealui/core/features';
+import { PricingTable } from '@revealui/presentation';
+import { useLicense } from '@/lib/providers/LicenseProvider';
 
 export default function UpgradePage() {
-  const { tier: currentTier } = useLicense()
+  const { tier: currentTier } = useLicense();
 
   const handleSelectTier = async (tierId: string) => {
     try {
-      const apiUrl = (process.env.NEXT_PUBLIC_API_URL || 'https://api.revealui.com').trim()
+      const apiUrl = (process.env.NEXT_PUBLIC_API_URL || 'https://api.revealui.com').trim();
       const res = await fetch(`${apiUrl}/api/billing/checkout`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -29,15 +29,15 @@ export default function UpgradePage() {
                 : process.env.NEXT_PUBLIC_STRIPE_ENTERPRISE_PRICE_ID,
           tier: tierId,
         }),
-      })
-      const data = (await res.json()) as { url?: string }
+      });
+      const data = (await res.json()) as { url?: string };
       if (data.url) {
-        window.location.href = data.url
+        window.location.href = data.url;
       }
     } catch {
-      window.location.href = `/account/billing?upgrade=${tierId}`
+      window.location.href = `/account/billing?upgrade=${tierId}`;
     }
-  }
+  };
 
   return (
     <div className="mx-auto max-w-7xl px-6 py-12 lg:px-8">
@@ -86,7 +86,7 @@ export default function UpgradePage() {
               <tr className="border-b dark:border-zinc-800">
                 <td className="py-3 px-4 font-medium text-zinc-700 dark:text-zinc-300">Sites</td>
                 {SUBSCRIPTION_TIERS.map((t) => {
-                  const limits = TIER_LIMITS[t.id]
+                  const limits = TIER_LIMITS[t.id];
                   return (
                     <td
                       key={t.id}
@@ -94,13 +94,13 @@ export default function UpgradePage() {
                     >
                       {limits.sites === null ? 'Unlimited' : limits.sites}
                     </td>
-                  )
+                  );
                 })}
               </tr>
               <tr className="border-b dark:border-zinc-800">
                 <td className="py-3 px-4 font-medium text-zinc-700 dark:text-zinc-300">Users</td>
                 {SUBSCRIPTION_TIERS.map((t) => {
-                  const limits = TIER_LIMITS[t.id]
+                  const limits = TIER_LIMITS[t.id];
                   return (
                     <td
                       key={t.id}
@@ -108,7 +108,7 @@ export default function UpgradePage() {
                     >
                       {limits.users === null ? 'Unlimited' : limits.users}
                     </td>
-                  )
+                  );
                 })}
               </tr>
               <tr className="border-b dark:border-zinc-800">
@@ -116,7 +116,7 @@ export default function UpgradePage() {
                   Agent Tasks/mo
                 </td>
                 {SUBSCRIPTION_TIERS.map((t) => {
-                  const limits = TIER_LIMITS[t.id]
+                  const limits = TIER_LIMITS[t.id];
                   return (
                     <td
                       key={t.id}
@@ -126,7 +126,7 @@ export default function UpgradePage() {
                         ? 'Unlimited'
                         : limits.agentTasks.toLocaleString()}
                     </td>
-                  )
+                  );
                 })}
               </tr>
               <tr className="border-b dark:border-zinc-800">
@@ -134,7 +134,7 @@ export default function UpgradePage() {
                   API Requests/min
                 </td>
                 {SUBSCRIPTION_TIERS.map((t) => {
-                  const limits = TIER_LIMITS[t.id]
+                  const limits = TIER_LIMITS[t.id];
                   return (
                     <td
                       key={t.id}
@@ -142,7 +142,7 @@ export default function UpgradePage() {
                     >
                       {limits.apiRequestsPerMinute.toLocaleString()}
                     </td>
-                  )
+                  );
                 })}
               </tr>
 
@@ -154,7 +154,7 @@ export default function UpgradePage() {
                       {label}
                     </td>
                     {SUBSCRIPTION_TIERS.map((t) => {
-                      const enabled = isFeatureInTier(key, t.id)
+                      const enabled = isFeatureInTier(key, t.id);
                       return (
                         <td key={t.id} className="py-3 px-4 text-center">
                           {enabled ? (
@@ -171,7 +171,7 @@ export default function UpgradePage() {
                             </span>
                           )}
                         </td>
-                      )
+                      );
                     })}
                   </tr>
                 ),
@@ -181,7 +181,7 @@ export default function UpgradePage() {
         </div>
       </div>
     </div>
-  )
+  );
 }
 
 /** Simple tier rank check — mirrors @revealui/core/features logic */
@@ -191,7 +191,7 @@ function isFeatureInTier(feature: keyof FeatureFlags, tier: LicenseTierId): bool
     pro: 1,
     max: 2,
     enterprise: 3,
-  }
+  };
   const featureMinTier: Record<keyof FeatureFlags, LicenseTierId> = {
     ai: 'pro',
     mcp: 'pro',
@@ -209,6 +209,6 @@ function isFeatureInTier(feature: keyof FeatureFlags, tier: LicenseTierId): bool
     multiTenant: 'enterprise',
     whiteLabel: 'enterprise',
     sso: 'enterprise',
-  }
-  return tierRank[tier] >= tierRank[featureMinTier[feature]]
+  };
+  return tierRank[tier] >= tierRank[featureMinTier[feature]];
 }

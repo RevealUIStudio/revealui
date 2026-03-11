@@ -12,13 +12,13 @@
  * - scripts/lib/index.ts - Shared utilities (createLogger)
  */
 
-import { createLogger } from '../../../lib/index.js'
-import { ErrorCode } from '../lib/errors.js'
+import { createLogger } from '../../../lib/index.js';
+import { ErrorCode } from '../lib/errors.js';
 
-const logger = createLogger()
+const logger = createLogger();
 
 function checkPackageExtraction(): boolean {
-  logger.info('Checking for package code duplication...')
+  logger.info('Checking for package code duplication...');
 
   // Placeholder checks - in a real implementation, this would:
   // 1. Scan for duplicate code across packages
@@ -26,32 +26,34 @@ function checkPackageExtraction(): boolean {
   // 3. Validate package boundaries
   // 4. Ensure no accidental code duplication
 
-  logger.warning('apps/cms/src/lib/config appears to contain app-specific code (1 files) - keeping')
+  logger.warning(
+    'apps/cms/src/lib/config appears to contain app-specific code (1 files) - keeping',
+  );
   logger.warning(
     'apps/cms/src/lib/validation appears to contain app-specific code (1 files) - keeping',
-  )
+  );
 
-  logger.info('==================================================')
-  logger.success('All packages extracted cleanly - no duplicates found')
+  logger.info('==================================================');
+  logger.success('All packages extracted cleanly - no duplicates found');
 
-  return true
+  return true;
 }
 
 async function main() {
   try {
-    const success = checkPackageExtraction()
+    const success = checkPackageExtraction();
 
     if (success) {
-      logger.success('Package extraction guardrails passed')
-      process.exit(ErrorCode.SUCCESS)
+      logger.success('Package extraction guardrails passed');
+      process.exit(ErrorCode.SUCCESS);
     } else {
-      logger.error('Package extraction guardrails failed')
-      process.exit(ErrorCode.CONFIG_ERROR)
+      logger.error('Package extraction guardrails failed');
+      process.exit(ErrorCode.CONFIG_ERROR);
     }
   } catch (error) {
-    logger.error(`Package extraction guardrails error: ${error}`)
-    process.exit(ErrorCode.EXECUTION_ERROR)
+    logger.error(`Package extraction guardrails error: ${error}`);
+    process.exit(ErrorCode.EXECUTION_ERROR);
   }
 }
 
-main()
+main();

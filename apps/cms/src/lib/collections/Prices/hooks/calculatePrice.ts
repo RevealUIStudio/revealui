@@ -22,42 +22,42 @@ import {
   hasTieredPricing,
   isRecurringPrice,
   type StripePriceData,
-} from '@revealui/contracts/entities'
-import type { RevealAfterReadHook, RevealDocument } from '@revealui/core'
-import type { Price } from '@revealui/core/types/cms'
+} from '@revealui/contracts/entities';
+import type { RevealAfterReadHook, RevealDocument } from '@revealui/core';
+import type { Price } from '@revealui/core/types/cms';
 
-const logs = false
+const logs = false;
 
 /**
  * Extended Price with computed fields
  */
 export interface EnrichedPrice extends Price {
   // Computed display fields
-  displayAmount?: string | null
-  formattedPrice?: string | null
-  isActive?: boolean
-  currency?: string
-  interval?: string | null
+  displayAmount?: string | null;
+  formattedPrice?: string | null;
+  isActive?: boolean;
+  currency?: string;
+  interval?: string | null;
   tierInfo?: {
-    hasTiers: boolean
-    tierCount?: number
-    lowestTier?: string
-    highestTier?: string
-  } | null
+    hasTiers: boolean;
+    tierCount?: number;
+    lowestTier?: string;
+    highestTier?: string;
+  } | null;
 }
 
 /**
  * Parse priceJSON safely
  */
 function parsePriceJSON(priceJSON: string | null | undefined): StripePriceData | null {
-  if (!priceJSON || typeof priceJSON !== 'string') return null
+  if (!priceJSON || typeof priceJSON !== 'string') return null;
 
   try {
-    return JSON.parse(priceJSON) as StripePriceData
+    return JSON.parse(priceJSON) as StripePriceData;
   } catch (_error) {
     // Error is already logged by the caller if logs is enabled
     // No need to log here to avoid duplicate logging
-    return null
+    return null;
   }
 }
 
@@ -66,33 +66,33 @@ function parsePriceJSON(priceJSON: string | null | undefined): StripePriceData |
  */
 function calculateTierInfo(stripePriceData: StripePriceData): EnrichedPrice['tierInfo'] | null {
   if (!stripePriceData.tiers || stripePriceData.tiers.length === 0) {
-    return null
+    return null;
   }
 
-  const tiers = stripePriceData.tiers
-  const firstTier = tiers[0]
-  const lastTier = tiers[tiers.length - 1]
+  const tiers = stripePriceData.tiers;
+  const firstTier = tiers[0];
+  const lastTier = tiers[tiers.length - 1];
 
   // Get lowest price
-  const lowestAmount = firstTier?.unit_amount || firstTier?.flat_amount
+  const lowestAmount = firstTier?.unit_amount || firstTier?.flat_amount;
   const lowestTier = lowestAmount
     ? formatPriceAmount(lowestAmount, stripePriceData.currency)
-    : undefined
+    : undefined;
 
   // Get highest price (if not "inf")
-  const lastUpTo = lastTier?.up_to
+  const lastUpTo = lastTier?.up_to;
   const highestAmount =
-    lastUpTo !== 'inf' && lastUpTo !== null ? lastTier?.unit_amount || lastTier?.flat_amount : null
+    lastUpTo !== 'inf' && lastUpTo !== null ? lastTier?.unit_amount || lastTier?.flat_amount : null;
   const highestTier = highestAmount
     ? formatPriceAmount(highestAmount, stripePriceData.currency)
-    : undefined
+    : undefined;
 
   return {
     hasTiers: true,
     tierCount: tiers.length,
     lowestTier,
     highestTier,
-  }
+  };
 }
 
 /**
@@ -111,55 +111,55 @@ function buildFormattedPrice(
     const range =
       tierInfo.lowestTier && tierInfo.highestTier
         ? `${tierInfo.lowestTier} - ${tierInfo.highestTier}`
-        : tierInfo.lowestTier || 'Variable'
+        : tierInfo.lowestTier || 'Variable';
 
-    const interval = getIntervalDescription(priceWithParsedJSON)
-    return interval ? `${range} / ${interval} (tiered)` : `${range} per unit (tiered)`
+    const interval = getIntervalDescription(priceWithParsedJSON);
+    return interval ? `${range} / ${interval} (tiered)` : `${range} per unit (tiered)`;
   }
 
   // Handle standard pricing
-  const displayAmount = getDisplayAmount(priceWithParsedJSON)
-  if (!displayAmount) return null
+  const displayAmount = getDisplayAmount(priceWithParsedJSON);
+  if (!displayAmount) return null;
 
   // One-time payment
   if (stripePriceData.type === 'one_time') {
-    return `${displayAmount} (one-time)`
+    return `${displayAmount} (one-time)`;
   }
 
   // Recurring payment
-  const interval = getIntervalDescription(priceWithParsedJSON)
+  const interval = getIntervalDescription(priceWithParsedJSON);
   if (interval) {
     // Add trial info if present
-    const trialDays = stripePriceData.recurring?.trial_period_days
-    const trialInfo = trialDays ? ` (${trialDays}-day trial)` : ''
-    return `${displayAmount} / ${interval}${trialInfo}`
+    const trialDays = stripePriceData.recurring?.trial_period_days;
+    const trialInfo = trialDays ? ` (${trialDays}-day trial)` : '';
+    return `${displayAmount} / ${interval}${trialInfo}`;
   }
 
-  return displayAmount
+  return displayAmount;
 }
 
 /**
  * Calculate and enrich price data
  */
 export const calculatePrice: RevealAfterReadHook = async ({ doc, req }) => {
-  const price = doc as unknown as Price
-  const revealui = req?.revealui
+  const price = doc as unknown as Price;
+  const revealui = req?.revealui;
 
   // Skip if no Stripe price configured
   if (!hasStripePrice(price as unknown as ContractsPrice)) {
     if (logs) {
-      revealui?.logger?.info(`Price ${price.id} has no Stripe price, skipping calculations`)
+      revealui?.logger?.info(`Price ${price.id} has no Stripe price, skipping calculations`);
     }
-    return price as unknown as RevealDocument
+    return price as unknown as RevealDocument;
   }
 
   // Parse Stripe price data
-  const stripePriceData = parsePriceJSON(price.priceJSON as string | null)
+  const stripePriceData = parsePriceJSON(price.priceJSON as string | null);
   if (!stripePriceData) {
     if (logs) {
-      revealui?.logger?.warn(`Price ${price.id} has invalid priceJSON`)
+      revealui?.logger?.warn(`Price ${price.id} has invalid priceJSON`);
     }
-    return price as unknown as RevealDocument
+    return price as unknown as RevealDocument;
   }
 
   // Create a temporary Price object with parsed priceJSON for utility functions
@@ -167,10 +167,12 @@ export const calculatePrice: RevealAfterReadHook = async ({ doc, req }) => {
   const priceWithParsedJSON = {
     ...price,
     priceJSON: stripePriceData,
-  } as unknown as ContractsPrice
+  } as unknown as ContractsPrice;
 
   // Calculate tier information
-  const tierInfo = hasTieredPricing(priceWithParsedJSON) ? calculateTierInfo(stripePriceData) : null
+  const tierInfo = hasTieredPricing(priceWithParsedJSON)
+    ? calculateTierInfo(stripePriceData)
+    : null;
 
   // Build enriched price object
   const enriched: EnrichedPrice = {
@@ -194,13 +196,13 @@ export const calculatePrice: RevealAfterReadHook = async ({ doc, req }) => {
 
     // Tier information
     tierInfo,
-  }
+  };
 
   if (logs) {
     revealui?.logger?.info(
       `Enriched price ${price.id}: ${enriched.formattedPrice} (active: ${enriched.isActive})`,
-    )
+    );
   }
 
-  return enriched as unknown as RevealDocument
-}
+  return enriched as unknown as RevealDocument;
+};

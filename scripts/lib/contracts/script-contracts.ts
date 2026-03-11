@@ -35,7 +35,7 @@
  * ```
  */
 
-import { type ZodType, z } from 'zod'
+import { type ZodType, z } from 'zod';
 
 // =============================================================================
 // Core Types
@@ -49,29 +49,29 @@ export interface ScriptContract<
   TOutput extends ZodType = ZodType,
 > {
   /** Contract name (usually matches script name) */
-  name: string
+  name: string;
 
   /** Contract description */
-  description: string
+  description: string;
 
   /** Input schema (arguments/parameters) */
-  input: TInput
+  input: TInput;
 
   /** Output schema (return value) */
-  output: TOutput
+  output: TOutput;
 
   /** Contract version (for evolution tracking) */
-  version?: string
+  version?: string;
 
   /** Tags for categorization */
-  tags?: string[]
+  tags?: string[];
 
   /** Examples of valid inputs */
   examples?: Array<{
-    name: string
-    input: z.infer<TInput>
-    expectedOutput?: z.infer<TOutput>
-  }>
+    name: string;
+    input: z.infer<TInput>;
+    expectedOutput?: z.infer<TOutput>;
+  }>;
 }
 
 /**
@@ -79,13 +79,13 @@ export interface ScriptContract<
  */
 export interface ValidationResult<T = unknown> {
   /** Whether validation succeeded */
-  success: boolean
+  success: boolean;
 
   /** Validated data (if successful) */
-  data?: T
+  data?: T;
 
   /** Validation errors (if failed) */
-  errors?: ValidationError[]
+  errors?: ValidationError[];
 }
 
 /**
@@ -93,13 +93,13 @@ export interface ValidationResult<T = unknown> {
  */
 export interface ValidationError {
   /** Error path (e.g., 'input.tables[0]') */
-  path: string[]
+  path: string[];
 
   /** Error message */
-  message: string
+  message: string;
 
   /** Error code */
-  code: string
+  code: string;
 }
 
 // =============================================================================
@@ -112,7 +112,7 @@ export interface ValidationError {
 export function defineScriptContract<TInput extends ZodType, TOutput extends ZodType>(
   contract: ScriptContract<TInput, TOutput>,
 ): ScriptContract<TInput, TOutput> {
-  return contract
+  return contract;
 }
 
 // =============================================================================
@@ -128,11 +128,11 @@ export function validateInput<TInput extends ZodType>(
   input: unknown,
 ): ValidationResult<z.infer<TInput>> {
   try {
-    const data = contract.input.parse(input)
+    const data = contract.input.parse(input);
     return {
       success: true,
       data,
-    }
+    };
   } catch (error) {
     if (error instanceof z.ZodError) {
       return {
@@ -142,7 +142,7 @@ export function validateInput<TInput extends ZodType>(
           message: err.message,
           code: err.code,
         })),
-      }
+      };
     }
 
     return {
@@ -154,7 +154,7 @@ export function validateInput<TInput extends ZodType>(
           code: 'unknown',
         },
       ],
-    }
+    };
   }
 }
 
@@ -167,11 +167,11 @@ export function validateOutput<TOutput extends ZodType>(
   output: unknown,
 ): ValidationResult<z.infer<TOutput>> {
   try {
-    const data = contract.output.parse(output)
+    const data = contract.output.parse(output);
     return {
       success: true,
       data,
-    }
+    };
   } catch (error) {
     if (error instanceof z.ZodError) {
       return {
@@ -181,7 +181,7 @@ export function validateOutput<TOutput extends ZodType>(
           message: err.message,
           code: err.code,
         })),
-      }
+      };
     }
 
     return {
@@ -193,7 +193,7 @@ export function validateOutput<TOutput extends ZodType>(
           code: 'unknown',
         },
       ],
-    }
+    };
   }
 }
 
@@ -205,7 +205,7 @@ export function safeValidateInput<TInput extends ZodType>(
   contract: ScriptContract<TInput, any>,
   input: unknown,
 ): ValidationResult<z.infer<TInput>> {
-  return validateInput(contract, input)
+  return validateInput(contract, input);
 }
 
 /**
@@ -216,7 +216,7 @@ export function safeValidateOutput<TOutput extends ZodType>(
   contract: ScriptContract<any, TOutput>,
   output: unknown,
 ): ValidationResult<z.infer<TOutput>> {
-  return validateOutput(contract, output)
+  return validateOutput(contract, output);
 }
 
 // =============================================================================
@@ -244,7 +244,7 @@ export const ScriptOutputSchema = z.object({
     })
     .passthrough()
     .optional(),
-})
+});
 
 /**
  * Database operation input schema
@@ -254,7 +254,7 @@ export const DatabaseOperationInputSchema = z.object({
   tables: z.array(z.string()).optional(),
   dryRun: z.boolean().default(false),
   force: z.boolean().default(false),
-})
+});
 
 /**
  * File operation input schema
@@ -264,7 +264,7 @@ export const FileOperationInputSchema = z.object({
   pattern: z.string().optional(),
   recursive: z.boolean().default(false),
   dryRun: z.boolean().default(false),
-})
+});
 
 /**
  * Backup operation output schema
@@ -275,7 +275,7 @@ export const BackupOutputSchema = z.object({
   size: z.number().optional(),
   duration: z.number().optional(),
   error: z.string().optional(),
-})
+});
 
 // =============================================================================
 // Example Contracts
@@ -296,7 +296,7 @@ export const DatabaseBackupContract = defineScriptContract({
   output: BackupOutputSchema,
   version: '1.0.0',
   tags: ['database', 'backup'],
-})
+});
 
 /**
  * Database restore contract example
@@ -318,7 +318,7 @@ export const DatabaseRestoreContract = defineScriptContract({
   }),
   version: '1.0.0',
   tags: ['database', 'restore'],
-})
+});
 
 /**
  * File cleanup contract example
@@ -341,7 +341,7 @@ export const FileCleanupContract = defineScriptContract({
   }),
   version: '1.0.0',
   tags: ['files', 'cleanup'],
-})
+});
 
 /**
  * Validation check contract example
@@ -372,7 +372,7 @@ export const ValidationCheckContract = defineScriptContract({
   }),
   version: '1.0.0',
   tags: ['validation', 'quality'],
-})
+});
 
 // =============================================================================
 // Contract Registry
@@ -381,31 +381,31 @@ export const ValidationCheckContract = defineScriptContract({
 /**
  * Registry of available contracts for runtime lookup
  */
-const contractRegistry = new Map<string, ScriptContract>()
+const contractRegistry = new Map<string, ScriptContract>();
 
 /**
  * Register a contract in the registry
  */
 export function registerContract(contract: ScriptContract): void {
-  contractRegistry.set(contract.name, contract)
+  contractRegistry.set(contract.name, contract);
 }
 
 /**
  * Get a contract from the registry
  */
 export function getContract(name: string): ScriptContract | undefined {
-  return contractRegistry.get(name)
+  return contractRegistry.get(name);
 }
 
 /**
  * List all registered contracts
  */
 export function listContracts(): ScriptContract[] {
-  return Array.from(contractRegistry.values())
+  return Array.from(contractRegistry.values());
 }
 
 // Register example contracts
-registerContract(DatabaseBackupContract)
-registerContract(DatabaseRestoreContract)
-registerContract(FileCleanupContract)
-registerContract(ValidationCheckContract)
+registerContract(DatabaseBackupContract);
+registerContract(DatabaseRestoreContract);
+registerContract(FileCleanupContract);
+registerContract(ValidationCheckContract);

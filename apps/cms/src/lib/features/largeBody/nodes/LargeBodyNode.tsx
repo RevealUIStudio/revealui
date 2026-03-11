@@ -1,23 +1,23 @@
-'use server'
-import type React from 'react'
-import './index.css'
+'use server';
+import type React from 'react';
+import './index.css';
 
-const baseClass = 'rich-text-large-body'
+const baseClass = 'rich-text-large-body';
 
 // Define the type for the 'element' prop - adjust according to your needs
 interface ElementData {
-  id: string
-  type: string
+  id: string;
+  type: string;
 }
 
 interface LargeBodyElementProps {
-  attributes: React.HTMLAttributes<HTMLDivElement>
-  element: ElementData // Use the specific type here
-  children: React.ReactNode
+  attributes: React.HTMLAttributes<HTMLDivElement>;
+  element: ElementData; // Use the specific type here
+  children: React.ReactNode;
 }
 
 export const LargeBodyNode: React.FC<LargeBodyElementProps> = async ({ attributes, children }) => (
   <div {...attributes}>
     <span className={baseClass}>{children}</span>
   </div>
-)
+);

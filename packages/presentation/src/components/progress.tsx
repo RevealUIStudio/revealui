@@ -1,6 +1,6 @@
-import clsx from 'clsx'
+import clsx from 'clsx';
 
-type ProgressColor = 'blue' | 'green' | 'red' | 'amber' | 'violet' | 'zinc'
+type ProgressColor = 'blue' | 'green' | 'red' | 'amber' | 'violet' | 'zinc';
 
 const trackClasses: Record<ProgressColor, string> = {
   blue: 'bg-blue-600 dark:bg-blue-500',
@@ -9,7 +9,7 @@ const trackClasses: Record<ProgressColor, string> = {
   amber: 'bg-amber-500 dark:bg-amber-400',
   violet: 'bg-violet-600 dark:bg-violet-500',
   zinc: 'bg-zinc-600 dark:bg-zinc-400',
-}
+};
 
 export function Progress({
   value,
@@ -20,16 +20,16 @@ export function Progress({
   showValue = false,
   className,
 }: {
-  value: number
-  max?: number
-  color?: ProgressColor
-  size?: 'xs' | 'sm' | 'md' | 'lg'
-  label?: string
-  showValue?: boolean
-  className?: string
+  value: number;
+  max?: number;
+  color?: ProgressColor;
+  size?: 'xs' | 'sm' | 'md' | 'lg';
+  label?: string;
+  showValue?: boolean;
+  className?: string;
 }) {
-  const percentage = Math.min(100, Math.max(0, (value / max) * 100))
-  const heightClass = { xs: 'h-1', sm: 'h-1.5', md: 'h-2.5', lg: 'h-4' }[size]
+  const percentage = Math.min(100, Math.max(0, (value / max) * 100));
+  const heightClass = { xs: 'h-1', sm: 'h-1.5', md: 'h-2.5', lg: 'h-4' }[size];
 
   return (
     <div className={clsx('w-full', className)}>
@@ -65,5 +65,5 @@ export function Progress({
         />
       </div>
     </div>
-  )
+  );
 }

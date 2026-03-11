@@ -12,9 +12,9 @@
  * @module @revealui/contracts/core/contracts/config-contract
  */
 
-import { z } from 'zod/v4'
-import { type Contract, type ContractType, createContract } from '../foundation/contract.js'
-import { CollectionStructureSchema, GlobalStructureSchema } from './structure.js'
+import { z } from 'zod/v4';
+import { type Contract, type ContractType, createContract } from '../foundation/contract.js';
+import { CollectionStructureSchema, GlobalStructureSchema } from './structure.js';
 
 /**
  * Config structure schema (Zod)
@@ -203,17 +203,17 @@ const ConfigStructureSchema = z
       return (
         (data.collections && data.collections.length > 0) ||
         (data.globals && data.globals.length > 0)
-      )
+      );
     },
     {
       message: 'RevealUI config must have at least one collection or global',
       path: ['collections'],
     },
-  )
+  );
 // No passthrough on root - validate structure strictly
 // Custom properties should go in the 'custom' field
 
-type ConfigStructure = z.infer<typeof ConfigStructureSchema>
+type ConfigStructure = z.infer<typeof ConfigStructureSchema>;
 
 /**
  * Config Contract
@@ -232,31 +232,31 @@ export const ConfigContract: Contract<ConfigStructure> = createContract({
   description: 'Root configuration contract',
   docsUrl: 'https://revealui.dev/docs/api-reference/config',
   tags: ['config', 'root', 'cms'],
-})
+});
 
 /**
  * Type for Config structure
  * Extracted from the ConfigContract
  */
-export type ConfigContractType = ContractType<typeof ConfigContract>
+export type ConfigContractType = ContractType<typeof ConfigContract>;
 
 /**
  * Validate a config structure
  */
 export function validateConfigStructure(data: unknown): ReturnType<typeof ConfigContract.validate> {
-  return ConfigContract.validate(data)
+  return ConfigContract.validate(data);
 }
 
 /**
  * Type guard for config structures
  */
 export function isConfigStructure(data: unknown): data is ConfigContractType {
-  return ConfigContract.isType(data)
+  return ConfigContract.isType(data);
 }
 
 /**
  * Parse config structure (throws on validation failure)
  */
 export function parseConfigStructure(data: unknown): ConfigContractType {
-  return ConfigContract.parse(data)
+  return ConfigContract.parse(data);
 }

@@ -1,23 +1,23 @@
 interface ShapeData {
-  data: unknown[]
-  isLoading: boolean
-  error: Error | null
+  data: unknown[];
+  isLoading: boolean;
+  error: Error | null;
 }
 
-const shapeSubscriptions = new Map<string, ShapeData>()
+const shapeSubscriptions = new Map<string, ShapeData>();
 
 export function mockUseShape(options: { url: string; params: Record<string, string> }) {
-  const key = `${options.url}:${JSON.stringify(options.params)}`
+  const key = `${options.url}:${JSON.stringify(options.params)}`;
 
   if (!shapeSubscriptions.has(key)) {
-    shapeSubscriptions.set(key, { data: [], isLoading: true, error: null })
+    shapeSubscriptions.set(key, { data: [], isLoading: true, error: null });
   }
 
-  const subscription = shapeSubscriptions.get(key)
+  const subscription = shapeSubscriptions.get(key);
   if (!subscription) {
-    throw new Error(`Shape subscription not found for key: ${key}`)
+    throw new Error(`Shape subscription not found for key: ${key}`);
   }
-  return subscription
+  return subscription;
 }
 
 export function simulateShapeUpdate(
@@ -25,8 +25,8 @@ export function simulateShapeUpdate(
   params: Record<string, string>,
   data: unknown[],
 ): void {
-  const key = `${url}:${JSON.stringify(params)}`
-  shapeSubscriptions.set(key, { data, isLoading: false, error: null })
+  const key = `${url}:${JSON.stringify(params)}`;
+  shapeSubscriptions.set(key, { data, isLoading: false, error: null });
 }
 
 export function simulateShapeError(
@@ -34,10 +34,10 @@ export function simulateShapeError(
   params: Record<string, string>,
   error: Error,
 ): void {
-  const key = `${url}:${JSON.stringify(params)}`
-  shapeSubscriptions.set(key, { data: [], isLoading: false, error })
+  const key = `${url}:${JSON.stringify(params)}`;
+  shapeSubscriptions.set(key, { data: [], isLoading: false, error });
 }
 
 export function clearMockShapes(): void {
-  shapeSubscriptions.clear()
+  shapeSubscriptions.clear();
 }

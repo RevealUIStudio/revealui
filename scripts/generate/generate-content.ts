@@ -23,49 +23,49 @@
  * - scripts/lib/index.js - Logger and utilities
  */
 
-import { ErrorCode } from '../lib/errors.js'
+import { ErrorCode } from '../lib/errors.js';
 import {
   extractAPIDocs,
   generateAPIDocs,
   generatePackageReadmes,
   runAssessmentWorkflow,
-} from '../lib/generators/content/index.js'
-import { createLogger } from '../lib/index.js'
+} from '../lib/generators/content/index.js';
+import { createLogger } from '../lib/index.js';
 
-const logger = createLogger({ prefix: 'DocGen' })
+const logger = createLogger({ prefix: 'DocGen' });
 
 // =============================================================================
 // Main CLI
 // =============================================================================
 
-const command = process.argv[2]
+const command = process.argv[2];
 
 if (!command) {
-  showHelp()
-  process.exit(ErrorCode.SUCCESS)
+  showHelp();
+  process.exit(ErrorCode.SUCCESS);
 }
 
 switch (command) {
   case 'api':
-    await generateAPIDocs()
-    break
+    await generateAPIDocs();
+    break;
 
   case 'readme':
-    await generatePackageReadmes()
-    break
+    await generatePackageReadmes();
+    break;
 
   case 'extract':
-    await extractAPIDocs()
-    break
+    await extractAPIDocs();
+    break;
 
   case 'workflow':
-    await runAssessmentWorkflow()
-    break
+    await runAssessmentWorkflow();
+    break;
 
   default:
-    logger.error(`Unknown command: ${command}`)
-    showHelp()
-    process.exit(ErrorCode.INVALID_INPUT)
+    logger.error(`Unknown command: ${command}`);
+    showHelp();
+    process.exit(ErrorCode.INVALID_INPUT);
 }
 
 // =============================================================================
@@ -91,5 +91,5 @@ Examples:
   pnpm tsx scripts/generate/generate-content.ts workflow
 
 All generated files are saved to the docs/ directory.
-`)
+`);
 }

@@ -1,20 +1,20 @@
-import { Link } from '@revealui/router'
-import { usePathname } from '../hooks/usePathname'
-import { SearchBar } from './SearchBar'
+import { Link } from '@revealui/router';
+import { usePathname } from '../hooks/usePathname';
+import { SearchBar } from './SearchBar';
 
 interface DocLayoutProps {
-  children?: React.ReactNode
+  children?: React.ReactNode;
 }
 
 interface NavItem {
-  label: string
-  path: string
-  children?: NavItem[]
+  label: string;
+  path: string;
+  children?: NavItem[];
 }
 
 interface NavSection {
-  title: string
-  items: NavItem[]
+  title: string;
+  items: NavItem[];
 }
 
 const sections: NavSection[] = [
@@ -75,12 +75,12 @@ const sections: NavSection[] = [
     title: 'Legal',
     items: [{ label: 'Third-Party Licenses', path: '/docs/THIRD_PARTY_LICENSES' }],
   },
-]
+];
 
 function NavLink({ item, depth = 0 }: { item: NavItem; depth?: number }) {
-  const pathname = usePathname()
-  const isActive = pathname === item.path
-  const isParentActive = item.children?.some((child) => pathname === child.path)
+  const pathname = usePathname();
+  const isActive = pathname === item.path;
+  const isParentActive = item.children?.some((child) => pathname === child.path);
 
   return (
     <li>
@@ -103,12 +103,12 @@ function NavLink({ item, depth = 0 }: { item: NavItem; depth?: number }) {
         </ul>
       )}
     </li>
-  )
+  );
 }
 
 export function DocLayout({ children }: DocLayoutProps) {
-  const pathname = usePathname()
-  const isHome = pathname === '/'
+  const pathname = usePathname();
+  const isHome = pathname === '/';
 
   return (
     <div className="flex min-h-screen font-sans">
@@ -208,5 +208,5 @@ export function DocLayout({ children }: DocLayoutProps) {
       {/* Main content */}
       <main className="min-w-0 flex-1 bg-surface">{children}</main>
     </div>
-  )
+  );
 }

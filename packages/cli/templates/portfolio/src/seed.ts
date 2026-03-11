@@ -5,14 +5,14 @@
  * Usage: pnpm db:seed (requires the dev server to be running)
  */
 
-const API_URL = process.env.NEXT_PUBLIC_SERVER_URL || 'http://localhost:4000'
+const API_URL = process.env.NEXT_PUBLIC_SERVER_URL || 'http://localhost:4000';
 
 interface SeedProject {
-  title: string
-  slug: string
-  description: string
-  tags: Array<{ tag: string }>
-  link: string
+  title: string;
+  slug: string;
+  description: string;
+  tags: Array<{ tag: string }>;
+  link: string;
 }
 
 const projects: SeedProject[] = [
@@ -40,13 +40,13 @@ const projects: SeedProject[] = [
     tags: [{ tag: 'React' }, { tag: 'Tailwind CSS' }, { tag: 'Storybook' }],
     link: 'https://github.com/example/design-system',
   },
-]
+];
 
-const log = (...args: unknown[]) => process.stdout.write(`${args.join(' ')}\n`)
-const logErr = (...args: unknown[]) => process.stderr.write(`${args.join(' ')}\n`)
+const log = (...args: unknown[]) => process.stdout.write(`${args.join(' ')}\n`);
+const logErr = (...args: unknown[]) => process.stderr.write(`${args.join(' ')}\n`);
 
 async function seed(): Promise<void> {
-  log(`Seeding projects to ${API_URL}...`)
+  log(`Seeding projects to ${API_URL}...`);
 
   for (const project of projects) {
     try {
@@ -54,20 +54,20 @@ async function seed(): Promise<void> {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(project),
-      })
+      });
 
       if (res.ok) {
-        log(`  Created: ${project.title}`)
+        log(`  Created: ${project.title}`);
       } else {
-        const error = await res.text()
-        logErr(`  Failed to create "${project.title}": ${error}`)
+        const error = await res.text();
+        logErr(`  Failed to create "${project.title}": ${error}`);
       }
     } catch (err) {
-      logErr(`  Error creating "${project.title}":`, err)
+      logErr(`  Error creating "${project.title}":`, err);
     }
   }
 
-  log('Seeding complete.')
+  log('Seeding complete.');
 }
 
-seed()
+seed();

@@ -1,4 +1,4 @@
-import { defineConfig } from 'vite'
+import { defineConfig } from 'vite';
 
 export default defineConfig({
   // server: {
@@ -15,4 +15,4 @@ export default defineConfig({
   plugins: [
     // Add your Vite plugins here
   ],
-})
+});

@@ -2,13 +2,13 @@
  * @revealui/config - Stripe Configuration Module
  */
 
-import type { EnvConfig } from '../schema.js'
+import type { EnvConfig } from '../schema.js';
 
 export interface StripeConfig {
-  secretKey: string | undefined
-  publishableKey: string | undefined
-  webhookSecret: string | undefined
-  proxy?: boolean
+  secretKey: string | undefined;
+  publishableKey: string | undefined;
+  webhookSecret: string | undefined;
+  proxy?: boolean;
 }
 
 export function getStripeConfig(env: EnvConfig): StripeConfig {
@@ -17,5 +17,5 @@ export function getStripeConfig(env: EnvConfig): StripeConfig {
     publishableKey: env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY,
     webhookSecret: env.STRIPE_WEBHOOK_SECRET,
     proxy: env.STRIPE_PROXY === '1',
-  }
+  };
 }

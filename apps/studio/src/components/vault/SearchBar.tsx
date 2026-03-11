@@ -1,6 +1,6 @@
 interface SearchBarProps {
-  query: string
-  onChange: (query: string) => void
+  query: string;
+  onChange: (query: string) => void;
 }
 
 export default function SearchBar({ query, onChange }: SearchBarProps) {
@@ -25,5 +25,5 @@ export default function SearchBar({ query, onChange }: SearchBarProps) {
         className="w-full rounded-md border border-neutral-700 bg-neutral-800 py-2 pl-9 pr-4 text-sm text-neutral-100 placeholder-neutral-500 focus:border-orange-500 focus:outline-none"
       />
     </div>
-  )
+  );
 }

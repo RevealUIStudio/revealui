@@ -8,12 +8,12 @@
  * User fixture type
  */
 export interface UserFixture {
-  email: string
-  name: string
-  role: 'admin' | 'user' | 'guest'
-  password?: string
-  emailVerified?: Date | null
-  image?: string
+  email: string;
+  name: string;
+  role: 'admin' | 'user' | 'guest';
+  password?: string;
+  emailVerified?: Date | null;
+  image?: string;
 }
 
 /**
@@ -60,15 +60,15 @@ export const userFixtures = {
     emailVerified: new Date('2024-01-01'),
     image: 'https://example.com/premium.jpg',
   },
-} as const
+} as const;
 
 /**
  * User factory - creates a user with default values + overrides
  */
-let userCounter = 0
+let userCounter = 0;
 
 export function createUserFixture(overrides: Partial<UserFixture> = {}): UserFixture {
-  userCounter++
+  userCounter++;
 
   return {
     email: `user${userCounter}@test.com`,
@@ -77,7 +77,7 @@ export function createUserFixture(overrides: Partial<UserFixture> = {}): UserFix
     password: 'password123',
     emailVerified: new Date(),
     ...overrides,
-  }
+  };
 }
 
 /**
@@ -87,12 +87,12 @@ export function createUsersFixture(
   count: number,
   overrides: Partial<UserFixture> = {},
 ): UserFixture[] {
-  return Array.from({ length: count }, () => createUserFixture(overrides))
+  return Array.from({ length: count }, () => createUserFixture(overrides));
 }
 
 /**
  * Reset the user counter (for test isolation)
  */
 export function resetUserCounter(): void {
-  userCounter = 0
+  userCounter = 0;
 }

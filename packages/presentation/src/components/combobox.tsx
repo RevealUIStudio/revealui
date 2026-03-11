@@ -1,35 +1,35 @@
-'use client'
+'use client';
 
-import clsx from 'clsx'
-import type React from 'react'
-import { createContext, use, useCallback, useEffect, useId, useRef, useState } from 'react'
-import { createPortal } from 'react-dom'
-import { useClickOutside } from '../hooks/use-click-outside.js'
-import { useControllableState } from '../hooks/use-controllable-state.js'
-import { useEscapeKey } from '../hooks/use-escape-key.js'
-import { usePopover } from '../hooks/use-popover.js'
-import { useTransition } from '../hooks/use-transition.js'
+import clsx from 'clsx';
+import type React from 'react';
+import { createContext, use, useCallback, useEffect, useId, useRef, useState } from 'react';
+import { createPortal } from 'react-dom';
+import { useClickOutside } from '../hooks/use-click-outside.js';
+import { useControllableState } from '../hooks/use-controllable-state.js';
+import { useEscapeKey } from '../hooks/use-escape-key.js';
+import { usePopover } from '../hooks/use-popover.js';
+import { useTransition } from '../hooks/use-transition.js';
 
 // ---------------------------------------------------------------------------
 // Context
 // ---------------------------------------------------------------------------
 
 interface ComboboxContextValue<T = unknown> {
-  selectedValue: T | null
-  activeIndex: number
-  filteredOptions: T[]
-  select: (value: T) => void
-  setActiveIndex: (index: number) => void
+  selectedValue: T | null;
+  activeIndex: number;
+  filteredOptions: T[];
+  select: (value: T) => void;
+  setActiveIndex: (index: number) => void;
 }
 
-const ComboboxContext = createContext<ComboboxContextValue | null>(null)
+const ComboboxContext = createContext<ComboboxContextValue | null>(null);
 
 function useComboboxContext(): ComboboxContextValue {
-  const ctx = use(ComboboxContext)
+  const ctx = use(ComboboxContext);
   if (!ctx) {
-    throw new Error('Combobox compound components must be used within <Combobox>')
+    throw new Error('Combobox compound components must be used within <Combobox>');
   }
-  return ctx
+  return ctx;
 }
 
 // ---------------------------------------------------------------------------
@@ -52,34 +52,34 @@ export function Combobox<T>({
   disabled = false,
   name,
 }: {
-  options: T[]
-  displayValue: (value: T | null) => string | undefined
-  filter?: (value: T, query: string) => boolean
-  className?: string
-  placeholder?: string | undefined
-  autoFocus?: boolean | undefined
-  'aria-label'?: string
-  children: (value: NonNullable<T>) => React.ReactElement
-  value?: T | null
-  defaultValue?: T | null
-  onChange?: (value: T) => void
-  disabled?: boolean
-  name?: string
-  anchor?: 'top' | 'bottom'
+  options: T[];
+  displayValue: (value: T | null) => string | undefined;
+  filter?: (value: T, query: string) => boolean;
+  className?: string;
+  placeholder?: string | undefined;
+  autoFocus?: boolean | undefined;
+  'aria-label'?: string;
+  children: (value: NonNullable<T>) => React.ReactElement;
+  value?: T | null;
+  defaultValue?: T | null;
+  onChange?: (value: T) => void;
+  disabled?: boolean;
+  name?: string;
+  anchor?: 'top' | 'bottom';
 }) {
   const [selectedValue, setSelectedValue] = useControllableState<T | null>({
     value: controlledValue,
     defaultValue: defaultValue ?? null,
     onChange: onChange as ((value: T | null) => void) | undefined,
-  })
+  });
 
-  const [query, setQuery] = useState('')
-  const [isOpen, setIsOpen] = useState(false)
-  const [activeIndex, setActiveIndex] = useState(-1)
+  const [query, setQuery] = useState('');
+  const [isOpen, setIsOpen] = useState(false);
+  const [activeIndex, setActiveIndex] = useState(-1);
 
-  const inputRef = useRef<HTMLInputElement>(null)
-  const controlRef = useRef<HTMLSpanElement>(null)
-  const listboxId = useId()
+  const inputRef = useRef<HTMLInputElement>(null);
+  const controlRef = useRef<HTMLSpanElement>(null);
+  const listboxId = useId();
 
   // Filtering
   const filteredOptions =
@@ -89,7 +89,7 @@ export function Combobox<T>({
           filter
             ? filter(option, query)
             : displayValue(option)?.toLowerCase().includes(query.toLowerCase()),
-        )
+        );
 
   // Popover positioning
   const { triggerRef, popoverRef, popoverProps } = usePopover({
@@ -97,119 +97,119 @@ export function Combobox<T>({
     anchor,
     gap: 8,
     padding: 16,
-  })
+  });
 
   // Sync control span as the trigger
   useEffect(() => {
     if (controlRef.current) {
-      ;(triggerRef as React.MutableRefObject<HTMLElement | null>).current = controlRef.current
+      (triggerRef as React.MutableRefObject<HTMLElement | null>).current = controlRef.current;
     }
-  }, [triggerRef])
+  }, [triggerRef]);
 
   // Transition
-  const { mounted, nodeRef: transitionRef, transitionProps } = useTransition(isOpen)
+  const { mounted, nodeRef: transitionRef, transitionProps } = useTransition(isOpen);
 
   // Dismiss handlers
   useClickOutside(
     [controlRef, popoverRef],
     () => {
-      if (isOpen) close()
+      if (isOpen) close();
     },
     isOpen,
-  )
+  );
 
   useEscapeKey(() => {
-    if (isOpen) close()
-  }, isOpen)
+    if (isOpen) close();
+  }, isOpen);
 
   // Helpers
   const open = useCallback(() => {
-    if (disabled) return
-    setIsOpen(true)
-    setActiveIndex(-1)
-  }, [disabled])
+    if (disabled) return;
+    setIsOpen(true);
+    setActiveIndex(-1);
+  }, [disabled]);
 
   const close = useCallback(() => {
-    setIsOpen(false)
-    setQuery('')
-    setActiveIndex(-1)
-  }, [])
+    setIsOpen(false);
+    setQuery('');
+    setActiveIndex(-1);
+  }, []);
 
   const select = useCallback(
     (value: T) => {
-      setSelectedValue(value)
-      close()
+      setSelectedValue(value);
+      close();
       requestAnimationFrame(() => {
-        inputRef.current?.focus()
-      })
+        inputRef.current?.focus();
+      });
     },
     [setSelectedValue, close],
-  )
+  );
 
   // Keyboard navigation
   const handleInputKeyDown = useCallback(
     (e: React.KeyboardEvent) => {
       switch (e.key) {
         case 'ArrowDown': {
-          e.preventDefault()
+          e.preventDefault();
           if (!isOpen) {
-            open()
+            open();
           } else {
-            setActiveIndex((prev) => (prev < filteredOptions.length - 1 ? prev + 1 : 0))
+            setActiveIndex((prev) => (prev < filteredOptions.length - 1 ? prev + 1 : 0));
           }
-          break
+          break;
         }
         case 'ArrowUp': {
-          e.preventDefault()
+          e.preventDefault();
           if (!isOpen) {
-            open()
+            open();
           } else {
-            setActiveIndex((prev) => (prev > 0 ? prev - 1 : filteredOptions.length - 1))
+            setActiveIndex((prev) => (prev > 0 ? prev - 1 : filteredOptions.length - 1));
           }
-          break
+          break;
         }
         case 'Home': {
           if (isOpen) {
-            e.preventDefault()
-            setActiveIndex(0)
+            e.preventDefault();
+            setActiveIndex(0);
           }
-          break
+          break;
         }
         case 'End': {
           if (isOpen) {
-            e.preventDefault()
-            setActiveIndex(filteredOptions.length - 1)
+            e.preventDefault();
+            setActiveIndex(filteredOptions.length - 1);
           }
-          break
+          break;
         }
         case 'Enter': {
-          e.preventDefault()
+          e.preventDefault();
           if (isOpen && activeIndex >= 0 && activeIndex < filteredOptions.length) {
-            select(filteredOptions[activeIndex] as T)
+            select(filteredOptions[activeIndex] as T);
           }
-          break
+          break;
         }
         case 'Tab': {
           if (isOpen) {
-            close()
+            close();
           }
-          break
+          break;
         }
       }
     },
     [isOpen, open, close, select, activeIndex, filteredOptions],
-  )
+  );
 
   // Scroll active option into view
   useEffect(() => {
-    if (!isOpen || activeIndex < 0) return
-    const listbox = popoverRef.current
-    if (!listbox) return
-    const activeOption = listbox.querySelector(`[data-combobox-option-index="${activeIndex}"]`)
+    if (!isOpen || activeIndex < 0) return;
+    const listbox = popoverRef.current;
+    if (!listbox) return;
+    const activeOption = listbox.querySelector(`[data-combobox-option-index="${activeIndex}"]`);
     if (activeOption) {
-      activeOption.scrollIntoView({ block: 'nearest' })
+      activeOption.scrollIntoView({ block: 'nearest' });
     }
-  }, [activeIndex, isOpen, popoverRef])
+  }, [activeIndex, isOpen, popoverRef]);
 
   // Context value
   const contextValue: ComboboxContextValue<T> = {
@@ -218,7 +218,7 @@ export function Combobox<T>({
     filteredOptions,
     select: select as (value: unknown) => void,
     setActiveIndex,
-  }
+  };
 
   return (
     <ComboboxContext.Provider value={contextValue as ComboboxContextValue}>
@@ -253,12 +253,12 @@ export function Combobox<T>({
           name={name}
           value={isOpen ? query : (displayValue(selectedValue) ?? '')}
           onChange={(e) => {
-            setQuery(e.target.value)
-            if (!isOpen) open()
-            setActiveIndex(-1)
+            setQuery(e.target.value);
+            if (!isOpen) open();
+            setActiveIndex(-1);
           }}
           onFocus={() => {
-            if (!isOpen) open()
+            if (!isOpen) open();
           }}
           onKeyDown={handleInputKeyDown}
           placeholder={placeholder}
@@ -283,10 +283,10 @@ export function Combobox<T>({
           disabled={disabled}
           onClick={() => {
             if (isOpen) {
-              close()
+              close();
             } else {
-              open()
-              inputRef.current?.focus()
+              open();
+              inputRef.current?.focus();
             }
           }}
           className="group absolute inset-y-0 right-0 flex items-center px-2"
@@ -319,8 +319,8 @@ export function Combobox<T>({
         createPortal(
           <div
             ref={(node) => {
-              ;(popoverRef as React.MutableRefObject<HTMLElement | null>).current = node
-              ;(transitionRef as React.MutableRefObject<HTMLElement | null>).current = node
+              (popoverRef as React.MutableRefObject<HTMLElement | null>).current = node;
+              (transitionRef as React.MutableRefObject<HTMLElement | null>).current = node;
             }}
             role="listbox"
             id={listboxId}
@@ -352,27 +352,27 @@ export function Combobox<T>({
           document.body,
         )}
     </ComboboxContext.Provider>
-  )
+  );
 }
 
 // ---------------------------------------------------------------------------
 // Internal: option index provider
 // ---------------------------------------------------------------------------
 
-const ComboboxOptionIndexContext = createContext<number>(-1)
+const ComboboxOptionIndexContext = createContext<number>(-1);
 
 function ComboboxOptionIndexProvider({
   index,
   children,
 }: {
-  index: number
-  children: React.ReactNode
+  index: number;
+  children: React.ReactNode;
 }) {
   return (
     <ComboboxOptionIndexContext.Provider value={index}>
       {children}
     </ComboboxOptionIndexContext.Provider>
-  )
+  );
 }
 
 // ---------------------------------------------------------------------------
@@ -385,16 +385,16 @@ export function ComboboxOption<T>({
   value,
   disabled = false,
 }: {
-  className?: string
-  children?: React.ReactNode
-  value: T
-  disabled?: boolean
+  className?: string;
+  children?: React.ReactNode;
+  value: T;
+  disabled?: boolean;
 }) {
-  const { selectedValue, activeIndex, select, setActiveIndex } = useComboboxContext()
-  const index = use(ComboboxOptionIndexContext)
+  const { selectedValue, activeIndex, select, setActiveIndex } = useComboboxContext();
+  const index = use(ComboboxOptionIndexContext);
 
-  const isSelected = selectedValue === value
-  const isActive = activeIndex === index
+  const isSelected = selectedValue === value;
+  const isActive = activeIndex === index;
 
   const sharedClasses = clsx(
     'flex min-w-0 items-center',
@@ -402,7 +402,7 @@ export function ComboboxOption<T>({
     '*:data-[slot=icon]:text-zinc-500 group-data-focus/option:*:data-[slot=icon]:text-white dark:*:data-[slot=icon]:text-zinc-400',
     'forced-colors:*:data-[slot=icon]:text-[CanvasText] forced-colors:group-data-focus/option:*:data-[slot=icon]:text-[Canvas]',
     '*:data-[slot=avatar]:-mx-0.5 *:data-[slot=avatar]:size-6 sm:*:data-[slot=avatar]:size-5',
-  )
+  );
 
   return (
     // biome-ignore lint/a11y/useFocusableInteractive: focus managed by roving tabindex
@@ -415,13 +415,13 @@ export function ComboboxOption<T>({
       {...(isSelected ? { 'data-selected': '' } : {})}
       {...(disabled ? { 'data-disabled': '' } : {})}
       onPointerEnter={() => {
-        if (!disabled) setActiveIndex(index)
+        if (!disabled) setActiveIndex(index);
       }}
       onPointerLeave={() => {
-        setActiveIndex(-1)
+        setActiveIndex(-1);
       }}
       onClick={() => {
-        if (!disabled) select(value)
+        if (!disabled) select(value);
       }}
       className={clsx(
         'group/option grid w-full cursor-default grid-cols-[1fr_--spacing(5)] items-baseline gap-x-2 rounded-lg py-2.5 pr-2 pl-3.5 sm:grid-cols-[1fr_--spacing(4)] sm:py-1.5 sm:pr-2 sm:pl-3',
@@ -441,7 +441,7 @@ export function ComboboxOption<T>({
         <path d="M4 8.5l3 3L12 4" strokeWidth={1.5} strokeLinecap="round" strokeLinejoin="round" />
       </svg>
     </div>
-  )
+  );
 }
 
 // ---------------------------------------------------------------------------
@@ -454,7 +454,7 @@ export function ComboboxLabel({ className, ...props }: React.ComponentPropsWitho
       {...props}
       className={clsx(className, 'ml-2.5 truncate first:ml-0 sm:ml-2 sm:first:ml-0')}
     />
-  )
+  );
 }
 
 // ---------------------------------------------------------------------------
@@ -476,5 +476,5 @@ export function ComboboxDescription({
     >
       <span className="flex-1 truncate">{children}</span>
     </span>
-  )
+  );
 }

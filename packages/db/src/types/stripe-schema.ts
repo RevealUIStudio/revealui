@@ -1,9 +1,23 @@
-import { relations } from 'drizzle-orm'
-import { bigint, boolean, jsonb, pgEnum, pgTable, text, timestamp, uuid } from 'drizzle-orm/pg-core'
+import { relations } from 'drizzle-orm';
+import {
+  bigint,
+  boolean,
+  jsonb,
+  pgEnum,
+  pgTable,
+  text,
+  timestamp,
+  uuid,
+} from 'drizzle-orm/pg-core';
 
 // Enums
-export const pricingType = pgEnum('pricing_type', ['one_time', 'recurring'])
-export const pricingPlanInterval = pgEnum('pricing_plan_interval', ['day', 'week', 'month', 'year'])
+export const pricingType = pgEnum('pricing_type', ['one_time', 'recurring']);
+export const pricingPlanInterval = pgEnum('pricing_plan_interval', [
+  'day',
+  'week',
+  'month',
+  'year',
+]);
 export const subscriptionStatus = pgEnum('subscription_status', [
   'trialing',
   'active',
@@ -12,7 +26,7 @@ export const subscriptionStatus = pgEnum('subscription_status', [
   'incomplete_expired',
   'past_due',
   'unpaid',
-])
+]);
 
 // Users table
 export const users = pgTable('users', {
@@ -26,12 +40,12 @@ export const users = pgTable('users', {
   stripeCustomerId: text('stripe_customer_id'),
   createdAt: timestamp('created_at', { withTimezone: true }).defaultNow(),
   updatedAt: timestamp('updated_at', { withTimezone: true }).defaultNow(),
-})
+});
 
 // Auth users reference (for foreign keys)
 export const authUsers = pgTable('auth.users', {
   id: uuid('id').primaryKey(),
-})
+});
 
 // Customers table
 export const customers = pgTable('customers', {
@@ -39,7 +53,7 @@ export const customers = pgTable('customers', {
     .primaryKey()
     .references(() => authUsers.id),
   stripeCustomerId: text('stripe_customer_id'),
-})
+});
 
 // Products table
 export const products = pgTable('products', {
@@ -51,7 +65,7 @@ export const products = pgTable('products', {
   metadata: jsonb('metadata'),
   createdAt: timestamp('created_at', { withTimezone: true }).defaultNow(),
   updatedAt: timestamp('updated_at', { withTimezone: true }).defaultNow(),
-})
+});
 
 // Prices table
 export const prices = pgTable('prices', {
@@ -68,7 +82,7 @@ export const prices = pgTable('prices', {
   metadata: jsonb('metadata'),
   createdAt: timestamp('created_at', { withTimezone: true }).defaultNow(),
   updatedAt: timestamp('updated_at', { withTimezone: true }).defaultNow(),
-})
+});
 
 // Subscriptions table
 export const subscriptions = pgTable('subscriptions', {
@@ -91,16 +105,16 @@ export const subscriptions = pgTable('subscriptions', {
   trialEnd: timestamp('trial_end', { withTimezone: true }),
   stripeSubscriptionId: text('stripe_subscription_id').unique(),
   updatedAt: timestamp('updated_at', { withTimezone: true }).defaultNow(),
-})
+});
 
 // Relations
 export const usersRelations = relations(users, ({ many }) => ({
   subscriptions: many(subscriptions),
-}))
+}));
 
 export const productsRelations = relations(products, ({ many }) => ({
   prices: many(prices),
-}))
+}));
 
 export const pricesRelations = relations(prices, ({ one, many }) => ({
   product: one(products, {
@@ -108,7 +122,7 @@ export const pricesRelations = relations(prices, ({ one, many }) => ({
     references: [products.id],
   }),
   subscriptions: many(subscriptions),
-}))
+}));
 
 export const subscriptionsRelations = relations(subscriptions, ({ one }) => ({
   user: one(authUsers, {
@@ -119,4 +133,4 @@ export const subscriptionsRelations = relations(subscriptions, ({ one }) => ({
     fields: [subscriptions.priceId],
     references: [prices.id],
   }),
-}))
+}));

@@ -1,122 +1,122 @@
-'use client'
+'use client';
 
-import type { HealthMetrics, TrackedProcess } from '@revealui/core/monitoring'
-import { useEffect, useState } from 'react'
+import type { HealthMetrics, TrackedProcess } from '@revealui/core/monitoring';
+import { useEffect, useState } from 'react';
 
 interface HealthPanelProps {
   /** Polling interval in milliseconds (default: 5000) */
-  pollInterval?: number
+  pollInterval?: number;
   /** Show detailed process list */
-  showProcessList?: boolean
+  showProcessList?: boolean;
 }
 
 export function SystemHealthMonitor({
   pollInterval = 5000,
   showProcessList = true,
 }: HealthPanelProps) {
-  const [metrics, setMetrics] = useState<HealthMetrics | null>(null)
-  const [processes, setProcesses] = useState<TrackedProcess[]>([])
-  const [isLoading, setIsLoading] = useState(true)
-  const [error, setError] = useState<string | null>(null)
-  const [selectedSource, setSelectedSource] = useState<string>('all')
-  const [selectedStatus, setSelectedStatus] = useState<string>('all')
+  const [metrics, setMetrics] = useState<HealthMetrics | null>(null);
+  const [processes, setProcesses] = useState<TrackedProcess[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+  const [selectedSource, setSelectedSource] = useState<string>('all');
+  const [selectedStatus, setSelectedStatus] = useState<string>('all');
 
   // Fetch health metrics
   useEffect(() => {
     const fetchMetrics = async () => {
       try {
-        const response = await fetch('/api/health-monitoring')
+        const response = await fetch('/api/health-monitoring');
         if (!response.ok) {
-          throw new Error(`HTTP ${response.status}`)
+          throw new Error(`HTTP ${response.status}`);
         }
-        const data = (await response.json()) as HealthMetrics
-        setMetrics(data)
-        setError(null)
+        const data = (await response.json()) as HealthMetrics;
+        setMetrics(data);
+        setError(null);
       } catch (err) {
-        setError(err instanceof Error ? err.message : 'Failed to fetch metrics')
+        setError(err instanceof Error ? err.message : 'Failed to fetch metrics');
       } finally {
-        setIsLoading(false)
+        setIsLoading(false);
       }
-    }
+    };
 
     // Initial fetch
-    void fetchMetrics()
+    void fetchMetrics();
 
     // Set up polling
     const interval = setInterval(() => {
-      void fetchMetrics()
-    }, pollInterval)
+      void fetchMetrics();
+    }, pollInterval);
 
-    return () => clearInterval(interval)
-  }, [pollInterval])
+    return () => clearInterval(interval);
+  }, [pollInterval]);
 
   // Fetch process list if enabled
   useEffect(() => {
-    if (!showProcessList) return
+    if (!showProcessList) return;
 
     const fetchProcesses = async () => {
       try {
-        const params = new URLSearchParams()
-        if (selectedStatus !== 'all') params.set('status', selectedStatus)
-        if (selectedSource !== 'all') params.set('source', selectedSource)
-        params.set('limit', '50')
+        const params = new URLSearchParams();
+        if (selectedStatus !== 'all') params.set('status', selectedStatus);
+        if (selectedSource !== 'all') params.set('source', selectedSource);
+        params.set('limit', '50');
 
-        const response = await fetch(`/api/health-monitoring/processes?${params.toString()}`)
+        const response = await fetch(`/api/health-monitoring/processes?${params.toString()}`);
         if (!response.ok) {
-          throw new Error(`HTTP ${response.status}`)
+          throw new Error(`HTTP ${response.status}`);
         }
-        const data = (await response.json()) as { processes: TrackedProcess[] }
-        setProcesses(data.processes)
+        const data = (await response.json()) as { processes: TrackedProcess[] };
+        setProcesses(data.processes);
       } catch {
         // Silently fail - processes list is non-critical
         // Component continues to function without process list
       }
-    }
+    };
 
-    void fetchProcesses()
+    void fetchProcesses();
 
     const interval = setInterval(() => {
-      void fetchProcesses()
-    }, pollInterval)
+      void fetchProcesses();
+    }, pollInterval);
 
-    return () => clearInterval(interval)
-  }, [pollInterval, showProcessList, selectedSource, selectedStatus])
+    return () => clearInterval(interval);
+  }, [pollInterval, showProcessList, selectedSource, selectedStatus]);
 
   const formatUptime = (seconds: number): string => {
-    const days = Math.floor(seconds / 86400)
-    const hours = Math.floor((seconds % 86400) / 3600)
-    const minutes = Math.floor((seconds % 3600) / 60)
+    const days = Math.floor(seconds / 86400);
+    const hours = Math.floor((seconds % 86400) / 3600);
+    const minutes = Math.floor((seconds % 3600) / 60);
 
-    if (days > 0) return `${days}d ${hours}h`
-    if (hours > 0) return `${hours}h ${minutes}m`
-    return `${minutes}m`
-  }
+    if (days > 0) return `${days}d ${hours}h`;
+    if (hours > 0) return `${hours}h ${minutes}m`;
+    return `${minutes}m`;
+  };
 
   const formatTimestamp = (timestamp: number): string => {
-    const date = new Date(timestamp)
-    return date.toLocaleTimeString()
-  }
+    const date = new Date(timestamp);
+    return date.toLocaleTimeString();
+  };
 
   const getStatusColor = (status: string): string => {
     switch (status) {
       case 'running':
-        return 'text-green-400'
+        return 'text-green-400';
       case 'completed':
-        return 'text-blue-400'
+        return 'text-blue-400';
       case 'failed':
-        return 'text-red-400'
+        return 'text-red-400';
       case 'zombie':
-        return 'text-yellow-400'
+        return 'text-yellow-400';
       case 'killed':
-        return 'text-orange-400'
+        return 'text-orange-400';
       default:
-        return 'text-gray-400'
+        return 'text-gray-400';
     }
-  }
+  };
 
   const getAlertIcon = (level: string): string => {
-    return level === 'critical' ? '🔴' : '⚠️'
-  }
+    return level === 'critical' ? '🔴' : '⚠️';
+  };
 
   if (isLoading) {
     return (
@@ -126,7 +126,7 @@ export function SystemHealthMonitor({
           <p>Loading health metrics...</p>
         </div>
       </div>
-    )
+    );
   }
 
   if (error) {
@@ -138,11 +138,11 @@ export function SystemHealthMonitor({
           <p className="text-sm text-gray-500 mt-1">{error}</p>
         </div>
       </div>
-    )
+    );
   }
 
   if (!metrics) {
-    return null
+    return null;
   }
 
   return (
@@ -247,7 +247,7 @@ export function SystemHealthMonitor({
               <h4 className="text-white text-sm font-medium mb-2">By Source</h4>
               <div className="space-y-2">
                 {Object.entries(metrics.processes.bySource).map(([source, count]) => {
-                  if (count === 0) return null
+                  if (count === 0) return null;
                   return (
                     <div key={source} className="flex items-center gap-2">
                       <div className="flex-1 bg-gray-700 rounded-full h-2 overflow-hidden">
@@ -260,7 +260,7 @@ export function SystemHealthMonitor({
                         {source}: {count}
                       </div>
                     </div>
-                  )
+                  );
                 })}
               </div>
             </div>
@@ -401,5 +401,5 @@ export function SystemHealthMonitor({
         </div>
       </div>
     </div>
-  )
+  );
 }

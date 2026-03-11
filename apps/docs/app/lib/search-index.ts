@@ -5,35 +5,35 @@
  * excerpts, and indexes them with FlexSearch for instant search.
  */
 
-import FlexSearch from 'flexsearch'
+import FlexSearch from 'flexsearch';
 
-const { Document } = FlexSearch
+const { Document } = FlexSearch;
 
 // ---------------------------------------------------------------------------
 // Types
 // ---------------------------------------------------------------------------
 
 export interface SearchResult {
-  title: string
-  path: string
-  excerpt: string
+  title: string;
+  path: string;
+  excerpt: string;
 }
 
 interface DocEntry {
-  id: number
-  title: string
-  content: string
-  path: string
-  excerpt: string
+  id: number;
+  title: string;
+  content: string;
+  path: string;
+  excerpt: string;
 }
 
 // ---------------------------------------------------------------------------
 // Module state (singleton — built once per page load)
 // ---------------------------------------------------------------------------
 
-let index: InstanceType<typeof Document> | null = null
-let docs: DocEntry[] = []
-let buildPromise: Promise<void> | null = null
+let index: InstanceType<typeof Document> | null = null;
+let docs: DocEntry[] = [];
+let buildPromise: Promise<void> | null = null;
 
 // ---------------------------------------------------------------------------
 // Helpers
@@ -41,15 +41,15 @@ let buildPromise: Promise<void> | null = null
 
 /** Extract the first H1 heading from markdown content. */
 function extractTitle(markdown: string): string {
-  const match = /^#\s+(.+)$/m.exec(markdown)
-  return match?.[1]?.trim() ?? ''
+  const match = /^#\s+(.+)$/m.exec(markdown);
+  return match?.[1]?.trim() ?? '';
 }
 
 /** Extract the first non-heading, non-empty paragraph as an excerpt. */
 function extractExcerpt(markdown: string, maxLength = 160): string {
-  const lines = markdown.split('\n')
+  const lines = markdown.split('\n');
   for (const line of lines) {
-    const trimmed = line.trim()
+    const trimmed = line.trim();
     // Skip empty lines, headings, links-only lines, and horizontal rules
     if (
       !trimmed ||
@@ -60,34 +60,34 @@ function extractExcerpt(markdown: string, maxLength = 160): string {
       trimmed.startsWith('* [') ||
       trimmed.startsWith('```')
     ) {
-      continue
+      continue;
     }
     // Strip inline markdown formatting
     const plain = trimmed
       .replace(/\[([^\]]+)\]\([^)]+\)/g, '$1') // links
       .replace(/[*_`~]+/g, '') // bold, italic, code, strikethrough
-      .trim()
+      .trim();
     if (plain.length > 10) {
-      return plain.length > maxLength ? `${plain.slice(0, maxLength)}...` : plain
+      return plain.length > maxLength ? `${plain.slice(0, maxLength)}...` : plain;
     }
   }
-  return ''
+  return '';
 }
 
 /** Parse INDEX.md to extract markdown filenames. */
 function parseIndex(indexContent: string): string[] {
-  const files: string[] = []
+  const files: string[] = [];
   // Match lines like: - [Title](./FILENAME.md)
-  const linkRegex = /\[.*?\]\(\.\/([A-Z_]+\.md)\)/g
-  let match: RegExpExecArray | null = null
+  const linkRegex = /\[.*?\]\(\.\/([A-Z_]+\.md)\)/g;
+  let match: RegExpExecArray | null = null;
   // biome-ignore lint/suspicious/noAssignInExpressions: standard regex exec loop pattern
   while ((match = linkRegex.exec(indexContent)) !== null) {
-    const filename = match[1]
+    const filename = match[1];
     if (filename) {
-      files.push(filename)
+      files.push(filename);
     }
   }
-  return files
+  return files;
 }
 
 // ---------------------------------------------------------------------------
@@ -100,45 +100,45 @@ function parseIndex(indexContent: string): string[] {
  */
 export async function buildSearchIndex(): Promise<void> {
   if (buildPromise) {
-    return buildPromise
+    return buildPromise;
   }
 
   buildPromise = (async () => {
     try {
       // Fetch and parse the index
-      const indexResponse = await fetch('/docs/INDEX.md')
+      const indexResponse = await fetch('/docs/INDEX.md');
       if (!indexResponse.ok) {
-        return
+        return;
       }
-      const indexContent = await indexResponse.text()
-      const filenames = parseIndex(indexContent)
+      const indexContent = await indexResponse.text();
+      const filenames = parseIndex(indexContent);
 
       // Fetch all docs in parallel
       const fetchResults = await Promise.allSettled(
         filenames.map(async (filename) => {
-          const response = await fetch(`/docs/${filename}`)
+          const response = await fetch(`/docs/${filename}`);
           if (!response.ok) {
-            return null
+            return null;
           }
-          const content = await response.text()
-          const slug = filename.replace(/\.md$/, '')
+          const content = await response.text();
+          const slug = filename.replace(/\.md$/, '');
           return {
             filename: slug,
             content,
-          }
+          };
         }),
-      )
+      );
 
       // Build entries
-      docs = []
-      let id = 0
+      docs = [];
+      let id = 0;
       for (const result of fetchResults) {
         if (result.status !== 'fulfilled' || !result.value) {
-          continue
+          continue;
         }
-        const { filename, content } = result.value
-        const title = extractTitle(content) || filename.replace(/_/g, ' ')
-        const excerpt = extractExcerpt(content)
+        const { filename, content } = result.value;
+        const title = extractTitle(content) || filename.replace(/_/g, ' ');
+        const excerpt = extractExcerpt(content);
 
         docs.push({
           id,
@@ -146,8 +146,8 @@ export async function buildSearchIndex(): Promise<void> {
           content,
           path: filename,
           excerpt,
-        })
-        id++
+        });
+        id++;
       }
 
       // Build FlexSearch document index
@@ -159,19 +159,19 @@ export async function buildSearchIndex(): Promise<void> {
         },
         tokenize: 'forward',
         cache: true,
-      })
+      });
 
       for (const doc of docs) {
-        index.add(doc)
+        index.add(doc);
       }
     } catch {
       // Silently fail — search will return empty results
-      index = null
-      docs = []
+      index = null;
+      docs = [];
     }
-  })()
+  })();
 
-  return buildPromise
+  return buildPromise;
 }
 
 /**
@@ -180,33 +180,33 @@ export async function buildSearchIndex(): Promise<void> {
  */
 export function searchDocs(query: string): SearchResult[] {
   if (!(index && query.trim())) {
-    return []
+    return [];
   }
 
   // Use non-enriched search (returns field + id arrays), then look up docs
-  const rawResults = index.search(query, { limit: 10 })
+  const rawResults = index.search(query, { limit: 10 });
 
   // Deduplicate across fields (title + content both return results)
-  const seen = new Set<number>()
-  const results: SearchResult[] = []
+  const seen = new Set<number>();
+  const results: SearchResult[] = [];
 
   for (const fieldResult of rawResults) {
     for (const id of fieldResult.result) {
-      const numId = typeof id === 'string' ? Number.parseInt(id, 10) : id
+      const numId = typeof id === 'string' ? Number.parseInt(id, 10) : id;
       if (seen.has(numId)) {
-        continue
+        continue;
       }
-      seen.add(numId)
-      const doc = docs[numId]
+      seen.add(numId);
+      const doc = docs[numId];
       if (doc) {
         results.push({
           title: doc.title,
           path: doc.path,
           excerpt: doc.excerpt,
-        })
+        });
       }
     }
   }
 
-  return results.slice(0, 10)
+  return results.slice(0, 10);
 }

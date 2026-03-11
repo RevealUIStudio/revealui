@@ -1,5 +1,5 @@
 interface MountLogProps {
-  entries: string[]
+  entries: string[];
 }
 
 export default function MountLog({ entries }: MountLogProps) {
@@ -14,5 +14,5 @@ export default function MountLog({ entries }: MountLogProps) {
         ))}
       </div>
     </div>
-  )
+  );
 }

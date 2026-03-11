@@ -1,23 +1,23 @@
-'use client'
+'use client';
 
-import { useEffect, useState } from 'react'
+import { useEffect, useState } from 'react';
 
 interface AgentActionRow {
-  id: string
-  agentId: string
-  tool: string
-  params: Record<string, unknown> | null
-  result: Record<string, unknown> | null
-  status: string
-  startedAt: string
-  completedAt: string | null
-  durationMs: number | null
+  id: string;
+  agentId: string;
+  tool: string;
+  params: Record<string, unknown> | null;
+  result: Record<string, unknown> | null;
+  status: string;
+  startedAt: string;
+  completedAt: string | null;
+  durationMs: number | null;
 }
 
 interface TaskHistoryProps {
-  agentId: string
+  agentId: string;
   /** Increment to trigger a refresh */
-  refreshKey?: number
+  refreshKey?: number;
 }
 
 /**
@@ -25,62 +25,62 @@ interface TaskHistoryProps {
  * Fetches from GET /a2a/agents/:id/tasks.
  */
 export function TaskHistory({ agentId, refreshKey }: TaskHistoryProps) {
-  const [rows, setRows] = useState<AgentActionRow[]>([])
-  const [loading, setLoading] = useState(true)
+  const [rows, setRows] = useState<AgentActionRow[]>([]);
+  const [loading, setLoading] = useState(true);
 
-  const apiUrl = (process.env.NEXT_PUBLIC_API_URL ?? 'https://api.revealui.com').trim()
+  const apiUrl = (process.env.NEXT_PUBLIC_API_URL ?? 'https://api.revealui.com').trim();
 
   // biome-ignore lint/correctness/useExhaustiveDependencies: refreshKey is an intentional re-fetch trigger passed from parent
   useEffect(() => {
-    let cancelled = false
-    setLoading(true)
-    ;(async () => {
+    let cancelled = false;
+    setLoading(true);
+    (async () => {
       try {
         const r = await fetch(`${apiUrl}/a2a/agents/${encodeURIComponent(agentId)}/tasks`, {
           credentials: 'include',
-        })
+        });
         if (!r.ok) {
-          if (!cancelled) setRows([])
-          return
+          if (!cancelled) setRows([]);
+          return;
         }
-        const data: unknown = await r.json()
+        const data: unknown = await r.json();
         const tasks =
           data !== null &&
           typeof data === 'object' &&
           'tasks' in data &&
           Array.isArray((data as { tasks: unknown }).tasks)
             ? (data as { tasks: AgentActionRow[] }).tasks
-            : []
-        if (!cancelled) setRows(tasks)
+            : [];
+        if (!cancelled) setRows(tasks);
       } catch {
-        if (!cancelled) setRows([])
+        if (!cancelled) setRows([]);
       } finally {
-        if (!cancelled) setLoading(false)
+        if (!cancelled) setLoading(false);
       }
-    })()
+    })();
     return () => {
-      cancelled = true
-    }
-  }, [agentId, apiUrl, refreshKey])
+      cancelled = true;
+    };
+  }, [agentId, apiUrl, refreshKey]);
 
   if (loading) {
     return (
       <div className="flex h-16 items-center justify-center">
         <div className="h-4 w-4 animate-spin rounded-full border-2 border-zinc-600 border-t-zinc-300" />
       </div>
-    )
+    );
   }
 
   if (rows.length === 0) {
-    return <p className="text-sm text-zinc-600">No tasks recorded yet.</p>
+    return <p className="text-sm text-zinc-600">No tasks recorded yet.</p>;
   }
 
   return (
     <ul className="flex flex-col gap-2">
       {rows.map((row) => {
-        const inputText = extractText(row.params)
-        const outputText = extractResultText(row.result)
-        const ts = new Date(row.startedAt).toLocaleString()
+        const inputText = extractText(row.params);
+        const outputText = extractResultText(row.result);
+        const ts = new Date(row.startedAt).toLocaleString();
 
         return (
           <li key={row.id} className="rounded-lg border border-zinc-800 bg-zinc-800/40 p-3">
@@ -104,10 +104,10 @@ export function TaskHistory({ agentId, refreshKey }: TaskHistoryProps) {
               </p>
             )}
           </li>
-        )
+        );
       })}
     </ul>
-  )
+  );
 }
 
 function StatusBadge({ status }: { status: string }) {
@@ -115,53 +115,55 @@ function StatusBadge({ status }: { status: string }) {
     completed: 'bg-emerald-500/10 text-emerald-400',
     failed: 'bg-red-500/10 text-red-400',
     cancelled: 'bg-zinc-600/20 text-zinc-400',
-  }
-  const color = colors[status] ?? 'bg-zinc-700/20 text-zinc-400'
-  return <span className={`rounded-full px-2 py-0.5 text-xs font-medium ${color}`}>{status}</span>
+  };
+  const color = colors[status] ?? 'bg-zinc-700/20 text-zinc-400';
+  return <span className={`rounded-full px-2 py-0.5 text-xs font-medium ${color}`}>{status}</span>;
 }
 
 /** Pull the user text from the tasks/send params */
 function extractText(params: Record<string, unknown> | null): string | null {
-  if (!params) return null
+  if (!params) return null;
   try {
-    const message = params.message as { parts?: Array<{ type: string; text?: string }> } | undefined
+    const message = params.message as
+      | { parts?: Array<{ type: string; text?: string }> }
+      | undefined;
     return (
       message?.parts
         ?.filter((p) => p.type === 'text')
         .map((p) => p.text ?? '')
         .join(' ')
         .trim() ?? null
-    )
+    );
   } catch {
-    return null
+    return null;
   }
 }
 
 /** Pull the agent response text from the A2ATask result */
 function extractResultText(result: Record<string, unknown> | null): string | null {
-  if (!result) return null
+  if (!result) return null;
   try {
     const artifacts = result.artifacts as
       | Array<{ parts?: Array<{ type: string; text?: string }> }>
-      | undefined
+      | undefined;
     const fromArtifact = artifacts?.[0]?.parts
       ?.filter((p) => p.type === 'text')
       .map((p) => p.text ?? '')
       .join(' ')
-      .trim()
-    if (fromArtifact) return fromArtifact
+      .trim();
+    if (fromArtifact) return fromArtifact;
 
     const status = result.status as
       | { message?: { parts?: Array<{ type: string; text?: string }> } }
-      | undefined
+      | undefined;
     return (
       status?.message?.parts
         ?.filter((p) => p.type === 'text')
         .map((p) => p.text ?? '')
         .join(' ')
         .trim() ?? null
-    )
+    );
   } catch {
-    return null
+    return null;
   }
 }

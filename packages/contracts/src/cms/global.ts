@@ -12,9 +12,9 @@
  * @module @revealui/contracts/core/contracts/global
  */
 
-import { type Contract, type ContractType, createContract } from '../foundation/contract.js'
-import type { Field, GlobalConfig } from './config.js'
-import { GLOBAL_SCHEMA_VERSION, type GlobalStructure, GlobalStructureSchema } from './structure.js'
+import { type Contract, type ContractType, createContract } from '../foundation/contract.js';
+import type { Field, GlobalConfig } from './config.js';
+import { GLOBAL_SCHEMA_VERSION, type GlobalStructure, GlobalStructureSchema } from './structure.js';
 
 /**
  * Global Contract
@@ -29,33 +29,33 @@ export const GlobalContract: Contract<GlobalStructure> = createContract({
   description: 'Global configuration contract',
   docsUrl: 'https://revealui.dev/docs/api-reference/globals',
   tags: ['global', 'config', 'cms'],
-})
+});
 
 /**
  * Type for Global configuration
  * Extracted from the GlobalContract
  */
-export type GlobalContractType = ContractType<typeof GlobalContract>
+export type GlobalContractType = ContractType<typeof GlobalContract>;
 
 /**
  * Validate a global configuration
  */
 export function validateGlobal(data: unknown): ReturnType<typeof GlobalContract.validate> {
-  return GlobalContract.validate(data)
+  return GlobalContract.validate(data);
 }
 
 /**
  * Type guard for global configurations
  */
 export function isGlobalConfig(data: unknown): data is GlobalContractType {
-  return GlobalContract.isType(data)
+  return GlobalContract.isType(data);
 }
 
 /**
  * Parse global configuration (throws on validation failure)
  */
 export function parseGlobal(data: unknown): GlobalContractType {
-  return GlobalContract.parse(data)
+  return GlobalContract.parse(data);
 }
 
 // =============================================================================
@@ -75,5 +75,5 @@ export function createGlobalConfig(
     slug,
     fields,
     ...options,
-  }
+  };
 }

@@ -5,9 +5,9 @@
  */
 
 // Admin components and utilities
-export * from './admin/index.js'
+export * from './admin/index.js';
 // React hooks
-export { useRevealUI, withRevealUIAccess } from './hooks.js'
+export { useRevealUI, withRevealUIAccess } from './hooks.js';
 // Rich text editor (client components)
 // NOTE: RichTextEditor component conflicts with RichTextEditor type from core/types
 // Use explicit exports to avoid ambiguity - consumers should import from richtext/client directly
@@ -17,7 +17,7 @@ export type {
   RichTextEditorProps,
   SerializedImageNode,
   ToolbarPluginProps,
-} from './richtext/index.js'
+} from './richtext/index.js';
 // Re-export specific items that don't conflict
 export {
   $createImageNode,
@@ -31,6 +31,6 @@ export {
   OPEN_IMAGE_UPLOAD_COMMAND,
   richTextEditorStyles,
   ToolbarPlugin,
-} from './richtext/index.js'
+} from './richtext/index.js';
 // UI components
-export * from './ui/index.js'
+export * from './ui/index.js';

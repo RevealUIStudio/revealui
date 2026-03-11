@@ -9,7 +9,7 @@ import type {
   RevealDocument,
   RevealRequest,
   RevealUIInstance,
-} from '../types/index.js'
+} from '../types/index.js';
 
 /**
  * Call afterChange hooks for a collection
@@ -23,27 +23,27 @@ export async function callAfterChangeHooks(
   revealui?: RevealUIInstance,
 ): Promise<RevealDocument> {
   if (!config.hooks?.afterChange) {
-    return doc
+    return doc;
   }
 
   const hooks = config.hooks.afterChange as Array<
     (args: {
-      doc: RevealDocument
+      doc: RevealDocument;
       context: {
-        revealui?: RevealUIInstance
-        collection: string
-        operation: 'create' | 'update'
-        previousDoc?: RevealDocument
-        req: RevealRequest
-      }
-      req: RevealRequest
-      operation: 'create' | 'update'
-      previousDoc?: RevealDocument
-      collection: string
+        revealui?: RevealUIInstance;
+        collection: string;
+        operation: 'create' | 'update';
+        previousDoc?: RevealDocument;
+        req: RevealRequest;
+      };
+      req: RevealRequest;
+      operation: 'create' | 'update';
+      previousDoc?: RevealDocument;
+      collection: string;
     }) => Promise<RevealDocument | undefined> | RevealDocument | undefined
-  >
+  >;
 
-  let result = doc
+  let result = doc;
   for (const hook of hooks) {
     const hookResult = await hook({
       doc: result,
@@ -58,10 +58,10 @@ export async function callAfterChangeHooks(
       operation,
       previousDoc,
       collection: config.slug,
-    })
+    });
     if (hookResult !== undefined) {
-      result = hookResult
+      result = hookResult;
     }
   }
-  return result
+  return result;
 }

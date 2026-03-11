@@ -16,29 +16,29 @@
  * - commentCount denormalized for performance
  */
 
-import { z } from 'zod/v4'
+import { z } from 'zod/v4';
 
 // =============================================================================
 // Constants
 // =============================================================================
 
-export const TICKET_SCHEMA_VERSION = 1
+export const TICKET_SCHEMA_VERSION = 1;
 
-export const TICKET_STATUSES = ['open', 'in_progress', 'in_review', 'done', 'closed'] as const
-export type TicketStatus = (typeof TICKET_STATUSES)[number]
+export const TICKET_STATUSES = ['open', 'in_progress', 'in_review', 'done', 'closed'] as const;
+export type TicketStatus = (typeof TICKET_STATUSES)[number];
 
-export const TICKET_PRIORITIES = ['urgent', 'high', 'medium', 'low'] as const
-export type TicketPriority = (typeof TICKET_PRIORITIES)[number]
+export const TICKET_PRIORITIES = ['urgent', 'high', 'medium', 'low'] as const;
+export type TicketPriority = (typeof TICKET_PRIORITIES)[number];
 
-export const TICKET_TYPES = ['task', 'bug', 'feature', 'improvement', 'epic'] as const
-export type TicketType = (typeof TICKET_TYPES)[number]
+export const TICKET_TYPES = ['task', 'bug', 'feature', 'improvement', 'epic'] as const;
+export type TicketType = (typeof TICKET_TYPES)[number];
 
 export const TICKET_LIMITS = {
   MIN_TITLE_LENGTH: 1,
   MAX_TITLE_LENGTH: 500,
   MAX_DESCRIPTION_SIZE: 100_000,
   MAX_SUBTASK_DEPTH: 1,
-} as const
+} as const;
 
 // =============================================================================
 // Base Schema
@@ -73,11 +73,11 @@ export const TicketObjectSchema = z.object({
   closedAt: z.date().nullable().optional(),
   createdAt: z.date(),
   updatedAt: z.date(),
-})
+});
 
-export const TicketSchema = TicketObjectSchema
+export const TicketSchema = TicketObjectSchema;
 
-export type Ticket = z.infer<typeof TicketSchema>
+export type Ticket = z.infer<typeof TicketSchema>;
 
 // =============================================================================
 // Insert Schema
@@ -93,32 +93,32 @@ export const TicketInsertSchema = TicketObjectSchema.omit({
   commentCount: z.number().int().default(0).optional(),
   createdAt: z.date().optional(),
   updatedAt: z.date().optional(),
-})
+});
 
-export type TicketInsert = z.infer<typeof TicketInsertSchema>
+export type TicketInsert = z.infer<typeof TicketInsertSchema>;
 
 // =============================================================================
 // Status Helpers
 // =============================================================================
 
 export function isOpen(ticket: Ticket): boolean {
-  return ticket.status === 'open'
+  return ticket.status === 'open';
 }
 
 export function isInProgress(ticket: Ticket): boolean {
-  return ticket.status === 'in_progress'
+  return ticket.status === 'in_progress';
 }
 
 export function isDone(ticket: Ticket): boolean {
-  return ticket.status === 'done'
+  return ticket.status === 'done';
 }
 
 export function isClosed(ticket: Ticket): boolean {
-  return ticket.status === 'closed'
+  return ticket.status === 'closed';
 }
 
 export function isResolved(ticket: Ticket): boolean {
-  return ticket.status === 'done' || ticket.status === 'closed'
+  return ticket.status === 'done' || ticket.status === 'closed';
 }
 
 export function getStatusLabel(status: TicketStatus): string {
@@ -128,8 +128,8 @@ export function getStatusLabel(status: TicketStatus): string {
     in_review: 'In Review',
     done: 'Done',
     closed: 'Closed',
-  }
-  return labels[status]
+  };
+  return labels[status];
 }
 
 export function getPriorityLabel(priority: TicketPriority): string {
@@ -138,8 +138,8 @@ export function getPriorityLabel(priority: TicketPriority): string {
     high: 'High',
     medium: 'Medium',
     low: 'Low',
-  }
-  return labels[priority]
+  };
+  return labels[priority];
 }
 
 export function getTypeLabel(type: TicketType): string {
@@ -149,8 +149,8 @@ export function getTypeLabel(type: TicketType): string {
     feature: 'Feature',
     improvement: 'Improvement',
     epic: 'Epic',
-  }
-  return labels[type]
+  };
+  return labels[type];
 }
 
 // =============================================================================
@@ -158,19 +158,19 @@ export function getTypeLabel(type: TicketType): string {
 // =============================================================================
 
 export function isAssigned(ticket: Ticket): boolean {
-  return ticket.assigneeId !== null && ticket.assigneeId !== undefined
+  return ticket.assigneeId !== null && ticket.assigneeId !== undefined;
 }
 
 export function isAssignedTo(ticket: Ticket, userId: string): boolean {
-  return ticket.assigneeId === userId
+  return ticket.assigneeId === userId;
 }
 
 export function isReportedBy(ticket: Ticket, userId: string): boolean {
-  return ticket.reporterId === userId
+  return ticket.reporterId === userId;
 }
 
 export function isSubtask(ticket: Ticket): boolean {
-  return ticket.parentTicketId !== null && ticket.parentTicketId !== undefined
+  return ticket.parentTicketId !== null && ticket.parentTicketId !== undefined;
 }
 
 // =============================================================================
@@ -178,20 +178,20 @@ export function isSubtask(ticket: Ticket): boolean {
 // =============================================================================
 
 export function hasDueDate(ticket: Ticket): boolean {
-  return ticket.dueDate !== null && ticket.dueDate !== undefined
+  return ticket.dueDate !== null && ticket.dueDate !== undefined;
 }
 
 export function isOverdue(ticket: Ticket): boolean {
-  if (!hasDueDate(ticket) || isResolved(ticket)) return false
+  if (!hasDueDate(ticket) || isResolved(ticket)) return false;
   // biome-ignore lint/style/noNonNullAssertion: guarded by hasDueDate(ticket) above
-  return ticket.dueDate!.getTime() < Date.now()
+  return ticket.dueDate!.getTime() < Date.now();
 }
 
 export function getDaysUntilDue(ticket: Ticket): number | null {
-  if (!hasDueDate(ticket)) return null
+  if (!hasDueDate(ticket)) return null;
   // biome-ignore lint/style/noNonNullAssertion: guarded by hasDueDate(ticket) above
-  const ms = ticket.dueDate!.getTime() - Date.now()
-  return Math.ceil(ms / (1000 * 60 * 60 * 24))
+  const ms = ticket.dueDate!.getTime() - Date.now();
+  return Math.ceil(ms / (1000 * 60 * 60 * 24));
 }
 
 // =============================================================================
@@ -202,20 +202,20 @@ export function createTicketInsert(
   boardId: string,
   title: string,
   options?: {
-    id?: string
-    columnId?: string
-    parentTicketId?: string
-    description?: unknown
-    status?: TicketStatus
-    priority?: TicketPriority
-    type?: TicketType
-    assigneeId?: string
-    reporterId?: string
-    dueDate?: Date
-    estimatedEffort?: number
+    id?: string;
+    columnId?: string;
+    parentTicketId?: string;
+    description?: unknown;
+    status?: TicketStatus;
+    priority?: TicketPriority;
+    type?: TicketType;
+    assigneeId?: string;
+    reporterId?: string;
+    dueDate?: Date;
+    estimatedEffort?: number;
   },
 ): TicketInsert {
-  const now = new Date()
+  const now = new Date();
   return {
     id: options?.id ?? crypto.randomUUID(),
     schemaVersion: String(TICKET_SCHEMA_VERSION),
@@ -237,7 +237,7 @@ export function createTicketInsert(
     closedAt: null,
     createdAt: now,
     updatedAt: now,
-  }
+  };
 }
 
 // =============================================================================
@@ -247,21 +247,21 @@ export function createTicketInsert(
 export interface TicketWithComputed extends Ticket {
   // biome-ignore lint/style/useNamingConvention: _computed is a conventional computed-field marker
   _computed: {
-    isOpen: boolean
-    isInProgress: boolean
-    isDone: boolean
-    isClosed: boolean
-    isResolved: boolean
-    isAssigned: boolean
-    isSubtask: boolean
-    isOverdue: boolean
-    hasDueDate: boolean
-    daysUntilDue: number | null
-    hasComments: boolean
-    statusLabel: string
-    priorityLabel: string
-    typeLabel: string
-  }
+    isOpen: boolean;
+    isInProgress: boolean;
+    isDone: boolean;
+    isClosed: boolean;
+    isResolved: boolean;
+    isAssigned: boolean;
+    isSubtask: boolean;
+    isOverdue: boolean;
+    hasDueDate: boolean;
+    daysUntilDue: number | null;
+    hasComments: boolean;
+    statusLabel: string;
+    priorityLabel: string;
+    typeLabel: string;
+  };
 }
 
 export function ticketToHuman(ticket: Ticket): TicketWithComputed {
@@ -284,5 +284,5 @@ export function ticketToHuman(ticket: Ticket): TicketWithComputed {
       priorityLabel: getPriorityLabel(ticket.priority),
       typeLabel: getTypeLabel(ticket.type),
     },
-  }
+  };
 }

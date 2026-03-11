@@ -1,41 +1,41 @@
-import type React from 'react'
-import RichText from '@/lib/components/RichText/index'
+import type React from 'react';
+import RichText from '@/lib/components/RichText/index';
 
 export interface BannerBlockProps {
-  className: string
-  style: 'info' | 'warning' | 'error' | 'success'
+  className: string;
+  style: 'info' | 'warning' | 'error' | 'success';
   content: {
     root: {
-      type: string
+      type: string;
       children: {
-        type: string
-        version: number
-        [k: string]: unknown
-      }[]
-      direction: ('ltr' | 'rtl') | null
-      format: 'left' | 'start' | 'center' | 'right' | 'end' | 'justify' | ''
-      indent: number
-      version: number
-    }
-    [k: string]: unknown
-  }
-  id?: string | null
-  blockName?: string | null
-  blockType: 'banner'
+        type: string;
+        version: number;
+        [k: string]: unknown;
+      }[];
+      direction: ('ltr' | 'rtl') | null;
+      format: 'left' | 'start' | 'center' | 'right' | 'end' | 'justify' | '';
+      indent: number;
+      version: number;
+    };
+    [k: string]: unknown;
+  };
+  id?: string | null;
+  blockName?: string | null;
+  blockType: 'banner';
 }
 
 export const BannerBlock: React.FC<BannerBlockProps> = ({ className, content, style }) => {
   function cn(...args: (string | Record<string, boolean> | undefined)[]): string {
     return args
       .flatMap((arg) => {
-        if (!arg) return []
-        if (typeof arg === 'string') return arg.split(' ')
+        if (!arg) return [];
+        if (typeof arg === 'string') return arg.split(' ');
         return Object.entries(arg)
           .filter(([, value]) => value)
-          .map(([key]) => key)
+          .map(([key]) => key);
       })
       .filter(Boolean)
-      .join(' ')
+      .join(' ');
   }
 
   return (
@@ -51,5 +51,5 @@ export const BannerBlock: React.FC<BannerBlockProps> = ({ className, content, st
         <RichText content={content} enableGutter={false} enableProse={false} />
       </div>
     </div>
-  )
-}
+  );
+};

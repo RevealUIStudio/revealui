@@ -12,17 +12,17 @@ export async function waitFor(
   timeout = 5000,
   interval = 100,
 ): Promise<void> {
-  const startTime = Date.now()
+  const startTime = Date.now();
 
   while (Date.now() - startTime < timeout) {
-    const result = await condition()
+    const result = await condition();
     if (result) {
-      return
+      return;
     }
-    await new Promise((resolve) => setTimeout(resolve, interval))
+    await new Promise((resolve) => setTimeout(resolve, interval));
   }
 
-  throw new Error(`Condition not met within ${timeout}ms`)
+  throw new Error(`Condition not met within ${timeout}ms`);
 }
 
 /**
@@ -33,35 +33,35 @@ export async function retry<T>(
   maxRetries = 3,
   initialDelay = 100,
 ): Promise<T> {
-  let lastError: unknown
+  let lastError: unknown;
 
   for (let attempt = 0; attempt < maxRetries; attempt++) {
     try {
-      return await fn()
+      return await fn();
     } catch (error) {
-      lastError = error
+      lastError = error;
       if (attempt < maxRetries - 1) {
-        const delay = initialDelay * 2 ** attempt
-        await new Promise((resolve) => setTimeout(resolve, delay))
+        const delay = initialDelay * 2 ** attempt;
+        await new Promise((resolve) => setTimeout(resolve, delay));
       }
     }
   }
 
-  throw lastError instanceof Error ? lastError : new Error(String(lastError))
+  throw lastError instanceof Error ? lastError : new Error(String(lastError));
 }
 
 /**
  * Create a unique test identifier
  */
 export function createTestId(prefix = 'test'): string {
-  return `${prefix}-${Date.now()}-${Math.random().toString(36).substring(2, 9)}`
+  return `${prefix}-${Date.now()}-${Math.random().toString(36).substring(2, 9)}`;
 }
 
 /**
  * Sleep for a specified duration
  */
 export function sleep(ms: number): Promise<void> {
-  return new Promise((resolve) => setTimeout(resolve, ms))
+  return new Promise((resolve) => setTimeout(resolve, ms));
 }
 
 /**
@@ -72,7 +72,7 @@ export function assertDefined<T>(
   message?: string,
 ): asserts value is T {
   if (value === null || value === undefined) {
-    throw new Error(message || 'Value is null or undefined')
+    throw new Error(message || 'Value is null or undefined');
   }
 }
 
@@ -85,28 +85,28 @@ export function assertDefined<T>(
 export function createMockFn<T extends (...args: unknown[]) => unknown>(
   implementation?: T,
 ): {
-  (...args: Parameters<T>): ReturnType<T>
-  calls: Array<Parameters<T>>
-  results: Array<ReturnType<T>>
+  (...args: Parameters<T>): ReturnType<T>;
+  calls: Array<Parameters<T>>;
+  results: Array<ReturnType<T>>;
 } {
-  const calls: Array<Parameters<T>> = []
-  const results: Array<ReturnType<T>> = []
+  const calls: Array<Parameters<T>> = [];
+  const results: Array<ReturnType<T>> = [];
 
   const mockFn = ((...args: Parameters<T>) => {
-    calls.push(args)
-    const result = implementation ? implementation(...args) : undefined
-    results.push(result as ReturnType<T>)
-    return result
+    calls.push(args);
+    const result = implementation ? implementation(...args) : undefined;
+    results.push(result as ReturnType<T>);
+    return result;
   }) as {
-    (...args: Parameters<T>): ReturnType<T>
-    calls: Array<Parameters<T>>
-    results: Array<ReturnType<T>>
-  }
+    (...args: Parameters<T>): ReturnType<T>;
+    calls: Array<Parameters<T>>;
+    results: Array<ReturnType<T>>;
+  };
 
-  mockFn.calls = calls
-  mockFn.results = results
+  mockFn.calls = calls;
+  mockFn.results = results;
 
-  return mockFn
+  return mockFn;
 }
 
 /**
@@ -114,47 +114,47 @@ export function createMockFn<T extends (...args: unknown[]) => unknown>(
  *
  * Re-exported from @revealui/core for consistency
  */
-export { deepClone } from '@revealui/core'
+export { deepClone } from '@revealui/core';
 
 /**
  * Check if two values are deeply equal
  */
 export function deepEqual(a: unknown, b: unknown): boolean {
   if (a === b) {
-    return true
+    return true;
   }
 
   if (a === null || b === null || a === undefined || b === undefined) {
-    return false
+    return false;
   }
 
   if (typeof a !== typeof b) {
-    return false
+    return false;
   }
 
   if (typeof a !== 'object') {
-    return false
+    return false;
   }
 
   if (Array.isArray(a) && Array.isArray(b)) {
     if (a.length !== b.length) {
-      return false
+      return false;
     }
-    return a.every((item, index) => deepEqual(item, b[index]))
+    return a.every((item, index) => deepEqual(item, b[index]));
   }
 
   if (Array.isArray(a) || Array.isArray(b)) {
-    return false
+    return false;
   }
 
-  const keysA = Object.keys(a)
-  const keysB = Object.keys(b)
+  const keysA = Object.keys(a);
+  const keysB = Object.keys(b);
 
   if (keysA.length !== keysB.length) {
-    return false
+    return false;
   }
 
   return keysA.every((key) =>
     deepEqual((a as Record<string, unknown>)[key], (b as Record<string, unknown>)[key]),
-  )
+  );
 }

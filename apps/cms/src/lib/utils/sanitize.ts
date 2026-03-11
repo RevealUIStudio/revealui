@@ -13,37 +13,37 @@
  */
 export function sanitizeString(input: string, maxLength: number = 255): string {
   if (typeof input !== 'string') {
-    return ''
+    return '';
   }
 
   const stripControlChars = (value: string): string => {
-    let result = ''
+    let result = '';
     for (let i = 0; i < value.length; i++) {
-      const code = value.charCodeAt(i)
+      const code = value.charCodeAt(i);
       if (code === 0x09 || code === 0x0a || code === 0x0d) {
-        result += value[i]
-        continue
+        result += value[i];
+        continue;
       }
       if (code <= 0x1f || code === 0x7f) {
-        continue
+        continue;
       }
-      result += value[i]
+      result += value[i];
     }
-    return result
-  }
+    return result;
+  };
 
   // Trim whitespace
-  let sanitized = input.trim()
+  let sanitized = input.trim();
 
   // Remove null bytes and control characters (except newlines and tabs)
-  sanitized = stripControlChars(sanitized)
+  sanitized = stripControlChars(sanitized);
 
   // Limit length
   if (sanitized.length > maxLength) {
-    sanitized = sanitized.substring(0, maxLength)
+    sanitized = sanitized.substring(0, maxLength);
   }
 
-  return sanitized
+  return sanitized;
 }
 
 /**
@@ -54,16 +54,16 @@ export function sanitizeString(input: string, maxLength: number = 255): string {
  * @returns Sanitized name
  */
 export function sanitizeName(name: string, maxLength: number = 100): string {
-  let sanitized = sanitizeString(name, maxLength)
+  let sanitized = sanitizeString(name, maxLength);
 
   // Remove HTML tags
-  sanitized = sanitized.replace(/<[^>]*>/g, '')
+  sanitized = sanitized.replace(/<[^>]*>/g, '');
 
   // Remove script tags and event handlers
-  sanitized = sanitized.replace(/javascript:/gi, '')
-  sanitized = sanitized.replace(/on\w+\s*=/gi, '')
+  sanitized = sanitized.replace(/javascript:/gi, '');
+  sanitized = sanitized.replace(/on\w+\s*=/gi, '');
 
-  return sanitized
+  return sanitized;
 }
 
 /**
@@ -74,21 +74,21 @@ export function sanitizeName(name: string, maxLength: number = 100): string {
  */
 export function sanitizeEmail(email: string): string | null {
   if (typeof email !== 'string') {
-    return null
+    return null;
   }
 
-  const sanitized = email.trim().toLowerCase()
+  const sanitized = email.trim().toLowerCase();
 
   // Basic email validation
-  const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
+  const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
   if (!emailRegex.test(sanitized)) {
-    return null
+    return null;
   }
 
   // Limit length
   if (sanitized.length > 254) {
-    return null
+    return null;
   }
 
-  return sanitized
+  return sanitized;
 }

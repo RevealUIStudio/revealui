@@ -1,4 +1,4 @@
-'use client'
+'use client';
 
 /**
  * React Error Boundary for CMS App
@@ -7,29 +7,29 @@
  * Integrates with Sentry for error reporting in production.
  */
 
-import { logger } from '@revealui/core/observability/logger'
-import * as Sentry from '@sentry/nextjs'
-import React, { Component, type ErrorInfo, type ReactNode } from 'react'
+import { logger } from '@revealui/core/observability/logger';
+import * as Sentry from '@sentry/nextjs';
+import React, { Component, type ErrorInfo, type ReactNode } from 'react';
 
 interface ErrorBoundaryProps {
-  children: ReactNode
-  fallback?: (error: Error, errorInfo: ErrorInfo, reset: () => void) => ReactNode
+  children: ReactNode;
+  fallback?: (error: Error, errorInfo: ErrorInfo, reset: () => void) => ReactNode;
 }
 
 interface ErrorBoundaryState {
-  hasError: boolean
-  error: Error | null
-  errorInfo: ErrorInfo | null
+  hasError: boolean;
+  error: Error | null;
+  errorInfo: ErrorInfo | null;
 }
 
 export class ErrorBoundary extends Component<ErrorBoundaryProps, ErrorBoundaryState> {
   constructor(props: ErrorBoundaryProps) {
-    super(props)
+    super(props);
     this.state = {
       hasError: false,
       error: null,
       errorInfo: null,
-    }
+    };
   }
 
   static getDerivedStateFromError(error: Error): Partial<ErrorBoundaryState> {
@@ -37,7 +37,7 @@ export class ErrorBoundary extends Component<ErrorBoundaryProps, ErrorBoundarySt
     return {
       hasError: true,
       error,
-    }
+    };
   }
 
   componentDidCatch(error: Error, errorInfo: ErrorInfo): void {
@@ -45,7 +45,7 @@ export class ErrorBoundary extends Component<ErrorBoundaryProps, ErrorBoundarySt
     if (process.env.NODE_ENV !== 'production') {
       logger.error('ErrorBoundary caught an error', error, {
         componentStack: errorInfo.componentStack,
-      })
+      });
     }
 
     // Send to Sentry
@@ -55,13 +55,13 @@ export class ErrorBoundary extends Component<ErrorBoundaryProps, ErrorBoundarySt
           componentStack: errorInfo.componentStack,
         },
       },
-    })
+    });
 
     // Update state with error info
     this.setState({
       error,
       errorInfo,
-    })
+    });
   }
 
   reset = (): void => {
@@ -69,24 +69,24 @@ export class ErrorBoundary extends Component<ErrorBoundaryProps, ErrorBoundarySt
       hasError: false,
       error: null,
       errorInfo: null,
-    })
-  }
+    });
+  };
 
   render(): ReactNode {
-    const { hasError, error, errorInfo } = this.state
-    const { children, fallback } = this.props
+    const { hasError, error, errorInfo } = this.state;
+    const { children, fallback } = this.props;
 
     if (hasError && error && errorInfo) {
       // Use custom fallback if provided
       if (fallback) {
-        return fallback(error, errorInfo, this.reset)
+        return fallback(error, errorInfo, this.reset);
       }
 
       // Default fallback UI
-      return <DefaultErrorFallback error={error} errorInfo={errorInfo} reset={this.reset} />
+      return <DefaultErrorFallback error={error} errorInfo={errorInfo} reset={this.reset} />;
     }
 
-    return children
+    return children;
   }
 }
 
@@ -94,13 +94,13 @@ export class ErrorBoundary extends Component<ErrorBoundaryProps, ErrorBoundarySt
  * Default Error Fallback Component
  */
 interface DefaultErrorFallbackProps {
-  error: Error
-  errorInfo: ErrorInfo
-  reset: () => void
+  error: Error;
+  errorInfo: ErrorInfo;
+  reset: () => void;
 }
 
 function DefaultErrorFallback({ error, errorInfo, reset }: DefaultErrorFallbackProps) {
-  const [showDetails, setShowDetails] = React.useState(false)
+  const [showDetails, setShowDetails] = React.useState(false);
 
   return (
     <div
@@ -205,5 +205,5 @@ function DefaultErrorFallback({ error, errorInfo, reset }: DefaultErrorFallbackP
         )}
       </div>
     </div>
-  )
+  );
 }

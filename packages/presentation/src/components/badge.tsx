@@ -1,8 +1,8 @@
-import clsx from 'clsx'
-import type React from 'react'
-import { useDataInteractive } from '../hooks/use-data-interactive.js'
-import { TouchTarget } from './button-headless.js'
-import { Link } from './link.js'
+import clsx from 'clsx';
+import type React from 'react';
+import { useDataInteractive } from '../hooks/use-data-interactive.js';
+import { TouchTarget } from './button-headless.js';
+import { Link } from './link.js';
 
 const colors = {
   red: 'bg-red-500/15 text-red-700 group-data-hover:bg-red-500/25 dark:bg-red-500/10 dark:text-red-400 dark:group-data-hover:bg-red-500/20',
@@ -32,9 +32,9 @@ const colors = {
   pink: 'bg-pink-400/15 text-pink-700 group-data-hover:bg-pink-400/25 dark:bg-pink-400/10 dark:text-pink-400 dark:group-data-hover:bg-pink-400/20',
   rose: 'bg-rose-400/15 text-rose-700 group-data-hover:bg-rose-400/25 dark:bg-rose-400/10 dark:text-rose-400 dark:group-data-hover:bg-rose-400/20',
   zinc: 'bg-zinc-600/10 text-zinc-700 group-data-hover:bg-zinc-600/20 dark:bg-white/5 dark:text-zinc-400 dark:group-data-hover:bg-white/10',
-}
+};
 
-type BadgeProps = { color?: keyof typeof colors }
+type BadgeProps = { color?: keyof typeof colors };
 
 export function Badge({
   color = 'zinc',
@@ -50,7 +50,7 @@ export function Badge({
         colors[color],
       )}
     />
-  )
+  );
 }
 
 export function BadgeButton({
@@ -61,18 +61,18 @@ export function BadgeButton({
   ...props
 }: BadgeProps & { className?: string; children: React.ReactNode; ref?: React.Ref<HTMLElement> } & (
     | ({
-        href?: never
-        disabled?: boolean
+        href?: never;
+        disabled?: boolean;
       } & Omit<React.ComponentPropsWithoutRef<'button'>, 'className'>)
     | ({ href: string } & Omit<React.ComponentPropsWithoutRef<typeof Link>, 'className'>)
   )) {
-  const disabled = 'disabled' in props ? props.disabled : false
-  const interactiveProps = useDataInteractive({ disabled: disabled ?? false })
+  const disabled = 'disabled' in props ? props.disabled : false;
+  const interactiveProps = useDataInteractive({ disabled: disabled ?? false });
 
   const classes = clsx(
     className,
     'group relative inline-flex rounded-md focus:not-data-focus:outline-hidden data-focus:outline-2 data-focus:outline-offset-2 data-focus:outline-blue-500',
-  )
+  );
 
   return typeof props.href === 'string' ? (
     <Link {...props} className={classes} ref={ref as React.Ref<HTMLAnchorElement>}>
@@ -92,5 +92,5 @@ export function BadgeButton({
         <Badge color={color}>{children}</Badge>
       </TouchTarget>
     </button>
-  )
+  );
 }

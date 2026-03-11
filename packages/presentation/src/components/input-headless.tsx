@@ -1,7 +1,7 @@
-import clsx from 'clsx'
-import type React from 'react'
-import { useDataInteractive } from '../hooks/use-data-interactive.js'
-import { useFieldControlProps } from '../hooks/use-field-context.js'
+import clsx from 'clsx';
+import type React from 'react';
+import { useDataInteractive } from '../hooks/use-data-interactive.js';
+import { useFieldControlProps } from '../hooks/use-field-context.js';
 
 export function InputGroup({ children }: React.ComponentPropsWithoutRef<'span'>) {
   return (
@@ -17,23 +17,23 @@ export function InputGroup({ children }: React.ComponentPropsWithoutRef<'span'>)
     >
       {children}
     </span>
-  )
+  );
 }
 
-const dateTypes = ['date', 'datetime-local', 'month', 'time', 'week'] as const
-type DateType = (typeof dateTypes)[number]
+const dateTypes = ['date', 'datetime-local', 'month', 'time', 'week'] as const;
+type DateType = (typeof dateTypes)[number];
 
 type InputProps = {
-  className?: string
-  type?: 'email' | 'number' | 'password' | 'search' | 'tel' | 'text' | 'url' | DateType
-  disabled?: boolean
-  invalid?: boolean
-  ref?: React.Ref<HTMLInputElement>
-} & Omit<React.ComponentPropsWithoutRef<'input'>, 'className' | 'type'>
+  className?: string;
+  type?: 'email' | 'number' | 'password' | 'search' | 'tel' | 'text' | 'url' | DateType;
+  disabled?: boolean;
+  invalid?: boolean;
+  ref?: React.Ref<HTMLInputElement>;
+} & Omit<React.ComponentPropsWithoutRef<'input'>, 'className' | 'type'>;
 
 export function Input({ className, disabled, invalid, ref, ...props }: InputProps) {
-  const interactiveProps = useDataInteractive({ disabled })
-  const fieldProps = useFieldControlProps()
+  const interactiveProps = useDataInteractive({ disabled });
+  const fieldProps = useFieldControlProps();
 
   return (
     <span
@@ -96,5 +96,5 @@ export function Input({ className, disabled, invalid, ref, ...props }: InputProp
         ])}
       />
     </span>
-  )
+  );
 }

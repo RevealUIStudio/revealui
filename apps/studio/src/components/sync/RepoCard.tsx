@@ -1,10 +1,10 @@
-import type { SyncResult } from '../../types'
-import Button from '../ui/Button'
+import type { SyncResult } from '../../types';
+import Button from '../ui/Button';
 
 interface RepoCardProps {
-  result: SyncResult
-  onSync: () => void
-  syncing: boolean
+  result: SyncResult;
+  onSync: () => void;
+  syncing: boolean;
 }
 
 const STATUS_STYLES: Record<string, string> = {
@@ -14,7 +14,7 @@ const STATUS_STYLES: Record<string, string> = {
   skip: 'text-neutral-500',
   reset_failed: 'text-red-400',
   error: 'text-red-400',
-}
+};
 
 export default function RepoCard({ result, onSync, syncing }: RepoCardProps) {
   return (
@@ -35,5 +35,5 @@ export default function RepoCard({ result, onSync, syncing }: RepoCardProps) {
         Sync
       </Button>
     </div>
-  )
+  );
 }

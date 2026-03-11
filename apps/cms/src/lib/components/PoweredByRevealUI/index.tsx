@@ -1,4 +1,4 @@
-import type React from 'react'
+import type React from 'react';
 
 /**
  * PoweredByRevealUI — shown in the admin dashboard footer.
@@ -12,32 +12,32 @@ import type React from 'react'
 
 function shouldShowBadge(): boolean {
   // Explicit env var opt-out (Enterprise white-label)
-  if (process.env.REVEALUI_SHOW_POWERED_BY === 'false') return false
+  if (process.env.REVEALUI_SHOW_POWERED_BY === 'false') return false;
 
   // License JWT check — Enterprise tier or explicit whiteLabel feature
-  const key = process.env.REVEALUI_LICENSE_KEY
+  const key = process.env.REVEALUI_LICENSE_KEY;
   if (key) {
     try {
-      const parts = key.split('.')
+      const parts = key.split('.');
       if (parts.length >= 2) {
         const payload = JSON.parse(Buffer.from(parts[1] ?? '', 'base64').toString('utf8')) as {
-          tier?: string
-          features?: Record<string, boolean>
-        }
-        if (payload.tier === 'enterprise' || payload.features?.whiteLabel === true) return false
+          tier?: string;
+          features?: Record<string, boolean>;
+        };
+        if (payload.tier === 'enterprise' || payload.features?.whiteLabel === true) return false;
       }
     } catch {
       // Malformed JWT — fall through to show badge
     }
   }
 
-  return true
+  return true;
 }
 
 const PoweredByRevealUI: React.FC = () => {
-  if (!shouldShowBadge()) return null
+  if (!shouldShowBadge()) return null;
 
-  const brandName = process.env.REVEALUI_BRAND_NAME ?? 'RevealUI'
+  const brandName = process.env.REVEALUI_BRAND_NAME ?? 'RevealUI';
 
   return (
     <p className="mt-6 text-xs text-gray-400">
@@ -51,7 +51,7 @@ const PoweredByRevealUI: React.FC = () => {
         {brandName}
       </a>
     </p>
-  )
-}
+  );
+};
 
-export default PoweredByRevealUI
+export default PoweredByRevealUI;

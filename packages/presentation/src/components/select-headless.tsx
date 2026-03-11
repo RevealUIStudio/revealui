@@ -1,19 +1,19 @@
-import clsx from 'clsx'
-import type React from 'react'
-import { useDataInteractive } from '../hooks/use-data-interactive.js'
-import { useFieldControlProps } from '../hooks/use-field-context.js'
+import clsx from 'clsx';
+import type React from 'react';
+import { useDataInteractive } from '../hooks/use-data-interactive.js';
+import { useFieldControlProps } from '../hooks/use-field-context.js';
 
 type SelectProps = {
-  className?: string
-  multiple?: boolean
-  disabled?: boolean
-  invalid?: boolean
-  ref?: React.Ref<HTMLSelectElement>
-} & Omit<React.ComponentPropsWithoutRef<'select'>, 'className'>
+  className?: string;
+  multiple?: boolean;
+  disabled?: boolean;
+  invalid?: boolean;
+  ref?: React.Ref<HTMLSelectElement>;
+} & Omit<React.ComponentPropsWithoutRef<'select'>, 'className'>;
 
 export function Select({ className, multiple, disabled, invalid, ref, ...props }: SelectProps) {
-  const interactiveProps = useDataInteractive({ disabled })
-  const fieldProps = useFieldControlProps()
+  const interactiveProps = useDataInteractive({ disabled });
+  const fieldProps = useFieldControlProps();
 
   return (
     <span
@@ -88,5 +88,5 @@ export function Select({ className, multiple, disabled, invalid, ref, ...props }
         </span>
       )}
     </span>
-  )
+  );
 }

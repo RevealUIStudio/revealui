@@ -16,39 +16,39 @@ import type {
   Field,
   FieldHooksConfig,
   GlobalConfig,
-} from '../../cms/index.js'
+} from '../../cms/index.js';
 
 // ============================================
 // MOCK DOCUMENT TYPES
 // ============================================
 
 export interface MockPost {
-  id: string
-  title: string
-  slug: string
-  content?: string
-  author?: string
-  publishedAt?: Date
-  status?: 'draft' | 'published'
-  createdAt?: string
-  updatedAt?: string
+  id: string;
+  title: string;
+  slug: string;
+  content?: string;
+  author?: string;
+  publishedAt?: Date;
+  status?: 'draft' | 'published';
+  createdAt?: string;
+  updatedAt?: string;
 }
 
 export interface MockUser {
-  id: string
-  email: string
-  name?: string
-  roles?: string[]
-  tenants?: string[]
-  createdAt?: string
-  updatedAt?: string
+  id: string;
+  email: string;
+  name?: string;
+  roles?: string[];
+  tenants?: string[];
+  createdAt?: string;
+  updatedAt?: string;
 }
 
 export interface MockSettings {
-  siteName: string
-  siteDescription?: string
-  logo?: string
-  socialLinks?: Array<{ platform: string; url: string }>
+  siteName: string;
+  siteDescription?: string;
+  logo?: string;
+  socialLinks?: Array<{ platform: string; url: string }>;
 }
 
 // ============================================
@@ -56,11 +56,11 @@ export interface MockSettings {
 // ============================================
 
 export interface MockRevealUIRequest {
-  user?: MockUser | null
-  locale?: string
-  fallbackLocale?: string
-  context?: Record<string, unknown>
-  transactionID?: string | null
+  user?: MockUser | null;
+  locale?: string;
+  fallbackLocale?: string;
+  context?: Record<string, unknown>;
+  transactionID?: string | null;
 }
 
 export function createMockRequest(
@@ -73,7 +73,7 @@ export function createMockRequest(
     context: {},
     transactionID: null,
     ...overrides,
-  }
+  };
 }
 
 export function createAuthenticatedRequest(user: Partial<MockUser> = {}): MockRevealUIRequest {
@@ -84,13 +84,13 @@ export function createAuthenticatedRequest(user: Partial<MockUser> = {}): MockRe
       roles: ['user'],
       ...user,
     },
-  })
+  });
 }
 
 export function createAdminRequest(): MockRevealUIRequest {
   return createAuthenticatedRequest({
     roles: ['admin'],
-  })
+  });
 }
 
 // ============================================
@@ -104,7 +104,7 @@ export function createMockCollectionConfig<T = unknown>(
     slug: 'test-collection',
     fields: [{ name: 'title', type: 'text', required: true }],
     ...overrides,
-  } as CollectionConfig<T>
+  } as CollectionConfig<T>;
 }
 
 export function createMockGlobalConfig<T = unknown>(
@@ -114,7 +114,7 @@ export function createMockGlobalConfig<T = unknown>(
     slug: 'test-global',
     fields: [{ name: 'setting', type: 'text' }],
     ...overrides,
-  } as GlobalConfig<T>
+  } as GlobalConfig<T>;
 }
 
 export function createMockField(overrides: Partial<Field> = {}): Field {
@@ -122,19 +122,19 @@ export function createMockField(overrides: Partial<Field> = {}): Field {
     type: 'text',
     name: 'test-field',
     ...overrides,
-  } as Field
+  } as Field;
 }
 
 // ============================================
 // MOCK ACCESS FUNCTIONS
 // ============================================
 
-export const mockAccessAllow: AccessFunction = () => true
-export const mockAccessDeny: AccessFunction = () => false
-export const mockAccessAuthenticated: AccessFunction = ({ req }) => Boolean(req?.user)
+export const mockAccessAllow: AccessFunction = () => true;
+export const mockAccessDeny: AccessFunction = () => false;
+export const mockAccessAuthenticated: AccessFunction = ({ req }) => Boolean(req?.user);
 export const mockAccessAdmin: AccessFunction = ({ req }) => {
-  return req?.user?.roles?.includes?.('admin') ?? false
-}
+  return req?.user?.roles?.includes?.('admin') ?? false;
+};
 
 export function createMockAccessConfig(
   overrides: Partial<CollectionAccessConfig> = {},
@@ -145,7 +145,7 @@ export function createMockAccessConfig(
     update: mockAccessAuthenticated,
     delete: mockAccessAdmin,
     ...overrides,
-  }
+  };
 }
 
 // ============================================
@@ -155,16 +155,16 @@ export function createMockAccessConfig(
 export function createMockAfterChangeHook<T = unknown>(): CollectionAfterChangeHook<T> {
   return ({ doc }) => {
     // Log and return unchanged
-    console.log('afterChange hook called')
-    return doc
-  }
+    console.log('afterChange hook called');
+    return doc;
+  };
 }
 
 export function createMockFieldHooks<TValue = string>(): FieldHooksConfig<TValue> {
   return {
     beforeChange: [({ value }) => value],
     afterRead: [({ value }) => value],
-  }
+  };
 }
 
 // ============================================
@@ -173,26 +173,26 @@ export function createMockFieldHooks<TValue = string>(): FieldHooksConfig<TValue
 
 export const mockValidateRequired = (value: unknown): string | true => {
   if (value === undefined || value === null || value === '') {
-    return 'This field is required'
+    return 'This field is required';
   }
-  return true
-}
+  return true;
+};
 
 export const mockValidateSlug = (value: unknown): string | true => {
-  if (typeof value !== 'string') return 'Slug must be a string'
+  if (typeof value !== 'string') return 'Slug must be a string';
   if (!/^[a-z][a-z0-9-]*$/.test(value)) {
-    return 'Slug must start with lowercase letter and contain only lowercase letters, numbers, and hyphens'
+    return 'Slug must start with lowercase letter and contain only lowercase letters, numbers, and hyphens';
   }
-  return true
-}
+  return true;
+};
 
 export const mockValidateEmail = (value: unknown): string | true => {
-  if (typeof value !== 'string') return 'Email must be a string'
+  if (typeof value !== 'string') return 'Email must be a string';
   if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value)) {
-    return 'Invalid email format'
+    return 'Invalid email format';
   }
-  return true
-}
+  return true;
+};
 
 // ============================================
 // COMPLETE MOCK CONFIGS (Realistic Examples)
@@ -228,12 +228,12 @@ export const MockPostsCollection: CollectionConfig<MockPost> = {
   hooks: {
     afterChange: [
       ({ doc, operation }) => {
-        console.log(`Post ${operation}:`, doc.title)
-        return doc
+        console.log(`Post ${operation}:`, doc.title);
+        return doc;
       },
     ],
   },
-}
+};
 
 export const MockUsersCollection: CollectionConfig<MockUser> = {
   slug: 'users',
@@ -263,7 +263,7 @@ export const MockUsersCollection: CollectionConfig<MockUser> = {
     update: mockAccessAuthenticated,
     delete: mockAccessAdmin,
   },
-}
+};
 
 export const MockSettingsGlobal: GlobalConfig<MockSettings> = {
   slug: 'settings',
@@ -285,4 +285,4 @@ export const MockSettingsGlobal: GlobalConfig<MockSettings> = {
     read: () => true,
     update: mockAccessAdmin,
   },
-}
+};

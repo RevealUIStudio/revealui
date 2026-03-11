@@ -1,12 +1,18 @@
-import type { Post } from '@revealui/core/types/cms'
-import React from 'react'
-import { Media } from '@/lib/components/Media/index'
-import { formatDateTime } from '@/lib/utilities/formatDateTime'
+import type { Post } from '@revealui/core/types/cms';
+import React from 'react';
+import { Media } from '@/lib/components/Media/index';
+import { formatDateTime } from '@/lib/utilities/formatDateTime';
 
 export const PostHero: React.FC<{
-  post: Post
+  post: Post;
 }> = ({ post }) => {
-  const { categories, meta: { image: metaImage } = {}, populatedAuthors, publishedAt, title } = post
+  const {
+    categories,
+    meta: { image: metaImage } = {},
+    populatedAuthors,
+    publishedAt,
+    title,
+  } = post;
 
   return (
     <div className="relative mt-[10.4rem] flex items-end">
@@ -15,22 +21,22 @@ export const PostHero: React.FC<{
           <div className="uppercase text-sm mb-6">
             {categories?.map((category, index) => {
               if (typeof category === 'object' && category !== null) {
-                const { title: categoryTitle, id } = category
+                const { title: categoryTitle, id } = category;
 
-                const titleToUse = categoryTitle || 'Untitled category'
+                const titleToUse = categoryTitle || 'Untitled category';
                 // Use id if available, otherwise fall back to index with title for uniqueness
-                const key = id || `category-${index}-${titleToUse}`
+                const key = id || `category-${index}-${titleToUse}`;
 
-                const isLast = index === categories.length - 1
+                const isLast = index === categories.length - 1;
 
                 return (
                   <React.Fragment key={key}>
                     {titleToUse}
                     {!isLast && <React.Fragment>, &nbsp;</React.Fragment>}
                   </React.Fragment>
-                )
+                );
               }
-              return null
+              return null;
             })}
           </div>
 
@@ -44,12 +50,12 @@ export const PostHero: React.FC<{
                 <div className="flex flex-col gap-1">
                   <p className="text-sm">Author</p>
                   {populatedAuthors.map((author, index: React.Key | null | undefined) => {
-                    const { name, id } = author
+                    const { name, id } = author;
 
-                    const isLast = index === populatedAuthors.length - 1
-                    const secondToLast = index === populatedAuthors.length - 2
+                    const isLast = index === populatedAuthors.length - 1;
+                    const secondToLast = index === populatedAuthors.length - 2;
                     // Use id if available, otherwise fall back to index with name for uniqueness
-                    const key = id || `author-${String(index)}-${String(name || '')}`
+                    const key = id || `author-${String(index)}-${String(name || '')}`;
 
                     return (
                       <React.Fragment key={key}>
@@ -64,7 +70,7 @@ export const PostHero: React.FC<{
                           <React.Fragment>and </React.Fragment>
                         )}
                       </React.Fragment>
-                    )
+                    );
                   })}
                 </div>
               )}
@@ -86,5 +92,5 @@ export const PostHero: React.FC<{
         <div className="absolute pointer-events-none left-0 bottom-0 w-full h-1/2 bg-gradient-to-t from-black to-transparent" />
       </div>
     </div>
-  )
-}
+  );
+};

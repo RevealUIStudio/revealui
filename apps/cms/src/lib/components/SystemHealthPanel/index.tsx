@@ -4,31 +4,31 @@
  * Displays system health status with individual health check details
  */
 
-import type React from 'react'
-import { useEffect, useState } from 'react'
+import type React from 'react';
+import { useEffect, useState } from 'react';
 
-export type HealthStatus = 'healthy' | 'warning' | 'critical'
+export type HealthStatus = 'healthy' | 'warning' | 'critical';
 
 export interface HealthCheck {
-  status: HealthStatus
-  latency: number
-  message: string
+  status: HealthStatus;
+  latency: number;
+  message: string;
 }
 
 export interface HealthData {
-  status: HealthStatus
-  checks: Record<string, HealthCheck>
-  timestamp: number
+  status: HealthStatus;
+  checks: Record<string, HealthCheck>;
+  timestamp: number;
 }
 
 export interface SystemHealthPanelProps {
-  data?: HealthData
-  refreshInterval?: number
-  onRefresh?: () => void
-  loading?: boolean
-  error?: string
-  onRetry?: () => void
-  className?: string
+  data?: HealthData;
+  refreshInterval?: number;
+  onRefresh?: () => void;
+  loading?: boolean;
+  error?: string;
+  onRetry?: () => void;
+  className?: string;
 }
 
 export function SystemHealthPanel({
@@ -41,71 +41,71 @@ export function SystemHealthPanel({
   className = '',
   ref,
 }: SystemHealthPanelProps & { ref?: React.Ref<HTMLDivElement> }) {
-  const [expandedChecks, setExpandedChecks] = useState<Record<string, boolean>>({})
-  const [lastUpdated, setLastUpdated] = useState<number>(Date.now())
+  const [expandedChecks, setExpandedChecks] = useState<Record<string, boolean>>({});
+  const [lastUpdated, setLastUpdated] = useState<number>(Date.now());
 
   const toggleCheck = (name: string) => {
     setExpandedChecks((prev) => ({
       ...prev,
       [name]: !prev[name],
-    }))
-  }
+    }));
+  };
 
   // Auto-refresh effect
   useEffect(() => {
     if (!(refreshInterval && onRefresh) || loading || error) {
-      return
+      return;
     }
 
     const interval = setInterval(() => {
-      onRefresh()
-      setLastUpdated(Date.now())
-    }, refreshInterval)
+      onRefresh();
+      setLastUpdated(Date.now());
+    }, refreshInterval);
 
-    return () => clearInterval(interval)
-  }, [refreshInterval, onRefresh, loading, error])
+    return () => clearInterval(interval);
+  }, [refreshInterval, onRefresh, loading, error]);
 
   // Update last updated when data changes
   useEffect(() => {
     if (data?.timestamp) {
-      setLastUpdated(data.timestamp)
+      setLastUpdated(data.timestamp);
     }
-  }, [data?.timestamp])
+  }, [data?.timestamp]);
 
   const getStatusColor = (status: HealthStatus) => {
     switch (status) {
       case 'healthy':
-        return 'bg-green-500'
+        return 'bg-green-500';
       case 'warning':
-        return 'bg-yellow-500'
+        return 'bg-yellow-500';
       case 'critical':
-        return 'bg-red-500'
+        return 'bg-red-500';
       default:
-        return 'bg-gray-500'
+        return 'bg-gray-500';
     }
-  }
+  };
 
   const getStatusTextColor = (status: HealthStatus) => {
     switch (status) {
       case 'healthy':
-        return 'text-green-600 dark:text-green-400'
+        return 'text-green-600 dark:text-green-400';
       case 'warning':
-        return 'text-yellow-600 dark:text-yellow-400'
+        return 'text-yellow-600 dark:text-yellow-400';
       case 'critical':
-        return 'text-red-600 dark:text-red-400'
+        return 'text-red-600 dark:text-red-400';
       default:
-        return 'text-gray-600 dark:text-gray-400'
+        return 'text-gray-600 dark:text-gray-400';
     }
-  }
+  };
 
   const formatTimestamp = (timestamp: number): string => {
-    const seconds = Math.floor((Date.now() - timestamp) / 1000)
-    if (seconds < 60) return `${seconds}s ago`
-    const minutes = Math.floor(seconds / 60)
-    if (minutes < 60) return minutes === 1 ? '1 minute ago' : `${minutes} minutes ago`
-    const hours = Math.floor(minutes / 60)
-    return hours === 1 ? '1 hour ago' : `${hours} hours ago`
-  }
+    const seconds = Math.floor((Date.now() - timestamp) / 1000);
+    if (seconds < 60) return `${seconds}s ago`;
+    const minutes = Math.floor(seconds / 60);
+    if (minutes < 60) return minutes === 1 ? '1 minute ago' : `${minutes} minutes ago`;
+    const hours = Math.floor(minutes / 60);
+    return hours === 1 ? '1 hour ago' : `${hours} hours ago`;
+  };
 
   if (loading) {
     return (
@@ -130,7 +130,7 @@ export function SystemHealthPanel({
           </div>
         </div>
       </div>
-    )
+    );
   }
 
   if (error) {
@@ -154,7 +154,7 @@ export function SystemHealthPanel({
           </button>
         </div>
       </div>
-    )
+    );
   }
 
   if (!data || Object.keys(data.checks).length === 0) {
@@ -163,7 +163,7 @@ export function SystemHealthPanel({
         <h2 className="text-lg font-semibold mb-4">System Health</h2>
         <p className="text-gray-500 dark:text-gray-400">No health checks available</p>
       </div>
-    )
+    );
   }
 
   return (
@@ -260,5 +260,5 @@ export function SystemHealthPanel({
         ))}
       </div>
     </div>
-  )
+  );
 }

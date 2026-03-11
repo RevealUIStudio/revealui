@@ -5,8 +5,8 @@
  * The Field interface already includes hasMany, so simple checks are sufficient.
  */
 
-import type { Field } from '@revealui/contracts/cms'
-import type { RevealUIField } from '../types/extensions.js'
+import type { Field } from '@revealui/contracts/cms';
+import type { RevealUIField } from '../types/extensions.js';
 
 /**
  * Check if a field should be stored as JSON
@@ -19,22 +19,22 @@ import type { RevealUIField } from '../types/extensions.js'
  * Note: Field extends FieldStructure which has 'type' and 'hasMany' properties.
  */
 export function isJsonFieldType(field: RevealUIField | Field): boolean {
-  const jsonTypes = ['array', 'group', 'blocks', 'richText']
+  const jsonTypes = ['array', 'group', 'blocks', 'richText'];
 
   if (field.type && jsonTypes.includes(field.type)) {
-    return true
+    return true;
   }
 
   // Check for select/relationship fields with hasMany
   if (field.type === 'select' && field.hasMany === true) {
-    return true
+    return true;
   }
 
   if (field.type === 'relationship' && field.hasMany === true) {
-    return true
+    return true;
   }
 
-  return false
+  return false;
 }
 
 /**
@@ -43,21 +43,21 @@ export function isJsonFieldType(field: RevealUIField | Field): boolean {
  * the JSON field name set for INSERT/UPDATE queries.
  */
 export function flattenFields(fields: (RevealUIField | Field)[]): (RevealUIField | Field)[] {
-  const result: (RevealUIField | Field)[] = []
+  const result: (RevealUIField | Field)[] = [];
   for (const field of fields) {
     if (field.type === 'tabs' && 'tabs' in field && Array.isArray(field.tabs)) {
       for (const tab of field.tabs as Array<{ fields?: (RevealUIField | Field)[] }>) {
         if (Array.isArray(tab.fields)) {
-          result.push(...flattenFields(tab.fields))
+          result.push(...flattenFields(tab.fields));
         }
       }
     } else if (field.type === 'row' && 'fields' in field && Array.isArray(field.fields)) {
-      result.push(...flattenFields(field.fields as (RevealUIField | Field)[]))
+      result.push(...flattenFields(field.fields as (RevealUIField | Field)[]));
     } else {
-      result.push(field)
+      result.push(field);
     }
   }
-  return result
+  return result;
 }
 
 /**
@@ -67,5 +67,5 @@ export function flattenFields(fields: (RevealUIField | Field)[]): (RevealUIField
  * @returns True if value is a plain object
  */
 export function isObject(item: unknown): item is Record<string, unknown> {
-  return item !== null && typeof item === 'object' && !Array.isArray(item)
+  return item !== null && typeof item === 'object' && !Array.isArray(item);
 }

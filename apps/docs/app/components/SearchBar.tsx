@@ -5,124 +5,124 @@
  * Supports Cmd+K / Ctrl+K keyboard shortcut to focus.
  */
 
-import { useNavigate } from '@revealui/router'
-import { useCallback, useEffect, useRef, useState } from 'react'
-import type { SearchResult } from '../lib/search-index'
-import { buildSearchIndex, searchDocs } from '../lib/search-index'
+import { useNavigate } from '@revealui/router';
+import { useCallback, useEffect, useRef, useState } from 'react';
+import type { SearchResult } from '../lib/search-index';
+import { buildSearchIndex, searchDocs } from '../lib/search-index';
 
 export function SearchBar() {
-  const [query, setQuery] = useState('')
-  const [results, setResults] = useState<SearchResult[]>([])
-  const [isOpen, setIsOpen] = useState(false)
-  const [activeIndex, setActiveIndex] = useState(-1)
-  const [indexReady, setIndexReady] = useState(false)
-  const inputRef = useRef<HTMLInputElement>(null)
-  const debounceRef = useRef<ReturnType<typeof setTimeout>>(null)
-  const navigate = useNavigate()
+  const [query, setQuery] = useState('');
+  const [results, setResults] = useState<SearchResult[]>([]);
+  const [isOpen, setIsOpen] = useState(false);
+  const [activeIndex, setActiveIndex] = useState(-1);
+  const [indexReady, setIndexReady] = useState(false);
+  const inputRef = useRef<HTMLInputElement>(null);
+  const debounceRef = useRef<ReturnType<typeof setTimeout>>(null);
+  const navigate = useNavigate();
 
   // Build search index on mount (lazy, once)
   useEffect(() => {
     void buildSearchIndex().then(() => {
-      setIndexReady(true)
-    })
-  }, [])
+      setIndexReady(true);
+    });
+  }, []);
 
   // Cmd+K / Ctrl+K keyboard shortcut
   useEffect(() => {
     function handleGlobalKeyDown(e: KeyboardEvent) {
       if ((e.metaKey || e.ctrlKey) && e.key === 'k') {
-        e.preventDefault()
-        inputRef.current?.focus()
-        setIsOpen(true)
+        e.preventDefault();
+        inputRef.current?.focus();
+        setIsOpen(true);
       }
     }
-    document.addEventListener('keydown', handleGlobalKeyDown)
-    return () => document.removeEventListener('keydown', handleGlobalKeyDown)
-  }, [])
+    document.addEventListener('keydown', handleGlobalKeyDown);
+    return () => document.removeEventListener('keydown', handleGlobalKeyDown);
+  }, []);
 
   // Debounced search
   const handleQueryChange = useCallback(
     (value: string) => {
-      setQuery(value)
-      setActiveIndex(-1)
+      setQuery(value);
+      setActiveIndex(-1);
 
       if (debounceRef.current) {
-        clearTimeout(debounceRef.current)
+        clearTimeout(debounceRef.current);
       }
 
       if (!value.trim()) {
-        setResults([])
-        return
+        setResults([]);
+        return;
       }
 
       debounceRef.current = setTimeout(() => {
         if (indexReady) {
-          setResults(searchDocs(value))
+          setResults(searchDocs(value));
         }
-      }, 200)
+      }, 200);
     },
     [indexReady],
-  )
+  );
 
   // Clean up debounce timer on unmount
   useEffect(() => {
     return () => {
       if (debounceRef.current) {
-        clearTimeout(debounceRef.current)
+        clearTimeout(debounceRef.current);
       }
-    }
-  }, [])
+    };
+  }, []);
 
   const handleSelect = useCallback(
     (result: SearchResult) => {
-      void navigate(`/docs/${result.path}`)
-      setQuery('')
-      setResults([])
-      setIsOpen(false)
-      setActiveIndex(-1)
+      void navigate(`/docs/${result.path}`);
+      setQuery('');
+      setResults([]);
+      setIsOpen(false);
+      setActiveIndex(-1);
     },
     [navigate],
-  )
+  );
 
   // Keyboard navigation within results
   const handleKeyDown = useCallback(
     (e: React.KeyboardEvent) => {
       if (!isOpen || results.length === 0) {
         if (e.key === 'Escape') {
-          setIsOpen(false)
-          inputRef.current?.blur()
+          setIsOpen(false);
+          inputRef.current?.blur();
         }
-        return
+        return;
       }
 
       switch (e.key) {
         case 'ArrowDown': {
-          e.preventDefault()
-          setActiveIndex((prev) => (prev < results.length - 1 ? prev + 1 : 0))
-          break
+          e.preventDefault();
+          setActiveIndex((prev) => (prev < results.length - 1 ? prev + 1 : 0));
+          break;
         }
         case 'ArrowUp': {
-          e.preventDefault()
-          setActiveIndex((prev) => (prev > 0 ? prev - 1 : results.length - 1))
-          break
+          e.preventDefault();
+          setActiveIndex((prev) => (prev > 0 ? prev - 1 : results.length - 1));
+          break;
         }
         case 'Enter': {
-          e.preventDefault()
-          const selected = results[activeIndex]
+          e.preventDefault();
+          const selected = results[activeIndex];
           if (activeIndex >= 0 && selected) {
-            handleSelect(selected)
+            handleSelect(selected);
           }
-          break
+          break;
         }
         case 'Escape': {
-          setIsOpen(false)
-          inputRef.current?.blur()
-          break
+          setIsOpen(false);
+          inputRef.current?.blur();
+          break;
         }
       }
     },
     [isOpen, results, activeIndex, handleSelect],
-  )
+  );
 
   return (
     <div className="relative w-full max-w-[400px]">
@@ -133,12 +133,12 @@ export function SearchBar() {
           placeholder="Search docs..."
           value={query}
           onChange={(e) => {
-            handleQueryChange(e.target.value)
-            setIsOpen(true)
+            handleQueryChange(e.target.value);
+            setIsOpen(true);
           }}
           onFocus={() => setIsOpen(true)}
           onBlur={() => {
-            setTimeout(() => setIsOpen(false), 200)
+            setTimeout(() => setIsOpen(false), 200);
           }}
           onKeyDown={handleKeyDown}
           className="w-full rounded-lg border border-border bg-surface py-2 pr-10 pl-3 font-sans text-[0.8125rem] text-text-primary transition-all focus:border-accent focus:shadow-[0_0_0_3px_var(--color-accent-bg)] focus:outline-none"
@@ -182,5 +182,5 @@ export function SearchBar() {
         </div>
       )}
     </div>
-  )
+  );
 }

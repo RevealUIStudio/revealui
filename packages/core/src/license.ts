@@ -6,11 +6,11 @@
  * - zod - Schema validation for license payloads
  */
 
-import { importPKCS8, importSPKI, jwtVerify, SignJWT } from 'jose'
-import { z } from 'zod'
+import { importPKCS8, importSPKI, jwtVerify, SignJWT } from 'jose';
+import { z } from 'zod';
 
 /** Available license tiers */
-export type LicenseTier = 'free' | 'pro' | 'max' | 'enterprise'
+export type LicenseTier = 'free' | 'pro' | 'max' | 'enterprise';
 
 /** Decoded license payload schema */
 const licensePayloadSchema = z.object({
@@ -34,43 +34,43 @@ const licensePayloadSchema = z.object({
   iat: z.number().optional(),
   /** License expiration timestamp — absent for perpetual licenses */
   exp: z.number().optional(),
-})
+});
 
-export type LicensePayload = z.infer<typeof licensePayloadSchema>
+export type LicensePayload = z.infer<typeof licensePayloadSchema>;
 
 /** License cache TTL configuration */
 export interface LicenseCacheConfig {
   /** Cache TTL in milliseconds (default: 24 hours) */
-  ttlMs: number
+  ttlMs: number;
 }
 
 const DEFAULT_CACHE_CONFIG: LicenseCacheConfig = {
   ttlMs: 24 * 60 * 60 * 1000,
-}
+};
 
-let cacheConfig: LicenseCacheConfig = { ...DEFAULT_CACHE_CONFIG }
-let cachedAt = 0
+let cacheConfig: LicenseCacheConfig = { ...DEFAULT_CACHE_CONFIG };
+let cachedAt = 0;
 
 /**
  * Configure the license cache TTL.
  * Useful for tests (short TTL) or deployments needing faster revocation detection.
  */
 export function configureLicenseCache(overrides: Partial<LicenseCacheConfig>): void {
-  cacheConfig = { ...DEFAULT_CACHE_CONFIG, ...overrides }
+  cacheConfig = { ...DEFAULT_CACHE_CONFIG, ...overrides };
 }
 
 /** Cached license state */
 interface LicenseState {
-  tier: LicenseTier
-  payload: LicensePayload | null
-  validatedAt: number | null
+  tier: LicenseTier;
+  payload: LicensePayload | null;
+  validatedAt: number | null;
 }
 
 let cachedState: LicenseState = {
   tier: 'free',
   payload: null,
   validatedAt: null,
-}
+};
 
 /**
  * The public key used to verify license JWTs.
@@ -78,14 +78,14 @@ let cachedState: LicenseState = {
  * For local development, it reads from REVEALUI_LICENSE_PUBLIC_KEY env var.
  */
 function getPublicKey(): string | null {
-  return process.env.REVEALUI_LICENSE_PUBLIC_KEY ?? null
+  return process.env.REVEALUI_LICENSE_PUBLIC_KEY ?? null;
 }
 
 /**
  * Reads the license key from environment.
  */
 function getLicenseKey(): string | null {
-  return process.env.REVEALUI_LICENSE_KEY ?? null
+  return process.env.REVEALUI_LICENSE_KEY ?? null;
 }
 
 /**
@@ -97,19 +97,19 @@ export async function validateLicenseKey(
   publicKey: string,
 ): Promise<LicensePayload | null> {
   try {
-    const key = await importSPKI(publicKey, 'RS256')
+    const key = await importSPKI(publicKey, 'RS256');
     const { payload } = await jwtVerify(licenseKey, key, {
       algorithms: ['RS256', 'ES256'],
-    })
+    });
 
-    const result = licensePayloadSchema.safeParse(payload)
+    const result = licensePayloadSchema.safeParse(payload);
     if (!result.success) {
-      return null
+      return null;
     }
 
-    return result.data
+    return result.data;
   } catch {
-    return null
+    return null;
   }
 }
 
@@ -120,39 +120,39 @@ export async function validateLicenseKey(
  * @returns The resolved license tier
  */
 export async function initializeLicense(): Promise<LicenseTier> {
-  const licenseKey = getLicenseKey()
-  const publicKey = getPublicKey()
+  const licenseKey = getLicenseKey();
+  const publicKey = getPublicKey();
 
   if (!(licenseKey && publicKey)) {
-    cachedState = { tier: 'free', payload: null, validatedAt: Date.now() }
-    cachedAt = Date.now()
-    return 'free'
+    cachedState = { tier: 'free', payload: null, validatedAt: Date.now() };
+    cachedAt = Date.now();
+    return 'free';
   }
 
-  const payload = await validateLicenseKey(licenseKey, publicKey)
+  const payload = await validateLicenseKey(licenseKey, publicKey);
 
   if (!payload) {
-    cachedState = { tier: 'free', payload: null, validatedAt: Date.now() }
-    cachedAt = Date.now()
-    return 'free'
+    cachedState = { tier: 'free', payload: null, validatedAt: Date.now() };
+    cachedAt = Date.now();
+    return 'free';
   }
 
   cachedState = {
     tier: payload.tier,
     payload,
     validatedAt: Date.now(),
-  }
-  cachedAt = Date.now()
+  };
+  cachedAt = Date.now();
 
   // Clamp cache TTL to license expiry so revoked licenses don't survive the full TTL
   if (payload.exp) {
-    const msUntilExpiry = payload.exp * 1000 - Date.now()
+    const msUntilExpiry = payload.exp * 1000 - Date.now();
     if (msUntilExpiry > 0 && msUntilExpiry < cacheConfig.ttlMs) {
-      cacheConfig = { ...cacheConfig, ttlMs: msUntilExpiry }
+      cacheConfig = { ...cacheConfig, ttlMs: msUntilExpiry };
     }
   }
 
-  return payload.tier
+  return payload.tier;
 }
 
 /**
@@ -161,8 +161,8 @@ export async function initializeLicense(): Promise<LicenseTier> {
  */
 function evictStaleCache(): void {
   if (cachedAt > 0 && Date.now() - cachedAt > cacheConfig.ttlMs) {
-    cachedState = { tier: 'free', payload: null, validatedAt: null }
-    cachedAt = 0
+    cachedState = { tier: 'free', payload: null, validatedAt: null };
+    cachedAt = 0;
   }
 }
 
@@ -171,16 +171,16 @@ function evictStaleCache(): void {
  * If the license hasn't been initialized or the cache has expired, returns 'free'.
  */
 export function getCurrentTier(): LicenseTier {
-  evictStaleCache()
-  return cachedState.tier
+  evictStaleCache();
+  return cachedState.tier;
 }
 
 /**
  * Returns the full license payload, or null if no valid license or cache expired.
  */
 export function getLicensePayload(): LicensePayload | null {
-  evictStaleCache()
-  return cachedState.payload
+  evictStaleCache();
+  return cachedState.payload;
 }
 
 /**
@@ -188,48 +188,48 @@ export function getLicensePayload(): LicensePayload | null {
  * Also validates that the license has not expired (checks JWT exp claim).
  */
 export function isLicensed(requiredTier: LicenseTier): boolean {
-  evictStaleCache()
+  evictStaleCache();
   const tierRank: Record<LicenseTier, number> = {
     free: 0,
     pro: 1,
     max: 2,
     enterprise: 3,
-  }
+  };
 
   // Free tier is always available
-  if (requiredTier === 'free') return true
+  if (requiredTier === 'free') return true;
 
   // Perpetual licenses never expire — skip the exp check entirely
   if (!cachedState.payload?.perpetual && cachedState.payload?.exp) {
-    const nowSeconds = Math.floor(Date.now() / 1000)
+    const nowSeconds = Math.floor(Date.now() / 1000);
     if (cachedState.payload.exp < nowSeconds) {
-      return false
+      return false;
     }
   }
 
-  return tierRank[cachedState.tier] >= tierRank[requiredTier]
+  return tierRank[cachedState.tier] >= tierRank[requiredTier];
 }
 
 /**
  * Returns the maximum number of sites allowed by the current license.
  */
 export function getMaxSites(): number {
-  evictStaleCache()
-  if (cachedState.tier === 'enterprise') return Infinity
-  if (cachedState.tier === 'max') return cachedState.payload?.maxSites ?? 15
-  if (cachedState.tier === 'pro') return cachedState.payload?.maxSites ?? 5
-  return 1
+  evictStaleCache();
+  if (cachedState.tier === 'enterprise') return Infinity;
+  if (cachedState.tier === 'max') return cachedState.payload?.maxSites ?? 15;
+  if (cachedState.tier === 'pro') return cachedState.payload?.maxSites ?? 5;
+  return 1;
 }
 
 /**
  * Returns the maximum number of users/editors allowed by the current license.
  */
 export function getMaxUsers(): number {
-  evictStaleCache()
-  if (cachedState.tier === 'enterprise') return Infinity
-  if (cachedState.tier === 'max') return cachedState.payload?.maxUsers ?? 100
-  if (cachedState.tier === 'pro') return cachedState.payload?.maxUsers ?? 25
-  return 3
+  evictStaleCache();
+  if (cachedState.tier === 'enterprise') return Infinity;
+  if (cachedState.tier === 'max') return cachedState.payload?.maxUsers ?? 100;
+  if (cachedState.tier === 'pro') return cachedState.payload?.maxUsers ?? 25;
+  return 3;
 }
 
 /**
@@ -237,11 +237,11 @@ export function getMaxUsers(): number {
  * Track B metering: free=1K, pro=10K, max=50K, enterprise=unlimited.
  */
 export function getMaxAgentTasks(): number {
-  evictStaleCache()
-  if (cachedState.tier === 'enterprise') return Infinity
-  if (cachedState.tier === 'max') return 50_000
-  if (cachedState.tier === 'pro') return 10_000
-  return 1_000
+  evictStaleCache();
+  if (cachedState.tier === 'enterprise') return Infinity;
+  if (cachedState.tier === 'max') return 50_000;
+  if (cachedState.tier === 'pro') return 10_000;
+  return 1_000;
 }
 
 /**
@@ -259,18 +259,18 @@ export async function generateLicenseKey(
   privateKey: string,
   expiresInSeconds: number | null = 365 * 24 * 60 * 60,
 ): Promise<string> {
-  const key = await importPKCS8(privateKey, 'RS256')
-  const builder = new SignJWT({ ...payload }).setProtectedHeader({ alg: 'RS256' }).setIssuedAt()
+  const key = await importPKCS8(privateKey, 'RS256');
+  const builder = new SignJWT({ ...payload }).setProtectedHeader({ alg: 'RS256' }).setIssuedAt();
   if (expiresInSeconds !== null) {
-    builder.setExpirationTime(`${expiresInSeconds}s`)
+    builder.setExpirationTime(`${expiresInSeconds}s`);
   }
-  return builder.sign(key)
+  return builder.sign(key);
 }
 
 /**
  * Reset license state. Primarily for testing.
  */
 export function resetLicenseState(): void {
-  cachedState = { tier: 'free', payload: null, validatedAt: null }
-  cachedAt = 0
+  cachedState = { tier: 'free', payload: null, validatedAt: null };
+  cachedAt = 0;
 }

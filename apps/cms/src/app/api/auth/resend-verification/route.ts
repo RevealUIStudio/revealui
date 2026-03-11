@@ -7,39 +7,39 @@
  * Rate-limited to prevent abuse.
  */
 
-import { createHash } from 'node:crypto'
-import { getSession } from '@revealui/auth/server'
-import { logger } from '@revealui/core/utils/logger'
-import { getClient } from '@revealui/db'
-import { users } from '@revealui/db/schema'
-import { eq } from 'drizzle-orm'
-import { type NextRequest, NextResponse } from 'next/server'
-import { sendVerificationEmail } from '@/lib/email/verification'
-import { withRateLimit } from '@/lib/middleware/rate-limit'
-import { createApplicationErrorResponse, createErrorResponse } from '@/lib/utils/error-response'
+import { createHash } from 'node:crypto';
+import { getSession } from '@revealui/auth/server';
+import { logger } from '@revealui/core/utils/logger';
+import { getClient } from '@revealui/db';
+import { users } from '@revealui/db/schema';
+import { eq } from 'drizzle-orm';
+import { type NextRequest, NextResponse } from 'next/server';
+import { sendVerificationEmail } from '@/lib/email/verification';
+import { withRateLimit } from '@/lib/middleware/rate-limit';
+import { createApplicationErrorResponse, createErrorResponse } from '@/lib/utils/error-response';
 
-export const dynamic = 'force-dynamic'
-export const runtime = 'nodejs'
+export const dynamic = 'force-dynamic';
+export const runtime = 'nodejs';
 
 async function resendHandler(request: NextRequest): Promise<NextResponse> {
   try {
-    const session = await getSession(request.headers)
+    const session = await getSession(request.headers);
     if (!session) {
-      return createApplicationErrorResponse('Unauthorized', 'UNAUTHORIZED', 401)
+      return createApplicationErrorResponse('Unauthorized', 'UNAUTHORIZED', 401);
     }
 
     if (session.user.emailVerified) {
-      return createApplicationErrorResponse('Email already verified', 'ALREADY_VERIFIED', 400)
+      return createApplicationErrorResponse('Email already verified', 'ALREADY_VERIFIED', 400);
     }
 
     if (!session.user.email) {
-      return createApplicationErrorResponse('No email address on account', 'NO_EMAIL', 400)
+      return createApplicationErrorResponse('No email address on account', 'NO_EMAIL', 400);
     }
 
     // Generate a new token — store the SHA-256 hash, send the raw token via email
-    const newToken = crypto.randomUUID()
-    const tokenHash = createHash('sha256').update(newToken).digest('hex')
-    const db = getClient()
+    const newToken = crypto.randomUUID();
+    const tokenHash = createHash('sha256').update(newToken).digest('hex');
+    const db = getClient();
 
     await db
       .update(users)
@@ -47,29 +47,29 @@ async function resendHandler(request: NextRequest): Promise<NextResponse> {
         emailVerificationToken: tokenHash,
         updatedAt: new Date(),
       })
-      .where(eq(users.id, session.user.id))
+      .where(eq(users.id, session.user.id));
 
-    const result = await sendVerificationEmail(session.user.email, newToken)
+    const result = await sendVerificationEmail(session.user.email, newToken);
 
     if (!result.success) {
       logger.warn('Failed to resend verification email', {
         userId: session.user.id,
         error: result.error,
-      })
+      });
       return createApplicationErrorResponse(
         'Failed to send verification email. Please try again later.',
         'EMAIL_SEND_FAILED',
         500,
-      )
+      );
     }
 
-    return NextResponse.json({ success: true })
+    return NextResponse.json({ success: true });
   } catch (error) {
-    logger.error('Error resending verification email', { error })
+    logger.error('Error resending verification email', { error });
     return createErrorResponse(error, {
       endpoint: '/api/auth/resend-verification',
       operation: 'resend_verification',
-    })
+    });
   }
 }
 
@@ -78,4 +78,4 @@ export const POST = withRateLimit(resendHandler, {
   windowMs: 15 * 60 * 1000, // 15 minutes
   keyPrefix: 'resend-verification',
   failClosed: true,
-})
+});

@@ -18,9 +18,9 @@ import {
   real,
   text,
   timestamp,
-} from 'drizzle-orm/pg-core'
-import { sites } from './sites.js'
-import { users } from './users.js'
+} from 'drizzle-orm/pg-core';
+import { sites } from './sites.js';
+import { users } from './users.js';
 
 // =============================================================================
 // Custom Vector Type for pgvector
@@ -29,17 +29,17 @@ import { users } from './users.js'
 // Define vector type for embeddings (requires pgvector extension)
 const vector = customType<{ data: number[]; driverData: string }>({
   dataType(config) {
-    return `vector(${(config as { dimensions: number })?.dimensions ?? 1536})`
+    return `vector(${(config as { dimensions: number })?.dimensions ?? 1536})`;
   },
   toDriver(value: number[]): string {
-    return `[${value.join(',')}]`
+    return `[${value.join(',')}]`;
   },
   fromDriver(value: string): number[] {
     // Parse PostgreSQL vector format: [1,2,3]
-    const parsed = JSON.parse(value.replace(/^\[/, '[').replace(/\]$/, ']')) as number[]
-    return parsed
+    const parsed = JSON.parse(value.replace(/^\[/, '[').replace(/\]$/, ']')) as number[];
+    return parsed;
   },
-})
+});
 
 // =============================================================================
 // Agent Contexts Table
@@ -68,7 +68,7 @@ export const agentContexts = pgTable('agent_contexts', {
   // Timestamps
   createdAt: timestamp('created_at', { withTimezone: true }).defaultNow().notNull(),
   updatedAt: timestamp('updated_at', { withTimezone: true }).defaultNow().notNull(),
-})
+});
 
 // =============================================================================
 // Agent Memories Table (Long-term memory)
@@ -129,7 +129,7 @@ export const agentMemories = pgTable(
     index('agent_memories_expires_at_idx').on(table.expiresAt),
     index('agent_memories_type_idx').on(table.type),
   ],
-)
+);
 
 // =============================================================================
 // Conversations Table
@@ -159,7 +159,7 @@ export const conversations = pgTable('conversations', {
   // Timestamps
   createdAt: timestamp('created_at', { withTimezone: true }).defaultNow().notNull(),
   updatedAt: timestamp('updated_at', { withTimezone: true }).defaultNow().notNull(),
-})
+});
 
 // =============================================================================
 // Messages Table (separate from conversations for sync)
@@ -180,7 +180,7 @@ export const messages = pgTable('messages', {
 
   // Timing
   timestamp: timestamp('timestamp', { withTimezone: true }).defaultNow().notNull(),
-})
+});
 
 // =============================================================================
 // User Devices Table (for multi-device sync)
@@ -208,7 +208,7 @@ export const userDevices = pgTable('user_devices', {
   // Timestamps
   createdAt: timestamp('created_at', { withTimezone: true }).defaultNow().notNull(),
   updatedAt: timestamp('updated_at', { withTimezone: true }).defaultNow().notNull(),
-})
+});
 
 // =============================================================================
 // Sync Metadata Table (for tracking sync state)
@@ -237,7 +237,7 @@ export const syncMetadata = pgTable('sync_metadata', {
   // Timestamps
   createdAt: timestamp('created_at', { withTimezone: true }).defaultNow().notNull(),
   updatedAt: timestamp('updated_at', { withTimezone: true }).defaultNow().notNull(),
-})
+});
 
 // =============================================================================
 // Agent Actions Table (Audit log of agent actions)
@@ -273,7 +273,7 @@ export const agentActions = pgTable('agent_actions', {
   // Context for understanding the action
   reasoning: text('reasoning'),
   confidence: real('confidence'),
-})
+});
 
 // =============================================================================
 // AI Memory Sessions Table (Ownership binding for CRDT memory sessions)
@@ -294,10 +294,10 @@ export const aiMemorySessions = pgTable('ai_memory_sessions', {
     .references(() => users.id, { onDelete: 'cascade' }),
 
   createdAt: timestamp('created_at', { withTimezone: true }).defaultNow().notNull(),
-})
+});
 
-export type AiMemorySession = typeof aiMemorySessions.$inferSelect
-export type NewAiMemorySession = typeof aiMemorySessions.$inferInsert
+export type AiMemorySession = typeof aiMemorySessions.$inferSelect;
+export type NewAiMemorySession = typeof aiMemorySessions.$inferInsert;
 
 // =============================================================================
 // Registered Agents Table (Persisted A2A agent definitions)
@@ -308,7 +308,7 @@ export const registeredAgents = pgTable('registered_agents', {
   definition: jsonb('definition').$type<unknown>().notNull(),
   createdAt: timestamp('created_at', { withTimezone: true }).defaultNow().notNull(),
   updatedAt: timestamp('updated_at', { withTimezone: true }).defaultNow().notNull(),
-})
+});
 
 // =============================================================================
 // Type exports for Drizzle
@@ -342,24 +342,24 @@ export const agentTaskUsage = pgTable(
     updatedAt: timestamp('updated_at', { withTimezone: true }).defaultNow().notNull(),
   },
   (table) => [primaryKey({ columns: [table.userId, table.cycleStart] })],
-)
+);
 
-export type AgentTaskUsage = typeof agentTaskUsage.$inferSelect
-export type NewAgentTaskUsage = typeof agentTaskUsage.$inferInsert
+export type AgentTaskUsage = typeof agentTaskUsage.$inferSelect;
+export type NewAgentTaskUsage = typeof agentTaskUsage.$inferInsert;
 
-export type AgentContext = typeof agentContexts.$inferSelect
-export type NewAgentContext = typeof agentContexts.$inferInsert
-export type AgentMemory = typeof agentMemories.$inferSelect
-export type NewAgentMemory = typeof agentMemories.$inferInsert
-export type Conversation = typeof conversations.$inferSelect
-export type NewConversation = typeof conversations.$inferInsert
-export type Message = typeof messages.$inferSelect
-export type NewMessage = typeof messages.$inferInsert
-export type UserDevice = typeof userDevices.$inferSelect
-export type NewUserDevice = typeof userDevices.$inferInsert
-export type SyncMetadata = typeof syncMetadata.$inferSelect
-export type NewSyncMetadata = typeof syncMetadata.$inferInsert
-export type AgentAction = typeof agentActions.$inferSelect
-export type NewAgentAction = typeof agentActions.$inferInsert
-export type RegisteredAgent = typeof registeredAgents.$inferSelect
-export type NewRegisteredAgent = typeof registeredAgents.$inferInsert
+export type AgentContext = typeof agentContexts.$inferSelect;
+export type NewAgentContext = typeof agentContexts.$inferInsert;
+export type AgentMemory = typeof agentMemories.$inferSelect;
+export type NewAgentMemory = typeof agentMemories.$inferInsert;
+export type Conversation = typeof conversations.$inferSelect;
+export type NewConversation = typeof conversations.$inferInsert;
+export type Message = typeof messages.$inferSelect;
+export type NewMessage = typeof messages.$inferInsert;
+export type UserDevice = typeof userDevices.$inferSelect;
+export type NewUserDevice = typeof userDevices.$inferInsert;
+export type SyncMetadata = typeof syncMetadata.$inferSelect;
+export type NewSyncMetadata = typeof syncMetadata.$inferInsert;
+export type AgentAction = typeof agentActions.$inferSelect;
+export type NewAgentAction = typeof agentActions.$inferInsert;
+export type RegisteredAgent = typeof registeredAgents.$inferSelect;
+export type NewRegisteredAgent = typeof registeredAgents.$inferInsert;

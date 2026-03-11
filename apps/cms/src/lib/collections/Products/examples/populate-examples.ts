@@ -17,8 +17,8 @@ import type {
   Product,
   ProductWithCategories,
   ProductWithRelated,
-} from '@revealui/contracts/entities'
-import type { RevealUIInstance, RevealValue, RevealWhere } from '@revealui/core'
+} from '@revealui/contracts/entities';
+import type { RevealUIInstance, RevealValue, RevealWhere } from '@revealui/core';
 
 // =============================================================================
 // Example 1: Automatic Population with Depth
@@ -47,7 +47,7 @@ export async function getProductWithRelationships(
     collection: 'products',
     id: productId,
     depth: 1, // Populate categories and relatedProducts
-  })) as Product | null
+  })) as Product | null;
 }
 
 // =============================================================================
@@ -80,7 +80,7 @@ export async function getProductLazy(
     collection: 'products',
     id: productId,
     depth: 0,
-  })) as Product | null
+  })) as Product | null;
 }
 
 /**
@@ -91,10 +91,10 @@ export async function loadCategories(
   product: Product,
 ): Promise<Array<{ id: number; name: string }>> {
   if (!product.categories || product.categories.length === 0) {
-    return []
+    return [];
   }
 
-  const categoryIds = product.categories.filter((cat): cat is number => typeof cat === 'number')
+  const categoryIds = product.categories.filter((cat): cat is number => typeof cat === 'number');
 
   const categories = await Promise.all(
     categoryIds.map((id) =>
@@ -103,9 +103,9 @@ export async function loadCategories(
         id,
       }),
     ),
-  )
+  );
 
-  return categories.filter((cat): cat is { id: number; name: string } => cat !== null)
+  return categories.filter((cat): cat is { id: number; name: string } => cat !== null);
 }
 
 /**
@@ -116,10 +116,10 @@ export async function loadRelatedProducts(
   product: Product,
 ): Promise<Product[]> {
   if (!product.relatedProducts || product.relatedProducts.length === 0) {
-    return []
+    return [];
   }
 
-  const productIds = product.relatedProducts.filter((p): p is number => typeof p === 'number')
+  const productIds = product.relatedProducts.filter((p): p is number => typeof p === 'number');
 
   const products = await Promise.all(
     productIds.map((id) =>
@@ -128,9 +128,9 @@ export async function loadRelatedProducts(
         id,
       }),
     ),
-  )
+  );
 
-  return products.filter((p) => p !== null) as unknown as Product[]
+  return products.filter((p) => p !== null) as unknown as Product[];
 }
 
 // =============================================================================
@@ -157,19 +157,19 @@ export async function loadRelatedProducts(
 export async function getProductsBatch(
   revealui: RevealUIInstance,
   options: {
-    where?: Record<string, unknown>
-    depth?: number
-    limit?: number
+    where?: Record<string, unknown>;
+    depth?: number;
+    limit?: number;
   } = {},
 ): Promise<{ docs: Product[]; totalDocs: number }> {
-  const { where = {}, depth = 1, limit = 10 } = options
+  const { where = {}, depth = 1, limit = 10 } = options;
 
   return (await revealui.find({
     collection: 'products',
     where: where as unknown as RevealWhere,
     depth,
     limit,
-  })) as unknown as { docs: Product[]; totalDocs: number }
+  })) as unknown as { docs: Product[]; totalDocs: number };
 }
 
 // =============================================================================
@@ -200,13 +200,13 @@ export async function getProductSelectivePopulate(
     collection: 'products',
     id: productId,
     depth: 0,
-  })
+  });
 
-  if (!product) return null
+  if (!product) return null;
 
   // Manually populate only needed fields
   if (product.relatedProducts && Array.isArray(product.relatedProducts)) {
-    const relatedIds = product.relatedProducts.filter((p): p is number => typeof p === 'number')
+    const relatedIds = product.relatedProducts.filter((p): p is number => typeof p === 'number');
 
     const relatedProducts = await Promise.all(
       relatedIds.map(async (id) => {
@@ -214,7 +214,7 @@ export async function getProductSelectivePopulate(
           collection: 'products',
           id,
           depth: 0,
-        })
+        });
         // Return only needed fields
         return related
           ? {
@@ -222,17 +222,17 @@ export async function getProductSelectivePopulate(
               title: related.title,
               stripeProductID: related.stripeProductID,
             }
-          : null
+          : null;
       }),
-    )
+    );
 
     // Type assertion to satisfy TypeScript
     product.relatedProducts = relatedProducts.filter(
       (p): p is { id: number; title: string; stripeProductID: string | null } => p !== null,
-    ) as unknown as RevealValue
+    ) as unknown as RevealValue;
   }
 
-  return product as unknown as Product
+  return product as unknown as Product;
 }
 
 // =============================================================================
@@ -264,7 +264,7 @@ export async function getProductDeepPopulate(
     collection: 'products',
     id: productId,
     depth: 2, // Populate nested relationships
-  })) as ProductWithRelated | null
+  })) as ProductWithRelated | null;
 }
 
 // =============================================================================
@@ -289,41 +289,41 @@ export async function getProductContextForAI(
   revealui: RevealUIInstance,
   productId: string | number,
 ): Promise<{
-  product: Product
-  categoryNames: string[]
-  relatedProductTitles: string[]
-  priceCount: number
-  hasPaywall: boolean
+  product: Product;
+  categoryNames: string[];
+  relatedProductTitles: string[];
+  priceCount: number;
+  hasPaywall: boolean;
 }> {
   const product = (await revealui.findByID({
     collection: 'products',
     id: productId,
     depth: 1,
-  })) as ProductWithRelated | null
+  })) as ProductWithRelated | null;
 
   if (!product) {
-    throw new Error(`Product ${productId} not found`)
+    throw new Error(`Product ${productId} not found`);
   }
 
   // Extract category names
   const categoryNames =
     product.categories?.map((cat) => (typeof cat === 'object' ? cat.name : '')).filter(Boolean) ||
-    []
+    [];
 
   // Extract related product titles
   const relatedProductTitles =
     product.relatedProducts?.map((p) => (typeof p === 'object' ? p.title : '')).filter(Boolean) ||
-    []
+    [];
 
   // Parse price count
-  let priceCount = 0
+  let priceCount = 0;
   if (product.priceJSON) {
     try {
       const priceData =
-        typeof product.priceJSON === 'string' ? JSON.parse(product.priceJSON) : product.priceJSON
-      priceCount = priceData?.data?.length || 0
+        typeof product.priceJSON === 'string' ? JSON.parse(product.priceJSON) : product.priceJSON;
+      priceCount = priceData?.data?.length || 0;
     } catch {
-      priceCount = 0
+      priceCount = 0;
     }
   }
 
@@ -333,7 +333,7 @@ export async function getProductContextForAI(
     relatedProductTitles,
     priceCount,
     hasPaywall: product.enablePaywall ?? false,
-  }
+  };
 }
 
 // =============================================================================
@@ -361,34 +361,34 @@ export async function enrichProductForAPI(
 ): Promise<
   ProductWithCategories & {
     meta: {
-      categoryCount: number
-      relatedProductCount: number
-      hasRelatedProducts: boolean
-      hasStripeProduct: boolean
-      hasPrices: boolean
-      priceCount: number
-    }
+      categoryCount: number;
+      relatedProductCount: number;
+      hasRelatedProducts: boolean;
+      hasStripeProduct: boolean;
+      hasPrices: boolean;
+      priceCount: number;
+    };
   }
 > {
   const product = (await revealui.findByID({
     collection: 'products',
     id: productId,
     depth: 1,
-  })) as ProductWithCategories | null
+  })) as ProductWithCategories | null;
 
   if (!product) {
-    throw new Error(`Product ${productId} not found`)
+    throw new Error(`Product ${productId} not found`);
   }
 
   // Count prices
-  let priceCount = 0
+  let priceCount = 0;
   if (product.priceJSON) {
     try {
       const priceData =
-        typeof product.priceJSON === 'string' ? JSON.parse(product.priceJSON) : product.priceJSON
-      priceCount = priceData?.data?.length || 0
+        typeof product.priceJSON === 'string' ? JSON.parse(product.priceJSON) : product.priceJSON;
+      priceCount = priceData?.data?.length || 0;
     } catch {
-      priceCount = 0
+      priceCount = 0;
     }
   }
 
@@ -402,7 +402,7 @@ export async function enrichProductForAPI(
       hasPrices: priceCount > 0,
       priceCount,
     },
-  }
+  };
 }
 
 // =============================================================================

@@ -4,16 +4,16 @@
  * Provides utilities for creating isolated test contexts and tracking test data
  */
 
-import { createTestId } from './test-helpers.js'
+import { createTestId } from './test-helpers.js';
 
 /**
  * Test context for tracking test data
  */
 export interface TestContext {
-  userIds: string[]
-  tenantIds: string[]
-  testId: string
-  [key: string]: unknown
+  userIds: string[];
+  tenantIds: string[];
+  testId: string;
+  [key: string]: unknown;
 }
 
 /**
@@ -24,14 +24,14 @@ export function createTestContext(): TestContext {
     userIds: [],
     tenantIds: [],
     testId: createTestId('test'),
-  }
+  };
 }
 
 /**
  * Generate unique test ID
  */
 export function generateTestId(prefix = 'test'): string {
-  return createTestId(prefix)
+  return createTestId(prefix);
 }
 
 /**
@@ -39,13 +39,13 @@ export function generateTestId(prefix = 'test'): string {
  */
 export function trackTestData(context: TestContext, type: string, id: string): void {
   if (type === 'user') {
-    context.userIds.push(id)
+    context.userIds.push(id);
   } else if (type === 'tenant') {
-    context.tenantIds.push(id)
+    context.tenantIds.push(id);
   } else {
     if (!context[`${type}Ids`]) {
-      context[`${type}Ids`] = []
+      context[`${type}Ids`] = [];
     }
-    ;(context[`${type}Ids`] as string[]).push(id)
+    (context[`${type}Ids`] as string[]).push(id);
   }
 }

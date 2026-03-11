@@ -1,38 +1,38 @@
-'use client'
+'use client';
 
-import clsx from 'clsx'
-import type React from 'react'
-import { createContext, use, useCallback, useMemo, useRef, useState } from 'react'
-import { createPortal } from 'react-dom'
-import { useClickOutside } from '../hooks/use-click-outside.js'
-import { useDataInteractive } from '../hooks/use-data-interactive.js'
-import { useEscapeKey } from '../hooks/use-escape-key.js'
-import { usePopover } from '../hooks/use-popover.js'
-import { useRovingTabindex } from '../hooks/use-roving-tabindex.js'
-import { useTransition } from '../hooks/use-transition.js'
-import { useTypeAhead } from '../hooks/use-type-ahead.js'
-import { Button } from './button-headless.js'
-import { Link } from './link.js'
+import clsx from 'clsx';
+import type React from 'react';
+import { createContext, use, useCallback, useMemo, useRef, useState } from 'react';
+import { createPortal } from 'react-dom';
+import { useClickOutside } from '../hooks/use-click-outside.js';
+import { useDataInteractive } from '../hooks/use-data-interactive.js';
+import { useEscapeKey } from '../hooks/use-escape-key.js';
+import { usePopover } from '../hooks/use-popover.js';
+import { useRovingTabindex } from '../hooks/use-roving-tabindex.js';
+import { useTransition } from '../hooks/use-transition.js';
+import { useTypeAhead } from '../hooks/use-type-ahead.js';
+import { Button } from './button-headless.js';
+import { Link } from './link.js';
 
 // ---------------------------------------------------------------------------
 // Dropdown context
 // ---------------------------------------------------------------------------
 
 interface DropdownContextValue {
-  open: boolean
-  setOpen: (open: boolean) => void
-  close: () => void
-  triggerRef: React.RefObject<HTMLElement | null>
+  open: boolean;
+  setOpen: (open: boolean) => void;
+  close: () => void;
+  triggerRef: React.RefObject<HTMLElement | null>;
 }
 
-const DropdownContext = createContext<DropdownContextValue | null>(null)
+const DropdownContext = createContext<DropdownContextValue | null>(null);
 
 function useDropdownContext(): DropdownContextValue {
-  const ctx = use(DropdownContext)
+  const ctx = use(DropdownContext);
   if (!ctx) {
-    throw new Error('Dropdown compound components must be used within <Dropdown>')
+    throw new Error('Dropdown compound components must be used within <Dropdown>');
   }
-  return ctx
+  return ctx;
 }
 
 // ---------------------------------------------------------------------------
@@ -40,18 +40,18 @@ function useDropdownContext(): DropdownContextValue {
 // ---------------------------------------------------------------------------
 
 interface DropdownItemContextValue {
-  register: (el: HTMLElement) => number
-  unregister: (el: HTMLElement) => void
+  register: (el: HTMLElement) => number;
+  unregister: (el: HTMLElement) => void;
   getItemProps: (index: number) => {
-    tabIndex: number
-    'data-focus': string | undefined
-    ref: (el: HTMLElement | null) => void
-    onPointerEnter: () => void
-    onClick: () => void
-  }
+    tabIndex: number;
+    'data-focus': string | undefined;
+    ref: (el: HTMLElement | null) => void;
+    onPointerEnter: () => void;
+    onClick: () => void;
+  };
 }
 
-const DropdownItemContext = createContext<DropdownItemContextValue | null>(null)
+const DropdownItemContext = createContext<DropdownItemContextValue | null>(null);
 
 // ---------------------------------------------------------------------------
 // Dropdown (root)
@@ -61,23 +61,23 @@ export function Dropdown({
   children,
   ...props
 }: {
-  children: React.ReactNode
+  children: React.ReactNode;
 } & Omit<React.ComponentPropsWithoutRef<'div'>, 'children'>) {
-  const [open, setOpen] = useState(false)
-  const triggerRef = useRef<HTMLElement | null>(null)
+  const [open, setOpen] = useState(false);
+  const triggerRef = useRef<HTMLElement | null>(null);
 
   const close = useCallback(() => {
-    setOpen(false)
-    triggerRef.current?.focus()
-  }, [])
+    setOpen(false);
+    triggerRef.current?.focus();
+  }, []);
 
-  const value = useMemo(() => ({ open, setOpen, close, triggerRef }), [open, close])
+  const value = useMemo(() => ({ open, setOpen, close, triggerRef }), [open, close]);
 
   return (
     <DropdownContext.Provider value={value}>
       <div {...props}>{children}</div>
     </DropdownContext.Provider>
-  )
+  );
 }
 
 // ---------------------------------------------------------------------------
@@ -89,27 +89,27 @@ export function DropdownButton<T extends React.ElementType = typeof Button>({
   className,
   ...props
 }: {
-  as?: T
-  className?: string
+  as?: T;
+  className?: string;
 } & Omit<React.ComponentPropsWithoutRef<T>, 'className'>) {
-  const { open, setOpen, triggerRef } = useDropdownContext()
-  const interactiveProps = useDataInteractive()
+  const { open, setOpen, triggerRef } = useDropdownContext();
+  const interactiveProps = useDataInteractive();
 
-  const Component = (as ?? Button) as React.ElementType
+  const Component = (as ?? Button) as React.ElementType;
 
   const handleClick = useCallback(() => {
-    setOpen(!open)
-  }, [open, setOpen])
+    setOpen(!open);
+  }, [open, setOpen]);
 
   const handleKeyDown = useCallback(
     (e: React.KeyboardEvent) => {
       if (e.key === 'ArrowDown' || e.key === 'Enter' || e.key === ' ') {
-        e.preventDefault()
-        setOpen(true)
+        e.preventDefault();
+        setOpen(true);
       }
     },
     [setOpen],
-  )
+  );
 
   return (
     <Component
@@ -122,7 +122,7 @@ export function DropdownButton<T extends React.ElementType = typeof Button>({
       onClick={handleClick}
       onKeyDown={handleKeyDown}
     />
-  )
+  );
 }
 
 // ---------------------------------------------------------------------------
@@ -135,88 +135,88 @@ export function DropdownMenu({
   children,
   ...props
 }: {
-  anchor?: 'top' | 'top start' | 'top end' | 'bottom' | 'bottom start' | 'bottom end'
-  className?: string
-  children?: React.ReactNode
+  anchor?: 'top' | 'top start' | 'top end' | 'bottom' | 'bottom start' | 'bottom end';
+  className?: string;
+  children?: React.ReactNode;
 } & Omit<React.ComponentPropsWithoutRef<'div'>, 'className' | 'children'>) {
-  const { open, close, triggerRef } = useDropdownContext()
-  const { mounted, nodeRef, transitionProps } = useTransition(open)
+  const { open, close, triggerRef } = useDropdownContext();
+  const { mounted, nodeRef, transitionProps } = useTransition(open);
   const popover = usePopover({
     open,
     anchor,
     gap: 8,
     padding: 4,
-  })
+  });
 
   // Combined ref for transition nodeRef + popover popoverRef + local ref
-  const menuRef = useRef<HTMLDivElement | null>(null)
+  const menuRef = useRef<HTMLDivElement | null>(null);
   const combinedRef = useCallback(
     (el: HTMLDivElement | null) => {
-      menuRef.current = el
-      ;(popover.popoverRef as React.MutableRefObject<HTMLElement | null>).current = el
-      ;(nodeRef as React.MutableRefObject<HTMLElement | null>).current = el
+      menuRef.current = el;
+      (popover.popoverRef as React.MutableRefObject<HTMLElement | null>).current = el;
+      (nodeRef as React.MutableRefObject<HTMLElement | null>).current = el;
     },
     [popover.popoverRef, nodeRef],
-  )
+  );
 
   // Point popover's triggerRef at the dropdown's trigger element
-  ;(popover.triggerRef as React.MutableRefObject<HTMLElement | null>).current = triggerRef.current
+  (popover.triggerRef as React.MutableRefObject<HTMLElement | null>).current = triggerRef.current;
 
   // Close on click outside (exclude trigger + menu)
-  useClickOutside([triggerRef, menuRef] as React.RefObject<HTMLElement | null>[], close, open)
+  useClickOutside([triggerRef, menuRef] as React.RefObject<HTMLElement | null>[], close, open);
 
   // Close on Escape
-  useEscapeKey(close, open)
+  useEscapeKey(close, open);
 
   // Track interactive items for roving tabindex
-  const itemElements = useRef<HTMLElement[]>([])
-  const [itemCount, setItemCount] = useState(0)
+  const itemElements = useRef<HTMLElement[]>([]);
+  const [itemCount, setItemCount] = useState(0);
 
   const register = useCallback((el: HTMLElement): number => {
     if (!itemElements.current.includes(el)) {
-      itemElements.current.push(el)
-      setItemCount(itemElements.current.length)
+      itemElements.current.push(el);
+      setItemCount(itemElements.current.length);
     }
-    return itemElements.current.indexOf(el)
-  }, [])
+    return itemElements.current.indexOf(el);
+  }, []);
 
   const unregister = useCallback((el: HTMLElement): void => {
-    const idx = itemElements.current.indexOf(el)
+    const idx = itemElements.current.indexOf(el);
     if (idx !== -1) {
-      itemElements.current.splice(idx, 1)
-      setItemCount(itemElements.current.length)
+      itemElements.current.splice(idx, 1);
+      setItemCount(itemElements.current.length);
     }
-  }, [])
+  }, []);
 
   const roving = useRovingTabindex({
     itemCount,
     initialIndex: -1,
     orientation: 'vertical',
     loop: true,
-  })
+  });
 
   const typeAhead = useTypeAhead({
     getItemText: (index) => itemElements.current[index]?.textContent ?? '',
     itemCount,
     onMatch: (index) => roving.setActiveIndex(index),
-  })
+  });
 
   const handleKeyDown = useCallback(
     (e: React.KeyboardEvent) => {
-      roving.containerProps.onKeyDown(e)
-      typeAhead.onKeyDown(e)
+      roving.containerProps.onKeyDown(e);
+      typeAhead.onKeyDown(e);
 
       // Enter/Space selects the active item
       if (e.key === 'Enter' || e.key === ' ') {
-        e.preventDefault()
-        const activeEl = itemElements.current[roving.activeIndex]
+        e.preventDefault();
+        const activeEl = itemElements.current[roving.activeIndex];
         if (activeEl) {
-          activeEl.click()
+          activeEl.click();
         }
       }
     },
     [roving, typeAhead],
-  )
+  );
 
   const itemContextValue = useMemo<DropdownItemContextValue>(
     () => ({
@@ -225,9 +225,9 @@ export function DropdownMenu({
       getItemProps: roving.getItemProps,
     }),
     [register, unregister, roving.getItemProps],
-  )
+  );
 
-  if (!mounted) return null
+  if (!mounted) return null;
 
   return createPortal(
     <DropdownItemContext.Provider value={itemContextValue}>
@@ -263,7 +263,7 @@ export function DropdownMenu({
       </div>
     </DropdownItemContext.Provider>,
     document.body,
-  )
+  );
 }
 
 // ---------------------------------------------------------------------------
@@ -275,39 +275,39 @@ export function DropdownItem({
   ...props
 }: { className?: string } & (
   | ({
-      href?: never
-      disabled?: boolean
-      children?: React.ReactNode
-      onClick?: React.MouseEventHandler<HTMLButtonElement>
+      href?: never;
+      disabled?: boolean;
+      children?: React.ReactNode;
+      onClick?: React.MouseEventHandler<HTMLButtonElement>;
     } & Omit<React.ComponentPropsWithoutRef<'button'>, 'className' | 'type'>)
   | ({
-      href: string
-      children?: React.ReactNode
+      href: string;
+      children?: React.ReactNode;
     } & Omit<React.ComponentPropsWithoutRef<typeof Link>, 'className'>)
 )) {
-  const { close } = useDropdownContext()
-  const itemCtx = use(DropdownItemContext)
+  const { close } = useDropdownContext();
+  const itemCtx = use(DropdownItemContext);
   const interactiveProps = useDataInteractive({
     disabled: 'disabled' in props ? (props.disabled ?? false) : false,
-  })
+  });
 
-  const elRef = useRef<HTMLElement | null>(null)
-  const indexRef = useRef(-1)
+  const elRef = useRef<HTMLElement | null>(null);
+  const indexRef = useRef(-1);
 
   // Register this item with the roving tabindex system
   const setRef = useCallback(
     (el: HTMLElement | null) => {
       if (el && itemCtx) {
-        elRef.current = el
-        indexRef.current = itemCtx.register(el)
+        elRef.current = el;
+        indexRef.current = itemCtx.register(el);
       } else if (!el && elRef.current && itemCtx) {
-        itemCtx.unregister(elRef.current)
-        elRef.current = null
-        indexRef.current = -1
+        itemCtx.unregister(elRef.current);
+        elRef.current = null;
+        indexRef.current = -1;
       }
     },
     [itemCtx],
-  )
+  );
 
   const rovingProps =
     itemCtx && indexRef.current >= 0
@@ -324,23 +324,23 @@ export function DropdownItem({
           onClick: () => {
             /* no-op */
           },
-        }
+        };
 
-  const propsDisabled = 'disabled' in props ? props.disabled : false
+  const propsDisabled = 'disabled' in props ? props.disabled : false;
   const propsOnClick =
     'onClick' in props && typeof props.onClick === 'function'
       ? (props.onClick as (e: React.MouseEvent<HTMLElement>) => void)
-      : undefined
+      : undefined;
 
   const handleClick = useCallback(
     (e: React.MouseEvent<HTMLElement>) => {
-      if (propsDisabled) return
-      rovingProps.onClick()
-      propsOnClick?.(e)
-      close()
+      if (propsDisabled) return;
+      rovingProps.onClick();
+      propsOnClick?.(e);
+      close();
     },
     [close, propsDisabled, propsOnClick, rovingProps],
-  )
+  );
 
   const classes = clsx(
     className,
@@ -361,13 +361,13 @@ export function DropdownItem({
     '*:data-[slot=icon]:text-zinc-500 data-focus:*:data-[slot=icon]:text-white dark:*:data-[slot=icon]:text-zinc-400 dark:data-focus:*:data-[slot=icon]:text-white',
     // Avatar
     '*:data-[slot=avatar]:mr-2.5 *:data-[slot=avatar]:-ml-1 *:data-[slot=avatar]:size-6 sm:*:data-[slot=avatar]:mr-2 sm:*:data-[slot=avatar]:size-5',
-  )
+  );
 
   if (typeof props.href === 'string') {
     const { href, children, ...linkProps } = props as {
-      href: string
-      children?: React.ReactNode
-    } & React.ComponentPropsWithoutRef<typeof Link>
+      href: string;
+      children?: React.ReactNode;
+    } & React.ComponentPropsWithoutRef<typeof Link>;
 
     return (
       <Link
@@ -384,7 +384,7 @@ export function DropdownItem({
       >
         {children}
       </Link>
-    )
+    );
   }
 
   const {
@@ -393,10 +393,10 @@ export function DropdownItem({
     onClick: _onClick,
     ...buttonProps
   } = props as {
-    disabled?: boolean
-    children?: React.ReactNode
-    onClick?: React.MouseEventHandler<HTMLButtonElement>
-  } & Omit<React.ComponentPropsWithoutRef<'button'>, 'className' | 'type'>
+    disabled?: boolean;
+    children?: React.ReactNode;
+    onClick?: React.MouseEventHandler<HTMLButtonElement>;
+  } & Omit<React.ComponentPropsWithoutRef<'button'>, 'className' | 'type'>;
 
   return (
     <button
@@ -414,7 +414,7 @@ export function DropdownItem({
     >
       {children}
     </button>
-  )
+  );
 }
 
 // ---------------------------------------------------------------------------
@@ -422,7 +422,7 @@ export function DropdownItem({
 // ---------------------------------------------------------------------------
 
 export function DropdownHeader({ className, ...props }: React.ComponentPropsWithoutRef<'div'>) {
-  return <div {...props} className={clsx(className, 'col-span-5 px-3.5 pt-2.5 pb-1 sm:px-3')} />
+  return <div {...props} className={clsx(className, 'col-span-5 px-3.5 pt-2.5 pb-1 sm:px-3')} />;
 }
 
 // ---------------------------------------------------------------------------
@@ -433,7 +433,7 @@ export function DropdownSection({
   className,
   ...props
 }: {
-  className?: string
+  className?: string;
 } & Omit<React.ComponentPropsWithoutRef<'div'>, 'className'>) {
   return (
     <div
@@ -445,7 +445,7 @@ export function DropdownSection({
         'col-span-full supports-[grid-template-columns:subgrid]:grid supports-[grid-template-columns:subgrid]:grid-cols-[auto_1fr_1.5rem_0.5rem_auto]',
       )}
     />
-  )
+  );
 }
 
 // ---------------------------------------------------------------------------
@@ -456,7 +456,7 @@ export function DropdownHeading({
   className,
   ...props
 }: {
-  className?: string
+  className?: string;
 } & Omit<React.ComponentPropsWithoutRef<'div'>, 'className'>) {
   return (
     <div
@@ -467,7 +467,7 @@ export function DropdownHeading({
         'col-span-full grid grid-cols-[1fr_auto] gap-x-12 px-3.5 pt-2 pb-1 text-sm/5 font-medium text-zinc-500 sm:px-3 sm:text-xs/5 dark:text-zinc-400',
       )}
     />
-  )
+  );
 }
 
 // ---------------------------------------------------------------------------
@@ -478,7 +478,7 @@ export function DropdownDivider({
   className,
   ...props
 }: {
-  className?: string
+  className?: string;
 } & Omit<React.ComponentPropsWithoutRef<'hr'>, 'className'>) {
   return (
     <hr
@@ -488,7 +488,7 @@ export function DropdownDivider({
         'col-span-full mx-3.5 my-1 h-px border-0 bg-zinc-950/5 sm:mx-3 dark:bg-white/10 forced-colors:bg-[CanvasText]',
       )}
     />
-  )
+  );
 }
 
 // ---------------------------------------------------------------------------
@@ -496,7 +496,9 @@ export function DropdownDivider({
 // ---------------------------------------------------------------------------
 
 export function DropdownLabel({ className, ...props }: React.ComponentPropsWithoutRef<'div'>) {
-  return <div {...props} data-slot="label" className={clsx(className, 'col-start-2 row-start-1')} />
+  return (
+    <div {...props} data-slot="label" className={clsx(className, 'col-start-2 row-start-1')} />
+  );
 }
 
 // ---------------------------------------------------------------------------
@@ -507,7 +509,7 @@ export function DropdownDescription({
   className,
   ...props
 }: {
-  className?: string
+  className?: string;
 } & Omit<React.ComponentPropsWithoutRef<'span'>, 'className'>) {
   return (
     <span
@@ -518,7 +520,7 @@ export function DropdownDescription({
         'col-span-2 col-start-2 row-start-2 text-sm/5 text-zinc-500 group-data-focus:text-white sm:text-xs/5 dark:text-zinc-400 forced-colors:group-data-focus:text-[HighlightText]',
       )}
     />
-  )
+  );
 }
 
 // ---------------------------------------------------------------------------
@@ -530,8 +532,8 @@ export function DropdownShortcut({
   className,
   ...props
 }: {
-  keys: string | string[]
-  className?: string
+  keys: string | string[];
+  className?: string;
 } & Omit<React.ComponentPropsWithoutRef<'kbd'>, 'className' | 'children'>) {
   return (
     <kbd {...props} className={clsx(className, 'col-start-5 row-start-1 flex justify-self-end')}>
@@ -548,8 +550,8 @@ export function DropdownShortcut({
           >
             {char}
           </kbd>
-        )
+        );
       })}
     </kbd>
-  )
+  );
 }

@@ -16,22 +16,22 @@
 // Control verbose logging
 const VERBOSE_LOGGING =
   process.env.DB_VERBOSE !== 'false' &&
-  (process.env.NODE_ENV !== 'production' || process.env.CI !== 'true')
+  (process.env.NODE_ENV !== 'production' || process.env.CI !== 'true');
 
-import { mkdirSync, writeFileSync } from 'node:fs'
-import { dirname, join } from 'node:path'
-import { fileURLToPath } from 'node:url'
-import { logger } from '@revealui/utils/logger'
-import { discoverTables, validateTables } from './discover.js'
+import { mkdirSync, writeFileSync } from 'node:fs';
+import { dirname, join } from 'node:path';
+import { fileURLToPath } from 'node:url';
+import { logger } from '@revealui/utils/logger';
+import { discoverTables, validateTables } from './discover.js';
 
-const __filename = fileURLToPath(import.meta.url)
-const __dirname = dirname(__filename)
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = dirname(__filename);
 
 /**
  * Convert camelCase to PascalCase for type names
  */
 function toPascalCase(str: string): string {
-  return str.charAt(0).toUpperCase() + str.slice(1)
+  return str.charAt(0).toUpperCase() + str.slice(1);
 }
 
 /**
@@ -39,25 +39,25 @@ function toPascalCase(str: string): string {
  */
 export function generateContracts(): void {
   // Discover all tables
-  const discoveryResult = discoverTables()
-  const { tables, errors: discoveryErrors } = discoveryResult
+  const discoveryResult = discoverTables();
+  const { tables, errors: discoveryErrors } = discoveryResult;
 
   // Log discovery errors (warnings)
   if (discoveryErrors.length > 0) {
     for (const error of discoveryErrors) {
       const location = error.position
         ? `${error.file}:${error.position.line}:${error.position.column}`
-        : error.file
-      logger.warn(`⚠️  ${location}: ${error.message}${error.context ? ` (${error.context})` : ''}`)
+        : error.file;
+      logger.warn(`⚠️  ${location}: ${error.message}${error.context ? ` (${error.context})` : ''}`);
     }
   }
 
   // Validate tables
-  const validation = validateTables(tables)
+  const validation = validateTables(tables);
   if (!validation.valid) {
     throw new Error(
       `Table validation failed:\n${validation.errors.map((e) => `  - ${e}`).join('\n')}`,
-    )
+    );
   }
 
   // Generate file header
@@ -78,12 +78,12 @@ export function generateContracts(): void {
 import { createContract } from '../foundation/contract.js'
 import * as Schemas from '@revealui/contracts/generated/zod-schemas'
 
-`
+`;
 
   // Generate contracts for each table
   const contracts = tables
     .map((table) => {
-      const pascalName = toPascalCase(table.variableName)
+      const pascalName = toPascalCase(table.variableName);
       return `// =============================================================================
 // ${pascalName} Contracts
 // =============================================================================
@@ -109,34 +109,34 @@ export const ${pascalName}InsertContract = createContract({
   description: 'Database insert contract for ${table.tableName} table',
   schema: Schemas.${pascalName}InsertSchema,
 })
-`
+`;
     })
-    .join('\n')
+    .join('\n');
 
   // Combine header and contracts
-  const content = header + contracts
+  const content = header + contracts;
 
   // Write to contracts package
-  const outputPath = join(__dirname, '../../../contracts/src/generated/contracts.ts')
-  mkdirSync(dirname(outputPath), { recursive: true })
-  writeFileSync(outputPath, content, 'utf-8')
+  const outputPath = join(__dirname, '../../../contracts/src/generated/contracts.ts');
+  mkdirSync(dirname(outputPath), { recursive: true });
+  writeFileSync(outputPath, content, 'utf-8');
 
   if (VERBOSE_LOGGING) {
-    logger.info(`✅ Generated Contract wrappers: ${outputPath}`)
-    logger.info(`   - ${tables.length} tables processed`)
-    logger.info(`   - ${tables.length * 2} contracts generated (Row + Insert)`)
+    logger.info(`✅ Generated Contract wrappers: ${outputPath}`);
+    logger.info(`   - ${tables.length} tables processed`);
+    logger.info(`   - ${tables.length * 2} contracts generated (Row + Insert)`);
   }
 }
 
 // Run if executed directly
 if (import.meta.url === `file://${process.argv[1]}`) {
   try {
-    generateContracts()
+    generateContracts();
     if (VERBOSE_LOGGING) {
-      logger.info('✨ Contract generation complete!')
+      logger.info('✨ Contract generation complete!');
     }
   } catch (error) {
-    logger.error('❌ Error generating contracts:', error instanceof Error ? error : undefined)
-    process.exit(1)
+    logger.error('❌ Error generating contracts:', error instanceof Error ? error : undefined);
+    process.exit(1);
   }
 }

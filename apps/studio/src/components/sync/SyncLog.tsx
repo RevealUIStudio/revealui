@@ -1,5 +1,5 @@
 interface SyncLogProps {
-  entries: string[]
+  entries: string[];
 }
 
 export default function SyncLog({ entries }: SyncLogProps) {
@@ -14,5 +14,5 @@ export default function SyncLog({ entries }: SyncLogProps) {
         ))}
       </div>
     </div>
-  )
+  );
 }

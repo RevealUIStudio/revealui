@@ -1,5 +1,5 @@
-import { ButtonCVA as Button } from '@revealui/presentation/server'
-import Link from 'next/link'
+import { ButtonCVA as Button } from '@revealui/presentation/server';
+import Link from 'next/link';
 
 export default function NotFound() {
   return (
@@ -12,5 +12,5 @@ export default function NotFound() {
         <Link href="/">Go home</Link>
       </Button>
     </div>
-  )
+  );
 }

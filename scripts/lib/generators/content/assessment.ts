@@ -23,33 +23,33 @@
  * ```
  */
 
-import { mkdir, readdir, readFile, writeFile } from 'node:fs/promises'
-import { dirname, join, relative } from 'node:path'
-import { createLogger, fileExists, getProjectRoot, scanDirectoryAll } from '../../index.js'
+import { mkdir, readdir, readFile, writeFile } from 'node:fs/promises';
+import { dirname, join, relative } from 'node:path';
+import { createLogger, fileExists, getProjectRoot, scanDirectoryAll } from '../../index.js';
 
-const logger = createLogger({ prefix: 'Assessment' })
+const logger = createLogger({ prefix: 'Assessment' });
 
 // =============================================================================
 // Types
 // =============================================================================
 
 export interface AssessmentResult {
-  category: string
-  score: number
-  issues: string[]
-  recommendations: string[]
+  category: string;
+  score: number;
+  issues: string[];
+  recommendations: string[];
 }
 
 export interface DocumentationAssessment {
-  overall: number | null
-  results: AssessmentResult[]
-  missingDocs: string[]
-  brokenLinks: string[]
-  timestamp: Date
-  disclaimer: string
-  requiresHumanReview: boolean
-  reviewDate: string | null
-  reviewedBy: string | null
+  overall: number | null;
+  results: AssessmentResult[];
+  missingDocs: string[];
+  brokenLinks: string[];
+  timestamp: Date;
+  disclaimer: string;
+  requiresHumanReview: boolean;
+  reviewDate: string | null;
+  reviewedBy: string | null;
 }
 
 // =============================================================================
@@ -70,10 +70,10 @@ export interface DocumentationAssessment {
 export async function runAssessmentWorkflow(
   options: { projectRoot?: string; outputPath?: string } = {},
 ): Promise<DocumentationAssessment> {
-  logger.header('Running Documentation Assessment Workflow')
+  logger.header('Running Documentation Assessment Workflow');
 
-  const projectRoot = options.projectRoot || (await getProjectRoot(import.meta.url))
-  const outputPath = options.outputPath || join(projectRoot, 'docs', 'assessment-report.json')
+  const projectRoot = options.projectRoot || (await getProjectRoot(import.meta.url));
+  const outputPath = options.outputPath || join(projectRoot, 'docs', 'assessment-report.json');
 
   const assessment: DocumentationAssessment = {
     overall: null,
@@ -85,12 +85,12 @@ export async function runAssessmentWorkflow(
     requiresHumanReview: true,
     reviewDate: null,
     reviewedBy: null,
-  }
+  };
 
   // 1. Check for missing documentation
-  logger.info('Checking for missing documentation...')
-  const missingDocs = await checkMissingDocs(projectRoot)
-  assessment.missingDocs = missingDocs
+  logger.info('Checking for missing documentation...');
+  const missingDocs = await checkMissingDocs(projectRoot);
+  assessment.missingDocs = missingDocs;
 
   if (missingDocs.length > 0) {
     assessment.results.push({
@@ -98,22 +98,22 @@ export async function runAssessmentWorkflow(
       score: Math.max(0, 100 - missingDocs.length * 10),
       issues: missingDocs.map((f) => `Missing README: ${f}`),
       recommendations: ['Add README.md files to undocumented packages'],
-    })
-    logger.warn(`Found ${missingDocs.length} packages without README`)
+    });
+    logger.warn(`Found ${missingDocs.length} packages without README`);
   } else {
     assessment.results.push({
       category: 'Missing Documentation',
       score: 100,
       issues: [],
       recommendations: [],
-    })
-    logger.success('All packages have README files')
+    });
+    logger.success('All packages have README files');
   }
 
   // 2. Check link validity
-  logger.info('Checking documentation links...')
-  const brokenLinks = await checkBrokenLinks(projectRoot)
-  assessment.brokenLinks = brokenLinks
+  logger.info('Checking documentation links...');
+  const brokenLinks = await checkBrokenLinks(projectRoot);
+  assessment.brokenLinks = brokenLinks;
 
   if (brokenLinks.length > 0) {
     assessment.results.push({
@@ -121,48 +121,48 @@ export async function runAssessmentWorkflow(
       score: Math.max(0, 100 - brokenLinks.length * 5),
       issues: brokenLinks.map((l) => `Broken link: ${l}`),
       recommendations: ['Fix or remove broken links in documentation'],
-    })
-    logger.warn(`Found ${brokenLinks.length} broken links`)
+    });
+    logger.warn(`Found ${brokenLinks.length} broken links`);
   } else {
     assessment.results.push({
       category: 'Link Validation',
       score: 100,
       issues: [],
       recommendations: [],
-    })
-    logger.success('All documentation links are valid')
+    });
+    logger.success('All documentation links are valid');
   }
 
   // 3. Check API documentation coverage
-  logger.info('Checking API documentation coverage...')
-  const apiCoverage = await checkAPICoverage(projectRoot)
-  assessment.results.push(apiCoverage)
+  logger.info('Checking API documentation coverage...');
+  const apiCoverage = await checkAPICoverage(projectRoot);
+  assessment.results.push(apiCoverage);
 
   if (apiCoverage.score < 100) {
-    logger.warn(`API documentation coverage: ${apiCoverage.score}%`)
+    logger.warn(`API documentation coverage: ${apiCoverage.score}%`);
   } else {
-    logger.success('API documentation coverage: 100%')
+    logger.success('API documentation coverage: 100%');
   }
 
   // 4. Check JSDoc coverage
-  logger.info('Checking JSDoc coverage...')
-  const jsdocCoverage = await checkJSDocCoverage(projectRoot)
-  assessment.results.push(jsdocCoverage)
+  logger.info('Checking JSDoc coverage...');
+  const jsdocCoverage = await checkJSDocCoverage(projectRoot);
+  assessment.results.push(jsdocCoverage);
 
   if (jsdocCoverage.score < 80) {
-    logger.warn(`JSDoc coverage: ${jsdocCoverage.score}%`)
+    logger.warn(`JSDoc coverage: ${jsdocCoverage.score}%`);
   } else {
-    logger.success(`JSDoc coverage: ${jsdocCoverage.score}%`)
+    logger.success(`JSDoc coverage: ${jsdocCoverage.score}%`);
   }
 
   // Save assessment report
-  await mkdir(dirname(outputPath), { recursive: true })
-  await writeFile(outputPath, JSON.stringify(assessment, null, 2))
+  await mkdir(dirname(outputPath), { recursive: true });
+  await writeFile(outputPath, JSON.stringify(assessment, null, 2));
 
   // Print summary
-  printAssessmentSummary(assessment, outputPath)
+  printAssessmentSummary(assessment, outputPath);
 
-  return assessment
+  return assessment;
 }
 
 // =============================================================================
@@ -176,17 +176,17 @@ export async function runAssessmentWorkflow(
  * @returns Array of package names without READMEs
  */
 export async function checkMissingDocs(projectRoot: string): Promise<string[]> {
-  const packagesDir = join(projectRoot, 'packages')
-  const missing: string[] = []
+  const packagesDir = join(projectRoot, 'packages');
+  const missing: string[] = [];
 
   try {
-    const entries = await readdir(packagesDir, { withFileTypes: true })
+    const entries = await readdir(packagesDir, { withFileTypes: true });
 
     for (const entry of entries) {
       if (entry.isDirectory()) {
-        const readmePath = join(packagesDir, entry.name, 'README.md')
+        const readmePath = join(packagesDir, entry.name, 'README.md');
         if (!(await fileExists(readmePath))) {
-          missing.push(entry.name)
+          missing.push(entry.name);
         }
       }
     }
@@ -194,7 +194,7 @@ export async function checkMissingDocs(projectRoot: string): Promise<string[]> {
     // Packages dir doesn't exist
   }
 
-  return missing
+  return missing;
 }
 
 /**
@@ -204,39 +204,39 @@ export async function checkMissingDocs(projectRoot: string): Promise<string[]> {
  * @returns Array of broken link descriptions
  */
 export async function checkBrokenLinks(projectRoot: string): Promise<string[]> {
-  const docsDir = join(projectRoot, 'docs')
-  const brokenLinks: string[] = []
+  const docsDir = join(projectRoot, 'docs');
+  const brokenLinks: string[] = [];
 
   try {
     const files = await scanDirectoryAll(docsDir, {
       extensions: ['.md'],
-    })
+    });
 
     for (const fullPath of files) {
-      const content = await readFile(fullPath, 'utf-8')
+      const content = await readFile(fullPath, 'utf-8');
 
       // Find markdown links: [text](path)
-      const linkRegex = /\[([^\]]+)\]\(([^)]+)\)/g
-      let match = linkRegex.exec(content)
+      const linkRegex = /\[([^\]]+)\]\(([^)]+)\)/g;
+      let match = linkRegex.exec(content);
 
       while (match !== null) {
-        const linkPath = match[2]
+        const linkPath = match[2];
 
         // Check relative links (skip external URLs and anchors)
         if (!(linkPath.startsWith('http') || linkPath.startsWith('#'))) {
-          const absolutePath = join(dirname(fullPath), linkPath.split('#')[0])
+          const absolutePath = join(dirname(fullPath), linkPath.split('#')[0]);
           if (!(await fileExists(absolutePath))) {
-            brokenLinks.push(`${relative(projectRoot, fullPath)}: ${linkPath}`)
+            brokenLinks.push(`${relative(projectRoot, fullPath)}: ${linkPath}`);
           }
         }
-        match = linkRegex.exec(content)
+        match = linkRegex.exec(content);
       }
     }
   } catch {
     // Directory doesn't exist
   }
 
-  return brokenLinks
+  return brokenLinks;
 }
 
 /**
@@ -246,40 +246,40 @@ export async function checkBrokenLinks(projectRoot: string): Promise<string[]> {
  * @returns Assessment result
  */
 export async function checkAPICoverage(projectRoot: string): Promise<AssessmentResult> {
-  const apiDir = join(projectRoot, 'apps', 'cms', 'src', 'app', 'api')
-  let totalEndpoints = 0
-  let documentedEndpoints = 0
-  const undocumented: string[] = []
+  const apiDir = join(projectRoot, 'apps', 'cms', 'src', 'app', 'api');
+  let totalEndpoints = 0;
+  let documentedEndpoints = 0;
+  const undocumented: string[] = [];
 
   async function scan(dir: string, currentPath = ''): Promise<void> {
     try {
-      const entries = await readdir(dir, { withFileTypes: true })
+      const entries = await readdir(dir, { withFileTypes: true });
 
       for (const entry of entries) {
-        const fullPath = join(dir, entry.name)
+        const fullPath = join(dir, entry.name);
 
         if (entry.isDirectory()) {
-          await scan(fullPath, `${currentPath}/${entry.name}`)
+          await scan(fullPath, `${currentPath}/${entry.name}`);
         } else if (entry.name === 'route.ts' || entry.name === 'route.js') {
-          const content = await readFile(fullPath, 'utf-8')
-          const methods = ['GET', 'POST', 'PUT', 'PATCH', 'DELETE']
+          const content = await readFile(fullPath, 'utf-8');
+          const methods = ['GET', 'POST', 'PUT', 'PATCH', 'DELETE'];
 
           for (const method of methods) {
             if (
               content.includes(`export async function ${method}`) ||
               content.includes(`export function ${method}`)
             ) {
-              totalEndpoints++
+              totalEndpoints++;
 
               // Check for JSDoc before the function
               const hasJSDoc =
                 content.includes(`/**`) &&
-                content.indexOf('/**') < content.indexOf(`function ${method}`)
+                content.indexOf('/**') < content.indexOf(`function ${method}`);
 
               if (hasJSDoc) {
-                documentedEndpoints++
+                documentedEndpoints++;
               } else {
-                undocumented.push(`${method} ${currentPath}`)
+                undocumented.push(`${method} ${currentPath}`);
               }
             }
           }
@@ -290,16 +290,16 @@ export async function checkAPICoverage(projectRoot: string): Promise<AssessmentR
     }
   }
 
-  await scan(apiDir)
+  await scan(apiDir);
 
-  const score = totalEndpoints > 0 ? Math.round((documentedEndpoints / totalEndpoints) * 100) : 100
+  const score = totalEndpoints > 0 ? Math.round((documentedEndpoints / totalEndpoints) * 100) : 100;
 
   return {
     category: 'API Documentation Coverage',
     score,
     issues: undocumented.map((e) => `Undocumented endpoint: ${e}`),
     recommendations: undocumented.length > 0 ? ['Add JSDoc comments to API route handlers'] : [],
-  }
+  };
 }
 
 /**
@@ -309,41 +309,41 @@ export async function checkAPICoverage(projectRoot: string): Promise<AssessmentR
  * @returns Assessment result
  */
 export async function checkJSDocCoverage(projectRoot: string): Promise<AssessmentResult> {
-  const packagesDir = join(projectRoot, 'packages')
-  let totalExports = 0
-  let documentedExports = 0
-  const undocumented: string[] = []
+  const packagesDir = join(projectRoot, 'packages');
+  let totalExports = 0;
+  let documentedExports = 0;
+  const undocumented: string[] = [];
 
   async function scanPackage(pkgDir: string, pkgName: string): Promise<void> {
-    const srcDir = join(pkgDir, 'src')
+    const srcDir = join(pkgDir, 'src');
 
     try {
       const files = await scanDirectoryAll(srcDir, {
         extensions: ['.ts'],
         excludeDirs: ['__tests__', 'test', 'tests'],
         excludePatterns: [/\.test\.ts$/],
-      })
+      });
 
       for (const fullPath of files) {
-        const content = await readFile(fullPath, 'utf-8')
+        const content = await readFile(fullPath, 'utf-8');
 
         // Count exported functions/classes
         const exportMatches = content.match(
           /export\s+(async\s+)?function\s+\w+|export\s+class\s+\w+/g,
-        )
+        );
         if (exportMatches) {
           for (const match of exportMatches) {
-            totalExports++
+            totalExports++;
 
             // Check for JSDoc before export
-            const exportIndex = content.indexOf(match)
-            const precedingContent = content.substring(Math.max(0, exportIndex - 500), exportIndex)
+            const exportIndex = content.indexOf(match);
+            const precedingContent = content.substring(Math.max(0, exportIndex - 500), exportIndex);
 
             if (precedingContent.includes('/**')) {
-              documentedExports++
+              documentedExports++;
             } else {
-              const fileName = relative(pkgDir, fullPath)
-              undocumented.push(`${pkgName}/${fileName}`)
+              const fileName = relative(pkgDir, fullPath);
+              undocumented.push(`${pkgName}/${fileName}`);
             }
           }
         }
@@ -354,17 +354,17 @@ export async function checkJSDocCoverage(projectRoot: string): Promise<Assessmen
   }
 
   try {
-    const entries = await readdir(packagesDir, { withFileTypes: true })
+    const entries = await readdir(packagesDir, { withFileTypes: true });
     for (const entry of entries) {
       if (entry.isDirectory()) {
-        await scanPackage(join(packagesDir, entry.name), entry.name)
+        await scanPackage(join(packagesDir, entry.name), entry.name);
       }
     }
   } catch {
     // Packages dir doesn't exist
   }
 
-  const score = totalExports > 0 ? Math.round((documentedExports / totalExports) * 100) : 100
+  const score = totalExports > 0 ? Math.round((documentedExports / totalExports) * 100) : 100;
 
   return {
     category: 'JSDoc Coverage',
@@ -377,7 +377,7 @@ export async function checkJSDocCoverage(projectRoot: string): Promise<Assessmen
             `${totalExports - documentedExports} exports need documentation`,
           ]
         : [],
-  }
+  };
 }
 
 // =============================================================================
@@ -394,28 +394,28 @@ export function printAssessmentSummary(
   assessment: DocumentationAssessment,
   outputPath: string,
 ): void {
-  logger.divider()
-  logger.header('Assessment Summary')
-  logger.warn('⚠️ AUTOMATED ANALYSIS ONLY - NOT VERIFIED BY HUMANS')
-  logger.divider()
+  logger.divider();
+  logger.header('Assessment Summary');
+  logger.warn('⚠️ AUTOMATED ANALYSIS ONLY - NOT VERIFIED BY HUMANS');
+  logger.divider();
 
   for (const result of assessment.results) {
-    const icon = result.score >= 80 ? '[OK]' : result.score >= 50 ? '[WARN]' : '[ERROR]'
-    logger.info(`${icon} ${result.category}: ${result.score}%`)
+    const icon = result.score >= 80 ? '[OK]' : result.score >= 50 ? '[WARN]' : '[ERROR]';
+    logger.info(`${icon} ${result.category}: ${result.score}%`);
     for (const issue of result.issues.slice(0, 3)) {
-      logger.info(`    - ${issue}`)
+      logger.info(`    - ${issue}`);
     }
     if (result.issues.length > 3) {
-      logger.info(`    ... and ${result.issues.length - 3} more`)
+      logger.info(`    ... and ${result.issues.length - 3} more`);
     }
   }
 
-  logger.divider()
-  logger.warn('Overall score not calculated - requires human review')
-  logger.info(`Report saved to: ${outputPath}`)
-  logger.info('')
-  logger.info('Required before claiming success:')
-  logger.info('  - [ ] Manual code review completed')
-  logger.info('  - [ ] Manual testing performed')
-  logger.info('  - [ ] Stakeholder sign-off obtained')
+  logger.divider();
+  logger.warn('Overall score not calculated - requires human review');
+  logger.info(`Report saved to: ${outputPath}`);
+  logger.info('');
+  logger.info('Required before claiming success:');
+  logger.info('  - [ ] Manual code review completed');
+  logger.info('  - [ ] Manual testing performed');
+  logger.info('  - [ ] Stakeholder sign-off obtained');
 }

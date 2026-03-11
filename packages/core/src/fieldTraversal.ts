@@ -7,14 +7,14 @@
  * @module @revealui/core/fieldTraversal
  */
 
-import type { Field, TabDefinition } from '@revealui/contracts/cms'
-import type { Block } from './fields/config/types.js'
-import type { RevealUITraverseFieldsArgs, RevealUITraverseFieldsResult } from './types/legacy.js'
+import type { Field, TabDefinition } from '@revealui/contracts/cms';
+import type { Block } from './fields/config/types.js';
+import type { RevealUITraverseFieldsArgs, RevealUITraverseFieldsResult } from './types/legacy.js';
 
 /**
  * Traversal mode determines how fields are processed
  */
-type TraversalMode = 'afterChange' | 'afterRead' | 'beforeChange' | 'beforeValidate'
+type TraversalMode = 'afterChange' | 'afterRead' | 'beforeChange' | 'beforeValidate';
 
 /**
  * Core field traversal logic using parallel processing
@@ -30,7 +30,7 @@ export async function traverseFieldsCore(
   args: RevealUITraverseFieldsArgs,
   mode: TraversalMode,
 ): Promise<RevealUITraverseFieldsResult> {
-  const { fields = [], data = {}, path = '', callback } = args
+  const { fields = [], data = {}, path = '', callback } = args;
 
   // Validate inputs
   if (!Array.isArray(fields)) {
@@ -39,39 +39,39 @@ export async function traverseFieldsCore(
       found: [],
       data: { ...data },
       errors: [{ field: 'root', message: 'Fields must be an array' }],
-    }
+    };
   }
 
   // Filter fields using callback (synchronous filtering before async processing)
   const fieldsToProcess = callback
     ? fields.filter((field) => {
-        const fieldPath = path ? `${path}.${field.name || ''}` : field.name || 'unnamed'
-        return callback(field, fieldPath) !== false
+        const fieldPath = path ? `${path}.${field.name || ''}` : field.name || 'unnamed';
+        return callback(field, fieldPath) !== false;
       })
-    : fields
+    : fields;
 
   // Process all fields in parallel using Promise.allSettled()
   // This ensures all fields are processed concurrently, maximizing performance
   const results = await Promise.allSettled(
     fieldsToProcess.map(async (field) => {
-      const fieldPath = path ? `${path}.${field.name || ''}` : field.name || 'unnamed'
+      const fieldPath = path ? `${path}.${field.name || ''}` : field.name || 'unnamed';
 
       // Process field (including nested fields recursively)
-      await processField(field, fieldPath, mode)
+      await processField(field, fieldPath, mode);
 
-      return field
+      return field;
     }),
-  )
+  );
 
   // Aggregate results: separate successful fields from errors
-  const found: Field[] = []
-  const errors: Array<{ field: string; message: string }> = []
+  const found: Field[] = [];
+  const errors: Array<{ field: string; message: string }> = [];
 
   results.forEach((result, index) => {
-    const field = fieldsToProcess[index]
+    const field = fieldsToProcess[index];
 
     if (result.status === 'fulfilled') {
-      found.push(result.value)
+      found.push(result.value);
     } else {
       errors.push({
         field: field?.name || 'unknown',
@@ -79,16 +79,16 @@ export async function traverseFieldsCore(
           result.reason instanceof Error
             ? result.reason.message
             : 'Unknown error during field traversal',
-      })
+      });
     }
-  })
+  });
 
   return {
     traversed: found.length,
     found,
     data: { ...data },
     errors: errors.length > 0 ? errors : undefined,
-  }
+  };
 }
 
 /**
@@ -100,7 +100,7 @@ export async function traverseFieldsCore(
 async function processField(field: Field, path: string, mode: TraversalMode): Promise<void> {
   // Basic validation: ensure field has required properties
   if (!field.type) {
-    throw new Error(`Field missing type property at path: ${path}`)
+    throw new Error(`Field missing type property at path: ${path}`);
   }
 
   // Handle nested field types that need recursive traversal
@@ -111,20 +111,20 @@ async function processField(field: Field, path: string, mode: TraversalMode): Pr
     // Process nested fields in parallel (they're independent)
     await Promise.allSettled(
       field.fields.map(async (nestedField: Field) => {
-        const nestedPath = nestedField.name ? `${path}.${nestedField.name}` : path
-        await processField(nestedField, nestedPath, mode)
+        const nestedPath = nestedField.name ? `${path}.${nestedField.name}` : path;
+        await processField(nestedField, nestedPath, mode);
       }),
-    )
+    );
   }
 
   if (field.type === 'group' && field.fields) {
     // Group fields contain nested fields
     await Promise.allSettled(
       field.fields.map(async (nestedField: Field) => {
-        const nestedPath = nestedField.name ? `${path}.${nestedField.name}` : path
-        await processField(nestedField, nestedPath, mode)
+        const nestedPath = nestedField.name ? `${path}.${nestedField.name}` : path;
+        await processField(nestedField, nestedPath, mode);
       }),
-    )
+    );
   }
 
   if (field.type === 'blocks' && field.blocks) {
@@ -132,25 +132,25 @@ async function processField(field: Field, path: string, mode: TraversalMode): Pr
     if (Array.isArray(field.blocks)) {
       await Promise.allSettled(
         (field.blocks as unknown[]).map(async (blockUnknown) => {
-          const block = blockUnknown as Block
+          const block = blockUnknown as Block;
           if (
             block &&
             typeof block === 'object' &&
             'fields' in block &&
             Array.isArray(block.fields)
           ) {
-            const blockPath = `${path}.${block.slug || 'block'}`
+            const blockPath = `${path}.${block.slug || 'block'}`;
             await Promise.allSettled(
               block.fields.map(async (blockField: Field) => {
                 const blockFieldPath = blockField.name
                   ? `${blockPath}.${blockField.name}`
-                  : blockPath
-                await processField(blockField, blockFieldPath, mode)
+                  : blockPath;
+                await processField(blockField, blockFieldPath, mode);
               }),
-            )
+            );
           }
         }),
-      )
+      );
     }
   }
 
@@ -159,18 +159,18 @@ async function processField(field: Field, path: string, mode: TraversalMode): Pr
     if (Array.isArray(field.tabs)) {
       await Promise.allSettled(
         field.tabs.map(async (tabUnknown) => {
-          const tab = tabUnknown as TabDefinition
+          const tab = tabUnknown as TabDefinition;
           if (tab && 'fields' in tab && Array.isArray(tab.fields)) {
-            const tabPath = `${path}.${tab.name || 'tab'}`
+            const tabPath = `${path}.${tab.name || 'tab'}`;
             await Promise.allSettled(
               tab.fields.map(async (tabField: Field) => {
-                const tabFieldPath = tabField.name ? `${tabPath}.${tabField.name}` : tabPath
-                await processField(tabField, tabFieldPath, mode)
+                const tabFieldPath = tabField.name ? `${tabPath}.${tabField.name}` : tabPath;
+                await processField(tabField, tabFieldPath, mode);
               }),
-            )
+            );
           }
         }),
-      )
+      );
     }
   }
 }

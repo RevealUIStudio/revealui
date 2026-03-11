@@ -5,7 +5,7 @@
  * Verifies that all SQL queries use validated inputs.
  */
 
-import { describe, expect, it } from 'vitest'
+import { describe, expect, it } from 'vitest';
 
 /**
  * Validates that a string is a safe SQL identifier (table/column name)
@@ -16,13 +16,13 @@ import { describe, expect, it } from 'vitest'
 function validateSQLIdentifier(identifier: string): void {
   // Check type first - must be a non-empty string
   if (typeof identifier !== 'string' || identifier.length === 0) {
-    throw new Error(`Invalid SQL identifier: ${identifier}. Must be a non-empty string.`)
+    throw new Error(`Invalid SQL identifier: ${identifier}. Must be a non-empty string.`);
   }
 
   if (!/^[a-zA-Z0-9_]+$/.test(identifier)) {
     throw new Error(
       `Invalid SQL identifier: ${identifier}. Only alphanumeric and underscore allowed.`,
-    )
+    );
   }
 }
 
@@ -41,12 +41,12 @@ describe('SQL Injection Prevention', () => {
         'a_1',
         '_users',
         'users_',
-      ]
+      ];
 
       for (const identifier of validIdentifiers) {
-        expect(() => validateSQLIdentifier(identifier)).not.toThrow()
+        expect(() => validateSQLIdentifier(identifier)).not.toThrow();
       }
-    })
+    });
 
     it('should reject SQL injection attempts', () => {
       const maliciousInputs = [
@@ -70,14 +70,14 @@ describe('SQL Injection Prevention', () => {
         "users' OR '1'='1' LIMIT 1--",
         "users' OR '1'='1' LIMIT 1/*",
         "users' OR '1'='1' LIMIT 1#",
-      ]
+      ];
 
       for (const malicious of maliciousInputs) {
         expect(() => validateSQLIdentifier(malicious)).toThrow(
           `Invalid SQL identifier: ${malicious}. Only alphanumeric and underscore allowed.`,
-        )
+        );
       }
-    })
+    });
 
     it('should reject identifiers with special characters', () => {
       const invalidIdentifiers = [
@@ -124,30 +124,30 @@ describe('SQL Injection Prevention', () => {
         '\n',
         '\t',
         '\r',
-      ]
+      ];
 
       for (const invalid of invalidIdentifiers) {
-        expect(() => validateSQLIdentifier(invalid)).toThrow()
+        expect(() => validateSQLIdentifier(invalid)).toThrow();
       }
-    })
+    });
 
     it('should reject identifiers with unicode characters', () => {
-      const unicodeIdentifiers = ['users表', 'users🎉', 'users🚀', 'users💻', 'users🔥']
+      const unicodeIdentifiers = ['users表', 'users🎉', 'users🚀', 'users💻', 'users🔥'];
 
       for (const unicode of unicodeIdentifiers) {
-        expect(() => validateSQLIdentifier(unicode)).toThrow()
+        expect(() => validateSQLIdentifier(unicode)).toThrow();
       }
-    })
+    });
 
     it('should reject null and undefined', () => {
-      expect(() => validateSQLIdentifier(null as unknown as string)).toThrow()
-      expect(() => validateSQLIdentifier(undefined as unknown as string)).toThrow()
-    })
+      expect(() => validateSQLIdentifier(null as unknown as string)).toThrow();
+      expect(() => validateSQLIdentifier(undefined as unknown as string)).toThrow();
+    });
 
     it('should reject non-string types', () => {
-      expect(() => validateSQLIdentifier(123 as unknown as string)).toThrow()
-      expect(() => validateSQLIdentifier({} as unknown as string)).toThrow()
-      expect(() => validateSQLIdentifier([] as unknown as string)).toThrow()
-    })
-  })
-})
+      expect(() => validateSQLIdentifier(123 as unknown as string)).toThrow();
+      expect(() => validateSQLIdentifier({} as unknown as string)).toThrow();
+      expect(() => validateSQLIdentifier([] as unknown as string)).toThrow();
+    });
+  });
+});

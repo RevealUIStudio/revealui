@@ -5,81 +5,81 @@
  * (created, revoked, expired, reactivated).
  */
 
-import { Hono } from 'hono'
-import { beforeEach, describe, expect, it, vi } from 'vitest'
+import { Hono } from 'hono';
+import { beforeEach, describe, expect, it, vi } from 'vitest';
 
 // ─── Mocks — declared before imports so vi.mock hoisting takes effect ─────────
 
-const mockConstructEvent = vi.fn()
-const mockSubscriptionsUpdate = vi.fn()
-const mockSubscriptionsRetrieve = vi.fn()
-const mockSubscriptionsList = vi.fn()
+const mockConstructEvent = vi.fn();
+const mockSubscriptionsUpdate = vi.fn();
+const mockSubscriptionsRetrieve = vi.fn();
+const mockSubscriptionsList = vi.fn();
 
 vi.mock('stripe', () => ({
   default: vi.fn().mockImplementation(
     // Must use a class — webhooks.ts calls `new Stripe(key)`
     class {
-      webhooks = { constructEvent: mockConstructEvent }
+      webhooks = { constructEvent: mockConstructEvent };
       subscriptions = {
         update: mockSubscriptionsUpdate,
         retrieve: mockSubscriptionsRetrieve,
         list: mockSubscriptionsList,
-      }
+      };
     } as unknown as (...args: unknown[]) => unknown,
   ),
-}))
+}));
 
 vi.mock('@revealui/core/features', () => ({
   isFeatureEnabled: vi.fn(),
-}))
+}));
 
 vi.mock('@revealui/core/license', () => ({
   generateLicenseKey: vi.fn(),
   resetLicenseState: vi.fn(),
-}))
+}));
 
 vi.mock('@revealui/core/observability/logger', () => ({
   logger: { error: vi.fn(), warn: vi.fn(), info: vi.fn(), debug: vi.fn() },
-}))
+}));
 
 // ─── DB Mock — fluent chain for select / insert / update ─────────────────────
 
-const mockAuditAppend = vi.fn()
+const mockAuditAppend = vi.fn();
 
-const mockDbSelectChain = { from: vi.fn(), where: vi.fn(), orderBy: vi.fn(), limit: vi.fn() }
-const mockDbInsertChain = { values: vi.fn() }
-const mockDbUpdateChain = { set: vi.fn(), where: vi.fn() }
+const mockDbSelectChain = { from: vi.fn(), where: vi.fn(), orderBy: vi.fn(), limit: vi.fn() };
+const mockDbInsertChain = { values: vi.fn() };
+const mockDbUpdateChain = { set: vi.fn(), where: vi.fn() };
 
 const mockDb = {
   select: vi.fn(),
   insert: vi.fn(),
   update: vi.fn(),
   transaction: vi.fn(),
-}
+};
 
 vi.mock('@revealui/db', () => ({
   getClient: vi.fn(() => mockDb),
   // Must use a class — auditLicenseEvent calls `new DrizzleAuditStore(db)`
   DrizzleAuditStore: vi.fn().mockImplementation(
     class {
-      append = mockAuditAppend
+      append = mockAuditAppend;
     } as unknown as (...args: unknown[]) => unknown,
   ),
-}))
+}));
 
 // ─── Import under test (after mocks) ─────────────────────────────────────────
 
-import * as featuresModule from '@revealui/core/features'
-import * as licenseModule from '@revealui/core/license'
-import * as loggerModule from '@revealui/core/observability/logger'
-import webhooksApp from '../webhooks.js'
+import * as featuresModule from '@revealui/core/features';
+import * as licenseModule from '@revealui/core/license';
+import * as loggerModule from '@revealui/core/observability/logger';
+import webhooksApp from '../webhooks.js';
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 
 function createApp() {
-  const app = new Hono()
-  app.route('/', webhooksApp)
-  return app
+  const app = new Hono();
+  app.route('/', webhooksApp);
+  return app;
 }
 
 function postStripe(eventJson: unknown, sig = 'valid-sig') {
@@ -87,7 +87,7 @@ function postStripe(eventJson: unknown, sig = 'valid-sig') {
     method: 'POST',
     headers: { 'Content-Type': 'application/json', 'Stripe-Signature': sig },
     body: JSON.stringify(eventJson),
-  })
+  });
 }
 
 function makeSubscriptionDeletedEvent(id: string) {
@@ -95,155 +95,155 @@ function makeSubscriptionDeletedEvent(id: string) {
     id,
     type: 'customer.subscription.deleted',
     data: { object: { id: 'sub_test', customer: 'cus_test' } },
-  }
+  };
 }
 
 // ─── Tests ───────────────────────────────────────────────────────────────────
 
 describe('POST /stripe webhook', () => {
   beforeEach(() => {
-    vi.clearAllMocks()
+    vi.clearAllMocks();
 
     // Defaults for all tests (re-applied after clearAllMocks clears call history
     // but preserves implementations — however, tests that call mockReturnValue
     // inside the test body may change these, so we reset them explicitly here)
-    vi.mocked(featuresModule.isFeatureEnabled).mockReturnValue(false) // audit off
-    vi.mocked(licenseModule.generateLicenseKey).mockResolvedValue('rv-license-key-test-123')
-    mockSubscriptionsUpdate.mockResolvedValue({})
-    mockSubscriptionsRetrieve.mockResolvedValue({ status: 'active', trial_end: null })
-    mockSubscriptionsList.mockResolvedValue({ data: [] })
-    mockAuditAppend.mockResolvedValue(undefined)
+    vi.mocked(featuresModule.isFeatureEnabled).mockReturnValue(false); // audit off
+    vi.mocked(licenseModule.generateLicenseKey).mockResolvedValue('rv-license-key-test-123');
+    mockSubscriptionsUpdate.mockResolvedValue({});
+    mockSubscriptionsRetrieve.mockResolvedValue({ status: 'active', trial_end: null });
+    mockSubscriptionsList.mockResolvedValue({ data: [] });
+    mockAuditAppend.mockResolvedValue(undefined);
 
     // Re-wire fluent chain mocks
-    mockDbSelectChain.from.mockReturnValue(mockDbSelectChain)
-    mockDbSelectChain.where.mockReturnValue(mockDbSelectChain)
-    mockDbSelectChain.orderBy.mockReturnValue(mockDbSelectChain)
-    mockDbSelectChain.limit.mockResolvedValue([]) // default: not found
-    mockDbInsertChain.values.mockResolvedValue(undefined)
-    mockDbUpdateChain.set.mockReturnValue(mockDbUpdateChain)
-    mockDbUpdateChain.where.mockResolvedValue({ rowCount: 1 })
-    mockDb.select.mockReturnValue(mockDbSelectChain)
-    mockDb.insert.mockReturnValue(mockDbInsertChain)
-    mockDb.update.mockReturnValue(mockDbUpdateChain)
+    mockDbSelectChain.from.mockReturnValue(mockDbSelectChain);
+    mockDbSelectChain.where.mockReturnValue(mockDbSelectChain);
+    mockDbSelectChain.orderBy.mockReturnValue(mockDbSelectChain);
+    mockDbSelectChain.limit.mockResolvedValue([]); // default: not found
+    mockDbInsertChain.values.mockResolvedValue(undefined);
+    mockDbUpdateChain.set.mockReturnValue(mockDbUpdateChain);
+    mockDbUpdateChain.where.mockResolvedValue({ rowCount: 1 });
+    mockDb.select.mockReturnValue(mockDbSelectChain);
+    mockDb.insert.mockReturnValue(mockDbInsertChain);
+    mockDb.update.mockReturnValue(mockDbUpdateChain);
     // transaction: execute callback immediately with the same mock db as `tx`
     mockDb.transaction.mockImplementation(async (cb: (tx: typeof mockDb) => Promise<unknown>) =>
       cb(mockDb),
-    )
+    );
 
-    process.env.STRIPE_SECRET_KEY = 'sk_test_placeholder'
-    process.env.STRIPE_WEBHOOK_SECRET = 'whsec_placeholder'
-    process.env.REVEALUI_LICENSE_PRIVATE_KEY = 'fake-private-key'
-  })
+    process.env.STRIPE_SECRET_KEY = 'sk_test_placeholder';
+    process.env.STRIPE_WEBHOOK_SECRET = 'whsec_placeholder';
+    process.env.REVEALUI_LICENSE_PRIVATE_KEY = 'fake-private-key';
+  });
 
   describe('Request validation', () => {
     it('returns 400 when Stripe-Signature header is missing', async () => {
-      const app = createApp()
+      const app = createApp();
       const res = await app.request(
         new Request('http://localhost/stripe', { method: 'POST', body: '{}' }),
-      )
-      expect(res.status).toBe(400)
-      const body = (await res.json()) as Record<string, unknown>
-      expect(body.error).toContain('Missing Stripe-Signature')
-    })
+      );
+      expect(res.status).toBe(400);
+      const body = (await res.json()) as Record<string, unknown>;
+      expect(body.error).toContain('Missing Stripe-Signature');
+    });
 
     it('returns 400 when signature verification fails', async () => {
       mockConstructEvent.mockImplementationOnce(() => {
-        throw new Error('No signatures found matching the expected signature')
-      })
+        throw new Error('No signatures found matching the expected signature');
+      });
 
-      const app = createApp()
-      const res = await app.request(postStripe({}, 'bad-sig'))
-      expect(res.status).toBe(400)
-      const body = (await res.json()) as Record<string, unknown>
-      expect(body.error as string).toContain('Invalid webhook signature')
-    })
+      const app = createApp();
+      const res = await app.request(postStripe({}, 'bad-sig'));
+      expect(res.status).toBe(400);
+      const body = (await res.json()) as Record<string, unknown>;
+      expect(body.error as string).toContain('Invalid webhook signature');
+    });
 
     it('returns 200 for irrelevant event types', async () => {
       mockConstructEvent.mockReturnValueOnce({
         id: 'evt_irrelevant',
         type: 'payment_intent.created',
         data: { object: {} },
-      })
+      });
 
-      const app = createApp()
-      const res = await app.request(postStripe({}))
-      expect(res.status).toBe(200)
-      const body = (await res.json()) as Record<string, unknown>
-      expect(body.received).toBe(true)
-      expect(body.duplicate).toBeUndefined()
-    })
-  })
+      const app = createApp();
+      const res = await app.request(postStripe({}));
+      expect(res.status).toBe(200);
+      const body = (await res.json()) as Record<string, unknown>;
+      expect(body.received).toBe(true);
+      expect(body.duplicate).toBeUndefined();
+    });
+  });
 
   describe('Idempotency', () => {
     it('returns duplicate:true when the same event ID is sent twice', async () => {
-      const event = makeSubscriptionDeletedEvent('evt_idempotency_unique_99')
-      mockConstructEvent.mockReturnValue(event)
+      const event = makeSubscriptionDeletedEvent('evt_idempotency_unique_99');
+      mockConstructEvent.mockReturnValue(event);
 
-      const app = createApp()
+      const app = createApp();
 
       // First request — processes normally (idempotency insert succeeds)
-      const res1 = await app.request(postStripe(event))
-      expect(res1.status).toBe(200)
-      const body1 = (await res1.json()) as Record<string, unknown>
-      expect(body1.duplicate).toBeUndefined()
+      const res1 = await app.request(postStripe(event));
+      expect(res1.status).toBe(200);
+      const body1 = (await res1.json()) as Record<string, unknown>;
+      expect(body1.duplicate).toBeUndefined();
 
       // Second request with same event ID — idempotency insert throws unique constraint
       mockDbInsertChain.values.mockRejectedValueOnce(
         new Error('duplicate key value violates unique constraint "processed_webhook_events_pkey"'),
-      )
-      const res2 = await app.request(postStripe(event))
-      expect(res2.status).toBe(200)
-      const body2 = (await res2.json()) as Record<string, unknown>
-      expect(body2.duplicate).toBe(true)
+      );
+      const res2 = await app.request(postStripe(event));
+      expect(res2.status).toBe(200);
+      const body2 = (await res2.json()) as Record<string, unknown>;
+      expect(body2.duplicate).toBe(true);
 
       // DB update called only once (first request)
-      expect(mockDb.update).toHaveBeenCalledTimes(1)
-    })
-  })
+      expect(mockDb.update).toHaveBeenCalledTimes(1);
+    });
+  });
 
   describe('customer.subscription.deleted', () => {
     it('revokes all licenses for the customer and returns 200', async () => {
-      const event = makeSubscriptionDeletedEvent('evt_deleted_revoke_1')
-      mockConstructEvent.mockReturnValueOnce(event)
+      const event = makeSubscriptionDeletedEvent('evt_deleted_revoke_1');
+      mockConstructEvent.mockReturnValueOnce(event);
 
-      const app = createApp()
-      const res = await app.request(postStripe(event))
-      expect(res.status).toBe(200)
-      const body = (await res.json()) as Record<string, unknown>
-      expect(body.received).toBe(true)
+      const app = createApp();
+      const res = await app.request(postStripe(event));
+      expect(res.status).toBe(200);
+      const body = (await res.json()) as Record<string, unknown>;
+      expect(body.received).toBe(true);
 
-      expect(mockDb.update).toHaveBeenCalledOnce()
-      const setCall = mockDbUpdateChain.set.mock.calls[0]?.[0] as Record<string, unknown>
-      expect(setCall.status).toBe('revoked')
-    })
+      expect(mockDb.update).toHaveBeenCalledOnce();
+      const setCall = mockDbUpdateChain.set.mock.calls[0]?.[0] as Record<string, unknown>;
+      expect(setCall.status).toBe('revoked');
+    });
 
     it('does not write audit log when auditLog feature is disabled', async () => {
-      const event = makeSubscriptionDeletedEvent('evt_deleted_no_audit_2')
-      mockConstructEvent.mockReturnValueOnce(event)
+      const event = makeSubscriptionDeletedEvent('evt_deleted_no_audit_2');
+      mockConstructEvent.mockReturnValueOnce(event);
 
-      const app = createApp()
-      await app.request(postStripe(event))
+      const app = createApp();
+      await app.request(postStripe(event));
 
-      expect(mockAuditAppend).not.toHaveBeenCalled()
-    })
+      expect(mockAuditAppend).not.toHaveBeenCalled();
+    });
 
     it('writes audit log when auditLog feature is enabled', async () => {
-      vi.mocked(featuresModule.isFeatureEnabled).mockReturnValue(true)
+      vi.mocked(featuresModule.isFeatureEnabled).mockReturnValue(true);
 
-      const event = makeSubscriptionDeletedEvent('evt_deleted_audit_2')
-      mockConstructEvent.mockReturnValueOnce(event)
+      const event = makeSubscriptionDeletedEvent('evt_deleted_audit_2');
+      mockConstructEvent.mockReturnValueOnce(event);
 
-      const app = createApp()
-      const res = await app.request(postStripe(event))
+      const app = createApp();
+      const res = await app.request(postStripe(event));
 
-      expect(res.status).toBe(200)
-      expect(mockAuditAppend).toHaveBeenCalledOnce()
-      const entry = mockAuditAppend.mock.calls[0]?.[0] as Record<string, unknown>
-      expect(entry.eventType).toBe('license.revoked')
-      expect(entry.severity).toBe('warn')
-      expect(entry.agentId).toBe('system:stripe-webhook')
-    })
-  })
+      expect(res.status).toBe(200);
+      expect(mockAuditAppend).toHaveBeenCalledOnce();
+      const entry = mockAuditAppend.mock.calls[0]?.[0] as Record<string, unknown>;
+      expect(entry.eventType).toBe('license.revoked');
+      expect(entry.severity).toBe('warn');
+      expect(entry.agentId).toBe('system:stripe-webhook');
+    });
+  });
 
   describe('customer.subscription.updated', () => {
     it('marks license as expired when subscription is past_due', async () => {
@@ -251,70 +251,70 @@ describe('POST /stripe webhook', () => {
         id: 'evt_updated_pastdue_2',
         type: 'customer.subscription.updated',
         data: { object: { id: 'sub_test', customer: 'cus_test', status: 'past_due' } },
-      }
-      mockConstructEvent.mockReturnValueOnce(event)
+      };
+      mockConstructEvent.mockReturnValueOnce(event);
 
-      const app = createApp()
-      const res = await app.request(postStripe(event))
-      expect(res.status).toBe(200)
+      const app = createApp();
+      const res = await app.request(postStripe(event));
+      expect(res.status).toBe(200);
 
-      expect(mockDb.update).toHaveBeenCalledOnce()
-      const setCall = mockDbUpdateChain.set.mock.calls[0]?.[0] as Record<string, unknown>
-      expect(setCall.status).toBe('expired')
-    })
+      expect(mockDb.update).toHaveBeenCalledOnce();
+      const setCall = mockDbUpdateChain.set.mock.calls[0]?.[0] as Record<string, unknown>;
+      expect(setCall.status).toBe('expired');
+    });
 
     it('marks license as expired when subscription is unpaid', async () => {
       const event = {
         id: 'evt_updated_unpaid_2',
         type: 'customer.subscription.updated',
         data: { object: { id: 'sub_test', customer: 'cus_test', status: 'unpaid' } },
-      }
-      mockConstructEvent.mockReturnValueOnce(event)
+      };
+      mockConstructEvent.mockReturnValueOnce(event);
 
-      const app = createApp()
-      const res = await app.request(postStripe(event))
-      expect(res.status).toBe(200)
+      const app = createApp();
+      const res = await app.request(postStripe(event));
+      expect(res.status).toBe(200);
 
-      const setCall = mockDbUpdateChain.set.mock.calls[0]?.[0] as Record<string, unknown>
-      expect(setCall.status).toBe('expired')
-    })
+      const setCall = mockDbUpdateChain.set.mock.calls[0]?.[0] as Record<string, unknown>;
+      expect(setCall.status).toBe('expired');
+    });
 
     it('reactivates license when subscription becomes active', async () => {
       const event = {
         id: 'evt_updated_active_2',
         type: 'customer.subscription.updated',
         data: { object: { id: 'sub_test', customer: 'cus_test', status: 'active' } },
-      }
-      mockConstructEvent.mockReturnValueOnce(event)
+      };
+      mockConstructEvent.mockReturnValueOnce(event);
 
-      const app = createApp()
-      const res = await app.request(postStripe(event))
-      expect(res.status).toBe(200)
+      const app = createApp();
+      const res = await app.request(postStripe(event));
+      expect(res.status).toBe(200);
 
-      expect(mockDb.update).toHaveBeenCalledOnce()
-      const setCall = mockDbUpdateChain.set.mock.calls[0]?.[0] as Record<string, unknown>
-      expect(setCall.status).toBe('active')
-    })
+      expect(mockDb.update).toHaveBeenCalledOnce();
+      const setCall = mockDbUpdateChain.set.mock.calls[0]?.[0] as Record<string, unknown>;
+      expect(setCall.status).toBe('active');
+    });
 
     it('writes license.expired audit entry when subscription goes past_due and auditLog enabled', async () => {
-      vi.mocked(featuresModule.isFeatureEnabled).mockReturnValue(true)
+      vi.mocked(featuresModule.isFeatureEnabled).mockReturnValue(true);
 
       const event = {
         id: 'evt_updated_pastdue_audit_2',
         type: 'customer.subscription.updated',
         data: { object: { id: 'sub_test', customer: 'cus_test', status: 'past_due' } },
-      }
-      mockConstructEvent.mockReturnValueOnce(event)
+      };
+      mockConstructEvent.mockReturnValueOnce(event);
 
-      const app = createApp()
-      const res = await app.request(postStripe(event))
+      const app = createApp();
+      const res = await app.request(postStripe(event));
 
-      expect(res.status).toBe(200)
-      expect(mockAuditAppend).toHaveBeenCalledOnce()
-      const entry = mockAuditAppend.mock.calls[0]?.[0] as Record<string, unknown>
-      expect(entry.eventType).toBe('license.expired')
-    })
-  })
+      expect(res.status).toBe(200);
+      expect(mockAuditAppend).toHaveBeenCalledOnce();
+      const entry = mockAuditAppend.mock.calls[0]?.[0] as Record<string, unknown>;
+      expect(entry.eventType).toBe('license.expired');
+    });
+  });
 
   describe('checkout.session.completed', () => {
     it('skips non-subscription checkout sessions', async () => {
@@ -324,19 +324,19 @@ describe('POST /stripe webhook', () => {
         data: {
           object: { mode: 'payment', subscription: null, customer: 'cus_test', metadata: {} },
         },
-      }
-      mockConstructEvent.mockReturnValueOnce(event)
+      };
+      mockConstructEvent.mockReturnValueOnce(event);
 
-      const app = createApp()
-      const res = await app.request(postStripe(event))
-      expect(res.status).toBe(200)
+      const app = createApp();
+      const res = await app.request(postStripe(event));
+      expect(res.status).toBe(200);
       // Only the idempotency insert fires — no license insert for non-subscription checkout
-      expect(mockDb.insert).toHaveBeenCalledTimes(1)
-    })
+      expect(mockDb.insert).toHaveBeenCalledTimes(1);
+    });
 
     it('logs error and returns 500 when no user can be resolved', async () => {
       // No userId in metadata and no user found in DB
-      mockDbSelectChain.limit.mockResolvedValueOnce([])
+      mockDbSelectChain.limit.mockResolvedValueOnce([]);
 
       const event = {
         id: 'evt_checkout_nouser_2',
@@ -349,26 +349,26 @@ describe('POST /stripe webhook', () => {
             metadata: { tier: 'pro' }, // no revealui_user_id
           },
         },
-      }
-      mockConstructEvent.mockReturnValueOnce(event)
+      };
+      mockConstructEvent.mockReturnValueOnce(event);
 
-      const app = createApp()
-      const res = await app.request(postStripe(event))
+      const app = createApp();
+      const res = await app.request(postStripe(event));
 
       // Handler throws when user can't be resolved so Stripe retries
-      expect(res.status).toBe(500)
+      expect(res.status).toBe(500);
       expect(vi.mocked(loggerModule.logger).error).toHaveBeenCalledWith(
         expect.stringContaining('Cannot resolve user'),
         undefined,
         expect.objectContaining({ customerId: 'cus_test' }),
-      )
-    })
+      );
+    });
 
     it('creates license with trialing status when subscription is in trial', async () => {
-      const trialEnd = Math.floor(Date.now() / 1000) + 7 * 24 * 60 * 60 // +7 days
-      mockSubscriptionsRetrieve.mockResolvedValueOnce({ status: 'trialing', trial_end: trialEnd })
+      const trialEnd = Math.floor(Date.now() / 1000) + 7 * 24 * 60 * 60; // +7 days
+      mockSubscriptionsRetrieve.mockResolvedValueOnce({ status: 'trialing', trial_end: trialEnd });
       // Transaction's inner user-existence check must find a matching user
-      mockDbSelectChain.limit.mockResolvedValueOnce([{ id: 'user_trial' }])
+      mockDbSelectChain.limit.mockResolvedValueOnce([{ id: 'user_trial' }]);
 
       const event = {
         id: 'evt_checkout_trial_1',
@@ -381,24 +381,24 @@ describe('POST /stripe webhook', () => {
             metadata: { tier: 'pro', revealui_user_id: 'user_trial' },
           },
         },
-      }
-      mockConstructEvent.mockReturnValueOnce(event)
+      };
+      mockConstructEvent.mockReturnValueOnce(event);
 
-      const app = createApp()
-      const res = await app.request(postStripe(event))
+      const app = createApp();
+      const res = await app.request(postStripe(event));
 
-      expect(res.status).toBe(200)
+      expect(res.status).toBe(200);
       // calls[0] = idempotency insert; calls[1] = license insert
-      expect(mockDb.insert).toHaveBeenCalledTimes(2)
-      const insertValues = mockDbInsertChain.values.mock.calls[1]?.[0] as Record<string, unknown>
-      expect(insertValues.status).toBe('trialing')
-      expect(insertValues.expiresAt).toBeInstanceOf(Date)
-    })
+      expect(mockDb.insert).toHaveBeenCalledTimes(2);
+      const insertValues = mockDbInsertChain.values.mock.calls[1]?.[0] as Record<string, unknown>;
+      expect(insertValues.status).toBe('trialing');
+      expect(insertValues.expiresAt).toBeInstanceOf(Date);
+    });
 
     it('creates active license when subscription retrieve fails (graceful fallback)', async () => {
-      mockSubscriptionsRetrieve.mockRejectedValueOnce(new Error('Stripe timeout'))
+      mockSubscriptionsRetrieve.mockRejectedValueOnce(new Error('Stripe timeout'));
       // Transaction's inner user-existence check must find a matching user
-      mockDbSelectChain.limit.mockResolvedValueOnce([{ id: 'user_abc' }])
+      mockDbSelectChain.limit.mockResolvedValueOnce([{ id: 'user_abc' }]);
 
       const event = {
         id: 'evt_checkout_retrieve_fail_1',
@@ -411,22 +411,22 @@ describe('POST /stripe webhook', () => {
             metadata: { tier: 'pro', revealui_user_id: 'user_abc' },
           },
         },
-      }
-      mockConstructEvent.mockReturnValueOnce(event)
+      };
+      mockConstructEvent.mockReturnValueOnce(event);
 
-      const app = createApp()
-      const res = await app.request(postStripe(event))
+      const app = createApp();
+      const res = await app.request(postStripe(event));
 
-      expect(res.status).toBe(200)
-      expect(mockDb.insert).toHaveBeenCalledTimes(2)
-      const insertValues = mockDbInsertChain.values.mock.calls[1]?.[0] as Record<string, unknown>
+      expect(res.status).toBe(200);
+      expect(mockDb.insert).toHaveBeenCalledTimes(2);
+      const insertValues = mockDbInsertChain.values.mock.calls[1]?.[0] as Record<string, unknown>;
       // Falls back to active when retrieve fails
-      expect(insertValues.status).toBe('active')
-    })
+      expect(insertValues.status).toBe('active');
+    });
 
     it('creates license when userId is provided in metadata', async () => {
       // Transaction's inner user-existence check must find a matching user
-      mockDbSelectChain.limit.mockResolvedValueOnce([{ id: 'user_abc' }])
+      mockDbSelectChain.limit.mockResolvedValueOnce([{ id: 'user_abc' }]);
 
       const event = {
         id: 'evt_checkout_success_2',
@@ -439,22 +439,22 @@ describe('POST /stripe webhook', () => {
             metadata: { tier: 'pro', revealui_user_id: 'user_abc' },
           },
         },
-      }
-      mockConstructEvent.mockReturnValueOnce(event)
+      };
+      mockConstructEvent.mockReturnValueOnce(event);
 
-      const app = createApp()
-      const res = await app.request(postStripe(event))
+      const app = createApp();
+      const res = await app.request(postStripe(event));
 
-      expect(res.status).toBe(200)
-      expect(licenseModule.generateLicenseKey).toHaveBeenCalledOnce()
+      expect(res.status).toBe(200);
+      expect(licenseModule.generateLicenseKey).toHaveBeenCalledOnce();
       // calls[0] = idempotency insert; calls[1] = license insert
-      expect(mockDb.insert).toHaveBeenCalledTimes(2)
-      const insertValues = mockDbInsertChain.values.mock.calls[1]?.[0] as Record<string, unknown>
-      expect(insertValues.status).toBe('active')
-      expect(insertValues.tier).toBe('pro')
-      expect(insertValues.userId).toBe('user_abc')
-    })
-  })
+      expect(mockDb.insert).toHaveBeenCalledTimes(2);
+      const insertValues = mockDbInsertChain.values.mock.calls[1]?.[0] as Record<string, unknown>;
+      expect(insertValues.status).toBe('active');
+      expect(insertValues.tier).toBe('pro');
+      expect(insertValues.userId).toBe('user_abc');
+    });
+  });
 
   describe('invoice.payment_succeeded', () => {
     function makePaymentSucceededEvent(id: string, customerId = 'cus_recovery') {
@@ -468,92 +468,92 @@ describe('POST /stripe webhook', () => {
             customer_email: null,
           },
         },
-      }
+      };
     }
 
     it('re-activates expired license when active subscription is found', async () => {
       mockSubscriptionsList.mockResolvedValueOnce({
         data: [{ id: 'sub_recovery', metadata: { tier: 'pro' } }],
-      })
-      mockDbSelectChain.limit.mockResolvedValueOnce([{ id: 'lic_expired', status: 'expired' }])
+      });
+      mockDbSelectChain.limit.mockResolvedValueOnce([{ id: 'lic_expired', status: 'expired' }]);
 
-      const event = makePaymentSucceededEvent('evt_payment_succeeded_1')
-      mockConstructEvent.mockReturnValueOnce(event)
+      const event = makePaymentSucceededEvent('evt_payment_succeeded_1');
+      mockConstructEvent.mockReturnValueOnce(event);
 
-      const app = createApp()
-      const res = await app.request(postStripe(event))
+      const app = createApp();
+      const res = await app.request(postStripe(event));
 
-      expect(res.status).toBe(200)
-      expect(mockDb.update).toHaveBeenCalledOnce()
-      const setCall = mockDbUpdateChain.set.mock.calls[0]?.[0] as Record<string, unknown>
-      expect(setCall.status).toBe('active')
-    })
+      expect(res.status).toBe(200);
+      expect(mockDb.update).toHaveBeenCalledOnce();
+      const setCall = mockDbUpdateChain.set.mock.calls[0]?.[0] as Record<string, unknown>;
+      expect(setCall.status).toBe('active');
+    });
 
     it('re-activates revoked license when active subscription is found', async () => {
       mockSubscriptionsList.mockResolvedValueOnce({
         data: [{ id: 'sub_recovery', metadata: { tier: 'pro' } }],
-      })
-      mockDbSelectChain.limit.mockResolvedValueOnce([{ id: 'lic_revoked', status: 'revoked' }])
+      });
+      mockDbSelectChain.limit.mockResolvedValueOnce([{ id: 'lic_revoked', status: 'revoked' }]);
 
-      const event = makePaymentSucceededEvent('evt_payment_succeeded_revoked_1')
-      mockConstructEvent.mockReturnValueOnce(event)
+      const event = makePaymentSucceededEvent('evt_payment_succeeded_revoked_1');
+      mockConstructEvent.mockReturnValueOnce(event);
 
-      const app = createApp()
-      const res = await app.request(postStripe(event))
+      const app = createApp();
+      const res = await app.request(postStripe(event));
 
-      expect(res.status).toBe(200)
-      expect(mockDb.update).toHaveBeenCalledOnce()
-      const setCall = mockDbUpdateChain.set.mock.calls[0]?.[0] as Record<string, unknown>
-      expect(setCall.status).toBe('active')
-    })
+      expect(res.status).toBe(200);
+      expect(mockDb.update).toHaveBeenCalledOnce();
+      const setCall = mockDbUpdateChain.set.mock.calls[0]?.[0] as Record<string, unknown>;
+      expect(setCall.status).toBe('active');
+    });
 
     it('skips re-activation when license is already active', async () => {
       mockSubscriptionsList.mockResolvedValueOnce({
         data: [{ id: 'sub_recovery', metadata: { tier: 'pro' } }],
-      })
-      mockDbSelectChain.limit.mockResolvedValueOnce([{ id: 'lic_active', status: 'active' }])
+      });
+      mockDbSelectChain.limit.mockResolvedValueOnce([{ id: 'lic_active', status: 'active' }]);
 
-      const event = makePaymentSucceededEvent('evt_payment_succeeded_already_active_1')
-      mockConstructEvent.mockReturnValueOnce(event)
+      const event = makePaymentSucceededEvent('evt_payment_succeeded_already_active_1');
+      mockConstructEvent.mockReturnValueOnce(event);
 
-      const app = createApp()
-      const res = await app.request(postStripe(event))
+      const app = createApp();
+      const res = await app.request(postStripe(event));
 
-      expect(res.status).toBe(200)
-      expect(mockDb.update).not.toHaveBeenCalled()
-    })
+      expect(res.status).toBe(200);
+      expect(mockDb.update).not.toHaveBeenCalled();
+    });
 
     it('skips when no active subscription is found after payment', async () => {
-      mockSubscriptionsList.mockResolvedValueOnce({ data: [] })
+      mockSubscriptionsList.mockResolvedValueOnce({ data: [] });
 
-      const event = makePaymentSucceededEvent('evt_payment_succeeded_no_sub_1')
-      mockConstructEvent.mockReturnValueOnce(event)
+      const event = makePaymentSucceededEvent('evt_payment_succeeded_no_sub_1');
+      mockConstructEvent.mockReturnValueOnce(event);
 
-      const app = createApp()
-      const res = await app.request(postStripe(event))
+      const app = createApp();
+      const res = await app.request(postStripe(event));
 
-      expect(res.status).toBe(200)
-      expect(mockDb.update).not.toHaveBeenCalled()
-    })
+      expect(res.status).toBe(200);
+      expect(mockDb.update).not.toHaveBeenCalled();
+    });
 
     it('writes license.reactivated.payment_recovery audit entry when auditLog enabled', async () => {
-      vi.mocked(featuresModule.isFeatureEnabled).mockReturnValue(true)
+      vi.mocked(featuresModule.isFeatureEnabled).mockReturnValue(true);
       mockSubscriptionsList.mockResolvedValueOnce({
         data: [{ id: 'sub_recovery', metadata: { tier: 'pro' } }],
-      })
-      mockDbSelectChain.limit.mockResolvedValueOnce([{ id: 'lic_expired', status: 'expired' }])
+      });
+      mockDbSelectChain.limit.mockResolvedValueOnce([{ id: 'lic_expired', status: 'expired' }]);
 
-      const event = makePaymentSucceededEvent('evt_payment_succeeded_audit_1')
-      mockConstructEvent.mockReturnValueOnce(event)
+      const event = makePaymentSucceededEvent('evt_payment_succeeded_audit_1');
+      mockConstructEvent.mockReturnValueOnce(event);
 
-      const app = createApp()
-      const res = await app.request(postStripe(event))
+      const app = createApp();
+      const res = await app.request(postStripe(event));
 
-      expect(res.status).toBe(200)
-      expect(mockAuditAppend).toHaveBeenCalledOnce()
-      const entry = mockAuditAppend.mock.calls[0]?.[0] as Record<string, unknown>
-      expect(entry.eventType).toBe('license.reactivated.payment_recovery')
-      expect(entry.severity).toBe('info')
-    })
-  })
-})
+      expect(res.status).toBe(200);
+      expect(mockAuditAppend).toHaveBeenCalledOnce();
+      const entry = mockAuditAppend.mock.calls[0]?.[0] as Record<string, unknown>;
+      expect(entry.eventType).toBe('license.reactivated.payment_recovery');
+      expect(entry.severity).toBe('info');
+    });
+  });
+});

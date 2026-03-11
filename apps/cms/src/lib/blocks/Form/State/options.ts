@@ -49,4 +49,4 @@ export const stateOptions = [
   { label: 'West Virginia', value: 'WV' },
   { label: 'Wisconsin', value: 'WI' },
   { label: 'Wyoming', value: 'WY' },
-]
+];

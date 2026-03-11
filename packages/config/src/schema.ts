@@ -4,20 +4,20 @@
  * Zod schemas for all environment variables with validation rules
  */
 
-import { z } from 'zod/v4'
+import { z } from 'zod/v4';
 
 // =============================================================================
 // Base Validators
 // =============================================================================
 
-const urlSchema = z.url().min(1)
-const secretSchema = z.string().min(32, 'Secret must be at least 32 characters')
+const urlSchema = z.url().min(1);
+const secretSchema = z.string().min(32, 'Secret must be at least 32 characters');
 const postgresUrlSchema = z
   .string()
   .regex(
     /^postgres(ql)?:\/\//,
     'Must be a PostgreSQL connection string (postgresql:// or postgres://)',
-  )
+  );
 
 // =============================================================================
 // Required Variables Schemas
@@ -42,7 +42,7 @@ const requiredSchema = z.object({
     .string()
     .min(1, 'Stripe publishable key is required')
     .optional(),
-})
+});
 
 // =============================================================================
 // Optional Variables Schemas
@@ -97,13 +97,13 @@ const optionalSchema = z.object({
 
   // License
   REVEALUI_LICENSE_KEY: z.string().optional(),
-})
+});
 
 // =============================================================================
 // Combined Schema
 // =============================================================================
 
-export const envSchema = requiredSchema.merge(optionalSchema)
+export const envSchema = requiredSchema.merge(optionalSchema);
 
 // =============================================================================
 // Environment-Specific Validation
@@ -113,30 +113,30 @@ export function validateEnvironment(
   env: z.infer<typeof envSchema>,
   nodeEnv: string,
 ): { valid: boolean; errors: string[] } {
-  const errors: string[] = []
+  const errors: string[] = [];
 
   // Production-specific validations
   if (nodeEnv === 'production') {
     if (env.REVEALUI_PUBLIC_SERVER_URL && !env.REVEALUI_PUBLIC_SERVER_URL.startsWith('https://')) {
-      errors.push('REVEALUI_PUBLIC_SERVER_URL must use HTTPS in production')
+      errors.push('REVEALUI_PUBLIC_SERVER_URL must use HTTPS in production');
     }
     if (env.NEXT_PUBLIC_SERVER_URL && !env.NEXT_PUBLIC_SERVER_URL.startsWith('https://')) {
-      errors.push('NEXT_PUBLIC_SERVER_URL must use HTTPS in production')
+      errors.push('NEXT_PUBLIC_SERVER_URL must use HTTPS in production');
     }
     if (env.STRIPE_SECRET_KEY?.includes('test')) {
-      errors.push('STRIPE_SECRET_KEY must be a live key (sk_live_...) in production')
+      errors.push('STRIPE_SECRET_KEY must be a live key (sk_live_...) in production');
     }
     if (env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY?.includes('test')) {
       errors.push(
         'NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY must be a live key (pk_live_...) in production',
-      )
+      );
     }
   }
 
   // Development-specific validations
   if (nodeEnv === 'development' || !nodeEnv) {
     if (env.STRIPE_SECRET_KEY && !env.STRIPE_SECRET_KEY.includes('test')) {
-      errors.push('STRIPE_SECRET_KEY should use test key (sk_test_...) in development')
+      errors.push('STRIPE_SECRET_KEY should use test key (sk_test_...) in development');
     }
     if (
       env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY &&
@@ -144,7 +144,7 @@ export function validateEnvironment(
     ) {
       errors.push(
         'NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY should use test key (pk_test_...) in development',
-      )
+      );
     }
   }
 
@@ -154,19 +154,19 @@ export function validateEnvironment(
     env.NEXT_PUBLIC_SERVER_URL &&
     env.REVEALUI_PUBLIC_SERVER_URL !== env.NEXT_PUBLIC_SERVER_URL
   ) {
-    errors.push('REVEALUI_PUBLIC_SERVER_URL and NEXT_PUBLIC_SERVER_URL should match')
+    errors.push('REVEALUI_PUBLIC_SERVER_URL and NEXT_PUBLIC_SERVER_URL should match');
   }
 
   return {
     valid: errors.length === 0,
     errors,
-  }
+  };
 }
 
 // =============================================================================
 // Type Exports
 // =============================================================================
 
-export type EnvConfig = z.infer<typeof envSchema>
-export type RequiredEnv = z.infer<typeof requiredSchema>
-export type OptionalEnv = z.infer<typeof optionalSchema>
+export type EnvConfig = z.infer<typeof envSchema>;
+export type RequiredEnv = z.infer<typeof requiredSchema>;
+export type OptionalEnv = z.infer<typeof optionalSchema>;

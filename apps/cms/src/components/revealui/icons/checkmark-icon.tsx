@@ -1,5 +1,5 @@
-import { clsx } from 'clsx/lite'
-import type { ComponentProps } from 'react'
+import { clsx } from 'clsx/lite';
+import type { ComponentProps } from 'react';
 
 export function CheckmarkIcon({ className, ...props }: ComponentProps<'svg'>) {
   return (
@@ -18,5 +18,5 @@ export function CheckmarkIcon({ className, ...props }: ComponentProps<'svg'>) {
         d="M12.416 3.376a.75.75 0 010 1.06l-7.5 7.5a.75.75 0 01-1.06 0l-3.5-3.5a.75.75 0 111.06-1.06l2.97 2.97 6.97-6.97a.75.75 0 011.06 0z"
       />
     </svg>
-  )
+  );
 }

@@ -3,40 +3,40 @@ import type {
   RevealDocument,
   RevealRequest,
   RevealUIInstance,
-} from '@revealui/core'
-import type { Page } from '@revealui/core/types/cms'
+} from '@revealui/core';
+import type { Page } from '@revealui/core/types/cms';
 
-type ArchiveBlockProps = Extract<Page['layout'][0], { blockType: 'archive' }>
+type ArchiveBlockProps = Extract<Page['layout'][0], { blockType: 'archive' }>;
 
 // Reserved for future use - types for enhanced archive block functionality
 interface _RequestWithRevealUI extends RevealRequest {
-  revealui?: RevealUIInstance
+  revealui?: RevealUIInstance;
 }
 
 interface _PopulateContext {
-  isPopulatingArchiveBlock?: boolean
-  [key: string]: unknown
+  isPopulatingArchiveBlock?: boolean;
+  [key: string]: unknown;
 }
 
 export const populateArchiveBlock: RevealAfterReadHook = async ({ doc, context, req }) => {
-  const revealui = req?.revealui
+  const revealui = req?.revealui;
   const docWithLayout = doc as unknown as {
-    layout?: Array<{ blockType: string; [key: string]: unknown }>
-  }
+    layout?: Array<{ blockType: string; [key: string]: unknown }>;
+  };
 
-  if (!(docWithLayout.layout && revealui)) return doc as RevealDocument
+  if (!(docWithLayout.layout && revealui)) return doc as RevealDocument;
 
-  const layout = docWithLayout.layout
+  const layout = docWithLayout.layout;
 
   const layoutWithArchive = await Promise.allSettled(
     layout.map(async (block) => {
       if (block.blockType === 'archive') {
         const archiveBlock = block as unknown as ArchiveBlockProps & {
           populatedDocs: Array<{
-            relationTo: 'products' | 'pages' | 'posts' | 'categories'
-            value: string
-          }>
-        }
+            relationTo: 'products' | 'pages' | 'posts' | 'categories';
+            value: string;
+          }>;
+        };
 
         if (archiveBlock.populateBy === 'collection' && !context?.isPopulatingArchiveBlock) {
           const res = await revealui.find({
@@ -55,7 +55,7 @@ export const populateArchiveBlock: RevealAfterReadHook = async ({ doc, context, 
                 : {}),
             },
             sort: '-publishedOn',
-          })
+          });
 
           return {
             ...block,
@@ -64,24 +64,24 @@ export const populateArchiveBlock: RevealAfterReadHook = async ({ doc, context, 
               relationTo: archiveBlock.relationTo,
               value: String(thisDoc.id),
             })),
-          }
+          };
         }
       }
 
-      return block
+      return block;
     }),
-  )
+  );
 
   // Extract fulfilled values from the settled promises
   const resolvedLayout = layoutWithArchive
     .map((result) => {
       if (result.status === 'fulfilled') {
-        return result.value
+        return result.value;
       }
       // For rejected promises, return the original block
-      return null
+      return null;
     })
-    .filter(Boolean)
+    .filter(Boolean);
 
-  return { ...doc, layout: resolvedLayout } as RevealDocument
-}
+  return { ...doc, layout: resolvedLayout } as RevealDocument;
+};

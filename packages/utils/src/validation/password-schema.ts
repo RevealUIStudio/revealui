@@ -1,4 +1,4 @@
-import { z } from 'zod'
+import { z } from 'zod';
 
 /**
  * Password validation schema
@@ -16,6 +16,6 @@ export const passwordSchema = z
   .max(128, 'Password is too long')
   .regex(/[A-Z]/, 'Password must contain at least one uppercase letter')
   .regex(/[a-z]/, 'Password must contain at least one lowercase letter')
-  .regex(/[0-9]/, 'Password must contain at least one number')
+  .regex(/[0-9]/, 'Password must contain at least one number');
 
-export type Password = z.infer<typeof passwordSchema>
+export type Password = z.infer<typeof passwordSchema>;

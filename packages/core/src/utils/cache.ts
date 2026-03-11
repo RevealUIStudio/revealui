@@ -18,19 +18,19 @@ export interface LRUCacheOptions {
    * Maximum number of entries in the cache
    * @default 100
    */
-  maxSize?: number
+  maxSize?: number;
 
   /**
    * Time to live in milliseconds
    * @default 5 minutes (300000)
    */
-  ttlMs?: number
+  ttlMs?: number;
 }
 
 interface CacheEntry<T> {
-  data: T
-  expiresAt: number
-  lastAccessed: number
+  data: T;
+  expiresAt: number;
+  lastAccessed: number;
 }
 
 /**
@@ -42,13 +42,13 @@ interface CacheEntry<T> {
  * - Type-safe generic interface
  */
 export class LRUCache<K = string, V = unknown> {
-  private cache = new Map<K, CacheEntry<V>>()
-  private readonly maxSize: number
-  private readonly ttlMs: number
+  private cache = new Map<K, CacheEntry<V>>();
+  private readonly maxSize: number;
+  private readonly ttlMs: number;
 
   constructor(options: LRUCacheOptions = {}) {
-    this.maxSize = options.maxSize ?? 100
-    this.ttlMs = options.ttlMs ?? 5 * 60 * 1000 // 5 minutes default
+    this.maxSize = options.maxSize ?? 100;
+    this.ttlMs = options.ttlMs ?? 5 * 60 * 1000; // 5 minutes default
   }
 
   /**
@@ -59,33 +59,33 @@ export class LRUCache<K = string, V = unknown> {
    * @returns The cached or newly fetched value
    */
   async fetch(key: K, fetcher: () => Promise<V> | V): Promise<V> {
-    const now = Date.now()
-    const cached = this.cache.get(key)
+    const now = Date.now();
+    const cached = this.cache.get(key);
 
     // Check if cached entry exists and is still valid
     if (cached && cached.expiresAt > now) {
       // Update last accessed time for LRU
-      cached.lastAccessed = now
-      return cached.data
+      cached.lastAccessed = now;
+      return cached.data;
     }
 
     // Remove expired entry if present
     if (cached) {
-      this.cache.delete(key)
+      this.cache.delete(key);
     }
 
     // Evict least recently used entries if at capacity
-    this.evictIfNeeded()
+    this.evictIfNeeded();
 
     // Fetch fresh data
-    const data = await fetcher()
+    const data = await fetcher();
     this.cache.set(key, {
       data,
       expiresAt: now + this.ttlMs,
       lastAccessed: now,
-    })
+    });
 
-    return data
+    return data;
   }
 
   /**
@@ -95,20 +95,20 @@ export class LRUCache<K = string, V = unknown> {
    * @returns The cached value or undefined
    */
   get(key: K): V | undefined {
-    const now = Date.now()
-    const cached = this.cache.get(key)
+    const now = Date.now();
+    const cached = this.cache.get(key);
 
     if (cached && cached.expiresAt > now) {
-      cached.lastAccessed = now
-      return cached.data
+      cached.lastAccessed = now;
+      return cached.data;
     }
 
     // Remove expired entry
     if (cached) {
-      this.cache.delete(key)
+      this.cache.delete(key);
     }
 
-    return undefined
+    return undefined;
   }
 
   /**
@@ -118,14 +118,14 @@ export class LRUCache<K = string, V = unknown> {
    * @param value - Value to cache
    */
   set(key: K, value: V): void {
-    const now = Date.now()
-    this.evictIfNeeded()
+    const now = Date.now();
+    this.evictIfNeeded();
 
     this.cache.set(key, {
       data: value,
       expiresAt: now + this.ttlMs,
       lastAccessed: now,
-    })
+    });
   }
 
   /**
@@ -135,50 +135,50 @@ export class LRUCache<K = string, V = unknown> {
    * @returns true if the entry was deleted, false if it didn't exist
    */
   delete(key: K): boolean {
-    return this.cache.delete(key)
+    return this.cache.delete(key);
   }
 
   /**
    * Clear all entries from the cache
    */
   clear(): void {
-    this.cache.clear()
+    this.cache.clear();
   }
 
   /**
    * Get the current size of the cache
    */
   get size(): number {
-    return this.cache.size
+    return this.cache.size;
   }
 
   /**
    * Evict expired entries and LRU entries if at capacity
    */
   private evictIfNeeded(): void {
-    const now = Date.now()
+    const now = Date.now();
 
     // First, remove all expired entries
     for (const [key, entry] of this.cache.entries()) {
       if (entry.expiresAt <= now) {
-        this.cache.delete(key)
+        this.cache.delete(key);
       }
     }
 
     // If still at capacity, remove least recently used entry
     if (this.cache.size >= this.maxSize) {
-      let lruKey: K | undefined
-      let lruTime = Infinity
+      let lruKey: K | undefined;
+      let lruTime = Infinity;
 
       for (const [key, entry] of this.cache.entries()) {
         if (entry.lastAccessed < lruTime) {
-          lruTime = entry.lastAccessed
-          lruKey = key
+          lruTime = entry.lastAccessed;
+          lruKey = key;
         }
       }
 
       if (lruKey !== undefined) {
-        this.cache.delete(lruKey)
+        this.cache.delete(lruKey);
       }
     }
   }
@@ -187,10 +187,10 @@ export class LRUCache<K = string, V = unknown> {
    * Clean up expired entries (can be called periodically)
    */
   cleanup(): void {
-    const now = Date.now()
+    const now = Date.now();
     for (const [key, entry] of this.cache.entries()) {
       if (entry.expiresAt <= now) {
-        this.cache.delete(key)
+        this.cache.delete(key);
       }
     }
   }

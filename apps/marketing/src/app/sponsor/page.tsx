@@ -1,4 +1,4 @@
-import { Footer } from '@/components/Footer'
+import { Footer } from '@/components/Footer';
 
 const tiers = [
   {
@@ -49,7 +49,7 @@ const tiers = [
       'Custom feature development priority',
     ],
   },
-]
+];
 
 export default function SponsorPage() {
   return (
@@ -222,5 +222,5 @@ export default function SponsorPage() {
 
       <Footer />
     </div>
-  )
+  );
 }

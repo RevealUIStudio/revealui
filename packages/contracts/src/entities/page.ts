@@ -12,15 +12,15 @@
  * - Business logic and computed fields
  */
 
-import { z } from 'zod/v4'
-import { type Block, BlockSchema, countBlocks } from '../content/index.js'
+import { z } from 'zod/v4';
+import { type Block, BlockSchema, countBlocks } from '../content/index.js';
 import {
   createTimestamps,
   DualEntitySchema,
   REPRESENTATION_SCHEMA_VERSION,
   toAgentRepresentation,
   toHumanRepresentation,
-} from '../representation/index.js'
+} from '../representation/index.js';
 // NOTE: Auto-generated base schema available for future tight integration:
 // import { PagesSelectSchema, PagesInsertSchema } from '../generated/zod-schemas.js'
 
@@ -28,16 +28,16 @@ import {
 // Schema Version
 // =============================================================================
 
-export const PAGE_SCHEMA_VERSION = 1
+export const PAGE_SCHEMA_VERSION = 1;
 
 // =============================================================================
 // Page Status
 // =============================================================================
 
-export const PAGE_STATUSES = ['draft', 'published', 'scheduled', 'archived'] as const
+export const PAGE_STATUSES = ['draft', 'published', 'scheduled', 'archived'] as const;
 
-export const PageStatusSchema = z.enum(PAGE_STATUSES)
-export type PageStatus = (typeof PAGE_STATUSES)[number]
+export const PageStatusSchema = z.enum(PAGE_STATUSES);
+export type PageStatus = (typeof PAGE_STATUSES)[number];
 
 // =============================================================================
 // Page SEO
@@ -64,9 +64,9 @@ export const PageSeoSchema = z.object({
 
   /** Structured data (JSON-LD) */
   structuredData: z.record(z.string(), z.unknown()).optional(),
-})
+});
 
-export type PageSeo = z.infer<typeof PageSeoSchema>
+export type PageSeo = z.infer<typeof PageSeoSchema>;
 
 // =============================================================================
 // Page Lock
@@ -84,9 +84,9 @@ export const PageLockSchema = z.object({
 
   /** Reason for lock */
   reason: z.string().optional(),
-})
+});
 
-export type PageLock = z.infer<typeof PageLockSchema>
+export type PageLock = z.infer<typeof PageLockSchema>;
 
 // =============================================================================
 // Page Schema
@@ -147,9 +147,9 @@ export const PageSchema = DualEntitySchema.extend({
 
   /** Last editor user ID */
   lastEditorId: z.string().optional(),
-})
+});
 
-export type Page = z.infer<typeof PageSchema>
+export type Page = z.infer<typeof PageSchema>;
 
 // =============================================================================
 // Page Creation
@@ -167,18 +167,18 @@ export const CreatePageInputSchema = z.object({
   templateId: z.string().optional(),
   blocks: z.array(BlockSchema).optional(),
   seo: PageSeoSchema.optional(),
-})
+});
 
-export type CreatePageInput = z.infer<typeof CreatePageInputSchema>
+export type CreatePageInput = z.infer<typeof CreatePageInputSchema>;
 
 /**
  * Computes the full path for a page
  */
 export function computePagePath(slug: string, parentPath?: string): string {
   if (parentPath) {
-    return `${parentPath}/${slug}`.replace(/\/+/g, '/')
+    return `${parentPath}/${slug}`.replace(/\/+/g, '/');
   }
-  return `/${slug}`
+  return `/${slug}`;
 }
 
 /**
@@ -189,52 +189,52 @@ export function computePagePath(slug: string, parentPath?: string): string {
  * at runtime, but TypeScript needs help with inference.
  */
 export function estimateWordCount(blocks: Block[]): number {
-  let count = 0
+  let count = 0;
 
   const extractText = (block: Block): string => {
     switch (block.type) {
       case 'text':
-        return block.data.content
+        return block.data.content;
       case 'heading':
-        return block.data.text
+        return block.data.text;
       case 'quote':
-        return block.data.content
+        return block.data.content;
       case 'list':
-        return block.data.items.map((i: { content: string }) => i.content).join(' ')
+        return block.data.items.map((i: { content: string }) => i.content).join(' ');
       case 'columns':
-        return block.data.columns.flatMap((c) => (c.blocks as Block[]).map(extractText)).join(' ')
+        return block.data.columns.flatMap((c) => (c.blocks as Block[]).map(extractText)).join(' ');
       case 'grid':
-        return block.data.items.flatMap((i) => (i.blocks as Block[]).map(extractText)).join(' ')
+        return block.data.items.flatMap((i) => (i.blocks as Block[]).map(extractText)).join(' ');
       case 'accordion':
         return block.data.items
           .flatMap((i) => [i.title, ...(i.blocks as Block[]).map(extractText)])
-          .join(' ')
+          .join(' ');
       case 'tabs':
         return block.data.tabs
           .flatMap((t) => [t.label, ...(t.blocks as Block[]).map(extractText)])
-          .join(' ')
+          .join(' ');
       default:
-        return ''
+        return '';
     }
-  }
+  };
 
   for (const block of blocks) {
-    const text = extractText(block)
-    count += text.split(/\s+/).filter((w) => w.length > 0).length
+    const text = extractText(block);
+    count += text.split(/\s+/).filter((w) => w.length > 0).length;
   }
 
-  return count
+  return count;
 }
 
 /**
  * Creates a new page with dual representation
  */
 export function createPage(id: string, input: CreatePageInput, parentPath?: string): Page {
-  const timestamps = createTimestamps()
-  const path = computePagePath(input.slug, parentPath)
-  const blocks = input.blocks || []
-  const blockCount = countBlocks(blocks)
-  const wordCount = estimateWordCount(blocks)
+  const timestamps = createTimestamps();
+  const path = computePagePath(input.slug, parentPath);
+  const blocks = input.blocks || [];
+  const blockCount = countBlocks(blocks);
+  const wordCount = estimateWordCount(blocks);
 
   return {
     id,
@@ -364,7 +364,7 @@ export function createPage(id: string, input: CreatePageInput, parentPath?: stri
       keywords: [input.title.toLowerCase(), input.slug, 'page'],
     }),
     ...timestamps,
-  }
+  };
 }
 
 // =============================================================================
@@ -384,9 +384,9 @@ export const UpdatePageInputSchema = z.object({
   seo: PageSeoSchema.partial().optional(),
   order: z.number().int().nonnegative().optional(),
   publishAt: z.string().datetime().optional(),
-})
+});
 
-export type UpdatePageInput = z.infer<typeof UpdatePageInputSchema>
+export type UpdatePageInput = z.infer<typeof UpdatePageInputSchema>;
 
 // =============================================================================
 // Page Utilities
@@ -396,16 +396,16 @@ export type UpdatePageInput = z.infer<typeof UpdatePageInputSchema>
  * Checks if a page is currently locked
  */
 export function isPageLocked(page: Page): boolean {
-  if (!page.lock) return false
-  return new Date(page.lock.expiresAt) > new Date()
+  if (!page.lock) return false;
+  return new Date(page.lock.expiresAt) > new Date();
 }
 
 /**
  * Checks if a user holds the lock
  */
 export function isLockedByUser(page: Page, userId: string): boolean {
-  if (!page.lock) return false
-  return page.lock.userId === userId && isPageLocked(page)
+  if (!page.lock) return false;
+  return page.lock.userId === userId && isPageLocked(page);
 }
 
 /**
@@ -416,13 +416,13 @@ export function createPageLock(
   durationMs: number = 5 * 60 * 1000, // 5 minutes default
   reason?: string,
 ): PageLock {
-  const now = new Date()
+  const now = new Date();
   return {
     userId,
     lockedAt: now.toISOString(),
     expiresAt: new Date(now.getTime() + durationMs).toISOString(),
     reason,
-  }
+  };
 }
 
 /**
@@ -432,17 +432,17 @@ export function getPageBreadcrumbs(
   page: Page,
   allPages: Page[],
 ): Array<{ id: string; title: string; path: string }> {
-  const breadcrumbs: Array<{ id: string; title: string; path: string }> = []
-  let current: Page | undefined = page
+  const breadcrumbs: Array<{ id: string; title: string; path: string }> = [];
+  let current: Page | undefined = page;
 
   while (current) {
     breadcrumbs.unshift({
       id: current.id,
       title: current.title,
       path: current.path,
-    })
-    current = current.parentId ? allPages.find((p) => p.id === current?.parentId) : undefined
+    });
+    current = current.parentId ? allPages.find((p) => p.id === current?.parentId) : undefined;
   }
 
-  return breadcrumbs
+  return breadcrumbs;
 }

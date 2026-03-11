@@ -13,8 +13,8 @@
  * - ticketLabelAssignments: Junction table for ticket-label M:N
  */
 
-import { boolean, index, integer, jsonb, pgTable, text, timestamp } from 'drizzle-orm/pg-core'
-import { users } from './users.js'
+import { boolean, index, integer, jsonb, pgTable, text, timestamp } from 'drizzle-orm/pg-core';
+import { users } from './users.js';
 
 // =============================================================================
 // Boards
@@ -42,10 +42,10 @@ export const boards = pgTable('boards', {
 
   createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
   updatedAt: timestamp('updated_at', { withTimezone: true }).notNull().defaultNow(),
-})
+});
 
-export type Board = typeof boards.$inferSelect
-export type NewBoard = typeof boards.$inferInsert
+export type Board = typeof boards.$inferSelect;
+export type NewBoard = typeof boards.$inferInsert;
 
 // =============================================================================
 // Board Columns
@@ -75,10 +75,10 @@ export const boardColumns = pgTable('board_columns', {
 
   createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
   updatedAt: timestamp('updated_at', { withTimezone: true }).notNull().defaultNow(),
-})
+});
 
-export type BoardColumn = typeof boardColumns.$inferSelect
-export type NewBoardColumn = typeof boardColumns.$inferInsert
+export type BoardColumn = typeof boardColumns.$inferSelect;
+export type NewBoardColumn = typeof boardColumns.$inferInsert;
 
 // =============================================================================
 // Ticket Labels
@@ -100,10 +100,10 @@ export const ticketLabels = pgTable('ticket_labels', {
 
   createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
   updatedAt: timestamp('updated_at', { withTimezone: true }).notNull().defaultNow(),
-})
+});
 
-export type TicketLabel = typeof ticketLabels.$inferSelect
-export type NewTicketLabel = typeof ticketLabels.$inferInsert
+export type TicketLabel = typeof ticketLabels.$inferSelect;
+export type NewTicketLabel = typeof ticketLabels.$inferInsert;
 
 // =============================================================================
 // Tickets (replaces todos)
@@ -182,10 +182,10 @@ export const tickets = pgTable(
     index('tickets_parent_ticket_id_idx').on(table.parentTicketId),
     index('tickets_reporter_id_idx').on(table.reporterId),
   ],
-)
+);
 
-export type Ticket = typeof tickets.$inferSelect
-export type NewTicket = typeof tickets.$inferInsert
+export type Ticket = typeof tickets.$inferSelect;
+export type NewTicket = typeof tickets.$inferInsert;
 
 // =============================================================================
 // Ticket Comments
@@ -210,10 +210,10 @@ export const ticketComments = pgTable(
     updatedAt: timestamp('updated_at', { withTimezone: true }).notNull().defaultNow(),
   },
   (table) => [index('ticket_comments_ticket_id_idx').on(table.ticketId)],
-)
+);
 
-export type TicketComment = typeof ticketComments.$inferSelect
-export type NewTicketComment = typeof ticketComments.$inferInsert
+export type TicketComment = typeof ticketComments.$inferSelect;
+export type NewTicketComment = typeof ticketComments.$inferInsert;
 
 // =============================================================================
 // Ticket-Label Assignments (M:N junction)
@@ -231,7 +231,7 @@ export const ticketLabelAssignments = pgTable('ticket_label_assignments', {
     .references(() => ticketLabels.id, { onDelete: 'cascade' }),
 
   assignedAt: timestamp('assigned_at', { withTimezone: true }).notNull().defaultNow(),
-})
+});
 
-export type TicketLabelAssignment = typeof ticketLabelAssignments.$inferSelect
-export type NewTicketLabelAssignment = typeof ticketLabelAssignments.$inferInsert
+export type TicketLabelAssignment = typeof ticketLabelAssignments.$inferSelect;
+export type NewTicketLabelAssignment = typeof ticketLabelAssignments.$inferInsert;

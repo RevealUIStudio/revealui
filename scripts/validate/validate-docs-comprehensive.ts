@@ -24,29 +24,32 @@
  * - node:path - Path manipulation utilities (dirname, join, relative, resolve)
  */
 
-import { existsSync } from 'node:fs'
-import { readFile } from 'node:fs/promises'
-import { dirname, join, relative, resolve } from 'node:path'
-import { parseArgs } from '../lib/args.js'
-import { ErrorCode, ScriptError } from '../lib/errors.js'
-import { scanDirectoryAll } from '../lib/index.js'
-import { createOutput } from '../lib/output.js'
-import { VERIFICATION_RULES, validateVerificationClaims } from '../lib/verification-requirements.js'
+import { existsSync } from 'node:fs';
+import { readFile } from 'node:fs/promises';
+import { dirname, join, relative, resolve } from 'node:path';
+import { parseArgs } from '../lib/args.js';
+import { ErrorCode, ScriptError } from '../lib/errors.js';
+import { scanDirectoryAll } from '../lib/index.js';
+import { createOutput } from '../lib/output.js';
+import {
+  VERIFICATION_RULES,
+  validateVerificationClaims,
+} from '../lib/verification-requirements.js';
 
 // =============================================================================
 // Types
 // =============================================================================
 
 interface ValidationIssue {
-  file: string
-  line?: number
-  column?: number
-  severity: 'critical' | 'high' | 'medium' | 'low' | 'info'
-  category: ValidationCategory
-  message: string
-  suggestedFix?: string
-  actual?: string
-  expected?: string
+  file: string;
+  line?: number;
+  column?: number;
+  severity: 'critical' | 'high' | 'medium' | 'low' | 'info';
+  category: ValidationCategory;
+  message: string;
+  suggestedFix?: string;
+  actual?: string;
+  expected?: string;
 }
 
 type ValidationCategory =
@@ -58,30 +61,30 @@ type ValidationCategory =
   | 'deprecated-reference'
   | 'version-mismatch'
   | 'naming-inconsistency'
-  | 'false-claim'
+  | 'false-claim';
 
 interface ValidationResult {
-  totalFiles: number
-  totalIssues: number
-  bySeverity: Record<string, number>
-  byCategory: Record<string, number>
-  issues: ValidationIssue[]
-  accuracyScore: number
+  totalFiles: number;
+  totalIssues: number;
+  bySeverity: Record<string, number>;
+  byCategory: Record<string, number>;
+  issues: ValidationIssue[];
+  accuracyScore: number;
 }
 
 interface PackageJson {
-  scripts?: Record<string, string>
-  dependencies?: Record<string, string>
-  devDependencies?: Record<string, string>
-  [key: string]: unknown
+  scripts?: Record<string, string>;
+  dependencies?: Record<string, string>;
+  devDependencies?: Record<string, string>;
+  [key: string]: unknown;
 }
 
 // =============================================================================
 // Configuration
 // =============================================================================
 
-const PROJECT_ROOT = resolve(process.cwd())
-const DOCS_DIR = join(PROJECT_ROOT, 'docs')
+const PROJECT_ROOT = resolve(process.cwd());
+const DOCS_DIR = join(PROJECT_ROOT, 'docs');
 
 // Patterns to check
 const DEPRECATED_PATTERNS = [
@@ -121,7 +124,7 @@ const DEPRECATED_PATTERNS = [
     message: 'pnpm version should be 10.28.2',
     suggestedFix: 'pnpm 10.28.2',
   },
-]
+];
 
 // Known non-existent directories (from audit)
 const NONEXISTENT_DIRECTORIES = [
@@ -133,10 +136,10 @@ const NONEXISTENT_DIRECTORIES = [
   'docs/migrations/',
   'docs/guides/',
   'scripts/automation/',
-]
+];
 
 // File naming patterns (UPPERCASE_UNDERSCORES is standard)
-const INCORRECT_NAMING_PATTERN = /[A-Z][A-Z_]+-[A-Z]/
+const INCORRECT_NAMING_PATTERN = /[A-Z][A-Z_]+-[A-Z]/;
 
 // =============================================================================
 // Validation Functions
@@ -146,9 +149,9 @@ const INCORRECT_NAMING_PATTERN = /[A-Z][A-Z_]+-[A-Z]/
  * Load and parse package.json
  */
 async function loadPackageJson(): Promise<PackageJson> {
-  const packagePath = join(PROJECT_ROOT, 'package.json')
-  const content = await readFile(packagePath, 'utf-8')
-  return JSON.parse(content) as PackageJson
+  const packagePath = join(PROJECT_ROOT, 'package.json');
+  const content = await readFile(packagePath, 'utf-8');
+  return JSON.parse(content) as PackageJson;
 }
 
 /**
@@ -159,7 +162,7 @@ async function findMarkdownFiles(dir: string): Promise<string[]> {
   return scanDirectoryAll(dir, {
     extensions: ['.md', '.mdx'],
     includeHidden: false,
-  })
+  });
 }
 
 // Built-in pnpm commands that shouldn't be validated against package.json
@@ -193,7 +196,7 @@ const BUILTIN_PNPM_COMMANDS = new Set([
   'server',
   'recursive',
   '-r', // recursive flag
-])
+]);
 
 /**
  * Validate package.json script references
@@ -203,18 +206,18 @@ async function validateScriptReferences(
   filePath: string,
   packageJson: PackageJson,
 ): Promise<ValidationIssue[]> {
-  const issues: ValidationIssue[] = []
-  const scriptPattern = /`pnpm\s+([\w:.-]+)`/g
+  const issues: ValidationIssue[] = [];
+  const scriptPattern = /`pnpm\s+([\w:.-]+)`/g;
 
-  let match = scriptPattern.exec(content)
+  let match = scriptPattern.exec(content);
   while (match !== null) {
-    const scriptName = match[1]
+    const scriptName = match[1];
 
     // Skip built-in pnpm commands
     if (!BUILTIN_PNPM_COMMANDS.has(scriptName)) {
       // Check if script exists in package.json
       if (!packageJson.scripts?.[scriptName]) {
-        const line = content.substring(0, match.index).split('\n').length
+        const line = content.substring(0, match.index).split('\n').length;
 
         issues.push({
           file: relative(PROJECT_ROOT, filePath),
@@ -224,26 +227,26 @@ async function validateScriptReferences(
           message: `Script '${scriptName}' does not exist in package.json`,
           actual: `pnpm ${scriptName}`,
           expected: 'Check package.json for correct script name',
-        })
+        });
       }
     }
 
-    match = scriptPattern.exec(content)
+    match = scriptPattern.exec(content);
   }
 
-  return issues
+  return issues;
 }
 
 /**
  * Validate directory references
  */
 function validateDirectoryReferences(content: string, filePath: string): ValidationIssue[] {
-  const issues: ValidationIssue[] = []
+  const issues: ValidationIssue[] = [];
 
   for (const dir of NONEXISTENT_DIRECTORIES) {
     if (content.includes(dir)) {
-      const lines = content.split('\n')
-      const lineIndex = lines.findIndex((line) => line.includes(dir))
+      const lines = content.split('\n');
+      const lineIndex = lines.findIndex((line) => line.includes(dir));
 
       issues.push({
         file: relative(PROJECT_ROOT, filePath),
@@ -252,11 +255,11 @@ function validateDirectoryReferences(content: string, filePath: string): Validat
         category: 'nonexistent-directory',
         message: `Directory '${dir}' does not exist`,
         actual: dir,
-      })
+      });
     }
   }
 
-  return issues
+  return issues;
 }
 
 /**
@@ -266,24 +269,24 @@ async function validateInternalLinks(
   content: string,
   filePath: string,
 ): Promise<ValidationIssue[]> {
-  const issues: ValidationIssue[] = []
-  const linkPattern = /\[([^\]]+)\]\(([^)]+)\)/g
+  const issues: ValidationIssue[] = [];
+  const linkPattern = /\[([^\]]+)\]\(([^)]+)\)/g;
 
-  let match = linkPattern.exec(content)
+  let match = linkPattern.exec(content);
   while (match !== null) {
-    const _linkText = match[1]
-    const linkPath = match[2]
+    const _linkText = match[1];
+    const linkPath = match[2];
 
     // Only check relative links (not http, mailto, or anchors)
     if (
       !(linkPath.startsWith('http') || linkPath.startsWith('mailto:') || linkPath.startsWith('#'))
     ) {
       // Resolve relative to current file
-      const fileDir = dirname(filePath)
-      const targetPath = resolve(fileDir, linkPath.split('#')[0]) // Remove anchor
+      const fileDir = dirname(filePath);
+      const targetPath = resolve(fileDir, linkPath.split('#')[0]); // Remove anchor
 
       if (!existsSync(targetPath)) {
-        const line = content.substring(0, match.index).split('\n').length
+        const line = content.substring(0, match.index).split('\n').length;
 
         issues.push({
           file: relative(PROJECT_ROOT, filePath),
@@ -292,27 +295,27 @@ async function validateInternalLinks(
           category: 'broken-link',
           message: `Broken link: ${linkPath}`,
           actual: linkPath,
-        })
+        });
       }
     }
 
-    match = linkPattern.exec(content)
+    match = linkPattern.exec(content);
   }
 
-  return issues
+  return issues;
 }
 
 /**
  * Validate deprecated patterns
  */
 function validateDeprecatedPatterns(content: string, filePath: string): ValidationIssue[] {
-  const issues: ValidationIssue[] = []
+  const issues: ValidationIssue[] = [];
 
   for (const { pattern, category, message, suggestedFix } of DEPRECATED_PATTERNS) {
-    const matches = Array.from(content.matchAll(pattern))
+    const matches = Array.from(content.matchAll(pattern));
 
     for (const match of matches) {
-      const line = content.substring(0, match.index).split('\n').length
+      const line = content.substring(0, match.index).split('\n').length;
 
       issues.push({
         file: relative(PROJECT_ROOT, filePath),
@@ -322,19 +325,19 @@ function validateDeprecatedPatterns(content: string, filePath: string): Validati
         message,
         actual: match[0],
         suggestedFix,
-      })
+      });
     }
   }
 
-  return issues
+  return issues;
 }
 
 /**
  * Validate file naming consistency
  */
 function validateFileNaming(filePath: string): ValidationIssue[] {
-  const issues: ValidationIssue[] = []
-  const fileName = filePath.split('/').pop() || ''
+  const issues: ValidationIssue[] = [];
+  const fileName = filePath.split('/').pop() || '';
 
   // Check for hyphenated uppercase names (should be underscores)
   if (INCORRECT_NAMING_PATTERN.test(fileName)) {
@@ -345,35 +348,35 @@ function validateFileNaming(filePath: string): ValidationIssue[] {
       message: 'File uses hyphens instead of underscores in uppercase name',
       actual: fileName,
       suggestedFix: fileName.replace(/-/g, '_'),
-    })
+    });
   }
 
-  return issues
+  return issues;
 }
 
 /**
  * Validate MCP package versions against node_modules
  */
 async function validateMcpVersions(content: string, filePath: string): Promise<ValidationIssue[]> {
-  const issues: ValidationIssue[] = []
+  const issues: ValidationIssue[] = [];
 
   // Check for version claims like @stripe/mcp@0.1.4
-  const versionPattern = /@([\w/-]+)@([\d.]+)/g
+  const versionPattern = /@([\w/-]+)@([\d.]+)/g;
 
-  let match = versionPattern.exec(content)
+  let match = versionPattern.exec(content);
   while (match !== null) {
-    const packageName = match[1]
-    const claimedVersion = match[2]
+    const packageName = match[1];
+    const claimedVersion = match[2];
 
     try {
-      const packageJsonPath = join(PROJECT_ROOT, 'node_modules', packageName, 'package.json')
+      const packageJsonPath = join(PROJECT_ROOT, 'node_modules', packageName, 'package.json');
       if (existsSync(packageJsonPath)) {
-        const pkgContent = await readFile(packageJsonPath, 'utf-8')
-        const pkg = JSON.parse(pkgContent) as PackageJson
-        const actualVersion = pkg.version as string
+        const pkgContent = await readFile(packageJsonPath, 'utf-8');
+        const pkg = JSON.parse(pkgContent) as PackageJson;
+        const actualVersion = pkg.version as string;
 
         if (actualVersion && actualVersion !== claimedVersion) {
-          const line = content.substring(0, match.index).split('\n').length
+          const line = content.substring(0, match.index).split('\n').length;
 
           issues.push({
             file: relative(PROJECT_ROOT, filePath),
@@ -384,17 +387,17 @@ async function validateMcpVersions(content: string, filePath: string): Promise<V
             actual: claimedVersion,
             expected: actualVersion,
             suggestedFix: `@${packageName}@${actualVersion}`,
-          })
+          });
         }
       }
     } catch {
       // Ignore errors reading package.json
     }
 
-    match = versionPattern.exec(content)
+    match = versionPattern.exec(content);
   }
 
-  return issues
+  return issues;
 }
 
 /**
@@ -404,29 +407,29 @@ async function validateFile(
   filePath: string,
   packageJson: PackageJson,
 ): Promise<ValidationIssue[]> {
-  const content = await readFile(filePath, 'utf-8')
-  const issues: ValidationIssue[] = []
+  const content = await readFile(filePath, 'utf-8');
+  const issues: ValidationIssue[] = [];
 
   // Run all validations
-  issues.push(...(await validateScriptReferences(content, filePath, packageJson)))
-  issues.push(...validateDirectoryReferences(content, filePath))
-  issues.push(...(await validateInternalLinks(content, filePath)))
-  issues.push(...validateDeprecatedPatterns(content, filePath))
-  issues.push(...validateFileNaming(filePath))
-  issues.push(...(await validateMcpVersions(content, filePath)))
-  issues.push(...validateAutomatedReports(content, filePath))
+  issues.push(...(await validateScriptReferences(content, filePath, packageJson)));
+  issues.push(...validateDirectoryReferences(content, filePath));
+  issues.push(...(await validateInternalLinks(content, filePath)));
+  issues.push(...validateDeprecatedPatterns(content, filePath));
+  issues.push(...validateFileNaming(filePath));
+  issues.push(...(await validateMcpVersions(content, filePath)));
+  issues.push(...validateAutomatedReports(content, filePath));
 
-  return issues
+  return issues;
 }
 
 /**
  * Validate that automated reports don't make false claims
  */
 function validateAutomatedReports(content: string, filePath: string): ValidationIssue[] {
-  const issues: ValidationIssue[] = []
+  const issues: ValidationIssue[] = [];
 
   // Use verification requirements module
-  const validation = validateVerificationClaims(content, filePath)
+  const validation = validateVerificationClaims(content, filePath);
 
   if (!validation.valid) {
     for (const error of validation.errors) {
@@ -437,7 +440,7 @@ function validateAutomatedReports(content: string, filePath: string): Validation
         message: error,
         suggestedFix:
           'Add human review section or remove unverified claims. See scripts/lib/verification-requirements.ts',
-      })
+      });
     }
   }
 
@@ -446,7 +449,7 @@ function validateAutomatedReports(content: string, filePath: string): Validation
     content.includes('Auto-generated') ||
     content.includes('Generated by automation') ||
     filePath.includes('assessment-report') ||
-    filePath.includes('review-validated')
+    filePath.includes('review-validated');
 
   if (isGenerated) {
     // Check for required disclaimer
@@ -457,13 +460,13 @@ function validateAutomatedReports(content: string, filePath: string): Validation
         category: 'false-claim',
         message: 'Automated report missing required disclaimer',
         suggestedFix: `Add: ${VERIFICATION_RULES.requiredDisclaimer}`,
-      })
+      });
     }
 
     // Check for forbidden patterns
     for (const pattern of VERIFICATION_RULES.forbiddenAutomatedClaims) {
       if (pattern.test(content)) {
-        const match = content.match(pattern)
+        const match = content.match(pattern);
         issues.push({
           file: relative(PROJECT_ROOT, filePath),
           severity: 'critical',
@@ -472,12 +475,12 @@ function validateAutomatedReports(content: string, filePath: string): Validation
           actual: match?.[0],
           suggestedFix:
             'Remove claim or add human review section with reviewDate and reviewedBy fields',
-        })
+        });
       }
     }
   }
 
-  return issues
+  return issues;
 }
 
 /**
@@ -485,16 +488,16 @@ function validateAutomatedReports(content: string, filePath: string): Validation
  */
 function calculateAccuracyScore(totalFiles: number, issues: ValidationIssue[]): number {
   // Weight issues by severity
-  const weights = { critical: 10, high: 5, medium: 2, low: 1, info: 0.5 }
+  const weights = { critical: 10, high: 5, medium: 2, low: 1, info: 0.5 };
 
-  const totalWeight = issues.reduce((sum, issue) => sum + weights[issue.severity], 0)
+  const totalWeight = issues.reduce((sum, issue) => sum + weights[issue.severity], 0);
 
   // Perfect score is 100, reduce based on weighted issues
-  const maxPenalty = totalFiles * 10 // Assume max 10 points per file
-  const penalty = Math.min(totalWeight, maxPenalty)
-  const score = Math.max(0, 100 - (penalty / maxPenalty) * 100)
+  const maxPenalty = totalFiles * 10; // Assume max 10 points per file
+  const penalty = Math.min(totalWeight, maxPenalty);
+  const score = Math.max(0, 100 - (penalty / maxPenalty) * 100);
 
-  return Math.round(score * 10) / 10 // Round to 1 decimal
+  return Math.round(score * 10) / 10; // Round to 1 decimal
 }
 
 // =============================================================================
@@ -510,39 +513,39 @@ async function main() {
       { name: 'verbose', short: 'v', type: 'boolean', description: 'Show detailed output' },
       { name: 'exit-zero', type: 'boolean', description: 'Exit with 0 even if issues found' },
     ],
-  }
+  };
 
-  const args = parseArgs(process.argv.slice(2), config)
+  const args = parseArgs(process.argv.slice(2), config);
 
-  const output = createOutput(args.flags, { loggerPrefix: 'validate-docs' })
+  const output = createOutput(args.flags, { loggerPrefix: 'validate-docs' });
 
   try {
-    output.header('Comprehensive Documentation Validation')
+    output.header('Comprehensive Documentation Validation');
 
     // Load package.json
-    output.progress('Loading package.json...')
-    const packageJson = await loadPackageJson()
+    output.progress('Loading package.json...');
+    const packageJson = await loadPackageJson();
 
     // Find all markdown files
-    output.progress('Scanning documentation files...')
-    const files = await findMarkdownFiles(DOCS_DIR)
-    output.progress(`Found ${files.length} documentation files`)
+    output.progress('Scanning documentation files...');
+    const files = await findMarkdownFiles(DOCS_DIR);
+    output.progress(`Found ${files.length} documentation files`);
 
     // Also check root README
-    files.push(join(PROJECT_ROOT, 'README.md'))
+    files.push(join(PROJECT_ROOT, 'README.md'));
 
     // Validate each file
-    const allIssues: ValidationIssue[] = []
+    const allIssues: ValidationIssue[] = [];
 
     for (let i = 0; i < files.length; i++) {
-      const file = files[i]
-      output.progressBar(i + 1, files.length, `Validating ${relative(PROJECT_ROOT, file)}`)
+      const file = files[i];
+      output.progressBar(i + 1, files.length, `Validating ${relative(PROJECT_ROOT, file)}`);
 
       try {
-        const issues = await validateFile(file, packageJson)
-        allIssues.push(...issues)
+        const issues = await validateFile(file, packageJson);
+        allIssues.push(...issues);
       } catch (error) {
-        output.warn(`Failed to validate ${relative(PROJECT_ROOT, file)}: ${error}`)
+        output.warn(`Failed to validate ${relative(PROJECT_ROOT, file)}: ${error}`);
       }
     }
 
@@ -553,16 +556,16 @@ async function main() {
       medium: 0,
       low: 0,
       info: 0,
-    }
+    };
 
-    const byCategory: Record<string, number> = {}
+    const byCategory: Record<string, number> = {};
 
     for (const issue of allIssues) {
-      bySeverity[issue.severity]++
-      byCategory[issue.category] = (byCategory[issue.category] || 0) + 1
+      bySeverity[issue.severity]++;
+      byCategory[issue.category] = (byCategory[issue.category] || 0) + 1;
     }
 
-    const accuracyScore = calculateAccuracyScore(files.length, allIssues)
+    const accuracyScore = calculateAccuracyScore(files.length, allIssues);
 
     const result: ValidationResult = {
       totalFiles: files.length,
@@ -571,34 +574,34 @@ async function main() {
       byCategory: byCategory,
       issues: allIssues,
       accuracyScore: accuracyScore,
-    }
+    };
 
     // Output results
     if (output.isJsonMode()) {
-      output.success(result)
+      output.success(result);
     } else {
-      output.divider()
-      output.getLogger().info(`\n📊 Validation Summary\n`)
-      output.getLogger().info(`Files validated: ${result.totalFiles}`)
-      output.getLogger().info(`Issues found: ${result.totalIssues}`)
-      output.getLogger().info(`Accuracy score: ${result.accuracyScore}%\n`)
+      output.divider();
+      output.getLogger().info(`\n📊 Validation Summary\n`);
+      output.getLogger().info(`Files validated: ${result.totalFiles}`);
+      output.getLogger().info(`Issues found: ${result.totalIssues}`);
+      output.getLogger().info(`Accuracy score: ${result.accuracyScore}%\n`);
 
       if (result.totalIssues > 0) {
-        output.getLogger().info('Issues by severity:')
-        output.getLogger().error(`  🔴 Critical: ${bySeverity.critical}`)
-        output.getLogger().warn(`  🟠 High: ${bySeverity.high}`)
-        output.getLogger().info(`  🟡 Medium: ${bySeverity.medium}`)
-        output.getLogger().info(`  ⚪ Low: ${bySeverity.low}`)
-        output.getLogger().info(`  ℹ️  Info: ${bySeverity.info}\n`)
+        output.getLogger().info('Issues by severity:');
+        output.getLogger().error(`  🔴 Critical: ${bySeverity.critical}`);
+        output.getLogger().warn(`  🟠 High: ${bySeverity.high}`);
+        output.getLogger().info(`  🟡 Medium: ${bySeverity.medium}`);
+        output.getLogger().info(`  ⚪ Low: ${bySeverity.low}`);
+        output.getLogger().info(`  ℹ️  Info: ${bySeverity.info}\n`);
 
-        output.getLogger().info('Issues by category:')
+        output.getLogger().info('Issues by category:');
         for (const [category, count] of Object.entries(byCategory)) {
-          output.getLogger().info(`  ${category}: ${count}`)
+          output.getLogger().info(`  ${category}: ${count}`);
         }
 
         // Show first 20 issues
-        const displayCount = Math.min(20, allIssues.length)
-        output.getLogger().info(`\n🔍 Top ${displayCount} Issues:\n`)
+        const displayCount = Math.min(20, allIssues.length);
+        output.getLogger().info(`\n🔍 Top ${displayCount} Issues:\n`);
 
         for (const issue of allIssues.slice(0, displayCount)) {
           const icon =
@@ -608,45 +611,45 @@ async function main() {
                 ? '🟠'
                 : issue.severity === 'medium'
                   ? '🟡'
-                  : '⚪'
+                  : '⚪';
 
-          const location = issue.line ? `${issue.file}:${issue.line}` : issue.file
-          output.getLogger().info(`${icon} ${location}`)
-          output.getLogger().info(`   ${issue.message}`)
+          const location = issue.line ? `${issue.file}:${issue.line}` : issue.file;
+          output.getLogger().info(`${icon} ${location}`);
+          output.getLogger().info(`   ${issue.message}`);
 
           if (issue.actual && issue.suggestedFix) {
-            output.getLogger().info(`   Current: ${issue.actual}`)
-            output.getLogger().info(`   Suggested: ${issue.suggestedFix}`)
+            output.getLogger().info(`   Current: ${issue.actual}`);
+            output.getLogger().info(`   Suggested: ${issue.suggestedFix}`);
           }
 
-          output.getLogger().info('')
+          output.getLogger().info('');
         }
 
         if (allIssues.length > displayCount) {
-          output.getLogger().info(`... and ${allIssues.length - displayCount} more issues\n`)
-          output.getLogger().info('Run with --json flag to see all issues\n')
+          output.getLogger().info(`... and ${allIssues.length - displayCount} more issues\n`);
+          output.getLogger().info('Run with --json flag to see all issues\n');
         }
       }
 
       // Summary message
       if (result.totalIssues === 0) {
-        output.getLogger().success('\n✅ All documentation is accurate!')
+        output.getLogger().success('\n✅ All documentation is accurate!');
       } else if (bySeverity.critical > 0) {
         output
           .getLogger()
-          .error(`\n❌ Found ${bySeverity.critical} critical issues - must fix before release`)
+          .error(`\n❌ Found ${bySeverity.critical} critical issues - must fix before release`);
       } else if (bySeverity.high > 0) {
         output
           .getLogger()
-          .warn(`\n⚠️  Found ${bySeverity.high} high priority issues - should fix soon`)
+          .warn(`\n⚠️  Found ${bySeverity.high} high priority issues - should fix soon`);
       } else {
-        output.getLogger().info(`\n💡 Found ${result.totalIssues} minor issues`)
+        output.getLogger().info(`\n💡 Found ${result.totalIssues} minor issues`);
       }
     }
 
     // Exit with error code if critical issues found (unless --exit-zero)
     if (bySeverity.critical > 0 && !args.flags['exit-zero']) {
-      process.exit(ErrorCode.VALIDATION_ERROR)
+      process.exit(ErrorCode.VALIDATION_ERROR);
     }
   } catch (error) {
     if (error instanceof ScriptError) {
@@ -654,16 +657,16 @@ async function main() {
         code: error.codeString,
         message: error.message,
         details: error.details,
-      })
-      process.exit(error.code)
+      });
+      process.exit(error.code);
     }
 
     output.error({
       code: 'GENERAL_ERROR',
       message: error instanceof Error ? error.message : String(error),
-    })
-    process.exit(ErrorCode.GENERAL_ERROR)
+    });
+    process.exit(ErrorCode.GENERAL_ERROR);
   }
 }
 
-main()
+main();

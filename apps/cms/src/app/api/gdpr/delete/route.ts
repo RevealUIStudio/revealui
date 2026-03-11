@@ -1,16 +1,16 @@
-export const runtime = 'nodejs'
+export const runtime = 'nodejs';
 
-import { getSession } from '@revealui/auth/server'
-import { type NextRequest, NextResponse } from 'next/server'
-import { withRateLimit } from '@/lib/middleware/rate-limit'
-import { writeGDPRAuditEntry } from '@/lib/utilities/gdpr-audit'
-import { getRevealUIInstance } from '@/lib/utilities/revealui-singleton'
-import { createApplicationErrorResponse, createErrorResponse } from '@/lib/utils/error-response'
+import { getSession } from '@revealui/auth/server';
+import { type NextRequest, NextResponse } from 'next/server';
+import { withRateLimit } from '@/lib/middleware/rate-limit';
+import { writeGDPRAuditEntry } from '@/lib/utilities/gdpr-audit';
+import { getRevealUIInstance } from '@/lib/utilities/revealui-singleton';
+import { createApplicationErrorResponse, createErrorResponse } from '@/lib/utils/error-response';
 
-export const dynamic = 'force-dynamic'
+export const dynamic = 'force-dynamic';
 
 /** Collections that hold data linked to a user — deleted in cascade order. */
-const CASCADED_COLLECTIONS = ['conversations', 'orders', 'subscriptions', 'events'] as const
+const CASCADED_COLLECTIONS = ['conversations', 'orders', 'subscriptions', 'events'] as const;
 
 /**
  * Delete all documents in a collection belonging to a user.
@@ -22,20 +22,20 @@ async function deleteAllUserDocs(
   collection: string,
   userId: string,
 ): Promise<number> {
-  let totalDeleted = 0
+  let totalDeleted = 0;
   // Batch size: large enough to be efficient, small enough to avoid memory spikes.
-  const Batch = 100
+  const Batch = 100;
   while (true) {
     const found = await revealui.find({
       collection,
       where: { user: { equals: userId } },
       limit: Batch,
-    })
-    if (found.docs.length === 0) break
-    await Promise.all(found.docs.map((doc) => revealui.delete({ collection, id: String(doc.id) })))
-    totalDeleted += found.docs.length
+    });
+    if (found.docs.length === 0) break;
+    await Promise.all(found.docs.map((doc) => revealui.delete({ collection, id: String(doc.id) })));
+    totalDeleted += found.docs.length;
   }
-  return totalDeleted
+  return totalDeleted;
 }
 
 /**
@@ -49,15 +49,15 @@ async function deleteAllUserDocs(
 async function gdprDeleteHandler(request: NextRequest) {
   try {
     // Require authentication
-    const session = await getSession(request.headers)
+    const session = await getSession(request.headers);
     if (!session) {
-      return createApplicationErrorResponse('Authentication required', 'UNAUTHORIZED', 401)
+      return createApplicationErrorResponse('Authentication required', 'UNAUTHORIZED', 401);
     }
 
-    const revealui = await getRevealUIInstance()
+    const revealui = await getRevealUIInstance();
 
     // Users can only delete their own account
-    const userIdToDelete = session.user.id
+    const userIdToDelete = session.user.id;
 
     // -------------------------------------------------------------------------
     // Cascade delete: remove related records before removing the user row so
@@ -67,10 +67,10 @@ async function gdprDeleteHandler(request: NextRequest) {
     // -------------------------------------------------------------------------
     const cascadeResults = await Promise.allSettled(
       CASCADED_COLLECTIONS.map(async (collection) => {
-        const deleted = await deleteAllUserDocs(revealui, collection, userIdToDelete)
-        return { collection, deleted }
+        const deleted = await deleteAllUserDocs(revealui, collection, userIdToDelete);
+        return { collection, deleted };
       }),
-    )
+    );
 
     const cascadeSummary = cascadeResults.map((r, i) =>
       r.status === 'fulfilled'
@@ -79,10 +79,10 @@ async function gdprDeleteHandler(request: NextRequest) {
             collection: CASCADED_COLLECTIONS[i],
             error: String((r as PromiseRejectedResult).reason),
           },
-    )
+    );
 
     // Abort if any cascade failed — orphaned PII is worse than a retry
-    const failedCascades = cascadeResults.filter((r) => r.status === 'rejected')
+    const failedCascades = cascadeResults.filter((r) => r.status === 'rejected');
     if (failedCascades.length > 0) {
       await writeGDPRAuditEntry(revealui, {
         action: 'delete',
@@ -91,7 +91,7 @@ async function gdprDeleteHandler(request: NextRequest) {
         collections: ['users', ...CASCADED_COLLECTIONS],
         timestamp: new Date().toISOString(),
         metadata: { cascadeSummary, aborted: true },
-      })
+      });
 
       return NextResponse.json(
         {
@@ -101,14 +101,14 @@ async function gdprDeleteHandler(request: NextRequest) {
           cascadeSummary,
         },
         { status: 500 },
-      )
+      );
     }
 
     // Delete the user record itself (only after all cascades succeeded)
     await revealui.delete({
       collection: 'users',
       id: userIdToDelete,
-    })
+    });
 
     // Write immutable audit trail entry
     await writeGDPRAuditEntry(revealui, {
@@ -118,7 +118,7 @@ async function gdprDeleteHandler(request: NextRequest) {
       collections: ['users', ...CASCADED_COLLECTIONS],
       timestamp: new Date().toISOString(),
       metadata: { cascadeSummary },
-    })
+    });
 
     return NextResponse.json(
       {
@@ -128,12 +128,12 @@ async function gdprDeleteHandler(request: NextRequest) {
         cascadeSummary,
       },
       { status: 200 },
-    )
+    );
   } catch (error) {
     return createErrorResponse(error, {
       endpoint: '/api/gdpr/delete',
       operation: 'gdpr_delete',
-    })
+    });
   }
 }
 
@@ -142,4 +142,4 @@ export const POST = withRateLimit(gdprDeleteHandler, {
   maxAttempts: 2,
   windowMs: 60 * 60 * 1000,
   keyPrefix: 'gdpr-delete',
-})
+});

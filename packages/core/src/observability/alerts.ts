@@ -4,64 +4,64 @@
  * Configure and trigger alerts based on metrics and thresholds
  */
 
-import { logger } from './logger.js'
+import { logger } from './logger.js';
 
-export type AlertSeverity = 'info' | 'warning' | 'error' | 'critical'
-export type AlertStatus = 'firing' | 'resolved'
+export type AlertSeverity = 'info' | 'warning' | 'error' | 'critical';
+export type AlertStatus = 'firing' | 'resolved';
 
 export interface Alert {
-  id: string
-  name: string
-  severity: AlertSeverity
-  status: AlertStatus
-  message: string
-  details?: Record<string, unknown>
-  timestamp: string
-  resolvedAt?: string
-  labels?: Record<string, string>
+  id: string;
+  name: string;
+  severity: AlertSeverity;
+  status: AlertStatus;
+  message: string;
+  details?: Record<string, unknown>;
+  timestamp: string;
+  resolvedAt?: string;
+  labels?: Record<string, string>;
 }
 
 export interface AlertRule {
-  name: string
-  severity: AlertSeverity
-  condition: () => boolean | Promise<boolean>
-  message: string | ((context: Record<string, unknown>) => string)
-  labels?: Record<string, string>
-  cooldown?: number
-  enabled?: boolean
+  name: string;
+  severity: AlertSeverity;
+  condition: () => boolean | Promise<boolean>;
+  message: string | ((context: Record<string, unknown>) => string);
+  labels?: Record<string, string>;
+  cooldown?: number;
+  enabled?: boolean;
 }
 
 export interface AlertChannel {
-  name: string
-  send: (alert: Alert) => Promise<void>
-  severities?: AlertSeverity[]
+  name: string;
+  send: (alert: Alert) => Promise<void>;
+  severities?: AlertSeverity[];
 }
 
 export class AlertingSystem {
-  private rules: Map<string, AlertRule> = new Map()
-  private channels: AlertChannel[] = []
-  private activeAlerts: Map<string, Alert> = new Map()
-  private lastFired: Map<string, number> = new Map()
+  private rules: Map<string, AlertRule> = new Map();
+  private channels: AlertChannel[] = [];
+  private activeAlerts: Map<string, Alert> = new Map();
+  private lastFired: Map<string, number> = new Map();
 
   /**
    * Register alert rule
    */
   registerRule(rule: AlertRule): void {
-    this.rules.set(rule.name, rule)
+    this.rules.set(rule.name, rule);
   }
 
   /**
    * Unregister alert rule
    */
   unregisterRule(name: string): void {
-    this.rules.delete(name)
+    this.rules.delete(name);
   }
 
   /**
    * Add alert channel
    */
   addChannel(channel: AlertChannel): void {
-    this.channels.push(channel)
+    this.channels.push(channel);
   }
 
   /**
@@ -69,22 +69,22 @@ export class AlertingSystem {
    */
   async evaluateRules(): Promise<void> {
     for (const [name, rule] of this.rules) {
-      if (rule.enabled === false) continue
+      if (rule.enabled === false) continue;
 
       try {
-        const shouldFire = await rule.condition()
+        const shouldFire = await rule.condition();
 
         if (shouldFire) {
-          await this.fireAlert(name, rule)
+          await this.fireAlert(name, rule);
         } else {
-          await this.resolveAlert(name)
+          await this.resolveAlert(name);
         }
       } catch (error) {
         logger.error(
           'Failed to evaluate alert rule',
           error instanceof Error ? error : new Error(String(error)),
           { ruleName: name },
-        )
+        );
       }
     }
   }
@@ -93,20 +93,20 @@ export class AlertingSystem {
    * Fire an alert
    */
   private async fireAlert(ruleName: string, rule: AlertRule): Promise<void> {
-    const now = Date.now()
-    const lastFired = this.lastFired.get(ruleName) || 0
-    const cooldown = rule.cooldown || 0
+    const now = Date.now();
+    const lastFired = this.lastFired.get(ruleName) || 0;
+    const cooldown = rule.cooldown || 0;
 
     // Check cooldown
     if (now - lastFired < cooldown) {
-      return
+      return;
     }
 
     // Create or update alert
-    let alert = this.activeAlerts.get(ruleName)
+    let alert = this.activeAlerts.get(ruleName);
 
     if (!alert) {
-      const message = typeof rule.message === 'function' ? rule.message({}) : rule.message
+      const message = typeof rule.message === 'function' ? rule.message({}) : rule.message;
 
       alert = {
         id: crypto.randomUUID(),
@@ -116,13 +116,13 @@ export class AlertingSystem {
         message,
         timestamp: new Date().toISOString(),
         labels: rule.labels,
-      }
+      };
 
-      this.activeAlerts.set(ruleName, alert)
-      this.lastFired.set(ruleName, now)
+      this.activeAlerts.set(ruleName, alert);
+      this.lastFired.set(ruleName, now);
 
       // Send to channels
-      await this.sendAlert(alert)
+      await this.sendAlert(alert);
     }
   }
 
@@ -130,16 +130,16 @@ export class AlertingSystem {
    * Resolve an alert
    */
   private async resolveAlert(ruleName: string): Promise<void> {
-    const alert = this.activeAlerts.get(ruleName)
+    const alert = this.activeAlerts.get(ruleName);
 
     if (alert && alert.status === 'firing') {
-      alert.status = 'resolved'
-      alert.resolvedAt = new Date().toISOString()
+      alert.status = 'resolved';
+      alert.resolvedAt = new Date().toISOString();
 
       // Send resolution to channels
-      await this.sendAlert(alert)
+      await this.sendAlert(alert);
 
-      this.activeAlerts.delete(ruleName)
+      this.activeAlerts.delete(ruleName);
     }
   }
 
@@ -150,17 +150,17 @@ export class AlertingSystem {
     for (const channel of this.channels) {
       // Check if channel handles this severity
       if (channel.severities && !channel.severities.includes(alert.severity)) {
-        continue
+        continue;
       }
 
       try {
-        await channel.send(alert)
+        await channel.send(alert);
       } catch (error) {
         logger.error(
           'Failed to send alert to channel',
           error instanceof Error ? error : new Error(String(error)),
           { channelName: channel.name },
-        )
+        );
       }
     }
   }
@@ -169,14 +169,14 @@ export class AlertingSystem {
    * Get active alerts
    */
   getActiveAlerts(): Alert[] {
-    return Array.from(this.activeAlerts.values())
+    return Array.from(this.activeAlerts.values());
   }
 
   /**
    * Get alert by name
    */
   getAlert(name: string): Alert | undefined {
-    return this.activeAlerts.get(name)
+    return this.activeAlerts.get(name);
   }
 
   /**
@@ -184,15 +184,15 @@ export class AlertingSystem {
    */
   startMonitoring(intervalMs: number = 60000): NodeJS.Timeout {
     return setInterval(() => {
-      this.evaluateRules()
-    }, intervalMs)
+      this.evaluateRules();
+    }, intervalMs);
   }
 }
 
 /**
  * Default alerting system
  */
-export const alerting = new AlertingSystem()
+export const alerting = new AlertingSystem();
 
 /**
  * Console alert channel
@@ -207,27 +207,27 @@ export const consoleChannel: AlertChannel = {
           ? '🟠'
           : alert.severity === 'warning'
             ? '🟡'
-            : '🔵'
+            : '🔵';
 
-    const status = alert.status === 'firing' ? 'FIRING' : 'RESOLVED'
+    const status = alert.status === 'firing' ? 'FIRING' : 'RESOLVED';
 
-    const logMessage = `${emoji} [${alert.severity.toUpperCase()}] ${status}: ${alert.name}`
+    const logMessage = `${emoji} [${alert.severity.toUpperCase()}] ${status}: ${alert.name}`;
     const logContext: Record<string, unknown> = {
       message: alert.message,
       details: alert.details,
-    }
+    };
 
     if (alert.severity === 'critical' || alert.severity === 'error') {
-      logger.error(logMessage, undefined, logContext)
+      logger.error(logMessage, undefined, logContext);
     } else if (alert.severity === 'warning') {
-      logger.warn(logMessage, logContext)
+      logger.warn(logMessage, logContext);
     } else {
-      logger.info(logMessage, logContext)
+      logger.info(logMessage, logContext);
     }
 
     // alert.details already included in logContext above
   },
-}
+};
 
 /**
  * Webhook alert channel
@@ -243,9 +243,9 @@ export function createWebhookChannel(url: string, severities?: AlertSeverity[]):
           'Content-Type': 'application/json',
         },
         body: JSON.stringify(alert),
-      })
+      });
     },
-  }
+  };
 }
 
 /**
@@ -260,7 +260,7 @@ export function createEmailChannel(
     name: 'email',
     severities,
     send: async (alert: Alert) => {
-      const subject = `[${alert.severity.toUpperCase()}] ${alert.name}`
+      const subject = `[${alert.severity.toUpperCase()}] ${alert.name}`;
       const body = `
 Alert: ${alert.name}
 Severity: ${alert.severity}
@@ -270,13 +270,13 @@ Time: ${alert.timestamp}
 ${alert.message}
 
 ${alert.details ? JSON.stringify(alert.details, null, 2) : ''}
-      `.trim()
+      `.trim();
 
       for (const recipient of recipients) {
-        await sendEmailFn(recipient, subject, body)
+        await sendEmailFn(recipient, subject, body);
       }
     },
-  }
+  };
 }
 
 /**
@@ -294,7 +294,7 @@ export function createSlackChannel(webhookUrl: string, severities?: AlertSeverit
             ? 'warning'
             : alert.severity === 'warning'
               ? '#FFA500'
-              : 'good'
+              : 'good';
 
       const payload = {
         attachments: [
@@ -323,7 +323,7 @@ export function createSlackChannel(webhookUrl: string, severities?: AlertSeverit
             ts: Math.floor(new Date(alert.timestamp).getTime() / 1000),
           },
         ],
-      }
+      };
 
       await fetch(webhookUrl, {
         method: 'POST',
@@ -331,9 +331,9 @@ export function createSlackChannel(webhookUrl: string, severities?: AlertSeverit
           'Content-Type': 'application/json',
         },
         body: JSON.stringify(payload),
-      })
+      });
     },
-  }
+  };
 }
 
 /**
@@ -350,7 +350,7 @@ export function createErrorRateAlert(getErrorRate: () => number, threshold: numb
     condition: () => getErrorRate() > threshold,
     message: `Error rate (${getErrorRate()}%) exceeds threshold (${threshold}%)`,
     cooldown: 300000, // 5 minutes
-  }
+  };
 }
 
 /**
@@ -363,7 +363,7 @@ export function createResponseTimeAlert(getP95: () => number, threshold: number 
     condition: () => getP95() > threshold,
     message: `Response time p95 (${getP95()}ms) exceeds threshold (${threshold}ms)`,
     cooldown: 300000, // 5 minutes
-  }
+  };
 }
 
 /**
@@ -379,7 +379,7 @@ export function createCacheHitRateAlert(
     condition: () => getCacheHitRate() < threshold,
     message: `Cache hit rate (${getCacheHitRate()}%) below threshold (${threshold}%)`,
     cooldown: 600000, // 10 minutes
-  }
+  };
 }
 
 /**
@@ -395,7 +395,7 @@ export function createMemoryUsageAlert(
     condition: () => getMemoryUsage() > threshold,
     message: `Memory usage (${getMemoryUsage()}%) exceeds threshold (${threshold}%)`,
     cooldown: 300000, // 5 minutes
-  }
+  };
 }
 
 /**
@@ -408,7 +408,7 @@ export function createDatabaseAlert(checkConnection: () => Promise<boolean>): Al
     condition: async () => !(await checkConnection()),
     message: 'Database connection lost',
     cooldown: 60000, // 1 minute
-  }
+  };
 }
 
 /**
@@ -424,7 +424,7 @@ export function createServiceHealthAlert(
     condition: async () => !(await checkHealth()),
     message: `Service ${serviceName} is unhealthy`,
     cooldown: 180000, // 3 minutes
-  }
+  };
 }
 
 /**
@@ -440,7 +440,7 @@ export function createDiskSpaceAlert(
     condition: () => getDiskUsage() > threshold,
     message: `Disk usage (${getDiskUsage()}%) exceeds threshold (${threshold}%)`,
     cooldown: 3600000, // 1 hour
-  }
+  };
 }
 
 /**
@@ -457,7 +457,7 @@ export function createQueueSizeAlert(
     condition: () => getQueueSize() > threshold,
     message: `Queue ${queueName} size (${getQueueSize()}) exceeds threshold (${threshold})`,
     cooldown: 300000, // 5 minutes
-  }
+  };
 }
 
 /**
@@ -471,28 +471,28 @@ export function createMetricAlert(
   severity: AlertSeverity = 'warning',
 ): AlertRule {
   const condition = () => {
-    const value = getMetric()
+    const value = getMetric();
 
     switch (operator) {
       case '>':
-        return value > threshold
+        return value > threshold;
       case '<':
-        return value < threshold
+        return value < threshold;
       case '=':
-        return value === threshold
+        return value === threshold;
       default:
-        return false
+        return false;
     }
-  }
+  };
 
   return {
     name,
     severity,
     condition,
     message: () => {
-      const value = getMetric()
-      return `Metric ${name} (${value}) ${operator} threshold (${threshold})`
+      const value = getMetric();
+      return `Metric ${name} (${value}) ${operator} threshold (${threshold})`;
     },
     cooldown: 300000, // 5 minutes
-  }
+  };
 }

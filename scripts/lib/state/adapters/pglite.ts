@@ -17,9 +17,9 @@
  * - node:path - Path manipulation utilities
  */
 
-import { mkdir } from 'node:fs/promises'
-import { dirname, join } from 'node:path'
-import { ErrorCode, ScriptError } from '../../errors.js'
+import { mkdir } from 'node:fs/promises';
+import { dirname, join } from 'node:path';
+import { ErrorCode, ScriptError } from '../../errors.js';
 import type {
   ApprovalRequest,
   ApprovalStatus,
@@ -28,35 +28,35 @@ import type {
   WorkflowStatus,
   WorkflowStep,
   WorkflowStepState,
-} from '../types.js'
+} from '../types.js';
 
 export interface PGliteAdapterOptions {
   /** Path to the PGlite data directory */
-  dataDir?: string
+  dataDir?: string;
 }
 
 export class PGliteStateAdapter implements StateAdapter {
-  private db: PGliteInstance | null = null
-  private dataDir: string
+  private db: PGliteInstance | null = null;
+  private dataDir: string;
 
   constructor(options: PGliteAdapterOptions = {}) {
-    this.dataDir = options.dataDir || join(process.cwd(), '.revealui', 'state', 'workflows')
+    this.dataDir = options.dataDir || join(process.cwd(), '.revealui', 'state', 'workflows');
   }
 
   async initialize(): Promise<void> {
     // Ensure directory exists
-    await mkdir(dirname(this.dataDir), { recursive: true })
+    await mkdir(dirname(this.dataDir), { recursive: true });
 
     // Dynamically import @electric-sql/pglite
     try {
-      const { PGlite } = await import('@electric-sql/pglite')
-      this.db = new PGlite(this.dataDir) as PGliteInstance
-      await this.db.waitReady
+      const { PGlite } = await import('@electric-sql/pglite');
+      this.db = new PGlite(this.dataDir) as PGliteInstance;
+      await this.db.waitReady;
     } catch (_error) {
       throw new ScriptError(
         '@electric-sql/pglite is not installed. Run: pnpm add -D @electric-sql/pglite',
         ErrorCode.DEPENDENCY_ERROR,
-      )
+      );
     }
 
     // Create tables using PostgreSQL syntax
@@ -93,18 +93,18 @@ export class PGliteStateAdapter implements StateAdapter {
       CREATE INDEX IF NOT EXISTS idx_workflows_updated ON workflows(updated_at DESC);
       CREATE INDEX IF NOT EXISTS idx_approvals_token ON approvals(token);
       CREATE INDEX IF NOT EXISTS idx_approvals_workflow ON approvals(workflow_id);
-    `)
+    `);
   }
 
   async close(): Promise<void> {
     if (this.db) {
-      await this.db.close()
-      this.db = null
+      await this.db.close();
+      this.db = null;
     }
   }
 
   async saveWorkflow(workflow: WorkflowState): Promise<void> {
-    if (!this.db) throw new ScriptError('Database not initialized', ErrorCode.INVALID_STATE)
+    if (!this.db) throw new ScriptError('Database not initialized', ErrorCode.INVALID_STATE);
 
     await this.db.query(
       `
@@ -138,54 +138,54 @@ export class PGliteStateAdapter implements StateAdapter {
         workflow.error || null,
         workflow.metadata ? JSON.stringify(workflow.metadata) : null,
       ],
-    )
+    );
   }
 
   async loadWorkflow(id: string): Promise<WorkflowState | null> {
-    if (!this.db) throw new ScriptError('Database not initialized', ErrorCode.INVALID_STATE)
+    if (!this.db) throw new ScriptError('Database not initialized', ErrorCode.INVALID_STATE);
 
-    const result = await this.db.query<WorkflowRow>('SELECT * FROM workflows WHERE id = $1', [id])
+    const result = await this.db.query<WorkflowRow>('SELECT * FROM workflows WHERE id = $1', [id]);
 
-    return result.rows.length > 0 ? this.rowToWorkflow(result.rows[0]) : null
+    return result.rows.length > 0 ? this.rowToWorkflow(result.rows[0]) : null;
   }
 
   async listWorkflows(options?: {
-    status?: WorkflowStatus
-    limit?: number
+    status?: WorkflowStatus;
+    limit?: number;
   }): Promise<WorkflowState[]> {
-    if (!this.db) throw new ScriptError('Database not initialized', ErrorCode.INVALID_STATE)
+    if (!this.db) throw new ScriptError('Database not initialized', ErrorCode.INVALID_STATE);
 
-    let sql = 'SELECT * FROM workflows'
-    const params: unknown[] = []
-    let paramIndex = 1
+    let sql = 'SELECT * FROM workflows';
+    const params: unknown[] = [];
+    let paramIndex = 1;
 
     if (options?.status) {
-      sql += ` WHERE status = $${paramIndex++}`
-      params.push(options.status)
+      sql += ` WHERE status = $${paramIndex++}`;
+      params.push(options.status);
     }
 
-    sql += ' ORDER BY updated_at DESC'
+    sql += ' ORDER BY updated_at DESC';
 
     if (options?.limit) {
-      sql += ` LIMIT $${paramIndex++}`
-      params.push(options.limit)
+      sql += ` LIMIT $${paramIndex++}`;
+      params.push(options.limit);
     }
 
-    const result = await this.db.query<WorkflowRow>(sql, params)
+    const result = await this.db.query<WorkflowRow>(sql, params);
 
-    return result.rows.map((row) => this.rowToWorkflow(row))
+    return result.rows.map((row) => this.rowToWorkflow(row));
   }
 
   async deleteWorkflow(id: string): Promise<boolean> {
-    if (!this.db) throw new ScriptError('Database not initialized', ErrorCode.INVALID_STATE)
+    if (!this.db) throw new ScriptError('Database not initialized', ErrorCode.INVALID_STATE);
 
-    const result = await this.db.query('DELETE FROM workflows WHERE id = $1', [id])
+    const result = await this.db.query('DELETE FROM workflows WHERE id = $1', [id]);
 
-    return (result.affectedRows ?? 0) > 0
+    return (result.affectedRows ?? 0) > 0;
   }
 
   async saveApproval(approval: ApprovalRequest): Promise<void> {
-    if (!this.db) throw new ScriptError('Database not initialized', ErrorCode.INVALID_STATE)
+    if (!this.db) throw new ScriptError('Database not initialized', ErrorCode.INVALID_STATE);
 
     await this.db.query(
       `
@@ -211,28 +211,28 @@ export class PGliteStateAdapter implements StateAdapter {
         approval.expiresAt.toISOString(),
         approval.comment || null,
       ],
-    )
+    );
   }
 
   async loadApproval(token: string): Promise<ApprovalRequest | null> {
-    if (!this.db) throw new ScriptError('Database not initialized', ErrorCode.INVALID_STATE)
+    if (!this.db) throw new ScriptError('Database not initialized', ErrorCode.INVALID_STATE);
 
     const result = await this.db.query<ApprovalRow>('SELECT * FROM approvals WHERE token = $1', [
       token,
-    ])
+    ]);
 
-    return result.rows.length > 0 ? this.rowToApproval(result.rows[0]) : null
+    return result.rows.length > 0 ? this.rowToApproval(result.rows[0]) : null;
   }
 
   async loadApprovalsByWorkflow(workflowId: string): Promise<ApprovalRequest[]> {
-    if (!this.db) throw new ScriptError('Database not initialized', ErrorCode.INVALID_STATE)
+    if (!this.db) throw new ScriptError('Database not initialized', ErrorCode.INVALID_STATE);
 
     const result = await this.db.query<ApprovalRow>(
       'SELECT * FROM approvals WHERE workflow_id = $1 ORDER BY requested_at DESC',
       [workflowId],
-    )
+    );
 
-    return result.rows.map((row) => this.rowToApproval(row))
+    return result.rows.map((row) => this.rowToApproval(row));
   }
 
   async updateApprovalStatus(
@@ -241,7 +241,7 @@ export class PGliteStateAdapter implements StateAdapter {
     respondedBy?: string,
     comment?: string,
   ): Promise<void> {
-    if (!this.db) throw new ScriptError('Database not initialized', ErrorCode.INVALID_STATE)
+    if (!this.db) throw new ScriptError('Database not initialized', ErrorCode.INVALID_STATE);
 
     await this.db.query(
       `
@@ -250,47 +250,47 @@ export class PGliteStateAdapter implements StateAdapter {
       WHERE token = $5
     `,
       [status, new Date().toISOString(), respondedBy || null, comment || null, token],
-    )
+    );
   }
 
   private serializeStepStates(
     stepStates: Map<string, WorkflowStepState>,
   ): Record<string, WorkflowStepState> {
-    const result: Record<string, WorkflowStepState> = {}
+    const result: Record<string, WorkflowStepState> = {};
     for (const [key, value] of stepStates.entries()) {
       result[key] = {
         ...value,
         startedAt: value.startedAt ? value.startedAt : undefined,
         completedAt: value.completedAt ? value.completedAt : undefined,
-      }
+      };
     }
-    return result
+    return result;
   }
 
   private deserializeStepStates(
     data: Record<string, WorkflowStepState>,
   ): Map<string, WorkflowStepState> {
-    const map = new Map<string, WorkflowStepState>()
+    const map = new Map<string, WorkflowStepState>();
     for (const [key, value] of Object.entries(data)) {
       map.set(key, {
         ...value,
         startedAt: value.startedAt ? new Date(value.startedAt) : undefined,
         completedAt: value.completedAt ? new Date(value.completedAt) : undefined,
-      })
+      });
     }
-    return map
+    return map;
   }
 
   private rowToWorkflow(row: WorkflowRow): WorkflowState {
     // Handle JSONB columns - they may already be parsed objects
-    const steps = typeof row.steps === 'string' ? JSON.parse(row.steps) : row.steps
+    const steps = typeof row.steps === 'string' ? JSON.parse(row.steps) : row.steps;
     const stepStates =
-      typeof row.step_states === 'string' ? JSON.parse(row.step_states) : row.step_states
+      typeof row.step_states === 'string' ? JSON.parse(row.step_states) : row.step_states;
     const metadata = row.metadata
       ? typeof row.metadata === 'string'
         ? JSON.parse(row.metadata)
         : row.metadata
-      : undefined
+      : undefined;
 
     return {
       id: row.id,
@@ -305,7 +305,7 @@ export class PGliteStateAdapter implements StateAdapter {
       completedAt: row.completed_at ? new Date(row.completed_at) : undefined,
       error: row.error || undefined,
       metadata,
-    }
+    };
   }
 
   private rowToApproval(row: ApprovalRow): ApprovalRequest {
@@ -320,45 +320,45 @@ export class PGliteStateAdapter implements StateAdapter {
       respondedBy: row.responded_by || undefined,
       expiresAt: new Date(row.expires_at),
       comment: row.comment || undefined,
-    }
+    };
   }
 }
 
 // Type definitions for PGlite - we use a minimal interface to avoid import issues
 interface PGliteInstance {
-  waitReady: Promise<void>
+  waitReady: Promise<void>;
   query<T = Record<string, unknown>>(
     sql: string,
     params?: unknown[],
-  ): Promise<{ rows: T[]; affectedRows?: number }>
-  exec(query: string): Promise<unknown>
-  close(): Promise<void>
+  ): Promise<{ rows: T[]; affectedRows?: number }>;
+  exec(query: string): Promise<unknown>;
+  close(): Promise<void>;
 }
 
 interface WorkflowRow {
-  id: string
-  name: string
-  description: string | null
-  status: string
-  steps: string | WorkflowStep[]
-  step_states: string | Record<string, WorkflowStepState>
-  current_step_index: number
-  created_at: string
-  updated_at: string
-  completed_at: string | null
-  error: string | null
-  metadata: string | Record<string, unknown> | null
+  id: string;
+  name: string;
+  description: string | null;
+  status: string;
+  steps: string | WorkflowStep[];
+  step_states: string | Record<string, WorkflowStepState>;
+  current_step_index: number;
+  created_at: string;
+  updated_at: string;
+  completed_at: string | null;
+  error: string | null;
+  metadata: string | Record<string, unknown> | null;
 }
 
 interface ApprovalRow {
-  id: string
-  workflow_id: string
-  step_id: string
-  token: string
-  status: string
-  requested_at: string
-  responded_at: string | null
-  responded_by: string | null
-  expires_at: string
-  comment: string | null
+  id: string;
+  workflow_id: string;
+  step_id: string;
+  token: string;
+  status: string;
+  requested_at: string;
+  responded_at: string | null;
+  responded_by: string | null;
+  expires_at: string;
+  comment: string | null;
 }

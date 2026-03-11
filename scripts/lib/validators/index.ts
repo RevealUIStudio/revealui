@@ -24,4 +24,4 @@ export {
   validateJSDoc,
   validateLinks,
   validateScriptRefs,
-} from './documentation-validator.js'
+} from './documentation-validator.js';

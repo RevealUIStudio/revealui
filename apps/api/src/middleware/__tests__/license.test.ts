@@ -1,5 +1,5 @@
-import { Hono } from 'hono'
-import { beforeEach, describe, expect, it, vi } from 'vitest'
+import { Hono } from 'hono';
+import { beforeEach, describe, expect, it, vi } from 'vitest';
 
 // ---------------------------------------------------------------------------
 // Mock @revealui/core modules
@@ -8,16 +8,16 @@ vi.mock('@revealui/core/license', () => ({
   isLicensed: vi.fn(),
   getCurrentTier: vi.fn(() => 'free'),
   getLicensePayload: vi.fn(() => null),
-}))
+}));
 
 vi.mock('@revealui/core/features', () => ({
   isFeatureEnabled: vi.fn(),
   getRequiredTier: vi.fn(() => 'pro'),
-}))
+}));
 
 vi.mock('@revealui/core/observability/logger', () => ({
   logger: { info: vi.fn(), error: vi.fn(), warn: vi.fn(), debug: vi.fn() },
-}))
+}));
 
 // Mock x402 middleware
 vi.mock('../x402.js', () => ({
@@ -29,101 +29,101 @@ vi.mock('../x402.js', () => ({
   })),
   encodePaymentRequired: vi.fn(() => 'base64-encoded-payment-required'),
   verifyPayment: vi.fn(async () => ({ valid: false, error: 'Not verified' })),
-}))
+}));
 
-import { isFeatureEnabled } from '@revealui/core/features'
-import { getCurrentTier, isLicensed } from '@revealui/core/license'
-import { errorHandler } from '../error.js'
-import { requireFeature, requireLicense } from '../license.js'
-import { getX402Config, verifyPayment } from '../x402.js'
+import { isFeatureEnabled } from '@revealui/core/features';
+import { getCurrentTier, isLicensed } from '@revealui/core/license';
+import { errorHandler } from '../error.js';
+import { requireFeature, requireLicense } from '../license.js';
+import { getX402Config, verifyPayment } from '../x402.js';
 
-const mockedIsLicensed = vi.mocked(isLicensed)
-const mockedGetCurrentTier = vi.mocked(getCurrentTier)
-const mockedIsFeatureEnabled = vi.mocked(isFeatureEnabled)
-const mockedGetX402Config = vi.mocked(getX402Config)
-const mockedVerifyPayment = vi.mocked(verifyPayment)
+const mockedIsLicensed = vi.mocked(isLicensed);
+const mockedGetCurrentTier = vi.mocked(getCurrentTier);
+const mockedIsFeatureEnabled = vi.mocked(isFeatureEnabled);
+const mockedGetX402Config = vi.mocked(getX402Config);
+const mockedVerifyPayment = vi.mocked(verifyPayment);
 
 // biome-ignore lint/suspicious/noExplicitAny: test helper — response shape varies per endpoint
 async function parseBody(res: Response): Promise<any> {
-  return res.json()
+  return res.json();
 }
 
 function createApp(middleware: Parameters<InstanceType<typeof Hono>['use']>[1]) {
-  const app = new Hono()
+  const app = new Hono();
   // biome-ignore lint/suspicious/noExplicitAny: test helper — middleware type is flexible
-  app.use('/protected/*', middleware as any)
-  app.get('/protected/resource', (c) => c.json({ ok: true }))
-  app.onError(errorHandler)
-  return app
+  app.use('/protected/*', middleware as any);
+  app.get('/protected/resource', (c) => c.json({ ok: true }));
+  app.onError(errorHandler);
+  return app;
 }
 
 beforeEach(() => {
-  vi.clearAllMocks()
-  mockedGetX402Config.mockReturnValue({ enabled: false } as ReturnType<typeof getX402Config>)
-})
+  vi.clearAllMocks();
+  mockedGetX402Config.mockReturnValue({ enabled: false } as ReturnType<typeof getX402Config>);
+});
 
 // ---------------------------------------------------------------------------
 // requireLicense
 // ---------------------------------------------------------------------------
 describe('requireLicense', () => {
   it('returns 403 when tier is insufficient', async () => {
-    mockedIsLicensed.mockReturnValue(false)
-    mockedGetCurrentTier.mockReturnValue('free')
+    mockedIsLicensed.mockReturnValue(false);
+    mockedGetCurrentTier.mockReturnValue('free');
 
-    const app = createApp(requireLicense('pro'))
-    const res = await app.request('/protected/resource')
+    const app = createApp(requireLicense('pro'));
+    const res = await app.request('/protected/resource');
 
-    expect(res.status).toBe(403)
-    const body = await parseBody(res)
-    expect(body.error).toContain('pro')
-    expect(body.error).toContain('free')
-    expect(body.error).toContain('revealui.com/pricing')
-  })
+    expect(res.status).toBe(403);
+    const body = await parseBody(res);
+    expect(body.error).toContain('pro');
+    expect(body.error).toContain('free');
+    expect(body.error).toContain('revealui.com/pricing');
+  });
 
   it('passes when tier is sufficient', async () => {
-    mockedIsLicensed.mockReturnValue(true)
+    mockedIsLicensed.mockReturnValue(true);
 
-    const app = createApp(requireLicense('pro'))
-    const res = await app.request('/protected/resource')
+    const app = createApp(requireLicense('pro'));
+    const res = await app.request('/protected/resource');
 
-    expect(res.status).toBe(200)
-    const body = await parseBody(res)
-    expect(body.ok).toBe(true)
-  })
+    expect(res.status).toBe(200);
+    const body = await parseBody(res);
+    expect(body.ok).toBe(true);
+  });
 
   it('enterprise license passes pro check', async () => {
-    mockedIsLicensed.mockReturnValue(true)
-    mockedGetCurrentTier.mockReturnValue('enterprise')
+    mockedIsLicensed.mockReturnValue(true);
+    mockedGetCurrentTier.mockReturnValue('enterprise');
 
-    const app = createApp(requireLicense('pro'))
-    const res = await app.request('/protected/resource')
+    const app = createApp(requireLicense('pro'));
+    const res = await app.request('/protected/resource');
 
-    expect(res.status).toBe(200)
-  })
+    expect(res.status).toBe(200);
+  });
 
   it('returns 403 for enterprise requirement with pro tier', async () => {
-    mockedIsLicensed.mockReturnValue(false)
-    mockedGetCurrentTier.mockReturnValue('pro')
+    mockedIsLicensed.mockReturnValue(false);
+    mockedGetCurrentTier.mockReturnValue('pro');
 
-    const app = createApp(requireLicense('enterprise'))
-    const res = await app.request('/protected/resource')
+    const app = createApp(requireLicense('enterprise'));
+    const res = await app.request('/protected/resource');
 
-    expect(res.status).toBe(403)
-    const body = await parseBody(res)
-    expect(body.error).toContain('enterprise')
-    expect(body.error).toContain('pro')
-  })
+    expect(res.status).toBe(403);
+    const body = await parseBody(res);
+    expect(body.error).toContain('enterprise');
+    expect(body.error).toContain('pro');
+  });
 
   it('allows free tier when free is required', async () => {
-    mockedIsLicensed.mockReturnValue(true)
-    mockedGetCurrentTier.mockReturnValue('free')
+    mockedIsLicensed.mockReturnValue(true);
+    mockedGetCurrentTier.mockReturnValue('free');
 
-    const app = createApp(requireLicense('free'))
-    const res = await app.request('/protected/resource')
+    const app = createApp(requireLicense('free'));
+    const res = await app.request('/protected/resource');
 
-    expect(res.status).toBe(200)
-  })
-})
+    expect(res.status).toBe(200);
+  });
+});
 
 // ---------------------------------------------------------------------------
 // requireLicense — x402 enabled
@@ -138,101 +138,101 @@ describe('requireLicense — x402', () => {
       facilitatorUrl: 'https://x402.org/facilitator',
       usdcAsset: '0xUSDC',
       maxTimeoutSeconds: 300,
-    } as ReturnType<typeof getX402Config>)
-  })
+    } as ReturnType<typeof getX402Config>);
+  });
 
   it('returns 402 with x402 headers when tier is insufficient and x402 is enabled', async () => {
-    mockedIsLicensed.mockReturnValue(false)
-    mockedGetCurrentTier.mockReturnValue('free')
+    mockedIsLicensed.mockReturnValue(false);
+    mockedGetCurrentTier.mockReturnValue('free');
 
-    const app = createApp(requireLicense('pro'))
-    const res = await app.request('/protected/resource')
+    const app = createApp(requireLicense('pro'));
+    const res = await app.request('/protected/resource');
 
-    expect(res.status).toBe(402)
-    const body = await parseBody(res)
-    expect(body.code).toBe('HTTP_402')
-    expect(body.upgrade_url).toBe('https://revealui.com/pricing')
-    expect(res.headers.get('X-PAYMENT-REQUIRED')).toBe('base64-encoded-payment-required')
-    expect(res.headers.get('X-REVEALUI-FEATURE')).toBe('pro')
-  })
+    expect(res.status).toBe(402);
+    const body = await parseBody(res);
+    expect(body.code).toBe('HTTP_402');
+    expect(body.upgrade_url).toBe('https://revealui.com/pricing');
+    expect(res.headers.get('X-PAYMENT-REQUIRED')).toBe('base64-encoded-payment-required');
+    expect(res.headers.get('X-REVEALUI-FEATURE')).toBe('pro');
+  });
 
   it('passes when valid x402 payment header is present', async () => {
-    mockedIsLicensed.mockReturnValue(false)
-    mockedVerifyPayment.mockResolvedValue({ valid: true })
+    mockedIsLicensed.mockReturnValue(false);
+    mockedVerifyPayment.mockResolvedValue({ valid: true });
 
-    const app = createApp(requireLicense('pro'))
+    const app = createApp(requireLicense('pro'));
     const res = await app.request('/protected/resource', {
       headers: { 'x-payment-payload': 'valid-payment-data' },
-    })
+    });
 
-    expect(res.status).toBe(200)
-    expect(mockedVerifyPayment).toHaveBeenCalledWith('valid-payment-data', '/protected/resource')
-  })
+    expect(res.status).toBe(200);
+    expect(mockedVerifyPayment).toHaveBeenCalledWith('valid-payment-data', '/protected/resource');
+  });
 
   it('returns 402 when x402 payment header is invalid', async () => {
-    mockedIsLicensed.mockReturnValue(false)
-    mockedVerifyPayment.mockResolvedValue({ valid: false, error: 'Invalid payment' })
+    mockedIsLicensed.mockReturnValue(false);
+    mockedVerifyPayment.mockResolvedValue({ valid: false, error: 'Invalid payment' });
 
-    const app = createApp(requireLicense('pro'))
+    const app = createApp(requireLicense('pro'));
     const res = await app.request('/protected/resource', {
       headers: { 'x-payment-payload': 'invalid-payment' },
-    })
+    });
 
-    expect(res.status).toBe(402)
-  })
+    expect(res.status).toBe(402);
+  });
 
   it('still returns 403 when x402 is disabled', async () => {
-    mockedGetX402Config.mockReturnValue({ enabled: false } as ReturnType<typeof getX402Config>)
-    mockedIsLicensed.mockReturnValue(false)
-    mockedGetCurrentTier.mockReturnValue('free')
+    mockedGetX402Config.mockReturnValue({ enabled: false } as ReturnType<typeof getX402Config>);
+    mockedIsLicensed.mockReturnValue(false);
+    mockedGetCurrentTier.mockReturnValue('free');
 
-    const app = createApp(requireLicense('pro'))
-    const res = await app.request('/protected/resource')
+    const app = createApp(requireLicense('pro'));
+    const res = await app.request('/protected/resource');
 
-    expect(res.status).toBe(403)
-  })
-})
+    expect(res.status).toBe(403);
+  });
+});
 
 // ---------------------------------------------------------------------------
 // requireFeature
 // ---------------------------------------------------------------------------
 describe('requireFeature', () => {
   it('returns 403 when feature is disabled', async () => {
-    mockedIsFeatureEnabled.mockReturnValue(false)
-    mockedGetCurrentTier.mockReturnValue('free')
+    mockedIsFeatureEnabled.mockReturnValue(false);
+    mockedGetCurrentTier.mockReturnValue('free');
 
-    const app = createApp(requireFeature('ai'))
-    const res = await app.request('/protected/resource')
+    const app = createApp(requireFeature('ai'));
+    const res = await app.request('/protected/resource');
 
-    expect(res.status).toBe(403)
-    const body = await parseBody(res)
-    expect(body.error).toContain('ai')
-    expect(body.error).toContain('revealui.com/pricing')
-  })
+    expect(res.status).toBe(403);
+    const body = await parseBody(res);
+    expect(body.error).toContain('ai');
+    expect(body.error).toContain('revealui.com/pricing');
+  });
 
   it('passes when feature is enabled', async () => {
-    mockedIsFeatureEnabled.mockReturnValue(true)
+    mockedIsFeatureEnabled.mockReturnValue(true);
 
-    const app = createApp(requireFeature('ai'))
-    const res = await app.request('/protected/resource')
+    const app = createApp(requireFeature('ai'));
+    const res = await app.request('/protected/resource');
 
-    expect(res.status).toBe(200)
-    const body = await parseBody(res)
-    expect(body.ok).toBe(true)
-  })
+    expect(res.status).toBe(200);
+    const body = await parseBody(res);
+    expect(body.ok).toBe(true);
+  });
 
   it('includes required tier in error message', async () => {
-    mockedIsFeatureEnabled.mockReturnValue(false)
-    mockedGetCurrentTier.mockReturnValue('free')
+    mockedIsFeatureEnabled.mockReturnValue(false);
+    mockedGetCurrentTier.mockReturnValue('free');
 
-    const app = createApp(requireFeature('multiTenant'))
-    const res = await app.request('/protected/resource')
+    const app = createApp(requireFeature('multiTenant'));
+    const res = await app.request('/protected/resource');
 
-    expect(res.status).toBe(403)
-    const body = await parseBody(res)
-    expect(body.error).toContain('multiTenant')
-  })
-})
+    expect(res.status).toBe(403);
+    const body = await parseBody(res);
+    expect(body.error).toContain('multiTenant');
+  });
+});
 
 // ---------------------------------------------------------------------------
 // requireFeature — x402 enabled
@@ -247,44 +247,44 @@ describe('requireFeature — x402', () => {
       facilitatorUrl: 'https://x402.org/facilitator',
       usdcAsset: '0xUSDC',
       maxTimeoutSeconds: 300,
-    } as ReturnType<typeof getX402Config>)
-  })
+    } as ReturnType<typeof getX402Config>);
+  });
 
   it('returns 402 with feature name header when x402 is enabled', async () => {
-    mockedIsFeatureEnabled.mockReturnValue(false)
-    mockedGetCurrentTier.mockReturnValue('free')
+    mockedIsFeatureEnabled.mockReturnValue(false);
+    mockedGetCurrentTier.mockReturnValue('free');
 
-    const app = createApp(requireFeature('ai'))
-    const res = await app.request('/protected/resource')
+    const app = createApp(requireFeature('ai'));
+    const res = await app.request('/protected/resource');
 
-    expect(res.status).toBe(402)
-    const body = await parseBody(res)
-    expect(body.code).toBe('HTTP_402')
-    expect(res.headers.get('X-REVEALUI-FEATURE')).toBe('ai')
-    expect(res.headers.get('X-PAYMENT-REQUIRED')).toBeTruthy()
-  })
+    expect(res.status).toBe(402);
+    const body = await parseBody(res);
+    expect(body.code).toBe('HTTP_402');
+    expect(res.headers.get('X-REVEALUI-FEATURE')).toBe('ai');
+    expect(res.headers.get('X-PAYMENT-REQUIRED')).toBeTruthy();
+  });
 
   it('passes when valid x402 payment for feature', async () => {
-    mockedIsFeatureEnabled.mockReturnValue(false)
-    mockedVerifyPayment.mockResolvedValue({ valid: true })
+    mockedIsFeatureEnabled.mockReturnValue(false);
+    mockedVerifyPayment.mockResolvedValue({ valid: true });
 
-    const app = createApp(requireFeature('ai'))
+    const app = createApp(requireFeature('ai'));
     const res = await app.request('/protected/resource', {
       headers: { 'x-payment-payload': 'valid-feature-payment' },
-    })
+    });
 
-    expect(res.status).toBe(200)
-  })
+    expect(res.status).toBe(200);
+  });
 
   it('returns 402 when feature payment is invalid', async () => {
-    mockedIsFeatureEnabled.mockReturnValue(false)
-    mockedVerifyPayment.mockResolvedValue({ valid: false, error: 'Invalid payment' })
+    mockedIsFeatureEnabled.mockReturnValue(false);
+    mockedVerifyPayment.mockResolvedValue({ valid: false, error: 'Invalid payment' });
 
-    const app = createApp(requireFeature('ai'))
+    const app = createApp(requireFeature('ai'));
     const res = await app.request('/protected/resource', {
       headers: { 'x-payment-payload': 'bad-payment' },
-    })
+    });
 
-    expect(res.status).toBe(402)
-  })
-})
+    expect(res.status).toBe(402);
+  });
+});

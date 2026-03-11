@@ -5,25 +5,25 @@
  */
 
 export interface MockFile {
-  id: string
-  filename: string
-  url: string
-  size: number
-  mimeType: string
-  createdAt: Date
+  id: string;
+  filename: string;
+  url: string;
+  size: number;
+  mimeType: string;
+  createdAt: Date;
 }
 
-const mockFiles: Map<string, MockFile> = new Map()
+const mockFiles: Map<string, MockFile> = new Map();
 
 /**
  * Mock file upload
  */
 export function mockFileUpload(file: {
-  filename: string
-  buffer: Buffer
-  mimeType: string
+  filename: string;
+  buffer: Buffer;
+  mimeType: string;
 }): Promise<MockFile> {
-  const id = `file_${Date.now()}_${Math.random().toString(36).substring(7)}`
+  const id = `file_${Date.now()}_${Math.random().toString(36).substring(7)}`;
   const mockFile: MockFile = {
     id,
     filename: file.filename,
@@ -31,42 +31,42 @@ export function mockFileUpload(file: {
     size: file.buffer.length,
     mimeType: file.mimeType,
     createdAt: new Date(),
-  }
+  };
 
-  mockFiles.set(id, mockFile)
-  return Promise.resolve(mockFile)
+  mockFiles.set(id, mockFile);
+  return Promise.resolve(mockFile);
 }
 
 /**
  * Mock file retrieval
  */
 export function mockFileRetrieve(id: string): Promise<MockFile | null> {
-  return Promise.resolve(mockFiles.get(id) || null)
+  return Promise.resolve(mockFiles.get(id) || null);
 }
 
 /**
  * Mock file deletion
  */
 export function mockFileDelete(id: string): Promise<boolean> {
-  return Promise.resolve(mockFiles.delete(id))
+  return Promise.resolve(mockFiles.delete(id));
 }
 
 /**
  * Mock file listing
  */
 export function mockFileList(options?: { limit?: number; offset?: number }): Promise<MockFile[]> {
-  const files = Array.from(mockFiles.values())
-  const offset = options?.offset || 0
-  const limit = options?.limit || files.length
+  const files = Array.from(mockFiles.values());
+  const offset = options?.offset || 0;
+  const limit = options?.limit || files.length;
 
-  return Promise.resolve(files.slice(offset, offset + limit))
+  return Promise.resolve(files.slice(offset, offset + limit));
 }
 
 /**
  * Clear all mock files
  */
 export function clearMockFiles(): void {
-  mockFiles.clear()
+  mockFiles.clear();
 }
 
 /**
@@ -79,5 +79,5 @@ export function createMockFileStorage() {
     delete: mockFileDelete,
     list: mockFileList,
     clear: clearMockFiles,
-  }
+  };
 }

@@ -2,14 +2,14 @@
  * Storage configuration prompts
  */
 
-import inquirer from 'inquirer'
-import { validateSupabaseUrl, validateVercelToken } from '../validators/credentials.js'
+import inquirer from 'inquirer';
+import { validateSupabaseUrl, validateVercelToken } from '../validators/credentials.js';
 
 export interface StorageConfig {
-  provider: 'vercel-blob' | 'supabase' | 'skip'
-  blobToken?: string
-  supabaseUrl?: string
-  supabaseAnonKey?: string
+  provider: 'vercel-blob' | 'supabase' | 'skip';
+  blobToken?: string;
+  supabaseUrl?: string;
+  supabaseAnonKey?: string;
 }
 
 export async function promptStorageConfig(): Promise<StorageConfig> {
@@ -34,10 +34,10 @@ export async function promptStorageConfig(): Promise<StorageConfig> {
       ],
       default: 'vercel-blob',
     },
-  ])
+  ]);
 
   if (provider === 'skip') {
-    return { provider: 'skip' }
+    return { provider: 'skip' };
   }
 
   if (provider === 'vercel-blob') {
@@ -48,14 +48,14 @@ export async function promptStorageConfig(): Promise<StorageConfig> {
         message: 'Enter your Vercel Blob read/write token:',
         validate: async (input: string) => {
           if (!input || input.trim() === '') {
-            return 'Blob token is required'
+            return 'Blob token is required';
           }
-          const result = await validateVercelToken(input)
-          return result.valid ? true : result.message || 'Invalid token'
+          const result = await validateVercelToken(input);
+          return result.valid ? true : result.message || 'Invalid token';
         },
       },
-    ])
-    return { provider: 'vercel-blob', blobToken }
+    ]);
+    return { provider: 'vercel-blob', blobToken };
   }
 
   // Supabase storage
@@ -66,10 +66,10 @@ export async function promptStorageConfig(): Promise<StorageConfig> {
       message: 'Enter your Supabase project URL:',
       validate: async (input: string) => {
         if (!input || input.trim() === '') {
-          return 'Supabase URL is required'
+          return 'Supabase URL is required';
         }
-        const result = await validateSupabaseUrl(input)
-        return result.valid ? true : result.message || 'Invalid URL'
+        const result = await validateSupabaseUrl(input);
+        return result.valid ? true : result.message || 'Invalid URL';
       },
     },
     {
@@ -78,16 +78,16 @@ export async function promptStorageConfig(): Promise<StorageConfig> {
       message: 'Enter your Supabase anonymous key:',
       validate: (input: string) => {
         if (!input || input.trim() === '') {
-          return 'Supabase anonymous key is required'
+          return 'Supabase anonymous key is required';
         }
-        return true
+        return true;
       },
     },
-  ])
+  ]);
 
   return {
     provider: 'supabase',
     supabaseUrl: answers.supabaseUrl,
     supabaseAnonKey: answers.supabaseAnonKey,
-  }
+  };
 }

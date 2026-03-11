@@ -15,7 +15,7 @@ export {
   purgeCDNCache,
   shouldCacheResponse,
   warmCDNCache,
-} from './cdn-config'
+} from './cdn-config';
 
 export {
   createEdgeCachedFetch,
@@ -31,4 +31,4 @@ export {
   revalidateTags,
   setEdgeCacheHeaders,
   warmISRCache,
-} from './edge-cache'
+} from './edge-cache';

@@ -34,10 +34,10 @@
  * ```
  */
 
-import { mkdir } from 'node:fs/promises'
-import { join } from 'node:path'
-import { PGlite } from '@electric-sql/pglite'
-import { ErrorCode, ScriptError } from '../errors.js'
+import { mkdir } from 'node:fs/promises';
+import { join } from 'node:path';
+import { PGlite } from '@electric-sql/pglite';
+import { ErrorCode, ScriptError } from '../errors.js';
 
 // =============================================================================
 // Types
@@ -48,31 +48,31 @@ import { ErrorCode, ScriptError } from '../errors.js'
  */
 export interface VersionInfo {
   /** Script name */
-  scriptName: string
+  scriptName: string;
 
   /** Semantic version (e.g., '1.2.3') */
-  version: string
+  version: string;
 
   /** Version description */
-  description: string
+  description: string;
 
   /** Release date */
-  releaseDate: Date
+  releaseDate: Date;
 
   /** Author or team */
-  author: string
+  author: string;
 
   /** Changelog entries */
-  changelog: string[]
+  changelog: string[];
 
   /** Breaking changes in this version */
-  breakingChanges: string[]
+  breakingChanges: string[];
 
   /** Required dependencies and their versions */
-  requiredDependencies: Record<string, string>
+  requiredDependencies: Record<string, string>;
 
   /** Deprecation notice (if version is deprecated) */
-  deprecationNotice: string | null
+  deprecationNotice: string | null;
 }
 
 /**
@@ -80,22 +80,22 @@ export interface VersionInfo {
  */
 export interface CompatibilityCheck {
   /** Whether versions are compatible */
-  compatible: boolean
+  compatible: boolean;
 
   /** Current version */
-  currentVersion: string
+  currentVersion: string;
 
   /** Latest version */
-  latestVersion: string
+  latestVersion: string;
 
   /** Breaking changes since current version */
-  breakingChanges: string[]
+  breakingChanges: string[];
 
   /** Deprecation warnings */
-  deprecationWarnings: string[]
+  deprecationWarnings: string[];
 
   /** Recommended action */
-  recommendation: string
+  recommendation: string;
 }
 
 // =============================================================================
@@ -103,15 +103,15 @@ export interface CompatibilityCheck {
 // =============================================================================
 
 interface VersionRow {
-  script_name: string
-  version: string
-  description: string
-  release_date: number
-  author: string
-  changelog: string | string[]
-  breaking_changes: string | string[]
-  required_dependencies: string | Record<string, string>
-  deprecation_notice: string | null
+  script_name: string;
+  version: string;
+  description: string;
+  release_date: number;
+  author: string;
+  changelog: string | string[];
+  breaking_changes: string | string[];
+  required_dependencies: string | Record<string, string>;
+  deprecation_notice: string | null;
 }
 
 // =============================================================================
@@ -119,12 +119,12 @@ interface VersionRow {
 // =============================================================================
 
 export class ScriptVersionManager {
-  private static instance: ScriptVersionManager | null = null
-  private db: PGlite | null = null
-  private dbPath: string
+  private static instance: ScriptVersionManager | null = null;
+  private db: PGlite | null = null;
+  private dbPath: string;
 
   private constructor(dbPath: string) {
-    this.dbPath = dbPath
+    this.dbPath = dbPath;
   }
 
   /**
@@ -132,13 +132,13 @@ export class ScriptVersionManager {
    */
   static async getInstance(projectRoot?: string): Promise<ScriptVersionManager> {
     if (!ScriptVersionManager.instance) {
-      const root = projectRoot || process.cwd()
-      const dbPath = join(root, '.revealui', 'script-management.db')
-      ScriptVersionManager.instance = new ScriptVersionManager(dbPath)
-      await ScriptVersionManager.instance.initialize()
+      const root = projectRoot || process.cwd();
+      const dbPath = join(root, '.revealui', 'script-management.db');
+      ScriptVersionManager.instance = new ScriptVersionManager(dbPath);
+      await ScriptVersionManager.instance.initialize();
     }
 
-    return ScriptVersionManager.instance
+    return ScriptVersionManager.instance;
   }
 
   /**
@@ -147,16 +147,16 @@ export class ScriptVersionManager {
   async initialize(): Promise<void> {
     try {
       // Ensure directory exists
-      await mkdir(join(this.dbPath, '..'), { recursive: true })
+      await mkdir(join(this.dbPath, '..'), { recursive: true });
 
       // Initialize PGlite
-      this.db = new PGlite(this.dbPath)
+      this.db = new PGlite(this.dbPath);
 
       // Create schema
-      await this.createSchema()
+      await this.createSchema();
     } catch (error) {
-      console.error('Failed to initialize version manager:', error)
-      throw error
+      console.error('Failed to initialize version manager:', error);
+      throw error;
     }
   }
 
@@ -164,7 +164,7 @@ export class ScriptVersionManager {
    * Create database schema
    */
   private async createSchema(): Promise<void> {
-    if (!this.db) throw new ScriptError('Database not initialized', ErrorCode.INVALID_STATE)
+    if (!this.db) throw new ScriptError('Database not initialized', ErrorCode.INVALID_STATE);
 
     await this.db.exec(`
       CREATE TABLE IF NOT EXISTS script_versions (
@@ -185,14 +185,14 @@ export class ScriptVersionManager {
       CREATE INDEX IF NOT EXISTS idx_versions_script_name ON script_versions(script_name);
       CREATE INDEX IF NOT EXISTS idx_versions_version ON script_versions(version);
       CREATE INDEX IF NOT EXISTS idx_versions_release_date ON script_versions(release_date);
-    `)
+    `);
   }
 
   /**
    * Register a new script version
    */
   async registerVersion(info: VersionInfo): Promise<void> {
-    if (!this.db) throw new ScriptError('Database not initialized', ErrorCode.INVALID_STATE)
+    if (!this.db) throw new ScriptError('Database not initialized', ErrorCode.INVALID_STATE);
 
     await this.db.query(
       `
@@ -222,57 +222,57 @@ export class ScriptVersionManager {
         info.deprecationNotice,
         Date.now(),
       ],
-    )
+    );
   }
 
   /**
    * Get specific version information
    */
   async getVersion(scriptName: string, version: string): Promise<VersionInfo | null> {
-    if (!this.db) throw new ScriptError('Database not initialized', ErrorCode.INVALID_STATE)
+    if (!this.db) throw new ScriptError('Database not initialized', ErrorCode.INVALID_STATE);
 
     const result = await this.db.query(
       'SELECT * FROM script_versions WHERE script_name = $1 AND version = $2',
       [scriptName, version],
-    )
+    );
 
     if (result.rows.length === 0) {
-      return null
+      return null;
     }
 
-    return this.mapRowToVersionInfo(result.rows[0] as unknown as VersionRow)
+    return this.mapRowToVersionInfo(result.rows[0] as unknown as VersionRow);
   }
 
   /**
    * Get all versions for a script
    */
   async getVersions(scriptName: string): Promise<VersionInfo[]> {
-    if (!this.db) throw new ScriptError('Database not initialized', ErrorCode.INVALID_STATE)
+    if (!this.db) throw new ScriptError('Database not initialized', ErrorCode.INVALID_STATE);
 
     const result = await this.db.query(
       'SELECT * FROM script_versions WHERE script_name = $1 ORDER BY release_date DESC',
       [scriptName],
-    )
+    );
 
-    return result.rows.map((row) => this.mapRowToVersionInfo(row as unknown as VersionRow))
+    return result.rows.map((row) => this.mapRowToVersionInfo(row as unknown as VersionRow));
   }
 
   /**
    * Get latest version for a script
    */
   async getLatestVersion(scriptName: string): Promise<VersionInfo | null> {
-    if (!this.db) throw new ScriptError('Database not initialized', ErrorCode.INVALID_STATE)
+    if (!this.db) throw new ScriptError('Database not initialized', ErrorCode.INVALID_STATE);
 
     const result = await this.db.query(
       'SELECT * FROM script_versions WHERE script_name = $1 ORDER BY release_date DESC LIMIT 1',
       [scriptName],
-    )
+    );
 
     if (result.rows.length === 0) {
-      return null
+      return null;
     }
 
-    return this.mapRowToVersionInfo(result.rows[0] as unknown as VersionRow)
+    return this.mapRowToVersionInfo(result.rows[0] as unknown as VersionRow);
   }
 
   /**
@@ -282,10 +282,10 @@ export class ScriptVersionManager {
     scriptName: string,
     currentVersion: string,
   ): Promise<CompatibilityCheck> {
-    if (!this.db) throw new ScriptError('Database not initialized', ErrorCode.INVALID_STATE)
+    if (!this.db) throw new ScriptError('Database not initialized', ErrorCode.INVALID_STATE);
 
-    const latest = await this.getLatestVersion(scriptName)
-    const current = await this.getVersion(scriptName, currentVersion)
+    const latest = await this.getLatestVersion(scriptName);
+    const current = await this.getVersion(scriptName, currentVersion);
 
     if (!latest) {
       return {
@@ -295,7 +295,7 @@ export class ScriptVersionManager {
         breakingChanges: [],
         deprecationWarnings: [],
         recommendation: 'No version information available',
-      }
+      };
     }
 
     if (!current) {
@@ -306,13 +306,13 @@ export class ScriptVersionManager {
         breakingChanges: [],
         deprecationWarnings: [],
         recommendation: `Current version ${currentVersion} not found. Latest is ${latest.version}`,
-      }
+      };
     }
 
     // Get all versions between current and latest
     const result = await this.db.query<{
-      breaking_changes: string
-      deprecation_notice: string | null
+      breaking_changes: string;
+      deprecation_notice: string | null;
     }>(
       `SELECT breaking_changes, deprecation_notice
        FROM script_versions
@@ -321,30 +321,30 @@ export class ScriptVersionManager {
          AND release_date <= $3
        ORDER BY release_date ASC`,
       [scriptName, current.releaseDate.getTime(), latest.releaseDate.getTime()],
-    )
+    );
 
-    const breakingChanges: string[] = []
-    const deprecationWarnings: string[] = []
+    const breakingChanges: string[] = [];
+    const deprecationWarnings: string[] = [];
 
     for (const row of result.rows) {
-      const changes = JSON.parse(row.breaking_changes) as string[]
-      breakingChanges.push(...changes)
+      const changes = JSON.parse(row.breaking_changes) as string[];
+      breakingChanges.push(...changes);
 
       if (row.deprecation_notice) {
-        deprecationWarnings.push(row.deprecation_notice)
+        deprecationWarnings.push(row.deprecation_notice);
       }
     }
 
-    const compatible = breakingChanges.length === 0
-    const isLatest = currentVersion === latest.version
+    const compatible = breakingChanges.length === 0;
+    const isLatest = currentVersion === latest.version;
 
-    let recommendation: string
+    let recommendation: string;
     if (isLatest) {
-      recommendation = 'You are running the latest version'
+      recommendation = 'You are running the latest version';
     } else if (compatible) {
-      recommendation = `Update to ${latest.version} (no breaking changes)`
+      recommendation = `Update to ${latest.version} (no breaking changes)`;
     } else {
-      recommendation = `Review breaking changes before updating to ${latest.version}`
+      recommendation = `Review breaking changes before updating to ${latest.version}`;
     }
 
     return {
@@ -354,34 +354,34 @@ export class ScriptVersionManager {
       breakingChanges,
       deprecationWarnings,
       recommendation,
-    }
+    };
   }
 
   /**
    * Get all versions across all scripts
    */
   async getAllVersions(): Promise<VersionInfo[]> {
-    if (!this.db) throw new ScriptError('Database not initialized', ErrorCode.INVALID_STATE)
+    if (!this.db) throw new ScriptError('Database not initialized', ErrorCode.INVALID_STATE);
 
     const result = await this.db.query(
       'SELECT * FROM script_versions ORDER BY script_name, release_date DESC',
-    )
+    );
 
-    return result.rows.map((row) => this.mapRowToVersionInfo(row as unknown as VersionRow))
+    return result.rows.map((row) => this.mapRowToVersionInfo(row as unknown as VersionRow));
   }
 
   /**
    * Delete a specific version
    */
   async deleteVersion(scriptName: string, version: string): Promise<boolean> {
-    if (!this.db) throw new ScriptError('Database not initialized', ErrorCode.INVALID_STATE)
+    if (!this.db) throw new ScriptError('Database not initialized', ErrorCode.INVALID_STATE);
 
     const result = await this.db.query(
       'DELETE FROM script_versions WHERE script_name = $1 AND version = $2',
       [scriptName, version],
-    )
+    );
 
-    return result.affectedRows !== undefined && result.affectedRows > 0
+    return result.affectedRows !== undefined && result.affectedRows > 0;
   }
 
   /**
@@ -389,8 +389,8 @@ export class ScriptVersionManager {
    */
   async close(): Promise<void> {
     if (this.db) {
-      await this.db.close()
-      this.db = null
+      await this.db.close();
+      this.db = null;
     }
   }
 
@@ -406,13 +406,13 @@ export class ScriptVersionManager {
     const parseJsonField = <T>(field: string | T, defaultValue: T): T => {
       if (typeof field === 'string') {
         try {
-          return JSON.parse(field) as T
+          return JSON.parse(field) as T;
         } catch {
-          return defaultValue
+          return defaultValue;
         }
       }
-      return field ?? defaultValue
-    }
+      return field ?? defaultValue;
+    };
 
     return {
       scriptName: row.script_name,
@@ -424,7 +424,7 @@ export class ScriptVersionManager {
       breakingChanges: parseJsonField<string[]>(row.breaking_changes, []),
       requiredDependencies: parseJsonField<Record<string, string>>(row.required_dependencies, {}),
       deprecationNotice: row.deprecation_notice,
-    }
+    };
   }
 }
 
@@ -436,5 +436,5 @@ export class ScriptVersionManager {
  * Get version manager instance
  */
 export async function getVersionManager(projectRoot?: string): Promise<ScriptVersionManager> {
-  return ScriptVersionManager.getInstance(projectRoot)
+  return ScriptVersionManager.getInstance(projectRoot);
 }

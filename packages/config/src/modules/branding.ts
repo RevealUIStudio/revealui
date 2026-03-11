@@ -9,17 +9,17 @@
  *   REVEALUI_SHOW_POWERED_BY=false.
  */
 
-import type { EnvConfig } from '../schema.js'
+import type { EnvConfig } from '../schema.js';
 
 export interface BrandingConfig {
   /** Product name shown in admin UI and emails (default: 'RevealUI') */
-  name: string
+  name: string;
   /** URL of the logo image (default: undefined — uses bundled RevealUI logo) */
-  logoUrl?: string
+  logoUrl?: string;
   /** Primary brand color as a hex value (default: undefined — uses RevealUI palette) */
-  primaryColor?: string
+  primaryColor?: string;
   /** Whether to show "Built with RevealUI" badge in admin footer (default: true) */
-  showPoweredBy: boolean
+  showPoweredBy: boolean;
 }
 
 export function getBrandingConfig(env: EnvConfig): BrandingConfig {
@@ -28,5 +28,5 @@ export function getBrandingConfig(env: EnvConfig): BrandingConfig {
     logoUrl: env.REVEALUI_BRAND_LOGO_URL,
     primaryColor: env.REVEALUI_BRAND_PRIMARY_COLOR,
     showPoweredBy: env.REVEALUI_SHOW_POWERED_BY !== 'false',
-  }
+  };
 }

@@ -1,4 +1,4 @@
-import { defineConfig, devices } from '@playwright/test'
+import { defineConfig, devices } from '@playwright/test';
 
 /**
  * Playwright E2E Test Configuration
@@ -125,4 +125,4 @@ export default defineConfig({
   // Snapshot path configuration
   snapshotDir: './e2e/__snapshots__',
   snapshotPathTemplate: '{snapshotDir}/{testFileDir}/{testFileName}/{arg}-{projectName}{ext}',
-})
+});

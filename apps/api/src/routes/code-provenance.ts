@@ -5,18 +5,18 @@
  * plus append-only code reviews and aggregate statistics.
  */
 
-import { createRoute, OpenAPIHono, z } from '@hono/zod-openapi'
-import type { DatabaseClient } from '@revealui/db/client'
-import * as provenanceQueries from '@revealui/db/queries/code-provenance'
-import { HTTPException } from 'hono/http-exception'
+import { createRoute, OpenAPIHono, z } from '@hono/zod-openapi';
+import type { DatabaseClient } from '@revealui/db/client';
+import * as provenanceQueries from '@revealui/db/queries/code-provenance';
+import { HTTPException } from 'hono/http-exception';
 
 type Variables = {
-  db: DatabaseClient
-  user?: { id: string; role: string }
-}
+  db: DatabaseClient;
+  user?: { id: string; role: string };
+};
 
 // biome-ignore lint/style/useNamingConvention: Hono requires Variables key
-const app = new OpenAPIHono<{ Variables: Variables }>()
+const app = new OpenAPIHono<{ Variables: Variables }>();
 
 // =============================================================================
 // Schema Definitions
@@ -27,19 +27,19 @@ const IdParam = z.object({
     param: { name: 'id', in: 'path' },
     example: '550e8400-e29b-41d4-a716-446655440000',
   }),
-})
+});
 
 const FilePathParam = z.object({
   filePath: z.string().openapi({
     param: { name: 'filePath', in: 'path' },
     example: 'packages/core/src/index.ts',
   }),
-})
+});
 
 const ErrorSchema = z.object({
   success: z.literal(false),
   error: z.string(),
-})
+});
 
 const ProvenanceSchema = z
   .object({
@@ -63,7 +63,7 @@ const ProvenanceSchema = z
     createdAt: z.string().openapi({ type: 'string', format: 'date-time' }),
     updatedAt: z.string().openapi({ type: 'string', format: 'date-time' }),
   })
-  .openapi('CodeProvenance')
+  .openapi('CodeProvenance');
 
 const ReviewSchema = z
   .object({
@@ -76,7 +76,7 @@ const ReviewSchema = z
     metadata: z.unknown().nullable(),
     createdAt: z.string().openapi({ type: 'string', format: 'date-time' }),
   })
-  .openapi('CodeReview')
+  .openapi('CodeReview');
 
 // =============================================================================
 // Provenance Routes
@@ -110,12 +110,12 @@ app.openapi(
     },
   }),
   async (c) => {
-    const db = c.get('db')
-    const { limit, offset, ...filters } = c.req.valid('query')
-    const entries = await provenanceQueries.getAllProvenance(db, { ...filters, limit, offset })
-    return c.json({ success: true as const, data: entries }, 200)
+    const db = c.get('db');
+    const { limit, offset, ...filters } = c.req.valid('query');
+    const entries = await provenanceQueries.getAllProvenance(db, { ...filters, limit, offset });
+    return c.json({ success: true as const, data: entries }, 200);
   },
-)
+);
 
 // GET /stats — aggregate statistics
 app.openapi(
@@ -153,11 +153,11 @@ app.openapi(
     },
   }),
   async (c) => {
-    const db = c.get('db')
-    const stats = await provenanceQueries.getProvenanceStats(db)
-    return c.json({ success: true as const, data: stats })
+    const db = c.get('db');
+    const stats = await provenanceQueries.getProvenanceStats(db);
+    return c.json({ success: true as const, data: stats });
   },
-)
+);
 
 // GET /file/:filePath — provenance for a specific file
 app.openapi(
@@ -179,12 +179,12 @@ app.openapi(
     },
   }),
   async (c) => {
-    const db = c.get('db')
-    const { filePath } = c.req.valid('param')
-    const entries = await provenanceQueries.getProvenanceByFile(db, filePath)
-    return c.json({ success: true as const, data: entries })
+    const db = c.get('db');
+    const { filePath } = c.req.valid('param');
+    const entries = await provenanceQueries.getProvenanceByFile(db, filePath);
+    return c.json({ success: true as const, data: entries });
   },
-)
+);
 
 // GET /:id — single entry
 app.openapi(
@@ -207,13 +207,14 @@ app.openapi(
     },
   }),
   async (c) => {
-    const db = c.get('db')
-    const { id } = c.req.valid('param')
-    const entry = await provenanceQueries.getProvenanceById(db, id)
-    if (!entry) return c.json({ success: false as const, error: 'Provenance entry not found' }, 404)
-    return c.json({ success: true as const, data: entry }, 200)
+    const db = c.get('db');
+    const { id } = c.req.valid('param');
+    const entry = await provenanceQueries.getProvenanceById(db, id);
+    if (!entry)
+      return c.json({ success: false as const, error: 'Provenance entry not found' }, 404);
+    return c.json({ success: true as const, data: entry }, 200);
   },
-)
+);
 
 // POST / — create entry
 app.openapi(
@@ -260,17 +261,17 @@ app.openapi(
     },
   }),
   async (c) => {
-    const db = c.get('db')
-    const body = c.req.valid('json')
+    const db = c.get('db');
+    const body = c.req.valid('json');
     const entry = await provenanceQueries.createProvenance(db, {
       id: crypto.randomUUID(),
       ...body,
-    })
+    });
     if (!entry)
-      return c.json({ success: false as const, error: 'Failed to create provenance entry' }, 500)
-    return c.json({ success: true as const, data: entry }, 201)
+      return c.json({ success: false as const, error: 'Failed to create provenance entry' }, 500);
+    return c.json({ success: true as const, data: entry }, 201);
   },
-)
+);
 
 // PATCH /:id — update entry
 app.openapi(
@@ -320,14 +321,15 @@ app.openapi(
     },
   }),
   async (c) => {
-    const db = c.get('db')
-    const { id } = c.req.valid('param')
-    const body = c.req.valid('json')
-    const entry = await provenanceQueries.updateProvenance(db, id, body)
-    if (!entry) return c.json({ success: false as const, error: 'Provenance entry not found' }, 404)
-    return c.json({ success: true as const, data: entry }, 200)
+    const db = c.get('db');
+    const { id } = c.req.valid('param');
+    const body = c.req.valid('json');
+    const entry = await provenanceQueries.updateProvenance(db, id, body);
+    if (!entry)
+      return c.json({ success: false as const, error: 'Provenance entry not found' }, 404);
+    return c.json({ success: true as const, data: entry }, 200);
   },
-)
+);
 
 // DELETE /:id — delete entry
 app.openapi(
@@ -349,17 +351,17 @@ app.openapi(
     },
   }),
   async (c) => {
-    const db = c.get('db')
-    const { id } = c.req.valid('param')
+    const db = c.get('db');
+    const { id } = c.req.valid('param');
     // Provenance records have no userId — restrict deletion to admin role only
-    const user = c.get('user')
+    const user = c.get('user');
     if (user?.role !== 'admin') {
-      throw new HTTPException(403, { message: 'Admin role required to delete provenance entries' })
+      throw new HTTPException(403, { message: 'Admin role required to delete provenance entries' });
     }
-    await provenanceQueries.deleteProvenance(db, id)
-    return c.json({ success: true as const, message: 'Provenance entry deleted' })
+    await provenanceQueries.deleteProvenance(db, id);
+    return c.json({ success: true as const, message: 'Provenance entry deleted' });
   },
-)
+);
 
 // =============================================================================
 // Review Routes
@@ -405,45 +407,46 @@ app.openapi(
     },
   }),
   async (c) => {
-    const db = c.get('db')
-    const { id: provenanceId } = c.req.valid('param')
-    const body = c.req.valid('json')
+    const db = c.get('db');
+    const { id: provenanceId } = c.req.valid('param');
+    const body = c.req.valid('json');
 
     // Verify provenance entry exists
-    const entry = await provenanceQueries.getProvenanceById(db, provenanceId)
-    if (!entry) return c.json({ success: false as const, error: 'Provenance entry not found' }, 404)
+    const entry = await provenanceQueries.getProvenanceById(db, provenanceId);
+    if (!entry)
+      return c.json({ success: false as const, error: 'Provenance entry not found' }, 404);
 
     // Create the review
     const review = await provenanceQueries.createReview(db, {
       id: crypto.randomUUID(),
       provenanceId,
       ...body,
-    })
+    });
 
     // Update the provenance review status based on review type
-    const isHuman = body.reviewType === 'human_review' || body.reviewType === 'human_approval'
+    const isHuman = body.reviewType === 'human_review' || body.reviewType === 'human_approval';
     const currentIsAiReviewed =
-      entry.reviewStatus === 'ai_reviewed' || entry.reviewStatus === 'human_and_ai_reviewed'
+      entry.reviewStatus === 'ai_reviewed' || entry.reviewStatus === 'human_and_ai_reviewed';
     const currentIsHumanReviewed =
-      entry.reviewStatus === 'human_reviewed' || entry.reviewStatus === 'human_and_ai_reviewed'
+      entry.reviewStatus === 'human_reviewed' || entry.reviewStatus === 'human_and_ai_reviewed';
 
-    let newStatus = entry.reviewStatus
+    let newStatus = entry.reviewStatus;
     if (isHuman && currentIsAiReviewed) {
-      newStatus = 'human_and_ai_reviewed'
+      newStatus = 'human_and_ai_reviewed';
     } else if (isHuman) {
-      newStatus = 'human_reviewed'
+      newStatus = 'human_reviewed';
     } else if (!isHuman && currentIsHumanReviewed) {
-      newStatus = 'human_and_ai_reviewed'
+      newStatus = 'human_and_ai_reviewed';
     } else if (!isHuman) {
-      newStatus = 'ai_reviewed'
+      newStatus = 'ai_reviewed';
     }
 
-    await provenanceQueries.updateReviewStatus(db, provenanceId, newStatus, body.reviewerId)
+    await provenanceQueries.updateReviewStatus(db, provenanceId, newStatus, body.reviewerId);
 
-    if (!review) return c.json({ success: false as const, error: 'Failed to create review' }, 500)
-    return c.json({ success: true as const, data: review }, 201)
+    if (!review) return c.json({ success: false as const, error: 'Failed to create review' }, 500);
+    return c.json({ success: true as const, data: review }, 201);
   },
-)
+);
 
 // GET /:id/reviews — list reviews for entry
 app.openapi(
@@ -465,11 +468,11 @@ app.openapi(
     },
   }),
   async (c) => {
-    const db = c.get('db')
-    const { id } = c.req.valid('param')
-    const reviews = await provenanceQueries.getReviewsForProvenance(db, id)
-    return c.json({ success: true as const, data: reviews })
+    const db = c.get('db');
+    const { id } = c.req.valid('param');
+    const reviews = await provenanceQueries.getReviewsForProvenance(db, id);
+    return c.json({ success: true as const, data: reviews });
   },
-)
+);
 
-export default app
+export default app;

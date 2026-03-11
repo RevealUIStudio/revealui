@@ -1,4 +1,4 @@
-import type { Permission } from '@revealui/core'
+import type { Permission } from '@revealui/core';
 
 export enum Role {
   TenantSuperAdmin = 'tenant-super-admin',
@@ -20,9 +20,9 @@ export enum Role {
 }
 
 export interface RolePermission extends Permission {
-  name: string
-  level: number // Level defines priority or importance of the permission
-  permission: boolean
+  name: string;
+  level: number; // Level defines priority or importance of the permission
+  permission: boolean;
 }
 
 const Permissions = {
@@ -38,7 +38,7 @@ const Permissions = {
   ApprovePosts: { name: 'approve-posts', level: 6, permission: true },
   // biome-ignore lint/style/useNamingConvention: Permission keys use PascalCase for readability.
   AccessAPI: { name: 'access-api', level: 4, permission: true },
-}
+};
 
 const RolePermissions: Record<Role, RolePermission[]> = {
   [Role.TenantSuperAdmin]: [
@@ -61,6 +61,6 @@ const RolePermissions: Record<Role, RolePermission[]> = {
   [Role.Moderator]: [Permissions.ApprovePosts],
   [Role.Trainer]: [Permissions.ManageContent],
   [Role.User]: [],
-}
+};
 
-export default RolePermissions
+export default RolePermissions;

@@ -1,4 +1,4 @@
-'use client'
+'use client';
 
 /**
  * Paste Handling Plugin
@@ -7,42 +7,42 @@
  * Uses @lexical/clipboard for HTML-to-Lexical conversion.
  */
 
-import { $generateNodesFromDOM } from '@lexical/html'
-import { useLexicalComposerContext } from '@lexical/react/LexicalComposerContext'
-import { $getSelection, $isRangeSelection, COMMAND_PRIORITY_LOW, PASTE_COMMAND } from 'lexical'
-import { useEffect } from 'react'
+import { $generateNodesFromDOM } from '@lexical/html';
+import { useLexicalComposerContext } from '@lexical/react/LexicalComposerContext';
+import { $getSelection, $isRangeSelection, COMMAND_PRIORITY_LOW, PASTE_COMMAND } from 'lexical';
+import { useEffect } from 'react';
 
 export function PastePlugin(): null {
-  const [editor] = useLexicalComposerContext()
+  const [editor] = useLexicalComposerContext();
 
   useEffect(() => {
     return editor.registerCommand(
       PASTE_COMMAND,
       (event: ClipboardEvent) => {
-        const clipboardData = event.clipboardData
-        if (!clipboardData) return false
+        const clipboardData = event.clipboardData;
+        if (!clipboardData) return false;
 
-        const htmlData = clipboardData.getData('text/html')
-        if (!htmlData) return false // Let Lexical handle plain text paste
+        const htmlData = clipboardData.getData('text/html');
+        if (!htmlData) return false; // Let Lexical handle plain text paste
 
-        event.preventDefault()
+        event.preventDefault();
 
         editor.update(() => {
-          const selection = $getSelection()
-          if (!$isRangeSelection(selection)) return
+          const selection = $getSelection();
+          if (!$isRangeSelection(selection)) return;
 
-          const parser = new DOMParser()
-          const dom = parser.parseFromString(htmlData, 'text/html')
-          const nodes = $generateNodesFromDOM(editor, dom)
+          const parser = new DOMParser();
+          const dom = parser.parseFromString(htmlData, 'text/html');
+          const nodes = $generateNodesFromDOM(editor, dom);
 
-          selection.insertNodes(nodes)
-        })
+          selection.insertNodes(nodes);
+        });
 
-        return true
+        return true;
       },
       COMMAND_PRIORITY_LOW,
-    )
-  }, [editor])
+    );
+  }, [editor]);
 
-  return null
+  return null;
 }

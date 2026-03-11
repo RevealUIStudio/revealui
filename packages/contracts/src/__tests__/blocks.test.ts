@@ -1,4 +1,4 @@
-import { describe, expect, it } from 'vitest'
+import { describe, expect, it } from 'vitest';
 import {
   BLOCK_SCHEMA_VERSION,
   type Block,
@@ -23,20 +23,20 @@ import {
   ListBlockSchema,
   TextBlockSchema,
   walkBlocks,
-} from '../content/index.js'
+} from '../content/index.js';
 
 describe('Block Schemas', () => {
   describe('Constants', () => {
     it('should export correct schema version', () => {
-      expect(BLOCK_SCHEMA_VERSION).toBe(1)
-    })
-  })
+      expect(BLOCK_SCHEMA_VERSION).toBe(1);
+    });
+  });
 
   describe('BlockStyleSchema', () => {
     it('should validate empty style', () => {
-      const result = BlockStyleSchema.safeParse({})
-      expect(result.success).toBe(true)
-    })
+      const result = BlockStyleSchema.safeParse({});
+      expect(result.success).toBe(true);
+    });
 
     it('should validate full style', () => {
       const style = {
@@ -48,28 +48,28 @@ describe('Block Schemas', () => {
         borderRadius: '8px',
         className: 'custom-class',
         style: { fontWeight: 'bold' },
-      }
-      const result = BlockStyleSchema.safeParse(style)
-      expect(result.success).toBe(true)
-    })
+      };
+      const result = BlockStyleSchema.safeParse(style);
+      expect(result.success).toBe(true);
+    });
 
     it('should reject invalid align value', () => {
-      const style = { align: 'invalid' }
-      const result = BlockStyleSchema.safeParse(style)
-      expect(result.success).toBe(false)
-    })
-  })
+      const style = { align: 'invalid' };
+      const result = BlockStyleSchema.safeParse(style);
+      expect(result.success).toBe(false);
+    });
+  });
 
   describe('BlockMetaSchema', () => {
     it('should accept empty meta (version is optional)', () => {
-      const result = BlockMetaSchema.parse({})
-      expect(result.version).toBeUndefined()
-    })
+      const result = BlockMetaSchema.parse({});
+      expect(result.version).toBeUndefined();
+    });
 
     it('should accept explicit version', () => {
-      const result = BlockMetaSchema.parse({ version: BLOCK_SCHEMA_VERSION })
-      expect(result.version).toBe(BLOCK_SCHEMA_VERSION)
-    })
+      const result = BlockMetaSchema.parse({ version: BLOCK_SCHEMA_VERSION });
+      expect(result.version).toBe(BLOCK_SCHEMA_VERSION);
+    });
 
     it('should validate full meta', () => {
       const meta = {
@@ -80,11 +80,11 @@ describe('Block Schemas', () => {
         sourcePrompt: 'Create a heading',
         lastEditor: 'user-123',
         lastEditedAt: new Date().toISOString(),
-      }
-      const result = BlockMetaSchema.safeParse(meta)
-      expect(result.success).toBe(true)
-    })
-  })
+      };
+      const result = BlockMetaSchema.safeParse(meta);
+      expect(result.success).toBe(true);
+    });
+  });
 
   describe('TextBlockSchema', () => {
     it('should validate text block', () => {
@@ -95,31 +95,31 @@ describe('Block Schemas', () => {
           content: 'Hello world',
           format: 'markdown',
         },
-      }
-      const result = TextBlockSchema.safeParse(block)
-      expect(result.success).toBe(true)
-    })
+      };
+      const result = TextBlockSchema.safeParse(block);
+      expect(result.success).toBe(true);
+    });
 
     it('should default format to markdown', () => {
       const block = {
         id: 'block-1',
         type: 'text',
         data: { content: 'Hello' },
-      }
-      const result = TextBlockSchema.parse(block)
-      expect(result.data.format).toBe('markdown')
-    })
+      };
+      const result = TextBlockSchema.parse(block);
+      expect(result.data.format).toBe('markdown');
+    });
 
     it('should reject invalid format', () => {
       const block = {
         id: 'block-1',
         type: 'text',
         data: { content: 'Hello', format: 'invalid' },
-      }
-      const result = TextBlockSchema.safeParse(block)
-      expect(result.success).toBe(false)
-    })
-  })
+      };
+      const result = TextBlockSchema.safeParse(block);
+      expect(result.success).toBe(false);
+    });
+  });
 
   describe('HeadingBlockSchema', () => {
     it('should validate heading block', () => {
@@ -127,34 +127,34 @@ describe('Block Schemas', () => {
         id: 'block-1',
         type: 'heading',
         data: { text: 'Hello', level: 'h1' },
-      }
-      const result = HeadingBlockSchema.safeParse(block)
-      expect(result.success).toBe(true)
-    })
+      };
+      const result = HeadingBlockSchema.safeParse(block);
+      expect(result.success).toBe(true);
+    });
 
     it('should validate all heading levels', () => {
-      const levels = ['h1', 'h2', 'h3', 'h4', 'h5', 'h6']
+      const levels = ['h1', 'h2', 'h3', 'h4', 'h5', 'h6'];
       for (const level of levels) {
         const block = {
           id: 'block-1',
           type: 'heading',
           data: { text: 'Test', level },
-        }
-        const result = HeadingBlockSchema.safeParse(block)
-        expect(result.success).toBe(true)
+        };
+        const result = HeadingBlockSchema.safeParse(block);
+        expect(result.success).toBe(true);
       }
-    })
+    });
 
     it('should reject invalid level', () => {
       const block = {
         id: 'block-1',
         type: 'heading',
         data: { text: 'Test', level: 'h7' },
-      }
-      const result = HeadingBlockSchema.safeParse(block)
-      expect(result.success).toBe(false)
-    })
-  })
+      };
+      const result = HeadingBlockSchema.safeParse(block);
+      expect(result.success).toBe(false);
+    });
+  });
 
   describe('ImageBlockSchema', () => {
     it('should validate image block', () => {
@@ -165,10 +165,10 @@ describe('Block Schemas', () => {
           src: 'https://example.com/image.jpg',
           alt: 'An image',
         },
-      }
-      const result = ImageBlockSchema.safeParse(block)
-      expect(result.success).toBe(true)
-    })
+      };
+      const result = ImageBlockSchema.safeParse(block);
+      expect(result.success).toBe(true);
+    });
 
     it('should reject invalid URL', () => {
       const block = {
@@ -178,10 +178,10 @@ describe('Block Schemas', () => {
           src: 'not-a-url',
           alt: 'An image',
         },
-      }
-      const result = ImageBlockSchema.safeParse(block)
-      expect(result.success).toBe(false)
-    })
+      };
+      const result = ImageBlockSchema.safeParse(block);
+      expect(result.success).toBe(false);
+    });
 
     it('should default loading to lazy', () => {
       const block = {
@@ -191,11 +191,11 @@ describe('Block Schemas', () => {
           src: 'https://example.com/image.jpg',
           alt: 'An image',
         },
-      }
-      const result = ImageBlockSchema.parse(block)
-      expect(result.data.loading).toBe('lazy')
-    })
-  })
+      };
+      const result = ImageBlockSchema.parse(block);
+      expect(result.data.loading).toBe('lazy');
+    });
+  });
 
   describe('CodeBlockSchema', () => {
     it('should validate code block', () => {
@@ -206,10 +206,10 @@ describe('Block Schemas', () => {
           code: 'console.log("hello")',
           language: 'javascript',
         },
-      }
-      const result = CodeBlockSchema.safeParse(block)
-      expect(result.success).toBe(true)
-    })
+      };
+      const result = CodeBlockSchema.safeParse(block);
+      expect(result.success).toBe(true);
+    });
 
     it('should allow highlight lines', () => {
       const block = {
@@ -220,11 +220,11 @@ describe('Block Schemas', () => {
           language: 'text',
           highlightLines: [1, 3],
         },
-      }
-      const result = CodeBlockSchema.safeParse(block)
-      expect(result.success).toBe(true)
-    })
-  })
+      };
+      const result = CodeBlockSchema.safeParse(block);
+      expect(result.success).toBe(true);
+    });
+  });
 
   describe('ListBlockSchema', () => {
     it('should validate list block', () => {
@@ -238,10 +238,10 @@ describe('Block Schemas', () => {
           ],
           variant: 'unordered',
         },
-      }
-      const result = ListBlockSchema.safeParse(block)
-      expect(result.success).toBe(true)
-    })
+      };
+      const result = ListBlockSchema.safeParse(block);
+      expect(result.success).toBe(true);
+    });
 
     it('should validate checklist', () => {
       const block = {
@@ -254,11 +254,11 @@ describe('Block Schemas', () => {
           ],
           variant: 'checklist',
         },
-      }
-      const result = ListBlockSchema.safeParse(block)
-      expect(result.success).toBe(true)
-    })
-  })
+      };
+      const result = ListBlockSchema.safeParse(block);
+      expect(result.success).toBe(true);
+    });
+  });
 
   describe('ColumnsBlockSchema (recursive)', () => {
     it('should validate columns block', () => {
@@ -279,10 +279,10 @@ describe('Block Schemas', () => {
             },
           ],
         },
-      }
-      const result = ColumnsBlockSchema.safeParse(block)
-      expect(result.success).toBe(true)
-    })
+      };
+      const result = ColumnsBlockSchema.safeParse(block);
+      expect(result.success).toBe(true);
+    });
 
     it('should validate deeply nested blocks', () => {
       const block = {
@@ -315,27 +315,27 @@ describe('Block Schemas', () => {
             },
           ],
         },
-      }
-      const result = ColumnsBlockSchema.safeParse(block)
-      expect(result.success).toBe(true)
-    })
-  })
+      };
+      const result = ColumnsBlockSchema.safeParse(block);
+      expect(result.success).toBe(true);
+    });
+  });
 
   describe('BlockSchema (discriminated union)', () => {
     it('should discriminate by type', () => {
-      const textBlock = { id: '1', type: 'text', data: { content: 'Hello' } }
-      const result = BlockSchema.safeParse(textBlock)
-      expect(result.success).toBe(true)
+      const textBlock = { id: '1', type: 'text', data: { content: 'Hello' } };
+      const result = BlockSchema.safeParse(textBlock);
+      expect(result.success).toBe(true);
       if (result.success) {
-        expect(result.data.type).toBe('text')
+        expect(result.data.type).toBe('text');
       }
-    })
+    });
 
     it('should reject unknown type', () => {
-      const block = { id: '1', type: 'unknown', data: {} }
-      const result = BlockSchema.safeParse(block)
-      expect(result.success).toBe(false)
-    })
+      const block = { id: '1', type: 'unknown', data: {} };
+      const result = BlockSchema.safeParse(block);
+      expect(result.success).toBe(false);
+    });
 
     it('should reject mismatched data for type', () => {
       // Image block data on text type
@@ -343,140 +343,140 @@ describe('Block Schemas', () => {
         id: '1',
         type: 'text',
         data: { src: 'https://example.com/img.jpg', alt: 'img' },
-      }
-      const result = BlockSchema.safeParse(block)
-      expect(result.success).toBe(false)
-    })
-  })
+      };
+      const result = BlockSchema.safeParse(block);
+      expect(result.success).toBe(false);
+    });
+  });
 
   describe('Factory Functions', () => {
     describe('createTextBlock', () => {
       it('should create text block with defaults', () => {
-        const block = createTextBlock('id-1', 'Hello world')
-        expect(block.id).toBe('id-1')
-        expect(block.type).toBe('text')
-        expect(block.data.content).toBe('Hello world')
-        expect(block.data.format).toBe('markdown')
-        expect(block.meta?.version).toBe(BLOCK_SCHEMA_VERSION)
-      })
+        const block = createTextBlock('id-1', 'Hello world');
+        expect(block.id).toBe('id-1');
+        expect(block.type).toBe('text');
+        expect(block.data.content).toBe('Hello world');
+        expect(block.data.format).toBe('markdown');
+        expect(block.meta?.version).toBe(BLOCK_SCHEMA_VERSION);
+      });
 
       it('should allow custom format', () => {
-        const block = createTextBlock('id-1', '<p>Hello</p>', 'html')
-        expect(block.data.format).toBe('html')
-      })
-    })
+        const block = createTextBlock('id-1', '<p>Hello</p>', 'html');
+        expect(block.data.format).toBe('html');
+      });
+    });
 
     describe('createHeadingBlock', () => {
       it('should create heading with default level', () => {
-        const block = createHeadingBlock('id-1', 'My Heading')
-        expect(block.type).toBe('heading')
-        expect(block.data.text).toBe('My Heading')
-        expect(block.data.level).toBe('h2')
-      })
+        const block = createHeadingBlock('id-1', 'My Heading');
+        expect(block.type).toBe('heading');
+        expect(block.data.text).toBe('My Heading');
+        expect(block.data.level).toBe('h2');
+      });
 
       it('should allow custom level', () => {
-        const block = createHeadingBlock('id-1', 'Title', 'h1')
-        expect(block.data.level).toBe('h1')
-      })
-    })
+        const block = createHeadingBlock('id-1', 'Title', 'h1');
+        expect(block.data.level).toBe('h1');
+      });
+    });
 
     describe('createImageBlock', () => {
       it('should create image block', () => {
-        const block = createImageBlock('id-1', 'https://example.com/img.jpg', 'Alt text')
-        expect(block.type).toBe('image')
-        expect(block.data.src).toBe('https://example.com/img.jpg')
-        expect(block.data.alt).toBe('Alt text')
-        expect(block.data.loading).toBe('lazy')
-      })
+        const block = createImageBlock('id-1', 'https://example.com/img.jpg', 'Alt text');
+        expect(block.type).toBe('image');
+        expect(block.data.src).toBe('https://example.com/img.jpg');
+        expect(block.data.alt).toBe('Alt text');
+        expect(block.data.loading).toBe('lazy');
+      });
 
       it('should allow options', () => {
         const block = createImageBlock('id-1', 'https://example.com/img.jpg', 'Alt', {
           caption: 'My image',
           width: 800,
           height: 600,
-        })
-        expect(block.data.caption).toBe('My image')
-        expect(block.data.width).toBe(800)
-        expect(block.data.height).toBe(600)
-      })
-    })
+        });
+        expect(block.data.caption).toBe('My image');
+        expect(block.data.width).toBe(800);
+        expect(block.data.height).toBe(600);
+      });
+    });
 
     describe('createCodeBlock', () => {
       it('should create code block', () => {
-        const block = createCodeBlock('id-1', 'const x = 1', 'typescript')
-        expect(block.type).toBe('code')
-        expect(block.data.code).toBe('const x = 1')
-        expect(block.data.language).toBe('typescript')
-      })
-    })
-  })
+        const block = createCodeBlock('id-1', 'const x = 1', 'typescript');
+        expect(block.type).toBe('code');
+        expect(block.data.code).toBe('const x = 1');
+        expect(block.data.language).toBe('typescript');
+      });
+    });
+  });
 
   describe('Type Guards', () => {
     it('isTextBlock should identify text blocks', () => {
-      const text = createTextBlock('1', 'Hello')
-      const heading = createHeadingBlock('2', 'Title')
+      const text = createTextBlock('1', 'Hello');
+      const heading = createHeadingBlock('2', 'Title');
 
-      expect(isTextBlock(text)).toBe(true)
-      expect(isTextBlock(heading)).toBe(false)
-    })
+      expect(isTextBlock(text)).toBe(true);
+      expect(isTextBlock(heading)).toBe(false);
+    });
 
     it('isHeadingBlock should identify heading blocks', () => {
-      const heading = createHeadingBlock('1', 'Title')
-      const text = createTextBlock('2', 'Hello')
+      const heading = createHeadingBlock('1', 'Title');
+      const text = createTextBlock('2', 'Hello');
 
-      expect(isHeadingBlock(heading)).toBe(true)
-      expect(isHeadingBlock(text)).toBe(false)
-    })
+      expect(isHeadingBlock(heading)).toBe(true);
+      expect(isHeadingBlock(text)).toBe(false);
+    });
 
     it('isImageBlock should identify image blocks', () => {
-      const image = createImageBlock('1', 'https://example.com/img.jpg', 'Alt')
-      const text = createTextBlock('2', 'Hello')
+      const image = createImageBlock('1', 'https://example.com/img.jpg', 'Alt');
+      const text = createTextBlock('2', 'Hello');
 
-      expect(isImageBlock(image)).toBe(true)
-      expect(isImageBlock(text)).toBe(false)
-    })
+      expect(isImageBlock(image)).toBe(true);
+      expect(isImageBlock(text)).toBe(false);
+    });
 
     it('isColumnsBlock should identify columns blocks', () => {
       const columns: Block = {
         id: '1',
         type: 'columns',
         data: { columns: [] },
-      }
-      const text = createTextBlock('2', 'Hello')
+      };
+      const text = createTextBlock('2', 'Hello');
 
-      expect(isColumnsBlock(columns)).toBe(true)
-      expect(isColumnsBlock(text)).toBe(false)
-    })
+      expect(isColumnsBlock(columns)).toBe(true);
+      expect(isColumnsBlock(text)).toBe(false);
+    });
 
     it('isContainerBlock should identify container blocks', () => {
       const columns: Block = {
         id: '1',
         type: 'columns',
         data: { columns: [] },
-      }
+      };
       const grid: Block = {
         id: '2',
         type: 'grid',
         data: { columns: 2, items: [] },
-      }
-      const text = createTextBlock('3', 'Hello')
+      };
+      const text = createTextBlock('3', 'Hello');
 
-      expect(isContainerBlock(columns)).toBe(true)
-      expect(isContainerBlock(grid)).toBe(true)
-      expect(isContainerBlock(text)).toBe(false)
-    })
-  })
+      expect(isContainerBlock(columns)).toBe(true);
+      expect(isContainerBlock(grid)).toBe(true);
+      expect(isContainerBlock(text)).toBe(false);
+    });
+  });
 
   describe('Utility Functions', () => {
     describe('walkBlocks', () => {
       it('should walk flat blocks', () => {
-        const blocks: Block[] = [createTextBlock('1', 'First'), createTextBlock('2', 'Second')]
+        const blocks: Block[] = [createTextBlock('1', 'First'), createTextBlock('2', 'Second')];
 
-        const visited: string[] = []
-        walkBlocks(blocks, (block) => visited.push(block.id))
+        const visited: string[] = [];
+        walkBlocks(blocks, (block) => visited.push(block.id));
 
-        expect(visited).toEqual(['1', '2'])
-      })
+        expect(visited).toEqual(['1', '2']);
+      });
 
       it('should walk nested blocks', () => {
         const blocks: Block[] = [
@@ -492,14 +492,14 @@ describe('Block Schemas', () => {
               ],
             },
           },
-        ]
+        ];
 
-        const visited: string[] = []
-        walkBlocks(blocks, (block) => visited.push(block.id))
+        const visited: string[] = [];
+        walkBlocks(blocks, (block) => visited.push(block.id));
 
-        expect(visited).toContain('columns-1')
-        expect(visited).toContain('nested-1')
-      })
+        expect(visited).toContain('columns-1');
+        expect(visited).toContain('nested-1');
+      });
 
       it('should provide path', () => {
         const blocks: Block[] = [
@@ -515,27 +515,27 @@ describe('Block Schemas', () => {
               ],
             },
           },
-        ]
+        ];
 
-        const paths: string[][] = []
-        walkBlocks(blocks, (_, path) => paths.push([...path]))
+        const paths: string[][] = [];
+        walkBlocks(blocks, (_, path) => paths.push([...path]));
 
-        expect(paths[0]).toEqual(['columns-1'])
-        expect(paths[1]).toEqual(['columns-1', 'col-1', 'nested-1'])
-      })
-    })
+        expect(paths[0]).toEqual(['columns-1']);
+        expect(paths[1]).toEqual(['columns-1', 'col-1', 'nested-1']);
+      });
+    });
 
     describe('findBlockById', () => {
       it('should find top-level block', () => {
         const blocks: Block[] = [
           createTextBlock('target', 'Found me'),
           createTextBlock('other', 'Not me'),
-        ]
+        ];
 
-        const found = findBlockById(blocks, 'target')
-        expect(found).toBeDefined()
-        expect(found?.id).toBe('target')
-      })
+        const found = findBlockById(blocks, 'target');
+        expect(found).toBeDefined();
+        expect(found?.id).toBe('target');
+      });
 
       it('should find nested block', () => {
         const blocks: Block[] = [
@@ -551,19 +551,19 @@ describe('Block Schemas', () => {
               ],
             },
           },
-        ]
+        ];
 
-        const found = findBlockById(blocks, 'nested-target')
-        expect(found).toBeDefined()
-        expect(found?.id).toBe('nested-target')
-      })
+        const found = findBlockById(blocks, 'nested-target');
+        expect(found).toBeDefined();
+        expect(found?.id).toBe('nested-target');
+      });
 
       it('should return undefined for not found', () => {
-        const blocks: Block[] = [createTextBlock('1', 'Test')]
-        const found = findBlockById(blocks, 'nonexistent')
-        expect(found).toBeUndefined()
-      })
-    })
+        const blocks: Block[] = [createTextBlock('1', 'Test')];
+        const found = findBlockById(blocks, 'nonexistent');
+        expect(found).toBeUndefined();
+      });
+    });
 
     describe('countBlocks', () => {
       it('should count flat blocks', () => {
@@ -571,10 +571,10 @@ describe('Block Schemas', () => {
           createTextBlock('1', 'First'),
           createTextBlock('2', 'Second'),
           createTextBlock('3', 'Third'),
-        ]
+        ];
 
-        expect(countBlocks(blocks)).toBe(3)
-      })
+        expect(countBlocks(blocks)).toBe(3);
+      });
 
       it('should count nested blocks', () => {
         const blocks: Block[] = [
@@ -594,15 +594,15 @@ describe('Block Schemas', () => {
               ],
             },
           },
-        ]
+        ];
 
         // 1 top + 1 columns + 2 nested = 4
-        expect(countBlocks(blocks)).toBe(4)
-      })
+        expect(countBlocks(blocks)).toBe(4);
+      });
 
       it('should return 0 for empty', () => {
-        expect(countBlocks([])).toBe(0)
-      })
-    })
-  })
-})
+        expect(countBlocks([])).toBe(0);
+      });
+    });
+  });
+});

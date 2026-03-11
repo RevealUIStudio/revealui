@@ -1,23 +1,23 @@
-import type { Page } from '@revealui/core/types/cms'
-import type React from 'react'
-import { CMSLink } from '@/lib/components/Link/index'
-import { Media } from '@/lib/components/Media/index'
-import RichText from '@/lib/components/RichText/index'
+import type { Page } from '@revealui/core/types/cms';
+import type React from 'react';
+import { CMSLink } from '@/lib/components/Link/index';
+import { Media } from '@/lib/components/Media/index';
+import RichText from '@/lib/components/RichText/index';
 
 export const MediumImpactHero: React.FC<Page['hero']> = ({ links, media, richText }) => {
   const getLinkKey = (item: NonNullable<Page['hero']['links']>[number]) => {
-    if (item.id) return item.id
+    if (item.id) return item.id;
 
-    const referenceValue = item.link?.reference?.value
+    const referenceValue = item.link?.reference?.value;
     if (typeof referenceValue === 'string' || typeof referenceValue === 'number') {
-      return referenceValue
+      return referenceValue;
     }
     if (referenceValue && typeof referenceValue === 'object' && 'id' in referenceValue) {
-      return referenceValue.id
+      return referenceValue.id;
     }
 
-    return item.link?.url ?? item.link?.label ?? 'hero-link'
-  }
+    return item.link?.url ?? item.link?.label ?? 'hero-link';
+  };
 
   return (
     <div className="">
@@ -31,7 +31,7 @@ export const MediumImpactHero: React.FC<Page['hero']> = ({ links, media, richTex
                 <li key={getLinkKey(item)}>
                   <CMSLink {...item.link} />
                 </li>
-              )
+              );
             })}
           </ul>
         )}
@@ -54,5 +54,5 @@ export const MediumImpactHero: React.FC<Page['hero']> = ({ links, media, richTex
         )}
       </div>
     </div>
-  )
-}
+  );
+};

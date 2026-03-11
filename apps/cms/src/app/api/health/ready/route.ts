@@ -1,8 +1,8 @@
-export const runtime = 'nodejs'
-export const dynamic = 'force-dynamic'
+export const runtime = 'nodejs';
+export const dynamic = 'force-dynamic';
 
-import { NextResponse } from 'next/server'
-import { getRevealUIInstance } from '@/lib/utilities/revealui-singleton'
+import { NextResponse } from 'next/server';
+import { getRevealUIInstance } from '@/lib/utilities/revealui-singleton';
 
 /**
  * Readiness probe endpoint
@@ -12,13 +12,13 @@ import { getRevealUIInstance } from '@/lib/utilities/revealui-singleton'
 export async function GET() {
   try {
     // Check if database is accessible
-    const revealui = await getRevealUIInstance()
+    const revealui = await getRevealUIInstance();
 
     await revealui.find({
       collection: 'users',
       limit: 1,
       depth: 0,
-    })
+    });
 
     return NextResponse.json(
       {
@@ -26,7 +26,7 @@ export async function GET() {
         timestamp: new Date().toISOString(),
       },
       { status: 200 },
-    )
+    );
   } catch (error) {
     return NextResponse.json(
       {
@@ -35,6 +35,6 @@ export async function GET() {
         error: error instanceof Error ? error.message : 'Unknown error',
       },
       { status: 503 },
-    )
+    );
   }
 }

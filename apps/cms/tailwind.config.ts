@@ -3,7 +3,7 @@
  *
  * Uses shared config from dev package and extends with app-specific settings
  */
-import { createTailwindConfig } from 'dev/tailwind/create-config'
+import { createTailwindConfig } from 'dev/tailwind/create-config';
 
 // function generateSafelist(): string[] {
 //   const colors = ['scrapOrange', 'scrapBlack', 'scrapYellow', 'scrapWhite']
@@ -69,4 +69,4 @@ export default createTailwindConfig({
     },
   },
   // safelist: generateSafelist(),
-})
+});

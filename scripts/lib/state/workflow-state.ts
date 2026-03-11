@@ -11,9 +11,9 @@
  * - node:crypto - Random token generation for approvals
  */
 
-import { randomBytes } from 'node:crypto'
-import { ErrorCode, ScriptError } from '../errors.js'
-import { MemoryStateAdapter } from './adapters/memory.js'
+import { randomBytes } from 'node:crypto';
+import { ErrorCode, ScriptError } from '../errors.js';
+import { MemoryStateAdapter } from './adapters/memory.js';
 import type {
   ApprovalRequest,
   StateAdapter,
@@ -22,13 +22,13 @@ import type {
   WorkflowStatus,
   WorkflowStep,
   WorkflowStepState,
-} from './types.js'
+} from './types.js';
 
 export interface WorkflowStateMachineOptions {
   /** State adapter to use (defaults to in-memory) */
-  adapter?: StateAdapter
+  adapter?: StateAdapter;
   /** Approval expiration time in milliseconds (default: 24 hours) */
-  approvalExpirationMs?: number
+  approvalExpirationMs?: number;
 }
 
 /**
@@ -56,37 +56,37 @@ export interface WorkflowStateMachineOptions {
  * ```
  */
 export class WorkflowStateMachine {
-  private adapter: StateAdapter
-  private approvalExpirationMs: number
-  private initialized = false
+  private adapter: StateAdapter;
+  private approvalExpirationMs: number;
+  private initialized = false;
 
   constructor(options: WorkflowStateMachineOptions = {}) {
-    this.adapter = options.adapter || new MemoryStateAdapter()
-    this.approvalExpirationMs = options.approvalExpirationMs || 24 * 60 * 60 * 1000 // 24 hours
+    this.adapter = options.adapter || new MemoryStateAdapter();
+    this.approvalExpirationMs = options.approvalExpirationMs || 24 * 60 * 60 * 1000; // 24 hours
   }
 
   /**
    * Initialize the state machine and its adapter.
    */
   async initialize(): Promise<void> {
-    if (this.initialized) return
-    await this.adapter.initialize()
-    this.initialized = true
+    if (this.initialized) return;
+    await this.adapter.initialize();
+    this.initialized = true;
   }
 
   /**
    * Close the state machine and clean up resources.
    */
   async close(): Promise<void> {
-    await this.adapter.close()
-    this.initialized = false
+    await this.adapter.close();
+    this.initialized = false;
   }
 
   /**
    * Create a new workflow.
    */
   async create(name: string, steps: WorkflowStep[], description?: string): Promise<WorkflowState> {
-    this.ensureInitialized()
+    this.ensureInitialized();
 
     const workflow: WorkflowState = {
       id: this.generateId(),
@@ -98,7 +98,7 @@ export class WorkflowStateMachine {
       currentStepIndex: 0,
       createdAt: new Date(),
       updatedAt: new Date(),
-    }
+    };
 
     // Initialize step states
     for (const step of steps) {
@@ -106,53 +106,53 @@ export class WorkflowStateMachine {
         stepId: step.id,
         status: 'pending',
         retryCount: 0,
-      })
+      });
     }
 
-    await this.adapter.saveWorkflow(workflow)
-    return workflow
+    await this.adapter.saveWorkflow(workflow);
+    return workflow;
   }
 
   /**
    * Load an existing workflow.
    */
   async load(id: string): Promise<WorkflowState | null> {
-    this.ensureInitialized()
-    return this.adapter.loadWorkflow(id)
+    this.ensureInitialized();
+    return this.adapter.loadWorkflow(id);
   }
 
   /**
    * List workflows with optional filtering.
    */
   async list(options?: { status?: WorkflowStatus; limit?: number }): Promise<WorkflowState[]> {
-    this.ensureInitialized()
-    return this.adapter.listWorkflows(options)
+    this.ensureInitialized();
+    return this.adapter.listWorkflows(options);
   }
 
   /**
    * Delete a workflow.
    */
   async delete(id: string): Promise<boolean> {
-    this.ensureInitialized()
-    return this.adapter.deleteWorkflow(id)
+    this.ensureInitialized();
+    return this.adapter.deleteWorkflow(id);
   }
 
   /**
    * Transition a workflow to a new state based on an event.
    */
   async transition(id: string, event: WorkflowEvent): Promise<WorkflowState> {
-    this.ensureInitialized()
+    this.ensureInitialized();
 
-    const workflow = await this.adapter.loadWorkflow(id)
+    const workflow = await this.adapter.loadWorkflow(id);
     if (!workflow) {
-      throw new ScriptError(`Workflow not found: ${id}`, ErrorCode.NOT_FOUND)
+      throw new ScriptError(`Workflow not found: ${id}`, ErrorCode.NOT_FOUND);
     }
 
-    const newState = this.applyEvent(workflow, event)
-    newState.updatedAt = new Date()
+    const newState = this.applyEvent(workflow, event);
+    newState.updatedAt = new Date();
 
-    await this.adapter.saveWorkflow(newState)
-    return newState
+    await this.adapter.saveWorkflow(newState);
+    return newState;
   }
 
   /**
@@ -160,19 +160,19 @@ export class WorkflowStateMachine {
    * Returns a unique token that can be used to submit the approval.
    */
   async requestApproval(workflowId: string, stepId: string): Promise<string> {
-    this.ensureInitialized()
+    this.ensureInitialized();
 
-    const workflow = await this.adapter.loadWorkflow(workflowId)
+    const workflow = await this.adapter.loadWorkflow(workflowId);
     if (!workflow) {
-      throw new ScriptError(`Workflow not found: ${workflowId}`, ErrorCode.NOT_FOUND)
+      throw new ScriptError(`Workflow not found: ${workflowId}`, ErrorCode.NOT_FOUND);
     }
 
-    const step = workflow.steps.find((s) => s.id === stepId)
+    const step = workflow.steps.find((s) => s.id === stepId);
     if (!step) {
-      throw new ScriptError(`Step not found: ${stepId}`, ErrorCode.NOT_FOUND)
+      throw new ScriptError(`Step not found: ${stepId}`, ErrorCode.NOT_FOUND);
     }
 
-    const token = this.generateToken()
+    const token = this.generateToken();
     const approval: ApprovalRequest = {
       id: this.generateId(),
       workflowId,
@@ -181,14 +181,14 @@ export class WorkflowStateMachine {
       status: 'pending',
       requestedAt: new Date(),
       expiresAt: new Date(Date.now() + this.approvalExpirationMs),
-    }
+    };
 
-    await this.adapter.saveApproval(approval)
+    await this.adapter.saveApproval(approval);
 
     // Update workflow status
-    await this.transition(workflowId, { type: 'APPROVAL_REQUEST', stepId })
+    await this.transition(workflowId, { type: 'APPROVAL_REQUEST', stepId });
 
-    return token
+    return token;
   }
 
   /**
@@ -200,40 +200,40 @@ export class WorkflowStateMachine {
     respondedBy?: string,
     comment?: string,
   ): Promise<void> {
-    this.ensureInitialized()
+    this.ensureInitialized();
 
-    const approval = await this.adapter.loadApproval(token)
+    const approval = await this.adapter.loadApproval(token);
     if (!approval) {
-      throw new ScriptError(`Approval not found: ${token}`, ErrorCode.NOT_FOUND)
+      throw new ScriptError(`Approval not found: ${token}`, ErrorCode.NOT_FOUND);
     }
 
     if (approval.status !== 'pending') {
-      throw new ScriptError(`Approval already processed: ${approval.status}`, ErrorCode.CONFLICT)
+      throw new ScriptError(`Approval already processed: ${approval.status}`, ErrorCode.CONFLICT);
     }
 
     if (new Date() > approval.expiresAt) {
-      await this.adapter.updateApprovalStatus(token, 'expired')
-      throw new ScriptError('Approval has expired', ErrorCode.INVALID_STATE)
+      await this.adapter.updateApprovalStatus(token, 'expired');
+      throw new ScriptError('Approval has expired', ErrorCode.INVALID_STATE);
     }
 
-    const newStatus = approved ? 'approved' : 'rejected'
-    await this.adapter.updateApprovalStatus(token, newStatus, respondedBy, comment)
+    const newStatus = approved ? 'approved' : 'rejected';
+    await this.adapter.updateApprovalStatus(token, newStatus, respondedBy, comment);
 
     // Update workflow
     const event: WorkflowEvent = approved
       ? { type: 'APPROVAL_GRANTED', stepId: approval.stepId, by: respondedBy }
-      : { type: 'APPROVAL_DENIED', stepId: approval.stepId, reason: comment }
+      : { type: 'APPROVAL_DENIED', stepId: approval.stepId, reason: comment };
 
-    await this.transition(approval.workflowId, event)
+    await this.transition(approval.workflowId, event);
   }
 
   /**
    * Get pending approvals for a workflow.
    */
   async getPendingApprovals(workflowId: string): Promise<ApprovalRequest[]> {
-    this.ensureInitialized()
-    const approvals = await this.adapter.loadApprovalsByWorkflow(workflowId)
-    return approvals.filter((a) => a.status === 'pending')
+    this.ensureInitialized();
+    const approvals = await this.adapter.loadApprovalsByWorkflow(workflowId);
+    return approvals.filter((a) => a.status === 'pending');
   }
 
   /**
@@ -241,46 +241,46 @@ export class WorkflowStateMachine {
    */
   getCurrentStep(workflow: WorkflowState): WorkflowStep | null {
     if (workflow.currentStepIndex >= workflow.steps.length) {
-      return null
+      return null;
     }
-    return workflow.steps[workflow.currentStepIndex]
+    return workflow.steps[workflow.currentStepIndex];
   }
 
   /**
    * Get the state of a specific step.
    */
   getStepState(workflow: WorkflowState, stepId: string): WorkflowStepState | null {
-    return workflow.stepStates.get(stepId) || null
+    return workflow.stepStates.get(stepId) || null;
   }
 
   /**
    * Check if a workflow can proceed to the next step.
    */
   canProceed(workflow: WorkflowState): boolean {
-    if (workflow.status !== 'running') return false
-    if (workflow.currentStepIndex >= workflow.steps.length) return false
+    if (workflow.status !== 'running') return false;
+    if (workflow.currentStepIndex >= workflow.steps.length) return false;
 
-    const currentStep = workflow.steps[workflow.currentStepIndex]
-    const stepState = workflow.stepStates.get(currentStep.id)
+    const currentStep = workflow.steps[workflow.currentStepIndex];
+    const stepState = workflow.stepStates.get(currentStep.id);
 
-    if (!stepState) return false
-    if (stepState.status !== 'pending' && stepState.status !== 'completed') return false
+    if (!stepState) return false;
+    if (stepState.status !== 'pending' && stepState.status !== 'completed') return false;
 
     // Check dependencies
     if (currentStep.dependsOn) {
       for (const depId of currentStep.dependsOn) {
-        const depState = workflow.stepStates.get(depId)
+        const depState = workflow.stepStates.get(depId);
         if (!depState || depState.status !== 'completed') {
-          return false
+          return false;
         }
       }
     }
 
-    return true
+    return true;
   }
 
   private applyEvent(workflow: WorkflowState, event: WorkflowEvent): WorkflowState {
-    const newState = { ...workflow, stepStates: new Map(workflow.stepStates) }
+    const newState = { ...workflow, stepStates: new Map(workflow.stepStates) };
 
     switch (event.type) {
       case 'START':
@@ -288,118 +288,118 @@ export class WorkflowStateMachine {
           throw new ScriptError(
             `Cannot start workflow in status: ${workflow.status}`,
             ErrorCode.INVALID_STATE,
-          )
+          );
         }
-        newState.status = 'running'
-        break
+        newState.status = 'running';
+        break;
 
       case 'PAUSE':
         if (workflow.status !== 'running') {
           throw new ScriptError(
             `Cannot pause workflow in status: ${workflow.status}`,
             ErrorCode.INVALID_STATE,
-          )
+          );
         }
-        newState.status = 'paused'
-        break
+        newState.status = 'paused';
+        break;
 
       case 'RESUME':
         if (workflow.status !== 'paused') {
           throw new ScriptError(
             `Cannot resume workflow in status: ${workflow.status}`,
             ErrorCode.INVALID_STATE,
-          )
+          );
         }
-        newState.status = 'running'
-        break
+        newState.status = 'running';
+        break;
 
       case 'CANCEL':
         if (workflow.status === 'completed' || workflow.status === 'cancelled') {
           throw new ScriptError(
             `Cannot cancel workflow in status: ${workflow.status}`,
             ErrorCode.INVALID_STATE,
-          )
+          );
         }
-        newState.status = 'cancelled'
-        newState.completedAt = new Date()
-        break
+        newState.status = 'cancelled';
+        newState.completedAt = new Date();
+        break;
 
       case 'STEP_START': {
-        const stepState = newState.stepStates.get(event.stepId)
+        const stepState = newState.stepStates.get(event.stepId);
         if (stepState) {
-          stepState.status = 'running'
-          stepState.startedAt = new Date()
+          stepState.status = 'running';
+          stepState.startedAt = new Date();
         }
-        break
+        break;
       }
 
       case 'STEP_COMPLETE': {
-        const stepState = newState.stepStates.get(event.stepId)
+        const stepState = newState.stepStates.get(event.stepId);
         if (stepState) {
-          stepState.status = 'completed'
-          stepState.completedAt = new Date()
-          stepState.output = event.output
+          stepState.status = 'completed';
+          stepState.completedAt = new Date();
+          stepState.output = event.output;
         }
         // Move to next step
-        newState.currentStepIndex++
-        break
+        newState.currentStepIndex++;
+        break;
       }
 
       case 'STEP_FAIL': {
-        const stepState = newState.stepStates.get(event.stepId)
+        const stepState = newState.stepStates.get(event.stepId);
         if (stepState) {
-          stepState.status = 'failed'
-          stepState.completedAt = new Date()
-          stepState.error = event.error
+          stepState.status = 'failed';
+          stepState.completedAt = new Date();
+          stepState.error = event.error;
         }
-        newState.status = 'failed'
-        newState.error = event.error
-        newState.completedAt = new Date()
-        break
+        newState.status = 'failed';
+        newState.error = event.error;
+        newState.completedAt = new Date();
+        break;
       }
 
       case 'STEP_SKIP': {
-        const stepState = newState.stepStates.get(event.stepId)
+        const stepState = newState.stepStates.get(event.stepId);
         if (stepState) {
-          stepState.status = 'skipped'
+          stepState.status = 'skipped';
         }
-        newState.currentStepIndex++
-        break
+        newState.currentStepIndex++;
+        break;
       }
 
       case 'APPROVAL_REQUEST':
-        newState.status = 'paused'
-        break
+        newState.status = 'paused';
+        break;
 
       case 'APPROVAL_GRANTED':
-        newState.status = 'running'
-        break
+        newState.status = 'running';
+        break;
 
       case 'APPROVAL_DENIED':
-        newState.status = 'cancelled'
-        newState.error = event.reason || 'Approval denied'
-        newState.completedAt = new Date()
-        break
+        newState.status = 'cancelled';
+        newState.error = event.reason || 'Approval denied';
+        newState.completedAt = new Date();
+        break;
 
       case 'COMPLETE':
-        newState.status = 'completed'
-        newState.completedAt = new Date()
-        break
+        newState.status = 'completed';
+        newState.completedAt = new Date();
+        break;
 
       case 'FAIL':
-        newState.status = 'failed'
-        newState.error = event.error
-        newState.completedAt = new Date()
-        break
+        newState.status = 'failed';
+        newState.error = event.error;
+        newState.completedAt = new Date();
+        break;
 
       default:
         throw new ScriptError(
           `Unknown event type: ${(event as WorkflowEvent).type}`,
           ErrorCode.VALIDATION_ERROR,
-        )
+        );
     }
 
-    return newState
+    return newState;
   }
 
   private ensureInitialized(): void {
@@ -407,15 +407,15 @@ export class WorkflowStateMachine {
       throw new ScriptError(
         'WorkflowStateMachine not initialized. Call initialize() first.',
         ErrorCode.INVALID_STATE,
-      )
+      );
     }
   }
 
   private generateId(): string {
-    return `wf-${Date.now()}-${randomBytes(4).toString('hex')}`
+    return `wf-${Date.now()}-${randomBytes(4).toString('hex')}`;
   }
 
   private generateToken(): string {
-    return randomBytes(32).toString('hex')
+    return randomBytes(32).toString('hex');
   }
 }

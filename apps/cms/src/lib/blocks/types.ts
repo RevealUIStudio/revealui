@@ -6,14 +6,14 @@
  * while maintaining compatibility between the two type systems.
  */
 
-import type { Block, BlockType } from '@revealui/contracts/content'
-import { BlockSchema } from '@revealui/contracts/content'
-import type { Page } from '@revealui/core/types/cms'
-import { createBlockFromSchema, transformPageBlockToSchema } from './schema-adapter'
+import type { Block, BlockType } from '@revealui/contracts/content';
+import { BlockSchema } from '@revealui/contracts/content';
+import type { Page } from '@revealui/core/types/cms';
+import { createBlockFromSchema, transformPageBlockToSchema } from './schema-adapter';
 
 // Map generated block types to schema block types
-export type GeneratedBlockType = Page['layout'][number]['blockType']
-export type GeneratedBlock = NonNullable<Page['layout'][number]>
+export type GeneratedBlockType = Page['layout'][number]['blockType'];
+export type GeneratedBlock = NonNullable<Page['layout'][number]>;
 
 /**
  * Type guard to check if an unknown value is a valid schema Block
@@ -25,13 +25,13 @@ export type GeneratedBlock = NonNullable<Page['layout'][number]>
  * ```typescript
  * if (isSchemaBlock(unknownValue)) {
  *   // TypeScript now knows unknownValue is Block
- *   console.log(unknownValue.type)
+ *   unknownValue.type // access properties safely
  * }
  * ```
  */
 export function isSchemaBlock(block: unknown): block is Block {
-  const result = BlockSchema.safeParse(block)
-  return result.success
+  const result = BlockSchema.safeParse(block);
+  return result.success;
 }
 
 /**
@@ -58,24 +58,24 @@ export function isSchemaBlock(block: unknown): block is Block {
 export function convertGeneratedBlockToSchema(block: Page['layout'][number]): Block {
   // Delegate to the schema-adapter transformation function
   // This maintains the API while using the actual implementation
-  const result = transformPageBlockToSchema(block)
+  const result = transformPageBlockToSchema(block);
 
   if (!result.success) {
-    let errorMessage = 'Unknown error'
+    let errorMessage = 'Unknown error';
     if (result.error instanceof Error) {
-      errorMessage = result.error.message
+      errorMessage = result.error.message;
     } else if (result.error && typeof result.error === 'object' && 'issues' in result.error) {
-      const zodError = result.error as { issues: Array<{ message?: string }> }
-      errorMessage = zodError.issues[0]?.message || 'Unknown error'
+      const zodError = result.error as { issues: Array<{ message?: string }> };
+      errorMessage = zodError.issues[0]?.message || 'Unknown error';
     }
-    throw new Error(`Failed to convert generated block to schema: ${errorMessage}`)
+    throw new Error(`Failed to convert generated block to schema: ${errorMessage}`);
   }
 
   if (!result.data) {
-    throw new Error('Failed to convert generated block to schema: No data returned')
+    throw new Error('Failed to convert generated block to schema: No data returned');
   }
 
-  return result.data
+  return result.data;
 }
 
 /**
@@ -96,7 +96,7 @@ export function convertGeneratedBlockToSchema(block: Page['layout'][number]): Bl
  */
 export function convertSchemaBlockToGenerated(block: Block): Page['layout'][number] {
   // Delegate to the schema-adapter reverse transformation function
-  return createBlockFromSchema(block)
+  return createBlockFromSchema(block);
 }
 
 /**
@@ -110,7 +110,7 @@ export function isBlockType<T extends BlockType>(
   block: Block,
   blockType: T,
 ): block is Extract<Block, { type: T }> {
-  return block.type === blockType
+  return block.type === blockType;
 }
 
 /**
@@ -125,4 +125,4 @@ export const BLOCK_TYPE_MAP: Record<GeneratedBlockType, BlockType | 'component'>
   archive: 'component',
   banner: 'component',
   // Note: reusableContent is not a valid GeneratedBlockType, removed from map
-} as const
+} as const;

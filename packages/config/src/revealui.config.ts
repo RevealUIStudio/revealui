@@ -100,7 +100,7 @@ export const sharedConfig = {
       },
     },
   },
-} as const
+} as const;
 
 /**
  * Get shared configuration for CMS app
@@ -110,22 +110,22 @@ export function getSharedCMSConfig(): { serverURL: string; secret: string } {
   return {
     serverURL: sharedConfig.serverURL,
     secret: sharedConfig.secret,
-  }
+  };
 }
 
 export interface SharedWebConfig {
   prerender: {
-    partial: boolean
-    noExtraDir: boolean
-    parallel: number
-    disableAutoRun: boolean
-    [key: string]: unknown
-  }
-  trailingSlash: boolean
-  baseServer: string
-  baseAssets: string
-  disableUrlNormalization: boolean
-  redirects: Record<string, never>
+    partial: boolean;
+    noExtraDir: boolean;
+    parallel: number;
+    disableAutoRun: boolean;
+    [key: string]: unknown;
+  };
+  trailingSlash: boolean;
+  baseServer: string;
+  baseAssets: string;
+  disableUrlNormalization: boolean;
+  redirects: Record<string, never>;
 }
 
 /**
@@ -135,9 +135,9 @@ export interface SharedWebConfig {
  * @returns Partial RevealUI Config object with shared prerender and routing settings
  */
 export function getSharedWebConfig(): SharedWebConfig {
-  const isDevelopment = process.env.NODE_ENV === 'development'
-  const isProduction = process.env.NODE_ENV === 'production'
-  const isTest = process.env.NODE_ENV === 'test'
+  const isDevelopment = process.env.NODE_ENV === 'development';
+  const isProduction = process.env.NODE_ENV === 'production';
+  const isTest = process.env.NODE_ENV === 'test';
 
   // Apply environment-specific overrides
   const envConfig = isDevelopment
@@ -146,9 +146,9 @@ export function getSharedWebConfig(): SharedWebConfig {
       ? sharedConfig.env.production
       : isTest
         ? sharedConfig.env.test
-        : null
+        : null;
 
-  const envPrerender = envConfig && 'revealui' in envConfig && envConfig.revealui?.prerender
+  const envPrerender = envConfig && 'revealui' in envConfig && envConfig.revealui?.prerender;
 
   return {
     prerender: {
@@ -163,7 +163,7 @@ export function getSharedWebConfig(): SharedWebConfig {
     baseAssets: sharedConfig.reveal.baseAssets,
     disableUrlNormalization: sharedConfig.reveal.disableUrlNormalization,
     redirects: sharedConfig.reveal.redirects,
-  }
+  };
 }
 
 /**
@@ -178,7 +178,7 @@ export function getSharedViteConfig(): { build: { sourcemap: boolean }; server: 
     server: {
       port: 3000, // Web app dev server port
     },
-  }
+  };
 }
 
 /**
@@ -186,8 +186,8 @@ export function getSharedViteConfig(): { build: { sourcemap: boolean }; server: 
  * Can be used in next.config.mjs files
  */
 export function getSharedNextJSConfig(): {
-  output: 'standalone'
-  experimental: { serverActions: boolean; serverComponentsExternalPackages: string[] }
+  output: 'standalone';
+  experimental: { serverActions: boolean; serverComponentsExternalPackages: string[] };
 } {
   return {
     output: 'standalone' as const,
@@ -195,7 +195,7 @@ export function getSharedNextJSConfig(): {
       serverActions: true,
       serverComponentsExternalPackages: ['sharp', 'react-animate-height'],
     },
-  }
+  };
 }
 
 // Export default for backward compatibility (if needed)
@@ -206,4 +206,4 @@ export default {
   getSharedWebConfig,
   getSharedViteConfig,
   getSharedNextJSConfig,
-}
+};

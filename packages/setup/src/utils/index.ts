@@ -2,4 +2,4 @@
  * Shared utilities for RevealUI setup
  */
 
-export * from './logger.js'
+export * from './logger.js';
