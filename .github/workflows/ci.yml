@@ -4,8 +4,8 @@ name: CI
 #   Hard fail: Biome lint, typecheck, build
 #   Warn-only: audits, structure, boundary, tests
 #
-# Build runs only on push to main (too slow for PRs; ~15 min).
-# PRs get quality + typecheck + tests for fast feedback (~5 min).
+# PRs: quality + typecheck + package build + tests (~8 min).
+# main: full build including apps + E2E smoke (~15 min).
 
 on:
   push:
@@ -128,14 +128,15 @@ jobs:
           SKIP_ENV_VALIDATION: "true"
 
   # ---------------------------------------------------------------------------
-  # Phase 3b: Build (hard fail — main branch only, PRs skip this)
+  # Phase 3b: Build
+  #   - PRs: packages only (hard fail, ~5 min) — catches import/export breaks
+  #   - main: full build including apps (hard fail, ~15 min)
   # ---------------------------------------------------------------------------
   build:
     name: Build
     runs-on: ubuntu-latest
     timeout-minutes: 30
     needs: [quality, typecheck]
-    if: github.ref == 'refs/heads/main'
 
     steps:
       - uses: actions/checkout@v4
@@ -152,7 +153,14 @@ jobs:
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
 
-      - name: Build all packages (hard fail)
+      - name: Build packages (hard fail)
+        if: github.event_name == 'pull_request'
+        run: pnpm --filter './packages/*' build
+        env:
+          SKIP_ENV_VALIDATION: "true"
+
+      - name: Build all (hard fail)
+        if: github.ref == 'refs/heads/main'
         run: pnpm build
         env:
           SKIP_ENV_VALIDATION: "true"
