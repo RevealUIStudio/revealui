@@ -163,7 +163,7 @@ export default function ConnectForm({ onConnect, connecting }: ConnectFormProps)
             label="Username"
             value={username}
             onChange={(e) => setUsername(e.target.value)}
-            placeholder="joshua-v-dev"
+            placeholder="your-username"
             required
           />
 
