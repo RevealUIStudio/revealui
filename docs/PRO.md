@@ -1036,7 +1036,7 @@ AI harness adapters, workboard coordination, and JSON-RPC server. Integrates Cla
 
 `@revealui/harnesses` connects AI coding tools to each other and to your project's shared workboard. Multiple AI sessions — across editors, terminals, and CI — register themselves and claim file ownership to prevent conflicts.
 
-**Requires a Pro or Forge license** (`isFeatureEnabled('harnesses')`).
+**Requires a Pro or Forge license.**
 
 ## Quick start
 
