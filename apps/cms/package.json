@@ -45,7 +45,7 @@
     "@testing-library/react": "^16.3.1",
     "@vitest/coverage-v8": "^4.0.17",
     "@vitest/ui": "^4.0.17",
-    "@revealui/services": "0.0.2",
+    "@revealui/services": "workspace:*",
     "dev": "workspace:*",
     "dotenv": "^17.2.4",
     "postcss": "^8.5.6",

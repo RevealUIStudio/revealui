@@ -75,9 +75,11 @@ export class DatabaseStorage implements Storage {
   }
 
   async incr(key: string): Promise<number> {
-    const current = await this.get(key)
-    const newValue = current ? parseInt(current, 10) + 1 : 1
-    await this.set(key, String(newValue))
+    let newValue = 1
+    await this.atomicUpdate(key, (existing) => {
+      newValue = existing ? parseInt(existing, 10) + 1 : 1
+      return { value: String(newValue), ttlSeconds: 24 * 60 * 60 }
+    })
     return newValue
   }
 
