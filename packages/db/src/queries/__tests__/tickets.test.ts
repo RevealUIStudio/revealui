@@ -210,12 +210,7 @@ describe('ticket queries', () => {
   // ---- createTicket -------------------------------------------------------
 
   describe('createTicket', () => {
-    it('auto-increments ticket number and creates ticket', async () => {
-      // First select: get max ticket number
-      const maxChain = createSelectChain([{ max: 5 }]);
-      db.select.mockReturnValue(maxChain);
-
-      // Insert: create ticket
+    it('creates ticket with atomic ticket number subquery', async () => {
       const created = { id: 't1', boardId: 'b1', title: 'New', ticketNumber: 6 };
       const insertChain = createInsertChain([created]);
       db.insert.mockReturnValue(insertChain);
@@ -227,47 +222,16 @@ describe('ticket queries', () => {
       });
 
       expect(result).toEqual(created);
-      // Verify the ticket number was set to max + 1
+      // ticketNumber is now a SQL subquery object, not a plain number
       const insertedValues = insertChain.values.mock.calls[0]?.[0] as
         | Record<string, unknown>
         | undefined;
-      expect(insertedValues?.ticketNumber).toBe(6);
-    });
-
-    it('starts at ticket number 1 when board has no tickets', async () => {
-      const maxChain = createSelectChain([{ max: 0 }]);
-      db.select.mockReturnValue(maxChain);
-
-      const insertChain = createInsertChain([{ id: 't1', ticketNumber: 1 }]);
-      db.insert.mockReturnValue(insertChain);
-
-      await createTicket(db as never, { id: 't1', boardId: 'b1', title: 'First' });
-
-      const insertedValues = insertChain.values.mock.calls[0]?.[0] as
-        | Record<string, unknown>
-        | undefined;
-      expect(insertedValues?.ticketNumber).toBe(1);
-    });
-
-    it('handles null max result gracefully', async () => {
-      const maxChain = createSelectChain([{ max: null }]);
-      db.select.mockReturnValue(maxChain);
-
-      const insertChain = createInsertChain([{ id: 't1', ticketNumber: 1 }]);
-      db.insert.mockReturnValue(insertChain);
-
-      await createTicket(db as never, { id: 't1', boardId: 'b1', title: 'First' });
-
-      const insertedValues = insertChain.values.mock.calls[0]?.[0] as
-        | Record<string, unknown>
-        | undefined;
-      expect(insertedValues?.ticketNumber).toBe(1);
+      expect(insertedValues?.ticketNumber).toBeDefined();
+      // No separate SELECT call — ticket number is computed atomically in INSERT
+      expect(db.select).not.toHaveBeenCalled();
     });
 
     it('sets description to null when not provided', async () => {
-      const maxChain = createSelectChain([{ max: 0 }]);
-      db.select.mockReturnValue(maxChain);
-
       const insertChain = createInsertChain([{ id: 't1' }]);
       db.insert.mockReturnValue(insertChain);
 
@@ -280,9 +244,6 @@ describe('ticket queries', () => {
     });
 
     it('passes optional fields through', async () => {
-      const maxChain = createSelectChain([{ max: 2 }]);
-      db.select.mockReturnValue(maxChain);
-
       const insertChain = createInsertChain([{ id: 't1' }]);
       db.insert.mockReturnValue(insertChain);
 

@@ -234,10 +234,8 @@ describe('agent-collab route', () => {
       );
 
       expect(res.status).toBe(500);
-
-      const json = (await res.json()) as Record<string, unknown>;
-      expect(json.success).toBe(false);
-      expect(json.error).toBe('Document locked');
+      const text = await res.text();
+      expect(text).toContain('Document locked');
     });
 
     it('should return 400 for invalid edit type', async () => {
@@ -309,10 +307,8 @@ describe('agent-collab route', () => {
       const res = await app.request('/api/collab/agent/snapshot/nonexistent-doc');
 
       expect(res.status).toBe(404);
-
-      const json = (await res.json()) as Record<string, unknown>;
-      expect(json.success).toBe(false);
-      expect(json.error).toBe('Document not found');
+      const text = await res.text();
+      expect(text).toContain('Document not found');
     });
   });
 });

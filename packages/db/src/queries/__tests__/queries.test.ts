@@ -577,15 +577,11 @@ describe('tickets queries', () => {
     expect(await getTicketByNumber(mock.db, 'b1', 999)).toBeNull();
   });
 
-  it('createTicket auto-increments ticket number', async () => {
+  it('createTicket uses atomic insert with subquery for ticket number', async () => {
     const { createTicket } = await import('../tickets.js');
-    // First select call is the MAX query
-    const maxResult = [{ max: 5 }];
     const createdTicket = { id: 't1', ticketNumber: 6, title: 'New' };
 
-    // The function calls select() then insert(). We need select to return
-    // maxResult and insert to return createdTicket.
-    mock.setSelectResult(maxResult);
+    // Atomic: only insert, no separate select for MAX
     mock.setInsertResult([createdTicket]);
 
     const result = await createTicket(mock.db, {
@@ -595,36 +591,8 @@ describe('tickets queries', () => {
     });
 
     expect(result).toEqual(createdTicket);
-    expect(mock.db.select).toHaveBeenCalled();
+    expect(mock.db.select).not.toHaveBeenCalled();
     expect(mock.db.insert).toHaveBeenCalled();
-  });
-
-  it('createTicket starts at 1 when board has no tickets', async () => {
-    const { createTicket } = await import('../tickets.js');
-    mock.setSelectResult([{ max: 0 }]);
-    mock.setInsertResult([{ id: 't1', ticketNumber: 1 }]);
-
-    const result = await createTicket(mock.db, {
-      id: 't1',
-      boardId: 'b1',
-      title: 'First ticket',
-    });
-
-    expect(result).toEqual({ id: 't1', ticketNumber: 1 });
-  });
-
-  it('createTicket handles null max result', async () => {
-    const { createTicket } = await import('../tickets.js');
-    mock.setSelectResult([{ max: null }]);
-    mock.setInsertResult([{ id: 't1', ticketNumber: 1 }]);
-
-    const result = await createTicket(mock.db, {
-      id: 't1',
-      boardId: 'b1',
-      title: 'First ticket',
-    });
-
-    expect(result).toEqual({ id: 't1', ticketNumber: 1 });
   });
 
   it('updateTicket updates and returns the ticket', async () => {

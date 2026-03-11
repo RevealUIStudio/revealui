@@ -13,7 +13,17 @@
  * - ticketLabelAssignments: Junction table for ticket-label M:N
  */
 
-import { boolean, index, integer, jsonb, pgTable, text, timestamp } from 'drizzle-orm/pg-core';
+import {
+  boolean,
+  index,
+  integer,
+  jsonb,
+  pgTable,
+  text,
+  timestamp,
+  uniqueIndex,
+} from 'drizzle-orm/pg-core';
+import type { AnyPgColumn } from 'drizzle-orm/pg-core/columns/common';
 import { users } from './users.js';
 
 // =============================================================================
@@ -124,7 +134,9 @@ export const tickets = pgTable(
     columnId: text('column_id').references(() => boardColumns.id, { onDelete: 'set null' }),
 
     /** Parent ticket for subtasks/epics (self-referencing) */
-    parentTicketId: text('parent_ticket_id'),
+    parentTicketId: text('parent_ticket_id').references((): AnyPgColumn => tickets.id, {
+      onDelete: 'cascade',
+    }),
 
     /** Human-readable ticket number, auto-incremented per board */
     ticketNumber: integer('ticket_number').notNull(),
@@ -181,6 +193,7 @@ export const tickets = pgTable(
     index('tickets_assignee_id_idx').on(table.assigneeId),
     index('tickets_parent_ticket_id_idx').on(table.parentTicketId),
     index('tickets_reporter_id_idx').on(table.reporterId),
+    uniqueIndex('tickets_board_ticket_number_idx').on(table.boardId, table.ticketNumber),
   ],
 );
 
