@@ -7,7 +7,7 @@ index 0000000000000000000000000000000000000000..e95aaff64ed9d2d714839dcc65e6fdfe
 +/**
 + * @revealui/services — type stubs for public repo typecheck
 + *
-+ * The full implementation is in revealui-jv/packages/services.
++ * The full implementation is in the Pro package.
 + * These stubs satisfy TypeScript while the Pro package awaits
 + * its first proper npm publish.
 + */

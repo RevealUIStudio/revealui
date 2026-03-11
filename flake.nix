@@ -42,6 +42,9 @@
             nodePackages.pnpm
             # Note: Corepack removed - pnpm 10+ has built-in version management
 
+            # Security
+            gitleaks
+
             # Database
             (postgresql_16.withPackages (ps: [ ps.pgvector ]))
 

@@ -35,11 +35,11 @@ Steps:
 **Changesets must be applied before running** — run `pnpm changeset version` locally and commit first.
 
 ### `release-pro.yml` — Release Pro Packages
-**Trigger:** Manual (`workflow_dispatch`) — **runs from the private `revealui-jv` repo, not here**
+**Trigger:** Manual (`workflow_dispatch`) — **runs from private upstream, not here**
 
 Pro package source (`@revealui/ai`, `mcp`, `editors`, `services`, `harnesses`) lives in
-the private `RevealUIStudio/revealui-jv` repo. The `release-pro.yml` workflow there publishes
-to **npm.org** via `NPM_TOKEN`.
+a private upstream repo. The `release-pro.yml` workflow there publishes to **npm.org**
+via `NPM_TOKEN`.
 
 This file is kept in the public repo for documentation purposes only — running it here
 will fail (Pro package source is not present).
