@@ -1,0 +1,105 @@
+feature: api
+name: REST API (Hono + OpenAPI)
+status: production
+tier: free
+last-verified: 2026-03-11
+
+api-surface:
+  health:
+    endpoint: "GET /health, /health/live, /health/ready, /health/metrics"
+    openapi: true
+    tested: true
+  content-posts:
+    endpoint: "GET|POST /posts, GET|PATCH|DELETE /posts/:id"
+    openapi: true
+    input-validation: zod
+    tested: true
+  content-pages:
+    endpoint: "GET|POST /sites/:siteId/pages, GET|PATCH|DELETE /pages/:id"
+    openapi: true
+    input-validation: zod
+    tested: true
+  content-media:
+    endpoint: "GET|PATCH|DELETE /media/:id"
+    openapi: true
+    tested: true
+  content-sites:
+    endpoint: "GET|POST|PATCH|DELETE /sites/:id"
+    openapi: true
+    input-validation: zod
+    tested: true
+  tickets:
+    endpoint: "GET|POST /tickets, GET|PATCH|DELETE /tickets/:id"
+    openapi: true
+    input-validation: zod
+    tested: true
+  pricing:
+    endpoint: "GET /api/pricing"
+    openapi: true
+    tested: true
+  gdpr:
+    endpoint: "POST /api/gdpr/consent, POST /api/gdpr/delete, POST /api/gdpr/anonymize"
+    openapi: true
+    input-validation: none
+    tested: true
+  errors:
+    endpoint: "POST /api/errors"
+    openapi: true
+    tested: true
+  logs:
+    endpoint: "POST /api/logs"
+    openapi: true
+    tested: true
+  api-keys:
+    endpoint: "GET|POST|DELETE /api/api-keys"
+    openapi: true
+    tested: true
+  marketplace:
+    endpoint: "POST /api/marketplace/publish, /invoke, /connect"
+    openapi: true
+    tested: true
+  rag-index:
+    endpoint: "GET|POST|DELETE /api/rag-index"
+    openapi: true
+    tested: true
+  agent-tasks:
+    endpoint: "POST /api/agent-tasks/*"
+    openapi: true
+    tested: true
+  agent-stream:
+    endpoint: "POST /api/agent-stream"
+    openapi: true
+    tested: true
+  collab:
+    endpoint: "WebSocket /api/collab/*"
+    openapi: false
+    tested: true
+  agent-collab:
+    endpoint: "POST /api/agent-collab/*"
+    openapi: false
+    tested: true
+  code-provenance:
+    endpoint: "GET|POST /api/code-provenance"
+    openapi: true
+    tested: true
+  terminal-auth:
+    endpoint: "POST /api/terminal-auth"
+    openapi: true
+    tested: true
+  a2a:
+    endpoint: "GET /.well-known/a2a"
+    openapi: true
+    tested: true
+
+ui-surface:
+  swagger-docs:
+    location: "/docs (Swagger UI)"
+    status: functional
+
+limitations:
+  - id: gdpr-no-validation
+    surface: api
+    summary: "GDPR endpoints use raw c.req.json() without Zod validation"
+  - id: collab-no-openapi
+    surface: api
+    summary: "collab.ts and agent-collab.ts routes not in OpenAPI spec"

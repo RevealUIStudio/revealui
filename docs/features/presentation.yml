@@ -1,0 +1,25 @@
+feature: presentation
+name: UI Component Library
+status: production
+tier: free
+last-verified: 2026-03-11
+
+api-surface:
+  components:
+    endpoint: "55 React components in packages/presentation/src/components/"
+    openapi: false
+    tested: true
+  exports:
+    endpoint: "@revealui/presentation package with subpath exports"
+    openapi: false
+    tested: true
+
+ui-surface:
+  component-library:
+    location: "packages/presentation/src/components/"
+    status: functional
+
+limitations:
+  - id: no-storybook
+    surface: ui
+    summary: "No Storybook or visual component documentation"

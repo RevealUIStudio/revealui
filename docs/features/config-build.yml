@@ -1,0 +1,35 @@
+feature: config-build
+name: Configuration & Build System
+status: production
+tier: free
+last-verified: 2026-03-11
+
+api-surface:
+  env-config:
+    endpoint: "@revealui/config — type-safe Zod env validation with lazy Proxy"
+    openapi: false
+    tested: true
+  turborepo:
+    endpoint: "turbo.json pipeline — build, dev, test, lint, typecheck"
+    openapi: false
+    tested: true
+  tsup:
+    endpoint: "tsup bundling for all packages → dist/"
+    openapi: false
+    tested: true
+  biome:
+    endpoint: "Biome 2 lint + format (sole linter)"
+    openapi: false
+    tested: true
+  dockerfiles:
+    endpoint: "Dockerfiles for api, cms, marketing, docs, terminal"
+    openapi: false
+    tested: false
+
+limitations:
+  - id: no-docker-compose
+    surface: api
+    summary: "No Docker Compose for local infrastructure (Postgres, Redis, etc.)"
+  - id: no-env-production-example
+    surface: api
+    summary: "No .env.production.example for self-hosted deployments"

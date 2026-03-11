@@ -1,0 +1,31 @@
+feature: ci
+name: CI/CD Pipeline
+status: beta
+tier: free
+last-verified: 2026-03-11
+
+api-surface:
+  ci-pipeline:
+    endpoint: ".github/workflows/ci.yml — 3-phase gate"
+    openapi: false
+    tested: true
+  security-scan:
+    endpoint: ".github/workflows/security.yml — CodeQL + Gitleaks + dep audit"
+    openapi: false
+    tested: true
+  release:
+    endpoint: ".github/workflows/release.yml — OIDC + npm provenance"
+    openapi: false
+    tested: true
+  release-pro:
+    endpoint: ".github/workflows/release-pro.yml — Pro dist-only publishing"
+    openapi: false
+    tested: true
+
+limitations:
+  - id: tests-warn-only
+    surface: api
+    summary: "CI tests are warn-only — failures don't block merges"
+  - id: no-sbom
+    surface: api
+    summary: "No SBOM generation in release pipeline"

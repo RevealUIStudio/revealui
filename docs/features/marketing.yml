@@ -1,0 +1,40 @@
+feature: marketing
+name: Marketing Site
+status: alpha
+tier: free
+last-verified: 2026-03-11
+
+api-surface:
+  waitlist:
+    endpoint: "POST /api/waitlist"
+    openapi: false
+    tested: true
+  health:
+    endpoint: "GET /api/health"
+    openapi: false
+    tested: true
+
+ui-surface:
+  landing:
+    location: "apps/marketing/src/app/page.tsx"
+    status: basic
+  pricing:
+    location: "apps/marketing/src/app/pricing/page.tsx"
+    status: basic
+  privacy:
+    location: "apps/marketing/src/app/privacy/page.tsx"
+    status: functional
+  terms:
+    location: "apps/marketing/src/app/terms/page.tsx"
+    status: functional
+  sponsor:
+    location: "apps/marketing/src/app/sponsor/page.tsx"
+    status: basic
+
+limitations:
+  - id: no-presentation-components
+    surface: ui
+    summary: "Marketing site doesn't use @revealui/presentation components"
+  - id: basic-landing
+    surface: ui
+    summary: "Landing page is minimal — no feature showcases or demos"
