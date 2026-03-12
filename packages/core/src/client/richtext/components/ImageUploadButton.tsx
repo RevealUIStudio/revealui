@@ -89,13 +89,21 @@ export const ImageUploadButton: React.FC<ImageUploadButtonProps> = ({
         const formData = new FormData();
         formData.append('file', file);
 
-        const response = await fetch(uploadEndpoint, {
-          method: 'POST',
-          body: formData,
-          headers: {
-            // Don't set Content-Type - browser will set it with boundary for FormData
-          },
-        });
+        // Scale timeout with file size: 30s base + 10s per MB
+        const timeoutMs = 30_000 + Math.ceil(file.size / (1024 * 1024)) * 10_000;
+        const controller = new AbortController();
+        const timeoutId = setTimeout(() => controller.abort(), timeoutMs);
+
+        let response: Response;
+        try {
+          response = await fetch(uploadEndpoint, {
+            method: 'POST',
+            body: formData,
+            signal: controller.signal,
+          });
+        } finally {
+          clearTimeout(timeoutId);
+        }
 
         if (!response.ok) {
           throw new Error(`Upload failed: ${response.statusText}`);
@@ -119,8 +127,14 @@ export const ImageUploadButton: React.FC<ImageUploadButtonProps> = ({
 
         onUploadComplete?.(imageUrl);
       } catch (error) {
-        logger.error('Image upload error', { error });
-        onUploadError?.(error instanceof Error ? error : new Error('Upload failed'));
+        const uploadError =
+          error instanceof DOMException && error.name === 'AbortError'
+            ? new Error('Upload timed out')
+            : error instanceof Error
+              ? error
+              : new Error('Upload failed');
+        logger.error('Image upload error', { error: uploadError });
+        onUploadError?.(uploadError);
       } finally {
         setIsUploading(false);
         // Reset file input
