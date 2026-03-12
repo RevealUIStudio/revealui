@@ -186,6 +186,7 @@ result-*
 
 # Claude Code worktrees (parallel agent isolation)
 .claude/worktrees/
+.worktrees/
 
 # Tailwind v4 docs snapshot (source-available, not open-source — sync locally)
 .claude/skills/tailwind-4-docs/references/docs/

@@ -2,7 +2,7 @@
 
 import clsx from 'clsx';
 import type React from 'react';
-import { createContext, use, useCallback, useId, useState } from 'react';
+import { createContext, use, useId, useRef, useState } from 'react';
 
 type TabsContextValue = {
   activeTab: string;
@@ -35,13 +35,10 @@ export function Tabs({
   const [internalTab, setInternalTab] = useState(defaultTab ?? '');
 
   const activeTab = value ?? internalTab;
-  const setActiveTab = useCallback(
-    (id: string) => {
-      setInternalTab(id);
-      onChange?.(id);
-    },
-    [onChange],
-  );
+  const setActiveTab = (id: string) => {
+    setInternalTab(id);
+    onChange?.(id);
+  };
 
   return (
     <TabsContext value={{ activeTab, setActiveTab, baseId }}>
@@ -57,9 +54,32 @@ export function TabList({
   className?: string;
   children: React.ReactNode;
 }) {
+  const listRef = useRef<HTMLDivElement>(null);
+
+  const handleKeyDown = (e: React.KeyboardEvent) => {
+    if (!listRef.current) return;
+    const tabs = Array.from(listRef.current.querySelectorAll<HTMLElement>('[role="tab"]'));
+    const current = tabs.indexOf(document.activeElement as HTMLElement);
+    if (current === -1) return;
+
+    let next: number | undefined;
+    if (e.key === 'ArrowRight') next = (current + 1) % tabs.length;
+    else if (e.key === 'ArrowLeft') next = (current - 1 + tabs.length) % tabs.length;
+    else if (e.key === 'Home') next = 0;
+    else if (e.key === 'End') next = tabs.length - 1;
+
+    if (next !== undefined) {
+      e.preventDefault();
+      tabs[next]?.focus();
+      tabs[next]?.click();
+    }
+  };
+
   return (
     <div
+      ref={listRef}
       role="tablist"
+      onKeyDown={handleKeyDown}
       className={clsx('flex border-b border-zinc-200 dark:border-zinc-700', className)}
     >
       {children}

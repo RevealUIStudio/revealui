@@ -79,20 +79,20 @@ function resolveTier(
   metadata: Record<string, string> | null | undefined,
 ): 'pro' | 'max' | 'enterprise' {
   const tier = metadata?.tier;
-  if (tier === 'enterprise') return 'enterprise';
+  if (tier === 'pro') return 'pro';
   if (tier === 'max') return 'max';
-  // Log when falling back to 'pro' due to missing/unknown tier — operators must see this
-  // so they can detect misconfigured Stripe metadata before a customer is silently downgraded.
-  if (tier !== 'pro') {
-    logger.error(
-      'resolveTier: unknown or missing tier in Stripe metadata — defaulting to pro',
-      undefined,
-      {
-        tier: tier ?? null,
-        metadata: metadata ?? null,
-      },
-    );
-  }
+  if (tier === 'enterprise') return 'enterprise';
+  // ALERT: missing or unknown tier metadata — this indicates a Stripe product misconfiguration.
+  // Defaulting to 'pro' (lowest paid tier) to avoid blocking the customer, but this MUST be
+  // investigated. A missing tier means the checkout or upgrade flow set incorrect metadata.
+  logger.error(
+    'CRITICAL: resolveTier received unknown or missing tier in Stripe metadata — defaulting to pro. Investigate Stripe product/price metadata immediately.',
+    undefined,
+    {
+      tier: tier ?? null,
+      metadata: metadata ?? null,
+    },
+  );
   return 'pro';
 }
 
