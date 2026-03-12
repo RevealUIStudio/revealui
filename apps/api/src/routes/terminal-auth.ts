@@ -99,6 +99,7 @@ export function clearOtpStore(): void {
 
 type Variables = {
   db?: DatabaseClient;
+  user?: { id: string };
 };
 
 // biome-ignore lint/style/useNamingConvention: Hono requires PascalCase `Variables` in its generic type parameter
@@ -245,9 +246,15 @@ terminalAuth.post('/verify', zValidator('json', verifySchema), async (c) => {
  * GET /api/terminal-auth/lookup
  *
  * Looks up a user by SSH key fingerprint.
+ * Requires authentication to prevent PII enumeration via public SSH fingerprints.
  * Returns 404 if the fingerprint is not linked to any account.
  */
 terminalAuth.get('/lookup', async (c) => {
+  const caller = c.get('user');
+  if (!caller) {
+    return c.json({ error: 'Authentication required' }, 401);
+  }
+
   const fingerprint = c.req.query('fingerprint');
 
   if (!fingerprint) {

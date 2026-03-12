@@ -6,9 +6,9 @@ const allowedOrigins = process.env.REVEALUI_CORS_ORIGINS
   ? process.env.REVEALUI_CORS_ORIGINS.split(',')
   : ['http://localhost:3000', 'http://localhost:4000'];
 
-// Proxy function (Next.js 16)
+// Next.js 16 proxy convention (src/proxy.ts)
 // NOTE: Rate limiting is handled per-route via withRateLimit() in API route handlers.
-// Middleware runs in Edge Runtime on Vercel and cannot import Node.js-only modules
+// Proxy runs in Edge Runtime on Vercel and cannot import Node.js-only modules
 // (Drizzle ORM, pg driver, etc.) required by the rate limit storage layer.
 export default async function proxy(request: NextRequest): Promise<NextResponse | Response> {
   const { hostname, pathname } = request.nextUrl;
@@ -113,7 +113,7 @@ export default async function proxy(request: NextRequest): Promise<NextResponse 
   return NextResponse.next();
 }
 
-// Define matcher configuration for Next.js middleware
+// Define matcher configuration for Next.js proxy
 export const config = {
   matcher: [
     /*

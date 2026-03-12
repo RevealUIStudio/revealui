@@ -3,7 +3,7 @@ import { swaggerUI } from '@hono/swagger-ui';
 import { OpenAPIHono } from '@hono/zod-openapi';
 import { initializeLicense } from '@revealui/core/license';
 import { logger } from '@revealui/core/observability/logger';
-import { SecurityHeaders, SecurityPresets } from '@revealui/core/security';
+import { audit, SecurityHeaders, SecurityPresets } from '@revealui/core/security';
 import { closeAllPools, getClient } from '@revealui/db';
 import { createDbLogHandler } from '@revealui/db/log-transport';
 import { licenses, sites } from '@revealui/db/schema';
@@ -11,6 +11,7 @@ import { desc, eq } from 'drizzle-orm';
 import { bodyLimit } from 'hono/body-limit';
 import { cors } from 'hono/cors';
 import { logger as honoLogger } from 'hono/logger';
+import { auditMiddleware } from './middleware/audit.js';
 import { authMiddleware } from './middleware/auth.js';
 import { requirePermission } from './middleware/authorization.js';
 import { dbMiddleware } from './middleware/db.js';
@@ -147,6 +148,9 @@ app.use('*', async (c, next) => {
   }
 });
 app.use('*', dbMiddleware());
+// Audit logging — fire-and-forget, never crashes the request
+app.use('/api/*', auditMiddleware(audit));
+app.use('/api/v1/*', auditMiddleware(audit));
 
 // ---------------------------------------------------------------------------
 // Rate limit configuration — all tunables in one place
