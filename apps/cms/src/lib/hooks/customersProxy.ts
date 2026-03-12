@@ -72,7 +72,14 @@ export const customerProxy: RevealHandler = async (req: RevealRequest) => {
     });
   }
 
-  const customerID = user.stripeCustomerID || user.id;
+  if (!user.stripeCustomerID) {
+    return createApplicationErrorResponse(
+      'No Stripe customer linked to this account. Purchase a subscription first.',
+      'STRIPE_CUSTOMER_NOT_FOUND',
+      400,
+    );
+  }
+  const customerID = user.stripeCustomerID;
 
   try {
     let response:
