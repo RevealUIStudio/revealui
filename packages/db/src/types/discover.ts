@@ -69,7 +69,10 @@ export function parseSourceFile(filePath: string): ts.SourceFile {
  * Uses AST-based extraction (no regex)
  * @internal Exported for testing purposes
  */
-export function extractTableNameFromCall(callExpr: ts.CallExpression): string | null {
+export function extractTableNameFromCall(
+  callExpr: ts.CallExpression,
+  errors?: ParseError[],
+): string | null {
   // pgTable call should have at least one argument (the table name string)
   if (callExpr.arguments.length === 0) return null;
 
@@ -92,8 +95,17 @@ export function extractTableNameFromCall(callExpr: ts.CallExpression): string | 
 
   // Reject template expressions with substitutions (dynamic table names not supported)
   if (ts.isTemplateExpression(firstArg)) {
-    // Template expressions have substitutions - reject these
-    // Table names should be static string literals, not dynamic
+    if (errors) {
+      const sourceFile = firstArg.getSourceFile();
+      const pos = sourceFile.getLineAndCharacterOfPosition(firstArg.getStart());
+      errors.push({
+        file: sourceFile.fileName,
+        message:
+          'Template expressions in table names are not supported — use a static string literal',
+        position: { line: pos.line + 1, column: pos.character + 1 },
+        node: ts.SyntaxKind[firstArg.kind],
+      });
+    }
     return null;
   }
 
@@ -104,7 +116,11 @@ export function extractTableNameFromCall(callExpr: ts.CallExpression): string | 
  * Finds all pgTable calls in a source file and extracts table information
  * @internal Exported for testing purposes
  */
-export function findTableExports(sourceFile: ts.SourceFile, filePath: string): DiscoveredTable[] {
+export function findTableExports(
+  sourceFile: ts.SourceFile,
+  filePath: string,
+  errors?: ParseError[],
+): DiscoveredTable[] {
   const tables: DiscoveredTable[] = [];
   // Always resolve to src/schema, regardless of whether running from src or dist
   const packageRoot = join(__dirname, '../..');
@@ -131,7 +147,7 @@ export function findTableExports(sourceFile: ts.SourceFile, filePath: string): D
               if (ts.isIdentifier(callExpr.expression)) {
                 if (callExpr.expression.text === 'pgTable') {
                   const variableName = decl.name.text;
-                  const tableName = extractTableNameFromCall(callExpr);
+                  const tableName = extractTableNameFromCall(callExpr, errors);
 
                   if (tableName) {
                     tables.push({
@@ -206,24 +222,9 @@ export function discoverTablesInFile(filePath: string): {
     const tables: DiscoveredTable[] = [];
     const errors: ParseError[] = [];
 
-    // Use findTableExports but collect errors
-    const foundTables = findTableExports(sourceFile, filePath);
-
-    // Check for tables that couldn't extract table names
-    for (const table of foundTables) {
-      if (!table.tableName) {
-        errors.push(
-          createParseError(
-            sourceFile,
-            null,
-            `Could not extract table name for ${table.variableName}`,
-            `Variable: ${table.variableName}`,
-          ),
-        );
-      } else {
-        tables.push(table);
-      }
-    }
+    // findTableExports now propagates errors for unsupported patterns
+    const foundTables = findTableExports(sourceFile, filePath, errors);
+    tables.push(...foundTables);
 
     return { tables, errors };
   } catch (error) {

@@ -1,7 +1,15 @@
 import type React from 'react';
-import { Component, createContext, use, useEffect, useSyncExternalStore } from 'react';
+import {
+  Component,
+  createContext,
+  use,
+  useEffect,
+  useMemo,
+  useRef,
+  useSyncExternalStore,
+} from 'react';
 import type { Router } from './router';
-import type { NavigateOptions, RouteMatch } from './types';
+import type { Location, NavigateOptions, RouteMatch } from './types';
 
 /**
  * Router context
@@ -154,12 +162,61 @@ export function useData<T = unknown>(): T | undefined {
 /**
  * useNavigate - Hook to get navigation function
  */
-export function useNavigate() {
+export function useNavigate(): (to: string, options?: NavigateOptions) => void {
   const router = useRouter();
 
   return (to: string, options?: NavigateOptions) => {
     router.navigate(to, options);
   };
+}
+
+const SERVER_LOCATION: Location = { pathname: '/', search: '', hash: '' };
+
+function getWindowLocation(): Location {
+  if (typeof window === 'undefined') return SERVER_LOCATION;
+  return {
+    pathname: window.location.pathname,
+    search: window.location.search,
+    hash: window.location.hash,
+  };
+}
+
+/**
+ * useLocation - Hook to access current location (pathname, search, hash).
+ * Returns a stable reference that only changes when the URL actually changes.
+ */
+export function useLocation(): Location {
+  const router = useRouter();
+  const locationRef = useRef<Location>(getWindowLocation());
+
+  // Re-subscribe on route changes to detect URL updates
+  useSyncExternalStore(
+    (callback) => router.subscribe(callback),
+    () => {
+      if (typeof window === 'undefined') return '/';
+      return window.location.pathname + window.location.search + window.location.hash;
+    },
+    () => '/',
+  );
+
+  const current = getWindowLocation();
+  if (
+    current.pathname !== locationRef.current.pathname ||
+    current.search !== locationRef.current.search ||
+    current.hash !== locationRef.current.hash
+  ) {
+    locationRef.current = current;
+  }
+
+  return locationRef.current;
+}
+
+/**
+ * useSearchParams - Hook to access parsed query string parameters
+ */
+export function useSearchParams(): URLSearchParams {
+  const { search } = useLocation();
+  return useMemo(() => new URLSearchParams(search), [search]);
 }
 
 /**

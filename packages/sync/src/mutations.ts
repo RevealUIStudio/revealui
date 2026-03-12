@@ -3,6 +3,9 @@
 import { useCallback } from 'react';
 import { useElectricConfig } from './provider/index.js';
 
+/** Default timeout for mutation fetch requests (milliseconds). */
+const MUTATION_FETCH_TIMEOUT_MS = 10_000;
+
 export interface MutationResult<T = unknown> {
   success: boolean;
   data?: T;
@@ -12,18 +15,28 @@ export interface MutationResult<T = unknown> {
 /**
  * Make an authenticated mutation request to the CMS API.
  * Credentials are included so the session cookie is sent cross-origin.
+ * Requests are aborted after {@link MUTATION_FETCH_TIMEOUT_MS} (10 s).
  */
 async function mutationFetch<T>(
   url: string,
   method: 'POST' | 'PATCH' | 'DELETE',
   body?: unknown,
 ): Promise<MutationResult<T>> {
-  const response = await fetch(url, {
-    method,
-    credentials: 'include',
-    headers: body !== undefined ? { 'Content-Type': 'application/json' } : undefined,
-    body: body !== undefined ? JSON.stringify(body) : undefined,
-  });
+  const controller = new AbortController();
+  const timeout = setTimeout(() => controller.abort(), MUTATION_FETCH_TIMEOUT_MS);
+
+  let response: Response;
+  try {
+    response = await fetch(url, {
+      method,
+      credentials: 'include',
+      signal: controller.signal,
+      headers: body !== undefined ? { 'Content-Type': 'application/json' } : undefined,
+      body: body !== undefined ? JSON.stringify(body) : undefined,
+    });
+  } finally {
+    clearTimeout(timeout);
+  }
 
   if (!response.ok) {
     const errorData = (await response.json().catch(() => null)) as {

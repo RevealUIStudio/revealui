@@ -1,4 +1,4 @@
-import { describe, expect, it, vi } from 'vitest';
+import { afterEach, describe, expect, it, vi } from 'vitest';
 
 // Mock the logger to avoid cross-package dependency issues in tests
 vi.mock('../../../core/src/observability/logger.js', () => ({
@@ -22,6 +22,11 @@ function createRoute(path: string, overrides?: Partial<Route>): Route {
     ...overrides,
   };
 }
+
+afterEach(() => {
+  // Reset jsdom URL so navigate tests don't leak state
+  window.history.pushState(null, '', '/');
+});
 
 describe('Router', () => {
   describe('register and getRoutes', () => {
@@ -292,8 +297,218 @@ describe('Router', () => {
     });
   });
 
-  // Server-side tests (navigate, back, forward, initClient, getCurrentMatch after resolve)
-  // are in router-server.test.ts which runs with @vitest-environment node
+  describe('getOptions', () => {
+    it('returns default options when none provided', () => {
+      const router = new Router();
+      expect(router.getOptions().basePath).toBe('');
+    });
+
+    it('returns provided options', () => {
+      const notFound = () => null;
+      const router = new Router({ basePath: '/app', notFound });
+      const opts = router.getOptions();
+      expect(opts.basePath).toBe('/app');
+      expect(opts.notFound).toBe(notFound);
+    });
+  });
+
+  describe('navigate (client-side)', () => {
+    it('calls history.pushState on navigate', () => {
+      const router = new Router();
+      router.register(createRoute('/about'));
+      const pushSpy = vi.spyOn(window.history, 'pushState');
+      router.navigate('/about');
+      expect(pushSpy).toHaveBeenCalledWith(null, '', '/about');
+      pushSpy.mockRestore();
+    });
+
+    it('calls history.replaceState when replace is true', () => {
+      const router = new Router();
+      router.register(createRoute('/about'));
+      const replaceSpy = vi.spyOn(window.history, 'replaceState');
+      router.navigate('/about', { replace: true });
+      expect(replaceSpy).toHaveBeenCalledWith(null, '', '/about');
+      replaceSpy.mockRestore();
+    });
+
+    it('passes state to history', () => {
+      const router = new Router();
+      router.register(createRoute('/about'));
+      const pushSpy = vi.spyOn(window.history, 'pushState');
+      router.navigate('/about', { state: { from: 'home' } });
+      expect(pushSpy).toHaveBeenCalledWith({ from: 'home' }, '', '/about');
+      pushSpy.mockRestore();
+    });
+
+    it('prepends basePath to URL', () => {
+      const router = new Router({ basePath: '/app' });
+      router.register(createRoute('/about'));
+      const pushSpy = vi.spyOn(window.history, 'pushState');
+      router.navigate('/about');
+      expect(pushSpy).toHaveBeenCalledWith(null, '', '/app/about');
+      pushSpy.mockRestore();
+    });
+
+    it('notifies listeners after navigation', () => {
+      const router = new Router();
+      router.register(createRoute('/about'));
+      const listener = vi.fn();
+      router.subscribe(listener);
+      router.navigate('/about');
+      expect(listener).toHaveBeenCalledOnce();
+    });
+
+    it('updates getCurrentMatch after navigation', () => {
+      const router = new Router();
+      router.register(createRoute('/about'));
+      router.navigate('/about');
+      const match = router.getCurrentMatch();
+      expect(match).not.toBeNull();
+      expect(match?.route.path).toBe('/about');
+    });
+  });
+
+  describe('listener notifications', () => {
+    it('notifies all subscribers on navigate', () => {
+      const router = new Router();
+      router.register(createRoute('/a'));
+      const listener1 = vi.fn();
+      const listener2 = vi.fn();
+      router.subscribe(listener1);
+      router.subscribe(listener2);
+      router.navigate('/a');
+      expect(listener1).toHaveBeenCalledOnce();
+      expect(listener2).toHaveBeenCalledOnce();
+    });
+
+    it('does not notify unsubscribed listener', () => {
+      const router = new Router();
+      router.register(createRoute('/a'));
+      const listener = vi.fn();
+      const unsub = router.subscribe(listener);
+      unsub();
+      router.navigate('/a');
+      expect(listener).not.toHaveBeenCalled();
+    });
+
+    it('only unsubscribes the targeted listener', () => {
+      const router = new Router();
+      router.register(createRoute('/a'));
+      const listener1 = vi.fn();
+      const listener2 = vi.fn();
+      const unsub1 = router.subscribe(listener1);
+      router.subscribe(listener2);
+      unsub1();
+      router.navigate('/a');
+      expect(listener1).not.toHaveBeenCalled();
+      expect(listener2).toHaveBeenCalledOnce();
+    });
+  });
+
+  describe('getCurrentMatch (client-side caching)', () => {
+    it('returns stable reference for same pathname', () => {
+      const router = new Router();
+      router.register(createRoute('/'));
+      const match1 = router.getCurrentMatch();
+      const match2 = router.getCurrentMatch();
+      expect(match1).toBe(match2);
+    });
+
+    it('returns new match when pathname changes', () => {
+      const router = new Router();
+      router.register(createRoute('/'));
+      router.register(createRoute('/about'));
+      const match1 = router.getCurrentMatch();
+      router.navigate('/about');
+      const match2 = router.getCurrentMatch();
+      expect(match1?.route.path).toBe('/');
+      expect(match2?.route.path).toBe('/about');
+    });
+  });
+
+  describe('initClient and dispose', () => {
+    afterEach(() => {
+      // biome-ignore lint/suspicious/noExplicitAny: test cleanup for HMR guard
+      (globalThis as any).__revealui_router_initialized = false;
+    });
+
+    it('sets up popstate listener', () => {
+      const router = new Router();
+      router.register(createRoute('/'));
+      const addSpy = vi.spyOn(window, 'addEventListener');
+      router.initClient();
+      expect(addSpy).toHaveBeenCalledWith('popstate', expect.any(Function));
+      addSpy.mockRestore();
+      router.dispose();
+    });
+
+    it('sets up document click listener', () => {
+      const router = new Router();
+      const addSpy = vi.spyOn(document, 'addEventListener');
+      router.initClient();
+      expect(addSpy).toHaveBeenCalledWith('click', expect.any(Function));
+      addSpy.mockRestore();
+      router.dispose();
+    });
+
+    it('prevents duplicate initialization (HMR guard)', () => {
+      const router = new Router();
+      const addSpy = vi.spyOn(window, 'addEventListener');
+      router.initClient();
+      const callCount = addSpy.mock.calls.length;
+      router.initClient();
+      expect(addSpy.mock.calls.length).toBe(callCount);
+      addSpy.mockRestore();
+      router.dispose();
+    });
+
+    it('dispose removes event listeners', () => {
+      const router = new Router();
+      const removeSpy = vi.spyOn(window, 'removeEventListener');
+      const docRemoveSpy = vi.spyOn(document, 'removeEventListener');
+      router.initClient();
+      router.dispose();
+      expect(removeSpy).toHaveBeenCalledWith('popstate', expect.any(Function));
+      expect(docRemoveSpy).toHaveBeenCalledWith('click', expect.any(Function));
+      removeSpy.mockRestore();
+      docRemoveSpy.mockRestore();
+    });
+
+    it('dispose clears all listeners', () => {
+      const router = new Router();
+      router.register(createRoute('/a'));
+      const listener = vi.fn();
+      router.subscribe(listener);
+      router.initClient();
+      router.dispose();
+      // After dispose, navigating should not notify (listeners cleared)
+      // Need to re-init since dispose clears HMR guard
+      router.initClient();
+      router.navigate('/a');
+      expect(listener).not.toHaveBeenCalled();
+    });
+
+    it('dispose resets HMR guard so initClient can be called again', () => {
+      const router = new Router();
+      const addSpy = vi.spyOn(window, 'addEventListener');
+      router.initClient();
+      router.dispose();
+      router.initClient();
+      const popstateCalls = addSpy.mock.calls.filter((c) => c[0] === 'popstate');
+      expect(popstateCalls).toHaveLength(2);
+      addSpy.mockRestore();
+      router.dispose();
+    });
+  });
+
+  describe('ReDoS protection', () => {
+    it('throws on overly long patterns', () => {
+      const router = new Router();
+      const longPath = `/${'a'.repeat(2100)}`;
+      router.register(createRoute(longPath));
+      expect(() => router.match(longPath)).toThrow(/exceeds 2048 characters/);
+    });
+  });
 
   describe('normalizePath edge cases', () => {
     it('handles URL with both query and hash', () => {

@@ -21,6 +21,7 @@
     "node": ">=24.13.0"
   },
   "exports": {
+    ".": "./src/index.ts",
     "./vite": "./src/vite/vite.shared.ts",
     "./tailwind": "./src/tailwind/tailwind.config.ts",
     "./tailwind/create-config": "./src/tailwind/create-config.ts",
