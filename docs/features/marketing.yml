@@ -4,11 +4,27 @@ status: alpha
 tier: free
 last-verified: 2026-03-11
 
+description: >
+  Next.js 16 marketing site with waitlist, pricing (three-track model),
+  sponsor tiers, and legal pages. Custom Tailwind CSS components (not
+  @revealui/presentation). Pricing data fetched from /api/pricing (ISR 1h).
+
 api-surface:
   waitlist:
     endpoint: "POST /api/waitlist"
     openapi: false
     tested: true
+    details: >
+      DB-backed rate limiting (5 per IP per hour, survives cold starts).
+      Zod validation. Duplicate-safe (returns 200, no leak). Metadata stored:
+      email, source, referrer, user-agent, IP. Fire-and-forget Resend
+      notification to founder. Rate limit headers (X-RateLimit-*).
+      Email masked in logs for GDPR.
+  waitlist-get:
+    endpoint: "GET /api/waitlist"
+    openapi: false
+    tested: true
+    details: "Returns 410 Gone (GDPR compliance — suggests admin panel)"
   health:
     endpoint: "GET /api/health"
     openapi: false
@@ -18,9 +34,21 @@ ui-surface:
   landing:
     location: "apps/marketing/src/app/page.tsx"
     status: basic
+    components:
+      - "HeroSection — headline, five-primitive badges, CLI quickstart, product mockup"
+      - "ValueProposition — three feature cards (Own Your Stack, AI Agents, Production Stack)"
+      - "SocialProof — testimonials/metrics"
+      - "Audiences — target audience cards"
+      - "LeadCapture — client component, waitlist form with validation"
   pricing:
     location: "apps/marketing/src/app/pricing/page.tsx"
-    status: basic
+    status: functional
+    tracks:
+      - "Subscriptions: Free, Pro ($49/mo), Max ($149/mo), Forge ($299/mo)"
+      - "Agent Credits: pay-per-task bundles (never expire, stack with monthly allowance)"
+      - "Perpetual Licenses: one-time payment, optional support renewal after 1 year"
+    data-source: "GET /api/pricing (Stripe Products API, ISR revalidate=3600)"
+    faq-count: 8
   privacy:
     location: "apps/marketing/src/app/privacy/page.tsx"
     status: functional
@@ -31,10 +59,29 @@ ui-surface:
     location: "apps/marketing/src/app/sponsor/page.tsx"
     status: basic
 
+shared-components:
+  - "NavBar.tsx — top navigation"
+  - "Footer.tsx — shared footer"
+  - "ProductMockup.tsx — visual mockup"
+
+test-coverage:
+  files:
+    - "api/waitlist/__tests__/route.test.ts — 11 tests (CRUD, rate limit, duplicates, GDPR)"
+    - "api/health/__tests__/route.test.ts — basic health check"
+    - "pricing/__tests__/pricing-data.test.ts — pricing structure validation"
+
+dependencies:
+  - "Next.js 16, React 19, Tailwind CSS v4"
+  - "@revealui/contracts, @revealui/core, @revealui/db, drizzle-orm"
+  - "Zod (validation), Resend (transactional email, optional)"
+
 limitations:
   - id: no-presentation-components
     surface: ui
-    summary: "Marketing site doesn't use @revealui/presentation components"
+    summary: "Marketing site uses custom Tailwind components, not @revealui/presentation"
   - id: basic-landing
     surface: ui
-    summary: "Landing page is minimal — no feature showcases or demos"
+    summary: "Landing page is minimal — no feature showcases or interactive demos"
+  - id: no-blog
+    surface: ui
+    summary: "No blog or content pages — only static marketing pages"

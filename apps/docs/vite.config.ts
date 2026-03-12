@@ -7,6 +7,9 @@ import { defineConfig } from 'vite';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
+/** Enable verbose docs-copy plugin logging with DEBUG=docs-copy or DEBUG=* */
+const DEBUG = /\b(docs-copy|\*)\b/.test(process.env.DEBUG ?? '');
+
 /**
  * Vite plugin to copy documentation files to public directory
  * This makes markdown files accessible via HTTP during dev and in the build
@@ -110,7 +113,7 @@ function docsCopyPlugin() {
     const operations = Array.from(pendingOperations);
     pendingOperations.clear();
 
-    console.log(`[docs-copy] Processing ${operations.length} file operation(s)...`);
+    if (DEBUG) console.log(`[docs-copy] Processing ${operations.length} file operation(s)...`);
 
     for (const op of operations) {
       const [operation, file] = op.split(':', 2);
@@ -132,7 +135,7 @@ function docsCopyPlugin() {
       }
     }
 
-    console.log('[docs-copy] File operations completed');
+    if (DEBUG) console.log('[docs-copy] File operations completed');
   }
 
   /**
@@ -175,7 +178,7 @@ function docsCopyPlugin() {
 
       // Copy the file
       await fs.copyFile(normalizedFile, destPath);
-      console.log(`[docs-copy] ✓ Copied: ${relativePath}`);
+      if (DEBUG) console.log(`[docs-copy] ✓ Copied: ${relativePath}`);
     } catch (error) {
       const err = error as NodeJS.ErrnoException;
       if (err.code === 'ENOENT') {
@@ -206,7 +209,7 @@ function docsCopyPlugin() {
 
       // Delete the file
       await fs.unlink(destPath);
-      console.log(`[docs-copy] ✗ Deleted: ${relativePath}`);
+      if (DEBUG) console.log(`[docs-copy] ✗ Deleted: ${relativePath}`);
 
       // Clean up empty directories
       let currentDir = path.dirname(destPath);
@@ -215,9 +218,10 @@ function docsCopyPlugin() {
           const entries = await fs.readdir(currentDir);
           if (entries.length === 0) {
             await fs.rmdir(currentDir);
-            console.log(
-              `[docs-copy] ✗ Removed empty directory: ${path.relative(docsDest, currentDir)}`,
-            );
+            if (DEBUG)
+              console.log(
+                `[docs-copy] ✗ Removed empty directory: ${path.relative(docsDest, currentDir)}`,
+              );
             currentDir = path.dirname(currentDir);
           } else {
             break;
@@ -253,9 +257,10 @@ function docsCopyPlugin() {
         'archive', // Skip archive in public - too large
       ]);
 
-      console.log(
-        '[docs-copy] ✓ Initial copy completed: All documentation files copied to public directory',
-      );
+      if (DEBUG)
+        console.log(
+          '[docs-copy] ✓ Initial copy completed: All documentation files copied to public directory',
+        );
     } catch (error) {
       console.error('[docs-copy] ✗ Failed to copy docs files:', error);
       if (error instanceof Error && error.stack) {

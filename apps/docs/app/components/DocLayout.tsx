@@ -1,5 +1,4 @@
-import { Link } from '@revealui/router';
-import { usePathname } from '../hooks/usePathname';
+import { Link, useLocation } from '@revealui/router';
 import { SearchBar } from './SearchBar';
 
 interface DocLayoutProps {
@@ -78,7 +77,7 @@ const sections: NavSection[] = [
 ];
 
 function NavLink({ item, depth = 0 }: { item: NavItem; depth?: number }) {
-  const pathname = usePathname();
+  const { pathname } = useLocation();
   const isActive = pathname === item.path;
   const isParentActive = item.children?.some((child) => pathname === child.path);
 
@@ -107,7 +106,7 @@ function NavLink({ item, depth = 0 }: { item: NavItem; depth?: number }) {
 }
 
 export function DocLayout({ children }: DocLayoutProps) {
-  const pathname = usePathname();
+  const { pathname } = useLocation();
   const isHome = pathname === '/';
 
   return (

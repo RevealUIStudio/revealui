@@ -9,6 +9,25 @@ api-surface:
     endpoint: "@revealui/config — type-safe Zod env validation with lazy Proxy"
     openapi: false
     tested: true
+    exports:
+      - "getConfig(strict?) → Config singleton"
+      - "resetConfig() — for testing"
+      - "default export: Proxy-based lazy config (validates on first access)"
+    modules: "database, stripe, storage, reveal, branding, optional"
+  revealui-config:
+    endpoint: "@revealui/config/revealui — framework-specific config helpers"
+    openapi: false
+    tested: true
+    functions:
+      - "getSharedCMSConfig() — CMS-specific subset"
+      - "getSharedWebConfig() — web app config"
+      - "getSharedViteConfig() — Vite build settings"
+      - "getSharedNextJSConfig() — Next.js build settings"
+  mcp-config:
+    endpoint: "@revealui/config/mcp — MCP server configuration"
+    openapi: false
+    tested: true
+    notes: "persistenceDriver (pglite|postgres), metricsMode (logs|otel|prometheus), pgvectorEnabled"
   turborepo:
     endpoint: "turbo.json pipeline — build, dev, test, lint, typecheck"
     openapi: false
@@ -25,6 +44,32 @@ api-surface:
     endpoint: "Dockerfiles for api, cms, marketing, docs, terminal"
     openapi: false
     tested: false
+
+config-architecture:
+  lazy-loading: "Proxy validates on first property access — safe to import during Next.js builds"
+  build-time: "Detected via NEXT_PHASE or SKIP_ENV_VALIDATION=true — uses lenient mode with fallback secrets"
+  runtime: "Full strict validation — all required env vars must be set"
+  guard: "Throws if SKIP_ENV_VALIDATION=true outside build/test (prevents shipping fallback secrets)"
+  env-loading: ".env.{development,test}.local → .env.{development,test} → .env (process.env overrides)"
+
+package-exports:
+  ".": "dist/index.js — getConfig, resetConfig, config proxy"
+  "./revealui": "dist/revealui.config.js — framework configs"
+  "./mcp": "dist/mcp.js — MCP configuration"
+
+env-vars:
+  required:
+    - "REVEALUI_SECRET (≥32 chars)"
+    - "REVEALUI_PUBLIC_SERVER_URL (valid URL)"
+    - "NEXT_PUBLIC_SERVER_URL (valid URL)"
+    - "POSTGRES_URL (PostgreSQL URI)"
+  optional-groups:
+    - "Stripe: STRIPE_SECRET_KEY, STRIPE_WEBHOOK_SECRET, NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY"
+    - "Storage: BLOB_READ_WRITE_TOKEN"
+    - "Supabase: NEXT_PUBLIC_SUPABASE_URL, NEXT_PUBLIC_SUPABASE_ANON_KEY, etc."
+    - "Sentry: NEXT_PUBLIC_SENTRY_DSN, SENTRY_AUTH_TOKEN, SENTRY_ORG, SENTRY_PROJECT"
+    - "Branding: REVEALUI_BRAND_NAME, REVEALUI_BRAND_LOGO_URL, REVEALUI_BRAND_PRIMARY_COLOR"
+    - "License: REVEALUI_LICENSE_KEY"
 
 limitations:
   - id: no-docker-compose

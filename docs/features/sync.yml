@@ -1,19 +1,98 @@
 feature: sync
-name: ElectricSQL Real-Time Sync
+name: ElectricSQL Real-Time Sync & Collaboration
 status: alpha
 tier: pro
 last-verified: 2026-03-11
 
 api-surface:
-  sync-module:
-    endpoint: "@revealui/sync — mutations.ts, CRDT operations"
+  electric-provider:
+    endpoint: "@revealui/sync/provider — ElectricProvider, useElectricConfig"
     openapi: false
     tested: true
+    notes: "React context for ElectricSQL configuration (serviceUrl, proxyBaseUrl, debug)"
+  mutations:
+    endpoint: "useSyncMutations(endpoint) — REST CRUD via /api/sync/{endpoint}"
+    openapi: false
+    tested: true
+    notes: "Authenticated fetch with credentials:'include', cross-origin CMS support"
+  conversations-hook:
+    endpoint: "useConversations(userId) — real-time conversation subscription"
+    openapi: false
+    tested: true
+    notes: "ElectricSQL shape via /api/shapes/conversations, CRUD mutations"
+  agent-memory-hook:
+    endpoint: "useAgentMemory(agentId) — real-time agent memory subscription"
+    openapi: false
+    tested: true
+    notes: "Input validation (alphanumeric + hyphens), shape via /api/shapes/agent-memories"
+  agent-contexts-hook:
+    endpoint: "useAgentContexts() — real-time agent context subscription"
+    openapi: false
+    tested: true
+    notes: "Session-based filtering server-side, shape via /api/shapes/agent-contexts"
+  coordination-sessions-hook:
+    endpoint: "useCoordinationSessions() — agent session tracking"
+    openapi: false
+    tested: true
+  coordination-work-items-hook:
+    endpoint: "useCoordinationWorkItems() — work item tracking"
+    openapi: false
+    tested: true
+  collab-browser:
+    endpoint: "@revealui/sync/collab — useCollaboration, useCollabDocument, CollabProvider"
+    openapi: false
+    tested: true
+    notes: "Yjs CRDT + WebSocket, presence/awareness, exponential backoff reconnection"
+  collab-server:
+    endpoint: "@revealui/sync/collab/server — AgentCollabClient, createAgentClient"
+    openapi: false
+    tested: true
+    notes: "Node.js agent WebSocket client, text operations (insert/delete/replaceAll)"
+
+package-exports:
+  ".": "dist/index.js — all hooks, providers, types"
+  "./provider": "dist/provider/index.js — ElectricProvider, useElectricConfig"
+  "./collab": "dist/collab/index.js — browser collaboration (Yjs + WebSocket)"
+  "./collab/server": "dist/collab/server-index.js — Node.js agent collaboration client"
+
+architecture:
+  reads: "ElectricSQL shape subscriptions via /api/shapes/* (server-side row filtering)"
+  writes: "REST mutations via /api/sync/* (POST/PATCH/DELETE with session cookies)"
+  collaboration: "Yjs CRDT over WebSocket at /ws/collab/{documentId}"
+  protocol: "Binary (lib0 encoding) — MESSAGE_SYNC (0) + MESSAGE_AWARENESS (1)"
+  reconnection: "Exponential backoff — browser: 1s base × 1.5, max 10; agent: 1s base × 2, max 5"
+
+dependencies:
+  runtime:
+    - "@electric-sql/react ^1.0.27 — shape subscriptions"
+    - "yjs ^13.6.29 — CRDT"
+    - "y-protocols ^1.0.7 — sync + awareness protocols"
+    - "lib0 ^0.2.117 — binary encoding"
+    - "ws ^8.18.0 — Node.js WebSocket (agents)"
+    - "@revealui/contracts, @revealui/db (workspace:*)"
+
+test-coverage:
+  files: 8
+  areas:
+    - "mutations.test.ts — fetch mocking, error handling, CRUD"
+    - "agent-client.test.ts — connect/disconnect, message handling, reconnect"
+    - "yjs-websocket-provider.test.ts — WebSocket lifecycle, sync/awareness"
+    - "use-collaboration.test.ts — React hook lifecycle"
+    - "useAgentMemory.test.tsx — shape subscription, validation"
+    - "useAgentContexts.test.tsx — shape subscription, mutations"
+    - "useConversations.test.ts — shape + mutations"
+    - "ElectricProvider.test.tsx — context, defaults"
 
 limitations:
-  - id: minimal-surface
+  - id: alpha-status
     surface: api
-    summary: "Minimal implementation — mutations tracking and test setup only"
+    summary: "Package is experimental — API may change"
   - id: no-conflict-resolution
     surface: api
-    summary: "Full conflict resolution not yet implemented"
+    summary: "Full conflict resolution strategy not documented — relies on Yjs CRDT defaults"
+  - id: no-offline-queue
+    surface: api
+    summary: "REST mutations have no offline queue — fails if server unreachable"
+  - id: agent-client-node-only
+    surface: api
+    summary: "AgentCollabClient uses 'ws' package — Node.js only, not browser"

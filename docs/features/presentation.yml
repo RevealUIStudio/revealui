@@ -9,17 +9,96 @@ api-surface:
     endpoint: "55 React components in packages/presentation/src/components/"
     openapi: false
     tested: true
-  exports:
-    endpoint: "@revealui/presentation package with subpath exports"
+  exports-main:
+    endpoint: "@revealui/presentation — all components, hooks, primitives, utils"
     openapi: false
     tested: true
+  exports-server:
+    endpoint: "@revealui/presentation/server — RSC-compatible static components"
+    openapi: false
+    tested: true
+  exports-client:
+    endpoint: "@revealui/presentation/client — interactive components ('use client')"
+    openapi: false
+    tested: true
+  exports-components:
+    endpoint: "@revealui/presentation/components — component-only export"
+    openapi: false
+    tested: true
+  exports-primitives:
+    endpoint: "@revealui/presentation/primitives — Box, Flex, Grid, Heading, Text, Slot"
+    openapi: false
+    tested: true
+  exports-hooks:
+    endpoint: "@revealui/presentation/hooks — 13 custom hooks"
+    openapi: false
+    tested: true
+
+component-categories:
+  layout:
+    count: 8
+    items: "AuthLayout, SidebarLayout, StackedLayout, Sidebar, Navbar, Table"
+  forms:
+    count: 12
+    items: "Input, Textarea, Checkbox, Select, Radio, Switch, FormLabel, Label, Fieldset, Slider, Rating (+ CVA variants)"
+  navigation:
+    count: 2
+    items: "Breadcrumb, Link"
+  feedback:
+    count: 8
+    items: "Alert, Toast (ToastProvider, useToast), Tooltip, Callout, Dialog, Drawer"
+  data-display:
+    count: 8
+    items: "Card, Badge, DescriptionList, PricingTable, Stat, Skeleton, CodeBlock, Timeline"
+  primitives:
+    count: 6
+    items: "Box, Flex, Grid, Heading, Text, Slot"
+  controls:
+    count: 5
+    items: "Button, Dropdown, Combobox, Listbox (+ CVA variants)"
+  data-navigation:
+    count: 6
+    items: "Accordion, Tabs, Pagination, Stepper, EmptyState, Progress, Kbd, Divider"
 
 ui-surface:
   component-library:
     location: "packages/presentation/src/components/"
     status: functional
 
+package-exports:
+  ".": "dist/index.js — all components, hooks, primitives, utils"
+  "./server": "dist/server.js — RSC-compatible (no hooks)"
+  "./client": "dist/client.js — 'use client' directive"
+  "./components": "dist/components/index.js"
+  "./primitives": "dist/primitives/index.js"
+  "./hooks": "dist/hooks/index.js"
+
+styling:
+  framework: "Tailwind CSS v4 (utility classes only)"
+  variant-system: "CVA (class-variance-authority)"
+  class-merging: "cn.ts utility (lightweight clsx alternative)"
+  external-deps: "clsx + CVA only — zero external UI component deps"
+  build: "cross-env NODE_ENV=production vite build (SWC jsxDEV fix)"
+
+test-coverage:
+  files: 70
+  tests: 799
+  passing: 792
+  failing: 7
+  notes: "7 displayName assertion failures (minor). Component, hook, and utility coverage."
+
+dependencies:
+  runtime:
+    - "clsx ^2.1.1"
+    - "class-variance-authority ^0.7.1"
+  peers:
+    - "react ^18 || ^19"
+    - "react-dom ^18 || ^19"
+
 limitations:
   - id: no-storybook
     surface: ui
     summary: "No Storybook or visual component documentation"
+  - id: display-name-failures
+    surface: api
+    summary: "7 test failures on displayName assertions (FormLabel, Select, pricing-table)"
