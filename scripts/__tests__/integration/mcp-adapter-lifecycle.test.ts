@@ -12,12 +12,7 @@
  */
 
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
-import {
-  MCPAdapter,
-  type MCPConfig,
-  type MCPRequest,
-  type MCPResponse,
-} from '../../mcp/adapter.js';
+import { MCPAdapter, type MCPConfig, type MCPRequest } from '../../mcp/adapter.js';
 
 // =============================================================================
 // Test Adapter Implementations

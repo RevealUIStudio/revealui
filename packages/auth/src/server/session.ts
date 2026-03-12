@@ -13,6 +13,85 @@ import type { Session, User } from '../types.js';
 import { hashToken } from '../utils/token.js';
 import { DatabaseError, TokenError } from './errors.js';
 
+// ---------------------------------------------------------------------------
+// Session binding configuration
+// ---------------------------------------------------------------------------
+
+export interface SessionBindingConfig {
+  /** Invalidate session when user-agent changes (default: true) */
+  enforceUserAgent: boolean;
+  /** Invalidate session when IP address changes (default: false — users roam) */
+  enforceIp: boolean;
+  /** Log a warning when IP changes but don't invalidate (default: true) */
+  warnOnIpChange: boolean;
+}
+
+const DEFAULT_SESSION_BINDING: SessionBindingConfig = {
+  enforceUserAgent: true,
+  enforceIp: false,
+  warnOnIpChange: true,
+};
+
+let sessionBindingConfig: SessionBindingConfig = { ...DEFAULT_SESSION_BINDING };
+
+/** Override session binding behaviour (useful for tests or strict deployments). */
+export function configureSessionBinding(overrides: Partial<SessionBindingConfig>): void {
+  sessionBindingConfig = { ...DEFAULT_SESSION_BINDING, ...overrides };
+}
+
+/** Reset to defaults (for tests). */
+export function resetSessionBindingConfig(): void {
+  sessionBindingConfig = { ...DEFAULT_SESSION_BINDING };
+}
+
+// ---------------------------------------------------------------------------
+// Session binding validation
+// ---------------------------------------------------------------------------
+
+export interface RequestContext {
+  userAgent?: string;
+  ipAddress?: string;
+}
+
+/**
+ * Validate that the current request context matches the session's stored
+ * binding values (IP address, user-agent).
+ *
+ * @returns `null` when the session is valid, or a reason string when it should
+ *          be invalidated.
+ */
+export function validateSessionBinding(session: Session, ctx: RequestContext): string | null {
+  // User-agent enforcement
+  if (
+    sessionBindingConfig.enforceUserAgent &&
+    ctx.userAgent &&
+    session.userAgent &&
+    ctx.userAgent !== session.userAgent
+  ) {
+    return 'user-agent mismatch';
+  }
+
+  // IP enforcement / warning
+  if (ctx.ipAddress && session.ipAddress && ctx.ipAddress !== session.ipAddress) {
+    if (sessionBindingConfig.enforceIp) {
+      return 'ip-address mismatch';
+    }
+    if (sessionBindingConfig.warnOnIpChange) {
+      logger.warn('Session IP changed', {
+        sessionId: session.id,
+        storedIp: session.ipAddress,
+        currentIp: ctx.ipAddress,
+      });
+    }
+  }
+
+  return null;
+}
+
+// ---------------------------------------------------------------------------
+// Public API
+// ---------------------------------------------------------------------------
+
 export interface SessionData {
   session: Session;
   user: User;
@@ -22,9 +101,13 @@ export interface SessionData {
  * Get session from request headers (cookie)
  *
  * @param headers - Request headers containing cookies
+ * @param requestContext - Optional IP / user-agent for session binding validation
  * @returns Session data with user, or null if invalid/expired
  */
-export async function getSession(headers: Headers): Promise<SessionData | null> {
+export async function getSession(
+  headers: Headers,
+  requestContext?: RequestContext,
+): Promise<SessionData | null> {
   try {
     const cookieHeader = headers.get('cookie');
     if (!cookieHeader) {
@@ -70,6 +153,24 @@ export async function getSession(headers: Headers): Promise<SessionData | null> 
 
     if (!session) {
       return null;
+    }
+
+    // Session binding validation (IP / user-agent)
+    if (requestContext) {
+      const bindingError = validateSessionBinding(session, requestContext);
+      if (bindingError) {
+        logger.warn('Session binding violation — invalidating session', {
+          sessionId: session.id,
+          reason: bindingError,
+        });
+        // Delete the compromised session
+        try {
+          await db.delete(sessions).where(eq(sessions.id, session.id));
+        } catch {
+          logger.error('Failed to delete session after binding violation');
+        }
+        return null;
+      }
     }
 
     // Get user data

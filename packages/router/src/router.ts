@@ -54,11 +54,23 @@ function compilePathPattern(pattern: string): { regex: RegExp; keys: PathKey[] }
   return { regex: new RegExp(src), keys };
 }
 
+/** Cache compiled patterns to avoid recompilation on every match() call */
+const patternCache = new Map<string, { regex: RegExp; keys: PathKey[] }>();
+
+function getCompiledPattern(pattern: string): { regex: RegExp; keys: PathKey[] } {
+  let compiled = patternCache.get(pattern);
+  if (!compiled) {
+    compiled = compilePathPattern(pattern);
+    patternCache.set(pattern, compiled);
+  }
+  return compiled;
+}
+
 function pathMatch(
   pattern: string,
   options: { decode?: (s: string) => string } = {},
 ): (path: string) => { params: Record<string, string | string[]> } | false {
-  const { regex, keys } = compilePathPattern(pattern);
+  const { regex, keys } = getCompiledPattern(pattern);
   const decode = options.decode ?? ((s) => s);
   return (path: string) => {
     const m = regex.exec(path);

@@ -16,7 +16,6 @@ import {
   MCPAdapter,
   type MCPConfig,
   type MCPRequest,
-  type MCPResponse,
 } from '../../mcp/adapter.js';
 import { MCPHypervisor, type ToolCapability } from '../../mcp/hypervisor.js';
 

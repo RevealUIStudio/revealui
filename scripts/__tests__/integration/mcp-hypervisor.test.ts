@@ -15,7 +15,7 @@
  */
 
 import { EventEmitter } from 'node:events';
-import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
+import { afterEach, describe, expect, it, vi } from 'vitest';
 import {
   type HypervisorConfig,
   MCPHypervisor,

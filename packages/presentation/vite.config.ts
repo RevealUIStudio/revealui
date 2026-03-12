@@ -35,8 +35,9 @@ export default defineConfig({
         },
         entryFileNames: '[name].js',
         banner: (chunk) => {
-          // Add 'use client' directive only to client bundle
-          if (chunk.name === 'client') {
+          // Add 'use client' directive to bundles that contain client components.
+          // The 'server' bundle is the only one safe for RSC — index re-exports client components.
+          if (chunk.name === 'client' || chunk.name === 'index') {
             return '"use client";';
           }
           return '';

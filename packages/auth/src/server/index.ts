@@ -53,12 +53,16 @@ export {
   resetRateLimit,
   resetRateLimitConfig,
 } from './rate-limit.js';
+export type { RequestContext, SessionBindingConfig, SessionData } from './session.js';
 export {
+  configureSessionBinding,
   createSession,
   deleteAllUserSessions,
   deleteSession,
   getSession,
+  resetSessionBindingConfig,
   rotateSession,
+  validateSessionBinding,
 } from './session.js';
 export type { Storage } from './storage/index.js';
 export {
