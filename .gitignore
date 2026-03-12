@@ -209,3 +209,6 @@ packages/harnesses/
 
 # opensrc — fetched package source code
 opensrc/
+
+# Visual QA screenshots (local only)
+screenshots/
