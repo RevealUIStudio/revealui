@@ -1,5 +1,6 @@
 'use client';
 
+import { ButtonCVA } from '@revealui/presentation';
 import Link from 'next/link';
 import { useState } from 'react';
 
@@ -45,12 +46,9 @@ export function NavBar() {
         </div>
 
         <div className="flex items-center gap-3">
-          <a
-            href="/#waitlist"
-            className="rounded-lg bg-gray-950 px-5 py-2 text-sm font-semibold text-white hover:bg-gray-800 transition-colors"
-          >
-            Get Early Access
-          </a>
+          <ButtonCVA asChild>
+            <a href="/#waitlist">Get Early Access</a>
+          </ButtonCVA>
 
           {/* Hamburger — mobile only */}
           <button
