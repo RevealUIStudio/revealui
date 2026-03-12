@@ -5,9 +5,15 @@
   "ignoreCommand": "git diff --quiet HEAD~1 HEAD -- . ../../packages ../../pnpm-lock.yaml ../../package.json ../../turbo.json 2>/dev/null || exit 1",
   "env": [
     "REVEALUI_SECRET",
+    "REVEALUI_KEK",
+    "REVEALUI_LICENSE_PRIVATE_KEY",
+    "REVEALUI_LICENSE_PUBLIC_KEY",
+    "REVEALUI_CRON_SECRET",
     "POSTGRES_URL",
     "STRIPE_SECRET_KEY",
     "STRIPE_WEBHOOK_SECRET",
+    "STRIPE_AGENT_METER_EVENT_NAME",
+    "CORS_ORIGIN",
     "CMS_URL",
     "NEXT_PUBLIC_SERVER_URL",
     "REVEALUI_PUBLIC_SERVER_URL"

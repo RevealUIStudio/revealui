@@ -92,6 +92,12 @@ export {
   NavbarSection,
   NavbarSpacer,
 } from './components/navbar.js';
+// Server-safe components re-exported for client use
+export {
+  PricingTable,
+  type PricingTableProps,
+  type PricingTier,
+} from './components/pricing-table.js';
 export { Progress } from './components/progress.js';
 export { Radio, RadioField, RadioGroup } from './components/radio.js';
 export { Rating } from './components/rating.js';

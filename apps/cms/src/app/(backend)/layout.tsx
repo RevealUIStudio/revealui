@@ -11,16 +11,8 @@ type Args = {
   children: React.ReactNode;
 };
 
-// Create a server function wrapper for RevealUI CMS
-// This is required by RootLayout in RevealUI CMS v3
-const serverFunction: (name: string, args: unknown) => Promise<unknown> = async (_name, _args) => {
-  'use server';
-  // This will be handled by RevealUI CMS internally
-  return undefined;
-};
-
 const Layout = ({ children }: Args) => (
-  <RootLayout config={config} importMap={importMap} serverFunction={serverFunction}>
+  <RootLayout config={config} importMap={importMap}>
     <ErrorBoundary>{children}</ErrorBoundary>
   </RootLayout>
 );
