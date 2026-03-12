@@ -1,19 +1,95 @@
 feature: router
-name: File-Based Router
+name: Lightweight Client Router with SSR
 status: beta
 tier: free
 last-verified: 2026-03-11
 
 api-surface:
-  router-module:
-    endpoint: "@revealui/router — file-based routing with SSR support"
+  router-class:
+    endpoint: "Router — core class with pattern matching, navigation, external store"
+    openapi: false
+    tested: true
+    methods:
+      - "register(route) / registerRoutes(routes) / getRoutes() / clear()"
+      - "match(url) → RouteMatch | null"
+      - "resolve(url) → Promise<RouteMatch | null> (with data loading)"
+      - "navigate(url, options?) / back() / forward()"
+      - "subscribe(listener) → unsubscribe (useSyncExternalStore)"
+      - "initClient() / dispose() (HMR-safe)"
+  components:
+    endpoint: "@revealui/router — RouterProvider, Routes, Link, Navigate"
+    openapi: false
+    tested: true
+  hooks:
+    endpoint: "useRouter, useMatch, useParams, useData, useNavigate, useLocation, useSearchParams"
+    openapi: false
+    tested: true
+  ssr-server:
+    endpoint: "@revealui/router/server — createSSRHandler, createDevServer, hydrate"
+    openapi: false
+    tested: true
+    notes: "Hono integration, streaming SSR, __REVEALUI_DATA__ hydration"
+  types:
+    endpoint: "Route, RouteMatch, RouteMeta, RouteParams, RouterOptions, NavigateOptions, Location, SSROptions"
     openapi: false
     tested: true
 
+path-matching:
+  supported:
+    - "Exact: /about"
+    - "Named params: /posts/:id"
+    - "Wildcards: /files/*path (splits into array)"
+    - "Optional segments: /docs{/:section}"
+    - "URI component decoding"
+  not-supported:
+    - "Regex constraints (:id(\\d+))"
+    - "Trailing slash normalization (/about ≠ /about/)"
+    - "Query string parsing (use URL API directly)"
+  security:
+    - "MAX_PATTERN_LENGTH = 2048 (ReDoS defense)"
+
+package-exports:
+  ".": "dist/index.js — components, hooks (useLocation, useSearchParams, etc.), Router class, types"
+  "./server": "dist/server.js — createSSRHandler, createDevServer, hydrate, SSROptions"
+
+dependencies:
+  runtime:
+    - "hono ^4.12.4"
+    - "@hono/node-server ^1.19.10"
+    - "@revealui/core (workspace:*) — logger"
+  peers:
+    - "react ^18 || ^19"
+    - "react-dom ^18 || ^19"
+
+test-coverage:
+  files: 3
+  tests: 62
+  passing: 62
+  areas:
+    - "router.test.ts (33) — registration, pattern matching, params, wildcards, base paths, loaders"
+    - "router-server.test.ts (7) — server-side safety (navigate/back/forward are no-ops)"
+    - "components.test.tsx (22) — RouterProvider, Routes, Link, Navigate, useLocation, useSearchParams, hooks"
+
+consumers:
+  - "apps/docs — documentation site (primary consumer)"
+  - "apps/marketing — marketing site"
+
 limitations:
-  - id: no-nested-routes
+  - id: no-lazy-splitting
     surface: api
-    summary: "Nested route support not yet implemented"
+    summary: "No lazy code-splitting helpers — routes must be pre-registered"
+  - id: query-via-hook
+    surface: api
+    summary: "Query string access via useSearchParams() hook — no server-side query parsing"
+  - id: trailing-slash-strict
+    surface: api
+    summary: "/about and /about/ are different routes — no normalization"
   - id: no-middleware
     surface: api
-    summary: "Route-level middleware not yet supported"
+    summary: "Router is middleware-free — data loading is sequential, no caching"
+  - id: streaming-type-compat
+    surface: api
+    summary: "renderToPipeableStream has type compatibility issue with Hono (biome-ignored)"
+  - id: not-general-purpose
+    surface: api
+    summary: "Internal router for RevealUI apps — not a general-purpose replacement for TanStack Router"

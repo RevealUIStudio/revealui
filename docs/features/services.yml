@@ -5,19 +5,73 @@ tier: pro
 last-verified: 2026-03-11
 
 api-surface:
-  stripe-integration:
-    endpoint: "@revealui/services/stripe — checkout, webhooks, subscriptions"
+  stripe-client:
+    endpoint: "@revealui/services/stripe/stripeClient — lazy-init Stripe with circuit breaker"
     openapi: false
     tested: true
-  supabase-integration:
-    endpoint: "@revealui/services/supabase — auth, vectors, real-time"
+    notes: "Circuit breaker: 5 failures → open, 30s reset, 2 successes to close. Retry on 5xx."
+  stripe-webhooks:
+    endpoint: "Webhook handlers for Stripe events"
     openapi: false
     tested: true
+    handlers:
+      - "handleCheckoutSessionCompleted"
+      - "handleCustomerSubscriptionCreated/Updated/Deleted"
+      - "handleInvoicePaymentSucceeded/Failed"
+      - "handlePaymentMethodCreated/Attached/Detached/Updated"
+      - "handleSetupIntentSucceeded/Failed"
+      - "handleCustomerCreated/Updated"
+  stripe-routes:
+    endpoint: "POST handlers for checkout, portal, price/product sync"
+    openapi: false
+    tested: true
+    routes:
+      - "create-checkout-session"
+      - "create-portal-link"
+      - "update-price"
+      - "update-product"
+  payment-intent:
+    endpoint: "createPaymentIntent() — AI-driven payment setup"
+    openapi: false
+    tested: true
+  supabase-server:
+    endpoint: "@revealui/services/supabase — server/browser client creation"
+    openapi: false
+    tested: true
+    notes: "SSR utilities, resilience wrappers (retry + circuit breaker)"
+  supabase-client:
+    endpoint: "@revealui/services/client — createBrowserClient for React"
+    openapi: false
+    tested: true
+
+package-exports:
+  ".": "dist/index.js — license check, re-exports all"
+  "./server": "dist/index.js — same as main"
+  "./client": "dist/client/index.js — browser clients"
+  "./api/handlers/payment-intent": "dist/api/handlers/payment-intent.js"
+  "./stripe/stripeClient": "dist/stripe/stripeClient.js"
+
+test-coverage:
+  files: 7
+  areas:
+    - "stripe-integration.test.ts — Stripe API integration"
+    - "stripe-complete.test.ts — end-to-end checkout + webhook flow"
+    - "circuit-breaker.test.ts — state machine (closed/open/half-open)"
+    - "supabase-resilience.test.ts — retry + circuit breaker"
+    - "handlers.test.ts — individual webhook handlers"
+    - "api-utils.test.ts — utility functions"
+    - "imports.test.ts — export validation"
 
 limitations:
   - id: dist-only
     surface: api
-    summary: "@revealui/services is dist-only in public repo"
+    summary: "@revealui/services is dist-only in public repo — source in private revealui-jv"
   - id: payload-vulns
     surface: api
     summary: "Transitive payload IDOR + SSRF vulns (mitigated by CSP/CORS, upgrade when 3.75+ compatible)"
+  - id: license-required
+    surface: api
+    summary: "Requires Pro tier — checkServicesLicense() on import"
+  - id: circuit-breaker-local
+    surface: api
+    summary: "Circuit breaker state is per-instance only (no Redis backing)"
