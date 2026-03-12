@@ -7,7 +7,7 @@ import {
   TIER_LIMITS,
 } from '@revealui/contracts/pricing';
 import type { FeatureFlags } from '@revealui/core/features';
-import { PricingTable } from '@revealui/presentation';
+import { PricingTable } from '@revealui/presentation/server';
 import { useLicense } from '@/lib/providers/LicenseProvider';
 
 export default function UpgradePage() {
