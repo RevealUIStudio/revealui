@@ -1,19 +1,77 @@
 feature: mcp
-name: MCP Servers
+name: MCP Server Integration Framework
 status: beta
 tier: pro
 last-verified: 2026-03-11
 
 api-surface:
-  mcp-servers:
-    endpoint: "@revealui/mcp — Stripe, Supabase, Neon, Vercel, Playwright servers"
+  hypervisor:
+    endpoint: "MCPHypervisor singleton — manages N running MCP server processes"
     openapi: false
     tested: true
+    notes: "Spawns stdio processes, health checks every 60s, tool namespacing (@@mcp_server_tool)"
+  adapter:
+    endpoint: "MCPAdapter abstract class — base for service-specific adapters"
+    openapi: false
+    tested: true
+    notes: "Idempotency cache (5min TTL), request retry logic, error classification"
+  contracts:
+    endpoint: "Zod schemas for MCPRequest/MCPResponse/MCPAdapterConfig"
+    openapi: false
+    tested: true
+    notes: "Bridges MCP SDK tool definitions ↔ contracts ToolDefinition"
+  db-adapter:
+    endpoint: "@revealui/mcp/db — PGlite/PostgreSQL adapter with CRDT support"
+    openapi: false
+    tested: true
+  config:
+    endpoint: "@revealui/mcp/config — persistenceDriver, metricsMode, pgvectorEnabled"
+    openapi: false
+    tested: true
+
+mcp-servers:
+  stripe:
+    launcher: "pnpm dlx @stripe/mcp"
+    adapter: "StripeAdapter extends MCPAdapter"
+  neon:
+    launcher: "pnpm dlx @neondatabase/mcp-server-neon"
+    adapter: "NeonAdapter extends MCPAdapter"
+  supabase:
+    launcher: "pnpm dlx supabase-mcp"
+  vercel:
+    launcher: "pnpm dlx vercel-mcp"
+    adapter: "VercelAdapter extends MCPAdapter"
+  playwright:
+    launcher: "pnpm dlx playwright MCP"
+  next-devtools:
+    launcher: "pnpm dlx next-devtools-mcp"
+  code-validator:
+    launcher: "Custom code validator MCP server (AI code review)"
+
+package-exports:
+  ".": "dist/index.js — license check, re-exports all modules"
+  "./adapter": "dist/servers/adapter.js — MCPAdapter base class"
+  "./contracts": "dist/contracts.js — Zod schemas"
+  "./hypervisor": "dist/hypervisor.js — MCPHypervisor singleton"
+  "./db": "dist/adapters/db.js — PGlite/PostgreSQL + CRDT"
+  "./config": "dist/config/index.js — MCP environment config"
+
+test-coverage:
+  files: 2
+  areas:
+    - "hypervisor.test.ts — tool registration, lifecycle, health checks"
+    - "crdt.integration.test.ts — CRDT operations with PGlite"
 
 limitations:
   - id: dist-only
     surface: api
-    summary: "@revealui/mcp is dist-only in public repo — source opaque"
+    summary: "@revealui/mcp is dist-only in public repo — source in private revealui-jv"
   - id: neon-mcp-vuln
     surface: api
     summary: "@neondatabase/mcp-server-neon pulls vulnerable oauth2-server (accepted risk, dev-only)"
+  - id: license-required
+    surface: api
+    summary: "Requires Pro/Enterprise tier — checkMcpLicense() on import"
+  - id: stdio-only
+    surface: api
+    summary: "MCP servers communicate via piped stdio (newline-delimited JSON-RPC 2.0)"

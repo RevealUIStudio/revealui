@@ -6,26 +6,60 @@ last-verified: 2026-03-11
 
 api-surface:
   ci-pipeline:
-    endpoint: ".github/workflows/ci.yml — 3-phase gate"
+    endpoint: ".github/workflows/ci.yml — 5-phase gate"
     openapi: false
     tested: true
+    phases:
+      - "1. Quality (parallel): Biome lint (hard fail), audits (warn), structure (warn), security (warn)"
+      - "2. Typecheck (serial): pnpm typecheck:all across all workspaces"
+      - "3. Tests (parallel, warn-only): Vitest with 15 concurrency"
+      - "4. Build (parallel, hard fail): package build on PRs, full app build on main"
+      - "5. E2E Smoke (conditional on main, warn-only): Playwright chromium"
   security-scan:
     endpoint: ".github/workflows/security.yml — CodeQL + Gitleaks + dep audit"
     openapi: false
     tested: true
+    schedule: "Weekly Monday 9 AM UTC + on push to main"
+    checks:
+      - "Security gate (pnpm gate:security — 8+ vulnerability checks)"
+      - "Gitleaks secret scanning"
+      - "CodeQL static analysis (security-and-quality queries)"
+      - "Dependency review on PRs (fails on high severity)"
   release:
     endpoint: ".github/workflows/release.yml — OIDC + npm provenance"
     openapi: false
     tested: true
+    notes: "Manual dispatch, SLSA Build Level 2 provenance, changeset publish"
   release-pro:
-    endpoint: ".github/workflows/release-pro.yml — Pro dist-only publishing"
+    endpoint: ".github/workflows/release-pro.yml — Pro dist-only (stub)"
     openapi: false
-    tested: true
+    tested: false
+    notes: "Intentional no-op — Pro packages publish from private revealui-jv repo"
+
+local-gate:
+  command: "pnpm gate"
+  quick: "pnpm gate:quick (phase 1 only, ~3 min)"
+  flags:
+    - "--phase=N — run specific phase"
+    - "--skip=security — skip check"
+    - "--no-build — skip build"
+    - "--changed — lint/typecheck only changed packages (pre-push fast path)"
+    - "--types — include full type-system validation"
+  failure-policy:
+    hard-fail: "Biome lint, typecheck, build, version policy"
+    warn-only: "audits, tests, structure/boundary validation, security, coverage"
+
+pre-commit:
+  hook: "biome check --write on staged *.{ts,tsx,js,jsx} (Husky + lint-staged)"
+  validation: "No console.log in production code"
 
 limitations:
   - id: tests-warn-only
     surface: api
-    summary: "CI tests are warn-only — failures don't block merges"
+    summary: "CI tests are warn-only — failures don't block merges (post-launch will switch to hard-fail)"
   - id: no-sbom
     surface: api
     summary: "No SBOM generation in release pipeline"
+  - id: e2e-main-only
+    surface: api
+    summary: "E2E smoke tests only run on main branch, not PRs"
