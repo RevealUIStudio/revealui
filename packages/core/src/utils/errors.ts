@@ -62,6 +62,71 @@ export class DatabaseError extends Error {
 }
 
 /**
+ * Authentication Error
+ * Use for failed login, expired sessions, invalid tokens
+ */
+export class AuthenticationError extends ApplicationError {
+  constructor(message = 'Authentication required', context?: Record<string, unknown>) {
+    super(message, 'AUTHENTICATION_ERROR', 401, context);
+    this.name = 'AuthenticationError';
+    Error.captureStackTrace(this, AuthenticationError);
+  }
+}
+
+/**
+ * Authorization Error
+ * Use for insufficient permissions, forbidden access
+ */
+export class AuthorizationError extends ApplicationError {
+  constructor(message = 'Insufficient permissions', context?: Record<string, unknown>) {
+    super(message, 'AUTHORIZATION_ERROR', 403, context);
+    this.name = 'AuthorizationError';
+    Error.captureStackTrace(this, AuthorizationError);
+  }
+}
+
+/**
+ * Not Found Error
+ * Use for missing resources (users, posts, pages, etc.)
+ */
+export class NotFoundError extends ApplicationError {
+  constructor(resource: string, identifier?: string, context?: Record<string, unknown>) {
+    const message = identifier ? `${resource} not found: ${identifier}` : `${resource} not found`;
+    super(message, 'NOT_FOUND', 404, { resource, identifier, ...context });
+    this.name = 'NotFoundError';
+    Error.captureStackTrace(this, NotFoundError);
+  }
+}
+
+/**
+ * Conflict Error
+ * Use for duplicate resources, concurrent modification conflicts
+ */
+export class ConflictError extends ApplicationError {
+  constructor(message = 'Resource conflict', context?: Record<string, unknown>) {
+    super(message, 'CONFLICT', 409, context);
+    this.name = 'ConflictError';
+    Error.captureStackTrace(this, ConflictError);
+  }
+}
+
+/**
+ * Rate Limit Error
+ * Use for too many requests, throttling
+ */
+export class RateLimitError extends ApplicationError {
+  constructor(
+    message = 'Too many requests',
+    public retryAfterMs?: number,
+    context?: Record<string, unknown>,
+  ) {
+    super(message, 'RATE_LIMITED', 429, { retryAfterMs, ...context });
+    this.name = 'RateLimitError';
+    Error.captureStackTrace(this, RateLimitError);
+  }
+}
+
+/**
  * Postgres Error Codes
  * Reference: https://www.postgresql.org/docs/current/errcodes-appendix.html
  */
@@ -162,6 +227,58 @@ export function handleApiError(
       statusCode: error.statusCode,
       code: error.code,
       retryable: error.context?.retryable as boolean | undefined,
+    };
+  }
+
+  if (error instanceof RateLimitError) {
+    logger.warn('Rate limit exceeded', {
+      message: error.message,
+      retryAfterMs: error.retryAfterMs,
+      ...error.context,
+      ...context,
+    });
+
+    return {
+      message: error.message,
+      statusCode: 429,
+      code: error.code,
+      retryable: true,
+    };
+  }
+
+  if (error instanceof AuthenticationError) {
+    logger.warn('Authentication failed', {
+      message: error.message,
+      ...error.context,
+      ...context,
+    });
+
+    return {
+      message: error.message,
+      statusCode: 401,
+      code: error.code,
+    };
+  }
+
+  if (error instanceof AuthorizationError) {
+    logger.warn('Authorization denied', {
+      message: error.message,
+      ...error.context,
+      ...context,
+    });
+
+    return {
+      message: error.message,
+      statusCode: 403,
+      code: error.code,
+    };
+  }
+
+  if (error instanceof NotFoundError) {
+    return {
+      message: error.message,
+      statusCode: 404,
+      code: error.code,
     };
   }
 

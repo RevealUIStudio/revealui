@@ -7,7 +7,7 @@
  */
 
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
-import type { Breadcrumb, ErrorLevel, ErrorReporter, UserContext } from '../error-reporter.js';
+import type { Breadcrumb, ErrorReporter, UserContext } from '../error-reporter.js';
 import {
   ConsoleErrorReporter,
   ErrorFilters,

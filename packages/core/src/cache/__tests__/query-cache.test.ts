@@ -6,7 +6,7 @@
  * warmCache, getCached, cacheExists, memoize, withCache, batchCache, cacheSWR
  */
 
-import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
+import { beforeEach, describe, expect, it, vi } from 'vitest';
 
 // Mock the logger to suppress output during tests
 vi.mock('../../observability/logger.js', () => ({

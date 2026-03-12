@@ -504,7 +504,6 @@ export const CORSPresets = {
    */
   permissive: (): CORSConfig => {
     if (process.env.NODE_ENV === 'production') {
-      // biome-ignore lint/suspicious/noConsole: security warning must be visible
       console.warn(
         '[SecurityPresets] CORS permissive preset used in production — this allows all origins. Use moderate() with explicit origins instead.',
       );
@@ -524,7 +523,6 @@ export const CORSPresets = {
    */
   api: (): CORSConfig => {
     if (process.env.NODE_ENV === 'production') {
-      // biome-ignore lint/suspicious/noConsole: security warning must be visible
       console.warn(
         '[SecurityPresets] CORS api preset uses origin:"*". For production, pass explicit origins to moderate() instead.',
       );

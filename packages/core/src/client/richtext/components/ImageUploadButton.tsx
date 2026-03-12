@@ -12,12 +12,17 @@ import type React from 'react';
 import { useCallback, useRef, useState } from 'react';
 import { INSERT_IMAGE_COMMAND } from '../nodes/ImageNode.js';
 
+/** Default maximum file size: 10 MB */
+const DEFAULT_MAX_FILE_SIZE_BYTES = 10 * 1024 * 1024;
+
 interface ImageUploadButtonProps {
   onUploadStart?: () => void;
   onUploadComplete?: (url: string) => void;
   onUploadError?: (error: Error) => void;
   uploadEndpoint?: string;
   acceptedFileTypes?: string;
+  /** Maximum allowed file size in bytes (default: 10 MB) */
+  maxFileSizeBytes?: number;
 }
 
 type UploadResponse = {
@@ -45,6 +50,7 @@ export const ImageUploadButton: React.FC<ImageUploadButtonProps> = ({
   onUploadError,
   uploadEndpoint = '/api/media',
   acceptedFileTypes = 'image/jpeg,image/jpg,image/png,image/webp,image/gif',
+  maxFileSizeBytes = DEFAULT_MAX_FILE_SIZE_BYTES,
 }) => {
   const [editor] = useLexicalComposerContext();
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -61,10 +67,10 @@ export const ImageUploadButton: React.FC<ImageUploadButtonProps> = ({
         return;
       }
 
-      // Validate file size (default 10MB limit)
-      const maxSize = 10 * 1024 * 1024; // 10MB
-      if (file.size > maxSize) {
-        onUploadError?.(new Error('Image size must be less than 10MB'));
+      // Validate file size
+      if (file.size > maxFileSizeBytes) {
+        const limitMB = Math.round(maxFileSizeBytes / (1024 * 1024));
+        onUploadError?.(new Error(`Image size must be less than ${limitMB}MB`));
         return;
       }
 
@@ -143,7 +149,7 @@ export const ImageUploadButton: React.FC<ImageUploadButtonProps> = ({
         }
       }
     },
-    [editor, uploadEndpoint, onUploadStart, onUploadComplete, onUploadError],
+    [editor, uploadEndpoint, maxFileSizeBytes, onUploadStart, onUploadComplete, onUploadError],
   );
 
   const triggerFileSelect = useCallback(() => {
