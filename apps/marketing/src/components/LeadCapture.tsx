@@ -1,6 +1,7 @@
 'use client';
 
 import { logger } from '@revealui/core/observability/logger';
+import { ButtonCVA, Callout, InputCVA } from '@revealui/presentation';
 import { useState } from 'react';
 
 export function LeadCapture() {
@@ -78,13 +79,15 @@ export function LeadCapture() {
             <p className="mt-6 text-lg leading-8 text-gray-400">
               We&apos;ll send you early access details and updates on our launch. Stay tuned.
             </p>
-            <button
+            <ButtonCVA
+              variant="secondary"
+              size="lg"
+              className="mt-8"
               onClick={() => setIsSubmitted(false)}
               type="button"
-              className="mt-8 rounded-lg bg-white px-8 py-3.5 text-sm font-semibold text-gray-950 shadow-sm hover:bg-gray-100 transition-colors"
             >
               Add Another Email
-            </button>
+            </ButtonCVA>
           </div>
         </div>
       </section>
@@ -104,27 +107,23 @@ export function LeadCapture() {
           </p>
           <form onSubmit={handleSubmit} className="mt-10">
             <div className="flex max-w-md mx-auto gap-x-4">
-              <input
+              <InputCVA
                 type="email"
                 required
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 placeholder="you@company.com"
-                className="min-w-0 flex-auto rounded-lg border-0 bg-gray-900 px-4 py-3.5 text-sm text-white shadow-sm ring-1 ring-inset ring-gray-800 placeholder:text-gray-500 focus:ring-2 focus:ring-inset focus:ring-emerald-500 transition-colors"
+                className="min-w-0 flex-auto rounded-lg bg-gray-900 text-white ring-1 ring-gray-800 border-0 placeholder:text-gray-500 focus-visible:ring-ring"
               />
-              <button
-                type="submit"
-                disabled={isSubmitting}
-                className="flex-none rounded-lg bg-white px-8 py-3.5 text-sm font-semibold text-gray-950 shadow-sm hover:bg-gray-100 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
-              >
+              <ButtonCVA variant="secondary" size="lg" type="submit" disabled={isSubmitting}>
                 {isSubmitting ? 'Joining...' : 'Join Waitlist'}
-              </button>
+              </ButtonCVA>
             </div>
           </form>
           {errorMessage && (
-            <p className="mt-4 text-sm text-red-400" role="alert">
-              {errorMessage}
-            </p>
+            <div className="mt-4 max-w-md mx-auto">
+              <Callout variant="error">{errorMessage}</Callout>
+            </div>
           )}
           <p className="mt-6 text-sm leading-6 text-gray-500">
             No spam, ever. Unsubscribe at any time.
