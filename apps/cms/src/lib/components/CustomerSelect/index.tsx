@@ -15,7 +15,7 @@ const fetchStripeCustomers = async () => {
   return response.json();
 };
 
-const CustomerSelect: React.FC<TextField> = (props) => {
+const CustomerSelect = (props: TextField) => {
   const { name, label } = props;
   const [options, setOptions] = React.useState<
     {

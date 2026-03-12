@@ -1,13 +1,12 @@
 'use client';
 import { Highlight, themes } from 'prism-react-renderer';
-import type React from 'react';
 
 type Props = {
   code: string;
   language?: string;
 };
 
-export const Code: React.FC<Props> = ({ code, language = '' }) => {
+export const Code = ({ code, language = '' }: Props) => {
   if (!code) return null;
 
   return (

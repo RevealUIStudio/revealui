@@ -31,7 +31,7 @@ export interface RevealUIMeUser {
 }
 
 // RevealUI Admin Bar component
-const RevealUIAdminBar: React.FC<RevealUIAdminBarProps> = (props) => {
+const RevealUIAdminBar = (props: RevealUIAdminBarProps) => {
   const { className, logo, onAuthChange, onPreviewExit, style } = props;
 
   // Fetch user on mount
@@ -81,11 +81,9 @@ const collectionLabels = {
   },
 };
 
-const Title: React.FC = () => <span>Dashboard</span>;
+const Title = () => <span>Dashboard</span>;
 
-export const AdminBar: React.FC<{
-  adminBarProps?: RevealUIAdminBarProps;
-}> = (props) => {
+export const AdminBar = (props: { adminBarProps?: RevealUIAdminBarProps }) => {
   const { adminBarProps } = props || {};
   const segments = useSelectedLayoutSegments();
   const [show, setShow] = useState(false);

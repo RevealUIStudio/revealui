@@ -6,7 +6,6 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@revealui/presentation/client';
-import type React from 'react';
 import { Controller } from 'react-hook-form';
 import { FormFieldError } from '@/lib/blocks/Form/Error';
 import type { ControlledFormFieldProps } from '@/lib/blocks/Form/types';
@@ -14,14 +13,14 @@ import { Width } from '@/lib/blocks/Form/Width';
 import { Label } from '@/lib/components/ui/primitives/label';
 import { countryOptions } from './options';
 
-export const Country: React.FC<CountryField & ControlledFormFieldProps> = ({
+export const Country = ({
   name,
   control,
   errors,
   label,
   required,
   width,
-}) => {
+}: CountryField & ControlledFormFieldProps) => {
   return (
     <Width width={width}>
       <Label className="" htmlFor={name}>

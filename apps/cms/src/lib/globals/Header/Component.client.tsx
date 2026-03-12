@@ -1,6 +1,5 @@
 'use client';
 import Link from 'next/link';
-import type React from 'react';
 import { useEffect, useState } from 'react';
 import { Logo } from '@/lib/components/index';
 import { useHeaderTheme } from '@/lib/providers/HeaderTheme/index';
@@ -12,7 +11,7 @@ interface HeaderClientProps {
   header: HeaderType;
 }
 
-export const HeaderClient: React.FC<HeaderClientProps> = ({ header }) => {
+export const HeaderClient = ({ header }: HeaderClientProps) => {
   /* Storing the value in a useState to avoid hydration errors */
   const [theme, setTheme] = useState<string | null>(null);
   const { headerTheme, setHeaderTheme } = useHeaderTheme();

@@ -1,5 +1,3 @@
-import type * as React from 'react';
-
-export const FormFieldError: React.FC = () => {
+export const FormFieldError = () => {
   return <div className="mt-2 text-red-500 text-sm">This field is required</div>;
 };

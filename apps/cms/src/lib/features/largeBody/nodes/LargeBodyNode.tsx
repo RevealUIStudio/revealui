@@ -16,7 +16,7 @@ interface LargeBodyElementProps {
   children: React.ReactNode;
 }
 
-export const LargeBodyNode: React.FC<LargeBodyElementProps> = async ({ attributes, children }) => (
+export const LargeBodyNode = async ({ attributes, children }: LargeBodyElementProps) => (
   <div {...attributes}>
     <span className={baseClass}>{children}</span>
   </div>

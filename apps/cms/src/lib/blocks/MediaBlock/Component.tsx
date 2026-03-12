@@ -2,7 +2,6 @@ import { ImageBlockSchema, VideoBlockSchema } from '@revealui/contracts/content'
 import type { Page } from '@revealui/core/types/cms';
 import { logger } from '@revealui/core/utils/logger';
 import type { StaticImageData } from 'next/image';
-import type React from 'react';
 import { memo } from 'react';
 import { Media } from '@/lib/components/Media/index';
 import RichText, { type RichTextContent } from '@/lib/components/RichText/index';
@@ -19,7 +18,7 @@ type Props = Extract<Page['layout'][0], { blockType: 'mediaBlock' }> & {
   disableInnerContainer?: boolean;
 };
 
-export const MediaBlock: React.FC<Props> = memo((props) => {
+export const MediaBlock = memo((props: Props) => {
   const {
     captionClassName,
     className,

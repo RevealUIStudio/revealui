@@ -3,9 +3,7 @@ import React from 'react';
 import { Media } from '@/lib/components/Media/index';
 import { formatDateTime } from '@/lib/utilities/formatDateTime';
 
-export const PostHero: React.FC<{
-  post: Post;
-}> = ({ post }) => {
+export const PostHero = ({ post }: { post: Post }) => {
   const {
     categories,
     meta: { image: metaImage } = {},

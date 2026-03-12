@@ -97,10 +97,13 @@ function normalizeMediaBlockProps(
  * <RenderBlocks blocks={page.layout} strictMode={false} />
  * ```
  */
-export const RenderBlocks: React.FC<{
+export const RenderBlocks = ({
+  blocks,
+  strictMode = true,
+}: {
   blocks: Page['layout'];
   strictMode?: boolean;
-}> = ({ blocks, strictMode = true }) => {
+}) => {
   // Validate input
   if (!(blocks && Array.isArray(blocks)) || blocks.length === 0) {
     return null;

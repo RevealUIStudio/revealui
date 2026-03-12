@@ -6,7 +6,7 @@ function createContext<ContextValueType extends object | null>(
 ) {
   const Context = React.createContext<ContextValueType | undefined>(defaultContext);
 
-  const Provider: React.FC<ContextValueType & { children: React.ReactNode }> = (props) => {
+  const Provider = (props: ContextValueType & { children: React.ReactNode }) => {
     const { children, ...context } = props;
     // Only re-memoize when prop values change
     // biome-ignore lint/correctness/useExhaustiveDependencies: context is intentionally used as dependency for memoization
@@ -53,12 +53,12 @@ function createContextScope(scopeName: string, createContextScopeDeps: CreateSco
     const index = defaultContexts.length;
     defaultContexts = [...defaultContexts, (defaultContext ?? null) as React.Context<unknown>];
 
-    const Provider: React.FC<
-      ContextValueType & {
+    const Provider = (
+      props: ContextValueType & {
         scope: Scope<ContextValueType>;
         children: React.ReactNode;
-      }
-    > = (props) => {
+      },
+    ) => {
       const { scope, children, ...context } = props;
       const Context = scope?.[scopeName]?.[index] || BaseContext;
       // Only re-memoize when prop values change

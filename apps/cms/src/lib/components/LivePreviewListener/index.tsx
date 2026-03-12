@@ -9,7 +9,7 @@ interface RevealUILivePreviewProps {
   serverURL: string;
 }
 
-const RevealUILivePreview: React.FC<RevealUILivePreviewProps> = ({ refresh, serverURL }) => {
+const RevealUILivePreview = ({ refresh, serverURL }: RevealUILivePreviewProps) => {
   // Listen for live preview messages from parent window
   React.useEffect(() => {
     const handleMessage = (event: MessageEvent) => {
@@ -28,7 +28,7 @@ const RevealUILivePreview: React.FC<RevealUILivePreviewProps> = ({ refresh, serv
   return null;
 };
 
-export const LivePreviewListener: React.FC = () => {
+export const LivePreviewListener = () => {
   const router = useRouter();
   const serverURL = process.env.NEXT_PUBLIC_SERVER_URL ?? '';
 

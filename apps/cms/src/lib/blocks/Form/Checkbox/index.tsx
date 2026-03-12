@@ -1,5 +1,4 @@
 import { CheckboxCVA as CheckboxUi } from '@revealui/presentation/client';
-import type React from 'react';
 import { useFormContext } from 'react-hook-form';
 import { FormFieldError } from '@/lib/blocks/Form/Error';
 import type { BaseFormFieldProps } from '@/lib/blocks/Form/types';
@@ -10,7 +9,7 @@ interface CheckboxFieldProps extends BaseFormFieldProps {
   defaultValue?: boolean;
 }
 
-export const Checkbox: React.FC<CheckboxFieldProps> = ({
+export const Checkbox = ({
   name,
   defaultValue,
   errors,
@@ -18,7 +17,7 @@ export const Checkbox: React.FC<CheckboxFieldProps> = ({
   register,
   required: requiredFromProps,
   width,
-}) => {
+}: CheckboxFieldProps) => {
   const props = register(name, { required: requiredFromProps });
   const { setValue } = useFormContext();
 

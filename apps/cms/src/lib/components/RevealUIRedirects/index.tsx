@@ -1,6 +1,5 @@
 import type { Page, Post, Redirect } from '@revealui/core/types/cms';
 import { notFound, redirect } from 'next/navigation';
-import type React from 'react';
 import { getCachedDocument } from '@/lib/utilities/getDocument';
 import { getCachedRedirects } from '@/lib/utilities/getRedirects';
 
@@ -10,7 +9,7 @@ interface Props {
 }
 
 /* This component helps us with SSR based dynamic redirects */
-export const RevealUIRedirects: React.FC<Props> = async ({ disableNotFound, url }) => {
+export const RevealUIRedirects = async ({ disableNotFound, url }: Props) => {
   const slug = url.startsWith('/') ? url : `${url}`;
 
   const redirects = await getCachedRedirects()();

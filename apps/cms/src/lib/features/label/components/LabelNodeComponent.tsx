@@ -1,6 +1,5 @@
 'use server';
 
-import type React from 'react';
 import LabelIcon from '../icons/LabelIcon';
 import type { LabelNodeData } from '../nodes/LabelNode';
 
@@ -9,7 +8,7 @@ interface LabelNodeComponentProps {
   data: LabelNodeData;
 }
 
-const LabelNodeComponent: React.FC<LabelNodeComponentProps> = ({ nodeKey, data }) => {
+const LabelNodeComponent = ({ nodeKey, data }: LabelNodeComponentProps) => {
   return (
     <div key={nodeKey}>
       <a href={data.url}>Label</a>

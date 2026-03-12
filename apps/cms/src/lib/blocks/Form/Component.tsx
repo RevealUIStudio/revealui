@@ -64,7 +64,7 @@ export type Props = FormBlockType;
  * />
  * ```
  */
-export const FormBlock: React.FC<Props> = memo(({ enableIntro, form, introContent }) => {
+export const FormBlock = memo(({ enableIntro, form, introContent }: Props) => {
   // Runtime validation with FormBlockSchema
   // This ensures the form block matches the schema structure
   try {

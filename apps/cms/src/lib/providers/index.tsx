@@ -5,9 +5,7 @@ import { HeaderThemeProvider } from './HeaderTheme/index';
 import { LicenseProvider } from './LicenseProvider';
 import { ThemeProvider } from './Theme/index';
 
-export const Providers: React.FC<{
-  children: React.ReactNode;
-}> = ({ children }) => {
+export const Providers = ({ children }: { children: React.ReactNode }) => {
   return (
     <ElectricProvider
       serviceUrl={process.env.NEXT_PUBLIC_ELECTRIC_SERVICE_URL}

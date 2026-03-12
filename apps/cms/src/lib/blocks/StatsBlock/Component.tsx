@@ -1,5 +1,4 @@
 import Image from 'next/image';
-import type React from 'react';
 import { cn } from '@/lib/styles/classnames';
 
 export interface StatItem {
@@ -17,7 +16,7 @@ export interface StatsBlockProps {
   blockType: 'stats';
 }
 
-export const StatsBlock: React.FC<StatsBlockProps> = ({ className, stats, style }) => {
+export const StatsBlock = ({ className, stats, style }: StatsBlockProps) => {
   return (
     <div className={cn('mx-auto my-8 w-full', className)}>
       <div

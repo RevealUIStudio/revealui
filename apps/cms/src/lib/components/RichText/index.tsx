@@ -1,4 +1,3 @@
-import type React from 'react';
 import { cn } from '@/lib/styles/classnames';
 import { serializeLexical } from './serialize';
 
@@ -27,12 +26,7 @@ type Props = {
 };
 
 // Main RichText component
-const RichText: React.FC<Props> = ({
-  className,
-  content,
-  enableGutter = true,
-  enableProse = true,
-}) => {
+const RichText = ({ className, content, enableGutter = true, enableProse = true }: Props) => {
   if (!content?.root) {
     return null;
   }
