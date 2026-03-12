@@ -154,13 +154,9 @@ Schemas are in `packages/db/src/schema/`. Use Drizzle ORM for queries. Dual-data
 | Severity | Module | Via | Issue | Fixable? |
 |----------|--------|-----|-------|----------|
 | high | oauth2-server | @neondatabase/mcp-server-neon | Open Redirect + Code Injection | No (patched: `<0.0.0`, transitive, unused at runtime) |
-| moderate | payload | @revealui/services | IDOR in Access Control | Upgrade to >=3.74.0 when compatible |
-| moderate | payload | @revealui/services | SSRF in File URL Uploads | Upgrade to >=3.75.0 when compatible |
 | low | @tootallnate/once | vercel CLI | Incorrect Control Flow Scoping | Upgrade to >=3.0.1 when vercel updates |
 
 **oauth2-server**: Only pulled in by `@neondatabase/mcp-server-neon` (dev/MCP tool). Not used in any production API path. No patch exists (`<0.0.0` means the maintainer has not fixed it). Acceptable risk for v1.
-
-**payload**: Transitive via `@revealui/services`. File upload SSRF mitigated by our CSP + CORS headers. IDOR requires multi-auth setup we don't use. Will upgrade when payload 3.75+ is tested compatible.
 
 ## CI Gate Architecture
 The `pnpm gate` script runs 3 phases:

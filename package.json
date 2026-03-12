@@ -101,9 +101,7 @@
       "sharp",
       "unrs-resolver"
     ],
-    "patchedDependencies": {
-      "@revealui/services@0.0.2": "patches/@revealui__services@0.0.2.patch"
-    }
+    "patchedDependencies": {}
   },
   "scripts": {
     "build": "turbo run build",
