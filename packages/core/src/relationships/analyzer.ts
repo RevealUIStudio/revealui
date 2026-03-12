@@ -1,3 +1,4 @@
+import { defaultLogger } from '../instance/logger.js';
 import type { RevealCollectionConfig, RevealGlobalConfig, RevealUIField } from '../types/index.js';
 import type { RelationshipMetadata } from '../types/query.js';
 
@@ -83,6 +84,15 @@ export function getRelationshipFields(
   }
 
   traverseFields(config.fields);
+
+  // Validate extracted metadata to catch configuration errors early
+  const validation = validateRelationshipMetadata(relationships);
+  if (!validation.valid) {
+    for (const error of validation.errors) {
+      defaultLogger.warn(`[RelationshipAnalyzer] ${error}`);
+    }
+  }
+
   return relationships;
 }
 
