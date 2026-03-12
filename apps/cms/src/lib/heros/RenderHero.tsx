@@ -1,5 +1,4 @@
 import type { Page } from '@revealui/core/types/cms';
-import type React from 'react';
 import { HighImpactHero } from './HighImpact/index';
 import { LowImpactHero } from './LowImpact/index';
 import { MediumImpactHero } from './MediumImpact/index';
@@ -10,7 +9,7 @@ const heroes = {
   mediumImpact: MediumImpactHero,
 };
 
-export const RenderHero: React.FC<Page['hero']> = (props) => {
+export const RenderHero = (props: Page['hero']) => {
   const { type } = props || {};
 
   if (!type || type === 'none') return null;

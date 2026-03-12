@@ -1,7 +1,6 @@
 import { TextBlockSchema } from '@revealui/contracts/content';
 import type { Page } from '@revealui/core/types/cms';
 import { logger } from '@revealui/core/utils/logger';
-import type React from 'react';
 import { memo } from 'react';
 import { CMSLink } from '@/lib/components/Link/index';
 import RichText from '@/lib/components/RichText/index';
@@ -36,7 +35,7 @@ export type Props = Extract<Page['layout'][0], { blockType: 'content' }> & {
 };
 
 // Main ContentBlock component
-export const ContentBlock: React.FC<Props> = memo(({ columns }) => {
+export const ContentBlock = memo(({ columns }: Props) => {
   // Runtime validation with TextBlockSchema
   // Validate the content block structure matches schema
   try {

@@ -1,5 +1,3 @@
-import type React from 'react';
-
 /**
  * PoweredByRevealUI — shown in the admin dashboard footer.
  *
@@ -34,7 +32,7 @@ function shouldShowBadge(): boolean {
   return true;
 }
 
-const PoweredByRevealUI: React.FC = () => {
+const PoweredByRevealUI = () => {
   if (!shouldShowBadge()) return null;
 
   const brandName = process.env.REVEALUI_BRAND_NAME ?? 'RevealUI';

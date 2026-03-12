@@ -1,7 +1,6 @@
-import type React from 'react';
 import PoweredByRevealUI from '../PoweredByRevealUI/index';
 
-const BeforeDashboard: React.FC = () => {
+const BeforeDashboard = () => {
   return (
     <div className="relative mx-auto w-full rounded-lg bg-zinc-900 p-8 shadow-md">
       <h1 className="mb-6 text-3xl font-bold text-white">Welcome to RevealUI CMS</h1>

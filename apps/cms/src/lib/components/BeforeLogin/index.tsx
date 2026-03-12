@@ -1,6 +1,4 @@
-import type React from 'react';
-
-const BeforeLogin: React.FC = () => {
+const BeforeLogin = () => {
   return (
     <div className="rounded-xl bg-zinc-900 p-6 shadow-lg">
       <p className="mb-4 text-2xl font-bold">Welcome to RevealUI CMS</p>

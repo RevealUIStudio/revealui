@@ -5,7 +5,12 @@ import { useCallback } from 'react';
 import { type EmbedNodeData, OPEN_EMBED_DRAWER_COMMAND } from '../nodes/EmbedNode';
 
 // Simple button component placeholder
-const Button: React.FC<{
+const Button = ({
+  onClick,
+  tooltip,
+  children,
+  className,
+}: {
   buttonStyle?: string;
   className?: string;
   el?: string;
@@ -14,7 +19,7 @@ const Button: React.FC<{
   round?: boolean;
   tooltip?: string;
   children?: React.ReactNode;
-}> = ({ onClick, tooltip, children, className }) => (
+}) => (
   <button type="button" onClick={onClick} title={tooltip} className={className}>
     {children || tooltip}
   </button>
@@ -25,7 +30,7 @@ type Props = {
   nodeKey: string;
 };
 
-export const EmbedNodeComponent: React.FC<Props> = (props) => {
+export const EmbedNodeComponent = (props: Props) => {
   const { data, nodeKey } = props;
   const [editor] = useLexicalComposerContext();
   const videoSrc = `https://www.youtube.com/embed/${data.url.split('v=')[1]}`;

@@ -51,7 +51,7 @@ function nextId() {
   return `msg-${++messageCounter}`;
 }
 
-const AgentChat: React.FC = () => {
+const AgentChat = () => {
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [input, setInput] = useState('');
   const [isLoading, setIsLoading] = useState(false);

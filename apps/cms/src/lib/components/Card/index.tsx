@@ -2,7 +2,6 @@
 
 import type { Media as CmsMedia, Post } from '@revealui/core/types/cms';
 import Link from 'next/link';
-import type React from 'react';
 import { Fragment } from 'react';
 import useClickableCard from '@/lib/hooks/useClickableCard';
 import { cn } from '@/lib/styles/classnames';
@@ -26,14 +25,14 @@ const isCmsMedia = (value: unknown): value is CmsMedia => {
   return 'id' in value && typeof (value as { id?: unknown }).id === 'number';
 };
 
-export const Card: React.FC<{
+export const Card = (props: {
   alignItems?: 'center';
   className?: string;
   doc?: CardDoc | Post;
   relationTo?: 'posts';
   showCategories?: boolean;
   title?: string;
-}> = (props) => {
+}) => {
   const { card, link } = useClickableCard({});
   const { className, doc, relationTo, showCategories, title: titleFromProps } = props;
 

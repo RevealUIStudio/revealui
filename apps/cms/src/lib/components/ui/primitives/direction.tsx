@@ -14,7 +14,7 @@ interface DirectionProviderProps {
   dir: Direction; // Accept 'ltr' or 'rtl'
 }
 
-const DirectionProvider: React.FC<DirectionProviderProps> = ({ dir, children }) => {
+const DirectionProvider = ({ dir, children }: DirectionProviderProps) => {
   return <DirectionContext.Provider value={dir}>{children}</DirectionContext.Provider>;
 };
 

@@ -1,5 +1,4 @@
 import type { LexicalEditor } from 'lexical';
-import type React from 'react';
 import { useEffect } from 'react';
 
 type BreakOutElement = {
@@ -14,7 +13,7 @@ interface LargeBodyPluginProps {
   editor: BaseEditor;
 }
 
-const LargeBodyPlugin: React.FC<LargeBodyPluginProps> = ({ editor }) => {
+const LargeBodyPlugin = ({ editor }: LargeBodyPluginProps) => {
   useEffect(() => {
     const originalShouldBreakOutOnEnter = editor.shouldBreakOutOnEnter;
 

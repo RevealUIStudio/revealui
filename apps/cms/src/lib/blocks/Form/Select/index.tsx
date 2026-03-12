@@ -6,19 +6,24 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@revealui/presentation/client';
-import type React from 'react';
 import { Controller } from 'react-hook-form';
 import { FormFieldError } from '@/lib/blocks/Form/Error';
 import type { ControlledFormFieldProps } from '@/lib/blocks/Form/types';
 import { Width } from '@/lib/blocks/Form/Width';
 import { Label } from '@/lib/components/ui/primitives/label';
 
-export const Select: React.FC<
-  SelectField &
-    ControlledFormFieldProps & {
-      options: Array<{ label: string; value: string }>;
-    }
-> = ({ name, control, errors, label, options, required, width }) => {
+export const Select = ({
+  name,
+  control,
+  errors,
+  label,
+  options,
+  required,
+  width,
+}: SelectField &
+  ControlledFormFieldProps & {
+    options: Array<{ label: string; value: string }>;
+  }) => {
   return (
     <Width width={width}>
       <Label htmlFor={name}>{label}</Label>

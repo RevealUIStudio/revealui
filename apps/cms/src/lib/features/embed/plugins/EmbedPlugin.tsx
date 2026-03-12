@@ -35,7 +35,7 @@ const useModal = () => ({
 });
 
 // Stub FieldsDrawer component
-const FieldsDrawer: React.FC<{
+const FieldsDrawer = (_props: {
   data: EmbedDrawerData | null;
   drawerSlug: string;
   drawerTitle: string;
@@ -43,7 +43,7 @@ const FieldsDrawer: React.FC<{
   schemaPath: string;
   handleDrawerSubmit: (fields: DrawerFields, data: EmbedDrawerData) => void;
   schemaPathSuffix: string;
-}> = () => null;
+}) => null;
 
 const drawerSlug = 'lexical-embed-create';
 
