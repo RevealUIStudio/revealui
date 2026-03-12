@@ -12,7 +12,11 @@
     "types": ["node"],
     "skipLibCheck": true,
     "strict": true,
-    "resolveJsonModule": true
+    "resolveJsonModule": true,
+    "paths": {
+      "@revealui/core": ["../core/dist/index.d.ts"],
+      "@revealui/core/*": ["../core/dist/*"]
+    }
   },
   "include": ["src/**/*.ts"],
   "exclude": ["node_modules", "dist", "**/*.test.ts"]
