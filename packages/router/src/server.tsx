@@ -162,9 +162,17 @@ export async function hydrate(router: Router, rootElement: HTMLElement | null = 
     return;
   }
 
-  // Get SSR data
+  // Extract SSR data and pre-populate the router's match so loaders don't re-run
   const dataScript = document.getElementById('__REVEALUI_DATA__');
-  const _ssrData = dataScript ? JSON.parse(dataScript.textContent || '{}') : {};
+  const ssrData = dataScript ? JSON.parse(dataScript.textContent || '{}') : {};
+
+  // If we have SSR data with a route, resolve it to seed the router's current match
+  if (ssrData.route) {
+    const match = router.match(window.location.pathname);
+    if (match) {
+      match.data = ssrData.data;
+    }
+  }
 
   // Initialize client-side routing
   router.initClient();

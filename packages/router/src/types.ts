@@ -62,3 +62,15 @@ export interface NavigateOptions<TState = unknown> {
   /** State to pass with navigation */
   state?: TState;
 }
+
+/**
+ * Current location state
+ */
+export interface Location {
+  /** URL pathname (e.g., '/about') */
+  pathname: string;
+  /** Query string including leading '?' (e.g., '?q=test') or empty string */
+  search: string;
+  /** Hash fragment including leading '#' (e.g., '#section') or empty string */
+  hash: string;
+}

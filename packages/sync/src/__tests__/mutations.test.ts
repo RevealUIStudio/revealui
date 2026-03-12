@@ -142,6 +142,7 @@ describe('useSyncMutations', () => {
       expect(mockFetch).toHaveBeenCalledWith('/api/sync/items', {
         method: 'POST',
         credentials: 'include',
+        signal: expect.any(AbortSignal),
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ title: 'Test Record' }),
       });
@@ -285,6 +286,7 @@ describe('useSyncMutations', () => {
       expect(mockFetch).toHaveBeenCalledWith('/api/sync/items/rec-1', {
         method: 'PATCH',
         credentials: 'include',
+        signal: expect.any(AbortSignal),
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ title: 'Updated Title' }),
       });
@@ -370,6 +372,7 @@ describe('useSyncMutations', () => {
       expect(mockFetch).toHaveBeenCalledWith('/api/sync/items/rec-1', {
         method: 'DELETE',
         credentials: 'include',
+        signal: expect.any(AbortSignal),
         headers: undefined,
         body: undefined,
       });

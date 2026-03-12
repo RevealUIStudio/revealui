@@ -9,6 +9,7 @@ import { mkdirSync, rmSync, writeFileSync } from 'node:fs';
 import { join } from 'node:path';
 import * as ts from 'typescript';
 import { afterAll, beforeAll, describe, expect, it } from 'vitest';
+import type { ParseError } from '../discover.js';
 import {
   createParseError,
   discoverTablesInFile,
@@ -204,21 +205,19 @@ describe('extractTableNameFromCall', () => {
       export const sessions = pgTable('sessions', {})
     `);
 
-    const tables = findTableExports(sourceFile, '/test.ts');
+    const errors: ParseError[] = [];
+    const tables = findTableExports(sourceFile, '/test.ts', errors);
 
-    // Template expression should be skipped
-    // Only sessions table should be found
+    // Template expression should be skipped — only sessions table found
     expect(tables.length).toBe(1);
     expect(tables[0].variableName).toBe('sessions');
     expect(tables[0].tableName).toBe('sessions');
 
-    // NOTE: Current implementation silently skips template expressions (no error created)
-    // When extractTableNameFromCall() is updated to create ParseError for template expressions,
-    // and findTableExports() is updated to accept and collect errors, this test should verify:
-    // - Error is created for template expression with helpful message
-    // - Error message explains why template expressions aren't supported
-    // - Error position points to template expression
-    // - Error context provides table variable name ('users')
+    // Error should be reported for the template expression
+    expect(errors.length).toBe(1);
+    expect(errors[0].message).toContain('not supported');
+    expect(errors[0].message).toContain('static string literal');
+    expect(errors[0].position).toBeDefined();
   });
 
   it('should create error for template expressions in table name', () => {
@@ -230,33 +229,17 @@ describe('extractTableNameFromCall', () => {
     const callExpr = findFirstCallExpression(sourceFile, 'pgTable');
     expect(callExpr).not.toBeNull();
 
-    // Current behavior: function doesn't accept errors parameter
-    // When fix is implemented, this will work:
-    // const errors: ParseError[] = []
-    // const tableName = extractTableNameFromCall(callExpr!, errors)
-
-    // For now, test current behavior but structure test for future fix:
+    const errors: ParseError[] = [];
     const tableName = extractTableNameFromCall(
       expectDefined(callExpr, 'Expected call expression for template error case'),
+      errors,
     );
     expect(tableName).toBeNull();
-
-    // TODO: When extractTableNameFromCall is updated to accept errors parameter:
-    // const errors: ParseError[] = []
-    // const tableName = extractTableNameFromCall(callExpr!, errors)
-    // expect(tableName).toBeNull()
-    // expect(errors.length).toBe(1)
-    // expect(errors[0].message).toContain('Template expressions')
-    // expect(errors[0].message).toContain('not supported')
-    // expect(errors[0].message).toContain('static string literals')
-    // expect(errors[0].position).toBeDefined()
-    // expect(errors[0].context).toContain('Variable: users')
-
-    // Alternative: Test through findTableExports when it accepts errors parameter
-    // const errors: ParseError[] = []
-    // const tables = findTableExports(sourceFile, '/test.ts', errors)
-    // expect(tables.length).toBe(0)
-    // expect(errors.length).toBe(1)
+    expect(errors.length).toBe(1);
+    expect(errors[0].message).toContain('Template expressions');
+    expect(errors[0].message).toContain('not supported');
+    expect(errors[0].message).toContain('static string literal');
+    expect(errors[0].position).toBeDefined();
   });
 
   it('should return null for missing arguments', () => {

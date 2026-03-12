@@ -31,16 +31,19 @@ export {
   RouterProvider,
   Routes,
   useData,
+  useLocation,
   useMatch,
   useNavigate,
   useParams,
   useRouter,
+  useSearchParams,
 } from './components';
 // Core router
 export { Router } from './router';
 
 // Types
 export type {
+  Location,
   NavigateOptions,
   Route,
   RouteMatch,
