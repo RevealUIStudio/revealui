@@ -7,7 +7,7 @@ import {
   TIER_LIMITS,
 } from '@revealui/contracts/pricing';
 import type { FeatureFlags } from '@revealui/core/features';
-import { PricingTable } from '@revealui/presentation/server';
+import { PricingTable } from '@revealui/presentation/client';
 import { useLicense } from '@/lib/providers/LicenseProvider';
 
 export default function UpgradePage() {
@@ -53,7 +53,7 @@ export default function UpgradePage() {
       <PricingTable
         tiers={SUBSCRIPTION_TIERS}
         currentTier={currentTier}
-        onSelectTier={(id) => void handleSelectTier(id)}
+        onSelectTier={(id: string) => void handleSelectTier(id)}
       />
 
       {/* Feature comparison matrix */}

@@ -259,14 +259,16 @@ app.openapi(portalRoute, async (c) => {
     });
   }
 
-  const stripe = getStripeClient();
+  const customerId = dbUser.stripeCustomerId;
   const cmsUrl = process.env.CMS_URL || process.env.NEXT_PUBLIC_SERVER_URL;
   if (!cmsUrl) throw new HTTPException(500, { message: 'CMS_URL is not configured' });
 
-  const session = await stripe.billingPortal.sessions.create({
-    customer: dbUser.stripeCustomerId,
-    return_url: `${cmsUrl}/account/billing`,
-  });
+  const session = await withStripe((stripe) =>
+    stripe.billingPortal.sessions.create({
+      customer: customerId,
+      return_url: `${cmsUrl}/account/billing`,
+    }),
+  );
 
   return c.json({ url: session.url }, 200);
 });
@@ -383,14 +385,16 @@ app.openapi(upgradeRoute, async (c) => {
     });
   }
 
-  const stripe = getStripeClient();
+  const stripeCustomerId = dbUser.stripeCustomerId;
 
   // Find the user's current active subscription
-  const subscriptionList = await stripe.subscriptions.list({
-    customer: dbUser.stripeCustomerId,
-    status: 'active',
-    limit: 1,
-  });
+  const subscriptionList = await withStripe((stripe) =>
+    stripe.subscriptions.list({
+      customer: stripeCustomerId,
+      status: 'active',
+      limit: 1,
+    }),
+  );
 
   const subscription = subscriptionList.data[0];
   if (!subscription) {
@@ -403,11 +407,13 @@ app.openapi(upgradeRoute, async (c) => {
   }
 
   // Swap the price and set tier metadata so the webhook can detect the upgrade
-  await stripe.subscriptions.update(subscription.id, {
-    items: [{ id: item.id, price: priceId }],
-    metadata: { tier: targetTier, revealui_user_id: user.id },
-    proration_behavior: 'create_prorations',
-  });
+  await withStripe((stripe) =>
+    stripe.subscriptions.update(subscription.id, {
+      items: [{ id: item.id, price: priceId }],
+      metadata: { tier: targetTier, revealui_user_id: user.id },
+      proration_behavior: 'create_prorations',
+    }),
+  );
 
   return c.json({ success: true, subscriptionId: subscription.id }, 200);
 });
@@ -459,13 +465,15 @@ app.openapi(downgradeRoute, async (c) => {
     });
   }
 
-  const stripe = getStripeClient();
+  const stripeCustomerId = dbUser.stripeCustomerId;
 
-  const subscriptionList = await stripe.subscriptions.list({
-    customer: dbUser.stripeCustomerId,
-    status: 'active',
-    limit: 1,
-  });
+  const subscriptionList = await withStripe((stripe) =>
+    stripe.subscriptions.list({
+      customer: stripeCustomerId,
+      status: 'active',
+      limit: 1,
+    }),
+  );
 
   const subscription = subscriptionList.data[0];
   if (!subscription) {
@@ -473,9 +481,11 @@ app.openapi(downgradeRoute, async (c) => {
   }
 
   // Cancel at period end so the customer retains access until their billing cycle ends
-  const updated = await stripe.subscriptions.update(subscription.id, {
-    cancel_at_period_end: true,
-  });
+  const updated = await withStripe((stripe) =>
+    stripe.subscriptions.update(subscription.id, {
+      cancel_at_period_end: true,
+    }),
+  );
 
   // cancel_at is populated by Stripe when cancel_at_period_end is set
   const cancelAt = updated.cancel_at;
@@ -537,34 +547,35 @@ app.openapi(perpetualCheckoutRoute, async (c) => {
   const { priceId, tier, githubUsername } = c.req.valid('json');
   const customerId = await ensureStripeCustomer(user.id, user.email ?? '');
 
-  const stripe = getStripeClient();
   const cmsUrl = process.env.CMS_URL || process.env.NEXT_PUBLIC_SERVER_URL;
   if (!cmsUrl) throw new HTTPException(500, { message: 'CMS_URL is not configured' });
 
-  const session = await stripe.checkout.sessions.create({
-    customer: customerId,
-    mode: 'payment',
-    payment_method_types: ['card'],
-    billing_address_collection: 'required',
-    allow_promotion_codes: true,
-    line_items: [{ price: priceId, quantity: 1 }],
-    payment_intent_data: {
+  const session = await withStripe((stripe) =>
+    stripe.checkout.sessions.create({
+      customer: customerId,
+      mode: 'payment',
+      payment_method_types: ['card'],
+      billing_address_collection: 'required',
+      allow_promotion_codes: true,
+      line_items: [{ price: priceId, quantity: 1 }],
+      payment_intent_data: {
+        metadata: {
+          tier,
+          perpetual: 'true',
+          revealui_user_id: user.id,
+          ...(githubUsername && { github_username: githubUsername }),
+        },
+      },
       metadata: {
         tier,
         perpetual: 'true',
         revealui_user_id: user.id,
         ...(githubUsername && { github_username: githubUsername }),
       },
-    },
-    metadata: {
-      tier,
-      perpetual: 'true',
-      revealui_user_id: user.id,
-      ...(githubUsername && { github_username: githubUsername }),
-    },
-    success_url: `${cmsUrl}/account/billing?perpetual=true`,
-    cancel_url: `${cmsUrl}/account/billing`,
-  });
+      success_url: `${cmsUrl}/account/billing?perpetual=true`,
+      cancel_url: `${cmsUrl}/account/billing`,
+    }),
+  );
 
   if (!session.url) {
     throw new HTTPException(500, { message: 'Failed to create checkout session' });
