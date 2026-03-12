@@ -1,8 +1,7 @@
 'use client';
 
 import clsx from 'clsx';
-import type React from 'react';
-import { cloneElement, useEffect, useId, useRef, useState } from 'react';
+import { type ReactNode, useCallback, useEffect, useId, useRef, useState } from 'react';
 
 type TooltipSide = 'top' | 'bottom' | 'left' | 'right';
 
@@ -13,53 +12,61 @@ const sideClasses: Record<TooltipSide, string> = {
   right: 'left-full top-1/2 -translate-y-1/2 ml-2',
 };
 
-export function Tooltip({
-  content,
-  side = 'top',
-  className,
-  children,
-}: {
-  content: React.ReactNode;
+type TooltipProps = {
+  content: ReactNode;
   side?: TooltipSide;
   className?: string;
-  children: React.ReactElement;
-}) {
-  const [visible, setVisible] = useState(false);
+  delay?: number;
+  children: ReactNode;
+};
+
+export function Tooltip({ content, side = 'top', className, delay = 200, children }: TooltipProps) {
   const id = useId();
-  const timeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const [visible, setVisible] = useState(false);
+  const timeoutRef = useRef<number | null>(null);
 
-  const show = () => {
-    timeoutRef.current = setTimeout(() => setVisible(true), 200);
-  };
+  const clear = useCallback(() => {
+    if (timeoutRef.current) {
+      window.clearTimeout(timeoutRef.current);
+      timeoutRef.current = null;
+    }
+  }, []);
 
-  const hide = () => {
-    if (timeoutRef.current) clearTimeout(timeoutRef.current);
+  const show = useCallback(() => {
+    clear();
+    timeoutRef.current = window.setTimeout(() => {
+      setVisible(true);
+    }, delay);
+  }, [delay, clear]);
+
+  const hide = useCallback(() => {
+    clear();
     setVisible(false);
-  };
+  }, [clear]);
 
   useEffect(() => {
-    return () => {
-      if (timeoutRef.current) clearTimeout(timeoutRef.current);
-    };
-  }, []);
+    return clear;
+  }, [clear]);
 
   return (
     <span
       className="relative inline-flex"
-      onMouseEnter={show}
-      onMouseLeave={hide}
+      onPointerEnter={show}
+      onPointerLeave={hide}
       onFocus={show}
       onBlur={hide}
+      aria-describedby={visible ? id : undefined}
     >
-      {cloneElement(children, { 'aria-describedby': visible ? id : undefined })}
+      {children}
+
       {visible && (
         <span
-          role="tooltip"
           id={id}
+          role="tooltip"
           className={clsx(
-            className,
-            sideClasses[side],
             'pointer-events-none absolute z-50 w-max max-w-xs rounded-lg bg-zinc-950 px-2.5 py-1.5 text-xs text-white shadow-lg dark:bg-zinc-700',
+            sideClasses[side],
+            className,
           )}
         >
           {content}
