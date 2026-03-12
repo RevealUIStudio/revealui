@@ -8,7 +8,7 @@
 
 import * as os from 'node:os';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
-import type { Alert, PoolMetrics } from '../types.js';
+import type { Alert } from '../types.js';
 import { DEFAULT_MONITORING_CONFIG } from '../types.js';
 
 // Mock dependencies

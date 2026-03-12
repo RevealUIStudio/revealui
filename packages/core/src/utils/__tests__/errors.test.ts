@@ -6,10 +6,15 @@ vi.mock('../logger.js', () => ({
 
 import {
   ApplicationError,
+  AuthenticationError,
+  AuthorizationError,
+  ConflictError,
   DatabaseError,
   handleApiError,
   handleDatabaseError,
+  NotFoundError,
   PostgresErrorCode,
+  RateLimitError,
   ValidationError,
 } from '../errors.js';
 
@@ -68,6 +73,123 @@ describe('Error Classes', () => {
       expect(err.name).toBe('DatabaseError');
     });
   });
+
+  describe('AuthenticationError', () => {
+    it('uses default message and 401 status', () => {
+      const err = new AuthenticationError();
+      expect(err.message).toBe('Authentication required');
+      expect(err.code).toBe('AUTHENTICATION_ERROR');
+      expect(err.statusCode).toBe(401);
+      expect(err.name).toBe('AuthenticationError');
+    });
+
+    it('accepts custom message and context', () => {
+      const err = new AuthenticationError('Token expired', { tokenId: 'abc' });
+      expect(err.message).toBe('Token expired');
+      expect(err.context).toEqual({ tokenId: 'abc' });
+    });
+
+    it('is an instance of ApplicationError', () => {
+      const err = new AuthenticationError();
+      expect(err).toBeInstanceOf(ApplicationError);
+    });
+  });
+
+  describe('AuthorizationError', () => {
+    it('uses default message and 403 status', () => {
+      const err = new AuthorizationError();
+      expect(err.message).toBe('Insufficient permissions');
+      expect(err.code).toBe('AUTHORIZATION_ERROR');
+      expect(err.statusCode).toBe(403);
+      expect(err.name).toBe('AuthorizationError');
+    });
+
+    it('accepts custom message and context', () => {
+      const err = new AuthorizationError('Admin only', { role: 'user' });
+      expect(err.message).toBe('Admin only');
+      expect(err.context).toEqual({ role: 'user' });
+    });
+
+    it('is an instance of ApplicationError', () => {
+      const err = new AuthorizationError();
+      expect(err).toBeInstanceOf(ApplicationError);
+    });
+  });
+
+  describe('NotFoundError', () => {
+    it('builds message from resource name', () => {
+      const err = new NotFoundError('User');
+      expect(err.message).toBe('User not found');
+      expect(err.code).toBe('NOT_FOUND');
+      expect(err.statusCode).toBe(404);
+      expect(err.name).toBe('NotFoundError');
+    });
+
+    it('includes identifier in message', () => {
+      const err = new NotFoundError('Post', 'abc-123');
+      expect(err.message).toBe('Post not found: abc-123');
+      expect(err.context).toEqual({ resource: 'Post', identifier: 'abc-123' });
+    });
+
+    it('merges additional context', () => {
+      const err = new NotFoundError('User', '42', { tenantId: 't1' });
+      expect(err.context).toEqual({ resource: 'User', identifier: '42', tenantId: 't1' });
+    });
+
+    it('is an instance of ApplicationError', () => {
+      const err = new NotFoundError('User');
+      expect(err).toBeInstanceOf(ApplicationError);
+    });
+  });
+
+  describe('ConflictError', () => {
+    it('uses default message and 409 status', () => {
+      const err = new ConflictError();
+      expect(err.message).toBe('Resource conflict');
+      expect(err.code).toBe('CONFLICT');
+      expect(err.statusCode).toBe(409);
+      expect(err.name).toBe('ConflictError');
+    });
+
+    it('accepts custom message and context', () => {
+      const err = new ConflictError('Email already taken', { email: 'a@b.com' });
+      expect(err.message).toBe('Email already taken');
+      expect(err.context).toEqual({ email: 'a@b.com' });
+    });
+
+    it('is an instance of ApplicationError', () => {
+      const err = new ConflictError();
+      expect(err).toBeInstanceOf(ApplicationError);
+    });
+  });
+
+  describe('RateLimitError', () => {
+    it('uses default message and 429 status', () => {
+      const err = new RateLimitError();
+      expect(err.message).toBe('Too many requests');
+      expect(err.code).toBe('RATE_LIMITED');
+      expect(err.statusCode).toBe(429);
+      expect(err.name).toBe('RateLimitError');
+    });
+
+    it('stores retryAfterMs', () => {
+      const err = new RateLimitError('Slow down', 30_000);
+      expect(err.retryAfterMs).toBe(30_000);
+      expect(err.context).toEqual({ retryAfterMs: 30_000 });
+    });
+
+    it('accepts custom message, retryAfterMs, and context', () => {
+      const err = new RateLimitError('Rate limited', 5000, { ip: '1.2.3.4' });
+      expect(err.message).toBe('Rate limited');
+      expect(err.retryAfterMs).toBe(5000);
+      expect(err.context).toEqual({ retryAfterMs: 5000, ip: '1.2.3.4' });
+    });
+
+    it('is an instance of ApplicationError', () => {
+      const err = new RateLimitError();
+      expect(err).toBeInstanceOf(ApplicationError);
+    });
+  });
 });
 
 // ---------------------------------------------------------------------------
@@ -111,6 +233,52 @@ describe('handleApiError', () => {
 
     expect(result.message).toBe('An error occurred');
     expect(result.statusCode).toBe(500);
+  });
+
+  it('handles AuthenticationError with 401', () => {
+    const err = new AuthenticationError('Session expired');
+    const result = handleApiError(err);
+
+    expect(result.message).toBe('Session expired');
+    expect(result.statusCode).toBe(401);
+    expect(result.code).toBe('AUTHENTICATION_ERROR');
+  });
+
+  it('handles AuthorizationError with 403', () => {
+    const err = new AuthorizationError('Admin only');
+    const result = handleApiError(err);
+
+    expect(result.message).toBe('Admin only');
+    expect(result.statusCode).toBe(403);
+    expect(result.code).toBe('AUTHORIZATION_ERROR');
+  });
+
+  it('handles NotFoundError with 404', () => {
+    const err = new NotFoundError('User', 'abc');
+    const result = handleApiError(err);
+
+    expect(result.message).toBe('User not found: abc');
+    expect(result.statusCode).toBe(404);
+    expect(result.code).toBe('NOT_FOUND');
+  });
+
+  it('handles ConflictError with 409', () => {
+    const err = new ConflictError('Duplicate email');
+    const result = handleApiError(err);
+
+    expect(result.message).toBe('Duplicate email');
+    expect(result.statusCode).toBe(409);
+    expect(result.code).toBe('CONFLICT');
+  });
+
+  it('handles RateLimitError with 429 and retryable flag', () => {
+    const err = new RateLimitError('Slow down', 60_000);
+    const result = handleApiError(err);
+
+    expect(result.message).toBe('Slow down');
+    expect(result.statusCode).toBe(429);
+    expect(result.code).toBe('RATE_LIMITED');
+    expect(result.retryable).toBe(true);
   });
 
   it('includes retryable flag from DatabaseError context', () => {

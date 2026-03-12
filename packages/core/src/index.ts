@@ -149,8 +149,13 @@ export {
 } from './utils/error-responses.js';
 export {
   ApplicationError,
+  AuthenticationError,
+  AuthorizationError,
+  ConflictError,
   handleApiError,
   handleDatabaseError,
+  NotFoundError,
+  RateLimitError,
   ValidationError,
 } from './utils/errors.js';
 // Utilities
