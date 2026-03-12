@@ -1,3 +1,5 @@
+import { Button } from '@revealui/presentation';
+
 export function ValueProposition() {
   const features = [
     {
@@ -62,12 +64,9 @@ export function ValueProposition() {
                 </div>
                 <dt className="text-lg font-semibold leading-7 text-gray-950">{feature.title}</dt>
                 <dd className="mt-2 text-base leading-7 text-gray-500">{feature.description}</dd>
-                <a
-                  href={feature.href}
-                  className="mt-4 inline-flex items-center gap-1 text-sm font-medium text-gray-950 hover:text-gray-700 transition-colors"
-                >
+                <Button plain href={feature.href} className="mt-4 text-sm font-medium">
                   Learn more &rarr;
-                </a>
+                </Button>
               </div>
             ))}
           </dl>

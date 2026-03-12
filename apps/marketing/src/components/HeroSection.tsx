@@ -1,3 +1,4 @@
+import { Badge, ButtonCVA } from '@revealui/presentation';
 import { ProductMockup } from './ProductMockup';
 
 const primitives = [
@@ -39,10 +40,13 @@ export function HeroSection() {
       <div className="relative mx-auto max-w-7xl">
         {/* Headline block */}
         <div className="mx-auto max-w-3xl text-center mb-16">
-          <div className="mb-6 inline-flex items-center gap-2 rounded-full bg-emerald-50 px-4 py-1.5 text-sm font-medium text-emerald-700 ring-1 ring-emerald-200/80">
+          <Badge
+            color="emerald"
+            className="mb-6 gap-2 rounded-full px-4 py-1.5 ring-1 ring-emerald-200/80"
+          >
             <span className="h-1.5 w-1.5 rounded-full bg-emerald-500 animate-pulse" />
             Open Source &middot; MIT Licensed
-          </div>
+          </Badge>
           <h1 className="text-4xl font-bold tracking-tight text-gray-950 sm:text-6xl lg:text-7xl hero-stagger">
             Build your business,
             <span className="block bg-gradient-to-r from-gray-500 to-gray-300 bg-clip-text text-transparent">
@@ -57,10 +61,7 @@ export function HeroSection() {
           {/* Five primitives */}
           <div className="mt-10 flex flex-wrap items-center justify-center gap-3">
             {primitives.map((p) => (
-              <div
-                key={p.label}
-                className="flex items-center gap-2 rounded-lg bg-white px-4 py-2.5 text-sm font-medium text-gray-700 shadow-sm ring-1 ring-gray-950/5 hover:ring-gray-950/10 transition-all"
-              >
+              <Badge key={p.label} color="zinc" className="gap-2 rounded-lg px-4 py-2.5">
                 <svg
                   className="h-4 w-4 text-gray-400"
                   fill="none"
@@ -72,37 +73,33 @@ export function HeroSection() {
                   <path strokeLinecap="round" strokeLinejoin="round" d={p.icon} />
                 </svg>
                 {p.label}
-              </div>
+              </Badge>
             ))}
           </div>
 
           <div className="mt-10 flex flex-col sm:flex-row items-center justify-center gap-4">
-            <a
-              href="#waitlist"
-              className="w-full sm:w-auto rounded-lg bg-gray-950 px-8 py-3.5 text-sm font-semibold text-white shadow-sm hover:bg-gray-800 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-gray-950 transition-colors"
-            >
-              Get Early Access
-            </a>
-            <a
-              href="https://docs.revealui.com"
-              className="w-full sm:w-auto flex items-center justify-center gap-1.5 rounded-lg px-8 py-3.5 text-sm font-semibold text-gray-700 ring-1 ring-gray-300 hover:ring-gray-400 transition-colors"
-            >
-              View docs
-              <svg
-                className="h-4 w-4"
-                fill="none"
-                viewBox="0 0 24 24"
-                stroke="currentColor"
-                strokeWidth={2}
-              >
-                <title>Arrow</title>
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  d="M13.5 4.5L21 12m0 0l-7.5 7.5M21 12H3"
-                />
-              </svg>
-            </a>
+            <ButtonCVA asChild size="lg" className="w-full sm:w-auto">
+              <a href="#waitlist">Get Early Access</a>
+            </ButtonCVA>
+            <ButtonCVA asChild variant="outline" size="lg" className="w-full sm:w-auto">
+              <a href="https://docs.revealui.com" className="gap-1.5">
+                View docs
+                <svg
+                  className="h-4 w-4"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                  stroke="currentColor"
+                  strokeWidth={2}
+                >
+                  <title>Arrow</title>
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    d="M13.5 4.5L21 12m0 0l-7.5 7.5M21 12H3"
+                  />
+                </svg>
+              </a>
+            </ButtonCVA>
           </div>
 
           {/* CLI quick-start */}

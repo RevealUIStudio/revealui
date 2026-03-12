@@ -1,3 +1,5 @@
+import { Button } from '@revealui/presentation';
+
 export function Audiences() {
   return (
     <section className="py-24 bg-white sm:py-32">
@@ -67,12 +69,9 @@ export function Audiences() {
             </ul>
             <p className="mt-6 text-sm text-gray-400">
               Pick the packages you need.{' '}
-              <a
-                href="https://docs.revealui.com"
-                className="text-gray-950 hover:text-gray-700 font-medium"
-              >
+              <Button plain href="https://docs.revealui.com" className="text-sm font-medium">
                 See the full package list &rarr;
-              </a>
+              </Button>
             </p>
           </div>
 
@@ -123,12 +122,13 @@ export function Audiences() {
             </div>
 
             <div className="mt-6 border-t border-gray-100 pt-6">
-              <a
+              <Button
+                plain
                 href="https://docs.revealui.com/docs/QUICK_START"
-                className="inline-flex items-center gap-1.5 text-sm font-medium text-emerald-700 hover:text-emerald-600"
+                className="text-sm font-medium text-emerald-700 data-hover:text-emerald-600"
               >
                 Quick start guide &rarr;
-              </a>
+              </Button>
             </div>
           </div>
         </div>

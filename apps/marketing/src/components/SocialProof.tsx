@@ -1,3 +1,5 @@
+import { Badge } from '@revealui/presentation';
+
 export function SocialProof() {
   const stats = [
     { value: '20', label: 'packages' },
@@ -86,12 +88,13 @@ export function SocialProof() {
           </p>
           <div className="flex flex-wrap justify-center gap-2">
             {techStack.map((tech) => (
-              <span
+              <Badge
                 key={tech}
-                className="rounded-full bg-gray-800 px-4 py-1.5 text-sm font-medium text-gray-300 ring-1 ring-gray-700"
+                color="zinc"
+                className="rounded-full bg-gray-800 px-4 py-1.5 text-gray-300 ring-1 ring-gray-700"
               >
                 {tech}
-              </span>
+              </Badge>
             ))}
           </div>
         </div>
