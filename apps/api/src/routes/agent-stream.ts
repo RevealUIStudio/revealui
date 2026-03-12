@@ -50,10 +50,22 @@ app.post('/', async (c) => {
   let llmClient: unknown;
   try {
     if (byokKey) {
+      // Detect provider from API key prefix format
+      const provider = byokKey.startsWith('sk-ant-')
+        ? 'anthropic'
+        : byokKey.startsWith('sk-')
+          ? 'openai'
+          : 'groq';
+      const model =
+        provider === 'anthropic'
+          ? 'claude-sonnet-4-5-20250514'
+          : provider === 'openai'
+            ? 'gpt-4o'
+            : 'llama-3.3-70b-versatile';
       llmClient = new llmClientMod.LLMClient({
-        provider: 'groq',
+        provider,
         apiKey: byokKey,
-        model: 'llama-3.3-70b-versatile',
+        model,
       });
     } else {
       llmClient = aiMod.createLLMClientFromEnv();

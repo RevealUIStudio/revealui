@@ -95,14 +95,7 @@ async function signInHandler(request: NextRequest): Promise<NextResponse> {
         maxAge: 60 * 60 * 24 * 7, // 7 days
         domain:
           process.env.NODE_ENV === 'production'
-            ? (() => {
-                if (!process.env.SESSION_COOKIE_DOMAIN) {
-                  throw new Error(
-                    'SESSION_COOKIE_DOMAIN env var is required in production. Set it to your root domain (e.g. ".example.com").',
-                  );
-                }
-                return process.env.SESSION_COOKIE_DOMAIN;
-              })()
+            ? process.env.SESSION_COOKIE_DOMAIN || undefined
             : undefined,
       });
     }

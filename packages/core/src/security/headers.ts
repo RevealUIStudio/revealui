@@ -322,6 +322,12 @@ export class CORSManager {
       headers['Access-Control-Allow-Origin'] = this.config.origin === '*' ? '*' : origin;
     }
 
+    // Vary: Origin — required when Access-Control-Allow-Origin is not '*' so caches
+    // don't serve a response allowed for origin A to origin B.
+    if (this.config.origin !== '*') {
+      headers['Vary'] = 'Origin';
+    }
+
     // Access-Control-Allow-Credentials — incompatible with origin: '*' per Fetch spec
     if (this.config.credentials && this.config.origin !== '*') {
       headers['Access-Control-Allow-Credentials'] = 'true';

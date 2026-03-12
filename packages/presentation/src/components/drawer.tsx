@@ -2,12 +2,14 @@
 
 import clsx from 'clsx';
 import type React from 'react';
-import { useCallback, useId, useRef } from 'react';
+import { createContext, use, useId, useRef } from 'react';
 import { createPortal } from 'react-dom';
 import { useEscapeKey } from '../hooks/use-escape-key.js';
 import { useFocusTrap } from '../hooks/use-focus-trap.js';
 import { useScrollLock } from '../hooks/use-scroll-lock.js';
 import { useTransition } from '../hooks/use-transition.js';
+
+const DrawerContext = createContext<string | undefined>(undefined);
 
 type DrawerSide = 'left' | 'right' | 'top' | 'bottom';
 
@@ -41,42 +43,41 @@ export function Drawer({
   useFocusTrap(panelRef, open);
   useEscapeKey(onClose, open);
 
-  const handleBackdropClick = useCallback(
-    (e: React.MouseEvent) => {
-      if (e.target === e.currentTarget) onClose();
-    },
-    [onClose],
-  );
+  const handleBackdropClick = (e: React.MouseEvent) => {
+    if (e.target === e.currentTarget) onClose();
+  };
 
   if (!(backdrop.mounted || panel.mounted)) return null;
 
   return createPortal(
-    <div role="dialog" aria-modal="true" aria-labelledby={titleId}>
-      {backdrop.mounted && (
-        <div
-          ref={backdrop.nodeRef as React.RefObject<HTMLDivElement>}
-          {...backdrop.transitionProps}
-          onClick={handleBackdropClick}
-          className="fixed inset-0 z-40 bg-zinc-950/25 transition duration-200 data-closed:opacity-0 data-enter:ease-out data-leave:ease-in dark:bg-zinc-950/50"
-        />
-      )}
-      {panel.mounted && (
-        <div
-          ref={(node) => {
-            (panelRef as React.MutableRefObject<HTMLDivElement | null>).current = node;
-            (panel.nodeRef as React.MutableRefObject<HTMLElement | null>).current = node;
-          }}
-          {...panel.transitionProps}
-          className={clsx(
-            'fixed z-50 overflow-y-auto bg-white shadow-xl ring-1 ring-zinc-950/10 transition duration-300 ease-in-out dark:bg-zinc-900 dark:ring-white/10',
-            sideClasses[side],
-            className,
-          )}
-        >
-          {children}
-        </div>
-      )}
-    </div>,
+    <DrawerContext.Provider value={titleId}>
+      <div role="dialog" aria-modal="true" aria-labelledby={titleId}>
+        {backdrop.mounted && (
+          <div
+            ref={backdrop.nodeRef as React.RefObject<HTMLDivElement>}
+            {...backdrop.transitionProps}
+            onClick={handleBackdropClick}
+            className="fixed inset-0 z-40 bg-zinc-950/25 transition duration-200 data-closed:opacity-0 data-enter:ease-out data-leave:ease-in dark:bg-zinc-950/50"
+          />
+        )}
+        {panel.mounted && (
+          <div
+            ref={(node) => {
+              (panelRef as React.MutableRefObject<HTMLDivElement | null>).current = node;
+              (panel.nodeRef as React.MutableRefObject<HTMLElement | null>).current = node;
+            }}
+            {...panel.transitionProps}
+            className={clsx(
+              'fixed z-50 overflow-y-auto bg-white shadow-xl ring-1 ring-zinc-950/10 transition duration-300 ease-in-out dark:bg-zinc-900 dark:ring-white/10',
+              sideClasses[side],
+              className,
+            )}
+          >
+            {children}
+          </div>
+        )}
+      </div>
+    </DrawerContext.Provider>,
     document.body,
   );
 }
@@ -90,6 +91,7 @@ export function DrawerHeader({
   className?: string;
   children: React.ReactNode;
 }) {
+  const titleId = use(DrawerContext);
   return (
     <div
       className={clsx(
@@ -97,7 +99,9 @@ export function DrawerHeader({
         className,
       )}
     >
-      <div className="text-base font-semibold text-zinc-950 dark:text-white">{children}</div>
+      <div id={titleId} className="text-base font-semibold text-zinc-950 dark:text-white">
+        {children}
+      </div>
       {onClose && (
         <button
           type="button"

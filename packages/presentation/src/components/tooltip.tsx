@@ -2,7 +2,7 @@
 
 import clsx from 'clsx';
 import type React from 'react';
-import { useCallback, useEffect, useId, useRef, useState } from 'react';
+import { cloneElement, useEffect, useId, useRef, useState } from 'react';
 
 type TooltipSide = 'top' | 'bottom' | 'left' | 'right';
 
@@ -28,14 +28,14 @@ export function Tooltip({
   const id = useId();
   const timeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
-  const show = useCallback(() => {
+  const show = () => {
     timeoutRef.current = setTimeout(() => setVisible(true), 200);
-  }, []);
+  };
 
-  const hide = useCallback(() => {
+  const hide = () => {
     if (timeoutRef.current) clearTimeout(timeoutRef.current);
     setVisible(false);
-  }, []);
+  };
 
   useEffect(() => {
     return () => {
@@ -51,7 +51,7 @@ export function Tooltip({
       onFocus={show}
       onBlur={hide}
     >
-      {children}
+      {cloneElement(children, { 'aria-describedby': visible ? id : undefined })}
       {visible && (
         <span
           role="tooltip"

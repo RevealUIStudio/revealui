@@ -72,7 +72,7 @@ export async function create(
 
   // Hash password if present and not already hashed (doesn't start with $2a$ or $2b$)
   if (data.password && typeof data.password === 'string' && !data.password.startsWith('$2')) {
-    const saltRounds = 10;
+    const saltRounds = 12;
     data.password = await bcrypt.hash(data.password, saltRounds);
   }
 
