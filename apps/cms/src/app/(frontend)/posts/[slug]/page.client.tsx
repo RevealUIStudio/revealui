@@ -2,7 +2,7 @@
 import React, { useEffect } from 'react';
 import { useHeaderTheme } from '@/lib/providers/HeaderTheme';
 
-const PageClient: React.FC = () => {
+const PageClient = () => {
   /* Force the header to be dark mode while we have an image behind it */
   const { setHeaderTheme } = useHeaderTheme();
 

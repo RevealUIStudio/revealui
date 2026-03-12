@@ -8,7 +8,7 @@ import type { Props as MediaProps } from '../types';
 
 const { breakpoints } = cssVariables;
 
-export const ImageMedia: React.FC<MediaProps> = (props) => {
+export const ImageMedia = (props: MediaProps) => {
   const {
     alt: altFromProps,
     fill,

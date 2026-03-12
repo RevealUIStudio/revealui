@@ -19,7 +19,7 @@ type CMSLinkType = {
   href?: string | null;
 };
 
-export const CMSLink: React.FC<CMSLinkType> = (props) => {
+export const CMSLink = (props: CMSLinkType) => {
   const {
     type,
     appearance = 'inline',

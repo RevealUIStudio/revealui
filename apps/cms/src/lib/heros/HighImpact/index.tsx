@@ -6,7 +6,7 @@ import { Media } from '@/lib/components/Media/index';
 import RichText from '@/lib/components/RichText/index';
 import { useHeaderTheme } from '@/lib/providers/HeaderTheme/index';
 
-export const HighImpactHero: React.FC<Page['hero']> = ({ links, media, richText }) => {
+export const HighImpactHero = ({ links, media, richText }: Page['hero']) => {
   const { setHeaderTheme } = useHeaderTheme();
 
   useEffect(() => {

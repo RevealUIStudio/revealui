@@ -1,9 +1,8 @@
 import Script from 'next/script';
-import type React from 'react';
 
 import { defaultTheme, themeLocalStorageKey } from '../ThemeSelector/types';
 
-export const InitTheme: React.FC = () => {
+export const InitTheme = () => {
   return (
     <Script
       // biome-ignore lint/security/noDangerouslySetInnerHtml: inline theme init required before render

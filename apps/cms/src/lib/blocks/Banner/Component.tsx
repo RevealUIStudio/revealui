@@ -1,4 +1,3 @@
-import type React from 'react';
 import RichText from '@/lib/components/RichText/index';
 
 export interface BannerBlockProps {
@@ -24,7 +23,7 @@ export interface BannerBlockProps {
   blockType: 'banner';
 }
 
-export const BannerBlock: React.FC<BannerBlockProps> = ({ className, content, style }) => {
+export const BannerBlock = ({ className, content, style }: BannerBlockProps) => {
   function cn(...args: (string | Record<string, boolean> | undefined)[]): string {
     return args
       .flatMap((arg) => {

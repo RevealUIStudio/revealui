@@ -7,7 +7,7 @@ import {
   DialogBody,
   DialogDescription,
   DialogTitle,
-} from '@revealui/presentation';
+} from '@revealui/presentation/client';
 import { PricingTable } from '@revealui/presentation/server';
 import Link from 'next/link';
 import { useCallback, useEffect, useState } from 'react';

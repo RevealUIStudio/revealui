@@ -5,7 +5,7 @@ import { useTheme } from '..';
 import type { Theme } from './types';
 import { themeLocalStorageKey } from './types';
 
-export const ThemeSelector: React.FC = () => {
+export const ThemeSelector = () => {
   const { setTheme } = useTheme();
   const [value, setValue] = useState('');
 

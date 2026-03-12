@@ -1,10 +1,9 @@
 'use client';
 
-import type React from 'react';
 import { CMSLink } from '@/lib/components/Link/index';
 import type { HeaderType } from '../Component';
 
-export const HeaderNav: React.FC<{ header: HeaderType }> = ({ header }) => {
+export const HeaderNav = ({ header }: { header: HeaderType }) => {
   const navItems = header?.navItems || [];
 
   const getNavItemKey = (item: NonNullable<HeaderType['navItems']>[number]) => {

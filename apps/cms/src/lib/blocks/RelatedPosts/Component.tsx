@@ -1,5 +1,4 @@
 import type { Post } from '@revealui/core/types/cms';
-import type React from 'react';
 import { Card } from '@/lib/components/Card/index';
 import RichText from '@/lib/components/RichText/index';
 import { cn } from '@/lib/styles/classnames';
@@ -11,7 +10,7 @@ export type RelatedPostsProps = {
   introContent?: RichTextContent | null;
 };
 
-export const RelatedPosts: React.FC<RelatedPostsProps> = (props) => {
+export const RelatedPosts = (props: RelatedPostsProps) => {
   const { className, docs, introContent } = props;
 
   return (

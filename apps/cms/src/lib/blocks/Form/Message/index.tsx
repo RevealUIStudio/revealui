@@ -1,11 +1,8 @@
-import type React from 'react';
 import type { RichTextContent } from '@/lib/blocks/Form/Component';
 import { Width } from '@/lib/blocks/Form/Width';
 import RichText from '@/lib/components/RichText/index';
 
-export const Message: React.FC<{
-  message?: RichTextContent | null;
-}> = ({ message }) => {
+export const Message = ({ message }: { message?: RichTextContent | null }) => {
   if (!message) {
     return null;
   }

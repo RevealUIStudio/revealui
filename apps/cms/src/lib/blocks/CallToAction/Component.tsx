@@ -1,14 +1,13 @@
 import { ButtonBlockSchema } from '@revealui/contracts/content';
 import type { Page } from '@revealui/core/types/cms';
 import { logger } from '@revealui/core/utils/logger';
-import type React from 'react';
 import { memo } from 'react';
 import { CMSLink } from '@/lib/components/Link/index';
 import RichText from '@/lib/components/RichText/index';
 
 type Props = Extract<Page['layout'][0], { blockType: 'cta' }>;
 
-export const CallToActionBlock: React.FC<Props> = memo(({ links, richText }) => {
+export const CallToActionBlock = memo(({ links, richText }: Props) => {
   // Runtime validation with ButtonBlockSchema
   // Map cta blockType to button schema type
   try {

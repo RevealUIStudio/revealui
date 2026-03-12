@@ -1,6 +1,5 @@
 import type { Category, Post } from '@revealui/core/types/cms';
 import { logger } from '@revealui/core/utils/logger';
-import type React from 'react';
 import { CollectionArchive } from '@/lib/components/CollectionArchive/index';
 import { ErrorBoundary } from '@/lib/components/ErrorBoundary/index';
 import RichText from '@/lib/components/RichText/index';
@@ -37,7 +36,7 @@ export interface ArchiveBlockProps {
   blockType: 'archive';
 }
 
-export const ArchiveBlock: React.FC<ArchiveBlockProps> = async (props) => {
+export const ArchiveBlock = async (props: ArchiveBlockProps) => {
   // Runtime validation - ArchiveBlock is a custom component type
   // Validate required props are present
   if (!props.blockType || props.blockType !== 'archive') {

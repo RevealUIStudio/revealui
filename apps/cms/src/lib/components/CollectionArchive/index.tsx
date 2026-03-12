@@ -1,5 +1,4 @@
 import type { Post } from '@revealui/core/types/cms';
-import type React from 'react';
 import { cn } from '@/lib/styles/classnames';
 import { Card } from '../Card/index';
 
@@ -7,7 +6,7 @@ export type Props = {
   posts: Post[];
 };
 
-export const CollectionArchive: React.FC<Props> = (props) => {
+export const CollectionArchive = (props: Props) => {
   const { posts } = props;
 
   return (

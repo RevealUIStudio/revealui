@@ -9,14 +9,9 @@ import {
   PaginationPrevious,
 } from '@revealui/presentation/server';
 import { useRouter } from 'next/navigation';
-import type React from 'react';
 import { cn } from '@/lib/styles/classnames';
 
-export const Pagination: React.FC<{
-  className?: string;
-  page: number;
-  totalPages: number;
-}> = (props) => {
+export const Pagination = (props: { className?: string; page: number; totalPages: number }) => {
   const router = useRouter();
 
   const { className, page, totalPages } = props;

@@ -10,7 +10,7 @@ const defaultCollectionLabels = {
   },
 };
 
-export const PageRange: React.FC<{
+export const PageRange = (props: {
   className?: string;
   collection?: keyof typeof defaultCollectionLabels; // Use strict key types
   collectionLabels?: {
@@ -20,7 +20,7 @@ export const PageRange: React.FC<{
   currentPage?: number;
   limit?: number;
   totalDocs?: number;
-}> = (props) => {
+}) => {
   const {
     className,
     collection,

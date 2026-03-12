@@ -39,7 +39,7 @@ const fetchStripePrices = async (): Promise<PriceOption[]> => {
   return [];
 };
 
-const PricesSelect: React.FC<TextField> = (props) => {
+const PricesSelect = (props: TextField) => {
   const { name, label, value, onChange } = props as TextField & {
     value?: string;
     onChange?: (value: string) => void;

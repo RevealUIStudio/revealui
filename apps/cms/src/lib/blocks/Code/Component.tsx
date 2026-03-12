@@ -1,5 +1,3 @@
-import type React from 'react';
-
 import { Code } from './Component.client';
 
 export type CodeBlockProps = {
@@ -9,7 +7,7 @@ export type CodeBlockProps = {
   className?: string;
 };
 
-export const CodeBlock: React.FC<CodeBlockProps> = ({ className, code, language }) => {
+export const CodeBlock = ({ className, code, language }: CodeBlockProps) => {
   return (
     <div className={[className, 'not-prose'].filter(Boolean).join(' ')}>
       <Code code={code} language={language} />
