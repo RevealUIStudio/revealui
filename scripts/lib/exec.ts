@@ -15,8 +15,11 @@ import {
   type ProcessMetadata,
   registerProcess,
   updateProcessStatus,
-} from '@revealui/core/monitoring';
+} from '@revealui/core/monitoring/process-registry';
 import { createLogger, type Logger } from './logger.js';
+
+const trackedChildren = new Set<ReturnType<typeof spawn>>();
+let signalForwardingInstalled = false;
 
 export interface ScriptResult {
   success: boolean;
@@ -58,6 +61,20 @@ function killProcessGroup(child: ReturnType<typeof spawn>, signal: NodeJS.Signal
   }
 }
 
+function installSignalForwarding(): void {
+  if (signalForwardingInstalled) return;
+
+  const forwardSignal = (signal: NodeJS.Signals) => {
+    for (const child of trackedChildren) {
+      killProcessGroup(child, signal);
+    }
+  };
+
+  process.on('SIGTERM', forwardSignal);
+  process.on('SIGINT', forwardSignal);
+  signalForwardingInstalled = true;
+}
+
 /**
  * Executes a command with proper error handling and timeout support.
  *
@@ -92,6 +109,8 @@ export async function execCommand(
   const logger = customLogger || createLogger({ level: 'silent' });
 
   return new Promise((resolve) => {
+    installSignalForwarding();
+
     const mergedEnv = env ? { ...process.env, ...env } : process.env;
 
     const isWindows = process.platform === 'win32';
@@ -108,6 +127,7 @@ export async function execCommand(
     if (child.pid) {
       registerProcess(child.pid, command, args, 'exec', metadata, process.pid);
     }
+    trackedChildren.add(child);
 
     let stdout = '';
     let stderr = '';
@@ -150,6 +170,7 @@ export async function execCommand(
 
     child.on('error', (error) => {
       clearTimeout(timeoutId);
+      trackedChildren.delete(child);
 
       // Update process status
       if (child.pid) {
@@ -167,6 +188,7 @@ export async function execCommand(
 
     child.on('close', (code, signal) => {
       clearTimeout(timeoutId);
+      trackedChildren.delete(child);
 
       // Update process status
       if (child.pid) {
@@ -199,18 +221,8 @@ export async function execCommand(
       });
     });
 
-    // Forward signals to child process to prevent zombies
-    const signalHandler = (signal: NodeJS.Signals) => {
-      killProcessGroup(child, signal);
-    };
-
-    process.on('SIGTERM', signalHandler);
-    process.on('SIGINT', signalHandler);
-
-    // Clean up signal handlers when child exits
     child.on('exit', () => {
-      process.off('SIGTERM', signalHandler);
-      process.off('SIGINT', signalHandler);
+      trackedChildren.delete(child);
     });
   });
 }

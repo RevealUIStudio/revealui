@@ -23,6 +23,9 @@
 
 import { mkdir, readdir, unlink, writeFile } from 'node:fs/promises';
 import { join } from 'node:path';
+import { config } from 'dotenv';
+import { getSSLConfig } from '../lib/database/ssl-config.js';
+import { ErrorCode } from '../lib/errors.js';
 import {
   confirm,
   createLogger,
@@ -31,9 +34,11 @@ import {
   isCI,
   listTables,
   validateDatabaseConnection,
-} from '../../lib/index.js';
-import { getSSLConfig } from '../lib/database/ssl-config.js';
-import { ErrorCode } from '../lib/errors.js';
+} from '../lib/index.js';
+
+for (const envFile of ['.env', '.env.development.local', '.env.local']) {
+  config({ path: join(process.cwd(), envFile), override: false });
+}
 
 const logger = createLogger({ prefix: 'DB Reset' });
 
@@ -158,7 +163,7 @@ async function dropAllTables(connectionString: string): Promise<boolean> {
   const { Pool } = await import('pg');
   const pool = new Pool({
     connectionString,
-    ssl: { rejectUnauthorized: false },
+    ssl: getSSLConfig(connectionString),
   });
 
   try {
