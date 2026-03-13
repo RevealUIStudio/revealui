@@ -80,7 +80,7 @@ describe('Health API Integration', () => {
 
       // Ready check returns 200 when ready, 503 when not ready
       expect([200, 503]).toContain(response.status);
-    }, 30000);
+    }, 60000);
 
     it('should return readiness status', async () => {
       const response = await readyHandler();

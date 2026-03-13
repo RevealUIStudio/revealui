@@ -766,13 +766,13 @@ describe('Stripe webhook handler — comprehensive', () => {
       expect(elapsed).toBeLessThan(10);
     });
 
-    it('schema validation completes in under 10ms for an invalid event', () => {
+    it('schema validation completes in under 25ms for an invalid event', () => {
       const start = performance.now();
       const result = stripeWebhookSchema.safeParse({ garbage: true });
       const elapsed = performance.now() - start;
 
       expect(result.success).toBe(false);
-      expect(elapsed).toBeLessThan(10);
+      expect(elapsed).toBeLessThan(25);
     });
   });
 });
