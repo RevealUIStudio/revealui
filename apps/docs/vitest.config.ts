@@ -11,16 +11,12 @@ export default defineConfig({
     globals: true,
     environment: 'jsdom',
     setupFiles: ['./__tests__/setup.ts'],
-    // Increased timeout to prevent worker init failures under full monorepo parallel load
+    // Keep this package narrow under monorepo fan-out instead of raising global repo settings.
     testTimeout: 30_000,
     hookTimeout: 30_000,
     pool: 'forks',
-    poolOptions: {
-      forks: {
-        maxForks: 1,
-        minForks: 1,
-      },
-    },
+    maxWorkers: 1,
+    minWorkers: 1,
     coverage: {
       provider: 'v8',
       thresholds: {

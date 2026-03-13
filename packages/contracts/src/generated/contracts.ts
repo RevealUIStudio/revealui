@@ -2,7 +2,7 @@
  * Auto-generated Contract wrappers
  *
  * DO NOT EDIT - Regenerate with: pnpm generate:all
- * Generated: 2026-03-11T23:42:40.012Z
+ * Generated: 2026-03-13T09:16:06.939Z
  *
  * This file provides Contract wrappers for all database tables.
  * Contracts combine TypeScript types, Zod schemas, and runtime validation
@@ -14,6 +14,110 @@
 
 import { createContract } from '../foundation/contract.js'
 import * as Schemas from '@revealui/contracts/generated/zod-schemas'
+
+// =============================================================================
+// AccountEntitlements Contracts
+// =============================================================================
+
+/**
+ * Contract for accountEntitlements row (Select)
+ * Database table: account_entitlements
+ */
+export const AccountEntitlementsRowContract = createContract({
+  name: 'AccountEntitlementsRow',
+  version: '1',
+  description: 'Database row contract for account_entitlements table',
+  schema: Schemas.AccountEntitlementsSelectSchema,
+})
+
+/**
+ * Contract for accountEntitlements insert
+ * Database table: account_entitlements
+ */
+export const AccountEntitlementsInsertContract = createContract({
+  name: 'AccountEntitlementsInsert',
+  version: '1',
+  description: 'Database insert contract for account_entitlements table',
+  schema: Schemas.AccountEntitlementsInsertSchema,
+})
+
+// =============================================================================
+// AccountMemberships Contracts
+// =============================================================================
+
+/**
+ * Contract for accountMemberships row (Select)
+ * Database table: account_memberships
+ */
+export const AccountMembershipsRowContract = createContract({
+  name: 'AccountMembershipsRow',
+  version: '1',
+  description: 'Database row contract for account_memberships table',
+  schema: Schemas.AccountMembershipsSelectSchema,
+})
+
+/**
+ * Contract for accountMemberships insert
+ * Database table: account_memberships
+ */
+export const AccountMembershipsInsertContract = createContract({
+  name: 'AccountMembershipsInsert',
+  version: '1',
+  description: 'Database insert contract for account_memberships table',
+  schema: Schemas.AccountMembershipsInsertSchema,
+})
+
+// =============================================================================
+// Accounts Contracts
+// =============================================================================
+
+/**
+ * Contract for accounts row (Select)
+ * Database table: accounts
+ */
+export const AccountsRowContract = createContract({
+  name: 'AccountsRow',
+  version: '1',
+  description: 'Database row contract for accounts table',
+  schema: Schemas.AccountsSelectSchema,
+})
+
+/**
+ * Contract for accounts insert
+ * Database table: accounts
+ */
+export const AccountsInsertContract = createContract({
+  name: 'AccountsInsert',
+  version: '1',
+  description: 'Database insert contract for accounts table',
+  schema: Schemas.AccountsInsertSchema,
+})
+
+// =============================================================================
+// AccountSubscriptions Contracts
+// =============================================================================
+
+/**
+ * Contract for accountSubscriptions row (Select)
+ * Database table: account_subscriptions
+ */
+export const AccountSubscriptionsRowContract = createContract({
+  name: 'AccountSubscriptionsRow',
+  version: '1',
+  description: 'Database row contract for account_subscriptions table',
+  schema: Schemas.AccountSubscriptionsSelectSchema,
+})
+
+/**
+ * Contract for accountSubscriptions insert
+ * Database table: account_subscriptions
+ */
+export const AccountSubscriptionsInsertContract = createContract({
+  name: 'AccountSubscriptionsInsert',
+  version: '1',
+  description: 'Database insert contract for account_subscriptions table',
+  schema: Schemas.AccountSubscriptionsInsertSchema,
+})
 
 // =============================================================================
 // AgentActions Contracts
@@ -195,6 +299,32 @@ export const AuditLogInsertContract = createContract({
   version: '1',
   description: 'Database insert contract for audit_log table',
   schema: Schemas.AuditLogInsertSchema,
+})
+
+// =============================================================================
+// BillingCatalog Contracts
+// =============================================================================
+
+/**
+ * Contract for billingCatalog row (Select)
+ * Database table: billing_catalog
+ */
+export const BillingCatalogRowContract = createContract({
+  name: 'BillingCatalogRow',
+  version: '1',
+  description: 'Database row contract for billing_catalog table',
+  schema: Schemas.BillingCatalogSelectSchema,
+})
+
+/**
+ * Contract for billingCatalog insert
+ * Database table: billing_catalog
+ */
+export const BillingCatalogInsertContract = createContract({
+  name: 'BillingCatalogInsert',
+  version: '1',
+  description: 'Database insert contract for billing_catalog table',
+  schema: Schemas.BillingCatalogInsertSchema,
 })
 
 // =============================================================================
@@ -1316,6 +1446,32 @@ export const TenantProviderConfigsInsertContract = createContract({
 })
 
 // =============================================================================
+// Tenants Contracts
+// =============================================================================
+
+/**
+ * Contract for tenants row (Select)
+ * Database table: tenants
+ */
+export const TenantsRowContract = createContract({
+  name: 'TenantsRow',
+  version: '1',
+  description: 'Database row contract for tenants table',
+  schema: Schemas.TenantsSelectSchema,
+})
+
+/**
+ * Contract for tenants insert
+ * Database table: tenants
+ */
+export const TenantsInsertContract = createContract({
+  name: 'TenantsInsert',
+  version: '1',
+  description: 'Database insert contract for tenants table',
+  schema: Schemas.TenantsInsertSchema,
+})
+
+// =============================================================================
 // TicketComments Contracts
 // =============================================================================
 
@@ -1417,6 +1573,32 @@ export const TicketsInsertContract = createContract({
   version: '1',
   description: 'Database insert contract for tickets table',
   schema: Schemas.TicketsInsertSchema,
+})
+
+// =============================================================================
+// UsageMeters Contracts
+// =============================================================================
+
+/**
+ * Contract for usageMeters row (Select)
+ * Database table: usage_meters
+ */
+export const UsageMetersRowContract = createContract({
+  name: 'UsageMetersRow',
+  version: '1',
+  description: 'Database row contract for usage_meters table',
+  schema: Schemas.UsageMetersSelectSchema,
+})
+
+/**
+ * Contract for usageMeters insert
+ * Database table: usage_meters
+ */
+export const UsageMetersInsertContract = createContract({
+  name: 'UsageMetersInsert',
+  version: '1',
+  description: 'Database insert contract for usage_meters table',
+  schema: Schemas.UsageMetersInsertSchema,
 })
 
 // =============================================================================

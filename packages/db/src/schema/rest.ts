@@ -11,6 +11,7 @@
 
 // Export agent schemas except agentMemories
 // Note: AgentMemory types are exported from './vector.js' instead
+export * from './accounts.js';
 export {
   type AgentAction,
   type AgentContext,
@@ -53,6 +54,7 @@ export * from './pages.js';
 export * from './password-reset-tokens.js';
 export * from './rate-limits.js';
 export * from './sites.js';
+export * from './tenants.js';
 export * from './tickets.js';
 export * from './users.js';
 export * from './waitlist.js';
