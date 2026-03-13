@@ -280,6 +280,28 @@ vi.mock('../src/middleware/db.js', () => ({
     },
 }));
 
+vi.mock('../src/middleware/entitlements.js', () => ({
+  entitlementMiddleware:
+    () => async (c: { set: (key: string, value: unknown) => void }, next: () => Promise<void>) => {
+      c.set('entitlements', {
+        userId: 'test-user',
+        accountId: 'account-1',
+        membershipRole: 'owner',
+        subscriptionStatus: 'active',
+        tier: 'enterprise',
+        features: {
+          ai: true,
+          dashboard: true,
+        },
+        limits: {
+          maxAgentTasks: 1000,
+        },
+        resolvedAt: new Date(),
+      });
+      await next();
+    },
+}));
+
 describe('API Endpoints', () => {
   beforeAll(() => {
     vi.stubEnv('NODE_ENV', 'test');
