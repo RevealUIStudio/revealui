@@ -5,7 +5,6 @@ import { isAdmin } from '../../lib/access/roles/isAdmin';
 import { isAdminAndUser } from '../../lib/access/roles/isAdminAndUser';
 import { isSuperAdmin } from '../../lib/access/roles/isSuperAdmin';
 import {
-  cleanupTestUsers,
   createTestTenant,
   createTestUser,
   deleteTestTenant,
@@ -53,7 +52,6 @@ describe('Access Control Tests', () => {
   let tenant2: TestTenant | null = null;
 
   beforeAll(async () => {
-    await cleanupTestUsers();
     // Create test tenants
     tenant1 = (await createTestTenant(
       'Test Tenant 1',
@@ -66,7 +64,6 @@ describe('Access Control Tests', () => {
   }, 30000); // 30 second timeout for setup
 
   afterAll(async () => {
-    await cleanupTestUsers();
     if (tenant1) await deleteTestTenant(tenant1.id);
     if (tenant2) await deleteTestTenant(tenant2.id);
   }, 30000); // 30 second timeout for cleanup
@@ -169,6 +166,9 @@ describe('Access Control Tests', () => {
         testUsers.regularUser.email,
         testUsers.regularUser.password,
         ['user-admin'], // Regular admin, not super admin
+        undefined,
+        undefined,
+        { login: false },
       );
 
       // Regular admin should not have super admin access
@@ -188,6 +188,7 @@ describe('Access Control Tests', () => {
         ['user-admin'],
         tenant1?.id,
         ['tenant-admin'],
+        { login: false },
       );
 
       const user2 = await createTestUser(
@@ -196,6 +197,7 @@ describe('Access Control Tests', () => {
         ['user-admin'],
         tenant2?.id,
         ['tenant-admin'],
+        { login: false },
       );
 
       // Users should have different tenant assignments
@@ -211,6 +213,7 @@ describe('Access Control Tests', () => {
         ['user-admin'],
         tenant1?.id,
         ['tenant-admin'],
+        { login: false },
       );
 
       // User should have tenant assigned
@@ -228,6 +231,7 @@ describe('Access Control Tests', () => {
         ['user-admin'],
         tenant1?.id,
         ['tenant-admin'],
+        { login: false },
       );
 
       const user2 = await createTestUser(
@@ -236,6 +240,7 @@ describe('Access Control Tests', () => {
         ['user-admin'],
         tenant2?.id,
         ['tenant-admin'],
+        { login: false },
       );
 
       // Users belong to different tenants
@@ -249,6 +254,7 @@ describe('Access Control Tests', () => {
         ['user-admin'],
         tenant1?.id,
         ['tenant-admin'],
+        { login: false },
       );
 
       // Verify tenant relationship is set
@@ -302,9 +308,14 @@ describe('Access Control Tests', () => {
       });
 
       it('should allow admins and self to update users', async () => {
-        const { user } = await createTestUser(testUsers.admin.email, testUsers.admin.password, [
-          'user-admin',
-        ]);
+        const { user } = await createTestUser(
+          testUsers.admin.email,
+          testUsers.admin.password,
+          ['user-admin'],
+          undefined,
+          undefined,
+          { login: false },
+        );
 
         // Verify the access control function grants update permission to admins.
         // We test the access function directly because revealui.update() on auth
@@ -321,9 +332,14 @@ describe('Access Control Tests', () => {
 
       it('should allow admins to delete users', async () => {
         // Create a user to delete
-        const userToDelete = await createTestUser('user-to-delete@example.com', 'TestPass123', [
-          'user-admin',
-        ]);
+        const userToDelete = await createTestUser(
+          'user-to-delete@example.com',
+          'TestPass123',
+          ['user-admin'],
+          undefined,
+          undefined,
+          { login: false },
+        );
 
         const { user: adminUser, token } = await createTestUser(
           testUsers.admin.email,
@@ -507,12 +523,18 @@ describe('Access Control Tests', () => {
         testUsers.admin.email,
         testUsers.admin.password,
         ['user-admin'],
+        undefined,
+        undefined,
+        { login: false },
       );
 
       const { user: superAdminUser } = await createTestUser(
         testUsers.superAdmin.email,
         testUsers.superAdmin.password,
         ['user-super-admin'],
+        undefined,
+        undefined,
+        { login: false },
       );
 
       // Regular admin should not be able to modify roles
@@ -535,6 +557,7 @@ describe('Access Control Tests', () => {
         ['user-admin'],
         tenant1?.id,
         ['tenant-admin'],
+        { login: false },
       );
 
       // Tenant admin should have tenant access
@@ -547,6 +570,9 @@ describe('Access Control Tests', () => {
         testUsers.regularUser.email,
         testUsers.regularUser.password,
         ['user-admin'],
+        undefined,
+        undefined,
+        { login: false },
       );
 
       // Regular user should not have super admin access
@@ -611,6 +637,9 @@ describe('Access Control Tests', () => {
         testUsers.regularUser.email,
         testUsers.regularUser.password,
         ['user-admin'],
+        undefined,
+        undefined,
+        { login: false },
       );
 
       await getTestRevealUI();
