@@ -8,6 +8,7 @@ import { afterRead } from '../../fields/hooks/afterRead/index.js';
 import { buildWhereClause } from '../../queries/queryBuilder.js';
 import type {
   DatabaseResult,
+  QueryableDatabaseAdapter,
   RevealCollectionConfig,
   RevealFindOptions,
   RevealPaginatedResult,
@@ -18,9 +19,7 @@ import { countDocumentsQuery, escapeIdentifier, listDocumentsQuery } from './sql
 
 export async function find(
   config: RevealCollectionConfig,
-  db: {
-    query: (query: string, values?: unknown[]) => Promise<DatabaseResult>;
-  } | null,
+  db: QueryableDatabaseAdapter | null,
   options: RevealFindOptions,
 ): Promise<RevealPaginatedResult> {
   const { where, limit = 10, page = 1, sort, depth = 0, req, populate: populateOption } = options;
@@ -42,7 +41,7 @@ export async function find(
         } as SanitizedCollectionConfig;
 
         const docs = await Promise.all(
-          result.docs.map(async (doc) => {
+          result.docs.map(async (doc: (typeof result.docs)[number]) => {
             return await afterRead({
               collection: sanitizedConfig,
               context: req.context || {},
@@ -164,7 +163,7 @@ export async function find(
       offsetParam,
     );
     const docsResult = await db.query(dataQuery, [...params, limit, offset]);
-    let docs = docsResult.rows.map((row) => {
+    let docs = docsResult.rows.map((row: DatabaseResult['rows'][number]) => {
       return deserializeJsonFields(row, tableName);
     });
 

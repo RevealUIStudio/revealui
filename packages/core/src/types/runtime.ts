@@ -228,14 +228,19 @@ export interface CollectionStorageAdapter {
   ) => Promise<RevealPaginatedResult | undefined>;
 }
 
-export interface DatabaseAdapter {
+export interface QueryableDatabaseAdapter {
   query: (query: string, values?: unknown[]) => Promise<DatabaseResult>;
+  collectionStorage?: CollectionStorageAdapter;
+}
+
+export interface DatabaseAdapter {
+  query: QueryableDatabaseAdapter['query'];
   connect: () => Promise<void>;
   disconnect: () => Promise<void>;
   init?: () => Promise<void>;
   createTable?: (tableName: string, fields: Field[]) => void;
   createGlobalTable?: (globalSlug: string, fields: Field[]) => void;
-  collectionStorage?: CollectionStorageAdapter;
+  collectionStorage?: QueryableDatabaseAdapter['collectionStorage'];
 }
 
 import type { Field } from '@revealui/contracts/cms';

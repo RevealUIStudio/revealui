@@ -236,11 +236,13 @@ export type {
 // =============================================================================
 
 export type {
+  CollectionStorageDescriptor,
   DatabaseAdapter,
   DatabaseResult,
   FindArgs,
   OperationOptions,
   PaginatedDocs,
+  QueryableDatabaseAdapter,
   RevealCollection,
   RevealCreateOptions,
   RevealDeleteOptions,

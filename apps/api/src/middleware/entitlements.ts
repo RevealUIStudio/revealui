@@ -27,6 +27,18 @@ export interface EntitlementContext {
   resolvedAt: Date;
 }
 
+function toFeatureRecord(features: object | null | undefined): Record<string, boolean> {
+  if (!features) {
+    return {};
+  }
+
+  return Object.fromEntries(
+    Object.entries(features).filter(
+      (entry): entry is [string, boolean] => typeof entry[1] === 'boolean',
+    ),
+  );
+}
+
 function createFreeEntitlements(userId: string | null): EntitlementContext {
   return {
     userId,
@@ -86,13 +98,15 @@ export const entitlementMiddleware = (): MiddlewareHandler => {
       tier: (entitlement?.tier as EntitlementContext['tier'] | undefined) ?? 'free',
       features:
         entitlement?.features && Object.keys(entitlement.features).length > 0
-          ? entitlement.features
-          : getFeaturesForTier(
-              ((entitlement?.tier as EntitlementContext['tier'] | undefined) ?? 'free') as
-                | 'free'
-                | 'pro'
-                | 'max'
-                | 'enterprise',
+          ? toFeatureRecord(entitlement.features)
+          : toFeatureRecord(
+              getFeaturesForTier(
+                ((entitlement?.tier as EntitlementContext['tier'] | undefined) ?? 'free') as
+                  | 'free'
+                  | 'pro'
+                  | 'max'
+                  | 'enterprise',
+              ),
             ),
       limits: entitlement?.limits ?? {},
       resolvedAt: new Date(),

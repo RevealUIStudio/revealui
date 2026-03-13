@@ -7,7 +7,7 @@
 import bcrypt from 'bcryptjs';
 import { defaultLogger } from '../../instance/logger.js';
 import type {
-  DatabaseResult,
+  QueryableDatabaseAdapter,
   RevealCollectionConfig,
   RevealDocument,
   RevealUIField,
@@ -21,9 +21,7 @@ import { checkExistsByIdQuery, selectJsonByIdQuery, updateByIdQuery } from './sq
 
 export async function update(
   config: RevealCollectionConfig,
-  db: {
-    query: (query: string, values?: unknown[]) => Promise<DatabaseResult>;
-  } | null,
+  db: QueryableDatabaseAdapter | null,
   options: RevealUpdateOptions,
 ): Promise<RevealDocument> {
   const { id, data } = options;

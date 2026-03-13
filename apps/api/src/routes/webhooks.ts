@@ -10,7 +10,7 @@
  */
 
 import { getFeaturesForTier, isFeatureEnabled } from '@revealui/core/features';
-import { generateLicenseKey, resetLicenseState } from '@revealui/core/license';
+import { generateLicenseKey, type LicenseTier, resetLicenseState } from '@revealui/core/license';
 import { logger } from '@revealui/core/observability/logger';
 import { DrizzleAuditStore, getClient } from '@revealui/db';
 import type { Database } from '@revealui/db/client';
@@ -28,6 +28,9 @@ import { Hono } from 'hono';
 import Stripe from 'stripe';
 
 const app = new Hono();
+
+type HostedTier = 'free' | LicenseTier;
+type DbExecutor = Pick<Database, 'select' | 'insert' | 'update' | 'delete'>;
 
 // ─── Helpers ─────────────────────────────────────────────────────────────────
 
@@ -134,6 +137,33 @@ function resolveOptionalTier(
   return undefined;
 }
 
+function coerceHostedTier(value: string | null | undefined): HostedTier | undefined {
+  if (value === 'free' || value === 'pro' || value === 'max' || value === 'enterprise') {
+    return value;
+  }
+  return undefined;
+}
+
+function toFeatureRecord(features: object | null | undefined): Record<string, boolean> {
+  if (!features) {
+    return {};
+  }
+
+  return Object.fromEntries(
+    Object.entries(features).filter(
+      (entry): entry is [string, boolean] => typeof entry[1] === 'boolean',
+    ),
+  );
+}
+
+function getSubscriptionPeriodDate(
+  subscription: Stripe.Subscription,
+  field: 'current_period_start' | 'current_period_end',
+): Date | null {
+  const value = (subscription as unknown as Record<string, unknown>)[field];
+  return typeof value === 'number' ? new Date(value * 1000) : null;
+}
+
 function resolveCustomerId(
   customer: string | Stripe.Customer | Stripe.DeletedCustomer | null,
 ): string | null {
@@ -167,7 +197,7 @@ function buildAccountSlug(userId: string): string {
 }
 
 async function ensureHostedAccount(
-  tx: Database,
+  tx: DbExecutor,
   userId: string,
   customerId: string,
 ): Promise<string | null> {
@@ -219,7 +249,7 @@ async function ensureHostedAccount(
 }
 
 async function resolveHostedAccountId(
-  db: Database,
+  db: DbExecutor,
   customerId: string,
   userId?: string | null,
 ): Promise<string | null> {
@@ -247,7 +277,7 @@ async function resolveHostedAccountId(
 }
 
 async function syncHostedSubscriptionState(
-  db: Database,
+  db: DbExecutor,
   params: {
     customerId: string;
     subscriptionId: string | null;
@@ -265,7 +295,7 @@ async function syncHostedSubscriptionState(
     logger.warn('Hosted entitlement sync skipped because no account could be resolved', {
       customerId: params.customerId,
       subscriptionId: params.subscriptionId,
-      userId: params.userId ?? null,
+      userId: params.userId ?? undefined,
     });
     return;
   }
@@ -283,8 +313,11 @@ async function syncHostedSubscriptionState(
     .where(eq(accountEntitlements.accountId, accountId))
     .limit(1);
 
-  const resolvedTier =
-    params.tier ?? existingEntitlement?.tier ?? existingSubscription?.planId ?? 'free';
+  const resolvedTier: HostedTier =
+    params.tier ??
+    coerceHostedTier(existingEntitlement?.tier) ??
+    coerceHostedTier(existingSubscription?.planId) ??
+    'free';
 
   const subscriptionValues = {
     accountId,
@@ -312,9 +345,10 @@ async function syncHostedSubscriptionState(
   }
 
   const entitlementValues = {
+    planId: resolvedTier,
     tier: resolvedTier,
     status: params.status,
-    features: getFeaturesForTier(resolvedTier),
+    features: toFeatureRecord(getFeaturesForTier(resolvedTier)),
     limits: getHostedLimitsForTier(resolvedTier),
     meteringStatus:
       params.status === 'active' || params.status === 'trialing' ? 'active' : 'paused',
@@ -369,7 +403,10 @@ function auditLicenseEvent(
 /**
  * Look up user email by Stripe customer ID for sending notification emails.
  */
-async function findUserEmailByCustomerId(db: Database, customerId: string): Promise<string | null> {
+async function findUserEmailByCustomerId(
+  db: DbExecutor,
+  customerId: string,
+): Promise<string | null> {
   const [user] = await db
     .select({ email: users.email })
     .from(users)
@@ -379,7 +416,7 @@ async function findUserEmailByCustomerId(db: Database, customerId: string): Prom
 }
 
 async function findHostedStatusByCustomerId(
-  db: Database,
+  db: DbExecutor,
   customerId: string,
 ): Promise<string | null> {
   const [subscription] = await db
@@ -692,11 +729,12 @@ app.post('/stripe', async (c) => {
             userId: resolvedUserId,
             tier,
             status: licenseStatus,
-            currentPeriodStart: checkoutSubscription?.current_period_start
-              ? new Date(checkoutSubscription.current_period_start * 1000)
+            currentPeriodStart: checkoutSubscription
+              ? getSubscriptionPeriodDate(checkoutSubscription, 'current_period_start')
               : null,
-            currentPeriodEnd: checkoutSubscription?.current_period_end
-              ? new Date(checkoutSubscription.current_period_end * 1000)
+            currentPeriodEnd: checkoutSubscription
+              ? (getSubscriptionPeriodDate(checkoutSubscription, 'current_period_end') ??
+                licenseExpiresAt)
               : licenseExpiresAt,
             cancelAtPeriodEnd: checkoutSubscription?.cancel_at_period_end ?? false,
             graceUntil: licenseExpiresAt,
@@ -757,12 +795,8 @@ app.post('/stripe', async (c) => {
           subscriptionId: subscription.id,
           tier: resolveOptionalTier(subscription.metadata as Record<string, string>),
           status: 'revoked',
-          currentPeriodStart: subscription.current_period_start
-            ? new Date(subscription.current_period_start * 1000)
-            : null,
-          currentPeriodEnd: subscription.current_period_end
-            ? new Date(subscription.current_period_end * 1000)
-            : null,
+          currentPeriodStart: getSubscriptionPeriodDate(subscription, 'current_period_start'),
+          currentPeriodEnd: getSubscriptionPeriodDate(subscription, 'current_period_end'),
           cancelAtPeriodEnd: subscription.cancel_at_period_end ?? false,
         });
 
@@ -820,16 +854,10 @@ app.post('/stripe', async (c) => {
             subscriptionId: subscription.id,
             tier: resolveOptionalTier(subscription.metadata as Record<string, string>),
             status: 'expired',
-            currentPeriodStart: subscription.current_period_start
-              ? new Date(subscription.current_period_start * 1000)
-              : null,
-            currentPeriodEnd: subscription.current_period_end
-              ? new Date(subscription.current_period_end * 1000)
-              : null,
+            currentPeriodStart: getSubscriptionPeriodDate(subscription, 'current_period_start'),
+            currentPeriodEnd: getSubscriptionPeriodDate(subscription, 'current_period_end'),
             cancelAtPeriodEnd: subscription.cancel_at_period_end ?? false,
-            graceUntil: subscription.current_period_end
-              ? new Date(subscription.current_period_end * 1000)
-              : null,
+            graceUntil: getSubscriptionPeriodDate(subscription, 'current_period_end'),
           });
 
           logger.info('License expired due to payment failure', {
@@ -885,12 +913,9 @@ app.post('/stripe', async (c) => {
             subscriptionId: subscription.id,
             tier: resolveOptionalTier(subscription.metadata as Record<string, string>),
             status: 'active',
-            currentPeriodStart: subscription.current_period_start
-              ? new Date(subscription.current_period_start * 1000)
-              : null,
-            currentPeriodEnd: subscription.current_period_end
-              ? new Date(subscription.current_period_end * 1000)
-              : cancelAt,
+            currentPeriodStart: getSubscriptionPeriodDate(subscription, 'current_period_start'),
+            currentPeriodEnd:
+              getSubscriptionPeriodDate(subscription, 'current_period_end') ?? cancelAt,
             cancelAtPeriodEnd: true,
             graceUntil: cancelAt,
           });
@@ -922,12 +947,8 @@ app.post('/stripe', async (c) => {
             subscriptionId: subscription.id,
             tier: newTier,
             status: 'active',
-            currentPeriodStart: subscription.current_period_start
-              ? new Date(subscription.current_period_start * 1000)
-              : null,
-            currentPeriodEnd: subscription.current_period_end
-              ? new Date(subscription.current_period_end * 1000)
-              : null,
+            currentPeriodStart: getSubscriptionPeriodDate(subscription, 'current_period_start'),
+            currentPeriodEnd: getSubscriptionPeriodDate(subscription, 'current_period_end'),
             cancelAtPeriodEnd: subscription.cancel_at_period_end ?? false,
             graceUntil:
               subscription.cancel_at_period_end && subscription.cancel_at
@@ -955,12 +976,8 @@ app.post('/stripe', async (c) => {
             subscriptionId: subscription.id,
             tier: resolveTier(subscription.metadata as Record<string, string>),
             status: subscription.status,
-            currentPeriodStart: subscription.current_period_start
-              ? new Date(subscription.current_period_start * 1000)
-              : null,
-            currentPeriodEnd: subscription.current_period_end
-              ? new Date(subscription.current_period_end * 1000)
-              : null,
+            currentPeriodStart: getSubscriptionPeriodDate(subscription, 'current_period_start'),
+            currentPeriodEnd: getSubscriptionPeriodDate(subscription, 'current_period_end'),
             cancelAtPeriodEnd: subscription.cancel_at_period_end ?? false,
             graceUntil:
               subscription.status === 'trialing' && subscription.trial_end
@@ -1015,6 +1032,7 @@ app.post('/stripe', async (c) => {
         const shouldReactivateLegacyLicense =
           existingLicense?.status === 'expired' || existingLicense?.status === 'revoked';
         const shouldReactivateHosted = hostedStatus === 'expired' || hostedStatus === 'revoked';
+        const shouldHealHostedState = hostedStatus === null;
 
         if (shouldReactivateLegacyLicense) {
           const privateKey = process.env.REVEALUI_LICENSE_PRIVATE_KEY;
@@ -1037,11 +1055,18 @@ app.post('/stripe', async (c) => {
             .update(licenses)
             .set({ status: 'active', tier: recoveredTier, licenseKey, updatedAt: new Date() })
             .where(eq(licenses.customerId, customerId));
-        } else if (existingLicense && !shouldReactivateHosted) {
+        } else if (existingLicense && !shouldReactivateHosted && !shouldHealHostedState) {
           break;
         }
 
-        if (!(shouldReactivateLegacyLicense || shouldReactivateHosted || existingLicense)) {
+        if (
+          !(
+            shouldReactivateLegacyLicense ||
+            shouldReactivateHosted ||
+            shouldHealHostedState ||
+            existingLicense
+          )
+        ) {
           break;
         }
 
@@ -1050,12 +1075,11 @@ app.post('/stripe', async (c) => {
           subscriptionId: recoveredSubscription.id,
           tier: recoveredTier,
           status: 'active',
-          currentPeriodStart: recoveredSubscription.current_period_start
-            ? new Date(recoveredSubscription.current_period_start * 1000)
-            : null,
-          currentPeriodEnd: recoveredSubscription.current_period_end
-            ? new Date(recoveredSubscription.current_period_end * 1000)
-            : null,
+          currentPeriodStart: getSubscriptionPeriodDate(
+            recoveredSubscription,
+            'current_period_start',
+          ),
+          currentPeriodEnd: getSubscriptionPeriodDate(recoveredSubscription, 'current_period_end'),
           cancelAtPeriodEnd: recoveredSubscription.cancel_at_period_end ?? false,
           graceUntil: null,
         });

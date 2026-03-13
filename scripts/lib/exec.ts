@@ -11,11 +11,8 @@
  */
 
 import { type SpawnOptions, spawn } from 'node:child_process';
-import {
-  type ProcessMetadata,
-  registerProcess,
-  updateProcessStatus,
-} from '@revealui/core/monitoring/process-registry';
+import { registerProcess, updateProcessStatus } from '@revealui/core/monitoring/process-registry';
+import type { ProcessMetadata } from '@revealui/core/monitoring/types';
 import { createLogger, type Logger } from './logger.js';
 
 const trackedChildren = new Set<ReturnType<typeof spawn>>();
