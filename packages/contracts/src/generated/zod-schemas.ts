@@ -2,7 +2,7 @@
  * Auto-generated Zod schemas from Drizzle
  *
  * DO NOT EDIT - Regenerate with: pnpm generate:all
- * Generated: 2026-03-11T23:42:36.737Z
+ * Generated: 2026-03-13T09:16:01.578Z
  *
  * This file provides Zod schemas for all database tables, generated
  * directly from Drizzle table definitions using drizzle-zod.
@@ -13,6 +13,110 @@
 import { createInsertSchema, createSelectSchema } from 'drizzle-zod'
 import type { z } from 'zod'
 import * as tables from '@revealui/db/schema'
+
+// =============================================================================
+// AccountEntitlements Schemas
+// =============================================================================
+
+/**
+ * Zod schema for selecting accountEntitlements rows from database
+ * Generated from Drizzle table definition: tables.accountEntitlements
+ */
+export const AccountEntitlementsSelectSchema = createSelectSchema(tables.accountEntitlements)
+
+/**
+ * Zod schema for inserting accountEntitlements rows to database
+ * Generated from Drizzle table definition: tables.accountEntitlements
+ */
+export const AccountEntitlementsInsertSchema = createInsertSchema(tables.accountEntitlements)
+
+/**
+ * TypeScript type for accountEntitlements row (Select)
+ */
+export type AccountEntitlementsRow = z.infer<typeof AccountEntitlementsSelectSchema>
+
+/**
+ * TypeScript type for accountEntitlements insert
+ */
+export type AccountEntitlementsInsert = z.infer<typeof AccountEntitlementsInsertSchema>
+
+// =============================================================================
+// AccountMemberships Schemas
+// =============================================================================
+
+/**
+ * Zod schema for selecting accountMemberships rows from database
+ * Generated from Drizzle table definition: tables.accountMemberships
+ */
+export const AccountMembershipsSelectSchema = createSelectSchema(tables.accountMemberships)
+
+/**
+ * Zod schema for inserting accountMemberships rows to database
+ * Generated from Drizzle table definition: tables.accountMemberships
+ */
+export const AccountMembershipsInsertSchema = createInsertSchema(tables.accountMemberships)
+
+/**
+ * TypeScript type for accountMemberships row (Select)
+ */
+export type AccountMembershipsRow = z.infer<typeof AccountMembershipsSelectSchema>
+
+/**
+ * TypeScript type for accountMemberships insert
+ */
+export type AccountMembershipsInsert = z.infer<typeof AccountMembershipsInsertSchema>
+
+// =============================================================================
+// Accounts Schemas
+// =============================================================================
+
+/**
+ * Zod schema for selecting accounts rows from database
+ * Generated from Drizzle table definition: tables.accounts
+ */
+export const AccountsSelectSchema = createSelectSchema(tables.accounts)
+
+/**
+ * Zod schema for inserting accounts rows to database
+ * Generated from Drizzle table definition: tables.accounts
+ */
+export const AccountsInsertSchema = createInsertSchema(tables.accounts)
+
+/**
+ * TypeScript type for accounts row (Select)
+ */
+export type AccountsRow = z.infer<typeof AccountsSelectSchema>
+
+/**
+ * TypeScript type for accounts insert
+ */
+export type AccountsInsert = z.infer<typeof AccountsInsertSchema>
+
+// =============================================================================
+// AccountSubscriptions Schemas
+// =============================================================================
+
+/**
+ * Zod schema for selecting accountSubscriptions rows from database
+ * Generated from Drizzle table definition: tables.accountSubscriptions
+ */
+export const AccountSubscriptionsSelectSchema = createSelectSchema(tables.accountSubscriptions)
+
+/**
+ * Zod schema for inserting accountSubscriptions rows to database
+ * Generated from Drizzle table definition: tables.accountSubscriptions
+ */
+export const AccountSubscriptionsInsertSchema = createInsertSchema(tables.accountSubscriptions)
+
+/**
+ * TypeScript type for accountSubscriptions row (Select)
+ */
+export type AccountSubscriptionsRow = z.infer<typeof AccountSubscriptionsSelectSchema>
+
+/**
+ * TypeScript type for accountSubscriptions insert
+ */
+export type AccountSubscriptionsInsert = z.infer<typeof AccountSubscriptionsInsertSchema>
 
 // =============================================================================
 // AgentActions Schemas
@@ -195,6 +299,32 @@ export type AuditLogRow = z.infer<typeof AuditLogSelectSchema>
  * TypeScript type for auditLog insert
  */
 export type AuditLogInsert = z.infer<typeof AuditLogInsertSchema>
+
+// =============================================================================
+// BillingCatalog Schemas
+// =============================================================================
+
+/**
+ * Zod schema for selecting billingCatalog rows from database
+ * Generated from Drizzle table definition: tables.billingCatalog
+ */
+export const BillingCatalogSelectSchema = createSelectSchema(tables.billingCatalog)
+
+/**
+ * Zod schema for inserting billingCatalog rows to database
+ * Generated from Drizzle table definition: tables.billingCatalog
+ */
+export const BillingCatalogInsertSchema = createInsertSchema(tables.billingCatalog)
+
+/**
+ * TypeScript type for billingCatalog row (Select)
+ */
+export type BillingCatalogRow = z.infer<typeof BillingCatalogSelectSchema>
+
+/**
+ * TypeScript type for billingCatalog insert
+ */
+export type BillingCatalogInsert = z.infer<typeof BillingCatalogInsertSchema>
 
 // =============================================================================
 // BoardColumns Schemas
@@ -1315,6 +1445,32 @@ export type TenantProviderConfigsRow = z.infer<typeof TenantProviderConfigsSelec
 export type TenantProviderConfigsInsert = z.infer<typeof TenantProviderConfigsInsertSchema>
 
 // =============================================================================
+// Tenants Schemas
+// =============================================================================
+
+/**
+ * Zod schema for selecting tenants rows from database
+ * Generated from Drizzle table definition: tables.tenants
+ */
+export const TenantsSelectSchema = createSelectSchema(tables.tenants)
+
+/**
+ * Zod schema for inserting tenants rows to database
+ * Generated from Drizzle table definition: tables.tenants
+ */
+export const TenantsInsertSchema = createInsertSchema(tables.tenants)
+
+/**
+ * TypeScript type for tenants row (Select)
+ */
+export type TenantsRow = z.infer<typeof TenantsSelectSchema>
+
+/**
+ * TypeScript type for tenants insert
+ */
+export type TenantsInsert = z.infer<typeof TenantsInsertSchema>
+
+// =============================================================================
 // TicketComments Schemas
 // =============================================================================
 
@@ -1417,6 +1573,32 @@ export type TicketsRow = z.infer<typeof TicketsSelectSchema>
  * TypeScript type for tickets insert
  */
 export type TicketsInsert = z.infer<typeof TicketsInsertSchema>
+
+// =============================================================================
+// UsageMeters Schemas
+// =============================================================================
+
+/**
+ * Zod schema for selecting usageMeters rows from database
+ * Generated from Drizzle table definition: tables.usageMeters
+ */
+export const UsageMetersSelectSchema = createSelectSchema(tables.usageMeters)
+
+/**
+ * Zod schema for inserting usageMeters rows to database
+ * Generated from Drizzle table definition: tables.usageMeters
+ */
+export const UsageMetersInsertSchema = createInsertSchema(tables.usageMeters)
+
+/**
+ * TypeScript type for usageMeters row (Select)
+ */
+export type UsageMetersRow = z.infer<typeof UsageMetersSelectSchema>
+
+/**
+ * TypeScript type for usageMeters insert
+ */
+export type UsageMetersInsert = z.infer<typeof UsageMetersInsertSchema>
 
 // =============================================================================
 // UserApiKeys Schemas

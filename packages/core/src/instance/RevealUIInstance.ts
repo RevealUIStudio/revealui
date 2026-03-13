@@ -1,6 +1,7 @@
 import { randomBytes } from 'node:crypto';
 import bcrypt from 'bcryptjs';
 import { RevealUICollection } from '../collections/CollectionOperations.js';
+import { buildCollectionStorageRegistry } from '../collections/registry.js';
 import { getDataLoader } from '../dataloader.js';
 import { afterRead } from '../fields/hooks/afterRead/index.js';
 import { RevealUIGlobal } from '../globals/GlobalOperations.js';
@@ -93,6 +94,7 @@ export async function createRevealUIInstance(config: RevealConfig): Promise<Reve
   // Initialize collections and globals
   const collections: { [slug: string]: RevealUICollection } = {};
   const globals: { [slug: string]: RevealUIGlobal } = {};
+  const collectionStorageRegistry = buildCollectionStorageRegistry(config.collections);
 
   // Initialize collections
   if (config.collections) {
@@ -100,6 +102,7 @@ export async function createRevealUIInstance(config: RevealConfig): Promise<Reve
       collections[collectionConfig.slug] = new RevealUICollection(
         collectionConfig,
         config.db || null,
+        collectionStorageRegistry[collectionConfig.slug] ?? null,
       );
     }
   }
@@ -119,6 +122,7 @@ export async function createRevealUIInstance(config: RevealConfig): Promise<Reve
 
   const revealUIInstance: RevealUIInstance = {
     collections,
+    collectionStorageRegistry,
     globals,
     config,
     db: config.db || null,
