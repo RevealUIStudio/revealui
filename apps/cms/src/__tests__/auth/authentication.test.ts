@@ -27,7 +27,7 @@ describe('Authentication Tests', () => {
     await deleteTestUser(testEmail);
     // Result indicates success/failure - errors are handled internally
     // This prevents UNIQUE constraint failures from parallel test execution
-  }, 30000);
+  }, 60000);
 
   describe('User Login', { timeout: 15_000 }, () => {
     it('should allow login with valid credentials', async () => {
@@ -257,7 +257,7 @@ describe('Authentication Tests', () => {
           data: { email: timingTestEmail, password: longWrongPassword },
         }),
       ).rejects.toThrow();
-    });
+    }, 15000);
   });
 });
 

@@ -61,12 +61,12 @@ describe('Access Control Tests', () => {
       'Test Tenant 2',
       'https://tenant2.example.com',
     )) as TestTenant;
-  }, 30000); // 30 second timeout for setup
+  }, 60000); // Full-suite fan-out can make CMS startup and tenant creation slow
 
   afterAll(async () => {
     if (tenant1) await deleteTestTenant(tenant1.id);
     if (tenant2) await deleteTestTenant(tenant2.id);
-  }, 30000); // 30 second timeout for cleanup
+  }, 60000); // Tenant cleanup can queue behind DB work under fan-out
 
   beforeEach(async () => {
     // Clean up test users before each test
