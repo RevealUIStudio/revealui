@@ -72,6 +72,10 @@
       "types": "./dist/schema/sites.d.ts",
       "import": "./dist/schema/sites.js"
     },
+    "./schema/tenants": {
+      "types": "./dist/schema/tenants.d.ts",
+      "import": "./dist/schema/tenants.js"
+    },
     "./schema/users": {
       "types": "./dist/schema/users.d.ts",
       "import": "./dist/schema/users.js"

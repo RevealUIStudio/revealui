@@ -4,7 +4,11 @@
 
 **Goal:** Remove dollar amounts from public source code and serve pricing via a Stripe-backed API endpoint with server-side fallbacks.
 
+**Strategic update (2026-03-12):** This runtime-pricing work remains useful, but it is not the end-state pricing model. RevealUI's target commercial architecture is account/workspace billing plus metered agent execution, explicit commerce fees, and premium trust/governance controls. Public pricing should eventually be rendered from server-owned plans and meters, not from client-supplied Stripe price IDs or per-user license assumptions.
+
 **Architecture:** Contracts keeps types + tier structure (no prices). New `GET /api/pricing` Hono route merges structure from contracts with prices from Stripe (or server-side fallback). Marketing page fetches via ISR; CMS client pages fetch via existing `useEffect` pattern. PricingTable renders "—" when price is undefined.
+
+**Important commercial constraint:** Pricing presentation and billing authority are different concerns. A runtime pricing endpoint can publish public prices, but billing authority must live in server-owned catalog resolution, request-scoped entitlements, and replay-safe metering.
 
 **Tech Stack:** TypeScript, Hono, Stripe SDK, Next.js ISR, Vitest, @hono/zod-openapi
 
@@ -17,6 +21,7 @@
 ### Task 1: Make price fields optional in contracts types
 
 **Files:**
+
 - Modify: `packages/contracts/src/pricing.ts:102-112` (SubscriptionTier)
 - Modify: `packages/contracts/src/pricing.ts:208-216` (CreditBundle)
 - Modify: `packages/contracts/src/pricing.ts:252-262` (PerpetualTier)
@@ -24,6 +29,7 @@
 - [ ] **Step 1: Update SubscriptionTier interface — make `price` optional**
 
 In `packages/contracts/src/pricing.ts`, change line 105:
+
 ```ts
 // Before:
   price: string
@@ -34,6 +40,7 @@ In `packages/contracts/src/pricing.ts`, change line 105:
 - [ ] **Step 2: Update CreditBundle interface — make `price`, `priceNote`, `costPer` optional**
 
 In `packages/contracts/src/pricing.ts`, change lines 211-213:
+
 ```ts
 // Before:
   price: string
@@ -48,6 +55,7 @@ In `packages/contracts/src/pricing.ts`, change lines 211-213:
 - [ ] **Step 3: Update PerpetualTier interface — make `price`, `priceNote`, `renewal` optional**
 
 In `packages/contracts/src/pricing.ts`, change lines 254-256:
+
 ```ts
 // Before:
   price: string
@@ -62,21 +70,23 @@ In `packages/contracts/src/pricing.ts`, change lines 254-256:
 - [ ] **Step 4: Add PricingResponse type**
 
 After the `PerpetualTier` interface (after line 262), add:
+
 ```ts
 // =============================================================================
 // Pricing API Response
 // =============================================================================
 
 export interface PricingResponse {
-  subscriptions: SubscriptionTier[]
-  credits: CreditBundle[]
-  perpetual: PerpetualTier[]
+  subscriptions: SubscriptionTier[];
+  credits: CreditBundle[];
+  perpetual: PerpetualTier[];
 }
 ```
 
 - [ ] **Step 5: Remove dollar amounts from SUBSCRIPTION_TIERS**
 
 Remove the `price` and `period` fields from each entry in the `SUBSCRIPTION_TIERS` array (lines 114-202). Keep all other fields. The entries should look like:
+
 ```ts
 {
   id: 'free',
@@ -110,6 +120,7 @@ Remove `price`, `priceNote`, and `renewal` from each entry in `PERPETUAL_TIERS` 
 - [ ] **Step 8: Add PricingResponse to contracts re-exports**
 
 In `packages/contracts/src/index.ts`, add `type PricingResponse` to the pricing re-exports (after line 498):
+
 ```ts
 export {
   CREDIT_BUNDLES,
@@ -122,14 +133,14 @@ export {
   type LicenseTierId,
   PERPETUAL_TIERS,
   type PerpetualTier,
-  type PricingResponse,     // ADD THIS
+  type PricingResponse, // ADD THIS
   SUBSCRIPTION_TIERS,
   type SubscriptionTier,
   TIER_COLORS,
   TIER_LABELS,
   TIER_LIMITS,
   type TierLimits,
-} from './pricing.js'
+} from "./pricing.js";
 ```
 
 - [ ] **Step 9: Run typecheck on contracts**
@@ -158,6 +169,7 @@ Part of MASTER_PLAN §3.8 Step 6."
 ### Task 2: Update PricingTable to handle optional prices
 
 **Files:**
+
 - Modify: `packages/presentation/src/components/pricing-table.tsx:7-17` (PricingTier interface)
 - Modify: `packages/presentation/src/components/pricing-table.tsx:142` (PricingCardFull price render)
 - Modify: `packages/presentation/src/components/pricing-table.tsx:225` (PricingCardCompact price render)
@@ -165,6 +177,7 @@ Part of MASTER_PLAN §3.8 Step 6."
 - [ ] **Step 1: Update PricingTier interface**
 
 In `packages/presentation/src/components/pricing-table.tsx`, change line 10:
+
 ```ts
 // Before:
   price: string
@@ -175,16 +188,22 @@ In `packages/presentation/src/components/pricing-table.tsx`, change line 10:
 - [ ] **Step 2: Add null-coalescing to PricingCardFull**
 
 Line 142, change:
+
 ```ts
 // Before:
-            {tier.price}
+{
+  tier.price;
+}
 // After:
-            {tier.price ?? '—'}
+{
+  tier.price ?? "—";
+}
 ```
 
 - [ ] **Step 3: Add null-coalescing to PricingCardCompact**
 
 Line 225, change:
+
 ```ts
 // Before:
         <span className="text-2xl font-bold text-zinc-900 dark:text-white">{tier.price}</span>
@@ -214,70 +233,76 @@ Part of MASTER_PLAN §3.8 Step 6."
 ### Task 3: Update contracts tests
 
 **Files:**
+
 - Modify: `packages/contracts/src/__tests__/pricing.test.ts`
 
 - [ ] **Step 1: Update SUBSCRIPTION_TIERS test — remove price assertion**
 
 In `packages/contracts/src/__tests__/pricing.test.ts`, the test at lines 89-98 ("every tier has required fields") asserts `expect(tier.price).toBeTruthy()`. Remove that assertion. The test should become:
+
 ```ts
-  it('every tier has required structural fields', () => {
-    for (const tier of SUBSCRIPTION_TIERS) {
-      expect(tier.name).toBeTruthy()
-      expect(tier.description).toBeTruthy()
-      expect(tier.features.length).toBeGreaterThan(0)
-      expect(tier.cta).toBeTruthy()
-      expect(tier.ctaHref).toBeTruthy()
-    }
-  })
+it("every tier has required structural fields", () => {
+  for (const tier of SUBSCRIPTION_TIERS) {
+    expect(tier.name).toBeTruthy();
+    expect(tier.description).toBeTruthy();
+    expect(tier.features.length).toBeGreaterThan(0);
+    expect(tier.cta).toBeTruthy();
+    expect(tier.ctaHref).toBeTruthy();
+  }
+});
 ```
 
 - [ ] **Step 2: Add test for price fields being undefined in static arrays**
 
 After the "every tier has required structural fields" test, add:
+
 ```ts
-  it('price fields are undefined in static arrays (populated at runtime)', () => {
-    for (const tier of SUBSCRIPTION_TIERS) {
-      expect(tier.price).toBeUndefined()
-    }
-  })
+it("price fields are undefined in static arrays (populated at runtime)", () => {
+  for (const tier of SUBSCRIPTION_TIERS) {
+    expect(tier.price).toBeUndefined();
+  }
+});
 ```
 
 - [ ] **Step 3: Remove period assertion from "paid tiers have /month period" test**
 
 Lines 111-116 assert `expect(tier.period).toBe('/month')`. Since `period` is no longer in the static array, update:
+
 ```ts
-  it('paid tiers do not include period in static data (populated at runtime)', () => {
-    const paid = SUBSCRIPTION_TIERS.filter((t) => t.id !== 'free')
-    for (const tier of paid) {
-      expect(tier.period).toBeUndefined()
-    }
-  })
+it("paid tiers do not include period in static data (populated at runtime)", () => {
+  const paid = SUBSCRIPTION_TIERS.filter((t) => t.id !== "free");
+  for (const tier of paid) {
+    expect(tier.period).toBeUndefined();
+  }
+});
 ```
 
 - [ ] **Step 4: Update CREDIT_BUNDLES test — remove price/costPer assertions**
 
 Lines 133-140 ("every bundle has required fields"): remove `price` and `costPer` assertions. Update to:
+
 ```ts
-  it('every bundle has required structural fields', () => {
-    for (const bundle of CREDIT_BUNDLES) {
-      expect(bundle.name).toBeTruthy()
-      expect(bundle.tasks).toBeTruthy()
-      expect(bundle.description).toBeTruthy()
-    }
-  })
+it("every bundle has required structural fields", () => {
+  for (const bundle of CREDIT_BUNDLES) {
+    expect(bundle.name).toBeTruthy();
+    expect(bundle.tasks).toBeTruthy();
+    expect(bundle.description).toBeTruthy();
+  }
+});
 ```
 
 - [ ] **Step 5: Update PERPETUAL_TIERS test — remove price/priceNote assertions**
 
 Lines 152-159 ("every tier has required fields"): remove `price` and `priceNote` assertions. Update to:
+
 ```ts
-  it('every tier has required structural fields', () => {
-    for (const tier of PERPETUAL_TIERS) {
-      expect(tier.name).toBeTruthy()
-      expect(tier.description).toBeTruthy()
-      expect(tier.features.length).toBeGreaterThan(0)
-    }
-  })
+it("every tier has required structural fields", () => {
+  for (const tier of PERPETUAL_TIERS) {
+    expect(tier.name).toBeTruthy();
+    expect(tier.description).toBeTruthy();
+    expect(tier.features.length).toBeGreaterThan(0);
+  }
+});
 ```
 
 - [ ] **Step 6: Run contracts tests**
@@ -302,11 +327,13 @@ Part of MASTER_PLAN §3.8 Step 6."
 ### Task 4: Update PricingTable tests
 
 **Files:**
+
 - Modify: `packages/presentation/src/__tests__/pricing-table.test.tsx`
 
 - [ ] **Step 1: Add test for undefined price rendering**
 
 Add a new test to the existing test file:
+
 ```ts
 it('renders "—" when price is undefined', () => {
   const tiersWithoutPrice = [
@@ -348,11 +375,13 @@ Part of MASTER_PLAN §3.8 Step 6."
 ### Task 5: Create GET /api/pricing endpoint
 
 **Files:**
+
 - Create: `apps/api/src/routes/pricing.ts`
 
 - [ ] **Step 1: Write the pricing route**
 
 Create `apps/api/src/routes/pricing.ts`:
+
 ```ts
 /**
  * Pricing Route — serves tier/pricing data from Stripe with server-side fallback
@@ -361,18 +390,21 @@ Create `apps/api/src/routes/pricing.ts`:
  * otherwise from private server-side defaults.
  */
 
-import { createRoute, OpenAPIHono, z } from '@hono/zod-openapi'
-import { CircuitBreaker, CircuitBreakerOpenError } from '@revealui/core/error-handling'
-import { logger } from '@revealui/core/observability/logger'
+import { createRoute, OpenAPIHono, z } from "@hono/zod-openapi";
+import {
+  CircuitBreaker,
+  CircuitBreakerOpenError,
+} from "@revealui/core/error-handling";
+import { logger } from "@revealui/core/observability/logger";
 import {
   CREDIT_BUNDLES,
   PERPETUAL_TIERS,
   type PricingResponse,
   SUBSCRIPTION_TIERS,
-} from '@revealui/contracts/pricing'
-import Stripe from 'stripe'
+} from "@revealui/contracts/pricing";
+import Stripe from "stripe";
 
-const app = new OpenAPIHono()
+const app = new OpenAPIHono();
 
 // ---------------------------------------------------------------------------
 // Stripe client (self-contained — does not share with billing.ts)
@@ -382,137 +414,160 @@ const pricingBreaker = new CircuitBreaker({
   failureThreshold: 3,
   resetTimeout: 60_000,
   successThreshold: 2,
-})
+});
 
 function getStripeClient(): Stripe | null {
-  const key = process.env.STRIPE_SECRET_KEY
-  if (!key) return null
-  return new Stripe(key, { maxNetworkRetries: 2 })
+  const key = process.env.STRIPE_SECRET_KEY;
+  if (!key) return null;
+  return new Stripe(key, { maxNetworkRetries: 2 });
 }
 
 // ---------------------------------------------------------------------------
 // Server-side fallback prices (private — never exported or in contracts)
 // ---------------------------------------------------------------------------
 
-const FALLBACK_SUBSCRIPTION_PRICES: Record<string, { price: string; period?: string }> = {
-  free: { price: '$0' },
-  pro: { price: '$49', period: '/month' },
-  max: { price: '$149', period: '/month' },
-  enterprise: { price: '$299', period: '/month' },
-}
+const FALLBACK_SUBSCRIPTION_PRICES: Record<
+  string,
+  { price: string; period?: string }
+> = {
+  free: { price: "$0" },
+  pro: { price: "$49", period: "/month" },
+  max: { price: "$149", period: "/month" },
+  enterprise: { price: "$299", period: "/month" },
+};
 
-const FALLBACK_CREDIT_PRICES: Record<string, { price: string; priceNote: string; costPer: string }> = {
-  Starter: { price: '$10', priceNote: 'one-time', costPer: '$0.001/task' },
-  Standard: { price: '$50', priceNote: 'one-time', costPer: '$0.00083/task' },
-  Scale: { price: '$250', priceNote: 'one-time', costPer: '$0.00071/task' },
-}
+const FALLBACK_CREDIT_PRICES: Record<
+  string,
+  { price: string; priceNote: string; costPer: string }
+> = {
+  Starter: { price: "$10", priceNote: "one-time", costPer: "$0.001/task" },
+  Standard: { price: "$50", priceNote: "one-time", costPer: "$0.00083/task" },
+  Scale: { price: "$250", priceNote: "one-time", costPer: "$0.00071/task" },
+};
 
-const FALLBACK_PERPETUAL_PRICES: Record<string, { price: string; priceNote: string; renewal: string }> = {
-  'Pro Perpetual': { price: '$299', priceNote: 'one-time', renewal: '$99/yr for continued support' },
-  'Agency Perpetual': { price: '$799', priceNote: 'one-time', renewal: '$199/yr for continued support' },
-  'Forge Perpetual': { price: '$1,999', priceNote: 'one-time', renewal: '$499/yr for continued support' },
-}
+const FALLBACK_PERPETUAL_PRICES: Record<
+  string,
+  { price: string; priceNote: string; renewal: string }
+> = {
+  "Pro Perpetual": {
+    price: "$299",
+    priceNote: "one-time",
+    renewal: "$99/yr for continued support",
+  },
+  "Agency Perpetual": {
+    price: "$799",
+    priceNote: "one-time",
+    renewal: "$199/yr for continued support",
+  },
+  "Forge Perpetual": {
+    price: "$1,999",
+    priceNote: "one-time",
+    renewal: "$499/yr for continued support",
+  },
+};
 
 // ---------------------------------------------------------------------------
 // Stripe → pricing merge logic
 // ---------------------------------------------------------------------------
 
 function formatPrice(unitAmount: number): string {
-  return `$${(unitAmount / 100).toFixed(0)}`
+  return `$${(unitAmount / 100).toFixed(0)}`;
 }
 
 function formatPeriod(interval: string | undefined): string | undefined {
-  if (!interval) return undefined
-  return `/${interval}`
+  if (!interval) return undefined;
+  return `/${interval}`;
 }
 
 interface StripeProductMap {
-  subscriptions: Map<string, { price: string; period?: string }>
-  credits: Map<string, { price: string; priceNote: string; costPer: string }>
-  perpetual: Map<string, { price: string; priceNote: string; renewal: string }>
+  subscriptions: Map<string, { price: string; period?: string }>;
+  credits: Map<string, { price: string; priceNote: string; costPer: string }>;
+  perpetual: Map<string, { price: string; priceNote: string; renewal: string }>;
 }
 
 async function fetchStripePrices(): Promise<StripeProductMap | null> {
-  const stripe = getStripeClient()
-  if (!stripe) return null
+  const stripe = getStripeClient();
+  if (!stripe) return null;
 
   try {
     const result = await pricingBreaker.execute(async () => {
       const products = await stripe.products.list({
         active: true,
-        expand: ['data.default_price'],
+        expand: ["data.default_price"],
         limit: 100,
-      })
-      return products
-    })
+      });
+      return products;
+    });
 
     const map: StripeProductMap = {
       subscriptions: new Map(),
       credits: new Map(),
       perpetual: new Map(),
-    }
+    };
 
     for (const product of result.data) {
-      const track = product.metadata?.revealui_track
-      const tier = product.metadata?.revealui_tier
-      if (!track || !tier) continue
+      const track = product.metadata?.revealui_track;
+      const tier = product.metadata?.revealui_tier;
+      if (!track || !tier) continue;
 
-      const defaultPrice = product.default_price as Stripe.Price | null
-      if (!defaultPrice?.unit_amount) continue
+      const defaultPrice = product.default_price as Stripe.Price | null;
+      if (!defaultPrice?.unit_amount) continue;
 
-      const priceStr = formatPrice(defaultPrice.unit_amount)
+      const priceStr = formatPrice(defaultPrice.unit_amount);
 
-      if (track === 'subscription') {
+      if (track === "subscription") {
         map.subscriptions.set(tier, {
           price: priceStr,
           period: formatPeriod(defaultPrice.recurring?.interval),
-        })
-      } else if (track === 'credit') {
+        });
+      } else if (track === "credit") {
         map.credits.set(product.name, {
           price: priceStr,
-          priceNote: product.metadata?.revealui_price_note ?? 'one-time',
-          costPer: product.metadata?.revealui_cost_per ?? '',
-        })
-      } else if (track === 'perpetual') {
+          priceNote: product.metadata?.revealui_price_note ?? "one-time",
+          costPer: product.metadata?.revealui_cost_per ?? "",
+        });
+      } else if (track === "perpetual") {
         map.perpetual.set(product.name, {
           price: priceStr,
-          priceNote: product.metadata?.revealui_price_note ?? 'one-time',
-          renewal: product.metadata?.revealui_renewal ?? '',
-        })
+          priceNote: product.metadata?.revealui_price_note ?? "one-time",
+          renewal: product.metadata?.revealui_renewal ?? "",
+        });
       }
     }
 
-    return map
+    return map;
   } catch (error) {
     if (error instanceof CircuitBreakerOpenError) {
-      logger.warn('Pricing: Stripe circuit breaker open, using fallback')
+      logger.warn("Pricing: Stripe circuit breaker open, using fallback");
     } else {
-      logger.error('Pricing: Stripe fetch failed, using fallback', { error })
+      logger.error("Pricing: Stripe fetch failed, using fallback", { error });
     }
-    return null
+    return null;
   }
 }
 
-function buildPricingResponse(stripePrices: StripeProductMap | null): PricingResponse {
+function buildPricingResponse(
+  stripePrices: StripeProductMap | null,
+): PricingResponse {
   const subscriptions = SUBSCRIPTION_TIERS.map((tier) => {
-    const stripePrice = stripePrices?.subscriptions.get(tier.id)
-    const fallback = FALLBACK_SUBSCRIPTION_PRICES[tier.id]
-    return { ...tier, ...(stripePrice ?? fallback) }
-  })
+    const stripePrice = stripePrices?.subscriptions.get(tier.id);
+    const fallback = FALLBACK_SUBSCRIPTION_PRICES[tier.id];
+    return { ...tier, ...(stripePrice ?? fallback) };
+  });
 
   const credits = CREDIT_BUNDLES.map((bundle) => {
-    const stripePrice = stripePrices?.credits.get(bundle.name)
-    const fallback = FALLBACK_CREDIT_PRICES[bundle.name]
-    return { ...bundle, ...(stripePrice ?? fallback) }
-  })
+    const stripePrice = stripePrices?.credits.get(bundle.name);
+    const fallback = FALLBACK_CREDIT_PRICES[bundle.name];
+    return { ...bundle, ...(stripePrice ?? fallback) };
+  });
 
   const perpetual = PERPETUAL_TIERS.map((tier) => {
-    const stripePrice = stripePrices?.perpetual.get(tier.name)
-    const fallback = FALLBACK_PERPETUAL_PRICES[tier.name]
-    return { ...tier, ...(stripePrice ?? fallback) }
-  })
+    const stripePrice = stripePrices?.perpetual.get(tier.name);
+    const fallback = FALLBACK_PERPETUAL_PRICES[tier.name];
+    return { ...tier, ...(stripePrice ?? fallback) };
+  });
 
-  return { subscriptions, credits, perpetual }
+  return { subscriptions, credits, perpetual };
 }
 
 // ---------------------------------------------------------------------------
@@ -520,63 +575,73 @@ function buildPricingResponse(stripePrices: StripeProductMap | null): PricingRes
 // ---------------------------------------------------------------------------
 
 const PricingResponseSchema = z.object({
-  subscriptions: z.array(z.object({
-    id: z.string(),
-    name: z.string(),
-    price: z.string().optional(),
-    period: z.string().optional(),
-    description: z.string(),
-    features: z.array(z.string()),
-    cta: z.string(),
-    ctaHref: z.string(),
-    highlighted: z.boolean(),
-  })),
-  credits: z.array(z.object({
-    name: z.string(),
-    tasks: z.string(),
-    price: z.string().optional(),
-    priceNote: z.string().optional(),
-    costPer: z.string().optional(),
-    description: z.string(),
-    highlighted: z.boolean(),
-  })),
-  perpetual: z.array(z.object({
-    name: z.string(),
-    price: z.string().optional(),
-    priceNote: z.string().optional(),
-    renewal: z.string().optional(),
-    description: z.string(),
-    features: z.array(z.string()),
-    cta: z.string(),
-    ctaHref: z.string(),
-    comingSoon: z.boolean(),
-  })),
-})
+  subscriptions: z.array(
+    z.object({
+      id: z.string(),
+      name: z.string(),
+      price: z.string().optional(),
+      period: z.string().optional(),
+      description: z.string(),
+      features: z.array(z.string()),
+      cta: z.string(),
+      ctaHref: z.string(),
+      highlighted: z.boolean(),
+    }),
+  ),
+  credits: z.array(
+    z.object({
+      name: z.string(),
+      tasks: z.string(),
+      price: z.string().optional(),
+      priceNote: z.string().optional(),
+      costPer: z.string().optional(),
+      description: z.string(),
+      highlighted: z.boolean(),
+    }),
+  ),
+  perpetual: z.array(
+    z.object({
+      name: z.string(),
+      price: z.string().optional(),
+      priceNote: z.string().optional(),
+      renewal: z.string().optional(),
+      description: z.string(),
+      features: z.array(z.string()),
+      cta: z.string(),
+      ctaHref: z.string(),
+      comingSoon: z.boolean(),
+    }),
+  ),
+});
 
 const pricingRoute = createRoute({
-  method: 'get',
-  path: '/',
-  tags: ['pricing'],
-  summary: 'Get pricing data',
-  description: 'Returns subscription tiers, credit bundles, and perpetual license pricing. Prices sourced from Stripe when configured, otherwise server-side defaults.',
+  method: "get",
+  path: "/",
+  tags: ["pricing"],
+  summary: "Get pricing data",
+  description:
+    "Returns subscription tiers, credit bundles, and perpetual license pricing. Prices sourced from Stripe when configured, otherwise server-side defaults.",
   responses: {
     200: {
-      content: { 'application/json': { schema: PricingResponseSchema } },
-      description: 'Pricing data',
+      content: { "application/json": { schema: PricingResponseSchema } },
+      description: "Pricing data",
     },
   },
-})
+});
 
 app.openapi(pricingRoute, async (c) => {
-  const stripePrices = await fetchStripePrices()
-  const response = buildPricingResponse(stripePrices)
+  const stripePrices = await fetchStripePrices();
+  const response = buildPricingResponse(stripePrices);
 
-  c.header('Cache-Control', 'public, s-maxage=3600, stale-while-revalidate=86400')
+  c.header(
+    "Cache-Control",
+    "public, s-maxage=3600, stale-while-revalidate=86400",
+  );
 
-  return c.json(response, 200)
-})
+  return c.json(response, 200);
+});
 
-export default app
+export default app;
 ```
 
 - [ ] **Step 2: Run typecheck on API**
@@ -602,6 +667,7 @@ Part of MASTER_PLAN §3.8 Step 6."
 ### Task 6: Mount pricing route + add rate limit
 
 **Files:**
+
 - Modify: `apps/api/src/index.ts:30-43` (imports)
 - Modify: `apps/api/src/index.ts:183-197` (rate limit config)
 - Modify: `apps/api/src/index.ts:413-449` (route mounting)
@@ -609,13 +675,15 @@ Part of MASTER_PLAN §3.8 Step 6."
 - [ ] **Step 1: Add import**
 
 After line 43 (`import webhooksRoute from './routes/webhooks.js'`), add:
+
 ```ts
-import pricingRoute from './routes/pricing.js'
+import pricingRoute from "./routes/pricing.js";
 ```
 
 - [ ] **Step 2: Add rate limit entry**
 
 In the `DEFAULT_RATE_LIMITS.routes` object (around line 196), add before the closing `}`:
+
 ```ts
     pricing: { maxRequests: 10, windowMs: ONE_MINUTE },
 ```
@@ -623,19 +691,22 @@ In the `DEFAULT_RATE_LIMITS.routes` object (around line 196), add before the clo
 - [ ] **Step 3: Mount routes and rate limits**
 
 After the marketplace rate limit lines (around line 269-270), add:
+
 ```ts
-app.use('/api/pricing', routeLimit('pricing'))
-app.use('/api/v1/pricing', routeLimit('pricing'))
+app.use("/api/pricing", routeLimit("pricing"));
+app.use("/api/v1/pricing", routeLimit("pricing"));
 ```
 
 In the route mounting section, after `app.route('/api/marketplace', marketplaceRoute)` (line 429), add:
+
 ```ts
-app.route('/api/pricing', pricingRoute)
+app.route("/api/pricing", pricingRoute);
 ```
 
 After `app.route('/api/v1/marketplace', marketplaceRoute)` (line 449), add:
+
 ```ts
-app.route('/api/v1/pricing', pricingRoute)
+app.route("/api/v1/pricing", pricingRoute);
 ```
 
 - [ ] **Step 4: Run typecheck on API**
@@ -660,126 +731,134 @@ Part of MASTER_PLAN §3.8 Step 6."
 ### Task 7: Write pricing endpoint tests
 
 **Files:**
+
 - Create: `apps/api/src/routes/__tests__/pricing.test.ts`
 
 - [ ] **Step 1: Write test file**
 
 Create `apps/api/src/routes/__tests__/pricing.test.ts`:
+
 ```ts
-import { beforeEach, describe, expect, it, vi } from 'vitest'
+import { beforeEach, describe, expect, it, vi } from "vitest";
 
 // Mock Stripe before imports
-vi.mock('stripe', () => {
+vi.mock("stripe", () => {
   return {
     default: class MockStripe {
       products = {
         list: vi.fn(),
-      }
+      };
     },
-  }
-})
+  };
+});
 
 // Mock circuit breaker to pass through
-vi.mock('@revealui/core/error-handling', () => ({
+vi.mock("@revealui/core/error-handling", () => ({
   CircuitBreaker: class {
     async execute<T>(fn: () => Promise<T>): Promise<T> {
-      return fn()
+      return fn();
     }
   },
   CircuitBreakerOpenError: class extends Error {},
-}))
+}));
 
 // Mock logger
-vi.mock('@revealui/core/observability/logger', () => ({
+vi.mock("@revealui/core/observability/logger", () => ({
   logger: { info: vi.fn(), warn: vi.fn(), error: vi.fn() },
-}))
+}));
 
-import app from '../pricing.js'
+import app from "../pricing.js";
 
-describe('GET /api/pricing', () => {
+describe("GET /api/pricing", () => {
   beforeEach(() => {
-    vi.clearAllMocks()
-    vi.unstubAllEnvs()
-  })
+    vi.clearAllMocks();
+    vi.unstubAllEnvs();
+  });
 
-  it('returns pricing response with fallback when Stripe is not configured', async () => {
-    vi.stubEnv('STRIPE_SECRET_KEY', '')
-    const res = await app.request('/')
-    expect(res.status).toBe(200)
-    const data = await res.json()
+  it("returns pricing response with fallback when Stripe is not configured", async () => {
+    vi.stubEnv("STRIPE_SECRET_KEY", "");
+    const res = await app.request("/");
+    expect(res.status).toBe(200);
+    const data = await res.json();
 
-    expect(data.subscriptions).toHaveLength(4)
-    expect(data.credits).toHaveLength(3)
-    expect(data.perpetual).toHaveLength(3)
+    expect(data.subscriptions).toHaveLength(4);
+    expect(data.credits).toHaveLength(3);
+    expect(data.perpetual).toHaveLength(3);
 
     // Fallback prices should be populated
-    const pro = data.subscriptions.find((t: { id: string }) => t.id === 'pro')
-    expect(pro.price).toBe('$49')
-    expect(pro.period).toBe('/month')
-  })
+    const pro = data.subscriptions.find((t: { id: string }) => t.id === "pro");
+    expect(pro.price).toBe("$49");
+    expect(pro.period).toBe("/month");
+  });
 
-  it('returns structural data from contracts', async () => {
-    vi.stubEnv('STRIPE_SECRET_KEY', '')
-    const res = await app.request('/')
-    const data = await res.json()
+  it("returns structural data from contracts", async () => {
+    vi.stubEnv("STRIPE_SECRET_KEY", "");
+    const res = await app.request("/");
+    const data = await res.json();
 
-    const free = data.subscriptions.find((t: { id: string }) => t.id === 'free')
-    expect(free.name).toBe('Free (OSS)')
-    expect(free.features.length).toBeGreaterThan(0)
-    expect(free.cta).toBe('Get Started')
-  })
+    const free = data.subscriptions.find(
+      (t: { id: string }) => t.id === "free",
+    );
+    expect(free.name).toBe("Free (OSS)");
+    expect(free.features.length).toBeGreaterThan(0);
+    expect(free.cta).toBe("Get Started");
+  });
 
-  it('sets cache headers', async () => {
-    vi.stubEnv('STRIPE_SECRET_KEY', '')
-    const res = await app.request('/')
-    expect(res.headers.get('Cache-Control')).toBe(
-      'public, s-maxage=3600, stale-while-revalidate=86400',
-    )
-  })
+  it("sets cache headers", async () => {
+    vi.stubEnv("STRIPE_SECRET_KEY", "");
+    const res = await app.request("/");
+    expect(res.headers.get("Cache-Control")).toBe(
+      "public, s-maxage=3600, stale-while-revalidate=86400",
+    );
+  });
 
-  it('returns all credit bundles with fallback prices', async () => {
-    vi.stubEnv('STRIPE_SECRET_KEY', '')
-    const res = await app.request('/')
-    const data = await res.json()
+  it("returns all credit bundles with fallback prices", async () => {
+    vi.stubEnv("STRIPE_SECRET_KEY", "");
+    const res = await app.request("/");
+    const data = await res.json();
 
-    const standard = data.credits.find((b: { name: string }) => b.name === 'Standard')
-    expect(standard.price).toBe('$50')
-    expect(standard.costPer).toBe('$0.00083/task')
-    expect(standard.tasks).toBe('60,000')
-  })
+    const standard = data.credits.find(
+      (b: { name: string }) => b.name === "Standard",
+    );
+    expect(standard.price).toBe("$50");
+    expect(standard.costPer).toBe("$0.00083/task");
+    expect(standard.tasks).toBe("60,000");
+  });
 
-  it('returns all perpetual tiers with fallback prices', async () => {
-    vi.stubEnv('STRIPE_SECRET_KEY', '')
-    const res = await app.request('/')
-    const data = await res.json()
+  it("returns all perpetual tiers with fallback prices", async () => {
+    vi.stubEnv("STRIPE_SECRET_KEY", "");
+    const res = await app.request("/");
+    const data = await res.json();
 
-    const proPerpetual = data.perpetual.find((t: { name: string }) => t.name === 'Pro Perpetual')
-    expect(proPerpetual.price).toBe('$299')
-    expect(proPerpetual.renewal).toBe('$99/yr for continued support')
-  })
+    const proPerpetual = data.perpetual.find(
+      (t: { name: string }) => t.name === "Pro Perpetual",
+    );
+    expect(proPerpetual.price).toBe("$299");
+    expect(proPerpetual.renewal).toBe("$99/yr for continued support");
+  });
 
-  it('response matches expected shape', async () => {
-    vi.stubEnv('STRIPE_SECRET_KEY', '')
-    const res = await app.request('/')
-    const data = await res.json()
+  it("response matches expected shape", async () => {
+    vi.stubEnv("STRIPE_SECRET_KEY", "");
+    const res = await app.request("/");
+    const data = await res.json();
 
     // Verify shape
-    expect(data).toHaveProperty('subscriptions')
-    expect(data).toHaveProperty('credits')
-    expect(data).toHaveProperty('perpetual')
+    expect(data).toHaveProperty("subscriptions");
+    expect(data).toHaveProperty("credits");
+    expect(data).toHaveProperty("perpetual");
 
     // Verify subscription tier shape
     for (const tier of data.subscriptions) {
-      expect(tier).toHaveProperty('id')
-      expect(tier).toHaveProperty('name')
-      expect(tier).toHaveProperty('description')
-      expect(tier).toHaveProperty('features')
-      expect(tier).toHaveProperty('cta')
-      expect(tier).toHaveProperty('ctaHref')
-      expect(tier).toHaveProperty('highlighted')
+      expect(tier).toHaveProperty("id");
+      expect(tier).toHaveProperty("name");
+      expect(tier).toHaveProperty("description");
+      expect(tier).toHaveProperty("features");
+      expect(tier).toHaveProperty("cta");
+      expect(tier).toHaveProperty("ctaHref");
+      expect(tier).toHaveProperty("highlighted");
     }
-  })
-})
+  });
+});
 ```
 
 - [ ] **Step 2: Run tests**
@@ -806,40 +885,42 @@ Part of MASTER_PLAN §3.8 Step 6."
 ### Task 8: Update marketing pricing page (ISR)
 
 **Files:**
+
 - Modify: `apps/marketing/src/app/pricing/page.tsx`
 
 - [ ] **Step 1: Replace static imports with ISR fetch**
 
 Replace the imports and `tiers` mapping at the top of the file (lines 1-22) with:
+
 ```ts
-import type { PricingResponse } from '@revealui/contracts/pricing'
-import type { Metadata } from 'next'
-import { Footer } from '@/components/Footer'
+import type { PricingResponse } from "@revealui/contracts/pricing";
+import type { Metadata } from "next";
+import { Footer } from "@/components/Footer";
 
 export const metadata: Metadata = {
-  title: 'Pricing — RevealUI',
+  title: "Pricing — RevealUI",
   description:
-    'Start free. Subscribe, pay per agent task, or buy a one-time license. Three ways to use RevealUI — pick what fits your business.',
+    "Start free. Subscribe, pay per agent task, or buy a one-time license. Three ways to use RevealUI — pick what fits your business.",
   openGraph: {
-    title: 'Pricing — RevealUI',
+    title: "Pricing — RevealUI",
     description:
-      'Start free. Subscribe, pay per agent task, or buy a one-time license. Three ways to use RevealUI.',
-    type: 'website',
+      "Start free. Subscribe, pay per agent task, or buy a one-time license. Three ways to use RevealUI.",
+    type: "website",
   },
-}
+};
 
-const cmsUrl = process.env.NEXT_PUBLIC_CMS_URL || 'https://cms.revealui.com'
+const cmsUrl = process.env.NEXT_PUBLIC_CMS_URL || "https://cms.revealui.com";
 
 async function getPricing(): Promise<PricingResponse | null> {
-  const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'https://api.revealui.com'
+  const apiUrl = process.env.NEXT_PUBLIC_API_URL || "https://api.revealui.com";
   try {
     const res = await fetch(`${apiUrl}/api/pricing`, {
       next: { revalidate: 3600 },
-    })
-    if (!res.ok) return null
-    return (await res.json()) as PricingResponse
+    });
+    if (!res.ok) return null;
+    return (await res.json()) as PricingResponse;
   } catch {
-    return null
+    return null;
   }
 }
 ```
@@ -847,6 +928,7 @@ async function getPricing(): Promise<PricingResponse | null> {
 - [ ] **Step 2: Make the page component async and use fetched data**
 
 Change the default export to async and fetch pricing. Replace `tiers` and direct references to `CREDIT_BUNDLES`/`PERPETUAL_TIERS`:
+
 ```ts
 export default async function PricingPage() {
   const pricing = await getPricing()
@@ -888,6 +970,7 @@ Part of MASTER_PLAN §3.8 Step 6."
 ### Task 9: Remove hardcoded prices from CMS billing page
 
 **Files:**
+
 - Modify: `apps/cms/src/app/(frontend)/account/billing/page.tsx`
 
 - [ ] **Step 1: Read the billing page to identify all hardcoded prices**
@@ -901,6 +984,7 @@ Add `PricingResponse` type import and a `pricing` state variable. In the existin
 - [ ] **Step 3: Replace hardcoded price strings**
 
 Replace each hardcoded price string with a lookup from the fetched pricing data:
+
 - Trial message: use `pricing?.subscriptions.find(t => t.id === 'pro')?.price ?? '$—'`
 - Button labels: use `${tier.price ?? '—'}${tier.period ?? ''}`
 
@@ -927,6 +1011,7 @@ Part of MASTER_PLAN §3.8 Step 6."
 ### Task 10: Remove hardcoded prices from CMS license page
 
 **Files:**
+
 - Modify: `apps/cms/src/app/(frontend)/account/license/page.tsx:29-44`
 
 - [ ] **Step 1: Read the license page**
@@ -936,15 +1021,16 @@ Read the full file to understand the `PERPETUAL_PLANS` constant and how it's use
 - [ ] **Step 2: Remove prices from PERPETUAL_PLANS and fetch from API**
 
 Add pricing fetch to the existing `useEffect`. Replace the hardcoded `price` field in `PERPETUAL_PLANS` with data from the API response:
+
 ```ts
-const perpetualPricing = pricing?.perpetual ?? []
+const perpetualPricing = pricing?.perpetual ?? [];
 // Map PERPETUAL_PLANS to use fetched prices
 const plans = PERPETUAL_PLANS.map((plan) => {
   const fetched = perpetualPricing.find((t) =>
-    t.name.toLowerCase().startsWith(plan.tier)
-  )
-  return { ...plan, price: fetched?.price ?? '—' }
-})
+    t.name.toLowerCase().startsWith(plan.tier),
+  );
+  return { ...plan, price: fetched?.price ?? "—" };
+});
 ```
 
 - [ ] **Step 3: Remove hardcoded `$299` and `$799` from the constant**
@@ -973,6 +1059,7 @@ Part of MASTER_PLAN §3.8 Step 6."
 ### Task 11: Update remaining test files
 
 **Files:**
+
 - Modify: `apps/marketing/src/app/pricing/__tests__/pricing-data.test.ts`
 - Modify: `apps/cms/src/lib/components/__tests__/UpgradeDialog.test.tsx`
 
@@ -995,11 +1082,13 @@ Remove `price` from mock tier objects (since it's now optional, the mocks should
 - [ ] **Step 5: Run all affected tests**
 
 Run:
+
 ```bash
 pnpm --filter @revealui/contracts test
 pnpm --filter @revealui/presentation test
 pnpm --filter api test
 ```
+
 Expected: All PASS
 
 - [ ] **Step 6: Commit**

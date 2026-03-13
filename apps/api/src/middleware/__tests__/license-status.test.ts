@@ -132,4 +132,31 @@ describe('checkLicenseStatus', () => {
 
     expect(res.status).toBe(200);
   });
+
+  it('caches status separately per customerId', async () => {
+    const queryFn = vi
+      .fn()
+      .mockImplementation(async (customerId: string) =>
+        customerId === 'cus_1' ? 'active' : 'revoked',
+      );
+
+    mockedGetLicensePayload.mockReturnValue({
+      tier: 'pro',
+      customerId: 'cus_1',
+    });
+    const app = createApp(queryFn);
+
+    const res1 = await app.request('/resource');
+    expect(res1.status).toBe(200);
+
+    mockedGetLicensePayload.mockReturnValue({
+      tier: 'pro',
+      customerId: 'cus_2',
+    });
+
+    const res2 = await app.request('/resource');
+    expect(res2.status).toBe(403);
+    expect(queryFn).toHaveBeenNthCalledWith(1, 'cus_1');
+    expect(queryFn).toHaveBeenNthCalledWith(2, 'cus_2');
+  });
 });

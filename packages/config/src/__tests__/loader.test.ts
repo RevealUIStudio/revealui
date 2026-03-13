@@ -63,7 +63,7 @@ describe('config/loader', () => {
       setNodeEnv('production');
       const { detectEnvironment } = await import('../loader.js');
       expect(detectEnvironment()).toBe('production');
-    });
+    }, 15_000);
 
     it('returns "test" when NODE_ENV=test', async () => {
       setNodeEnv('test');

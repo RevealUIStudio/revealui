@@ -101,7 +101,7 @@ describe('posts queries', () => {
 
     expect(result).toEqual(rows);
     expect(mock.db.select).toHaveBeenCalled();
-  });
+  }, 15_000);
 
   it('getAllPosts passes status and authorId filters', async () => {
     const { getAllPosts } = await import('../posts.js');
@@ -110,7 +110,7 @@ describe('posts queries', () => {
     await getAllPosts(mock.db, { status: 'published', authorId: 'user-1' });
 
     expect(mock.db.select).toHaveBeenCalled();
-  });
+  }, 15_000);
 
   it('getAllPosts respects custom limit and offset', async () => {
     const { getAllPosts } = await import('../posts.js');

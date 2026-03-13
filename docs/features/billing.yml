@@ -4,6 +4,30 @@ status: production
 tier: pro
 last-verified: 2026-03-11
 
+strategy:
+  model: hybrid-account-subscription-plus-agent-usage
+  summary: >
+    RevealUI should evolve away from per-user licenses as the primary commercial model.
+    The target 2027-2030 model is account/workspace billing with included usage,
+    metered agent execution, explicit commerce fees, and separately priced trust,
+    governance, and compliance controls.
+  primary-billing-owner: account-or-workspace
+  billable-units:
+    - platform-subscription
+    - agent-task
+    - workflow-run
+    - tool-call
+    - commerce-order
+    - gmv
+    - paid-api-call
+    - trust-and-governance-controls
+  design-principles:
+    - bill accounts, not individual humans, for core entitlements
+    - keep customer-facing meters tied to business activity, not raw model tokens
+    - separate software subscription fees from commerce/payment-rail fees
+    - default to spend caps, approvals, and replay-safe metering
+    - failed, duplicate, and reversed agent actions should be non-billable by default
+
 api-surface:
   checkout:
     endpoint: "POST /api/billing/checkout"
@@ -49,6 +73,27 @@ ui-surface:
     status: basic
 
 limitations:
+  - id: entitlement-model-mismatch
+    surface: architecture
+    summary: >
+      Current code mixes per-user DB licenses with process-global env-backed license
+      gating. Target model is request-scoped account/workspace entitlements.
+  - id: client-controlled-price-ids
+    surface: checkout
+    summary: >
+      Billing endpoints currently accept client-supplied Stripe price IDs. Target
+      model is server-owned plan/tier resolution.
+  - id: webhook-processing-order
+    surface: webhooks
+    summary: >
+      Webhook idempotency is fragile if events are marked processed before all
+      entitlement work succeeds. Payment capture must never outrun entitlement grant.
+  - id: account-level-billing-not-finished
+    surface: pricing
+    summary: >
+      Launch implementation remains Stripe subscription oriented, but long-term pricing
+      should center on account subscriptions, metered agent labor, commerce fees, and
+      trust/governance add-ons.
   - id: email-production-throw
     surface: api
     summary: "Missing RESEND_API_KEY throws in production (fixed — was silent skip)"

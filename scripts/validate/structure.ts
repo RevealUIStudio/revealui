@@ -486,8 +486,8 @@ class StructureValidator {
       'packages/db/src/vector',
       'packages/db/src/auth',
       'packages/auth/src',
-      'packages/ai/src',
-      'packages/services/src/supabase',
+      '@revealui/ai memory modules',
+      '@revealui/services supabase integration',
       'packages/mcp/src',
       // Integration tests for Supabase services are expected to import supabase-js
       'packages/test/src/integration',
@@ -549,7 +549,7 @@ class StructureValidator {
         console.log(`   - ${v}`);
       }
       console.log(
-        '   Permitted paths: packages/db/src/vector, packages/db/src/auth, packages/auth/src, packages/ai/src, packages/services/src/supabase, packages/mcp/src, packages/test/src/integration, apps/*/src/lib/supabase/',
+        '   Permitted paths: @revealui/db vector/auth modules, @revealui/auth, @revealui/ai memory modules, @revealui/services supabase integration, @revealui/mcp, packages/test integration helpers, apps/*/src/lib/supabase/',
       );
       console.log('   See .claude/rules/database.md for the dual-DB boundary policy.');
     } else if (files.length === 0) {

@@ -55,15 +55,18 @@ async function loadChatAIDeps() {
     logger.warn('AI modules unavailable (Pro package not installed?)', { missing: failed });
     return null;
   }
-  // All modules verified non-null by the early return above
+  if (!(embeddingsMod && llmServerMod && vectorMod && cmsMod && registryMod)) {
+    return null;
+  }
+
   return {
-    generateEmbedding: embeddingsMod!.generateEmbedding,
-    createLLMClientFromEnv: llmServerMod!.createLLMClientFromEnv,
+    generateEmbedding: embeddingsMod.generateEmbedding,
+    createLLMClientFromEnv: llmServerMod.createLLMClientFromEnv,
     // biome-ignore lint/style/useNamingConvention: class constructor reference
-    VectorMemoryService: vectorMod!.VectorMemoryService,
-    createCMSTools: cmsMod!.createCMSTools,
+    VectorMemoryService: vectorMod.VectorMemoryService,
+    createCMSTools: cmsMod.createCMSTools,
     // biome-ignore lint/style/useNamingConvention: class constructor reference
-    ToolRegistry: registryMod!.ToolRegistry,
+    ToolRegistry: registryMod.ToolRegistry,
   };
 }
 

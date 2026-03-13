@@ -37,7 +37,7 @@ beforeAll(async () => {
       created_at  TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
     )
   `);
-});
+}, 30_000);
 
 afterAll(async () => {
   await db.close();

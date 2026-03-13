@@ -1,4 +1,5 @@
 // Build: 2026-03-02
+
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { getSharedCMSConfig } from '@revealui/config/revealui';
@@ -41,6 +42,7 @@ import Subscriptions from '@/lib/collections/Subscriptions';
 import Tags from '@/lib/collections/Tags';
 import { Tenants } from '@/lib/collections/Tenants';
 import Users from '@/lib/collections/Users';
+import { createTypedCollectionStorage } from '@/lib/db/typedCollectionStorage';
 import { Footer, Header, Settings } from '@/lib/globals';
 import { revalidateRedirects } from '@/lib/hooks/revalidateRedirects';
 
@@ -52,6 +54,23 @@ const dirname = path.dirname(filename);
 
 // Get shared config as fallback for serverURL and secret
 const sharedConfig = getSharedCMSConfig();
+const dbAdapter =
+  process.env.NODE_ENV === 'test'
+    ? universalPostgresAdapter({
+        provider: 'electric',
+      })
+    : process.env.POSTGRES_URL || process.env.DATABASE_URL
+      ? universalPostgresAdapter({
+          connectionString: process.env.POSTGRES_URL || process.env.DATABASE_URL,
+        })
+      : universalPostgresAdapter({
+          provider: 'electric',
+        });
+const typedCollectionStorage = createTypedCollectionStorage();
+
+if (typedCollectionStorage) {
+  dbAdapter.collectionStorage = typedCollectionStorage;
+}
 
 export default buildConfig({
   serverURL: (process.env.REVEALUI_PUBLIC_SERVER_URL || sharedConfig.serverURL).trim(),
@@ -138,18 +157,7 @@ export default buildConfig({
   // Automatically detects provider and uses appropriate connection method
   // Supports transaction pooling (port 6543) for Supabase serverless environments
   // IMPORTANT: Force SQLite for tests to avoid Postgres dependency
-  db:
-    process.env.NODE_ENV === 'test'
-      ? universalPostgresAdapter({
-          provider: 'electric',
-        })
-      : process.env.POSTGRES_URL || process.env.DATABASE_URL
-        ? universalPostgresAdapter({
-            connectionString: process.env.POSTGRES_URL || process.env.DATABASE_URL,
-          })
-        : universalPostgresAdapter({
-            provider: 'electric',
-          }),
+  db: dbAdapter,
   i18n: {
     supportedLanguages: { en },
   },

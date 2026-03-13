@@ -72,7 +72,6 @@ const sharedViteConfig: UserConfig = {
       '@revealui/core': path.resolve(packagesRoot, 'core/src'),
       '@revealui/contracts': path.resolve(packagesRoot, 'contracts/src'),
       '@revealui/db': path.resolve(packagesRoot, 'db/src'),
-      '@revealui/ai': path.resolve(packagesRoot, 'ai/src'),
     },
   },
   define: {

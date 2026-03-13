@@ -17,6 +17,13 @@ Open-source business infrastructure for software companies.
 - [CI/CD & Deployment](./CI_CD_GUIDE.md) — Pipelines, Vercel deployment, staging
 - [Environment Variables](./ENVIRONMENT_VARIABLES_GUIDE.md) — Configuration reference
 
+## Pricing & Commerce
+
+- [Build Your Business](./BUILD_YOUR_BUSINESS.md) — Product packaging, pricing direction, billing setup, and deployment path
+- [Marketplace](./MARKETPLACE.md) — Agent-commerce monetization direction and marketplace economics
+- [HTTP 402 Payments](./blog/02-http-402-payments.md) — Paid API and machine-to-machine payment model
+- [Pro](./PRO.md) — Commercial packaging for AI, MCP, trust, and governance features
+
 ## Development
 
 - [Testing](./TESTING.md) — Unit, integration, E2E, component testing
@@ -35,7 +42,7 @@ Open-source business infrastructure for software companies.
 
 ## Pro & Enterprise
 
-- [MCP Marketplace](./MARKETPLACE.md) — Publish MCP servers with per-call USDC pricing; earn 80% revenue share
+- [MCP Marketplace](./MARKETPLACE.md) — Publish MCP servers with agent-commerce pricing and revenue-share options
 - [Forge](./FORGE.md) — Self-hosted enterprise deployment (Docker Compose, domain lock, unlimited users)
 
 ## Legal

@@ -107,10 +107,10 @@ pnpm dev
 
 This starts two services:
 
-| Service | URL | What it is |
-|---------|-----|------------|
-| CMS | http://localhost:4000 | Admin dashboard + auth pages |
-| API | http://localhost:3004 | REST API + agent endpoints |
+| Service | URL                   | What it is                   |
+| ------- | --------------------- | ---------------------------- |
+| CMS     | http://localhost:4000 | Admin dashboard + auth pages |
+| API     | http://localhost:3004 | REST API + agent endpoints   |
 
 ---
 
@@ -131,6 +131,8 @@ This starts two services:
 
 **Billing** (requires Stripe keys) — go to **Account → Billing**. The page loads without Stripe keys but checkout won't function until keys are set. For local webhook testing, run `stripe listen --forward-to localhost:4000/api/webhooks/stripe` to get a local `STRIPE_WEBHOOK_SECRET`.
 
+RevealUI is moving toward account-level subscriptions plus metered agent and commerce usage. Local setup still exposes legacy license-oriented pieces in some areas, but the intended hosted model is account or workspace entitlements first.
+
 ---
 
 ## Troubleshooting
@@ -138,6 +140,7 @@ This starts two services:
 **`relation "users" does not exist`** — you skipped `pnpm db:migrate`. Run it now.
 
 **`ConfigValidationError: REVEALUI_SECRET`** — your secret is missing or under 32 characters. Regenerate it:
+
 ```bash
 node -e "console.log(require('crypto').randomBytes(32).toString('hex'))"
 ```
@@ -145,6 +148,7 @@ node -e "console.log(require('crypto').randomBytes(32).toString('hex'))"
 **`Connection refused` on POSTGRES_URL** — check the connection string includes `?sslmode=require` and that your NeonDB project is active (free tier projects pause after inactivity).
 
 **Port already in use** — something else is on 4000 or 3004. Find and stop it:
+
 ```bash
 lsof -i :4000
 lsof -i :3004

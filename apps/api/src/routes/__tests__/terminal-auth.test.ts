@@ -46,16 +46,21 @@ import terminalAuth, { clearOtpStore, configureTerminalAuth } from '../terminal-
 // Helpers
 // ---------------------------------------------------------------------------
 
+type TestUser = { id: string };
+
 // biome-ignore lint/suspicious/noExplicitAny: test helper — loose Variables type
-function createApp(dbMock?: any) {
+function createApp(dbMock?: any, user?: TestUser) {
   // biome-ignore lint/suspicious/noExplicitAny: test helper
-  const app = new Hono<{ Variables: { db: any } }>();
-  if (dbMock) {
-    app.use('*', async (c, next) => {
+  const app = new Hono<{ Variables: { db?: any; user?: TestUser } }>();
+  app.use('*', async (c, next) => {
+    if (dbMock) {
       c.set('db', dbMock);
-      await next();
-    });
-  }
+    }
+    if (user) {
+      c.set('user', user);
+    }
+    await next();
+  });
   app.route('/terminal-auth', terminalAuth);
   return app;
 }
@@ -270,8 +275,18 @@ describe('terminal-auth routes', () => {
   });
 
   describe('GET /terminal-auth/lookup', () => {
-    it('returns 400 when fingerprint query param is missing', async () => {
+    it('returns 401 when caller is not authenticated', async () => {
       const app = createApp();
+
+      const res = await app.request('/terminal-auth/lookup');
+
+      expect(res.status).toBe(401);
+      const body = await parseBody(res);
+      expect(body.error).toContain('Authentication');
+    });
+
+    it('returns 400 when fingerprint query param is missing', async () => {
+      const app = createApp(undefined, { id: 'caller-1' });
 
       const res = await app.request('/terminal-auth/lookup');
 
@@ -281,7 +296,7 @@ describe('terminal-auth routes', () => {
     });
 
     it('returns 503 when db is not available', async () => {
-      const app = createApp();
+      const app = createApp(undefined, { id: 'caller-1' });
 
       const res = await app.request('/terminal-auth/lookup?fingerprint=SHA256:test');
 
@@ -309,7 +324,7 @@ describe('terminal-auth routes', () => {
         },
       }));
 
-      const app = createApp(mockDb);
+      const app = createApp(mockDb, { id: 'caller-1' });
 
       const res = await app.request('/terminal-auth/lookup?fingerprint=SHA256:unknown');
 
@@ -341,7 +356,7 @@ describe('terminal-auth routes', () => {
         },
       }));
 
-      const app = createApp(mockDb);
+      const app = createApp(mockDb, { id: 'caller-1' });
 
       const res = await app.request('/terminal-auth/lookup?fingerprint=SHA256:known');
 

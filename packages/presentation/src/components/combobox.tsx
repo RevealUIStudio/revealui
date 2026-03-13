@@ -43,7 +43,7 @@ export function Combobox<T>({
   anchor = 'bottom',
   className,
   placeholder,
-  autoFocus,
+  autoFocus = false,
   'aria-label': ariaLabel,
   children,
   value: controlledValue,
@@ -105,6 +105,12 @@ export function Combobox<T>({
       (triggerRef as React.MutableRefObject<HTMLElement | null>).current = controlRef.current;
     }
   }, [triggerRef]);
+
+  useEffect(() => {
+    if (autoFocus && !disabled) {
+      inputRef.current?.focus();
+    }
+  }, [autoFocus, disabled]);
 
   // Transition
   const { mounted, nodeRef: transitionRef, transitionProps } = useTransition(isOpen);
@@ -238,7 +244,6 @@ export function Combobox<T>({
       >
         <input
           ref={inputRef}
-          autoFocus={autoFocus}
           data-slot="control"
           role="combobox"
           aria-label={ariaLabel}
@@ -406,6 +411,7 @@ export function ComboboxOption<T>({
 
   return (
     // biome-ignore lint/a11y/useFocusableInteractive: focus managed by roving tabindex
+    // biome-ignore lint/a11y/useKeyWithClickEvents: keyboard selection is handled by the parent combobox input
     <div
       role="option"
       aria-selected={isSelected}

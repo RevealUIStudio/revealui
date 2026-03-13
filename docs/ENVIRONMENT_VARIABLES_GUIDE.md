@@ -6,6 +6,11 @@
 
 This document provides both quick reference tables and comprehensive guidance for all environment variables used in the RevealUI Framework.
 
+Commercially, these variables support two distinct models:
+
+- hosted account or workspace subscriptions plus metered agent or commerce usage
+- deployment-level products such as Forge, which remain license-scoped
+
 ---
 
 **For initial setup**, see [QUICK_START.md](./QUICK_START.md) first. This guide provides detailed environment variable configuration.
@@ -18,29 +23,29 @@ This document provides both quick reference tables and comprehensive guidance fo
 
 These variables **must** be set for the application to function:
 
-| Variable | Purpose | Security Level |
-|----------|---------|----------------|
-| `REVEALUI_SECRET` | JWT token encryption | 🔴 HIGH (Server-only) |
-| `REVEALUI_PUBLIC_SERVER_URL` | RevealUI CMS server URL | 🟢 LOW (Client-safe) |
-| `NEXT_PUBLIC_SERVER_URL` | Next.js server URL | 🟢 LOW (Client-safe) |
-| `POSTGRES_URL` | PostgreSQL connection string | 🔴 HIGH (Server-only) |
-| `BLOB_READ_WRITE_TOKEN` | Vercel Blob Storage token | 🔴 HIGH (Server-only) |
-| `STRIPE_SECRET_KEY` | Stripe API secret key | 🔴 HIGH (Server-only) |
-| `STRIPE_WEBHOOK_SECRET` | Stripe webhook signature | 🔴 HIGH (Server-only) |
-| `NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY` | Stripe publishable key | 🟢 LOW (Client-safe) |
+| Variable                             | Purpose                      | Security Level        |
+| ------------------------------------ | ---------------------------- | --------------------- |
+| `REVEALUI_SECRET`                    | JWT token encryption         | 🔴 HIGH (Server-only) |
+| `REVEALUI_PUBLIC_SERVER_URL`         | RevealUI CMS server URL      | 🟢 LOW (Client-safe)  |
+| `NEXT_PUBLIC_SERVER_URL`             | Next.js server URL           | 🟢 LOW (Client-safe)  |
+| `POSTGRES_URL`                       | PostgreSQL connection string | 🔴 HIGH (Server-only) |
+| `BLOB_READ_WRITE_TOKEN`              | Vercel Blob Storage token    | 🔴 HIGH (Server-only) |
+| `STRIPE_SECRET_KEY`                  | Stripe API secret key        | 🔴 HIGH (Server-only) |
+| `STRIPE_WEBHOOK_SECRET`              | Stripe webhook signature     | 🔴 HIGH (Server-only) |
+| `NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY` | Stripe publishable key       | 🟢 LOW (Client-safe)  |
 
 ### Optional Variables (15+)
 
 These variables enhance functionality but are not required:
 
-| Category | Variables | Purpose |
-|----------|-----------|---------|
-| **Admin** | `REVEALUI_ADMIN_EMAIL`, `REVEALUI_ADMIN_PASSWORD` | Initial admin user creation |
-| **CORS** | `REVEALUI_CORS_ORIGINS` | Cross-origin resource sharing |
-| **Supabase** | `NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_ANON_KEY`, `SUPABASE_DATABASE_URI` | Supabase client integration |
-| **Electric** | `NEXT_PUBLIC_ELECTRIC_SERVICE_URL`, `ELECTRIC_SERVICE_URL` | Real-time sync |
-| **Sentry** | `NEXT_PUBLIC_SENTRY_DSN`, `SENTRY_AUTH_TOKEN`, `SENTRY_ORG`, `SENTRY_PROJECT` | Error monitoring |
-| **Dev Tools** | `NEON_API_KEY`, `SUPABASE_SERVICE_ROLE_KEY`, `STRIPE_PROXY`, `SKIP_ONINIT` | Development & MCP tools |
+| Category      | Variables                                                                            | Purpose                       |
+| ------------- | ------------------------------------------------------------------------------------ | ----------------------------- |
+| **Admin**     | `REVEALUI_ADMIN_EMAIL`, `REVEALUI_ADMIN_PASSWORD`                                    | Initial admin user creation   |
+| **CORS**      | `REVEALUI_CORS_ORIGINS`                                                              | Cross-origin resource sharing |
+| **Supabase**  | `NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_ANON_KEY`, `SUPABASE_DATABASE_URI` | Supabase client integration   |
+| **Electric**  | `NEXT_PUBLIC_ELECTRIC_SERVICE_URL`, `ELECTRIC_SERVICE_URL`                           | Real-time sync                |
+| **Sentry**    | `NEXT_PUBLIC_SENTRY_DSN`, `SENTRY_AUTH_TOKEN`, `SENTRY_ORG`, `SENTRY_PROJECT`        | Error monitoring              |
+| **Dev Tools** | `NEON_API_KEY`, `SUPABASE_SERVICE_ROLE_KEY`, `STRIPE_PROXY`, `SKIP_ONINIT`           | Development & MCP tools       |
 
 ### Naming Conventions
 
@@ -165,6 +170,8 @@ NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY=pk_test_XXXXX
 STRIPE_WEBHOOK_SECRET=whsec_XXXXX
 ```
 
+**Commercial note**: Stripe configuration should back an account-level billing owner and a server-owned catalog. Long-term pricing should rely on subscriptions, usage meters, and commerce-linked fees rather than a pure per-user license model.
+
 ---
 
 ### 5. Server URLs
@@ -262,6 +269,7 @@ ELECTRIC_PROXY_PORT=65432
 1. Start ElectricSQL service: `# Note: ElectricSQL service scripts not yet implemented`
 2. Verify service is running: `curl http://localhost:5133/health`
 3. Generate client types: `# Note: electric:generate script not yet implemented
+
 # Use manual command: pnpm dlx electric-sql generate`
 
 **Troubleshooting**:
@@ -269,6 +277,7 @@ ELECTRIC_PROXY_PORT=65432
 - Connection issues: Check service is running and URL is correct
 - Sync not working: Verify tables are electrified in PostgreSQL
 - Type errors: Run `# Note: electric:generate script not yet implemented
+
 # Use manual command: pnpm dlx electric-sql generate` after service setup
 
 See `docs/electric-setup-guide.md` for complete setup instructions.
@@ -437,11 +446,11 @@ OPENAI_ORG_ID=org-xxxxx
 
 ### 3. Environment-Specific Values
 
-| Environment | REVEALUI_PUBLIC_SERVER_URL    | NODE_ENV      |
-| ----------- | ----------------------------- | ------------- |
-| Local Dev   | `http://localhost:4000`       | `development` |
-| Staging     | `https://staging.domain.com`  | `production`  |
-| Production  | `https://your-domain.com`     | `production`  |
+| Environment | REVEALUI_PUBLIC_SERVER_URL   | NODE_ENV      |
+| ----------- | ---------------------------- | ------------- |
+| Local Dev   | `http://localhost:4000`      | `development` |
+| Staging     | `https://staging.domain.com` | `production`  |
+| Production  | `https://your-domain.com`    | `production`  |
 
 #### Development Configuration
 
@@ -534,11 +543,13 @@ pnpm dev
 ```
 
 Check console for:
+
 ```
 ✓ Connected to database
 ```
 
 If you see connection errors, verify:
+
 - `POSTGRES_URL` is correct
 - Database is accessible
 - SSL mode is correct (`?sslmode=require`)
@@ -553,6 +564,7 @@ If you see connection errors, verify:
 4. Image should appear there
 
 If upload fails:
+
 - Verify `BLOB_READ_WRITE_TOKEN` is correct
 - Check token has "Read & Write" permissions
 
@@ -717,6 +729,7 @@ pnpm validate:env
 ### CI/CD Validation
 
 Environment variable validation runs automatically in CI/CD pipeline:
+
 - Checks `.env.template` exists
 - Validates required variables are documented
 - Verifies naming conventions
@@ -736,23 +749,23 @@ const required = [
   "NEXT_PUBLIC_SERVER_URL",
   "STRIPE_SECRET_KEY",
   "STRIPE_WEBHOOK_SECRET",
-]
+];
 
-const missing = required.filter((key) => !process.env[key])
+const missing = required.filter((key) => !process.env[key]);
 
 if (missing.length > 0) {
-  console.error("❌ Missing required environment variables:")
-  missing.forEach((key) => console.error(`   - ${key}`))
-  process.exit(1)
+  console.error("❌ Missing required environment variables:");
+  missing.forEach((key) => console.error(`   - ${key}`));
+  process.exit(1);
 }
 
 // Check database
 if (!process.env.POSTGRES_URL) {
-  console.error("❌ Missing database connection (need POSTGRES_URL)")
-  process.exit(1)
+  console.error("❌ Missing database connection (need POSTGRES_URL)");
+  process.exit(1);
 }
 
-console.log("✅ All required environment variables are set!")
+console.log("✅ All required environment variables are set!");
 ```
 
 **Run**:
@@ -772,7 +785,8 @@ node scripts/validate-env.js
 
 **Status**: ✅ **COMPLETE ENVIRONMENT GUIDE** (Consolidated from ENV_VARIABLES_REFERENCE.md)
 
-*Last updated: January 31, 2026*
+_Last updated: January 31, 2026_
+
 # Environment File Management Strategy
 
 ## Overview
@@ -794,34 +808,40 @@ Environment variables are loaded in the following order (later files override ea
 ## File Purposes
 
 ### `.env.template` (Committed)
+
 - **Purpose**: Template/documentation file showing all required and optional variables
 - **Content**: Placeholder values, comments explaining each variable
 - **Status**: ✅ Committed to git
 - **Usage**: Copy to `.env.development.local` for local development
 
 ### `.env.example` (Alternative to .env.template)
+
 - **Purpose**: Same as `.env.template` - industry standard naming
 - **Status**: ✅ Committed to git
 - **Note**: We use `.env.template` to match the config loader's expectations
 
 ### `.env.development.local` (Ignored)
+
 - **Purpose**: Local developer-specific overrides and secrets
 - **Content**: Real credentials, local database URLs, personal API keys
 - **Status**: ❌ Ignored by git (in `.gitignore`)
 - **Usage**: Primary file for local development
 
 ### `.env.local` (Ignored)
+
 - **Purpose**: Alternative local overrides (fallback if `.env.development.local` doesn't exist)
 - **Status**: ❌ Ignored by git
 - **Usage**: Less common, but supported for compatibility
 
 ### `.env` (Conditional)
+
 - **Purpose**: Shared non-sensitive defaults (if any)
 - **Content**: Only non-sensitive configuration
 - **Status**: ⚠️ Currently contains secrets - should be ignored
 - **Future**: Could be committed if cleaned of secrets, but not recommended
 
 ### `.env.production` (Optional)
+
 - **Purpose**: Production-specific defaults (non-sensitive only)
 - **Status**: ✅ Can be committed if non-sensitive
 - **Usage**: Rarely needed - production uses CI/CD injected variables
@@ -829,26 +849,31 @@ Environment variables are loaded in the following order (later files override ea
 ## Current Issues & Solutions
 
 ### Issue 1: Poorly Named Files
+
 - **Problem**: `.env.backup` and `.env.clean` are unclear
 - **Solution**: Remove these files or move to `.env.backups/` directory if needed for reference
 
 ### Issue 2: Secrets in `.env`
+
 - **Problem**: `.env` contains real secrets but is tracked in git
-- **Solution**: 
+- **Solution**:
   - Move all secrets to `.env.development.local`
   - Keep `.env` only for non-sensitive defaults (or remove entirely)
   - Ensure `.env` is in `.gitignore`
 
 ### Issue 3: No Template File
+
 - **Problem**: No `.env.template` file for onboarding
 - **Solution**: Create comprehensive `.env.template` with all variables documented
 
 ## Direnv Integration (Optional)
 
 ### What is direnv?
+
 `direnv` automatically loads and unloads environment variables when you `cd` into directories based on `.envrc` files.
 
 ### Benefits
+
 - Automatic environment loading when entering project directory
 - Per-directory environment isolation
 - Can integrate with NixOS dev shells
@@ -857,25 +882,27 @@ Environment variables are loaded in the following order (later files override ea
 ### Setup (Optional)
 
 1. **Install direnv**:
+
    ```bash
    # On macOS
    brew install direnv
-   
+
    # On Linux (NixOS)
    # Already available if programs.direnv.enable = true
-   
+
    # Add to shell config (~/.bashrc or ~/.zshrc)
    eval "$(direnv hook bash)"  # or zsh
    ```
 
 2. **Create `.envrc`** in project root:
+
    ```bash
    # Load .env.development.local if it exists
    dotenv_if_exists .env.development.local
-   
+
    # Or use direnv's built-in dotenv
    dotenv .env.development.local
-   
+
    # For NixOS users (optional)
    # use flake  # if using Nix flakes
    # use nix    # if using shell.nix
@@ -887,6 +914,7 @@ Environment variables are loaded in the following order (later files override ea
    ```
 
 ### When to Use direnv
+
 - ✅ If you frequently switch between projects
 - ✅ If you want automatic env loading
 - ✅ If using NixOS dev shells
@@ -895,12 +923,14 @@ Environment variables are loaded in the following order (later files override ea
 ## NixOS Best Practices
 
 ### Key Principles
+
 1. **Declarative Configuration**: Define environments in `shell.nix` or `flake.nix`
 2. **Secrets at Runtime**: Never bake secrets into Nix store
 3. **Use direnv**: Combine with `use nix` or `use flake` for automatic loading
 4. **Template Files**: Use `.env.template` for documentation, load secrets via `.env.local`
 
 ### Recommended Pattern
+
 ```nix
 # shell.nix or flake.nix
 { pkgs ? import <nixpkgs> {} }:
@@ -950,22 +980,26 @@ revealui/
 ## Migration Plan
 
 ### Step 1: Create Template
+
 - [x] Create `.env.template` with all variables documented
 - [x] Include comments explaining each variable
 - [x] Use placeholder values (e.g., `YOUR_SECRET_HERE`)
 
 ### Step 2: Clean Up Existing Files
+
 - [x] Remove or archive `.env.backup` → moved to `.env.backups/`
 - [x] Remove or archive `.env.clean` → moved to `.env.backups/`
 - [ ] Move secrets from `.env` to `.env.development.local` (see ENV_MIGRATION_GUIDE.md)
 - [x] Update `.gitignore` to ensure `.env` is ignored
 
 ### Step 3: Update Documentation
+
 - [ ] Update README.md with new setup instructions
 - [ ] Update CONTRIBUTING.md
 - [ ] Update any setup scripts
 
 ### Step 4: Optional - Add direnv
+
 - [x] Create `.envrc` file
 - [x] Document direnv setup in docs
 - [x] Make it optional (not required for development)
@@ -982,25 +1016,27 @@ revealui/
 ## Validation
 
 The project includes validation in:
+
 - `packages/config/src/validator.ts` - Runtime validation
 - `apps/cms/src/lib/utils/env-validation.ts` - CMS-specific validation
 - `scripts/setup/validate-env.ts` - Setup validation script
 
 Run validation:
+
 ```bash
 pnpm validate:env
 ```
 
 ## Summary
 
-| File | Committed? | Contains Secrets? | Purpose |
-|------|-----------|-------------------|---------|
-| `.env.template` | ✅ Yes | ❌ No | Template/documentation |
-| `.env.example` | ✅ Yes | ❌ No | Alternative template name |
-| `.env.development.local` | ❌ No | ✅ Yes | Local dev secrets |
-| `.env.local` | ❌ No | ✅ Yes | Local overrides (fallback) |
-| `.env` | ❌ No | ⚠️ Currently yes | Should be cleaned or removed |
-| `.envrc` | ✅ Yes (optional) | ❌ No | Direnv configuration |
+| File                     | Committed?        | Contains Secrets? | Purpose                      |
+| ------------------------ | ----------------- | ----------------- | ---------------------------- |
+| `.env.template`          | ✅ Yes            | ❌ No             | Template/documentation       |
+| `.env.example`           | ✅ Yes            | ❌ No             | Alternative template name    |
+| `.env.development.local` | ❌ No             | ✅ Yes            | Local dev secrets            |
+| `.env.local`             | ❌ No             | ✅ Yes            | Local overrides (fallback)   |
+| `.env`                   | ❌ No             | ⚠️ Currently yes  | Should be cleaned or removed |
+| `.envrc`                 | ✅ Yes (optional) | ❌ No             | Direnv configuration         |
 
 ## References
 

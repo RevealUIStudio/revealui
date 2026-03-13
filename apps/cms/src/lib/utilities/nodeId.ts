@@ -64,13 +64,33 @@ export async function getNodeId(request?: Request): Promise<string> {
  */
 type Database = Awaited<ReturnType<typeof import('@revealui/db/client').getClient>>;
 
+type NodeIdServiceConstructor = new (
+  db: Database,
+) => {
+  getNodeId(scope: 'session' | 'user', entityId: string): Promise<string>;
+};
+
+type NodeIdServiceModule = {
+  // biome-ignore lint/style/useNamingConvention: external module exports a class named NodeIdService
+  NodeIdService: NodeIdServiceConstructor;
+};
+
+async function loadNodeIdServiceModule(): Promise<NodeIdServiceModule> {
+  const nodeIdModule = await import('@revealui/ai/memory/services').catch(() => null);
+  if (!nodeIdModule) {
+    throw new Error('AI memory features require @revealui/ai (Pro)');
+  }
+
+  return nodeIdModule as NodeIdServiceModule;
+}
+
 export async function getNodeIdFromSession(sessionId: string, db?: Database): Promise<string> {
   if (!sessionId || typeof sessionId !== 'string' || sessionId.trim().length === 0) {
     throw new Error('Invalid sessionId: must be a non-empty string');
   }
 
   const { getClient } = await import('@revealui/db/client');
-  const nodeIdModule = await import('@revealui/ai/memory/services');
+  const nodeIdModule = await loadNodeIdServiceModule();
 
   const database = db || getClient();
   const service = new nodeIdModule.NodeIdService(database);
@@ -93,7 +113,7 @@ export async function getNodeIdFromUser(userId: string, db?: Database): Promise<
   }
 
   const { getClient } = await import('@revealui/db/client');
-  const nodeIdModule = await import('@revealui/ai/memory/services');
+  const nodeIdModule = await loadNodeIdServiceModule();
 
   const database = db || getClient();
   const service = new nodeIdModule.NodeIdService(database);

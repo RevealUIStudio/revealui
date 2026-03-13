@@ -831,6 +831,7 @@ describe('GET /api/auth/callback/[provider]', () => {
 
   it('should set cookie domain in production', async () => {
     vi.stubEnv('NODE_ENV', 'production');
+    vi.stubEnv('SESSION_COOKIE_DOMAIN', '.revealui.com');
 
     mockVerifyOAuthState.mockReturnValue({ provider: 'github', redirectTo: '/admin' });
     mockExchangeCode.mockResolvedValue('token');

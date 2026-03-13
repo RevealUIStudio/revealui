@@ -112,6 +112,10 @@
     "clean:install": "pnpm clean && pnpm install:clean",
     "dev": "turbo run dev --parallel",
     "dev:focus": "tsx scripts/dev-tools/dev-focus.ts",
+    "dev:shell": "bash scripts/dev-tools/revealui-shell.sh",
+    "dev:up": "bash scripts/dev-tools/revealui-shell.sh",
+    "dev:status": "node packages/cli/bin/revealui.js dev status",
+    "dev:down": "node packages/cli/bin/revealui.js dev down",
     "dev:watched": "tsx scripts/dev-tools/dev-watchdog.ts",
     "dev:api": "pnpm --filter api dev",
     "dev:cms": "pnpm run build:auth && pnpm --filter cms dev",
@@ -140,6 +144,8 @@
     "db:reset": "tsx scripts/setup/reset-database.ts",
     "db:generate-types": "tsx scripts/dev-tools/post-migration-types.ts",
     "db:migrate-and-generate": "pnpm db:migrate && pnpm db:generate-types",
+    "billing:catalog:sync": "tsx scripts/setup/sync-billing-catalog.ts",
+    "setup:mcp": "tsx scripts/setup/setup-mcp.ts",
     "changeset": "changeset",
     "changeset:version": "changeset version",
     "changeset:publish": "changeset publish",
@@ -164,7 +170,7 @@
     "audit:console": "tsx scripts/analyze/audit-console.ts",
     "preflight": "tsx scripts/validate/pre-launch.ts",
     "secrets:scan": "tsx scripts/secrets/scan.ts",
-    "revealui": "tsx scripts/cli/revealui.ts",
+    "revealui": "node packages/cli/bin/revealui.js",
     "scripts": "tsx scripts/cli/scripts.ts"
   },
   "type": "module"

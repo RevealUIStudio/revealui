@@ -49,10 +49,13 @@ export function Tooltip({ content, side = 'top', className, delay = 200, childre
   }, [clear]);
 
   return (
+    // biome-ignore lint/a11y/noStaticElementInteractions: Tooltip triggers need pointer and focus listeners while still allowing arbitrary inline children.
     <span
       className="relative inline-flex"
       onPointerEnter={show}
       onPointerLeave={hide}
+      onMouseEnter={show}
+      onMouseLeave={hide}
       onFocus={show}
       onBlur={hide}
       aria-describedby={visible ? id : undefined}

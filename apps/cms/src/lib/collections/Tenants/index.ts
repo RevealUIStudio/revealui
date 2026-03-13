@@ -23,6 +23,19 @@ export const Tenants: RevealCollectionConfig<Tenant> = {
       required: true,
     },
     {
+      name: 'email',
+      type: 'email',
+      required: true,
+      unique: true,
+    },
+    {
+      name: 'password',
+      type: 'text',
+      access: {
+        read: () => false,
+      },
+    },
+    {
       name: 'domains',
       type: 'array',
       index: true,

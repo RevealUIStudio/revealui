@@ -1,4 +1,4 @@
-import { cleanup, fireEvent, render, screen, waitFor } from '@testing-library/react';
+import { act, cleanup, fireEvent, render, screen, waitFor } from '@testing-library/react';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
 // Mock useLicense provider
@@ -16,7 +16,7 @@ vi.mock('@revealui/contracts/pricing', () => ({
 }));
 
 // Mock presentation components
-vi.mock('@revealui/presentation', () => ({
+vi.mock('@revealui/presentation/client', () => ({
   Dialog: ({
     open,
     onClose,
@@ -99,6 +99,12 @@ beforeEach(() => {
 });
 
 describe('UpgradeDialog', () => {
+  async function dispatchUpgradeRequired(detail: { feature?: string } = {}) {
+    await act(async () => {
+      window.dispatchEvent(new CustomEvent('revealui:upgrade-required', { detail }));
+    });
+  }
+
   it('does not render dialog initially (closed by default)', () => {
     render(<UpgradeDialog />);
     expect(screen.queryByTestId('dialog')).not.toBeInTheDocument();
@@ -106,7 +112,7 @@ describe('UpgradeDialog', () => {
 
   it('opens when revealui:upgrade-required event is dispatched', async () => {
     render(<UpgradeDialog />);
-    window.dispatchEvent(new CustomEvent('revealui:upgrade-required', { detail: {} }));
+    await dispatchUpgradeRequired();
     await waitFor(() => {
       expect(screen.getByTestId('dialog')).toBeInTheDocument();
     });
@@ -115,7 +121,7 @@ describe('UpgradeDialog', () => {
 
   it('shows generic description when no feature name is provided', async () => {
     render(<UpgradeDialog />);
-    window.dispatchEvent(new CustomEvent('revealui:upgrade-required', { detail: {} }));
+    await dispatchUpgradeRequired();
     await waitFor(() => {
       expect(screen.getByTestId('dialog-description')).toHaveTextContent(
         'Unlock more features by upgrading your plan.',
@@ -125,9 +131,7 @@ describe('UpgradeDialog', () => {
 
   it('shows feature-specific description when feature name is provided', async () => {
     render(<UpgradeDialog />);
-    window.dispatchEvent(
-      new CustomEvent('revealui:upgrade-required', { detail: { feature: 'AI Agents' } }),
-    );
+    await dispatchUpgradeRequired({ feature: 'AI Agents' });
     await waitFor(() => {
       expect(screen.getByTestId('dialog-description')).toHaveTextContent(
         '"AI Agents" requires a higher tier.',
@@ -137,12 +141,14 @@ describe('UpgradeDialog', () => {
 
   it('closes when "Maybe later" button is clicked', async () => {
     render(<UpgradeDialog />);
-    window.dispatchEvent(new CustomEvent('revealui:upgrade-required', { detail: {} }));
+    await dispatchUpgradeRequired();
     await waitFor(() => {
       expect(screen.getByTestId('dialog')).toBeInTheDocument();
     });
 
-    fireEvent.click(screen.getByText('Maybe later'));
+    await act(async () => {
+      fireEvent.click(screen.getByText('Maybe later'));
+    });
     await waitFor(() => {
       expect(screen.queryByTestId('dialog')).not.toBeInTheDocument();
     });
@@ -151,7 +157,7 @@ describe('UpgradeDialog', () => {
   it('renders PricingTable with current tier', async () => {
     mockUseLicense.mockReturnValue({ tier: 'pro' });
     render(<UpgradeDialog />);
-    window.dispatchEvent(new CustomEvent('revealui:upgrade-required', { detail: {} }));
+    await dispatchUpgradeRequired();
     await waitFor(() => {
       expect(screen.getByTestId('pricing-table')).toHaveAttribute('data-current', 'pro');
     });
@@ -160,7 +166,7 @@ describe('UpgradeDialog', () => {
   it('defaults tier to free when license tier is null', async () => {
     mockUseLicense.mockReturnValue({ tier: null });
     render(<UpgradeDialog />);
-    window.dispatchEvent(new CustomEvent('revealui:upgrade-required', { detail: {} }));
+    await dispatchUpgradeRequired();
     await waitFor(() => {
       expect(screen.getByTestId('pricing-table')).toHaveAttribute('data-current', 'free');
     });
@@ -168,7 +174,7 @@ describe('UpgradeDialog', () => {
 
   it('contains a link to full pricing page', async () => {
     render(<UpgradeDialog />);
-    window.dispatchEvent(new CustomEvent('revealui:upgrade-required', { detail: {} }));
+    await dispatchUpgradeRequired();
     await waitFor(() => {
       const link = screen.getByText('View full pricing');
       expect(link).toHaveAttribute('href', '/admin/upgrade');
@@ -182,12 +188,14 @@ describe('UpgradeDialog', () => {
     vi.stubGlobal('fetch', mockFetch);
 
     render(<UpgradeDialog />);
-    window.dispatchEvent(new CustomEvent('revealui:upgrade-required', { detail: {} }));
+    await dispatchUpgradeRequired();
     await waitFor(() => {
       expect(screen.getByTestId('select-pro')).toBeInTheDocument();
     });
 
-    fireEvent.click(screen.getByTestId('select-pro'));
+    await act(async () => {
+      fireEvent.click(screen.getByTestId('select-pro'));
+    });
     await waitFor(() => {
       expect(mockFetch).toHaveBeenCalledWith(
         expect.stringContaining('/api/billing/checkout'),

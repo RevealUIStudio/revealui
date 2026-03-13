@@ -17,6 +17,12 @@ const mockBillingPortalSessionsCreate = vi.fn();
 const mockSubscriptionsList = vi.fn();
 const mockSubscriptionsUpdate = vi.fn();
 const mockMeterEventsCreate = vi.fn();
+const mockLogger = vi.hoisted(() => ({
+  info: vi.fn(),
+  error: vi.fn(),
+  warn: vi.fn(),
+  debug: vi.fn(),
+}));
 
 vi.mock('stripe', () => ({
   default: vi.fn().mockImplementation(
@@ -32,6 +38,27 @@ vi.mock('stripe', () => ({
 }));
 
 vi.mock('@revealui/db/schema', () => ({
+  accountMemberships: {
+    accountId: 'accountMemberships.accountId',
+    userId: 'accountMemberships.userId',
+    status: 'accountMemberships.status',
+  },
+  accountSubscriptions: {
+    accountId: 'accountSubscriptions.accountId',
+    stripeCustomerId: 'accountSubscriptions.stripeCustomerId',
+  },
+  accountEntitlements: {
+    accountId: 'accountEntitlements.accountId',
+    tier: 'accountEntitlements.tier',
+    status: 'accountEntitlements.status',
+  },
+  billingCatalog: {
+    stripePriceId: 'billingCatalog.stripePriceId',
+    planId: 'billingCatalog.planId',
+    tier: 'billingCatalog.tier',
+    billingModel: 'billingCatalog.billingModel',
+    active: 'billingCatalog.active',
+  },
   users: {
     id: 'users.id',
     stripeCustomerId: 'users.stripeCustomerId',
@@ -70,6 +97,7 @@ vi.mock('drizzle-orm', () => ({
 // Making the chain object thenable (via .then()) satisfies both cases.
 
 let _selectResult: unknown[] = [];
+let _selectQueue: unknown[][] = [];
 
 const mockDbSelectChain = {
   from: vi.fn(),
@@ -96,6 +124,10 @@ const mockDb = { select: vi.fn(), update: vi.fn(), transaction: vi.fn() };
 
 vi.mock('@revealui/db', () => ({
   getClient: vi.fn(() => mockDb),
+}));
+
+vi.mock('@revealui/core/observability/logger', () => ({
+  logger: mockLogger,
 }));
 
 // ─── Import under test (after mocks) ─────────────────────────────────────────
@@ -140,6 +172,7 @@ function createApp(user: UserContext = MOCK_USER) {
 
 function resetChains() {
   _selectResult = [];
+  _selectQueue = [];
   mockDbSelectChain.from.mockReturnValue(mockDbSelectChain);
   mockDbSelectChain.innerJoin.mockReturnValue(mockDbSelectChain);
   mockDbSelectChain.where.mockReturnValue(mockDbSelectChain);
@@ -147,7 +180,12 @@ function resetChains() {
   mockDbSelectChain.limit.mockImplementation(() => Promise.resolve(_selectResult));
   mockDbUpdateChain.set.mockReturnValue(mockDbUpdateChain);
   mockDbUpdateChain.where.mockResolvedValue({ rowCount: 1 });
-  mockDb.select.mockReturnValue(mockDbSelectChain);
+  mockDb.select.mockImplementation(() => {
+    if (_selectQueue.length > 0) {
+      _selectResult = _selectQueue.shift() ?? [];
+    }
+    return mockDbSelectChain;
+  });
   mockDb.update.mockReturnValue(mockDbUpdateChain);
   mockDb.transaction.mockImplementation(async (cb: (tx: typeof mockDb) => Promise<unknown>) =>
     cb(mockDb),
@@ -155,6 +193,10 @@ function resetChains() {
   // Default subscription list — empty (no active subscription)
   mockSubscriptionsList.mockResolvedValue({ data: [] });
   mockSubscriptionsUpdate.mockResolvedValue({});
+}
+
+function queueSelectResults(...results: unknown[][]) {
+  _selectQueue = [...results];
 }
 
 function post(path: string, body: unknown) {
@@ -175,8 +217,11 @@ describe('POST /checkout', () => {
   beforeEach(() => {
     vi.clearAllMocks();
     resetChains();
-    process.env.STRIPE_SECRET_KEY = 'sk_test_placeholder';
+    process.env.STRIPE_SECRET_KEY = 'stripe_test_placeholder';
     process.env.CMS_URL = 'https://app.example.com';
+    process.env.STRIPE_PRO_PRICE_ID = 'price_pro_server';
+    process.env.STRIPE_MAX_PRICE_ID = 'price_max_server';
+    process.env.STRIPE_ENTERPRISE_PRICE_ID = 'price_enterprise_server';
   });
 
   it('returns 401 when not authenticated', async () => {
@@ -186,14 +231,19 @@ describe('POST /checkout', () => {
   });
 
   it('creates Stripe customer when none exists and returns checkout URL', async () => {
-    _selectResult = [{ stripeCustomerId: null }];
+    queueSelectResults(
+      [{ stripePriceId: 'price_pro_server' }],
+      [{ stripeCustomerId: null }],
+      [{ stripeCustomerId: null }],
+      [{ stripeCustomerId: 'cus_new' }],
+    );
     mockCustomersCreate.mockResolvedValue({ id: 'cus_new' });
     mockCheckoutSessionsCreate.mockResolvedValue({
       url: 'https://checkout.stripe.com/pay/sess_abc',
     });
 
     const app = createApp();
-    const res = await app.request(post('/checkout', { priceId: 'price_pro_monthly', tier: 'pro' }));
+    const res = await app.request(post('/checkout', { priceId: 'price_pro_server', tier: 'pro' }));
 
     expect(res.status).toBe(200);
     const body = (await res.json()) as Record<string, unknown>;
@@ -222,13 +272,16 @@ describe('POST /checkout', () => {
   });
 
   it('reuses existing Stripe customer when one already exists', async () => {
-    _selectResult = [{ stripeCustomerId: 'cus_existing' }];
+    queueSelectResults(
+      [{ stripePriceId: 'price_pro_server' }],
+      [{ stripeCustomerId: 'cus_existing' }],
+    );
     mockCheckoutSessionsCreate.mockResolvedValue({
       url: 'https://checkout.stripe.com/pay/sess_xyz',
     });
 
     const app = createApp();
-    const res = await app.request(post('/checkout', { priceId: 'price_pro_monthly' }));
+    const res = await app.request(post('/checkout', { priceId: 'price_pro_server' }));
 
     expect(res.status).toBe(200);
     // Must NOT create a new Stripe customer
@@ -239,13 +292,18 @@ describe('POST /checkout', () => {
   });
 
   it('includes tier and user ID in subscription_data metadata', async () => {
-    _selectResult = [{ stripeCustomerId: 'cus_existing' }];
+    queueSelectResults(
+      [{ stripePriceId: 'price_enterprise_server' }],
+      [{ stripeCustomerId: 'cus_existing' }],
+    );
     mockCheckoutSessionsCreate.mockResolvedValue({
       url: 'https://checkout.stripe.com/pay/sess_ent',
     });
 
     const app = createApp();
-    await app.request(post('/checkout', { priceId: 'price_enterprise', tier: 'enterprise' }));
+    await app.request(
+      post('/checkout', { priceId: 'price_enterprise_server', tier: 'enterprise' }),
+    );
 
     const sessionArgs = mockCheckoutSessionsCreate.mock.calls[0]?.[0] as Record<string, unknown>;
     const meta = (sessionArgs.subscription_data as Record<string, unknown>).metadata as Record<
@@ -257,13 +315,16 @@ describe('POST /checkout', () => {
   });
 
   it('defaults to pro tier when tier is not specified', async () => {
-    _selectResult = [{ stripeCustomerId: 'cus_existing' }];
+    queueSelectResults(
+      [{ stripePriceId: 'price_pro_server' }],
+      [{ stripeCustomerId: 'cus_existing' }],
+    );
     mockCheckoutSessionsCreate.mockResolvedValue({
       url: 'https://checkout.stripe.com/pay/sess_pro',
     });
 
     const app = createApp();
-    await app.request(post('/checkout', { priceId: 'price_pro' }));
+    await app.request(post('/checkout', { priceId: 'price_pro_server' }));
 
     const sessionArgs = mockCheckoutSessionsCreate.mock.calls[0]?.[0] as Record<string, unknown>;
     const meta = (sessionArgs.subscription_data as Record<string, unknown>).metadata as Record<
@@ -276,8 +337,52 @@ describe('POST /checkout', () => {
   it('returns 500 when STRIPE_SECRET_KEY is not configured', async () => {
     delete process.env.STRIPE_SECRET_KEY;
     const app = createApp();
-    const res = await app.request(post('/checkout', { priceId: 'price_pro' }));
+    const res = await app.request(post('/checkout', { priceId: 'price_pro_server' }));
     expect(res.status).toBe(500);
+  });
+
+  it('returns 500 when the subscription billing catalog entry is missing', async () => {
+    _selectResult = [{ stripeCustomerId: 'cus_existing' }];
+
+    const app = createApp();
+    const res = await app.request(post('/checkout', { tier: 'pro' }));
+
+    expect(res.status).toBe(500);
+  });
+
+  it('prefers the drizzle billing catalog price when a matching active entry exists', async () => {
+    let selectCallCount = 0;
+    mockDb.select.mockImplementation(() => {
+      selectCallCount++;
+      _selectResult =
+        selectCallCount === 1
+          ? [{ stripePriceId: 'price_pro_db' }]
+          : [{ stripeCustomerId: 'cus_existing' }];
+      return mockDbSelectChain;
+    });
+    mockCheckoutSessionsCreate.mockResolvedValue({
+      url: 'https://checkout.stripe.com/pay/sess_catalog_db',
+    });
+
+    const app = createApp();
+    const res = await app.request(post('/checkout', { tier: 'pro' }));
+
+    expect(res.status).toBe(200);
+    const sessionArgs = mockCheckoutSessionsCreate.mock.calls[0]?.[0] as Record<string, unknown>;
+    const lineItems = sessionArgs.line_items as Array<Record<string, unknown>>;
+    expect(lineItems[0]?.price).toBe('price_pro_db');
+    expect(mockLogger.warn).not.toHaveBeenCalled();
+  });
+
+  it('rejects checkout when client priceId mismatches the server catalog', async () => {
+    queueSelectResults([{ stripePriceId: 'price_pro_server' }]);
+
+    const app = createApp();
+    const res = await app.request(post('/checkout', { priceId: 'price_wrong', tier: 'pro' }));
+
+    expect(res.status).toBe(400);
+    const body = (await res.json()) as Record<string, unknown>;
+    expect(body.error as string).toContain('server billing catalog');
   });
 });
 
@@ -285,7 +390,7 @@ describe('POST /portal', () => {
   beforeEach(() => {
     vi.clearAllMocks();
     resetChains();
-    process.env.STRIPE_SECRET_KEY = 'sk_test_placeholder';
+    process.env.STRIPE_SECRET_KEY = 'stripe_test_placeholder';
     process.env.CMS_URL = 'https://app.example.com';
   });
 
@@ -295,7 +400,11 @@ describe('POST /portal', () => {
   });
 
   it('returns 400 when user has no Stripe customer', async () => {
-    _selectResult = [{ stripeCustomerId: null }];
+    queueSelectResults(
+      [{ stripePriceId: 'price_enterprise_server' }],
+      [],
+      [{ stripeCustomerId: null }],
+    );
 
     const app = createApp();
     const res = await app.request(post('/portal', {}));
@@ -322,13 +431,39 @@ describe('POST /portal', () => {
       return_url: 'https://app.example.com/account/billing',
     });
   });
+
+  it('prefers the hosted account subscription customer for portal access', async () => {
+    let selectCallCount = 0;
+    mockDb.select.mockImplementation(() => {
+      selectCallCount++;
+      _selectResult =
+        selectCallCount === 1
+          ? [{ accountId: 'acct_123' }]
+          : selectCallCount === 2
+            ? [{ stripeCustomerId: 'cus_account' }]
+            : [];
+      return mockDbSelectChain;
+    });
+    mockBillingPortalSessionsCreate.mockResolvedValue({
+      url: 'https://billing.stripe.com/portal/sess_account',
+    });
+
+    const app = createApp();
+    const res = await app.request(post('/portal', {}));
+
+    expect(res.status).toBe(200);
+    expect(mockBillingPortalSessionsCreate).toHaveBeenCalledWith({
+      customer: 'cus_account',
+      return_url: 'https://app.example.com/account/billing',
+    });
+  });
 });
 
 describe('GET /subscription', () => {
   beforeEach(() => {
     vi.clearAllMocks();
     resetChains();
-    process.env.STRIPE_SECRET_KEY = 'sk_test_placeholder';
+    process.env.STRIPE_SECRET_KEY = 'stripe_test_placeholder';
   });
 
   it('returns 401 when not authenticated', async () => {
@@ -397,22 +532,29 @@ describe('POST /upgrade', () => {
   beforeEach(() => {
     vi.clearAllMocks();
     resetChains();
-    process.env.STRIPE_SECRET_KEY = 'sk_test_placeholder';
+    process.env.STRIPE_SECRET_KEY = 'stripe_test_placeholder';
+    process.env.STRIPE_PRO_PRICE_ID = 'price_pro_server';
+    process.env.STRIPE_MAX_PRICE_ID = 'price_max_server';
+    process.env.STRIPE_ENTERPRISE_PRICE_ID = 'price_enterprise_server';
   });
 
   it('returns 401 when not authenticated', async () => {
     const res = await billingApp.request(
-      post('/upgrade', { priceId: 'price_enterprise', targetTier: 'enterprise' }),
+      post('/upgrade', { priceId: 'price_enterprise_server', targetTier: 'enterprise' }),
     );
     expect(res.status).toBe(401);
   });
 
   it('returns 400 when user has no Stripe customer', async () => {
-    _selectResult = [{ stripeCustomerId: null }];
+    queueSelectResults(
+      [{ stripePriceId: 'price_enterprise_server' }],
+      [],
+      [{ stripeCustomerId: null }],
+    );
 
     const app = createApp();
     const res = await app.request(
-      post('/upgrade', { priceId: 'price_enterprise', targetTier: 'enterprise' }),
+      post('/upgrade', { priceId: 'price_enterprise_server', targetTier: 'enterprise' }),
     );
 
     expect(res.status).toBe(400);
@@ -421,12 +563,16 @@ describe('POST /upgrade', () => {
   });
 
   it('returns 400 when no active subscription exists', async () => {
-    _selectResult = [{ stripeCustomerId: 'cus_existing' }];
+    queueSelectResults(
+      [{ stripePriceId: 'price_enterprise_server' }],
+      [],
+      [{ stripeCustomerId: 'cus_existing' }],
+    );
     mockSubscriptionsList.mockResolvedValue({ data: [] });
 
     const app = createApp();
     const res = await app.request(
-      post('/upgrade', { priceId: 'price_enterprise', targetTier: 'enterprise' }),
+      post('/upgrade', { priceId: 'price_enterprise_server', targetTier: 'enterprise' }),
     );
 
     expect(res.status).toBe(400);
@@ -435,14 +581,18 @@ describe('POST /upgrade', () => {
   });
 
   it('returns 400 when subscription has no items', async () => {
-    _selectResult = [{ stripeCustomerId: 'cus_existing' }];
+    queueSelectResults(
+      [{ stripePriceId: 'price_enterprise_server' }],
+      [],
+      [{ stripeCustomerId: 'cus_existing' }],
+    );
     mockSubscriptionsList.mockResolvedValue({
       data: [{ id: 'sub_empty', items: { data: [] } }],
     });
 
     const app = createApp();
     const res = await app.request(
-      post('/upgrade', { priceId: 'price_enterprise', targetTier: 'enterprise' }),
+      post('/upgrade', { priceId: 'price_enterprise_server', targetTier: 'enterprise' }),
     );
 
     expect(res.status).toBe(400);
@@ -451,7 +601,11 @@ describe('POST /upgrade', () => {
   });
 
   it('returns success with subscriptionId on valid upgrade', async () => {
-    _selectResult = [{ stripeCustomerId: 'cus_existing' }];
+    queueSelectResults(
+      [{ stripePriceId: 'price_enterprise_server' }],
+      [],
+      [{ stripeCustomerId: 'cus_existing' }],
+    );
     mockSubscriptionsList.mockResolvedValue({
       data: [{ id: 'sub_pro', items: { data: [{ id: 'si_pro' }] } }],
     });
@@ -459,7 +613,7 @@ describe('POST /upgrade', () => {
 
     const app = createApp();
     const res = await app.request(
-      post('/upgrade', { priceId: 'price_enterprise_monthly', targetTier: 'enterprise' }),
+      post('/upgrade', { priceId: 'price_enterprise_server', targetTier: 'enterprise' }),
     );
 
     expect(res.status).toBe(200);
@@ -469,13 +623,19 @@ describe('POST /upgrade', () => {
   });
 
   it('queries Stripe for the customer active subscription', async () => {
-    _selectResult = [{ stripeCustomerId: 'cus_existing' }];
+    queueSelectResults(
+      [{ stripePriceId: 'price_enterprise_server' }],
+      [],
+      [{ stripeCustomerId: 'cus_existing' }],
+    );
     mockSubscriptionsList.mockResolvedValue({
       data: [{ id: 'sub_pro', items: { data: [{ id: 'si_pro' }] } }],
     });
 
     const app = createApp();
-    await app.request(post('/upgrade', { priceId: 'price_ent', targetTier: 'enterprise' }));
+    await app.request(
+      post('/upgrade', { priceId: 'price_enterprise_server', targetTier: 'enterprise' }),
+    );
 
     expect(mockSubscriptionsList).toHaveBeenCalledWith({
       customer: 'cus_existing',
@@ -484,22 +644,59 @@ describe('POST /upgrade', () => {
     });
   });
 
-  it('updates subscription with new price, tier metadata, and prorations', async () => {
-    _selectResult = [{ stripeCustomerId: 'cus_existing' }];
+  it('prefers the hosted account subscription customer for upgrades', async () => {
+    queueSelectResults(
+      [{ stripePriceId: 'price_enterprise_server' }],
+      [{ accountId: 'acct_123' }],
+      [{ stripeCustomerId: 'cus_account' }],
+    );
     mockSubscriptionsList.mockResolvedValue({
       data: [{ id: 'sub_pro', items: { data: [{ id: 'si_pro' }] } }],
     });
 
     const app = createApp();
     await app.request(
-      post('/upgrade', { priceId: 'price_enterprise_monthly', targetTier: 'enterprise' }),
+      post('/upgrade', { priceId: 'price_enterprise_server', targetTier: 'enterprise' }),
+    );
+
+    expect(mockSubscriptionsList).toHaveBeenCalledWith({
+      customer: 'cus_account',
+      status: 'active',
+      limit: 1,
+    });
+  });
+
+  it('updates subscription with new price, tier metadata, and prorations', async () => {
+    queueSelectResults(
+      [{ stripePriceId: 'price_enterprise_server' }],
+      [],
+      [{ stripeCustomerId: 'cus_existing' }],
+    );
+    mockSubscriptionsList.mockResolvedValue({
+      data: [{ id: 'sub_pro', items: { data: [{ id: 'si_pro' }] } }],
+    });
+
+    const app = createApp();
+    await app.request(
+      post('/upgrade', { priceId: 'price_enterprise_server', targetTier: 'enterprise' }),
     );
 
     expect(mockSubscriptionsUpdate).toHaveBeenCalledWith('sub_pro', {
-      items: [{ id: 'si_pro', price: 'price_enterprise_monthly' }],
+      items: [{ id: 'si_pro', price: 'price_enterprise_server' }],
       metadata: { tier: 'enterprise', revealui_user_id: MOCK_USER.id },
       proration_behavior: 'create_prorations',
     });
+  });
+
+  it('rejects upgrade when client priceId mismatches the server catalog', async () => {
+    queueSelectResults([{ stripePriceId: 'price_enterprise_server' }]);
+
+    const app = createApp();
+    const res = await app.request(
+      post('/upgrade', { priceId: 'price_wrong', targetTier: 'enterprise' }),
+    );
+
+    expect(res.status).toBe(400);
   });
 });
 
@@ -519,7 +716,7 @@ describe('POST /report-agent-overage', () => {
   beforeEach(() => {
     vi.clearAllMocks();
     resetChains();
-    process.env.STRIPE_SECRET_KEY = 'sk_test_placeholder';
+    process.env.STRIPE_SECRET_KEY = 'stripe_test_placeholder';
     process.env.REVEALUI_CRON_SECRET = CRON_SECRET;
   });
 

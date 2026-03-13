@@ -9,13 +9,21 @@
  * duplicate processing across Vercel multi-region deployments.
  */
 
-import { isFeatureEnabled } from '@revealui/core/features';
+import { getFeaturesForTier, isFeatureEnabled } from '@revealui/core/features';
 import { generateLicenseKey, resetLicenseState } from '@revealui/core/license';
 import { logger } from '@revealui/core/observability/logger';
 import { DrizzleAuditStore, getClient } from '@revealui/db';
 import type { Database } from '@revealui/db/client';
-import { licenses, processedWebhookEvents, users } from '@revealui/db/schema';
-import { desc, eq } from 'drizzle-orm';
+import {
+  accountEntitlements,
+  accountMemberships,
+  accountSubscriptions,
+  accounts,
+  licenses,
+  processedWebhookEvents,
+  users,
+} from '@revealui/db/schema';
+import { and, desc, eq } from 'drizzle-orm';
 import { Hono } from 'hono';
 import Stripe from 'stripe';
 
@@ -75,6 +83,17 @@ async function checkAndMarkProcessed(
   }
 }
 
+async function unmarkProcessed(db: Database, eventId: string): Promise<void> {
+  try {
+    await db.delete(processedWebhookEvents).where(eq(processedWebhookEvents.id, eventId));
+  } catch (err) {
+    logger.warn('Failed to clear webhook idempotency marker after processing error', {
+      eventId,
+      error: err instanceof Error ? err.message : 'unknown',
+    });
+  }
+}
+
 function resolveTier(
   metadata: Record<string, string> | null | undefined,
 ): 'pro' | 'max' | 'enterprise' {
@@ -108,6 +127,190 @@ function resolveSubscriptionId(subscription: string | Stripe.Subscription | null
   if (!subscription) return null;
   if (typeof subscription === 'string') return subscription;
   return subscription.id;
+}
+
+function getHostedLimitsForTier(tier: 'free' | 'pro' | 'max' | 'enterprise'): {
+  maxSites?: number;
+  maxUsers?: number;
+  maxAgentTasks?: number;
+} {
+  if (tier === 'enterprise') return { maxAgentTasks: Number.MAX_SAFE_INTEGER };
+  if (tier === 'max') return { maxSites: 15, maxUsers: 100, maxAgentTasks: 50_000 };
+  if (tier === 'pro') return { maxSites: 5, maxUsers: 25, maxAgentTasks: 10_000 };
+  return { maxSites: 1, maxUsers: 3, maxAgentTasks: 1_000 };
+}
+
+function buildAccountSlug(userId: string): string {
+  return `acct-${userId
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, '-')
+    .slice(0, 32)}`;
+}
+
+async function ensureHostedAccount(
+  tx: Database,
+  userId: string,
+  customerId: string,
+): Promise<string | null> {
+  const [membership] = await tx
+    .select({ accountId: accountMemberships.accountId })
+    .from(accountMemberships)
+    .where(and(eq(accountMemberships.userId, userId), eq(accountMemberships.status, 'active')))
+    .limit(1);
+
+  if (membership?.accountId) return membership.accountId;
+
+  const [user] = await tx
+    .select({ id: users.id, name: users.name })
+    .from(users)
+    .where(eq(users.id, userId))
+    .limit(1);
+
+  if (!user?.id) return null;
+
+  const accountId = crypto.randomUUID();
+  const now = new Date();
+
+  await tx.insert(accounts).values({
+    id: accountId,
+    name: `${user.name || 'RevealUI'} Workspace`,
+    slug: `${buildAccountSlug(user.id)}-${accountId.slice(0, 8)}`,
+    status: 'active',
+    createdAt: now,
+    updatedAt: now,
+  });
+
+  await tx.insert(accountMemberships).values({
+    id: crypto.randomUUID(),
+    accountId,
+    userId,
+    role: 'owner',
+    status: 'active',
+    createdAt: now,
+    updatedAt: now,
+  });
+
+  logger.info('Hosted billing account created from Stripe webhook', {
+    accountId,
+    userId,
+    customerId,
+  });
+
+  return accountId;
+}
+
+async function resolveHostedAccountId(
+  db: Database,
+  customerId: string,
+  userId?: string | null,
+): Promise<string | null> {
+  if (userId) {
+    const accountId = await ensureHostedAccount(db, userId, customerId);
+    if (accountId) return accountId;
+  }
+
+  const [subscription] = await db
+    .select({ accountId: accountSubscriptions.accountId })
+    .from(accountSubscriptions)
+    .where(eq(accountSubscriptions.stripeCustomerId, customerId))
+    .limit(1);
+
+  if (subscription?.accountId) return subscription.accountId;
+
+  const [user] = await db
+    .select({ id: users.id })
+    .from(users)
+    .where(eq(users.stripeCustomerId, customerId))
+    .limit(1);
+
+  if (!user?.id) return null;
+  return ensureHostedAccount(db, user.id, customerId);
+}
+
+async function syncHostedSubscriptionState(
+  db: Database,
+  params: {
+    customerId: string;
+    subscriptionId: string | null;
+    userId?: string | null;
+    tier: 'pro' | 'max' | 'enterprise';
+    status: string;
+    currentPeriodStart?: Date | null;
+    currentPeriodEnd?: Date | null;
+    cancelAtPeriodEnd?: boolean;
+    graceUntil?: Date | null;
+  },
+): Promise<void> {
+  const accountId = await resolveHostedAccountId(db, params.customerId, params.userId ?? null);
+  if (!accountId) {
+    logger.warn('Hosted entitlement sync skipped because no account could be resolved', {
+      customerId: params.customerId,
+      subscriptionId: params.subscriptionId,
+      userId: params.userId ?? null,
+    });
+    return;
+  }
+
+  const now = new Date();
+  const [existingSubscription] = await db
+    .select({ id: accountSubscriptions.id })
+    .from(accountSubscriptions)
+    .where(eq(accountSubscriptions.accountId, accountId))
+    .limit(1);
+
+  const subscriptionValues = {
+    accountId,
+    stripeCustomerId: params.customerId,
+    stripeSubscriptionId: params.subscriptionId,
+    planId: params.tier,
+    status: params.status,
+    currentPeriodStart: params.currentPeriodStart ?? null,
+    currentPeriodEnd: params.currentPeriodEnd ?? null,
+    cancelAtPeriodEnd: params.cancelAtPeriodEnd ?? false,
+    updatedAt: now,
+  };
+
+  if (existingSubscription?.id) {
+    await db
+      .update(accountSubscriptions)
+      .set(subscriptionValues)
+      .where(eq(accountSubscriptions.id, existingSubscription.id));
+  } else {
+    await db.insert(accountSubscriptions).values({
+      id: crypto.randomUUID(),
+      ...subscriptionValues,
+      createdAt: now,
+    });
+  }
+
+  const [existingEntitlement] = await db
+    .select({ accountId: accountEntitlements.accountId })
+    .from(accountEntitlements)
+    .where(eq(accountEntitlements.accountId, accountId))
+    .limit(1);
+
+  const entitlementValues = {
+    tier: params.tier,
+    status: params.status,
+    features: getFeaturesForTier(params.tier),
+    limits: getHostedLimitsForTier(params.tier),
+    meteringStatus:
+      params.status === 'active' || params.status === 'trialing' ? 'active' : 'paused',
+    graceUntil: params.graceUntil ?? null,
+    updatedAt: now,
+  };
+
+  if (existingEntitlement?.accountId) {
+    await db
+      .update(accountEntitlements)
+      .set(entitlementValues)
+      .where(eq(accountEntitlements.accountId, accountId));
+  } else {
+    await db.insert(accountEntitlements).values({
+      accountId,
+      ...entitlementValues,
+    });
+  }
 }
 
 /**
@@ -439,6 +642,22 @@ app.post('/stripe', async (c) => {
             createdAt: new Date(),
             updatedAt: new Date(),
           });
+
+          await syncHostedSubscriptionState(tx, {
+            customerId,
+            subscriptionId,
+            userId: resolvedUserId,
+            tier,
+            status: licenseStatus,
+            currentPeriodStart: checkoutSubscription?.current_period_start
+              ? new Date(checkoutSubscription.current_period_start * 1000)
+              : null,
+            currentPeriodEnd: checkoutSubscription?.current_period_end
+              ? new Date(checkoutSubscription.current_period_end * 1000)
+              : licenseExpiresAt,
+            cancelAtPeriodEnd: checkoutSubscription?.cancel_at_period_end ?? false,
+            graceUntil: licenseExpiresAt,
+          });
         });
 
         // Invalidate in-process license cache so subsequent requests see the new tier
@@ -490,6 +709,20 @@ app.post('/stripe', async (c) => {
           .set({ status: 'revoked', updatedAt: new Date() })
           .where(eq(licenses.customerId, customerId));
 
+        await syncHostedSubscriptionState(db, {
+          customerId,
+          subscriptionId: subscription.id,
+          tier: resolveTier(subscription.metadata as Record<string, string>),
+          status: 'revoked',
+          currentPeriodStart: subscription.current_period_start
+            ? new Date(subscription.current_period_start * 1000)
+            : null,
+          currentPeriodEnd: subscription.current_period_end
+            ? new Date(subscription.current_period_end * 1000)
+            : null,
+          cancelAtPeriodEnd: subscription.cancel_at_period_end ?? false,
+        });
+
         resetLicenseState();
 
         logger.info('License revoked on subscription deletion', {
@@ -514,6 +747,13 @@ app.post('/stripe', async (c) => {
           .set({ status: 'revoked', updatedAt: new Date() })
           .where(eq(licenses.customerId, customerId));
 
+        await syncHostedSubscriptionState(db, {
+          customerId,
+          subscriptionId: null,
+          tier: 'pro',
+          status: 'revoked',
+        });
+
         resetLicenseState();
 
         logger.warn('License revoked: Stripe customer deleted', { customerId });
@@ -532,6 +772,23 @@ app.post('/stripe', async (c) => {
             .update(licenses)
             .set({ status: 'expired', updatedAt: new Date() })
             .where(eq(licenses.customerId, customerId));
+
+          await syncHostedSubscriptionState(db, {
+            customerId,
+            subscriptionId: subscription.id,
+            tier: resolveTier(subscription.metadata as Record<string, string>),
+            status: 'expired',
+            currentPeriodStart: subscription.current_period_start
+              ? new Date(subscription.current_period_start * 1000)
+              : null,
+            currentPeriodEnd: subscription.current_period_end
+              ? new Date(subscription.current_period_end * 1000)
+              : null,
+            cancelAtPeriodEnd: subscription.cancel_at_period_end ?? false,
+            graceUntil: subscription.current_period_end
+              ? new Date(subscription.current_period_end * 1000)
+              : null,
+          });
 
           logger.info('License expired due to payment failure', {
             customerId,
@@ -580,6 +837,21 @@ app.post('/stripe', async (c) => {
             subscriptionId: subscription.id,
             expiresAt: cancelAt.toISOString(),
           });
+
+          await syncHostedSubscriptionState(db, {
+            customerId,
+            subscriptionId: subscription.id,
+            tier: resolveTier(subscription.metadata as Record<string, string>),
+            status: 'active',
+            currentPeriodStart: subscription.current_period_start
+              ? new Date(subscription.current_period_start * 1000)
+              : null,
+            currentPeriodEnd: subscription.current_period_end
+              ? new Date(subscription.current_period_end * 1000)
+              : cancelAt,
+            cancelAtPeriodEnd: true,
+            graceUntil: cancelAt,
+          });
         }
 
         // If subscription is active, sync tier + status (covers reactivations and tier upgrades).
@@ -603,6 +875,24 @@ app.post('/stripe', async (c) => {
             .set({ status: 'active', tier: newTier, licenseKey, updatedAt: new Date() })
             .where(eq(licenses.customerId, customerId));
 
+          await syncHostedSubscriptionState(db, {
+            customerId,
+            subscriptionId: subscription.id,
+            tier: newTier,
+            status: 'active',
+            currentPeriodStart: subscription.current_period_start
+              ? new Date(subscription.current_period_start * 1000)
+              : null,
+            currentPeriodEnd: subscription.current_period_end
+              ? new Date(subscription.current_period_end * 1000)
+              : null,
+            cancelAtPeriodEnd: subscription.cancel_at_period_end ?? false,
+            graceUntil:
+              subscription.cancel_at_period_end && subscription.cancel_at
+                ? new Date(subscription.cancel_at * 1000)
+                : null,
+          });
+
           resetLicenseState();
           auditLicenseEvent(db, 'license.reactivated', 'info', {
             customerId,
@@ -616,8 +906,28 @@ app.post('/stripe', async (c) => {
       case 'customer.subscription.created': {
         // Logged for observability; license generation happens on checkout.session.completed
         const subscription = event.data.object as Stripe.Subscription;
+        const customerId = resolveCustomerId(subscription.customer);
+        if (customerId) {
+          await syncHostedSubscriptionState(db, {
+            customerId,
+            subscriptionId: subscription.id,
+            tier: resolveTier(subscription.metadata as Record<string, string>),
+            status: subscription.status,
+            currentPeriodStart: subscription.current_period_start
+              ? new Date(subscription.current_period_start * 1000)
+              : null,
+            currentPeriodEnd: subscription.current_period_end
+              ? new Date(subscription.current_period_end * 1000)
+              : null,
+            cancelAtPeriodEnd: subscription.cancel_at_period_end ?? false,
+            graceUntil:
+              subscription.status === 'trialing' && subscription.trial_end
+                ? new Date(subscription.trial_end * 1000)
+                : null,
+          });
+        }
         logger.info('Subscription created', {
-          customerId: resolveCustomerId(subscription.customer),
+          customerId,
           subscriptionId: subscription.id,
           status: subscription.status,
         });
@@ -684,6 +994,21 @@ app.post('/stripe', async (c) => {
           .update(licenses)
           .set({ status: 'active', tier: recoveredTier, licenseKey, updatedAt: new Date() })
           .where(eq(licenses.customerId, customerId));
+
+        await syncHostedSubscriptionState(db, {
+          customerId,
+          subscriptionId: recoveredSubscription.id,
+          tier: recoveredTier,
+          status: 'active',
+          currentPeriodStart: recoveredSubscription.current_period_start
+            ? new Date(recoveredSubscription.current_period_start * 1000)
+            : null,
+          currentPeriodEnd: recoveredSubscription.current_period_end
+            ? new Date(recoveredSubscription.current_period_end * 1000)
+            : null,
+          cancelAtPeriodEnd: recoveredSubscription.cancel_at_period_end ?? false,
+          graceUntil: null,
+        });
 
         resetLicenseState();
 
@@ -795,6 +1120,13 @@ app.post('/stripe', async (c) => {
           .set({ status: 'revoked', updatedAt: new Date() })
           .where(eq(licenses.customerId, disputeCustomerId));
 
+        await syncHostedSubscriptionState(db, {
+          customerId: disputeCustomerId,
+          subscriptionId: null,
+          tier: 'pro',
+          status: 'revoked',
+        });
+
         resetLicenseState();
 
         logger.warn('License revoked: chargeback dispute lost', {
@@ -873,6 +1205,13 @@ app.post('/stripe', async (c) => {
             .set({ status: 'revoked', updatedAt: new Date() })
             .where(eq(licenses.customerId, customerId));
 
+          await syncHostedSubscriptionState(db, {
+            customerId,
+            subscriptionId: null,
+            tier: 'pro',
+            status: 'revoked',
+          });
+
           resetLicenseState();
 
           logger.warn('License revoked: full refund issued', {
@@ -899,6 +1238,7 @@ app.post('/stripe', async (c) => {
       }
     }
   } catch (err) {
+    await unmarkProcessed(db, event.id);
     const msg = err instanceof Error ? err.message : 'Unknown error';
     logger.error('Webhook handler error', undefined, { detail: msg, eventType: event.type });
     return c.json({ error: 'Webhook processing failed' }, 500);

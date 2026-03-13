@@ -77,7 +77,7 @@
         "vitest.config.ts",
         "package.json"
       ],
-      "outputs": ["coverage/**"]
+      "outputs": []
     },
     "test:watch": {
       "cache": false,

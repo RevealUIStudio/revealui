@@ -3,27 +3,31 @@
 ## Active Workflows
 
 ### `ci.yml` — Continuous Integration
+
 **Triggers:** Push to `main`, pull requests targeting `main`
 
 Mirrors the local `pnpm gate` — same hard-fail/warn policy:
 
-| Check | When | Fail policy |
-|-------|------|-------------|
-| Biome lint | PRs + main | Hard fail |
-| Typecheck (all 24 packages) | PRs + main | Hard fail |
-| Build (all packages) | main only | Hard fail |
-| Audits, structure, boundary | PRs + main | Warn-only |
-| Tests (Vitest) | PRs + main | Warn-only |
+| Check                       | When       | Fail policy |
+| --------------------------- | ---------- | ----------- |
+| Biome lint                  | PRs + main | Hard fail   |
+| Boundary validation         | PRs + main | Hard fail   |
+| Typecheck (all 24 packages) | PRs + main | Hard fail   |
+| Build (all packages)        | main only  | Hard fail   |
+| Audits, structure           | PRs + main | Warn-only   |
+| Tests (Vitest)              | PRs + main | Warn-only   |
 
 Build runs only on main pushes — at ~15 min it's too slow for PR feedback loops.
 
 ### `release.yml` — Release OSS Packages
+
 **Trigger:** Manual (`workflow_dispatch`)
 
 Publishes OSS packages to npm using **OIDC trusted publishing** (no long-lived `NPM_TOKEN`).
 Generates **SLSA Build Level 2 provenance attestations** via `--provenance`.
 
 Steps:
+
 1. Install + build all packages (`SKIP_ENV_VALIDATION=true`)
 2. `pnpm changeset publish --provenance` — publishes packages that have pending changesets
 3. Push git tags
@@ -35,6 +39,7 @@ Steps:
 **Changesets must be applied before running** — run `pnpm changeset version` locally and commit first.
 
 ### `release-pro.yml` — Release Pro Packages
+
 **Trigger:** Manual (`workflow_dispatch`) — **runs from private upstream, not here**
 
 Pro package source (`@revealui/ai`, `mcp`, `editors`, `services`, `harnesses`) lives in
@@ -48,11 +53,11 @@ will fail (Pro package source is not present).
 
 Workflows in `.github/workflows-disabled/` are not active:
 
-| File | Purpose | Why disabled |
-|------|---------|--------------|
-| `deploy-staging.yml` | Auto-deploy CMS to Vercel staging on push to main | Vercel auto-deploy via GitHub integration is preferred |
-| `deploy-production.yml` | Manual production deploy via `workflow_dispatch` | Same reason |
-| `preview-pr.yml` | Preview deploys on PRs | Not yet configured |
+| File                    | Purpose                                           | Why disabled                                           |
+| ----------------------- | ------------------------------------------------- | ------------------------------------------------------ |
+| `deploy-staging.yml`    | Auto-deploy CMS to Vercel staging on push to main | Vercel auto-deploy via GitHub integration is preferred |
+| `deploy-production.yml` | Manual production deploy via `workflow_dispatch`  | Same reason                                            |
+| `preview-pr.yml`        | Preview deploys on PRs                            | Not yet configured                                     |
 
 To re-enable a workflow, move it to `.github/workflows/`.
 

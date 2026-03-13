@@ -4,6 +4,13 @@ status: beta
 tier: pro
 last-verified: 2026-03-11
 
+strategy:
+  commercial-role: "MCP is part of the Pro commercial surface and should align with account-level packaging plus optional metered usage"
+  monetization:
+    - "platform subscription for access"
+    - "metered tool or workflow execution where appropriate"
+    - "marketplace or commerce-linked fees for paid MCP calls"
+
 api-surface:
   hypervisor:
     endpoint: "MCPHypervisor singleton — manages N running MCP server processes"
@@ -71,7 +78,7 @@ limitations:
     summary: "@neondatabase/mcp-server-neon pulls vulnerable oauth2-server (accepted risk, dev-only)"
   - id: license-required
     surface: api
-    summary: "Requires Pro/Enterprise tier — checkMcpLicense() on import"
+    summary: "Requires Pro/Enterprise tier — current checks are license-centric and should converge on account-level entitlements"
   - id: stdio-only
     surface: api
     summary: "MCP servers communicate via piped stdio (newline-delimited JSON-RPC 2.0)"

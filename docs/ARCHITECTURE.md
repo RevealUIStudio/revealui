@@ -35,15 +35,16 @@
    - [Turbopack Configuration](#turbopack-configuration)
    - [Development vs Production](#development-vs-production)
 8. [Data Flow Patterns](#data-flow-patterns)
-9. [Security & Access Control](#security--access-control)
-10. [Performance & Scaling](#performance--scaling)
-11. [Migration Strategy](#migration-strategy)
-12. [Monitoring & Observability](#monitoring--observability)
-13. [Testing Strategy](#testing-strategy)
-14. [Best Practices](#best-practices)
-15. [Configuration Reference](#configuration-reference)
-16. [Troubleshooting](#troubleshooting)
-17. [Component Mapping](#component-mapping)
+9. [Commercial Architecture](#commercial-architecture)
+10. [Security & Access Control](#security--access-control)
+11. [Performance & Scaling](#performance--scaling)
+12. [Migration Strategy](#migration-strategy)
+13. [Monitoring & Observability](#monitoring--observability)
+14. [Testing Strategy](#testing-strategy)
+15. [Best Practices](#best-practices)
+16. [Configuration Reference](#configuration-reference)
+17. [Troubleshooting](#troubleshooting)
+18. [Component Mapping](#component-mapping)
     - [UI Components](#ui-components)
     - [Business Logic](#business-logic)
     - [Data Schemas & Contracts](#data-schemas--contracts)
@@ -51,7 +52,7 @@
     - [Key Patterns](#key-patterns)
     - [File Locations Summary](#file-locations-summary)
     - [Extension Guide](#extension-guide)
-18. [References](#references)
+19. [References](#references)
 
 ---
 
@@ -81,6 +82,30 @@ Hybrid Multi-Database + Vercel Cloud Platform Integration with Full Type Safety
 - ✅ **Real-Time Sync**: Offline-first with automatic synchronization
 - ✅ **Multi-Tenancy**: Complete data isolation between tenants
 - ✅ **Security**: Clear access boundaries with row-level security
+
+### Commercial Reality
+
+RevealUI's business model should align with account or workspace ownership, not a legacy per-user license table used as the primary SaaS entitlement source.
+
+The architecture should support four commercial layers:
+
+- **Platform subscription** for account-level access and core administration
+- **Metered agent execution** for workflow runs, tool calls, and expensive automation
+- **Commerce fees** for transactions or paid API flows RevealUI helps complete
+- **Trust and governance** for approvals, audit, policy, and compliance controls
+
+### Runtime Database Access Policy
+
+Application runtime code should default to `drizzle-orm` for database reads and writes.
+
+Allowed exceptions are narrow:
+
+- versioned migrations under `packages/db/migrations`
+- setup/bootstrap SQL under `packages/db/src/migrations`
+- low-level database tests
+- the dynamic collection storage adapter in `packages/core/src/collections/operations/sqlAdapter.ts`
+
+That last exception is temporary, not a preferred pattern. It exists because the current collection engine resolves table and column names from config at runtime, which does not fit Drizzle's compile-time table model cleanly. New runtime SQL should not be added outside that adapter boundary.
 
 ---
 
@@ -187,16 +212,19 @@ graph TB
 #### 1. Performance Isolation ✅
 
 **Problem Solved:**
+
 - Vector similarity searches (HNSW indexes) are CPU/memory intensive
 - Heavy vector queries can slow down transactional REST operations
 - Embedding generation competes with user-facing queries
 
 **Benefit:**
+
 - NeonDB handles REST/transactional workloads with predictable latency
 - Supabase handles vector operations independently
 - Each database optimized for its workload
 
 **Real-World Impact:**
+
 ```
 Scenario: Agent performs semantic search over 1M embeddings
 - Single DB: REST API latency spikes 200-500ms during search
@@ -206,25 +234,30 @@ Scenario: Agent performs semantic search over 1M embeddings
 #### 2. Independent Scaling ✅
 
 **NeonDB:**
+
 - Scale for transactional throughput (connections, query speed)
 - Serverless/scale-to-zero for variable REST workload
 
 **Supabase:**
+
 - Scale for vector storage/query performance (CPU, memory for HNSW)
 - Dedicated instances for CPU-heavy operations
 
 **ElectricSQL:**
+
 - Lightweight sync service
 - Scales with client connections
 
 #### 3. Security & Access Control ✅
 
 **Separation of Concerns:**
+
 - **NeonDB**: Contains user PII, auth data, sensitive business logic
 - **Supabase**: Contains embeddings, agent memories (less sensitive)
 - **ElectricSQL**: Syncs filtered data with row-level security
 
 **Access Pattern:**
+
 ```
 REST API Services → NeonDB (user data, CMS)
 AI Agent Services → Supabase (vector search)
@@ -234,6 +267,7 @@ Client Apps → ElectricSQL → NeonDB (real-time sync)
 #### 4. Real-Time Sync & Local-First Architecture ✅
 
 **ElectricSQL Benefits:**
+
 - Client-side local-first storage (browser cache via HTTP sync)
 - Cross-tab synchronization for agent data
 - Offline-first operation with automatic sync
@@ -243,6 +277,7 @@ Client Apps → ElectricSQL → NeonDB (real-time sync)
 #### 5. Cost Efficiency ✅
 
 **Optimized Spend:**
+
 - NeonDB: Pay for transactional capacity needed
 - Supabase: Pay for vector storage/compute needed
 - ElectricSQL: Self-hosted sync service (no additional DB cost)
@@ -253,21 +288,25 @@ Client Apps → ElectricSQL → NeonDB (real-time sync)
 ## NeonDB (Primary Database)
 
 ### Role
+
 Transactional REST API + Real-time Sync Source
 
 ### Stores
 
 **Core Relational Data:**
+
 - Users, sessions, authentication
 - Sites, pages, CMS content
 - Media, posts, metadata
 
 **Agent Relational Data:**
+
 - `agent_contexts` - Working memory, session context
 - `conversations` - Chat threads with messages
 - `agent_actions` - Audit log of agent actions
 
 **NOT Stored:**
+
 - ❌ Agent memories with embeddings (moved to Supabase)
 
 ### Characteristics
@@ -287,13 +326,13 @@ POSTGRES_URL=postgresql://...@neon.tech/...
 
 ```typescript
 // packages/db/src/core/rest.ts (NeonDB schema)
-export * from './users'
-export * from './sites'
-export * from './pages'
-export * from './sessions'
-export * from './agents/contexts'        // ElectricSQL sync
-export * from './agents/conversations'    // ElectricSQL sync
-export * from './agents/actions'
+export * from "./users";
+export * from "./sites";
+export * from "./pages";
+export * from "./sessions";
+export * from "./agents/contexts"; // ElectricSQL sync
+export * from "./agents/conversations"; // ElectricSQL sync
+export * from "./agents/actions";
 ```
 
 ---
@@ -301,11 +340,13 @@ export * from './agents/actions'
 ## Supabase (Vector Database)
 
 ### Role
+
 AI/Vector Operations + Semantic Search
 
 ### Stores
 
 **Agent Memories with Embeddings:**
+
 - `agent_memories` - Long-term memory with `vector(1536)` embeddings
 - Vector similarity search optimized
 - HNSW indexes for fast semantic retrieval
@@ -334,53 +375,53 @@ DATABASE_URL=postgresql://...@db.supabase.co/...
 
 ```typescript
 // packages/db/src/core/vector.ts (Supabase schema)
-export * from './agents/vector-memories'  // Vector data only
+export * from "./agents/vector-memories"; // Vector data only
 ```
 
 ### Vector Memory Service
 
 ```typescript
 // packages/ai/src/memory/vector-memory.ts
-import { getVectorClient } from '@revealui/db/client'
-import { agentMemories } from '@revealui/db/core/vector'
+import { getVectorClient } from "@revealui/db/client";
+import { agentMemories } from "@revealui/db/core/vector";
 
 export class VectorMemoryService {
-  private db = getVectorClient()  // Supabase
+  private db = getVectorClient(); // Supabase
 
   async searchSimilar(
     queryEmbedding: number[],
     options: {
-      userId?: string
-      siteId?: string
-      limit?: number
-    } = {}
+      userId?: string;
+      siteId?: string;
+      limit?: number;
+    } = {},
   ) {
     let query = this.db
       .select()
       .from(agentMemories)
       .orderBy(sql`embedding <-> ${queryEmbedding}::vector`)
-      .limit(options.limit ?? 10)
+      .limit(options.limit ?? 10);
 
     // Filter by user/site (reference IDs, not FKs)
     if (options.userId) {
-      query = query.where(eq(agentMemories.userId, options.userId))
+      query = query.where(eq(agentMemories.userId, options.userId));
     }
     if (options.siteId) {
-      query = query.where(eq(agentMemories.siteId, options.siteId))
+      query = query.where(eq(agentMemories.siteId, options.siteId));
     }
 
-    return await query
+    return await query;
   }
 
   async create(memory: AgentMemory) {
     // Only writes to Supabase
     return await this.db.insert(agentMemories).values({
       ...memory,
-      embedding: `[${memory.embedding.vector.join(',')}]`,
+      embedding: `[${memory.embedding.vector.join(",")}]`,
       // Reference IDs (not foreign keys)
       userId: memory.metadata?.custom?.userId,
       siteId: memory.metadata?.siteId,
-    })
+    });
   }
 }
 ```
@@ -390,6 +431,7 @@ export class VectorMemoryService {
 ## ElectricSQL (Sync Layer)
 
 ### Role
+
 Real-time synchronization for client-side data
 
 ### Syncs from NeonDB
@@ -427,7 +469,7 @@ services:
   electric-sql:
     environment:
       # Connect to NeonDB (not Supabase)
-      - DATABASE_URL=${POSTGRES_URL}  # Source of truth
+      - DATABASE_URL=${POSTGRES_URL} # Source of truth
 
       # Sync configuration
       - ELECTRIC_WRITE_TO_PG_MODE=direct_writes
@@ -439,16 +481,16 @@ services:
 ```typescript
 // apps/cms/src/app/api/shapes/agent-contexts/route.ts
 export async function GET(request: NextRequest) {
-  const session = await getSession(request.headers)
+  const session = await getSession(request.headers);
 
   // Build ElectricSQL shape URL
-  const originUrl = prepareElectricUrl(request.url)
-  originUrl.searchParams.set('table', 'agent_contexts')
-  originUrl.searchParams.set('where', 'agent_id = $1')
-  originUrl.searchParams.set('params', JSON.stringify([session.user.id]))
+  const originUrl = prepareElectricUrl(request.url);
+  originUrl.searchParams.set("table", "agent_contexts");
+  originUrl.searchParams.set("where", "agent_id = $1");
+  originUrl.searchParams.set("params", JSON.stringify([session.user.id]));
 
   // ElectricSQL reads from NeonDB (POSTGRES_URL)
-  return proxyElectricRequest(originUrl)
+  return proxyElectricRequest(originUrl);
 }
 ```
 
@@ -459,14 +501,14 @@ export async function GET(request: NextRequest) {
 export function useAgentContext(agentId: string, sessionId: string) {
   // Shape request goes to CMS API proxy
   const shape = useShape({
-    source: 'http://localhost:3000/api/shapes/agent-contexts',
-    table: 'agent_contexts',
+    source: "http://localhost:3000/api/shapes/agent-contexts",
+    table: "agent_contexts",
     where: { agent_id: agentId, session_id: sessionId },
-  })
+  });
 
   // ElectricSQL syncs from NeonDB
   // Local storage in IndexedDB
-  return shape.data
+  return shape.data;
 }
 ```
 
@@ -479,37 +521,37 @@ export function useAgentContext(agentId: string, sessionId: string) {
 ```typescript
 // packages/db/src/client/index.ts
 
-export type DatabaseType = 'rest' | 'vector'
+export type DatabaseType = "rest" | "vector";
 
-let restClient: Database | null = null
-let vectorClient: Database | null = null
+let restClient: Database | null = null;
+let vectorClient: Database | null = null;
 
-export function getClient(type: DatabaseType = 'rest'): Database {
-  if (type === 'vector') {
+export function getClient(type: DatabaseType = "rest"): Database {
+  if (type === "vector") {
     if (!vectorClient) {
-      const url = process.env.DATABASE_URL
-      if (!url) throw new Error('DATABASE_URL required for vector database')
-      vectorClient = createClient({ connectionString: url })
+      const url = process.env.DATABASE_URL;
+      if (!url) throw new Error("DATABASE_URL required for vector database");
+      vectorClient = createClient({ connectionString: url });
     }
-    return vectorClient
+    return vectorClient;
   }
 
   // Default: REST/NeonDB (also used by ElectricSQL)
   if (!restClient) {
-    const url = process.env.POSTGRES_URL || process.env.DATABASE_URL
-    if (!url) throw new Error('POSTGRES_URL required for REST database')
-    restClient = createClient({ connectionString: url })
+    const url = process.env.POSTGRES_URL || process.env.DATABASE_URL;
+    if (!url) throw new Error("POSTGRES_URL required for REST database");
+    restClient = createClient({ connectionString: url });
   }
-  return restClient
+  return restClient;
 }
 
 // Explicit helpers
 export function getRestClient(): Database {
-  return getClient('rest')
+  return getClient("rest");
 }
 
 export function getVectorClient(): Database {
-  return getClient('vector')
+  return getClient("vector");
 }
 ```
 
@@ -517,15 +559,15 @@ export function getVectorClient(): Database {
 
 ```typescript
 // REST operations
-const db = getRestClient()
-const users = await db.query.users.findMany()
+const db = getRestClient();
+const users = await db.query.users.findMany();
 
 // Vector operations
-const vectorDb = getVectorClient()
+const vectorDb = getVectorClient();
 const memories = await vectorDb
   .select()
   .from(agentMemories)
-  .orderBy(sql`embedding <-> ${queryEmbedding}::vector`)
+  .orderBy(sql`embedding <-> ${queryEmbedding}::vector`);
 ```
 
 ---
@@ -634,9 +676,9 @@ RevealUI CMS hooks automatically filter data by tenant:
 ```typescript
 // All queries are scoped to user's current tenant
 const pages = await revealui.find({
-  collection: 'pages',
+  collection: "pages",
   // Tenant filter applied automatically via hooks
-})
+});
 ```
 
 ### Last Logged-In Tenant
@@ -661,6 +703,7 @@ hooks: {
 ### Testing Tenant Isolation
 
 **CRITICAL**: Always test that:
+
 - Users cannot access other tenants' records
 - Cross-tenant relationships are prevented
 - Tenant switching properly updates context
@@ -677,6 +720,7 @@ The contracts system provides unified validation (TypeScript + Zod):
 **Location:** `packages/contracts/src/cms/`
 
 **What Contracts Provide:**
+
 - **TypeScript Types** (compile-time safety)
 - **Zod Schemas** (runtime validation)
 - **Validation Functions** (runtime validation)
@@ -684,6 +728,7 @@ The contracts system provides unified validation (TypeScript + Zod):
 - **Metadata** (documentation, versioning)
 
 **Contract Types:**
+
 - **ConfigContract** - Root CMS configuration validation
 - **CollectionContract** - Collection configuration validation
 - **FieldContract** - Field configuration validation
@@ -693,20 +738,20 @@ The contracts system provides unified validation (TypeScript + Zod):
 
 ```typescript
 // Server: API Route validation
-import { UserSchema } from '@revealui/contracts'
-import { getRestClient } from '@revealui/db/client'
+import { UserSchema } from "@revealui/contracts";
+import { getRestClient } from "@revealui/db/client";
 
 export async function POST(request: NextRequest) {
-  const body = await request.json()
+  const body = await request.json();
 
   // 1. Validate with contract (runtime + compile-time)
-  const validatedUser = UserSchema.parse(body)  // Throws if invalid
+  const validatedUser = UserSchema.parse(body); // Throws if invalid
 
   // 2. Type is now known: User
-  const db = getRestClient()
-  await db.insert(users).values(validatedUser)
+  const db = getRestClient();
+  await db.insert(users).values(validatedUser);
 
-  return NextResponse.json(validatedUser)
+  return NextResponse.json(validatedUser);
 }
 ```
 
@@ -720,35 +765,35 @@ export async function POST(request: NextRequest) {
 
 ```typescript
 // Convert DB row to RevealUI document
-function dbRowToRevealUIDoc<TDoc, TDbRow>(dbRow: TDbRow): TDoc
+function dbRowToRevealUIDoc<TDoc, TDbRow>(dbRow: TDbRow): TDoc;
 
 // Convert RevealUI document to DB insert
-function revealUIDocToDbInsert<TDoc, TInsert>(doc: TDoc): TInsert
+function revealUIDocToDbInsert<TDoc, TInsert>(doc: TDoc): TInsert;
 
 // Convert DB row to contract-validated entity
 function dbRowToContract<TContract, TDbRow>(
   contract: Contract<TContract>,
-  dbRow: TDbRow
-): TContract
+  dbRow: TDbRow,
+): TContract;
 ```
 
 **Usage in API Routes:**
 
 ```typescript
 // apps/cms/src/app/api/users/route.ts
-import { getRestClient } from '@revealui/db/client'
-import { UserSchema } from '@revealui/contracts'
-import { dbRowToContract } from '@revealui/core/database/type-adapter'
+import { getRestClient } from "@revealui/db/client";
+import { UserSchema } from "@revealui/contracts";
+import { dbRowToContract } from "@revealui/core/database/type-adapter";
 
 export async function GET() {
-  const db = getRestClient()
-  const dbUser = await db.query.users.findFirst()
+  const db = getRestClient();
+  const dbUser = await db.query.users.findFirst();
 
   // Convert DB type to validated contract type
-  const validatedUser = dbRowToContract(UserSchema, dbUser)
+  const validatedUser = dbRowToContract(UserSchema, dbUser);
 
   // Return to frontend (types match generated types)
-  return NextResponse.json(validatedUser)
+  return NextResponse.json(validatedUser);
 }
 ```
 
@@ -764,13 +809,13 @@ export async function GET() {
 // Convert DB row to contract type with mapper
 function createDbRowMapper<TContract, TDbRow>(
   contract: Contract<TContract>,
-  mapper?: (row: TDbRow) => unknown
-): (row: TDbRow) => TContract
+  mapper?: (row: TDbRow) => unknown,
+): (row: TDbRow) => TContract;
 
 // Convert contract type to DB insert with mapper
 function createContractToDbMapper<TContract, TInsert>(
-  mapper?: (data: TContract) => TInsert
-): (data: TContract) => TInsert
+  mapper?: (data: TContract) => TInsert,
+): (data: TContract) => TInsert;
 ```
 
 ### Generated Types
@@ -780,6 +825,7 @@ function createContractToDbMapper<TContract, TInsert>(
 **Location:** `packages/core/src/generated/types/`
 
 **Sources:**
+
 1. **CMS Config Types** (`cms.ts`) - Generated from `revealui.config.ts`
 2. **Supabase Types** (`supabase.ts`) - Generated from Supabase schema
 3. **NeonDB Types** (`neon.ts`) - Generated from Drizzle schema
@@ -816,6 +862,7 @@ Frontend → Generated Types → API Route → Contract Validation → Type Adap
 **Role:** Type-safe streaming AI completions with React hooks
 
 **Features:**
+
 - ✅ **Streaming Responses:** Real-time token streaming to clients
 - ✅ **React Hooks:** `useChat`, `useCompletion`, `useAssistant`
 - ✅ **Type Safety:** Full TypeScript support
@@ -873,40 +920,46 @@ export function AgentChat() {
 ```typescript
 // Shared RPC Types (packages/core/src/rpc/types.ts)
 export type RPCProcedure<TInput, TOutput> = {
-  input: TInput
-  output: TOutput
-}
+  input: TInput;
+  output: TOutput;
+};
 
 export type RPCRouter = {
   // AI/Agent Procedures
-  'ai.chat': RPCProcedure<{ messages: Message[] }, { response: string }>
-  'ai.searchMemories': RPCProcedure<{ query: string }, { memories: AgentMemory[] }>
+  "ai.chat": RPCProcedure<{ messages: Message[] }, { response: string }>;
+  "ai.searchMemories": RPCProcedure<
+    { query: string },
+    { memories: AgentMemory[] }
+  >;
 
   // Memory Procedures
-  'memory.create': RPCProcedure<{ memory: AgentMemory }, { id: string }>
-  'memory.search': RPCProcedure<{ queryEmbedding: number[] }, { memories: AgentMemory[] }>
-}
+  "memory.create": RPCProcedure<{ memory: AgentMemory }, { id: string }>;
+  "memory.search": RPCProcedure<
+    { queryEmbedding: number[] },
+    { memories: AgentMemory[] }
+  >;
+};
 ```
 
 **Server-Side RPC Handler:**
 
 ```typescript
 // apps/cms/src/app/api/rpc/route.ts
-import type { RPCRouter } from '@revealui/core/rpc/types'
+import type { RPCRouter } from "@revealui/core/rpc/types";
 
 export async function POST(request: NextRequest) {
-  const { procedure, input } = await request.json()
+  const { procedure, input } = await request.json();
 
   switch (procedure) {
-    case 'memory.search': {
+    case "memory.search": {
       // Use Supabase vector search
-      const vectorDb = getVectorClient()
+      const vectorDb = getVectorClient();
       const memories = await vectorDb
         .select()
         .from(agentMemories)
         .orderBy(sql`embedding <-> ${input.queryEmbedding}::vector`)
-        .limit(10)
-      return NextResponse.json({ memories })
+        .limit(10);
+      return NextResponse.json({ memories });
     }
   }
 }
@@ -919,20 +972,20 @@ export async function POST(request: NextRequest) {
 export class RPCClient {
   async call<T extends keyof RPCRouter>(
     procedure: T,
-    input: RPCRouter[T]['input']
-  ): Promise<RPCRouter[T]['output']> {
-    const response = await fetch('/api/rpc', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+    input: RPCRouter[T]["input"],
+  ): Promise<RPCRouter[T]["output"]> {
+    const response = await fetch("/api/rpc", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ procedure, input }),
-    })
-    return response.json()
+    });
+    return response.json();
   }
 }
 
 // Usage: Type-safe calls with automatic type inference
-const rpc = new RPCClient()
-const memories = await rpc.call('memory.search', { queryEmbedding })
+const rpc = new RPCClient();
+const memories = await rpc.call("memory.search", { queryEmbedding });
 // TypeScript knows memories is AgentMemory[]
 ```
 
@@ -944,26 +997,29 @@ const memories = await rpc.call('memory.search', { queryEmbedding })
 
 ```typescript
 // packages/core/src/core/storage/vercel-blob.ts
-import { put, del } from '@vercel/blob'
+import { put, del } from "@vercel/blob";
 
 export function vercelBlobStorage(config: VercelBlobStorageConfig): Plugin {
   // Configure upload adapters for media collections
   collection.upload = {
-    adapters: [{
-      upload: async (file) => {
-        const blob = await put(filePath, file.data, {
-          access: 'public',
-          token: config.token, // BLOB_READ_WRITE_TOKEN
-        })
-        return { url: blob.url, filename: file.name }
+    adapters: [
+      {
+        upload: async (file) => {
+          const blob = await put(filePath, file.data, {
+            access: "public",
+            token: config.token, // BLOB_READ_WRITE_TOKEN
+          });
+          return { url: blob.url, filename: file.name };
+        },
+        delete: async (blobUrl) => await del(blobUrl),
       },
-      delete: async (blobUrl) => await del(blobUrl),
-    }],
-  }
+    ],
+  };
 }
 ```
 
 **Data Flow:**
+
 ```
 Media Upload → Next.js API → Vercel Blob Storage → Store URL in NeonDB
 ```
@@ -991,6 +1047,7 @@ export default function RootLayout({ children }) {
 ```
 
 **Metrics Tracked:**
+
 - **Analytics:** Page views, sessions, bounce rate
 - **Speed Insights:** LCP, FID, CLS, TTFB
 
@@ -1015,6 +1072,7 @@ turbopack: {
 ```
 
 **Status:** ✅ Working correctly
+
 - Monorepo workspace resolution works
 - Fast hot reload (HMR)
 - Proper module resolution
@@ -1051,10 +1109,12 @@ turbopack: {
 ### Performance Comparison
 
 **Build Time:**
+
 - **Webpack (current):** ~45-60 seconds for full production build
 - **Turbopack:** Build fails, unable to measure
 
 **Dev Server Startup:**
+
 - **Webpack:** ~8-12 seconds
 - **Turbopack:** ~3-5 seconds ✅ (why we keep it for dev)
 
@@ -1153,6 +1213,53 @@ Browser Cache (HTTP Sync)
 
 ---
 
+## Commercial Architecture
+
+### Billing Owner
+
+The primary billing owner should be an `account` or `workspace`, not an individual user record.
+
+### Entitlement Model
+
+For hosted RevealUI deployments, request-time entitlements should resolve through:
+
+1. `session`
+2. `membership`
+3. `account or workspace`
+4. `subscription and account entitlements`
+
+Optional per-user licenses can still exist for personal or perpetual products, but they should not be the main control plane for hosted premium access.
+
+### Commercial Objects
+
+- **Accounts or workspaces**: the customer being billed
+- **Memberships**: users and roles within the billing owner
+- **Subscriptions**: Stripe-backed recurring commercial agreement
+- **Account entitlements**: materialized features, limits, and status
+- **Meters**: business-readable usage records such as workflow runs or tool calls
+- **Optional user licenses**: secondary model for named-user or perpetual products
+
+### Pricing Layers
+
+- **Platform subscription**: predictable recurring software fee
+- **Metered agent execution**: usage billing for digital labor and automation
+- **Commerce fees**: optional value-linked pricing when RevealUI powers transactions
+- **Trust and governance**: premium controls for approval policies, audit, and compliance
+
+### Preferred Metering Units
+
+Customer-facing meters should map to business activity rather than upstream infrastructure cost:
+
+- `agent_task`
+- `workflow_run`
+- `tool_call`
+- `commerce_order_completed`
+- `gmv_cents`
+- `api_paid_call`
+- `agent_wallet_authorization`
+
+---
+
 ## Security & Access Control
 
 ### Connection Security
@@ -1186,18 +1293,21 @@ Browser Cache (HTTP Sync)
 ### Database Performance
 
 **NeonDB (REST):**
+
 - Query latency (p50, p95, p99)
 - Connection pool usage
 - Transaction throughput
 - ElectricSQL replication lag
 
 **Supabase (Vector):**
+
 - Vector search latency
 - Embedding write throughput
 - Storage growth
 - HNSW index performance
 
 **ElectricSQL:**
+
 - Shape subscription count
 - Sync latency
 - Client connection count
@@ -1206,16 +1316,19 @@ Browser Cache (HTTP Sync)
 ### Scaling Strategy
 
 **NeonDB:**
+
 - Scale for REST API connection count
 - Serverless/scale-to-zero for variable workload
 - Optimize for transactional throughput
 
 **Supabase:**
+
 - Scale for vector storage/compute
 - Dedicated instances for CPU-heavy operations
 - Optimize for embedding query patterns
 
 **ElectricSQL:**
+
 - Lightweight sync service
 - Minimal resource usage
 - Scales with client connections
@@ -1227,6 +1340,7 @@ Browser Cache (HTTP Sync)
 ### Current Status
 
 ✅ **ElectricSQL Setup Complete**
+
 - ElectricSQL service connected to NeonDB
 - Agent tables electrified (agent_contexts, agent_memories, conversations)
 - Client-side sync configured (@revealui/sync package)
@@ -1235,23 +1349,27 @@ Browser Cache (HTTP Sync)
 ### Future Migration: Vector Operations to Supabase
 
 #### Phase 1: Supabase Setup (Week 1)
+
 - [ ] Enable `pgvector` extension in Supabase
 - [ ] Create `agent_memories` table in Supabase
 - [ ] Update config to support vector database
 - [ ] Implement `getClient('vector')` in `@revealui/db`
 
 #### Phase 2: Dual Write (Week 2)
+
 - [ ] Write new agent memories to both NeonDB and Supabase
 - [ ] Validate data consistency
 - [ ] Monitor performance
 
 #### Phase 3: Vector Migration (Week 3)
+
 - [ ] Migrate existing embeddings from NeonDB to Supabase
 - [ ] Update vector search to use Supabase
 - [ ] Remove vector columns from NeonDB `agent_memories`
 - [ ] Keep non-vector agent data in NeonDB (synced via ElectricSQL)
 
 #### Phase 4: Cleanup (Week 4)
+
 - [ ] Stop writing vectors to NeonDB
 - [ ] Remove old vector infrastructure from NeonDB
 - [ ] Update documentation
@@ -1264,17 +1382,20 @@ Browser Cache (HTTP Sync)
 ### Key Metrics
 
 **NeonDB:**
+
 - P95 latency > 200ms
 - Connection pool > 80%
 - Error rate > 1%
 - ElectricSQL lag > 5s
 
 **Supabase:**
+
 - Vector search latency > 500ms
 - Storage growth > 10GB/day
 - Embedding write failures
 
 **ElectricSQL:**
+
 - Sync latency > 2s
 - Replication lag > 5s
 - Service downtime > 1min
@@ -1305,16 +1426,16 @@ ElectricSQL:
 
 ```typescript
 // Test REST operations use NeonDB
-test('user service uses NeonDB', async () => {
-  const db = getRestClient()
+test("user service uses NeonDB", async () => {
+  const db = getRestClient();
   // Mock NeonDB, verify POSTGRES_URL used
-})
+});
 
 // Test vector operations use Supabase
-test('vector memory service uses Supabase', async () => {
-  const db = getVectorClient()
+test("vector memory service uses Supabase", async () => {
+  const db = getVectorClient();
   // Mock Supabase, verify DATABASE_URL used
-})
+});
 ```
 
 ### Integration Tests
@@ -1350,18 +1471,18 @@ test('memory references user from NeonDB', async () => {
 
 ```typescript
 // Test cross-tenant data access prevention
-test('users cannot access other tenants records', async () => {
+test("users cannot access other tenants records", async () => {
   // Setup users in different tenants
   // Attempt cross-tenant access
   // Verify access denied
-})
+});
 
 // Test tenant switching
-test('tenant switching updates context', async () => {
+test("tenant switching updates context", async () => {
   // User with multiple tenants
   // Switch tenant
   // Verify data filtered to new tenant
-})
+});
 ```
 
 ---
@@ -1374,8 +1495,8 @@ Never assume tenant access. Always validate:
 
 ```typescript
 // ✅ GOOD
-const hasAccess = await checkTenantAccess({ req })
-if (!hasAccess) return { status: 403 }
+const hasAccess = await checkTenantAccess({ req });
+if (!hasAccess) return { status: 403 };
 
 // ❌ BAD
 // Assuming user has access without checking
@@ -1388,13 +1509,13 @@ Filter by tenant in all custom queries:
 ```typescript
 // ✅ GOOD
 const data = await revealui.find({
-  collection: 'products',
+  collection: "products",
   where: {
     tenant: {
       equals: user.lastLoggedInTenant,
     },
   },
-})
+});
 
 // ❌ BAD
 // Fetching all products without tenant filter
@@ -1406,8 +1527,8 @@ Always use the appropriate database client:
 
 ```typescript
 // ✅ GOOD
-const restDb = getRestClient()      // For REST/relational data
-const vectorDb = getVectorClient()  // For vector operations
+const restDb = getRestClient(); // For REST/relational data
+const vectorDb = getVectorClient(); // For vector operations
 
 // ❌ BAD
 // Using wrong database for operation
@@ -1419,7 +1540,7 @@ Always validate API inputs with contracts:
 
 ```typescript
 // ✅ GOOD
-const validatedUser = UserSchema.parse(body)
+const validatedUser = UserSchema.parse(body);
 
 // ❌ BAD
 // Assuming input is valid without validation
@@ -1432,9 +1553,9 @@ Use reference IDs, not foreign keys:
 ```typescript
 // ✅ GOOD
 await vectorDb.insert(agentMemories).values({
-  userId: neonUser.id,  // Reference ID
+  userId: neonUser.id, // Reference ID
   // ... other fields
-})
+});
 
 // ❌ BAD
 // Attempting foreign key across databases
@@ -1476,6 +1597,7 @@ ElectricSQL → NeonDB (POSTGRES_URL)
 ### Table Distribution
 
 **NeonDB Tables:**
+
 ```sql
 -- Core relational data
 users, sessions, sites, pages, site_collaborators
@@ -1488,6 +1610,7 @@ agent_actions       -- Audit log of actions
 ```
 
 **Supabase Tables:**
+
 ```sql
 -- Vector data only
 agent_memories      -- Long-term memory with embeddings
@@ -1501,6 +1624,7 @@ agent_memories      -- Long-term memory with embeddings
 ```
 
 **ElectricSQL Shapes:**
+
 - `agent_contexts` - Real-time working memory
 - `conversations` - Real-time chat threads
 
@@ -1511,22 +1635,27 @@ agent_memories      -- Long-term memory with embeddings
 ### Common Issues
 
 **Issue:** Users see data from wrong tenant
+
 - **Solution:** Check `lastLoggedInTenant` is set correctly
 - **Verify:** `recordLastLoggedInTenant` hook is active
 
 **Issue:** Super admins can't access all tenants
+
 - **Solution:** Verify super admin checks in access control
 - **Check:** `isSuperAdmin` function implementation
 
 **Issue:** Vector search not working
+
 - **Solution:** Verify Supabase connection and pgvector extension
 - **Check:** `getVectorClient()` returns correct database
 
 **Issue:** ElectricSQL sync not working
+
 - **Solution:** Verify ElectricSQL service is running
 - **Check:** Shape proxy routes are configured correctly
 
 **Issue:** Turbopack production build fails
+
 - **Solution:** Verify `TURBOPACK=0` flag in build script
 - **Check:** Module resolution errors in build output
 
@@ -1649,39 +1778,39 @@ Reusable UI components used throughout the CMS.
    - **Purpose**: Customer selection component
 
 9. **Icon** (`Icon/index.tsx`)
-    - **Purpose**: Icon component
+   - **Purpose**: Icon component
 
-11. **Link** (`Link/index.tsx`)
+10. **Link** (`Link/index.tsx`)
     - **Purpose**: Link component with routing
 
-12. **LivePreviewListener** (`LivePreviewListener/index.tsx`)
+11. **LivePreviewListener** (`LivePreviewListener/index.tsx`)
     - **Purpose**: Handles live preview updates
 
-13. **Logo** (`Logo/index.tsx`)
+12. **Logo** (`Logo/index.tsx`)
     - **Purpose**: Logo display component
 
-14. **Media** (`Media/`)
+13. **Media** (`Media/`)
     - **Purpose**: Media display components
     - **Types**: `Media/types.ts`
 
-15. **PageRange** (`PageRange/index.tsx`)
+14. **PageRange** (`PageRange/index.tsx`)
     - **Purpose**: Pagination component
 
-16. **Pagination** (`Pagination/`)
+15. **Pagination** (`Pagination/`)
     - **Purpose**: Pagination controls
 
-17. **RevealUIRedirects** (`RevealUIRedirects/index.tsx`)
+16. **RevealUIRedirects** (`RevealUIRedirects/index.tsx`)
     - **Purpose**: RevealUI redirect management
     - **Note**: Handles server-side redirects for RevealUI routes
 
-19. **RichText** (`RichText/`)
+17. **RichText** (`RichText/`)
     - **Purpose**: Rich text editor/display
     - **Files**:
       - `index.tsx` - Main component
       - `serialize.tsx` - Serialization logic
       - `nodeFormat.tsx` - Node formatting
 
-20. **UI Components** (`ui/`)
+18. **UI Components** (`ui/`)
     - **Purpose**: Base UI components (buttons, checkboxes, form labels, etc.)
     - **Files**:
       - `button.tsx`
@@ -2185,58 +2314,59 @@ ElectricSQL database schema for real-time sync.
 
 #### Block Components → Block Schemas
 
-| Component | Schema | Location |
-|-----------|--------|----------|
-| `FormBlock` | `FormBlockSchema` | `@revealui/contracts/blocks` |
-| `CodeBlock` | `CodeBlockSchema` | `@revealui/contracts/blocks` |
-| `ContentBlock` | `TextBlockSchema` | `@revealui/contracts/blocks` |
-| `MediaBlock` | `ImageBlockSchema`, `VideoBlockSchema` | `@revealui/contracts/blocks` |
-| `CallToActionBlock` | `ButtonBlockSchema` | `@revealui/contracts/blocks` |
-| `ArchiveBlock` | Uses `Page` type | `@/types` |
+| Component           | Schema                                 | Location                     |
+| ------------------- | -------------------------------------- | ---------------------------- |
+| `FormBlock`         | `FormBlockSchema`                      | `@revealui/contracts/blocks` |
+| `CodeBlock`         | `CodeBlockSchema`                      | `@revealui/contracts/blocks` |
+| `ContentBlock`      | `TextBlockSchema`                      | `@revealui/contracts/blocks` |
+| `MediaBlock`        | `ImageBlockSchema`, `VideoBlockSchema` | `@revealui/contracts/blocks` |
+| `CallToActionBlock` | `ButtonBlockSchema`                    | `@revealui/contracts/blocks` |
+| `ArchiveBlock`      | Uses `Page` type                       | `@/types`                    |
 
 #### Form Components → Field Schemas
 
-| Component | Schema | Location |
-|-----------|--------|----------|
-| `Form/Text` | `TextFieldSchema` | `@revealui/contracts/cms` |
-| `Form/Email` | `TextFieldSchema` (email variant) | `@revealui/contracts/cms` |
-| `Form/Number` | `NumberFieldSchema` | `@revealui/contracts/cms` |
-| `Form/Select` | `SelectFieldSchema` | `@revealui/contracts/cms` |
-| `Form/Checkbox` | `FieldSchema` (boolean) | `@revealui/contracts/cms` |
-| `Form/Textarea` | `TextFieldSchema` (multiline) | `@revealui/contracts/cms` |
+| Component       | Schema                            | Location                  |
+| --------------- | --------------------------------- | ------------------------- |
+| `Form/Text`     | `TextFieldSchema`                 | `@revealui/contracts/cms` |
+| `Form/Email`    | `TextFieldSchema` (email variant) | `@revealui/contracts/cms` |
+| `Form/Number`   | `NumberFieldSchema`               | `@revealui/contracts/cms` |
+| `Form/Select`   | `SelectFieldSchema`               | `@revealui/contracts/cms` |
+| `Form/Checkbox` | `FieldSchema` (boolean)           | `@revealui/contracts/cms` |
+| `Form/Textarea` | `TextFieldSchema` (multiline)     | `@revealui/contracts/cms` |
 
 #### Collection Components → Collection Schemas
 
-| Component | Schema | Location |
-|-----------|--------|----------|
-| `ProductSelect` | `Product` type | `@/types` |
-| `PricesSelect` | `Price` type | `@/types` |
+| Component           | Schema           | Location  |
+| ------------------- | ---------------- | --------- |
+| `ProductSelect`     | `Product` type   | `@/types` |
+| `PricesSelect`      | `Price` type     | `@/types` |
 | `CollectionArchive` | Collection types | `@/types` |
 
 #### Business Logic → Schemas
 
-| Hook/Function | Schema | Location |
-|---------------|--------|----------|
-| `beforeProductChange` | `Product` type | `@/types` |
-| `beforePriceChange` | `Price` type | `@/types` |
-| `useAgentMemory` | `AgentMemorySchema` | `@revealui/contracts/agents` |
-| `useAgentContext` | `AgentContextSchema` | `@revealui/contracts/agents` |
-| `useConversations` | `ConversationSchema` | `@revealui/contracts/agents` |
+| Hook/Function         | Schema               | Location                     |
+| --------------------- | -------------------- | ---------------------------- |
+| `beforeProductChange` | `Product` type       | `@/types`                    |
+| `beforePriceChange`   | `Price` type         | `@/types`                    |
+| `useAgentMemory`      | `AgentMemorySchema`  | `@revealui/contracts/agents` |
+| `useAgentContext`     | `AgentContextSchema` | `@revealui/contracts/agents` |
+| `useConversations`    | `ConversationSchema` | `@revealui/contracts/agents` |
 
 #### API Routes → Schemas
 
-| Route | Schema | Location |
-|-------|--------|----------|
-| `/api/[...slug]` | Collection schemas | `@/types` |
-| `/api/chat` | `ConversationSchema` | `@revealui/contracts/agents` |
-| `/api/form-submissions` | `FormBlockSchema` | `@revealui/contracts/blocks` |
-| `/api/memory/*` | `AgentMemorySchema` | `@revealui/contracts/agents` |
+| Route                   | Schema               | Location                     |
+| ----------------------- | -------------------- | ---------------------------- |
+| `/api/[...slug]`        | Collection schemas   | `@/types`                    |
+| `/api/chat`             | `ConversationSchema` | `@revealui/contracts/agents` |
+| `/api/form-submissions` | `FormBlockSchema`    | `@revealui/contracts/blocks` |
+| `/api/memory/*`         | `AgentMemorySchema`  | `@revealui/contracts/agents` |
 
 ### Key Patterns
 
 #### 1. Dual Representation Pattern
 
 All entities in `@revealui/contracts` use the dual representation pattern:
+
 - **Human Representation**: Labels, descriptions, icons for UI
 - **Agent Representation**: Structured metadata, constraints, actions for AI
 
@@ -2269,6 +2399,7 @@ All entities in `@revealui/contracts` use the dual representation pattern:
 ### File Locations Summary
 
 #### UI Components
+
 - **CMS Blocks**: `apps/cms/src/lib/blocks/`
 - **CMS Components**: `apps/cms/src/lib/components/`
 - **Framework UI**: `packages/core/src/client/ui/`
@@ -2276,6 +2407,7 @@ All entities in `@revealui/contracts` use the dual representation pattern:
 - **RevealUI Elements**: `apps/cms/src/components/revealui/`
 
 #### Business Logic
+
 - **Hooks**: `apps/cms/src/lib/hooks/`
 - **Collection Hooks**: `apps/cms/src/lib/collections/*/hooks/`
 - **API Routes**: `apps/cms/src/app/api/`
@@ -2283,6 +2415,7 @@ All entities in `@revealui/contracts` use the dual representation pattern:
 - **Memory Hooks**: `packages/ai/src/memory/src/client/hooks/`
 
 #### Data Schemas
+
 - **Core Schemas**: `packages/contracts/src/core/`
 - **Block Schemas**: `packages/contracts/src/blocks/`
 - **Agent Schemas**: `packages/contracts/src/agents/`

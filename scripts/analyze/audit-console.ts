@@ -23,6 +23,8 @@ const DEFAULT_EXCLUDE_DIRS = [
   '.turbo',
   'coverage',
   '.git',
+  'playwright-report',
+  'test-results',
   'public',
   'static',
 ];
@@ -161,6 +163,7 @@ function categorizeFile(filePath: string): ConsoleUsage['category'] {
     relativePath.includes('/logger.ts') ||
     relativePath.includes('/logger-client.ts') ||
     relativePath.includes('/logger-server.ts') ||
+    relativePath.includes('/src/logger/') ||
     relativePath.includes('/observability/logger') ||
     relativePath.includes('/utils/logger')
   ) {

@@ -436,6 +436,7 @@ export function DropdownSection({
   className?: string;
 } & Omit<React.ComponentPropsWithoutRef<'div'>, 'className'>) {
   return (
+    // biome-ignore lint/a11y/useSemanticElements: menu sections intentionally use ARIA group semantics
     <div
       role="group"
       {...props}

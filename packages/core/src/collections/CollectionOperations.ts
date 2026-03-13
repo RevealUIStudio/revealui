@@ -6,6 +6,7 @@
  */
 
 import type {
+  CollectionStorageDescriptor,
   DatabaseResult,
   PopulateType,
   RevealCollectionConfig,
@@ -25,6 +26,7 @@ import { update } from './operations/update.js';
 
 export class RevealUICollection {
   config: RevealCollectionConfig;
+  storage: CollectionStorageDescriptor | null;
   db: {
     query: (query: string, values?: unknown[]) => Promise<DatabaseResult>;
   } | null;
@@ -34,9 +36,11 @@ export class RevealUICollection {
     db: {
       query: (query: string, values?: unknown[]) => Promise<DatabaseResult>;
     } | null,
+    storage: CollectionStorageDescriptor | null = null,
   ) {
     this.config = config;
     this.db = db;
+    this.storage = storage;
   }
 
   async find(options: RevealFindOptions): Promise<RevealPaginatedResult> {

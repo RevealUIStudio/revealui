@@ -4,7 +4,9 @@
 
 **Goal:** Close all blocker and high-priority gaps discovered in Session 99's exhaustive 6-agent audit so RevealUI can safely, confidently, and morally charge customers.
 
-**Architecture:** Phase 0 fixes security + payment trust (authorization, license gates, services tests, email). Phase 1 hardens type safety + customer experience. Phase 2 addresses Pro tier + compliance. Phase 3 scales.
+**Commercial target model:** Hosted RevealUI should converge on account/workspace subscriptions, metered agent execution, commerce-linked pricing where appropriate, and explicit trust/governance add-ons. Deployment-level licenses such as Forge stay separate.
+
+**Architecture:** Phase 0 fixes security + payment trust (authorization, entitlements, services tests, email). Phase 1 hardens type safety + customer experience. Phase 2 addresses Pro tier + compliance. Phase 3 scales.
 
 **Tech Stack:** TypeScript 5.9, Hono, Next.js 16, Vitest 4, Drizzle ORM, Stripe, Biome 2
 
@@ -21,27 +23,30 @@ These must be done before ANY customer pays. No exceptions.
 ### Task 1: Harnesses License Gate (GAP-040) — 5 min
 
 **Files:**
+
 - Modify: `packages/harnesses/src/cli.ts`
 - Test: `packages/harnesses/src/__tests__/cli-license.test.ts`
 
 The function `checkHarnessesLicense()` exists in `packages/harnesses/src/index.ts:21-28` but is never called in the CLI entry point. Mirror the pattern from `@revealui/editors`.
 
+This is still a short-term gate. Longer term, Pro access checks should converge on request-scoped account entitlements instead of import-time or process-global license assumptions.
+
 - [ ] **Step 1: Write the failing test**
 
 ```ts
 // packages/harnesses/src/__tests__/cli-license.test.ts
-import { describe, it, expect, vi } from 'vitest';
+import { describe, it, expect, vi } from "vitest";
 
-describe('harnesses CLI license gate', () => {
-  it('should call checkHarnessesLicense on CLI startup', async () => {
+describe("harnesses CLI license gate", () => {
+  it("should call checkHarnessesLicense on CLI startup", async () => {
     // Mock isFeatureEnabled to return false
-    vi.mock('@revealui/core/features', () => ({
+    vi.mock("@revealui/core/features", () => ({
       isFeatureEnabled: vi.fn().mockReturnValue(false),
     }));
 
     // Import should throw
     await expect(async () => {
-      await import('../cli.js');
+      await import("../cli.js");
     }).rejects.toThrow(/Pro license/);
   });
 });
@@ -57,7 +62,7 @@ Expected: FAIL — CLI currently doesn't call license check
 In `packages/harnesses/src/cli.ts`, add at the top of the `main()` function (or module scope before any command registration):
 
 ```ts
-import { checkHarnessesLicense } from './index.js';
+import { checkHarnessesLicense } from "./index.js";
 
 // At start of main() or module scope:
 checkHarnessesLicense();
@@ -85,6 +90,7 @@ git commit -m "fix(harnesses): add license gate to CLI entry point (GAP-040)"
 ### Task 2: AI Routes Upgrade Prompt (GAP-038) — 30 min
 
 **Files:**
+
 - Modify: `apps/api/src/routes/agent-tasks.ts`
 - Modify: `apps/api/src/routes/agent-stream.ts` (if exists)
 - Modify: `apps/api/src/routes/rag-index.ts`
@@ -98,11 +104,11 @@ Replace all bare 503 "not configured" responses with structured 402 upgrade prom
 
 ```ts
 // apps/api/src/lib/upgrade-response.ts
-import type { Context } from 'hono';
+import type { Context } from "hono";
 
 interface UpgradeResponse {
-  error: 'upgrade_required';
-  tier: 'pro' | 'max' | 'enterprise';
+  error: "upgrade_required";
+  tier: "pro" | "max" | "enterprise";
   feature: string;
   message: string;
   url: string;
@@ -111,14 +117,14 @@ interface UpgradeResponse {
 export function upgradeRequired(
   c: Context,
   feature: string,
-  tier: 'pro' | 'max' | 'enterprise' = 'pro',
+  tier: "pro" | "max" | "enterprise" = "pro",
 ): Response {
   const body: UpgradeResponse = {
-    error: 'upgrade_required',
+    error: "upgrade_required",
     tier,
     feature,
     message: `Upgrade to ${tier.charAt(0).toUpperCase() + tier.slice(1)} to unlock ${feature}. Visit https://revealui.com/pricing for details.`,
-    url: 'https://revealui.com/pricing',
+    url: "https://revealui.com/pricing",
   };
   return c.json(body, 402);
 }
@@ -128,23 +134,23 @@ export function upgradeRequired(
 
 ```ts
 // apps/api/src/routes/__tests__/upgrade-prompt.test.ts
-import { describe, it, expect } from 'vitest';
-import { Hono } from 'hono';
-import { upgradeRequired } from '../../lib/upgrade-response.js';
+import { describe, it, expect } from "vitest";
+import { Hono } from "hono";
+import { upgradeRequired } from "../../lib/upgrade-response.js";
 
-describe('upgrade prompt response', () => {
-  it('returns 402 with structured body', async () => {
+describe("upgrade prompt response", () => {
+  it("returns 402 with structured body", async () => {
     const app = new Hono();
-    app.get('/test', (c) => upgradeRequired(c, 'ai'));
+    app.get("/test", (c) => upgradeRequired(c, "ai"));
 
-    const res = await app.request('/test');
+    const res = await app.request("/test");
     expect(res.status).toBe(402);
 
     const body = await res.json();
-    expect(body.error).toBe('upgrade_required');
-    expect(body.tier).toBe('pro');
-    expect(body.feature).toBe('ai');
-    expect(body.url).toContain('revealui.com/pricing');
+    expect(body.error).toBe("upgrade_required");
+    expect(body.tier).toBe("pro");
+    expect(body.feature).toBe("ai");
+    expect(body.url).toContain("revealui.com/pricing");
   });
 });
 ```
@@ -160,14 +166,15 @@ Search for all 503 responses related to AI/Pro package availability in `apps/api
 
 ```ts
 // BEFORE:
-return c.json({ success: false, error: 'AI package not available' }, 503);
+return c.json({ success: false, error: "AI package not available" }, 503);
 
 // AFTER:
-import { upgradeRequired } from '../lib/upgrade-response.js';
-return upgradeRequired(c, 'ai');
+import { upgradeRequired } from "../lib/upgrade-response.js";
+return upgradeRequired(c, "ai");
 ```
 
 Do this for every route file that returns 503 for missing Pro packages:
+
 - `agent-tasks.ts`
 - `rag-index.ts`
 - Any other route with `'AI not configured'` or `'AI package not available'`
@@ -196,6 +203,7 @@ git commit -m "fix(api): replace AI 503s with 402 upgrade prompts (GAP-038)"
 ### Task 3: Services Package Tests (GAP-030) — 2 hours
 
 **Files:**
+
 - Create: `packages/services/src/__tests__/stripe-client.test.ts`
 - Create: `packages/services/src/__tests__/circuit-breaker.test.ts`
 - Create: `packages/services/src/__tests__/webhook-idempotency.test.ts`
@@ -208,7 +216,7 @@ Test the circuit breaker state machine: closed → open (after 5 failures) → h
 
 ```ts
 // packages/services/src/__tests__/circuit-breaker.test.ts
-import { describe, it, expect, vi, beforeEach } from 'vitest';
+import { describe, it, expect, vi, beforeEach } from "vitest";
 
 // Test circuit breaker transitions:
 // - 5 consecutive failures → circuit opens
@@ -274,6 +282,7 @@ git commit -m "test(services): add 30 tests for Stripe client, circuit breaker, 
 ### Task 4: Email Service Fail-Loud (GAP-045) — 20 min
 
 **Files:**
+
 - Modify: `apps/cms/src/lib/email/index.ts`
 - Test: `apps/cms/src/lib/email/__tests__/email-provider.test.ts`
 
@@ -284,22 +293,22 @@ After: throw in production when no provider configured.
 
 ```ts
 // apps/cms/src/lib/email/__tests__/email-provider.test.ts
-import { describe, it, expect, vi } from 'vitest';
+import { describe, it, expect, vi } from "vitest";
 
-describe('email provider in production', () => {
-  it('throws when no provider configured in production', () => {
-    vi.stubEnv('NODE_ENV', 'production');
+describe("email provider in production", () => {
+  it("throws when no provider configured in production", () => {
+    vi.stubEnv("NODE_ENV", "production");
     // Remove all provider env vars
-    vi.stubEnv('RESEND_API_KEY', '');
-    vi.stubEnv('SMTP_HOST', '');
+    vi.stubEnv("RESEND_API_KEY", "");
+    vi.stubEnv("SMTP_HOST", "");
 
     // Attempting to send should throw
     // expect(async () => await sendEmail({ to: 'test@test.com', subject: 'Test', html: '<p>Test</p>' }))
     //   .rejects.toThrow(/email provider not configured/i);
   });
 
-  it('allows mock provider in development', () => {
-    vi.stubEnv('NODE_ENV', 'development');
+  it("allows mock provider in development", () => {
+    vi.stubEnv("NODE_ENV", "development");
     // Should not throw, just log
   });
 });
@@ -318,10 +327,10 @@ function getEmailProvider(): EmailProvider {
   if (process.env.RESEND_API_KEY) return new ResendProvider();
   if (process.env.SMTP_HOST) return new SMTPProvider();
 
-  if (process.env.NODE_ENV === 'production') {
+  if (process.env.NODE_ENV === "production") {
     throw new Error(
-      'Email provider not configured in production. ' +
-      'Set RESEND_API_KEY or SMTP_HOST/SMTP_PORT/SMTP_USER/SMTP_PASS.'
+      "Email provider not configured in production. " +
+        "Set RESEND_API_KEY or SMTP_HOST/SMTP_PORT/SMTP_USER/SMTP_PASS.",
     );
   }
 
@@ -347,6 +356,7 @@ git commit -m "fix(cms): email service fails loudly in production when unconfigu
 ### Task 5: CI Tests Hard-Fail (GAP-021) — 15 min
 
 **Files:**
+
 - Modify: `.github/workflows/ci.yml`
 
 Currently tests are `continue-on-error: true`. Change to hard-fail.
@@ -375,6 +385,7 @@ git commit -m "ci: make test failures block merges (GAP-021)"
 ### Task 6: CI Coverage Gate (GAP-042) — 20 min
 
 **Files:**
+
 - Modify: `.github/workflows/ci.yml`
 - Modify: `scripts/gates/test-coverage-gate.ts` (if needed)
 
@@ -387,7 +398,7 @@ After the existing test step, add a coverage step:
 ```yaml
 - name: Test coverage
   run: pnpm test:coverage
-  continue-on-error: true  # Coverage is advisory initially
+  continue-on-error: true # Coverage is advisory initially
 
 - name: Upload coverage
   uses: actions/upload-artifact@v4
@@ -414,6 +425,7 @@ git commit -m "ci: add test:coverage to CI pipeline, feed coverage gate (GAP-042
 ### Task 7: Fix Types Gate (GAP-043) — 15 min
 
 **Files:**
+
 - Modify: `scripts/gates/types-gate.ts`
 
 The script references `pnpm validate:types:enhanced`, `pnpm types:coverage`, `pnpm types:check` which don't exist.
@@ -425,6 +437,7 @@ Read `scripts/gates/types-gate.ts` and grep for all `pnpm` command invocations. 
 - [ ] **Step 2: Remove or stub missing script references**
 
 For each missing script:
+
 - If the validation is critical: implement the script
 - If it's aspirational: remove the reference and add a TODO comment with the gap ID
 
@@ -447,6 +460,7 @@ git commit -m "fix(gates): remove references to non-existent scripts in types-ga
 ### Task 8: Console.log Migration (GAP-044) — 45 min
 
 **Files:**
+
 - Modify: `packages/harnesses/src/cli.ts` (57 console.log → logger)
 - Modify: `packages/core/src/security/headers.ts` (2 console.warn → logger)
 - Modify: `apps/cms/src/instrumentation.ts` (1 console.error → logger)
@@ -454,8 +468,8 @@ git commit -m "fix(gates): remove references to non-existent scripts in types-ga
 - [ ] **Step 1: Import logger in harnesses CLI**
 
 ```ts
-import { createLogger } from '@revealui/utils';
-const logger = createLogger('harnesses');
+import { createLogger } from "@revealui/utils";
+const logger = createLogger("harnesses");
 ```
 
 - [ ] **Step 2: Replace all 57 console.log in harnesses/cli.ts**
@@ -467,16 +481,16 @@ For CLI user-facing output (like `--help` or status display), use `process.stdou
 - [ ] **Step 3: Replace 2 console.warn in core/security/headers.ts**
 
 ```ts
-import { createLogger } from '@revealui/utils';
-const logger = createLogger('security');
+import { createLogger } from "@revealui/utils";
+const logger = createLogger("security");
 // Replace console.warn(...) → logger.warn(...)
 ```
 
 - [ ] **Step 4: Replace 1 console.error in cms/instrumentation.ts**
 
 ```ts
-import { createLogger } from '@revealui/utils';
-const logger = createLogger('cms');
+import { createLogger } from "@revealui/utils";
+const logger = createLogger("cms");
 // Replace console.error(...) → logger.error(...)
 ```
 
@@ -502,6 +516,7 @@ git commit -m "refactor: migrate 66 console statements to structured logger (GAP
 ### Task 9: Authorization Middleware (GAP-037) — 3 hours
 
 **Files:**
+
 - Create: `apps/api/src/middleware/authorization.ts`
 - Create: `apps/api/src/middleware/__tests__/authorization.test.ts`
 - Modify: `apps/api/src/routes/*.ts` (wire middleware to routes)
@@ -512,18 +527,18 @@ This is the largest Phase 0 task. The authorization system exists in `packages/c
 
 ```ts
 // apps/api/src/middleware/authorization.ts
-import type { MiddlewareHandler } from 'hono';
-import { canAccessResource } from '@revealui/core/security';
-import { HTTPException } from 'hono/http-exception';
+import type { MiddlewareHandler } from "hono";
+import { canAccessResource } from "@revealui/core/security";
+import { HTTPException } from "hono/http-exception";
 
 /**
  * Require authentication. Returns 401 if no user in context.
  */
 export function requireAuth(): MiddlewareHandler {
   return async (c, next) => {
-    const user = c.get('user');
+    const user = c.get("user");
     if (!user) {
-      throw new HTTPException(401, { message: 'Authentication required' });
+      throw new HTTPException(401, { message: "Authentication required" });
     }
     await next();
   };
@@ -534,12 +549,12 @@ export function requireAuth(): MiddlewareHandler {
  */
 export function requireRole(...roles: string[]): MiddlewareHandler {
   return async (c, next) => {
-    const user = c.get('user');
+    const user = c.get("user");
     if (!user) {
-      throw new HTTPException(401, { message: 'Authentication required' });
+      throw new HTTPException(401, { message: "Authentication required" });
     }
     if (!roles.includes(user.role)) {
-      throw new HTTPException(403, { message: 'Insufficient permissions' });
+      throw new HTTPException(403, { message: "Insufficient permissions" });
     }
     await next();
   };
@@ -553,12 +568,12 @@ export function requireAccess(
   action: string,
 ): MiddlewareHandler {
   return async (c, next) => {
-    const user = c.get('user');
+    const user = c.get("user");
     if (!user) {
-      throw new HTTPException(401, { message: 'Authentication required' });
+      throw new HTTPException(401, { message: "Authentication required" });
     }
 
-    const resourceId = c.req.param('id');
+    const resourceId = c.req.param("id");
     const allowed = canAccessResource(
       user.id,
       [user.role],
@@ -567,7 +582,7 @@ export function requireAccess(
     );
 
     if (!allowed) {
-      throw new HTTPException(403, { message: 'Access denied' });
+      throw new HTTPException(403, { message: "Access denied" });
     }
 
     await next();
@@ -579,11 +594,11 @@ export function requireAccess(
 
 ```ts
 // apps/api/src/middleware/__tests__/authorization.test.ts
-import { describe, it, expect } from 'vitest';
-import { Hono } from 'hono';
-import { requireAuth, requireRole, requireAccess } from '../authorization.js';
+import { describe, it, expect } from "vitest";
+import { Hono } from "hono";
+import { requireAuth, requireRole, requireAccess } from "../authorization.js";
 
-describe('authorization middleware', () => {
+describe("authorization middleware", () => {
   // Test requireAuth: 401 without user, passes with user
   // Test requireRole('admin'): 403 for non-admin, passes for admin
   // Test requireAccess: delegates to canAccessResource
@@ -599,12 +614,14 @@ Expected: PASS
 - [ ] **Step 4: Wire middleware to write routes**
 
 For each route file in `apps/api/src/routes/`, add appropriate middleware:
+
 - **Public routes** (license verify, health, pricing): no middleware
 - **Authenticated routes** (content read, user profile): `requireAuth()`
 - **Admin routes** (billing admin, GDPR, tickets admin): `requireRole('admin')`
 - **Resource routes** (content create/update/delete): `requireAccess('content', 'update')`
 
 Pattern:
+
 ```ts
 // apps/api/src/routes/content.ts
 import { requireAuth, requireRole } from '../middleware/authorization.js';
@@ -644,6 +661,7 @@ git commit -m "feat(api): wire RBAC authorization middleware to all routes (GAP-
 ### Task 10: Enable Strict Mode — Foundation Packages (GAP-041, Part 1) — 2 hours
 
 **Files:**
+
 - Modify: `packages/contracts/tsconfig.json`
 - Modify: `packages/db/tsconfig.json`
 - Fix: Type errors surfaced in both packages
@@ -657,6 +675,7 @@ Set `"strict": true` in `packages/contracts/tsconfig.json`.
 - [ ] **Step 2: Fix type errors in contracts**
 
 Run `pnpm --filter @revealui/contracts typecheck` and fix all errors. Focus on:
+
 - `as unknown as` double assertions → proper generics
 - Missing null checks → optional chaining
 - Implicit `any` → explicit types
@@ -694,6 +713,7 @@ git commit -m "refactor(db): enable strict mode, fix type errors (GAP-041)"
 ### Task 11: Enable Strict Mode — Security Packages (GAP-041, Part 2) — 2 hours
 
 **Files:**
+
 - Modify: `packages/auth/tsconfig.json`
 - Modify: `packages/config/tsconfig.json`
 - Fix: Type errors in both packages
@@ -712,6 +732,7 @@ git commit -m "refactor(db): enable strict mode, fix type errors (GAP-041)"
 ### Task 12: Enable Strict Mode — Remaining Packages (GAP-041, Part 3) — 3 hours
 
 **Files:**
+
 - Modify: `packages/presentation/tsconfig.json`
 - Modify: `packages/router/tsconfig.json`
 - Modify: `packages/sync/tsconfig.json`
@@ -741,6 +762,7 @@ git commit -m "refactor: enable strict mode in all remaining packages (GAP-041)"
 ### Task 13: Presentation Test Coverage (GAP-027) — 4 hours
 
 **Files:**
+
 - Create: `packages/presentation/src/__tests__/*.test.tsx` (multiple files)
 
 55+ components at 3% coverage. Target: 60%.
@@ -752,6 +774,7 @@ Glob `packages/presentation/src/components/` and categorize: buttons, inputs, la
 - [ ] **Step 2: Write tests by category**
 
 For each component category, write tests covering:
+
 - Renders without crashing
 - Accepts and applies className prop
 - Handles user interaction (click, input, change)
@@ -776,6 +799,7 @@ git commit -m "test(presentation): add comprehensive component tests, 3%→60% c
 ### Task 14: OpenAPI Docs for All Routes (GAP-014) — 3 hours
 
 **Files:**
+
 - Modify: `apps/api/src/routes/*.ts` (all route files)
 
 Hono already supports OpenAPI via `@hono/zod-openapi`. Add schema descriptions to all routes.
@@ -790,6 +814,7 @@ Hono already supports OpenAPI via `@hono/zod-openapi`. Add schema descriptions t
 ### Task 15: Structured Error Codes (GAP-015) — 2 hours
 
 **Files:**
+
 - Create: `apps/api/src/lib/error-codes.ts`
 - Modify: `apps/api/src/routes/*.ts`
 
@@ -806,6 +831,7 @@ Replace ad-hoc error messages with structured error codes.
 ### Task 16: JWT kid Claim (GAP-010) — 1 hour
 
 **Files:**
+
 - Modify: `packages/auth/src/server/jwt.ts` (or license key generation)
 
 Add `kid` (key ID) claim to JWT license keys for key rotation support.
@@ -820,6 +846,7 @@ Add `kid` (key ID) claim to JWT license keys for key rotation support.
 ### Task 17: Refund Endpoint (GAP-031) — 1 hour
 
 **Files:**
+
 - Create: `apps/api/src/routes/refund.ts`
 - Test: `apps/api/src/routes/__tests__/refund.test.ts`
 
@@ -840,6 +867,7 @@ Add POST `/api/billing/refund` with admin-only access.
 ### Task 18: MCP Decision (GAP-039)
 
 **Decision required from founder:**
+
 - **Option A:** Implement 2-3 original MCP servers (Stripe payment intents, Neon queries, email)
 - **Option B:** Reposition as "MCP framework" — don't charge for server integrations, move to OSS
 
@@ -855,6 +883,7 @@ If Option A: ~3 weeks of work. If Option B: ~1 day (rename + docs).
 ### Task 19: GDPR Persistent Storage (GAP-046) — 3 hours
 
 **Files:**
+
 - Create: `packages/db/src/schema/gdpr.ts`
 - Create: `packages/core/src/security/gdpr-drizzle-storage.ts`
 - Modify: `packages/core/src/security/gdpr.ts` (wire DrizzleGDPRStorage as default)

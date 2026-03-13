@@ -240,7 +240,18 @@ export function Radio({
     }
   }, [disabled, group, value]);
 
+  const handleKeyDown = useCallback(
+    (e: React.KeyboardEvent) => {
+      if ((e.key === ' ' || e.key === 'Enter') && !disabled) {
+        e.preventDefault();
+        group.onChange(value);
+      }
+    },
+    [disabled, group, value],
+  );
+
   return (
+    // biome-ignore lint/a11y/useSemanticElements: headless radio intentionally exposes ARIA radio semantics on a custom control
     <span
       role="radio"
       data-slot="control"
@@ -250,6 +261,7 @@ export function Radio({
       data-value={value}
       tabIndex={checked ? 0 : -1}
       onClick={handleClick}
+      onKeyDown={handleKeyDown}
       {...interactiveProps}
       {...props}
       className={clsx(className, 'group inline-flex focus:outline-hidden')}

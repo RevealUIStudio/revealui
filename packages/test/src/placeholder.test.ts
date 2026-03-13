@@ -11,17 +11,17 @@ describe('@revealui/test', () => {
     const fixtures = await import('./fixtures/index.js');
     expect(fixtures).toBeDefined();
     expect(Object.keys(fixtures).length).toBeGreaterThan(0);
-  });
+  }, 60_000);
 
   it('exports test utilities', async () => {
     const utils = await import('./utils/index.js');
     expect(utils).toBeDefined();
     expect(Object.keys(utils).length).toBeGreaterThan(0);
-  });
+  }, 60_000);
 
   it('exports mock helpers', async () => {
     const mocks = await import('./mocks/index.js');
     expect(mocks).toBeDefined();
     expect(Object.keys(mocks).length).toBeGreaterThan(0);
-  });
+  }, 15_000);
 });

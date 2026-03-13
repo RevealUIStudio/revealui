@@ -14,6 +14,7 @@ import type {
   SanitizedCollectionConfig,
 } from '../../types/index.js';
 import { deserializeJsonFields } from '../../utils/json-parsing.js';
+import { countDocumentsQuery, escapeIdentifier, listDocumentsQuery } from './sqlAdapter.js';
 
 export async function find(
   config: RevealCollectionConfig,
@@ -29,8 +30,54 @@ export async function find(
     throw new Error(`Depth must be between 0 and 3, got ${depth}`);
   }
 
+  if (db?.collectionStorage?.find) {
+    const result = await db.collectionStorage.find(config, options);
+    if (result !== undefined) {
+      if (req && depth > 0) {
+        const sanitizedConfig = {
+          ...config,
+          fields: config.fields as SanitizedCollectionConfig['fields'],
+          flattenedFields: config.fields as SanitizedCollectionConfig['flattenedFields'],
+          endpoints: config.endpoints === false ? undefined : config.endpoints,
+        } as SanitizedCollectionConfig;
+
+        const docs = await Promise.all(
+          result.docs.map(async (doc) => {
+            return await afterRead({
+              collection: sanitizedConfig,
+              context: req.context || {},
+              currentDepth: 1,
+              depth,
+              doc,
+              draft: false,
+              fallbackLocale: req.fallbackLocale || 'en',
+              findMany: true,
+              flattenLocales: true,
+              global: null,
+              locale: req.locale || 'en',
+              overrideAccess: false,
+              populate: populateOption,
+              req,
+              select: undefined,
+              showHiddenFields: false,
+            });
+          }),
+        );
+
+        return {
+          ...result,
+          docs,
+        };
+      }
+
+      return result;
+    }
+  }
+
   // Build query based on database adapter
   if (db?.query) {
+    // Dynamic collection storage is quarantined in sqlAdapter.ts until this
+    // layer is redesigned around typed tables that Drizzle can model directly.
     const offset = (page - 1) * limit;
     const tableName = config.slug;
 
@@ -68,7 +115,7 @@ export async function find(
           );
         }
         // Escape embedded double quotes in identifier to prevent SQL injection
-        const escaped = key.replace(/"/g, '""');
+        const escaped = escapeIdentifier(key);
         sortConditions.push(`"${escaped}" ${direction === '-1' ? 'DESC' : 'ASC'}`);
       });
       orderByClause = sortConditions.length > 0 ? `ORDER BY ${sortConditions.join(', ')}` : '';
@@ -82,9 +129,7 @@ export async function find(
         `WHERE clause unexpectedly starts with "WHERE" keyword. This indicates a bug in buildWhereClause. Clause: ${whereClause}`,
       );
     }
-    const countQuery = whereClause
-      ? `SELECT COUNT(*) as total FROM "${tableName}" WHERE ${whereClause}`
-      : `SELECT COUNT(*) as total FROM "${tableName}"`;
+    const countQuery = countDocumentsQuery(tableName, whereClause);
     const countResult = await db.query(countQuery, params);
     const totalDocs = Number(countResult.rows[0]?.total) || 0;
 
@@ -111,7 +156,13 @@ export async function find(
 
     const limitParam = params.length + 1;
     const offsetParam = params.length + 2;
-    const dataQuery = `SELECT * FROM "${tableName}" ${whereClause ? `WHERE ${whereClause}` : ''} ${orderByClause} LIMIT $${limitParam} OFFSET $${offsetParam}`;
+    const dataQuery = listDocumentsQuery(
+      tableName,
+      whereClause,
+      orderByClause,
+      limitParam,
+      offsetParam,
+    );
     const docsResult = await db.query(dataQuery, [...params, limit, offset]);
     let docs = docsResult.rows.map((row) => {
       return deserializeJsonFields(row, tableName);

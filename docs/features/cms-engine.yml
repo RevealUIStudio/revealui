@@ -9,6 +9,13 @@ description: >
   Lexical rich text, and auto-generated REST API. Built on @revealui/core
   (not a Payload fork, though some patterns are inspired by it).
 
+strategy:
+  entitlement-model: "Hosted premium CMS capabilities should resolve from account/workspace entitlements first"
+  commercial-fit:
+    - "content and admin features are primarily platform subscription value"
+    - "AI or automation features can layer in metered usage"
+    - "per-user or deployment licenses should stay secondary and explicit"
+
 api-surface:
   collections:
     endpoint: "20 collection definitions in apps/cms/src/lib/collections/"
@@ -120,3 +127,6 @@ limitations:
   - id: no-collection-list-ui
     surface: ui
     summary: "No collection list views with pagination in admin dashboard"
+  - id: commercial-model-mix
+    surface: api
+    summary: "Commerce and paywall concepts exist in the CMS engine, but hosted entitlement resolution still needs to fully align around account-level billing"

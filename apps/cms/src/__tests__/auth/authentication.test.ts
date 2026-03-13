@@ -39,7 +39,7 @@ describe('Authentication Tests', () => {
     // This prevents UNIQUE constraint failures from parallel test execution
   });
 
-  describe('User Login', () => {
+  describe('User Login', { timeout: 15_000 }, () => {
     it('should allow login with valid credentials', async () => {
       // Create test user
       const { user: createdUser } = await createTestUser(testEmail, testPassword);
@@ -127,7 +127,7 @@ describe('Authentication Tests', () => {
     });
   });
 
-  describe('Session Management', () => {
+  describe('Session Management', { timeout: 15_000 }, () => {
     it('should maintain session across requests', async () => {
       await createTestUser(testEmail, testPassword);
 

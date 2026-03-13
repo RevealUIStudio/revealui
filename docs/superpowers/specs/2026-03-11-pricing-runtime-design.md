@@ -8,6 +8,20 @@
 
 Remove dollar amounts from `packages/contracts/src/pricing.ts` (public OSS source) and serve pricing data from a Stripe-backed API endpoint with server-side fallbacks. This ensures pricing is never exposed in source code while keeping all structural data (types, tier names, feature lists, limits, colors, helpers) in contracts.
 
+## Strategic Position
+
+This design solves public pricing distribution, not the full long-term commercial model.
+
+For 2027-2030, RevealUI should assume:
+
+- the primary billing owner is the account or workspace
+- subscriptions cover platform access
+- agent execution is metered separately
+- commerce actions can carry their own transaction-linked fees
+- trust, governance, approval flows, and audit/compliance are premium add-ons
+
+This means the pricing runtime must eventually sit on top of server-owned plans, catalog mappings, and metering primitives. It should not become an excuse to keep client-controlled Stripe price IDs or per-user licenses as the primary entitlement authority.
+
 ## Architecture
 
 ```
@@ -43,37 +57,37 @@ Remove dollar amounts from `packages/contracts/src/pricing.ts` (public OSS sourc
 ```ts
 // Price fields become optional (populated at runtime by /api/pricing)
 export interface SubscriptionTier {
-  id: LicenseTierId
-  name: string
-  price?: string          // was required — populated by API
-  period?: string
-  description: string
-  features: string[]
-  cta: string
-  ctaHref: string
-  highlighted: boolean
+  id: LicenseTierId;
+  name: string;
+  price?: string; // was required — populated by API
+  period?: string;
+  description: string;
+  features: string[];
+  cta: string;
+  ctaHref: string;
+  highlighted: boolean;
 }
 
 export interface CreditBundle {
-  name: string
-  tasks: string
-  price?: string          // was required
-  priceNote?: string      // was required
-  costPer?: string        // was required
-  description: string
-  highlighted: boolean
+  name: string;
+  tasks: string;
+  price?: string; // was required
+  priceNote?: string; // was required
+  costPer?: string; // was required
+  description: string;
+  highlighted: boolean;
 }
 
 export interface PerpetualTier {
-  name: string
-  price?: string          // was required
-  priceNote?: string      // was required
-  renewal?: string        // was required
-  description: string
-  features: string[]
-  cta: string
-  ctaHref: string
-  comingSoon: boolean
+  name: string;
+  price?: string; // was required
+  priceNote?: string; // was required
+  renewal?: string; // was required
+  description: string;
+  features: string[];
+  cta: string;
+  ctaHref: string;
+  comingSoon: boolean;
 }
 ```
 
@@ -81,9 +95,9 @@ export interface PerpetualTier {
 
 ```ts
 export interface PricingResponse {
-  subscriptions: SubscriptionTier[]
-  credits: CreditBundle[]
-  perpetual: PerpetualTier[]
+  subscriptions: SubscriptionTier[];
+  credits: CreditBundle[];
+  perpetual: PerpetualTier[];
 }
 ```
 
@@ -115,13 +129,13 @@ GET /api/v1/pricing → PricingResponse (versioned alias)
 ### Mounting (in `apps/api/src/index.ts`)
 
 ```ts
-import pricingRoute from './routes/pricing.js'
+import pricingRoute from "./routes/pricing.js";
 
-app.route('/api/pricing', pricingRoute)
-app.route('/api/v1/pricing', pricingRoute)
+app.route("/api/pricing", pricingRoute);
+app.route("/api/v1/pricing", pricingRoute);
 
-app.use('/api/pricing', routeLimit('pricing'))
-app.use('/api/v1/pricing', routeLimit('pricing'))
+app.use("/api/pricing", routeLimit("pricing"));
+app.use("/api/v1/pricing", routeLimit("pricing"));
 ```
 
 ### Logic
@@ -134,6 +148,13 @@ app.use('/api/v1/pricing', routeLimit('pricing'))
 
 4. **Cache:** Response headers: `Cache-Control: public, s-maxage=3600, stale-while-revalidate=86400`.
 
+### Commercial guardrails
+
+- Public pricing endpoints may expose plan labels and price displays, but checkout and upgrade routes should resolve server-owned plan IDs to Stripe price IDs internally.
+- Meter definitions should use business-readable units such as `agent_task`, `workflow_run`, `tool_call`, `commerce_order`, and `gmv`, not raw model-token cost leakage.
+- Failed, duplicated, replayed, or reversed actions should be excluded from billable usage by default.
+- Entitlement checks should be request-scoped and tied to account/workspace state rather than process-global license caches.
+
 ### Stripe Client
 
 The pricing route defines its own `getStripeClient()` and `CircuitBreaker` instance inline — do NOT extract from or modify `billing.ts`. The billing route handles real money and must not be touched as part of this change. The 10 lines of Stripe client setup are acceptable duplication to keep the blast radius small.
@@ -141,6 +162,7 @@ The pricing route defines its own `getStripeClient()` and `CircuitBreaker` insta
 ### Rate Limiting
 
 Add `pricing` to the rate limits config in `apps/api/src/index.ts`:
+
 ```ts
 'pricing': { maxRequests: 10, windowMs: ONE_MINUTE },
 ```
@@ -170,10 +192,12 @@ Registered via `@hono/zod-openapi` like other routes.
 ### Pattern A: PricingTable Component + Users (6 files)
 
 **`packages/presentation/src/components/pricing-table.tsx`:**
+
 - Update the local `PricingTier` interface: `price` becomes `price?: string` (optional)
 - Both `PricingCardFull` (line 142) and `PricingCardCompact` (line 225) render `tier.price ?? '—'`
 
 **Callers:** `UpgradeDialog.tsx`, `UpgradePrompt.tsx`, `admin/upgrade/page.tsx`, `CmsLandingPage.tsx`
+
 - These pass `SUBSCRIPTION_TIERS` (now without prices) to `PricingTable`
 - PricingTable gracefully shows "—" when price is undefined
 - No changes needed in callers beyond what TypeScript already allows (fields are now optional)
@@ -181,6 +205,7 @@ Registered via `@hono/zod-openapi` like other routes.
 ### Pattern B: Hardcoded Prices (2 files)
 
 **`apps/cms/src/app/(frontend)/account/billing/page.tsx`:**
+
 - This is a `'use client'` component — do NOT restructure into server/client wrapper
 - The page already fetches subscription data via `useEffect` — add a pricing fetch alongside it using the same pattern: `fetch(apiUrl + '/api/pricing')` in the existing `useEffect`
 - Remove all 4 hardcoded price strings:
@@ -189,6 +214,7 @@ Registered via `@hono/zod-openapi` like other routes.
 - Use `tier.price` + `tier.period` from fetched pricing data, with `?? '—'` fallback
 
 **`apps/cms/src/app/(frontend)/account/license/page.tsx`:**
+
 - Also `'use client'` — same pattern: fetch from `/api/pricing` in existing `useEffect`
 - Remove hardcoded `$299`, `$799` from `PERPETUAL_PLANS` constant
 - Use fetched pricing data, with `?? '—'` fallback
@@ -224,27 +250,28 @@ Registered via `@hono/zod-openapi` like other routes.
 
 ## Files Changed
 
-| # | File | Action | Risk |
-|---|------|--------|------|
-| 1 | `packages/contracts/src/pricing.ts` | Remove dollar amounts, optional price fields, add PricingResponse type | Medium — 9 direct importers |
-| 2 | `packages/contracts/src/index.ts` | Add PricingResponse to re-exports | Low |
-| 3 | `apps/api/src/routes/pricing.ts` | NEW endpoint with own Stripe client + circuit breaker | Low |
-| 4 | `apps/api/src/index.ts` | Mount route + rate limit | Low |
-| 5 | `apps/marketing/src/app/pricing/page.tsx` | ISR fetch instead of direct import | Medium |
-| 6 | `apps/cms/src/app/(frontend)/account/billing/page.tsx` | Remove hardcoded prices, fetch from /api/pricing | Low |
-| 7 | `apps/cms/src/app/(frontend)/account/license/page.tsx` | Remove hardcoded prices, fetch from /api/pricing | Low |
-| 8 | `apps/cms/src/app/(backend)/admin/upgrade/page.tsx` | Handle optional price (no code change needed) | Low |
-| 9 | `apps/cms/src/lib/components/UpgradeDialog.tsx` | Handle optional price (no code change needed) | Low |
-| 10 | `apps/cms/src/components/UpgradePrompt.tsx` | Handle optional price (no code change needed) | Low |
-| 11 | `apps/cms/src/lib/components/CmsLandingPage.tsx` | Handle optional price (no code change needed) | Low |
-| 12 | `packages/presentation/src/components/pricing-table.tsx` | Update PricingTier interface + null-coalesce price renders | Medium |
-| 13 | `packages/contracts/src/__tests__/pricing.test.ts` | Update assertions | Low |
-| 14 | `apps/marketing/src/app/pricing/__tests__/pricing-data.test.ts` | Update assertions | Low |
-| 15 | `packages/presentation/src/__tests__/pricing-table.test.tsx` | Add undefined price test | Low |
-| 16 | `apps/cms/src/lib/components/__tests__/UpgradeDialog.test.tsx` | Update mock tier price field | Low |
-| 17 | `apps/api/src/routes/__tests__/pricing.test.ts` | NEW test file | Low |
+| #   | File                                                            | Action                                                                 | Risk                        |
+| --- | --------------------------------------------------------------- | ---------------------------------------------------------------------- | --------------------------- |
+| 1   | `packages/contracts/src/pricing.ts`                             | Remove dollar amounts, optional price fields, add PricingResponse type | Medium — 9 direct importers |
+| 2   | `packages/contracts/src/index.ts`                               | Add PricingResponse to re-exports                                      | Low                         |
+| 3   | `apps/api/src/routes/pricing.ts`                                | NEW endpoint with own Stripe client + circuit breaker                  | Low                         |
+| 4   | `apps/api/src/index.ts`                                         | Mount route + rate limit                                               | Low                         |
+| 5   | `apps/marketing/src/app/pricing/page.tsx`                       | ISR fetch instead of direct import                                     | Medium                      |
+| 6   | `apps/cms/src/app/(frontend)/account/billing/page.tsx`          | Remove hardcoded prices, fetch from /api/pricing                       | Low                         |
+| 7   | `apps/cms/src/app/(frontend)/account/license/page.tsx`          | Remove hardcoded prices, fetch from /api/pricing                       | Low                         |
+| 8   | `apps/cms/src/app/(backend)/admin/upgrade/page.tsx`             | Handle optional price (no code change needed)                          | Low                         |
+| 9   | `apps/cms/src/lib/components/UpgradeDialog.tsx`                 | Handle optional price (no code change needed)                          | Low                         |
+| 10  | `apps/cms/src/components/UpgradePrompt.tsx`                     | Handle optional price (no code change needed)                          | Low                         |
+| 11  | `apps/cms/src/lib/components/CmsLandingPage.tsx`                | Handle optional price (no code change needed)                          | Low                         |
+| 12  | `packages/presentation/src/components/pricing-table.tsx`        | Update PricingTier interface + null-coalesce price renders             | Medium                      |
+| 13  | `packages/contracts/src/__tests__/pricing.test.ts`              | Update assertions                                                      | Low                         |
+| 14  | `apps/marketing/src/app/pricing/__tests__/pricing-data.test.ts` | Update assertions                                                      | Low                         |
+| 15  | `packages/presentation/src/__tests__/pricing-table.test.tsx`    | Add undefined price test                                               | Low                         |
+| 16  | `apps/cms/src/lib/components/__tests__/UpgradeDialog.test.tsx`  | Update mock tier price field                                           | Low                         |
+| 17  | `apps/api/src/routes/__tests__/pricing.test.ts`                 | NEW test file                                                          | Low                         |
 
 **Not changed (intentionally):**
+
 - `apps/api/src/routes/billing.ts` — handles real money, not touched
 - No new shared modules — Stripe client is duplicated (10 lines) to keep billing isolated
 

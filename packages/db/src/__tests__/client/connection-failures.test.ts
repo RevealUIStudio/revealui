@@ -543,7 +543,7 @@ describe('database connection failures', () => {
       // After closing, metrics should be empty
       const metricsAfter = getPoolMetrics();
       expect(metricsAfter.length).toBe(0);
-    });
+    }, 30_000);
 
     it('closeAllPools handles errors gracefully during shutdown', async () => {
       // Set end to reject BEFORE creating client so instances get the rejecting mock

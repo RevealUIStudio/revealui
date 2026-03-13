@@ -3,12 +3,14 @@
 /**
  * Internal/Productized Boundary Validator
  *
- * Phase 2.11 enforcement — run as part of pnpm gate phase 1 (warn-only).
+ * Phase 2.11 enforcement — run as part of pnpm gate phase 1 (hard fail).
  *
- * Three checks:
+ * Five checks:
  *   1. OSS packages do not import commercial Pro packages
  *   2. Published package source files contain no internal dev references
  *   3. Published package `files` fields do not include internal-only directories
+ *   4. Public repo source/config files contain no direct Pro source-tree aliases
+ *   5. Public repo source/manifests do not hard-require optional Pro packages
  *
  * Commercial packages (LICENSE.commercial): ai, mcp, editors, services, harnesses
  * OSS packages (MIT): core, cli, presentation, contracts, db, auth, config,
@@ -26,6 +28,8 @@ import { fileURLToPath } from 'node:url';
 const REPO_ROOT = join(fileURLToPath(import.meta.url), '..', '..', '..');
 
 const PACKAGES_DIR = join(REPO_ROOT, 'packages');
+const APPS_DIR = join(REPO_ROOT, 'apps');
+const SCRIPTS_DIR = join(REPO_ROOT, 'scripts');
 
 // Packages distributed under LICENSE.commercial (must not leak into OSS source)
 const COMMERCIAL_PACKAGES = [
@@ -90,6 +94,33 @@ const INTERNAL_FILE_DIRS = ['.claude', 'business', 'docs', 'scripts', 'MASTER_PL
 
 // Source file extensions to scan
 const SOURCE_EXTENSIONS = new Set(['.ts', '.tsx', '.js', '.jsx', '.mts', '.mjs']);
+const TEXT_SCAN_EXTENSIONS = new Set([
+  '.ts',
+  '.tsx',
+  '.js',
+  '.jsx',
+  '.mts',
+  '.mjs',
+  '.json',
+  '.cjs',
+  '.cts',
+]);
+
+const PRO_SOURCE_ALIAS_PATTERNS: Array<{ pattern: RegExp; reason: string }> = [
+  {
+    pattern: /(?:^|['"\s])(?:\.\.\/)+(?:ai|mcp|editors|services|harnesses)\/src(?:\/|['"]|$)/,
+    reason: 'relative alias into a Pro source tree',
+  },
+  {
+    pattern:
+      /(?:^|['"\s])(?:\.\.\/)+(?:packages\/)?(?:ai|mcp|editors|services|harnesses)\/src(?:\/|['"]|$)/,
+    reason: 'relative path into packages/<pro>/src',
+  },
+  {
+    pattern: /['"](?:\.\.\/)*(?:packages\/)?(?:ai|mcp|editors|services|harnesses)\/src['"]/,
+    reason: 'direct source alias to a Pro package',
+  },
+];
 
 // =============================================================================
 // File Utilities
@@ -106,6 +137,26 @@ function collectSourceFiles(dir: string, files: string[] = []): string[] {
       }
       collectSourceFiles(fullPath, files);
     } else if (SOURCE_EXTENSIONS.has(extname(entry.name))) {
+      files.push(fullPath);
+    }
+  }
+  return files;
+}
+
+function collectTextFiles(dir: string, files: string[] = []): string[] {
+  if (!existsSync(dir)) return files;
+  for (const entry of readdirSync(dir, { withFileTypes: true })) {
+    const fullPath = join(dir, entry.name);
+    if (entry.isDirectory()) {
+      if (
+        ['dist', 'node_modules', '.next', '.turbo', 'coverage', '.git', '.pnpm-store'].includes(
+          entry.name,
+        )
+      ) {
+        continue;
+      }
+      collectTextFiles(fullPath, files);
+    } else if (TEXT_SCAN_EXTENSIONS.has(extname(entry.name))) {
       files.push(fullPath);
     }
   }
@@ -226,6 +277,113 @@ function checkFilesFields(): string[] {
 }
 
 // =============================================================================
+// Check 4: Public repo files do not alias directly into Pro source trees
+// =============================================================================
+
+function checkProSourceAliases(): string[] {
+  const violations: string[] = [];
+  const files = [
+    ...collectTextFiles(APPS_DIR),
+    ...collectTextFiles(SCRIPTS_DIR),
+    ...collectTextFiles(join(PACKAGES_DIR, 'dev')),
+  ];
+
+  for (const file of files) {
+    const content = readFileSync(file, 'utf8');
+    const relPath = relative(REPO_ROOT, file);
+
+    if (relPath === 'scripts/validate/structure.ts') {
+      continue;
+    }
+
+    for (const { pattern, reason } of PRO_SOURCE_ALIAS_PATTERNS) {
+      if (pattern.test(content)) {
+        violations.push(`  ${relPath}: contains ${reason}`);
+      }
+    }
+  }
+
+  return violations;
+}
+
+// =============================================================================
+// Check 5: Public repo files do not hard-require optional Pro packages
+// =============================================================================
+
+function checkPublicRepoProDependencies(): string[] {
+  const violations: string[] = [];
+  const files = [
+    ...collectSourceFiles(APPS_DIR),
+    ...collectSourceFiles(SCRIPTS_DIR),
+    ...collectSourceFiles(join(PACKAGES_DIR, 'dev')),
+  ];
+
+  const staticImportPatterns = COMMERCIAL_PACKAGES.flatMap((pkg) => {
+    const escaped = pkg.replace('/', '\\/');
+    return [
+      {
+        packageName: pkg,
+        pattern: new RegExp(
+          `(^|\\n)\\s*import\\s+(?:[^'";]+?\\s+from\\s+)?['"]${escaped}(\\/[^'"]*)?['"]`,
+          'm',
+        ),
+      },
+      {
+        packageName: pkg,
+        pattern: new RegExp(
+          `(^|\\n)\\s*export\\s+[^'";]+?from\\s+['"]${escaped}(\\/[^'"]*)?['"]`,
+          'm',
+        ),
+      },
+    ];
+  });
+
+  for (const file of files) {
+    const content = readFileSync(file, 'utf8');
+    const relPath = relative(REPO_ROOT, file);
+
+    for (const { packageName, pattern } of staticImportPatterns) {
+      if (pattern.test(content)) {
+        violations.push(
+          `  ${relPath}: hard static import/export of optional Pro package ${packageName}`,
+        );
+      }
+    }
+  }
+
+  const manifestPaths = [
+    join(REPO_ROOT, 'package.json'),
+    ...readdirSync(APPS_DIR, { withFileTypes: true })
+      .filter((entry) => entry.isDirectory())
+      .map((entry) => join(APPS_DIR, entry.name, 'package.json')),
+    ...readdirSync(PACKAGES_DIR, { withFileTypes: true })
+      .filter((entry) => entry.isDirectory())
+      .map((entry) => join(PACKAGES_DIR, entry.name, 'package.json')),
+  ].filter((pkgPath) => existsSync(pkgPath));
+
+  for (const pkgPath of manifestPaths) {
+    const relPath = relative(REPO_ROOT, pkgPath);
+    const pkg = JSON.parse(readFileSync(pkgPath, 'utf8')) as {
+      dependencies?: Record<string, string>;
+      devDependencies?: Record<string, string>;
+    };
+
+    for (const depType of ['dependencies', 'devDependencies'] as const) {
+      const deps = pkg[depType] ?? {};
+      for (const commercial of COMMERCIAL_PACKAGES) {
+        if (commercial in deps) {
+          violations.push(
+            `  ${relPath}: ${depType}.${commercial} hard-requires an optional Pro package`,
+          );
+        }
+      }
+    }
+  }
+
+  return violations;
+}
+
+// =============================================================================
 // Main
 // =============================================================================
 
@@ -262,6 +420,24 @@ function main(): void {
   } else {
     for (const v of filesViolations) console.log(v);
     allViolations.push(...filesViolations);
+  }
+
+  console.log('\n→ Check 4: Public repo files do not alias into Pro source trees');
+  const aliasViolations = checkProSourceAliases();
+  if (aliasViolations.length === 0) {
+    console.log('  ✓ No Pro source-tree aliases found in apps/scripts/shared config');
+  } else {
+    for (const v of aliasViolations) console.log(v);
+    allViolations.push(...aliasViolations);
+  }
+
+  console.log('\n→ Check 5: Public repo does not hard-require optional Pro packages');
+  const publicRepoViolations = checkPublicRepoProDependencies();
+  if (publicRepoViolations.length === 0) {
+    console.log('  ✓ No static Pro imports or hard Pro manifest dependencies found');
+  } else {
+    for (const v of publicRepoViolations) console.log(v);
+    allViolations.push(...publicRepoViolations);
   }
 
   console.log(`\n${Sep}`);

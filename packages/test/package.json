@@ -29,18 +29,6 @@
   "engines": {
     "node": ">=24.13.0"
   },
-  "peerDependencies": {
-    "@revealui/ai": "0.1.3",
-    "@revealui/services": "0.0.3"
-  },
-  "peerDependenciesMeta": {
-    "@revealui/ai": {
-      "optional": true
-    },
-    "@revealui/services": {
-      "optional": true
-    }
-  },
   "exports": {
     ".": {
       "types": "./dist/index.d.ts",
@@ -70,12 +58,12 @@
     "test:e2e": "playwright test",
     "test:integration": "vitest run --config vitest.integration.config.ts src/integration",
     "test:integration:watch": "vitest watch --config vitest.integration.config.ts src/integration",
-    "test:memory:all": "cd ../.. && pnpm exec tsx packages/test/scripts/run-memory-tests.ts all",
-    "test:memory:dual": "cd ../.. && pnpm exec tsx packages/test/scripts/run-memory-tests.ts dual",
-    "test:memory:episodic": "cd ../.. && pnpm exec tsx packages/test/scripts/run-memory-tests.ts episodic",
-    "test:memory:setup": "cd ../.. && pnpm exec tsx packages/test/scripts/setup-vector-database.ts",
-    "test:memory:vector": "cd ../.. && pnpm exec tsx packages/test/scripts/run-memory-tests.ts vector",
-    "test:memory:verify": "cd ../.. && pnpm exec tsx packages/test/scripts/verify-test-setup.ts",
+    "test:integration:pro": "vitest run --config vitest.integration-pro.config.ts",
+    "test:integration:pro:watch": "vitest watch --config vitest.integration-pro.config.ts",
+    "test:memory:all": "pnpm test:integration:pro",
+    "test:memory:dual": "vitest run --config vitest.integration.config.ts src/integration/memory/dual-database.integration.test.ts",
+    "test:memory:episodic": "vitest run --config vitest.integration-pro.config.ts src/integration-pro/memory/episodic-memory.integration.test.ts",
+    "test:memory:vector": "vitest run --config vitest.integration-pro.config.ts src/integration-pro/memory/vector-memory.integration.test.ts",
     "test:perf:analyze": "cd ../.. && pnpm exec tsx scripts/test/analyze-performance-baseline.ts",
     "test:perf:auth": "k6 run load-tests/auth/auth-sign-in.js && k6 run load-tests/auth/auth-sign-up.js && k6 run load-tests/auth/auth-rate-limiting.js",
     "test:perf:auth:ratelimit": "k6 run load-tests/auth/auth-rate-limiting.js",
