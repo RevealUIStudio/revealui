@@ -8,7 +8,7 @@
 
 ## Context
 
-RevealUI ships with a mature Claude Code setup: 6 lifecycle hooks, multi-agent coordination, 8 `.claude/rules/` files, and workflow skills (TDD, debugging, brainstorming). Codex CLI is now running in the RevealUI monorepo with `trusted` mode and 8 project-specific skills, but lacks the guardrails, convention enforcement, and workflow discipline that Claude provides.
+RevealUI ships with a mature Claude Code setup: 6 lifecycle hooks, multi-agent coordination, 8 `.claude/rules/` files, and workflow skills (TDD, debugging, brainstorming). The monorepo has 5 apps and 18 packages. Codex CLI is now running in the RevealUI monorepo with `trusted` mode and 8 project-specific skills, but lacks the guardrails, convention enforcement, and workflow discipline that Claude provides.
 
 ### Goals
 
@@ -43,6 +43,9 @@ Content — soft equivalent of `pre-tool-use.js`:
 - Flag credential-looking strings in code (API keys, tokens, passwords)
 - Never edit files under `/mnt/c/` or `/mnt/e/` (Windows mounts are read-only)
 - After editing any file in RevealUI, run `npx biome check --write <file>` before moving on
+- Before claiming work is done, run the relevant gate phase (`pnpm gate:quick` minimum) and confirm output
+
+**Known limitation**: Codex has no lifecycle hooks. These rules are advisory — the LLM must remember to follow them. Claude enforces equivalent rules via `pre-tool-use.js` and `post-tool-use.js` hooks which block/auto-fix automatically. For sensitive operations, users should explicitly invoke `$revealui-safety`.
 
 ### 1b. `revealui-conventions` skill
 
@@ -53,7 +56,8 @@ Bundles:
 
 - **TypeScript**: strict mode, ES Modules, `interface` over `type`, no `any`, `satisfies` over `as`, async/await
 - **Git**: conventional commits (`type(scope): description`), branch naming (`feat/`, `fix/`, `chore/`), identity RevealUI Studio
-- **Monorepo**: `workspace:*` for internal deps, pnpm 10, turborepo patterns, `@revealui/<name>` naming
+- **Monorepo**: `workspace:*` for internal deps, pnpm 10, turborepo patterns, `@revealui/<name>` naming, publishing via changesets
+- **Feature gating**: Pro features use `isLicensed('pro')` and `isFeatureEnabled('ai')`, tiers: free/pro/max/enterprise
 - **Biome**: formatting rules, `// biome-ignore` with reason, suppression protocol
 - **Tailwind v4**: `@import "tailwindcss"` not `@tailwind`, `@utility` not `@layer`, `bg-(--var)` not `bg-[--var]`, `bg-red-500!` not `!bg-red-500`, prefer `gap` over `space-*`
 - **Parameterization**: extract config to named constants, type with interface, provide `configure*()` override
@@ -87,14 +91,17 @@ Tool-agnostic convention files that ship with RevealUI in the public repo.
 ```
 docs/agent-rules/
 ├── README.md                # What this is, how AI tools consume it
-├── conventions.md           # TS, ES Modules, monorepo, git, parameterization
+├── conventions.md           # TS, ES Modules, git identity, parameterization
+├── monorepo.md              # Workspace protocol, turborepo, package conventions, publishing
 ├── database-boundaries.md   # Dual-DB architecture + import boundary map
 ├── tailwind-v4.md           # v4 gotchas, migration notes, RevealUI shared config
 ├── testing.md               # Vitest, RTL, Pro/OSS boundary, gate triage
 ├── biome.md                 # Linting, formatting, suppression protocol
 ├── unused-declarations.md   # 5-step decision tree
 ├── safety.md                # Credential guards, path restrictions, .env rules
-└── feature-gating.md        # Pro/OSS tier boundaries, isLicensed patterns
+├── feature-gating.md        # Pro/OSS tier boundaries, isLicensed patterns
+├── test-prompts.md          # Cross-tool validation prompts (Section 5)
+└── evaluation-log.md        # Pass/fail tracking during tool evaluation
 ```
 
 ### 2b. File format
@@ -135,6 +142,30 @@ When harness adapters land for Gemini or Cursor, they point at `docs/agent-rules
 | Git worktrees | Claude-specific isolation mechanism; Codex uses its own sandbox |
 | Agent coordination | Workboard, multi-agent topology; Codex is single-agent |
 | Subagent-driven development | Claude's Agent tool; no Codex equivalent |
+| Stripe best practices | Claude auto-invokes via skills-usage.md; Codex has no equivalent yet. Consider adding if Stripe work is frequent during evaluation. |
+
+### Relationship to existing skills
+
+The existing `revealui-testing` skill (failure triage, Vitest config, concurrency tuning) is complementary to the new `revealui-tdd` skill (test-first workflow). `revealui-tdd` references `revealui-testing` for repo-specific patterns. Neither replaces the other.
+
+### Skill trigger reliability
+
+Codex skills trigger by description matching against the user's prompt. A prompt like "fix the typo in utils.ts" may not trigger `revealui-safety` or `revealui-conventions`. Mitigations:
+
+1. Skill descriptions use broad trigger keywords (edit, write, create, fix, refactor, review, change, add, update, remove)
+2. `revealui-safety` and `revealui-conventions` descriptions explicitly mention "any code task" phrasing
+3. For sensitive operations, users should explicitly invoke via `$revealui-safety`
+4. The `revealui-review` skill acts as a catch-all verification step at task completion
+
+This is a known gap vs Claude's always-on rules. The comparative table in Section 4 reflects this honestly.
+
+### Rollback plan
+
+If Codex skills cause issues (conflicts, performance degradation, AGENTS.md bloat):
+
+1. Delete `.agents/skills/revealui-*` directories
+2. Revert AGENTS.md to previous commit
+3. `docs/agent-rules/` is independent and stays regardless
 
 ### New Codex skill locations
 
