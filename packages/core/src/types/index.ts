@@ -236,6 +236,7 @@ export type {
 // =============================================================================
 
 export type {
+  CollectionStorageAdapter,
   CollectionStorageDescriptor,
   DatabaseAdapter,
   DatabaseResult,

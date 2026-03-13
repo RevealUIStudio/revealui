@@ -1,3 +1,4 @@
+import type { RevealFindOptions } from '@revealui/core/types';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { createTypedCollectionStorage } from '../typedCollectionStorage';
 
@@ -154,7 +155,7 @@ describe('typedCollectionStorage', () => {
         },
         sort: {
           createdAt: '-1',
-        },
+        } as unknown as RevealFindOptions['sort'],
       },
     );
 
