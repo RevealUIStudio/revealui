@@ -58,6 +58,18 @@ interface PriceDefinition {
   trialDays?: number;
 }
 
+interface LocalStripeCatalogCache {
+  generatedAt: string;
+  envVars: Record<string, string>;
+  catalogEntries: Array<{
+    planId: string;
+    tier: 'pro' | 'max' | 'enterprise';
+    billingModel: 'subscription' | 'perpetual';
+    stripeProductId: string;
+    stripePriceId: string;
+  }>;
+}
+
 const CATALOG: ProductDefinition[] = [
   {
     key: 'revealui_pro',
@@ -259,9 +271,11 @@ async function syncCatalog(
 ): Promise<{
   envVars: Record<string, string>;
   subscriptionProducts: Array<{ productId: string; priceIds: string[] }>;
+  catalogEntries: LocalStripeCatalogCache['catalogEntries'];
 }> {
   const envVars: Record<string, string> = {};
   const subscriptionProducts: Array<{ productId: string; priceIds: string[] }> = [];
+  const catalogEntries: LocalStripeCatalogCache['catalogEntries'] = [];
 
   for (const productDef of CATALOG) {
     log.info('');
@@ -431,9 +445,19 @@ async function syncCatalog(
         priceIds: subscriptionPriceIds,
       });
     }
+
+    if (defaultPriceId) {
+      catalogEntries.push({
+        planId: `${productDef.billingModel}:${productDef.tier}`,
+        tier: productDef.tier,
+        billingModel: productDef.billingModel,
+        stripeProductId: product.id,
+        stripePriceId: String(defaultPriceId),
+      });
+    }
   }
 
-  return { envVars, subscriptionProducts };
+  return { envVars, subscriptionProducts, catalogEntries };
 }
 
 // ─── Webhook Endpoint ────────────────────────────────────────────────────────
@@ -640,6 +664,7 @@ async function syncBillingCatalog(envVars: Record<string, string>, dryRun: boole
 
 async function writeLocalStripeEnvCache(
   envVars: Record<string, string>,
+  catalogEntries: LocalStripeCatalogCache['catalogEntries'],
   dryRun: boolean,
 ): Promise<void> {
   if (dryRun || Object.keys(envVars).length === 0) {
@@ -653,7 +678,8 @@ async function writeLocalStripeEnvCache(
       {
         generatedAt: new Date().toISOString(),
         envVars,
-      },
+        catalogEntries,
+      } satisfies LocalStripeCatalogCache,
       null,
       2,
     ),
@@ -711,9 +737,9 @@ async function main(): Promise<void> {
 
   // ── Products & prices
   log.header('Products & Prices');
-  const { envVars, subscriptionProducts } = await syncCatalog(stripe, dryRun);
+  const { envVars, subscriptionProducts, catalogEntries } = await syncCatalog(stripe, dryRun);
 
-  await writeLocalStripeEnvCache(envVars, dryRun);
+  await writeLocalStripeEnvCache(envVars, catalogEntries, dryRun);
 
   // ── Webhook endpoint
   if (!skipWebhook) {

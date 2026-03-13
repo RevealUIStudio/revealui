@@ -13,6 +13,7 @@ interface CatalogSeed {
   planId: string;
   tier: PaidTier;
   billingModel: CatalogKind;
+  stripeProductId?: string;
   stripePriceId: string | undefined;
   source: 'env' | 'local-cache';
 }
@@ -30,54 +31,87 @@ for (const envFile of [
   config({ path: resolve(rootDir, envFile), override: false });
 }
 
-async function loadLocalStripeEnvCache(): Promise<Record<string, string>> {
+async function loadLocalStripeEnvCache(): Promise<{
+  envVars: Record<string, string>;
+  catalogEntries: Array<{
+    planId: string;
+    stripeProductId: string;
+    stripePriceId: string;
+  }>;
+}> {
   try {
     const raw = await readFile(localStripeEnvCachePath, 'utf8');
-    const parsed = JSON.parse(raw) as { envVars?: Record<string, string> };
-    return parsed.envVars ?? {};
+    const parsed = JSON.parse(raw) as {
+      envVars?: Record<string, string>;
+      catalogEntries?: Array<{
+        planId: string;
+        stripeProductId: string;
+        stripePriceId: string;
+      }>;
+    };
+    return {
+      envVars: parsed.envVars ?? {},
+      catalogEntries: parsed.catalogEntries ?? [],
+    };
   } catch {
-    return {};
+    return {
+      envVars: {},
+      catalogEntries: [],
+    };
   }
 }
 
-function resolveCatalogSeeds(localCache: Record<string, string>): CatalogSeed[] {
+function resolveCatalogSeeds(localCache: {
+  envVars: Record<string, string>;
+  catalogEntries: Array<{
+    planId: string;
+    stripeProductId: string;
+    stripePriceId: string;
+  }>;
+}): CatalogSeed[] {
   const resolvePriceId = (...keys: string[]) => {
     for (const key of keys) {
       const envValue = process.env[key];
       if (envValue) {
         return { stripePriceId: envValue, source: 'env' as const };
       }
-      const cachedValue = localCache[key];
+      const cachedValue = localCache.envVars[key];
       if (cachedValue) {
         return { stripePriceId: cachedValue, source: 'local-cache' as const };
       }
     }
     return { stripePriceId: undefined, source: 'env' as const };
   };
+  const resolveProductId = (planId: string) =>
+    localCache.catalogEntries.find((entry) => entry.planId === planId)?.stripeProductId;
 
   return [
     {
       planId: 'subscription:pro',
       tier: 'pro',
       billingModel: 'subscription',
+      stripeProductId: resolveProductId('subscription:pro'),
       ...resolvePriceId('STRIPE_PRO_PRICE_ID', 'NEXT_PUBLIC_STRIPE_PRO_PRICE_ID'),
     },
     {
       planId: 'subscription:max',
       tier: 'max',
       billingModel: 'subscription',
+      stripeProductId: resolveProductId('subscription:max'),
       ...resolvePriceId('STRIPE_MAX_PRICE_ID', 'NEXT_PUBLIC_STRIPE_MAX_PRICE_ID'),
     },
     {
       planId: 'subscription:enterprise',
       tier: 'enterprise',
       billingModel: 'subscription',
+      stripeProductId: resolveProductId('subscription:enterprise'),
       ...resolvePriceId('STRIPE_ENTERPRISE_PRICE_ID', 'NEXT_PUBLIC_STRIPE_ENTERPRISE_PRICE_ID'),
     },
     {
       planId: 'perpetual:pro',
       tier: 'pro',
       billingModel: 'perpetual',
+      stripeProductId: resolveProductId('perpetual:pro'),
       ...resolvePriceId(
         'STRIPE_PERPETUAL_PRO_PRICE_ID',
         'NEXT_PUBLIC_STRIPE_PRO_PERPETUAL_PRICE_ID',
@@ -87,6 +121,7 @@ function resolveCatalogSeeds(localCache: Record<string, string>): CatalogSeed[] 
       planId: 'perpetual:max',
       tier: 'max',
       billingModel: 'perpetual',
+      stripeProductId: resolveProductId('perpetual:max'),
       ...resolvePriceId(
         'STRIPE_PERPETUAL_MAX_PRICE_ID',
         'NEXT_PUBLIC_STRIPE_MAX_PERPETUAL_PRICE_ID',
@@ -96,6 +131,7 @@ function resolveCatalogSeeds(localCache: Record<string, string>): CatalogSeed[] 
       planId: 'perpetual:enterprise',
       tier: 'enterprise',
       billingModel: 'perpetual',
+      stripeProductId: resolveProductId('perpetual:enterprise'),
       ...resolvePriceId(
         'STRIPE_PERPETUAL_ENTERPRISE_PRICE_ID',
         'NEXT_PUBLIC_STRIPE_ENTERPRISE_PERPETUAL_PRICE_ID',
@@ -124,6 +160,7 @@ async function main() {
       planId: seed.planId,
       tier: seed.tier,
       billingModel: seed.billingModel,
+      stripeProductId: seed.stripeProductId,
       stripePriceId: seed.stripePriceId,
       active: true,
       metadata: {
