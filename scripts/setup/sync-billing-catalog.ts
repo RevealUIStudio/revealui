@@ -1,5 +1,6 @@
 #!/usr/bin/env tsx
 
+import { readFile } from 'node:fs/promises';
 import { resolve } from 'node:path';
 import { getClient } from '@revealui/db';
 import { billingCatalog } from '@revealui/db/schema';
@@ -13,9 +14,11 @@ interface CatalogSeed {
   tier: PaidTier;
   billingModel: CatalogKind;
   stripePriceId: string | undefined;
+  source: 'env' | 'local-cache';
 }
 
 const rootDir = resolve(import.meta.dirname, '../..');
+const localStripeEnvCachePath = resolve(rootDir, '.revealui/stripe-env.json');
 for (const envFile of [
   '.env',
   '.env.development.local',
@@ -27,60 +30,91 @@ for (const envFile of [
   config({ path: resolve(rootDir, envFile), override: false });
 }
 
-const CATALOG_SEEDS: CatalogSeed[] = [
-  {
-    planId: 'subscription:pro',
-    tier: 'pro',
-    billingModel: 'subscription',
-    stripePriceId: process.env.STRIPE_PRO_PRICE_ID ?? process.env.NEXT_PUBLIC_STRIPE_PRO_PRICE_ID,
-  },
-  {
-    planId: 'subscription:max',
-    tier: 'max',
-    billingModel: 'subscription',
-    stripePriceId: process.env.STRIPE_MAX_PRICE_ID ?? process.env.NEXT_PUBLIC_STRIPE_MAX_PRICE_ID,
-  },
-  {
-    planId: 'subscription:enterprise',
-    tier: 'enterprise',
-    billingModel: 'subscription',
-    stripePriceId:
-      process.env.STRIPE_ENTERPRISE_PRICE_ID ?? process.env.NEXT_PUBLIC_STRIPE_ENTERPRISE_PRICE_ID,
-  },
-  {
-    planId: 'perpetual:pro',
-    tier: 'pro',
-    billingModel: 'perpetual',
-    stripePriceId:
-      process.env.STRIPE_PERPETUAL_PRO_PRICE_ID ??
-      process.env.NEXT_PUBLIC_STRIPE_PRO_PERPETUAL_PRICE_ID,
-  },
-  {
-    planId: 'perpetual:max',
-    tier: 'max',
-    billingModel: 'perpetual',
-    stripePriceId:
-      process.env.STRIPE_PERPETUAL_MAX_PRICE_ID ??
-      process.env.NEXT_PUBLIC_STRIPE_MAX_PERPETUAL_PRICE_ID,
-  },
-  {
-    planId: 'perpetual:enterprise',
-    tier: 'enterprise',
-    billingModel: 'perpetual',
-    stripePriceId:
-      process.env.STRIPE_PERPETUAL_ENTERPRISE_PRICE_ID ??
-      process.env.NEXT_PUBLIC_STRIPE_ENTERPRISE_PERPETUAL_PRICE_ID,
-  },
-];
+async function loadLocalStripeEnvCache(): Promise<Record<string, string>> {
+  try {
+    const raw = await readFile(localStripeEnvCachePath, 'utf8');
+    const parsed = JSON.parse(raw) as { envVars?: Record<string, string> };
+    return parsed.envVars ?? {};
+  } catch {
+    return {};
+  }
+}
+
+function resolveCatalogSeeds(localCache: Record<string, string>): CatalogSeed[] {
+  const resolvePriceId = (...keys: string[]) => {
+    for (const key of keys) {
+      const envValue = process.env[key];
+      if (envValue) {
+        return { stripePriceId: envValue, source: 'env' as const };
+      }
+      const cachedValue = localCache[key];
+      if (cachedValue) {
+        return { stripePriceId: cachedValue, source: 'local-cache' as const };
+      }
+    }
+    return { stripePriceId: undefined, source: 'env' as const };
+  };
+
+  return [
+    {
+      planId: 'subscription:pro',
+      tier: 'pro',
+      billingModel: 'subscription',
+      ...resolvePriceId('STRIPE_PRO_PRICE_ID', 'NEXT_PUBLIC_STRIPE_PRO_PRICE_ID'),
+    },
+    {
+      planId: 'subscription:max',
+      tier: 'max',
+      billingModel: 'subscription',
+      ...resolvePriceId('STRIPE_MAX_PRICE_ID', 'NEXT_PUBLIC_STRIPE_MAX_PRICE_ID'),
+    },
+    {
+      planId: 'subscription:enterprise',
+      tier: 'enterprise',
+      billingModel: 'subscription',
+      ...resolvePriceId('STRIPE_ENTERPRISE_PRICE_ID', 'NEXT_PUBLIC_STRIPE_ENTERPRISE_PRICE_ID'),
+    },
+    {
+      planId: 'perpetual:pro',
+      tier: 'pro',
+      billingModel: 'perpetual',
+      ...resolvePriceId(
+        'STRIPE_PERPETUAL_PRO_PRICE_ID',
+        'NEXT_PUBLIC_STRIPE_PRO_PERPETUAL_PRICE_ID',
+      ),
+    },
+    {
+      planId: 'perpetual:max',
+      tier: 'max',
+      billingModel: 'perpetual',
+      ...resolvePriceId(
+        'STRIPE_PERPETUAL_MAX_PRICE_ID',
+        'NEXT_PUBLIC_STRIPE_MAX_PERPETUAL_PRICE_ID',
+      ),
+    },
+    {
+      planId: 'perpetual:enterprise',
+      tier: 'enterprise',
+      billingModel: 'perpetual',
+      ...resolvePriceId(
+        'STRIPE_PERPETUAL_ENTERPRISE_PRICE_ID',
+        'NEXT_PUBLIC_STRIPE_ENTERPRISE_PERPETUAL_PRICE_ID',
+      ),
+    },
+  ];
+}
 
 async function main() {
   const db = getClient();
   const now = new Date();
+  const localCache = await loadLocalStripeEnvCache();
+  const catalogSeeds = resolveCatalogSeeds(localCache);
 
   let synced = 0;
   let skipped = 0;
+  const sources = { env: 0, 'local-cache': 0 };
 
-  for (const seed of CATALOG_SEEDS) {
+  for (const seed of catalogSeeds) {
     if (!seed.stripePriceId) {
       skipped++;
       continue;
@@ -93,7 +127,7 @@ async function main() {
       stripePriceId: seed.stripePriceId,
       active: true,
       metadata: {
-        seededFrom: 'env',
+        seededFrom: seed.source,
         syncedAt: now.toISOString(),
       },
       updatedAt: now,
@@ -112,6 +146,7 @@ async function main() {
       });
 
     synced++;
+    sources[seed.source]++;
   }
 
   console.log(
@@ -119,7 +154,7 @@ async function main() {
       {
         synced,
         skipped,
-        source: 'env',
+        sources,
       },
       null,
       2,
