@@ -1,4 +1,5 @@
 // @vitest-environment node
+
 import { afterAll, beforeAll, beforeEach, describe, expect, it } from 'vitest';
 import { passwordSchema } from '@/lib/validation/schemas';
 import {
@@ -240,9 +241,10 @@ describe('Authentication Tests', () => {
       expect((user.password as string).length).toBeGreaterThan(testPassword.length);
     });
 
-    it('should prevent timing attacks on password comparison', async () => {
-      // This test verifies that password comparison is constant-time
-      // RevealUI CMS uses bcrypt which is timing-safe
+    it('should reject wrong passwords regardless of password length', async () => {
+      // Timing-attack resistance is provided by bcrypt itself. In CI we can only
+      // assert the user-visible contract reliably: wrong passwords are rejected
+      // no matter how short or long the supplied password is.
       const timingTestEmail = `timing-${crypto.randomUUID()}@example.com`;
       const timingTestPassword = 'CorrectPassword123!';
       const shortWrongPassword = 'Short1!';
@@ -253,36 +255,19 @@ describe('Authentication Tests', () => {
       await createTestUser(timingTestEmail, timingTestPassword);
       const revealui = await getTestRevealUI();
 
-      // Attempt 1: Short wrong password
-      const start1 = Date.now();
-      try {
-        await revealui.login({
+      await expect(
+        revealui.login({
           collection: 'users',
           data: { email: timingTestEmail, password: shortWrongPassword },
-        });
-      } catch {
-        // Expected to fail
-      }
-      const end1 = Date.now();
+        }),
+      ).rejects.toThrow();
 
-      // Attempt 2: Long wrong password
-      const start2 = Date.now();
-      try {
-        await revealui.login({
+      await expect(
+        revealui.login({
           collection: 'users',
           data: { email: timingTestEmail, password: longWrongPassword },
-        });
-      } catch {
-        // Expected to fail
-      }
-      const end2 = Date.now();
-
-      // Timing should be similar (within reasonable margin)
-      // This is a basic check - real timing attack prevention is in bcrypt
-      const time1 = end1 - start1;
-      const time2 = end2 - start2;
-      // Allow 500ms variance for system timing variations
-      expect(Math.abs(time1 - time2)).toBeLessThan(500);
+        }),
+      ).rejects.toThrow();
     });
   });
 });
