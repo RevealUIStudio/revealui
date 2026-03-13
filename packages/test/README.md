@@ -5,6 +5,7 @@ Comprehensive testing infrastructure for the RevealUI Framework.
 ## Documentation
 
 **For complete testing guide, patterns, and best practices, see:**
+
 - **[Framework Testing Guide](../../docs/TESTING.md)** - Comprehensive testing documentation with patterns, load testing, penetration testing, and verification procedures
 
 This README focuses on package-specific utilities and quick reference.
@@ -14,10 +15,12 @@ This README focuses on package-specific utilities and quick reference.
 ## Overview
 
 This package provides:
+
 - **Unit Tests** - Test shared utilities and framework components
 - **E2E Tests** - Browser-based end-to-end tests with Playwright
 - **Load Tests** - Performance testing with k6
 - **Test Utilities** - Shared helpers, mocks, and fixtures
+- **Optional Pro Tests** - Separate integration suite for Pro-only packages
 
 ## Structure
 
@@ -29,11 +32,12 @@ packages/test/
 │   │   ├── auth/       # Authentication utility tests
 │   │   ├── payments/   # Payment utility tests
 │   │   └── utils/      # General utility tests
-│   ├── integration/    # Integration tests
+│   ├── integration/    # OSS integration tests
 │   │   ├── api/        # API integration tests
 │   │   ├── database/   # Database integration tests
 │   │   ├── services/   # Service integration tests
 │   │   └── e2e-flow/  # E2E flow integration tests
+│   ├── integration-pro/ # Optional Pro integration tests
 │   ├── e2e/            # E2E tests (Playwright)
 │   │   ├── page-objects/ # Page object models
 │   │   └── utils/      # E2E test utilities
@@ -80,6 +84,13 @@ pnpm --filter test test:e2e
 pnpm --filter test test:e2e --ui
 ```
 
+### Run Optional Pro Integration Tests
+
+```bash
+# Run Pro-only integration tests (requires published Pro packages when applicable)
+pnpm --filter test test:integration:pro
+```
+
 ### Run Load Tests
 
 ```bash
@@ -97,44 +108,47 @@ pnpm --filter test test:load:all
 ### Using Test Helpers
 
 ```typescript
-import { waitFor, retry, createTestId } from '@revealui/test/utils'
+import { waitFor, retry, createTestId } from "@revealui/test/utils";
 
 // Wait for condition
-await waitFor(() => condition === true, 5000)
+await waitFor(() => condition === true, 5000);
 
 // Retry with backoff
 const result = await retry(async () => {
-  return await someOperation()
-}, 3)
+  return await someOperation();
+}, 3);
 
 // Create unique test ID
-const id = createTestId('user')
+const id = createTestId("user");
 ```
 
 ### Using Test Fixtures
 
 ```typescript
-import { createTestUser, defaultTestUsers } from '@revealui/test/fixtures'
+import { createTestUser, defaultTestUsers } from "@revealui/test/fixtures";
 
 // Create test user
-const user = createTestUser({ role: 'admin' })
+const user = createTestUser({ role: "admin" });
 
 // Use default fixtures
-const admin = defaultTestUsers.admin
+const admin = defaultTestUsers.admin;
 ```
 
 ### Using Mocks
 
 ```typescript
-import { mockStripe, mockSupabase } from '@revealui/test/utils/mocks'
-import { createMockDatabase, createMockFileStorage } from '@revealui/test/mocks'
+import { mockStripe, mockSupabase } from "@revealui/test/utils/mocks";
+import {
+  createMockDatabase,
+  createMockFileStorage,
+} from "@revealui/test/mocks";
 
 // Use existing mocks
-mockStripe.customers.create.mockResolvedValue({ id: 'cus_123' })
+mockStripe.customers.create.mockResolvedValue({ id: "cus_123" });
 
 // Use new mock utilities
-const mockDb = createMockDatabase()
-const mockStorage = createMockFileStorage()
+const mockDb = createMockDatabase();
+const mockStorage = createMockFileStorage();
 ```
 
 ## Writing Tests
@@ -142,67 +156,69 @@ const mockStorage = createMockFileStorage()
 ### Unit Test Example
 
 ```typescript
-import { describe, it, expect } from 'vitest'
-import { createTestUser } from '../../fixtures/users'
+import { describe, it, expect } from "vitest";
+import { createTestUser } from "../../fixtures/users";
 
-describe('UserService', () => {
-  it('should create user correctly', () => {
-    const user = createTestUser()
-    expect(user.email).toContain('@example.com')
-  })
-})
+describe("UserService", () => {
+  it("should create user correctly", () => {
+    const user = createTestUser();
+    expect(user.email).toContain("@example.com");
+  });
+});
 ```
 
 ### E2E Test Example (with Page Objects)
 
 ```typescript
-import { test, expect } from '@playwright/test'
-import { LoginPage } from './page-objects/LoginPage'
-import { setupTestIsolation, cleanupTestData } from './utils/test-isolation'
+import { test, expect } from "@playwright/test";
+import { LoginPage } from "./page-objects/LoginPage";
+import { setupTestIsolation, cleanupTestData } from "./utils/test-isolation";
 
-test('user can login', async ({ page }) => {
-  const context = await setupTestIsolation(page)
-  
+test("user can login", async ({ page }) => {
+  const context = await setupTestIsolation(page);
+
   try {
-    const loginPage = new LoginPage(page)
-    await loginPage.navigateTo('/login')
-    await loginPage.login('admin@example.com', 'password')
-    await expect(page).toHaveURL(/.*dashboard/)
+    const loginPage = new LoginPage(page);
+    await loginPage.navigateTo("/login");
+    await loginPage.login("admin@example.com", "password");
+    await expect(page).toHaveURL(/.*dashboard/);
   } finally {
-    await cleanupTestData(context, page)
+    await cleanupTestData(context, page);
   }
-})
+});
 ```
 
 ### Integration Test Example
 
 ```typescript
-import { describe, it, expect } from 'vitest'
-import { getTestRevealUI, trackTestData } from '../utils/integration-helpers'
+import { describe, it, expect } from "vitest";
+import { getTestRevealUI, trackTestData } from "../utils/integration-helpers";
 
-describe('API Integration', () => {
-  it('should test API flow', async () => {
-    const revealui = await getTestRevealUI()
+describe("API Integration", () => {
+  it("should test API flow", async () => {
+    const revealui = await getTestRevealUI();
     const user = await revealui.create({
-      collection: 'users',
-      data: { email: 'test@example.com', password: 'password' },
-    })
-    trackTestData('users', String(user.id))
-    
-    expect(user.id).toBeDefined()
-  })
-})
+      collection: "users",
+      data: { email: "test@example.com", password: "password" },
+    });
+    trackTestData("users", String(user.id));
+
+    expect(user.id).toBeDefined();
+  });
+});
 ```
 
 ## Test Coverage
 
 Coverage thresholds:
+
 - **Statements**: ≥ 70%
 - **Branches**: ≥ 60%
 - **Functions**: ≥ 70%
 - **Lines**: ≥ 70%
 
 Run coverage report:
+
 ```bash
 pnpm --filter test test:coverage
 ```
@@ -215,16 +231,17 @@ pnpm --filter test test:coverage
 
 ## Scripts
 
-| Script | Description |
-|--------|-------------|
-| `test` | Run all tests (unit + E2E) |
-| `test:unit` | Run unit tests only |
-| `test:unit:watch` | Run unit tests in watch mode |
-| `test:coverage` | Run tests with coverage report |
-| `test:coverage:unit` | Run unit tests with coverage |
-| `test:e2e` | Run E2E tests |
-| `test:load:*` | Run load tests |
-| `test:all` | Run unit + E2E tests |
+| Script                 | Description                             |
+| ---------------------- | --------------------------------------- |
+| `test`                 | Run all default tests                   |
+| `test:integration:pro` | Run optional Pro-only integration tests |
+| `test:unit`            | Run unit tests only                     |
+| `test:unit:watch`      | Run unit tests in watch mode            |
+| `test:coverage`        | Run tests with coverage report          |
+| `test:coverage:unit`   | Run unit tests with coverage            |
+| `test:e2e`             | Run E2E tests                           |
+| `test:load:*`          | Run load tests                          |
+| `test:all`             | Run unit + E2E tests                    |
 
 ## Dependencies
 

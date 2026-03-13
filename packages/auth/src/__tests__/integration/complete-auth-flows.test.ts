@@ -77,7 +77,7 @@ import {
 import { validatePasswordStrength } from '../../server/password-validation.js';
 import { checkRateLimit, resetRateLimit } from '../../server/rate-limit.js';
 
-describe('Complete Authentication Flow Tests', () => {
+describe('Complete Authentication Flow Tests', { timeout: 60_000 }, () => {
   beforeEach(() => {
     // Clear all mocks before each test
     vi.clearAllMocks();

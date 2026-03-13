@@ -8,14 +8,12 @@
  *   export POSTGRES_URL="postgresql://user:pass@host:port/db"
  *   pnpm test:performance
  *
- * Note: This script uses relative imports to work around tsx workspace resolution.
- * Packages must be built first (handled by npm script).
+ * In the public repo, this script only runs when the published Pro AI package is installed.
  */
 
-import { NodeIdService } from '../../../packages/ai/src/memory/services/node-id-service.ts';
-// Use relative imports to work around tsx workspace resolution limitations
-// Packages must be built first: pnpm --filter @revealui/db build && pnpm --filter @revealui/ai build
-import { createClient } from '../../packages/db/dist/client/index.ts';
+import { access } from 'node:fs/promises';
+import { dirname, resolve } from 'node:path';
+import { pathToFileURL } from 'node:url';
 import { ErrorCode } from '../lib/errors.js';
 import { createLogger } from '../lib/logger.js';
 import { getProjectRoot } from '../lib/paths.js';
@@ -25,10 +23,41 @@ const logger = createLogger();
 const ITERATIONS = 100;
 const CONCURRENT = 10;
 
+async function fileExists(path: string): Promise<boolean> {
+  try {
+    await access(path);
+    return true;
+  } catch {
+    return false;
+  }
+}
+
 async function measurePerformance() {
   try {
-    await getProjectRoot(import.meta.url);
+    const projectRoot = await getProjectRoot(import.meta.url);
     logger.header('Real Performance Measurement');
+
+    const scriptsDir = dirname(new URL(import.meta.url).pathname);
+    const dbClientPath = resolve(scriptsDir, '../../packages/db/dist/client/index.ts');
+
+    if (!(await fileExists(dbClientPath))) {
+      logger.error('Database client build output not found');
+      logger.error(`Run \`pnpm --filter @revealui/db build\` from ${projectRoot} first.`);
+      process.exit(ErrorCode.CONFIG_ERROR);
+    }
+
+    const [{ createClient }, nodeIdServiceModule] = await Promise.all([
+      import(pathToFileURL(dbClientPath).href),
+      import('@revealui/ai/memory/services').catch(() => null),
+    ]);
+
+    if (!nodeIdServiceModule) {
+      logger.error('Performance measurement requires @revealui/ai (Pro)');
+      logger.error('Install the published Pro AI package, then re-run this script.');
+      process.exit(ErrorCode.CONFIG_ERROR);
+    }
+
+    const { NodeIdService } = nodeIdServiceModule;
 
     // Get database connection
     const PostgresUrl = process.env.POSTGRES_URL || process.env.DATABASE_URL;

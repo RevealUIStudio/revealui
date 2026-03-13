@@ -62,20 +62,21 @@ Your server is immediately discoverable and callable. Save the `id` — you'll u
 
 ### 2. Choose a category
 
-| Category | Use for |
-|----------|---------|
-| `coding` | Code analysis, generation, review, testing tools |
-| `data` | Data transformation, SQL generation, ETL helpers |
-| `productivity` | Scheduling, email drafting, document processing |
-| `analysis` | Research, summarization, classification tools |
-| `writing` | Copywriting, editing, translation, proofreading |
-| `other` | Anything that doesn't fit above |
+| Category       | Use for                                          |
+| -------------- | ------------------------------------------------ |
+| `coding`       | Code analysis, generation, review, testing tools |
+| `data`         | Data transformation, SQL generation, ETL helpers |
+| `productivity` | Scheduling, email drafting, document processing  |
+| `analysis`     | Research, summarization, classification tools    |
+| `writing`      | Copywriting, editing, translation, proofreading  |
+| `other`        | Anything that doesn't fit above                  |
 
 ### 3. Set your price
 
 `pricePerCallUsdc` is a per-invocation price in USDC (e.g. `"0.005"` = $0.005 per call). Callers pay this amount each time they invoke your server through the marketplace.
 
 **Guidelines:**
+
 - Simple tools (type checking, formatting): `0.001`–`0.005`
 - Medium tools (code review, analysis): `0.005`–`0.02`
 - Heavy tools (multi-step reasoning, large context): `0.02`–`0.1`
@@ -224,25 +225,30 @@ The response is the raw JSON-RPC response from the server.
 #### Using the Coinbase x402 SDK
 
 ```typescript
-import { withPaymentInterceptor } from '@coinbase/x402/fetch'
-import { createWalletClient } from 'viem'
+import { withPaymentInterceptor } from "@coinbase/x402/fetch";
+import { createWalletClient } from "viem";
 
-const wallet = createWalletClient({ /* your wallet config */ })
+const wallet = createWalletClient({
+  /* your wallet config */
+});
 
-const fetch402 = withPaymentInterceptor(fetch, wallet)
+const fetch402 = withPaymentInterceptor(fetch, wallet);
 
-const response = await fetch402('https://api.revealui.com/api/marketplace/servers/mcp_abc123xyz456/invoke', {
-  method: 'POST',
-  headers: { 'Content-Type': 'application/json' },
-  body: JSON.stringify({
-    jsonrpc: '2.0',
-    id: 1,
-    method: 'check_types',
-    params: { file: 'src/app.ts' },
-  }),
-})
+const response = await fetch402(
+  "https://api.revealui.com/api/marketplace/servers/mcp_abc123xyz456/invoke",
+  {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({
+      jsonrpc: "2.0",
+      id: 1,
+      method: "check_types",
+      params: { file: "src/app.ts" },
+    }),
+  },
+);
 
-const result = await response.json()
+const result = await response.json();
 ```
 
 The SDK handles the 402 → payment → retry cycle automatically.
@@ -251,13 +257,37 @@ The SDK handles the 402 → payment → retry cycle automatically.
 
 ## Revenue split
 
-| Party | Share |
-|-------|-------|
-| Developer | 80% |
-| RevealUI platform | 20% |
+| Party             | Share |
+| ----------------- | ----- |
+| Developer         | 80%   |
+| RevealUI platform | 20%   |
 
 **Example:** A server priced at `0.005` USDC per call:
+
 - Developer earns: `0.004` USDC
+
+---
+
+## 2027-2030 pricing direction
+
+The marketplace should not be treated as a flat-fee curiosity attached to a SaaS product. It should be treated as one leg of a larger agent-commerce pricing model.
+
+The long-term commercial model is:
+
+- base platform subscription at the account/workspace level
+- metered agent execution for workflow and tool usage
+- explicit marketplace and commerce monetization tied to completed economic activity
+- separate trust/governance pricing for spend controls, approvals, audit, provenance, and compliance
+
+That means the current `80/20` split is a workable launch policy, but not the full future model. From 2027 onward, RevealUI should be able to support:
+
+- per-call pricing for simple marketplace tools
+- outcome or transaction-linked fees for commerce actions
+- contracted or committed usage for high-volume agent operators
+- premium trust controls for customers who need agent spend governance
+
+The moral rule is simple: do not bill for failed, duplicated, reversed, or replayed agent actions. Marketplace monetization only works if developers and buyers both trust the ledger.
+
 - Platform fee: `0.001` USDC
 
 All transactions are recorded in `marketplace_transactions`. You can query your transaction history via the API (developer dashboard coming soon).
@@ -285,12 +315,12 @@ The marketplace does not modify request or response bodies. It passes through th
 
 ## Rate limits
 
-| Endpoint | Limit |
-|----------|-------|
-| `GET /api/marketplace/servers` | Global (60/min) |
-| `POST /api/marketplace/servers` (publish) | 10/hour |
-| `POST /api/marketplace/servers/:id/invoke` | 30/min |
-| `POST /api/marketplace/connect/onboard` | 5/15min |
+| Endpoint                                   | Limit           |
+| ------------------------------------------ | --------------- |
+| `GET /api/marketplace/servers`             | Global (60/min) |
+| `POST /api/marketplace/servers` (publish)  | 10/hour         |
+| `POST /api/marketplace/servers/:id/invoke` | 30/min          |
+| `POST /api/marketplace/connect/onboard`    | 5/15min         |
 
 ---
 

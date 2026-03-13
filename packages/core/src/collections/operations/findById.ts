@@ -14,6 +14,7 @@ import type {
   SanitizedCollectionConfig,
 } from '../../types/index.js';
 import { deserializeJsonFields } from '../../utils/json-parsing.js';
+import { selectByIdQuery } from './sqlAdapter.js';
 
 export async function findByID(
   config: RevealCollectionConfig,
@@ -34,11 +35,50 @@ export async function findByID(
     throw new Error(`Depth must be between 0 and 3, got ${depth}`);
   }
 
+  if (db?.collectionStorage?.findByID) {
+    const doc = await db.collectionStorage.findByID(config, { id });
+    if (doc !== undefined) {
+      if (!doc) return null;
+
+      if (req && depth > 0) {
+        const sanitizedConfig = {
+          ...config,
+          fields: config.fields as SanitizedCollectionConfig['fields'],
+          flattenedFields: config.fields as SanitizedCollectionConfig['flattenedFields'],
+          endpoints: config.endpoints === false ? undefined : config.endpoints,
+        } as SanitizedCollectionConfig;
+
+        return await afterRead({
+          collection: sanitizedConfig,
+          context: req.context || {},
+          currentDepth: 1,
+          depth,
+          doc,
+          draft: false,
+          fallbackLocale: req.fallbackLocale || 'en',
+          findMany: false,
+          flattenLocales: true,
+          global: null,
+          locale: req.locale || 'en',
+          overrideAccess: false,
+          populate: populateOption,
+          req,
+          select: undefined,
+          showHiddenFields: false,
+        });
+      }
+
+      return doc;
+    }
+  }
+
   if (db?.query) {
+    // Dynamic collection storage is quarantined in sqlAdapter.ts until this
+    // layer is redesigned around typed tables that Drizzle can model directly.
     const tableName = config.slug;
     // Ensure id is a string for consistent comparison
     const idString = String(id);
-    const query = `SELECT * FROM "${tableName}" WHERE id = $1 LIMIT 1`;
+    const query = selectByIdQuery(tableName);
     const result = await db.query(query, [idString]);
     const rawDoc = result.rows[0];
 

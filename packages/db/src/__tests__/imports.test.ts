@@ -6,39 +6,61 @@
 
 import { describe, expect, it } from 'vitest';
 
+const IMPORT_TIMEOUT_MS = 30_000;
+
 describe('@revealui/db - Import Paths', () => {
-  it('should import from core export', async () => {
-    const { getClient } = await import('@revealui/db/core');
-    expect(getClient).toBeDefined();
-    expect(typeof getClient).toBe('function');
-  }, 30000); // 30s timeout for slow imports during coverage
+  it(
+    'should import from core export',
+    async () => {
+      const { getClient } = await import('@revealui/db/core');
+      expect(getClient).toBeDefined();
+      expect(typeof getClient).toBe('function');
+    },
+    IMPORT_TIMEOUT_MS,
+  );
 
-  it('should import schemas from core export', async () => {
-    const core = await import('@revealui/db/core');
-    // Check that schema exports exist (they may be empty if not implemented)
-    expect(core).toBeDefined();
-  });
+  it(
+    'should import schemas from core export',
+    async () => {
+      const core = await import('@revealui/db/core');
+      // Check that schema exports exist (they may be empty if not implemented)
+      expect(core).toBeDefined();
+    },
+    IMPORT_TIMEOUT_MS,
+  );
 
-  it('should import from client export', async () => {
-    const { getClient, createClient } = await import('@revealui/db/client');
-    expect(getClient).toBeDefined();
-    expect(createClient).toBeDefined();
-    expect(typeof getClient).toBe('function');
-    expect(typeof createClient).toBe('function');
-  });
+  it(
+    'should import from client export',
+    async () => {
+      const { getClient, createClient } = await import('@revealui/db/client');
+      expect(getClient).toBeDefined();
+      expect(createClient).toBeDefined();
+      expect(typeof getClient).toBe('function');
+      expect(typeof createClient).toBe('function');
+    },
+    IMPORT_TIMEOUT_MS,
+  );
 
-  it('should import from main package export', async () => {
-    const main = await import('@revealui/db');
-    expect(main).toBeDefined();
-    expect(main.getClient).toBeDefined();
-    expect(typeof main.getClient).toBe('function');
-  });
+  it(
+    'should import from main package export',
+    async () => {
+      const main = await import('@revealui/db');
+      expect(main).toBeDefined();
+      expect(main.getClient).toBeDefined();
+      expect(typeof main.getClient).toBe('function');
+    },
+    IMPORT_TIMEOUT_MS,
+  );
 
-  it('should have consistent exports between core and main', async () => {
-    const core = await import('@revealui/db/core');
-    const main = await import('@revealui/db');
+  it(
+    'should have consistent exports between core and main',
+    async () => {
+      const core = await import('@revealui/db/core');
+      const main = await import('@revealui/db');
 
-    // Main should re-export everything from core
-    expect(main).toMatchObject(core);
-  });
+      // Main should re-export everything from core
+      expect(main).toMatchObject(core);
+    },
+    IMPORT_TIMEOUT_MS,
+  );
 });

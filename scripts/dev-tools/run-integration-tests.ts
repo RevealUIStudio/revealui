@@ -58,8 +58,11 @@ async function runIntegrationTests() {
 
     logger.info('Running integration tests...\n');
 
-    // Run tests for all packages with integration tests
-    const testPackages = ['@revealui/auth', '@revealui/ai'];
+    // Public repo defaults to OSS packages only. Opt into Pro package tests explicitly.
+    const testPackages = ['@revealui/auth'];
+    if (process.env.REVEALUI_INCLUDE_PRO_TESTS === '1') {
+      testPackages.push('@revealui/ai');
+    }
 
     for (const packageName of testPackages) {
       logger.info(`Running tests for ${packageName}...`);

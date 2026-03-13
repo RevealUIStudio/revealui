@@ -16,6 +16,7 @@ import { collectJsonFields, serializeValueForDatabase } from '../../utils/json-p
 import { flattenFields, isJsonFieldType } from '../../utils/type-guards.js';
 import { runBeforeFieldHooks } from './fieldHooks.js';
 import { findByID } from './findById.js';
+import { insertDocumentQuery } from './sqlAdapter.js';
 
 export async function create(
   config: RevealCollectionConfig,
@@ -77,6 +78,8 @@ export async function create(
   }
 
   if (db?.query) {
+    // Dynamic collection storage is quarantined in sqlAdapter.ts until this
+    // layer is redesigned around typed tables that Drizzle can model directly.
     const tableName = config.slug;
 
     // Generate ID if not provided - always ensure it's a string
@@ -106,7 +109,6 @@ export async function create(
       columns.push('_json');
     }
 
-    const placeholders = columns.map((_, i) => `$${i + 2}`).join(', ');
     const values = columns.map((key) => {
       if (key === '_json') {
         // Serialize JSON fields object to JSON string
@@ -116,7 +118,7 @@ export async function create(
       return serializeValueForDatabase(data[key]);
     });
 
-    const query = `INSERT INTO "${tableName}" (id, ${columns.map((c) => `"${c}"`).join(', ')}) VALUES ($1, ${placeholders})`;
+    const query = insertDocumentQuery(tableName, columns);
     await db.query(query, [id, ...values]);
 
     // For SQLite with WAL mode, writes are immediately visible to readers on the same connection

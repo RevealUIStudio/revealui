@@ -4,6 +4,14 @@ status: beta
 tier: pro
 last-verified: 2026-03-11
 
+strategy:
+  commercial-role: "Services package underpins billing, entitlements, and provider integrations for the Pro commercial surface"
+  target-model:
+    - "account or workspace subscriptions"
+    - "metered agent or API usage"
+    - "commerce-linked fees"
+    - "optional deployment or perpetual licenses where required"
+
 api-surface:
   stripe-client:
     endpoint: "@revealui/services/stripe/stripeClient — lazy-init Stripe with circuit breaker"
@@ -71,7 +79,10 @@ limitations:
     summary: "Transitive payload IDOR + SSRF vulns (mitigated by CSP/CORS, upgrade when 3.75+ compatible)"
   - id: license-required
     surface: api
-    summary: "Requires Pro tier — checkServicesLicense() on import"
+    summary: "Requires Pro tier — current import-time license checks should converge on account-level entitlements and commercial policy"
   - id: circuit-breaker-local
     surface: api
     summary: "Circuit breaker state is per-instance only (no Redis backing)"
+  - id: billing-catalog-control
+    surface: api
+    summary: "Commercial safety still depends on server-owned billing catalog and correct webhook processing; the package alone does not guarantee that"

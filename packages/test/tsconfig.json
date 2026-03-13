@@ -45,6 +45,7 @@
     "src/integration/memory/**/*.test.ts",
     "src/integration/memory/**/*.ts",
     "src/integration/test-database.ts",
+    "src/integration-pro/**/*.ts",
     "src/utils/test-database.ts",
     "src/e2e/auth.spec.ts",
     "src/e2e/page-objects/RegisterPage.ts"

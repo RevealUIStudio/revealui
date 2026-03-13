@@ -45,14 +45,14 @@ const FALLBACK_SUBSCRIPTION_PRICES: Record<string, { price: string; period?: str
   enterprise: { price: '$299', period: '/month' },
 };
 
-const FALLBACK_CREDIT_PRICES: Record<
+const FALLBACK_CREDIT_PRICES = new Map<
   string,
   { price: string; priceNote: string; costPer: string }
-> = {
-  Starter: { price: '$10', priceNote: 'one-time', costPer: '$0.001/task' },
-  Standard: { price: '$50', priceNote: 'one-time', costPer: '$0.00083/task' },
-  Scale: { price: '$250', priceNote: 'one-time', costPer: '$0.00071/task' },
-};
+>([
+  ['Starter', { price: '$10', priceNote: 'one-time', costPer: '$0.001/task' }],
+  ['Standard', { price: '$50', priceNote: 'one-time', costPer: '$0.00083/task' }],
+  ['Scale', { price: '$250', priceNote: 'one-time', costPer: '$0.00071/task' }],
+]);
 
 const FALLBACK_PERPETUAL_PRICES: Record<
   string,
@@ -167,7 +167,7 @@ function buildPricingResponse(stripePrices: StripeProductMap | null): PricingRes
 
   const credits = CREDIT_BUNDLES.map((bundle) => {
     const stripePrice = stripePrices?.credits.get(bundle.name);
-    const fallback = FALLBACK_CREDIT_PRICES[bundle.name];
+    const fallback = FALLBACK_CREDIT_PRICES.get(bundle.name);
     return { ...bundle, ...(stripePrice ?? fallback) };
   });
 

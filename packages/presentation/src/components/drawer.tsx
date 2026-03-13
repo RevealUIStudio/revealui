@@ -53,14 +53,14 @@ export function Drawer({
     <DrawerContext.Provider value={titleId}>
       <div role="dialog" aria-modal="true" aria-labelledby={titleId}>
         {backdrop.mounted && (
-          <div
-            aria-hidden="true"
-            tabIndex={-1}
-            ref={backdrop.nodeRef as React.RefObject<HTMLDivElement>}
+          <button
+            type="button"
+            aria-label="Close drawer"
+            ref={backdrop.nodeRef as React.RefObject<HTMLButtonElement>}
             {...backdrop.transitionProps}
             onClick={handleBackdropClick}
             className="fixed inset-0 z-40 bg-zinc-950/25 transition duration-200 data-closed:opacity-0 data-enter:ease-out data-leave:ease-in dark:bg-zinc-950/50"
-          ></div>
+          />
         )}
         {panel.mounted && (
           <div

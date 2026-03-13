@@ -5,7 +5,7 @@
  * across payload validation, DB write, and failure fallback scenarios.
  */
 
-import { beforeEach, describe, expect, it, vi } from 'vitest';
+import { afterAll, beforeEach, describe, expect, it, vi } from 'vitest';
 
 // ─── Mocks — declared before imports so vi.mock hoisting takes effect ─────────
 //
@@ -54,11 +54,20 @@ async function flushAsync() {
 
 // ─── Setup ────────────────────────────────────────────────────────────────────
 
+const originalNodeEnv = process.env.NODE_ENV;
+const originalRevealUiSecret = process.env.REVEALUI_SECRET;
+
 beforeEach(() => {
   vi.clearAllMocks();
   mockInsertValues.mockResolvedValue({ rowCount: 1 });
   mockDb.insert.mockReturnValue({ values: mockInsertValues });
   process.env.NODE_ENV = 'test';
+  process.env.REVEALUI_SECRET = 'test-secret';
+});
+
+afterAll(() => {
+  process.env.NODE_ENV = originalNodeEnv;
+  process.env.REVEALUI_SECRET = originalRevealUiSecret;
 });
 
 // ─── Tests ────────────────────────────────────────────────────────────────────

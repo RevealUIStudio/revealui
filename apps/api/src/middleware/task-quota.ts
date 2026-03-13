@@ -50,6 +50,12 @@ interface UserContext {
   role: string;
 }
 
+interface RequestEntitlements {
+  limits?: {
+    maxAgentTasks?: number;
+  };
+}
+
 /** Returns the UTC timestamp for the start of the current calendar month. */
 function cycleStart(): Date {
   const now = new Date();
@@ -68,7 +74,8 @@ export async function requireTaskQuota(
     return next();
   }
 
-  const quota = getMaxAgentTasks();
+  const requestEntitlements = c.get('entitlements') as RequestEntitlements | undefined;
+  const quota = requestEntitlements?.limits?.maxAgentTasks ?? getMaxAgentTasks();
   const db = getClient();
   const cycle = cycleStart();
 

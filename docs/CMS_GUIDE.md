@@ -37,13 +37,25 @@ This comprehensive guide covers everything you need to know about using the Reve
 ### CMS Overview
 
 Your RevealUI project consists of:
+
 - **CMS App** (`apps/cms`): Next.js 16 app with RevealUI CMS backend
 - **Frontend App** (`apps/mainframe`): React 19 app (Vite-based) that consumes CMS data
 
 The CMS provides a REST API for content delivery and includes collections for:
+
 - **Pages**, **Posts** (blog), **Media**, **Heros**, **Cards**, **Contents**, **Events**, **Banners**
 - **Products**, **Prices**, **Categories**, **Tags**, **Orders**, **Subscriptions**
 - **Users**, **Tenants**, **Layouts**, **Videos**
+
+### Commercial framing
+
+For hosted RevealUI deployments, premium CMS access should be modeled primarily around account or workspace entitlements.
+
+That means:
+
+- subscription and premium access should attach to the billing owner, not only an individual user
+- AI and automation features should be able to use metered billing
+- perpetual or deployment licenses should stay secondary for the products that actually need them
 
 ---
 
@@ -123,6 +135,7 @@ REVEALUI_PUBLIC_SERVER_URL=http://localhost:4000
 **CORS Configuration**
 
 The CMS has CORS handling in:
+
 - `apps/cms/src/proxy.ts` - Defines allowed origins
 - `apps/cms/revealui.config.ts` - `cors` and `csrf` arrays
 
@@ -135,17 +148,20 @@ Create a base API client function in your frontend app.
 **File**: `apps/mainframe/src/lib/api/client.ts`
 
 ```typescript
-const CMS_URL = process.env.NEXT_PUBLIC_CMS_URL || process.env.REVEALUI_PUBLIC_SERVER_URL || 'http://localhost:4000';
+const CMS_URL =
+  process.env.NEXT_PUBLIC_CMS_URL ||
+  process.env.REVEALUI_PUBLIC_SERVER_URL ||
+  "http://localhost:4000";
 
 export async function fetchFromCMS<T>(
   endpoint: string,
-  options?: RequestInit
+  options?: RequestInit,
 ): Promise<T> {
   const url = `${CMS_URL}${endpoint}`;
   const response = await fetch(url, {
     ...options,
     headers: {
-      'Content-Type': 'application/json',
+      "Content-Type": "application/json",
       ...options?.headers,
     },
   });
@@ -167,7 +183,7 @@ Create fetch functions for each collection you need to access.
 **File**: `apps/mainframe/src/lib/api/fetchMainInfos.ts`
 
 ```typescript
-import { fetchFromCMS } from './client';
+import { fetchFromCMS } from "./client";
 
 export interface MainInfo {
   id: number;
@@ -181,7 +197,7 @@ export default async function fetchMainInfos(): Promise<MainInfo[]> {
   const response = await fetchFromCMS<{
     docs: MainInfo[];
     totalDocs: number;
-  }>('/api/collections/contents?where[type][equals]=main-info&depth=1');
+  }>("/api/collections/contents?where[type][equals]=main-info&depth=1");
 
   return response.docs || [];
 }
@@ -192,7 +208,7 @@ export default async function fetchMainInfos(): Promise<MainInfo[]> {
 **File**: `apps/mainframe/src/lib/api/fetchVideos.ts`
 
 ```typescript
-import { fetchFromCMS } from './client';
+import { fetchFromCMS } from "./client";
 
 export interface Video {
   url: string;
@@ -201,11 +217,13 @@ export interface Video {
 export default async function fetchVideos(): Promise<Video[]> {
   const response = await fetchFromCMS<{
     docs: Array<{ url?: string; file?: { url?: string } }>;
-  }>('/api/collections/videos?depth=1');
+  }>("/api/collections/videos?depth=1");
 
-  return response.docs.map((doc) => ({
-    url: doc.url || doc.file?.url || '',
-  })).filter((v) => v.url);
+  return response.docs
+    .map((doc) => ({
+      url: doc.url || doc.file?.url || "",
+    }))
+    .filter((v) => v.url);
 }
 ```
 
@@ -214,7 +232,7 @@ export default async function fetchVideos(): Promise<Video[]> {
 **File**: `apps/mainframe/src/lib/api/fetchCard.ts`
 
 ```typescript
-import { fetchFromCMS } from './client';
+import { fetchFromCMS } from "./client";
 
 export interface CardData {
   name: string;
@@ -222,13 +240,13 @@ export interface CardData {
   label: string;
   cta: string;
   href: string;
-  loading?: 'eager' | 'lazy';
+  loading?: "eager" | "lazy";
 }
 
 export default async function fetchCard(): Promise<CardData[]> {
   const response = await fetchFromCMS<{
     docs: CardData[];
-  }>('/api/collections/cards?depth=1');
+  }>("/api/collections/cards?depth=1");
 
   return response.docs || [];
 }
@@ -239,7 +257,7 @@ export default async function fetchCard(): Promise<CardData[]> {
 **File**: `apps/mainframe/src/lib/api/fetchHero.ts`
 
 ```typescript
-import { fetchFromCMS } from './client';
+import { fetchFromCMS } from "./client";
 
 export interface HeroData {
   id: number;
@@ -252,7 +270,7 @@ export interface HeroData {
 export default async function fetchHero(): Promise<HeroData[]> {
   const response = await fetchFromCMS<{
     docs: HeroData[];
-  }>('/api/collections/heros?depth=1');
+  }>("/api/collections/heros?depth=1");
 
   return response.docs || [];
 }
@@ -263,7 +281,7 @@ export default async function fetchHero(): Promise<HeroData[]> {
 **File**: `apps/mainframe/src/lib/api/fetchEvents.ts`
 
 ```typescript
-import { fetchFromCMS } from './client';
+import { fetchFromCMS } from "./client";
 
 export interface EventData {
   title: string;
@@ -276,7 +294,7 @@ export interface EventData {
 export default async function fetchEvents(): Promise<EventData[]> {
   const response = await fetchFromCMS<{
     docs: EventData[];
-  }>('/api/collections/events?depth=1');
+  }>("/api/collections/events?depth=1");
 
   return response.docs || [];
 }
@@ -287,7 +305,7 @@ export default async function fetchEvents(): Promise<EventData[]> {
 **File**: `apps/mainframe/src/lib/api/fetchBanner.ts`
 
 ```typescript
-import { fetchFromCMS } from './client';
+import { fetchFromCMS } from "./client";
 
 export interface BannerData {
   title: string;
@@ -300,7 +318,7 @@ export interface BannerData {
 export default async function fetchBanner(): Promise<BannerData[]> {
   const response = await fetchFromCMS<{
     docs: BannerData[];
-  }>('/api/collections/banners?depth=1');
+  }>("/api/collections/banners?depth=1");
 
   return response.docs || [];
 }
@@ -319,6 +337,7 @@ import fetchMainInfos from "../../lib/api/fetchMainInfos";
 ```
 
 Apply the same pattern to:
+
 - `apps/mainframe/src/components/Home/Header.tsx`
 - `apps/mainframe/src/components/Home/Card.tsx`
 - `apps/mainframe/src/components/Home/Hero.tsx`
@@ -404,11 +423,13 @@ Each collection serves a specific purpose on the frontend:
 **CMS Collection**: `contents`
 
 **Required Fields**:
+
 - `name` (text, required) - Used as `title`
 - `description` (text) - Used for `subtitle` and `description`
 - `image` (upload/relationship) - Main image
 
 **Notes**:
+
 - The `description` field is split: first sentence becomes `subtitle`, full text becomes `description`
 - Multiple entries will be displayed as separate sections
 
@@ -419,6 +440,7 @@ Each collection serves a specific purpose on the frontend:
 **CMS Collection**: `cards`
 
 **Required Fields**:
+
 - `name` (text) - Card title
 - `image` (upload/relationship) - Card image
 - `label` (text) - Subtitle/label text
@@ -427,6 +449,7 @@ Each collection serves a specific purpose on the frontend:
 - `loading` (radio: 'eager' or 'lazy') - Image loading strategy
 
 **Notes**:
+
 - Use `loading: "eager"` for above-the-fold cards
 - Use `loading: "lazy"` for cards that may be below the fold
 - Cards are displayed prominently, so use high-quality images
@@ -438,12 +461,14 @@ Each collection serves a specific purpose on the frontend:
 **CMS Collection**: `heros`
 
 **Required Fields**:
+
 - `href` (text) - Link destination (usually YouTube channel or video)
 - `altText` (text) - Image alt text
 - `image` (upload/relationship) - Hero image
 - `video` (text) - Video URL
 
 **Notes**:
+
 - Hero images should be large and high-quality (recommended: 1920x1080 or larger)
 - Video can be a YouTube URL or uploaded media file
 - Multiple heroes will be displayed in sequence
@@ -455,6 +480,7 @@ Each collection serves a specific purpose on the frontend:
 **CMS Collection**: `events`
 
 **Required Fields**:
+
 - `title` (text) - Main heading (e.g., "EVENTS")
 - `name` (text) - Subheading/event name
 - `description` (text) - Event description
@@ -462,6 +488,7 @@ Each collection serves a specific purpose on the frontend:
 - `alt` (text) - Image alt text
 
 **Notes**:
+
 - `title` is displayed as large heading (text-6xl to text-7xl)
 - Images should be engaging and action-oriented
 
@@ -472,6 +499,7 @@ Each collection serves a specific purpose on the frontend:
 **CMS Collection**: `banners`
 
 **Required Fields**:
+
 - `title` (text) - Banner heading
 - `description` (text) - Banner description
 - `image` (upload/relationship) - Banner image
@@ -479,6 +507,7 @@ Each collection serves a specific purpose on the frontend:
 - `alt` (text) - Image alt text
 
 **Notes**:
+
 - Banner component displays stats (hardcoded in component)
 - Only the first banner from the array is used
 
@@ -651,10 +680,12 @@ The CMS app will start on `http://localhost:4000`
 **Method 2: Using Draft Status**
 
 The Posts collection supports draft/published workflow:
+
 - **Draft**: Not visible to public
 - **Published**: Visible on `/posts` page
 
 To publish:
+
 1. Edit the post
 2. Set `_status` field to `"published"` (if available in UI)
 3. Or set `publishedAt` date
@@ -800,48 +831,57 @@ Ready-to-use content examples for each collection. Copy and paste these into you
 **Entry 1: Welcome Section**
 
 **Name**:
+
 ```
 Welcome
 ```
 
 **Description**:
+
 ```
 Welcome to [Your Site Name]. Discover our latest news, updates, and community highlights. We're glad you're here.
 ```
 
 **Image**:
+
 - Upload to Media first: a hero or welcome image
 - Link the uploaded media here
 
 **Entry 2: About Section**
 
 **Name**:
+
 ```
 About Us
 ```
 
 **Description**:
+
 ```
 [Your Site Name] is built on RevealUI — open-source business infrastructure for software companies. Users, content, products, payments, and AI, pre-wired and ready to deploy.
 ```
 
 **Image**:
+
 - Upload to Media first: an about or team image
 - Link the uploaded media here
 
 **Entry 3: Community Section**
 
 **Name**:
+
 ```
 Join Our Community
 ```
 
 **Description**:
+
 ```
 Connect with our growing community. Share your journey, learn from others, and be part of something bigger.
 ```
 
 **Image**:
+
 - Upload to Media first: a community or team gathering image
 - Link the uploaded media here
 
@@ -880,14 +920,14 @@ Connect with our growing community. Share your journey, learn from others, and b
 
 **Href**: `https://your-site.com`
 **Alt Text**: `[Descriptive alt text for hero image]`
-**Video**: *(leave blank or add a video URL)*
+**Video**: _(leave blank or add a video URL)_
 **Image**: Upload a hero image (recommended: 1200×600px or wider)
 
 **Entry 2: Featured Content Hero**
 
 **Href**: `https://your-site.com/featured`
 **Alt Text**: `[Descriptive alt text]`
-**Video**: *(optional video URL)*
+**Video**: _(optional video URL)_
 **Image**: Upload a featured content image
 
 **Banners Collection Examples**
@@ -904,6 +944,7 @@ Connect with our growing community. Share your journey, learn from others, and b
 **Link - Href**: `/about`
 **Link - Text**: `Learn More`
 **Stats**:
+
 - Label: Members, Value: [X]
 - Label: Posts, Value: [X]
 
@@ -921,6 +962,7 @@ Connect with our growing community. Share your journey, learn from others, and b
 **Link - Href**: `/join`
 **Link - Text**: `Get Started`
 **Stats**:
+
 - Label: Members, Value: [X]
 - Label: Countries, Value: [X]
 
@@ -1002,6 +1044,7 @@ Image: [Link uploaded media]
 
 **Problem**: API returns empty `docs` array
 **Solutions**:
+
 - Check if data exists in CMS admin
 - Verify collection access permissions
 - Check `where` filters are correct
@@ -1016,6 +1059,7 @@ Image: [Link uploaded media]
 **Images Not Displaying**
 
 **Solutions**:
+
 - Verify media is uploaded to Media collection
 - Check that image relationship is properly linked
 - Ensure image URLs are accessible
@@ -1024,6 +1068,7 @@ Image: [Link uploaded media]
 **Content Not Showing**
 
 **Solutions**:
+
 - Verify entries are created in correct collections
 - Check that required fields are filled
 - Ensure fetch functions are working (check Network tab)
@@ -1032,6 +1077,7 @@ Image: [Link uploaded media]
 **Wrong Data Displayed**
 
 **Solutions**:
+
 - Check field names match expected structure
 - Verify data mapping in fetch functions
 - Check component prop types
@@ -1044,6 +1090,7 @@ Image: [Link uploaded media]
 **Problem**: Post saved but not visible on `/posts`
 
 **Solutions**:
+
 1. Check `publishedAt` date is set
 2. Ensure date is not in the future
 3. Verify post `_status` is "published"
@@ -1054,6 +1101,7 @@ Image: [Link uploaded media]
 **Problem**: Content appears as raw HTML
 
 **Solutions**:
+
 1. Ensure RichText component is used on frontend
 2. Check content field type is `richText`
 3. Verify Lexical editor is configured
@@ -1063,6 +1111,7 @@ Image: [Link uploaded media]
 **Problem**: Media blocks show broken images
 
 **Solutions**:
+
 1. Verify media uploaded to Media collection
 2. Check Vercel Blob storage is configured
 3. Ensure image URLs are correct
@@ -1098,6 +1147,7 @@ Image: [Link uploaded media]
 **Quick Start Checklist**
 
 General Content:
+
 - [ ] Upload images to Media collection
 - [ ] Create 1-3 Contents entries
 - [ ] Create 2-4 Cards entries
@@ -1110,6 +1160,7 @@ General Content:
 - [ ] Verify all links work
 
 Blog Setup:
+
 - [ ] Create categories (optional)
 - [ ] Upload featured images to Media
 - [ ] Create first blog post
@@ -1168,33 +1219,33 @@ Blog Setup:
 
 **Content Tab**
 
-| Field | Type | Required | Description |
-|-------|------|----------|-------------|
-| `title` | Text | Yes | Post title |
-| `content` | Rich Text | Yes | Main post content with full editor |
+| Field     | Type      | Required | Description                        |
+| --------- | --------- | -------- | ---------------------------------- |
+| `title`   | Text      | Yes      | Post title                         |
+| `content` | Rich Text | Yes      | Main post content with full editor |
 
 **Meta Tab**
 
-| Field | Type | Required | Description |
-|-------|------|----------|-------------|
-| `relatedPosts` | Relationship | No | Link to related posts |
-| `categories` | Relationship | No | Post categories |
+| Field          | Type         | Required | Description           |
+| -------------- | ------------ | -------- | --------------------- |
+| `relatedPosts` | Relationship | No       | Link to related posts |
+| `categories`   | Relationship | No       | Post categories       |
 
 **SEO Tab**
 
-| Field | Type | Required | Description |
-|-------|------|----------|-------------|
-| `meta.image` | Relationship | No | Social sharing image |
-| `meta.title` | Text | No | Custom SEO title |
-| `meta.description` | Textarea | No | SEO description |
+| Field              | Type         | Required | Description          |
+| ------------------ | ------------ | -------- | -------------------- |
+| `meta.image`       | Relationship | No       | Social sharing image |
+| `meta.title`       | Text         | No       | Custom SEO title     |
+| `meta.description` | Textarea     | No       | SEO description      |
 
 **Sidebar Fields**
 
-| Field | Type | Required | Description |
-|-------|------|----------|-------------|
-| `publishedAt` | Date | No | Publication date |
-| `authors` | Relationship | No | Post authors |
-| `slug` | Text | Auto | URL-friendly identifier |
+| Field         | Type         | Required | Description             |
+| ------------- | ------------ | -------- | ----------------------- |
+| `publishedAt` | Date         | No       | Publication date        |
+| `authors`     | Relationship | No       | Post authors            |
+| `slug`        | Text         | Auto     | URL-friendly identifier |
 
 **CMS Guide Next Steps**
 
@@ -1244,6 +1295,7 @@ If you want to share fetch functions across multiple apps:
 4. Import in both CMS and Web apps
 
 This allows:
+
 - Shared TypeScript types
 - Reusable API utilities
 - Consistent error handling
@@ -1251,6 +1303,7 @@ This allows:
 ---
 
 ## Environment Options
+
 ---
 
 **Last Updated**: 2026-02-01

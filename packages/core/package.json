@@ -225,6 +225,10 @@
       "types": "./dist/monitoring/index.d.ts",
       "import": "./dist/monitoring/index.js"
     },
+    "./monitoring/process-registry": {
+      "types": "./dist/monitoring/process-registry.d.ts",
+      "import": "./dist/monitoring/process-registry.js"
+    },
     "./utils/error-responses": {
       "types": "./dist/utils/error-responses.d.ts",
       "import": "./dist/utils/error-responses.js"

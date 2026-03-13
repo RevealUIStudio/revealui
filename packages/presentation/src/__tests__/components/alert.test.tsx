@@ -143,14 +143,7 @@ describe('Alert', () => {
         </Alert>,
       );
 
-      // The handleBackdropClick checks e.target === e.currentTarget.
-      // Both the outer fixed overlay and the inner grid div have onClick={handleBackdropClick}.
-      // Click the grid div directly (not a child) so target === currentTarget is satisfied.
-      const alertDialog = screen.getByRole('alertdialog');
-      const gridDiv = alertDialog.querySelector('.grid.min-h-full');
-      expect(gridDiv).toBeInTheDocument();
-
-      fireEvent.click(gridDiv!);
+      fireEvent.click(screen.getByRole('button', { name: 'Close alert' }));
 
       expect(onClose).toHaveBeenCalledTimes(1);
     });

@@ -10,7 +10,15 @@ import { CircuitBreaker, CircuitBreakerOpenError } from '@revealui/core/error-ha
 import { getMaxAgentTasks } from '@revealui/core/license';
 import { logger } from '@revealui/core/observability/logger';
 import { getClient } from '@revealui/db';
-import { agentTaskUsage, licenses, users } from '@revealui/db/schema';
+import {
+  accountEntitlements,
+  accountMemberships,
+  accountSubscriptions,
+  agentTaskUsage,
+  billingCatalog,
+  licenses,
+  users,
+} from '@revealui/db/schema';
 import { and, desc, eq, gt } from 'drizzle-orm';
 import { HTTPException } from 'hono/http-exception';
 import Stripe from 'stripe';
@@ -20,6 +28,12 @@ interface UserContext {
   email: string | null;
   name: string;
   role: string;
+}
+
+interface RequestEntitlements {
+  limits?: {
+    maxAgentTasks?: number;
+  };
 }
 
 // biome-ignore lint/style/useNamingConvention: Hono requires PascalCase `Variables` in its generic type parameter
@@ -57,7 +71,7 @@ async function withStripe<T>(operation: (stripe: Stripe) => Promise<T>): Promise
 // ─── Schemas ─────────────────────────────────────────────────────────────────
 
 const CheckoutRequestSchema = z.object({
-  priceId: z.string().min(1).openapi({
+  priceId: z.string().min(1).optional().openapi({
     description: 'Stripe price ID for the subscription',
     example: 'price_abc123',
   }),
@@ -89,7 +103,7 @@ const ErrorSchema = z.object({
 });
 
 const UpgradeRequestSchema = z.object({
-  priceId: z.string().min(1).openapi({
+  priceId: z.string().min(1).optional().openapi({
     description: 'Stripe price ID for the target tier',
     example: 'price_enterprise_monthly',
   }),
@@ -157,6 +171,135 @@ async function ensureStripeCustomer(userId: string, email: string): Promise<stri
   return updated?.stripeCustomerId ?? customer.id;
 }
 
+type PaidTier = 'pro' | 'max' | 'enterprise';
+type BillingCatalogKind = 'subscription' | 'perpetual';
+
+async function resolveCatalogPriceId(
+  tier: PaidTier,
+  kind: BillingCatalogKind,
+  requestedPriceId?: string,
+): Promise<string> {
+  const db = getClient();
+  const planId = `${kind}:${tier}`;
+  const [catalogEntry] = await db
+    .select({ stripePriceId: billingCatalog.stripePriceId })
+    .from(billingCatalog)
+    .where(
+      and(
+        eq(billingCatalog.planId, planId),
+        eq(billingCatalog.tier, tier),
+        eq(billingCatalog.billingModel, kind),
+        eq(billingCatalog.active, true),
+      ),
+    )
+    .limit(1);
+
+  const resolvedPriceId =
+    catalogEntry?.stripePriceId ??
+    (kind === 'perpetual'
+      ? tier === 'pro'
+        ? (process.env.STRIPE_PERPETUAL_PRO_PRICE_ID ??
+          process.env.NEXT_PUBLIC_STRIPE_PRO_PERPETUAL_PRICE_ID)
+        : tier === 'max'
+          ? (process.env.STRIPE_PERPETUAL_MAX_PRICE_ID ??
+            process.env.NEXT_PUBLIC_STRIPE_MAX_PERPETUAL_PRICE_ID)
+          : (process.env.STRIPE_PERPETUAL_ENTERPRISE_PRICE_ID ??
+            process.env.NEXT_PUBLIC_STRIPE_ENTERPRISE_PERPETUAL_PRICE_ID)
+      : undefined);
+
+  if (!resolvedPriceId) {
+    throw new HTTPException(500, {
+      message: `Billing catalog is not configured for ${kind} ${tier}`,
+    });
+  }
+
+  if (kind === 'perpetual' && !catalogEntry?.stripePriceId) {
+    logger.warn('Billing catalog DB entry missing — falling back to env-backed Stripe price', {
+      tier,
+      billingModel: kind,
+      planId,
+    });
+  }
+
+  if (requestedPriceId && requestedPriceId !== resolvedPriceId) {
+    throw new HTTPException(400, {
+      message: 'Requested price does not match the server billing catalog.',
+    });
+  }
+
+  return resolvedPriceId;
+}
+
+async function getHostedSubscriptionSnapshot(userId: string): Promise<{
+  tier: 'free' | 'pro' | 'max' | 'enterprise';
+  status: string;
+} | null> {
+  const db = getClient();
+  const [membership] = await db
+    .select({ accountId: accountMemberships.accountId })
+    .from(accountMemberships)
+    .where(and(eq(accountMemberships.userId, userId), eq(accountMemberships.status, 'active')))
+    .limit(1);
+
+  if (!membership?.accountId) return null;
+
+  const [entitlement] = await db
+    .select({
+      tier: accountEntitlements.tier,
+      status: accountEntitlements.status,
+    })
+    .from(accountEntitlements)
+    .where(eq(accountEntitlements.accountId, membership.accountId))
+    .limit(1);
+
+  if (!entitlement?.tier) return null;
+
+  return {
+    tier: entitlement.tier as 'free' | 'pro' | 'max' | 'enterprise',
+    status: entitlement.status,
+  };
+}
+
+async function resolveHostedStripeCustomerId(userId: string): Promise<string | null> {
+  const db = getClient();
+  const [membership] = await db
+    .select({ accountId: accountMemberships.accountId })
+    .from(accountMemberships)
+    .where(and(eq(accountMemberships.userId, userId), eq(accountMemberships.status, 'active')))
+    .limit(1);
+
+  if (membership?.accountId) {
+    const [subscription] = await db
+      .select({ stripeCustomerId: accountSubscriptions.stripeCustomerId })
+      .from(accountSubscriptions)
+      .where(eq(accountSubscriptions.accountId, membership.accountId))
+      .limit(1);
+
+    if (subscription?.stripeCustomerId) {
+      return subscription.stripeCustomerId;
+    }
+  }
+
+  const [dbUser] = await db
+    .select({ stripeCustomerId: users.stripeCustomerId })
+    .from(users)
+    .where(eq(users.id, userId))
+    .limit(1);
+
+  return dbUser?.stripeCustomerId ?? null;
+}
+
+function resolveUsageQuota(c: { get: (key: string) => unknown }): number {
+  const requestEntitlements = c.get('entitlements') as RequestEntitlements | undefined;
+  const accountQuota = requestEntitlements?.limits?.maxAgentTasks;
+
+  if (typeof accountQuota === 'number') {
+    return accountQuota;
+  }
+
+  return getMaxAgentTasks();
+}
+
 // ─── Routes ──────────────────────────────────────────────────────────────────
 
 // POST /api/billing/checkout — Create a Stripe checkout session
@@ -193,6 +336,8 @@ app.openapi(checkoutRoute, async (c) => {
   }
 
   const { priceId, tier } = c.req.valid('json');
+  const resolvedTier = tier ?? 'pro';
+  const resolvedPriceId = await resolveCatalogPriceId(resolvedTier, 'subscription', priceId);
   const customerId = await ensureStripeCustomer(user.id, user.email ?? '');
 
   const cmsUrl = process.env.CMS_URL || process.env.NEXT_PUBLIC_SERVER_URL;
@@ -205,10 +350,10 @@ app.openapi(checkoutRoute, async (c) => {
       payment_method_types: ['card'],
       billing_address_collection: 'required',
       allow_promotion_codes: true,
-      line_items: [{ price: priceId, quantity: 1 }],
+      line_items: [{ price: resolvedPriceId, quantity: 1 }],
       subscription_data: {
         trial_period_days: 7,
-        metadata: { tier: tier || 'pro', revealui_user_id: user.id },
+        metadata: { tier: resolvedTier, revealui_user_id: user.id },
       },
       success_url: `${cmsUrl}/account/billing?success=true`,
       cancel_url: `${cmsUrl}/account/billing`,
@@ -247,19 +392,12 @@ app.openapi(portalRoute, async (c) => {
     throw new HTTPException(401, { message: 'Authentication required' });
   }
 
-  const db = getClient();
-  const [dbUser] = await db
-    .select({ stripeCustomerId: users.stripeCustomerId })
-    .from(users)
-    .where(eq(users.id, user.id));
-
-  if (!dbUser?.stripeCustomerId) {
+  const customerId = await resolveHostedStripeCustomerId(user.id);
+  if (!customerId) {
     throw new HTTPException(400, {
       message: 'No billing account found. Purchase a subscription first.',
     });
   }
-
-  const customerId = dbUser.stripeCustomerId;
   const cmsUrl = process.env.CMS_URL || process.env.NEXT_PUBLIC_SERVER_URL;
   if (!cmsUrl) throw new HTTPException(500, { message: 'CMS_URL is not configured' });
 
@@ -296,6 +434,19 @@ app.openapi(subscriptionRoute, async (c) => {
   const user = c.get('user');
   if (!user) {
     throw new HTTPException(401, { message: 'Authentication required' });
+  }
+
+  const hostedSubscription = await getHostedSubscriptionSnapshot(user.id);
+  if (hostedSubscription) {
+    return c.json(
+      {
+        tier: hostedSubscription.tier,
+        status: hostedSubscription.status,
+        expiresAt: null,
+        licenseKey: null,
+      },
+      200,
+    );
   }
 
   const db = getClient();
@@ -372,20 +523,14 @@ app.openapi(upgradeRoute, async (c) => {
   }
 
   const { priceId, targetTier } = c.req.valid('json');
+  const resolvedPriceId = await resolveCatalogPriceId(targetTier, 'subscription', priceId);
 
-  const db = getClient();
-  const [dbUser] = await db
-    .select({ stripeCustomerId: users.stripeCustomerId })
-    .from(users)
-    .where(eq(users.id, user.id));
-
-  if (!dbUser?.stripeCustomerId) {
+  const stripeCustomerId = await resolveHostedStripeCustomerId(user.id);
+  if (!stripeCustomerId) {
     throw new HTTPException(400, {
       message: 'No billing account found. Purchase a subscription first.',
     });
   }
-
-  const stripeCustomerId = dbUser.stripeCustomerId;
 
   // Find the user's current active subscription
   const subscriptionList = await withStripe((stripe) =>
@@ -409,7 +554,7 @@ app.openapi(upgradeRoute, async (c) => {
   // Swap the price and set tier metadata so the webhook can detect the upgrade
   await withStripe((stripe) =>
     stripe.subscriptions.update(subscription.id, {
-      items: [{ id: item.id, price: priceId }],
+      items: [{ id: item.id, price: resolvedPriceId }],
       metadata: { tier: targetTier, revealui_user_id: user.id },
       proration_behavior: 'create_prorations',
     }),
@@ -453,19 +598,12 @@ app.openapi(downgradeRoute, async (c) => {
     throw new HTTPException(401, { message: 'Authentication required' });
   }
 
-  const db = getClient();
-  const [dbUser] = await db
-    .select({ stripeCustomerId: users.stripeCustomerId })
-    .from(users)
-    .where(eq(users.id, user.id));
-
-  if (!dbUser?.stripeCustomerId) {
+  const stripeCustomerId = await resolveHostedStripeCustomerId(user.id);
+  if (!stripeCustomerId) {
     throw new HTTPException(400, {
       message: 'No billing account found.',
     });
   }
-
-  const stripeCustomerId = dbUser.stripeCustomerId;
 
   const subscriptionList = await withStripe((stripe) =>
     stripe.subscriptions.list({
@@ -498,7 +636,7 @@ app.openapi(downgradeRoute, async (c) => {
 
 // POST /api/billing/checkout-perpetual — One-time perpetual license purchase
 const PerpetualCheckoutRequestSchema = z.object({
-  priceId: z.string().min(1).openapi({
+  priceId: z.string().min(1).optional().openapi({
     description: 'Stripe price ID for the perpetual license product',
     example: 'price_pro_perpetual',
   }),
@@ -545,6 +683,7 @@ app.openapi(perpetualCheckoutRoute, async (c) => {
   }
 
   const { priceId, tier, githubUsername } = c.req.valid('json');
+  const resolvedPriceId = await resolveCatalogPriceId(tier, 'perpetual', priceId);
   const customerId = await ensureStripeCustomer(user.id, user.email ?? '');
 
   const cmsUrl = process.env.CMS_URL || process.env.NEXT_PUBLIC_SERVER_URL;
@@ -557,7 +696,7 @@ app.openapi(perpetualCheckoutRoute, async (c) => {
       payment_method_types: ['card'],
       billing_address_collection: 'required',
       allow_promotion_codes: true,
-      line_items: [{ price: priceId, quantity: 1 }],
+      line_items: [{ price: resolvedPriceId, quantity: 1 }],
       payment_intent_data: {
         metadata: {
           tier,
@@ -630,7 +769,7 @@ app.openapi(usageRoute, async (c) => {
     .where(and(eq(agentTaskUsage.userId, user.id), eq(agentTaskUsage.cycleStart, cycle)))
     .limit(1);
 
-  const quota = getMaxAgentTasks();
+  const quota = resolveUsageQuota(c);
 
   return c.json(
     {

@@ -9,6 +9,10 @@ description: >
   sponsor tiers, and legal pages. Custom Tailwind CSS components (not
   @revealui/presentation). Pricing data fetched from /api/pricing (ISR 1h).
 
+strategy:
+  commercial-story: "Marketing should position RevealUI around account-level subscriptions, metered agent execution, commerce fees, and trust/governance add-ons"
+  note: "Legacy subscription, credits, and perpetual language may still appear while the commercial packaging is being normalized"
+
 api-surface:
   waitlist:
     endpoint: "POST /api/waitlist"
@@ -44,9 +48,9 @@ ui-surface:
     location: "apps/marketing/src/app/pricing/page.tsx"
     status: functional
     tracks:
-      - "Subscriptions: Free, Pro ($49/mo), Max ($149/mo), Forge ($299/mo)"
-      - "Agent Credits: pay-per-task bundles (never expire, stack with monthly allowance)"
-      - "Perpetual Licenses: one-time payment, optional support renewal after 1 year"
+      - "Subscriptions: should converge on account or workspace plans"
+      - "Agent Credits: should evolve into clear metered agent execution units"
+      - "Perpetual Licenses: remain valid for deployment or specific product cases"
     data-source: "GET /api/pricing (Stripe Products API, ISR revalidate=3600)"
     faq-count: 8
   privacy:
@@ -85,3 +89,6 @@ limitations:
   - id: no-blog
     surface: ui
     summary: "No blog or content pages — only static marketing pages"
+  - id: pricing-story-transition
+    surface: ui
+    summary: "Pricing presentation may still reflect an older hybrid of seats, credits, and perpetual licenses rather than the target account-plus-metered model"

@@ -8,49 +8,51 @@ Essential scripts for initializing and configuring RevealUI development and prod
 # First-time setup (most common)
 pnpm setup:env        # Configure environment variables
 pnpm setup:node       # Ensure correct Node.js version
-pnpm db:init          # Initialize database schema
+pnpm revealui doctor  # Check local workspace health
+pnpm revealui dev up  # Bootstrap local dev environment
 
 # For MCP server development
-pnpm setup:mcp        # Configure MCP servers for AI agents
+pnpm setup:mcp        # Validate MCP credentials and setup
+revealui dev up --include mcp
 ```
 
 ## Database Setup
 
 ### Core Database Scripts
 
-| Script | Command | Description |
-|--------|---------|-------------|
-| `database.ts` | `pnpm db:init` | Initialize database schema and tables |
-| `reset-database.ts` | `pnpm db:reset` | Drop all tables and reinitialize (DESTRUCTIVE) |
-| `migrations.ts` | `pnpm db:migrate` | Run pending database migrations |
-| `seed-sample-content.ts` | `pnpm db:seed` | Populate database with sample data |
+| Script                   | Command           | Description                                    |
+| ------------------------ | ----------------- | ---------------------------------------------- |
+| `database.ts`            | `pnpm db:init`    | Initialize database schema and tables          |
+| `reset-database.ts`      | `pnpm db:reset`   | Drop all tables and reinitialize (DESTRUCTIVE) |
+| `migrations.ts`          | `pnpm db:migrate` | Run pending database migrations                |
+| `seed-sample-content.ts` | `pnpm db:seed`    | Populate database with sample data             |
 
 ### Advanced Database Scripts
 
-| Script | Purpose |
-|--------|---------|
-| `setup-dual-database.ts` | Configure both REST and Vector databases |
+| Script                     | Purpose                                        |
+| -------------------------- | ---------------------------------------------- |
+| `setup-dual-database.ts`   | Configure both REST and Vector databases       |
 | `setup-vector-database.ts` | Set up Supabase vector database for embeddings |
-| `migrate-vector-data.ts` | Migrate data to vector database |
+| `migrate-vector-data.ts`   | Migrate data to vector database                |
 
 **Note**: Test database utilities have been moved to `scripts/dev-tools/`
 
 ### Database Maintenance
 
-| Script | Purpose |
-|--------|---------|
+| Script                   | Purpose                                |
+| ------------------------ | -------------------------------------- |
 | `cleanup-rate-limits.ts` | Clear rate limit records from database |
-| `cleanup-sessions.ts` | Remove expired session data |
-| `setup-sync-schema.ts` | Configure schema for Electric sync |
+| `cleanup-sessions.ts`    | Remove expired session data            |
+| `setup-sync-schema.ts`   | Configure schema for Electric sync     |
 
 ## Environment Configuration
 
-| Script | Command | Description |
-|--------|---------|-------------|
-| `environment.ts` | `pnpm setup:env` | Interactive environment variable setup |
-| `validate-env.ts` | `pnpm validate:env` | Verify all required env vars are set |
-| `sync-env-to-dev-local.ts` | - | Sync env vars between files |
-| `generate-secret.ts` | - | Generate cryptographic secrets |
+| Script                     | Command             | Description                            |
+| -------------------------- | ------------------- | -------------------------------------- |
+| `environment.ts`           | `pnpm setup:env`    | Interactive environment variable setup |
+| `validate-env.ts`          | `pnpm validate:env` | Verify all required env vars are set   |
+| `sync-env-to-dev-local.ts` | -                   | Sync env vars between files            |
+| `generate-secret.ts`       | -                   | Generate cryptographic secrets         |
 
 ### Environment Variables Required
 
@@ -73,16 +75,17 @@ VERCEL_TOKEN=...               # For deployment
 
 ## Development Tools
 
-| Script | Command | Description |
-|--------|---------|-------------|
+| Script                  | Command           | Description                                   |
+| ----------------------- | ----------------- | --------------------------------------------- |
 | `setup-node-version.ts` | `pnpm setup:node` | Ensure correct Node.js version (via `.nvmrc`) |
-| `setup-mcp.ts` | `pnpm setup:mcp` | Configure MCP servers for AI development |
-| `setup-docker-wsl2.ts` | - | Configure Docker on WSL2 (Windows only) |
-| `install-clean.ts` | - | Clean install of all dependencies |
+| `setup-mcp.ts`          | `pnpm setup:mcp`  | Validate MCP credentials for AI development   |
+| `setup-docker-wsl2.ts`  | -                 | Configure Docker on WSL2 (Windows only)       |
+| `install-clean.ts`      | -                 | Clean install of all dependencies             |
 
 ## Development & Testing Tools
 
 Development and testing utilities have been moved to `scripts/dev-tools/`:
+
 - `test-database.ts` - Test database management
 - `teardown-test-database.ts` - Clean up test databases
 - `test-neon-connection.ts` - Verify Neon connectivity
@@ -104,8 +107,11 @@ pnpm tsx scripts/setup/setup-docker-wsl2.ts
 ### MCP Server Development
 
 ```bash
-# Configure MCP servers for AI-powered development
+# Configure MCP credentials for AI-powered development
 pnpm setup:mcp
+
+# Include MCP checks in the standard RevealUI bootstrap
+revealui dev up --include mcp
 
 # This sets up integration with:
 # - Supabase MCP (database management)
@@ -123,10 +129,10 @@ pnpm tsx scripts/setup/setup-dual-database.ts
 
 ## Maintenance Scripts
 
-| Script | When to Use |
-|--------|-------------|
-| `cleanup-failed-attempts.ts` | After failed migration attempts |
-| `test-cycle-fix.ts` | Fix circular dependency issues in tests |
+| Script                       | When to Use                             |
+| ---------------------------- | --------------------------------------- |
+| `cleanup-failed-attempts.ts` | After failed migration attempts         |
+| `test-cycle-fix.ts`          | Fix circular dependency issues in tests |
 
 ## Troubleshooting
 
@@ -137,7 +143,7 @@ pnpm tsx scripts/setup/setup-dual-database.ts
 pnpm tsx scripts/setup/test-neon-connection.ts
 
 # Check database status
-pnpm db:status
+pnpm revealui doctor
 ```
 
 ### Environment Variable Issues
@@ -185,8 +191,8 @@ pnpm setup:env
 # 4. Verify Node version
 pnpm setup:node
 
-# 5. Initialize database
-pnpm db:init
+# 5. Bootstrap local development
+pnpm revealui dev up
 
 # 6. Seed sample data (optional)
 pnpm db:seed
@@ -212,8 +218,8 @@ pnpm test:integration
 ### Local Testing Setup
 
 ```bash
-# 1. Reset database to clean state
-pnpm db:reset
+# 1. Inspect local bootstrap plan
+pnpm revealui dev up --dry-run
 
 # 2. Run migrations
 pnpm db:migrate

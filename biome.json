@@ -28,6 +28,7 @@
       "!**/.pnpm-store",
       "!**/.git",
       "!**/.cursor",
+      "!**/.worktrees",
       "!**/.revealui",
       "!**/.claude/skills",
       "!**/.claude/worktrees",

@@ -15,7 +15,7 @@
  *   pnpm gate --types          — include full type-system validation (gate:types) in phase 2
  *
  * Phases:
- *   1. Quality (parallel): lint, audits, structure validation
+ *   1. Quality (parallel): lint, audits, structure validation, boundary enforcement
  *   2. Types (serial): full typecheck across all packages
  *   3. Test + Build (parallel): unit tests and production build
  *
@@ -225,7 +225,6 @@ async function gate(): Promise<void> {
         name: 'Boundary validation',
         command: 'pnpm',
         args: ['validate:boundary'],
-        warnOnly: true,
       },
       {
         name: 'Version policy',
@@ -299,6 +298,10 @@ async function gate(): Promise<void> {
   if (phase === null || phase === 3) {
     logger.info('Phase 3 \u2014 Test + Build (parallel)');
 
+    const testArgs = changed
+      ? ['turbo', 'run', 'test', '--filter=...[HEAD~1]', '--concurrency=8']
+      : ['turbo', 'run', 'test', '--concurrency=8'];
+
     // In changed-only mode with --no-build: still build changed packages (fast scoped build)
     const buildCheck: CheckDef[] =
       noBuild && !changed
@@ -315,7 +318,7 @@ async function gate(): Promise<void> {
           : [{ name: 'Build', command: 'pnpm', args: ['build'], timeout: 900000 }];
 
     const phase3Checks: CheckDef[] = [
-      { name: 'Tests', command: 'pnpm', args: ['test'], warnOnly: true, timeout: 300000 },
+      { name: 'Tests', command: 'pnpm', args: testArgs, warnOnly: true, timeout: 300000 },
       ...buildCheck,
     ];
 

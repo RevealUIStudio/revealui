@@ -129,6 +129,7 @@ pnpm revealui maintain fix-imports --dry-run
 ```
 
 **Available CLIs:**
+
 - `db` - Database operations
 - `setup` - Environment setup
 - `validate` - Code validation
@@ -172,6 +173,7 @@ Commands:
 ```
 
 **Examples:**
+
 ```bash
 pnpm maintain:fix-imports --dry-run
 pnpm maintain:fix-lint --path "apps/**"
@@ -180,6 +182,7 @@ pnpm revealui maintain audit-scripts --json
 ```
 
 **Package.json scripts:**
+
 - `maintain:fix-imports`
 - `maintain:fix-lint`
 - `maintain:fix-types`
@@ -205,6 +208,7 @@ Commands:
 ```
 
 **Examples:**
+
 ```bash
 pnpm release:preview
 pnpm release:version patch
@@ -214,6 +218,7 @@ pnpm release:dry-run
 ```
 
 **Package.json scripts:**
+
 - `release:preview`
 - `release:version`
 - `release:changelog`
@@ -241,6 +246,7 @@ Commands:
 ```
 
 **Examples:**
+
 ```bash
 pnpm db:init
 pnpm db:status
@@ -257,7 +263,8 @@ Project and environment configuration.
 ```bash
 pnpm setup:env           # Interactive env setup
 pnpm setup:node          # Check Node version
-pnpm setup:mcp           # Configure MCP servers
+pnpm setup:mcp           # Validate MCP credentials
+pnpm revealui dev up     # Bootstrap local dev environment
 ```
 
 ---
@@ -426,27 +433,28 @@ All CLIs extend the `BaseCLI` class from `cli/_base.ts`:
 
 ```typescript
 class MyCLI extends BaseCLI {
-  name = 'mycli'
-  description = 'My CLI tool'
+  name = "mycli";
+  description = "My CLI tool";
 
   defineCommands(): CommandDefinition[] {
     return [
       {
-        name: 'mycommand',
-        description: 'My command',
+        name: "mycommand",
+        description: "My command",
         handler: async (args) => this.myCommand(args),
       },
-    ]
+    ];
   }
 
   private async myCommand(args: ParsedArgs) {
     // Implementation
-    return ok({ message: 'Success' })
+    return ok({ message: "Success" });
   }
 }
 ```
 
 **Features:**
+
 - Dual-mode output (human-readable + JSON)
 - Consistent argument parsing
 - Error handling with exit codes
@@ -504,6 +512,7 @@ pnpm vitest run __tests__/unit/logger.test.ts
 ### From Old Commands to New CLIs
 
 **Analysis Commands:**
+
 ```bash
 # Old
 pnpm analysis:quality
@@ -515,6 +524,7 @@ pnpm audit:console
 ```
 
 **Maintenance Commands:**
+
 ```bash
 # Old
 pnpm fix:import-extensions
@@ -524,6 +534,7 @@ pnpm ops fix-imports
 ```
 
 **Unified Access:**
+
 ```bash
 # Consolidated CLIs
 pnpm ops fix-lint
@@ -569,7 +580,7 @@ ls scripts/cli/
 - **Analysis**: `scripts/analyze/`, `cli/analyze.ts`
 - **Validation**: `scripts/validate/`, `cli/validate.ts`
 - **Setup**: `scripts/setup/`, `cli/setup.ts`
-- **Fixes**: `cli/maintain.ts` (consolidates fix-* scripts)
+- **Fixes**: `cli/maintain.ts` (consolidates fix-\* scripts)
 - **Release**: `cli/release.ts`
 
 ---
@@ -579,7 +590,7 @@ ls scripts/cli/
 - **CLI Details**: See individual CLI `--help` for command details
 - **Dev Tools**: [dev-tools/README.md](./dev-tools/README.md)
 - **Database**: [setup/README.md](./setup/README.md)
-- **Testing**: [__tests__/README.md](../__tests__/README.md)
+- **Testing**: [**tests**/README.md](../__tests__/README.md)
 - **Architecture**: [../docs/ARCHITECTURE.md](../docs/ARCHITECTURE.md)
 
 ---
@@ -632,111 +643,122 @@ When adding new scripts:
 #### Key Achievements
 
 **Phase 1: Critical Consolidations**
+
 - ✅ Created unified console analyzer (merged 2 files → 1, saved ~480 lines)
 - ✅ Created unified documentation validator (merged 4 files → 1, saved ~800 lines)
 - ✅ Consolidated automation engines (removed redundant wrapper, saved ~200 lines)
 - ✅ Merged error handling systems (enhanced with auto-suggestions, saved ~300 lines)
 
 **Phase 2: Architectural Improvements**
+
 - ✅ Added centralized `scanDirectory()` to `lib/utils.ts`
 - ✅ Updated scripts to use centralized scanner (saved ~150 lines)
 - ✅ Created unified CLI dispatcher (`lib/cli/dispatch.ts`)
 - ✅ Added `projectRoot` property to `BaseCLI` for consistent access
 
 **Phase 3: Directory Restructure**
+
 - ✅ Created `commands/fix/` for code modification scripts
-- ✅ Moved 5 fix-* scripts from `analyze/` to proper location
+- ✅ Moved 5 fix-\* scripts from `analyze/` to proper location
 - ✅ Exported consolidated modules from `lib/index.ts`
 - ✅ Validated all imports (zero broken imports)
 
 #### Metrics
 
-| Metric | Before | After | Improvement |
-|--------|---------|-------|-------------|
-| **Total Lines** | ~18,300 | ~16,370 | **-1,930 (-10.5%)** |
-| **Redundant Files** | 8 pairs | 0 | **-100%** |
-| **Duplicate Scanners** | 15+ | 1 | **-93%** |
-| **Console Analyzers** | 2 | 1 unified | **-50%** |
-| **Doc Validators** | 4 | 1 unified | **-75%** |
-| **Error Systems** | 2 | 1 unified | **-50%** |
-| **Automation Engines** | 2 | 1 | **-50%** |
-| **CLI Dispatch Patterns** | 2 | 1 | **-50%** |
+| Metric                    | Before  | After     | Improvement         |
+| ------------------------- | ------- | --------- | ------------------- |
+| **Total Lines**           | ~18,300 | ~16,370   | **-1,930 (-10.5%)** |
+| **Redundant Files**       | 8 pairs | 0         | **-100%**           |
+| **Duplicate Scanners**    | 15+     | 1         | **-93%**            |
+| **Console Analyzers**     | 2       | 1 unified | **-50%**            |
+| **Doc Validators**        | 4       | 1 unified | **-75%**            |
+| **Error Systems**         | 2       | 1 unified | **-50%**            |
+| **Automation Engines**    | 2       | 1         | **-50%**            |
+| **CLI Dispatch Patterns** | 2       | 1         | **-50%**            |
 
 #### New Modules
 
 **Analyzers (`lib/analyzers/`)**
+
 ```typescript
-import { ConsoleAnalyzer, analyzeFile } from '@revealui/scripts-lib'
+import { ConsoleAnalyzer, analyzeFile } from "@revealui/scripts-lib";
 
 // Use unified console analyzer
-const analyzer = new ConsoleAnalyzer(workspaceRoot)
-const usages = await analyzer.analyze('path/to/file.ts', 'auto')
+const analyzer = new ConsoleAnalyzer(workspaceRoot);
+const usages = await analyzer.analyze("path/to/file.ts", "auto");
 ```
 
 **Validators (`lib/validators/`)**
+
 ```typescript
-import { DocumentationValidator } from '@revealui/scripts-lib'
+import { DocumentationValidator } from "@revealui/scripts-lib";
 
 // Use unified documentation validator
-const validator = new DocumentationValidator(projectRoot)
+const validator = new DocumentationValidator(projectRoot);
 const result = await validator.validate({
   validateLinks: true,
   validateJSDoc: true,
   validateScriptRefs: true,
-})
+});
 ```
 
 **CLI Utilities (`lib/cli/`)**
+
 ```typescript
-import { dispatchCommand } from '@revealui/scripts-lib'
+import { dispatchCommand } from "@revealui/scripts-lib";
 
 // Use unified dispatcher (auto-selects best mode)
-await dispatchCommand('scripts/analyze/console-usage.ts', {
-  mode: 'auto',  // 'import' | 'subprocess' | 'auto'
+await dispatchCommand("scripts/analyze/console-usage.ts", {
+  mode: "auto", // 'import' | 'subprocess' | 'auto'
   args: parsedArgs,
-})
+});
 ```
 
 **File Scanning (`lib/utils.ts`)**
+
 ```typescript
-import { scanDirectory, scanDirectorySync } from '@revealui/scripts-lib'
+import { scanDirectory, scanDirectorySync } from "@revealui/scripts-lib";
 
 // Async generator (memory-efficient)
-for await (const file of scanDirectory('./src', { extensions: ['.ts'] })) {
-  console.log(file)
+for await (const file of scanDirectory("./src", { extensions: [".ts"] })) {
+  console.log(file);
 }
 
 // Synchronous (for existing scripts)
-const files = scanDirectorySync('./src', { extensions: ['.ts'] })
+const files = scanDirectorySync("./src", { extensions: [".ts"] });
 ```
 
 **Enhanced Errors (`lib/errors.ts`)**
+
 ```typescript
-import { ScriptError, ErrorCode } from '@revealui/scripts-lib'
+import { ScriptError, ErrorCode } from "@revealui/scripts-lib";
 
 // Errors now include auto-generated suggestions
-throw new ScriptError('Database connection failed', ErrorCode.EXECUTION_ERROR, {
-  suggestions: ['Check DATABASE_URL', 'Ensure database is running'],
-  recovery: ['Run: pnpm db:init', 'Verify connection string'],
-  docsUrl: 'https://docs.revealui.dev/database',
-})
+throw new ScriptError("Database connection failed", ErrorCode.EXECUTION_ERROR, {
+  suggestions: ["Check DATABASE_URL", "Ensure database is running"],
+  recovery: ["Run: pnpm db:init", "Verify connection string"],
+  docsUrl: "https://docs.revealui.dev/database",
+});
 ```
 
 #### Architecture Improvements
 
 **Clear Separation of Concerns**
+
 - `analyze/` - Read-only code analysis
-- `validate/` - Pass/fail validation checks  
+- `validate/` - Pass/fail validation checks
 - `commands/fix/` - Code modification scripts
 - `lib/` - Shared reusable modules
 
 **Unified Patterns**
+
 - Single scanDirectory implementation (was 15+)
 - Single CLI dispatch pattern (was 2 different)
 - Single error system with suggestions (was 2 separate)
 - Consistent project root access across all CLIs
 
 **Developer Experience**
+
 - ✅ Easier to find code (logical organization)
 - ✅ Single import for shared utilities
 - ✅ Auto-generated error suggestions
@@ -748,39 +770,45 @@ throw new ScriptError('Database connection failed', ErrorCode.EXECUTION_ERROR, {
 **For Script Authors:**
 
 1. **Using Console Analyzer:**
+
    ```typescript
    // Old (multiple implementations)
-   import { scanForConsole } from './old-scanner.js'
-   
+   import { scanForConsole } from "./old-scanner.js";
+
    // New (unified)
-   import { ConsoleAnalyzer } from '@revealui/scripts-lib'
-   const analyzer = new ConsoleAnalyzer(workspaceRoot)
+   import { ConsoleAnalyzer } from "@revealui/scripts-lib";
+   const analyzer = new ConsoleAnalyzer(workspaceRoot);
    ```
 
 2. **Using File Scanner:**
+
    ```typescript
    // Old (custom scanDirectory in each script)
-   function scanDirectory(dir, exts) { /* ... */ }
-   
+   function scanDirectory(dir, exts) {
+     /* ... */
+   }
+
    // New (centralized)
-   import { scanDirectorySync } from '@revealui/scripts-lib'
-   const files = scanDirectorySync(dir, { extensions: exts })
+   import { scanDirectorySync } from "@revealui/scripts-lib";
+   const files = scanDirectorySync(dir, { extensions: exts });
    ```
 
 3. **Error Handling:**
+
    ```typescript
    // Old
-   throw new Error('Something failed')
-   
+   throw new Error("Something failed");
+
    // New (with auto-suggestions)
-   import { ScriptError, ErrorCode } from '@revealui/scripts-lib'
-   throw new ScriptError('Something failed', ErrorCode.EXECUTION_ERROR)
+   import { ScriptError, ErrorCode } from "@revealui/scripts-lib";
+   throw new ScriptError("Something failed", ErrorCode.EXECUTION_ERROR);
    // Automatically includes suggestions based on error message!
    ```
 
 **For CLI Developers:**
 
 1. **Project Root Access:**
+
    ```typescript
    // Now available in all CLIs
    class MyCLI extends BaseCLI {
@@ -792,14 +820,15 @@ throw new ScriptError('Database connection failed', ErrorCode.EXECUTION_ERROR, {
    ```
 
 2. **Dispatching Commands:**
+
    ```typescript
    // Use unified dispatcher
-   import { dispatchCommand } from '@revealui/scripts-lib'
-   
+   import { dispatchCommand } from "@revealui/scripts-lib";
+
    await dispatchCommand(scriptPath, {
-     mode: 'auto',  // Smart auto-selection
+     mode: "auto", // Smart auto-selection
      args: parsedArgs,
-   })
+   });
    ```
 
 #### Validation
@@ -812,11 +841,13 @@ throw new ScriptError('Database connection failed', ErrorCode.EXECUTION_ERROR, {
 #### Next Steps
 
 **Recommended:**
+
 - [ ] Update remaining scripts to use centralized scanner (~6 files)
 - [ ] Update CLIs to use unified dispatcher (optional, incremental)
 - [ ] Add JSDoc to consolidated modules (ongoing)
 
 **Performance Notes:**
+
 - Centralized scanner is ~15% faster (reduced FS operations)
 - Auto-mode dispatch optimizes for script characteristics
 - Memory usage reduced by eliminating duplicate code paths
@@ -828,4 +859,3 @@ throw new ScriptError('Database connection failed', ErrorCode.EXECUTION_ERROR, {
 - [CONTRIBUTING.md](../../CONTRIBUTING.md) - Development guidelines
 - [Architecture](../../docs/ARCHITECTURE.md) - System architecture
 - [Package Reference](../../docs/REFERENCE.md) - Package API docs
-

@@ -9,6 +9,12 @@ import { LRUCache } from '@revealui/core/utils/cache';
 
 const logs = false;
 
+type StripePriceService = {
+  prices: {
+    retrieve(priceId: string): Promise<unknown>;
+  };
+};
+
 // Shared cache instance for Stripe API responses
 // 5 minute TTL, max 100 entries to prevent memory leaks
 const cache = new LRUCache<string, StripePriceData>({
@@ -18,7 +24,7 @@ const cache = new LRUCache<string, StripePriceData>({
 
 // Retrieve a single Stripe price by price ID with caching
 async function cachedRetrievePrice(
-  stripe: Awaited<typeof import('@revealui/services')>['protectedStripe'],
+  stripe: StripePriceService,
   priceId: string,
 ): Promise<StripePriceData> {
   return cache.fetch(`price_${priceId}`, async () => {

@@ -165,6 +165,7 @@ export function Checkbox({
   );
 
   return (
+    // biome-ignore lint/a11y/useSemanticElements: headless checkbox intentionally exposes checkbox semantics on a custom control
     <span
       data-slot="control"
       role="checkbox"

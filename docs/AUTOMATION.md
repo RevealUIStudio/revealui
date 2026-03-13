@@ -2,6 +2,8 @@
 
 Comprehensive guide to automation, AI agents, code quality analysis, and development integrations in the RevealUI Framework.
 
+Commercial note: automation and AI features should be priced primarily through account-level entitlements plus metered execution, not only static tier flags or per-user license assumptions.
+
 ## Table of Contents
 
 1. [AI Agents](#ai-agents)
@@ -41,12 +43,23 @@ Comprehensive guide to AI agent capabilities, configurations, and workflows in t
 ### Current State (2026-03-03)
 
 **Project Overview**
+
 - **Framework**: RevealUI — Full-stack React 19 + Next.js 16 CMS Framework
 - **Package Count**: 18 packages (13 OSS + 5 Pro)
 - **Test Status**: 307+ test files, all packages build and typecheck ✅
 - **Build Status**: All 24 workspaces build successfully ✅
 
+### Commercial Direction
+
+From 2026 onward, automation features should align with:
+
+- platform subscription value at the account or workspace level
+- metered agent execution for workflows, tool calls, and expensive automations
+- optional commerce-linked fees when automation participates in paid transactions
+- trust and governance controls as premium capabilities
+
 **Package Structure**
+
 ```
 packages/
 ├── core/           # CMS framework (includes types/ and generated/)
@@ -72,34 +85,42 @@ packages/
 ### Key Files to Read First
 
 **1. Package Structure**
+
 - [Package Conventions](../packages/PACKAGE-CONVENTIONS.md) - How packages are organized
 
 **2. Current Status**
+
 - [Architecture](./ARCHITECTURE.md) - System architecture and patterns
 
 **3. Code Conventions**
+
 - [Code Standards](./STANDARDS.md) - Code style, linting, module resolution
 - [Package Conventions](../packages/PACKAGE-CONVENTIONS.md) - Package organization
 
 ### Common Tasks & Documentation
 
 **Adding a New Feature**
+
 1. Review [Package Conventions](../packages/PACKAGE-CONVENTIONS.md)
 2. Check [Code Standards](./STANDARDS.md)
 3. Follow [Testing Guide](./testing/TESTING.md)
 
 **Working with Types**
+
 1. [Package Conventions - Types Section](../packages/PACKAGE-CONVENTIONS.md#types-and-generated-code)
 2. Types live in `@revealui/contracts` (Zod schemas) and `@revealui/core/types` (CMS types)
 
 **Database Operations**
+
 1. [Database Guide](./DATABASE.md) - Schema, migrations, queries
 2. Schemas in `packages/db/src/schema/` — Drizzle ORM
 
 **Authentication**
+
 1. [Auth Guide](./AUTH.md) - System design, usage, migration
 
 **Deployment**
+
 1. [Deployment Runbook](./guides/deployment/DEPLOYMENT_RUNBOOK.md)
 2. [CI/CD Guide](./development/CI_CD_GUIDE.md)
 3. [Environment Variables Guide](./development/ENVIRONMENT_VARIABLES_GUIDE.md)
@@ -107,18 +128,21 @@ packages/
 ### Important Conventions
 
 **Import Paths**
+
 - Use `@/lib/*` for CMS app imports
 - Use `revealui/*` for framework imports
 - Use `@revealui/core/types` (NOT `@revealui/types` - merged)
 - Use `@revealui/core/generated` (NOT `@revealui/generated` - merged)
 
 **Code Style**
+
 - **Quotes**: Single quotes for strings, double for JSX
 - **Semicolons**: Omit when not required
 - **Module System**: ESM only (NO CommonJS)
 - **Package Manager**: Always use `pnpm` (never `npx`, use `pnpm dlx`)
 
 **Next.js 16**
+
 - `params` and `searchParams` are Promises - always await them
 - Use `export const dynamic = "force-dynamic"` for dynamic routes
 
@@ -137,17 +161,19 @@ docs/
 ### Quick Reference
 
 **Package Imports**
+
 ```typescript
 // ✅ CORRECT (current)
-import type { Config } from '@revealui/core/types'
-import { GeneratedComponent } from '@revealui/core/generated/components'
+import type { Config } from "@revealui/core/types";
+import { GeneratedComponent } from "@revealui/core/generated/components";
 
 // ❌ WRONG (old, merged)
-import type { Config } from '@revealui/types'
-import { GeneratedComponent } from '@revealui/generated/components'
+import type { Config } from "@revealui/types";
+import { GeneratedComponent } from "@revealui/generated/components";
 ```
 
 **Common Commands**
+
 ```bash
 # Build all packages
 pnpm build
@@ -198,6 +224,7 @@ The agent is **required** to:
 5. **No Grace Period**: Deprecated code must be removed within the same development cycle
 
 **This is not optional** - it's enforced on every agent interaction. The agent will:
+
 - Check for legacy code before making changes
 - Refactor to new implementations if legacy code is found
 - Remove old code as part of the change
@@ -221,6 +248,7 @@ The agent enforces these RevealUI-specific conventions:
 #### Scaffold Commands
 
 **Page Scaffolding** (`.cursor/commands/scaffold-page.ts`):
+
 - Generate new pages with templates (landing, dashboard, profile, settings)
 - Automatically include MCP integration hooks
 - Generate TypeScript types for new pages
@@ -237,12 +265,14 @@ The agent enforces these RevealUI-specific conventions:
 **File**: `.cursor/cohesion-analysis.json`
 
 The agent can access **code cohesion analysis** that identifies:
+
 - Duplicate patterns (e.g., `getRevealUI({ config })` calls found 11 times)
 - Type safety violations (60 instances of `as any`)
 - Import inconsistencies (110 unscoped imports)
 - Pattern recommendations
 
 **Current Analysis**:
+
 - 225 total pattern instances across 91 files
 - 1 CRITICAL issue (type assertions with `as any`)
 - 2 HIGH issues (duplicate patterns)
@@ -274,6 +304,7 @@ packages/
 #### Import Path Awareness
 
 The agent enforces correct import paths:
+
 - `@/lib/*` - CMS app imports
 - `@revealui/core` - CMS framework imports
 - `@revealui/db` - Database imports
@@ -300,6 +331,7 @@ The agent runs quality checks via scripts:
 #### Validation Scripts
 
 Pre-launch and continuous validation:
+
 - `scripts/validation/pre-launch-validation.ts`
 - `scripts/validation/run-automated-validation.ts`
 - `scripts/validation/check-console-statements.ts`
@@ -307,6 +339,7 @@ Pre-launch and continuous validation:
 #### Build & Test Awareness
 
 The agent knows:
+
 - **Turbopack** is preferred over Webpack for Next.js builds
 - Test locations: `*.test.ts` or `*.spec.ts` next to source files
 - Coverage reporting via `pnpm test:coverage`
@@ -319,12 +352,14 @@ The agent knows:
 **File**: `scripts/docs/detect-stale-docs.ts`, `scripts/docs/docs-lifecycle.ts`
 
 The agent can:
+
 - Detect stale documentation
 - Manage assessment documents
 - Archive old documentation
 - Consolidate duplicate docs
 
 **Commands**:
+
 - `tsx scripts/docs/detect-stale-docs.ts`
 - `tsx scripts/docs/manage-assessments.ts`
 
@@ -340,6 +375,7 @@ The agent can:
 #### Test Utilities Package
 
 The agent knows about `@revealui/test` package with:
+
 - Integration test utilities
 - Database test setup/teardown
 - Auth testing helpers
@@ -348,6 +384,7 @@ The agent knows about `@revealui/test` package with:
 #### Test Scripts
 
 Located in `/scripts/test/`:
+
 - `auth-direct-test.ts` - Direct auth testing
 - `auth-e2e-test.ts` - End-to-end auth flows
 - `performance-baseline.ts` - Performance benchmarking
@@ -356,6 +393,7 @@ Located in `/scripts/test/`:
 #### Test Configuration
 
 The agent is aware of:
+
 - Vitest configuration for unit tests
 - Playwright configuration for E2E tests
 - Test database setup patterns
@@ -379,6 +417,7 @@ The agent can access and act on cohesion analysis that identifies:
    - 110 unscoped imports (`revealui/` instead of `@revealui/`)
 
 The agent uses this data to:
+
 - Prioritize refactoring efforts
 - Suggest pattern extraction into utilities
 - Identify technical debt hotspots
@@ -388,6 +427,7 @@ The agent uses this data to:
 #### Environment Variables
 
 The agent knows:
+
 - `.env` files are **tracked in git** (production values in CI/CD)
 - Required variables: `REVEALUI_SECRET`, `REVEALUI_PUBLIC_SERVER_URL`
 - Database: `POSTGRES_URL` (PGlite used for local dev/testing when unavailable)
@@ -403,6 +443,7 @@ The agent knows:
 **File**: `scripts/automation/auto-start-dev.ts`
 
 The agent understands the development workflow:
+
 - `pnpm dev` runs pre-hook automation before starting servers
 - `pnpm dev:no-automation` bypasses automation
 - Background server execution patterns
@@ -423,25 +464,30 @@ The agent understands the development workflow:
 The codebase includes **specialized agent configurations** that guide behavior for specific tasks:
 
 ### 1. Next.js Agent (`.cursor/agents/nextjs.md`)
+
 - Next.js 16 specific patterns and route handlers
 - Dynamic route handling with `export const dynamic = "force-dynamic"`
 - Promise-based params/searchParams patterns
 
 ### 2. Next.js Error Analyzer (`.cursor/agents/nextjs-error-analyzer.md`)
+
 - **Experimental**: Capture and analyze browser console errors using MCP
 - Integrated debugging capabilities
 
 ### 3. CMS Agent (`.cursor/agents/cms.md`)
+
 - RevealUI CMS collections, hooks, and access control patterns
 - Collection configuration patterns
 - Admin interface patterns
 
 ### 4. TypeScript Agent (`.cursor/agents/typescript.md`)
+
 - Type checking and fixes specific to RevealUI's type system
 - Aware of framework-specific types (`Config`, `CollectionConfig`)
 - Type generation workflows
 
 ### 5. Testing Agent (`.cursor/agents/testing.md`)
+
 - Vitest and Playwright patterns
 - Framework-specific test utilities from `@revealui/test`
 
@@ -471,6 +517,7 @@ The agent has access to extensive automation scripts in `/scripts`:
 - **Validation**: Pre-launch validation, package verification, security testing
 
 **Command Examples**:
+
 - `pnpm analysis:console` - Audit console usage
 - `tsx scripts/docs/detect-stale-docs.ts` - Find stale documentation
 - `tsx scripts/analysis/analyze-code-quality.ts` - Analyze code quality patterns
@@ -516,6 +563,7 @@ The agent has access to **6 MCP servers** configured specifically for RevealUI:
 **Configuration Files**: `.cursor/mcp-config.json`, `.mcp/config.json`
 
 **Capabilities**:
+
 - Direct integration with deployment pipelines
 - Payment processing workflows
 - Database operations without manual SQL
@@ -581,6 +629,7 @@ When you run `pnpm dev`, the automation script:
 **Enable Configuration Check (Default)**
 
 By default, MCP configuration is checked if:
+
 - `.cursor/mcp-config.json` exists (MCP is configured)
 - Required environment variables are set for the servers
 
@@ -614,16 +663,11 @@ The automation checks for these servers and validates their configuration:
 
 **By Cursor IDE (Recommended)**: Cursor IDE automatically starts MCP servers when needed based on `.cursor/mcp-config.json`.
 
-**Manual Start**: Start MCP servers manually if needed:
+**Manual Preparation**: Validate MCP credentials and include MCP checks in the standard RevealUI bootstrap:
 
 ```bash
-# All servers
-pnpm mcp:all
-
-# Individual servers
-pnpm mcp:vercel
-pnpm mcp:stripe
-# etc...
+pnpm setup:mcp
+revealui dev up --include mcp
 ```
 
 ### Rev Workflow Suggestions
@@ -727,11 +771,13 @@ pnpm dev:no-automation
 #### MCP Servers Not Starting
 
 1. **Check configuration**:
+
    ```bash
    ls .cursor/mcp-config.json  # Should exist
    ```
 
 2. **Check environment variables**:
+
    ```bash
    # Verify required vars are set
    echo $VERCEL_API_KEY
@@ -739,9 +785,9 @@ pnpm dev:no-automation
    # etc...
    ```
 
-3. **Manual start** (to see errors):
+3. **Validate MCP setup** (to see errors):
    ```bash
-   pnpm mcp:all
+   pnpm setup:mcp
    ```
 
 #### Automation Script Failing
@@ -749,6 +795,7 @@ pnpm dev:no-automation
 The automation script is designed to **never block** `pnpm dev` startup. If automation fails, you'll see a warning but dev will still start.
 
 To debug:
+
 ```bash
 # Run automation script directly
 tsx scripts/automation/auto-start-dev.ts
@@ -773,7 +820,8 @@ If MCP servers are already running from a previous session, starting them again 
 
 - `pnpm dev` - Start dev with automation (default)
 - `pnpm dev:no-automation` - Start dev without automation
-- `pnpm mcp:all` - Start all MCP servers manually
+- `pnpm setup:mcp` - Validate MCP credentials manually
+- `revealui dev up --include mcp` - Include MCP checks in the standard bootstrap flow
 - `pnpm rev:start` - Start a Rev workflow
 - `pnpm rev:status` - Check Rev workflow status
 
@@ -799,12 +847,14 @@ RevealUI uses Vercel for both staging and production deployments. This document 
 ### Environments
 
 #### Staging Environment
+
 - **Trigger**: Automatic on pushes to `main` branch
 - **Purpose**: Performance testing and validation
 - **URL**: Auto-generated Vercel deployment URL (e.g., `https://revealui-xyz.vercel.app`)
 - **Retention**: Deployments are temporary and may be cleaned up by Vercel
 
 #### Production Environment
+
 - **Trigger**: Manual approval after staging validation
 - **Purpose**: Live user-facing application
 - **URL**: Production domain (configured in Vercel)
@@ -815,6 +865,7 @@ RevealUI uses Vercel for both staging and production deployments. This document 
 Add these secrets to your GitHub repository:
 
 #### Vercel Integration
+
 ```
 VERCEL_TOKEN          # Vercel API token for deployments
 VERCEL_PROJECT_ID     # Optional: Project ID for advanced Vercel features
@@ -822,6 +873,7 @@ VERCEL_ORG_ID         # Optional: Organization ID for team deployments
 ```
 
 #### Environment Variables
+
 ```
 STAGING_URL           # Base URL for staging performance tests
 PRODUCTION_URL        # Production domain URL
@@ -830,6 +882,7 @@ PRODUCTION_URL        # Production domain URL
 ### Vercel Configuration
 
 #### Project Setup
+
 1. Connect your GitHub repository to Vercel
 2. Configure build settings:
    - **Framework**: Next.js (for CMS) + Static (for Web)
@@ -838,12 +891,14 @@ PRODUCTION_URL        # Production domain URL
    - **Install Command**: `pnpm install --frozen-lockfile`
 
 #### Domain Configuration
+
 - **Staging**: Uses Vercel's auto-generated URLs
 - **Production**: Configure your custom domain in Vercel dashboard
 
 ### Deployment Workflow
 
 #### Automatic Staging Deployment
+
 1. **Trigger**: Push to `main` branch or manual workflow dispatch
 2. **Build**: Packages and applications are built
 3. **Deploy**: Pushed to Vercel staging
@@ -851,6 +906,7 @@ PRODUCTION_URL        # Production domain URL
 5. **Gate**: Results determine production deployment readiness
 
 #### Manual Production Deployment
+
 1. **Trigger**: Manual workflow dispatch after staging approval
 2. **Validation**: Requires staging URL input
 3. **Deploy**: Production deployment to custom domain
@@ -862,32 +918,40 @@ PRODUCTION_URL        # Production domain URL
 #### Common Issues
 
 **Vercel CLI Authentication**
+
 ```
 Error: No authorization token was found
 ```
+
 **Solution**: Ensure `VERCEL_TOKEN` secret is properly set
 
 **Build Failures**
+
 ```
 Error: Build failed due to missing dependencies
 ```
+
 **Solution**: Check that `pnpm install` completed successfully
 
 **Domain Configuration**
+
 ```
 Error: Domain not configured
 ```
+
 **Solution**: Configure custom domain in Vercel dashboard
 
 #### Rollback Procedures
 
 **Emergency Rollback**
+
 1. Go to Vercel Dashboard → Your Project → Deployments
 2. Find the failing deployment
 3. Click "Rollback" to revert to previous version
 4. Monitor application health
 
 **Via GitHub Actions**
+
 1. Run "Production Deployment" workflow with `force_deploy: true`
 2. Select a previous working deployment
 3. Monitor rollback completion
@@ -895,10 +959,12 @@ Error: Domain not configured
 ### Monitoring
 
 #### Health Checks
+
 - **Staging**: Automatic health checks during deployment
 - **Production**: Smoke tests after deployment completion
 
 #### Performance Monitoring
+
 - **Lighthouse**: Automated performance scoring
 - **Load Testing**: Response time and throughput validation
 - **Regression Detection**: Performance baseline comparisons
@@ -919,6 +985,7 @@ Error: Domain not configured
 ### Support
 
 For deployment issues:
+
 1. Check Vercel dashboard for deployment logs
 2. Review GitHub Actions workflow runs
 3. Check environment variables and secrets
@@ -935,11 +1002,13 @@ This guide provides comprehensive testing procedures for the GitHub infrastructu
 ### Pre-Testing Checklist
 
 #### Repository Configuration
+
 - [ ] Branch protection rules applied to `main` branch
 - [ ] Required secrets configured (`VERCEL_TOKEN`, etc.)
 - [ ] All workflows are present and syntactically valid
 
 #### Local Development Setup
+
 - [ ] Node.js 24.x installed (check `.nvmrc`)
 - [ ] Dependencies installed (`pnpm install`)
 - [ ] All validation scripts executable
@@ -960,6 +1029,7 @@ pnpm run validate:ts
 ```
 
 **Expected Results:**
+
 - ✅ Scripts run without errors
 - ✅ Clear pass/fail messages
 - ✅ No missing dependencies or configuration issues
@@ -979,6 +1049,7 @@ pnpm changeset:version --dry-run
 #### Manual Branch Protection Test
 
 1. **Create Test Branch:**
+
    ```bash
    git checkout -b test-infrastructure
    git commit --allow-empty -m "Test infrastructure"
@@ -1006,6 +1077,7 @@ pnpm changeset:version --dry-run
 #### Test CI Pipeline Execution
 
 **Monitor CI Checks on Test PR:**
+
 - [ ] `validate-config` - Should pass configuration validation
 - [ ] `lint` - Should run Biome checks
 - [ ] `typecheck` - Should validate TypeScript compilation
@@ -1018,6 +1090,7 @@ pnpm changeset:version --dry-run
 - [ ] `integration-tests` - Should run database integration tests
 
 **Expected Results:**
+
 - ✅ All checks pass (green checkmarks)
 - ✅ No workflow failures
 - ✅ Test coverage reports generated
@@ -1026,12 +1099,14 @@ pnpm changeset:version --dry-run
 #### Test Security Scanning
 
 **Verify Security Checks:**
+
 - [ ] Snyk vulnerability scan completes
 - [ ] Secret scanning runs without errors
 - [ ] Dependency review executes
 - [ ] CodeQL analysis finishes
 
 **Security Test Scenario:**
+
 ```bash
 # Create a test file with a fake secret (remove after test)
 echo "API_KEY=fake_secret_123" > test-secret.txt
@@ -1041,6 +1116,7 @@ git push
 ```
 
 **Expected Results:**
+
 - ⚠️ Secret scanning should flag the fake secret
 - ✅ Other security checks should pass
 - 🧹 Remove the test file after verification
@@ -1050,11 +1126,13 @@ git push
 #### Test Staging Deployment
 
 **Trigger Staging Deployment:**
+
 1. Merge the test PR to `main` branch
 2. Monitor the "Performance" workflow
 3. Check staging deployment job
 
 **Verify Staging Deployment:**
+
 - [ ] Vercel deployment succeeds
 - [ ] Health checks pass
 - [ ] Performance tests run against staging URL
@@ -1063,6 +1141,7 @@ git push
 #### Test Production Deployment Gates
 
 **Verify Production Gates:**
+
 - [ ] Staging tests must pass before production deployment
 - [ ] Production deployment requires manual approval
 - [ ] Production deployment uses staging artifacts
@@ -1083,6 +1162,7 @@ pnpm validate:all
 #### Monitor Workflow Metrics
 
 **Check GitHub Actions:**
+
 - [ ] All workflows complete successfully
 - [ ] No workflow timeouts or cancellations
 - [ ] Reasonable execution times (< 15 minutes for CI)
@@ -1091,6 +1171,7 @@ pnpm validate:all
 ### Test Scenarios
 
 #### Happy Path Testing
+
 1. **Clean PR:** Create PR with no issues
    - Expected: All checks pass, mergeable after approval
 
@@ -1104,6 +1185,7 @@ pnpm validate:all
    - Expected: `test` check fails, blocks merge
 
 #### Security Testing
+
 1. **Vulnerable Dependencies:** Add known vulnerable package
    - Expected: Security scans fail, blocks merge
 
@@ -1111,6 +1193,7 @@ pnpm validate:all
    - Expected: Secret scanning alerts, review required
 
 #### Deployment Testing
+
 1. **Staging Success:** Clean merge triggers staging
    - Expected: Staging deploys successfully, tests pass
 
@@ -1120,24 +1203,28 @@ pnpm validate:all
 ### Troubleshooting Common Issues
 
 #### Status Checks Not Appearing
+
 ```
 Problem: Required status checks don't show in branch protection
 Solution: Wait 5-10 minutes after workflows run, then refresh
 ```
 
 #### Workflow Not Triggering
+
 ```
 Problem: Workflows not running on PR
 Solution: Check workflow triggers match branch names exactly
 ```
 
 #### Deployment Failures
+
 ```
 Problem: Vercel deployment fails
 Solution: Check VERCEL_TOKEN secret is configured correctly
 ```
 
 #### Validation Script Errors
+
 ```
 Problem: Local validation scripts fail
 Solution: Ensure all dependencies are installed and Node.js version matches
@@ -1146,6 +1233,7 @@ Solution: Ensure all dependencies are installed and Node.js version matches
 ### Success Criteria
 
 #### Infrastructure Health
+
 - [ ] All workflows execute successfully
 - [ ] Branch protection prevents unauthorized merges
 - [ ] Security scanning blocks vulnerable code
@@ -1153,12 +1241,14 @@ Solution: Ensure all dependencies are installed and Node.js version matches
 - [ ] Validation scripts provide clear feedback
 
 #### Developer Experience
+
 - [ ] Clear error messages and guidance
 - [ ] Reasonable wait times for CI checks
 - [ ] Helpful documentation and troubleshooting
 - [ ] No false positives in validation
 
 #### Security Posture
+
 - [ ] Zero bypassable security controls
 - [ ] All code changes require review
 - [ ] Security scans prevent vulnerable deployments
@@ -1167,6 +1257,7 @@ Solution: Ensure all dependencies are installed and Node.js version matches
 ### Performance Benchmarks
 
 #### CI Pipeline Performance
+
 - **Total CI Time:** < 15 minutes
 - **Individual Job Times:**
   - `lint`: < 2 minutes
@@ -1176,6 +1267,7 @@ Solution: Ensure all dependencies are installed and Node.js version matches
   - `build-web`: < 2 minutes
 
 #### Deployment Performance
+
 - **Staging Deploy:** < 5 minutes
 - **Production Deploy:** < 3 minutes (after approval)
 - **Health Checks:** < 1 minute
@@ -1183,16 +1275,19 @@ Solution: Ensure all dependencies are installed and Node.js version matches
 ### Continuous Monitoring
 
 #### Daily Checks
+
 - [ ] Workflow success rates (> 95%)
 - [ ] Average CI completion times
 - [ ] Security scan results (no critical vulnerabilities)
 
 #### Weekly Reviews
+
 - [ ] Branch protection effectiveness
 - [ ] Deployment success rates
 - [ ] User feedback on development experience
 
 #### Monthly Audits
+
 - [ ] Security control effectiveness
 - [ ] Performance regression detection
 - [ ] Infrastructure documentation updates
@@ -1227,93 +1322,114 @@ This section clearly defines the boundaries between automated and manual process
 ### ✅ Automated Systems (Working)
 
 #### 1. File Organization System
+
 **Status:** ✅ Fully Automated
 **Coverage:** ~30% of infrastructure
 
 **What it handles:**
+
 - Automatic analysis → plan → implementation → review promotion
 - File lifecycle management with standardized naming
 - Search and discovery across all documentation
 - Cleanup of old files (configurable retention)
 
 **Boundaries:**
+
 - Requires analyses to have specific section headers
 - Cannot create content, only organize existing files
 - Manual intervention needed for complex merges
 
 #### 2. Basic TypeScript Fixes
+
 **Status:** ✅ Automated for Simple Cases
 **Coverage:** Presentation package issues
 
 **What it handles:**
+
 - Adding `| undefined` to optional properties
 - Simple type assertion fixes
 - Component interface corrections
 
 **Boundaries:**
+
 - Cannot handle complex type inference issues
 - Limited to pattern-based fixes
 - Supabase integration issues require manual intervention
 
 #### 3. Linting Fixes
+
 **Status:** ✅ Mostly Automated
 **Coverage:** Standard linting violations
 
 **What it handles:**
+
 - Unused import removal
 - Code formatting fixes
 - Standard rule violations
 
 **Boundaries:**
+
 - Complex refactoring beyond simple fixes
 - Custom rule violations requiring judgment
 
 ### ❌ Manual Intervention Required
 
 #### 1. Complex TypeScript Issues
+
 **Status:** ❌ Manual Only
 **Examples:**
+
 - Supabase `never` type constraints
 - Advanced generic type inference
 - Complex schema type mismatches
 
 **Why Manual:**
+
 - Requires deep understanding of type relationships
 - Pattern-based fixes insufficient
 - Risk of breaking functionality too high
 
 #### 2. Cursor IDE Integration
+
 **Status:** ❌ Manual Investigation Required
 **Issues:**
+
 - Command registration not working
 - IDE-specific integration challenges
 - Undocumented requirements
 
 **Why Manual:**
+
 - Requires IDE-specific knowledge
 - May involve Cursor configuration changes
 - Platform-specific integration issues
 
 #### 3. Advanced Validation Issues
+
 **Status:** ❌ Manual for Complex Cases
 **Examples:**
+
 - Multi-package dependency conflicts
 - Complex test environment issues
 - Integration test failures
 
 **Why Manual:**
+
 - Requires understanding of system interactions
 - Automated fixes may mask underlying issues
 - Risk assessment needed for each case
 
 #### 4. Architecture Decisions
+
 **Status:** ❌ Manual Only
 **Examples:**
+
 - New feature design decisions
 - API contract changes
 - Database schema modifications
 
 **Why Manual:**
+
 - Requires business context and user impact assessment
 - Cannot be automated without understanding requirements
 - Involves stakeholder decisions
@@ -1321,32 +1437,38 @@ This section clearly defines the boundaries between automated and manual process
 ### 🔄 Hybrid Approaches (Automated + Manual Oversight)
 
 #### 1. Validation Enforcement
+
 **Current Status:** Attempts automation, blocks on failures
 **Future Potential:** Smart failure analysis with suggested fixes
 
 #### 2. Code Generation
+
 **Current Status:** Provides guidance, requires manual implementation
 **Future Potential:** Automatic application with human approval
 
 #### 3. Testing
+
 **Current Status:** Generates tests, requires manual validation
 **Future Potential:** Automatic test execution with coverage analysis
 
 ### 📊 Automation Maturity Levels
 
 #### Level 1: Basic Automation (Current)
+
 - File organization ✅
 - Simple fixes ✅
 - Status tracking ✅
 - Basic validation ✅
 
 #### Level 2: Intermediate Automation (Next Target)
+
 - Complex type fixes 🤔
 - IDE integration 🤔
 - Advanced validation 🤔
 - Code generation 🤔
 
 #### Level 3: Advanced Automation (Future)
+
 - Architecture decisions 🤔
 - Complex refactoring 🤔
 - Multi-system integration 🤔
@@ -1355,18 +1477,21 @@ This section clearly defines the boundaries between automated and manual process
 ### 🎯 Practical Guidelines
 
 #### When to Use Automation
+
 - ✅ File organization and search
 - ✅ Simple code fixes and formatting
 - ✅ Status tracking and reporting
 - ✅ Basic validation checks
 
 #### When to Use Manual Intervention
+
 - ❌ Complex type errors
 - ❌ IDE integration issues
 - ❌ Architecture decisions
 - ❌ High-risk changes
 
 #### When to Combine Both
+
 - 🤔 Complex fixes with automated suggestions
 - 🤔 Code generation with manual review
 - 🤔 Testing with automated execution
@@ -1374,16 +1499,19 @@ This section clearly defines the boundaries between automated and manual process
 ### 🚀 Improvement Roadmap
 
 #### Phase 1: Stabilize Current Automation (Priority: High)
+
 - Fix validation timeout issues
 - Improve error handling in automated systems
 - Add better logging and monitoring
 
 #### Phase 2: Expand Automation Coverage (Priority: Medium)
+
 - Enhance type fixing capabilities
 - Improve IDE integration reliability
 - Add more sophisticated validation
 
 #### Phase 3: Advanced Automation (Priority: Low)
+
 - AI-assisted code generation
 - Automated refactoring
 - Intelligent architecture suggestions
@@ -1391,18 +1519,21 @@ This section clearly defines the boundaries between automated and manual process
 ### 📋 Development Workflow Recommendations
 
 #### For Automated Tasks
+
 1. Use file organization system for documentation
 2. Apply automated fixes where available
 3. Run validation checks regularly
 4. Monitor automated system health
 
 #### For Manual Tasks
+
 1. Clearly document manual intervention needs
 2. Provide context for complex decisions
 3. Create reproducible steps for fixes
 4. Update automation boundaries as systems improve
 
 #### For Hybrid Tasks
+
 1. Use automation for initial analysis
 2. Apply manual judgment for complex cases
 3. Document learnings for future automation
@@ -1411,16 +1542,19 @@ This section clearly defines the boundaries between automated and manual process
 ### ⚠️ Important Warnings
 
 #### Don't Over-Rely on Automation
+
 - Automation works best for well-defined, repetitive tasks
 - Complex problems often need human insight
 - Automated systems can fail silently
 
 #### Don't Under-Use Automation
+
 - Many routine tasks are well-automated
 - File organization provides real productivity gains
 - Automated validation catches many issues early
 
 #### Monitor and Maintain
+
 - Automated systems need regular maintenance
 - Monitor for failures and edge cases
 - Update automation as codebase evolves
@@ -1436,12 +1570,14 @@ Branch protection rules are **critical security controls** that prevent unauthor
 ### Critical Security Impact
 
 **Without Branch Protection:**
+
 - ❌ PRs can be merged without reviews
 - ❌ Failing CI checks are ignored
 - ❌ Security vulnerabilities bypass validation
 - ❌ Code quality standards unenforced
 
 **With Branch Protection:**
+
 - ✅ All changes require code review
 - ✅ CI/CD pipelines must pass
 - ✅ Security scans block vulnerable code
@@ -1452,6 +1588,7 @@ Branch protection rules are **critical security controls** that prevent unauthor
 #### Target Branch: `main`
 
 #### Require Pull Request Reviews
+
 ```
 Required approving reviews: 1
 Dismiss stale pull request approvals: true
@@ -1462,7 +1599,9 @@ Allow deletions: false
 ```
 
 #### Require Status Checks
+
 **Required status checks before merging:**
+
 - `validate-config` (CI)
 - `lint` (CI)
 - `typecheck` (CI)
@@ -1479,6 +1618,7 @@ Allow deletions: false
 - `codeql-analysis` (Security Scanning)
 
 #### Additional Settings
+
 ```
 Require branches to be up to date: true
 Restrict who can dismiss pull request reviews: [Repository administrators only]
@@ -1556,6 +1696,7 @@ EOF
 ### Verification Steps
 
 #### Manual Verification
+
 1. **Create a test PR** to the main branch
 2. **Verify required checks** are running
 3. **Attempt to merge without approval** - should be blocked
@@ -1629,6 +1770,7 @@ try {
 ### Required Status Checks Explained
 
 #### CI Pipeline Checks
+
 - **`validate-config`**: Ensures environment configuration is valid
 - **`lint`**: Code style and quality validation
 - **`typecheck`**: TypeScript compilation verification
@@ -1641,6 +1783,7 @@ try {
 - **`integration-tests`**: End-to-end integration testing
 
 #### Security Scanning Checks
+
 - **`snyk-security`**: Snyk vulnerability scanning
 - **`secret-scanning`**: GitLeaks secret detection
 - **`dependency-review`**: GitHub dependency review
@@ -1649,19 +1792,23 @@ try {
 ### Troubleshooting
 
 #### Status Checks Not Appearing
+
 **Problem:** Required status checks don't show up in branch protection settings
 
 **Solutions:**
+
 1. **Wait for workflow runs**: Status checks only appear after workflows have run
 2. **Check workflow names**: Ensure job names match exactly in branch protection
 3. **Verify workflow triggers**: Ensure workflows run on pull requests to main
 
 #### PR Reviews Being Dismissed
+
 **Problem:** Reviews are dismissed when new commits are pushed
 
 **Solution:** This is expected behavior with "Dismiss stale reviews" enabled. Re-request review after addressing feedback.
 
 #### Administrators Can't Merge
+
 **Problem:** Repository admins can't merge their own PRs
 
 **Solution:** This is expected with "Include administrators" enabled. Require another admin or team member to review.
@@ -1669,6 +1816,7 @@ try {
 ### Advanced Configuration
 
 #### Code Owners Integration
+
 ```yaml
 # .github/CODEOWNERS
 # Require code owner reviews for specific paths
@@ -1677,13 +1825,17 @@ packages/security/ @security-team
 ```
 
 #### Branch Protection for Other Branches
+
 Consider protecting `develop` branch with similar rules:
+
 - Fewer required reviews (1 instead of 2)
 - Same status checks
 - Allow force pushes for maintainers
 
 #### Status Check Customization
+
 For complex repositories, consider:
+
 - **Separate check suites** for different types of validation
 - **Conditional checks** based on changed files
 - **External status checks** from third-party services
@@ -1691,12 +1843,14 @@ For complex repositories, consider:
 ### Security Benefits
 
 #### Attack Vector Mitigation
+
 - **Prevents unauthorized merges** without review
 - **Blocks vulnerable code** through security scanning
 - **Enforces quality standards** automatically
 - **Maintains audit trail** of all changes
 
 #### Compliance Benefits
+
 - **SOX/HIPAA**: Change approval requirements
 - **GDPR**: Data protection through security scanning
 - **Industry Standards**: CIS, NIST security controls
@@ -1704,11 +1858,13 @@ For complex repositories, consider:
 ### Monitoring & Maintenance
 
 #### Regular Audits
+
 - **Monthly**: Review branch protection effectiveness
 - **Quarterly**: Update required status checks for new workflows
 - **After incidents**: Verify controls prevented similar issues
 
 #### Metrics to Track
+
 - **PR merge success rate**: Should be high with proper reviews
 - **Time to merge**: Should balance speed vs. quality
 - **Security incidents prevented**: Track vulnerabilities caught by scans
@@ -1716,12 +1872,15 @@ For complex repositories, consider:
 ### Emergency Procedures
 
 #### Temporary Bypass (Rare)
+
 In extreme circumstances, administrators can temporarily disable branch protection, but this should:
+
 1. Be logged with justification
 2. Be re-enabled immediately after
 3. Trigger additional security review
 
 #### Alternative Merge Strategies
+
 - **Squash merges**: Clean history, easier to revert
 - **Rebase merges**: Linear history, preserves context
 - **Merge commits**: Full history preservation
@@ -1729,6 +1888,7 @@ In extreme circumstances, administrators can temporarily disable branch protecti
 ### Support
 
 For branch protection issues:
+
 1. Check repository settings → Branches
 2. Verify workflow status in Actions tab
 3. Review PR checks and required statuses
@@ -1743,6 +1903,7 @@ Automated cohesion analysis and cleanup system for RevealUI Framework.
 ## Cohesion Overview
 
 The Cohesion Engine provides:
+
 1. **Analysis** - Detects cohesion issues (patterns, metrics, type safety)
 2. **Assessment** - Generates brutally honest assessment documents
 3. **Fixes** - Automatically fixes issues (Phase 3 - minimal structure)
@@ -1877,6 +2038,7 @@ Running Claude Code in Antigravity's terminal gives the agent full access to you
 #### Setup
 
 1. **Install Claude Code globally**:
+
    ```bash
    pnpm add -g @anthropic-ai/claude-code
    ```
@@ -1897,6 +2059,7 @@ RevealUI includes several **Model Context Protocol (MCP)** servers that provide 
 #### Shared MCP Servers
 
 The project is configured to use:
+
 - **Vercel MCP**: Manage deployments and storage.
 - **Stripe MCP**: Manage payments and products.
 - **Neon/Supabase MCP**: Query your production/dev databases.
@@ -1926,9 +2089,10 @@ Skills typically include customized instructions (in `SKILL.md`) and specialized
 
 ### Option 4: Antigravity-Claude Proxy
 
-If you want to use Antigravity's models (like Gemini 2.0 Pro) *inside* the Claude Code CLI, you can use the community-built proxy.
+If you want to use Antigravity's models (like Gemini 2.0 Pro) _inside_ the Claude Code CLI, you can use the community-built proxy.
 
 1. **Install the proxy**:
+
    ```bash
    pnpm add -g antigravity-claude-proxy
    ```
@@ -1946,6 +2110,7 @@ Rev is an iterative workflow system that integrates with the Cohesion Engine for
 ### Overview
 
 Rev provides:
+
 - **Iterative Workflow**: Run cohesion analysis, assessment, and fixes as part of Rev iterations
 - **Stage Tracking**: Tracks progress through analyze → assess → fix → complete stages
 - **Status Reporting**: View current workflow status and progress
@@ -2009,6 +2174,7 @@ The cohesion workflow runs through these stages automatically:
 ### State Management
 
 Cohesion workflow state is stored in:
+
 - `.cursor/cohesion-rev-state.json` - Cohesion-specific state
 - `.cursor/rev-state.md` - Rev workflow state (iteration tracking)
 
@@ -2051,6 +2217,7 @@ pnpm rev:continue
 #### `pnpm cohesion:rev workflow`
 
 Runs the cohesion workflow as a Rev iteration. Automatically progresses through stages:
+
 - Runs analysis if not complete
 - Runs assessment if analysis complete
 - Runs fixes (dry-run) if assessment complete
@@ -2058,6 +2225,7 @@ Runs the cohesion workflow as a Rev iteration. Automatically progresses through 
 #### `pnpm cohesion:rev status`
 
 Shows current cohesion workflow status:
+
 - Current stage
 - Iteration number
 - Stage completion status
@@ -2082,6 +2250,7 @@ Shows current cohesion workflow status:
 ### Completion Detection
 
 The cohesion workflow respects Rev's completion promise mechanism:
+
 - If completion marker matches promise, workflow completes
 - State is saved and workflow can be continued later
 - All stages are idempotent (safe to re-run)
@@ -2118,11 +2287,13 @@ pnpm rev:start "Assess codebase cohesion"
 ```
 
 **What Gets Added**:
+
 - Brutal honesty criteria (blunt language, quantitative evidence, code examples)
 - Explicit requirements (no euphemisms, realistic grades)
 - Validation notice (assessment will be checked)
 
 **To Disable** (not recommended):
+
 ```bash
 pnpm rev:start "Assess codebase" --no-brutal-honesty
 ```
@@ -2138,6 +2309,7 @@ pnpm cohesion:assess
 ```
 
 **Validation Checks**:
+
 - ✅ Uses blunt, direct language (not euphemisms)
 - ✅ Includes quantitative evidence (numbers, percentages)
 - ✅ Includes code examples (file:line references)
@@ -2147,6 +2319,7 @@ pnpm cohesion:assess
 - ✅ Includes "Would I Use This" assessment
 
 **Scoring**:
+
 - **70+ points**: Passes brutal honesty validation
 - **< 70 points**: Automatically enhanced, warnings shown
 
@@ -2280,11 +2453,13 @@ pnpm rev:start "Refactor authentication system"
 **Default**: Enabled for all workflows
 
 **Disable for specific workflow**:
+
 ```bash
 pnpm rev:start "Assess codebase" --no-brutal-honesty
 ```
 
 **Check if enabled**:
+
 - Look for "Brutal honesty mode enabled" message when starting workflow
 
 ### Benefits
@@ -2353,6 +2528,7 @@ State Persistence
 **Location**: `.cursor/` directory
 
 **Files**:
+
 - `cohesion-analysis.json` - Analysis results
 - `cohesion-rev-state.json` - Rev workflow state
 - `rev-state.md` - Iteration tracking
@@ -2390,16 +2566,19 @@ All integrations can leverage the configured MCP servers:
 ## Related Documentation
 
 ### AI Agents
+
 - [Agent Quick Start Guide](#quick-start-for-agents)
 - [MCP Setup Guide](../mcp/MCP_SETUP.md)
 - [Project Architecture](../architecture/UNIFIED_BACKEND_ARCHITECTURE.md)
 
 ### Automation
+
 - [Deployment Runbook](./CI_CD_GUIDE.md)
 - [CI/CD Guide](./CI_CD_GUIDE.md)
 - [Environment Variables Guide](./ENVIRONMENT_VARIABLES_GUIDE.md)
 
 ### Cohesion & Quality
+
 - `scripts/cohesion/` - Implementation files
 
 **Last Updated**: March 2026

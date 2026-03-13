@@ -8,7 +8,8 @@
  * Usage:
  *   POSTGRES_URL="postgresql://..." pnpm validate:production
  *
- * See: packages/ai/TESTING.md for full documentation
+ * Public repo validates OSS/database behavior by default.
+ * Pro package validation only runs when the private package source is present.
  *
  * @dependencies
  * - scripts/lib/errors.ts - ErrorCode enum for exit codes
@@ -125,18 +126,12 @@ async function checkDatabaseConnection(postgresUrl: string, projectRoot: string)
   }
 }
 
-async function checkPackages(projectRoot: string) {
+async function checkPackages(projectRoot: string): Promise<boolean> {
   logger.header('Package Check');
 
   const memoryDir = join(projectRoot, 'packages/memory');
   const dbDir = join(projectRoot, 'packages/db');
   const aiDir = join(projectRoot, 'packages/ai');
-
-  if (!(await fileExists(memoryDir))) {
-    recordError('packages/memory directory not found');
-    process.exit(ErrorCode.EXECUTION_ERROR);
-  }
-  recordSuccess('Memory package found');
 
   if (!(await fileExists(dbDir))) {
     recordError('packages/db directory not found');
@@ -144,11 +139,14 @@ async function checkPackages(projectRoot: string) {
   }
   recordSuccess('Database package found');
 
-  if (!(await fileExists(aiDir))) {
-    recordError('packages/ai directory not found');
-    process.exit(ErrorCode.EXECUTION_ERROR);
+  const hasProPackages = (await fileExists(memoryDir)) && (await fileExists(aiDir));
+  if (!hasProPackages) {
+    recordWarning(
+      'Pro validation skipped: packages/memory or packages/ai not present in public repo',
+    );
+    return false;
   }
-  recordSuccess('AI package found');
+  recordSuccess('Pro validation packages found');
 
   // Check if packages are built
   const aiDist = join(aiDir, 'dist');
@@ -167,6 +165,8 @@ async function checkPackages(projectRoot: string) {
   } else {
     recordSuccess('AI package already built');
   }
+
+  return true;
 }
 
 async function runIntegrationTests(postgresUrl: string, projectRoot: string) {
@@ -202,7 +202,7 @@ async function runIntegrationTests(postgresUrl: string, projectRoot: string) {
     logger.info('Test output:');
     logger.info(testResult.message);
     logger.info('');
-    recordInfo('See packages/ai/TESTING.md for troubleshooting');
+    recordInfo('See the internal Pro package test documentation for troubleshooting');
     process.exit(ErrorCode.EXECUTION_ERROR);
   }
 
@@ -242,7 +242,7 @@ async function checkPerformance(testOutput: string) {
   } else {
     recordWarning('No performance metrics found in test output');
     recordInfo('Performance tests may be in separate test file or not included');
-    recordInfo('See packages/ai/TESTING.md for manual performance validation');
+    recordInfo('See internal Pro package docs for manual performance validation');
   }
 }
 
@@ -252,14 +252,18 @@ async function runValidation() {
   const projectRoot = await getProjectRoot(import.meta.url);
   const postgresUrl = await checkEnvironment();
   await checkDatabaseConnection(postgresUrl, projectRoot);
-  await checkPackages(projectRoot);
+  const hasProPackages = await checkPackages(projectRoot);
 
   logger.header('Migration Check');
   recordInfo('Checking if migrations need to be applied...');
   recordWarning("Note: Run 'pnpm --filter @revealui/db db:push' if migrations are needed");
 
-  const testOutput = await runIntegrationTests(postgresUrl, projectRoot);
-  await checkPerformance(testOutput);
+  if (hasProPackages) {
+    const testOutput = await runIntegrationTests(postgresUrl, projectRoot);
+    await checkPerformance(testOutput);
+  } else {
+    recordInfo('Skipping Pro integration and performance validation in public repo');
+  }
 
   // Summary
   logger.header('Validation Summary');

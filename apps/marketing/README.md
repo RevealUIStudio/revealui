@@ -1,6 +1,6 @@
 # RevealUI Marketing Site
 
-Marketing and waitlist site for RevealUI — open-source business infrastructure for software companies.
+Marketing and waitlist site for RevealUI — open-source business infrastructure for software companies with account-level subscriptions, metered agent execution, and commerce-ready premium features.
 
 **Tagline:** "Build your business, not your boilerplate."
 
@@ -40,10 +40,19 @@ DATABASE_URL=            # NeonDB connection string (waitlist storage)
 ## Routes
 
 - `/` — Landing page
-- `/pricing` — Pro/Enterprise pricing tiers
+- `/pricing` — Pro/Enterprise pricing and commercial packaging
 - `/sponsor` — Sponsorship tiers
 - `/privacy` — Privacy policy
 - `/terms` — Terms of service
+
+## Commercial framing
+
+The marketing site should present RevealUI as:
+
+- platform software sold at the account or workspace level
+- metered agent execution for automation and paid AI work
+- optional commerce-linked fees where RevealUI participates in transactions
+- premium trust and governance controls for approval, audit, and compliance needs
 
 ## Key Components
 

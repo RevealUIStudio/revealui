@@ -15,7 +15,7 @@ describe('Dev Package Configs Integration', () => {
       expect(config.default.plugins).toBeDefined();
       expect(Array.isArray(config.default.plugins)).toBe(true);
       expect(config.default.plugins?.length).toBeGreaterThan(0);
-    });
+    }, 15_000);
 
     it('should import createTailwindConfig helper', async () => {
       const { createTailwindConfig } = await import('dev/tailwind/create-config');

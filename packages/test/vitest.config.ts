@@ -19,8 +19,10 @@ export default defineConfig({
   test: {
     // Exclude E2E tests (run separately with Playwright)
     include: ['src/**/*.test.ts', 'src/**/*.spec.ts'],
-    exclude: ['src/integration/**', '**/e2e/**', '**/node_modules/**'], // Exclude integration tests - they use separate config
+    exclude: ['src/integration/**', 'src/integration-pro/**', '**/e2e/**', '**/node_modules/**'], // Exclude integration tests - they use separate configs
     environment: 'node',
+    fileParallelism: false,
+    maxWorkers: 1,
     globals: true,
     env: {
       VITEST: 'true',

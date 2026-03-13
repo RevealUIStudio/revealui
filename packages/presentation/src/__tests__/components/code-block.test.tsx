@@ -1,4 +1,4 @@
-import { fireEvent, render, screen } from '@testing-library/react';
+import { fireEvent, render, screen, waitFor } from '@testing-library/react';
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import { CodeBlock } from '../../components/code-block.js';
 
@@ -31,6 +31,9 @@ describe('CodeBlock', () => {
     const writeText = vi.spyOn(navigator.clipboard, 'writeText').mockResolvedValue();
     render(<CodeBlock code="copy me" showCopy />);
     fireEvent.click(screen.getByRole('button'));
-    expect(writeText).toHaveBeenCalledWith('copy me');
+    await waitFor(() => {
+      expect(writeText).toHaveBeenCalledWith('copy me');
+      expect(screen.getByRole('button', { name: 'Copied' })).toBeInTheDocument();
+    });
   });
 });

@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 
-import { createCli } from '../dist/cli.js';
+import { createLegacyCreateCli } from '../dist/cli.js';
 
-const program = createCli();
+const program = createLegacyCreateCli();
 await program.parseAsync(process.argv);

@@ -33,7 +33,7 @@ You have:
 
 - **User accounts** — sign up, sign in, password reset, sessions, role-based access control, rate limiting
 - **Content management** — define collections in TypeScript, get a full REST API and admin UI instantly
-- **Billing** — Stripe checkout, subscriptions, webhooks, license keys, and a billing portal
+- **Billing** — Stripe checkout, subscriptions, webhooks, account billing, and a billing portal
 - **Admin dashboard** — manage users, content, and settings out of the box
 - **50+ UI components** — built with Tailwind CSS v4, zero external UI dependencies
 - **Type-safe throughout** — Zod schemas shared between client, server, and database
@@ -42,35 +42,39 @@ No assembly required. No consulting 12 different documentation sites. No decisio
 
 ## The five things every software business needs
 
-| Primitive | What RevealUI ships |
-|-----------|-------------------|
-| **Users** | Session auth, bcrypt, RBAC, rate limiting, brute force protection |
-| **Content** | Collections, rich text (Lexical), relationships, media, draft/live, REST API |
-| **Products** | Product catalog, pricing tiers, license keys, inventory |
-| **Payments** | Stripe checkout, subscriptions, webhooks, billing portal |
-| **Intelligence** | AI agents, MCP server integrations, BYOK support *(Pro)* |
+| Primitive        | What RevealUI ships                                                          |
+| ---------------- | ---------------------------------------------------------------------------- |
+| **Users**        | Session auth, bcrypt, RBAC, rate limiting, brute force protection            |
+| **Content**      | Collections, rich text (Lexical), relationships, media, draft/live, REST API |
+| **Products**     | Product catalog, pricing tiers, metered services, and inventory              |
+| **Payments**     | Stripe checkout, subscriptions, webhooks, billing portal, and usage meters   |
+| **Intelligence** | AI agents, MCP server integrations, BYOK support _(Pro)_                     |
 
 ## Define your business data
 
 Add a collection. Get an API, admin UI, and TypeScript types — automatically.
 
 ```typescript
-import { defineCollection, defineField } from '@revealui/core'
+import { defineCollection, defineField } from "@revealui/core";
 
 const Products = defineCollection({
-  slug: 'products',
+  slug: "products",
   fields: [
-    defineField({ name: 'name', type: 'text', required: true }),
-    defineField({ name: 'price', type: 'number' }),
-    defineField({ name: 'description', type: 'richText' }),
-    defineField({ name: 'status', type: 'select', options: ['draft', 'active'] }),
-    defineField({ name: 'owner', type: 'relationship', relationTo: 'users' }),
+    defineField({ name: "name", type: "text", required: true }),
+    defineField({ name: "price", type: "number" }),
+    defineField({ name: "description", type: "richText" }),
+    defineField({
+      name: "status",
+      type: "select",
+      options: ["draft", "active"],
+    }),
+    defineField({ name: "owner", type: "relationship", relationTo: "users" }),
   ],
   access: {
     read: ({ req }) => !!req.user,
-    create: ({ req }) => req.user?.role === 'admin',
+    create: ({ req }) => req.user?.role === "admin",
   },
-})
+});
 ```
 
 `GET /api/products` is live. The admin UI is live. The TypeScript types are generated.
@@ -87,26 +91,39 @@ The [Pro tier](https://revealui.com/pro) adds AI agents and automation that work
 
 Pro is commercially licensed. OSS packages remain MIT.
 
+## Commercial model direction
+
+RevealUI is moving toward an account-level commercial model instead of a pure per-user license model.
+
+The target packaging for 2027-2030 is:
+
+- **Platform subscription** — workspace or account access, admin tooling, baseline support, core security controls
+- **Metered agent execution** — workflow runs, tool calls, and other agent work priced in business-readable units
+- **Commerce fees** — optional transaction-linked pricing when RevealUI is in the path of agent-driven purchases or paid API access
+- **Trust and governance** — premium controls for approvals, auditability, spending policies, and compliance
+
+Per-user or perpetual licenses can still exist for specific products, but they are no longer the intended center of gravity for hosted SaaS entitlements.
+
 ## Packages
 
 RevealUI is a modular monorepo. The OSS core is on npm:
 
-| Package | Purpose |
-|---------|---------|
-| [`@revealui/core`](packages/core) | Collections, fields, access control, rich text, plugins |
-| [`@revealui/contracts`](packages/contracts) | Zod schemas and TypeScript types (shared across the stack) |
-| [`@revealui/db`](packages/db) | Drizzle ORM schema, migrations, dual-database client |
-| [`@revealui/auth`](packages/auth) | Session auth, password reset, rate limiting |
-| [`@revealui/presentation`](packages/presentation) | 50+ UI components (Tailwind v4, zero external UI deps) |
-| [`@revealui/router`](packages/router) | Lightweight file-based router with SSR |
-| [`@revealui/config`](packages/config) | Type-safe environment configuration |
-| [`@revealui/utils`](packages/utils) | Logger, database helpers, validation |
-| [`@revealui/cli`](packages/cli) | `create-revealui` scaffolding tool |
+| Package                                           | Purpose                                                    |
+| ------------------------------------------------- | ---------------------------------------------------------- |
+| [`@revealui/core`](packages/core)                 | Collections, fields, access control, rich text, plugins    |
+| [`@revealui/contracts`](packages/contracts)       | Zod schemas and TypeScript types (shared across the stack) |
+| [`@revealui/db`](packages/db)                     | Drizzle ORM schema, migrations, dual-database client       |
+| [`@revealui/auth`](packages/auth)                 | Session auth, password reset, rate limiting                |
+| [`@revealui/presentation`](packages/presentation) | 50+ UI components (Tailwind v4, zero external UI deps)     |
+| [`@revealui/router`](packages/router)             | Lightweight file-based router with SSR                     |
+| [`@revealui/config`](packages/config)             | Type-safe environment configuration                        |
+| [`@revealui/utils`](packages/utils)               | Logger, database helpers, validation                       |
+| [`@revealui/cli`](packages/cli)                   | `create-revealui` scaffolding tool                         |
 
 ### Experimental Packages
 
-| Package | Status |
-|---------|--------|
+| Package                           | Status                                                                                |
+| --------------------------------- | ------------------------------------------------------------------------------------- |
 | [`@revealui/sync`](packages/sync) | ⚗️ Experimental — ElectricSQL real-time sync (passthrough only; not production-ready) |
 
 ### Pro Packages
@@ -115,18 +132,20 @@ Pro packages (`@revealui/ai`, `@revealui/mcp`, `@revealui/editors`, `@revealui/s
 
 To install Pro packages, [purchase a license](https://revealui.com/pro) and follow the [Pro setup guide](https://docs.revealui.com/pro/setup).
 
+The sibling internal development repo is not required for OSS use of this repository. Public-repo workflows are intended to work without local private package source trees.
+
 ## Tech stack
 
-| Layer | Technology |
-|-------|-----------|
-| Frontend | React 19, Tailwind CSS v4 |
-| Backend | Node.js 24, Hono, REST API |
-| Database | NeonDB (Postgres), Drizzle ORM |
-| Auth | Session-based, bcrypt, rate limiting |
-| Rich Text | Lexical editor |
-| Billing | Stripe |
-| Testing | Vitest, Playwright |
-| Tooling | pnpm, Turborepo, Biome, TypeScript 5.9 |
+| Layer     | Technology                             |
+| --------- | -------------------------------------- |
+| Frontend  | React 19, Tailwind CSS v4              |
+| Backend   | Node.js 24, Hono, REST API             |
+| Database  | NeonDB (Postgres), Drizzle ORM         |
+| Auth      | Session-based, bcrypt, rate limiting   |
+| Rich Text | Lexical editor                         |
+| Billing   | Stripe                                 |
+| Testing   | Vitest, Playwright                     |
+| Tooling   | pnpm, Turborepo, Biome, TypeScript 5.9 |
 
 ## Prerequisites
 
@@ -145,14 +164,16 @@ cd revealui
 pnpm install
 cp .env.template .env.development.local
 # Fill in your database credentials
-pnpm dev
+pnpm revealui doctor
+pnpm revealui dev up --dry-run
+pnpm revealui dev up
 ```
 
-| Platform | Recommended setup |
-|----------|------------------|
+| Platform    | Recommended setup                 |
+| ----------- | --------------------------------- |
 | Linux / WSL | Nix flakes + direnv (`flake.nix`) |
-| macOS | Nix flakes + direnv (`flake.nix`) |
-| Windows | Dev Containers (`.devcontainer/`) |
+| macOS       | Nix flakes + direnv (`flake.nix`) |
+| Windows     | Dev Containers (`.devcontainer/`) |
 
 ## Project structure
 
@@ -171,9 +192,10 @@ revealui/
 
 ## Documentation
 
-- **[Build Your Business](docs/BUILD_YOUR_BUSINESS.md)** — End-to-end tutorial: scaffold → collections → billing → deploy
+- **[Build Your Business](docs/BUILD_YOUR_BUSINESS.md)** — End-to-end tutorial: scaffold → collections → pricing and billing → deploy
 - **[Quick Start](docs/QUICK_START.md)** — From zero to running app
 - **[Architecture](docs/ARCHITECTURE.md)** — How the pieces fit together
+- **[Pro](docs/PRO.md)** — Commercial packaging, AI features, MCP, marketplace, and trust controls
 - **[Database Guide](docs/DATABASE.md)** — Schema, migrations, queries
 - **[Deployment](docs/CI_CD_GUIDE.md)** — Vercel, Railway, or self-host
 - **[All docs](docs/INDEX.md)** — Full index

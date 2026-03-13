@@ -48,8 +48,17 @@ async function parseBody(res: Response): Promise<any> {
   return res.json();
 }
 
-function createApp(middleware: Parameters<InstanceType<typeof Hono>['use']>[1]) {
+function createApp(
+  middleware: Parameters<InstanceType<typeof Hono>['use']>[1],
+  entitlements?: { tier?: string; features?: Record<string, boolean> },
+) {
   const app = new Hono();
+  if (entitlements) {
+    app.use('/protected/*', async (c, next) => {
+      c.set('entitlements', entitlements);
+      await next();
+    });
+  }
   // biome-ignore lint/suspicious/noExplicitAny: test helper — middleware type is flexible
   app.use('/protected/*', middleware as any);
   app.get('/protected/resource', (c) => c.json({ ok: true }));
@@ -119,6 +128,16 @@ describe('requireLicense', () => {
     mockedGetCurrentTier.mockReturnValue('free');
 
     const app = createApp(requireLicense('free'));
+    const res = await app.request('/protected/resource');
+
+    expect(res.status).toBe(200);
+  });
+
+  it('prefers request-scoped entitlement tier over global license state', async () => {
+    mockedIsLicensed.mockReturnValue(false);
+    mockedGetCurrentTier.mockReturnValue('free');
+
+    const app = createApp(requireLicense('pro'), { tier: 'enterprise' });
     const res = await app.request('/protected/resource');
 
     expect(res.status).toBe(200);
@@ -232,6 +251,63 @@ describe('requireFeature', () => {
     const body = await parseBody(res);
     expect(body.error).toContain('multiTenant');
   });
+
+  it('prefers request-scoped entitlement features over global feature state', async () => {
+    mockedIsFeatureEnabled.mockReturnValue(false);
+    mockedGetCurrentTier.mockReturnValue('free');
+
+    const app = createApp(requireFeature('ai'), {
+      tier: 'pro',
+      features: { ai: true },
+    });
+    const res = await app.request('/protected/resource');
+
+    expect(res.status).toBe(200);
+  });
+
+  it('can require request-scoped entitlements without falling back to global feature state', async () => {
+    mockedIsFeatureEnabled.mockReturnValue(true);
+    mockedGetCurrentTier.mockReturnValue('pro');
+
+    const app = createApp(requireFeature('ai', { mode: 'entitlements' }));
+    const res = await app.request('/protected/resource');
+
+    expect(res.status).toBe(403);
+    const body = await parseBody(res);
+    expect(body.error).toContain('ai');
+    expect(body.error).toContain('free');
+  });
+
+  it('passes in entitlement-only mode when the request entitlements enable the feature', async () => {
+    mockedIsFeatureEnabled.mockReturnValue(false);
+    mockedGetCurrentTier.mockReturnValue('free');
+
+    const app = createApp(requireFeature('ai', { mode: 'entitlements' }), {
+      tier: 'pro',
+      features: { ai: true },
+    });
+    const res = await app.request('/protected/resource');
+
+    expect(res.status).toBe(200);
+  });
+
+  it('supports entitlement-only gating for non-AI paid features', async () => {
+    mockedIsFeatureEnabled.mockReturnValue(true);
+    mockedGetCurrentTier.mockReturnValue('pro');
+
+    const deniedApp = createApp(requireFeature('dashboard', { mode: 'entitlements' }));
+    const deniedRes = await deniedApp.request('/protected/resource');
+
+    expect(deniedRes.status).toBe(403);
+
+    const allowedApp = createApp(requireFeature('dashboard', { mode: 'entitlements' }), {
+      tier: 'pro',
+      features: { dashboard: true },
+    });
+    const allowedRes = await allowedApp.request('/protected/resource');
+
+    expect(allowedRes.status).toBe(200);
+  });
 });
 
 // ---------------------------------------------------------------------------
@@ -286,5 +362,16 @@ describe('requireFeature — x402', () => {
     });
 
     expect(res.status).toBe(402);
+  });
+
+  it('returns 402 in entitlement-only mode when global feature state is enabled but request entitlements are missing', async () => {
+    mockedIsFeatureEnabled.mockReturnValue(true);
+    mockedGetCurrentTier.mockReturnValue('pro');
+
+    const app = createApp(requireFeature('ai', { mode: 'entitlements' }));
+    const res = await app.request('/protected/resource');
+
+    expect(res.status).toBe(402);
+    expect(res.headers.get('X-REVEALUI-FEATURE')).toBe('ai');
   });
 });

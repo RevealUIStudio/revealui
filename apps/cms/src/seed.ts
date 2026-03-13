@@ -17,6 +17,9 @@
 
 import config from '@reveal-config';
 import { getRevealUI } from '@revealui/core';
+import { getClient } from '@revealui/db';
+import { sites, users } from '@revealui/db/schema';
+import { eq } from 'drizzle-orm';
 
 const logger = {
   header: (msg: string) =>
@@ -268,31 +271,43 @@ async function seedCollection(
 async function getOrCreateDefaultSite(
   revealui: Awaited<ReturnType<typeof getRevealUI>>,
 ): Promise<string> {
-  const db = revealui.db;
-  if (!db) throw new Error('No database connection');
+  if (!revealui.db) throw new Error('No database connection');
+  const db = getClient();
 
   // Check for existing site
-  const existing = await db.query('SELECT id FROM sites LIMIT 1');
-  if (existing.rows.length > 0) {
-    const row = existing.rows[0] as { id: string };
-    logger.info(`   Using existing site: ${row.id}`);
-    return row.id;
+  const [existingSite] = await db.select({ id: sites.id }).from(sites).limit(1);
+  if (existingSite?.id) {
+    logger.info(`   Using existing site: ${existingSite.id}`);
+    return existingSite.id;
   }
 
   // Get admin user to set as site owner
   // Production uses role='user-super-admin'; local dev may use role='admin'
-  const userResult = await db.query(
-    "SELECT id FROM users WHERE role IN ('admin', 'user-super-admin') LIMIT 1",
-  );
-  if (!userResult.rows.length) throw new Error('Admin user not found — run user seed first');
-  const adminId = (userResult.rows[0] as { id: string }).id;
+  const [adminUser] = await db
+    .select({ id: users.id })
+    .from(users)
+    .where(eq(users.role, 'admin'))
+    .limit(1);
+  const [superAdminUser] = adminUser
+    ? [null]
+    : await db
+        .select({ id: users.id })
+        .from(users)
+        .where(eq(users.role, 'user-super-admin'))
+        .limit(1);
+  const adminId = adminUser?.id ?? superAdminUser?.id;
+  if (!adminId) throw new Error('Admin user not found — run user seed first');
 
   // Create a default site
   const siteId = `site_${Date.now()}_default`;
-  await db.query(
-    `INSERT INTO sites (id, schema_version, owner_id, name, slug, status) VALUES ($1, '1', $2, 'RevealUI', 'revealui', 'published')`,
-    [siteId, adminId],
-  );
+  await db.insert(sites).values({
+    id: siteId,
+    schemaVersion: '1',
+    ownerId: adminId,
+    name: 'RevealUI',
+    slug: 'revealui',
+    status: 'published',
+  });
   logger.success(`   Created default site: ${siteId}`);
   return siteId;
 }

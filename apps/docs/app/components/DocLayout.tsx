@@ -1,5 +1,9 @@
 import { Link, useLocation } from '@revealui/router';
-import { SearchBar } from './SearchBar';
+import { lazy, Suspense } from 'react';
+
+const SearchBar = lazy(async () =>
+  import('./SearchBar').then((mod) => ({ default: mod.SearchBar })),
+);
 
 interface DocLayoutProps {
   children?: React.ReactNode;
@@ -135,7 +139,16 @@ export function DocLayout({ children }: DocLayoutProps) {
 
         {/* Search */}
         <div className="mb-4">
-          <SearchBar />
+          <Suspense
+            fallback={
+              <div
+                className="h-10 w-full rounded-lg border border-border bg-surface"
+                aria-hidden="true"
+              />
+            }
+          >
+            <SearchBar />
+          </Suspense>
         </div>
 
         {/* Home link */}

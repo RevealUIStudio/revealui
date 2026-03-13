@@ -120,6 +120,7 @@ export type PaginatedDocs<T = RevealDocument> = RevealPaginatedResult<T>;
 export interface RevealUIInstance {
   db: DatabaseAdapter | null | undefined;
   collections: Record<string, RevealCollection>;
+  collectionStorageRegistry: Record<string, CollectionStorageDescriptor>;
   globals: Record<string, RevealGlobal>;
   config: RevealConfig;
   logger: RevealUILogger;
@@ -184,11 +185,20 @@ export type RevealUI = RevealUIInstance;
 /** Collection runtime interface */
 export interface RevealCollection {
   config: RevealCollectionConfig;
+  storage: CollectionStorageDescriptor | null;
   find: (options: RevealFindOptions) => Promise<RevealPaginatedResult>;
   findByID: (options: { id: string | number; depth?: number }) => Promise<RevealDocument | null>;
   create: (options: RevealCreateOptions) => Promise<RevealDocument>;
   update: (options: RevealUpdateOptions) => Promise<RevealDocument>;
   delete: (options: RevealDeleteOptions) => Promise<RevealDocument>;
+}
+
+export interface CollectionStorageDescriptor {
+  slug: string;
+  tableName: string;
+  storageMode: 'dynamic' | 'typed-candidate';
+  allowedColumns: string[];
+  jsonFieldNames: string[];
 }
 
 /** Global runtime interface */
@@ -207,6 +217,17 @@ export interface DatabaseResult {
   rowCount: number;
 }
 
+export interface CollectionStorageAdapter {
+  findByID?: (
+    collection: RevealCollectionConfig,
+    options: { id: string | number },
+  ) => Promise<RevealDocument | null | undefined>;
+  find?: (
+    collection: RevealCollectionConfig,
+    options: RevealFindOptions,
+  ) => Promise<RevealPaginatedResult | undefined>;
+}
+
 export interface DatabaseAdapter {
   query: (query: string, values?: unknown[]) => Promise<DatabaseResult>;
   connect: () => Promise<void>;
@@ -214,6 +235,7 @@ export interface DatabaseAdapter {
   init?: () => Promise<void>;
   createTable?: (tableName: string, fields: Field[]) => void;
   createGlobalTable?: (globalSlug: string, fields: Field[]) => void;
+  collectionStorage?: CollectionStorageAdapter;
 }
 
 import type { Field } from '@revealui/contracts/cms';
