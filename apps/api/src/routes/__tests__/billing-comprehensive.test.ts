@@ -182,12 +182,24 @@ const MOCK_USER: UserContext = {
 
 function createApp(
   user: UserContext = MOCK_USER,
-  entitlements?: { limits?: { maxAgentTasks?: number } },
+  entitlements?: {
+    accountId?: string | null;
+    subscriptionStatus?: string | null;
+    tier?: 'free' | 'pro' | 'max' | 'enterprise';
+    limits?: { maxAgentTasks?: number };
+  },
 ) {
   const app = new Hono<{
     Variables: {
       user: UserContext | undefined;
-      entitlements?: { limits?: { maxAgentTasks?: number } };
+      entitlements?:
+        | {
+            accountId?: string | null;
+            subscriptionStatus?: string | null;
+            tier?: 'free' | 'pro' | 'max' | 'enterprise';
+            limits?: { maxAgentTasks?: number };
+          }
+        | undefined;
     };
   }>();
   app.use('*', async (c, next) => {
@@ -393,6 +405,28 @@ describe('Billing Route Tests — Comprehensive Coverage', { timeout: 60_000 }, 
         status: 'active',
         limit: 1,
       });
+    });
+
+    it('prefers request-scoped account entitlements for downgrades', async () => {
+      queueSelectResults([{ stripeCustomerId: 'cus_account_ctx' }]);
+      mockSubscriptionsList.mockResolvedValue({
+        data: [{ id: 'sub_1', items: { data: [{ id: 'si_1' }] } }],
+      });
+      mockSubscriptionsUpdate.mockResolvedValue({ id: 'sub_1', cancel_at: null });
+
+      const app = createApp(MOCK_USER, {
+        accountId: 'acct_ctx',
+        tier: 'pro',
+        subscriptionStatus: 'active',
+      });
+      await app.request(post('/downgrade', {}));
+
+      expect(mockSubscriptionsList).toHaveBeenCalledWith({
+        customer: 'cus_account_ctx',
+        status: 'active',
+        limit: 1,
+      });
+      expect(mockDb.select).toHaveBeenCalledTimes(1);
     });
   });
 

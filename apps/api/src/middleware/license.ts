@@ -26,6 +26,8 @@ const dbStatusCache = new Map<string, { status: string; checkedAt: number }>();
 const DB_STATUS_CHECK_INTERVAL = 5 * 60 * 1000; // 5 minutes
 
 type RequestEntitlements = {
+  accountId?: string | null;
+  subscriptionStatus?: string | null;
   tier?: LicenseTier;
   features?: Partial<Record<keyof FeatureFlags, boolean>>;
 };
@@ -232,7 +234,25 @@ export const requireDomain = (): MiddlewareHandler => {
 export const checkLicenseStatus = (
   queryLicenseStatus: (customerId: string) => Promise<string | null>,
 ): MiddlewareHandler => {
-  return async (_c, next) => {
+  return async (c, next) => {
+    const requestEntitlements = getRequestEntitlements(c);
+    if (requestEntitlements?.accountId) {
+      if (requestEntitlements.subscriptionStatus === 'revoked') {
+        throw new HTTPException(403, {
+          message: 'Your subscription has been revoked. Contact support@revealui.com',
+        });
+      }
+
+      if (requestEntitlements.subscriptionStatus === 'expired') {
+        throw new HTTPException(403, {
+          message: 'Your subscription has expired. Renew at https://revealui.com/pricing',
+        });
+      }
+
+      await next();
+      return;
+    }
+
     const payload = getLicensePayload();
 
     // No license — free tier, no DB check needed

@@ -30,8 +30,17 @@ async function parseBody(res: Response): Promise<any> {
   return res.json();
 }
 
-function createApp(queryFn: (customerId: string) => Promise<string | null>) {
+function createApp(
+  queryFn: (customerId: string) => Promise<string | null>,
+  entitlements?: { accountId?: string | null; subscriptionStatus?: string | null },
+) {
   const app = new Hono();
+  app.use('*', async (c, next) => {
+    if (entitlements) {
+      c.set('entitlements', entitlements);
+    }
+    await next();
+  });
   // biome-ignore lint/suspicious/noExplicitAny: test helper — middleware type is flexible
   app.use('*', checkLicenseStatus(queryFn) as any);
   app.get('/resource', (c) => c.json({ ok: true }));
@@ -158,5 +167,35 @@ describe('checkLicenseStatus', () => {
     expect(res2.status).toBe(403);
     expect(queryFn).toHaveBeenNthCalledWith(1, 'cus_1');
     expect(queryFn).toHaveBeenNthCalledWith(2, 'cus_2');
+  });
+
+  it('skips the legacy DB query for hosted account entitlements', async () => {
+    mockedGetLicensePayload.mockReturnValue(null);
+    const queryFn = vi.fn();
+
+    const app = createApp(queryFn, {
+      accountId: 'acct_123',
+      subscriptionStatus: 'active',
+    });
+    const res = await app.request('/resource');
+
+    expect(res.status).toBe(200);
+    expect(queryFn).not.toHaveBeenCalled();
+  });
+
+  it('returns 403 for revoked hosted account entitlements', async () => {
+    mockedGetLicensePayload.mockReturnValue(null);
+    const queryFn = vi.fn();
+
+    const app = createApp(queryFn, {
+      accountId: 'acct_123',
+      subscriptionStatus: 'revoked',
+    });
+    const res = await app.request('/resource');
+
+    expect(res.status).toBe(403);
+    const body = await parseBody(res);
+    expect(body.error).toContain('revoked');
+    expect(queryFn).not.toHaveBeenCalled();
   });
 });
