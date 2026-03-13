@@ -1,4 +1,38 @@
 #!/bin/bash
+
+# Guard: Pro packages must remain gitignored — prevents accidental leak to public repo
+for pkg in packages/ai packages/mcp packages/editors packages/services; do
+  if ! git check-ignore -q "$pkg" 2>/dev/null; then
+    echo ""
+    echo "FATAL: $pkg is no longer gitignored! Aborting push."
+    echo "   Restore the entry in .gitignore before pushing."
+    echo ""
+    exit 1
+  fi
+done
+
+# Check if any committed Pro package files would be pushed
+RANGE=""
+while read local_ref local_oid remote_ref remote_oid; do
+  if [ "$remote_oid" = "0000000000000000000000000000000000000000" ]; then
+    RANGE="$local_oid"
+  else
+    RANGE="$remote_oid..$local_oid"
+  fi
+done
+if [ -n "$RANGE" ]; then
+  PRO_FILES=$(git diff --name-only "$RANGE" -- packages/ai/ packages/mcp/ packages/editors/ packages/services/ 2>/dev/null || true)
+  if [ -n "$PRO_FILES" ]; then
+    echo ""
+    echo "FATAL: Pro package files detected in commits being pushed!"
+    echo "$PRO_FILES" | head -20
+    echo ""
+    echo "   Pro packages must never be pushed to the public repo."
+    echo ""
+    exit 1
+  fi
+fi
+
 echo ""
 echo "Running pre-push CI gate (changed-only mode)..."
 echo ""
