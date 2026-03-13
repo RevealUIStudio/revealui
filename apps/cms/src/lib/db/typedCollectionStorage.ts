@@ -48,7 +48,12 @@ function isRecord(value: unknown): value is Record<string, unknown> {
   return typeof value === 'object' && value !== null && !Array.isArray(value);
 }
 
-function getJsonFields(row: { _json?: unknown }): Record<string, unknown> {
+interface JsonBackedRow {
+  // biome-ignore lint/style/useNamingConvention: Drizzle JSON column is named `_json`
+  _json?: unknown;
+}
+
+function getJsonFields(row: JsonBackedRow): Record<string, unknown> {
   return isRecord(row._json) ? row._json : {};
 }
 
