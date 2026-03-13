@@ -106,39 +106,12 @@ export async function register() {
           });
       });
 
-      // Server-side error capture — POST unhandled rejections to the API error endpoint.
-      process.on('unhandledRejection', (reason: unknown) => {
-        const err = reason instanceof Error ? reason : new Error(String(reason));
-        logger.error('Unhandled rejection in CMS server', err);
-        // Sanitize stack trace — strip absolute file paths before sending to the API
-        const sanitizedStack = err.stack
-          ? err.stack
-              .split('\n')
-              .map((line) => line.replace(/\s+at .+[\\/]revealui[\\/]/gi, ' at <app>/'))
-              .join('\n')
-          : undefined;
-        fetch(`${apiUrl}/api/errors`, {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-            'X-Internal-Token': process.env.REVEALUI_SECRET ?? '',
-          },
-          body: JSON.stringify({
-            level: 'error',
-            message: err.message,
-            stack: sanitizedStack,
-            app: 'cms',
-            context: 'server',
-            environment: process.env.NODE_ENV ?? 'production',
-          }),
-        })
-          .then(() => {
-            telemetryFailures = 0;
-          })
-          .catch((fetchErr: unknown) => {
-            telemetryFailures++;
-            if (telemetryFailures === maxBackoffFailures) void fetchErr;
-          });
+      // Keep instrumentation Edge-safe. Process-level crash hooks belong in an
+      // explicitly Node-only runtime surface, not Next's shared instrumentation
+      // entrypoint, which Turbopack statically analyzes for Edge compatibility.
+      logger.info('CMS telemetry transport initialized', {
+        apiUrl,
+        processCapture: 'disabled-in-instrumentation',
       });
     }
   } catch (error) {
