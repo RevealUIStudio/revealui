@@ -30,6 +30,13 @@ export * from './vector.js';
 // =============================================================================
 
 import { relations } from 'drizzle-orm';
+import {
+  accountEntitlements,
+  accountMemberships,
+  accountSubscriptions,
+  accounts,
+  usageMeters,
+} from './accounts.js';
 import { agentActions, agentContexts, agentMemories, conversations } from './agents.js';
 import { tenantProviderConfigs, userApiKeys } from './api-keys.js';
 import { appLogs } from './app-logs.js';
@@ -44,6 +51,7 @@ import { oauthAccounts } from './oauth-accounts.js';
 import { pageRevisions, pages } from './pages.js';
 import { passwordResetTokens } from './password-reset-tokens.js';
 import { siteCollaborators, sites } from './sites.js';
+import { tenants } from './tenants.js';
 import {
   boardColumns,
   boards,
@@ -57,6 +65,7 @@ import { yjsDocuments } from './yjs-documents.js';
 
 // User relations
 export const usersRelations = relations(users, ({ many }) => ({
+  accountMemberships: many(accountMemberships),
   sessions: many(sessions),
   ownedSites: many(sites),
   collaborations: many(siteCollaborators),
@@ -65,6 +74,47 @@ export const usersRelations = relations(users, ({ many }) => ({
   apiKeys: many(userApiKeys),
   providerConfigs: many(tenantProviderConfigs),
   oauthAccounts: many(oauthAccounts),
+}));
+
+export const tenantsRelations = relations(tenants, () => ({}));
+
+export const accountsRelations = relations(accounts, ({ many, one }) => ({
+  memberships: many(accountMemberships),
+  subscriptions: many(accountSubscriptions),
+  entitlements: one(accountEntitlements),
+  usageMeters: many(usageMeters),
+}));
+
+export const accountMembershipsRelations = relations(accountMemberships, ({ one }) => ({
+  account: one(accounts, {
+    fields: [accountMemberships.accountId],
+    references: [accounts.id],
+  }),
+  user: one(users, {
+    fields: [accountMemberships.userId],
+    references: [users.id],
+  }),
+}));
+
+export const accountSubscriptionsRelations = relations(accountSubscriptions, ({ one }) => ({
+  account: one(accounts, {
+    fields: [accountSubscriptions.accountId],
+    references: [accounts.id],
+  }),
+}));
+
+export const accountEntitlementsRelations = relations(accountEntitlements, ({ one }) => ({
+  account: one(accounts, {
+    fields: [accountEntitlements.accountId],
+    references: [accounts.id],
+  }),
+}));
+
+export const usageMetersRelations = relations(usageMeters, ({ one }) => ({
+  account: one(accounts, {
+    fields: [usageMeters.accountId],
+    references: [accounts.id],
+  }),
 }));
 
 // OAuth account relations
