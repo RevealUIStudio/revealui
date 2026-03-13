@@ -268,11 +268,19 @@ export function verifyTokenStructure(token: string): {
  */
 export async function createTestTenant(name: string, url: string): Promise<TestTenant> {
   const revealui = await getTestRevealUI();
+  const normalizedName = name
+    .trim()
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, '-');
+  const tenantEmail = `${normalizedName || 'tenant'}-${randomUUID()}@example.com`;
+  const tenantPassword = `TenantPass-${randomUUID()}`;
 
   const tenant = (await revealui.create({
     collection: 'tenants',
     data: {
       name,
+      email: tenantEmail,
+      password: tenantPassword,
       domains: url ? [{ domain: url }] : [],
       roles: ['user'],
     },
