@@ -8,6 +8,15 @@ import { findWorkspaceRoot } from '../utils/workspace.js';
 
 const logger = createLogger({ prefix: 'DB' });
 
+function isPgCtlNotRunningError(error: unknown): boolean {
+  return (
+    typeof error === 'object' &&
+    error !== null &&
+    'exitCode' in error &&
+    (error as { exitCode?: unknown }).exitCode === 3
+  );
+}
+
 function getWorkspaceRootOrThrow(): string {
   const root = findWorkspaceRoot();
   if (!root) {
@@ -29,6 +38,14 @@ function buildDbEnv(root: string): NodeJS.ProcessEnv {
   };
 }
 
+function getPgDataOrThrow(env: NodeJS.ProcessEnv): string {
+  const pgdata = env.PGDATA;
+  if (!pgdata) {
+    throw new Error('PGDATA is not configured for the local RevealUI database');
+  }
+  return pgdata;
+}
+
 async function requireCommand(command: string): Promise<void> {
   if (!(await commandExists(command))) {
     throw new Error(`${command} is not available in PATH`);
@@ -38,7 +55,7 @@ async function requireCommand(command: string): Promise<void> {
 export async function runDbInitCommand(options: { force?: boolean } = {}): Promise<void> {
   const root = getWorkspaceRootOrThrow();
   const env = buildDbEnv(root);
-  const pgdata = env.PGDATA!;
+  const pgdata = getPgDataOrThrow(env);
 
   await requireCommand('initdb');
 
@@ -71,7 +88,7 @@ export async function runDbInitCommand(options: { force?: boolean } = {}): Promi
 export async function runDbStartCommand(): Promise<void> {
   const root = getWorkspaceRootOrThrow();
   const env = buildDbEnv(root);
-  const pgdata = env.PGDATA!;
+  const pgdata = getPgDataOrThrow(env);
 
   await requireCommand('pg_ctl');
   await fs.access(pgdata);
@@ -89,7 +106,7 @@ export async function runDbStartCommand(): Promise<void> {
 export async function runDbStopCommand(): Promise<void> {
   const root = getWorkspaceRootOrThrow();
   const env = buildDbEnv(root);
-  const pgdata = env.PGDATA!;
+  const pgdata = getPgDataOrThrow(env);
 
   await requireCommand('pg_ctl');
   await execa('pg_ctl', ['stop', '-D', pgdata], {
@@ -101,13 +118,21 @@ export async function runDbStopCommand(): Promise<void> {
 export async function runDbStatusCommand(): Promise<void> {
   const root = getWorkspaceRootOrThrow();
   const env = buildDbEnv(root);
-  const pgdata = env.PGDATA!;
+  const pgdata = getPgDataOrThrow(env);
 
   await requireCommand('pg_ctl');
-  await execa('pg_ctl', ['status', '-D', pgdata], {
-    env,
-    stdio: 'inherit',
-  });
+  try {
+    await execa('pg_ctl', ['status', '-D', pgdata], {
+      env,
+      stdio: 'inherit',
+    });
+  } catch (error) {
+    if (isPgCtlNotRunningError(error)) {
+      logger.warn(`PostgreSQL is not running (PGDATA: ${pgdata})`);
+      return;
+    }
+    throw error;
+  }
 }
 
 export async function runDbResetCommand(options: { force?: boolean } = {}): Promise<void> {
@@ -117,7 +142,7 @@ export async function runDbResetCommand(options: { force?: boolean } = {}): Prom
 
   const root = getWorkspaceRootOrThrow();
   const env = buildDbEnv(root);
-  const pgdata = env.PGDATA!;
+  const pgdata = getPgDataOrThrow(env);
 
   if (await commandExists('pg_ctl')) {
     try {

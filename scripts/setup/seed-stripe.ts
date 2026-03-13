@@ -235,6 +235,19 @@ const log = {
   env: (key: string, value: string) => console.log(`\n  ${key}=${value}`),
 };
 
+function isLocalWebhookUrl(url: string): boolean {
+  try {
+    const parsed = new URL(url);
+    return (
+      parsed.hostname === 'localhost' ||
+      parsed.hostname === '127.0.0.1' ||
+      parsed.hostname === '::1'
+    );
+  } catch {
+    return false;
+  }
+}
+
 // ─── Products & Prices ───────────────────────────────────────────────────────
 
 async function syncCatalog(
@@ -668,6 +681,9 @@ async function main(): Promise<void> {
     if (!webhookUrl) {
       log.warn('No webhook URL — set API_URL in .env or pass --webhook-url URL');
       log.warn('Skipping webhook endpoint setup');
+    } else if (!dryRun && isLocalWebhookUrl(webhookUrl)) {
+      log.warn('Skipping webhook endpoint setup for local-only URL');
+      log.info('Use Stripe CLI or a public tunnel if you need local webhook delivery');
     } else {
       const webhookSecret = await setupWebhookEndpoint(webhookUrl, stripe, dryRun);
       if (webhookSecret) {

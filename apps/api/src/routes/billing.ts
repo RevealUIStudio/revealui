@@ -194,30 +194,11 @@ async function resolveCatalogPriceId(
     )
     .limit(1);
 
-  const resolvedPriceId =
-    catalogEntry?.stripePriceId ??
-    (kind === 'perpetual'
-      ? tier === 'pro'
-        ? (process.env.STRIPE_PERPETUAL_PRO_PRICE_ID ??
-          process.env.NEXT_PUBLIC_STRIPE_PRO_PERPETUAL_PRICE_ID)
-        : tier === 'max'
-          ? (process.env.STRIPE_PERPETUAL_MAX_PRICE_ID ??
-            process.env.NEXT_PUBLIC_STRIPE_MAX_PERPETUAL_PRICE_ID)
-          : (process.env.STRIPE_PERPETUAL_ENTERPRISE_PRICE_ID ??
-            process.env.NEXT_PUBLIC_STRIPE_ENTERPRISE_PERPETUAL_PRICE_ID)
-      : undefined);
+  const resolvedPriceId = catalogEntry?.stripePriceId;
 
   if (!resolvedPriceId) {
     throw new HTTPException(500, {
       message: `Billing catalog is not configured for ${kind} ${tier}`,
-    });
-  }
-
-  if (kind === 'perpetual' && !catalogEntry?.stripePriceId) {
-    logger.warn('Billing catalog DB entry missing — falling back to env-backed Stripe price', {
-      tier,
-      billingModel: kind,
-      planId,
     });
   }
 

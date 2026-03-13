@@ -415,7 +415,10 @@ describe('Billing Route Tests — Comprehensive Coverage', { timeout: 60_000 }, 
     });
 
     it('creates a payment-mode checkout session (not subscription)', async () => {
-      _selectResult = [{ stripeCustomerId: 'cus_existing' }];
+      queueSelectResults(
+        [{ stripePriceId: 'price_pro_perpetual_server' }],
+        [{ stripeCustomerId: 'cus_existing' }],
+      );
       mockCheckoutSessionsCreate.mockResolvedValue({
         url: 'https://checkout.stripe.com/pay/sess_perp',
       });
@@ -432,6 +435,17 @@ describe('Billing Route Tests — Comprehensive Coverage', { timeout: 60_000 }, 
       const sessionArgs = mockCheckoutSessionsCreate.mock.calls[0]?.[0] as Record<string, unknown>;
       expect(sessionArgs.mode).toBe('payment');
       expect(sessionArgs.customer).toBe('cus_existing');
+    });
+
+    it('returns 500 when the perpetual billing catalog entry is missing', async () => {
+      const app = createApp();
+      const res = await app.request(
+        post('/checkout-perpetual', { priceId: 'price_pro_perpetual_server', tier: 'pro' }),
+      );
+
+      expect(res.status).toBe(500);
+      const body = (await res.json()) as Record<string, unknown>;
+      expect(body.error as string).toContain('Billing catalog is not configured');
     });
 
     it('prefers the DB billing catalog price for perpetual checkout when available', async () => {
@@ -456,7 +470,10 @@ describe('Billing Route Tests — Comprehensive Coverage', { timeout: 60_000 }, 
     });
 
     it('includes perpetual and tier metadata in payment_intent_data', async () => {
-      _selectResult = [{ stripeCustomerId: 'cus_existing' }];
+      queueSelectResults(
+        [{ stripePriceId: 'price_max_perpetual_server' }],
+        [{ stripeCustomerId: 'cus_existing' }],
+      );
       mockCheckoutSessionsCreate.mockResolvedValue({
         url: 'https://checkout.stripe.com/pay/sess_meta',
       });
@@ -475,7 +492,10 @@ describe('Billing Route Tests — Comprehensive Coverage', { timeout: 60_000 }, 
     });
 
     it('includes github_username in metadata when provided', async () => {
-      _selectResult = [{ stripeCustomerId: 'cus_existing' }];
+      queueSelectResults(
+        [{ stripePriceId: 'price_pro_perpetual_server' }],
+        [{ stripeCustomerId: 'cus_existing' }],
+      );
       mockCheckoutSessionsCreate.mockResolvedValue({
         url: 'https://checkout.stripe.com/pay/sess_gh',
       });
@@ -496,7 +516,10 @@ describe('Billing Route Tests — Comprehensive Coverage', { timeout: 60_000 }, 
     });
 
     it('omits github_username from metadata when not provided', async () => {
-      _selectResult = [{ stripeCustomerId: 'cus_existing' }];
+      queueSelectResults(
+        [{ stripePriceId: 'price_pro_perpetual_server' }],
+        [{ stripeCustomerId: 'cus_existing' }],
+      );
       mockCheckoutSessionsCreate.mockResolvedValue({
         url: 'https://checkout.stripe.com/pay/sess_no_gh',
       });
@@ -513,7 +536,10 @@ describe('Billing Route Tests — Comprehensive Coverage', { timeout: 60_000 }, 
     });
 
     it('uses perpetual success_url with perpetual=true query param', async () => {
-      _selectResult = [{ stripeCustomerId: 'cus_existing' }];
+      queueSelectResults(
+        [{ stripePriceId: 'price_pro_perpetual_server' }],
+        [{ stripeCustomerId: 'cus_existing' }],
+      );
       mockCheckoutSessionsCreate.mockResolvedValue({
         url: 'https://checkout.stripe.com/pay/sess_url',
       });
@@ -531,7 +557,10 @@ describe('Billing Route Tests — Comprehensive Coverage', { timeout: 60_000 }, 
     });
 
     it('returns 500 when checkout session URL is null', async () => {
-      _selectResult = [{ stripeCustomerId: 'cus_existing' }];
+      queueSelectResults(
+        [{ stripePriceId: 'price_pro_perpetual_server' }],
+        [{ stripeCustomerId: 'cus_existing' }],
+      );
       mockCheckoutSessionsCreate.mockResolvedValue({ url: null });
 
       const app = createApp();
@@ -545,7 +574,10 @@ describe('Billing Route Tests — Comprehensive Coverage', { timeout: 60_000 }, 
     it('returns 500 when CMS_URL is not configured', async () => {
       delete process.env.CMS_URL;
       delete process.env.NEXT_PUBLIC_SERVER_URL;
-      _selectResult = [{ stripeCustomerId: 'cus_existing' }];
+      queueSelectResults(
+        [{ stripePriceId: 'price_pro_perpetual_server' }],
+        [{ stripeCustomerId: 'cus_existing' }],
+      );
 
       const app = createApp();
       const res = await app.request(
