@@ -78,9 +78,9 @@ async function setupMCP() {
     logger.info('• Stripe MCP - @stripe/mcp');
     logger.info('  Official Stripe MCP server with 20+ payment & billing tools\n');
 
-    logger.info('To start MCP servers:');
-    logger.info('• Individual: pnpm mcp:vercel or pnpm mcp:stripe');
-    logger.info('• All together: pnpm mcp:all\n');
+    logger.info('To prepare MCP development:');
+    logger.info('• Validate credentials only: pnpm setup:mcp');
+    logger.info('• Bootstrap dev environment with MCP checks: revealui dev up --include mcp\n');
 
     logger.info('📚 Next steps:');
     logger.info('1. Configure your AI client (Claude, Cursor, etc.) to connect to MCP servers');
@@ -91,7 +91,9 @@ async function setupMCP() {
       logger.warning('⚠️  Please set up your API keys in .env before running MCP servers\n');
       process.exit(ErrorCode.CONFIG_ERROR);
     } else {
-      logger.success('🎉 Ready to launch! Run "pnpm mcp:all" to start all MCP servers\n');
+      logger.success(
+        '🎉 MCP credentials are ready. Run "revealui dev up --include mcp" during local bootstrap\n',
+      );
     }
   } catch (error) {
     logger.error(`Setup failed: ${error instanceof Error ? error.message : String(error)}`);

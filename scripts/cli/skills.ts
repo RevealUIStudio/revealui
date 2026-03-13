@@ -125,12 +125,12 @@ interface SkillUpdateData {
  */
 async function getSkillsModule() {
   try {
-    const mod = await import('../../packages/ai/src/skills/index.js');
+    const mod = await import('@revealui/ai/skills');
 
     // Validate module has expected exports
     if (!mod || typeof mod !== 'object') {
       throw executionError('Skills module loaded but has invalid structure', undefined, undefined, {
-        hint: 'The skills module may be corrupted. Try reinstalling dependencies.',
+        hint: 'The skills module may be corrupted. Reinstall the published Pro skills package.',
       });
     }
 
@@ -140,7 +140,7 @@ async function getSkillsModule() {
 
     if (missingExports.length > 0) {
       throw executionError('Skills module is missing required exports', undefined, undefined, {
-        hint: `Missing: ${missingExports.join(', ')}. Try reinstalling @revealui/ai package.`,
+        hint: `Missing: ${missingExports.join(', ')}. Reinstall the Pro skills package and verify its published version.`,
         missingExports,
       });
     }
@@ -155,7 +155,7 @@ async function getSkillsModule() {
         (error.code === 'ERR_MODULE_NOT_FOUND' || error.code === 'MODULE_NOT_FOUND')
       ) {
         throw executionError('Skills package not found', undefined, error, {
-          hint: 'Run `pnpm install` to install dependencies, or ensure @revealui/ai is built.',
+          hint: 'Run `pnpm install` to install dependencies, or install the published Pro skills package.',
           code: error.code,
         });
       }
@@ -171,7 +171,7 @@ async function getSkillsModule() {
       // Syntax errors in the module
       if (error.name === 'SyntaxError') {
         throw executionError('Skills module has syntax errors', undefined, error, {
-          hint: 'The skills module may be corrupted. Try rebuilding: pnpm --filter @revealui/ai build',
+          hint: 'The skills module may be corrupted. Reinstall the published Pro skills package.',
         });
       }
 
