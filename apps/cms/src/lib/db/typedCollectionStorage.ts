@@ -1,5 +1,4 @@
 import type {
-  CollectionStorageAdapter,
   RevealCollectionConfig,
   RevealDocument,
   RevealFindOptions,
@@ -8,7 +7,7 @@ import type {
 import { getRestClient } from '@revealui/db/client';
 import { type Tenant as DbTenant, tenants } from '@revealui/db/schema/tenants';
 import { type User as DbUser, users } from '@revealui/db/schema/users';
-import { and, asc, count, desc, eq, or, sql } from 'drizzle-orm';
+import { and, asc, count, desc, eq, or, type SQL, sql } from 'drizzle-orm';
 
 type UserWhereCondition = NonNullable<RevealFindOptions['where']>;
 type UserSort = NonNullable<RevealFindOptions['sort']>;
@@ -25,6 +24,21 @@ type TypedCollectionHandler = {
     options: RevealFindOptions,
   ) => Promise<RevealPaginatedResult | undefined>;
 };
+
+type LocalCollectionStorageAdapter = {
+  findByID?: (
+    collection: RevealCollectionConfig,
+    options: { id: string | number },
+  ) => Promise<RevealDocument | null | undefined>;
+  find?: (
+    collection: RevealCollectionConfig,
+    options: RevealFindOptions,
+  ) => Promise<RevealPaginatedResult | undefined>;
+};
+
+function isSqlCondition(value: SQL<unknown> | null | undefined): value is SQL<unknown> {
+  return value !== null && value !== undefined;
+}
 
 function hasTypedCollectionDatabase(): boolean {
   return Boolean(process.env.POSTGRES_URL || process.env.DATABASE_URL);
@@ -146,7 +160,8 @@ function buildUsersWhere(where: RevealFindOptions['where']) {
     return conditions[0] ?? undefined;
   }
 
-  return and(...conditions);
+  const validConditions = conditions.filter(isSqlCondition);
+  return and(...validConditions);
 }
 
 function buildUsersOrderBy(sort: RevealFindOptions['sort']) {
@@ -166,7 +181,7 @@ function buildUsersOrderBy(sort: RevealFindOptions['sort']) {
     }
   });
 
-  return orderBy.some((entry) => entry === null) ? null : orderBy;
+  return orderBy.some((entry) => entry === null) ? null : orderBy.filter(isSqlCondition);
 }
 
 function buildTenantsWhere(where: RevealFindOptions['where']) {
@@ -210,7 +225,8 @@ function buildTenantsWhere(where: RevealFindOptions['where']) {
     return conditions[0] ?? undefined;
   }
 
-  return and(...conditions);
+  const validConditions = conditions.filter(isSqlCondition);
+  return and(...validConditions);
 }
 
 function buildTenantsOrderBy(sort: RevealFindOptions['sort']) {
@@ -232,7 +248,7 @@ function buildTenantsOrderBy(sort: RevealFindOptions['sort']) {
     }
   });
 
-  return orderBy.some((entry) => entry === null) ? null : orderBy;
+  return orderBy.some((entry) => entry === null) ? null : orderBy.filter(isSqlCondition);
 }
 
 async function findTypedUserByID(
@@ -378,17 +394,25 @@ const typedCollectionHandlers: Record<string, TypedCollectionHandler> = {
   },
 };
 
-export function createTypedCollectionStorage(): CollectionStorageAdapter | undefined {
+export function createTypedCollectionStorage(): LocalCollectionStorageAdapter | undefined {
   if (!hasTypedCollectionDatabase()) {
     return undefined;
   }
 
   return {
-    findByID(collection, options) {
-      return typedCollectionHandlers[collection.slug]?.findByID?.(collection, options);
+    findByID(
+      collection: RevealCollectionConfig,
+      options: { id: string | number },
+    ): Promise<RevealDocument | null | undefined> {
+      const handler = typedCollectionHandlers[collection.slug]?.findByID;
+      return handler ? handler(collection, options) : Promise.resolve(undefined);
     },
-    find(collection, options) {
-      return typedCollectionHandlers[collection.slug]?.find?.(collection, options);
+    find(
+      collection: RevealCollectionConfig,
+      options: RevealFindOptions,
+    ): Promise<RevealPaginatedResult | undefined> {
+      const handler = typedCollectionHandlers[collection.slug]?.find;
+      return handler ? handler(collection, options) : Promise.resolve(undefined);
     },
   };
 }
