@@ -13,9 +13,11 @@ vi.mock('../../collections/CollectionOperations.js', () => ({
   RevealUICollection: class MockCollection {
     slug: string;
     config: unknown;
-    constructor(config: { slug: string }) {
+    storage: unknown;
+    constructor(config: { slug: string }, _db?: unknown, storage?: unknown) {
       this.slug = config.slug;
       this.config = config;
+      this.storage = storage;
     }
     find = vi.fn().mockResolvedValue({ docs: [], totalDocs: 0 });
   },
@@ -42,6 +44,7 @@ vi.mock('../../fields/hooks/afterRead/index.js', () => ({
 
 vi.mock('../../utils/type-guards.js', () => ({
   isJsonFieldType: vi.fn(() => false),
+  flattenFields: vi.fn((fields) => fields),
 }));
 
 vi.mock('../logger.js', () => ({
@@ -130,6 +133,16 @@ describe('createRevealUIInstance', () => {
     expect(instance.collections.posts).toBeDefined();
     expect(instance.collections.users).toBeDefined();
     expect(instance.globals.settings).toBeDefined();
+  });
+
+  it('builds a collection storage registry and marks first-party typed candidates', async () => {
+    const instance = await createRevealUIInstance(makeConfig());
+
+    expect(instance.collectionStorageRegistry.posts).toBeDefined();
+    expect(instance.collectionStorageRegistry.users).toBeDefined();
+    expect(instance.collectionStorageRegistry.posts.storageMode).toBe('typed-candidate');
+    expect(instance.collections.posts.storage?.storageMode).toBe('typed-candidate');
+    expect(instance.collectionStorageRegistry.posts.allowedColumns).toContain('title');
   });
 
   it('stores config and secret', async () => {

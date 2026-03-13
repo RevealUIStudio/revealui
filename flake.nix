@@ -97,7 +97,7 @@
             # session that enters this dev environment.
             db-start() {
               if [ ! -d "$PGDATA" ]; then
-                echo "❌ PostgreSQL not initialized. Run 'db-init' first."
+                echo "❌ PostgreSQL not initialized. Run 'revealui db init' first."
                 return 1
               fi
               if pg_ctl status -D "$PGDATA" &>/dev/null; then
@@ -155,7 +155,7 @@ host    all             all             127.0.0.1/32            trust
 host    all             all             ::1/128                 trust
 PGHBA
               echo "✅ PostgreSQL initialized at $PGDATA"
-              echo "   Run 'db-start' to start the server"
+              echo "   Run 'revealui db start' to start the server"
             }
 
             db-reset() {
@@ -167,7 +167,7 @@ PGHBA
 
             db-psql() {
               if ! pg_ctl status -D "$PGDATA" &>/dev/null; then
-                echo "❌ PostgreSQL is not running. Run 'db-start' first."
+                echo "❌ PostgreSQL is not running. Run 'revealui db start' first."
                 return 1
               fi
               psql -h "$PGHOST" -U postgres -d postgres "$@"
@@ -219,11 +219,11 @@ PGHBA
             _WARN=""
 
             if [ ! -d "$PGDATA" ]; then
-              _WARN="''${_WARN}  ''${YELLOW}⚠  postgres not initialized''${NC}  ''${DIM}—''${NC}  run ''${BOLD}''${CYAN}db-init''${NC}\n"
+              _WARN="''${_WARN}  ''${YELLOW}⚠  postgres not initialized''${NC}  ''${DIM}—''${NC}  run ''${BOLD}''${CYAN}revealui db init''${NC}\n"
             elif pg_ctl status -D "$PGDATA" &>/dev/null; then
               _STATUS="  ''${GREEN}✅ postgres running''${NC}"
             else
-              _WARN="''${_WARN}  ''${YELLOW}⚠  postgres not running''${NC}  ''${DIM}—''${NC}  run ''${BOLD}''${CYAN}db-start''${NC}\n"
+              _WARN="''${_WARN}  ''${YELLOW}⚠  postgres not running''${NC}  ''${DIM}—''${NC}  run ''${BOLD}''${CYAN}revealui db start''${NC}\n"
             fi
 
             if [ -d "node_modules" ]; then
@@ -242,10 +242,10 @@ PGHBA
               _WARN="''${_WARN}  ''${YELLOW}⚠  docker not running''${NC}  ''${DIM}—''${NC}  start Docker Desktop\n"
             fi
 
-            if pgrep -f mcp &>/dev/null; then
-              _STATUS="''${_STATUS}   ''${GREEN}✅ mcp''${NC}"
+            if [ -n "''${VERCEL_API_KEY:-}" ] || [ -n "''${STRIPE_SECRET_KEY:-}" ]; then
+              _STATUS="''${_STATUS}   ''${GREEN}✅ mcp credentials''${NC}"
             else
-              _WARN="''${_WARN}  ''${YELLOW}⚠  mcp not running''${NC}  ''${DIM}—''${NC}  run ''${BOLD}''${CYAN}pnpm mcp''${NC}\n"
+              _WARN="''${_WARN}  ''${YELLOW}⚠  mcp credentials missing''${NC}  ''${DIM}—''${NC}  run ''${BOLD}''${CYAN}revealui dev up --include mcp''${NC}\n"
             fi
 
             [ -n "$_STATUS" ] && echo -e "$_STATUS"
@@ -269,7 +269,6 @@ PGHBA
 
           # Environment variables
           NODE_ENV = "development";
-          FORCE_COLOR = "1";  # Enable colors in terminals
           NPM_CONFIG_COLOR = "always";
 
           # Inform Node.js about available memory

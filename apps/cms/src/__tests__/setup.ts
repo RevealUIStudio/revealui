@@ -8,6 +8,8 @@ import '@testing-library/jest-dom/vitest';
 import fs from 'node:fs';
 import path from 'node:path';
 
+const originalConsoleWarn = console.warn.bind(console);
+
 // Set test environment variables BEFORE any imports
 // Use type assertion to avoid read-only property error in strict mode
 (process.env as { NODE_ENV: string }).NODE_ENV = 'test';
@@ -53,7 +55,18 @@ global.console = {
   log: vi.fn(),
   debug: vi.fn(),
   info: vi.fn(),
-  // Keep warn and error for debugging tests
+  warn: vi.fn((...args: unknown[]) => {
+    const shouldSuppressAggregateRowWarning = args.some(
+      (arg) => typeof arg === 'string' && arg.includes('Database row missing required id field'),
+    );
+
+    if (shouldSuppressAggregateRowWarning) {
+      return;
+    }
+
+    originalConsoleWarn(...args);
+  }),
+  // Keep error for debugging tests
 };
 
 /**

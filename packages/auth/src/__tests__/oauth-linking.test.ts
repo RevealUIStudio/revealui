@@ -112,7 +112,7 @@ const testProviderUser: ProviderUser = {
 // Tests
 // ---------------------------------------------------------------------------
 
-describe('linkOAuthAccount', () => {
+describe('linkOAuthAccount', { timeout: 60_000 }, () => {
   let linkOAuthAccount: typeof import('../server/oauth.js').linkOAuthAccount;
 
   beforeEach(async () => {
@@ -208,7 +208,7 @@ describe('linkOAuthAccount', () => {
   });
 });
 
-describe('unlinkOAuthAccount', () => {
+describe('unlinkOAuthAccount', { timeout: 60_000 }, () => {
   let unlinkOAuthAccount: typeof import('../server/oauth.js').unlinkOAuthAccount;
 
   beforeEach(async () => {

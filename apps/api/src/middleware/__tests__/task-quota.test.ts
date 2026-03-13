@@ -109,12 +109,20 @@ function setupSelectMock(count: number | null): void {
   mockSelect.mockReturnValue({ from: mockFrom });
 }
 
-function createApp(user?: UserContext) {
-  const app = new Hono<{ Variables: { user: UserContext | undefined } }>();
+function createApp(user?: UserContext, entitlements?: { limits?: { maxAgentTasks?: number } }) {
+  const app = new Hono<{
+    Variables: {
+      user: UserContext | undefined;
+      entitlements?: { limits?: { maxAgentTasks?: number } };
+    };
+  }>();
 
   // Set user context before quota middleware
   app.use('/*', async (c, next) => {
     c.set('user', user);
+    if (entitlements) {
+      c.set('entitlements', entitlements);
+    }
     return next();
   });
 
@@ -479,6 +487,16 @@ describe('requireTaskQuota', () => {
 
       // Falls back to 429 since receivingAddress is empty
       expect(res.status).toBe(429);
+    });
+
+    it('prefers request-scoped maxAgentTasks over the global license quota', async () => {
+      mockedGetMaxAgentTasks.mockReturnValue(1_000);
+      setupSelectMock(2);
+
+      const app = createApp(TEST_USER, { limits: { maxAgentTasks: 2 } });
+      const res = await app.request('/test');
+
+      expect(res.status).toBe(402);
     });
   });
 

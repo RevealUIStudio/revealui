@@ -17,6 +17,7 @@ import { collectJsonFields, serializeValueForDatabase } from '../../utils/json-p
 import { flattenFields, isJsonFieldType } from '../../utils/type-guards.js';
 import { runBeforeFieldHooks } from './fieldHooks.js';
 import { findByID } from './findById.js';
+import { checkExistsByIdQuery, selectJsonByIdQuery, updateByIdQuery } from './sqlAdapter.js';
 
 export async function update(
   config: RevealCollectionConfig,
@@ -73,6 +74,8 @@ export async function update(
   }
 
   if (db?.query) {
+    // Dynamic collection storage is quarantined in sqlAdapter.ts until this
+    // layer is redesigned around typed tables that Drizzle can model directly.
     const tableName = config.slug;
 
     // Build UPDATE query (PostgreSQL uses $1, $2 style)
@@ -114,7 +117,7 @@ export async function update(
     let existingJson: Record<string, unknown> = {};
     if (jsonFieldNames.size > 0) {
       // Fetch _json to preserve existing JSON fields (even when only updating non-JSON fields)
-      const rawQuery = `SELECT _json FROM "${tableName}" WHERE id = $1 LIMIT 1`;
+      const rawQuery = selectJsonByIdQuery(tableName);
       const rawResult = await db.query(rawQuery, [String(id)]);
 
       if (!rawResult.rows[0]) {
@@ -144,7 +147,7 @@ export async function update(
       }
     } else if (keys.length > 0) {
       // No JSON fields in collection - just verify document exists
-      const checkQuery = `SELECT id FROM "${tableName}" WHERE id = $1 LIMIT 1`;
+      const checkQuery = checkExistsByIdQuery(tableName);
       const checkResult = await db.query(checkQuery, [String(id)]);
       if (!checkResult.rows[0]) {
         throw new Error(`Document with id ${id} not found`);
@@ -162,7 +165,6 @@ export async function update(
       }
     }
 
-    const setClause = keys.map((key, i) => `"${key.replace(/"/g, '""')}" = $${i + 1}`).join(', ');
     const values = keys.map((key) => {
       if (key === '_json') {
         // Serialize merged JSON fields object to JSON string
@@ -174,7 +176,7 @@ export async function update(
 
     // Ensure id is a string for consistent comparison
     const idString = String(id);
-    const query = `UPDATE "${tableName}" SET ${setClause} WHERE id = $${keys.length + 1}`;
+    const query = updateByIdQuery(tableName, keys);
     await db.query(query, [...values, idString]);
 
     // Return updated document (use idString for consistency)

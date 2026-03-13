@@ -38,6 +38,11 @@ interface ProductDefinition {
   key: string;
   name: string;
   description: string;
+  tier: 'pro' | 'max' | 'enterprise';
+  billingModel: 'subscription' | 'perpetual';
+  priceNote?: string;
+  renewal?: string;
+  defaultPriceKey: string;
   prices: PriceDefinition[];
 }
 
@@ -45,7 +50,8 @@ interface PriceDefinition {
   key: string;
   unitAmount: number; // cents
   currency: string;
-  interval: 'month' | 'year';
+  interval?: 'month' | 'year';
+  mode: 'subscription' | 'payment';
   trialDays?: number;
 }
 
@@ -55,11 +61,15 @@ const CATALOG: ProductDefinition[] = [
     name: 'RevealUI Pro',
     description:
       'AI agents, MCP servers, editor integrations, and advanced sync. For professional developers and small teams.',
+    tier: 'pro',
+    billingModel: 'subscription',
+    defaultPriceKey: 'revealui_pro_monthly',
     prices: [
       {
         key: 'revealui_pro_monthly',
         unitAmount: 4900,
         currency: 'usd',
+        mode: 'subscription',
         interval: 'month',
         trialDays: 7,
       },
@@ -67,6 +77,7 @@ const CATALOG: ProductDefinition[] = [
         key: 'revealui_pro_yearly',
         unitAmount: 47000,
         currency: 'usd',
+        mode: 'subscription',
         interval: 'year',
         trialDays: 7,
       },
@@ -77,11 +88,15 @@ const CATALOG: ProductDefinition[] = [
     name: 'RevealUI Max',
     description:
       'AI memory, BYOK server-side, multi-provider AI, audit log, and higher limits (15 projects, 100 users).',
+    tier: 'max',
+    billingModel: 'subscription',
+    defaultPriceKey: 'revealui_max_monthly',
     prices: [
       {
         key: 'revealui_max_monthly',
         unitAmount: 14900,
         currency: 'usd',
+        mode: 'subscription',
         interval: 'month',
         trialDays: 7,
       },
@@ -89,6 +104,7 @@ const CATALOG: ProductDefinition[] = [
         key: 'revealui_max_yearly',
         unitAmount: 142800,
         currency: 'usd',
+        mode: 'subscription',
         interval: 'year',
         trialDays: 7,
       },
@@ -99,18 +115,77 @@ const CATALOG: ProductDefinition[] = [
     name: 'RevealUI Enterprise',
     description:
       'SSO, audit logging, white-label, self-hosted deployment, and priority support. For agencies and enterprise teams.',
+    tier: 'enterprise',
+    billingModel: 'subscription',
+    defaultPriceKey: 'revealui_enterprise_monthly',
     prices: [
       {
         key: 'revealui_enterprise_monthly',
         unitAmount: 29900,
         currency: 'usd',
+        mode: 'subscription',
         interval: 'month',
       },
       {
         key: 'revealui_enterprise_yearly',
         unitAmount: 287000,
         currency: 'usd',
+        mode: 'subscription',
         interval: 'year',
+      },
+    ],
+  },
+  {
+    key: 'revealui_pro_perpetual',
+    name: 'Pro Perpetual',
+    description: 'Pro features, forever. No subscription required.',
+    tier: 'pro',
+    billingModel: 'perpetual',
+    priceNote: 'one-time',
+    renewal: '$99/yr for continued support',
+    defaultPriceKey: 'revealui_pro_perpetual',
+    prices: [
+      {
+        key: 'revealui_pro_perpetual',
+        unitAmount: 29900,
+        currency: 'usd',
+        mode: 'payment',
+      },
+    ],
+  },
+  {
+    key: 'revealui_max_perpetual',
+    name: 'Agency Perpetual',
+    description: 'Deploy for multiple clients without per-site subscriptions.',
+    tier: 'max',
+    billingModel: 'perpetual',
+    priceNote: 'one-time',
+    renewal: '$199/yr for continued support',
+    defaultPriceKey: 'revealui_max_perpetual',
+    prices: [
+      {
+        key: 'revealui_max_perpetual',
+        unitAmount: 79900,
+        currency: 'usd',
+        mode: 'payment',
+      },
+    ],
+  },
+  {
+    key: 'revealui_enterprise_perpetual',
+    name: 'Forge Perpetual',
+    description: 'Full self-hosted Forge with unlimited deployments.',
+    tier: 'enterprise',
+    billingModel: 'perpetual',
+    priceNote: 'one-time',
+    renewal: '$499/yr for continued support',
+    defaultPriceKey: 'revealui_enterprise_perpetual',
+    prices: [
+      {
+        key: 'revealui_enterprise_perpetual',
+        unitAmount: 199900,
+        currency: 'usd',
+        mode: 'payment',
       },
     ],
   },
@@ -136,11 +211,17 @@ const PRICE_ENV_KEYS: Record<string, string> = {
   revealui_pro_monthly: 'NEXT_PUBLIC_STRIPE_PRO_PRICE_ID',
   revealui_max_monthly: 'NEXT_PUBLIC_STRIPE_MAX_PRICE_ID',
   revealui_enterprise_monthly: 'NEXT_PUBLIC_STRIPE_ENTERPRISE_PRICE_ID',
+  revealui_pro_perpetual: 'NEXT_PUBLIC_STRIPE_PRO_PERPETUAL_PRICE_ID',
+  revealui_max_perpetual: 'NEXT_PUBLIC_STRIPE_MAX_PERPETUAL_PRICE_ID',
+  revealui_enterprise_perpetual: 'NEXT_PUBLIC_STRIPE_ENTERPRISE_PERPETUAL_PRICE_ID',
 };
 const PRICE_SERVER_ENV_KEYS: Record<string, string> = {
   revealui_pro_monthly: 'STRIPE_PRO_PRICE_ID',
   revealui_max_monthly: 'STRIPE_MAX_PRICE_ID',
   revealui_enterprise_monthly: 'STRIPE_ENTERPRISE_PRICE_ID',
+  revealui_pro_perpetual: 'STRIPE_PERPETUAL_PRO_PRICE_ID',
+  revealui_max_perpetual: 'STRIPE_PERPETUAL_MAX_PRICE_ID',
+  revealui_enterprise_perpetual: 'STRIPE_PERPETUAL_ENTERPRISE_PRICE_ID',
 };
 
 // ─── Logger ─────────────────────────────────────────────────────────────────
@@ -159,9 +240,9 @@ const log = {
 async function syncCatalog(
   stripe: Stripe,
   dryRun: boolean,
-): Promise<{ envVars: Record<string, string>; productIds: string[] }> {
+): Promise<{ envVars: Record<string, string>; subscriptionProductIds: string[] }> {
   const envVars: Record<string, string> = {};
-  const productIds: string[] = [];
+  const subscriptionProductIds: string[] = [];
 
   for (const productDef of CATALOG) {
     log.info('');
@@ -177,7 +258,11 @@ async function syncCatalog(
     if (existingProduct) {
       if (
         existingProduct.name !== productDef.name ||
-        existingProduct.description !== productDef.description
+        existingProduct.description !== productDef.description ||
+        existingProduct.metadata?.revealui_track !== productDef.billingModel ||
+        existingProduct.metadata?.revealui_tier !== productDef.tier ||
+        existingProduct.metadata?.revealui_price_note !== productDef.priceNote ||
+        existingProduct.metadata?.revealui_renewal !== productDef.renewal
       ) {
         if (dryRun) {
           log.info(`Would update product: ${existingProduct.id}`);
@@ -186,6 +271,13 @@ async function syncCatalog(
           product = await stripe.products.update(existingProduct.id, {
             name: productDef.name,
             description: productDef.description,
+            metadata: {
+              revealui_product_key: productDef.key,
+              revealui_track: productDef.billingModel,
+              revealui_tier: productDef.tier,
+              ...(productDef.priceNote && { revealui_price_note: productDef.priceNote }),
+              ...(productDef.renewal && { revealui_renewal: productDef.renewal }),
+            },
           });
           log.success(`Updated product: ${product.id}`);
         }
@@ -201,18 +293,29 @@ async function syncCatalog(
       product = await stripe.products.create({
         name: productDef.name,
         description: productDef.description,
-        metadata: { revealui_product_key: productDef.key },
+        metadata: {
+          revealui_product_key: productDef.key,
+          revealui_track: productDef.billingModel,
+          revealui_tier: productDef.tier,
+          ...(productDef.priceNote && { revealui_price_note: productDef.priceNote }),
+          ...(productDef.renewal && { revealui_renewal: productDef.renewal }),
+        },
       });
       log.success(`Created product: ${product.id}`);
     }
 
-    productIds.push(product.id);
+    if (productDef.billingModel === 'subscription') {
+      subscriptionProductIds.push(product.id);
+    }
 
     const existingPrices = await stripe.prices.list({
       product: product.id,
       active: true,
       limit: 100,
     });
+    let defaultPriceId = product.default_price;
+    const currentDefaultPriceId =
+      typeof product.default_price === 'string' ? product.default_price : product.default_price?.id;
 
     for (const priceDef of productDef.prices) {
       const matchingPrice = existingPrices.data.find(
@@ -220,18 +323,23 @@ async function syncCatalog(
           p.metadata.revealui_price_key === priceDef.key &&
           p.unit_amount === priceDef.unitAmount &&
           p.currency === priceDef.currency &&
-          p.recurring?.interval === priceDef.interval,
+          (priceDef.mode === 'subscription'
+            ? p.recurring?.interval === priceDef.interval
+            : !p.recurring),
       );
 
       if (matchingPrice) {
         log.success(
-          `  Price exists: ${matchingPrice.id} (${priceDef.key}: $${(priceDef.unitAmount / 100).toFixed(2)}/${priceDef.interval})`,
+          `  Price exists: ${matchingPrice.id} (${priceDef.key}: $${(priceDef.unitAmount / 100).toFixed(2)}${priceDef.interval ? `/${priceDef.interval}` : ''})`,
         );
         if (PRICE_ENV_KEYS[priceDef.key]) {
           envVars[PRICE_ENV_KEYS[priceDef.key]] = matchingPrice.id;
         }
         if (PRICE_SERVER_ENV_KEYS[priceDef.key]) {
           envVars[PRICE_SERVER_ENV_KEYS[priceDef.key]] = matchingPrice.id;
+        }
+        if (priceDef.key === productDef.defaultPriceKey) {
+          defaultPriceId = matchingPrice.id;
         }
         continue;
       }
@@ -251,7 +359,7 @@ async function syncCatalog(
 
       if (dryRun) {
         log.info(
-          `  Would create price: ${priceDef.key} ($${(priceDef.unitAmount / 100).toFixed(2)}/${priceDef.interval})`,
+          `  Would create price: ${priceDef.key} ($${(priceDef.unitAmount / 100).toFixed(2)}${priceDef.interval ? `/${priceDef.interval}` : ''})`,
         );
         continue;
       }
@@ -260,12 +368,19 @@ async function syncCatalog(
         product: product.id,
         unit_amount: priceDef.unitAmount,
         currency: priceDef.currency,
-        recurring: { interval: priceDef.interval, trial_period_days: priceDef.trialDays },
+        ...(priceDef.mode === 'subscription'
+          ? {
+              recurring: {
+                interval: priceDef.interval,
+                trial_period_days: priceDef.trialDays,
+              },
+            }
+          : {}),
         metadata: { revealui_price_key: priceDef.key },
       });
 
       log.success(
-        `  Created price: ${price.id} (${priceDef.key}: $${(priceDef.unitAmount / 100).toFixed(2)}/${priceDef.interval})`,
+        `  Created price: ${price.id} (${priceDef.key}: $${(priceDef.unitAmount / 100).toFixed(2)}${priceDef.interval ? `/${priceDef.interval}` : ''})`,
       );
 
       if (PRICE_ENV_KEYS[priceDef.key]) {
@@ -274,10 +389,22 @@ async function syncCatalog(
       if (PRICE_SERVER_ENV_KEYS[priceDef.key]) {
         envVars[PRICE_SERVER_ENV_KEYS[priceDef.key]] = price.id;
       }
+      if (priceDef.key === productDef.defaultPriceKey) {
+        defaultPriceId = price.id;
+      }
+    }
+
+    if (defaultPriceId && currentDefaultPriceId !== defaultPriceId) {
+      if (dryRun) {
+        log.info(`  Would set default price: ${defaultPriceId}`);
+      } else {
+        await stripe.products.update(product.id, { default_price: String(defaultPriceId) });
+        log.success(`  Set default price: ${defaultPriceId}`);
+      }
     }
   }
 
-  return { envVars, productIds };
+  return { envVars, subscriptionProductIds };
 }
 
 // ─── Webhook Endpoint ────────────────────────────────────────────────────────
@@ -530,7 +657,7 @@ async function main(): Promise<void> {
 
   // ── Products & prices
   log.header('Products & Prices');
-  const { envVars, productIds } = await syncCatalog(stripe, dryRun);
+  const { envVars, subscriptionProductIds } = await syncCatalog(stripe, dryRun);
 
   // ── Webhook endpoint
   if (!skipWebhook) {
@@ -550,9 +677,9 @@ async function main(): Promise<void> {
   }
 
   // ── Billing portal
-  if (!skipPortal && productIds.length > 0) {
+  if (!skipPortal && subscriptionProductIds.length > 0) {
     log.header('Billing Portal');
-    await setupBillingPortal(stripe, productIds, dryRun);
+    await setupBillingPortal(stripe, subscriptionProductIds, dryRun);
   }
 
   // ── Output env vars

@@ -24,6 +24,12 @@ const mockBillingPortalSessionsCreate = vi.fn();
 const mockSubscriptionsList = vi.fn();
 const mockSubscriptionsUpdate = vi.fn();
 const mockMeterEventsCreate = vi.fn();
+const mockLogger = vi.hoisted(() => ({
+  info: vi.fn(),
+  error: vi.fn(),
+  warn: vi.fn(),
+  debug: vi.fn(),
+}));
 
 vi.mock('stripe', () => ({
   default: vi.fn().mockImplementation(
@@ -38,6 +44,27 @@ vi.mock('stripe', () => ({
 }));
 
 vi.mock('@revealui/db/schema', () => ({
+  accountMemberships: {
+    accountId: 'accountMemberships.accountId',
+    userId: 'accountMemberships.userId',
+    status: 'accountMemberships.status',
+  },
+  accountSubscriptions: {
+    accountId: 'accountSubscriptions.accountId',
+    stripeCustomerId: 'accountSubscriptions.stripeCustomerId',
+  },
+  accountEntitlements: {
+    accountId: 'accountEntitlements.accountId',
+    tier: 'accountEntitlements.tier',
+    status: 'accountEntitlements.status',
+  },
+  billingCatalog: {
+    stripePriceId: 'billingCatalog.stripePriceId',
+    planId: 'billingCatalog.planId',
+    tier: 'billingCatalog.tier',
+    billingModel: 'billingCatalog.billingModel',
+    active: 'billingCatalog.active',
+  },
   users: {
     id: 'users.id',
     email: 'users.email',
@@ -100,6 +127,7 @@ vi.mock('../../lib/email.js', () => ({
 // ─── DB Mock ─────────────────────────────────────────────────────────────────
 
 let _selectResult: unknown[] = [];
+let _selectQueue: unknown[][] = [];
 
 const mockDbSelectChain = {
   from: vi.fn(),
@@ -128,7 +156,7 @@ vi.mock('@revealui/db', () => ({
 }));
 
 vi.mock('@revealui/core/observability/logger', () => ({
-  logger: { info: vi.fn(), error: vi.fn(), warn: vi.fn(), debug: vi.fn() },
+  logger: mockLogger,
 }));
 
 // ─── Import under test (after mocks) ─────────────────────────────────────────
@@ -152,10 +180,21 @@ const MOCK_USER: UserContext = {
   role: 'admin',
 };
 
-function createApp(user: UserContext = MOCK_USER) {
-  const app = new Hono<{ Variables: { user: UserContext | undefined } }>();
+function createApp(
+  user: UserContext = MOCK_USER,
+  entitlements?: { limits?: { maxAgentTasks?: number } },
+) {
+  const app = new Hono<{
+    Variables: {
+      user: UserContext | undefined;
+      entitlements?: { limits?: { maxAgentTasks?: number } };
+    };
+  }>();
   app.use('*', async (c, next) => {
     c.set('user', user);
+    if (entitlements) {
+      c.set('entitlements', entitlements);
+    }
     await next();
   });
   app.route('/', billingApp);
@@ -170,6 +209,7 @@ function createApp(user: UserContext = MOCK_USER) {
 
 function resetChains() {
   _selectResult = [];
+  _selectQueue = [];
   mockDbSelectChain.from.mockReturnValue(mockDbSelectChain);
   mockDbSelectChain.innerJoin.mockReturnValue(mockDbSelectChain);
   mockDbSelectChain.where.mockReturnValue(mockDbSelectChain);
@@ -177,13 +217,22 @@ function resetChains() {
   mockDbSelectChain.limit.mockImplementation(() => Promise.resolve(_selectResult));
   mockDbUpdateChain.set.mockReturnValue(mockDbUpdateChain);
   mockDbUpdateChain.where.mockResolvedValue({ rowCount: 1 });
-  mockDb.select.mockReturnValue(mockDbSelectChain);
+  mockDb.select.mockImplementation(() => {
+    if (_selectQueue.length > 0) {
+      _selectResult = _selectQueue.shift() ?? [];
+    }
+    return mockDbSelectChain;
+  });
   mockDb.update.mockReturnValue(mockDbUpdateChain);
   mockDb.transaction.mockImplementation(async (cb: (tx: typeof mockDb) => Promise<unknown>) =>
     cb(mockDb),
   );
   mockSubscriptionsList.mockResolvedValue({ data: [] });
   mockSubscriptionsUpdate.mockResolvedValue({});
+}
+
+function queueSelectResults(...results: unknown[][]) {
+  _selectQueue = [...results];
 }
 
 function post(path: string, body: unknown) {
@@ -212,634 +261,733 @@ function cronPost(path: string) {
 
 // ─── Tests ────────────────────────────────────────────────────────────────────
 
-describe('POST /downgrade', () => {
-  beforeEach(() => {
-    vi.clearAllMocks();
-    resetChains();
-    process.env.STRIPE_SECRET_KEY = 'sk_test_placeholder';
-  });
-
-  it('returns 401 when not authenticated', async () => {
-    const res = await billingApp.request(post('/downgrade', {}));
-    expect(res.status).toBe(401);
-  });
-
-  it('returns 400 when user has no Stripe customer', async () => {
-    _selectResult = [{ stripeCustomerId: null }];
-
-    const app = createApp();
-    const res = await app.request(post('/downgrade', {}));
-
-    expect(res.status).toBe(400);
-    const body = (await res.json()) as Record<string, unknown>;
-    expect(body.error as string).toContain('No billing account');
-  });
-
-  it('returns 400 when no active subscription exists', async () => {
-    _selectResult = [{ stripeCustomerId: 'cus_existing' }];
-    mockSubscriptionsList.mockResolvedValue({ data: [] });
-
-    const app = createApp();
-    const res = await app.request(post('/downgrade', {}));
-
-    expect(res.status).toBe(400);
-    const body = (await res.json()) as Record<string, unknown>;
-    expect(body.error as string).toContain('No active subscription');
-  });
-
-  it('cancels subscription at period end and returns effectiveAt date', async () => {
-    _selectResult = [{ stripeCustomerId: 'cus_existing' }];
-    mockSubscriptionsList.mockResolvedValue({
-      data: [{ id: 'sub_pro', items: { data: [{ id: 'si_pro' }] } }],
-    });
-    const cancelTimestamp = Math.floor(new Date('2026-04-15T00:00:00Z').getTime() / 1000);
-    mockSubscriptionsUpdate.mockResolvedValue({
-      id: 'sub_pro',
-      cancel_at: cancelTimestamp,
-      cancel_at_period_end: true,
+describe('Billing Route Tests — Comprehensive Coverage', { timeout: 60_000 }, () => {
+  describe('POST /downgrade', () => {
+    beforeEach(() => {
+      vi.clearAllMocks();
+      resetChains();
+      process.env.STRIPE_SECRET_KEY = 'stripe_test_placeholder';
     });
 
-    const app = createApp();
-    const res = await app.request(post('/downgrade', {}));
-
-    expect(res.status).toBe(200);
-    const body = (await res.json()) as Record<string, unknown>;
-    expect(body.success).toBe(true);
-    expect(body.effectiveAt).toBe(new Date(cancelTimestamp * 1000).toISOString());
-  });
-
-  it('sets cancel_at_period_end to true on Stripe subscription', async () => {
-    _selectResult = [{ stripeCustomerId: 'cus_existing' }];
-    mockSubscriptionsList.mockResolvedValue({
-      data: [{ id: 'sub_pro', items: { data: [{ id: 'si_pro' }] } }],
-    });
-    mockSubscriptionsUpdate.mockResolvedValue({ id: 'sub_pro', cancel_at: null });
-
-    const app = createApp();
-    await app.request(post('/downgrade', {}));
-
-    expect(mockSubscriptionsUpdate).toHaveBeenCalledWith('sub_pro', {
-      cancel_at_period_end: true,
-    });
-  });
-
-  it('uses current time as effectiveAt when Stripe returns no cancel_at', async () => {
-    _selectResult = [{ stripeCustomerId: 'cus_existing' }];
-    mockSubscriptionsList.mockResolvedValue({
-      data: [{ id: 'sub_pro', items: { data: [{ id: 'si_pro' }] } }],
-    });
-    mockSubscriptionsUpdate.mockResolvedValue({ id: 'sub_pro', cancel_at: null });
-
-    const before = Date.now();
-    const app = createApp();
-    const res = await app.request(post('/downgrade', {}));
-    const after = Date.now();
-
-    const body = (await res.json()) as Record<string, unknown>;
-    const effectiveTime = new Date(body.effectiveAt as string).getTime();
-    expect(effectiveTime).toBeGreaterThanOrEqual(before);
-    expect(effectiveTime).toBeLessThanOrEqual(after);
-  });
-
-  it('queries Stripe for active subscription with correct customer', async () => {
-    _selectResult = [{ stripeCustomerId: 'cus_downgrade' }];
-    mockSubscriptionsList.mockResolvedValue({
-      data: [{ id: 'sub_1', items: { data: [{ id: 'si_1' }] } }],
-    });
-    mockSubscriptionsUpdate.mockResolvedValue({ id: 'sub_1', cancel_at: null });
-
-    const app = createApp();
-    await app.request(post('/downgrade', {}));
-
-    expect(mockSubscriptionsList).toHaveBeenCalledWith({
-      customer: 'cus_downgrade',
-      status: 'active',
-      limit: 1,
-    });
-  });
-});
-
-describe('POST /checkout-perpetual', () => {
-  beforeEach(() => {
-    vi.clearAllMocks();
-    resetChains();
-    process.env.STRIPE_SECRET_KEY = 'sk_test_placeholder';
-    process.env.CMS_URL = 'https://app.example.com';
-  });
-
-  it('returns 401 when not authenticated', async () => {
-    const res = await billingApp.request(
-      post('/checkout-perpetual', { priceId: 'price_perp', tier: 'pro' }),
-    );
-    expect(res.status).toBe(401);
-  });
-
-  it('creates a payment-mode checkout session (not subscription)', async () => {
-    _selectResult = [{ stripeCustomerId: 'cus_existing' }];
-    mockCheckoutSessionsCreate.mockResolvedValue({
-      url: 'https://checkout.stripe.com/pay/sess_perp',
+    it('returns 401 when not authenticated', async () => {
+      const res = await billingApp.request(post('/downgrade', {}));
+      expect(res.status).toBe(401);
     });
 
-    const app = createApp();
-    const res = await app.request(
-      post('/checkout-perpetual', { priceId: 'price_pro_perpetual', tier: 'pro' }),
-    );
+    it('returns 400 when user has no Stripe customer', async () => {
+      _selectResult = [{ stripeCustomerId: null }];
 
-    expect(res.status).toBe(200);
-    const body = (await res.json()) as Record<string, unknown>;
-    expect(body.url).toBe('https://checkout.stripe.com/pay/sess_perp');
+      const app = createApp();
+      const res = await app.request(post('/downgrade', {}));
 
-    const sessionArgs = mockCheckoutSessionsCreate.mock.calls[0]?.[0] as Record<string, unknown>;
-    expect(sessionArgs.mode).toBe('payment');
-    expect(sessionArgs.customer).toBe('cus_existing');
-  });
-
-  it('includes perpetual and tier metadata in payment_intent_data', async () => {
-    _selectResult = [{ stripeCustomerId: 'cus_existing' }];
-    mockCheckoutSessionsCreate.mockResolvedValue({
-      url: 'https://checkout.stripe.com/pay/sess_meta',
+      expect(res.status).toBe(400);
+      const body = (await res.json()) as Record<string, unknown>;
+      expect(body.error as string).toContain('No billing account');
     });
 
-    const app = createApp();
-    await app.request(post('/checkout-perpetual', { priceId: 'price_max_perpetual', tier: 'max' }));
+    it('returns 400 when no active subscription exists', async () => {
+      _selectResult = [{ stripeCustomerId: 'cus_existing' }];
+      mockSubscriptionsList.mockResolvedValue({ data: [] });
 
-    const sessionArgs = mockCheckoutSessionsCreate.mock.calls[0]?.[0] as Record<string, unknown>;
-    const piMeta = (sessionArgs.payment_intent_data as Record<string, unknown>).metadata as Record<
-      string,
-      unknown
-    >;
-    expect(piMeta.tier).toBe('max');
-    expect(piMeta.perpetual).toBe('true');
-    expect(piMeta.revealui_user_id).toBe(MOCK_USER.id);
-  });
+      const app = createApp();
+      const res = await app.request(post('/downgrade', {}));
 
-  it('includes github_username in metadata when provided', async () => {
-    _selectResult = [{ stripeCustomerId: 'cus_existing' }];
-    mockCheckoutSessionsCreate.mockResolvedValue({
-      url: 'https://checkout.stripe.com/pay/sess_gh',
+      expect(res.status).toBe(400);
+      const body = (await res.json()) as Record<string, unknown>;
+      expect(body.error as string).toContain('No active subscription');
     });
 
-    const app = createApp();
-    await app.request(
-      post('/checkout-perpetual', {
-        priceId: 'price_pro_perpetual',
-        tier: 'pro',
-        githubUsername: 'octocat',
-      }),
-    );
+    it('cancels subscription at period end and returns effectiveAt date', async () => {
+      _selectResult = [{ stripeCustomerId: 'cus_existing' }];
+      mockSubscriptionsList.mockResolvedValue({
+        data: [{ id: 'sub_pro', items: { data: [{ id: 'si_pro' }] } }],
+      });
+      const cancelTimestamp = Math.floor(new Date('2026-04-15T00:00:00Z').getTime() / 1000);
+      mockSubscriptionsUpdate.mockResolvedValue({
+        id: 'sub_pro',
+        cancel_at: cancelTimestamp,
+        cancel_at_period_end: true,
+      });
 
-    const sessionArgs = mockCheckoutSessionsCreate.mock.calls[0]?.[0] as Record<string, unknown>;
-    const piMeta = (sessionArgs.payment_intent_data as Record<string, unknown>).metadata as Record<
-      string,
-      unknown
-    >;
-    expect(piMeta.github_username).toBe('octocat');
-  });
+      const app = createApp();
+      const res = await app.request(post('/downgrade', {}));
 
-  it('omits github_username from metadata when not provided', async () => {
-    _selectResult = [{ stripeCustomerId: 'cus_existing' }];
-    mockCheckoutSessionsCreate.mockResolvedValue({
-      url: 'https://checkout.stripe.com/pay/sess_no_gh',
+      expect(res.status).toBe(200);
+      const body = (await res.json()) as Record<string, unknown>;
+      expect(body.success).toBe(true);
+      expect(body.effectiveAt).toBe(new Date(cancelTimestamp * 1000).toISOString());
     });
 
-    const app = createApp();
-    await app.request(post('/checkout-perpetual', { priceId: 'price_pro_perpetual', tier: 'pro' }));
+    it('sets cancel_at_period_end to true on Stripe subscription', async () => {
+      _selectResult = [{ stripeCustomerId: 'cus_existing' }];
+      mockSubscriptionsList.mockResolvedValue({
+        data: [{ id: 'sub_pro', items: { data: [{ id: 'si_pro' }] } }],
+      });
+      mockSubscriptionsUpdate.mockResolvedValue({ id: 'sub_pro', cancel_at: null });
 
-    const sessionArgs = mockCheckoutSessionsCreate.mock.calls[0]?.[0] as Record<string, unknown>;
-    const piMeta = (sessionArgs.payment_intent_data as Record<string, unknown>).metadata as Record<
-      string,
-      unknown
-    >;
-    expect(piMeta.github_username).toBeUndefined();
-  });
+      const app = createApp();
+      await app.request(post('/downgrade', {}));
 
-  it('uses perpetual success_url with perpetual=true query param', async () => {
-    _selectResult = [{ stripeCustomerId: 'cus_existing' }];
-    mockCheckoutSessionsCreate.mockResolvedValue({
-      url: 'https://checkout.stripe.com/pay/sess_url',
+      expect(mockSubscriptionsUpdate).toHaveBeenCalledWith('sub_pro', {
+        cancel_at_period_end: true,
+      });
     });
 
-    const app = createApp();
-    await app.request(post('/checkout-perpetual', { priceId: 'price_pro_perpetual', tier: 'pro' }));
+    it('uses current time as effectiveAt when Stripe returns no cancel_at', async () => {
+      _selectResult = [{ stripeCustomerId: 'cus_existing' }];
+      mockSubscriptionsList.mockResolvedValue({
+        data: [{ id: 'sub_pro', items: { data: [{ id: 'si_pro' }] } }],
+      });
+      mockSubscriptionsUpdate.mockResolvedValue({ id: 'sub_pro', cancel_at: null });
 
-    const sessionArgs = mockCheckoutSessionsCreate.mock.calls[0]?.[0] as Record<string, unknown>;
-    expect(sessionArgs.success_url).toBe('https://app.example.com/account/billing?perpetual=true');
-    expect(sessionArgs.cancel_url).toBe('https://app.example.com/account/billing');
-  });
+      const before = Date.now();
+      const app = createApp();
+      const res = await app.request(post('/downgrade', {}));
+      const after = Date.now();
 
-  it('returns 500 when checkout session URL is null', async () => {
-    _selectResult = [{ stripeCustomerId: 'cus_existing' }];
-    mockCheckoutSessionsCreate.mockResolvedValue({ url: null });
-
-    const app = createApp();
-    const res = await app.request(
-      post('/checkout-perpetual', { priceId: 'price_pro_perpetual', tier: 'pro' }),
-    );
-
-    expect(res.status).toBe(500);
-  });
-
-  it('returns 500 when CMS_URL is not configured', async () => {
-    delete process.env.CMS_URL;
-    delete process.env.NEXT_PUBLIC_SERVER_URL;
-    _selectResult = [{ stripeCustomerId: 'cus_existing' }];
-
-    const app = createApp();
-    const res = await app.request(
-      post('/checkout-perpetual', { priceId: 'price_pro_perpetual', tier: 'pro' }),
-    );
-
-    expect(res.status).toBe(500);
-  });
-});
-
-describe('GET /usage', () => {
-  beforeEach(() => {
-    vi.clearAllMocks();
-    resetChains();
-    process.env.STRIPE_SECRET_KEY = 'sk_test_placeholder';
-  });
-
-  it('returns 401 when not authenticated', async () => {
-    const res = await billingApp.request(get('/usage'));
-    expect(res.status).toBe(401);
-  });
-
-  it('returns zero usage when no record exists for the current cycle', async () => {
-    _selectResult = [];
-
-    const app = createApp();
-    const res = await app.request(get('/usage'));
-
-    expect(res.status).toBe(200);
-    const body = (await res.json()) as Record<string, unknown>;
-    expect(body.used).toBe(0);
-    expect(body.overage).toBe(0);
-    expect(body.quota).toBe(10_000);
-  });
-
-  it('returns usage data from the current billing cycle', async () => {
-    _selectResult = [{ count: 150, overage: 5 }];
-
-    const app = createApp();
-    const res = await app.request(get('/usage'));
-
-    expect(res.status).toBe(200);
-    const body = (await res.json()) as Record<string, unknown>;
-    expect(body.used).toBe(150);
-    expect(body.overage).toBe(5);
-  });
-
-  it('returns -1 for quota when tier has unlimited tasks', async () => {
-    vi.mocked(getMaxAgentTasks).mockReturnValue(Infinity);
-    _selectResult = [];
-
-    const app = createApp();
-    const res = await app.request(get('/usage'));
-
-    expect(res.status).toBe(200);
-    const body = (await res.json()) as Record<string, unknown>;
-    expect(body.quota).toBe(-1);
-  });
-
-  it('returns cycleStart as first of current month UTC', async () => {
-    _selectResult = [];
-
-    const app = createApp();
-    const res = await app.request(get('/usage'));
-
-    const body = (await res.json()) as Record<string, unknown>;
-    const cycleStart = new Date(body.cycleStart as string);
-    expect(cycleStart.getUTCDate()).toBe(1);
-    expect(cycleStart.getUTCHours()).toBe(0);
-    expect(cycleStart.getUTCMinutes()).toBe(0);
-  });
-
-  it('returns resetAt as first of next month UTC', async () => {
-    _selectResult = [];
-
-    const app = createApp();
-    const res = await app.request(get('/usage'));
-
-    const body = (await res.json()) as Record<string, unknown>;
-    const resetAt = new Date(body.resetAt as string);
-    const cycleStart = new Date(body.cycleStart as string);
-    expect(resetAt.getUTCMonth()).toBe((cycleStart.getUTCMonth() + 1) % 12);
-    expect(resetAt.getUTCDate()).toBe(1);
-  });
-});
-
-describe('POST /support-renewal-check', () => {
-  beforeEach(() => {
-    vi.clearAllMocks();
-    resetChains();
-    process.env.STRIPE_SECRET_KEY = 'sk_test_placeholder';
-    process.env.REVEALUI_CRON_SECRET = CRON_SECRET;
-    mockSendEmail.mockResolvedValue(undefined);
-  });
-
-  it('returns 403 when cron secret is missing', async () => {
-    delete process.env.REVEALUI_CRON_SECRET;
-
-    const res = await billingApp.request(cronPost('/support-renewal-check'));
-    expect(res.status).toBe(403);
-  });
-
-  it('returns 403 when cron secret is wrong', async () => {
-    const res = await billingApp.request(
-      new Request('http://localhost/support-renewal-check', {
-        method: 'POST',
-        headers: { 'X-Cron-Secret': 'wrong-secret' },
-      }),
-    );
-    expect(res.status).toBe(403);
-  });
-
-  it('returns 403 when X-Cron-Secret header is absent', async () => {
-    const res = await billingApp.request(
-      new Request('http://localhost/support-renewal-check', {
-        method: 'POST',
-      }),
-    );
-    expect(res.status).toBe(403);
-  });
-
-  it('sends reminder for license expiring within 30 days', async () => {
-    const in15Days = new Date(Date.now() + 15 * 24 * 60 * 60 * 1000);
-
-    // The route does two sequential db.select() calls:
-    //   1. Licenses query (no .limit(), resolved via thenable chain)
-    //   2. User email lookup (with .limit(1), resolved via limit mock)
-    // We override the thenable and limit to return the right data per call.
-    let selectCallCount = 0;
-    const licensesResult = [{ id: 'lic_1', userId: 'user-1', supportExpiresAt: in15Days }];
-    const userResult = [{ email: 'customer@example.com' }];
-
-    mockDb.select.mockImplementation(() => {
-      selectCallCount++;
-      // Set _selectResult for the thenable (first query doesn't use .limit())
-      _selectResult = selectCallCount === 1 ? licensesResult : userResult;
-      return mockDbSelectChain;
+      const body = (await res.json()) as Record<string, unknown>;
+      const effectiveTime = new Date(body.effectiveAt as string).getTime();
+      expect(effectiveTime).toBeGreaterThanOrEqual(before);
+      expect(effectiveTime).toBeLessThanOrEqual(after);
     });
 
-    // The limit mock also needs to capture the right result at call time
-    mockDbSelectChain.limit.mockImplementation(() => {
-      return Promise.resolve(_selectResult);
+    it('queries Stripe for active subscription with correct customer', async () => {
+      _selectResult = [{ stripeCustomerId: 'cus_downgrade' }];
+      mockSubscriptionsList.mockResolvedValue({
+        data: [{ id: 'sub_1', items: { data: [{ id: 'si_1' }] } }],
+      });
+      mockSubscriptionsUpdate.mockResolvedValue({ id: 'sub_1', cancel_at: null });
+
+      const app = createApp();
+      await app.request(post('/downgrade', {}));
+
+      expect(mockSubscriptionsList).toHaveBeenCalledWith({
+        customer: 'cus_downgrade',
+        status: 'active',
+        limit: 1,
+      });
     });
 
-    const res = await billingApp.request(cronPost('/support-renewal-check'));
-    expect(res.status).toBe(200);
-    const body = (await res.json()) as Record<string, unknown>;
-    expect(body.reminded).toBe(1);
-    expect(mockSendEmail).toHaveBeenCalledOnce();
-    expect(mockSendEmail).toHaveBeenCalledWith(
-      expect.objectContaining({
-        to: 'customer@example.com',
-        subject: 'Your RevealUI support contract expires soon',
-      }),
-    );
-  });
+    it('prefers the hosted account subscription customer for downgrades', async () => {
+      let selectCallCount = 0;
+      mockDb.select.mockImplementation(() => {
+        selectCallCount++;
+        _selectResult =
+          selectCallCount === 1
+            ? [{ accountId: 'acct_123' }]
+            : selectCallCount === 2
+              ? [{ stripeCustomerId: 'cus_account' }]
+              : [];
+        return mockDbSelectChain;
+      });
+      mockSubscriptionsList.mockResolvedValue({
+        data: [{ id: 'sub_1', items: { data: [{ id: 'si_1' }] } }],
+      });
+      mockSubscriptionsUpdate.mockResolvedValue({ id: 'sub_1', cancel_at: null });
 
-  it('skips licenses without supportExpiresAt', async () => {
-    _selectResult = [{ id: 'lic_1', userId: 'user-1', supportExpiresAt: null }];
+      const app = createApp();
+      await app.request(post('/downgrade', {}));
 
-    const res = await billingApp.request(cronPost('/support-renewal-check'));
-    expect(res.status).toBe(200);
-    const body = (await res.json()) as Record<string, unknown>;
-    expect(body.reminded).toBe(0);
-    expect(mockSendEmail).not.toHaveBeenCalled();
-  });
-
-  it('skips licenses that already expired (in the past)', async () => {
-    const yesterday = new Date(Date.now() - 24 * 60 * 60 * 1000);
-    _selectResult = [{ id: 'lic_1', userId: 'user-1', supportExpiresAt: yesterday }];
-
-    const res = await billingApp.request(cronPost('/support-renewal-check'));
-    expect(res.status).toBe(200);
-    const body = (await res.json()) as Record<string, unknown>;
-    expect(body.reminded).toBe(0);
-  });
-
-  it('skips licenses expiring more than 30 days out', async () => {
-    const in60Days = new Date(Date.now() + 60 * 24 * 60 * 60 * 1000);
-    _selectResult = [{ id: 'lic_1', userId: 'user-1', supportExpiresAt: in60Days }];
-
-    const res = await billingApp.request(cronPost('/support-renewal-check'));
-    expect(res.status).toBe(200);
-    const body = (await res.json()) as Record<string, unknown>;
-    expect(body.reminded).toBe(0);
-  });
-
-  it('continues processing even if sendEmail throws', async () => {
-    const in15Days = new Date(Date.now() + 15 * 24 * 60 * 60 * 1000);
-    let callCount = 0;
-    mockDb.select.mockImplementation(() => {
-      callCount++;
-      if (callCount === 1) {
-        _selectResult = [{ id: 'lic_1', userId: 'user-1', supportExpiresAt: in15Days }];
-      } else {
-        _selectResult = [{ email: 'fail@example.com' }];
-      }
-      return mockDbSelectChain;
+      expect(mockSubscriptionsList).toHaveBeenCalledWith({
+        customer: 'cus_account',
+        status: 'active',
+        limit: 1,
+      });
     });
-    mockSendEmail.mockRejectedValue(new Error('SMTP down'));
-
-    const res = await billingApp.request(cronPost('/support-renewal-check'));
-    expect(res.status).toBe(200);
-  });
-});
-
-describe('CMS_URL fallback', () => {
-  beforeEach(() => {
-    vi.clearAllMocks();
-    resetChains();
-    process.env.STRIPE_SECRET_KEY = 'sk_test_placeholder';
   });
 
-  afterEach(() => {
-    delete process.env.CMS_URL;
-    delete process.env.NEXT_PUBLIC_SERVER_URL;
-  });
-
-  it('uses CMS_URL when both CMS_URL and NEXT_PUBLIC_SERVER_URL are set', async () => {
-    process.env.CMS_URL = 'https://cms.example.com';
-    process.env.NEXT_PUBLIC_SERVER_URL = 'https://fallback.example.com';
-    _selectResult = [{ stripeCustomerId: 'cus_existing' }];
-    mockCheckoutSessionsCreate.mockResolvedValue({
-      url: 'https://checkout.stripe.com/pay/sess_url',
+  describe('POST /checkout-perpetual', () => {
+    beforeEach(() => {
+      vi.clearAllMocks();
+      resetChains();
+      process.env.STRIPE_SECRET_KEY = 'stripe_test_placeholder';
+      process.env.CMS_URL = 'https://app.example.com';
+      process.env.STRIPE_PERPETUAL_PRO_PRICE_ID = 'price_pro_perpetual_server';
+      process.env.STRIPE_PERPETUAL_MAX_PRICE_ID = 'price_max_perpetual_server';
+      process.env.STRIPE_PERPETUAL_ENTERPRISE_PRICE_ID = 'price_enterprise_perpetual_server';
     });
 
-    const app = createApp();
-    await app.request(post('/checkout', { priceId: 'price_pro' }));
-
-    const sessionArgs = mockCheckoutSessionsCreate.mock.calls[0]?.[0] as Record<string, unknown>;
-    expect(sessionArgs.success_url).toContain('https://cms.example.com');
-  });
-
-  it('falls back to NEXT_PUBLIC_SERVER_URL when CMS_URL is not set', async () => {
-    delete process.env.CMS_URL;
-    process.env.NEXT_PUBLIC_SERVER_URL = 'https://fallback.example.com';
-    _selectResult = [{ stripeCustomerId: 'cus_existing' }];
-    mockCheckoutSessionsCreate.mockResolvedValue({
-      url: 'https://checkout.stripe.com/pay/sess_url',
+    it('returns 401 when not authenticated', async () => {
+      const res = await billingApp.request(
+        post('/checkout-perpetual', { priceId: 'price_perp', tier: 'pro' }),
+      );
+      expect(res.status).toBe(401);
     });
 
-    const app = createApp();
-    await app.request(post('/checkout', { priceId: 'price_pro' }));
+    it('creates a payment-mode checkout session (not subscription)', async () => {
+      _selectResult = [{ stripeCustomerId: 'cus_existing' }];
+      mockCheckoutSessionsCreate.mockResolvedValue({
+        url: 'https://checkout.stripe.com/pay/sess_perp',
+      });
 
-    const sessionArgs = mockCheckoutSessionsCreate.mock.calls[0]?.[0] as Record<string, unknown>;
-    expect(sessionArgs.success_url).toContain('https://fallback.example.com');
-  });
+      const app = createApp();
+      const res = await app.request(
+        post('/checkout-perpetual', { priceId: 'price_pro_perpetual_server', tier: 'pro' }),
+      );
 
-  it('returns 500 when neither CMS_URL nor NEXT_PUBLIC_SERVER_URL is set', async () => {
-    delete process.env.CMS_URL;
-    delete process.env.NEXT_PUBLIC_SERVER_URL;
-    _selectResult = [{ stripeCustomerId: 'cus_existing' }];
+      expect(res.status).toBe(200);
+      const body = (await res.json()) as Record<string, unknown>;
+      expect(body.url).toBe('https://checkout.stripe.com/pay/sess_perp');
 
-    const app = createApp();
-    const res = await app.request(post('/checkout', { priceId: 'price_pro' }));
-
-    expect(res.status).toBe(500);
-  });
-});
-
-describe('Stripe error propagation', () => {
-  beforeEach(() => {
-    vi.clearAllMocks();
-    resetChains();
-    process.env.STRIPE_SECRET_KEY = 'sk_test_placeholder';
-    process.env.CMS_URL = 'https://app.example.com';
-  });
-
-  it('propagates Stripe API errors from checkout session creation', async () => {
-    _selectResult = [{ stripeCustomerId: 'cus_existing' }];
-    mockCheckoutSessionsCreate.mockRejectedValue(new Error('Stripe: card_declined'));
-
-    const app = createApp();
-    const res = await app.request(post('/checkout', { priceId: 'price_pro' }));
-
-    expect(res.status).toBe(500);
-  });
-
-  it('propagates Stripe API errors from subscription update (upgrade)', async () => {
-    _selectResult = [{ stripeCustomerId: 'cus_existing' }];
-    mockSubscriptionsList.mockResolvedValue({
-      data: [{ id: 'sub_pro', items: { data: [{ id: 'si_pro' }] } }],
+      const sessionArgs = mockCheckoutSessionsCreate.mock.calls[0]?.[0] as Record<string, unknown>;
+      expect(sessionArgs.mode).toBe('payment');
+      expect(sessionArgs.customer).toBe('cus_existing');
     });
-    mockSubscriptionsUpdate.mockRejectedValue(new Error('Stripe: invalid_price'));
 
-    const app = createApp();
-    const res = await app.request(
-      post('/upgrade', { priceId: 'price_invalid', targetTier: 'enterprise' }),
-    );
+    it('prefers the DB billing catalog price for perpetual checkout when available', async () => {
+      queueSelectResults(
+        [{ stripePriceId: 'price_pro_perpetual_db' }],
+        [{ stripeCustomerId: 'cus_existing' }],
+      );
+      mockCheckoutSessionsCreate.mockResolvedValue({
+        url: 'https://checkout.stripe.com/pay/sess_perp_db',
+      });
 
-    expect(res.status).toBe(500);
-  });
+      const app = createApp();
+      const res = await app.request(
+        post('/checkout-perpetual', { priceId: 'price_pro_perpetual_db', tier: 'pro' }),
+      );
 
-  it('propagates Stripe API errors from subscription list (downgrade)', async () => {
-    _selectResult = [{ stripeCustomerId: 'cus_existing' }];
-    mockSubscriptionsList.mockRejectedValue(new Error('Stripe: api_connection_error'));
+      expect(res.status).toBe(200);
+      const sessionArgs = mockCheckoutSessionsCreate.mock.calls[0]?.[0] as Record<string, unknown>;
+      const lineItems = sessionArgs.line_items as Array<Record<string, unknown>>;
+      expect(lineItems[0]?.price).toBe('price_pro_perpetual_db');
+      expect(mockLogger.warn).not.toHaveBeenCalled();
+    });
 
-    const app = createApp();
-    const res = await app.request(post('/downgrade', {}));
+    it('includes perpetual and tier metadata in payment_intent_data', async () => {
+      _selectResult = [{ stripeCustomerId: 'cus_existing' }];
+      mockCheckoutSessionsCreate.mockResolvedValue({
+        url: 'https://checkout.stripe.com/pay/sess_meta',
+      });
 
-    expect(res.status).toBe(500);
-  });
-});
+      const app = createApp();
+      await app.request(
+        post('/checkout-perpetual', { priceId: 'price_max_perpetual_server', tier: 'max' }),
+      );
 
-describe('concurrent customer creation', () => {
-  beforeEach(() => {
-    vi.clearAllMocks();
-    resetChains();
-    process.env.STRIPE_SECRET_KEY = 'sk_test_placeholder';
-    process.env.CMS_URL = 'https://app.example.com';
-  });
+      const sessionArgs = mockCheckoutSessionsCreate.mock.calls[0]?.[0] as Record<string, unknown>;
+      const piMeta = (sessionArgs.payment_intent_data as Record<string, unknown>)
+        .metadata as Record<string, unknown>;
+      expect(piMeta.tier).toBe('max');
+      expect(piMeta.perpetual).toBe('true');
+      expect(piMeta.revealui_user_id).toBe(MOCK_USER.id);
+    });
 
-  it('handles race condition where another request creates the customer first', async () => {
-    _selectResult = [{ stripeCustomerId: null }];
-    mockCustomersCreate.mockResolvedValue({ id: 'cus_loser' });
+    it('includes github_username in metadata when provided', async () => {
+      _selectResult = [{ stripeCustomerId: 'cus_existing' }];
+      mockCheckoutSessionsCreate.mockResolvedValue({
+        url: 'https://checkout.stripe.com/pay/sess_gh',
+      });
 
-    mockDb.transaction.mockImplementation(async (cb: (tx: typeof mockDb) => Promise<unknown>) => {
-      const txMock = {
-        ...mockDb,
-        select: vi.fn().mockReturnValue({
-          ...mockDbSelectChain,
-          // biome-ignore lint/suspicious/noThenProperty: intentional thenable for test
-          then(onFulfilled?: (v: unknown[]) => unknown, onRejected?: (r: unknown) => unknown) {
-            return Promise.resolve([{ stripeCustomerId: 'cus_winner' }]).then(
-              onFulfilled,
-              onRejected,
-            );
-          },
+      const app = createApp();
+      await app.request(
+        post('/checkout-perpetual', {
+          priceId: 'price_pro_perpetual_server',
+          tier: 'pro',
+          githubUsername: 'octocat',
         }),
-      };
-      return cb(txMock as unknown as typeof mockDb);
+      );
+
+      const sessionArgs = mockCheckoutSessionsCreate.mock.calls[0]?.[0] as Record<string, unknown>;
+      const piMeta = (sessionArgs.payment_intent_data as Record<string, unknown>)
+        .metadata as Record<string, unknown>;
+      expect(piMeta.github_username).toBe('octocat');
     });
 
-    let selectCount = 0;
-    mockDb.select.mockImplementation(() => {
-      selectCount++;
-      if (selectCount <= 1) {
-        _selectResult = [{ stripeCustomerId: null }];
-      } else {
-        _selectResult = [{ stripeCustomerId: 'cus_winner' }];
-      }
-      return mockDbSelectChain;
+    it('omits github_username from metadata when not provided', async () => {
+      _selectResult = [{ stripeCustomerId: 'cus_existing' }];
+      mockCheckoutSessionsCreate.mockResolvedValue({
+        url: 'https://checkout.stripe.com/pay/sess_no_gh',
+      });
+
+      const app = createApp();
+      await app.request(
+        post('/checkout-perpetual', { priceId: 'price_pro_perpetual_server', tier: 'pro' }),
+      );
+
+      const sessionArgs = mockCheckoutSessionsCreate.mock.calls[0]?.[0] as Record<string, unknown>;
+      const piMeta = (sessionArgs.payment_intent_data as Record<string, unknown>)
+        .metadata as Record<string, unknown>;
+      expect(piMeta.github_username).toBeUndefined();
     });
 
-    mockCheckoutSessionsCreate.mockResolvedValue({
-      url: 'https://checkout.stripe.com/pay/sess_race',
+    it('uses perpetual success_url with perpetual=true query param', async () => {
+      _selectResult = [{ stripeCustomerId: 'cus_existing' }];
+      mockCheckoutSessionsCreate.mockResolvedValue({
+        url: 'https://checkout.stripe.com/pay/sess_url',
+      });
+
+      const app = createApp();
+      await app.request(
+        post('/checkout-perpetual', { priceId: 'price_pro_perpetual_server', tier: 'pro' }),
+      );
+
+      const sessionArgs = mockCheckoutSessionsCreate.mock.calls[0]?.[0] as Record<string, unknown>;
+      expect(sessionArgs.success_url).toBe(
+        'https://app.example.com/account/billing?perpetual=true',
+      );
+      expect(sessionArgs.cancel_url).toBe('https://app.example.com/account/billing');
     });
 
-    const app = createApp();
-    const res = await app.request(post('/checkout', { priceId: 'price_pro' }));
+    it('returns 500 when checkout session URL is null', async () => {
+      _selectResult = [{ stripeCustomerId: 'cus_existing' }];
+      mockCheckoutSessionsCreate.mockResolvedValue({ url: null });
 
-    expect(res.status).toBe(200);
-    expect(mockCheckoutSessionsCreate).toHaveBeenCalledOnce();
-  });
-});
+      const app = createApp();
+      const res = await app.request(
+        post('/checkout-perpetual', { priceId: 'price_pro_perpetual_server', tier: 'pro' }),
+      );
 
-describe('checkout validation', () => {
-  beforeEach(() => {
-    vi.clearAllMocks();
-    resetChains();
-    process.env.STRIPE_SECRET_KEY = 'sk_test_placeholder';
-    process.env.CMS_URL = 'https://app.example.com';
-  });
+      expect(res.status).toBe(500);
+    });
 
-  it('rejects checkout with empty priceId', async () => {
-    const app = createApp();
-    const res = await app.request(post('/checkout', { priceId: '' }));
+    it('returns 500 when CMS_URL is not configured', async () => {
+      delete process.env.CMS_URL;
+      delete process.env.NEXT_PUBLIC_SERVER_URL;
+      _selectResult = [{ stripeCustomerId: 'cus_existing' }];
 
-    expect(res.status).toBeGreaterThanOrEqual(400);
-    expect(res.status).toBeLessThan(500);
-  });
+      const app = createApp();
+      const res = await app.request(
+        post('/checkout-perpetual', { priceId: 'price_pro_perpetual_server', tier: 'pro' }),
+      );
 
-  it('rejects checkout with missing priceId', async () => {
-    const app = createApp();
-    const res = await app.request(post('/checkout', {}));
-
-    expect(res.status).toBeGreaterThanOrEqual(400);
-    expect(res.status).toBeLessThan(500);
+      expect(res.status).toBe(500);
+    });
   });
 
-  it('rejects perpetual checkout with invalid tier', async () => {
-    const app = createApp();
-    const res = await app.request(
-      post('/checkout-perpetual', { priceId: 'price_abc', tier: 'invalid_tier' }),
-    );
+  describe('GET /usage', () => {
+    beforeEach(() => {
+      vi.clearAllMocks();
+      resetChains();
+      process.env.STRIPE_SECRET_KEY = 'stripe_test_placeholder';
+    });
 
-    expect(res.status).toBeGreaterThanOrEqual(400);
-    expect(res.status).toBeLessThan(500);
+    it('returns 401 when not authenticated', async () => {
+      const res = await billingApp.request(get('/usage'));
+      expect(res.status).toBe(401);
+    });
+
+    it('returns zero usage when no record exists for the current cycle', async () => {
+      _selectResult = [];
+
+      const app = createApp();
+      const res = await app.request(get('/usage'));
+
+      expect(res.status).toBe(200);
+      const body = (await res.json()) as Record<string, unknown>;
+      expect(body.used).toBe(0);
+      expect(body.overage).toBe(0);
+      expect(body.quota).toBe(10_000);
+    });
+
+    it('returns usage data from the current billing cycle', async () => {
+      _selectResult = [{ count: 150, overage: 5 }];
+
+      const app = createApp();
+      const res = await app.request(get('/usage'));
+
+      expect(res.status).toBe(200);
+      const body = (await res.json()) as Record<string, unknown>;
+      expect(body.used).toBe(150);
+      expect(body.overage).toBe(5);
+    });
+
+    it('returns -1 for quota when tier has unlimited tasks', async () => {
+      vi.mocked(getMaxAgentTasks).mockReturnValue(Infinity);
+      _selectResult = [];
+
+      const app = createApp();
+      const res = await app.request(get('/usage'));
+
+      expect(res.status).toBe(200);
+      const body = (await res.json()) as Record<string, unknown>;
+      expect(body.quota).toBe(-1);
+    });
+
+    it('prefers request-scoped entitlement quota over the legacy global quota', async () => {
+      vi.mocked(getMaxAgentTasks).mockReturnValue(10_000);
+      _selectResult = [];
+
+      const app = createApp(MOCK_USER, {
+        limits: { maxAgentTasks: 2_500 },
+      });
+      const res = await app.request(get('/usage'));
+
+      expect(res.status).toBe(200);
+      const body = (await res.json()) as Record<string, unknown>;
+      expect(body.quota).toBe(2_500);
+    });
+
+    it('returns cycleStart as first of current month UTC', async () => {
+      _selectResult = [];
+
+      const app = createApp();
+      const res = await app.request(get('/usage'));
+
+      const body = (await res.json()) as Record<string, unknown>;
+      const cycleStart = new Date(body.cycleStart as string);
+      expect(cycleStart.getUTCDate()).toBe(1);
+      expect(cycleStart.getUTCHours()).toBe(0);
+      expect(cycleStart.getUTCMinutes()).toBe(0);
+    });
+
+    it('returns resetAt as first of next month UTC', async () => {
+      _selectResult = [];
+
+      const app = createApp();
+      const res = await app.request(get('/usage'));
+
+      const body = (await res.json()) as Record<string, unknown>;
+      const resetAt = new Date(body.resetAt as string);
+      const cycleStart = new Date(body.cycleStart as string);
+      expect(resetAt.getUTCMonth()).toBe((cycleStart.getUTCMonth() + 1) % 12);
+      expect(resetAt.getUTCDate()).toBe(1);
+    });
   });
 
-  it('rejects upgrade with invalid targetTier', async () => {
-    const app = createApp();
-    const res = await app.request(
-      post('/upgrade', { priceId: 'price_abc', targetTier: 'invalid' }),
-    );
+  describe('POST /support-renewal-check', () => {
+    beforeEach(() => {
+      vi.clearAllMocks();
+      resetChains();
+      process.env.STRIPE_SECRET_KEY = 'stripe_test_placeholder';
+      process.env.REVEALUI_CRON_SECRET = CRON_SECRET;
+      mockSendEmail.mockResolvedValue(undefined);
+    });
 
-    expect(res.status).toBeGreaterThanOrEqual(400);
-    expect(res.status).toBeLessThan(500);
+    it('returns 403 when cron secret is missing', async () => {
+      delete process.env.REVEALUI_CRON_SECRET;
+
+      const res = await billingApp.request(cronPost('/support-renewal-check'));
+      expect(res.status).toBe(403);
+    });
+
+    it('returns 403 when cron secret is wrong', async () => {
+      const res = await billingApp.request(
+        new Request('http://localhost/support-renewal-check', {
+          method: 'POST',
+          headers: { 'X-Cron-Secret': 'wrong-secret' },
+        }),
+      );
+      expect(res.status).toBe(403);
+    });
+
+    it('returns 403 when X-Cron-Secret header is absent', async () => {
+      const res = await billingApp.request(
+        new Request('http://localhost/support-renewal-check', {
+          method: 'POST',
+        }),
+      );
+      expect(res.status).toBe(403);
+    });
+
+    it('sends reminder for license expiring within 30 days', async () => {
+      const in15Days = new Date(Date.now() + 15 * 24 * 60 * 60 * 1000);
+
+      // The route does two sequential db.select() calls:
+      //   1. Licenses query (no .limit(), resolved via thenable chain)
+      //   2. User email lookup (with .limit(1), resolved via limit mock)
+      // We override the thenable and limit to return the right data per call.
+      let selectCallCount = 0;
+      const licensesResult = [{ id: 'lic_1', userId: 'user-1', supportExpiresAt: in15Days }];
+      const userResult = [{ email: 'customer@example.com' }];
+
+      mockDb.select.mockImplementation(() => {
+        selectCallCount++;
+        // Set _selectResult for the thenable (first query doesn't use .limit())
+        _selectResult = selectCallCount === 1 ? licensesResult : userResult;
+        return mockDbSelectChain;
+      });
+
+      // The limit mock also needs to capture the right result at call time
+      mockDbSelectChain.limit.mockImplementation(() => {
+        return Promise.resolve(_selectResult);
+      });
+
+      const res = await billingApp.request(cronPost('/support-renewal-check'));
+      expect(res.status).toBe(200);
+      const body = (await res.json()) as Record<string, unknown>;
+      expect(body.reminded).toBe(1);
+      expect(mockSendEmail).toHaveBeenCalledOnce();
+      expect(mockSendEmail).toHaveBeenCalledWith(
+        expect.objectContaining({
+          to: 'customer@example.com',
+          subject: 'Your RevealUI support contract expires soon',
+        }),
+      );
+    });
+
+    it('skips licenses without supportExpiresAt', async () => {
+      _selectResult = [{ id: 'lic_1', userId: 'user-1', supportExpiresAt: null }];
+
+      const res = await billingApp.request(cronPost('/support-renewal-check'));
+      expect(res.status).toBe(200);
+      const body = (await res.json()) as Record<string, unknown>;
+      expect(body.reminded).toBe(0);
+      expect(mockSendEmail).not.toHaveBeenCalled();
+    });
+
+    it('skips licenses that already expired (in the past)', async () => {
+      const yesterday = new Date(Date.now() - 24 * 60 * 60 * 1000);
+      _selectResult = [{ id: 'lic_1', userId: 'user-1', supportExpiresAt: yesterday }];
+
+      const res = await billingApp.request(cronPost('/support-renewal-check'));
+      expect(res.status).toBe(200);
+      const body = (await res.json()) as Record<string, unknown>;
+      expect(body.reminded).toBe(0);
+    });
+
+    it('skips licenses expiring more than 30 days out', async () => {
+      const in60Days = new Date(Date.now() + 60 * 24 * 60 * 60 * 1000);
+      _selectResult = [{ id: 'lic_1', userId: 'user-1', supportExpiresAt: in60Days }];
+
+      const res = await billingApp.request(cronPost('/support-renewal-check'));
+      expect(res.status).toBe(200);
+      const body = (await res.json()) as Record<string, unknown>;
+      expect(body.reminded).toBe(0);
+    });
+
+    it('continues processing even if sendEmail throws', async () => {
+      const in15Days = new Date(Date.now() + 15 * 24 * 60 * 60 * 1000);
+      let callCount = 0;
+      mockDb.select.mockImplementation(() => {
+        callCount++;
+        if (callCount === 1) {
+          _selectResult = [{ id: 'lic_1', userId: 'user-1', supportExpiresAt: in15Days }];
+        } else {
+          _selectResult = [{ email: 'fail@example.com' }];
+        }
+        return mockDbSelectChain;
+      });
+      mockSendEmail.mockRejectedValue(new Error('SMTP down'));
+
+      const res = await billingApp.request(cronPost('/support-renewal-check'));
+      expect(res.status).toBe(200);
+    });
+  });
+
+  describe('CMS_URL fallback', () => {
+    beforeEach(() => {
+      vi.clearAllMocks();
+      resetChains();
+      process.env.STRIPE_SECRET_KEY = 'stripe_test_placeholder';
+      process.env.STRIPE_PRO_PRICE_ID = 'price_pro_server';
+    });
+
+    afterEach(() => {
+      delete process.env.CMS_URL;
+      delete process.env.NEXT_PUBLIC_SERVER_URL;
+    });
+
+    it('uses CMS_URL when both CMS_URL and NEXT_PUBLIC_SERVER_URL are set', async () => {
+      process.env.CMS_URL = 'https://cms.example.com';
+      process.env.NEXT_PUBLIC_SERVER_URL = 'https://fallback.example.com';
+      queueSelectResults(
+        [{ stripePriceId: 'price_pro_server' }],
+        [{ stripeCustomerId: 'cus_existing' }],
+      );
+      mockCheckoutSessionsCreate.mockResolvedValue({
+        url: 'https://checkout.stripe.com/pay/sess_url',
+      });
+
+      const app = createApp();
+      await app.request(post('/checkout', { priceId: 'price_pro_server' }));
+
+      const sessionArgs = mockCheckoutSessionsCreate.mock.calls[0]?.[0] as Record<string, unknown>;
+      expect(sessionArgs.success_url).toContain('https://cms.example.com');
+    });
+
+    it('falls back to NEXT_PUBLIC_SERVER_URL when CMS_URL is not set', async () => {
+      delete process.env.CMS_URL;
+      process.env.NEXT_PUBLIC_SERVER_URL = 'https://fallback.example.com';
+      queueSelectResults(
+        [{ stripePriceId: 'price_pro_server' }],
+        [{ stripeCustomerId: 'cus_existing' }],
+      );
+      mockCheckoutSessionsCreate.mockResolvedValue({
+        url: 'https://checkout.stripe.com/pay/sess_url',
+      });
+
+      const app = createApp();
+      await app.request(post('/checkout', { priceId: 'price_pro_server' }));
+
+      const sessionArgs = mockCheckoutSessionsCreate.mock.calls[0]?.[0] as Record<string, unknown>;
+      expect(sessionArgs.success_url).toContain('https://fallback.example.com');
+    });
+
+    it('returns 500 when neither CMS_URL nor NEXT_PUBLIC_SERVER_URL is set', async () => {
+      delete process.env.CMS_URL;
+      delete process.env.NEXT_PUBLIC_SERVER_URL;
+      queueSelectResults(
+        [{ stripePriceId: 'price_pro_server' }],
+        [{ stripeCustomerId: 'cus_existing' }],
+      );
+
+      const app = createApp();
+      const res = await app.request(post('/checkout', { priceId: 'price_pro_server' }));
+
+      expect(res.status).toBe(500);
+    });
+  });
+
+  describe('Stripe error propagation', () => {
+    beforeEach(() => {
+      vi.clearAllMocks();
+      resetChains();
+      process.env.STRIPE_SECRET_KEY = 'stripe_test_placeholder';
+      process.env.CMS_URL = 'https://app.example.com';
+      process.env.STRIPE_PRO_PRICE_ID = 'price_pro_server';
+      process.env.STRIPE_ENTERPRISE_PRICE_ID = 'price_enterprise_server';
+    });
+
+    it('propagates Stripe API errors from checkout session creation', async () => {
+      queueSelectResults(
+        [{ stripePriceId: 'price_pro_server' }],
+        [{ stripeCustomerId: 'cus_existing' }],
+      );
+      mockCheckoutSessionsCreate.mockRejectedValue(new Error('Stripe: card_declined'));
+
+      const app = createApp();
+      const res = await app.request(post('/checkout', { priceId: 'price_pro_server' }));
+
+      expect(res.status).toBe(500);
+    });
+
+    it('propagates Stripe API errors from subscription update (upgrade)', async () => {
+      queueSelectResults(
+        [{ stripePriceId: 'price_enterprise_server' }],
+        [],
+        [{ stripeCustomerId: 'cus_existing' }],
+      );
+      mockSubscriptionsList.mockResolvedValue({
+        data: [{ id: 'sub_pro', items: { data: [{ id: 'si_pro' }] } }],
+      });
+      mockSubscriptionsUpdate.mockRejectedValue(new Error('Stripe: invalid_price'));
+
+      const app = createApp();
+      const res = await app.request(
+        post('/upgrade', { priceId: 'price_enterprise_server', targetTier: 'enterprise' }),
+      );
+
+      expect(res.status).toBe(500);
+    });
+
+    it('propagates Stripe API errors from subscription list (downgrade)', async () => {
+      _selectResult = [{ stripeCustomerId: 'cus_existing' }];
+      mockSubscriptionsList.mockRejectedValue(new Error('Stripe: api_connection_error'));
+
+      const app = createApp();
+      const res = await app.request(post('/downgrade', {}));
+
+      expect(res.status).toBe(500);
+    });
+  });
+
+  describe('concurrent customer creation', () => {
+    beforeEach(() => {
+      vi.clearAllMocks();
+      resetChains();
+      process.env.STRIPE_SECRET_KEY = 'stripe_test_placeholder';
+      process.env.CMS_URL = 'https://app.example.com';
+      process.env.STRIPE_PRO_PRICE_ID = 'price_pro_server';
+    });
+
+    it('handles race condition where another request creates the customer first', async () => {
+      queueSelectResults([{ stripePriceId: 'price_pro_server' }]);
+      mockCustomersCreate.mockResolvedValue({ id: 'cus_loser' });
+
+      mockDb.transaction.mockImplementation(async (cb: (tx: typeof mockDb) => Promise<unknown>) => {
+        const txMock = {
+          ...mockDb,
+          select: vi.fn().mockReturnValue({
+            ...mockDbSelectChain,
+            // biome-ignore lint/suspicious/noThenProperty: intentional thenable for test
+            then(onFulfilled?: (v: unknown[]) => unknown, onRejected?: (r: unknown) => unknown) {
+              return Promise.resolve([{ stripeCustomerId: 'cus_winner' }]).then(
+                onFulfilled,
+                onRejected,
+              );
+            },
+          }),
+        };
+        return cb(txMock as unknown as typeof mockDb);
+      });
+
+      let selectCount = 0;
+      mockDb.select.mockImplementation(() => {
+        selectCount++;
+        if (selectCount === 1) {
+          _selectResult = [{ stripePriceId: 'price_pro_server' }];
+        } else if (selectCount <= 2) {
+          _selectResult = [{ stripeCustomerId: null }];
+        } else {
+          _selectResult = [{ stripeCustomerId: 'cus_winner' }];
+        }
+        return mockDbSelectChain;
+      });
+
+      mockCheckoutSessionsCreate.mockResolvedValue({
+        url: 'https://checkout.stripe.com/pay/sess_race',
+      });
+
+      const app = createApp();
+      const res = await app.request(post('/checkout', { priceId: 'price_pro_server' }));
+
+      expect(res.status).toBe(200);
+      expect(mockCheckoutSessionsCreate).toHaveBeenCalledOnce();
+    });
+  });
+
+  describe('checkout validation', () => {
+    beforeEach(() => {
+      vi.clearAllMocks();
+      resetChains();
+      process.env.STRIPE_SECRET_KEY = 'stripe_test_placeholder';
+      process.env.CMS_URL = 'https://app.example.com';
+      process.env.STRIPE_PRO_PRICE_ID = 'price_pro_server';
+    });
+
+    it('rejects checkout with empty priceId', async () => {
+      const app = createApp();
+      const res = await app.request(post('/checkout', { priceId: '' }));
+
+      expect(res.status).toBeGreaterThanOrEqual(400);
+      expect(res.status).toBeLessThan(500);
+    });
+
+    it('accepts checkout with missing priceId when the server catalog is configured', async () => {
+      queueSelectResults(
+        [{ stripePriceId: 'price_pro_server' }],
+        [{ stripeCustomerId: 'cus_existing' }],
+      );
+      mockCheckoutSessionsCreate.mockResolvedValue({
+        url: 'https://checkout.stripe.com/pay/sess_missing_price',
+      });
+
+      const app = createApp();
+      const res = await app.request(post('/checkout', {}));
+
+      expect(res.status).toBe(200);
+    });
+
+    it('rejects perpetual checkout with invalid tier', async () => {
+      const app = createApp();
+      const res = await app.request(
+        post('/checkout-perpetual', { priceId: 'price_abc', tier: 'invalid_tier' }),
+      );
+
+      expect(res.status).toBeGreaterThanOrEqual(400);
+      expect(res.status).toBeLessThan(500);
+    });
+
+    it('rejects upgrade with invalid targetTier', async () => {
+      const app = createApp();
+      const res = await app.request(
+        post('/upgrade', { priceId: 'price_abc', targetTier: 'invalid' }),
+      );
+
+      expect(res.status).toBeGreaterThanOrEqual(400);
+      expect(res.status).toBeLessThan(500);
+    });
   });
 });

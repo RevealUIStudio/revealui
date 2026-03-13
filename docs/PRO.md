@@ -1,13 +1,19 @@
-# Model Context Protocol (MCP) - Complete Guide
+# RevealUI Pro Guide
 
-Complete guide for setting up and using Model Context Protocol (MCP) servers in RevealUI, including Next.js DevTools integration.
+Commercial guide to RevealUI Pro: packaging, MCP integrations, BYOK, editors, harnesses, services, x402 payments, marketplace flows, and licensing.
+
+Commercially, RevealUI Pro should not be treated as a simple seat upgrade layered on top of the OSS stack. The intended model is account-level platform access, metered agent execution, explicit commerce fees where RevealUI is in the transaction path, and premium trust or governance controls for approval, audit, and compliance needs.
+
+Per-user or perpetual licenses can still exist for narrowly scoped products, but the primary hosted entitlement model should be account-level.
 
 ---
 
 ## Table of Contents
 
 - [Overview](#overview)
-- [Quick Start](#quick-start)
+- [Commercial Model](#commercial-model)
+- [What Pro Includes](#what-pro-includes)
+- [MCP Setup](#mcp-setup)
 - [MCP Servers](#mcp-servers)
 - [Getting API Keys](#getting-api-keys)
 - [Next.js DevTools MCP](#nextjs-devtools-mcp)
@@ -15,11 +21,55 @@ Complete guide for setting up and using Model Context Protocol (MCP) servers in 
 - [Usage Examples](#usage-examples)
 - [Troubleshooting](#troubleshooting)
 - [Testing](#testing)
+- [BYOK](#byok--bring-your-own-key)
+- [Editors](#revealuieditors)
+- [Harnesses](#revealuiharnesses)
+- [Services](#revealuiservices)
+- [x402 Micropayments](#x402-micropayments)
+- [Perpetual Licenses](#perpetual-licenses)
+- [MCP Marketplace](#mcp-marketplace)
+- [Forge](#forge-enterprise-perpetual)
 - [Related Documentation](#related-documentation)
 
 ---
 
 ## Overview
+
+RevealUI Pro is the commercial layer for teams building agentic products, paid APIs, and operational tooling on top of RevealUI.
+
+This guide covers the full Pro surface area, not just MCP setup:
+
+- account-level commercial packaging
+- MCP servers and developer tooling
+- BYOK and provider integrations
+- editor and harness workflows
+- Stripe, Supabase, and x402 payment features
+- marketplace monetization
+- perpetual and Forge licensing
+
+## Commercial Model
+
+The target RevealUI Pro pricing model is:
+
+- **Platform subscription** for workspace or account access
+- **Metered agent execution** for workflows, tool calls, and other digital labor
+- **Commerce fees** for paid API, marketplace, and agent-initiated transaction flows
+- **Trust and governance controls** for approvals, audit, policy, and compliance
+
+This is the model the product and billing architecture should converge on from 2026 onward.
+
+## What Pro Includes
+
+RevealUI Pro currently groups commercial capabilities such as:
+
+- MCP servers and developer tooling
+- BYOK for user- or tenant-scoped model credentials
+- editor integrations and harness coordination
+- Stripe and Supabase service integrations
+- x402 micropayments and paid API support
+- marketplace and self-hosted commercial deployment options
+
+## MCP Setup
 
 RevealUI includes 6 MCP servers for enhanced AI capabilities:
 
@@ -66,26 +116,11 @@ See [Getting API Keys](#getting-api-keys) section below for instructions.
 ### 2. Start MCP Servers
 
 ```bash
-# Start all servers
-pnpm mcp:all
-
-# Or start individually
-pnpm mcp:vercel
-pnpm mcp:stripe
-pnpm mcp:neon
-pnpm mcp:supabase
-pnpm mcp:playwright
-pnpm mcp:next-devtools
+pnpm setup:mcp
+revealui dev up --include mcp
 ```
 
-Add `--restart` to any launcher to enable automatic restart with exponential backoff (up to 3 attempts: 2s → 4s → 8s):
-
-```bash
-pnpm mcp:stripe -- --restart
-pnpm mcp:neon   -- --restart
-```
-
-This is useful in long-running environments (CI, staging) where transient network errors or package crashes should not require manual intervention.
+The supported local workflow is to validate credentials with `pnpm setup:mcp` and include MCP readiness checks in the standard RevealUI bootstrap with `revealui dev up --include mcp`.
 
 ---
 
@@ -94,6 +129,7 @@ This is useful in long-running environments (CI, staging) where transient networ
 ### Vercel MCP (`vercel-mcp@0.0.7`)
 
 **Capabilities:**
+
 - Deploy projects
 - Manage domains
 - Configure environment variables
@@ -109,6 +145,7 @@ This is useful in long-running environments (CI, staging) where transient networ
 ### Stripe MCP (`@stripe/mcp@0.1.4`)
 
 **Capabilities:**
+
 - `balance.read` - Retrieve balance information
 - `coupons.create/read` - Manage coupons
 - `customers.create/read` - Manage customers
@@ -130,6 +167,7 @@ This is useful in long-running environments (CI, staging) where transient networ
 ### NeonDB MCP (`@neondatabase/mcp-server-neon@0.6.5`)
 
 **Capabilities:**
+
 - Execute SQL queries
 - Create tables
 - Update rows
@@ -146,6 +184,7 @@ This is useful in long-running environments (CI, staging) where transient networ
 ### Supabase MCP (`supabase-mcp@1.5.0`)
 
 **Capabilities:**
+
 - CRUD operations on tables
 - Query data
 - Manage database records
@@ -160,6 +199,7 @@ This is useful in long-running environments (CI, staging) where transient networ
 ### Playwright MCP (`@executeautomation/playwright-mcp-server@1.0.12`)
 
 **Capabilities:**
+
 - Navigate to URLs
 - Take screenshots
 - Click elements
@@ -177,6 +217,7 @@ This is useful in long-running environments (CI, staging) where transient networ
 ### Next.js DevTools MCP (`next-devtools-mcp@0.3.9`)
 
 **Capabilities:**
+
 - Auto-discover Next.js 16+ dev servers
 - Real-time error reporting
 - Route discovery and metadata
@@ -224,10 +265,12 @@ This is useful in long-running environments (CI, staging) where transient networ
 Supabase introduced new API keys in June 2025. Both legacy and new keys are supported:
 
 **New API Keys (Recommended):**
+
 - **Publishable Key** (`sb_publishable_...`) - Replaces anon key, safe to expose
 - **Secret Key** (`sb_secret_...`) - Replaces service_role key, for backend use
 
 **Legacy API Keys (Deprecated Nov 2025):**
+
 - **anon key** (JWT format) - Still works but will be deprecated
 - **service_role key** (JWT format) - Still works but will be deprecated
 
@@ -246,6 +289,7 @@ Supabase introduced new API keys in June 2025. Both legacy and new keys are supp
      - **service_role key** (JWT) → `SUPABASE_SERVICE_ROLE_KEY`
 
 **Migration Timeline:**
+
 - **June 2025**: New keys available (early preview)
 - **July 2025**: Full feature launch
 - **November 2025**: Legacy keys deprecated for new projects
@@ -262,6 +306,7 @@ The `MCP_API_KEY` is **NOT** a Supabase key - it's a key you generate yourself t
 - **Purpose**: Authenticates requests to the MCP server HTTP endpoint (prevents unauthorized access)
 
 **Example:**
+
 ```env
 MCP_API_KEY=5b32a7c681704fdef16dcfd018e86660bf2a79dc7f7551a987cb94bb0a72eda1
 ```
@@ -296,14 +341,15 @@ Your CMS app (`apps/cms`) is perfectly configured for Next.js DevTools MCP:
 
 ```json
 {
-  "next": "16.1.1",  // Next.js 16+ required
-  "dev": "next dev --turbo --port 4000"  // Standard port
+  "next": "16.1.1", // Next.js 16+ required
+  "dev": "next dev --turbo --port 4000" // Standard port
 }
 ```
 
 ### MCP Endpoint
 
 Next.js 16 automatically exposes an MCP endpoint:
+
 - **URL:** `http://localhost:4000/_next/mcp`
 - **Available when:** Dev server is running
 - **Authentication:** None (localhost only)
@@ -346,11 +392,13 @@ When your dev server is running, you can use these tools:
 Automatically scans common ports (3000, 3001, 4000, 5000, etc.) for running Next.js 16+ dev servers.
 
 **Ask in Cursor:**
+
 ```
 Next Devtools, what servers are running?
 ```
 
 **Returns:**
+
 - Server port, PID, URL, version
 - Available diagnostic tools
 - Framework metadata (Turbopack, App Directory, etc.)
@@ -360,11 +408,13 @@ Next Devtools, what servers are running?
 #### 2. Runtime Diagnostics
 
 **Query Build/Runtime Errors:**
+
 ```
 Next Devtools, what errors are in my Next.js app?
 ```
 
 Returns real-time error information including:
+
 - TypeScript errors
 - Module resolution errors
 - Runtime warnings
@@ -372,22 +422,26 @@ Returns real-time error information including:
 - Error category and severity
 
 **View Application Routes:**
+
 ```
 Next Devtools, show me my application routes
 ```
 
 Returns complete route structure:
+
 - All pages, API routes, and dynamic segments
 - Route metadata and configurations
 - Layout information
 - Catch-all routes
 
 **Check Dev Server Logs:**
+
 ```
 Next Devtools, what's in the dev server logs?
 ```
 
 Returns recent development server output:
+
 - Build messages
 - Hot reload events
 - Compilation warnings
@@ -396,11 +450,13 @@ Returns recent development server output:
 #### 3. Upgrade Automation
 
 **Upgrade to Next.js 16:**
+
 ```
 Next Devtools, help me upgrade to Next.js 16
 ```
 
 Automated upgrade process:
+
 - Checks current Next.js version
 - Runs official Next.js codemod automatically
 - Updates async APIs (params, searchParams, cookies, headers)
@@ -411,11 +467,13 @@ Automated upgrade process:
 #### 4. Cache Components Setup
 
 **Enable Cache Components:**
+
 ```
 Next Devtools, enable Cache Components in my Next.js 16 app
 ```
 
 Complete automated setup:
+
 - Pre-flight compatibility checks
 - Enables Cache Components configuration
 - Starts dev server with MCP enabled
@@ -544,18 +602,18 @@ MCP: Runs enable_cache_components tool:
 To use the Next.js DevTools MCP effectively:
 
 **Step 1: Start Your CMS Dev Server**
+
 ```bash
 cd apps/cms
 pnpm dev
 ```
 
 **Step 2: Start Next.js DevTools MCP Server (Optional)**
+
 ```bash
 # In another terminal
-pnpm mcp:next-devtools
-
-# Or start all MCP servers
-pnpm mcp:all
+pnpm setup:mcp
+revealui dev up --include mcp
 ```
 
 **Note:** Cursor manages MCP servers automatically, so manual startup is only for testing.
@@ -563,39 +621,51 @@ pnpm mcp:all
 **Step 3: Try These Commands in Cursor**
 
 **Auto-Discovery:**
+
 ```
 Next Devtools, what servers are running?
 ```
+
 Shows all Next.js 16+ dev servers with their ports, tools, and metadata.
 
 **Runtime Diagnostics - Errors:**
+
 ```
 Next Devtools, what errors are in my Next.js app?
 ```
+
 Shows real-time build and runtime errors from your CMS app.
 
 **Runtime Diagnostics - Routes:**
+
 ```
 Next Devtools, show me my application routes
 ```
+
 Shows all routes, pages, API endpoints, and dynamic segments.
 
 **Runtime Diagnostics - Logs:**
+
 ```
 Next Devtools, what's in the dev server logs?
 ```
+
 Shows recent development server output and messages.
 
 **Upgrade Automation:**
+
 ```
 Next Devtools, help me upgrade to Next.js 16
 ```
+
 Automated upgrade with codemods (confirms if already on 16.1.1).
 
 **Cache Components Setup:**
+
 ```
 Next Devtools, enable Cache Components in my Next.js 16 app
 ```
+
 Complete automated setup with error detection and fixing.
 
 ---
@@ -604,25 +674,19 @@ Complete automated setup with error detection and fixing.
 
 ### MCP Server Exits Unexpectedly
 
-**Solution:** Enable automatic restart with exponential backoff:
+**Solution:** Re-validate MCP setup and bootstrap through the RevealUI CLI:
 
 ```bash
-pnpm mcp:stripe -- --restart   # retries up to 3× (2s → 4s → 8s)
+pnpm setup:mcp
+revealui dev up --include mcp
 ```
-
-Or in `.cursor/mcp-config.json`:
-
-```json
-"args": ["mcp:stripe", "--", "--restart"]
-```
-
-Each launcher will log the exit code and delay before retrying. After 3 failed attempts it exits permanently. Check logs to diagnose the root cause (missing env var, network error, upstream package crash).
 
 ---
 
 ### "Missing API key" Error
 
 **Solution:** Ensure your `.env` file has the required environment variables:
+
 - Check file location: `<your-project-root>/.env`
 - Verify variable names match exactly (case-sensitive)
 - Restart the MCP server after adding variables
@@ -630,13 +694,16 @@ Each launcher will log the exit code and delay before retrying. After 3 failed a
 ### "Connection refused" Error
 
 **Solution:**
-- Ensure MCP servers are running: `pnpm mcp:all`
+
+- Ensure MCP credentials are configured: `pnpm setup:mcp`
+- Bootstrap the local environment with MCP checks: `revealui dev up --include mcp`
 - Check if port conflicts exist
 - Verify Cursor has restarted after configuration
 
 ### "Command not found" Error
 
 **Solution:**
+
 - Run `pnpm install` to install dependencies
 - Verify scripts exist in `package.json`
 - Check Node.js version (requires Node 18+)
@@ -644,6 +711,7 @@ Each launcher will log the exit code and delay before retrying. After 3 failed a
 ### Vercel MCP Silent Failure
 
 **Solution:**
+
 - Verify `vercel-mcp` package is installed: `ls node_modules/vercel-mcp`
 - Check API key format (should start with `vercel_`)
 - Test manually: `node node_modules/vercel-mcp/build/index.js VERCEL_API_KEY=test`
@@ -651,6 +719,7 @@ Each launcher will log the exit code and delay before retrying. After 3 failed a
 ### Playwright Download Issues
 
 **Solution:**
+
 - First run downloads ~300MB of browser binaries (be patient)
 - Check internet connection
 - Verify disk space available
@@ -661,6 +730,7 @@ Each launcher will log the exit code and delay before retrying. After 3 failed a
 **Problem:** `No server info found`
 
 **Solutions:**
+
 1. Ensure dev server is running: `cd apps/cms && pnpm dev`
 2. Check port 4000 is accessible: `curl http://localhost:4000`
 3. Verify Next.js version is 16+: Check `package.json`
@@ -670,6 +740,7 @@ Each launcher will log the exit code and delay before retrying. After 3 failed a
 **Problem:** Cannot connect to `/_next/mcp`
 
 **Solutions:**
+
 1. Dev server must be running
 2. Next.js must be 16.0.0 or higher
 3. Check browser console for errors
@@ -680,6 +751,7 @@ Each launcher will log the exit code and delay before retrying. After 3 failed a
 **Problem:** `nextjs_call` returns empty tools list
 
 **Solutions:**
+
 1. Restart dev server
 2. Check Next.js version compatibility
 3. Verify MCP endpoint is responding
@@ -688,6 +760,7 @@ Each launcher will log the exit code and delay before retrying. After 3 failed a
 ### Next.js DevTools: MCP Not Working in Cursor
 
 **Solutions:**
+
 1. **Restart Cursor** - MCP servers load at startup
 2. **Check config file exists**: `.cursor/mcp-config.json`
 3. **Verify package installed**: `pnpm list next-devtools-mcp`
@@ -695,11 +768,11 @@ Each launcher will log the exit code and delay before retrying. After 3 failed a
 ### Next.js DevTools: Server Won't Start Manually
 
 If you want to test manually:
-```bash
-# Check if script works
-pnpm mcp:next-devtools
 
-# Should start MCP server (will run until stopped)
+```bash
+# Validate MCP setup first
+pnpm setup:mcp
+revealui dev up --include mcp
 ```
 
 ---
@@ -709,28 +782,17 @@ pnpm mcp:next-devtools
 ### Test Individual Servers
 
 ```bash
-# Test each server (will timeout after 3 seconds - this is normal)
-timeout 3 pnpm mcp:vercel     # Should show "Starting Vercel MCP Server..."
-timeout 3 pnpm mcp:stripe     # Should show "Starting Stripe MCP Server..."
-timeout 3 pnpm mcp:neon       # Will fail if NEON_API_KEY not set
-timeout 3 pnpm mcp:supabase   # Will fail if SUPABASE_URL not set
-timeout 3 pnpm mcp:playwright # Should show "Starting Playwright MCP Server..."
-timeout 3 pnpm mcp:next-devtools # Should show "Starting Next.js DevTools MCP..."
+# Validate the supported MCP bootstrap path
+pnpm setup:mcp
+revealui dev up --include mcp --dry-run
 ```
 
 ### Verify All Servers Start
 
 ```bash
-# Start all servers (Ctrl+C to stop)
-pnpm mcp:all
-
-# Expected output:
-# [0] ✅ Vercel MCP Server running
-# [1] ✅ Stripe MCP Server running
-# [2] ⚠️ NeonDB MCP: Missing NEON_API_KEY
-# [3] ⚠️ Supabase MCP: Missing SUPABASE_URL
-# [4] ✅ Playwright MCP Server running
-# [5] ✅ Next.js DevTools MCP Server running
+# Validate credentials and preview the RevealUI bootstrap plan
+pnpm setup:mcp
+revealui dev status --profile agent
 ```
 
 ### Next.js DevTools Verification
@@ -738,7 +800,7 @@ pnpm mcp:all
 Use this checklist to verify everything is working:
 
 - [ ] CMS dev server running (`cd apps/cms && pnpm dev`)
-- [ ] Next.js DevTools MCP running (`pnpm mcp:next-devtools`)
+- [ ] MCP credentials validated (`pnpm setup:mcp`)
 - [ ] MCP endpoint accessible (`curl http://localhost:4000/_next/mcp`)
 - [ ] Can discover servers (ask: "what servers are running?")
 - [ ] Can query errors (ask: "what errors are in my app?")
@@ -751,6 +813,7 @@ Use this checklist to verify everything is working:
 ### Script Execution
 
 All MCP scripts use:
+
 - ✅ `pnpm dlx` instead of `npx` (project requirement)
 - ✅ `tsx` for TypeScript execution
 - ✅ `dotenv` for environment variable loading
@@ -768,6 +831,7 @@ All MCP scripts use:
 ## Cost
 
 All MCP servers are **completely free**:
+
 - ✅ No subscription fees
 - ✅ No usage-based pricing
 - ✅ Only your existing service API usage costs apply
@@ -777,14 +841,14 @@ All MCP servers are **completely free**:
 
 ## Current Status
 
-| Server | Status | Package | Env Required |
-|--------|--------|---------|--------------|
-| Vercel | ✅ Working | `vercel-mcp@0.0.7` | `VERCEL_API_KEY` |
-| Stripe | ✅ Working | `@stripe/mcp@0.1.4` | `STRIPE_SECRET_KEY` |
-| NeonDB | ⚠️ Needs API Key | `@neondatabase/mcp-server-neon@0.6.5` | `NEON_API_KEY` |
-| Supabase | ⚠️ Needs Credentials | `supabase-mcp@1.5.0` | `SUPABASE_URL`, `SUPABASE_ANON_KEY` |
-| Playwright | ✅ Working | `@executeautomation/playwright-mcp-server@1.0.12` | None |
-| Next.js DevTools | ✅ Working | `next-devtools-mcp@0.3.9` | None (requires Next.js 16+) |
+| Server           | Status               | Package                                           | Env Required                        |
+| ---------------- | -------------------- | ------------------------------------------------- | ----------------------------------- |
+| Vercel           | ✅ Working           | `vercel-mcp@0.0.7`                                | `VERCEL_API_KEY`                    |
+| Stripe           | ✅ Working           | `@stripe/mcp@0.1.4`                               | `STRIPE_SECRET_KEY`                 |
+| NeonDB           | ⚠️ Needs API Key     | `@neondatabase/mcp-server-neon@0.6.5`             | `NEON_API_KEY`                      |
+| Supabase         | ⚠️ Needs Credentials | `supabase-mcp@1.5.0`                              | `SUPABASE_URL`, `SUPABASE_ANON_KEY` |
+| Playwright       | ✅ Working           | `@executeautomation/playwright-mcp-server@1.0.12` | None                                |
+| Next.js DevTools | ✅ Working           | `next-devtools-mcp@0.3.9`                         | None (requires Next.js 16+)         |
 
 ---
 
@@ -818,6 +882,7 @@ Use your own LLM API keys with RevealUI Pro. Keys are stored encrypted per-user 
 BYOK lets each user (or tenant) supply their own API keys for LLM providers. RevealUI stores them encrypted with AES-256-GCM envelope encryption.
 
 **Supported providers:**
+
 - GROQ
 - OpenAI (via user-supplied key only — not used for RevealUI-side inference)
 - Anthropic (via user-supplied key only)
@@ -875,16 +940,14 @@ Content-Type: application/json
 ## Server-side usage
 
 ```typescript
-import { createLLMClientForUser } from '@revealui/ai/byok'
-import { db } from '@revealui/db'
+import { createLLMClientForUser } from "@revealui/ai/byok";
+import { db } from "@revealui/db";
 
 // Automatically uses the user's stored key for their preferred provider.
 // Falls back to the server's default provider if no user key is configured.
-const llm = await createLLMClientForUser(userId, db)
+const llm = await createLLMClientForUser(userId, db);
 
-const response = await llm.chat([
-  { role: 'user', content: 'Hello!' },
-])
+const response = await llm.chat([{ role: "user", content: "Hello!" }]);
 ```
 
 ## Environment configuration
@@ -911,9 +974,9 @@ GROQ_API_KEY=gsk_...
 For multi-tenant deployments, you can also configure provider keys at the tenant level:
 
 ```typescript
-import { createLLMClientForTenant } from '@revealui/ai/byok'
+import { createLLMClientForTenant } from "@revealui/ai/byok";
 
-const llm = await createLLMClientForTenant(tenantId, db)
+const llm = await createLLMClientForTenant(tenantId, db);
 ```
 
 User keys take precedence over tenant keys; tenant keys take precedence over server defaults.
@@ -1004,22 +1067,23 @@ require('revealui').setup({
 
 ```typescript
 // revealui.config.ts
-import { defineEditorConfig } from '@revealui/editors'
+import { defineEditorConfig } from "@revealui/editors";
 
 export default defineEditorConfig({
   daemon: {
     port: 3030,
-    logLevel: 'info',
+    logLevel: "info",
   },
   agent: {
-    provider: 'groq',
-    model: 'llama-3.3-70b-versatile',
-    systemPrompt: 'You are a helpful coding assistant working in this codebase.',
+    provider: "groq",
+    model: "llama-3.3-70b-versatile",
+    systemPrompt:
+      "You are a helpful coding assistant working in this codebase.",
   },
   workboard: {
-    path: '.claude/workboard.md',
+    path: ".claude/workboard.md",
   },
-})
+});
 ```
 
 ## Workboard coordination
@@ -1041,17 +1105,17 @@ AI harness adapters, workboard coordination, and JSON-RPC server. Integrates Cla
 ## Quick start
 
 ```typescript
-import { HarnessCoordinator } from '@revealui/harnesses'
+import { HarnessCoordinator } from "@revealui/harnesses";
 
 const coordinator = new HarnessCoordinator({
-  projectRoot: '/path/to/your/project',
-  socketPath: '/tmp/revealui-harness.sock',
-  task: 'Implement auth middleware',
-})
+  projectRoot: "/path/to/your/project",
+  socketPath: "/tmp/revealui-harness.sock",
+  task: "Implement auth middleware",
+});
 
-await coordinator.start()
+await coordinator.start();
 // ... your agent work ...
-await coordinator.stop()
+await coordinator.stop();
 ```
 
 `start()` auto-detects installed harnesses, registers this session in `.claude/workboard.md`, and opens a JSON-RPC socket. `stop()` cleans up the session and closes the socket.
@@ -1063,40 +1127,40 @@ await coordinator.stop()
 Adapter for Claude Code running in a terminal or Zed ACP session.
 
 ```typescript
-import { ClaudeCodeAdapter } from '@revealui/harnesses'
+import { ClaudeCodeAdapter } from "@revealui/harnesses";
 
 const adapter = new ClaudeCodeAdapter({
   workboardPath: process.env.REVEALUI_WORKBOARD_PATH,
-})
+});
 ```
 
 **Actual capabilities:**
 
-| Capability | Supported |
-|-----------|-----------|
-| `applyEdit` | ✅ |
-| `readWorkboard` | ✅ (when `REVEALUI_WORKBOARD_PATH` is set) |
+| Capability       | Supported                                  |
+| ---------------- | ------------------------------------------ |
+| `applyEdit`      | ✅                                         |
+| `readWorkboard`  | ✅ (when `REVEALUI_WORKBOARD_PATH` is set) |
 | `writeWorkboard` | ✅ (when `REVEALUI_WORKBOARD_PATH` is set) |
-| `generateCode` | ❌ (delegates to the model) |
-| `analyzeCode` | ❌ (delegates to the model) |
-| `applyConfig` | ❌ |
+| `generateCode`   | ❌ (delegates to the model)                |
+| `analyzeCode`    | ❌ (delegates to the model)                |
+| `applyConfig`    | ❌                                         |
 
 **Commands:**
 
 ```typescript
 // Read the current workboard state
-await adapter.execute({ type: 'read-workboard' })
+await adapter.execute({ type: "read-workboard" });
 
 // Update your session row
 await adapter.execute({
-  type: 'update-workboard',
-  sessionId: 'zed-1',
-  task: 'Add rate limiting to API routes',
-  files: ['apps/api/src/routes/auth.ts'],
-})
+  type: "update-workboard",
+  sessionId: "zed-1",
+  task: "Add rate limiting to API routes",
+  files: ["apps/api/src/routes/auth.ts"],
+});
 
 // Get Claude Code status
-await adapter.execute({ type: 'get-status' })
+await adapter.execute({ type: "get-status" });
 ```
 
 ### CopilotAdapter
@@ -1104,8 +1168,8 @@ await adapter.execute({ type: 'get-status' })
 Adapter for GitHub Copilot. Capability detection only — Copilot does not expose a programmatic API for code generation.
 
 ```typescript
-import { CopilotAdapter } from '@revealui/harnesses'
-const adapter = new CopilotAdapter()
+import { CopilotAdapter } from "@revealui/harnesses";
+const adapter = new CopilotAdapter();
 ```
 
 ## Workboard
@@ -1113,37 +1177,37 @@ const adapter = new CopilotAdapter()
 The workboard is a markdown file at `.claude/workboard.md` that tracks active sessions, claimed files, and recent events.
 
 ```typescript
-import { WorkboardManager } from '@revealui/harnesses'
+import { WorkboardManager } from "@revealui/harnesses";
 
-const wb = new WorkboardManager('/path/to/.claude/workboard.md')
+const wb = new WorkboardManager("/path/to/.claude/workboard.md");
 
 // Read current state
-const state = await wb.readAsync()
+const state = await wb.readAsync();
 
 // Register a session
 wb.registerSession({
-  id: 'zed-1',
-  env: 'Zed/ACP',
-  started: new Date().toISOString().slice(0, 16) + 'Z',
-  task: 'Add OAuth flow',
-  files: '',
-  updated: new Date().toISOString().slice(0, 16) + 'Z',
-})
+  id: "zed-1",
+  env: "Zed/ACP",
+  started: new Date().toISOString().slice(0, 16) + "Z",
+  task: "Add OAuth flow",
+  files: "",
+  updated: new Date().toISOString().slice(0, 16) + "Z",
+});
 
 // Claim file ownership (prevents conflicts with other sessions)
-wb.claimFiles('zed-1', ['apps/cms/src/lib/auth.ts'])
+wb.claimFiles("zed-1", ["apps/cms/src/lib/auth.ts"]);
 
 // Check for conflicts before editing
-const result = wb.checkConflicts('zed-1', ['apps/cms/src/lib/auth.ts'])
+const result = wb.checkConflicts("zed-1", ["apps/cms/src/lib/auth.ts"]);
 if (!result.clean) {
-  console.warn('File conflict:', result.conflicts)
+  console.warn("File conflict:", result.conflicts);
 }
 
 // Release claims when done
-wb.releaseFiles('zed-1')
+wb.releaseFiles("zed-1");
 
 // Detect stale sessions (inactive > 4h)
-const stale = wb.detectStale()
+const stale = wb.detectStale();
 ```
 
 **Sync vs async:** `read()`/`write()` are sync (safe for CLI scripts); `readAsync()`/`writeAsync()` use `fs/promises` (preferred in server contexts).
@@ -1153,25 +1217,25 @@ const stale = wb.detectStale()
 `RpcServer` exposes harness operations over a Unix domain socket. The socket protocol is JSON-RPC 2.0 with newline-delimited messages.
 
 ```typescript
-import { HarnessRegistry, RpcServer } from '@revealui/harnesses'
+import { HarnessRegistry, RpcServer } from "@revealui/harnesses";
 
-const registry = new HarnessRegistry()
-registry.register('claude-code', new ClaudeCodeAdapter())
+const registry = new HarnessRegistry();
+registry.register("claude-code", new ClaudeCodeAdapter());
 
-const server = new RpcServer(registry, '/tmp/harness.sock')
-await server.start()
+const server = new RpcServer(registry, "/tmp/harness.sock");
+await server.start();
 ```
 
 **Available methods:**
 
-| Method | Params | Returns |
-|--------|--------|---------|
-| `harness.list` | — | `HarnessInfo[]` |
-| `harness.info` | `{ harnessId }` | `HarnessInfo` |
-| `harness.execute` | `{ harnessId, command }` | `HarnessCommandResult` |
-| `harness.listRunning` | `{ harnessId }` | `HarnessProcessInfo[]` |
-| `harness.syncConfig` | `{ harnessId, direction }` | `ConfigSyncResult` |
-| `harness.diffConfig` | `{ harnessId }` | `ConfigDiffEntry` |
+| Method                | Params                     | Returns                |
+| --------------------- | -------------------------- | ---------------------- |
+| `harness.list`        | —                          | `HarnessInfo[]`        |
+| `harness.info`        | `{ harnessId }`            | `HarnessInfo`          |
+| `harness.execute`     | `{ harnessId, command }`   | `HarnessCommandResult` |
+| `harness.listRunning` | `{ harnessId }`            | `HarnessProcessInfo[]` |
+| `harness.syncConfig`  | `{ harnessId, direction }` | `ConfigSyncResult`     |
+| `harness.diffConfig`  | `{ harnessId }`            | `ConfigDiffEntry`      |
 
 **Example call:**
 
@@ -1183,15 +1247,15 @@ echo '{"jsonrpc":"2.0","id":1,"method":"harness.list","params":{}}' \
 ## Process detection
 
 ```typescript
-import { findHarnessProcesses, autoDetectHarnesses } from '@revealui/harnesses'
+import { findHarnessProcesses, autoDetectHarnesses } from "@revealui/harnesses";
 
 // Find running Claude Code processes
-const procs = await findHarnessProcesses('claude-code')
+const procs = await findHarnessProcesses("claude-code");
 // [{ pid: 12345, command: 'claude ...', harnessId: 'claude-code' }]
 
 // Auto-populate a registry from what's actually installed
-const registry = new HarnessRegistry()
-await autoDetectHarnesses(registry)
+const registry = new HarnessRegistry();
+await autoDetectHarnesses(registry);
 ```
 
 ## Config sync
@@ -1199,17 +1263,17 @@ await autoDetectHarnesses(registry)
 Sync harness configuration between the local project and an external SSD/DevPod:
 
 ```typescript
-import { syncConfig, diffConfig } from '@revealui/harnesses'
+import { syncConfig, diffConfig } from "@revealui/harnesses";
 
 // See what differs
-const diff = diffConfig('claude-code')
+const diff = diffConfig("claude-code");
 // { harnessId, localExists, ssdExists, identical }
 
 // Pull config from SSD to local
-syncConfig('claude-code', 'pull')
+syncConfig("claude-code", "pull");
 
 // Push local config to SSD
-syncConfig('claude-code', 'push')
+syncConfig("claude-code", "push");
 ```
 
 ---
@@ -1229,15 +1293,15 @@ Stripe payment processing and Supabase client integrations for RevealUI Pro.
 ### Client
 
 ```typescript
-import { protectedStripe, getStripe } from '@revealui/services'
+import { protectedStripe, getStripe } from "@revealui/services";
 
 // Server-side: authenticated Stripe client (throws if STRIPE_SECRET_KEY missing)
-const stripe = protectedStripe()
-const customer = await stripe.customers.retrieve(customerId)
+const stripe = protectedStripe();
+const customer = await stripe.customers.retrieve(customerId);
 
 // Client-side: load Stripe.js (lazy singleton)
-const stripe = await getStripe()
-const { error } = await stripe.redirectToCheckout({ sessionId })
+const stripe = await getStripe();
+const { error } = await stripe.redirectToCheckout({ sessionId });
 ```
 
 ### Billing handlers
@@ -1252,12 +1316,12 @@ import {
   updateProduct,
   webhooks,
   createPaymentIntent,
-} from '@revealui/services'
+} from "@revealui/services";
 
 // apps/api/src/routes/billing.ts
-app.post('/checkout', createCheckoutSession)
-app.post('/portal',   createPortalLink)
-app.post('/webhooks/stripe', webhooks)
+app.post("/checkout", createCheckoutSession);
+app.post("/portal", createPortalLink);
+app.post("/webhooks/stripe", webhooks);
 ```
 
 **`createCheckoutSession`** — Creates a Stripe Checkout session. Expects `{ priceId, userId, successUrl, cancelUrl }` in the request body.
@@ -1281,35 +1345,39 @@ STRIPE_PRICE_ID=price_...       # Your Pro tier price
 ### Server client (Next.js App Router)
 
 ```typescript
-import { createServerClient } from '@revealui/services'
-import { cookies } from 'next/headers'
+import { createServerClient } from "@revealui/services";
+import { cookies } from "next/headers";
 
 // In a Server Component or Route Handler
-const supabase = createServerClient(cookies())
-const { data } = await supabase.from('profiles').select('*')
+const supabase = createServerClient(cookies());
+const { data } = await supabase.from("profiles").select("*");
 ```
 
 ### Browser client
 
 ```typescript
-import { createBrowserClient } from '@revealui/services'
+import { createBrowserClient } from "@revealui/services";
 
 // In a Client Component
-const supabase = createBrowserClient()
-const { data: { session } } = await supabase.auth.getSession()
+const supabase = createBrowserClient();
+const {
+  data: { session },
+} = await supabase.auth.getSession();
 ```
 
 ### Request client (Hono / Edge)
 
 ```typescript
-import { createServerClientFromRequest } from '@revealui/services'
+import { createServerClientFromRequest } from "@revealui/services";
 
 // In a Hono handler
-app.get('/me', async (c) => {
-  const supabase = createServerClientFromRequest(c.req.raw)
-  const { data: { user } } = await supabase.auth.getUser()
-  return c.json({ user })
-})
+app.get("/me", async (c) => {
+  const supabase = createServerClientFromRequest(c.req.raw);
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  return c.json({ user });
+});
 ```
 
 ### Resilience wrapper
@@ -1317,11 +1385,11 @@ app.get('/me', async (c) => {
 Wraps any Supabase operation with automatic retry on transient errors:
 
 ```typescript
-import { withSupabaseResilience } from '@revealui/services'
+import { withSupabaseResilience } from "@revealui/services";
 
 const data = await withSupabaseResilience(() =>
-  supabase.from('posts').select('*').limit(10)
-)
+  supabase.from("posts").select("*").limit(10),
+);
 ```
 
 ## Environment configuration
@@ -1361,9 +1429,9 @@ The caller pays the required USDC amount on-chain, then retries with the payment
 
 ## Metered endpoints
 
-| Endpoint | Default price |
-|----------|--------------|
-| `POST /a2a/:agentId/tasks/send` | `X402_PRICE_PER_TASK` USDC |
+| Endpoint                                   | Default price                       |
+| ------------------------------------------ | ----------------------------------- |
+| `POST /a2a/:agentId/tasks/send`            | `X402_PRICE_PER_TASK` USDC          |
 | `POST /api/marketplace/servers/:id/invoke` | Per-server price (set by developer) |
 
 ## Environment configuration
@@ -1385,18 +1453,25 @@ X402_NETWORK=base
 ## Caller integration
 
 ```typescript
-import { withPaymentInterceptor } from '@coinbase/x402/fetch'
-import { createWalletClient } from 'viem'
+import { withPaymentInterceptor } from "@coinbase/x402/fetch";
+import { createWalletClient } from "viem";
 
-const wallet = createWalletClient({ /* your wallet config */ })
-const fetch402 = withPaymentInterceptor(fetch, wallet)
+const wallet = createWalletClient({
+  /* your wallet config */
+});
+const fetch402 = withPaymentInterceptor(fetch, wallet);
 
 // Automatically handles 402 → pay → retry
-const response = await fetch402('https://api.revealui.com/a2a/my-agent/tasks/send', {
-  method: 'POST',
-  headers: { 'Content-Type': 'application/json' },
-  body: JSON.stringify({ /* A2A task payload */ }),
-})
+const response = await fetch402(
+  "https://api.revealui.com/a2a/my-agent/tasks/send",
+  {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({
+      /* A2A task payload */
+    }),
+  },
+);
 ```
 
 The SDK handles the full 402 → payment → retry cycle automatically.

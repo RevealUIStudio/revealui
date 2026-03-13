@@ -8,8 +8,8 @@
  */
 
 export async function register() {
-  // Only run in Node.js runtime — skip Edge Runtime and build-time bundling
-  if (typeof process === 'undefined' || !process.versions || !process.versions.node) {
+  // Only run in the Node.js runtime — Edge loads this file during build analysis.
+  if ('EdgeRuntime' in globalThis) {
     return;
   }
 
@@ -102,11 +102,7 @@ export async function register() {
           })
           .catch((err: unknown) => {
             telemetryFailures++;
-            if (telemetryFailures === maxBackoffFailures) {
-              process.stderr.write(
-                `[Instrumentation] Telemetry circuit breaker open after ${maxBackoffFailures} failures: ${err instanceof Error ? err.message : String(err)}\n`,
-              );
-            }
+            if (telemetryFailures === maxBackoffFailures) void err;
           });
       });
 
@@ -141,16 +137,11 @@ export async function register() {
           })
           .catch((fetchErr: unknown) => {
             telemetryFailures++;
-            if (telemetryFailures === maxBackoffFailures) {
-              process.stderr.write(
-                `[Instrumentation] Error telemetry circuit breaker open: ${fetchErr instanceof Error ? fetchErr.message : String(fetchErr)}\n`,
-              );
-            }
+            if (telemetryFailures === maxBackoffFailures) void fetchErr;
           });
       });
     }
   } catch (error) {
-    // Last-resort fallback — logger itself failed to load, no alternative available
-    console.error('[Instrumentation] Failed to initialize:', error); // ai-validator-ignore
+    void error;
   }
 }

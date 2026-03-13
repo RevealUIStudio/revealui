@@ -103,4 +103,48 @@ describe('findByID operation', () => {
     expect(result).toHaveProperty('tags', ['tag1', 'tag2']);
     expect(result).not.toHaveProperty('_json');
   });
+
+  it('should prefer typed collection storage when available', async () => {
+    const typedDb = {
+      query: vi.fn(),
+      collectionStorage: {
+        findByID: vi.fn().mockResolvedValue({ id: 'typed-1', title: 'Typed Doc' }),
+      },
+    };
+
+    const result = await findByID(mockConfig, typedDb as never, { id: 'typed-1' });
+
+    expect(result).toEqual({ id: 'typed-1', title: 'Typed Doc' });
+    expect(typedDb.collectionStorage.findByID).toHaveBeenCalledWith(mockConfig, { id: 'typed-1' });
+    expect(typedDb.query).not.toHaveBeenCalled();
+  });
+
+  it('should fall back to SQL when typed collection storage opts out', async () => {
+    const mockDoc = {
+      id: 'fallback-id',
+      title: 'Fallback Document',
+    };
+
+    const typedDb = {
+      query: vi.fn().mockResolvedValue({
+        rows: [mockDoc],
+      } as DatabaseResult),
+      collectionStorage: {
+        findByID: vi.fn().mockResolvedValue(undefined),
+      },
+    };
+
+    const result = await findByID(mockConfig, typedDb as never, {
+      id: 'fallback-id',
+    });
+
+    expect(result).toEqual(mockDoc);
+    expect(typedDb.collectionStorage.findByID).toHaveBeenCalledWith(mockConfig, {
+      id: 'fallback-id',
+    });
+    expect(typedDb.query).toHaveBeenCalledWith(
+      'SELECT * FROM "test-collection" WHERE id = $1 LIMIT 1',
+      ['fallback-id'],
+    );
+  });
 });

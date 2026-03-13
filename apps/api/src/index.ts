@@ -16,6 +16,7 @@ import { authMiddleware } from './middleware/auth.js';
 import { requirePermission } from './middleware/authorization.js';
 import { dbMiddleware } from './middleware/db.js';
 import { domainLockMiddleware, validateForgeConfig } from './middleware/domain-lock.js';
+import { entitlementMiddleware } from './middleware/entitlements.js';
 import { errorHandler } from './middleware/error.js';
 import { checkLicenseStatus, requireFeature } from './middleware/license.js';
 import { rateLimitMiddleware, tieredRateLimitMiddleware } from './middleware/rate-limit.js';
@@ -308,6 +309,9 @@ app.use('/api/v1/*', optionalAuth);
 const optionalTenant = tenantMiddleware({ required: false });
 app.use('/api/*', optionalTenant);
 app.use('/api/v1/*', optionalTenant);
+// Additive hosted-SaaS entitlement context. Does not replace legacy license gates yet.
+app.use('/api/*', entitlementMiddleware());
+app.use('/api/v1/*', entitlementMiddleware());
 
 // License status enforcement — catches revoked/expired licenses (5-minute DB cache)
 const licenseStatusCheck = checkLicenseStatus(async (customerId) => {
@@ -324,16 +328,16 @@ app.use('/api/*', licenseStatusCheck);
 app.use('/api/v1/*', licenseStatusCheck);
 
 // License enforcement — gate premium routes by feature
-app.use('/api/agent-tasks/*', requireFeature('ai'));
-app.use('/api/v1/agent-tasks/*', requireFeature('ai'));
-app.use('/api/agent-stream', requireFeature('ai'));
-app.use('/api/v1/agent-stream', requireFeature('ai'));
-app.use('/api/rag/*', requireFeature('ai'));
-app.use('/api/v1/rag/*', requireFeature('ai'));
-app.use('/api/collab/agent/*', requireFeature('ai'));
-app.use('/api/v1/collab/agent/*', requireFeature('ai'));
-app.use('/api/provenance/*', requireFeature('dashboard'));
-app.use('/api/v1/provenance/*', requireFeature('dashboard'));
+app.use('/api/agent-tasks/*', requireFeature('ai', { mode: 'entitlements' }));
+app.use('/api/v1/agent-tasks/*', requireFeature('ai', { mode: 'entitlements' }));
+app.use('/api/agent-stream', requireFeature('ai', { mode: 'entitlements' }));
+app.use('/api/v1/agent-stream', requireFeature('ai', { mode: 'entitlements' }));
+app.use('/api/rag/*', requireFeature('ai', { mode: 'entitlements' }));
+app.use('/api/v1/rag/*', requireFeature('ai', { mode: 'entitlements' }));
+app.use('/api/collab/agent/*', requireFeature('ai', { mode: 'entitlements' }));
+app.use('/api/v1/collab/agent/*', requireFeature('ai', { mode: 'entitlements' }));
+app.use('/api/provenance/*', requireFeature('dashboard', { mode: 'entitlements' }));
+app.use('/api/v1/provenance/*', requireFeature('dashboard', { mode: 'entitlements' }));
 
 // Role-based access — admin-only operations
 // RAG index writes and deletes are administrative operations (rebuilding/managing the vector index).

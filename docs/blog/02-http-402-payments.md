@@ -1,6 +1,6 @@
 # Paying for AI API Calls with HTTP 402 and USDC
 
-*By Joshua Vaughn — RevealUI Studio*
+_By Joshua Vaughn — RevealUI Studio_
 
 ---
 
@@ -69,97 +69,97 @@ export function buildPaymentRequired(
   resource: string,
   customPrice?: string,
 ): PaymentRequiredV1 {
-  const config = getX402Config()
-  const price = customPrice ?? config.pricePerTask
+  const config = getX402Config();
+  const price = customPrice ?? config.pricePerTask;
 
   // Convert USDC decimal to smallest unit (6 decimals)
-  const amountUsdc = Math.round(parseFloat(price) * 1_000_000).toString()
+  const amountUsdc = Math.round(parseFloat(price) * 1_000_000).toString();
 
   return {
     x402Version: 1,
-    accepts: [{
-      scheme: 'exact',
-      network: 'evm:base',
-      maxAmountRequired: amountUsdc,
-      resource,
-      payTo: config.receivingAddress,
-      asset: USDC_BASE_ADDRESS,
-    }],
-  }
+    accepts: [
+      {
+        scheme: "exact",
+        network: "evm:base",
+        maxAmountRequired: amountUsdc,
+        resource,
+        payTo: config.receivingAddress,
+        asset: USDC_BASE_ADDRESS,
+      },
+    ],
+  };
 }
 
 export async function verifyPayment(
   paymentHeader: string,
   resource: string,
 ): Promise<boolean> {
-  const response = await fetch('https://x402.org/facilitator/verify', {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
+  const response = await fetch("https://x402.org/facilitator/verify", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
     body: JSON.stringify({
       paymentHeader,
       resource,
     }),
-  })
-  const result = await response.json()
-  return result.isValid === true
+  });
+  const result = await response.json();
+  return result.isValid === true;
 }
 ```
 
 The middleware on the task endpoint:
 
 ```typescript
-app.post('/a2a/:agentId/tasks/send', async (c) => {
+app.post("/a2a/:agentId/tasks/send", async (c) => {
   // Check quota first
-  const quotaResult = await checkTaskQuota(userId, tier)
+  const quotaResult = await checkTaskQuota(userId, tier);
 
   if (!quotaResult.allowed) {
-    const x402Enabled = process.env.X402_ENABLED === 'true'
+    const x402Enabled = process.env.X402_ENABLED === "true";
 
     if (x402Enabled) {
-      const paymentRequired = buildPaymentRequired(
-        `${c.req.url}`,
-      )
-      return c.json(
-        { error: 'Payment required', ...paymentRequired },
-        402,
-        { 'X-PAYMENT-REQUIRED': encodePaymentRequired(paymentRequired) },
-      )
+      const paymentRequired = buildPaymentRequired(`${c.req.url}`);
+      return c.json({ error: "Payment required", ...paymentRequired }, 402, {
+        "X-PAYMENT-REQUIRED": encodePaymentRequired(paymentRequired),
+      });
     }
 
-    return c.json({ error: 'Quota exceeded' }, 429)
+    return c.json({ error: "Quota exceeded" }, 429);
   }
 
   // Check for payment proof on retry
-  const paymentPayload = c.req.header('X-PAYMENT-PAYLOAD')
+  const paymentPayload = c.req.header("X-PAYMENT-PAYLOAD");
   if (paymentPayload) {
-    const valid = await verifyPayment(paymentPayload, c.req.url)
+    const valid = await verifyPayment(paymentPayload, c.req.url);
     if (!valid) {
-      return c.json({ error: 'Invalid payment' }, 402)
+      return c.json({ error: "Invalid payment" }, 402);
     }
   }
 
   // Process the task
   // ...
-})
+});
 ```
 
 From the caller side, the Coinbase x402 SDK handles the whole cycle automatically:
 
 ```typescript
-import { withPaymentInterceptor } from '@coinbase/x402/fetch'
-import { createWalletClient } from 'viem'
+import { withPaymentInterceptor } from "@coinbase/x402/fetch";
+import { createWalletClient } from "viem";
 
-const wallet = createWalletClient({ /* your wallet config */ })
-const fetch402 = withPaymentInterceptor(fetch, wallet)
+const wallet = createWalletClient({
+  /* your wallet config */
+});
+const fetch402 = withPaymentInterceptor(fetch, wallet);
 
 // This automatically handles 402 → pay → retry
 const response = await fetch402(
-  'https://api.revealui.com/a2a/my-agent/tasks/send',
+  "https://api.revealui.com/a2a/my-agent/tasks/send",
   {
-    method: 'POST',
-    body: JSON.stringify({ instruction: 'Analyze this ticket' }),
+    method: "POST",
+    body: JSON.stringify({ instruction: "Analyze this ticket" }),
   },
-)
+);
 ```
 
 One line of setup. The SDK intercepts 402 responses, pays on-chain, retries. The caller doesn't need to manage any of this manually.
@@ -191,10 +191,10 @@ The price-setting logic matters. For a `pricePerCallUsdc` of `"0.005"`:
 
 ```typescript
 function computeSplit(price: string) {
-  const p = parseFloat(price)
-  const fee = Math.round(p * 0.2 * 1_000_000) / 1_000_000   // 0.001 USDC
-  const developer = Math.round((p - fee) * 1_000_000) / 1_000_000  // 0.004 USDC
-  return { fee, developer }
+  const p = parseFloat(price);
+  const fee = Math.round(p * 0.2 * 1_000_000) / 1_000_000; // 0.001 USDC
+  const developer = Math.round((p - fee) * 1_000_000) / 1_000_000; // 0.004 USDC
+  return { fee, developer };
 }
 ```
 
@@ -231,4 +231,29 @@ The full source is in [`apps/api/src/middleware/x402.ts`](https://github.com/Rev
 
 ---
 
-*RevealUI is open-source business infrastructure for software companies. [revealui.com](https://revealui.com)*
+## What This Means for Pricing
+
+HTTP 402 and x402 are not a replacement for subscriptions. They are the missing transaction layer for an agent-first internet.
+
+The pricing model that fits 2027-2030 is hybrid:
+
+- account/workspace subscription for platform access
+- metered agent labor for autonomous work
+- protocol-level or marketplace-level payment for discrete paid calls
+- explicit commerce pricing when agents complete economic actions
+- premium pricing for trust, governance, and compliance
+
+That is materially better than classic per-seat SaaS for agent systems because the thing creating value is no longer only the human seat. The value is digital labor, transaction flow, and governed autonomy.
+
+In RevealUI, the long-term goal is to make x402 one pricing primitive among several:
+
+- subscriptions handle recurring platform value
+- meters handle predictable usage expansion
+- x402 handles direct paid invocation
+- marketplace and commerce rails handle transaction-linked monetization
+
+The important constraint is ethical billing: failed or replayed calls should not be billable, and agent-spend systems need auditable controls before they deserve trust.
+
+---
+
+_RevealUI is open-source business infrastructure for software companies. [revealui.com](https://revealui.com)_

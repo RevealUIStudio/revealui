@@ -1,4 +1,4 @@
-import { cleanup, fireEvent, render, screen, waitFor } from '@testing-library/react';
+import { act, cleanup, fireEvent, render, screen, waitFor } from '@testing-library/react';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
 // Override the global useSearchParams mock for these tests
@@ -140,7 +140,9 @@ describe('AccountSettingsPage', () => {
     });
 
     const linkButtons = screen.getAllByText('Link');
-    fireEvent.click(linkButtons[0]!);
+    await act(async () => {
+      fireEvent.click(linkButtons[0]!);
+    });
 
     expect(mockLocation.href).toContain('/api/auth/link/google');
     expect(mockLocation.href).toContain('redirectTo=');
@@ -156,7 +158,9 @@ describe('AccountSettingsPage', () => {
       expect(screen.getByText('Unlink')).toBeInTheDocument();
     });
 
-    fireEvent.click(screen.getByText('Unlink'));
+    await act(async () => {
+      fireEvent.click(screen.getByText('Unlink'));
+    });
 
     expect(mockConfirm).toHaveBeenCalledWith(
       "Unlink GitHub? You'll no longer be able to sign in with this account.",
@@ -182,7 +186,9 @@ describe('AccountSettingsPage', () => {
       expect(screen.getByText('Unlink')).toBeInTheDocument();
     });
 
-    fireEvent.click(screen.getByText('Unlink'));
+    await act(async () => {
+      fireEvent.click(screen.getByText('Unlink'));
+    });
 
     await waitFor(() => {
       expect(mockFetch).toHaveBeenCalledWith(
@@ -212,7 +218,9 @@ describe('AccountSettingsPage', () => {
       expect(screen.getByText('Unlink')).toBeInTheDocument();
     });
 
-    fireEvent.click(screen.getByText('Unlink'));
+    await act(async () => {
+      fireEvent.click(screen.getByText('Unlink'));
+    });
 
     await waitFor(() => {
       expect(screen.getByText('GitHub account unlinked.')).toBeInTheDocument();
@@ -235,7 +243,9 @@ describe('AccountSettingsPage', () => {
       expect(screen.getByText('Unlink')).toBeInTheDocument();
     });
 
-    fireEvent.click(screen.getByText('Unlink'));
+    await act(async () => {
+      fireEvent.click(screen.getByText('Unlink'));
+    });
 
     await waitFor(() => {
       expect(screen.getByText('Cannot unlink your only sign-in method.')).toBeInTheDocument();
@@ -325,7 +335,9 @@ describe('AccountSettingsPage', () => {
       expect(screen.getByText('Unlink')).toBeInTheDocument();
     });
 
-    fireEvent.click(screen.getByText('Unlink'));
+    await act(async () => {
+      fireEvent.click(screen.getByText('Unlink'));
+    });
 
     await waitFor(() => {
       expect(screen.getByText('Network error. Please try again.')).toBeInTheDocument();
@@ -351,13 +363,17 @@ describe('AccountSettingsPage', () => {
       expect(screen.getByText('Unlink')).toBeInTheDocument();
     });
 
-    fireEvent.click(screen.getByText('Unlink'));
+    await act(async () => {
+      fireEvent.click(screen.getByText('Unlink'));
+    });
 
     await waitFor(() => {
       expect(screen.getByText('Unlinking...')).toBeInTheDocument();
     });
 
     // Resolve to clean up
-    resolveUnlink({ ok: true, json: () => Promise.resolve({ success: true }) });
+    await act(async () => {
+      resolveUnlink({ ok: true, json: () => Promise.resolve({ success: true }) });
+    });
   });
 });

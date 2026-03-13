@@ -16,4 +16,6 @@ function FormLabel({ required, className, children, ref, ...props }: FormLabelPr
   );
 }
 
+FormLabel.displayName = 'FormLabel';
+
 export { FormLabel };

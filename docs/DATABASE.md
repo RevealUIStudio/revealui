@@ -1,6 +1,6 @@
 # Database Management Guide
 
-This guide describes the database management scripts available in RevealUI and their usage across different development environments.
+This guide describes the RevealUI database workflow and the underlying database scripts it orchestrates across different development environments.
 
 **Last Updated:** 2026-01-31
 
@@ -22,30 +22,89 @@ This guide describes the database management scripts available in RevealUI and t
 
 ## Overview
 
-RevealUI provides a **unified interface** for database operations through pnpm scripts. These work consistently across all development environments (Nix, Dev Containers, Manual setup).
+RevealUI now exposes a unified developer-facing database interface through the `revealui` CLI.
+
+Use these commands first:
+
+| Command                          | Purpose                                              |
+| -------------------------------- | ---------------------------------------------------- |
+| `pnpm revealui doctor`           | Check whether your local environment is ready        |
+| `pnpm revealui dev up --dry-run` | Preview the local startup plan                       |
+| `pnpm revealui dev up`           | Bootstrap the local environment                      |
+| `pnpm revealui db status`        | Check local database readiness                       |
+| `pnpm revealui db start`         | Start the local database                             |
+| `pnpm revealui db migrate`       | Run Drizzle migrations through the RevealUI workflow |
+
+The older `pnpm db:*` scripts still exist and remain useful as lower-level building blocks, but the supported day-to-day workflow is now `revealui dev ...` and `revealui db ...`.
 
 ## Available Commands
 
 ### Core Database Commands
 
-| Command | Description | File | Environment Variables Required |
-|---------|-------------|------|-------------------------------|
-| `pnpm db:init` | Initialize database connection and verify setup | `scripts/setup/database.ts` | `POSTGRES_URL`, `DATABASE_URL`, or `SUPABASE_DATABASE_URI` |
-| `pnpm db:migrate` | Run Drizzle migrations | `scripts/setup/migrations.ts` | `POSTGRES_URL` or `DATABASE_URL` |
-| `pnpm db:reset` | Drop all tables and recreate schema | `scripts/setup/reset-database.ts` | Same as init |
-| `pnpm db:seed` | Seed database with sample data | `scripts/setup/seed-sample-content.ts` | Same as init |
-| `pnpm db:backup` | Create JSON backup of all tables | `scripts/commands/database/backup.ts` | Same as init |
-| `pnpm db:restore` | Restore from backup file | `scripts/commands/database/restore.ts` | Same as init |
-| `pnpm db:status` | Check database connection and table count | `scripts/commands/database/status.ts` | Same as init |
-| `pnpm db:setup-test` | Setup test database | `scripts/dev-tools/test-database.ts` | Test-specific vars |
+### Preferred RevealUI Commands
+
+| Command                    | Description                                              |
+| -------------------------- | -------------------------------------------------------- |
+| `pnpm revealui db init`    | Initialize the local database data directory when needed |
+| `pnpm revealui db start`   | Start local Postgres using the current local environment |
+| `pnpm revealui db stop`    | Stop the local database                                  |
+| `pnpm revealui db status`  | Report local database health                             |
+| `pnpm revealui db migrate` | Run Drizzle migrations                                   |
+| `pnpm revealui dev up`     | End-to-end local bootstrap, including database checks    |
+
+### Underlying pnpm Scripts
+
+| Command              | Description                                     | File                                   | Environment Variables Required                             |
+| -------------------- | ----------------------------------------------- | -------------------------------------- | ---------------------------------------------------------- |
+| `pnpm db:init`       | Initialize database connection and verify setup | `scripts/setup/database.ts`            | `POSTGRES_URL`, `DATABASE_URL`, or `SUPABASE_DATABASE_URI` |
+| `pnpm db:migrate`    | Run Drizzle migrations                          | `scripts/setup/migrations.ts`          | `POSTGRES_URL` or `DATABASE_URL`                           |
+| `pnpm db:reset`      | Drop all tables and recreate schema             | `scripts/setup/reset-database.ts`      | Same as init                                               |
+| `pnpm db:seed`       | Seed database with sample data                  | `scripts/setup/seed-sample-content.ts` | Same as init                                               |
+| `pnpm db:backup`     | Create JSON backup of all tables                | `scripts/commands/database/backup.ts`  | Same as init                                               |
+| `pnpm db:restore`    | Restore from backup file                        | `scripts/commands/database/restore.ts` | Same as init                                               |
+| `pnpm db:status`     | Check database connection and table count       | `scripts/commands/database/status.ts`  | Same as init                                               |
+| `pnpm db:setup-test` | Setup test database                             | `scripts/dev-tools/test-database.ts`   | Test-specific vars                                         |
 
 ## Command Details
+
+### `pnpm revealui db init`
+
+**Purpose:** Initialize the local database data directory for the supported local Postgres workflow.
+
+**Usage:**
+
+```bash
+pnpm revealui db init
+```
+
+### `pnpm revealui db start`
+
+**Purpose:** Start the local Postgres instance used by RevealUI local development.
+
+**Usage:**
+
+```bash
+pnpm revealui db start
+pnpm revealui db status
+```
+
+### `pnpm revealui db migrate`
+
+**Purpose:** Apply the current Drizzle migration set to the configured local database target.
+
+**Usage:**
+
+```bash
+pnpm revealui db migrate
+pnpm revealui dev up
+```
 
 ### `pnpm db:init`
 
 **Purpose:** Verify database connection and initialize RevealUI tables.
 
 **What it does:**
+
 1. Detects database provider (Neon, Supabase, Vercel, Generic)
 2. Tests connection with `SELECT NOW()` query
 3. Checks PostgreSQL version
@@ -58,13 +117,15 @@ RevealUI provides a **unified interface** for database operations through pnpm s
 5. Lists all RevealUI tables found
 
 **Environment Variables (priority order):**
+
 - `DATABASE_URL` (primary)
 - `POSTGRES_URL` (fallback)
 - `SUPABASE_DATABASE_URI` (Supabase-specific)
 
 **Usage:**
+
 ```bash
-# First-time setup
+# Low-level verification
 pnpm db:init
 
 # Check what gets initialized
@@ -72,6 +133,7 @@ pnpm db:init
 ```
 
 **Exit codes:**
+
 - `0` - Success
 - `1` - Configuration error (no connection string)
 - `2` - Execution error (connection failed)
@@ -81,6 +143,7 @@ pnpm db:init
 **Purpose:** Run Drizzle schema migrations to update database structure.
 
 **What it does:**
+
 1. Checks for `POSTGRES_URL` or `DATABASE_URL`
 2. Generates new migrations if schema changed (`pnpm db:generate`)
 3. Pushes schema changes to database (`pnpm db:push`)
@@ -91,8 +154,9 @@ pnpm db:init
 **Interactive:** Yes (prompts before modifying database)
 
 **Usage:**
+
 ```bash
-# Run migrations interactively
+# Low-level migration flow
 pnpm db:migrate
 
 # In CI (auto-confirm)
@@ -100,6 +164,7 @@ CI=true pnpm db:migrate
 ```
 
 **Safety:**
+
 - Shows warning before modifying database
 - Requires confirmation unless in CI
 - Uses transactions (rollback on error)
@@ -109,6 +174,7 @@ CI=true pnpm db:migrate
 **Purpose:** Complete database reset (drop all tables, recreate schema).
 
 **What it does:**
+
 1. Validates database connections
 2. Creates backup (unless `--no-backup`)
 3. Drops all tables and custom types (enums)
@@ -116,6 +182,7 @@ CI=true pnpm db:migrate
 5. Optionally seeds sample data (`--seed`)
 
 **Flags:**
+
 - `--confirm` / `-y` - Skip confirmation prompt
 - `--no-backup` - Skip backup creation
 - `--seed` - Seed sample data after reset
@@ -124,6 +191,7 @@ CI=true pnpm db:migrate
 - `--force` - Allow in CI environment
 
 **Safety Features:**
+
 - **Interactive confirmation** (unless `--confirm`)
 - **Automatic backups** to `.revealui/backups/` (unless `--no-backup`)
 - **Transaction support** (rollback on error)
@@ -131,6 +199,7 @@ CI=true pnpm db:migrate
 - **Keeps last 5 backups** (auto-cleanup)
 
 **Usage:**
+
 ```bash
 # Interactive reset (safest)
 pnpm db:reset
@@ -149,6 +218,7 @@ pnpm db:reset --database=rest
 ```
 
 **Backup location:**
+
 ```
 .revealui/backups/db-backup-2026-01-30T12-34-56.json
 ```
@@ -158,11 +228,13 @@ pnpm db:reset --database=rest
 **Purpose:** Populate database with sample content for development.
 
 **What it does:**
+
 - Seeds sample users, posts, pages, media, etc.
 - Creates test data for all collections
 - Uses realistic sample content
 
 **Usage:**
+
 ```bash
 # Seed database
 pnpm db:seed
@@ -176,12 +248,14 @@ pnpm db:reset --seed
 **Purpose:** Create JSON backup of all database tables.
 
 **What it does:**
+
 1. Connects to database
 2. Exports all tables to JSON format
 3. Saves to `.revealui/backups/` directory
 4. Cleans up old backups (keeps last 5)
 
 **Usage:**
+
 ```bash
 # Create backup
 pnpm db:backup
@@ -195,6 +269,7 @@ pnpm db:backup
 **Purpose:** Restore database from backup file.
 
 **Usage:**
+
 ```bash
 # Restore from specific backup
 pnpm db:restore .revealui/backups/db-backup-2026-01-30T12-34-56.json
@@ -205,12 +280,14 @@ pnpm db:restore .revealui/backups/db-backup-2026-01-30T12-34-56.json
 **Purpose:** Check database connection and current state.
 
 **What it does:**
+
 - Tests database connection
 - Shows PostgreSQL version
 - Lists table count
 - Shows database provider (Neon, Supabase, etc.)
 
 **Usage:**
+
 ```bash
 # Quick health check
 pnpm db:status
@@ -221,11 +298,13 @@ pnpm db:status
 ### Required Variables
 
 **Primary:** (at least one required)
+
 - `DATABASE_URL` - PostgreSQL connection string
 - `POSTGRES_URL` - Alternative name (Neon convention)
 - `SUPABASE_DATABASE_URI` - Supabase-specific
 
 **Format:**
+
 ```bash
 # Standard PostgreSQL
 postgresql://user:password@host:port/database
@@ -246,17 +325,17 @@ postgresql://postgres:password@db.project.supabase.co:5432/postgres
 
 ### Pure Nix Environment
 
-**Server control** (Nix-specific helpers):
+**Server control** (preferred RevealUI CLI):
+
 ```bash
-db-init     # Initialize PostgreSQL data directory
-db-start    # Start PostgreSQL server
-db-stop     # Stop PostgreSQL server
-db-status   # Check if server running
-db-reset    # Delete data directory and reinitialize
-db-psql     # Connect with psql client
+revealui db init     # Initialize PostgreSQL data directory
+revealui db start    # Start PostgreSQL server
+revealui db stop     # Stop PostgreSQL server
+revealui db status   # Check if server running
 ```
 
 **Application-level** (use pnpm scripts):
+
 ```bash
 pnpm db:init      # Verify connection, check tables
 pnpm db:migrate   # Run schema migrations
@@ -265,23 +344,28 @@ pnpm db:reset     # Reset database
 ```
 
 **Typical workflow:**
-```bash
-# 1. Start PostgreSQL (Nix helper)
-db-start
 
-# 2. Initialize database (pnpm script)
+```bash
+# 1. Inspect the local bootstrap plan
+revealui dev up --dry-run
+
+# 2. Start PostgreSQL if needed
+revealui db start
+
+# 3. Initialize database (pnpm script)
 pnpm db:init
 
-# 3. Run migrations (pnpm script)
+# 4. Run migrations (pnpm script)
 pnpm db:migrate
 
-# 4. Seed data (pnpm script)
+# 5. Seed data (pnpm script)
 pnpm db:seed
 ```
 
 ### Dev Containers
 
 **Server control** (Docker Compose):
+
 ```bash
 # PostgreSQL runs automatically in container
 # No manual start/stop needed
@@ -292,6 +376,7 @@ docker-compose logs db
 ```
 
 **Application-level** (use pnpm scripts):
+
 ```bash
 pnpm db:init      # Same as Nix
 pnpm db:migrate   # Same as Nix
@@ -300,6 +385,7 @@ pnpm db:reset     # Same as Nix
 ```
 
 **Connection string:**
+
 ```bash
 # In Dev Container, database host is "db" (service name)
 DATABASE_URL=postgresql://postgres@db:5432/revealui
@@ -308,6 +394,7 @@ DATABASE_URL=postgresql://postgres@db:5432/revealui
 ### Manual Setup
 
 **Server control** (OS-specific):
+
 ```bash
 # macOS (Homebrew)
 brew services start postgresql@16
@@ -323,6 +410,7 @@ pg_ctl -D "C:\Program Files\PostgreSQL\16\data" stop
 ```
 
 **Application-level** (use pnpm scripts):
+
 ```bash
 pnpm db:init      # Same as other environments
 pnpm db:migrate   # Same as other environments
@@ -334,13 +422,14 @@ pnpm db:reset     # Same as other environments
 
 ### Local Development
 
-| Environment | PostgreSQL Data Directory | Gitignored? |
-|-------------|---------------------------|-------------|
-| **Nix** | `.pgdata/` | ✅ Yes |
-| **Dev Containers** | Docker volume (unnamed) | N/A (container) |
-| **Manual** | System-dependent | N/A (outside project) |
+| Environment        | PostgreSQL Data Directory | Gitignored?           |
+| ------------------ | ------------------------- | --------------------- |
+| **Nix**            | `.pgdata/`                | ✅ Yes                |
+| **Dev Containers** | Docker volume (unnamed)   | N/A (container)       |
+| **Manual**         | System-dependent          | N/A (outside project) |
 
 **Backups** (all environments):
+
 - Directory: `.revealui/backups/`
 - Format: `db-backup-<timestamp>.json`
 - Retention: Last 5 backups kept
@@ -351,19 +440,23 @@ pnpm db:reset     # Same as other environments
 ### First-Time Setup
 
 ```bash
-# 1. Ensure PostgreSQL is running
-# (Nix: db-start, Docker: automatic, Manual: OS-specific)
+# 1. Inspect the local bootstrap plan
+revealui dev up --dry-run
 
-# 2. Initialize database
+# 2. Ensure PostgreSQL is running
+# (RevealUI CLI for Nix/local, Docker automatic, Manual: OS-specific otherwise)
+revealui db start
+
+# 3. Initialize database
 pnpm db:init
 
-# 3. Run migrations
+# 4. Run migrations
 pnpm db:migrate
 
-# 4. (Optional) Seed sample data
+# 5. (Optional) Seed sample data
 pnpm db:seed
 
-# 5. Start development
+# 6. Start development
 pnpm dev
 ```
 
@@ -408,6 +501,7 @@ pnpm dev
 ### "No database connection string found"
 
 **Solution:**
+
 ```bash
 # Check environment variables
 echo $DATABASE_URL
@@ -423,18 +517,20 @@ code .env.development.local
 ### "Connection refused" or "Connection timeout"
 
 **Nix:**
+
 ```bash
 # Check if PostgreSQL is running
-db-status
+revealui db status
 
 # Start if not running
-db-start
+revealui db start
 
 # Check logs
 cat .pgdata/logfile
 ```
 
 **Dev Containers:**
+
 ```bash
 # Check database container
 docker-compose ps
@@ -447,6 +543,7 @@ docker-compose restart db
 ```
 
 **Manual:**
+
 ```bash
 # Check if PostgreSQL is running
 # macOS:
@@ -464,6 +561,7 @@ pg_ctl status -D "C:\Program Files\PostgreSQL\16\data"
 **Cause:** User doesn't have permissions on tables
 
 **Solution:**
+
 ```bash
 # Reset database with proper permissions
 pnpm db:reset --confirm
@@ -474,6 +572,7 @@ pnpm db:reset --confirm
 **Cause:** Migrations already applied
 
 **Solution:**
+
 ```bash
 # Check migration status
 pnpm db:status
@@ -486,6 +585,7 @@ pnpm db:migrate
 ### Backup restoration fails
 
 **Solution:**
+
 ```bash
 # Reset database first
 pnpm db:reset --confirm --no-backup
@@ -499,18 +599,21 @@ pnpm db:restore .revealui/backups/db-backup-<timestamp>.json
 ### DO ✅
 
 **Use pnpm scripts** for consistency across environments
+
 ```bash
 pnpm db:init      # ✅ Works everywhere
 pnpm db:migrate   # ✅ Works everywhere
 ```
 
 **Back up before destructive operations**
+
 ```bash
 pnpm db:backup
 pnpm db:reset
 ```
 
 **Test migrations before deployment**
+
 ```bash
 pnpm db:backup
 pnpm db:migrate
@@ -519,6 +622,7 @@ pnpm db:restore backup.json  # If issues found
 ```
 
 **Use `--confirm` in scripts**
+
 ```json
 {
   "scripts": {
@@ -530,15 +634,17 @@ pnpm db:restore backup.json  # If issues found
 ### DON'T ❌
 
 **Don't use environment-specific commands in shared scripts**
+
 ```bash
-# ❌ Bad (Nix-specific)
-db-start && pnpm dev
+# ❌ Bad (environment-specific)
+revealui db start && pnpm dev
 
 # ✅ Good (environment-agnostic)
-pnpm dev
+revealui dev up
 ```
 
 **Don't skip backups in production-like environments**
+
 ```bash
 # ❌ Dangerous
 pnpm db:reset --no-backup
@@ -548,9 +654,10 @@ pnpm db:reset  # Creates backup automatically
 ```
 
 **Don't hardcode connection strings**
+
 ```typescript
 // ❌ Bad
-const db = postgres('postgresql://postgres@localhost:5432/revealui');
+const db = postgres("postgresql://postgres@localhost:5432/revealui");
 
 // ✅ Good
 const db = postgres(process.env.DATABASE_URL!);
@@ -559,6 +666,7 @@ const db = postgres(process.env.DATABASE_URL!);
 ### CI/CD Integration
 
 **GitHub Actions:**
+
 ```yaml
 - name: Setup database
   run: |
@@ -572,6 +680,7 @@ const db = postgres(process.env.DATABASE_URL!);
 ```
 
 **Docker Compose (CI):**
+
 ```yaml
 services:
   db:
@@ -595,6 +704,7 @@ services:
 ### Migration Path
 
 **From Devbox → Pure Nix:**
+
 ```bash
 # 1. Export from Devbox
 devbox shell
@@ -606,12 +716,13 @@ rm -rf .devbox/
 direnv allow
 
 # 3. Import to Nix
-db-start
+revealui db start
 pnpm db:init
 psql -d revealui < backup.sql
 ```
 
 **Between Environments:**
+
 ```bash
 # 1. Export from old environment
 pnpm db:backup
@@ -678,51 +789,57 @@ Database performance is critical for application speed. This guide covers:
 ### Enable Slow Query Logging
 
 ```typescript
-import { monitorQuery, logSlowQuery } from '@revealui/core/monitoring/query-monitor'
+import {
+  monitorQuery,
+  logSlowQuery,
+} from "@revealui/core/monitoring/query-monitor";
 
 // Wrap queries with monitoring
-const users = await monitorQuery('getUsersWithPosts', async () => {
-  return db.query('SELECT * FROM users')
-})
+const users = await monitorQuery("getUsersWithPosts", async () => {
+  return db.query("SELECT * FROM users");
+});
 
 // Log slow query manually
 logSlowQuery(
-  'SELECT * FROM posts WHERE author_id = $1',
+  "SELECT * FROM posts WHERE author_id = $1",
   150, // 150ms duration
-  ['user-123']
-)
+  ["user-123"],
+);
 ```
 
 ### View Query Statistics
 
 ```typescript
-import { getQueryStats, getQueryReport } from '@revealui/core/monitoring/query-monitor'
+import {
+  getQueryStats,
+  getQueryReport,
+} from "@revealui/core/monitoring/query-monitor";
 
 // Get summary stats
-const stats = getQueryStats()
+const stats = getQueryStats();
 console.log({
   totalQueries: stats.totalQueries,
   avgDuration: stats.avgDuration,
   p95: stats.p95,
   slowQueries: stats.slowQueries,
-})
+});
 
 // Get full report
-const report = getQueryReport()
-console.log(report)
+const report = getQueryReport();
+console.log(report);
 ```
 
 ### Query Percentiles
 
 ```typescript
-import { getQueryPercentiles } from '@revealui/core/monitoring/query-monitor'
+import { getQueryPercentiles } from "@revealui/core/monitoring/query-monitor";
 
-const percentiles = getQueryPercentiles()
+const percentiles = getQueryPercentiles();
 console.log({
   p50: percentiles.p50, // Median
   p95: percentiles.p95, // 95th percentile
   p99: percentiles.p99, // 99th percentile
-})
+});
 ```
 
 ## Indexing Strategy
@@ -829,12 +946,14 @@ ORDER BY tablename;
 
 ```typescript
 // ❌ BAD: N+1 query pattern
-const posts = await db.query('SELECT * FROM posts')
+const posts = await db.query("SELECT * FROM posts");
 
 for (const post of posts.rows) {
   // Additional query for each post
-  const author = await db.query('SELECT * FROM users WHERE id = $1', [post.author_id])
-  post.author = author.rows[0]
+  const author = await db.query("SELECT * FROM users WHERE id = $1", [
+    post.author_id,
+  ]);
+  post.author = author.rows[0];
 }
 ```
 
@@ -852,7 +971,7 @@ const posts = await db.query(`
     ) as author
   FROM posts p
   LEFT JOIN users u ON u.id = p.author_id
-`)
+`);
 ```
 
 ### Solution 2: Batch Loading
@@ -860,7 +979,7 @@ const posts = await db.query(`
 ```typescript
 // ✅ GOOD: Batch load in single query
 async function getUsersByIds(ids: string[]) {
-  return db.query('SELECT * FROM users WHERE id = ANY($1)', [ids])
+  return db.query("SELECT * FROM users WHERE id = ANY($1)", [ids]);
 }
 ```
 
@@ -885,7 +1004,7 @@ const query = `
   FROM users u
   LEFT JOIN posts p ON p.author_id = u.id
   GROUP BY u.id
-`
+`;
 ```
 
 ## Query Caching
@@ -893,40 +1012,35 @@ const query = `
 ### Basic Caching
 
 ```typescript
-import { cacheQuery } from '@revealui/core/cache/query-cache'
+import { cacheQuery } from "@revealui/core/cache/query-cache";
 
 // Cache for 5 minutes
 const users = await cacheQuery(
-  'users:all',
-  () => db.query('SELECT * FROM users'),
-  { ttl: 300 }
-)
+  "users:all",
+  () => db.query("SELECT * FROM users"),
+  { ttl: 300 },
+);
 ```
 
 ### List Caching
 
 ```typescript
-import { cacheList } from '@revealui/core/cache/query-cache'
+import { cacheList } from "@revealui/core/cache/query-cache";
 
 const posts = await cacheList(
-  'posts',
-  { status: 'published', limit: 20 },
+  "posts",
+  { status: "published", limit: 20 },
   () => getPublishedPosts(),
-  300
-)
+  300,
+);
 ```
 
 ### Item Caching
 
 ```typescript
-import { cacheItem } from '@revealui/core/cache/query-cache'
+import { cacheItem } from "@revealui/core/cache/query-cache";
 
-const user = await cacheItem(
-  'users',
-  userId,
-  () => getUserById(userId),
-  300
-)
+const user = await cacheItem("users", userId, () => getUserById(userId), 300);
 ```
 
 ### Cache Invalidation
@@ -936,32 +1050,28 @@ import {
   invalidateCache,
   invalidateCachePattern,
   invalidateResource,
-} from '@revealui/core/cache/query-cache'
+} from "@revealui/core/cache/query-cache";
 
 // Invalidate specific key
-await invalidateCache('users:all')
+await invalidateCache("users:all");
 
 // Invalidate by pattern
-await invalidateCachePattern('posts:*')
+await invalidateCachePattern("posts:*");
 
 // Invalidate entire resource
-await invalidateResource('users')
+await invalidateResource("users");
 ```
 
 ### Stale-While-Revalidate
 
 ```typescript
-import { cacheSWR } from '@revealui/core/cache/query-cache'
+import { cacheSWR } from "@revealui/core/cache/query-cache";
 
 // Return stale data immediately, revalidate in background
-const data = await cacheSWR(
-  'expensive-query',
-  () => runExpensiveQuery(),
-  {
-    ttl: 300,      // Fresh for 5 minutes
-    staleTime: 60, // Stale data valid for 1 minute
-  }
-)
+const data = await cacheSWR("expensive-query", () => runExpensiveQuery(), {
+  ttl: 300, // Fresh for 5 minutes
+  staleTime: 60, // Stale data valid for 1 minute
+});
 ```
 
 ## Connection Pooling
@@ -969,43 +1079,43 @@ const data = await cacheSWR(
 ### Pool Configuration
 
 ```typescript
-import { Pool } from 'pg'
+import { Pool } from "pg";
 
 const pool = new Pool({
-  max: 20,                      // Maximum pool size
-  min: 5,                       // Minimum pool size
-  idleTimeoutMillis: 30000,     // 30 seconds
+  max: 20, // Maximum pool size
+  min: 5, // Minimum pool size
+  idleTimeoutMillis: 30000, // 30 seconds
   connectionTimeoutMillis: 5000, // 5 seconds
-  statement_timeout: 10000,     // 10 seconds
-  query_timeout: 10000,         // 10 seconds
-})
+  statement_timeout: 10000, // 10 seconds
+  query_timeout: 10000, // 10 seconds
+});
 ```
 
 ### Monitor Pool Health
 
 ```typescript
-import { getPoolStats, checkDatabaseHealth } from '@revealui/db/pool'
+import { getPoolStats, checkDatabaseHealth } from "@revealui/db/pool";
 
 // Get pool statistics
-const stats = getPoolStats()
+const stats = getPoolStats();
 console.log({
   totalCount: stats.totalCount,
   idleCount: stats.idleCount,
   utilization: stats.utilization,
-})
+});
 
 // Check health
-const health = await checkDatabaseHealth()
-console.log(health)
+const health = await checkDatabaseHealth();
+console.log(health);
 ```
 
 ### Warmup Pool
 
 ```typescript
-import { warmupPool } from '@revealui/db/pool'
+import { warmupPool } from "@revealui/db/pool";
 
 // Pre-warm connections on startup
-await warmupPool()
+await warmupPool();
 ```
 
 ## Performance Benchmarks
@@ -1023,19 +1133,19 @@ cat benchmark-results.json
 ### Benchmark Custom Query
 
 ```typescript
-import { benchmarkQuery } from '@/scripts/performance/benchmark-queries'
+import { benchmarkQuery } from "@/scripts/performance/benchmark-queries";
 
 const result = await benchmarkQuery(
-  'My Custom Query',
-  () => db.query('SELECT * FROM posts LIMIT 100'),
-  100 // iterations
-)
+  "My Custom Query",
+  () => db.query("SELECT * FROM posts LIMIT 100"),
+  100, // iterations
+);
 
 console.log({
   avgDuration: result.avgDuration,
   p95: result.p95,
   qps: result.queriesPerSecond,
-})
+});
 ```
 
 ## Best Practices
@@ -1053,7 +1163,7 @@ CREATE INDEX idx_posts_status ON posts(status);
 CREATE INDEX idx_posts_published_at ON posts(published_at DESC);
 ```
 
-### 2. Avoid SELECT *
+### 2. Avoid SELECT \*
 
 ```sql
 -- ❌ BAD: Fetches unnecessary data
@@ -1079,13 +1189,16 @@ LIMIT 20;
 ```typescript
 // ❌ BAD: Individual inserts
 for (const user of users) {
-  await db.query('INSERT INTO users (name, email) VALUES ($1, $2)', [user.name, user.email])
+  await db.query("INSERT INTO users (name, email) VALUES ($1, $2)", [
+    user.name,
+    user.email,
+  ]);
 }
 
 // ✅ GOOD: Batch insert
-const values = users.map((u, i) => `($${i * 2 + 1}, $${i * 2 + 2})`).join(',')
-const params = users.flatMap(u => [u.name, u.email])
-await db.query(`INSERT INTO users (name, email) VALUES ${values}`, params)
+const values = users.map((u, i) => `($${i * 2 + 1}, $${i * 2 + 2})`).join(",");
+const params = users.flatMap((u) => [u.name, u.email]);
+await db.query(`INSERT INTO users (name, email) VALUES ${values}`, params);
 ```
 
 ### 5. Limit Result Sets
@@ -1101,19 +1214,22 @@ LIMIT 20;
 ### 6. Use Transactions
 
 ```typescript
-const client = await pool.connect()
+const client = await pool.connect();
 try {
-  await client.query('BEGIN')
+  await client.query("BEGIN");
 
-  await client.query('INSERT INTO users (name) VALUES ($1)', ['Alice'])
-  await client.query('INSERT INTO posts (title, author_id) VALUES ($1, $2)', ['Post', 1])
+  await client.query("INSERT INTO users (name) VALUES ($1)", ["Alice"]);
+  await client.query("INSERT INTO posts (title, author_id) VALUES ($1, $2)", [
+    "Post",
+    1,
+  ]);
 
-  await client.query('COMMIT')
+  await client.query("COMMIT");
 } catch (error) {
-  await client.query('ROLLBACK')
-  throw error
+  await client.query("ROLLBACK");
+  throw error;
 } finally {
-  client.release()
+  client.release();
 }
 ```
 
@@ -1166,17 +1282,17 @@ WHERE blocked.wait_event_type = 'Lock';
 
 ```typescript
 // Monitor pool stats
-import { getPoolStats } from '@revealui/db/pool'
+import { getPoolStats } from "@revealui/db/pool";
 
 setInterval(() => {
-  const stats = getPoolStats()
+  const stats = getPoolStats();
   if (stats.utilization > 80) {
-    console.warn('High pool utilization:', stats)
+    console.warn("High pool utilization:", stats);
   }
   if (stats.waitingCount > 5) {
-    console.warn('Many waiting requests:', stats.waitingCount)
+    console.warn("Many waiting requests:", stats.waitingCount);
   }
-}, 60000)
+}, 60000);
 ```
 
 ## Tools

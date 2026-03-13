@@ -21,9 +21,27 @@ import {
   verifyPayment,
 } from './x402.js';
 
-/** Cache for DB-side license status checks (avoid querying every request) */
-let dbStatusCache: { status: string; checkedAt: number } | null = null;
+/** Cache for DB-side license status checks, keyed by billing owner/customer */
+const dbStatusCache = new Map<string, { status: string; checkedAt: number }>();
 const DB_STATUS_CHECK_INTERVAL = 5 * 60 * 1000; // 5 minutes
+
+type RequestEntitlements = {
+  tier?: LicenseTier;
+  features?: Partial<Record<keyof FeatureFlags, boolean>>;
+};
+
+type FeatureGateMode = 'hybrid' | 'entitlements';
+type FeatureGateOptions = {
+  mode?: FeatureGateMode;
+};
+
+function tierRank(tier: LicenseTier): number {
+  return { free: 0, pro: 1, max: 2, enterprise: 3 }[tier];
+}
+
+function getRequestEntitlements(c: { get: (key: string) => unknown }): RequestEntitlements | null {
+  return (c.get('entitlements') as RequestEntitlements | undefined) ?? null;
+}
 
 /**
  * Require a minimum license tier to access the route.
@@ -37,7 +55,13 @@ const DB_STATUS_CHECK_INTERVAL = 5 * 60 * 1000; // 5 minutes
  */
 export const requireLicense = (minimumTier: LicenseTier): MiddlewareHandler => {
   return async (c, next) => {
-    if (!isLicensed(minimumTier)) {
+    const requestEntitlements = getRequestEntitlements(c);
+    const currentTier = requestEntitlements?.tier ?? getCurrentTier();
+    const allowed = requestEntitlements?.tier
+      ? tierRank(currentTier) >= tierRank(minimumTier)
+      : isLicensed(minimumTier);
+
+    if (!allowed) {
       const x402 = getX402Config();
 
       if (x402.enabled) {
@@ -59,7 +83,7 @@ export const requireLicense = (minimumTier: LicenseTier): MiddlewareHandler => {
         return c.json(
           {
             success: false as const,
-            error: `This endpoint requires a ${minimumTier} license. Current tier: ${getCurrentTier()}.`,
+            error: `This endpoint requires a ${minimumTier} license. Current tier: ${currentTier}.`,
             code: 'HTTP_402',
             upgrade_url: 'https://revealui.com/pricing',
           },
@@ -74,7 +98,7 @@ export const requireLicense = (minimumTier: LicenseTier): MiddlewareHandler => {
       return c.json(
         {
           success: false as const,
-          error: `This endpoint requires a ${minimumTier} license. Current tier: ${getCurrentTier()}. Upgrade at https://revealui.com/pricing`,
+          error: `This endpoint requires a ${minimumTier} license. Current tier: ${currentTier}. Upgrade at https://revealui.com/pricing`,
           code: 'HTTP_403',
         },
         403,
@@ -90,9 +114,22 @@ export const requireLicense = (minimumTier: LicenseTier): MiddlewareHandler => {
  * When x402 is enabled: returns 402 with x402 payment headers.
  * When x402 is disabled: returns 403 with feature name and required tier.
  */
-export const requireFeature = (feature: keyof FeatureFlags): MiddlewareHandler => {
+export const requireFeature = (
+  feature: keyof FeatureFlags,
+  options: FeatureGateOptions = {},
+): MiddlewareHandler => {
   return async (c, next) => {
-    if (!isFeatureEnabled(feature)) {
+    const mode = options.mode ?? 'hybrid';
+    const requestEntitlements = getRequestEntitlements(c);
+    const currentTier =
+      requestEntitlements?.tier ?? (mode === 'entitlements' ? 'free' : getCurrentTier());
+    const enabledFromRequest = requestEntitlements?.features?.[feature];
+    const enabled =
+      mode === 'entitlements'
+        ? (enabledFromRequest ?? false)
+        : (enabledFromRequest ?? isFeatureEnabled(feature));
+
+    if (!enabled) {
       const requiredTier = getRequiredTier(feature);
       const x402 = getX402Config();
 
@@ -114,7 +151,7 @@ export const requireFeature = (feature: keyof FeatureFlags): MiddlewareHandler =
         return c.json(
           {
             success: false as const,
-            error: `Feature '${feature}' requires a ${requiredTier} license. Current tier: ${getCurrentTier()}.`,
+            error: `Feature '${feature}' requires a ${requiredTier} license. Current tier: ${currentTier}.`,
             code: 'HTTP_402',
             upgrade_url: 'https://revealui.com/pricing',
           },
@@ -129,7 +166,7 @@ export const requireFeature = (feature: keyof FeatureFlags): MiddlewareHandler =
       return c.json(
         {
           success: false as const,
-          error: `Feature '${feature}' requires a ${requiredTier} license. Current tier: ${getCurrentTier()}. Upgrade at https://revealui.com/pricing`,
+          error: `Feature '${feature}' requires a ${requiredTier} license. Current tier: ${currentTier}. Upgrade at https://revealui.com/pricing`,
           code: 'HTTP_403',
         },
         403,
@@ -205,21 +242,23 @@ export const checkLicenseStatus = (
     }
 
     const now = Date.now();
-    if (!dbStatusCache || now - dbStatusCache.checkedAt > DB_STATUS_CHECK_INTERVAL) {
+    const cached = dbStatusCache.get(payload.customerId);
+    if (!cached || now - cached.checkedAt > DB_STATUS_CHECK_INTERVAL) {
       const status = await queryLicenseStatus(payload.customerId);
-      dbStatusCache = {
+      dbStatusCache.set(payload.customerId, {
         status: status ?? 'active',
         checkedAt: now,
-      };
+      });
     }
 
-    if (dbStatusCache.status === 'revoked') {
+    const effective = dbStatusCache.get(payload.customerId);
+    if (effective?.status === 'revoked') {
       throw new HTTPException(403, {
         message: 'Your license has been revoked. Contact support@revealui.com',
       });
     }
 
-    if (dbStatusCache.status === 'expired') {
+    if (effective?.status === 'expired') {
       throw new HTTPException(403, {
         message: 'Your license has expired. Renew at https://revealui.com/pricing',
       });
@@ -233,5 +272,5 @@ export const checkLicenseStatus = (
  * Reset the DB status cache. Primarily for testing.
  */
 export function resetDbStatusCache(): void {
-  dbStatusCache = null;
+  dbStatusCache.clear();
 }

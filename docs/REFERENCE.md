@@ -1,6 +1,8 @@
 # @revealui/core
 
-The CMS engine. Provides config building, collections, access control, REST API handlers, license validation, feature flags, rich text, admin UI components, logging, and plugins.
+The CMS engine. Provides config building, collections, access control, REST API handlers, entitlement and feature gating primitives, rich text, admin UI components, logging, and plugins.
+
+Commercial note: for hosted RevealUI deployments, premium access should resolve from account or workspace entitlements first. Per-user or perpetual licenses should remain explicit secondary models for the products that actually need them.
 
 ```bash
 npm install @revealui/core
@@ -15,18 +17,19 @@ npm install @revealui/core
 Validates and finalizes your RevealUI configuration. Call this in your config file — it merges in defaults, runs validation, and applies plugins.
 
 ```ts
-import { buildConfig } from '@revealui/core'
+import { buildConfig } from "@revealui/core";
 
 export default buildConfig({
-  serverURL: 'http://localhost:3000',
+  serverURL: "http://localhost:3000",
   collections: [Posts, Users],
   plugins: [formBuilderPlugin()],
-})
+});
 ```
 
 Throws `ConfigValidationError` if the config is structurally invalid.
 
 **Defaults applied:**
+
 - `admin.importMap.autoGenerate: true`
 - `typescript.autoGenerate: true`, `outputFile: 'src/types/revealui.ts'`
 - `localization.locales: ['en']`, `defaultLocale: 'en'`, `fallback: true`
@@ -38,10 +41,10 @@ Throws `ConfigValidationError` if the config is structurally invalid.
 Creates a RevealUI instance from a config. Returns the instance with all CRUD methods attached.
 
 ```ts
-import { createRevealUI } from '@revealui/core'
-import config from './revealui.config'
+import { createRevealUI } from "@revealui/core";
+import config from "./revealui.config";
 
-const revealui = await createRevealUI(config)
+const revealui = await createRevealUI(config);
 ```
 
 ### `getRevealUI(options: { config: AcceptedConfig }): Promise<RevealUIInstance>`
@@ -49,11 +52,11 @@ const revealui = await createRevealUI(config)
 Singleton alternative to `createRevealUI`. Returns the same instance on subsequent calls — safe to call at module scope in serverless functions where cold-start re-initialization would be wasteful.
 
 ```ts
-import { getRevealUI } from '@revealui/core'
-import config from './revealui.config'
+import { getRevealUI } from "@revealui/core";
+import config from "./revealui.config";
 
 // Safe to call multiple times — returns cached instance after first call
-const revealui = await getRevealUI({ config })
+const revealui = await getRevealUI({ config });
 ```
 
 ---
@@ -64,31 +67,36 @@ Next.js configuration wrapper. Merges RevealUI's webpack/Turbopack aliases, envi
 
 ```ts
 // next.config.ts
-import { withRevealUI } from '@revealui/core'
+import { withRevealUI } from "@revealui/core";
 
-export default withRevealUI({
-  // your existing next.config options
-}, {
-  configPath: './revealui.config.ts',  // default
-  admin: true,                          // enable admin UI, default true
-  adminRoute: '/admin',                 // default
-  apiRoute: '/api',                     // default
-})
+export default withRevealUI(
+  {
+    // your existing next.config options
+  },
+  {
+    configPath: "./revealui.config.ts", // default
+    admin: true, // enable admin UI, default true
+    adminRoute: "/admin", // default
+    apiRoute: "/api", // default
+  },
+);
 ```
 
 **What it does:**
+
 - Adds webpack aliases: `@revealui/core` → core package, `@revealui/config` → your config file
 - Sets Turbopack `resolveAlias` equivalents for Next.js 16+
 - Injects env vars: `REVEALUI_CONFIG_PATH`, `REVEALUI_ADMIN_ENABLED`, `REVEALUI_ADMIN_ROUTE`, `REVEALUI_API_ROUTE`
 - Appends security headers (`X-Frame-Options: SAMEORIGIN`, `X-Content-Type-Options: nosniff`) to the admin route
 
 **`WithRevealUIOptions`:**
+
 ```ts
 interface WithRevealUIOptions {
-  configPath?: string   // path to revealui.config.ts (relative to project root)
-  admin?: boolean       // mount admin UI (default: true)
-  adminRoute?: string   // admin base path (default: '/admin')
-  apiRoute?: string     // API base path (default: '/api')
+  configPath?: string; // path to revealui.config.ts (relative to project root)
+  admin?: boolean; // mount admin UI (default: true)
+  adminRoute?: string; // admin base path (default: '/admin')
+  apiRoute?: string; // API base path (default: '/api')
 }
 ```
 
@@ -101,14 +109,14 @@ interface WithRevealUIOptions {
 Type-safe helper for defining a collection. Pass the result to `buildConfig({ collections: [...] })`.
 
 ```ts
-import { defineCollection } from '@revealui/core'
+import { defineCollection } from "@revealui/core";
 
 export const Posts = defineCollection({
-  slug: 'posts',
+  slug: "posts",
   fields: [
-    { name: 'title', type: 'text', required: true },
-    { name: 'body', type: 'richText' },
-    { name: 'author', type: 'relationship', relationTo: 'users' },
+    { name: "title", type: "text", required: true },
+    { name: "body", type: "richText" },
+    { name: "author", type: "relationship", relationTo: "users" },
   ],
   access: {
     read: anyone,
@@ -119,7 +127,7 @@ export const Posts = defineCollection({
   hooks: {
     afterChange: [sendNotificationEmail],
   },
-})
+});
 ```
 
 ### `defineGlobal(config: GlobalConfig): GlobalConfig`
@@ -127,15 +135,15 @@ export const Posts = defineCollection({
 Type-safe helper for defining a singleton global (e.g. site settings).
 
 ```ts
-import { defineGlobal } from '@revealui/core'
+import { defineGlobal } from "@revealui/core";
 
 export const SiteSettings = defineGlobal({
-  slug: 'site-settings',
+  slug: "site-settings",
   fields: [
-    { name: 'siteName', type: 'text' },
-    { name: 'logo', type: 'upload', relationTo: 'media' },
+    { name: "siteName", type: "text" },
+    { name: "logo", type: "upload", relationTo: "media" },
   ],
-})
+});
 ```
 
 ### `defineField(field: Field): Field`
@@ -154,13 +162,13 @@ Fetches multiple documents from a collection. Returns a paginated result.
 
 ```ts
 const result = await revealui.find({
-  collection: 'posts',
-  where: { status: { equals: 'published' } },
-  sort: '-createdAt',
+  collection: "posts",
+  where: { status: { equals: "published" } },
+  sort: "-createdAt",
   limit: 20,
   page: 1,
-  depth: 1,      // populate relationships 1 level deep
-})
+  depth: 1, // populate relationships 1 level deep
+});
 
 // result.docs      — array of documents
 // result.totalDocs — total matching documents
@@ -169,24 +177,26 @@ const result = await revealui.find({
 ```
 
 **`RevealFindOptions`:**
+
 ```ts
 interface RevealFindOptions {
-  collection: string
-  where?: RevealWhere           // filter expression
-  sort?: RevealSort             // field name, prefix with '-' for descending
-  limit?: number                // default: 10
-  page?: number                 // 1-based
-  pagination?: boolean          // set false to return all docs (no pagination)
-  depth?: number                // relationship population depth (default: 0)
-  select?: RevealSelect         // field projection
-  draft?: boolean               // include drafts
-  overrideAccess?: boolean      // skip access control (server-side only)
-  locale?: string
-  req?: RevealRequest           // pass to propagate auth context
+  collection: string;
+  where?: RevealWhere; // filter expression
+  sort?: RevealSort; // field name, prefix with '-' for descending
+  limit?: number; // default: 10
+  page?: number; // 1-based
+  pagination?: boolean; // set false to return all docs (no pagination)
+  depth?: number; // relationship population depth (default: 0)
+  select?: RevealSelect; // field projection
+  draft?: boolean; // include drafts
+  overrideAccess?: boolean; // skip access control (server-side only)
+  locale?: string;
+  req?: RevealRequest; // pass to propagate auth context
 }
 ```
 
 **Where operators:**
+
 ```ts
 // Equality
 where: { slug: { equals: 'hello-world' } }
@@ -229,10 +239,10 @@ Fetches a single document by ID. Returns `null` if not found.
 
 ```ts
 const post = await revealui.findByID({
-  collection: 'posts',
-  id: '6621f3e2a1b2c3d4e5f60001',
+  collection: "posts",
+  id: "6621f3e2a1b2c3d4e5f60001",
   depth: 2,
-})
+});
 ```
 
 ```ts
@@ -253,23 +263,23 @@ Creates a new document. Runs `afterChange` hooks on success.
 
 ```ts
 const post = await revealui.create({
-  collection: 'posts',
+  collection: "posts",
   data: {
-    title: 'Hello World',
-    status: 'draft',
+    title: "Hello World",
+    status: "draft",
     author: userId,
   },
-  req,  // pass to trigger access control
-})
+  req, // pass to trigger access control
+});
 ```
 
 Throws `'Access denied'` if the collection's `access.create` function returns false.
 
 ```ts
 interface RevealCreateOptions {
-  collection: string
-  data: Record<string, unknown>
-  req?: RevealRequest
+  collection: string;
+  data: Record<string, unknown>;
+  req?: RevealRequest;
 }
 // Returns: Promise<RevealDocument>
 ```
@@ -282,19 +292,19 @@ Updates a document by ID. Fetches the previous version, runs `afterChange` hooks
 
 ```ts
 const updated = await revealui.update({
-  collection: 'posts',
+  collection: "posts",
   id: postId,
-  data: { status: 'published' },
+  data: { status: "published" },
   req,
-})
+});
 ```
 
 ```ts
 interface RevealUpdateOptions {
-  collection: string
-  id: string | number
-  data: Record<string, unknown>
-  req?: RevealRequest
+  collection: string;
+  id: string | number;
+  data: Record<string, unknown>;
+  req?: RevealRequest;
 }
 // Returns: Promise<RevealDocument>
 ```
@@ -307,17 +317,17 @@ Deletes a document by ID.
 
 ```ts
 const deleted = await revealui.delete({
-  collection: 'posts',
+  collection: "posts",
   id: postId,
   req,
-})
+});
 ```
 
 ```ts
 interface RevealDeleteOptions {
-  collection: string
-  id: string | number
-  req?: RevealRequest
+  collection: string;
+  id: string | number;
+  req?: RevealRequest;
 }
 // Returns: Promise<RevealDocument>   (the deleted document)
 ```
@@ -330,12 +340,12 @@ Authenticates a user and returns a signed JWT.
 
 ```ts
 const { user, token } = await revealui.login({
-  collection: 'users',
+  collection: "users",
   data: {
-    email: 'user@example.com',
-    password: 'secret',
+    email: "user@example.com",
+    password: "secret",
   },
-})
+});
 ```
 
 Passwords must be stored as bcrypt hashes. Plain-text passwords are rejected.
@@ -376,20 +386,21 @@ export const Users = defineCollection({
 ```
 
 **Hook args:**
+
 ```ts
 interface AfterChangeHookArgs {
-  doc: RevealDocument
-  operation: 'create' | 'update'
-  previousDoc?: RevealDocument
-  req: RevealRequest
-  collection: string
+  doc: RevealDocument;
+  operation: "create" | "update";
+  previousDoc?: RevealDocument;
+  req: RevealRequest;
+  collection: string;
   context: {
-    revealui?: RevealUIInstance
-    collection: string
-    operation: 'create' | 'update'
-    previousDoc?: RevealDocument
-    req: RevealRequest
-  }
+    revealui?: RevealUIInstance;
+    collection: string;
+    operation: "create" | "update";
+    previousDoc?: RevealDocument;
+    req: RevealRequest;
+  };
 }
 ```
 
@@ -398,17 +409,17 @@ interface AfterChangeHookArgs {
 Runs before the data is persisted. Use to transform or validate data.
 
 ```ts
-import type { CollectionBeforeChangeHook } from '@revealui/core'
+import type { CollectionBeforeChangeHook } from "@revealui/core";
 
 const slugify: CollectionBeforeChangeHook = async ({ data, operation }) => {
-  if (operation === 'create' && data.title) {
+  if (operation === "create" && data.title) {
     return {
       ...data,
-      slug: data.title.toLowerCase().replace(/\s+/g, '-'),
-    }
+      slug: data.title.toLowerCase().replace(/\s+/g, "-"),
+    };
   }
-  return data
-}
+  return data;
+};
 ```
 
 ### `afterRead`
@@ -416,14 +427,14 @@ const slugify: CollectionBeforeChangeHook = async ({ data, operation }) => {
 Runs after a document is fetched. Use to add computed fields.
 
 ```ts
-import type { CollectionAfterReadHook } from '@revealui/core'
+import type { CollectionAfterReadHook } from "@revealui/core";
 
 const addComputedFields: CollectionAfterReadHook = async ({ doc }) => {
   return {
     ...doc,
     readingTime: Math.ceil((doc.body?.length ?? 0) / 1000),
-  }
-}
+  };
+};
 ```
 
 ### `beforeValidate`
@@ -467,9 +478,11 @@ Returns `true` if the user has the `'super-admin'` role.
 Factory: returns an access function that requires a specific role.
 
 ```ts
-import { hasRole } from '@revealui/core'
+import { hasRole } from "@revealui/core";
 
-access: { update: hasRole('editor') }
+access: {
+  update: hasRole("editor");
+}
 ```
 
 ### `hasAnyRole(roles: string[])`
@@ -477,9 +490,11 @@ access: { update: hasRole('editor') }
 Factory: returns an access function that passes if the user has **any** of the given roles.
 
 ```ts
-import { hasAnyRole } from '@revealui/core'
+import { hasAnyRole } from "@revealui/core";
 
-access: { create: hasAnyRole(['editor', 'admin']) }
+access: {
+  create: hasAnyRole(["editor", "admin"]);
+}
 ```
 
 ### Custom access functions
@@ -487,14 +502,16 @@ access: { create: hasAnyRole(['editor', 'admin']) }
 All access functions share the same signature:
 
 ```ts
-type AccessFunction = (args: { req: RevealRequest }) => boolean | Promise<boolean>
+type AccessFunction = (args: {
+  req: RevealRequest;
+}) => boolean | Promise<boolean>;
 
 // Example: owner-only update
 const isOwner: AccessFunction = ({ req }) => {
-  if (!req.user) return false
+  if (!req.user) return false;
   // use req.user.id to check document ownership
-  return true
-}
+  return true;
+};
 ```
 
 ---
@@ -506,10 +523,10 @@ const isOwner: AccessFunction = ({ req }) => {
 Creates Hono route handlers for the full RevealUI REST API. Returns an object with `app` (Hono instance) ready to mount.
 
 ```ts
-import { createRESTHandlers } from '@revealui/core/server'
+import { createRESTHandlers } from "@revealui/core/server";
 
-const { app } = createRESTHandlers(config)
-export default app
+const { app } = createRESTHandlers(config);
+export default app;
 ```
 
 ### `handleRESTRequest(req: Request, config: Config): Promise<Response>`
@@ -517,10 +534,10 @@ export default app
 Handles a single Web API `Request` and returns a `Response`. Useful for edge runtimes where you receive raw requests.
 
 ```ts
-import { handleRESTRequest } from '@revealui/core/server'
+import { handleRESTRequest } from "@revealui/core/server";
 
 export async function GET(req: Request) {
-  return handleRESTRequest(req, config)
+  return handleRESTRequest(req, config);
 }
 ```
 
@@ -535,11 +552,14 @@ Import from `@revealui/core/api/rate-limit`.
 Fixed-window rate limiter. Returns `{ allowed, limit, remaining, resetTime }`.
 
 ```ts
-import { checkRateLimit, RATE_LIMIT_PRESETS } from '@revealui/core/api/rate-limit'
+import {
+  checkRateLimit,
+  RATE_LIMIT_PRESETS,
+} from "@revealui/core/api/rate-limit";
 
-const result = checkRateLimit(request, RATE_LIMIT_PRESETS.standard)
+const result = checkRateLimit(request, RATE_LIMIT_PRESETS.standard);
 if (!result.allowed) {
-  return new Response('Too Many Requests', { status: 429 })
+  return new Response("Too Many Requests", { status: 429 });
 }
 ```
 
@@ -549,14 +569,15 @@ Returns a Next.js-compatible middleware function that adds `X-RateLimit-*` heade
 
 ```ts
 export const middleware = createRateLimitMiddleware({
-  windowMs: 60_000,   // 1 minute
+  windowMs: 60_000, // 1 minute
   maxRequests: 100,
-})
+});
 ```
 
 ### `createUserRateLimit(config)` / `createAPIKeyRateLimit(config)` / `createEndpointRateLimit(config)`
 
 Pre-keyed middleware factories:
+
 - `createUserRateLimit` — keys by `x-user-id` header
 - `createAPIKeyRateLimit` — keys by `x-api-key` header
 - `createEndpointRateLimit` — keys by `IP + pathname`
@@ -564,22 +585,22 @@ Pre-keyed middleware factories:
 ### `RATE_LIMIT_PRESETS`
 
 ```ts
-RATE_LIMIT_PRESETS.veryStrict  // 10 req/min
-RATE_LIMIT_PRESETS.strict      // 30 req/min
-RATE_LIMIT_PRESETS.standard    // 100 req/min (default)
-RATE_LIMIT_PRESETS.relaxed     // 500 req/min
-RATE_LIMIT_PRESETS.hourly      // 1,000 req/hr
-RATE_LIMIT_PRESETS.daily       // 10,000 req/day
+RATE_LIMIT_PRESETS.veryStrict; // 10 req/min
+RATE_LIMIT_PRESETS.strict; // 30 req/min
+RATE_LIMIT_PRESETS.standard; // 100 req/min (default)
+RATE_LIMIT_PRESETS.relaxed; // 500 req/min
+RATE_LIMIT_PRESETS.hourly; // 1,000 req/hr
+RATE_LIMIT_PRESETS.daily; // 10,000 req/day
 ```
 
 ### Sliding window & token bucket
 
 ```ts
 // More accurate — no boundary burst
-checkSlidingWindowRateLimit(request, config)
+checkSlidingWindowRateLimit(request, config);
 
 // Smooth token refill
-checkTokenBucketRateLimit(request, { ...config, refillRate: 10 })
+checkTokenBucketRateLimit(request, { ...config, refillRate: 10 });
 ```
 
 ---
@@ -593,10 +614,10 @@ Import from `@revealui/core/license` or via the main entry.
 Reads `REVEALUI_LICENSE_KEY` and `REVEALUI_LICENSE_PUBLIC_KEY` from env, validates the JWT, and caches the result. Call once at app startup.
 
 ```ts
-import { initializeLicense } from '@revealui/core'
+import { initializeLicense } from "@revealui/core";
 
 // In your server entry point:
-await initializeLicense()
+await initializeLicense();
 ```
 
 Returns `'free'` if no key is configured or validation fails.
@@ -606,9 +627,9 @@ Returns `'free'` if no key is configured or validation fails.
 Returns `true` if the current license meets or exceeds `requiredTier`.
 
 ```ts
-import { isLicensed } from '@revealui/core'
+import { isLicensed } from "@revealui/core";
 
-if (isLicensed('pro')) {
+if (isLicensed("pro")) {
   // Pro, Max, and Forge only
 }
 ```
@@ -620,7 +641,7 @@ if (isLicensed('pro')) {
 Returns the cached license tier synchronously. Call `initializeLicense()` first.
 
 ```ts
-type LicenseTier = 'free' | 'pro' | 'max' | 'enterprise'
+type LicenseTier = "free" | "pro" | "max" | "enterprise";
 ```
 
 ### `getLicensePayload(): LicensePayload | null`
@@ -629,13 +650,13 @@ Returns the decoded JWT payload, or `null` on free tier.
 
 ```ts
 interface LicensePayload {
-  tier: 'pro' | 'max' | 'enterprise'
-  customerId: string
-  domains?: string[]
-  maxSites?: number
-  maxUsers?: number
-  iat?: number
-  exp?: number
+  tier: "pro" | "max" | "enterprise";
+  customerId: string;
+  domains?: string[];
+  maxSites?: number;
+  maxUsers?: number;
+  iat?: number;
+  exp?: number;
 }
 ```
 
@@ -666,9 +687,9 @@ Import from `@revealui/core/features` or via the main entry.
 Returns `true` if the feature is available at the current tier.
 
 ```ts
-import { isFeatureEnabled } from '@revealui/core'
+import { isFeatureEnabled } from "@revealui/core";
 
-if (isFeatureEnabled('ai')) {
+if (isFeatureEnabled("ai")) {
   // Enable AI features (Pro+)
 }
 ```
@@ -680,25 +701,25 @@ Returns all feature flags for the current tier.
 ```ts
 interface FeatureFlags {
   // Pro features
-  ai: boolean
-  aiMemory: boolean
-  mcp: boolean
-  editors: boolean
-  harnesses: boolean
-  payments: boolean
-  advancedSync: boolean
-  dashboard: boolean
-  customDomain: boolean
-  analytics: boolean
+  ai: boolean;
+  aiMemory: boolean;
+  mcp: boolean;
+  editors: boolean;
+  harnesses: boolean;
+  payments: boolean;
+  advancedSync: boolean;
+  dashboard: boolean;
+  customDomain: boolean;
+  analytics: boolean;
   // Max features
-  aiMemory: boolean
-  byokServerSide: boolean
-  aiMultiProvider: boolean
-  auditLog: boolean
+  aiMemory: boolean;
+  byokServerSide: boolean;
+  aiMultiProvider: boolean;
+  auditLog: boolean;
   // Forge (enterprise) features
-  multiTenant: boolean
-  whiteLabel: boolean
-  sso: boolean
+  multiTenant: boolean;
+  whiteLabel: boolean;
+  sso: boolean;
 }
 ```
 
@@ -711,8 +732,8 @@ Returns the feature flags available at a specific tier without affecting cached 
 Returns the minimum tier required for a feature.
 
 ```ts
-getRequiredTier('ai')         // 'pro'
-getRequiredTier('whiteLabel') // 'enterprise'
+getRequiredTier("ai"); // 'pro'
+getRequiredTier("whiteLabel"); // 'enterprise'
 ```
 
 ---
@@ -726,11 +747,11 @@ Import from `@revealui/core/utils/logger`.
 Creates a scoped logger instance with request/module context.
 
 ```ts
-import { createLogger } from '@revealui/core'
+import { createLogger } from "@revealui/core";
 
-const log = createLogger({ module: 'auth', requestId: req.id })
-log.info('User signed in', { userId })
-log.error('Sign-in failed', { error })
+const log = createLogger({ module: "auth", requestId: req.id });
+log.info("User signed in", { userId });
+log.error("Sign-in failed", { error });
 ```
 
 ### `logger`
@@ -738,9 +759,9 @@ log.error('Sign-in failed', { error })
 Global default logger instance — use when no request context is available.
 
 ```ts
-import { logger } from '@revealui/core'
+import { logger } from "@revealui/core";
 
-logger.warn('Config missing optional field')
+logger.warn("Config missing optional field");
 ```
 
 **Log levels:** `debug | info | warn | error`
@@ -756,7 +777,7 @@ Import from `@revealui/core/plugins`.
 Adds a drag-and-drop form builder collection to your CMS. Creates `forms` and `form-submissions` collections automatically.
 
 ```ts
-import { formBuilderPlugin } from '@revealui/core/plugins'
+import { formBuilderPlugin } from "@revealui/core/plugins";
 
 buildConfig({
   plugins: [
@@ -770,7 +791,7 @@ buildConfig({
       },
     }),
   ],
-})
+});
 ```
 
 ### `nestedDocsPlugin(config?: NestedDocsPluginConfig)`
@@ -790,13 +811,13 @@ Adds a `redirects` collection for managing URL redirects.
 PostgreSQL adapter that works with both PGlite (in-memory, for tests) and a real Postgres connection.
 
 ```ts
-import { universalPostgresAdapter } from '@revealui/core'
+import { universalPostgresAdapter } from "@revealui/core";
 
 buildConfig({
   db: universalPostgresAdapter({
     pool: { connectionString: process.env.POSTGRES_URL },
   }),
-})
+});
 ```
 
 ### `vercelBlobStorage()`
@@ -804,15 +825,15 @@ buildConfig({
 Storage adapter for Vercel Blob. Set `BLOB_READ_WRITE_TOKEN` in env.
 
 ```ts
-import { vercelBlobStorage } from '@revealui/core'
+import { vercelBlobStorage } from "@revealui/core";
 
 buildConfig({
   upload: {
     useTempFiles: true,
-    tempFileDir: '/tmp',
+    tempFileDir: "/tmp",
   },
   plugins: [vercelBlobStorage({ collections: { media: true } })],
-})
+});
 ```
 
 ---
@@ -840,10 +861,14 @@ export default function Post({ post }: { post: { body: SerializedEditorState } }
 ```
 
 **`SerializeOptions`:**
+
 ```ts
 interface SerializeOptions {
   /** Custom renderers per node type */
-  customRenderers?: Record<string, (node: SerializedLexicalNode) => JSX.Element | null>
+  customRenderers?: Record<
+    string,
+    (node: SerializedLexicalNode) => JSX.Element | null
+  >;
 }
 ```
 
@@ -891,11 +916,11 @@ Recursively merges two objects. Arrays are replaced (not concatenated).
 Least-recently-used cache implementation.
 
 ```ts
-import { LRUCache } from '@revealui/core'
+import { LRUCache } from "@revealui/core";
 
-const cache = new LRUCache<string, User>(100) // max 100 entries
-cache.set('user:1', user)
-const hit = cache.get('user:1')
+const cache = new LRUCache<string, User>(100); // max 100 entries
+cache.set("user:1", user);
+const hit = cache.get("user:1");
 ```
 
 ---
@@ -903,10 +928,10 @@ const hit = cache.get('user:1')
 ## Error Types
 
 ```ts
-import { ApplicationError, ValidationError } from '@revealui/core'
+import { ApplicationError, ValidationError } from "@revealui/core";
 
-throw new ApplicationError('Something went wrong', 500)
-throw new ValidationError('Invalid email format', { field: 'email' })
+throw new ApplicationError("Something went wrong", 500);
+throw new ValidationError("Invalid email format", { field: "email" });
 ```
 
 ### Response Helpers
@@ -916,7 +941,7 @@ import {
   createSuccessResponseData,
   createErrorResponseData,
   createValidationErrorResponseData,
-} from '@revealui/core'
+} from "@revealui/core";
 ```
 
 ---
@@ -940,15 +965,15 @@ npm install @revealui/contracts
 
 ## Subpath Exports
 
-| Import path | Purpose |
-|-------------|---------|
-| `@revealui/contracts` | All contracts + A2A protocol |
-| `@revealui/contracts/cms` | CMS config types and helpers |
-| `@revealui/contracts/agents` | Agent definitions and memory |
-| `@revealui/contracts/database` | DB ↔ contract mapping utilities |
-| `@revealui/contracts/generated` | Generated row/insert/update types |
-| `@revealui/contracts/blocks` | Content block types |
-| `@revealui/contracts/core` | Core entity types (User, Site, Page) |
+| Import path                     | Purpose                              |
+| ------------------------------- | ------------------------------------ |
+| `@revealui/contracts`           | All contracts + A2A protocol         |
+| `@revealui/contracts/cms`       | CMS config types and helpers         |
+| `@revealui/contracts/agents`    | Agent definitions and memory         |
+| `@revealui/contracts/database`  | DB ↔ contract mapping utilities      |
+| `@revealui/contracts/generated` | Generated row/insert/update types    |
+| `@revealui/contracts/blocks`    | Content block types                  |
+| `@revealui/contracts/core`      | Core entity types (User, Site, Page) |
 
 ---
 
@@ -961,26 +986,26 @@ Import from `@revealui/contracts/cms`.
 Type-safe helper for defining a CMS collection. Pass the result to `buildConfig({ collections: [...] })`.
 
 ```ts
-import { defineCollection } from '@revealui/contracts/cms'
+import { defineCollection } from "@revealui/contracts/cms";
 
-export const Posts = defineCollection('posts', {
+export const Posts = defineCollection("posts", {
   fields: [
-    { name: 'title', type: 'text', required: true },
-    { name: 'body', type: 'richText' },
-    { name: 'author', type: 'relationship', relationTo: 'users' },
-    { name: 'publishedAt', type: 'date' },
+    { name: "title", type: "text", required: true },
+    { name: "body", type: "richText" },
+    { name: "author", type: "relationship", relationTo: "users" },
+    { name: "publishedAt", type: "date" },
   ],
   access: {
     read: () => true,
     create: ({ req }) => Boolean(req.user),
     update: ({ req }) => Boolean(req.user),
-    delete: ({ req }) => req.user?.role === 'admin',
+    delete: ({ req }) => req.user?.role === "admin",
   },
   hooks: {
     beforeChange: [setPublishedAt],
     afterRead: [populateAuthor],
   },
-})
+});
 ```
 
 ### `defineGlobal(name, config): GlobalConfig`
@@ -988,17 +1013,19 @@ export const Posts = defineCollection('posts', {
 Defines a singleton global (e.g. site settings, navigation).
 
 ```ts
-import { defineGlobal } from '@revealui/contracts/cms'
+import { defineGlobal } from "@revealui/contracts/cms";
 
-export const SiteSettings = defineGlobal('site-settings', {
+export const SiteSettings = defineGlobal("site-settings", {
   fields: [
-    { name: 'siteName', type: 'text' },
-    { name: 'favicon', type: 'upload', relationTo: 'media' },
-    { name: 'analytics', type: 'group', fields: [
-      { name: 'googleAnalyticsId', type: 'text' },
-    ]},
+    { name: "siteName", type: "text" },
+    { name: "favicon", type: "upload", relationTo: "media" },
+    {
+      name: "analytics",
+      type: "group",
+      fields: [{ name: "googleAnalyticsId", type: "text" }],
+    },
   ],
-})
+});
 ```
 
 ### `defineField(name, config): Field`
@@ -1006,13 +1033,13 @@ export const SiteSettings = defineGlobal('site-settings', {
 Type-safe helper for defining a field. Useful when sharing field definitions across collections.
 
 ```ts
-import { defineField } from '@revealui/contracts/cms'
+import { defineField } from "@revealui/contracts/cms";
 
-const statusField = defineField('status', {
-  type: 'select',
-  options: ['draft', 'published', 'archived'],
-  defaultValue: 'draft',
-})
+const statusField = defineField("status", {
+  type: "select",
+  options: ["draft", "published", "archived"],
+  defaultValue: "draft",
+});
 ```
 
 ### `mergeCollectionConfigs(...configs): CollectionConfig`
@@ -1028,14 +1055,14 @@ Merges multiple collection configs. Useful for extending base configs with app-s
 Validates data against a Zod schema without throwing. Returns a discriminated union.
 
 ```ts
-import { safeValidate } from '@revealui/contracts/cms'
-import { UserSchema } from '@revealui/contracts'
+import { safeValidate } from "@revealui/contracts/cms";
+import { UserSchema } from "@revealui/contracts";
 
-const result = safeValidate(UserSchema, unknownData)
+const result = safeValidate(UserSchema, unknownData);
 if (result.success) {
-  console.log(result.data) // User
+  console.log(result.data); // User
 } else {
-  console.error(result.errors) // ZodError[]
+  console.error(result.errors); // ZodError[]
 }
 ```
 
@@ -1053,15 +1080,15 @@ Import from `@revealui/contracts` or `@revealui/contracts/core`.
 
 ```ts
 interface User {
-  id: string
-  name: string
-  email: string | null
-  role: 'admin' | 'editor' | 'viewer'
-  status: 'active' | 'inactive'
-  preferences: UserPreferences
-  createdAt: Date
-  updatedAt: Date
-  lastActiveAt: Date | null
+  id: string;
+  name: string;
+  email: string | null;
+  role: "admin" | "editor" | "viewer";
+  status: "active" | "inactive";
+  preferences: UserPreferences;
+  createdAt: Date;
+  updatedAt: Date;
+  lastActiveAt: Date | null;
 }
 ```
 
@@ -1072,13 +1099,13 @@ interface User {
 
 ```ts
 interface Site {
-  id: string
-  name: string
-  domain: string | null
-  ownerId: string
-  settings: SiteSettings
-  seo: SiteSeo
-  theme: SiteTheme
+  id: string;
+  name: string;
+  domain: string | null;
+  ownerId: string;
+  settings: SiteSettings;
+  seo: SiteSeo;
+  theme: SiteTheme;
 }
 ```
 
@@ -1090,15 +1117,15 @@ interface Site {
 
 ```ts
 interface Page {
-  id: string
-  siteId: string
-  title: string
-  slug: string
-  path: string
-  content: Block[]
-  status: 'draft' | 'published' | 'archived'
-  parentId: string | null
-  seo: PageSeo
+  id: string;
+  siteId: string;
+  title: string;
+  slug: string;
+  path: string;
+  content: Block[];
+  status: "draft" | "published" | "archived";
+  parentId: string | null;
+  seo: PageSeo;
 }
 ```
 
@@ -1119,53 +1146,74 @@ Import from `@revealui/contracts/blocks`.
 
 ```ts
 type Block =
-  | TextBlock | HeadingBlock | ImageBlock | CodeBlock
-  | ButtonBlock | VideoBlock | EmbedBlock | DividerBlock
-  | SpacerBlock | QuoteBlock | ListBlock | TableBlock
-  | ColumnsBlock | GridBlock | FormBlock | AccordionBlock
-  | TabsBlock | ComponentBlock
+  | TextBlock
+  | HeadingBlock
+  | ImageBlock
+  | CodeBlock
+  | ButtonBlock
+  | VideoBlock
+  | EmbedBlock
+  | DividerBlock
+  | SpacerBlock
+  | QuoteBlock
+  | ListBlock
+  | TableBlock
+  | ColumnsBlock
+  | GridBlock
+  | FormBlock
+  | AccordionBlock
+  | TabsBlock
+  | ComponentBlock;
 ```
 
 ### Factory Functions
 
 ```ts
-import { createTextBlock, createHeadingBlock, createImageBlock } from '@revealui/contracts/blocks'
+import {
+  createTextBlock,
+  createHeadingBlock,
+  createImageBlock,
+} from "@revealui/contracts/blocks";
 
 const blocks: Block[] = [
-  createHeadingBlock({ text: 'Getting Started', level: 2 }),
-  createTextBlock({ text: 'This is the intro paragraph.' }),
-  createImageBlock({ src: '/hero.png', alt: 'Hero image' }),
-]
+  createHeadingBlock({ text: "Getting Started", level: 2 }),
+  createTextBlock({ text: "This is the intro paragraph." }),
+  createImageBlock({ src: "/hero.png", alt: "Hero image" }),
+];
 ```
 
 ### Query Utilities
 
 ```ts
-import { findBlockById, walkBlocks, countBlocks } from '@revealui/contracts/blocks'
+import {
+  findBlockById,
+  walkBlocks,
+  countBlocks,
+} from "@revealui/contracts/blocks";
 
 // Walk all blocks recursively (including nested containers)
 walkBlocks(blocks, (block) => {
-  if (block.type === 'text') console.log(block.text)
-})
+  if (block.type === "text") console.log(block.text);
+});
 
 // Count total blocks
-const total = countBlocks(blocks) // includes nested
+const total = countBlocks(blocks); // includes nested
 
 // Find by ID
-const block = findBlockById(blocks, 'block-123')
+const block = findBlockById(blocks, "block-123");
 ```
 
 ### Type Guards
 
 ```ts
-isTextBlock(block)        // block is TextBlock
-isHeadingBlock(block)     // block is HeadingBlock
-isImageBlock(block)       // block is ImageBlock
-isContainerBlock(block)   // block is ColumnsBlock | GridBlock
-isGroupField(field)       // field is GroupField
-isLayoutField(field)      // field has sub-fields
-isRelationshipField(field)
-isArrayField(field)
+isTextBlock(block); // block is TextBlock
+isHeadingBlock(block); // block is HeadingBlock
+isImageBlock(block); // block is ImageBlock
+isContainerBlock(block); // block is ColumnsBlock | GridBlock
+isGroupField(field); // field is GroupField
+isLayoutField(field); // field has sub-fields
+isRelationshipField(field);
+isArrayField(field);
 ```
 
 ---
@@ -1179,23 +1227,30 @@ Import from `@revealui/contracts` — these types implement the [Google A2A spec
 Agent cards are JSON discovery documents published at `/.well-known/agent.json`.
 
 ```ts
-import { agentDefinitionToCard, toolDefinitionToSkill } from '@revealui/contracts'
-import type { A2AAgentCard, A2ASkill } from '@revealui/contracts'
+import {
+  agentDefinitionToCard,
+  toolDefinitionToSkill,
+} from "@revealui/contracts";
+import type { A2AAgentCard, A2ASkill } from "@revealui/contracts";
 
 // Convert a RevealUI agent definition to a public discovery card
-const card: A2AAgentCard = agentDefinitionToCard(agentDef, 'https://api.yourapp.com')
+const card: A2AAgentCard = agentDefinitionToCard(
+  agentDef,
+  "https://api.yourapp.com",
+);
 ```
 
 **`A2AAgentCard`:**
+
 ```ts
 interface A2AAgentCard {
-  name: string
-  description: string
-  url: string                         // JSON-RPC endpoint
-  capabilities: A2ACapabilities
-  skills: A2ASkill[]
-  provider?: A2AProvider
-  auth?: A2AAuth
+  name: string;
+  description: string;
+  url: string; // JSON-RPC endpoint
+  capabilities: A2ACapabilities;
+  skills: A2ASkill[];
+  provider?: A2AProvider;
+  auth?: A2AAuth;
 }
 ```
 
@@ -1205,41 +1260,46 @@ Agents communicate via tasks sent to the JSON-RPC endpoint.
 
 ```ts
 interface A2ATask {
-  id: string
-  sessionId: string
-  status: A2ATaskStatus
-  artifacts: A2AArtifact[]
-  history: A2AMessage[]
-  metadata?: Record<string, unknown>
+  id: string;
+  sessionId: string;
+  status: A2ATaskStatus;
+  artifacts: A2AArtifact[];
+  history: A2AMessage[];
+  metadata?: Record<string, unknown>;
 }
 
 type A2ATaskState =
-  | 'submitted' | 'working' | 'input-required'
-  | 'completed' | 'canceled' | 'failed' | 'unknown'
+  | "submitted"
+  | "working"
+  | "input-required"
+  | "completed"
+  | "canceled"
+  | "failed"
+  | "unknown";
 ```
 
 ### Messages & Parts
 
 ```ts
 interface A2AMessage {
-  role: 'user' | 'agent'
-  parts: A2APart[]
+  role: "user" | "agent";
+  parts: A2APart[];
 }
 
 type A2APart =
-  | { type: 'text'; text: string }
-  | { type: 'data'; data: Record<string, unknown>; mimeType?: string }
-  | { type: 'file'; mimeType: string; data?: string; uri?: string }
+  | { type: "text"; text: string }
+  | { type: "data"; data: Record<string, unknown>; mimeType?: string }
+  | { type: "file"; mimeType: string; data?: string; uri?: string };
 ```
 
 ### JSON-RPC Envelope
 
 ```ts
 interface A2AJsonRpcRequest {
-  jsonrpc: '2.0'
-  id: string | number
-  method: 'tasks/send' | 'tasks/sendSubscribe' | 'tasks/get' | 'tasks/cancel'
-  params: A2ASendTaskParams | { id: string }
+  jsonrpc: "2.0";
+  id: string | number;
+  method: "tasks/send" | "tasks/sendSubscribe" | "tasks/get" | "tasks/cancel";
+  params: A2ASendTaskParams | { id: string };
 }
 ```
 
@@ -1251,22 +1311,23 @@ Import from `@revealui/contracts/agents`.
 
 ```ts
 interface AgentDefinition {
-  agentId: string
-  name: string
-  description: string
-  systemPrompt: string
-  tools: ToolDefinition[]
-  capabilities: string[]
+  agentId: string;
+  name: string;
+  description: string;
+  systemPrompt: string;
+  tools: ToolDefinition[];
+  capabilities: string[];
 }
 
 interface ToolDefinition {
-  name: string
-  description: string
-  parameters: ToolParameter[]
+  name: string;
+  description: string;
+  parameters: ToolParameter[];
 }
 ```
 
 Factory functions:
+
 - `createAgentMemory(input): AgentMemory`
 - `createAgentContext(input): AgentContext`
 - `createConversation(userId: string): Conversation`
@@ -1298,18 +1359,26 @@ Import from `@revealui/contracts/generated`. These are auto-generated from the d
 
 ```ts
 import type {
-  UsersRow,   UsersInsert,   UsersUpdate,
-  SitesRow,   SitesInsert,   SitesUpdate,
-  PagesRow,   PagesInsert,   PagesUpdate,
-  PostsRow,   PostsInsert,   PostsUpdate,
-} from '@revealui/contracts/generated'
+  UsersRow,
+  UsersInsert,
+  UsersUpdate,
+  SitesRow,
+  SitesInsert,
+  SitesUpdate,
+  PagesRow,
+  PagesInsert,
+  PagesUpdate,
+  PostsRow,
+  PostsInsert,
+  PostsUpdate,
+} from "@revealui/contracts/generated";
 ```
 
-| Suffix | Use for |
-|--------|---------|
-| `Row` | Reading from the database (`SELECT`) |
-| `Insert` | Writing new records (`INSERT INTO`) |
-| `Update` | Partial updates (`UPDATE SET`) |
+| Suffix   | Use for                              |
+| -------- | ------------------------------------ |
+| `Row`    | Reading from the database (`SELECT`) |
+| `Insert` | Writing new records (`INSERT INTO`)  |
+| `Update` | Partial updates (`UPDATE SET`)       |
 
 ---
 
@@ -1347,20 +1416,20 @@ npm install @revealui/db
 
 ## Subpath Exports
 
-| Import path | Purpose |
-|-------------|---------|
-| `@revealui/db` | Client creation + schema |
-| `@revealui/db/client` | Database client factory |
-| `@revealui/db/schema` | All table definitions |
-| `@revealui/db/schema/users` | Users, sessions, password reset |
-| `@revealui/db/schema/sites` | Sites and collaborators |
-| `@revealui/db/schema/pages` | Pages and revisions |
-| `@revealui/db/schema/cms` | Posts and media |
-| `@revealui/db/schema/agents` | Agent memories, contexts, conversations |
-| `@revealui/db/schema/licenses` | License records |
-| `@revealui/db/schema/api-keys` | BYOK user API keys |
-| `@revealui/db/crypto` | AES-256-GCM encryption |
-| `@revealui/db/types` | TypeScript types |
+| Import path                    | Purpose                                 |
+| ------------------------------ | --------------------------------------- |
+| `@revealui/db`                 | Client creation + schema                |
+| `@revealui/db/client`          | Database client factory                 |
+| `@revealui/db/schema`          | All table definitions                   |
+| `@revealui/db/schema/users`    | Users, sessions, password reset         |
+| `@revealui/db/schema/sites`    | Sites and collaborators                 |
+| `@revealui/db/schema/pages`    | Pages and revisions                     |
+| `@revealui/db/schema/cms`      | Posts and media                         |
+| `@revealui/db/schema/agents`   | Agent memories, contexts, conversations |
+| `@revealui/db/schema/licenses` | License records                         |
+| `@revealui/db/schema/api-keys` | BYOK user API keys                      |
+| `@revealui/db/crypto`          | AES-256-GCM encryption                  |
+| `@revealui/db/types`           | TypeScript types                        |
 
 ---
 
@@ -1371,14 +1440,15 @@ npm install @revealui/db
 Creates a Drizzle ORM client. Auto-selects the right driver based on connection string.
 
 ```ts
-import { createClient } from '@revealui/db/client'
+import { createClient } from "@revealui/db/client";
 
 const db = createClient({
   connectionString: process.env.POSTGRES_URL,
-})
+});
 ```
 
 **Driver selection:**
+
 - Neon HTTP driver (`@neondatabase/serverless`) — for `neon.tech` connection strings
 - node-postgres (`pg`) — for Supabase, localhost, and other Postgres hosts
 
@@ -1391,10 +1461,10 @@ Returns `NeonHttpDatabase | NodePgDatabase` depending on the connection string.
 Returns (or lazily creates) the global NeonDB client. Reads `POSTGRES_URL` from env.
 
 ```ts
-import { getRestClient } from '@revealui/db/client'
+import { getRestClient } from "@revealui/db/client";
 
-const db = getRestClient()
-const posts = await db.select().from(schema.posts)
+const db = getRestClient();
+const posts = await db.select().from(schema.posts);
 ```
 
 ### `getVectorClient(): Database`
@@ -1444,10 +1514,10 @@ Returns connection pool stats for all active pools.
 
 ```ts
 interface PoolMetrics {
-  name: string
-  totalCount: number
-  idleCount: number
-  waitingCount: number
+  name: string;
+  totalCount: number;
+  idleCount: number;
+  waitingCount: number;
 }
 ```
 
@@ -1464,40 +1534,52 @@ All tables are defined with Drizzle ORM and exported from subpath modules.
 ### Users & Auth
 
 ```ts
-import { users, sessions, passwordResetTokens } from '@revealui/db/schema/users'
+import {
+  users,
+  sessions,
+  passwordResetTokens,
+} from "@revealui/db/schema/users";
 ```
 
-| Table | Key columns |
-|-------|-------------|
-| `users` | `id`, `email`, `name`, `password`, `role`, `status`, `createdAt` |
-| `sessions` | `id`, `userId`, `tokenHash`, `expiresAt`, `persistent`, `ipAddress` |
-| `passwordResetTokens` | `id`, `userId`, `tokenHash`, `salt`, `usedAt`, `expiresAt` |
+| Table                 | Key columns                                                         |
+| --------------------- | ------------------------------------------------------------------- |
+| `users`               | `id`, `email`, `name`, `password`, `role`, `status`, `createdAt`    |
+| `sessions`            | `id`, `userId`, `tokenHash`, `expiresAt`, `persistent`, `ipAddress` |
+| `passwordResetTokens` | `id`, `userId`, `tokenHash`, `salt`, `usedAt`, `expiresAt`          |
 
 ### Content
 
 ```ts
-import { sites, siteCollaborators } from '@revealui/db/schema/sites'
-import { pages, pageRevisions } from '@revealui/db/schema/pages'
-import { posts, media } from '@revealui/db/schema/cms'
+import { sites, siteCollaborators } from "@revealui/db/schema/sites";
+import { pages, pageRevisions } from "@revealui/db/schema/pages";
+import { posts, media } from "@revealui/db/schema/cms";
 ```
 
 ### Agents & AI
 
 ```ts
-import { agentMemories, agentContexts, agentActions, conversations } from '@revealui/db/schema/agents'
+import {
+  agentMemories,
+  agentContexts,
+  agentActions,
+  conversations,
+} from "@revealui/db/schema/agents";
 ```
 
 ### Billing
 
 ```ts
-import { licenses } from '@revealui/db/schema/licenses'
-import { userApiKeys, tenantProviderConfigs } from '@revealui/db/schema/api-keys'
+import { licenses } from "@revealui/db/schema/licenses";
+import {
+  userApiKeys,
+  tenantProviderConfigs,
+} from "@revealui/db/schema/api-keys";
 ```
 
 ### Audit & Monitoring
 
 ```ts
-import { auditLog, appLogs, errorEvents } from '@revealui/db/schema/rest'
+import { auditLog, appLogs, errorEvents } from "@revealui/db/schema/rest";
 ```
 
 ---
@@ -1507,32 +1589,32 @@ import { auditLog, appLogs, errorEvents } from '@revealui/db/schema/rest'
 Use standard Drizzle ORM query syntax:
 
 ```ts
-import { getRestClient } from '@revealui/db/client'
-import { users, sessions } from '@revealui/db/schema/users'
-import { eq, and, gt } from 'drizzle-orm'
+import { getRestClient } from "@revealui/db/client";
+import { users, sessions } from "@revealui/db/schema/users";
+import { eq, and, gt } from "drizzle-orm";
 
-const db = getRestClient()
+const db = getRestClient();
 
 // Select
 const activeUsers = await db
   .select()
   .from(users)
-  .where(eq(users.status, 'active'))
+  .where(eq(users.status, "active"));
 
 // Insert
 const [newUser] = await db
   .insert(users)
-  .values({ id: crypto.randomUUID(), email, name, role: 'editor' })
-  .returning()
+  .values({ id: crypto.randomUUID(), email, name, role: "editor" })
+  .returning();
 
 // Update
 await db
   .update(users)
   .set({ lastActiveAt: new Date() })
-  .where(eq(users.id, userId))
+  .where(eq(users.id, userId));
 
 // Delete
-await db.delete(sessions).where(eq(sessions.userId, userId))
+await db.delete(sessions).where(eq(sessions.userId, userId));
 ```
 
 ---
@@ -1554,9 +1636,9 @@ Encrypts a string with AES-256-GCM. Returns a dot-separated base64url string:
 `<iv>.<authTag>.<ciphertext>`
 
 ```ts
-import { encryptApiKey } from '@revealui/db/crypto'
+import { encryptApiKey } from "@revealui/db/crypto";
 
-const encrypted = encryptApiKey('sk-live-...')
+const encrypted = encryptApiKey("sk-live-...");
 // Store encrypted value in database
 ```
 
@@ -1565,9 +1647,9 @@ const encrypted = encryptApiKey('sk-live-...')
 Decrypts an encrypted API key. Throws if the ciphertext has been tampered with (GCM authentication tag mismatch).
 
 ```ts
-import { decryptApiKey } from '@revealui/db/crypto'
+import { decryptApiKey } from "@revealui/db/crypto";
 
-const plaintext = decryptApiKey(row.encryptedKey)
+const plaintext = decryptApiKey(row.encryptedKey);
 ```
 
 ### `redactApiKey(plaintext: string): string`
@@ -1575,7 +1657,7 @@ const plaintext = decryptApiKey(row.encryptedKey)
 Returns a safe display hint showing only the last 4 characters: `...xxxx`.
 
 ```ts
-const hint = redactApiKey('sk-live-abc123xyz')
+const hint = redactApiKey("sk-live-abc123xyz");
 // '...xyz'
 ```
 
@@ -1586,15 +1668,15 @@ const hint = redactApiKey('sk-live-abc123xyz')
 Import from `@revealui/db/types` or directly from schema subpaths:
 
 ```ts
-import type { User, Session, Site, Page, Post } from '@revealui/db'
+import type { User, Session, Site, Page, Post } from "@revealui/db";
 ```
 
 Each table has three associated types:
 
-| Pattern | Description |
-|---------|-------------|
-| `User` | Read type (full row from `SELECT`) |
-| `NewUser` | Insert type (for `INSERT INTO`) |
+| Pattern      | Description                             |
+| ------------ | --------------------------------------- |
+| `User`       | Read type (full row from `SELECT`)      |
+| `NewUser`    | Insert type (for `INSERT INTO`)         |
 | `UserUpdate` | Update type (partial, for `UPDATE SET`) |
 
 ---
@@ -1634,12 +1716,12 @@ npm install @revealui/config
 ## Quick Start
 
 ```ts
-import config from '@revealui/config'
+import config from "@revealui/config";
 
 // Access config groups — validated on first access, not on import
-const dbUrl = config.database.url
-const stripeKey = config.stripe.secretKey
-const serverUrl = config.reveal.serverURL
+const dbUrl = config.database.url;
+const stripeKey = config.stripe.secretKey;
+const serverUrl = config.reveal.serverURL;
 ```
 
 ---
@@ -1657,15 +1739,15 @@ const serverUrl = config.reveal.serverURL
 The default export. Groups all environment variables by concern.
 
 ```ts
-import config from '@revealui/config'
+import config from "@revealui/config";
 
 interface Config {
-  database: DatabaseConfig
-  stripe: StripeConfig
-  storage: StorageConfig
-  reveal: RevealConfig
-  branding: BrandingConfig
-  optional: OptionalConfig
+  database: DatabaseConfig;
+  stripe: StripeConfig;
+  storage: StorageConfig;
+  reveal: RevealConfig;
+  branding: BrandingConfig;
+  optional: OptionalConfig;
 }
 ```
 
@@ -1679,8 +1761,8 @@ NeonDB / Postgres connection.
 
 ```ts
 interface DatabaseConfig {
-  url: string               // POSTGRES_URL or DATABASE_URL or SUPABASE_DATABASE_URI
-  connectionString: string  // same as url
+  url: string; // POSTGRES_URL or DATABASE_URL or SUPABASE_DATABASE_URI
+  connectionString: string; // same as url
 }
 ```
 
@@ -1694,12 +1776,12 @@ Core RevealUI server settings.
 
 ```ts
 interface RevealConfig {
-  secret: string            // REVEALUI_SECRET — JWT signing key
-  serverURL: string         // NEXT_PUBLIC_SERVER_URL — public-facing URL
-  publicServerURL: string   // REVEALUI_PUBLIC_SERVER_URL
-  adminEmail?: string       // REVEALUI_ADMIN_EMAIL
-  adminPassword?: string    // REVEALUI_ADMIN_PASSWORD
-  corsOrigins?: string[]    // REVEALUI_CORS_ORIGINS (comma-separated)
+  secret: string; // REVEALUI_SECRET — JWT signing key
+  serverURL: string; // NEXT_PUBLIC_SERVER_URL — public-facing URL
+  publicServerURL: string; // REVEALUI_PUBLIC_SERVER_URL
+  adminEmail?: string; // REVEALUI_ADMIN_EMAIL
+  adminPassword?: string; // REVEALUI_ADMIN_PASSWORD
+  corsOrigins?: string[]; // REVEALUI_CORS_ORIGINS (comma-separated)
 }
 ```
 
@@ -1711,10 +1793,10 @@ Stripe payment processing.
 
 ```ts
 interface StripeConfig {
-  secretKey: string         // STRIPE_SECRET_KEY
-  publishableKey: string    // NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY
-  webhookSecret: string     // STRIPE_WEBHOOK_SECRET
-  proxy?: boolean           // STRIPE_PROXY=1 — route via proxy
+  secretKey: string; // STRIPE_SECRET_KEY
+  publishableKey: string; // NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY
+  webhookSecret: string; // STRIPE_WEBHOOK_SECRET
+  proxy?: boolean; // STRIPE_PROXY=1 — route via proxy
 }
 ```
 
@@ -1726,7 +1808,7 @@ File upload storage.
 
 ```ts
 interface StorageConfig {
-  blobToken: string         // BLOB_READ_WRITE_TOKEN — Vercel Blob
+  blobToken: string; // BLOB_READ_WRITE_TOKEN — Vercel Blob
 }
 ```
 
@@ -1738,10 +1820,10 @@ White-label branding (Forge tier).
 
 ```ts
 interface BrandingConfig {
-  name: string              // REVEALUI_BRAND_NAME (default: 'RevealUI')
-  logoUrl?: string          // REVEALUI_LOGO_URL
-  primaryColor?: string     // REVEALUI_PRIMARY_COLOR (hex)
-  showPoweredBy: boolean    // REVEALUI_SHOW_POWERED_BY (default: true)
+  name: string; // REVEALUI_BRAND_NAME (default: 'RevealUI')
+  logoUrl?: string; // REVEALUI_LOGO_URL
+  primaryColor?: string; // REVEALUI_PRIMARY_COLOR (hex)
+  showPoweredBy: boolean; // REVEALUI_SHOW_POWERED_BY (default: true)
 }
 ```
 
@@ -1755,9 +1837,9 @@ Third-party integrations — all optional, no error thrown if unset.
 
 ```ts
 interface OptionalConfig {
-  sentryDsn?: string        // SENTRY_DSN
-  supabaseUrl?: string      // NEXT_PUBLIC_SUPABASE_URL
-  supabaseAnonKey?: string  // NEXT_PUBLIC_SUPABASE_ANON_KEY
+  sentryDsn?: string; // SENTRY_DSN
+  supabaseUrl?: string; // NEXT_PUBLIC_SUPABASE_URL
+  supabaseAnonKey?: string; // NEXT_PUBLIC_SUPABASE_ANON_KEY
 }
 ```
 
@@ -1768,11 +1850,15 @@ interface OptionalConfig {
 Import individual config getters if you need them outside the main `config` proxy.
 
 ```ts
-import { getDatabaseConfig, getRevealConfig, getStripeConfig } from '@revealui/config'
+import {
+  getDatabaseConfig,
+  getRevealConfig,
+  getStripeConfig,
+} from "@revealui/config";
 
-const dbConfig = getDatabaseConfig(process.env)
-const revealConfig = getRevealConfig(process.env)
-const stripeConfig = getStripeConfig(process.env)
+const dbConfig = getDatabaseConfig(process.env);
+const revealConfig = getRevealConfig(process.env);
+const stripeConfig = getStripeConfig(process.env);
 ```
 
 ---
@@ -1784,10 +1870,10 @@ const stripeConfig = getStripeConfig(process.env)
 Returns the resolved `Config` object. Equivalent to importing `config` directly, but useful when you need to call it as a function (e.g. in a factory or DI container). Pass `strict: false` to disable throwing on missing vars (same as build-time lenient mode).
 
 ```ts
-import { getConfig } from '@revealui/config'
+import { getConfig } from "@revealui/config";
 
-const cfg = getConfig()          // throws if required vars missing
-const cfg = getConfig(false)     // lenient — returns partial config
+const cfg = getConfig(); // throws if required vars missing
+const cfg = getConfig(false); // lenient — returns partial config
 ```
 
 ### `resetConfig(): void`
@@ -1795,12 +1881,12 @@ const cfg = getConfig(false)     // lenient — returns partial config
 Clears the cached config instance. Forces re-validation on the next access. Useful in tests to reset between cases with different env vars.
 
 ```ts
-import { resetConfig } from '@revealui/config'
+import { resetConfig } from "@revealui/config";
 
 beforeEach(() => {
-  process.env.POSTGRES_URL = 'postgresql://test-db'
-  resetConfig()
-})
+  process.env.POSTGRES_URL = "postgresql://test-db";
+  resetConfig();
+});
 ```
 
 ---
@@ -1816,10 +1902,10 @@ Returns the current environment string: `'development'`, `'test'`, `'staging'`, 
 Merges `process.env` with any `.env` file found in the current working directory. Returns the merged env record. Called automatically by `getConfig()` on first access.
 
 ```ts
-import { detectEnvironment, loadEnvironment } from '@revealui/config'
+import { detectEnvironment, loadEnvironment } from "@revealui/config";
 
-const env = detectEnvironment()   // 'development' | 'test' | 'staging' | 'production'
-const vars = loadEnvironment()    // { POSTGRES_URL: '...', ... }
+const env = detectEnvironment(); // 'development' | 'test' | 'staging' | 'production'
+const vars = loadEnvironment(); // { POSTGRES_URL: '...', ... }
 ```
 
 ---
@@ -1831,11 +1917,11 @@ const vars = loadEnvironment()    // { POSTGRES_URL: '...', ... }
 Validates all required env vars. Returns a result object — does not throw.
 
 ```ts
-import { validateEnvVars } from '@revealui/config'
+import { validateEnvVars } from "@revealui/config";
 
-const result = validateEnvVars(process.env)
+const result = validateEnvVars(process.env);
 if (!result.success) {
-  console.error('Missing env vars:', result.errors)
+  console.error("Missing env vars:", result.errors);
 }
 ```
 
@@ -1844,10 +1930,10 @@ if (!result.success) {
 Validates and throws `ConfigValidationError` if any required variables are missing.
 
 ```ts
-import { validateAndThrow } from '@revealui/config'
+import { validateAndThrow } from "@revealui/config";
 
 // Call at app startup to catch misconfigurations early:
-validateAndThrow(process.env)
+validateAndThrow(process.env);
 ```
 
 ### `formatValidationErrors(errors): string`
@@ -1905,10 +1991,10 @@ npm install @revealui/presentation
 
 ## Subpath Exports
 
-| Import path | Environment | Purpose |
-|-------------|-------------|---------|
-| `@revealui/presentation` | Both | All components, primitives, utilities |
-| `@revealui/presentation/server` | Server only | RSC-safe subset (no client hooks) |
+| Import path                     | Environment | Purpose                               |
+| ------------------------------- | ----------- | ------------------------------------- |
+| `@revealui/presentation`        | Both        | All components, primitives, utilities |
+| `@revealui/presentation/server` | Server only | RSC-safe subset (no client hooks)     |
 
 ---
 
@@ -1917,36 +2003,37 @@ npm install @revealui/presentation
 ### Layout
 
 #### `StackedLayout`
+
 Full-page layout with a fixed navbar and scrollable content area.
 
 ```tsx
-import { StackedLayout } from '@revealui/presentation'
+import { StackedLayout } from "@revealui/presentation";
 
 <StackedLayout navbar={<Navbar />} sidebar={<Sidebar />}>
   {children}
-</StackedLayout>
+</StackedLayout>;
 ```
 
 #### `SidebarLayout`
+
 Split layout with a collapsible sidebar panel and main content.
 
 ```tsx
-import { SidebarLayout } from '@revealui/presentation'
+import { SidebarLayout } from "@revealui/presentation";
 
-<SidebarLayout sidebar={<AppSidebar />}>
-  {children}
-</SidebarLayout>
+<SidebarLayout sidebar={<AppSidebar />}>{children}</SidebarLayout>;
 ```
 
 #### `AuthLayout`
+
 Centered layout for sign-in and sign-up pages.
 
 ```tsx
-import { AuthLayout } from '@revealui/presentation'
+import { AuthLayout } from "@revealui/presentation";
 
 <AuthLayout title="Sign in to your account" logo={<Logo />}>
   <SignInForm />
-</AuthLayout>
+</AuthLayout>;
 ```
 
 ---
@@ -1954,10 +2041,16 @@ import { AuthLayout } from '@revealui/presentation'
 ### Navigation
 
 #### `Navbar`
+
 Horizontal navigation bar with logo, links, and actions slots.
 
 ```tsx
-import { Navbar, NavbarSection, NavbarItem, NavbarLabel } from '@revealui/presentation'
+import {
+  Navbar,
+  NavbarSection,
+  NavbarItem,
+  NavbarLabel,
+} from "@revealui/presentation";
 
 <Navbar>
   <NavbarSection>
@@ -1967,42 +2060,60 @@ import { Navbar, NavbarSection, NavbarItem, NavbarLabel } from '@revealui/presen
   <NavbarSection className="ml-auto">
     <NavbarItem href="/login">Sign in</NavbarItem>
   </NavbarSection>
-</Navbar>
+</Navbar>;
 ```
 
 #### `Sidebar`
+
 Vertical navigation sidebar with sections and items.
 
 ```tsx
-import { Sidebar, SidebarSection, SidebarItem, SidebarLabel } from '@revealui/presentation'
+import {
+  Sidebar,
+  SidebarSection,
+  SidebarItem,
+  SidebarLabel,
+} from "@revealui/presentation";
 
 <Sidebar>
   <SidebarSection>
     <SidebarLabel>Main</SidebarLabel>
-    <SidebarItem href="/dashboard" current>Dashboard</SidebarItem>
+    <SidebarItem href="/dashboard" current>
+      Dashboard
+    </SidebarItem>
     <SidebarItem href="/posts">Posts</SidebarItem>
   </SidebarSection>
-</Sidebar>
+</Sidebar>;
 ```
 
 #### `Breadcrumb`
+
 Breadcrumb trail with configurable separators.
 
 ```tsx
-import { Breadcrumb } from '@revealui/presentation'
+import { Breadcrumb } from "@revealui/presentation";
 
-<Breadcrumb items={[
-  { label: 'Home', href: '/' },
-  { label: 'Blog', href: '/blog' },
-  { label: 'Getting Started' },
-]} />
+<Breadcrumb
+  items={[
+    { label: "Home", href: "/" },
+    { label: "Blog", href: "/blog" },
+    { label: "Getting Started" },
+  ]}
+/>;
 ```
 
 #### `Tabs`
+
 Horizontal tab navigation.
 
 ```tsx
-import { Tabs, TabList, Tab, TabPanels, TabPanel } from '@revealui/presentation'
+import {
+  Tabs,
+  TabList,
+  Tab,
+  TabPanels,
+  TabPanel,
+} from "@revealui/presentation";
 
 <Tabs defaultValue="overview">
   <TabList>
@@ -2010,10 +2121,14 @@ import { Tabs, TabList, Tab, TabPanels, TabPanel } from '@revealui/presentation'
     <Tab value="settings">Settings</Tab>
   </TabList>
   <TabPanels>
-    <TabPanel value="overview"><Overview /></TabPanel>
-    <TabPanel value="settings"><Settings /></TabPanel>
+    <TabPanel value="overview">
+      <Overview />
+    </TabPanel>
+    <TabPanel value="settings">
+      <Settings />
+    </TabPanel>
   </TabPanels>
-</Tabs>
+</Tabs>;
 ```
 
 ---
@@ -2021,6 +2136,7 @@ import { Tabs, TabList, Tab, TabPanels, TabPanel } from '@revealui/presentation'
 ### Inputs
 
 #### `Button`
+
 Primary interactive element. Supports variants, sizes, and loading state.
 
 ```tsx
@@ -2036,10 +2152,11 @@ import { Button } from '@revealui/presentation'
 **Props:** `variant` (`primary | secondary | outline | ghost | destructive`), `size` (`sm | md | lg`), `href`, `disabled`, `loading`
 
 #### `Input`
+
 Text input with optional label, description, and error state.
 
 ```tsx
-import { Input } from '@revealui/presentation'
+import { Input } from "@revealui/presentation";
 
 <Input
   label="Email address"
@@ -2047,106 +2164,128 @@ import { Input } from '@revealui/presentation'
   placeholder="you@example.com"
   description="We'll never share your email."
   error={errors.email}
-/>
+/>;
 ```
 
 #### `Textarea`
+
 Multi-line text input.
 
 ```tsx
-import { Textarea } from '@revealui/presentation'
+import { Textarea } from "@revealui/presentation";
 
-<Textarea label="Message" rows={4} placeholder="Your message..." />
+<Textarea label="Message" rows={4} placeholder="Your message..." />;
 ```
 
 #### `Select`
+
 Dropdown select with label and error state.
 
 ```tsx
-import { Select } from '@revealui/presentation'
+import { Select } from "@revealui/presentation";
 
 <Select label="Role" value={role} onChange={setRole}>
   <option value="admin">Admin</option>
   <option value="editor">Editor</option>
   <option value="viewer">Viewer</option>
-</Select>
+</Select>;
 ```
 
 #### `Checkbox`
+
 Single checkbox with label and description.
 
 ```tsx
-import { Checkbox } from '@revealui/presentation'
+import { Checkbox } from "@revealui/presentation";
 
-<Checkbox label="Subscribe to updates" description="Get notified about new releases." />
+<Checkbox
+  label="Subscribe to updates"
+  description="Get notified about new releases."
+/>;
 ```
 
 #### `Fieldset`
+
 Groups related form inputs with a legend.
 
 ```tsx
-import { Fieldset, Legend, Field, Label } from '@revealui/presentation'
+import { Fieldset, Legend, Field, Label } from "@revealui/presentation";
 
 <Fieldset>
   <Legend>Notification preferences</Legend>
-  <Field><Label>Email</Label><Input type="email" /></Field>
-</Fieldset>
+  <Field>
+    <Label>Email</Label>
+    <Input type="email" />
+  </Field>
+</Fieldset>;
 ```
 
 #### `FormLabel`
+
 Standalone label with optional required indicator.
 
 ```tsx
-import { FormLabel } from '@revealui/presentation'
+import { FormLabel } from "@revealui/presentation";
 
-<FormLabel htmlFor="name" required>Full name</FormLabel>
+<FormLabel htmlFor="name" required>
+  Full name
+</FormLabel>;
 ```
 
 #### `Slider`
+
 Range slider input.
 
 ```tsx
-import { Slider } from '@revealui/presentation'
+import { Slider } from "@revealui/presentation";
 
-<Slider min={0} max={100} step={5} value={volume} onChange={setVolume} />
+<Slider min={0} max={100} step={5} value={volume} onChange={setVolume} />;
 ```
 
 #### `Switch`
+
 Toggle switch for boolean settings.
 
 ```tsx
-import { Switch } from '@revealui/presentation'
+import { Switch } from "@revealui/presentation";
 
-<Switch checked={enabled} onChange={setEnabled} label="Enable notifications" />
+<Switch checked={enabled} onChange={setEnabled} label="Enable notifications" />;
 ```
 
 #### `Radio`
+
 Radio button group.
 
 ```tsx
-import { Radio, RadioGroup, RadioField } from '@revealui/presentation'
+import { Radio, RadioGroup, RadioField } from "@revealui/presentation";
 
 <RadioGroup value={plan} onChange={setPlan}>
-  <RadioField><Radio value="free" label="Free" /></RadioField>
-  <RadioField><Radio value="pro" label="Pro" /></RadioField>
-</RadioGroup>
+  <RadioField>
+    <Radio value="free" label="Free" />
+  </RadioField>
+  <RadioField>
+    <Radio value="pro" label="Pro" />
+  </RadioField>
+</RadioGroup>;
 ```
 
 #### `Combobox`
+
 Searchable dropdown (autocomplete).
 
 ```tsx
-import { Combobox } from '@revealui/presentation'
+import { Combobox } from "@revealui/presentation";
 
 <Combobox
   options={users}
   displayValue={(u) => u.name}
   onChange={setSelectedUser}
   placeholder="Search users..."
-/>
+/>;
 ```
 
 #### `Listbox`
+
 Accessible multi-option listbox.
 
 ---
@@ -2154,6 +2293,7 @@ Accessible multi-option listbox.
 ### Feedback
 
 #### `Alert`
+
 Informational banner. Variants match intent.
 
 ```tsx
@@ -2166,15 +2306,17 @@ import { Alert } from '@revealui/presentation'
 ```
 
 #### `Callout`
+
 Highlighted block for important inline notes.
 
 ```tsx
-import { Callout } from '@revealui/presentation'
+import { Callout } from "@revealui/presentation";
 
-<Callout type="warning">This action cannot be undone.</Callout>
+<Callout type="warning">This action cannot be undone.</Callout>;
 ```
 
 #### `Badge`
+
 Inline status chip.
 
 ```tsx
@@ -2186,15 +2328,17 @@ import { Badge } from '@revealui/presentation'
 ```
 
 #### `Progress`
+
 Linear progress bar.
 
 ```tsx
-import { Progress } from '@revealui/presentation'
+import { Progress } from "@revealui/presentation";
 
-<Progress value={72} max={100} label="Upload progress" />
+<Progress value={72} max={100} label="Upload progress" />;
 ```
 
 #### `Skeleton`
+
 Loading placeholder.
 
 ```tsx
@@ -2205,23 +2349,25 @@ import { Skeleton } from '@revealui/presentation'
 ```
 
 #### `Toast`
+
 Transient notification. Use with `useToast()`.
 
 ```tsx
-import { useToast } from '@revealui/presentation'
+import { useToast } from "@revealui/presentation";
 
-const { toast } = useToast()
-toast.success('Saved!', { description: 'Your changes were saved.' })
-toast.error('Failed', { description: 'Please try again.' })
+const { toast } = useToast();
+toast.success("Saved!", { description: "Your changes were saved." });
+toast.error("Failed", { description: "Please try again." });
 ```
 
 #### `Rating`
+
 Star rating display or input.
 
 ```tsx
-import { Rating } from '@revealui/presentation'
+import { Rating } from "@revealui/presentation";
 
-<Rating value={4} max={5} readOnly />
+<Rating value={4} max={5} readOnly />;
 ```
 
 ---
@@ -2229,55 +2375,75 @@ import { Rating } from '@revealui/presentation'
 ### Overlays
 
 #### `Dialog`
+
 Modal dialog with backdrop.
 
 ```tsx
-import { Dialog } from '@revealui/presentation'
+import { Dialog } from "@revealui/presentation";
 
 <Dialog open={isOpen} onClose={() => setIsOpen(false)} title="Delete post">
   <p>Are you sure? This cannot be undone.</p>
   <div className="mt-4 flex gap-2">
-    <Button variant="destructive" onClick={handleDelete}>Delete</Button>
-    <Button variant="ghost" onClick={() => setIsOpen(false)}>Cancel</Button>
+    <Button variant="destructive" onClick={handleDelete}>
+      Delete
+    </Button>
+    <Button variant="ghost" onClick={() => setIsOpen(false)}>
+      Cancel
+    </Button>
   </div>
-</Dialog>
+</Dialog>;
 ```
 
 #### `Drawer`
+
 Side panel that slides in from the edge.
 
 ```tsx
-import { Drawer } from '@revealui/presentation'
+import { Drawer } from "@revealui/presentation";
 
-<Drawer open={isOpen} onClose={() => setIsOpen(false)} title="Settings" side="right">
+<Drawer
+  open={isOpen}
+  onClose={() => setIsOpen(false)}
+  title="Settings"
+  side="right"
+>
   <SettingsPanel />
-</Drawer>
+</Drawer>;
 ```
 
 #### `Dropdown`
+
 Context menu / action menu.
 
 ```tsx
-import { Dropdown, DropdownButton, DropdownMenu, DropdownItem } from '@revealui/presentation'
+import {
+  Dropdown,
+  DropdownButton,
+  DropdownMenu,
+  DropdownItem,
+} from "@revealui/presentation";
 
 <Dropdown>
   <DropdownButton>Actions</DropdownButton>
   <DropdownMenu>
     <DropdownItem onClick={handleEdit}>Edit</DropdownItem>
-    <DropdownItem onClick={handleDelete} destructive>Delete</DropdownItem>
+    <DropdownItem onClick={handleDelete} destructive>
+      Delete
+    </DropdownItem>
   </DropdownMenu>
-</Dropdown>
+</Dropdown>;
 ```
 
 #### `Tooltip`
+
 Floating label on hover.
 
 ```tsx
-import { Tooltip } from '@revealui/presentation'
+import { Tooltip } from "@revealui/presentation";
 
 <Tooltip content="Copy to clipboard">
   <Button>Copy</Button>
-</Tooltip>
+</Tooltip>;
 ```
 
 ---
@@ -2285,31 +2451,41 @@ import { Tooltip } from '@revealui/presentation'
 ### Data Display
 
 #### `Card`
+
 Content container with optional padding and border.
 
 ```tsx
-import { Card } from '@revealui/presentation'
+import { Card } from "@revealui/presentation";
 
 <Card>
   <h2 className="text-lg font-semibold">Revenue</h2>
   <p className="text-3xl font-bold">$12,400</p>
-</Card>
+</Card>;
 ```
 
 #### `Stat`
+
 KPI / metric display with label, value, and trend.
 
 ```tsx
-import { Stat } from '@revealui/presentation'
+import { Stat } from "@revealui/presentation";
 
-<Stat label="Monthly revenue" value="$12,400" change="+8.2%" trend="up" />
+<Stat label="Monthly revenue" value="$12,400" change="+8.2%" trend="up" />;
 ```
 
 #### `Table`
+
 Responsive data table.
 
 ```tsx
-import { Table, TableHead, TableBody, TableRow, TableHeader, TableCell } from '@revealui/presentation'
+import {
+  Table,
+  TableHead,
+  TableBody,
+  TableRow,
+  TableHeader,
+  TableCell,
+} from "@revealui/presentation";
 
 <Table>
   <TableHead>
@@ -2322,14 +2498,17 @@ import { Table, TableHead, TableBody, TableRow, TableHeader, TableCell } from '@
     {rows.map((row) => (
       <TableRow key={row.id}>
         <TableCell>{row.name}</TableCell>
-        <TableCell><Badge>{row.status}</Badge></TableCell>
+        <TableCell>
+          <Badge>{row.status}</Badge>
+        </TableCell>
       </TableRow>
     ))}
   </TableBody>
-</Table>
+</Table>;
 ```
 
 #### `Avatar` / `AvatarGroup`
+
 User avatar with fallback initials.
 
 ```tsx
@@ -2340,90 +2519,102 @@ import { Avatar, AvatarGroup } from '@revealui/presentation'
 ```
 
 #### `DescriptionList`
+
 Label-value pair list for detail views.
 
 ```tsx
-import { DescriptionList, DescriptionTerm, DescriptionDetails } from '@revealui/presentation'
+import {
+  DescriptionList,
+  DescriptionTerm,
+  DescriptionDetails,
+} from "@revealui/presentation";
 
 <DescriptionList>
   <DescriptionTerm>Plan</DescriptionTerm>
   <DescriptionDetails>Pro — $49/month</DescriptionDetails>
   <DescriptionTerm>Renewal</DescriptionTerm>
   <DescriptionDetails>March 15, 2026</DescriptionDetails>
-</DescriptionList>
+</DescriptionList>;
 ```
 
 #### `Timeline`
+
 Vertical chronological list.
 
 ```tsx
-import { Timeline, TimelineItem } from '@revealui/presentation'
+import { Timeline, TimelineItem } from "@revealui/presentation";
 
 <Timeline>
-  <TimelineItem date="Mar 4" title="Deployment" description="v1.2.0 deployed to production." />
+  <TimelineItem
+    date="Mar 4"
+    title="Deployment"
+    description="v1.2.0 deployed to production."
+  />
   <TimelineItem date="Mar 3" title="Review" description="PR #42 approved." />
-</Timeline>
+</Timeline>;
 ```
 
 #### `Stepper`
+
 Multi-step progress indicator.
 
 ```tsx
-import { Stepper } from '@revealui/presentation'
+import { Stepper } from "@revealui/presentation";
 
-<Stepper
-  steps={['Account', 'Project', 'Database', 'Done']}
-  currentStep={2}
-/>
+<Stepper steps={["Account", "Project", "Database", "Done"]} currentStep={2} />;
 ```
 
 #### `Pagination`
+
 Page navigation controls.
 
 ```tsx
-import { Pagination } from '@revealui/presentation'
+import { Pagination } from "@revealui/presentation";
 
 <Pagination
   currentPage={page}
   totalPages={Math.ceil(total / perPage)}
   onPageChange={setPage}
-/>
+/>;
 ```
 
 #### `CodeBlock`
+
 Syntax-highlighted code display with a copy button.
 
 ```tsx
-import { CodeBlock } from '@revealui/presentation'
+import { CodeBlock } from "@revealui/presentation";
 
 <CodeBlock
   code={`const x = 1`}
   language="typescript"
   filename="example.ts"
   showCopy
-/>
+/>;
 ```
 
 #### `Kbd`
+
 Keyboard shortcut display.
 
 ```tsx
-import { Kbd } from '@revealui/presentation'
+import { Kbd } from "@revealui/presentation";
 
-<Kbd>⌘K</Kbd>
+<Kbd>⌘K</Kbd>;
 ```
 
 #### `EmptyState`
+
 Placeholder for empty lists or search results.
 
 ```tsx
-import { EmptyState } from '@revealui/presentation'
+import { EmptyState } from "@revealui/presentation";
 
 <EmptyState
   title="No posts yet"
   description="Create your first post to get started."
   action={<Button href="/posts/new">New post</Button>}
-/>
+/>;
 ```
 
 ---
@@ -2433,7 +2624,7 @@ import { EmptyState } from '@revealui/presentation'
 Collapsible content sections.
 
 ```tsx
-import { Accordion, AccordionItem } from '@revealui/presentation'
+import { Accordion, AccordionItem } from "@revealui/presentation";
 
 <Accordion>
   <AccordionItem title="What is RevealUI?">
@@ -2442,7 +2633,7 @@ import { Accordion, AccordionItem } from '@revealui/presentation'
   <AccordionItem title="Is it free?">
     The core framework is MIT licensed and free to use.
   </AccordionItem>
-</Accordion>
+</Accordion>;
 ```
 
 ---
@@ -2500,13 +2691,13 @@ import { cn } from '@revealui/presentation'
 
 Behaviour-only versions of form controls — bring your own styles.
 
-| Export | Purpose |
-|--------|---------|
-| `ButtonHeadless` | Accessible button with keyboard handling |
-| `InputHeadless` | Uncontrolled input with validation |
-| `CheckboxHeadless` | Accessible checkbox |
-| `SelectHeadless` | Accessible select |
-| `TextareaHeadless` | Uncontrolled textarea |
+| Export             | Purpose                                  |
+| ------------------ | ---------------------------------------- |
+| `ButtonHeadless`   | Accessible button with keyboard handling |
+| `InputHeadless`    | Uncontrolled input with validation       |
+| `CheckboxHeadless` | Accessible checkbox                      |
+| `SelectHeadless`   | Accessible select                        |
+| `TextareaHeadless` | Uncontrolled textarea                    |
 
 ---
 
@@ -2530,9 +2721,15 @@ npm install @revealui/utils
 All exports are available from the main entry:
 
 ```ts
-import { createLogger, logger, logError, logAudit, logQuery } from '@revealui/utils'
-import { getSSLConfig, validateSSLConfig } from '@revealui/utils'
-import { passwordSchema } from '@revealui/utils'
+import {
+  createLogger,
+  logger,
+  logError,
+  logAudit,
+  logQuery,
+} from "@revealui/utils";
+import { getSSLConfig, validateSSLConfig } from "@revealui/utils";
+import { passwordSchema } from "@revealui/utils";
 ```
 
 ---
@@ -2546,11 +2743,11 @@ A structured logger with configurable levels, destinations, and request context.
 Global default logger instance. Use when no request context is available.
 
 ```ts
-import { logger } from '@revealui/utils'
+import { logger } from "@revealui/utils";
 
-logger.info('Server started', { port: 3000 })
-logger.warn('Config missing optional field', { field: 'adminEmail' })
-logger.error('Unhandled exception', { error })
+logger.info("Server started", { port: 3000 });
+logger.warn("Config missing optional field", { field: "adminEmail" });
+logger.error("Unhandled exception", { error });
 ```
 
 ---
@@ -2560,11 +2757,11 @@ logger.error('Unhandled exception', { error })
 Creates a scoped logger with persistent context fields attached to every log entry.
 
 ```ts
-import { createLogger } from '@revealui/utils'
+import { createLogger } from "@revealui/utils";
 
-const log = createLogger({ module: 'auth', requestId: req.id })
-log.info('User signed in', { userId: user.id })
-log.error('Sign-in failed', { email, reason: 'invalid-password' })
+const log = createLogger({ module: "auth", requestId: req.id });
+log.info("User signed in", { userId: user.id });
+log.error("Sign-in failed", { email, reason: "invalid-password" });
 ```
 
 Every entry produced by this logger will include `module` and `requestId` automatically.
@@ -2576,35 +2773,38 @@ Every entry produced by this logger will include `module` and `requestId` automa
 Full logger class for advanced usage.
 
 ```ts
-import { Logger } from '@revealui/utils'
+import { Logger } from "@revealui/utils";
 
 const log = new Logger({
-  level: 'debug',
-  pretty: true,              // human-readable output in dev
-  destination: 'console',    // 'console' | 'file' | 'remote'
-  remoteUrl: 'https://...',  // required when destination='remote'
-  onLog: (entry) => { /* custom handler */ },
-})
+  level: "debug",
+  pretty: true, // human-readable output in dev
+  destination: "console", // 'console' | 'file' | 'remote'
+  remoteUrl: "https://...", // required when destination='remote'
+  onLog: (entry) => {
+    /* custom handler */
+  },
+});
 
 // Methods: debug, info, warn, error, fatal
-log.debug('Processing request', { path })
-log.info('Collection queried', { slug, count })
-log.warn('Rate limit approaching', { key, remaining: 5 })
-log.error('DB query failed', { query, error })
-log.fatal('Unrecoverable error — shutting down')
+log.debug("Processing request", { path });
+log.info("Collection queried", { slug, count });
+log.warn("Rate limit approaching", { key, remaining: 5 });
+log.error("DB query failed", { query, error });
+log.fatal("Unrecoverable error — shutting down");
 ```
 
 **`LoggerConfig`:**
+
 ```ts
 interface LoggerConfig {
-  level?: LogLevel            // minimum level to output (default: 'info')
-  enabled?: boolean           // set false to silence (default: true)
-  pretty?: boolean            // human-readable vs JSON output
-  includeTimestamp?: boolean  // prepend ISO timestamp (default: true)
-  includeStack?: boolean      // include stack traces on errors
-  destination?: 'console' | 'file' | 'remote'
-  remoteUrl?: string          // required when destination='remote'
-  onLog?: (entry: LogEntry) => void
+  level?: LogLevel; // minimum level to output (default: 'info')
+  enabled?: boolean; // set false to silence (default: true)
+  pretty?: boolean; // human-readable vs JSON output
+  includeTimestamp?: boolean; // prepend ISO timestamp (default: true)
+  includeStack?: boolean; // include stack traces on errors
+  destination?: "console" | "file" | "remote";
+  remoteUrl?: string; // required when destination='remote'
+  onLog?: (entry: LogEntry) => void;
 }
 ```
 
@@ -2615,8 +2815,8 @@ interface LoggerConfig {
 Creates a child logger that inherits all parent configuration and context, merging in additional fields.
 
 ```ts
-const requestLog = logger.child({ requestId: req.id, userId: session.userId })
-requestLog.info('Request received', { method: req.method, path: req.url })
+const requestLog = logger.child({ requestId: req.id, userId: session.userId });
+requestLog.info("Request received", { method: req.method, path: req.url });
 ```
 
 Child loggers share parent handlers (e.g. remote transport).
@@ -2644,10 +2844,10 @@ try {
 Logs an audit event at `info` level. Use for security-sensitive operations.
 
 ```ts
-import { logAudit } from '@revealui/utils'
+import { logAudit } from "@revealui/utils";
 
-logAudit('user.password_changed', { userId, ipAddress })
-logAudit('admin.collection_deleted', { userId, collection: 'posts' })
+logAudit("user.password_changed", { userId, ipAddress });
+logAudit("admin.collection_deleted", { userId, collection: "posts" });
 ```
 
 ---
@@ -2657,11 +2857,13 @@ logAudit('admin.collection_deleted', { userId, collection: 'posts' })
 Logs a database query at `debug` level with execution time.
 
 ```ts
-import { logQuery } from '@revealui/utils'
+import { logQuery } from "@revealui/utils";
 
-const start = performance.now()
-const result = await db.select().from(posts)
-logQuery('SELECT * FROM posts', performance.now() - start, { count: result.length })
+const start = performance.now();
+const result = await db.select().from(posts);
+logQuery("SELECT * FROM posts", performance.now() - start, {
+  count: result.length,
+});
 ```
 
 ---
@@ -2669,24 +2871,24 @@ logQuery('SELECT * FROM posts', performance.now() - start, { count: result.lengt
 ### Types
 
 ```ts
-type LogLevel = 'debug' | 'info' | 'warn' | 'error' | 'fatal'
+type LogLevel = "debug" | "info" | "warn" | "error" | "fatal";
 
 interface LogContext {
-  [key: string]: unknown
-  userId?: string
-  requestId?: string
-  sessionId?: string
-  traceId?: string
-  spanId?: string
+  [key: string]: unknown;
+  userId?: string;
+  requestId?: string;
+  sessionId?: string;
+  traceId?: string;
+  spanId?: string;
 }
 
 interface LogEntry {
-  timestamp: string
-  level: LogLevel
-  message: string
-  context?: LogContext
-  error?: { name: string; message: string; stack?: string }
-  metadata?: Record<string, unknown>
+  timestamp: string;
+  level: LogLevel;
+  message: string;
+  context?: LogContext;
+  error?: { name: string; message: string; stack?: string };
+  metadata?: Record<string, unknown>;
 }
 ```
 
@@ -2699,19 +2901,20 @@ interface LogEntry {
 Returns an SSL config object suitable for passing to node-postgres. Handles Neon, Supabase, and standard Postgres connection strings.
 
 ```ts
-import { getSSLConfig } from '@revealui/utils'
+import { getSSLConfig } from "@revealui/utils";
 
 const pool = new Pool({
   connectionString: process.env.POSTGRES_URL,
   ssl: getSSLConfig(process.env.POSTGRES_URL),
-})
+});
 ```
 
 **`SSLConfig`:**
+
 ```ts
 interface SSLConfig {
-  rejectUnauthorized: boolean
-  ca?: string
+  rejectUnauthorized: boolean;
+  ca?: string;
 }
 ```
 
@@ -2722,9 +2925,9 @@ interface SSLConfig {
 Validates an SSL config object. Throws if the config is malformed.
 
 ```ts
-import { validateSSLConfig } from '@revealui/utils'
+import { validateSSLConfig } from "@revealui/utils";
 
-validateSSLConfig({ rejectUnauthorized: true })
+validateSSLConfig({ rejectUnauthorized: true });
 ```
 
 ---
@@ -2736,15 +2939,16 @@ validateSSLConfig({ rejectUnauthorized: true })
 Zod schema for validating password strength. Used by `@revealui/auth`.
 
 ```ts
-import { passwordSchema } from '@revealui/utils'
+import { passwordSchema } from "@revealui/utils";
 
-const result = passwordSchema.safeParse(userInput)
+const result = passwordSchema.safeParse(userInput);
 if (!result.success) {
   // result.error.issues → list of failing rules
 }
 ```
 
 **Rules enforced:**
+
 - Minimum 12 characters
 - At least one uppercase letter
 - At least one lowercase letter
@@ -2752,7 +2956,7 @@ if (!result.success) {
 - At least one special character
 
 ```ts
-type Password = z.infer<typeof passwordSchema>
+type Password = z.infer<typeof passwordSchema>;
 ```
 
 ---
@@ -2775,11 +2979,11 @@ npm install @revealui/auth
 
 ## Subpath Exports
 
-| Import path | Environment | Purpose |
-|-------------|-------------|---------|
-| `@revealui/auth` | Both | Re-exports server + react + types |
-| `@revealui/auth/server` | Server only | All server-side auth functions |
-| `@revealui/auth/react` | Client only | React hooks (useSession, useSignIn, etc.) |
+| Import path             | Environment | Purpose                                   |
+| ----------------------- | ----------- | ----------------------------------------- |
+| `@revealui/auth`        | Both        | Re-exports server + react + types         |
+| `@revealui/auth/server` | Server only | All server-side auth functions            |
+| `@revealui/auth/react`  | Client only | React hooks (useSession, useSignIn, etc.) |
 
 ---
 
@@ -2790,12 +2994,12 @@ npm install @revealui/auth
 Authenticates a user with email and password. Records failed attempts for brute-force protection.
 
 ```ts
-import { signIn } from '@revealui/auth/server'
+import { signIn } from "@revealui/auth/server";
 
-const result = await signIn('user@example.com', 'password123', {
-  userAgent: req.headers.get('user-agent') ?? undefined,
-  ipAddress: '127.0.0.1',
-})
+const result = await signIn("user@example.com", "password123", {
+  userAgent: req.headers.get("user-agent") ?? undefined,
+  ipAddress: "127.0.0.1",
+});
 
 if (result.success) {
   // Set session cookie with result.sessionToken
@@ -2811,12 +3015,13 @@ if (result.success) {
 | `options.ipAddress` | `string?` | Client IP for session tracking |
 
 **Returns:** `Promise<SignInResult>`
+
 ```ts
 interface SignInResult {
-  success: boolean
-  user?: User
-  sessionToken?: string
-  error?: string
+  success: boolean;
+  user?: User;
+  sessionToken?: string;
+  error?: string;
 }
 ```
 
@@ -2827,12 +3032,12 @@ interface SignInResult {
 Creates a new user account with hashed password. Returns a session token on success.
 
 ```ts
-import { signUp } from '@revealui/auth/server'
+import { signUp } from "@revealui/auth/server";
 
-const result = await signUp('user@example.com', 'SecureP@ss1', 'Jane Doe', {
+const result = await signUp("user@example.com", "SecureP@ss1", "Jane Doe", {
   tosAcceptedAt: new Date(),
-  tosVersion: '2025-01',
-})
+  tosVersion: "2025-01",
+});
 ```
 
 **Parameters:**
@@ -2855,10 +3060,10 @@ const result = await signUp('user@example.com', 'SecureP@ss1', 'Jane Doe', {
 Checks if an email is allowed to register (not blocked, not already taken).
 
 ```ts
-import { isSignupAllowed } from '@revealui/auth/server'
+import { isSignupAllowed } from "@revealui/auth/server";
 
-if (!isSignupAllowed('user@example.com')) {
-  throw new Error('Registration not allowed for this email')
+if (!isSignupAllowed("user@example.com")) {
+  throw new Error("Registration not allowed for this email");
 }
 ```
 
@@ -2873,13 +3078,13 @@ if (!isSignupAllowed('user@example.com')) {
 Creates a new session and returns the raw token (to set as a cookie).
 
 ```ts
-import { createSession } from '@revealui/auth/server'
+import { createSession } from "@revealui/auth/server";
 
 const { token, session } = await createSession(user.id, {
-  persistent: true,   // 7-day expiry (vs 1-day for non-persistent)
-  userAgent: 'Mozilla/5.0...',
-  ipAddress: '192.168.1.1',
-})
+  persistent: true, // 7-day expiry (vs 1-day for non-persistent)
+  userAgent: "Mozilla/5.0...",
+  ipAddress: "192.168.1.1",
+});
 
 // Set cookie: revealui-session=<token>
 ```
@@ -2893,20 +3098,21 @@ const { token, session } = await createSession(user.id, {
 Retrieves the current session from the `revealui-session` cookie in the request headers.
 
 ```ts
-import { getSession } from '@revealui/auth/server'
+import { getSession } from "@revealui/auth/server";
 
-const session = await getSession(request.headers)
+const session = await getSession(request.headers);
 if (!session) {
-  return new Response('Unauthorized', { status: 401 })
+  return new Response("Unauthorized", { status: 401 });
 }
 // session.user, session.session available
 ```
 
 **Returns:** `Promise<SessionData | null>`
+
 ```ts
 interface SessionData {
-  session: Session
-  user: User
+  session: Session;
+  user: User;
 }
 ```
 
@@ -2917,9 +3123,9 @@ interface SessionData {
 Deletes the session identified by the cookie in the request headers.
 
 ```ts
-import { deleteSession } from '@revealui/auth/server'
+import { deleteSession } from "@revealui/auth/server";
 
-await deleteSession(request.headers) // returns true if deleted
+await deleteSession(request.headers); // returns true if deleted
 ```
 
 **Returns:** `Promise<boolean>`
@@ -2931,9 +3137,9 @@ await deleteSession(request.headers) // returns true if deleted
 Deletes all sessions for a user (e.g., after password change or account compromise).
 
 ```ts
-import { deleteAllUserSessions } from '@revealui/auth/server'
+import { deleteAllUserSessions } from "@revealui/auth/server";
 
-await deleteAllUserSessions(user.id)
+await deleteAllUserSessions(user.id);
 ```
 
 ---
@@ -2945,10 +3151,14 @@ await deleteAllUserSessions(user.id)
 Builds the OAuth authorization URL for a given provider.
 
 ```ts
-import { buildAuthUrl, generateOAuthState } from '@revealui/auth/server'
+import { buildAuthUrl, generateOAuthState } from "@revealui/auth/server";
 
-const { state, cookieValue } = generateOAuthState('github', '/dashboard')
-const url = buildAuthUrl('github', 'https://app.example.com/auth/callback/github', state)
+const { state, cookieValue } = generateOAuthState("github", "/dashboard");
+const url = buildAuthUrl(
+  "github",
+  "https://app.example.com/auth/callback/github",
+  state,
+);
 // Redirect user to url, set state cookie to cookieValue
 ```
 
@@ -2961,14 +3171,14 @@ const url = buildAuthUrl('github', 'https://app.example.com/auth/callback/github
 CSRF protection for OAuth flows. Generate a state param before redirect, verify it on callback.
 
 ```ts
-import { generateOAuthState, verifyOAuthState } from '@revealui/auth/server'
+import { generateOAuthState, verifyOAuthState } from "@revealui/auth/server";
 
 // Before redirect
-const { state, cookieValue } = generateOAuthState('github', '/dashboard')
+const { state, cookieValue } = generateOAuthState("github", "/dashboard");
 
 // On callback
-const verified = verifyOAuthState(callbackState, storedCookieValue)
-if (!verified) throw new Error('Invalid OAuth state')
+const verified = verifyOAuthState(callbackState, storedCookieValue);
+if (!verified) throw new Error("Invalid OAuth state");
 // verified.provider, verified.redirectTo
 ```
 
@@ -2987,12 +3197,13 @@ Exchanges an authorization code for an access token.
 Fetches the authenticated user's profile from the OAuth provider.
 
 **Returns:** `Promise<ProviderUser>`
+
 ```ts
 interface ProviderUser {
-  id: string
-  email: string | null
-  name: string
-  avatarUrl: string | null
+  id: string;
+  email: string | null;
+  name: string;
+  avatarUrl: string | null;
 }
 ```
 
@@ -3011,13 +3222,13 @@ Creates or updates a user from OAuth login. If the email already exists, links t
 Link or unlink an OAuth provider to an existing authenticated user's account.
 
 ```ts
-import { linkOAuthAccount, unlinkOAuthAccount } from '@revealui/auth/server'
+import { linkOAuthAccount, unlinkOAuthAccount } from "@revealui/auth/server";
 
 // Link GitHub to current user
-await linkOAuthAccount(user.id, 'github', providerUser)
+await linkOAuthAccount(user.id, "github", providerUser);
 
 // Unlink GitHub
-await unlinkOAuthAccount(user.id, 'github')
+await unlinkOAuthAccount(user.id, "github");
 ```
 
 ---
@@ -3027,9 +3238,9 @@ await unlinkOAuthAccount(user.id, 'github')
 Returns all OAuth providers linked to a user account.
 
 ```ts
-import { getLinkedProviders } from '@revealui/auth/server'
+import { getLinkedProviders } from "@revealui/auth/server";
 
-const providers = await getLinkedProviders(user.id)
+const providers = await getLinkedProviders(user.id);
 // [{ provider: 'github', providerEmail: 'user@github.com', providerName: 'Jane' }]
 ```
 
@@ -3044,22 +3255,23 @@ const providers = await getLinkedProviders(user.id)
 Records a failed login attempt. After `maxAttempts` within the window, the account is locked.
 
 ```ts
-import { recordFailedAttempt, isAccountLocked } from '@revealui/auth/server'
+import { recordFailedAttempt, isAccountLocked } from "@revealui/auth/server";
 
-await recordFailedAttempt('user@example.com')
+await recordFailedAttempt("user@example.com");
 
-const status = await isAccountLocked('user@example.com')
+const status = await isAccountLocked("user@example.com");
 if (status.locked) {
   // Account locked until status.lockUntil
 }
 ```
 
 **Config defaults:**
+
 ```ts
 interface BruteForceConfig {
-  maxAttempts: number     // default: 5
-  lockDurationMs: number  // default: 15 minutes
-  windowMs: number        // default: 15 minutes
+  maxAttempts: number; // default: 5
+  lockDurationMs: number; // default: 15 minutes
+  windowMs: number; // default: 15 minutes
 }
 ```
 
@@ -3086,15 +3298,15 @@ Returns the current number of failed attempts.
 Checks if a rate limit key has remaining capacity.
 
 ```ts
-import { checkRateLimit } from '@revealui/auth/server'
+import { checkRateLimit } from "@revealui/auth/server";
 
 const limit = await checkRateLimit(`login:${ip}`, {
   maxAttempts: 10,
-  windowMs: 60_000,    // 1 minute
-})
+  windowMs: 60_000, // 1 minute
+});
 
 if (!limit.allowed) {
-  return new Response('Too many requests', { status: 429 })
+  return new Response("Too many requests", { status: 429 });
 }
 ```
 
@@ -3123,9 +3335,9 @@ Returns current rate limit status without consuming an attempt.
 Generates a password reset token and stores it in the database. Send the token to the user via email.
 
 ```ts
-import { generatePasswordResetToken } from '@revealui/auth/server'
+import { generatePasswordResetToken } from "@revealui/auth/server";
 
-const result = await generatePasswordResetToken('user@example.com')
+const result = await generatePasswordResetToken("user@example.com");
 if (result.success) {
   // Send email with result.token and result.tokenId
 }
@@ -3148,9 +3360,9 @@ Validates a password reset token without consuming it. Returns the user ID if va
 Resets the user's password and invalidates the token.
 
 ```ts
-import { resetPasswordWithToken } from '@revealui/auth/server'
+import { resetPasswordWithToken } from "@revealui/auth/server";
 
-const result = await resetPasswordWithToken(tokenId, token, 'NewSecureP@ss1')
+const result = await resetPasswordWithToken(tokenId, token, "NewSecureP@ss1");
 if (result.success) {
   // Password updated, redirect to login
 }
@@ -3171,17 +3383,18 @@ Manually invalidates a password reset token.
 Validates password against strength requirements (min 8 chars, uppercase, lowercase, digit, special char).
 
 ```ts
-import { validatePasswordStrength } from '@revealui/auth/server'
+import { validatePasswordStrength } from "@revealui/auth/server";
 
-const result = validatePasswordStrength('weak')
+const result = validatePasswordStrength("weak");
 // { valid: false, errors: ['at least 8 characters', 'at least one uppercase letter', ...] }
 ```
 
 **Returns:** `PasswordValidationResult`
+
 ```ts
 interface PasswordValidationResult {
-  valid: boolean
-  errors: string[]
+  valid: boolean;
+  errors: string[];
 }
 ```
 
@@ -3200,25 +3413,26 @@ Quick boolean check — returns `true` if the password passes all strength requi
 Returns the current authenticated session, with loading and error states.
 
 ```tsx
-import { useSession } from '@revealui/auth/react'
+import { useSession } from "@revealui/auth/react";
 
 function ProfileButton() {
-  const { data, isLoading } = useSession()
+  const { data, isLoading } = useSession();
 
-  if (isLoading) return <Spinner />
-  if (!data) return <a href="/login">Sign in</a>
+  if (isLoading) return <Spinner />;
+  if (!data) return <a href="/login">Sign in</a>;
 
-  return <span>Hello, {data.user.name}</span>
+  return <span>Hello, {data.user.name}</span>;
 }
 ```
 
 **Returns:** `UseSessionResult`
+
 ```ts
 interface UseSessionResult {
-  data: AuthSession | null  // { session, user }
-  isLoading: boolean
-  error: Error | null
-  refetch: () => Promise<void>
+  data: AuthSession | null; // { session, user }
+  isLoading: boolean;
+  error: Error | null;
+  refetch: () => Promise<void>;
 }
 ```
 
@@ -3229,18 +3443,18 @@ interface UseSessionResult {
 Provides a `signIn` function for email/password authentication.
 
 ```tsx
-import { useSignIn } from '@revealui/auth/react'
+import { useSignIn } from "@revealui/auth/react";
 
 function LoginForm() {
-  const { signIn, isLoading } = useSignIn()
+  const { signIn, isLoading } = useSignIn();
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
-    e.preventDefault()
-    const result = await signIn({ email, password })
-    if (result.success) router.push('/dashboard')
-  }
+    e.preventDefault();
+    const result = await signIn({ email, password });
+    if (result.success) router.push("/dashboard");
+  };
 
-  return <form onSubmit={handleSubmit}>...</form>
+  return <form onSubmit={handleSubmit}>...</form>;
 }
 ```
 
@@ -3251,17 +3465,17 @@ function LoginForm() {
 Provides a `signUp` function for new account registration.
 
 ```tsx
-import { useSignUp } from '@revealui/auth/react'
+import { useSignUp } from "@revealui/auth/react";
 
 function RegisterForm() {
-  const { signUp, isLoading } = useSignUp()
+  const { signUp, isLoading } = useSignUp();
 
   const result = await signUp({
-    email: 'user@example.com',
-    password: 'SecureP@ss1',
-    name: 'Jane Doe',
+    email: "user@example.com",
+    password: "SecureP@ss1",
+    name: "Jane Doe",
     tosAccepted: true,
-  })
+  });
 }
 ```
 
@@ -3272,11 +3486,15 @@ function RegisterForm() {
 Provides a `signOut` function that deletes the current session.
 
 ```tsx
-import { useSignOut } from '@revealui/auth/react'
+import { useSignOut } from "@revealui/auth/react";
 
 function LogoutButton() {
-  const { signOut, isLoading } = useSignOut()
-  return <button onClick={signOut} disabled={isLoading}>Sign out</button>
+  const { signOut, isLoading } = useSignOut();
+  return (
+    <button onClick={signOut} disabled={isLoading}>
+      Sign out
+    </button>
+  );
 }
 ```
 
@@ -3284,22 +3502,22 @@ function LogoutButton() {
 
 ## Error Classes
 
-| Class | Code | When |
-|-------|------|------|
-| `AuthError` | varies | Base class for all auth errors |
-| `AuthenticationError` | `AUTHENTICATION_ERROR` | Invalid credentials |
-| `SessionError` | `SESSION_ERROR` | Invalid or expired session |
-| `TokenError` | `TOKEN_ERROR` | Invalid reset/verification token |
-| `DatabaseError` | `DATABASE_ERROR` | Database operation failed |
+| Class                       | Code                     | When                                          |
+| --------------------------- | ------------------------ | --------------------------------------------- |
+| `AuthError`                 | varies                   | Base class for all auth errors                |
+| `AuthenticationError`       | `AUTHENTICATION_ERROR`   | Invalid credentials                           |
+| `SessionError`              | `SESSION_ERROR`          | Invalid or expired session                    |
+| `TokenError`                | `TOKEN_ERROR`            | Invalid reset/verification token              |
+| `DatabaseError`             | `DATABASE_ERROR`         | Database operation failed                     |
 | `OAuthAccountConflictError` | `OAUTH_ACCOUNT_CONFLICT` | OAuth email already linked to another account |
 
 All error classes extend `AuthError` which extends `Error`. Each includes a `code` string and optional `statusCode` number.
 
 ```ts
-import { AuthenticationError, SessionError } from '@revealui/auth/server'
+import { AuthenticationError, SessionError } from "@revealui/auth/server";
 
 try {
-  await signIn(email, password)
+  await signIn(email, password);
 } catch (err) {
   if (err instanceof AuthenticationError) {
     // Invalid credentials
@@ -3315,17 +3533,17 @@ try {
 
 ```ts
 interface User {
-  id: string
-  name: string
-  email: string | null
-  avatarUrl: string | null
-  role: string
-  status: string
-  emailVerified: boolean
-  preferences: unknown
-  createdAt: Date
-  updatedAt: Date
-  lastActiveAt: Date | null
+  id: string;
+  name: string;
+  email: string | null;
+  avatarUrl: string | null;
+  role: string;
+  status: string;
+  emailVerified: boolean;
+  preferences: unknown;
+  createdAt: Date;
+  updatedAt: Date;
+  lastActiveAt: Date | null;
 }
 ```
 
@@ -3333,14 +3551,14 @@ interface User {
 
 ```ts
 interface Session {
-  id: string
-  userId: string
-  userAgent: string | null
-  ipAddress: string | null
-  persistent: boolean | null
-  lastActivityAt: Date
-  createdAt: Date
-  expiresAt: Date
+  id: string;
+  userId: string;
+  userAgent: string | null;
+  ipAddress: string | null;
+  persistent: boolean | null;
+  lastActivityAt: Date;
+  createdAt: Date;
+  expiresAt: Date;
 }
 ```
 
@@ -3348,8 +3566,8 @@ interface Session {
 
 ```ts
 interface AuthSession {
-  session: Session
-  user: User
+  session: Session;
+  user: User;
 }
 ```
 
@@ -3383,32 +3601,32 @@ npm install @revealui/router
 
 ## Subpath Exports
 
-| Import path | Environment | Purpose |
-|-------------|-------------|---------|
-| `@revealui/router` | Both | Components, hooks, Router class |
-| `@revealui/router/server` | Server only | SSR rendering utilities |
+| Import path               | Environment | Purpose                         |
+| ------------------------- | ----------- | ------------------------------- |
+| `@revealui/router`        | Both        | Components, hooks, Router class |
+| `@revealui/router/server` | Server only | SSR rendering utilities         |
 
 ---
 
 ## Setup
 
 ```tsx
-import { Router, RouterProvider, Routes } from '@revealui/router'
+import { Router, RouterProvider, Routes } from "@revealui/router";
 
-const router = new Router({ basePath: '' })
+const router = new Router({ basePath: "" });
 
 router.registerRoutes([
-  { path: '/',           component: HomePage },
-  { path: '/about',      component: AboutPage },
-  { path: '/posts/:id',  component: PostPage },
-])
+  { path: "/", component: HomePage },
+  { path: "/about", component: AboutPage },
+  { path: "/posts/:id", component: PostPage },
+]);
 
 export function App() {
   return (
     <RouterProvider router={router}>
       <Routes />
     </RouterProvider>
-  )
+  );
 }
 ```
 
@@ -3421,17 +3639,18 @@ export function App() {
 Creates a router instance. Pass it to `<RouterProvider>`.
 
 ```ts
-import { Router } from '@revealui/router'
+import { Router } from "@revealui/router";
 
 const router = new Router({
-  basePath: '/app',  // optional URL prefix
-})
+  basePath: "/app", // optional URL prefix
+});
 ```
 
 **`RouterOptions`:**
+
 ```ts
 interface RouterOptions {
-  basePath?: string  // strip this prefix from all matched paths
+  basePath?: string; // strip this prefix from all matched paths
 }
 ```
 
@@ -3443,20 +3662,21 @@ Registers a single route.
 
 ```ts
 router.register({
-  path: '/posts/:id',
+  path: "/posts/:id",
   component: PostPage,
   loader: async ({ params }) => {
-    return fetch(`/api/posts/${params.id}`).then(r => r.json())
+    return fetch(`/api/posts/${params.id}`).then((r) => r.json());
   },
-})
+});
 ```
 
 **`Route`:**
+
 ```ts
 interface Route {
-  path: string
-  component: React.ComponentType
-  loader?: (match: RouteMatch) => Promise<unknown>
+  path: string;
+  component: React.ComponentType;
+  loader?: (match: RouteMatch) => Promise<unknown>;
 }
 ```
 
@@ -3468,9 +3688,9 @@ Registers multiple routes at once.
 
 ```ts
 router.registerRoutes([
-  { path: '/', component: Home },
-  { path: '/about', component: About },
-])
+  { path: "/", component: Home },
+  { path: "/about", component: About },
+]);
 ```
 
 ---
@@ -3480,15 +3700,16 @@ router.registerRoutes([
 Matches a URL string against registered routes. Returns a `RouteMatch` or `null`.
 
 ```ts
-const match = router.match('/posts/42')
+const match = router.match("/posts/42");
 // { route: { path: '/posts/:id', ... }, params: { id: '42' } }
 ```
 
 **`RouteMatch`:**
+
 ```ts
 interface RouteMatch {
-  route: Route
-  params: RouteParams          // e.g. { id: '42' }
+  route: Route;
+  params: RouteParams; // e.g. { id: '42' }
 }
 ```
 
@@ -3499,16 +3720,17 @@ interface RouteMatch {
 Programmatically navigate to a URL. Updates `window.history`.
 
 ```ts
-router.navigate('/dashboard')
-router.navigate('/login', { replace: true })     // replaces history entry
-router.navigate('/settings', { state: { tab: 'billing' } })
+router.navigate("/dashboard");
+router.navigate("/login", { replace: true }); // replaces history entry
+router.navigate("/settings", { state: { tab: "billing" } });
 ```
 
 **`NavigateOptions`:**
+
 ```ts
 interface NavigateOptions {
-  replace?: boolean
-  state?: unknown
+  replace?: boolean;
+  state?: unknown;
 }
 ```
 
@@ -3520,11 +3742,11 @@ Listen for route changes (e.g. to sync with external state).
 
 ```ts
 const cleanup = router.subscribe(() => {
-  console.log('Route changed to', window.location.pathname)
-})
+  console.log("Route changed to", window.location.pathname);
+});
 
 // Later:
-cleanup()
+cleanup();
 ```
 
 ---
@@ -3536,11 +3758,11 @@ cleanup()
 Provides the router instance to all child components via context. Wrap your entire app.
 
 ```tsx
-import { RouterProvider } from '@revealui/router'
+import { RouterProvider } from "@revealui/router";
 
 <RouterProvider router={router}>
   <App />
-</RouterProvider>
+</RouterProvider>;
 ```
 
 ---
@@ -3550,7 +3772,7 @@ import { RouterProvider } from '@revealui/router'
 Renders the component matched by the current URL. Place this where you want page content to appear.
 
 ```tsx
-import { Routes } from '@revealui/router'
+import { Routes } from "@revealui/router";
 
 function Layout() {
   return (
@@ -3560,7 +3782,7 @@ function Layout() {
         <Routes />
       </main>
     </div>
-  )
+  );
 }
 ```
 
@@ -3584,10 +3806,10 @@ import { Link } from '@revealui/router'
 Declarative redirect. Navigates on render.
 
 ```tsx
-import { Navigate } from '@revealui/router'
+import { Navigate } from "@revealui/router";
 
 if (!user) {
-  return <Navigate to="/login" />
+  return <Navigate to="/login" />;
 }
 ```
 
@@ -3600,10 +3822,10 @@ if (!user) {
 Returns the `Router` instance from context.
 
 ```ts
-import { useRouter } from '@revealui/router'
+import { useRouter } from "@revealui/router";
 
-const router = useRouter()
-router.navigate('/settings')
+const router = useRouter();
+router.navigate("/settings");
 ```
 
 ---
@@ -3613,13 +3835,13 @@ router.navigate('/settings')
 Returns a `navigate` function bound to the current router.
 
 ```ts
-import { useNavigate } from '@revealui/router'
+import { useNavigate } from "@revealui/router";
 
-const navigate = useNavigate()
+const navigate = useNavigate();
 
 function handleSubmit() {
-  await savePost()
-  navigate('/posts')
+  await savePost();
+  navigate("/posts");
 }
 ```
 
@@ -3630,10 +3852,10 @@ function handleSubmit() {
 Returns the dynamic route parameters from the current match.
 
 ```ts
-import { useParams } from '@revealui/router'
+import { useParams } from "@revealui/router";
 
 // Route: /posts/:id
-const { id } = useParams<{ id: string }>()
+const { id } = useParams<{ id: string }>();
 ```
 
 ---
@@ -3643,9 +3865,9 @@ const { id } = useParams<{ id: string }>()
 Returns the current `RouteMatch` object (route + params).
 
 ```ts
-import { useMatch } from '@revealui/router'
+import { useMatch } from "@revealui/router";
 
-const match = useMatch()
+const match = useMatch();
 // { route: { path: '/posts/:id', ... }, params: { id: '42' } }
 ```
 
@@ -3656,10 +3878,10 @@ const match = useMatch()
 Returns the data resolved by the current route's `loader` function.
 
 ```ts
-import { useData } from '@revealui/router'
+import { useData } from "@revealui/router";
 
 // Route loader: async ({ params }) => fetchPost(params.id)
-const post = useData<Post>()
+const post = useData<Post>();
 ```
 
 ---
@@ -3673,29 +3895,33 @@ Import from `@revealui/router/server`. The router integrates with Hono for SSR.
 Creates a Hono request handler that matches the URL, runs the route loader, renders to an HTML string (or streams), and inlines loader data for hydration. Uses `react-dom/server` under the hood.
 
 ```ts
-import { createSSRHandler } from '@revealui/router/server'
-import { Hono } from 'hono'
-import { routes } from './routes'
+import { createSSRHandler } from "@revealui/router/server";
+import { Hono } from "hono";
+import { routes } from "./routes";
 
-const app = new Hono()
-app.get('*', createSSRHandler(routes, {
-  template: (html, data) => `<!DOCTYPE html>
-<html><head><title>${data?.title ?? 'App'}</title></head>
+const app = new Hono();
+app.get(
+  "*",
+  createSSRHandler(routes, {
+    template: (html, data) => `<!DOCTYPE html>
+<html><head><title>${data?.title ?? "App"}</title></head>
 <body><div id="root">${html}</div>
 <script type="module" src="/src/client.tsx"></script>
 </body></html>`,
-}))
+  }),
+);
 ```
 
 **`SSROptions`:**
+
 ```ts
 interface SSROptions {
   /** HTML template function — receives rendered HTML + loader data */
-  template?: (html: string, data?: Record<string, unknown>) => string
+  template?: (html: string, data?: Record<string, unknown>) => string;
   /** Enable streaming SSR via renderToPipeableStream */
-  streaming?: boolean
+  streaming?: boolean;
   /** Error handler */
-  onError?: (error: Error, context: Context) => void
+  onError?: (error: Error, context: Context) => void;
 }
 ```
 
@@ -3706,10 +3932,10 @@ interface SSROptions {
 Starts a local development server with HMR support. Wraps Hono + Vite middleware.
 
 ```ts
-import { createDevServer } from '@revealui/router/server'
-import { routes } from './routes'
+import { createDevServer } from "@revealui/router/server";
+import { routes } from "./routes";
 
-await createDevServer(routes, { port: 3000 })
+await createDevServer(routes, { port: 3000 });
 ```
 
 ---
@@ -3720,9 +3946,9 @@ Hydrates the server-rendered HTML on the client. Call this in your client entry 
 
 ```ts
 // src/client.tsx
-import { hydrate } from '@revealui/router/server'
+import { hydrate } from "@revealui/router/server";
 
-await hydrate()  // auto-detects router + #root element
+await hydrate(); // auto-detects router + #root element
 ```
 
 ---
@@ -3730,7 +3956,13 @@ await hydrate()  // auto-detects router + #root element
 ## Types
 
 ```ts
-import type { Route, RouteMatch, RouteParams, RouterOptions, NavigateOptions } from '@revealui/router'
+import type {
+  Route,
+  RouteMatch,
+  RouteParams,
+  RouterOptions,
+  NavigateOptions,
+} from "@revealui/router";
 ```
 
 ---
@@ -3800,12 +4032,11 @@ The CLI walks through five configuration steps:
 
 ## Templates
 
-| Template | Description | Tier |
-|----------|-------------|------|
-| `basic-blog` | Blog with posts, pages, media, and REST API | Free |
+| Template     | Description                                                  | Tier |
+| ------------ | ------------------------------------------------------------ | ---- |
+| `basic-blog` | Blog with posts, pages, media, and REST API                  | Free |
 | `e-commerce` | Store with products, Stripe checkout, and license management | Free |
-| `portfolio` | Portfolio site with projects and contact form | Free |
-
+| `portfolio`  | Portfolio site with projects and contact form                | Free |
 
 ---
 
@@ -3894,33 +4125,34 @@ The CMS will be at `http://localhost:4000` and the API at `http://localhost:3004
 The CLI can be used programmatically (e.g. in tests or custom tooling):
 
 ```ts
-import { createProject } from '@revealui/cli'
+import { createProject } from "@revealui/cli";
 
 await createProject({
   project: {
-    projectName: 'my-app',
-    projectPath: '/tmp/my-app',
-    template: 'basic-blog',
+    projectName: "my-app",
+    projectPath: "/tmp/my-app",
+    template: "basic-blog",
   },
-  database: { url: 'postgresql://localhost/myapp' },
-  storage: { blobToken: '' },
-  payment: { secretKey: '', publishableKey: '', webhookSecret: '' },
-  devenv: { packageManager: 'pnpm', useNix: false, useDocker: false },
+  database: { url: "postgresql://localhost/myapp" },
+  storage: { blobToken: "" },
+  payment: { secretKey: "", publishableKey: "", webhookSecret: "" },
+  devenv: { packageManager: "pnpm", useNix: false, useDocker: false },
   skipGit: true,
   skipInstall: true,
-})
+});
 ```
 
 **`CreateProjectConfig`:**
+
 ```ts
 interface CreateProjectConfig {
-  project: ProjectConfig
-  database: DatabaseConfig
-  storage: StorageConfig
-  payment: PaymentConfig
-  devenv: DevEnvConfig
-  skipGit?: boolean      // don't run git init (default: false)
-  skipInstall?: boolean  // don't run pnpm install (default: false)
+  project: ProjectConfig;
+  database: DatabaseConfig;
+  storage: StorageConfig;
+  payment: PaymentConfig;
+  devenv: DevEnvConfig;
+  skipGit?: boolean; // don't run git init (default: false)
+  skipInstall?: boolean; // don't run pnpm install (default: false)
 }
 ```
 
@@ -3944,12 +4176,12 @@ npm install @revealui/setup
 
 ## Subpath Exports
 
-| Import path | Purpose |
-|-------------|---------|
-| `@revealui/setup` | All exports (environment, utils, validators) |
+| Import path                   | Purpose                                                  |
+| ----------------------------- | -------------------------------------------------------- |
+| `@revealui/setup`             | All exports (environment, utils, validators)             |
 | `@revealui/setup/environment` | Secret generators, env file parsing, setup orchestration |
-| `@revealui/setup/utils` | Logger utility |
-| `@revealui/setup/validators` | Env variable validation, built-in validators |
+| `@revealui/setup/utils`       | Logger utility                                           |
+| `@revealui/setup/validators`  | Env variable validation, built-in validators             |
 
 ---
 
@@ -3961,17 +4193,17 @@ Import from `@revealui/setup` or `@revealui/setup/environment`.
 
 Generates a cryptographically secure random hex string using `crypto.randomBytes`.
 
-| Parameter | Type | Default | Description |
-|-----------|------|---------|-------------|
-| `length` | `number` | `32` | Length in bytes (output is 2x in hex chars) |
+| Parameter | Type     | Default | Description                                 |
+| --------- | -------- | ------- | ------------------------------------------- |
+| `length`  | `number` | `32`    | Length in bytes (output is 2x in hex chars) |
 
 **Returns:** `string` — hex-encoded random secret.
 
 ```ts
-import { generateSecret } from '@revealui/setup'
+import { generateSecret } from "@revealui/setup";
 
-const secret = generateSecret()    // 64 hex chars (32 bytes)
-const short = generateSecret(16)   // 32 hex chars (16 bytes)
+const secret = generateSecret(); // 64 hex chars (32 bytes)
+const short = generateSecret(16); // 32 hex chars (16 bytes)
 ```
 
 ---
@@ -3980,17 +4212,17 @@ const short = generateSecret(16)   // 32 hex chars (16 bytes)
 
 Generates a random password with alphanumeric and special characters using `crypto.randomBytes`.
 
-| Parameter | Type | Default | Description |
-|-----------|------|---------|-------------|
-| `length` | `number` | `16` | Password length in characters |
+| Parameter | Type     | Default | Description                   |
+| --------- | -------- | ------- | ----------------------------- |
+| `length`  | `number` | `16`    | Password length in characters |
 
 **Returns:** `string` — random password containing `a-zA-Z0-9!@#$%^&*`.
 
 ```ts
-import { generatePassword } from '@revealui/setup'
+import { generatePassword } from "@revealui/setup";
 
-const password = generatePassword()    // 16-char password
-const strong = generatePassword(32)    // 32-char password
+const password = generatePassword(); // 16-char password
+const strong = generatePassword(32); // 32-char password
 ```
 
 ---
@@ -4001,19 +4233,19 @@ const strong = generatePassword(32)    // 32-char password
 
 Replaces or appends an environment variable in `.env` file content. If the key exists, its value is replaced in-place. If it does not exist, a new line is appended.
 
-| Parameter | Type | Description |
-|-----------|------|-------------|
+| Parameter | Type     | Description                  |
+| --------- | -------- | ---------------------------- |
 | `content` | `string` | Original `.env` file content |
-| `key` | `string` | Environment variable name |
-| `value` | `string` | New value |
+| `key`     | `string` | Environment variable name    |
+| `value`   | `string` | New value                    |
 
 **Returns:** `string` — updated `.env` file content.
 
 ```ts
-import { updateEnvValue } from '@revealui/setup'
+import { updateEnvValue } from "@revealui/setup";
 
-let env = 'DB_URL=old_value\nAPI_KEY=abc'
-env = updateEnvValue(env, 'DB_URL', 'postgresql://localhost/myapp')
+let env = "DB_URL=old_value\nAPI_KEY=abc";
+env = updateEnvValue(env, "DB_URL", "postgresql://localhost/myapp");
 // DB_URL=postgresql://localhost/myapp
 // API_KEY=abc
 ```
@@ -4024,16 +4256,18 @@ env = updateEnvValue(env, 'DB_URL', 'postgresql://localhost/myapp')
 
 Parses `.env` file content into a key-value object. Skips comments (`#`) and empty lines.
 
-| Parameter | Type | Description |
-|-----------|------|-------------|
+| Parameter | Type     | Description             |
+| --------- | -------- | ----------------------- |
 | `content` | `string` | Raw `.env` file content |
 
 **Returns:** `Record<string, string>` — parsed environment variables.
 
 ```ts
-import { parseEnvContent } from '@revealui/setup'
+import { parseEnvContent } from "@revealui/setup";
 
-const env = parseEnvContent('DB_URL=postgresql://...\n# comment\nAPI_KEY=abc123')
+const env = parseEnvContent(
+  "DB_URL=postgresql://...\n# comment\nAPI_KEY=abc123",
+);
 // { DB_URL: 'postgresql://...', API_KEY: 'abc123' }
 ```
 
@@ -4047,41 +4281,43 @@ Import from `@revealui/setup` or `@revealui/setup/validators`.
 
 Validates environment variables against a list of required variable definitions.
 
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `required` | `EnvVariable[]` | Variable definitions with names, descriptions, and optional validators |
-| `env` | `Record<string, string \| undefined>` | Environment object to validate (e.g. `process.env`) |
+| Parameter  | Type                                  | Description                                                            |
+| ---------- | ------------------------------------- | ---------------------------------------------------------------------- |
+| `required` | `EnvVariable[]`                       | Variable definitions with names, descriptions, and optional validators |
+| `env`      | `Record<string, string \| undefined>` | Environment object to validate (e.g. `process.env`)                    |
 
 **`EnvVariable`:**
+
 ```ts
 interface EnvVariable {
-  name: string
-  description: string
-  required: boolean
-  validator?: (value: string) => boolean
+  name: string;
+  description: string;
+  required: boolean;
+  validator?: (value: string) => boolean;
 }
 ```
 
 **Returns:**
+
 ```ts
 interface ValidationResult {
-  valid: boolean
-  missing: string[]
-  invalid: string[]
+  valid: boolean;
+  missing: string[];
+  invalid: string[];
 }
 ```
 
 ```ts
-import { validateEnv } from '@revealui/setup'
+import { validateEnv } from "@revealui/setup";
 
 const result = validateEnv(
-  [{ name: 'DB_URL', description: 'Database URL', required: true }],
+  [{ name: "DB_URL", description: "Database URL", required: true }],
   process.env,
-)
+);
 
 if (!result.valid) {
-  console.error('Missing:', result.missing)
-  console.error('Invalid:', result.invalid)
+  console.error("Missing:", result.missing);
+  console.error("Invalid:", result.invalid);
 }
 ```
 
@@ -4091,25 +4327,25 @@ if (!result.valid) {
 
 Pre-defined list of required environment variables for RevealUI projects.
 
-| Variable | Description | Validator |
-|----------|-------------|-----------|
-| `REVEALUI_SECRET` | Secret key for session encryption | `minLength(32)` |
-| `POSTGRES_URL` | PostgreSQL connection string | `postgresUrl` |
-| `BLOB_READ_WRITE_TOKEN` | Vercel Blob storage token | — |
-| `STRIPE_SECRET_KEY` | Stripe secret key | `stripeSecretKey` |
-| `NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY` | Stripe publishable key | `stripePublishableKey` |
+| Variable                             | Description                       | Validator              |
+| ------------------------------------ | --------------------------------- | ---------------------- |
+| `REVEALUI_SECRET`                    | Secret key for session encryption | `minLength(32)`        |
+| `POSTGRES_URL`                       | PostgreSQL connection string      | `postgresUrl`          |
+| `BLOB_READ_WRITE_TOKEN`              | Vercel Blob storage token         | —                      |
+| `STRIPE_SECRET_KEY`                  | Stripe secret key                 | `stripeSecretKey`      |
+| `NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY` | Stripe publishable key            | `stripePublishableKey` |
 
 ### `OPTIONAL_ENV_VARS`
 
 Pre-defined list of optional environment variables.
 
-| Variable | Description | Validator |
-|----------|-------------|-----------|
-| `STRIPE_WEBHOOK_SECRET` | Stripe webhook secret | — |
-| `NEXT_PUBLIC_SUPABASE_URL` | Supabase project URL | `url` |
-| `NEXT_PUBLIC_SUPABASE_ANON_KEY` | Supabase anonymous key | — |
-| `REVEALUI_ADMIN_EMAIL` | Initial admin email | `email` |
-| `REVEALUI_ADMIN_PASSWORD` | Initial admin password | `minLength(12)` |
+| Variable                        | Description            | Validator       |
+| ------------------------------- | ---------------------- | --------------- |
+| `STRIPE_WEBHOOK_SECRET`         | Stripe webhook secret  | —               |
+| `NEXT_PUBLIC_SUPABASE_URL`      | Supabase project URL   | `url`           |
+| `NEXT_PUBLIC_SUPABASE_ANON_KEY` | Supabase anonymous key | —               |
+| `REVEALUI_ADMIN_EMAIL`          | Initial admin email    | `email`         |
+| `REVEALUI_ADMIN_PASSWORD`       | Initial admin password | `minLength(12)` |
 
 ---
 
@@ -4119,38 +4355,39 @@ Pre-defined list of optional environment variables.
 
 Interactive (or non-interactive) environment setup wizard. Copies `.env.template`, auto-generates secrets, prompts for missing values, and validates the result.
 
-| Parameter | Type | Default | Description |
-|-----------|------|---------|-------------|
-| `options.projectRoot` | `string` | — | Project root directory (required) |
-| `options.templatePath` | `string` | `<projectRoot>/.env.template` | Path to template file |
-| `options.outputPath` | `string` | `<projectRoot>/.env.development.local` | Output path |
-| `options.force` | `boolean` | `false` | Overwrite existing output file |
-| `options.generateOnly` | `boolean` | `false` | Only generate secrets, skip prompts |
-| `options.interactive` | `boolean` | `true` | Prompt for missing values |
-| `options.customVariables` | `EnvVariable[]` | `REQUIRED_ENV_VARS` | Custom variable definitions |
-| `options.logger` | `Logger` | Default logger | Logger instance |
+| Parameter                 | Type            | Default                                | Description                         |
+| ------------------------- | --------------- | -------------------------------------- | ----------------------------------- |
+| `options.projectRoot`     | `string`        | —                                      | Project root directory (required)   |
+| `options.templatePath`    | `string`        | `<projectRoot>/.env.template`          | Path to template file               |
+| `options.outputPath`      | `string`        | `<projectRoot>/.env.development.local` | Output path                         |
+| `options.force`           | `boolean`       | `false`                                | Overwrite existing output file      |
+| `options.generateOnly`    | `boolean`       | `false`                                | Only generate secrets, skip prompts |
+| `options.interactive`     | `boolean`       | `true`                                 | Prompt for missing values           |
+| `options.customVariables` | `EnvVariable[]` | `REQUIRED_ENV_VARS`                    | Custom variable definitions         |
+| `options.logger`          | `Logger`        | Default logger                         | Logger instance                     |
 
 **Returns:**
+
 ```ts
 interface SetupEnvironmentResult {
-  success: boolean
-  envPath: string
-  missing: string[]
-  invalid: string[]
+  success: boolean;
+  envPath: string;
+  missing: string[];
+  invalid: string[];
 }
 ```
 
 ```ts
-import { setupEnvironment } from '@revealui/setup'
+import { setupEnvironment } from "@revealui/setup";
 
 const result = await setupEnvironment({
-  projectRoot: '/path/to/project',
+  projectRoot: "/path/to/project",
   interactive: false,
   generateOnly: true,
-})
+});
 
 if (result.success) {
-  console.log(`Env written to ${result.envPath}`)
+  console.log(`Env written to ${result.envPath}`);
 }
 ```
 
@@ -4164,37 +4401,38 @@ Import from `@revealui/setup` or `@revealui/setup/utils`.
 
 Creates a structured logger with color support, level filtering, and progress bars.
 
-| Parameter | Type | Default | Description |
-|-----------|------|---------|-------------|
-| `options.level` | `'debug' \| 'info' \| 'warn' \| 'error' \| 'silent'` | `process.env.LOG_LEVEL` or `'info'` | Minimum log level |
-| `options.prefix` | `string` | `''` | Prefix label (e.g. `'Setup'`) |
-| `options.colors` | `boolean` | Auto-detected from TTY | Enable ANSI colors |
-| `options.timestamps` | `boolean` | `false` | Include ISO timestamps |
+| Parameter            | Type                                                 | Default                             | Description                   |
+| -------------------- | ---------------------------------------------------- | ----------------------------------- | ----------------------------- |
+| `options.level`      | `'debug' \| 'info' \| 'warn' \| 'error' \| 'silent'` | `process.env.LOG_LEVEL` or `'info'` | Minimum log level             |
+| `options.prefix`     | `string`                                             | `''`                                | Prefix label (e.g. `'Setup'`) |
+| `options.colors`     | `boolean`                                            | Auto-detected from TTY              | Enable ANSI colors            |
+| `options.timestamps` | `boolean`                                            | `false`                             | Include ISO timestamps        |
 
 **Returns:**
+
 ```ts
 interface Logger {
-  debug(msg: string, ...args: unknown[]): void
-  info(msg: string, ...args: unknown[]): void
-  warn(msg: string, ...args: unknown[]): void
-  error(msg: string, ...args: unknown[]): void
-  success(msg: string, ...args: unknown[]): void
-  header(msg: string): void
-  divider(): void
-  table(data: Record<string, unknown>[]): void
-  group(label: string): void
-  groupEnd(): void
-  progress(current: number, total: number, label?: string): void
+  debug(msg: string, ...args: unknown[]): void;
+  info(msg: string, ...args: unknown[]): void;
+  warn(msg: string, ...args: unknown[]): void;
+  error(msg: string, ...args: unknown[]): void;
+  success(msg: string, ...args: unknown[]): void;
+  header(msg: string): void;
+  divider(): void;
+  table(data: Record<string, unknown>[]): void;
+  group(label: string): void;
+  groupEnd(): void;
+  progress(current: number, total: number, label?: string): void;
 }
 ```
 
 ```ts
-import { createLogger } from '@revealui/setup'
+import { createLogger } from "@revealui/setup";
 
-const logger = createLogger({ level: 'info', prefix: 'MyScript' })
-logger.info('Starting process...')
-logger.success('Done!')
-logger.progress(3, 10, 'Processing files')
+const logger = createLogger({ level: "info", prefix: "MyScript" });
+logger.info("Starting process...");
+logger.success("Done!");
+logger.progress(3, 10, "Processing files");
 ```
 
 ---
@@ -4216,11 +4454,11 @@ npm install @revealui/sync
 
 ## Subpath Exports
 
-| Import path | Purpose |
-|-------------|---------|
-| `@revealui/sync` | All client-side exports (hooks, provider, collab) |
-| `@revealui/sync/provider` | `ElectricProvider`, `useElectricConfig` |
-| `@revealui/sync/collab` | `CollabProvider`, `useCollaboration`, `useCollabDocument` |
+| Import path                    | Purpose                                                                              |
+| ------------------------------ | ------------------------------------------------------------------------------------ |
+| `@revealui/sync`               | All client-side exports (hooks, provider, collab)                                    |
+| `@revealui/sync/provider`      | `ElectricProvider`, `useElectricConfig`                                              |
+| `@revealui/sync/collab`        | `CollabProvider`, `useCollaboration`, `useCollabDocument`                            |
 | `@revealui/sync/collab/server` | Server-side: `AgentCollabClient`, `createAgentClient`, `createAndConnectAgentClient` |
 
 ---
@@ -4232,26 +4470,23 @@ npm install @revealui/sync
 React context provider that supplies ElectricSQL configuration to all child sync hooks.
 
 ```tsx
-import { ElectricProvider } from '@revealui/sync'
+import { ElectricProvider } from "@revealui/sync";
 
 function App() {
   return (
-    <ElectricProvider
-      proxyBaseUrl="https://cms.revealui.com"
-      debug={false}
-    >
+    <ElectricProvider proxyBaseUrl="https://cms.revealui.com" debug={false}>
       <MyApp />
     </ElectricProvider>
-  )
+  );
 }
 ```
 
-| Prop | Type | Default | Description |
-|------|------|---------|-------------|
-| `children` | `ReactNode` | — | Child components (required) |
-| `serviceUrl` | `string` | `null` | Direct Electric service URL (stored for future use) |
-| `proxyBaseUrl` | `string` | `''` | Base URL for authenticated CMS proxy routes |
-| `debug` | `boolean` | `false` | Enable debug mode |
+| Prop           | Type        | Default | Description                                         |
+| -------------- | ----------- | ------- | --------------------------------------------------- |
+| `children`     | `ReactNode` | —       | Child components (required)                         |
+| `serviceUrl`   | `string`    | `null`  | Direct Electric service URL (stored for future use) |
+| `proxyBaseUrl` | `string`    | `''`    | Base URL for authenticated CMS proxy routes         |
+| `debug`        | `boolean`   | `false` | Enable debug mode                                   |
 
 ---
 
@@ -4260,11 +4495,12 @@ function App() {
 Accesses the ElectricSQL configuration from the nearest `ElectricProvider`.
 
 **Returns:**
+
 ```ts
 interface ElectricContextValue {
-  serviceUrl: string | null
-  proxyBaseUrl: string
-  debug: boolean
+  serviceUrl: string | null;
+  proxyBaseUrl: string;
+  debug: boolean;
 }
 ```
 
@@ -4279,19 +4515,20 @@ Yjs-based real-time collaboration over WebSocket.
 WebSocket-backed Yjs sync provider for browser clients. Manages document synchronization and user awareness (cursors, presence).
 
 ```ts
-import { CollabProvider } from '@revealui/sync'
-import * as Y from 'yjs'
+import { CollabProvider } from "@revealui/sync";
+import * as Y from "yjs";
 
-const doc = new Y.Doc()
+const doc = new Y.Doc();
 const provider = new CollabProvider(serverUrl, documentId, doc, {
   initialState: savedState, // optional Uint8Array
-})
+});
 
-provider.setLocalIdentity({ name: 'Alice', color: '#ff0000', type: 'human' })
-provider.connect()
+provider.setLocalIdentity({ name: "Alice", color: "#ff0000", type: "human" });
+provider.connect();
 ```
 
 **Constructor:**
+
 ```ts
 new CollabProvider(
   serverUrl: string,
@@ -4304,13 +4541,14 @@ new CollabProvider(
 **Events:** `sync` (boolean), `status` ({ status: string }), `awareness` (Map of UserPresence).
 
 **`UserPresence`:**
+
 ```ts
 interface UserPresence {
-  name: string
-  color: string
-  type: 'human' | 'agent'
-  agentModel?: string
-  cursor?: { index: number; length: number }
+  name: string;
+  color: string;
+  type: "human" | "agent";
+  agentModel?: string;
+  cursor?: { index: number; length: number };
 }
 ```
 
@@ -4320,49 +4558,51 @@ interface UserPresence {
 
 React hook that manages a collaborative editing session. Creates a Yjs document, connects a `CollabProvider`, and tracks sync state and connected users.
 
-| Parameter | Type | Default | Description |
-|-----------|------|---------|-------------|
-| `options.documentId` | `string` | — | Document identifier (required) |
-| `options.serverUrl` | `string` | — | WebSocket server URL (required) |
-| `options.enabled` | `boolean` | `true` | Enable/disable the connection |
-| `options.initialState` | `Uint8Array \| null` | `null` | Initial Yjs document state |
-| `options.identity` | `CollaborationIdentity` | — | Local user identity for presence |
+| Parameter              | Type                    | Default | Description                      |
+| ---------------------- | ----------------------- | ------- | -------------------------------- |
+| `options.documentId`   | `string`                | —       | Document identifier (required)   |
+| `options.serverUrl`    | `string`                | —       | WebSocket server URL (required)  |
+| `options.enabled`      | `boolean`               | `true`  | Enable/disable the connection    |
+| `options.initialState` | `Uint8Array \| null`    | `null`  | Initial Yjs document state       |
+| `options.identity`     | `CollaborationIdentity` | —       | Local user identity for presence |
 
 **`CollaborationIdentity`:**
+
 ```ts
 interface CollaborationIdentity {
-  name: string
-  color: string
-  type?: 'human' | 'agent'
-  agentModel?: string
+  name: string;
+  color: string;
+  type?: "human" | "agent";
+  agentModel?: string;
 }
 ```
 
 **Returns:**
+
 ```ts
 interface UseCollaborationResult {
-  doc: Y.Doc | null
-  provider: CollabProvider | null
-  synced: boolean
-  status: string           // 'disconnected' | 'connecting' | 'connected'
-  error: Error | null
-  connectedUsers: Map<number, UserPresence>
+  doc: Y.Doc | null;
+  provider: CollabProvider | null;
+  synced: boolean;
+  status: string; // 'disconnected' | 'connecting' | 'connected'
+  error: Error | null;
+  connectedUsers: Map<number, UserPresence>;
 }
 ```
 
 ```tsx
-import { useCollaboration } from '@revealui/sync'
+import { useCollaboration } from "@revealui/sync";
 
 function Editor({ docId }: { docId: string }) {
   const { doc, synced, connectedUsers } = useCollaboration({
     documentId: docId,
-    serverUrl: 'wss://collab.revealui.com',
-    identity: { name: 'Alice', color: '#ff6600' },
-  })
+    serverUrl: "wss://collab.revealui.com",
+    identity: { name: "Alice", color: "#ff6600" },
+  });
 
-  if (!synced) return <p>Connecting...</p>
+  if (!synced) return <p>Connecting...</p>;
 
-  return <RichTextEditor yDoc={doc} />
+  return <RichTextEditor yDoc={doc} />;
 }
 ```
 
@@ -4372,31 +4612,32 @@ function Editor({ docId }: { docId: string }) {
 
 React hook that fetches a collaborative document's persisted state via ElectricSQL shape subscription. Use the returned `initialState` to hydrate a `CollabProvider` or `useCollaboration`.
 
-| Parameter | Type | Description |
-|-----------|------|-------------|
+| Parameter    | Type     | Description          |
+| ------------ | -------- | -------------------- |
 | `documentId` | `string` | UUID of the document |
 
 **Returns:**
+
 ```ts
 interface CollabDocumentState {
-  initialState: Uint8Array | null
-  connectedClients: number
-  isLoading: boolean
-  error: Error | null
+  initialState: Uint8Array | null;
+  connectedClients: number;
+  isLoading: boolean;
+  error: Error | null;
 }
 ```
 
 ```tsx
-import { useCollabDocument, useCollaboration } from '@revealui/sync'
+import { useCollabDocument, useCollaboration } from "@revealui/sync";
 
 function LiveEditor({ docId }: { docId: string }) {
-  const { initialState, isLoading } = useCollabDocument(docId)
+  const { initialState, isLoading } = useCollabDocument(docId);
   const { doc, synced } = useCollaboration({
     documentId: docId,
-    serverUrl: 'wss://collab.revealui.com',
+    serverUrl: "wss://collab.revealui.com",
     enabled: !isLoading,
     initialState,
-  })
+  });
 
   // ...
 }
@@ -4415,60 +4656,67 @@ Import from `@revealui/sync/collab/server`.
 Full-featured Yjs collaboration client for server-side agents. Supports document editing, awareness (presence), auto-reconnect, and sync waiting.
 
 ```ts
-import { AgentCollabClient } from '@revealui/sync/collab/server'
+import { AgentCollabClient } from "@revealui/sync/collab/server";
 
 const client = new AgentCollabClient({
-  serverUrl: 'wss://collab.revealui.com',
-  documentId: 'doc-uuid',
-  identity: { type: 'agent', name: 'Claude', model: 'claude-opus-4', color: '#8B5CF6' },
-  authToken: 'session-token',
+  serverUrl: "wss://collab.revealui.com",
+  documentId: "doc-uuid",
+  identity: {
+    type: "agent",
+    name: "Claude",
+    model: "claude-opus-4",
+    color: "#8B5CF6",
+  },
+  authToken: "session-token",
   autoReconnect: true,
-  defaultTextName: 'content',
-})
+  defaultTextName: "content",
+});
 
-client.connect()
-await client.waitForSync(5000)
+client.connect();
+await client.waitForSync(5000);
 
 // Read and write
-const content = client.getTextContent()
-client.replaceAll('New document content')
-client.insertText(0, 'Prefix: ')
-client.deleteText(0, 8)
+const content = client.getTextContent();
+client.replaceAll("New document content");
+client.insertText(0, "Prefix: ");
+client.deleteText(0, 8);
 
 // Listen for remote changes
-const unsub = client.onUpdate((update) => { /* ... */ })
+const unsub = client.onUpdate((update) => {
+  /* ... */
+});
 
 // Cleanup
-client.destroy()
+client.destroy();
 ```
 
 **Constructor options:**
 
-| Parameter | Type | Default | Description |
-|-----------|------|---------|-------------|
-| `serverUrl` | `string` | — | WebSocket server URL (required) |
-| `documentId` | `string` | — | Document UUID (required) |
-| `identity` | `AgentIdentity` | — | Agent identity for presence (required) |
-| `authToken` | `string` | — | Authentication token |
-| `autoReconnect` | `boolean` | `true` | Auto-reconnect on disconnect |
-| `defaultTextName` | `string` | `'content'` | Default Yjs Text type name |
+| Parameter         | Type            | Default     | Description                            |
+| ----------------- | --------------- | ----------- | -------------------------------------- |
+| `serverUrl`       | `string`        | —           | WebSocket server URL (required)        |
+| `documentId`      | `string`        | —           | Document UUID (required)               |
+| `identity`        | `AgentIdentity` | —           | Agent identity for presence (required) |
+| `authToken`       | `string`        | —           | Authentication token                   |
+| `autoReconnect`   | `boolean`       | `true`      | Auto-reconnect on disconnect           |
+| `defaultTextName` | `string`        | `'content'` | Default Yjs Text type name             |
 
 **Key methods:**
 
-| Method | Returns | Description |
-|--------|---------|-------------|
-| `connect()` | `void` | Open WebSocket connection |
-| `disconnect()` | `void` | Close connection |
-| `waitForSync(timeoutMs?)` | `Promise<void>` | Wait for initial sync (default 5s timeout) |
-| `getText(name?)` | `Y.Text` | Get a named Yjs Text type |
-| `getTextContent(name?)` | `string` | Get text content as string |
-| `insertText(index, content, name?)` | `void` | Insert text at position |
-| `deleteText(index, length, name?)` | `void` | Delete text at position |
-| `replaceAll(content, name?)` | `void` | Replace all text content (transactional) |
-| `onUpdate(callback)` | `() => void` | Subscribe to remote updates (returns unsubscribe) |
-| `getConnectedUsers()` | `Map<number, Record<string, unknown>>` | Get connected users from awareness |
-| `getDocument()` | `Y.Doc` | Access the underlying Yjs document |
-| `destroy()` | `void` | Clean up all resources |
+| Method                              | Returns                                | Description                                       |
+| ----------------------------------- | -------------------------------------- | ------------------------------------------------- |
+| `connect()`                         | `void`                                 | Open WebSocket connection                         |
+| `disconnect()`                      | `void`                                 | Close connection                                  |
+| `waitForSync(timeoutMs?)`           | `Promise<void>`                        | Wait for initial sync (default 5s timeout)        |
+| `getText(name?)`                    | `Y.Text`                               | Get a named Yjs Text type                         |
+| `getTextContent(name?)`             | `string`                               | Get text content as string                        |
+| `insertText(index, content, name?)` | `void`                                 | Insert text at position                           |
+| `deleteText(index, length, name?)`  | `void`                                 | Delete text at position                           |
+| `replaceAll(content, name?)`        | `void`                                 | Replace all text content (transactional)          |
+| `onUpdate(callback)`                | `() => void`                           | Subscribe to remote updates (returns unsubscribe) |
+| `getConnectedUsers()`               | `Map<number, Record<string, unknown>>` | Get connected users from awareness                |
+| `getDocument()`                     | `Y.Doc`                                | Access the underlying Yjs document                |
+| `destroy()`                         | `void`                                 | Clean up all resources                            |
 
 ---
 
@@ -4476,30 +4724,30 @@ client.destroy()
 
 Factory function that creates an `AgentCollabClient` with sensible defaults.
 
-| Parameter | Type | Default | Description |
-|-----------|------|---------|-------------|
-| `options.serverUrl` | `string` | — | WebSocket server URL (required) |
-| `options.documentId` | `string` | — | Document UUID (required) |
-| `options.name` | `string` | `'AI Agent'` | Agent display name |
-| `options.model` | `string` | `'unknown'` | LLM model identifier |
-| `options.color` | `string` | `'#8B5CF6'` | Presence cursor color |
-| `options.authToken` | `string` | — | Authentication token |
-| `options.autoReconnect` | `boolean` | `true` | Auto-reconnect on disconnect |
-| `options.defaultTextName` | `string` | `'content'` | Default Yjs Text type name |
+| Parameter                 | Type      | Default      | Description                     |
+| ------------------------- | --------- | ------------ | ------------------------------- |
+| `options.serverUrl`       | `string`  | —            | WebSocket server URL (required) |
+| `options.documentId`      | `string`  | —            | Document UUID (required)        |
+| `options.name`            | `string`  | `'AI Agent'` | Agent display name              |
+| `options.model`           | `string`  | `'unknown'`  | LLM model identifier            |
+| `options.color`           | `string`  | `'#8B5CF6'`  | Presence cursor color           |
+| `options.authToken`       | `string`  | —            | Authentication token            |
+| `options.autoReconnect`   | `boolean` | `true`       | Auto-reconnect on disconnect    |
+| `options.defaultTextName` | `string`  | `'content'`  | Default Yjs Text type name      |
 
 ```ts
-import { createAgentClient } from '@revealui/sync/collab/server'
+import { createAgentClient } from "@revealui/sync/collab/server";
 
 const client = createAgentClient({
-  serverUrl: 'wss://collab.revealui.com',
-  documentId: 'doc-uuid',
-  name: 'Claude',
-  model: 'claude-opus-4',
-  authToken: 'session-token',
-})
+  serverUrl: "wss://collab.revealui.com",
+  documentId: "doc-uuid",
+  name: "Claude",
+  model: "claude-opus-4",
+  authToken: "session-token",
+});
 
-client.connect()
-await client.waitForSync()
+client.connect();
+await client.waitForSync();
 ```
 
 ---
@@ -4509,17 +4757,17 @@ await client.waitForSync()
 Convenience wrapper that creates a client, connects, and waits for sync in one call. Accepts all `CreateAgentClientOptions` plus an optional `syncTimeoutMs` (default: 5000).
 
 ```ts
-import { createAndConnectAgentClient } from '@revealui/sync/collab/server'
+import { createAndConnectAgentClient } from "@revealui/sync/collab/server";
 
 const client = await createAndConnectAgentClient({
-  serverUrl: 'wss://collab.revealui.com',
-  documentId: 'doc-uuid',
-  name: 'Claude',
-  model: 'claude-opus-4',
+  serverUrl: "wss://collab.revealui.com",
+  documentId: "doc-uuid",
+  name: "Claude",
+  model: "claude-opus-4",
   syncTimeoutMs: 10_000,
-})
+});
 
-const content = client.getTextContent()
+const content = client.getTextContent();
 ```
 
 ---
@@ -4533,17 +4781,18 @@ React hooks for real-time data subscriptions via ElectricSQL shapes. Reads are l
 Low-level hook that returns `create`, `update`, and `remove` mutation functions for a given sync API endpoint. Used internally by the data hooks below.
 
 **Returns:**
+
 ```ts
 {
-  create: (data: TCreate) => Promise<MutationResult<TRecord>>
-  update: (id: string, data: TUpdate) => Promise<MutationResult<TRecord>>
-  remove: (id: string) => Promise<MutationResult<void>>
+  create: (data: TCreate) => Promise<MutationResult<TRecord>>;
+  update: (id: string, data: TUpdate) => Promise<MutationResult<TRecord>>;
+  remove: (id: string) => Promise<MutationResult<void>>;
 }
 
 interface MutationResult<T = unknown> {
-  success: boolean
-  data?: T
-  error?: string
+  success: boolean;
+  data?: T;
+  error?: string;
 }
 ```
 
@@ -4554,32 +4803,40 @@ interface MutationResult<T = unknown> {
 Subscribes to the current user's conversations via ElectricSQL. The `userId` parameter is kept for API compatibility; actual filtering is enforced server-side by the session cookie.
 
 **Returns:**
+
 ```ts
 interface UseConversationsResult {
-  conversations: ConversationRecord[]
-  isLoading: boolean
-  error: Error | null
-  create: (data: CreateConversationInput) => Promise<MutationResult<ConversationRecord>>
-  update: (id: string, data: UpdateConversationInput) => Promise<MutationResult<ConversationRecord>>
-  remove: (id: string) => Promise<MutationResult<void>>
+  conversations: ConversationRecord[];
+  isLoading: boolean;
+  error: Error | null;
+  create: (
+    data: CreateConversationInput,
+  ) => Promise<MutationResult<ConversationRecord>>;
+  update: (
+    id: string,
+    data: UpdateConversationInput,
+  ) => Promise<MutationResult<ConversationRecord>>;
+  remove: (id: string) => Promise<MutationResult<void>>;
 }
 ```
 
 ```tsx
-import { useConversations } from '@revealui/sync'
+import { useConversations } from "@revealui/sync";
 
 function ChatList({ userId }: { userId: string }) {
-  const { conversations, create, isLoading } = useConversations(userId)
+  const { conversations, create, isLoading } = useConversations(userId);
 
   const handleNew = async () => {
-    await create({ agent_id: 'claude', title: 'New Chat' })
-  }
+    await create({ agent_id: "claude", title: "New Chat" });
+  };
 
   return (
     <ul>
-      {conversations.map((c) => <li key={c.id}>{c.title}</li>)}
+      {conversations.map((c) => (
+        <li key={c.id}>{c.title}</li>
+      ))}
     </ul>
-  )
+  );
 }
 ```
 
@@ -4590,28 +4847,38 @@ function ChatList({ userId }: { userId: string }) {
 Subscribes to an agent's memory records via ElectricSQL. Validates `agentId` format (alphanumeric, hyphens, underscores).
 
 **Returns:**
+
 ```ts
 interface UseAgentMemoryResult {
-  memories: AgentMemoryRecord[]
-  isLoading: boolean
-  error: Error | null
-  create: (data: CreateAgentMemoryInput) => Promise<MutationResult<AgentMemoryRecord>>
-  update: (id: string, data: UpdateAgentMemoryInput) => Promise<MutationResult<AgentMemoryRecord>>
-  remove: (id: string) => Promise<MutationResult<void>>
+  memories: AgentMemoryRecord[];
+  isLoading: boolean;
+  error: Error | null;
+  create: (
+    data: CreateAgentMemoryInput,
+  ) => Promise<MutationResult<AgentMemoryRecord>>;
+  update: (
+    id: string,
+    data: UpdateAgentMemoryInput,
+  ) => Promise<MutationResult<AgentMemoryRecord>>;
+  remove: (id: string) => Promise<MutationResult<void>>;
 }
 ```
 
 ```tsx
-import { useAgentMemory } from '@revealui/sync'
+import { useAgentMemory } from "@revealui/sync";
 
 function MemoryViewer({ agentId }: { agentId: string }) {
-  const { memories, isLoading } = useAgentMemory(agentId)
+  const { memories, isLoading } = useAgentMemory(agentId);
 
   return (
     <ul>
-      {memories.map((m) => <li key={m.id}>{m.type}: {m.content}</li>)}
+      {memories.map((m) => (
+        <li key={m.id}>
+          {m.type}: {m.content}
+        </li>
+      ))}
     </ul>
-  )
+  );
 }
 ```
 
@@ -4622,14 +4889,20 @@ function MemoryViewer({ agentId }: { agentId: string }) {
 Subscribes to agent context records via ElectricSQL. No parameters required; filtering is session-scoped server-side.
 
 **Returns:**
+
 ```ts
 interface UseAgentContextsResult {
-  contexts: AgentContextRecord[]
-  isLoading: boolean
-  error: Error | null
-  create: (data: CreateAgentContextInput) => Promise<MutationResult<AgentContextRecord>>
-  update: (id: string, data: UpdateAgentContextInput) => Promise<MutationResult<AgentContextRecord>>
-  remove: (id: string) => Promise<MutationResult<void>>
+  contexts: AgentContextRecord[];
+  isLoading: boolean;
+  error: Error | null;
+  create: (
+    data: CreateAgentContextInput,
+  ) => Promise<MutationResult<AgentContextRecord>>;
+  update: (
+    id: string,
+    data: UpdateAgentContextInput,
+  ) => Promise<MutationResult<AgentContextRecord>>;
+  remove: (id: string) => Promise<MutationResult<void>>;
 }
 ```
 

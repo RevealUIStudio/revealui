@@ -62,14 +62,13 @@ export function AccordionItem({
         </svg>
       </button>
       {open && (
-        <div
+        <section
           id={`${id}-content`}
-          role="region"
           aria-labelledby={`${id}-trigger`}
           className="pb-4 text-sm text-zinc-600 dark:text-zinc-400"
         >
           {children}
-        </div>
+        </section>
       )}
     </div>
   );

@@ -17,7 +17,8 @@
   "license": "MIT",
   "author": "RevealUI Team",
   "bin": {
-    "create-revealui": "./bin/create-revealui.js"
+    "create-revealui": "./bin/create-revealui.js",
+    "revealui": "./bin/revealui.js"
   },
   "dependencies": {
     "@revealui/config": "workspace:*",

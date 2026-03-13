@@ -7,6 +7,7 @@ This tutorial walks you from zero to a deployed SaaS product in under an hour. Y
 **Time:** ~45 minutes
 
 **Prerequisites:**
+
 - Node.js 24+
 - pnpm 10+
 - A [NeonDB](https://neon.tech) account (free tier)
@@ -58,52 +59,52 @@ Collections are your business data. You define them in TypeScript; RevealUI gene
 Create `apps/cms/src/collections/products.ts`:
 
 ```typescript
-import { defineCollection, defineField } from '@revealui/core'
+import { defineCollection, defineField } from "@revealui/core";
 
 export const Products = defineCollection({
-  slug: 'products',
+  slug: "products",
   labels: {
-    singular: 'Product',
-    plural: 'Products',
+    singular: "Product",
+    plural: "Products",
   },
   fields: [
     defineField({
-      name: 'name',
-      type: 'text',
+      name: "name",
+      type: "text",
       required: true,
     }),
     defineField({
-      name: 'description',
-      type: 'richText',
+      name: "description",
+      type: "richText",
     }),
     defineField({
-      name: 'price',
-      type: 'number',
+      name: "price",
+      type: "number",
       required: true,
     }),
     defineField({
-      name: 'status',
-      type: 'select',
-      options: ['draft', 'active', 'archived'],
-      defaultValue: 'draft',
+      name: "status",
+      type: "select",
+      options: ["draft", "active", "archived"],
+      defaultValue: "draft",
     }),
   ],
   access: {
     // Anyone can read active products
     read: ({ req, data }) =>
-      data?.status === 'active' || req.user?.role === 'admin',
+      data?.status === "active" || req.user?.role === "admin",
     // Only admins can create/update/delete
-    create: ({ req }) => req.user?.role === 'admin',
-    update: ({ req }) => req.user?.role === 'admin',
-    delete: ({ req }) => req.user?.role === 'admin',
+    create: ({ req }) => req.user?.role === "admin",
+    update: ({ req }) => req.user?.role === "admin",
+    delete: ({ req }) => req.user?.role === "admin",
   },
-})
+});
 ```
 
 Register it in your CMS config (`apps/cms/src/collections/index.ts`):
 
 ```typescript
-export { Products } from './products.js'
+export { Products } from "./products.js";
 ```
 
 Now visit [http://localhost:4000/admin/products](http://localhost:4000/admin/products). You have a full CRUD interface for products — no additional code needed.
@@ -155,18 +156,18 @@ RevealUI ships 50+ UI components. Use them to build a pricing page in your front
 In `apps/mainframe/src/pages/pricing.tsx`:
 
 ```tsx
-import { Card, Badge, Button } from '@revealui/presentation'
+import { Card, Badge, Button } from "@revealui/presentation";
 
 interface Product {
-  id: string
-  name: string
-  price: number
-  description: string
+  id: string;
+  name: string;
+  price: number;
+  description: string;
 }
 
 export async function PricingPage() {
-  const res = await fetch('/api/products?status=active')
-  const { docs: products }: { docs: Product[] } = await res.json()
+  const res = await fetch("/api/products?status=active");
+  const { docs: products }: { docs: Product[] } = await res.json();
 
   return (
     <div className="mx-auto max-w-5xl px-6 py-24">
@@ -184,14 +185,19 @@ export async function PricingPage() {
               ${product.price}
               <span className="text-base font-normal text-gray-500">/mo</span>
             </p>
-            <Button className="mt-8 w-full" href={`/checkout?product=${product.id}`}>
-              {product.price === 0 ? 'Get started free' : `Upgrade to ${product.name}`}
+            <Button
+              className="mt-8 w-full"
+              href={`/checkout?product=${product.id}`}
+            >
+              {product.price === 0
+                ? "Get started free"
+                : `Upgrade to ${product.name}`}
             </Button>
           </Card>
         ))}
       </div>
     </div>
-  )
+  );
 }
 ```
 
@@ -219,14 +225,14 @@ Add a checkout button to your pricing page:
 
 ```tsx
 async function handleUpgrade(product: Product) {
-  const res = await fetch('/api/billing/checkout', {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
+  const res = await fetch("/api/billing/checkout", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
     // Pass the Stripe price ID you created in the Stripe dashboard
     body: JSON.stringify({ priceId: product.stripePriceId }),
-  })
-  const { url } = await res.json()
-  window.location.href = url
+  });
+  const { url } = await res.json();
+  window.location.href = url;
 }
 ```
 
@@ -245,6 +251,24 @@ stripe listen --forward-to localhost:4000/api/webhooks/stripe
 ```
 
 Click "Upgrade to Pro" on your pricing page. Use Stripe test card `4242 4242 4242 4242`. After checkout, the user's license is created in your database automatically.
+
+### Strategic note for 2027+
+
+The launch-month implementation shown above is intentionally simple: Stripe Checkout plus an app-side license record. That is enough to ship, but it should not be your long-term commercial model if you're building for agent-first internet workflows.
+
+RevealUI's target pricing and billing strategy from 2027-2030 is:
+
+- bill the `account` or `workspace` as the primary customer, not individual humans
+- include a baseline subscription with predictable monthly or annual pricing
+- meter agent execution separately using business-readable units like `agent_task`, `workflow_run`, `tool_call`, and `paid_api_call`
+- charge explicit commerce fees for agent-completed orders or paid API invocations rather than hiding them inside seat pricing
+- sell trust, governance, approvals, audit retention, and compliance as a separate premium layer
+
+In practice, that means you should treat the example `priceId`-based flow in this tutorial as a launch path, not the final architecture. The durable model is:
+
+`session -> membership -> account/workspace -> subscription -> entitlements -> meters`
+
+That model is a better fit for agentic commerce than classic per-seat SaaS because agents will increasingly represent the customer's economic activity directly.
 
 ---
 
@@ -271,15 +295,15 @@ export async function GET(req: Request) {
 Or in React:
 
 ```tsx
-import { useSubscription } from '@revealui/auth/client'
+import { useSubscription } from "@revealui/auth/client";
 
 function ProFeature() {
-  const { tier, isLoading } = useSubscription()
+  const { tier, isLoading } = useSubscription();
 
-  if (isLoading) return null
-  if (tier !== 'pro') return <UpgradePrompt />
+  if (isLoading) return null;
+  if (tier !== "pro") return <UpgradePrompt />;
 
-  return <div>Pro-only content</div>
+  return <div>Pro-only content</div>;
 }
 ```
 

@@ -42,6 +42,15 @@ const pricesCache = new LRUCache<string, Stripe.ApiList<Stripe.Price>>({
   ttlMs: 5 * 60 * 1000, // 5 minutes
 });
 
+type StripeProductService = {
+  products: {
+    retrieve(productId: string): Promise<unknown>;
+  };
+  prices: {
+    list(params: { product: string; limit: number }): Promise<unknown>;
+  };
+};
+
 // =============================================================================
 // Validation Helpers
 // =============================================================================
@@ -121,10 +130,13 @@ function validateStripePriceList(priceList: unknown): {
  * @returns Stripe product data
  */
 async function cachedRetrieveProduct(
-  stripe: Awaited<typeof import('@revealui/services')>['protectedStripe'],
+  stripe: StripeProductService,
   productId: string,
 ): Promise<Stripe.Product> {
-  return productCache.fetch(`product_${productId}`, () => stripe.products.retrieve(productId));
+  return productCache.fetch(
+    `product_${productId}`,
+    async () => (await stripe.products.retrieve(productId)) as Stripe.Product,
+  );
 }
 
 /**
@@ -134,14 +146,16 @@ async function cachedRetrieveProduct(
  * @returns Stripe price list
  */
 async function cachedListPrices(
-  stripe: Awaited<typeof import('@revealui/services')>['protectedStripe'],
+  stripe: StripeProductService,
   productId: string,
 ): Promise<Stripe.ApiList<Stripe.Price>> {
-  return pricesCache.fetch(`prices_${productId}`, async () =>
-    stripe.prices.list({
-      product: productId,
-      limit: 100,
-    }),
+  return pricesCache.fetch(
+    `prices_${productId}`,
+    async () =>
+      (await stripe.prices.list({
+        product: productId,
+        limit: 100,
+      })) as Stripe.ApiList<Stripe.Price>,
   );
 }
 

@@ -4,6 +4,14 @@ status: production
 tier: free
 last-verified: 2026-03-11
 
+strategy:
+  billing-owner: "Target model is account/workspace billing, not per-user licenses as primary SaaS entitlements"
+  commercial-layers:
+    - "platform subscriptions"
+    - "metered agent execution"
+    - "commerce-linked fees"
+    - "trust and governance controls"
+
 api-surface:
   health:
     endpoint: "GET /health, /health/live, /health/ready, /health/metrics"
@@ -98,4 +106,13 @@ ui-surface:
     location: "/docs (Swagger UI)"
     status: functional
 
-limitations: []
+limitations:
+  - id: entitlement-model-mismatch
+    surface: api
+    summary: "Billing and purchased licenses exist in the DB, but premium gating still includes legacy process-global license checks"
+  - id: client-controlled-price-ids
+    surface: api
+    summary: "Some billing flows still trust client-supplied Stripe price IDs instead of resolving a server-owned catalog"
+  - id: webhook-idempotency-order
+    surface: api
+    summary: "Stripe webhook processing marks events too early, which can drop entitlement work after a partial failure"

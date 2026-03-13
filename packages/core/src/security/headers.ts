@@ -4,6 +4,8 @@
  * HTTP security headers and CORS policy management
  */
 
+import { defaultLogger } from '../instance/logger.js';
+
 export interface SecurityHeadersConfig {
   contentSecurityPolicy?: string | ContentSecurityPolicyConfig;
   strictTransportSecurity?: boolean | HSTSConfig;
@@ -325,7 +327,7 @@ export class CORSManager {
     // Vary: Origin — required when Access-Control-Allow-Origin is not '*' so caches
     // don't serve a response allowed for origin A to origin B.
     if (this.config.origin !== '*') {
-      headers['Vary'] = 'Origin';
+      headers.Vary = 'Origin';
     }
 
     // Access-Control-Allow-Credentials — incompatible with origin: '*' per Fetch spec
@@ -510,7 +512,7 @@ export const CORSPresets = {
    */
   permissive: (): CORSConfig => {
     if (process.env.NODE_ENV === 'production') {
-      console.warn(
+      defaultLogger.warn(
         '[SecurityPresets] CORS permissive preset used in production — this allows all origins. Use moderate() with explicit origins instead.',
       );
     }
@@ -529,7 +531,7 @@ export const CORSPresets = {
    */
   api: (): CORSConfig => {
     if (process.env.NODE_ENV === 'production') {
-      console.warn(
+      defaultLogger.warn(
         '[SecurityPresets] CORS api preset uses origin:"*". For production, pass explicit origins to moderate() instead.',
       );
     }

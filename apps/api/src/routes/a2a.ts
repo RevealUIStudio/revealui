@@ -282,24 +282,29 @@ a2a.get('/agents/:id', async (c) => {
 });
 
 /** Full agent definition — admin only, requires 'ai' feature */
-a2a.get('/agents/:id/def', authMiddleware({ required: true }), requireFeature('ai'), async (c) => {
-  const aiMod = await getAiModule();
-  if (!aiMod) {
-    return c.json({ error: 'AI package not available' }, 503);
-  }
-  const agentId = c.req.param('id');
-  if (!/^[\w-]{1,256}$/.test(agentId)) {
-    return c.json({ error: 'Invalid agent ID format' }, 400);
-  }
-  const def = aiMod.agentCardRegistry.getDef(agentId);
-  if (!def) {
-    return c.json({ error: `Agent '${agentId}' not found` }, 404);
-  }
-  return c.json({ def });
-});
+a2a.get(
+  '/agents/:id/def',
+  authMiddleware({ required: true }),
+  requireFeature('ai', { mode: 'entitlements' }),
+  async (c) => {
+    const aiMod = await getAiModule();
+    if (!aiMod) {
+      return c.json({ error: 'AI package not available' }, 503);
+    }
+    const agentId = c.req.param('id');
+    if (!/^[\w-]{1,256}$/.test(agentId)) {
+      return c.json({ error: 'Invalid agent ID format' }, 400);
+    }
+    const def = aiMod.agentCardRegistry.getDef(agentId);
+    if (!def) {
+      return c.json({ error: `Agent '${agentId}' not found` }, 404);
+    }
+    return c.json({ def });
+  },
+);
 
 /** Task history for an agent — last 20 actions, requires auth + 'ai' feature */
-a2a.get('/agents/:id/tasks', requireFeature('ai'), async (c) => {
+a2a.get('/agents/:id/tasks', requireFeature('ai', { mode: 'entitlements' }), async (c) => {
   const user = c.get('user');
   if (!user) {
     return c.json({ error: 'Authentication required' }, 401);
@@ -323,115 +328,125 @@ a2a.get('/agents/:id/tasks', requireFeature('ai'), async (c) => {
 });
 
 /** Update an agent's mutable fields — requires auth + 'ai' feature */
-a2a.put('/agents/:id', authMiddleware({ required: true }), requireFeature('ai'), async (c) => {
-  const aiMod = await getAiModule();
-  if (!aiMod) {
-    return c.json({ error: 'AI package not available' }, 503);
-  }
-  const agentId = c.req.param('id');
-  if (!/^[\w-]{1,256}$/.test(agentId)) {
-    return c.json({ error: 'Invalid agent ID format' }, 400);
-  }
-  if (!aiMod.agentCardRegistry.has(agentId)) {
-    return c.json({ error: `Agent '${agentId}' not found` }, 404);
-  }
-
-  let body: unknown;
-  try {
-    body = await c.req.json();
-  } catch {
-    return c.json({ error: 'Invalid JSON' }, 400);
-  }
-
-  if (!body || typeof body !== 'object' || Array.isArray(body)) {
-    return c.json({ error: 'Request body must be a JSON object' }, 400);
-  }
-
-  const allowed = [
-    'name',
-    'description',
-    'systemPrompt',
-    'model',
-    'temperature',
-    'maxTokens',
-    'capabilities',
-  ] as const;
-  const patch: Record<string, unknown> = {};
-  for (const key of allowed) {
-    if (key in (body as Record<string, unknown>)) {
-      patch[key] = (body as Record<string, unknown>)[key];
+a2a.put(
+  '/agents/:id',
+  authMiddleware({ required: true }),
+  requireFeature('ai', { mode: 'entitlements' }),
+  async (c) => {
+    const aiMod = await getAiModule();
+    if (!aiMod) {
+      return c.json({ error: 'AI package not available' }, 503);
     }
-  }
+    const agentId = c.req.param('id');
+    if (!/^[\w-]{1,256}$/.test(agentId)) {
+      return c.json({ error: 'Invalid agent ID format' }, 400);
+    }
+    if (!aiMod.agentCardRegistry.has(agentId)) {
+      return c.json({ error: `Agent '${agentId}' not found` }, 404);
+    }
 
-  aiMod.agentCardRegistry.update(
-    agentId,
-    patch as Parameters<typeof aiMod.agentCardRegistry.update>[1],
-  );
-
-  // Persist update to DB for non-built-in agents (best-effort)
-  if (!BUILTIN_AGENT_IDS.has(agentId)) {
+    let body: unknown;
     try {
-      const updatedDef = aiMod.agentCardRegistry.getDef(agentId);
-      if (updatedDef) {
-        const db = getClient();
-        await db
-          .update(registeredAgents)
-          .set({
-            definition: updatedDef,
-            updatedAt: new Date(),
-          })
-          .where(eq(registeredAgents.id, agentId));
+      body = await c.req.json();
+    } catch {
+      return c.json({ error: 'Invalid JSON' }, 400);
+    }
+
+    if (!body || typeof body !== 'object' || Array.isArray(body)) {
+      return c.json({ error: 'Request body must be a JSON object' }, 400);
+    }
+
+    const allowed = [
+      'name',
+      'description',
+      'systemPrompt',
+      'model',
+      'temperature',
+      'maxTokens',
+      'capabilities',
+    ] as const;
+    const patch: Record<string, unknown> = {};
+    for (const key of allowed) {
+      if (key in (body as Record<string, unknown>)) {
+        patch[key] = (body as Record<string, unknown>)[key];
       }
+    }
+
+    aiMod.agentCardRegistry.update(
+      agentId,
+      patch as Parameters<typeof aiMod.agentCardRegistry.update>[1],
+    );
+
+    // Persist update to DB for non-built-in agents (best-effort)
+    if (!BUILTIN_AGENT_IDS.has(agentId)) {
+      try {
+        const updatedDef = aiMod.agentCardRegistry.getDef(agentId);
+        if (updatedDef) {
+          const db = getClient();
+          await db
+            .update(registeredAgents)
+            .set({
+              definition: updatedDef,
+              updatedAt: new Date(),
+            })
+            .where(eq(registeredAgents.id, agentId));
+        }
+      } catch (err) {
+        // Non-fatal — update is applied in-memory.
+        logger.warn('Agent registry DB update failed (update applied in-memory only)', {
+          agentId,
+          error: err instanceof Error ? err.message : 'unknown',
+        });
+      }
+    }
+
+    const baseUrl = getBaseUrl(c.req.raw);
+    const card = aiMod.agentCardRegistry.getCard(agentId, baseUrl);
+    return c.json({ card });
+  },
+);
+
+/** Retire (unregister) an agent — requires auth; built-in platform agents are protected */
+a2a.delete(
+  '/agents/:id',
+  authMiddleware({ required: true }),
+  requireFeature('ai', { mode: 'entitlements' }),
+  async (c) => {
+    const agentId = c.req.param('id');
+    if (!/^[\w-]{1,256}$/.test(agentId)) {
+      return c.json({ error: 'Invalid agent ID format' }, 400);
+    }
+
+    // Built-in agents cannot be retired
+    if (BUILTIN_AGENT_IDS.has(agentId)) {
+      return c.json({ error: 'Built-in platform agents cannot be retired' }, 403);
+    }
+
+    const aiMod = await getAiModule();
+    if (!aiMod) {
+      return c.json({ error: 'AI package not available' }, 503);
+    }
+
+    const removed = aiMod.agentCardRegistry.unregister(agentId);
+    if (!removed) {
+      return c.json({ error: `Agent '${agentId}' not found` }, 404);
+    }
+
+    // Remove from DB (best-effort)
+    try {
+      const db = getClient();
+      await db.delete(registeredAgents).where(eq(registeredAgents.id, agentId));
     } catch (err) {
-      // Non-fatal — update is applied in-memory.
-      logger.warn('Agent registry DB update failed (update applied in-memory only)', {
+      // Non-fatal — agent is unregistered from in-memory registry.
+      logger.warn('Agent registry DB delete failed (agent removed from in-memory only)', {
         agentId,
         error: err instanceof Error ? err.message : 'unknown',
       });
     }
-  }
 
-  const baseUrl = getBaseUrl(c.req.raw);
-  const card = aiMod.agentCardRegistry.getCard(agentId, baseUrl);
-  return c.json({ card });
-});
-
-/** Retire (unregister) an agent — requires auth; built-in platform agents are protected */
-a2a.delete('/agents/:id', authMiddleware({ required: true }), requireFeature('ai'), async (c) => {
-  const agentId = c.req.param('id');
-  if (!/^[\w-]{1,256}$/.test(agentId)) {
-    return c.json({ error: 'Invalid agent ID format' }, 400);
-  }
-
-  // Built-in agents cannot be retired
-  if (BUILTIN_AGENT_IDS.has(agentId)) {
-    return c.json({ error: 'Built-in platform agents cannot be retired' }, 403);
-  }
-
-  const aiMod = await getAiModule();
-  if (!aiMod) {
-    return c.json({ error: 'AI package not available' }, 503);
-  }
-
-  const removed = aiMod.agentCardRegistry.unregister(agentId);
-  if (!removed) {
-    return c.json({ error: `Agent '${agentId}' not found` }, 404);
-  }
-
-  // Remove from DB (best-effort)
-  try {
-    const db = getClient();
-    await db.delete(registeredAgents).where(eq(registeredAgents.id, agentId));
-  } catch (err) {
-    // Non-fatal — agent is unregistered from in-memory registry.
-    logger.warn('Agent registry DB delete failed (agent removed from in-memory only)', {
-      agentId,
-      error: err instanceof Error ? err.message : 'unknown',
-    });
-  }
-
-  return c.json({ success: true });
-});
+    return c.json({ success: true });
+  },
+);
 
 /**
  * Register a new agent from an AgentDefinition.
@@ -495,7 +510,7 @@ a2a.post('/agents', authMiddleware({ required: true }), async (c) => {
  * This is a simplified polling-based SSE — for a full streaming implementation
  * the AgentRuntime emits events that are forwarded here.
  */
-a2a.get('/stream/:taskId', requireFeature('ai'), async (c) => {
+a2a.get('/stream/:taskId', requireFeature('ai', { mode: 'entitlements' }), async (c) => {
   const aiMod = await getAiModule();
   if (!aiMod) {
     return c.json({ error: 'AI package not available' }, 503);
@@ -685,4 +700,4 @@ a2a.post('/', async (c) => {
   return c.json(result);
 });
 
-export { app as wellKnownRoutes, a2a as a2aRoutes };
+export { a2a as a2aRoutes, app as wellKnownRoutes };

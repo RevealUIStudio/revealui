@@ -48,11 +48,13 @@ const mockAuditAppend = vi.fn();
 
 const mockDbSelectChain = { from: vi.fn(), where: vi.fn(), orderBy: vi.fn(), limit: vi.fn() };
 const mockDbInsertChain = { values: vi.fn() };
+const mockDbDeleteChain = { where: vi.fn() };
 const mockDbUpdateChain = { set: vi.fn(), where: vi.fn() };
 
 const mockDb = {
   select: vi.fn(),
   insert: vi.fn(),
+  delete: vi.fn(),
   update: vi.fn(),
   transaction: vi.fn(),
 };
@@ -65,6 +67,49 @@ vi.mock('@revealui/db', () => ({
       append = mockAuditAppend;
     } as unknown as (...args: unknown[]) => unknown,
   ),
+}));
+
+vi.mock('@revealui/db/schema', () => ({
+  accounts: {
+    id: 'accounts.id',
+    status: 'accounts.status',
+  },
+  accountMemberships: {
+    id: 'accountMemberships.id',
+    accountId: 'accountMemberships.accountId',
+    userId: 'accountMemberships.userId',
+    status: 'accountMemberships.status',
+  },
+  accountSubscriptions: {
+    id: 'accountSubscriptions.id',
+    accountId: 'accountSubscriptions.accountId',
+    stripeCustomerId: 'accountSubscriptions.stripeCustomerId',
+  },
+  accountEntitlements: {
+    accountId: 'accountEntitlements.accountId',
+  },
+  licenses: {
+    id: 'licenses.id',
+    customerId: 'licenses.customerId',
+    status: 'licenses.status',
+    updatedAt: 'licenses.updatedAt',
+  },
+  processedWebhookEvents: {
+    id: 'processedWebhookEvents.id',
+    eventType: 'processedWebhookEvents.eventType',
+  },
+  users: {
+    id: 'users.id',
+    stripeCustomerId: 'users.stripeCustomerId',
+    email: 'users.email',
+    name: 'users.name',
+  },
+}));
+
+vi.mock('drizzle-orm', () => ({
+  eq: vi.fn((_col, _val) => `eq(${String(_col)},${String(_val)})`),
+  and: vi.fn((...args: unknown[]) => `and(${args.join(',')})`),
+  desc: vi.fn((_col) => `desc(${String(_col)})`),
 }));
 
 // ─── Import under test (after mocks) ─────────────────────────────────────────
@@ -120,10 +165,12 @@ describe('POST /stripe webhook', () => {
     mockDbSelectChain.orderBy.mockReturnValue(mockDbSelectChain);
     mockDbSelectChain.limit.mockResolvedValue([]); // default: not found
     mockDbInsertChain.values.mockResolvedValue(undefined);
+    mockDbDeleteChain.where.mockResolvedValue({ rowCount: 1 });
     mockDbUpdateChain.set.mockReturnValue(mockDbUpdateChain);
     mockDbUpdateChain.where.mockResolvedValue({ rowCount: 1 });
     mockDb.select.mockReturnValue(mockDbSelectChain);
     mockDb.insert.mockReturnValue(mockDbInsertChain);
+    mockDb.delete.mockReturnValue(mockDbDeleteChain);
     mockDb.update.mockReturnValue(mockDbUpdateChain);
     // transaction: execute callback immediately with the same mock db as `tx`
     mockDb.transaction.mockImplementation(async (cb: (tx: typeof mockDb) => Promise<unknown>) =>
@@ -453,6 +500,31 @@ describe('POST /stripe webhook', () => {
       expect(insertValues.status).toBe('active');
       expect(insertValues.tier).toBe('pro');
       expect(insertValues.userId).toBe('user_abc');
+    });
+
+    it('clears the idempotency marker when processing fails after the initial insert', async () => {
+      const event = {
+        id: 'evt_checkout_retry_recover_1',
+        type: 'checkout.session.completed',
+        data: {
+          object: {
+            mode: 'subscription',
+            subscription: 'sub_test',
+            customer: 'cus_test',
+            metadata: {},
+          },
+        },
+      };
+
+      mockConstructEvent.mockReturnValueOnce(event);
+      mockDbSelectChain.limit.mockResolvedValueOnce([]);
+
+      const app = createApp();
+      const res = await app.request(postStripe(event));
+
+      expect(res.status).toBe(500);
+      expect(mockDb.delete).toHaveBeenCalledOnce();
+      expect(mockDbDeleteChain.where).toHaveBeenCalledOnce();
     });
   });
 

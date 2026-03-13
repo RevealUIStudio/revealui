@@ -1,8 +1,8 @@
 name: CI
 
 # Mirrors local `pnpm gate` — same hard-fail policy:
-#   Hard fail: Biome lint, typecheck, build
-#   Warn-only: audits, structure, boundary, tests
+#   Hard fail: Biome lint, boundary, typecheck, build
+#   Warn-only: audits, structure, tests
 #
 # PRs: quality + typecheck + package build + tests (~8 min).
 # main: full build including apps + E2E smoke (~15 min).
@@ -26,8 +26,8 @@ env:
 jobs:
   # ---------------------------------------------------------------------------
   # Phase 1: Quality checks (parallel, fast)
-  # Hard fail: Biome lint
-  # Warn-only: audits, structure, boundary
+  # Hard fail: Biome lint, boundary
+  # Warn-only: audits, structure
   # ---------------------------------------------------------------------------
   quality:
     name: Quality
@@ -64,9 +64,8 @@ jobs:
         run: pnpm validate:structure || echo "structure warnings — not blocking"
         continue-on-error: true
 
-      - name: Boundary validation (warn-only)
-        run: pnpm validate:boundary || echo "boundary warnings — not blocking"
-        continue-on-error: true
+      - name: Boundary validation (hard fail)
+        run: pnpm validate:boundary
 
   # ---------------------------------------------------------------------------
   # Phase 2: Typecheck (serial, hard fail)

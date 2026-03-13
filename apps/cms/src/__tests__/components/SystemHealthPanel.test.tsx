@@ -4,7 +4,7 @@
  * Tests for the system health monitoring panel
  */
 
-import { render, screen, waitFor } from '@testing-library/react';
+import { act, render, screen, waitFor } from '@testing-library/react';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { type HealthData, SystemHealthPanel } from '../../lib/components/SystemHealthPanel';
 
@@ -116,7 +116,9 @@ describe('SystemHealthPanel', () => {
 
       // Status messages are shown in expanded view
       const databaseCheck = screen.getByTestId('database-check-name');
-      await databaseCheck.click();
+      await act(async () => {
+        await databaseCheck.click();
+      });
 
       expect(screen.getByText(/database is responding normally/i)).toBeInTheDocument();
     });
@@ -178,7 +180,9 @@ describe('SystemHealthPanel', () => {
       );
 
       // Fast-forward 5 seconds
-      await vi.advanceTimersByTimeAsync(5000);
+      await act(async () => {
+        await vi.advanceTimersByTimeAsync(5000);
+      });
 
       expect(onRefresh).toHaveBeenCalled();
 
@@ -191,7 +195,9 @@ describe('SystemHealthPanel', () => {
 
       render(<SystemHealthPanel data={mockHealthData} onRefresh={onRefresh} refreshInterval={0} />);
 
-      vi.advanceTimersByTime(10000);
+      act(() => {
+        vi.advanceTimersByTime(10000);
+      });
 
       expect(onRefresh).not.toHaveBeenCalled();
 
@@ -208,7 +214,9 @@ describe('SystemHealthPanel', () => {
 
       unmount();
 
-      vi.advanceTimersByTime(5000);
+      act(() => {
+        vi.advanceTimersByTime(5000);
+      });
 
       expect(onRefresh).not.toHaveBeenCalled();
 
@@ -253,7 +261,9 @@ describe('SystemHealthPanel', () => {
       render(<SystemHealthPanel data={mockHealthData} />);
 
       const databaseCheck = screen.getByTestId('database-check-name');
-      await databaseCheck.click();
+      await act(async () => {
+        await databaseCheck.click();
+      });
 
       expect(screen.getByText(/database is responding normally/i)).toBeVisible();
     });
@@ -264,11 +274,15 @@ describe('SystemHealthPanel', () => {
       const databaseCheck = screen.getByTestId('database-check-name');
 
       // Expand
-      await databaseCheck.click();
+      await act(async () => {
+        await databaseCheck.click();
+      });
       expect(screen.getByText(/database is responding normally/i)).toBeVisible();
 
       // Collapse
-      await databaseCheck.click();
+      await act(async () => {
+        await databaseCheck.click();
+      });
       expect(screen.queryByText(/database is responding normally/i)).not.toBeInTheDocument();
     });
 
@@ -276,7 +290,9 @@ describe('SystemHealthPanel', () => {
       render(<SystemHealthPanel data={mockHealthData} />);
 
       const databaseCheck = screen.getByTestId('database-check-name');
-      await databaseCheck.click();
+      await act(async () => {
+        await databaseCheck.click();
+      });
 
       // Check for the "Status:" label which only appears in expanded view
       expect(screen.getByText(/status:/i)).toBeInTheDocument();

@@ -2,15 +2,25 @@
 
 Forge is the enterprise tier of RevealUI. Instead of running on `revealui.com`, you deploy the entire stack on your own infrastructure with full domain lock and unlimited users.
 
+Forge is best treated as a deployment-level commercial product, distinct from the hosted account-level subscription and metered usage model used for SaaS.
+
 ## What's included
 
-| Component | Image | Port |
-|-----------|-------|------|
-| API (Hono) | `ghcr.io/revealuistudio/revealui-api` | 3004 |
-| CMS (Next.js) | `ghcr.io/revealuistudio/revealui-cms` | 4000 |
-| PostgreSQL 16 | `postgres:16-alpine` | 5432 (internal) |
+| Component     | Image                                 | Port            |
+| ------------- | ------------------------------------- | --------------- |
+| API (Hono)    | `ghcr.io/revealuistudio/revealui-api` | 3004            |
+| CMS (Next.js) | `ghcr.io/revealuistudio/revealui-cms` | 4000            |
+| PostgreSQL 16 | `postgres:16-alpine`                  | 5432 (internal) |
 
 All three services are wired together in `docker-compose.forge.yml` at the root of the repository.
+
+## Commercial model
+
+Forge sits beside, not underneath, the hosted pricing model:
+
+- hosted RevealUI should use account or workspace subscriptions plus metered usage
+- Forge should remain a deployment-scoped commercial product with domain lock
+- optional metered or transaction-linked features can still exist inside Forge deployments, but the primary entitlement is the Forge deployment license
 
 ---
 
@@ -93,18 +103,18 @@ curl https://admin.acme.com/health
 
 All Forge-specific variables. See [Environment Variables Guide](./ENVIRONMENT_VARIABLES_GUIDE.md) for the full reference.
 
-| Variable | Required | Description |
-|----------|----------|-------------|
-| `FORGE_LICENSE_KEY` | Yes | Your Forge license JWT (`rui_forge_...`) |
-| `FORGE_LICENSED_DOMAIN` | Yes | The domain this instance is locked to |
-| `POSTGRES_URL` | Yes | PostgreSQL 16 connection URL |
-| `REVEALUI_SECRET` | Yes | 32+ char secret for JWT and session encryption |
-| `CMS_URL` | Yes | Full URL of your CMS (e.g. `https://admin.acme.com`) |
-| `CORS_ORIGIN` | Yes | Comma-separated allowed origins |
-| `STRIPE_SECRET_KEY` | Billing | Stripe secret key |
-| `STRIPE_WEBHOOK_SECRET` | Billing | Stripe webhook signing secret |
-| `REVEALUI_LICENSE_PRIVATE_KEY` | Billing | RSA-2048 private key PEM for license JWTs |
-| `REVEALUI_LICENSE_PUBLIC_KEY` | Billing | RSA-2048 public key PEM |
+| Variable                       | Required | Description                                          |
+| ------------------------------ | -------- | ---------------------------------------------------- |
+| `FORGE_LICENSE_KEY`            | Yes      | Your Forge license JWT (`rui_forge_...`)             |
+| `FORGE_LICENSED_DOMAIN`        | Yes      | The domain this instance is locked to                |
+| `POSTGRES_URL`                 | Yes      | PostgreSQL 16 connection URL                         |
+| `REVEALUI_SECRET`              | Yes      | 32+ char secret for JWT and session encryption       |
+| `CMS_URL`                      | Yes      | Full URL of your CMS (e.g. `https://admin.acme.com`) |
+| `CORS_ORIGIN`                  | Yes      | Comma-separated allowed origins                      |
+| `STRIPE_SECRET_KEY`            | Billing  | Stripe secret key                                    |
+| `STRIPE_WEBHOOK_SECRET`        | Billing  | Stripe webhook signing secret                        |
+| `REVEALUI_LICENSE_PRIVATE_KEY` | Billing  | RSA-2048 private key PEM for license JWTs            |
+| `REVEALUI_LICENSE_PUBLIC_KEY`  | Billing  | RSA-2048 public key PEM                              |
 
 ---
 

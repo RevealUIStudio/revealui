@@ -123,6 +123,54 @@ describe('find operation', () => {
     expect(queryCall[0]).toContain('"created" DESC');
   });
 
+  it('should prefer typed collection storage when available', async () => {
+    const typedDb = {
+      query: vi.fn(),
+      collectionStorage: {
+        find: vi.fn().mockResolvedValue({
+          docs: [{ id: 'typed-1', title: 'Typed Doc' }],
+          totalDocs: 1,
+          limit: 10,
+          totalPages: 1,
+          page: 1,
+          pagingCounter: 1,
+          hasPrevPage: false,
+          hasNextPage: false,
+          prevPage: null,
+          nextPage: null,
+        }),
+      },
+    };
+
+    const result = await find(mockConfig, typedDb as never, {});
+
+    expect(result.docs).toEqual([{ id: 'typed-1', title: 'Typed Doc' }]);
+    expect(typedDb.collectionStorage.find).toHaveBeenCalledWith(mockConfig, {});
+    expect(typedDb.query).not.toHaveBeenCalled();
+  });
+
+  it('should fall back to SQL when typed collection storage opts out', async () => {
+    const typedDb = {
+      query: vi
+        .fn()
+        .mockResolvedValueOnce({
+          rows: [{ total: '1' }],
+        } as DatabaseResult)
+        .mockResolvedValueOnce({
+          rows: [{ id: '1', title: 'Fallback Doc' }],
+        } as DatabaseResult),
+      collectionStorage: {
+        find: vi.fn().mockResolvedValue(undefined),
+      },
+    };
+
+    const result = await find(mockConfig, typedDb as never, {});
+
+    expect(result.docs).toEqual([{ id: '1', title: 'Fallback Doc' }]);
+    expect(typedDb.collectionStorage.find).toHaveBeenCalledWith(mockConfig, {});
+    expect(typedDb.query).toHaveBeenCalledTimes(2);
+  });
+
   it('should reject sort fields not defined on the collection', async () => {
     const options: RevealFindOptions = {
       sort: {

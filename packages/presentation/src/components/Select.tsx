@@ -65,6 +65,8 @@ function Select({ children, className, ref, ...props }: SelectProps) {
   );
 }
 
+Select.displayName = 'Select';
+
 function SelectGroup({ children, className, ref, ...props }: BoxProps) {
   return (
     <Box ref={ref} className={cn(className)} {...props}>
@@ -109,6 +111,8 @@ function SelectTrigger({ children, className, ref, ...props }: SelectTriggerProp
     </Box>
   );
 }
+
+SelectTrigger.displayName = 'SelectTrigger';
 
 export type SelectScrollUpButtonProps = React.ButtonHTMLAttributes<HTMLButtonElement> & {
   ref?: React.Ref<HTMLButtonElement>;
@@ -161,6 +165,8 @@ function SelectContent({ children, className, ref, ...props }: SelectContentProp
   );
 }
 
+SelectContent.displayName = 'SelectContent';
+
 export type SelectLabelProps = React.HTMLAttributes<HTMLDivElement> & {
   ref?: React.Ref<HTMLDivElement>;
 };
@@ -194,11 +200,15 @@ function SelectItem({ children, className, value, ref, ...props }: SelectItemPro
   );
 }
 
+SelectItem.displayName = 'SelectItem';
+
 export type SelectSeparatorProps = BoxProps;
 
 function SelectSeparator({ className, ref, ...props }: SelectSeparatorProps) {
   return <Box className={cn('-mx-1 my-1 h-px bg-muted', className)} ref={ref} {...props} />;
 }
+
+SelectSeparator.displayName = 'SelectSeparator';
 
 export {
   Select,

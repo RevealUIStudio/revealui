@@ -1,7 +1,7 @@
 'use client';
 
 import type React from 'react';
-import { useCallback, useRef, useState } from 'react';
+import { useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
 import { CloseContext } from '../hooks/use-close-context.js';
 import { useEscapeKey } from '../hooks/use-escape-key.js';
@@ -40,15 +40,6 @@ function MobileSidebar({
   useFocusTrap(panelRef, open);
   useEscapeKey(close, open);
 
-  const handleBackdropClick = useCallback(
-    (e: React.MouseEvent) => {
-      if (e.target === e.currentTarget) {
-        close();
-      }
-    },
-    [close],
-  );
-
   if (!(backdrop.mounted || panel.mounted)) return null;
 
   return createPortal(
@@ -56,10 +47,12 @@ function MobileSidebar({
       <div role="dialog" aria-modal="true" className="lg:hidden">
         {/* Backdrop */}
         {backdrop.mounted && (
-          <div
-            ref={backdrop.nodeRef as React.RefObject<HTMLDivElement>}
+          <button
+            type="button"
+            aria-label="Close navigation"
+            ref={backdrop.nodeRef as React.RefObject<HTMLButtonElement>}
             {...backdrop.transitionProps}
-            onClick={handleBackdropClick}
+            onClick={close}
             className="fixed inset-0 bg-black/30 transition data-closed:opacity-0 data-enter:duration-300 data-enter:ease-out data-leave:duration-200 data-leave:ease-in"
           />
         )}

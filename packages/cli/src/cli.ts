@@ -4,6 +4,24 @@
 
 import { createLogger } from '@revealui/setup/utils';
 import { Command } from 'commander';
+import { runCreateFlow } from './commands/create-flow.js';
+import {
+  runDbInitCommand,
+  runDbMigrateCommand,
+  runDbResetCommand,
+  runDbStartCommand,
+  runDbStatusCommand,
+  runDbStopCommand,
+} from './commands/db.js';
+import {
+  type DevProfileName,
+  runDevDownCommand,
+  runDevProfileSetCommand,
+  runDevProfileShowCommand,
+  runDevStatusCommand,
+  runDevUpCommand,
+} from './commands/dev.js';
+import { runDoctorCommand } from './commands/doctor.js';
 
 const logger = createLogger({ prefix: 'CLI' });
 
@@ -14,25 +32,221 @@ export interface CliOptions {
   yes?: boolean;
 }
 
-export function createCli(): Command {
-  const program = new Command();
-
-  program
-    .name('create-revealui')
+function configureCreateCommand(command: Command, legacyName?: string): Command {
+  command
     .description('Create a new RevealUI project')
-    .version('0.1.0')
     .argument('[project-name]', 'Name of the project')
     .option('-t, --template <name>', 'Template to use (basic-blog, e-commerce, portfolio)')
     .option('--skip-git', 'Skip git initialization', false)
     .option('--skip-install', 'Skip dependency installation', false)
     .option('-y, --yes', 'Skip all prompts and use defaults', false)
     .action(async (projectName: string | undefined, options: CliOptions) => {
-      logger.header('🚀 Create RevealUI Project');
-
-      // Import main orchestrator dynamically to avoid circular deps
-      const { run } = await import('./index.js');
-      await run(projectName, options);
+      logger.header(legacyName ? 'Create RevealUI Project' : 'RevealUI Create');
+      await runCreateFlow(projectName, options);
     });
+
+  return command;
+}
+
+export function createCli(): Command {
+  const program = new Command();
+
+  program.name('revealui').description('RevealUI operational CLI').version('0.2.0');
+
+  configureCreateCommand(program.command('create'), undefined);
+
+  program
+    .command('doctor')
+    .description('Check RevealUI workspace and developer environment health')
+    .option('--json', 'Output machine-readable JSON', false)
+    .option('--fix', 'Apply safe automatic fixes when possible', false)
+    .option('--strict', 'Exit nonzero when checks fail', false)
+    .action(async (options: { json?: boolean; fix?: boolean; strict?: boolean }) => {
+      await runDoctorCommand(options);
+    });
+
+  const db = program.command('db').description('Manage the local RevealUI database');
+
+  db.command('init')
+    .description('Initialize the local PostgreSQL data directory')
+    .option('--force', 'Delete and recreate the local data directory', false)
+    .action(async (options: { force?: boolean }) => {
+      await runDbInitCommand(options);
+    });
+
+  db.command('start')
+    .description('Start the local PostgreSQL server')
+    .action(async () => {
+      await runDbStartCommand();
+    });
+
+  db.command('stop')
+    .description('Stop the local PostgreSQL server')
+    .action(async () => {
+      await runDbStopCommand();
+    });
+
+  db.command('status')
+    .description('Show local PostgreSQL status')
+    .action(async () => {
+      await runDbStatusCommand();
+    });
+
+  db.command('reset')
+    .description('Reset the local PostgreSQL data directory')
+    .option('--force', 'Confirm the destructive reset', false)
+    .action(async (options: { force?: boolean }) => {
+      await runDbResetCommand(options);
+    });
+
+  db.command('migrate')
+    .description('Run Drizzle migrations using the local RevealUI database environment')
+    .action(async () => {
+      await runDbMigrateCommand();
+    });
+
+  const dev = program
+    .command('dev')
+    .description('Prepare and manage the RevealUI development workspace');
+
+  dev
+    .command('up')
+    .description(
+      'Ensure the local dev environment is ready, migrate the DB, optionally validate MCP, and start a dev script',
+    )
+    .option('--json', 'Output machine-readable JSON', false)
+    .option('--dry-run', 'Print the effective plan and actions without executing them', false)
+    .option('--fix', 'Apply safe automatic fixes before bootstrapping when possible', false)
+    .option('--no-ensure', 'Skip automatic local DB initialization/start')
+    .option('--profile <name>', 'Named dev profile: local, agent, cms, fullstack')
+    .option(
+      '--include <service...>',
+      'Additional development services to prepare (currently supports: mcp)',
+    )
+    .option('--script <name>', 'Optional pnpm script to run after environment bootstrap')
+    .option('--inside', 'Internal flag used after re-entering nix develop', false)
+    .action(
+      async (options: {
+        ensure?: boolean;
+        json?: boolean;
+        dryRun?: boolean;
+        fix?: boolean;
+        script?: string;
+        profile?: DevProfileName;
+        include?: string[];
+        inside?: boolean;
+      }) => {
+        await runDevUpCommand(options);
+      },
+    );
+
+  dev
+    .command('status')
+    .description('Show current RevealUI development environment status')
+    .option('--json', 'Output machine-readable JSON', false)
+    .option('--profile <name>', 'Named dev profile: local, agent, cms, fullstack')
+    .option(
+      '--include <service...>',
+      'Additional development services to preview in the effective plan',
+    )
+    .option('--script <name>', 'Optional pnpm script to preview in the effective plan')
+    .option('--inside', 'Internal flag used after re-entering nix develop', false)
+    .action(
+      async (options: {
+        json?: boolean;
+        profile?: DevProfileName;
+        include?: string[];
+        script?: string;
+        inside?: boolean;
+      }) => {
+        await runDevStatusCommand(options);
+      },
+    );
+
+  dev
+    .command('down')
+    .description('Stop local RevealUI development services that are managed by the CLI')
+    .action(async () => {
+      await runDevDownCommand();
+    });
+
+  dev
+    .command('shell')
+    .description('Alias for `revealui dev up` without starting an app script')
+    .option('--json', 'Output machine-readable JSON', false)
+    .option('--dry-run', 'Print the effective plan and actions without executing them', false)
+    .option('--fix', 'Apply safe automatic fixes before bootstrapping when possible', false)
+    .option('--no-ensure', 'Skip automatic local DB initialization/start')
+    .option('--profile <name>', 'Named dev profile: local, agent, cms, fullstack')
+    .option(
+      '--include <service...>',
+      'Additional development services to prepare (currently supports: mcp)',
+    )
+    .option('--inside', 'Internal flag used after re-entering nix develop', false)
+    .action(
+      async (options: {
+        ensure?: boolean;
+        json?: boolean;
+        dryRun?: boolean;
+        fix?: boolean;
+        profile?: DevProfileName;
+        include?: string[];
+        inside?: boolean;
+      }) => {
+        await runDevUpCommand({
+          ensure: options.ensure,
+          json: options.json,
+          dryRun: options.dryRun,
+          fix: options.fix,
+          profile: options.profile,
+          include: options.include,
+          inside: options.inside,
+        });
+      },
+    );
+
+  const devProfile = dev
+    .command('profile')
+    .description('Persist or inspect the default dev profile');
+
+  devProfile
+    .command('set')
+    .description('Set the default profile used by `revealui dev up` and `revealui dev status`')
+    .argument('<name>', 'Profile name: local, agent, cms, fullstack')
+    .action(async (name: DevProfileName) => {
+      await runDevProfileSetCommand(name);
+    });
+
+  devProfile
+    .command('show')
+    .description('Show the configured default dev profile')
+    .option('--json', 'Output machine-readable JSON', false)
+    .action(async (options: { json?: boolean }) => {
+      await runDevProfileShowCommand(options);
+    });
+
+  program
+    .command('shell')
+    .description('Deprecated alias for `revealui dev shell`')
+    .option('--ensure', 'Initialize/start the local DB when possible', false)
+    .option('--json', 'Output machine-readable JSON', false)
+    .option('--inside', 'Internal flag used after re-entering nix develop', false)
+    .action(async (options: { ensure?: boolean; json?: boolean; inside?: boolean }) => {
+      await runDevUpCommand({
+        ensure: options.ensure,
+        json: options.json,
+        inside: options.inside,
+      });
+    });
+
+  return program;
+}
+
+export function createLegacyCreateCli(): Command {
+  const program = new Command();
+
+  program.name('create-revealui').version('0.2.0');
+  configureCreateCommand(program, 'create-revealui');
 
   return program;
 }

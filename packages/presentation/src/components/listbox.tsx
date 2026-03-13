@@ -96,7 +96,7 @@ function OptionIndexProvider({ children }: { children: ReactNode }) {
 export function Listbox<T>({
   className,
   placeholder,
-  autoFocus,
+  autoFocus = false,
   'aria-label': ariaLabel,
   children: options,
   value: controlledValue,
@@ -135,10 +135,6 @@ export function Listbox<T>({
     optionMapRef.current.set(index, { value: optValue, element });
   }, []);
 
-  useEffect(() => {
-    setOptionCount(countOptions(options));
-  }, [options]);
-
   const { triggerRef, popoverRef, popoverProps } = usePopover({
     open,
     anchor: 'selection start',
@@ -148,11 +144,25 @@ export function Listbox<T>({
 
   const { mounted, nodeRef, transitionProps } = useTransition(open);
 
+  const focusTrigger = useCallback(() => {
+    triggerRef.current?.focus();
+  }, [triggerRef]);
+
+  useEffect(() => {
+    setOptionCount(countOptions(options));
+  }, [options]);
+
+  useEffect(() => {
+    if (autoFocus && !disabled) {
+      focusTrigger();
+    }
+  }, [autoFocus, disabled, focusTrigger]);
+
   useClickOutside([triggerRef, popoverRef], () => setOpen(false), open);
 
   useEscapeKey(() => {
     setOpen(false);
-    triggerRef.current?.focus();
+    focusTrigger();
   }, open);
 
   const selectActiveOption = useCallback(() => {
@@ -160,9 +170,9 @@ export function Listbox<T>({
     if (entry) {
       setValue(entry.value);
       setOpen(false);
-      triggerRef.current?.focus();
+      focusTrigger();
     }
-  }, [activeIndex, setValue, triggerRef]);
+  }, [activeIndex, focusTrigger, setValue]);
 
   const handleOptionsKeyDown = useCallback(
     (e: React.KeyboardEvent) => {
@@ -313,7 +323,6 @@ export function Listbox<T>({
         data-slot="control"
         data-disabled={disabled ? '' : undefined}
         data-active={open ? '' : undefined}
-        autoFocus={autoFocus}
         disabled={disabled}
         onClick={handleButtonClick}
         onKeyDown={handleButtonKeyDown}
@@ -449,6 +458,7 @@ export function ListboxOption<T>({
   }, [optionDisabled, ctx.setActiveIndex, index, ctx]);
 
   return (
+    // biome-ignore lint/a11y/useKeyWithClickEvents: keyboard interaction is handled by the parent listbox trigger and roving focus
     <div
       ref={optionRef}
       role="option"
