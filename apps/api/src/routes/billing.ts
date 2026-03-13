@@ -31,6 +31,9 @@ interface UserContext {
 }
 
 interface RequestEntitlements {
+  accountId?: string | null;
+  subscriptionStatus?: string | null;
+  tier?: 'free' | 'pro' | 'max' | 'enterprise';
   limits?: {
     maxAgentTasks?: number;
   };
@@ -241,19 +244,26 @@ async function getHostedSubscriptionSnapshot(userId: string): Promise<{
   };
 }
 
-async function resolveHostedStripeCustomerId(userId: string): Promise<string | null> {
+async function resolveHostedStripeCustomerId(
+  userId: string,
+  accountId?: string | null,
+): Promise<string | null> {
   const db = getClient();
-  const [membership] = await db
-    .select({ accountId: accountMemberships.accountId })
-    .from(accountMemberships)
-    .where(and(eq(accountMemberships.userId, userId), eq(accountMemberships.status, 'active')))
-    .limit(1);
+  const resolvedAccountId =
+    accountId ??
+    (
+      await db
+        .select({ accountId: accountMemberships.accountId })
+        .from(accountMemberships)
+        .where(and(eq(accountMemberships.userId, userId), eq(accountMemberships.status, 'active')))
+        .limit(1)
+    )[0]?.accountId;
 
-  if (membership?.accountId) {
+  if (resolvedAccountId) {
     const [subscription] = await db
       .select({ stripeCustomerId: accountSubscriptions.stripeCustomerId })
       .from(accountSubscriptions)
-      .where(eq(accountSubscriptions.accountId, membership.accountId))
+      .where(eq(accountSubscriptions.accountId, resolvedAccountId))
       .limit(1);
 
     if (subscription?.stripeCustomerId) {
@@ -373,7 +383,8 @@ app.openapi(portalRoute, async (c) => {
     throw new HTTPException(401, { message: 'Authentication required' });
   }
 
-  const customerId = await resolveHostedStripeCustomerId(user.id);
+  const requestEntitlements = c.get('entitlements') as RequestEntitlements | undefined;
+  const customerId = await resolveHostedStripeCustomerId(user.id, requestEntitlements?.accountId);
   if (!customerId) {
     throw new HTTPException(400, {
       message: 'No billing account found. Purchase a subscription first.',
@@ -415,6 +426,19 @@ app.openapi(subscriptionRoute, async (c) => {
   const user = c.get('user');
   if (!user) {
     throw new HTTPException(401, { message: 'Authentication required' });
+  }
+
+  const requestEntitlements = c.get('entitlements') as RequestEntitlements | undefined;
+  if (requestEntitlements?.accountId && requestEntitlements.tier) {
+    return c.json(
+      {
+        tier: requestEntitlements.tier,
+        status: requestEntitlements.subscriptionStatus ?? 'active',
+        expiresAt: null,
+        licenseKey: null,
+      },
+      200,
+    );
   }
 
   const hostedSubscription = await getHostedSubscriptionSnapshot(user.id);
@@ -505,8 +529,12 @@ app.openapi(upgradeRoute, async (c) => {
 
   const { priceId, targetTier } = c.req.valid('json');
   const resolvedPriceId = await resolveCatalogPriceId(targetTier, 'subscription', priceId);
+  const requestEntitlements = c.get('entitlements') as RequestEntitlements | undefined;
 
-  const stripeCustomerId = await resolveHostedStripeCustomerId(user.id);
+  const stripeCustomerId = await resolveHostedStripeCustomerId(
+    user.id,
+    requestEntitlements?.accountId,
+  );
   if (!stripeCustomerId) {
     throw new HTTPException(400, {
       message: 'No billing account found. Purchase a subscription first.',
@@ -579,7 +607,11 @@ app.openapi(downgradeRoute, async (c) => {
     throw new HTTPException(401, { message: 'Authentication required' });
   }
 
-  const stripeCustomerId = await resolveHostedStripeCustomerId(user.id);
+  const requestEntitlements = c.get('entitlements') as RequestEntitlements | undefined;
+  const stripeCustomerId = await resolveHostedStripeCustomerId(
+    user.id,
+    requestEntitlements?.accountId,
+  );
   if (!stripeCustomerId) {
     throw new HTTPException(400, {
       message: 'No billing account found.',

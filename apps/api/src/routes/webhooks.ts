@@ -115,6 +115,25 @@ function resolveTier(
   return 'pro';
 }
 
+function resolveOptionalTier(
+  metadata: Record<string, string> | null | undefined,
+): 'pro' | 'max' | 'enterprise' | undefined {
+  const tier = metadata?.tier;
+  if (tier === 'pro') return 'pro';
+  if (tier === 'max') return 'max';
+  if (tier === 'enterprise') return 'enterprise';
+  if (tier) {
+    logger.warn(
+      'Stripe subscription metadata had an unknown tier during hosted status sync — preserving existing tier',
+      {
+        tier,
+        metadata,
+      },
+    );
+  }
+  return undefined;
+}
+
 function resolveCustomerId(
   customer: string | Stripe.Customer | Stripe.DeletedCustomer | null,
 ): string | null {
@@ -233,7 +252,7 @@ async function syncHostedSubscriptionState(
     customerId: string;
     subscriptionId: string | null;
     userId?: string | null;
-    tier: 'pro' | 'max' | 'enterprise';
+    tier?: 'free' | 'pro' | 'max' | 'enterprise' | null;
     status: string;
     currentPeriodStart?: Date | null;
     currentPeriodEnd?: Date | null;
@@ -253,16 +272,25 @@ async function syncHostedSubscriptionState(
 
   const now = new Date();
   const [existingSubscription] = await db
-    .select({ id: accountSubscriptions.id })
+    .select({ id: accountSubscriptions.id, planId: accountSubscriptions.planId })
     .from(accountSubscriptions)
     .where(eq(accountSubscriptions.accountId, accountId))
     .limit(1);
+
+  const [existingEntitlement] = await db
+    .select({ accountId: accountEntitlements.accountId, tier: accountEntitlements.tier })
+    .from(accountEntitlements)
+    .where(eq(accountEntitlements.accountId, accountId))
+    .limit(1);
+
+  const resolvedTier =
+    params.tier ?? existingEntitlement?.tier ?? existingSubscription?.planId ?? 'free';
 
   const subscriptionValues = {
     accountId,
     stripeCustomerId: params.customerId,
     stripeSubscriptionId: params.subscriptionId,
-    planId: params.tier,
+    planId: resolvedTier,
     status: params.status,
     currentPeriodStart: params.currentPeriodStart ?? null,
     currentPeriodEnd: params.currentPeriodEnd ?? null,
@@ -283,17 +311,11 @@ async function syncHostedSubscriptionState(
     });
   }
 
-  const [existingEntitlement] = await db
-    .select({ accountId: accountEntitlements.accountId })
-    .from(accountEntitlements)
-    .where(eq(accountEntitlements.accountId, accountId))
-    .limit(1);
-
   const entitlementValues = {
-    tier: params.tier,
+    tier: resolvedTier,
     status: params.status,
-    features: getFeaturesForTier(params.tier),
-    limits: getHostedLimitsForTier(params.tier),
+    features: getFeaturesForTier(resolvedTier),
+    limits: getHostedLimitsForTier(resolvedTier),
     meteringStatus:
       params.status === 'active' || params.status === 'trialing' ? 'active' : 'paused',
     graceUntil: params.graceUntil ?? null,
@@ -354,6 +376,27 @@ async function findUserEmailByCustomerId(db: Database, customerId: string): Prom
     .where(eq(users.stripeCustomerId, customerId))
     .limit(1);
   return user?.email ?? null;
+}
+
+async function findHostedStatusByCustomerId(
+  db: Database,
+  customerId: string,
+): Promise<string | null> {
+  const [subscription] = await db
+    .select({ accountId: accountSubscriptions.accountId })
+    .from(accountSubscriptions)
+    .where(eq(accountSubscriptions.stripeCustomerId, customerId))
+    .limit(1);
+
+  if (!subscription?.accountId) return null;
+
+  const [entitlement] = await db
+    .select({ status: accountEntitlements.status })
+    .from(accountEntitlements)
+    .where(eq(accountEntitlements.accountId, subscription.accountId))
+    .limit(1);
+
+  return entitlement?.status ?? null;
 }
 
 // ─── Webhook Endpoint ────────────────────────────────────────────────────────
@@ -712,7 +755,7 @@ app.post('/stripe', async (c) => {
         await syncHostedSubscriptionState(db, {
           customerId,
           subscriptionId: subscription.id,
-          tier: resolveTier(subscription.metadata as Record<string, string>),
+          tier: resolveOptionalTier(subscription.metadata as Record<string, string>),
           status: 'revoked',
           currentPeriodStart: subscription.current_period_start
             ? new Date(subscription.current_period_start * 1000)
@@ -750,7 +793,6 @@ app.post('/stripe', async (c) => {
         await syncHostedSubscriptionState(db, {
           customerId,
           subscriptionId: null,
-          tier: 'pro',
           status: 'revoked',
         });
 
@@ -776,7 +818,7 @@ app.post('/stripe', async (c) => {
           await syncHostedSubscriptionState(db, {
             customerId,
             subscriptionId: subscription.id,
-            tier: resolveTier(subscription.metadata as Record<string, string>),
+            tier: resolveOptionalTier(subscription.metadata as Record<string, string>),
             status: 'expired',
             currentPeriodStart: subscription.current_period_start
               ? new Date(subscription.current_period_start * 1000)
@@ -841,7 +883,7 @@ app.post('/stripe', async (c) => {
           await syncHostedSubscriptionState(db, {
             customerId,
             subscriptionId: subscription.id,
-            tier: resolveTier(subscription.metadata as Record<string, string>),
+            tier: resolveOptionalTier(subscription.metadata as Record<string, string>),
             status: 'active',
             currentPeriodStart: subscription.current_period_start
               ? new Date(subscription.current_period_start * 1000)
@@ -967,33 +1009,41 @@ app.post('/stripe', async (c) => {
           .where(eq(licenses.customerId, customerId))
           .orderBy(desc(licenses.updatedAt))
           .limit(1);
-
-        if (!existingLicense) break;
-
-        // Only re-activate if license was expired/revoked due to payment failure
-        if (existingLicense.status !== 'expired' && existingLicense.status !== 'revoked') break;
+        const hostedStatus = await findHostedStatusByCustomerId(db, customerId);
 
         const recoveredTier = resolveTier(recoveredSubscription.metadata as Record<string, string>);
-        const privateKey = process.env.REVEALUI_LICENSE_PRIVATE_KEY;
+        const shouldReactivateLegacyLicense =
+          existingLicense?.status === 'expired' || existingLicense?.status === 'revoked';
+        const shouldReactivateHosted = hostedStatus === 'expired' || hostedStatus === 'revoked';
 
-        if (!privateKey) {
-          logger.error(
-            'CRITICAL: REVEALUI_LICENSE_PRIVATE_KEY not configured — payment recovery failed',
-            undefined,
-            { customerId, subscriptionId: recoveredSubscription.id, tier: recoveredTier },
+        if (shouldReactivateLegacyLicense) {
+          const privateKey = process.env.REVEALUI_LICENSE_PRIVATE_KEY;
+
+          if (!privateKey) {
+            logger.error(
+              'CRITICAL: REVEALUI_LICENSE_PRIVATE_KEY not configured — payment recovery failed',
+              undefined,
+              { customerId, subscriptionId: recoveredSubscription.id, tier: recoveredTier },
+            );
+            throw new Error('REVEALUI_LICENSE_PRIVATE_KEY not configured');
+          }
+
+          const normalizedKey = privateKey.replace(/\\n/g, '\n');
+          const licenseKey = await generateLicenseKey(
+            { tier: recoveredTier, customerId },
+            normalizedKey,
           );
-          throw new Error('REVEALUI_LICENSE_PRIVATE_KEY not configured');
+          await db
+            .update(licenses)
+            .set({ status: 'active', tier: recoveredTier, licenseKey, updatedAt: new Date() })
+            .where(eq(licenses.customerId, customerId));
+        } else if (existingLicense && !shouldReactivateHosted) {
+          break;
         }
 
-        const normalizedKey = privateKey.replace(/\\n/g, '\n');
-        const licenseKey = await generateLicenseKey(
-          { tier: recoveredTier, customerId },
-          normalizedKey,
-        );
-        await db
-          .update(licenses)
-          .set({ status: 'active', tier: recoveredTier, licenseKey, updatedAt: new Date() })
-          .where(eq(licenses.customerId, customerId));
+        if (!(shouldReactivateLegacyLicense || shouldReactivateHosted || existingLicense)) {
+          break;
+        }
 
         await syncHostedSubscriptionState(db, {
           customerId,
@@ -1123,7 +1173,6 @@ app.post('/stripe', async (c) => {
         await syncHostedSubscriptionState(db, {
           customerId: disputeCustomerId,
           subscriptionId: null,
-          tier: 'pro',
           status: 'revoked',
         });
 
@@ -1208,7 +1257,6 @@ app.post('/stripe', async (c) => {
           await syncHostedSubscriptionState(db, {
             customerId,
             subscriptionId: null,
-            tier: 'pro',
             status: 'revoked',
           });
 

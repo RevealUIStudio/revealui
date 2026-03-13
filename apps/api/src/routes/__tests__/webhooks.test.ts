@@ -31,6 +31,7 @@ vi.mock('stripe', () => ({
 
 vi.mock('@revealui/core/features', () => ({
   isFeatureEnabled: vi.fn(),
+  getFeaturesForTier: vi.fn(() => ({})),
 }));
 
 vi.mock('@revealui/core/license', () => ({
@@ -606,6 +607,90 @@ describe('POST /stripe webhook', () => {
 
       expect(res.status).toBe(200);
       expect(mockDb.update).not.toHaveBeenCalled();
+    });
+
+    it('re-activates hosted entitlements even when no legacy license row exists', async () => {
+      let selectCallCount = 0;
+      mockDb.select.mockImplementation(() => {
+        selectCallCount++;
+        mockDbSelectChain.limit.mockResolvedValue(
+          selectCallCount === 1
+            ? []
+            : selectCallCount === 2
+              ? [{ accountId: 'acct_hosted' }]
+              : selectCallCount === 3
+                ? [{ status: 'expired' }]
+                : selectCallCount === 4
+                  ? [{ accountId: 'acct_hosted' }]
+                  : selectCallCount === 5
+                    ? [{ id: 'acct_sub_1', planId: 'enterprise' }]
+                    : [{ accountId: 'acct_hosted', tier: 'enterprise' }],
+        );
+        return mockDbSelectChain;
+      });
+      mockSubscriptionsList.mockResolvedValueOnce({
+        data: [{ id: 'sub_recovery', metadata: { tier: 'enterprise' } }],
+      });
+
+      const event = makePaymentSucceededEvent('evt_payment_succeeded_hosted_only_1');
+      mockConstructEvent.mockReturnValueOnce(event);
+
+      const app = createApp();
+      const res = await app.request(postStripe(event));
+
+      expect(res.status).toBe(200);
+      expect(mockDb.update).toHaveBeenCalledTimes(2);
+      const accountSubscriptionUpdate = mockDbUpdateChain.set.mock.calls[0]?.[0] as Record<
+        string,
+        unknown
+      >;
+      const entitlementUpdate = mockDbUpdateChain.set.mock.calls[1]?.[0] as Record<string, unknown>;
+      expect(accountSubscriptionUpdate.planId).toBe('enterprise');
+      expect(accountSubscriptionUpdate.status).toBe('active');
+      expect(entitlementUpdate.tier).toBe('enterprise');
+      expect(entitlementUpdate.status).toBe('active');
+    });
+
+    it('re-activates hosted entitlements when the legacy license is already active', async () => {
+      let selectCallCount = 0;
+      mockDb.select.mockImplementation(() => {
+        selectCallCount++;
+        mockDbSelectChain.limit.mockResolvedValue(
+          selectCallCount === 1
+            ? [{ id: 'lic_active', status: 'active' }]
+            : selectCallCount === 2
+              ? [{ accountId: 'acct_hosted' }]
+              : selectCallCount === 3
+                ? [{ status: 'expired' }]
+                : selectCallCount === 4
+                  ? [{ accountId: 'acct_hosted' }]
+                  : selectCallCount === 5
+                    ? [{ id: 'acct_sub_1', planId: 'enterprise' }]
+                    : [{ accountId: 'acct_hosted', tier: 'enterprise' }],
+        );
+        return mockDbSelectChain;
+      });
+      mockSubscriptionsList.mockResolvedValueOnce({
+        data: [{ id: 'sub_recovery', metadata: { tier: 'enterprise' } }],
+      });
+
+      const event = makePaymentSucceededEvent('evt_payment_succeeded_hosted_expired_1');
+      mockConstructEvent.mockReturnValueOnce(event);
+
+      const app = createApp();
+      const res = await app.request(postStripe(event));
+
+      expect(res.status).toBe(200);
+      expect(mockDb.update).toHaveBeenCalledTimes(2);
+      const accountSubscriptionUpdate = mockDbUpdateChain.set.mock.calls[0]?.[0] as Record<
+        string,
+        unknown
+      >;
+      const entitlementUpdate = mockDbUpdateChain.set.mock.calls[1]?.[0] as Record<string, unknown>;
+      expect(accountSubscriptionUpdate.planId).toBe('enterprise');
+      expect(accountSubscriptionUpdate.status).toBe('active');
+      expect(entitlementUpdate.tier).toBe('enterprise');
+      expect(entitlementUpdate.status).toBe('active');
     });
 
     it('writes license.reactivated.payment_recovery audit entry when auditLog enabled', async () => {

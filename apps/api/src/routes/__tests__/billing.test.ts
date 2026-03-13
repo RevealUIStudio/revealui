@@ -154,10 +154,33 @@ const MOCK_USER: UserContext = {
  * Wrap billingApp with a user-injecting middleware.
  * Uses a typed Hono so c.set('user', ...) reaches the inner route handlers.
  */
-function createApp(user: UserContext = MOCK_USER) {
-  const app = new Hono<{ Variables: { user: UserContext | undefined } }>();
+function createApp(
+  user: UserContext = MOCK_USER,
+  entitlements?: {
+    accountId?: string | null;
+    subscriptionStatus?: string | null;
+    tier?: 'free' | 'pro' | 'max' | 'enterprise';
+    limits?: { maxAgentTasks?: number };
+  },
+) {
+  const app = new Hono<{
+    Variables: {
+      user: UserContext | undefined;
+      entitlements?:
+        | {
+            accountId?: string | null;
+            subscriptionStatus?: string | null;
+            tier?: 'free' | 'pro' | 'max' | 'enterprise';
+            limits?: { maxAgentTasks?: number };
+          }
+        | undefined;
+    };
+  }>();
   app.use('*', async (c, next) => {
     c.set('user', user);
+    if (entitlements) {
+      c.set('entitlements', entitlements);
+    }
     await next();
   });
   app.route('/', billingApp);
@@ -457,6 +480,27 @@ describe('POST /portal', () => {
       return_url: 'https://app.example.com/account/billing',
     });
   });
+
+  it('prefers request-scoped account entitlements for portal access', async () => {
+    queueSelectResults([{ stripeCustomerId: 'cus_account_ctx' }]);
+    mockBillingPortalSessionsCreate.mockResolvedValue({
+      url: 'https://billing.stripe.com/portal/sess_ctx',
+    });
+
+    const app = createApp(MOCK_USER, {
+      accountId: 'acct_ctx',
+      tier: 'pro',
+      subscriptionStatus: 'active',
+    });
+    const res = await app.request(post('/portal', {}));
+
+    expect(res.status).toBe(200);
+    expect(mockBillingPortalSessionsCreate).toHaveBeenCalledWith({
+      customer: 'cus_account_ctx',
+      return_url: 'https://app.example.com/account/billing',
+    });
+    expect(mockDb.select).toHaveBeenCalledTimes(1);
+  });
 });
 
 describe('GET /subscription', () => {
@@ -499,6 +543,23 @@ describe('GET /subscription', () => {
     expect(body.status).toBe('active');
     expect(body.licenseKey).toBe('rv-license-key-test-123');
     expect(body.expiresAt).toBeNull();
+  });
+
+  it('prefers request-scoped account entitlements over legacy license lookup', async () => {
+    const app = createApp(MOCK_USER, {
+      accountId: 'acct_123',
+      tier: 'max',
+      subscriptionStatus: 'past_due',
+    });
+    const res = await app.request(get('/subscription'));
+
+    expect(res.status).toBe(200);
+    const body = (await res.json()) as Record<string, unknown>;
+    expect(body.tier).toBe('max');
+    expect(body.status).toBe('past_due');
+    expect(body.expiresAt).toBeNull();
+    expect(body.licenseKey).toBeNull();
+    expect(mockDb.select).not.toHaveBeenCalled();
   });
 
   it('returns revoked license status', async () => {
@@ -664,6 +725,30 @@ describe('POST /upgrade', () => {
       status: 'active',
       limit: 1,
     });
+  });
+
+  it('prefers request-scoped account entitlements for upgrades', async () => {
+    queueSelectResults(
+      [{ stripePriceId: 'price_enterprise_server' }],
+      [{ stripeCustomerId: 'cus_account_ctx' }],
+    );
+    mockSubscriptionsList.mockResolvedValue({
+      data: [{ id: 'sub_pro', items: { data: [{ id: 'si_pro' }] } }],
+    });
+
+    const app = createApp(MOCK_USER, {
+      accountId: 'acct_ctx',
+      tier: 'pro',
+      subscriptionStatus: 'active',
+    });
+    await app.request(post('/upgrade', { targetTier: 'enterprise' }));
+
+    expect(mockSubscriptionsList).toHaveBeenCalledWith({
+      customer: 'cus_account_ctx',
+      status: 'active',
+      limit: 1,
+    });
+    expect(mockDb.select).toHaveBeenCalledTimes(2);
   });
 
   it('updates subscription with new price, tier metadata, and prorations', async () => {

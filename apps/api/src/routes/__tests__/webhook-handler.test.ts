@@ -43,6 +43,7 @@ vi.mock('stripe', () => ({
 
 vi.mock('@revealui/core/features', () => ({
   isFeatureEnabled: vi.fn(),
+  getFeaturesForTier: vi.fn(() => ({})),
 }));
 
 vi.mock('@revealui/core/license', () => ({
@@ -628,6 +629,72 @@ describe('POST /stripe webhook — handler tests', () => {
       expect(vi.mocked(licenseModule.resetLicenseState)).toHaveBeenCalled();
     });
 
+    it('preserves the existing hosted tier when subscription deletion metadata is missing', async () => {
+      mockDbSelectChain.limit
+        .mockResolvedValueOnce([{ accountId: 'acct_enterprise' }])
+        .mockResolvedValueOnce([{ id: 'acct_sub_1', planId: 'enterprise' }])
+        .mockResolvedValueOnce([{ accountId: 'acct_enterprise', tier: 'enterprise' }]);
+
+      const event = {
+        id: 'evt_deleted_preserve_tier_missing_metadata',
+        type: 'customer.subscription.deleted',
+        data: {
+          object: {
+            id: 'sub_missing_meta',
+            customer: 'cus_enterprise',
+            metadata: {},
+          },
+        },
+      };
+      mockConstructEvent.mockReturnValueOnce(event);
+      const app = createApp();
+      const res = await app.request(postStripe(event));
+
+      expect(res.status).toBe(200);
+      const accountSubscriptionUpdate = mockDbUpdateChain.set.mock.calls[1]?.[0] as Record<
+        string,
+        unknown
+      >;
+      const entitlementUpdate = mockDbUpdateChain.set.mock.calls[2]?.[0] as Record<string, unknown>;
+      expect(accountSubscriptionUpdate.planId).toBe('enterprise');
+      expect(entitlementUpdate.tier).toBe('enterprise');
+      expect(entitlementUpdate.status).toBe('revoked');
+    });
+
+    it('preserves the existing hosted tier when past_due metadata is missing', async () => {
+      mockDbSelectChain.limit
+        .mockResolvedValueOnce([{ accountId: 'acct_enterprise' }])
+        .mockResolvedValueOnce([{ id: 'acct_sub_1', planId: 'enterprise' }])
+        .mockResolvedValueOnce([{ accountId: 'acct_enterprise', tier: 'enterprise' }]);
+
+      const event = {
+        id: 'evt_past_due_preserve_tier_missing_metadata',
+        type: 'customer.subscription.updated',
+        data: {
+          object: {
+            id: 'sub_past_due',
+            customer: 'cus_enterprise',
+            status: 'past_due',
+            metadata: {},
+          },
+        },
+      };
+      mockConstructEvent.mockReturnValueOnce(event);
+      const app = createApp();
+      const res = await app.request(postStripe(event));
+
+      expect(res.status).toBe(200);
+      const accountSubscriptionUpdate = mockDbUpdateChain.set.mock.calls[1]?.[0] as Record<
+        string,
+        unknown
+      >;
+      const entitlementUpdate = mockDbUpdateChain.set.mock.calls[2]?.[0] as Record<string, unknown>;
+      expect(accountSubscriptionUpdate.planId).toBe('enterprise');
+      expect(accountSubscriptionUpdate.status).toBe('expired');
+      expect(entitlementUpdate.tier).toBe('enterprise');
+      expect(entitlementUpdate.status).toBe('expired');
+    });
+
     it('called after customer deletion', async () => {
       const event = {
         id: 'evt_reset_custdel',
@@ -638,6 +705,32 @@ describe('POST /stripe webhook — handler tests', () => {
       const app = createApp();
       await app.request(postStripe(event));
       expect(vi.mocked(licenseModule.resetLicenseState)).toHaveBeenCalled();
+    });
+
+    it('preserves the existing hosted tier when customer deletion revokes access', async () => {
+      mockDbSelectChain.limit
+        .mockResolvedValueOnce([{ accountId: 'acct_enterprise' }])
+        .mockResolvedValueOnce([{ id: 'acct_sub_1', planId: 'enterprise' }])
+        .mockResolvedValueOnce([{ accountId: 'acct_enterprise', tier: 'enterprise' }]);
+
+      const event = {
+        id: 'evt_reset_custdel_preserve_tier',
+        type: 'customer.deleted',
+        data: { object: { id: 'cus_enterprise' } },
+      };
+      mockConstructEvent.mockReturnValueOnce(event);
+      const app = createApp();
+      const res = await app.request(postStripe(event));
+
+      expect(res.status).toBe(200);
+      const accountSubscriptionUpdate = mockDbUpdateChain.set.mock.calls[1]?.[0] as Record<
+        string,
+        unknown
+      >;
+      const entitlementUpdate = mockDbUpdateChain.set.mock.calls[2]?.[0] as Record<string, unknown>;
+      expect(accountSubscriptionUpdate.planId).toBe('enterprise');
+      expect(entitlementUpdate.tier).toBe('enterprise');
+      expect(entitlementUpdate.status).toBe('revoked');
     });
 
     it('called after full refund revocation', async () => {
@@ -657,6 +750,39 @@ describe('POST /stripe webhook — handler tests', () => {
       const app = createApp();
       await app.request(postStripe(event));
       expect(vi.mocked(licenseModule.resetLicenseState)).toHaveBeenCalled();
+    });
+
+    it('preserves the existing hosted tier when a full refund revokes access', async () => {
+      mockDbSelectChain.limit
+        .mockResolvedValueOnce([{ accountId: 'acct_enterprise' }])
+        .mockResolvedValueOnce([{ id: 'acct_sub_1', planId: 'enterprise' }])
+        .mockResolvedValueOnce([{ accountId: 'acct_enterprise', tier: 'enterprise' }]);
+
+      const event = {
+        id: 'evt_reset_refund_preserve_tier',
+        type: 'charge.refunded',
+        data: {
+          object: {
+            id: 'ch_ref_ent',
+            customer: 'cus_enterprise',
+            amount: 4900,
+            amount_refunded: 4900,
+          },
+        },
+      };
+      mockConstructEvent.mockReturnValueOnce(event);
+      const app = createApp();
+      const res = await app.request(postStripe(event));
+
+      expect(res.status).toBe(200);
+      const accountSubscriptionUpdate = mockDbUpdateChain.set.mock.calls[1]?.[0] as Record<
+        string,
+        unknown
+      >;
+      const entitlementUpdate = mockDbUpdateChain.set.mock.calls[2]?.[0] as Record<string, unknown>;
+      expect(accountSubscriptionUpdate.planId).toBe('enterprise');
+      expect(entitlementUpdate.tier).toBe('enterprise');
+      expect(entitlementUpdate.status).toBe('revoked');
     });
 
     it('not called on partial refund', async () => {

@@ -6,11 +6,11 @@ import { logger } from '@revealui/core/observability/logger';
 import { audit, SecurityHeaders, SecurityPresets } from '@revealui/core/security';
 import { closeAllPools, getClient } from '@revealui/db';
 import { createDbLogHandler } from '@revealui/db/log-transport';
-import { licenses, sites } from '@revealui/db/schema';
-import { desc, eq } from 'drizzle-orm';
+import { sites } from '@revealui/db/schema';
 import { bodyLimit } from 'hono/body-limit';
 import { cors } from 'hono/cors';
 import { logger as honoLogger } from 'hono/logger';
+import { queryBillingStatusByCustomerId } from './lib/billing-status.js';
 import { auditMiddleware } from './middleware/audit.js';
 import { authMiddleware } from './middleware/auth.js';
 import { requirePermission } from './middleware/authorization.js';
@@ -315,14 +315,7 @@ app.use('/api/v1/*', entitlementMiddleware());
 
 // License status enforcement — catches revoked/expired licenses (5-minute DB cache)
 const licenseStatusCheck = checkLicenseStatus(async (customerId) => {
-  const db = getClient();
-  const [license] = await db
-    .select({ status: licenses.status })
-    .from(licenses)
-    .where(eq(licenses.customerId, customerId))
-    .orderBy(desc(licenses.createdAt))
-    .limit(1);
-  return license?.status ?? null;
+  return queryBillingStatusByCustomerId(getClient(), customerId);
 });
 app.use('/api/*', licenseStatusCheck);
 app.use('/api/v1/*', licenseStatusCheck);
