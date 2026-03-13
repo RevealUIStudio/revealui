@@ -28,6 +28,10 @@ type TestUserInput = {
   tenants?: TestTenantAssignment[];
 };
 
+type CreateTestUserOptions = {
+  login?: boolean;
+};
+
 type TestTenant = { id: string | number } & Record<string, unknown>;
 
 /**
@@ -73,8 +77,10 @@ export async function createTestUser(
   roles: string[] = ['user-admin'],
   tenantId?: number | string,
   tenantRoles?: string[],
+  options: CreateTestUserOptions = {},
 ): Promise<{ user: TestUser; token: string }> {
   const revealui = await getTestRevealUI();
+  const shouldLogin = options.login ?? true;
 
   // Check if user already exists
   const existingUser = await revealui.find({
@@ -87,6 +93,10 @@ export async function createTestUser(
   });
 
   if (existingUser.docs.length > 0) {
+    if (!shouldLogin) {
+      return { user: existingUser.docs[0] as TestUser, token: '' };
+    }
+
     // User exists, try to login
     try {
       const loginResult = await revealui.login({
@@ -127,6 +137,10 @@ export async function createTestUser(
     collection: 'users',
     data: userData,
   })) as TestUser;
+
+  if (!shouldLogin) {
+    return { user, token: '' };
+  }
 
   // Login to get token
   const loginResult = await revealui.login({
