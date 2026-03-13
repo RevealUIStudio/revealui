@@ -17,6 +17,7 @@ type TestTenantAssignment = {
 type TestUser = {
   id: string | number;
   email: string;
+  token?: string;
   roles?: string[];
   tenants?: TestTenantAssignment[];
 } & Record<string, unknown>;
@@ -140,6 +141,10 @@ export async function createTestUser(
 
   if (!shouldLogin) {
     return { user, token: '' };
+  }
+
+  if (typeof user.token === 'string' && user.token.length > 0) {
+    return { user, token: user.token };
   }
 
   // Login to get token
