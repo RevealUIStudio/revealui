@@ -286,6 +286,7 @@ class StructureValidator {
 
     const AllowedRootFiles = [
       // Documentation
+      'AGENTS.md',
       'README.md',
       'LICENSE',
       'LICENSE.commercial',
@@ -358,6 +359,7 @@ class StructureValidator {
       (file) =>
         file.endsWith('.md') &&
         ![
+          'AGENTS.md',
           'README.md',
           'CHANGELOG.md',
           'CONTRIBUTING.md',

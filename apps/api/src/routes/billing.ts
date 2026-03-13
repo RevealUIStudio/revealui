@@ -39,13 +39,15 @@ interface RequestEntitlements {
   };
 }
 
-// biome-ignore lint/style/useNamingConvention: Hono requires PascalCase `Variables` in its generic type parameter
-const app = new OpenAPIHono<{
+interface BillingEnv {
+  // biome-ignore lint/style/useNamingConvention: Hono requires PascalCase `Variables` in its generic type parameter
   Variables: {
     user: UserContext | undefined;
     entitlements?: RequestEntitlements | undefined;
   };
-}>();
+}
+
+const app = new OpenAPIHono<BillingEnv>();
 
 // Circuit breaker for Stripe API — fails fast when Stripe is unreachable
 const stripeBreaker = new CircuitBreaker({
