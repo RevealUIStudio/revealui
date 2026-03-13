@@ -29,13 +29,16 @@ describe('gatherDoctorReport', () => {
   });
 
   it('reports local db target when localhost URL is configured', async () => {
-    mockExeca.mockImplementation(async (command, args) => {
-      const joined = `${command} ${args?.join(' ')}`;
+    mockExeca.mockImplementation(((command: string | URL, argsOrOptions?: unknown) => {
+      const args = Array.isArray(argsOrOptions) ? argsOrOptions : [];
+      const joined = `${String(command)} ${args.join(' ')}`;
       if (joined.includes('command -v')) {
-        return {} as Awaited<ReturnType<typeof execa>>;
+        return Promise.resolve({}) as unknown as ReturnType<typeof execa>;
       }
-      throw new Error(`unexpected command: ${joined}`);
-    });
+      return Promise.reject(new Error(`unexpected command: ${joined}`)) as unknown as ReturnType<
+        typeof execa
+      >;
+    }) as unknown as typeof execa);
 
     const report = await gatherDoctorReport(process.cwd(), {
       POSTGRES_URL: 'postgresql://postgres@localhost:5432/postgres',
@@ -47,13 +50,16 @@ describe('gatherDoctorReport', () => {
   });
 
   it('reports MCP readiness from configured credentials', async () => {
-    mockExeca.mockImplementation(async (command, args) => {
-      const joined = `${command} ${args?.join(' ')}`;
+    mockExeca.mockImplementation(((command: string | URL, argsOrOptions?: unknown) => {
+      const args = Array.isArray(argsOrOptions) ? argsOrOptions : [];
+      const joined = `${String(command)} ${args.join(' ')}`;
       if (joined.includes('command -v')) {
-        return {} as Awaited<ReturnType<typeof execa>>;
+        return Promise.resolve({}) as unknown as ReturnType<typeof execa>;
       }
-      throw new Error(`unexpected command: ${joined}`);
-    });
+      return Promise.reject(new Error(`unexpected command: ${joined}`)) as unknown as ReturnType<
+        typeof execa
+      >;
+    }) as unknown as typeof execa);
 
     const report = await gatherDoctorReport(process.cwd(), {
       POSTGRES_URL: 'postgresql://postgres@localhost:5432/postgres',

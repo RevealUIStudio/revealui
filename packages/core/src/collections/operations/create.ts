@@ -6,7 +6,7 @@
 
 import bcrypt from 'bcryptjs';
 import type {
-  DatabaseResult,
+  QueryableDatabaseAdapter,
   RevealCollectionConfig,
   RevealCreateOptions,
   RevealDocument,
@@ -20,9 +20,7 @@ import { insertDocumentQuery } from './sqlAdapter.js';
 
 export async function create(
   config: RevealCollectionConfig,
-  db: {
-    query: (query: string, values?: unknown[]) => Promise<DatabaseResult>;
-  } | null,
+  db: QueryableDatabaseAdapter | null,
   options: RevealCreateOptions,
 ): Promise<RevealDocument> {
   const { data } = options;

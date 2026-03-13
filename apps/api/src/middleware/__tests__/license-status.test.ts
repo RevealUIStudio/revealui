@@ -34,7 +34,16 @@ function createApp(
   queryFn: (customerId: string) => Promise<string | null>,
   entitlements?: { accountId?: string | null; subscriptionStatus?: string | null },
 ) {
-  const app = new Hono();
+  const app = new Hono<{
+    Variables: {
+      entitlements?:
+        | {
+            accountId?: string | null;
+            subscriptionStatus?: string | null;
+          }
+        | undefined;
+    };
+  }>();
   app.use('*', async (c, next) => {
     if (entitlements) {
       c.set('entitlements', entitlements);
