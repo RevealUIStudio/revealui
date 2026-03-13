@@ -15,6 +15,7 @@
  *   pnpm stripe:seed -- --dry-run            # preview, no writes
  *   pnpm stripe:seed -- --skip-webhook       # skip webhook endpoint setup
  *   pnpm stripe:seed -- --skip-portal        # skip billing portal setup
+ *   pnpm stripe:seed -- --skip-catalog-sync  # skip local billing_catalog sync
  *   pnpm stripe:seed -- --webhook-url URL    # override webhook URL
  *   pnpm stripe:seed -- --sync-vercel        # push price IDs to Vercel env
  */
@@ -146,9 +147,9 @@ const PRICE_SERVER_ENV_KEYS: Record<string, string> = {
 
 const log = {
   header: (msg: string) => console.log(`\n${'═'.repeat(60)}\n  ${msg}\n${'═'.repeat(60)}`),
-  info: (msg: string) => console.log(`  ℹ ${msg}`),
+  info: (msg: string) => console.log(`  i ${msg}`),
   success: (msg: string) => console.log(`  ✓ ${msg}`),
-  warn: (msg: string) => console.log(`  ⚠ ${msg}`),
+  warn: (msg: string) => console.log(`  ! ${msg}`),
   error: (msg: string) => console.error(`  ✗ ${msg}`),
   env: (key: string, value: string) => console.log(`\n  ${key}=${value}`),
 };
@@ -457,6 +458,29 @@ async function syncToVercel(envVars: Record<string, string>): Promise<void> {
   }
 }
 
+async function syncBillingCatalog(envVars: Record<string, string>, dryRun: boolean): Promise<void> {
+  if (dryRun) {
+    log.info('Would sync billing_catalog from the resolved Stripe price IDs');
+    return;
+  }
+
+  log.info('');
+  log.info('Syncing local billing_catalog...');
+
+  try {
+    execFileSync('pnpm', ['billing:catalog:sync'], {
+      env: { ...process.env, ...envVars },
+      stdio: 'inherit',
+      cwd: resolve(import.meta.dirname, '../..'),
+    });
+    log.success('billing_catalog synced');
+  } catch (err) {
+    log.error(
+      `Failed to sync billing_catalog: ${err instanceof Error ? err.message : String(err)}`,
+    );
+  }
+}
+
 // ─── Main ───────────────────────────────────────────────────────────────────
 
 async function main(): Promise<void> {
@@ -464,6 +488,7 @@ async function main(): Promise<void> {
   const dryRun = args.includes('--dry-run');
   const skipWebhook = args.includes('--skip-webhook');
   const skipPortal = args.includes('--skip-portal');
+  const skipCatalogSync = args.includes('--skip-catalog-sync');
   const syncVercel = args.includes('--sync-vercel');
   const webhookUrlFlag = (() => {
     const idx = args.indexOf('--webhook-url');
@@ -535,6 +560,11 @@ async function main(): Promise<void> {
     log.header('Env Vars — Add to .env');
     for (const [key, value] of Object.entries(envVars)) {
       log.env(key, value);
+    }
+
+    if (!skipCatalogSync) {
+      log.header('Billing Catalog');
+      await syncBillingCatalog(envVars, dryRun);
     }
 
     if (syncVercel) {
