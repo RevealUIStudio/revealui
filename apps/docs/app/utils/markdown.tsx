@@ -261,8 +261,8 @@ function CodeRenderer({
 
   return (
     <code className={`code-block language-${language}`}>
-      {/* biome-ignore lint/suspicious/noArrayIndexKey: code lines have stable order from syntax highlighting */}
       {lines.map((line, lineIndex) => (
+        // biome-ignore lint/suspicious/noArrayIndexKey: code lines have stable order from syntax highlighting
         <span key={`line-${lineIndex}`} className="code-line">
           {line.length === 0
             ? ' '
