@@ -6,8 +6,8 @@
 
 import { afterRead } from '../../fields/hooks/afterRead/index.js';
 import type {
-  DatabaseResult,
   PopulateType,
+  QueryableDatabaseAdapter,
   RevealCollectionConfig,
   RevealDocument,
   RevealRequest,
@@ -18,9 +18,7 @@ import { selectByIdQuery } from './sqlAdapter.js';
 
 export async function findByID(
   config: RevealCollectionConfig,
-  db: {
-    query: (query: string, values?: unknown[]) => Promise<DatabaseResult>;
-  } | null,
+  db: QueryableDatabaseAdapter | null,
   options: {
     id: string | number;
     depth?: number;

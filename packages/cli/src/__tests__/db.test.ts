@@ -48,15 +48,20 @@ describe('runDbStatusCommand', () => {
   });
 
   it('warns instead of throwing when postgres is not running', async () => {
-    mockExeca.mockImplementation(async (command, args) => {
+    mockExeca.mockImplementation(((command: string | URL, argsOrOptions?: unknown) => {
+      const args = Array.isArray(argsOrOptions) ? argsOrOptions : [];
       if (command === 'bash') {
-        return {} as Awaited<ReturnType<typeof execa>>;
+        return Promise.resolve({}) as unknown as ReturnType<typeof execa>;
       }
-      if (command === 'pg_ctl' && args?.[0] === 'status') {
-        throw Object.assign(new Error('pg_ctl: no server running'), { exitCode: 3 });
+      if (command === 'pg_ctl' && args[0] === 'status') {
+        return Promise.reject(
+          Object.assign(new Error('pg_ctl: no server running'), { exitCode: 3 }),
+        ) as unknown as ReturnType<typeof execa>;
       }
-      throw new Error(`unexpected command: ${command} ${args?.join(' ')}`);
-    });
+      return Promise.reject(
+        new Error(`unexpected command: ${String(command)} ${args.join(' ')}`),
+      ) as unknown as ReturnType<typeof execa>;
+    }) as unknown as typeof execa);
 
     await expect(runDbStatusCommand()).resolves.toBeUndefined();
     expect(mockLogger.warn).toHaveBeenCalledWith(

@@ -25,13 +25,14 @@ import { mkdir, writeFile } from 'node:fs/promises';
 import { createRequire } from 'node:module';
 import { resolve } from 'node:path';
 import { config } from 'dotenv';
+import type Stripe from 'stripe';
 
 // Load env from root .env
 config({ path: resolve(import.meta.dirname, '../../.env') });
 
 // Stripe is installed in packages/services — resolve from there
 const require = createRequire(resolve(import.meta.dirname, '../../packages/services/'));
-const Stripe = require('stripe').default as typeof import('stripe').default;
+const StripeConstructor = require('stripe').default as typeof import('stripe').default;
 const rootDir = resolve(import.meta.dirname, '../..');
 const LOCAL_STRIPE_ENV_CACHE_PATH = resolve(rootDir, '.revealui/stripe-env.json');
 
@@ -397,20 +398,25 @@ async function syncCatalog(
         continue;
       }
 
-      const price = await stripe.prices.create({
+      const priceParams: Stripe.PriceCreateParams = {
         product: product.id,
         unit_amount: priceDef.unitAmount,
         currency: priceDef.currency,
-        ...(priceDef.mode === 'subscription'
-          ? {
-              recurring: {
-                interval: priceDef.interval,
-                trial_period_days: priceDef.trialDays,
-              },
-            }
-          : {}),
         metadata: { revealui_price_key: priceDef.key },
-      });
+      };
+
+      if (priceDef.mode === 'subscription') {
+        if (!priceDef.interval) {
+          throw new Error(`Subscription price "${priceDef.key}" is missing an interval`);
+        }
+
+        priceParams.recurring = {
+          interval: priceDef.interval,
+          trial_period_days: priceDef.trialDays,
+        };
+      }
+
+      const price = await stripe.prices.create(priceParams);
 
       log.success(
         `  Created price: ${price.id} (${priceDef.key}: $${(priceDef.unitAmount / 100).toFixed(2)}${priceDef.interval ? `/${priceDef.interval}` : ''})`,
@@ -725,7 +731,7 @@ async function main(): Promise<void> {
     log.info('DRY RUN — no changes will be made to Stripe');
   }
 
-  const stripe = new Stripe(secretKey, { apiVersion: '2026-01-28.clover' });
+  const stripe = new StripeConstructor(secretKey, { apiVersion: '2026-01-28.clover' });
 
   try {
     await stripe.balance.retrieve();

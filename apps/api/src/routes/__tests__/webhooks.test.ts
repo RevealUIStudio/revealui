@@ -693,6 +693,53 @@ describe('POST /stripe webhook', () => {
       expect(entitlementUpdate.status).toBe('active');
     });
 
+    it('heals missing hosted entitlements when payment succeeds', async () => {
+      let selectCallCount = 0;
+      mockDb.select.mockImplementation(() => {
+        selectCallCount++;
+        mockDbSelectChain.limit.mockResolvedValue(
+          selectCallCount === 1
+            ? []
+            : selectCallCount === 2
+              ? [{ accountId: 'acct_hosted' }]
+              : selectCallCount === 3
+                ? []
+                : selectCallCount === 4
+                  ? [{ accountId: 'acct_hosted' }]
+                  : selectCallCount === 5
+                    ? [{ id: 'acct_sub_1', planId: 'enterprise' }]
+                    : [],
+        );
+        return mockDbSelectChain;
+      });
+      mockSubscriptionsList.mockResolvedValueOnce({
+        data: [{ id: 'sub_recovery', metadata: { tier: 'enterprise' } }],
+      });
+
+      const event = makePaymentSucceededEvent('evt_payment_succeeded_heal_hosted_1');
+      mockConstructEvent.mockReturnValueOnce(event);
+
+      const app = createApp();
+      const res = await app.request(postStripe(event));
+
+      expect(res.status).toBe(200);
+      expect(mockDb.update).toHaveBeenCalledTimes(1);
+      expect(mockDb.insert).toHaveBeenCalledTimes(2);
+      const accountSubscriptionUpdate = mockDbUpdateChain.set.mock.calls[0]?.[0] as Record<
+        string,
+        unknown
+      >;
+      const insertedEntitlement = mockDbInsertChain.values.mock.calls[1]?.[0] as Record<
+        string,
+        unknown
+      >;
+      expect(accountSubscriptionUpdate.planId).toBe('enterprise');
+      expect(accountSubscriptionUpdate.status).toBe('active');
+      expect(insertedEntitlement.accountId).toBe('acct_hosted');
+      expect(insertedEntitlement.tier).toBe('enterprise');
+      expect(insertedEntitlement.status).toBe('active');
+    });
+
     it('writes license.reactivated.payment_recovery audit entry when auditLog enabled', async () => {
       vi.mocked(featuresModule.isFeatureEnabled).mockReturnValue(true);
       mockSubscriptionsList.mockResolvedValueOnce({

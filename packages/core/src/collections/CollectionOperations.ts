@@ -7,8 +7,8 @@
 
 import type {
   CollectionStorageDescriptor,
-  DatabaseResult,
   PopulateType,
+  QueryableDatabaseAdapter,
   RevealCollectionConfig,
   RevealCreateOptions,
   RevealDeleteOptions,
@@ -27,15 +27,11 @@ import { update } from './operations/update.js';
 export class RevealUICollection {
   config: RevealCollectionConfig;
   storage: CollectionStorageDescriptor | null;
-  db: {
-    query: (query: string, values?: unknown[]) => Promise<DatabaseResult>;
-  } | null;
+  db: QueryableDatabaseAdapter | null;
 
   constructor(
     config: RevealCollectionConfig,
-    db: {
-      query: (query: string, values?: unknown[]) => Promise<DatabaseResult>;
-    } | null,
+    db: QueryableDatabaseAdapter | null,
     storage: CollectionStorageDescriptor | null = null,
   ) {
     this.config = config;
