@@ -120,6 +120,22 @@ revealui dev up --include mcp
 # - Neon MCP (database)
 ```
 
+### Stripe Catalog Seeding
+
+```bash
+# Preview Stripe catalog changes
+pnpm stripe:seed -- --dry-run
+
+# Seed Stripe products/prices and cache the resolved local price IDs
+pnpm stripe:seed -- --skip-webhook
+
+# Sync billing_catalog from env vars or the local .revealui/stripe-env.json cache
+pnpm billing:catalog:sync
+```
+
+`pnpm stripe:seed` now writes resolved price IDs to `.revealui/stripe-env.json` for local development.
+That lets `billing:catalog:sync` populate `billing_catalog` even before you manually copy new price IDs into `.env` files.
+
 ### Dual Database Configuration
 
 ```bash

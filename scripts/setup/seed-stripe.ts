@@ -21,6 +21,7 @@
  */
 
 import { execFileSync } from 'node:child_process';
+import { mkdir, writeFile } from 'node:fs/promises';
 import { createRequire } from 'node:module';
 import { resolve } from 'node:path';
 import { config } from 'dotenv';
@@ -31,6 +32,8 @@ config({ path: resolve(import.meta.dirname, '../../.env') });
 // Stripe is installed in packages/services — resolve from there
 const require = createRequire(resolve(import.meta.dirname, '../../packages/services/'));
 const Stripe = require('stripe').default as typeof import('stripe').default;
+const rootDir = resolve(import.meta.dirname, '../..');
+const LOCAL_STRIPE_ENV_CACHE_PATH = resolve(rootDir, '.revealui/stripe-env.json');
 
 // ─── Product Catalog ────────────────────────────────────────────────────────
 
@@ -253,9 +256,12 @@ function isLocalWebhookUrl(url: string): boolean {
 async function syncCatalog(
   stripe: Stripe,
   dryRun: boolean,
-): Promise<{ envVars: Record<string, string>; subscriptionProductIds: string[] }> {
+): Promise<{
+  envVars: Record<string, string>;
+  subscriptionProducts: Array<{ productId: string; priceIds: string[] }>;
+}> {
   const envVars: Record<string, string> = {};
-  const subscriptionProductIds: string[] = [];
+  const subscriptionProducts: Array<{ productId: string; priceIds: string[] }> = [];
 
   for (const productDef of CATALOG) {
     log.info('');
@@ -317,16 +323,13 @@ async function syncCatalog(
       log.success(`Created product: ${product.id}`);
     }
 
-    if (productDef.billingModel === 'subscription') {
-      subscriptionProductIds.push(product.id);
-    }
-
     const existingPrices = await stripe.prices.list({
       product: product.id,
       active: true,
       limit: 100,
     });
     let defaultPriceId = product.default_price;
+    const subscriptionPriceIds: string[] = [];
     const currentDefaultPriceId =
       typeof product.default_price === 'string' ? product.default_price : product.default_price?.id;
 
@@ -350,6 +353,9 @@ async function syncCatalog(
         }
         if (PRICE_SERVER_ENV_KEYS[priceDef.key]) {
           envVars[PRICE_SERVER_ENV_KEYS[priceDef.key]] = matchingPrice.id;
+        }
+        if (priceDef.mode === 'subscription') {
+          subscriptionPriceIds.push(matchingPrice.id);
         }
         if (priceDef.key === productDef.defaultPriceKey) {
           defaultPriceId = matchingPrice.id;
@@ -402,6 +408,9 @@ async function syncCatalog(
       if (PRICE_SERVER_ENV_KEYS[priceDef.key]) {
         envVars[PRICE_SERVER_ENV_KEYS[priceDef.key]] = price.id;
       }
+      if (priceDef.mode === 'subscription') {
+        subscriptionPriceIds.push(price.id);
+      }
       if (priceDef.key === productDef.defaultPriceKey) {
         defaultPriceId = price.id;
       }
@@ -415,9 +424,16 @@ async function syncCatalog(
         log.success(`  Set default price: ${defaultPriceId}`);
       }
     }
+
+    if (productDef.billingModel === 'subscription') {
+      subscriptionProducts.push({
+        productId: product.id,
+        priceIds: subscriptionPriceIds,
+      });
+    }
   }
 
-  return { envVars, subscriptionProductIds };
+  return { envVars, subscriptionProducts };
 }
 
 // ─── Webhook Endpoint ────────────────────────────────────────────────────────
@@ -483,7 +499,7 @@ async function setupWebhookEndpoint(
 
 async function setupBillingPortal(
   stripe: Stripe,
-  productIds: string[],
+  subscriptionProducts: Array<{ productId: string; priceIds: string[] }>,
   dryRun: boolean,
 ): Promise<void> {
   log.info('');
@@ -493,17 +509,15 @@ async function setupBillingPortal(
   const match = existing.data.find((c) => c.metadata?.revealui_portal === 'true');
 
   // Build the features config with all products for plan switching
-  const subscriptionUpdateProducts = productIds.map((id) => ({ product: id }));
-
   const portalFeatures: Stripe.BillingPortal.ConfigurationCreateParams.Features = {
     subscription_cancel: { enabled: true, mode: 'at_period_end' },
     subscription_update: {
       enabled: true,
       default_allowed_updates: ['price'],
       proration_behavior: 'create_prorations',
-      products: subscriptionUpdateProducts.map((p) => ({
-        product: p.product,
-        prices: [],
+      products: subscriptionProducts.map((product) => ({
+        product: product.productId,
+        prices: product.priceIds,
       })),
     },
     invoice_history: { enabled: true },
@@ -516,16 +530,19 @@ async function setupBillingPortal(
     } else {
       await stripe.billingPortal.configurations.update(match.id, {
         features: portalFeatures,
-        is_default: true,
       });
-      log.success(`Updated billing portal config: ${match.id} (set as default)`);
+      log.success(`Updated billing portal config: ${match.id}`);
     }
     return;
   }
 
   if (dryRun) {
     log.info('Would create billing portal configuration');
-    log.info(`  Products for plan switching: ${productIds.join(', ')}`);
+    log.info(
+      `  Products for plan switching: ${subscriptionProducts
+        .map((product) => product.productId)
+        .join(', ')}`,
+    );
     return;
   }
 
@@ -537,10 +554,10 @@ async function setupBillingPortal(
     metadata: { revealui_portal: 'true' },
   });
 
-  // Set as default
-  await stripe.billingPortal.configurations.update(portalConfig.id, { is_default: true });
-
-  log.success(`Created billing portal config: ${portalConfig.id} (set as default)`);
+  log.success(`Created billing portal config: ${portalConfig.id}`);
+  log.warn(
+    'Review the Stripe dashboard if you need this configuration selected as the default customer portal.',
+  );
 }
 
 // ─── Vercel Sync ─────────────────────────────────────────────────────────────
@@ -621,6 +638,30 @@ async function syncBillingCatalog(envVars: Record<string, string>, dryRun: boole
   }
 }
 
+async function writeLocalStripeEnvCache(
+  envVars: Record<string, string>,
+  dryRun: boolean,
+): Promise<void> {
+  if (dryRun || Object.keys(envVars).length === 0) {
+    return;
+  }
+
+  await mkdir(resolve(rootDir, '.revealui'), { recursive: true });
+  await writeFile(
+    LOCAL_STRIPE_ENV_CACHE_PATH,
+    JSON.stringify(
+      {
+        generatedAt: new Date().toISOString(),
+        envVars,
+      },
+      null,
+      2,
+    ),
+    'utf8',
+  );
+  log.success(`Cached Stripe env vars at ${LOCAL_STRIPE_ENV_CACHE_PATH}`);
+}
+
 // ─── Main ───────────────────────────────────────────────────────────────────
 
 async function main(): Promise<void> {
@@ -670,7 +711,9 @@ async function main(): Promise<void> {
 
   // ── Products & prices
   log.header('Products & Prices');
-  const { envVars, subscriptionProductIds } = await syncCatalog(stripe, dryRun);
+  const { envVars, subscriptionProducts } = await syncCatalog(stripe, dryRun);
+
+  await writeLocalStripeEnvCache(envVars, dryRun);
 
   // ── Webhook endpoint
   if (!skipWebhook) {
@@ -693,9 +736,9 @@ async function main(): Promise<void> {
   }
 
   // ── Billing portal
-  if (!skipPortal && subscriptionProductIds.length > 0) {
+  if (!skipPortal && subscriptionProducts.length > 0) {
     log.header('Billing Portal');
-    await setupBillingPortal(stripe, subscriptionProductIds, dryRun);
+    await setupBillingPortal(stripe, subscriptionProducts, dryRun);
   }
 
   // ── Output env vars
