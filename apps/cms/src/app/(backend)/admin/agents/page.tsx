@@ -172,7 +172,7 @@ function McpServersPanel() {
           {servers.length} server(s) · {total} tools
         </p>
         <span className="text-xs text-zinc-600">
-          Start with <code className="font-mono">pnpm mcp:all</code>
+          Start with <code className="font-mono">revealui dev up --include mcp</code>
         </span>
       </div>
 
