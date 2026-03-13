@@ -1,9 +1,8 @@
 // @vitest-environment node
 
-import { afterAll, beforeAll, beforeEach, describe, expect, it } from 'vitest';
+import { beforeEach, describe, expect, it } from 'vitest';
 import { passwordSchema } from '@/lib/validation/schemas';
 import {
-  cleanupTestUsers,
   createTestUser,
   deleteTestUser,
   generateUniqueTestEmail,
@@ -22,23 +21,13 @@ describe('Authentication Tests', () => {
   const testInvalidPassword = 'WrongPassword123';
   const testNonExistentEmail = generateUniqueTestEmail('nonexistent');
 
-  beforeAll(async () => {
-    // Clean up any existing test users
-    await cleanupTestUsers();
-  }, 30000); // 30 second timeout for cleanup
-
-  afterAll(async () => {
-    // Clean up test users after all tests
-    await cleanupTestUsers();
-  }, 30000); // 30 second timeout for cleanup
-
   beforeEach(async () => {
     // Ensure test user doesn't exist before each test
     // deleteTestUser now handles errors gracefully and returns success status
     await deleteTestUser(testEmail);
     // Result indicates success/failure - errors are handled internally
     // This prevents UNIQUE constraint failures from parallel test execution
-  });
+  }, 30000);
 
   describe('User Login', { timeout: 15_000 }, () => {
     it('should allow login with valid credentials', async () => {
