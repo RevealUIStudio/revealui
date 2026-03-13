@@ -1,4 +1,25 @@
 #!/bin/bash
+
+# Guard: Pro packages must remain gitignored — prevents accidental leak to public repo
+LEAKED=""
+for pkg in packages/ai packages/mcp packages/editors packages/services; do
+  if ! git check-ignore -q "$pkg" 2>/dev/null; then
+    LEAKED="$LEAKED $pkg"
+  fi
+done
+if [ -n "$LEAKED" ]; then
+  echo ""
+  echo "FATAL: Pro packages are no longer gitignored!"
+  echo "   Leaked:$LEAKED"
+  echo "   Restore these entries in .gitignore before committing:"
+  echo "   packages/ai/"
+  echo "   packages/mcp/"
+  echo "   packages/editors/"
+  echo "   packages/services/"
+  echo ""
+  exit 1
+fi
+
 # Scan for hardcoded secrets before committing
 pnpm secrets:scan
 
