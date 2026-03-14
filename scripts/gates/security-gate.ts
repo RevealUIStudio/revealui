@@ -48,6 +48,7 @@ interface CheckResult {
   status: 'pass' | 'fail' | 'warn' | 'skip';
   durationMs: number;
   detail?: string;
+  showDetailOnPass?: boolean;
 }
 
 interface AuditAdvisoryFinding {
@@ -58,6 +59,54 @@ interface AuditAdvisory {
   module_name?: string;
   patched_versions?: string;
   findings?: AuditAdvisoryFinding[];
+}
+
+interface KnownUpstreamAdvisory {
+  key: string;
+  moduleName: string;
+  patchedVersions: string;
+  pathIncludes: string;
+  description: string;
+}
+
+const KnownUpstreamAdvisories: KnownUpstreamAdvisory[] = [
+  {
+    key: 'neon-mcp-oauth2-server',
+    moduleName: 'oauth2-server',
+    patchedVersions: '<0.0.0',
+    pathIncludes: '@neondatabase/mcp-server-neon>oauth2-server',
+    description:
+      'oauth2-server via @neondatabase/mcp-server-neon has no patched npm release available yet',
+  },
+];
+
+function classifyAuditAdvisories(advisories: AuditAdvisory[]): {
+  actionable: AuditAdvisory[];
+  knownUpstream: KnownUpstreamAdvisory[];
+} {
+  const matchedKnownKeys = new Set<string>();
+  const actionable: AuditAdvisory[] = [];
+
+  for (const advisory of advisories) {
+    const paths = advisory.findings?.flatMap((finding) => finding.paths ?? []) ?? [];
+    const matched = KnownUpstreamAdvisories.find(
+      (known) =>
+        advisory.module_name === known.moduleName &&
+        advisory.patched_versions === known.patchedVersions &&
+        paths.some((path) => path.includes(known.pathIncludes)),
+    );
+
+    if (matched) {
+      matchedKnownKeys.add(matched.key);
+      continue;
+    }
+
+    actionable.push(advisory);
+  }
+
+  const knownUpstream = KnownUpstreamAdvisories.filter((known) => matchedKnownKeys.has(known.key));
+
+  return { actionable, knownUpstream };
 }
 
 // =============================================================================
@@ -113,33 +162,29 @@ async function checkDependencyAudit(projectRoot: string): Promise<CheckResult> {
   }
 
   const summary = `critical=${critical} high=${high} moderate=${moderate} low=${low}`;
-  const onlyResidualOauth2Server =
-    advisories.length > 0 &&
-    advisories.every((advisory) => {
-      const paths = advisory.findings?.flatMap((finding) => finding.paths ?? []) ?? [];
-      return (
-        advisory.module_name === 'oauth2-server' &&
-        advisory.patched_versions === '<0.0.0' &&
-        paths.some((path) => path.includes('@neondatabase/mcp-server-neon>oauth2-server'))
-      );
-    });
+  const { actionable, knownUpstream } = classifyAuditAdvisories(advisories);
+  const knownUpstreamDetail =
+    knownUpstream.length > 0
+      ? ` Known upstream advisories: ${knownUpstream.map((advisory) => advisory.description).join('; ')}.`
+      : '';
 
   if (critical > 0) {
     return {
       name: 'Dependency audit',
       status: 'fail',
       durationMs,
-      detail: `Found critical vulnerabilities: ${summary}. Run 'pnpm audit' for details.`,
+      detail: `Found critical vulnerabilities: ${summary}. Run 'pnpm audit' for details.${knownUpstreamDetail}`,
     };
   }
 
   if (high > 0 || moderate > 0) {
-    if (onlyResidualOauth2Server) {
+    if (actionable.length === 0 && knownUpstream.length > 0) {
       return {
         name: 'Dependency audit',
-        status: 'warn',
+        status: 'pass',
         durationMs,
-        detail: `Found vulnerabilities: ${summary}. Remaining advisories are upstream-only oauth2-server issues via @neondatabase/mcp-server-neon; no patched npm release is currently available.`,
+        detail: `No actionable dependency vulnerabilities in this repo: ${summary}.${knownUpstreamDetail}`,
+        showDetailOnPass: true,
       };
     }
 
@@ -147,7 +192,7 @@ async function checkDependencyAudit(projectRoot: string): Promise<CheckResult> {
       name: 'Dependency audit',
       status: 'warn',
       durationMs,
-      detail: `Found vulnerabilities: ${summary}. Run 'pnpm audit' for details. Note: some may be unfixable transitive deps (e.g. oauth2-server via @neondatabase/mcp-server-neon).`,
+      detail: `Found actionable vulnerabilities: ${summary}. Run 'pnpm audit' for details.${knownUpstreamDetail}`,
     };
   }
 
@@ -391,7 +436,7 @@ function printSummary(results: CheckResult[], totalMs: number): void {
     const suffix = r.status === 'warn' ? '  (warning)' : '';
     const pad = ' '.repeat(Math.max(1, 24 - r.name.length));
     console.log(`  ${icon} ${r.name}${pad}${duration}${suffix}`);
-    if (r.detail && (r.status === 'fail' || r.status === 'warn')) {
+    if (r.detail && (r.status === 'fail' || r.status === 'warn' || r.showDetailOnPass)) {
       const lines = r.detail.split('\n');
       for (const line of lines) {
         console.log(`       ${line}`);
