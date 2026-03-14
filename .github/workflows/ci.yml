@@ -130,6 +130,53 @@ jobs:
           SKIP_ENV_VALIDATION: "true"
 
   # ---------------------------------------------------------------------------
+  # Phase 3a.5: Coverage artifacts (warn-only)
+  # Produces workspace coverage reports and uploads them for inspection.
+  # ---------------------------------------------------------------------------
+  coverage:
+    name: Coverage
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    needs: quality
+    continue-on-error: true
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: pnpm/action-setup@v4
+        with:
+          version: ${{ env.PNPM_VERSION }}
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: pnpm
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Generate coverage reports (warn-only)
+        run: pnpm test:coverage || echo "Coverage generation had failures — not blocking"
+        continue-on-error: true
+        env:
+          SKIP_ENV_VALIDATION: "true"
+
+      - name: Validate coverage artifacts (warn-only)
+        run: pnpm coverage:check || echo "Coverage warnings — not blocking"
+        continue-on-error: true
+
+      - name: Upload coverage reports
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: coverage-reports
+          path: |
+            apps/*/coverage/
+            packages/*/coverage/
+          if-no-files-found: warn
+          retention-days: 7
+
+  # ---------------------------------------------------------------------------
   # Phase 3b: Build
   #   - PRs: packages only (hard fail, ~5 min) — catches import/export breaks
   #   - main: full build including apps (hard fail, ~15 min)
