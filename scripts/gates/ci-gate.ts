@@ -241,7 +241,7 @@ async function gate(): Promise<void> {
       {
         name: 'Coverage check',
         command: 'pnpm',
-        args: ['coverage:check'],
+        args: changed ? ['coverage:check', '--changed'] : ['coverage:check'],
         warnOnly: true,
         // Skip if no coverage reports exist yet (gate:quick shouldn't require a test run)
         skip: skip.has('coverage'),
