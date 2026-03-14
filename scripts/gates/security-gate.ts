@@ -31,6 +31,7 @@
 
 import { mkdir, writeFile } from 'node:fs/promises';
 import { join } from 'node:path';
+import { findApiSecurityIssues } from '../lib/analyzers/api-security-analyzer.js';
 import { findAuthSecurityIssues } from '../lib/analyzers/auth-security-analyzer.js';
 import { ErrorCode } from '../lib/errors.js';
 import { execCommand } from '../lib/exec.js';
@@ -290,20 +291,21 @@ async function checkAuthPatterns(projectRoot: string): Promise<CheckResult> {
 
 /**
  * Check 5: API security patterns (warn-only)
- * Checks for CORS wildcards and rate limiting presence.
+ * Uses AST-based analysis for CORS wildcard usage and a coarse inventory check for rate limiting.
  */
 async function checkApiSecurity(projectRoot: string): Promise<CheckResult> {
   const start = performance.now();
   const issues: string[] = [];
+  const findings = findApiSecurityIssues(projectRoot);
+  const corsWildcards = findings.filter((issue) => issue.kind === 'cors-wildcard');
 
-  // CORS wildcard
-  const corsResult = await execCommand(
-    'git',
-    ['grep', '-iE', 'origin.*:\\s*["\']?\\*["\']?', '--', ':!*.md'],
-    { capture: true, cwd: projectRoot },
-  );
-  if ((corsResult.stdout ?? '').trim()) {
-    issues.push('Potential CORS wildcard (*) detected — verify not in production code');
+  if (corsWildcards.length > 0) {
+    issues.push(
+      `Potential CORS wildcard (*) usage: ${corsWildcards
+        .slice(0, 3)
+        .map((issue) => `${issue.file}:${issue.line}`)
+        .join(', ')}`,
+    );
   }
 
   // Rate limiting presence
