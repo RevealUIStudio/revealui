@@ -83,7 +83,7 @@
     "lint": "biome check .",
     "start": "cross-env NODE_OPTIONS=--no-deprecation next start --port 4000",
     "test": "vitest run",
-    "test:coverage": "vitest run --coverage",
+    "test:coverage": "vitest run --coverage --coverage.reporter=json-summary --coverage.reporter=html --coverage.reporter=text",
     "test:ui": "vitest --ui",
     "test:watch": "vitest",
     "typecheck": "tsc --noEmit",

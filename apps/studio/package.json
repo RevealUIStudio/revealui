@@ -12,6 +12,7 @@
     "build:windows": "powershell -ExecutionPolicy Bypass -File build-windows.ps1",
     "typecheck": "tsc -b --noEmit",
     "test": "vitest",
+    "test:coverage": "vitest run --coverage --coverage.reporter=json-summary --coverage.reporter=html --coverage.reporter=text",
     "lint": "biome check ."
   },
   "dependencies": {

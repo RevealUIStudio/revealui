@@ -49,6 +49,7 @@
     "lint": "biome check .",
     "lint:fix": "biome check --write .",
     "test": "vitest run --passWithNoTests",
+    "test:coverage": "vitest run --coverage --coverage.reporter=json-summary --coverage.reporter=html --coverage.reporter=text --passWithNoTests",
     "test:watch": "vitest",
     "typecheck": "tsc --noEmit"
   },

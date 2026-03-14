@@ -45,7 +45,7 @@
     "format": "biome format --write .",
     "lint": "biome check .",
     "test": "vitest run",
-    "test:coverage": "vitest run --coverage",
+    "test:coverage": "vitest run --coverage --coverage.reporter=json-summary --coverage.reporter=html --coverage.reporter=text",
     "test:integration": "vitest run src/__tests__/integration",
     "test:ui": "vitest --ui",
     "test:watch": "vitest",

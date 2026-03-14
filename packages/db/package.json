@@ -172,7 +172,7 @@
     "generate:zod": "tsx src/types/generate-zod-schemas.ts",
     "lint": "biome check .",
     "test": "vitest run",
-    "test:coverage": "vitest run --coverage",
+    "test:coverage": "vitest run --coverage --coverage.reporter=json-summary --coverage.reporter=html --coverage.reporter=text",
     "typecheck": "tsc --noEmit"
   },
   "type": "module",
