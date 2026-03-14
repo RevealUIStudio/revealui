@@ -14,12 +14,14 @@
  *   tsx scripts/gates/test-coverage-gate.ts [--fail-on-zero]
  */
 
+import { execFileSync } from 'node:child_process';
 import { existsSync, readdirSync, readFileSync, statSync } from 'node:fs';
 import { join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
 const ROOT = join(fileURLToPath(import.meta.url), '../../..');
 const FAIL_ON_ZERO = process.argv.includes('--fail-on-zero');
+const CHANGED_ONLY = process.argv.includes('--changed');
 
 // Packages and apps to check
 const SCAN_DIRS = ['packages', 'apps'];
@@ -43,6 +45,11 @@ interface PackageResult {
   hasCoverageReport: boolean;
   linePct: number | null;
   testFiles: number;
+}
+
+interface PackageCandidate {
+  name: string;
+  path: string;
 }
 
 const IGNORED_DIRECTORIES = new Set([
@@ -145,8 +152,8 @@ function readCoverageSummary(pkgPath: string): CoverageSummary | null {
   return null;
 }
 
-function scan(): PackageResult[] {
-  const results: PackageResult[] = [];
+function getPackageCandidates(): PackageCandidate[] {
+  const candidates: PackageCandidate[] = [];
 
   for (const scanDir of SCAN_DIRS) {
     const dir = join(ROOT, scanDir);
@@ -155,34 +162,93 @@ function scan(): PackageResult[] {
     for (const pkgName of readdirSync(dir)) {
       const pkgPath = join(dir, pkgName);
       if (!statSync(pkgPath).isDirectory()) continue;
-
-      const srcDir = join(pkgPath, 'src');
-      const sourceLoc = countSourceLines(srcDir);
-      if (sourceLoc < MIN_LOC_THRESHOLD) continue;
-
-      const summary = readCoverageSummary(pkgPath);
-      const testFiles = countTestFiles(pkgPath);
-
-      results.push({
+      candidates.push({
         name: `${scanDir}/${pkgName}`,
         path: pkgPath,
-        sourceLoc,
-        hasCoverageReport: summary !== null,
-        linePct: summary?.total.lines.pct ?? null,
-        testFiles,
       });
     }
   }
 
-  return results.sort((a, b) => a.name.localeCompare(b.name));
+  return candidates.sort((a, b) => a.name.localeCompare(b.name));
+}
+
+function getChangedPackageNames(): Set<string> {
+  let output = '';
+
+  try {
+    output = execFileSync(
+      'git',
+      ['diff', '--name-only', '--diff-filter=ACMR', 'HEAD~1', '--', 'apps', 'packages'],
+      { cwd: ROOT, encoding: 'utf8' },
+    );
+  } catch (error) {
+    if (
+      typeof error === 'object' &&
+      error !== null &&
+      'stdout' in error &&
+      typeof error.stdout === 'string'
+    ) {
+      output = error.stdout;
+    }
+  }
+
+  const changedPackages = new Set<string>();
+  for (const file of output
+    .split('\n')
+    .map((line) => line.trim())
+    .filter(Boolean)) {
+    const parts = file.split('/');
+    if (parts.length < 2) continue;
+    const [scanDir, pkgName] = parts;
+    if (!SCAN_DIRS.includes(scanDir)) continue;
+    changedPackages.add(`${scanDir}/${pkgName}`);
+  }
+
+  return changedPackages;
+}
+
+function scan(): PackageResult[] {
+  const results: PackageResult[] = [];
+  const candidates = getPackageCandidates();
+  const changedPackages = CHANGED_ONLY ? getChangedPackageNames() : null;
+
+  for (const candidate of candidates) {
+    if (changedPackages && !changedPackages.has(candidate.name)) {
+      continue;
+    }
+
+    const srcDir = join(candidate.path, 'src');
+    const sourceLoc = countSourceLines(srcDir);
+    if (sourceLoc < MIN_LOC_THRESHOLD) continue;
+
+    const summary = readCoverageSummary(candidate.path);
+    const testFiles = countTestFiles(candidate.path);
+
+    results.push({
+      name: candidate.name,
+      path: candidate.path,
+      sourceLoc,
+      hasCoverageReport: summary !== null,
+      linePct: summary?.total.lines.pct ?? null,
+      testFiles,
+    });
+  }
+
+  return results;
 }
 
 function main(): void {
   console.log('\n============================================================');
   console.log('Test Coverage Gate');
   console.log('============================================================\n');
+  if (CHANGED_ONLY) {
+    console.log('ℹ️  Changed-only coverage scope enabled.\n');
+  }
 
   const results = scan();
+  if (CHANGED_ONLY && results.length === 0) {
+    console.log('ℹ️  No changed apps/packages with >100 LOC were found in this scope.\n');
+  }
   const noCoverage: PackageResult[] = [];
   const zeroCoverage: PackageResult[] = [];
   const withCoverage: PackageResult[] = [];
