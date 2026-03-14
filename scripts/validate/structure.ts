@@ -203,6 +203,61 @@ const VALIDATION_RULES: ValidationRule[] = [
 ];
 
 class StructureValidator {
+  private packageHasTests(pkgPath: string): boolean {
+    const ignoredDirectories = new Set([
+      'node_modules',
+      'dist',
+      '.next',
+      '.turbo',
+      'coverage',
+      '.git',
+      'results',
+    ]);
+
+    function isTestFile(entry: string): boolean {
+      return (
+        entry.endsWith('.test.ts') ||
+        entry.endsWith('.test.tsx') ||
+        entry.endsWith('.test.js') ||
+        entry.endsWith('.test.jsx') ||
+        entry.endsWith('.spec.ts') ||
+        entry.endsWith('.spec.tsx') ||
+        entry.endsWith('.spec.js') ||
+        entry.endsWith('.spec.jsx') ||
+        entry.endsWith('.integration.test.ts') ||
+        entry.endsWith('.integration.test.tsx')
+      );
+    }
+
+    function walk(dir: string): boolean {
+      for (const entry of readdirSync(dir)) {
+        const full = join(dir, entry);
+        const stat = statSync(full);
+
+        if (stat.isDirectory()) {
+          if (entry === '__tests__') {
+            return true;
+          }
+          if (ignoredDirectories.has(entry)) {
+            continue;
+          }
+          if (walk(full)) {
+            return true;
+          }
+          continue;
+        }
+
+        if (isTestFile(entry)) {
+          return true;
+        }
+      }
+
+      return false;
+    }
+
+    return walk(pkgPath);
+  }
+
   validate(): boolean {
     console.log('🔍 Validating Reorganized Structure\n');
 
@@ -440,8 +495,7 @@ class StructureValidator {
       for (const pkg of packages) {
         const pkgPath = join(packagesDir, pkg);
         const hasSrc = existsSync(join(pkgPath, 'src'));
-        const hasTests =
-          existsSync(join(pkgPath, '__tests__')) || existsSync(join(pkgPath, 'src', '__tests__'));
+        const hasTests = this.packageHasTests(pkgPath);
         const hasPackageJson = existsSync(join(pkgPath, 'package.json'));
 
         if (!srcExempt.has(pkg)) {
@@ -450,7 +504,7 @@ class StructureValidator {
             allValid = false;
           }
           if (!hasTests) {
-            console.log(`⚠️  Package ${pkg} missing __tests__ directory`);
+            console.log(`⚠️  Package ${pkg} missing test files`);
           }
         }
         if (!hasPackageJson) {
