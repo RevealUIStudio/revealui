@@ -14,13 +14,13 @@ import { readdirSync, readFileSync } from 'node:fs';
 import { extname, join, relative } from 'node:path';
 import * as ts from 'typescript';
 
-export type AuthPatternKind =
+export type AuthSecurityIssueKind =
   | 'hardcoded-jwt-secret'
   | 'weak-password-requirement'
   | 'plaintext-password-storage';
 
-export interface AuthPatternIssue {
-  kind: AuthPatternKind;
+export interface AuthSecurityIssue {
+  kind: AuthSecurityIssueKind;
   file: string;
   line: number;
   column: number;
@@ -84,11 +84,11 @@ function getSnippet(sourceFile: ts.SourceFile, node: ts.Node): string {
 }
 
 function createIssue(
-  kind: AuthPatternKind,
+  kind: AuthSecurityIssueKind,
   sourceFile: ts.SourceFile,
   node: ts.Node,
   repoRoot: string,
-): AuthPatternIssue {
+): AuthSecurityIssue {
   const { line, character } = sourceFile.getLineAndCharacterOfPosition(node.getStart(sourceFile));
 
   return {
@@ -174,8 +174,8 @@ function isPasswordTargetName(name: string | null): boolean {
   return name === 'password';
 }
 
-function analyzeSourceFile(sourceFile: ts.SourceFile, repoRoot: string): AuthPatternIssue[] {
-  const issues: AuthPatternIssue[] = [];
+function analyzeSourceFile(sourceFile: ts.SourceFile, repoRoot: string): AuthSecurityIssue[] {
+  const issues: AuthSecurityIssue[] = [];
 
   function visit(node: ts.Node): void {
     if (ts.isVariableDeclaration(node)) {
@@ -245,13 +245,13 @@ function analyzeSourceFile(sourceFile: ts.SourceFile, repoRoot: string): AuthPat
   return issues;
 }
 
-export function analyzeAuthPatternsAST(projectRoot: string): AuthPatternIssue[] {
+export function findAuthSecurityIssues(projectRoot: string): AuthSecurityIssue[] {
   const files = [
     ...collectSourceFiles(join(projectRoot, 'packages')),
     ...collectSourceFiles(join(projectRoot, 'apps')),
   ];
 
-  const issues: AuthPatternIssue[] = [];
+  const issues: AuthSecurityIssue[] = [];
 
   for (const file of files) {
     const content = readFileSync(file, 'utf8');

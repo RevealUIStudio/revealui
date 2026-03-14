@@ -9,10 +9,10 @@
  */
 
 export {
-  type AuthPatternIssue,
-  type AuthPatternKind,
-  analyzeAuthPatternsAST,
-} from './auth-pattern-analyzer.js';
+  type AuthSecurityIssue,
+  type AuthSecurityIssueKind,
+  findAuthSecurityIssues,
+} from './auth-security-analyzer.js';
 export {
   type AnalysisMode,
   analyzeFile,
