@@ -9,6 +9,11 @@
  */
 
 export {
+  type ApiSecurityIssue,
+  type ApiSecurityIssueKind,
+  findApiSecurityIssues,
+} from './api-security-analyzer.js';
+export {
   type AuthSecurityIssue,
   type AuthSecurityIssueKind,
   findAuthSecurityIssues,
