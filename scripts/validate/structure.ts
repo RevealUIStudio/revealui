@@ -367,6 +367,7 @@ class StructureValidator {
       'playwright.smoke.config.ts',
       // Docker
       'docker-compose.yml',
+      'docker-compose.forge.yml',
       // Nix
       'flake.nix',
       'flake.lock',
@@ -381,6 +382,7 @@ class StructureValidator {
       '.env.test',
       '.lighthouserc.json',
       '.size-limit.json',
+      'skills-lock.json',
       // Infrastructure
       'vultr-inference.json',
       // Reports (consider moving to reports/ folder)
