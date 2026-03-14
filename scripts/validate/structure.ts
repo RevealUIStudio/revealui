@@ -22,6 +22,12 @@ interface ValidationRule {
   required?: boolean;
 }
 
+interface ValidationResult {
+  rule: ValidationRule;
+  valid: boolean;
+  message: string;
+}
+
 const VALIDATION_RULES: ValidationRule[] = [
   // Centralized configuration structure
   {
@@ -262,11 +268,8 @@ class StructureValidator {
     console.log('🔍 Validating Reorganized Structure\n');
 
     let allValid = true;
-    const results: Array<{
-      rule: ValidationRule;
-      valid: boolean;
-      message: string;
-    }> = [];
+    const results: ValidationResult[] = [];
+    const optionalMissing: ValidationRule[] = [];
 
     for (const rule of VALIDATION_RULES) {
       const exists = existsSync(rule.path);
@@ -300,17 +303,32 @@ class StructureValidator {
           });
         }
       } else if (!rule.required) {
-        results.push({
-          rule,
-          valid: true,
-          message: `⚠️  OPTIONAL: ${rule.path} - ${rule.description} (not present)`,
-        });
+        optionalMissing.push(rule);
       }
     }
 
     // Print results
     for (const result of results) {
       console.log(result.message);
+    }
+
+    if (optionalMissing.length > 0) {
+      const groupedOptionalMissing = new Map<string, ValidationRule[]>();
+
+      for (const rule of optionalMissing) {
+        const [groupKey] = rule.path.split('/');
+        const rules = groupedOptionalMissing.get(groupKey) ?? [];
+        rules.push(rule);
+        groupedOptionalMissing.set(groupKey, rules);
+      }
+
+      console.log(
+        `\nℹ️  Optional paths not present (${optionalMissing.length}) — informational only:`,
+      );
+
+      for (const [group, rules] of groupedOptionalMissing) {
+        console.log(`   - ${group}: ${rules.map((rule) => rule.path).join(', ')}`);
+      }
     }
 
     // Additional validations
