@@ -9,6 +9,11 @@
  */
 
 export {
+  type AuthPatternIssue,
+  type AuthPatternKind,
+  analyzeAuthPatternsAST,
+} from './auth-pattern-analyzer.js';
+export {
   type AnalysisMode,
   analyzeFile,
   analyzeFileAST,

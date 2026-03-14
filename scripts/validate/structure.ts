@@ -484,12 +484,12 @@ class StructureValidator {
     _results: Array<{ rule: ValidationRule; valid: boolean; message: string }>,
   ): void {
     // Paths where Supabase imports are explicitly allowed
-    const AllowedSupabasePaths = [
+    const allowedSupabasePaths = [
       'packages/db/src/vector',
       'packages/db/src/auth',
       'packages/auth/src',
-      '@revealui/ai memory modules',
-      '@revealui/services supabase integration',
+      'packages/ai/src',
+      'packages/services/src/supabase',
       'packages/mcp/src',
       // Integration tests for Supabase services are expected to import supabase-js
       'packages/test/src/integration',
@@ -528,7 +528,7 @@ class StructureValidator {
     const permitted: string[] = [];
 
     for (const file of files) {
-      const isAllowed = AllowedSupabasePaths.some((allowedPath) => file.startsWith(allowedPath));
+      const isAllowed = allowedSupabasePaths.some((allowedPath) => file.startsWith(allowedPath));
       // Also allow app-level supabase utility directories
       const isAppAllowed = /^apps\/[^/]+\/src\/lib\/supabase\//.test(file);
 

@@ -24,6 +24,7 @@ Follow these rules for ALL code changes in the RevealUI monorepo.
 ## Import Boundaries
 
 `@supabase/supabase-js` is ONLY allowed in:
+
 - `packages/db/src/vector/`, `packages/db/src/auth/`
 - `packages/auth/src/`, `packages/ai/src/`
 - `packages/services/src/supabase/`
@@ -37,6 +38,11 @@ FORBIDDEN in: `packages/core/`, `packages/contracts/`, `packages/config/`, `apps
 - Never add `console.*` in production code — use `@revealui/utils` logger
 - Never hardcode API keys, tokens, passwords, or secrets
 - Use `crypto.randomInt()` for security-sensitive values, not `Math.random()`
+
+## Static Analysis
+
+- For security and architecture validation scripts, prefer AST-based analysis over regex when the rule depends on syntax or code shape
+- Use regex only for heuristic inventory scans (for example obvious secret patterns), not as the source of truth for code-security conclusions
 
 ## After Every Edit
 
