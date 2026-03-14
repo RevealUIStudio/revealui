@@ -52,6 +52,13 @@ interface PackageCandidate {
   path: string;
 }
 
+const COVERAGE_EXCLUSIONS = new Map<string, string>([
+  [
+    'packages/harnesses',
+    'commercial package source is gitignored in this repo; excluded from public workspace coverage',
+  ],
+]);
+
 const IGNORED_DIRECTORIES = new Set([
   'node_modules',
   'dist',
@@ -249,11 +256,13 @@ function main(): void {
   if (CHANGED_ONLY && results.length === 0) {
     console.log('ℹ️  No changed apps/packages with >100 LOC were found in this scope.\n');
   }
+  const excludedCoveragePackages = results.filter((r) => COVERAGE_EXCLUSIONS.has(r.name));
+  const scopedResults = results.filter((r) => !COVERAGE_EXCLUSIONS.has(r.name));
   const noCoverage: PackageResult[] = [];
   const zeroCoverage: PackageResult[] = [];
   const withCoverage: PackageResult[] = [];
 
-  for (const r of results) {
+  for (const r of scopedResults) {
     if (!r.hasCoverageReport) {
       noCoverage.push(r);
     } else if (r.linePct === 0) {
@@ -273,6 +282,16 @@ function main(): void {
       console.log(
         `   ${r.name.padEnd(35)} ${pct}% lines   (${r.testFiles} test files, ${r.sourceLoc} LOC)`,
       );
+    }
+    console.log();
+  }
+
+  // ── Intentionally excluded packages ──────────────────────────────────────
+  if (excludedCoveragePackages.length > 0) {
+    console.log('ℹ️  Packages excluded from public coverage expectations:');
+    for (const r of excludedCoveragePackages) {
+      const reason = COVERAGE_EXCLUSIONS.get(r.name) ?? 'excluded';
+      console.log(`   ${r.name.padEnd(35)} ${reason}`);
     }
     console.log();
   }
@@ -303,14 +322,15 @@ function main(): void {
 
   // ── Summary ──────────────────────────────────────────────────────────────
   console.log('============================================================');
-  console.log(`Scanned ${results.length} packages (>${MIN_LOC_THRESHOLD} LOC)`);
+  console.log(`Scanned ${scopedResults.length} packages (>${MIN_LOC_THRESHOLD} LOC)`);
+  console.log(`  ℹ️ Excluded:        ${excludedCoveragePackages.length}`);
   console.log(`  ✅ With coverage:   ${withCoverage.length}`);
   console.log(`  !  No report yet:  ${noCoverage.length}`);
   console.log(`  ❌ Zero coverage:   ${zeroCoverage.length}`);
   console.log('============================================================\n');
 
   // Priority packages with no tests at all (always warn regardless of report)
-  const noTests = results.filter((r) => r.testFiles === 0);
+  const noTests = scopedResults.filter((r) => r.testFiles === 0);
   if (noTests.length > 0) {
     console.log('⚠️  Packages with >100 LOC and zero test files:');
     for (const r of noTests) {
