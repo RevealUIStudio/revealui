@@ -5,6 +5,8 @@ export default defineConfig({
     globals: true,
     environment: 'node',
     pool: 'forks',
+    fileParallelism: false,
+    maxWorkers: 1,
     include: ['src/**/*.test.ts'],
     env: {
       REVEALUI_SECRET: 'test-secret-key-for-testing-only-32chars',

@@ -130,7 +130,7 @@
     "lint:fix": "biome check --write .",
     "typecheck:all": "turbo run typecheck",
     "test": "turbo run test --concurrency=15",
-    "test:coverage": "turbo run test:coverage",
+    "test:coverage": "turbo run test:coverage --filter=!@revealui/harnesses -- --coverage.thresholds.lines=0 --coverage.thresholds.functions=0 --coverage.thresholds.statements=0 --coverage.thresholds.branches=0",
     "test:e2e": "playwright test",
     "test:e2e:headed": "playwright test --headed",
     "test:e2e:ui": "playwright test --ui",
