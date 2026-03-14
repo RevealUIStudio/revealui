@@ -50,6 +50,16 @@ interface CheckResult {
   detail?: string;
 }
 
+interface AuditAdvisoryFinding {
+  paths?: string[];
+}
+
+interface AuditAdvisory {
+  module_name?: string;
+  patched_versions?: string;
+  findings?: AuditAdvisoryFinding[];
+}
+
 // =============================================================================
 // Security Checks
 // =============================================================================
@@ -74,18 +84,21 @@ async function checkDependencyAudit(projectRoot: string): Promise<CheckResult> {
   let high = 0;
   let moderate = 0;
   let low = 0;
+  let advisories: AuditAdvisory[] = [];
 
   try {
     const parsed = JSON.parse(raw) as {
       metadata?: {
         vulnerabilities?: { critical?: number; high?: number; moderate?: number; low?: number };
       };
+      advisories?: Record<string, AuditAdvisory>;
     };
     const v = parsed.metadata?.vulnerabilities ?? {};
     critical = v.critical ?? 0;
     high = v.high ?? 0;
     moderate = v.moderate ?? 0;
     low = v.low ?? 0;
+    advisories = Object.values(parsed.advisories ?? {});
   } catch {
     // pnpm audit may exit non-zero even when JSON is valid — tolerate parse errors
   }
@@ -100,6 +113,16 @@ async function checkDependencyAudit(projectRoot: string): Promise<CheckResult> {
   }
 
   const summary = `critical=${critical} high=${high} moderate=${moderate} low=${low}`;
+  const onlyResidualOauth2Server =
+    advisories.length > 0 &&
+    advisories.every((advisory) => {
+      const paths = advisory.findings?.flatMap((finding) => finding.paths ?? []) ?? [];
+      return (
+        advisory.module_name === 'oauth2-server' &&
+        advisory.patched_versions === '<0.0.0' &&
+        paths.some((path) => path.includes('@neondatabase/mcp-server-neon>oauth2-server'))
+      );
+    });
 
   if (critical > 0) {
     return {
@@ -111,6 +134,15 @@ async function checkDependencyAudit(projectRoot: string): Promise<CheckResult> {
   }
 
   if (high > 0 || moderate > 0) {
+    if (onlyResidualOauth2Server) {
+      return {
+        name: 'Dependency audit',
+        status: 'warn',
+        durationMs,
+        detail: `Found vulnerabilities: ${summary}. Remaining advisories are upstream-only oauth2-server issues via @neondatabase/mcp-server-neon; no patched npm release is currently available.`,
+      };
+    }
+
     return {
       name: 'Dependency audit',
       status: 'warn',
