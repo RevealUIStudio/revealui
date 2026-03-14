@@ -15,6 +15,8 @@ export default defineConfig({
     environment: 'jsdom',
     globals: false,
     pool: 'forks',
+    fileParallelism: false,
+    maxWorkers: 1,
     env: {
       NODE_ENV: 'test',
     },
