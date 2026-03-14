@@ -2,12 +2,14 @@
  * Unit tests for markdown utilities
  */
 
+import { render, screen } from '@testing-library/react';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import {
   clearMarkdownCache,
   clearMarkdownCacheEntry,
   getMarkdownCacheStats,
   loadMarkdownFile,
+  renderMarkdown,
 } from '../../app/utils/markdown';
 
 // Mock fetch globally
@@ -138,5 +140,86 @@ describe('cache management', () => {
     expect(stats.entries).toHaveLength(1);
     expect(stats.entries[0].path).toBe('/docs/test.md');
     expect(stats.entries[0].age).toBeGreaterThanOrEqual(0);
+  });
+
+  it('should refetch when cached entry expires', async () => {
+    vi.useFakeTimers();
+    vi.setSystemTime(new Date('2026-03-14T06:00:00.000Z'));
+
+    vi.mocked(fetch)
+      .mockResolvedValueOnce(new Response('# Old Content', { status: 200 }))
+      .mockResolvedValueOnce(new Response('# Fresh Content', { status: 200 }));
+
+    const first = await loadMarkdownFile('/docs/test.md');
+    expect(first).toBe('# Old Content');
+    expect(fetch).toHaveBeenCalledTimes(1);
+
+    vi.setSystemTime(new Date('2026-03-14T06:05:01.000Z'));
+
+    const second = await loadMarkdownFile('/docs/test.md');
+    expect(second).toBe('# Fresh Content');
+    expect(fetch).toHaveBeenCalledTimes(2);
+
+    vi.useRealTimers();
+  });
+});
+
+describe('renderMarkdown', () => {
+  it('renders inline code without code-block highlighting', () => {
+    render(renderMarkdown('Use `pnpm install` to install dependencies.'));
+
+    const code = screen.getByText('pnpm install');
+    expect(code.tagName).toBe('CODE');
+    expect(code).not.toHaveClass('code-block');
+  });
+
+  it('renders JSON code blocks with token classes', () => {
+    render(renderMarkdown('```json\n{"name":"revealui","enabled":true,"count":42}\n```'));
+
+    expect(screen.getByText('"name"')).toHaveClass('token-property');
+    expect(screen.getByText('"revealui"')).toHaveClass('token-string');
+    expect(screen.getByText('true')).toHaveClass('token-keyword');
+    expect(screen.getByText('42')).toHaveClass('token-number');
+  });
+
+  it('renders shell code blocks with keyword, property, string, number, and comment tokens', () => {
+    render(renderMarkdown('```bash\npnpm --filter docs test "$HOME" 42 # run docs tests\n```'));
+
+    expect(screen.getByText('pnpm')).toHaveClass('token-keyword');
+    expect(screen.getByText('--filter')).toHaveClass('token-property');
+    expect(screen.getByText('"$HOME"')).toHaveClass('token-string');
+    expect(screen.getByText('42')).toHaveClass('token-number');
+    expect(screen.getByText('# run docs tests')).toHaveClass('token-comment');
+  });
+
+  it('renders markup code blocks with tag and attribute tokens', () => {
+    render(renderMarkdown('```html\n<div class="hero">Docs</div>\n```'));
+
+    expect(screen.getAllByText('<div')[0]).toHaveClass('token-tag');
+    expect(
+      screen.getByText((content, element) => {
+        return content === 'class' && element?.classList.contains('token-attr') === true;
+      }),
+    ).toHaveClass('token-attr');
+    expect(screen.getByText('"hero"')).toHaveClass('token-string');
+    expect(screen.getAllByText('>')[0]).toHaveClass('token-tag');
+    expect(screen.getByText('</div')).toHaveClass('token-tag');
+  });
+
+  it('renders script-like code blocks with keyword, string, number, and comment tokens', () => {
+    render(renderMarkdown("```ts\nconst port = 3000 // docs server\nconsole.log('ready')\n```"));
+
+    expect(screen.getByText('const')).toHaveClass('token-keyword');
+    expect(screen.getByText('3000')).toHaveClass('token-number');
+    expect(screen.getByText("'ready'")).toHaveClass('token-string');
+    expect(screen.getByText('// docs server')).toHaveClass('token-comment');
+  });
+
+  it('renders unknown language code blocks as plain lines', () => {
+    render(renderMarkdown('```mermaid\ngraph TD\n```'));
+
+    const code = screen.getByText('graph TD').closest('code');
+    expect(code).toHaveClass('code-block', 'language-mermaid');
+    expect(screen.queryByText('graph TD', { selector: '.token-keyword' })).toBeNull();
   });
 });
