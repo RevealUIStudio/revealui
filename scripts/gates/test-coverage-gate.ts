@@ -165,6 +165,8 @@ function main(): void {
     }
   }
 
+  const hasAnyCoverageReports = withCoverage.length > 0 || zeroCoverage.length > 0;
+
   // ── Packages with coverage data ──────────────────────────────────────────
   if (withCoverage.length > 0) {
     console.log('✅ Packages with coverage data:');
@@ -179,10 +181,15 @@ function main(): void {
 
   // ── Packages missing coverage reports ────────────────────────────────────
   if (noCoverage.length > 0) {
-    console.log('⚠️  No coverage report found (run `pnpm test:coverage` first):');
-    for (const r of noCoverage) {
-      const testNote = r.testFiles === 0 ? '⚠ no tests' : `${r.testFiles} test files`;
-      console.log(`   ${r.name.padEnd(35)} ${testNote}, ${r.sourceLoc} LOC`);
+    if (hasAnyCoverageReports) {
+      console.log('⚠️  Packages missing coverage reports:');
+      for (const r of noCoverage) {
+        const testNote = r.testFiles === 0 ? '! no tests' : `${r.testFiles} test files`;
+        console.log(`   ${r.name.padEnd(35)} ${testNote}, ${r.sourceLoc} LOC`);
+      }
+    } else {
+      console.log('ℹ️  No coverage reports were generated in this run.');
+      console.log('   Run `pnpm test:coverage` to produce workspace coverage artifacts.');
     }
     console.log();
   }
@@ -200,7 +207,7 @@ function main(): void {
   console.log('============================================================');
   console.log(`Scanned ${results.length} packages (>${MIN_LOC_THRESHOLD} LOC)`);
   console.log(`  ✅ With coverage:   ${withCoverage.length}`);
-  console.log(`  ⚠  No report yet:  ${noCoverage.length}`);
+  console.log(`  !  No report yet:  ${noCoverage.length}`);
   console.log(`  ❌ Zero coverage:   ${zeroCoverage.length}`);
   console.log('============================================================\n');
 
@@ -219,8 +226,8 @@ function main(): void {
     process.exit(1);
   }
 
-  if (noCoverage.length > 0) {
-    console.log('ℹ  Run `pnpm test:coverage` then re-run this gate for full results.');
+  if (noCoverage.length > 0 && hasAnyCoverageReports) {
+    console.log('i  Run `pnpm test:coverage` then re-run this gate for full results.');
   }
 
   if (zeroCoverage.length === 0 && noCoverage.length === 0) {
