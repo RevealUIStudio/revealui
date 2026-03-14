@@ -31,6 +31,7 @@
 
 import { mkdir, writeFile } from 'node:fs/promises';
 import { join } from 'node:path';
+import { analyzeAuthPatternsAST } from '../lib/analyzers/auth-pattern-analyzer.js';
 import { ErrorCode } from '../lib/errors.js';
 import { execCommand } from '../lib/exec.js';
 import { createLogger, getProjectRoot } from '../utils/base.js';
@@ -236,42 +237,41 @@ async function checkEnvFiles(projectRoot: string): Promise<CheckResult> {
 async function checkAuthPatterns(projectRoot: string): Promise<CheckResult> {
   const start = performance.now();
   const issues: string[] = [];
+  const findings = analyzeAuthPatternsAST(projectRoot);
 
-  // Hardcoded JWT secrets
-  const jwtResult = await execCommand(
-    'git',
-    ['grep', '-i', 'jwt.*secret.*=.*["\'][a-zA-Z0-9]', '--', ':!*.md', ':!.github/workflows/*'],
-    { capture: true, cwd: projectRoot },
-  );
-  if ((jwtResult.stdout ?? '').trim()) {
-    issues.push('Potential hardcoded JWT secrets');
+  const byKind = {
+    hardcodedJwtSecret: findings.filter((issue) => issue.kind === 'hardcoded-jwt-secret'),
+    weakPasswordRequirement: findings.filter((issue) => issue.kind === 'weak-password-requirement'),
+    plaintextPasswordStorage: findings.filter(
+      (issue) => issue.kind === 'plaintext-password-storage',
+    ),
+  };
+
+  if (byKind.hardcodedJwtSecret.length > 0) {
+    issues.push(
+      `Potential hardcoded JWT secrets: ${byKind.hardcodedJwtSecret
+        .slice(0, 3)
+        .map((issue) => `${issue.file}:${issue.line}`)
+        .join(', ')}`,
+    );
   }
 
-  // Weak password requirements (< 8 chars)
-  const pwResult = await execCommand(
-    'git',
-    ['grep', '-E', 'password.*length.*<\\s*[1-7]', '--', ':!*.md'],
-    { capture: true, cwd: projectRoot },
-  );
-  if ((pwResult.stdout ?? '').trim()) {
-    issues.push('Weak password length requirements (< 8 chars)');
+  if (byKind.weakPasswordRequirement.length > 0) {
+    issues.push(
+      `Weak password length requirements (< 8 chars): ${byKind.weakPasswordRequirement
+        .slice(0, 3)
+        .map((issue) => `${issue.file}:${issue.line}`)
+        .join(', ')}`,
+    );
   }
 
-  // Plaintext password storage
-  const plainResult = await execCommand(
-    'git',
-    [
-      'grep',
-      '-iE',
-      'password\\s*=\\s*(req\\.body|user\\.password)',
-      '--',
-      ':!*.test.*',
-      ':!*.spec.*',
-    ],
-    { capture: true, cwd: projectRoot },
-  );
-  if ((plainResult.stdout ?? '').trim()) {
-    issues.push('Potential plaintext password storage');
+  if (byKind.plaintextPasswordStorage.length > 0) {
+    issues.push(
+      `Potential plaintext password storage: ${byKind.plaintextPasswordStorage
+        .slice(0, 3)
+        .map((issue) => `${issue.file}:${issue.line}`)
+        .join(', ')}`,
+    );
   }
 
   const durationMs = performance.now() - start;
