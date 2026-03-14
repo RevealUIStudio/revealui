@@ -38,6 +38,7 @@
     "preview": "vite preview",
     "start": "vite preview",
     "test": "vitest run",
+    "test:coverage": "vitest run --coverage --coverage.reporter=json-summary --coverage.reporter=html --coverage.reporter=text",
     "test:ui": "vitest --ui",
     "test:watch": "vitest",
     "typecheck": "tsc --noEmit"

@@ -58,6 +58,7 @@
     "dev": "tsup --watch",
     "lint": "biome check .",
     "test": "vitest run --passWithNoTests",
+    "test:coverage": "vitest run --coverage --coverage.reporter=json-summary --coverage.reporter=html --coverage.reporter=text --passWithNoTests",
     "typecheck": "tsc --noEmit"
   },
   "type": "module"
