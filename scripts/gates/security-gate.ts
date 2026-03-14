@@ -31,7 +31,7 @@
 
 import { mkdir, writeFile } from 'node:fs/promises';
 import { join } from 'node:path';
-import { analyzeAuthPatternsAST } from '../lib/analyzers/auth-pattern-analyzer.js';
+import { findAuthSecurityIssues } from '../lib/analyzers/auth-security-analyzer.js';
 import { ErrorCode } from '../lib/errors.js';
 import { execCommand } from '../lib/exec.js';
 import { createLogger, getProjectRoot } from '../utils/base.js';
@@ -232,12 +232,12 @@ async function checkEnvFiles(projectRoot: string): Promise<CheckResult> {
 
 /**
  * Check 4: Auth & authorization patterns (warn-only)
- * Looks for hardcoded JWT secrets, weak password lengths, plaintext passwords.
+ * Uses AST-based analysis for auth/security code smells to avoid regex false positives.
  */
 async function checkAuthPatterns(projectRoot: string): Promise<CheckResult> {
   const start = performance.now();
   const issues: string[] = [];
-  const findings = analyzeAuthPatternsAST(projectRoot);
+  const findings = findAuthSecurityIssues(projectRoot);
 
   const byKind = {
     hardcodedJwtSecret: findings.filter((issue) => issue.kind === 'hardcoded-jwt-secret'),

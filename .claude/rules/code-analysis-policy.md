@@ -1,4 +1,4 @@
-# Static Analysis Rule
+# Code Analysis Policy
 
 Use AST-based or structural analysis for code-policy and security checks whenever the rule depends on syntax, identifiers, or code shape.
 
