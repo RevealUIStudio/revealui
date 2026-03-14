@@ -45,6 +45,31 @@ interface PackageResult {
   testFiles: number;
 }
 
+const IGNORED_DIRECTORIES = new Set([
+  'node_modules',
+  'dist',
+  '.next',
+  '.turbo',
+  'coverage',
+  '.git',
+  'results',
+]);
+
+function isTestFile(entry: string): boolean {
+  return (
+    entry.endsWith('.test.ts') ||
+    entry.endsWith('.test.tsx') ||
+    entry.endsWith('.test.js') ||
+    entry.endsWith('.test.jsx') ||
+    entry.endsWith('.spec.ts') ||
+    entry.endsWith('.spec.tsx') ||
+    entry.endsWith('.spec.js') ||
+    entry.endsWith('.spec.jsx') ||
+    entry.endsWith('.integration.test.ts') ||
+    entry.endsWith('.integration.test.tsx')
+  );
+}
+
 /** Count non-blank, non-comment source lines across .ts/.tsx files */
 function countSourceLines(srcDir: string): number {
   if (!existsSync(srcDir)) return 0;
@@ -55,7 +80,7 @@ function countSourceLines(srcDir: string): number {
       const full = join(dir, entry);
       const stat = statSync(full);
       if (stat.isDirectory()) {
-        if (entry === 'node_modules' || entry === 'dist' || entry === '__tests__') continue;
+        if (IGNORED_DIRECTORIES.has(entry) || entry === '__tests__') continue;
         walk(full);
       } else if (entry.endsWith('.ts') || entry.endsWith('.tsx')) {
         const content = readFileSync(full, 'utf-8');
@@ -75,21 +100,28 @@ function countSourceLines(srcDir: string): number {
 
 /** Count test files in a package */
 function countTestFiles(pkgPath: string): number {
-  const testDirs = [join(pkgPath, 'src', '__tests__'), join(pkgPath, '__tests__')];
   let count = 0;
-  for (const dir of testDirs) {
-    if (!existsSync(dir)) continue;
-    for (const entry of readdirSync(dir, { recursive: true } as Parameters<
-      typeof readdirSync
-    >[1])) {
-      if (
-        typeof entry === 'string' &&
-        (entry.endsWith('.test.ts') || entry.endsWith('.test.tsx'))
-      ) {
+
+  function walk(dir: string): void {
+    for (const entry of readdirSync(dir)) {
+      const full = join(dir, entry);
+      const stat = statSync(full);
+
+      if (stat.isDirectory()) {
+        if (IGNORED_DIRECTORIES.has(entry)) {
+          continue;
+        }
+        walk(full);
+        continue;
+      }
+
+      if (isTestFile(entry)) {
         count++;
       }
     }
   }
+
+  walk(pkgPath);
   return count;
 }
 
@@ -184,7 +216,7 @@ function main(): void {
     if (hasAnyCoverageReports) {
       console.log('⚠️  Packages missing coverage reports:');
       for (const r of noCoverage) {
-        const testNote = r.testFiles === 0 ? '! no tests' : `${r.testFiles} test files`;
+        const testNote = r.testFiles === 0 ? '0 test files' : `${r.testFiles} test files`;
         console.log(`   ${r.name.padEnd(35)} ${testNote}, ${r.sourceLoc} LOC`);
       }
     } else {
