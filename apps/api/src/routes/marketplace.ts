@@ -126,10 +126,13 @@ function computeSplit(priceUsdc: string): {
   };
 }
 
+let cachedStripe: Stripe | undefined;
 function getStripeClient(): Stripe {
+  if (cachedStripe) return cachedStripe;
   const key = process.env.STRIPE_SECRET_KEY?.trim();
   if (!key) throw new Error('STRIPE_SECRET_KEY not configured');
-  return new Stripe(key, { maxNetworkRetries: 2 });
+  cachedStripe = new Stripe(key, { maxNetworkRetries: 2 });
+  return cachedStripe;
 }
 
 // =============================================================================

@@ -314,7 +314,9 @@ export function createRoomManager(
       const state = Y.encodeStateAsUpdate(tempDoc);
       tempDoc.destroy();
 
-      if (state.length <= 2) return null;
+      // Yjs empty doc encodes as ≤2 bytes (version header only)
+      const YjsEmptyDocSize = 2;
+      if (state.length <= YjsEmptyDocSize) return null;
       return state;
     },
 
