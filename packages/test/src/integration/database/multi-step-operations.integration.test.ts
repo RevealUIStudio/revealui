@@ -113,6 +113,7 @@ describe('Multi-Step Operations (Without Transactions)', () => {
             return user;
           },
           rollback: async (user) => {
+            if (!user) return;
             await revealui.delete({
               collection: 'users',
               id: user.id,

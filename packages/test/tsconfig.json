@@ -7,9 +7,9 @@
     "outDir": "./dist",
     "types": ["@playwright/test", "node"],
     "skipLibCheck": true,
-    "noImplicitAny": false,
-    "strict": false,
-    "strictNullChecks": false,
+    "noImplicitAny": true,
+    "strict": true,
+    "strictNullChecks": true,
     "noUncheckedIndexedAccess": false
   },
   "include": ["./src/**/*", "src/.scripts"],
