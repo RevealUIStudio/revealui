@@ -10,7 +10,7 @@
  * See packages/ai/src/client/hooks/useAgentStream.ts for the React hook.
  */
 
-import { Hono } from 'hono';
+import { createRoute, OpenAPIHono, z } from '@hono/zod-openapi';
 import { streamSSE } from 'hono/streaming';
 
 /** Detect LLM provider from API key prefix or explicit parameter */
@@ -38,21 +38,62 @@ type Variables = {
 };
 
 // biome-ignore lint/style/useNamingConvention: Hono requires PascalCase `Variables` in its generic type parameter
-const app = new Hono<{ Variables: Variables }>();
+const app = new OpenAPIHono<{ Variables: Variables }>();
 
-app.post('/', async (c) => {
-  const body = (await c.req.json().catch(() => null)) as {
-    instruction?: string;
-    boardId?: string;
-    workspaceId?: string;
-    priority?: string;
-    provider?: string;
-    model?: string;
-  } | null;
+const agentStreamRoute = createRoute({
+  method: 'post',
+  path: '/',
+  tags: ['agent'],
+  summary: 'Stream agent execution via SSE',
+  description:
+    'Streams agent execution events in real-time using Server-Sent Events. Client-side: use fetch + ReadableStream (not EventSource — it does not support POST).',
+  request: {
+    body: {
+      content: {
+        'application/json': {
+          schema: z.object({
+            instruction: z.string(),
+            boardId: z.string().optional(),
+            workspaceId: z.string().optional(),
+            priority: z.string().optional(),
+            provider: z.string().optional(),
+            model: z.string().optional(),
+          }),
+        },
+      },
+    },
+  },
+  responses: {
+    200: {
+      description: 'SSE stream of agent execution events (text/event-stream)',
+    },
+    400: {
+      content: {
+        'application/json': {
+          schema: z.object({
+            success: z.literal(false),
+            error: z.string(),
+          }),
+        },
+      },
+      description: 'Missing instruction or invalid provider',
+    },
+    503: {
+      content: {
+        'application/json': {
+          schema: z.object({
+            success: z.literal(false),
+            error: z.string(),
+          }),
+        },
+      },
+      description: 'AI package not available or not configured',
+    },
+  },
+});
 
-  if (!body?.instruction) {
-    return c.json({ success: false, error: 'instruction is required' }, 400);
-  }
+app.openapi(agentStreamRoute, async (c) => {
+  const body = c.req.valid('json');
 
   // Dynamically load @revealui/ai modules
   const [aiMod, llmClientMod, streamingRuntimeMod] = await Promise.all([

@@ -1,11 +1,10 @@
+import { createRoute, OpenAPIHono, z } from '@hono/zod-openapi';
 import { logger } from '@revealui/core/observability/logger';
 import {
   type ConsentType,
   createConsentManager,
   createDataDeletionSystem,
 } from '@revealui/core/security';
-import { Hono } from 'hono';
-import { z } from 'zod';
 import { DrizzleGDPRStorage } from '../lib/drizzle-gdpr-storage.js';
 
 interface UserContext {
@@ -28,13 +27,21 @@ const CONSENT_TYPES: ConsentType[] = [
   'personalization',
 ];
 
+const consentTypeEnum = z.enum([
+  'necessary',
+  'functional',
+  'analytics',
+  'marketing',
+  'personalization',
+]);
+
 const consentGrantSchema = z.object({
-  type: z.enum(['necessary', 'functional', 'analytics', 'marketing', 'personalization']),
+  type: consentTypeEnum,
   expiresIn: z.number().int().positive().optional(),
 });
 
 const consentRevokeSchema = z.object({
-  type: z.enum(['necessary', 'functional', 'analytics', 'marketing', 'personalization']),
+  type: consentTypeEnum,
 });
 
 const deletionRequestSchema = z.object({
@@ -44,8 +51,20 @@ const deletionRequestSchema = z.object({
   reason: z.string().max(1000).optional(),
 });
 
+const errorResponse = (description: string) => ({
+  content: {
+    'application/json': {
+      schema: z.object({
+        success: z.boolean().openapi({ example: false }),
+        error: z.string(),
+      }),
+    },
+  },
+  description,
+});
+
 // biome-ignore lint/style/useNamingConvention: Hono requires PascalCase `Variables` in its generic type parameter
-const app = new Hono<{ Variables: { user: UserContext | undefined } }>();
+const app = new OpenAPIHono<{ Variables: { user: UserContext | undefined } }>();
 
 // ---------------------------------------------------------------------------
 // Consent Management
@@ -54,114 +73,217 @@ const app = new Hono<{ Variables: { user: UserContext | undefined } }>();
 /**
  * GET /gdpr/consent — List all consents for the authenticated user.
  */
-app.get('/consent', async (c) => {
-  const user = c.get('user');
-  if (!user) {
-    return c.json({ success: false, error: 'Authentication required' }, 401);
-  }
+app.openapi(
+  createRoute({
+    method: 'get',
+    path: '/consent',
+    tags: ['gdpr'],
+    summary: 'List all consents for the authenticated user',
+    responses: {
+      200: {
+        content: {
+          'application/json': {
+            schema: z.object({
+              success: z.boolean(),
+              consents: z.array(z.unknown()),
+            }),
+          },
+        },
+        description: 'List of user consents',
+      },
+      401: errorResponse('Authentication required'),
+    },
+  }),
+  // @ts-expect-error -- OpenAPI response union narrowing
+  async (c) => {
+    const user = c.get('user');
+    if (!user) {
+      return c.json({ success: false, error: 'Authentication required' }, 401);
+    }
 
-  const consents = await consentManager.getUserConsents(user.id);
+    const consents = await consentManager.getUserConsents(user.id);
 
-  return c.json({ success: true, consents });
-});
+    return c.json({ success: true, consents });
+  },
+);
 
 /**
  * POST /gdpr/consent/grant — Grant consent for a specific type.
  *
  * Body: { type: ConsentType, expiresIn?: number }
  */
-app.post('/consent/grant', async (c) => {
-  const user = c.get('user');
-  if (!user) {
-    return c.json({ success: false, error: 'Authentication required' }, 401);
-  }
-
-  const result = consentGrantSchema.safeParse(await c.req.json());
-  if (!result.success) {
-    return c.json(
-      {
-        success: false,
-        error: `Invalid request body: ${result.error.issues.map((i) => i.message).join(', ')}`,
+app.openapi(
+  createRoute({
+    method: 'post',
+    path: '/consent/grant',
+    tags: ['gdpr'],
+    summary: 'Grant consent for a specific type',
+    request: {
+      body: {
+        content: {
+          'application/json': {
+            schema: consentGrantSchema,
+          },
+        },
       },
-      400,
+    },
+    responses: {
+      200: {
+        content: {
+          'application/json': {
+            schema: z.object({
+              success: z.boolean(),
+              consent: z.unknown(),
+            }),
+          },
+        },
+        description: 'Consent granted',
+      },
+      400: errorResponse('Invalid request body'),
+      401: errorResponse('Authentication required'),
+    },
+  }),
+  // @ts-expect-error -- OpenAPI response union narrowing
+  async (c) => {
+    const user = c.get('user');
+    if (!user) {
+      return c.json({ success: false, error: 'Authentication required' }, 401);
+    }
+
+    const body = c.req.valid('json');
+
+    const consent = await consentManager.grantConsent(
+      user.id,
+      body.type,
+      'explicit',
+      body.expiresIn,
     );
-  }
 
-  const consent = await consentManager.grantConsent(
-    user.id,
-    result.data.type,
-    'explicit',
-    result.data.expiresIn,
-  );
+    logger.info('Consent granted', { userId: user.id, type: body.type });
 
-  logger.info('Consent granted', { userId: user.id, type: result.data.type });
-
-  return c.json({ success: true, consent });
-});
+    return c.json({ success: true, consent });
+  },
+);
 
 /**
  * POST /gdpr/consent/revoke — Revoke consent for a specific type.
  *
  * Body: { type: ConsentType }
  */
-app.post('/consent/revoke', async (c) => {
-  const user = c.get('user');
-  if (!user) {
-    return c.json({ success: false, error: 'Authentication required' }, 401);
-  }
-
-  const result = consentRevokeSchema.safeParse(await c.req.json());
-  if (!result.success) {
-    return c.json(
-      {
-        success: false,
-        error: `Invalid request body: ${result.error.issues.map((i) => i.message).join(', ')}`,
+app.openapi(
+  createRoute({
+    method: 'post',
+    path: '/consent/revoke',
+    tags: ['gdpr'],
+    summary: 'Revoke consent for a specific type',
+    request: {
+      body: {
+        content: {
+          'application/json': {
+            schema: consentRevokeSchema,
+          },
+        },
       },
-      400,
-    );
-  }
-
-  if (result.data.type === 'necessary') {
-    return c.json(
-      {
-        success: false,
-        error: 'Cannot revoke necessary consent — it is required for service operation',
+    },
+    responses: {
+      200: {
+        content: {
+          'application/json': {
+            schema: z.object({
+              success: z.boolean(),
+            }),
+          },
+        },
+        description: 'Consent revoked',
       },
-      400,
-    );
-  }
+      400: errorResponse('Invalid request or cannot revoke necessary consent'),
+      401: errorResponse('Authentication required'),
+    },
+  }),
+  // @ts-expect-error -- OpenAPI response union narrowing
+  async (c) => {
+    const user = c.get('user');
+    if (!user) {
+      return c.json({ success: false, error: 'Authentication required' }, 401);
+    }
 
-  await consentManager.revokeConsent(user.id, result.data.type);
+    const body = c.req.valid('json');
 
-  logger.info('Consent revoked', { userId: user.id, type: result.data.type });
+    if (body.type === 'necessary') {
+      return c.json(
+        {
+          success: false,
+          error: 'Cannot revoke necessary consent — it is required for service operation',
+        },
+        400,
+      );
+    }
 
-  return c.json({ success: true });
-});
+    await consentManager.revokeConsent(user.id, body.type);
+
+    logger.info('Consent revoked', { userId: user.id, type: body.type });
+
+    return c.json({ success: true });
+  },
+);
 
 /**
  * GET /gdpr/consent/check/:type — Check if a specific consent is active.
  */
-app.get('/consent/check/:type', async (c) => {
-  const user = c.get('user');
-  if (!user) {
-    return c.json({ success: false, error: 'Authentication required' }, 401);
-  }
-
-  const type = c.req.param('type');
-  if (!CONSENT_TYPES.includes(type as ConsentType)) {
-    return c.json(
-      {
-        success: false,
-        error: `Invalid consent type. Must be one of: ${CONSENT_TYPES.join(', ')}`,
+app.openapi(
+  createRoute({
+    method: 'get',
+    path: '/consent/check/{type}',
+    tags: ['gdpr'],
+    summary: 'Check if a specific consent type is active',
+    request: {
+      params: z.object({
+        type: consentTypeEnum.openapi({
+          param: { name: 'type', in: 'path' },
+          example: 'analytics',
+        }),
+      }),
+    },
+    responses: {
+      200: {
+        content: {
+          'application/json': {
+            schema: z.object({
+              success: z.boolean(),
+              type: z.string(),
+              granted: z.boolean(),
+            }),
+          },
+        },
+        description: 'Consent check result',
       },
-      400,
-    );
-  }
+      400: errorResponse('Invalid consent type'),
+      401: errorResponse('Authentication required'),
+    },
+  }),
+  // @ts-expect-error -- OpenAPI response union narrowing
+  async (c) => {
+    const user = c.get('user');
+    if (!user) {
+      return c.json({ success: false, error: 'Authentication required' }, 401);
+    }
 
-  const granted = await consentManager.hasConsent(user.id, type as ConsentType);
+    const { type } = c.req.valid('param');
+    if (!CONSENT_TYPES.includes(type as ConsentType)) {
+      return c.json(
+        {
+          success: false,
+          error: `Invalid consent type. Must be one of: ${CONSENT_TYPES.join(', ')}`,
+        },
+        400,
+      );
+    }
 
-  return c.json({ success: true, type, granted });
-});
+    const granted = await consentManager.hasConsent(user.id, type as ConsentType);
+
+    return c.json({ success: true, type, granted });
+  },
+);
 
 // ---------------------------------------------------------------------------
 // Deletion Requests
@@ -172,65 +294,141 @@ app.get('/consent/check/:type', async (c) => {
  *
  * Body: { categories?: ('personal'|'sensitive'|'financial'|'health'|'behavioral')[], reason?: string }
  */
-app.post('/deletion', async (c) => {
-  const user = c.get('user');
-  if (!user) {
-    return c.json({ success: false, error: 'Authentication required' }, 401);
-  }
-
-  const result = deletionRequestSchema.safeParse(await c.req.json());
-  if (!result.success) {
-    return c.json(
-      {
-        success: false,
-        error: `Invalid request body: ${result.error.issues.map((i) => i.message).join(', ')}`,
+app.openapi(
+  createRoute({
+    method: 'post',
+    path: '/deletion',
+    tags: ['gdpr'],
+    summary: 'Request data deletion (right to be forgotten)',
+    request: {
+      body: {
+        content: {
+          'application/json': {
+            schema: deletionRequestSchema,
+          },
+        },
       },
-      400,
+    },
+    responses: {
+      201: {
+        content: {
+          'application/json': {
+            schema: z.object({
+              success: z.boolean(),
+              request: z.unknown(),
+            }),
+          },
+        },
+        description: 'Deletion request created',
+      },
+      400: errorResponse('Invalid request body'),
+      401: errorResponse('Authentication required'),
+    },
+  }),
+  async (c) => {
+    const user = c.get('user');
+    if (!user) {
+      return c.json({ success: false, error: 'Authentication required' }, 401);
+    }
+
+    const body = c.req.valid('json');
+
+    const request = await deletionSystem.requestDeletion(
+      user.id,
+      body.categories ?? ['personal'],
+      body.reason,
     );
-  }
 
-  const request = await deletionSystem.requestDeletion(
-    user.id,
-    result.data.categories ?? ['personal'],
-    result.data.reason,
-  );
+    logger.info('Deletion request created', { userId: user.id, requestId: request.id });
 
-  logger.info('Deletion request created', { userId: user.id, requestId: request.id });
-
-  return c.json({ success: true, request }, 201);
-});
+    return c.json({ success: true, request }, 201);
+  },
+);
 
 /**
  * GET /gdpr/deletion — List the authenticated user's deletion requests.
  */
-app.get('/deletion', async (c) => {
-  const user = c.get('user');
-  if (!user) {
-    return c.json({ success: false, error: 'Authentication required' }, 401);
-  }
+app.openapi(
+  createRoute({
+    method: 'get',
+    path: '/deletion',
+    tags: ['gdpr'],
+    summary: "List the authenticated user's deletion requests",
+    responses: {
+      200: {
+        content: {
+          'application/json': {
+            schema: z.object({
+              success: z.boolean(),
+              requests: z.array(z.unknown()),
+            }),
+          },
+        },
+        description: 'List of deletion requests',
+      },
+      401: errorResponse('Authentication required'),
+    },
+  }),
+  // @ts-expect-error -- OpenAPI response union narrowing
+  async (c) => {
+    const user = c.get('user');
+    if (!user) {
+      return c.json({ success: false, error: 'Authentication required' }, 401);
+    }
 
-  const requests = await deletionSystem.getUserRequests(user.id);
+    const requests = await deletionSystem.getUserRequests(user.id);
 
-  return c.json({ success: true, requests });
-});
+    return c.json({ success: true, requests });
+  },
+);
 
 /**
  * GET /gdpr/deletion/:id — Get a specific deletion request by ID.
  */
-app.get('/deletion/:id', async (c) => {
-  const user = c.get('user');
-  if (!user) {
-    return c.json({ success: false, error: 'Authentication required' }, 401);
-  }
+app.openapi(
+  createRoute({
+    method: 'get',
+    path: '/deletion/{id}',
+    tags: ['gdpr'],
+    summary: 'Get a specific deletion request by ID',
+    request: {
+      params: z.object({
+        id: z.string().openapi({ param: { name: 'id', in: 'path' }, example: 'req_abc123' }),
+      }),
+    },
+    responses: {
+      200: {
+        content: {
+          'application/json': {
+            schema: z.object({
+              success: z.boolean(),
+              request: z.unknown(),
+            }),
+          },
+        },
+        description: 'Deletion request details',
+      },
+      401: errorResponse('Authentication required'),
+      404: errorResponse('Deletion request not found'),
+    },
+  }),
+  // @ts-expect-error -- OpenAPI response union narrowing
+  async (c) => {
+    const user = c.get('user');
+    if (!user) {
+      return c.json({ success: false, error: 'Authentication required' }, 401);
+    }
 
-  const request = await deletionSystem.getRequest(c.req.param('id'));
+    const { id } = c.req.valid('param');
+    const request = await deletionSystem.getRequest(id);
 
-  if (!request || request.userId !== user.id) {
-    return c.json({ success: false, error: 'Deletion request not found' }, 404);
-  }
+    if (!request || request.userId !== user.id) {
+      return c.json({ success: false, error: 'Deletion request not found' }, 404);
+    }
 
-  return c.json({ success: true, request });
-});
+    return c.json({ success: true, request });
+  },
+);
 
 // ---------------------------------------------------------------------------
 // Admin — Consent Statistics
@@ -239,15 +437,38 @@ app.get('/deletion/:id', async (c) => {
 /**
  * GET /gdpr/admin/stats — Aggregate consent statistics (admin only).
  */
-app.get('/admin/stats', async (c) => {
-  const user = c.get('user');
-  if (!user || user.role !== 'admin') {
-    return c.json({ success: false, error: 'Admin access required' }, 403);
-  }
+app.openapi(
+  createRoute({
+    method: 'get',
+    path: '/admin/stats',
+    tags: ['gdpr'],
+    summary: 'Aggregate consent statistics (admin only)',
+    responses: {
+      200: {
+        content: {
+          'application/json': {
+            schema: z.object({
+              success: z.boolean(),
+              stats: z.unknown(),
+            }),
+          },
+        },
+        description: 'Consent statistics',
+      },
+      403: errorResponse('Admin access required'),
+    },
+  }),
+  // @ts-expect-error -- OpenAPI response union narrowing
+  async (c) => {
+    const user = c.get('user');
+    if (!user || user.role !== 'admin') {
+      return c.json({ success: false, error: 'Admin access required' }, 403);
+    }
 
-  const stats = await consentManager.getStatistics();
+    const stats = await consentManager.getStatistics();
 
-  return c.json({ success: true, stats });
-});
+    return c.json({ success: true, stats });
+  },
+);
 
 export default app;
