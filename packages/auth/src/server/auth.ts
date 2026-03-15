@@ -352,6 +352,16 @@ export async function signUp(
       token = sessionResult.token;
     } catch {
       logger.error('Error creating session');
+      // Clean up orphaned user so the email isn't permanently locked out.
+      // Without this, a retry would fail with "Unable to create account"
+      // because the user row already exists but has no valid session.
+      try {
+        await db.delete(users).where(eq(users.id, user.id));
+      } catch {
+        logger.error('Failed to clean up orphaned user after session creation failure', {
+          userId: user.id,
+        });
+      }
       return {
         success: false,
         error: 'Failed to create session',
