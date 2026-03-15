@@ -56,6 +56,12 @@ export const users = pgTable(
     // Stripe integration
     stripeCustomerId: text('stripe_customer_id'),
 
+    // MFA/2FA (TOTP-based)
+    mfaEnabled: boolean('mfa_enabled').default(false).notNull(),
+    mfaSecret: text('mfa_secret'), // Base32-encoded TOTP secret (encrypted at rest via DB-level encryption)
+    mfaBackupCodes: jsonb('mfa_backup_codes').$type<string[]>(), // Bcrypt-hashed one-time recovery codes
+    mfaVerifiedAt: timestamp('mfa_verified_at', { withTimezone: true }),
+
     // SSH terminal auth (Phase E — `ssh terminal.revealui.com`)
     sshKeyFingerprint: text('ssh_key_fingerprint'),
 
