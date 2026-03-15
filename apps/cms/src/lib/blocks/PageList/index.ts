@@ -8,8 +8,6 @@ const PageListField = {
   pages: 'pages',
 };
 
-// filterByCategories and filterByTags reference 'pages' as placeholder.
-// Update relationTo to 'categories' and 'tags' when those collections are created.
 export const PageList: Block = {
   slug: 'pageList',
   interfaceName: 'PageList',
@@ -22,14 +20,14 @@ export const PageList: Block = {
     {
       name: PageListField.filterByCategories,
       type: 'relationship',
-      relationTo: 'pages',
+      relationTo: 'categories',
       maxDepth: 0,
       hasMany: true,
     },
     {
       name: PageListField.filterByTags,
       type: 'relationship',
-      relationTo: 'pages',
+      relationTo: 'tags',
       hasMany: true,
       maxDepth: 0,
     },

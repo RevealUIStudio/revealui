@@ -1,4 +1,9 @@
-import type { PricingResponse } from '@revealui/contracts/pricing';
+import {
+  CREDIT_BUNDLES,
+  PERPETUAL_TIERS,
+  type PricingResponse,
+  SUBSCRIPTION_TIERS,
+} from '@revealui/contracts/pricing';
 import type { Metadata } from 'next';
 import { Footer } from '@/components/Footer';
 
@@ -84,12 +89,12 @@ const faqs = [
 export default async function PricingPage() {
   const pricing = await getPricing();
 
-  const tiers = (pricing?.subscriptions ?? []).map((tier) => ({
+  const tiers = (pricing?.subscriptions ?? SUBSCRIPTION_TIERS).map((tier) => ({
     ...tier,
     ctaHref: tier.ctaHref.startsWith('/') ? `${cmsUrl}${tier.ctaHref}` : tier.ctaHref,
   }));
-  const creditBundles = pricing?.credits ?? [];
-  const perpetualTiers = pricing?.perpetual ?? [];
+  const creditBundles = pricing?.credits ?? CREDIT_BUNDLES;
+  const perpetualTiers = pricing?.perpetual ?? PERPETUAL_TIERS;
 
   return (
     <div className="min-h-screen bg-white">

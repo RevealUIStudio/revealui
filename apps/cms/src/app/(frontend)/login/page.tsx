@@ -18,6 +18,7 @@ import { type FormEvent, Suspense, useState } from 'react';
 
 const OAUTH_ERROR_MESSAGES: Record<string, string> = {
   access_denied: 'You cancelled the sign-in. Please try again.',
+  oauth_error: 'The sign-in provider returned an error. Please try again.',
   provider_error: 'The sign-in provider returned an error. Please try again.',
   invalid_state: 'The sign-in request expired. Please try again.',
   account_exists:
