@@ -6,6 +6,7 @@ import {
   slashMenuBasicGroupWithItems,
   toolbarAddDropdownGroupWithItems,
 } from '@revealui/core/richtext/client';
+import type { ComponentType } from 'react';
 import { EmbedIcon } from './icons/EmbedIcon';
 import { EmbedNode, OPEN_EMBED_DRAWER_COMMAND } from './nodes/EmbedNode';
 import { EmbedPlugin } from './plugins/EmbedPlugin';
@@ -14,7 +15,7 @@ export const EmbedFeatureClient = createClientFeature({
   plugins: [
     {
       // biome-ignore lint/style/useNamingConvention: Rich text plugin API uses Component.
-      Component: EmbedPlugin,
+      Component: EmbedPlugin as ComponentType<unknown>,
       position: 'normal',
     },
   ],
