@@ -168,7 +168,7 @@ describe('Router Integration Tests', () => {
 
       const match = await router.resolve('/users/456');
       expect(match).not.toBeNull();
-      expect(capturedParams?.id).toBe('456');
+      expect(capturedParams!.id).toBe('456');
       expect(match?.data).toEqual({ userId: '456' });
     });
 
