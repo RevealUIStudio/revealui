@@ -5,8 +5,10 @@
  * Uses real RSA key pair (generated in beforeAll) for authentic JWT operations.
  */
 
+import { decodeProtectedHeader } from 'jose';
 import { afterEach, beforeAll, describe, expect, it } from 'vitest';
 import {
+  computeKeyId,
   generateLicenseKey,
   getCurrentTier,
   getLicensePayload,
@@ -372,6 +374,83 @@ describe('getMaxAgentTasks', () => {
       expect(getMaxAgentTasks()).toBe(expected);
     });
   }
+});
+
+// =============================================================================
+// computeKeyId
+// =============================================================================
+
+describe('computeKeyId', () => {
+  it('returns an 8-character hex string', () => {
+    const kid = computeKeyId(publicKeyPem);
+    expect(kid).toMatch(/^[0-9a-f]{8}$/);
+  });
+
+  it('returns consistent results for the same key', () => {
+    const kid1 = computeKeyId(publicKeyPem);
+    const kid2 = computeKeyId(publicKeyPem);
+    expect(kid1).toBe(kid2);
+  });
+
+  it('returns different results for different keys', async () => {
+    const otherKeyPair = await crypto.subtle.generateKey(
+      {
+        name: 'RSASSA-PKCS1-v1_5',
+        modulusLength: 2048,
+        publicExponent: new Uint8Array([1, 0, 1]),
+        hash: 'SHA-256',
+      },
+      true,
+      ['sign', 'verify'],
+    );
+    const otherPubDer = await crypto.subtle.exportKey('spki', otherKeyPair.publicKey);
+    const otherPubPem = `-----BEGIN PUBLIC KEY-----\n${Buffer.from(otherPubDer).toString('base64')}\n-----END PUBLIC KEY-----`;
+
+    expect(computeKeyId(publicKeyPem)).not.toBe(computeKeyId(otherPubPem));
+  });
+});
+
+// =============================================================================
+// JWT kid header claim
+// =============================================================================
+
+describe('JWT kid header claim', () => {
+  it('includes kid in protected header when publicKey is provided', async () => {
+    const jwt = await generateLicenseKey(
+      { tier: 'pro', customerId: 'cus_kid' },
+      privateKeyPem,
+      365 * 24 * 60 * 60,
+      publicKeyPem,
+    );
+    const header = await decodeProtectedHeader(jwt);
+    expect(header.kid).toBe(computeKeyId(publicKeyPem));
+  });
+
+  it('omits kid when publicKey is not provided', async () => {
+    const jwt = await generateLicenseKey({ tier: 'pro', customerId: 'cus_nokid' }, privateKeyPem);
+    const header = await decodeProtectedHeader(jwt);
+    expect(header.kid).toBeUndefined();
+  });
+
+  it('verification still works with kid in header', async () => {
+    const jwt = await generateLicenseKey(
+      { tier: 'max', customerId: 'cus_verify_kid' },
+      privateKeyPem,
+      365 * 24 * 60 * 60,
+      publicKeyPem,
+    );
+    const payload = await validateLicenseKey(jwt, publicKeyPem);
+    expect(payload).not.toBeNull();
+    expect(payload?.tier).toBe('max');
+    expect(payload?.customerId).toBe('cus_verify_kid');
+  });
+
+  it('verification still works without kid in header (backward compat)', async () => {
+    const jwt = await generateLicenseKey({ tier: 'pro', customerId: 'cus_no_kid' }, privateKeyPem);
+    const payload = await validateLicenseKey(jwt, publicKeyPem);
+    expect(payload).not.toBeNull();
+    expect(payload?.tier).toBe('pro');
+  });
 });
 
 // =============================================================================
