@@ -132,7 +132,7 @@ vi.mock('@revealui/core/observability/logger', () => ({
 
 // ─── Import under test (after mocks) ─────────────────────────────────────────
 
-import billingApp from '../billing.js';
+import billingApp, { getEarlyAdopterDiscount } from '../billing.js';
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 
@@ -875,5 +875,128 @@ describe('POST /report-agent-overage', () => {
     const body = (await res.json()) as Record<string, unknown>;
     expect(body.reported).toBe(0);
     expect(body.skipped).toBe(1);
+  });
+});
+
+// ─── Early Adopter Coupon Tests ─────────────────────────────────────────────
+
+describe('getEarlyAdopterDiscount', () => {
+  afterEach(() => {
+    delete process.env.REVEALUI_EARLY_ADOPTER_END;
+    delete process.env.REVEALUI_EARLY_ADOPTER_COUPON_PRO;
+    delete process.env.REVEALUI_EARLY_ADOPTER_COUPON_MAX;
+    delete process.env.REVEALUI_EARLY_ADOPTER_COUPON_ENT;
+  });
+
+  it('returns discounts with coupon when early adopter window is active', () => {
+    // Set end date far in the future
+    process.env.REVEALUI_EARLY_ADOPTER_END = '2099-12-31T23:59:59Z';
+    process.env.REVEALUI_EARLY_ADOPTER_COUPON_PRO = 'coupon_pro_40off';
+
+    const result = getEarlyAdopterDiscount('pro');
+    expect(result).toEqual({ discounts: [{ coupon: 'coupon_pro_40off' }] });
+    // Must NOT have allow_promotion_codes — Stripe rejects both together
+    expect('allow_promotion_codes' in result).toBe(false);
+  });
+
+  it('returns allow_promotion_codes when early adopter window has expired', () => {
+    // Set end date in the past
+    process.env.REVEALUI_EARLY_ADOPTER_END = '2020-01-01T00:00:00Z';
+    process.env.REVEALUI_EARLY_ADOPTER_COUPON_PRO = 'coupon_pro_40off';
+
+    const result = getEarlyAdopterDiscount('pro');
+    expect(result).toEqual({ allow_promotion_codes: true });
+    expect('discounts' in result).toBe(false);
+  });
+
+  it('falls back to promotion codes when no coupon is configured for the tier', () => {
+    process.env.REVEALUI_EARLY_ADOPTER_END = '2099-12-31T23:59:59Z';
+    // No REVEALUI_EARLY_ADOPTER_COUPON_PRO set
+
+    const result = getEarlyAdopterDiscount('pro');
+    expect(result).toEqual({ allow_promotion_codes: true });
+  });
+
+  it('falls back to promotion codes when no end date is configured', () => {
+    // No REVEALUI_EARLY_ADOPTER_END set
+    process.env.REVEALUI_EARLY_ADOPTER_COUPON_PRO = 'coupon_pro_40off';
+
+    const result = getEarlyAdopterDiscount('pro');
+    expect(result).toEqual({ allow_promotion_codes: true });
+  });
+
+  it('applies the correct coupon for each tier', () => {
+    process.env.REVEALUI_EARLY_ADOPTER_END = '2099-12-31T23:59:59Z';
+    process.env.REVEALUI_EARLY_ADOPTER_COUPON_PRO = 'coupon_pro_40off';
+    process.env.REVEALUI_EARLY_ADOPTER_COUPON_MAX = 'coupon_max_40off';
+    process.env.REVEALUI_EARLY_ADOPTER_COUPON_ENT = 'coupon_ent_40off';
+
+    expect(getEarlyAdopterDiscount('pro')).toEqual({
+      discounts: [{ coupon: 'coupon_pro_40off' }],
+    });
+    expect(getEarlyAdopterDiscount('max')).toEqual({
+      discounts: [{ coupon: 'coupon_max_40off' }],
+    });
+    expect(getEarlyAdopterDiscount('enterprise')).toEqual({
+      discounts: [{ coupon: 'coupon_ent_40off' }],
+    });
+  });
+});
+
+describe('POST /checkout — early adopter integration', () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+    resetChains();
+    process.env.STRIPE_SECRET_KEY = 'stripe_test_placeholder';
+    process.env.CMS_URL = 'https://app.example.com';
+  });
+
+  afterEach(() => {
+    delete process.env.REVEALUI_EARLY_ADOPTER_END;
+    delete process.env.REVEALUI_EARLY_ADOPTER_COUPON_PRO;
+    delete process.env.REVEALUI_EARLY_ADOPTER_COUPON_MAX;
+    delete process.env.REVEALUI_EARLY_ADOPTER_COUPON_ENT;
+  });
+
+  it('passes discounts to Stripe checkout when early adopter coupon is active', async () => {
+    process.env.REVEALUI_EARLY_ADOPTER_END = '2099-12-31T23:59:59Z';
+    process.env.REVEALUI_EARLY_ADOPTER_COUPON_PRO = 'coupon_pro_40off';
+
+    queueSelectResults(
+      [{ stripePriceId: 'price_pro_server' }],
+      [{ stripeCustomerId: 'cus_existing' }],
+    );
+    mockCheckoutSessionsCreate.mockResolvedValue({
+      url: 'https://checkout.stripe.com/pay/sess_ea',
+    });
+
+    const app = createApp();
+    const res = await app.request(post('/checkout', { tier: 'pro' }));
+
+    expect(res.status).toBe(200);
+    const sessionArgs = mockCheckoutSessionsCreate.mock.calls[0]?.[0] as Record<string, unknown>;
+    expect(sessionArgs.discounts).toEqual([{ coupon: 'coupon_pro_40off' }]);
+    expect(sessionArgs.allow_promotion_codes).toBeUndefined();
+  });
+
+  it('passes allow_promotion_codes when early adopter window has expired', async () => {
+    process.env.REVEALUI_EARLY_ADOPTER_END = '2020-01-01T00:00:00Z';
+    process.env.REVEALUI_EARLY_ADOPTER_COUPON_PRO = 'coupon_pro_40off';
+
+    queueSelectResults(
+      [{ stripePriceId: 'price_pro_server' }],
+      [{ stripeCustomerId: 'cus_existing' }],
+    );
+    mockCheckoutSessionsCreate.mockResolvedValue({
+      url: 'https://checkout.stripe.com/pay/sess_expired',
+    });
+
+    const app = createApp();
+    const res = await app.request(post('/checkout', { tier: 'pro' }));
+
+    expect(res.status).toBe(200);
+    const sessionArgs = mockCheckoutSessionsCreate.mock.calls[0]?.[0] as Record<string, unknown>;
+    expect(sessionArgs.allow_promotion_codes).toBe(true);
+    expect(sessionArgs.discounts).toBeUndefined();
   });
 });

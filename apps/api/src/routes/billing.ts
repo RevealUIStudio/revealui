@@ -298,6 +298,49 @@ function resolveUsageQuota(c: { get: (key: string) => unknown }): number {
   return getMaxAgentTasks();
 }
 
+// ─── Early Adopter Coupon ─────────────────────────────────────────────────────
+
+/** Early adopter coupon config — set via env vars, not hardcoded */
+interface EarlyAdopterConfig {
+  endDate: Date | null;
+  coupons: Record<string, string | undefined>;
+}
+
+function getEarlyAdopterConfig(): EarlyAdopterConfig {
+  const endStr = process.env.REVEALUI_EARLY_ADOPTER_END;
+  return {
+    endDate: endStr && !Number.isNaN(new Date(endStr).getTime()) ? new Date(endStr) : null,
+    coupons: {
+      pro: process.env.REVEALUI_EARLY_ADOPTER_COUPON_PRO,
+      max: process.env.REVEALUI_EARLY_ADOPTER_COUPON_MAX,
+      enterprise: process.env.REVEALUI_EARLY_ADOPTER_COUPON_ENT,
+    },
+  };
+}
+
+/**
+ * Returns either a `discounts` array (early adopter coupon) or `allow_promotion_codes: true`.
+ * Stripe's `discounts` and `allow_promotion_codes` are mutually exclusive — when the early
+ * adopter coupon is active, manual promotion codes are disabled.
+ */
+function getEarlyAdopterDiscount(
+  tier: string,
+): { discounts: Array<{ coupon: string }> } | { allow_promotion_codes: true } {
+  const config = getEarlyAdopterConfig();
+  if (!config.endDate || new Date() > config.endDate) {
+    return { allow_promotion_codes: true };
+  }
+  const couponId = config.coupons[tier];
+  if (!couponId) {
+    return { allow_promotion_codes: true };
+  }
+  return { discounts: [{ coupon: couponId }] };
+}
+
+// Exported for testing
+export { getEarlyAdopterConfig, getEarlyAdopterDiscount };
+export type { EarlyAdopterConfig };
+
 // ─── Routes ──────────────────────────────────────────────────────────────────
 
 // POST /api/billing/checkout — Create a Stripe checkout session
@@ -341,13 +384,15 @@ app.openapi(checkoutRoute, async (c) => {
   const cmsUrl = process.env.CMS_URL || process.env.NEXT_PUBLIC_SERVER_URL;
   if (!cmsUrl) throw new HTTPException(500, { message: 'CMS_URL is not configured' });
 
+  const discountConfig = getEarlyAdopterDiscount(resolvedTier);
+
   const session = await withStripe((stripe) =>
     stripe.checkout.sessions.create({
       customer: customerId,
       mode: 'subscription',
       payment_method_types: ['card'],
       billing_address_collection: 'required',
-      allow_promotion_codes: true,
+      ...discountConfig,
       line_items: [{ price: resolvedPriceId, quantity: 1 }],
       subscription_data: {
         trial_period_days: 7,
@@ -497,6 +542,9 @@ app.openapi(subscriptionRoute, async (c) => {
   );
 });
 
+/** Tier rank ordering for upgrade/downgrade direction validation */
+const TIER_ORDER: Record<string, number> = { free: 0, pro: 1, max: 2, enterprise: 3 };
+
 // POST /api/billing/upgrade — Upgrade an active subscription to a higher tier
 const upgradeRoute = createRoute({
   method: 'post',
@@ -537,6 +585,17 @@ app.openapi(upgradeRoute, async (c) => {
   const { priceId, targetTier } = c.req.valid('json');
   const resolvedPriceId = await resolveCatalogPriceId(targetTier, 'subscription', priceId);
   const requestEntitlements = c.get('entitlements') as RequestEntitlements | undefined;
+
+  // Validate upgrade direction — reject downgrades via upgrade route
+  const currentTier = (requestEntitlements?.tier as string) ?? 'free';
+  const currentRank = TIER_ORDER[currentTier] ?? 0;
+  const targetRank = TIER_ORDER[targetTier] ?? 0;
+
+  if (targetRank <= currentRank) {
+    throw new HTTPException(400, {
+      message: `Cannot downgrade from ${currentTier} to ${targetTier} via upgrade route. Use the downgrade route instead.`,
+    });
+  }
 
   const stripeCustomerId = await resolveHostedStripeCustomerId(
     user.id,
