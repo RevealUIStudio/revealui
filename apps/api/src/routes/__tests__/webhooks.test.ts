@@ -85,6 +85,8 @@ vi.mock('@revealui/db/schema', () => ({
     id: 'accountSubscriptions.id',
     accountId: 'accountSubscriptions.accountId',
     stripeCustomerId: 'accountSubscriptions.stripeCustomerId',
+    status: 'accountSubscriptions.status',
+    updatedAt: 'accountSubscriptions.updatedAt',
   },
   accountEntitlements: {
     accountId: 'accountEntitlements.accountId',
@@ -881,6 +883,101 @@ describe('POST /stripe webhook', () => {
       const entry = mockAuditAppend.mock.calls[0]?.[0] as Record<string, unknown>;
       expect(entry.eventType).toBe('license.reactivated.payment_recovery');
       expect(entry.severity).toBe('info');
+    });
+  });
+
+  // ─── invoice.payment_failed ─────────────────────────────────────────────────
+
+  describe('invoice.payment_failed handler', () => {
+    function makePaymentFailedEvent(id: string, attemptCount: number, customerId = 'cus_fail') {
+      return {
+        id,
+        type: 'invoice.payment_failed',
+        data: {
+          object: {
+            id: 'in_fail_test',
+            customer: customerId,
+            customer_email: 'fail@example.com',
+            attempt_count: attemptCount,
+          },
+        },
+      };
+    }
+
+    it('updates subscription status to past_due after payment failure', async () => {
+      const event = makePaymentFailedEvent('evt_pf_past_due_1', 1);
+      mockConstructEvent.mockReturnValueOnce(event);
+
+      const app = createApp();
+      const res = await app.request(postStripe(event));
+
+      expect(res.status).toBe(200);
+
+      // Should call db.update with accountSubscriptions
+      expect(mockDb.update).toHaveBeenCalled();
+      expect(mockDbUpdateChain.set).toHaveBeenCalledWith(
+        expect.objectContaining({ status: 'past_due' }),
+      );
+      expect(mockDbUpdateChain.where).toHaveBeenCalled();
+    });
+
+    it('suspends subscription after 3 consecutive failures', async () => {
+      const event = makePaymentFailedEvent('evt_pf_suspended_1', 3);
+      mockConstructEvent.mockReturnValueOnce(event);
+
+      const app = createApp();
+      const res = await app.request(postStripe(event));
+
+      expect(res.status).toBe(200);
+
+      expect(mockDb.update).toHaveBeenCalled();
+      expect(mockDbUpdateChain.set).toHaveBeenCalledWith(
+        expect.objectContaining({ status: 'suspended' }),
+      );
+    });
+
+    it('suspends subscription after more than 3 failures', async () => {
+      const event = makePaymentFailedEvent('evt_pf_suspended_5', 5);
+      mockConstructEvent.mockReturnValueOnce(event);
+
+      const app = createApp();
+      const res = await app.request(postStripe(event));
+
+      expect(res.status).toBe(200);
+
+      expect(mockDbUpdateChain.set).toHaveBeenCalledWith(
+        expect.objectContaining({ status: 'suspended' }),
+      );
+    });
+
+    it('logs error when suspending after 3+ failures', async () => {
+      const event = makePaymentFailedEvent('evt_pf_log_error_1', 3);
+      mockConstructEvent.mockReturnValueOnce(event);
+
+      const app = createApp();
+      await app.request(postStripe(event));
+
+      const { logger: mockLogger } = loggerModule;
+      expect(mockLogger.error).toHaveBeenCalledWith(
+        'Payment failed 3+ times — suspending subscription',
+        expect.objectContaining({ customerId: 'cus_fail', attemptCount: 3 }),
+      );
+    });
+
+    it('sets past_due on first attempt (attempt_count=1)', async () => {
+      const event = makePaymentFailedEvent('evt_pf_first_attempt', 1);
+      mockConstructEvent.mockReturnValueOnce(event);
+
+      const app = createApp();
+      const res = await app.request(postStripe(event));
+
+      expect(res.status).toBe(200);
+      expect(mockDbUpdateChain.set).toHaveBeenCalledWith(
+        expect.objectContaining({ status: 'past_due' }),
+      );
+      // Should NOT log error for first attempt
+      const { logger: mockLogger } = loggerModule;
+      expect(mockLogger.error).not.toHaveBeenCalled();
     });
   });
 });
