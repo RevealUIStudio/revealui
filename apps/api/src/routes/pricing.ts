@@ -28,10 +28,16 @@ const pricingBreaker = new CircuitBreaker({
   successThreshold: 2,
 });
 
+let cachedStripe: Stripe | null | undefined;
 function getStripeClient(): Stripe | null {
+  if (cachedStripe !== undefined) return cachedStripe;
   const key = process.env.STRIPE_SECRET_KEY;
-  if (!key) return null;
-  return new Stripe(key, { maxNetworkRetries: 2 });
+  if (!key) {
+    cachedStripe = null;
+    return null;
+  }
+  cachedStripe = new Stripe(key, { maxNetworkRetries: 2 });
+  return cachedStripe;
 }
 
 // ---------------------------------------------------------------------------

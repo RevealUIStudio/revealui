@@ -56,12 +56,15 @@ const stripeBreaker = new CircuitBreaker({
   successThreshold: 2,
 });
 
+let cachedStripe: Stripe | undefined;
 function getStripeClient(): Stripe {
+  if (cachedStripe) return cachedStripe;
   const key = process.env.STRIPE_SECRET_KEY;
   if (!key) {
     throw new HTTPException(500, { message: 'Stripe is not configured' });
   }
-  return new Stripe(key, { maxNetworkRetries: 2 });
+  cachedStripe = new Stripe(key, { maxNetworkRetries: 2 });
+  return cachedStripe;
 }
 
 /** Execute a Stripe operation through the circuit breaker */

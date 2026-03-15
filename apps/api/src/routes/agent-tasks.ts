@@ -294,7 +294,9 @@ async function dispatchWithTimeout(
       dispatchErr instanceof Error && dispatchErr.message === 'Agent dispatch timed out';
     return {
       success: false,
-      error: isTimeout ? 'Agent timed out after 2 minutes' : 'Agent dispatch failed',
+      error: isTimeout
+        ? `Agent timed out after ${Math.round(AGENT_TIMEOUT_MS / 60_000)} minutes`
+        : 'Agent dispatch failed',
     };
   }
 

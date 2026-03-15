@@ -38,7 +38,7 @@ export function ToastProvider({ children }: { children: React.ReactNode }) {
   const [toasts, dispatch] = useReducer(toastReducer, []);
 
   const addToast = useCallback((toast: Omit<Toast, 'id'>) => {
-    const id = Math.random().toString(36).slice(2);
+    const id = crypto.randomUUID();
     const duration = toast.duration ?? 5000;
     dispatch({ type: 'ADD', toast: { ...toast, id } });
     if (duration > 0) {

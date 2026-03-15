@@ -137,7 +137,9 @@ export function createCollabRoute(): OpenAPIHono<{ Variables: Variables }> {
       const state = Y.encodeStateAsUpdate(doc);
       doc.destroy();
 
-      if (state.length <= 2) {
+      // Yjs empty doc encodes as ≤2 bytes (version header only)
+      const YjsEmptyDocSize = 2;
+      if (state.length <= YjsEmptyDocSize) {
         throw new HTTPException(404, { message: 'Document not found' });
       }
 
