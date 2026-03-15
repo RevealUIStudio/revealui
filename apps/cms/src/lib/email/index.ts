@@ -9,6 +9,8 @@
  * - For SMTP: Set SMTP_* variables and install: pnpm add nodemailer @types/nodemailer
  */
 
+import { logger } from '@revealui/core/observability/logger';
+
 interface EmailOptions {
   to: string;
   subject: string;
@@ -35,7 +37,12 @@ class ResendProvider implements EmailProvider {
 
   async send(options: EmailOptions): Promise<{ success: boolean; error?: string }> {
     if (!this.apiKey) {
-      return { success: false, error: 'RESEND_API_KEY not configured' };
+      const message = 'RESEND_API_KEY not configured';
+      if (process.env.NODE_ENV === 'production') {
+        logger.error('Resend email delivery failed', new Error(message), { to: options.to });
+        throw new Error(`Resend email delivery failed: ${message}`);
+      }
+      return { success: false, error: message };
     }
 
     try {
@@ -56,16 +63,23 @@ class ResendProvider implements EmailProvider {
       });
 
       if (!response.ok) {
-        const error = await response.text();
-        return { success: false, error: `Resend API error: ${error}` };
+        const errorText = await response.text();
+        const message = `Resend API error: ${errorText}`;
+        if (process.env.NODE_ENV === 'production') {
+          logger.error('Resend email delivery failed', new Error(message), { to: options.to });
+          throw new Error(`Resend email delivery failed: ${message}`);
+        }
+        return { success: false, error: message };
       }
 
       return { success: true };
     } catch (error) {
-      return {
-        success: false,
-        error: error instanceof Error ? error.message : 'Unknown error',
-      };
+      const message = error instanceof Error ? error.message : 'Unknown error';
+      if (process.env.NODE_ENV === 'production') {
+        logger.error('Resend email delivery failed', new Error(message), { to: options.to });
+        throw new Error(`Resend email delivery failed: ${message}`);
+      }
+      return { success: false, error: message };
     }
   }
 }
@@ -108,18 +122,22 @@ class SMTPProvider implements EmailProvider {
       const nodemailerModule = await import('nodemailer');
       createTransport = nodemailerModule.createTransport;
     } catch (_error) {
-      return {
-        success: false,
-        error: 'nodemailer not installed. Run: pnpm add nodemailer @types/nodemailer',
-      };
+      const message = 'nodemailer not installed. Run: pnpm add nodemailer @types/nodemailer';
+      if (process.env.NODE_ENV === 'production') {
+        logger.error('SMTP email delivery failed', new Error(message));
+        throw new Error(`SMTP email delivery failed: ${message}`);
+      }
+      return { success: false, error: message };
     }
 
     // Validate configuration
     if (!(this.config.auth.user && this.config.auth.pass)) {
-      return {
-        success: false,
-        error: 'SMTP_USER and SMTP_PASS must be configured',
-      };
+      const message = 'SMTP_USER and SMTP_PASS must be configured';
+      if (process.env.NODE_ENV === 'production') {
+        logger.error('SMTP email delivery failed', new Error(message));
+        throw new Error(`SMTP email delivery failed: ${message}`);
+      }
+      return { success: false, error: message };
     }
 
     try {
@@ -145,10 +163,12 @@ class SMTPProvider implements EmailProvider {
 
       return { success: true };
     } catch (error) {
-      return {
-        success: false,
-        error: error instanceof Error ? error.message : 'Unknown SMTP error',
-      };
+      const message = error instanceof Error ? error.message : 'Unknown SMTP error';
+      if (process.env.NODE_ENV === 'production') {
+        logger.error('SMTP email delivery failed', new Error(message), { to: options.to });
+        throw new Error(`SMTP email delivery failed: ${message}`);
+      }
+      return { success: false, error: message };
     }
   }
 }
@@ -230,22 +250,44 @@ export async function sendEmail(
         return result;
       }
 
-      // Last attempt — return whatever we got
-      if (attempt === maxRetries) return result;
+      // Last attempt — throw in production, return in dev/test
+      if (attempt === maxRetries) {
+        if (process.env.NODE_ENV === 'production') {
+          const errorMsg = `Email delivery failed after ${maxRetries + 1} attempts: ${result.error}`;
+          logger.error('Email delivery failed after retries', new Error(errorMsg), {
+            to: options.to,
+            attempts: maxRetries + 1,
+          });
+          throw new Error(errorMsg);
+        }
+        return result;
+      }
 
       // Exponential backoff before retrying
       await new Promise((resolve) => setTimeout(resolve, 200 * 2 ** attempt));
     } catch (error) {
       if (attempt === maxRetries) {
-        return {
-          success: false,
-          error: error instanceof Error ? error.message : 'Unknown error',
-        };
+        const message = error instanceof Error ? error.message : 'Unknown error';
+        if (process.env.NODE_ENV === 'production') {
+          const errorMsg = `Email delivery failed after ${maxRetries + 1} attempts: ${message}`;
+          logger.error('Email delivery failed after retries', new Error(errorMsg), {
+            to: options.to,
+            attempts: maxRetries + 1,
+          });
+          throw new Error(errorMsg);
+        }
+        return { success: false, error: message };
       }
       await new Promise((resolve) => setTimeout(resolve, 200 * 2 ** attempt));
     }
   }
 
+  if (process.env.NODE_ENV === 'production') {
+    logger.error('Email delivery failed: max retries exceeded', new Error('Max retries exceeded'), {
+      to: options.to,
+    });
+    throw new Error('Email delivery failed: max retries exceeded');
+  }
   return { success: false, error: 'Max retries exceeded' };
 }
 

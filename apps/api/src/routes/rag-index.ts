@@ -65,9 +65,9 @@ app.openapi(
         content: { 'application/json': { schema: z.unknown() } },
         description: 'CMS fetch error',
       },
-      503: {
+      403: {
         content: { 'application/json': { schema: z.unknown() } },
-        description: 'AI package not available',
+        description: 'AI feature requires Pro or Enterprise license',
       },
     },
   }),
@@ -114,7 +114,15 @@ app.openapi(
     ]);
 
     if (!(embeddingsMod && ingestionMod)) {
-      return c.json({ success: false, error: 'AI package not available' }, 503);
+      return c.json(
+        {
+          success: false,
+          error:
+            "Feature 'ai' requires a Pro or Enterprise license. Upgrade at https://revealui.com/pricing",
+          code: 'HTTP_403',
+        },
+        403,
+      );
     }
 
     const vectorDb = getVectorClient();
@@ -245,9 +253,9 @@ app.openapi(
         },
         description: 'Document deleted',
       },
-      503: {
+      403: {
         content: { 'application/json': { schema: z.unknown() } },
-        description: 'AI package not available',
+        description: 'AI feature requires Pro or Enterprise license',
       },
     },
   }),
@@ -260,7 +268,15 @@ app.openapi(
     ]);
 
     if (!(embeddingsMod && ingestionMod)) {
-      return c.json({ success: false, error: 'AI package not available' }, 503);
+      return c.json(
+        {
+          success: false,
+          error:
+            "Feature 'ai' requires a Pro or Enterprise license. Upgrade at https://revealui.com/pricing",
+          code: 'HTTP_403',
+        },
+        403,
+      );
     }
 
     const vectorDb = getVectorClient();

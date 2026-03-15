@@ -332,14 +332,38 @@ app.use('/api/v1/collab/agent/*', requireFeature('ai', { mode: 'entitlements' })
 app.use('/api/provenance/*', requireFeature('dashboard', { mode: 'entitlements' }));
 app.use('/api/v1/provenance/*', requireFeature('dashboard', { mode: 'entitlements' }));
 
-// Role-based access — admin-only operations
+// ---------------------------------------------------------------------------
+// Role-based access control (RBAC) — uses core AuthorizationSystem with CommonRoles.
+// Runs AFTER auth middleware, so user context is guaranteed for protected routes.
+// Permissions are defined in packages/core/src/security/authorization.ts (CommonRoles).
+// ---------------------------------------------------------------------------
+
+// Content mutations: editor+ can create/update, admin+ can delete
+app.post('/api/content/*', requirePermission('content', 'create'));
+app.post('/api/v1/content/*', requirePermission('content', 'create'));
+app.patch('/api/content/*', requirePermission('content', 'update'));
+app.patch('/api/v1/content/*', requirePermission('content', 'update'));
+app.delete('/api/content/*', requirePermission('content', 'delete'));
+app.delete('/api/v1/content/*', requirePermission('content', 'delete'));
+
 // RAG index writes and deletes are administrative operations (rebuilding/managing the vector index).
 // Any authenticated user can read RAG query results, but only admins can modify index contents.
-// Uses core AuthorizationSystem (RBAC with CommonRoles) via requirePermission middleware.
 app.use('/api/rag/*/index/*', requirePermission('rag', 'admin'));
 app.use('/api/v1/rag/*/index/*', requirePermission('rag', 'admin'));
 app.delete('/api/rag/*', requirePermission('rag', 'admin'));
 app.delete('/api/v1/rag/*', requirePermission('rag', 'admin'));
+
+// API key management: admin-only (creates long-lived credentials)
+app.post('/api/api-keys/*', requirePermission('api-keys', 'admin'));
+app.post('/api/v1/api-keys/*', requirePermission('api-keys', 'admin'));
+app.delete('/api/api-keys/*', requirePermission('api-keys', 'admin'));
+app.delete('/api/v1/api-keys/*', requirePermission('api-keys', 'admin'));
+
+// Marketplace server publish/delete: admin-only (registers services for all users)
+app.post('/api/marketplace/servers', requirePermission('marketplace', 'admin'));
+app.post('/api/v1/marketplace/servers', requirePermission('marketplace', 'admin'));
+app.delete('/api/marketplace/servers/*', requirePermission('marketplace', 'admin'));
+app.delete('/api/v1/marketplace/servers/*', requirePermission('marketplace', 'admin'));
 
 // Write-protect mutation endpoints — these require authentication
 const writeProtected = authMiddleware({ required: true });

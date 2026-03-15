@@ -78,16 +78,17 @@ const agentStreamRoute = createRoute({
       },
       description: 'Missing instruction or invalid provider',
     },
-    503: {
+    403: {
       content: {
         'application/json': {
           schema: z.object({
             success: z.literal(false),
             error: z.string(),
+            code: z.string(),
           }),
         },
       },
-      description: 'AI package not available or not configured',
+      description: 'AI feature requires Pro or Enterprise license',
     },
   },
 });
@@ -103,7 +104,15 @@ app.openapi(agentStreamRoute, async (c) => {
   ]);
 
   if (!(aiMod && llmClientMod && streamingRuntimeMod)) {
-    return c.json({ success: false, error: 'AI package not available' }, 503);
+    return c.json(
+      {
+        success: false,
+        error:
+          "Feature 'ai' requires a Pro or Enterprise license. Upgrade at https://revealui.com/pricing",
+        code: 'HTTP_403',
+      },
+      403,
+    );
   }
 
   // BYOK: accept API key via Authorization header (never in request body)
@@ -136,7 +145,15 @@ app.openapi(agentStreamRoute, async (c) => {
       llmClient = aiMod.createLLMClientFromEnv();
     }
   } catch {
-    return c.json({ success: false, error: 'AI provider not configured' }, 503);
+    return c.json(
+      {
+        success: false,
+        error:
+          "Feature 'ai' requires a Pro or Enterprise license. Upgrade at https://revealui.com/pricing",
+        code: 'HTTP_403',
+      },
+      403,
+    );
   }
 
   const workspaceId = body.workspaceId ?? c.get('tenant')?.id ?? 'default';
