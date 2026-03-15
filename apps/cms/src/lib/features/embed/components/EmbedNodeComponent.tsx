@@ -1,29 +1,34 @@
 import { useLexicalComposerContext } from '@revealui/core/richtext/client';
 import { $getNodeByKey } from 'lexical';
 import type React from 'react';
-import { useCallback } from 'react';
+import { useCallback, useMemo } from 'react';
 import { type EmbedNodeData, OPEN_EMBED_DRAWER_COMMAND } from '../nodes/EmbedNode';
 
-// Simple button component placeholder
-const Button = ({
-  onClick,
-  tooltip,
-  children,
-  className,
-}: {
-  buttonStyle?: string;
-  className?: string;
-  el?: string;
-  icon?: string;
-  onClick?: (e: React.MouseEvent) => void;
-  round?: boolean;
-  tooltip?: string;
-  children?: React.ReactNode;
-}) => (
-  <button type="button" onClick={onClick} title={tooltip} className={className}>
-    {children || tooltip}
-  </button>
-);
+type EmbedSource = { type: 'youtube'; embedUrl: string } | { type: 'generic'; url: string };
+
+function parseEmbedSource(url: string): EmbedSource {
+  try {
+    const parsed = new URL(url);
+
+    // YouTube: youtube.com/watch?v=ID or youtu.be/ID
+    if (parsed.hostname === 'www.youtube.com' || parsed.hostname === 'youtube.com') {
+      const videoId = parsed.searchParams.get('v');
+      if (videoId) {
+        return { type: 'youtube', embedUrl: `https://www.youtube.com/embed/${videoId}` };
+      }
+    }
+    if (parsed.hostname === 'youtu.be') {
+      const videoId = parsed.pathname.slice(1);
+      if (videoId) {
+        return { type: 'youtube', embedUrl: `https://www.youtube.com/embed/${videoId}` };
+      }
+    }
+  } catch {
+    // Not a valid URL — fall through to generic
+  }
+
+  return { type: 'generic', url };
+}
 
 type Props = {
   data: EmbedNodeData;
@@ -33,7 +38,7 @@ type Props = {
 export const EmbedNodeComponent = (props: Props) => {
   const { data, nodeKey } = props;
   const [editor] = useLexicalComposerContext();
-  const videoSrc = `https://www.youtube.com/embed/${data.url.split('v=')[1]}`;
+  const source = useMemo(() => parseEmbedSource(data.url), [data.url]);
 
   const removeEmbed = useCallback(() => {
     editor.update(() => {
@@ -47,43 +52,53 @@ export const EmbedNodeComponent = (props: Props) => {
   return (
     <div className="embed-node shadow-sm p-3 pt-2 bg-gray-100 border border-gray-200 font-body mb-6 w-[560px]">
       <div className="embed-node__controls relative flex justify-between pb-1">
-        <p className="embed-node__urlDisplay m-0 text-base">{data.url}</p>
-        <div className="embed-node__buttons flex flex-row">
-          <Button
-            buttonStyle="icon-label"
-            className="embed-node__swapButton"
-            el="div"
-            icon="swap"
-            onClick={(_e: React.MouseEvent) => {
+        <p className="embed-node__urlDisplay m-0 text-base truncate">{data.url}</p>
+        <div className="embed-node__buttons flex flex-row gap-1">
+          <button
+            type="button"
+            className="embed-node__swapButton px-2 py-1 text-sm rounded hover:bg-gray-200"
+            onClick={() => {
               editor.dispatchCommand(OPEN_EMBED_DRAWER_COMMAND, {
                 data,
                 nodeKey,
               });
             }}
-            round
-            tooltip="Swap Embed"
-          />
-          <Button
-            buttonStyle="icon-label"
-            className="embed-node__removeButton"
-            icon="x"
+            title="Swap Embed"
+          >
+            Swap
+          </button>
+          <button
+            type="button"
+            className="embed-node__removeButton px-2 py-1 text-sm rounded hover:bg-gray-200"
             onClick={(e: React.MouseEvent) => {
               e.preventDefault();
               removeEmbed();
             }}
-            round
-            tooltip="Remove Embed"
-          />
+            title="Remove Embed"
+          >
+            Remove
+          </button>
         </div>
       </div>
-      <iframe
-        className="w-full h-80"
-        src={videoSrc}
-        title="YouTube video player"
-        allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
-        referrerPolicy="strict-origin-when-cross-origin"
-        allowFullScreen
-      ></iframe>
+      {source.type === 'youtube' ? (
+        <iframe
+          className="w-full h-80"
+          src={source.embedUrl}
+          title="YouTube video player"
+          allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+          referrerPolicy="strict-origin-when-cross-origin"
+          allowFullScreen
+        />
+      ) : (
+        <a
+          href={source.url}
+          target="_blank"
+          rel="noopener noreferrer"
+          className="block p-4 bg-white rounded border border-gray-300 text-blue-600 hover:underline break-all"
+        >
+          {source.url}
+        </a>
+      )}
     </div>
   );
 };

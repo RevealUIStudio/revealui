@@ -14,11 +14,35 @@ export type QueryableCollectionDb = {
  * inline SQL back into the collection operations; extend this adapter or
  * redesign the collection storage layer toward typed tables instead.
  */
+
+/** Only lowercase alphanumeric, hyphens, and underscores (1-63 chars, PostgreSQL identifier limit). */
+const VALID_SLUG = /^[a-z][a-z0-9_-]{0,62}$/;
+
+export function validateSlug(slug: string): void {
+  if (!VALID_SLUG.test(slug)) {
+    throw new Error(
+      `Invalid collection slug: "${slug}". Slugs must start with a lowercase letter and contain only lowercase alphanumeric characters, hyphens, and underscores (max 63 chars).`,
+    );
+  }
+}
+
+/** Only lowercase alphanumeric and underscores (PostgreSQL column name safe). */
+const VALID_COLUMN = /^[a-z_][a-z0-9_]{0,62}$/;
+
+export function validateColumnName(column: string): void {
+  if (!VALID_COLUMN.test(column)) {
+    throw new Error(
+      `Invalid column name: "${column}". Column names must start with a lowercase letter or underscore and contain only lowercase alphanumeric characters and underscores.`,
+    );
+  }
+}
+
 export function escapeIdentifier(identifier: string): string {
   return identifier.replace(/"/g, '""');
 }
 
 export function collectionTable(configSlug: string): string {
+  validateSlug(configSlug);
   return `"${escapeIdentifier(configSlug)}"`;
 }
 
@@ -47,6 +71,7 @@ export function listDocumentsQuery(
 }
 
 export function insertDocumentQuery(configSlug: string, columns: string[]): string {
+  for (const col of columns) validateColumnName(col);
   const escapedColumns = columns.map((column) => `"${escapeIdentifier(column)}"`).join(', ');
   const placeholders = columns.map((_, i) => `$${i + 2}`).join(', ');
   return `INSERT INTO ${collectionTable(configSlug)} (id, ${escapedColumns}) VALUES ($1, ${placeholders})`;
@@ -61,6 +86,7 @@ export function checkExistsByIdQuery(configSlug: string): string {
 }
 
 export function updateByIdQuery(configSlug: string, keys: string[]): string {
+  for (const key of keys) validateColumnName(key);
   const setClause = keys.map((key, i) => `"${escapeIdentifier(key)}" = $${i + 1}`).join(', ');
   return `UPDATE ${collectionTable(configSlug)} SET ${setClause} WHERE id = $${keys.length + 1}`;
 }
