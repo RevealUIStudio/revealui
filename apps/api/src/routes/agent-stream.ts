@@ -13,6 +13,26 @@
 import { Hono } from 'hono';
 import { streamSSE } from 'hono/streaming';
 
+/** Detect LLM provider from API key prefix or explicit parameter */
+export function detectProvider(apiKey: string, explicitProvider?: string): string | null {
+  if (explicitProvider) return explicitProvider;
+  if (apiKey.startsWith('sk-ant-')) return 'anthropic';
+  if (apiKey.startsWith('sk-')) return 'openai';
+  if (apiKey.startsWith('gsk_')) return 'groq';
+  if (apiKey.startsWith('hf_')) return 'huggingface';
+  // Ollama and Vultr don't have standard key prefixes — require explicit provider
+  return null;
+}
+
+const DEFAULT_MODELS: Record<string, string> = {
+  anthropic: 'claude-sonnet-4-5-20250514',
+  openai: 'gpt-4o',
+  groq: 'llama-3.3-70b-versatile',
+  ollama: 'llama3.2',
+  vultr: 'llama-3.3-70b-versatile',
+  huggingface: 'meta-llama/Llama-3.3-70B-Instruct',
+};
+
 type Variables = {
   tenant?: { id: string };
 };
@@ -26,6 +46,8 @@ app.post('/', async (c) => {
     boardId?: string;
     workspaceId?: string;
     priority?: string;
+    provider?: string;
+    model?: string;
   } | null;
 
   if (!body?.instruction) {
@@ -50,20 +72,22 @@ app.post('/', async (c) => {
   let llmClient: unknown;
   try {
     if (byokKey) {
-      // Detect provider from API key prefix format
-      const provider = byokKey.startsWith('sk-ant-')
-        ? 'anthropic'
-        : byokKey.startsWith('sk-')
-          ? 'openai'
-          : 'groq';
-      const model =
-        provider === 'anthropic'
-          ? 'claude-sonnet-4-5-20250514'
-          : provider === 'openai'
-            ? 'gpt-4o'
-            : 'llama-3.3-70b-versatile';
+      const provider = detectProvider(byokKey, body.provider);
+      if (!provider) {
+        return c.json(
+          {
+            success: false,
+            error: 'Cannot detect LLM provider from key format. Pass "provider" in request body.',
+          },
+          400,
+        );
+      }
+      const model = body.model || DEFAULT_MODELS[provider] || 'llama-3.3-70b-versatile';
+      // Provider string is validated by detectProvider; type assertion needed because
+      // LLMProviderType is a string literal union from the Pro package.
+      type LLMConfig = ConstructorParameters<typeof llmClientMod.LLMClient>[0];
       llmClient = new llmClientMod.LLMClient({
-        provider,
+        provider: provider as LLMConfig['provider'],
         apiKey: byokKey,
         model,
       });

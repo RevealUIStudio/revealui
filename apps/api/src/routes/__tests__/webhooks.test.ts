@@ -85,6 +85,8 @@ vi.mock('@revealui/db/schema', () => ({
     id: 'accountSubscriptions.id',
     accountId: 'accountSubscriptions.accountId',
     stripeCustomerId: 'accountSubscriptions.stripeCustomerId',
+    status: 'accountSubscriptions.status',
+    updatedAt: 'accountSubscriptions.updatedAt',
   },
   accountEntitlements: {
     accountId: 'accountEntitlements.accountId',
@@ -111,6 +113,11 @@ vi.mock('drizzle-orm', () => ({
   eq: vi.fn((_col, _val) => `eq(${String(_col)},${String(_val)})`),
   and: vi.fn((...args: unknown[]) => `and(${args.join(',')})`),
   desc: vi.fn((_col) => `desc(${String(_col)})`),
+}));
+
+const mockSendEmail = vi.fn().mockResolvedValue(undefined);
+vi.mock('../../lib/email.js', () => ({
+  sendEmail: (...args: unknown[]) => mockSendEmail(...args),
 }));
 
 // ─── Import under test (after mocks) ─────────────────────────────────────────
@@ -503,6 +510,129 @@ describe('POST /stripe webhook', () => {
       expect(insertValues.userId).toBe('user_abc');
     });
 
+    it('defaults to pro and sends alert email when tier metadata is missing', async () => {
+      // Transaction's inner user-existence check must find a matching user
+      mockDbSelectChain.limit.mockResolvedValueOnce([{ id: 'user_missing_tier' }]);
+
+      const event = {
+        id: 'evt_checkout_missing_tier_1',
+        type: 'checkout.session.completed',
+        data: {
+          object: {
+            mode: 'subscription',
+            subscription: 'sub_test',
+            customer: 'cus_test',
+            metadata: { revealui_user_id: 'user_missing_tier' },
+            // no tier in metadata
+          },
+        },
+      };
+      mockConstructEvent.mockReturnValueOnce(event);
+
+      const app = createApp();
+      const res = await app.request(postStripe(event));
+
+      expect(res.status).toBe(200);
+      // License created with 'pro' as fallback
+      const insertValues = mockDbInsertChain.values.mock.calls[1]?.[0] as Record<string, unknown>;
+      expect(insertValues.tier).toBe('pro');
+      // CRITICAL logger.error was called
+      expect(vi.mocked(loggerModule.logger).error).toHaveBeenCalledWith(
+        expect.stringContaining('CRITICAL'),
+        undefined,
+        expect.objectContaining({ tier: null }),
+      );
+      // Alert email was sent (fire-and-forget via dynamic import — use waitFor)
+      await vi.waitFor(
+        () => {
+          expect(mockSendEmail).toHaveBeenCalledWith(
+            expect.objectContaining({
+              to: 'founder@revealui.com',
+              subject: expect.stringContaining('CRITICAL'),
+            }),
+          );
+        },
+        { timeout: 1000 },
+      );
+    });
+
+    it('defaults to pro and sends alert email when tier metadata is unrecognized', async () => {
+      // Transaction's inner user-existence check must find a matching user
+      mockDbSelectChain.limit.mockResolvedValueOnce([{ id: 'user_bad_tier' }]);
+
+      const event = {
+        id: 'evt_checkout_bad_tier_1',
+        type: 'checkout.session.completed',
+        data: {
+          object: {
+            mode: 'subscription',
+            subscription: 'sub_test',
+            customer: 'cus_test',
+            metadata: { tier: 'platinum', revealui_user_id: 'user_bad_tier' },
+          },
+        },
+      };
+      mockConstructEvent.mockReturnValueOnce(event);
+
+      const app = createApp();
+      const res = await app.request(postStripe(event));
+
+      expect(res.status).toBe(200);
+      const insertValues = mockDbInsertChain.values.mock.calls[1]?.[0] as Record<string, unknown>;
+      expect(insertValues.tier).toBe('pro');
+      expect(vi.mocked(loggerModule.logger).error).toHaveBeenCalledWith(
+        expect.stringContaining('CRITICAL'),
+        undefined,
+        expect.objectContaining({ tier: 'platinum' }),
+      );
+      await vi.waitFor(
+        () => {
+          expect(mockSendEmail).toHaveBeenCalledWith(
+            expect.objectContaining({
+              to: 'founder@revealui.com',
+              subject: expect.stringContaining('CRITICAL'),
+            }),
+          );
+        },
+        { timeout: 1000 },
+      );
+    });
+
+    it('logs warning when tier fallback alert email fails to send', async () => {
+      mockSendEmail.mockRejectedValueOnce(new Error('SMTP down'));
+      // Transaction's inner user-existence check must find a matching user
+      mockDbSelectChain.limit.mockResolvedValueOnce([{ id: 'user_email_fail' }]);
+
+      const event = {
+        id: 'evt_checkout_email_fail_1',
+        type: 'checkout.session.completed',
+        data: {
+          object: {
+            mode: 'subscription',
+            subscription: 'sub_test',
+            customer: 'cus_test',
+            metadata: { revealui_user_id: 'user_email_fail' },
+          },
+        },
+      };
+      mockConstructEvent.mockReturnValueOnce(event);
+
+      const app = createApp();
+      const res = await app.request(postStripe(event));
+
+      expect(res.status).toBe(200);
+      // Allow the fire-and-forget .catch() to settle
+      await vi.waitFor(
+        () => {
+          expect(vi.mocked(loggerModule.logger).warn).toHaveBeenCalledWith(
+            'Failed to send tier fallback alert',
+            expect.objectContaining({ error: 'SMTP down' }),
+          );
+        },
+        { timeout: 1000 },
+      );
+    });
+
     it('clears the idempotency marker when processing fails after the initial insert', async () => {
       const event = {
         id: 'evt_checkout_retry_recover_1',
@@ -758,6 +888,102 @@ describe('POST /stripe webhook', () => {
       const entry = mockAuditAppend.mock.calls[0]?.[0] as Record<string, unknown>;
       expect(entry.eventType).toBe('license.reactivated.payment_recovery');
       expect(entry.severity).toBe('info');
+    });
+  });
+
+  // ─── invoice.payment_failed ─────────────────────────────────────────────────
+
+  describe('invoice.payment_failed handler', () => {
+    function makePaymentFailedEvent(id: string, attemptCount: number, customerId = 'cus_fail') {
+      return {
+        id,
+        type: 'invoice.payment_failed',
+        data: {
+          object: {
+            id: 'in_fail_test',
+            customer: customerId,
+            customer_email: 'fail@example.com',
+            attempt_count: attemptCount,
+          },
+        },
+      };
+    }
+
+    it('updates subscription status to past_due after payment failure', async () => {
+      const event = makePaymentFailedEvent('evt_pf_past_due_1', 1);
+      mockConstructEvent.mockReturnValueOnce(event);
+
+      const app = createApp();
+      const res = await app.request(postStripe(event));
+
+      expect(res.status).toBe(200);
+
+      // Should call db.update with accountSubscriptions
+      expect(mockDb.update).toHaveBeenCalled();
+      expect(mockDbUpdateChain.set).toHaveBeenCalledWith(
+        expect.objectContaining({ status: 'past_due' }),
+      );
+      expect(mockDbUpdateChain.where).toHaveBeenCalled();
+    });
+
+    it('suspends subscription after 3 consecutive failures', async () => {
+      const event = makePaymentFailedEvent('evt_pf_suspended_1', 3);
+      mockConstructEvent.mockReturnValueOnce(event);
+
+      const app = createApp();
+      const res = await app.request(postStripe(event));
+
+      expect(res.status).toBe(200);
+
+      expect(mockDb.update).toHaveBeenCalled();
+      expect(mockDbUpdateChain.set).toHaveBeenCalledWith(
+        expect.objectContaining({ status: 'suspended' }),
+      );
+    });
+
+    it('suspends subscription after more than 3 failures', async () => {
+      const event = makePaymentFailedEvent('evt_pf_suspended_5', 5);
+      mockConstructEvent.mockReturnValueOnce(event);
+
+      const app = createApp();
+      const res = await app.request(postStripe(event));
+
+      expect(res.status).toBe(200);
+
+      expect(mockDbUpdateChain.set).toHaveBeenCalledWith(
+        expect.objectContaining({ status: 'suspended' }),
+      );
+    });
+
+    it('logs error when suspending after 3+ failures', async () => {
+      const event = makePaymentFailedEvent('evt_pf_log_error_1', 3);
+      mockConstructEvent.mockReturnValueOnce(event);
+
+      const app = createApp();
+      await app.request(postStripe(event));
+
+      const { logger: mockLogger } = loggerModule;
+      expect(mockLogger.error).toHaveBeenCalledWith(
+        'Payment failed 3+ times — suspending subscription',
+        undefined,
+        expect.objectContaining({ customerId: 'cus_fail', attemptCount: 3 }),
+      );
+    });
+
+    it('sets past_due on first attempt (attempt_count=1)', async () => {
+      const event = makePaymentFailedEvent('evt_pf_first_attempt', 1);
+      mockConstructEvent.mockReturnValueOnce(event);
+
+      const app = createApp();
+      const res = await app.request(postStripe(event));
+
+      expect(res.status).toBe(200);
+      expect(mockDbUpdateChain.set).toHaveBeenCalledWith(
+        expect.objectContaining({ status: 'past_due' }),
+      );
+      // Should NOT log error for first attempt
+      const { logger: mockLogger } = loggerModule;
+      expect(mockLogger.error).not.toHaveBeenCalled();
     });
   });
 });

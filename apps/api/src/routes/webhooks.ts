@@ -27,6 +27,16 @@ import { and, desc, eq } from 'drizzle-orm';
 import { Hono } from 'hono';
 import Stripe from 'stripe';
 
+/** Escape HTML special characters to prevent XSS in email templates */
+function escapeHtml(str: string): string {
+  return str
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#39;');
+}
+
 const app = new Hono();
 
 type HostedTier = 'free' | LicenseTier;
@@ -113,6 +123,15 @@ function resolveTier(
     {
       tier: tier ?? null,
       metadata: metadata ?? null,
+    },
+  );
+  // Fire-and-forget alert to founder
+  const alertEmail = process.env.REVEALUI_ALERT_EMAIL || 'founder@revealui.com';
+  sendTierFallbackAlert(alertEmail, { tier: tier ?? null, metadata: metadata ?? null }).catch(
+    (err) => {
+      logger.warn('Failed to send tier fallback alert', {
+        error: err instanceof Error ? err.message : 'unknown',
+      });
     },
   );
   return 'pro';
@@ -757,6 +776,22 @@ app.post('/stripe', async (c) => {
           });
         }
 
+        // Best-effort: tag early adopter in Stripe customer metadata so their
+        // lifetime discount is visible in the Stripe Dashboard and queryable later.
+        const earlyAdopterEnd = process.env.REVEALUI_EARLY_ADOPTER_END;
+        if (earlyAdopterEnd && new Date() < new Date(earlyAdopterEnd)) {
+          try {
+            await stripe.customers.update(customerId, {
+              metadata: { earlyAdopter: 'true' },
+            });
+          } catch (earlyErr) {
+            logger.warn('Failed to tag early adopter on Stripe customer', {
+              customerId,
+              error: earlyErr instanceof Error ? earlyErr.message : 'unknown',
+            });
+          }
+        }
+
         logger.info('License generated and stored', { tier, customerId, licenseId });
         auditLicenseEvent(db, 'license.created', 'info', {
           licenseId,
@@ -1119,6 +1154,30 @@ app.post('/stripe', async (c) => {
           invoiceId: invoice.id,
           attemptCount: invoice.attempt_count,
         });
+
+        // Update subscription status based on attempt count
+        const failedStatus =
+          invoice.attempt_count && invoice.attempt_count >= 3 ? 'suspended' : 'past_due';
+
+        if (failedStatus === 'suspended') {
+          logger.error('Payment failed 3+ times — suspending subscription', undefined, {
+            customerId,
+            attemptCount: invoice.attempt_count,
+          });
+        }
+
+        await db
+          .update(accountSubscriptions)
+          .set({ status: failedStatus, updatedAt: new Date() })
+          .where(eq(accountSubscriptions.stripeCustomerId, customerId));
+
+        // Mirror license status — matches customer.subscription.updated behavior
+        if (failedStatus === 'suspended') {
+          await db
+            .update(licenses)
+            .set({ status: 'expired', updatedAt: new Date() })
+            .where(eq(licenses.customerId, customerId));
+        }
 
         // Send payment failed email
         const email = invoice.customer_email ?? (await findUserEmailByCustomerId(db, customerId));
@@ -1548,6 +1607,31 @@ async function sendDisputeLostEmail(to: string): Promise<void> {
       </html>
     `,
     text: `Your RevealUI Pro/Enterprise license has been suspended following a chargeback decision. Contact ${process.env.REVEALUI_SUPPORT_EMAIL ?? 'support@revealui.com'} to resolve this. Manage your billing at ${portalUrl}.`,
+  });
+}
+
+async function sendTierFallbackAlert(
+  email: string,
+  context: { tier: string | null; metadata: Record<string, string> | null },
+): Promise<void> {
+  const { sendEmail } = await import('../lib/email.js');
+  await sendEmail({
+    to: email,
+    subject: '[CRITICAL] RevealUI: Stripe tier metadata missing — defaulted to pro',
+    html: `
+      <!DOCTYPE html>
+      <html>
+        <head><meta charset="utf-8"><title>Tier Metadata Alert</title></head>
+        <body style="font-family: Arial, sans-serif; line-height: 1.6; color: #333; max-width: 600px; margin: 0 auto; padding: 20px;">
+          <h1 style="color: #dc2626;">Stripe Tier Metadata Missing</h1>
+          <p>A webhook event was processed with missing or unrecognized tier metadata.</p>
+          <p><strong>Received tier:</strong> ${escapeHtml(context.tier ?? '(none)')}</p>
+          <p><strong>Metadata:</strong> <code>${escapeHtml(JSON.stringify(context.metadata))}</code></p>
+          <p>The customer was assigned <strong>pro</strong> tier as a safety default. Check Stripe product metadata immediately.</p>
+        </body>
+      </html>
+    `,
+    text: `A webhook event was processed with missing or unrecognized tier metadata.\n\nReceived tier: ${context.tier}\nMetadata: ${JSON.stringify(context.metadata)}\n\nThe customer was assigned 'pro' tier as a safety default. Check Stripe product metadata immediately.`,
   });
 }
 
