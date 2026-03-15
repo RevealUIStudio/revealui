@@ -3,8 +3,10 @@
 import {
   $insertNodeToNearestRoot,
   mergeRegister,
+  type PluginComponent,
   useLexicalComposerContext,
 } from '@revealui/core/richtext/client';
+import { FieldsDrawer, useModal } from '@revealui/core/ui';
 import {
   $getNodeByKey,
   $getSelection,
@@ -21,37 +23,13 @@ import {
   OPEN_EMBED_DRAWER_COMMAND,
 } from '../nodes/EmbedNode';
 
-// Stub types for RevealUI compatibility
-type PluginComponent = React.ComponentType<unknown>;
-
-type EmbedDrawerData = Partial<EmbedNodeData>;
-type DrawerFields = Record<string, unknown>;
-
-// Stub useModal hook
-const useModal = () => ({
-  closeModal: (_slug: string) => undefined,
-  toggleModal: (_slug: string) => undefined,
-  isModalOpen: (_slug: string) => false,
-});
-
-// Stub FieldsDrawer component
-const FieldsDrawer = (_props: {
-  data: EmbedDrawerData | null;
-  drawerSlug: string;
-  drawerTitle: string;
-  featureKey: string;
-  schemaPath: string;
-  handleDrawerSubmit: (fields: DrawerFields, data: EmbedDrawerData) => void;
-  schemaPathSuffix: string;
-}) => null;
-
 const drawerSlug = 'lexical-embed-create';
 
-export const EmbedPlugin: PluginComponent = (_props: unknown) => {
+export const EmbedPlugin: PluginComponent = () => {
   const [editor] = useLexicalComposerContext();
   const { closeModal, toggleModal } = useModal();
   const [lastSelection, setLastSelection] = useState<RangeSelection | null>(null);
-  const [embedData, setEmbedData] = useState<EmbedDrawerData | null>(null);
+  const [embedData, setEmbedData] = useState<EmbedNodeData>({ url: '' });
   const [targetNodeKey, setTargetNodeKey] = useState<string | null>(null);
 
   useEffect(() => {
@@ -95,28 +73,23 @@ export const EmbedPlugin: PluginComponent = (_props: unknown) => {
       ),
       editor.registerCommand(
         OPEN_EMBED_DRAWER_COMMAND,
-        (embedData) => {
-          setEmbedData(embedData?.data ?? null);
-          setTargetNodeKey(embedData?.nodeKey ?? null);
+        (commandData) => {
+          setEmbedData(commandData?.data ?? { url: '' });
+          setTargetNodeKey(commandData?.nodeKey ?? null);
 
-          if (embedData?.nodeKey) {
+          if (commandData?.nodeKey) {
             toggleModal(drawerSlug);
             return true;
           }
 
-          let rangeSelection: RangeSelection | null = null;
-
           editor.getEditorState().read(() => {
             const selection = $getSelection();
             if ($isRangeSelection(selection)) {
-              rangeSelection = selection;
+              setLastSelection(selection);
+              toggleModal(drawerSlug);
             }
           });
 
-          if (rangeSelection) {
-            setLastSelection(rangeSelection);
-            toggleModal(drawerSlug);
-          }
           return true;
         },
         COMMAND_PRIORITY_EDITOR,
@@ -128,18 +101,16 @@ export const EmbedPlugin: PluginComponent = (_props: unknown) => {
     <FieldsDrawer
       data={embedData}
       drawerSlug={drawerSlug}
-      drawerTitle={'Create Embed'}
+      drawerTitle="Create Embed"
       featureKey="embed"
       schemaPath="embed.fields"
       handleDrawerSubmit={(_fields, data) => {
         closeModal(drawerSlug);
-        if (!data?.url) {
-          return;
+        if (data.url) {
+          editor.dispatchCommand(INSERT_EMBED_COMMAND, {
+            url: data.url as string,
+          });
         }
-
-        editor.dispatchCommand(INSERT_EMBED_COMMAND, {
-          url: data.url,
-        });
       }}
       schemaPathSuffix="fields"
     />
