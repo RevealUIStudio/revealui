@@ -61,10 +61,10 @@ export const EmbedPlugin: PluginComponent = () => {
           const focusNode = selection.focus.getNode();
 
           if (focusNode !== null) {
-            const horizontalRuleNode = $createEmbedNode({
+            const embedNode = $createEmbedNode({
               url,
             });
-            $insertNodeToNearestRoot(horizontalRuleNode);
+            $insertNodeToNearestRoot(embedNode);
           }
 
           return true;

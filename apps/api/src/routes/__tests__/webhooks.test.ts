@@ -542,16 +542,17 @@ describe('POST /stripe webhook', () => {
         undefined,
         expect.objectContaining({ tier: null }),
       );
-      // Alert email was sent (fire-and-forget)
-      // Allow microtasks to settle for the fire-and-forget .catch() chain
-      await new Promise((resolve) => {
-        setTimeout(resolve, 10);
-      });
-      expect(mockSendEmail).toHaveBeenCalledWith(
-        expect.objectContaining({
-          to: 'founder@revealui.com',
-          subject: expect.stringContaining('CRITICAL'),
-        }),
+      // Alert email was sent (fire-and-forget via dynamic import — use waitFor)
+      await vi.waitFor(
+        () => {
+          expect(mockSendEmail).toHaveBeenCalledWith(
+            expect.objectContaining({
+              to: 'founder@revealui.com',
+              subject: expect.stringContaining('CRITICAL'),
+            }),
+          );
+        },
+        { timeout: 1000 },
       );
     });
 
@@ -584,14 +585,16 @@ describe('POST /stripe webhook', () => {
         undefined,
         expect.objectContaining({ tier: 'platinum' }),
       );
-      await new Promise((resolve) => {
-        setTimeout(resolve, 10);
-      });
-      expect(mockSendEmail).toHaveBeenCalledWith(
-        expect.objectContaining({
-          to: 'founder@revealui.com',
-          subject: expect.stringContaining('CRITICAL'),
-        }),
+      await vi.waitFor(
+        () => {
+          expect(mockSendEmail).toHaveBeenCalledWith(
+            expect.objectContaining({
+              to: 'founder@revealui.com',
+              subject: expect.stringContaining('CRITICAL'),
+            }),
+          );
+        },
+        { timeout: 1000 },
       );
     });
 
@@ -619,12 +622,14 @@ describe('POST /stripe webhook', () => {
 
       expect(res.status).toBe(200);
       // Allow the fire-and-forget .catch() to settle
-      await new Promise((resolve) => {
-        setTimeout(resolve, 10);
-      });
-      expect(vi.mocked(loggerModule.logger).warn).toHaveBeenCalledWith(
-        'Failed to send tier fallback alert',
-        expect.objectContaining({ error: 'SMTP down' }),
+      await vi.waitFor(
+        () => {
+          expect(vi.mocked(loggerModule.logger).warn).toHaveBeenCalledWith(
+            'Failed to send tier fallback alert',
+            expect.objectContaining({ error: 'SMTP down' }),
+          );
+        },
+        { timeout: 1000 },
       );
     });
 
@@ -960,6 +965,7 @@ describe('POST /stripe webhook', () => {
       const { logger: mockLogger } = loggerModule;
       expect(mockLogger.error).toHaveBeenCalledWith(
         'Payment failed 3+ times — suspending subscription',
+        undefined,
         expect.objectContaining({ customerId: 'cus_fail', attemptCount: 3 }),
       );
     });
