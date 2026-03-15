@@ -27,7 +27,6 @@ import {
   createLivenessEndpoint,
   createMemoryHealthCheck,
   createReadinessEndpoint,
-  createRedisHealthCheck,
   type HealthCheck,
   HealthCheckSystem,
   healthCheck,
@@ -295,40 +294,6 @@ describe('createDatabaseHealthCheck', () => {
     const result = await check.check();
     expect(result.status).toBe('unhealthy');
     expect(result.message).toBe('Database connection failed');
-  });
-});
-
-describe('createRedisHealthCheck', () => {
-  it('returns healthy when ping returns PONG', async () => {
-    const check = createRedisHealthCheck(async () => 'PONG');
-    const result = await check.check();
-    expect(result.status).toBe('healthy');
-    expect(check.critical).toBe(false);
-  });
-
-  it('returns unhealthy when ping returns wrong response', async () => {
-    const check = createRedisHealthCheck(async () => 'WRONG');
-    const result = await check.check();
-    expect(result.status).toBe('unhealthy');
-    expect(result.message).toBe('Redis ping failed');
-  });
-
-  it('returns unhealthy when ping throws', async () => {
-    const check = createRedisHealthCheck(async () => {
-      throw new Error('connection refused');
-    });
-    const result = await check.check();
-    expect(result.status).toBe('unhealthy');
-    expect(result.message).toBe('connection refused');
-  });
-
-  it('handles non-Error thrown', async () => {
-    const check = createRedisHealthCheck(async () => {
-      throw 'timeout';
-    });
-    const result = await check.check();
-    expect(result.status).toBe('unhealthy');
-    expect(result.message).toBe('Redis connection failed');
   });
 });
 

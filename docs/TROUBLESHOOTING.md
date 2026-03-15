@@ -386,7 +386,7 @@ Comprehensive troubleshooting guide for common RevealUI issues.
    - Use connection pooling
 
 2. **Enable caching**
-   - Configure Redis if available
+   - Configure database-backed caching
    - Use Next.js caching strategies
 
 3. **Optimize queries**

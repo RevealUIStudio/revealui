@@ -10,7 +10,7 @@
  * rate limit check is a single HTTP round-trip (~30-50ms). State persists
  * across Vercel cold starts because it lives in PostgreSQL, not process memory.
  * This is acceptable for current scale. If sub-10ms latency becomes critical,
- * add an Upstash Redis adapter implementing the Storage interface.
+ * add an ElectricSQL/PGlite adapter implementing the Storage interface.
  *
  * In-memory storage is ONLY used in development (throws in production if
  * DATABASE_URL is missing).

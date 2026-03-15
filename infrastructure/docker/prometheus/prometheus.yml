@@ -96,15 +96,6 @@ scrape_configs:
         target_label: instance
         replacement: 'postgres'
 
-  # Redis
-  - job_name: 'redis'
-    static_configs:
-      - targets: ['redis-exporter:9121']
-    relabel_configs:
-      - source_labels: [__address__]
-        target_label: instance
-        replacement: 'redis'
-
   # Node Exporter (system metrics)
   - job_name: 'node'
     kubernetes_sd_configs:

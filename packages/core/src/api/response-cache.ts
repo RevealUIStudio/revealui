@@ -28,7 +28,7 @@ interface CacheEntry {
   tags: string[];
 }
 
-// In-memory cache store (replace with Redis in production)
+// In-memory cache store (no external cache dependency needed)
 const cacheStore = new Map<string, CacheEntry>();
 
 /**
