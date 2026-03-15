@@ -6,7 +6,7 @@
 
 import { createHash, createHmac } from 'node:crypto';
 import { logger } from '../observability/logger.js';
-import type { GDPRStorage } from './gdpr-storage.js';
+import { type BreachStorage, type GDPRStorage, InMemoryBreachStorage } from './gdpr-storage.js';
 
 export type ConsentType =
   | 'necessary'
@@ -643,13 +643,18 @@ export interface DataBreach {
 }
 
 export class DataBreachManager {
-  private breaches: Map<string, DataBreach> = new Map();
+  private readonly storage: BreachStorage;
 
-  constructor() {
-    logger.warn(
-      'DataBreachManager: using in-memory storage — breach records will be lost on restart. ' +
-        'For production GDPR compliance, migrate to database-backed storage.',
-    );
+  constructor(storage?: BreachStorage) {
+    if (storage) {
+      this.storage = storage;
+    } else {
+      logger.warn(
+        'DataBreachManager: using in-memory storage — breach records will be lost on restart. ' +
+          'For production GDPR compliance, pass a database-backed BreachStorage.',
+      );
+      this.storage = new InMemoryBreachStorage();
+    }
   }
 
   /**
@@ -665,7 +670,7 @@ export class DataBreachManager {
       status: 'detected',
     };
 
-    this.breaches.set(fullBreach.id, fullBreach);
+    await this.storage.setBreach(fullBreach);
 
     // Auto-notify if critical
     if (fullBreach.severity === 'critical') {
@@ -679,8 +684,10 @@ export class DataBreachManager {
    * Notify authorities (required within 72 hours under GDPR)
    */
   async notifyAuthorities(breach: DataBreach): Promise<void> {
-    breach.reportedAt = new Date().toISOString();
-    breach.status = 'notified';
+    await this.storage.updateBreach(breach.id, {
+      reportedAt: new Date().toISOString(),
+      status: 'notified',
+    });
 
     // In production, integrate with data protection authority API
     logger.info('Breach reported to authorities', { breachId: breach.id });
@@ -693,7 +700,7 @@ export class DataBreachManager {
     breachId: string,
     notifyFn: (userId: string, breach: DataBreach) => Promise<void>,
   ): Promise<void> {
-    const breach = this.breaches.get(breachId);
+    const breach = await this.storage.getBreach(breachId);
 
     if (!breach) {
       throw new Error('Breach not found');
@@ -720,15 +727,15 @@ export class DataBreachManager {
   /**
    * Get breach
    */
-  getBreach(id: string): DataBreach | undefined {
-    return this.breaches.get(id);
+  async getBreach(id: string): Promise<DataBreach | undefined> {
+    return this.storage.getBreach(id);
   }
 
   /**
    * Get all breaches
    */
-  getAllBreaches(): DataBreach[] {
-    return Array.from(this.breaches.values());
+  async getAllBreaches(): Promise<DataBreach[]> {
+    return this.storage.getAllBreaches();
   }
 }
 
@@ -752,4 +759,8 @@ export function createDataDeletionSystem(storage: GDPRStorage): DataDeletionSyst
 export const dataExportSystem = new DataExportSystem();
 export const privacyPolicyManager = new PrivacyPolicyManager();
 export const cookieConsentManager = new CookieConsentManager();
+export function createDataBreachManager(storage?: BreachStorage): DataBreachManager {
+  return new DataBreachManager(storage);
+}
+
 export const dataBreachManager = new DataBreachManager();

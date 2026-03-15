@@ -102,3 +102,53 @@ export type GdprDeletionRequestRow = typeof gdprDeletionRequests.$inferSelect;
 
 /** Insert type for new records */
 export type GdprDeletionRequestInsert = typeof gdprDeletionRequests.$inferInsert;
+
+// =============================================================================
+// Data Breach Records
+// =============================================================================
+
+export const gdprBreaches = pgTable(
+  'gdpr_breaches',
+  {
+    /** Unique breach ID (UUID) */
+    id: text('id').primaryKey(),
+
+    /** When the breach was detected */
+    detectedAt: timestamp('detected_at', { withTimezone: true }).defaultNow().notNull(),
+
+    /** When authorities were notified (GDPR requires within 72 hours) */
+    reportedAt: timestamp('reported_at', { withTimezone: true }),
+
+    /** Breach type */
+    type: text('type').notNull(),
+
+    /** Severity: low, medium, high, critical */
+    severity: text('severity').notNull(),
+
+    /** IDs of affected users */
+    affectedUsers: jsonb('affected_users').$type<string[]>().notNull().default([]),
+
+    /** Categories of data affected */
+    dataCategories: jsonb('data_categories').$type<string[]>().notNull().default([]),
+
+    /** Description of the breach */
+    description: text('description').notNull(),
+
+    /** Mitigation steps taken */
+    mitigation: text('mitigation'),
+
+    /** Status: detected, investigating, notified, resolved */
+    status: text('status').notNull().default('detected'),
+  },
+  (table) => [
+    index('gdpr_breaches_detected_at_idx').on(table.detectedAt),
+    index('gdpr_breaches_status_idx').on(table.status),
+    index('gdpr_breaches_severity_idx').on(table.severity),
+  ],
+);
+
+/** Row type for select queries */
+export type GdprBreachRow = typeof gdprBreaches.$inferSelect;
+
+/** Insert type for new records */
+export type GdprBreachInsert = typeof gdprBreaches.$inferInsert;

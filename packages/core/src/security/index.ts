@@ -84,6 +84,7 @@ export {
   CookieConsentManager,
   cookieConsentManager,
   createConsentManager,
+  createDataBreachManager,
   createDataDeletionSystem,
   DataAnonymization,
   DataBreachManager,
@@ -94,9 +95,9 @@ export {
   PrivacyPolicyManager,
   privacyPolicyManager,
 } from './gdpr';
-export type { GDPRStorage } from './gdpr-storage';
+export type { BreachStorage, GDPRStorage } from './gdpr-storage';
 // GDPR storage abstraction
-export { InMemoryGDPRStorage } from './gdpr-storage';
+export { InMemoryBreachStorage, InMemoryGDPRStorage } from './gdpr-storage';
 export type {
   CORSConfig,
   ContentSecurityPolicyConfig,

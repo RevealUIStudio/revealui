@@ -151,6 +151,10 @@
     "./crypto": {
       "types": "./dist/crypto.d.ts",
       "import": "./dist/crypto.js"
+    },
+    "./validation/cross-db": {
+      "types": "./dist/validation/cross-db.d.ts",
+      "import": "./dist/validation/cross-db.js"
     }
   },
   "main": "./dist/index.js",
