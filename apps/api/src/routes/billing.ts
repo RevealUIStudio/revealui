@@ -897,12 +897,12 @@ app.openapi(supportRenewalRoute, async (c) => {
   const provided = c.req.header('X-Cron-Secret');
 
   if (!(cronSecret && provided)) {
-    return c.json({ error: 'Forbidden' }, 403);
+    throw new HTTPException(403, { message: 'Forbidden' });
   }
   const a = Buffer.from(provided);
   const b = Buffer.from(cronSecret);
   if (a.length !== b.length || !timingSafeEqual(a, b)) {
-    return c.json({ error: 'Forbidden' }, 403);
+    throw new HTTPException(403, { message: 'Forbidden' });
   }
 
   const db = getClient();
@@ -986,12 +986,12 @@ app.openapi(reportOverageRoute, async (c) => {
   const cronSecret = process.env.REVEALUI_CRON_SECRET;
   const provided = c.req.header('X-Cron-Secret');
   if (!(cronSecret && provided)) {
-    return c.json({ error: 'Unauthorized' }, 401);
+    throw new HTTPException(401, { message: 'Unauthorized' });
   }
   const a = Buffer.from(provided);
   const b = Buffer.from(cronSecret);
   if (a.length !== b.length || !timingSafeEqual(a, b)) {
-    return c.json({ error: 'Unauthorized' }, 401);
+    throw new HTTPException(401, { message: 'Unauthorized' });
   }
 
   const meterEventName = process.env.STRIPE_AGENT_METER_EVENT_NAME;

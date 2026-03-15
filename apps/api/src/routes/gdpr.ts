@@ -5,6 +5,7 @@ import {
   createConsentManager,
   createDataDeletionSystem,
 } from '@revealui/core/security';
+import { HTTPException } from 'hono/http-exception';
 import { DrizzleGDPRStorage } from '../lib/drizzle-gdpr-storage.js';
 
 interface UserContext {
@@ -98,7 +99,7 @@ app.openapi(
   async (c) => {
     const user = c.get('user');
     if (!user) {
-      return c.json({ success: false, error: 'Authentication required' }, 401);
+      throw new HTTPException(401, { message: 'Authentication required' });
     }
 
     const consents = await consentManager.getUserConsents(user.id);
@@ -147,7 +148,7 @@ app.openapi(
   async (c) => {
     const user = c.get('user');
     if (!user) {
-      return c.json({ success: false, error: 'Authentication required' }, 401);
+      throw new HTTPException(401, { message: 'Authentication required' });
     }
 
     const body = c.req.valid('json');
@@ -204,19 +205,15 @@ app.openapi(
   async (c) => {
     const user = c.get('user');
     if (!user) {
-      return c.json({ success: false, error: 'Authentication required' }, 401);
+      throw new HTTPException(401, { message: 'Authentication required' });
     }
 
     const body = c.req.valid('json');
 
     if (body.type === 'necessary') {
-      return c.json(
-        {
-          success: false,
-          error: 'Cannot revoke necessary consent — it is required for service operation',
-        },
-        400,
-      );
+      throw new HTTPException(400, {
+        message: 'Cannot revoke necessary consent — it is required for service operation',
+      });
     }
 
     await consentManager.revokeConsent(user.id, body.type);
@@ -265,18 +262,14 @@ app.openapi(
   async (c) => {
     const user = c.get('user');
     if (!user) {
-      return c.json({ success: false, error: 'Authentication required' }, 401);
+      throw new HTTPException(401, { message: 'Authentication required' });
     }
 
     const { type } = c.req.valid('param');
     if (!CONSENT_TYPES.includes(type as ConsentType)) {
-      return c.json(
-        {
-          success: false,
-          error: `Invalid consent type. Must be one of: ${CONSENT_TYPES.join(', ')}`,
-        },
-        400,
-      );
+      throw new HTTPException(400, {
+        message: `Invalid consent type. Must be one of: ${CONSENT_TYPES.join(', ')}`,
+      });
     }
 
     const granted = await consentManager.hasConsent(user.id, type as ConsentType);
@@ -328,7 +321,7 @@ app.openapi(
   async (c) => {
     const user = c.get('user');
     if (!user) {
-      return c.json({ success: false, error: 'Authentication required' }, 401);
+      throw new HTTPException(401, { message: 'Authentication required' });
     }
 
     const body = c.req.valid('json');
@@ -373,7 +366,7 @@ app.openapi(
   async (c) => {
     const user = c.get('user');
     if (!user) {
-      return c.json({ success: false, error: 'Authentication required' }, 401);
+      throw new HTTPException(401, { message: 'Authentication required' });
     }
 
     const requests = await deletionSystem.getUserRequests(user.id);
@@ -416,14 +409,14 @@ app.openapi(
   async (c) => {
     const user = c.get('user');
     if (!user) {
-      return c.json({ success: false, error: 'Authentication required' }, 401);
+      throw new HTTPException(401, { message: 'Authentication required' });
     }
 
     const { id } = c.req.valid('param');
     const request = await deletionSystem.getRequest(id);
 
     if (!request || request.userId !== user.id) {
-      return c.json({ success: false, error: 'Deletion request not found' }, 404);
+      throw new HTTPException(404, { message: 'Deletion request not found' });
     }
 
     return c.json({ success: true, request });
@@ -462,7 +455,7 @@ app.openapi(
   async (c) => {
     const user = c.get('user');
     if (!user || user.role !== 'admin') {
-      return c.json({ success: false, error: 'Admin access required' }, 403);
+      throw new HTTPException(403, { message: 'Admin access required' });
     }
 
     const stats = await consentManager.getStatistics();
