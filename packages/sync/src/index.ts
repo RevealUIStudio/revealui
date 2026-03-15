@@ -41,5 +41,19 @@ export type {
   UseConversationsResult,
 } from './hooks/useConversations.js';
 export { useConversations } from './hooks/useConversations.js';
+export type {
+  CoordinationSessionRecord,
+  CreateCoordinationSessionInput,
+  UpdateCoordinationSessionInput,
+  UseCoordinationSessionsResult,
+} from './hooks/useCoordinationSessions.js';
+export { useCoordinationSessions } from './hooks/useCoordinationSessions.js';
+export type {
+  CoordinationWorkItemRecord,
+  CreateCoordinationWorkItemInput,
+  UpdateCoordinationWorkItemInput,
+  UseCoordinationWorkItemsResult,
+} from './hooks/useCoordinationWorkItems.js';
+export { useCoordinationWorkItems } from './hooks/useCoordinationWorkItems.js';
 export type { MutationResult } from './mutations.js';
 export { ElectricProvider, useElectricConfig } from './provider/index.js';
