@@ -115,6 +115,32 @@ const ErrorSchema = z.object({
   error: z.string(),
 });
 
+const RefundRequestSchema = z.object({
+  paymentIntentId: z.string().min(1).optional().openapi({
+    description: 'Stripe PaymentIntent ID to refund. Provide either this or chargeId.',
+    example: 'pi_abc123',
+  }),
+  chargeId: z.string().min(1).optional().openapi({
+    description: 'Stripe Charge ID to refund. Provide either this or paymentIntentId.',
+    example: 'ch_abc123',
+  }),
+  amount: z.number().int().positive().optional().openapi({
+    description: 'Amount to refund in cents. Omit for full refund.',
+    example: 4900,
+  }),
+  reason: z.enum(['duplicate', 'fraudulent', 'requested_by_customer']).optional().openapi({
+    description: 'Reason for the refund (Stripe enum)',
+    example: 'requested_by_customer',
+  }),
+});
+
+const RefundResponseSchema = z.object({
+  refundId: z.string().openapi({ description: 'Stripe refund ID', example: 're_abc123' }),
+  status: z.string().openapi({ description: 'Refund status', example: 'succeeded' }),
+  amount: z.number().openapi({ description: 'Amount refunded in cents', example: 4900 }),
+  currency: z.string().openapi({ description: 'Currency code', example: 'usd' }),
+});
+
 const UpgradeRequestSchema = z.object({
   priceId: z.string().min(1).optional().openapi({
     description: 'Stripe price ID for the target tier',
@@ -1043,6 +1069,87 @@ app.openapi(reportOverageRoute, async (c) => {
   }
 
   return c.json({ reported, skipped }, 200);
+});
+
+// POST /api/billing/refund — Issue a refund (admin-only)
+const refundRoute = createRoute({
+  method: 'post',
+  path: '/refund',
+  tags: ['billing'],
+  summary: 'Issue a refund',
+  description:
+    'Creates a Stripe refund for a payment intent or charge. Admin-only. Full or partial refunds supported. License revocation is handled automatically by the charge.refunded webhook.',
+  request: {
+    body: {
+      content: {
+        'application/json': { schema: RefundRequestSchema },
+      },
+    },
+  },
+  responses: {
+    200: {
+      content: { 'application/json': { schema: RefundResponseSchema } },
+      description: 'Refund created',
+    },
+    400: {
+      content: { 'application/json': { schema: ErrorSchema } },
+      description: 'Invalid request (missing payment reference)',
+    },
+    401: {
+      content: { 'application/json': { schema: ErrorSchema } },
+      description: 'Not authenticated',
+    },
+    403: {
+      content: { 'application/json': { schema: ErrorSchema } },
+      description: 'Admin access required',
+    },
+  },
+});
+
+app.openapi(refundRoute, async (c) => {
+  const user = c.get('user');
+  if (!user) {
+    throw new HTTPException(401, { message: 'Authentication required' });
+  }
+  if (user.role !== 'admin' && user.role !== 'owner') {
+    throw new HTTPException(403, { message: 'Admin access required to issue refunds' });
+  }
+
+  const { paymentIntentId, chargeId, amount, reason } = c.req.valid('json');
+
+  if (!(paymentIntentId || chargeId)) {
+    throw new HTTPException(400, {
+      message: 'Either paymentIntentId or chargeId is required',
+    });
+  }
+
+  const refundParams: Stripe.RefundCreateParams = {
+    ...(paymentIntentId ? { payment_intent: paymentIntentId } : {}),
+    ...(chargeId ? { charge: chargeId } : {}),
+    ...(amount ? { amount } : {}),
+    ...(reason ? { reason } : {}),
+  };
+
+  const refund = await withStripe((stripe) => stripe.refunds.create(refundParams));
+
+  logger.info('Refund issued', {
+    refundId: refund.id,
+    amount: refund.amount,
+    status: refund.status,
+    issuedBy: user.id,
+    paymentIntentId,
+    chargeId,
+  });
+
+  return c.json(
+    {
+      refundId: refund.id,
+      status: refund.status ?? 'pending',
+      amount: refund.amount,
+      currency: refund.currency,
+    },
+    200,
+  );
 });
 
 export default app;
