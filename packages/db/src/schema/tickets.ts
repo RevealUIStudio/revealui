@@ -232,19 +232,23 @@ export type NewTicketComment = typeof ticketComments.$inferInsert;
 // Ticket-Label Assignments (M:N junction)
 // =============================================================================
 
-export const ticketLabelAssignments = pgTable('ticket_label_assignments', {
-  id: text('id').primaryKey(),
+export const ticketLabelAssignments = pgTable(
+  'ticket_label_assignments',
+  {
+    id: text('id').primaryKey(),
 
-  ticketId: text('ticket_id')
-    .notNull()
-    .references(() => tickets.id, { onDelete: 'cascade' }),
+    ticketId: text('ticket_id')
+      .notNull()
+      .references(() => tickets.id, { onDelete: 'cascade' }),
 
-  labelId: text('label_id')
-    .notNull()
-    .references(() => ticketLabels.id, { onDelete: 'cascade' }),
+    labelId: text('label_id')
+      .notNull()
+      .references(() => ticketLabels.id, { onDelete: 'cascade' }),
 
-  assignedAt: timestamp('assigned_at', { withTimezone: true }).notNull().defaultNow(),
-});
+    assignedAt: timestamp('assigned_at', { withTimezone: true }).notNull().defaultNow(),
+  },
+  (table) => [uniqueIndex('ticket_label_unique_idx').on(table.ticketId, table.labelId)],
+);
 
 export type TicketLabelAssignment = typeof ticketLabelAssignments.$inferSelect;
 export type NewTicketLabelAssignment = typeof ticketLabelAssignments.$inferInsert;
