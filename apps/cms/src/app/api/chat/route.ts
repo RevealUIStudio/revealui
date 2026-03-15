@@ -208,6 +208,16 @@ export async function POST(request: NextRequest) {
           .join(' ')
       : String(rawContent);
 
+    type ConversationRole = 'user' | 'assistant' | 'system' | 'tool';
+    interface ConversationMessage {
+      role: ConversationRole;
+      content: string;
+      cacheControl?: { type: 'ephemeral' };
+      toolCalls?: unknown[];
+      toolCallId?: string;
+      name?: string;
+    }
+
     // Create LLM client from env (supports Vultr, OpenAI, Anthropic)
     // biome-ignore lint/suspicious/noExplicitAny: LLMClient type from @revealui/ai (optional Pro dep) — typed chat() signature requires ToolCall[] but our generic messages use unknown[]
     let llmClient: any;
@@ -264,21 +274,14 @@ export async function POST(request: NextRequest) {
     });
 
     // 4. Start conversation loop (may require multiple turns for tool calls)
-    const conversationMessages: Array<{
-      role: string;
-      content: string;
-      cacheControl?: { type: string };
-      toolCalls?: unknown[];
-      toolCallId?: string;
-      name?: string;
-    }> = [
+    const conversationMessages: ConversationMessage[] = [
       {
         role: 'system',
         content: systemPrompt,
         // Cache system prompt for cost savings (5min TTL)
         cacheControl: enableCache ? { type: 'ephemeral' } : undefined,
       },
-      ...(messages as Array<{ role: string; content: string }>),
+      ...(messages as Array<{ role: ConversationRole; content: string }>),
     ];
 
     let finalResponse = '';
