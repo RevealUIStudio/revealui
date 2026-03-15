@@ -67,6 +67,9 @@ export const users = pgTable(
     updatedAt: timestamp('updated_at', { withTimezone: true }).defaultNow().notNull(),
     lastActiveAt: timestamp('last_active_at', { withTimezone: true }),
 
+    // Soft-delete: null = active, timestamp = when deleted
+    deletedAt: timestamp('deleted_at', { withTimezone: true }),
+
     // biome-ignore lint/style/useNamingConvention: RevealUI document metadata field
     _json: jsonb('_json').default('{}'),
   },
@@ -74,6 +77,7 @@ export const users = pgTable(
     uniqueIndex('users_email_idx').on(table.email),
     index('users_type_idx').on(table.type),
     index('users_status_idx').on(table.status),
+    index('users_deleted_at_idx').on(table.deletedAt),
     index('users_stripe_customer_id_idx').on(table.stripeCustomerId),
     index('users_ssh_key_fingerprint_idx').on(table.sshKeyFingerprint),
   ],

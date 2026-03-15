@@ -1,17 +1,29 @@
 # =============================================================================
-# RevealUI Docker Compose — Local Development Stack
+# RevealUI Docker Compose — Self-Hosting
 # =============================================================================
-# Status: Work-in-progress. Production deploys use Vercel (see vercel.json in each app).
-# This compose file is for local self-hosted development and testing.
 #
-# Missing Dockerfiles: Only Dockerfile.base and Dockerfile.cms exist currently.
-# The mainframe, grafana provisioning, and conf.d directories are not yet created.
+# Quick start:
+#   1. Copy .env.production.example → .env
+#   2. Fill in required values (database URLs, Stripe keys, secrets)
+#   3. docker compose up -d
+#
+# Apps:
+#   - api:       Hono REST API (port 3004)
+#   - cms:       Next.js CMS + Admin Dashboard (port 4000)
+#   - marketing: Next.js Marketing Site (port 3000)
+#
+# Infrastructure:
+#   - postgres:  Local PostgreSQL (alternative to NeonDB for self-hosting)
+#   - nginx:     Reverse proxy with HTTPS termination
+#
+# Databases (NeonDB, Supabase) default to external managed services.
+# For fully self-hosted setups, use the included PostgreSQL container.
 # =============================================================================
-
-version: '3.9'
 
 services:
-  # PostgreSQL Database
+  # ---------------------------------------------------------------------------
+  # PostgreSQL Database (self-hosted alternative to NeonDB)
+  # ---------------------------------------------------------------------------
   postgres:
     image: postgres:16-alpine
     container_name: revealui-postgres
@@ -22,7 +34,6 @@ services:
       PGDATA: /var/lib/postgresql/data/pgdata
     volumes:
       - postgres-data:/var/lib/postgresql/data
-      - ./infrastructure/docker/postgres/init.sql:/docker-entrypoint-initdb.d/init.sql:ro
     ports:
       - "${POSTGRES_PORT:-5432}:5432"
     healthcheck:
@@ -31,178 +42,113 @@ services:
       timeout: 5s
       retries: 5
     networks:
-      - revealui-network
+      - revealui
     restart: unless-stopped
 
-  # Redis Cache
-  redis:
-    image: redis:7-alpine
-    container_name: revealui-redis
-    command: redis-server --appendonly yes --requirepass ${REDIS_PASSWORD:-redis}
-    volumes:
-      - redis-data:/data
-    ports:
-      - "${REDIS_PORT:-6379}:6379"
-    healthcheck:
-      test: ["CMD", "redis-cli", "--raw", "incr", "ping"]
-      interval: 10s
-      timeout: 3s
-      retries: 5
-    networks:
-      - revealui-network
-    restart: unless-stopped
-
-  # MinIO S3-compatible storage
-  minio:
-    image: minio/minio:latest
-    container_name: revealui-minio
-    command: server /data --console-address ":9001"
-    environment:
-      MINIO_ROOT_USER: ${MINIO_ROOT_USER:-minioadmin}
-      MINIO_ROOT_PASSWORD: ${MINIO_ROOT_PASSWORD:-minioadmin}
-    volumes:
-      - minio-data:/data
-    ports:
-      - "${MINIO_PORT:-9000}:9000"
-      - "${MINIO_CONSOLE_PORT:-9001}:9001"
-    healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:9000/minio/health/live"]
-      interval: 30s
-      timeout: 20s
-      retries: 3
-    networks:
-      - revealui-network
-    restart: unless-stopped
-
-  # CMS Application
-  cms:
+  # ---------------------------------------------------------------------------
+  # API — Hono REST API (OpenAPI + Swagger at /docs)
+  # ---------------------------------------------------------------------------
+  api:
     build:
       context: .
-      dockerfile: infrastructure/docker/Dockerfile.cms
-      target: runner
-    container_name: revealui-cms
+      dockerfile: apps/api/Dockerfile
+    container_name: revealui-api
+    env_file: .env
     environment:
-      NODE_ENV: ${NODE_ENV:-production}
-      DATABASE_URL: postgresql://${POSTGRES_USER:-postgres}:${POSTGRES_PASSWORD:-postgres}@postgres:5432/${POSTGRES_DB:-revealui}
-      REDIS_URL: redis://:${REDIS_PASSWORD:-redis}@redis:6379
-      S3_ENDPOINT: http://minio:9000
-      S3_ACCESS_KEY: ${MINIO_ROOT_USER:-minioadmin}
-      S3_SECRET_KEY: ${MINIO_ROOT_PASSWORD:-minioadmin}
-      S3_BUCKET: ${S3_BUCKET:-revealui-media}
-      JWT_SECRET: ${JWT_SECRET:-change-this-secret}
-      NEXTAUTH_SECRET: ${NEXTAUTH_SECRET:-change-this-secret}
-      NEXTAUTH_URL: ${NEXTAUTH_URL:-http://localhost:3000}
+      NODE_ENV: production
+      API_PORT: "3004"
+      # Use local postgres if not using external NeonDB
+      # POSTGRES_URL: postgresql://${POSTGRES_USER:-postgres}:${POSTGRES_PASSWORD:-postgres}@postgres:5432/${POSTGRES_DB:-revealui}
     ports:
-      - "${CMS_PORT:-3000}:3000"
+      - "${API_PORT:-3004}:3004"
     depends_on:
       postgres:
         condition: service_healthy
-      redis:
-        condition: service_healthy
-      minio:
+    healthcheck:
+      test: ["CMD", "node", "-e", "fetch('http://localhost:3004/health').then(r=>{if(!r.ok)process.exit(1)})"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 10s
+    networks:
+      - revealui
+    restart: unless-stopped
+
+  # ---------------------------------------------------------------------------
+  # CMS — Next.js Admin Dashboard (standalone output)
+  # ---------------------------------------------------------------------------
+  cms:
+    build:
+      context: .
+      dockerfile: apps/cms/Dockerfile
+    container_name: revealui-cms
+    env_file: .env
+    environment:
+      NODE_ENV: production
+      PORT: "4000"
+      HOSTNAME: 0.0.0.0
+    ports:
+      - "${CMS_PORT:-4000}:4000"
+    depends_on:
+      api:
         condition: service_healthy
     healthcheck:
-      test: ["CMD", "node", "-e", "require('http').get('http://localhost:3000/api/health', (r) => {process.exit(r.statusCode === 200 ? 0 : 1)})"]
+      test: ["CMD", "node", "-e", "fetch('http://localhost:4000/api/health').then(r=>{if(!r.ok)process.exit(1)})"]
       interval: 30s
       timeout: 10s
       retries: 3
       start_period: 40s
     networks:
-      - revealui-network
+      - revealui
     restart: unless-stopped
 
-  # Mainframe Application (Hono SSR + React demo/showcase)
-  # NOTE: Dockerfile.mainframe does not exist yet — create before using.
-  # mainframe:
-  #   build:
-  #     context: .
-  #     dockerfile: infrastructure/docker/Dockerfile.mainframe
-  #     target: runner
-  #   container_name: revealui-mainframe
-  #   environment:
-  #     NODE_ENV: ${NODE_ENV:-production}
-  #     API_URL: ${API_URL:-http://cms:3000}
+  # ---------------------------------------------------------------------------
+  # Marketing — Next.js Marketing + Waitlist (standalone output)
+  # ---------------------------------------------------------------------------
+  marketing:
+    build:
+      context: .
+      dockerfile: apps/marketing/Dockerfile
+    container_name: revealui-marketing
+    env_file: .env
+    environment:
+      NODE_ENV: production
+      PORT: "3000"
+      HOSTNAME: 0.0.0.0
+    ports:
+      - "${MARKETING_PORT:-3000}:3000"
+    networks:
+      - revealui
+    restart: unless-stopped
+
+  # ---------------------------------------------------------------------------
+  # Nginx Reverse Proxy (optional — for HTTPS termination)
+  # ---------------------------------------------------------------------------
+  # Uncomment if self-hosting behind nginx. Requires:
+  #   - infrastructure/docker/nginx/nginx.conf
+  #   - infrastructure/docker/nginx/conf.d/
+  #
+  # nginx:
+  #   image: nginx:alpine
+  #   container_name: revealui-nginx
+  #   volumes:
+  #     - ./infrastructure/docker/nginx/nginx.conf:/etc/nginx/nginx.conf:ro
+  #     - ./infrastructure/docker/nginx/conf.d:/etc/nginx/conf.d:ro
   #   ports:
-  #     - "${MAINFRAME_PORT:-3001}:3001"
+  #     - "80:80"
+  #     - "443:443"
   #   depends_on:
-  #     cms:
-  #       condition: service_healthy
+  #     - api
+  #     - cms
+  #     - marketing
   #   networks:
-  #     - revealui-network
+  #     - revealui
   #   restart: unless-stopped
 
-  # Nginx Reverse Proxy
-  nginx:
-    image: nginx:alpine
-    container_name: revealui-nginx
-    volumes:
-      - ./infrastructure/docker/nginx/nginx.conf:/etc/nginx/nginx.conf:ro
-      - ./infrastructure/docker/nginx/conf.d:/etc/nginx/conf.d:ro
-    ports:
-      - "${NGINX_HTTP_PORT:-80}:80"
-      - "${NGINX_HTTPS_PORT:-443}:443"
-    depends_on:
-      - cms
-    healthcheck:
-      test: ["CMD", "wget", "--quiet", "--tries=1", "--spider", "http://localhost/health"]
-      interval: 30s
-      timeout: 5s
-      retries: 3
-    networks:
-      - revealui-network
-    restart: unless-stopped
-
-  # Prometheus Monitoring
-  prometheus:
-    image: prom/prometheus:latest
-    container_name: revealui-prometheus
-    command:
-      - '--config.file=/etc/prometheus/prometheus.yml'
-      - '--storage.tsdb.path=/prometheus'
-      - '--web.console.libraries=/etc/prometheus/console_libraries'
-      - '--web.console.templates=/etc/prometheus/consoles'
-      - '--web.enable-lifecycle'
-    volumes:
-      - ./infrastructure/docker/prometheus/prometheus.yml:/etc/prometheus/prometheus.yml:ro
-      - prometheus-data:/prometheus
-    ports:
-      - "${PROMETHEUS_PORT:-9090}:9090"
-    networks:
-      - revealui-network
-    restart: unless-stopped
-
-  # Grafana Dashboard
-  grafana:
-    image: grafana/grafana:latest
-    container_name: revealui-grafana
-    environment:
-      GF_SECURITY_ADMIN_USER: ${GRAFANA_ADMIN_USER:-admin}
-      GF_SECURITY_ADMIN_PASSWORD: ${GRAFANA_ADMIN_PASSWORD:-admin}
-      GF_USERS_ALLOW_SIGN_UP: "false"
-    volumes:
-      - grafana-data:/var/lib/grafana
-      - ./infrastructure/docker/grafana/provisioning:/etc/grafana/provisioning:ro
-      - ./infrastructure/docker/grafana/dashboards:/var/lib/grafana/dashboards:ro
-    ports:
-      - "${GRAFANA_PORT:-3003}:3000"
-    depends_on:
-      - prometheus
-    networks:
-      - revealui-network
-    restart: unless-stopped
-
 networks:
-  revealui-network:
+  revealui:
     driver: bridge
 
 volumes:
   postgres-data:
-    driver: local
-  redis-data:
-    driver: local
-  minio-data:
-    driver: local
-  prometheus-data:
-    driver: local
-  grafana-data:
     driver: local

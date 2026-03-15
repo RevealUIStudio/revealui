@@ -5,50 +5,57 @@
  * The schema structure mirrors the Zod schemas in @revealui/contracts/entities.
  */
 
-import { integer, jsonb, pgTable, text, timestamp } from 'drizzle-orm/pg-core';
+import { index, integer, jsonb, pgTable, text, timestamp } from 'drizzle-orm/pg-core';
 import { users } from './users.js';
 
 // =============================================================================
 // Sites Table
 // =============================================================================
 
-export const sites = pgTable('sites', {
-  // Primary identifier
-  id: text('id').primaryKey(),
+export const sites = pgTable(
+  'sites',
+  {
+    // Primary identifier
+    id: text('id').primaryKey(),
 
-  // Schema versioning for migrations
-  schemaVersion: text('schema_version').notNull().default('1'),
+    // Schema versioning for migrations
+    schemaVersion: text('schema_version').notNull().default('1'),
 
-  // Ownership
-  ownerId: text('owner_id')
-    .notNull()
-    .references(() => users.id, { onDelete: 'cascade' }),
+    // Ownership
+    ownerId: text('owner_id')
+      .notNull()
+      .references(() => users.id, { onDelete: 'cascade' }),
 
-  // Basic info
-  name: text('name').notNull(),
-  slug: text('slug').notNull().unique(),
-  description: text('description'),
+    // Basic info
+    name: text('name').notNull(),
+    slug: text('slug').notNull().unique(),
+    description: text('description'),
 
-  // Status: draft, published, archived
-  status: text('status').notNull().default('draft'),
+    // Status: draft, published, archived
+    status: text('status').notNull().default('draft'),
 
-  // Theme configuration (JSON blob)
-  theme: jsonb('theme'),
+    // Theme configuration (JSON blob)
+    theme: jsonb('theme'),
 
-  // Site settings (JSON blob)
-  settings: jsonb('settings'),
+    // Site settings (JSON blob)
+    settings: jsonb('settings'),
 
-  // Computed metadata
-  pageCount: integer('page_count').default(0),
+    // Computed metadata
+    pageCount: integer('page_count').default(0),
 
-  // SEO
-  favicon: text('favicon'),
+    // SEO
+    favicon: text('favicon'),
 
-  // Timestamps
-  createdAt: timestamp('created_at', { withTimezone: true }).defaultNow().notNull(),
-  updatedAt: timestamp('updated_at', { withTimezone: true }).defaultNow().notNull(),
-  publishedAt: timestamp('published_at', { withTimezone: true }),
-});
+    // Timestamps
+    createdAt: timestamp('created_at', { withTimezone: true }).defaultNow().notNull(),
+    updatedAt: timestamp('updated_at', { withTimezone: true }).defaultNow().notNull(),
+    publishedAt: timestamp('published_at', { withTimezone: true }),
+
+    // Soft-delete: null = active, timestamp = when deleted
+    deletedAt: timestamp('deleted_at', { withTimezone: true }),
+  },
+  (table) => [index('sites_deleted_at_idx').on(table.deletedAt)],
+);
 
 // =============================================================================
 // Site Collaborators Table (Many-to-Many: Sites <-> Users)

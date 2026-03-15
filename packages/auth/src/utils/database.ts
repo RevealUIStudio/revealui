@@ -7,7 +7,7 @@
 
 import { getClient } from '@revealui/db/client';
 import { sessions, users } from '@revealui/db/schema';
-import { eq } from 'drizzle-orm';
+import { and, eq, isNull } from 'drizzle-orm';
 import type { Session, User } from '../types.js';
 
 /**
@@ -136,7 +136,11 @@ export async function createTestSession(
  */
 export async function getUserByEmail(email: string): Promise<User | null> {
   const db = getClient();
-  const result = await db.select().from(users).where(eq(users.email, email)).limit(1);
+  const result = await db
+    .select()
+    .from(users)
+    .where(and(eq(users.email, email), isNull(users.deletedAt)))
+    .limit(1);
   const user = result[0] as User | undefined;
   return user ?? null;
 }

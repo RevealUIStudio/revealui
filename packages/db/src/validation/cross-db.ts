@@ -13,7 +13,7 @@
  * - ragChunks.workspaceId → sites.id (NeonDB)
  */
 
-import { eq } from 'drizzle-orm';
+import { eq, inArray } from 'drizzle-orm';
 import type { DatabaseClient } from '../client/types.js';
 import { sites } from '../schema/sites.js';
 import { users } from '../schema/users.js';
@@ -122,25 +122,23 @@ export async function findOrphanedMemories(
   const orphanedBySite: string[] = [];
   const orphanedByUser: string[] = [];
 
-  // Batch-check site existence
+  // Batch-check site existence (single query instead of N+1)
   const uniqueSiteIds = [...new Set(memories.map((m) => m.siteId))];
-  const existingSites = new Set<string>();
-  for (const siteId of uniqueSiteIds) {
-    if (await validateSiteExists(restDb, siteId)) {
-      existingSites.add(siteId);
-    }
-  }
+  const existingSiteRows =
+    uniqueSiteIds.length > 0
+      ? await restDb.select({ id: sites.id }).from(sites).where(inArray(sites.id, uniqueSiteIds))
+      : [];
+  const existingSites = new Set(existingSiteRows.map((r) => r.id));
 
-  // Batch-check user existence
+  // Batch-check user existence (single query instead of N+1)
   const uniqueUserIds = [
     ...new Set(memories.map((m) => m.verifiedBy).filter((id): id is string => id != null)),
   ];
-  const existingUsers = new Set<string>();
-  for (const userId of uniqueUserIds) {
-    if (await validateUserExists(restDb, userId)) {
-      existingUsers.add(userId);
-    }
-  }
+  const existingUserRows =
+    uniqueUserIds.length > 0
+      ? await restDb.select({ id: users.id }).from(users).where(inArray(users.id, uniqueUserIds))
+      : [];
+  const existingUsers = new Set(existingUserRows.map((r) => r.id));
 
   // Find orphans
   for (const memory of memories) {

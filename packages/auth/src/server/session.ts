@@ -8,7 +8,7 @@
 import { logger } from '@revealui/core/observability/logger';
 import { getClient } from '@revealui/db/client';
 import { sessions, users } from '@revealui/db/schema';
-import { and, eq, gt } from 'drizzle-orm';
+import { and, eq, gt, isNull } from 'drizzle-orm';
 import type { Session, User } from '../types.js';
 import { hashToken } from '../utils/token.js';
 import { DatabaseError, TokenError } from './errors.js';
@@ -176,7 +176,11 @@ export async function getSession(
     // Get user data
     let user: User | undefined;
     try {
-      const result = await db.select().from(users).where(eq(users.id, session.userId)).limit(1);
+      const result = await db
+        .select()
+        .from(users)
+        .where(and(eq(users.id, session.userId), isNull(users.deletedAt)))
+        .limit(1);
       user = result[0] as User | undefined;
     } catch (error: unknown) {
       logger.error('Error querying user');
