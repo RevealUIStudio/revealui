@@ -162,9 +162,9 @@ Schemas are in `packages/db/src/schema/`. Use Drizzle ORM for queries. Dual-data
 The `pnpm gate` script runs 3 phases:
 1. **Quality** (parallel): Biome lint (hard fail), audits (warn), structure (warn), security (warn)
 2. **Type checking** (serial): `pnpm -r typecheck` across all workspaces
-3. **Test + Build** (parallel): Vitest (warn), turbo build (hard fail)
+3. **Test + Build** (parallel): Vitest (hard fail), turbo build (hard fail)
 
-Only Biome, typecheck, and build can block pushes. Tests are warn-only.
+Biome, typecheck, tests, and build all block pushes. Audits and structure checks are warn-only.
 
 ## Security
 - CSP, CORS, HSTS headers in `packages/core/src/security/`

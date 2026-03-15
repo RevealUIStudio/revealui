@@ -318,7 +318,7 @@ async function gate(): Promise<void> {
           : [{ name: 'Build', command: 'pnpm', args: ['build'], timeout: 900000 }];
 
     const phase3Checks: CheckDef[] = [
-      { name: 'Tests', command: 'pnpm', args: testArgs, warnOnly: true, timeout: 300000 },
+      { name: 'Tests', command: 'pnpm', args: testArgs, timeout: 300000 },
       ...buildCheck,
     ];
 

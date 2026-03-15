@@ -1,8 +1,8 @@
 name: CI
 
 # Mirrors local `pnpm gate` — same hard-fail policy:
-#   Hard fail: Biome lint, boundary, typecheck, build
-#   Warn-only: audits, structure, tests
+#   Hard fail: Biome lint, boundary, typecheck, tests, build
+#   Warn-only: audits, structure
 #
 # PRs: quality + typecheck + package build + tests (~8 min).
 # main: full build including apps + E2E smoke (~15 min).
@@ -97,10 +97,7 @@ jobs:
           SKIP_ENV_VALIDATION: "true"
 
   # ---------------------------------------------------------------------------
-  # Phase 3a: Tests (warn-only — mirrors local gate policy)
-  # DECISION: Tests are warn-only because some integration tests require
-  # database/external service access not available in CI. When test coverage
-  # stabilizes post-launch, switch continue-on-error to false.
+  # Phase 3a: Tests (hard fail)
   # ---------------------------------------------------------------------------
   test:
     name: Tests
@@ -123,9 +120,8 @@ jobs:
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
 
-      - name: Run tests (warn-only)
-        run: pnpm test || echo "Test failures — not blocking (warn-only policy)"
-        continue-on-error: true
+      - name: Run tests
+        run: pnpm test
         env:
           SKIP_ENV_VALIDATION: "true"
 
