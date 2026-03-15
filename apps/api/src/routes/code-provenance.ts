@@ -210,8 +210,7 @@ app.openapi(
     const db = c.get('db');
     const { id } = c.req.valid('param');
     const entry = await provenanceQueries.getProvenanceById(db, id);
-    if (!entry)
-      return c.json({ success: false as const, error: 'Provenance entry not found' }, 404);
+    if (!entry) throw new HTTPException(404, { message: 'Provenance entry not found' });
     return c.json({ success: true as const, data: entry }, 200);
   },
 );
@@ -267,8 +266,7 @@ app.openapi(
       id: crypto.randomUUID(),
       ...body,
     });
-    if (!entry)
-      return c.json({ success: false as const, error: 'Failed to create provenance entry' }, 500);
+    if (!entry) throw new HTTPException(500, { message: 'Failed to create provenance entry' });
     return c.json({ success: true as const, data: entry }, 201);
   },
 );
@@ -325,8 +323,7 @@ app.openapi(
     const { id } = c.req.valid('param');
     const body = c.req.valid('json');
     const entry = await provenanceQueries.updateProvenance(db, id, body);
-    if (!entry)
-      return c.json({ success: false as const, error: 'Provenance entry not found' }, 404);
+    if (!entry) throw new HTTPException(404, { message: 'Provenance entry not found' });
     return c.json({ success: true as const, data: entry }, 200);
   },
 );
@@ -413,8 +410,7 @@ app.openapi(
 
     // Verify provenance entry exists
     const entry = await provenanceQueries.getProvenanceById(db, provenanceId);
-    if (!entry)
-      return c.json({ success: false as const, error: 'Provenance entry not found' }, 404);
+    if (!entry) throw new HTTPException(404, { message: 'Provenance entry not found' });
 
     // Create the review
     const review = await provenanceQueries.createReview(db, {
@@ -443,7 +439,7 @@ app.openapi(
 
     await provenanceQueries.updateReviewStatus(db, provenanceId, newStatus, body.reviewerId);
 
-    if (!review) return c.json({ success: false as const, error: 'Failed to create review' }, 500);
+    if (!review) throw new HTTPException(500, { message: 'Failed to create review' });
     return c.json({ success: true as const, data: review }, 201);
   },
 );

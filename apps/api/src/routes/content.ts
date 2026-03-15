@@ -284,11 +284,11 @@ app.openapi(
     const user = c.get('user');
     const { id } = c.req.valid('param');
     const post = await postQueries.getPostById(db, id);
-    if (!post) return c.json({ success: false as const, error: 'Post not found' }, 404);
+    if (!post) throw new HTTPException(404, { message: 'Post not found' });
     if (!user) {
       // Public access: only published posts
       if (post.status !== 'published') {
-        return c.json({ success: false as const, error: 'Post not found' }, 404);
+        throw new HTTPException(404, { message: 'Post not found' });
       }
       return c.json({ success: true as const, data: post }, 200);
     }
@@ -322,11 +322,11 @@ app.openapi(
     const user = c.get('user');
     const { slug } = c.req.valid('param');
     const post = await postQueries.getPostBySlug(db, slug);
-    if (!post) return c.json({ success: false as const, error: 'Post not found' }, 404);
+    if (!post) throw new HTTPException(404, { message: 'Post not found' });
     if (!user) {
       // Public access: only published posts
       if (post.status !== 'published') {
-        return c.json({ success: false as const, error: 'Post not found' }, 404);
+        throw new HTTPException(404, { message: 'Post not found' });
       }
       return c.json({ success: true as const, data: post }, 200);
     }
@@ -381,7 +381,7 @@ app.openapi(
     if (!user) throw new HTTPException(401, { message: 'Authentication required' });
     const { id } = c.req.valid('param');
     const existing = await postQueries.getPostById(db, id);
-    if (!existing) return c.json({ success: false as const, error: 'Post not found' }, 404);
+    if (!existing) throw new HTTPException(404, { message: 'Post not found' });
     if (user.role !== 'admin' && existing.authorId !== user.id) {
       throw new HTTPException(403, { message: 'Forbidden' });
     }
@@ -395,7 +395,7 @@ app.openapi(
             ? new Date(body.publishedAt)
             : undefined,
     });
-    if (!post) return c.json({ success: false as const, error: 'Post not found' }, 404);
+    if (!post) throw new HTTPException(404, { message: 'Post not found' });
     return c.json({ success: true as const, data: post }, 200);
   },
 );
@@ -498,7 +498,7 @@ app.openapi(
     if (!user) throw new HTTPException(401, { message: 'Authentication required' });
     const { id } = c.req.valid('param');
     const item = await mediaQueries.getMediaById(db, id);
-    if (!item) return c.json({ success: false as const, error: 'Media not found' }, 404);
+    if (!item) throw new HTTPException(404, { message: 'Media not found' });
     if (user.role !== 'admin' && item.uploadedBy !== user.id) {
       throw new HTTPException(403, { message: 'Forbidden' });
     }
@@ -544,13 +544,13 @@ app.openapi(
     if (!user) throw new HTTPException(401, { message: 'Authentication required' });
     const { id } = c.req.valid('param');
     const existing = await mediaQueries.getMediaById(db, id);
-    if (!existing) return c.json({ success: false as const, error: 'Media not found' }, 404);
+    if (!existing) throw new HTTPException(404, { message: 'Media not found' });
     if (user.role !== 'admin' && existing.uploadedBy !== user.id) {
       throw new HTTPException(403, { message: 'Forbidden' });
     }
     const body = c.req.valid('json');
     const item = await mediaQueries.updateMedia(db, id, body);
-    if (!item) return c.json({ success: false as const, error: 'Media not found' }, 404);
+    if (!item) throw new HTTPException(404, { message: 'Media not found' });
     return c.json({ success: true as const, data: item }, 200);
   },
 );
@@ -701,7 +701,7 @@ app.openapi(
     if (!user) throw new HTTPException(401, { message: 'Authentication required' });
     const { id } = c.req.valid('param');
     const site = await siteQueries.getSiteById(db, id);
-    if (!site) return c.json({ success: false as const, error: 'Site not found' }, 404);
+    if (!site) throw new HTTPException(404, { message: 'Site not found' });
     if (user.role !== 'admin' && site.ownerId !== user.id) {
       throw new HTTPException(403, { message: 'Forbidden' });
     }
@@ -749,12 +749,12 @@ app.openapi(
     const { id } = c.req.valid('param');
     const body = c.req.valid('json');
     const existing = await siteQueries.getSiteById(db, id);
-    if (!existing) return c.json({ success: false as const, error: 'Site not found' }, 404);
+    if (!existing) throw new HTTPException(404, { message: 'Site not found' });
     if (user.role !== 'admin' && existing.ownerId !== user.id) {
       throw new HTTPException(403, { message: 'Forbidden' });
     }
     const site = await siteQueries.updateSite(db, id, body);
-    if (!site) return c.json({ success: false as const, error: 'Site not found' }, 404);
+    if (!site) throw new HTTPException(404, { message: 'Site not found' });
     return c.json({ success: true as const, data: site }, 200);
   },
 );
@@ -835,11 +835,11 @@ app.openapi(
     const { siteId } = c.req.valid('param');
     const { status } = c.req.valid('query');
     const site = await siteQueries.getSiteById(db, siteId);
-    if (!site) return c.json({ success: false as const, error: 'Site not found' }, 404);
+    if (!site) throw new HTTPException(404, { message: 'Site not found' });
     if (!user) {
       // Public access: only published pages from published sites
       if (site.status !== 'published') {
-        return c.json({ success: false as const, error: 'Site not found' }, 404);
+        throw new HTTPException(404, { message: 'Site not found' });
       }
       const data = await pageQueries.getPagesBySite(db, siteId, { status: 'published' });
       return c.json({ success: true as const, data }, 200);
@@ -898,7 +898,7 @@ app.openapi(
     const { siteId } = c.req.valid('param');
     const body = c.req.valid('json');
     const existingSite = await siteQueries.getSiteById(db, siteId);
-    if (!existingSite) return c.json({ success: false as const, error: 'Site not found' }, 404);
+    if (!existingSite) throw new HTTPException(404, { message: 'Site not found' });
     if (user.role !== 'admin' && existingSite.ownerId !== user.id) {
       throw new HTTPException(403, { message: 'Forbidden' });
     }
@@ -935,11 +935,11 @@ app.openapi(
     const user = c.get('user');
     const { id } = c.req.valid('param');
     const page = await pageQueries.getPageById(db, id);
-    if (!page) return c.json({ success: false as const, error: 'Page not found' }, 404);
+    if (!page) throw new HTTPException(404, { message: 'Page not found' });
     if (!user) {
       // Public access: only published pages
       if (page.status !== 'published') {
-        return c.json({ success: false as const, error: 'Page not found' }, 404);
+        throw new HTTPException(404, { message: 'Page not found' });
       }
       return c.json({ success: true as const, data: page }, 200);
     }
@@ -996,7 +996,7 @@ app.openapi(
     if (!user) throw new HTTPException(401, { message: 'Authentication required' });
     const { id } = c.req.valid('param');
     const existing = await pageQueries.getPageById(db, id);
-    if (!existing) return c.json({ success: false as const, error: 'Page not found' }, 404);
+    if (!existing) throw new HTTPException(404, { message: 'Page not found' });
     if (user.role !== 'admin') {
       const site = await siteQueries.getSiteById(db, existing.siteId);
       if (!site || site.ownerId !== user.id) {
@@ -1013,7 +1013,7 @@ app.openapi(
             ? new Date(body.publishedAt)
             : undefined,
     });
-    if (!page) return c.json({ success: false as const, error: 'Page not found' }, 404);
+    if (!page) throw new HTTPException(404, { message: 'Page not found' });
     return c.json({ success: true as const, data: page }, 200);
   },
 );

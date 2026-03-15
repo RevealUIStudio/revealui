@@ -72,12 +72,12 @@ app.openapi(logRoute, async (c) => {
   const token = c.req.header('X-Internal-Token');
   const secret = process.env.REVEALUI_SECRET;
   if (!(secret && token)) {
-    return c.json({ error: 'Forbidden' }, 403);
+    throw new HTTPException(403, { message: 'Forbidden' });
   }
   const a = Buffer.from(token);
   const b = Buffer.from(secret);
   if (a.length !== b.length || !timingSafeEqual(a, b)) {
-    return c.json({ error: 'Forbidden' }, 403);
+    throw new HTTPException(403, { message: 'Forbidden' });
   }
 
   const payload = c.req.valid('json');
