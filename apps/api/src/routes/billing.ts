@@ -542,6 +542,9 @@ app.openapi(subscriptionRoute, async (c) => {
   );
 });
 
+/** Tier rank ordering for upgrade/downgrade direction validation */
+const TIER_ORDER: Record<string, number> = { free: 0, pro: 1, max: 2, enterprise: 3 };
+
 // POST /api/billing/upgrade — Upgrade an active subscription to a higher tier
 const upgradeRoute = createRoute({
   method: 'post',
@@ -582,6 +585,17 @@ app.openapi(upgradeRoute, async (c) => {
   const { priceId, targetTier } = c.req.valid('json');
   const resolvedPriceId = await resolveCatalogPriceId(targetTier, 'subscription', priceId);
   const requestEntitlements = c.get('entitlements') as RequestEntitlements | undefined;
+
+  // Validate upgrade direction — reject downgrades via upgrade route
+  const currentTier = (requestEntitlements?.tier as string) ?? 'free';
+  const currentRank = TIER_ORDER[currentTier] ?? 0;
+  const targetRank = TIER_ORDER[targetTier] ?? 0;
+
+  if (targetRank <= currentRank) {
+    throw new HTTPException(400, {
+      message: `Cannot downgrade from ${currentTier} to ${targetTier} via upgrade route. Use the downgrade route instead.`,
+    });
+  }
 
   const stripeCustomerId = await resolveHostedStripeCustomerId(
     user.id,
