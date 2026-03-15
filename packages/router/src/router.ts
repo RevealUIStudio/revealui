@@ -1,5 +1,15 @@
 import { logger } from '@revealui/core/observability/logger';
-import type { NavigateOptions, Route, RouteMatch, RouteParams, RouterOptions } from './types';
+import type React from 'react';
+import { createElement } from 'react';
+import type {
+  MiddlewareContext,
+  NavigateOptions,
+  Route,
+  RouteMatch,
+  RouteMiddleware,
+  RouteParams,
+  RouterOptions,
+} from './types';
 
 // ---------------------------------------------------------------------------
 // Hand-rolled path matcher — replaces `path-to-regexp`.
@@ -92,6 +102,8 @@ function pathMatch(
  */
 export class Router {
   private routes: Route[] = [];
+  private flatRoutes: Route[] = [];
+  private globalMiddleware: RouteMiddleware[] = [];
   private options: RouterOptions;
   private listeners: Set<() => void> = new Set();
   private currentMatch: RouteMatch | null = null;
@@ -107,6 +119,13 @@ export class Router {
   }
 
   /**
+   * Add global middleware that runs before all routes.
+   */
+  use(...middleware: RouteMiddleware[]): void {
+    this.globalMiddleware.push(...middleware);
+  }
+
+  /**
    * Get router options
    */
   getOptions(): RouterOptions {
@@ -114,10 +133,12 @@ export class Router {
   }
 
   /**
-   * Register a route
+   * Register a route. Nested children are flattened with combined paths,
+   * middleware, and layout chains.
    */
   register(route: Route): void {
     this.routes.push(route);
+    this.flattenRoute(route, '', [], undefined);
   }
 
   /**
@@ -130,14 +151,55 @@ export class Router {
   }
 
   /**
-   * Match a URL to a route
+   * Flatten nested routes into the flat lookup table.
+   * Children inherit parent path prefix, middleware, and layout.
+   */
+  private flattenRoute(
+    route: Route,
+    parentPath: string,
+    parentMiddleware: RouteMiddleware[],
+    parentLayout: Route['layout'],
+  ): void {
+    const fullPath = joinPaths(parentPath, route.path);
+    const combinedMiddleware = [...parentMiddleware, ...(route.middleware ?? [])];
+    // Child layout wraps inside parent layout
+    const effectiveLayout =
+      parentLayout && route.layout
+        ? wrapLayouts(parentLayout, route.layout)
+        : (route.layout ?? parentLayout);
+
+    // Register this route if it has a component (layout-only routes may not)
+    if (route.component) {
+      this.flatRoutes.push({
+        ...route,
+        path: fullPath,
+        middleware: combinedMiddleware.length > 0 ? combinedMiddleware : undefined,
+        layout: effectiveLayout,
+        children: undefined, // Already flattened
+      });
+    }
+
+    // Recursively flatten children
+    if (route.children) {
+      for (const child of route.children) {
+        this.flattenRoute(child, fullPath, combinedMiddleware, effectiveLayout);
+      }
+    }
+  }
+
+  /**
+   * Match a URL to a route.
+   * Checks flattened routes first (includes nested), then falls back to top-level.
    */
   match(url: string): RouteMatch | null {
     // Remove base path if present
     const path = this.normalizePath(url);
 
+    // Check flattened routes (includes nested children)
+    const allRoutes = this.flatRoutes.length > 0 ? this.flatRoutes : this.routes;
+
     // Try to match each route
-    for (const route of this.routes) {
+    for (const route of allRoutes) {
       const matcher = pathMatch(route.path, { decode: decodeURIComponent });
       const result = matcher(path);
 
@@ -153,13 +215,40 @@ export class Router {
   }
 
   /**
-   * Resolve a route with data loading
+   * Resolve a route with middleware execution and data loading.
+   *
+   * Middleware chain: global middleware → route middleware → loader.
+   * If any middleware returns `false`, resolution is aborted (returns null).
+   * If any middleware returns a string, navigation is redirected to that path.
    */
   async resolve(url: string): Promise<RouteMatch | null> {
     const matched = this.match(url);
 
     if (!matched) {
       return null;
+    }
+
+    // Run middleware chain (global + route-specific)
+    const allMiddleware = [...this.globalMiddleware, ...(matched.route.middleware ?? [])];
+
+    if (allMiddleware.length > 0) {
+      const context: MiddlewareContext = {
+        pathname: this.normalizePath(url),
+        params: matched.params,
+        meta: matched.route.meta,
+      };
+
+      for (const mw of allMiddleware) {
+        const result = await mw(context);
+        if (result === false) {
+          return null; // Middleware blocked
+        }
+        if (typeof result === 'string') {
+          // Middleware requested redirect
+          this.navigate(result);
+          return null;
+        }
+      }
     }
 
     // Load data if loader exists
@@ -260,10 +349,12 @@ export class Router {
   }
 
   /**
-   * Clear all routes
+   * Clear all routes and middleware
    */
   clear(): void {
     this.routes = [];
+    this.flatRoutes = [];
+    this.globalMiddleware = [];
   }
 
   private normalizePath(url: string): string {
@@ -359,4 +450,25 @@ export class Router {
     const g = globalThis as any;
     g.__revealui_router_initialized = false;
   }
+}
+
+// ---------------------------------------------------------------------------
+// Helpers
+// ---------------------------------------------------------------------------
+
+/** Join parent and child path segments, avoiding double slashes */
+function joinPaths(parent: string, child: string): string {
+  if (!parent || parent === '/') return child;
+  if (!child || child === '/') return parent;
+  return `${parent.replace(/\/$/, '')}/${child.replace(/^\//, '')}`;
+}
+
+/** Compose two layout components so the child renders inside the parent */
+function wrapLayouts(
+  Parent: React.ComponentType<{ children: React.ReactNode }>,
+  Child: React.ComponentType<{ children: React.ReactNode }>,
+): React.ComponentType<{ children: React.ReactNode }> {
+  const WrappedLayout = ({ children }: { children: React.ReactNode }) =>
+    createElement(Parent, null, createElement(Child, null, children));
+  return WrappedLayout;
 }

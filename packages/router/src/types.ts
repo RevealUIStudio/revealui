@@ -1,6 +1,26 @@
 import type { ComponentType, ReactNode } from 'react';
 
 /**
+ * Middleware function — runs before route resolution.
+ * Return `true` to continue, `false` to abort, or a redirect path string.
+ */
+export type RouteMiddleware = (
+  context: MiddlewareContext,
+) => boolean | string | Promise<boolean | string>;
+
+/**
+ * Context passed to middleware functions
+ */
+export interface MiddlewareContext {
+  /** Current URL pathname */
+  pathname: string;
+  /** Matched route params (if available at this stage) */
+  params: RouteParams;
+  /** Route metadata */
+  meta?: RouteMeta;
+}
+
+/**
  * Route configuration
  */
 export interface Route<TData = unknown, TProps = Record<string, unknown>> {
@@ -14,6 +34,10 @@ export interface Route<TData = unknown, TProps = Record<string, unknown>> {
   loader?: (params: RouteParams) => Promise<TData> | TData;
   /** Optional metadata */
   meta?: RouteMeta;
+  /** Optional middleware that runs before this route's loader */
+  middleware?: RouteMiddleware[];
+  /** Nested child routes — children inherit parent's layout and middleware */
+  children?: Route[];
 }
 
 /**

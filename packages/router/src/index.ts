@@ -44,10 +44,12 @@ export { Router } from './router';
 // Types
 export type {
   Location,
+  MiddlewareContext,
   NavigateOptions,
   Route,
   RouteMatch,
   RouteMeta,
+  RouteMiddleware,
   RouteParams,
   RouterOptions,
 } from './types';
