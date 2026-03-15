@@ -157,9 +157,8 @@ jobs:
         env:
           SKIP_ENV_VALIDATION: "true"
 
-      - name: Validate coverage artifacts (warn-only)
-        run: pnpm coverage:check || echo "Coverage warnings — not blocking"
-        continue-on-error: true
+      - name: Validate coverage (fail on 0% packages)
+        run: pnpm coverage:check -- --fail-on-zero
 
       - name: Upload coverage reports
         uses: actions/upload-artifact@v4

@@ -184,7 +184,7 @@ describe('POST / — submit agent task', () => {
     expect(body.success).toBe(false);
   });
 
-  it('returns 503 when no LLM key is configured', async () => {
+  it('returns 403 when no LLM key is configured', async () => {
     // Simulate missing API key: createLLMClientFromEnv throws
     mockCreateLLMClient.mockImplementationOnce(() => {
       throw new Error('API key not found');
@@ -197,10 +197,10 @@ describe('POST / — submit agent task', () => {
       '/',
       post({ instruction: 'Publish blog post', boardId: 'board-1' }),
     );
-    expect(res.status).toBe(503);
+    expect(res.status).toBe(403);
     const body = await parseBody(res);
     expect(body.success).toBe(false);
-    expect(body.error).toContain('AI agent not configured');
+    expect(body.error).toContain('requires a Pro or Enterprise license');
   });
 
   it('returns 200 with agent output on success', async () => {
@@ -289,7 +289,7 @@ describe('POST /:ticketId/dispatch — dispatch existing ticket', () => {
     expect(body.error).toBe('Ticket not found');
   });
 
-  it('returns 503 when no LLM key is configured', async () => {
+  it('returns 403 when no LLM key is configured', async () => {
     // Simulate missing API key: createLLMClientFromEnv throws
     mockCreateLLMClient.mockImplementationOnce(() => {
       throw new Error('API key not found');
@@ -297,10 +297,10 @@ describe('POST /:ticketId/dispatch — dispatch existing ticket', () => {
     mt.getTicketById.mockResolvedValue(makeTicket() as never);
     const app = createApp();
     const res = await app.request('/ticket-1/dispatch', post({}));
-    expect(res.status).toBe(503);
+    expect(res.status).toBe(403);
     const body = await parseBody(res);
     expect(body.success).toBe(false);
-    expect(body.error).toContain('AI agent not configured');
+    expect(body.error).toContain('requires a Pro or Enterprise license');
   });
 
   it('returns 200 with agent output on success', async () => {

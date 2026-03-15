@@ -154,16 +154,16 @@ describe('rag-index routes', () => {
   });
 
   describe('DELETE /rag/workspaces/:workspaceId/documents/:documentId', () => {
-    it('returns 503 when AI package is not available', async () => {
+    it('returns 403 when AI package is not available', async () => {
       const app = createApp();
 
       const res = await app.request('/rag/workspaces/ws-1/documents/doc-1', {
         method: 'DELETE',
       });
 
-      expect(res.status).toBe(503);
+      expect(res.status).toBe(403);
       const body = await parseBody(res);
-      expect(body.error).toContain('AI package not available');
+      expect(body.error).toContain('requires a Pro or Enterprise license');
     });
   });
 
