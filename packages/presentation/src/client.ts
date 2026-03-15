@@ -94,6 +94,20 @@ export {
 } from './components/navbar.js';
 // Server-safe components re-exported for client use
 export {
+  Pagination,
+  PaginationContent,
+  PaginationEllipsis,
+  type PaginationEllipsisProps,
+  PaginationItem,
+  PaginationLink,
+  type PaginationLinkProps,
+  PaginationNext,
+  type PaginationNextProps,
+  PaginationPrevious,
+  type PaginationPreviousProps,
+  type PaginationProps,
+} from './components/Pagination.js';
+export {
   PricingTable,
   type PricingTableProps,
   type PricingTier,
