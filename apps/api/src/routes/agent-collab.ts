@@ -215,6 +215,14 @@ export function createAgentCollabRoute(): OpenAPIHono<{ Variables: Variables }> 
       throw new HTTPException(404, { message: 'Document not found' });
     }
 
+    // Cap snapshot size to prevent unbounded memory allocation (10 MB)
+    const MaxSnapshotBytes = 10 * 1024 * 1024;
+    if (snapshot.byteLength > MaxSnapshotBytes) {
+      throw new HTTPException(413, {
+        message: `Document snapshot too large (${Math.round(snapshot.byteLength / 1024 / 1024)}MB exceeds ${MaxSnapshotBytes / 1024 / 1024}MB limit)`,
+      });
+    }
+
     const tempDoc = new Y.Doc();
     Y.applyUpdate(tempDoc, snapshot);
     const content = tempDoc.getText('content').toString();

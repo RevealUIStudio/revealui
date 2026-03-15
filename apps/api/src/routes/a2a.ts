@@ -525,9 +525,10 @@ a2a.get('/stream/:taskId', requireFeature('ai', { mode: 'entitlements' }), async
           controller.enqueue(new TextEncoder().encode(`data: ${JSON.stringify(data)}\n\n`));
         };
 
-        // Poll task store for status updates (simple implementation)
+        // Poll task store for status updates (simple implementation).
+        // Must cover the full agent timeout (120s) so long tasks are observable.
         let iterations = 0;
-        const maxIterations = 60; // 30s at 500ms interval
+        const maxIterations = 240; // 120s at 500ms interval
 
         const poll = () => {
           iterations++;
