@@ -766,6 +766,22 @@ app.post('/stripe', async (c) => {
           });
         }
 
+        // Best-effort: tag early adopter in Stripe customer metadata so their
+        // lifetime discount is visible in the Stripe Dashboard and queryable later.
+        const earlyAdopterEnd = process.env.REVEALUI_EARLY_ADOPTER_END;
+        if (earlyAdopterEnd && new Date() < new Date(earlyAdopterEnd)) {
+          try {
+            await stripe.customers.update(customerId, {
+              metadata: { earlyAdopter: 'true' },
+            });
+          } catch (earlyErr) {
+            logger.warn('Failed to tag early adopter on Stripe customer', {
+              customerId,
+              error: earlyErr instanceof Error ? earlyErr.message : 'unknown',
+            });
+          }
+        }
+
         logger.info('License generated and stored', { tier, customerId, licenseId });
         auditLicenseEvent(db, 'license.created', 'info', {
           licenseId,
