@@ -274,7 +274,7 @@ app.openapi(
     const db = c.get('db');
     const { id } = c.req.valid('param');
     const board = await boardQueries.getBoardById(db, id);
-    if (!board) return c.json({ success: false as const, error: 'Board not found' }, 404);
+    if (!board) throw new HTTPException(404, { message: 'Board not found' });
     assertBoardTenantAccess(board, c.get('tenant'));
     const user = c.get('user');
     if (board.ownerId && board.ownerId !== user?.id && user?.role !== 'admin') {
@@ -320,14 +320,14 @@ app.openapi(
     const { id } = c.req.valid('param');
     const body = c.req.valid('json');
     const existing = await boardQueries.getBoardById(db, id);
-    if (!existing) return c.json({ success: false as const, error: 'Board not found' }, 404);
+    if (!existing) throw new HTTPException(404, { message: 'Board not found' });
     assertBoardTenantAccess(existing, c.get('tenant'));
     const user = c.get('user');
     if (existing.ownerId && existing.ownerId !== user?.id) {
       throw new HTTPException(403, { message: 'Forbidden' });
     }
     const board = await boardQueries.updateBoard(db, id, body);
-    if (!board) return c.json({ success: false as const, error: 'Board not found' }, 404);
+    if (!board) throw new HTTPException(404, { message: 'Board not found' });
     return c.json({ success: true as const, data: board }, 200);
   },
 );
@@ -482,7 +482,7 @@ app.openapi(
     const { id } = c.req.valid('param');
     const body = c.req.valid('json');
     const existing = await boardQueries.getColumnById(db, id);
-    if (!existing) return c.json({ success: false as const, error: 'Column not found' }, 404);
+    if (!existing) throw new HTTPException(404, { message: 'Column not found' });
     const board = await boardQueries.getBoardById(db, existing.boardId);
     assertBoardTenantAccess(board ?? {}, c.get('tenant'));
     const user = c.get('user');
@@ -490,7 +490,7 @@ app.openapi(
       throw new HTTPException(403, { message: 'Forbidden' });
     }
     const column = await boardQueries.updateColumn(db, id, body);
-    if (!column) return c.json({ success: false as const, error: 'Column not found' }, 404);
+    if (!column) throw new HTTPException(404, { message: 'Column not found' });
     return c.json({ success: true as const, data: column }, 200);
   },
 );
@@ -721,7 +721,7 @@ app.openapi(
       ...body,
       dueDate: body.dueDate === null ? null : body.dueDate ? new Date(body.dueDate) : undefined,
     });
-    if (!ticket) return c.json({ success: false as const, error: 'Ticket not found' }, 404);
+    if (!ticket) throw new HTTPException(404, { message: 'Ticket not found' });
     return c.json({ success: true as const, data: ticket }, 200);
   },
 );
@@ -792,7 +792,7 @@ app.openapi(
     await assertTicketAccess(db, id, c);
     const { columnId, sortOrder } = c.req.valid('json');
     const ticket = await ticketQueries.moveTicket(db, id, columnId, sortOrder);
-    if (!ticket) return c.json({ success: false as const, error: 'Ticket not found' }, 404);
+    if (!ticket) throw new HTTPException(404, { message: 'Ticket not found' });
     return c.json({ success: true as const, data: ticket }, 200);
   },
 );
@@ -940,14 +940,14 @@ app.openapi(
     const { id } = c.req.valid('param');
     const data = c.req.valid('json');
     const existing = await commentQueries.getCommentById(db, id);
-    if (!existing) return c.json({ success: false as const, error: 'Comment not found' }, 404);
+    if (!existing) throw new HTTPException(404, { message: 'Comment not found' });
     await assertTicketAccess(db, existing.ticketId, c);
     const user = c.get('user');
     if (existing.authorId && existing.authorId !== user?.id && user?.role !== 'admin') {
       throw new HTTPException(403, { message: 'Forbidden' });
     }
     const comment = await commentQueries.updateComment(db, id, data);
-    if (!comment) return c.json({ success: false as const, error: 'Comment not found' }, 404);
+    if (!comment) throw new HTTPException(404, { message: 'Comment not found' });
     return c.json({ success: true as const, data: comment }, 200);
   },
 );
@@ -1097,13 +1097,13 @@ app.openapi(
     const { id } = c.req.valid('param');
     const body = c.req.valid('json');
     const existing = await labelQueries.getLabelById(db, id);
-    if (!existing) return c.json({ success: false as const, error: 'Label not found' }, 404);
+    if (!existing) throw new HTTPException(404, { message: 'Label not found' });
     const tenant = c.get('tenant');
     if (tenant && existing.tenantId && existing.tenantId !== tenant.id) {
       throw new HTTPException(403, { message: 'Access denied for this tenant' });
     }
     const label = await labelQueries.updateLabel(db, id, body);
-    if (!label) return c.json({ success: false as const, error: 'Label not found' }, 404);
+    if (!label) throw new HTTPException(404, { message: 'Label not found' });
     return c.json({ success: true as const, data: label }, 200);
   },
 );

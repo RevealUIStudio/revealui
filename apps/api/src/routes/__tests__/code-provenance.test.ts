@@ -1,4 +1,5 @@
 import { Hono } from 'hono';
+import { HTTPException } from 'hono/http-exception';
 import { describe, expect, it, vi } from 'vitest';
 
 // ---------------------------------------------------------------------------
@@ -82,6 +83,12 @@ function createApp(user?: { id: string; role: string }) {
     await next();
   });
   app.route('/', provenanceApp);
+  app.onError((err, c) => {
+    if (err instanceof HTTPException) {
+      return c.json({ success: false, error: err.message, code: `HTTP_${err.status}` }, err.status);
+    }
+    return c.json({ success: false, error: 'Internal error' }, 500);
+  });
   return app;
 }
 

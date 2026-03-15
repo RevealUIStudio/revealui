@@ -25,6 +25,7 @@ import {
   type NewMarketplaceTransaction,
 } from '@revealui/db/schema';
 import { and, asc, eq, sql } from 'drizzle-orm';
+import { HTTPException } from 'hono/http-exception';
 import Stripe from 'stripe';
 import { authMiddleware } from '../middleware/auth.js';
 import { buildPaymentRequired, encodePaymentRequired, verifyPayment } from '../middleware/x402.js';
@@ -293,8 +294,8 @@ app.openapi(
       .where(eq(marketplaceServers.id, id))
       .limit(1);
 
-    if (!row) return c.json({ error: 'Server not found' }, 404);
-    if (row.status !== 'active') return c.json({ error: 'Server not available' }, 404);
+    if (!row) throw new HTTPException(404, { message: 'Server not found' });
+    if (row.status !== 'active') throw new HTTPException(404, { message: 'Server not available' });
 
     return c.json({ server: row });
   },
@@ -358,7 +359,7 @@ app.openapi(
   }),
   async (c) => {
     const user = c.get('user');
-    if (!user) return c.json({ error: 'Unauthorized' }, 401);
+    if (!user) throw new HTTPException(401, { message: 'Unauthorized' });
 
     const data = c.req.valid('json');
 
@@ -366,7 +367,7 @@ app.openapi(
     try {
       assertUrlSafe(data.url);
     } catch (err) {
-      return c.json({ error: err instanceof Error ? err.message : 'Invalid URL' }, 422);
+      throw new HTTPException(422, { message: err instanceof Error ? err.message : 'Invalid URL' });
     }
 
     const id = generateServerId();
@@ -471,7 +472,7 @@ app.openapi(
   // @ts-expect-error -- OpenAPI response union narrowing
   async (c) => {
     const user = c.get('user');
-    if (!user) return c.json({ error: 'Unauthorized' }, 401);
+    if (!user) throw new HTTPException(401, { message: 'Unauthorized' });
 
     const { id } = c.req.valid('param');
 
@@ -482,11 +483,11 @@ app.openapi(
       .where(eq(marketplaceServers.id, id))
       .limit(1);
 
-    if (!existing) return c.json({ error: 'Server not found' }, 404);
+    if (!existing) throw new HTTPException(404, { message: 'Server not found' });
 
     // Only the developer who published it (or an admin) can unpublish
     if (existing.developerId !== user.id && user.role !== 'admin') {
-      return c.json({ error: 'Forbidden' }, 403);
+      throw new HTTPException(403, { message: 'Forbidden' });
     }
 
     await db
@@ -587,7 +588,7 @@ app.openapi(
       .where(and(eq(marketplaceServers.id, id), eq(marketplaceServers.status, 'active')))
       .limit(1);
 
-    if (!server) return c.json({ error: 'Server not found or unavailable' }, 404);
+    if (!server) throw new HTTPException(404, { message: 'Server not found or unavailable' });
 
     // Build canonical resource URL for this server's invoke endpoint
     const baseUrl = getBaseUrl(c.req.raw);
@@ -624,7 +625,7 @@ app.openapi(
     try {
       body = await c.req.json();
     } catch {
-      return c.json({ error: 'Invalid JSON body' }, 400);
+      throw new HTTPException(400, { message: 'Invalid JSON body' });
     }
 
     // Record transaction as pending before the call
@@ -686,7 +687,7 @@ app.openapi(
         serverId: id,
         error: err instanceof Error ? err.message : String(err),
       });
-      return c.json({ error: 'Upstream server unavailable' }, 502);
+      throw new HTTPException(502, { message: 'Upstream server unavailable' });
     }
 
     let responseBody: unknown;
@@ -800,7 +801,7 @@ app.openapi(
   // @ts-expect-error -- OpenAPI response union narrowing
   async (c) => {
     const user = c.get('user');
-    if (!user) return c.json({ error: 'Unauthorized' }, 401);
+    if (!user) throw new HTTPException(401, { message: 'Unauthorized' });
 
     const returnBase =
       process.env.MARKETPLACE_CONNECT_RETURN_URL ??
