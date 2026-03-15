@@ -2,16 +2,26 @@
  * Site database queries
  */
 
-import { and, desc, eq, sql } from 'drizzle-orm';
+import { and, desc, eq, isNull, sql } from 'drizzle-orm';
 import type { DatabaseClient } from '../client/types.js';
 import { sites } from '../schema/sites.js';
 
+/** Condition that excludes soft-deleted sites */
+const notDeleted = isNull(sites.deletedAt);
+
 export async function getAllSites(
   db: DatabaseClient,
-  options: { ownerId?: string; status?: string; limit?: number; offset?: number } = {},
+  options: {
+    ownerId?: string;
+    status?: string;
+    limit?: number;
+    offset?: number;
+    includeDeleted?: boolean;
+  } = {},
 ) {
-  const { ownerId, status, limit = 20, offset = 0 } = options;
+  const { ownerId, status, limit = 20, offset = 0, includeDeleted = false } = options;
   const conditions = [
+    ...(includeDeleted ? [] : [notDeleted]),
     ...(ownerId ? [eq(sites.ownerId, ownerId)] : []),
     ...(status ? [eq(sites.status, status)] : []),
   ];
@@ -25,12 +35,20 @@ export async function getAllSites(
 }
 
 export async function getSiteById(db: DatabaseClient, id: string) {
-  const result = await db.select().from(sites).where(eq(sites.id, id)).limit(1);
+  const result = await db
+    .select()
+    .from(sites)
+    .where(and(eq(sites.id, id), notDeleted))
+    .limit(1);
   return result[0] ?? null;
 }
 
 export async function getSiteBySlug(db: DatabaseClient, slug: string) {
-  const result = await db.select().from(sites).where(eq(sites.slug, slug)).limit(1);
+  const result = await db
+    .select()
+    .from(sites)
+    .where(and(eq(sites.slug, slug), notDeleted))
+    .limit(1);
   return result[0] ?? null;
 }
 
@@ -47,12 +65,31 @@ export async function updateSite(
   const result = await db
     .update(sites)
     .set({ ...data, updatedAt: new Date() })
+    .where(and(eq(sites.id, id), notDeleted))
+    .returning();
+  return result[0] ?? null;
+}
+
+/** Soft-delete: sets deletedAt timestamp instead of removing the row */
+export async function deleteSite(db: DatabaseClient, id: string) {
+  await db
+    .update(sites)
+    .set({ deletedAt: new Date(), updatedAt: new Date() })
+    .where(and(eq(sites.id, id), notDeleted));
+}
+
+/** Restore a soft-deleted site */
+export async function restoreSite(db: DatabaseClient, id: string) {
+  const result = await db
+    .update(sites)
+    .set({ deletedAt: null, updatedAt: new Date() })
     .where(eq(sites.id, id))
     .returning();
   return result[0] ?? null;
 }
 
-export async function deleteSite(db: DatabaseClient, id: string) {
+/** Permanently remove a soft-deleted site (admin cleanup) */
+export async function purgeSite(db: DatabaseClient, id: string) {
   await db.delete(sites).where(eq(sites.id, id));
 }
 

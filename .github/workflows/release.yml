@@ -65,6 +65,18 @@ jobs:
         env:
           SKIP_ENV_VALIDATION: "true"
 
+      - name: Generate SBOM (CycloneDX)
+        run: npx @cyclonedx/cyclonedx-npm --output-file sbom.json --output-format json
+        continue-on-error: true
+
+      - name: Upload SBOM artifact
+        if: success() || failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: sbom
+          path: sbom.json
+          retention-days: 90
+
       - name: Validate release artifacts
         run: |
           echo "Checking dist/ output for OSS packages..."

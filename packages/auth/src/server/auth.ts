@@ -9,7 +9,7 @@ import { logger } from '@revealui/core/observability/logger';
 import { getClient } from '@revealui/db/client';
 import { oauthAccounts, users } from '@revealui/db/schema';
 import bcrypt from 'bcryptjs';
-import { eq } from 'drizzle-orm';
+import { and, eq, isNull } from 'drizzle-orm';
 import type { SignInResult, SignUpResult, User } from '../types.js';
 import { clearFailedAttempts, isAccountLocked, recordFailedAttempt } from './brute-force.js';
 import { validatePasswordStrength } from './password-validation.js';
@@ -69,7 +69,11 @@ export async function signIn(
     // Find user by email
     let user: User | undefined;
     try {
-      const result = await db.select().from(users).where(eq(users.email, email)).limit(1);
+      const result = await db
+        .select()
+        .from(users)
+        .where(and(eq(users.email, email), isNull(users.deletedAt)))
+        .limit(1);
       user = result[0] as User | undefined;
     } catch {
       logger.error('Error querying user');
