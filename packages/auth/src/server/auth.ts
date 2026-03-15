@@ -358,7 +358,7 @@ export async function signUp(
       try {
         await db.delete(users).where(eq(users.id, user.id));
       } catch {
-        logger.error('Failed to clean up orphaned user after session creation failure', {
+        logger.error('Failed to clean up orphaned user after session creation failure', undefined, {
           userId: user.id,
         });
       }
