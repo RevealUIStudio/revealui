@@ -309,7 +309,7 @@ interface EarlyAdopterConfig {
 function getEarlyAdopterConfig(): EarlyAdopterConfig {
   const endStr = process.env.REVEALUI_EARLY_ADOPTER_END;
   return {
-    endDate: endStr ? new Date(endStr) : null,
+    endDate: endStr && !Number.isNaN(new Date(endStr).getTime()) ? new Date(endStr) : null,
     coupons: {
       pro: process.env.REVEALUI_EARLY_ADOPTER_COUPON_PRO,
       max: process.env.REVEALUI_EARLY_ADOPTER_COUPON_MAX,
