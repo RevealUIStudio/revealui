@@ -19,7 +19,7 @@ import {
   licenses,
   users,
 } from '@revealui/db/schema';
-import { and, desc, eq, gt } from 'drizzle-orm';
+import { and, desc, eq, gt, gte, lte } from 'drizzle-orm';
 import { HTTPException } from 'hono/http-exception';
 import Stripe from 'stripe';
 
@@ -906,39 +906,39 @@ app.openapi(supportRenewalRoute, async (c) => {
   const now = new Date();
   const in30Days = new Date(now.getTime() + 30 * 24 * 60 * 60 * 1000);
 
-  // Find active perpetual licenses with support expiring within the next 30 days
+  // Find active perpetual licenses with support expiring within the next 30 days.
+  // Single query with JOIN eliminates N+1 user lookups.
   const expiringLicenses = await db
     .select({
       id: licenses.id,
-      userId: licenses.userId,
       supportExpiresAt: licenses.supportExpiresAt,
+      email: users.email,
     })
     .from(licenses)
-    .where(and(eq(licenses.perpetual, true), eq(licenses.status, 'active')));
+    .innerJoin(users, eq(users.id, licenses.userId))
+    .where(
+      and(
+        eq(licenses.perpetual, true),
+        eq(licenses.status, 'active'),
+        gte(licenses.supportExpiresAt, now),
+        lte(licenses.supportExpiresAt, in30Days),
+      ),
+    );
 
   const { sendEmail } = await import('../lib/email.js');
   let reminded = 0;
 
   for (const row of expiringLicenses) {
-    if (!row.supportExpiresAt) continue;
-    if (row.supportExpiresAt > in30Days || row.supportExpiresAt < now) continue;
+    if (!row.email) continue;
 
-    const [user] = await db
-      .select({ email: users.email })
-      .from(users)
-      .where(eq(users.id, row.userId))
-      .limit(1);
-
-    if (!user?.email) continue;
-
-    const expiryDate = row.supportExpiresAt.toLocaleDateString('en-US', {
+    const expiryDate = row.supportExpiresAt!.toLocaleDateString('en-US', {
       month: 'long',
       day: 'numeric',
       year: 'numeric',
     });
 
     await sendEmail({
-      to: user.email,
+      to: row.email,
       subject: 'Your RevealUI support contract expires soon',
       text: `Your RevealUI annual support contract expires on ${expiryDate}. Renew at https://revealui.com/pricing. Your perpetual license itself never expires.`,
       html: `<p>Your RevealUI support contract expires on <strong>${expiryDate}</strong>. <a href="https://revealui.com/pricing">Renew here</a>. Your perpetual license never expires.</p>`,
