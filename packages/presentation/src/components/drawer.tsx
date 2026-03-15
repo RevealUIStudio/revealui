@@ -101,9 +101,9 @@ export function DrawerHeader({
         className,
       )}
     >
-      <div id={titleId} className="text-base font-semibold text-zinc-950 dark:text-white">
+      <h2 id={titleId} className="text-base font-semibold text-zinc-950 dark:text-white">
         {children}
-      </div>
+      </h2>
       {onClose && (
         <button
           type="button"
