@@ -1145,6 +1145,22 @@ app.post('/stripe', async (c) => {
           attemptCount: invoice.attempt_count,
         });
 
+        // Update subscription status based on attempt count
+        const failedStatus =
+          invoice.attempt_count && invoice.attempt_count >= 3 ? 'suspended' : 'past_due';
+
+        if (failedStatus === 'suspended') {
+          logger.error('Payment failed 3+ times — suspending subscription', {
+            customerId,
+            attemptCount: invoice.attempt_count,
+          });
+        }
+
+        await db
+          .update(accountSubscriptions)
+          .set({ status: failedStatus, updatedAt: new Date() })
+          .where(eq(accountSubscriptions.stripeCustomerId, customerId));
+
         // Send payment failed email
         const email = invoice.customer_email ?? (await findUserEmailByCustomerId(db, customerId));
         if (email) {
