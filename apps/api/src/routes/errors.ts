@@ -9,13 +9,12 @@
  */
 
 import { timingSafeEqual } from 'node:crypto';
+import { createRoute, OpenAPIHono, z } from '@hono/zod-openapi';
 import { logger } from '@revealui/core/observability/logger';
 import { getClient } from '@revealui/db';
 import { errorEvents } from '@revealui/db/schema';
-import { Hono } from 'hono';
-import { z } from 'zod/v4';
 
-const app = new Hono();
+const app = new OpenAPIHono();
 
 const ErrorPayloadSchema = z.object({
   level: z.enum(['warn', 'error', 'fatal']).default('error'),
@@ -29,34 +28,76 @@ const ErrorPayloadSchema = z.object({
   metadata: z.record(z.string(), z.unknown()).optional(),
 });
 
-app.post('/', async (c) => {
+const captureErrorRoute = createRoute({
+  method: 'post',
+  path: '/',
+  tags: ['errors'],
+  summary: 'Capture client-side error',
+  description:
+    'Accepts structured error payloads from CMS client-side and any other app that cannot write to the DB directly. Requires X-Internal-Token header.',
+  request: {
+    body: {
+      content: {
+        'application/json': {
+          schema: ErrorPayloadSchema,
+        },
+      },
+    },
+  },
+  responses: {
+    202: {
+      content: {
+        'application/json': {
+          schema: z.object({
+            success: z.literal(true),
+          }),
+        },
+      },
+      description: 'Error accepted for processing',
+    },
+    400: {
+      content: {
+        'application/json': {
+          schema: z.object({
+            success: z.literal(false),
+            error: z.string(),
+          }),
+        },
+      },
+      description: 'Invalid JSON or payload',
+    },
+    403: {
+      content: {
+        'application/json': {
+          schema: z.object({
+            success: z.literal(false),
+            error: z.string(),
+          }),
+        },
+      },
+      description: 'Forbidden — invalid or missing internal token',
+    },
+  },
+});
+
+app.openapi(captureErrorRoute, async (c) => {
   // Verify shared secret — rejects requests not originating from trusted RevealUI apps
   const token = c.req.header('X-Internal-Token');
   const secret = process.env.REVEALUI_SECRET;
   if (!(secret && token)) {
-    return c.json({ success: false, error: 'Forbidden' }, 403);
+    return c.json({ success: false as const, error: 'Forbidden' }, 403);
   }
   // Use timing-safe comparison to prevent character-by-character brute force
   const tokenBuf = Buffer.from(token);
   const secretBuf = Buffer.from(secret);
   if (tokenBuf.length !== secretBuf.length || !timingSafeEqual(tokenBuf, secretBuf)) {
-    return c.json({ success: false, error: 'Forbidden' }, 403);
+    return c.json({ success: false as const, error: 'Forbidden' }, 403);
   }
 
-  let body: unknown;
-  try {
-    body = await c.req.json();
-  } catch {
-    return c.json({ success: false, error: 'Invalid JSON' }, 400);
-  }
+  const body = c.req.valid('json');
 
-  const parsed = ErrorPayloadSchema.safeParse(body);
-  if (!parsed.success) {
-    return c.json({ success: false, error: 'Invalid payload' }, 400);
-  }
-
-  const { level, message, stack, app: appName, context, url, requestId, metadata } = parsed.data;
-  const environment = parsed.data.environment ?? process.env.NODE_ENV ?? 'production';
+  const { level, message, stack, app: appName, context, url, requestId, metadata } = body;
+  const environment = body.environment ?? process.env.NODE_ENV ?? 'production';
 
   // Fire-and-forget — never fail the caller if DB write fails
   (async () => {
@@ -83,7 +124,7 @@ app.post('/', async (c) => {
     }
   })();
 
-  return c.json({ success: true }, 202);
+  return c.json({ success: true as const }, 202);
 });
 
 export default app;
