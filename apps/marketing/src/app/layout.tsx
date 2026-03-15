@@ -33,6 +33,20 @@ export const metadata: Metadata = {
     description:
       'Users, content, products, payments, and AI — pre-wired and ready to deploy. Open-source business infrastructure for software companies.',
     type: 'website',
+    images: [
+      {
+        url: '/api/og?title=RevealUI&description=Build your business, not your boilerplate.',
+        width: 1200,
+        height: 630,
+        alt: 'RevealUI — Open-Source Business Infrastructure',
+      },
+    ],
+  },
+  twitter: {
+    card: 'summary_large_image',
+    title: 'RevealUI — Build your business, not your boilerplate.',
+    description: 'Users, content, products, payments, and AI — pre-wired and ready to deploy.',
+    images: ['/api/og?title=RevealUI&description=Build your business, not your boilerplate.'],
   },
 };
 
