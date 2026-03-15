@@ -206,6 +206,20 @@ export class ConsentManager {
 }
 
 /**
+ * Escape a value for safe CSV inclusion.
+ * Prevents CSV injection by prefixing formula-triggering characters (=, +, -, @, \t, \r)
+ * with a single quote, and escapes embedded quotes/commas per RFC 4180.
+ */
+function escapeCsvField(value: string): string {
+  // Prefix formula-triggering characters to prevent CSV injection in spreadsheet apps
+  let safe = /^[=+\-@\t\r]/.test(value) ? `'${value}` : value;
+  // RFC 4180: escape double quotes by doubling them
+  safe = safe.replace(/"/g, '""');
+  // Always quote the field to handle commas, newlines, and quotes
+  return `"${safe}"`;
+}
+
+/**
  * Data export system
  */
 export class DataExportSystem {
@@ -254,13 +268,13 @@ export class DataExportSystem {
     // Profile data
     lines.push('Type,Key,Value');
     Object.entries(exportData.data.profile).forEach(([key, value]) => {
-      lines.push(`Profile,${key},"${value}"`);
+      lines.push(`Profile,${escapeCsvField(key)},${escapeCsvField(String(value))}`);
     });
 
     // Activities
     exportData.data.activities.forEach((activity, index) => {
       Object.entries(activity).forEach(([key, value]) => {
-        lines.push(`Activity ${index + 1},${key},"${value}"`);
+        lines.push(`Activity ${index + 1},${escapeCsvField(key)},${escapeCsvField(String(value))}`);
       });
     });
 
@@ -630,6 +644,13 @@ export interface DataBreach {
 
 export class DataBreachManager {
   private breaches: Map<string, DataBreach> = new Map();
+
+  constructor() {
+    logger.warn(
+      'DataBreachManager: using in-memory storage — breach records will be lost on restart. ' +
+        'For production GDPR compliance, migrate to database-backed storage.',
+    );
+  }
 
   /**
    * Report data breach
