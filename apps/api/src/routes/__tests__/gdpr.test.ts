@@ -131,9 +131,10 @@ describe('POST /gdpr/consent/grant', () => {
     const app = createApp(testUser);
     const res = await jsonPost(app, '/gdpr/consent/grant', {});
     expect(res.status).toBe(400);
+    // zod-openapi wraps validation errors in { success: false, error: ZodError }
     const body = await parseBody(res);
     expect(body.success).toBe(false);
-    expect(body.error).toContain('Invalid');
+    expect(body.error.name).toBe('ZodError');
   });
 
   it('rejects invalid consent type', async () => {
