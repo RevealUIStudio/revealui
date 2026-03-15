@@ -167,46 +167,6 @@ export function createDatabaseHealthCheck(queryFn: () => Promise<void>): HealthC
 }
 
 /**
- * Redis health check
- */
-export function createRedisHealthCheck(pingFn: () => Promise<string>): HealthCheck {
-  return {
-    name: 'redis',
-    critical: false,
-    timeout: 3000,
-    check: async () => {
-      const startTime = Date.now();
-
-      try {
-        const response = await pingFn();
-
-        if (response !== 'PONG') {
-          return {
-            status: 'unhealthy',
-            message: 'Redis ping failed',
-          };
-        }
-
-        const duration = Date.now() - startTime;
-
-        return {
-          status: duration > 500 ? 'degraded' : 'healthy',
-          message: duration > 500 ? 'Redis responding slowly' : 'Redis healthy',
-          details: {
-            responseTime: duration,
-          },
-        };
-      } catch (error) {
-        return {
-          status: 'unhealthy',
-          message: error instanceof Error ? error.message : 'Redis connection failed',
-        };
-      }
-    },
-  };
-}
-
-/**
  * Memory health check
  */
 export function createMemoryHealthCheck(thresholdPercent: number = 90): HealthCheck {

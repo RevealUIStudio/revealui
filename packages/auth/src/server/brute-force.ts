@@ -2,7 +2,7 @@
  * Brute Force Protection
  *
  * Tracks failed login attempts and locks accounts after threshold.
- * Uses storage abstraction (Redis, database, or in-memory).
+ * Uses storage abstraction (database or in-memory).
  */
 
 import { getStorage } from './storage/index.js';

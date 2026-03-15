@@ -265,7 +265,7 @@ Key questions:
 - [ ] **Step 2: Document the architecture decision**
 
 If DatabaseStorage is sufficient, document why in a code comment at the storage factory.
-If latency is a concern, create a Upstash Redis adapter implementing the Storage interface.
+If latency is a concern, consider ElectricSQL/PGlite for local-first caching.
 
 - [ ] **Step 3: Commit decision**
 

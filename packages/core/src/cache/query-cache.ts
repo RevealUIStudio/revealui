@@ -1,7 +1,9 @@
 /**
- * Query Result Caching with Redis
+ * Query Result Caching
  *
- * Implements multi-layer caching for database queries
+ * In-memory Map-based cache for database queries. No external dependencies
+ * (Redis, Memcached, etc.) — RevealUI uses PostgreSQL + ElectricSQL/PGlite
+ * for all persistence and sync.
  */
 
 import { logger } from '../observability/logger.js';
@@ -20,8 +22,7 @@ interface CacheStats {
   hitRate: number;
 }
 
-// Mock Redis for now - replace with actual Redis connection
-class RedisCache {
+class QueryCache {
   private cache = new Map<string, { value: string; expires: number }>();
   private stats: CacheStats = {
     hits: 0,
@@ -31,7 +32,7 @@ class RedisCache {
     hitRate: 0,
   };
 
-  async get(key: string): Promise<string | null> {
+  get(key: string): string | null {
     const entry = this.cache.get(key);
 
     if (!entry) {
@@ -52,19 +53,15 @@ class RedisCache {
     return entry.value;
   }
 
-  async set(key: string, value: string, ttl: number): Promise<void> {
+  set(key: string, value: string, ttlSeconds: number): void {
     this.cache.set(key, {
       value,
-      expires: Date.now() + ttl * 1000,
+      expires: Date.now() + ttlSeconds * 1000,
     });
     this.stats.sets++;
   }
 
-  async setex(key: string, ttl: number, value: string): Promise<void> {
-    await this.set(key, value, ttl);
-  }
-
-  async del(...keys: string[]): Promise<number> {
+  del(...keys: string[]): number {
     let deleted = 0;
     for (const key of keys) {
       if (this.cache.delete(key)) {
@@ -75,12 +72,12 @@ class RedisCache {
     return deleted;
   }
 
-  async keys(pattern: string): Promise<string[]> {
+  keys(pattern: string): string[] {
     const regex = new RegExp(pattern.replace('*', '.*'));
     return Array.from(this.cache.keys()).filter((key) => regex.test(key));
   }
 
-  async flushall(): Promise<void> {
+  clear(): void {
     this.cache.clear();
   }
 
@@ -94,7 +91,7 @@ class RedisCache {
   }
 }
 
-const redis = new RedisCache();
+const cache = new QueryCache();
 
 /**
  * Cache a query result
@@ -112,7 +109,7 @@ export async function cacheQuery<T>(
   const cacheKey = `${prefix}:${key}`;
 
   // Try cache first
-  const cached = await redis.get(cacheKey);
+  const cached = cache.get(cacheKey);
   if (cached) {
     try {
       return JSON.parse(cached) as T;
@@ -127,7 +124,7 @@ export async function cacheQuery<T>(
 
   // Cache result
   try {
-    await redis.setex(cacheKey, ttl, JSON.stringify(result));
+    cache.set(cacheKey, JSON.stringify(result), ttl);
   } catch (error) {
     logger.error('Cache set error', error instanceof Error ? error : new Error(String(error)));
     // Continue even if caching fails
@@ -139,41 +136,41 @@ export async function cacheQuery<T>(
 /**
  * Invalidate cache by key
  */
-export async function invalidateCache(key: string): Promise<void> {
-  await redis.del(key);
+export function invalidateCache(key: string): void {
+  cache.del(key);
 }
 
 /**
  * Invalidate cache by pattern
  */
-export async function invalidateCachePattern(pattern: string): Promise<void> {
-  const keys = await redis.keys(pattern);
+export function invalidateCachePattern(pattern: string): void {
+  const keys = cache.keys(pattern);
   if (keys.length > 0) {
-    await redis.del(...keys);
+    cache.del(...keys);
   }
 }
 
 /**
  * Invalidate cache by tags
  */
-export async function invalidateCacheTags(tags: string[]): Promise<void> {
+export function invalidateCacheTags(tags: string[]): void {
   for (const tag of tags) {
-    await invalidateCachePattern(`*:tag:${tag}:*`);
+    invalidateCachePattern(`*:tag:${tag}:*`);
   }
 }
 
 /**
  * Clear all cache
  */
-export async function clearCache(): Promise<void> {
-  await redis.flushall();
+export function clearCache(): void {
+  cache.clear();
 }
 
 /**
  * Get cache statistics
  */
 export function getCacheStats(): CacheStats {
-  return redis.getStats();
+  return cache.getStats();
 }
 
 /**
@@ -231,22 +228,22 @@ export async function cacheCount(
 /**
  * Invalidate resource cache
  */
-export async function invalidateResource(resource: string): Promise<void> {
-  await invalidateCachePattern(`*:${resource}:*`);
+export function invalidateResource(resource: string): void {
+  invalidateCachePattern(`*:${resource}:*`);
 }
 
 /**
  * Warm cache with data
  */
-export async function warmCache<T>(key: string, data: T, ttl = 300): Promise<void> {
-  await redis.setex(`query:${key}`, ttl, JSON.stringify(data));
+export function warmCache<T>(key: string, data: T, ttl = 300): void {
+  cache.set(`query:${key}`, JSON.stringify(data), ttl);
 }
 
 /**
  * Get cached value without executing query
  */
-export async function getCached<T>(key: string): Promise<T | null> {
-  const cached = await redis.get(`query:${key}`);
+export function getCached<T>(key: string): T | null {
+  const cached = cache.get(`query:${key}`);
   if (!cached) return null;
 
   try {
@@ -259,8 +256,8 @@ export async function getCached<T>(key: string): Promise<T | null> {
 /**
  * Check if key exists in cache
  */
-export async function cacheExists(key: string): Promise<boolean> {
-  const cached = await redis.get(`query:${key}`);
+export function cacheExists(key: string): boolean {
+  const cached = cache.get(`query:${key}`);
   return cached !== null;
 }
 
@@ -327,13 +324,13 @@ export async function cacheSWR<T>(
   const staleKey = `${cacheKey}:stale`;
 
   // Try fresh cache
-  const cached = await redis.get(cacheKey);
+  const cached = cache.get(cacheKey);
   if (cached) {
     return JSON.parse(cached) as T;
   }
 
   // Try stale cache while revalidating
-  const stale = await redis.get(staleKey);
+  const stale = cache.get(staleKey);
   if (stale) {
     // Return stale data immediately
     const staleData = JSON.parse(stale) as T;
@@ -341,8 +338,8 @@ export async function cacheSWR<T>(
     // Revalidate in background
     queryFn()
       .then((fresh) => {
-        redis.setex(cacheKey, ttl, JSON.stringify(fresh));
-        redis.setex(staleKey, staleTime, JSON.stringify(fresh));
+        cache.set(cacheKey, JSON.stringify(fresh), ttl);
+        cache.set(staleKey, JSON.stringify(fresh), staleTime);
       })
       .catch((error) => {
         logger.error(
@@ -358,10 +355,8 @@ export async function cacheSWR<T>(
   const result = await queryFn();
 
   // Cache both fresh and stale
-  await Promise.all([
-    redis.setex(cacheKey, ttl, JSON.stringify(result)),
-    redis.setex(staleKey, staleTime, JSON.stringify(result)),
-  ]);
+  cache.set(cacheKey, JSON.stringify(result), ttl);
+  cache.set(staleKey, JSON.stringify(result), staleTime);
 
   return result;
 }

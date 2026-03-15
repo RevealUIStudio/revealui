@@ -604,12 +604,12 @@ CREATE INDEX sessions_expires_at_idx ON sessions(expires_at);
 - Or use worker threads for hashing
 
 #### 2. Session Caching
-- Cache active sessions in Redis
+- Cache active sessions in-memory (Map-based)
 - Reduce database lookups
 
 #### 3. Rate Limiting
-- Use Redis for distributed rate limiting
-- More efficient than in-memory
+- Use database backend for distributed rate limiting
+- PostgreSQL `FOR UPDATE SKIP LOCKED` for concurrent safety
 
 ## CI/CD Integration
 
@@ -746,7 +746,7 @@ export BASE_URL=http://localhost:3000
    - Key generation
 
 2. **Check storage**
-   - In-memory vs Redis
+   - In-memory vs database
    - Storage performance
 
 ### Performance Budget Issues
@@ -1481,7 +1481,7 @@ pnpm benchmark:api rate-limit
 2. **Caching Benchmark**
    - Measure cache hit/miss performance
    - Test invalidation strategies
-   - Compare in-memory vs Redis
+   - Compare in-memory vs database-backed
 
 3. **Payload Optimization Benchmark**
    - Measure field selection impact
@@ -1521,7 +1521,7 @@ Rate Limiting:
 
 ### Infrastructure
 
-1. **Use Redis**: Replace in-memory stores with Redis in production
+1. **Use Database Backend**: Replace in-memory stores with PostgreSQL-backed storage in production
 2. **CDN Integration**: Use CDN for static assets and cached responses
 3. **Load Balancing**: Ensure rate limits work across multiple servers
 4. **Monitoring**: Implement comprehensive API monitoring

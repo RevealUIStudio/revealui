@@ -908,9 +908,9 @@ If Option A: ~3 weeks of work. If Option B: ~1 day (rename + docs).
 
 ---
 
-### Task 22: Redis Distributed Cache (GAP-034) — 3 hours
+### Task 22: ~~Redis Distributed Cache (GAP-034)~~ — CLOSED (won't-fix)
 
-- [ ] Steps deferred — see GAP-034.yml for acceptance criteria
+Architectural decision: RevealUI uses in-memory Map-based caching + PostgreSQL + ElectricSQL/PGlite. No external cache dependency needed.
 
 ---
 

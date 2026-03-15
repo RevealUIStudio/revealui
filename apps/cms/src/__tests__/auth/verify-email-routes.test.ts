@@ -195,7 +195,7 @@ describe('GET /api/auth/verify-email', () => {
   });
 
   it('redirects with verification_failed when rate limit check throws', async () => {
-    vi.mocked(checkRateLimit).mockRejectedValue(new Error('Redis down'));
+    vi.mocked(checkRateLimit).mockRejectedValue(new Error('Storage unavailable'));
 
     const req = makeVerifyRequest('some-token');
     const res = await GET(req);

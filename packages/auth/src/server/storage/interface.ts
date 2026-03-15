@@ -1,7 +1,7 @@
 /**
  * Storage Interface
  *
- * Abstract interface for storage backends (in-memory, Redis, database)
+ * Abstract interface for storage backends (in-memory, database)
  */
 
 export interface Storage {

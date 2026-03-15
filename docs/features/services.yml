@@ -82,7 +82,7 @@ limitations:
     summary: "Requires Pro tier — current import-time license checks should converge on account-level entitlements and commercial policy"
   - id: circuit-breaker-local
     surface: api
-    summary: "Circuit breaker state is per-instance only (no Redis backing)"
+    summary: "Circuit breaker state is per-instance only (in-memory)"
   - id: billing-catalog-control
     surface: api
     summary: "Commercial safety still depends on server-owned billing catalog and correct webhook processing; the package alone does not guarantee that"

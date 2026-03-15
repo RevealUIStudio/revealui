@@ -1226,8 +1226,8 @@ Test the following scenarios:
    - Remove token from response
 
 2. **Migrate In-Memory Stores**
-   - Move rate limiting to Redis
-   - Move brute force protection to Redis
+   - Move rate limiting to database backend
+   - Move brute force protection to database backend
    - Move reset tokens to database
 
 #### 🟡 Should Fix Before Production
@@ -1262,12 +1262,12 @@ Test the following scenarios:
 
 When ready to scale horizontally, migrate in-memory stores:
 
-1. **Rate Limiting:** Move to Redis with TTL
-   - Use Redis INCR with EXPIRE
+1. **Rate Limiting:** Move to database with TTL
+   - Use PostgreSQL `INSERT ... ON CONFLICT` with expiry column
    - Key format: `ratelimit:{ip}:{endpoint}`
 
-2. **Brute Force Protection:** Move to Redis with TTL
-   - Use Redis INCR with EXPIRE
+2. **Brute Force Protection:** Move to database with TTL
+   - Use PostgreSQL `INSERT ... ON CONFLICT` with expiry column
    - Key format: `bruteforce:{email}`
 
 3. **Password Reset Tokens:** Move to database table

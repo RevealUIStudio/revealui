@@ -211,7 +211,7 @@ describe('POST /api/auth/sign-out', () => {
   });
 
   it('returns 500 when deleteSession throws', async () => {
-    vi.mocked(deleteSession).mockRejectedValue(new Error('Redis down'));
+    vi.mocked(deleteSession).mockRejectedValue(new Error('Storage unavailable'));
 
     const req = makePostRequest('/api/auth/sign-out');
     const res = await POST(req);

@@ -690,7 +690,7 @@ api-surface:
 limitations:
   - id: no-docker-compose
     surface: api
-    summary: "No Docker Compose for local infrastructure (Postgres, Redis, etc.)"
+    summary: "No Docker Compose for local infrastructure (Postgres, etc.)"
   - id: no-env-production-example
     surface: api
     summary: "No .env.production.example for self-hosted deployments"
