@@ -142,7 +142,7 @@ describe('cacheQuery', () => {
     const queryFn = vi.fn().mockResolvedValue('valid');
     await cacheQuery('corrupt-key', queryFn);
 
-    // The internal RedisCache stores JSON strings; if parsing fails,
+    // The internal QueryCache stores JSON strings; if parsing fails,
     // it should re-execute the query. We can't easily corrupt the internal
     // Map, but we verify the normal flow works after clearCache.
     await clearCache();

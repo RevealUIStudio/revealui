@@ -773,7 +773,7 @@ Database performance is critical for application speed. This guide covers:
 - **Query Monitoring** - Track slow queries and performance metrics
 - **Indexes** - Strategic indexing for fast lookups
 - **N+1 Elimination** - Optimize relationship queries
-- **Caching** - Redis caching layer for query results
+- **Caching** - In-memory Map-based caching for query results
 - **Connection Pool** - Optimized pool configuration
 
 ### Performance Targets

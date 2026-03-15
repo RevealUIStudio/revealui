@@ -2302,7 +2302,6 @@ docker-compose down
 - **CMS**: http://localhost:3000
 - **Dashboard**: http://localhost:3001
 - **PostgreSQL**: localhost:5432
-- **Redis**: localhost:6379
 - **MinIO**: http://localhost:9000
 - **Prometheus**: http://localhost:9090
 - **Grafana**: http://localhost:3003
@@ -2490,12 +2489,8 @@ kubectl create secret generic revealui-secrets \
 # Deploy PostgreSQL
 kubectl apply -f k8s/statefulsets/postgres.yaml
 
-# Deploy Redis
-kubectl apply -f k8s/statefulsets/redis.yaml
-
-# Wait for databases to be ready
+# Wait for database to be ready
 kubectl wait --for=condition=ready pod -l app=postgres -n revealui --timeout=300s
-kubectl wait --for=condition=ready pod -l app=redis -n revealui --timeout=300s
 ```
 
 #### 4. Deploy Applications
@@ -2652,8 +2647,7 @@ Import dashboards from `k8s/monitoring/dashboards/`:
 
 1. **RevealUI Overview**: System health, request rates, errors
 2. **Database Metrics**: PostgreSQL connections, query performance
-3. **Redis Metrics**: Memory usage, hit rate, commands
-4. **Kubernetes Metrics**: Pod CPU/memory, network I/O
+3. **Kubernetes Metrics**: Pod CPU/memory, network I/O
 
 ### Alerts
 
@@ -2662,7 +2656,6 @@ Configure alerts in `k8s/monitoring/alerts/`:
 - High error rate (>5%)
 - High response time (>2s p95)
 - Database connection pool exhausted
-- Redis memory usage >90%
 - Pod crash loop
 - Deployment failed
 
@@ -2903,18 +2896,6 @@ kubectl set env deployment/revealui-cms \
 kubectl scale statefulset/postgres --replicas=3 -n revealui
 ```
 
-#### Redis Level
-
-```yaml
-# Increase memory limit
-resources:
-  limits:
-    memory: "2Gi"
-
-# Enable cluster mode
-spec:
-  replicas: 6
-```
 
 ## Security Best Practices
 

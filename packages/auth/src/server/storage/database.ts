@@ -2,7 +2,7 @@
  * Database Storage
  *
  * Database backend using Drizzle ORM
- * Slower than Redis but uses existing database infrastructure
+ * Uses existing database infrastructure with no external cache dependency
  */
 
 // Import config module (ESM)

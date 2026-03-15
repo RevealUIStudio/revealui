@@ -74,7 +74,6 @@ apply_k8s_configs() {
     # Wait for databases to be ready
     echo "Waiting for databases to be ready..."
     kubectl wait --for=condition=ready pod -l app=postgres -n ${NAMESPACE} --timeout=${TIMEOUT}s || true
-    kubectl wait --for=condition=ready pod -l app=redis -n ${NAMESPACE} --timeout=${TIMEOUT}s || true
 
     echo -e "${GREEN}✓ Kubernetes configurations applied${NC}"
 }

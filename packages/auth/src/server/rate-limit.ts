@@ -2,7 +2,7 @@
  * Rate Limiting Utilities
  *
  * Rate limiting for authentication endpoints using storage abstraction.
- * Supports in-memory (dev), Redis (production), or database (fallback).
+ * Supports in-memory (dev) or database (production) backends.
  */
 
 import { getStorage } from './storage/index.js';
