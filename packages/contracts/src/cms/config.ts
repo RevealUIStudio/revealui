@@ -187,6 +187,9 @@ export interface CollectionConfig<T = UnknownRecord> extends Omit<CollectionStru
   // Hook functions can destructure their arguments freely
   hooks?: LooseCollectionHooksConfig<T>;
 
+  /** Allow unauthenticated read access for published content. Default: false. */
+  publicRead?: boolean;
+
   endpoints?: EndpointConfig[] | false;
 
   // Custom properties for extensibility (without breaking type inference)
