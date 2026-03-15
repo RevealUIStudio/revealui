@@ -9,6 +9,7 @@
  * duplicate processing across Vercel multi-region deployments.
  */
 
+import { createRoute, OpenAPIHono, z } from '@hono/zod-openapi';
 import { getFeaturesForTier, isFeatureEnabled } from '@revealui/core/features';
 import { generateLicenseKey, type LicenseTier, resetLicenseState } from '@revealui/core/license';
 import { logger } from '@revealui/core/observability/logger';
@@ -24,7 +25,6 @@ import {
   users,
 } from '@revealui/db/schema';
 import { and, desc, eq } from 'drizzle-orm';
-import { Hono } from 'hono';
 import Stripe from 'stripe';
 
 /** Escape HTML special characters to prevent XSS in email templates */
@@ -37,7 +37,7 @@ function escapeHtml(str: string): string {
     .replace(/'/g, '&#39;');
 }
 
-const app = new Hono();
+const app = new OpenAPIHono();
 
 type HostedTier = 'free' | LicenseTier;
 type DbExecutor = Pick<Database, 'select' | 'insert' | 'update' | 'delete'>;
@@ -472,7 +472,58 @@ const relevantEvents = new Set([
   'charge.refunded',
 ]);
 
-app.post('/stripe', async (c) => {
+const stripeWebhookRoute = createRoute({
+  method: 'post',
+  path: '/stripe',
+  tags: ['webhooks'],
+  summary: 'Stripe webhook handler',
+  description:
+    'Receives Stripe webhook events for subscription lifecycle, license management, disputes, and refunds. Requires raw body access for signature verification.',
+  request: {
+    body: {
+      content: {
+        'application/json': {
+          schema: z.unknown(),
+        },
+      },
+    },
+  },
+  responses: {
+    200: {
+      content: {
+        'application/json': {
+          schema: z.object({
+            received: z.literal(true),
+            duplicate: z.boolean().optional(),
+          }),
+        },
+      },
+      description: 'Webhook event received and processed',
+    },
+    400: {
+      content: {
+        'application/json': {
+          schema: z.object({
+            error: z.string(),
+          }),
+        },
+      },
+      description: 'Missing signature or invalid webhook',
+    },
+    500: {
+      content: {
+        'application/json': {
+          schema: z.object({
+            error: z.string(),
+          }),
+        },
+      },
+      description: 'Webhook processing failed',
+    },
+  },
+});
+
+app.openapi(stripeWebhookRoute, async (c) => {
   const webhookSecret = getWebhookSecret();
   const stripe = getStripeClient();
 
@@ -493,7 +544,7 @@ app.post('/stripe', async (c) => {
   }
 
   if (!relevantEvents.has(event.type)) {
-    return c.json({ received: true }, 200);
+    return c.json({ received: true as const }, 200);
   }
 
   // NOTE: We intentionally do NOT enforce a timestamp freshness window here.
@@ -507,7 +558,7 @@ app.post('/stripe', async (c) => {
 
   // DB-backed idempotency check
   if (await checkAndMarkProcessed(db, event.id, event.type)) {
-    return c.json({ received: true, duplicate: true }, 200);
+    return c.json({ received: true as const, duplicate: true }, 200);
   }
 
   try {
@@ -1375,7 +1426,7 @@ app.post('/stripe', async (c) => {
     return c.json({ error: 'Webhook processing failed' }, 500);
   }
 
-  return c.json({ received: true }, 200);
+  return c.json({ received: true as const }, 200);
 });
 
 // ─── Email Templates ─────────────────────────────────────────────────────────

@@ -17,6 +17,7 @@
  * Discovery endpoints (agent.json, /a2a/agents) are public — no auth required.
  */
 
+import { createRoute, OpenAPIHono, z } from '@hono/zod-openapi';
 import type { A2AJsonRpcRequest } from '@revealui/contracts';
 import { A2AJsonRpcRequestSchema, AgentDefinitionSchema, LLM_PROVIDERS } from '@revealui/contracts';
 import { isFeatureEnabled } from '@revealui/core/features';
@@ -24,14 +25,12 @@ import { logger } from '@revealui/core/observability/logger';
 import { getClient } from '@revealui/db';
 import { agentActions, marketplaceServers, registeredAgents } from '@revealui/db/schema';
 import { desc, eq } from 'drizzle-orm';
-import { Hono } from 'hono';
 import { authMiddleware } from '../middleware/auth.js';
 import { requireFeature } from '../middleware/license.js';
 import { requireTaskQuota } from '../middleware/task-quota.js';
 import { buildPaymentMethods } from '../middleware/x402.js';
 
 // JSON-RPC error codes (inlined — avoids static import of @revealui/ai)
-const RPC_PARSE_ERROR = -32700;
 const RPC_INVALID_REQUEST = -32600;
 
 // Lazy-loaded @revealui/ai module — cached after first successful import
@@ -60,7 +59,7 @@ interface UserContext {
   role: string;
 }
 
-const app = new Hono();
+const app = new OpenAPIHono();
 
 // Base URL for generating agent card URLs
 // x-forwarded-proto is set by Vercel's edge when TLS is terminated at the proxy
@@ -90,42 +89,95 @@ async function llmClientFromRequest(req: Request): Promise<unknown | undefined> 
 // =============================================================================
 
 /** Platform-level agent card */
-app.get('/agent.json', async (c) => {
-  const aiMod = await getAiModule();
-  if (!aiMod) {
-    return c.json({ error: 'AI package not available' }, 503);
-  }
-  const baseUrl = getBaseUrl(c.req.raw);
-  const card = aiMod.agentCardRegistry.getCard('revealui-creator', baseUrl);
-  if (!card) {
-    return c.json({ error: 'Agent not found' }, 404);
-  }
-  return c.json(card, 200, {
-    'Content-Type': 'application/json',
-    'Cache-Control': 'public, max-age=300',
-  });
-});
+app.openapi(
+  createRoute({
+    method: 'get',
+    path: '/agent.json',
+    tags: ['a2a'],
+    summary: 'Platform-level agent card',
+    responses: {
+      200: {
+        content: { 'application/json': { schema: z.unknown() } },
+        description: 'Agent card',
+      },
+      404: {
+        content: { 'application/json': { schema: z.unknown() } },
+        description: 'Agent not found',
+      },
+      503: {
+        content: { 'application/json': { schema: z.unknown() } },
+        description: 'AI package not available',
+      },
+    },
+  }),
+  async (c) => {
+    const aiMod = await getAiModule();
+    if (!aiMod) {
+      return c.json({ error: 'AI package not available' }, 503);
+    }
+    const baseUrl = getBaseUrl(c.req.raw);
+    const card = aiMod.agentCardRegistry.getCard('revealui-creator', baseUrl);
+    if (!card) {
+      return c.json({ error: 'Agent not found' }, 404);
+    }
+    return c.json(card, 200, {
+      'Content-Type': 'application/json',
+      'Cache-Control': 'public, max-age=300',
+    });
+  },
+);
 
 /** Per-agent card at /.well-known/agents/:id/agent.json */
-app.get('/agents/:id/agent.json', async (c) => {
-  const aiMod = await getAiModule();
-  if (!aiMod) {
-    return c.json({ error: 'AI package not available' }, 503);
-  }
-  const agentId = c.req.param('id');
-  if (!/^[\w-]{1,256}$/.test(agentId)) {
-    return c.json({ error: 'Invalid agent ID format' }, 400);
-  }
-  const baseUrl = getBaseUrl(c.req.raw);
-  const card = aiMod.agentCardRegistry.getCard(agentId, baseUrl);
-  if (!card) {
-    return c.json({ error: `Agent '${agentId}' not found` }, 404);
-  }
-  return c.json(card, 200, {
-    'Content-Type': 'application/json',
-    'Cache-Control': 'public, max-age=300',
-  });
-});
+app.openapi(
+  createRoute({
+    method: 'get',
+    path: '/agents/{id}/agent.json',
+    tags: ['a2a'],
+    summary: 'Per-agent discovery card',
+    request: {
+      params: z.object({
+        id: z.string().openapi({ description: 'Agent ID' }),
+      }),
+    },
+    responses: {
+      200: {
+        content: { 'application/json': { schema: z.unknown() } },
+        description: 'Agent card',
+      },
+      400: {
+        content: { 'application/json': { schema: z.unknown() } },
+        description: 'Invalid agent ID format',
+      },
+      404: {
+        content: { 'application/json': { schema: z.unknown() } },
+        description: 'Agent not found',
+      },
+      503: {
+        content: { 'application/json': { schema: z.unknown() } },
+        description: 'AI package not available',
+      },
+    },
+  }),
+  async (c) => {
+    const aiMod = await getAiModule();
+    if (!aiMod) {
+      return c.json({ error: 'AI package not available' }, 503);
+    }
+    const { id: agentId } = c.req.valid('param');
+    if (!/^[\w-]{1,256}$/.test(agentId)) {
+      return c.json({ error: 'Invalid agent ID format' }, 400);
+    }
+    const baseUrl = getBaseUrl(c.req.raw);
+    const card = aiMod.agentCardRegistry.getCard(agentId, baseUrl);
+    if (!card) {
+      return c.json({ error: `Agent '${agentId}' not found` }, 404);
+    }
+    return c.json(card, 200, {
+      'Content-Type': 'application/json',
+      'Cache-Control': 'public, max-age=300',
+    });
+  },
+);
 
 /**
  * MCP Marketplace discovery (Phase 5.5).
@@ -134,54 +186,89 @@ app.get('/agents/:id/agent.json', async (c) => {
  * Returns marketplace metadata and the registry URL for agent discovery.
  * Includes a lightweight summary of active servers for quick enumeration.
  */
-app.get('/marketplace.json', async (c) => {
-  const baseUrl = getBaseUrl(c.req.raw);
-
-  // Fetch active server summaries (name, category, price only — not internal URLs)
-  let servers: Array<{
-    id: string;
-    name: string;
-    description: string;
-    category: string;
-    pricePerCallUsdc: string;
-    invokeUrl: string;
-  }> = [];
-  try {
-    const db = getClient();
-    const rows = await db
-      .select({
-        id: marketplaceServers.id,
-        name: marketplaceServers.name,
-        description: marketplaceServers.description,
-        category: marketplaceServers.category,
-        pricePerCallUsdc: marketplaceServers.pricePerCallUsdc,
-      })
-      .from(marketplaceServers)
-      .where(eq(marketplaceServers.status, 'active'))
-      .limit(50);
-
-    servers = rows.map((row) => ({
-      ...row,
-      invokeUrl: `${baseUrl}/api/marketplace/servers/${row.id}/invoke`,
-    }));
-  } catch {
-    // DB unavailable — return metadata without server list
-  }
-
-  return c.json(
-    {
-      version: '1.0',
-      platform: 'revealui',
-      registryUrl: `${baseUrl}/api/marketplace/servers`,
-      publishUrl: `${baseUrl}/api/marketplace/servers`,
-      revenueShare: { platform: 0.2, developer: 0.8 },
-      paymentMethods: ['x402-usdc'],
-      servers,
+app.openapi(
+  createRoute({
+    method: 'get',
+    path: '/marketplace.json',
+    tags: ['a2a'],
+    summary: 'MCP Marketplace discovery metadata',
+    responses: {
+      200: {
+        content: {
+          'application/json': {
+            schema: z.object({
+              version: z.string(),
+              platform: z.string(),
+              registryUrl: z.string(),
+              publishUrl: z.string(),
+              revenueShare: z.object({ platform: z.number(), developer: z.number() }),
+              paymentMethods: z.array(z.string()),
+              servers: z.array(
+                z.object({
+                  id: z.string(),
+                  name: z.string(),
+                  description: z.string(),
+                  category: z.string(),
+                  pricePerCallUsdc: z.string(),
+                  invokeUrl: z.string(),
+                }),
+              ),
+            }),
+          },
+        },
+        description: 'Marketplace metadata',
+      },
     },
-    200,
-    { 'Cache-Control': 'public, max-age=60' },
-  );
-});
+  }),
+  async (c) => {
+    const baseUrl = getBaseUrl(c.req.raw);
+
+    // Fetch active server summaries (name, category, price only — not internal URLs)
+    let servers: Array<{
+      id: string;
+      name: string;
+      description: string;
+      category: string;
+      pricePerCallUsdc: string;
+      invokeUrl: string;
+    }> = [];
+    try {
+      const db = getClient();
+      const rows = await db
+        .select({
+          id: marketplaceServers.id,
+          name: marketplaceServers.name,
+          description: marketplaceServers.description,
+          category: marketplaceServers.category,
+          pricePerCallUsdc: marketplaceServers.pricePerCallUsdc,
+        })
+        .from(marketplaceServers)
+        .where(eq(marketplaceServers.status, 'active'))
+        .limit(50);
+
+      servers = rows.map((row) => ({
+        ...row,
+        invokeUrl: `${baseUrl}/api/marketplace/servers/${row.id}/invoke`,
+      }));
+    } catch {
+      // DB unavailable — return metadata without server list
+    }
+
+    return c.json(
+      {
+        version: '1.0',
+        platform: 'revealui',
+        registryUrl: `${baseUrl}/api/marketplace/servers`,
+        publishUrl: `${baseUrl}/api/marketplace/servers`,
+        revenueShare: { platform: 0.2, developer: 0.8 },
+        paymentMethods: ['x402-usdc'],
+        servers,
+      },
+      200,
+      { 'Cache-Control': 'public, max-age=60' },
+    );
+  },
+);
 
 /**
  * x402 payment methods discovery (Phase 5.2).
@@ -191,24 +278,42 @@ app.get('/marketplace.json', async (c) => {
  * Agents can discover how to pay per-task in USDC on Base.
  * Returns 404 when X402_ENABLED=false (default).
  */
-app.get('/payment-methods.json', (c) => {
-  const baseUrl = getBaseUrl(c.req.raw);
-  const methods = buildPaymentMethods(baseUrl);
-  if (!methods) {
-    return c.json({ error: 'x402 payments not enabled on this instance' }, 404);
-  }
-  return c.json(methods, 200, {
-    'Content-Type': 'application/json',
-    'Cache-Control': 'public, max-age=300',
-  });
-});
+app.openapi(
+  createRoute({
+    method: 'get',
+    path: '/payment-methods.json',
+    tags: ['a2a'],
+    summary: 'x402 payment methods discovery',
+    responses: {
+      200: {
+        content: { 'application/json': { schema: z.unknown() } },
+        description: 'Payment methods',
+      },
+      404: {
+        content: { 'application/json': { schema: z.unknown() } },
+        description: 'x402 payments not enabled',
+      },
+    },
+  }),
+  (c) => {
+    const baseUrl = getBaseUrl(c.req.raw);
+    const methods = buildPaymentMethods(baseUrl);
+    if (!methods) {
+      return c.json({ error: 'x402 payments not enabled on this instance' }, 404);
+    }
+    return c.json(methods, 200, {
+      'Content-Type': 'application/json',
+      'Cache-Control': 'public, max-age=300',
+    });
+  },
+);
 
 // =============================================================================
 // A2A task API — /a2a/*
 // =============================================================================
 
 // biome-ignore lint/style/useNamingConvention: Hono requires PascalCase `Variables`
-const a2a = new Hono<{ Variables: { user: UserContext | undefined } }>();
+const a2a = new OpenAPIHono<{ Variables: { user: UserContext | undefined } }>();
 
 // Soft auth — populates user context when a session cookie is present.
 // Not required — anonymous A2A requests are allowed; stored keys are used when authenticated.
@@ -253,45 +358,124 @@ a2a.use('*', async (_c, next) => {
 });
 
 /** List all registered agents as A2A agent cards */
-a2a.get('/agents', async (c) => {
-  const aiMod = await getAiModule();
-  if (!aiMod) {
-    return c.json({ error: 'AI package not available' }, 503);
-  }
-  const baseUrl = getBaseUrl(c.req.raw);
-  const cards = aiMod.agentCardRegistry.listCards(baseUrl);
-  return c.json({ agents: cards });
-});
-
-/** Single agent card by ID */
-a2a.get('/agents/:id', async (c) => {
-  const aiMod = await getAiModule();
-  if (!aiMod) {
-    return c.json({ error: 'AI package not available' }, 503);
-  }
-  const agentId = c.req.param('id');
-  if (!/^[\w-]{1,256}$/.test(agentId)) {
-    return c.json({ error: 'Invalid agent ID format' }, 400);
-  }
-  const baseUrl = getBaseUrl(c.req.raw);
-  const card = aiMod.agentCardRegistry.getCard(agentId, baseUrl);
-  if (!card) {
-    return c.json({ error: `Agent '${agentId}' not found` }, 404);
-  }
-  return c.json(card);
-});
-
-/** Full agent definition — admin only, requires 'ai' feature */
-a2a.get(
-  '/agents/:id/def',
-  authMiddleware({ required: true }),
-  requireFeature('ai', { mode: 'entitlements' }),
+a2a.openapi(
+  createRoute({
+    method: 'get',
+    path: '/agents',
+    tags: ['a2a'],
+    summary: 'List all registered agents as A2A agent cards',
+    responses: {
+      200: {
+        content: { 'application/json': { schema: z.object({ agents: z.array(z.unknown()) }) } },
+        description: 'Agent card list',
+      },
+      503: {
+        content: { 'application/json': { schema: z.unknown() } },
+        description: 'AI package not available',
+      },
+    },
+  }),
   async (c) => {
     const aiMod = await getAiModule();
     if (!aiMod) {
       return c.json({ error: 'AI package not available' }, 503);
     }
-    const agentId = c.req.param('id');
+    const baseUrl = getBaseUrl(c.req.raw);
+    const cards = aiMod.agentCardRegistry.listCards(baseUrl);
+    return c.json({ agents: cards });
+  },
+);
+
+/** Single agent card by ID */
+a2a.openapi(
+  createRoute({
+    method: 'get',
+    path: '/agents/{id}',
+    tags: ['a2a'],
+    summary: 'Get a single agent card by ID',
+    request: {
+      params: z.object({
+        id: z.string().openapi({ description: 'Agent ID' }),
+      }),
+    },
+    responses: {
+      200: {
+        content: { 'application/json': { schema: z.unknown() } },
+        description: 'Agent card',
+      },
+      400: {
+        content: { 'application/json': { schema: z.unknown() } },
+        description: 'Invalid agent ID format',
+      },
+      404: {
+        content: { 'application/json': { schema: z.unknown() } },
+        description: 'Agent not found',
+      },
+      503: {
+        content: { 'application/json': { schema: z.unknown() } },
+        description: 'AI package not available',
+      },
+    },
+  }),
+  async (c) => {
+    const aiMod = await getAiModule();
+    if (!aiMod) {
+      return c.json({ error: 'AI package not available' }, 503);
+    }
+    const { id: agentId } = c.req.valid('param');
+    if (!/^[\w-]{1,256}$/.test(agentId)) {
+      return c.json({ error: 'Invalid agent ID format' }, 400);
+    }
+    const baseUrl = getBaseUrl(c.req.raw);
+    const card = aiMod.agentCardRegistry.getCard(agentId, baseUrl);
+    if (!card) {
+      return c.json({ error: `Agent '${agentId}' not found` }, 404);
+    }
+    return c.json(card);
+  },
+);
+
+/** Full agent definition — admin only, requires 'ai' feature */
+a2a.openapi(
+  createRoute({
+    method: 'get',
+    path: '/agents/{id}/def',
+    tags: ['a2a'],
+    summary: 'Get full agent definition (admin only)',
+    request: {
+      params: z.object({
+        id: z.string().openapi({ description: 'Agent ID' }),
+      }),
+    },
+    middleware: [
+      authMiddleware({ required: true }),
+      requireFeature('ai', { mode: 'entitlements' }),
+    ] as const,
+    responses: {
+      200: {
+        content: { 'application/json': { schema: z.object({ def: z.unknown() }) } },
+        description: 'Agent definition',
+      },
+      400: {
+        content: { 'application/json': { schema: z.unknown() } },
+        description: 'Invalid agent ID format',
+      },
+      404: {
+        content: { 'application/json': { schema: z.unknown() } },
+        description: 'Agent not found',
+      },
+      503: {
+        content: { 'application/json': { schema: z.unknown() } },
+        description: 'AI package not available',
+      },
+    },
+  }),
+  async (c) => {
+    const aiMod = await getAiModule();
+    if (!aiMod) {
+      return c.json({ error: 'AI package not available' }, 503);
+    }
+    const { id: agentId } = c.req.valid('param');
     if (!/^[\w-]{1,256}$/.test(agentId)) {
       return c.json({ error: 'Invalid agent ID format' }, 400);
     }
@@ -304,40 +488,113 @@ a2a.get(
 );
 
 /** Task history for an agent — last 20 actions, requires auth + 'ai' feature */
-a2a.get('/agents/:id/tasks', requireFeature('ai', { mode: 'entitlements' }), async (c) => {
-  const user = c.get('user');
-  if (!user) {
-    return c.json({ error: 'Authentication required' }, 401);
-  }
-  const agentId = c.req.param('id');
-  if (!/^[\w-]{1,256}$/.test(agentId)) {
-    return c.json({ error: 'Invalid agent ID format' }, 400);
-  }
-  try {
-    const db = getClient();
-    const rows = await db
-      .select()
-      .from(agentActions)
-      .where(eq(agentActions.agentId, agentId))
-      .orderBy(desc(agentActions.startedAt))
-      .limit(20);
-    return c.json({ tasks: rows });
-  } catch {
-    return c.json({ tasks: [] });
-  }
-});
+a2a.openapi(
+  createRoute({
+    method: 'get',
+    path: '/agents/{id}/tasks',
+    tags: ['a2a'],
+    summary: 'Get task history for an agent',
+    request: {
+      params: z.object({
+        id: z.string().openapi({ description: 'Agent ID' }),
+      }),
+    },
+    middleware: [requireFeature('ai', { mode: 'entitlements' })] as const,
+    responses: {
+      200: {
+        content: { 'application/json': { schema: z.object({ tasks: z.array(z.unknown()) }) } },
+        description: 'Task history',
+      },
+      400: {
+        content: { 'application/json': { schema: z.unknown() } },
+        description: 'Invalid agent ID format',
+      },
+      401: {
+        content: { 'application/json': { schema: z.unknown() } },
+        description: 'Authentication required',
+      },
+    },
+  }),
+  async (c) => {
+    const user = c.get('user');
+    if (!user) {
+      return c.json({ error: 'Authentication required' }, 401);
+    }
+    const { id: agentId } = c.req.valid('param');
+    if (!/^[\w-]{1,256}$/.test(agentId)) {
+      return c.json({ error: 'Invalid agent ID format' }, 400);
+    }
+    try {
+      const db = getClient();
+      const rows = await db
+        .select()
+        .from(agentActions)
+        .where(eq(agentActions.agentId, agentId))
+        .orderBy(desc(agentActions.startedAt))
+        .limit(20);
+      return c.json({ tasks: rows });
+    } catch {
+      return c.json({ tasks: [] });
+    }
+  },
+);
 
 /** Update an agent's mutable fields — requires auth + 'ai' feature */
-a2a.put(
-  '/agents/:id',
-  authMiddleware({ required: true }),
-  requireFeature('ai', { mode: 'entitlements' }),
+a2a.openapi(
+  createRoute({
+    method: 'put',
+    path: '/agents/{id}',
+    tags: ['a2a'],
+    summary: "Update an agent's mutable fields",
+    request: {
+      params: z.object({
+        id: z.string().openapi({ description: 'Agent ID' }),
+      }),
+      body: {
+        content: {
+          'application/json': {
+            schema: z.object({
+              name: z.string().optional(),
+              description: z.string().optional(),
+              systemPrompt: z.string().optional(),
+              model: z.string().optional(),
+              temperature: z.number().optional(),
+              maxTokens: z.number().optional(),
+              capabilities: z.unknown().optional(),
+            }),
+          },
+        },
+      },
+    },
+    middleware: [
+      authMiddleware({ required: true }),
+      requireFeature('ai', { mode: 'entitlements' }),
+    ] as const,
+    responses: {
+      200: {
+        content: { 'application/json': { schema: z.object({ card: z.unknown() }) } },
+        description: 'Updated agent card',
+      },
+      400: {
+        content: { 'application/json': { schema: z.unknown() } },
+        description: 'Invalid request',
+      },
+      404: {
+        content: { 'application/json': { schema: z.unknown() } },
+        description: 'Agent not found',
+      },
+      503: {
+        content: { 'application/json': { schema: z.unknown() } },
+        description: 'AI package not available',
+      },
+    },
+  }),
   async (c) => {
     const aiMod = await getAiModule();
     if (!aiMod) {
       return c.json({ error: 'AI package not available' }, 503);
     }
-    const agentId = c.req.param('id');
+    const { id: agentId } = c.req.valid('param');
     if (!/^[\w-]{1,256}$/.test(agentId)) {
       return c.json({ error: 'Invalid agent ID format' }, 400);
     }
@@ -345,16 +602,7 @@ a2a.put(
       return c.json({ error: `Agent '${agentId}' not found` }, 404);
     }
 
-    let body: unknown;
-    try {
-      body = await c.req.json();
-    } catch {
-      return c.json({ error: 'Invalid JSON' }, 400);
-    }
-
-    if (!body || typeof body !== 'object' || Array.isArray(body)) {
-      return c.json({ error: 'Request body must be a JSON object' }, 400);
-    }
+    const body = c.req.valid('json');
 
     const allowed = [
       'name',
@@ -407,12 +655,46 @@ a2a.put(
 );
 
 /** Retire (unregister) an agent — requires auth; built-in platform agents are protected */
-a2a.delete(
-  '/agents/:id',
-  authMiddleware({ required: true }),
-  requireFeature('ai', { mode: 'entitlements' }),
+a2a.openapi(
+  createRoute({
+    method: 'delete',
+    path: '/agents/{id}',
+    tags: ['a2a'],
+    summary: 'Retire (unregister) an agent',
+    request: {
+      params: z.object({
+        id: z.string().openapi({ description: 'Agent ID' }),
+      }),
+    },
+    middleware: [
+      authMiddleware({ required: true }),
+      requireFeature('ai', { mode: 'entitlements' }),
+    ] as const,
+    responses: {
+      200: {
+        content: { 'application/json': { schema: z.object({ success: z.boolean() }) } },
+        description: 'Agent retired',
+      },
+      400: {
+        content: { 'application/json': { schema: z.unknown() } },
+        description: 'Invalid agent ID format',
+      },
+      403: {
+        content: { 'application/json': { schema: z.unknown() } },
+        description: 'Built-in agents cannot be retired',
+      },
+      404: {
+        content: { 'application/json': { schema: z.unknown() } },
+        description: 'Agent not found',
+      },
+      503: {
+        content: { 'application/json': { schema: z.unknown() } },
+        description: 'AI package not available',
+      },
+    },
+  }),
   async (c) => {
-    const agentId = c.req.param('id');
+    const { id: agentId } = c.req.valid('param');
     if (!/^[\w-]{1,256}$/.test(agentId)) {
       return c.json({ error: 'Invalid agent ID format' }, 400);
     }
@@ -453,55 +735,90 @@ a2a.delete(
  * The agent is added to the in-memory registry for this server's lifetime.
  * Requires authentication + 'ai' feature flag.
  */
-a2a.post('/agents', authMiddleware({ required: true }), async (c) => {
-  if (!isFeatureEnabled('ai')) {
-    return c.json({ error: "Feature 'ai' requires a Pro or Enterprise license." }, 403);
-  }
+a2a.openapi(
+  createRoute({
+    method: 'post',
+    path: '/agents',
+    tags: ['a2a'],
+    summary: 'Register a new agent from an AgentDefinition',
+    request: {
+      body: {
+        content: {
+          'application/json': {
+            schema: z.unknown(),
+          },
+        },
+      },
+    },
+    middleware: [authMiddleware({ required: true })] as const,
+    responses: {
+      201: {
+        content: { 'application/json': { schema: z.object({ card: z.unknown() }) } },
+        description: 'Agent registered',
+      },
+      400: {
+        content: { 'application/json': { schema: z.unknown() } },
+        description: 'Invalid request',
+      },
+      403: {
+        content: { 'application/json': { schema: z.unknown() } },
+        description: 'AI feature not licensed',
+      },
+      409: {
+        content: { 'application/json': { schema: z.unknown() } },
+        description: 'Agent already registered',
+      },
+      503: {
+        content: { 'application/json': { schema: z.unknown() } },
+        description: 'AI package not available',
+      },
+    },
+  }),
+  async (c) => {
+    if (!isFeatureEnabled('ai')) {
+      return c.json({ error: "Feature 'ai' requires a Pro or Enterprise license." }, 403);
+    }
 
-  let body: unknown;
-  try {
-    body = await c.req.json();
-  } catch {
-    return c.json({ error: 'Invalid JSON' }, 400);
-  }
+    const body = c.req.valid('json');
 
-  const parsed = AgentDefinitionSchema.safeParse(body);
-  if (!parsed.success) {
-    return c.json({ error: 'Invalid agent definition', issues: parsed.error.issues }, 400);
-  }
+    const parsed = AgentDefinitionSchema.safeParse(body);
+    if (!parsed.success) {
+      return c.json({ error: 'Invalid agent definition', issues: parsed.error.issues }, 400);
+    }
 
-  const aiMod = await getAiModule();
-  if (!aiMod) {
-    return c.json({ error: 'AI package not available' }, 503);
-  }
+    const aiMod = await getAiModule();
+    if (!aiMod) {
+      return c.json({ error: 'AI package not available' }, 503);
+    }
 
-  const def = parsed.data;
-  if (aiMod.agentCardRegistry.has(def.id)) {
-    return c.json({ error: `Agent '${def.id}' already registered` }, 409);
-  }
+    const def = parsed.data;
+    if (aiMod.agentCardRegistry.has(def.id)) {
+      return c.json({ error: `Agent '${def.id}' already registered` }, 409);
+    }
 
-  aiMod.agentCardRegistry.register(def);
+    aiMod.agentCardRegistry.register(def);
 
-  // Persist to DB (best-effort; registry remains functional if DB write fails)
-  try {
-    const db = getClient();
-    await db.insert(registeredAgents).values({
-      id: def.id,
-      definition: def,
-    });
-  } catch (err) {
-    // Non-fatal — agent is registered in-memory for this server instance.
-    // Log so operators can detect persistent DB write failures on cold starts/redeploys.
-    logger.warn('Agent registry DB persist failed (agent registered in-memory only)', {
-      agentId: def.id,
-      error: err instanceof Error ? err.message : 'unknown',
-    });
-  }
+    // Persist to DB (best-effort; registry remains functional if DB write fails)
+    try {
+      const db = getClient();
+      await db.insert(registeredAgents).values({
+        id: def.id,
+        definition: def,
+      });
+    } catch (err) {
+      // Non-fatal — agent is registered in-memory for this server instance.
+      // Log so operators can detect persistent DB write failures on cold starts/redeploys.
+      logger.warn('Agent registry DB persist failed (agent registered in-memory only)', {
+        agentId: def.id,
+        error: err instanceof Error ? err.message : 'unknown',
+      });
+    }
 
-  const baseUrl = getBaseUrl(c.req.raw);
-  const card = aiMod.agentCardRegistry.getCard(def.id, baseUrl);
-  return c.json({ card }, 201);
-});
+    const baseUrl = getBaseUrl(c.req.raw);
+    const card = aiMod.agentCardRegistry.getCard(def.id, baseUrl);
+    return c.json({ card }, 201);
+  },
+);
 
 /**
  * SSE stream endpoint for tasks/sendSubscribe.
@@ -510,59 +827,83 @@ a2a.post('/agents', authMiddleware({ required: true }), async (c) => {
  * This is a simplified polling-based SSE — for a full streaming implementation
  * the AgentRuntime emits events that are forwarded here.
  */
-a2a.get('/stream/:taskId', requireFeature('ai', { mode: 'entitlements' }), async (c) => {
-  const aiMod = await getAiModule();
-  if (!aiMod) {
-    return c.json({ error: 'AI package not available' }, 503);
-  }
-  const taskId = c.req.param('taskId');
-
-  const getTaskFn = aiMod.getTask;
-  return c.body(
-    new ReadableStream({
-      start(controller) {
-        const send = (data: unknown) => {
-          controller.enqueue(new TextEncoder().encode(`data: ${JSON.stringify(data)}\n\n`));
-        };
-
-        // Poll task store for status updates (simple implementation).
-        // Must cover the full agent timeout (120s) so long tasks are observable.
-        let iterations = 0;
-        const maxIterations = 240; // 120s at 500ms interval
-
-        const poll = () => {
-          iterations++;
-          const task = getTaskFn(taskId);
-
-          if (!task) {
-            send({ error: `Task '${taskId}' not found` });
-            controller.close();
-            return;
-          }
-
-          send(task);
-
-          const terminal = ['completed', 'failed', 'canceled'];
-          if (terminal.includes(task.status.state) || iterations >= maxIterations) {
-            controller.close();
-            return;
-          }
-
-          setTimeout(poll, 500);
-        };
-
-        poll();
-      },
-    }),
-    200,
-    {
-      'Content-Type': 'text/event-stream',
-      'Cache-Control': 'no-cache',
-      // biome-ignore lint/style/useNamingConvention: standard HTTP header name
-      Connection: 'keep-alive',
+a2a.openapi(
+  createRoute({
+    method: 'get',
+    path: '/stream/{taskId}',
+    tags: ['a2a'],
+    summary: 'SSE stream for a running task',
+    request: {
+      params: z.object({
+        taskId: z.string().openapi({ description: 'Task ID' }),
+      }),
     },
-  );
-});
+    middleware: [requireFeature('ai', { mode: 'entitlements' })] as const,
+    responses: {
+      200: {
+        content: { 'text/event-stream': { schema: z.unknown() } },
+        description: 'SSE event stream',
+      },
+      503: {
+        content: { 'application/json': { schema: z.unknown() } },
+        description: 'AI package not available',
+      },
+    },
+  }),
+  async (c) => {
+    const aiMod = await getAiModule();
+    if (!aiMod) {
+      return c.json({ error: 'AI package not available' }, 503);
+    }
+    const { taskId } = c.req.valid('param');
+
+    const getTaskFn = aiMod.getTask;
+    return c.body(
+      new ReadableStream({
+        start(controller) {
+          const send = (data: unknown) => {
+            controller.enqueue(new TextEncoder().encode(`data: ${JSON.stringify(data)}\n\n`));
+          };
+
+          // Poll task store for status updates (simple implementation).
+          // Must cover the full agent timeout (120s) so long tasks are observable.
+          let iterations = 0;
+          const maxIterations = 240; // 120s at 500ms interval
+
+          const poll = () => {
+            iterations++;
+            const task = getTaskFn(taskId);
+
+            if (!task) {
+              send({ error: `Task '${taskId}' not found` });
+              controller.close();
+              return;
+            }
+
+            send(task);
+
+            const terminal = ['completed', 'failed', 'canceled'];
+            if (terminal.includes(task.status.state) || iterations >= maxIterations) {
+              controller.close();
+              return;
+            }
+
+            setTimeout(poll, 500);
+          };
+
+          poll();
+        },
+      }),
+      200,
+      {
+        'Content-Type': 'text/event-stream',
+        'Cache-Control': 'no-cache',
+        // biome-ignore lint/style/useNamingConvention: standard HTTP header name
+        Connection: 'keep-alive',
+      },
+    );
+  },
+);
 
 /**
  * Main A2A JSON-RPC dispatcher.
@@ -571,134 +912,158 @@ a2a.get('/stream/:taskId', requireFeature('ai', { mode: 'entitlements' }), async
  * tasks/send and tasks/sendSubscribe require the 'ai' feature.
  * tasks/get and tasks/cancel are always allowed.
  */
-a2a.post('/', async (c) => {
-  const aiMod = await getAiModule();
-  if (!aiMod) {
-    return c.json(
-      {
-        jsonrpc: '2.0',
-        id: null,
-        error: { code: -32603, message: 'AI package not available' },
+a2a.openapi(
+  createRoute({
+    method: 'post',
+    path: '/',
+    tags: ['a2a'],
+    summary: 'A2A JSON-RPC dispatcher',
+    request: {
+      body: {
+        content: {
+          'application/json': {
+            schema: z.unknown(),
+          },
+        },
       },
-      503,
-    );
-  }
-
-  let body: unknown;
-  try {
-    body = await c.req.json();
-  } catch {
-    return c.json(
-      {
-        jsonrpc: '2.0',
-        id: null,
-        error: { code: RPC_PARSE_ERROR, message: 'Parse error: invalid JSON' },
+    },
+    responses: {
+      200: {
+        content: { 'application/json': { schema: z.unknown() } },
+        description: 'JSON-RPC response',
       },
-      400,
-    );
-  }
-
-  const parsed = A2AJsonRpcRequestSchema.safeParse(body);
-  if (!parsed.success) {
-    const id = (body as Record<string, unknown>)?.id ?? null;
-    return c.json(
-      {
-        jsonrpc: '2.0',
-        id,
-        error: { code: RPC_INVALID_REQUEST, message: 'Invalid Request' },
+      400: {
+        content: { 'application/json': { schema: z.unknown() } },
+        description: 'Parse error or invalid request',
       },
-      400,
-    );
-  }
-
-  const req: A2AJsonRpcRequest = parsed.data;
-
-  // Gate task execution behind feature flag; read-only methods always allowed
-  const executionMethods = new Set(['tasks/send', 'tasks/sendSubscribe']);
-  if (executionMethods.has(req.method)) {
-    if (!isFeatureEnabled('ai')) {
+      403: {
+        content: { 'application/json': { schema: z.unknown() } },
+        description: 'AI feature not licensed',
+      },
+      503: {
+        content: { 'application/json': { schema: z.unknown() } },
+        description: 'AI package not available',
+      },
+    },
+  }),
+  // @ts-expect-error — JSON-RPC dispatcher returns heterogeneous shapes + raw Response from quota middleware
+  async (c) => {
+    const aiMod = await getAiModule();
+    if (!aiMod) {
       return c.json(
         {
           jsonrpc: '2.0',
-          id: req.id,
-          error: {
-            code: -32003,
-            message: "Feature 'ai' requires a Pro or Enterprise license.",
-          },
+          id: null,
+          error: { code: -32603, message: 'AI package not available' },
         },
-        403,
+        503,
       );
     }
 
-    // Check and increment task quota (Track B metering)
-    const quotaResponse = await requireTaskQuota(c, async () => {
-      // No-op: quota check only, work is performed after quota validation
-    });
-    if (quotaResponse instanceof Response) {
-      return quotaResponse;
+    const body = c.req.valid('json');
+
+    const parsed = A2AJsonRpcRequestSchema.safeParse(body);
+    if (!parsed.success) {
+      const id = (body as Record<string, unknown>)?.id ?? null;
+      return c.json(
+        {
+          jsonrpc: '2.0',
+          id,
+          error: { code: RPC_INVALID_REQUEST, message: 'Invalid Request' },
+        },
+        400,
+      );
     }
-  }
 
-  // Extract optional agent ID from X-Agent-ID header
-  const agentId = c.req.header('X-Agent-ID');
+    const req: A2AJsonRpcRequest = parsed.data;
 
-  // Resolve LLM client — priority order:
-  //   1. Request-header BYOK (X-AI-Provider + X-AI-Api-Key) — client-side key, highest priority
-  //   2. Server-stored key (user_api_keys) — Pro BYOK, resolved from session
-  //   3. Stub — no key configured; handler returns a canned response
-  let llmClient = await llmClientFromRequest(c.req.raw);
-  if (!llmClient) {
-    const userId = c.get('user')?.id;
-    if (userId) {
-      const llmServerMod = await getAiLlmServerModule();
-      if (llmServerMod) {
-        const db = getClient();
-        // Type assertion needed: workspace @revealui/db and npm @revealui/db resolve
-        // to structurally identical but nominally different Database types.
-        type ProDatabase = Parameters<typeof llmServerMod.createLLMClientForUser>[1];
-        llmClient =
-          (await llmServerMod.createLLMClientForUser(userId, db as unknown as ProDatabase)) ??
-          undefined;
+    // Gate task execution behind feature flag; read-only methods always allowed
+    const executionMethods = new Set(['tasks/send', 'tasks/sendSubscribe']);
+    if (executionMethods.has(req.method)) {
+      if (!isFeatureEnabled('ai')) {
+        return c.json(
+          {
+            jsonrpc: '2.0',
+            id: req.id,
+            error: {
+              code: -32003,
+              message: "Feature 'ai' requires a Pro or Enterprise license.",
+            },
+          },
+          403,
+        );
+      }
+
+      // Check and increment task quota (Track B metering)
+      const quotaResponse = await requireTaskQuota(c, async () => {
+        // No-op: quota check only, work is performed after quota validation
+      });
+      if (quotaResponse instanceof Response) {
+        return quotaResponse;
       }
     }
-  }
 
-  const startedAt = Date.now();
-  // llmClient is typed as unknown because it comes from dynamically imported Pro packages;
-  // the runtime type is LLMClient when present.
-  type HandleParams = Parameters<typeof aiMod.handleA2AJsonRpc>;
-  const result = await aiMod.handleA2AJsonRpc(
-    req,
-    agentId ?? undefined,
-    llmClient as HandleParams[2],
-  );
-  const completedAt = Date.now();
+    // Extract optional agent ID from X-Agent-ID header
+    const agentId = c.req.header('X-Agent-ID');
 
-  // Fire-and-forget: persist task execution record to agentActions
-  if (executionMethods.has(req.method)) {
-    const taskResult = result.result as { status?: { state?: string } } | null;
-    const status = taskResult?.status?.state === 'failed' ? 'failed' : 'completed';
-    void (async () => {
-      try {
-        const db = getClient();
-        await db.insert(agentActions).values({
-          id: crypto.randomUUID(),
-          agentId: agentId ?? 'revealui-creator',
-          tool: req.method,
-          params: (req.params ?? null) as Record<string, unknown> | null,
-          result: taskResult as Record<string, unknown> | null,
-          status,
-          startedAt: new Date(startedAt),
-          completedAt: new Date(completedAt),
-          durationMs: completedAt - startedAt,
-        });
-      } catch {
-        // Non-fatal — in-memory task store remains authoritative for active tasks
+    // Resolve LLM client — priority order:
+    //   1. Request-header BYOK (X-AI-Provider + X-AI-Api-Key) — client-side key, highest priority
+    //   2. Server-stored key (user_api_keys) — Pro BYOK, resolved from session
+    //   3. Stub — no key configured; handler returns a canned response
+    let llmClient = await llmClientFromRequest(c.req.raw);
+    if (!llmClient) {
+      const userId = c.get('user')?.id;
+      if (userId) {
+        const llmServerMod = await getAiLlmServerModule();
+        if (llmServerMod) {
+          const db = getClient();
+          // Type assertion needed: workspace @revealui/db and npm @revealui/db resolve
+          // to structurally identical but nominally different Database types.
+          type ProDatabase = Parameters<typeof llmServerMod.createLLMClientForUser>[1];
+          llmClient =
+            (await llmServerMod.createLLMClientForUser(userId, db as unknown as ProDatabase)) ??
+            undefined;
+        }
       }
-    })();
-  }
+    }
 
-  return c.json(result);
-});
+    const startedAt = Date.now();
+    // llmClient is typed as unknown because it comes from dynamically imported Pro packages;
+    // the runtime type is LLMClient when present.
+    type HandleParams = Parameters<typeof aiMod.handleA2AJsonRpc>;
+    const result = await aiMod.handleA2AJsonRpc(
+      req,
+      agentId ?? undefined,
+      llmClient as HandleParams[2],
+    );
+    const completedAt = Date.now();
+
+    // Fire-and-forget: persist task execution record to agentActions
+    if (executionMethods.has(req.method)) {
+      const taskResult = result.result as { status?: { state?: string } } | null;
+      const status = taskResult?.status?.state === 'failed' ? 'failed' : 'completed';
+      void (async () => {
+        try {
+          const db = getClient();
+          await db.insert(agentActions).values({
+            id: crypto.randomUUID(),
+            agentId: agentId ?? 'revealui-creator',
+            tool: req.method,
+            params: (req.params ?? null) as Record<string, unknown> | null,
+            result: taskResult as Record<string, unknown> | null,
+            status,
+            startedAt: new Date(startedAt),
+            completedAt: new Date(completedAt),
+            durationMs: completedAt - startedAt,
+          });
+        } catch {
+          // Non-fatal — in-memory task store remains authoritative for active tasks
+        }
+      })();
+    }
+
+    return c.json(result);
+  },
+);
 
 export { a2a as a2aRoutes, app as wellKnownRoutes };
