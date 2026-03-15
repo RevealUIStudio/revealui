@@ -440,6 +440,17 @@ export type {
 // =============================================================================
 
 export {
+  type MFABackupCodeRequest,
+  MFABackupCodeRequestContract,
+  MFABackupCodeRequestSchema,
+  type MFADisableRequest,
+  MFADisableRequestContract,
+  MFADisableRequestSchema,
+  type MFASetupResponse,
+  MFASetupResponseSchema,
+  type MFAVerifyRequest,
+  MFAVerifyRequestContract,
+  MFAVerifyRequestSchema,
   type PasswordResetRequest,
   PasswordResetRequestContract,
   PasswordResetRequestSchema,

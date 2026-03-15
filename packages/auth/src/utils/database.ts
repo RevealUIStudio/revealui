@@ -89,6 +89,8 @@ export async function createTestUser(overrides?: Partial<User>): Promise<User> {
     emailVerified: false,
     emailVerificationToken: null,
     emailVerifiedAt: null,
+    mfaEnabled: false,
+    mfaVerifiedAt: null,
     preferences: null,
     createdAt: new Date(),
     updatedAt: new Date(),

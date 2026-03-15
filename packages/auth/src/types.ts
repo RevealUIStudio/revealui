@@ -26,6 +26,8 @@ export interface User {
   emailVerified: boolean;
   emailVerificationToken: string | null;
   emailVerifiedAt: Date | null;
+  mfaEnabled: boolean;
+  mfaVerifiedAt: Date | null;
   preferences: unknown;
   createdAt: Date;
   updatedAt: Date;
@@ -60,6 +62,10 @@ export interface SignInResult {
   success: boolean;
   user?: User;
   sessionToken?: string;
+  /** When true, the client must prompt for a TOTP code before the session is usable */
+  requiresMfa?: boolean;
+  /** Temporary user ID for completing MFA verification (only set when requiresMfa is true) */
+  mfaUserId?: string;
   error?: string;
 }
 
