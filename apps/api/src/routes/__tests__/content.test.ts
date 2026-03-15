@@ -149,10 +149,17 @@ describe('GET /posts — list posts', () => {
     mockPostQueries.getAllPosts.mockResolvedValue([]);
   });
 
-  it('returns 401 without authentication', async () => {
+  it('returns 200 with published posts for unauthenticated requests (public read)', async () => {
     const app = createApp(null);
     const res = await app.request('/posts');
-    expect(res.status).toBe(401);
+    expect(res.status).toBe(200);
+    const body = await res.json();
+    expect(body.success).toBe(true);
+    // Public read forces status=published filter
+    expect(mockPostQueries.getAllPosts).toHaveBeenCalledWith(
+      expect.anything(),
+      expect.objectContaining({ status: 'published' }),
+    );
   });
 
   it('returns empty array when no posts', async () => {
@@ -254,11 +261,20 @@ describe('POST /posts — create post', () => {
 describe('GET /posts/:id — get post by ID (IDOR)', () => {
   beforeEach(() => vi.clearAllMocks());
 
-  it('returns 401 without authentication', async () => {
+  it('returns 404 for non-published post without authentication (public read)', async () => {
     const app = createApp(null);
-    mockPostQueries.getPostById.mockResolvedValue(makePost());
+    mockPostQueries.getPostById.mockResolvedValue(makePost({ status: 'draft' }));
     const res = await app.request('/posts/post-1');
-    expect(res.status).toBe(401);
+    expect(res.status).toBe(404);
+  });
+
+  it('returns 200 for published post without authentication (public read)', async () => {
+    const app = createApp(null);
+    mockPostQueries.getPostById.mockResolvedValue(makePost({ status: 'published' }));
+    const res = await app.request('/posts/post-1');
+    expect(res.status).toBe(200);
+    const body = await res.json();
+    expect(body.success).toBe(true);
   });
 
   it('returns 404 for non-existent post', async () => {
@@ -295,10 +311,20 @@ describe('GET /posts/:id — get post by ID (IDOR)', () => {
 describe('GET /posts/slug/:slug — get post by slug (IDOR)', () => {
   beforeEach(() => vi.clearAllMocks());
 
-  it('returns 401 without authentication', async () => {
+  it('returns 404 for non-published post without authentication (public read)', async () => {
     const app = createApp(null);
+    mockPostQueries.getPostBySlug.mockResolvedValue(makePost({ status: 'draft' }));
     const res = await app.request('/posts/slug/hello');
-    expect(res.status).toBe(401);
+    expect(res.status).toBe(404);
+  });
+
+  it('returns 200 for published post without authentication (public read)', async () => {
+    const app = createApp(null);
+    mockPostQueries.getPostBySlug.mockResolvedValue(makePost({ status: 'published' }));
+    const res = await app.request('/posts/slug/hello');
+    expect(res.status).toBe(200);
+    const body = await res.json();
+    expect(body.success).toBe(true);
   });
 
   it('returns 404 for unknown slug', async () => {
