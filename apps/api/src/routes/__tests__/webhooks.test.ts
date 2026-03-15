@@ -113,6 +113,11 @@ vi.mock('drizzle-orm', () => ({
   desc: vi.fn((_col) => `desc(${String(_col)})`),
 }));
 
+const mockSendEmail = vi.fn().mockResolvedValue(undefined);
+vi.mock('../../lib/email.js', () => ({
+  sendEmail: (...args: unknown[]) => mockSendEmail(...args),
+}));
+
 // ─── Import under test (after mocks) ─────────────────────────────────────────
 
 import * as featuresModule from '@revealui/core/features';
@@ -501,6 +506,124 @@ describe('POST /stripe webhook', () => {
       expect(insertValues.status).toBe('active');
       expect(insertValues.tier).toBe('pro');
       expect(insertValues.userId).toBe('user_abc');
+    });
+
+    it('defaults to pro and sends alert email when tier metadata is missing', async () => {
+      // Transaction's inner user-existence check must find a matching user
+      mockDbSelectChain.limit.mockResolvedValueOnce([{ id: 'user_missing_tier' }]);
+
+      const event = {
+        id: 'evt_checkout_missing_tier_1',
+        type: 'checkout.session.completed',
+        data: {
+          object: {
+            mode: 'subscription',
+            subscription: 'sub_test',
+            customer: 'cus_test',
+            metadata: { revealui_user_id: 'user_missing_tier' },
+            // no tier in metadata
+          },
+        },
+      };
+      mockConstructEvent.mockReturnValueOnce(event);
+
+      const app = createApp();
+      const res = await app.request(postStripe(event));
+
+      expect(res.status).toBe(200);
+      // License created with 'pro' as fallback
+      const insertValues = mockDbInsertChain.values.mock.calls[1]?.[0] as Record<string, unknown>;
+      expect(insertValues.tier).toBe('pro');
+      // CRITICAL logger.error was called
+      expect(vi.mocked(loggerModule.logger).error).toHaveBeenCalledWith(
+        expect.stringContaining('CRITICAL'),
+        undefined,
+        expect.objectContaining({ tier: null }),
+      );
+      // Alert email was sent (fire-and-forget)
+      // Allow microtasks to settle for the fire-and-forget .catch() chain
+      await new Promise((resolve) => {
+        setTimeout(resolve, 10);
+      });
+      expect(mockSendEmail).toHaveBeenCalledWith(
+        expect.objectContaining({
+          to: 'founder@revealui.com',
+          subject: expect.stringContaining('CRITICAL'),
+        }),
+      );
+    });
+
+    it('defaults to pro and sends alert email when tier metadata is unrecognized', async () => {
+      // Transaction's inner user-existence check must find a matching user
+      mockDbSelectChain.limit.mockResolvedValueOnce([{ id: 'user_bad_tier' }]);
+
+      const event = {
+        id: 'evt_checkout_bad_tier_1',
+        type: 'checkout.session.completed',
+        data: {
+          object: {
+            mode: 'subscription',
+            subscription: 'sub_test',
+            customer: 'cus_test',
+            metadata: { tier: 'platinum', revealui_user_id: 'user_bad_tier' },
+          },
+        },
+      };
+      mockConstructEvent.mockReturnValueOnce(event);
+
+      const app = createApp();
+      const res = await app.request(postStripe(event));
+
+      expect(res.status).toBe(200);
+      const insertValues = mockDbInsertChain.values.mock.calls[1]?.[0] as Record<string, unknown>;
+      expect(insertValues.tier).toBe('pro');
+      expect(vi.mocked(loggerModule.logger).error).toHaveBeenCalledWith(
+        expect.stringContaining('CRITICAL'),
+        undefined,
+        expect.objectContaining({ tier: 'platinum' }),
+      );
+      await new Promise((resolve) => {
+        setTimeout(resolve, 10);
+      });
+      expect(mockSendEmail).toHaveBeenCalledWith(
+        expect.objectContaining({
+          to: 'founder@revealui.com',
+          subject: expect.stringContaining('CRITICAL'),
+        }),
+      );
+    });
+
+    it('logs warning when tier fallback alert email fails to send', async () => {
+      mockSendEmail.mockRejectedValueOnce(new Error('SMTP down'));
+      // Transaction's inner user-existence check must find a matching user
+      mockDbSelectChain.limit.mockResolvedValueOnce([{ id: 'user_email_fail' }]);
+
+      const event = {
+        id: 'evt_checkout_email_fail_1',
+        type: 'checkout.session.completed',
+        data: {
+          object: {
+            mode: 'subscription',
+            subscription: 'sub_test',
+            customer: 'cus_test',
+            metadata: { revealui_user_id: 'user_email_fail' },
+          },
+        },
+      };
+      mockConstructEvent.mockReturnValueOnce(event);
+
+      const app = createApp();
+      const res = await app.request(postStripe(event));
+
+      expect(res.status).toBe(200);
+      // Allow the fire-and-forget .catch() to settle
+      await new Promise((resolve) => {
+        setTimeout(resolve, 10);
+      });
+      expect(vi.mocked(loggerModule.logger).warn).toHaveBeenCalledWith(
+        'Failed to send tier fallback alert',
+        expect.objectContaining({ error: 'SMTP down' }),
+      );
     });
 
     it('clears the idempotency marker when processing fails after the initial insert', async () => {
