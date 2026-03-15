@@ -181,7 +181,7 @@ describe('POST /stripe webhook — expansion events', () => {
       );
     });
 
-    it('returns 200 without revoking license', async () => {
+    it('returns 200 and updates subscription status without revoking license', async () => {
       const event = makePaymentFailedEvent('evt_pay_fail_2');
       mockConstructEvent.mockReturnValueOnce(event);
 
@@ -189,7 +189,11 @@ describe('POST /stripe webhook — expansion events', () => {
       const res = await app.request(postStripe(event));
 
       expect(res.status).toBe(200);
-      expect(mockDb.update).not.toHaveBeenCalled();
+      // Should update subscription status (past_due) but NOT revoke license
+      expect(mockDb.update).toHaveBeenCalledOnce();
+      expect(mockDbUpdateChain.set).toHaveBeenCalledWith(
+        expect.objectContaining({ status: 'past_due' }),
+      );
     });
   });
 
