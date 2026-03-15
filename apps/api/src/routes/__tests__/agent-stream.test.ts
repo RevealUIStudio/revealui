@@ -8,7 +8,7 @@ vi.mock('@revealui/ai', () => ({}));
 vi.mock('@revealui/ai/llm/client', () => ({}));
 vi.mock('@revealui/ai/orchestration/streaming-runtime', () => ({}));
 
-import agentStream from '../agent-stream.js';
+import agentStream, { detectProvider } from '../agent-stream.js';
 
 // ---------------------------------------------------------------------------
 // Helpers
@@ -79,5 +79,38 @@ describe('agent-stream route', () => {
     });
 
     expect(res.status).toBe(400);
+  });
+});
+
+// ---------------------------------------------------------------------------
+// BYOK provider detection
+// ---------------------------------------------------------------------------
+describe('detectProvider', () => {
+  it('routes sk-ant-* keys to anthropic', () => {
+    expect(detectProvider('sk-ant-api03-abc123')).toBe('anthropic');
+  });
+
+  it('routes sk-* keys to openai', () => {
+    expect(detectProvider('sk-proj-abc123')).toBe('openai');
+  });
+
+  it('routes gsk_* keys to groq', () => {
+    expect(detectProvider('gsk_abc123')).toBe('groq');
+  });
+
+  it('routes hf_* keys to huggingface', () => {
+    expect(detectProvider('hf_abc123')).toBe('huggingface');
+  });
+
+  it('uses explicit provider parameter when provided', () => {
+    expect(detectProvider('some-key', 'ollama')).toBe('ollama');
+  });
+
+  it('returns null for undetectable keys without provider hint', () => {
+    expect(detectProvider('random-key-format')).toBeNull();
+  });
+
+  it('prefers explicit provider over key prefix detection', () => {
+    expect(detectProvider('sk-ant-abc123', 'groq')).toBe('groq');
   });
 });

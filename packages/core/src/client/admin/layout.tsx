@@ -2,6 +2,7 @@
 import Head from 'next/head';
 import type React from 'react';
 import type { Config } from '../../types/index.js';
+import { ServerFunctionProvider } from './context/ServerFunctionContext.js';
 
 export interface RootLayoutProps {
   children: React.ReactNode;
@@ -10,7 +11,7 @@ export interface RootLayoutProps {
   serverFunction?: (name: string, args: unknown) => Promise<unknown>;
 }
 
-export function RootLayout({ children }: RootLayoutProps) {
+export function RootLayout({ children, serverFunction }: RootLayoutProps) {
   return (
     <html lang="en">
       <Head>
@@ -19,9 +20,11 @@ export function RootLayout({ children }: RootLayoutProps) {
         <title>RevealUI Admin</title>
       </Head>
       <body className="antialiased">
-        <div id="revealui-admin" className="min-h-screen">
-          {children}
-        </div>
+        <ServerFunctionProvider serverFunction={serverFunction}>
+          <div id="revealui-admin" className="min-h-screen">
+            {children}
+          </div>
+        </ServerFunctionProvider>
       </body>
     </html>
   );

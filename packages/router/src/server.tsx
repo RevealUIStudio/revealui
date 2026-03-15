@@ -1,6 +1,6 @@
 import { logger } from '@revealui/core/observability/logger';
 import type { Context } from 'hono';
-import { renderToPipeableStream, renderToString } from 'react-dom/server';
+import { renderToReadableStream, renderToString } from 'react-dom/server';
 import { RouterProvider, Routes } from './components';
 import { Router } from './router';
 import type { Route } from './types';
@@ -66,30 +66,22 @@ export function createSSRHandler(
 
       // Render with streaming if enabled
       if (options.streaming) {
-        return new Promise<Response>((resolve, reject) => {
-          const { pipe } = renderToPipeableStream(
-            <RouterProvider router={router}>
-              <Routes />
-            </RouterProvider>,
-            {
-              onShellReady() {
-                c.header('Content-Type', 'text/html');
-                const html = pipe;
-                // biome-ignore lint/suspicious/noExplicitAny: pipe stream typing incompatibility with Hono
-                resolve(c.body(html as any) as Response);
-              },
-              onError(error) {
-                logger.error(
-                  'SSR error',
-                  error instanceof Error ? error : new Error(String(error)),
-                );
-                if (options.onError) {
-                  options.onError(error as Error, c);
-                }
-                reject(error);
-              },
+        const stream = await renderToReadableStream(
+          <RouterProvider router={router}>
+            <Routes />
+          </RouterProvider>,
+          {
+            onError(error) {
+              logger.error('SSR error', error instanceof Error ? error : new Error(String(error)));
+              if (options.onError) {
+                options.onError(error as Error, c);
+              }
             },
-          );
+          },
+        );
+
+        return new Response(stream, {
+          headers: { 'Content-Type': 'text/html; charset=utf-8' },
         });
       }
 
