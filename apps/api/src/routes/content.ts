@@ -246,10 +246,11 @@ app.openapi(
     const user = c.get('user');
     if (!user) throw new HTTPException(401, { message: 'Authentication required' });
     const body = c.req.valid('json');
+    // Force authorId to session user — never trust client-supplied authorId
     const post = await postQueries.createPost(db, {
       id: crypto.randomUUID(),
-      authorId: user.id,
       ...body,
+      authorId: user.id,
     });
     // biome-ignore lint/style/noNonNullAssertion: createPost always returns the created row
     return c.json({ success: true as const, data: post! }, 201);
