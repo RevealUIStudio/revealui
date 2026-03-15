@@ -13,6 +13,8 @@ const geistMono = Geist_Mono({
   subsets: ['latin'],
 });
 
+export const metadataBase = new URL('https://revealui.com');
+
 export const metadata: Metadata = {
   title: 'RevealUI — Open-Source Business Infrastructure',
   description:

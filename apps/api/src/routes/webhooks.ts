@@ -27,6 +27,16 @@ import { and, desc, eq } from 'drizzle-orm';
 import { Hono } from 'hono';
 import Stripe from 'stripe';
 
+/** Escape HTML special characters to prevent XSS in email templates */
+function escapeHtml(str: string): string {
+  return str
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#39;');
+}
+
 const app = new Hono();
 
 type HostedTier = 'free' | LicenseTier;
@@ -1161,6 +1171,14 @@ app.post('/stripe', async (c) => {
           .set({ status: failedStatus, updatedAt: new Date() })
           .where(eq(accountSubscriptions.stripeCustomerId, customerId));
 
+        // Mirror license status — matches customer.subscription.updated behavior
+        if (failedStatus === 'suspended') {
+          await db
+            .update(licenses)
+            .set({ status: 'expired', updatedAt: new Date() })
+            .where(eq(licenses.customerId, customerId));
+        }
+
         // Send payment failed email
         const email = invoice.customer_email ?? (await findUserEmailByCustomerId(db, customerId));
         if (email) {
@@ -1607,8 +1625,8 @@ async function sendTierFallbackAlert(
         <body style="font-family: Arial, sans-serif; line-height: 1.6; color: #333; max-width: 600px; margin: 0 auto; padding: 20px;">
           <h1 style="color: #dc2626;">Stripe Tier Metadata Missing</h1>
           <p>A webhook event was processed with missing or unrecognized tier metadata.</p>
-          <p><strong>Received tier:</strong> ${context.tier ?? '(none)'}</p>
-          <p><strong>Metadata:</strong> <code>${JSON.stringify(context.metadata)}</code></p>
+          <p><strong>Received tier:</strong> ${escapeHtml(context.tier ?? '(none)')}</p>
+          <p><strong>Metadata:</strong> <code>${escapeHtml(JSON.stringify(context.metadata))}</code></p>
           <p>The customer was assigned <strong>pro</strong> tier as a safety default. Check Stripe product metadata immediately.</p>
         </body>
       </html>
