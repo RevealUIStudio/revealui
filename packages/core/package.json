@@ -221,6 +221,10 @@
       "types": "./dist/utils/errors.d.ts",
       "import": "./dist/utils/errors.js"
     },
+    "./jobs": {
+      "types": "./dist/jobs/index.d.ts",
+      "import": "./dist/jobs/index.js"
+    },
     "./monitoring": {
       "types": "./dist/monitoring/index.d.ts",
       "import": "./dist/monitoring/index.js"
