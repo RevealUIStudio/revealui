@@ -72,9 +72,9 @@ app.openapi(
         description: 'Agent task completed',
       },
       400: { content: { 'application/json': { schema: ErrorSchema } }, description: 'Bad request' },
-      503: {
+      403: {
         content: { 'application/json': { schema: ErrorSchema } },
-        description: 'AI not configured',
+        description: 'AI feature requires Pro or Enterprise license',
       },
     },
   }),
@@ -115,16 +115,16 @@ app.openapi(
         {
           success: false as const,
           error:
-            'AI agent not configured. Set ANTHROPIC_API_KEY, OPENAI_API_KEY, or GROQ_API_KEY (or OLLAMA_BASE_URL for local inference).',
+            "Feature 'ai' requires a Pro or Enterprise license. Upgrade at https://revealui.com/pricing",
         },
-        503,
+        403,
       );
     }
 
     // Dispatch agent with timeout, persist outcome to memory
     const dispatchResult = await dispatchWithTimeout(db, dispatcher, ticket);
     if (!dispatchResult.success) {
-      return c.json({ success: false as const, error: dispatchResult.error }, 503);
+      return c.json({ success: false as const, error: dispatchResult.error }, 403);
     }
     const { result } = dispatchResult;
 
@@ -177,9 +177,9 @@ app.openapi(
         content: { 'application/json': { schema: ErrorSchema } },
         description: 'Ticket not found',
       },
-      503: {
+      403: {
         content: { 'application/json': { schema: ErrorSchema } },
-        description: 'AI not configured',
+        description: 'AI feature requires Pro or Enterprise license',
       },
     },
   }),
@@ -203,9 +203,9 @@ app.openapi(
         {
           success: false as const,
           error:
-            'AI agent not configured. Set ANTHROPIC_API_KEY, OPENAI_API_KEY, or GROQ_API_KEY (or OLLAMA_BASE_URL for local inference).',
+            "Feature 'ai' requires a Pro or Enterprise license. Upgrade at https://revealui.com/pricing",
         },
-        503,
+        403,
       );
     }
 
@@ -215,7 +215,7 @@ app.openapi(
     // Dispatch agent with timeout, persist outcome to memory
     const dispatchResult = await dispatchWithTimeout(db, dispatcher, ticket);
     if (!dispatchResult.success) {
-      return c.json({ success: false as const, error: dispatchResult.error }, 503);
+      return c.json({ success: false as const, error: dispatchResult.error }, 403);
     }
     const { result } = dispatchResult;
 

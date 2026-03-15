@@ -211,5 +211,8 @@ packages/harnesses/
 # opensrc — fetched package source code
 opensrc/
 
+# Integration test ephemeral data (PGlite databases)
+.test-integration/
+
 # Visual QA screenshots (local only)
 screenshots/

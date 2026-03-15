@@ -104,16 +104,22 @@ app.openapi(
         content: { 'application/json': { schema: z.unknown() } },
         description: 'Agent not found',
       },
-      503: {
+      403: {
         content: { 'application/json': { schema: z.unknown() } },
-        description: 'AI package not available',
+        description: 'AI feature requires Pro or Enterprise license',
       },
     },
   }),
   async (c) => {
     const aiMod = await getAiModule();
     if (!aiMod) {
-      return c.json({ error: 'AI package not available' }, 503);
+      return c.json(
+        {
+          error:
+            "Feature 'ai' requires a Pro or Enterprise license. Upgrade at https://revealui.com/pricing",
+        },
+        403,
+      );
     }
     const baseUrl = getBaseUrl(c.req.raw);
     const card = aiMod.agentCardRegistry.getCard('revealui-creator', baseUrl);
@@ -152,16 +158,22 @@ app.openapi(
         content: { 'application/json': { schema: z.unknown() } },
         description: 'Agent not found',
       },
-      503: {
+      403: {
         content: { 'application/json': { schema: z.unknown() } },
-        description: 'AI package not available',
+        description: 'AI feature requires Pro or Enterprise license',
       },
     },
   }),
   async (c) => {
     const aiMod = await getAiModule();
     if (!aiMod) {
-      return c.json({ error: 'AI package not available' }, 503);
+      return c.json(
+        {
+          error:
+            "Feature 'ai' requires a Pro or Enterprise license. Upgrade at https://revealui.com/pricing",
+        },
+        403,
+      );
     }
     const { id: agentId } = c.req.valid('param');
     if (!/^[\w-]{1,256}$/.test(agentId)) {
@@ -369,16 +381,22 @@ a2a.openapi(
         content: { 'application/json': { schema: z.object({ agents: z.array(z.unknown()) }) } },
         description: 'Agent card list',
       },
-      503: {
+      403: {
         content: { 'application/json': { schema: z.unknown() } },
-        description: 'AI package not available',
+        description: 'AI feature requires Pro or Enterprise license',
       },
     },
   }),
   async (c) => {
     const aiMod = await getAiModule();
     if (!aiMod) {
-      return c.json({ error: 'AI package not available' }, 503);
+      return c.json(
+        {
+          error:
+            "Feature 'ai' requires a Pro or Enterprise license. Upgrade at https://revealui.com/pricing",
+        },
+        403,
+      );
     }
     const baseUrl = getBaseUrl(c.req.raw);
     const cards = aiMod.agentCardRegistry.listCards(baseUrl);
@@ -411,16 +429,22 @@ a2a.openapi(
         content: { 'application/json': { schema: z.unknown() } },
         description: 'Agent not found',
       },
-      503: {
+      403: {
         content: { 'application/json': { schema: z.unknown() } },
-        description: 'AI package not available',
+        description: 'AI feature requires Pro or Enterprise license',
       },
     },
   }),
   async (c) => {
     const aiMod = await getAiModule();
     if (!aiMod) {
-      return c.json({ error: 'AI package not available' }, 503);
+      return c.json(
+        {
+          error:
+            "Feature 'ai' requires a Pro or Enterprise license. Upgrade at https://revealui.com/pricing",
+        },
+        403,
+      );
     }
     const { id: agentId } = c.req.valid('param');
     if (!/^[\w-]{1,256}$/.test(agentId)) {
@@ -464,16 +488,22 @@ a2a.openapi(
         content: { 'application/json': { schema: z.unknown() } },
         description: 'Agent not found',
       },
-      503: {
+      403: {
         content: { 'application/json': { schema: z.unknown() } },
-        description: 'AI package not available',
+        description: 'AI feature requires Pro or Enterprise license',
       },
     },
   }),
   async (c) => {
     const aiMod = await getAiModule();
     if (!aiMod) {
-      return c.json({ error: 'AI package not available' }, 503);
+      return c.json(
+        {
+          error:
+            "Feature 'ai' requires a Pro or Enterprise license. Upgrade at https://revealui.com/pricing",
+        },
+        403,
+      );
     }
     const { id: agentId } = c.req.valid('param');
     if (!/^[\w-]{1,256}$/.test(agentId)) {
@@ -583,16 +613,22 @@ a2a.openapi(
         content: { 'application/json': { schema: z.unknown() } },
         description: 'Agent not found',
       },
-      503: {
+      403: {
         content: { 'application/json': { schema: z.unknown() } },
-        description: 'AI package not available',
+        description: 'AI feature requires Pro or Enterprise license',
       },
     },
   }),
   async (c) => {
     const aiMod = await getAiModule();
     if (!aiMod) {
-      return c.json({ error: 'AI package not available' }, 503);
+      return c.json(
+        {
+          error:
+            "Feature 'ai' requires a Pro or Enterprise license. Upgrade at https://revealui.com/pricing",
+        },
+        403,
+      );
     }
     const { id: agentId } = c.req.valid('param');
     if (!/^[\w-]{1,256}$/.test(agentId)) {
@@ -681,15 +717,12 @@ a2a.openapi(
       },
       403: {
         content: { 'application/json': { schema: z.unknown() } },
-        description: 'Built-in agents cannot be retired',
+        description:
+          'Built-in agents cannot be retired or AI feature requires Pro or Enterprise license',
       },
       404: {
         content: { 'application/json': { schema: z.unknown() } },
         description: 'Agent not found',
-      },
-      503: {
-        content: { 'application/json': { schema: z.unknown() } },
-        description: 'AI package not available',
       },
     },
   }),
@@ -706,7 +739,13 @@ a2a.openapi(
 
     const aiMod = await getAiModule();
     if (!aiMod) {
-      return c.json({ error: 'AI package not available' }, 503);
+      return c.json(
+        {
+          error:
+            "Feature 'ai' requires a Pro or Enterprise license. Upgrade at https://revealui.com/pricing",
+        },
+        403,
+      );
     }
 
     const removed = aiMod.agentCardRegistry.unregister(agentId);
@@ -762,15 +801,11 @@ a2a.openapi(
       },
       403: {
         content: { 'application/json': { schema: z.unknown() } },
-        description: 'AI feature not licensed',
+        description: 'AI feature requires Pro or Enterprise license',
       },
       409: {
         content: { 'application/json': { schema: z.unknown() } },
         description: 'Agent already registered',
-      },
-      503: {
-        content: { 'application/json': { schema: z.unknown() } },
-        description: 'AI package not available',
       },
     },
   }),
@@ -788,7 +823,13 @@ a2a.openapi(
 
     const aiMod = await getAiModule();
     if (!aiMod) {
-      return c.json({ error: 'AI package not available' }, 503);
+      return c.json(
+        {
+          error:
+            "Feature 'ai' requires a Pro or Enterprise license. Upgrade at https://revealui.com/pricing",
+        },
+        403,
+      );
     }
 
     const def = parsed.data;
@@ -844,16 +885,22 @@ a2a.openapi(
         content: { 'text/event-stream': { schema: z.unknown() } },
         description: 'SSE event stream',
       },
-      503: {
+      403: {
         content: { 'application/json': { schema: z.unknown() } },
-        description: 'AI package not available',
+        description: 'AI feature requires Pro or Enterprise license',
       },
     },
   }),
   async (c) => {
     const aiMod = await getAiModule();
     if (!aiMod) {
-      return c.json({ error: 'AI package not available' }, 503);
+      return c.json(
+        {
+          error:
+            "Feature 'ai' requires a Pro or Enterprise license. Upgrade at https://revealui.com/pricing",
+        },
+        403,
+      );
     }
     const { taskId } = c.req.valid('param');
 
@@ -938,11 +985,7 @@ a2a.openapi(
       },
       403: {
         content: { 'application/json': { schema: z.unknown() } },
-        description: 'AI feature not licensed',
-      },
-      503: {
-        content: { 'application/json': { schema: z.unknown() } },
-        description: 'AI package not available',
+        description: 'AI feature requires Pro or Enterprise license',
       },
     },
   }),
@@ -954,9 +997,13 @@ a2a.openapi(
         {
           jsonrpc: '2.0',
           id: null,
-          error: { code: -32603, message: 'AI package not available' },
+          error: {
+            code: -32003,
+            message:
+              "Feature 'ai' requires a Pro or Enterprise license. Upgrade at https://revealui.com/pricing",
+          },
         },
-        503,
+        403,
       );
     }
 

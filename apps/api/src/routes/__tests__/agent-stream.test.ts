@@ -58,19 +58,19 @@ describe('agent-stream route', () => {
     expect(res.status).toBe(400);
   });
 
-  it('returns 503 when AI package is not available', async () => {
+  it('returns 403 when AI package is not available', async () => {
     const app = createApp();
 
     const res = await jsonPost(app, '/agent-stream', {
       instruction: 'Hello',
     });
 
-    expect(res.status).toBe(503);
+    expect(res.status).toBe(403);
     const body = await parseBody(res);
-    expect(body.error).toContain('AI provider not configured');
+    expect(body.error).toContain('requires a Pro or Enterprise license');
   });
 
-  it('returns 503 with empty instruction string (AI not configured)', async () => {
+  it('returns 403 with empty instruction string (AI not configured)', async () => {
     const app = createApp();
 
     const res = await jsonPost(app, '/agent-stream', {
@@ -78,7 +78,7 @@ describe('agent-stream route', () => {
     });
 
     // Schema accepts empty string — handler proceeds but AI module not available
-    expect(res.status).toBe(503);
+    expect(res.status).toBe(403);
   });
 });
 

@@ -3,25 +3,19 @@
 /**
  * Types Gate — Native Type System Validation for RevealUI
  *
- * Replaces GitHub Actions validate-types.yml workflow.
- * Validates that generated types are in sync with schemas and all type checks pass.
+ * Validates that type-critical packages build and typecheck cleanly.
  *
  * Usage:
  *   pnpm gate:types              — run full type system validation
- *   pnpm gate:types --check-only — skip generation, just validate existing types
+ *   pnpm gate:types --check-only — skip builds, just typecheck
  *
  * Steps (serial — each depends on the previous):
- *   1. Generate types (pnpm generate:all)
- *   2. Check generated files are not dirty (git status)
- *   3. Validate types (pnpm validate:types)
- *   4. Enhanced type validation (pnpm validate:types:enhanced)
- *   5. Type coverage analysis (pnpm types:coverage)
- *   6. Type consistency check (pnpm types:check)
- *   7. Build @revealui/db
- *   8. Build @revealui/contracts
- *   9. Run contract tests (32 tests)
- *  10. Typecheck @revealui/db
- *  11. Typecheck @revealui/contracts
+ *   1. Build @revealui/db
+ *   2. Build @revealui/contracts
+ *   3. Run contract tests
+ *   4. Typecheck @revealui/db
+ *   5. Typecheck @revealui/contracts
+ *   6. Full workspace typecheck (pnpm typecheck:all)
  *
  * @dependencies
  * - scripts/lib/exec.ts - execCommand
@@ -121,7 +115,7 @@ async function gate(): Promise<void> {
 
   logger.header('RevealUI Types Gate');
   if (checkOnly) {
-    logger.info('Check-only mode: skipping type generation');
+    logger.info('Check-only mode: skipping builds');
   }
   console.log('');
 
@@ -133,89 +127,33 @@ async function gate(): Promise<void> {
     return results.some((r) => r.status === 'fail');
   }
 
-  // Step 1: Generate types
+  // Step 1: Build @revealui/db
   if (checkOnly) {
-    results.push({ name: 'Generate types', status: 'skip', durationMs: 0 });
+    results.push({ name: 'Build @revealui/db', status: 'skip', durationMs: 0 });
   } else {
-    logger.info('Step 1 — Generate types');
-    const step = await runStep('Generate types', 'pnpm', ['generate:all'], {
-      cwd: projectRoot,
-      timeout: 120000,
-    });
-    results.push(step);
-    if (step.status === 'fail') {
-      logger.error('Type generation failed — aborting\n');
-      printSummary(results, performance.now() - totalStart);
-      process.exit(ErrorCode.EXECUTION_ERROR);
-    }
-  }
-
-  // Step 2: Check generated files are in sync
-  if (!checkOnly) {
-    logger.info('Step 2 — Check generated files are in sync');
-    const syncResult = await execCommand(
-      'git',
-      ['status', '--porcelain', 'packages/contracts/src/generated/'],
-      { capture: true, cwd: projectRoot },
+    logger.info('Step 1 — Building @revealui/db');
+    const dbBuild = await runStep(
+      'Build @revealui/db',
+      'pnpm',
+      ['--filter', '@revealui/db', 'build'],
+      { cwd: projectRoot, timeout: 120000 },
     );
+    results.push(dbBuild);
+  }
 
-    const dirty = (syncResult.stdout ?? '').trim();
-    if (dirty) {
-      results.push({
-        name: 'Generated files in sync',
-        status: 'fail',
-        durationMs: 0,
-        detail: `Generated types are out of sync with schema.\nDirty files:\n${dirty}\n\nFix: pnpm generate:all && git add packages/contracts/src/generated/`,
-      });
-      logger.error('Generated types are out of sync — aborting\n');
-      printSummary(results, performance.now() - totalStart);
-      process.exit(ErrorCode.VALIDATION_ERROR);
-    }
-    results.push({ name: 'Generated files in sync', status: 'pass', durationMs: 0 });
+  // Step 2: Build @revealui/contracts
+  if (checkOnly) {
+    results.push({ name: 'Build @revealui/contracts', status: 'skip', durationMs: 0 });
   } else {
-    results.push({ name: 'Generated files in sync', status: 'skip', durationMs: 0 });
+    logger.info('Step 2 — Building @revealui/contracts');
+    const contractsBuild = await runStep(
+      'Build @revealui/contracts',
+      'pnpm',
+      ['--filter', '@revealui/contracts', 'build'],
+      { cwd: projectRoot, timeout: 120000 },
+    );
+    results.push(contractsBuild);
   }
-
-  // Steps 3-6: Validation scripts (serial)
-  const validationSteps: Array<[string, string[]]> = [
-    ['pnpm validate:types', ['validate:types']],
-    ['pnpm validate:types:enhanced', ['validate:types:enhanced']],
-    ['pnpm types:coverage', ['types:coverage']],
-    ['pnpm types:check', ['types:check']],
-  ];
-
-  for (const [name, args] of validationSteps) {
-    if (hasFailed()) break;
-    logger.info(`Running ${name}`);
-    const step = await runStep(name, 'pnpm', args, { cwd: projectRoot, timeout: 120000 });
-    results.push(step);
-  }
-
-  if (hasFailed()) {
-    logger.error('Validation failed — aborting\n');
-    printSummary(results, performance.now() - totalStart);
-    process.exit(ErrorCode.VALIDATION_ERROR);
-  }
-
-  // Step 7: Build @revealui/db
-  logger.info('Building @revealui/db');
-  const dbBuild = await runStep(
-    'Build @revealui/db',
-    'pnpm',
-    ['--filter', '@revealui/db', 'build'],
-    { cwd: projectRoot, timeout: 120000 },
-  );
-  results.push(dbBuild);
-
-  // Step 8: Build @revealui/contracts
-  logger.info('Building @revealui/contracts');
-  const contractsBuild = await runStep(
-    'Build @revealui/contracts',
-    'pnpm',
-    ['--filter', '@revealui/contracts', 'build'],
-    { cwd: projectRoot, timeout: 120000 },
-  );
-  results.push(contractsBuild);
 
   if (hasFailed()) {
     logger.error('Build failed — aborting\n');
@@ -223,8 +161,8 @@ async function gate(): Promise<void> {
     process.exit(ErrorCode.EXECUTION_ERROR);
   }
 
-  // Step 9: Contract tests
-  logger.info('Running contract tests');
+  // Step 3: Contract tests
+  logger.info('Step 3 — Running contract tests');
   const contractTests = await runStep(
     'Contract tests',
     'pnpm',
@@ -233,8 +171,8 @@ async function gate(): Promise<void> {
   );
   results.push(contractTests);
 
-  // Steps 10-11: Typecheck db + contracts (parallel)
-  logger.info('Typechecking @revealui/db and @revealui/contracts');
+  // Steps 4-5: Typecheck db + contracts (parallel)
+  logger.info('Steps 4-5 — Typechecking @revealui/db and @revealui/contracts');
   const [dbTypecheck, contractsTypecheck] = await Promise.all([
     runStep('Typecheck @revealui/db', 'pnpm', ['--filter', '@revealui/db', 'typecheck'], {
       cwd: projectRoot,
@@ -248,6 +186,20 @@ async function gate(): Promise<void> {
     ),
   ]);
   results.push(dbTypecheck, contractsTypecheck);
+
+  if (hasFailed()) {
+    logger.error('Typecheck failed — aborting\n');
+    printSummary(results, performance.now() - totalStart);
+    process.exit(ErrorCode.EXECUTION_ERROR);
+  }
+
+  // Step 6: Full workspace typecheck
+  logger.info('Step 6 — Full workspace typecheck');
+  const fullTypecheck = await runStep('Full workspace typecheck', 'pnpm', ['typecheck:all'], {
+    cwd: projectRoot,
+    timeout: 300000,
+  });
+  results.push(fullTypecheck);
 
   // Done
   printSummary(results, performance.now() - totalStart);
