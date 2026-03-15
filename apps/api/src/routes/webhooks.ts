@@ -1150,7 +1150,7 @@ app.post('/stripe', async (c) => {
           invoice.attempt_count && invoice.attempt_count >= 3 ? 'suspended' : 'past_due';
 
         if (failedStatus === 'suspended') {
-          logger.error('Payment failed 3+ times — suspending subscription', {
+          logger.error('Payment failed 3+ times — suspending subscription', undefined, {
             customerId,
             attemptCount: invoice.attempt_count,
           });
