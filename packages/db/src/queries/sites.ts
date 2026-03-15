@@ -2,7 +2,7 @@
  * Site database queries
  */
 
-import { and, desc, eq } from 'drizzle-orm';
+import { and, desc, eq, sql } from 'drizzle-orm';
 import type { DatabaseClient } from '../client/types.js';
 import { sites } from '../schema/sites.js';
 
@@ -54,4 +54,18 @@ export async function updateSite(
 
 export async function deleteSite(db: DatabaseClient, id: string) {
   await db.delete(sites).where(eq(sites.id, id));
+}
+
+export async function incrementPageCount(db: DatabaseClient, siteId: string): Promise<void> {
+  await db
+    .update(sites)
+    .set({ pageCount: sql`COALESCE(${sites.pageCount}, 0) + 1` })
+    .where(eq(sites.id, siteId));
+}
+
+export async function decrementPageCount(db: DatabaseClient, siteId: string): Promise<void> {
+  await db
+    .update(sites)
+    .set({ pageCount: sql`GREATEST(COALESCE(${sites.pageCount}, 0) - 1, 0)` })
+    .where(eq(sites.id, siteId));
 }

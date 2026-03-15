@@ -10,6 +10,7 @@
  */
 
 import { createRoute, OpenAPIHono, z } from '@hono/zod-openapi';
+import { fetchWithRetry } from '@revealui/core/error-handling';
 import { getFeaturesForTier, isFeatureEnabled } from '@revealui/core/features';
 import { generateLicenseKey, type LicenseTier, resetLicenseState } from '@revealui/core/license';
 import { logger } from '@revealui/core/observability/logger';
@@ -1576,8 +1577,10 @@ async function provisionGitHubAccess(githubUsername: string): Promise<void> {
     return;
   }
 
-  const response = await fetch(
-    `https://api.github.com/orgs/RevealUIStudio/teams/revealui-pro-customers/memberships/${githubUsername}`,
+  const url = `https://api.github.com/orgs/RevealUIStudio/teams/revealui-pro-customers/memberships/${githubUsername}`;
+
+  await fetchWithRetry(
+    url,
     {
       method: 'PUT',
       headers: {
@@ -1590,12 +1593,18 @@ async function provisionGitHubAccess(githubUsername: string): Promise<void> {
       },
       body: JSON.stringify({ role: 'member' }),
     },
+    {
+      maxRetries: 3,
+      baseDelay: 1000,
+      onRetry: (error, attempt) => {
+        logger.warn('Retrying GitHub team provisioning', {
+          githubUsername,
+          attempt,
+          error: error.message,
+        });
+      },
+    },
   );
-
-  if (!response.ok) {
-    const body = await response.text().catch(() => '');
-    throw new Error(`GitHub API error: ${response.status} ${body}`);
-  }
 
   logger.info('GitHub team access provisioned', { githubUsername });
 }

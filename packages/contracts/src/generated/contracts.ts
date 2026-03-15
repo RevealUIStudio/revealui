@@ -2,7 +2,7 @@
  * Auto-generated Contract wrappers
  *
  * DO NOT EDIT - Regenerate with: pnpm generate:all
- * Generated: 2026-03-15T16:12:56.270Z
+ * Generated: 2026-03-15T22:01:57.054Z
  *
  * This file provides Contract wrappers for all database tables.
  * Contracts combine TypeScript types, Zod schemas, and runtime validation
@@ -741,6 +741,32 @@ export const FailedAttemptsInsertContract = createContract({
   version: '1',
   description: 'Database insert contract for failed_attempts table',
   schema: Schemas.FailedAttemptsInsertSchema,
+})
+
+// =============================================================================
+// GdprBreaches Contracts
+// =============================================================================
+
+/**
+ * Contract for gdprBreaches row (Select)
+ * Database table: gdpr_breaches
+ */
+export const GdprBreachesRowContract = createContract({
+  name: 'GdprBreachesRow',
+  version: '1',
+  description: 'Database row contract for gdpr_breaches table',
+  schema: Schemas.GdprBreachesSelectSchema,
+})
+
+/**
+ * Contract for gdprBreaches insert
+ * Database table: gdpr_breaches
+ */
+export const GdprBreachesInsertContract = createContract({
+  name: 'GdprBreachesInsert',
+  version: '1',
+  description: 'Database insert contract for gdpr_breaches table',
+  schema: Schemas.GdprBreachesInsertSchema,
 })
 
 // =============================================================================
