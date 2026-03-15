@@ -2,7 +2,7 @@
  * Auto-generated Zod schemas from Drizzle
  *
  * DO NOT EDIT - Regenerate with: pnpm generate:all
- * Generated: 2026-03-15T16:12:54.679Z
+ * Generated: 2026-03-15T22:01:55.386Z
  *
  * This file provides Zod schemas for all database tables, generated
  * directly from Drizzle table definitions using drizzle-zod.
@@ -741,6 +741,32 @@ export type FailedAttemptsRow = z.infer<typeof FailedAttemptsSelectSchema>
  * TypeScript type for failedAttempts insert
  */
 export type FailedAttemptsInsert = z.infer<typeof FailedAttemptsInsertSchema>
+
+// =============================================================================
+// GdprBreaches Schemas
+// =============================================================================
+
+/**
+ * Zod schema for selecting gdprBreaches rows from database
+ * Generated from Drizzle table definition: tables.gdprBreaches
+ */
+export const GdprBreachesSelectSchema = createSelectSchema(tables.gdprBreaches)
+
+/**
+ * Zod schema for inserting gdprBreaches rows to database
+ * Generated from Drizzle table definition: tables.gdprBreaches
+ */
+export const GdprBreachesInsertSchema = createInsertSchema(tables.gdprBreaches)
+
+/**
+ * TypeScript type for gdprBreaches row (Select)
+ */
+export type GdprBreachesRow = z.infer<typeof GdprBreachesSelectSchema>
+
+/**
+ * TypeScript type for gdprBreaches insert
+ */
+export type GdprBreachesInsert = z.infer<typeof GdprBreachesInsertSchema>
 
 // =============================================================================
 // GdprConsents Schemas

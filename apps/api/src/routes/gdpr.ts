@@ -3,10 +3,11 @@ import { logger } from '@revealui/core/observability/logger';
 import {
   type ConsentType,
   createConsentManager,
+  createDataBreachManager,
   createDataDeletionSystem,
 } from '@revealui/core/security';
 import { HTTPException } from 'hono/http-exception';
-import { DrizzleGDPRStorage } from '../lib/drizzle-gdpr-storage.js';
+import { DrizzleBreachStorage, DrizzleGDPRStorage } from '../lib/drizzle-gdpr-storage.js';
 
 interface UserContext {
   id: string;
@@ -15,10 +16,12 @@ interface UserContext {
   role: string;
 }
 
-// Database-backed storage — persists consent records and deletion requests to PostgreSQL.
+// Database-backed storage — persists consent, deletion, and breach records to PostgreSQL.
 const gdprStorage = new DrizzleGDPRStorage();
+const breachStorage = new DrizzleBreachStorage();
 const consentManager = createConsentManager(gdprStorage);
 const deletionSystem = createDataDeletionSystem(gdprStorage);
+const _breachManager = createDataBreachManager(breachStorage);
 
 const CONSENT_TYPES: ConsentType[] = [
   'necessary',

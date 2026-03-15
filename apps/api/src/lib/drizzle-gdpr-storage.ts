@@ -7,13 +7,15 @@
  */
 
 import type {
+  BreachStorage,
   ConsentRecord,
   ConsentType,
+  DataBreach,
   DataDeletionRequest,
   GDPRStorage,
 } from '@revealui/core/security';
 import { getClient } from '@revealui/db';
-import { gdprConsents, gdprDeletionRequests } from '@revealui/db/schema';
+import { gdprBreaches, gdprConsents, gdprDeletionRequests } from '@revealui/db/schema';
 import { and, eq } from 'drizzle-orm';
 
 export class DrizzleGDPRStorage implements GDPRStorage {
@@ -147,6 +149,83 @@ export class DrizzleGDPRStorage implements GDPRStorage {
       reason: row.reason ?? undefined,
       retainedData: row.retainedData ?? undefined,
       deletedData: row.deletedData ?? undefined,
+    };
+  }
+}
+
+/**
+ * Database-backed BreachStorage implementation using Drizzle ORM.
+ *
+ * Persists data breach records to PostgreSQL via the gdpr_breaches table.
+ * Required for GDPR compliance — breach records must survive restarts.
+ */
+export class DrizzleBreachStorage implements BreachStorage {
+  private get db() {
+    return getClient();
+  }
+
+  async setBreach(breach: DataBreach): Promise<void> {
+    await this.db
+      .insert(gdprBreaches)
+      .values({
+        id: breach.id,
+        detectedAt: new Date(breach.detectedAt),
+        reportedAt: breach.reportedAt ? new Date(breach.reportedAt) : null,
+        type: breach.type,
+        severity: breach.severity,
+        affectedUsers: breach.affectedUsers,
+        dataCategories: breach.dataCategories,
+        description: breach.description,
+        mitigation: breach.mitigation ?? null,
+        status: breach.status,
+      })
+      .onConflictDoUpdate({
+        target: gdprBreaches.id,
+        set: {
+          reportedAt: breach.reportedAt ? new Date(breach.reportedAt) : null,
+          status: breach.status,
+          mitigation: breach.mitigation ?? null,
+        },
+      });
+  }
+
+  async getBreach(id: string): Promise<DataBreach | undefined> {
+    const rows = await this.db.select().from(gdprBreaches).where(eq(gdprBreaches.id, id)).limit(1);
+
+    if (rows.length === 0) return undefined;
+    return this.toBreach(rows[0]);
+  }
+
+  async getAllBreaches(): Promise<DataBreach[]> {
+    const rows = await this.db.select().from(gdprBreaches);
+    return rows.map((row) => this.toBreach(row));
+  }
+
+  async updateBreach(id: string, updates: Partial<DataBreach>): Promise<void> {
+    const setValues: Record<string, unknown> = {};
+    if (updates.status !== undefined) setValues.status = updates.status;
+    if (updates.mitigation !== undefined) setValues.mitigation = updates.mitigation;
+    if (updates.reportedAt !== undefined) {
+      setValues.reportedAt = new Date(updates.reportedAt);
+    }
+
+    if (Object.keys(setValues).length > 0) {
+      await this.db.update(gdprBreaches).set(setValues).where(eq(gdprBreaches.id, id));
+    }
+  }
+
+  private toBreach(row: typeof gdprBreaches.$inferSelect): DataBreach {
+    return {
+      id: row.id,
+      detectedAt: row.detectedAt.toISOString(),
+      reportedAt: row.reportedAt?.toISOString(),
+      type: row.type as DataBreach['type'],
+      severity: row.severity as DataBreach['severity'],
+      affectedUsers: row.affectedUsers,
+      dataCategories: row.dataCategories as DataBreach['dataCategories'],
+      description: row.description,
+      mitigation: row.mitigation ?? undefined,
+      status: row.status as DataBreach['status'],
     };
   }
 }
