@@ -1055,5 +1055,53 @@ describe('Billing Route Tests — Comprehensive Coverage', { timeout: 60_000 }, 
       expect(res.status).toBeGreaterThanOrEqual(400);
       expect(res.status).toBeLessThan(500);
     });
+
+    it('rejects downgrade attempt via upgrade route', async () => {
+      queueSelectResults([{ stripePriceId: 'price_pro_server' }]);
+
+      const app = createApp(MOCK_USER, { tier: 'max', accountId: 'acc-1' });
+      const res = await app.request(
+        post('/upgrade', { priceId: 'price_pro_server', targetTier: 'pro' }),
+      );
+
+      expect(res.status).toBe(400);
+      const body = await res.json();
+      expect(body.error).toContain('Cannot downgrade');
+    });
+
+    it('rejects same-tier upgrade attempt', async () => {
+      queueSelectResults([{ stripePriceId: 'price_pro_server' }]);
+
+      const app = createApp(MOCK_USER, { tier: 'pro', accountId: 'acc-1' });
+      const res = await app.request(
+        post('/upgrade', { priceId: 'price_pro_server', targetTier: 'pro' }),
+      );
+
+      expect(res.status).toBe(400);
+      const body = await res.json();
+      expect(body.error).toContain('Cannot downgrade');
+    });
+
+    it('allows valid upgrade from lower to higher tier', async () => {
+      queueSelectResults(
+        [{ stripePriceId: 'price_enterprise_server' }],
+        [],
+        [{ stripeCustomerId: 'cus_existing' }],
+      );
+      mockSubscriptionsList.mockResolvedValue({
+        data: [{ id: 'sub_pro', items: { data: [{ id: 'si_pro' }] } }],
+      });
+      mockSubscriptionsUpdate.mockResolvedValue({
+        id: 'sub_pro',
+        items: { data: [{ id: 'si_enterprise', price: { id: 'price_enterprise_server' } }] },
+      });
+
+      const app = createApp(MOCK_USER, { tier: 'pro', accountId: 'acc-1' });
+      const res = await app.request(
+        post('/upgrade', { priceId: 'price_enterprise_server', targetTier: 'enterprise' }),
+      );
+
+      expect(res.status).toBe(200);
+    });
   });
 });
