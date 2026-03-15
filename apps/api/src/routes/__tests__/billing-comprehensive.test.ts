@@ -95,6 +95,8 @@ vi.mock('drizzle-orm', () => ({
   desc: vi.fn((_col) => `desc(${String(_col)})`),
   and: vi.fn((...args: unknown[]) => `and(${args.join(',')})`),
   gt: vi.fn((_col, _val) => `gt(${String(_col)},${String(_val)})`),
+  gte: vi.fn((_col, _val) => `gte(${String(_col)},${String(_val)})`),
+  lte: vi.fn((_col, _val) => `lte(${String(_col)},${String(_val)})`),
 }));
 
 vi.mock('@revealui/core/license', () => ({
@@ -750,25 +752,8 @@ describe('Billing Route Tests — Comprehensive Coverage', { timeout: 60_000 }, 
     it('sends reminder for license expiring within 30 days', async () => {
       const in15Days = new Date(Date.now() + 15 * 24 * 60 * 60 * 1000);
 
-      // The route does two sequential db.select() calls:
-      //   1. Licenses query (no .limit(), resolved via thenable chain)
-      //   2. User email lookup (with .limit(1), resolved via limit mock)
-      // We override the thenable and limit to return the right data per call.
-      let selectCallCount = 0;
-      const licensesResult = [{ id: 'lic_1', userId: 'user-1', supportExpiresAt: in15Days }];
-      const userResult = [{ email: 'customer@example.com' }];
-
-      mockDb.select.mockImplementation(() => {
-        selectCallCount++;
-        // Set _selectResult for the thenable (first query doesn't use .limit())
-        _selectResult = selectCallCount === 1 ? licensesResult : userResult;
-        return mockDbSelectChain;
-      });
-
-      // The limit mock also needs to capture the right result at call time
-      mockDbSelectChain.limit.mockImplementation(() => {
-        return Promise.resolve(_selectResult);
-      });
+      // The route uses a single JOIN query: db.select({id, supportExpiresAt, email}).from(licenses).innerJoin(users, ...).where(...)
+      _selectResult = [{ id: 'lic_1', supportExpiresAt: in15Days, email: 'customer@example.com' }];
 
       const res = await billingApp.request(cronPost('/support-renewal-check'));
       expect(res.status).toBe(200);
@@ -783,8 +768,9 @@ describe('Billing Route Tests — Comprehensive Coverage', { timeout: 60_000 }, 
       );
     });
 
-    it('skips licenses without supportExpiresAt', async () => {
-      _selectResult = [{ id: 'lic_1', userId: 'user-1', supportExpiresAt: null }];
+    it('skips licenses without supportExpiresAt (filtered by SQL WHERE)', async () => {
+      // WHERE clause (gte/lte) filters these out at DB level — mock returns empty
+      _selectResult = [];
 
       const res = await billingApp.request(cronPost('/support-renewal-check'));
       expect(res.status).toBe(200);
@@ -793,9 +779,9 @@ describe('Billing Route Tests — Comprehensive Coverage', { timeout: 60_000 }, 
       expect(mockSendEmail).not.toHaveBeenCalled();
     });
 
-    it('skips licenses that already expired (in the past)', async () => {
-      const yesterday = new Date(Date.now() - 24 * 60 * 60 * 1000);
-      _selectResult = [{ id: 'lic_1', userId: 'user-1', supportExpiresAt: yesterday }];
+    it('skips licenses that already expired (filtered by SQL WHERE)', async () => {
+      // WHERE clause (gte) excludes expired licenses — mock returns empty
+      _selectResult = [];
 
       const res = await billingApp.request(cronPost('/support-renewal-check'));
       expect(res.status).toBe(200);
@@ -803,9 +789,9 @@ describe('Billing Route Tests — Comprehensive Coverage', { timeout: 60_000 }, 
       expect(body.reminded).toBe(0);
     });
 
-    it('skips licenses expiring more than 30 days out', async () => {
-      const in60Days = new Date(Date.now() + 60 * 24 * 60 * 60 * 1000);
-      _selectResult = [{ id: 'lic_1', userId: 'user-1', supportExpiresAt: in60Days }];
+    it('skips licenses expiring more than 30 days out (filtered by SQL WHERE)', async () => {
+      // WHERE clause (lte) excludes far-future licenses — mock returns empty
+      _selectResult = [];
 
       const res = await billingApp.request(cronPost('/support-renewal-check'));
       expect(res.status).toBe(200);
@@ -815,16 +801,8 @@ describe('Billing Route Tests — Comprehensive Coverage', { timeout: 60_000 }, 
 
     it('continues processing even if sendEmail throws', async () => {
       const in15Days = new Date(Date.now() + 15 * 24 * 60 * 60 * 1000);
-      let callCount = 0;
-      mockDb.select.mockImplementation(() => {
-        callCount++;
-        if (callCount === 1) {
-          _selectResult = [{ id: 'lic_1', userId: 'user-1', supportExpiresAt: in15Days }];
-        } else {
-          _selectResult = [{ email: 'fail@example.com' }];
-        }
-        return mockDbSelectChain;
-      });
+      // Single JOIN query returns license + email together
+      _selectResult = [{ id: 'lic_1', supportExpiresAt: in15Days, email: 'fail@example.com' }];
       mockSendEmail.mockRejectedValue(new Error('SMTP down'));
 
       const res = await billingApp.request(cronPost('/support-renewal-check'));
