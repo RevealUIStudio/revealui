@@ -33,11 +33,17 @@ export interface TenantContext {
  * @param options.required - If true (default), requests without a tenant ID return 400.
  *   Set to false for routes that optionally scope by tenant.
  * @param options.headerName - Header to read tenant ID from. Defaults to 'X-Tenant-ID'.
+ * @param options.validateTenant - Optional callback to verify tenant exists (e.g., DB lookup).
+ *   Must return true if the tenant is valid. When omitted, only format validation is performed.
  */
 export function tenantMiddleware(
-  options: { required?: boolean; headerName?: string } = {},
+  options: {
+    required?: boolean;
+    headerName?: string;
+    validateTenant?: (tenantId: string) => Promise<boolean>;
+  } = {},
 ): MiddlewareHandler {
-  const { required = true, headerName = 'X-Tenant-ID' } = options;
+  const { required = true, headerName = 'X-Tenant-ID', validateTenant } = options;
 
   return async (c, next) => {
     // Tenant context must come from a trusted header — query params are attacker-controlled
@@ -55,6 +61,15 @@ export function tenantMiddleware(
     }
 
     if (tenantId) {
+      // Verify tenant existence if a validation callback is provided
+      if (validateTenant) {
+        const exists = await validateTenant(tenantId);
+        if (!exists) {
+          logger.warn('Tenant ID not found during validation', { tenantId });
+          throw new HTTPException(404, { message: 'Tenant not found' });
+        }
+      }
+
       const tenant: TenantContext = {
         id: tenantId,
         resolvedAt: new Date(),

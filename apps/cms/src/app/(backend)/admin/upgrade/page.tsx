@@ -16,6 +16,14 @@ export default function UpgradePage() {
   const handleSelectTier = async (tierId: string) => {
     try {
       const apiUrl = (process.env.NEXT_PUBLIC_API_URL || 'https://api.revealui.com').trim();
+
+      // Verify session before initiating checkout — redirect to login if expired
+      const meRes = await fetch('/api/auth/me', { credentials: 'include' });
+      if (!meRes.ok) {
+        window.location.href = '/login?redirect=/admin/upgrade';
+        return;
+      }
+
       const res = await fetch(`${apiUrl}/api/billing/checkout`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -30,6 +38,12 @@ export default function UpgradePage() {
           tier: tierId,
         }),
       });
+
+      if (res.status === 401) {
+        window.location.href = '/login?redirect=/admin/upgrade';
+        return;
+      }
+
       const data = (await res.json()) as { url?: string };
       if (data.url) {
         window.location.href = data.url;
