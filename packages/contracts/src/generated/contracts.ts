@@ -2,7 +2,7 @@
  * Auto-generated Contract wrappers
  *
  * DO NOT EDIT - Regenerate with: pnpm generate:all
- * Generated: 2026-03-15T22:36:46.756Z
+ * Generated: 2026-03-15T22:58:26.678Z
  *
  * This file provides Contract wrappers for all database tables.
  * Contracts combine TypeScript types, Zod schemas, and runtime validation
@@ -897,6 +897,32 @@ export const GlobalSettingsInsertContract = createContract({
   version: '1',
   description: 'Database insert contract for global_settings table',
   schema: Schemas.GlobalSettingsInsertSchema,
+})
+
+// =============================================================================
+// Jobs Contracts
+// =============================================================================
+
+/**
+ * Contract for jobs row (Select)
+ * Database table: jobs
+ */
+export const JobsRowContract = createContract({
+  name: 'JobsRow',
+  version: '1',
+  description: 'Database row contract for jobs table',
+  schema: Schemas.JobsSelectSchema,
+})
+
+/**
+ * Contract for jobs insert
+ * Database table: jobs
+ */
+export const JobsInsertContract = createContract({
+  name: 'JobsInsert',
+  version: '1',
+  description: 'Database insert contract for jobs table',
+  schema: Schemas.JobsInsertSchema,
 })
 
 // =============================================================================

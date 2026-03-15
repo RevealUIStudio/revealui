@@ -127,6 +127,15 @@ export async function signIn(
     // Successful login - clear failed attempts
     await clearFailedAttempts(email);
 
+    // Check if MFA is enabled — if so, return early and require TOTP verification
+    if (user.mfaEnabled) {
+      return {
+        success: true,
+        requiresMfa: true,
+        mfaUserId: user.id,
+      };
+    }
+
     // Create session
     let token: string;
     try {

@@ -23,6 +23,18 @@ export {
   SessionError,
   TokenError,
 } from './errors.js';
+export type { MFAConfig, MFASetupResult } from './mfa.js';
+export {
+  configureMFA,
+  disableMFA,
+  initiateMFASetup,
+  isMFAEnabled,
+  regenerateBackupCodes,
+  resetMFAConfig,
+  verifyBackupCode,
+  verifyMFACode,
+  verifyMFASetup,
+} from './mfa.js';
 export {
   buildAuthUrl,
   exchangeCode,

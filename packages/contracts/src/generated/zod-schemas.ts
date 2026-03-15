@@ -2,7 +2,7 @@
  * Auto-generated Zod schemas from Drizzle
  *
  * DO NOT EDIT - Regenerate with: pnpm generate:all
- * Generated: 2026-03-15T22:36:45.190Z
+ * Generated: 2026-03-15T22:58:25.105Z
  *
  * This file provides Zod schemas for all database tables, generated
  * directly from Drizzle table definitions using drizzle-zod.
@@ -897,6 +897,32 @@ export type GlobalSettingsRow = z.infer<typeof GlobalSettingsSelectSchema>
  * TypeScript type for globalSettings insert
  */
 export type GlobalSettingsInsert = z.infer<typeof GlobalSettingsInsertSchema>
+
+// =============================================================================
+// Jobs Schemas
+// =============================================================================
+
+/**
+ * Zod schema for selecting jobs rows from database
+ * Generated from Drizzle table definition: tables.jobs
+ */
+export const JobsSelectSchema = createSelectSchema(tables.jobs)
+
+/**
+ * Zod schema for inserting jobs rows to database
+ * Generated from Drizzle table definition: tables.jobs
+ */
+export const JobsInsertSchema = createInsertSchema(tables.jobs)
+
+/**
+ * TypeScript type for jobs row (Select)
+ */
+export type JobsRow = z.infer<typeof JobsSelectSchema>
+
+/**
+ * TypeScript type for jobs insert
+ */
+export type JobsInsert = z.infer<typeof JobsInsertSchema>
 
 // =============================================================================
 // Licenses Schemas
