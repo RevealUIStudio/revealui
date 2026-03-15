@@ -176,6 +176,12 @@ const MCP_SERVERS: McpServerInfo[] = [
   },
 ];
 
+/** Derive runtime status by checking whether required env vars are set. */
+function resolveStatus(server: McpServerInfo): McpServerInfo['status'] {
+  if (server.envRequired.length === 0) return 'configured';
+  return server.envRequired.every((key) => !!process.env[key]) ? 'configured' : 'unavailable';
+}
+
 export async function GET(request: NextRequest) {
   const authSession = await getSession(request.headers);
   if (!authSession) {
@@ -184,5 +190,6 @@ export async function GET(request: NextRequest) {
   if (authSession.user.role !== 'admin') {
     return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
   }
-  return NextResponse.json({ servers: MCP_SERVERS });
+  const servers = MCP_SERVERS.map((s) => ({ ...s, status: resolveStatus(s) }));
+  return NextResponse.json({ servers });
 }
