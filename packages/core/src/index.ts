@@ -69,6 +69,7 @@ export {
 } from './features.js';
 // License and feature flags
 export {
+  computeKeyId,
   configureLicenseCache,
   generateLicenseKey,
   getCurrentTier,

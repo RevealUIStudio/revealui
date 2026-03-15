@@ -6,8 +6,10 @@
  * - zod - Schema validation for license payloads
  */
 
-import { importPKCS8, importSPKI, jwtVerify, SignJWT } from 'jose';
+import { createHash } from 'node:crypto';
+import { decodeProtectedHeader, importPKCS8, importSPKI, jwtVerify, SignJWT } from 'jose';
 import { z } from 'zod';
+import { logger } from './utils/logger.js';
 
 /** Available license tiers */
 export type LicenseTier = 'free' | 'pro' | 'max' | 'enterprise';
@@ -89,6 +91,14 @@ function getLicenseKey(): string | null {
 }
 
 /**
+ * Computes a deterministic Key ID (kid) from a public key PEM string.
+ * Returns the first 8 characters of the SHA-256 hex digest of the PEM.
+ */
+export function computeKeyId(publicKeyPem: string): string {
+  return createHash('sha256').update(publicKeyPem).digest('hex').slice(0, 8);
+}
+
+/**
  * Validates a license key JWT and returns the decoded payload.
  * Returns null if the key is invalid, expired, or missing.
  */
@@ -97,6 +107,16 @@ export async function validateLicenseKey(
   publicKey: string,
 ): Promise<LicensePayload | null> {
   try {
+    // Extract kid from JWT header for forward-compatible key rotation
+    const header = decodeProtectedHeader(licenseKey);
+    const expectedKid = computeKeyId(publicKey);
+    if (header.kid && header.kid !== expectedKid) {
+      logger.warn(
+        `JWT kid mismatch: token has "${header.kid}", current key is "${expectedKid}". ` +
+          'Token may have been signed with a rotated key.',
+      );
+    }
+
     const key = await importSPKI(publicKey, 'RS256');
     const { payload } = await jwtVerify(licenseKey, key, {
       algorithms: ['RS256', 'ES256'],
@@ -252,15 +272,23 @@ export function getMaxAgentTasks(): number {
  * @param privateKey - RS256 private key (PEM format)
  * @param expiresInSeconds - JWT expiration in seconds. Pass null for perpetual
  *   licenses (no exp claim). Defaults to 1 year for subscription licenses.
+ * @param publicKey - RS256 public key (PEM format). When provided, a `kid`
+ *   claim is added to the JWT header for forward-compatible key rotation.
  * @returns Signed JWT string
  */
 export async function generateLicenseKey(
   payload: Omit<LicensePayload, 'iat' | 'exp'>,
   privateKey: string,
   expiresInSeconds: number | null = 365 * 24 * 60 * 60,
+  publicKey?: string,
 ): Promise<string> {
   const key = await importPKCS8(privateKey, 'RS256');
-  const builder = new SignJWT({ ...payload }).setProtectedHeader({ alg: 'RS256' }).setIssuedAt();
+  const kid = publicKey ? computeKeyId(publicKey) : undefined;
+  const header: { alg: string; kid?: string } = { alg: 'RS256' };
+  if (kid) {
+    header.kid = kid;
+  }
+  const builder = new SignJWT({ ...payload }).setProtectedHeader(header).setIssuedAt();
   if (expiresInSeconds !== null) {
     builder.setExpirationTime(`${expiresInSeconds}s`);
   }
