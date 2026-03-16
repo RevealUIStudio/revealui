@@ -66,6 +66,7 @@ export type Page =
   | 'tunnel'
   | 'terminal'
   | 'setup'
+  | 'settings'
   | 'deploy';
 
 /** SSH authentication — password or key file */

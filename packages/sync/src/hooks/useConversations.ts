@@ -1,6 +1,7 @@
 'use client';
 
 import { useShape } from '@electric-sql/react';
+import { fetchWithTimeout } from '../fetch-with-timeout.js';
 import type { MutationResult } from '../mutations.js';
 import { useSyncMutations } from '../mutations.js';
 import { useElectricConfig } from '../provider/index.js';
@@ -48,6 +49,7 @@ export function useConversations(_userId: string): UseConversationsResult {
   // Client-provided params are not forwarded — the proxy overrides them.
   const { data, isLoading, error } = useShape({
     url: `${proxyBaseUrl}/api/shapes/conversations`,
+    fetchClient: fetchWithTimeout,
   });
 
   const { create, update, remove } = useSyncMutations<
