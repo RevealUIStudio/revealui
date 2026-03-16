@@ -1,5 +1,6 @@
 pub mod apps;
 pub mod config;
+pub mod deploy;
 pub mod local_shell;
 pub mod mount;
 pub mod setup;
