@@ -75,6 +75,15 @@ pub fn run() {
             deploy::vercel::vercel_set_env,
             deploy::vercel::vercel_deploy,
             deploy::vercel::vercel_get_deployment,
+            deploy::database::neon_test_connection,
+            deploy::database::run_db_migrate,
+            deploy::database::run_db_seed,
+            deploy::stripe::stripe_validate_keys,
+            deploy::stripe::stripe_run_seed,
+            deploy::stripe::stripe_run_keys,
+            deploy::stripe::stripe_catalog_sync,
+            deploy::email::resend_send_test,
+            deploy::health::health_check,
         ])
         .run(tauri::generate_context!())
         .expect("error while running RevealUI Studio");
