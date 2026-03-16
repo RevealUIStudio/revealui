@@ -99,6 +99,17 @@ export async function resendSendTest(apiKey: string, toEmail: string): Promise<b
   return tauriInvoke<boolean>('resend_send_test', { apiKey, toEmail });
 }
 
+export async function smtpSendTest(
+  host: string,
+  port: number,
+  user: string,
+  pass: string,
+  toEmail: string,
+): Promise<boolean> {
+  if (!isTauri()) return true;
+  return tauriInvoke<boolean>('smtp_send_test', { host, port, user, pass, toEmail });
+}
+
 // ── Secrets ────────────────────────────────────────────────────────────────
 
 export async function generateSecret(length: number): Promise<string> {
