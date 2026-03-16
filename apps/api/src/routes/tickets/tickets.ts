@@ -3,6 +3,7 @@ import { TICKET_PRIORITIES, TICKET_STATUSES, TICKET_TYPES } from '@revealui/cont
 import * as boardQueries from '@revealui/db/queries/boards';
 import * as ticketQueries from '@revealui/db/queries/tickets';
 import { HTTPException } from 'hono/http-exception';
+import { asNonEmptyTuple } from '../../lib/type-guards.js';
 import type { Variables } from '../_helpers/access.js';
 import {
   assertBoardAccess,
@@ -38,9 +39,9 @@ const TicketSchema = z
     ticketNumber: z.number(),
     title: z.string(),
     description: z.unknown().nullable(),
-    status: z.enum(TICKET_STATUSES as unknown as [string, ...string[]]),
-    priority: z.enum(TICKET_PRIORITIES as unknown as [string, ...string[]]),
-    type: z.enum(TICKET_TYPES as unknown as [string, ...string[]]),
+    status: z.enum(asNonEmptyTuple(TICKET_STATUSES)),
+    priority: z.enum(asNonEmptyTuple(TICKET_PRIORITIES)),
+    type: z.enum(asNonEmptyTuple(TICKET_TYPES)),
     assigneeId: z.string().nullable(),
     reporterId: z.string().nullable(),
     dueDate: z.string().nullable().openapi({ type: 'string', format: 'date-time' }),
@@ -68,18 +69,12 @@ app.openapi(
     request: {
       params: BoardIdParam,
       query: z.object({
-        status: z
-          .enum(TICKET_STATUSES as unknown as [string, ...string[]])
-          .optional()
-          .openapi({ example: 'open' }),
+        status: z.enum(asNonEmptyTuple(TICKET_STATUSES)).optional().openapi({ example: 'open' }),
         priority: z
-          .enum(TICKET_PRIORITIES as unknown as [string, ...string[]])
+          .enum(asNonEmptyTuple(TICKET_PRIORITIES))
           .optional()
           .openapi({ example: 'high' }),
-        type: z
-          .enum(TICKET_TYPES as unknown as [string, ...string[]])
-          .optional()
-          .openapi({ example: 'task' }),
+        type: z.enum(asNonEmptyTuple(TICKET_TYPES)).optional().openapi({ example: 'task' }),
         assigneeId: z.string().optional(),
         columnId: z.string().optional(),
       }),
@@ -128,9 +123,9 @@ app.openapi(
               description: z.record(z.string(), z.unknown()).optional(),
               columnId: z.string().optional(),
               parentTicketId: z.string().optional(),
-              status: z.enum(TICKET_STATUSES as unknown as [string, ...string[]]).optional(),
-              priority: z.enum(TICKET_PRIORITIES as unknown as [string, ...string[]]).optional(),
-              type: z.enum(TICKET_TYPES as unknown as [string, ...string[]]).optional(),
+              status: z.enum(asNonEmptyTuple(TICKET_STATUSES)).optional(),
+              priority: z.enum(asNonEmptyTuple(TICKET_PRIORITIES)).optional(),
+              type: z.enum(asNonEmptyTuple(TICKET_TYPES)).optional(),
               assigneeId: z.string().optional(),
               reporterId: z.string().optional(),
               dueDate: z.string().datetime().optional(),
@@ -210,9 +205,9 @@ app.openapi(
             schema: z.object({
               title: z.string().min(1).max(500).optional(),
               description: z.record(z.string(), z.unknown()).optional(),
-              status: z.enum(TICKET_STATUSES as unknown as [string, ...string[]]).optional(),
-              priority: z.enum(TICKET_PRIORITIES as unknown as [string, ...string[]]).optional(),
-              type: z.enum(TICKET_TYPES as unknown as [string, ...string[]]).optional(),
+              status: z.enum(asNonEmptyTuple(TICKET_STATUSES)).optional(),
+              priority: z.enum(asNonEmptyTuple(TICKET_PRIORITIES)).optional(),
+              type: z.enum(asNonEmptyTuple(TICKET_TYPES)).optional(),
               assigneeId: z.string().nullable().optional(),
               reporterId: z.string().nullable().optional(),
               columnId: z.string().nullable().optional(),

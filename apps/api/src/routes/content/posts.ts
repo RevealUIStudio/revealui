@@ -10,6 +10,7 @@ import { createRoute, OpenAPIHono, z } from '@hono/zod-openapi';
 import { POST_STATUSES } from '@revealui/contracts/entities';
 import * as postQueries from '@revealui/db/queries/posts';
 import { HTTPException } from 'hono/http-exception';
+import { asNonEmptyTuple } from '../../lib/type-guards.js';
 import { ErrorSchema, IdParam, SlugField, SlugParam } from '../_helpers/content-schemas.js';
 import { PaginationQuery } from '../_helpers/pagination.js';
 import type { ContentVariables } from './index.js';
@@ -30,7 +31,7 @@ const PostSchema = z
     content: z.unknown().nullable(),
     featuredImageId: z.string().nullable(),
     authorId: z.string().nullable(),
-    status: z.enum(POST_STATUSES as unknown as [string, ...string[]]),
+    status: z.enum(asNonEmptyTuple(POST_STATUSES)),
     published: z.boolean().nullable(),
     meta: z.unknown().nullable(),
     categories: z.unknown().nullable(),
@@ -53,10 +54,7 @@ app.openapi(
     summary: 'List posts',
     request: {
       query: PaginationQuery.extend({
-        status: z
-          .enum(POST_STATUSES as unknown as [string, ...string[]])
-          .optional()
-          .openapi({ example: 'published' }),
+        status: z.enum(asNonEmptyTuple(POST_STATUSES)).optional().openapi({ example: 'published' }),
         authorId: z.string().optional(),
       }),
     },
@@ -110,7 +108,7 @@ app.openapi(
               content: z.unknown().optional(),
               featuredImageId: z.string().optional(),
               authorId: z.string().optional(),
-              status: z.enum(POST_STATUSES as unknown as [string, ...string[]]).optional(),
+              status: z.enum(asNonEmptyTuple(POST_STATUSES)).optional(),
               meta: z.record(z.string(), z.unknown()).optional(),
               categories: z.array(z.string()).optional(),
             }),
@@ -239,7 +237,7 @@ app.openapi(
               excerpt: z.string().max(1000).nullable().optional(),
               content: z.unknown().optional(),
               featuredImageId: z.string().nullable().optional(),
-              status: z.enum(POST_STATUSES as unknown as [string, ...string[]]).optional(),
+              status: z.enum(asNonEmptyTuple(POST_STATUSES)).optional(),
               published: z.boolean().optional(),
               meta: z.record(z.string(), z.unknown()).nullable().optional(),
               categories: z.array(z.string()).optional(),
