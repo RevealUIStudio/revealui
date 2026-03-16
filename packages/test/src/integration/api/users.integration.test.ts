@@ -90,13 +90,19 @@ describe('Users Integration', () => {
       // Use the same RevealUI instance that created the document
       // Verify we're using the same database adapter
       const dbAdapter1 = (revealui.db || revealui.config?.db) as DbWithPath | undefined;
-      const dbAdapter2Value = (await revealui.collections.users.db) || revealui.config?.db;
+      const dbAdapter2Value =
+        (await (revealui.collections.users as unknown as { db?: DbWithPath }).db) ||
+        revealui.config?.db;
       const dbAdapter2 = dbAdapter2Value as DbWithPath | undefined;
       console.log(`[DEBUG] DB adapter same?`, dbAdapter1 === dbAdapter2);
       console.log(`[DEBUG] DB adapter path:`, dbAdapter1?.__testDbPath);
 
       // Try direct query using the collection's db adapter
-      const collectionDb = revealui.collections.users.db;
+      const collectionDb = (
+        revealui.collections.users as unknown as {
+          db?: { query?: (sql: string, params: unknown[]) => Promise<{ rows?: unknown[] }> };
+        }
+      ).db;
       if (collectionDb?.query) {
         const directQuery = await collectionDb.query(
           `SELECT * FROM "users" WHERE id = $1 LIMIT 1`,

@@ -5,7 +5,7 @@
  * Verifies that email validation works correctly for various scenarios
  */
 
-import type { RevealUIInstance } from '@revealui/core';
+import type { RevealDataObject, RevealUIInstance } from '@revealui/core';
 import { beforeAll, describe, expect, it } from 'vitest';
 import {
   generateUniqueTestEmail,
@@ -158,7 +158,7 @@ describe('Email Validation', () => {
       // If email is not required, null should be allowed
       // But if it's required, it should throw
       // For users collection, email is required, so this should fail
-      const invalidData: Record<string, unknown> = {
+      const invalidData: RevealDataObject = {
         email: null,
         password: 'TestPassword123!',
         roles: ['user-admin'],
@@ -173,7 +173,7 @@ describe('Email Validation', () => {
 
     it('should handle undefined email value', async () => {
       // Email is required, so undefined should fail
-      const invalidData: Record<string, unknown> = {
+      const invalidData: RevealDataObject = {
         password: 'TestPassword123!',
         roles: ['user-admin'],
       };
@@ -200,7 +200,7 @@ describe('Email Validation', () => {
     });
 
     it('should handle non-string email value', async () => {
-      const invalidData: Record<string, unknown> = {
+      const invalidData: RevealDataObject = {
         email: 123,
         password: 'TestPassword123!',
         roles: ['user-admin'],
