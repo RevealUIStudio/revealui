@@ -12,13 +12,18 @@ export async function vercelValidateToken(token: string): Promise<VercelProject[
   return tauriInvoke<VercelProject[]>('vercel_validate_token', { token });
 }
 
+export async function vercelValidateBlobToken(token: string): Promise<boolean> {
+  if (!isTauri()) return true;
+  return tauriInvoke<boolean>('vercel_validate_blob_token', { token });
+}
+
 export async function vercelCreateProject(
   token: string,
   name: string,
   framework: string,
   rootDirectory?: string,
 ): Promise<VercelProject> {
-  if (!isTauri()) return { id: `mock-${name}`, name, framework };
+  if (!isTauri()) return { id: `mock-${name}`, name, framework, accountId: 'mock-team' };
   return tauriInvoke<VercelProject>('vercel_create_project', {
     token,
     name,
@@ -97,6 +102,17 @@ export async function stripeCatalogSync(repoPath: string): Promise<string> {
 export async function resendSendTest(apiKey: string, toEmail: string): Promise<boolean> {
   if (!isTauri()) return true;
   return tauriInvoke<boolean>('resend_send_test', { apiKey, toEmail });
+}
+
+export async function smtpSendTest(
+  host: string,
+  port: number,
+  user: string,
+  pass: string,
+  toEmail: string,
+): Promise<boolean> {
+  if (!isTauri()) return true;
+  return tauriInvoke<boolean>('smtp_send_test', { host, port, user, pass, toEmail });
 }
 
 // ── Secrets ────────────────────────────────────────────────────────────────

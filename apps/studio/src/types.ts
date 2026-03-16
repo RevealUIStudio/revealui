@@ -166,6 +166,7 @@ export interface VercelProject {
   id: string;
   name: string;
   framework: string | null;
+  accountId?: string;
 }
 
 export interface VercelDeployment {
@@ -222,4 +223,7 @@ export interface WizardData {
   domain: string;
   signupOpen: boolean;
   brandName?: string;
+  signupWhitelist?: string;
+  brandColor?: string;
+  brandLogo?: string;
 }
