@@ -180,8 +180,8 @@ describe('Persistence Regression Tests', () => {
       // Verify collection has database adapter
       const usersCollection = revealui.collections.users;
       expect(usersCollection).toBeDefined();
-      expect(usersCollection.db).not.toBeNull();
-      expect(usersCollection.db?.query).toBeDefined();
+      expect((usersCollection as unknown as Record<string, unknown>).db).not.toBeNull();
+      expect((usersCollection as unknown as Record<string, unknown>).db).toBeDefined();
 
       // Create user to verify adapter works
       const created = await revealui.create({
@@ -345,8 +345,8 @@ describe('Persistence Regression Tests', () => {
       expect(config.db).toBeDefined();
       // Verify collections are initialized with correct database adapter
       const usersCollection = revealui.collections.users;
-      expect(usersCollection.db).not.toBeNull();
-      expect(usersCollection.db?.query).toBeDefined();
+      expect((usersCollection as unknown as Record<string, unknown>).db).not.toBeNull();
+      expect((usersCollection as unknown as Record<string, unknown>).db).toBeDefined();
     });
 
     it('should exclude JSON fields from SQL column operations', async () => {
@@ -495,7 +495,7 @@ describe('Persistence Regression Tests', () => {
 
       expect(user.roles).toBeDefined();
       expect(Array.isArray(user.roles)).toBe(true);
-      expect(user.roles.length).toBe(100);
+      expect((user.roles as unknown[]).length).toBe(100);
     });
 
     it('should handle special characters in data', async () => {
@@ -525,7 +525,7 @@ describe('Persistence Regression Tests', () => {
     it('should handle null/undefined values in JSON fields', async () => {
       const testEmail = generateUniqueTestEmail('null-json');
 
-      const nullJsonData: Record<string, unknown> = {
+      const nullJsonData = {
         email: testEmail,
         password: 'TestPassword123!',
         roles: ['user-admin'],
@@ -569,7 +569,7 @@ describe('Persistence Regression Tests', () => {
 
       expect(retrieved?.roles).toBeDefined();
       expect(Array.isArray(retrieved?.roles)).toBe(true);
-      expect(retrieved?.roles.length).toBe(0);
+      expect((retrieved?.roles as unknown[] | undefined)?.length).toBe(0);
     });
 
     it('should handle deeply nested JSON structures', async () => {

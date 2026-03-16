@@ -4,7 +4,7 @@
  * Tests collection CRUD operations, access control, and field validation
  */
 
-import type { RevealUIInstance } from '@revealui/core';
+import type { RevealDataObject, RevealUIInstance } from '@revealui/core';
 import { beforeAll, describe, expect, it } from 'vitest';
 import { getTestRevealUI, trackTestData } from '../../utils/integration-helpers.js';
 
@@ -182,7 +182,7 @@ describe('Collections Integration', () => {
 
   describe('Field Validation', () => {
     it('should validate required fields', async () => {
-      const invalidData: Record<string, unknown> = {
+      const invalidData: RevealDataObject = {
         // Missing required email field
         password: 'TestPassword123!',
       };
