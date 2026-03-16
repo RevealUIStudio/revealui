@@ -252,18 +252,18 @@ terminalAuth.post('/verify', zValidator('json', verifySchema), async (c) => {
 terminalAuth.get('/lookup', async (c) => {
   const caller = c.get('user');
   if (!caller) {
-    return c.json({ error: 'Authentication required' }, 401);
+    return c.json({ success: false, error: 'Authentication required' }, 401);
   }
 
   const fingerprint = c.req.query('fingerprint');
 
   if (!fingerprint) {
-    return c.json({ error: 'fingerprint query parameter required' }, 400);
+    return c.json({ success: false, error: 'fingerprint query parameter required' }, 400);
   }
 
   const db = c.get('db');
   if (!db) {
-    return c.json({ error: 'Database not available' }, 503);
+    return c.json({ success: false, error: 'Database not available' }, 503);
   }
 
   const { users } = await import('@revealui/db/schema/users');
@@ -280,7 +280,7 @@ terminalAuth.get('/lookup', async (c) => {
     .limit(1);
 
   if (!user) {
-    return c.json({ error: 'User not found' }, 404);
+    return c.json({ success: false, error: 'User not found' }, 404);
   }
 
   return c.json({
