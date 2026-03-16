@@ -4,7 +4,7 @@
  * Prevents cascading failures by stopping requests to failing services
  */
 
-import { logger } from '../observability/logger.js';
+import { getResilienceLogger } from './logger.js';
 import type { HttpError } from './retry.js';
 
 export type CircuitState = 'closed' | 'open' | 'half-open';
@@ -194,7 +194,10 @@ export class CircuitBreaker {
 
     this.config.onStateChange(newState);
 
-    logger.info(`Circuit breaker state changed: ${oldState} -> ${newState}`, this.getStats());
+    getResilienceLogger().info(
+      `Circuit breaker state changed: ${oldState} -> ${newState}`,
+      this.getStats(),
+    );
   }
 
   /**
