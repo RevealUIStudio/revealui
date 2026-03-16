@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { vercelValidateBlobToken } from '../../lib/deploy';
 import type { WizardData } from '../../types';
 import Button from '../ui/Button';
 import Input from '../ui/Input';
@@ -13,13 +14,29 @@ interface StepBlobProps {
 export default function StepBlob({ data, onUpdateData, onNext }: StepBlobProps) {
   const [blobToken, setBlobToken] = useState(data.blobToken || '');
   const [saved, setSaved] = useState(false);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
-  function handleSave() {
+  async function handleSave() {
     const trimmed = blobToken.trim();
     if (!trimmed) return;
 
-    onUpdateData({ blobToken: trimmed });
-    setSaved(true);
+    setLoading(true);
+    setError(null);
+
+    try {
+      const valid = await vercelValidateBlobToken(trimmed);
+      if (!valid) {
+        setError('Invalid blob token — check the token has read+write permissions.');
+        return;
+      }
+      onUpdateData({ blobToken: trimmed });
+      setSaved(true);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Failed to validate token');
+    } finally {
+      setLoading(false);
+    }
   }
 
   return (
@@ -52,13 +69,21 @@ export default function StepBlob({ data, onUpdateData, onNext }: StepBlobProps) 
           onChange={(e) => {
             setBlobToken(e.target.value);
             setSaved(false);
+            setError(null);
           }}
           disabled={saved}
           mono
         />
 
+        {error && <p className="text-sm text-red-400">{error}</p>}
+
         <div className="flex items-center gap-3">
-          <Button variant="primary" onClick={handleSave} disabled={!blobToken.trim() || saved}>
+          <Button
+            variant="primary"
+            onClick={handleSave}
+            disabled={!blobToken.trim() || saved}
+            loading={loading}
+          >
             Save Token
           </Button>
 

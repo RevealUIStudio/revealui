@@ -1,17 +1,17 @@
 import { useState } from 'react';
-import { stripeRunKeys, stripeRunSeed, stripeValidateKeys } from '../../lib/deploy';
+import { generateRsaKeypair, stripeRunSeed, stripeValidateKeys } from '../../lib/deploy';
 import type { StudioConfig, WizardData } from '../../types';
 import Button from '../ui/Button';
 import Input from '../ui/Input';
 import WizardStep from './WizardStep';
 
-type Phase = 'input' | 'validating' | 'generating-keys' | 'seeding' | 'done';
+type Phase = 'input' | 'validating' | 'generating-rsa' | 'seeding' | 'done';
 
 const PHASE_LABELS: Record<Phase, string> = {
   input: '',
   validating: 'Validating keys...',
-  'generating-keys': 'Generating webhook keys...',
-  seeding: 'Seeding Stripe catalog...',
+  'generating-rsa': 'Generating license keys...',
+  seeding: 'Creating Stripe products, prices & syncing catalog...',
   done: 'Stripe connected',
 };
 
@@ -46,16 +46,36 @@ export default function StepStripe({
       setPhase('validating');
       await stripeValidateKeys(trimmedSecret);
 
-      setPhase('generating-keys');
-      await stripeRunKeys('.');
+      setPhase('generating-rsa');
+      const [privateKey, publicKey] = await generateRsaKeypair();
 
       setPhase('seeding');
-      await stripeRunSeed('.');
+      const seedOutput = await stripeRunSeed('.');
+
+      let webhookSecret = '';
+      let priceIds = { pro: '', max: '', enterprise: '' };
+      try {
+        const parsed = JSON.parse(seedOutput);
+        if (parsed.envVars) {
+          webhookSecret = parsed.envVars.STRIPE_WEBHOOK_SECRET ?? '';
+          priceIds = {
+            pro: parsed.envVars.NEXT_PUBLIC_STRIPE_PRO_PRICE_ID ?? '',
+            max: parsed.envVars.NEXT_PUBLIC_STRIPE_MAX_PRICE_ID ?? '',
+            enterprise: parsed.envVars.NEXT_PUBLIC_STRIPE_ENTERPRISE_PRICE_ID ?? '',
+          };
+        }
+      } catch {
+        // Seed output may not be JSON — leave empty (user enters manually)
+      }
 
       setPhase('done');
       onUpdateData({
         stripeSecretKey: trimmedSecret,
         stripePublishableKey: trimmedPublishable,
+        stripeWebhookSecret: webhookSecret,
+        stripePriceIds: priceIds,
+        licensePrivateKey: privateKey,
+        licensePublicKey: publicKey,
       });
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Stripe setup failed');
