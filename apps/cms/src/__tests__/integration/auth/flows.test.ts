@@ -156,7 +156,7 @@ describe('Authentication Flow Integration', () => {
       // Capture what gets passed to .values()
       (mockDb.values as ReturnType<typeof vi.fn>).mockImplementationOnce(
         (data: Record<string, unknown>) => {
-          capturedPasswordHash = data.passwordHash as string;
+          capturedPasswordHash = data.password as string;
           return mockDb;
         },
       );
@@ -245,7 +245,13 @@ describe('Authentication Flow Integration', () => {
       const hash = await captureHashFromSignUp(password);
 
       (mockDb.limit as ReturnType<typeof vi.fn>).mockResolvedValueOnce([
-        { id: 'u-si-1', email: 'user@example.com', password: hash },
+        {
+          id: 'u-si-1',
+          email: 'user@example.com',
+          password: hash,
+          emailVerified: true,
+          createdAt: new Date(),
+        },
       ]);
       (mockDb.returning as ReturnType<typeof vi.fn>).mockResolvedValueOnce([
         {
@@ -271,7 +277,13 @@ describe('Authentication Flow Integration', () => {
       const hash = await captureHashFromSignUp(correctPassword);
 
       (mockDb.limit as ReturnType<typeof vi.fn>).mockResolvedValueOnce([
-        { id: 'u-si-2', email: 'user@example.com', password: hash },
+        {
+          id: 'u-si-2',
+          email: 'user@example.com',
+          password: hash,
+          emailVerified: true,
+          createdAt: new Date(),
+        },
       ]);
 
       const result = await signIn('user@example.com', 'WrongPassword123!', {
@@ -304,7 +316,13 @@ describe('Authentication Flow Integration', () => {
 
       // Test wrong password
       (mockDb.limit as ReturnType<typeof vi.fn>).mockResolvedValueOnce([
-        { id: 'u-enum', email: 'exists@example.com', password: hash },
+        {
+          id: 'u-enum',
+          email: 'exists@example.com',
+          password: hash,
+          emailVerified: true,
+          createdAt: new Date(),
+        },
       ]);
       const result2 = await signIn('exists@example.com', 'WrongPassword123!', {
         ipAddress: '10.0.0.4',
@@ -347,7 +365,7 @@ describe('Authentication Flow Integration', () => {
       }
       // Account is now locked — signIn should fail regardless of credentials
       (mockDb.limit as ReturnType<typeof vi.fn>).mockResolvedValueOnce([
-        { id: 'ulocked', email, password: 'any-hash' },
+        { id: 'ulocked', email, password: 'any-hash', emailVerified: true, createdAt: new Date() },
       ]);
 
       const result = await signIn(email, 'Correct123!', { ipAddress: '10.0.0.5' });

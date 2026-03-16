@@ -158,6 +158,8 @@ describe('page queries', () => {
       const data = { id: 'p1', siteId: 's1', title: 'New Page', path: '/new' };
       const chain = createInsertChain([data]);
       db.insert.mockReturnValue(chain);
+      // incrementPageCount does db.update(sites).set(...).where(...)
+      db.update.mockReturnValue(createUpdateChain());
 
       const result = await createPage(db as never, data as never);
 
@@ -203,13 +205,18 @@ describe('page queries', () => {
 
   describe('deletePage', () => {
     it('deletes a page by id', async () => {
-      const chain = createDeleteChain();
-      db.delete.mockReturnValue(chain);
+      // getPageById needs a select chain
+      const selectChain = createSelectChain([{ id: 'p1', siteId: 's1' }]);
+      db.select.mockReturnValue(selectChain);
+      const deleteChain = createDeleteChain();
+      db.delete.mockReturnValue(deleteChain);
+      // decrementPageCount does db.update(sites).set(...).where(...)
+      db.update.mockReturnValue(createUpdateChain());
 
       await deletePage(db as never, 'p1');
 
       expect(db.delete).toHaveBeenCalled();
-      expect(chain.where).toHaveBeenCalled();
+      expect(deleteChain.where).toHaveBeenCalled();
     });
   });
 
@@ -243,6 +250,8 @@ describe('page queries', () => {
     });
 
     it('propagates delete errors', async () => {
+      // getPageById needs a select chain (runs before delete)
+      db.select.mockReturnValue(createSelectChain([{ id: 'p1', siteId: 's1' }]));
       const chain = createDeleteChain();
       chain.where.mockRejectedValue(new Error('cascade violation'));
       db.delete.mockReturnValue(chain);

@@ -83,7 +83,7 @@ describe('LicenseGate', () => {
       </LicenseGate>,
     );
 
-    expect(screen.getByText(/Enterprise/)).toBeInTheDocument();
+    expect(screen.getByText(/Enterprise.*licensed/)).toBeInTheDocument();
   });
 
   it('should show license key input form when not licensed', () => {
