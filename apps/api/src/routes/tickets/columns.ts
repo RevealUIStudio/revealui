@@ -162,7 +162,7 @@ app.openapi(
     const board = await boardQueries.getBoardById(db, existing.boardId);
     assertBoardTenantAccess(board ?? {}, c.get('tenant'));
     const user = c.get('user');
-    if (board?.ownerId && board.ownerId !== user?.id) {
+    if (board?.ownerId && board.ownerId !== user?.id && user?.role !== 'admin') {
       throw new HTTPException(403, { message: 'Forbidden' });
     }
     const column = await boardQueries.updateColumn(db, id, body);
@@ -198,7 +198,7 @@ app.openapi(
     const board = await boardQueries.getBoardById(db, existing.boardId);
     assertBoardTenantAccess(board ?? {}, c.get('tenant'));
     const user = c.get('user');
-    if (board?.ownerId && board.ownerId !== user?.id) {
+    if (board?.ownerId && board.ownerId !== user?.id && user?.role !== 'admin') {
       throw new HTTPException(403, { message: 'Forbidden' });
     }
     await boardQueries.deleteColumn(db, id);

@@ -31,7 +31,13 @@ export interface SignInInput {
 }
 
 export interface UseSignInResult {
-  signIn: (input: SignInInput) => Promise<{ success: boolean; user?: User; error?: string }>;
+  signIn: (
+    input: SignInInput,
+  ) => Promise<
+    | { success: true; user: User }
+    | { success: false; error: string }
+    | { success: false; requiresMfa: true; mfaUserId: string }
+  >;
   isLoading: boolean;
   error: Error | null;
 }
@@ -86,26 +92,34 @@ export function useSignIn(): UseSignInResult {
       if (!response.ok) {
         const errorData = SignInErrorResponseSchema.parse(json);
         return {
-          success: false,
+          success: false as const,
           error: errorData.error || 'Failed to sign in',
+        };
+      }
+
+      // Check for MFA challenge before parsing as full success
+      const jsonObj = json as Record<string, unknown>;
+      if (jsonObj.requiresMfa === true && typeof jsonObj.mfaUserId === 'string') {
+        return {
+          success: false as const,
+          requiresMfa: true as const,
+          mfaUserId: jsonObj.mfaUserId,
         };
       }
 
       const successData = SignInSuccessResponseSchema.parse(json);
       return {
-        success: true,
-        // Type assertion through unknown is safe because Zod validation ensures the shape is correct
-        // The API returns serialized data, so we cast to expected type
+        success: true as const,
         user: successData.user as unknown as User,
       };
     } catch (err) {
       if (err instanceof DOMException && err.name === 'AbortError') {
-        return { success: false, error: 'Request was cancelled' };
+        return { success: false as const, error: 'Request was cancelled' };
       }
       const error = err instanceof Error ? err : new Error(String(err));
       setError(error);
       return {
-        success: false,
+        success: false as const,
         error: error.message,
       };
     } finally {

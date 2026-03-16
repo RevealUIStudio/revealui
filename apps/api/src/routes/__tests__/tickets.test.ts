@@ -345,10 +345,19 @@ describe('Tickets', () => {
     expect(res.status).toBe(200);
   });
 
-  it('PATCH /tickets/:id — 404 for missing ticket', async () => {
-    mt.updateTicket.mockResolvedValue(null as never);
+  it('PATCH /tickets/:id — 404 when ticket not found by ID', async () => {
+    mt.getTicketById.mockResolvedValue(null as never);
     const app = createApp();
     const res = await app.request('/tickets/no-ticket', patch({ status: 'closed' }));
+    expect(res.status).toBe(404);
+  });
+
+  it('PATCH /tickets/:id — 404 when update returns null', async () => {
+    mt.getTicketById.mockResolvedValue(makeTicket() as never);
+    mb.getBoardById.mockResolvedValue(makeBoard() as never);
+    mt.updateTicket.mockResolvedValue(null as never);
+    const app = createApp();
+    const res = await app.request('/tickets/ticket-1', patch({ status: 'closed' }));
     expect(res.status).toBe(404);
   });
 

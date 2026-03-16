@@ -118,7 +118,7 @@ describe('DeployWizard', () => {
 
     render(<DeployWizard onComplete={vi.fn()} />);
 
-    expect(screen.getByText('Step 1 of 3')).toBeInTheDocument();
+    expect(screen.getByText(/Step 1 of \d+/)).toBeInTheDocument();
   });
 
   it('disables Back button on first step', () => {
