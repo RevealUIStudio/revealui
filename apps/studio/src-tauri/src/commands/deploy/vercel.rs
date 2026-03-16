@@ -8,6 +8,8 @@ pub struct VercelProject {
     pub id: String,
     pub name: String,
     pub framework: Option<String>,
+    #[serde(rename = "accountId")]
+    pub account_id: Option<String>,
 }
 
 #[derive(Serialize, Deserialize)]

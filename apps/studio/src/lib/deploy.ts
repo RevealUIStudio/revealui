@@ -18,7 +18,7 @@ export async function vercelCreateProject(
   framework: string,
   rootDirectory?: string,
 ): Promise<VercelProject> {
-  if (!isTauri()) return { id: `mock-${name}`, name, framework };
+  if (!isTauri()) return { id: `mock-${name}`, name, framework, accountId: 'mock-team' };
   return tauriInvoke<VercelProject>('vercel_create_project', {
     token,
     name,
