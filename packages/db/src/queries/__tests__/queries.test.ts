@@ -402,12 +402,12 @@ describe('sites queries', () => {
     expect(await updateSite(mock.db, 'missing', {} as never)).toBeNull();
   });
 
-  it('deleteSite calls delete on the db', async () => {
+  it('deleteSite calls update for soft-delete', async () => {
     const { deleteSite } = await import('../sites.js');
 
     await deleteSite(mock.db, 's1');
 
-    expect(mock.db.delete).toHaveBeenCalled();
+    expect(mock.db.update).toHaveBeenCalled();
   });
 });
 
