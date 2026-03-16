@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import Dashboard from './components/dashboard/Dashboard';
+import DeployDashboard from './components/dashboard/DeployDashboard';
 import DeployWizard from './components/deploy/DeployWizard';
 import InfrastructurePanel from './components/infrastructure/InfrastructurePanel';
 import IntentScreen from './components/intent/IntentScreen';
@@ -58,14 +59,25 @@ export default function App() {
           {page === 'setup' && <SetupPage />}
         </AppShell>
         <SetupWizard
-          onClose={async () => {
-            await updateConfig({ setupComplete: true });
+          onClose={() => {
+            void updateConfig({ setupComplete: true });
           }}
         />
       </>
     );
   }
 
+  // Setup complete — deploy intent shows deploy dashboard
+  if (config.intent === 'deploy') {
+    return (
+      <AppShell currentPage={page} onNavigate={setPage}>
+        {page === 'dashboard' && <DeployDashboard />}
+        {page === 'setup' && <SetupPage />}
+      </AppShell>
+    );
+  }
+
+  // Setup complete — develop intent shows full companion
   return (
     <AppShell currentPage={page} onNavigate={setPage}>
       {page === 'dashboard' && <Dashboard />}
