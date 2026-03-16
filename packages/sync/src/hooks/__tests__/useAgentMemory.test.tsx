@@ -93,6 +93,7 @@ describe('useAgentMemory', () => {
     expect(mockUseShape).toHaveBeenCalledWith({
       url: '/api/shapes/agent-memories',
       params: { agent_id: 'my-agent_01' },
+      fetchClient: expect.any(Function),
     });
   });
 
@@ -108,6 +109,7 @@ describe('useAgentMemory', () => {
     expect(mockUseShape).toHaveBeenCalledWith({
       url: '/api/shapes/agent-memories',
       params: { agent_id: '00000000-0000-0000-0000-000000000000' },
+      fetchClient: expect.any(Function),
     });
   });
 
@@ -120,6 +122,7 @@ describe('useAgentMemory', () => {
     expect(mockUseShape).toHaveBeenCalledWith({
       url: '/api/shapes/agent-memories',
       params: { agent_id: '00000000-0000-0000-0000-000000000000' },
+      fetchClient: expect.any(Function),
     });
   });
 
@@ -135,6 +138,7 @@ describe('useAgentMemory', () => {
     expect(mockUseShape).toHaveBeenCalledWith({
       url: 'https://cms.example.com/api/shapes/agent-memories',
       params: { agent_id: 'agent-123' },
+      fetchClient: expect.any(Function),
     });
   });
 
@@ -182,6 +186,7 @@ describe('useAgentMemory', () => {
     expect(mockUseShape).toHaveBeenCalledWith({
       url: '/api/shapes/agent-memories',
       params: { agent_id: '12345' },
+      fetchClient: expect.any(Function),
     });
   });
 
@@ -194,6 +199,7 @@ describe('useAgentMemory', () => {
     expect(mockUseShape).toHaveBeenCalledWith({
       url: '/api/shapes/agent-memories',
       params: { agent_id: 'my_agent-v2' },
+      fetchClient: expect.any(Function),
     });
   });
 

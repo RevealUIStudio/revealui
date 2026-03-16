@@ -93,6 +93,7 @@ describe('useAgentContexts', () => {
 
     expect(mockUseShape).toHaveBeenCalledWith({
       url: '/api/shapes/agent-contexts',
+      fetchClient: expect.any(Function),
     });
   });
 
@@ -107,6 +108,7 @@ describe('useAgentContexts', () => {
 
     expect(mockUseShape).toHaveBeenCalledWith({
       url: 'https://cms.example.com/api/shapes/agent-contexts',
+      fetchClient: expect.any(Function),
     });
   });
 
@@ -261,6 +263,7 @@ describe('useAgentContexts', () => {
 
     expect(mockUseShape).toHaveBeenCalledWith({
       url: 'https://cms.example.com/api/shapes/agent-contexts',
+      fetchClient: expect.any(Function),
     });
   });
 });
