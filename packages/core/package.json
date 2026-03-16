@@ -19,6 +19,7 @@
     "@lexical/utils": "^0.40.0",
     "@lexical/yjs": "^0.40.0",
     "@revealui/contracts": "workspace:*",
+    "@revealui/security": "workspace:*",
     "@revealui/utils": "workspace:*",
     "@vercel/blob": "^2.2.0",
     "bcryptjs": "^3.0.3",
