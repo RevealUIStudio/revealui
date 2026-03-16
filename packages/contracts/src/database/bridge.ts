@@ -108,29 +108,6 @@ export function safeDbRowToContract<T>(
 }
 
 /**
- * Convert a contract-validated entity to a database insert type
- *
- * This ensures that data validated by contracts can be safely inserted into the database.
- *
- * @template TInsert - The database insert type
- * @template TContract - The contract type
- * @param contractData - The contract-validated data
- * @returns Data ready for database insertion
- *
- * @example
- * ```typescript
- * const newUser = createUser({ email: 'user@example.com', name: 'User' })
- * const dbInsert: Database['public']['Tables']['users']['Insert'] = contractToDbInsert(newUser)
- * await db.insert(users).values(dbInsert)
- * ```
- */
-export function contractToDbInsert<TContract, TInsert>(contractData: TContract): TInsert {
-  // Type assertion - the contract should match the database structure
-  // In practice, contracts and database schemas should be kept in sync
-  return contractData as unknown as TInsert;
-}
-
-/**
  * Type guard to check if database row matches a contract
  *
  * @template T - The contract type
