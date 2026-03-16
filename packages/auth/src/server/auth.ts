@@ -39,6 +39,7 @@ export async function signIn(
     if (!rateLimit.allowed) {
       return {
         success: false,
+        reason: 'rate_limited',
         error: 'Too many login attempts. Please try again later.',
       };
     }
@@ -51,6 +52,7 @@ export async function signIn(
         : 30;
       return {
         success: false,
+        reason: 'account_locked',
         error: `Account locked due to too many failed attempts. Please try again in ${lockMinutes} minutes.`,
       };
     }
@@ -62,6 +64,7 @@ export async function signIn(
       logger.error('Error getting database client');
       return {
         success: false,
+        reason: 'database_error',
         error: 'Database connection failed',
       };
     }
@@ -79,6 +82,7 @@ export async function signIn(
       logger.error('Error querying user');
       return {
         success: false,
+        reason: 'database_error',
         error: 'Database error',
       };
     }
@@ -90,6 +94,7 @@ export async function signIn(
       await recordFailedAttempt(email);
       return {
         success: false,
+        reason: 'invalid_credentials',
         error: invalidCredentialsMessage,
       };
     }
@@ -99,6 +104,7 @@ export async function signIn(
       await recordFailedAttempt(email);
       return {
         success: false,
+        reason: 'invalid_credentials',
         error: invalidCredentialsMessage,
       };
     }
@@ -112,6 +118,7 @@ export async function signIn(
       await recordFailedAttempt(email);
       return {
         success: false,
+        reason: 'invalid_credentials',
         error: invalidCredentialsMessage,
       };
     }
@@ -120,6 +127,7 @@ export async function signIn(
       await recordFailedAttempt(email);
       return {
         success: false,
+        reason: 'invalid_credentials',
         error: invalidCredentialsMessage,
       };
     }
@@ -148,6 +156,7 @@ export async function signIn(
       logger.error('Error creating session');
       return {
         success: false,
+        reason: 'session_error',
         error: 'Failed to create session',
       };
     }
@@ -161,6 +170,7 @@ export async function signIn(
     logger.error('Unexpected error in signIn');
     return {
       success: false,
+      reason: 'unexpected_error',
       error: 'Unexpected error',
     };
   }

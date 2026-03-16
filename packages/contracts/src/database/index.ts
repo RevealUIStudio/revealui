@@ -4,9 +4,7 @@
  * Database contract bridges - type-safe conversion between database types and contracts
  */
 
-// Re-export contractToDbInsert for convenience
 export {
-  contractToDbInsert,
   DatabaseContractRegistry,
   databaseContractRegistry,
   dbRowToContract,
@@ -24,7 +22,6 @@ export {
   createContractToDbMapper,
   createDbRowMapper,
   createTableContractRegistry,
-  type DrizzleToContract,
   isDbRowAndContract,
   type TableContractMap,
 } from './type-bridge.js';
