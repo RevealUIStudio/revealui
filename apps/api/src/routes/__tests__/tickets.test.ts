@@ -51,7 +51,7 @@ import * as boardQueries from '@revealui/db/queries/boards';
 import * as commentQueries from '@revealui/db/queries/ticket-comments';
 import * as labelQueries from '@revealui/db/queries/ticket-labels';
 import * as ticketQueries from '@revealui/db/queries/tickets';
-import ticketsApp from '../tickets.js';
+import ticketsApp from '../tickets/index.js';
 
 const mb = vi.mocked(boardQueries);
 const mt = vi.mocked(ticketQueries);
