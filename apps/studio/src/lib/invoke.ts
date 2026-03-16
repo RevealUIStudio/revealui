@@ -6,6 +6,7 @@ import type {
   SetupStatus,
   SshBookmark,
   SshConnectParams,
+  StudioConfig,
   SyncResult,
   SystemStatus,
   TailscaleStatus,
@@ -100,6 +101,13 @@ const MOCK_DATA: Record<string, unknown> = {
   ssh_bookmark_list: [] satisfies SshBookmark[],
   ssh_bookmark_save: undefined,
   ssh_bookmark_delete: undefined,
+  get_config: {
+    intent: null,
+    setupComplete: false,
+    completedSteps: [],
+  } satisfies StudioConfig,
+  set_config: undefined,
+  reset_config: undefined,
 };
 
 /** Guarded invoke — returns mock data in browser, real IPC in Tauri */
