@@ -23,9 +23,9 @@ import {
   isRecurringPrice,
   type StripePriceData,
 } from '@revealui/contracts/entities';
-import type { RevealAfterReadHook, RevealDocument } from '@revealui/core';
+import type { RevealAfterReadHook } from '@revealui/core';
 import type { Price } from '@revealui/core/types/cms';
-import { asDocument } from '@/lib/utils/type-guards';
+import { asBridgedDoc, asDocument, toRevealDocument } from '@/lib/utils/type-guards';
 
 const logs = false;
 
@@ -148,11 +148,11 @@ export const calculatePrice: RevealAfterReadHook = async ({ doc, req }) => {
 
   // Skip if no Stripe price configured
   // Price and ContractsPrice describe the same document shape from different type systems.
-  if (!hasStripePrice(price as unknown as ContractsPrice)) {
+  if (!hasStripePrice(asBridgedDoc<ContractsPrice>(price))) {
     if (logs) {
       revealui?.logger?.info(`Price ${price.id} has no Stripe price, skipping calculations`);
     }
-    return price as unknown as RevealDocument;
+    return toRevealDocument(price);
   }
 
   // Parse Stripe price data
@@ -161,15 +161,15 @@ export const calculatePrice: RevealAfterReadHook = async ({ doc, req }) => {
     if (logs) {
       revealui?.logger?.warn(`Price ${price.id} has invalid priceJSON`);
     }
-    return price as unknown as RevealDocument;
+    return toRevealDocument(price);
   }
 
   // Create a temporary Price object with parsed priceJSON for utility functions
   // The utility functions expect priceJSON to be an object, but CMS type has it as string
-  const priceWithParsedJSON = {
+  const priceWithParsedJSON = asBridgedDoc<ContractsPrice>({
     ...price,
     priceJSON: stripePriceData,
-  } as unknown as ContractsPrice;
+  });
 
   // Calculate tier information
   const tierInfo = hasTieredPricing(priceWithParsedJSON)
@@ -206,5 +206,5 @@ export const calculatePrice: RevealAfterReadHook = async ({ doc, req }) => {
     );
   }
 
-  return enriched as unknown as RevealDocument;
+  return toRevealDocument(enriched);
 };

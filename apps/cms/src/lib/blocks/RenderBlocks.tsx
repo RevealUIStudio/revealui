@@ -4,6 +4,7 @@ import { logger } from '@revealui/core/utils/logger';
 import type React from 'react';
 import { Fragment } from 'react';
 import { ErrorBoundary } from '@/lib/components/ErrorBoundary/index';
+import { asNormalizedProps } from '@/lib/utils/type-guards';
 import { ArchiveBlock } from './ArchiveBlock/Component';
 import { CallToActionBlock } from './CallToAction/Component';
 import { ContentBlock } from './Content/Component';
@@ -49,7 +50,7 @@ function normalizeArchiveBlockProps(
     })),
     blockName: block.blockName ?? undefined,
   };
-  return normalized as unknown as ArchiveBlockProps;
+  return asNormalizedProps<ArchiveBlockProps>(normalized);
 }
 function normalizeFormBlockProps(
   block: Extract<Page['layout'][0], { blockType: 'formBlock' }>,
@@ -61,8 +62,8 @@ function normalizeFormBlockProps(
     form: block.form,
     introContent: block.introContent ?? null,
   };
-  // Type assertion: Generated types and component props are runtime-compatible but type-incompatible
-  return normalized as unknown as FormBlockProps;
+  // Generated types and component props are runtime-compatible but type-incompatible
+  return asNormalizedProps<FormBlockProps>(normalized);
 }
 
 function normalizeMediaBlockProps(
@@ -72,8 +73,8 @@ function normalizeMediaBlockProps(
     ...block,
     id: block.id ?? undefined,
   };
-  // Type assertion: MediaBlock Props expects undefined but generated type has null
-  return normalized as unknown as MediaBlockProps & { id?: string };
+  // MediaBlock props expects undefined but generated type has null
+  return asNormalizedProps<MediaBlockProps & { id?: string }>(normalized);
 }
 
 /**
@@ -191,24 +192,20 @@ export const RenderBlocks = ({
             switch (blockType) {
               case 'archive': {
                 if (!isBlockType<ArchiveBlockProps>(block, 'archive')) return null;
-                const normalizedArchive = normalizeArchiveBlockProps(
-                  block,
-                ) as unknown as React.ComponentProps<typeof ArchiveBlock>;
+                const normalizedArchive = asNormalizedProps<
+                  React.ComponentProps<typeof ArchiveBlock>
+                >(normalizeArchiveBlockProps(block));
                 return <ArchiveBlock {...normalizedArchive} />;
               }
               case 'content': {
                 if (!isBlockType<ContentBlockProps>(block, 'content')) return null;
                 if (!block.columns || block.columns.length === 0) return null;
-                return (
-                  <ContentBlock
-                    {...block}
-                    columns={
-                      block.columns as unknown as React.ComponentProps<
-                        typeof ContentBlock
-                      >['columns']
-                    }
-                  />
-                );
+                // Generated column types and ContentBlock props are structurally compatible
+                // but TypeScript can't prove it due to deep nested type differences (null vs undefined)
+                const columns = block.columns as React.ComponentProps<
+                  typeof ContentBlock
+                >['columns'];
+                return <ContentBlock {...block} columns={columns} />;
               }
               case 'cta': {
                 if (!isBlockType<CallToActionBlockProps>(block, 'cta')) return null;
@@ -216,9 +213,9 @@ export const RenderBlocks = ({
               }
               case 'formBlock': {
                 if (!isBlockType<FormBlockProps>(block, 'formBlock')) return null;
-                const normalizedForm = normalizeFormBlockProps(
-                  block,
-                ) as unknown as React.ComponentProps<typeof FormBlock>;
+                const normalizedForm = asNormalizedProps<React.ComponentProps<typeof FormBlock>>(
+                  normalizeFormBlockProps(block),
+                );
                 return <FormBlock {...normalizedForm} />;
               }
               case 'mediaBlock': {
