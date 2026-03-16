@@ -10,6 +10,7 @@ import type { FieldErrors, FieldValues, UseFormRegister } from 'react-hook-form'
 import { FormProvider, useForm } from 'react-hook-form';
 import { ErrorBoundary } from '@/lib/components/ErrorBoundary/index';
 import RichText from '@/lib/components/RichText/index';
+import { asRecord } from '@/lib/utils/type-guards';
 import { buildInitialFormState } from './buildInitialFormState';
 import { fields } from './fields';
 
@@ -264,8 +265,7 @@ export const FormBlock = memo(({ enableIntro, form, introContent }: Props) => {
                   if (FieldComponent) {
                     const key =
                       field?.id ?? ('name' in field ? field.name : undefined) ?? `field-${index}`;
-                    // Use Record<string, unknown> instead of any for safer type casting
-                    const fieldProps = field as unknown as Record<string, unknown>;
+                    const fieldProps = asRecord(field);
                     return (
                       <div className="mb-6 last:mb-0" key={key}>
                         <FieldComponent

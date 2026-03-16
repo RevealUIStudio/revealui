@@ -2,6 +2,7 @@ import type { Page, Post, Redirect } from '@revealui/core/types/cms';
 import { notFound, redirect } from 'next/navigation';
 import { getCachedDocument } from '@/lib/utilities/getDocument';
 import { getCachedRedirects } from '@/lib/utilities/getRedirects';
+import { asDocument } from '@/lib/utils/type-guards';
 
 interface Props {
   disableNotFound?: boolean;
@@ -27,7 +28,7 @@ export const RevealUIRedirects = async ({ disableNotFound, url }: Props) => {
       const collection = redirectItem.to?.reference?.relationTo;
       const id = redirectItem.to?.reference?.value;
 
-      const document = (await getCachedDocument(collection, id)()) as unknown as Page | Post;
+      const document = asDocument<Page | Post>(await getCachedDocument(collection, id)());
       redirectUrl = `${redirectItem.to?.reference?.relationTo !== 'pages' ? `/${redirectItem.to?.reference?.relationTo}` : ''}/${
         document?.slug
       }`;

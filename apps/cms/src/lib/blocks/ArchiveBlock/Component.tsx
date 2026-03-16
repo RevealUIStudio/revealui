@@ -4,6 +4,7 @@ import { CollectionArchive } from '@/lib/components/CollectionArchive/index';
 import { ErrorBoundary } from '@/lib/components/ErrorBoundary/index';
 import RichText from '@/lib/components/RichText/index';
 import { getRevealUIInstance } from '@/lib/utilities/revealui-singleton';
+import { asDocuments } from '@/lib/utils/type-guards';
 
 export interface ArchiveBlockProps {
   introContent?: {
@@ -74,7 +75,7 @@ export const ArchiveBlock = async (props: ArchiveBlockProps) => {
         : {}),
     });
 
-    posts = (fetchedPosts.docs as unknown as Post[]).map((doc) => doc);
+    posts = asDocuments<Post>(fetchedPosts.docs as unknown[]);
   } else if (selectedDocs?.length) {
     posts = selectedDocs
       .map((doc: { relationTo: 'posts'; value: string | Post }) =>

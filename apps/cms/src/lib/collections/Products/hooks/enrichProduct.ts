@@ -176,7 +176,7 @@ export async function enrichProductManually(product: Product): Promise<EnrichedP
     query: undefined,
   });
 
-  return result as unknown as EnrichedProduct;
+  return asDocument<EnrichedProduct>(result);
 }
 
 /**
@@ -192,7 +192,7 @@ export async function enrichProductsBatch(products: Product[]): Promise<Enriched
         context: undefined,
         query: undefined,
       });
-      return result as unknown as EnrichedProduct;
+      return asDocument<EnrichedProduct>(result);
     }),
   );
 }
