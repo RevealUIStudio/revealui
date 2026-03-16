@@ -6,6 +6,19 @@
  */
 
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
+
+// Mock the resilience logger before importing modules that use it
+const mockLogger = {
+  info: vi.fn(),
+  warn: vi.fn(),
+  error: vi.fn(),
+  debug: vi.fn(),
+};
+vi.mock('../logger.js', () => ({
+  getResilienceLogger: () => mockLogger,
+  configureResilienceLogger: vi.fn(),
+}));
+
 import {
   AdaptiveCircuitBreaker,
   Bulkhead,
@@ -20,16 +33,6 @@ import {
   ResilientOperation,
   withCircuitBreaker,
 } from '../circuit-breaker.js';
-
-// Mock the logger to suppress output during tests
-vi.mock('../../observability/logger.js', () => ({
-  logger: {
-    info: vi.fn(),
-    warn: vi.fn(),
-    error: vi.fn(),
-    debug: vi.fn(),
-  },
-}));
 
 describe('CircuitBreaker', () => {
   let breaker: CircuitBreaker;

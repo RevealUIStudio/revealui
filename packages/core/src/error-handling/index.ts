@@ -4,12 +4,15 @@
  * Comprehensive error handling infrastructure for production applications
  */
 
+// Circuit breakers — re-exported from @revealui/resilience
+// Retry logic — re-exported from @revealui/resilience
 export type {
   CircuitBreakerConfig,
   CircuitBreakerStats,
   CircuitState,
-} from './circuit-breaker';
-// Circuit breakers
+  RetryConfig,
+  RetryOptions,
+} from '@revealui/resilience';
 export {
   AdaptiveCircuitBreaker,
   Bulkhead,
@@ -17,13 +20,28 @@ export {
   CircuitBreaker,
   CircuitBreakerOpenError,
   CircuitBreakerRegistry,
+  calculateDelay,
   circuitBreakerRegistry,
   createCircuitBreakerMiddleware,
   createResilientFunction,
+  createRetryMiddleware,
+  ExponentialBackoff,
   fetchWithCircuitBreaker,
+  fetchWithRetry,
+  globalRetryConfig,
   ResilientOperation,
+  Retryable,
+  RetryableOperation,
+  RetryPolicies,
+  RetryPolicyBuilder,
+  retry,
+  retryBatch,
+  retryIf,
+  retryUntil,
+  retryWithFallback,
+  sleep,
   withCircuitBreaker,
-} from './circuit-breaker';
+} from '@revealui/resilience';
 export type {
   ErrorBoundaryProps,
   ErrorBoundaryState,
@@ -88,22 +106,3 @@ export {
   SuspenseFallback,
   Toast,
 } from './fallback-components';
-export type { RetryConfig, RetryOptions } from './retry';
-// Retry logic
-export {
-  calculateDelay,
-  createRetryMiddleware,
-  ExponentialBackoff,
-  fetchWithRetry,
-  globalRetryConfig,
-  Retryable,
-  RetryableOperation,
-  RetryPolicies,
-  RetryPolicyBuilder,
-  retry,
-  retryBatch,
-  retryIf,
-  retryUntil,
-  retryWithFallback,
-  sleep,
-} from './retry';
