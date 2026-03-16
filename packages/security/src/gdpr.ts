@@ -5,8 +5,8 @@
  */
 
 import { createHash, createHmac } from 'node:crypto';
-import { logger } from '../observability/logger.js';
 import { type BreachStorage, type GDPRStorage, InMemoryBreachStorage } from './gdpr-storage.js';
+import { getSecurityLogger } from './logger.js';
 
 export type ConsentType =
   | 'necessary'
@@ -649,7 +649,7 @@ export class DataBreachManager {
     if (storage) {
       this.storage = storage;
     } else {
-      logger.warn(
+      getSecurityLogger().warn(
         'DataBreachManager: using in-memory storage — breach records will be lost on restart. ' +
           'For production GDPR compliance, pass a database-backed BreachStorage.',
       );
@@ -690,7 +690,7 @@ export class DataBreachManager {
     });
 
     // In production, integrate with data protection authority API
-    logger.info('Breach reported to authorities', { breachId: breach.id });
+    getSecurityLogger().info('Breach reported to authorities', { breachId: breach.id });
   }
 
   /**
