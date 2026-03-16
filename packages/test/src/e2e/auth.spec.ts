@@ -129,7 +129,7 @@ test.describe('Authentication E2E Tests', () => {
       // Verify cookie is set
       const cookies = response.headers()['set-cookie'];
       expect(cookies).toBeDefined();
-      expect(cookies?.some((cookie) => cookie.includes('revealui-session'))).toBe(true);
+      expect(cookies?.includes('revealui-session')).toBe(true);
     });
 
     test('should fail to sign in with incorrect password', async ({ request }) => {
