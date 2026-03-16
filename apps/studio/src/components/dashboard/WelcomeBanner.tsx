@@ -3,9 +3,7 @@ import { useCallback, useState } from 'react';
 const STORAGE_KEY = 'revealui-welcome-dismissed';
 
 export default function WelcomeBanner() {
-  const [dismissed, setDismissed] = useState(
-    () => localStorage.getItem(STORAGE_KEY) === '1',
-  );
+  const [dismissed, setDismissed] = useState(() => localStorage.getItem(STORAGE_KEY) === '1');
 
   const dismiss = useCallback(() => {
     localStorage.setItem(STORAGE_KEY, '1');
@@ -28,19 +26,17 @@ export default function WelcomeBanner() {
           viewBox="0 0 24 24"
           stroke="currentColor"
           strokeWidth={2}
+          aria-hidden="true"
         >
           <path d="M18 6 6 18M6 6l12 12" />
         </svg>
       </button>
-      <h2 className="text-sm font-semibold text-orange-200">
-        Welcome to RevealUI Studio
-      </h2>
+      <h2 className="text-sm font-semibold text-orange-200">Welcome to RevealUI Studio</h2>
       <p className="mt-1 text-xs leading-relaxed text-neutral-400">
-        Your desktop companion for managing RevealUI infrastructure. Use the
-        sidebar to navigate between services — check system status on the{' '}
-        <strong className="text-neutral-300">Dashboard</strong>, manage secrets
-        in the <strong className="text-neutral-300">Vault</strong>, and
-        configure your environment in{' '}
+        Your desktop companion for managing RevealUI infrastructure. Use the sidebar to navigate
+        between services — check system status on the{' '}
+        <strong className="text-neutral-300">Dashboard</strong>, manage secrets in the{' '}
+        <strong className="text-neutral-300">Vault</strong>, and configure your environment in{' '}
         <strong className="text-neutral-300">Setup</strong>.
       </p>
     </div>

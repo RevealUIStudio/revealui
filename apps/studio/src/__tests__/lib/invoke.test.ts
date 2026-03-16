@@ -12,7 +12,6 @@ describe('invoke bridge (browser mode)', () => {
   beforeEach(() => {
     vi.clearAllMocks();
     // Ensure we're in browser mode (no __TAURI_INTERNALS__)
-    // biome-ignore lint/performance/noDelete: test cleanup requires removing the property
     delete (window as Record<string, unknown>).__TAURI_INTERNALS__;
   });
 
@@ -231,7 +230,6 @@ describe('invoke bridge (Tauri mode)', () => {
   });
 
   afterEach(() => {
-    // biome-ignore lint/performance/noDelete: test cleanup requires removing the property
     delete (window as Record<string, unknown>).__TAURI_INTERNALS__;
     vi.restoreAllMocks();
   });

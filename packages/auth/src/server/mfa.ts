@@ -239,7 +239,9 @@ export async function verifyBackupCode(
 
   // Find and consume the matching backup code
   for (let i = 0; i < storedCodes.length; i++) {
-    const matches = await bcrypt.compare(code, storedCodes[i]!);
+    const storedCode = storedCodes[i];
+    if (!storedCode) continue;
+    const matches = await bcrypt.compare(code, storedCode);
     if (matches) {
       // Remove the consumed code
       const remaining = [...storedCodes.slice(0, i), ...storedCodes.slice(i + 1)];
