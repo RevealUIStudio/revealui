@@ -176,7 +176,7 @@ app.openapi(
     if (!existing) throw new HTTPException(404, { message: 'Board not found' });
     assertBoardTenantAccess(existing, c.get('tenant'));
     const user = c.get('user');
-    if (existing.ownerId && existing.ownerId !== user?.id) {
+    if (existing.ownerId && existing.ownerId !== user?.id && user?.role !== 'admin') {
       throw new HTTPException(403, { message: 'Forbidden' });
     }
     const board = await boardQueries.updateBoard(db, id, body);
@@ -210,7 +210,7 @@ app.openapi(
     const board = await boardQueries.getBoardById(db, id);
     if (!board) throw new HTTPException(404, { message: 'Board not found' });
     const user = c.get('user');
-    if (board.ownerId && board.ownerId !== user?.id) {
+    if (board.ownerId && board.ownerId !== user?.id && user?.role !== 'admin') {
       throw new HTTPException(403, { message: 'Forbidden' });
     }
     await boardQueries.deleteBoard(db, id);
