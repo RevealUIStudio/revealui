@@ -1,6 +1,7 @@
 'use client';
 
 import { useShape } from '@electric-sql/react';
+import { fetchWithTimeout } from '../fetch-with-timeout.js';
 import type { MutationResult } from '../mutations.js';
 import { useSyncMutations } from '../mutations.js';
 import { useElectricConfig } from '../provider/index.js';
@@ -51,6 +52,7 @@ export function useAgentMemory(agentId: string): UseAgentMemoryResult {
   const { data, isLoading, error } = useShape({
     url: `${proxyBaseUrl}/api/shapes/agent-memories`,
     params: { agent_id: isValid ? agentId : '00000000-0000-0000-0000-000000000000' },
+    fetchClient: fetchWithTimeout,
   });
 
   const { create, update, remove } = useSyncMutations<

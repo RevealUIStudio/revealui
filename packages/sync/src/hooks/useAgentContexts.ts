@@ -1,6 +1,7 @@
 'use client';
 
 import { useShape } from '@electric-sql/react';
+import { fetchWithTimeout } from '../fetch-with-timeout.js';
 import type { MutationResult } from '../mutations.js';
 import { useSyncMutations } from '../mutations.js';
 import { useElectricConfig } from '../provider/index.js';
@@ -42,6 +43,7 @@ export function useAgentContexts(): UseAgentContextsResult {
   const { proxyBaseUrl } = useElectricConfig();
   const { data, isLoading, error } = useShape({
     url: `${proxyBaseUrl}/api/shapes/agent-contexts`,
+    fetchClient: fetchWithTimeout,
   });
 
   const { create, update, remove } = useSyncMutations<
