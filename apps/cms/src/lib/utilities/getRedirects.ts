@@ -1,5 +1,6 @@
 import type { Redirect } from '@revealui/core/types/cms';
 import { unstable_cache } from 'next/cache';
+import { asDocuments } from '@/lib/utils/type-guards';
 import { getRevealUIInstance } from './revealui-singleton';
 
 export async function getRedirects(depth = 1): Promise<Redirect[]> {
@@ -12,7 +13,7 @@ export async function getRedirects(depth = 1): Promise<Redirect[]> {
     pagination: false,
   });
 
-  return redirects as unknown as Redirect[];
+  return asDocuments<Redirect>(redirects as unknown[]);
 }
 
 /**
