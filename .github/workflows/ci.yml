@@ -4,7 +4,7 @@ name: CI
 #   Hard fail: Biome lint, boundary, typecheck, tests, build
 #   Warn-only: audits, structure
 #
-# PRs: quality + typecheck + package build + tests (~8 min).
+# PRs: quality + typecheck + package build + tests + E2E smoke (~10 min).
 # main: full build including apps + E2E smoke (~15 min).
 
 on:
@@ -217,7 +217,6 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 5
     needs: [quality, typecheck]
-    if: github.ref == 'refs/heads/main'
     continue-on-error: true
 
     steps:
