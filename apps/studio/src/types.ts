@@ -166,6 +166,7 @@ export interface VercelProject {
   id: string;
   name: string;
   framework: string | null;
+  accountId?: string;
 }
 
 export interface VercelDeployment {
