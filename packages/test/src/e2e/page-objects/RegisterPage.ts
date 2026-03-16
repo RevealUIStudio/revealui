@@ -37,7 +37,7 @@ export class RegisterPage extends BasePage {
     await this.emailInput.fill(email);
     await this.passwordInput.fill(password);
 
-    if (this.confirmPasswordInput.count() > 0) {
+    if ((await this.confirmPasswordInput.count()) > 0) {
       await this.confirmPasswordInput.fill(confirmPassword || password);
     }
   }
