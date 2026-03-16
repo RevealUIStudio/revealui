@@ -2,30 +2,40 @@ use std::process::Command;
 
 use tauri::State;
 
+use super::error::StudioError;
 use crate::platform::trait_defs::AppStatus;
 use crate::state::AppState;
 
 #[tauri::command]
-pub fn list_apps(state: State<AppState>) -> Result<Vec<AppStatus>, String> {
-    let platform = state.platform.lock().map_err(|e| e.to_string())?;
-    platform.list_apps()
+pub fn list_apps(state: State<AppState>) -> Result<Vec<AppStatus>, StudioError> {
+    let platform = state
+        .platform
+        .lock()
+        .map_err(|e| StudioError::LockPoisoned(e.to_string()))?;
+    platform.list_apps().map_err(|e| StudioError::Other(e))
 }
 
 #[tauri::command]
-pub fn start_app(state: State<AppState>, name: String) -> Result<String, String> {
-    let platform = state.platform.lock().map_err(|e| e.to_string())?;
-    platform.start_app(&name)
+pub fn start_app(state: State<AppState>, name: String) -> Result<String, StudioError> {
+    let platform = state
+        .platform
+        .lock()
+        .map_err(|e| StudioError::LockPoisoned(e.to_string()))?;
+    platform.start_app(&name).map_err(|e| StudioError::Other(e))
 }
 
 #[tauri::command]
-pub fn stop_app(state: State<AppState>, name: String) -> Result<String, String> {
-    let platform = state.platform.lock().map_err(|e| e.to_string())?;
-    platform.stop_app(&name)
+pub fn stop_app(state: State<AppState>, name: String) -> Result<String, StudioError> {
+    let platform = state
+        .platform
+        .lock()
+        .map_err(|e| StudioError::LockPoisoned(e.to_string()))?;
+    platform.stop_app(&name).map_err(|e| StudioError::Other(e))
 }
 
 /// Read the last N lines from a RevealUI app's log file.
 #[tauri::command]
-pub fn read_app_log(name: String, lines: Option<u32>) -> Result<String, String> {
+pub fn read_app_log(name: String, lines: Option<u32>) -> Result<String, StudioError> {
     let n = lines.unwrap_or(50);
     let log_path = format!("/tmp/revealui-{}.log", name);
 
@@ -35,7 +45,7 @@ pub fn read_app_log(name: String, lines: Option<u32>) -> Result<String, String> 
         let output = Command::new("tail")
             .args(["-n", &n.to_string(), &log_path])
             .output()
-            .map_err(|e| format!("Failed to read log: {e}"))?;
+            .map_err(|e| StudioError::Process(format!("Failed to read log: {e}")))?;
 
         if output.status.success() {
             Ok(String::from_utf8_lossy(&output.stdout).to_string())
@@ -44,7 +54,7 @@ pub fn read_app_log(name: String, lines: Option<u32>) -> Result<String, String> 
             if stderr.contains("No such file") {
                 Ok(String::new())
             } else {
-                Err(format!("tail failed: {stderr}"))
+                Err(StudioError::Process(format!("tail failed: {stderr}")))
             }
         }
     }
@@ -54,7 +64,7 @@ pub fn read_app_log(name: String, lines: Option<u32>) -> Result<String, String> 
         let output = Command::new("wsl.exe")
             .args(["-e", "tail", "-n", &n.to_string(), &log_path])
             .output()
-            .map_err(|e| format!("Failed to read log: {e}"))?;
+            .map_err(|e| StudioError::Process(format!("Failed to read log: {e}")))?;
 
         if output.status.success() {
             Ok(String::from_utf8_lossy(&output.stdout).to_string())
@@ -63,7 +73,7 @@ pub fn read_app_log(name: String, lines: Option<u32>) -> Result<String, String> 
             if stderr.contains("No such file") {
                 Ok(String::new())
             } else {
-                Err(format!("tail failed: {stderr}"))
+                Err(StudioError::Process(format!("tail failed: {stderr}")))
             }
         }
     }

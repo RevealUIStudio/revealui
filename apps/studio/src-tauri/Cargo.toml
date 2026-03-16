@@ -37,6 +37,7 @@ async-trait = "0.1"
 sha2 = "0.10"
 portable-pty = "0.9"
 reqwest = { version = "0.12", features = ["json", "rustls-tls"], default-features = false }
+thiserror = "1"
 rand = "0.8"
 hex = "0.4"
 rsa = { version = "0.9", features = ["pem"] }

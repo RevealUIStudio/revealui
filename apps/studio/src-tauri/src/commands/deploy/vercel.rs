@@ -1,6 +1,8 @@
 use reqwest::Client;
 use serde::{Deserialize, Serialize};
 
+use super::super::error::StudioError;
+
 #[derive(Serialize, Deserialize)]
 pub struct VercelProject {
     pub id: String,
@@ -24,7 +26,7 @@ pub async fn vercel_create_project(
     name: String,
     framework: String,
     root_directory: Option<String>,
-) -> Result<VercelProject, String> {
+) -> Result<VercelProject, StudioError> {
     let client = Client::new();
     let mut body = serde_json::json!({
         "name": name,
@@ -38,30 +40,36 @@ pub async fn vercel_create_project(
         .bearer_auth(&token)
         .json(&body)
         .send()
-        .await
-        .map_err(|e| e.to_string())?;
+        .await?;
 
     if !resp.status().is_success() {
         let text = resp.text().await.unwrap_or_default();
-        return Err(format!("Failed to create project: {}", text));
+        return Err(StudioError::Network(format!(
+            "Failed to create project: {}",
+            text
+        )));
     }
 
-    resp.json::<VercelProject>().await.map_err(|e| e.to_string())
+    resp.json::<VercelProject>()
+        .await
+        .map_err(|e| StudioError::Network(e.to_string()))
 }
 
 /// Validate a Vercel API token by listing projects.
 #[tauri::command]
-pub async fn vercel_validate_token(token: String) -> Result<Vec<VercelProject>, String> {
+pub async fn vercel_validate_token(token: String) -> Result<Vec<VercelProject>, StudioError> {
     let client = Client::new();
     let resp = client
         .get("https://api.vercel.com/v9/projects")
         .bearer_auth(&token)
         .send()
-        .await
-        .map_err(|e| e.to_string())?;
+        .await?;
 
     if !resp.status().is_success() {
-        return Err(format!("Vercel API error: {}", resp.status()));
+        return Err(StudioError::Network(format!(
+            "Vercel API error: {}",
+            resp.status()
+        )));
     }
 
     #[derive(Deserialize)]
@@ -69,7 +77,10 @@ pub async fn vercel_validate_token(token: String) -> Result<Vec<VercelProject>, 
         projects: Vec<VercelProject>,
     }
 
-    let body: ListResponse = resp.json().await.map_err(|e| e.to_string())?;
+    let body: ListResponse = resp
+        .json()
+        .await
+        .map_err(|e| StudioError::Network(e.to_string()))?;
     Ok(body.projects)
 }
 
@@ -81,7 +92,7 @@ pub async fn vercel_set_env(
     key: String,
     value: String,
     target: Vec<String>,
-) -> Result<(), String> {
+) -> Result<(), StudioError> {
     let client = Client::new();
     let url = format!("https://api.vercel.com/v10/projects/{}/env", project_id);
 
@@ -97,8 +108,7 @@ pub async fn vercel_set_env(
         .bearer_auth(&token)
         .json(&body)
         .send()
-        .await
-        .map_err(|e| e.to_string())?;
+        .await?;
 
     if resp.status().as_u16() == 409 {
         let patch_url = format!("{}/{}", url, key);
@@ -107,14 +117,19 @@ pub async fn vercel_set_env(
             .bearer_auth(&token)
             .json(&serde_json::json!({ "value": value, "target": target }))
             .send()
-            .await
-            .map_err(|e| e.to_string())?;
+            .await?;
 
         if !patch_resp.status().is_success() {
-            return Err(format!("Vercel env update failed: {}", patch_resp.status()));
+            return Err(StudioError::Network(format!(
+                "Vercel env update failed: {}",
+                patch_resp.status()
+            )));
         }
     } else if !resp.status().is_success() {
-        return Err(format!("Vercel env create failed: {}", resp.status()));
+        return Err(StudioError::Network(format!(
+            "Vercel env create failed: {}",
+            resp.status()
+        )));
     }
 
     Ok(())
@@ -122,10 +137,7 @@ pub async fn vercel_set_env(
 
 /// Trigger a deployment via Vercel API.
 #[tauri::command]
-pub async fn vercel_deploy(
-    token: String,
-    project_id: String,
-) -> Result<String, String> {
+pub async fn vercel_deploy(token: String, project_id: String) -> Result<String, StudioError> {
     let client = Client::new();
     let resp = client
         .post("https://api.vercel.com/v13/deployments")
@@ -136,12 +148,11 @@ pub async fn vercel_deploy(
             "target": "production",
         }))
         .send()
-        .await
-        .map_err(|e| e.to_string())?;
+        .await?;
 
     if !resp.status().is_success() {
         let text = resp.text().await.unwrap_or_default();
-        return Err(format!("Deploy failed: {}", text));
+        return Err(StudioError::Network(format!("Deploy failed: {}", text)));
     }
 
     #[derive(Deserialize)]
@@ -149,7 +160,10 @@ pub async fn vercel_deploy(
         id: String,
     }
 
-    let body: DeployResponse = resp.json().await.map_err(|e| e.to_string())?;
+    let body: DeployResponse = resp
+        .json()
+        .await
+        .map_err(|e| StudioError::Network(e.to_string()))?;
     Ok(body.id)
 }
 
@@ -158,20 +172,28 @@ pub async fn vercel_deploy(
 pub async fn vercel_get_deployment(
     token: String,
     deployment_id: String,
-) -> Result<VercelDeployment, String> {
+) -> Result<VercelDeployment, StudioError> {
     let client = Client::new();
-    let url = format!("https://api.vercel.com/v13/deployments/{}", deployment_id);
+    let url = format!(
+        "https://api.vercel.com/v13/deployments/{}",
+        deployment_id
+    );
     let resp = client
         .get(&url)
         .bearer_auth(&token)
         .send()
-        .await
-        .map_err(|e| e.to_string())?;
+        .await?;
 
     if !resp.status().is_success() {
-        return Err(format!("Vercel API error: {}", resp.status()));
+        return Err(StudioError::Network(format!(
+            "Vercel API error: {}",
+            resp.status()
+        )));
     }
 
-    let deploy: VercelDeployment = resp.json().await.map_err(|e| e.to_string())?;
+    let deploy: VercelDeployment = resp
+        .json()
+        .await
+        .map_err(|e| StudioError::Network(e.to_string()))?;
     Ok(deploy)
 }
