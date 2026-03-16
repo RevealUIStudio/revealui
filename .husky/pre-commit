@@ -3,7 +3,7 @@
 # Guard: Pro packages must remain gitignored — prevents accidental leak to public repo
 LEAKED=""
 for pkg in packages/ai packages/mcp packages/editors packages/services; do
-  if ! git check-ignore -q "$pkg" 2>/dev/null; then
+  if ! git check-ignore -q "$pkg/" 2>/dev/null; then
     LEAKED="$LEAKED $pkg"
   fi
 done

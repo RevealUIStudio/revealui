@@ -145,3 +145,121 @@ describe('validateEnvironment', () => {
     );
   });
 });
+
+// =========================================================================
+// Wizard env vars (Studio installer prerequisite)
+// =========================================================================
+
+describe('envSchema — wizard env vars', () => {
+  describe('REVEALUI_KEK', () => {
+    it('accepts a valid 64-char lowercase hex string', () => {
+      const result = envSchema.safeParse(makeValidEnv({ REVEALUI_KEK: 'ab'.repeat(32) }));
+      expect(result.success).toBe(true);
+    });
+
+    it('accepts uppercase hex', () => {
+      const result = envSchema.safeParse(makeValidEnv({ REVEALUI_KEK: 'AB'.repeat(32) }));
+      expect(result.success).toBe(true);
+    });
+
+    it('rejects a 63-char hex string', () => {
+      const result = envSchema.safeParse(makeValidEnv({ REVEALUI_KEK: 'a'.repeat(63) }));
+      expect(result.success).toBe(false);
+    });
+
+    it('rejects non-hex characters', () => {
+      const result = envSchema.safeParse(makeValidEnv({ REVEALUI_KEK: 'g'.repeat(64) }));
+      expect(result.success).toBe(false);
+    });
+
+    it('is optional', () => {
+      const result = envSchema.safeParse(makeValidEnv());
+      expect(result.success).toBe(true);
+    });
+  });
+
+  describe('REVEALUI_CRON_SECRET', () => {
+    it('accepts a string >= 32 chars', () => {
+      const result = envSchema.safeParse(makeValidEnv({ REVEALUI_CRON_SECRET: 'x'.repeat(32) }));
+      expect(result.success).toBe(true);
+    });
+
+    it('rejects a string < 32 chars', () => {
+      const result = envSchema.safeParse(makeValidEnv({ REVEALUI_CRON_SECRET: 'x'.repeat(31) }));
+      expect(result.success).toBe(false);
+    });
+
+    it('is optional', () => {
+      const result = envSchema.safeParse(makeValidEnv());
+      expect(result.success).toBe(true);
+    });
+  });
+
+  describe('license key signing', () => {
+    it('accepts REVEALUI_LICENSE_PRIVATE_KEY', () => {
+      const result = envSchema.safeParse(
+        makeValidEnv({
+          REVEALUI_LICENSE_PRIVATE_KEY:
+            '-----BEGIN RSA PRIVATE KEY-----\nfake\n-----END RSA PRIVATE KEY-----',
+        }),
+      );
+      expect(result.success).toBe(true);
+    });
+
+    it('accepts REVEALUI_LICENSE_PUBLIC_KEY', () => {
+      const result = envSchema.safeParse(
+        makeValidEnv({
+          REVEALUI_LICENSE_PUBLIC_KEY: '-----BEGIN PUBLIC KEY-----\nfake\n-----END PUBLIC KEY-----',
+        }),
+      );
+      expect(result.success).toBe(true);
+    });
+
+    it('both are optional', () => {
+      const result = envSchema.safeParse(makeValidEnv());
+      expect(result.success).toBe(true);
+    });
+  });
+
+  describe('email provider — Resend', () => {
+    it('accepts RESEND_API_KEY', () => {
+      const result = envSchema.safeParse(makeValidEnv({ RESEND_API_KEY: 're_123456789' }));
+      expect(result.success).toBe(true);
+    });
+
+    it('is optional', () => {
+      const result = envSchema.safeParse(makeValidEnv());
+      expect(result.success).toBe(true);
+    });
+  });
+
+  describe('email provider — SMTP', () => {
+    it('accepts all SMTP fields together', () => {
+      const result = envSchema.safeParse(
+        makeValidEnv({
+          SMTP_HOST: 'smtp.example.com',
+          SMTP_PORT: '587',
+          SMTP_USER: 'user@example.com',
+          SMTP_PASS: 'password123',
+        }),
+      );
+      expect(result.success).toBe(true);
+      if (result.success) {
+        expect(result.data.SMTP_PORT).toBe(587);
+      }
+    });
+
+    it('coerces SMTP_PORT from string to number', () => {
+      const result = envSchema.safeParse(makeValidEnv({ SMTP_PORT: '465' }));
+      expect(result.success).toBe(true);
+      if (result.success) {
+        expect(result.data.SMTP_PORT).toBe(465);
+      }
+    });
+
+    it('all SMTP fields are optional', () => {
+      const result = envSchema.safeParse(makeValidEnv());
+      expect(result.success).toBe(true);
+    });
+  });
+});
