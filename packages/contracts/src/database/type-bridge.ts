@@ -55,17 +55,6 @@ export type Database<
 > = T;
 
 /**
- * Convert Drizzle table type to Contract type
- *
- * This is a type-level utility that helps ensure Drizzle types
- * can be safely converted to Contract types.
- *
- * @template TTable - The Drizzle table type
- * @template TContract - The Contract type
- */
-export type DrizzleToContract<TTable, TContract> = TTable extends TContract ? TContract : never;
-
-/**
  * Convert Contract type to Drizzle insert type
  *
  * Ensures contract-validated data can be safely inserted into database.

@@ -25,6 +25,7 @@ import {
 } from '@revealui/contracts/entities';
 import type { RevealAfterReadHook, RevealDocument } from '@revealui/core';
 import type { Price } from '@revealui/core/types/cms';
+import { asDocument } from '@/lib/utils/type-guards';
 
 const logs = false;
 
@@ -142,10 +143,11 @@ function buildFormattedPrice(
  * Calculate and enrich price data
  */
 export const calculatePrice: RevealAfterReadHook = async ({ doc, req }) => {
-  const price = doc as unknown as Price;
+  const price = asDocument<Price>(doc);
   const revealui = req?.revealui;
 
   // Skip if no Stripe price configured
+  // Price and ContractsPrice describe the same document shape from different type systems.
   if (!hasStripePrice(price as unknown as ContractsPrice)) {
     if (logs) {
       revealui?.logger?.info(`Price ${price.id} has no Stripe price, skipping calculations`);
