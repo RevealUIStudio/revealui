@@ -1,7 +1,7 @@
 'use client';
 
 import { logger } from '@revealui/core/utils/logger';
-import { useEffect, useState } from 'react';
+import { useEffect, useReducer } from 'react';
 import type {
   RevealCollectionConfig,
   RevealConfig,
@@ -12,6 +12,10 @@ import { APIError, APIErrorType, apiClient } from '../utils/index.js';
 import { CollectionList } from './CollectionList.js';
 import { DocumentForm } from './DocumentForm.js';
 import { GlobalForm } from './GlobalForm.js';
+
+// =============================================================================
+// Types
+// =============================================================================
 
 interface AdminDashboardProps {
   config: RevealConfig;
@@ -26,538 +30,157 @@ interface CurrentView {
   global?: RevealGlobalConfig;
 }
 
-export function AdminDashboard({ config }: AdminDashboardProps) {
-  const [currentView, setCurrentView] = useState<CurrentView>({
-    type: 'dashboard',
-  });
-  const [collectionData, setCollectionData] = useState<{
-    documents: RevealDocument[];
-    totalDocs: number;
-    page: number;
-    totalPages: number;
-    loading: boolean;
-    error: string | null;
-  }>({
-    documents: [],
-    totalDocs: 0,
-    page: 1,
-    totalPages: 1,
-    loading: false,
-    error: null,
-  });
-  const [saving, setSaving] = useState(false);
-  const [deleting, setDeleting] = useState<string | null>(null);
-  const [error, setError] = useState<string | null>(null);
-  const [successMessage, setSuccessMessage] = useState<string | null>(null);
-  const [globalData, setGlobalData] = useState<{
-    document: RevealDocument | null;
-    loading: boolean;
-    error: string | null;
-  }>({
-    document: null,
-    loading: false,
-    error: null,
-  });
+// =============================================================================
+// Reducer
+// =============================================================================
 
-  const collections = config.collections || [];
-  const globals = config.globals || [];
+interface DashboardState {
+  view: CurrentView;
+  documents: RevealDocument[];
+  totalDocs: number;
+  page: number;
+  totalPages: number;
+  collectionLoading: boolean;
+  globalDocument: RevealDocument | null;
+  globalLoading: boolean;
+  saving: boolean;
+  deleting: string | null;
+  error: string | null;
+  successMessage: string | null;
+}
 
-  // Auto-dismiss success messages
-  useEffect(() => {
-    if (successMessage) {
-      const timer = setTimeout(() => setSuccessMessage(null), 3000);
-      return () => clearTimeout(timer);
+type DashboardAction =
+  | { type: 'NAVIGATE'; view: CurrentView }
+  | {
+      type: 'COLLECTION_LOADED';
+      documents: RevealDocument[];
+      totalDocs: number;
+      page: number;
+      totalPages: number;
     }
-    return;
-  }, [successMessage]);
+  | { type: 'COLLECTION_LOADING' }
+  | { type: 'GLOBAL_LOADED'; document: RevealDocument }
+  | { type: 'GLOBAL_LOADING' }
+  | { type: 'SET_SAVING'; saving: boolean }
+  | { type: 'SET_DELETING'; id: string | null }
+  | { type: 'SET_ERROR'; error: string | null }
+  | { type: 'SET_SUCCESS'; message: string | null };
 
-  // Auto-dismiss error messages
-  useEffect(() => {
-    if (error) {
-      const timer = setTimeout(() => setError(null), 5000);
-      return () => clearTimeout(timer);
-    }
-    return;
-  }, [error]);
+const initialState: DashboardState = {
+  view: { type: 'dashboard' },
+  documents: [],
+  totalDocs: 0,
+  page: 1,
+  totalPages: 1,
+  collectionLoading: false,
+  globalDocument: null,
+  globalLoading: false,
+  saving: false,
+  deleting: null,
+  error: null,
+  successMessage: null,
+};
 
-  const handleCollectionClick = async (collection: RevealCollectionConfig) => {
-    setCurrentView({ type: 'collection', collection });
-    setError(null);
-    setSuccessMessage(null);
-
-    try {
-      // Show loading state
-      setCollectionData((prev) => ({ ...prev, loading: true, error: null }));
-
-      // Fetch first page of documents
-      const response = await apiClient.find({
-        collection: String(collection.slug),
-        page: 1,
-        limit: 10,
-      });
-
-      setCollectionData({
-        documents: response.docs || [],
-        totalDocs: response.totalDocs || 0,
-        page: response.page || 1,
-        totalPages: response.totalPages || 1,
-        loading: false,
-        error: null,
-      });
-    } catch (err: unknown) {
-      // Handle error
-      const errorMessage =
-        err instanceof APIError
-          ? err.message
-          : 'Failed to fetch collection data. Please try again.';
-      logger.error('Failed to fetch collection data', { error: err });
-      setCollectionData((prev) => ({
-        ...prev,
-        loading: false,
-        error: errorMessage,
-      }));
-      setError(errorMessage);
-
-      // Handle authentication errors
-      if (err instanceof APIError && err.type === APIErrorType.Authentication) {
-        // Redirect to login would be handled by the auth system
-        logger.warn('Authentication required');
-      }
-    }
-  };
-
-  const handleGlobalClick = async (global: RevealGlobalConfig) => {
-    setCurrentView({ type: 'global', global });
-    setError(null);
-    setSuccessMessage(null);
-
-    try {
-      // Show loading state
-      setGlobalData({ document: null, loading: true, error: null });
-
-      // Fetch global data
-      const document = await apiClient.findGlobal({
-        slug: String(global.slug),
-        depth: 0,
-      });
-
-      setGlobalData({
-        document,
-        loading: false,
-        error: null,
-      });
-    } catch (err: unknown) {
-      // Handle error
-      const errorMessage =
-        err instanceof APIError ? err.message : 'Failed to fetch global data. Please try again.';
-      logger.error('Failed to fetch global data', { error: err });
-      setGlobalData({
-        document: null,
-        loading: false,
-        error: errorMessage,
-      });
-      setError(errorMessage);
-
-      // Handle authentication errors
-      if (err instanceof APIError && err.type === APIErrorType.Authentication) {
-        logger.warn('Authentication required');
-      }
-    }
-  };
-
-  const handleCreate = (): void => {
-    if (currentView.collection) {
-      setCurrentView({ type: 'edit', collection: currentView.collection });
-    }
-  };
-
-  const handleEdit = (document: RevealDocument): void => {
-    if (currentView.collection) {
-      setCurrentView({
-        type: 'edit',
-        collection: currentView.collection,
-        document,
-      });
-    }
-  };
-
-  const handleDelete = async (document: RevealDocument) => {
-    if (!(currentView.collection && document.id)) return;
-
-    // Show confirmation dialog
-    const confirmed = window.confirm(
-      `Are you sure you want to delete this ${String(currentView.collection.slug)}? This action cannot be undone.`,
-    );
-
-    if (!confirmed) return;
-
-    try {
-      setDeleting(String(document.id));
-      setError(null);
-      setSuccessMessage(null);
-
-      await apiClient.delete({
-        collection: String(currentView.collection.slug),
-        id: String(document.id),
-      });
-
-      // Refresh collection list
-      if (currentView.collection) {
-        await handleCollectionClick(currentView.collection);
-      }
-
-      // Show success message
-      setSuccessMessage('Document deleted successfully');
-    } catch (err: unknown) {
-      const errorMessage =
-        err instanceof APIError ? err.message : 'Failed to delete document. Please try again.';
-      logger.error('Failed to delete document', { error: err });
-      setError(errorMessage);
-
-      // Handle authentication errors
-      if (err instanceof APIError && err.type === APIErrorType.Authentication) {
-        logger.warn('Authentication required');
-      }
-    } finally {
-      setDeleting(null);
-    }
-  };
-
-  const handleSave = async (data: Record<string, unknown>) => {
-    if (!currentView.collection) return;
-
-    try {
-      setSaving(true);
-      setError(null);
-      setSuccessMessage(null);
-
-      if (currentView.document?.id) {
-        // Update existing document
-        await apiClient.update({
-          collection: String(currentView.collection.slug),
-          id: String(currentView.document.id),
-          data,
-        });
-        setSuccessMessage('Document updated successfully');
-      } else {
-        // Auto-generate slug from title if the collection has a slug field but none was
-        // submitted. Server-side beforeValidate field hooks may not run for all routes,
-        // so we replicate the slug-generation logic here as a reliable client-side fallback.
-        const hasSlugField = currentView.collection.fields.some(
-          (f) => 'name' in f && f.name === 'slug',
-        );
-        const submitData =
-          hasSlugField && !data.slug && typeof data.title === 'string'
-            ? {
-                ...data,
-                slug: data.title
-                  .replace(/ /g, '-')
-                  .replace(/[^\w-]+/g, '')
-                  .toLowerCase(),
-              }
-            : data;
-
-        // Create new document
-        await apiClient.create({
-          collection: String(currentView.collection.slug),
-          data: submitData,
-        });
-        setSuccessMessage('Document created successfully');
-      }
-
-      // Refresh collection list
-      if (currentView.collection) {
-        await handleCollectionClick(currentView.collection);
-      }
-
-      // Navigate back to collection view
-      setCurrentView({
-        type: 'collection',
-        collection: currentView.collection,
-      });
-    } catch (err: unknown) {
-      const errorMessage =
-        err instanceof APIError ? err.message : 'Failed to save document. Please try again.';
-      logger.error('Failed to save document', { error: err });
-      setError(errorMessage);
-
-      // Handle validation errors
-      if (err instanceof APIError && err.type === APIErrorType.Validation) {
-        // Validation errors are already in the error message
-        logger.warn('Validation error', {
-          field: err.field,
-          message: err.message,
-        });
-      }
-
-      // Handle authentication errors
-      if (err instanceof APIError && err.type === APIErrorType.Authentication) {
-        logger.warn('Authentication required');
-      }
-    } finally {
-      setSaving(false);
-    }
-  };
-
-  const handleSaveGlobal = async (data: Record<string, unknown>) => {
-    if (!currentView.global) return;
-
-    try {
-      setSaving(true);
-      setError(null);
-      setSuccessMessage(null);
-
-      // Update global
-      await apiClient.updateGlobal({
-        slug: String(currentView.global.slug),
-        data,
-      });
-      setSuccessMessage('Global updated successfully');
-
-      // Navigate back to dashboard
-      setCurrentView({ type: 'dashboard' });
-    } catch (err: unknown) {
-      const errorMessage =
-        err instanceof APIError ? err.message : 'Failed to save global. Please try again.';
-      logger.error('Failed to save global', { error: err });
-      setError(errorMessage);
-
-      // Handle validation errors
-      if (err instanceof APIError && err.type === APIErrorType.Validation) {
-        logger.warn('Validation error', {
-          field: err.field,
-          message: err.message,
-        });
-      }
-
-      // Handle authentication errors
-      if (err instanceof APIError && err.type === APIErrorType.Authentication) {
-        logger.warn('Authentication required');
-      }
-    } finally {
-      setSaving(false);
-    }
-  };
-
-  const handleCancel = () => {
-    setCurrentView({ type: 'dashboard' });
-  };
-
-  const handlePageChange = async (page: number) => {
-    if (!currentView.collection) return;
-
-    try {
-      setCollectionData((prev) => ({ ...prev, loading: true, error: null }));
-
-      const response = await apiClient.find({
-        collection: String(currentView.collection.slug),
-        page,
-        limit: 10,
-      });
-
-      setCollectionData({
-        documents: response.docs || [],
-        totalDocs: response.totalDocs || 0,
-        page: response.page || 1,
-        totalPages: response.totalPages || 1,
-        loading: false,
-        error: null,
-      });
-    } catch (err: unknown) {
-      const errorMessage =
-        err instanceof APIError ? err.message : 'Failed to fetch page. Please try again.';
-      logger.error('Failed to fetch page', { error: err });
-      setCollectionData((prev) => ({
-        ...prev,
-        loading: false,
-        error: errorMessage,
-      }));
-      setError(errorMessage);
-    }
-  };
-
-  if (currentView.type === 'collection' && currentView.collection) {
-    return (
-      <div className="min-h-screen bg-gray-50">
-        <header className="bg-white shadow-sm border-b">
-          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            <div className="flex justify-between items-center py-4">
-              <div className="flex items-center space-x-4">
-                <button
-                  type="button"
-                  onClick={() => setCurrentView({ type: 'dashboard' })}
-                  className="text-gray-400 hover:text-gray-600"
-                >
-                  ← Back to Dashboard
-                </button>
-                <h1 className="text-2xl font-bold text-gray-900 capitalize">
-                  {String(currentView.collection.slug)}
-                </h1>
-              </div>
-            </div>
-          </div>
-        </header>
-
-        <main className="max-w-7xl mx-auto py-6 sm:px-6 lg:px-8">
-          {/* Error Message */}
-          {error && (
-            <div className="mb-4 bg-red-50 border border-red-200 text-red-800 px-4 py-3 rounded">
-              <p className="font-medium">Error</p>
-              <p className="text-sm">{error}</p>
-            </div>
-          )}
-
-          {/* Success Message */}
-          {successMessage && (
-            <div className="mb-4 bg-green-50 border border-green-200 text-green-800 px-4 py-3 rounded">
-              <p className="font-medium">Success</p>
-              <p className="text-sm">{successMessage}</p>
-            </div>
-          )}
-
-          {/* Loading State */}
-          {collectionData.loading && (
-            <div className="mb-4 text-center py-8">
-              <div className="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-gray-900"></div>
-              <p className="mt-2 text-sm text-gray-600">Loading...</p>
-            </div>
-          )}
-
-          <CollectionList
-            collection={currentView.collection}
-            documents={collectionData.documents}
-            totalDocs={collectionData.totalDocs}
-            page={collectionData.page}
-            totalPages={collectionData.totalPages}
-            onCreate={handleCreate}
-            onEdit={handleEdit}
-            onDelete={(document) => void handleDelete(document)}
-            onPageChange={(nextPage) => void handlePageChange(nextPage)}
-            deleting={deleting}
-          />
-        </main>
-      </div>
-    );
+function reducer(state: DashboardState, action: DashboardAction): DashboardState {
+  switch (action.type) {
+    case 'NAVIGATE':
+      return { ...state, view: action.view, error: null, successMessage: null };
+    case 'COLLECTION_LOADING':
+      return { ...state, collectionLoading: true };
+    case 'COLLECTION_LOADED':
+      return {
+        ...state,
+        documents: action.documents,
+        totalDocs: action.totalDocs,
+        page: action.page,
+        totalPages: action.totalPages,
+        collectionLoading: false,
+      };
+    case 'GLOBAL_LOADING':
+      return { ...state, globalDocument: null, globalLoading: true };
+    case 'GLOBAL_LOADED':
+      return { ...state, globalDocument: action.document, globalLoading: false };
+    case 'SET_SAVING':
+      return { ...state, saving: action.saving };
+    case 'SET_DELETING':
+      return { ...state, deleting: action.id };
+    case 'SET_ERROR':
+      return { ...state, error: action.error };
+    case 'SET_SUCCESS':
+      return { ...state, successMessage: action.message };
   }
+}
 
-  if (currentView.type === 'edit' && currentView.collection) {
-    return (
-      <div className="min-h-screen bg-gray-50">
-        <header className="bg-white shadow-sm border-b">
-          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            <div className="flex justify-between items-center py-4">
-              <div className="flex items-center space-x-4">
-                <button
-                  type="button"
-                  onClick={() => setCurrentView({ type: 'dashboard' })}
-                  className="text-gray-400 hover:text-gray-600"
-                >
-                  ← Back to Dashboard
-                </button>
-                <h1 className="text-2xl font-bold text-gray-900 capitalize">
-                  {currentView.document ? 'Edit' : 'Create'}{' '}
-                  {String(currentView.collection.slug).slice(0, -1)}
-                </h1>
-              </div>
-            </div>
+// =============================================================================
+// Shared sub-components
+// =============================================================================
+
+function AdminHeader({ title, onBack }: { title: string; onBack: () => void }) {
+  return (
+    <header className="bg-white shadow-sm border-b">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div className="flex justify-between items-center py-4">
+          <div className="flex items-center space-x-4">
+            <button type="button" onClick={onBack} className="text-gray-400 hover:text-gray-600">
+              ← Back to Dashboard
+            </button>
+            <h1 className="text-2xl font-bold text-gray-900 capitalize">{title}</h1>
           </div>
-        </header>
-
-        <main className="max-w-7xl mx-auto py-6 sm:px-6 lg:px-8">
-          <div className="max-w-3xl">
-            {/* Error Message */}
-            {error && (
-              <div className="mb-4 bg-red-50 border border-red-200 text-red-800 px-4 py-3 rounded">
-                <p className="font-medium">Error</p>
-                <p className="text-sm">{error}</p>
-              </div>
-            )}
-
-            {/* Success Message */}
-            {successMessage && (
-              <div className="mb-4 bg-green-50 border border-green-200 text-green-800 px-4 py-3 rounded">
-                <p className="font-medium">Success</p>
-                <p className="text-sm">{successMessage}</p>
-              </div>
-            )}
-
-            <DocumentForm
-              collection={currentView.collection}
-              document={currentView.document}
-              onSave={(data) => void handleSave(data)}
-              onCancel={handleCancel}
-              isLoading={saving}
-            />
-          </div>
-        </main>
+        </div>
       </div>
-    );
-  }
+    </header>
+  );
+}
 
-  if (currentView.type === 'global' && currentView.global) {
-    return (
-      <div className="min-h-screen bg-gray-50">
-        <header className="bg-white shadow-sm border-b">
-          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            <div className="flex justify-between items-center py-4">
-              <div className="flex items-center space-x-4">
-                <button
-                  type="button"
-                  onClick={() => setCurrentView({ type: 'dashboard' })}
-                  className="text-gray-400 hover:text-gray-600"
-                >
-                  ← Back to Dashboard
-                </button>
-                <h1 className="text-2xl font-bold text-gray-900 capitalize">
-                  {currentView.global.label || String(currentView.global.slug)}
-                </h1>
-              </div>
-            </div>
-          </div>
-        </header>
+function StatusBanners({
+  error,
+  successMessage,
+}: {
+  error: string | null;
+  successMessage: string | null;
+}) {
+  return (
+    <>
+      {error && (
+        <div className="mb-4 bg-red-50 border border-red-200 text-red-800 px-4 py-3 rounded">
+          <p className="font-medium">Error</p>
+          <p className="text-sm">{error}</p>
+        </div>
+      )}
+      {successMessage && (
+        <div className="mb-4 bg-green-50 border border-green-200 text-green-800 px-4 py-3 rounded">
+          <p className="font-medium">Success</p>
+          <p className="text-sm">{successMessage}</p>
+        </div>
+      )}
+    </>
+  );
+}
 
-        <main className="max-w-7xl mx-auto py-6 sm:px-6 lg:px-8">
-          <div className="max-w-3xl">
-            {/* Error Message */}
-            {error && (
-              <div className="mb-4 bg-red-50 border border-red-200 text-red-800 px-4 py-3 rounded">
-                <p className="font-medium">Error</p>
-                <p className="text-sm">{error}</p>
-              </div>
-            )}
+function LoadingSpinner() {
+  return (
+    <div className="mb-4 text-center py-8">
+      <div className="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-gray-900" />
+      <p className="mt-2 text-sm text-gray-600">Loading...</p>
+    </div>
+  );
+}
 
-            {/* Success Message */}
-            {successMessage && (
-              <div className="mb-4 bg-green-50 border border-green-200 text-green-800 px-4 py-3 rounded">
-                <p className="font-medium">Success</p>
-                <p className="text-sm">{successMessage}</p>
-              </div>
-            )}
+// =============================================================================
+// Dashboard home view
+// =============================================================================
 
-            {/* Loading State */}
-            {globalData.loading && (
-              <div className="mb-4 text-center py-8">
-                <div className="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-gray-900"></div>
-                <p className="mt-2 text-sm text-gray-600">Loading...</p>
-              </div>
-            )}
-
-            {!globalData.loading && globalData.document && (
-              <GlobalForm
-                global={currentView.global}
-                document={globalData.document}
-                onSave={(data) => void handleSaveGlobal(data)}
-                onCancel={handleCancel}
-                isLoading={saving}
-              />
-            )}
-          </div>
-        </main>
-      </div>
-    );
-  }
-
-  // Dashboard view
+function DashboardHome({
+  collections,
+  globals,
+  onCollectionClick,
+  onGlobalClick,
+}: {
+  collections: RevealCollectionConfig[];
+  globals: RevealGlobalConfig[];
+  onCollectionClick: (c: RevealCollectionConfig) => void;
+  onGlobalClick: (g: RevealGlobalConfig) => void;
+}) {
   return (
     <div className="min-h-screen bg-gray-50">
       <header className="bg-white shadow-sm border-b">
@@ -617,7 +240,7 @@ export function AdminDashboard({ config }: AdminDashboardProps) {
                         >
                           <button
                             type="button"
-                            onClick={() => void handleCollectionClick(collection)}
+                            onClick={() => onCollectionClick(collection)}
                             className="hover:underline cursor-pointer"
                           >
                             {String(collection.slug)}
@@ -670,7 +293,7 @@ export function AdminDashboard({ config }: AdminDashboardProps) {
                         <li key={String(global.slug)} className="text-gray-600 hover:text-gray-900">
                           <button
                             type="button"
-                            onClick={() => void handleGlobalClick(global)}
+                            onClick={() => onGlobalClick(global)}
                             className="hover:underline cursor-pointer"
                           >
                             {global.label || String(global.slug)}
@@ -725,5 +348,316 @@ export function AdminDashboard({ config }: AdminDashboardProps) {
         </div>
       </main>
     </div>
+  );
+}
+
+// =============================================================================
+// Error handling helpers
+// =============================================================================
+
+function extractErrorMessage(err: unknown, fallback: string): string {
+  return err instanceof APIError ? err.message : fallback;
+}
+
+function logApiError(err: unknown, context: string): void {
+  logger.error(context, { error: err });
+  if (err instanceof APIError && err.type === APIErrorType.Authentication) {
+    logger.warn('Authentication required');
+  }
+}
+
+// =============================================================================
+// Main component
+// =============================================================================
+
+export function AdminDashboard({ config }: AdminDashboardProps) {
+  const [state, dispatch] = useReducer(reducer, initialState);
+
+  const collections = config.collections || [];
+  const globals = config.globals || [];
+
+  // Auto-dismiss success messages
+  useEffect(() => {
+    if (state.successMessage) {
+      const timer = setTimeout(() => dispatch({ type: 'SET_SUCCESS', message: null }), 3000);
+      return () => clearTimeout(timer);
+    }
+    return;
+  }, [state.successMessage]);
+
+  // Auto-dismiss error messages
+  useEffect(() => {
+    if (state.error) {
+      const timer = setTimeout(() => dispatch({ type: 'SET_ERROR', error: null }), 5000);
+      return () => clearTimeout(timer);
+    }
+    return;
+  }, [state.error]);
+
+  const goToDashboard = () => dispatch({ type: 'NAVIGATE', view: { type: 'dashboard' } });
+
+  const fetchCollection = async (collection: RevealCollectionConfig, page = 1) => {
+    try {
+      dispatch({ type: 'COLLECTION_LOADING' });
+      const response = await apiClient.find({
+        collection: String(collection.slug),
+        page,
+        limit: 10,
+      });
+      dispatch({
+        type: 'COLLECTION_LOADED',
+        documents: response.docs || [],
+        totalDocs: response.totalDocs || 0,
+        page: response.page || 1,
+        totalPages: response.totalPages || 1,
+      });
+    } catch (err: unknown) {
+      const msg = extractErrorMessage(err, 'Failed to fetch collection data. Please try again.');
+      logApiError(err, 'Failed to fetch collection data');
+      dispatch({
+        type: 'COLLECTION_LOADED',
+        documents: state.documents,
+        totalDocs: state.totalDocs,
+        page: state.page,
+        totalPages: state.totalPages,
+      });
+      dispatch({ type: 'SET_ERROR', error: msg });
+    }
+  };
+
+  const handleCollectionClick = async (collection: RevealCollectionConfig) => {
+    dispatch({ type: 'NAVIGATE', view: { type: 'collection', collection } });
+    await fetchCollection(collection);
+  };
+
+  const handleGlobalClick = async (global: RevealGlobalConfig) => {
+    dispatch({ type: 'NAVIGATE', view: { type: 'global', global } });
+    try {
+      dispatch({ type: 'GLOBAL_LOADING' });
+      const document = await apiClient.findGlobal({
+        slug: String(global.slug),
+        depth: 0,
+      });
+      dispatch({ type: 'GLOBAL_LOADED', document });
+    } catch (err: unknown) {
+      const msg = extractErrorMessage(err, 'Failed to fetch global data. Please try again.');
+      logApiError(err, 'Failed to fetch global data');
+      dispatch({ type: 'SET_ERROR', error: msg });
+    }
+  };
+
+  const handleCreate = (): void => {
+    if (state.view.collection) {
+      dispatch({
+        type: 'NAVIGATE',
+        view: { type: 'edit', collection: state.view.collection },
+      });
+    }
+  };
+
+  const handleEdit = (document: RevealDocument): void => {
+    if (state.view.collection) {
+      dispatch({
+        type: 'NAVIGATE',
+        view: { type: 'edit', collection: state.view.collection, document },
+      });
+    }
+  };
+
+  const handleDelete = async (document: RevealDocument) => {
+    if (!(state.view.collection && document.id)) return;
+
+    const confirmed = window.confirm(
+      `Are you sure you want to delete this ${String(state.view.collection.slug)}? This action cannot be undone.`,
+    );
+    if (!confirmed) return;
+
+    try {
+      dispatch({ type: 'SET_DELETING', id: String(document.id) });
+      dispatch({ type: 'SET_ERROR', error: null });
+
+      await apiClient.delete({
+        collection: String(state.view.collection.slug),
+        id: String(document.id),
+      });
+
+      if (state.view.collection) {
+        await fetchCollection(state.view.collection);
+      }
+      dispatch({ type: 'SET_SUCCESS', message: 'Document deleted successfully' });
+    } catch (err: unknown) {
+      const msg = extractErrorMessage(err, 'Failed to delete document. Please try again.');
+      logApiError(err, 'Failed to delete document');
+      dispatch({ type: 'SET_ERROR', error: msg });
+    } finally {
+      dispatch({ type: 'SET_DELETING', id: null });
+    }
+  };
+
+  const handleSave = async (data: Record<string, unknown>) => {
+    if (!state.view.collection) return;
+
+    try {
+      dispatch({ type: 'SET_SAVING', saving: true });
+      dispatch({ type: 'SET_ERROR', error: null });
+
+      if (state.view.document?.id) {
+        await apiClient.update({
+          collection: String(state.view.collection.slug),
+          id: String(state.view.document.id),
+          data,
+        });
+        dispatch({ type: 'SET_SUCCESS', message: 'Document updated successfully' });
+      } else {
+        // Auto-generate slug from title if needed
+        const hasSlugField = state.view.collection.fields.some(
+          (f) => 'name' in f && f.name === 'slug',
+        );
+        const submitData =
+          hasSlugField && !data.slug && typeof data.title === 'string'
+            ? {
+                ...data,
+                slug: data.title
+                  .replace(/ /g, '-')
+                  .replace(/[^\w-]+/g, '')
+                  .toLowerCase(),
+              }
+            : data;
+
+        await apiClient.create({
+          collection: String(state.view.collection.slug),
+          data: submitData,
+        });
+        dispatch({ type: 'SET_SUCCESS', message: 'Document created successfully' });
+      }
+
+      await fetchCollection(state.view.collection);
+      dispatch({
+        type: 'NAVIGATE',
+        view: { type: 'collection', collection: state.view.collection },
+      });
+    } catch (err: unknown) {
+      const msg = extractErrorMessage(err, 'Failed to save document. Please try again.');
+      logApiError(err, 'Failed to save document');
+      dispatch({ type: 'SET_ERROR', error: msg });
+
+      if (err instanceof APIError && err.type === APIErrorType.Validation) {
+        logger.warn('Validation error', { field: err.field, message: err.message });
+      }
+    } finally {
+      dispatch({ type: 'SET_SAVING', saving: false });
+    }
+  };
+
+  const handleSaveGlobal = async (data: Record<string, unknown>) => {
+    if (!state.view.global) return;
+
+    try {
+      dispatch({ type: 'SET_SAVING', saving: true });
+      dispatch({ type: 'SET_ERROR', error: null });
+
+      await apiClient.updateGlobal({
+        slug: String(state.view.global.slug),
+        data,
+      });
+      dispatch({ type: 'SET_SUCCESS', message: 'Global updated successfully' });
+      goToDashboard();
+    } catch (err: unknown) {
+      const msg = extractErrorMessage(err, 'Failed to save global. Please try again.');
+      logApiError(err, 'Failed to save global');
+      dispatch({ type: 'SET_ERROR', error: msg });
+
+      if (err instanceof APIError && err.type === APIErrorType.Validation) {
+        logger.warn('Validation error', { field: err.field, message: err.message });
+      }
+    } finally {
+      dispatch({ type: 'SET_SAVING', saving: false });
+    }
+  };
+
+  // ── Collection list view ──────────────────────────────────────────────
+  if (state.view.type === 'collection' && state.view.collection) {
+    return (
+      <div className="min-h-screen bg-gray-50">
+        <AdminHeader title={String(state.view.collection.slug)} onBack={goToDashboard} />
+        <main className="max-w-7xl mx-auto py-6 sm:px-6 lg:px-8">
+          <StatusBanners error={state.error} successMessage={state.successMessage} />
+          {state.collectionLoading && <LoadingSpinner />}
+          <CollectionList
+            collection={state.view.collection}
+            documents={state.documents}
+            totalDocs={state.totalDocs}
+            page={state.page}
+            totalPages={state.totalPages}
+            onCreate={handleCreate}
+            onEdit={handleEdit}
+            onDelete={(document) => void handleDelete(document)}
+            onPageChange={(nextPage) => void fetchCollection(state.view.collection!, nextPage)}
+            deleting={state.deleting}
+          />
+        </main>
+      </div>
+    );
+  }
+
+  // ── Document edit/create view ─────────────────────────────────────────
+  if (state.view.type === 'edit' && state.view.collection) {
+    return (
+      <div className="min-h-screen bg-gray-50">
+        <AdminHeader
+          title={`${state.view.document ? 'Edit' : 'Create'} ${String(state.view.collection.slug).slice(0, -1)}`}
+          onBack={goToDashboard}
+        />
+        <main className="max-w-7xl mx-auto py-6 sm:px-6 lg:px-8">
+          <div className="max-w-3xl">
+            <StatusBanners error={state.error} successMessage={state.successMessage} />
+            <DocumentForm
+              collection={state.view.collection}
+              document={state.view.document}
+              onSave={(data) => void handleSave(data)}
+              onCancel={goToDashboard}
+              isLoading={state.saving}
+            />
+          </div>
+        </main>
+      </div>
+    );
+  }
+
+  // ── Global edit view ──────────────────────────────────────────────────
+  if (state.view.type === 'global' && state.view.global) {
+    return (
+      <div className="min-h-screen bg-gray-50">
+        <AdminHeader
+          title={state.view.global.label || String(state.view.global.slug)}
+          onBack={goToDashboard}
+        />
+        <main className="max-w-7xl mx-auto py-6 sm:px-6 lg:px-8">
+          <div className="max-w-3xl">
+            <StatusBanners error={state.error} successMessage={state.successMessage} />
+            {state.globalLoading && <LoadingSpinner />}
+            {!state.globalLoading && state.globalDocument && (
+              <GlobalForm
+                global={state.view.global}
+                document={state.globalDocument}
+                onSave={(data) => void handleSaveGlobal(data)}
+                onCancel={goToDashboard}
+                isLoading={state.saving}
+              />
+            )}
+          </div>
+        </main>
+      </div>
+    );
+  }
+
+  // ── Dashboard home ────────────────────────────────────────────────────
+  return (
+    <DashboardHome
+      collections={collections}
+      globals={globals}
+      onCollectionClick={(c) => void handleCollectionClick(c)}
+      onGlobalClick={(g) => void handleGlobalClick(g)}
+    />
   );
 }
