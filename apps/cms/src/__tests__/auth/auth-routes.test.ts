@@ -180,6 +180,7 @@ describe('POST /api/auth/sign-in', () => {
     vi.mocked(signIn).mockResolvedValue({
       success: false,
       error: 'Invalid email or password',
+      reason: 'invalid_credentials',
     } as never);
 
     const req = makeRequest('/api/auth/sign-in', {

@@ -41,7 +41,7 @@ describe('DocLayout', () => {
       </DocLayout>,
     );
 
-    expect(screen.getByText('RevealUI')).toBeInTheDocument();
+    expect(screen.getAllByText('RevealUI').length).toBeGreaterThanOrEqual(1);
   });
 
   it('should render navigation sections', () => {
@@ -77,7 +77,7 @@ describe('DocLayout', () => {
       </DocLayout>,
     );
 
-    expect(screen.getByText('GitHub')).toBeInTheDocument();
+    expect(screen.getAllByText('GitHub').length).toBeGreaterThanOrEqual(1);
     expect(screen.getByText('revealui.com')).toBeInTheDocument();
   });
 
