@@ -6,7 +6,6 @@
 
 import { describe, expect, it } from 'vitest';
 import type { SelectType } from '../../../../../packages/core/src/types/index.js';
-// @ts-expect-error - Direct import for testing
 import { getSelectMode } from '../../../../../packages/core/src/utils/getSelectMode.js';
 
 describe('getSelectMode', () => {
@@ -67,7 +66,7 @@ describe('getSelectMode', () => {
   });
 
   it('should handle deeply nested objects', () => {
-    const select: SelectType = {
+    const select = {
       title: true,
       author: {
         profile: {
@@ -75,14 +74,14 @@ describe('getSelectMode', () => {
           bio: true,
         },
       },
-    };
+    } as unknown as SelectType;
 
     const mode = getSelectMode(select);
     expect(mode).toBe('include');
   });
 
   it('should detect false in deeply nested objects', () => {
-    const select: SelectType = {
+    const select = {
       title: true,
       author: {
         profile: {
@@ -90,7 +89,7 @@ describe('getSelectMode', () => {
           bio: false,
         },
       },
-    };
+    } as unknown as SelectType;
 
     const mode = getSelectMode(select);
     expect(mode).toBe('exclude');
@@ -106,7 +105,7 @@ describe('getSelectMode', () => {
   it('should handle select with null values', () => {
     const select: SelectType = {
       title: true,
-      content: null as unknown,
+      content: null as unknown as boolean,
     };
 
     const mode = getSelectMode(select);
@@ -118,7 +117,7 @@ describe('getSelectMode', () => {
   it('should handle select with undefined values', () => {
     const select: SelectType = {
       title: true,
-      content: undefined as unknown,
+      content: undefined as unknown as boolean,
     };
 
     const mode = getSelectMode(select);
@@ -127,7 +126,7 @@ describe('getSelectMode', () => {
 
   it('should handle select with string values', () => {
     const select: SelectType = {
-      title: 'include' as unknown,
+      title: 'include' as unknown as boolean,
       content: true,
     };
 
@@ -139,7 +138,7 @@ describe('getSelectMode', () => {
   it('should handle select with array values', () => {
     const select: SelectType = {
       title: true,
-      tags: ['tag1', 'tag2'] as unknown,
+      tags: ['tag1', 'tag2'] as unknown as boolean,
     };
 
     const mode = getSelectMode(select);
@@ -161,7 +160,7 @@ describe('getSelectMode', () => {
   });
 
   it('should handle complex nested structures', () => {
-    const select: SelectType = {
+    const select = {
       title: true,
       content: true,
       author: {
@@ -174,14 +173,14 @@ describe('getSelectMode', () => {
           },
         },
       },
-    };
+    } as unknown as SelectType;
 
     const mode = getSelectMode(select);
     expect(mode).toBe('include');
   });
 
   it('should detect false in complex nested structures', () => {
-    const select: SelectType = {
+    const select = {
       title: true,
       content: true,
       author: {
@@ -194,7 +193,7 @@ describe('getSelectMode', () => {
           },
         },
       },
-    };
+    } as unknown as SelectType;
 
     const mode = getSelectMode(select);
     expect(mode).toBe('exclude');

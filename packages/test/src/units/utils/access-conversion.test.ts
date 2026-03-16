@@ -7,7 +7,6 @@
 import { describe, expect, it } from 'vitest';
 import type { RevealUIAccessContext } from '../../../../../packages/core/src/types/access.js';
 import type { RevealUIPermission } from '../../../../../packages/core/src/types/user.js';
-// @ts-expect-error - Direct import for testing
 import {
   combineRevealUIAccessRules,
   convertToRevealUIAccessRule,
@@ -37,7 +36,7 @@ describe('Access Conversion Utilities', () => {
     });
 
     it('should create rule with permissions', () => {
-      const permissions: RevealUIPermission[] = ['read', 'write'];
+      const permissions: RevealUIPermission[] = ['read', 'update'];
       const rule = createRevealUIAccessRule({ permissions });
       expect(rule.permissions).toEqual(permissions);
     });
@@ -53,7 +52,7 @@ describe('Access Conversion Utilities', () => {
 
   describe('convertToRevealUIAccessRule', () => {
     it('should convert permissions array to access rule', () => {
-      const permissions: RevealUIPermission[] = ['read', 'write'];
+      const permissions: RevealUIPermission[] = ['read', 'update'];
       const rule = convertToRevealUIAccessRule(permissions);
 
       expect(rule.permissions).toEqual(permissions);
@@ -79,14 +78,14 @@ describe('Access Conversion Utilities', () => {
     });
 
     it('should check user has required permissions', () => {
-      const permissions: RevealUIPermission[] = ['read', 'write'];
+      const permissions: RevealUIPermission[] = ['read', 'update'];
       const rule = convertToRevealUIAccessRule(permissions);
 
       const context: RevealUIAccessContext = {
         user: {
           id: '1',
           email: 'user@example.com',
-          roles: ['read', 'write'],
+          roles: ['read', 'update'],
         },
         operation: 'read',
       };
@@ -96,7 +95,7 @@ describe('Access Conversion Utilities', () => {
     });
 
     it('should deny access if user lacks permissions', () => {
-      const permissions: RevealUIPermission[] = ['read', 'write'];
+      const permissions: RevealUIPermission[] = ['read', 'update'];
       const rule = convertToRevealUIAccessRule(permissions);
 
       const context: RevealUIAccessContext = {
@@ -125,7 +124,7 @@ describe('Access Conversion Utilities', () => {
     });
 
     it('should allow admin role to bypass permission checks', () => {
-      const permissions: RevealUIPermission[] = ['write'];
+      const permissions: RevealUIPermission[] = ['update'];
       const rule = convertToRevealUIAccessRule(permissions);
 
       const context: RevealUIAccessContext = {
@@ -152,7 +151,7 @@ describe('Access Conversion Utilities', () => {
     });
 
     it('should allow super admin by default', () => {
-      const permissions: RevealUIPermission[] = ['write'];
+      const permissions: RevealUIPermission[] = ['update'];
       const rule = createEnhancedAccessRule({ permissions });
 
       const context: RevealUIAccessContext = {
@@ -161,7 +160,7 @@ describe('Access Conversion Utilities', () => {
           email: 'admin@example.com',
           revealUI: { isSuperAdmin: true },
         },
-        operation: 'write',
+        operation: 'update',
       };
 
       const result = rule.condition?.(context);
@@ -246,7 +245,7 @@ describe('Access Conversion Utilities', () => {
 
     it('should respect allowSuperAdmin: false', () => {
       const rule = createEnhancedAccessRule({
-        permissions: ['write'],
+        permissions: ['update'],
         allowSuperAdmin: false,
       });
 
@@ -256,7 +255,7 @@ describe('Access Conversion Utilities', () => {
           email: 'admin@example.com',
           revealUI: { isSuperAdmin: true },
         },
-        operation: 'write',
+        operation: 'update',
       };
 
       const result = rule.condition?.(context);
@@ -323,14 +322,14 @@ describe('Access Conversion Utilities', () => {
 
     it('should check permissions', () => {
       const rule = createRevealUIAccessRule({
-        permissions: ['read', 'write'],
+        permissions: ['read', 'update'],
       });
 
       const context1: RevealUIAccessContext = {
         user: {
           id: '1',
           email: 'user@example.com',
-          roles: ['read', 'write'],
+          roles: ['read', 'update'],
         },
         operation: 'read',
       };

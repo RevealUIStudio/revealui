@@ -10,7 +10,12 @@
     "noImplicitAny": true,
     "strict": true,
     "strictNullChecks": true,
-    "noUncheckedIndexedAccess": false
+    "noUncheckedIndexedAccess": false,
+    "jsx": "react-jsx",
+    "paths": {
+      "@cms/*": ["../../apps/cms/src/*"],
+      "@api/*": ["../../apps/api/src/*"]
+    }
   },
   "include": ["./src/**/*", "src/.scripts"],
   "exclude": [
@@ -30,20 +35,5 @@
     "src/integration/memory/**/*.ts",
     "src/integration/test-database.ts",
     "src/utils/test-database.ts",
-    "src/units/validation/validation-utilities.test.ts",
-    "src/units/validation/email-validation.test.ts",
-    "src/units/validation/password-validation.test.ts",
-    "src/units/fixtures/fixtures-validation.test.ts",
-    "src/units/utils/query-builder.test.ts",
-    "src/units/utils/stripUnselectedFields.test.ts",
-    "src/units/utils/getSelectMode.test.ts",
-    "src/units/utils/getBlockSelect.test.ts",
-    "src/units/utils/mocks.test.ts",
-    "src/units/utils/field-traversal.test.ts",
-    "src/units/utils/flattenResult.test.ts",
-    "src/units/utils/field-conversion.test.ts",
-    "src/units/utils/access-conversion.test.ts",
-    "src/units/utils/block-conversion.test.ts",
-    "src/units/utils/framework-utilities.test.ts"
   ]
 }

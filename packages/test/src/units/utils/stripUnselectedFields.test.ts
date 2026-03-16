@@ -6,7 +6,6 @@
 
 import { beforeEach, describe, expect, it } from 'vitest';
 import type { Field, SelectType } from '../../../../../packages/core/src/types/index.js';
-// @ts-expect-error - Direct import for testing
 import { stripUnselectedFields } from '../../../../../packages/core/src/utils/stripUnselectedFields.js';
 
 describe('stripUnselectedFields', () => {
@@ -100,9 +99,9 @@ describe('stripUnselectedFields', () => {
       description: 'Description',
     };
 
-    const originalMetadata = { ...siblingDoc.metadata };
+    const originalMetadata = { ...(siblingDoc.metadata as Record<string, unknown>) };
 
-    stripUnselectedFields({ field, select: undefined, siblingDoc });
+    stripUnselectedFields({ field, select: undefined as unknown as SelectType, siblingDoc });
 
     expect(siblingDoc.metadata).toEqual(originalMetadata);
   });
@@ -117,7 +116,7 @@ describe('stripUnselectedFields', () => {
       title: 'Test',
     };
 
-    const originalMetadata = { ...siblingDoc.metadata };
+    const originalMetadata = { ...(siblingDoc.metadata as Record<string, unknown>) };
 
     stripUnselectedFields({ field, select: null as unknown as SelectType, siblingDoc });
 
@@ -134,7 +133,7 @@ describe('stripUnselectedFields', () => {
       title: 'Test',
     };
 
-    const originalMetadata = { ...siblingDoc.metadata };
+    const originalMetadata = { ...(siblingDoc.metadata as Record<string, unknown>) };
 
     stripUnselectedFields({ field, select: 'string' as unknown as SelectType, siblingDoc });
 
@@ -151,7 +150,7 @@ describe('stripUnselectedFields', () => {
       title: 'Test',
     };
 
-    const originalMetadata = { ...siblingDoc.metadata };
+    const originalMetadata = { ...(siblingDoc.metadata as Record<string, unknown>) };
 
     stripUnselectedFields({ field, select: { title: true }, siblingDoc });
 
@@ -233,13 +232,13 @@ describe('stripUnselectedFields', () => {
       },
     };
 
-    const select: SelectType = {
+    const select = {
       level1: {
         level2: {
           field1: true,
         },
       },
-    };
+    } as unknown as SelectType;
 
     stripUnselectedFields({ field, select, siblingDoc });
 

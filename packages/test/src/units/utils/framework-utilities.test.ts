@@ -5,7 +5,6 @@
  */
 
 import { describe, expect, it } from 'vitest';
-// @ts-expect-error - Direct import for testing
 import { isValidID } from '../../../../../packages/core/src/utils/isValidID.js';
 
 describe('Framework Utilities (Real Code)', () => {
