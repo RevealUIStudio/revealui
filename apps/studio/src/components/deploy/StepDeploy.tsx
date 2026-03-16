@@ -1,3 +1,5 @@
+import { useState } from 'react';
+import { vercelDeploy, vercelGetDeployment, vercelSetEnv } from '../../lib/deploy';
 import type { StudioConfig, WizardData } from '../../types';
 import Button from '../ui/Button';
 import WizardStep from './WizardStep';
@@ -8,14 +10,247 @@ interface StepDeployProps {
   onNext: () => Promise<void>;
 }
 
-// Params required by DeployWizard interface — will be used in full implementation.
-export default function StepDeploy({ config: _config, data: _data, onNext }: StepDeployProps) {
+type AppStatus = 'idle' | 'pushing-env' | 'deploying' | 'polling' | 'ready' | 'error';
+
+interface AppState {
+  status: AppStatus;
+  error?: string;
+  url?: string;
+}
+
+/** Max poll attempts (5s intervals) */
+const MAX_POLL_ATTEMPTS = 60;
+/** Poll interval in ms */
+const POLL_INTERVAL_MS = 5_000;
+
+function buildApiEnvVars(data: WizardData): Record<string, string> {
+  const domain = data.domain;
+  const vars: Record<string, string> = {
+    POSTGRES_URL: data.postgresUrl,
+    REVEALUI_SECRET: data.revealuiSecret,
+    REVEALUI_KEK: data.revealuiKek,
+    REVEALUI_CRON_SECRET: data.cronSecret,
+    STRIPE_SECRET_KEY: data.stripeSecretKey,
+    STRIPE_WEBHOOK_SECRET: data.stripeWebhookSecret,
+    REVEALUI_LICENSE_PRIVATE_KEY: data.licensePrivateKey,
+    REVEALUI_LICENSE_PUBLIC_KEY: data.licensePublicKey,
+    NEXT_PUBLIC_SERVER_URL: `https://api.${domain}`,
+    REVEALUI_PUBLIC_SERVER_URL: `https://api.${domain}`,
+    CORS_ORIGIN: `https://cms.${domain},https://${domain}`,
+    REVEALUI_SIGNUP_OPEN: String(data.signupOpen),
+  };
+
+  if (data.brandName) {
+    vars.REVEALUI_BRAND_NAME = data.brandName;
+  }
+
+  if (data.emailProvider === 'resend' && data.resendApiKey) {
+    vars.RESEND_API_KEY = data.resendApiKey;
+  } else if (data.emailProvider === 'smtp') {
+    if (data.smtpHost) vars.SMTP_HOST = data.smtpHost;
+    if (data.smtpPort) vars.SMTP_PORT = data.smtpPort;
+    if (data.smtpUser) vars.SMTP_USER = data.smtpUser;
+    if (data.smtpPass) vars.SMTP_PASS = data.smtpPass;
+  }
+
+  return vars;
+}
+
+function buildCmsEnvVars(data: WizardData): Record<string, string> {
+  return {
+    POSTGRES_URL: data.postgresUrl,
+    REVEALUI_SECRET: data.revealuiSecret,
+    REVEALUI_KEK: data.revealuiKek,
+    NEXT_PUBLIC_SERVER_URL: `https://api.${data.domain}`,
+    REVEALUI_PUBLIC_SERVER_URL: `https://api.${data.domain}`,
+    BLOB_READ_WRITE_TOKEN: data.blobToken,
+    NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY: data.stripePublishableKey,
+    NEXT_PUBLIC_STRIPE_PRO_PRICE_ID: data.stripePriceIds.pro,
+    NEXT_PUBLIC_STRIPE_MAX_PRICE_ID: data.stripePriceIds.max,
+    NEXT_PUBLIC_STRIPE_ENTERPRISE_PRICE_ID: data.stripePriceIds.enterprise,
+    REVEALUI_LICENSE_PUBLIC_KEY: data.licensePublicKey,
+  };
+}
+
+function buildMarketingEnvVars(data: WizardData): Record<string, string> {
+  return {
+    NEXT_PUBLIC_SERVER_URL: `https://api.${data.domain}`,
+    NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY: data.stripePublishableKey,
+    NEXT_PUBLIC_STRIPE_PRO_PRICE_ID: data.stripePriceIds.pro,
+    NEXT_PUBLIC_STRIPE_MAX_PRICE_ID: data.stripePriceIds.max,
+    NEXT_PUBLIC_STRIPE_ENTERPRISE_PRICE_ID: data.stripePriceIds.enterprise,
+  };
+}
+
+async function pushEnvVars(
+  token: string,
+  projectId: string,
+  vars: Record<string, string>,
+): Promise<void> {
+  for (const [key, value] of Object.entries(vars)) {
+    await vercelSetEnv(token, projectId, key, value);
+  }
+}
+
+async function deployApp(
+  token: string,
+  projectId: string,
+  envVars: Record<string, string>,
+  onStatus: (status: AppStatus) => void,
+): Promise<string> {
+  // Push env vars first (RC-6)
+  onStatus('pushing-env');
+  await pushEnvVars(token, projectId, envVars);
+
+  // Deploy
+  onStatus('deploying');
+  const deploymentId = await vercelDeploy(token, projectId);
+
+  // Poll until ready
+  onStatus('polling');
+  for (let attempt = 0; attempt < MAX_POLL_ATTEMPTS; attempt++) {
+    const deployment = await vercelGetDeployment(token, deploymentId);
+    if (deployment.state === 'READY') {
+      return deployment.url;
+    }
+    if (deployment.state === 'ERROR' || deployment.state === 'CANCELED') {
+      throw new Error(`Deployment ${deployment.state.toLowerCase()}`);
+    }
+    await new Promise((resolve) => setTimeout(resolve, POLL_INTERVAL_MS));
+  }
+
+  throw new Error('Deployment timed out');
+}
+
+const APP_LABELS = { api: 'API', cms: 'CMS', marketing: 'Marketing' } as const;
+type AppName = keyof typeof APP_LABELS;
+
+const STATUS_LABELS: Record<AppStatus, string> = {
+  idle: 'Waiting',
+  'pushing-env': 'Pushing env vars...',
+  deploying: 'Deploying...',
+  polling: 'Waiting for deployment...',
+  ready: 'Ready',
+  error: 'Error',
+};
+
+export default function StepDeploy({ config, data, onNext }: StepDeployProps) {
+  const [apps, setApps] = useState<Record<AppName, AppState>>({
+    api: { status: 'idle' },
+    cms: { status: 'idle' },
+    marketing: { status: 'idle' },
+  });
+  const [deploying, setDeploying] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  const allReady =
+    apps.api.status === 'ready' && apps.cms.status === 'ready' && apps.marketing.status === 'ready';
+
+  function updateApp(name: AppName, update: Partial<AppState>) {
+    setApps((prev) => ({ ...prev, [name]: { ...prev[name], ...update } }));
+  }
+
+  async function handleDeploy() {
+    setDeploying(true);
+    setError(null);
+
+    const token = data.vercelToken;
+    const apiProjectId = config.deploy?.apps?.api;
+    const cmsProjectId = config.deploy?.apps?.cms;
+    const marketingProjectId = config.deploy?.apps?.marketing;
+
+    if (!(apiProjectId && cmsProjectId && marketingProjectId)) {
+      setError('Missing project IDs. Go back to Vercel step.');
+      setDeploying(false);
+      return;
+    }
+
+    const deployments: Array<{
+      name: AppName;
+      projectId: string;
+      envVars: Record<string, string>;
+    }> = [
+      { name: 'api', projectId: apiProjectId, envVars: buildApiEnvVars(data) },
+      { name: 'cms', projectId: cmsProjectId, envVars: buildCmsEnvVars(data) },
+      { name: 'marketing', projectId: marketingProjectId, envVars: buildMarketingEnvVars(data) },
+    ];
+
+    const results = await Promise.allSettled(
+      deployments.map(async ({ name, projectId, envVars }) => {
+        try {
+          const url = await deployApp(token, projectId, envVars, (status) =>
+            updateApp(name, { status }),
+          );
+          updateApp(name, { status: 'ready', url });
+        } catch (err) {
+          const message = err instanceof Error ? err.message : 'Deploy failed';
+          updateApp(name, { status: 'error', error: message });
+          throw err;
+        }
+      }),
+    );
+
+    const failures = results.filter((r) => r.status === 'rejected');
+    if (failures.length > 0) {
+      setError(`${failures.length} deployment(s) failed. Check status below.`);
+    }
+
+    setDeploying(false);
+  }
+
   return (
-    <WizardStep title="Deploy" description="Deploy your RevealUI apps to Vercel.">
-      <p className="text-neutral-400">Coming soon...</p>
-      <Button variant="primary" onClick={onNext} className="mt-4">
-        Next
-      </Button>
+    <WizardStep title="Deploy" description="Deploy your RevealUI apps to Vercel." error={error}>
+      <div className="flex flex-col gap-4">
+        <div className="flex flex-col gap-3">
+          {(['api', 'cms', 'marketing'] as const).map((name) => (
+            <AppCard key={name} name={name} state={apps[name]} />
+          ))}
+        </div>
+
+        {!allReady && (
+          <Button
+            variant="primary"
+            onClick={handleDeploy}
+            loading={deploying}
+            disabled={deploying || allReady}
+          >
+            Deploy All
+          </Button>
+        )}
+
+        <Button variant="primary" onClick={onNext} disabled={!allReady} className="mt-2 self-end">
+          Next
+        </Button>
+      </div>
     </WizardStep>
   );
+}
+
+function AppCard({ name, state }: { name: AppName; state: AppState }) {
+  return (
+    <div className="flex items-center justify-between rounded-md border border-neutral-700 bg-neutral-900/50 px-4 py-3">
+      <div className="flex items-center gap-3">
+        <StatusDot status={state.status} />
+        <div>
+          <p className="text-sm font-medium text-neutral-200">{APP_LABELS[name]}</p>
+          {state.url && <p className="text-xs font-mono text-neutral-400">{state.url}</p>}
+          {state.error && <p className="text-xs text-red-400">{state.error}</p>}
+        </div>
+      </div>
+      <span className="text-xs text-neutral-500">{STATUS_LABELS[state.status]}</span>
+    </div>
+  );
+}
+
+function StatusDot({ status }: { status: AppStatus }) {
+  const colors: Record<AppStatus, string> = {
+    idle: 'bg-neutral-600',
+    'pushing-env': 'bg-yellow-500 animate-pulse',
+    deploying: 'bg-orange-500 animate-pulse',
+    polling: 'bg-orange-500 animate-pulse',
+    ready: 'bg-green-500',
+    error: 'bg-red-500',
+  };
+
+  return <span className={`inline-block size-2.5 rounded-full ${colors[status]}`} />;
 }
