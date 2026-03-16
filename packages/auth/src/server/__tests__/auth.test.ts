@@ -269,9 +269,10 @@ describe('auth', () => {
 
       const result = await signIn('test@example.com', 'Password123');
       expect(result.success).toBe(true);
-      if (result.success) {
-        expect(result.requiresMfa).toBe(true);
-        expect('mfaUserId' in result && result.mfaUserId).toBe('user-1');
+      if (result.success && result.requiresMfa) {
+        expect(result.mfaUserId).toBe('user-1');
+      } else {
+        throw new Error('Expected MFA result');
       }
     });
 
