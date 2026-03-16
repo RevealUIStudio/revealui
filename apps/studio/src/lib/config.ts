@@ -36,11 +36,15 @@ export async function resetConfig(): Promise<void> {
 
 export async function completeStep(stepId: string): Promise<StudioConfig> {
   const config = await getConfig();
-  if (!config.completedSteps.includes(stepId)) {
-    config.completedSteps.push(stepId);
+  if (config.completedSteps.includes(stepId)) {
+    return config;
   }
-  await setConfig(config);
-  return config;
+  const updated: StudioConfig = {
+    ...config,
+    completedSteps: [...config.completedSteps, stepId],
+  };
+  await setConfig(updated);
+  return updated;
 }
 
 export function isStepComplete(config: StudioConfig, stepId: string): boolean {
