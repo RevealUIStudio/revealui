@@ -183,7 +183,10 @@ function getSubscriptionPeriodDate(
   subscription: Stripe.Subscription,
   field: 'current_period_start' | 'current_period_end',
 ): Date | null {
-  const value = subscription[field];
+  // Stripe SDK v20 moved period dates from Subscription to SubscriptionItem
+  const item = subscription.items?.data?.[0];
+  if (!item) return null;
+  const value = item[field];
   return typeof value === 'number' ? new Date(value * 1000) : null;
 }
 
