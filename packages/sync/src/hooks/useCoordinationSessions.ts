@@ -5,6 +5,7 @@ import { fetchWithTimeout } from '../fetch-with-timeout.js';
 import type { MutationResult } from '../mutations.js';
 import { useSyncMutations } from '../mutations.js';
 import { useElectricConfig } from '../provider/index.js';
+import { toRecords } from '../shape-utils.js';
 
 export interface CoordinationSessionRecord {
   id: string;
@@ -61,9 +62,9 @@ export function useCoordinationSessions(): UseCoordinationSessionsResult {
   >('coordination-sessions');
 
   return {
-    sessions: Array.isArray(data) ? (data as unknown as CoordinationSessionRecord[]) : [],
+    sessions: toRecords<CoordinationSessionRecord>(data),
     isLoading,
-    error: error as Error | null,
+    error: error || null,
     create,
     update,
     remove,

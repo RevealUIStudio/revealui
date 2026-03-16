@@ -5,6 +5,7 @@ import { fetchWithTimeout } from '../fetch-with-timeout.js';
 import type { MutationResult } from '../mutations.js';
 import { useSyncMutations } from '../mutations.js';
 import { useElectricConfig } from '../provider/index.js';
+import { toRecords } from '../shape-utils.js';
 
 export interface CoordinationWorkItemRecord {
   id: string;
@@ -67,9 +68,9 @@ export function useCoordinationWorkItems(): UseCoordinationWorkItemsResult {
   >('coordination-work-items');
 
   return {
-    workItems: Array.isArray(data) ? (data as unknown as CoordinationWorkItemRecord[]) : [],
+    workItems: toRecords<CoordinationWorkItemRecord>(data),
     isLoading,
-    error: error as Error | null,
+    error: error || null,
     create,
     update,
     remove,
