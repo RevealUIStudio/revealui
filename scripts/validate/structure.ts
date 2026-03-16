@@ -338,6 +338,7 @@ class StructureValidator {
     const AllowedRootDirs = [
       'apps',
       'packages',
+      'ee',
       'docs',
       'scripts',
       'config',
@@ -498,7 +499,7 @@ class StructureValidator {
 
     // Check that mcp is not in root
     if (existsSync('mcp')) {
-      console.log('\n❌ mcp/ found in root - should be in packages/mcp/');
+      console.log('\n❌ mcp/ found in root - should be in ee/packages/mcp/');
       allValid = false;
     }
 
@@ -562,9 +563,9 @@ class StructureValidator {
       'packages/db/src/vector',
       'packages/db/src/auth',
       'packages/auth/src',
-      'packages/ai/src',
-      'packages/services/src/supabase',
-      'packages/mcp/src',
+      'ee/packages/ai/src',
+      'ee/packages/services/src/supabase',
+      'ee/packages/mcp/src',
       // Integration tests for Supabase services are expected to import supabase-js
       'packages/test/src/integration',
     ];

@@ -202,11 +202,11 @@ docs/launch-announcement.md
 docs/SECRETS-MANAGEMENT.md
 
 # Pro packages — source in private upstream, distributed as npm packages
-packages/ai/
-packages/mcp/
-packages/editors/
-packages/services/
-packages/harnesses/
+ee/packages/ai/
+ee/packages/mcp/
+ee/packages/editors/
+ee/packages/services/
+ee/packages/harnesses/
 
 # opensrc — fetched package source code
 opensrc/
