@@ -30,7 +30,6 @@ vi.mock('../../lib/invoke', () => ({
   sshBookmarkDelete: vi.fn().mockResolvedValue(undefined),
 }));
 
-// biome-ignore lint/complexity/useLiteralKeys: dynamic import mock access
 const invoke = await import('../../lib/invoke');
 
 beforeEach(() => {
