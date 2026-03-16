@@ -53,6 +53,28 @@ const optionalSchema = z.object({
   REVEALUI_ADMIN_EMAIL: z.string().email().optional(),
   REVEALUI_ADMIN_PASSWORD: z.string().min(12, 'Password must be at least 12 characters').optional(),
 
+  // Field-level encryption key — exactly 64 hex characters (32 bytes / 256 bits)
+  REVEALUI_KEK: z
+    .string()
+    .regex(/^[0-9a-f]{64}$/i, 'Must be exactly 64 hex characters')
+    .optional(),
+
+  // Cron endpoint authentication
+  REVEALUI_CRON_SECRET: secretSchema.optional(),
+
+  // License key signing (RSA-2048 PEM)
+  REVEALUI_LICENSE_PRIVATE_KEY: z.string().optional(),
+  REVEALUI_LICENSE_PUBLIC_KEY: z.string().optional(),
+
+  // Email provider — Resend
+  RESEND_API_KEY: z.string().optional(),
+
+  // Email provider — SMTP
+  SMTP_HOST: z.string().optional(),
+  SMTP_PORT: z.coerce.number().optional(),
+  SMTP_USER: z.string().optional(),
+  SMTP_PASS: z.string().optional(),
+
   // CORS
   CORS_ORIGIN: z.string().optional(), // API: comma-separated allowed origins (required in production)
   REVEALUI_CORS_ORIGINS: z.string().optional(), // CMS: comma-separated allowed origins (alias for CORS_ORIGIN)
