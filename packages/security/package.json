@@ -1,0 +1,47 @@
+{
+  "name": "@revealui/security",
+  "version": "0.1.0",
+  "description": "Security infrastructure for RevealUI - headers, CORS, RBAC/ABAC, encryption, audit, GDPR",
+  "license": "MIT",
+  "dependencies": {
+    "@revealui/contracts": "workspace:*",
+    "@revealui/utils": "workspace:*"
+  },
+  "devDependencies": {
+    "@types/node": "^25.3.0",
+    "dev": "workspace:*",
+    "tsup": "^8.5.1",
+    "typescript": "^5.9.3",
+    "vitest": "^4.0.18"
+  },
+  "engines": {
+    "node": ">=24.13.0"
+  },
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js"
+    }
+  },
+  "files": [
+    "dist"
+  ],
+  "main": "./dist/index.js",
+  "publishConfig": {
+    "access": "public",
+    "registry": "https://registry.npmjs.org"
+  },
+  "scripts": {
+    "build": "tsup",
+    "clean": "rm -rf dist",
+    "dev": "tsup --watch",
+    "lint": "biome check .",
+    "lint:fix": "biome check --write .",
+    "test": "vitest run --passWithNoTests",
+    "test:coverage": "vitest run --coverage --coverage.reporter=json-summary --coverage.reporter=html --coverage.reporter=text --passWithNoTests",
+    "test:watch": "vitest",
+    "typecheck": "tsc --noEmit"
+  },
+  "type": "module",
+  "types": "./dist/index.d.ts"
+}
