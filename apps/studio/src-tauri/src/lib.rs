@@ -83,6 +83,7 @@ pub fn run() {
             deploy::stripe::stripe_run_keys,
             deploy::stripe::stripe_catalog_sync,
             deploy::email::resend_send_test,
+            deploy::email::smtp_send_test,
             deploy::health::health_check,
         ])
         .run(tauri::generate_context!())
