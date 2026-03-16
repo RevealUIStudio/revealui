@@ -44,10 +44,12 @@ vi.mock('@revealui/core/security', () => ({
     getUserRequests: mockGetUserRequests,
     getRequest: mockGetRequest,
   }),
+  createDataBreachManager: () => ({}),
 }));
 
 vi.mock('../../lib/drizzle-gdpr-storage.js', () => ({
   DrizzleGDPRStorage: class {},
+  DrizzleBreachStorage: class {},
 }));
 
 import gdprApp from '../gdpr.js';
