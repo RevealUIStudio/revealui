@@ -1,4 +1,5 @@
 import { useShape } from '@electric-sql/react';
+import { fetchWithTimeout } from '../fetch-with-timeout.js';
 import { useElectricConfig } from '../provider/index.js';
 
 export interface CollabDocumentState {
@@ -25,6 +26,7 @@ export function useCollabDocument(documentId: string): CollabDocumentState {
     params: {
       document_id: isValidId ? documentId : '__invalid__',
     },
+    fetchClient: fetchWithTimeout,
   });
 
   if (!isValidId) {
