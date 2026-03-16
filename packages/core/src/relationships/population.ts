@@ -1,5 +1,23 @@
 // External type imports
+
+import {
+  type Field,
+  fieldHasMaxDepth,
+  fieldShouldBeLocalized,
+  fieldSupportsMany,
+} from '../fields/config/types.js';
 import type { PopulateType, RevealRequest, TypedFallbackLocale } from '../types/index.js';
+import type { PopulateRelationshipField } from './populate-core.js';
+// Pure utilities from populate-core (no circular dependency)
+import {
+  extractRelationInfo,
+  shouldPopulateRelationship,
+  updateDocumentWithPopulatedValue,
+} from './populate-core.js';
+// Helpers that depend on afterRead (static import — safe because populate-core
+// broke the cycle: population no longer imports from populate-helpers for the
+// functions that afterRead/promise.ts needs)
+import { applyNestedPopulation, loadRelatedDocument } from './populate-helpers.js';
 
 // Request type for population
 interface PopulateRequest {
@@ -12,24 +30,6 @@ interface PopulateRequest {
     find?: (options: unknown) => Promise<unknown>;
   };
 }
-
-// Field types for relationship population
-interface PopulateRelationshipField {
-  type: 'relationship' | 'upload' | 'join';
-  name: string;
-  relationTo?: string | string[];
-  collection?: string | string[];
-  hasMany?: boolean;
-  maxDepth?: number;
-  localized?: boolean;
-}
-
-import {
-  type Field,
-  fieldHasMaxDepth,
-  fieldShouldBeLocalized,
-  fieldSupportsMany,
-} from '../fields/config/types.js';
 
 type PopulateArgs = {
   currentDepth: number;
@@ -52,7 +52,7 @@ type PopulateArgs = {
  * Populate a single relationship field
  *
  * Refactored from the original monolithic function for better maintainability.
- * Uses helper functions from populate-helpers.ts for clarity and testability.
+ * Uses helper functions from populate-core.ts and populate-helpers.ts.
  */
 const populate = async ({
   currentDepth,
@@ -70,15 +70,6 @@ const populate = async ({
   req,
   showHiddenFields,
 }: PopulateArgs) => {
-  // Import helpers (dynamic to avoid circular dependencies)
-  const {
-    extractRelationInfo,
-    shouldPopulateRelationship,
-    loadRelatedDocument,
-    applyNestedPopulation,
-    updateDocumentWithPopulatedValue,
-  } = await import('./populate-helpers.js');
-
   // Step 1: Extract relationship information
   const { relationName, id, relatedCollection } = extractRelationInfo(field, data, req);
 
