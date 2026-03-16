@@ -1,19 +1,20 @@
 import { fireEvent, render, screen, waitFor } from '@testing-library/react';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
+import StepVerify from '../../components/deploy/StepVerify';
 import type { StudioConfig, WizardData } from '../../types';
 
 // ---------------------------------------------------------------------------
 // Mocks
 // ---------------------------------------------------------------------------
 
-const mockHealthCheck = vi.fn<(url: string) => Promise<number>>();
-const mockVercelSetEnv =
-  vi.fn<(token: string, projectId: string, key: string, value: string) => Promise<void>>();
+const mockHealthCheck = vi.fn();
+const mockVercelSetEnv = vi.fn();
+const mockResendSendTest = vi.fn();
 
 vi.mock('../../lib/deploy', () => ({
-  healthCheck: (...args: unknown[]) => mockHealthCheck(...(args as [string])),
-  vercelSetEnv: (...args: unknown[]) =>
-    mockVercelSetEnv(...(args as [string, string, string, string])),
+  healthCheck: (...args: unknown[]) => mockHealthCheck(...args),
+  vercelSetEnv: (...args: unknown[]) => mockVercelSetEnv(...args),
+  resendSendTest: (...args: unknown[]) => mockResendSendTest(...args),
 }));
 
 // ---------------------------------------------------------------------------
@@ -24,24 +25,28 @@ const BASE_CONFIG: StudioConfig = {
   intent: 'deploy',
   setupComplete: true,
   completedSteps: [],
-  deploy: { apps: { api: 'prj-api-123', cms: 'prj-cms', marketing: 'prj-mkt' } },
+  deploy: {
+    supabaseEnabled: false,
+    apps: { api: 'prj-api-123', cms: 'prj-cms', marketing: 'prj-mkt' },
+  },
 };
 
 const BASE_DATA: WizardData = {
   vercelToken: 'tok_test',
-  vercelProjects: { api: '', cms: '', marketing: '' },
-  postgresUrl: '',
-  stripeSecretKey: '',
-  stripePublishableKey: '',
-  stripeWebhookSecret: '',
-  stripePriceIds: { pro: '', max: '', enterprise: '' },
-  licensePrivateKey: '',
-  licensePublicKey: '',
+  vercelProjects: { api: 'prj-api', cms: 'prj-cms', marketing: 'prj-mkt' },
+  postgresUrl: 'postgres://localhost/test',
+  stripeSecretKey: 'sk_test_123',
+  stripePublishableKey: 'pk_test_123',
+  stripeWebhookSecret: 'whsec_123',
+  stripePriceIds: { pro: 'price_pro', max: 'price_max', enterprise: 'price_ent' },
+  licensePrivateKey: 'PRIVATE_KEY',
+  licensePublicKey: 'PUBLIC_KEY',
   emailProvider: 'resend',
-  blobToken: '',
-  revealuiSecret: '',
-  revealuiKek: '',
-  cronSecret: '',
+  resendApiKey: 'rk_test_123',
+  blobToken: 'blob_test',
+  revealuiSecret: 'secret_test',
+  revealuiKek: 'kek_test',
+  cronSecret: 'cron_test',
   domain: 'example.com',
   signupOpen: true,
 };
@@ -55,9 +60,6 @@ function renderStep(overrides?: { config?: Partial<StudioConfig>; data?: Partial
   return { ...result, onComplete };
 }
 
-// Lazy import after mocks
-const { default: StepVerify } = await import('../../components/deploy/StepVerify');
-
 // ---------------------------------------------------------------------------
 // Tests
 // ---------------------------------------------------------------------------
@@ -65,9 +67,12 @@ const { default: StepVerify } = await import('../../components/deploy/StepVerify
 describe('StepVerify', () => {
   beforeEach(() => {
     vi.clearAllMocks();
+    mockHealthCheck.mockResolvedValue(200);
+    mockVercelSetEnv.mockResolvedValue(undefined);
+    mockResendSendTest.mockResolvedValue(true);
   });
 
-  // ── Rendering ──────────────────────────────────────────────────────────
+  // -- Rendering ----------------------------------------------------------
 
   it('renders title and description', () => {
     renderStep();
@@ -83,38 +88,39 @@ describe('StepVerify', () => {
     expect(screen.getByLabelText('Admin Password')).toBeInTheDocument();
   });
 
-  it('renders all four health check rows in idle state', () => {
+  it('renders all five check rows including Email Delivery', () => {
     renderStep();
 
     expect(screen.getByText('API Health')).toBeInTheDocument();
     expect(screen.getByText('CMS')).toBeInTheDocument();
     expect(screen.getByText('Marketing')).toBeInTheDocument();
     expect(screen.getByText('Database (via API)')).toBeInTheDocument();
+    expect(screen.getByText('Email Delivery')).toBeInTheDocument();
   });
 
   it('renders Run Checks button', () => {
     renderStep();
 
-    expect(screen.getByRole('button', { name: 'Run Checks' })).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: /run checks/i })).toBeInTheDocument();
   });
 
   it('renders Complete Setup button (disabled by default)', () => {
     renderStep();
 
-    const btn = screen.getByRole('button', { name: 'Complete Setup' });
+    const btn = screen.getByRole('button', { name: /complete setup/i });
     expect(btn).toBeDisabled();
   });
 
-  // ── Validation ─────────────────────────────────────────────────────────
+  // -- Validation ---------------------------------------------------------
 
   it('disables Run Checks when email is empty', () => {
     renderStep();
 
     fireEvent.change(screen.getByLabelText('Admin Password'), {
-      target: { value: 'StrongPass1!' },
+      target: { value: 'StrongPass1!xx' },
     });
 
-    expect(screen.getByRole('button', { name: 'Run Checks' })).toBeDisabled();
+    expect(screen.getByRole('button', { name: /run checks/i })).toBeDisabled();
   });
 
   it('disables Run Checks when password is empty', () => {
@@ -124,7 +130,7 @@ describe('StepVerify', () => {
       target: { value: 'admin@test.com' },
     });
 
-    expect(screen.getByRole('button', { name: 'Run Checks' })).toBeDisabled();
+    expect(screen.getByRole('button', { name: /run checks/i })).toBeDisabled();
   });
 
   it('disables Run Checks when both fields are whitespace-only', () => {
@@ -133,7 +139,7 @@ describe('StepVerify', () => {
     fireEvent.change(screen.getByLabelText('Admin Email'), { target: { value: '   ' } });
     fireEvent.change(screen.getByLabelText('Admin Password'), { target: { value: '   ' } });
 
-    expect(screen.getByRole('button', { name: 'Run Checks' })).toBeDisabled();
+    expect(screen.getByRole('button', { name: /run checks/i })).toBeDisabled();
   });
 
   it('enables Run Checks when both fields have content', () => {
@@ -143,33 +149,68 @@ describe('StepVerify', () => {
       target: { value: 'admin@test.com' },
     });
     fireEvent.change(screen.getByLabelText('Admin Password'), {
-      target: { value: 'StrongPass1!' },
+      target: { value: 'StrongPass1!xx' },
     });
 
-    expect(screen.getByRole('button', { name: 'Run Checks' })).toBeEnabled();
+    expect(screen.getByRole('button', { name: /run checks/i })).toBeEnabled();
   });
 
-  // ── Health check flow — all pass ───────────────────────────────────────
-
-  it('sets env vars and runs health checks on Run Checks click', async () => {
-    mockVercelSetEnv.mockResolvedValue(undefined);
-    mockHealthCheck.mockResolvedValue(200);
-
+  it('shows password length error when < 12 chars', async () => {
     renderStep();
 
     fireEvent.change(screen.getByLabelText('Admin Email'), {
       target: { value: 'admin@test.com' },
     });
     fireEvent.change(screen.getByLabelText('Admin Password'), {
-      target: { value: 'StrongPass1!' },
+      target: { value: 'short' },
     });
-    fireEvent.click(screen.getByRole('button', { name: 'Run Checks' }));
+    fireEvent.click(screen.getByRole('button', { name: /run checks/i }));
+
+    await waitFor(() => {
+      expect(screen.getByText('Admin password must be at least 12 characters')).toBeInTheDocument();
+    });
+
+    expect(mockHealthCheck).not.toHaveBeenCalled();
+    expect(mockVercelSetEnv).not.toHaveBeenCalled();
+  });
+
+  // -- Cron & manual verification -----------------------------------------
+
+  it('shows cron job verification note', () => {
+    renderStep();
+
+    expect(screen.getByText('Cron jobs')).toBeInTheDocument();
+    expect(screen.getByText(/support-renewal-check/)).toBeInTheDocument();
+    expect(screen.getByText(/report-agent-overage/)).toBeInTheDocument();
+  });
+
+  it('shows manual verification section', () => {
+    renderStep();
+
+    expect(screen.getByText('Manual verification (after setup):')).toBeInTheDocument();
+    expect(screen.getByText('Stripe webhook test event fires and is received')).toBeInTheDocument();
+    expect(screen.getByText(/CORS allows CMS/)).toBeInTheDocument();
+    expect(screen.getByText('Session cookie works cross-subdomain')).toBeInTheDocument();
+    expect(screen.getByText('Signup flow works end-to-end')).toBeInTheDocument();
+  });
+
+  // -- Health check flow — all pass ---------------------------------------
+
+  it('sets env vars and runs health checks on Run Checks click', async () => {
+    renderStep();
+
+    fireEvent.change(screen.getByLabelText('Admin Email'), {
+      target: { value: 'admin@test.com' },
+    });
+    fireEvent.change(screen.getByLabelText('Admin Password'), {
+      target: { value: 'StrongPass1!xx' },
+    });
+    fireEvent.click(screen.getByRole('button', { name: /run checks/i }));
 
     await waitFor(() => {
       expect(screen.getAllByText('HTTP 200')).toHaveLength(4);
     });
 
-    // Verify env vars were pushed with trimmed values
     expect(mockVercelSetEnv).toHaveBeenCalledWith(
       'tok_test',
       'prj-api-123',
@@ -180,23 +221,20 @@ describe('StepVerify', () => {
       'tok_test',
       'prj-api-123',
       'REVEALUI_ADMIN_PASSWORD',
-      'StrongPass1!',
+      'StrongPass1!xx',
     );
   });
 
   it('calls healthCheck with correct endpoint URLs based on domain', async () => {
-    mockVercelSetEnv.mockResolvedValue(undefined);
-    mockHealthCheck.mockResolvedValue(200);
-
     renderStep({ data: { domain: 'myapp.dev' } });
 
     fireEvent.change(screen.getByLabelText('Admin Email'), {
       target: { value: 'a@b.com' },
     });
     fireEvent.change(screen.getByLabelText('Admin Password'), {
-      target: { value: 'pass' },
+      target: { value: 'securepassword123' },
     });
-    fireEvent.click(screen.getByRole('button', { name: 'Run Checks' }));
+    fireEvent.click(screen.getByRole('button', { name: /run checks/i }));
 
     await waitFor(() => {
       expect(mockHealthCheck).toHaveBeenCalledTimes(4);
@@ -208,25 +246,41 @@ describe('StepVerify', () => {
     expect(mockHealthCheck).toHaveBeenCalledWith('https://api.myapp.dev/health/live');
   });
 
-  it('shows success message and enables Complete Setup when all pass', async () => {
-    mockVercelSetEnv.mockResolvedValue(undefined);
-    mockHealthCheck.mockResolvedValue(200);
+  it('runs all checks including email delivery on valid input', async () => {
+    renderStep();
 
+    fireEvent.change(screen.getByLabelText('Admin Email'), {
+      target: { value: 'admin@test.com' },
+    });
+    fireEvent.change(screen.getByLabelText('Admin Password'), {
+      target: { value: 'securepassword123' },
+    });
+    fireEvent.click(screen.getByRole('button', { name: /run checks/i }));
+
+    await waitFor(() => {
+      expect(screen.getByText('Test email sent')).toBeInTheDocument();
+    });
+
+    expect(mockResendSendTest).toHaveBeenCalledWith('rk_test_123', 'admin@test.com');
+    expect(mockHealthCheck).toHaveBeenCalledTimes(4);
+  });
+
+  it('shows success message and enables Complete Setup when all pass', async () => {
     const { onComplete } = renderStep();
 
     fireEvent.change(screen.getByLabelText('Admin Email'), {
       target: { value: 'a@b.com' },
     });
     fireEvent.change(screen.getByLabelText('Admin Password'), {
-      target: { value: 'pass' },
+      target: { value: 'securepassword123' },
     });
-    fireEvent.click(screen.getByRole('button', { name: 'Run Checks' }));
+    fireEvent.click(screen.getByRole('button', { name: /run checks/i }));
 
     await waitFor(() => {
       expect(screen.getByText(/All checks passed/)).toBeInTheDocument();
     });
 
-    const completeBtn = screen.getByRole('button', { name: 'Complete Setup' });
+    const completeBtn = screen.getByRole('button', { name: /complete setup/i });
     expect(completeBtn).toBeEnabled();
 
     fireEvent.click(completeBtn);
@@ -234,39 +288,33 @@ describe('StepVerify', () => {
   });
 
   it('hides Run Checks button after all checks pass', async () => {
-    mockVercelSetEnv.mockResolvedValue(undefined);
-    mockHealthCheck.mockResolvedValue(200);
-
     renderStep();
 
     fireEvent.change(screen.getByLabelText('Admin Email'), {
       target: { value: 'a@b.com' },
     });
     fireEvent.change(screen.getByLabelText('Admin Password'), {
-      target: { value: 'pass' },
+      target: { value: 'securepassword123' },
     });
-    fireEvent.click(screen.getByRole('button', { name: 'Run Checks' }));
+    fireEvent.click(screen.getByRole('button', { name: /run checks/i }));
 
     await waitFor(() => {
       expect(screen.getByText(/All checks passed/)).toBeInTheDocument();
     });
 
-    expect(screen.queryByRole('button', { name: 'Run Checks' })).not.toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: /run checks/i })).not.toBeInTheDocument();
   });
 
   it('disables inputs after all checks pass', async () => {
-    mockVercelSetEnv.mockResolvedValue(undefined);
-    mockHealthCheck.mockResolvedValue(200);
-
     renderStep();
 
     fireEvent.change(screen.getByLabelText('Admin Email'), {
       target: { value: 'a@b.com' },
     });
     fireEvent.change(screen.getByLabelText('Admin Password'), {
-      target: { value: 'pass' },
+      target: { value: 'securepassword123' },
     });
-    fireEvent.click(screen.getByRole('button', { name: 'Run Checks' }));
+    fireEvent.click(screen.getByRole('button', { name: /run checks/i }));
 
     await waitFor(() => {
       expect(screen.getByText(/All checks passed/)).toBeInTheDocument();
@@ -276,11 +324,31 @@ describe('StepVerify', () => {
     expect(screen.getByLabelText('Admin Password')).toBeDisabled();
   });
 
-  // ── Health check flow — failures ───────────────────────────────────────
+  // -- Email delivery — SMTP provider ------------------------------------
+
+  it('marks email as validated in email step for SMTP provider', async () => {
+    renderStep({
+      data: { emailProvider: 'smtp', resendApiKey: undefined },
+    });
+
+    fireEvent.change(screen.getByLabelText('Admin Email'), {
+      target: { value: 'admin@test.com' },
+    });
+    fireEvent.change(screen.getByLabelText('Admin Password'), {
+      target: { value: 'securepassword123' },
+    });
+    fireEvent.click(screen.getByRole('button', { name: /run checks/i }));
+
+    await waitFor(() => {
+      expect(screen.getByText('Validated in email step')).toBeInTheDocument();
+    });
+
+    expect(mockResendSendTest).not.toHaveBeenCalled();
+  });
+
+  // -- Health check flow — failures --------------------------------------
 
   it('marks individual checks as failed for non-2xx/3xx status', async () => {
-    mockVercelSetEnv.mockResolvedValue(undefined);
-    // API returns 503, rest return 200
     mockHealthCheck
       .mockResolvedValueOnce(503)
       .mockResolvedValueOnce(200)
@@ -293,22 +361,19 @@ describe('StepVerify', () => {
       target: { value: 'a@b.com' },
     });
     fireEvent.change(screen.getByLabelText('Admin Password'), {
-      target: { value: 'pass' },
+      target: { value: 'securepassword123' },
     });
-    fireEvent.click(screen.getByRole('button', { name: 'Run Checks' }));
+    fireEvent.click(screen.getByRole('button', { name: /run checks/i }));
 
     await waitFor(() => {
       expect(screen.getByText('HTTP 503')).toBeInTheDocument();
     });
 
-    // 3 passed, 1 failed — Complete Setup stays disabled
-    expect(screen.getByRole('button', { name: 'Complete Setup' })).toBeDisabled();
-    // Run Checks still visible for retry
-    expect(screen.getByRole('button', { name: 'Run Checks' })).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: /complete setup/i })).toBeDisabled();
+    expect(screen.getByRole('button', { name: /run checks/i })).toBeInTheDocument();
   });
 
   it('handles rejected health check promises (network error)', async () => {
-    mockVercelSetEnv.mockResolvedValue(undefined);
     mockHealthCheck
       .mockResolvedValueOnce(200)
       .mockRejectedValueOnce(new Error('ECONNREFUSED'))
@@ -321,19 +386,18 @@ describe('StepVerify', () => {
       target: { value: 'a@b.com' },
     });
     fireEvent.change(screen.getByLabelText('Admin Password'), {
-      target: { value: 'pass' },
+      target: { value: 'securepassword123' },
     });
-    fireEvent.click(screen.getByRole('button', { name: 'Run Checks' }));
+    fireEvent.click(screen.getByRole('button', { name: /run checks/i }));
 
     await waitFor(() => {
       expect(screen.getByText('ECONNREFUSED')).toBeInTheDocument();
     });
 
-    expect(screen.getByRole('button', { name: 'Complete Setup' })).toBeDisabled();
+    expect(screen.getByRole('button', { name: /complete setup/i })).toBeDisabled();
   });
 
   it('handles rejected promise with non-Error reason', async () => {
-    mockVercelSetEnv.mockResolvedValue(undefined);
     mockHealthCheck
       .mockResolvedValueOnce(200)
       .mockRejectedValueOnce('unknown failure')
@@ -346,9 +410,9 @@ describe('StepVerify', () => {
       target: { value: 'a@b.com' },
     });
     fireEvent.change(screen.getByLabelText('Admin Password'), {
-      target: { value: 'pass' },
+      target: { value: 'securepassword123' },
     });
-    fireEvent.click(screen.getByRole('button', { name: 'Run Checks' }));
+    fireEvent.click(screen.getByRole('button', { name: /run checks/i }));
 
     await waitFor(() => {
       expect(screen.getByText('Request failed')).toBeInTheDocument();
@@ -356,7 +420,6 @@ describe('StepVerify', () => {
   });
 
   it('treats HTTP 400+ as failure', async () => {
-    mockVercelSetEnv.mockResolvedValue(undefined);
     mockHealthCheck.mockResolvedValue(404);
 
     renderStep();
@@ -365,31 +428,29 @@ describe('StepVerify', () => {
       target: { value: 'a@b.com' },
     });
     fireEvent.change(screen.getByLabelText('Admin Password'), {
-      target: { value: 'pass' },
+      target: { value: 'securepassword123' },
     });
-    fireEvent.click(screen.getByRole('button', { name: 'Run Checks' }));
+    fireEvent.click(screen.getByRole('button', { name: /run checks/i }));
 
     await waitFor(() => {
       expect(screen.getAllByText('HTTP 404')).toHaveLength(4);
     });
 
-    expect(screen.getByRole('button', { name: 'Complete Setup' })).toBeDisabled();
+    expect(screen.getByRole('button', { name: /complete setup/i })).toBeDisabled();
   });
 
-  // ── Vercel env var edge cases ──────────────────────────────────────────
+  // -- Vercel env var edge cases ------------------------------------------
 
   it('skips env var push when no API project ID in config', async () => {
-    mockHealthCheck.mockResolvedValue(200);
-
     renderStep({ config: { deploy: undefined } });
 
     fireEvent.change(screen.getByLabelText('Admin Email'), {
       target: { value: 'a@b.com' },
     });
     fireEvent.change(screen.getByLabelText('Admin Password'), {
-      target: { value: 'pass' },
+      target: { value: 'securepassword123' },
     });
-    fireEvent.click(screen.getByRole('button', { name: 'Run Checks' }));
+    fireEvent.click(screen.getByRole('button', { name: /run checks/i }));
 
     await waitFor(() => {
       expect(screen.getByText(/All checks passed/)).toBeInTheDocument();
@@ -407,31 +468,27 @@ describe('StepVerify', () => {
       target: { value: 'a@b.com' },
     });
     fireEvent.change(screen.getByLabelText('Admin Password'), {
-      target: { value: 'pass' },
+      target: { value: 'securepassword123' },
     });
-    fireEvent.click(screen.getByRole('button', { name: 'Run Checks' }));
+    fireEvent.click(screen.getByRole('button', { name: /run checks/i }));
 
     await waitFor(() => {
       expect(screen.getByText('Vercel API rate limit')).toBeInTheDocument();
     });
 
-    // Health checks should NOT have run
     expect(mockHealthCheck).not.toHaveBeenCalled();
   });
 
   it('trims whitespace from email and password before sending', async () => {
-    mockVercelSetEnv.mockResolvedValue(undefined);
-    mockHealthCheck.mockResolvedValue(200);
-
     renderStep();
 
     fireEvent.change(screen.getByLabelText('Admin Email'), {
       target: { value: '  admin@test.com  ' },
     });
     fireEvent.change(screen.getByLabelText('Admin Password'), {
-      target: { value: '  MyPass!  ' },
+      target: { value: '  MyPass!Strong  ' },
     });
-    fireEvent.click(screen.getByRole('button', { name: 'Run Checks' }));
+    fireEvent.click(screen.getByRole('button', { name: /run checks/i }));
 
     await waitFor(() => {
       expect(mockVercelSetEnv).toHaveBeenCalledWith(
@@ -444,15 +501,14 @@ describe('StepVerify', () => {
         expect.any(String),
         expect.any(String),
         'REVEALUI_ADMIN_PASSWORD',
-        'MyPass!',
+        'MyPass!Strong',
       );
     });
   });
 
-  // ── HTTP status boundary ──────────────────────────────────────────────
+  // -- HTTP status boundary -----------------------------------------------
 
   it('treats HTTP 301 redirect as pass (2xx-3xx range)', async () => {
-    mockVercelSetEnv.mockResolvedValue(undefined);
     mockHealthCheck.mockResolvedValue(301);
 
     renderStep();
@@ -461,9 +517,9 @@ describe('StepVerify', () => {
       target: { value: 'a@b.com' },
     });
     fireEvent.change(screen.getByLabelText('Admin Password'), {
-      target: { value: 'pass' },
+      target: { value: 'securepassword123' },
     });
-    fireEvent.click(screen.getByRole('button', { name: 'Run Checks' }));
+    fireEvent.click(screen.getByRole('button', { name: /run checks/i }));
 
     await waitFor(() => {
       expect(screen.getByText(/All checks passed/)).toBeInTheDocument();

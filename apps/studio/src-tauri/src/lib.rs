@@ -72,6 +72,7 @@ pub fn run() {
             deploy::secrets::generate_rsa_keypair,
             deploy::vercel::vercel_create_project,
             deploy::vercel::vercel_validate_token,
+            deploy::vercel::vercel_validate_blob_token,
             deploy::vercel::vercel_set_env,
             deploy::vercel::vercel_deploy,
             deploy::vercel::vercel_get_deployment,
@@ -83,6 +84,7 @@ pub fn run() {
             deploy::stripe::stripe_run_keys,
             deploy::stripe::stripe_catalog_sync,
             deploy::email::resend_send_test,
+            deploy::email::smtp_send_test,
             deploy::health::health_check,
         ])
         .run(tauri::generate_context!())

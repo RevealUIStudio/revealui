@@ -34,6 +34,9 @@ const EMPTY_WIZARD_DATA: WizardData = {
   cronSecret: '',
   domain: '',
   signupOpen: true,
+  signupWhitelist: undefined,
+  brandColor: undefined,
+  brandLogo: undefined,
 };
 
 export default function DeployWizard({ onComplete }: DeployWizardProps) {
