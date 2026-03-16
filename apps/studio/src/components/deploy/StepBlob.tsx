@@ -27,7 +27,7 @@ export default function StepBlob({ data, onUpdateData, onNext }: StepBlobProps) 
       <div className="flex flex-col gap-4">
         <div className="rounded-md border border-neutral-700 bg-neutral-900/50 p-4 text-sm text-neutral-400">
           <p className="mb-2 font-medium text-neutral-300">Setup instructions:</p>
-          <ol className="list-inside list-decimal space-y-1">
+          <ol className="list-inside list-decimal flex flex-col gap-1">
             <li>Open your Vercel project dashboard</li>
             <li>
               Go to <span className="text-neutral-200">Storage</span> tab

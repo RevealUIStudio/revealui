@@ -70,7 +70,7 @@ export default function StepVerify({ config, data, onComplete }: StepVerifyProps
         `https://api.${domain}/health/ready`,
         `https://cms.${domain}`,
         `https://${domain}`,
-        `https://api.${domain}/health/ready`,
+        `https://api.${domain}/health/live`,
       ];
 
       const results = await Promise.allSettled(endpoints.map((url) => healthCheck(url)));

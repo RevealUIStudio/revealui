@@ -18,7 +18,6 @@ pub struct StudioConfig {
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub struct DeployConfig {
-    pub vercel_token: Option<String>,
     pub vercel_team_id: Option<String>,
     pub domain: Option<String>,
     pub apps: Option<DeployApps>,

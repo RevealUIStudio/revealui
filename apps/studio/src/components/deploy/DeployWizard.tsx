@@ -97,7 +97,7 @@ export default function DeployWizard({ onComplete }: DeployWizardProps) {
     <div className="fixed inset-0 z-50 flex bg-neutral-950">
       <div className="w-64 border-r border-neutral-800 bg-neutral-900 p-4">
         <h1 className="mb-6 text-lg font-bold text-white">Deploy RevealUI</h1>
-        <nav className="space-y-1">
+        <nav className="flex flex-col gap-1">
           {wizard.steps.map((s, i) => {
             const done = wizard.isStepDone(s.id);
             const active = i === wizard.currentStep;

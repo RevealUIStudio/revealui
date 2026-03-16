@@ -4,7 +4,7 @@ use std::process::Command;
 #[tauri::command]
 pub async fn neon_test_connection(connection_string: String) -> Result<String, String> {
     let output = Command::new("psql")
-        .arg(&connection_string)
+        .env("DATABASE_URL", &connection_string)
         .arg("-c")
         .arg("SELECT NOW()")
         .output()
