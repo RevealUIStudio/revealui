@@ -67,45 +67,45 @@ async function signInHandler(request: NextRequest): Promise<NextResponse> {
     });
 
     if (!result.success) {
-      return createApplicationErrorResponse(
-        result.error || 'Invalid email or password',
-        'INVALID_CREDENTIALS',
-        401,
-      );
+      const status =
+        result.reason === 'rate_limited' ? 429 : result.reason === 'account_locked' ? 423 : 401;
+      return createApplicationErrorResponse(result.error, result.reason.toUpperCase(), status);
+    }
+
+    if (result.requiresMfa) {
+      return NextResponse.json({ requiresMfa: true, mfaUserId: result.mfaUserId }, { status: 200 });
     }
 
     // Create response with user data
     const response = NextResponse.json({
       user: {
-        id: result.user?.id,
-        email: result.user?.email,
-        name: result.user?.name,
-        avatarUrl: result.user?.avatarUrl,
-        role: result.user?.role,
+        id: result.user.id,
+        email: result.user.email,
+        name: result.user.name,
+        avatarUrl: result.user.avatarUrl,
+        role: result.user.role,
       },
     });
 
     // Set session cookie
-    if (result.sessionToken) {
-      response.cookies.set('revealui-session', result.sessionToken, {
-        httpOnly: true,
-        secure: process.env.NODE_ENV === 'production',
-        sameSite: 'lax',
-        path: '/',
-        maxAge: 60 * 60 * 24 * 7, // 7 days
-        domain:
-          process.env.NODE_ENV === 'production'
-            ? (() => {
-                if (!process.env.SESSION_COOKIE_DOMAIN) {
-                  logger.error(
-                    'SESSION_COOKIE_DOMAIN env var is required in production — session cookie will not be set cross-subdomain',
-                  );
-                }
-                return process.env.SESSION_COOKIE_DOMAIN || undefined;
-              })()
-            : undefined,
-      });
-    }
+    response.cookies.set('revealui-session', result.sessionToken, {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === 'production',
+      sameSite: 'lax',
+      path: '/',
+      maxAge: 60 * 60 * 24 * 7, // 7 days
+      domain:
+        process.env.NODE_ENV === 'production'
+          ? (() => {
+              if (!process.env.SESSION_COOKIE_DOMAIN) {
+                logger.error(
+                  'SESSION_COOKIE_DOMAIN env var is required in production — session cookie will not be set cross-subdomain',
+                );
+              }
+              return process.env.SESSION_COOKIE_DOMAIN || undefined;
+            })()
+          : undefined,
+    });
 
     return response;
   } catch (error) {
