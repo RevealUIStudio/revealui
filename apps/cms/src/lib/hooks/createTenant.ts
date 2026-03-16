@@ -30,7 +30,8 @@ export const createTenant: CollectionAfterChangeHook<UserWithTenantID> = async (
   // contracts RevealRequest.revealui is typed as unknown; cast to the known instance type
   const revealui = req.revealui as RevealUIInstance;
 
-  const ctx = context as unknown as CreateTenantContext | undefined;
+  // context is typed as RevealHookContext (Record-like); narrow to check for expected fields
+  const ctx = context as CreateTenantContext | undefined;
   if (!ctx?.email) {
     return doc;
   }

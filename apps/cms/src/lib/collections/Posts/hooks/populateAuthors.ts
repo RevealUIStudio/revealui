@@ -1,5 +1,6 @@
 import type { RevealAfterReadHook, RevealDocument, RevealUIInstance } from '@revealui/core';
 import type { User } from '@revealui/core/types/cms';
+import { asDocument } from '@/lib/utils/type-guards';
 
 interface PostWithAuthors extends RevealDocument {}
 
@@ -41,7 +42,7 @@ export const populateAuthors: RevealAfterReadHook = async ({ doc, req }) => {
         });
 
         if (authorDoc) {
-          authorDocs.push(authorDoc as unknown as User);
+          authorDocs.push(asDocument<User>(authorDoc));
         }
       } catch {
         // Skip authors that can't be found
