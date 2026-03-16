@@ -282,6 +282,8 @@ describe('pages queries', () => {
     const result = await createPage(mock.db, data as never);
 
     expect(result).toEqual(data);
+    // incrementPageCount must be called after successful insert
+    expect(mock.db.update).toHaveBeenCalled();
   });
 
   it('updatePage updates and returns the page', async () => {
@@ -303,12 +305,17 @@ describe('pages queries', () => {
     expect(result).toBeNull();
   });
 
-  it('deletePage calls delete on the db', async () => {
+  it('deletePage calls delete and decrements page count', async () => {
     const { deletePage } = await import('../pages.js');
+    // getPageById needs a page with siteId so decrementPageCount can run
+    mock.setSelectResult([{ id: 'pg1', siteId: 's1' }]);
 
     await deletePage(mock.db, 'pg1');
 
+    expect(mock.db.select).toHaveBeenCalled();
     expect(mock.db.delete).toHaveBeenCalled();
+    // decrementPageCount must be called after successful delete
+    expect(mock.db.update).toHaveBeenCalled();
   });
 });
 
