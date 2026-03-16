@@ -9,6 +9,7 @@ import { createRoute, OpenAPIHono, z } from '@hono/zod-openapi';
 import { SITE_STATUSES } from '@revealui/contracts/entities';
 import * as siteQueries from '@revealui/db/queries/sites';
 import { HTTPException } from 'hono/http-exception';
+import { asNonEmptyTuple } from '../../lib/type-guards.js';
 import { ErrorSchema, IdParam, SlugField } from '../_helpers/content-schemas.js';
 import { PaginationQuery } from '../_helpers/pagination.js';
 import type { ContentVariables } from './index.js';
@@ -27,7 +28,7 @@ const SiteSchema = z
     slug: z.string(),
     description: z.string().nullable(),
     ownerId: z.string(),
-    status: z.enum(SITE_STATUSES as unknown as [string, ...string[]]),
+    status: z.enum(asNonEmptyTuple(SITE_STATUSES)),
     theme: z.unknown().nullable(),
     settings: z.unknown().nullable(),
     pageCount: z.number().nullable(),
@@ -51,10 +52,7 @@ app.openapi(
     summary: 'List sites',
     request: {
       query: PaginationQuery.extend({
-        status: z
-          .enum(SITE_STATUSES as unknown as [string, ...string[]])
-          .optional()
-          .openapi({ example: 'published' }),
+        status: z.enum(asNonEmptyTuple(SITE_STATUSES)).optional().openapi({ example: 'published' }),
       }),
     },
     responses: {
@@ -93,7 +91,7 @@ app.openapi(
               name: z.string().min(1).max(200),
               slug: SlugField,
               description: z.string().max(1000).optional(),
-              status: z.enum(SITE_STATUSES as unknown as [string, ...string[]]).optional(),
+              status: z.enum(asNonEmptyTuple(SITE_STATUSES)).optional(),
             }),
           },
         },
@@ -173,7 +171,7 @@ app.openapi(
               name: z.string().min(1).max(200).optional(),
               slug: SlugField.optional(),
               description: z.string().max(1000).nullable().optional(),
-              status: z.enum(SITE_STATUSES as unknown as [string, ...string[]]).optional(),
+              status: z.enum(asNonEmptyTuple(SITE_STATUSES)).optional(),
               favicon: z.string().nullable().optional(),
             }),
           },

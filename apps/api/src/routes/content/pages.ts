@@ -10,6 +10,7 @@ import { PAGE_STATUSES } from '@revealui/contracts/entities';
 import * as pageQueries from '@revealui/db/queries/pages';
 import * as siteQueries from '@revealui/db/queries/sites';
 import { HTTPException } from 'hono/http-exception';
+import { asNonEmptyTuple } from '../../lib/type-guards.js';
 import { ErrorSchema, IdParam, SiteIdParam, SlugField } from '../_helpers/content-schemas.js';
 import type { ContentVariables } from './index.js';
 
@@ -29,7 +30,7 @@ const PageSchema = z
     title: z.string(),
     slug: z.string(),
     path: z.string(),
-    status: z.enum(PAGE_STATUSES as unknown as [string, ...string[]]),
+    status: z.enum(asNonEmptyTuple(PAGE_STATUSES)),
     blocks: z.unknown().nullable(),
     seo: z.unknown().nullable(),
     blockCount: z.number().nullable(),
@@ -54,10 +55,7 @@ app.openapi(
     request: {
       params: SiteIdParam,
       query: z.object({
-        status: z
-          .enum(PAGE_STATUSES as unknown as [string, ...string[]])
-          .optional()
-          .openapi({ example: 'published' }),
+        status: z.enum(asNonEmptyTuple(PAGE_STATUSES)).optional().openapi({ example: 'published' }),
       }),
     },
     responses: {
@@ -114,7 +112,7 @@ app.openapi(
               title: z.string().min(1).max(500),
               slug: SlugField,
               path: z.string().min(1).max(500),
-              status: z.enum(PAGE_STATUSES as unknown as [string, ...string[]]).optional(),
+              status: z.enum(asNonEmptyTuple(PAGE_STATUSES)).optional(),
               parentId: z.string().optional(),
               templateId: z.string().optional(),
               blocks: z.array(z.unknown()).optional(),
@@ -215,7 +213,7 @@ app.openapi(
               title: z.string().min(1).max(500).optional(),
               slug: SlugField.optional(),
               path: z.string().min(1).max(500).optional(),
-              status: z.enum(PAGE_STATUSES as unknown as [string, ...string[]]).optional(),
+              status: z.enum(asNonEmptyTuple(PAGE_STATUSES)).optional(),
               parentId: z.string().nullable().optional(),
               templateId: z.string().nullable().optional(),
               blocks: z.array(z.unknown()).optional(),
