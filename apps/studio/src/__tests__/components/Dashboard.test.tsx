@@ -47,7 +47,7 @@ describe('Dashboard', () => {
       error: null,
       refresh: mockRefresh,
     });
-    expect(screen.getByText('Dashboard')).toBeInTheDocument();
+    expect(screen.getByRole('heading', { name: 'Dashboard' })).toBeInTheDocument();
   });
 
   it('renders WSL service card', () => {
