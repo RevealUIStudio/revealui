@@ -84,7 +84,7 @@ export default function TerminalView({ onData, onResize, terminalRef }: Terminal
       if (resizeTimeout) clearTimeout(resizeTimeout);
       resizeTimeout = setTimeout(() => {
         fitAddon.fit();
-      }, 100);
+      }, 150);
     });
     observer.observe(container);
 
