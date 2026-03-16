@@ -1,4 +1,5 @@
 mod commands;
+mod config;
 mod local_shell;
 mod platform;
 mod ssh;
@@ -6,8 +7,10 @@ mod state;
 mod tray;
 
 use commands::{
-    apps, local_shell as shell_cmds, mount, setup, ssh as ssh_cmds, status, sync, tunnel, vault,
+    apps, config as config_cmds, local_shell as shell_cmds, mount, setup, ssh as ssh_cmds, status,
+    sync, tunnel, vault,
 };
+use config::ConfigState;
 use local_shell::LocalShellState;
 use ssh::SshState;
 use state::AppState;
@@ -21,6 +24,7 @@ pub fn run() {
         .manage(AppState::new(platform))
         .manage(SshState::default())
         .manage(LocalShellState::default())
+        .manage(ConfigState::new())
         .setup(|app| {
             tray::setup_tray(&app.handle())?;
             Ok(())
@@ -60,6 +64,9 @@ pub fn run() {
             ssh_cmds::ssh_bookmark_list,
             ssh_cmds::ssh_bookmark_save,
             ssh_cmds::ssh_bookmark_delete,
+            config_cmds::get_config,
+            config_cmds::set_config,
+            config_cmds::reset_config,
         ])
         .run(tauri::generate_context!())
         .expect("error while running RevealUI Studio");
