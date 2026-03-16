@@ -165,6 +165,8 @@ describe('page queries', () => {
 
       expect(result).toEqual(data);
       expect(chain.values).toHaveBeenCalledWith(data);
+      // incrementPageCount must be called after successful insert
+      expect(db.update).toHaveBeenCalled();
     });
 
     it('returns null when insert returns empty', async () => {
@@ -215,8 +217,12 @@ describe('page queries', () => {
 
       await deletePage(db as never, 'p1');
 
+      // getPageById must be called to look up the page's siteId
+      expect(db.select).toHaveBeenCalled();
       expect(db.delete).toHaveBeenCalled();
       expect(deleteChain.where).toHaveBeenCalled();
+      // decrementPageCount must be called after successful delete
+      expect(db.update).toHaveBeenCalled();
     });
   });
 
