@@ -38,7 +38,7 @@ describe('SyncPanel', () => {
       syncing: false,
       results: [
         { drive: 'C', repo: 'RevealUI', status: 'ok', branch: 'main' },
-        { drive: 'E', repo: 'revealui-jv', status: 'dirty', branch: 'main' },
+        { drive: 'E', repo: 'my-private-repo', status: 'dirty', branch: 'main' },
       ],
       log: [],
       error: null,
@@ -47,7 +47,7 @@ describe('SyncPanel', () => {
     });
     render(<SyncPanel />);
     expect(screen.getByText('RevealUI')).toBeInTheDocument();
-    expect(screen.getByText('revealui-jv')).toBeInTheDocument();
+    expect(screen.getByText('my-private-repo')).toBeInTheDocument();
   });
 
   it('shows sync log when entries exist', () => {
