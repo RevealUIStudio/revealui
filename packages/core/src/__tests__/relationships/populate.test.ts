@@ -18,7 +18,7 @@ import {
   type PopulateRelationshipField,
   shouldPopulateRelationship,
   updateDocumentWithPopulatedValue,
-} from '../../relationships/populate-helpers.js';
+} from '../../relationships/populate-core.js';
 
 describe('Populate Helper Functions', () => {
   describe('extractRelationInfo', () => {
