@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { completeStep, isStepComplete } from '../lib/config';
 import type { DeployStep, StudioConfig } from '../types';
 
@@ -15,11 +15,16 @@ const DEPLOY_STEPS: { id: DeployStep; label: string }[] = [
 ];
 
 export function useDeployWizard(config: StudioConfig | null) {
-  const [currentStep, setCurrentStep] = useState<number>(() => {
-    if (!config) return 0;
+  const [currentStep, setCurrentStep] = useState<number>(0);
+  const [hasResumed, setHasResumed] = useState(false);
+
+  // Auto-resume to first incomplete step once config loads
+  useEffect(() => {
+    if (!config || hasResumed) return;
     const idx = DEPLOY_STEPS.findIndex((s) => !isStepComplete(config, s.id));
-    return idx === -1 ? 0 : idx;
-  });
+    if (idx > 0) setCurrentStep(idx);
+    setHasResumed(true);
+  }, [config, hasResumed]);
 
   const step = DEPLOY_STEPS[currentStep];
   const isFirst = currentStep === 0;

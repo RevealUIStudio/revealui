@@ -41,7 +41,6 @@ export default function StepVercel({
       await onUpdateConfig({
         deploy: {
           ...config.deploy,
-          vercelToken: trimmed,
           supabaseEnabled: config.deploy?.supabaseEnabled ?? false,
         },
       });

@@ -46,7 +46,7 @@ export default function StepSecrets({ data, onUpdateData, onNext }: StepSecretsP
       <div className="flex flex-col gap-4">
         <div className="rounded-md border border-neutral-700 bg-neutral-900/50 p-4 text-sm text-neutral-400">
           <p className="mb-2 font-medium text-neutral-300">Three secrets will be generated:</p>
-          <ul className="list-inside list-disc space-y-1">
+          <ul className="list-inside list-disc flex flex-col gap-1">
             <li>
               <span className="text-neutral-200">REVEALUI_SECRET</span> — session signing key
             </li>
