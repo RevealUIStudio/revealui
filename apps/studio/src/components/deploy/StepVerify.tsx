@@ -48,9 +48,9 @@ export default function StepVerify({ config, data, onComplete }: StepVerifyProps
     setError(null);
 
     // Reset all checks
-    for (let i = 0; i < 4; i++) {
-      updateCheck(i, { status: 'checking', detail: undefined });
-    }
+    setChecks((prev) =>
+      prev.map((c) => ({ ...c, status: 'checking' as const, detail: undefined })),
+    );
 
     try {
       // RC-7: Push admin env vars first
