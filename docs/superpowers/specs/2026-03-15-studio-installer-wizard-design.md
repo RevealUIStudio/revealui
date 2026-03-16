@@ -4,7 +4,9 @@
 
 **Goal:** Turn RevealUI Studio into a unified installer + companion that gets users from zero to running — either deploying to Vercel or setting up a local dev environment — in one guided flow.
 
-**Architecture:** Extend the existing Tauri 2 + React 19 app. Add an intent-selection screen as the new first-run gate, a 9-step deploy wizard for self-hosters, and improve the existing 7-step dev wizard to actively install (not just check status). Cross-platform from day one (Windows, macOS, Linux). Deploy flow is pure HTTP — works on all platforms immediately. Dev flow requires platform-specific implementations.
+**Architecture:** Extend the existing Tauri 2 + React 19 app. Add an intent-selection screen as the new first-run gate, a 9-step deploy wizard for self-hosters, and improve the existing dev setup checklist (currently a single modal with 7 simultaneous status rows) to actively install prerequisites instead of just checking status. Cross-platform from day one (Windows, macOS, Linux). Deploy flow is pure HTTP — works on all platforms immediately. Dev flow requires platform-specific implementations.
+
+**Prerequisites:** Before implementation, extend `packages/config/src/schema.ts` to include: `REVEALUI_KEK`, `REVEALUI_CRON_SECRET`, `REVEALUI_LICENSE_PRIVATE_KEY`, `REVEALUI_LICENSE_PUBLIC_KEY`, `RESEND_API_KEY`, and SMTP variables (`SMTP_HOST`, `SMTP_PORT`, `SMTP_USER`, `SMTP_PASS`). These are currently used in code but absent from the validation schema.
 
 **Tech Stack:** Tauri 2, React 19, TypeScript, Tailwind v4, Rust (PlatformOps trait). Vercel API, Neon API, Stripe API/CLI, Resend API.
 
@@ -43,11 +45,11 @@ Priority: **build this first.** It's the revenue path, smaller scope (mostly HTT
 
 **NeonDB (required):**
 - Detect `neonctl` CLI → `neonctl auth status`
-- Fallback: paste connection string (`postgresql://...@*.neon.tech/...`)
+- Fallback: paste `POSTGRES_URL` connection string (`postgresql://...@*.neon.tech/...`)
 - Action: create Neon project + database if none exists, or select existing
 - Validate connection with test query (`SELECT NOW()`)
-- Run `db:push` (Drizzle migrations — creates all 50 tables)
-- Run `db:seed` — **mandatory**, not optional. Home page (`slug='home'`) must exist or CMS root returns 404
+- Run `pnpm --filter @revealui/db db:migrate` (Drizzle migration files — safer than `db:push` for production)
+- Run `pnpm db:seed` — **mandatory**, not optional. Home page (`slug='home'`) must exist or CMS root returns 404
 
 **Supabase (optional, gated on "Enable AI features?"):**
 - Paste `NEXT_PUBLIC_SUPABASE_URL` + `NEXT_PUBLIC_SUPABASE_ANON_KEY` + `SUPABASE_SERVICE_ROLE_KEY`
@@ -64,7 +66,7 @@ Priority: **build this first.** It's the revenue path, smaller scope (mostly HTT
 
 **Actions (automated sequence):**
 1. Validate keys (test API call)
-2. Generate RSA-2048 key pair via `stripe:keys --write` → produces `REVEALUI_LICENSE_PRIVATE_KEY` and `REVEALUI_LICENSE_PUBLIC_KEY`
+2. Generate RSA-2048 key pair via `pnpm stripe:keys -- --write` (note `--` separator for pnpm) → produces `REVEALUI_LICENSE_PRIVATE_KEY` and `REVEALUI_LICENSE_PUBLIC_KEY`
 3. Run `stripe:seed` → creates 6 products (3 tiers × 2 billing models), 10+ prices, registers webhook endpoint, configures billing portal
 4. Run `billing:catalog:sync` → populates `billing_catalog` table in NeonDB
 5. Capture generated price IDs: `NEXT_PUBLIC_STRIPE_PRO_PRICE_ID`, `_MAX_PRICE_ID`, `_ENTERPRISE_PRICE_ID`
@@ -96,9 +98,9 @@ Without this, media uploads fail with 500 errors.
 ### Step 6: Generate Secrets
 
 **Auto-generated (user never sees raw values):**
-- `REVEALUI_SECRET` — 48 random chars (session encryption)
-- `REVEALUI_KEK` — 48 random chars (field-level encryption key)
-- `REVEALUI_CRON_SECRET` — 48 random chars (cron endpoint auth)
+- `REVEALUI_SECRET` — 48 random chars (session encryption; schema minimum is 32)
+- `REVEALUI_KEK` — **64 hex characters (32 bytes / 256 bits)** (field-level AES encryption key; `packages/db/src/crypto.ts` enforces exactly 64 hex chars)
+- `REVEALUI_CRON_SECRET` — 48 random chars (cron endpoint auth; schema minimum is 32)
 
 **From step 3:**
 - `REVEALUI_LICENSE_PRIVATE_KEY` (RSA PEM)
@@ -111,9 +113,9 @@ All values stored in Vercel project env vars via API (never committed to git, ne
 **User enters their domain** (e.g., `acme.com`).
 
 **Auto-derived:**
-- `NEXT_PUBLIC_SERVER_URL` → `https://cms.acme.com`
-- `REVEALUI_PUBLIC_SERVER_URL` → `https://api.acme.com`
-- `CMS_URL` → `https://cms.acme.com`
+- `NEXT_PUBLIC_SERVER_URL` → `https://api.acme.com` (the API's public URL)
+- `REVEALUI_PUBLIC_SERVER_URL` → `https://api.acme.com` (**must match** `NEXT_PUBLIC_SERVER_URL` — schema validates equality)
+- `CMS_URL` → `https://cms.acme.com` (separate from server URL — this is where the CMS frontend lives)
 - `CORS_ORIGIN` → `https://cms.acme.com,https://acme.com`
 - Cookie domain: `.acme.com` (cross-subdomain session sharing)
 
@@ -123,7 +125,7 @@ All values stored in Vercel project env vars via API (never committed to git, ne
 | CNAME | api | cname.vercel-dns.com |
 | CNAME | cms | cname.vercel-dns.com |
 | CNAME | @ | cname.vercel-dns.com |
-| CNAME | docs | cname.vercel-dns.com |
+| CNAME | docs | cname.vercel-dns.com (optional — only if deploying docs app) |
 
 **Optional configuration:**
 - `REVEALUI_SIGNUP_OPEN` — default: `true` (installer sets this explicitly)
@@ -141,9 +143,10 @@ All values stored in Vercel project env vars via API (never committed to git, ne
    - Marketing needs ~5 vars
 2. Deploy all 3 apps in parallel via Vercel API
 3. Wait for all deployments to reach "READY" status
-4. Configure Vercel Cron jobs (added to `apps/api/vercel.json`):
+4. Verify Vercel Cron jobs exist in `apps/api/vercel.json` (these must be in the repo before deploy — Vercel reads cron config from the file at deploy time, not via API):
    - `POST /api/billing/support-renewal-check` — `0 9 * * *` (daily 9 AM UTC)
    - `POST /api/billing/report-agent-overage` — `*/5 * * * *` (every 5 minutes)
+   - If missing, the wizard should add them to `vercel.json` in the user's fork before deploying
 
 **Warnings displayed:**
 - Job queue requires cron-based worker or external process for long-running tasks (Vercel serverless has request timeouts)
@@ -163,7 +166,7 @@ All values stored in Vercel project env vars via API (never committed to git, ne
 - [ ] Stripe webhook test event fires and is received
 - [ ] Database connection works (via health endpoint)
 - [ ] CORS allows CMS → API requests
-- [ ] Session cookie works cross-subdomain
+- [ ] Session cookie works cross-subdomain (manual verification — requires real browser)
 - [ ] Email delivery works (test email to admin)
 - [ ] Signup flow works end-to-end (if `REVEALUI_SIGNUP_OPEN=true`)
 
@@ -181,7 +184,7 @@ Lower priority — existing wizard works today. Improvements:
    - macOS: Homebrew → Nix → pnpm → clone repo
    - Linux: Nix → pnpm → clone repo
 3. **Step recovery.** Store step completion in config file. Resume from last completed step on restart.
-4. **macOS and Linux platform implementations.** Current stubs in `platform/macos.rs` and `platform/linux.rs` need real implementations.
+4. **macOS and Linux platform gaps.** `platform/macos.rs` and `platform/linux.rs` already have working implementations for `check_setup`, `set_git_identity`, and Tailscale operations. The gaps are DevPod mount/unmount, repo sync, and app launcher — these are WSL-specific today and need platform-native equivalents (or removal from non-Windows flows).
 
 ---
 
@@ -237,6 +240,8 @@ Managed via new Rust commands: `get_config`, `set_config`, `reset_config`.
 
 ## New Rust Commands
 
+Deploy wizard commands are **standalone Tauri commands** — they do NOT go into the `PlatformOps` trait. The deploy flow is pure HTTP (platform-independent), so adding these to the cross-platform trait would bloat it with operations that have no platform variance. `PlatformOps` remains for dev-flow operations that differ by OS.
+
 | Command | Purpose |
 |---------|---------|
 | `get_config` / `set_config` | Persistent config read/write |
@@ -255,6 +260,17 @@ Managed via new Rust commands: `get_config`, `set_config`, `reset_config`.
 | `run_db_migrate` | Execute Drizzle migrations |
 | `run_db_seed` | Execute database seed |
 | `health_check` | HTTP health check on deployed URL |
+
+---
+
+## Failure Recovery
+
+If a step fails:
+- **Steps 1-7 (configuration):** No rollback needed — the wizard simply retries the failed step. Completed steps are recorded in `config.json` and skipped on retry.
+- **Step 8 (deploy):** Partial deployment is possible (e.g., API deploys but CMS fails). The wizard retries only failed deployments. Env vars already pushed to Vercel are idempotent (re-pushing is safe).
+- **Step 9 (bootstrap):** Admin user creation is idempotent (first user becomes admin). Verification checks can be re-run any number of times.
+
+The wizard never rolls back external state (Vercel projects, Neon databases, Stripe products). These are all idempotent or additive operations — re-running is always safe.
 
 ---
 
