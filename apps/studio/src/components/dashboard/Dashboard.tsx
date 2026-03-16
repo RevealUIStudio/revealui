@@ -4,6 +4,7 @@ import ErrorAlert from '../ui/ErrorAlert';
 import PanelHeader from '../ui/PanelHeader';
 import ServiceCard from './ServiceCard';
 import TierBadge from './TierBadge';
+import WelcomeBanner from './WelcomeBanner';
 
 export default function Dashboard() {
   const { system, mount, loading, error, refresh } = useStatusContext();
@@ -22,6 +23,8 @@ export default function Dashboard() {
           </Button>
         }
       />
+
+      <WelcomeBanner />
 
       <ErrorAlert message={error} />
 
