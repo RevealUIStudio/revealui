@@ -23,4 +23,6 @@ packages/cli/src/prompts/__tests__/prompts.test.ts:generic-api-key:242
 packages/cli/src/__tests__/create.test.ts:stripe-access-token:81
 packages/core/src/__tests__/license.test.ts:private-key:173
 packages/test/src/integration/api/api-error-handler.integration.test.ts:stripe-access-token:88
+packages/config/src/__tests__/schema.test.ts:generic-api-key:231
+packages/config/src/__tests__/schema.test.ts:private-key:207
 packages/test/src/units/auth/jwt-validation.test.ts:jwt:49
