@@ -88,6 +88,7 @@ async function pushEnvVars(
   vars: Record<string, string>,
 ): Promise<void> {
   for (const [key, value] of Object.entries(vars)) {
+    if (!value) continue;
     await vercelSetEnv(token, projectId, key, value);
   }
 }
@@ -145,6 +146,8 @@ export default function StepDeploy({ config, data, onNext }: StepDeployProps) {
 
   const allReady =
     apps.api.status === 'ready' && apps.cms.status === 'ready' && apps.marketing.status === 'ready';
+  const hasErrors =
+    apps.api.status === 'error' || apps.cms.status === 'error' || apps.marketing.status === 'error';
 
   function updateApp(name: AppName, update: Partial<AppState>) {
     setApps((prev) => ({ ...prev, [name]: { ...prev[name], ...update } }));
@@ -214,7 +217,7 @@ export default function StepDeploy({ config, data, onNext }: StepDeployProps) {
             loading={deploying}
             disabled={deploying || allReady}
           >
-            Deploy All
+            {hasErrors ? 'Retry Failed' : 'Deploy All'}
           </Button>
         )}
 

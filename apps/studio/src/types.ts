@@ -146,7 +146,6 @@ export interface StudioConfig {
 }
 
 export interface DeployConfig {
-  vercelToken?: string;
   vercelTeamId?: string;
   domain?: string;
   apps?: { api?: string; cms?: string; marketing?: string };
