@@ -62,11 +62,22 @@ function buildApiEnvVars(data: WizardData): Record<string, string> {
     if (data.smtpPass) vars.SMTP_PASS = data.smtpPass;
   }
 
+  // Supabase (when enabled)
+  if (data.supabaseUrl) {
+    vars.NEXT_PUBLIC_SUPABASE_URL = data.supabaseUrl;
+  }
+  if (data.supabaseAnonKey) {
+    vars.NEXT_PUBLIC_SUPABASE_ANON_KEY = data.supabaseAnonKey;
+  }
+  if (data.supabaseServiceKey) {
+    vars.SUPABASE_SERVICE_ROLE_KEY = data.supabaseServiceKey;
+  }
+
   return vars;
 }
 
 function buildCmsEnvVars(data: WizardData): Record<string, string> {
-  return {
+  const vars: Record<string, string> = {
     POSTGRES_URL: data.postgresUrl,
     REVEALUI_SECRET: data.revealuiSecret,
     REVEALUI_KEK: data.revealuiKek,
@@ -79,6 +90,27 @@ function buildCmsEnvVars(data: WizardData): Record<string, string> {
     NEXT_PUBLIC_STRIPE_ENTERPRISE_PRICE_ID: data.stripePriceIds.enterprise,
     REVEALUI_LICENSE_PUBLIC_KEY: data.licensePublicKey,
   };
+
+  // Email vars for CMS password reset
+  if (data.emailProvider === 'resend' && data.resendApiKey) {
+    vars.RESEND_API_KEY = data.resendApiKey;
+  } else if (data.emailProvider === 'smtp') {
+    if (data.smtpHost) vars.SMTP_HOST = data.smtpHost;
+    if (data.smtpPort) vars.SMTP_PORT = data.smtpPort;
+    if (data.smtpUser) vars.SMTP_USER = data.smtpUser;
+    if (data.smtpPass) vars.SMTP_PASS = data.smtpPass;
+  }
+
+  // Signup control
+  vars.REVEALUI_SIGNUP_OPEN = String(data.signupOpen);
+
+  // Supabase for CMS AI features
+  if (data.supabaseUrl) {
+    vars.NEXT_PUBLIC_SUPABASE_URL = data.supabaseUrl;
+    if (data.supabaseAnonKey) vars.NEXT_PUBLIC_SUPABASE_ANON_KEY = data.supabaseAnonKey;
+  }
+
+  return vars;
 }
 
 function buildMarketingEnvVars(data: WizardData): Record<string, string> {
