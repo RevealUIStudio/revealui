@@ -43,6 +43,15 @@ function buildApiEnvVars(data: WizardData): Record<string, string> {
   if (data.brandName) {
     vars.REVEALUI_BRAND_NAME = data.brandName;
   }
+  if (data.signupWhitelist) {
+    vars.REVEALUI_SIGNUP_WHITELIST = data.signupWhitelist;
+  }
+  if (data.brandColor) {
+    vars.REVEALUI_BRAND_PRIMARY_COLOR = data.brandColor;
+  }
+  if (data.brandLogo) {
+    vars.REVEALUI_BRAND_LOGO_URL = data.brandLogo;
+  }
 
   if (data.emailProvider === 'resend' && data.resendApiKey) {
     vars.RESEND_API_KEY = data.resendApiKey;

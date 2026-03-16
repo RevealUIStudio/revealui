@@ -22,6 +22,9 @@ export default function StepDomain({
   const [domain, setDomain] = useState(data.domain || '');
   const [signupOpen, setSignupOpen] = useState(data.signupOpen ?? true);
   const [brandName, setBrandName] = useState(data.brandName || '');
+  const [signupWhitelist, setSignupWhitelist] = useState(data.signupWhitelist || '');
+  const [brandColor, setBrandColor] = useState(data.brandColor || '');
+  const [brandLogo, setBrandLogo] = useState(data.brandLogo || '');
   const [saved, setSaved] = useState(false);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -41,7 +44,14 @@ export default function StepDomain({
     setError(null);
 
     try {
-      onUpdateData({ domain: cleanDomain, signupOpen, brandName: brandName.trim() || undefined });
+      onUpdateData({
+        domain: cleanDomain,
+        signupOpen,
+        brandName: brandName.trim() || undefined,
+        signupWhitelist: signupWhitelist.trim() || undefined,
+        brandColor: brandColor.trim() || undefined,
+        brandLogo: brandLogo.trim() || undefined,
+      });
       await onUpdateConfig({
         deploy: {
           ...config.deploy,
@@ -142,6 +152,45 @@ export default function StepDomain({
           value={brandName}
           onChange={(e) => {
             setBrandName(e.target.value);
+            setSaved(false);
+          }}
+          disabled={saved}
+        />
+
+        <Input
+          id="signup-whitelist"
+          label="Signup Whitelist"
+          hint="optional — comma-separated emails"
+          placeholder="user@example.com, admin@example.com"
+          value={signupWhitelist}
+          onChange={(e) => {
+            setSignupWhitelist(e.target.value);
+            setSaved(false);
+          }}
+          disabled={saved}
+        />
+
+        <Input
+          id="brand-color"
+          label="Brand Color"
+          hint="optional — hex color"
+          placeholder="#ea580c"
+          value={brandColor}
+          onChange={(e) => {
+            setBrandColor(e.target.value);
+            setSaved(false);
+          }}
+          disabled={saved}
+        />
+
+        <Input
+          id="brand-logo"
+          label="Brand Logo URL"
+          hint="optional — URL to logo image"
+          placeholder="https://example.com/logo.png"
+          value={brandLogo}
+          onChange={(e) => {
+            setBrandLogo(e.target.value);
             setSaved(false);
           }}
           disabled={saved}

@@ -223,4 +223,7 @@ export interface WizardData {
   domain: string;
   signupOpen: boolean;
   brandName?: string;
+  signupWhitelist?: string;
+  brandColor?: string;
+  brandLogo?: string;
 }
