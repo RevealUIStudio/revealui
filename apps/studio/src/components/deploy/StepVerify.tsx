@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { healthCheck, vercelSetEnv } from '../../lib/deploy';
+import { healthCheck, resendSendTest, vercelSetEnv } from '../../lib/deploy';
 import type { StudioConfig, WizardData } from '../../types';
 import Button from '../ui/Button';
 import Input from '../ui/Input';
@@ -29,6 +29,7 @@ export default function StepVerify({ config, data, onComplete }: StepVerifyProps
     { label: 'CMS', status: 'idle' },
     { label: 'Marketing', status: 'idle' },
     { label: 'Database (via API)', status: 'idle' },
+    { label: 'Email Delivery', status: 'idle' },
   ]);
 
   const domain = data.domain;
@@ -43,6 +44,11 @@ export default function StepVerify({ config, data, onComplete }: StepVerifyProps
     const trimmedPassword = adminPassword.trim();
 
     if (!(trimmedEmail && trimmedPassword)) return;
+
+    if (trimmedPassword.length < 12) {
+      setError('Admin password must be at least 12 characters');
+      return;
+    }
 
     setRunning(true);
     setError(null);
@@ -91,6 +97,20 @@ export default function StepVerify({ config, data, onComplete }: StepVerifyProps
           });
         }
       }
+
+      // Email delivery check
+      try {
+        updateCheck(4, { status: 'checking' });
+        if (data.emailProvider === 'resend' && data.resendApiKey) {
+          await resendSendTest(data.resendApiKey, trimmedEmail);
+          updateCheck(4, { status: 'pass', detail: 'Test email sent' });
+        } else {
+          // For SMTP, we already validated during StepEmail — mark as pass
+          updateCheck(4, { status: 'pass', detail: 'Validated in email step' });
+        }
+      } catch {
+        updateCheck(4, { status: 'fail', detail: 'Email delivery failed' });
+      }
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Verification failed');
     } finally {
@@ -129,6 +149,25 @@ export default function StepVerify({ config, data, onComplete }: StepVerifyProps
           {checks.map((check) => (
             <CheckRow key={check.label} check={check} />
           ))}
+        </div>
+
+        <div className="rounded-md border border-yellow-700/50 bg-yellow-900/20 p-3 text-xs text-yellow-400">
+          <p className="font-medium">Cron jobs</p>
+          <p className="mt-1 text-yellow-500">
+            Verify that <code>apps/api/vercel.json</code> contains cron entries for{' '}
+            <code>support-renewal-check</code> (daily) and <code>report-agent-overage</code> (every
+            5 min). Vercel reads cron config from the file at deploy time.
+          </p>
+        </div>
+
+        <div className="rounded-md border border-neutral-700 bg-neutral-900/50 p-3 text-xs text-neutral-500">
+          <p className="mb-1 font-medium text-neutral-400">Manual verification (after setup):</p>
+          <ul className="list-inside list-disc flex flex-col gap-0.5">
+            <li>Stripe webhook test event fires and is received</li>
+            <li>CORS allows CMS → API requests</li>
+            <li>Session cookie works cross-subdomain</li>
+            <li>Signup flow works end-to-end</li>
+          </ul>
         </div>
 
         {!allPassed && (
