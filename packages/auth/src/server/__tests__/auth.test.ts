@@ -68,6 +68,8 @@ vi.mock('@revealui/db/schema', () => ({
 
 vi.mock('drizzle-orm', () => ({
   eq: vi.fn((col: string, val: string) => ({ col, val })),
+  and: vi.fn((...conditions: unknown[]) => conditions),
+  isNull: vi.fn((col: string) => ({ isNull: col })),
 }));
 
 import { isSignupAllowed, signIn, signUp } from '../auth.js';
@@ -152,6 +154,9 @@ describe('auth', () => {
 
       const result = await signIn('nobody@example.com', 'Password123');
       expect(result.success).toBe(false);
+      if (!result.success) {
+        expect(result.reason).toBe('invalid_credentials');
+      }
       expect(result.error).toBe('Invalid email or password');
       expect(mockRecordFailedAttempt).toHaveBeenCalledWith('nobody@example.com');
     });
@@ -162,6 +167,9 @@ describe('auth', () => {
 
       const result = await signIn('test@example.com', 'WrongPass1');
       expect(result.success).toBe(false);
+      if (!result.success) {
+        expect(result.reason).toBe('invalid_credentials');
+      }
       expect(result.error).toBe('Invalid email or password');
       expect(mockRecordFailedAttempt).toHaveBeenCalled();
     });
@@ -175,6 +183,9 @@ describe('auth', () => {
 
       const result = await signIn('test@example.com', 'Password123');
       expect(result.success).toBe(false);
+      if (!result.success) {
+        expect(result.reason).toBe('account_locked');
+      }
       expect(result.error).toContain('Account locked');
     });
 
@@ -187,6 +198,9 @@ describe('auth', () => {
 
       const result = await signIn('test@example.com', 'Password123');
       expect(result.success).toBe(false);
+      if (!result.success) {
+        expect(result.reason).toBe('rate_limited');
+      }
       expect(result.error).toContain('Too many login attempts');
     });
 
@@ -211,6 +225,9 @@ describe('auth', () => {
 
       const result = await signIn('oauth@example.com', 'Password123');
       expect(result.success).toBe(false);
+      if (!result.success) {
+        expect(result.reason).toBe('invalid_credentials');
+      }
       expect(result.error).toBe('Invalid email or password');
     });
 
@@ -221,6 +238,9 @@ describe('auth', () => {
 
       const result = await signIn('test@example.com', 'Password123');
       expect(result.success).toBe(false);
+      if (!result.success) {
+        expect(result.reason).toBe('session_error');
+      }
       expect(result.error).toBe('Failed to create session');
     });
 
@@ -241,6 +261,49 @@ describe('auth', () => {
       await signIn('test@example.com', 'Password123');
 
       expect(mockCheckRateLimit).toHaveBeenCalledWith('signin:unknown');
+    });
+
+    it('returns requiresMfa when MFA is enabled', async () => {
+      mockLimit.mockResolvedValueOnce([makeUser({ mfaEnabled: true })]);
+      mockBcryptCompare.mockResolvedValueOnce(true);
+
+      const result = await signIn('test@example.com', 'Password123');
+      expect(result.success).toBe(true);
+      if (result.success) {
+        expect(result.requiresMfa).toBe(true);
+        expect('mfaUserId' in result && result.mfaUserId).toBe('user-1');
+      }
+    });
+
+    it('returns database_error when user query throws', async () => {
+      mockLimit.mockRejectedValueOnce(new Error('query failed'));
+
+      const result = await signIn('test@example.com', 'Password123');
+      expect(result.success).toBe(false);
+      if (!result.success) {
+        expect(result.reason).toBe('database_error');
+      }
+    });
+
+    it('returns invalid_credentials when bcrypt.compare throws', async () => {
+      mockLimit.mockResolvedValueOnce([makeUser()]);
+      mockBcryptCompare.mockRejectedValueOnce(new Error('bcrypt failed'));
+
+      const result = await signIn('test@example.com', 'Password123');
+      expect(result.success).toBe(false);
+      if (!result.success) {
+        expect(result.reason).toBe('invalid_credentials');
+      }
+    });
+
+    it('returns unexpected_error on uncaught exception', async () => {
+      mockCheckRateLimit.mockRejectedValueOnce(new Error('unexpected'));
+
+      const result = await signIn('test@example.com', 'Password123');
+      expect(result.success).toBe(false);
+      if (!result.success) {
+        expect(result.reason).toBe('unexpected_error');
+      }
     });
   });
 
