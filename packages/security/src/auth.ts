@@ -121,7 +121,12 @@ export class OAuthClient {
       throw new Error(`Failed to exchange code for token${detail}`);
     }
 
-    return response.json();
+    return response.json() as Promise<{
+      access_token: string;
+      refresh_token?: string;
+      expires_in: number;
+      token_type: string;
+    }>;
   }
 
   /**
@@ -152,7 +157,12 @@ export class OAuthClient {
       throw new Error(`Failed to fetch user info${detail}`);
     }
 
-    return response.json();
+    return response.json() as Promise<{
+      id: string;
+      email: string;
+      name?: string;
+      picture?: string;
+    }>;
   }
 }
 
