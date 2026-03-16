@@ -67,8 +67,15 @@ async function signInHandler(request: NextRequest): Promise<NextResponse> {
     });
 
     if (!result.success) {
-      const status =
-        result.reason === 'rate_limited' ? 429 : result.reason === 'account_locked' ? 423 : 401;
+      const statusMap: Record<string, number> = {
+        rate_limited: 429,
+        account_locked: 423,
+        email_not_verified: 403,
+        database_error: 500,
+        session_error: 500,
+        unexpected_error: 500,
+      };
+      const status = statusMap[result.reason] ?? 401;
       return createApplicationErrorResponse(result.error, result.reason.toUpperCase(), status);
     }
 
