@@ -72,6 +72,7 @@ pub fn run() {
             deploy::secrets::generate_rsa_keypair,
             deploy::vercel::vercel_create_project,
             deploy::vercel::vercel_validate_token,
+            deploy::vercel::vercel_validate_blob_token,
             deploy::vercel::vercel_set_env,
             deploy::vercel::vercel_deploy,
             deploy::vercel::vercel_get_deployment,
