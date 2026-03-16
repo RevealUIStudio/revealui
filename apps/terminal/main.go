@@ -26,6 +26,7 @@ import (
 	"github.com/charmbracelet/wish"
 	bm "github.com/charmbracelet/wish/bubbletea"
 
+	"github.com/revealuistudio/revealui/apps/terminal/api"
 	"github.com/revealuistudio/revealui/apps/terminal/tui"
 )
 
@@ -33,13 +34,20 @@ func main() {
 	host := envOrDefault("HOST", "0.0.0.0")
 	port := envOrDefault("PORT", "2222")
 	hostKeyPath := envOrDefault("HOST_KEY_PATH", ".ssh/term_ed25519")
+	apiURL := envOrDefault("REVEALUI_API_URL", "https://api.revealui.com")
+	apiToken := os.Getenv("REVEALUI_API_TOKEN") // optional — empty for public-only
+
+	client := api.NewClient(apiURL, apiToken)
 
 	s, err := wish.NewServer(
 		wish.WithAddress(fmt.Sprintf("%s:%s", host, port)),
 		wish.WithHostKeyPath(hostKeyPath),
+		wish.WithPublicKeyAuth(func(_ ssh.Context, _ ssh.PublicKey) bool {
+			return true // Accept all keys — fingerprint used for account lookup, not auth
+		}),
 		wish.WithMiddleware(
 			bm.Middleware(func(s ssh.Session) (tea.Model, []tea.ProgramOption) {
-				return tui.NewModel(s), []tea.ProgramOption{tea.WithAltScreen()}
+				return tui.NewModel(s, client), []tea.ProgramOption{tea.WithAltScreen()}
 			}),
 		),
 	)
