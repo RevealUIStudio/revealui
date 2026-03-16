@@ -1268,18 +1268,48 @@ it('should debug component', () => {
 
 ### Coverage Thresholds
 
-Current project thresholds (vitest.config.ts):
+The root `vitest.config.ts` defines default thresholds. Each package can override these
+in its own `vitest.config.ts`. Thresholds are enforced locally during `pnpm test:coverage`
+and in CI via the coverage gate script (`scripts/gates/test-coverage-gate.ts`).
+
+#### Per-Package Threshold Strategy
+
+| Tier | Lines/Functions | Branches | Packages |
+|------|----------------|----------|----------|
+| **Critical** | 80% | 75% | `auth`, `contracts` |
+| **Core** | 75% | 70% | `core` |
+| **Root** | 70% | 65% | Root workspace, `cli` |
+| **Standard** | 65% | 60% | `db` |
+| **Baseline** | 60% | 55% | `api`, `cms`, `docs`, `studio`, `presentation`, `router`, `sync`, `setup`, `dev`, `test`, `cache` |
+| **Ramp-up** | 20% | 20% | `marketing` (newer, ramping up) |
+| **Scripts** | 60% | 55% | `scripts/__tests__` |
+
+**Why different tiers?**
+
+- **Critical (80%):** Security and contract packages — bugs here have outsized blast radius
+- **Core (75%):** CMS engine — large surface area, high reliability requirement
+- **Standard (65%):** Database package — mix of schema definitions (untestable) and queries
+- **Baseline (60%):** Minimum acceptable for any package with tests
+- **Ramp-up (20%):** Packages with minimal test coverage being incrementally improved
+
+#### Adding Thresholds to a New Package
+
+Every new package must include coverage thresholds in its `vitest.config.ts`:
 
 ```typescript
 coverage: {
+  provider: 'v8',
+  reporter: ['text', 'json', 'html', 'lcov'],
   thresholds: {
-    lines: 70,
-    functions: 70,
-    branches: 65,
-    statements: 70,
-  }
+    lines: 60,       // Baseline minimum
+    functions: 60,
+    branches: 55,
+    statements: 60,
+  },
 }
 ```
+
+Raise thresholds as coverage improves — never lower them.
 
 ### View Coverage Report
 
