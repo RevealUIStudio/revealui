@@ -58,16 +58,22 @@ export interface AuthSession {
   user: User;
 }
 
-export interface SignInResult {
-  success: boolean;
-  user?: User;
-  sessionToken?: string;
-  /** When true, the client must prompt for a TOTP code before the session is usable */
-  requiresMfa?: boolean;
-  /** Temporary user ID for completing MFA verification (only set when requiresMfa is true) */
-  mfaUserId?: string;
-  error?: string;
-}
+/** Discriminated union for sign-in outcomes. Check `success` first, then `reason` for failure details. */
+export type SignInResult =
+  | { success: true; requiresMfa?: false; user: User; sessionToken: string }
+  | { success: true; requiresMfa: true; mfaUserId: string }
+  | {
+      success: false;
+      reason:
+        | 'invalid_credentials'
+        | 'account_locked'
+        | 'rate_limited'
+        | 'database_error'
+        | 'session_error'
+        | 'email_not_verified'
+        | 'unexpected_error';
+      error: string;
+    };
 
 export interface SignUpResult {
   success: boolean;
