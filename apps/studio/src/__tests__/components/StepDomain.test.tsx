@@ -128,4 +128,20 @@ describe('StepDomain', () => {
     const cnameValues = screen.getAllByText('cname.vercel-dns.com');
     expect(cnameValues).toHaveLength(3);
   });
+
+  it('renders optional brand fields', () => {
+    render(
+      <StepDomain
+        config={MOCK_CONFIG}
+        data={MOCK_DATA}
+        onUpdateData={vi.fn()}
+        onUpdateConfig={vi.fn()}
+        onNext={vi.fn()}
+      />,
+    );
+
+    expect(screen.getByPlaceholderText('user@example.com, admin@example.com')).toBeInTheDocument();
+    expect(screen.getByPlaceholderText('#ea580c')).toBeInTheDocument();
+    expect(screen.getByPlaceholderText('https://example.com/logo.png')).toBeInTheDocument();
+  });
 });
