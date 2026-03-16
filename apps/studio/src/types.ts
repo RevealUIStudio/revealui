@@ -65,7 +65,8 @@ export type Page =
   | 'sync'
   | 'tunnel'
   | 'terminal'
-  | 'setup';
+  | 'setup'
+  | 'deploy';
 
 /** SSH authentication — password or key file */
 export type SshAuth =
@@ -133,4 +134,92 @@ export interface TailscalePeer {
   ip: string;
   online: boolean;
   os: string;
+}
+
+/** Persistent config — mirrors Rust StudioConfig */
+export interface StudioConfig {
+  intent: 'deploy' | 'develop' | null;
+  setupComplete: boolean;
+  completedSteps: string[];
+  deploy?: DeployConfig;
+  develop?: DevelopConfig;
+}
+
+export interface DeployConfig {
+  vercelToken?: string;
+  vercelTeamId?: string;
+  domain?: string;
+  apps?: { api?: string; cms?: string; marketing?: string };
+  neonProjectId?: string;
+  supabaseEnabled: boolean;
+  emailProvider?: 'resend' | 'smtp';
+}
+
+export interface DevelopConfig {
+  repoPath?: string;
+  wslDistro?: string;
+  nixInstalled: boolean;
+}
+
+/** Vercel API types */
+export interface VercelProject {
+  id: string;
+  name: string;
+  framework: string | null;
+}
+
+export interface VercelDeployment {
+  id: string;
+  url: string;
+  state: 'BUILDING' | 'ERROR' | 'INITIALIZING' | 'QUEUED' | 'READY' | 'CANCELED';
+  createdAt: number;
+}
+
+/** Deploy wizard step IDs */
+export type DeployStep =
+  | 'vercel'
+  | 'database'
+  | 'stripe'
+  | 'email'
+  | 'blob'
+  | 'secrets'
+  | 'domain'
+  | 'deploy'
+  | 'verify';
+
+/** Health check result */
+export interface HealthCheckResult {
+  url: string;
+  status: number | null;
+  ok: boolean;
+  error?: string;
+}
+
+/** Accumulated wizard data — survives across steps via parent state. */
+export interface WizardData {
+  vercelToken: string;
+  vercelProjects: { api: string; cms: string; marketing: string };
+  postgresUrl: string;
+  supabaseUrl?: string;
+  supabaseAnonKey?: string;
+  supabaseServiceKey?: string;
+  stripeSecretKey: string;
+  stripePublishableKey: string;
+  stripeWebhookSecret: string;
+  stripePriceIds: { pro: string; max: string; enterprise: string };
+  licensePrivateKey: string;
+  licensePublicKey: string;
+  emailProvider: 'resend' | 'smtp';
+  resendApiKey?: string;
+  smtpHost?: string;
+  smtpPort?: string;
+  smtpUser?: string;
+  smtpPass?: string;
+  blobToken: string;
+  revealuiSecret: string;
+  revealuiKek: string;
+  cronSecret: string;
+  domain: string;
+  signupOpen: boolean;
+  brandName?: string;
 }
