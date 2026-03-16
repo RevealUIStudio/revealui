@@ -1,5 +1,6 @@
 import type { SyncResult } from '../../types';
 import Button from '../ui/Button';
+import Card from '../ui/Card';
 
 interface RepoCardProps {
   result: SyncResult;
@@ -18,7 +19,7 @@ const STATUS_STYLES: Record<string, string> = {
 
 export default function RepoCard({ result, onSync, syncing }: RepoCardProps) {
   return (
-    <div className="flex items-center justify-between rounded-lg border border-neutral-800 bg-neutral-900 px-4 py-3">
+    <Card variant="default" padding="none" className="flex items-center justify-between px-4 py-3">
       <div>
         <div className="flex items-center gap-2">
           <span className="text-sm font-medium text-neutral-200">{result.repo}</span>
@@ -34,6 +35,6 @@ export default function RepoCard({ result, onSync, syncing }: RepoCardProps) {
       <Button variant="ghost" size="sm" onClick={onSync} disabled={syncing}>
         Sync
       </Button>
-    </div>
+    </Card>
   );
 }

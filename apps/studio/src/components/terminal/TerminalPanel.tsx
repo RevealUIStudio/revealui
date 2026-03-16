@@ -3,9 +3,11 @@ import { useCallback, useEffect, useRef, useState } from 'react';
 import { useSsh } from '../../hooks/use-ssh';
 import type { SshConnectParams, SshHostKeyEvent } from '../../types';
 import Button from '../ui/Button';
+import Card from '../ui/Card';
 import ErrorAlert from '../ui/ErrorAlert';
 import StatusDot from '../ui/StatusDot';
 import ConnectForm from './ConnectForm';
+import SshBookmarkSidebar from './SshBookmarkSidebar';
 import TerminalView from './TerminalView';
 
 export default function TerminalPanel() {
@@ -13,6 +15,7 @@ export default function TerminalPanel() {
   const [hostKeyInfo, setHostKeyInfo] = useState<SshHostKeyEvent | null>(null);
   const [lastParams, setLastParams] = useState<SshConnectParams | null>(null);
   const [connectedAt, setConnectedAt] = useState<number | null>(null);
+  const [sidebarOpen, setSidebarOpen] = useState(true);
 
   const handleData = useCallback((data: Uint8Array) => {
     terminalRef.current?.write(data);
@@ -64,59 +67,69 @@ export default function TerminalPanel() {
   );
 
   return (
-    <div className="flex h-full flex-col gap-4">
-      <div className="flex items-center justify-between">
-        <div className="flex items-center gap-3">
-          <h1 className="text-xl font-semibold">Terminal</h1>
-          <StatusDot status={connected ? 'ok' : 'off'} size="md" />
+    <div className="flex h-full">
+      {/* Collapsible bookmark sidebar */}
+      {sidebarOpen && !connected && <SshBookmarkSidebar onSelect={handleConnect} />}
+
+      <div className="flex min-w-0 flex-1 flex-col gap-4">
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-3">
+            <h1 className="text-xl font-semibold">Terminal</h1>
+            <StatusDot status={connected ? 'ok' : 'off'} size="md" />
+            {!connected && (
+              <Button variant="ghost" size="sm" onClick={() => setSidebarOpen(!sidebarOpen)}>
+                {sidebarOpen ? 'Hide bookmarks' : 'Bookmarks'}
+              </Button>
+            )}
+          </div>
+          {connected && (
+            <Button variant="secondary" onClick={disconnect}>
+              Disconnect
+            </Button>
+          )}
         </div>
-        {connected && (
-          <Button variant="secondary" onClick={disconnect}>
-            Disconnect
-          </Button>
+
+        <ErrorAlert message={error} />
+
+        {hostKeyInfo && hostKeyInfo.status !== 'match' && (
+          <HostKeyBanner event={hostKeyInfo} onDismiss={() => setHostKeyInfo(null)} />
+        )}
+
+        {!connected ? (
+          <div className="mx-auto w-full max-w-md pt-12">
+            <Card variant="default" padding="lg">
+              <h2 className="mb-4 text-sm font-medium text-neutral-300">SSH Connection</h2>
+              <ConnectForm onConnect={handleConnect} connecting={connecting} />
+            </Card>
+          </div>
+        ) : (
+          <>
+            <div className="min-h-0 flex-1">
+              <TerminalView
+                onData={handleTerminalData}
+                onResize={handleTerminalResize}
+                terminalRef={terminalRef}
+              />
+            </div>
+
+            {/* Connection status strip */}
+            {lastParams && (
+              <div className="flex items-center justify-between rounded-md border border-neutral-800 bg-neutral-900 px-3 py-1.5">
+                <div className="flex items-center gap-2 text-xs text-neutral-400">
+                  <StatusDot status="ok" size="sm" />
+                  <span className="font-mono">
+                    {lastParams.username}@{lastParams.host}:{lastParams.port}
+                  </span>
+                  {connectedAt && <SessionTimer startTime={connectedAt} />}
+                </div>
+                <Button variant="ghost" size="sm" onClick={handleReconnect}>
+                  Reconnect
+                </Button>
+              </div>
+            )}
+          </>
         )}
       </div>
-
-      <ErrorAlert message={error} />
-
-      {hostKeyInfo && hostKeyInfo.status !== 'match' && (
-        <HostKeyBanner event={hostKeyInfo} onDismiss={() => setHostKeyInfo(null)} />
-      )}
-
-      {!connected ? (
-        <div className="mx-auto w-full max-w-md pt-12">
-          <div className="rounded-lg border border-neutral-800 bg-neutral-900 p-6">
-            <h2 className="mb-4 text-sm font-medium text-neutral-300">SSH Connection</h2>
-            <ConnectForm onConnect={handleConnect} connecting={connecting} />
-          </div>
-        </div>
-      ) : (
-        <>
-          <div className="min-h-0 flex-1">
-            <TerminalView
-              onData={handleTerminalData}
-              onResize={handleTerminalResize}
-              terminalRef={terminalRef}
-            />
-          </div>
-
-          {/* Connection status strip */}
-          {lastParams && (
-            <div className="flex items-center justify-between rounded-md border border-neutral-800 bg-neutral-900 px-3 py-1.5">
-              <div className="flex items-center gap-2 text-xs text-neutral-400">
-                <StatusDot status="ok" size="sm" />
-                <span className="font-mono">
-                  {lastParams.username}@{lastParams.host}:{lastParams.port}
-                </span>
-                {connectedAt && <SessionTimer startTime={connectedAt} />}
-              </div>
-              <Button variant="ghost" size="sm" onClick={handleReconnect}>
-                Reconnect
-              </Button>
-            </div>
-          )}
-        </>
-      )}
     </div>
   );
 }

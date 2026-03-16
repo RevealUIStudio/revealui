@@ -1,4 +1,5 @@
 import type { MountStatus } from '../../types';
+import Card from '../ui/Card';
 
 interface DriveInfoProps {
   mount: MountStatus;
@@ -6,7 +7,7 @@ interface DriveInfoProps {
 
 export default function DriveInfo({ mount }: DriveInfoProps) {
   return (
-    <div className="rounded-lg border border-neutral-800 bg-neutral-900 p-4">
+    <Card variant="default" padding="md">
       <h2 className="text-sm font-medium text-neutral-200">Drive Info</h2>
       <dl className="mt-3 grid grid-cols-2 gap-x-4 gap-y-2 text-sm">
         <dt className="text-neutral-500">Status</dt>
@@ -34,6 +35,6 @@ export default function DriveInfo({ mount }: DriveInfoProps) {
           </>
         )}
       </dl>
-    </div>
+    </Card>
   );
 }

@@ -3,6 +3,7 @@ import { useCallback, useEffect, useRef, useState } from 'react';
 import { readAppLog } from '../../lib/invoke';
 import type { AppStatus } from '../../types';
 import Button from '../ui/Button';
+import Card from '../ui/Card';
 import StatusDot from '../ui/StatusDot';
 
 interface AppCardProps {
@@ -45,7 +46,7 @@ export default function AppCard({ status, isOperating, onStart, onStop }: AppCar
   };
 
   return (
-    <div className="rounded-lg border border-neutral-800 bg-neutral-900">
+    <Card variant="default" padding="none">
       <div className="p-4">
         <div className="flex items-start justify-between">
           <div className="flex items-center gap-2">
@@ -93,6 +94,6 @@ export default function AppCard({ status, isOperating, onStart, onStop }: AppCar
           </pre>
         </div>
       )}
-    </div>
+    </Card>
   );
 }
