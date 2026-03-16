@@ -4,6 +4,26 @@ import { asRecord } from '@/lib/utils/type-guards';
 
 type ArchiveBlockProps = Extract<Page['layout'][0], { blockType: 'archive' }>;
 
+type ArchiveBlockWithDocs = ArchiveBlockProps & {
+  populatedDocs: Array<{
+    relationTo: 'products' | 'pages' | 'posts' | 'categories';
+    value: string;
+  }>;
+};
+
+/** Narrow a block to an archive block with populated docs via runtime blockType check */
+function asArchiveBlock(block: {
+  blockType: string;
+  [key: string]: unknown;
+}): ArchiveBlockWithDocs | null {
+  if (block.blockType !== 'archive') return null;
+
+  // Runtime validation: block has blockType 'archive' and is structurally an ArchiveBlockProps.
+  // The index-signature parameter type doesn't overlap with ArchiveBlockProps, so we narrow
+  // through unknown — the blockType check above provides the runtime safety.
+  return block as unknown as ArchiveBlockWithDocs;
+}
+
 export const populateArchiveBlock: RevealAfterReadHook = async ({ doc, context, req }) => {
   const revealui = req?.revealui;
   const docRecord = asRecord(doc);
@@ -17,14 +37,8 @@ export const populateArchiveBlock: RevealAfterReadHook = async ({ doc, context, 
 
   const layoutWithArchive = await Promise.allSettled(
     layout.map(async (block) => {
-      if (block.blockType === 'archive') {
-        const archiveBlock = block as unknown as ArchiveBlockProps & {
-          populatedDocs: Array<{
-            relationTo: 'products' | 'pages' | 'posts' | 'categories';
-            value: string;
-          }>;
-        };
-
+      const archiveBlock = asArchiveBlock(block);
+      if (archiveBlock) {
         if (archiveBlock.populateBy === 'collection' && !context?.isPopulatingArchiveBlock) {
           const res = await revealui.find({
             collection: archiveBlock?.relationTo || 'products',

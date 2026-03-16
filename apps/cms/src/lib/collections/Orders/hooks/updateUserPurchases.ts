@@ -33,10 +33,15 @@ export const updateUserPurchases: RevealAfterChangeHook<Order> = async ({
         : [];
 
       // Extract new product IDs from order items
-      const newProductIds: string[] = (
-        doc.items as unknown as Array<{ product: string | { id: string } }>
-      )
-        .map((item) => (typeof item.product === 'string' ? item.product : item.product?.id))
+      const newProductIds: string[] = doc.items
+        .map((item) => {
+          const product = (item as Record<string, unknown>).product;
+          if (typeof product === 'string') return product;
+          if (product !== null && typeof product === 'object' && 'id' in product) {
+            return String((product as { id: unknown }).id);
+          }
+          return undefined;
+        })
         .filter((id): id is string => typeof id === 'string');
 
       // Merge and deduplicate

@@ -139,5 +139,8 @@ export const link: LinkType = ({ appearances, disableLabel = false, overrides = 
     });
   }
 
+  // deepMerge requires Record<string, unknown> but Field lacks an index signature.
+  // The double cast is necessary at this API boundary: Field -> Record for deepMerge input,
+  // then Record -> Field for the return type. deepMerge preserves the Field shape at runtime.
   return deepMerge(linkResult as unknown as Record<string, unknown>, overrides) as unknown as Field;
 };
