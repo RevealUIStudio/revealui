@@ -7,8 +7,8 @@ mod state;
 mod tray;
 
 use commands::{
-    apps, config as config_cmds, local_shell as shell_cmds, mount, setup, ssh as ssh_cmds, status,
-    sync, tunnel, vault,
+    apps, config as config_cmds, deploy, local_shell as shell_cmds, mount, setup, ssh as ssh_cmds,
+    status, sync, tunnel, vault,
 };
 use config::ConfigState;
 use local_shell::LocalShellState;
@@ -67,6 +67,9 @@ pub fn run() {
             config_cmds::get_config,
             config_cmds::set_config,
             config_cmds::reset_config,
+            deploy::secrets::generate_secret,
+            deploy::secrets::generate_kek,
+            deploy::secrets::generate_rsa_keypair,
         ])
         .run(tauri::generate_context!())
         .expect("error while running RevealUI Studio");
