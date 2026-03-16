@@ -1,11 +1,13 @@
 import type { RevealAfterReadHook, RevealDocument } from '@revealui/core';
 import type { Page } from '@revealui/core/types/cms';
+import { asRecord } from '@/lib/utils/type-guards';
 
 type ArchiveBlockProps = Extract<Page['layout'][0], { blockType: 'archive' }>;
 
 export const populateArchiveBlock: RevealAfterReadHook = async ({ doc, context, req }) => {
   const revealui = req?.revealui;
-  const docWithLayout = doc as unknown as {
+  const docRecord = asRecord(doc);
+  const docWithLayout = docRecord as {
     layout?: Array<{ blockType: string; [key: string]: unknown }>;
   };
 
