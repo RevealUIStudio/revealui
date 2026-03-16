@@ -6,7 +6,6 @@
 
 import { describe, expect, it } from 'vitest';
 import type { RevealDocument } from '../../../../../packages/core/src/types/index.js';
-// @ts-expect-error - Direct import for testing
 import { flattenResult } from '../../../../../packages/core/src/utils/flattenResult.js';
 
 describe('flattenResult', () => {
@@ -86,15 +85,16 @@ describe('flattenResult', () => {
   });
 
   it('should handle empty object', () => {
-    const doc: RevealDocument = {};
+    const doc: RevealDocument = { id: '' };
 
     const result = flattenResult(doc);
 
-    expect(result).toEqual({});
+    expect(result).toEqual({ id: '' });
   });
 
   it('should handle object with only dotted keys', () => {
     const doc: RevealDocument = {
+      id: 'doc-1',
       'field1.value': 'value1',
       'field2.value': 'value2',
     };

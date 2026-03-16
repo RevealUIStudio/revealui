@@ -4,23 +4,28 @@
  * Provides common mocks for external services and dependencies
  */
 
+import type { Mock } from 'vitest';
 import { vi } from 'vitest';
+
+/** A callable mock function (avoids the Vitest 4 `Procedure | Constructable` union issue) */
+// biome-ignore lint/suspicious/noExplicitAny: generic mock type needs any for flexibility
+type MockFn = Mock<(...args: any[]) => any>;
 
 /**
  * Mock Stripe API responses
  */
 export const mockStripe: {
   customers: {
-    create: ReturnType<typeof vi.fn>;
-    retrieve: ReturnType<typeof vi.fn>;
+    create: MockFn;
+    retrieve: MockFn;
   };
   checkout: {
     sessions: {
-      create: ReturnType<typeof vi.fn>;
+      create: MockFn;
     };
   };
   webhooks: {
-    constructEvent: ReturnType<typeof vi.fn>;
+    constructEvent: MockFn;
   };
 } = {
   customers: {
@@ -76,11 +81,11 @@ function createQueryBuilder() {
  * Mock Supabase client
  */
 export const mockSupabase: {
-  from: ReturnType<typeof vi.fn>;
+  from: MockFn;
   auth: {
-    getUser: ReturnType<typeof vi.fn>;
-    signInWithPassword: ReturnType<typeof vi.fn>;
-    signOut: ReturnType<typeof vi.fn>;
+    getUser: MockFn;
+    signInWithPassword: MockFn;
+    signOut: MockFn;
   };
 } = {
   from: vi.fn().mockImplementation(() => createQueryBuilder()),
@@ -105,7 +110,7 @@ export const mockSupabase: {
 /**
  * Mock HTTP fetch
  */
-export const mockFetch = (response: unknown, status = 200): ReturnType<typeof vi.fn> => {
+export const mockFetch = (response: unknown, status = 200): MockFn => {
   return vi.fn().mockResolvedValue({
     ok: status >= 200 && status < 300,
     status,

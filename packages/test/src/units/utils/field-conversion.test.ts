@@ -5,8 +5,11 @@
  */
 
 import { describe, expect, it } from 'vitest';
-import type { Field, RevealUIField } from '../../../../../packages/core/src/types/index.js';
-// @ts-expect-error - Direct import for testing
+import type {
+  Field,
+  FieldValidateArgs,
+  RevealUIField,
+} from '../../../../../packages/core/src/types/index.js';
 import {
   convertFromRevealUIField,
   convertToRevealUIField,
@@ -41,11 +44,11 @@ describe('Field Conversion Utilities', () => {
 
       const revealUIField = convertToRevealUIField(field);
 
-      expect(revealUIField.revealUI.searchable).toBe(false);
-      expect(revealUIField.revealUI.permissions).toEqual(['read', 'write']);
-      expect(revealUIField.revealUI.tenantScoped).toBe(false);
-      expect(revealUIField.revealUI.auditLog).toBe(false);
-      expect(revealUIField.revealUI.validation).toEqual([]);
+      expect(revealUIField.revealUI!.searchable).toBe(false);
+      expect(revealUIField.revealUI!.permissions).toEqual(['read', 'write']);
+      expect(revealUIField.revealUI!.tenantScoped).toBe(false);
+      expect(revealUIField.revealUI!.auditLog).toBe(false);
+      expect(revealUIField.revealUI!.validation).toEqual([]);
     });
 
     it('should preserve text field properties', () => {
@@ -156,7 +159,7 @@ describe('Field Conversion Utilities', () => {
       const revealUIField = convertToRevealUIField(field);
       const convertedBack = convertFromRevealUIField(revealUIField);
 
-      const converted = convertedBack as Record<string, unknown>;
+      const converted = convertedBack as unknown as Record<string, unknown>;
       expect(converted.revealUI).toBeUndefined();
     });
 
@@ -191,10 +194,10 @@ describe('Field Conversion Utilities', () => {
 
       const revealUIField = convertToRevealUIField(field);
       const convertedBack = convertFromRevealUIField(revealUIField);
-      const emptyContext: Record<string, unknown> = {};
-
       expect(convertedBack.validate).toBeDefined();
-      expect(convertedBack.validate?.('too long string', emptyContext)).toBe('Value too long');
+      expect(convertedBack.validate?.('too long string', {} as unknown as FieldValidateArgs)).toBe(
+        'Value too long',
+      );
     });
   });
 
@@ -215,10 +218,10 @@ describe('Field Conversion Utilities', () => {
 
       const enhanced = enhanceFieldWithRevealUI(field, revealUIOptions);
 
-      expect(enhanced.revealUI.searchable).toBe(true);
-      expect(enhanced.revealUI.tenantScoped).toBe(true);
-      expect(enhanced.revealUI.permissions).toEqual(['read']);
-      expect(enhanced.revealUI.auditLog).toBe(true);
+      expect(enhanced.revealUI!.searchable).toBe(true);
+      expect(enhanced.revealUI!.tenantScoped).toBe(true);
+      expect(enhanced.revealUI!.permissions).toEqual(['read']);
+      expect(enhanced.revealUI!.auditLog).toBe(true);
     });
 
     it('should merge with default RevealUI properties', () => {
@@ -233,9 +236,9 @@ describe('Field Conversion Utilities', () => {
 
       const enhanced = enhanceFieldWithRevealUI(field, revealUIOptions);
 
-      expect(enhanced.revealUI.searchable).toBe(true);
-      expect(enhanced.revealUI.permissions).toEqual(['read', 'write']); // Default preserved
-      expect(enhanced.revealUI.tenantScoped).toBe(false); // Default preserved
+      expect(enhanced.revealUI!.searchable).toBe(true);
+      expect(enhanced.revealUI!.permissions).toEqual(['read', 'write']); // Default preserved
+      expect(enhanced.revealUI!.tenantScoped).toBe(false); // Default preserved
     });
 
     it('should work without options (use defaults)', () => {
@@ -247,8 +250,8 @@ describe('Field Conversion Utilities', () => {
       const enhanced = enhanceFieldWithRevealUI(field);
 
       expect(enhanced.revealUI).toBeDefined();
-      expect(enhanced.revealUI.searchable).toBe(false);
-      expect(enhanced.revealUI.tenantScoped).toBe(false);
+      expect(enhanced.revealUI!.searchable).toBe(false);
+      expect(enhanced.revealUI!.tenantScoped).toBe(false);
     });
   });
 
@@ -297,7 +300,7 @@ describe('Field Conversion Utilities', () => {
       };
 
       const revealUIField = convertToRevealUIField(field);
-      revealUIField.revealUI.validation = [
+      revealUIField.revealUI!.validation = [
         {
           type: 'min',
           value: 5,
@@ -325,7 +328,7 @@ describe('Field Conversion Utilities', () => {
       };
 
       const revealUIField = convertToRevealUIField(field);
-      revealUIField.revealUI.validation = [
+      revealUIField.revealUI!.validation = [
         {
           type: 'max',
           value: 10,
@@ -353,7 +356,7 @@ describe('Field Conversion Utilities', () => {
       };
 
       const revealUIField = convertToRevealUIField(field);
-      revealUIField.revealUI.validation = [
+      revealUIField.revealUI!.validation = [
         {
           type: 'pattern',
           value: /^[^\s@]+@[^\s@]+\.[^\s@]+$/,
@@ -381,7 +384,7 @@ describe('Field Conversion Utilities', () => {
       };
 
       const revealUIField = convertToRevealUIField(field);
-      revealUIField.revealUI.validation = [
+      revealUIField.revealUI!.validation = [
         {
           type: 'custom',
           validate: (value: unknown) => {
