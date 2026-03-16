@@ -20,6 +20,7 @@
     "@lexical/yjs": "^0.40.0",
     "@revealui/cache": "workspace:*",
     "@revealui/contracts": "workspace:*",
+    "@revealui/resilience": "workspace:*",
     "@revealui/security": "workspace:*",
     "@revealui/utils": "workspace:*",
     "@vercel/blob": "^2.2.0",

@@ -5,7 +5,7 @@
  */
 
 import { randomInt } from 'node:crypto';
-import { logger } from '../observability/logger.js';
+import { getResilienceLogger } from './logger.js';
 
 export interface HttpError extends Error {
   statusCode?: number;
@@ -301,7 +301,7 @@ export async function retryWithFallback<T>(
   try {
     return await retry(primary, config);
   } catch (error) {
-    logger.warn('Primary operation failed, trying fallback', {
+    getResilienceLogger().warn('Primary operation failed, trying fallback', {
       error: error instanceof Error ? error.message : String(error),
     });
     return fallback();

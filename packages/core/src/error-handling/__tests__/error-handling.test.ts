@@ -2,13 +2,17 @@
  * Error Handling Tests
  */
 
-import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import {
   Bulkhead,
   CircuitBreaker,
   CircuitBreakerOpenError,
+  calculateDelay,
   circuitBreakerRegistry,
-} from '../circuit-breaker';
+  RetryPolicies,
+  RetryPolicyBuilder,
+  retry,
+} from '@revealui/resilience';
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import {
   getErrorSeverity,
   isNetworkError,
@@ -17,7 +21,6 @@ import {
   ValidationError,
 } from '../error-boundary';
 import { ConsoleErrorReporter, ErrorFilters, errorReporter } from '../error-reporter';
-import { calculateDelay, RetryPolicies, RetryPolicyBuilder, retry } from '../retry';
 
 describe('Retry Logic', () => {
   it('should retry on failure', async () => {

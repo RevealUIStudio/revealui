@@ -7,6 +7,24 @@
  */
 
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
+
+// Mock the resilience logger before importing modules that use it
+const mockLogger = {
+  info: vi.fn(),
+  warn: vi.fn(),
+  error: vi.fn(),
+  debug: vi.fn(),
+};
+vi.mock('../logger.js', () => ({
+  getResilienceLogger: () => mockLogger,
+  configureResilienceLogger: vi.fn(),
+}));
+
+// Mock crypto.randomInt to make jitter deterministic
+vi.mock('node:crypto', () => ({
+  randomInt: vi.fn((max: number) => Math.floor(max / 2)),
+}));
+
 import type { HttpError } from '../retry.js';
 import {
   calculateDelay,
@@ -25,21 +43,6 @@ import {
   retryWithFallback,
   sleep,
 } from '../retry.js';
-
-// Mock the logger
-vi.mock('../../observability/logger.js', () => ({
-  logger: {
-    info: vi.fn(),
-    warn: vi.fn(),
-    error: vi.fn(),
-    debug: vi.fn(),
-  },
-}));
-
-// Mock crypto.randomInt to make jitter deterministic
-vi.mock('node:crypto', () => ({
-  randomInt: vi.fn((max: number) => Math.floor(max / 2)),
-}));
 
 describe('calculateDelay', () => {
   it('should return base delay for attempt 0 with exponential backoff', () => {
