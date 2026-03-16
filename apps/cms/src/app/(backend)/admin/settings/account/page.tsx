@@ -1,7 +1,13 @@
 'use client';
 
+import {
+  Dialog,
+  DialogActions,
+  DialogDescription,
+  DialogTitle,
+} from '@revealui/presentation/client';
 import { useSearchParams } from 'next/navigation';
-import { Suspense, useCallback, useEffect, useState } from 'react';
+import { Suspense, useCallback, useEffect, useRef, useState } from 'react';
 
 // =============================================================================
 // Types
@@ -113,6 +119,8 @@ function AccountSettingsContent() {
   const [user, setUser] = useState<UserProfile | null>(null);
   const [loading, setLoading] = useState(true);
   const [unlinking, setUnlinking] = useState<OAuthProvider | null>(null);
+  const [confirmOpen, setConfirmOpen] = useState(false);
+  const pendingUnlink = useRef<OAuthProvider | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState<string | null>(null);
 
@@ -168,13 +176,22 @@ function AccountSettingsContent() {
     window.location.href = `/api/auth/link/${provider}?redirectTo=${encodeURIComponent(redirectTo)}`;
   }
 
-  async function handleUnlink(provider: OAuthProvider) {
-    const label = PROVIDERS.find((p) => p.id === provider)?.label ?? provider;
-    const confirmed = window.confirm(
-      `Unlink ${label}? You'll no longer be able to sign in with this account.`,
-    );
-    if (!confirmed) return;
+  function requestUnlink(provider: OAuthProvider) {
+    pendingUnlink.current = provider;
+    setConfirmOpen(true);
+  }
 
+  function cancelUnlink() {
+    setConfirmOpen(false);
+    pendingUnlink.current = null;
+  }
+
+  async function confirmUnlink() {
+    const provider = pendingUnlink.current;
+    if (!provider) return;
+
+    setConfirmOpen(false);
+    pendingUnlink.current = null;
     setUnlinking(provider);
     setError(null);
 
@@ -201,6 +218,8 @@ function AccountSettingsContent() {
   }
 
   const linkedSet = new Set(user?.linkedProviders.map((lp) => lp.provider) ?? []);
+  const pendingLabel =
+    PROVIDERS.find((p) => p.id === pendingUnlink.current)?.label ?? pendingUnlink.current ?? '';
 
   return (
     <div className="min-h-screen">
@@ -301,7 +320,7 @@ function AccountSettingsContent() {
                       {isLinked ? (
                         <button
                           type="button"
-                          onClick={() => void handleUnlink(provider.id)}
+                          onClick={() => requestUnlink(provider.id)}
                           disabled={isUnlinking}
                           className="rounded-md border border-zinc-700 px-3 py-1.5 text-xs font-medium text-zinc-400 transition-colors hover:border-red-700 hover:text-red-400 disabled:cursor-not-allowed disabled:opacity-50"
                         >
@@ -338,6 +357,30 @@ function AccountSettingsContent() {
           </>
         )}
       </div>
+
+      {/* Unlink confirmation dialog */}
+      <Dialog open={confirmOpen} onClose={cancelUnlink} size="sm">
+        <DialogTitle>Unlink {pendingLabel}?</DialogTitle>
+        <DialogDescription>
+          You'll no longer be able to sign in with this account.
+        </DialogDescription>
+        <DialogActions>
+          <button
+            type="button"
+            onClick={cancelUnlink}
+            className="rounded-md px-3 py-2 text-sm font-medium text-zinc-400 hover:text-zinc-200"
+          >
+            Cancel
+          </button>
+          <button
+            type="button"
+            onClick={() => void confirmUnlink()}
+            className="rounded-md bg-red-600 px-3 py-2 text-sm font-medium text-white hover:bg-red-700"
+          >
+            Unlink
+          </button>
+        </DialogActions>
+      </Dialog>
     </div>
   );
 }
