@@ -5,6 +5,7 @@ import DeployWizard from './components/deploy/DeployWizard';
 import InfrastructurePanel from './components/infrastructure/InfrastructurePanel';
 import IntentScreen from './components/intent/IntentScreen';
 import AppShell from './components/layout/AppShell';
+import SettingsPanel from './components/settings/SettingsPanel';
 import SetupPage from './components/setup/SetupPage';
 import SetupWizard from './components/setup/SetupWizard';
 import SyncPanel from './components/sync/SyncPanel';
@@ -57,6 +58,7 @@ export default function App() {
           {page === 'tunnel' && <TunnelPanel />}
           {page === 'terminal' && <TerminalPanel />}
           {page === 'setup' && <SetupPage />}
+          {page === 'settings' && <SettingsPanel />}
         </AppShell>
         <SetupWizard
           onClose={() => {
@@ -73,6 +75,7 @@ export default function App() {
       <AppShell currentPage={page} onNavigate={setPage}>
         {page === 'dashboard' && <DeployDashboard />}
         {page === 'setup' && <SetupPage />}
+        {page === 'settings' && <SettingsPanel />}
       </AppShell>
     );
   }
@@ -87,6 +90,7 @@ export default function App() {
       {page === 'tunnel' && <TunnelPanel />}
       {page === 'terminal' && <TerminalPanel />}
       {page === 'setup' && <SetupPage />}
+      {page === 'settings' && <SettingsPanel />}
     </AppShell>
   );
 }
