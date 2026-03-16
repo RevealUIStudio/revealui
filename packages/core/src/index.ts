@@ -153,9 +153,11 @@ export {
   AuthenticationError,
   AuthorizationError,
   ConflictError,
+  DatabaseError,
   handleApiError,
   handleDatabaseError,
   NotFoundError,
+  PostgresErrorCode,
   RateLimitError,
   ValidationError,
 } from './utils/errors.js';
