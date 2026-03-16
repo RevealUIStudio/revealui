@@ -10,19 +10,36 @@ import { useState } from 'react';
 import { z } from 'zod/v4';
 import type { User } from '../types.js';
 
+// Zod validates the required fields; .passthrough() preserves the rest.
+// The API returns JSON-serialized User objects (Dates as ISO strings).
+// z.infer output has an index signature incompatible with the concrete User
+// interface, so we extract the validated user via the helper below.
+const SignUpUserSchema = z
+  .object({
+    id: z.string(),
+    email: z.string(),
+    name: z.string().nullable().optional(),
+  })
+  .passthrough();
+
+/**
+ * Narrow Zod-validated API response data to User.
+ *
+ * The cast is safe because: (1) Zod verified the required fields (id, email),
+ * (2) .passthrough() preserves all other properties from the API response,
+ * and (3) the API serializes a full User row (Dates become ISO strings in JSON).
+ */
+function toUser(validated: z.infer<typeof SignUpUserSchema>): User {
+  return validated as unknown as User;
+}
+
 // Validation schemas for sign-up response
 const SignUpErrorResponseSchema = z.object({
   error: z.string().optional(),
 });
 
 const SignUpSuccessResponseSchema = z.object({
-  user: z
-    .object({
-      id: z.string(),
-      email: z.string(),
-      name: z.string().nullable().optional(),
-    })
-    .passthrough(), // Allow all other User properties
+  user: SignUpUserSchema,
 });
 
 export interface SignUpInput {
@@ -91,7 +108,7 @@ export function useSignUp(): UseSignUpResult {
         success: true,
         // Type assertion through unknown is safe because Zod validation ensures the shape is correct
         // The API returns serialized data, so we cast to expected type
-        user: successData.user as unknown as User,
+        user: toUser(successData.user),
       };
     } catch (err) {
       const error = err instanceof Error ? err : new Error(String(err));
