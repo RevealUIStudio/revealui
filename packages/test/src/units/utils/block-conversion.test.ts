@@ -6,7 +6,6 @@
 
 import { describe, expect, it } from 'vitest';
 import type { Block, RevealUIBlock } from '../../../../../packages/core/src/types/index.js';
-// @ts-expect-error - Direct import for testing
 import {
   convertFromRevealUIBlock,
   convertToRevealUIBlock,
@@ -46,8 +45,8 @@ describe('Block Conversion Utilities', () => {
       expect(revealUIBlock.fields).toHaveLength(block.fields.length);
       expect(revealUIBlock.labels).toEqual(block.labels);
       expect(revealUIBlock.revealUI).toBeDefined();
-      expect(revealUIBlock.revealUI.category).toBe('content');
-      expect(revealUIBlock.revealUI.icon).toBe('block');
+      expect(revealUIBlock.revealUI!.category).toBe('content');
+      expect(revealUIBlock.revealUI!.icon).toBe('block');
     });
 
     it('should convert block fields to RevealUI fields', () => {
@@ -58,16 +57,18 @@ describe('Block Conversion Utilities', () => {
       expect(revealUIBlock.fields[0].type).toBe('text');
       expect(revealUIBlock.fields[0].label).toBe('Title');
       expect(revealUIBlock.fields[0].required).toBe(true);
-      expect(revealUIBlock.fields[0].revealUI).toBeDefined();
+      expect(
+        (revealUIBlock.fields[0] as unknown as Record<string, unknown>).revealUI,
+      ).toBeDefined();
     });
 
     it('should set default RevealUI properties', () => {
       const block = createTestBlock();
       const revealUIBlock = convertToRevealUIBlock(block);
 
-      expect(revealUIBlock.revealUI.permissions).toEqual(['read', 'write']);
-      expect(revealUIBlock.revealUI.tenantScoped).toBe(false);
-      expect(revealUIBlock.revealUI.preview).toBeUndefined();
+      expect(revealUIBlock.revealUI!.permissions).toEqual(['read', 'write']);
+      expect(revealUIBlock.revealUI!.tenantScoped).toBe(false);
+      expect(revealUIBlock.revealUI!.preview).toBeUndefined();
     });
 
     it('should handle blocks without labels', () => {
@@ -99,7 +100,7 @@ describe('Block Conversion Utilities', () => {
       const convertedBack = convertFromRevealUIBlock(revealUIBlock);
 
       expect(convertedBack.fields[0].name).toBe('title');
-      const field = convertedBack.fields[0] as Record<string, unknown>;
+      const field = convertedBack.fields[0] as unknown as Record<string, unknown>;
       expect(field.revealUI).toBeUndefined();
     });
 
@@ -127,10 +128,10 @@ describe('Block Conversion Utilities', () => {
 
       const enhanced = enhanceBlockWithRevealUI(block, revealUIOptions);
 
-      expect(enhanced.revealUI.category).toBe('custom');
-      expect(enhanced.revealUI.icon).toBe('custom-icon');
-      expect(enhanced.revealUI.tenantScoped).toBe(true);
-      expect(enhanced.revealUI.permissions).toEqual(['read']);
+      expect(enhanced.revealUI!.category).toBe('custom');
+      expect(enhanced.revealUI!.icon).toBe('custom-icon');
+      expect(enhanced.revealUI!.tenantScoped).toBe(true);
+      expect(enhanced.revealUI!.permissions).toEqual(['read']);
     });
 
     it('should merge with default RevealUI properties', () => {
@@ -141,9 +142,9 @@ describe('Block Conversion Utilities', () => {
 
       const enhanced = enhanceBlockWithRevealUI(block, revealUIOptions);
 
-      expect(enhanced.revealUI.tenantScoped).toBe(true);
-      expect(enhanced.revealUI.category).toBe('content'); // Default preserved
-      expect(enhanced.revealUI.permissions).toEqual(['read', 'write']); // Default preserved
+      expect(enhanced.revealUI!.tenantScoped).toBe(true);
+      expect(enhanced.revealUI!.category).toBe('content'); // Default preserved
+      expect(enhanced.revealUI!.permissions).toEqual(['read', 'write']); // Default preserved
     });
 
     it('should work without options (use defaults)', () => {
@@ -151,8 +152,8 @@ describe('Block Conversion Utilities', () => {
       const enhanced = enhanceBlockWithRevealUI(block);
 
       expect(enhanced.revealUI).toBeDefined();
-      expect(enhanced.revealUI.category).toBe('content');
-      expect(enhanced.revealUI.tenantScoped).toBe(false);
+      expect(enhanced.revealUI!.category).toBe('content');
+      expect(enhanced.revealUI!.tenantScoped).toBe(false);
     });
   });
 
@@ -171,6 +172,7 @@ describe('Block Conversion Utilities', () => {
           id: '1',
           email: 'user@example.com',
         },
+        permissions: ['read', 'write'],
       };
 
       const errors = await validateRevealUIBlock(revealUIBlock, data, context);
@@ -191,6 +193,7 @@ describe('Block Conversion Utilities', () => {
           id: '1',
           email: 'user@example.com',
         },
+        permissions: ['read', 'write'],
       };
 
       const errors = await validateRevealUIBlock(revealUIBlock, data, context);
@@ -227,6 +230,7 @@ describe('Block Conversion Utilities', () => {
           id: '1',
           email: 'user@example.com',
         },
+        permissions: ['read', 'write'],
       };
 
       const errors = await validateRevealUIBlock(revealUIBlock, data, context);

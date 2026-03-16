@@ -5,12 +5,14 @@
  */
 
 import { describe, expect, it } from 'vitest';
-// @ts-expect-error - Direct import for testing
 import {
   buildWhereClause,
   extractWhereValues,
 } from '../../../../../packages/core/src/queries/queryBuilder.js';
-import type { RevealWhere } from '../../../../../packages/core/src/types/index.js';
+import type {
+  RevealWhere,
+  RevealWhereField,
+} from '../../../../../packages/core/src/types/index.js';
 
 describe('Query Builder Utilities', () => {
   describe('buildWhereClause', () => {
@@ -25,7 +27,7 @@ describe('Query Builder Utilities', () => {
     it('should build simple equals condition', () => {
       const params: unknown[] = [];
       const where: RevealWhere = {
-        id: '123',
+        id: { equals: '123' },
       };
 
       const clause = buildWhereClause(where, params);
@@ -177,7 +179,7 @@ describe('Query Builder Utilities', () => {
     it('should build AND condition', () => {
       const params: unknown[] = [];
       const where: RevealWhere = {
-        and: [{ id: '1' }, { title: 'Test' }],
+        and: [{ id: { equals: '1' } }, { title: { equals: 'Test' } }],
       };
 
       const clause = buildWhereClause(where, params);
@@ -189,7 +191,7 @@ describe('Query Builder Utilities', () => {
     it('should build OR condition', () => {
       const params: unknown[] = [];
       const where: RevealWhere = {
-        or: [{ id: '1' }, { id: '2' }],
+        or: [{ id: { equals: '1' } }, { id: { equals: '2' } }],
       };
 
       const clause = buildWhereClause(where, params);
@@ -201,8 +203,8 @@ describe('Query Builder Utilities', () => {
     it('should combine multiple conditions with AND', () => {
       const params: unknown[] = [];
       const where: RevealWhere = {
-        id: '1',
-        title: 'Test',
+        id: { equals: '1' },
+        title: { equals: 'Test' },
       };
 
       const clause = buildWhereClause(where, params);
@@ -214,7 +216,7 @@ describe('Query Builder Utilities', () => {
     it('should include WHERE keyword when requested', () => {
       const params: unknown[] = [];
       const where: RevealWhere = {
-        id: '1',
+        id: { equals: '1' },
       };
 
       const clause = buildWhereClause(where, params, {
@@ -227,7 +229,7 @@ describe('Query Builder Utilities', () => {
     it('should use positional parameter style', () => {
       const params: unknown[] = [];
       const where: RevealWhere = {
-        id: '1',
+        id: { equals: '1' },
       };
 
       const clause = buildWhereClause(where, params, {
@@ -241,7 +243,7 @@ describe('Query Builder Utilities', () => {
     it('should not quote fields when quoteFields is false', () => {
       const params: unknown[] = [];
       const where: RevealWhere = {
-        id: '1',
+        id: { equals: '1' },
       };
 
       const clause = buildWhereClause(where, params, {
@@ -255,9 +257,9 @@ describe('Query Builder Utilities', () => {
       const params: unknown[] = [];
       const where: RevealWhere = {
         and: [
-          { id: '1' },
+          { id: { equals: '1' } },
           {
-            and: [{ title: 'Test' }, { published: true }],
+            and: [{ title: { equals: 'Test' } }, { published: { equals: true } }],
           },
         ],
       };
@@ -274,9 +276,9 @@ describe('Query Builder Utilities', () => {
       const params: unknown[] = [];
       const where: RevealWhere = {
         or: [
-          { id: '1' },
+          { id: { equals: '1' } },
           {
-            or: [{ id: '2' }, { id: '3' }],
+            or: [{ id: { equals: '2' } }, { id: { equals: '3' } }],
           },
         ],
       };
@@ -293,7 +295,7 @@ describe('Query Builder Utilities', () => {
       const params: unknown[] = [];
       const date = new Date('2024-01-01');
       const where: RevealWhere = {
-        createdAt: date,
+        createdAt: { equals: date },
       };
 
       const clause = buildWhereClause(where, params);
@@ -305,7 +307,7 @@ describe('Query Builder Utilities', () => {
     it('should handle array values as equals', () => {
       const params: unknown[] = [];
       const where: RevealWhere = {
-        tags: ['tag1', 'tag2'] as unknown,
+        tags: ['tag1', 'tag2'] as unknown as RevealWhereField,
       };
 
       const clause = buildWhereClause(where, params);
@@ -331,9 +333,9 @@ describe('Query Builder Utilities', () => {
     it('should skip null and undefined values', () => {
       const params: unknown[] = [];
       const where: RevealWhere = {
-        id: '1',
-        title: null as unknown,
-        description: undefined as unknown,
+        id: { equals: '1' },
+        title: null as unknown as RevealWhereField,
+        description: undefined as unknown as RevealWhereField,
       };
 
       const clause = buildWhereClause(where, params);
@@ -367,7 +369,7 @@ describe('Query Builder Utilities', () => {
     it('should never return WHERE prefix when includeWhereKeyword is false', () => {
       const params: unknown[] = [];
       const where: RevealWhere = {
-        id: '1',
+        id: { equals: '1' },
       };
 
       const clause = buildWhereClause(where, params, {
@@ -381,7 +383,7 @@ describe('Query Builder Utilities', () => {
     it('should handle nested OR with multiple conditions', () => {
       const params: unknown[] = [];
       const where: RevealWhere = {
-        or: [{ id: '1' }, { id: '2' }, { id: '3' }],
+        or: [{ id: { equals: '1' } }, { id: { equals: '2' } }, { id: { equals: '3' } }],
       };
 
       const clause = buildWhereClause(where, params);
@@ -395,9 +397,9 @@ describe('Query Builder Utilities', () => {
       const params: unknown[] = [];
       const where: RevealWhere = {
         and: [
-          { id: '1' },
+          { id: { equals: '1' } },
           {
-            or: [{ title: 'Test' }, { title: 'Other' }],
+            or: [{ title: { equals: 'Test' } }, { title: { equals: 'Other' } }],
           },
         ],
       };
@@ -424,9 +426,9 @@ describe('Query Builder Utilities', () => {
     it('should handle WHERE with all null/undefined conditions', () => {
       const params: unknown[] = [];
       const where: RevealWhere = {
-        id: null as unknown,
-        title: undefined as unknown,
-        description: null as unknown,
+        id: null as unknown as RevealWhereField,
+        title: undefined as unknown as RevealWhereField,
+        description: null as unknown as RevealWhereField,
       };
 
       const clause = buildWhereClause(where, params);
@@ -439,8 +441,8 @@ describe('Query Builder Utilities', () => {
   describe('extractWhereValues', () => {
     it('should extract values from simple where', () => {
       const where: RevealWhere = {
-        id: '1',
-        title: 'Test',
+        id: { equals: '1' },
+        title: { equals: 'Test' },
       };
 
       const values = extractWhereValues(where);
@@ -487,7 +489,7 @@ describe('Query Builder Utilities', () => {
 
     it('should extract values from nested AND conditions', () => {
       const where: RevealWhere = {
-        and: [{ id: '1' }, { title: 'Test' }],
+        and: [{ id: { equals: '1' } }, { title: { equals: 'Test' } }],
       };
 
       const values = extractWhereValues(where);
@@ -497,7 +499,7 @@ describe('Query Builder Utilities', () => {
 
     it('should extract values from nested OR conditions', () => {
       const where: RevealWhere = {
-        or: [{ id: '1' }, { id: '2' }],
+        or: [{ id: { equals: '1' } }, { id: { equals: '2' } }],
       };
 
       const values = extractWhereValues(where);

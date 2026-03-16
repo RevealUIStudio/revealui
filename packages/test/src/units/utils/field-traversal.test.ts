@@ -5,7 +5,6 @@
  */
 
 import { describe, expect, it } from 'vitest';
-// @ts-expect-error - Direct import for testing
 import { traverseFieldsCore } from '../../../../../packages/core/src/fieldTraversal.js';
 import type { Field } from '../../../../../packages/core/src/types/index.js';
 
@@ -357,6 +356,7 @@ describe('Field Traversal Utilities', () => {
           type: 'tabs',
           tabs: [
             {
+              label: 'General',
               name: 'general',
               fields: [
                 {

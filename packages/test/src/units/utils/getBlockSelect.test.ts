@@ -6,7 +6,6 @@
 
 import { describe, expect, it } from 'vitest';
 import type { SelectType } from '../../../../../packages/core/src/types/index.js';
-// @ts-expect-error - Direct import for testing
 import { getBlockSelect } from '../../../../../packages/core/src/utils/getBlockSelect.js';
 
 describe('getBlockSelect', () => {
@@ -58,7 +57,7 @@ describe('getBlockSelect', () => {
 
       const result = getBlockSelect({
         block,
-        select: undefined,
+        select: undefined as unknown as SelectType,
         selectMode: 'include',
       });
 
@@ -79,7 +78,7 @@ describe('getBlockSelect', () => {
 
     it('should handle nested select configuration', () => {
       const block = createTestBlock();
-      const select: SelectType = {
+      const select = {
         'test-block': {
           title: true,
           author: {
@@ -87,7 +86,7 @@ describe('getBlockSelect', () => {
             email: true,
           },
         },
-      };
+      } as unknown as SelectType;
 
       const result = getBlockSelect({
         block,
@@ -162,7 +161,7 @@ describe('getBlockSelect', () => {
     it('should handle select with null block config', () => {
       const block = createTestBlock();
       const select: SelectType = {
-        'test-block': null as unknown,
+        'test-block': null as unknown as boolean,
       };
 
       const result = getBlockSelect({
@@ -177,7 +176,7 @@ describe('getBlockSelect', () => {
     it('should handle select with primitive block config', () => {
       const block = createTestBlock();
       const select: SelectType = {
-        'test-block': 'string' as unknown,
+        'test-block': 'string' as unknown as boolean,
       };
 
       const result = getBlockSelect({
