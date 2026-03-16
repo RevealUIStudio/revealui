@@ -32,7 +32,7 @@ import apiKeysRoute from './routes/api-keys.js';
 import billingRoute from './routes/billing.js';
 import provenanceRoute from './routes/code-provenance.js';
 import { createCollabRoute } from './routes/collab.js';
-import contentRoute from './routes/content.js';
+import contentRoute from './routes/content/index.js';
 import errorsRoute from './routes/errors.js';
 import gdprRoute from './routes/gdpr.js';
 import healthRoute from './routes/health.js';
@@ -42,7 +42,7 @@ import marketplaceRoute from './routes/marketplace.js';
 import pricingRoute from './routes/pricing.js';
 import ragIndexRoute from './routes/rag-index.js';
 import terminalAuthRoute from './routes/terminal-auth.js';
-import ticketsRoute from './routes/tickets.js';
+import ticketsRoute from './routes/tickets/index.js';
 import webhooksRoute from './routes/webhooks.js';
 
 // Ship warn+ logs to NeonDB in production
