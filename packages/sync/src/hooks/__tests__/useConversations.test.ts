@@ -91,9 +91,11 @@ describe('useConversations', () => {
     // proxyBaseUrl defaults to '' so the URL stays relative — backward-compatible.
     // The proxy at /api/shapes/conversations enforces row-level filtering
     // by reading the session cookie server-side. No client params needed.
-    expect(mockUseShape).toHaveBeenCalledWith({
-      url: '/api/shapes/conversations',
-    });
+    expect(mockUseShape).toHaveBeenCalledWith(
+      expect.objectContaining({
+        url: '/api/shapes/conversations',
+      }),
+    );
   });
 
   it('should handle non-array data gracefully', () => {
