@@ -306,6 +306,43 @@ describe('auth', () => {
         expect(result.reason).toBe('unexpected_error');
       }
     });
+
+    it('returns email_not_verified for unverified account past grace period', async () => {
+      const twentyFiveHoursAgo = new Date(Date.now() - 25 * 60 * 60 * 1000);
+      mockLimit.mockResolvedValueOnce([
+        makeUser({ emailVerified: false, createdAt: twentyFiveHoursAgo }),
+      ]);
+      mockBcryptCompare.mockResolvedValueOnce(true);
+
+      const result = await signIn('test@example.com', 'Password123');
+      expect(result.success).toBe(false);
+      if (!result.success) {
+        expect(result.reason).toBe('email_not_verified');
+        expect(result.error).toBe('Please verify your email address before signing in.');
+      }
+    });
+
+    it('allows sign-in for unverified account within grace period', async () => {
+      const oneHourAgo = new Date(Date.now() - 1 * 60 * 60 * 1000);
+      mockLimit.mockResolvedValueOnce([makeUser({ emailVerified: false, createdAt: oneHourAgo })]);
+      mockBcryptCompare.mockResolvedValueOnce(true);
+
+      const result = await signIn('test@example.com', 'Password123');
+      expect(result.success).toBe(true);
+      expect(result.sessionToken).toBe('session-token-abc');
+    });
+
+    it('allows sign-in for verified account regardless of age', async () => {
+      const thirtyDaysAgo = new Date(Date.now() - 30 * 24 * 60 * 60 * 1000);
+      mockLimit.mockResolvedValueOnce([
+        makeUser({ emailVerified: true, createdAt: thirtyDaysAgo }),
+      ]);
+      mockBcryptCompare.mockResolvedValueOnce(true);
+
+      const result = await signIn('test@example.com', 'Password123');
+      expect(result.success).toBe(true);
+      expect(result.sessionToken).toBe('session-token-abc');
+    });
   });
 
   // =========================================================================

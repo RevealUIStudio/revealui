@@ -16,6 +16,9 @@ import { validatePasswordStrength } from './password-validation.js';
 import { checkRateLimit } from './rate-limit.js';
 import { createSession } from './session.js';
 
+/** Grace period after signup during which unverified users can still sign in (24 hours) */
+const EMAIL_VERIFICATION_GRACE_PERIOD_MS = 24 * 60 * 60 * 1000;
+
 /**
  * Sign in with email and password
  *
@@ -134,6 +137,18 @@ export async function signIn(
 
     // Successful login - clear failed attempts
     await clearFailedAttempts(email);
+
+    // Check email verification (with grace period for new accounts)
+    if (!user.emailVerified) {
+      const accountAge = Date.now() - user.createdAt.getTime();
+      if (accountAge > EMAIL_VERIFICATION_GRACE_PERIOD_MS) {
+        return {
+          success: false,
+          reason: 'email_not_verified',
+          error: 'Please verify your email address before signing in.',
+        };
+      }
+    }
 
     // Check if MFA is enabled — if so, return early and require TOTP verification
     if (user.mfaEnabled) {
