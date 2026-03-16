@@ -7,20 +7,24 @@
 
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
-// Mock the populate-helpers module used via dynamic import
+// Mock the populate-core module (pure types/utils imported by population.ts)
 const mockExtractRelationInfo = vi.fn();
 const mockShouldPopulateRelationship = vi.fn();
 const mockLoadRelatedDocument = vi.fn();
 const mockApplyNestedPopulation = vi.fn();
 const mockUpdateDocumentWithPopulatedValue = vi.fn();
 
-vi.mock('../populate-helpers.js', () => ({
+vi.mock('../populate-core.js', () => ({
   extractRelationInfo: (...args: unknown[]) => mockExtractRelationInfo(...args),
   shouldPopulateRelationship: (...args: unknown[]) => mockShouldPopulateRelationship(...args),
-  loadRelatedDocument: (...args: unknown[]) => mockLoadRelatedDocument(...args),
-  applyNestedPopulation: (...args: unknown[]) => mockApplyNestedPopulation(...args),
   updateDocumentWithPopulatedValue: (...args: unknown[]) =>
     mockUpdateDocumentWithPopulatedValue(...args),
+}));
+
+// Mock the populate-helpers module (afterRead-dependent helpers imported by population.ts)
+vi.mock('../populate-helpers.js', () => ({
+  loadRelatedDocument: (...args: unknown[]) => mockLoadRelatedDocument(...args),
+  applyNestedPopulation: (...args: unknown[]) => mockApplyNestedPopulation(...args),
 }));
 
 // Mock the field config types module

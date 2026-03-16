@@ -1,10 +1,10 @@
 import { describe, expect, it } from 'vitest';
-import type { PopulateRelationshipField } from '../populate-helpers.js';
+import type { PopulateRelationshipField } from '../populate-core.js';
 import {
   extractRelationInfo,
   shouldPopulateRelationship,
   updateDocumentWithPopulatedValue,
-} from '../populate-helpers.js';
+} from '../populate-core.js';
 
 // ---------------------------------------------------------------------------
 // Tests — extractRelationInfo
