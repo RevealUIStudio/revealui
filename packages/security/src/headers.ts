@@ -4,7 +4,7 @@
  * HTTP security headers and CORS policy management
  */
 
-import { defaultLogger } from '../instance/logger.js';
+import { getSecurityLogger } from './logger.js';
 
 export interface SecurityHeadersConfig {
   contentSecurityPolicy?: string | ContentSecurityPolicyConfig;
@@ -512,7 +512,7 @@ export const CORSPresets = {
    */
   permissive: (): CORSConfig => {
     if (process.env.NODE_ENV === 'production') {
-      defaultLogger.warn(
+      getSecurityLogger().warn(
         '[SecurityPresets] CORS permissive preset used in production — this allows all origins. Use moderate() with explicit origins instead.',
       );
     }
@@ -531,7 +531,7 @@ export const CORSPresets = {
    */
   api: (): CORSConfig => {
     if (process.env.NODE_ENV === 'production') {
-      defaultLogger.warn(
+      getSecurityLogger().warn(
         '[SecurityPresets] CORS api preset uses origin:"*". For production, pass explicit origins to moderate() instead.',
       );
     }
