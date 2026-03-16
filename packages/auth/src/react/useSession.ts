@@ -11,7 +11,10 @@ import { useCallback, useEffect, useRef, useState } from 'react';
 import { z } from 'zod/v4';
 import type { AuthSession } from '../types.js';
 
-// Validation schema for session response - uses passthrough to allow all User properties
+// Zod validates the required fields; .passthrough() preserves the rest.
+// The API returns JSON-serialized session/user objects (Dates as ISO strings).
+// z.infer output has an index signature incompatible with the concrete
+// AuthSession interface, so we convert via the helper below.
 const AuthSessionSchema = z.object({
   session: z
     .object({
@@ -25,8 +28,19 @@ const AuthSessionSchema = z.object({
       email: z.string(),
       name: z.string().nullable().optional(),
     })
-    .passthrough(), // Allow all other User properties
+    .passthrough(),
 });
+
+/**
+ * Narrow Zod-validated API response data to AuthSession.
+ *
+ * The cast is safe because: (1) Zod verified the required fields on both
+ * session and user, (2) .passthrough() preserves all other properties, and
+ * (3) the API serializes full Session + User rows (Dates become ISO strings).
+ */
+function toAuthSession(validated: z.infer<typeof AuthSessionSchema>): AuthSession {
+  return validated as unknown as AuthSession;
+}
 
 export interface UseSessionResult {
   data: AuthSession | null;
@@ -83,9 +97,7 @@ export function useSession(): UseSessionResult {
 
       const json: unknown = await response.json();
       const validated = AuthSessionSchema.parse(json);
-      // Type assertion through unknown is safe because Zod validation ensures the shape is correct
-      // The API returns serialized data (Dates as strings), so we cast to expected type
-      setData(validated as unknown as AuthSession);
+      setData(toAuthSession(validated));
     } catch (err) {
       if (err instanceof DOMException && err.name === 'AbortError') {
         return;

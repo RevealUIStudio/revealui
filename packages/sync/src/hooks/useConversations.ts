@@ -5,6 +5,7 @@ import { fetchWithTimeout } from '../fetch-with-timeout.js';
 import type { MutationResult } from '../mutations.js';
 import { useSyncMutations } from '../mutations.js';
 import { useElectricConfig } from '../provider/index.js';
+import { toRecords } from '../shape-utils.js';
 
 export interface ConversationRecord {
   id: string;
@@ -59,9 +60,9 @@ export function useConversations(_userId: string): UseConversationsResult {
   >('conversations');
 
   return {
-    conversations: Array.isArray(data) ? (data as unknown as ConversationRecord[]) : [],
+    conversations: toRecords<ConversationRecord>(data),
     isLoading,
-    error: error as Error | null,
+    error: error || null,
     create,
     update,
     remove,

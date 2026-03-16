@@ -5,6 +5,7 @@ import { fetchWithTimeout } from '../fetch-with-timeout.js';
 import type { MutationResult } from '../mutations.js';
 import { useSyncMutations } from '../mutations.js';
 import { useElectricConfig } from '../provider/index.js';
+import { toRecords } from '../shape-utils.js';
 
 const AGENT_ID_RE = /^[a-zA-Z0-9_-]+$/;
 
@@ -75,9 +76,9 @@ export function useAgentMemory(agentId: string): UseAgentMemoryResult {
   }
 
   return {
-    memories: Array.isArray(data) ? (data as unknown as AgentMemoryRecord[]) : [],
+    memories: toRecords<AgentMemoryRecord>(data),
     isLoading,
-    error: error as Error | null,
+    error: error || null,
     create,
     update,
     remove,
