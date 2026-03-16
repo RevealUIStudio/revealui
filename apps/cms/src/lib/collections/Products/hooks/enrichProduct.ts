@@ -7,9 +7,9 @@ import {
   hasProductPrices,
   hasStripeProduct,
 } from '@revealui/contracts/entities';
-import type { RevealAfterReadHook, RevealDocument } from '@revealui/core';
+import type { RevealAfterReadHook } from '@revealui/core';
 import type { Product } from '@revealui/core/types/cms';
-import { asDocument } from '@/lib/utils/type-guards';
+import { asBridgedDoc, asDocument, toRevealDocument } from '@/lib/utils/type-guards';
 
 /**
  * Product Enrichment Hook (afterRead)
@@ -116,8 +116,8 @@ export const enrichProduct: RevealAfterReadHook = async ({ doc }) => {
   // Only enrich if product has Stripe product
   // Product and ContractsProduct describe the same document shape from different type systems.
   // The cast bridges CMS runtime types to contracts validation types.
-  if (!hasStripeProduct(product as unknown as ContractsProduct)) {
-    return {
+  if (!hasStripeProduct(asBridgedDoc<ContractsProduct>(product))) {
+    return toRevealDocument({
       ...product,
       priceRange: null,
       formattedPriceRange: null,
@@ -126,7 +126,7 @@ export const enrichProduct: RevealAfterReadHook = async ({ doc }) => {
       isActive: false,
       hasPaywall: product.enablePaywall ?? false,
       hasPrices: false,
-    } as unknown as RevealDocument;
+    });
   }
 
   // Parse priceJSON if it's a string
@@ -140,7 +140,7 @@ export const enrichProduct: RevealAfterReadHook = async ({ doc }) => {
   }
 
   // Calculate enrichment fields using utility functions
-  const contractsProduct = workingProduct as unknown as ContractsProduct;
+  const contractsProduct = asBridgedDoc<ContractsProduct>(workingProduct);
   const priceRange = getPriceRange(contractsProduct);
   const formattedPriceRange = formatPriceRange(contractsProduct);
   const priceCount = getPriceCount(contractsProduct);
@@ -148,7 +148,7 @@ export const enrichProduct: RevealAfterReadHook = async ({ doc }) => {
   const hasPrices = hasProductPrices(contractsProduct);
 
   // Return enriched product
-  return {
+  return toRevealDocument({
     ...product,
     priceRange,
     formattedPriceRange,
@@ -157,7 +157,7 @@ export const enrichProduct: RevealAfterReadHook = async ({ doc }) => {
     isActive: true,
     hasPaywall: product.enablePaywall ?? false,
     hasPrices,
-  } as unknown as RevealDocument;
+  });
 };
 
 // =============================================================================
@@ -169,7 +169,7 @@ export const enrichProduct: RevealAfterReadHook = async ({ doc }) => {
  */
 export async function enrichProductManually(product: Product): Promise<EnrichedProduct> {
   const result = await enrichProduct({
-    doc: product as unknown as RevealDocument,
+    doc: toRevealDocument(product),
     req: {} as never, // Not used in enrichProduct
     findMany: false,
     context: undefined,
@@ -186,7 +186,7 @@ export async function enrichProductsBatch(products: Product[]): Promise<Enriched
   return Promise.all(
     products.map(async (product) => {
       const result = await enrichProduct({
-        doc: product as unknown as RevealDocument,
+        doc: toRevealDocument(product),
         req: {} as never,
         findMany: false,
         context: undefined,
