@@ -5,15 +5,15 @@ vi.mock('../../hooks/use-setup', () => ({
   useSetup: vi.fn().mockReturnValue({
     status: {
       wsl_running: true,
-      nix_installed: true,
-      devbox_mounted: true,
-      git_name: 'RevealUI Studio',
-      git_email: 'founder@revealui.com',
+      nix_installed: false,
+      devbox_mounted: false,
+      git_name: '',
+      git_email: '',
     },
     loading: false,
     error: null,
-    gitName: 'RevealUI Studio',
-    gitEmail: 'founder@revealui.com',
+    gitName: '',
+    gitEmail: '',
     saving: false,
     mounting: false,
     refresh: vi.fn(),
@@ -22,7 +22,6 @@ vi.mock('../../hooks/use-setup', () => ({
     setGitName: vi.fn(),
     setGitEmail: vi.fn(),
   }),
-  markSetupComplete: vi.fn(),
 }));
 
 vi.mock('../../hooks/use-tunnel', () => ({
@@ -43,29 +42,24 @@ vi.mock('@tauri-apps/plugin-shell', () => ({
 
 vi.mock('../../lib/invoke', () => ({
   vaultInit: vi.fn(),
-  vaultIsInitialized: vi.fn().mockResolvedValue(true),
+  vaultIsInitialized: vi.fn().mockResolvedValue(false),
 }));
 
-import SetupWizard from '../../components/setup/SetupWizard';
+import SetupPage from '../../components/setup/SetupPage';
 
-describe('SetupWizard', () => {
-  it('renders "Setup RevealUI Studio" title', () => {
-    render(<SetupWizard onClose={vi.fn()} />);
-    expect(screen.getByText('Setup RevealUI Studio')).toBeInTheDocument();
+describe('SetupPage', () => {
+  it('renders "Setup" heading', () => {
+    render(<SetupPage />);
+    expect(screen.getByText('Setup')).toBeInTheDocument();
   });
 
-  it('renders Skip button', () => {
-    render(<SetupWizard onClose={vi.fn()} />);
-    expect(screen.getByText('Skip')).toBeInTheDocument();
-  });
-
-  it('renders Complete Setup button', () => {
-    render(<SetupWizard onClose={vi.fn()} />);
-    expect(screen.getByText('Complete Setup')).toBeInTheDocument();
+  it('renders Refresh button', () => {
+    render(<SetupPage />);
+    expect(screen.getByText('Refresh')).toBeInTheDocument();
   });
 
   it('renders all setup rows', () => {
-    render(<SetupWizard onClose={vi.fn()} />);
+    render(<SetupPage />);
     expect(screen.getByText('WSL')).toBeInTheDocument();
     expect(screen.getByText('Nix')).toBeInTheDocument();
     expect(screen.getByText('DevPod')).toBeInTheDocument();
@@ -73,11 +67,5 @@ describe('SetupWizard', () => {
     expect(screen.getByText('Vault')).toBeInTheDocument();
     expect(screen.getByText('Tailscale')).toBeInTheDocument();
     expect(screen.getByText('Project Setup')).toBeInTheDocument();
-  });
-
-  it('enables Complete Setup when all checks pass', () => {
-    render(<SetupWizard onClose={vi.fn()} />);
-    const completeButton = screen.getByText('Complete Setup').closest('button');
-    expect(completeButton).not.toBeDisabled();
   });
 });

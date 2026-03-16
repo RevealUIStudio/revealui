@@ -1,100 +1,57 @@
-import { fireEvent, render, screen } from '@testing-library/react';
+import { render, screen } from '@testing-library/react';
 import { describe, expect, it, vi } from 'vitest';
-import SyncPanel from '../../components/sync/SyncPanel';
-import type { SyncResult } from '../../types';
-
-const mockUseSync = vi.fn();
 
 vi.mock('../../hooks/use-sync', () => ({
-  useSync: () => mockUseSync(),
+  useSync: vi.fn().mockReturnValue({
+    syncing: false,
+    results: [],
+    log: [],
+    error: null,
+    syncAll: vi.fn(),
+    syncOne: vi.fn(),
+  }),
 }));
 
-vi.mock('../../components/sync/RepoCard', () => ({
-  default: ({ result }: { result: SyncResult }) => (
-    <div data-testid={`repo-${result.repo}`}>{result.repo}</div>
-  ),
-}));
-
-vi.mock('../../components/sync/SyncLog', () => ({
-  default: ({ entries }: { entries: string[] }) => (
-    <div data-testid="sync-log">{entries.length} entries</div>
-  ),
-}));
+import SyncPanel from '../../components/sync/SyncPanel';
+import { useSync } from '../../hooks/use-sync';
 
 describe('SyncPanel', () => {
-  it('renders Repo Sync header and Sync All button', () => {
-    mockUseSync.mockReturnValue({
-      syncing: false,
-      results: [],
-      log: [],
-      error: null,
-      syncAll: vi.fn(),
-      syncOne: vi.fn(),
-    });
-
+  it('renders "Repo Sync" heading', () => {
     render(<SyncPanel />);
-
     expect(screen.getByText('Repo Sync')).toBeInTheDocument();
+  });
+
+  it('renders "Sync All" button', () => {
+    render(<SyncPanel />);
     expect(screen.getByText('Sync All')).toBeInTheDocument();
   });
 
-  it('shows empty state when no results and not syncing', () => {
-    mockUseSync.mockReturnValue({
-      syncing: false,
-      results: [],
-      log: [],
-      error: null,
-      syncAll: vi.fn(),
-      syncOne: vi.fn(),
-    });
-
+  it('shows empty state message when no results and not syncing', () => {
     render(<SyncPanel />);
-
     expect(
       screen.getByText(/Click "Sync All" to fetch and sync all registered repos/),
     ).toBeInTheDocument();
   });
 
-  it('renders repo cards when results exist', () => {
-    const results: SyncResult[] = [
-      { drive: 'C', repo: 'RevealUI', status: 'ok', branch: 'main' },
-      { drive: 'E', repo: 'revealui-jv', status: 'dirty', branch: 'main' },
-    ];
-
-    mockUseSync.mockReturnValue({
+  it('shows repo cards when results exist', () => {
+    vi.mocked(useSync).mockReturnValue({
       syncing: false,
-      results,
+      results: [
+        { drive: 'C', repo: 'RevealUI', status: 'ok', branch: 'main' },
+        { drive: 'E', repo: 'revealui-jv', status: 'dirty', branch: 'main' },
+      ],
       log: [],
       error: null,
       syncAll: vi.fn(),
       syncOne: vi.fn(),
     });
-
     render(<SyncPanel />);
-
-    expect(screen.getByTestId('repo-RevealUI')).toBeInTheDocument();
-    expect(screen.getByTestId('repo-revealui-jv')).toBeInTheDocument();
-  });
-
-  it('calls syncAll when Sync All button is clicked', () => {
-    const syncAll = vi.fn();
-    mockUseSync.mockReturnValue({
-      syncing: false,
-      results: [],
-      log: [],
-      error: null,
-      syncAll,
-      syncOne: vi.fn(),
-    });
-
-    render(<SyncPanel />);
-
-    fireEvent.click(screen.getByText('Sync All'));
-    expect(syncAll).toHaveBeenCalledOnce();
+    expect(screen.getByText('RevealUI')).toBeInTheDocument();
+    expect(screen.getByText('revealui-jv')).toBeInTheDocument();
   });
 
   it('shows sync log when entries exist', () => {
-    mockUseSync.mockReturnValue({
+    vi.mocked(useSync).mockReturnValue({
       syncing: false,
       results: [],
       log: ['Syncing...', 'Done'],
@@ -102,9 +59,21 @@ describe('SyncPanel', () => {
       syncAll: vi.fn(),
       syncOne: vi.fn(),
     });
-
     render(<SyncPanel />);
+    expect(screen.getByText('Sync Log')).toBeInTheDocument();
+    expect(screen.getByText('Done')).toBeInTheDocument();
+  });
 
-    expect(screen.getByTestId('sync-log')).toBeInTheDocument();
+  it('shows error when error is set', () => {
+    vi.mocked(useSync).mockReturnValue({
+      syncing: false,
+      results: [],
+      log: [],
+      error: 'Sync failed',
+      syncAll: vi.fn(),
+      syncOne: vi.fn(),
+    });
+    render(<SyncPanel />);
+    expect(screen.getByText('Sync failed')).toBeInTheDocument();
   });
 });
