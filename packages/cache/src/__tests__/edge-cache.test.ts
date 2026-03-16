@@ -4,14 +4,16 @@
 
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
-// Mock the logger before importing modules that use it
-vi.mock('../../observability/logger.js', () => ({
-  logger: {
-    error: vi.fn(),
-    warn: vi.fn(),
-    info: vi.fn(),
-    debug: vi.fn(),
-  },
+// Mock the cache logger before importing modules that use it
+const mockLogger = {
+  error: vi.fn(),
+  warn: vi.fn(),
+  info: vi.fn(),
+  debug: vi.fn(),
+};
+vi.mock('../logger.js', () => ({
+  getCacheLogger: () => mockLogger,
+  configureCacheLogger: vi.fn(),
 }));
 
 // Mock global fetch
