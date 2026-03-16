@@ -72,7 +72,8 @@ function LoginContent() {
     if (result.success) {
       router.push('/admin');
     } else {
-      setError(result.error || 'Failed to sign in');
+      const errorMessage = 'error' in result ? result.error : 'MFA verification required';
+      setError(errorMessage || 'Failed to sign in');
     }
   };
 
