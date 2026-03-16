@@ -12,7 +12,7 @@ const OK_RESULT: SyncResult = {
 
 const DIRTY_RESULT: SyncResult = {
   drive: 'E',
-  repo: 'revealui-jv',
+  repo: 'my-private-repo',
   status: 'dirty',
   branch: 'feat/test',
 };

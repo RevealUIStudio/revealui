@@ -160,9 +160,10 @@ app.openapi(
     const existing = await boardQueries.getColumnById(db, id);
     if (!existing) throw new HTTPException(404, { message: 'Column not found' });
     const board = await boardQueries.getBoardById(db, existing.boardId);
-    assertBoardTenantAccess(board ?? {}, c.get('tenant'));
+    if (!board) throw new HTTPException(404, { message: 'Board not found' });
+    assertBoardTenantAccess(board, c.get('tenant'));
     const user = c.get('user');
-    if (board?.ownerId && board.ownerId !== user?.id && user?.role !== 'admin') {
+    if (board.ownerId && board.ownerId !== user?.id && user?.role !== 'admin') {
       throw new HTTPException(403, { message: 'Forbidden' });
     }
     const column = await boardQueries.updateColumn(db, id, body);
@@ -196,9 +197,10 @@ app.openapi(
     const existing = await boardQueries.getColumnById(db, id);
     if (!existing) throw new HTTPException(404, { message: 'Column not found' });
     const board = await boardQueries.getBoardById(db, existing.boardId);
-    assertBoardTenantAccess(board ?? {}, c.get('tenant'));
+    if (!board) throw new HTTPException(404, { message: 'Board not found' });
+    assertBoardTenantAccess(board, c.get('tenant'));
     const user = c.get('user');
-    if (board?.ownerId && board.ownerId !== user?.id && user?.role !== 'admin') {
+    if (board.ownerId && board.ownerId !== user?.id && user?.role !== 'admin') {
       throw new HTTPException(403, { message: 'Forbidden' });
     }
     await boardQueries.deleteColumn(db, id);

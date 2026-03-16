@@ -290,6 +290,47 @@ describe('Columns', () => {
     const res = await app.request('/columns/col-1', { method: 'DELETE' });
     expect(res.status).toBe(200);
   });
+
+  it('PATCH /columns/:id — 404 when parent board is deleted', async () => {
+    mb.getColumnById.mockResolvedValue(makeColumn() as never);
+    mb.getBoardById.mockResolvedValue(null as never);
+    const app = createApp();
+    const res = await app.request('/columns/col-1', patch({ name: 'x' }));
+    expect(res.status).toBe(404);
+  });
+
+  it('DELETE /columns/:id — 404 when parent board is deleted', async () => {
+    mb.getColumnById.mockResolvedValue(makeColumn() as never);
+    mb.getBoardById.mockResolvedValue(null as never);
+    const app = createApp();
+    const res = await app.request('/columns/col-1', { method: 'DELETE' });
+    expect(res.status).toBe(404);
+  });
+
+  it('PATCH /columns/:id — 403 for wrong tenant', async () => {
+    mb.getColumnById.mockResolvedValue(makeColumn() as never);
+    mb.getBoardById.mockResolvedValue(makeBoard({ tenantId: 'tenant-a' }) as never);
+    // biome-ignore lint/suspicious/noExplicitAny: test helper — Variables shape varies per endpoint
+    const app = new (await import('hono')).Hono<{ Variables: any }>();
+    app.use('*', async (c, next) => {
+      c.set('db', {} as import('@revealui/db/client').DatabaseClient);
+      c.set('tenant', { id: 'tenant-b' });
+      c.set('user', { id: 'u1', role: 'member' });
+      await next();
+    });
+    const { default: ticketsApp } = await import('../tickets/index.js');
+    app.route('/', ticketsApp);
+    const res = await app.request('/columns/col-1', patch({ name: 'x' }));
+    expect(res.status).toBe(403);
+  });
+
+  it('PATCH /columns/:id — 403 for non-owner non-admin', async () => {
+    mb.getColumnById.mockResolvedValue(makeColumn() as never);
+    mb.getBoardById.mockResolvedValue(makeBoard({ ownerId: 'owner-1' }) as never);
+    const app = createApp({ id: 'not-owner', role: 'member' });
+    const res = await app.request('/columns/col-1', patch({ name: 'x' }));
+    expect(res.status).toBe(403);
+  });
 });
 
 // ---------------------------------------------------------------------------
