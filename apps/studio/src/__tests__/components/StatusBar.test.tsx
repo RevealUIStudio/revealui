@@ -1,4 +1,4 @@
-import { render, screen } from '@testing-library/react';
+import { fireEvent, render, screen } from '@testing-library/react';
 import { describe, expect, it, vi } from 'vitest';
 import StatusBar from '../../components/layout/StatusBar';
 import type { StatusContextValue } from '../../hooks/use-status';
@@ -15,7 +15,7 @@ function renderWithStatusContext(value: StatusContextValue) {
 const mockRefresh = vi.fn().mockResolvedValue(undefined);
 
 describe('StatusBar', () => {
-  it('shows "Loading..." when loading', () => {
+  it('shows pulsing "Connecting..." when loading', () => {
     renderWithStatusContext({
       system: null,
       mount: null,
@@ -23,7 +23,30 @@ describe('StatusBar', () => {
       error: null,
       refresh: mockRefresh,
     });
-    expect(screen.getByText('Loading...')).toBeInTheDocument();
+    expect(screen.getByText('Connecting...')).toBeInTheDocument();
+  });
+
+  it('shows error message when error is set', () => {
+    renderWithStatusContext({
+      system: null,
+      mount: null,
+      loading: false,
+      error: 'Failed to connect to WSL',
+      refresh: mockRefresh,
+    });
+    expect(screen.getByText('Failed to connect to WSL')).toBeInTheDocument();
+  });
+
+  it('truncates long error messages', () => {
+    const longError = 'A'.repeat(80);
+    renderWithStatusContext({
+      system: null,
+      mount: null,
+      loading: false,
+      error: longError,
+      refresh: mockRefresh,
+    });
+    expect(screen.getByText(`${'A'.repeat(60)}...`)).toBeInTheDocument();
   });
 
   it('shows WSL Running when wsl_running is true', () => {
@@ -72,6 +95,22 @@ describe('StatusBar', () => {
       refresh: mockRefresh,
     });
     expect(screen.getByText('Tier: pro')).toBeInTheDocument();
+  });
+
+  it('shows systemd status when available', () => {
+    renderWithStatusContext({
+      system: {
+        wsl_running: true,
+        distribution: 'Ubuntu-24.04',
+        tier: 'pro',
+        systemd_status: 'running',
+      },
+      mount: null,
+      loading: false,
+      error: null,
+      refresh: mockRefresh,
+    });
+    expect(screen.getByText('systemd: running')).toBeInTheDocument();
   });
 
   it('shows Studio: Mounted when mounted', () => {
@@ -131,5 +170,29 @@ describe('StatusBar', () => {
       refresh: mockRefresh,
     });
     expect(screen.getByText('Tier: ?')).toBeInTheDocument();
+  });
+
+  it('calls refresh when refresh button is clicked', () => {
+    mockRefresh.mockClear();
+    renderWithStatusContext({
+      system: null,
+      mount: null,
+      loading: false,
+      error: null,
+      refresh: mockRefresh,
+    });
+    fireEvent.click(screen.getByRole('button', { name: 'Refresh status' }));
+    expect(mockRefresh).toHaveBeenCalledOnce();
+  });
+
+  it('renders refresh button in all states', () => {
+    renderWithStatusContext({
+      system: null,
+      mount: null,
+      loading: true,
+      error: null,
+      refresh: mockRefresh,
+    });
+    expect(screen.getByRole('button', { name: 'Refresh status' })).toBeInTheDocument();
   });
 });
