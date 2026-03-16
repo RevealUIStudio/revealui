@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { resendSendTest } from '../../lib/deploy';
+import { resendSendTest, smtpSendTest } from '../../lib/deploy';
 import type { StudioConfig, WizardData } from '../../types';
 import Button from '../ui/Button';
 import Input from '../ui/Input';
@@ -46,8 +46,19 @@ export default function StepEmail({
           return;
         }
         await resendSendTest(resendApiKey.trim(), testEmail.trim());
+      } else {
+        if (!(smtpHost.trim() && smtpUser.trim() && smtpPass.trim())) {
+          setError('SMTP host, username, and password are required');
+          return;
+        }
+        await smtpSendTest(
+          smtpHost.trim(),
+          Number.parseInt(smtpPort, 10) || 587,
+          smtpUser.trim(),
+          smtpPass.trim(),
+          testEmail.trim(),
+        );
       }
-      // SMTP test would go through a different Tauri command (not yet implemented)
 
       setTestSent(true);
 
