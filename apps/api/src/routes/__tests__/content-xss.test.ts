@@ -151,7 +151,7 @@ vi.mock('@revealui/db/queries/media', () => ({
 vi.mock('@revealui/db/queries/sites', () => mockSiteQueries);
 vi.mock('@revealui/db/queries/pages', () => mockPageQueries);
 
-import contentApp from '../content.js';
+import contentApp from '../content/index.js';
 
 interface UserCtx {
   id: string;

@@ -53,7 +53,7 @@ vi.mock('@revealui/db/queries/pages', () => mockPageQueries);
 
 // ─── Import under test ────────────────────────────────────────────────────────
 
-import contentApp from '../content.js';
+import contentApp from '../content/index.js';
 
 // ─── Helpers ─────────────────────────────────────────────────────────────────
 
