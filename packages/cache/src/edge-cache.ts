@@ -5,7 +5,18 @@
  */
 
 import type { NextRequest, NextResponse } from 'next/server';
-import { logger } from '../observability/logger.js';
+import { getCacheLogger } from './logger.js';
+
+/**
+ * Next.js extends the standard RequestInit with a `next` property
+ * for ISR revalidation and cache tags.
+ */
+interface NextFetchRequestInit extends RequestInit {
+  next?: {
+    revalidate?: number | false;
+    tags?: string[];
+  };
+}
 
 /**
  * ISR Configuration
@@ -59,7 +70,7 @@ export async function generateStaticParams<T>(
     const items = await fetchFn();
     return items.map(mapFn);
   } catch (error) {
-    logger.error(
+    getCacheLogger().error(
       'Failed to generate static params',
       error instanceof Error ? error : new Error(String(error)),
     );
@@ -76,7 +87,7 @@ export async function revalidateTag(
 ): Promise<{ revalidated: boolean; error?: string }> {
   const baseUrl = process.env.NEXT_PUBLIC_URL;
   if (!baseUrl) {
-    logger.warn('revalidateTag skipped: NEXT_PUBLIC_URL is not configured', { tag });
+    getCacheLogger().warn('revalidateTag skipped: NEXT_PUBLIC_URL is not configured', { tag });
     return { revalidated: false, error: 'NEXT_PUBLIC_URL is not configured' };
   }
 
@@ -97,7 +108,11 @@ export async function revalidateTag(
     const data = await response.json();
 
     if (!response.ok) {
-      logger.warn('revalidateTag failed', { tag, status: response.status, error: data.error });
+      getCacheLogger().warn('revalidateTag failed', {
+        tag,
+        status: response.status,
+        error: data.error,
+      });
     }
 
     return {
@@ -106,7 +121,7 @@ export async function revalidateTag(
     };
   } catch (error) {
     const message = error instanceof Error ? error.message : 'Unknown error';
-    logger.warn('revalidateTag error', { tag, error: message });
+    getCacheLogger().warn('revalidateTag error', { tag, error: message });
     return {
       revalidated: false,
       error: message,
@@ -123,7 +138,7 @@ export async function revalidatePath(
 ): Promise<{ revalidated: boolean; error?: string }> {
   const baseUrl = process.env.NEXT_PUBLIC_URL;
   if (!baseUrl) {
-    logger.warn('revalidatePath skipped: NEXT_PUBLIC_URL is not configured', { path });
+    getCacheLogger().warn('revalidatePath skipped: NEXT_PUBLIC_URL is not configured', { path });
     return { revalidated: false, error: 'NEXT_PUBLIC_URL is not configured' };
   }
 
@@ -252,8 +267,8 @@ export interface EdgeCacheConfig {
  * Create edge cached fetch
  */
 export function createEdgeCachedFetch(config: EdgeCacheConfig = {}) {
-  return async <T>(url: string, options?: RequestInit): Promise<T> => {
-    const fetchOptions: RequestInit = {
+  return async <T>(url: string, options?: NextFetchRequestInit): Promise<T> => {
+    const fetchOptions: NextFetchRequestInit = {
       ...options,
       ...config,
       next: {
