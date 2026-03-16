@@ -12,6 +12,11 @@ export async function vercelValidateToken(token: string): Promise<VercelProject[
   return tauriInvoke<VercelProject[]>('vercel_validate_token', { token });
 }
 
+export async function vercelValidateBlobToken(token: string): Promise<boolean> {
+  if (!isTauri()) return true;
+  return tauriInvoke<boolean>('vercel_validate_blob_token', { token });
+}
+
 export async function vercelCreateProject(
   token: string,
   name: string,

@@ -137,6 +137,22 @@ pub async fn vercel_set_env(
     Ok(())
 }
 
+/// Validate a Vercel Blob token by listing blobs (requires read permission).
+/// Rejects 403 — that means the token lacks read+write permissions.
+#[tauri::command]
+pub async fn vercel_validate_blob_token(token: String) -> Result<bool, StudioError> {
+    let client = Client::new();
+    let resp = client
+        .get("https://blob.vercel-storage.com?limit=1")
+        .header("Authorization", format!("Bearer {}", token))
+        .send()
+        .await?;
+
+    // Only 200 means the token has valid read permissions
+    // 403 = insufficient permissions (reject), 401 = invalid token (reject)
+    Ok(resp.status().is_success())
+}
+
 /// Trigger a deployment via Vercel API.
 #[tauri::command]
 pub async fn vercel_deploy(token: String, project_id: String) -> Result<String, StudioError> {
