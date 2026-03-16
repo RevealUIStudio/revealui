@@ -960,7 +960,8 @@ app.openapi(supportRenewalRoute, async (c) => {
   for (const row of expiringLicenses) {
     if (!row.email) continue;
 
-    const expiryDate = row.supportExpiresAt!.toLocaleDateString('en-US', {
+    if (!row.supportExpiresAt) continue;
+    const expiryDate = row.supportExpiresAt.toLocaleDateString('en-US', {
       month: 'long',
       day: 'numeric',
       year: 'numeric',

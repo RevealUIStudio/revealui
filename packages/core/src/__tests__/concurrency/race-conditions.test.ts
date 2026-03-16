@@ -7,13 +7,13 @@
  * - Bulkhead concurrency limiting and queue overflow
  */
 
-import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import {
   Bulkhead,
   CircuitBreaker,
   CircuitBreakerOpenError,
   CircuitBreakerRegistry,
-} from '../../error-handling/circuit-breaker.js';
+} from '@revealui/resilience';
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { LRUCache } from '../../utils/cache.js';
 
 // Suppress logger output during tests
