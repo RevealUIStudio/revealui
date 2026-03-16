@@ -12,7 +12,7 @@ describe('invoke bridge (browser mode)', () => {
   beforeEach(() => {
     vi.clearAllMocks();
     // Ensure we're in browser mode (no __TAURI_INTERNALS__)
-    delete (window as Record<string, unknown>).__TAURI_INTERNALS__;
+    delete (window as unknown as Record<string, unknown>).__TAURI_INTERNALS__;
   });
 
   afterEach(() => {
@@ -226,11 +226,11 @@ describe('invoke bridge (Tauri mode)', () => {
   beforeEach(() => {
     vi.clearAllMocks();
     // Simulate Tauri environment
-    (window as Record<string, unknown>).__TAURI_INTERNALS__ = {};
+    (window as unknown as Record<string, unknown>).__TAURI_INTERNALS__ = {};
   });
 
   afterEach(() => {
-    delete (window as Record<string, unknown>).__TAURI_INTERNALS__;
+    delete (window as unknown as Record<string, unknown>).__TAURI_INTERNALS__;
     vi.restoreAllMocks();
   });
 
