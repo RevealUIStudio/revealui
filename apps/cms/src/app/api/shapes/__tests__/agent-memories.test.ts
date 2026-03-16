@@ -55,6 +55,8 @@ const mockSession = {
     emailVerified: false,
     emailVerificationToken: null,
     emailVerifiedAt: null,
+    mfaEnabled: false,
+    mfaVerifiedAt: null,
     agentModel: null,
     agentCapabilities: null,
     agentConfig: null,

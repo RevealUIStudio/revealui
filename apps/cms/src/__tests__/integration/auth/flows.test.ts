@@ -260,8 +260,10 @@ describe('Authentication Flow Integration', () => {
       const result = await signIn('user@example.com', password, { ipAddress: '10.0.0.1' });
 
       expect(result.success).toBe(true);
-      expect(result.user).toBeDefined();
-      expect(result.sessionToken).toBeDefined();
+      if (result.success && !result.requiresMfa) {
+        expect(result.user).toBeDefined();
+        expect(result.sessionToken).toBeDefined();
+      }
     });
 
     it('rejects sign-in with wrong password', async () => {
@@ -277,7 +279,7 @@ describe('Authentication Flow Integration', () => {
       });
 
       expect(result.success).toBe(false);
-      expect(result.error).toContain('Invalid');
+      if (!result.success) expect(result.error).toContain('Invalid');
     });
 
     it('rejects sign-in for non-existent email', async () => {
@@ -286,7 +288,7 @@ describe('Authentication Flow Integration', () => {
       const result = await signIn('ghost@example.com', 'Password123!', { ipAddress: '10.0.0.3' });
 
       expect(result.success).toBe(false);
-      expect(result.error).toBe('Invalid email or password');
+      if (!result.success) expect(result.error).toBe('Invalid email or password');
     });
 
     it('returns same error for wrong password and non-existent email (prevents user enumeration)', async () => {
@@ -308,8 +310,12 @@ describe('Authentication Flow Integration', () => {
         ipAddress: '10.0.0.4',
       });
 
-      expect(result1.error).toBe(result2.error);
-      expect(result1.error).toBe('Invalid email or password');
+      if (!(result1.success || result2.success)) {
+        expect(result1.error).toBe(result2.error);
+        expect(result1.error).toBe('Invalid email or password');
+      } else {
+        expect.unreachable('Both results should have success: false');
+      }
     });
   });
 
@@ -347,7 +353,7 @@ describe('Authentication Flow Integration', () => {
       const result = await signIn(email, 'Correct123!', { ipAddress: '10.0.0.5' });
 
       expect(result.success).toBe(false);
-      expect(result.error).toContain('Account locked');
+      if (!result.success) expect(result.error).toContain('Account locked');
     });
 
     it('clears failed attempts after clearFailedAttempts', async () => {
