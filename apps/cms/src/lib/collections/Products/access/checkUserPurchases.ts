@@ -2,6 +2,7 @@ import type { FieldAccess, RevealUser } from '@revealui/core';
 import type { Product } from '@revealui/core/types/cms';
 import { Role } from '@/lib/access/permissions/roles';
 import { hasRole } from '@/lib/access/roles/hasRole';
+import { asDocument } from '@/lib/utils/type-guards';
 
 // Define a type for users that may have a purchases property
 // Note: purchases is not part of the base User type, but may be added dynamically by hooks
@@ -51,7 +52,7 @@ export const checkUserPurchases: FieldAccess = async ({ req, data: doc }) => {
   // Check if the document is associated with the user's purchases
   if (doc && userWithPurchases.purchases && userWithPurchases.purchases.length > 0) {
     return userWithPurchases.purchases.some(
-      (purchase) => (doc as unknown as Product).id === purchase.id,
+      (purchase) => asDocument<Product>(doc).id === purchase.id,
     );
   }
 

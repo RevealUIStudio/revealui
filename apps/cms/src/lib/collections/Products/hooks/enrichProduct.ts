@@ -9,6 +9,7 @@ import {
 } from '@revealui/contracts/entities';
 import type { RevealAfterReadHook, RevealDocument } from '@revealui/core';
 import type { Product } from '@revealui/core/types/cms';
+import { asDocument } from '@/lib/utils/type-guards';
 
 /**
  * Product Enrichment Hook (afterRead)
@@ -110,9 +111,11 @@ function parsePriceJSON(priceJSON: string | null | undefined): unknown {
  * Enrich product with computed display fields
  */
 export const enrichProduct: RevealAfterReadHook = async ({ doc }) => {
-  const product = doc as unknown as Product;
+  const product = asDocument<Product>(doc);
 
   // Only enrich if product has Stripe product
+  // Product and ContractsProduct describe the same document shape from different type systems.
+  // The cast bridges CMS runtime types to contracts validation types.
   if (!hasStripeProduct(product as unknown as ContractsProduct)) {
     return {
       ...product,
