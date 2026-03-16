@@ -25,7 +25,9 @@ type PrimitivePropsWithRef<E extends React.ElementType> = React.ComponentPropsWi
   asChild?: boolean;
 };
 
-type PrimitiveComponent<E extends React.ElementType> = React.FC<PrimitivePropsWithRef<E>>;
+type PrimitiveComponent<E extends React.ElementType> = (
+  props: PrimitivePropsWithRef<E>,
+) => React.ReactNode;
 
 type Primitives = {
   [E in (typeof NODES)[number]]: PrimitiveComponent<E>;

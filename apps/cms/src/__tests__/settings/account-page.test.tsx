@@ -9,16 +9,28 @@ vi.mock('next/navigation', () => ({
   useSearchParams: () => mockSearchParams,
 }));
 
+// Mock presentation Dialog components to render inline (avoids portal/transition complexity)
+vi.mock('@revealui/presentation/client', () => ({
+  Dialog: ({
+    open,
+    children,
+  }: {
+    open: boolean;
+    onClose: () => void;
+    size?: string;
+    children: React.ReactNode;
+  }) => (open ? <div data-testid="confirm-dialog">{children}</div> : null),
+  DialogTitle: ({ children }: { children: React.ReactNode }) => <h2>{children}</h2>,
+  DialogDescription: ({ children }: { children: React.ReactNode }) => <p>{children}</p>,
+  DialogActions: ({ children }: { children: React.ReactNode }) => <div>{children}</div>,
+}));
+
 // Must import AFTER the mock
 import AccountSettingsPage from '../../app/(backend)/admin/settings/account/page';
 
 // Mock fetch globally
 const mockFetch = vi.fn();
 global.fetch = mockFetch;
-
-// Mock window.confirm
-const mockConfirm = vi.fn();
-global.confirm = mockConfirm;
 
 // Mock window.location for OAuth redirect
 const mockLocation = { href: '' };
@@ -148,9 +160,8 @@ describe('AccountSettingsPage', () => {
     expect(mockLocation.href).toContain('redirectTo=');
   });
 
-  it('shows confirmation before unlinking', async () => {
+  it('shows confirmation dialog before unlinking', async () => {
     mockFetchSuccess();
-    mockConfirm.mockReturnValue(false);
 
     render(<AccountSettingsPage />);
 
@@ -158,20 +169,29 @@ describe('AccountSettingsPage', () => {
       expect(screen.getByText('Unlink')).toBeInTheDocument();
     });
 
+    // Click Unlink to open the confirmation dialog
     await act(async () => {
       fireEvent.click(screen.getByText('Unlink'));
     });
 
-    expect(mockConfirm).toHaveBeenCalledWith(
-      "Unlink GitHub? You'll no longer be able to sign in with this account.",
-    );
-    // Should NOT have called unlink API since user cancelled
+    // Dialog should appear with provider name and description
+    expect(screen.getByTestId('confirm-dialog')).toBeInTheDocument();
+    expect(screen.getByText('Unlink GitHub?')).toBeInTheDocument();
+    expect(
+      screen.getByText("You'll no longer be able to sign in with this account."),
+    ).toBeInTheDocument();
+
+    // Click Cancel to dismiss
+    await act(async () => {
+      fireEvent.click(screen.getByText('Cancel'));
+    });
+
+    // Dialog should close, API should NOT have been called beyond initial fetch
+    expect(screen.queryByTestId('confirm-dialog')).not.toBeInTheDocument();
     expect(mockFetch).toHaveBeenCalledTimes(1); // only the initial /api/auth/me
   });
 
-  it('calls unlink API when confirmed', async () => {
-    mockConfirm.mockReturnValue(true);
-
+  it('calls unlink API when confirmed via dialog', async () => {
     mockFetch
       .mockResolvedValueOnce({ ok: true, json: () => Promise.resolve({ user: mockUser }) })
       .mockResolvedValueOnce({ ok: true, json: () => Promise.resolve({ success: true }) })
@@ -186,8 +206,16 @@ describe('AccountSettingsPage', () => {
       expect(screen.getByText('Unlink')).toBeInTheDocument();
     });
 
+    // Open confirm dialog
     await act(async () => {
       fireEvent.click(screen.getByText('Unlink'));
+    });
+
+    // Click the confirm "Unlink" button inside the dialog
+    const dialog = screen.getByTestId('confirm-dialog');
+    const confirmButton = dialog.querySelector('button.bg-red-600') as HTMLButtonElement;
+    await act(async () => {
+      fireEvent.click(confirmButton);
     });
 
     await waitFor(() => {
@@ -202,8 +230,6 @@ describe('AccountSettingsPage', () => {
   });
 
   it('shows success message after unlinking', async () => {
-    mockConfirm.mockReturnValue(true);
-
     mockFetch
       .mockResolvedValueOnce({ ok: true, json: () => Promise.resolve({ user: mockUser }) })
       .mockResolvedValueOnce({ ok: true, json: () => Promise.resolve({ success: true }) })
@@ -218,8 +244,14 @@ describe('AccountSettingsPage', () => {
       expect(screen.getByText('Unlink')).toBeInTheDocument();
     });
 
+    // Open confirm dialog and confirm
     await act(async () => {
       fireEvent.click(screen.getByText('Unlink'));
+    });
+    const dialog = screen.getByTestId('confirm-dialog');
+    const confirmButton = dialog.querySelector('button.bg-red-600') as HTMLButtonElement;
+    await act(async () => {
+      fireEvent.click(confirmButton);
     });
 
     await waitFor(() => {
@@ -228,8 +260,6 @@ describe('AccountSettingsPage', () => {
   });
 
   it('shows error when unlink fails', async () => {
-    mockConfirm.mockReturnValue(true);
-
     mockFetch
       .mockResolvedValueOnce({ ok: true, json: () => Promise.resolve({ user: mockUser }) })
       .mockResolvedValueOnce({
@@ -243,8 +273,14 @@ describe('AccountSettingsPage', () => {
       expect(screen.getByText('Unlink')).toBeInTheDocument();
     });
 
+    // Open confirm dialog and confirm
     await act(async () => {
       fireEvent.click(screen.getByText('Unlink'));
+    });
+    const dialog = screen.getByTestId('confirm-dialog');
+    const confirmButton = dialog.querySelector('button.bg-red-600') as HTMLButtonElement;
+    await act(async () => {
+      fireEvent.click(confirmButton);
     });
 
     await waitFor(() => {
@@ -323,8 +359,6 @@ describe('AccountSettingsPage', () => {
   });
 
   it('handles network error on unlink', async () => {
-    mockConfirm.mockReturnValue(true);
-
     mockFetch
       .mockResolvedValueOnce({ ok: true, json: () => Promise.resolve({ user: mockUser }) })
       .mockRejectedValueOnce(new Error('Network error'));
@@ -335,8 +369,14 @@ describe('AccountSettingsPage', () => {
       expect(screen.getByText('Unlink')).toBeInTheDocument();
     });
 
+    // Open confirm dialog and confirm
     await act(async () => {
       fireEvent.click(screen.getByText('Unlink'));
+    });
+    const dialog = screen.getByTestId('confirm-dialog');
+    const confirmButton = dialog.querySelector('button.bg-red-600') as HTMLButtonElement;
+    await act(async () => {
+      fireEvent.click(confirmButton);
     });
 
     await waitFor(() => {
@@ -345,8 +385,6 @@ describe('AccountSettingsPage', () => {
   });
 
   it('shows "Unlinking..." during unlink request', async () => {
-    mockConfirm.mockReturnValue(true);
-
     let resolveUnlink!: (value: unknown) => void;
     mockFetch
       .mockResolvedValueOnce({ ok: true, json: () => Promise.resolve({ user: mockUser }) })
@@ -363,8 +401,14 @@ describe('AccountSettingsPage', () => {
       expect(screen.getByText('Unlink')).toBeInTheDocument();
     });
 
+    // Open confirm dialog and confirm
     await act(async () => {
       fireEvent.click(screen.getByText('Unlink'));
+    });
+    const dialog = screen.getByTestId('confirm-dialog');
+    const confirmButton = dialog.querySelector('button.bg-red-600') as HTMLButtonElement;
+    await act(async () => {
+      fireEvent.click(confirmButton);
     });
 
     await waitFor(() => {
