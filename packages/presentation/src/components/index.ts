@@ -13,6 +13,7 @@ export { Alert, AlertActions, AlertBody, AlertDescription, AlertTitle } from './
 export { AuthLayout, type AuthLayoutProps } from './auth-layout.js';
 export { Avatar, AvatarButton } from './avatar.js';
 export { AvatarGroup } from './avatar-group.js';
+export { BuiltWithRevealUI } from './BuiltWithRevealUI.js';
 // CVA components (PascalCase files with types)
 export {
   Button as ButtonCVA,
