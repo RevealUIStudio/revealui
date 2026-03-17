@@ -11,10 +11,10 @@
  */
 
 import { randomInt, timingSafeEqual } from 'node:crypto';
-import { zValidator } from '@hono/zod-validator';
 import { getStorage, type Storage } from '@revealui/auth/server';
 import { logger } from '@revealui/core/observability/logger';
 import type { DatabaseClient } from '@revealui/db/client';
+import { zValidator } from '@revealui/openapi';
 import { eq } from 'drizzle-orm';
 import { Hono } from 'hono';
 import { z } from 'zod/v4';

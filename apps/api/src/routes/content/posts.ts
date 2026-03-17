@@ -6,9 +6,9 @@
  * GET /posts/slug/:slug
  */
 
-import { createRoute, OpenAPIHono, z } from '@hono/zod-openapi';
 import { POST_STATUSES } from '@revealui/contracts/entities';
 import * as postQueries from '@revealui/db/queries/posts';
+import { createRoute, OpenAPIHono, z } from '@revealui/openapi';
 import { HTTPException } from 'hono/http-exception';
 import { asNonEmptyTuple } from '../../lib/type-guards.js';
 import { ErrorSchema, IdParam, SlugField, SlugParam } from '../_helpers/content-schemas.js';

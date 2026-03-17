@@ -12,12 +12,12 @@
  *   was created manually and you want to hand it to the agent system.
  */
 
-import { createRoute, OpenAPIHono, z } from '@hono/zod-openapi';
 import type { DatabaseClient } from '@revealui/db/client';
 import * as boardQueries from '@revealui/db/queries/boards';
 import * as commentQueries from '@revealui/db/queries/ticket-comments';
 import * as ticketQueries from '@revealui/db/queries/tickets';
 import { agentMemories } from '@revealui/db/schema/agents';
+import { createRoute, OpenAPIHono, z } from '@revealui/openapi';
 
 type Variables = {
   db: DatabaseClient;
