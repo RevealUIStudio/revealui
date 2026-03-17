@@ -62,6 +62,7 @@ export const pages = pgTable(
   (table) => [
     index('pages_parent_id_idx').on(table.parentId),
     index('pages_site_id_idx').on(table.siteId),
+    index('pages_site_status_idx').on(table.siteId, table.status),
     uniqueIndex('pages_slug_site_id_idx').on(table.slug, table.siteId),
   ],
 );

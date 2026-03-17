@@ -54,7 +54,11 @@ export const sites = pgTable(
     // Soft-delete: null = active, timestamp = when deleted
     deletedAt: timestamp('deleted_at', { withTimezone: true }),
   },
-  (table) => [index('sites_deleted_at_idx').on(table.deletedAt)],
+  (table) => [
+    index('sites_deleted_at_idx').on(table.deletedAt),
+    index('sites_status_deleted_at_idx').on(table.status, table.deletedAt),
+    index('sites_owner_id_idx').on(table.ownerId),
+  ],
 );
 
 // =============================================================================

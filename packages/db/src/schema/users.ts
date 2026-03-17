@@ -84,6 +84,7 @@ export const users = pgTable(
     index('users_type_idx').on(table.type),
     index('users_status_idx').on(table.status),
     index('users_deleted_at_idx').on(table.deletedAt),
+    index('users_status_deleted_at_idx').on(table.status, table.deletedAt),
     index('users_stripe_customer_id_idx').on(table.stripeCustomerId),
     index('users_ssh_key_fingerprint_idx').on(table.sshKeyFingerprint),
   ],
