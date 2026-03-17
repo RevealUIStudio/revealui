@@ -12,6 +12,7 @@ import * as siteQueries from '@revealui/db/queries/sites';
 import { HTTPException } from 'hono/http-exception';
 import { asNonEmptyTuple } from '../../lib/type-guards.js';
 import { ErrorSchema, IdParam, SiteIdParam, SlugField } from '../_helpers/content-schemas.js';
+import { dateToString, nullableDateToString } from '../_helpers/serialize.js';
 import type { ContentVariables } from './index.js';
 
 // biome-ignore lint/style/useNamingConvention: Hono requires Variables key
@@ -40,6 +41,30 @@ const PageSchema = z
     publishedAt: z.string().nullable().openapi({ type: 'string', format: 'date-time' }),
   })
   .openapi('Page');
+
+type SerializedPage = z.infer<typeof PageSchema>;
+
+function serializePage(
+  page: NonNullable<Awaited<ReturnType<typeof pageQueries.getPageById>>>,
+): SerializedPage {
+  return {
+    id: page.id,
+    siteId: page.siteId,
+    parentId: page.parentId,
+    templateId: page.templateId,
+    title: page.title,
+    slug: page.slug,
+    path: page.path,
+    status: page.status as SerializedPage['status'],
+    blocks: page.blocks ?? null,
+    seo: page.seo ?? null,
+    blockCount: page.blockCount ?? null,
+    wordCount: page.wordCount ?? null,
+    createdAt: dateToString(page.createdAt),
+    updatedAt: dateToString(page.updatedAt),
+    publishedAt: nullableDateToString(page.publishedAt),
+  };
+}
 
 // =============================================================================
 // Page Routes
@@ -86,13 +111,13 @@ app.openapi(
         throw new HTTPException(404, { message: 'Site not found' });
       }
       const data = await pageQueries.getPagesBySite(db, siteId, { status: 'published' });
-      return c.json({ success: true as const, data }, 200);
+      return c.json({ success: true as const, data: data.map(serializePage) }, 200);
     }
     if (user.role !== 'admin' && site.ownerId !== user.id) {
       throw new HTTPException(403, { message: 'Forbidden' });
     }
     const data = await pageQueries.getPagesBySite(db, siteId, { status });
-    return c.json({ success: true as const, data }, 200);
+    return c.json({ success: true as const, data: data.map(serializePage) }, 200);
   },
 );
 
@@ -152,7 +177,7 @@ app.openapi(
       ...body,
     });
     // biome-ignore lint/style/noNonNullAssertion: createPage always returns the created row
-    return c.json({ success: true as const, data: page! }, 201);
+    return c.json({ success: true as const, data: serializePage(page!) }, 201);
   },
 );
 
@@ -185,7 +210,7 @@ app.openapi(
       if (page.status !== 'published') {
         throw new HTTPException(404, { message: 'Page not found' });
       }
-      return c.json({ success: true as const, data: page }, 200);
+      return c.json({ success: true as const, data: serializePage(page) }, 200);
     }
     if (user.role !== 'admin') {
       const site = await siteQueries.getSiteById(db, page.siteId);
@@ -193,7 +218,7 @@ app.openapi(
         throw new HTTPException(403, { message: 'Forbidden' });
       }
     }
-    return c.json({ success: true as const, data: page }, 200);
+    return c.json({ success: true as const, data: serializePage(page) }, 200);
   },
 );
 
@@ -258,7 +283,7 @@ app.openapi(
             : undefined,
     });
     if (!page) throw new HTTPException(404, { message: 'Page not found' });
-    return c.json({ success: true as const, data: page }, 200);
+    return c.json({ success: true as const, data: serializePage(page) }, 200);
   },
 );
 
