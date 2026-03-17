@@ -89,6 +89,8 @@ validateForgeConfig();
  * @returns Array of allowed CORS origins
  * @throws {Error} If CORS_ORIGIN is not set or empty in production
  */
+import { setCorsConfigMissing } from './lib/startup-state.js';
+
 export function getCorsOrigins(): string[] {
   const isProduction = process.env.NODE_ENV === 'production';
 
@@ -98,16 +100,18 @@ export function getCorsOrigins(): string[] {
         .filter((origin) => origin.length > 0) || []
     : ['http://localhost:3000', 'http://localhost:3001', 'http://localhost:5173'];
 
-  // Warn if CORS_ORIGIN is not configured — all cross-origin requests will be blocked,
-  // but we must not throw here: a module-init throw kills the server before any request
-  // is handled, making the health check unreachable and Railway/Vercel unable to diagnose.
+  // CORS_ORIGIN is required in production — without it, all CMS/marketing cross-origin
+  // requests fail silently. We log at error level AND set a flag that makes the readiness
+  // health check return 503, so deployment platforms detect the misconfiguration.
   if (isProduction && corsOrigins.length === 0) {
     logger.error(
       'CORS_ORIGIN not set in production — all cross-origin requests will be blocked. ' +
-        'Set CORS_ORIGIN to a comma-separated list of allowed origins.',
+        'Set CORS_ORIGIN to a comma-separated list of allowed origins. ' +
+        'The /health/ready endpoint will report NOT READY until this is fixed.',
       undefined,
       { nodeEnv: process.env.NODE_ENV },
     );
+    setCorsConfigMissing(true);
   }
 
   return corsOrigins;
