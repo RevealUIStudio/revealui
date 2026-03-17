@@ -7,14 +7,14 @@
  */
 
 import { execSync } from 'node:child_process';
+import { ErrorCode, ScriptError } from '@revealui/scripts/errors.js';
 import {
   createLogger,
   PGliteStateAdapter,
   type WorkflowState,
   WorkflowStateMachine,
   type WorkflowStep,
-} from '../../lib/index.js';
-import { ErrorCode, ScriptError } from '../lib/errors.js';
+} from '@revealui/scripts/index.js';
 
 const logger = createLogger({ prefix: 'Automation' });
 

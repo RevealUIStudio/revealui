@@ -27,14 +27,14 @@
 import { existsSync } from 'node:fs';
 import { readFile } from 'node:fs/promises';
 import { dirname, join, relative, resolve } from 'node:path';
-import { parseArgs } from '../lib/args.js';
-import { ErrorCode, ScriptError } from '../lib/errors.js';
-import { scanDirectoryAll } from '../lib/index.js';
-import { createOutput } from '../lib/output.js';
+import { parseArgs } from '@revealui/scripts/args.js';
+import { ErrorCode, ScriptError } from '@revealui/scripts/errors.js';
+import { scanDirectoryAll } from '@revealui/scripts/index.js';
+import { createOutput } from '@revealui/scripts/output.js';
 import {
   VERIFICATION_RULES,
   validateVerificationClaims,
-} from '../lib/verification-requirements.js';
+} from '@revealui/scripts/verification-requirements.js';
 
 // =============================================================================
 // Types

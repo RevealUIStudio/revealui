@@ -17,8 +17,8 @@
 
 import config from '@reveal-config';
 import { getRevealUI } from '@revealui/core';
-import { createLogger, getProjectRoot } from '../../lib/index.js';
-import { ErrorCode } from '../lib/errors.js';
+import { ErrorCode } from '@revealui/scripts/errors.js';
+import { createLogger, getProjectRoot } from '@revealui/scripts/index.js';
 
 const logger = createLogger();
 

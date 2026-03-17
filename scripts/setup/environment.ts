@@ -25,7 +25,7 @@
 import { randomBytes } from 'node:crypto';
 import { copyFile, readFile, writeFile } from 'node:fs/promises';
 import { join } from 'node:path';
-import { ErrorCode } from '../lib/errors.js';
+import { ErrorCode } from '@revealui/scripts/errors.js';
 import {
   confirm,
   createLogger,
@@ -34,7 +34,7 @@ import {
   fileExists,
   getProjectRoot,
   prompt,
-} from '../lib/index.js';
+} from '@revealui/scripts/index.js';
 
 const logger = createLogger({ prefix: 'Setup' });
 

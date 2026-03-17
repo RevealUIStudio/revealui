@@ -26,9 +26,9 @@
 
 import { existsSync, readFileSync } from 'node:fs';
 import { join, relative, resolve } from 'node:path';
+import { ErrorCode } from '@revealui/scripts/errors.js';
+import { createLogger } from '@revealui/scripts/index.js';
 import glob from 'fast-glob';
-import { ErrorCode } from '../../lib/errors.js';
-import { createLogger } from '../../lib/index.js';
 
 const logger = createLogger({ prefix: 'DepsValidator' });
 

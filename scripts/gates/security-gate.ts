@@ -31,10 +31,10 @@
 
 import { mkdir, writeFile } from 'node:fs/promises';
 import { join } from 'node:path';
-import { findApiSecurityIssues } from '../lib/analyzers/api-security-analyzer.js';
-import { findAuthSecurityIssues } from '../lib/analyzers/auth-security-analyzer.js';
-import { ErrorCode } from '../lib/errors.js';
-import { execCommand } from '../lib/exec.js';
+import { findApiSecurityIssues } from '@revealui/scripts/analyzers/api-security-analyzer.js';
+import { findAuthSecurityIssues } from '@revealui/scripts/analyzers/auth-security-analyzer.js';
+import { ErrorCode } from '@revealui/scripts/errors.js';
+import { execCommand } from '@revealui/scripts/exec.js';
 import { createLogger, getProjectRoot } from '../utils/base.js';
 
 const logger = createLogger();

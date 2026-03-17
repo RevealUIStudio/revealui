@@ -18,7 +18,7 @@
 import { spawn } from 'node:child_process';
 import { existsSync } from 'node:fs';
 import { join } from 'node:path';
-import { ErrorCode } from '../../lib/errors.js';
+import { ErrorCode } from '@revealui/scripts/errors.js';
 import { createLogger, getProjectRoot } from '../../utils/base.ts';
 
 const logger = createLogger();

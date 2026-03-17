@@ -16,10 +16,13 @@
  */
 
 import { join } from 'node:path';
-import { listBackups, restoreBackup } from '../../lib/database/backup-manager.js';
-import { createConnection, getRestConnectionString } from '../../lib/database/connection.js';
-import { ErrorCode } from '../../lib/errors.js';
-import { confirm, createLogger, getProjectRoot } from '../../lib/index.js';
+import { listBackups, restoreBackup } from '@revealui/scripts/database/backup-manager.js';
+import {
+  createConnection,
+  getRestConnectionString,
+} from '@revealui/scripts/database/connection.js';
+import { ErrorCode } from '@revealui/scripts/errors.js';
+import { confirm, createLogger, getProjectRoot } from '@revealui/scripts/index.js';
 
 const logger = createLogger({ prefix: 'Restore' });
 

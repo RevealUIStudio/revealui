@@ -20,7 +20,7 @@
 import { execSync } from 'node:child_process';
 import { existsSync, readFileSync, writeFileSync } from 'node:fs';
 import { join } from 'node:path';
-import { ErrorCode, ScriptError } from '../lib/errors.js';
+import { ErrorCode, ScriptError } from '@revealui/scripts/errors.js';
 
 const rootDir = join(import.meta.dirname, '../..');
 const snapshotFile = join(rootDir, '.type-system-snapshot.json');

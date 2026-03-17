@@ -4,8 +4,12 @@
  */
 
 import { join } from 'node:path';
-import { createLogger, getProjectRoot, writeFileContent as writeFile } from '../../lib/index.js';
-import { ErrorCode } from '../lib/errors.js';
+import { ErrorCode } from '@revealui/scripts/errors.js';
+import {
+  createLogger,
+  getProjectRoot,
+  writeFileContent as writeFile,
+} from '@revealui/scripts/index.js';
 import type { RevStartOptions } from '../types.ts';
 import { generateBrutalHonestyPromptPrefix } from '../utils/brutal-honesty.js';
 import {

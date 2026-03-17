@@ -19,7 +19,7 @@
 import { readFileSync } from 'node:fs';
 import { join } from 'node:path';
 import { getClient } from '@revealui/db/client';
-import { ErrorCode } from '../lib/errors.js';
+import { ErrorCode } from '@revealui/scripts/errors.js';
 
 async function setupSyncSchema() {
   console.log('🚀 Setting up sync schema for ElectricSQL...');

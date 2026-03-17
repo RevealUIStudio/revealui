@@ -3,8 +3,8 @@
  */
 
 import { Writable } from 'node:stream';
+import { createOutput, fail, OutputHandler, ok } from '@revealui/scripts/output.js';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
-import { createOutput, fail, OutputHandler, ok } from '../lib/output.js';
 
 // Helper to capture stream output
 function createCaptureStream(): { stream: Writable; getOutput: () => string } {

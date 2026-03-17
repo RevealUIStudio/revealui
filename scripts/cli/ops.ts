@@ -40,7 +40,7 @@
 import { execSync } from 'node:child_process';
 import { resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
-import type { ParsedArgs } from '../lib/args.js';
+import type { ParsedArgs } from '@revealui/scripts/args.js';
 import { type CommandDefinition, DispatcherCLI, runCLI } from './_base.js';
 
 class OpsCLI extends DispatcherCLI {

@@ -25,10 +25,10 @@
 
 import { dirname, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
+import { ErrorCode } from '@revealui/scripts/errors.js';
+import { createLogger } from '@revealui/scripts/logger.js';
+import { getProjectRoot } from '@revealui/scripts/paths.js';
 import { config } from 'dotenv';
-import { ErrorCode } from '../lib/errors.js';
-import { createLogger } from '../lib/logger.js';
-import { getProjectRoot } from '../lib/paths.js';
 
 const logger = createLogger();
 

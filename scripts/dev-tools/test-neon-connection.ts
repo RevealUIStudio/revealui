@@ -15,8 +15,8 @@
  * - Environment: POSTGRES_URL or DATABASE_URL (Neon database connection)
  */
 
-import { ErrorCode } from '../../lib/errors.js';
-import { createLogger } from '../../lib/index.js';
+import { ErrorCode } from '@revealui/scripts/errors.js';
+import { createLogger } from '@revealui/scripts/index.js';
 import { createClient } from '../packages/db/client/index.ts';
 
 const logger = createLogger();

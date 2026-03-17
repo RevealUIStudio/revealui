@@ -2,10 +2,10 @@
  * Workflow State Machine Tests
  */
 
+import { MemoryStateAdapter } from '@revealui/scripts/state/adapters/memory.js';
+import type { WorkflowStep } from '@revealui/scripts/state/types.js';
+import { WorkflowStateMachine } from '@revealui/scripts/state/workflow-state.js';
 import { afterEach, beforeEach, describe, expect, it } from 'vitest';
-import { MemoryStateAdapter } from '../../lib/state/adapters/memory.js';
-import type { WorkflowStep } from '../../lib/state/types.js';
-import { WorkflowStateMachine } from '../../lib/state/workflow-state.js';
 
 describe('WorkflowStateMachine', () => {
   let adapter: MemoryStateAdapter;

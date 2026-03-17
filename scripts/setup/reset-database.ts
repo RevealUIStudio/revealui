@@ -23,9 +23,8 @@
 
 import { mkdir, readdir, unlink, writeFile } from 'node:fs/promises';
 import { join } from 'node:path';
-import { config } from 'dotenv';
-import { getSSLConfig } from '../lib/database/ssl-config.js';
-import { ErrorCode } from '../lib/errors.js';
+import { getSSLConfig } from '@revealui/scripts/database/ssl-config.js';
+import { ErrorCode } from '@revealui/scripts/errors.js';
 import {
   confirm,
   createLogger,
@@ -34,7 +33,8 @@ import {
   isCI,
   listTables,
   validateDatabaseConnection,
-} from '../lib/index.js';
+} from '@revealui/scripts/index.js';
+import { config } from 'dotenv';
 
 for (const envFile of ['.env', '.env.development.local', '.env.local']) {
   config({ path: join(process.cwd(), envFile), override: false });

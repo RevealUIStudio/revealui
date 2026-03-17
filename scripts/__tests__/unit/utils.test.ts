@@ -1,7 +1,6 @@
 import { mkdtemp, rm, writeFile } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
-import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import {
   debounce,
   ensureArray,
@@ -17,7 +16,8 @@ import {
   validateDependencies,
   waitFor,
   writeFileContent,
-} from '../lib/utils.js';
+} from '@revealui/scripts/utils.js';
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
 describe('File Utilities', () => {
   let tempDir: string;

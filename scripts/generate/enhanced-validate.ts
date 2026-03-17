@@ -21,8 +21,8 @@
 
 import { existsSync, readFileSync, statSync } from 'node:fs';
 import { join } from 'node:path';
+import { ErrorCode } from '@revealui/scripts/errors.js';
 import * as ts from 'typescript';
-import { ErrorCode } from '../lib/errors.js';
 
 const VERBOSE_LOGGING =
   process.env.DB_VERBOSE !== 'false' &&

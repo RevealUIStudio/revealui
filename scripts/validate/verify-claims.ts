@@ -14,7 +14,7 @@
 
 import { execSync } from 'node:child_process';
 import fs from 'node:fs';
-import { ErrorCode } from '../lib/errors.js';
+import { ErrorCode } from '@revealui/scripts/errors.js';
 
 interface Claim {
   file: string;

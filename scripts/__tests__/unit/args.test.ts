@@ -2,7 +2,6 @@
  * Tests for the argument parser
  */
 
-import { describe, expect, it } from 'vitest';
 import {
   defineArgs,
   generateHelp,
@@ -10,7 +9,8 @@ import {
   type ParserConfig,
   parseArgs,
   validateRequiredArgs,
-} from '../lib/args.js';
+} from '@revealui/scripts/args.js';
+import { describe, expect, it } from 'vitest';
 
 describe('parseArgs', () => {
   const baseConfig: ParserConfig = {

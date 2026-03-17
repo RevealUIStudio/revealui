@@ -25,9 +25,9 @@
  * - External: vercel, pnpm
  */
 
+import { ErrorCode } from '@revealui/scripts/errors.js';
+import { execCommand } from '@revealui/scripts/exec.js';
 import { config } from 'dotenv';
-import { ErrorCode } from '../../lib/errors.js';
-import { execCommand } from '../../lib/exec.js';
 import { createLogger, getProjectRoot } from '../../utils/base.ts';
 
 const logger = createLogger();

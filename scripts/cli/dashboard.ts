@@ -31,12 +31,12 @@ import { writeFile } from 'node:fs/promises';
 import { freemem, totalmem } from 'node:os';
 import { join } from 'node:path';
 import { performance } from 'node:perf_hooks';
-import type { CommandDefinition, ParsedArgs } from '../lib/args.js';
-import { BuildCache } from '../lib/cache.js';
-import { ErrorCode } from '../lib/errors.js';
-import { getProjectRoot } from '../lib/paths.js';
-import { Telemetry } from '../lib/telemetry.js';
-import { formatBytes, formatDuration } from '../lib/utils.js';
+import type { CommandDefinition, ParsedArgs } from '@revealui/scripts/args.js';
+import { BuildCache } from '@revealui/scripts/cache.js';
+import { ErrorCode } from '@revealui/scripts/errors.js';
+import { getProjectRoot } from '@revealui/scripts/paths.js';
+import { Telemetry } from '@revealui/scripts/telemetry.js';
+import { formatBytes, formatDuration } from '@revealui/scripts/utils.js';
 import { ExecutingCLI } from './_base.js';
 
 interface DashboardData {

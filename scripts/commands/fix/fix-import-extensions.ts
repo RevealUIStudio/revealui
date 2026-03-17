@@ -21,8 +21,8 @@
 
 import { existsSync, readFileSync, statSync, writeFileSync } from 'node:fs';
 import { dirname, extname, join } from 'node:path';
+import { ErrorCode } from '@revealui/scripts/errors.js';
 import fg from 'fast-glob';
-import { ErrorCode } from '../lib/errors.js';
 
 interface ImportMatch {
   full: string;

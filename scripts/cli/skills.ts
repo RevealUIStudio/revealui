@@ -32,9 +32,9 @@
  */
 
 import * as path from 'node:path';
-import type { ParsedArgs } from '../lib/args.js';
-import { executionError, notFound, validationError } from '../lib/errors.js';
-import { ok, type ScriptOutput } from '../lib/output.js';
+import type { ParsedArgs } from '@revealui/scripts/args.js';
+import { executionError, notFound, validationError } from '@revealui/scripts/errors.js';
+import { ok, type ScriptOutput } from '@revealui/scripts/output.js';
 import { type CommandDefinition, ExecutingCLI, runCLI } from './_base.js';
 
 // =============================================================================

@@ -2,8 +2,8 @@
  * Logger Tests
  */
 
+import { createLogger } from '@revealui/scripts/logger.js';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
-import { createLogger } from '../lib/logger.js';
 
 describe('createLogger', () => {
   let consoleSpy: {

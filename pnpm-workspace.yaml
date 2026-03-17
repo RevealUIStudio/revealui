@@ -2,7 +2,6 @@ packages:
   - apps/*
   - packages/*
   - ee/packages/*
-  - scripts/lib
 
 catalog:
   '@biomejs/biome': ^2.4.4
