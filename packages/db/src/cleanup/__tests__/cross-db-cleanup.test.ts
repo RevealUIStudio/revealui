@@ -200,12 +200,10 @@ describe('cleanupOrphanedVectorData', () => {
     expect(result1.agentMemoriesDeleted).toBe(1);
 
     // Second run: no more orphans (already cleaned up)
-    let secondRunCallCount = 0;
     vectorDb = createMockDb();
     vectorDb.select.mockImplementation(() => {
       const chain = createSelectChain([]);
       chain.from.mockImplementation(() => {
-        secondRunCallCount++;
         return createSelectChain([]);
       });
       return chain;
