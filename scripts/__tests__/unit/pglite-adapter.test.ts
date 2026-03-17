@@ -6,8 +6,8 @@
 
 import { rm } from 'node:fs/promises';
 import { join } from 'node:path';
-import { PGliteStateAdapter } from '../lib/state/adapters/pglite.js';
-import { WorkflowStateMachine } from '../lib/state/workflow-state.js';
+import { PGliteStateAdapter } from '@revealui/scripts/state/adapters/pglite.js';
+import { WorkflowStateMachine } from '@revealui/scripts/state/workflow-state.js';
 
 async function main() {
   const testDir = join(process.cwd(), '.revealui', 'state', 'test-workflows');

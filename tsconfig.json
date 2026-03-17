@@ -19,8 +19,8 @@
     "forceConsistentCasingInFileNames": true,
     "baseUrl": ".",
     "paths": {
-      "@revealui/scripts": ["scripts/lib/index.ts"],
-      "@revealui/scripts/*": ["scripts/lib/*"],
+      "@revealui/scripts": ["packages/scripts/index.ts"],
+      "@revealui/scripts/*": ["packages/scripts/*"],
       "@revealui/core": ["packages/core/src/index.ts"],
       "@revealui/core/*": ["packages/core/src/*"],
       "@revealui/db": ["packages/db/src/index.ts"],

@@ -16,9 +16,9 @@
 import { readFileSync } from 'node:fs';
 import { dirname, join, relative } from 'node:path';
 import { fileURLToPath } from 'node:url';
+import { ErrorCode } from '@revealui/scripts/errors.js';
+import { createLogger, handleASTParseError, scanDirectorySync } from '@revealui/scripts/index.js';
 import * as ts from 'typescript';
-import { ErrorCode } from '../lib/errors.js';
-import { createLogger, handleASTParseError, scanDirectorySync } from '../lib/index.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);

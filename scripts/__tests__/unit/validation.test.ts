@@ -2,9 +2,17 @@
  * Validation Utilities Tests
  */
 
+import {
+  detectDatabaseProvider,
+  parseConnectionString,
+} from '@revealui/scripts/validation/database.js';
+import {
+  detectEnvironment,
+  isCI,
+  REQUIRED_ENV_VARS,
+  validateEnv,
+} from '@revealui/scripts/validation/env.js';
 import { afterEach, describe, expect, it } from 'vitest';
-import { detectDatabaseProvider, parseConnectionString } from '../lib/validation/database.js';
-import { detectEnvironment, isCI, REQUIRED_ENV_VARS, validateEnv } from '../lib/validation/env.js';
 
 describe('validateEnv', () => {
   it('should return valid when all required variables are set', () => {

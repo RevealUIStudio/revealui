@@ -6,8 +6,8 @@
  */
 
 import path from 'node:path';
+import type { ParsedArgs } from '@revealui/scripts/args.js';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
-import type { ParsedArgs } from '../../lib/args.js';
 
 // Mock modules before importing the CLIs
 vi.mock('../../lib/logger.js', () => ({

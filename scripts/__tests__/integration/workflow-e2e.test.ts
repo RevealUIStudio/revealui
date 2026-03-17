@@ -5,9 +5,9 @@
  * Uses the MemoryStateAdapter for isolated testing.
  */
 
+import { MemoryStateAdapter } from '@revealui/scripts/state/adapters/memory.js';
+import { WorkflowStateMachine, type WorkflowStep } from '@revealui/scripts/state/workflow-state.js';
 import { afterEach, beforeEach, describe, expect, it } from 'vitest';
-import { MemoryStateAdapter } from '../../lib/state/adapters/memory.js';
-import { WorkflowStateMachine, type WorkflowStep } from '../../lib/state/workflow-state.js';
 
 // =============================================================================
 // Test Fixtures

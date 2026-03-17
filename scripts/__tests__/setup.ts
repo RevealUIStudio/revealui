@@ -4,9 +4,9 @@
  * Provides test fixtures and utilities for script tests.
  */
 
+import { MemoryStateAdapter } from '@revealui/scripts/state/adapters/memory.js';
+import { WorkflowStateMachine } from '@revealui/scripts/state/workflow-state.js';
 import { afterAll, afterEach, beforeAll } from 'vitest';
-import { MemoryStateAdapter } from '../lib/state/adapters/memory.js';
-import { WorkflowStateMachine } from '../lib/state/workflow-state.js';
 
 // Global test state adapter
 let testAdapter: MemoryStateAdapter | null = null;

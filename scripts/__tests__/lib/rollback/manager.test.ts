@@ -30,7 +30,7 @@ vi.mock('../../../lib/logger.js', () => ({
   })),
 }));
 
-import { RollbackManager } from '../../../lib/rollback/manager.js';
+import { RollbackManager } from '@revealui/scripts/rollback/manager.js';
 
 describe('RollbackManager', () => {
   const testDir = join(process.cwd(), '.test-rollback');

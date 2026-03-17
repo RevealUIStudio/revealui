@@ -9,11 +9,11 @@
 
 import { mkdir, rm, writeFile } from 'node:fs/promises';
 import { join } from 'node:path';
+import { getUsageAnalytics } from '@revealui/scripts/analytics/usage-analytics.js';
+import { ExecutionLogger } from '@revealui/scripts/audit/execution-logger.js';
+import { SnapshotManager } from '@revealui/scripts/rollback/snapshot-manager.js';
+import { DependencyAnalyzer } from '@revealui/scripts/visualization/dependency-analyzer.js';
 import { afterAll, beforeAll, describe, expect, it } from 'vitest';
-import { getUsageAnalytics } from '../lib/analytics/usage-analytics.js';
-import { ExecutionLogger } from '../lib/audit/execution-logger.js';
-import { SnapshotManager } from '../lib/rollback/snapshot-manager.js';
-import { DependencyAnalyzer } from '../lib/visualization/dependency-analyzer.js';
 
 // =============================================================================
 // Mock/Stub Implementations for Missing Components

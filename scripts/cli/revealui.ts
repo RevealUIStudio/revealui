@@ -47,7 +47,7 @@ import { spawn } from 'node:child_process';
 import { readFileSync } from 'node:fs';
 import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { ErrorCode } from '../lib/errors.js';
+import { ErrorCode } from '@revealui/scripts/errors.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);

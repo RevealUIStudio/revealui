@@ -33,10 +33,10 @@
 import { spawn } from 'node:child_process';
 import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { getExecutionLogger } from '../lib/audit/execution-logger.js';
-import { ErrorCode, ScriptError } from '../lib/errors.js';
-import type { ScriptSearchCriteria } from '../lib/registry/script-metadata.js';
-import { createScriptRegistry } from '../lib/registry/script-registry.js';
+import { getExecutionLogger } from '@revealui/scripts/audit/execution-logger.js';
+import { ErrorCode, ScriptError } from '@revealui/scripts/errors.js';
+import type { ScriptSearchCriteria } from '@revealui/scripts/registry/script-metadata.js';
+import { createScriptRegistry } from '@revealui/scripts/registry/script-registry.js';
 import { type CommandDefinition, ExecutingCLI, runCLI } from './_base.js';
 
 // Get project root

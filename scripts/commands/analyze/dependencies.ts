@@ -25,12 +25,12 @@
 
 import { readFile } from 'node:fs/promises';
 import { join } from 'node:path';
+import { ErrorCode } from '@revealui/scripts/errors.js';
+import { execCommand } from '@revealui/scripts/exec.js';
+import { createLogger } from '@revealui/scripts/logger.js';
+import { parallelMap } from '@revealui/scripts/parallel.js';
+import { getProjectRoot } from '@revealui/scripts/paths.js';
 import fg from 'fast-glob';
-import { ErrorCode } from '../../lib/errors.js';
-import { execCommand } from '../../lib/exec.js';
-import { createLogger } from '../../lib/logger.js';
-import { parallelMap } from '../../lib/parallel.js';
-import { getProjectRoot } from '../../lib/paths.js';
 
 const logger = createLogger({ prefix: 'DependencyAnalysis' });
 

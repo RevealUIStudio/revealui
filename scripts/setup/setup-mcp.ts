@@ -22,10 +22,10 @@
 
 import { existsSync } from 'node:fs';
 import { join } from 'node:path';
+import { ErrorCode } from '@revealui/scripts/errors.js';
+import { createLogger } from '@revealui/scripts/logger.js';
+import { getProjectRoot } from '@revealui/scripts/paths.js';
 import { config } from 'dotenv';
-import { ErrorCode } from '../lib/errors.js';
-import { createLogger } from '../lib/logger.js';
-import { getProjectRoot } from '../lib/paths.js';
 
 const logger = createLogger();
 

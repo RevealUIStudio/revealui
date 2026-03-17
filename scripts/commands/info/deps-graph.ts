@@ -29,8 +29,8 @@
 
 import { writeFileSync } from 'node:fs';
 import { join, resolve } from 'node:path';
-import { ErrorCode, ScriptError } from '../../lib/errors.js';
-import { createLogger } from '../../lib/index.js';
+import { ErrorCode, ScriptError } from '@revealui/scripts/errors.js';
+import { createLogger } from '@revealui/scripts/index.js';
 import {
   type DependencyGraph,
   type ScriptNode,

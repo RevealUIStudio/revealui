@@ -16,14 +16,14 @@
  * - Environment: SUPABASE_DATABASE_URI (optional) - Vector database connection
  */
 
-import { getSSLConfig } from '../../lib/database/ssl-config.js';
-import { ErrorCode } from '../../lib/errors.js';
+import { getSSLConfig } from '@revealui/scripts/database/ssl-config.js';
+import { ErrorCode } from '@revealui/scripts/errors.js';
 import {
   createLogger,
   detectDatabaseProvider,
   listTables,
   validateDatabaseConnection,
-} from '../../lib/index.js';
+} from '@revealui/scripts/index.js';
 
 const logger = createLogger({ prefix: 'DB Status' });
 

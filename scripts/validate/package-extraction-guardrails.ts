@@ -12,8 +12,8 @@
  * - scripts/lib/index.ts - Shared utilities (createLogger)
  */
 
-import { createLogger } from '../../../lib/index.js';
-import { ErrorCode } from '../lib/errors.js';
+import { ErrorCode } from '@revealui/scripts/errors.js';
+import { createLogger } from '@revealui/scripts/index.js';
 
 const logger = createLogger();
 

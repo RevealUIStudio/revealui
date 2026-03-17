@@ -19,8 +19,8 @@ import { readFileSync } from 'node:fs';
 import { readdir, stat } from 'node:fs/promises';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
+import { ErrorCode } from '@revealui/scripts/errors.js';
 import * as ts from 'typescript';
-import { ErrorCode } from '../lib/errors.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);

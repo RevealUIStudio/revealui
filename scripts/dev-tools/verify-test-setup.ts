@@ -24,8 +24,8 @@
  */
 
 import { getRestClient, getVectorClient, resetClient } from '@revealui/db';
+import { ErrorCode } from '@revealui/scripts/errors.js';
 import { sql } from 'drizzle-orm';
-import { ErrorCode } from '../lib/errors.js';
 
 interface VerificationResult {
   name: string;

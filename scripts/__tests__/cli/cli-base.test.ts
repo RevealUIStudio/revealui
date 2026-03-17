@@ -12,11 +12,11 @@
  * - scripts/lib/output.ts - Output handling (fail, ok, ScriptOutput)
  */
 
+import type { ParsedArgs } from '@revealui/scripts/args.js';
+import { ErrorCode, ScriptError } from '@revealui/scripts/errors.js';
+import { fail, ok, type ScriptOutput } from '@revealui/scripts/output.js';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { BaseCLI, type CommandDefinition, runCLI } from '../../cli/_base.js';
-import type { ParsedArgs } from '../../lib/args.js';
-import { ErrorCode, ScriptError } from '../../lib/errors.js';
-import { fail, ok, type ScriptOutput } from '../../lib/output.js';
 
 // =============================================================================
 // Test Helpers

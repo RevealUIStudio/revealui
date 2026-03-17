@@ -20,8 +20,8 @@
  */
 
 import { readFile } from 'node:fs/promises';
-import { ErrorCode } from '../lib/errors.js';
-import { createLogger, getProjectRoot, scanDirectoryAll } from '../lib/index.js';
+import { ErrorCode } from '@revealui/scripts/errors.js';
+import { createLogger, getProjectRoot, scanDirectoryAll } from '@revealui/scripts/index.js';
 
 const logger = createLogger();
 

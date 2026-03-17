@@ -70,7 +70,7 @@ describe('Dependency Validator', () => {
  * - External: psql
  */
 
-import { createLogger } from '../lib/index.js'
+import { createLogger } from '@revealui/scripts/index.js'
 import fs from 'node:fs'
 
 console.log('test')
@@ -93,7 +93,7 @@ console.log('test')
         'undocumented.ts',
         `#!/usr/bin/env tsx
 // No @dependencies header
-import { createLogger } from '../lib/index.js'
+import { createLogger } from '@revealui/scripts/index.js'
 console.log('test')
 `,
       );
@@ -289,9 +289,9 @@ import { db } from '@revealui/db'
  * @dependencies
  * - scripts/lib/index.js - Logger
  */
-import { createLogger } from '../lib/index.js'
-import type { Logger } from '../lib/types.js'
-import * as utils from '../lib/utils.js'
+import { createLogger } from '@revealui/scripts/index.js'
+import type { Logger } from '@revealui/scripts/types.js'
+import * as utils from '@revealui/scripts/utils.js'
 `,
       );
 
@@ -376,7 +376,7 @@ import path from 'node:path'
  * - scripts/lib/index.js - Internal file
  * - node:fs - External package
  */
-import { logger } from '../lib/index.js'
+import { logger } from '@revealui/scripts/index.js'
 import fs from 'node:fs'
 `,
       );

@@ -14,10 +14,10 @@
 
 import fs from 'node:fs/promises';
 import path from 'node:path';
+import { ErrorCode } from '@revealui/scripts/errors.js';
+import { createLogger, getProjectRoot, handleASTParseError } from '@revealui/scripts/index.js';
 import fg from 'fast-glob';
 import * as ts from 'typescript';
-import { ErrorCode } from '../lib/errors.js';
-import { createLogger, getProjectRoot, handleASTParseError } from '../lib/index.js';
 
 const logger = createLogger();
 

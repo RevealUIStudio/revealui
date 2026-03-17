@@ -26,7 +26,7 @@
 import { execSync } from 'node:child_process';
 import { existsSync } from 'node:fs';
 import { join } from 'node:path';
-import { ErrorCode, ScriptError } from '../lib/errors.js';
+import { ErrorCode, ScriptError } from '@revealui/scripts/errors.js';
 
 const VERBOSE_LOGGING =
   process.env.DB_VERBOSE !== 'false' &&

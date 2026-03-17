@@ -45,10 +45,10 @@
 
 import { writeFileSync } from 'node:fs';
 import { resolve } from 'node:path';
-import type { ParsedArgs } from '../lib/args.js';
-import { ErrorCode } from '../lib/errors.js';
-import { execCommand } from '../lib/index.js';
-import { fail, ok } from '../lib/output.js';
+import type { ParsedArgs } from '@revealui/scripts/args.js';
+import { ErrorCode } from '@revealui/scripts/errors.js';
+import { execCommand } from '@revealui/scripts/index.js';
+import { fail, ok } from '@revealui/scripts/output.js';
 import { type CommandDefinition, ExecutingCLI } from './_base.js';
 
 class ReleaseCLI extends ExecutingCLI {

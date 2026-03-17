@@ -20,7 +20,7 @@
 
 import { existsSync, statSync } from 'node:fs';
 import { join } from 'node:path';
-import { ErrorCode } from '../lib/errors.js';
+import { ErrorCode } from '@revealui/scripts/errors.js';
 
 const VERBOSE_LOGGING =
   process.env.DB_VERBOSE !== 'false' &&

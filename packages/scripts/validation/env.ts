@@ -13,7 +13,7 @@
 
 import { access, readFile } from 'node:fs/promises';
 import { join } from 'node:path';
-import { ErrorCode } from '../../lib/errors.js';
+import { ErrorCode } from '../errors.js';
 import { createLogger, type Logger } from '../logger.js';
 import { getProjectRoot } from '../paths.js';
 

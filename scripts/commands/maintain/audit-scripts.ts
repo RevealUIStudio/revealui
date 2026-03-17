@@ -24,8 +24,8 @@
 
 import { readFile } from 'node:fs/promises';
 import { join } from 'node:path';
-import { ErrorCode } from '../../lib/errors.js';
-import { getProjectRoot } from '../../lib/paths.js';
+import { ErrorCode } from '@revealui/scripts/errors.js';
+import { getProjectRoot } from '@revealui/scripts/paths.js';
 
 // =============================================================================
 // Types

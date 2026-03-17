@@ -26,7 +26,7 @@ import {
   generateReport,
   saveMarkdownReport,
   saveReport,
-} from '../lib/generators/reports/index.js';
+} from '@revealui/scripts/generators/reports/index.js';
 
 const rootDir = join(import.meta.dirname, '../..');
 

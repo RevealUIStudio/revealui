@@ -18,7 +18,7 @@
  */
 
 import { join } from 'node:path';
-import { ErrorCode } from '../lib/errors.js';
+import { ErrorCode } from '@revealui/scripts/errors.js';
 import {
   commandExists,
   createLogger,
@@ -26,7 +26,7 @@ import {
   fileExists,
   getProjectRoot,
   waitFor,
-} from '../lib/index.js';
+} from '@revealui/scripts/index.js';
 
 const logger = createLogger();
 
