@@ -6,17 +6,17 @@ Public documentation site for RevealUI — built with Vite and React.
 
 ## Features
 
-- **Markdown Rendering** — Renders project documentation as styled HTML (react-markdown + rehype-highlight + remark-gfm)
+- **Markdown Rendering** — Renders project documentation as styled HTML (react-markdown + remark-gfm)
 - **Content Pipeline** — `scripts/copy-docs.sh` copies user-facing docs from the monorepo root into `public/docs/` at build time
 - **Security Filtering** — Internal docs (MASTER_PLAN, GOVERNANCE, AI-AGENT-RULES, etc.) are excluded from the public build
-- **SPA Routing** — Client-side routing via react-router-dom with Vercel SPA rewrite
+- **SPA Routing** — Client-side routing via @revealui/router with Vercel SPA rewrite
 
 ## Stack
 
 - **Build**: Vite
 - **UI**: React 19
-- **Markdown**: react-markdown, rehype-highlight, remark-gfm
-- **Routing**: react-router-dom
+- **Markdown**: react-markdown, remark-gfm
+- **Routing**: @revealui/router
 
 ## Development
 

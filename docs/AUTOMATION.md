@@ -40,12 +40,12 @@ Comprehensive guide to AI agent capabilities, configurations, and workflows in t
 
 **Purpose**: Entry point for AI agents working on RevealUI Framework
 
-### Current State (2026-03-03)
+### Current State (2026-03-16)
 
 **Project Overview**
 
 - **Framework**: RevealUI — Full-stack React 19 + Next.js 16 CMS Framework
-- **Package Count**: 18 packages (13 OSS + 5 Pro)
+- **Package Count**: 22 packages (17 OSS + 5 Pro)
 - **Test Status**: 307+ test files, all packages build and typecheck ✅
 - **Build Status**: All 24 workspaces build successfully ✅
 
@@ -64,15 +64,19 @@ From 2026 onward, automation features should align with:
 packages/
 ├── core/           # CMS framework (includes types/ and generated/)
 ├── contracts/      # Zod schemas & TypeScript types
-├── db/             # Database (Drizzle ORM, 50 tables)
+├── db/             # Database (Drizzle ORM, 68 tables)
 ├── auth/           # Authentication system
 ├── presentation/   # 50+ UI components (Tailwind v4)
 ├── router/         # File-based router with SSR
 ├── config/         # Type-safe env config (Zod)
 ├── utils/          # Logger, DB helpers, validation
 ├── cli/            # create-revealui scaffolding
+├── create-revealui/ # npm create revealui initializer
 ├── setup/          # Environment setup utilities
 ├── sync/           # ElectricSQL real-time sync
+├── cache/          # CDN config, edge cache, ISR presets
+├── resilience/     # Circuit breaker, retry, bulkhead
+├── security/       # Headers, CORS, RBAC/ABAC, GDPR
 ├── dev/            # Shared configs (Biome, TS, Tailwind)
 ├── test/           # E2E specs, fixtures, mocks
 ├── ai/             # AI agents, CRDT memory (Pro)
