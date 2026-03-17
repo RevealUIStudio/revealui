@@ -1,3 +1,58 @@
+# RevealUI
+
+RevealUI is Business OS Software (BOSS) — users, content, products, payments, and AI, pre-wired, open source, and ready to deploy.
+
+## Five Primitives
+
+1. **Users** — authentication, sessions, RBAC/ABAC, rate limiting, brute force protection
+2. **Content** — collections, rich text (Lexical), media, draft/live workflows, REST API
+3. **Products** — catalog, pricing tiers, license key management
+4. **Payments** — Stripe checkout, subscriptions, webhooks, billing portal
+5. **Intelligence** — AI agents, CRDT memory, LLM orchestration, BYOK (Pro tier)
+
+## Stack
+
+- React 19, Next.js 16, Node 24, TypeScript 5.9
+- Hono (REST API with OpenAPI), Drizzle ORM (NeonDB + Supabase)
+- Stripe (payments), Tailwind CSS v4, Lexical (rich text), ElectricSQL (sync)
+- pnpm 10, Turborepo, Biome 2, Vitest 4
+
+## Discovery URLs
+
+| Endpoint | URL |
+|----------|-----|
+| REST API | `https://api.revealui.com` |
+| OpenAPI spec | `https://api.revealui.com/openapi.json` |
+| Swagger UI | `https://api.revealui.com/docs` |
+| A2A Agent Card | `https://api.revealui.com/.well-known/agent.json` |
+| Documentation | `https://docs.revealui.com` |
+
+## MCP Servers
+
+Stripe, Supabase, Neon, Vercel, Code Validator, Playwright, Next.js DevTools
+
+## License
+
+- **OSS (MIT):** core, contracts, db, auth, presentation, router, config, utils, cli, setup, sync, cache, resilience, security, mcp, services
+- **Commercial (source-available):** ai, editors, harnesses
+
+## Pricing Tiers
+
+| Tier | Price | Limits |
+|------|-------|--------|
+| free | $0 | 1 site, 3 users, 200 req/min |
+| pro | $49/mo | 5 sites, 25 users, 300 req/min |
+| max | $149/mo | 15 sites, 100 users, 600 req/min |
+| enterprise (Forge) | $299/mo | unlimited |
+
+## Quickstart
+
+```bash
+npm create revealui
+```
+
+---
+
 ## Skills
 
 A skill is a set of local instructions to follow that is stored in a `SKILL.md` file. Below is the list of skills that can be used. Each entry includes a name, description, and file path so you can open the source for full instructions when using a specific skill.
