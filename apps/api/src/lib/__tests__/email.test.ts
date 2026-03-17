@@ -232,9 +232,9 @@ describe('sendEmail', () => {
     vi.stubGlobal('fetch', mockFetch);
 
     const { sendEmail } = await importFresh();
-    await expect(
-      sendEmail({ to: 'bad', subject: 'Test', html: '<p>Hi</p>' }),
-    ).rejects.toThrow('Resend API error (422): Invalid email address');
+    await expect(sendEmail({ to: 'bad', subject: 'Test', html: '<p>Hi</p>' })).rejects.toThrow(
+      'Resend API error (422): Invalid email address',
+    );
   });
 
   it('includes Authorization header with Bearer token', async () => {

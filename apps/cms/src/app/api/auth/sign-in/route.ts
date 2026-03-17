@@ -83,7 +83,7 @@ async function signInHandler(request: NextRequest): Promise<NextResponse> {
       const { signCookiePayload } = await import('@revealui/auth/server');
       const signed = signCookiePayload(
         { userId: result.mfaUserId, expiresAt: Date.now() + 5 * 60 * 1000 },
-        process.env.REVEALUI_SECRET!,
+        process.env.REVEALUI_SECRET ?? '',
       );
       const response = NextResponse.json({ requiresMfa: true }, { status: 200 });
       response.cookies.set('mfa-pending', signed, {
