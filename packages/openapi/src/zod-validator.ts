@@ -1,6 +1,6 @@
-import type { Context, Env, Input, MiddlewareHandler, ValidationTargets } from 'hono';
+import type { Context, Env, MiddlewareHandler, ValidationTargets } from 'hono';
 import { validator } from 'hono/validator';
-import type { ZodType } from 'zod';
+import type { ZodType, z } from 'zod';
 
 type Hook<T, E extends Env, P extends string> = (
   result: ({ success: true; data: T } | { success: false; error: unknown; data: T }) & {
@@ -35,7 +35,11 @@ export function zValidator<
   schema: T,
   hook?: Hook<unknown, E, P>,
   options?: ZodValidatorOptions<T>,
-): MiddlewareHandler<E, P, Input> {
+): MiddlewareHandler<
+  E,
+  P,
+  { in: { [K in Target]: z.input<T> }; out: { [K in Target]: z.output<T> } }
+> {
   return validator(target, async (value: unknown, c: Context) => {
     let validatorValue = value;
 
@@ -73,7 +77,11 @@ export function zValidator<
     }
 
     return result.data;
-  }) as unknown as MiddlewareHandler<E, P, Input>;
+  }) as unknown as MiddlewareHandler<
+    E,
+    P,
+    { in: { [K in Target]: z.input<T> }; out: { [K in Target]: z.output<T> } }
+  >;
 }
 
 /** Duck-type check for Zod object schema (has _def or _zod internal property) */
