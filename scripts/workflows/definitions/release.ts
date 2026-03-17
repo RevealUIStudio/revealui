@@ -17,7 +17,7 @@
  * ```
  */
 
-import type { WorkflowStep } from '../../lib/state/index.js';
+import type { WorkflowStep } from '@revealui/scripts/state/index.js';
 
 export interface ReleaseWorkflowConfig {
   /** Version bump type */

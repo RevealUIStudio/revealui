@@ -20,15 +20,15 @@
 
 import { dirname, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
-import concurrently from 'concurrently';
-import { ErrorCode } from '../../lib/errors.js';
+import { ErrorCode } from '@revealui/scripts/errors.js';
 import {
   displayMonitoringSummary,
   startDevMonitoring,
   startPeriodicStatusLogging,
   stopDevMonitoring,
   stopPeriodicStatusLogging,
-} from '../../lib/monitoring/process-tracker.js';
+} from '@revealui/scripts/monitoring/process-tracker.js';
+import concurrently from 'concurrently';
 import { createLogger, getProjectRoot } from '../../utils/base.ts';
 
 const logger = createLogger();

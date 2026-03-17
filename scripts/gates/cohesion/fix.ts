@@ -16,7 +16,7 @@
  */
 
 import { readFile } from 'node:fs/promises';
-import { ErrorCode } from '../../lib/errors.js';
+import { ErrorCode } from '@revealui/scripts/errors.js';
 import type { CodeChange, CohesionAnalysis, CohesionIssue } from '../../types.ts';
 import { logFixOperation } from '../../utils/audit-logger.ts';
 import { createLogger, fileExists, getProjectRoot } from '../../utils/base.ts';

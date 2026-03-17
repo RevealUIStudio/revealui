@@ -15,7 +15,7 @@
  * - node:path - Path manipulation utilities (join, dynamic import)
  */
 
-import { ErrorCode } from '../../lib/errors.js';
+import { ErrorCode } from '@revealui/scripts/errors.js';
 import type { CohesionAnalysis, CohesionIssue, PatternAnalysis } from '../../types.ts';
 import { logAnalysisOperation } from '../../utils/audit-logger.ts';
 import { createLogger, getProjectRoot } from '../../utils/base.ts';

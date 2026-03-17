@@ -14,9 +14,9 @@
 import { access } from 'node:fs/promises';
 import { dirname, resolve } from 'node:path';
 import { pathToFileURL } from 'node:url';
-import { ErrorCode } from '../lib/errors.js';
-import { createLogger } from '../lib/logger.js';
-import { getProjectRoot } from '../lib/paths.js';
+import { ErrorCode } from '@revealui/scripts/errors.js';
+import { createLogger } from '@revealui/scripts/logger.js';
+import { getProjectRoot } from '@revealui/scripts/paths.js';
 
 const logger = createLogger();
 

@@ -15,8 +15,8 @@
 import { existsSync } from 'node:fs';
 import { readFile, rename } from 'node:fs/promises';
 import { join } from 'node:path';
+import { ErrorCode } from '@revealui/scripts/errors.js';
 import { createLogger, getProjectRoot } from '../../utils/base.ts';
-import { ErrorCode } from '../lib/errors.js';
 
 const logger = createLogger();
 

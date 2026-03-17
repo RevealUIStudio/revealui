@@ -8,8 +8,8 @@
  */
 
 import { join } from 'node:path';
-import { ErrorCode } from '../../lib/errors.js';
-import { getRollbackManager } from '../../lib/rollback/index.js';
+import { ErrorCode } from '@revealui/scripts/errors.js';
+import { getRollbackManager } from '@revealui/scripts/rollback/index.js';
 
 const rootDir = join(import.meta.dirname, '../../..');
 const manager = getRollbackManager(rootDir);

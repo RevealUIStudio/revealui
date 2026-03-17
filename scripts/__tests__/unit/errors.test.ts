@@ -2,7 +2,6 @@
  * Tests for the typed error system
  */
 
-import { describe, expect, it } from 'vitest';
 import {
   configError,
   conflictError,
@@ -19,7 +18,8 @@ import {
   validationError,
   withErrorHandling,
   wrapError,
-} from '../lib/errors.js';
+} from '@revealui/scripts/errors.js';
+import { describe, expect, it } from 'vitest';
 
 describe('ErrorCode', () => {
   it('has correct values', () => {

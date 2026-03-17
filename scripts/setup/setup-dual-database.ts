@@ -37,8 +37,8 @@ import { readFileSync } from 'node:fs';
 import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { getRestClient, getVectorClient, resetClient } from '@revealui/db';
+import { ErrorCode, ScriptError } from '@revealui/scripts/errors.js';
 import { sql } from 'drizzle-orm';
-import { ErrorCode, ScriptError } from '../lib/errors.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);

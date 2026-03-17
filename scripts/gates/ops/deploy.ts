@@ -20,8 +20,8 @@
  */
 
 import { spawn } from 'node:child_process';
+import { ErrorCode } from '@revealui/scripts/errors.js';
 import { config } from 'dotenv';
-import { ErrorCode } from '../../lib/errors.js';
 import { createLogger, getProjectRoot } from '../../utils/base.ts';
 
 const logger = createLogger();

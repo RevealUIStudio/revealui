@@ -22,7 +22,7 @@ import { execSync } from 'node:child_process';
 import { existsSync, readFileSync, writeFileSync } from 'node:fs';
 import { dirname, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { ErrorCode } from '../../lib/errors.js';
+import { ErrorCode } from '@revealui/scripts/errors.js';
 
 // Temporarily use console.log instead of shared logger to debug
 const logger = {

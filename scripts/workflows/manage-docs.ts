@@ -32,8 +32,8 @@ import {
   writeFileSync,
 } from 'node:fs';
 import { join, relative } from 'node:path';
-import { ErrorCode } from '../lib/errors.js';
-import { createLogger } from '../lib/index.js';
+import { ErrorCode } from '@revealui/scripts/errors.js';
+import { createLogger } from '@revealui/scripts/index.js';
 
 const logger = createLogger({ prefix: 'DocManager' });
 

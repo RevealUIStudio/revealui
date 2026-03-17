@@ -15,7 +15,7 @@
  */
 
 import { readFile } from 'node:fs/promises';
-import { ErrorCode } from '../../lib/errors.js';
+import { ErrorCode } from '@revealui/scripts/errors.js';
 import type { CohesionAnalysis } from '../../types.ts';
 import { createLogger, fileExists, getProjectRoot } from '../../utils/base.ts';
 import { enhanceWithBrutalHonesty, validateBrutalHonesty } from '../../utils/brutal-honesty.ts';

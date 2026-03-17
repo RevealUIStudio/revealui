@@ -30,7 +30,7 @@ import {
   scanDirectoryRecursive,
   scanFiles,
   scanFilesGenerator,
-} from '../../../lib/generators/shared/file-scanner.js';
+} from '@revealui/scripts/generators/shared/file-scanner.js';
 
 describe('File Scanner', () => {
   const testDir = join(process.cwd(), '.test-file-scanner');

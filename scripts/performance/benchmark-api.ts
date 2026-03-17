@@ -9,6 +9,7 @@
  */
 
 import { performance } from 'node:perf_hooks';
+import { ErrorCode } from '@revealui/scripts/errors.js';
 import type { NextRequest } from 'next/server';
 import { compressBody, getCompressionRatio } from '../../packages/core/src/api/compression';
 import {
@@ -30,7 +31,6 @@ import {
   clearCache,
   getCacheStats,
 } from '../../packages/core/src/api/response-cache';
-import { ErrorCode } from '../lib/errors.js';
 
 interface BenchmarkResult {
   name: string;

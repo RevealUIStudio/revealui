@@ -23,8 +23,8 @@
  * - scripts/utils/base.ts - createLogger, getProjectRoot
  */
 
-import { ErrorCode } from '../lib/errors.js';
-import { execCommand } from '../lib/exec.js';
+import { ErrorCode } from '@revealui/scripts/errors.js';
+import { execCommand } from '@revealui/scripts/exec.js';
 import { createLogger, getProjectRoot } from '../utils/base.js';
 
 const logger = createLogger();

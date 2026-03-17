@@ -25,9 +25,9 @@
 
 import { execSync } from 'node:child_process';
 import { existsSync } from 'node:fs';
+import { ErrorCode, ScriptError } from '@revealui/scripts/errors.js';
+import { createLogger } from '@revealui/scripts/index.js';
 import { watch } from 'chokidar';
-import { ErrorCode, ScriptError } from '../lib/errors.js';
-import { createLogger } from '../lib/index.js';
 
 const logger = createLogger({ prefix: 'TypeWatch' });
 

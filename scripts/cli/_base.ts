@@ -51,11 +51,20 @@ import {
   type ParserConfig,
   parseArgs,
   validateRequiredArgs,
-} from '../lib/args.js';
-import { type ExecutionLogger, getExecutionLogger } from '../lib/audit/execution-logger.js';
-import { dispatchCommand } from '../lib/cli/dispatch.js';
-import { ErrorCode, getExitCode, isScriptError, ScriptError, wrapError } from '../lib/errors.js';
-import { createOutput, type OutputHandler, type ScriptOutput } from '../lib/output.js';
+} from '@revealui/scripts/args.js';
+import {
+  type ExecutionLogger,
+  getExecutionLogger,
+} from '@revealui/scripts/audit/execution-logger.js';
+import { dispatchCommand } from '@revealui/scripts/cli/dispatch.js';
+import {
+  ErrorCode,
+  getExitCode,
+  isScriptError,
+  ScriptError,
+  wrapError,
+} from '@revealui/scripts/errors.js';
+import { createOutput, type OutputHandler, type ScriptOutput } from '@revealui/scripts/output.js';
 
 // =============================================================================
 // Types

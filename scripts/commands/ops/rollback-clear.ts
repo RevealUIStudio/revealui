@@ -9,9 +9,9 @@
  */
 
 import { join } from 'node:path';
-import { ErrorCode } from '../../lib/errors.js';
-import { createLogger } from '../../lib/index.js';
-import { getRollbackManager } from '../../lib/rollback/index.js';
+import { ErrorCode } from '@revealui/scripts/errors.js';
+import { createLogger } from '@revealui/scripts/index.js';
+import { getRollbackManager } from '@revealui/scripts/rollback/index.js';
 
 const _logger = createLogger({ prefix: 'Rollback' });
 

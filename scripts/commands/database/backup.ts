@@ -15,10 +15,13 @@
  * - Environment: POSTGRES_URL - Database connection string
  */
 
-import { createBackup, listBackups } from '../../lib/database/backup-manager.js';
-import { createConnection, getRestConnectionString } from '../../lib/database/connection.js';
-import { ErrorCode } from '../../lib/errors.js';
-import { createLogger } from '../../lib/index.js';
+import { createBackup, listBackups } from '@revealui/scripts/database/backup-manager.js';
+import {
+  createConnection,
+  getRestConnectionString,
+} from '@revealui/scripts/database/connection.js';
+import { ErrorCode } from '@revealui/scripts/errors.js';
+import { createLogger } from '@revealui/scripts/index.js';
 
 const logger = createLogger({ prefix: 'Backup' });
 

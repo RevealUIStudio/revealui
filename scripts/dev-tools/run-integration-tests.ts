@@ -18,8 +18,8 @@
 import { execSync } from 'node:child_process';
 import { dirname, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
+import { ErrorCode } from '@revealui/scripts/errors.js';
 import { config } from 'dotenv';
-import { ErrorCode } from '../lib/errors.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);

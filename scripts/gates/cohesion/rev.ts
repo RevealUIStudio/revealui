@@ -17,7 +17,7 @@
  */
 
 import { readFile, writeFile } from 'node:fs/promises';
-import { ErrorCode, ScriptError } from '../../lib/errors.js';
+import { ErrorCode, ScriptError } from '@revealui/scripts/errors.js';
 import type { RevState } from '../../types.ts';
 import { createLogger, fileExists, getProjectRoot } from '../../utils/base.ts';
 import { validateBrutalHonesty } from '../../utils/brutal-honesty.ts';

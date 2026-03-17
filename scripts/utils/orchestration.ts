@@ -6,7 +6,7 @@
 import { existsSync } from 'node:fs';
 import { mkdir, readFile, rm, writeFile } from 'node:fs/promises';
 import { join } from 'node:path';
-import { ErrorCode, ScriptError } from '../lib/errors.js';
+import { ErrorCode, ScriptError } from '@revealui/scripts/errors.js';
 import type { RevState, RevStateFile } from '../types.js';
 
 /**

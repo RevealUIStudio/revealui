@@ -27,9 +27,9 @@
 
 import { readFileSync } from 'node:fs';
 import { join, relative } from 'node:path';
+import { ErrorCode } from '@revealui/scripts/errors.js';
+import { createLogger } from '@revealui/scripts/index.js';
 import glob from 'fast-glob';
-import { ErrorCode } from '../../lib/errors.js';
-import { createLogger } from '../../lib/index.js';
 
 const logger = createLogger({ prefix: 'ExitCodeAudit' });
 
@@ -263,8 +263,8 @@ function auditFile(filePath: string, rootDir: string): Violation[] {
   // Skip if file imports ErrorCode properly
   const hasErrorCodeImport =
     content.includes("from './lib/errors") ||
-    content.includes("from '../lib/errors") ||
-    content.includes("from '../../lib/errors");
+    content.includes("from '@revealui/scripts/errors") ||
+    content.includes("from '@revealui/scripts/errors");
 
   // Run all detection functions
   violations.push(...detectHardcodedExit(content, relativePath));

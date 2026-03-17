@@ -1,10 +1,11 @@
 #!/usr/bin/env tsx
+
 /**
  * Cancel Rev loop iterative workflow
  */
 
-import { createLogger, getProjectRoot } from '../../lib/index.js';
-import { ErrorCode } from '../lib/errors.js';
+import { ErrorCode } from '@revealui/scripts/errors.js';
+import { createLogger, getProjectRoot } from '@revealui/scripts/index.js';
 import { cleanupWorkflow, isWorkflowActive, readStateFile } from '../utils/orchestration.js';
 
 const logger = createLogger();

@@ -16,8 +16,8 @@
 
 import { readdir, readFile, stat } from 'node:fs/promises';
 import { extname, join, relative } from 'node:path';
-import { ErrorCode } from '../lib/errors.js';
-import { createLogger, getProjectRoot } from '../lib/index.js';
+import { ErrorCode } from '@revealui/scripts/errors.js';
+import { createLogger, getProjectRoot } from '@revealui/scripts/index.js';
 
 const logger = createLogger();
 
