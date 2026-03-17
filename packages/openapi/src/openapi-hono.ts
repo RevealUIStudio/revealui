@@ -1,3 +1,4 @@
+import type { ZodMediaTypeObject } from '@asteasolutions/zod-to-openapi';
 import {
   extendZodWithOpenApi,
   getOpenApiMetadata,
@@ -5,8 +6,9 @@ import {
   OpenApiGeneratorV3,
   OpenApiGeneratorV31,
 } from '@asteasolutions/zod-to-openapi';
-import type { Env, Schema } from 'hono';
+import type { Env, Handler, Input, MiddlewareHandler, Schema, ToSchema } from 'hono';
 import { Hono } from 'hono';
+import type { MergePath } from 'hono/types';
 import { mergePath } from 'hono/utils/url';
 import type { OpenAPIObject } from 'openapi3-ts/oas30';
 import type { OpenAPIObject as OpenAPIObject31 } from 'openapi3-ts/oas31';
@@ -15,12 +17,23 @@ import { z } from 'zod';
 import { addBasePathToDocument } from './helpers.js';
 import { isFormContentType, isJSONContentType, isZod } from './type-guard.js';
 import type {
+  ConvertPathType,
   HonoInit,
+  Hook,
+  InputTypeCookie,
+  InputTypeForm,
+  InputTypeHeader,
+  InputTypeJson,
+  InputTypeParam,
+  InputTypeQuery,
+  MaybePromise,
   OpenAPIGeneratorConfigure,
   OpenAPIGeneratorOptions,
   OpenAPIObjectConfig,
   OpenAPIObjectConfigure,
   RouteConfig,
+  RouteConfigToTypedResponse,
+  RouteMiddlewareParams,
 } from './types.js';
 import { zValidator } from './zod-validator.js';
 
@@ -49,15 +62,58 @@ export class OpenAPIHono<
   /**
    * Register an OpenAPI route with automatic request validation.
    */
-  openapi = (
-    {
-      middleware: routeMiddleware,
-      hide,
-      ...route
-    }: RouteConfig & { middleware?: unknown | unknown[]; hide?: boolean },
-    handler: unknown,
-    hook: unknown = this.defaultHook,
-  ) => {
+  openapi = <
+    R extends RouteConfig,
+    I extends Input = InputTypeParam<R> &
+      InputTypeQuery<R> &
+      InputTypeHeader<R> &
+      InputTypeCookie<R> &
+      InputTypeForm<R> &
+      InputTypeJson<R>,
+    P extends string = ConvertPathType<R['path']>,
+  >(
+    { middleware: routeMiddleware, hide, ...route }: R,
+    handler: Handler<
+      R['middleware'] extends MiddlewareHandler[] | MiddlewareHandler
+        ? RouteMiddlewareParams<R>['env'] & E
+        : E,
+      P,
+      I,
+      R extends {
+        responses: {
+          [statusCode: number]: {
+            content: {
+              [mediaType: string]: ZodMediaTypeObject;
+            };
+          };
+        };
+      }
+        ? MaybePromise<RouteConfigToTypedResponse<R>>
+        : MaybePromise<RouteConfigToTypedResponse<R>> | MaybePromise<Response>
+    >,
+    hook:
+      | Hook<
+          I,
+          E,
+          P,
+          R extends {
+            responses: {
+              [statusCode: number]: {
+                content: {
+                  [mediaType: string]: ZodMediaTypeObject;
+                };
+              };
+            };
+          }
+            ? MaybePromise<RouteConfigToTypedResponse<R>> | undefined
+            : MaybePromise<RouteConfigToTypedResponse<R>> | MaybePromise<Response> | undefined
+        >
+      | undefined = this.defaultHook,
+  ): OpenAPIHono<
+    E,
+    S & ToSchema<R['method'], MergePath<BasePath, P>, I, RouteConfigToTypedResponse<R>>,
+    BasePath
+  > => {
     if (!hide) {
       // biome-ignore lint/suspicious/noExplicitAny: registerPath accepts route config with flexible shape
       this.openAPIRegistry.registerPath(route as any);
