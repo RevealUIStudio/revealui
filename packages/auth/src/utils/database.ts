@@ -126,6 +126,7 @@ export async function createTestSession(
     persistent: overrides?.persistent ?? null,
     lastActivityAt: overrides?.lastActivityAt || new Date(),
     createdAt: overrides?.createdAt || new Date(),
+    metadata: overrides?.metadata ?? null,
   };
 
   await db.insert(sessions).values(testSession);

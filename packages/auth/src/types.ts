@@ -51,6 +51,7 @@ export interface Session {
   lastActivityAt: Date;
   createdAt: Date;
   expiresAt: Date;
+  metadata: Record<string, unknown> | null;
 }
 
 export interface AuthSession {

@@ -230,6 +230,8 @@ export async function createSession(
     persistent?: boolean;
     userAgent?: string;
     ipAddress?: string;
+    expiresAt?: Date;
+    metadata?: Record<string, unknown>;
   },
 ): Promise<{ token: string; session: Session }> {
   try {
@@ -252,9 +254,11 @@ export async function createSession(
       throw new TokenError('Failed to generate session token');
     }
 
-    // Calculate expiration (7 days for persistent, 1 day for regular)
-    const expiresAt = new Date();
-    expiresAt.setDate(expiresAt.getDate() + (options?.persistent ? 7 : 1));
+    // Calculate expiration (custom override, 7 days for persistent, 1 day for regular)
+    const expiresAt = options?.expiresAt ?? new Date();
+    if (!options?.expiresAt) {
+      expiresAt.setDate(expiresAt.getDate() + (options?.persistent ? 7 : 1));
+    }
 
     // Create session in database
     let session: Session | undefined;
@@ -270,6 +274,7 @@ export async function createSession(
           userAgent: options?.userAgent,
           ipAddress: options?.ipAddress,
           lastActivityAt: new Date(),
+          metadata: options?.metadata ?? null,
         })
         .returning();
       session = result[0] as Session | undefined;
