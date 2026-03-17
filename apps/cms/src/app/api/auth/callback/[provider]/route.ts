@@ -89,6 +89,21 @@ export async function GET(
 
     const response = NextResponse.redirect(new URL(redirectTo, baseUrl));
 
+    // Set role hint cookie for proxy.ts admin gate (defense-in-depth).
+    const userRole = (user as { role?: string }).role ?? 'user';
+    const isAdminRole = ['admin', 'super-admin'].includes(userRole);
+    response.cookies.set('revealui-role', isAdminRole ? 'admin' : 'user', {
+      httpOnly: false,
+      secure: process.env.NODE_ENV === 'production',
+      sameSite: 'lax',
+      path: '/',
+      maxAge: 60 * 60 * 24 * 7,
+      domain:
+        process.env.NODE_ENV === 'production'
+          ? process.env.SESSION_COOKIE_DOMAIN || undefined
+          : undefined,
+    });
+
     response.cookies.set('revealui-session', token, {
       httpOnly: true,
       secure: process.env.NODE_ENV === 'production',

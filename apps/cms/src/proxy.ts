@@ -31,7 +31,9 @@ export default async function proxy(request: NextRequest): Promise<NextResponse 
     }
   }
 
-  // Auth gate: protect /admin routes — redirect to /login if no session cookie
+  // Auth gate: protect /admin routes — require session + admin role
+  // The role cookie is a defense-in-depth UI hint (set at login).
+  // Real enforcement is at the API level via collection access.read checks.
   if (pathname.startsWith('/admin')) {
     const session = request.cookies.get('revealui-session')?.value;
     if (!session) {
@@ -40,6 +42,22 @@ export default async function proxy(request: NextRequest): Promise<NextResponse 
       loginUrl.searchParams.set('redirect', pathname);
       return NextResponse.redirect(loginUrl);
     }
+
+    const role = request.cookies.get('revealui-role')?.value;
+    if (role !== 'admin') {
+      // User is authenticated but not admin — redirect to home (not login)
+      const homeUrl = request.nextUrl.clone();
+      homeUrl.pathname = '/';
+      return NextResponse.redirect(homeUrl);
+    }
+  }
+
+  // Strip overrideAccess from external API requests — only server-side code may use it.
+  // This prevents clients from bypassing collection access control via query parameter.
+  if (pathname.startsWith('/api') && request.nextUrl.searchParams.has('overrideAccess')) {
+    const url = request.nextUrl.clone();
+    url.searchParams.delete('overrideAccess');
+    return NextResponse.rewrite(url);
   }
 
   // CORS Handling and Security Headers for API requests

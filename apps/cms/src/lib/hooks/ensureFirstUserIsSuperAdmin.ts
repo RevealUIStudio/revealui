@@ -5,7 +5,20 @@ interface RequestWithRevealUI extends RevealRequest {
   revealui?: RevealUIInstance;
 }
 
-// This hook operates on the roles field, which is an array of strings
+/**
+ * First-user bootstrap hook.
+ *
+ * SECURITY NOTE: The very first user created in the system is automatically
+ * promoted to super-admin. This means whoever creates the first account
+ * gets full admin access. In production, the operator should:
+ *
+ * 1. Create the first account using REVEALUI_ADMIN_EMAIL / REVEALUI_ADMIN_PASSWORD env vars
+ * 2. Verify the account has super-admin role in the dashboard
+ * 3. Only then open registration to other users
+ *
+ * This hook ONLY runs on the 'create' operation for the roles field.
+ * It does NOT affect subsequent users.
+ */
 export async function ensureFirstUserIsSuperAdmin({
   req,
   operation,
