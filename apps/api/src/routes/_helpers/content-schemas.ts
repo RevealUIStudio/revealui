@@ -1,4 +1,4 @@
-import { z } from '@hono/zod-openapi';
+import { z } from '@revealui/openapi';
 
 export const IdParam = z.object({
   id: z.string().openapi({ param: { name: 'id', in: 'path' }, example: 'abc123' }),

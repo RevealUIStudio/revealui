@@ -5,7 +5,6 @@
  * with Stripe customer records via the `stripe_customer_id` column.
  */
 
-import { createRoute, OpenAPIHono, z } from '@hono/zod-openapi';
 import { CircuitBreaker, CircuitBreakerOpenError } from '@revealui/core/error-handling';
 import { getMaxAgentTasks } from '@revealui/core/license';
 import { logger } from '@revealui/core/observability/logger';
@@ -19,6 +18,7 @@ import {
   licenses,
   users,
 } from '@revealui/db/schema';
+import { createRoute, OpenAPIHono, z } from '@revealui/openapi';
 import { and, desc, eq, gt, gte, lte } from 'drizzle-orm';
 import { HTTPException } from 'hono/http-exception';
 import Stripe from 'stripe';

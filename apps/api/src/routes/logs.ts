@@ -8,9 +8,9 @@
  * Only persists warn/error/fatal levels. Debug/info entries are dropped.
  */
 
-import { createRoute, OpenAPIHono } from '@hono/zod-openapi';
 import { getClient } from '@revealui/db';
 import { appLogs } from '@revealui/db/schema';
+import { createRoute, OpenAPIHono } from '@revealui/openapi';
 import { HTTPException } from 'hono/http-exception';
 import { z } from 'zod/v4';
 

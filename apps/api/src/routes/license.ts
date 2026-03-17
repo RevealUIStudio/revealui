@@ -1,5 +1,4 @@
 import { timingSafeEqual } from 'node:crypto';
-import { createRoute, OpenAPIHono, z } from '@hono/zod-openapi';
 import { getFeaturesForTier } from '@revealui/core/features';
 import {
   generateLicenseKey,
@@ -9,6 +8,7 @@ import {
 import { logger } from '@revealui/core/observability/logger';
 import { getClient } from '@revealui/db';
 import { licenses } from '@revealui/db/schema';
+import { createRoute, OpenAPIHono, z } from '@revealui/openapi';
 import { eq } from 'drizzle-orm';
 import { HTTPException } from 'hono/http-exception';
 
