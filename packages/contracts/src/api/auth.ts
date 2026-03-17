@@ -140,18 +140,25 @@ export const MFAVerifyRequestContract = createContract({
 });
 
 /**
- * MFA disable — requires password confirmation
+ * MFA disable — requires password or passkey re-authentication
  */
-export const MFADisableRequestSchema = z.object({
-  password: z.string().min(1, 'Password is required'),
-});
+export const MFADisableRequestSchema = z.discriminatedUnion('method', [
+  z.object({
+    method: z.literal('password'),
+    password: z.string().min(1, 'Password is required'),
+  }),
+  z.object({
+    method: z.literal('passkey'),
+    authenticationResponse: z.record(z.string(), z.unknown()),
+  }),
+]);
 
 export type MFADisableRequest = z.infer<typeof MFADisableRequestSchema>;
 
 export const MFADisableRequestContract = createContract({
   name: 'MFADisableRequest',
-  version: '1',
-  description: 'Validates MFA disable request (requires password)',
+  version: '2',
+  description: 'Validates MFA disable request (requires password or passkey re-auth)',
   schema: MFADisableRequestSchema,
 });
 
@@ -173,3 +180,98 @@ export const MFABackupCodeRequestContract = createContract({
   description: 'Validates MFA backup code for account recovery',
   schema: MFABackupCodeRequestSchema,
 });
+
+// =============================================================================
+// Passkey Contracts
+// =============================================================================
+
+/**
+ * Passkey registration options request
+ * Empty when authenticated (adding to existing account),
+ * includes email+name when registering a new passwordless account
+ */
+export const PasskeyRegisterOptionsRequestSchema = z.object({
+  email: z.string().email().optional(),
+  name: z.string().min(1).max(255).optional(),
+});
+
+export type PasskeyRegisterOptionsRequest = z.infer<typeof PasskeyRegisterOptionsRequestSchema>;
+
+/**
+ * Passkey registration verification — attestation response from browser
+ */
+export const PasskeyRegisterVerifyRequestSchema = z.object({
+  attestationResponse: z.record(z.string(), z.unknown()),
+  deviceName: z.string().max(100).optional(),
+});
+
+export type PasskeyRegisterVerifyRequest = z.infer<typeof PasskeyRegisterVerifyRequestSchema>;
+
+/**
+ * Passkey authentication options — no input needed
+ */
+export const PasskeyAuthenticateOptionsRequestSchema = z.object({});
+
+export type PasskeyAuthenticateOptionsRequest = z.infer<
+  typeof PasskeyAuthenticateOptionsRequestSchema
+>;
+
+/**
+ * Passkey authentication verification — assertion response from browser
+ */
+export const PasskeyAuthenticateVerifyRequestSchema = z.object({
+  authenticationResponse: z.record(z.string(), z.unknown()),
+});
+
+export type PasskeyAuthenticateVerifyRequest = z.infer<
+  typeof PasskeyAuthenticateVerifyRequestSchema
+>;
+
+/**
+ * Passkey list response
+ */
+export const PasskeyListResponseSchema = z.object({
+  passkeys: z.array(
+    z.object({
+      id: z.string(),
+      deviceName: z.string().nullable(),
+      aaguid: z.string().nullable(),
+      backedUp: z.boolean(),
+      createdAt: z.string(),
+      lastUsedAt: z.string().nullable(),
+    }),
+  ),
+});
+
+export type PasskeyListResponse = z.infer<typeof PasskeyListResponseSchema>;
+
+/**
+ * Passkey rename request
+ */
+export const PasskeyUpdateRequestSchema = z.object({
+  deviceName: z.string().min(1).max(100),
+});
+
+export type PasskeyUpdateRequest = z.infer<typeof PasskeyUpdateRequestSchema>;
+
+// =============================================================================
+// Recovery Contracts
+// =============================================================================
+
+/**
+ * Account recovery request — send magic link email
+ */
+export const RecoveryRequestSchema = z.object({
+  email: z.string().email(),
+});
+
+export type RecoveryRequest = z.infer<typeof RecoveryRequestSchema>;
+
+/**
+ * Account recovery verification — validate magic link token
+ */
+export const RecoveryVerifyRequestSchema = z.object({
+  token: z.string().min(1),
+});
+
+export type RecoveryVerifyRequest = z.infer<typeof RecoveryVerifyRequestSchema>;
