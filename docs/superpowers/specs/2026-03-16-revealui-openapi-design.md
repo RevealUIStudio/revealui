@@ -42,13 +42,12 @@ packages/openapi/
 │   ├── zod-validator.ts      # Zod validation middleware ported from @hono/zod-validator (~31 lines)
 │   ├── type-guard.ts         # isZod, isJSONContentType, isFormContentType (~25 lines)
 │   ├── helpers.ts            # addBasePathToDocument, $ cast helper (~30 lines)
-│   └── types.ts              # All TypeScript type definitions (~120 lines)
-└── src/
-    └── __tests__/
-        ├── create-route.test.ts
-        ├── zod-validator.test.ts
-        ├── openapi-hono.test.ts
-        └── integration.test.ts
+│   ├── types.ts              # All TypeScript type definitions (~120 lines)
+│   └── __tests__/
+│       ├── create-route.test.ts
+│       ├── zod-validator.test.ts
+│       ├── openapi-hono.test.ts
+│       └── integration.test.ts
 ```
 
 ## Dependencies
