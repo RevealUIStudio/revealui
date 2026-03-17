@@ -9,7 +9,10 @@ import { universalPostgresAdapter } from '@revealui/core';
 import type { DatabaseAdapter } from '@revealui/core/types';
 
 // biome-ignore lint/style/useNamingConvention: internal test property convention
-type TestDatabaseAdapter = DatabaseAdapter & { __testDbPath?: string };
+type TestDatabaseAdapter = DatabaseAdapter & {
+  __testDbPath?: string;
+  transaction: (callback: (syncQuery?: unknown) => void | Promise<void>) => Promise<void>;
+};
 
 let testDb: TestDatabaseAdapter | null = null;
 
@@ -26,7 +29,7 @@ export async function setupTestDatabase(dbPath?: string): Promise<DatabaseAdapte
   const base = universalPostgresAdapter({ provider: 'electric' });
 
   // biome-ignore lint/style/useNamingConvention: internal test property convention
-  const compat: DatabaseAdapter & { __testDbPath?: string; close?: () => Promise<void> } = {
+  const compat: TestDatabaseAdapter & { close?: () => Promise<void> } = {
     async init() {
       // no-op for pglite
       await Promise.resolve();
