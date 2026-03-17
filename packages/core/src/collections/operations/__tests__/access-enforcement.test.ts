@@ -31,18 +31,6 @@ function mockRequest(overrides: Partial<RevealRequest> = {}): RevealRequest {
   };
 }
 
-function createMockDb(docs: Record<string, unknown>[] = []) {
-  const totalDocs = docs.length;
-  return {
-    query: vi.fn().mockImplementation((query: string) => {
-      if (query.includes('COUNT')) {
-        return Promise.resolve({ rows: [{ total: String(totalDocs) }] } as DatabaseResult);
-      }
-      return Promise.resolve({ rows: docs } as DatabaseResult);
-    }),
-  };
-}
-
 function createMockDbWithCollectionStorage(docs: Record<string, unknown>[] = []) {
   return {
     query: vi.fn(),
@@ -59,12 +47,12 @@ function createMockDbWithCollectionStorage(docs: Record<string, unknown>[] = [])
         prevPage: null,
         nextPage: null,
       }),
-      findByID: vi.fn().mockImplementation(
-        (_config: RevealCollectionConfig, opts: { id: string | number }) => {
+      findByID: vi
+        .fn()
+        .mockImplementation((_config: RevealCollectionConfig, opts: { id: string | number }) => {
           const doc = docs.find((d) => d.id === String(opts.id));
           return Promise.resolve(doc ?? null);
-        },
-      ),
+        }),
     },
   };
 }
@@ -124,9 +112,7 @@ describe('access control enforcement', () => {
       expect(result.docs).toEqual([]);
       expect(result.totalDocs).toBe(0);
       expect(accessReadSpy).toHaveBeenCalledTimes(1);
-      expect(accessReadSpy).toHaveBeenCalledWith(
-        expect.objectContaining({ req }),
-      );
+      expect(accessReadSpy).toHaveBeenCalledWith(expect.objectContaining({ req }));
       // Database should never be queried when access is denied
       expect(db.collectionStorage.find).not.toHaveBeenCalled();
     });
@@ -194,10 +180,7 @@ describe('access control enforcement', () => {
 
       // Both the user's where and the access where should be merged with AND
       expect(passedOptions.where).toEqual({
-        and: [
-          { title: { equals: 'Public Post' } },
-          { status: { equals: 'published' } },
-        ],
+        and: [{ title: { equals: 'Public Post' } }, { status: { equals: 'published' } }],
       });
     });
 
@@ -251,10 +234,12 @@ describe('access control enforcement', () => {
     });
 
     it('passes req to the access function for user-based decisions', async () => {
-      const accessReadSpy = vi.fn().mockImplementation(({ req: accessReq }: { req: RevealRequest }) => {
-        // Only allow users with 'admin' role
-        return accessReq.user?.roles?.includes('admin') ?? false;
-      });
+      const accessReadSpy = vi
+        .fn()
+        .mockImplementation(({ req: accessReq }: { req: RevealRequest }) => {
+          // Only allow users with 'admin' role
+          return accessReq.user?.roles?.includes('admin') ?? false;
+        });
       const config: RevealCollectionConfig = {
         ...baseConfig,
         access: { read: accessReadSpy },
@@ -299,9 +284,7 @@ describe('access control enforcement', () => {
 
       expect(result).toBeNull();
       expect(accessReadSpy).toHaveBeenCalledTimes(1);
-      expect(accessReadSpy).toHaveBeenCalledWith(
-        expect.objectContaining({ req, id: '1' }),
-      );
+      expect(accessReadSpy).toHaveBeenCalledWith(expect.objectContaining({ req, id: '1' }));
       // Database should never be queried when access is denied
       expect(db.collectionStorage.findByID).not.toHaveBeenCalled();
     });
@@ -382,15 +365,15 @@ describe('access control enforcement', () => {
 
       // Should proceed with the fetch since the access function returned a truthy value
       expect(result).toEqual({ id: '1', title: 'Public Post', status: 'published' });
-      expect(accessReadSpy).toHaveBeenCalledWith(
-        expect.objectContaining({ req, id: '1' }),
-      );
+      expect(accessReadSpy).toHaveBeenCalledWith(expect.objectContaining({ req, id: '1' }));
     });
 
     it('passes req to the access function for user-based decisions', async () => {
-      const accessReadSpy = vi.fn().mockImplementation(({ req: accessReq }: { req: RevealRequest }) => {
-        return accessReq.user?.roles?.includes('admin') ?? false;
-      });
+      const accessReadSpy = vi
+        .fn()
+        .mockImplementation(({ req: accessReq }: { req: RevealRequest }) => {
+          return accessReq.user?.roles?.includes('admin') ?? false;
+        });
       const config: RevealCollectionConfig = {
         ...baseConfig,
         access: { read: accessReadSpy },
