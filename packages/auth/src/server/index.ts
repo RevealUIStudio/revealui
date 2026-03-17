@@ -23,7 +23,15 @@ export {
   SessionError,
   TokenError,
 } from './errors.js';
-export type { MFAConfig, MFASetupResult } from './mfa.js';
+// Magic Link
+export type { MagicLinkConfig } from './magic-link.js';
+export {
+  configureMagicLink,
+  createMagicLink,
+  resetMagicLinkConfig,
+  verifyMagicLink,
+} from './magic-link.js';
+export type { MFAConfig, MFADisableProof, MFASetupResult } from './mfa.js';
 export {
   configureMFA,
   disableMFA,
@@ -47,6 +55,21 @@ export {
   upsertOAuthUser,
   verifyOAuthState,
 } from './oauth.js';
+// Passkey
+export type { PasskeyConfig } from './passkey.js';
+export {
+  configurePasskey,
+  countUserCredentials,
+  deletePasskey,
+  generateAuthenticationChallenge,
+  generateRegistrationChallenge,
+  listPasskeys,
+  renamePasskey,
+  resetPasskeyConfig,
+  storePasskey,
+  verifyAuthentication,
+  verifyRegistration,
+} from './passkey.js';
 export type { PasswordResetResult, PasswordResetToken } from './password-reset.js';
 export {
   generatePasswordResetToken,
@@ -76,6 +99,8 @@ export {
   rotateSession,
   validateSessionBinding,
 } from './session.js';
+// Signed Cookie
+export { signCookiePayload, verifyCookiePayload } from './signed-cookie.js';
 export type { Storage } from './storage/index.js';
 export {
   createStorage,

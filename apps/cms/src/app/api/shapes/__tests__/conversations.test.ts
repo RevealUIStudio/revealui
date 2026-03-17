@@ -61,6 +61,7 @@ describe('GET /api/shapes/conversations', () => {
         persistent: false,
         lastActivityAt: new Date(),
         createdAt: new Date(),
+        metadata: null,
       },
       user: {
         id: userId,
@@ -115,6 +116,7 @@ describe('GET /api/shapes/conversations', () => {
         persistent: false,
         lastActivityAt: new Date(),
         createdAt: new Date(),
+        metadata: null,
       },
       user: {
         id: 'invalid-uuid',
