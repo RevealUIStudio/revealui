@@ -1,0 +1,90 @@
+/**
+ * Recovery Request API Route
+ *
+ * POST /api/auth/recovery/request
+ *
+ * Initiates account recovery by generating a magic link token.
+ * Always returns success to prevent user enumeration.
+ */
+
+import { createMagicLink } from '@revealui/auth/server';
+import { RecoveryRequestSchema } from '@revealui/contracts';
+import { logger } from '@revealui/core/utils/logger';
+import { getClient } from '@revealui/db';
+import { users } from '@revealui/db/schema';
+import { eq } from 'drizzle-orm';
+import { type NextRequest, NextResponse } from 'next/server';
+import { withRateLimit } from '@/lib/middleware/rate-limit';
+import { createErrorResponse, createValidationErrorResponse } from '@/lib/utils/error-response';
+
+export const dynamic = 'force-dynamic';
+export const runtime = 'nodejs';
+
+async function requestHandler(request: NextRequest): Promise<NextResponse> {
+  try {
+    let body: unknown;
+    try {
+      body = await request.json();
+    } catch (jsonError) {
+      return createValidationErrorResponse('Invalid JSON in request body', 'body', null, {
+        parseError: jsonError instanceof Error ? jsonError.message : 'Malformed JSON',
+      });
+    }
+
+    const result = RecoveryRequestSchema.safeParse(body);
+
+    if (!result.success) {
+      const firstIssue = result.error.issues[0];
+      return createValidationErrorResponse(
+        firstIssue?.message ?? 'Validation failed',
+        firstIssue?.path?.join('.') ?? 'email',
+        body,
+        {
+          issues: result.error.issues.map((issue) => ({
+            path: issue.path.join('.'),
+            message: issue.message,
+          })),
+        },
+      );
+    }
+
+    const { email } = result.data;
+
+    // Look up user by email
+    const db = getClient();
+    const [user] = await db
+      .select({ id: users.id })
+      .from(users)
+      .where(eq(users.email, email))
+      .limit(1);
+
+    if (user) {
+      const { token } = await createMagicLink(user.id);
+
+      // TODO: Send recovery email via Resend
+      // For v1, log the recovery URL in development only
+      if (process.env.NODE_ENV !== 'production') {
+        logger.info('Recovery link generated (dev only)', {
+          email,
+          recoveryUrl: `${process.env.NEXT_PUBLIC_APP_URL ?? 'http://localhost:4000'}/auth/recovery/verify?token=${token}`,
+        });
+      }
+    }
+
+    // Always return success to prevent user enumeration
+    return NextResponse.json({ success: true });
+  } catch (error) {
+    logger.error('Error processing recovery request', { error });
+    return createErrorResponse(error, {
+      endpoint: '/api/auth/recovery/request',
+      operation: 'recovery_request',
+    });
+  }
+}
+
+// Rate limit: 3 requests per hour per IP
+export const POST = withRateLimit(requestHandler, {
+  maxAttempts: 3,
+  windowMs: 60 * 60 * 1000,
+  keyPrefix: 'recovery-request',
+});
