@@ -63,11 +63,20 @@ describe('NavBar', () => {
     expect(html).toContain('github.com/RevealUIStudio/revealui');
   });
 
-  it('contains the CTA button linking to waitlist', () => {
+  it('contains the CTA button linking to signup', () => {
     const result = NavBar();
     const html = JSON.stringify(result);
-    expect(html).toContain('Get Early Access');
-    expect(html).toContain('#waitlist');
+    expect(html).toContain('Get Started');
+    expect(html).toContain('https://cms.revealui.com/signup');
+    expect(html).toContain('Log in');
+    expect(html).toContain('https://cms.revealui.com/login');
+  });
+
+  it('contains the Blog nav link', () => {
+    const result = NavBar();
+    const html = JSON.stringify(result);
+    expect(html).toContain('Blog');
+    expect(html).toContain('/blog');
   });
 
   it('contains a mobile menu hamburger button', () => {
