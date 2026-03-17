@@ -2,10 +2,5 @@
   "buildCommand": "cd ../.. && pnpm turbo build --filter=marketing",
   "installCommand": "cd ../.. && pnpm install --no-frozen-lockfile",
   "ignoreCommand": "git diff --quiet HEAD~1 HEAD -- . ../../packages ../../pnpm-lock.yaml ../../package.json ../../turbo.json 2>/dev/null || exit 1",
-  "framework": "nextjs",
-  "env": [
-    "NEXT_PUBLIC_SERVER_URL",
-    "REVEALUI_PUBLIC_SERVER_URL",
-    "NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY"
-  ]
+  "framework": "nextjs"
 }
