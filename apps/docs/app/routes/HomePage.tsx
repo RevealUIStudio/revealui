@@ -3,7 +3,7 @@ import { renderMarkdown } from '../utils/markdown';
 export function HomePage() {
   const content = `# RevealUI Documentation
 
-Open-source business infrastructure for software companies. Users, content, products, payments, and AI — pre-wired and ready to deploy.
+Business OS Software (BOSS). Users, content, products, payments, and AI — pre-wired, open source, and ready to deploy.
 
 ## Quick Start
 

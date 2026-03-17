@@ -156,7 +156,7 @@ export function CmsLandingPage() {
       {/* Footer CTA */}
       <section className="py-16 text-center">
         <p className="text-sm text-zinc-500 dark:text-zinc-400">
-          Open-source business infrastructure for software companies.
+          Business OS Software (BOSS). Build your business, not your boilerplate.
         </p>
       </section>
     </div>

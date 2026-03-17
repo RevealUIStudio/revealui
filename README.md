@@ -2,7 +2,7 @@
 
 # RevealUI
 
-**Build your business, not your boilerplate.**
+**The User Interface (UI) for the future has yet to Reveal itself. Business OS Software (BOSS). Build your business, not your boilerplate.**
 
 Users. Content. Payments. AI. Everything a software business needs — pre-wired, open source, and ready to deploy.
 

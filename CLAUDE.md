@@ -1,6 +1,6 @@
 # RevealUI Monorepo
 
-Open-source business infrastructure for software companies. Users, content, products, payments, and AI — pre-wired and ready to deploy.
+Business OS Software (BOSS). Build your business, not your boilerplate. Users, content, products, payments, and AI — pre-wired, open source, and ready to deploy.
 
 ## Current Phase
 **Phase 3 — Launch Preparation** (docs, OSS prep, marketing, Pro distribution).
