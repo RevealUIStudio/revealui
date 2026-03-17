@@ -249,12 +249,16 @@ describe('access control enforcement', () => {
       const db = createMockDbWithCollectionStorage(testDocs);
 
       // Editor user — should be denied
-      const editorReq = mockRequest({ user: { id: 'u1', roles: ['editor'] } });
+      const editorReq = mockRequest({
+        user: { id: 'u1', email: 'editor@test.com', roles: ['editor'] },
+      });
       const editorResult = await find(config, db as never, { req: editorReq });
       expect(editorResult.docs).toEqual([]);
 
       // Admin user — should be allowed
-      const adminReq = mockRequest({ user: { id: 'u2', roles: ['admin'] } });
+      const adminReq = mockRequest({
+        user: { id: 'u2', email: 'admin@test.com', roles: ['admin'] },
+      });
       const adminResult = await find(config, db as never, { req: adminReq });
       expect(adminResult.docs).toHaveLength(3);
     });
@@ -383,12 +387,16 @@ describe('access control enforcement', () => {
       const db = createMockDbWithCollectionStorage(testDocs);
 
       // Editor user — should be denied
-      const editorReq = mockRequest({ user: { id: 'u1', roles: ['editor'] } });
+      const editorReq = mockRequest({
+        user: { id: 'u1', email: 'editor@test.com', roles: ['editor'] },
+      });
       const editorResult = await findByID(config, db as never, { id: '1', req: editorReq });
       expect(editorResult).toBeNull();
 
       // Admin user — should be allowed
-      const adminReq = mockRequest({ user: { id: 'u2', roles: ['admin'] } });
+      const adminReq = mockRequest({
+        user: { id: 'u2', email: 'admin@test.com', roles: ['admin'] },
+      });
       const adminResult = await findByID(config, db as never, { id: '1', req: adminReq });
       expect(adminResult).toEqual({ id: '1', title: 'Public Post', status: 'published' });
     });
@@ -443,7 +451,7 @@ describe('access control enforcement', () => {
         },
       };
       const db = createMockDbWithCollectionStorage(testDocs);
-      const req = mockRequest({ user: { id: 'u1', roles: ['editor'] } });
+      const req = mockRequest({ user: { id: 'u1', email: 'editor@test.com', roles: ['editor'] } });
 
       const findResult = await find(config, db as never, { req });
       expect(findResult.docs).toEqual([]);
@@ -460,7 +468,9 @@ describe('access control enforcement', () => {
         },
       };
       const db = createMockDbWithCollectionStorage(testDocs);
-      const req = mockRequest({ user: { id: 'admin-1', roles: ['admin'] } });
+      const req = mockRequest({
+        user: { id: 'admin-1', email: 'admin@test.com', roles: ['admin'] },
+      });
 
       const findResult = await find(config, db as never, { req });
       expect(findResult.docs).toHaveLength(3);
@@ -476,7 +486,7 @@ describe('access control enforcement', () => {
 
   describe('deleteDocument()', () => {
     const mockDeleteDb = {
-      query: vi.fn().mockResolvedValue({ rows: [] } as DatabaseResult),
+      query: vi.fn().mockResolvedValue({ rows: [], rowCount: 0 } as DatabaseResult),
     };
 
     it('allows delete when no access rule is defined (backward compatible)', async () => {
@@ -581,13 +591,17 @@ describe('access control enforcement', () => {
       };
 
       // Editor user — should be denied
-      const editorReq = mockRequest({ user: { id: 'u1', roles: ['editor'] } });
+      const editorReq = mockRequest({
+        user: { id: 'u1', email: 'editor@test.com', roles: ['editor'] },
+      });
       await expect(
         deleteDocument(config, mockDeleteDb as never, { id: '1', req: editorReq }),
       ).rejects.toThrow('Access denied');
 
       // Admin user — should be allowed
-      const adminReq = mockRequest({ user: { id: 'u2', roles: ['admin'] } });
+      const adminReq = mockRequest({
+        user: { id: 'u2', email: 'admin@test.com', roles: ['admin'] },
+      });
       const result = await deleteDocument(config, mockDeleteDb as never, {
         id: '1',
         req: adminReq,
@@ -693,13 +707,17 @@ describe('access control enforcement', () => {
       };
 
       // Editor user — should be denied
-      const editorReq = mockRequest({ user: { id: 'u1', roles: ['editor'] } });
+      const editorReq = mockRequest({
+        user: { id: 'u1', email: 'editor@test.com', roles: ['editor'] },
+      });
       await expect(
         update(config, null, { id: '1', data: { title: 'New' }, req: editorReq }),
       ).rejects.toThrow('Access denied');
 
       // Admin user — should be allowed (null db = returns { ...data, id })
-      const adminReq = mockRequest({ user: { id: 'u2', roles: ['admin'] } });
+      const adminReq = mockRequest({
+        user: { id: 'u2', email: 'admin@test.com', roles: ['admin'] },
+      });
       const result = await update(config, null, {
         id: '1',
         data: { title: 'New' },
@@ -719,7 +737,7 @@ describe('access control enforcement', () => {
         ...baseConfig,
         access: { update: accessUpdateSpy },
       };
-      const req = mockRequest({ user: { id: 'u1', roles: ['editor'] } });
+      const req = mockRequest({ user: { id: 'u1', email: 'editor@test.com', roles: ['editor'] } });
 
       // Publishing — denied by content-based rule
       await expect(

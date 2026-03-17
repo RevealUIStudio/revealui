@@ -226,7 +226,7 @@ export function enhanceFieldWithRevealUI(
 interface RevealUIValidationContext {
   data: Record<string, unknown>;
   siblingData: Record<string, unknown>;
-  user?: unknown;
+  user?: import('@revealui/contracts').BaseRevealUser | null;
   operation: 'create' | 'update';
   tenant?: string;
 }

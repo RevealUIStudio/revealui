@@ -1,3 +1,6 @@
+// Pro packages (@revealui/ai) live in the private repo.
+// This file is excluded from tsc via tsconfig.json (src/integration-pro/**)
+// and only runs in the private repo where the packages are installed.
 /**
  * Pro EpisodicMemory Integration Tests
  *
@@ -12,8 +15,11 @@ import { eq } from 'drizzle-orm';
 import { afterEach, beforeAll, describe, expect, it } from 'vitest';
 
 const [embeddingsModule, persistenceModule, storesModule] = await Promise.all([
+  // @ts-expect-error — Pro package, types only available in private repo
   import('@revealui/ai/embeddings').catch(() => null),
+  // @ts-expect-error — Pro package, types only available in private repo
   import('@revealui/ai/memory/persistence').catch(() => null),
+  // @ts-expect-error — Pro package, types only available in private repo
   import('@revealui/ai/memory/stores').catch(() => null),
 ]);
 const describeIfPro =

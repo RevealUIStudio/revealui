@@ -153,6 +153,7 @@ export type {
   AfterDeleteHookArgs,
   AfterOperationHookArgs,
   AfterReadHookArgs,
+  BaseRevealUser,
   BeforeChangeHookArgs,
   BeforeDeleteHookArgs,
   BeforeOperationHookArgs,

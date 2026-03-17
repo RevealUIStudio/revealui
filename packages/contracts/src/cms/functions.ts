@@ -53,9 +53,20 @@ export interface RevealCMSInstance {
 // ============================================
 
 /**
+ * Base user shape available on every RevealRequest.
+ * Core's RevealUser extends this with additional fields.
+ */
+export interface BaseRevealUser {
+  id: string | number;
+  email: string;
+  roles?: string[];
+  [key: string]: unknown;
+}
+
+/**
  * RevealUI Request interface for typing
  */
-export interface RevealRequest<TUser = unknown> {
+export interface RevealRequest<TUser extends BaseRevealUser = BaseRevealUser> {
   user?: TUser | null;
   /** The RevealUI CMS instance */
   revealui?: RevealCMSInstance;
