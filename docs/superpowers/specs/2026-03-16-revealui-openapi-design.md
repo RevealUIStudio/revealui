@@ -126,12 +126,14 @@ Extends the shared base config from `packages/dev`:
 
 ```json
 {
-  "extends": "dev/tsconfig.base.json",
+  "extends": "../dev/src/ts/library.json",
   "compilerOptions": {
-    "outDir": "dist",
-    "rootDir": "src"
+    "outDir": "./dist",
+    "rootDir": "./src",
+    "lib": ["ES2022", "DOM", "DOM.Iterable"]
   },
-  "include": ["src"]
+  "include": ["src/**/*"],
+  "exclude": ["node_modules", "dist", "src/**/__tests__/**", "src/**/*.test.ts"]
 }
 ```
 
