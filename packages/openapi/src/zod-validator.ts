@@ -78,13 +78,13 @@ export function zValidator<
 
 /** Duck-type check for Zod object schema (has _def or _zod internal property) */
 function isZodObject(schema: ZodType): boolean {
-  const s = schema as Record<string, unknown>;
+  const s = schema as unknown as Record<string, unknown>;
   return '_def' in s || '_zod' in s;
 }
 
 /** Extract keys from a Zod object schema */
 function getSchemaKeys(schema: ZodType): string[] {
-  const s = schema as Record<string, unknown>;
+  const s = schema as unknown as Record<string, unknown>;
   if ('in' in s && s.in && typeof s.in === 'object' && 'shape' in (s.in as object)) {
     return Object.keys((s.in as { shape: Record<string, unknown> }).shape);
   }
