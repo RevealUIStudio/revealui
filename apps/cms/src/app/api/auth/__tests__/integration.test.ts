@@ -638,7 +638,16 @@ describe('Flow 5: Passkey management', () => {
 
     // --- Step 2: Register a new passkey (authenticated flow) ---
     mockGetSession.mockResolvedValue(mockSession);
-    mockListPasskeys.mockResolvedValue([{ credentialId: 'cred-1' }]);
+    mockListPasskeys.mockResolvedValue([
+      {
+        id: 'pk-1',
+        credentialId: 'cred-1',
+        deviceName: 'MacBook Pro',
+        backedUp: false,
+        createdAt: new Date(),
+        lastUsedAt: null,
+      },
+    ]);
     mockGenerateRegistrationChallenge.mockResolvedValue({
       challenge: 'add-passkey-challenge',
       rp: { name: 'RevealUI', id: 'localhost' },
