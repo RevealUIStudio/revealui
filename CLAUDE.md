@@ -151,7 +151,7 @@ Schemas are in `packages/db/src/schema/`. Use Drizzle ORM for queries. Dual-data
 
 ## Build & Security Status
 - 24 workspaces build and typecheck clean
-- 5,501 tests (2,444 core + 1,010 API + 1,038 CMS + 822 DB + 187 security)
+- 5,606 tests (2,549 core + 1,060 API + 1,038 CMS + 879 DB + 80 security)
 - 36 pnpm overrides enforce minimum safe versions for transitive deps
 - React 19.2.4 (CVE-2025-55182 React2Shell patched)
 - Run `pnpm audit:any` and `pnpm audit:console` for current any/console counts (warn-only)
@@ -177,9 +177,11 @@ Biome, typecheck, tests, and build all block pushes. Audits and structure checks
 - Auth: bcrypt (12 rounds), brute force protection, rate limiting, session-only (no JWT)
 - Session cookies: httpOnly, secure, sameSite=lax — set in sign-in/sign-up/OAuth routes
 - Admin gate: proxy.ts checks `revealui-role` cookie for /admin routes (defense-in-depth)
-- Access control: find/findByID enforce collection `access.read` rules (boolean or WhereClause)
+- Access control: find/findByID enforce `access.read`, update enforces `access.update`, delete enforces `access.delete` (boolean or WhereClause)
 - `overrideAccess` query param stripped from external requests in proxy.ts
-- License cache TTL: 15 minutes (revoked licenses lose access promptly)
+- License enforcement: 5-min DB status check (checkLicenseStatus) + requireFeature middleware on Pro routes
+- Feature gates: AI routes (agent-tasks, agent-stream, RAG, collab/agent), dashboard (provenance)
+- Resource limits: enforceSiteLimit on site creation, advisory-locked user limit in CMS sign-up
 - Encryption keys: non-extractable by default (configurable via `extractable` option)
 - Rich text: isSafeUrl() blocks javascript:/vbscript:/data: in Lexical link/image rendering
 - Webhook rate limiting: 100 req/min on /api/webhooks

@@ -211,6 +211,33 @@ export async function sendTierFallbackAlert(
   });
 }
 
+export async function sendWebhookFailureAlert(
+  email: string,
+  context: {
+    eventId: string;
+    eventType: string;
+    error: string;
+    customerId?: string;
+  },
+): Promise<void> {
+  await sendEmail({
+    to: email,
+    subject: `[CRITICAL] RevealUI: Webhook handler crashed — ${context.eventType}`,
+    html: emailShell(
+      'Webhook Handler Failure',
+      `<h1 style="color: #dc2626;">Webhook Handler Crashed</h1>
+<p>A Stripe webhook event failed to process. Stripe will retry for up to 72 hours.</p>
+<p><strong>Event ID:</strong> <code>${escapeHtml(context.eventId)}</code></p>
+<p><strong>Event Type:</strong> <code>${escapeHtml(context.eventType)}</code></p>
+<p><strong>Error:</strong> ${escapeHtml(context.error)}</p>
+${context.customerId ? `<p><strong>Customer ID:</strong> <code>${escapeHtml(context.customerId)}</code></p>` : ''}
+<p style="color: #dc2626; font-weight: bold;">If this is a checkout.session.completed event, a customer may have paid but not received their license. Check Stripe dashboard and manually generate a license if needed.</p>
+<p>Check API logs for full stack trace.</p>`,
+    ),
+    text: `Webhook handler crashed.\n\nEvent ID: ${context.eventId}\nEvent Type: ${context.eventType}\nError: ${context.error}\n${context.customerId ? `Customer ID: ${context.customerId}\n` : ''}\nStripe will retry for 72 hours. Check API logs.`,
+  });
+}
+
 // =============================================================================
 // GitHub team provisioning — side-effect triggered by webhook events
 // =============================================================================

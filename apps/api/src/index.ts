@@ -38,6 +38,7 @@ import gdprRoute from './routes/gdpr.js';
 import healthRoute from './routes/health.js';
 import licenseRoute from './routes/license.js';
 import logsRoute from './routes/logs.js';
+import maintenanceRoute from './routes/maintenance.js';
 import marketplaceRoute from './routes/marketplace.js';
 import pricingRoute from './routes/pricing.js';
 import ragIndexRoute from './routes/rag-index.js';
@@ -205,6 +206,7 @@ const DEFAULT_RATE_LIMITS: RateLimitsConfig = {
     'marketplace-publish': { maxRequests: 10, windowMs: ONE_HOUR },
     'marketplace-invoke': { maxRequests: 30, windowMs: ONE_MINUTE },
     pricing: { maxRequests: 10, windowMs: ONE_MINUTE },
+    maintenance: { maxRequests: 1, windowMs: ONE_MINUTE },
     webhook: { maxRequests: 100, windowMs: ONE_MINUTE },
   },
 };
@@ -279,6 +281,10 @@ app.use('/api/v1/marketplace/servers/*/invoke', routeLimit('marketplace-invoke')
 // Pricing endpoint — public, heavily cached (ISR clients need at most 1 req/hour)
 app.use('/api/pricing', routeLimit('pricing'));
 app.use('/api/v1/pricing', routeLimit('pricing'));
+
+// Maintenance cron — 1 req/min (cron-secret protected, limit prevents accidental hammering)
+app.use('/api/maintenance/*', routeLimit('maintenance'));
+app.use('/api/v1/maintenance/*', routeLimit('maintenance'));
 
 // GDPR consent endpoints — moderate limits, deletion requests tighter
 const gdprConsentLimit = rateLimitMiddleware({
@@ -468,6 +474,7 @@ app.route('/api/agent-stream', agentStreamRoute);
 app.route('/api/content', contentRoute);
 app.route('/api/rag', ragIndexRoute);
 app.route('/api/api-keys', apiKeysRoute);
+app.route('/api/maintenance', maintenanceRoute);
 app.route('/api/marketplace', marketplaceRoute);
 app.route('/api/pricing', pricingRoute);
 app.route('/api/terminal-auth', terminalAuthRoute);
@@ -490,6 +497,7 @@ app.route('/api/v1/agent-stream', agentStreamRoute);
 app.route('/api/v1/content', contentRoute);
 app.route('/api/v1/rag', ragIndexRoute);
 app.route('/api/v1/api-keys', apiKeysRoute);
+app.route('/api/v1/maintenance', maintenanceRoute);
 app.route('/api/v1/marketplace', marketplaceRoute);
 app.route('/api/v1/pricing', pricingRoute);
 

@@ -1,7 +1,7 @@
 /**
  * Update Operation
  *
- * Updates an existing document with validation, password hashing, and JSON field handling.
+ * Updates an existing document with access control, validation, password hashing, and JSON field handling.
  */
 
 import bcrypt from 'bcryptjs';
@@ -10,6 +10,7 @@ import type {
   QueryableDatabaseAdapter,
   RevealCollectionConfig,
   RevealDocument,
+  RevealRequest,
   RevealUIField,
   RevealUpdateOptions,
 } from '../../types/index.js';
@@ -19,12 +20,55 @@ import { runBeforeFieldHooks } from './fieldHooks.js';
 import { findByID } from './findById.js';
 import { checkExistsByIdQuery, selectJsonByIdQuery, updateByIdQuery } from './sqlAdapter.js';
 
+/**
+ * Evaluate a collection's access.update function.
+ * Returns true (allow) or false (deny).
+ */
+async function evaluateUpdateAccess(
+  config: RevealCollectionConfig,
+  options: RevealUpdateOptions,
+): Promise<boolean> {
+  if (options.overrideAccess) return true;
+
+  const accessConfig = (
+    config as {
+      access?: {
+        update?: (args: {
+          req: RevealRequest;
+          id?: string | number;
+          data?: Record<string, unknown>;
+        }) => unknown;
+      };
+    }
+  ).access;
+  const updateAccess = accessConfig?.update;
+
+  // No access rule defined = allow all (backward compatible)
+  if (!updateAccess) return true;
+
+  const req = options.req;
+  if (!req) return false; // No request context = deny (safe default)
+
+  const result = await updateAccess({ req, id: options.id, data: options.data });
+
+  if (result === false) return false;
+
+  // Any truthy result (true, WhereClause) = allowed for single-document operations
+  return !!result;
+}
+
 export async function update(
   config: RevealCollectionConfig,
   db: QueryableDatabaseAdapter | null,
   options: RevealUpdateOptions,
 ): Promise<RevealDocument> {
   const { id, data } = options;
+
+  // --- Access control enforcement ---
+  const allowed = await evaluateUpdateAccess(config, options);
+  if (!allowed) {
+    throw new Error('Access denied: insufficient permissions to update this document');
+  }
 
   // Run beforeValidate field hooks before validation so they can transform values.
   await runBeforeFieldHooks(config, data, 'update', 'beforeValidate');
@@ -67,7 +111,7 @@ export async function update(
 
   // Hash password if present and not already hashed (doesn't start with $2a$ or $2b$)
   if (data.password && typeof data.password === 'string' && !data.password.startsWith('$2')) {
-    const saltRounds = 10;
+    const saltRounds = 12;
     data.password = await bcrypt.hash(data.password, saltRounds);
   }
 

@@ -134,7 +134,6 @@ vi.mock('../../lib/email.js', () => ({
 
 // ─── Import under test (after mocks) ─────────────────────────────────────────
 
-import * as featuresModule from '@revealui/core/features';
 import * as licenseModule from '@revealui/core/license';
 import * as loggerModule from '@revealui/core/observability/logger';
 import webhooksApp from '../webhooks.js';
@@ -184,7 +183,6 @@ describe('Webhook Safety — money-critical paths', () => {
   beforeEach(() => {
     vi.clearAllMocks();
 
-    vi.mocked(featuresModule.isFeatureEnabled).mockReturnValue(false);
     vi.mocked(licenseModule.generateLicenseKey).mockResolvedValue('rv-license-key-safety-test');
     mockSubscriptionsUpdate.mockResolvedValue({});
     mockSubscriptionsRetrieve.mockResolvedValue({ status: 'active', trial_end: null });
