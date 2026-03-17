@@ -9,96 +9,71 @@ const BASE_URL = process.env.BASE_URL || 'http://localhost:3000';
 
 test.describe('Payment Checkout Flow', () => {
   test('user can initiate checkout', async ({ page }) => {
-    // Navigate to product or cart page
     await page.goto(`${BASE_URL}/products`);
 
-    // Find and click add to cart or buy button
     const addToCartButton = page
       .locator('button:has-text("Add to Cart"), button:has-text("Buy")')
       .first();
 
-    if (await addToCartButton.isVisible().catch(() => false)) {
-      await addToCartButton.click();
+    await expect(addToCartButton).toBeVisible();
+    await addToCartButton.click();
 
-      // Should navigate to checkout or cart
-      await expect(page).toHaveURL(new RegExp(`${BASE_URL}/(checkout|cart)`));
-    }
+    await expect(page).toHaveURL(new RegExp(`${BASE_URL}/(checkout|cart)`));
   });
 
   test('checkout form validates input', async ({ page }) => {
     await page.goto(`${BASE_URL}/checkout`);
 
-    // Try to submit empty form
     const submitButton = page.locator('button[type="submit"]').first();
+    await expect(submitButton).toBeVisible();
+    await submitButton.click();
 
-    if (await submitButton.isVisible().catch(() => false)) {
-      await submitButton.click();
-
-      // Should show validation errors
-      const errors = page.locator('text=/required|invalid|error/i');
-      const errorCount = await errors.count();
-
-      // Should have at least one validation error
-      expect(errorCount).toBeGreaterThan(0);
-    }
+    // Should show validation errors
+    const errors = page.locator('text=/required|invalid|error/i');
+    await expect(errors.first()).toBeVisible();
+    const errorCount = await errors.count();
+    expect(errorCount).toBeGreaterThan(0);
   });
 
   test('payment form accepts test card numbers', async ({ page }) => {
     await page.goto(`${BASE_URL}/checkout`);
 
-    // Look for payment form elements
     const cardInput = page
       .locator('input[name*="card"], input[placeholder*="card"], #card-number')
       .first();
+    await expect(cardInput).toBeVisible();
 
-    if (await cardInput.isVisible().catch(() => false)) {
-      // Use Stripe test card number
-      await cardInput.fill('4242 4242 4242 4242');
+    // Use Stripe test card number
+    await cardInput.fill('4242 4242 4242 4242');
 
-      // Fill other required fields if present
-      const expiryInput = page
-        .locator('input[name*="expiry"], input[placeholder*="expiry"]')
-        .first();
-      if (await expiryInput.isVisible().catch(() => false)) {
-        await expiryInput.fill('12/25');
-      }
+    const expiryInput = page.locator('input[name*="expiry"], input[placeholder*="expiry"]').first();
+    await expect(expiryInput).toBeVisible();
+    await expiryInput.fill('12/25');
 
-      const cvcInput = page.locator('input[name*="cvc"], input[placeholder*="cvc"]').first();
-      if (await cvcInput.isVisible().catch(() => false)) {
-        await cvcInput.fill('123');
-      }
+    const cvcInput = page.locator('input[name*="cvc"], input[placeholder*="cvc"]').first();
+    await expect(cvcInput).toBeVisible();
+    await cvcInput.fill('123');
 
-      // Form should accept the input
-      const value = await cardInput.inputValue();
-      expect(value.length).toBeGreaterThan(0);
-    }
+    // Form should accept the input
+    const value = await cardInput.inputValue();
+    expect(value.length).toBeGreaterThan(0);
   });
 
   test('payment success redirects to success page', async ({ page }) => {
-    // This test would require actual payment processing
-    // For now, we test the success page exists
-    await page.goto(`${BASE_URL}/checkout/success`);
+    const response = await page.goto(`${BASE_URL}/checkout/success`);
+
+    // Page should load without server error
+    expect(response?.status() || 200).toBeLessThan(500);
 
     // Should show success message
     const successMessage = page.locator('text=/success|thank you|payment received/i');
-    await successMessage.isVisible().catch(() => false);
-
-    // Page should load (200 or redirect)
-    const response = await page.goto(`${BASE_URL}/checkout/success`).catch(() => null);
-    expect(response?.status() || 200).toBeLessThan(500);
+    await expect(successMessage).toBeVisible();
   });
 });
 
 test.describe('Stripe Integration', () => {
   test('Stripe elements load correctly', async ({ page }) => {
-    await page.goto(`${BASE_URL}/checkout`);
-
-    // Check for Stripe iframe or elements
-    // Stripe elements may not be visible in test environment
-    // Just verify page loads without errors
-    await expect(page).toHaveURL(new RegExp(`${BASE_URL}/(checkout|pay)`));
-
-    // Verify page loaded successfully (no console errors)
+    // Register console listener before navigation to capture all errors
     const errors: string[] = [];
     page.on('console', (msg) => {
       if (msg.type() === 'error') {
@@ -106,10 +81,13 @@ test.describe('Stripe Integration', () => {
       }
     });
 
-    // Allow some time for Stripe to load
+    await page.goto(`${BASE_URL}/checkout`);
+    await expect(page).toHaveURL(new RegExp(`${BASE_URL}/(checkout|pay)`));
+
+    // Allow time for Stripe to load
     await page.waitForTimeout(1000);
 
-    // Should not have critical errors
+    // Should not have critical errors (ignore favicon/analytics noise)
     const criticalErrors = errors.filter(
       (error) => !(error.includes('favicon') || error.includes('analytics')),
     );

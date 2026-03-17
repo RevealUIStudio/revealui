@@ -1,11 +1,12 @@
 name: CI
 
 # Mirrors local `pnpm gate` — same hard-fail policy:
-#   Hard fail: Biome lint, boundary, typecheck, tests, build
+#   Hard fail: Biome lint, boundary, typecheck, unit tests, build
+#   Hard fail (main only): integration tests (requires DB)
 #   Warn-only: audits, structure
 #
-# PRs: quality + typecheck + package build + tests + E2E smoke (~10 min).
-# main: full build including apps + E2E smoke (~15 min).
+# PRs: quality + typecheck + package build + unit tests + E2E smoke (~10 min).
+# main: full build including apps + integration tests + E2E smoke (~15 min).
 
 on:
   push:
@@ -97,10 +98,10 @@ jobs:
           SKIP_ENV_VALIDATION: "true"
 
   # ---------------------------------------------------------------------------
-  # Phase 3a: Tests (hard fail)
+  # Phase 3a: Unit tests (hard fail)
   # ---------------------------------------------------------------------------
-  test:
-    name: Tests
+  test-unit:
+    name: Unit Tests
     runs-on: ubuntu-latest
     timeout-minutes: 10
     needs: quality
@@ -120,10 +121,57 @@ jobs:
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
 
-      - name: Run tests
+      - name: Run unit tests (hard fail)
         run: pnpm test
         env:
           SKIP_ENV_VALIDATION: "true"
+
+  # ---------------------------------------------------------------------------
+  # Phase 3a.1: Integration tests (hard fail, requires DB — main only)
+  # ---------------------------------------------------------------------------
+  test-integration:
+    name: Integration Tests
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    needs: quality
+    if: github.ref == 'refs/heads/main'
+
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_USER: test
+          POSTGRES_PASSWORD: test
+          POSTGRES_DB: revealui_test
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd="pg_isready -U test"
+          --health-interval=10s
+          --health-timeout=5s
+          --health-retries=5
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: pnpm/action-setup@v4
+        with:
+          version: ${{ env.PNPM_VERSION }}
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: pnpm
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Run integration tests (hard fail)
+        run: pnpm test:integration
+        env:
+          SKIP_ENV_VALIDATION: "true"
+          DATABASE_URL: "postgresql://test:test@localhost:5432/revealui_test"
+          POSTGRES_URL: "postgresql://test:test@localhost:5432/revealui_test"
 
   # ---------------------------------------------------------------------------
   # Phase 3a.5: Coverage artifacts (warn-only)
