@@ -32,11 +32,7 @@ export async function Footer() {
       <div className="container py-8 gap-8 flex flex-col md:flex-row md:justify-between">
         <Link className="flex items-center" href="/">
           <picture>
-            <img
-              alt="RevealUI Logo"
-              className="max-w-24 invert-0"
-              src="https://raw.githubusercontent.com/revealui/revealui/main/packages/revealui/src/assets/images/revealui-logo-light.svg"
-            />
+            <img alt="RevealUI Logo" className="max-w-24 invert-0" src="/revealui-logo.svg" />
           </picture>
         </Link>
 
