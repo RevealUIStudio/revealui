@@ -24,13 +24,13 @@ describe('SocialProof', () => {
   it('contains all four stats', () => {
     const result = SocialProof();
     const html = JSON.stringify(result);
-    expect(html).toContain('20');
-    expect(html).toContain('packages');
+    expect(html).toContain('24');
+    expect(html).toContain('workspaces');
     expect(html).toContain('415K+');
     expect(html).toContain('lines of TypeScript');
-    expect(html).toContain('6,400+');
+    expect(html).toContain('11,700+');
     expect(html).toContain('tests');
-    expect(html).toContain('5');
+    expect(html).toContain('6');
     expect(html).toContain('apps deployed');
   });
 
