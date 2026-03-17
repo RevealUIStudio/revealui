@@ -259,7 +259,11 @@ async function checkSecretscan(projectRoot: string): Promise<CheckResult> {
   const realMatches = rawMatches
     ? rawMatches.split('\n').filter((line) => {
         const content = line.replace(/^[^:]+:/, '').trimStart();
-        return !(content.startsWith('* ') || content.startsWith('//') || content.startsWith('#'));
+        // Exclude comments and UI placeholder attributes (not real credentials)
+        if (content.startsWith('* ') || content.startsWith('//') || content.startsWith('#'))
+          return false;
+        if (/placeholder\s*=\s*["']/.test(content)) return false;
+        return true;
       })
     : [];
 
