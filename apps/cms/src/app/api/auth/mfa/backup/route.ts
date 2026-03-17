@@ -38,7 +38,7 @@ async function backupHandler(request: NextRequest): Promise<NextResponse> {
 
     const payload = verifyCookiePayload<{ userId: string; expiresAt: number }>(
       mfaPendingCookie,
-      process.env.REVEALUI_SECRET!,
+      process.env.REVEALUI_SECRET ?? '',
     );
 
     if (!payload) {

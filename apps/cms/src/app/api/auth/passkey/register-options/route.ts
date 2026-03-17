@@ -129,7 +129,7 @@ async function registerOptionsHandler(request: NextRequest): Promise<NextRespons
           expiresAt: Date.now() + 5 * 60 * 1000,
         };
 
-    const signed = signCookiePayload(challengePayload, process.env.REVEALUI_SECRET!);
+    const signed = signCookiePayload(challengePayload, process.env.REVEALUI_SECRET ?? '');
 
     const response = NextResponse.json({ options });
 

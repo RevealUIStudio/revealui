@@ -7,8 +7,8 @@
  */
 
 export {
-  cleanupOrphanedVectorData,
   type CleanupConfig,
   type CleanupResult,
+  cleanupOrphanedVectorData,
   configureCleanup,
 } from './cross-db-cleanup.js';

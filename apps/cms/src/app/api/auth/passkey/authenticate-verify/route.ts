@@ -40,7 +40,7 @@ async function authenticateVerifyHandler(request: NextRequest): Promise<NextResp
 
     const challengePayload = verifyCookiePayload<{ challenge: string; expiresAt: number }>(
       challengeCookie,
-      process.env.REVEALUI_SECRET!,
+      process.env.REVEALUI_SECRET ?? '',
     );
 
     if (!challengePayload) {

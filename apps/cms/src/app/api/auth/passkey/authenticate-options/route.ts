@@ -27,7 +27,7 @@ async function authenticateOptionsHandler(_request: NextRequest): Promise<NextRe
         challenge: options.challenge,
         expiresAt: Date.now() + 5 * 60 * 1000,
       },
-      process.env.REVEALUI_SECRET!,
+      process.env.REVEALUI_SECRET ?? '',
     );
 
     const response = NextResponse.json({ options });
