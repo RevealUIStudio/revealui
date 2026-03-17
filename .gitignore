@@ -222,3 +222,6 @@ opensrc/
 
 # Visual QA screenshots (local only)
 screenshots/
+
+# Playwright MCP console logs (ephemeral)
+.playwright-mcp/

@@ -52,19 +52,19 @@ export function validateForgeConfig(): void {
   if (!isForgeMode) return;
 
   if (licenseKey && !licensedDomain) {
-    logger.error(
+    const msg =
       'FORGE_LICENSE_KEY is set but FORGE_LICENSED_DOMAIN is missing. ' +
-        'Set FORGE_LICENSED_DOMAIN to the domain this Forge is licensed for.',
-    );
-    process.exit(1);
+      'Set FORGE_LICENSED_DOMAIN to the domain this Forge is licensed for.';
+    logger.error(msg);
+    throw new Error(msg);
   }
 
   if (licensedDomain && !licenseKey) {
-    logger.error(
+    const msg =
       'FORGE_LICENSED_DOMAIN is set but FORGE_LICENSE_KEY is missing. ' +
-        'A valid license key is required to run Forge.',
-    );
-    process.exit(1);
+      'A valid license key is required to run Forge.';
+    logger.error(msg);
+    throw new Error(msg);
   }
 
   logger.info('Forge mode active', { licensedDomain });
