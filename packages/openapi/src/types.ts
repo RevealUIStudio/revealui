@@ -279,7 +279,7 @@ export type MiddlewareToHandlerType<M extends MiddlewareHandler<any, any, any>[]
     ? Last
     : MiddlewareHandler<Env>;
 
-type RouteMiddlewareParams<R extends RouteConfig> = OfHandlerType<
+export type RouteMiddlewareParams<R extends RouteConfig> = OfHandlerType<
   MiddlewareToHandlerType<AsArray<R['middleware']>>
 >;
 
