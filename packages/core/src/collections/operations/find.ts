@@ -83,8 +83,13 @@ export async function find(
   const mergedWhere =
     accessResult === true ? where : where ? { and: [where, accessResult] } : accessResult;
 
-  // Replace where in options for downstream use
-  const accessOptions = { ...options, where: mergedWhere };
+  // Replace where in options for downstream use.
+  // When access returned a WhereClause (not just boolean true), set overrideAccess: true
+  // to prevent infinite recursion if collectionStorage.find re-invokes this function.
+  const accessOptions =
+    accessResult === true
+      ? { ...options, where: mergedWhere }
+      : { ...options, where: mergedWhere, overrideAccess: true };
 
   if (db?.collectionStorage?.find) {
     const result = await db.collectionStorage.find(config, accessOptions);
