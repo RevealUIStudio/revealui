@@ -1,6 +1,6 @@
 # RevealUI Documentation
 
-Open-source business infrastructure for software companies.
+Business OS Software (BOSS). Build your business, not your boilerplate.
 
 ## Getting Started
 

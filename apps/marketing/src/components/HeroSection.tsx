@@ -47,15 +47,21 @@ export function HeroSection() {
             <span className="h-1.5 w-1.5 rounded-full bg-emerald-500 animate-pulse" />
             Open Source &middot; MIT Licensed
           </Badge>
+          <p className="text-sm font-medium uppercase tracking-widest text-gray-400 mb-4 hero-stagger">
+            The User Interface for the future has yet to Reveal itself
+          </p>
           <h1 className="text-4xl font-bold tracking-tight text-gray-950 sm:text-6xl lg:text-7xl hero-stagger">
-            Build your business,
+            Business OS Software
             <span className="block bg-gradient-to-r from-gray-500 to-gray-300 bg-clip-text text-transparent">
-              not your boilerplate.
+              (BOSS)
             </span>
           </h1>
-          <p className="mx-auto mt-6 max-w-2xl text-lg leading-8 text-gray-500">
+          <p className="mx-auto mt-6 max-w-2xl text-xl font-semibold leading-8 text-gray-700">
+            Build your business, not your boilerplate.
+          </p>
+          <p className="mx-auto mt-3 max-w-2xl text-lg leading-8 text-gray-500">
             Everything a software company needs &mdash; users, content, products, payments, and AI
-            &mdash; pre-wired and ready to deploy. Open source. Full source code. Yours entirely.
+            &mdash; pre-wired, open source, and ready to deploy.
           </p>
 
           {/* Five primitives */}

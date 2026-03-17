@@ -16,12 +16,13 @@ const geistMono = Geist_Mono({
 export const metadataBase = new URL('https://revealui.com');
 
 export const metadata: Metadata = {
-  title: 'RevealUI — Open-Source Business Infrastructure',
+  title: 'RevealUI — Business OS Software (BOSS)',
   description:
-    'Users, content, products, payments, and AI — pre-wired and ready to deploy. Open-source business infrastructure for software companies.',
+    'Business OS Software (BOSS). Users, content, products, payments, and AI — pre-wired, open source, and ready to deploy.',
   keywords: [
     'open source',
-    'business infrastructure',
+    'business OS',
+    'BOSS',
     'SaaS',
     'auth',
     'billing',
@@ -31,24 +32,27 @@ export const metadata: Metadata = {
   ],
   authors: [{ name: 'RevealUI Studio' }],
   openGraph: {
-    title: 'RevealUI — Build your business, not your boilerplate.',
+    title: 'RevealUI — Business OS Software (BOSS). Build your business, not your boilerplate.',
     description:
-      'Users, content, products, payments, and AI — pre-wired and ready to deploy. Open-source business infrastructure for software companies.',
+      'The UI for the future has yet to Reveal itself. Users, content, products, payments, and AI — pre-wired, open source, and ready to deploy.',
     type: 'website',
     images: [
       {
-        url: '/api/og?title=RevealUI&description=Build your business, not your boilerplate.',
+        url: '/api/og?title=RevealUI&description=Business OS Software (BOSS). Build your business, not your boilerplate.',
         width: 1200,
         height: 630,
-        alt: 'RevealUI — Open-Source Business Infrastructure',
+        alt: 'RevealUI — Business OS Software (BOSS)',
       },
     ],
   },
   twitter: {
     card: 'summary_large_image',
-    title: 'RevealUI — Build your business, not your boilerplate.',
-    description: 'Users, content, products, payments, and AI — pre-wired and ready to deploy.',
-    images: ['/api/og?title=RevealUI&description=Build your business, not your boilerplate.'],
+    title: 'RevealUI — Business OS Software (BOSS). Build your business, not your boilerplate.',
+    description:
+      'The UI for the future has yet to Reveal itself. Users, content, products, payments, and AI — pre-wired, open source, and ready to deploy.',
+    images: [
+      '/api/og?title=RevealUI&description=Business OS Software (BOSS). Build your business, not your boilerplate.',
+    ],
   },
 };
 

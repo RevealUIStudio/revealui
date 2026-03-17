@@ -2,7 +2,7 @@ import type { Metadata } from 'next';
 
 const defaultOpenGraph: Metadata['openGraph'] = {
   type: 'website',
-  description: 'Open-source business infrastructure for software companies.',
+  description: 'Business OS Software (BOSS). Build your business, not your boilerplate.',
   images: [
     {
       url: process.env.NEXT_PUBLIC_SERVER_URL
