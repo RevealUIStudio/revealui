@@ -150,7 +150,8 @@ Schemas are in `packages/db/src/schema/`. Use Drizzle ORM for queries. Dual-data
 - Database tests use PGlite (in-memory PostgreSQL)
 
 ## Build & Security Status
-- 24 workspaces (6 apps + 18 packages) build and typecheck clean
+- 24 workspaces build and typecheck clean
+- 5,501 tests (2,444 core + 1,010 API + 1,038 CMS + 822 DB + 187 security)
 - 36 pnpm overrides enforce minimum safe versions for transitive deps
 - React 19.2.4 (CVE-2025-55182 React2Shell patched)
 - Run `pnpm audit:any` and `pnpm audit:console` for current any/console counts (warn-only)
@@ -173,8 +174,17 @@ Biome, typecheck, tests, and build all block pushes. Audits and structure checks
 
 ## Security
 - CSP, CORS, HSTS headers in `@revealui/security` (re-exported via `packages/core/src/security/`)
-- Auth: bcrypt, brute force protection, rate limiting, sessions
-- RBAC + ABAC policy engine in core
+- Auth: bcrypt (12 rounds), brute force protection, rate limiting, session-only (no JWT)
+- Session cookies: httpOnly, secure, sameSite=lax — set in sign-in/sign-up/OAuth routes
+- Admin gate: proxy.ts checks `revealui-role` cookie for /admin routes (defense-in-depth)
+- Access control: find/findByID enforce collection `access.read` rules (boolean or WhereClause)
+- `overrideAccess` query param stripped from external requests in proxy.ts
+- License cache TTL: 15 minutes (revoked licenses lose access promptly)
+- Encryption keys: non-extractable by default (configurable via `extractable` option)
+- Rich text: isSafeUrl() blocks javascript:/vbscript:/data: in Lexical link/image rendering
+- Webhook rate limiting: 100 req/min on /api/webhooks
+- Cross-DB cleanup: `@revealui/db/cleanup` for orphaned Supabase data after site deletion
+- RBAC + ABAC policy engine in core (58 enforcement tests prove role isolation)
 - GDPR compliance framework (consent, deletion, anonymization)
 - AI memory validation: prototype pollution prevention, depth/size limits
 - CI: CodeQL, Gitleaks, dependency auditing, secret scanning (security-audit.yml, consolidated)
