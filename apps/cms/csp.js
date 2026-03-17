@@ -58,7 +58,6 @@ const policies = {
     "'self'",
     'https://res.cloudinary.com',
     'https://*.stripe.com',
-    'https://raw.githubusercontent.com',
     'data:',
     'https://www.gravatar.com',
   ],

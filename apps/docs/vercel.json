@@ -4,5 +4,14 @@
   "ignoreCommand": "git diff --quiet HEAD~1 HEAD -- . ../../packages ../../pnpm-lock.yaml ../../package.json ../../turbo.json 2>/dev/null || exit 1",
   "framework": "vite",
   "outputDirectory": "dist",
-  "rewrites": [{ "source": "/(.*)", "destination": "/index.html" }]
+  "headers": [
+    {
+      "source": "/docs/(.*).md",
+      "headers": [{ "key": "Content-Type", "value": "text/markdown; charset=utf-8" }]
+    }
+  ],
+  "rewrites": [
+    { "source": "/docs/:path*.md", "destination": "/docs/:path*.md" },
+    { "source": "/(.*)", "destination": "/index.html" }
+  ]
 }
