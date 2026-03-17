@@ -4,10 +4,11 @@ export default defineConfig({
   test: {
     globals: true,
     environment: 'node',
+    environmentMatchGlobs: [['**/*.test.tsx', 'happy-dom']],
     pool: 'forks',
     fileParallelism: false,
     maxWorkers: 1,
-    include: ['src/**/*.test.ts'],
+    include: ['src/**/*.test.ts', 'src/**/*.test.tsx'],
     env: {
       REVEALUI_SECRET: 'test-secret-key-for-testing-only-32chars',
       // Force in-memory storage by unsetting database URLs that may leak from direnv/nix shell
