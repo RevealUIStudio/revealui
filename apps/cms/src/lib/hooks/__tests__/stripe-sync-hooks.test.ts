@@ -486,8 +486,8 @@ describe('productsProxy', () => {
 
   it('does not expose raw Stripe error objects in response', async () => {
     const stripeError = new Error('Card declined');
-    (stripeError as Record<string, unknown>).type = 'StripeCardError';
-    (stripeError as Record<string, unknown>).raw = { sensitive: 'data' };
+    (stripeError as unknown as Record<string, unknown>).type = 'StripeCardError';
+    (stripeError as unknown as Record<string, unknown>).raw = { sensitive: 'data' };
     mockProductsList.mockRejectedValue(stripeError);
 
     const req = createMockRequest({ user: superAdminUser() });

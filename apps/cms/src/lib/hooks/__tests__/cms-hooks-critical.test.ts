@@ -291,13 +291,13 @@ describe('revalidateRedirects', () => {
 
   it('logs the operation when context is provided', async () => {
     const hook = await loadHook();
-    const mockLogger = { info: vi.fn(), error: vi.fn() };
+    const mockLogger = { info: vi.fn(), warn: vi.fn(), error: vi.fn() };
     const doc = { id: 'redirect-3' };
 
     hook({
       doc,
       context: {
-        revealui: { logger: mockLogger },
+        revealui: { logger: mockLogger } as never,
         operation: 'create',
       },
     });
