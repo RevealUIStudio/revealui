@@ -122,7 +122,6 @@ vi.mock('../../lib/email.js', () => ({
 
 // ─── Import under test (after mocks) ─────────────────────────────────────────
 
-import * as featuresModule from '@revealui/core/features';
 import * as licenseModule from '@revealui/core/license';
 import * as loggerModule from '@revealui/core/observability/logger';
 import webhooksApp from '../webhooks.js';
@@ -160,7 +159,6 @@ describe('POST /stripe webhook', () => {
     // Defaults for all tests (re-applied after clearAllMocks clears call history
     // but preserves implementations — however, tests that call mockReturnValue
     // inside the test body may change these, so we reset them explicitly here)
-    vi.mocked(featuresModule.isFeatureEnabled).mockReturnValue(false); // audit off
     vi.mocked(licenseModule.generateLicenseKey).mockResolvedValue('rv-license-key-test-123');
     mockSubscriptionsUpdate.mockResolvedValue({});
     mockSubscriptionsRetrieve.mockResolvedValue({ status: 'active', trial_end: null });
@@ -272,19 +270,7 @@ describe('POST /stripe webhook', () => {
       expect(setCall.status).toBe('revoked');
     });
 
-    it('does not write audit log when auditLog feature is disabled', async () => {
-      const event = makeSubscriptionDeletedEvent('evt_deleted_no_audit_2');
-      mockConstructEvent.mockReturnValueOnce(event);
-
-      const app = createApp();
-      await app.request(postStripe(event));
-
-      expect(mockAuditAppend).not.toHaveBeenCalled();
-    });
-
-    it('writes audit log when auditLog feature is enabled', async () => {
-      vi.mocked(featuresModule.isFeatureEnabled).mockReturnValue(true);
-
+    it('always writes audit log for license lifecycle events (compliance)', async () => {
       const event = makeSubscriptionDeletedEvent('evt_deleted_audit_2');
       mockConstructEvent.mockReturnValueOnce(event);
 
@@ -351,9 +337,7 @@ describe('POST /stripe webhook', () => {
       expect(setCall.status).toBe('active');
     });
 
-    it('writes license.expired audit entry when subscription goes past_due and auditLog enabled', async () => {
-      vi.mocked(featuresModule.isFeatureEnabled).mockReturnValue(true);
-
+    it('writes license.expired audit entry when subscription goes past_due', async () => {
       const event = {
         id: 'evt_updated_pastdue_audit_2',
         type: 'customer.subscription.updated',
@@ -870,8 +854,7 @@ describe('POST /stripe webhook', () => {
       expect(insertedEntitlement.status).toBe('active');
     });
 
-    it('writes license.reactivated.payment_recovery audit entry when auditLog enabled', async () => {
-      vi.mocked(featuresModule.isFeatureEnabled).mockReturnValue(true);
+    it('writes license.reactivated.payment_recovery audit entry', async () => {
       mockSubscriptionsList.mockResolvedValueOnce({
         data: [{ id: 'sub_recovery', metadata: { tier: 'pro' } }],
       });

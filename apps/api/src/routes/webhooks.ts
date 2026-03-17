@@ -9,7 +9,7 @@
  * duplicate processing across Vercel multi-region deployments.
  */
 
-import { getFeaturesForTier, isFeatureEnabled } from '@revealui/core/features';
+import { getFeaturesForTier } from '@revealui/core/features';
 import { generateLicenseKey, type LicenseTier, resetLicenseState } from '@revealui/core/license';
 import { logger } from '@revealui/core/observability/logger';
 import { DrizzleAuditStore, getClient } from '@revealui/db';
@@ -35,6 +35,7 @@ import {
   sendPerpetualLicenseActivatedEmail,
   sendTierFallbackAlert,
   sendTrialEndingEmail,
+  sendWebhookFailureAlert,
 } from '../lib/webhook-emails.js';
 
 const app = new OpenAPIHono();
@@ -397,8 +398,10 @@ async function syncHostedSubscriptionState(
 /**
  * Append a license lifecycle event to the audit log.
  *
- * Enterprise-only (auditLog feature flag). Fire-and-forget — errors are
- * swallowed so that audit failure never blocks the webhook response.
+ * License lifecycle events are always audited for compliance.
+ * The isFeatureEnabled('auditLog') gate controls UI access to audit data,
+ * not collection. Fire-and-forget — errors are swallowed so that audit
+ * failure never blocks the webhook response.
  */
 function auditLicenseEvent(
   db: Database,
@@ -406,7 +409,6 @@ function auditLicenseEvent(
   severity: 'info' | 'warn' | 'critical',
   payload: Record<string, unknown>,
 ): void {
-  if (!isFeatureEnabled('auditLog')) return;
   new DrizzleAuditStore(db)
     .append({
       id: crypto.randomUUID(),
@@ -1432,6 +1434,31 @@ app.openapi(stripeWebhookRoute, async (c) => {
     await unmarkProcessed(db, event.id);
     const msg = err instanceof Error ? err.message : 'Unknown error';
     logger.error('Webhook handler error', undefined, { detail: msg, eventType: event.type });
+
+    // Fire-and-forget alert to founder — critical for checkout failures where
+    // customer has paid but license was not generated.
+    const alertEmail = process.env.REVEALUI_ALERT_EMAIL || 'founder@revealui.com';
+    sendWebhookFailureAlert(alertEmail, {
+      eventId: event.id,
+      eventType: event.type,
+      error: msg,
+      customerId: (() => {
+        const obj = event.data.object;
+        if ('customer' in obj && obj.customer) {
+          return typeof obj.customer === 'string'
+            ? obj.customer
+            : typeof obj.customer === 'object' && 'id' in obj.customer
+              ? obj.customer.id
+              : undefined;
+        }
+        return undefined;
+      })(),
+    }).catch((alertErr) => {
+      logger.warn('Failed to send webhook failure alert', {
+        error: alertErr instanceof Error ? alertErr.message : 'unknown',
+      });
+    });
+
     return c.json({ error: 'Webhook processing failed' }, 500);
   }
 

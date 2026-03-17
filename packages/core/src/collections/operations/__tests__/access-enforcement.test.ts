@@ -15,8 +15,10 @@ import type {
   RevealFindOptions,
   RevealRequest,
 } from '../../../types/index.js';
+import { deleteDocument } from '../delete.js';
 import { find } from '../find.js';
 import { findByID } from '../findById.js';
+import { update } from '../update.js';
 
 // ---------------------------------------------------------------------------
 // Helpers
@@ -465,6 +467,272 @@ describe('access control enforcement', () => {
 
       const findByIdResult = await findByID(config, db as never, { id: '1', req });
       expect(findByIdResult).toEqual({ id: '1', title: 'Public Post', status: 'published' });
+    });
+  });
+
+  // =========================================================================
+  // deleteDocument() tests
+  // =========================================================================
+
+  describe('deleteDocument()', () => {
+    const mockDeleteDb = {
+      query: vi.fn().mockResolvedValue({ rows: [] } as DatabaseResult),
+    };
+
+    it('allows delete when no access rule is defined (backward compatible)', async () => {
+      const result = await deleteDocument(baseConfig, mockDeleteDb as never, { id: '1' });
+
+      expect(result).toEqual({ id: '1' });
+      expect(mockDeleteDb.query).toHaveBeenCalled();
+    });
+
+    it('throws when access.delete returns false', async () => {
+      const accessDeleteSpy = vi.fn().mockReturnValue(false);
+      const config: RevealCollectionConfig = {
+        ...baseConfig,
+        access: { delete: accessDeleteSpy },
+      };
+      const req = mockRequest();
+
+      await expect(deleteDocument(config, mockDeleteDb as never, { id: '1', req })).rejects.toThrow(
+        'Access denied: insufficient permissions to delete this document',
+      );
+
+      expect(accessDeleteSpy).toHaveBeenCalledTimes(1);
+      expect(accessDeleteSpy).toHaveBeenCalledWith(expect.objectContaining({ req, id: '1' }));
+      // Database should never be queried when access is denied
+      expect(mockDeleteDb.query).not.toHaveBeenCalled();
+    });
+
+    it('allows delete when access.delete returns true', async () => {
+      const accessDeleteSpy = vi.fn().mockReturnValue(true);
+      const config: RevealCollectionConfig = {
+        ...baseConfig,
+        access: { delete: accessDeleteSpy },
+      };
+      const req = mockRequest();
+
+      const result = await deleteDocument(config, mockDeleteDb as never, { id: '1', req });
+
+      expect(result).toEqual({ id: '1' });
+      expect(accessDeleteSpy).toHaveBeenCalledTimes(1);
+      expect(mockDeleteDb.query).toHaveBeenCalled();
+    });
+
+    it('skips access check when overrideAccess=true even when rule would deny', async () => {
+      const accessDeleteSpy = vi.fn().mockReturnValue(false);
+      const config: RevealCollectionConfig = {
+        ...baseConfig,
+        access: { delete: accessDeleteSpy },
+      };
+      const req = mockRequest();
+
+      const result = await deleteDocument(config, mockDeleteDb as never, {
+        id: '1',
+        req,
+        overrideAccess: true,
+      });
+
+      expect(result).toEqual({ id: '1' });
+      // access.delete should NOT be called when overrideAccess is true
+      expect(accessDeleteSpy).not.toHaveBeenCalled();
+    });
+
+    it('throws (denied) when access.delete exists but no req is provided', async () => {
+      const accessDeleteSpy = vi.fn().mockReturnValue(true);
+      const config: RevealCollectionConfig = {
+        ...baseConfig,
+        access: { delete: accessDeleteSpy },
+      };
+
+      // No req — should deny access
+      await expect(deleteDocument(config, mockDeleteDb as never, { id: '1' })).rejects.toThrow(
+        'Access denied',
+      );
+
+      expect(accessDeleteSpy).not.toHaveBeenCalled();
+      expect(mockDeleteDb.query).not.toHaveBeenCalled();
+    });
+
+    it('handles async access.delete functions', async () => {
+      const accessDeleteSpy = vi.fn().mockResolvedValue(false);
+      const config: RevealCollectionConfig = {
+        ...baseConfig,
+        access: { delete: accessDeleteSpy },
+      };
+      const req = mockRequest();
+
+      await expect(deleteDocument(config, mockDeleteDb as never, { id: '1', req })).rejects.toThrow(
+        'Access denied',
+      );
+
+      expect(accessDeleteSpy).toHaveBeenCalledTimes(1);
+    });
+
+    it('passes req to the access function for user-based decisions', async () => {
+      const accessDeleteSpy = vi
+        .fn()
+        .mockImplementation(({ req: accessReq }: { req: RevealRequest }) => {
+          return accessReq.user?.roles?.includes('admin') ?? false;
+        });
+      const config: RevealCollectionConfig = {
+        ...baseConfig,
+        access: { delete: accessDeleteSpy },
+      };
+
+      // Editor user — should be denied
+      const editorReq = mockRequest({ user: { id: 'u1', roles: ['editor'] } });
+      await expect(
+        deleteDocument(config, mockDeleteDb as never, { id: '1', req: editorReq }),
+      ).rejects.toThrow('Access denied');
+
+      // Admin user — should be allowed
+      const adminReq = mockRequest({ user: { id: 'u2', roles: ['admin'] } });
+      const result = await deleteDocument(config, mockDeleteDb as never, {
+        id: '1',
+        req: adminReq,
+      });
+      expect(result).toEqual({ id: '1' });
+    });
+  });
+
+  // =========================================================================
+  // update() tests — access control enforcement only
+  // =========================================================================
+
+  describe('update() access control', () => {
+    it('throws when access.update returns false', async () => {
+      const accessUpdateSpy = vi.fn().mockReturnValue(false);
+      const config: RevealCollectionConfig = {
+        ...baseConfig,
+        access: { update: accessUpdateSpy },
+      };
+      const req = mockRequest();
+
+      await expect(update(config, null, { id: '1', data: { title: 'New' }, req })).rejects.toThrow(
+        'Access denied: insufficient permissions to update this document',
+      );
+
+      expect(accessUpdateSpy).toHaveBeenCalledTimes(1);
+      expect(accessUpdateSpy).toHaveBeenCalledWith(
+        expect.objectContaining({ req, id: '1', data: { title: 'New' } }),
+      );
+    });
+
+    it('skips access check when overrideAccess=true even when rule would deny', async () => {
+      const accessUpdateSpy = vi.fn().mockReturnValue(false);
+      const config: RevealCollectionConfig = {
+        ...baseConfig,
+        access: { update: accessUpdateSpy },
+      };
+      const req = mockRequest();
+
+      // With overrideAccess, the function should proceed past access control.
+      // It may fail on DB operations (null db) — that's expected; the point is
+      // it doesn't throw the access denied error.
+      const result = await update(config, null, {
+        id: '1',
+        data: { title: 'New' },
+        req,
+        overrideAccess: true,
+      });
+
+      // With null db, update returns { ...data, id }
+      expect(result).toEqual({ title: 'New', id: '1' });
+      expect(accessUpdateSpy).not.toHaveBeenCalled();
+    });
+
+    it('throws (denied) when access.update exists but no req is provided', async () => {
+      const accessUpdateSpy = vi.fn().mockReturnValue(true);
+      const config: RevealCollectionConfig = {
+        ...baseConfig,
+        access: { update: accessUpdateSpy },
+      };
+
+      await expect(update(config, null, { id: '1', data: { title: 'New' } })).rejects.toThrow(
+        'Access denied',
+      );
+
+      expect(accessUpdateSpy).not.toHaveBeenCalled();
+    });
+
+    it('allows update when no access rule is defined (backward compatible)', async () => {
+      // No access rules = allow all. With null db, returns { ...data, id }.
+      const result = await update(baseConfig, null, {
+        id: '1',
+        data: { title: 'New' },
+      });
+
+      expect(result).toEqual({ title: 'New', id: '1' });
+    });
+
+    it('handles async access.update functions', async () => {
+      const accessUpdateSpy = vi.fn().mockResolvedValue(false);
+      const config: RevealCollectionConfig = {
+        ...baseConfig,
+        access: { update: accessUpdateSpy },
+      };
+      const req = mockRequest();
+
+      await expect(update(config, null, { id: '1', data: { title: 'New' }, req })).rejects.toThrow(
+        'Access denied',
+      );
+
+      expect(accessUpdateSpy).toHaveBeenCalledTimes(1);
+    });
+
+    it('passes req to the access function for user-based decisions', async () => {
+      const accessUpdateSpy = vi
+        .fn()
+        .mockImplementation(({ req: accessReq }: { req: RevealRequest }) => {
+          return accessReq.user?.roles?.includes('admin') ?? false;
+        });
+      const config: RevealCollectionConfig = {
+        ...baseConfig,
+        access: { update: accessUpdateSpy },
+      };
+
+      // Editor user — should be denied
+      const editorReq = mockRequest({ user: { id: 'u1', roles: ['editor'] } });
+      await expect(
+        update(config, null, { id: '1', data: { title: 'New' }, req: editorReq }),
+      ).rejects.toThrow('Access denied');
+
+      // Admin user — should be allowed (null db = returns { ...data, id })
+      const adminReq = mockRequest({ user: { id: 'u2', roles: ['admin'] } });
+      const result = await update(config, null, {
+        id: '1',
+        data: { title: 'New' },
+        req: adminReq,
+      });
+      expect(result).toEqual({ title: 'New', id: '1' });
+    });
+
+    it('passes data to the access function for content-based decisions', async () => {
+      const accessUpdateSpy = vi
+        .fn()
+        .mockImplementation(({ data }: { req: RevealRequest; data?: Record<string, unknown> }) => {
+          // Deny changing status to 'published' for non-admins
+          return data?.status !== 'published';
+        });
+      const config: RevealCollectionConfig = {
+        ...baseConfig,
+        access: { update: accessUpdateSpy },
+      };
+      const req = mockRequest({ user: { id: 'u1', roles: ['editor'] } });
+
+      // Publishing — denied by content-based rule
+      await expect(
+        update(config, null, { id: '1', data: { status: 'published' }, req }),
+      ).rejects.toThrow('Access denied');
+
+      // Drafting — allowed by content-based rule
+      const result = await update(config, null, {
+        id: '1',
+        data: { status: 'draft' },
+        req,
+      });
+      expect(result).toEqual({ status: 'draft', id: '1' });
     });
   });
 });

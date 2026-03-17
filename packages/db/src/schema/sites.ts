@@ -5,6 +5,7 @@
  * The schema structure mirrors the Zod schemas in @revealui/contracts/entities.
  */
 
+import { sql } from 'drizzle-orm';
 import { index, integer, jsonb, pgTable, text, timestamp } from 'drizzle-orm/pg-core';
 import { users } from './users.js';
 
@@ -57,6 +58,9 @@ export const sites = pgTable(
   (table) => [
     index('sites_deleted_at_idx').on(table.deletedAt),
     index('sites_status_deleted_at_idx').on(table.status, table.deletedAt),
+    index('sites_active_slug_idx').on(table.slug).where(sql`deleted_at IS NULL`),
+    index('sites_active_owner_id_idx').on(table.ownerId).where(sql`deleted_at IS NULL`),
+    index('sites_active_status_idx').on(table.status).where(sql`deleted_at IS NULL`),
     index('sites_owner_id_idx').on(table.ownerId),
   ],
 );

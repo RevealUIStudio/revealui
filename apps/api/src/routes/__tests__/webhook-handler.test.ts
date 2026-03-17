@@ -86,7 +86,6 @@ vi.mock('@revealui/db', () => ({
 
 // ─── Import under test (after mocks) ─────────────────────────────────────────
 
-import * as featuresModule from '@revealui/core/features';
 import * as licenseModule from '@revealui/core/license';
 import * as loggerModule from '@revealui/core/observability/logger';
 import webhooksApp from '../webhooks.js';
@@ -134,7 +133,6 @@ describe('POST /stripe webhook — handler tests', () => {
   beforeEach(() => {
     vi.clearAllMocks();
 
-    vi.mocked(featuresModule.isFeatureEnabled).mockReturnValue(false);
     vi.mocked(licenseModule.generateLicenseKey).mockResolvedValue('rv-license-key-test-123');
     mockSubscriptionsUpdate.mockResolvedValue({});
     mockSubscriptionsRetrieve.mockResolvedValue({ status: 'active', trial_end: null });
