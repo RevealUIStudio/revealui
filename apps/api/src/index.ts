@@ -201,6 +201,7 @@ const DEFAULT_RATE_LIMITS: RateLimitsConfig = {
     'marketplace-publish': { maxRequests: 10, windowMs: ONE_HOUR },
     'marketplace-invoke': { maxRequests: 30, windowMs: ONE_MINUTE },
     pricing: { maxRequests: 10, windowMs: ONE_MINUTE },
+    webhook: { maxRequests: 100, windowMs: ONE_MINUTE },
   },
 };
 
@@ -449,6 +450,9 @@ app.route('/api/gdpr', gdprRoute);
 app.route('/api/logs', logsRoute);
 app.route('/api/license', licenseRoute);
 app.route('/api/billing', billingRoute);
+// Webhooks are rate-limited to prevent replay abuse and resource exhaustion.
+// Stripe's DB-backed idempotency handles dedup; this limits request volume.
+app.use('/api/webhooks/*', rateLimitMiddleware(rateLimitsConfig.routes.webhook));
 app.route('/api/webhooks', webhooksRoute);
 app.route('/api/provenance', provenanceRoute);
 app.route('/api/tickets', ticketsRoute);
@@ -470,6 +474,7 @@ app.route('/api/v1/gdpr', gdprRoute);
 app.route('/api/v1/logs', logsRoute);
 app.route('/api/v1/license', licenseRoute);
 app.route('/api/v1/billing', billingRoute);
+app.use('/api/v1/webhooks/*', rateLimitMiddleware(rateLimitsConfig.routes.webhook));
 app.route('/api/v1/webhooks', webhooksRoute);
 app.route('/api/v1/provenance', provenanceRoute);
 app.route('/api/v1/tickets', ticketsRoute);
