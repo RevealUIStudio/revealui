@@ -1,10 +1,7 @@
 import { cookies } from 'next/headers';
 import { redirect } from 'next/navigation';
-import { CmsLandingPage } from '@/lib/components/CmsLandingPage';
 
-// Force dynamic rendering — needs to check session cookie
 export const dynamic = 'force-dynamic';
-export const dynamicParams = true;
 
 export default async function RootPage() {
   const cookieStore = await cookies();
@@ -14,5 +11,5 @@ export default async function RootPage() {
     redirect('/admin');
   }
 
-  return <CmsLandingPage />;
+  redirect('/login');
 }
