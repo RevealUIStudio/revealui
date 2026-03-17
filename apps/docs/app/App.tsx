@@ -1,5 +1,5 @@
 import { Routes, useRouter } from '@revealui/router';
-import { lazy, Suspense, useEffect } from 'react';
+import { lazy, Suspense, useRef } from 'react';
 import { DocLayout } from './components/DocLayout';
 import { LoadingSkeleton } from './components/LoadingSkeleton';
 
@@ -57,10 +57,11 @@ function ProRoute() {
 
 export function App() {
   const router = useRouter();
+  const registered = useRef(false);
 
-  useEffect(() => {
-    if (router.getRoutes().length > 0) return;
-
+  // Register routes synchronously during render (before first paint)
+  // so Routes can match on the initial render — avoids flash of 404.
+  if (!registered.current && router.getRoutes().length === 0) {
     router.registerRoutes([
       {
         path: '/',
@@ -75,7 +76,8 @@ export function App() {
       { path: '/guides/*path', component: GuidesRoute },
       { path: '/pro/*path', component: ProRoute },
     ]);
-  }, [router]);
+    registered.current = true;
+  }
 
   return (
     <DocLayout>
