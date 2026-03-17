@@ -15,6 +15,34 @@ export type { SerializedEditorState };
 // TEXT FORMAT CONSTANTS
 // ============================================
 
+/**
+ * Validate that a URL is safe for rendering in href/src attributes.
+ * Rejects dangerous protocols (javascript:, data:, vbscript:) that enable XSS.
+ * Allows http:, https:, mailto:, tel:, and relative/anchor URLs.
+ */
+function isSafeUrl(url: string): boolean {
+  const trimmed = url.trim().toLowerCase();
+  // Reject dangerous protocols
+  if (
+    trimmed.startsWith('javascript:') ||
+    trimmed.startsWith('vbscript:') ||
+    trimmed.startsWith('data:text/html')
+  ) {
+    return false;
+  }
+  // Allow common safe protocols, relative paths, and anchors
+  return (
+    trimmed.startsWith('http://') ||
+    trimmed.startsWith('https://') ||
+    trimmed.startsWith('mailto:') ||
+    trimmed.startsWith('tel:') ||
+    trimmed.startsWith('/') ||
+    trimmed.startsWith('#') ||
+    trimmed.startsWith('data:image/') ||
+    !trimmed.includes(':') // relative paths without protocol
+  );
+}
+
 const IS_BOLD = 1;
 const IS_ITALIC = 2;
 const IS_STRIKETHROUGH = 4;
@@ -280,8 +308,9 @@ function serializeNode(
       return options.renderLink(linkNode, children, index);
     }
 
-    // Default link rendering
-    const href = linkNode.fields?.url || '#';
+    // Default link rendering — sanitize href to prevent XSS via javascript: URLs
+    const rawHref = linkNode.fields?.url || '#';
+    const href = isSafeUrl(rawHref) ? rawHref : '#';
     const target = linkNode.fields?.newTab ? '_blank' : undefined;
     const rel = linkNode.fields?.newTab ? 'noopener noreferrer' : undefined;
 
@@ -296,8 +325,9 @@ function serializeNode(
   if (node.type === 'autolink') {
     const children = serializeChildren(n.children, options);
     const autoLinkNode = node as SerializedAutoLinkNode;
+    const rawAutoHref = autoLinkNode.url || '#';
     return (
-      <a key={index} href={autoLinkNode.url || '#'}>
+      <a key={index} href={isSafeUrl(rawAutoHref) ? rawAutoHref : '#'}>
         {children}
       </a>
     );
@@ -315,7 +345,8 @@ function serializeNode(
       };
     };
 
-    const src = imageNode.fields?.src || '';
+    const rawSrc = imageNode.fields?.src || '';
+    const src = isSafeUrl(rawSrc) ? rawSrc : '';
     const alt = imageNode.fields?.alt || '';
     const width = imageNode.fields?.width;
     const height = imageNode.fields?.height;
