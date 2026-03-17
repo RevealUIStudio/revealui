@@ -2,10 +2,10 @@ import { Badge } from '@revealui/presentation';
 
 export function SocialProof() {
   const stats = [
-    { value: '20', label: 'packages' },
+    { value: '24', label: 'workspaces' },
     { value: '415K+', label: 'lines of TypeScript' },
-    { value: '6,400+', label: 'tests' },
-    { value: '5', label: 'apps deployed' },
+    { value: '11,700+', label: 'tests' },
+    { value: '6', label: 'apps deployed' },
   ];
 
   const techStack = [
