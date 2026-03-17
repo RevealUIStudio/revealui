@@ -6,6 +6,12 @@ export default defineConfig({
     globals: true,
     environment: 'jsdom',
     pool: 'forks',
+    exclude: [
+      'node_modules/**',
+      // Integration tests requiring PayloadCMS + database — run via pnpm test:integration
+      'src/__tests__/auth/access-control.test.ts',
+      'src/__tests__/auth/authentication.test.ts',
+    ],
     setupFiles: [path.resolve(__dirname, './src/__tests__/setup.ts')],
     env: {
       // CRITICAL: Skip env validation during tests
