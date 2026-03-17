@@ -13,6 +13,7 @@ import { HTTPException } from 'hono/http-exception';
 import { asNonEmptyTuple } from '../../lib/type-guards.js';
 import { ErrorSchema, IdParam, SlugField, SlugParam } from '../_helpers/content-schemas.js';
 import { PaginationQuery } from '../_helpers/pagination.js';
+import { dateToString, nullableDateToString } from '../_helpers/serialize.js';
 import type { ContentVariables } from './index.js';
 
 // biome-ignore lint/style/useNamingConvention: Hono requires Variables key
@@ -40,6 +41,29 @@ const PostSchema = z
     publishedAt: z.string().nullable().openapi({ type: 'string', format: 'date-time' }),
   })
   .openapi('Post');
+
+type SerializedPost = z.infer<typeof PostSchema>;
+
+function serializePost(
+  post: NonNullable<Awaited<ReturnType<typeof postQueries.getPostById>>>,
+): SerializedPost {
+  return {
+    id: post.id,
+    title: post.title,
+    slug: post.slug,
+    excerpt: post.excerpt ?? null,
+    content: post.content ?? null,
+    featuredImageId: post.featuredImageId ?? null,
+    authorId: post.authorId ?? null,
+    status: post.status as SerializedPost['status'],
+    published: post.published ?? null,
+    meta: post.meta ?? null,
+    categories: post.categories ?? null,
+    createdAt: dateToString(post.createdAt),
+    updatedAt: dateToString(post.updatedAt),
+    publishedAt: nullableDateToString(post.publishedAt),
+  };
+}
 
 // =============================================================================
 // Post Routes
@@ -76,7 +100,7 @@ app.openapi(
     if (!user) {
       // Public access: only published posts, no author filtering
       const data = await postQueries.getAllPosts(db, { status: 'published', limit, offset });
-      return c.json({ success: true as const, data }, 200);
+      return c.json({ success: true as const, data: data.map(serializePost) }, 200);
     }
     // Non-admin users can only read their own posts
     const effectiveAuthorId = user.role === 'admin' ? authorId : user.id;
@@ -86,7 +110,7 @@ app.openapi(
       limit,
       offset,
     });
-    return c.json({ success: true as const, data }, 200);
+    return c.json({ success: true as const, data: data.map(serializePost) }, 200);
   },
 );
 
@@ -139,7 +163,7 @@ app.openapi(
       authorId: user.id,
     });
     // biome-ignore lint/style/noNonNullAssertion: createPost always returns the created row
-    return c.json({ success: true as const, data: post! }, 201);
+    return c.json({ success: true as const, data: serializePost(post!) }, 201);
   },
 );
 
@@ -172,12 +196,12 @@ app.openapi(
       if (post.status !== 'published') {
         throw new HTTPException(404, { message: 'Post not found' });
       }
-      return c.json({ success: true as const, data: post }, 200);
+      return c.json({ success: true as const, data: serializePost(post) }, 200);
     }
     if (user.role !== 'admin' && post.authorId !== user.id) {
       throw new HTTPException(403, { message: 'Forbidden' });
     }
-    return c.json({ success: true as const, data: post }, 200);
+    return c.json({ success: true as const, data: serializePost(post) }, 200);
   },
 );
 
@@ -210,12 +234,12 @@ app.openapi(
       if (post.status !== 'published') {
         throw new HTTPException(404, { message: 'Post not found' });
       }
-      return c.json({ success: true as const, data: post }, 200);
+      return c.json({ success: true as const, data: serializePost(post) }, 200);
     }
     if (user.role !== 'admin' && post.authorId !== user.id) {
       throw new HTTPException(403, { message: 'Forbidden' });
     }
-    return c.json({ success: true as const, data: post }, 200);
+    return c.json({ success: true as const, data: serializePost(post) }, 200);
   },
 );
 
@@ -278,7 +302,7 @@ app.openapi(
             : undefined,
     });
     if (!post) throw new HTTPException(404, { message: 'Post not found' });
-    return c.json({ success: true as const, data: post }, 200);
+    return c.json({ success: true as const, data: serializePost(post) }, 200);
   },
 );
 

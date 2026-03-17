@@ -12,6 +12,7 @@ import { HTTPException } from 'hono/http-exception';
 import { asNonEmptyTuple } from '../../lib/type-guards.js';
 import { ErrorSchema, IdParam, SlugField } from '../_helpers/content-schemas.js';
 import { PaginationQuery } from '../_helpers/pagination.js';
+import { dateToString, nullableDateToString } from '../_helpers/serialize.js';
 import type { ContentVariables } from './index.js';
 
 // biome-ignore lint/style/useNamingConvention: Hono requires Variables key
@@ -38,6 +39,28 @@ const SiteSchema = z
     publishedAt: z.string().nullable().openapi({ type: 'string', format: 'date-time' }),
   })
   .openapi('Site');
+
+type SerializedSite = z.infer<typeof SiteSchema>;
+
+function serializeSite(
+  site: NonNullable<Awaited<ReturnType<typeof siteQueries.getSiteById>>>,
+): SerializedSite {
+  return {
+    id: site.id,
+    name: site.name,
+    slug: site.slug,
+    description: site.description ?? null,
+    ownerId: site.ownerId,
+    status: site.status as SerializedSite['status'],
+    theme: site.theme ?? null,
+    settings: site.settings ?? null,
+    pageCount: site.pageCount ?? null,
+    favicon: site.favicon ?? null,
+    createdAt: dateToString(site.createdAt),
+    updatedAt: dateToString(site.updatedAt),
+    publishedAt: nullableDateToString(site.publishedAt),
+  };
+}
 
 // =============================================================================
 // Site Routes
@@ -72,7 +95,7 @@ app.openapi(
     if (!user) throw new HTTPException(401, { message: 'Authentication required' });
     const { status, limit, offset } = c.req.valid('query');
     const data = await siteQueries.getAllSites(db, { ownerId: user.id, status, limit, offset });
-    return c.json({ success: true as const, data }, 200);
+    return c.json({ success: true as const, data: data.map(serializeSite) }, 200);
   },
 );
 
@@ -119,7 +142,7 @@ app.openapi(
       ...body,
     });
     // biome-ignore lint/style/noNonNullAssertion: createSite always returns the created row
-    return c.json({ success: true as const, data: site! }, 201);
+    return c.json({ success: true as const, data: serializeSite(site!) }, 201);
   },
 );
 
@@ -151,7 +174,7 @@ app.openapi(
     if (user.role !== 'admin' && site.ownerId !== user.id) {
       throw new HTTPException(403, { message: 'Forbidden' });
     }
-    return c.json({ success: true as const, data: site }, 200);
+    return c.json({ success: true as const, data: serializeSite(site) }, 200);
   },
 );
 
@@ -201,7 +224,7 @@ app.openapi(
     }
     const site = await siteQueries.updateSite(db, id, body);
     if (!site) throw new HTTPException(404, { message: 'Site not found' });
-    return c.json({ success: true as const, data: site }, 200);
+    return c.json({ success: true as const, data: serializeSite(site) }, 200);
   },
 );
 
