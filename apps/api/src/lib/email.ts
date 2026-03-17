@@ -14,7 +14,7 @@ interface EmailOptions {
   text?: string;
 }
 
-function sanitizeEmailHeader(value: string): string {
+export function sanitizeEmailHeader(value: string): string {
   // Strip CR and LF to prevent header injection via to/subject fields
   return value.replace(/[\r\n]/g, '');
 }
