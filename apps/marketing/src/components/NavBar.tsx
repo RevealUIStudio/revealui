@@ -6,6 +6,7 @@ import { useState } from 'react';
 
 const navLinks = [
   { label: 'Docs', href: 'https://docs.revealui.com' },
+  { label: 'Blog', href: '/blog' },
   { label: 'Pricing', href: '/pricing' },
   { label: 'Sponsor', href: '/sponsor' },
 ];
@@ -46,8 +47,14 @@ export function NavBar() {
         </div>
 
         <div className="flex items-center gap-3">
+          <a
+            href="https://cms.revealui.com/login"
+            className="hidden sm:inline-flex text-sm font-medium text-gray-600 hover:text-gray-900 transition-colors"
+          >
+            Log in
+          </a>
           <ButtonCVA asChild>
-            <a href="/#waitlist">Get Early Access</a>
+            <a href="https://cms.revealui.com/signup">Get Started</a>
           </ButtonCVA>
 
           {/* Hamburger — mobile only */}
@@ -112,6 +119,20 @@ export function NavBar() {
             >
               GitHub
             </a>
+          </div>
+          <div className="mt-4 flex flex-col gap-2 border-t border-gray-100 pt-4">
+            <a
+              href="https://cms.revealui.com/login"
+              className="rounded-md px-3 py-2.5 text-sm font-medium text-gray-700 hover:bg-gray-50 hover:text-gray-900 transition-colors"
+              onClick={() => setOpen(false)}
+            >
+              Log in
+            </a>
+            <ButtonCVA asChild className="w-full">
+              <a href="https://cms.revealui.com/signup" onClick={() => setOpen(false)}>
+                Get Started
+              </a>
+            </ButtonCVA>
           </div>
         </div>
       )}
