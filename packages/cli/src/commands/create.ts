@@ -146,7 +146,7 @@ async function copyDir(src: string, dest: string): Promise<void> {
 
 /**
  * Map the CLI template name to the directory name under templates/.
- * All non-minimal templates fall back to minimal for now.
+ * All non-starter templates fall back to starter for now.
  */
 function resolveTemplateName(template: ProjectConfig['template']): string {
   const map: Record<ProjectConfig['template'], string> = {
@@ -154,7 +154,7 @@ function resolveTemplateName(template: ProjectConfig['template']): string {
     'e-commerce': 'e-commerce',
     portfolio: 'portfolio',
   };
-  return map[template] ?? 'minimal';
+  return map[template] ?? 'starter';
 }
 
 /**
