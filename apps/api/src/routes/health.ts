@@ -8,6 +8,7 @@ import {
 import { getClient, getPoolMetrics } from '@revealui/db';
 import { createRoute, OpenAPIHono, z } from '@revealui/openapi';
 import { sql } from 'drizzle-orm';
+import { corsConfigMissing } from '../lib/startup-state.js';
 
 const app = new OpenAPIHono();
 
@@ -142,7 +143,7 @@ app.openapi(readyRoute, async (c) => {
   // Supplement with pool metrics from @revealui/db
   const pools = getPoolMetrics();
 
-  const ready = health.status !== 'unhealthy';
+  const ready = health.status !== 'unhealthy' && !corsConfigMissing;
 
   const duration = Date.now() - startTime;
   trackHTTPRequest('GET', '/health/ready', ready ? 200 : 503, duration);
@@ -154,6 +155,7 @@ app.openapi(readyRoute, async (c) => {
       uptime: health.uptime,
       checks: health.checks,
       ...(pools.length > 0 && { pools }),
+      ...(corsConfigMissing && { corsConfigMissing: true }),
     },
     ready ? 200 : 503,
   );
