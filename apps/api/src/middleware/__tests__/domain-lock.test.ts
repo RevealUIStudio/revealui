@@ -222,16 +222,9 @@ describe('domainLockMiddleware', () => {
 // ---------------------------------------------------------------------------
 describe('validateForgeConfig', () => {
   const originalEnv = { ...process.env };
-  const originalExit = process.exit;
-
-  beforeEach(() => {
-    // biome-ignore lint/suspicious/noExplicitAny: test helper — mock process.exit
-    process.exit = vi.fn() as any;
-  });
 
   afterEach(() => {
     process.env = { ...originalEnv };
-    process.exit = originalExit;
   });
 
   it('does nothing when neither env var is set', async () => {
@@ -239,39 +232,31 @@ describe('validateForgeConfig', () => {
     delete process.env.FORGE_LICENSE_KEY;
 
     const { validateForgeConfig } = await importFresh();
-    validateForgeConfig();
-
-    expect(process.exit).not.toHaveBeenCalled();
+    expect(() => validateForgeConfig()).not.toThrow();
   });
 
-  it('exits when FORGE_LICENSE_KEY is set but FORGE_LICENSED_DOMAIN is missing', async () => {
+  it('throws when FORGE_LICENSE_KEY is set but FORGE_LICENSED_DOMAIN is missing', async () => {
     delete process.env.FORGE_LICENSED_DOMAIN;
     process.env.FORGE_LICENSE_KEY = 'key-123';
 
     const { validateForgeConfig } = await importFresh();
-    validateForgeConfig();
-
-    expect(process.exit).toHaveBeenCalledWith(1);
+    expect(() => validateForgeConfig()).toThrow('FORGE_LICENSED_DOMAIN is missing');
   });
 
-  it('exits when FORGE_LICENSED_DOMAIN is set but FORGE_LICENSE_KEY is missing', async () => {
+  it('throws when FORGE_LICENSED_DOMAIN is set but FORGE_LICENSE_KEY is missing', async () => {
     process.env.FORGE_LICENSED_DOMAIN = 'example.com';
     delete process.env.FORGE_LICENSE_KEY;
 
     const { validateForgeConfig } = await importFresh();
-    validateForgeConfig();
-
-    expect(process.exit).toHaveBeenCalledWith(1);
+    expect(() => validateForgeConfig()).toThrow('FORGE_LICENSE_KEY is missing');
   });
 
-  it('does not exit when both env vars are set', async () => {
+  it('does not throw when both env vars are set', async () => {
     process.env.FORGE_LICENSED_DOMAIN = 'example.com';
     process.env.FORGE_LICENSE_KEY = 'key-123';
 
     const { validateForgeConfig } = await importFresh();
-    validateForgeConfig();
-
-    expect(process.exit).not.toHaveBeenCalled();
+    expect(() => validateForgeConfig()).not.toThrow();
   });
 
   it('treats whitespace-only values as empty strings (not missing)', async () => {
@@ -279,10 +264,8 @@ describe('validateForgeConfig', () => {
     process.env.FORGE_LICENSE_KEY = 'key-123';
 
     const { validateForgeConfig } = await importFresh();
-    validateForgeConfig();
-
     // '   '.trim() = '' — nullish coalescing (??) treats '' as valid (not null/undefined),
     // so isForgeMode = Boolean('') = false, and the function returns early.
-    expect(process.exit).not.toHaveBeenCalled();
+    expect(() => validateForgeConfig()).not.toThrow();
   });
 });
