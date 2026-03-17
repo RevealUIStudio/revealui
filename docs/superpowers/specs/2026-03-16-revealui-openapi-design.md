@@ -6,7 +6,7 @@
 
 ## Summary
 
-Port `@hono/zod-openapi@1.2.1` (234 lines JS, 218 lines types) and `@hono/zod-validator@0.7.6` (31 lines JS) into a single owned monorepo package: `@revealui/openapi`. Clean TypeScript rewrite from upstream source with identical API surface. Drop-in replacement — migration is a find-and-replace on import paths across 31 files in `apps/api`.
+Port `@hono/zod-openapi@1.2.1` (234 lines JS, 218 lines types) and `@hono/zod-validator@0.7.6` (31 lines JS) into a single owned monorepo package: `@revealui/openapi`. Clean TypeScript rewrite from upstream source with identical API surface. Drop-in replacement — migration is a find-and-replace on import paths across 32 files in `apps/api` (31 importing from `@hono/zod-openapi`, 1 from `@hono/zod-validator`).
 
 ## Motivation
 
@@ -25,6 +25,7 @@ Port `@hono/zod-openapi@1.2.1` (234 lines JS, 218 lines types) and `@hono/zod-va
 | `@asteasolutions/zod-to-openapi` | Keep as dependency | 1,727 lines of schema→OpenAPI transformation. Actively maintained. Not worth forking. |
 | `openapi3-ts` | Keep as dependency | TypeScript representation of the OpenAPI standard. Nothing to customize. Also a transitive dep of zod-to-openapi — forking would create type incompatibility. |
 | API helper schemas | Stay in `apps/api` | App-specific conventions (error shape, pagination defaults). Not the concern of a generic OpenAPI package. |
+| Zod peer dep range | `>=4.0.0` (narrower than upstream's `^3.25.0 \|\| ^4.0.0`) | Intentional — monorepo is on Zod 4.3.6 and will not downgrade. Simplifies types. |
 
 ## Package Structure
 
@@ -42,11 +43,12 @@ packages/openapi/
 │   ├── type-guard.ts         # isZod, isJSONContentType, isFormContentType (~25 lines)
 │   ├── helpers.ts            # addBasePathToDocument, $ cast helper (~30 lines)
 │   └── types.ts              # All TypeScript type definitions (~120 lines)
-└── __tests__/
-    ├── create-route.test.ts
-    ├── zod-validator.test.ts
-    ├── openapi-hono.test.ts
-    └── integration.test.ts
+└── src/
+    └── __tests__/
+        ├── create-route.test.ts
+        ├── zod-validator.test.ts
+        ├── openapi-hono.test.ts
+        └── integration.test.ts
 ```
 
 ## Dependencies
@@ -69,7 +71,7 @@ packages/openapi/
   "devDependencies": {
     "@types/node": "^25.3.0",
     "dev": "workspace:*",
-    "hono": "catalog:",
+    "hono": "^4.12.7",
     "tsup": "^8.5.1",
     "typescript": "^5.9.3",
     "vitest": "^4.0.18",
@@ -88,6 +90,9 @@ packages/openapi/
     "access": "public",
     "registry": "https://registry.npmjs.org"
   },
+  "engines": {
+    "node": ">=24.13.0"
+  },
   "scripts": {
     "build": "tsup",
     "clean": "rm -rf dist",
@@ -99,6 +104,35 @@ packages/openapi/
     "test:watch": "vitest",
     "typecheck": "tsc --noEmit"
   }
+}
+```
+
+### `tsup.config.ts`
+
+```ts
+import { defineConfig } from 'tsup';
+
+export default defineConfig({
+  entry: ['src/index.ts'],
+  format: ['esm'],
+  dts: true,
+  sourcemap: true,
+  clean: true,
+});
+```
+
+### `tsconfig.json`
+
+Extends the shared base config from `packages/dev`:
+
+```json
+{
+  "extends": "dev/tsconfig.base.json",
+  "compilerOptions": {
+    "outDir": "dist",
+    "rootDir": "src"
+  },
+  "include": ["src"]
 }
 ```
 
@@ -163,8 +197,11 @@ All TypeScript type definitions ported from upstream `index.d.ts`. Includes:
 export { OpenAPIHono } from './openapi-hono.js'
 export { createRoute } from './create-route.js'
 
+// Validation middleware (ported from @hono/zod-validator)
+export { zValidator } from './zod-validator.js'
+
 // Helpers
-export { $ } from './helpers.js'
+export { $ } from './helpers.js'  // Type cast helper: restores OpenAPIHono type after .use() chains
 export { extendZodWithOpenApi } from '@asteasolutions/zod-to-openapi'
 
 // Zod re-export
@@ -224,7 +261,7 @@ export type {
 - Nested apps: parent + 2 sub-apps with different base paths → spec contains all routes with correct path prefixes
 - Request validation end-to-end: send invalid JSON → 400, send valid JSON → 200 with correct response
 - Named schemas (`.openapi('SchemaName')`) appear in `components.schemas` section of generated doc
-- Parity check: same route definitions produce equivalent OpenAPI output as `@hono/zod-openapi` (run both, deep-equal the generated specs)
+- Parity check: same route definitions produce equivalent OpenAPI output as `@hono/zod-openapi` (run both, deep-equal the generated specs). Note: requires `@hono/zod-openapi` as a temporary devDependency — remove after initial validation succeeds.
 
 ## Migration
 
@@ -234,14 +271,16 @@ Create `packages/openapi/` with all source files. Port upstream JS to clean Type
 
 ### Step 2: Migrate `apps/api`
 
-Find-and-replace across 31 files:
+Find-and-replace across 32 files:
 ```
-from '@hono/zod-openapi'  →  from '@revealui/openapi'
+from '@hono/zod-openapi'   →  from '@revealui/openapi'   (31 files)
+from '@hono/zod-validator'  →  from '@revealui/openapi'   (1 file: terminal-auth.ts)
 ```
 
 Update `apps/api/package.json`:
 - Add `"@revealui/openapi": "workspace:*"`
 - Remove `"@hono/zod-openapi"`
+- Remove `"@hono/zod-validator"`
 
 ### Step 3: Verify
 
@@ -266,6 +305,7 @@ pnpm gate                                 # Full CI green
 | Missing edge case in ported code | Low | Upstream source is 234 lines with no complex algorithms. Line-by-line port. |
 | `@asteasolutions/zod-to-openapi` breaks on zod upgrade | Low | We pin via peerDependencies. They track zod releases actively. |
 | Maintenance burden | Negligible | 265 lines of stable glue code. Upstream has had 2 releases in 6 months. |
+| `zod-to-openapi` lags behind future Zod major | Low | They actively track Zod releases. If they lag, we can fork then — but not preemptively. |
 
 ## Non-Goals
 
