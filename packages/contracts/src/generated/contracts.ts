@@ -2,7 +2,7 @@
  * Auto-generated Contract wrappers
  *
  * DO NOT EDIT - Regenerate with: pnpm generate:all
- * Generated: 2026-03-17T09:05:45.874Z
+ * Generated: 2026-03-17T10:25:01.218Z
  *
  * This file provides Contract wrappers for all database tables.
  * Contracts combine TypeScript types, Zod schemas, and runtime validation
@@ -952,6 +952,32 @@ export const LicensesInsertContract = createContract({
 })
 
 // =============================================================================
+// MagicLinks Contracts
+// =============================================================================
+
+/**
+ * Contract for magicLinks row (Select)
+ * Database table: magic_links
+ */
+export const MagicLinksRowContract = createContract({
+  name: 'MagicLinksRow',
+  version: '1',
+  description: 'Database row contract for magic_links table',
+  schema: Schemas.MagicLinksSelectSchema,
+})
+
+/**
+ * Contract for magicLinks insert
+ * Database table: magic_links
+ */
+export const MagicLinksInsertContract = createContract({
+  name: 'MagicLinksInsert',
+  version: '1',
+  description: 'Database insert contract for magic_links table',
+  schema: Schemas.MagicLinksInsertSchema,
+})
+
+// =============================================================================
 // MarketplaceServers Contracts
 // =============================================================================
 
@@ -1157,6 +1183,32 @@ export const PagesInsertContract = createContract({
   version: '1',
   description: 'Database insert contract for pages table',
   schema: Schemas.PagesInsertSchema,
+})
+
+// =============================================================================
+// Passkeys Contracts
+// =============================================================================
+
+/**
+ * Contract for passkeys row (Select)
+ * Database table: passkeys
+ */
+export const PasskeysRowContract = createContract({
+  name: 'PasskeysRow',
+  version: '1',
+  description: 'Database row contract for passkeys table',
+  schema: Schemas.PasskeysSelectSchema,
+})
+
+/**
+ * Contract for passkeys insert
+ * Database table: passkeys
+ */
+export const PasskeysInsertContract = createContract({
+  name: 'PasskeysInsert',
+  version: '1',
+  description: 'Database insert contract for passkeys table',
+  schema: Schemas.PasskeysInsertSchema,
 })
 
 // =============================================================================
