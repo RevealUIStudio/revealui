@@ -1,5 +1,5 @@
-import { createRoute, OpenAPIHono, z } from '@hono/zod-openapi';
 import * as boardQueries from '@revealui/db/queries/boards';
+import { createRoute, OpenAPIHono, z } from '@revealui/openapi';
 import { HTTPException } from 'hono/http-exception';
 import type { Variables } from '../_helpers/access.js';
 import { assertBoardAccess, assertBoardTenantAccess } from '../_helpers/access.js';
