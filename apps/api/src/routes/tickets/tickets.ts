@@ -10,6 +10,7 @@ import {
   assertBoardTenantAccess,
   assertTicketAccess,
 } from '../_helpers/access.js';
+import { dateToString, nullableDateToString } from '../_helpers/serialize.js';
 
 const IdParam = z.object({
   id: z.string().openapi({
@@ -55,6 +56,36 @@ const TicketSchema = z
     updatedAt: z.string().openapi({ type: 'string', format: 'date-time' }),
   })
   .openapi('Ticket');
+
+type SerializedTicket = z.infer<typeof TicketSchema>;
+
+function serializeTicket(
+  ticket: NonNullable<Awaited<ReturnType<typeof ticketQueries.getTicketById>>>,
+): SerializedTicket {
+  return {
+    id: ticket.id,
+    boardId: ticket.boardId,
+    columnId: ticket.columnId ?? null,
+    parentTicketId: ticket.parentTicketId ?? null,
+    ticketNumber: ticket.ticketNumber,
+    title: ticket.title,
+    description: ticket.description ?? null,
+    status: ticket.status as SerializedTicket['status'],
+    priority: ticket.priority as SerializedTicket['priority'],
+    type: ticket.type as SerializedTicket['type'],
+    assigneeId: ticket.assigneeId ?? null,
+    reporterId: ticket.reporterId ?? null,
+    dueDate: nullableDateToString(ticket.dueDate),
+    estimatedEffort: ticket.estimatedEffort ?? null,
+    sortOrder: ticket.sortOrder,
+    commentCount: ticket.commentCount,
+    attachments: ticket.attachments ?? null,
+    metadata: ticket.metadata ?? null,
+    closedAt: nullableDateToString(ticket.closedAt),
+    createdAt: dateToString(ticket.createdAt),
+    updatedAt: dateToString(ticket.updatedAt),
+  };
+}
 
 // biome-ignore lint/style/useNamingConvention: Hono requires Variables key
 const app = new OpenAPIHono<{ Variables: Variables }>();
@@ -102,7 +133,7 @@ app.openapi(
       throw new HTTPException(403, { message: 'Forbidden' });
     }
     const tickets = await ticketQueries.getTicketsByBoard(db, boardId, filters);
-    return c.json({ success: true as const, data: tickets });
+    return c.json({ success: true as const, data: tickets.map(serializeTicket) });
   },
 );
 
@@ -158,7 +189,7 @@ app.openapi(
       dueDate: body.dueDate ? new Date(body.dueDate) : undefined,
     });
     // biome-ignore lint/style/noNonNullAssertion: createTicket always returns the created row
-    return c.json({ success: true as const, data: ticket! }, 201);
+    return c.json({ success: true as const, data: serializeTicket(ticket!) }, 201);
   },
 );
 
@@ -186,7 +217,7 @@ app.openapi(
     const db = c.get('db');
     const { id } = c.req.valid('param');
     const ticket = await assertTicketAccess(db, id, c);
-    return c.json({ success: true as const, data: ticket }, 200);
+    return c.json({ success: true as const, data: serializeTicket(ticket) }, 200);
   },
 );
 
@@ -241,7 +272,7 @@ app.openapi(
       dueDate: body.dueDate === null ? null : body.dueDate ? new Date(body.dueDate) : undefined,
     });
     if (!ticket) throw new HTTPException(404, { message: 'Ticket not found' });
-    return c.json({ success: true as const, data: ticket }, 200);
+    return c.json({ success: true as const, data: serializeTicket(ticket) }, 200);
   },
 );
 
@@ -312,7 +343,7 @@ app.openapi(
     const { columnId, sortOrder } = c.req.valid('json');
     const ticket = await ticketQueries.moveTicket(db, id, columnId, sortOrder);
     if (!ticket) throw new HTTPException(404, { message: 'Ticket not found' });
-    return c.json({ success: true as const, data: ticket }, 200);
+    return c.json({ success: true as const, data: serializeTicket(ticket) }, 200);
   },
 );
 
@@ -340,7 +371,7 @@ app.openapi(
     const { id } = c.req.valid('param');
     await assertTicketAccess(db, id, c);
     const subtasks = await ticketQueries.getSubtickets(db, id);
-    return c.json({ success: true as const, data: subtasks });
+    return c.json({ success: true as const, data: subtasks.map(serializeTicket) });
   },
 );
 
