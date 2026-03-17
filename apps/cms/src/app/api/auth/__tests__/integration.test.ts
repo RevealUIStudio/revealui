@@ -281,7 +281,9 @@ describe('Flow 1: Password + TOTP', () => {
     const { POST: mfaVerifyHandler } = await import('../mfa/verify/route');
     const mfaVerifyRequest = createJsonRequest(
       'http://localhost:4000/api/auth/mfa/verify',
-      { code: '123456' },
+      {
+        code: '123456',
+      },
       { cookies: { 'mfa-pending': mfaPendingCookie!.value } },
     );
     const mfaVerifyResponse = await mfaVerifyHandler(mfaVerifyRequest);
@@ -354,7 +356,9 @@ describe('Flow 2: Password + backup code', () => {
     const { POST: backupHandler } = await import('../mfa/backup/route');
     const backupRequest = createJsonRequest(
       'http://localhost:4000/api/auth/mfa/backup',
-      { code: 'abcdef1234' },
+      {
+        code: 'abcdef1234',
+      },
       { cookies: { 'mfa-pending': mfaPendingCookie!.value } },
     );
     const backupResponse = await backupHandler(backupRequest);
@@ -634,24 +638,11 @@ describe('Flow 5: Passkey management', () => {
 
     // --- Step 2: Register a new passkey (authenticated flow) ---
     mockGetSession.mockResolvedValue(mockSession);
-    mockListPasskeys.mockResolvedValue([
-      {
-        id: 'passkey-1',
-        credentialId: 'cred-1',
-        deviceName: null,
-        backedUp: false,
-        createdAt: new Date(),
-        lastUsedAt: null,
-      },
-    ]);
+    mockListPasskeys.mockResolvedValue([{ credentialId: 'cred-1' }]);
     mockGenerateRegistrationChallenge.mockResolvedValue({
       challenge: 'add-passkey-challenge',
       rp: { name: 'RevealUI', id: 'localhost' },
-      user: {
-        id: mockSession.user.id,
-        name: 'test@example.com',
-        displayName: 'test@example.com',
-      },
+      user: { id: mockSession.user.id, name: 'test@example.com', displayName: 'test@example.com' },
       pubKeyCredParams: [],
       timeout: 300000,
       attestation: 'none',
@@ -974,7 +965,9 @@ describe('Edge cases', () => {
     const { POST: mfaVerifyHandler } = await import('../mfa/verify/route');
     const request = createJsonRequest(
       'http://localhost:4000/api/auth/mfa/verify',
-      { code: '123456' },
+      {
+        code: '123456',
+      },
       { cookies: { 'mfa-pending': 'expired-signed-value' } },
     );
     const response = await mfaVerifyHandler(request);

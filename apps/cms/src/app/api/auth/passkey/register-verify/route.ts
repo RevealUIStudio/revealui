@@ -57,7 +57,7 @@ async function registerVerifyHandler(request: NextRequest): Promise<NextResponse
 
     const challengePayload = verifyCookiePayload<ChallengePayload>(
       challengeCookie,
-      process.env.REVEALUI_SECRET!,
+      process.env.REVEALUI_SECRET ?? '',
     );
 
     if (!challengePayload) {
@@ -113,7 +113,7 @@ async function registerVerifyHandler(request: NextRequest): Promise<NextResponse
       const [existing] = await db
         .select({ id: users.id })
         .from(users)
-        .where(eq(users.email, challengePayload.email!.toLowerCase()))
+        .where(eq(users.email, (challengePayload.email ?? '').toLowerCase()))
         .limit(1);
 
       if (existing) {
@@ -126,8 +126,8 @@ async function registerVerifyHandler(request: NextRequest): Promise<NextResponse
         .insert(users)
         .values({
           id: newUserId,
-          email: challengePayload.email!.toLowerCase(),
-          name: challengePayload.name!,
+          email: (challengePayload.email ?? '').toLowerCase(),
+          name: challengePayload.name ?? '',
           password: null,
           emailVerified: false,
         })
@@ -137,24 +137,32 @@ async function registerVerifyHandler(request: NextRequest): Promise<NextResponse
         return createApplicationErrorResponse('Failed to create user', 'SIGNUP_FAILED', 500);
       }
 
-      // Store passkey
-      const { registrationInfo } = verification;
+      // Store passkey — registrationInfo is guaranteed non-null after verified === true
+      const registrationInfo = verification.registrationInfo;
+      if (!registrationInfo) {
+        return createApplicationErrorResponse(
+          'Registration info missing',
+          'REGISTRATION_FAILED',
+          500,
+        );
+      }
       await storePasskey(
         newUser.id,
         {
-          id: registrationInfo!.credential.id,
-          publicKey: registrationInfo!.credential.publicKey,
-          counter: registrationInfo!.credential.counter,
-          transports: registrationInfo!.credential.transports as string[] | undefined,
-          aaguid: registrationInfo!.aaguid,
-          backedUp: registrationInfo!.credentialBackedUp,
+          id: registrationInfo.credential.id,
+          publicKey: registrationInfo.credential.publicKey,
+          counter: registrationInfo.credential.counter,
+          transports: registrationInfo.credential.transports as string[] | undefined,
+          aaguid: registrationInfo.aaguid,
+          backedUp: registrationInfo.credentialBackedUp,
         },
         deviceName,
       );
 
       // Generate backup codes via MFA setup + auto-verify
       // initiateMFASetup creates TOTP + backup codes; verifyMFASetup activates MFA
-      const mfaSetup = await initiateMFASetup(newUser.id, challengePayload.email!);
+      const email = challengePayload.email ?? '';
+      const mfaSetup = await initiateMFASetup(newUser.id, email);
       let backupCodes: string[] = [];
       if (mfaSetup.success && mfaSetup.backupCodes) {
         backupCodes = mfaSetup.backupCodes;
@@ -225,16 +233,23 @@ async function registerVerifyHandler(request: NextRequest): Promise<NextResponse
       return createApplicationErrorResponse('Unauthorized', 'UNAUTHORIZED', 401);
     }
 
-    const { registrationInfo } = verification;
+    const regInfo = verification.registrationInfo;
+    if (!regInfo) {
+      return createApplicationErrorResponse(
+        'Registration info missing',
+        'REGISTRATION_FAILED',
+        500,
+      );
+    }
     await storePasskey(
       session.user.id,
       {
-        id: registrationInfo!.credential.id,
-        publicKey: registrationInfo!.credential.publicKey,
-        counter: registrationInfo!.credential.counter,
-        transports: registrationInfo!.credential.transports as string[] | undefined,
-        aaguid: registrationInfo!.aaguid,
-        backedUp: registrationInfo!.credentialBackedUp,
+        id: regInfo.credential.id,
+        publicKey: regInfo.credential.publicKey,
+        counter: regInfo.credential.counter,
+        transports: regInfo.credential.transports as string[] | undefined,
+        aaguid: regInfo.aaguid,
+        backedUp: regInfo.credentialBackedUp,
       },
       deviceName,
     );
