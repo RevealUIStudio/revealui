@@ -12,10 +12,41 @@ import type {
   RevealCollectionConfig,
   RevealFindOptions,
   RevealPaginatedResult,
+  RevealRequest,
+  RevealWhere,
   SanitizedCollectionConfig,
 } from '../../types/index.js';
 import { deserializeJsonFields } from '../../utils/json-parsing.js';
 import { countDocumentsQuery, escapeIdentifier, listDocumentsQuery } from './sqlAdapter.js';
+
+/**
+ * Evaluate a collection's access.read function.
+ * Returns true (allow all), false (deny all), or a WhereClause to merge into the query.
+ */
+async function evaluateReadAccess(
+  config: RevealCollectionConfig,
+  options: RevealFindOptions,
+): Promise<true | false | RevealWhere> {
+  // If overrideAccess is explicitly set, skip access checks (caller already validated permission)
+  if (options.overrideAccess) return true;
+
+  const accessConfig = (config as { access?: { read?: (args: { req: RevealRequest }) => unknown } })
+    .access;
+  const readAccess = accessConfig?.read;
+
+  // No access rule defined = allow all (backward compatible)
+  if (!readAccess) return true;
+
+  const req = options.req;
+  if (!req) return false; // No request context = deny (safe default)
+
+  const result = await readAccess({ req });
+
+  if (typeof result === 'boolean') return result;
+
+  // WhereClause returned = row-level filtering (e.g. { author: { equals: user.id } })
+  return result as RevealWhere;
+}
 
 export async function find(
   config: RevealCollectionConfig,
@@ -29,8 +60,34 @@ export async function find(
     throw new Error(`Depth must be between 0 and 3, got ${depth}`);
   }
 
+  // --- Access control enforcement ---
+  const accessResult = await evaluateReadAccess(config, options);
+
+  if (accessResult === false) {
+    // Deny: return empty result set (same shape as a normal response)
+    return {
+      docs: [],
+      totalDocs: 0,
+      limit,
+      totalPages: 0,
+      page,
+      pagingCounter: 0,
+      hasPrevPage: false,
+      hasNextPage: false,
+      prevPage: null,
+      nextPage: null,
+    };
+  }
+
+  // Merge access-control WhereClause with user-provided where filter
+  const mergedWhere =
+    accessResult === true ? where : where ? { and: [where, accessResult] } : accessResult;
+
+  // Replace where in options for downstream use
+  const accessOptions = { ...options, where: mergedWhere };
+
   if (db?.collectionStorage?.find) {
-    const result = await db.collectionStorage.find(config, options);
+    const result = await db.collectionStorage.find(config, accessOptions);
     if (result !== undefined) {
       if (req && depth > 0) {
         const sanitizedConfig = {
@@ -80,9 +137,9 @@ export async function find(
     const offset = (page - 1) * limit;
     const tableName = config.slug;
 
-    // Build WHERE clause using query builder
+    // Build WHERE clause using query builder (uses access-merged where)
     const params: unknown[] = [];
-    const whereClause = buildWhereClause(where, params, {
+    const whereClause = buildWhereClause(mergedWhere, params, {
       parameterStyle: 'postgres',
       includeWhereKeyword: false,
       quoteFields: true,
