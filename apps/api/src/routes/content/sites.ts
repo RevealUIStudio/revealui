@@ -5,9 +5,9 @@
  * GET|PATCH|DELETE /sites/:id
  */
 
-import { createRoute, OpenAPIHono, z } from '@hono/zod-openapi';
 import { SITE_STATUSES } from '@revealui/contracts/entities';
 import * as siteQueries from '@revealui/db/queries/sites';
+import { createRoute, OpenAPIHono, z } from '@revealui/openapi';
 import { HTTPException } from 'hono/http-exception';
 import { asNonEmptyTuple } from '../../lib/type-guards.js';
 import { ErrorSchema, IdParam, SlugField } from '../_helpers/content-schemas.js';

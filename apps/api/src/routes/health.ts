@@ -1,4 +1,3 @@
-import { createRoute, OpenAPIHono, z } from '@hono/zod-openapi';
 import {
   createDatabaseHealthCheck,
   createMemoryHealthCheck,
@@ -7,6 +6,7 @@ import {
   trackHTTPRequest,
 } from '@revealui/core/observability';
 import { getClient, getPoolMetrics } from '@revealui/db';
+import { createRoute, OpenAPIHono, z } from '@revealui/openapi';
 import { sql } from 'drizzle-orm';
 
 const app = new OpenAPIHono();

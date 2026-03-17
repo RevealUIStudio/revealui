@@ -15,7 +15,6 @@
  *   GET  /api/marketplace/connect/return       — Stripe Connect callback landing page
  */
 
-import { createRoute, OpenAPIHono, z } from '@hono/zod-openapi';
 import { logger } from '@revealui/core/observability/logger';
 import { getClient } from '@revealui/db';
 import {
@@ -24,6 +23,7 @@ import {
   type NewMarketplaceServer,
   type NewMarketplaceTransaction,
 } from '@revealui/db/schema';
+import { createRoute, OpenAPIHono, z } from '@revealui/openapi';
 import { and, asc, eq, sql } from 'drizzle-orm';
 import { HTTPException } from 'hono/http-exception';
 import Stripe from 'stripe';

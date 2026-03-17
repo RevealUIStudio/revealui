@@ -5,9 +5,9 @@
  * plus append-only code reviews and aggregate statistics.
  */
 
-import { createRoute, OpenAPIHono, z } from '@hono/zod-openapi';
 import type { DatabaseClient } from '@revealui/db/client';
 import * as provenanceQueries from '@revealui/db/queries/code-provenance';
+import { createRoute, OpenAPIHono, z } from '@revealui/openapi';
 import { HTTPException } from 'hono/http-exception';
 
 type Variables = {

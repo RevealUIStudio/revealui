@@ -17,13 +17,13 @@
  * Discovery endpoints (agent.json, /a2a/agents) are public — no auth required.
  */
 
-import { createRoute, OpenAPIHono, z } from '@hono/zod-openapi';
 import type { A2AJsonRpcRequest } from '@revealui/contracts';
 import { A2AJsonRpcRequestSchema, AgentDefinitionSchema, LLM_PROVIDERS } from '@revealui/contracts';
 import { isFeatureEnabled } from '@revealui/core/features';
 import { logger } from '@revealui/core/observability/logger';
 import { getClient } from '@revealui/db';
 import { agentActions, marketplaceServers, registeredAgents } from '@revealui/db/schema';
+import { createRoute, OpenAPIHono, z } from '@revealui/openapi';
 import { desc, eq } from 'drizzle-orm';
 import { authMiddleware } from '../middleware/auth.js';
 import { requireFeature } from '../middleware/license.js';

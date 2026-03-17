@@ -1,4 +1,4 @@
-import { OpenAPIHono } from '@hono/zod-openapi';
+import { OpenAPIHono } from '@revealui/openapi';
 import type { Variables } from '../_helpers/access.js';
 import boardsRoute from './boards.js';
 import columnsRoute from './columns.js';

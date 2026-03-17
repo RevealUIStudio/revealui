@@ -18,8 +18,8 @@
  *         GET|PATCH|DELETE /api/content/pages/:id
  */
 
-import { OpenAPIHono } from '@hono/zod-openapi';
 import type { DatabaseClient } from '@revealui/db/client';
+import { OpenAPIHono } from '@revealui/openapi';
 import mediaRoutes from './media.js';
 import pagesRoutes from './pages.js';
 import postsRoutes from './posts.js';

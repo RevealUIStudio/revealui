@@ -1,4 +1,3 @@
-import { createRoute, OpenAPIHono, z } from '@hono/zod-openapi';
 import { logger } from '@revealui/core/observability/logger';
 import {
   type ConsentType,
@@ -6,6 +5,7 @@ import {
   createDataBreachManager,
   createDataDeletionSystem,
 } from '@revealui/core/security';
+import { createRoute, OpenAPIHono, z } from '@revealui/openapi';
 import { HTTPException } from 'hono/http-exception';
 import { DrizzleBreachStorage, DrizzleGDPRStorage } from '../lib/drizzle-gdpr-storage.js';
 
