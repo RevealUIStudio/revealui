@@ -634,11 +634,14 @@ app.openapi(stripeWebhookRoute, async (c) => {
 
             if (!userRow) {
               logger.error(
-                'Customer has no matching user in DB — perpetual license not created',
+                'CRITICAL: Customer has no matching user in DB — perpetual license not created',
                 undefined,
                 { customerId },
               );
-              return;
+              // Throw 500 so Stripe retries — payment was captured but no license was issued.
+              // Previously this returned silently (HTTP 200), causing Stripe to stop retrying
+              // and the customer to never receive their license.
+              throw new Error(`Cannot find user for perpetual license (customerId=${customerId})`);
             }
 
             await tx.insert(licenses).values({
