@@ -37,7 +37,7 @@ describe('createProject', () => {
     await fs.rm(tmpDir, { recursive: true, force: true });
   });
 
-  it('copies minimal template files into target directory', async () => {
+  it('copies starter template files into target directory', async () => {
     const projectPath = path.join(tmpDir, 'test-scaffold');
 
     await createProject({
