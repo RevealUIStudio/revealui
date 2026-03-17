@@ -16,7 +16,7 @@ RevealUI Studio <founder@revealui.com>
 
 ## Package Map
 
-### Apps (5)
+### Apps (6)
 | App | Port | Framework | Purpose |
 |-----|------|-----------|---------|
 | api | 3004 | Hono | REST API (OpenAPI + Swagger) |
@@ -24,13 +24,14 @@ RevealUI Studio <founder@revealui.com>
 | docs | 3002 | Vite/React | Documentation site |
 | marketing | 3000 | Next.js | Marketing + waitlist |
 | studio | — | Tauri 2 + React 19 | Desktop companion: DevPod manager, app launcher, first-run wizard, system tray |
+| terminal | — | Go (Bubble Tea) | TUI client: API integration, QR checkout, SSH fingerprint lookup |
 
 ### OSS Packages (MIT)
 | Package | Purpose |
 |---------|---------|
 | @revealui/core | CMS engine, REST API, auth, rich text, admin UI, plugins |
 | @revealui/contracts | Zod schemas + TypeScript types (single source of truth) |
-| @revealui/db | Drizzle ORM schema (50 tables), dual-DB (Neon + Supabase) |
+| @revealui/db | Drizzle ORM schema (68 tables), dual-DB (Neon + Supabase) |
 | @revealui/auth | Session auth, password reset, rate limiting |
 | @revealui/presentation | 50+ native UI components (Tailwind v4, zero external UI deps — only clsx + CVA) |
 | @revealui/router | Lightweight file-based router with SSR |
@@ -39,6 +40,10 @@ RevealUI Studio <founder@revealui.com>
 | @revealui/cli | `create-revealui` scaffolding tool |
 | @revealui/setup | Environment setup utilities |
 | @revealui/sync | ElectricSQL real-time sync |
+| @revealui/cache | CDN config, edge cache, ISR presets, revalidation |
+| @revealui/resilience | Circuit breaker, retry, bulkhead patterns |
+| @revealui/security | Headers, CORS, RBAC/ABAC, encryption, audit, GDPR |
+| create-revealui | `npm create revealui` initializer |
 | @revealui/dev | Shared configs (Biome, TS, Tailwind) |
 | @revealui/test | E2E specs (Playwright), integration tests, fixtures, mocks, test utilities |
 
@@ -145,8 +150,8 @@ Schemas are in `packages/db/src/schema/`. Use Drizzle ORM for queries. Dual-data
 - Database tests use PGlite (in-memory PostgreSQL)
 
 ## Build & Security Status
-- 20 workspaces (5 apps + 14 OSS packages + scripts/lib) build and typecheck clean
-- 33 pnpm overrides enforce minimum safe versions for transitive deps
+- 24 workspaces (6 apps + 17 OSS packages + scripts/lib) build and typecheck clean
+- 36 pnpm overrides enforce minimum safe versions for transitive deps
 - React 19.2.4 (CVE-2025-55182 React2Shell patched)
 - Run `pnpm audit:any` and `pnpm audit:console` for current any/console counts (warn-only)
 
@@ -167,7 +172,7 @@ The `pnpm gate` script runs 3 phases:
 Biome, typecheck, tests, and build all block pushes. Audits and structure checks are warn-only.
 
 ## Security
-- CSP, CORS, HSTS headers in `packages/core/src/security/`
+- CSP, CORS, HSTS headers in `@revealui/security` (re-exported via `packages/core/src/security/`)
 - Auth: bcrypt, brute force protection, rate limiting, sessions
 - RBAC + ABAC policy engine in core
 - GDPR compliance framework (consent, deletion, anonymization)

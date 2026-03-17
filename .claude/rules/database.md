@@ -32,12 +32,20 @@ RevealUI uses **two databases with strictly separated responsibilities**:
 
 ```
 packages/db/src/schema/
-├── collections/    # NeonDB: content collections
-├── users/          # NeonDB: user management
-├── commerce/       # NeonDB: products, orders, pricing
-├── sessions/       # NeonDB: auth sessions
-├── vector/         # Supabase: embeddings, similarity search
-└── auth/           # Supabase: auth state
+├── accounts.ts       # NeonDB: user accounts
+├── agents.ts         # NeonDB: AI agent definitions
+├── api-keys.ts       # NeonDB: API key management
+├── cms.ts            # NeonDB: CMS collections, media
+├── gdpr.ts           # NeonDB: GDPR consent, deletion
+├── licenses.ts       # NeonDB: license keys, tiers
+├── pages.ts          # NeonDB: pages, navigation
+├── sites.ts          # NeonDB: multi-tenant sites
+├── tickets.ts        # NeonDB: support tickets
+├── users.ts          # NeonDB: user management, sessions
+├── vector.ts         # Supabase: embeddings, AI memory
+├── rest.ts           # NeonDB: REST schema barrel
+├── index.ts          # Combined schema export
+└── ...               # 30+ schema files total
 ```
 
 ## Query Patterns
