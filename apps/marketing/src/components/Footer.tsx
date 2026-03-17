@@ -80,10 +80,7 @@ export function Footer() {
                 </Link>
               </li>
               <li>
-                <Link
-                  href="https://docs.revealui.com/blog"
-                  className="hover:text-white transition-colors"
-                >
+                <Link href="/blog" className="hover:text-white transition-colors">
                   Blog
                 </Link>
               </li>
