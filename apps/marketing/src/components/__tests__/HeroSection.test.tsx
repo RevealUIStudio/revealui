@@ -42,8 +42,9 @@ describe('HeroSection', () => {
   it('contains the brand tagline', () => {
     const result = HeroSection();
     const html = JSON.stringify(result);
-    expect(html).toContain('Build your business,');
-    expect(html).toContain('not your boilerplate.');
+    expect(html).toContain('Business OS Software');
+    expect(html).toContain('BOSS');
+    expect(html).toContain('Build your business, not your boilerplate.');
   });
 
   it('contains all five primitives', () => {

@@ -74,7 +74,7 @@ describe('Footer', () => {
   it('contains the brand description', () => {
     const result = Footer();
     const html = JSON.stringify(result);
-    expect(html).toContain('Open-source business infrastructure');
-    expect(html).toContain('pre-wired and ready to deploy');
+    expect(html).toContain('Business OS Software (BOSS)');
+    expect(html).toContain('pre-wired');
   });
 });
