@@ -40,6 +40,10 @@
       "types": "./dist/client/index.d.ts",
       "import": "./dist/client/index.js"
     },
+    "./cleanup": {
+      "types": "./dist/cleanup/index.d.ts",
+      "import": "./dist/cleanup/index.js"
+    },
     "./types": {
       "types": "./dist/types/index.d.ts",
       "import": "./dist/types/index.js"
