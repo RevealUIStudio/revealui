@@ -5,8 +5,8 @@
  * GET|PATCH|DELETE /media/:id
  */
 
-import { createRoute, OpenAPIHono, z } from '@hono/zod-openapi';
 import * as mediaQueries from '@revealui/db/queries/media';
+import { createRoute, OpenAPIHono, z } from '@revealui/openapi';
 import { HTTPException } from 'hono/http-exception';
 import { ErrorSchema, IdParam } from '../_helpers/content-schemas.js';
 import { PaginationQuery } from '../_helpers/pagination.js';

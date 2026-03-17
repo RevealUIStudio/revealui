@@ -1,5 +1,5 @@
-import { createRoute, OpenAPIHono, z } from '@hono/zod-openapi';
 import { logger } from '@revealui/core/observability/logger';
+import { createRoute, OpenAPIHono, z } from '@revealui/openapi';
 import { HTTPException } from 'hono/http-exception';
 import * as Y from 'yjs';
 import { createYjsPersistence } from '../collab/persistence.js';

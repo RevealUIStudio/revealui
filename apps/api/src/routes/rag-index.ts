@@ -9,10 +9,10 @@
  * Requires requireFeature('ai') — applied in apps/api/src/index.ts.
  */
 
-import { createRoute, OpenAPIHono, z } from '@hono/zod-openapi';
 import type { DatabaseClient } from '@revealui/db/client';
 import { getVectorClient } from '@revealui/db/client';
 import { ragDocuments } from '@revealui/db/schema/rag';
+import { createRoute, OpenAPIHono, z } from '@revealui/openapi';
 import { and, count, eq, isNotNull, max } from 'drizzle-orm';
 
 type Variables = {

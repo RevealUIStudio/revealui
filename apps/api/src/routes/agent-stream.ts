@@ -10,7 +10,7 @@
  * See packages/ai/src/client/hooks/useAgentStream.ts for the React hook.
  */
 
-import { createRoute, OpenAPIHono, z } from '@hono/zod-openapi';
+import { createRoute, OpenAPIHono, z } from '@revealui/openapi';
 import { streamSSE } from 'hono/streaming';
 
 /** Detect LLM provider from API key prefix or explicit parameter */

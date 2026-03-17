@@ -1,7 +1,7 @@
-import { createRoute, OpenAPIHono, z } from '@hono/zod-openapi';
 import { TICKET_PRIORITIES, TICKET_STATUSES, TICKET_TYPES } from '@revealui/contracts/entities';
 import * as boardQueries from '@revealui/db/queries/boards';
 import * as ticketQueries from '@revealui/db/queries/tickets';
+import { createRoute, OpenAPIHono, z } from '@revealui/openapi';
 import { HTTPException } from 'hono/http-exception';
 import { asNonEmptyTuple } from '../../lib/type-guards.js';
 import type { Variables } from '../_helpers/access.js';
