@@ -85,7 +85,7 @@ export function HeroSection() {
 
           <div className="mt-10 flex flex-col sm:flex-row items-center justify-center gap-4">
             <ButtonCVA asChild size="lg" className="w-full sm:w-auto">
-              <a href="#waitlist">Get Early Access</a>
+              <a href="https://cms.revealui.com/signup">Get Started Free</a>
             </ButtonCVA>
             <ButtonCVA asChild variant="outline" size="lg" className="w-full sm:w-auto">
               <a href="https://docs.revealui.com" className="gap-1.5">

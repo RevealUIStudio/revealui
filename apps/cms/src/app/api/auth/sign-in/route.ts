@@ -80,7 +80,20 @@ async function signInHandler(request: NextRequest): Promise<NextResponse> {
     }
 
     if (result.requiresMfa) {
-      return NextResponse.json({ requiresMfa: true, mfaUserId: result.mfaUserId }, { status: 200 });
+      const { signCookiePayload } = await import('@revealui/auth/server');
+      const signed = signCookiePayload(
+        { userId: result.mfaUserId, expiresAt: Date.now() + 5 * 60 * 1000 },
+        process.env.REVEALUI_SECRET ?? '',
+      );
+      const response = NextResponse.json({ requiresMfa: true }, { status: 200 });
+      response.cookies.set('mfa-pending', signed, {
+        httpOnly: true,
+        secure: process.env.NODE_ENV === 'production',
+        sameSite: 'strict',
+        path: '/api/auth/mfa',
+        maxAge: 300,
+      });
+      return response;
     }
 
     // Create response with user data

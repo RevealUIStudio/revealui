@@ -2,7 +2,7 @@
  * Auto-generated Zod schemas from Drizzle
  *
  * DO NOT EDIT - Regenerate with: pnpm generate:all
- * Generated: 2026-03-17T13:50:45.760Z
+ * Generated: 2026-03-17T17:33:38.905Z
  *
  * This file provides Zod schemas for all database tables, generated
  * directly from Drizzle table definitions using drizzle-zod.
@@ -951,6 +951,32 @@ export type LicensesRow = z.infer<typeof LicensesSelectSchema>
 export type LicensesInsert = z.infer<typeof LicensesInsertSchema>
 
 // =============================================================================
+// MagicLinks Schemas
+// =============================================================================
+
+/**
+ * Zod schema for selecting magicLinks rows from database
+ * Generated from Drizzle table definition: tables.magicLinks
+ */
+export const MagicLinksSelectSchema = createSelectSchema(tables.magicLinks)
+
+/**
+ * Zod schema for inserting magicLinks rows to database
+ * Generated from Drizzle table definition: tables.magicLinks
+ */
+export const MagicLinksInsertSchema = createInsertSchema(tables.magicLinks)
+
+/**
+ * TypeScript type for magicLinks row (Select)
+ */
+export type MagicLinksRow = z.infer<typeof MagicLinksSelectSchema>
+
+/**
+ * TypeScript type for magicLinks insert
+ */
+export type MagicLinksInsert = z.infer<typeof MagicLinksInsertSchema>
+
+// =============================================================================
 // MarketplaceServers Schemas
 // =============================================================================
 
@@ -1157,6 +1183,32 @@ export type PagesRow = z.infer<typeof PagesSelectSchema>
  * TypeScript type for pages insert
  */
 export type PagesInsert = z.infer<typeof PagesInsertSchema>
+
+// =============================================================================
+// Passkeys Schemas
+// =============================================================================
+
+/**
+ * Zod schema for selecting passkeys rows from database
+ * Generated from Drizzle table definition: tables.passkeys
+ */
+export const PasskeysSelectSchema = createSelectSchema(tables.passkeys)
+
+/**
+ * Zod schema for inserting passkeys rows to database
+ * Generated from Drizzle table definition: tables.passkeys
+ */
+export const PasskeysInsertSchema = createInsertSchema(tables.passkeys)
+
+/**
+ * TypeScript type for passkeys row (Select)
+ */
+export type PasskeysRow = z.infer<typeof PasskeysSelectSchema>
+
+/**
+ * TypeScript type for passkeys insert
+ */
+export type PasskeysInsert = z.infer<typeof PasskeysInsertSchema>
 
 // =============================================================================
 // PasswordResetTokens Schemas

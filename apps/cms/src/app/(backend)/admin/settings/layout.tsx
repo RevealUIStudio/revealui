@@ -6,6 +6,7 @@ import type { ReactNode } from 'react';
 
 const NAV_ITEMS = [
   { href: '/admin/settings/account', label: 'Account' },
+  { href: '/admin/settings/security', label: 'Security' },
   { href: '/admin/settings/api-keys', label: 'API Keys' },
 ] as const;
 
