@@ -28,7 +28,7 @@ describe('SocialProof', () => {
     expect(html).toContain('workspaces');
     expect(html).toContain('415K+');
     expect(html).toContain('lines of TypeScript');
-    expect(html).toContain('11,700+');
+    expect(html).toContain('5,606');
     expect(html).toContain('tests');
     expect(html).toContain('6');
     expect(html).toContain('apps deployed');
