@@ -25,10 +25,7 @@ fi
 # Internal-only files that must never be served publicly
 INTERNAL_FILES=(
   "AUTOMATION.md"
-  "GOVERNANCE.md"
   "STANDARDS.md"
-  "CODE_VALIDATION.md"
-  "SCRIPT_MANAGEMENT.md"
 )
 
 # Copy all documentation (flat structure — no subdirectories)

@@ -187,14 +187,11 @@ export function getSharedViteConfig(): { build: { sourcemap: boolean }; server: 
  */
 export function getSharedNextJSConfig(): {
   output: 'standalone';
-  experimental: { serverActions: boolean; serverComponentsExternalPackages: string[] };
+  serverExternalPackages: string[];
 } {
   return {
     output: 'standalone' as const,
-    experimental: {
-      serverActions: true,
-      serverComponentsExternalPackages: ['sharp', 'react-animate-height'],
-    },
+    serverExternalPackages: ['sharp', 'react-animate-height'],
   };
 }
 
