@@ -5,6 +5,7 @@
  * The schema structure mirrors the Zod schemas in @revealui/contracts/entities.
  */
 
+import { sql } from 'drizzle-orm';
 import { boolean, index, jsonb, pgTable, text, timestamp, uniqueIndex } from 'drizzle-orm/pg-core';
 
 // =============================================================================
@@ -85,6 +86,8 @@ export const users = pgTable(
     index('users_status_idx').on(table.status),
     index('users_deleted_at_idx').on(table.deletedAt),
     index('users_status_deleted_at_idx').on(table.status, table.deletedAt),
+    index('users_active_email_idx').on(table.email).where(sql`deleted_at IS NULL`),
+    index('users_active_status_idx').on(table.status).where(sql`deleted_at IS NULL`),
     index('users_stripe_customer_id_idx').on(table.stripeCustomerId),
     index('users_ssh_key_fingerprint_idx').on(table.sshKeyFingerprint),
   ],

@@ -81,7 +81,6 @@ vi.mock('@revealui/db', () => ({
 
 // ─── Import under test (after mocks) ─────────────────────────────────────────
 
-import * as featuresModule from '@revealui/core/features';
 import * as licenseModule from '@revealui/core/license';
 import * as loggerModule from '@revealui/core/observability/logger';
 import webhooksApp from '../webhooks.js';
@@ -111,7 +110,6 @@ describe('POST /stripe webhook — expansion events', () => {
   beforeEach(() => {
     vi.clearAllMocks();
 
-    vi.mocked(featuresModule.isFeatureEnabled).mockReturnValue(false);
     vi.mocked(licenseModule.generateLicenseKey).mockResolvedValue('rv-license-key-test-123');
     mockSubscriptionsUpdate.mockResolvedValue({});
     mockSubscriptionsRetrieve.mockResolvedValue({
@@ -285,9 +283,7 @@ describe('POST /stripe webhook — expansion events', () => {
       };
     }
 
-    it('logs a warning and writes audit entry when enabled', async () => {
-      vi.mocked(featuresModule.isFeatureEnabled).mockReturnValue(true);
-
+    it('logs a warning and writes audit entry', async () => {
       const event = makeDisputeCreatedEvent('evt_disp_created_1');
       mockConstructEvent.mockReturnValueOnce(event);
 
@@ -377,7 +373,6 @@ describe('POST /stripe webhook — expansion events', () => {
     });
 
     it('writes critical audit entry on lost dispute', async () => {
-      vi.mocked(featuresModule.isFeatureEnabled).mockReturnValue(true);
       mockChargesRetrieve.mockResolvedValueOnce({
         id: 'ch_disputed',
         customer: 'cus_dispute',
@@ -480,8 +475,6 @@ describe('POST /stripe webhook — expansion events', () => {
     });
 
     it('writes audit entry on full refund revocation', async () => {
-      vi.mocked(featuresModule.isFeatureEnabled).mockReturnValue(true);
-
       const event = makeRefundedEvent('evt_refund_full_audit_1', 4900, 4900);
       mockConstructEvent.mockReturnValueOnce(event);
 
@@ -516,8 +509,6 @@ describe('POST /stripe webhook — expansion events', () => {
 
   describe('payment_intent.payment_failed', () => {
     it('logs warning and writes audit entry', async () => {
-      vi.mocked(featuresModule.isFeatureEnabled).mockReturnValue(true);
-
       const event = {
         id: 'evt_pi_fail_1',
         type: 'payment_intent.payment_failed',

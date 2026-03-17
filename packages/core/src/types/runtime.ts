@@ -64,11 +64,13 @@ export interface RevealUpdateOptions {
   id: string | number;
   data: RevealDataObject;
   req?: RevealRequest;
+  overrideAccess?: boolean;
 }
 
 export interface RevealDeleteOptions {
   id: string | number;
   req?: RevealRequest;
+  overrideAccess?: boolean;
 }
 
 /** Generic options type for operations */
