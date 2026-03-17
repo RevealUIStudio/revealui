@@ -76,7 +76,9 @@ function parseQueryParams(searchParams: URLSearchParams): RESTOptions {
     options.fallbackLocale = fallbackLocale;
   }
 
-  // Parse overrideAccess
+  // Parse overrideAccess — SECURITY: This flag bypasses collection access control.
+  // It is stripped from external API requests below to prevent abuse.
+  // Only server-side code should set overrideAccess=true (e.g., internal hooks, seed scripts).
   const overrideAccess = searchParams.get('overrideAccess');
   if (overrideAccess !== null) {
     options.overrideAccess = overrideAccess === 'true';

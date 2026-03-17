@@ -164,6 +164,21 @@ async function signUpHandler(request: NextRequest): Promise<NextResponse> {
     const isVerified = result.user?.emailVerified ?? false;
 
     if (result.sessionToken && isVerified) {
+      // Set role hint cookie for proxy.ts admin gate (defense-in-depth).
+      const userRole = result.user?.role ?? 'user';
+      const isAdminRole = ['admin', 'super-admin'].includes(userRole);
+      response.cookies.set('revealui-role', isAdminRole ? 'admin' : 'user', {
+        httpOnly: false,
+        secure: process.env.NODE_ENV === 'production',
+        sameSite: 'lax',
+        path: '/',
+        maxAge: 60 * 60 * 24 * 7,
+        domain:
+          process.env.NODE_ENV === 'production'
+            ? process.env.SESSION_COOKIE_DOMAIN || undefined
+            : undefined,
+      });
+
       response.cookies.set('revealui-session', result.sessionToken, {
         httpOnly: true,
         secure: process.env.NODE_ENV === 'production',

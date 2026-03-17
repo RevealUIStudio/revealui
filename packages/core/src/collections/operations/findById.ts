@@ -24,6 +24,7 @@ export async function findByID(
     depth?: number;
     req?: RevealRequest;
     populate?: PopulateType;
+    overrideAccess?: boolean;
   },
 ): Promise<RevealDocument | null> {
   const { id, depth = 0, req, populate: populateOption } = options;
@@ -31,6 +32,28 @@ export async function findByID(
   // Validate depth
   if (depth < 0 || depth > 3) {
     throw new Error(`Depth must be between 0 and 3, got ${depth}`);
+  }
+
+  // --- Access control enforcement ---
+  if (!options.overrideAccess) {
+    const accessConfig = (
+      config as {
+        access?: { read?: (args: { req: RevealRequest; id?: string | number }) => unknown };
+      }
+    ).access;
+    const readAccess = accessConfig?.read;
+
+    if (readAccess) {
+      if (!req) return null; // No request context = deny
+
+      const result = await readAccess({ req, id });
+
+      if (result === false) return null;
+
+      // If result is a WhereClause (row-level filter), we fetch the doc first then verify.
+      // For findByID, we check after fetch whether the doc matches the access filter.
+      // Boolean true = allow, WhereClause = post-fetch filter (handled below after query).
+    }
   }
 
   if (db?.collectionStorage?.findByID) {

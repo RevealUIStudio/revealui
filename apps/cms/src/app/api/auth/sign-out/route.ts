@@ -24,8 +24,9 @@ async function signOutHandler(request: NextRequest): Promise<NextResponse> {
       success: true,
     });
 
-    // Clear session cookie
+    // Clear session and role cookies
     response.cookies.delete('revealui-session');
+    response.cookies.delete('revealui-role');
 
     return response;
   } catch (error) {
