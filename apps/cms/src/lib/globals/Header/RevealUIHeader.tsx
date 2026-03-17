@@ -40,7 +40,7 @@ export function RevealUIHeader({ header }: RevealUIHeaderProps) {
           {/* Use existing Logo component, but adapt for navbar size */}
           <div className="flex items-center">
             <Image
-              src="https://raw.githubusercontent.com/revealui/revealui/main/packages/revealui/src/assets/images/revealui-logo-light.svg"
+              src="/revealui-logo.svg"
               alt="RevealUI Logo"
               width={113}
               height={28}
