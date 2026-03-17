@@ -292,11 +292,20 @@ export async function regenerateBackupCodes(
 }
 
 /**
- * Disable MFA on a user account. Requires password confirmation.
+ * Discriminated union for MFA disable re-authentication proof.
+ * - `password`: traditional password confirmation
+ * - `passkey`: WebAuthn assertion already verified by the API route
+ */
+export type MFADisableProof =
+  | { method: 'password'; password: string }
+  | { method: 'passkey'; verified: true };
+
+/**
+ * Disable MFA on a user account. Requires re-authentication proof.
  */
 export async function disableMFA(
   userId: string,
-  password: string,
+  proof: MFADisableProof,
 ): Promise<{ success: boolean; error?: string }> {
   const db = getClient();
 
@@ -317,15 +326,19 @@ export async function disableMFA(
     return { success: false, error: 'MFA is not enabled' };
   }
 
-  if (!user.password) {
-    return { success: false, error: 'Password verification required' };
-  }
+  // Verify re-authentication proof
+  if (proof.method === 'password') {
+    if (!user.password) {
+      return { success: false, error: 'Password verification required' };
+    }
 
-  // Verify password before disabling MFA
-  const passwordValid = await bcrypt.compare(password, user.password);
-  if (!passwordValid) {
-    return { success: false, error: 'Invalid password' };
+    const passwordValid = await bcrypt.compare(proof.password, user.password);
+    if (!passwordValid) {
+      return { success: false, error: 'Invalid password' };
+    }
   }
+  // For passkey proof, the API route has already performed the WebAuthn assertion —
+  // the `verified: true` flag is trusted as a server-side signal.
 
   // Clear all MFA data
   await db

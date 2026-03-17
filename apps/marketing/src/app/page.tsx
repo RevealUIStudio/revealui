@@ -1,7 +1,7 @@
 import { Audiences } from '@/components/Audiences';
 import { Footer } from '@/components/Footer';
+import { GetStarted } from '@/components/GetStarted';
 import { HeroSection } from '@/components/HeroSection';
-import { LeadCapture } from '@/components/LeadCapture';
 import { SocialProof } from '@/components/SocialProof';
 import { ValueProposition } from '@/components/ValueProposition';
 
@@ -12,7 +12,7 @@ export default function Home() {
       <ValueProposition />
       <SocialProof />
       <Audiences />
-      <LeadCapture />
+      <GetStarted />
       <Footer />
     </div>
   );

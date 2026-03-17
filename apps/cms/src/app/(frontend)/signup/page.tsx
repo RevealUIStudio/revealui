@@ -1,6 +1,6 @@
 'use client';
 
-import { useSignUp } from '@revealui/auth/react';
+import { usePasskeyRegister, useSignUp } from '@revealui/auth/react';
 import {
   AuthLayout,
   ButtonCVA as Button,
@@ -48,11 +48,20 @@ function SignupContent() {
   const searchParams = useSearchParams();
   const plan = searchParams.get('plan');
   const { signUp, isLoading } = useSignUp();
+  const {
+    register: registerPasskey,
+    isLoading: isPasskeyLoading,
+    error: passkeyError,
+    supported: passkeySupported,
+  } = usePasskeyRegister();
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [tosAccepted, setTosAccepted] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [backupCodes, setBackupCodes] = useState<string[] | null>(null);
+
+  const anyLoading = isLoading || isPasskeyLoading;
 
   const handleSubmit = async (e: FormEvent) => {
     e.preventDefault();
@@ -75,6 +84,75 @@ function SignupContent() {
     }
   };
 
+  const handlePasskeySignUp = async () => {
+    setError(null);
+
+    if (!email.trim()) {
+      setError('Please enter your email address before signing up with a passkey.');
+      return;
+    }
+
+    if (!name.trim()) {
+      setError('Please enter your name before signing up with a passkey.');
+      return;
+    }
+
+    if (!tosAccepted) {
+      setError('You must accept the Terms of Service to create an account.');
+      return;
+    }
+
+    const result = await registerPasskey({ email: email.trim(), name: name.trim() });
+    if (result) {
+      if (result.backupCodes?.length) {
+        setBackupCodes(result.backupCodes);
+      } else {
+        router.push('/admin');
+      }
+    }
+  };
+
+  const handleAcknowledgeCodes = () => {
+    router.push('/admin');
+  };
+
+  if (backupCodes) {
+    return (
+      <AuthLayout>
+        <Card className="w-full max-w-sm">
+          <CardHeader>
+            <CardTitle>Save your backup codes</CardTitle>
+            <CardDescription>
+              Store these codes in a safe place. You can use them to sign in if you lose access to
+              your passkey.
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <div className="space-y-4">
+              <div className="rounded-md bg-zinc-50 p-4 font-mono text-sm dark:bg-zinc-800/50">
+                {backupCodes.map((code) => (
+                  <div key={code} className="py-0.5">
+                    {code}
+                  </div>
+                ))}
+              </div>
+
+              <p className="text-xs text-zinc-500">
+                Each code can only be used once. Keep them somewhere safe.
+              </p>
+
+              <Button onClick={handleAcknowledgeCodes} className="w-full">
+                I&apos;ve saved my codes
+              </Button>
+            </div>
+          </CardContent>
+        </Card>
+      </AuthLayout>
+    );
+  }
+
+  const displayError = error ?? passkeyError;
+
   return (
     <AuthLayout>
       <Card className="w-full max-w-sm">
@@ -95,9 +173,9 @@ function SignupContent() {
         </CardHeader>
         <CardContent>
           <form onSubmit={handleSubmit} className="space-y-4">
-            {error && (
+            {displayError && (
               <div className="rounded-md bg-red-50 p-3 text-sm text-red-700 dark:bg-red-900/20 dark:text-red-400">
-                {error}
+                {displayError}
               </div>
             )}
 
@@ -110,7 +188,7 @@ function SignupContent() {
                 type="text"
                 value={name}
                 onChange={(e) => setName(e.target.value)}
-                disabled={isLoading}
+                disabled={anyLoading}
                 autoComplete="name"
                 required
               />
@@ -125,7 +203,7 @@ function SignupContent() {
                 type="email"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
-                disabled={isLoading}
+                disabled={anyLoading}
                 autoComplete="email"
                 required
               />
@@ -140,7 +218,7 @@ function SignupContent() {
                 type="password"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
-                disabled={isLoading}
+                disabled={anyLoading}
                 autoComplete="new-password"
                 minLength={8}
                 required
@@ -154,7 +232,7 @@ function SignupContent() {
                 type="checkbox"
                 checked={tosAccepted}
                 onChange={(e) => setTosAccepted(e.target.checked)}
-                disabled={isLoading}
+                disabled={anyLoading}
                 required
                 className="mt-0.5 h-4 w-4 rounded border-zinc-300 text-blue-600"
               />
@@ -178,10 +256,32 @@ function SignupContent() {
               </label>
             </div>
 
-            <Button type="submit" disabled={isLoading || !tosAccepted} className="w-full">
+            <Button type="submit" disabled={anyLoading || !tosAccepted} className="w-full">
               {isLoading ? 'Creating account...' : 'Create account'}
             </Button>
           </form>
+
+          {passkeySupported && (
+            <>
+              <div className="relative my-4">
+                <div className="absolute inset-0 flex items-center">
+                  <span className="w-full border-t border-border" />
+                </div>
+                <div className="relative flex justify-center text-xs uppercase">
+                  <span className="bg-background px-2 text-muted-foreground">or</span>
+                </div>
+              </div>
+
+              <Button
+                variant="outline"
+                className="w-full"
+                onClick={handlePasskeySignUp}
+                disabled={anyLoading}
+              >
+                {isPasskeyLoading ? 'Registering passkey...' : 'Sign up with passkey'}
+              </Button>
+            </>
+          )}
         </CardContent>
       </Card>
     </AuthLayout>

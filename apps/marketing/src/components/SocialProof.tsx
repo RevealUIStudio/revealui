@@ -4,7 +4,7 @@ export function SocialProof() {
   const stats = [
     { value: '24', label: 'workspaces' },
     { value: '415K+', label: 'lines of TypeScript' },
-    { value: '11,700+', label: 'tests' },
+    { value: '5,606', label: 'tests' },
     { value: '6', label: 'apps deployed' },
   ];
 

@@ -119,6 +119,9 @@ export const sessions = pgTable(
     ipAddress: text('ip_address'),
     persistent: boolean('persistent').default(false),
 
+    // Extensible metadata (e.g., 2FA method used, passkey credential ID)
+    metadata: jsonb('metadata').$type<Record<string, unknown>>(),
+
     // Activity tracking
     lastActivityAt: timestamp('last_activity_at', { withTimezone: true }).defaultNow().notNull(),
 

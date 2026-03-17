@@ -46,9 +46,11 @@ import { codeProvenance, codeReviews } from './code-provenance.js';
 import { collabEdits } from './collab-edits.js';
 import { errorEvents } from './error-events.js';
 import { licenses } from './licenses.js';
+import { magicLinks } from './magic-links.js';
 import { marketplaceServers, marketplaceTransactions } from './marketplace.js';
 import { oauthAccounts } from './oauth-accounts.js';
 import { pageRevisions, pages } from './pages.js';
+import { passkeys } from './passkeys.js';
 import { passwordResetTokens } from './password-reset-tokens.js';
 import { siteCollaborators, sites } from './sites.js';
 import { tenants } from './tenants.js';
@@ -74,6 +76,8 @@ export const usersRelations = relations(users, ({ many }) => ({
   apiKeys: many(userApiKeys),
   providerConfigs: many(tenantProviderConfigs),
   oauthAccounts: many(oauthAccounts),
+  passkeys: many(passkeys),
+  magicLinks: many(magicLinks),
 }));
 
 export const tenantsRelations = relations(tenants, () => ({}));
@@ -152,6 +156,22 @@ export const sessionsRelations = relations(sessions, ({ one }) => ({
 export const passwordResetTokensRelations = relations(passwordResetTokens, ({ one }) => ({
   user: one(users, {
     fields: [passwordResetTokens.userId],
+    references: [users.id],
+  }),
+}));
+
+// Passkey relations
+export const passkeysRelations = relations(passkeys, ({ one }) => ({
+  user: one(users, {
+    fields: [passkeys.userId],
+    references: [users.id],
+  }),
+}));
+
+// Magic link relations
+export const magicLinksRelations = relations(magicLinks, ({ one }) => ({
+  user: one(users, {
+    fields: [magicLinks.userId],
     references: [users.id],
   }),
 }));

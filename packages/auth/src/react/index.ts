@@ -5,6 +5,19 @@
  * Inspired by Better Auth and TanStack Start patterns.
  */
 
+export type {
+  MFASetupData,
+  UseMFASetupResult,
+  UseMFAVerifyResult,
+} from './useMFA.js';
+export { useMFASetup, useMFAVerify } from './useMFA.js';
+export type {
+  PasskeyRegisterOptions,
+  PasskeyRegisterResult,
+  UsePasskeyRegisterResult,
+  UsePasskeySignInResult,
+} from './usePasskey.js';
+export { usePasskeyRegister, usePasskeySignIn } from './usePasskey.js';
 export type { UseSessionResult } from './useSession.js';
 export { useSession } from './useSession.js';
 export type { SignInInput, UseSignInResult } from './useSignIn.js';
