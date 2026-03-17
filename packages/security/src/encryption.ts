@@ -8,6 +8,8 @@ export interface EncryptionConfig {
   algorithm: 'AES-GCM' | 'AES-CTR';
   keySize: 128 | 192 | 256;
   ivSize?: number;
+  /** Allow key export via exportKey(). Default: false (keys are non-extractable). */
+  extractable?: boolean;
 }
 
 export interface EncryptedData {
@@ -48,7 +50,7 @@ export class EncryptionSystem {
         name: this.config.algorithm,
         length: this.config.keySize,
       },
-      true, // extractable
+      this.config.extractable ?? false, // non-extractable by default — prevents key exfiltration
       ['encrypt', 'decrypt'],
     );
 

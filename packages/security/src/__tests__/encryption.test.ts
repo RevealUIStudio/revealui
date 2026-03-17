@@ -37,23 +37,26 @@ describe('EncryptionSystem', () => {
 
   describe('importKey / exportKey roundtrip', () => {
     it('exports and re-imports a key that can decrypt', async () => {
-      const original = await enc.generateKey();
-      const exported = await enc.exportKey(original);
+      // Export/import requires extractable keys
+      const extractableEnc = new EncryptionSystem({ extractable: true });
+      const original = await extractableEnc.generateKey();
+      const exported = await extractableEnc.exportKey(original);
       expect(exported).toBeInstanceOf(ArrayBuffer);
       expect(exported.byteLength).toBe(32); // 256 bits
 
-      const imported = await enc.importKey(exported);
+      const imported = await extractableEnc.importKey(exported);
       // Encrypt with original, decrypt with imported
-      const encrypted = await enc.encrypt('roundtrip test', original);
-      const decrypted = await enc.decrypt(encrypted, imported);
+      const encrypted = await extractableEnc.encrypt('roundtrip test', original);
+      const decrypted = await extractableEnc.decrypt(encrypted, imported);
       expect(decrypted).toBe('roundtrip test');
     });
 
     it('stores imported key when keyId is provided', async () => {
-      const original = await enc.generateKey();
-      const exported = await enc.exportKey(original);
-      const imported = await enc.importKey(exported, 'imported-key');
-      expect(enc.getKey('imported-key')).toBe(imported);
+      const extractableEnc = new EncryptionSystem({ extractable: true });
+      const original = await extractableEnc.generateKey();
+      const exported = await extractableEnc.exportKey(original);
+      const imported = await extractableEnc.importKey(exported, 'imported-key');
+      expect(extractableEnc.getKey('imported-key')).toBe(imported);
     });
   });
 
@@ -268,7 +271,7 @@ describe('EncryptionSystem', () => {
 
   describe('custom config', () => {
     it('uses AES-GCM with 128-bit key size', async () => {
-      const enc128 = new EncryptionSystem({ keySize: 128 });
+      const enc128 = new EncryptionSystem({ keySize: 128, extractable: true });
       const key = await enc128.generateKey();
       const exported = await enc128.exportKey(key);
       expect(exported.byteLength).toBe(16); // 128 bits
@@ -483,7 +486,8 @@ describe('EnvelopeEncryption', () => {
   let enc: EncryptionSystem;
 
   beforeEach(() => {
-    enc = new EncryptionSystem();
+    // Envelope encryption requires extractable keys (DEKs are exported to wrap with master key)
+    enc = new EncryptionSystem({ extractable: true });
   });
 
   it('encrypts and decrypts with envelope encryption', async () => {
