@@ -2,7 +2,6 @@
 
 import { usePasskeyRegister, useSignUp } from '@revealui/auth/react';
 import {
-  AuthLayout,
   ButtonCVA as Button,
   Card,
   CardContent,
@@ -15,12 +14,13 @@ import {
 import Link from 'next/link';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { type FormEvent, Suspense, useState } from 'react';
+import { BrandedAuthLayout } from '@/lib/components/BrandedAuthLayout';
 
 export default function SignupPage() {
   return (
     <Suspense
       fallback={
-        <AuthLayout>
+        <BrandedAuthLayout>
           <Card className="w-full max-w-sm">
             <CardHeader>
               <div className="h-6 w-48 animate-pulse rounded bg-zinc-200 dark:bg-zinc-700" />
@@ -35,7 +35,7 @@ export default function SignupPage() {
               </div>
             </CardContent>
           </Card>
-        </AuthLayout>
+        </BrandedAuthLayout>
       }
     >
       <SignupContent />
@@ -118,7 +118,7 @@ function SignupContent() {
 
   if (backupCodes) {
     return (
-      <AuthLayout>
+      <BrandedAuthLayout>
         <Card className="w-full max-w-sm">
           <CardHeader>
             <CardTitle>Save your backup codes</CardTitle>
@@ -147,14 +147,14 @@ function SignupContent() {
             </div>
           </CardContent>
         </Card>
-      </AuthLayout>
+      </BrandedAuthLayout>
     );
   }
 
   const displayError = error ?? passkeyError;
 
   return (
-    <AuthLayout>
+    <BrandedAuthLayout>
       <Card className="w-full max-w-sm">
         <CardHeader>
           <CardTitle>Create your account</CardTitle>
@@ -284,6 +284,6 @@ function SignupContent() {
           )}
         </CardContent>
       </Card>
-    </AuthLayout>
+    </BrandedAuthLayout>
   );
 }

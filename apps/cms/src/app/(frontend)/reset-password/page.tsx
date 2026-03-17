@@ -1,7 +1,6 @@
 'use client';
 
 import {
-  AuthLayout,
   ButtonCVA as Button,
   Card,
   CardContent,
@@ -14,6 +13,7 @@ import {
 import Link from 'next/link';
 import { useSearchParams } from 'next/navigation';
 import { type FormEvent, Suspense, useState } from 'react';
+import { BrandedAuthLayout } from '@/lib/components/BrandedAuthLayout';
 
 function RequestResetForm() {
   const [email, setEmail] = useState('');
@@ -49,7 +49,7 @@ function RequestResetForm() {
 
   if (success) {
     return (
-      <AuthLayout>
+      <BrandedAuthLayout>
         <Card className="w-full max-w-sm">
           <CardHeader>
             <CardTitle>Check Your Email</CardTitle>
@@ -65,12 +65,12 @@ function RequestResetForm() {
             </Link>
           </CardContent>
         </Card>
-      </AuthLayout>
+      </BrandedAuthLayout>
     );
   }
 
   return (
-    <AuthLayout>
+    <BrandedAuthLayout>
       <Card className="w-full max-w-sm">
         <CardHeader>
           <CardTitle>Reset Password</CardTitle>
@@ -111,7 +111,7 @@ function RequestResetForm() {
           </form>
         </CardContent>
       </Card>
-    </AuthLayout>
+    </BrandedAuthLayout>
   );
 }
 
@@ -149,7 +149,7 @@ function ResetWithTokenForm({ token }: { token: string }) {
 
   if (success) {
     return (
-      <AuthLayout>
+      <BrandedAuthLayout>
         <Card className="w-full max-w-sm">
           <CardHeader>
             <CardTitle>Password Reset</CardTitle>
@@ -161,12 +161,12 @@ function ResetWithTokenForm({ token }: { token: string }) {
             </Link>
           </CardContent>
         </Card>
-      </AuthLayout>
+      </BrandedAuthLayout>
     );
   }
 
   return (
-    <AuthLayout>
+    <BrandedAuthLayout>
       <Card className="w-full max-w-sm">
         <CardHeader>
           <CardTitle>Set New Password</CardTitle>
@@ -203,7 +203,7 @@ function ResetWithTokenForm({ token }: { token: string }) {
           </form>
         </CardContent>
       </Card>
-    </AuthLayout>
+    </BrandedAuthLayout>
   );
 }
 
@@ -211,7 +211,7 @@ export default function ResetPasswordPage() {
   return (
     <Suspense
       fallback={
-        <AuthLayout>
+        <BrandedAuthLayout>
           <Card className="w-full max-w-sm">
             <CardHeader>
               <div className="h-6 w-40 animate-pulse rounded bg-zinc-200 dark:bg-zinc-700" />
@@ -224,7 +224,7 @@ export default function ResetPasswordPage() {
               </div>
             </CardContent>
           </Card>
-        </AuthLayout>
+        </BrandedAuthLayout>
       }
     >
       <ResetPasswordContent />

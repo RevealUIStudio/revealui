@@ -2,7 +2,6 @@
 
 import { useMFAVerify } from '@revealui/auth/react';
 import {
-  AuthLayout,
   ButtonCVA as Button,
   Card,
   CardContent,
@@ -15,6 +14,7 @@ import {
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { type FormEvent, useState } from 'react';
+import { BrandedAuthLayout } from '@/lib/components/BrandedAuthLayout';
 
 export default function MFAPage() {
   const router = useRouter();
@@ -45,7 +45,7 @@ export default function MFAPage() {
   };
 
   return (
-    <AuthLayout>
+    <BrandedAuthLayout>
       <Card className="w-full max-w-sm">
         <CardHeader>
           <CardTitle>{useBackupCode ? 'Enter backup code' : 'Two-factor authentication'}</CardTitle>
@@ -128,6 +128,6 @@ export default function MFAPage() {
           </form>
         </CardContent>
       </Card>
-    </AuthLayout>
+    </BrandedAuthLayout>
   );
 }
