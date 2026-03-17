@@ -12,36 +12,75 @@ import { Fragment, type JSX } from 'react';
 export type { SerializedEditorState };
 
 // ============================================
-// TEXT FORMAT CONSTANTS
+// URL SANITIZATION
 // ============================================
 
 /**
- * Validate that a URL is safe for rendering in href/src attributes.
- * Rejects dangerous protocols (javascript:, data:, vbscript:) that enable XSS.
- * Allows http:, https:, mailto:, tel:, and relative/anchor URLs.
+ * Protocols that are safe to render in href/src attributes.
+ * Anything not matching these will be replaced with '#'.
  */
-function isSafeUrl(url: string): boolean {
-  const trimmed = url.trim().toLowerCase();
-  // Reject dangerous protocols
-  if (
-    trimmed.startsWith('javascript:') ||
-    trimmed.startsWith('vbscript:') ||
-    trimmed.startsWith('data:text/html')
-  ) {
+const SAFE_LINK_PROTOCOLS = /^(?:https?:|mailto:|tel:|#|\/)/i;
+
+/**
+ * Data URIs that are safe for image src attributes (base64 images only).
+ * data:text/html and similar are blocked.
+ */
+const SAFE_IMAGE_DATA_URI = /^data:image\//i;
+
+/**
+ * Check whether a URL is safe to render in an href attribute.
+ *
+ * Blocks javascript:, vbscript:, data: (except data:image/ for images),
+ * and other dangerous protocols. Handles case-insensitive matching and
+ * leading whitespace tricks.
+ *
+ * @param url - The URL to validate
+ * @param context - Whether this URL is for a link href or image src
+ * @returns true if the URL is safe to render
+ */
+export function isSafeUrl(url: string, context: 'link' | 'image' = 'link'): boolean {
+  // Trim whitespace (catches " javascript:" trick)
+  const trimmed = url.trim();
+
+  if (trimmed === '' || trimmed === '#') {
+    return true;
+  }
+
+  // For image context, allow data:image/ URIs (base64 images)
+  if (context === 'image' && SAFE_IMAGE_DATA_URI.test(trimmed)) {
+    return true;
+  }
+
+  // Block all data: URIs for links (and non-image data: for images)
+  if (/^data:/i.test(trimmed)) {
     return false;
   }
-  // Allow common safe protocols, relative paths, and anchors
-  return (
-    trimmed.startsWith('http://') ||
-    trimmed.startsWith('https://') ||
-    trimmed.startsWith('mailto:') ||
-    trimmed.startsWith('tel:') ||
-    trimmed.startsWith('/') ||
-    trimmed.startsWith('#') ||
-    trimmed.startsWith('data:image/') ||
-    !trimmed.includes(':') // relative paths without protocol
-  );
+
+  // Block javascript: and vbscript: protocols (case-insensitive)
+  if (/^(?:javascript|vbscript):/i.test(trimmed)) {
+    return false;
+  }
+
+  // Relative paths, anchors, and safe protocols are allowed
+  if (SAFE_LINK_PROTOCOLS.test(trimmed) || !trimmed.includes(':')) {
+    return true;
+  }
+
+  // Unknown protocol — block it
+  return false;
 }
+
+/**
+ * Sanitize a URL for use in an href or src attribute.
+ * Returns '#' if the URL is not safe.
+ */
+export function sanitizeUrl(url: string, context: 'link' | 'image' = 'link'): string {
+  return isSafeUrl(url, context) ? url.trim() : '#';
+}
+
+// ============================================
+// TEXT FORMAT CONSTANTS
+// ============================================
 
 const IS_BOLD = 1;
 const IS_ITALIC = 2;
@@ -308,9 +347,8 @@ function serializeNode(
       return options.renderLink(linkNode, children, index);
     }
 
-    // Default link rendering — sanitize href to prevent XSS via javascript: URLs
-    const rawHref = linkNode.fields?.url || '#';
-    const href = isSafeUrl(rawHref) ? rawHref : '#';
+    // Default link rendering with URL sanitization
+    const href = sanitizeUrl(linkNode.fields?.url || '#', 'link');
     const target = linkNode.fields?.newTab ? '_blank' : undefined;
     const rel = linkNode.fields?.newTab ? 'noopener noreferrer' : undefined;
 
@@ -325,9 +363,8 @@ function serializeNode(
   if (node.type === 'autolink') {
     const children = serializeChildren(n.children, options);
     const autoLinkNode = node as SerializedAutoLinkNode;
-    const rawAutoHref = autoLinkNode.url || '#';
     return (
-      <a key={index} href={isSafeUrl(rawAutoHref) ? rawAutoHref : '#'}>
+      <a key={index} href={sanitizeUrl(autoLinkNode.url || '#', 'link')}>
         {children}
       </a>
     );
@@ -345,8 +382,7 @@ function serializeNode(
       };
     };
 
-    const rawSrc = imageNode.fields?.src || '';
-    const src = isSafeUrl(rawSrc) ? rawSrc : '';
+    const src = sanitizeUrl(imageNode.fields?.src || '', 'image');
     const alt = imageNode.fields?.alt || '';
     const width = imageNode.fields?.width;
     const height = imageNode.fields?.height;
