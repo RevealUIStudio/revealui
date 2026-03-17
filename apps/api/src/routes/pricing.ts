@@ -5,7 +5,6 @@
  * otherwise from private server-side defaults.
  */
 
-import { createRoute, OpenAPIHono, z } from '@hono/zod-openapi';
 import {
   CREDIT_BUNDLES,
   PERPETUAL_TIERS,
@@ -14,6 +13,7 @@ import {
 } from '@revealui/contracts/pricing';
 import { CircuitBreaker, CircuitBreakerOpenError } from '@revealui/core/error-handling';
 import { logger } from '@revealui/core/observability/logger';
+import { createRoute, OpenAPIHono, z } from '@revealui/openapi';
 import Stripe from 'stripe';
 
 const app = new OpenAPIHono();

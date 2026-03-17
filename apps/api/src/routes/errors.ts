@@ -9,10 +9,10 @@
  */
 
 import { timingSafeEqual } from 'node:crypto';
-import { createRoute, OpenAPIHono, z } from '@hono/zod-openapi';
 import { logger } from '@revealui/core/observability/logger';
 import { getClient } from '@revealui/db';
 import { errorEvents } from '@revealui/db/schema';
+import { createRoute, OpenAPIHono, z } from '@revealui/openapi';
 
 const app = new OpenAPIHono();
 

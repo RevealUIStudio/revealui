@@ -9,7 +9,6 @@
  * duplicate processing across Vercel multi-region deployments.
  */
 
-import { createRoute, OpenAPIHono, z } from '@hono/zod-openapi';
 import { getFeaturesForTier, isFeatureEnabled } from '@revealui/core/features';
 import { generateLicenseKey, type LicenseTier, resetLicenseState } from '@revealui/core/license';
 import { logger } from '@revealui/core/observability/logger';
@@ -24,6 +23,7 @@ import {
   processedWebhookEvents,
   users,
 } from '@revealui/db/schema';
+import { createRoute, OpenAPIHono, z } from '@revealui/openapi';
 import { and, desc, eq } from 'drizzle-orm';
 import Stripe from 'stripe';
 import {

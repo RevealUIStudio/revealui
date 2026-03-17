@@ -11,11 +11,11 @@
  */
 
 import crypto from 'node:crypto';
-import { createRoute, OpenAPIHono, z } from '@hono/zod-openapi';
 import { LLM_PROVIDERS } from '@revealui/contracts';
 import { getClient } from '@revealui/db';
 import { encryptApiKey, redactApiKey } from '@revealui/db/crypto';
 import { tenantProviderConfigs, userApiKeys } from '@revealui/db/schema';
+import { createRoute, OpenAPIHono, z } from '@revealui/openapi';
 import { and, eq } from 'drizzle-orm';
 import type { Context } from 'hono';
 import { HTTPException } from 'hono/http-exception';

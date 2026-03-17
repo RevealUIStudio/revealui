@@ -1,5 +1,5 @@
-import { createRoute, OpenAPIHono, z } from '@hono/zod-openapi';
 import * as labelQueries from '@revealui/db/queries/ticket-labels';
+import { createRoute, OpenAPIHono, z } from '@revealui/openapi';
 import { HTTPException } from 'hono/http-exception';
 import type { Variables } from '../_helpers/access.js';
 import { assertTicketAccess } from '../_helpers/access.js';
