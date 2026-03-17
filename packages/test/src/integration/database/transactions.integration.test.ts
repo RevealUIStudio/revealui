@@ -8,11 +8,17 @@ import type { DatabaseAdapter } from '@revealui/core/types';
 import { afterEach, beforeAll, beforeEach, describe, expect, it } from 'vitest';
 import { setupTestDatabase } from '../../utils/integration-helpers.js';
 
+/** Extended adapter with transaction support provided by setupTestDatabase */
+type SyncQueryFn = (sql: string, values?: unknown[]) => { rows: unknown[] };
+interface TransactionalAdapter extends DatabaseAdapter {
+  transaction: (callback: (syncQuery?: SyncQueryFn) => void | Promise<void>) => Promise<void>;
+}
+
 describe('Database Transactions Integration', () => {
-  let db: DatabaseAdapter;
+  let db: TransactionalAdapter;
 
   beforeAll(async () => {
-    db = await setupTestDatabase();
+    db = (await setupTestDatabase()) as TransactionalAdapter;
 
     // Create test table - drop first to ensure clean state
     try {

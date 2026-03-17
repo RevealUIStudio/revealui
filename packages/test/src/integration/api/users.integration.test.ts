@@ -113,8 +113,8 @@ describe('Users Integration', () => {
           directQuery?.rows?.length || 0,
           'rows',
         );
-        if (directQuery?.rows?.length > 0) {
-          console.log(`[DEBUG] Found row:`, Object.keys(directQuery.rows[0]));
+        if (directQuery?.rows && directQuery.rows.length > 0) {
+          console.log(`[DEBUG] Found row:`, Object.keys(directQuery.rows[0] as object));
         } else {
           // Try with ? placeholder instead of $1
           const directQuery2 = await collectionDb.query(

@@ -106,7 +106,7 @@ export const requireLicense = (minimumTier: LicenseTier): MiddlewareHandler => {
         403,
       );
     }
-    await next();
+    return next();
   };
 };
 
@@ -174,7 +174,7 @@ export const requireFeature = (
         403,
       );
     }
-    await next();
+    return next();
   };
 };
 

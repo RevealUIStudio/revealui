@@ -5,9 +5,9 @@
  * Verifies that clients use correct schemas and databases.
  */
 
+import { getRestClient, getVectorClient, resetClient } from '@revealui/db/client';
 import { sql } from 'drizzle-orm';
 import { beforeAll, describe, expect, it } from 'vitest';
-import { getRestClient, getVectorClient, resetClient } from '../../../../db/src/client/index.js';
 
 describe('Dual Database Integration', () => {
   beforeAll(() => {

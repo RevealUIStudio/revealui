@@ -23,11 +23,6 @@
     "dist",
     "src/mocks/**/*.ts",
     "src/integration-pro/**/*.ts",
-    "src/patterns/**/*.test.*",
-    "src/integration/database/transactions.integration.test.ts",
-    "src/integration/services/supabase.integration.test.ts",
-    "src/integration/memory/**/*.ts",
-    "src/integration/test-database.ts",
-    "src/utils/test-database.ts",
+    "src/patterns/**/*.test.*"
   ]
 }
