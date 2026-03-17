@@ -21,7 +21,8 @@ const gdprStorage = new DrizzleGDPRStorage();
 const breachStorage = new DrizzleBreachStorage();
 const consentManager = createConsentManager(gdprStorage);
 const deletionSystem = createDataDeletionSystem(gdprStorage);
-const _breachManager = createDataBreachManager(breachStorage);
+// Breach manager must be created to register storage — not referenced after initialization
+void createDataBreachManager(breachStorage);
 
 const CONSENT_TYPES: ConsentType[] = [
   'necessary',

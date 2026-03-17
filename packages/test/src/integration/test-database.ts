@@ -6,8 +6,8 @@
  */
 
 import { createClient, type Database } from '@revealui/db/client';
-import { agentMemories, nodeIdMappings, sessions, users } from '@revealui/db/schema';
-import { eq } from 'drizzle-orm';
+import { nodeIdMappings, sessions, users } from '@revealui/db/schema';
+import { eq, sql } from 'drizzle-orm';
 
 /**
  * Get test database connection string
@@ -48,11 +48,6 @@ export async function cleanupTestData(
       await db.delete(sessions).where(eq(sessions.userId, userId));
     }
 
-    // Delete agent memories
-    for (const userId of userIds) {
-      await db.delete(agentMemories).where(eq(agentMemories.userId, userId));
-    }
-
     // Delete node ID mappings
     for (const userId of userIds) {
       await db.delete(nodeIdMappings).where(eq(nodeIdMappings.entityId, userId));
@@ -81,23 +76,21 @@ export interface TestUser {
 export async function createTestUser(
   db: Database,
   user: TestUser,
-): Promise<{ id: string; email: string }> {
+): Promise<{ id: string; email: string | null }> {
   const [created] = await db
     .insert(users)
     .values({
       id: user.id,
       email: user.email,
-      // Password should be hashed in real implementation
-      // For tests, we might use a test-specific approach
       name: user.name || 'Test User',
     })
-    .returning({ id: users.id, email: users.email });
+    .returning();
 
   if (!created) {
     throw new Error('Failed to create test user');
   }
 
-  return created;
+  return { id: created.id, email: created.email };
 }
 
 /**
@@ -116,8 +109,8 @@ export function runMigrations(db: Database): Promise<void> {
  */
 export async function checkDatabaseConnection(db: Database): Promise<boolean> {
   try {
-    // Simple query to check connection
-    await db.query.users.findFirst({ limit: 1 });
+    // Simple connectivity check using raw SQL
+    await db.execute(sql`SELECT 1`);
     return true;
   } catch {
     return false;
