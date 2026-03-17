@@ -48,4 +48,42 @@ describe('AuthLayout', () => {
     const container = child.parentElement;
     expect(container).toHaveClass('items-center', 'justify-center');
   });
+
+  it('should render optional header slot above children', () => {
+    render(
+      <AuthLayout header={<div data-testid="header">Logo</div>}>
+        <p data-testid="child">Form</p>
+      </AuthLayout>,
+    );
+    const header = screen.getByTestId('header');
+    const child = screen.getByTestId('child');
+    expect(header).toBeInTheDocument();
+    // Header should appear before the child in the DOM
+    expect(header.compareDocumentPosition(child)).toBe(Node.DOCUMENT_POSITION_FOLLOWING);
+  });
+
+  it('should render optional footer slot below children', () => {
+    render(
+      <AuthLayout footer={<div data-testid="footer">Learn more</div>}>
+        <p data-testid="child">Form</p>
+      </AuthLayout>,
+    );
+    const child = screen.getByTestId('child');
+    const footer = screen.getByTestId('footer');
+    expect(footer).toBeInTheDocument();
+    // Footer should appear after the child in the DOM
+    expect(footer.compareDocumentPosition(child)).toBe(Node.DOCUMENT_POSITION_PRECEDING);
+  });
+
+  it('should not render header or footer when not provided', () => {
+    const { container } = render(
+      <AuthLayout>
+        <p>Form</p>
+      </AuthLayout>,
+    );
+    // Only the child <p> should be inside the centered container
+    const main = container.querySelector('main');
+    const centeredDiv = main?.firstElementChild;
+    expect(centeredDiv?.children).toHaveLength(1);
+  });
 });

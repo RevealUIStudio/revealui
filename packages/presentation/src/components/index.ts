@@ -10,7 +10,7 @@ export { Accordion, AccordionItem } from './accordion.js';
 // Components exported below were implemented but previously unexported
 export { Alert, AlertActions, AlertBody, AlertDescription, AlertTitle } from './alert.js';
 // Layout components
-export { AuthLayout } from './auth-layout.js';
+export { AuthLayout, type AuthLayoutProps } from './auth-layout.js';
 export { Avatar, AvatarButton } from './avatar.js';
 export { AvatarGroup } from './avatar-group.js';
 // CVA components (PascalCase files with types)

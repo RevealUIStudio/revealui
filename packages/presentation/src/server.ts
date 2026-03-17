@@ -6,7 +6,7 @@
  */
 
 // Layout Components - Server Safe
-export { AuthLayout } from './components/auth-layout.js';
+export { AuthLayout, type AuthLayoutProps } from './components/auth-layout.js';
 
 // CVA Components - Server Safe
 export {
