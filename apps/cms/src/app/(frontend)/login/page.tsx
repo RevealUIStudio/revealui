@@ -1,6 +1,6 @@
 'use client';
 
-import { useSignIn } from '@revealui/auth/react';
+import { usePasskeySignIn, useSignIn } from '@revealui/auth/react';
 import {
   AuthLayout,
   ButtonCVA as Button,
@@ -57,12 +57,20 @@ function LoginContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const { signIn, isLoading } = useSignIn();
+  const {
+    signIn: passkeySignIn,
+    isLoading: isPasskeyLoading,
+    error: passkeyError,
+    supported: passkeySupported,
+  } = usePasskeySignIn();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const oauthError = searchParams.get('error');
   const [error, setError] = useState<string | null>(
     oauthError ? (OAUTH_ERROR_MESSAGES[oauthError] ?? 'Sign-in failed. Please try again.') : null,
   );
+
+  const anyLoading = isLoading || isPasskeyLoading;
 
   const handleSubmit = async (e: FormEvent) => {
     e.preventDefault();
@@ -79,6 +87,14 @@ function LoginContent() {
     }
   };
 
+  const handlePasskeySignIn = async () => {
+    setError(null);
+    const success = await passkeySignIn();
+    if (success) {
+      router.push('/admin');
+    }
+  };
+
   return (
     <AuthLayout>
       <Card className="w-full max-w-sm">
@@ -92,13 +108,13 @@ function LoginContent() {
           </CardDescription>
         </CardHeader>
         <CardContent>
-          <form onSubmit={handleSubmit} className="space-y-4">
-            {error && (
-              <div className="rounded-md bg-red-50 p-3 text-sm text-red-700 dark:bg-red-900/20 dark:text-red-400">
-                {error}
-              </div>
-            )}
+          {(error ?? passkeyError) && (
+            <div className="mb-4 rounded-md bg-red-50 p-3 text-sm text-red-700 dark:bg-red-900/20 dark:text-red-400">
+              {error ?? passkeyError}
+            </div>
+          )}
 
+          <form onSubmit={handleSubmit} className="space-y-4">
             <div className="space-y-2">
               <FormLabel htmlFor="email" required>
                 Email
@@ -108,7 +124,7 @@ function LoginContent() {
                 type="email"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
-                disabled={isLoading}
+                disabled={anyLoading}
                 autoComplete="email"
                 required
               />
@@ -123,13 +139,13 @@ function LoginContent() {
                 type="password"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
-                disabled={isLoading}
+                disabled={anyLoading}
                 autoComplete="current-password"
                 required
               />
             </div>
 
-            <Button type="submit" disabled={isLoading} className="w-full">
+            <Button type="submit" disabled={anyLoading} className="w-full">
               {isLoading ? 'Signing in...' : 'Sign in'}
             </Button>
 
@@ -142,6 +158,28 @@ function LoginContent() {
               </Link>
             </p>
           </form>
+
+          {passkeySupported && (
+            <>
+              <div className="relative my-4">
+                <div className="absolute inset-0 flex items-center">
+                  <span className="w-full border-t border-border" />
+                </div>
+                <div className="relative flex justify-center text-xs uppercase">
+                  <span className="bg-background px-2 text-muted-foreground">or</span>
+                </div>
+              </div>
+
+              <Button
+                variant="outline"
+                className="w-full"
+                onClick={handlePasskeySignIn}
+                disabled={anyLoading}
+              >
+                {isPasskeyLoading ? 'Authenticating...' : 'Sign in with passkey'}
+              </Button>
+            </>
+          )}
 
           <div className="relative my-4">
             <div className="absolute inset-0 flex items-center">
