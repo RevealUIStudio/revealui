@@ -71,8 +71,10 @@ function LoginContent() {
     const result = await signIn({ email, password });
     if (result.success) {
       router.push('/admin');
+    } else if ('requiresMfa' in result && result.requiresMfa) {
+      router.push('/mfa');
     } else {
-      const errorMessage = 'error' in result ? result.error : 'MFA verification required';
+      const errorMessage = 'error' in result ? result.error : 'Failed to sign in';
       setError(errorMessage || 'Failed to sign in');
     }
   };
