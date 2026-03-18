@@ -90,6 +90,7 @@ export const users = pgTable(
     index('users_active_status_idx').on(table.status).where(sql`deleted_at IS NULL`),
     index('users_stripe_customer_id_idx').on(table.stripeCustomerId),
     index('users_ssh_key_fingerprint_idx').on(table.sshKeyFingerprint),
+    index('users_email_verified_idx').on(table.emailVerified),
   ],
 );
 
@@ -133,6 +134,8 @@ export const sessions = pgTable(
     index('sessions_user_id_idx').on(table.userId),
     index('sessions_token_hash_idx').on(table.tokenHash),
     index('sessions_expires_at_idx').on(table.expiresAt),
+    // R5-H6: Composite index for logout-all and session cleanup queries
+    index('sessions_user_expires_idx').on(table.userId, table.expiresAt),
   ],
 );
 
