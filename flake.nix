@@ -14,6 +14,18 @@
         # Use Node.js 24 LTS (Krypton)
         nodejs = pkgs.nodejs_24;
 
+        # revealui developer CLI
+        revealuiCLI = pkgs.buildGoModule {
+          pname = "revealui";
+          version = "0.1.0";
+          src = ./cmd/revealui;
+          vendorHash = "sha256-hocnLCzWN8srQcO3BMNkd2lt0m54Qe7sqAhUxVZlz1k=";
+          meta = {
+            description = "RevealUI developer CLI";
+            mainProgram = "revealui";
+          };
+        };
+
       in {
         devShells.default = pkgs.mkShell {
           nativeBuildInputs = with pkgs; [
@@ -34,6 +46,7 @@
             pkgs.librsvg
             pkgs.xz  # liblzma (needed by cargo-tauri)
             pkgs.libayatana-appindicator  # system tray (Tauri)
+            pkgs.libgit2  # git2 crate (Studio git panel)
           ];
 
           buildInputs = with pkgs; [
@@ -53,6 +66,7 @@
             cargo
             cargo-tauri
             openssl
+            libgit2  # git2 crate system library (Studio git panel)
 
             # Tauri system dependencies (Linux/GTK)
             gtk3
@@ -65,6 +79,9 @@
             webkitgtk_4_1
             librsvg
             libayatana-appindicator  # system tray
+
+            # Go (Terminal TUI app)
+            go
 
             # Services & APIs
             stripe-cli
@@ -89,6 +106,9 @@
 
             # Workboard live viewer: `wb` alias renders workboard.md every 3s
             glow
+            figlet
+            toilet
+            chafa
           ];
 
           shellHook = ''
@@ -185,7 +205,7 @@ PGHBA
             export NPM_TOKEN="''${NPM_TOKEN:-}"
 
             # Add project bin to PATH for custom scripts
-            export PATH="$PWD/node_modules/.bin:$PATH"
+            export PATH="$PWD/bin:$PWD/node_modules/.bin:$PATH"
 
             # Set development environment
             export NODE_ENV="''${NODE_ENV:-development}"
@@ -193,69 +213,126 @@ PGHBA
             # Turborepo cache directory
             export TURBO_CACHE_DIR="$PWD/.turbo"
 
-            # Git context
+            # ── Dev Environment Banner ────────────────────────────────────────
+
+            # Colors — bold for contrast
+            _AMBER='\033[1;38;2;251;191;36m'    # amber-400 bold
+            _GREEN='\033[1;38;2;52;211;153m'    # emerald-400 bold
+            _CYAN='\033[1;38;2;34;211;238m'     # cyan-400 bold
+            _DIM='\033[2m'
+            _NC='\033[0m'
+
+            # Git + env context
             _BRANCH=$(git -C "$PWD" branch --show-current 2>/dev/null || echo "detached")
             _DIRTY=$(git -C "$PWD" status --porcelain 2>/dev/null | wc -l | tr -d ' ')
+            _NODE=$(node --version 2>/dev/null | tr -d 'v')
+            _PNPM=$(pnpm --version 2>/dev/null)
+            _DOCK=$(docker --version 2>/dev/null | sed 's/Docker version //' | cut -d, -f1)
+            _ENV=''${NODE_ENV:-development}
+            [ "$_ENV" = "development" ] && _ENV="dev"
+            [ "$_ENV" = "production"  ] && _ENV="prod"
 
-            # Colors
-            GREEN='\033[0;32m'
-            YELLOW='\033[1;33m'
-            CYAN='\033[0;36m'
-            BOLD='\033[1m'
-            DIM='\033[2m'
-            NC='\033[0m'
+            # ── Logo ──────────────────────────────────────────────────────────
+            echo ""
+            if [ -f "$PWD/assets/revealui-logo.png" ] && command -v chafa &>/dev/null; then
+              chafa --size 60x8 --colors full "$PWD/assets/revealui-logo.png" | sed "s/^/  /"
+            else
+              _LOGO=$(figlet -f slant "RevealUI" 2>/dev/null)
+              [ -n "$_LOGO" ] && echo "$_LOGO" | sed "s/^/  /" | while IFS= read -r _line; do
+                echo -e "''${_CYAN}$_line''${_NC}"
+              done
+              unset _LOGO
+            fi
 
-            # Header: bold name, dim separators, yellow when dirty
-            _SEP="''${DIM}  ·  ''${NC}"
-            _HEADER="  ''${BOLD}RevealUI''${NC}''${_SEP}''${_BRANCH}"
-            [ "$_DIRTY" -gt 0 ] 2>/dev/null && _HEADER="''${_HEADER}''${_SEP}''${YELLOW}''${_DIRTY} uncommitted''${NC}"
+            # ── Context box (padded) ───────────────────────────────────────────
+            _PLAIN="  $_BRANCH"
+            if [ "$_DIRTY" -gt 0 ] 2>/dev/null; then
+              _HDR="  $_BRANCH  ''${_DIM}·''${_NC}  ''${_AMBER}$_DIRTY uncommitted''${_NC}"
+              _PLAIN="$_PLAIN  ·  $_DIRTY uncommitted"
+            else
+              _HDR="  $_BRANCH  ''${_DIM}·''${_NC}  ''${_GREEN}clean''${_NC}"
+              _PLAIN="$_PLAIN  ·  clean"
+            fi
+            _PLAIN="$_PLAIN  ·  $_ENV  "
+            _HDR="$_HDR  ''${_DIM}·''${_NC}  $_ENV  "
+
+            _W=''${#_PLAIN}
+            _LINE=$(printf '─%.0s' $(seq 1 "$_W"))
+            _PAD=$(printf ' %.0s' $(seq 1 "$_W"))
 
             echo ""
-            echo -e "$_HEADER"
-            echo ""
+            echo -e "  ''${_DIM}╭''${_LINE}╮''${_NC}"
+            echo -e "  ''${_DIM}│''${_NC}$_PAD''${_DIM}│''${_NC}"
+            echo -e "  ''${_DIM}│''${_NC}$_HDR''${_DIM}│''${_NC}"
+            echo -e "  ''${_DIM}│''${_NC}$_PAD''${_DIM}│''${_NC}"
+            echo -e "  ''${_DIM}╰''${_LINE}╯''${_NC}"
 
-            # Status checks — no leading-space bug when first item is a warning
-            _STATUS=""
-            _WARN=""
+            echo ""
+            _ENV_LINE="node $_NODE  ·  pnpm $_PNPM"
+            [ -n "$_DOCK" ] && _ENV_LINE="$_ENV_LINE  ·  docker $_DOCK"
+            echo -e "   ''${_DIM}$_ENV_LINE''${_NC}"
+
+            # ── Service status — one line per item ────────────────────────────
+            _OK=""
+            _add_ok() { [ -n "$_OK" ] && _OK="$_OK    $1" || _OK="$1"; }
+            _PG_READY=0 _DEPS_READY=0
+            _PGWARN="" _DEPWARN="" _DKWARN="" _MCPWARN=""
 
             if [ ! -d "$PGDATA" ]; then
-              _WARN="''${_WARN}  ''${YELLOW}⚠  postgres not initialized''${NC}  ''${DIM}—''${NC}  run ''${BOLD}''${CYAN}revealui db init''${NC}\n"
+              _PGWARN="  ''${_AMBER}⚠  postgres''${_NC}   ''${_DIM}—''${_NC}   ''${_CYAN}db init''${_NC}"
             elif pg_ctl status -D "$PGDATA" &>/dev/null; then
-              _STATUS="  ''${GREEN}✅ postgres running''${NC}"
+              _add_ok "''${_GREEN}✓ postgres''${_NC}  ''${_DIM}·  db-psql''${_NC}"
+              _PG_READY=1
             else
-              _WARN="''${_WARN}  ''${YELLOW}⚠  postgres not running''${NC}  ''${DIM}—''${NC}  run ''${BOLD}''${CYAN}revealui db start''${NC}\n"
+              _PGWARN="  ''${_AMBER}⚠  postgres''${_NC}   ''${_DIM}—''${_NC}   ''${_CYAN}db start''${_NC}"
             fi
 
             if [ -d "node_modules" ]; then
-              if [ -n "$_STATUS" ]; then
-                _STATUS="''${_STATUS}   ''${GREEN}✅ deps installed''${NC}"
-              else
-                _STATUS="  ''${GREEN}✅ deps installed''${NC}"
-              fi
+              _add_ok "''${_GREEN}✓ deps''${_NC}"
+              _DEPS_READY=1
             else
-              _WARN="''${_WARN}  ''${YELLOW}⚠  deps not installed''${NC}  ''${DIM}—''${NC}  run ''${BOLD}''${CYAN}pnpm install''${NC}\n"
+              _DEPWARN="  ''${_AMBER}⚠  deps''${_NC}       ''${_DIM}—''${_NC}   ''${_CYAN}pnpm install''${_NC}"
             fi
 
-            if docker info &>/dev/null; then
-              _STATUS="''${_STATUS}   ''${GREEN}✅ docker''${NC}"
+            if docker info &>/dev/null 2>&1; then
+              _add_ok "''${_GREEN}✓ docker''${_NC}"
             else
-              _WARN="''${_WARN}  ''${YELLOW}⚠  docker not running''${NC}  ''${DIM}—''${NC}  start Docker Desktop\n"
+              _DKWARN="  ''${_AMBER}⚠  docker''${_NC}     ''${_DIM}—''${_NC}   start Docker Desktop"
             fi
 
             if [ -n "''${VERCEL_API_KEY:-}" ] || [ -n "''${STRIPE_SECRET_KEY:-}" ]; then
-              _STATUS="''${_STATUS}   ''${GREEN}✅ mcp credentials''${NC}"
+              _add_ok "''${_GREEN}✓ mcp''${_NC}"
             else
-              _WARN="''${_WARN}  ''${YELLOW}⚠  mcp credentials missing''${NC}  ''${DIM}—''${NC}  run ''${BOLD}''${CYAN}revealui dev up --include mcp''${NC}\n"
+              _MCPWARN="  ''${_AMBER}⚠  mcp''${_NC}        ''${_DIM}—''${_NC}   ''${_CYAN}dev up --include mcp''${_NC}"
             fi
 
-            [ -n "$_STATUS" ] && echo -e "$_STATUS"
-            [ -n "$_WARN" ]   && printf '%b' "$_WARN"
+            _ACPWARN=""
+            if [ "''${TERM_PROGRAM:-}" = "zed" ]; then
+              _add_ok "''${_GREEN}✓ acp''${_NC}"
+            else
+              _ACPWARN="  ''${_AMBER}⚠  acp''${_NC}        ''${_DIM}—''${_NC}   open Zed + connect"
+            fi
 
             echo ""
-            echo -e "  ''${BOLD}''${CYAN}gate:quick''${NC}''${DIM}  ·  ''${NC}''${BOLD}''${CYAN}dev''${NC}''${DIM}  ·  ''${NC}''${BOLD}''${CYAN}wb''${NC}''${DIM}  ·  ''${NC}''${BOLD}''${CYAN}db-psql''${NC}"
+            [ -n "$_OK" ] && echo -e "   $_OK"
+            [ -n "$_PGWARN$_DEPWARN$_DKWARN$_MCPWARN$_ACPWARN" ] && echo ""
+            [ -n "$_PGWARN"  ] && echo -e "$_PGWARN"
+            [ -n "$_DEPWARN" ] && echo -e "$_DEPWARN"
+            [ -n "$_DKWARN"  ] && echo -e "$_DKWARN"
+            [ -n "$_MCPWARN" ] && echo -e "$_MCPWARN"
+            [ -n "$_ACPWARN" ] && echo -e "$_ACPWARN"
+
+            echo ""
+            [ "$_DEPS_READY" = 1 ] && echo -e "   ''${_CYAN}gate:quick''${_NC}  ''${_DIM}—  CI gate''${_NC}"
+            [ "$_DEPS_READY" = 1 ] && echo -e "   ''${_CYAN}dev''${_NC}         ''${_DIM}—  all services''${_NC}"
+            echo -e "   ''${_CYAN}wb''${_NC}          ''${_DIM}—  workboard''${_NC}"
+            [ "$_PG_READY" = 1 ] && echo -e "   ''${_CYAN}db-psql''${_NC}     ''${_DIM}—  pg shell''${_NC}"
             echo ""
 
-            unset _BRANCH _DIRTY _HEADER _SEP _STATUS _WARN
+            unset _BRANCH _DIRTY _NODE _PNPM _DOCK _ENV _ENV_LINE _HDR _PLAIN _W _LINE _PAD _line
+            unset _OK _PGWARN _DEPWARN _DKWARN _MCPWARN _ACPWARN _PG_READY _DEPS_READY
+            unset _AMBER _GREEN _CYAN _DIM _NC
+            unset -f _add_ok
 
             # Live workboard watcher — renders .claude/workboard.md every 3 s
             # Usage: wb
@@ -289,6 +366,10 @@ PGHBA
             export NODE_ENV="test"
           '';
         };
+
+        # revealui CLI — install with: nix profile install .#revealui
+        packages.revealui = revealuiCLI;
+        packages.default = revealuiCLI;
 
         # Shell for database operations only
         devShells.db = pkgs.mkShell {
