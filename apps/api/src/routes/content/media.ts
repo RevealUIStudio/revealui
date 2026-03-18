@@ -1,10 +1,12 @@
 /**
  * Media CRUD routes
  *
+ * POST /media (upload)
  * GET /media
  * GET|PATCH|DELETE /media/:id
  */
 
+import { ALL_MIME_TYPES, getSizeLimit } from '@revealui/contracts/entities';
 import * as mediaQueries from '@revealui/db/queries/media';
 import { createRoute, OpenAPIHono, z } from '@revealui/openapi';
 import { HTTPException } from 'hono/http-exception';
@@ -41,6 +43,95 @@ const MediaSchema = z
 // Media Routes
 // =============================================================================
 
+// POST /media (upload)
+app.openapi(
+  createRoute({
+    method: 'post',
+    path: '/media',
+    tags: ['content'],
+    summary: 'Upload a media file',
+    request: {
+      body: {
+        content: {
+          'multipart/form-data': {
+            schema: z.object({
+              file: z.any().openapi({ type: 'string', format: 'binary' }),
+              alt: z.string().max(500).optional(),
+            }),
+          },
+        },
+      },
+    },
+    responses: {
+      201: {
+        content: {
+          'application/json': {
+            schema: z.object({ success: z.literal(true), data: MediaSchema }),
+          },
+        },
+        description: 'Media uploaded',
+      },
+      400: {
+        content: { 'application/json': { schema: ErrorSchema } },
+        description: 'Invalid file',
+      },
+      413: {
+        content: { 'application/json': { schema: ErrorSchema } },
+        description: 'File too large',
+      },
+    },
+  }),
+  async (c) => {
+    const db = c.get('db');
+    const user = c.get('user');
+    if (!user) throw new HTTPException(401, { message: 'Authentication required' });
+
+    const body = await c.req.parseBody();
+    const file = body.file;
+    if (!(file instanceof File)) {
+      throw new HTTPException(400, { message: 'No file provided' });
+    }
+
+    // Validate MIME type against whitelist from @revealui/contracts
+    const allowedMimes: readonly string[] = ALL_MIME_TYPES;
+    if (!allowedMimes.includes(file.type)) {
+      throw new HTTPException(400, {
+        message: `Unsupported file type: ${file.type}. Allowed: ${allowedMimes.join(', ')}`,
+      });
+    }
+
+    // Validate file size against per-type limits from contracts
+    const sizeLimit = getSizeLimit(file.type);
+    if (file.size > sizeLimit) {
+      throw new HTTPException(413, {
+        message: `File too large (${(file.size / 1024 / 1024).toFixed(1)}MB). Maximum for ${file.type}: ${(sizeLimit / 1024 / 1024).toFixed(0)}MB`,
+      });
+    }
+
+    // Generate a unique filename with original extension
+    const ext = file.name.split('.').pop() ?? 'bin';
+    const filename = `${crypto.randomUUID()}.${ext}`;
+
+    // Placeholder URL — production should integrate Vercel Blob upload here
+    const url = `/api/content/media/file/${filename}`;
+
+    const item = await mediaQueries.createMedia(db, {
+      id: crypto.randomUUID(),
+      filename: file.name,
+      mimeType: file.type,
+      filesize: file.size,
+      url,
+      alt: typeof body.alt === 'string' ? body.alt : null,
+      uploadedBy: user.id,
+      createdAt: new Date(),
+      updatedAt: new Date(),
+    });
+
+    if (!item) throw new HTTPException(500, { message: 'Failed to create media record' });
+    return c.json({ success: true as const, data: item }, 201);
+  },
+);
+
 // GET /media
 app.openapi(
   createRoute({
@@ -69,7 +160,9 @@ app.openapi(
     const user = c.get('user');
     if (!user) throw new HTTPException(401, { message: 'Authentication required' });
     const { mimeType, limit, offset } = c.req.valid('query');
-    const data = await mediaQueries.getAllMedia(db, { mimeType, limit, offset });
+    // Non-admin users only see their own uploads (R5-C5 multi-tenancy fix)
+    const uploadedBy = user.role === 'admin' ? undefined : user.id;
+    const data = await mediaQueries.getAllMedia(db, { mimeType, uploadedBy, limit, offset });
     return c.json({ success: true as const, data }, 200);
   },
 );
