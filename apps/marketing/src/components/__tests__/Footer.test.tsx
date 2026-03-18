@@ -45,10 +45,12 @@ describe('Footer', () => {
     expect(html).toContain('Blog');
   });
 
-  it('contains Company section links', () => {
+  it('contains Community section links', () => {
     const result = Footer();
     const html = JSON.stringify(result);
-    expect(html).toContain('Company');
+    expect(html).toContain('Community');
+    expect(html).toContain('GitHub');
+    expect(html).toContain('Discussions');
     expect(html).toContain('Sponsor');
     expect(html).toContain('Contact');
     expect(html).toContain('mailto:support@revealui.com');
