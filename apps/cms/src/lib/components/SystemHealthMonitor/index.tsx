@@ -33,7 +33,10 @@ export function SystemHealthMonitor({
         setMetrics(data);
         setError(null);
       } catch (err) {
-        setError(err instanceof Error ? err.message : 'Failed to fetch metrics');
+        const message = err instanceof Error ? err.message : 'An unexpected error occurred';
+        setError(
+          `Unable to load health metrics. ${message}. Contact support@revealui.com if this persists.`,
+        );
       } finally {
         setIsLoading(false);
       }
@@ -151,7 +154,7 @@ export function SystemHealthMonitor({
       <div className="flex-1 overflow-y-auto p-4">
         <div className="space-y-4">
           {/* System Metrics Cards */}
-          <div className="grid grid-cols-4 gap-3">
+          <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
             <div className="bg-gray-800 rounded-lg p-3">
               <div className="text-xs text-gray-400 mb-1">Memory</div>
               <div className="text-xl font-semibold text-white">{metrics.system.memoryUsage}MB</div>

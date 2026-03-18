@@ -80,7 +80,7 @@ export default function ApiKeysPage() {
   return (
     <LicenseGate feature="ai">
       <div className="min-h-screen">
-        <div className="p-6 max-w-lg">
+        <div className="p-4 sm:p-6 max-w-lg">
           {/* Status banner */}
           {currentProvider && (
             <div className="mb-6 flex items-center gap-2 rounded-lg border border-emerald-800/50 bg-emerald-900/20 px-4 py-3 text-sm text-emerald-400">
