@@ -90,3 +90,15 @@ export function updateByIdQuery(configSlug: string, keys: string[]): string {
   const setClause = keys.map((key, i) => `"${escapeIdentifier(key)}" = $${i + 1}`).join(', ');
   return `UPDATE ${collectionTable(configSlug)} SET ${setClause} WHERE id = $${keys.length + 1}`;
 }
+
+/**
+ * Version-aware UPDATE: includes `version = version + 1` in SET
+ * and `AND version = $N` in WHERE for optimistic locking.
+ * Returns the number of affected rows (0 = conflict).
+ */
+export function updateByIdWithVersionQuery(configSlug: string, keys: string[]): string {
+  for (const key of keys) validateColumnName(key);
+  const setClause = keys.map((key, i) => `"${escapeIdentifier(key)}" = $${i + 1}`).join(', ');
+  // version param is at keys.length + 1, id param is at keys.length + 2
+  return `UPDATE ${collectionTable(configSlug)} SET ${setClause}, "version" = "version" + 1 WHERE id = $${keys.length + 2} AND "version" = $${keys.length + 1}`;
+}

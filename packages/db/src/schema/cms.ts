@@ -20,6 +20,9 @@ export const posts = pgTable(
     // Schema versioning for migrations
     schemaVersion: text('schema_version').notNull().default('1'),
 
+    // Optimistic locking — incremented on each update, checked to detect concurrent edits
+    version: integer('version').notNull().default(1),
+
     // Basic info
     title: text('title').notNull(),
     slug: text('slug').notNull().unique(),
@@ -64,6 +67,9 @@ export const media = pgTable('media', {
 
   // Schema versioning
   schemaVersion: text('schema_version').notNull().default('1'),
+
+  // Optimistic locking — incremented on each update, checked to detect concurrent edits
+  version: integer('version').notNull().default(1),
 
   // File info
   filename: text('filename').notNull(),
