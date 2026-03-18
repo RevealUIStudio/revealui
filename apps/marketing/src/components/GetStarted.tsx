@@ -12,9 +12,33 @@ export function GetStarted() {
             Users, content, products, payments, and AI — pre-wired and ready to deploy. Start
             building your business in minutes.
           </p>
-          <div className="mt-10">
+          <div className="mt-10 flex flex-col sm:flex-row items-center justify-center gap-4">
             <ButtonCVA asChild size="lg">
               <a href="https://cms.revealui.com/signup">Get Started Free</a>
+            </ButtonCVA>
+            <ButtonCVA
+              asChild
+              variant="outline"
+              size="lg"
+              className="border-gray-700 text-gray-300 hover:text-white hover:border-gray-500"
+            >
+              <a href="https://docs.revealui.com">
+                Read the docs
+                <svg
+                  className="h-4 w-4 ml-1.5"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                  stroke="currentColor"
+                  strokeWidth={2}
+                >
+                  <title>Arrow</title>
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    d="M13.5 4.5L21 12m0 0l-7.5 7.5M21 12H3"
+                  />
+                </svg>
+              </a>
             </ButtonCVA>
           </div>
         </div>
