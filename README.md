@@ -84,7 +84,6 @@ const Products = defineCollection({
 The [Pro tier](https://revealui.com/pro) adds AI agents and automation that work on your behalf:
 
 - **AI agent system** — build and deploy purpose-built agents for your workflows
-- **The Creator** — the meta-agent that generates other agents from a description
 - **MCP servers** — connect your agents to Stripe, Supabase, Vercel, Neon, and more
 - **BYOK** — bring your own API keys (Anthropic, Groq, Gemini) — your keys, your costs
 - **Task history** — every agent action logged, auditable, and visible in the dashboard
@@ -214,7 +213,7 @@ pnpm gate       # full CI gate (runs before push)
 ## Community
 
 - [GitHub Discussions](https://github.com/RevealUIStudio/revealui/discussions)
-- [Discord](https://discord.gg/revealui)
+- [Discourse Community](https://community.revealui.com)
 - [GitHub Issues](https://github.com/RevealUIStudio/revealui/issues)
 
 ## Sponsors

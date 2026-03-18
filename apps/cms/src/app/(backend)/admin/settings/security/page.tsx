@@ -26,6 +26,15 @@ interface Passkey {
   createdAt: string;
 }
 
+interface ActiveSession {
+  id: string;
+  userAgent: string | null;
+  ipAddress: string | null;
+  lastActivityAt: string;
+  createdAt: string;
+  isCurrent: boolean;
+}
+
 // =============================================================================
 // Constants
 // =============================================================================
@@ -40,7 +49,7 @@ export default function SecuritySettingsPage() {
   return (
     <Suspense
       fallback={
-        <div className="p-6 max-w-lg">
+        <div className="p-4 sm:p-6 max-w-lg">
           <div className="rounded-xl border border-zinc-800 bg-zinc-900 p-5">
             <div className="h-5 w-48 animate-pulse rounded bg-zinc-800" />
             <div className="mt-3 h-4 w-72 animate-pulse rounded bg-zinc-800" />
@@ -64,6 +73,10 @@ function SecuritySettingsContent() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState<string | null>(null);
+
+  // Sessions state
+  const [activeSessions, setActiveSessions] = useState<ActiveSession[]>([]);
+  const [revokingId, setRevokingId] = useState<string | null>(null);
 
   // MFA state
   const [mfaStatus, setMfaStatus] = useState<MFAStatus | null>(null);
@@ -122,9 +135,50 @@ function SecuritySettingsContent() {
     }
   }, []);
 
+  const fetchSessions = useCallback(async () => {
+    try {
+      const res = await fetch('/api/auth/sessions', { credentials: 'include' });
+      if (res.ok) {
+        const data = (await res.json()) as {
+          currentSessionId: string;
+          sessions: ActiveSession[];
+        };
+        setActiveSessions(data.sessions.sort((a, b) => (a.isCurrent ? -1 : b.isCurrent ? 1 : 0)));
+      }
+    } catch {
+      // Silently fail — non-critical
+    }
+  }, []);
+
   useEffect(() => {
-    void Promise.all([fetchMFAStatus(), fetchPasskeys()]).finally(() => setLoading(false));
-  }, [fetchMFAStatus, fetchPasskeys]);
+    void Promise.all([fetchMFAStatus(), fetchPasskeys(), fetchSessions()]).finally(() =>
+      setLoading(false),
+    );
+  }, [fetchMFAStatus, fetchPasskeys, fetchSessions]);
+
+  async function revokeSession(sessionId: string) {
+    setRevokingId(sessionId);
+    setError(null);
+    try {
+      const res = await fetch(`/api/auth/sessions/${encodeURIComponent(sessionId)}`, {
+        method: 'DELETE',
+        credentials: 'include',
+      });
+      if (res.ok) {
+        setSuccess('Session revoked.');
+        await fetchSessions();
+      } else {
+        const data = (await res.json()) as { error?: string };
+        setError(
+          data.error ?? 'Unable to revoke session. Contact support@revealui.com if this persists.',
+        );
+      }
+    } catch {
+      setError('Unable to reach the server. Please check your connection and try again.');
+    } finally {
+      setRevokingId(null);
+    }
+  }
 
   // ---------------------------------------------------------------------------
   // Auto-dismiss messages
@@ -188,10 +242,12 @@ function SecuritySettingsContent() {
         await fetchMFAStatus();
       } else {
         const data = (await res.json()) as { error?: string };
-        setError(data.error ?? 'Failed to disable 2FA.');
+        setError(
+          data.error ?? 'Unable to disable 2FA. Contact support@revealui.com if this persists.',
+        );
       }
     } catch {
-      setError('Network error. Please try again.');
+      setError('Unable to reach the server. Please check your connection and try again.');
     } finally {
       setDisabling(false);
     }
@@ -212,10 +268,13 @@ function SecuritySettingsContent() {
         await fetchMFAStatus();
       } else {
         const data = (await res.json()) as { error?: string };
-        setError(data.error ?? 'Failed to regenerate backup codes.');
+        setError(
+          data.error ??
+            'Unable to regenerate backup codes. Contact support@revealui.com if this persists.',
+        );
       }
     } catch {
-      setError('Network error. Please try again.');
+      setError('Unable to reach the server. Please check your connection and try again.');
     } finally {
       setRegenerating(false);
     }
@@ -260,10 +319,12 @@ function SecuritySettingsContent() {
         await fetchPasskeys();
       } else {
         const data = (await res.json()) as { error?: string };
-        setError(data.error ?? 'Failed to rename passkey.');
+        setError(
+          data.error ?? 'Unable to rename passkey. Contact support@revealui.com if this persists.',
+        );
       }
     } catch {
-      setError('Network error. Please try again.');
+      setError('Unable to reach the server. Please check your connection and try again.');
     }
   }
 
@@ -296,10 +357,12 @@ function SecuritySettingsContent() {
         await fetchPasskeys();
       } else {
         const data = (await res.json()) as { error?: string };
-        setError(data.error ?? 'Failed to delete passkey.');
+        setError(
+          data.error ?? 'Unable to remove passkey. Contact support@revealui.com if this persists.',
+        );
       }
     } catch {
-      setError('Network error. Please try again.');
+      setError('Unable to reach the server. Please check your connection and try again.');
     } finally {
       setDeletingId(null);
     }
@@ -317,23 +380,49 @@ function SecuritySettingsContent() {
     });
   }
 
+  function formatRelative(iso: string): string {
+    const diff = Date.now() - new Date(iso).getTime();
+    const minutes = Math.floor(diff / 60000);
+    if (minutes < 1) return 'just now';
+    if (minutes < 60) return `${minutes}m ago`;
+    const hours = Math.floor(minutes / 60);
+    if (hours < 24) return `${hours}h ago`;
+    return `${Math.floor(hours / 24)}d ago`;
+  }
+
+  function parseUserAgent(ua: string): string {
+    if (/iPhone|iPad|iPod/.test(ua)) return 'iOS device';
+    if (/Android/.test(ua)) return 'Android device';
+    if (/Windows/.test(ua) && /Chrome/.test(ua)) return 'Chrome on Windows';
+    if (/Macintosh/.test(ua) && /Chrome/.test(ua)) return 'Chrome on Mac';
+    if (/Firefox/.test(ua)) return 'Firefox';
+    if (/Safari/.test(ua) && !/Chrome/.test(ua)) return 'Safari';
+    if (/Windows/.test(ua)) return 'Windows browser';
+    if (/Macintosh/.test(ua)) return 'Mac browser';
+    if (/Linux/.test(ua)) return 'Linux browser';
+    return 'Unknown device';
+  }
+
   // ---------------------------------------------------------------------------
   // Render
   // ---------------------------------------------------------------------------
   return (
     <div className="min-h-screen">
-      <div className="p-6 max-w-lg">
+      <div className="p-4 sm:p-6 max-w-lg">
         {/* Success banner */}
         {success && (
-          <div className="mb-6 flex items-center gap-2 rounded-lg border border-emerald-800/50 bg-emerald-900/20 px-4 py-3 text-sm text-emerald-400">
+          <output className="mb-6 flex items-center gap-2 rounded-lg border border-emerald-800/50 bg-emerald-900/20 px-4 py-3 text-sm text-emerald-400">
             <span className="h-2 w-2 rounded-full bg-emerald-400" />
             {success}
-          </div>
+          </output>
         )}
 
         {/* Error banner */}
         {(error || mfaError || passkeyError) && (
-          <div className="mb-6 flex items-center gap-2 rounded-lg border border-red-800/50 bg-red-900/20 px-4 py-3 text-sm text-red-400">
+          <div
+            role="alert"
+            className="mb-6 flex items-center gap-2 rounded-lg border border-red-800/50 bg-red-900/20 px-4 py-3 text-sm text-red-400"
+          >
             <span className="h-2 w-2 rounded-full bg-red-400" />
             {error || mfaError || passkeyError}
           </div>
@@ -405,7 +494,7 @@ function SecuritySettingsContent() {
                     <p className="text-xs font-medium text-zinc-400">
                       Backup codes — save these in a secure place
                     </p>
-                    <div className="mt-1 grid grid-cols-2 gap-1.5 rounded-lg border border-zinc-700 bg-zinc-950 p-3">
+                    <div className="mt-1 grid grid-cols-1 gap-1.5 rounded-lg border border-zinc-700 bg-zinc-950 p-3 sm:grid-cols-2">
                       {setupData.backupCodes.map((code) => (
                         <code key={code} className="text-xs font-mono text-zinc-300">
                           {code}
@@ -476,14 +565,14 @@ function SecuritySettingsContent() {
                           >
                             Confirm your password to disable 2FA
                           </label>
-                          <div className="mt-1.5 flex gap-2">
+                          <div className="mt-1.5 flex flex-wrap gap-2">
                             <input
                               id="mfa-disable-password"
                               type="password"
                               value={disablePassword}
                               onChange={(e) => setDisablePassword(e.target.value)}
                               placeholder="Password"
-                              className="w-48 rounded-md border border-zinc-700 bg-zinc-950 px-3 py-2 text-sm text-zinc-200 placeholder:text-zinc-600 focus:border-zinc-500 focus:outline-none"
+                              className="w-full rounded-md border border-zinc-700 bg-zinc-950 px-3 py-2 text-sm text-zinc-200 placeholder:text-zinc-600 focus:border-zinc-500 focus:outline-none sm:w-48"
                             />
                             <button
                               type="button"
@@ -533,7 +622,7 @@ function SecuritySettingsContent() {
                           <p className="text-xs font-medium text-zinc-400">
                             New backup codes — save these in a secure place
                           </p>
-                          <div className="mt-1 grid grid-cols-2 gap-1.5 rounded-lg border border-zinc-700 bg-zinc-950 p-3">
+                          <div className="mt-1 grid grid-cols-1 gap-1.5 rounded-lg border border-zinc-700 bg-zinc-950 p-3 sm:grid-cols-2">
                             {regeneratedCodes.map((code) => (
                               <code key={code} className="text-xs font-mono text-zinc-300">
                                 {code}
@@ -713,6 +802,75 @@ function SecuritySettingsContent() {
                     You have few backup codes remaining. Consider regenerating them above.
                   </p>
                 )}
+            </div>
+
+            {/* ============================================================= */}
+            {/* Section 4: Active Sessions                                    */}
+            {/* ============================================================= */}
+            <div className="rounded-xl border border-zinc-800 bg-zinc-900 p-5">
+              <h2 className="text-base font-semibold text-white">Active Sessions</h2>
+              <p className="mt-1 text-sm text-zinc-400">
+                Devices and browsers currently signed in to your account.
+              </p>
+
+              {activeSessions.length === 0 ? (
+                <p className="mt-4 text-sm text-zinc-500">No other sessions found.</p>
+              ) : (
+                <div className="mt-5 space-y-3">
+                  {activeSessions.map((session) => (
+                    <div
+                      key={session.id}
+                      className="flex items-start justify-between rounded-lg border border-zinc-800 px-4 py-3"
+                    >
+                      <div className="min-w-0">
+                        <div className="flex items-center gap-2">
+                          <span className="truncate text-sm text-zinc-200">
+                            {session.userAgent
+                              ? parseUserAgent(session.userAgent)
+                              : 'Unknown device'}
+                          </span>
+                          {session.isCurrent && (
+                            <span className="shrink-0 rounded-full bg-emerald-900/30 px-2 py-0.5 text-xs font-medium text-emerald-400">
+                              Current
+                            </span>
+                          )}
+                        </div>
+                        <div className="mt-0.5 text-xs text-zinc-500">
+                          {session.ipAddress && <span>{session.ipAddress} · </span>}
+                          Last active {formatRelative(session.lastActivityAt)}
+                        </div>
+                      </div>
+                      {!session.isCurrent && (
+                        <button
+                          type="button"
+                          onClick={() => void revokeSession(session.id)}
+                          disabled={revokingId === session.id}
+                          aria-label="Revoke this session"
+                          className="ml-4 shrink-0 rounded-md border border-zinc-700 px-3 py-1.5 text-xs font-medium text-zinc-400 transition-colors hover:border-red-700 hover:text-red-400 disabled:cursor-not-allowed disabled:opacity-50"
+                        >
+                          {revokingId === session.id ? 'Revoking...' : 'Revoke'}
+                        </button>
+                      )}
+                    </div>
+                  ))}
+                </div>
+              )}
+
+              {activeSessions.filter((s) => !s.isCurrent).length > 1 && (
+                <button
+                  type="button"
+                  onClick={async () => {
+                    const others = activeSessions.filter((s) => !s.isCurrent);
+                    for (const s of others) {
+                      if (!revokingId) await revokeSession(s.id);
+                    }
+                  }}
+                  disabled={!!revokingId}
+                  className="mt-4 text-xs text-red-400 hover:text-red-300 disabled:cursor-not-allowed disabled:opacity-50"
+                >
+                  Revoke all other sessions
+                </button>
+              )}
             </div>
           </>
         )}

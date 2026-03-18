@@ -101,7 +101,7 @@ export default function AccountSettingsPage() {
   return (
     <Suspense
       fallback={
-        <div className="p-6 max-w-lg">
+        <div className="p-4 sm:p-6 max-w-lg">
           <div className="rounded-xl border border-zinc-800 bg-zinc-900 p-5">
             <div className="h-5 w-48 animate-pulse rounded bg-zinc-800" />
             <div className="mt-3 h-4 w-72 animate-pulse rounded bg-zinc-800" />
@@ -208,12 +208,55 @@ function AccountSettingsContent() {
         await fetchUser();
       } else {
         const data = (await res.json()) as { error?: string };
-        setError(data.error ?? 'Failed to unlink account.');
+        setError(
+          data.error ?? 'Unable to unlink account. Contact support@revealui.com if this persists.',
+        );
       }
     } catch {
-      setError('Network error. Please try again.');
+      setError('Unable to reach the server. Please check your connection and try again.');
     } finally {
       setUnlinking(null);
+    }
+  }
+
+  // Password change state
+  const [showPasswordForm, setShowPasswordForm] = useState(false);
+  const [currentPassword, setCurrentPassword] = useState('');
+  const [newPassword, setNewPassword] = useState('');
+  const [confirmPassword, setConfirmPassword] = useState('');
+  const [changingPassword, setChangingPassword] = useState(false);
+
+  async function handleChangePassword(e: React.FormEvent) {
+    e.preventDefault();
+    if (newPassword !== confirmPassword) {
+      setError('New passwords do not match.');
+      return;
+    }
+    setChangingPassword(true);
+    setError(null);
+    try {
+      const res = await fetch('/api/auth/change-password', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ currentPassword, newPassword }),
+      });
+      if (res.ok) {
+        setSuccess('Password updated successfully.');
+        setShowPasswordForm(false);
+        setCurrentPassword('');
+        setNewPassword('');
+        setConfirmPassword('');
+        await fetchUser();
+      } else {
+        const data = (await res.json()) as { error?: string };
+        setError(
+          data.error ?? 'Unable to change password. Contact support@revealui.com if this persists.',
+        );
+      }
+    } catch {
+      setError('Unable to reach the server. Please check your connection and try again.');
+    } finally {
+      setChangingPassword(false);
     }
   }
 
@@ -223,18 +266,21 @@ function AccountSettingsContent() {
 
   return (
     <div className="min-h-screen">
-      <div className="p-6 max-w-lg">
+      <div className="p-4 sm:p-6 max-w-lg">
         {/* Success banner */}
         {success && (
-          <div className="mb-6 flex items-center gap-2 rounded-lg border border-emerald-800/50 bg-emerald-900/20 px-4 py-3 text-sm text-emerald-400">
+          <output className="mb-6 flex items-center gap-2 rounded-lg border border-emerald-800/50 bg-emerald-900/20 px-4 py-3 text-sm text-emerald-400">
             <span className="h-2 w-2 rounded-full bg-emerald-400" />
             {success}
-          </div>
+          </output>
         )}
 
         {/* Error banner */}
         {error && (
-          <div className="mb-6 flex items-center gap-2 rounded-lg border border-red-800/50 bg-red-900/20 px-4 py-3 text-sm text-red-400">
+          <div
+            role="alert"
+            className="mb-6 flex items-center gap-2 rounded-lg border border-red-800/50 bg-red-900/20 px-4 py-3 text-sm text-red-400"
+          >
             <span className="h-2 w-2 rounded-full bg-red-400" />
             {error}
           </div>
@@ -259,27 +305,133 @@ function AccountSettingsContent() {
             <div className="mb-6 rounded-xl border border-zinc-800 bg-zinc-900 p-5">
               <h1 className="text-base font-semibold text-white">Account</h1>
               <div className="mt-3 space-y-2 text-sm">
-                <div className="flex justify-between">
-                  <span className="text-zinc-400">Email</span>
-                  <span className="text-zinc-200">{user.email}</span>
+                <div className="flex items-center justify-between gap-4">
+                  <span className="shrink-0 text-zinc-400">Email</span>
+                  <span className="truncate text-zinc-200">{user.email}</span>
                 </div>
                 {user.name && (
-                  <div className="flex justify-between">
-                    <span className="text-zinc-400">Name</span>
-                    <span className="text-zinc-200">{user.name}</span>
+                  <div className="flex items-center justify-between gap-4">
+                    <span className="shrink-0 text-zinc-400">Name</span>
+                    <span className="truncate text-zinc-200">{user.name}</span>
                   </div>
                 )}
-                <div className="flex justify-between">
-                  <span className="text-zinc-400">Role</span>
+                <div className="flex items-center justify-between gap-4">
+                  <span className="shrink-0 text-zinc-400">Role</span>
                   <span className="text-zinc-200 capitalize">{user.role}</span>
                 </div>
-                <div className="flex justify-between">
-                  <span className="text-zinc-400">Password</span>
+                <div className="flex items-center justify-between gap-4">
+                  <span className="shrink-0 text-zinc-400">Password</span>
                   <span className={user.hasPassword ? 'text-emerald-400' : 'text-zinc-500'}>
                     {user.hasPassword ? 'Set' : 'Not set'}
                   </span>
                 </div>
               </div>
+            </div>
+
+            {/* Password */}
+            <div className="mb-6 rounded-xl border border-zinc-800 bg-zinc-900 p-5">
+              <div className="flex items-center justify-between">
+                <h2 className="text-base font-semibold text-white">Password</h2>
+                {user.hasPassword && !showPasswordForm && (
+                  <button
+                    type="button"
+                    onClick={() => setShowPasswordForm(true)}
+                    className="rounded-md bg-zinc-800 px-3 py-1.5 text-xs font-medium text-zinc-200 transition-colors hover:bg-zinc-700"
+                  >
+                    Change password
+                  </button>
+                )}
+              </div>
+              {!user.hasPassword ? (
+                <p className="mt-2 text-sm text-zinc-400">
+                  No password set.{' '}
+                  <a href="/forgot-password" className="text-zinc-200 underline hover:no-underline">
+                    Use password reset
+                  </a>{' '}
+                  to set one.
+                </p>
+              ) : showPasswordForm ? (
+                <form onSubmit={(e) => void handleChangePassword(e)} className="mt-4 space-y-3">
+                  <div>
+                    <label
+                      htmlFor="current-password"
+                      className="block text-xs font-medium text-zinc-400 mb-1"
+                    >
+                      Current password
+                    </label>
+                    <input
+                      id="current-password"
+                      type="password"
+                      autoComplete="current-password"
+                      required
+                      value={currentPassword}
+                      onChange={(e) => setCurrentPassword(e.target.value)}
+                      className="w-full rounded-lg border border-zinc-700 bg-zinc-950 px-3 py-2 text-sm text-zinc-200 placeholder:text-zinc-600 focus:border-zinc-500 focus:outline-none"
+                    />
+                  </div>
+                  <div>
+                    <label
+                      htmlFor="new-password"
+                      className="block text-xs font-medium text-zinc-400 mb-1"
+                    >
+                      New password
+                    </label>
+                    <input
+                      id="new-password"
+                      type="password"
+                      autoComplete="new-password"
+                      required
+                      minLength={8}
+                      value={newPassword}
+                      onChange={(e) => setNewPassword(e.target.value)}
+                      className="w-full rounded-lg border border-zinc-700 bg-zinc-950 px-3 py-2 text-sm text-zinc-200 placeholder:text-zinc-600 focus:border-zinc-500 focus:outline-none"
+                    />
+                  </div>
+                  <div>
+                    <label
+                      htmlFor="confirm-password"
+                      className="block text-xs font-medium text-zinc-400 mb-1"
+                    >
+                      Confirm new password
+                    </label>
+                    <input
+                      id="confirm-password"
+                      type="password"
+                      autoComplete="new-password"
+                      required
+                      minLength={8}
+                      value={confirmPassword}
+                      onChange={(e) => setConfirmPassword(e.target.value)}
+                      className="w-full rounded-lg border border-zinc-700 bg-zinc-950 px-3 py-2 text-sm text-zinc-200 placeholder:text-zinc-600 focus:border-zinc-500 focus:outline-none"
+                    />
+                  </div>
+                  <div className="flex gap-2 pt-1">
+                    <button
+                      type="submit"
+                      disabled={
+                        changingPassword || !currentPassword || !newPassword || !confirmPassword
+                      }
+                      className="rounded-lg bg-zinc-100 px-4 py-2 text-sm font-medium text-zinc-900 transition-colors hover:bg-white disabled:cursor-not-allowed disabled:opacity-50"
+                    >
+                      {changingPassword ? 'Updating...' : 'Update password'}
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setShowPasswordForm(false);
+                        setCurrentPassword('');
+                        setNewPassword('');
+                        setConfirmPassword('');
+                      }}
+                      className="rounded-lg px-4 py-2 text-sm font-medium text-zinc-400 hover:text-zinc-200"
+                    >
+                      Cancel
+                    </button>
+                  </div>
+                </form>
+              ) : (
+                <p className="mt-2 text-sm text-zinc-400">Password is set.</p>
+              )}
             </div>
 
             {/* Connected accounts */}
