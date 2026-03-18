@@ -7,6 +7,7 @@ import {
   DialogDescription,
   DialogTitle,
 } from '@revealui/presentation/client';
+import { QRCodeSVG } from 'qrcode.react';
 import { Suspense, useCallback, useEffect, useRef, useState } from 'react';
 
 // =============================================================================
@@ -390,7 +391,10 @@ function SecuritySettingsContent() {
                     <p className="text-xs font-medium text-zinc-400">
                       Copy this URI into your authenticator app
                     </p>
-                    {/* TODO: Add QR code rendering with qrcode.react */}
+                    <div className="mt-2 flex justify-center rounded-lg border border-zinc-700 bg-white p-4">
+                      <QRCodeSVG value={setupData.uri} size={200} level="M" />
+                    </div>
+                    <p className="mt-2 text-xs text-zinc-500">Or copy the URI manually:</p>
                     <div className="mt-1 rounded-lg border border-zinc-700 bg-zinc-950 p-3">
                       <code className="block break-all text-xs text-zinc-300">{setupData.uri}</code>
                     </div>
