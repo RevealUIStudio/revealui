@@ -8,7 +8,7 @@
  *         GET|PATCH|DELETE /api/content/posts/:id
  *         GET /api/content/posts/slug/:slug
  *
- * Media:  GET /api/content/media
+ * Media:  GET|POST /api/content/media
  *         GET|PATCH|DELETE /api/content/media/:id
  *
  * Sites:  GET|POST /api/content/sites
@@ -23,6 +23,7 @@ import { OpenAPIHono } from '@revealui/openapi';
 import mediaRoutes from './media.js';
 import pagesRoutes from './pages.js';
 import postsRoutes from './posts.js';
+import searchRoutes from './search.js';
 import sitesRoutes from './sites.js';
 
 export type ContentVariables = {
@@ -37,5 +38,6 @@ app.route('/', postsRoutes);
 app.route('/', mediaRoutes);
 app.route('/', sitesRoutes);
 app.route('/', pagesRoutes);
+app.route('/', searchRoutes);
 
 export default app;
