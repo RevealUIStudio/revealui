@@ -18,7 +18,12 @@ import { collectJsonFields, serializeValueForDatabase } from '../../utils/json-p
 import { flattenFields, isJsonFieldType } from '../../utils/type-guards.js';
 import { runBeforeFieldHooks } from './fieldHooks.js';
 import { findByID } from './findById.js';
-import { checkExistsByIdQuery, selectJsonByIdQuery, updateByIdQuery } from './sqlAdapter.js';
+import {
+  checkExistsByIdQuery,
+  selectJsonByIdQuery,
+  updateByIdQuery,
+  updateByIdWithVersionQuery,
+} from './sqlAdapter.js';
 
 /**
  * Evaluate a collection's access.update function.
@@ -218,8 +223,33 @@ export async function update(
 
     // Ensure id is a string for consistent comparison
     const idString = String(id);
-    const query = updateByIdQuery(tableName, keys);
-    await db.query(query, [...values, idString]);
+
+    // Optimistic locking: if the caller provides a `version` field, use version-aware update
+    // to detect concurrent modifications. The version is stripped from the SET clause and
+    // moved to the WHERE clause; the DB auto-increments version on success.
+    const clientVersion = typeof data.version === 'number' ? data.version : undefined;
+    const updateKeys = clientVersion !== undefined ? keys.filter((k) => k !== 'version') : keys;
+    const updateValues =
+      clientVersion !== undefined
+        ? updateKeys.map((key) => {
+            if (key === '_json') return serializeValueForDatabase(mergedJson);
+            return serializeValueForDatabase(data[key]);
+          })
+        : values;
+
+    if (clientVersion !== undefined) {
+      const query = updateByIdWithVersionQuery(tableName, updateKeys);
+      const result = await db.query(query, [...updateValues, clientVersion, idString]);
+      if (result.rowCount === 0) {
+        // Document exists but version mismatch — concurrent edit detected
+        const err = new Error('Document was modified by another user. Refresh and try again.');
+        (err as Error & { statusCode: number }).statusCode = 409;
+        throw err;
+      }
+    } else {
+      const query = updateByIdQuery(tableName, updateKeys);
+      await db.query(query, [...updateValues, idString]);
+    }
 
     // Return updated document (use idString for consistency)
     const updatedDoc = await findByID(config, db, { id: idString });

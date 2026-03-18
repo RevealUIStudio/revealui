@@ -182,6 +182,60 @@ describe('update operation', () => {
     expect(mockDb.query).not.toHaveBeenCalled();
   });
 
+  it('should use version-aware update when version is provided', async () => {
+    const options: RevealUpdateOptions = {
+      id: 'test-id',
+      data: {
+        title: 'Updated Title',
+        version: 3,
+      },
+    };
+
+    const mockUpdatedDoc = {
+      id: 'test-id',
+      title: 'Updated Title',
+      version: 4,
+    };
+
+    mockDb.query
+      .mockResolvedValueOnce({
+        rows: [{ _json: '{}' }],
+      } as DatabaseResult)
+      .mockResolvedValueOnce({ rows: [], rowCount: 1 } as DatabaseResult);
+
+    vi.mocked(findByID).mockResolvedValue(mockUpdatedDoc as never);
+
+    const result = await update(mockConfig, mockDb as never, options);
+
+    expect(result).toEqual(mockUpdatedDoc);
+    // The UPDATE query should include version in WHERE and version + 1 in SET
+    const updateCall = mockDb.query.mock.calls[1];
+    expect(updateCall[0]).toContain('"version" = "version" + 1');
+    expect(updateCall[0]).toContain('AND "version" =');
+    // Version value (3) should be in params, and 'version' should NOT be in SET clause
+    expect(updateCall[1]).toContain(3);
+  });
+
+  it('should throw 409 on version conflict', async () => {
+    const options: RevealUpdateOptions = {
+      id: 'test-id',
+      data: {
+        title: 'Updated Title',
+        version: 2,
+      },
+    };
+
+    mockDb.query
+      .mockResolvedValueOnce({
+        rows: [{ _json: '{}' }],
+      } as DatabaseResult)
+      .mockResolvedValueOnce({ rows: [], rowCount: 0 } as DatabaseResult);
+
+    await expect(update(mockConfig, mockDb as never, options)).rejects.toThrow(
+      'Document was modified by another user',
+    );
+  });
+
   it('should run beforeValidate hooks before DB write on update', async () => {
     // Config with a beforeValidate hook that auto-fills slug from title on update
     const configWithSlugHook: RevealCollectionConfig = {

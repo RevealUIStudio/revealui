@@ -5,26 +5,33 @@
  * Used by the storage abstraction for distributed rate limiting.
  */
 
-import { integer, pgTable, text, timestamp } from 'drizzle-orm/pg-core';
+import { index, integer, pgTable, text, timestamp } from 'drizzle-orm/pg-core';
 
 // =============================================================================
 // Rate Limits Table
 // =============================================================================
 
-export const rateLimits = pgTable('rate_limits', {
-  // Primary key (rate limit key, e.g., email or IP address)
-  key: text('key').primaryKey(),
+export const rateLimits = pgTable(
+  'rate_limits',
+  {
+    // Primary key (rate limit key, e.g., email or IP address)
+    key: text('key').primaryKey(),
 
-  // Stored value (JSON stringified rate limit entry)
-  value: text('value').notNull(),
+    // Stored value (JSON stringified rate limit entry)
+    value: text('value').notNull(),
 
-  // Reset timestamp (when the rate limit window resets)
-  resetAt: timestamp('reset_at', { withTimezone: true }).notNull(),
+    // Reset timestamp (when the rate limit window resets)
+    resetAt: timestamp('reset_at', { withTimezone: true }).notNull(),
 
-  // Timestamps
-  createdAt: timestamp('created_at', { withTimezone: true }).defaultNow().notNull(),
-  updatedAt: timestamp('updated_at', { withTimezone: true }).defaultNow().notNull(),
-});
+    // Timestamps
+    createdAt: timestamp('created_at', { withTimezone: true }).defaultNow().notNull(),
+    updatedAt: timestamp('updated_at', { withTimezone: true }).defaultNow().notNull(),
+  },
+  (table) => [
+    // R5-H6: Index for cleanup queries that scan by expiry
+    index('rate_limits_reset_at_idx').on(table.resetAt),
+  ],
+);
 
 // =============================================================================
 // Failed Attempts Table

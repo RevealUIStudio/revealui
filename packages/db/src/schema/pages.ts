@@ -23,6 +23,9 @@ export const pages = pgTable(
     // Schema versioning for migrations
     schemaVersion: text('schema_version').notNull().default('1'),
 
+    // Optimistic locking — incremented on each update, checked to detect concurrent edits
+    version: integer('version').notNull().default(1),
+
     // Relationships
     siteId: text('site_id')
       .notNull()
@@ -71,32 +74,36 @@ export const pages = pgTable(
 // Page Revisions Table (for version history)
 // =============================================================================
 
-export const pageRevisions = pgTable('page_revisions', {
-  // Primary identifier
-  id: text('id').primaryKey(),
+export const pageRevisions = pgTable(
+  'page_revisions',
+  {
+    // Primary identifier
+    id: text('id').primaryKey(),
 
-  // Relationships
-  pageId: text('page_id')
-    .notNull()
-    .references(() => pages.id, { onDelete: 'cascade' }),
-  createdBy: text('created_by').references(() => users.id, {
-    onDelete: 'set null',
-  }),
+    // Relationships
+    pageId: text('page_id')
+      .notNull()
+      .references(() => pages.id, { onDelete: 'cascade' }),
+    createdBy: text('created_by').references(() => users.id, {
+      onDelete: 'set null',
+    }),
 
-  // Revision number (auto-incremented per page)
-  revisionNumber: integer('revision_number').notNull(),
+    // Revision number (auto-incremented per page)
+    revisionNumber: integer('revision_number').notNull(),
 
-  // Snapshot of page state
-  title: text('title').notNull(),
-  blocks: jsonb('blocks').$type<unknown[]>().default([]),
-  seo: jsonb('seo'),
+    // Snapshot of page state
+    title: text('title').notNull(),
+    blocks: jsonb('blocks').$type<unknown[]>().default([]),
+    seo: jsonb('seo'),
 
-  // Why this revision was created
-  changeDescription: text('change_description'),
+    // Why this revision was created
+    changeDescription: text('change_description'),
 
-  // Timestamps
-  createdAt: timestamp('created_at', { withTimezone: true }).defaultNow().notNull(),
-});
+    // Timestamps
+    createdAt: timestamp('created_at', { withTimezone: true }).defaultNow().notNull(),
+  },
+  (table) => [index('page_revisions_page_id_idx').on(table.pageId)],
+);
 
 // =============================================================================
 // Type exports for Drizzle
