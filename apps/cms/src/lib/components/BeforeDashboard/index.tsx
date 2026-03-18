@@ -1,20 +1,55 @@
+import Link from 'next/link';
 import PoweredByRevealUI from '../PoweredByRevealUI/index';
+
+const adminLinks = [
+  {
+    href: '/admin/agents',
+    label: 'Agents',
+    description: 'A2A agent cards and MCP server integrations',
+  },
+  {
+    href: '/admin/agent-tasks',
+    label: 'Agent Tasks',
+    description: 'Task execution history across all AI agents',
+  },
+  {
+    href: '/admin/monitoring',
+    label: 'Monitoring',
+    description: 'System health and process metrics',
+  },
+  {
+    href: '/admin/logs',
+    label: 'Logs',
+    description: 'Application and audit logs',
+  },
+  {
+    href: '/admin/errors',
+    label: 'Errors',
+    description: 'Error tracking and diagnostics',
+  },
+  {
+    href: '/admin/settings',
+    label: 'Settings',
+    description: 'Account, security, and preferences',
+  },
+];
 
 const BeforeDashboard = () => {
   return (
     <div className="relative mx-auto w-full rounded-lg bg-zinc-900 p-8 shadow-md">
-      <h1 className="mb-6 text-3xl font-bold text-white">Welcome to RevealUI CMS</h1>
+      <h1 className="mb-6 text-3xl font-bold text-white">RevealUI CMS</h1>
 
-      <div className="space-y-6 leading-relaxed text-zinc-300">
-        <p className="font-normal">Manage your content, users, and settings from this dashboard.</p>
-        <p className="font-normal">
-          New to the CMS? Start by creating a new page or post. Navigate to the "Content" tab in the
-          sidebar and click "Add New".
-        </p>
-        <p className="font-normal">To manage users, go to the "Users" tab in the sidebar.</p>
-        <p className="font-normal">
-          Adjust settings by clicking on the "Settings" tab in the sidebar.
-        </p>
+      <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+        {adminLinks.map(({ href, label, description }) => (
+          <Link
+            key={href}
+            href={href}
+            className="rounded-lg border border-zinc-700 bg-zinc-800 p-4 transition-colors hover:border-zinc-500 hover:bg-zinc-750"
+          >
+            <p className="text-sm font-medium text-white">{label}</p>
+            <p className="mt-0.5 text-xs text-zinc-400">{description}</p>
+          </Link>
+        ))}
       </div>
 
       <PoweredByRevealUI />
