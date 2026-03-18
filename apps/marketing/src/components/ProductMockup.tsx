@@ -6,6 +6,8 @@ import { useState } from 'react';
 const SCREENSHOTS = [
   { src: '/screenshots/cms-dashboard.png', label: 'Dashboard' },
   { src: '/screenshots/cms-content.png', label: 'Content' },
+  { src: '/screenshots/cms-editor-new.png', label: 'Editor' },
+  { src: '/screenshots/cms-users-list.png', label: 'Users' },
   { src: '/screenshots/cms-agents.png', label: 'AI Agents' },
   { src: '/screenshots/cms-billing.png', label: 'Billing' },
   { src: '/screenshots/cms-monitoring.png', label: 'Monitoring' },
@@ -186,7 +188,7 @@ export function ProductMockup() {
         {/* Status bar */}
         <div className="px-5 py-2 bg-blue-600/20 border-t border-gray-800 flex items-center gap-2">
           <div className="h-1.5 w-1.5 rounded-full bg-green-400" />
-          <span className="text-xs text-gray-400 font-mono">TypeScript · RevealUI v0.2.1</span>
+          <span className="text-xs text-gray-400 font-mono">TypeScript · RevealUI v0.2.0</span>
         </div>
       </div>
     </div>

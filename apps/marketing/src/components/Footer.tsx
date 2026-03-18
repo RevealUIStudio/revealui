@@ -88,9 +88,29 @@ export function Footer() {
           </div>
           <div>
             <h3 className="text-sm font-semibold uppercase tracking-wider text-gray-400 mb-4">
-              Company
+              Community
             </h3>
             <ul className="space-y-3 text-sm text-gray-500">
+              <li>
+                <a
+                  href="https://github.com/RevealUIStudio/revealui"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="hover:text-white transition-colors"
+                >
+                  GitHub
+                </a>
+              </li>
+              <li>
+                <a
+                  href="https://github.com/RevealUIStudio/revealui/discussions"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="hover:text-white transition-colors"
+                >
+                  Discussions
+                </a>
+              </li>
               <li>
                 <Link href="/sponsor" className="hover:text-white transition-colors">
                   Sponsor
