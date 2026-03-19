@@ -14,6 +14,10 @@ vi.mock('@revealui/auth/server', () => ({
   getSession: vi.fn(),
 }));
 
+vi.mock('@revealui/core/features', () => ({
+  isFeatureEnabled: vi.fn().mockReturnValue(true),
+}));
+
 // Mock the electric proxy utilities
 vi.mock('@/lib/api/electric-proxy', () => ({
   prepareElectricUrl: vi.fn((_url: string) => {

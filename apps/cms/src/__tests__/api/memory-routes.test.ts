@@ -14,6 +14,10 @@ import {
   POST as postWorkingMemory,
 } from '../../app/api/memory/working/[sessionId]/route';
 
+vi.mock('@revealui/core/features', () => ({
+  isFeatureEnabled: vi.fn().mockReturnValue(true),
+}));
+
 vi.mock('@revealui/auth/server', () => ({
   getSession: vi.fn().mockResolvedValue({
     session: {
