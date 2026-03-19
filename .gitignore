@@ -225,3 +225,7 @@ screenshots/
 
 # Playwright MCP console logs (ephemeral)
 .playwright-mcp/
+
+# Terminal app — compiled binary and SSH keys
+apps/terminal/terminal
+apps/terminal/.ssh/
