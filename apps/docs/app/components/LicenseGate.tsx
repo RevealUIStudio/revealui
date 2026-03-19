@@ -34,7 +34,7 @@ export function LicenseGate({ children }: LicenseGateProps) {
 
   if (isLoading) {
     return (
-      <div className="flex items-center justify-center p-16">
+      <div className="flex items-center justify-center p-8 sm:p-16">
         <div className="text-center">
           <div className="mx-auto mb-4 h-8 w-8 animate-spin rounded-full border-4 border-current border-t-transparent opacity-40" />
           <p className="text-sm opacity-60">Checking license…</p>
@@ -62,8 +62,8 @@ export function LicenseGate({ children }: LicenseGateProps) {
   }
 
   return (
-    <div className="mx-auto max-w-md py-16">
-      <div className="rounded-xl border border-current/10 p-8">
+    <div className="mx-auto max-w-md px-4 py-8 sm:py-16">
+      <div className="rounded-xl border border-current/10 p-4 sm:p-8">
         <div className="mb-6 text-center">
           <div className="mb-3 text-3xl">🔒</div>
           <h2 className="mb-2 text-xl font-semibold">Pro docs</h2>

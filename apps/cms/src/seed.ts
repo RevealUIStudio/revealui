@@ -282,20 +282,14 @@ async function getOrCreateDefaultSite(
   }
 
   // Get admin user to set as site owner
-  // Production uses role='user-super-admin'; local dev may use role='admin'
+  // Check role column first (set by onInit), then fall back to any user
   const [adminUser] = await db
     .select({ id: users.id })
     .from(users)
-    .where(eq(users.role, 'admin'))
+    .where(eq(users.role, 'user-super-admin'))
     .limit(1);
-  const [superAdminUser] = adminUser
-    ? [null]
-    : await db
-        .select({ id: users.id })
-        .from(users)
-        .where(eq(users.role, 'user-super-admin'))
-        .limit(1);
-  const adminId = adminUser?.id ?? superAdminUser?.id;
+  const [anyUser] = adminUser ? [null] : await db.select({ id: users.id }).from(users).limit(1);
+  const adminId = adminUser?.id ?? anyUser?.id;
   if (!adminId) throw new Error('Admin user not found — run user seed first');
 
   // Create a default site

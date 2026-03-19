@@ -20,7 +20,7 @@ catalog:
   drizzle-zod: ^0.8.0
   globals: ^15.11.0
   jsdom: ^27.4.0
-  next: ^16.1.7
+  next: ^16.2.0
   pg: ^8.18.0
   postgres: ^3.5.4
   react: ^19.2.3

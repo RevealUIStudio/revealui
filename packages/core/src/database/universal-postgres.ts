@@ -129,7 +129,7 @@ function detectProvider(connectionString: string): 'neon' | 'supabase' | 'electr
     return 'supabase';
   }
 
-  if (url.includes('electric') || process.env.ELECTRIC_ENV) {
+  if (url.includes('electric')) {
     return 'electric';
   }
 

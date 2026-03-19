@@ -1,5 +1,8 @@
 import { useState } from 'react';
 import { vaultCopy } from '../../lib/invoke';
+
+const COPY_FEEDBACK_MS = 2_000;
+
 import Button from '../ui/Button';
 
 interface SecretDetailProps {
@@ -17,7 +20,7 @@ export default function SecretDetail({ path, value, loading }: SecretDetailProps
     try {
       await vaultCopy(value);
       setCopied(true);
-      setTimeout(() => setCopied(false), 2000);
+      setTimeout(() => setCopied(false), COPY_FEEDBACK_MS);
     } catch {
       // clipboard unavailable
     }

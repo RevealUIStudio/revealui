@@ -64,7 +64,7 @@ Available guides are loaded from the \`docs/guides/\` directory.
 
   if (error) {
     return (
-      <div style={{ padding: '2rem', maxWidth: '800px', margin: '0 auto' }}>
+      <div className="mx-auto max-w-3xl px-4 py-8 sm:px-8">
         <h1>Error Loading Guide</h1>
         <p>{error}</p>
       </div>

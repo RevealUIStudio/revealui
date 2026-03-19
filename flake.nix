@@ -256,11 +256,11 @@ PGHBA
             _warn() { _WARNS="$_WARNS   ''${_AMBER}⚠  $1''${_NC}\n"; }
 
             if [ ! -d "$PGDATA" ]; then
-              _warn "postgres  ''${_DIM}→''${_NC}  ''${_CYAN}db init''${_NC}"
+              _warn "postgres  ''${_DIM}→''${_NC}  ''${_CYAN}revealui db init''${_NC}"
             elif pg_ctl status -D "$PGDATA" &>/dev/null; then
               _ok "''${_GREEN}✓ postgres''${_NC}"; _PG_READY=1
             else
-              _warn "postgres  ''${_DIM}→''${_NC}  ''${_CYAN}db start''${_NC}"
+              _warn "postgres  ''${_DIM}→''${_NC}  ''${_CYAN}revealui db start''${_NC}"
             fi
 
             if [ -d "node_modules" ]; then

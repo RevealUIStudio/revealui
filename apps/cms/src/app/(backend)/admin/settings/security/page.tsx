@@ -1,5 +1,8 @@
 'use client';
 
+const SUCCESS_DISMISS_MS = 5_000;
+const ERROR_DISMISS_MS = 8_000;
+
 import { useMFASetup, usePasskeyRegister } from '@revealui/auth/react';
 import {
   Dialog,
@@ -185,13 +188,13 @@ function SecuritySettingsContent() {
   // ---------------------------------------------------------------------------
   useEffect(() => {
     if (!success) return;
-    const timer = setTimeout(() => setSuccess(null), 5000);
+    const timer = setTimeout(() => setSuccess(null), SUCCESS_DISMISS_MS);
     return () => clearTimeout(timer);
   }, [success]);
 
   useEffect(() => {
     if (!error) return;
-    const timer = setTimeout(() => setError(null), 8000);
+    const timer = setTimeout(() => setError(null), ERROR_DISMISS_MS);
     return () => clearTimeout(timer);
   }, [error]);
 

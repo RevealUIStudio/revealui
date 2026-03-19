@@ -1,5 +1,8 @@
 import { open } from '@tauri-apps/plugin-shell';
 import { useCallback, useEffect, useRef, useState } from 'react';
+
+const LOG_POLL_INTERVAL_MS = 3_000;
+
 import { readAppLog } from '../../lib/invoke';
 import type { AppStatus } from '../../types';
 import Button from '../ui/Button';
@@ -31,7 +34,7 @@ export default function AppCard({ status, isOperating, onStart, onStop }: AppCar
   useEffect(() => {
     if (showLogs && running) {
       fetchLog();
-      intervalRef.current = setInterval(fetchLog, 3000);
+      intervalRef.current = setInterval(fetchLog, LOG_POLL_INTERVAL_MS);
     }
     return () => {
       if (intervalRef.current) {

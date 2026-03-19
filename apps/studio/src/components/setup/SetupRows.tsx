@@ -1,5 +1,8 @@
 import { open } from '@tauri-apps/plugin-shell';
 import { useCallback, useEffect, useState } from 'react';
+
+const COPY_FEEDBACK_MS = 2_000;
+
 import type { useSetup } from '../../hooks/use-setup';
 import { useTunnel } from '../../hooks/use-tunnel';
 import { vaultInit, vaultIsInitialized } from '../../lib/invoke';
@@ -210,7 +213,7 @@ export function ProjectSetupRow() {
   const copy = async () => {
     await navigator.clipboard.writeText(SETUP_CMD);
     setCopied(true);
-    setTimeout(() => setCopied(false), 2000);
+    setTimeout(() => setCopied(false), COPY_FEEDBACK_MS);
   };
 
   const markDone = () => {

@@ -42,9 +42,9 @@ func pghost() string {
 	return pgdata()
 }
 
-func requireNixShell() error {
-	if os.Getenv("IN_NIX_SHELL") == "" {
-		return fmt.Errorf("run 'reveal dev' first to enter the dev environment")
+func requirePgCtl() error {
+	if _, err := exec.LookPath("pg_ctl"); err != nil {
+		return fmt.Errorf("pg_ctl not found — enter the dev environment first (direnv allow, or nix develop)")
 	}
 	return nil
 }
@@ -62,7 +62,7 @@ var dbStartCmd = &cobra.Command{
 	Use:   "start",
 	Short: "Start postgres",
 	RunE: func(_ *cobra.Command, _ []string) error {
-		if err := requireNixShell(); err != nil {
+		if err := requirePgCtl(); err != nil {
 			return err
 		}
 		data := pgdata()
@@ -77,7 +77,7 @@ var dbStopCmd = &cobra.Command{
 	Use:   "stop",
 	Short: "Stop postgres",
 	RunE: func(_ *cobra.Command, _ []string) error {
-		if err := requireNixShell(); err != nil {
+		if err := requirePgCtl(); err != nil {
 			return err
 		}
 		return run("pg_ctl", "stop", "-D", pgdata())
@@ -88,7 +88,7 @@ var dbStatusCmd = &cobra.Command{
 	Use:   "status",
 	Short: "Check postgres status",
 	RunE: func(_ *cobra.Command, _ []string) error {
-		if err := requireNixShell(); err != nil {
+		if err := requirePgCtl(); err != nil {
 			return err
 		}
 		return run("pg_ctl", "status", "-D", pgdata())
@@ -102,7 +102,7 @@ var dbInitCmd = &cobra.Command{
 }
 
 func runDbInit(_ *cobra.Command, _ []string) error {
-	if err := requireNixShell(); err != nil {
+	if err := requirePgCtl(); err != nil {
 		return err
 	}
 	data := pgdata()
@@ -141,7 +141,7 @@ var dbResetCmd = &cobra.Command{
 	Use:   "reset",
 	Short: "Wipe and reinitialize postgres",
 	RunE: func(cmd *cobra.Command, args []string) error {
-		if err := requireNixShell(); err != nil {
+		if err := requirePgCtl(); err != nil {
 			return err
 		}
 		_ = run("pg_ctl", "stop", "-D", pgdata())
@@ -157,7 +157,7 @@ var dbPsqlCmd = &cobra.Command{
 	Short:              "Open postgres shell",
 	DisableFlagParsing: true,
 	RunE: func(_ *cobra.Command, args []string) error {
-		if err := requireNixShell(); err != nil {
+		if err := requirePgCtl(); err != nil {
 			return err
 		}
 		psqlArgs := append([]string{"-h", pghost(), "-U", "postgres", "-d", "postgres"}, args...)

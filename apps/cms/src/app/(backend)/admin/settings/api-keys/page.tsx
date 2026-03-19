@@ -1,5 +1,7 @@
 'use client';
 
+const SAVED_FEEDBACK_MS = 2_000;
+
 import { useEffect, useState } from 'react';
 import { LicenseGate } from '@/lib/components/LicenseGate';
 
@@ -66,7 +68,7 @@ export default function ApiKeysPage() {
         setCurrentKeyHint(data.keyHint);
         setApiKey('');
         setSaved(true);
-        setTimeout(() => setSaved(false), 2000);
+        setTimeout(() => setSaved(false), SAVED_FEEDBACK_MS);
       } else {
         const data = (await res.json().catch(() => ({}))) as { error?: string };
         setSaveError(

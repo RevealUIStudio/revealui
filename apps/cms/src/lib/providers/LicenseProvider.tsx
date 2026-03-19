@@ -25,10 +25,16 @@ export function LicenseProvider({ children }: { children: React.ReactNode }) {
   const [isLoading, setIsLoading] = useState(true);
 
   const fetchLicense = useCallback(async () => {
+    // Skip if API URL is not configured — prevents CORS errors in local dev
+    // and avoids calling the production API from self-hosted instances.
+    const apiUrl = process.env.NEXT_PUBLIC_API_URL?.trim();
+    if (!apiUrl) {
+      setIsLoading(false);
+      return;
+    }
+
     try {
       setIsLoading(true);
-
-      const apiUrl = (process.env.NEXT_PUBLIC_API_URL || 'https://api.revealui.com').trim();
 
       // Fetch subscription status
       const subRes = await fetch(`${apiUrl}/api/billing/subscription`, { credentials: 'include' });

@@ -5,6 +5,11 @@ import { LicenseGate } from '@/lib/components/LicenseGate';
 
 export const dynamic = 'force-dynamic';
 
+const MS_PER_HOUR = 60 * 60 * 1000;
+const FILTER_24H_MS = 24 * MS_PER_HOUR;
+const FILTER_7D_MS = 7 * 24 * MS_PER_HOUR;
+const FILTER_30D_MS = 30 * 24 * MS_PER_HOUR;
+
 // =============================================================================
 // Types
 // =============================================================================
@@ -148,9 +153,9 @@ function AgentTasksDashboard() {
   const dateThreshold: Date | null = (() => {
     if (dateFilter === 'all') return null;
     const now = Date.now();
-    if (dateFilter === '24h') return new Date(now - 24 * 60 * 60 * 1000);
-    if (dateFilter === '7d') return new Date(now - 7 * 24 * 60 * 60 * 1000);
-    return new Date(now - 30 * 24 * 60 * 60 * 1000);
+    if (dateFilter === '24h') return new Date(now - FILTER_24H_MS);
+    if (dateFilter === '7d') return new Date(now - FILTER_7D_MS);
+    return new Date(now - FILTER_30D_MS);
   })();
 
   const filtered = tasks.filter((t) => {
