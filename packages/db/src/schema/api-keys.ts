@@ -39,10 +39,14 @@ export const userApiKeys = pgTable(
     createdAt: timestamp('created_at', { withTimezone: true }).defaultNow().notNull(),
     updatedAt: timestamp('updated_at', { withTimezone: true }).defaultNow().notNull(),
     lastUsedAt: timestamp('last_used_at', { withTimezone: true }),
+
+    // Soft-delete: null = active, timestamp = when revoked
+    deletedAt: timestamp('deleted_at', { withTimezone: true }),
   },
   (table) => [
     index('user_api_keys_user_id_idx').on(table.userId),
     index('user_api_keys_user_provider_idx').on(table.userId, table.provider),
+    index('user_api_keys_deleted_at_idx').on(table.deletedAt),
   ],
 );
 
