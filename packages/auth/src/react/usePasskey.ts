@@ -7,7 +7,7 @@
 
 'use client';
 
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 
 export interface PasskeyRegisterOptions {
   /** Email for passkey registration (sign-up flow) */
@@ -56,8 +56,11 @@ export interface UsePasskeyRegisterResult {
 export function usePasskeyRegister(): UsePasskeyRegisterResult {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [supported, setSupported] = useState(false);
 
-  const supported = typeof window !== 'undefined' && !!window.PublicKeyCredential;
+  useEffect(() => {
+    setSupported(!!window.PublicKeyCredential);
+  }, []);
 
   const register = async (
     options?: PasskeyRegisterOptions,
@@ -91,10 +94,13 @@ export function usePasskeyRegister(): UsePasskeyRegisterResult {
       }
 
       // Step 2: Start browser WebAuthn registration ceremony
+      // Server wraps options: { options: { challenge, ... } }
+      // @simplewebauthn/browser v13+ expects { optionsJSON: ... }
       const { startRegistration } = await import('@simplewebauthn/browser');
-      const attestationResponse = await startRegistration(
-        optionsJson as Parameters<typeof startRegistration>[0],
-      );
+      const optionsData = optionsJson as {
+        options: Parameters<typeof startRegistration>[0]['optionsJSON'];
+      };
+      const attestationResponse = await startRegistration({ optionsJSON: optionsData.options });
 
       // Step 3: Verify with the server
       const verifyResponse = await fetch('/api/auth/passkey/register-verify', {
@@ -102,7 +108,7 @@ export function usePasskeyRegister(): UsePasskeyRegisterResult {
         headers: { 'Content-Type': 'application/json' },
         credentials: 'include',
         body: JSON.stringify({
-          attestation: attestationResponse,
+          attestationResponse,
           deviceName: options?.deviceName,
         }),
       });
@@ -209,10 +215,12 @@ export function usePasskeySignIn(): UsePasskeySignInResult {
       }
 
       // Step 2: Start browser WebAuthn authentication ceremony
+      // @simplewebauthn/browser v13+ expects { optionsJSON: ... }
       const { startAuthentication } = await import('@simplewebauthn/browser');
-      const assertionResponse = await startAuthentication(
-        optionsJson as Parameters<typeof startAuthentication>[0],
-      );
+      const authOptionsData = optionsJson as {
+        options: Parameters<typeof startAuthentication>[0]['optionsJSON'];
+      };
+      const assertionResponse = await startAuthentication({ optionsJSON: authOptionsData.options });
 
       // Step 3: Verify with the server
       const verifyResponse = await fetch('/api/auth/passkey/authenticate-verify', {
