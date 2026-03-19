@@ -786,12 +786,20 @@ describe('Webhook Safety — money-critical paths', () => {
         );
       });
 
-      // TODO: Fix mock — hangs on unresolved async path in checkout flow
-      it.skip('falls back to DB email lookup when customer_email is null', async () => {
-        // Transaction user check
+      it('falls back to DB email lookup when customer_email is null', async () => {
+        // Queue mock values for each sequential select().limit() call:
+        // #1: transaction user check (tx.select users by stripeCustomerId)
+        // #2: ensureHostedAccount → accountMemberships (no existing membership)
+        // #3: ensureHostedAccount → users by id (user not found → returns null)
+        // #4: resolveHostedAccountId → accountSubscriptions (no subscription)
+        // #5: resolveHostedAccountId → users by stripeCustomerId (no user → returns null)
+        // #6: findUserEmailByCustomerId → users (returns email for fallback)
         mockDbSelectChain.limit
           .mockResolvedValueOnce([{ id: 'user_fallback' }])
-          // email lookup
+          .mockResolvedValueOnce([])
+          .mockResolvedValueOnce([])
+          .mockResolvedValueOnce([])
+          .mockResolvedValueOnce([])
           .mockResolvedValueOnce([{ email: 'dbuser@test.com' }]);
 
         const event = {
@@ -868,10 +876,15 @@ describe('Webhook Safety — money-critical paths', () => {
     });
 
     describe('sendPaymentFailedEmail (subscription.updated past_due)', () => {
-      // TODO: Fix mock — hangs on unresolved async path in subscription.updated
-      it.skip('sends payment failed email when subscription goes past_due', async () => {
-        // Email lookup returns user email
-        mockDbSelectChain.limit.mockResolvedValueOnce([{ email: 'pastdue@test.com' }]);
+      it('sends payment failed email when subscription goes past_due', async () => {
+        // Queue mock values for each sequential select().limit() call:
+        // #1: resolveHostedAccountId → accountSubscriptions (no subscription)
+        // #2: resolveHostedAccountId → users by stripeCustomerId (no user → returns null, sync skipped)
+        // #3: findUserEmailByCustomerId → users (returns email)
+        mockDbSelectChain.limit
+          .mockResolvedValueOnce([])
+          .mockResolvedValueOnce([])
+          .mockResolvedValueOnce([{ email: 'pastdue@test.com' }]);
 
         const event = {
           id: 'evt_safety_email_pastdue',
@@ -1018,13 +1031,19 @@ describe('Webhook Safety — money-critical paths', () => {
     });
 
     describe('sendDisputeLostEmail', () => {
-      // TODO: Fix mock — hangs on unresolved async path in dispute handler
-      it.skip('sends dispute lost email when chargeback is decided against us', async () => {
+      it('sends dispute lost email when chargeback is decided against us', async () => {
         mockChargesRetrieve.mockResolvedValueOnce({
           id: 'ch_disp',
           customer: 'cus_disp_email',
         });
-        mockDbSelectChain.limit.mockResolvedValueOnce([{ email: 'disputed@test.com' }]);
+        // Queue mock values for each sequential select().limit() call:
+        // #1: resolveHostedAccountId → accountSubscriptions (no subscription)
+        // #2: resolveHostedAccountId → users by stripeCustomerId (no user → returns null, sync skipped)
+        // #3: findUserEmailByCustomerId → users (returns email)
+        mockDbSelectChain.limit
+          .mockResolvedValueOnce([])
+          .mockResolvedValueOnce([])
+          .mockResolvedValueOnce([{ email: 'disputed@test.com' }]);
 
         const event = {
           id: 'evt_safety_email_dispute',
