@@ -1,8 +1,8 @@
 'use client';
 
 import { useActionState, useEffect, useId } from 'react';
-import type { ChangePasswordState } from './actions.js';
-import { changePasswordAction } from './actions.js';
+import type { ChangePasswordState } from './actions';
+import { changePasswordAction } from './actions';
 
 interface Props {
   onSuccess: () => void;
