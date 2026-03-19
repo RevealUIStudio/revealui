@@ -6,6 +6,7 @@ import { createLogger } from '@revealui/setup/utils';
 import { Command } from 'commander';
 import { runCreateFlow } from './commands/create-flow.js';
 import {
+  runDbCleanupCommand,
   runDbInitCommand,
   runDbMigrateCommand,
   runDbResetCommand,
@@ -103,6 +104,19 @@ export function createCli(): Command {
     .description('Run Drizzle migrations using the local RevealUI database environment')
     .action(async () => {
       await runDbMigrateCommand();
+    });
+
+  db.command('cleanup')
+    .description(
+      'Delete expired sessions, rate-limit rows, password-reset tokens, magic links, and publish due scheduled pages. Uses DATABASE_URL / POSTGRES_URL from the environment.',
+    )
+    .option('--dry-run', 'Count stale rows without deleting them', false)
+    .option(
+      '--tables <names>',
+      'Comma-separated subset: sessions,rateLimits,passwordResetTokens,magicLinks,scheduledPages',
+    )
+    .action(async (options: { dryRun?: boolean; tables?: string }) => {
+      await runDbCleanupCommand(options);
     });
 
   const dev = program

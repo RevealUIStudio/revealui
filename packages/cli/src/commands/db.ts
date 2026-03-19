@@ -166,3 +166,21 @@ export async function runDbMigrateCommand(): Promise<void> {
     stdio: 'inherit',
   });
 }
+
+export async function runDbCleanupCommand(
+  options: { dryRun?: boolean; tables?: string } = {},
+): Promise<void> {
+  const root = getWorkspaceRootOrThrow();
+
+  // Inherit ambient env (DATABASE_URL / POSTGRES_URL from vault/direnv),
+  // not the local pg override used by other `db` subcommands.
+  const env: NodeJS.ProcessEnv = { ...process.env };
+  if (options.dryRun) env.DRY_RUN = 'true';
+  if (options.tables) env.TABLES = options.tables;
+
+  await execa('pnpm', ['--filter', '@revealui/db', 'db:cleanup'], {
+    cwd: root,
+    env,
+    stdio: 'inherit',
+  });
+}
