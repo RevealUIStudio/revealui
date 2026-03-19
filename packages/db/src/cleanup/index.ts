@@ -12,3 +12,10 @@ export {
   cleanupOrphanedVectorData,
   configureCleanup,
 } from './cross-db-cleanup.js';
+
+export {
+  type CleanupTable,
+  cleanupStaleTokens,
+  type StaleTokenCleanupOptions,
+  type StaleTokenCleanupResult,
+} from './stale-tokens.js';
