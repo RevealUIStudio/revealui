@@ -4,12 +4,6 @@
   "buildCommand": "cd ../.. && pnpm turbo build --filter=api",
   "ignoreCommand": "git diff --quiet HEAD~1 HEAD -- . ../../packages ../../pnpm-lock.yaml ../../package.json ../../turbo.json 2>/dev/null || exit 1",
   "rewrites": [{ "source": "/(.*)", "destination": "/api" }],
-  "crons": [
-    {
-      "path": "/api/cron/publish-scheduled",
-      "schedule": "*/5 * * * *"
-    }
-  ],
   "headers": [
     {
       "source": "/api/(.*)",
