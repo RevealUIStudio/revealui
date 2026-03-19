@@ -36,6 +36,7 @@ export {
   getPoolMetrics,
   getRestClient,
   getVectorClient,
+  requiresTransactions,
   resetClient,
   schema,
   withTransaction,
@@ -50,3 +51,5 @@ export type {
   TableRow,
   TableUpdate,
 } from './types/index.js';
+// Re-export soft-delete helpers
+export { whereActive, withActiveFilter } from './utils/soft-delete.js';

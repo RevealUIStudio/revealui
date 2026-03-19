@@ -49,6 +49,13 @@ export interface PoolMetrics {
 }
 
 // =============================================================================
+// Transaction Support Tracking
+// =============================================================================
+
+let restSupportsTransactions = false;
+let vectorSupportsTransactions = false;
+
+// =============================================================================
 // Types
 // =============================================================================
 
@@ -156,11 +163,14 @@ export function createClient(
   if (isSupabase) {
     // Use pg for Supabase connections
     // This avoids the Neon driver's hostname transformation bug
+    const poolMax = parseInt(process.env.DB_POOL_MAX || '10', 10);
+    const poolIdleTimeout = parseInt(process.env.DB_POOL_IDLE_TIMEOUT || '30000', 10);
+
     const pool = new Pool({
       connectionString: config.connectionString,
       ssl: getSSLConfig(config.connectionString), // Auto-detect SSL from connection string
-      max: 10, // Connection limit
-      idleTimeoutMillis: 30_000, // 30 seconds
+      max: poolMax,
+      idleTimeoutMillis: poolIdleTimeout,
       connectionTimeoutMillis: 10_000, // 10 seconds
     });
 
@@ -277,6 +287,7 @@ function getClientByType(type: DatabaseType): Database {
         );
       }
       vectorClient = createClient({ connectionString: url }, vectorSchema);
+      vectorSupportsTransactions = isSupabaseConnection(url);
     }
     return vectorClient;
   }
@@ -306,6 +317,7 @@ function getClientByType(type: DatabaseType): Database {
     }
 
     restClient = createClient({ connectionString: url }, restSchema);
+    restSupportsTransactions = isSupabaseConnection(url);
   }
   return restClient;
 }
@@ -349,6 +361,8 @@ export function getVectorClient(): Database {
 export function resetClient(): void {
   restClient = null;
   vectorClient = null;
+  restSupportsTransactions = false;
+  vectorSupportsTransactions = false;
 }
 
 // =============================================================================
@@ -460,20 +474,57 @@ export async function closeAllPools(): Promise<void> {
  * await withTransaction(neonDb, async (tx) => { ... }) // Error!
  * ```
  */
+/**
+ * Asserts that a database type supports transactions. Call at app startup to fail fast.
+ *
+ * @param dbType - Database type to check ('rest' or 'vector')
+ * @throws {Error} If the database driver does not support transactions
+ *
+ * @example
+ * ```typescript
+ * // At app startup
+ * requiresTransactions('rest') // throws if REST DB is Neon HTTP
+ * ```
+ */
+export function requiresTransactions(dbType: DatabaseType = 'rest'): void {
+  // Force client creation so we know the driver type
+  getClient(dbType);
+  const supports = dbType === 'vector' ? vectorSupportsTransactions : restSupportsTransactions;
+  if (!supports) {
+    throw new Error(
+      `Transaction support required but not available for '${dbType}' database. ` +
+        'The Neon HTTP driver does not support transactions. ' +
+        'Switch to Supabase pooler or pg driver for transaction support.',
+    );
+  }
+}
+
 export async function withTransaction<T>(
   db: Database,
   fn: (tx: Database) => Promise<T>,
 ): Promise<T> {
-  // Check if this is a pg Pool-based client (supports transactions)
-  // The pg Pool client has a 'transaction' method from drizzle-orm/node-postgres
+  // Early check: fail fast with clear message based on tracked driver type
+  if (db === restClient && !restSupportsTransactions) {
+    throw new Error(
+      'Transaction not supported: REST database is using Neon HTTP driver. ' +
+        'Switch to Supabase pooler or pg driver for transaction support.',
+    );
+  }
+  if (db === vectorClient && !vectorSupportsTransactions) {
+    throw new Error(
+      'Transaction not supported: Vector database is using Neon HTTP driver. ' +
+        'Switch to Supabase pooler or pg driver for transaction support.',
+    );
+  }
+
+  // Fallback: Check if this is a pg Pool-based client (supports transactions)
   const hasPgTransaction = 'transaction' in db && typeof db.transaction === 'function';
 
   if (!hasPgTransaction) {
     throw new Error(
       'Transaction not supported: Database client is using Neon HTTP driver which does not support transactions. ' +
         'To use transactions, configure your database with Supabase or localhost connection string. ' +
-        'Neon HTTP driver uses stateless requests and cannot maintain transaction state. ' +
-        'See docs/PRODUCTION_BLOCKERS.md for migration guide.',
+        'Neon HTTP driver uses stateless requests and cannot maintain transaction state.',
     );
   }
 

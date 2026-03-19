@@ -40,6 +40,10 @@
       "types": "./dist/client/index.d.ts",
       "import": "./dist/client/index.js"
     },
+    "./validation": {
+      "types": "./dist/validation/cross-db.d.ts",
+      "import": "./dist/validation/cross-db.js"
+    },
     "./cleanup": {
       "types": "./dist/cleanup/index.d.ts",
       "import": "./dist/cleanup/index.js"

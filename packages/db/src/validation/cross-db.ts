@@ -94,6 +94,34 @@ export async function assertCrossDbRefs(
 }
 
 /**
+ * Insert into vector DB with cross-DB reference validation.
+ * Validates FK references exist in REST DB before insert, retries once
+ * on failure after re-validating references.
+ */
+export async function safeVectorInsert<T>(
+  restDb: DatabaseClient,
+  insert: () => Promise<T>,
+  refs: { siteId?: string; userId?: string },
+): Promise<T> {
+  // Pre-validate references
+  await assertCrossDbRefs(restDb, refs);
+
+  try {
+    return await insert();
+  } catch (error) {
+    // Re-validate references — if entity was deleted, throw descriptive error
+    const refsValid = await assertCrossDbRefs(restDb, refs)
+      .then(() => true)
+      .catch(() => false);
+    if (!refsValid) {
+      throw new CrossDbReferenceError('vector_table', 'refs', JSON.stringify(refs));
+    }
+    // References still valid — rethrow original error
+    throw error;
+  }
+}
+
+/**
  * Finds orphaned records in Supabase that reference non-existent NeonDB entities.
  * Returns IDs of orphaned records grouped by table.
  *

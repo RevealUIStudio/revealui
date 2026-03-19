@@ -198,12 +198,12 @@ describe('posts queries', () => {
     expect(result).toBeNull();
   });
 
-  it('deletePost calls delete on the db', async () => {
+  it('deletePost soft-deletes by calling update on the db', async () => {
     const { deletePost } = await import('../posts.js');
 
     await deletePost(mock.db, 'p1');
 
-    expect(mock.db.delete).toHaveBeenCalled();
+    expect(mock.db.update).toHaveBeenCalled();
   });
 });
 
@@ -305,7 +305,7 @@ describe('pages queries', () => {
     expect(result).toBeNull();
   });
 
-  it('deletePage calls delete and decrements page count', async () => {
+  it('deletePage soft-deletes and decrements page count', async () => {
     const { deletePage } = await import('../pages.js');
     // getPageById needs a page with siteId so decrementPageCount can run
     mock.setSelectResult([{ id: 'pg1', siteId: 's1' }]);
@@ -313,8 +313,7 @@ describe('pages queries', () => {
     await deletePage(mock.db, 'pg1');
 
     expect(mock.db.select).toHaveBeenCalled();
-    expect(mock.db.delete).toHaveBeenCalled();
-    // decrementPageCount must be called after successful delete
+    // soft-delete + decrementPageCount both call update
     expect(mock.db.update).toHaveBeenCalled();
   });
 });
@@ -501,12 +500,12 @@ describe('media queries', () => {
     expect(await updateMedia(mock.db, 'missing', {} as never)).toBeNull();
   });
 
-  it('deleteMedia calls delete on the db', async () => {
+  it('deleteMedia soft-deletes by calling update on the db', async () => {
     const { deleteMedia } = await import('../media.js');
 
     await deleteMedia(mock.db, 'm1');
 
-    expect(mock.db.delete).toHaveBeenCalled();
+    expect(mock.db.update).toHaveBeenCalled();
   });
 });
 

@@ -2,7 +2,7 @@
  * Post database queries
  */
 
-import { and, desc, eq } from 'drizzle-orm';
+import { and, desc, eq, isNull } from 'drizzle-orm';
 import type { DatabaseClient } from '../client/types.js';
 import { posts } from '../schema/cms.js';
 
@@ -12,25 +12,34 @@ export async function getAllPosts(
 ) {
   const { status, authorId, limit = 20, offset = 0 } = options;
   const conditions = [
+    isNull(posts.deletedAt),
     ...(status ? [eq(posts.status, status)] : []),
     ...(authorId ? [eq(posts.authorId, authorId)] : []),
   ];
   return db
     .select()
     .from(posts)
-    .where(conditions.length > 0 ? and(...conditions) : undefined)
+    .where(and(...conditions))
     .orderBy(desc(posts.createdAt))
     .limit(limit)
     .offset(offset);
 }
 
 export async function getPostById(db: DatabaseClient, id: string) {
-  const result = await db.select().from(posts).where(eq(posts.id, id)).limit(1);
+  const result = await db
+    .select()
+    .from(posts)
+    .where(and(eq(posts.id, id), isNull(posts.deletedAt)))
+    .limit(1);
   return result[0] ?? null;
 }
 
 export async function getPostBySlug(db: DatabaseClient, slug: string) {
-  const result = await db.select().from(posts).where(eq(posts.slug, slug)).limit(1);
+  const result = await db
+    .select()
+    .from(posts)
+    .where(and(eq(posts.slug, slug), isNull(posts.deletedAt)))
+    .limit(1);
   return result[0] ?? null;
 }
 
@@ -53,5 +62,8 @@ export async function updatePost(
 }
 
 export async function deletePost(db: DatabaseClient, id: string) {
-  await db.delete(posts).where(eq(posts.id, id));
+  await db
+    .update(posts)
+    .set({ deletedAt: new Date(), updatedAt: new Date() })
+    .where(and(eq(posts.id, id), isNull(posts.deletedAt)));
 }
