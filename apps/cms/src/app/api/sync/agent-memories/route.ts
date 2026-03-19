@@ -13,6 +13,7 @@ import { logger } from '@revealui/core/utils/logger';
 import { getClient } from '@revealui/db';
 import { agentMemories } from '@revealui/db/schema';
 import { type NextRequest, NextResponse } from 'next/server';
+import { checkAIFeatureGate } from '@/lib/middleware/ai-feature-gate';
 import {
   createApplicationErrorResponse,
   createErrorResponse,
@@ -35,6 +36,9 @@ const VALID_MEMORY_TYPES = new Set([
 ]);
 
 export async function POST(request: NextRequest): Promise<NextResponse> {
+  const aiGate = checkAIFeatureGate();
+  if (aiGate) return aiGate;
+
   try {
     const session = await getSession(request.headers);
     if (!session) {

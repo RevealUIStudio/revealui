@@ -7,8 +7,10 @@
  */
 
 import { ALL_MIME_TYPES, getSizeLimit } from '@revealui/contracts/entities';
+import { logger } from '@revealui/core/observability/logger';
 import * as mediaQueries from '@revealui/db/queries/media';
 import { createRoute, OpenAPIHono, z } from '@revealui/openapi';
+import { del, put } from '@vercel/blob';
 import { HTTPException } from 'hono/http-exception';
 import { ErrorSchema, IdParam } from '../_helpers/content-schemas.js';
 import { PaginationQuery } from '../_helpers/pagination.js';
@@ -112,8 +114,26 @@ app.openapi(
     const ext = file.name.split('.').pop() ?? 'bin';
     const filename = `${crypto.randomUUID()}.${ext}`;
 
-    // Placeholder URL — production should integrate Vercel Blob upload here
-    const url = `/api/content/media/file/${filename}`;
+    // Upload to Vercel Blob storage — returns a public CDN URL
+    let url: string;
+    try {
+      const blob = await put(`media/${filename}`, file, {
+        access: 'public',
+        contentType: file.type,
+        addRandomSuffix: false,
+      });
+      url = blob.url;
+    } catch (uploadError) {
+      logger.error('Failed to upload media to Vercel Blob', undefined, {
+        filename,
+        mimeType: file.type,
+        filesize: file.size,
+        error: uploadError instanceof Error ? uploadError.message : 'unknown',
+      });
+      throw new HTTPException(502, {
+        message: 'Failed to upload file to storage. Please try again.',
+      });
+    }
 
     const item = await mediaQueries.createMedia(db, {
       id: crypto.randomUUID(),
@@ -279,6 +299,16 @@ app.openapi(
     if (!existing) throw new HTTPException(404, { message: 'Media not found' });
     if (user.role !== 'admin' && existing.uploadedBy !== user.id) {
       throw new HTTPException(403, { message: 'Forbidden' });
+    }
+    // Delete from Vercel Blob storage (best-effort — DB record takes priority)
+    if (existing.url?.includes('.blob.vercel-storage.com')) {
+      del(existing.url).catch((blobErr) => {
+        logger.warn('Failed to delete media from Vercel Blob — orphaned blob', {
+          mediaId: id,
+          url: existing.url,
+          error: blobErr instanceof Error ? blobErr.message : 'unknown',
+        });
+      });
     }
     await mediaQueries.deleteMedia(db, id);
     return c.json({ success: true as const, message: 'Media deleted' }, 200);

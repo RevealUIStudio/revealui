@@ -31,6 +31,7 @@ import {
   sendDisputeLostEmail,
   sendLicenseActivatedEmail,
   sendPaymentFailedEmail,
+  sendPaymentReceiptEmail,
   sendPaymentRecoveredEmail,
   sendPerpetualLicenseActivatedEmail,
   sendTierFallbackAlert,
@@ -807,11 +808,17 @@ app.openapi(stripeWebhookRoute, async (c) => {
             .limit(1);
 
           if (!userRow) {
-            logger.error('Customer has no matching user in DB — license not created', undefined, {
-              customerId,
-              subscriptionId,
-            });
-            return;
+            logger.error(
+              'CRITICAL: Customer has no matching user in DB — subscription license not created',
+              undefined,
+              { customerId, subscriptionId },
+            );
+            // Throw 500 so Stripe retries — payment was captured but no license was issued.
+            // Previously this returned silently (HTTP 200), causing Stripe to stop retrying
+            // and the customer to never receive their license.
+            throw new Error(
+              `Cannot find user for subscription license (customerId=${customerId}, subscriptionId=${subscriptionId})`,
+            );
           }
 
           await tx.insert(licenses).values({
@@ -1114,11 +1121,51 @@ app.openapi(stripeWebhookRoute, async (c) => {
       }
 
       case 'invoice.payment_succeeded': {
-        // Payment recovery — re-activate a license that was expired/revoked due to prior payment failure.
-        // Only re-activate if the customer has an active subscription after payment.
+        // Handle successful invoice payment:
+        // 1. Send payment receipt email to customer (every payment)
+        // 2. Re-activate license if it was expired/revoked (recovery)
         const invoice = event.data.object as Stripe.Invoice;
         const customerId = resolveCustomerId(invoice.customer);
         if (!customerId) break;
+
+        // Send payment receipt email for every successful invoice (not just recovery).
+        // Fire-and-forget — receipt delivery must not block license recovery.
+        if (invoice.amount_paid > 0) {
+          const receiptEmail =
+            invoice.customer_email ?? (await findUserEmailByCustomerId(db, customerId));
+          if (receiptEmail) {
+            // Resolve tier from the customer's license in DB (avoids invoice.subscription
+            // which is not typed in Stripe SDK v20 — see existing comment at line 1124).
+            let receiptTier = 'pro';
+            const [licenseRow] = await db
+              .select({ tier: licenses.tier })
+              .from(licenses)
+              .where(eq(licenses.customerId, customerId))
+              .orderBy(desc(licenses.updatedAt))
+              .limit(1);
+            if (licenseRow?.tier) {
+              receiptTier = licenseRow.tier;
+            }
+
+            const periodEnd = invoice.period_end ? new Date(invoice.period_end * 1000) : null;
+
+            sendPaymentReceiptEmail(receiptEmail, {
+              amountPaid: invoice.amount_paid,
+              currency: invoice.currency,
+              invoiceNumber: invoice.number ?? null,
+              tier: receiptTier,
+              periodEnd,
+              invoiceUrl: invoice.hosted_invoice_url ?? null,
+            }).catch((err) => {
+              logger.warn('Failed to send payment receipt email', {
+                error: err instanceof Error ? err.message : 'unknown',
+              });
+            });
+          }
+        }
+
+        // Payment recovery — re-activate a license that was expired/revoked due to prior payment failure.
+        // Only re-activate if the customer has an active subscription after payment.
 
         // Fetch the customer's active subscriptions to confirm payment actually restored access.
         // We don't read invoice.subscription directly — that field is not typed in this SDK version.

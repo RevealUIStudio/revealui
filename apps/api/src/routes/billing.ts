@@ -442,7 +442,7 @@ app.openapi(checkoutRoute, async (c) => {
       ...discountConfig,
       line_items: [{ price: resolvedPriceId, quantity: 1 }],
       subscription_data: {
-        trial_period_days: 7,
+        trial_period_days: Number.parseInt(process.env.REVEALUI_TRIAL_DAYS ?? '7', 10),
         metadata: { tier: resolvedTier, revealui_user_id: user.id },
       },
       success_url: `${cmsUrl}/account/billing?success=true`,
