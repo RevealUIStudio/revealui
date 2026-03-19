@@ -5,6 +5,26 @@ const API_URL =
   process.env.REVEALUI_PUBLIC_SERVER_URL ||
   'http://localhost:3004';
 
+/** Map status codes to safe client-facing messages (never leak internal errors). */
+function sanitizeErrorResponse(status: number): string {
+  switch (true) {
+    case status === 400:
+      return 'Bad request';
+    case status === 401:
+      return 'Unauthorized';
+    case status === 403:
+      return 'Forbidden';
+    case status === 404:
+      return 'Not found';
+    case status === 429:
+      return 'Too many requests';
+    case status >= 500:
+      return 'Internal server error';
+    default:
+      return 'Request failed';
+  }
+}
+
 export async function GET(
   request: NextRequest,
   { params }: { params: Promise<{ slug: string }> },
@@ -20,9 +40,8 @@ export async function GET(
   });
 
   if (!apiResponse.ok) {
-    const text = await apiResponse.text();
     return NextResponse.json(
-      { error: text || 'API request failed' },
+      { error: sanitizeErrorResponse(apiResponse.status) },
       { status: apiResponse.status },
     );
   }
@@ -49,9 +68,8 @@ export async function POST(
   });
 
   if (!apiResponse.ok) {
-    const text = await apiResponse.text();
     return NextResponse.json(
-      { error: text || 'API request failed' },
+      { error: sanitizeErrorResponse(apiResponse.status) },
       { status: apiResponse.status },
     );
   }
