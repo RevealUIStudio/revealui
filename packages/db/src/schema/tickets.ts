@@ -190,6 +190,7 @@ export const tickets = pgTable(
   },
   (table) => [
     index('tickets_board_id_idx').on(table.boardId),
+    index('tickets_column_id_idx').on(table.columnId),
     index('tickets_assignee_id_idx').on(table.assigneeId),
     index('tickets_parent_ticket_id_idx').on(table.parentTicketId),
     index('tickets_reporter_id_idx').on(table.reporterId),
@@ -222,7 +223,10 @@ export const ticketComments = pgTable(
     createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
     updatedAt: timestamp('updated_at', { withTimezone: true }).notNull().defaultNow(),
   },
-  (table) => [index('ticket_comments_ticket_id_idx').on(table.ticketId)],
+  (table) => [
+    index('ticket_comments_ticket_id_idx').on(table.ticketId),
+    index('ticket_comments_author_id_idx').on(table.authorId),
+  ],
 );
 
 export type TicketComment = typeof ticketComments.$inferSelect;

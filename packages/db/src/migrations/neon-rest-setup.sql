@@ -38,7 +38,9 @@ CREATE TABLE IF NOT EXISTS "users" (
 	"preferences" jsonb,
 	"created_at" timestamp with time zone DEFAULT now() NOT NULL,
 	"updated_at" timestamp with time zone DEFAULT now() NOT NULL,
-	"last_active_at" timestamp with time zone
+	"last_active_at" timestamp with time zone,
+	"deleted_at" timestamp with time zone,
+	"anonymized_at" timestamp with time zone
 );
 
 -- Sessions table
@@ -52,7 +54,8 @@ CREATE TABLE IF NOT EXISTS "sessions" (
 	"persistent" boolean DEFAULT false,
 	"last_activity_at" timestamp with time zone DEFAULT now() NOT NULL,
 	"created_at" timestamp with time zone DEFAULT now() NOT NULL,
-	"expires_at" timestamp with time zone NOT NULL
+	"expires_at" timestamp with time zone NOT NULL,
+	"deleted_at" timestamp with time zone
 );
 
 -- Sites table
@@ -102,7 +105,8 @@ CREATE TABLE IF NOT EXISTS "pages" (
 	"scheduled_at" timestamp with time zone,
 	"created_at" timestamp with time zone DEFAULT now() NOT NULL,
 	"updated_at" timestamp with time zone DEFAULT now() NOT NULL,
-	"published_at" timestamp with time zone
+	"published_at" timestamp with time zone,
+	"deleted_at" timestamp with time zone
 );
 
 -- Page revisions table
@@ -180,7 +184,8 @@ CREATE TABLE IF NOT EXISTS "media" (
 	"sizes" jsonb,
 	"uploaded_by" text,
 	"created_at" timestamp with time zone DEFAULT now() NOT NULL,
-	"updated_at" timestamp with time zone DEFAULT now() NOT NULL
+	"updated_at" timestamp with time zone DEFAULT now() NOT NULL,
+	"deleted_at" timestamp with time zone
 );
 
 -- Posts table
@@ -200,6 +205,7 @@ CREATE TABLE IF NOT EXISTS "posts" (
 	"created_at" timestamp with time zone DEFAULT now() NOT NULL,
 	"updated_at" timestamp with time zone DEFAULT now() NOT NULL,
 	"published_at" timestamp with time zone,
+	"deleted_at" timestamp with time zone,
 	CONSTRAINT "posts_slug_unique" UNIQUE("slug")
 );
 
@@ -295,11 +301,13 @@ ALTER TABLE "agent_actions" ADD CONSTRAINT IF NOT EXISTS "agent_actions_conversa
 ALTER TABLE "conversations" ADD CONSTRAINT IF NOT EXISTS "conversations_user_id_users_id_fk" FOREIGN KEY ("user_id") REFERENCES "public"."users"("id") ON DELETE cascade ON UPDATE no action;
 ALTER TABLE "media" ADD CONSTRAINT IF NOT EXISTS "media_uploaded_by_users_id_fk" FOREIGN KEY ("uploaded_by") REFERENCES "public"."users"("id") ON DELETE set null ON UPDATE no action;
 ALTER TABLE "posts" ADD CONSTRAINT IF NOT EXISTS "posts_author_id_users_id_fk" FOREIGN KEY ("author_id") REFERENCES "public"."users"("id") ON DELETE set null ON UPDATE no action;
+ALTER TABLE "posts" ADD CONSTRAINT IF NOT EXISTS "posts_featured_image_id_media_id_fk" FOREIGN KEY ("featured_image_id") REFERENCES "public"."media"("id") ON DELETE set null ON UPDATE no action;
 
 -- Create indexes for common queries
 CREATE INDEX IF NOT EXISTS "sessions_user_id_idx" ON "sessions"("user_id");
 CREATE INDEX IF NOT EXISTS "sessions_token_hash_idx" ON "sessions"("token_hash");
 CREATE INDEX IF NOT EXISTS "sessions_expires_at_idx" ON "sessions"("expires_at");
+CREATE INDEX IF NOT EXISTS "sessions_deleted_at_idx" ON "sessions"("deleted_at");
 CREATE UNIQUE INDEX IF NOT EXISTS "users_email_unique_idx" ON "users"("email") WHERE "email" IS NOT NULL;
 CREATE INDEX IF NOT EXISTS "sites_owner_id_idx" ON "sites"("owner_id");
 CREATE INDEX IF NOT EXISTS "sites_slug_idx" ON "sites"("slug");
@@ -308,6 +316,7 @@ CREATE INDEX IF NOT EXISTS "site_collaborators_user_id_idx" ON "site_collaborato
 CREATE INDEX IF NOT EXISTS "pages_site_id_idx" ON "pages"("site_id");
 CREATE INDEX IF NOT EXISTS "pages_parent_id_idx" ON "pages"("parent_id");
 CREATE INDEX IF NOT EXISTS "pages_slug_idx" ON "pages"("slug");
+CREATE INDEX IF NOT EXISTS "pages_deleted_at_idx" ON "pages"("deleted_at");
 CREATE INDEX IF NOT EXISTS "page_revisions_page_id_idx" ON "page_revisions"("page_id");
 CREATE INDEX IF NOT EXISTS "agent_contexts_session_id_idx" ON "agent_contexts"("session_id");
 CREATE INDEX IF NOT EXISTS "agent_contexts_agent_id_idx" ON "agent_contexts"("agent_id");
@@ -318,6 +327,8 @@ CREATE INDEX IF NOT EXISTS "agent_actions_conversation_id_idx" ON "agent_actions
 CREATE INDEX IF NOT EXISTS "agent_actions_agent_id_idx" ON "agent_actions"("agent_id");
 CREATE INDEX IF NOT EXISTS "posts_slug_idx" ON "posts"("slug");
 CREATE INDEX IF NOT EXISTS "posts_author_id_idx" ON "posts"("author_id");
+CREATE INDEX IF NOT EXISTS "posts_featured_image_id_idx" ON "posts"("featured_image_id");
+CREATE INDEX IF NOT EXISTS "posts_deleted_at_idx" ON "posts"("deleted_at");
 CREATE INDEX IF NOT EXISTS "crdt_operations_node_id_idx" ON "crdt_operations"("node_id");
 CREATE INDEX IF NOT EXISTS "node_id_mappings_node_id_idx" ON "node_id_mappings"("node_id");
 CREATE INDEX IF NOT EXISTS "node_id_mappings_entity_type_idx" ON "node_id_mappings"("entity_type", "entity_id");
@@ -347,11 +358,14 @@ CREATE TABLE IF NOT EXISTS "oauth_accounts" (
 	"provider_avatar_url" text,
 	"created_at" timestamp with time zone DEFAULT now() NOT NULL,
 	"updated_at" timestamp with time zone DEFAULT now() NOT NULL,
+	"deleted_at" timestamp with time zone,
+	"anonymized_at" timestamp with time zone,
 	CONSTRAINT "oauth_accounts_user_id_fkey" FOREIGN KEY ("user_id") REFERENCES "users"("id") ON DELETE CASCADE
 );
 
 CREATE UNIQUE INDEX IF NOT EXISTS "oauth_accounts_provider_user_idx" ON "oauth_accounts"("provider", "provider_user_id");
 CREATE INDEX IF NOT EXISTS "oauth_accounts_user_id_idx" ON "oauth_accounts"("user_id");
+CREATE INDEX IF NOT EXISTS "oauth_accounts_deleted_at_idx" ON "oauth_accounts"("deleted_at");
 COMMENT ON TABLE "oauth_accounts" IS 'OAuth provider account links — maps provider identities to local users';
 
 -- =============================================================================
@@ -407,4 +421,22 @@ CREATE INDEX IF NOT EXISTS "marketplace_transactions_status_idx"
   ON "marketplace_transactions"("status");
 
 COMMENT ON TABLE "marketplace_servers" IS 'Community-published MCP servers available through the RevealUI marketplace';
+
+-- =============================================================================
+-- Audit Log: Append-Only Enforcement
+-- =============================================================================
+-- A DB-level trigger prevents any UPDATE or DELETE on audit_log.
+-- The application layer (DrizzleAuditStore) enforces this too, but the trigger
+-- provides a hard guarantee regardless of how the table is accessed.
+
+CREATE OR REPLACE FUNCTION prevent_audit_log_modification()
+RETURNS TRIGGER AS $$
+BEGIN
+  RAISE EXCEPTION 'audit_log is append-only: % operations are not permitted', TG_OP;
+END;
+$$ LANGUAGE plpgsql;
+
+CREATE TRIGGER audit_log_immutable
+  BEFORE UPDATE OR DELETE ON "audit_log"
+  FOR EACH ROW EXECUTE FUNCTION prevent_audit_log_modification();
 COMMENT ON TABLE "marketplace_transactions" IS 'Per-call payment ledger for marketplace server invocations';

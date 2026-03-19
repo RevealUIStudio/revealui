@@ -135,52 +135,63 @@ export const agentMemories = pgTable(
 // Conversations Table
 // =============================================================================
 
-export const conversations = pgTable('conversations', {
-  // Primary identifier
-  id: text('id').primaryKey(),
+export const conversations = pgTable(
+  'conversations',
+  {
+    // Primary identifier
+    id: text('id').primaryKey(),
 
-  // Relationships
-  userId: text('user_id')
-    .notNull()
-    .references(() => users.id, { onDelete: 'cascade' }),
-  agentId: text('agent_id').notNull(),
+    // Relationships
+    userId: text('user_id')
+      .notNull()
+      .references(() => users.id, { onDelete: 'cascade' }),
+    agentId: text('agent_id').notNull(),
 
-  // Conversation details
-  title: text('title'),
-  status: text('status').notNull().default('active'),
+    // Conversation details
+    title: text('title'),
+    status: text('status').notNull().default('active'),
 
-  // Multi-device sync fields
-  deviceId: text('device_id'),
-  lastSyncedAt: timestamp('last_synced_at', { withTimezone: true }),
+    // Multi-device sync fields
+    deviceId: text('device_id'),
+    lastSyncedAt: timestamp('last_synced_at', { withTimezone: true }),
 
-  // Schema versioning
-  version: integer('version').notNull().default(1),
+    // Schema versioning
+    version: integer('version').notNull().default(1),
 
-  // Timestamps
-  createdAt: timestamp('created_at', { withTimezone: true }).defaultNow().notNull(),
-  updatedAt: timestamp('updated_at', { withTimezone: true }).defaultNow().notNull(),
-});
+    // Timestamps
+    createdAt: timestamp('created_at', { withTimezone: true }).defaultNow().notNull(),
+    updatedAt: timestamp('updated_at', { withTimezone: true }).defaultNow().notNull(),
+  },
+  (table) => [
+    index('conversations_user_id_idx').on(table.userId),
+    index('conversations_status_idx').on(table.status),
+  ],
+);
 
 // =============================================================================
 // Messages Table (separate from conversations for sync)
 // =============================================================================
 
-export const messages = pgTable('messages', {
-  // Primary identifier
-  id: text('id').primaryKey(),
+export const messages = pgTable(
+  'messages',
+  {
+    // Primary identifier
+    id: text('id').primaryKey(),
 
-  // Relationships
-  conversationId: text('conversation_id')
-    .notNull()
-    .references(() => conversations.id, { onDelete: 'cascade' }),
+    // Relationships
+    conversationId: text('conversation_id')
+      .notNull()
+      .references(() => conversations.id, { onDelete: 'cascade' }),
 
-  // Message content
-  role: text('role').notNull(), // 'user', 'assistant', 'system'
-  content: text('content').notNull(),
+    // Message content
+    role: text('role').notNull(), // 'user', 'assistant', 'system'
+    content: text('content').notNull(),
 
-  // Timing
-  timestamp: timestamp('timestamp', { withTimezone: true }).defaultNow().notNull(),
-});
+    // Timing
+    timestamp: timestamp('timestamp', { withTimezone: true }).defaultNow().notNull(),
+  },
+  (table) => [index('messages_conversation_id_idx').on(table.conversationId)],
+);
 
 // =============================================================================
 // User Devices Table (for multi-device sync)

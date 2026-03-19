@@ -77,6 +77,9 @@ export const users = pgTable(
     // Soft-delete: null = active, timestamp = when deleted
     deletedAt: timestamp('deleted_at', { withTimezone: true }),
 
+    // GDPR anonymization: null = not anonymized, timestamp = when PII was wiped
+    anonymizedAt: timestamp('anonymized_at', { withTimezone: true }),
+
     // biome-ignore lint/style/useNamingConvention: RevealUI document metadata field
     _json: jsonb('_json').default('{}'),
   },
@@ -129,6 +132,9 @@ export const sessions = pgTable(
     // Timestamps
     createdAt: timestamp('created_at', { withTimezone: true }).defaultNow().notNull(),
     expiresAt: timestamp('expires_at', { withTimezone: true }).notNull(),
+
+    // Soft-delete: null = active, timestamp = when explicitly revoked
+    deletedAt: timestamp('deleted_at', { withTimezone: true }),
   },
   (table) => [
     index('sessions_user_id_idx').on(table.userId),
@@ -136,6 +142,7 @@ export const sessions = pgTable(
     index('sessions_expires_at_idx').on(table.expiresAt),
     // R5-H6: Composite index for logout-all and session cleanup queries
     index('sessions_user_expires_idx').on(table.userId, table.expiresAt),
+    index('sessions_deleted_at_idx').on(table.deletedAt),
   ],
 );
 

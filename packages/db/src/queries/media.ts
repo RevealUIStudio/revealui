@@ -2,28 +2,35 @@
  * Media database queries
  */
 
-import { desc, eq, like } from 'drizzle-orm';
+import { and, desc, eq, isNull, like } from 'drizzle-orm';
 import type { DatabaseClient } from '../client/types.js';
 import { media } from '../schema/cms.js';
 
 export async function getAllMedia(
   db: DatabaseClient,
-  options: { mimeType?: string; limit?: number; offset?: number } = {},
+  options: { mimeType?: string; uploadedBy?: string; limit?: number; offset?: number } = {},
 ) {
-  const { mimeType, limit = 20, offset = 0 } = options;
-  const query = db.select().from(media);
-  if (mimeType) {
-    return query
-      .where(like(media.mimeType, `${mimeType}%`))
-      .orderBy(desc(media.createdAt))
-      .limit(limit)
-      .offset(offset);
-  }
-  return query.orderBy(desc(media.createdAt)).limit(limit).offset(offset);
+  const { mimeType, uploadedBy, limit = 20, offset = 0 } = options;
+  const conditions = [
+    isNull(media.deletedAt),
+    ...(mimeType ? [like(media.mimeType, `${mimeType}%`)] : []),
+    ...(uploadedBy ? [eq(media.uploadedBy, uploadedBy)] : []),
+  ];
+  return db
+    .select()
+    .from(media)
+    .where(and(...conditions))
+    .orderBy(desc(media.createdAt))
+    .limit(limit)
+    .offset(offset);
 }
 
 export async function getMediaById(db: DatabaseClient, id: string) {
-  const result = await db.select().from(media).where(eq(media.id, id)).limit(1);
+  const result = await db
+    .select()
+    .from(media)
+    .where(and(eq(media.id, id), isNull(media.deletedAt)))
+    .limit(1);
   return result[0] ?? null;
 }
 
@@ -46,5 +53,8 @@ export async function updateMedia(
 }
 
 export async function deleteMedia(db: DatabaseClient, id: string) {
-  await db.delete(media).where(eq(media.id, id));
+  await db
+    .update(media)
+    .set({ deletedAt: new Date(), updatedAt: new Date() })
+    .where(and(eq(media.id, id), isNull(media.deletedAt)));
 }

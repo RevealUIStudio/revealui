@@ -31,8 +31,10 @@ export const posts = pgTable(
     // Content (Lexical editor state as JSON)
     content: jsonb('content'),
 
-    // Featured image reference
-    featuredImageId: text('featured_image_id'),
+    // Featured image reference (FK to media — set null on delete)
+    featuredImageId: text('featured_image_id').references(() => media.id, {
+      onDelete: 'set null',
+    }),
 
     // Author relationship
     authorId: text('author_id').references(() => users.id, {
@@ -53,8 +55,15 @@ export const posts = pgTable(
     createdAt: timestamp('created_at', { withTimezone: true }).defaultNow().notNull(),
     updatedAt: timestamp('updated_at', { withTimezone: true }).defaultNow().notNull(),
     publishedAt: timestamp('published_at', { withTimezone: true }),
+
+    // Soft-delete: null = active, timestamp = when deleted
+    deletedAt: timestamp('deleted_at', { withTimezone: true }),
   },
-  (table) => [index('posts_author_id_idx').on(table.authorId)],
+  (table) => [
+    index('posts_author_id_idx').on(table.authorId),
+    index('posts_featured_image_id_idx').on(table.featuredImageId),
+    index('posts_deleted_at_idx').on(table.deletedAt),
+  ],
 );
 
 // =============================================================================
@@ -100,6 +109,9 @@ export const media = pgTable('media', {
   // Timestamps
   createdAt: timestamp('created_at', { withTimezone: true }).defaultNow().notNull(),
   updatedAt: timestamp('updated_at', { withTimezone: true }).defaultNow().notNull(),
+
+  // Soft-delete: null = active, timestamp = when deleted
+  deletedAt: timestamp('deleted_at', { withTimezone: true }),
 });
 
 // =============================================================================

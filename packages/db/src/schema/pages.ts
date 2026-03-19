@@ -61,12 +61,16 @@ export const pages = pgTable(
     createdAt: timestamp('created_at', { withTimezone: true }).defaultNow().notNull(),
     updatedAt: timestamp('updated_at', { withTimezone: true }).defaultNow().notNull(),
     publishedAt: timestamp('published_at', { withTimezone: true }),
+
+    // Soft-delete: null = active, timestamp = when deleted
+    deletedAt: timestamp('deleted_at', { withTimezone: true }),
   },
   (table) => [
     index('pages_parent_id_idx').on(table.parentId),
     index('pages_site_id_idx').on(table.siteId),
     index('pages_site_status_idx').on(table.siteId, table.status),
     uniqueIndex('pages_slug_site_id_idx').on(table.slug, table.siteId),
+    index('pages_deleted_at_idx').on(table.deletedAt),
   ],
 );
 

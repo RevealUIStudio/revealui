@@ -2,7 +2,7 @@
  * Page database queries
  */
 
-import { and, asc, eq } from 'drizzle-orm';
+import { and, asc, eq, isNull } from 'drizzle-orm';
 import type { DatabaseClient } from '../client/types.js';
 import { pages } from '../schema/pages.js';
 import { decrementPageCount, incrementPageCount } from './sites.js';
@@ -13,7 +13,11 @@ export async function getPagesBySite(
   options: { status?: string } = {},
 ) {
   const { status } = options;
-  const conditions = [eq(pages.siteId, siteId), ...(status ? [eq(pages.status, status)] : [])];
+  const conditions = [
+    eq(pages.siteId, siteId),
+    isNull(pages.deletedAt),
+    ...(status ? [eq(pages.status, status)] : []),
+  ];
   return db
     .select()
     .from(pages)
@@ -22,7 +26,11 @@ export async function getPagesBySite(
 }
 
 export async function getPageById(db: DatabaseClient, id: string) {
-  const result = await db.select().from(pages).where(eq(pages.id, id)).limit(1);
+  const result = await db
+    .select()
+    .from(pages)
+    .where(and(eq(pages.id, id), isNull(pages.deletedAt)))
+    .limit(1);
   return result[0] ?? null;
 }
 
@@ -30,7 +38,7 @@ export async function getPageByPath(db: DatabaseClient, siteId: string, path: st
   const result = await db
     .select()
     .from(pages)
-    .where(and(eq(pages.siteId, siteId), eq(pages.path, path)))
+    .where(and(eq(pages.siteId, siteId), eq(pages.path, path), isNull(pages.deletedAt)))
     .limit(1);
   return result[0] ?? null;
 }
@@ -58,8 +66,10 @@ export async function updatePage(
 
 export async function deletePage(db: DatabaseClient, id: string) {
   const page = await getPageById(db, id);
-  await db.delete(pages).where(eq(pages.id, id));
-  if (page) {
-    await decrementPageCount(db, page.siteId);
-  }
+  if (!page) return;
+  await db
+    .update(pages)
+    .set({ deletedAt: new Date(), updatedAt: new Date() })
+    .where(and(eq(pages.id, id), isNull(pages.deletedAt)));
+  await decrementPageCount(db, page.siteId);
 }

@@ -46,8 +46,9 @@ function createUpdateChain(result: unknown[] = []) {
   };
 }
 
-function createDeleteChain() {
+function createSoftDeleteChain() {
   return {
+    set: vi.fn().mockReturnThis(),
     where: vi.fn().mockResolvedValue(undefined),
   };
 }
@@ -256,13 +257,16 @@ describe('post queries', () => {
   // ---- deletePost ---------------------------------------------------------
 
   describe('deletePost', () => {
-    it('deletes a post by id', async () => {
-      const chain = createDeleteChain();
-      db.delete.mockReturnValue(chain);
+    it('soft-deletes a post by id', async () => {
+      const chain = createSoftDeleteChain();
+      db.update.mockReturnValue(chain);
 
       await deletePost(db as never, 'p1');
 
-      expect(db.delete).toHaveBeenCalled();
+      expect(db.update).toHaveBeenCalled();
+      expect(chain.set).toHaveBeenCalledWith(
+        expect.objectContaining({ deletedAt: expect.any(Date) }),
+      );
       expect(chain.where).toHaveBeenCalled();
     });
   });
@@ -295,9 +299,9 @@ describe('post queries', () => {
     });
 
     it('propagates delete errors', async () => {
-      const chain = createDeleteChain();
+      const chain = createSoftDeleteChain();
       chain.where.mockRejectedValue(new Error('fk constraint'));
-      db.delete.mockReturnValue(chain);
+      db.update.mockReturnValue(chain);
 
       await expect(deletePost(db as never, 'p1')).rejects.toThrow('fk constraint');
     });

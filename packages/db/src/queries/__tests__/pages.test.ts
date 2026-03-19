@@ -39,8 +39,9 @@ function createUpdateChain(result: unknown[] = []) {
   };
 }
 
-function createDeleteChain() {
+function createSoftDeleteChain() {
   return {
+    set: vi.fn().mockReturnThis(),
     where: vi.fn().mockResolvedValue(undefined),
   };
 }
@@ -206,23 +207,32 @@ describe('page queries', () => {
   // ---- deletePage ---------------------------------------------------------
 
   describe('deletePage', () => {
-    it('deletes a page by id', async () => {
-      // getPageById needs a select chain
+    it('soft-deletes a page by id', async () => {
+      // getPageById needs a select chain that resolves to the page
       const selectChain = createSelectChain([{ id: 'p1', siteId: 's1' }]);
       db.select.mockReturnValue(selectChain);
-      const deleteChain = createDeleteChain();
-      db.delete.mockReturnValue(deleteChain);
-      // decrementPageCount does db.update(sites).set(...).where(...)
-      db.update.mockReturnValue(createUpdateChain());
+      // Both soft-delete and decrementPageCount use db.update().set().where()
+      const softDeleteChain = createSoftDeleteChain();
+      db.update.mockReturnValue(softDeleteChain);
 
       await deletePage(db as never, 'p1');
 
       // getPageById must be called to look up the page's siteId
       expect(db.select).toHaveBeenCalled();
-      expect(db.delete).toHaveBeenCalled();
-      expect(deleteChain.where).toHaveBeenCalled();
-      // decrementPageCount must be called after successful delete
-      expect(db.update).toHaveBeenCalled();
+      // soft-delete and decrementPageCount each call db.update
+      expect(db.update).toHaveBeenCalledTimes(2);
+      expect(softDeleteChain.set).toHaveBeenCalledWith(
+        expect.objectContaining({ deletedAt: expect.any(Date) }),
+      );
+    });
+
+    it('does nothing when page not found', async () => {
+      const selectChain = createSelectChain([]);
+      db.select.mockReturnValue(selectChain);
+
+      await deletePage(db as never, 'nonexistent');
+
+      expect(db.update).not.toHaveBeenCalled();
     });
   });
 
@@ -256,11 +266,11 @@ describe('page queries', () => {
     });
 
     it('propagates delete errors', async () => {
-      // getPageById needs a select chain (runs before delete)
+      // getPageById needs a select chain (runs before soft-delete)
       db.select.mockReturnValue(createSelectChain([{ id: 'p1', siteId: 's1' }]));
-      const chain = createDeleteChain();
+      const chain = createSoftDeleteChain();
       chain.where.mockRejectedValue(new Error('cascade violation'));
-      db.delete.mockReturnValue(chain);
+      db.update.mockReturnValue(chain);
 
       await expect(deletePage(db as never, 'p1')).rejects.toThrow('cascade violation');
     });

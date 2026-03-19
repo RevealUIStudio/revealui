@@ -36,8 +36,9 @@ function createUpdateChain(result: unknown[] = []) {
   };
 }
 
-function createDeleteChain() {
+function createSoftDeleteChain() {
   return {
+    set: vi.fn().mockReturnThis(),
     where: vi.fn().mockResolvedValue(undefined),
   };
 }
@@ -187,13 +188,16 @@ describe('media queries', () => {
   // ---- deleteMedia --------------------------------------------------------
 
   describe('deleteMedia', () => {
-    it('deletes media by id', async () => {
-      const chain = createDeleteChain();
-      db.delete.mockReturnValue(chain);
+    it('soft-deletes media by id', async () => {
+      const chain = createSoftDeleteChain();
+      db.update.mockReturnValue(chain);
 
       await deleteMedia(db as never, 'm1');
 
-      expect(db.delete).toHaveBeenCalled();
+      expect(db.update).toHaveBeenCalled();
+      expect(chain.set).toHaveBeenCalledWith(
+        expect.objectContaining({ deletedAt: expect.any(Date) }),
+      );
       expect(chain.where).toHaveBeenCalled();
     });
   });
@@ -228,9 +232,9 @@ describe('media queries', () => {
     });
 
     it('propagates delete errors', async () => {
-      const chain = createDeleteChain();
+      const chain = createSoftDeleteChain();
       chain.where.mockRejectedValue(new Error('permission denied'));
-      db.delete.mockReturnValue(chain);
+      db.update.mockReturnValue(chain);
 
       await expect(deleteMedia(db as never, 'm1')).rejects.toThrow('permission denied');
     });

@@ -30,10 +30,17 @@ export const oauthAccounts = pgTable(
     // Timestamps
     createdAt: timestamp('created_at', { withTimezone: true }).defaultNow().notNull(),
     updatedAt: timestamp('updated_at', { withTimezone: true }).defaultNow().notNull(),
+
+    // Soft-delete: null = active, timestamp = when unlinked
+    deletedAt: timestamp('deleted_at', { withTimezone: true }),
+
+    // GDPR anonymization: null = not anonymized, timestamp = when PII (providerEmail/Name/AvatarUrl) was wiped
+    anonymizedAt: timestamp('anonymized_at', { withTimezone: true }),
   },
   (t) => [
     uniqueIndex('oauth_accounts_provider_user_idx').on(t.provider, t.providerUserId),
     index('oauth_accounts_user_id_idx').on(t.userId),
+    index('oauth_accounts_deleted_at_idx').on(t.deletedAt),
   ],
 );
 
