@@ -269,6 +269,64 @@ export async function resetPasswordWithToken(
   }
 }
 
+export interface ChangePasswordResult {
+  success: boolean;
+  error?: string;
+}
+
+/**
+ * Change password for an authenticated user.
+ *
+ * Verifies the current password before updating. Does not touch sessions —
+ * the caller is responsible for revoking other sessions if desired.
+ *
+ * @param userId - Authenticated user ID
+ * @param currentPassword - Plain-text current password to verify
+ * @param newPassword - Plain-text new password to hash and store
+ */
+export async function changePassword(
+  userId: string,
+  currentPassword: string,
+  newPassword: string,
+): Promise<ChangePasswordResult> {
+  try {
+    const db = getClient();
+
+    const [user] = await db
+      .select({ id: users.id, password: users.password })
+      .from(users)
+      .where(eq(users.id, userId))
+      .limit(1);
+
+    if (!user) {
+      return { success: false, error: 'User not found.' };
+    }
+
+    if (!user.password) {
+      return {
+        success: false,
+        error: 'No password is set on this account. Use the password reset link to set one.',
+      };
+    }
+
+    const currentValid = await bcrypt.compare(currentPassword, user.password);
+    if (!currentValid) {
+      return { success: false, error: 'Current password is incorrect.' };
+    }
+
+    const newHash = await bcrypt.hash(newPassword, 12);
+    await db.update(users).set({ password: newHash }).where(eq(users.id, userId));
+
+    return { success: true };
+  } catch (error) {
+    logger.error(
+      'Error changing password',
+      error instanceof Error ? error : new Error(String(error)),
+    );
+    return { success: false, error: 'An unexpected error occurred.' };
+  }
+}
+
 /**
  * Invalidates a password reset token
  *
