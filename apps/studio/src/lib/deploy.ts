@@ -53,7 +53,7 @@ export async function vercelGetDeployment(
   deploymentId: string,
 ): Promise<VercelDeployment> {
   if (!isTauri()) {
-    return { id: deploymentId, url: 'mock.vercel.app', state: 'READY', createdAt: Date.now() };
+    return { uid: deploymentId, url: 'mock.vercel.app', state: 'READY', created: Date.now() };
   }
   return tauriInvoke<VercelDeployment>('vercel_get_deployment', { token, deploymentId });
 }

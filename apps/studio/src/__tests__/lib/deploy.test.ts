@@ -53,9 +53,9 @@ describe('deploy bridge (browser mocks)', () => {
   it('vercelGetDeployment returns READY state with deployment ID', async () => {
     const result = await vercelGetDeployment('t', 'dep-1');
     expect(result.state).toBe('READY');
-    expect(result.id).toBe('dep-1');
+    expect(result.uid).toBe('dep-1');
     expect(result.url).toBe('mock.vercel.app');
-    expect(result.createdAt).toBeTypeOf('number');
+    expect(result.created).toBeTypeOf('number');
   });
 
   // ── Database ──────────────────────────────────────────────────────────────
