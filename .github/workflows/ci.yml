@@ -306,3 +306,139 @@ jobs:
             playwright-report/
             test-results/
           retention-days: 7
+
+  # ---------------------------------------------------------------------------
+  # Phase 5: Accessibility E2E (hard fail on critical violations — R5-L7)
+  # Runs @axe-core/playwright checks on login, dashboard, settings, pricing.
+  # Fails CI if any critical or serious WCAG 2.1 AA violations are found.
+  # ---------------------------------------------------------------------------
+  e2e-accessibility:
+    name: Accessibility (E2E)
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    needs: [quality, typecheck]
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: pnpm/action-setup@v4
+        with:
+          version: ${{ env.PNPM_VERSION }}
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: pnpm
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Install Playwright (chromium only)
+        run: npx playwright install --with-deps chromium
+
+      - name: Build apps
+        run: pnpm build
+        env:
+          SKIP_ENV_VALIDATION: "true"
+
+      - name: Start CMS server
+        run: pnpm --filter cms start &
+        env:
+          SKIP_ENV_VALIDATION: "true"
+
+      - name: Start marketing server
+        run: pnpm --filter marketing start &
+        env:
+          SKIP_ENV_VALIDATION: "true"
+          PORT: "3002"
+
+      - name: Wait for servers
+        run: |
+          for i in $(seq 1 40); do
+            curl -sf http://localhost:4000 > /dev/null 2>&1 && \
+            curl -sf http://localhost:3002 > /dev/null 2>&1 && \
+            echo "Both servers ready" && break || \
+            echo "Waiting for servers... ($i/40)" && sleep 3
+          done
+
+      - name: Run accessibility tests (fail on critical violations)
+        run: pnpm test:e2e -- --project=chromium e2e/accessibility.e2e.ts
+        env:
+          CI: "true"
+          SKIP_ENV_VALIDATION: "true"
+          PLAYWRIGHT_BASE_URL: "http://localhost:4000"
+          MARKETING_BASE_URL: "http://localhost:3002"
+
+      - name: Upload accessibility results
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: accessibility-results
+          path: |
+            playwright-report/
+            test-results/
+          retention-days: 7
+
+  # ---------------------------------------------------------------------------
+  # Phase 6: Visual regression (warn-only — R5-L8)
+  # Playwright native screenshot comparison. Warn-only until baselines are
+  # committed. To capture baselines: pnpm test:e2e:visual:update
+  # ---------------------------------------------------------------------------
+  e2e-visual:
+    name: Visual Regression (E2E)
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    needs: [quality, typecheck]
+    continue-on-error: true
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: pnpm/action-setup@v4
+        with:
+          version: ${{ env.PNPM_VERSION }}
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: pnpm
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Install Playwright (chromium only)
+        run: npx playwright install --with-deps chromium
+
+      - name: Build apps
+        run: pnpm build
+        env:
+          SKIP_ENV_VALIDATION: "true"
+
+      - name: Start CMS server
+        run: pnpm --filter cms start &
+        env:
+          SKIP_ENV_VALIDATION: "true"
+
+      - name: Wait for CMS
+        run: |
+          for i in $(seq 1 40); do
+            curl -sf http://localhost:4000 > /dev/null 2>&1 && echo "CMS ready" && break || \
+            echo "Waiting for CMS... ($i/40)" && sleep 3
+          done
+
+      - name: Run visual regression tests (warn-only until baselines committed)
+        run: pnpm test:e2e -- --project=chromium e2e/visual-snapshots.e2e.ts
+        continue-on-error: true
+        env:
+          CI: "true"
+          SKIP_ENV_VALIDATION: "true"
+
+      - name: Upload visual results
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: visual-results
+          path: |
+            playwright-report/
+            test-results/
+          retention-days: 7

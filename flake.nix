@@ -215,14 +215,13 @@ PGHBA
 
             # ── Dev Environment Banner ────────────────────────────────────────
 
-            # Colors — bold for contrast
-            _AMBER='\033[1;38;2;251;191;36m'    # amber-400 bold
-            _GREEN='\033[1;38;2;52;211;153m'    # emerald-400 bold
-            _CYAN='\033[1;38;2;34;211;238m'     # cyan-400 bold
+            _B='\033[1m'
+            _AMBER='\033[1;38;2;251;191;36m'
+            _GREEN='\033[1;38;2;52;211;153m'
+            _CYAN='\033[1;38;2;34;211;238m'
             _DIM='\033[2m'
             _NC='\033[0m'
 
-            # Git + env context
             _BRANCH=$(git -C "$PWD" branch --show-current 2>/dev/null || echo "detached")
             _DIRTY=$(git -C "$PWD" status --porcelain 2>/dev/null | wc -l | tr -d ' ')
             _NODE=$(node --version 2>/dev/null | tr -d 'v')
@@ -232,107 +231,70 @@ PGHBA
             [ "$_ENV" = "development" ] && _ENV="dev"
             [ "$_ENV" = "production"  ] && _ENV="prod"
 
-            # ── Logo ──────────────────────────────────────────────────────────
-            echo ""
-            if [ -f "$PWD/assets/revealui-logo.png" ] && command -v chafa &>/dev/null; then
-              chafa --size 60x8 --colors full "$PWD/assets/revealui-logo.png" | sed "s/^/  /"
-            else
-              _LOGO=$(figlet -f slant "RevealUI" 2>/dev/null)
-              [ -n "$_LOGO" ] && echo "$_LOGO" | sed "s/^/  /" | while IFS= read -r _line; do
-                echo -e "''${_CYAN}$_line''${_NC}"
-              done
-              unset _LOGO
-            fi
-
-            # ── Context box (padded) ───────────────────────────────────────────
-            _PLAIN="  $_BRANCH"
-            if [ "$_DIRTY" -gt 0 ] 2>/dev/null; then
-              _HDR="  $_BRANCH  ''${_DIM}·''${_NC}  ''${_AMBER}$_DIRTY uncommitted''${_NC}"
-              _PLAIN="$_PLAIN  ·  $_DIRTY uncommitted"
-            else
-              _HDR="  $_BRANCH  ''${_DIM}·''${_NC}  ''${_GREEN}clean''${_NC}"
-              _PLAIN="$_PLAIN  ·  clean"
-            fi
-            _PLAIN="$_PLAIN  ·  $_ENV  "
-            _HDR="$_HDR  ''${_DIM}·''${_NC}  $_ENV  "
-
-            _W=''${#_PLAIN}
+            # ── Boxed header ───────────────────────────────────────────────────
+            _TITLE="  RevealUI  ·  Business OS  ·  $_ENV  "
+            _W=''${#_TITLE}
             _LINE=$(printf '─%.0s' $(seq 1 "$_W"))
-            _PAD=$(printf ' %.0s' $(seq 1 "$_W"))
-
             echo ""
             echo -e "  ''${_DIM}╭''${_LINE}╮''${_NC}"
-            echo -e "  ''${_DIM}│''${_NC}$_PAD''${_DIM}│''${_NC}"
-            echo -e "  ''${_DIM}│''${_NC}$_HDR''${_DIM}│''${_NC}"
-            echo -e "  ''${_DIM}│''${_NC}$_PAD''${_DIM}│''${_NC}"
+            echo -e "  ''${_DIM}│''${_NC}''${_B}$_TITLE''${_NC}''${_DIM}│''${_NC}"
             echo -e "  ''${_DIM}╰''${_LINE}╯''${_NC}"
 
-            echo ""
-            _ENV_LINE="node $_NODE  ·  pnpm $_PNPM"
-            [ -n "$_DOCK" ] && _ENV_LINE="$_ENV_LINE  ·  docker $_DOCK"
-            echo -e "   ''${_DIM}$_ENV_LINE''${_NC}"
+            # ── Env context line ───────────────────────────────────────────────
+            _CTXLINE="node $_NODE  ·  pnpm $_PNPM"
+            [ -n "$_DOCK" ] && _CTXLINE="$_CTXLINE  ·  docker $_DOCK"
+            if [ "$_DIRTY" = "0" ]; then
+              _GIT="''${_GREEN}$_BRANCH  ·  clean''${_NC}"
+            else
+              _GIT="''${_AMBER}$_BRANCH  ·  $_DIRTY uncommitted''${_NC}"
+            fi
+            echo -e "\n   ''${_DIM}$_CTXLINE  ·  ''${_NC}$_GIT"
 
-            # ── Service status — one line per item ────────────────────────────
-            _OK=""
-            _add_ok() { [ -n "$_OK" ] && _OK="$_OK    $1" || _OK="$1"; }
-            _PG_READY=0 _DEPS_READY=0
-            _PGWARN="" _DEPWARN="" _DKWARN="" _MCPWARN=""
+            # ── Service status (OK items inline · warnings per-line) ───────────
+            _OK="" _WARNS="" _PG_READY=0 _DEPS_READY=0
+            _ok()   { [ -n "$_OK" ] && _OK="$_OK  ''${_DIM}·''${_NC}  $1" || _OK="$1"; }
+            _warn() { _WARNS="$_WARNS   ''${_AMBER}⚠  $1''${_NC}\n"; }
 
             if [ ! -d "$PGDATA" ]; then
-              _PGWARN="  ''${_AMBER}⚠  postgres''${_NC}   ''${_DIM}—''${_NC}   ''${_CYAN}db init''${_NC}"
+              _warn "postgres  ''${_DIM}→''${_NC}  ''${_CYAN}db init''${_NC}"
             elif pg_ctl status -D "$PGDATA" &>/dev/null; then
-              _add_ok "''${_GREEN}✓ postgres''${_NC}  ''${_DIM}·  db-psql''${_NC}"
-              _PG_READY=1
+              _ok "''${_GREEN}✓ postgres''${_NC}"; _PG_READY=1
             else
-              _PGWARN="  ''${_AMBER}⚠  postgres''${_NC}   ''${_DIM}—''${_NC}   ''${_CYAN}db start''${_NC}"
+              _warn "postgres  ''${_DIM}→''${_NC}  ''${_CYAN}db start''${_NC}"
             fi
 
             if [ -d "node_modules" ]; then
-              _add_ok "''${_GREEN}✓ deps''${_NC}"
-              _DEPS_READY=1
+              _ok "''${_GREEN}✓ deps''${_NC}"; _DEPS_READY=1
             else
-              _DEPWARN="  ''${_AMBER}⚠  deps''${_NC}       ''${_DIM}—''${_NC}   ''${_CYAN}pnpm install''${_NC}"
+              _warn "deps  ''${_DIM}→''${_NC}  ''${_CYAN}pnpm install''${_NC}"
             fi
 
-            if docker info &>/dev/null 2>&1; then
-              _add_ok "''${_GREEN}✓ docker''${_NC}"
-            else
-              _DKWARN="  ''${_AMBER}⚠  docker''${_NC}     ''${_DIM}—''${_NC}   start Docker Desktop"
-            fi
+            docker info &>/dev/null 2>&1 \
+              && _ok "''${_GREEN}✓ docker''${_NC}" \
+              || _warn "docker  ''${_DIM}→''${_NC}  start Docker Desktop"
 
-            if [ -n "''${VERCEL_API_KEY:-}" ] || [ -n "''${STRIPE_SECRET_KEY:-}" ]; then
-              _add_ok "''${_GREEN}✓ mcp''${_NC}"
-            else
-              _MCPWARN="  ''${_AMBER}⚠  mcp''${_NC}        ''${_DIM}—''${_NC}   ''${_CYAN}dev up --include mcp''${_NC}"
-            fi
+            { [ -n "''${VERCEL_API_KEY:-}" ] || [ -n "''${STRIPE_SECRET_KEY:-}" ]; } \
+              && _ok "''${_GREEN}✓ mcp''${_NC}" \
+              || _warn "mcp  ''${_DIM}→''${_NC}  ''${_CYAN}dev up --include mcp''${_NC}"
 
-            _ACPWARN=""
-            if [ "''${TERM_PROGRAM:-}" = "zed" ]; then
-              _add_ok "''${_GREEN}✓ acp''${_NC}"
-            else
-              _ACPWARN="  ''${_AMBER}⚠  acp''${_NC}        ''${_DIM}—''${_NC}   open Zed + connect"
-            fi
+            [ "''${TERM_PROGRAM:-}" = "zed" ] \
+              && _ok "''${_GREEN}✓ acp''${_NC}" \
+              || _warn "acp  ''${_DIM}→''${_NC}  open Zed + connect"
 
             echo ""
-            [ -n "$_OK" ] && echo -e "   $_OK"
-            [ -n "$_PGWARN$_DEPWARN$_DKWARN$_MCPWARN$_ACPWARN" ] && echo ""
-            [ -n "$_PGWARN"  ] && echo -e "$_PGWARN"
-            [ -n "$_DEPWARN" ] && echo -e "$_DEPWARN"
-            [ -n "$_DKWARN"  ] && echo -e "$_DKWARN"
-            [ -n "$_MCPWARN" ] && echo -e "$_MCPWARN"
-            [ -n "$_ACPWARN" ] && echo -e "$_ACPWARN"
+            [ -n "$_OK"    ] && echo -e "   $_OK"
+            [ -n "$_WARNS" ] && printf "\n%b" "$_WARNS"
 
-            echo ""
-            [ "$_DEPS_READY" = 1 ] && echo -e "   ''${_CYAN}gate:quick''${_NC}  ''${_DIM}—  CI gate''${_NC}"
-            [ "$_DEPS_READY" = 1 ] && echo -e "   ''${_CYAN}dev''${_NC}         ''${_DIM}—  all services''${_NC}"
-            echo -e "   ''${_CYAN}wb''${_NC}          ''${_DIM}—  workboard''${_NC}"
-            [ "$_PG_READY" = 1 ] && echo -e "   ''${_CYAN}db-psql''${_NC}     ''${_DIM}—  pg shell''${_NC}"
-            echo ""
+            # ── Quick commands ─────────────────────────────────────────────────
+            _CMDS="''${_CYAN}dev''${_NC}  ''${_DIM}·''${_NC}  ''${_CYAN}wb''${_NC}"
+            [ "$_PG_READY"   = 1 ] && _CMDS="$_CMDS  ''${_DIM}·''${_NC}  ''${_CYAN}db-psql''${_NC}"
+            [ "$_DEPS_READY" = 1 ] && _CMDS="$_CMDS  ''${_DIM}·''${_NC}  ''${_CYAN}gate:quick''${_NC}"
+            echo -e "\n   $_CMDS\n"
 
-            unset _BRANCH _DIRTY _NODE _PNPM _DOCK _ENV _ENV_LINE _HDR _PLAIN _W _LINE _PAD _line
-            unset _OK _PGWARN _DEPWARN _DKWARN _MCPWARN _ACPWARN _PG_READY _DEPS_READY
-            unset _AMBER _GREEN _CYAN _DIM _NC
-            unset -f _add_ok
+            unset _B _AMBER _GREEN _CYAN _DIM _NC
+            unset _BRANCH _DIRTY _NODE _PNPM _DOCK _ENV _TITLE _W _LINE _CTXLINE _GIT
+            unset _OK _WARNS _PG_READY _DEPS_READY _CMDS
+            unset -f _ok _warn
 
             # Live workboard watcher — renders .claude/workboard.md every 3 s
             # Usage: wb
