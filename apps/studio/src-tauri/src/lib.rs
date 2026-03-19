@@ -7,8 +7,8 @@ mod state;
 mod tray;
 
 use commands::{
-    apps, config as config_cmds, deploy, local_shell as shell_cmds, mount, setup, ssh as ssh_cmds,
-    status, sync, tunnel, vault,
+    agent as agent_cmds, apps, config as config_cmds, deploy, git as git_cmds,
+    local_shell as shell_cmds, mount, setup, ssh as ssh_cmds, status, sync, tunnel, vault,
 };
 use config::ConfigState;
 use local_shell::LocalShellState;
@@ -86,6 +86,22 @@ pub fn run() {
             deploy::email::resend_send_test,
             deploy::email::smtp_send_test,
             deploy::health::health_check,
+            git_cmds::git_status,
+            git_cmds::git_diff_file,
+            git_cmds::git_stage_file,
+            git_cmds::git_unstage_file,
+            git_cmds::git_discard_file,
+            git_cmds::git_commit,
+            git_cmds::git_list_branches,
+            git_cmds::git_create_branch,
+            git_cmds::git_switch_branch,
+            git_cmds::git_delete_branch,
+            git_cmds::git_push,
+            git_cmds::git_pull,
+            git_cmds::git_log,
+            git_cmds::git_read_file,
+            git_cmds::git_write_file,
+            agent_cmds::agent_read_workboard,
         ])
         .run(tauri::generate_context!())
         .expect("error while running RevealUI Studio");

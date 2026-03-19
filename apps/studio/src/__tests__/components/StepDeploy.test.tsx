@@ -138,8 +138,8 @@ describe('StepDeploy', () => {
     const dataWithSupabase: WizardData = {
       ...MOCK_DATA,
       supabaseUrl: 'https://abc.supabase.co',
-      supabaseAnonKey: 'anon_key_123',
-      supabaseServiceKey: 'service_key_123',
+      supabasePublishableKey: 'anon_key_123',
+      supabaseSecretKey: 'service_key_123',
     };
 
     render(<StepDeploy config={MOCK_CONFIG} data={dataWithSupabase} onNext={vi.fn()} />);

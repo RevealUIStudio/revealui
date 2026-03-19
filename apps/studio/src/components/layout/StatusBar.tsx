@@ -12,11 +12,13 @@ export default function StatusBar() {
   const { system, mount, loading, error, refresh } = useStatusContext();
 
   return (
-    <footer className="flex items-center gap-4 border-t border-neutral-800 bg-neutral-900 px-4 py-1.5 text-xs text-neutral-400">
+    <footer className="flex items-center gap-3 border-t border-neutral-800 bg-neutral-900 px-4 py-1.5 text-xs text-neutral-400">
       {error ? (
         <>
           <StatusDot status="error" pulse />
-          <span className="text-red-400">{truncate(error, ERROR_TRUNCATE_LENGTH)}</span>
+          <span className="text-red-400" title={error}>
+            {truncate(error, ERROR_TRUNCATE_LENGTH)}
+          </span>
         </>
       ) : loading ? (
         <>
@@ -25,19 +27,27 @@ export default function StatusBar() {
         </>
       ) : (
         <>
-          <StatusDot status={system?.wsl_running ? 'ok' : 'off'} />
-          <span>WSL {system?.wsl_running ? 'Running' : 'Stopped'}</span>
-          <span className="text-neutral-600">|</span>
-          <span>Tier: {system?.tier ?? '?'}</span>
-          {system?.systemd_status ? (
-            <>
-              <span className="text-neutral-600">|</span>
-              <span>systemd: {system.systemd_status}</span>
-            </>
-          ) : null}
-          <span className="text-neutral-600">|</span>
-          <StatusDot status={mount?.mounted ? 'ok' : 'off'} />
-          <span>Studio: {mount?.mounted ? 'Mounted' : 'Not Mounted'}</span>
+          {/* WSL + systemd group */}
+          <div className="flex items-center gap-2">
+            <StatusDot status={system?.wsl_running ? 'ok' : 'off'} />
+            <span>WSL {system?.wsl_running ? 'Running' : 'Stopped'}</span>
+            {system?.systemd_status ? (
+              <span className="text-neutral-500">({system.systemd_status})</span>
+            ) : null}
+          </div>
+
+          <span className="text-neutral-700">|</span>
+
+          {/* Tier */}
+          <span className="font-medium text-neutral-300">{system?.tier ?? '?'}</span>
+
+          <span className="text-neutral-700">|</span>
+
+          {/* Studio drive */}
+          <div className="flex items-center gap-2">
+            <StatusDot status={mount?.mounted ? 'ok' : 'off'} />
+            <span>Drive {mount?.mounted ? 'Mounted' : 'Unmounted'}</span>
+          </div>
         </>
       )}
       <button
