@@ -15,6 +15,13 @@
       "when": 1773913508365,
       "tag": "0001_wet_grandmaster",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1773918889589,
+      "tag": "0002_strong_adam_destine",
+      "breakpoints": true
     }
   ]
 }
