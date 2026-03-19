@@ -41,7 +41,10 @@ export function AgentMemory({ agentId }: AgentMemoryProps) {
 
   if (error) {
     return (
-      <div className="rounded-lg border border-red-800 bg-red-900/20 p-3 text-sm text-red-400">
+      <div
+        role="alert"
+        className="rounded-lg border border-red-800 bg-red-900/20 p-3 text-sm text-red-400"
+      >
         {error.message}
       </div>
     );
@@ -76,7 +79,10 @@ export function AgentMemory({ agentId }: AgentMemoryProps) {
           );
         })}
         {isLoading && (
-          <div className="ml-auto h-3 w-3 animate-spin rounded-full border border-zinc-600 border-t-zinc-300" />
+          <div
+            className="ml-auto h-3 w-3 animate-spin rounded-full border border-zinc-600 border-t-zinc-300"
+            aria-hidden="true"
+          />
         )}
       </div>
 
@@ -122,6 +128,7 @@ export function AgentMemory({ agentId }: AgentMemoryProps) {
                     disabled={removingId === memory.id}
                     className="shrink-0 rounded p-1 text-zinc-600 opacity-0 transition-all hover:bg-zinc-800 hover:text-red-400 group-hover:opacity-100 disabled:opacity-50"
                     title="Delete memory"
+                    aria-label="Delete memory"
                   >
                     <svg
                       className="h-3.5 w-3.5"

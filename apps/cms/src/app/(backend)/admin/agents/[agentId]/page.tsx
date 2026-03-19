@@ -54,7 +54,12 @@ export default function AgentDetailPage({ params }: PageProps) {
         return r.json();
       })
       .then((data: A2AAgentCard) => setCard(data))
-      .catch((e: unknown) => setError(e instanceof Error ? e.message : 'Failed to load agent'))
+      .catch((e: unknown) => {
+        const message = e instanceof Error ? e.message : 'An unexpected error occurred';
+        setError(
+          `Unable to load agent details. ${message}. Contact support@revealui.com if this persists.`,
+        );
+      })
       .finally(() => setLoading(false));
   }, [agentId, apiUrl]);
 
@@ -65,14 +70,17 @@ export default function AgentDetailPage({ params }: PageProps) {
       const res = await fetch(`${apiUrl}/a2a/agents/${encodeURIComponent(agentId)}/def`, {
         credentials: 'include',
       });
-      if (!res.ok) throw new Error('Failed to load agent definition');
+      if (!res.ok) throw new Error('Unable to load agent definition');
       const data = (await res.json()) as { def: AgentDef };
       setEditName(data.def.name);
       setEditDescription(data.def.description);
       setEditSystemPrompt(data.def.systemPrompt);
       setIsEditing(true);
     } catch (e: unknown) {
-      setSaveError(e instanceof Error ? e.message : 'Failed to load agent');
+      const message = e instanceof Error ? e.message : 'An unexpected error occurred';
+      setSaveError(
+        `Unable to load agent definition. ${message}. Contact support@revealui.com if this persists.`,
+      );
     } finally {
       setLoadingDef(false);
     }
@@ -98,7 +106,10 @@ export default function AgentDetailPage({ params }: PageProps) {
       }
       router.push('/admin/agents');
     } catch (e: unknown) {
-      setRetireError(e instanceof Error ? e.message : 'Retire failed');
+      const message = e instanceof Error ? e.message : 'An unexpected error occurred';
+      setRetireError(
+        `Unable to retire agent. ${message}. Contact support@revealui.com if this persists.`,
+      );
     } finally {
       setRetiring(false);
     }
@@ -127,7 +138,10 @@ export default function AgentDetailPage({ params }: PageProps) {
       setCard(data.card);
       setIsEditing(false);
     } catch (e: unknown) {
-      setSaveError(e instanceof Error ? e.message : 'Save failed');
+      const message = e instanceof Error ? e.message : 'An unexpected error occurred';
+      setSaveError(
+        `Unable to save agent. ${message}. Contact support@revealui.com if this persists.`,
+      );
     } finally {
       setSaving(false);
     }
@@ -156,7 +170,10 @@ export default function AgentDetailPage({ params }: PageProps) {
           )}
 
           {error && (
-            <div className="rounded-lg border border-red-800 bg-red-900/20 p-4 text-sm text-red-400">
+            <div
+              role="alert"
+              className="rounded-lg border border-red-800 bg-red-900/20 p-4 text-sm text-red-400"
+            >
               {error}
             </div>
           )}
@@ -215,7 +232,10 @@ export default function AgentDetailPage({ params }: PageProps) {
                         />
                       </div>
                       {saveError && (
-                        <div className="rounded-lg border border-red-800 bg-red-900/20 p-3 text-sm text-red-400">
+                        <div
+                          role="alert"
+                          className="rounded-lg border border-red-800 bg-red-900/20 p-3 text-sm text-red-400"
+                        >
                           {saveError}
                         </div>
                       )}
@@ -354,7 +374,10 @@ export default function AgentDetailPage({ params }: PageProps) {
                           the agent from the registry. This action cannot be undone.
                         </p>
                         {retireError && (
-                          <div className="rounded-lg border border-red-800 bg-red-900/20 p-3 text-sm text-red-400">
+                          <div
+                            role="alert"
+                            className="rounded-lg border border-red-800 bg-red-900/20 p-3 text-sm text-red-400"
+                          >
                             {retireError}
                           </div>
                         )}

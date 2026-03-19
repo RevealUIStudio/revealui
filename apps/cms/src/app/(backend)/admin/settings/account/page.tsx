@@ -8,6 +8,7 @@ import {
 } from '@revealui/presentation/client';
 import { useSearchParams } from 'next/navigation';
 import { Suspense, useCallback, useEffect, useRef, useState } from 'react';
+import { PasswordChangeForm } from './PasswordChangeForm.js';
 
 // =============================================================================
 // Types
@@ -221,44 +222,6 @@ function AccountSettingsContent() {
 
   // Password change state
   const [showPasswordForm, setShowPasswordForm] = useState(false);
-  const [currentPassword, setCurrentPassword] = useState('');
-  const [newPassword, setNewPassword] = useState('');
-  const [confirmPassword, setConfirmPassword] = useState('');
-  const [changingPassword, setChangingPassword] = useState(false);
-
-  async function handleChangePassword(e: React.FormEvent) {
-    e.preventDefault();
-    if (newPassword !== confirmPassword) {
-      setError('New passwords do not match.');
-      return;
-    }
-    setChangingPassword(true);
-    setError(null);
-    try {
-      const res = await fetch('/api/auth/change-password', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ currentPassword, newPassword }),
-      });
-      if (res.ok) {
-        setSuccess('Password updated successfully.');
-        setShowPasswordForm(false);
-        setCurrentPassword('');
-        setNewPassword('');
-        setConfirmPassword('');
-        await fetchUser();
-      } else {
-        const data = (await res.json()) as { error?: string };
-        setError(
-          data.error ?? 'Unable to change password. Contact support@revealui.com if this persists.',
-        );
-      }
-    } catch {
-      setError('Unable to reach the server. Please check your connection and try again.');
-    } finally {
-      setChangingPassword(false);
-    }
-  }
 
   const linkedSet = new Set(user?.linkedProviders.map((lp) => lp.provider) ?? []);
   const pendingLabel =
@@ -288,7 +251,11 @@ function AccountSettingsContent() {
 
         {/* Loading state */}
         {loading && (
-          <div className="rounded-xl border border-zinc-800 bg-zinc-900 p-5">
+          <section
+            aria-busy="true"
+            aria-label="Loading account settings"
+            className="rounded-xl border border-zinc-800 bg-zinc-900 p-5"
+          >
             <div className="h-5 w-48 animate-pulse rounded bg-zinc-800" />
             <div className="mt-3 h-4 w-72 animate-pulse rounded bg-zinc-800" />
             <div className="mt-6 space-y-3">
@@ -296,7 +263,7 @@ function AccountSettingsContent() {
                 <div key={i} className="h-16 animate-pulse rounded-lg bg-zinc-800" />
               ))}
             </div>
-          </div>
+          </section>
         )}
 
         {/* Account info */}
@@ -351,84 +318,14 @@ function AccountSettingsContent() {
                   to set one.
                 </p>
               ) : showPasswordForm ? (
-                <form onSubmit={(e) => void handleChangePassword(e)} className="mt-4 space-y-3">
-                  <div>
-                    <label
-                      htmlFor="current-password"
-                      className="block text-xs font-medium text-zinc-400 mb-1"
-                    >
-                      Current password
-                    </label>
-                    <input
-                      id="current-password"
-                      type="password"
-                      autoComplete="current-password"
-                      required
-                      value={currentPassword}
-                      onChange={(e) => setCurrentPassword(e.target.value)}
-                      className="w-full rounded-lg border border-zinc-700 bg-zinc-950 px-3 py-2 text-sm text-zinc-200 placeholder:text-zinc-600 focus:border-zinc-500 focus:outline-none"
-                    />
-                  </div>
-                  <div>
-                    <label
-                      htmlFor="new-password"
-                      className="block text-xs font-medium text-zinc-400 mb-1"
-                    >
-                      New password
-                    </label>
-                    <input
-                      id="new-password"
-                      type="password"
-                      autoComplete="new-password"
-                      required
-                      minLength={8}
-                      value={newPassword}
-                      onChange={(e) => setNewPassword(e.target.value)}
-                      className="w-full rounded-lg border border-zinc-700 bg-zinc-950 px-3 py-2 text-sm text-zinc-200 placeholder:text-zinc-600 focus:border-zinc-500 focus:outline-none"
-                    />
-                  </div>
-                  <div>
-                    <label
-                      htmlFor="confirm-password"
-                      className="block text-xs font-medium text-zinc-400 mb-1"
-                    >
-                      Confirm new password
-                    </label>
-                    <input
-                      id="confirm-password"
-                      type="password"
-                      autoComplete="new-password"
-                      required
-                      minLength={8}
-                      value={confirmPassword}
-                      onChange={(e) => setConfirmPassword(e.target.value)}
-                      className="w-full rounded-lg border border-zinc-700 bg-zinc-950 px-3 py-2 text-sm text-zinc-200 placeholder:text-zinc-600 focus:border-zinc-500 focus:outline-none"
-                    />
-                  </div>
-                  <div className="flex gap-2 pt-1">
-                    <button
-                      type="submit"
-                      disabled={
-                        changingPassword || !currentPassword || !newPassword || !confirmPassword
-                      }
-                      className="rounded-lg bg-zinc-100 px-4 py-2 text-sm font-medium text-zinc-900 transition-colors hover:bg-white disabled:cursor-not-allowed disabled:opacity-50"
-                    >
-                      {changingPassword ? 'Updating...' : 'Update password'}
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() => {
-                        setShowPasswordForm(false);
-                        setCurrentPassword('');
-                        setNewPassword('');
-                        setConfirmPassword('');
-                      }}
-                      className="rounded-lg px-4 py-2 text-sm font-medium text-zinc-400 hover:text-zinc-200"
-                    >
-                      Cancel
-                    </button>
-                  </div>
-                </form>
+                <PasswordChangeForm
+                  onSuccess={() => {
+                    setShowPasswordForm(false);
+                    setSuccess('Password updated successfully.');
+                    void fetchUser();
+                  }}
+                  onCancel={() => setShowPasswordForm(false)}
+                />
               ) : (
                 <p className="mt-2 text-sm text-zinc-400">Password is set.</p>
               )}

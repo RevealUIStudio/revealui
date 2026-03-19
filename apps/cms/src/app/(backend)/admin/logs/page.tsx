@@ -122,7 +122,10 @@ export default async function LogsPage({ searchParams }: PageProps) {
         </div>
 
         {dbError && (
-          <div className="m-4 p-3 bg-red-900 border border-red-700 rounded text-red-200 text-sm">
+          <div
+            role="alert"
+            className="m-4 p-3 bg-red-900 border border-red-700 rounded text-red-200 text-sm"
+          >
             Failed to load logs: {dbError}
           </div>
         )}
@@ -181,7 +184,7 @@ export default async function LogsPage({ searchParams }: PageProps) {
                         {row.requestId ? row.requestId.slice(0, 8) : '—'}
                       </td>
                       <td className="px-4 py-2 text-gray-200">
-                        <div className="truncate max-w-xl" title={row.message}>
+                        <div className="truncate" title={row.message}>
                           {row.message}
                         </div>
                         {!!row.data && (

@@ -82,21 +82,32 @@ function AgentCardsPanel() {
         }));
         setAgents(withIds);
       })
-      .catch((e: unknown) => setError(e instanceof Error ? e.message : 'Failed to load agents'))
+      .catch((e: unknown) => {
+        const message = e instanceof Error ? e.message : 'An unexpected error occurred';
+        setError(
+          `Unable to load agent list. ${message}. Contact support@revealui.com if this persists.`,
+        );
+      })
       .finally(() => setLoading(false));
   }, [apiUrl]);
 
   if (loading) {
     return (
-      <div className="flex h-32 items-center justify-center">
-        <div className="h-5 w-5 animate-spin rounded-full border-2 border-zinc-600 border-t-zinc-200" />
-      </div>
+      <output aria-label="Loading" className="flex h-32 items-center justify-center">
+        <div
+          className="h-5 w-5 animate-spin rounded-full border-2 border-zinc-600 border-t-zinc-200"
+          aria-hidden="true"
+        />
+      </output>
     );
   }
 
   if (error) {
     return (
-      <div className="rounded-lg border border-red-800 bg-red-900/20 p-4 text-sm text-red-400">
+      <div
+        role="alert"
+        className="rounded-lg border border-red-800 bg-red-900/20 p-4 text-sm text-red-400"
+      >
         {error}
       </div>
     );
@@ -141,23 +152,32 @@ function McpServersPanel() {
     fetch('/api/mcp/servers')
       .then((r) => r.json())
       .then((data: { servers: McpServerInfo[] }) => setServers(data.servers ?? []))
-      .catch((e: unknown) =>
-        setError(e instanceof Error ? e.message : 'Failed to load MCP servers'),
-      )
+      .catch((e: unknown) => {
+        const message = e instanceof Error ? e.message : 'An unexpected error occurred';
+        setError(
+          `Unable to load MCP servers. ${message}. Contact support@revealui.com if this persists.`,
+        );
+      })
       .finally(() => setLoading(false));
   }, []);
 
   if (loading) {
     return (
-      <div className="flex h-32 items-center justify-center">
-        <div className="h-5 w-5 animate-spin rounded-full border-2 border-zinc-600 border-t-zinc-200" />
-      </div>
+      <output aria-label="Loading" className="flex h-32 items-center justify-center">
+        <div
+          className="h-5 w-5 animate-spin rounded-full border-2 border-zinc-600 border-t-zinc-200"
+          aria-hidden="true"
+        />
+      </output>
     );
   }
 
   if (error) {
     return (
-      <div className="rounded-lg border border-red-800 bg-red-900/20 p-4 text-sm text-red-400">
+      <div
+        role="alert"
+        className="rounded-lg border border-red-800 bg-red-900/20 p-4 text-sm text-red-400"
+      >
         {error}
       </div>
     );

@@ -18,11 +18,12 @@ import {
   verifyRegistration,
 } from '@revealui/auth/server';
 import { PasskeyRegisterVerifyRequestSchema } from '@revealui/contracts';
+import { getMaxUsers, initializeLicense } from '@revealui/core/license';
 import { logger } from '@revealui/core/utils/logger';
 import { getClient } from '@revealui/db';
 import { users } from '@revealui/db/schema';
 import type { RegistrationResponseJSON } from '@simplewebauthn/server';
-import { eq } from 'drizzle-orm';
+import { count, eq, sql } from 'drizzle-orm';
 import { type NextRequest, NextResponse } from 'next/server';
 import { withRateLimit } from '@/lib/middleware/rate-limit';
 import {
@@ -108,6 +109,40 @@ async function registerVerifyHandler(request: NextRequest): Promise<NextResponse
     if (isSignUpFlow) {
       // Sign-up flow: create user, store passkey, create session
       const db = getClient();
+
+      // Enforce user limit based on license tier (R5-H11 fix — was missing from passkey flow)
+      try {
+        await initializeLicense();
+        const maxUsers = getMaxUsers();
+        if (maxUsers !== Infinity) {
+          let limitExceeded = false;
+          let limitMsg = '';
+          await db.transaction(async (tx) => {
+            await tx.execute(sql`SELECT pg_advisory_xact_lock(42000001)`);
+            const [row] = await tx
+              .select({ total: count() })
+              .from(users)
+              .where(eq(users.status, 'active'));
+            const activeCount = row?.total ?? 0;
+            if (activeCount >= maxUsers) {
+              limitExceeded = true;
+              limitMsg = `User limit reached (${activeCount}/${maxUsers}). Upgrade your license to add more users.`;
+            }
+          });
+          if (limitExceeded) {
+            return createApplicationErrorResponse(limitMsg, 'USER_LIMIT_REACHED', 403);
+          }
+        }
+      } catch (limitError) {
+        logger.error('User limit check failed during passkey sign-up', {
+          error: limitError instanceof Error ? limitError.message : String(limitError),
+        });
+        return createApplicationErrorResponse(
+          'Unable to verify account limits. Please try again.',
+          'LIMIT_CHECK_FAILED',
+          503,
+        );
+      }
 
       // Double-check email isn't taken (race condition protection)
       const [existing] = await db

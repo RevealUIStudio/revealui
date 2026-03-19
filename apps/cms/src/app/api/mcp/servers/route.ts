@@ -111,7 +111,7 @@ const MCP_SERVERS: McpServerInfo[] = [
     description: 'Query Supabase tables, manage vector embeddings, and use Supabase Auth.',
     status: 'configured',
     packageName: 'supabase-mcp',
-    envRequired: ['SUPABASE_URL', 'SUPABASE_SERVICE_ROLE_KEY'],
+    envRequired: ['SUPABASE_URL', 'SUPABASE_SECRET_KEY'],
     tools: [
       { name: 'query', description: 'Run a SQL query against Supabase', parameterCount: 2 },
       {

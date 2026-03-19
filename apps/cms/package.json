@@ -5,6 +5,7 @@
   "description": "Headless CMS powered by RevealUI",
   "license": "MIT",
   "dependencies": {
+    "@conform-to/react": "^1.17.1",
     "@electric-sql/client": "^1.0.27",
     "@electric-sql/react": "^1.0.27",
     "@revealui/auth": "workspace:*",
