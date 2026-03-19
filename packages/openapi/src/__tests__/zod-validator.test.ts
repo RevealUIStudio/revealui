@@ -119,7 +119,7 @@ describe('zValidator', () => {
 
     app.post(
       '/test',
-      zValidator('json', schema, (result, c) => {
+      zValidator('json', schema, (result, _c) => {
         if (result.success) {
           // Hook does nothing on success — falls through to handler
         }

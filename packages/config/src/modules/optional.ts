@@ -6,8 +6,8 @@ import type { EnvConfig } from '../schema.js';
 
 export interface SupabaseConfig {
   url?: string;
-  anonKey?: string;
-  serviceRoleKey?: string;
+  publishableKey?: string;
+  secretKey?: string;
   databaseUri?: string;
 }
 
@@ -32,8 +32,8 @@ export interface OptionalConfig {
 export function getSupabaseConfig(env: EnvConfig): SupabaseConfig {
   return {
     url: env.NEXT_PUBLIC_SUPABASE_URL || undefined,
-    anonKey: env.NEXT_PUBLIC_SUPABASE_ANON_KEY || undefined,
-    serviceRoleKey: env.SUPABASE_SERVICE_ROLE_KEY || undefined,
+    publishableKey: env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY || undefined,
+    secretKey: env.SUPABASE_SECRET_KEY || undefined,
     databaseUri: env.SUPABASE_DATABASE_URI || undefined,
   };
 }

@@ -251,13 +251,13 @@ describe('promptStorageConfig', () => {
     mockPrompt.mockResolvedValueOnce({ provider: 'supabase' });
     mockPrompt.mockResolvedValueOnce({
       supabaseUrl: 'https://abc.supabase.co',
-      supabaseAnonKey: 'eyJ...',
+      supabasePublishableKey: 'eyJ...',
     });
     const result = await promptStorageConfig();
     expect(result).toEqual({
       provider: 'supabase',
       supabaseUrl: 'https://abc.supabase.co',
-      supabaseAnonKey: 'eyJ...',
+      supabasePublishableKey: 'eyJ...',
     });
   });
 
@@ -272,7 +272,7 @@ describe('promptStorageConfig', () => {
     mockPrompt.mockResolvedValueOnce({ provider: 'supabase' });
     mockPrompt.mockResolvedValueOnce({
       supabaseUrl: 'https://abc.supabase.co',
-      supabaseAnonKey: 'key',
+      supabasePublishableKey: 'key',
     });
     await promptStorageConfig();
     expect(mockPrompt).toHaveBeenCalledTimes(2);

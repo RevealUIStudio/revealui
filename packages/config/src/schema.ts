@@ -85,7 +85,7 @@ const optionalSchema = z.object({
 
   // Supabase
   NEXT_PUBLIC_SUPABASE_URL: urlSchema.optional(),
-  NEXT_PUBLIC_SUPABASE_ANON_KEY: z.string().optional(),
+  NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY: z.string().optional(),
   SUPABASE_DATABASE_URI: postgresUrlSchema.optional(),
 
   // Electric
@@ -104,7 +104,7 @@ const optionalSchema = z.object({
 
   // Dev Tools
   NEON_API_KEY: z.string().optional(),
-  SUPABASE_SERVICE_ROLE_KEY: z.string().optional(),
+  SUPABASE_SECRET_KEY: z.string().optional(),
   STRIPE_PROXY: z.enum(['0', '1']).optional(),
   SKIP_ONINIT: z.enum(['true', 'false']).optional(),
 

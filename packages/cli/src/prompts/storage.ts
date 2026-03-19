@@ -9,7 +9,7 @@ export interface StorageConfig {
   provider: 'vercel-blob' | 'supabase' | 'skip';
   blobToken?: string;
   supabaseUrl?: string;
-  supabaseAnonKey?: string;
+  supabasePublishableKey?: string;
 }
 
 export async function promptStorageConfig(): Promise<StorageConfig> {
@@ -74,11 +74,11 @@ export async function promptStorageConfig(): Promise<StorageConfig> {
     },
     {
       type: 'input',
-      name: 'supabaseAnonKey',
-      message: 'Enter your Supabase anonymous key:',
+      name: 'supabasePublishableKey',
+      message: 'Enter your Supabase publishable key (sb_publishable_...):',
       validate: (input: string) => {
         if (!input || input.trim() === '') {
-          return 'Supabase anonymous key is required';
+          return 'Supabase publishable key is required';
         }
         return true;
       },
@@ -88,6 +88,6 @@ export async function promptStorageConfig(): Promise<StorageConfig> {
   return {
     provider: 'supabase',
     supabaseUrl: answers.supabaseUrl,
-    supabaseAnonKey: answers.supabaseAnonKey,
+    supabasePublishableKey: answers.supabasePublishableKey,
   };
 }

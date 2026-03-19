@@ -201,22 +201,22 @@ describe('config modules', () => {
       const config = getSupabaseConfig(
         makeEnv({
           NEXT_PUBLIC_SUPABASE_URL: 'https://abc.supabase.co',
-          NEXT_PUBLIC_SUPABASE_ANON_KEY: 'anon-key',
-          SUPABASE_SERVICE_ROLE_KEY: 'service-role-key',
+          NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY: 'publishable-key',
+          SUPABASE_SECRET_KEY: 'secret-key',
           SUPABASE_DATABASE_URI: 'postgresql://supabase:5432/db',
         }),
       );
       expect(config.url).toBe('https://abc.supabase.co');
-      expect(config.anonKey).toBe('anon-key');
-      expect(config.serviceRoleKey).toBe('service-role-key');
+      expect(config.publishableKey).toBe('publishable-key');
+      expect(config.secretKey).toBe('secret-key');
       expect(config.databaseUri).toBe('postgresql://supabase:5432/db');
     });
 
     it('returns undefined for unset fields', () => {
       const config = getSupabaseConfig(makeEnv());
       expect(config.url).toBeUndefined();
-      expect(config.anonKey).toBeUndefined();
-      expect(config.serviceRoleKey).toBeUndefined();
+      expect(config.publishableKey).toBeUndefined();
+      expect(config.secretKey).toBeUndefined();
       expect(config.databaseUri).toBeUndefined();
     });
 
@@ -224,11 +224,11 @@ describe('config modules', () => {
       const config = getSupabaseConfig(
         makeEnv({
           NEXT_PUBLIC_SUPABASE_URL: '',
-          NEXT_PUBLIC_SUPABASE_ANON_KEY: '',
+          NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY: '',
         }),
       );
       expect(config.url).toBeUndefined();
-      expect(config.anonKey).toBeUndefined();
+      expect(config.publishableKey).toBeUndefined();
     });
   });
 
