@@ -338,13 +338,13 @@ describe('@revealui/config', () => {
 
     it('should handle optional Supabase config', () => {
       process.env.NEXT_PUBLIC_SUPABASE_URL = 'https://test.supabase.co';
-      process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY = 'test-anon-key';
+      process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY = 'test-publishable-key';
 
       resetConfig(); // Reset again after adding optional vars
       const config = getConfig();
 
       expect(config.optional.supabase.url).toBe('https://test.supabase.co');
-      expect(config.optional.supabase.anonKey).toBe('test-anon-key');
+      expect(config.optional.supabase.publishableKey).toBe('test-publishable-key');
     });
 
     it('should handle optional Sentry config', () => {

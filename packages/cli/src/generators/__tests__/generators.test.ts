@@ -300,13 +300,13 @@ describe('generateEnvFile', () => {
       storage: {
         provider: 'supabase',
         supabaseUrl: 'https://abc.supabase.co',
-        supabaseAnonKey: 'eyJhbGc...',
+        supabasePublishableKey: 'sb_publishable_test',
       },
     };
     await generateEnvFile('/tmp/my-app', config);
     const content = mockWriteFile.mock.calls[0][1] as string;
     expect(content).toContain('NEXT_PUBLIC_SUPABASE_URL=https://abc.supabase.co');
-    expect(content).toContain('NEXT_PUBLIC_SUPABASE_ANON_KEY=eyJhbGc...');
+    expect(content).toContain('NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY=sb_publishable_test');
   });
 
   it('comments out storage when provider is not configured', async () => {

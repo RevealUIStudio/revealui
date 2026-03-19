@@ -296,7 +296,6 @@ export class OpenAPIHono<
    */
   // biome-ignore lint/suspicious/noExplicitAny: Hono's route() accepts any Hono instance shape
   route<SubPath extends string>(path: SubPath, app?: Hono<any, any, any>) {
-    // biome-ignore lint/suspicious/noExplicitAny: matching Hono's route() signature — app is optional in JS but TS requires 2 args
     if (!app) return (super.route as (path: string) => this)(path);
 
     const pathForOpenAPI = path.replaceAll(/:([^/]+)/g, '{$1}');
