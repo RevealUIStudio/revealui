@@ -1,6 +1,6 @@
 # RevealUI
 
-RevealUI is Business OS Software (BOSS) — users, content, products, payments, and AI, pre-wired, open source, and ready to deploy.
+RevealUI is Business Operating System Software (B.O.S.S.) — users, content, products, payments, and AI, pre-wired, open source, and ready to deploy.
 
 ## Five Primitives
 

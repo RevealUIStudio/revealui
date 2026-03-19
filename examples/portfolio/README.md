@@ -211,7 +211,7 @@ import { ProjectCard } from '@revealui/core/generated/components'
 ## Support
 
 - [GitHub Issues](https://github.com/RevealUIStudio/revealui/issues)
-- [Discord Community](https://discord.gg/revealui)
+- [Discourse Community](https://community.revealui.com)
 - [Documentation](https://docs.revealui.com)
 
 ---

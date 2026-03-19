@@ -96,7 +96,7 @@ The GitHub repo is [RevealUIStudio/revealui](https://github.com/RevealUIStudio/r
 
 If you're building a TypeScript SaaS product and you've done the auth-CMS-billing loop more than once, RevealUI is for you. If you want to understand how a production billing + auth + CMS system fits together, the source is all there.
 
-I'd love feedback. The quick-start guide is at [docs.revealui.com](https://docs.revealui.com). Discord is at [discord.gg/revealui](https://discord.gg/revealui) — still small, join early.
+I'd love feedback. The quick-start guide is at [docs.revealui.com](https://docs.revealui.com). The community forum is at [community.revealui.com](https://community.revealui.com) — still small, join early.
 
 ---
 

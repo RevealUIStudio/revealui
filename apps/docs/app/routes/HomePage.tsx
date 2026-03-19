@@ -3,7 +3,7 @@ import { renderMarkdown } from '../utils/markdown';
 export function HomePage() {
   const content = `# RevealUI Documentation
 
-Business OS Software (BOSS). Users, content, products, payments, and AI — pre-wired, open source, and ready to deploy.
+Business Operating System Software (B.O.S.S.). Users, content, products, payments, and AI — pre-wired, open source, and ready to deploy.
 
 ## Quick Start
 

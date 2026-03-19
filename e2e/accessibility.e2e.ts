@@ -71,7 +71,7 @@ test.describe('Accessibility', () => {
 
   test.describe('Settings page', () => {
     test('account settings page meets WCAG 2.1 AA standards', async ({ page }) => {
-      await page.goto(`${CmsBase}/admin/account`, { waitUntil: 'domcontentloaded' });
+      await page.goto(`${CmsBase}/admin/settings/account`, { waitUntil: 'domcontentloaded' });
       await checkAccessibility(page);
     });
   });

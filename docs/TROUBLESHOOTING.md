@@ -444,8 +444,8 @@ Comprehensive troubleshooting guide for common RevealUI issues.
    - Request features
    - Track progress
 
-3. **Discord Community** - [Join here](https://discord.gg/revealui)
-   - Real-time chat
+3. **Discourse Community** - [Join here](https://community.revealui.com)
+   - Discussion forums
    - Quick questions
    - Community help
 
