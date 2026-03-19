@@ -8,8 +8,8 @@ export function Footer() {
           <div className="lg:col-span-2">
             <div className="text-2xl font-bold tracking-tight text-white mb-4">RevealUI</div>
             <p className="text-gray-400 text-sm leading-6 max-w-sm">
-              Business OS Software (BOSS). Users, content, products, payments, and AI — pre-wired,
-              open source, and ready to deploy.
+              Business Operating System Software (B.O.S.S.). Users, content, products, payments, and
+              AI — pre-wired, open source, and ready to deploy.
             </p>
             <div className="mt-6 flex gap-4">
               <a
@@ -109,6 +109,16 @@ export function Footer() {
                   className="hover:text-white transition-colors"
                 >
                   Discussions
+                </a>
+              </li>
+              <li>
+                <a
+                  href="https://community.revealui.com"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="hover:text-white transition-colors"
+                >
+                  Forum
                 </a>
               </li>
               <li>

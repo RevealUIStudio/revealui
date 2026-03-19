@@ -334,6 +334,150 @@ export default async function PricingPage() {
         </div>
       </section>
 
+      {/* For AI Agents */}
+      <section id="for-agents" className="bg-gray-950 py-24 sm:py-32">
+        <div className="mx-auto max-w-7xl px-6 lg:px-8">
+          <div className="mx-auto max-w-4xl">
+            <div className="text-center mb-12">
+              <span className="text-sm font-semibold tracking-wide text-emerald-400 uppercase">
+                Agent-Native
+              </span>
+              <h2 className="mt-2 text-3xl font-bold tracking-tight text-white sm:text-4xl">
+                RevealUI for AI Agents
+              </h2>
+              <p className="mt-4 text-lg text-gray-400">
+                Agents discover, authenticate, and pay without human intervention.
+              </p>
+            </div>
+
+            <div className="grid grid-cols-1 gap-6 sm:grid-cols-3">
+              {/* Discovery */}
+              <div className="rounded-2xl bg-gray-900 ring-1 ring-white/10 p-6">
+                <div className="mb-3 flex h-10 w-10 items-center justify-center rounded-lg bg-emerald-500/10 ring-1 ring-emerald-500/20">
+                  <svg
+                    className="h-5 w-5 text-emerald-400"
+                    fill="none"
+                    viewBox="0 0 24 24"
+                    strokeWidth={1.5}
+                    stroke="currentColor"
+                  >
+                    <title>Discovery</title>
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      d="m21 21-5.197-5.197m0 0A7.5 7.5 0 1 0 5.196 5.196a7.5 7.5 0 0 0 10.607 10.607Z"
+                    />
+                  </svg>
+                </div>
+                <h3 className="text-base font-semibold text-white">A2A Discovery</h3>
+                <p className="mt-2 text-sm text-gray-400">
+                  Agents find RevealUI via a standard Agent Card at{' '}
+                  <a
+                    href="https://api.revealui.com/.well-known/agent.json"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="text-emerald-400 hover:text-emerald-300 break-all"
+                  >
+                    /.well-known/agent.json
+                  </a>
+                  . Capabilities, skills, and pricing all machine-readable.
+                </p>
+              </div>
+
+              {/* Payment */}
+              <div className="rounded-2xl bg-gray-900 ring-1 ring-white/10 p-6">
+                <div className="mb-3 flex h-10 w-10 items-center justify-center rounded-lg bg-blue-500/10 ring-1 ring-blue-500/20">
+                  <svg
+                    className="h-5 w-5 text-blue-400"
+                    fill="none"
+                    viewBox="0 0 24 24"
+                    strokeWidth={1.5}
+                    stroke="currentColor"
+                  >
+                    <title>Payment</title>
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      d="M2.25 8.25h19.5M2.25 9h19.5m-16.5 5.25h6m-6 2.25h3m-3.75 3h15a2.25 2.25 0 0 0 2.25-2.25V6.75A2.25 2.25 0 0 0 19.5 4.5h-15a2.25 2.25 0 0 0-2.25 2.25v10.5A2.25 2.25 0 0 0 4.5 19.5Z"
+                    />
+                  </svg>
+                </div>
+                <h3 className="text-base font-semibold text-white">x402 Per-Call Payments</h3>
+                <p className="mt-2 text-sm text-gray-400">
+                  Agents pay per task with USDC on Base via the HTTP 402 payment protocol. No
+                  accounts, no subscriptions — pay exactly for what you use.
+                </p>
+                <p className="mt-3 text-xs text-gray-500">
+                  $0.001 per agent task · First 1,000/month free
+                </p>
+              </div>
+
+              {/* MCP */}
+              <div className="rounded-2xl bg-gray-900 ring-1 ring-white/10 p-6">
+                <div className="mb-3 flex h-10 w-10 items-center justify-center rounded-lg bg-purple-500/10 ring-1 ring-purple-500/20">
+                  <svg
+                    className="h-5 w-5 text-purple-400"
+                    fill="none"
+                    viewBox="0 0 24 24"
+                    strokeWidth={1.5}
+                    stroke="currentColor"
+                  >
+                    <title>MCP</title>
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      d="M14.25 6.087c0-.355.186-.676.401-.959.221-.29.349-.634.349-1.003 0-1.036-1.007-1.875-2.25-1.875s-2.25.84-2.25 1.875c0 .369.128.713.349 1.003.215.283.401.604.401.959v0a.64.64 0 0 1-.657.643 48.39 48.39 0 0 1-4.163-.3c.186 1.613.293 3.25.315 4.907a.656.656 0 0 1-.658.663v0c-.355 0-.676-.186-.959-.401a1.647 1.647 0 0 0-1.003-.349c-1.036 0-1.875 1.007-1.875 2.25s.84 2.25 1.875 2.25c.369 0 .713-.128 1.003-.349.283-.215.604-.401.959-.401v0c.31 0 .555.26.532.57a48.039 48.039 0 0 1-.642 5.056c1.518.19 3.058.309 4.616.354a.64.64 0 0 0 .657-.643v0c0-.355-.186-.676-.401-.959a1.647 1.647 0 0 1-.349-1.003c0-1.035 1.008-1.875 2.25-1.875 1.243 0 2.25.84 2.25 1.875 0 .369-.128.713-.349 1.003-.215.283-.401.604-.401.959v0c0 .333.277.599.61.58a48.1 48.1 0 0 0 5.427-.63 48.05 48.05 0 0 0 .582-4.717.532.532 0 0 0-.533-.57v0c-.355 0-.676.186-.959.401-.29.221-.634.349-1.003.349-1.036 0-1.875-1.008-1.875-2.25s.84-2.25 1.875-2.25c.369 0 .713.128 1.003.349.283.215.604.401.959.401v0c.317 0 .573-.262.553-.578a48.14 48.14 0 0 0-.529-5.004.546.546 0 0 0-.574-.473 40.098 40.098 0 0 0-4.93.357.62.62 0 0 1-.658-.647v0Z"
+                    />
+                  </svg>
+                </div>
+                <h3 className="text-base font-semibold text-white">MCP Servers</h3>
+                <p className="mt-2 text-sm text-gray-400">
+                  5 production MCP servers: Stripe, Neon, Supabase, Vercel, Playwright. Discoverable
+                  on Smithery, mcpt, and the RevealUI marketplace.
+                </p>
+                <a
+                  href="https://docs.revealui.com/mcp"
+                  className="mt-3 inline-block text-xs font-semibold text-purple-400 hover:text-purple-300"
+                >
+                  MCP docs →
+                </a>
+              </div>
+            </div>
+
+            <div className="mt-10 text-center">
+              <a
+                href="https://api.revealui.com/openapi.json"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="inline-flex items-center gap-2 rounded-lg bg-white/5 px-4 py-2 text-sm font-medium text-gray-300 ring-1 ring-white/10 hover:bg-white/10 transition-colors"
+              >
+                <svg
+                  className="h-4 w-4"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                  strokeWidth={1.5}
+                  stroke="currentColor"
+                >
+                  <title>API</title>
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    d="M17.25 6.75 22.5 12l-5.25 5.25m-10.5 0L1.5 12l5.25-5.25m7.5-3-4.5 16.5"
+                  />
+                </svg>
+                OpenAPI spec
+              </a>
+              <a
+                href="https://docs.revealui.com/api"
+                className="ml-4 inline-flex items-center gap-2 rounded-lg bg-emerald-500 px-4 py-2 text-sm font-semibold text-white hover:bg-emerald-400 transition-colors"
+              >
+                API docs
+              </a>
+            </div>
+          </div>
+        </div>
+      </section>
+
       {/* FAQ Section */}
       <section className="bg-gray-50 py-24 sm:py-32">
         <div className="mx-auto max-w-7xl px-6 lg:px-8">

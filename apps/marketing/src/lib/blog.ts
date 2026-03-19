@@ -7,6 +7,7 @@ export interface BlogPost {
   content: unknown;
   publishedAt: string | null;
   createdAt: string;
+  // biome-ignore lint/style/useNamingConvention: CMS API returns _json field with raw Lexical content
   _json?: Record<string, unknown>;
 }
 
