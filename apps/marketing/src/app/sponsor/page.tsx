@@ -212,7 +212,7 @@ export default function SponsorPage() {
                 </div>
                 <h3 className="mt-4 text-lg font-semibold text-gray-900">Community</h3>
                 <p className="mt-2 text-sm text-gray-600">
-                  Discord, issue triage, code reviews, and mentorship.
+                  Discourse forums, issue triage, code reviews, and mentorship.
                 </p>
               </div>
             </div>
