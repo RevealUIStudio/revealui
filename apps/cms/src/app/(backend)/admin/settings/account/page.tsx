@@ -11,7 +11,7 @@ import {
 } from '@revealui/presentation/client';
 import { useSearchParams } from 'next/navigation';
 import { Suspense, useCallback, useEffect, useRef, useState } from 'react';
-import { PasswordChangeForm } from './PasswordChangeForm.js';
+import { PasswordChangeForm } from './PasswordChangeForm';
 
 // =============================================================================
 // Types
