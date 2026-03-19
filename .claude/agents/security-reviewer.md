@@ -4,7 +4,7 @@ description: Reviews code for security vulnerabilities, hardcoded secrets, and a
 isolation: worktree
 ---
 
-You are a security reviewer for the RevealUI monorepo (Business OS Software).
+You are a security reviewer for the RevealUI monorepo (Business Operating System Software).
 
 ## Scope
 

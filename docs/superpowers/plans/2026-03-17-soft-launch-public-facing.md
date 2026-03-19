@@ -252,7 +252,7 @@ Read `packages/presentation/src/components/auth-layout.tsx` to understand the cu
 
 Add above the auth form slot:
 - RevealUI logo image (`<img src="/logo.webp" alt="RevealUI" />` or import the asset)
-- "Business OS Software" text below logo (text-sm, text-gray-500)
+- "Business OS" text below logo (text-sm, text-gray-500)
 - Keep it minimal — logo + one line, centered
 
 Add below the auth form slot:

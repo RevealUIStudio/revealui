@@ -1,6 +1,6 @@
 # RevealUI Documentation
 
-Business OS Software (BOSS). Build your business, not your boilerplate.
+Business Operating System Software (B.O.S.S.). Build your business, not your boilerplate.
 
 ## Getting Started
 

@@ -165,7 +165,7 @@ CMS is the product, not a marketing channel. When you arrive, you're here to wor
 
 **Unauthenticated root → branded login gate:**
 - Branding added to `AuthLayout` component (from `@revealui/presentation/server`) so all auth pages are consistent (login, signup, reset-password, MFA)
-- RevealUI logo (use `public/logo.webp` or AVIF variant) + "Business OS Software" one-liner
+- RevealUI logo (use `public/logo.webp` or AVIF variant) + "Business OS" one-liner
 - Login form (email/password, passkey, OAuth)
 - "Create account" link → signup page
 - Subtle footer: "Learn more at revealui.com"

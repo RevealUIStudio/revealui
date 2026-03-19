@@ -1,6 +1,6 @@
 # RevealUI Monorepo
 
-Business OS Software (BOSS). Build your business, not your boilerplate. Users, content, products, payments, and AI — pre-wired, open source, and ready to deploy.
+Business Operating System Software (B.O.S.S.). Build your business, not your boilerplate. Users, content, products, payments, and AI — pre-wired, open source, and ready to deploy.
 
 ## Current Phase
 **Phase 3 — Launch Preparation** (docs, OSS prep, marketing, Pro distribution).
