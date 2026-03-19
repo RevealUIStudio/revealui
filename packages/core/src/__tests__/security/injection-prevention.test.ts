@@ -7,7 +7,7 @@
  * allowlists, and column name validation.
  */
 
-import { beforeEach, describe, expect, it, vi } from 'vitest';
+import { describe, expect, it, vi } from 'vitest';
 import { create } from '../../collections/operations/create.js';
 import { find } from '../../collections/operations/find.js';
 import { findByID } from '../../collections/operations/findById.js';

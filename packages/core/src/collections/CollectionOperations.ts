@@ -6,6 +6,10 @@
  */
 
 import type {
+  BatchCreateOptions,
+  BatchDeleteOptions,
+  BatchResult,
+  BatchUpdateOptions,
   CollectionStorageDescriptor,
   PopulateType,
   QueryableDatabaseAdapter,
@@ -19,10 +23,13 @@ import type {
   RevealUpdateOptions,
 } from '../types/index.js';
 import { create } from './operations/create.js';
+import { createMany } from './operations/createMany.js';
 import { deleteDocument } from './operations/delete.js';
+import { deleteMany } from './operations/deleteMany.js';
 import { find } from './operations/find.js';
 import { findByID } from './operations/findById.js';
 import { update } from './operations/update.js';
+import { updateMany } from './operations/updateMany.js';
 
 export class RevealUICollection {
   config: RevealCollectionConfig;
@@ -62,5 +69,17 @@ export class RevealUICollection {
 
   async delete(options: RevealDeleteOptions): Promise<RevealDocument> {
     return deleteDocument(this.config, this.db, options);
+  }
+
+  async createMany(options: BatchCreateOptions): Promise<BatchResult<RevealDocument>> {
+    return createMany(this.config, this.db, options);
+  }
+
+  async updateMany(options: BatchUpdateOptions): Promise<BatchResult<RevealDocument>> {
+    return updateMany(this.config, this.db, options);
+  }
+
+  async deleteMany(options: BatchDeleteOptions): Promise<BatchResult<RevealDocument>> {
+    return deleteMany(this.config, this.db, options);
   }
 }

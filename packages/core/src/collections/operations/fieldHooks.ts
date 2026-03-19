@@ -26,6 +26,7 @@ export async function runBeforeFieldHooks(
   operation: 'create' | 'update',
   hookType: 'beforeValidate' | 'beforeChange',
   originalDoc?: RevealDocument,
+  req?: RevealRequest,
 ): Promise<void> {
   const fields = flattenFields(config.fields || []);
 
@@ -39,8 +40,8 @@ export async function runBeforeFieldHooks(
 
     for (const hook of hooks) {
       // Hooks in this codebase receive the contract-defined FieldBeforeChangeHookArgs.
-      // req is required by the type but none of the existing write hooks use it;
-      // cast an empty object to avoid threading req through the entire operation chain.
+      // Thread req from the caller when available; fall back to an empty object
+      // for backward compatibility with call sites that don't provide it yet.
       value = await (
         hook as (args: {
           value: unknown;
@@ -56,7 +57,7 @@ export async function runBeforeFieldHooks(
         value,
         data,
         siblingData: data,
-        req: {} as RevealRequest,
+        req: req ?? ({} as RevealRequest),
         operation,
         originalDoc,
         context: {},

@@ -26,6 +26,38 @@ import {
 } from './sqlAdapter.js';
 
 /**
+ * Recursively deep-merge two plain objects. Arrays, nulls, Dates, and
+ * primitives in `source` replace the corresponding key in `target`.
+ * Only plain-object vs plain-object pairs are merged recursively.
+ */
+function deepMergeJson(
+  target: Record<string, unknown>,
+  source: Record<string, unknown>,
+): Record<string, unknown> {
+  const result = structuredClone(target);
+  for (const key of Object.keys(source)) {
+    const sourceVal = source[key];
+    const targetVal = result[key];
+    if (
+      sourceVal !== null &&
+      typeof sourceVal === 'object' &&
+      !Array.isArray(sourceVal) &&
+      targetVal !== null &&
+      typeof targetVal === 'object' &&
+      !Array.isArray(targetVal)
+    ) {
+      result[key] = deepMergeJson(
+        targetVal as Record<string, unknown>,
+        sourceVal as Record<string, unknown>,
+      );
+    } else {
+      result[key] = structuredClone(sourceVal);
+    }
+  }
+  return result;
+}
+
+/**
  * Evaluate a collection's access.update function.
  * Returns true (allow) or false (deny).
  */
@@ -76,7 +108,7 @@ export async function update(
   }
 
   // Run beforeValidate field hooks before validation so they can transform values.
-  await runBeforeFieldHooks(config, data, 'update', 'beforeValidate');
+  await runBeforeFieldHooks(config, data, 'update', 'beforeValidate', undefined, options.req);
 
   // Validate email format if email field is being updated
   if (config.fields) {
@@ -112,7 +144,7 @@ export async function update(
   }
 
   // Run beforeChange field hooks after validation but before the DB write.
-  await runBeforeFieldHooks(config, data, 'update', 'beforeChange');
+  await runBeforeFieldHooks(config, data, 'update', 'beforeChange', undefined, options.req);
 
   // Hash password if present and not already hashed (doesn't start with $2a$ or $2b$)
   if (data.password && typeof data.password === 'string' && !data.password.startsWith('$2')) {
@@ -204,7 +236,7 @@ export async function update(
     // Merge existing JSON with updates (only if we have JSON fields)
     let mergedJson: Record<string, unknown> = {};
     if (jsonFieldNames.size > 0) {
-      mergedJson = { ...existingJson, ...jsonUpdates };
+      mergedJson = deepMergeJson(existingJson, jsonUpdates);
 
       // Only include _json in UPDATE if there are actual changes or existing JSON to preserve
       if (jsonKeys.length > 0 || Object.keys(existingJson).length > 0) {
