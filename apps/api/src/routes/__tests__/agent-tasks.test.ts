@@ -19,6 +19,11 @@ vi.mock('@revealui/db/queries/ticket-comments', () => ({
   createComment: vi.fn(),
 }));
 
+// Mock cross-DB validation so memory insert passes through without a real DB
+vi.mock('@revealui/db/validation/cross-db', () => ({
+  safeVectorInsert: vi.fn(async (_db: unknown, insertFn: () => Promise<unknown>) => insertFn()),
+}));
+
 // Mock the AI dispatcher so tests don't need a real LLM key.
 // TicketAgentDispatcher is used with `new` in the route, so use a class mock.
 const mockDispatch = vi
