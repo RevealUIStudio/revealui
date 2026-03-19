@@ -27,11 +27,13 @@ describe('Footer', () => {
     expect(html).toContain('RevealUI');
   });
 
-  it('contains the copyright notice with year range', () => {
+  it('contains the copyright notice', () => {
     const result = Footer();
     const html = JSON.stringify(result);
-    expect(html).toContain('2025-2026 RevealUI Studio');
+    // Year is a separate JSX child (number), so check brand and notice separately
+    expect(html).toContain('RevealUI Studio');
     expect(html).toContain('All rights reserved');
+    expect(html).toContain(new Date().getFullYear());
   });
 
   it('contains Product section links', () => {

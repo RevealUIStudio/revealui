@@ -42,7 +42,10 @@ describe('HeroSection', () => {
   it('contains the brand tagline', () => {
     const result = HeroSection();
     const html = JSON.stringify(result);
-    expect(html).toContain('Business Operating System Software');
+    // Hero H1 splits "Business / Operating System / Software" across span blocks
+    expect(html).toContain('Business');
+    expect(html).toContain('Operating System');
+    expect(html).toContain('Software');
     expect(html).toContain('B.O.S.S.');
     expect(html).toContain('Build your business, not your boilerplate.');
   });
