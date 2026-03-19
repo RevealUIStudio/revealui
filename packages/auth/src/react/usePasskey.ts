@@ -187,8 +187,11 @@ export interface UsePasskeySignInResult {
 export function usePasskeySignIn(): UsePasskeySignInResult {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [supported, setSupported] = useState(false);
 
-  const supported = typeof window !== 'undefined' && !!window.PublicKeyCredential;
+  useEffect(() => {
+    setSupported(!!window.PublicKeyCredential);
+  }, []);
 
   const signIn = async (): Promise<boolean> => {
     if (!supported) {
@@ -227,7 +230,7 @@ export function usePasskeySignIn(): UsePasskeySignInResult {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         credentials: 'include',
-        body: JSON.stringify({ assertion: assertionResponse }),
+        body: JSON.stringify({ authenticationResponse: assertionResponse }),
       });
 
       const verifyJson: unknown = await verifyResponse.json();

@@ -61,8 +61,9 @@ RevealUI Studio <founder@revealui.com>
 ### Development
 ```bash
 pnpm dev                    # Start all apps in parallel
-pnpm dev:api                # Start API only
-pnpm dev:cms                # Build auth + start CMS
+pnpm dev:app                # Build auth + start CMS + API (port 4000 + 3004)
+pnpm dev:api                # Start API only (port 3004)
+pnpm dev:cms                # Build auth + start CMS only (port 4000)
 ```
 
 ### Building
