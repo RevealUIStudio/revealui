@@ -168,8 +168,8 @@ export const OPTIONAL_ENV_VARS: EnvVariable[] = [
     validator: validators.url,
   },
   {
-    name: 'NEXT_PUBLIC_SUPABASE_ANON_KEY',
-    description: 'Supabase anonymous key',
+    name: 'NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY',
+    description: 'Supabase publishable key (sb_publishable_...)',
     required: false,
   },
   {

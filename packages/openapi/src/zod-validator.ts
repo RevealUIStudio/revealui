@@ -2,12 +2,13 @@ import type { Context, Env, MiddlewareHandler, ValidationTargets } from 'hono';
 import { validator } from 'hono/validator';
 import type { ZodType, z } from 'zod';
 
+type HookReturn = Response | undefined;
 type Hook<T, E extends Env, P extends string> = (
   result: ({ success: true; data: T } | { success: false; error: unknown; data: T }) & {
     target: keyof ValidationTargets;
   },
   c: Context<E, P>,
-) => Response | void | Promise<Response | void>;
+) => HookReturn | Promise<HookReturn>;
 
 /**
  * Zod validation middleware for Hono.

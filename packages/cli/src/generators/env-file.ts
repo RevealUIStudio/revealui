@@ -58,8 +58,8 @@ export async function generateEnvFile(projectPath: string, config: EnvConfig): P
     if (config.storage.supabaseUrl) {
       lines.push(`NEXT_PUBLIC_SUPABASE_URL=${config.storage.supabaseUrl}`);
     }
-    if (config.storage.supabaseAnonKey) {
-      lines.push(`NEXT_PUBLIC_SUPABASE_ANON_KEY=${config.storage.supabaseAnonKey}`);
+    if (config.storage.supabasePublishableKey) {
+      lines.push(`NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY=${config.storage.supabasePublishableKey}`);
     }
   } else {
     lines.push('# BLOB_READ_WRITE_TOKEN=vercel_blob_rw_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx');
