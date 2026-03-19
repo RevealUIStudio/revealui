@@ -13,7 +13,11 @@ import {
   upsertOAuthUser,
   verifyOAuthState,
 } from '@revealui/auth/server';
+import { getMaxUsers, initializeLicense } from '@revealui/core/license';
 import { logger } from '@revealui/core/utils/logger';
+import { getClient } from '@revealui/db';
+import { oauthAccounts, users } from '@revealui/db/schema';
+import { and, count, eq, isNull } from 'drizzle-orm';
 import { type NextRequest, NextResponse } from 'next/server';
 
 export const dynamic = 'force-dynamic';
@@ -61,6 +65,44 @@ export async function GET(
 
     if (allowedEmails.length > 0 && !allowedEmails.includes(providerUser.email ?? '')) {
       return loginUrl('not_allowed');
+    }
+
+    // Enforce user limit for new OAuth signups (CR5-2)
+    // Only check if this OAuth identity doesn't already map to a user
+    try {
+      await initializeLicense();
+      const maxUsers = getMaxUsers();
+      if (maxUsers !== Infinity) {
+        const db = getClient();
+        const [existingOAuth] = await db
+          .select({ userId: oauthAccounts.userId })
+          .from(oauthAccounts)
+          .where(
+            and(
+              eq(oauthAccounts.provider, provider),
+              eq(oauthAccounts.providerUserId, providerUser.id),
+              isNull(oauthAccounts.deletedAt),
+            ),
+          )
+          .limit(1);
+
+        if (!existingOAuth) {
+          // New user via OAuth — check limit
+          const [row] = await db
+            .select({ total: count() })
+            .from(users)
+            .where(eq(users.status, 'active'));
+          if ((row?.total ?? 0) >= maxUsers) {
+            return loginUrl('user_limit_reached');
+          }
+        }
+      }
+    } catch (limitError) {
+      // Log but don't block — allow OAuth login to proceed
+      logger.warn('User limit check failed during OAuth callback', {
+        provider,
+        error: limitError instanceof Error ? limitError.message : String(limitError),
+      });
     }
 
     const user = await upsertOAuthUser(provider, providerUser);

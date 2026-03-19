@@ -43,12 +43,12 @@ describe('Critical Fix #1: Transaction Implementation', () => {
       }
     });
 
-    it('error message references documentation', async () => {
+    it('error message references Neon HTTP driver limitation', async () => {
       try {
         await withTransaction(neonMockDb, async () => ({ success: true }));
         expect.fail('Should have thrown');
       } catch (error) {
-        expect((error as Error).message).toContain('PRODUCTION_BLOCKERS.md');
+        expect((error as Error).message).toContain('Neon HTTP driver');
       }
     });
 

@@ -12,6 +12,7 @@ import { logger } from '@revealui/core/utils/logger';
 import { getClient } from '@revealui/db';
 import { agentContexts } from '@revealui/db/schema';
 import { type NextRequest, NextResponse } from 'next/server';
+import { checkAIFeatureGate } from '@/lib/middleware/ai-feature-gate';
 import {
   createApplicationErrorResponse,
   createErrorResponse,
@@ -24,6 +25,9 @@ export const runtime = 'nodejs';
 const AGENT_ID_RE = /^[a-zA-Z0-9_-]+$/;
 
 export async function POST(request: NextRequest): Promise<NextResponse> {
+  const aiGate = checkAIFeatureGate();
+  if (aiGate) return aiGate;
+
   try {
     const session = await getSession(request.headers);
     if (!session) {

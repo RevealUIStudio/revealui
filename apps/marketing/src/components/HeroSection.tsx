@@ -54,9 +54,6 @@ export function HeroSection() {
             <span className="block">Business</span>
             <span className="block">Operating System</span>
             <span className="block">Software</span>
-            <span className="block bg-gradient-to-r from-gray-500 to-gray-300 bg-clip-text text-transparent">
-              (B.O.S.S.)
-            </span>
           </h1>
           <p className="mx-auto mt-6 max-w-2xl text-xl font-semibold leading-8 text-gray-700">
             Build your business, not your boilerplate.

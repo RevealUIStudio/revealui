@@ -35,6 +35,7 @@ function toUser(validated: z.infer<typeof SignUpUserSchema>): User {
 
 // Validation schemas for sign-up response
 const SignUpErrorResponseSchema = z.object({
+  message: z.string().optional(),
   error: z.string().optional(),
 });
 
@@ -99,7 +100,7 @@ export function useSignUp(): UseSignUpResult {
         const errorData = SignUpErrorResponseSchema.parse(json);
         return {
           success: false,
-          error: errorData.error || 'Failed to sign up',
+          error: errorData.message || errorData.error || 'Failed to sign up',
         };
       }
 

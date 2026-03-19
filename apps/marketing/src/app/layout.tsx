@@ -13,9 +13,8 @@ const geistMono = Geist_Mono({
   subsets: ['latin'],
 });
 
-export const metadataBase = new URL('https://revealui.com');
-
 export const metadata: Metadata = {
+  metadataBase: new URL('https://revealui.com'),
   title: 'RevealUI — Business Operating System Software (B.O.S.S.)',
   description:
     'Business Operating System Software (B.O.S.S.). Users, content, products, payments, and AI — pre-wired, open source, and ready to deploy.',

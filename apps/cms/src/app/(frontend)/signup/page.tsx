@@ -76,6 +76,8 @@ function SignupContent() {
     if (result.success) {
       if (plan === 'pro') {
         router.push('/account/billing?upgrade=pro');
+      } else if (result.user?.role === 'admin') {
+        router.push('/admin');
       } else {
         router.push('/');
       }
@@ -223,7 +225,9 @@ function SignupContent() {
                 minLength={8}
                 required
               />
-              <p className="text-xs text-zinc-500">Minimum 8 characters</p>
+              <p className="text-xs text-zinc-500">
+                Min 8 characters, uppercase, lowercase, and a number
+              </p>
             </div>
 
             <div className="flex items-start gap-2">

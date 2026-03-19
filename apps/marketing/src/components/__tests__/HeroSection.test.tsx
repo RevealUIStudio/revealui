@@ -46,7 +46,6 @@ describe('HeroSection', () => {
     expect(html).toContain('Business');
     expect(html).toContain('Operating System');
     expect(html).toContain('Software');
-    expect(html).toContain('B.O.S.S.');
     expect(html).toContain('Build your business, not your boilerplate.');
   });
 

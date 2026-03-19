@@ -12,6 +12,7 @@ import { getSession } from '@revealui/auth/server';
 import { logger } from '@revealui/core/utils/logger';
 import type { NextRequest, NextResponse } from 'next/server';
 import { prepareElectricUrl, proxyElectricRequest } from '@/lib/api/electric-proxy';
+import { checkAIFeatureGate } from '@/lib/middleware/ai-feature-gate';
 import {
   createApplicationErrorResponse,
   createErrorResponse,
@@ -22,6 +23,9 @@ export const dynamic = 'force-dynamic';
 export const runtime = 'nodejs';
 
 export async function GET(request: NextRequest): Promise<NextResponse> {
+  const aiGate = checkAIFeatureGate();
+  if (aiGate) return aiGate;
+
   try {
     // Validate session using RevealUI auth
     const session = await getSession(request.headers);
