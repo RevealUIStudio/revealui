@@ -45,7 +45,10 @@ export default async function ErrorsPage() {
         </div>
 
         {dbError && (
-          <div className="m-4 p-3 bg-red-900 border border-red-700 rounded text-red-200 text-sm">
+          <div
+            role="alert"
+            className="m-4 p-3 bg-red-900 border border-red-700 rounded text-red-200 text-sm"
+          >
             Failed to load error events: {dbError}
           </div>
         )}
@@ -85,7 +88,7 @@ export default async function ErrorsPage() {
                     <td className="px-4 py-2 text-gray-300 font-mono text-xs">{row.app}</td>
                     <td className="px-4 py-2 text-gray-500 text-xs">{row.context ?? '—'}</td>
                     <td className="px-4 py-2 text-gray-200">
-                      <div className="truncate max-w-lg" title={row.message}>
+                      <div className="truncate" title={row.message}>
                         {row.message}
                       </div>
                       {row.stack && (
@@ -101,7 +104,7 @@ export default async function ErrorsPage() {
                     </td>
                     <td className="px-4 py-2 text-gray-500 text-xs">
                       {row.url ? (
-                        <span className="truncate block max-w-xs" title={row.url}>
+                        <span className="truncate block" title={row.url}>
                           {row.url.replace(/^https?:\/\/[^/]+/, '')}
                         </span>
                       ) : (

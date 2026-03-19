@@ -1,4 +1,4 @@
-import { render, screen } from '@testing-library/react';
+import { render, screen, within } from '@testing-library/react';
 import { describe, expect, it, vi } from 'vitest';
 
 // Mock usePathname to return the account page path
@@ -37,10 +37,11 @@ describe('SettingsLayout', () => {
       </SettingsLayout>,
     );
 
-    expect(screen.getByText('Back to Admin')).toBeInTheDocument();
-    expect(screen.getByText('Settings')).toBeInTheDocument();
-    expect(screen.getByText('Account')).toBeInTheDocument();
-    expect(screen.getByText('API Keys')).toBeInTheDocument();
+    const sidebar = screen.getByRole('complementary');
+    expect(within(sidebar).getByText('Back to Admin')).toBeInTheDocument();
+    expect(within(sidebar).getByText('Settings')).toBeInTheDocument();
+    expect(within(sidebar).getByText('Account')).toBeInTheDocument();
+    expect(within(sidebar).getByText('API Keys')).toBeInTheDocument();
   });
 
   it('renders children in the content area', () => {
@@ -60,7 +61,8 @@ describe('SettingsLayout', () => {
       </SettingsLayout>,
     );
 
-    const backLink = screen.getByText('Back to Admin');
+    const sidebar = screen.getByRole('complementary');
+    const backLink = within(sidebar).getByText('Back to Admin');
     expect(backLink.closest('a')).toHaveAttribute('href', '/admin');
   });
 
@@ -71,7 +73,8 @@ describe('SettingsLayout', () => {
       </SettingsLayout>,
     );
 
-    const accountLink = screen.getByText('Account');
+    const sidebar = screen.getByRole('complementary');
+    const accountLink = within(sidebar).getByText('Account');
     expect(accountLink.closest('a')).toHaveAttribute('href', '/admin/settings/account');
   });
 
@@ -82,7 +85,8 @@ describe('SettingsLayout', () => {
       </SettingsLayout>,
     );
 
-    const apiKeysLink = screen.getByText('API Keys');
+    const sidebar = screen.getByRole('complementary');
+    const apiKeysLink = within(sidebar).getByText('API Keys');
     expect(apiKeysLink.closest('a')).toHaveAttribute('href', '/admin/settings/api-keys');
   });
 
@@ -95,7 +99,8 @@ describe('SettingsLayout', () => {
       </SettingsLayout>,
     );
 
-    const accountLink = screen.getByText('Account').closest('a');
+    const sidebar = screen.getByRole('complementary');
+    const accountLink = within(sidebar).getByText('Account').closest('a');
     expect(accountLink?.className).toContain('bg-zinc-800');
     expect(accountLink?.className).toContain('text-white');
   });
@@ -109,12 +114,13 @@ describe('SettingsLayout', () => {
       </SettingsLayout>,
     );
 
-    const apiKeysLink = screen.getByText('API Keys').closest('a');
+    const sidebar = screen.getByRole('complementary');
+    const apiKeysLink = within(sidebar).getByText('API Keys').closest('a');
     expect(apiKeysLink?.className).toContain('bg-zinc-800');
     expect(apiKeysLink?.className).toContain('text-white');
 
     // Account should NOT be highlighted
-    const accountLink = screen.getByText('Account').closest('a');
+    const accountLink = within(sidebar).getByText('Account').closest('a');
     expect(accountLink?.className).not.toContain('bg-zinc-800');
   });
 });

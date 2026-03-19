@@ -11,8 +11,9 @@ export function BrandedAuthLayout({ children }: { children: React.ReactNode }) {
     <AuthLayout
       header={
         <div className="flex flex-col items-center gap-2">
+          {/* biome-ignore lint/performance/noImgElement: static branding image in auth layout — Next.js Image overkill for a single 48px logo */}
           <img src="/logo.webp" alt="RevealUI" width={48} height={48} className="h-12 w-12" />
-          <p className="text-sm text-gray-500 dark:text-gray-400">Business OS Software</p>
+          <p className="text-sm text-gray-500 dark:text-gray-400">Business OS</p>
         </div>
       }
       footer={

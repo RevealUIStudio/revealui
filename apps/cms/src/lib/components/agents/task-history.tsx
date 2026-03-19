@@ -66,7 +66,10 @@ export function TaskHistory({ agentId, refreshKey }: TaskHistoryProps) {
   if (loading) {
     return (
       <div className="flex h-16 items-center justify-center">
-        <div className="h-4 w-4 animate-spin rounded-full border-2 border-zinc-600 border-t-zinc-300" />
+        <div
+          className="h-4 w-4 animate-spin rounded-full border-2 border-zinc-600 border-t-zinc-300"
+          aria-hidden="true"
+        />
       </div>
     );
   }

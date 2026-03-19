@@ -80,7 +80,8 @@ export class ErrorBoundary extends Component<ErrorBoundaryProps, ErrorBoundarySt
             <div>
               <h2 className="text-lg font-semibold text-red-800 mb-2">Something went wrong</h2>
               <p className="text-red-700">
-                An error occurred while rendering this component. Please try refreshing the page.
+                An unexpected error occurred while rendering this component. Please try refreshing
+                the page. Contact support@revealui.com if this persists.
               </p>
             </div>
 

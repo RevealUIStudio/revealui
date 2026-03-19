@@ -32,6 +32,7 @@ export default function ApiKeysPage() {
   const [apiKey, setApiKey] = useState('');
   const [showKey, setShowKey] = useState(false);
   const [saved, setSaved] = useState(false);
+  const [saveError, setSaveError] = useState<string | null>(null);
   const [currentProvider, setCurrentProvider] = useState<string | null>(null);
   const [currentKeyHint, setCurrentKeyHint] = useState<string | null>(null);
 
@@ -52,27 +53,42 @@ export default function ApiKeysPage() {
 
   async function handleSave() {
     if (!apiKey.trim()) return;
-    const res = await fetch('/api/user/api-keys', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ provider, key: apiKey.trim() }),
-    });
-    if (res.ok) {
-      const data = (await res.json()) as { provider: string; keyHint: string };
-      setCurrentProvider(data.provider);
-      setCurrentKeyHint(data.keyHint);
-      setApiKey('');
-      setSaved(true);
-      setTimeout(() => setSaved(false), 2000);
+    setSaveError(null);
+    try {
+      const res = await fetch('/api/user/api-keys', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ provider, key: apiKey.trim() }),
+      });
+      if (res.ok) {
+        const data = (await res.json()) as { provider: string; keyHint: string };
+        setCurrentProvider(data.provider);
+        setCurrentKeyHint(data.keyHint);
+        setApiKey('');
+        setSaved(true);
+        setTimeout(() => setSaved(false), 2000);
+      } else {
+        const data = (await res.json().catch(() => ({}))) as { error?: string };
+        setSaveError(
+          data.error ?? 'Failed to save key. Contact support@revealui.com if this persists.',
+        );
+      }
+    } catch {
+      setSaveError('Unable to reach the server. Please check your connection and try again.');
     }
   }
 
   async function handleClear() {
-    await fetch('/api/user/api-keys', { method: 'DELETE' });
-    setApiKey('');
-    setCurrentProvider(null);
-    setCurrentKeyHint(null);
-    setSaved(false);
+    setSaveError(null);
+    try {
+      await fetch('/api/user/api-keys', { method: 'DELETE' });
+      setApiKey('');
+      setCurrentProvider(null);
+      setCurrentKeyHint(null);
+      setSaved(false);
+    } catch {
+      setSaveError('Unable to reach the server. Please check your connection and try again.');
+    }
   }
 
   const activeProviderInfo = PROVIDERS.find((p) => p.id === provider);
@@ -87,6 +103,16 @@ export default function ApiKeysPage() {
               <span className="h-2 w-2 rounded-full bg-emerald-400" />
               {PROVIDERS.find((p) => p.id === currentProvider)?.label ?? currentProvider} key
               configured{currentKeyHint ? ` (${currentKeyHint})` : ''} — tasks will use your key
+            </div>
+          )}
+
+          {/* Error banner */}
+          {saveError && (
+            <div
+              role="alert"
+              className="mb-6 rounded-lg border border-red-800/50 bg-red-900/20 px-4 py-3 text-sm text-red-400"
+            >
+              {saveError}
             </div>
           )}
 
