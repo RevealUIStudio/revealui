@@ -70,8 +70,13 @@ export {
   verifyAuthentication,
   verifyRegistration,
 } from './passkey.js';
-export type { PasswordResetResult, PasswordResetToken } from './password-reset.js';
+export type {
+  ChangePasswordResult,
+  PasswordResetResult,
+  PasswordResetToken,
+} from './password-reset.js';
 export {
+  changePassword,
   generatePasswordResetToken,
   invalidatePasswordResetToken,
   resetPasswordWithToken,
