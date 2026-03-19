@@ -14,6 +14,7 @@ import { queryBillingStatusByCustomerId } from './lib/billing-status.js';
 import { auditMiddleware } from './middleware/audit.js';
 import { authMiddleware } from './middleware/auth.js';
 import { requirePermission } from './middleware/authorization.js';
+import { csrfMiddleware } from './middleware/csrf.js';
 import { dbMiddleware } from './middleware/db.js';
 import { domainLockMiddleware, validateForgeConfig } from './middleware/domain-lock.js';
 import { entitlementMiddleware } from './middleware/entitlements.js';
@@ -33,6 +34,7 @@ import billingRoute from './routes/billing.js';
 import provenanceRoute from './routes/code-provenance.js';
 import { createCollabRoute } from './routes/collab.js';
 import contentRoute from './routes/content/index.js';
+import cronPublishRoute from './routes/cron/publish-scheduled.js';
 import errorsRoute from './routes/errors.js';
 import gdprRoute from './routes/gdpr.js';
 import healthRoute from './routes/health.js';
@@ -286,6 +288,10 @@ app.use('/api/v1/pricing', routeLimit('pricing'));
 app.use('/api/maintenance/*', routeLimit('maintenance'));
 app.use('/api/v1/maintenance/*', routeLimit('maintenance'));
 
+// Content scheduling cron — same limits as maintenance
+app.use('/api/cron/*', routeLimit('maintenance'));
+app.use('/api/v1/cron/*', routeLimit('maintenance'));
+
 // GDPR consent endpoints — moderate limits, deletion requests tighter
 const gdprConsentLimit = rateLimitMiddleware({
   maxRequests: 30,
@@ -323,6 +329,11 @@ app.use('/api/v1/*', optionalTenant);
 // Additive hosted-SaaS entitlement context. Does not replace legacy license gates yet.
 app.use('/api/*', entitlementMiddleware());
 app.use('/api/v1/*', entitlementMiddleware());
+
+// CSRF protection — defense-in-depth on top of sameSite:lax cookies
+// Skips: safe methods, non-cookie clients, webhooks, cron routes
+app.use('/api/*', csrfMiddleware());
+app.use('/api/v1/*', csrfMiddleware());
 
 // License status enforcement — catches revoked/expired licenses (5-minute DB cache)
 const licenseStatusCheck = checkLicenseStatus(async (customerId) => {
@@ -474,6 +485,7 @@ app.route('/api/agent-stream', agentStreamRoute);
 app.route('/api/content', contentRoute);
 app.route('/api/rag', ragIndexRoute);
 app.route('/api/api-keys', apiKeysRoute);
+app.route('/api/cron', cronPublishRoute);
 app.route('/api/maintenance', maintenanceRoute);
 app.route('/api/marketplace', marketplaceRoute);
 app.route('/api/pricing', pricingRoute);
@@ -497,6 +509,7 @@ app.route('/api/v1/agent-stream', agentStreamRoute);
 app.route('/api/v1/content', contentRoute);
 app.route('/api/v1/rag', ragIndexRoute);
 app.route('/api/v1/api-keys', apiKeysRoute);
+app.route('/api/v1/cron', cronPublishRoute);
 app.route('/api/v1/maintenance', maintenanceRoute);
 app.route('/api/v1/marketplace', marketplaceRoute);
 app.route('/api/v1/pricing', pricingRoute);

@@ -671,21 +671,22 @@ app.openapi(
         signal: AbortSignal.timeout(30_000),
       });
     } catch (err) {
-      // Server unreachable or timed out — mark transaction failed
-      void db
-        .update(marketplaceTransactions)
-        .set({ status: 'failed' })
-        .where(eq(marketplaceTransactions.id, txId))
-        .catch((err: unknown) => {
-          logger.warn('Failed to mark marketplace transaction as failed', {
-            txId,
-            error: err instanceof Error ? err.message : String(err),
-          });
-        });
+      // Server unreachable or timed out — mark transaction failed (awaited, not fire-and-forget)
+      try {
+        await db
+          .update(marketplaceTransactions)
+          .set({ status: 'failed' })
+          .where(eq(marketplaceTransactions.id, txId));
+      } catch (dbErr) {
+        logger.error(
+          'Failed to mark marketplace transaction as failed',
+          dbErr instanceof Error ? dbErr : undefined,
+          { txId },
+        );
+      }
 
-      logger.warn('Marketplace server proxy failed', {
+      logger.error('Marketplace server proxy failed', err instanceof Error ? err : undefined, {
         serverId: id,
-        error: err instanceof Error ? err.message : String(err),
       });
       throw new HTTPException(502, { message: 'Upstream server unavailable' });
     }
@@ -699,58 +700,62 @@ app.openapi(
 
     const callSucceeded = proxyResponse.ok;
 
-    // ─── Post-call bookkeeping (fire-and-forget) ───────────────────────────────
-    void (async () => {
-      try {
-        // Update transaction status + increment call count
-        await Promise.all([
-          db
-            .update(marketplaceTransactions)
-            .set({ status: callSucceeded ? 'completed' : 'failed' })
-            .where(eq(marketplaceTransactions.id, txId)),
-          callSucceeded
-            ? db
-                .update(marketplaceServers)
-                .set({
-                  callCount: sql`${marketplaceServers.callCount} + 1`,
-                  updatedAt: new Date(),
-                })
-                .where(eq(marketplaceServers.id, id))
-            : Promise.resolve(),
-        ]);
+    // ─── Post-call bookkeeping ────────────────────────────────────────────────
+    // DB updates are awaited (not fire-and-forget) to ensure consistency.
+    // Stripe transfer is outside the DB write so a transfer failure doesn't
+    // roll back the transaction status update.
+    try {
+      // Update transaction status + increment call count atomically
+      await db
+        .update(marketplaceTransactions)
+        .set({ status: callSucceeded ? 'completed' : 'failed' })
+        .where(eq(marketplaceTransactions.id, txId));
 
-        // Initiate Stripe transfer if developer has a Connect account.
-        // Transfers are batched — only initiated when the accumulated earnings
-        // for this server reach >= $1.00 USD (Stripe minimum transfer is $0.50).
-        // This is a best-effort fire-and-forget; failures are logged, not fatal.
-        if (callSucceeded && server.stripeAccountId) {
-          const developerCents = Math.round(Number.parseFloat(split.developerAmount) * 100);
-          if (developerCents >= 50) {
-            // >= $0.50 USD equivalent
-            const stripe = getStripeClient();
-            const transfer = await stripe.transfers.create({
-              amount: developerCents,
-              currency: 'usd',
-              destination: server.stripeAccountId,
-              metadata: {
-                marketplace_server_id: id,
-                transaction_id: txId,
-              },
-            });
-            await db
-              .update(marketplaceTransactions)
-              .set({ stripeTransferId: transfer.id })
-              .where(eq(marketplaceTransactions.id, txId));
-          }
-        }
-      } catch (err) {
-        logger.warn('Marketplace post-call bookkeeping failed', {
-          txId,
-          serverId: id,
-          error: err instanceof Error ? err.message : String(err),
-        });
+      if (callSucceeded) {
+        await db
+          .update(marketplaceServers)
+          .set({
+            callCount: sql`${marketplaceServers.callCount} + 1`,
+            updatedAt: new Date(),
+          })
+          .where(eq(marketplaceServers.id, id));
       }
-    })();
+    } catch (err) {
+      logger.error(
+        'Marketplace post-call DB update failed — ledger may be inconsistent',
+        err instanceof Error ? err : undefined,
+        { txId, serverId: id },
+      );
+    }
+
+    // Stripe transfer is best-effort — failures are logged at error level for admin review
+    try {
+      if (callSucceeded && server.stripeAccountId) {
+        const developerCents = Math.round(Number.parseFloat(split.developerAmount) * 100);
+        if (developerCents >= 50) {
+          const stripe = getStripeClient();
+          const transfer = await stripe.transfers.create({
+            amount: developerCents,
+            currency: 'usd',
+            destination: server.stripeAccountId,
+            metadata: {
+              marketplace_server_id: id,
+              transaction_id: txId,
+            },
+          });
+          await db
+            .update(marketplaceTransactions)
+            .set({ stripeTransferId: transfer.id })
+            .where(eq(marketplaceTransactions.id, txId));
+        }
+      }
+    } catch (err) {
+      logger.error(
+        'Marketplace Stripe transfer failed — manual payout required',
+        err instanceof Error ? err : undefined,
+        { txId, serverId: id, stripeAccountId: server.stripeAccountId },
+      );
+    }
 
     return c.json(responseBody, proxyResponse.status as 200);
   },

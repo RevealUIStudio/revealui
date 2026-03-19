@@ -253,6 +253,7 @@ async function resolveCatalogPriceId(
 async function getHostedSubscriptionSnapshot(userId: string): Promise<{
   tier: 'free' | 'pro' | 'max' | 'enterprise';
   status: string;
+  graceUntil: string | null;
 } | null> {
   const db = getClient();
   const [membership] = await db
@@ -267,6 +268,7 @@ async function getHostedSubscriptionSnapshot(userId: string): Promise<{
     .select({
       tier: accountEntitlements.tier,
       status: accountEntitlements.status,
+      graceUntil: accountEntitlements.graceUntil,
     })
     .from(accountEntitlements)
     .where(eq(accountEntitlements.accountId, membership.accountId))
@@ -274,9 +276,24 @@ async function getHostedSubscriptionSnapshot(userId: string): Promise<{
 
   if (!entitlement?.tier) return null;
 
+  // Grace period enforcement: if status is past_due/canceled but graceUntil
+  // is in the future, the customer retains access until grace expires
+  const now = new Date();
+  let effectiveStatus = entitlement.status;
+  if (
+    (effectiveStatus === 'past_due' ||
+      effectiveStatus === 'canceled' ||
+      effectiveStatus === 'revoked') &&
+    entitlement.graceUntil &&
+    entitlement.graceUntil > now
+  ) {
+    effectiveStatus = 'grace_period';
+  }
+
   return {
     tier: entitlement.tier as 'free' | 'pro' | 'max' | 'enterprise',
-    status: entitlement.status,
+    status: effectiveStatus,
+    graceUntil: entitlement.graceUntil?.toISOString() ?? null,
   };
 }
 
@@ -421,6 +438,7 @@ app.openapi(checkoutRoute, async (c) => {
       mode: 'subscription',
       payment_method_types: ['card'],
       billing_address_collection: 'required',
+      tax_id_collection: { enabled: true },
       ...discountConfig,
       line_items: [{ price: resolvedPriceId, quantity: 1 }],
       subscription_data: {
@@ -530,6 +548,7 @@ app.openapi(subscriptionRoute, async (c) => {
         status: hostedSubscription.status,
         expiresAt: null,
         licenseKey: null,
+        graceUntil: hostedSubscription.graceUntil,
       },
       200,
     );
@@ -655,11 +674,18 @@ app.openapi(upgradeRoute, async (c) => {
     throw new HTTPException(400, { message: 'Subscription has no items.' });
   }
 
+  // R5-H10: Reject concurrent subscription modifications
+  if (subscription.metadata?.pending_change) {
+    throw new HTTPException(409, {
+      message: 'A subscription change is already in progress. Please wait and try again.',
+    });
+  }
+
   // Swap the price and set tier metadata so the webhook can detect the upgrade
   await withStripe((stripe) =>
     stripe.subscriptions.update(subscription.id, {
       items: [{ id: item.id, price: resolvedPriceId }],
-      metadata: { tier: targetTier, revealui_user_id: user.id },
+      metadata: { tier: targetTier, revealui_user_id: user.id, pending_change: '' },
       proration_behavior: 'create_prorations',
     }),
   );
@@ -724,6 +750,13 @@ app.openapi(downgradeRoute, async (c) => {
   const subscription = subscriptionList.data[0];
   if (!subscription) {
     throw new HTTPException(400, { message: 'No active subscription found to downgrade.' });
+  }
+
+  // R5-H10: Reject concurrent subscription modifications
+  if (subscription.metadata?.pending_change) {
+    throw new HTTPException(409, {
+      message: 'A subscription change is already in progress. Please wait and try again.',
+    });
   }
 
   // Cancel at period end so the customer retains access until their billing cycle ends
@@ -803,6 +836,7 @@ app.openapi(perpetualCheckoutRoute, async (c) => {
       mode: 'payment',
       payment_method_types: ['card'],
       billing_address_collection: 'required',
+      tax_id_collection: { enabled: true },
       allow_promotion_codes: true,
       line_items: [{ price: resolvedPriceId, quantity: 1 }],
       payment_intent_data: {
@@ -1124,6 +1158,9 @@ app.openapi(refundRoute, async (c) => {
     });
   }
 
+  // R5-H14: Idempotency key prevents duplicate refunds on network retries
+  const idempotencyKey = `refund-${chargeId ?? paymentIntentId}-${user.id}`;
+
   const refundParams: Stripe.RefundCreateParams = {
     ...(paymentIntentId ? { payment_intent: paymentIntentId } : {}),
     ...(chargeId ? { charge: chargeId } : {}),
@@ -1131,7 +1168,9 @@ app.openapi(refundRoute, async (c) => {
     ...(reason ? { reason } : {}),
   };
 
-  const refund = await withStripe((stripe) => stripe.refunds.create(refundParams));
+  const refund = await withStripe((stripe) =>
+    stripe.refunds.create(refundParams, { idempotencyKey }),
+  );
 
   logger.info('Refund issued', {
     refundId: refund.id,
