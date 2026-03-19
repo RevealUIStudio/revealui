@@ -30,7 +30,7 @@ services:
     environment:
       DATABASE_URL: postgresql://postgres:postgres@db:5432/revealui
       ELECTRIC_WRITE_TO_PG_MODE: direct_writes
-      AUTH_MODE: insecure
+      ELECTRIC_INSECURE: "true"
     ports:
       - "5133:5133"
     depends_on:

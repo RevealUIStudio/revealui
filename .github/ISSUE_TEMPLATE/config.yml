@@ -6,6 +6,6 @@ contact_links:
   - name: GitHub Discussions
     url: https://github.com/RevealUIStudio/revealui/discussions
     about: Ask questions and share ideas with the community
-  - name: Discord
-    url: https://discord.gg/revealui
-    about: Chat with the community in real-time
+  - name: Discourse Community
+    url: https://community.revealui.com
+    about: Ask questions and get help from the community
