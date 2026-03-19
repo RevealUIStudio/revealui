@@ -236,6 +236,10 @@ export type {
 // =============================================================================
 
 export type {
+  BatchCreateOptions,
+  BatchDeleteOptions,
+  BatchResult,
+  BatchUpdateOptions,
   CollectionStorageAdapter,
   CollectionStorageDescriptor,
   DatabaseAdapter,

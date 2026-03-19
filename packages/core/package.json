@@ -204,6 +204,10 @@
       "types": "./dist/security/index.d.ts",
       "import": "./dist/security/index.js"
     },
+    "./license-encryption": {
+      "types": "./dist/license-encryption.d.ts",
+      "import": "./dist/license-encryption.js"
+    },
     "./observability": {
       "types": "./dist/observability/index.d.ts",
       "import": "./dist/observability/index.js"

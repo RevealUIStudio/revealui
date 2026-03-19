@@ -592,7 +592,10 @@ export function AdminDashboard({ config }: AdminDashboardProps) {
             onCreate={handleCreate}
             onEdit={handleEdit}
             onDelete={(document) => void handleDelete(document)}
-            onPageChange={(nextPage) => void fetchCollection(state.view.collection!, nextPage)}
+            onPageChange={(nextPage) => {
+              const collection = state.view.collection;
+              if (collection) void fetchCollection(collection, nextPage);
+            }}
             deleting={state.deleting}
           />
         </main>
