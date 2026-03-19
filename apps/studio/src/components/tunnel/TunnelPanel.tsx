@@ -1,4 +1,7 @@
 import { useState } from 'react';
+
+const COPY_FEEDBACK_MS = 2_000;
+
 import { useTunnel } from '../../hooks/use-tunnel';
 import type { TailscalePeer } from '../../types';
 import Button from '../ui/Button';
@@ -110,7 +113,7 @@ function PeerCard({ peer }: { peer: TailscalePeer }) {
   const copyIp = async () => {
     await navigator.clipboard.writeText(peer.ip);
     setCopied(true);
-    setTimeout(() => setCopied(false), 2000);
+    setTimeout(() => setCopied(false), COPY_FEEDBACK_MS);
   };
 
   return (

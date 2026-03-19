@@ -5,6 +5,9 @@
  * Ctrl+S save, and unsaved-change indicator. Reads/writes files via Tauri IPC.
  */
 
+const SAVE_SUCCESS_FEEDBACK_MS = 1_500;
+const SAVE_ERROR_FEEDBACK_MS = 3_000;
+
 import { css } from '@codemirror/lang-css';
 import { html } from '@codemirror/lang-html';
 import { javascript } from '@codemirror/lang-javascript';
@@ -74,10 +77,10 @@ export default function CodeEditor({ repoPath, filePath, onClose }: Props) {
       await gitWriteFile(repoPath, filePath, content);
       setIsDirty(false);
       setSaveStatus('saved');
-      setTimeout(() => setSaveStatus('idle'), 1500);
+      setTimeout(() => setSaveStatus('idle'), SAVE_SUCCESS_FEEDBACK_MS);
     } catch (_err) {
       setSaveStatus('error');
-      setTimeout(() => setSaveStatus('idle'), 3000);
+      setTimeout(() => setSaveStatus('idle'), SAVE_ERROR_FEEDBACK_MS);
     }
   }, [repoPath, filePath]);
 

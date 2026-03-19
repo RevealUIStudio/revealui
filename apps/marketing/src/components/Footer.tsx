@@ -1,6 +1,7 @@
 import Link from 'next/link';
 
 export function Footer() {
+  const currentYear = new Date().getFullYear();
   return (
     <footer className="bg-gray-950 border-t border-gray-800 py-12">
       <div className="mx-auto max-w-7xl px-6 lg:px-8">
@@ -138,7 +139,7 @@ export function Footer() {
           </div>
         </div>
         <div className="mt-12 pt-8 border-t border-gray-800 flex flex-col sm:flex-row items-center justify-between gap-4 text-gray-500 text-sm">
-          <p>&copy; 2025-2026 RevealUI Studio. All rights reserved.</p>
+          <p>&copy; {currentYear} RevealUI Studio. All rights reserved.</p>
           <div className="flex gap-6">
             <Link href="/privacy" className="hover:text-white transition-colors">
               Privacy Policy

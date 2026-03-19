@@ -7,11 +7,12 @@ export const metadata: Metadata = {
 };
 
 export default function TermsOfServicePage() {
+  const lastUpdated = 'March 4, 2026';
   return (
     <div className="min-h-screen bg-white">
       <article className="mx-auto max-w-3xl px-6 py-24 lg:px-8 prose prose-gray">
         <h1>Terms of Service</h1>
-        <p className="text-sm text-gray-500">Last updated: March 4, 2026</p>
+        <p className="text-sm text-gray-500">Last updated: {lastUpdated}</p>
 
         <p>
           These Terms of Service (&quot;Terms&quot;) govern your use of the RevealUI platform

@@ -4,7 +4,7 @@
 
 export function LoadingSkeleton() {
   return (
-    <div className="mx-auto max-w-[var(--width-content)] px-8 py-10">
+    <div className="mx-auto max-w-[var(--width-content)] px-4 py-6 sm:px-8 sm:py-10">
       {/* Title skeleton */}
       <div className="mb-6 h-8 w-[55%] animate-pulse rounded-md bg-border" />
 

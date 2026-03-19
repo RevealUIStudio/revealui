@@ -22,11 +22,13 @@ export const metadata: Metadata = {
 // Resolve CTA hrefs for marketing context (absolute URLs for signup)
 const cmsUrl = process.env.NEXT_PUBLIC_CMS_URL || 'https://cms.revealui.com';
 
+const PRICING_CACHE_REVALIDATE_S = 3600; // 1 hour
+
 async function getPricing(): Promise<PricingResponse | null> {
   const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'https://api.revealui.com';
   try {
     const res = await fetch(`${apiUrl}/api/pricing`, {
-      next: { revalidate: 3600 },
+      next: { revalidate: PRICING_CACHE_REVALIDATE_S },
     });
     if (!res.ok) return null;
     return (await res.json()) as PricingResponse;

@@ -1,4 +1,8 @@
 import { invoke as tauriInvoke } from '@tauri-apps/api/core';
+
+const MOCK_COMMIT_RECENT_S = 300; // 5 minutes ago
+const MOCK_COMMIT_OLDER_S = 3600; // 1 hour ago
+
 import type {
   AgentSession,
   AppStatus,
@@ -145,14 +149,14 @@ const MOCK_DATA: Record<string, unknown> = {
       short_sha: 'abc1234',
       message: 'feat(studio): add CodeMirror editor + branch management',
       author: 'RevealUI Studio',
-      timestamp: Math.floor(Date.now() / 1000) - 300,
+      timestamp: Math.floor(Date.now() / 1000) - MOCK_COMMIT_RECENT_S,
     },
     {
       sha: 'def5678901234567890abcdef12345678abc1234',
       short_sha: 'def5678',
       message: 'feat(studio): git panel MVP — status, diff, stage, commit',
       author: 'RevealUI Studio',
-      timestamp: Math.floor(Date.now() / 1000) - 3600,
+      timestamp: Math.floor(Date.now() / 1000) - MOCK_COMMIT_OLDER_S,
     },
   ] satisfies GitCommitInfo[],
   git_read_file: '// Mock file content\nexport default function example() {}\n',

@@ -1,4 +1,7 @@
 import { createContext, use, useCallback, useEffect, useState } from 'react';
+
+const STATUS_POLL_INTERVAL_MS = 30_000;
+
 import { getMountStatus, getSystemStatus } from '../lib/invoke';
 import type { MountStatus, SystemStatus } from '../types';
 
@@ -45,7 +48,7 @@ export function useStatus() {
 
   useEffect(() => {
     refresh();
-    const interval = setInterval(refresh, 30_000);
+    const interval = setInterval(refresh, STATUS_POLL_INTERVAL_MS);
     return () => clearInterval(interval);
   }, [refresh]);
 

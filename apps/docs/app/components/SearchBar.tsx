@@ -125,7 +125,7 @@ export function SearchBar() {
   );
 
   return (
-    <div className="relative w-full max-w-[400px]">
+    <div className="relative w-full">
       <div className="relative">
         <input
           ref={inputRef}
@@ -151,7 +151,7 @@ export function SearchBar() {
       {isOpen && results.length > 0 && (
         <div
           role="listbox"
-          className="absolute top-full right-0 left-0 z-[1000] mt-1 max-h-[400px] overflow-y-auto rounded-lg border border-border bg-surface shadow-lg"
+          className="absolute top-full right-0 left-0 z-[1000] mt-1 max-h-[60vh] overflow-y-auto rounded-lg border border-border bg-surface shadow-lg"
         >
           {results.map((result, i) => (
             <button
