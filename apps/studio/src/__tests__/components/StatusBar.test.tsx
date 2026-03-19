@@ -94,7 +94,7 @@ describe('StatusBar', () => {
       error: null,
       refresh: mockRefresh,
     });
-    expect(screen.getByText('Tier: pro')).toBeInTheDocument();
+    expect(screen.getByText('pro')).toBeInTheDocument();
   });
 
   it('shows systemd status when available', () => {
@@ -110,7 +110,7 @@ describe('StatusBar', () => {
       error: null,
       refresh: mockRefresh,
     });
-    expect(screen.getByText('systemd: running')).toBeInTheDocument();
+    expect(screen.getByText('(running)')).toBeInTheDocument();
   });
 
   it('shows Studio: Mounted when mounted', () => {
@@ -134,7 +134,7 @@ describe('StatusBar', () => {
       error: null,
       refresh: mockRefresh,
     });
-    expect(screen.getByText('Studio: Mounted')).toBeInTheDocument();
+    expect(screen.getByText('Drive Mounted')).toBeInTheDocument();
   });
 
   it('shows Studio: Not Mounted when not mounted', () => {
@@ -158,7 +158,7 @@ describe('StatusBar', () => {
       error: null,
       refresh: mockRefresh,
     });
-    expect(screen.getByText('Studio: Not Mounted')).toBeInTheDocument();
+    expect(screen.getByText('Drive Unmounted')).toBeInTheDocument();
   });
 
   it('shows "?" for tier when system is null and not loading', () => {
@@ -169,7 +169,7 @@ describe('StatusBar', () => {
       error: null,
       refresh: mockRefresh,
     });
-    expect(screen.getByText('Tier: ?')).toBeInTheDocument();
+    expect(screen.getByText('?')).toBeInTheDocument();
   });
 
   it('calls refresh when refresh button is clicked', () => {

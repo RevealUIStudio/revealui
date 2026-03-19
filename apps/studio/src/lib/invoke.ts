@@ -1,6 +1,12 @@
 import { invoke as tauriInvoke } from '@tauri-apps/api/core';
 import type {
+  AgentSession,
   AppStatus,
+  GitBranch,
+  GitCommitInfo,
+  GitPullResult,
+  GitPushResult,
+  GitStatusResult,
   MountStatus,
   SecretInfo,
   SetupStatus,
@@ -108,6 +114,65 @@ const MOCK_DATA: Record<string, unknown> = {
   } satisfies StudioConfig,
   set_config: undefined,
   reset_config: undefined,
+  shell_open: 'mock-shell-session-id',
+  shell_close: undefined,
+  shell_send: undefined,
+  shell_resize: undefined,
+  git_status: {
+    branch: 'main',
+    staged: [{ path: 'apps/studio/src/types.ts', status: 'modified' }],
+    unstaged: [{ path: 'apps/api/src/index.ts', status: 'modified' }],
+    untracked: [{ path: 'apps/studio/src/components/git/GitPanel.tsx', status: 'untracked' }],
+  } satisfies GitStatusResult,
+  git_diff_file:
+    '--- a/apps/studio/src/types.ts\n+++ b/apps/studio/src/types.ts\n@@ -1,3 +1,6 @@\n /** Mirrors Rust SystemStatus struct */\n+\n+export type GitFileStatusKind = "modified" | "new";\n+\n export interface SystemStatus {\n',
+  git_stage_file: undefined,
+  git_unstage_file: undefined,
+  git_discard_file: undefined,
+  git_commit: 'abc1234def5678901234567890abcdef12345678',
+  git_list_branches: [
+    { name: 'main', is_current: true },
+    { name: 'feat/shell-v1', is_current: false },
+  ] satisfies GitBranch[],
+  git_create_branch: undefined,
+  git_switch_branch: undefined,
+  git_delete_branch: undefined,
+  git_push: { success: true, message: 'Everything up-to-date' } satisfies GitPushResult,
+  git_pull: { success: true, message: 'Already up to date.' } satisfies GitPullResult,
+  git_log: [
+    {
+      sha: 'abc1234def5678901234567890abcdef12345678',
+      short_sha: 'abc1234',
+      message: 'feat(studio): add CodeMirror editor + branch management',
+      author: 'RevealUI Studio',
+      timestamp: Math.floor(Date.now() / 1000) - 300,
+    },
+    {
+      sha: 'def5678901234567890abcdef12345678abc1234',
+      short_sha: 'def5678',
+      message: 'feat(studio): git panel MVP — status, diff, stage, commit',
+      author: 'RevealUI Studio',
+      timestamp: Math.floor(Date.now() / 1000) - 3600,
+    },
+  ] satisfies GitCommitInfo[],
+  git_read_file: '// Mock file content\nexport default function example() {}\n',
+  git_write_file: undefined,
+  agent_read_workboard: [
+    '# RevealUI Workboard',
+    '_Last updated: 2026-03-18T20:00Z_',
+    '',
+    '## Active Sessions',
+    '',
+    '| id | env | started | task | files | updated |',
+    '|----|-----|---------|------|-------|---------|',
+    '| wsl-root | wsl | 2026-03-18T16:31Z | Building agent session panel | apps/studio/src/components/agent/AgentPanel.tsx | 2026-03-18T20:25Z |',
+    '| zed-extension | zed | 2026-03-18T15:00Z | idle | — | 2026-03-18T18:00Z |',
+    '',
+    '## Recent',
+    '',
+    '- [2026-03-18 18:00] wsl-root: Fixed settings-layout test failures',
+    '- [2026-03-18 14:00] zed-extension: Biome lint cleanup',
+  ].join('\n'),
 };
 
 /** Guarded invoke — returns mock data in browser, real IPC in Tauri */
@@ -250,3 +315,92 @@ export function sshBookmarkSave(bookmark: SshBookmark): Promise<void> {
 export function sshBookmarkDelete(id: string): Promise<void> {
   return invoke<void>('ssh_bookmark_delete', { id });
 }
+
+// ── Local Shell ─────────────────────────────────────────────────────────────
+
+export function shellOpen(cols: number, rows: number, cwd?: string): Promise<string> {
+  return invoke<string>('shell_open', { cols, rows, cwd: cwd ?? null });
+}
+
+export function shellClose(sessionId: string): Promise<void> {
+  return invoke<void>('shell_close', { sessionId });
+}
+
+export function shellSend(sessionId: string, data: string): Promise<void> {
+  return invoke<void>('shell_send', { sessionId, data });
+}
+
+export function shellResize(sessionId: string, cols: number, rows: number): Promise<void> {
+  return invoke<void>('shell_resize', { sessionId, cols, rows });
+}
+
+// ── Git Panel ─────────────────────────────────────────────────────────────
+
+export function gitStatus(repoPath: string): Promise<GitStatusResult> {
+  return invoke<GitStatusResult>('git_status', { repoPath });
+}
+
+export function gitDiffFile(repoPath: string, filePath: string, staged: boolean): Promise<string> {
+  return invoke<string>('git_diff_file', { repoPath, filePath, staged });
+}
+
+export function gitStageFile(repoPath: string, filePath: string): Promise<void> {
+  return invoke<void>('git_stage_file', { repoPath, filePath });
+}
+
+export function gitUnstageFile(repoPath: string, filePath: string): Promise<void> {
+  return invoke<void>('git_unstage_file', { repoPath, filePath });
+}
+
+export function gitDiscardFile(repoPath: string, filePath: string): Promise<void> {
+  return invoke<void>('git_discard_file', { repoPath, filePath });
+}
+
+export function gitCommit(repoPath: string, message: string): Promise<string> {
+  return invoke<string>('git_commit', { repoPath, message });
+}
+
+export function gitListBranches(repoPath: string): Promise<GitBranch[]> {
+  return invoke<GitBranch[]>('git_list_branches', { repoPath });
+}
+
+export function gitCreateBranch(repoPath: string, name: string): Promise<void> {
+  return invoke<void>('git_create_branch', { repoPath, name });
+}
+
+export function gitSwitchBranch(repoPath: string, name: string): Promise<void> {
+  return invoke<void>('git_switch_branch', { repoPath, name });
+}
+
+export function gitDeleteBranch(repoPath: string, name: string): Promise<void> {
+  return invoke<void>('git_delete_branch', { repoPath, name });
+}
+
+export function gitPush(repoPath: string, remote: string, branch: string): Promise<GitPushResult> {
+  return invoke<GitPushResult>('git_push', { repoPath, remote, branch });
+}
+
+export function gitPull(repoPath: string, remote: string, branch: string): Promise<GitPullResult> {
+  return invoke<GitPullResult>('git_pull', { repoPath, remote, branch });
+}
+
+export function gitLog(repoPath: string, limit?: number): Promise<GitCommitInfo[]> {
+  return invoke<GitCommitInfo[]>('git_log', { repoPath, limit: limit ?? null });
+}
+
+export function gitReadFile(repoPath: string, filePath: string): Promise<string> {
+  return invoke<string>('git_read_file', { repoPath, filePath });
+}
+
+export function gitWriteFile(repoPath: string, filePath: string, content: string): Promise<void> {
+  return invoke<void>('git_write_file', { repoPath, filePath, content });
+}
+
+// ── Agent Panel ──────────────────────────────────────────────────────────────
+
+export function agentReadWorkboard(path: string): Promise<string> {
+  return invoke<string>('agent_read_workboard', { path });
+}
+
+// Re-export AgentSession so consumers don't need to reach into types directly
+export type { AgentSession };

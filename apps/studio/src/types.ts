@@ -65,6 +65,9 @@ export type Page =
   | 'sync'
   | 'tunnel'
   | 'terminal'
+  | 'git'
+  | 'editor'
+  | 'agent'
   | 'setup'
   | 'settings'
   | 'deploy';
@@ -94,6 +97,18 @@ export interface SshDisconnectEvent {
   reason: string;
 }
 
+/** Local shell output event from backend */
+export interface ShellOutputEvent {
+  session_id: string;
+  data: string; // base64-encoded
+}
+
+/** Local shell exit event from backend */
+export interface ShellExitEvent {
+  session_id: string;
+  reason: string;
+}
+
 /** Saved SSH connection profile — never stores passwords */
 export interface SshBookmark {
   id: string;
@@ -119,6 +134,72 @@ export interface SshHostKeyEvent {
 export interface SecretInfo {
   path: string;
   namespace: string;
+}
+
+// ── Git Panel ─────────────────────────────────────────────────────────────
+
+/** One of: "modified" | "new" | "deleted" | "renamed" | "untracked" | "conflicted" */
+export type GitFileStatusKind =
+  | 'modified'
+  | 'new'
+  | 'deleted'
+  | 'renamed'
+  | 'untracked'
+  | 'conflicted';
+
+/** Mirrors Rust GitFileEntry struct */
+export interface GitFileEntry {
+  path: string;
+  status: GitFileStatusKind;
+}
+
+/** Mirrors Rust GitStatusResult struct */
+export interface GitStatusResult {
+  branch: string;
+  staged: GitFileEntry[];
+  unstaged: GitFileEntry[];
+  untracked: GitFileEntry[];
+}
+
+// ── Branch management ─────────────────────────────────────────────────────
+
+/** Mirrors Rust GitBranch struct */
+export interface GitBranch {
+  name: string;
+  is_current: boolean;
+}
+
+/** Mirrors Rust GitPushResult struct */
+export interface GitPushResult {
+  success: boolean;
+  message: string;
+}
+
+/** Mirrors Rust GitPullResult struct */
+export interface GitPullResult {
+  success: boolean;
+  message: string;
+}
+
+/** Mirrors Rust GitCommitInfo struct */
+export interface GitCommitInfo {
+  sha: string;
+  short_sha: string;
+  message: string;
+  author: string;
+  timestamp: number; // Unix seconds
+}
+
+// ── Agent Panel ───────────────────────────────────────────────────────────────
+
+/** One active row from the workboard.md Active Sessions table */
+export interface AgentSession {
+  id: string;
+  env: string;
+  started: string;
+  task: string;
+  files: string;
+  updated: string;
 }
 
 /** Mirrors Rust TailscaleStatus struct */
@@ -169,11 +250,12 @@ export interface VercelProject {
   accountId?: string;
 }
 
+/** Mirrors Rust VercelDeployment struct (Vercel API response) */
 export interface VercelDeployment {
-  id: string;
-  url: string;
-  state: 'BUILDING' | 'ERROR' | 'INITIALIZING' | 'QUEUED' | 'READY' | 'CANCELED';
-  createdAt: number;
+  uid: string;
+  url: string | null;
+  state: string | null;
+  created: number | null;
 }
 
 /** Deploy wizard step IDs */
@@ -202,8 +284,8 @@ export interface WizardData {
   vercelProjects: { api: string; cms: string; marketing: string };
   postgresUrl: string;
   supabaseUrl?: string;
-  supabaseAnonKey?: string;
-  supabaseServiceKey?: string;
+  supabasePublishableKey?: string;
+  supabaseSecretKey?: string;
   stripeSecretKey: string;
   stripePublishableKey: string;
   stripeWebhookSecret: string;

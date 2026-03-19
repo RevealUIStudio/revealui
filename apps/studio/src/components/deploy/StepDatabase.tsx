@@ -31,8 +31,10 @@ export default function StepDatabase({
   const [postgresUrl, setPostgresUrl] = useState(data.postgresUrl || '');
   const [supabaseEnabled, setSupabaseEnabled] = useState(!!data.supabaseUrl);
   const [supabaseUrl, setSupabaseUrl] = useState(data.supabaseUrl || '');
-  const [supabaseAnonKey, setSupabaseAnonKey] = useState(data.supabaseAnonKey || '');
-  const [supabaseServiceKey, setSupabaseServiceKey] = useState(data.supabaseServiceKey || '');
+  const [supabasePublishableKey, setSupabasePublishableKey] = useState(
+    data.supabasePublishableKey || '',
+  );
+  const [supabaseSecretKey, setSupabaseSecretKey] = useState(data.supabaseSecretKey || '');
   const [phase, setPhase] = useState<Phase>('input');
   const [error, setError] = useState<string | null>(null);
 
@@ -59,8 +61,8 @@ export default function StepDatabase({
         ...(supabaseEnabled
           ? {
               supabaseUrl: supabaseUrl.trim(),
-              supabaseAnonKey: supabaseAnonKey.trim(),
-              supabaseServiceKey: supabaseServiceKey.trim(),
+              supabasePublishableKey: supabasePublishableKey.trim(),
+              supabaseSecretKey: supabaseSecretKey.trim(),
             }
           : {}),
       });
@@ -113,22 +115,22 @@ export default function StepDatabase({
               mono
             />
             <Input
-              id="supabase-anon-key"
-              label="Supabase Anon Key"
+              id="supabase-publishable-key"
+              label="Supabase Publishable Key"
               type="password"
-              placeholder="eyJ..."
-              value={supabaseAnonKey}
-              onChange={(e) => setSupabaseAnonKey(e.target.value)}
+              placeholder="sb_publishable_..."
+              value={supabasePublishableKey}
+              onChange={(e) => setSupabasePublishableKey(e.target.value)}
               disabled={isRunning || phase === 'done'}
               mono
             />
             <Input
-              id="supabase-service-key"
-              label="Supabase Service Key"
+              id="supabase-secret-key"
+              label="Supabase Secret Key"
               type="password"
-              placeholder="eyJ..."
-              value={supabaseServiceKey}
-              onChange={(e) => setSupabaseServiceKey(e.target.value)}
+              placeholder="sb_secret_..."
+              value={supabaseSecretKey}
+              onChange={(e) => setSupabaseSecretKey(e.target.value)}
               disabled={isRunning || phase === 'done'}
               mono
             />

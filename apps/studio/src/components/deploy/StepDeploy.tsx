@@ -66,11 +66,11 @@ function buildApiEnvVars(data: WizardData): Record<string, string> {
   if (data.supabaseUrl) {
     vars.NEXT_PUBLIC_SUPABASE_URL = data.supabaseUrl;
   }
-  if (data.supabaseAnonKey) {
-    vars.NEXT_PUBLIC_SUPABASE_ANON_KEY = data.supabaseAnonKey;
+  if (data.supabasePublishableKey) {
+    vars.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY = data.supabasePublishableKey;
   }
-  if (data.supabaseServiceKey) {
-    vars.SUPABASE_SERVICE_ROLE_KEY = data.supabaseServiceKey;
+  if (data.supabaseSecretKey) {
+    vars.SUPABASE_SECRET_KEY = data.supabaseSecretKey;
   }
 
   return vars;
@@ -107,7 +107,8 @@ function buildCmsEnvVars(data: WizardData): Record<string, string> {
   // Supabase for CMS AI features
   if (data.supabaseUrl) {
     vars.NEXT_PUBLIC_SUPABASE_URL = data.supabaseUrl;
-    if (data.supabaseAnonKey) vars.NEXT_PUBLIC_SUPABASE_ANON_KEY = data.supabaseAnonKey;
+    if (data.supabasePublishableKey)
+      vars.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY = data.supabasePublishableKey;
   }
 
   return vars;
@@ -153,7 +154,7 @@ async function deployApp(
   for (let attempt = 0; attempt < MAX_POLL_ATTEMPTS; attempt++) {
     const deployment = await vercelGetDeployment(token, deploymentId);
     if (deployment.state === 'READY') {
-      return deployment.url;
+      return deployment.url ?? deploymentId;
     }
     if (deployment.state === 'ERROR' || deployment.state === 'CANCELED') {
       throw new Error(`Deployment ${deployment.state.toLowerCase()}`);

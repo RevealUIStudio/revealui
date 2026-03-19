@@ -1,7 +1,9 @@
+pub mod agent;
 pub mod apps;
 pub mod config;
 pub mod deploy;
 pub mod error;
+pub mod git;
 pub mod local_shell;
 pub mod mount;
 pub mod setup;
