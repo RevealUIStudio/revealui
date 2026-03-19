@@ -174,6 +174,66 @@ ${supportFooter('Questions? Reply to this email or contact')}`,
   });
 }
 
+export async function sendPaymentReceiptEmail(
+  to: string,
+  params: {
+    amountPaid: number;
+    currency: string;
+    invoiceNumber: string | null;
+    tier: string;
+    periodEnd: Date | null;
+    invoiceUrl: string | null;
+  },
+): Promise<void> {
+  const label = tierLabel(params.tier);
+  const amount = (params.amountPaid / 100).toFixed(2);
+  const currency = params.currency.toUpperCase();
+  const invoiceNum = params.invoiceNumber ?? 'N/A';
+  const nextBilling = params.periodEnd
+    ? params.periodEnd.toLocaleDateString('en-US', {
+        month: 'long',
+        day: 'numeric',
+        year: 'numeric',
+      })
+    : 'N/A';
+
+  const invoiceLink = params.invoiceUrl
+    ? `<p><a href="${params.invoiceUrl}" style="color: #2563eb;">View full invoice on Stripe</a></p>`
+    : '';
+
+  await sendEmail({
+    to,
+    subject: `RevealUI payment receipt — ${currency} ${amount}`,
+    html: emailShell(
+      'Payment Receipt',
+      `<h1 style="color: #16a34a;">Payment Received</h1>
+<p>Thank you for your RevealUI <strong>${label}</strong> subscription payment.</p>
+<table style="border-collapse: collapse; width: 100%; margin: 20px 0;">
+  <tr style="border-bottom: 1px solid #e5e7eb;">
+    <td style="padding: 8px 0; color: #666;">Amount</td>
+    <td style="padding: 8px 0; text-align: right; font-weight: bold;">${currency} ${amount}</td>
+  </tr>
+  <tr style="border-bottom: 1px solid #e5e7eb;">
+    <td style="padding: 8px 0; color: #666;">Plan</td>
+    <td style="padding: 8px 0; text-align: right;">${label}</td>
+  </tr>
+  <tr style="border-bottom: 1px solid #e5e7eb;">
+    <td style="padding: 8px 0; color: #666;">Invoice</td>
+    <td style="padding: 8px 0; text-align: right;">${escapeHtml(invoiceNum)}</td>
+  </tr>
+  <tr>
+    <td style="padding: 8px 0; color: #666;">Next billing date</td>
+    <td style="padding: 8px 0; text-align: right;">${nextBilling}</td>
+  </tr>
+</table>
+${invoiceLink}
+${ctaButton(billingUrl(), 'Manage Subscription')}
+${supportFooter('If you have questions about this charge, contact')}`,
+    ),
+    text: `Payment received: ${currency} ${amount} for RevealUI ${label}. Invoice: ${invoiceNum}. Next billing: ${nextBilling}. Manage subscription at ${billingUrl()}.`,
+  });
+}
+
 export async function sendDisputeLostEmail(to: string): Promise<void> {
   const portal = billingUrl();
   const support = supportEmail();

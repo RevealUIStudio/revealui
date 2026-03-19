@@ -70,11 +70,13 @@ async function signUpHandler(request: NextRequest): Promise<NextResponse> {
     }
 
     // Enforce user limit based on license tier (free: 3, pro: 25, enterprise: unlimited)
+    // Also track whether this is the first user — they get admin role automatically.
+    let isFirstUser = false;
     try {
       await initializeLicense();
       const maxUsers = getMaxUsers();
+      const db = getClient();
       if (maxUsers !== Infinity) {
-        const db = getClient();
         // Use an advisory lock inside a transaction to serialize concurrent sign-up
         // limit checks. Without this, two simultaneous requests can both pass the
         // count check before either creates a user (TOCTOU). The lock is held for
@@ -91,6 +93,7 @@ async function signUpHandler(request: NextRequest): Promise<NextResponse> {
             .from(users)
             .where(eq(users.status, 'active'));
           const activeCount = row?.total ?? 0;
+          isFirstUser = activeCount === 0;
           if (activeCount >= maxUsers) {
             limitExceeded = true;
             limitMsg = `User limit reached (${activeCount}/${maxUsers}). Upgrade your license to add more users.`;
@@ -99,6 +102,13 @@ async function signUpHandler(request: NextRequest): Promise<NextResponse> {
         if (limitExceeded) {
           return createApplicationErrorResponse(limitMsg, 'USER_LIMIT_REACHED', 403);
         }
+      } else {
+        // No per-tier limit — still need to know if this is the first user
+        const [row] = await db
+          .select({ total: count() })
+          .from(users)
+          .where(eq(users.status, 'active'));
+        isFirstUser = (row?.total ?? 0) === 0;
       }
     } catch (limitError) {
       logger.error('User limit check failed during sign-up', {
@@ -134,12 +144,38 @@ async function signUpHandler(request: NextRequest): Promise<NextResponse> {
       );
     }
 
+    // First user automatically becomes admin with verified email so they can
+    // access /admin immediately without waiting for email verification.
+    let resolvedUser = result.user;
+    if (isFirstUser && result.user?.id) {
+      try {
+        const db = getClient();
+        const [updatedUser] = await db
+          .update(users)
+          .set({ role: 'admin', emailVerified: true, emailVerifiedAt: new Date() })
+          .where(eq(users.id, result.user.id))
+          .returning();
+        if (updatedUser) {
+          resolvedUser = {
+            ...updatedUser,
+            emailVerificationToken: result.user.emailVerificationToken,
+          };
+        }
+      } catch (upgradeError) {
+        // Non-fatal — user was created, couldn't promote to admin
+        logger.warn('Failed to promote first user to admin', {
+          userId: result.user.id,
+          error: upgradeError instanceof Error ? upgradeError.message : String(upgradeError),
+        });
+      }
+    }
+
     // Send verification email (fire-and-forget — don't block signup)
-    if (result.user?.email && result.user?.emailVerificationToken) {
-      sendVerificationEmail(result.user.email, result.user.emailVerificationToken).catch(
+    if (!isFirstUser && resolvedUser?.email && resolvedUser?.emailVerificationToken) {
+      sendVerificationEmail(resolvedUser.email, resolvedUser.emailVerificationToken).catch(
         (emailError) => {
           logger.warn('Failed to send verification email', {
-            userId: result.user?.id,
+            userId: resolvedUser?.id,
             error: emailError,
           });
         },
@@ -149,23 +185,22 @@ async function signUpHandler(request: NextRequest): Promise<NextResponse> {
     // Create response with user data
     const response = NextResponse.json({
       user: {
-        id: result.user?.id,
-        email: result.user?.email,
-        name: result.user?.name,
-        avatarUrl: result.user?.avatarUrl,
-        role: result.user?.role,
-        emailVerified: result.user?.emailVerified ?? false,
+        id: resolvedUser?.id,
+        email: resolvedUser?.email,
+        name: resolvedUser?.name,
+        avatarUrl: resolvedUser?.avatarUrl,
+        role: resolvedUser?.role,
+        emailVerified: resolvedUser?.emailVerified ?? false,
       },
     });
 
-    // Only grant session if email is already verified (e.g. OAuth-linked accounts).
-    // New signups must verify their email first — the frontend should redirect
-    // to a "check your email" page when emailVerified is false.
-    const isVerified = result.user?.emailVerified ?? false;
+    // Grant session if email is verified. First-user admin accounts are verified
+    // immediately above. Other new signups must verify their email first.
+    const isVerified = resolvedUser?.emailVerified ?? false;
 
     if (result.sessionToken && isVerified) {
       // Set role hint cookie for proxy.ts admin gate (defense-in-depth).
-      const userRole = result.user?.role ?? 'user';
+      const userRole = resolvedUser?.role ?? 'user';
       const isAdminRole = ['admin', 'super-admin'].includes(userRole);
       response.cookies.set('revealui-role', isAdminRole ? 'admin' : 'user', {
         httpOnly: false,
