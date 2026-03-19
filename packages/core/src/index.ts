@@ -242,6 +242,10 @@ export {
 // These extend the base types with RevealUI framework features.
 
 export type {
+  BatchCreateOptions,
+  BatchDeleteOptions,
+  BatchResult,
+  BatchUpdateOptions,
   // Block types
   Block,
   BlocksField,

@@ -9,6 +9,7 @@
 import { createHash } from 'node:crypto';
 import { decodeProtectedHeader, importPKCS8, importSPKI, jwtVerify, SignJWT } from 'jose';
 import { z } from 'zod';
+import { decryptLicenseKey } from './license-encryption.js';
 import { logger } from './utils/logger.js';
 
 /** Available license tiers */
@@ -47,7 +48,7 @@ export interface LicenseCacheConfig {
 }
 
 const DEFAULT_CACHE_CONFIG: LicenseCacheConfig = {
-  ttlMs: 15 * 60 * 1000, // 15 minutes — short enough that revoked licenses lose access promptly
+  ttlMs: 5 * 60 * 1000, // 5 minutes — revoked licenses lose access within 5 min
 };
 
 let cacheConfig: LicenseCacheConfig = { ...DEFAULT_CACHE_CONFIG };
@@ -85,9 +86,12 @@ function getPublicKey(): string | null {
 
 /**
  * Reads the license key from environment.
+ * Supports encrypted keys (enc:iv:ciphertext:tag format) via REVEALUI_LICENSE_ENCRYPTION_KEY.
  */
 function getLicenseKey(): string | null {
-  return process.env.REVEALUI_LICENSE_KEY ?? null;
+  const raw = process.env.REVEALUI_LICENSE_KEY ?? null;
+  if (!raw) return null;
+  return decryptLicenseKey(raw);
 }
 
 /**

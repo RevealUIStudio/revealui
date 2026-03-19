@@ -73,6 +73,44 @@ export interface RevealDeleteOptions {
   overrideAccess?: boolean;
 }
 
+// =============================================================================
+// BATCH OPERATION OPTIONS
+// =============================================================================
+
+export interface BatchCreateOptions {
+  data: RevealDataObject[];
+  req?: RevealRequest;
+}
+
+export interface BatchUpdateOptions {
+  updates: Array<{ id: string | number; data: RevealDataObject }>;
+  req?: RevealRequest;
+  overrideAccess?: boolean;
+}
+
+export interface BatchDeleteOptions {
+  ids: Array<string | number>;
+  req?: RevealRequest;
+  overrideAccess?: boolean;
+}
+
+/**
+ * Result of a batch operation.
+ *
+ * On success with a DB adapter: transaction is committed, `results` contains all
+ * documents, `errors` is empty.
+ *
+ * On failure with a DB adapter: transaction is rolled back, `results` is empty,
+ * `errors` contains a single entry for the failing item (with its index).
+ *
+ * Without a DB adapter (fallback mode): each item is processed independently,
+ * `results` and `errors` may both be non-empty (partial success is possible).
+ */
+export interface BatchResult<T> {
+  results: T[];
+  errors: Array<{ index: number; error: string }>;
+}
+
 /** Generic options type for operations */
 export type OperationOptions<TSelect extends SelectType = SelectType> = {
   collection: string;
