@@ -95,7 +95,10 @@ export function TaskTester({ agentId, agentName, onComplete }: TaskTesterProps) 
         onComplete?.();
       }
     } catch (e: unknown) {
-      setErrorMsg(e instanceof Error ? e.message : 'Request failed');
+      const message = e instanceof Error ? e.message : 'An unexpected error occurred';
+      setErrorMsg(
+        `Unable to send task. ${message}. Contact support@revealui.com if this persists.`,
+      );
       setState('error');
     }
   }
@@ -181,7 +184,7 @@ export function TaskTester({ agentId, agentName, onComplete }: TaskTesterProps) 
 
       {/* Error */}
       {errorMsg && (
-        <div className="rounded-lg border border-red-800 bg-red-900/20 p-4">
+        <div role="alert" className="rounded-lg border border-red-800 bg-red-900/20 p-4">
           <p className="text-sm text-red-400">{errorMsg}</p>
         </div>
       )}

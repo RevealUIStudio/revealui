@@ -92,7 +92,12 @@ const AgentChat = () => {
           { id: nextId(), role: 'assistant', content: data.content },
         ]);
       } catch (err) {
-        setError(err instanceof Error ? err : new Error(String(err)));
+        const message = err instanceof Error ? err.message : String(err);
+        setError(
+          new Error(
+            `Unable to send message. ${message}. Contact support@revealui.com if this persists.`,
+          ),
+        );
       } finally {
         setIsLoading(false);
       }

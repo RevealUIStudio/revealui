@@ -1,0 +1,64 @@
+/**
+ * Sessions API Route
+ *
+ * GET /api/auth/sessions
+ *
+ * Returns all active sessions for the current user.
+ * Marks the calling session as current.
+ */
+
+import { getSession } from '@revealui/auth/server';
+import { getClient } from '@revealui/db';
+import { sessions } from '@revealui/db/schema';
+import { and, eq, gt, isNull } from 'drizzle-orm';
+import { type NextRequest, NextResponse } from 'next/server';
+import { createApplicationErrorResponse, createErrorResponse } from '@/lib/utils/error-response';
+
+export const dynamic = 'force-dynamic';
+export const runtime = 'nodejs';
+
+export async function GET(request: NextRequest): Promise<NextResponse> {
+  try {
+    const sessionData = await getSession(request.headers);
+    if (!sessionData) {
+      return createApplicationErrorResponse('Unauthorized', 'UNAUTHORIZED', 401);
+    }
+
+    const db = getClient();
+    const rows = await db
+      .select({
+        id: sessions.id,
+        userAgent: sessions.userAgent,
+        ipAddress: sessions.ipAddress,
+        persistent: sessions.persistent,
+        lastActivityAt: sessions.lastActivityAt,
+        createdAt: sessions.createdAt,
+        expiresAt: sessions.expiresAt,
+      })
+      .from(sessions)
+      .where(
+        and(
+          eq(sessions.userId, sessionData.user.id),
+          gt(sessions.expiresAt, new Date()),
+          isNull(sessions.deletedAt),
+        ),
+      )
+      .orderBy(sessions.lastActivityAt);
+
+    return NextResponse.json({
+      currentSessionId: sessionData.session.id,
+      sessions: rows.map((s) => ({
+        ...s,
+        isCurrent: s.id === sessionData.session.id,
+        lastActivityAt: s.lastActivityAt.toISOString(),
+        createdAt: s.createdAt.toISOString(),
+        expiresAt: s.expiresAt.toISOString(),
+      })),
+    });
+  } catch (error) {
+    return createErrorResponse(error, {
+      endpoint: '/api/auth/sessions',
+      operation: 'list_sessions',
+    });
+  }
+}

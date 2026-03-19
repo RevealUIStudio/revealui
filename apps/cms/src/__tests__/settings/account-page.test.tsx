@@ -380,7 +380,9 @@ describe('AccountSettingsPage', () => {
     });
 
     await waitFor(() => {
-      expect(screen.getByText('Network error. Please try again.')).toBeInTheDocument();
+      expect(
+        screen.getByText('Unable to reach the server. Please check your connection and try again.'),
+      ).toBeInTheDocument();
     });
   });
 

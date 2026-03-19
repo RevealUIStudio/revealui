@@ -2,7 +2,7 @@
 
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import { useState } from 'react';
+import { useReducer } from 'react';
 import { LicenseGate } from '@/lib/components/LicenseGate';
 
 // =============================================================================
@@ -73,6 +73,56 @@ const TEMPLATES: AgentTemplate[] = [
 ];
 
 // =============================================================================
+// State management
+// =============================================================================
+
+interface FormState {
+  selectedTemplate: TemplateKey | null;
+  name: string;
+  description: string;
+  systemPrompt: string;
+  submitting: boolean;
+  error: string | null;
+}
+
+type FormAction =
+  | { type: 'APPLY_TEMPLATE'; key: TemplateKey; prompt: string }
+  | { type: 'SET_NAME'; value: string; prompt: string }
+  | { type: 'SET_DESCRIPTION'; value: string }
+  | { type: 'SET_SYSTEM_PROMPT'; value: string }
+  | { type: 'SUBMIT_START' }
+  | { type: 'SUBMIT_ERROR'; error: string }
+  | { type: 'SUBMIT_END' };
+
+const initialState: FormState = {
+  selectedTemplate: null,
+  name: '',
+  description: '',
+  systemPrompt: '',
+  submitting: false,
+  error: null,
+};
+
+function formReducer(state: FormState, action: FormAction): FormState {
+  switch (action.type) {
+    case 'APPLY_TEMPLATE':
+      return { ...state, selectedTemplate: action.key, systemPrompt: action.prompt };
+    case 'SET_NAME':
+      return { ...state, name: action.value, systemPrompt: action.prompt };
+    case 'SET_DESCRIPTION':
+      return { ...state, description: action.value };
+    case 'SET_SYSTEM_PROMPT':
+      return { ...state, systemPrompt: action.value };
+    case 'SUBMIT_START':
+      return { ...state, submitting: true, error: null };
+    case 'SUBMIT_ERROR':
+      return { ...state, submitting: false, error: action.error };
+    case 'SUBMIT_END':
+      return { ...state, submitting: false };
+  }
+}
+
+// =============================================================================
 // Page
 // =============================================================================
 
@@ -80,24 +130,20 @@ export default function NewAgentPage() {
   const router = useRouter();
   const apiUrl = (process.env.NEXT_PUBLIC_API_URL ?? 'https://api.revealui.com').trim();
 
-  const [selectedTemplate, setSelectedTemplate] = useState<TemplateKey | null>(null);
-  const [name, setName] = useState('');
-  const [description, setDescription] = useState('');
-  const [systemPrompt, setSystemPrompt] = useState('');
-  const [submitting, setSubmitting] = useState(false);
-  const [error, setError] = useState<string | null>(null);
+  const [state, dispatch] = useReducer(formReducer, initialState);
+  const { selectedTemplate, name, description, systemPrompt, submitting, error } = state;
 
   function applyTemplate(key: TemplateKey) {
     const tpl = TEMPLATES.find((t) => t.key === key);
     if (!tpl) return;
-    setSelectedTemplate(key);
-    // Pre-fill system prompt if not yet customised
-    if (
+    const shouldUpdatePrompt =
       !systemPrompt.trim() ||
-      (selectedTemplate && systemPrompt === getSystemPromptForTemplate(selectedTemplate, name))
-    ) {
-      setSystemPrompt(tpl.systemPromptFn(name || tpl.label));
-    }
+      (selectedTemplate && systemPrompt === getSystemPromptForTemplate(selectedTemplate, name));
+    dispatch({
+      type: 'APPLY_TEMPLATE',
+      key,
+      prompt: shouldUpdatePrompt ? tpl.systemPromptFn(name || tpl.label) : systemPrompt,
+    });
   }
 
   function getSystemPromptForTemplate(key: TemplateKey, agentName: string): string {
@@ -106,10 +152,11 @@ export default function NewAgentPage() {
   }
 
   function handleNameChange(val: string) {
-    setName(val);
-    if (selectedTemplate) {
-      setSystemPrompt(getSystemPromptForTemplate(selectedTemplate, val));
-    }
+    dispatch({
+      type: 'SET_NAME',
+      value: val,
+      prompt: selectedTemplate ? getSystemPromptForTemplate(selectedTemplate, val) : systemPrompt,
+    });
   }
 
   async function handleSubmit(e: React.FormEvent) {
@@ -119,8 +166,7 @@ export default function NewAgentPage() {
     const tpl = TEMPLATES.find((t) => t.key === selectedTemplate);
     if (!tpl) return;
 
-    setSubmitting(true);
-    setError(null);
+    dispatch({ type: 'SUBMIT_START' });
 
     const agentId = name
       .toLowerCase()
@@ -150,21 +196,28 @@ export default function NewAgentPage() {
       });
 
       if (res.status === 409) {
-        setError(`An agent with ID "${agentId}" already exists. Choose a different name.`);
+        dispatch({
+          type: 'SUBMIT_ERROR',
+          error: `An agent with ID "${agentId}" already exists. Choose a different name.`,
+        });
         return;
       }
 
       if (!res.ok) {
         const json = (await res.json()) as { error?: string };
-        setError(json.error ?? `Server error ${res.status}`);
+        dispatch({ type: 'SUBMIT_ERROR', error: json.error ?? `Server error ${res.status}` });
         return;
       }
 
       router.push('/admin/agents');
     } catch (e: unknown) {
-      setError(e instanceof Error ? e.message : 'Request failed');
+      const message = e instanceof Error ? e.message : 'An unexpected error occurred';
+      dispatch({
+        type: 'SUBMIT_ERROR',
+        error: `Unable to create agent. ${message}. Contact support@revealui.com if this persists.`,
+      });
     } finally {
-      setSubmitting(false);
+      dispatch({ type: 'SUBMIT_END' });
     }
   }
 
@@ -282,7 +335,7 @@ export default function NewAgentPage() {
                     id="agent-desc"
                     type="text"
                     value={description}
-                    onChange={(e) => setDescription(e.target.value)}
+                    onChange={(e) => dispatch({ type: 'SET_DESCRIPTION', value: e.target.value })}
                     placeholder={tpl?.description ?? 'What does this agent do?'}
                     className="w-full rounded-lg border border-zinc-700 bg-zinc-800 px-3 py-2.5 text-sm text-zinc-100 placeholder-zinc-500 focus:border-zinc-500 focus:outline-none"
                   />
@@ -300,7 +353,7 @@ export default function NewAgentPage() {
                     id="agent-prompt"
                     rows={6}
                     value={systemPrompt}
-                    onChange={(e) => setSystemPrompt(e.target.value)}
+                    onChange={(e) => dispatch({ type: 'SET_SYSTEM_PROMPT', value: e.target.value })}
                     placeholder="Describe the agent's role, personality, and constraints..."
                     className="w-full rounded-lg border border-zinc-700 bg-zinc-800 px-3 py-2.5 text-sm text-zinc-100 placeholder-zinc-500 focus:border-zinc-500 focus:outline-none resize-none"
                   />
@@ -318,7 +371,10 @@ export default function NewAgentPage() {
 
                 {/* Error */}
                 {error && (
-                  <div className="rounded-lg border border-red-800 bg-red-900/20 p-3 text-sm text-red-400">
+                  <div
+                    role="alert"
+                    className="rounded-lg border border-red-800 bg-red-900/20 p-3 text-sm text-red-400"
+                  >
                     {error}
                   </div>
                 )}

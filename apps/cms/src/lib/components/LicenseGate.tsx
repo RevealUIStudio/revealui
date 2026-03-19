@@ -28,7 +28,10 @@ export function LicenseGate({ feature, children, mode = 'inline' }: LicenseGateP
   if (isLoading) {
     return (
       <div className="flex min-h-[40vh] items-center justify-center">
-        <div className="h-5 w-5 animate-spin rounded-full border-2 border-zinc-300 border-t-zinc-700 dark:border-zinc-600 dark:border-t-zinc-200" />
+        <div
+          className="h-5 w-5 animate-spin rounded-full border-2 border-zinc-300 border-t-zinc-700 dark:border-zinc-600 dark:border-t-zinc-200"
+          aria-hidden="true"
+        />
       </div>
     );
   }

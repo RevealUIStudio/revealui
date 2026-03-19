@@ -3,5 +3,23 @@
   "installCommand": "cd ../.. && pnpm install --frozen-lockfile",
   "ignoreCommand": "git diff --quiet HEAD~1 HEAD -- . ../../packages ../../pnpm-lock.yaml ../../package.json ../../turbo.json 2>/dev/null || exit 1",
   "framework": "nextjs",
-  "github": { "silent": true }
+  "github": { "silent": true },
+  "crons": [
+    {
+      "path": "/api/cron/cleanup-sessions",
+      "schedule": "0 * * * *"
+    },
+    {
+      "path": "/api/cron/cleanup-rate-limits",
+      "schedule": "0 * * * *"
+    },
+    {
+      "path": "/api/cron/cleanup-password-reset-tokens",
+      "schedule": "0 3 * * *"
+    },
+    {
+      "path": "/api/cron/cleanup-magic-links",
+      "schedule": "0 3 * * *"
+    }
+  ]
 }
