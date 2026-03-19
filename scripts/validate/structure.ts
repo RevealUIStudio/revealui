@@ -507,7 +507,8 @@ class StructureValidator {
     console.log('\n🔍 Checking package structure consistency...');
     const packagesDir = 'packages';
     // Packages exempt from src/ and __tests__ checks — thin wrappers or delegation-only packages
-    const srcExempt = new Set(['create-revealui', 'PACKAGE-CONVENTIONS.md']);
+    // scripts: flat layout (no src/) — moved from scripts/lib, predates src/ convention
+    const srcExempt = new Set(['create-revealui', 'PACKAGE-CONVENTIONS.md', 'scripts']);
     if (existsSync(packagesDir)) {
       const packages = readdirSync(packagesDir).filter((item) =>
         statSync(join(packagesDir, item)).isDirectory(),
@@ -572,10 +573,12 @@ class StructureValidator {
 
     let output = '';
     try {
-      // Use grep to find all TypeScript files importing @supabase/supabase-js.
+      // Use grep to find all TypeScript files with actual import statements for @supabase/supabase-js.
+      // Match only import/from declarations (Biome enforces single quotes), not string literals
+      // that merely mention the package name as documentation or test assertions.
       // Exclude .claude/worktrees/ — those are agent sandbox directories, not production source.
       output = execSync(
-        `grep -r --include="*.ts" --include="*.tsx" --exclude-dir=".next" --exclude-dir="dist" --exclude-dir="node_modules" --exclude-dir=".turbo" --exclude-dir="worktrees" -l "@supabase/supabase-js" . 2>/dev/null || true`,
+        `grep -r --include="*.ts" --include="*.tsx" --exclude-dir=".next" --exclude-dir="dist" --exclude-dir="node_modules" --exclude-dir=".turbo" --exclude-dir="worktrees" -l "from '@supabase/supabase-js" . 2>/dev/null || true`,
         { encoding: 'utf8', cwd: process.cwd() },
       );
     } catch {
