@@ -146,7 +146,10 @@ function categorizeAnyUsage(
     line.includes('external') ||
     line.includes('dynamic') ||
     line.includes('JSON.parse') ||
-    (line.includes('as any') && line.includes('//') && line.includes('legitimate'))
+    (line.includes('as any') && line.includes('//') && line.includes('legitimate')) ||
+    // z.any() is the required Zod type for OpenAPI file upload schemas (multipart/form-data)
+    // No alternative exists in Zod that accepts FormData binary with .openapi() override
+    line.includes('z.any()')
   ) {
     return 'legitimate';
   }
