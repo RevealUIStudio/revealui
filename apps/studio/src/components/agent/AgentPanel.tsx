@@ -6,6 +6,9 @@
  */
 
 import { useCallback, useEffect, useRef, useState } from 'react';
+
+const AGENT_POLL_INTERVAL_MS = 30_000;
+
 import {
   agentReadWorkboard,
   gitDiscardFile,
@@ -287,7 +290,7 @@ export default function AgentPanel() {
 
   // Auto-refresh every 30 s
   useEffect(() => {
-    const id = setInterval(() => void refresh(), 30_000);
+    const id = setInterval(() => void refresh(), AGENT_POLL_INTERVAL_MS);
     return () => clearInterval(id);
   }, [refresh]);
 

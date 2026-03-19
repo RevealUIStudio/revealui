@@ -306,13 +306,20 @@ export default buildConfig({
             name: 'Admin User',
             email: adminEmail,
             password: adminPassword,
+            role: 'user-super-admin',
             roles: ['user-super-admin'],
           },
         });
 
         revealui.logger.info(`First admin user created: ${adminEmail}`);
       } catch (error) {
-        revealui.logger.error(`Failed to create first admin user: ${error}`);
+        // 23505 = unique_violation — user already exists, not a fatal error
+        const pgCode = (error as { code?: string }).code;
+        if (pgCode === '23505') {
+          revealui.logger.info(`Admin user already exists: ${adminEmail}`);
+        } else {
+          revealui.logger.error(`Failed to create first admin user: ${error}`);
+        }
       }
     }
   },

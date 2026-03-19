@@ -1,11 +1,9 @@
 'use client';
 
 import type React from 'react';
-import { createContext, use, useCallback, useEffect, useState } from 'react';
+import { createContext, use, useEffect, useState } from 'react';
 import { canUseDOM } from '@/lib/utilities/canUseDOM';
-import { defaultTheme, getImplicitPreference, themeLocalStorageKey } from './shared';
 import type { Theme, ThemeContextType } from './types';
-import { themeIsValid } from './types';
 
 const initialContext: ThemeContextType = {
   setTheme: () => null,
@@ -19,38 +17,27 @@ export function ThemeProvider({ children }: { children: React.ReactNode }): Reac
     canUseDOM ? (document.documentElement.getAttribute('data-theme') as Theme) : undefined,
   );
 
-  const setTheme = useCallback((themeToSet: Theme | null) => {
-    if (themeToSet === null) {
-      window.localStorage.removeItem(themeLocalStorageKey);
-      const implicitPreference = getImplicitPreference();
-      document.documentElement.setAttribute('data-theme', implicitPreference || '');
-      if (implicitPreference) setThemeState(implicitPreference);
-    } else {
-      setThemeState(themeToSet);
-      window.localStorage.setItem(themeLocalStorageKey, themeToSet);
-      document.documentElement.setAttribute('data-theme', themeToSet);
-    }
-  }, []);
-
   useEffect(() => {
-    let themeToSet: Theme = defaultTheme;
-    const preference = window.localStorage.getItem(themeLocalStorageKey);
+    const mql = window.matchMedia('(prefers-color-scheme: dark)');
 
-    if (themeIsValid(preference)) {
-      themeToSet = preference;
-    } else {
-      const implicitPreference = getImplicitPreference();
+    const apply = (dark: boolean) => {
+      const next: Theme = dark ? 'dark' : 'light';
+      document.documentElement.setAttribute('data-theme', next);
+      setThemeState(next);
+    };
 
-      if (implicitPreference) {
-        themeToSet = implicitPreference;
-      }
-    }
+    apply(mql.matches);
 
-    document.documentElement.setAttribute('data-theme', themeToSet);
-    setThemeState(themeToSet);
+    const handler = (e: MediaQueryListEvent) => apply(e.matches);
+    mql.addEventListener('change', handler);
+    return () => mql.removeEventListener('change', handler);
   }, []);
 
-  return <ThemeContext.Provider value={{ setTheme, theme }}>{children}</ThemeContext.Provider>;
+  return (
+    <ThemeContext.Provider value={{ setTheme: () => null, theme }}>
+      {children}
+    </ThemeContext.Provider>
+  );
 }
 
 export const useTheme = (): ThemeContextType => use(ThemeContext);

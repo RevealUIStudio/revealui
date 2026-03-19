@@ -7,11 +7,12 @@ export const metadata: Metadata = {
 };
 
 export default function PrivacyPolicyPage() {
+  const lastUpdated = 'March 4, 2026';
   return (
     <div className="min-h-screen bg-white">
       <article className="mx-auto max-w-3xl px-6 py-24 lg:px-8 prose prose-gray">
         <h1>Privacy Policy</h1>
-        <p className="text-sm text-gray-500">Last updated: March 4, 2026</p>
+        <p className="text-sm text-gray-500">Last updated: {lastUpdated}</p>
 
         <p>
           RevealUI Studio (&quot;we&quot;, &quot;us&quot;, &quot;our&quot;) operates the RevealUI

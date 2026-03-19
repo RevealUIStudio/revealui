@@ -1,6 +1,5 @@
 import Link from 'next/link';
 import { CMSLink } from '@/lib/components/Link/index';
-import { ThemeSelector } from '@/lib/providers/Theme/ThemeSelector/index';
 import { getCachedGlobal } from '@/lib/utilities/getGlobals';
 
 // Define the NavItem type with constrained type property
@@ -26,6 +25,7 @@ export async function Footer() {
   const footer = (await getCachedGlobal('footer')()) as FooterType | null;
 
   const navItems = footer?.navItems || [];
+  const currentYear = new Date().getFullYear();
 
   return (
     <footer className="border-t border-border bg-black dark:bg-card text-white">
@@ -36,21 +36,28 @@ export async function Footer() {
           </picture>
         </Link>
 
-        <div className="flex flex-col-reverse items-start md:flex-row gap-4 md:items-center">
-          <ThemeSelector />
-          <nav className="flex flex-col md:flex-row gap-4">
-            {navItems.map(({ link }) => {
-              // Prefer a unique key for each nav item, fallback to url, reference.value, or 'unknown'
-              const key =
-                link.url ??
-                (link.reference
-                  ? `${link.reference.relationTo}:${link.reference.value}`
-                  : undefined) ??
-                'unknown';
+        <nav className="flex flex-col md:flex-row gap-4">
+          {navItems.map(({ link }) => {
+            const key =
+              link.url ??
+              (link.reference
+                ? `${link.reference.relationTo}:${link.reference.value}`
+                : undefined) ??
+              'unknown';
 
-              return <CMSLink className="text-white" key={key} {...link} />;
-            })}
-          </nav>
+            return <CMSLink className="text-white" key={key} {...link} />;
+          })}
+        </nav>
+      </div>
+      <div className="container py-4 border-t border-white/10 flex flex-col sm:flex-row items-center justify-between gap-2 text-white/40 text-xs">
+        <p>&copy; {currentYear} RevealUI Studio. All rights reserved.</p>
+        <div className="flex gap-4">
+          <a href="https://revealui.com/privacy" className="hover:text-white/70 transition-colors">
+            Privacy Policy
+          </a>
+          <a href="https://revealui.com/terms" className="hover:text-white/70 transition-colors">
+            Terms of Service
+          </a>
         </div>
       </div>
     </footer>

@@ -1,4 +1,9 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
+
+const COMMIT_SUCCESS_FEEDBACK_MS = 3_000;
+const REMOTE_SUCCESS_FEEDBACK_MS = 2_000;
+const REMOTE_ERROR_FEEDBACK_MS = 4_000;
+
 import {
   gitCommit,
   gitCreateBranch,
@@ -254,7 +259,7 @@ function CommitForm({ stagedCount, onCommit }: CommitFormProps) {
       await onCommit(msg.trim());
       setMsg('');
       setOk('Committed!');
-      setTimeout(() => setOk(null), 3000);
+      setTimeout(() => setOk(null), COMMIT_SUCCESS_FEEDBACK_MS);
     } catch (e) {
       setErr(e instanceof Error ? e.message : String(e));
     } finally {
@@ -608,14 +613,14 @@ export default function GitPanel({ onOpenEditor }: GitPanelProps) {
     try {
       await gitPush(repoPath, 'origin', status?.branch ?? 'main');
       setPushStatus('ok');
-      setTimeout(() => setPushStatus('idle'), 2000);
+      setTimeout(() => setPushStatus('idle'), REMOTE_SUCCESS_FEEDBACK_MS);
     } catch (e) {
       setPushStatus('error');
       setRemoteError(e instanceof Error ? e.message : String(e));
       setTimeout(() => {
         setPushStatus('idle');
         setRemoteError(null);
-      }, 4000);
+      }, REMOTE_ERROR_FEEDBACK_MS);
     }
   }, [repoPath, status?.branch]);
 
@@ -625,7 +630,7 @@ export default function GitPanel({ onOpenEditor }: GitPanelProps) {
     try {
       await gitPull(repoPath, 'origin', status?.branch ?? 'main');
       setPullStatus('ok');
-      setTimeout(() => setPullStatus('idle'), 2000);
+      setTimeout(() => setPullStatus('idle'), REMOTE_SUCCESS_FEEDBACK_MS);
       await refresh();
     } catch (e) {
       setPullStatus('error');
@@ -633,7 +638,7 @@ export default function GitPanel({ onOpenEditor }: GitPanelProps) {
       setTimeout(() => {
         setPullStatus('idle');
         setRemoteError(null);
-      }, 4000);
+      }, REMOTE_ERROR_FEEDBACK_MS);
     }
   }, [repoPath, status?.branch, refresh]);
 
