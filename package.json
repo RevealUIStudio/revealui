@@ -122,6 +122,7 @@
     "dev:watched": "tsx scripts/dev-tools/dev-watchdog.ts",
     "dev:api": "pnpm --filter api dev",
     "dev:cms": "pnpm run build:auth && pnpm --filter cms dev",
+    "dev:app": "pnpm run build:auth && concurrently --kill-others-on-fail -n cms,api -c cyan,yellow \"pnpm --filter cms dev\" \"pnpm --filter api dev\"",
     "studio:dev": "cd apps/studio/src-tauri && cargo tauri dev",
     "studio:build": "cd apps/studio/src-tauri && cargo tauri build",
     "format": "biome format --write .",
