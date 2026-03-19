@@ -66,42 +66,6 @@ const mockDb = {
   delete: vi.fn(),
 } as unknown as DatabaseClient;
 
-// All @revealui/ai subpath mocks — prevents pnpm-store chain from loading
-// @revealui/config@0.2.0 (broken dist/loader) via @revealui/ai@0.1.x (npm, not workspace)
-vi.mock('@revealui/ai', () => ({
-  agentCardRegistry: {
-    getCard: vi.fn(),
-    listCards: vi.fn().mockReturnValue([]),
-    has: vi.fn().mockReturnValue(false),
-    getDef: vi.fn(),
-    register: vi.fn(),
-    unregister: vi.fn().mockReturnValue(false),
-    update: vi.fn(),
-  },
-  handleA2AJsonRpc: vi.fn().mockResolvedValue({ jsonrpc: '2.0', id: null, result: {} }),
-  getTask: vi.fn(),
-  createLLMClientFromEnv: vi.fn(),
-  TicketAgentDispatcher: class TicketAgentDispatcher {},
-  RPC_PARSE_ERROR: -32700,
-  RPC_INVALID_REQUEST: -32600,
-}));
-vi.mock('@revealui/ai/llm/server', () => ({
-  createLLMClientForUser: vi.fn(),
-  LLMClient: class LLMClient {},
-}));
-vi.mock('@revealui/ai/llm/key-validator', () => ({
-  validateProviderKey: vi.fn().mockResolvedValue({ valid: true }),
-}));
-vi.mock('@revealui/ai/orchestration/streaming-runtime', () => ({
-  StreamingAgentRuntime: class StreamingAgentRuntime {},
-}));
-vi.mock('@revealui/ai/embeddings', () => ({
-  generateEmbedding: vi.fn().mockResolvedValue([]),
-}));
-vi.mock('@revealui/ai/ingestion', () => ({
-  IngestionPipeline: class IngestionPipeline {},
-}));
-
 // Mock the board queries module
 vi.mock('@revealui/db/queries/boards', () => ({
   getAllBoards: vi.fn().mockResolvedValue(mockBoards),

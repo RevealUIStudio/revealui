@@ -100,15 +100,38 @@ async function checkAndMarkProcessed(
   }
 }
 
-async function unmarkProcessed(db: Database, eventId: string): Promise<void> {
-  try {
-    await db.delete(processedWebhookEvents).where(eq(processedWebhookEvents.id, eventId));
-  } catch (err) {
-    logger.warn('Failed to clear webhook idempotency marker after processing error', {
-      eventId,
-      error: err instanceof Error ? err.message : 'unknown',
-    });
+/**
+ * R5-C1 fix: retry idempotency marker cleanup with backoff.
+ * If cleanup fails after retries, log at critical level so Stripe retries
+ * don't silently skip the event.
+ */
+async function unmarkProcessed(db: Database, eventId: string): Promise<boolean> {
+  const maxRetries = 3;
+  const backoffMs = [100, 500, 1000];
+  for (let attempt = 0; attempt < maxRetries; attempt++) {
+    try {
+      await db.delete(processedWebhookEvents).where(eq(processedWebhookEvents.id, eventId));
+      return true;
+    } catch (err) {
+      if (attempt < maxRetries - 1) {
+        await new Promise((resolve) => setTimeout(resolve, backoffMs[attempt]));
+      } else {
+        logger.error(
+          'CRITICAL: Failed to clear webhook idempotency marker after all retries. ' +
+            'Stripe retries for this event will be treated as duplicates. ' +
+            'Manual intervention required: DELETE FROM processed_webhook_events WHERE id = ?',
+          undefined,
+          {
+            eventId,
+            error: err instanceof Error ? err.message : 'unknown',
+            retries: maxRetries,
+          },
+        );
+        return false;
+      }
+    }
   }
+  return false;
 }
 
 function resolveTier(

@@ -17,6 +17,7 @@ import * as boardQueries from '@revealui/db/queries/boards';
 import * as commentQueries from '@revealui/db/queries/ticket-comments';
 import * as ticketQueries from '@revealui/db/queries/tickets';
 import { agentMemories } from '@revealui/db/schema/agents';
+import { safeVectorInsert } from '@revealui/db/validation/cross-db';
 import { createRoute, OpenAPIHono, z } from '@revealui/openapi';
 
 type Variables = {
@@ -307,7 +308,7 @@ async function dispatchWithTimeout(
   // Persist agent outcome to agent_memories (best-effort)
   if (result.output) {
     try {
-      await db.insert(agentMemories).values({
+      const memoryValues = {
         id: crypto.randomUUID(),
         siteId: 'system',
         content: result.output,
@@ -324,6 +325,9 @@ async function dispatchWithTimeout(
           executionTime: result.metadata?.executionTime,
           tokensUsed: result.metadata?.tokensUsed,
         },
+      };
+      await safeVectorInsert(db, () => db.insert(agentMemories).values(memoryValues), {
+        siteId: memoryValues.siteId,
       });
     } catch {
       // Memory persistence is best-effort — don't fail the request
