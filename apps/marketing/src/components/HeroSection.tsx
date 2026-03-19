@@ -51,9 +51,9 @@ export function HeroSection() {
             The User Interface for the future has yet to Reveal itself
           </p>
           <h1 className="text-4xl font-bold tracking-tight text-gray-950 sm:text-6xl lg:text-7xl hero-stagger">
-            Business OS Software
+            Business Operating System Software
             <span className="block bg-gradient-to-r from-gray-500 to-gray-300 bg-clip-text text-transparent">
-              (BOSS)
+              (B.O.S.S.)
             </span>
           </h1>
           <p className="mx-auto mt-6 max-w-2xl text-xl font-semibold leading-8 text-gray-700">
