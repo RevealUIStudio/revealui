@@ -64,6 +64,11 @@ vi.mock('@revealui/db', () => ({
     const mockWhere = vi.fn().mockResolvedValue(undefined);
     const mockSet = vi.fn(() => ({ where: mockWhere }));
     return {
+      select: vi.fn(() => ({
+        from: vi.fn(() => ({
+          where: vi.fn().mockResolvedValue([{ total: 0 }]),
+        })),
+      })),
       transaction: vi.fn(async (cb: (tx: unknown) => Promise<void>) => {
         const tx = {
           execute: vi.fn().mockResolvedValue(undefined),

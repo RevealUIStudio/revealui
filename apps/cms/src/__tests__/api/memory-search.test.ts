@@ -22,6 +22,10 @@ vi.mock('@revealui/auth/server', () => ({
     .mockResolvedValue({ allowed: true, remaining: 29, resetAt: Date.now() + 60_000 }),
 }));
 
+vi.mock('@revealui/core/features', () => ({
+  isFeatureEnabled: vi.fn().mockReturnValue(true),
+}));
+
 vi.mock('@revealui/core/observability/logger', () => ({
   logger: { info: vi.fn(), warn: vi.fn(), error: vi.fn() },
 }));
