@@ -19,6 +19,7 @@ vi.mock('drizzle-orm', async (importOriginal) => {
     ...actual,
     count: vi.fn(() => 'count_fn'),
     eq: vi.fn(() => 'eq_fn'),
+    inArray: vi.fn(() => 'inArray_fn'),
   };
 });
 
@@ -34,12 +35,22 @@ async function parseBody(res: Response): Promise<any> {
   return res.json();
 }
 
-function createMockDb(countResult: number) {
-  const mockDb = {
-    select: vi.fn().mockReturnThis(),
-    from: vi.fn().mockReturnThis(),
-    where: vi.fn().mockResolvedValue([{ count: countResult }]),
+function createMockDb(countResult: number, { withAccountLookup = false } = {}) {
+  // enforceSiteLimit makes two query chains:
+  //   1. getAccountMemberIds: select().from().where().limit() → [] (no account membership)
+  //   2. count query: select().from().where() → [{ count: countResult }]
+  // enforceUserLimit makes only one chain (count query only).
+  const countResult_ = [{ count: countResult }];
+  const mockDb: Record<string, ReturnType<typeof vi.fn>> = {
+    select: vi.fn().mockImplementation(() => mockDb),
+    from: vi.fn().mockImplementation(() => mockDb),
+    where: vi.fn().mockReturnValue(countResult_),
+    limit: vi.fn().mockResolvedValue([]),
   };
+  if (withAccountLookup) {
+    // First where() call returns mockDb (chainable for .limit()), second returns count
+    mockDb.where.mockReturnValueOnce(mockDb).mockReturnValue(countResult_);
+  }
   return mockDb;
 }
 
@@ -82,7 +93,7 @@ function createUserLimitApp(db: unknown) {
 describe('enforceSiteLimit', () => {
   it('passes when under the site limit', async () => {
     mockedGetMaxSites.mockReturnValue(5);
-    const db = createMockDb(3);
+    const db = createMockDb(3, { withAccountLookup: true });
 
     const app = createSiteLimitApp(db);
     const res = await app.request('/sites', { method: 'POST' });
@@ -92,7 +103,7 @@ describe('enforceSiteLimit', () => {
 
   it('returns 403 when at the site limit', async () => {
     mockedGetMaxSites.mockReturnValue(5);
-    const db = createMockDb(5);
+    const db = createMockDb(5, { withAccountLookup: true });
 
     const app = createSiteLimitApp(db);
     const res = await app.request('/sites', { method: 'POST' });
@@ -105,7 +116,7 @@ describe('enforceSiteLimit', () => {
 
   it('skips limit check for enterprise (Infinity)', async () => {
     mockedGetMaxSites.mockReturnValue(Number.POSITIVE_INFINITY);
-    const db = createMockDb(1000);
+    const db = createMockDb(1000, { withAccountLookup: true });
 
     const app = createSiteLimitApp(db);
     const res = await app.request('/sites', { method: 'POST' });
@@ -118,7 +129,7 @@ describe('enforceSiteLimit', () => {
   it('returns 401 when user is not authenticated', async () => {
     const app = new Hono<{ Variables: TestVariables }>();
     app.use('*', async (c, next) => {
-      c.set('db', createMockDb(0));
+      c.set('db', createMockDb(0, { withAccountLookup: true }));
       // No user set
       await next();
     });
