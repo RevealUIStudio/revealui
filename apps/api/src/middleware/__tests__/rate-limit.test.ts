@@ -116,7 +116,7 @@ describe('rateLimitMiddleware', () => {
   });
 
   describe('IP extraction', () => {
-    it('uses rightmost X-Forwarded-For entry (trusted proxy)', async () => {
+    it('uses leftmost X-Forwarded-For entry (client IP)', async () => {
       mockedCheckRateLimit.mockResolvedValue(allowedResult());
 
       const app = new Hono();
@@ -128,7 +128,25 @@ describe('rateLimitMiddleware', () => {
       });
 
       const key = mockedCheckRateLimit.mock.calls[0]![0];
-      expect(key).toBe('api:3.3.3.3');
+      expect(key).toBe('api:1.1.1.1');
+    });
+
+    it('prefers X-Real-IP over X-Forwarded-For', async () => {
+      mockedCheckRateLimit.mockResolvedValue(allowedResult());
+
+      const app = new Hono();
+      app.use('*', rateLimitMiddleware({ maxRequests: 100, windowMs: 60_000 }));
+      app.get('/test', (c) => c.json({ ok: true }));
+
+      await app.request('/test', {
+        headers: {
+          'x-real-ip': '9.9.9.9',
+          'x-forwarded-for': '1.1.1.1, 2.2.2.2',
+        },
+      });
+
+      const key = mockedCheckRateLimit.mock.calls[0]![0];
+      expect(key).toBe('api:9.9.9.9');
     });
 
     it('falls back to X-Real-IP when X-Forwarded-For is absent', async () => {
