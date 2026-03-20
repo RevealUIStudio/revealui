@@ -228,8 +228,7 @@ function ChangeSection({
 export default function AgentPanel() {
   const [workboardPath, setWorkboardPath] = useState(
     () =>
-      (typeof localStorage !== 'undefined' && localStorage.getItem('agent-workboard-path')) ||
-      '~/projects/revealui-jv/.claude/workboard.md',
+      (typeof localStorage !== 'undefined' && localStorage.getItem('agent-workboard-path')) || '',
   );
   const [editingWorkboard, setEditingWorkboard] = useState(false);
   const [draftWorkboard, setDraftWorkboard] = useState(workboardPath);
