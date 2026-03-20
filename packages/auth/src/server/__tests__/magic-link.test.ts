@@ -48,6 +48,7 @@ vi.mock('drizzle-orm', () => ({
   eq: vi.fn((_col, val) => ({ eq: val })),
   and: vi.fn((...args) => ({ and: args })),
   lt: vi.fn((_col, val) => ({ lt: val })),
+  gt: vi.fn((_col, val) => ({ gt: val })),
   isNull: vi.fn((_col) => ({ isNull: true })),
 }));
 
