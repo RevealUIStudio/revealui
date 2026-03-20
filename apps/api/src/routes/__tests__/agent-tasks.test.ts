@@ -126,10 +126,11 @@ const mockDbInsert = vi.fn().mockReturnValue({
   values: vi.fn().mockResolvedValue(undefined),
 });
 
-function createApp() {
+function createApp(tenant?: { id: string }) {
   const app = new Hono<{ Variables: { db: DatabaseClient; tenant?: { id: string } } }>();
   app.use('*', async (c, next) => {
     c.set('db', { insert: mockDbInsert } as unknown as DatabaseClient);
+    if (tenant) c.set('tenant', tenant);
     await next();
   });
   app.route('/', agentTasksApp);
@@ -142,6 +143,10 @@ function post(body: unknown) {
     body: JSON.stringify(body),
     headers: { 'Content-Type': 'application/json' },
   };
+}
+
+function dispatchRequest(ticketId: string) {
+  return new Request(`http://localhost/${ticketId}/dispatch`, { method: 'POST' });
 }
 
 // biome-ignore lint/suspicious/noExplicitAny: test helper — response shape varies per endpoint
@@ -276,6 +281,11 @@ describe('POST / — submit agent task', () => {
     const body = await parseBody(res);
     expect(body.success).toBe(true);
     expect(body.status).toBe('blocked');
+    // dispatchWithTimeout calls updateTicket(db, ticket.id, { status: 'blocked' })
+    // when the agent dispatch result has success: false
+    expect(mt.updateTicket).toHaveBeenCalledWith(expect.anything(), 'ticket-1', {
+      status: 'blocked',
+    });
   });
 });
 
@@ -321,5 +331,110 @@ describe('POST /:ticketId/dispatch — dispatch existing ticket', () => {
     expect(body.ticketId).toBe('ticket-1');
     expect(body.agentOutput).toBe('Agent completed the task.');
     expect(body.status).toBe('done');
+  });
+
+  it('returns 404 when ticket belongs to a different tenant (tenant mismatch)', async () => {
+    // Ticket found, but the board it belongs to has a different tenantId
+    mt.getTicketById.mockResolvedValue(makeTicket({ boardId: 'board-1' }) as never);
+    mb.getBoardById.mockResolvedValue(makeBoard({ tenantId: 'other-tenant' }) as never);
+    // Caller's tenant is 'my-tenant' — does NOT match board's 'other-tenant'
+    const app = createApp({ id: 'my-tenant' });
+    const res = await app.fetch(dispatchRequest('ticket-1'));
+    expect(res.status).toBe(404);
+    const body = await parseBody(res);
+    expect(body.success).toBe(false);
+    expect(body.error).toBe('Ticket not found');
+  });
+
+  it('returns 200 when tenant matches board tenantId (no false 404)', async () => {
+    mt.getTicketById
+      .mockResolvedValueOnce(makeTicket({ boardId: 'board-1' }) as never)
+      .mockResolvedValueOnce(makeTicket({ status: 'done' }) as never);
+    mb.getBoardById.mockResolvedValue(makeBoard({ tenantId: 'my-tenant' }) as never);
+    mt.updateTicket.mockResolvedValue(makeTicket({ status: 'in_progress' }) as never);
+    // Caller is in the same tenant as the board
+    const app = createApp({ id: 'my-tenant' });
+    const res = await app.fetch(dispatchRequest('ticket-1'));
+    expect(res.status).toBe(200);
+  });
+
+  it('calls updateTicket with in_progress before dispatching', async () => {
+    mt.getTicketById
+      .mockResolvedValueOnce(makeTicket() as never)
+      .mockResolvedValueOnce(makeTicket({ status: 'done' }) as never);
+    mt.updateTicket.mockResolvedValue(makeTicket({ status: 'in_progress' }) as never);
+    const app = createApp();
+    await app.fetch(dispatchRequest('ticket-1'));
+    expect(mt.updateTicket).toHaveBeenCalledWith(expect.anything(), 'ticket-1', {
+      status: 'in_progress',
+    });
+  });
+
+  it('returns 403 with error message when dispatch throws (agent failure)', async () => {
+    // dispatchWithTimeout returns { success: false, error } when the dispatcher
+    // throws — not when it returns { success: false }.  Simulate a throw.
+    mockDispatch.mockRejectedValueOnce(new Error('Agent internal error'));
+    mt.getTicketById.mockResolvedValueOnce(makeTicket() as never);
+    mt.updateTicket.mockResolvedValue(makeTicket({ status: 'blocked' }) as never);
+    const app = createApp();
+    const res = await app.fetch(dispatchRequest('ticket-1'));
+    expect(res.status).toBe(403);
+    const body = await parseBody(res);
+    expect(body.success).toBe(false);
+    expect(body.error).toBe('Agent dispatch failed');
+  });
+
+  it('falls back to result.success for status when final ticket fetch returns null', async () => {
+    mt.getTicketById
+      .mockResolvedValueOnce(makeTicket() as never) // initial fetch — ticket exists
+      .mockResolvedValueOnce(null as never); // final fetch — ticket vanished
+    mt.updateTicket.mockResolvedValue(makeTicket({ status: 'in_progress' }) as never);
+    const app = createApp();
+    const res = await app.fetch(dispatchRequest('ticket-1'));
+    expect(res.status).toBe(200);
+    const body = await parseBody(res);
+    // result.success is true (mockDispatch default), so fallback is 'done'
+    expect(body.status).toBe('done');
+  });
+
+  it('falls back to blocked when final ticket is null and dispatch result.success is false', async () => {
+    // dispatchWithTimeout returns success:true but result.success is false (agent reported failure)
+    mockDispatch.mockResolvedValueOnce({ success: false, output: 'Could not complete.' });
+    mt.getTicketById
+      .mockResolvedValueOnce(makeTicket() as never) // initial fetch
+      .mockResolvedValueOnce(null as never); // final fetch — null
+    mt.updateTicket.mockResolvedValue(makeTicket({ status: 'blocked' }) as never);
+    const app = createApp();
+    const res = await app.fetch(dispatchRequest('ticket-1'));
+    expect(res.status).toBe(200);
+    const body = await parseBody(res);
+    expect(body.status).toBe('blocked');
+  });
+
+  it('response status comes from final ticket when available', async () => {
+    mt.getTicketById
+      .mockResolvedValueOnce(makeTicket() as never)
+      .mockResolvedValueOnce(makeTicket({ status: 'done' }) as never);
+    mt.updateTicket.mockResolvedValue(makeTicket({ status: 'in_progress' }) as never);
+    const app = createApp();
+    const res = await app.fetch(dispatchRequest('ticket-1'));
+    const body = await parseBody(res);
+    // 'done' comes from the final ticket fetch, not from a fallback
+    expect(body.status).toBe('done');
+  });
+
+  it('returns 200 when GROQ_API_KEY is present and no Anthropic key is set', async () => {
+    vi.stubEnv('ANTHROPIC_API_KEY', '');
+    vi.stubEnv('GROQ_API_KEY', 'gsk_test_groq_key');
+    // createLLMClientFromEnv is mocked to return {} by default, simulating GROQ key accepted
+    mt.getTicketById
+      .mockResolvedValueOnce(makeTicket() as never)
+      .mockResolvedValueOnce(makeTicket({ status: 'done' }) as never);
+    mt.updateTicket.mockResolvedValue(makeTicket({ status: 'in_progress' }) as never);
+    const app = createApp();
+    const res = await app.fetch(dispatchRequest('ticket-1'));
+    expect(res.status).toBe(200);
+    const body = await parseBody(res);
+    expect(body.success).toBe(true);
   });
 });
