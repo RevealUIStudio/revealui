@@ -71,7 +71,7 @@ export async function runCreateFlow(
   logger.success(`Node.js version: ${process.version}`);
 
   logger.info('[2/8] Configure your project');
-  const projectConfig = await promptProjectConfig(projectName, options.template);
+  const projectConfig = await promptProjectConfig(projectName, options.template, options.yes);
   logger.success(`Project: ${projectConfig.projectName}`);
   logger.success(`Template: ${projectConfig.template}`);
 
