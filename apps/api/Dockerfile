@@ -15,11 +15,14 @@ COPY .npmrc* ./
 
 # Copy workspace package.json files needed by api
 COPY packages/auth/package.json ./packages/auth/
+COPY packages/cache/package.json ./packages/cache/
 COPY packages/config/package.json ./packages/config/
 COPY packages/contracts/package.json ./packages/contracts/
 COPY packages/core/package.json ./packages/core/
 COPY packages/db/package.json ./packages/db/
-COPY packages/services/package.json ./packages/services/
+COPY packages/openapi/package.json ./packages/openapi/
+COPY packages/resilience/package.json ./packages/resilience/
+COPY packages/security/package.json ./packages/security/
 COPY packages/utils/package.json ./packages/utils/
 COPY apps/api/package.json ./apps/api/
 
