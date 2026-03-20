@@ -426,6 +426,73 @@ pub fn git_read_file(repo_path: String, file_path: String) -> Result<String, Stu
         .map_err(|e| StudioError::Other(format!("Cannot read '{file_path}': {e}")))
 }
 
+// ── Diff content for MergeView ────────────────────────────────────────────────
+
+/// Both file versions for a side-by-side diff viewer (e.g. CodeMirror MergeView).
+/// New files have an empty `original`; deleted files have an empty `modified`.
+#[derive(Debug, Serialize)]
+pub struct GitDiffContent {
+    pub original: String,
+    pub modified: String,
+}
+
+/// Return the original and modified content of a file for a side-by-side diff.
+///
+/// - `staged = true`:  HEAD → index  (original = HEAD blob, modified = staged blob)
+/// - `staged = false`: index → worktree (original = staged or HEAD blob, modified = working tree)
+#[tauri::command]
+pub fn git_diff_content(
+    repo_path: String,
+    file_path: String,
+    staged: bool,
+) -> Result<GitDiffContent, StudioError> {
+    let repo = open_repo(&repo_path)?;
+
+    if staged {
+        let original = read_blob_at_head(&repo, &file_path).unwrap_or_default();
+        let modified = read_blob_at_index(&repo, &file_path).unwrap_or_default();
+        Ok(GitDiffContent { original, modified })
+    } else {
+        let original = read_blob_at_index(&repo, &file_path)
+            .or_else(|_| read_blob_at_head(&repo, &file_path))
+            .unwrap_or_default();
+        let expanded = expand_tilde(&repo_path);
+        let full = std::path::Path::new(&expanded).join(&file_path);
+        let modified = std::fs::read_to_string(&full).unwrap_or_default();
+        Ok(GitDiffContent { original, modified })
+    }
+}
+
+fn read_blob_at_head(repo: &Repository, file_path: &str) -> Result<String, StudioError> {
+    let tree = repo
+        .head()
+        .map_err(|e| StudioError::Other(e.to_string()))?
+        .peel_to_tree()
+        .map_err(|e| StudioError::Other(e.to_string()))?;
+    let entry = tree
+        .get_path(std::path::Path::new(file_path))
+        .map_err(|e| StudioError::Other(format!("'{file_path}' not in HEAD: {e}")))?;
+    let blob = repo
+        .find_blob(entry.id())
+        .map_err(|e| StudioError::Other(e.to_string()))?;
+    String::from_utf8(blob.content().to_vec())
+        .map_err(|_| StudioError::Other(format!("'{file_path}' contains binary content")))
+}
+
+fn read_blob_at_index(repo: &Repository, file_path: &str) -> Result<String, StudioError> {
+    let index = repo
+        .index()
+        .map_err(|e| StudioError::Other(e.to_string()))?;
+    let entry = index
+        .get_path(std::path::Path::new(file_path), 0)
+        .ok_or_else(|| StudioError::Other(format!("'{file_path}' not in index")))?;
+    let blob = repo
+        .find_blob(entry.id)
+        .map_err(|e| StudioError::Other(e.to_string()))?;
+    String::from_utf8(blob.content().to_vec())
+        .map_err(|_| StudioError::Other(format!("'{file_path}' contains binary content")))
+}
+
 /// Write content to a file in the working tree. Path is relative to `repo_path`.
 #[tauri::command]
 pub fn git_write_file(

@@ -275,9 +275,6 @@ importers:
 
   apps/cms:
     dependencies:
-      '@conform-to/react':
-        specifier: ^1.17.1
-        version: 1.17.1(react@19.2.4)
       '@electric-sql/client':
         specifier: ^1.0.27
         version: 1.5.1
@@ -1719,14 +1716,6 @@ packages:
   '@colors/colors@1.6.0':
     resolution: {integrity: sha512-Ir+AOibqzrIsL6ajt3Rz3LskB7OiMVHqltZmspbW/TJuTVuyOMirVqAkjfY6JISiLHgyNqicAC8AyHHGzNd/dA==}
     engines: {node: '>=0.1.90'}
-
-  '@conform-to/dom@1.17.1':
-    resolution: {integrity: sha512-vpwCodVVWpQ6kbrlu5F85BC99ozDxqcrhmt+YDD81bCwvt6NtiycFID3NQQGQyn+bzmpb4qlF3Ay9YcljnrNHw==}
-
-  '@conform-to/react@1.17.1':
-    resolution: {integrity: sha512-AXj6HMiG0e6mJXzVNDmeQ9FH4LbGA4HdSt+a0Yb09kEnpESkK3zCopFb8RkO8kls4XMQO05KAmaE6KDlhSzprQ==}
-    peerDependencies:
-      react: '>=19.2.4'
 
   '@cspotcode/source-map-support@0.8.1':
     resolution: {integrity: sha512-IchNf6dN4tHoMFIn/7OE8LWZ19Y6q/67Bmf6vnGREv8RSbBVb9LPJxEcnwrcwX6ixSvaiGoomAUvu4YSxXrVgw==}
@@ -11236,13 +11225,6 @@ snapshots:
     optional: true
 
   '@colors/colors@1.6.0': {}
-
-  '@conform-to/dom@1.17.1': {}
-
-  '@conform-to/react@1.17.1(react@19.2.4)':
-    dependencies:
-      '@conform-to/dom': 1.17.1
-      react: 19.2.4
 
   '@cspotcode/source-map-support@0.8.1':
     dependencies:

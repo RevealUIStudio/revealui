@@ -8,6 +8,7 @@ import type {
   AppStatus,
   GitBranch,
   GitCommitInfo,
+  GitDiffContent,
   GitPullResult,
   GitPushResult,
   GitStatusResult,
@@ -346,6 +347,14 @@ export function gitStatus(repoPath: string): Promise<GitStatusResult> {
 
 export function gitDiffFile(repoPath: string, filePath: string, staged: boolean): Promise<string> {
   return invoke<string>('git_diff_file', { repoPath, filePath, staged });
+}
+
+export function gitDiffContent(
+  repoPath: string,
+  filePath: string,
+  staged: boolean,
+): Promise<GitDiffContent> {
+  return invoke<GitDiffContent>('git_diff_content', { repoPath, filePath, staged });
 }
 
 export function gitStageFile(repoPath: string, filePath: string): Promise<void> {
