@@ -47,6 +47,8 @@ try {
   process.exit(0);
 } catch (error) {
   console.error('Cleanup failed:', error instanceof Error ? error.message : String(error));
-  await closeAllPools().catch(() => {});
+  await closeAllPools().catch((_e) => {
+    // best-effort — already in error path
+  });
   process.exit(1);
 }
