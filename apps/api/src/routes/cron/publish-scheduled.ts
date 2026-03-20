@@ -16,7 +16,7 @@ import { Hono } from 'hono';
 const app = new Hono();
 
 app.post('/publish-scheduled', async (c) => {
-  const cronSecret = process.env.CRON_SECRET;
+  const cronSecret = process.env.REVEALUI_CRON_SECRET;
   const provided = c.req.header('X-Cron-Secret') || c.req.header('x-cron-secret');
 
   if (!(cronSecret && provided)) {
