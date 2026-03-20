@@ -159,28 +159,6 @@ function LoginContent() {
             </p>
           </form>
 
-          {passkeySupported && (
-            <>
-              <div className="relative my-4">
-                <div className="absolute inset-0 flex items-center">
-                  <span className="w-full border-t border-border" />
-                </div>
-                <div className="relative flex justify-center text-xs uppercase">
-                  <span className="bg-background px-2 text-muted-foreground">or</span>
-                </div>
-              </div>
-
-              <Button
-                variant="outline"
-                className="w-full"
-                onClick={handlePasskeySignIn}
-                disabled={anyLoading}
-              >
-                {isPasskeyLoading ? 'Authenticating...' : 'Sign in with passkey'}
-              </Button>
-            </>
-          )}
-
           <div className="relative my-4">
             <div className="absolute inset-0 flex items-center">
               <span className="w-full border-t border-border" />
@@ -191,6 +169,16 @@ function LoginContent() {
           </div>
 
           <div className="flex flex-col gap-2">
+            {passkeySupported && (
+              <Button
+                variant="outline"
+                className="w-full"
+                onClick={handlePasskeySignIn}
+                disabled={anyLoading}
+              >
+                {isPasskeyLoading ? 'Authenticating...' : 'Sign in with passkey'}
+              </Button>
+            )}
             <Button variant="outline" className="w-full" asChild>
               <a href="/api/auth/github">Sign in with GitHub</a>
             </Button>
