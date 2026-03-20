@@ -1,5 +1,11 @@
 # @revealui/cli
 
+## 0.3.2
+
+### Patch Changes
+
+- Fix template directory resolution — templates now found correctly after tsup bundling
+
 ## 0.3.1
 
 ### Patch Changes
