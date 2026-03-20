@@ -68,9 +68,9 @@ describe('DrizzleAuditStore — append-only enforcement', () => {
     expect(typeof store.count).toBe('function');
     expect(typeof store.since).toBe('function');
     // Must NOT expose mutating operations
-    expect((store as Record<string, unknown>)['update']).toBeUndefined();
-    expect((store as Record<string, unknown>)['delete']).toBeUndefined();
-    expect((store as Record<string, unknown>)['remove']).toBeUndefined();
+    expect((store as Record<string, unknown>).update).toBeUndefined();
+    expect((store as Record<string, unknown>).delete).toBeUndefined();
+    expect((store as Record<string, unknown>).remove).toBeUndefined();
   });
 
   // ── append() ─────────────────────────────────────────────────────────────
@@ -102,8 +102,8 @@ describe('DrizzleAuditStore — append-only enforcement', () => {
     await store.append(makeEntry());
 
     const values = db._insertChain.values.mock.calls[0]?.[0] as Record<string, unknown>;
-    expect(values['taskId']).toBeNull();
-    expect(values['sessionId']).toBeNull();
+    expect(values.taskId).toBeNull();
+    expect(values.sessionId).toBeNull();
   });
 
   // ── appendBatch() ─────────────────────────────────────────────────────────
@@ -128,8 +128,8 @@ describe('DrizzleAuditStore — append-only enforcement', () => {
 
     const batchValues = db._insertChain.values.mock.calls[0]?.[0] as Array<Record<string, unknown>>;
     expect(batchValues).toHaveLength(2);
-    expect(batchValues[0]?.['id']).toBe('e1');
-    expect(batchValues[1]?.['id']).toBe('e2');
+    expect(batchValues[0]?.id).toBe('e1');
+    expect(batchValues[1]?.id).toBe('e2');
   });
 
   // ── DB-level trigger (migration verification) ─────────────────────────────

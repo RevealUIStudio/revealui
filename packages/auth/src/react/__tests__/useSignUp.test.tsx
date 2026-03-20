@@ -1,5 +1,5 @@
 // @vitest-environment happy-dom
-import { renderHook, waitFor } from '@testing-library/react';
+import { act, renderHook, waitFor } from '@testing-library/react';
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import { useSignUp } from '../useSignUp.js';
 
@@ -69,7 +69,7 @@ describe('useSignUp', () => {
     const { result } = renderHook(() => useSignUp());
 
     let signUpResult: Awaited<ReturnType<typeof result.current.signUp>>;
-    await waitFor(async () => {
+    await act(async () => {
       signUpResult = await result.current.signUp(validInput);
     });
 
