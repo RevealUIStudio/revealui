@@ -51,6 +51,19 @@ vi.mock('@revealui/core/observability/logger', () => ({
   logger: { error: vi.fn(), warn: vi.fn(), info: vi.fn(), debug: vi.fn() },
 }));
 
+vi.mock('../../lib/webhook-emails.js', () => ({
+  sendLicenseActivatedEmail: vi.fn().mockResolvedValue(undefined),
+  sendPaymentFailedEmail: vi.fn().mockResolvedValue(undefined),
+  sendPaymentRecoveredEmail: vi.fn().mockResolvedValue(undefined),
+  sendPaymentReceiptEmail: vi.fn().mockResolvedValue(undefined),
+  sendPerpetualLicenseActivatedEmail: vi.fn().mockResolvedValue(undefined),
+  sendTierFallbackAlert: vi.fn().mockResolvedValue(undefined),
+  sendTrialEndingEmail: vi.fn().mockResolvedValue(undefined),
+  sendWebhookFailureAlert: vi.fn().mockResolvedValue(undefined),
+  sendDisputeLostEmail: vi.fn().mockResolvedValue(undefined),
+  provisionGitHubAccess: vi.fn().mockResolvedValue(undefined),
+}));
+
 // ─── DB Mock — fluent chain for select / insert / update ─────────────────────
 
 const mockAuditAppend = vi.fn();

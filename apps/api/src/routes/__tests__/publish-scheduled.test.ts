@@ -70,7 +70,7 @@ function makeDb(scheduledPages: Array<{ id: string; title: string }> = []) {
 describe('POST /publish-scheduled — auth', () => {
   beforeEach(() => {
     vi.clearAllMocks();
-    process.env.CRON_SECRET = VALID_SECRET;
+    process.env.REVEALUI_CRON_SECRET = VALID_SECRET;
   });
 
   it('returns 401 when X-Cron-Secret header is absent', async () => {
@@ -86,7 +86,7 @@ describe('POST /publish-scheduled — auth', () => {
   });
 
   it('returns 401 when CRON_SECRET env var is unset', async () => {
-    delete process.env.CRON_SECRET;
+    delete process.env.REVEALUI_CRON_SECRET;
     const app = createApp();
     const res = await app.request(makeRequest(VALID_SECRET));
     expect(res.status).toBe(401);
@@ -110,7 +110,7 @@ describe('POST /publish-scheduled — auth', () => {
 describe('POST /publish-scheduled — valid request, no pages due', () => {
   beforeEach(() => {
     vi.clearAllMocks();
-    process.env.CRON_SECRET = VALID_SECRET;
+    process.env.REVEALUI_CRON_SECRET = VALID_SECRET;
   });
 
   it('returns 200 with published:0 when no pages are due', async () => {
@@ -138,7 +138,7 @@ describe('POST /publish-scheduled — valid request, no pages due', () => {
 describe('POST /publish-scheduled — valid request, pages due', () => {
   beforeEach(() => {
     vi.clearAllMocks();
-    process.env.CRON_SECRET = VALID_SECRET;
+    process.env.REVEALUI_CRON_SECRET = VALID_SECRET;
   });
 
   it('returns published count matching the number of due pages', async () => {
@@ -186,7 +186,7 @@ describe('POST /publish-scheduled — valid request, pages due', () => {
 describe('POST /publish-scheduled — error handling', () => {
   beforeEach(() => {
     vi.clearAllMocks();
-    process.env.CRON_SECRET = VALID_SECRET;
+    process.env.REVEALUI_CRON_SECRET = VALID_SECRET;
   });
 
   it('returns 500 when the DB select throws', async () => {
