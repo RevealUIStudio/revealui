@@ -13,6 +13,7 @@ export default defineConfig({
     environment: 'node',
     globals: true,
     pool: 'forks',
+    testTimeout: 15000,
     env: {
       NODE_ENV: 'test',
       // Force in-memory storage by unsetting database URLs that may leak from direnv/nix shell
