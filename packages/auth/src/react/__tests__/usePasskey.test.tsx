@@ -84,7 +84,7 @@ describe('usePasskeyRegister', () => {
     vi.stubGlobal(
       'fetch',
       mockFetchSequence([
-        { body: registrationOptions },
+        { body: { options: registrationOptions } },
         { body: { backupCodes: ['backup-1', 'backup-2'] } },
       ]),
     );
@@ -115,8 +115,8 @@ describe('usePasskeyRegister', () => {
       body: JSON.stringify({ email: 'test@example.com', name: 'Test User' }),
     });
 
-    // Verify browser API was called with options
-    expect(startRegistration).toHaveBeenCalledWith(registrationOptions);
+    // Verify browser API was called with options (v13+ wraps in { optionsJSON })
+    expect(startRegistration).toHaveBeenCalledWith({ optionsJSON: registrationOptions });
 
     // Verify second fetch (verify attestation)
     expect(fetch).toHaveBeenNthCalledWith(2, '/api/auth/passkey/register-verify', {
@@ -124,7 +124,7 @@ describe('usePasskeyRegister', () => {
       headers: { 'Content-Type': 'application/json' },
       credentials: 'include',
       body: JSON.stringify({
-        attestation: attestationResponse,
+        attestationResponse,
         deviceName: 'MacBook Pro',
       }),
     });
@@ -245,7 +245,10 @@ describe('usePasskeySignIn', () => {
       type: 'public-key',
     };
 
-    vi.stubGlobal('fetch', mockFetchSequence([{ body: authOptions }, { body: { success: true } }]));
+    vi.stubGlobal(
+      'fetch',
+      mockFetchSequence([{ body: { options: authOptions } }, { body: { success: true } }]),
+    );
 
     const { startAuthentication } = await import('@simplewebauthn/browser');
     vi.mocked(startAuthentication).mockResolvedValue(assertionResponse as never);
@@ -267,15 +270,15 @@ describe('usePasskeySignIn', () => {
       credentials: 'include',
     });
 
-    // Verify browser API
-    expect(startAuthentication).toHaveBeenCalledWith(authOptions);
+    // Verify browser API (v13+ wraps in { optionsJSON })
+    expect(startAuthentication).toHaveBeenCalledWith({ optionsJSON: authOptions });
 
     // Verify second fetch (verify assertion)
     expect(fetch).toHaveBeenNthCalledWith(2, '/api/auth/passkey/authenticate-verify', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       credentials: 'include',
-      body: JSON.stringify({ assertion: assertionResponse }),
+      body: JSON.stringify({ authenticationResponse: assertionResponse }),
     });
   });
 

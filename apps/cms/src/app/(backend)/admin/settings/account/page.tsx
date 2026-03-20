@@ -226,6 +226,12 @@ function AccountSettingsContent() {
   // Password change state
   const [showPasswordForm, setShowPasswordForm] = useState(false);
 
+  const handlePasswordSuccess = useCallback(() => {
+    setShowPasswordForm(false);
+    setSuccess('Password updated successfully.');
+    void fetchUser();
+  }, [fetchUser]);
+
   const linkedSet = new Set(user?.linkedProviders.map((lp) => lp.provider) ?? []);
   const pendingLabel =
     PROVIDERS.find((p) => p.id === pendingUnlink.current)?.label ?? pendingUnlink.current ?? '';
@@ -322,11 +328,7 @@ function AccountSettingsContent() {
                 </p>
               ) : showPasswordForm ? (
                 <PasswordChangeForm
-                  onSuccess={() => {
-                    setShowPasswordForm(false);
-                    setSuccess('Password updated successfully.');
-                    void fetchUser();
-                  }}
+                  onSuccess={handlePasswordSuccess}
                   onCancel={() => setShowPasswordForm(false)}
                 />
               ) : (

@@ -173,9 +173,9 @@ describe('package.json integrity after scaffolding', () => {
         await fs.readFile(path.join(projectPath, 'package.json'), 'utf-8'),
       ) as { scripts?: Record<string, string> };
       expect(pkg.scripts).toBeDefined();
-      expect(typeof pkg.scripts?.['dev']).toBe('string');
-      expect(typeof pkg.scripts?.['build']).toBe('string');
-      expect(typeof pkg.scripts?.['typecheck']).toBe('string');
+      expect(typeof pkg.scripts?.dev).toBe('string');
+      expect(typeof pkg.scripts?.build).toBe('string');
+      expect(typeof pkg.scripts?.typecheck).toBe('string');
     });
 
     it(`${template}: package.json has @revealui/core dependency`, async () => {

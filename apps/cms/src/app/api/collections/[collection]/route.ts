@@ -5,6 +5,17 @@ const API_URL =
   process.env.REVEALUI_PUBLIC_SERVER_URL ||
   'http://localhost:3004';
 
+const API_UNAVAILABLE = NextResponse.json({ error: 'Content API unavailable' }, { status: 503 });
+
+async function proxyResponse(response: Response): Promise<NextResponse> {
+  if (!response.ok) {
+    const text = await response.text();
+    return NextResponse.json({ error: text || 'API request failed' }, { status: response.status });
+  }
+  const data = await response.json();
+  return NextResponse.json(data, { status: response.status });
+}
+
 export async function GET(
   request: NextRequest,
   { params }: { params: Promise<{ collection: string }> },
@@ -12,26 +23,20 @@ export async function GET(
   const { collection } = await params;
   const { searchParams } = new URL(request.url);
 
-  const apiResponse = await fetch(
-    `${API_URL}/api/content/${collection}?${searchParams.toString()}`,
-    {
-      headers: {
-        // biome-ignore lint/style/useNamingConvention: HTTP header name
-        Cookie: request.headers.get('Cookie') ?? '',
+  try {
+    const apiResponse = await fetch(
+      `${API_URL}/api/content/${collection}?${searchParams.toString()}`,
+      {
+        headers: {
+          // biome-ignore lint/style/useNamingConvention: HTTP header name
+          Cookie: request.headers.get('Cookie') ?? '',
+        },
       },
-    },
-  );
-
-  if (!apiResponse.ok) {
-    const text = await apiResponse.text();
-    return NextResponse.json(
-      { error: text || 'API request failed' },
-      { status: apiResponse.status },
     );
+    return proxyResponse(apiResponse);
+  } catch {
+    return API_UNAVAILABLE;
   }
-
-  const data = await apiResponse.json();
-  return NextResponse.json(data, { status: apiResponse.status });
 }
 
 export async function POST(
@@ -41,24 +46,18 @@ export async function POST(
   const { collection } = await params;
   const body = await request.json();
 
-  const apiResponse = await fetch(`${API_URL}/api/content/${collection}`, {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-      // biome-ignore lint/style/useNamingConvention: HTTP header name
-      Cookie: request.headers.get('Cookie') ?? '',
-    },
-    body: JSON.stringify(body),
-  });
-
-  if (!apiResponse.ok) {
-    const text = await apiResponse.text();
-    return NextResponse.json(
-      { error: text || 'API request failed' },
-      { status: apiResponse.status },
-    );
+  try {
+    const apiResponse = await fetch(`${API_URL}/api/content/${collection}`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        // biome-ignore lint/style/useNamingConvention: HTTP header name
+        Cookie: request.headers.get('Cookie') ?? '',
+      },
+      body: JSON.stringify(body),
+    });
+    return proxyResponse(apiResponse);
+  } catch {
+    return API_UNAVAILABLE;
   }
-
-  const data = await apiResponse.json();
-  return NextResponse.json(data, { status: apiResponse.status });
 }
