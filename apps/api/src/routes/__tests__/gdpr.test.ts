@@ -297,6 +297,90 @@ describe('GET /gdpr/consent/check/:type', () => {
   });
 });
 
+// ---------------------------------------------------------------------------
+// GET /gdpr/deletion — list user's deletion requests
+// ---------------------------------------------------------------------------
+
+describe('GET /gdpr/deletion', () => {
+  it('returns 401 without auth', async () => {
+    const app = createApp();
+    const res = await app.request('/gdpr/deletion');
+    expect(res.status).toBe(401);
+  });
+
+  it('returns empty list when no requests exist', async () => {
+    mockGetUserRequests.mockResolvedValue([]);
+    const app = createApp(testUser);
+    const res = await app.request('/gdpr/deletion');
+    expect(res.status).toBe(200);
+    const body = await parseBody(res);
+    expect(body.success).toBe(true);
+    expect(body.requests).toEqual([]);
+    expect(mockGetUserRequests).toHaveBeenCalledWith('user-1');
+  });
+
+  it('returns list of deletion requests for authenticated user', async () => {
+    const pending = { id: 'del-1', userId: 'user-1', status: 'pending' };
+    const completed = { id: 'del-2', userId: 'user-1', status: 'completed' };
+    mockGetUserRequests.mockResolvedValue([pending, completed]);
+
+    const app = createApp(testUser);
+    const res = await app.request('/gdpr/deletion');
+    expect(res.status).toBe(200);
+    const body = await parseBody(res);
+    expect(body.requests).toHaveLength(2);
+    expect(body.requests[0].id).toBe('del-1');
+  });
+
+  it('only fetches requests for the authenticated user id', async () => {
+    const otherUser = { id: 'other-99', email: null, name: 'Other', role: 'user' };
+    mockGetUserRequests.mockResolvedValue([]);
+
+    const app = createApp(otherUser);
+    await app.request('/gdpr/deletion');
+    expect(mockGetUserRequests).toHaveBeenCalledWith('other-99');
+  });
+});
+
+// ---------------------------------------------------------------------------
+// GET /gdpr/deletion/:id — get specific deletion request
+// ---------------------------------------------------------------------------
+
+describe('GET /gdpr/deletion/:id', () => {
+  it('returns 401 without auth', async () => {
+    const app = createApp();
+    const res = await app.request('/gdpr/deletion/del-1');
+    expect(res.status).toBe(401);
+  });
+
+  it('returns 404 when request does not exist', async () => {
+    mockGetRequest.mockResolvedValue(null);
+    const app = createApp(testUser);
+    const res = await app.request('/gdpr/deletion/del-missing');
+    expect(res.status).toBe(404);
+  });
+
+  it('returns 404 when request belongs to a different user', async () => {
+    mockGetRequest.mockResolvedValue({ id: 'del-1', userId: 'other-user', status: 'pending' });
+    const app = createApp(testUser);
+    const res = await app.request('/gdpr/deletion/del-1');
+    expect(res.status).toBe(404);
+  });
+
+  it('returns the deletion request when it belongs to the authenticated user', async () => {
+    const req = { id: 'del-1', userId: 'user-1', status: 'pending' };
+    mockGetRequest.mockResolvedValue(req);
+
+    const app = createApp(testUser);
+    const res = await app.request('/gdpr/deletion/del-1');
+    expect(res.status).toBe(200);
+    const body = await parseBody(res);
+    expect(body.success).toBe(true);
+    expect(body.request.id).toBe('del-1');
+    expect(mockGetRequest).toHaveBeenCalledWith('del-1');
+  });
+});
+
 describe('GET /gdpr/admin/stats', () => {
   it('returns 403 for non-admin', async () => {
     const app = createApp(testUser);
