@@ -174,15 +174,15 @@ jobs:
           POSTGRES_URL: "postgresql://test:test@localhost:5432/revealui_test"
 
   # ---------------------------------------------------------------------------
-  # Phase 3a.5: Coverage artifacts (warn-only)
-  # Produces workspace coverage reports and uploads them for inspection.
+  # Phase 3a.5: Coverage gate
+  # Generates coverage reports and fails if any package has 0% line coverage.
+  # Report generation is warn-only (continue-on-error); zero-coverage check is hard fail.
   # ---------------------------------------------------------------------------
   coverage:
     name: Coverage
     runs-on: ubuntu-latest
     timeout-minutes: 20
     needs: quality
-    continue-on-error: true
 
     steps:
       - uses: actions/checkout@v4
