@@ -1,5 +1,5 @@
 import { Hono } from 'hono';
-import { beforeEach, describe, expect, it, vi } from 'vitest';
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
 // ---------------------------------------------------------------------------
 // Mock @revealui/db so no real DB is needed
@@ -9,10 +9,12 @@ vi.mock('@revealui/db', () => ({
   getPoolMetrics: vi.fn().mockReturnValue([]),
 }));
 
-import { getClient } from '@revealui/db';
+import { getClient, getPoolMetrics } from '@revealui/db';
+import { setCorsConfigMissing } from '../../lib/startup-state.js';
 import healthApp from '../health.js';
 
 const mockedGetClient = vi.mocked(getClient);
+const mockedGetPoolMetrics = vi.mocked(getPoolMetrics);
 
 // ---------------------------------------------------------------------------
 // Test app
@@ -133,4 +135,119 @@ describe('GET /ready — readiness probe', () => {
     const body = await parseBody(res);
     expect(typeof body.timestamp).toBe('string');
   });
+
+  it('includes uptime as a non-negative number', async () => {
+    const mockDb = { execute: vi.fn().mockResolvedValue([]) };
+    mockedGetClient.mockReturnValue(mockDb as never);
+
+    const app = createApp();
+    const res = await app.request('/ready');
+    const body = await parseBody(res);
+    expect(typeof body.uptime).toBe('number');
+    expect(body.uptime).toBeGreaterThanOrEqual(0);
+  });
+
+  it('includes pools field when getPoolMetrics returns entries', async () => {
+    const mockDb = { execute: vi.fn().mockResolvedValue([]) };
+    mockedGetClient.mockReturnValue(mockDb as never);
+    mockedGetPoolMetrics.mockReturnValueOnce([{ name: 'primary', size: 5 }] as never);
+
+    const app = createApp();
+    const res = await app.request('/ready');
+    const body = await parseBody(res);
+    expect(body.pools).toBeDefined();
+    expect(Array.isArray(body.pools)).toBe(true);
+    expect(body.pools).toHaveLength(1);
+  });
+
+  it('omits pools field when getPoolMetrics returns empty array', async () => {
+    const mockDb = { execute: vi.fn().mockResolvedValue([]) };
+    mockedGetClient.mockReturnValue(mockDb as never);
+    mockedGetPoolMetrics.mockReturnValueOnce([]);
+
+    const app = createApp();
+    const res = await app.request('/ready');
+    const body = await parseBody(res);
+    expect(body.pools).toBeUndefined();
+  });
+
+  it('returns 503 with corsConfigMissing:true when CORS is not configured', async () => {
+    const mockDb = { execute: vi.fn().mockResolvedValue([]) };
+    mockedGetClient.mockReturnValue(mockDb as never);
+    setCorsConfigMissing(true);
+
+    const app = createApp();
+    const res = await app.request('/ready');
+    expect(res.status).toBe(503);
+    const body = await parseBody(res);
+    expect(body.corsConfigMissing).toBe(true);
+  });
+});
+
+describe('GET /live — liveness alias', () => {
+  it('returns 200 with status:ok', async () => {
+    const app = createApp();
+    const res = await app.request('/live');
+    expect(res.status).toBe(200);
+    const body = await parseBody(res);
+    expect(body.status).toBe('ok');
+  });
+
+  it('returns same response shape as GET /', async () => {
+    const app = createApp();
+    const res = await app.request('/live');
+    const body = await parseBody(res);
+    expect(body.service).toBe('RevealUI API');
+    expect(typeof body.timestamp).toBe('string');
+    expect(typeof body.version).toBe('string');
+    expect(typeof body.uptime).toBe('number');
+  });
+});
+
+describe('GET /metrics — Prometheus text format', () => {
+  it('returns 200', async () => {
+    const app = createApp();
+    const res = await app.request('/metrics');
+    expect(res.status).toBe(200);
+  });
+
+  it('returns text/plain content type', async () => {
+    const app = createApp();
+    const res = await app.request('/metrics');
+    expect(res.headers.get('Content-Type')).toContain('text/plain');
+  });
+
+  it('sets Cache-Control: no-cache', async () => {
+    const app = createApp();
+    const res = await app.request('/metrics');
+    expect(res.headers.get('Cache-Control')).toContain('no-cache');
+  });
+
+  it('returns a string body', async () => {
+    const app = createApp();
+    const res = await app.request('/metrics');
+    const text = await res.text();
+    expect(typeof text).toBe('string');
+  });
+});
+
+describe('GET /metrics/json — JSON metrics', () => {
+  it('returns 200', async () => {
+    const app = createApp();
+    const res = await app.request('/metrics/json');
+    expect(res.status).toBe(200);
+  });
+
+  it('returns a non-null object', async () => {
+    const app = createApp();
+    const res = await app.request('/metrics/json');
+    const body = await res.json();
+    expect(typeof body).toBe('object');
+    expect(body).not.toBeNull();
+  });
+});
+
+// Restore corsConfigMissing to false after the describe block that sets it
+afterEach(() => {
+  setCorsConfigMissing(false);
 });
