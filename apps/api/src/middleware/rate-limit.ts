@@ -27,18 +27,24 @@ export interface TieredRateLimitOptions {
 }
 
 /**
- * Extract the trusted client IP from X-Forwarded-For.
- * Takes the rightmost entry (appended by the outermost trusted proxy — Vercel/Cloudflare),
- * not the leftmost (which is attacker-controlled in multi-hop scenarios).
+ * Extract the client IP from request headers.
+ *
+ * Priority:
+ * 1. X-Real-IP — set by the edge proxy (Vercel/Cloudflare) to the true client IP
+ * 2. X-Forwarded-For — first (leftmost) entry is the originating client IP
+ * 3. Falls back to 'unknown' when no IP headers are present
  */
 function extractTrustedIp(c: { req: { header: (name: string) => string | undefined } }): string {
+  const realIp = c.req.header('x-real-ip');
+  if (realIp) return realIp.trim();
+
   const xff = c.req.header('x-forwarded-for');
   if (xff) {
-    const ips = xff.split(',').map((s) => s.trim());
-    const last = ips[ips.length - 1];
-    if (last) return last;
+    const first = xff.split(',')[0]?.trim();
+    if (first) return first;
   }
-  return c.req.header('x-real-ip') ?? 'unknown';
+
+  return 'unknown';
 }
 
 export const rateLimitMiddleware = (options: RateLimitOptions): MiddlewareHandler => {

@@ -126,8 +126,11 @@ pool.on('connect', (client) => {
       // Set timezone
       await client.query("SET timezone TO 'UTC'");
 
-      // Set statement timeout
-      await client.query(`SET statement_timeout TO ${poolConfig.statement_timeout || 10000}`);
+      // Set statement timeout (parameterized via set_config to prevent SQL injection)
+      await client.query('SELECT set_config($1, $2, false)', [
+        'statement_timeout',
+        String(poolConfig.statement_timeout || 10000),
+      ]);
 
       // Enable query statistics
       await client.query('SET track_io_timing = on');

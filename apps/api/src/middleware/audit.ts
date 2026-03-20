@@ -60,7 +60,9 @@ export const auditMiddleware = (audit: AuditSystem): MiddlewareHandler => {
         actor: {
           id: user?.id ?? 'anonymous',
           type: user ? 'user' : 'api',
-          ip: c.req.header('x-forwarded-for')?.split(',')[0]?.trim(),
+          ip:
+            c.req.header('x-real-ip')?.trim() ||
+            c.req.header('x-forwarded-for')?.split(',')[0]?.trim(),
           userAgent: c.req.header('user-agent'),
         },
         resource: {

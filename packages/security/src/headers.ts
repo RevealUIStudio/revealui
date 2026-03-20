@@ -319,16 +319,20 @@ export class CORSManager {
   getCORSHeaders(origin: string): Record<string, string> {
     const headers: Record<string, string> = {};
 
-    // Access-Control-Allow-Origin
-    if (this.isOriginAllowed(origin)) {
-      headers['Access-Control-Allow-Origin'] = this.config.origin === '*' ? '*' : origin;
-    }
-
-    // Vary: Origin — required when Access-Control-Allow-Origin is not '*' so caches
+    // Vary: Origin — always set when origin is not '*' so caches
     // don't serve a response allowed for origin A to origin B.
     if (this.config.origin !== '*') {
       headers.Vary = 'Origin';
     }
+
+    // All Access-Control-Allow-* headers must only be sent for allowed origins.
+    // Sending them for disallowed origins leaks CORS policy details.
+    if (!this.isOriginAllowed(origin)) {
+      return headers;
+    }
+
+    // Access-Control-Allow-Origin
+    headers['Access-Control-Allow-Origin'] = this.config.origin === '*' ? '*' : origin;
 
     // Access-Control-Allow-Credentials — incompatible with origin: '*' per Fetch spec
     if (this.config.credentials && this.config.origin !== '*') {
@@ -348,6 +352,13 @@ export class CORSManager {
    */
   getPreflightHeaders(origin: string): Record<string, string> {
     const headers = this.getCORSHeaders(origin);
+
+    // Only include preflight-specific headers when the origin is allowed.
+    // getCORSHeaders already returns early (with only Vary) for disallowed origins,
+    // so we guard here as well to avoid leaking allowed methods/headers.
+    if (!this.isOriginAllowed(origin)) {
+      return headers;
+    }
 
     // Access-Control-Allow-Methods
     headers['Access-Control-Allow-Methods'] = this.config.methods.join(', ');
