@@ -700,7 +700,7 @@ app.openapi(stripeWebhookRoute, async (c) => {
 
           // Best-effort: provision GitHub team access
           if (githubUsername) {
-            provisionGitHubAccess(githubUsername).catch((err) => {
+            provisionGitHubAccess(githubUsername, db).catch((err) => {
               logger.warn('Failed to provision GitHub team access', {
                 githubUsername,
                 error: err instanceof Error ? err.message : 'unknown',
