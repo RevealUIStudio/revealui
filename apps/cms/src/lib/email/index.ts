@@ -292,6 +292,74 @@ export async function sendEmail(
 }
 
 /**
+ * Send account recovery email (magic link)
+ *
+ * @param email - User email
+ * @param token - Magic link token
+ * @param recoveryUrl - Full recovery URL (optional, will construct if not provided)
+ */
+export async function sendRecoveryEmail(
+  email: string,
+  token: string,
+  recoveryUrl?: string,
+): Promise<{ success: boolean; error?: string }> {
+  const baseUrl =
+    process.env.NEXT_PUBLIC_APP_URL ||
+    process.env.NEXT_PUBLIC_SERVER_URL ||
+    process.env.REVEALUI_PUBLIC_SERVER_URL;
+  if (!baseUrl) {
+    return {
+      success: false,
+      error: 'NEXT_PUBLIC_APP_URL (or NEXT_PUBLIC_SERVER_URL) is not set',
+    };
+  }
+  const finalRecoveryUrl =
+    recoveryUrl || `${baseUrl}/auth/recovery/verify?token=${encodeURIComponent(token)}`;
+
+  const html = `
+    <!DOCTYPE html>
+    <html>
+      <head>
+        <meta charset="utf-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>Account Recovery</title>
+      </head>
+      <body style="font-family: Arial, sans-serif; line-height: 1.6; color: #333; max-width: 600px; margin: 0 auto; padding: 20px;">
+        <h1 style="color: #ea580c;">Account Recovery</h1>
+        <p>You requested to recover your account. Click the button below to sign in:</p>
+        <p style="text-align: center; margin: 30px 0;">
+          <a href="${finalRecoveryUrl}" style="background-color: #ea580c; color: white; padding: 12px 24px; text-decoration: none; border-radius: 6px; display: inline-block;">
+            Recover Account
+          </a>
+        </p>
+        <p>Or copy and paste this link into your browser:</p>
+        <p style="word-break: break-all; color: #666;">${finalRecoveryUrl}</p>
+        <p style="color: #666; font-size: 14px; margin-top: 30px;">
+          This link will expire in 15 minutes. If you didn't request account recovery, you can safely ignore this email.
+        </p>
+      </body>
+    </html>
+  `;
+
+  const text = `
+Account Recovery
+
+You requested to recover your account. Click the link below to sign in:
+
+${finalRecoveryUrl}
+
+This link will expire in 15 minutes. If you didn't request account recovery, you can safely ignore this email.
+  `.trim();
+
+  return sendEmail({
+    to: email,
+    subject: 'Account Recovery — RevealUI',
+    html,
+    text,
+  });
+}
+
+/**
  * Send password reset email
  *
  * @param email - User email

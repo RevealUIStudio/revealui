@@ -14,6 +14,7 @@ import { getClient } from '@revealui/db';
 import { users } from '@revealui/db/schema';
 import { eq } from 'drizzle-orm';
 import { type NextRequest, NextResponse } from 'next/server';
+import { sendRecoveryEmail } from '@/lib/email';
 import { withRateLimit } from '@/lib/middleware/rate-limit';
 import { createErrorResponse, createValidationErrorResponse } from '@/lib/utils/error-response';
 
@@ -61,8 +62,18 @@ async function requestHandler(request: NextRequest): Promise<NextResponse> {
     if (user) {
       const { token } = await createMagicLink(user.id);
 
-      // TODO: Send recovery email via Resend
-      // For v1, log the recovery URL in development only
+      // Send recovery email via configured provider (Resend/SMTP/mock)
+      const emailResult = await sendRecoveryEmail(email, token);
+
+      if (!emailResult.success) {
+        // Log error but don't reveal to user (prevents enumeration)
+        logger.error('Failed to send recovery email', {
+          email,
+          error: emailResult.error,
+        });
+      }
+
+      // Also log in development for easy debugging
       if (process.env.NODE_ENV !== 'production') {
         logger.info('Recovery link generated (dev only)', {
           email,

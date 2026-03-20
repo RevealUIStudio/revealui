@@ -99,25 +99,47 @@ const poolConfig: PoolConfig = {
 };
 
 /**
- * Create connection pool
- * Note: assertProductionConfig() defers the check to pool-creation time,
- * not module-parse time, so tree-shaking and type-only imports don't crash.
+ * Create connection pool lazily.
+ *
+ * assertProductionConfig() is called when getPool() is first invoked,
+ * not at module-parse time, so tree-shaking and type-only imports don't crash.
  */
-assertProductionConfig();
-export const pool = new Pool(poolConfig);
+let _pool: Pool | null = null;
+
+export function getPool(): Pool {
+  if (!_pool) {
+    assertProductionConfig();
+    _pool = new Pool(poolConfig);
+    _pool.on('error', onPoolError);
+    _pool.on('connect', onPoolConnect);
+    _pool.on('acquire', onPoolAcquire);
+    _pool.on('remove', onPoolRemove);
+    registerShutdown();
+  }
+  return _pool;
+}
+
+/**
+ * @deprecated Use getPool() instead. Eager pool creation risks crashes at module parse time.
+ */
+export const pool = new Proxy({} as Pool, {
+  get(_target, prop, receiver) {
+    return Reflect.get(getPool(), prop, receiver);
+  },
+});
 
 // ===========================================================================
 // ERROR HANDLING
 // ===========================================================================
 
-pool.on('error', (err) => {
+function onPoolError(err: Error) {
   logger.error(
     'Unexpected error on idle database client',
     err instanceof Error ? err : new Error(String(err)),
   );
-});
+}
 
-pool.on('connect', (client) => {
+function onPoolConnect(client: PoolClient) {
   const pid = (client as PoolClientWithPID).processID;
   logger.info(`Database connection established (PID: ${pid})`);
 
@@ -126,8 +148,8 @@ pool.on('connect', (client) => {
       // Set timezone
       await client.query("SET timezone TO 'UTC'");
 
-      // Set statement timeout
-      await client.query(`SET statement_timeout TO ${poolConfig.statement_timeout || 10000}`);
+      // Set statement timeout (parameterized to prevent injection)
+      await client.query('SET statement_timeout TO $1', [poolConfig.statement_timeout || 10000]);
 
       // Enable query statistics
       await client.query('SET track_io_timing = on');
@@ -138,40 +160,44 @@ pool.on('connect', (client) => {
       );
     }
   })();
-});
+}
 
-pool.on('acquire', (client) => {
+function onPoolAcquire(client: PoolClient) {
   const pid = (client as PoolClientWithPID).processID;
   logger.debug(`Database client acquired (PID: ${pid})`);
-});
+}
 
-pool.on('remove', (client) => {
+function onPoolRemove(client: PoolClient) {
   const pid = (client as PoolClientWithPID).processID;
   logger.info(`Database client removed (PID: ${pid})`);
-});
+}
 
 // ===========================================================================
 // GRACEFUL SHUTDOWN
 // ===========================================================================
 
 async function gracefulShutdown(signal: string) {
+  if (!_pool) return;
   logger.info('Closing database pool', { signal });
 
   try {
-    await pool.end();
+    await _pool.end();
     logger.info('Database pool closed successfully');
-    process.exit(0);
   } catch (error) {
     logger.error(
       'Error closing database pool',
       error instanceof Error ? error : new Error(String(error)),
     );
-    process.exit(1);
   }
 }
 
-process.on('SIGTERM', () => void gracefulShutdown('SIGTERM'));
-process.on('SIGINT', () => void gracefulShutdown('SIGINT'));
+let _shutdownRegistered = false;
+function registerShutdown() {
+  if (_shutdownRegistered) return;
+  _shutdownRegistered = true;
+  process.on('SIGTERM', () => void gracefulShutdown('SIGTERM'));
+  process.on('SIGINT', () => void gracefulShutdown('SIGINT'));
+}
 
 // ===========================================================================
 // HEALTH CHECK
@@ -311,4 +337,5 @@ export async function warmupPool(): Promise<void> {
 // EXPORTS
 // ===========================================================================
 
+export { getPool };
 export default pool;

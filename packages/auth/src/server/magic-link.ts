@@ -11,7 +11,7 @@
 import crypto from 'node:crypto';
 import { getClient } from '@revealui/db/client';
 import { magicLinks } from '@revealui/db/schema';
-import { and, eq, isNull, lt } from 'drizzle-orm';
+import { and, eq, gt, isNull, lt } from 'drizzle-orm';
 
 // =============================================================================
 // Configuration (parameterization convention)
@@ -125,7 +125,7 @@ export async function verifyMagicLink(token: string): Promise<{ userId: string }
   const rows = await db
     .select()
     .from(magicLinks)
-    .where(and(isNull(magicLinks.usedAt)));
+    .where(and(isNull(magicLinks.usedAt), gt(magicLinks.expiresAt, new Date())));
 
   for (const row of rows) {
     const expectedHash = hashToken(token, row.tokenSalt);

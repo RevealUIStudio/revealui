@@ -57,8 +57,8 @@ async function signInHandler(request: NextRequest): Promise<NextResponse> {
     const userAgent = request.headers.get('user-agent') || undefined;
     const xff = request.headers.get('x-forwarded-for');
     const ipAddress =
-      (xff ? xff.split(',').pop()?.trim() : undefined) ||
       request.headers.get('x-real-ip') ||
+      (xff ? xff.split(',')[0]?.trim() : undefined) ||
       undefined;
 
     const result = await signIn(sanitizedEmail, password, {

@@ -65,14 +65,16 @@ export default async function proxy(request: NextRequest): Promise<NextResponse 
     const response = NextResponse.next();
     const origin = request.headers.get('origin');
 
-    // CORS headers
+    // CORS headers — only set when origin is in the allowed list
     if (allowedOrigins.includes(String(origin))) {
       response.headers.set('Access-Control-Allow-Origin', String(origin));
+      response.headers.set(
+        'Access-Control-Allow-Methods',
+        'GET, POST, OPTIONS, PUT, PATCH, DELETE',
+      );
+      response.headers.set('Access-Control-Allow-Headers', 'Content-Type, Authorization');
+      response.headers.set('Access-Control-Allow-Credentials', 'true');
     }
-
-    response.headers.set('Access-Control-Allow-Methods', 'GET, POST, OPTIONS, PUT, PATCH, DELETE');
-    response.headers.set('Access-Control-Allow-Headers', 'Content-Type, Authorization');
-    response.headers.set('Access-Control-Allow-Credentials', 'true');
 
     // Security headers
     response.headers.set('X-Frame-Options', 'DENY');
