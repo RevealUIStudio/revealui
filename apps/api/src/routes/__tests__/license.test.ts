@@ -42,6 +42,7 @@ vi.mock('@revealui/db/schema', () => ({
 }));
 
 import { generateLicenseKey, validateLicenseKey } from '@revealui/core/license';
+import { getClient } from '@revealui/db';
 import licenseApp from '../license.js';
 
 const mockedValidate = vi.mocked(validateLicenseKey);
@@ -193,6 +194,115 @@ describe('POST /generate', () => {
     expect(res.status).toBe(500);
 
     process.env.REVEALUI_LICENSE_PRIVATE_KEY = 'priv-key';
+  });
+});
+
+// ---------------------------------------------------------------------------
+// POST /verify — DB revocation check (JWT is valid at JWT level, DB overrides)
+// ---------------------------------------------------------------------------
+
+describe('POST /verify — DB revocation override', () => {
+  const VALID_PAYLOAD = {
+    tier: 'pro' as const,
+    customerId: 'cus_123',
+    exp: Math.floor(Date.now() / 1000) + 86400,
+  };
+
+  function mockDb(rows: { status: string }[]) {
+    vi.mocked(getClient).mockReturnValueOnce({
+      select: () => ({
+        from: () => ({
+          where: () => ({
+            limit: () => Promise.resolve(rows),
+          }),
+        }),
+      }),
+    } as never);
+  }
+
+  function mockDbThrow() {
+    vi.mocked(getClient).mockReturnValueOnce({
+      select: () => ({
+        from: () => ({
+          where: () => ({
+            limit: () => Promise.reject(new Error('DB unavailable')),
+          }),
+        }),
+      }),
+    } as never);
+  }
+
+  beforeEach(() => {
+    process.env.REVEALUI_LICENSE_PUBLIC_KEY = 'pub-key';
+  });
+
+  it('returns valid:false reason:revoked when JWT is valid but DB row is revoked', async () => {
+    mockedValidate.mockResolvedValue(VALID_PAYLOAD as never);
+    mockDb([{ status: 'revoked' }]);
+
+    const app = createApp();
+    const res = await app.request('/verify', post('/verify', { licenseKey: 'valid.jwt' }));
+    expect(res.status).toBe(200);
+    const body = await parseBody(res);
+    expect(body.valid).toBe(false);
+    expect(body.reason).toBe('revoked');
+    expect(body.tier).toBe('free');
+  });
+
+  it('returns valid:false reason:revoked when JWT is valid but DB row is expired', async () => {
+    mockedValidate.mockResolvedValue(VALID_PAYLOAD as never);
+    mockDb([{ status: 'expired' }]);
+
+    const app = createApp();
+    const res = await app.request('/verify', post('/verify', { licenseKey: 'valid.jwt' }));
+    const body = await parseBody(res);
+    // The route treats both 'revoked' and 'expired' DB status as dbRevoked=true → reason:'revoked'
+    expect(body.valid).toBe(false);
+    expect(body.reason).toBe('revoked');
+  });
+
+  it('trusts the JWT when DB check throws (fails open)', async () => {
+    mockedValidate.mockResolvedValue(VALID_PAYLOAD as never);
+    mockDbThrow();
+
+    const app = createApp();
+    const res = await app.request('/verify', post('/verify', { licenseKey: 'valid.jwt' }));
+    const body = await parseBody(res);
+    expect(body.valid).toBe(true);
+    expect(body.tier).toBe('pro');
+  });
+
+  it('returns reason:revoked when JWT is invalid and DB row is revoked', async () => {
+    mockedValidate.mockResolvedValue(null as never);
+    mockDb([{ status: 'revoked' }]);
+
+    const app = createApp();
+    const res = await app.request('/verify', post('/verify', { licenseKey: 'old.token' }));
+    const body = await parseBody(res);
+    expect(body.valid).toBe(false);
+    expect(body.reason).toBe('revoked');
+  });
+
+  it('returns reason:expired when JWT is invalid and DB row is expired', async () => {
+    mockedValidate.mockResolvedValue(null as never);
+    mockDb([{ status: 'expired' }]);
+
+    const app = createApp();
+    const res = await app.request('/verify', post('/verify', { licenseKey: 'expired.token' }));
+    const body = await parseBody(res);
+    expect(body.valid).toBe(false);
+    expect(body.reason).toBe('expired');
+  });
+
+  it('returns reason:invalid when JWT is invalid and not found in DB', async () => {
+    mockedValidate.mockResolvedValue(null as never);
+    // default mock returns [] — no row found
+
+    const app = createApp();
+    const res = await app.request('/verify', post('/verify', { licenseKey: 'unknown.token' }));
+    const body = await parseBody(res);
+    expect(body.valid).toBe(false);
+    expect(body.reason).toBe('invalid');
   });
 });
 
