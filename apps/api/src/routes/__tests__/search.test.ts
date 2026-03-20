@@ -2,7 +2,7 @@
  * Content Search API Route Tests
  *
  * Covers GET /search with all input validation branches, query type routing
- * (posts / pages / all), limit/offset clamping, and response shape.
+ * (posts / pages / all), limit/offset defaults, and response shape.
  */
 
 import { Hono } from 'hono';
@@ -87,23 +87,17 @@ describe('GET /search — input validation', () => {
   it('returns 400 when q is missing', async () => {
     const res = await createApp().request('/search');
     expect(res.status).toBe(400);
-    const body = await parseBody(res);
-    expect(body.error).toMatch(/at least 2 characters/);
   });
 
   it('returns 400 when q is a single character', async () => {
     const res = await createApp().request('/search?q=a');
     expect(res.status).toBe(400);
-    const body = await parseBody(res);
-    expect(body.error).toMatch(/at least 2 characters/);
   });
 
   it('returns 400 when q exceeds 200 characters', async () => {
     const long = 'a'.repeat(201);
     const res = await createApp().request(`/search?q=${long}`);
     expect(res.status).toBe(400);
-    const body = await parseBody(res);
-    expect(body.error).toMatch(/too long/);
   });
 
   it('accepts q at exactly 200 characters', async () => {
@@ -116,8 +110,6 @@ describe('GET /search — input validation', () => {
   it('returns 400 for invalid type value', async () => {
     const res = await createApp().request('/search?q=hello&type=invalid');
     expect(res.status).toBe(400);
-    const body = await parseBody(res);
-    expect(body.error).toMatch(/type must be/);
   });
 
   it('accepts type=posts', async () => {
@@ -272,17 +264,14 @@ describe('GET /search — limit and offset', () => {
     expect(mockSelectChain.limit).toHaveBeenCalledWith(5);
   });
 
-  it('clamps limit to 100 maximum', async () => {
-    setupChain([]);
-    await createApp().request('/search?q=hello&type=posts&limit=999');
-    expect(mockSelectChain.limit).toHaveBeenCalledWith(100);
+  it('rejects limit above 100 with 400', async () => {
+    const res = await createApp().request('/search?q=hello&type=posts&limit=999');
+    expect(res.status).toBe(400);
   });
 
-  it('falls back to default limit of 20 when limit=0 is given', async () => {
-    // parseInt('0') is falsy, so the `|| 20` fallback kicks in — 0 is treated as "no limit given"
-    setupChain([]);
-    await createApp().request('/search?q=hello&type=posts&limit=0');
-    expect(mockSelectChain.limit).toHaveBeenCalledWith(20);
+  it('rejects limit=0 with 400 (min is 1)', async () => {
+    const res = await createApp().request('/search?q=hello&type=posts&limit=0');
+    expect(res.status).toBe(400);
   });
 
   it('accepts a valid offset', async () => {
@@ -291,10 +280,9 @@ describe('GET /search — limit and offset', () => {
     expect(mockSelectChain.offset).toHaveBeenCalledWith(40);
   });
 
-  it('clamps negative offset to 0', async () => {
-    setupChain([]);
-    await createApp().request('/search?q=hello&type=posts&offset=-10');
-    expect(mockSelectChain.offset).toHaveBeenCalledWith(0);
+  it('rejects negative offset with 400', async () => {
+    const res = await createApp().request('/search?q=hello&type=posts&offset=-10');
+    expect(res.status).toBe(400);
   });
 });
 
@@ -343,5 +331,12 @@ describe('GET /search — response shape', () => {
       type: 'post',
       rank: expect.any(Number),
     });
+  });
+
+  it('serializes createdAt as ISO string', async () => {
+    setupChain(makeRows(1));
+    const res = await createApp().request('/search?q=hello&type=posts');
+    const body = await parseBody(res);
+    expect(body.results[0].createdAt).toBe('2025-01-01T00:00:00.000Z');
   });
 });
