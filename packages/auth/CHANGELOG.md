@@ -1,5 +1,19 @@
 # @revealui/auth
 
+## 0.3.0
+
+### Minor Changes
+
+- Initial public release. Business OS Software (BOSS) — users, content, products, payments, and AI, pre-wired, open source, and ready to deploy.
+
+### Patch Changes
+
+- Updated dependencies
+  - @revealui/core@0.3.0
+  - @revealui/contracts@1.2.0
+  - @revealui/db@0.3.0
+  - @revealui/config@0.3.0
+
 ## 0.2.1
 
 ### Patch Changes
