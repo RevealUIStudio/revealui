@@ -1,11 +1,34 @@
 {
-  "extends": "@revealui/dev/ts/nextjs",
+  "$schema": "https://json.schemastore.org/tsconfig",
   "compilerOptions": {
+    "strict": true,
+    "strictNullChecks": true,
+    "strictFunctionTypes": true,
+    "noImplicitReturns": true,
+    "noFallthroughCasesInSwitch": true,
+    "noUncheckedIndexedAccess": true,
+    "noUnusedLocals": true,
+    "noUnusedParameters": true,
+    "forceConsistentCasingInFileNames": true,
+    "isolatedModules": true,
+    "verbatimModuleSyntax": true,
+    "skipLibCheck": true,
+    "allowJs": true,
+    "jsx": "preserve",
+    "lib": ["DOM", "DOM.Iterable", "ESNext"],
+    "module": "ESNext",
+    "moduleResolution": "bundler",
+    "resolveJsonModule": true,
+    "resolvePackageJsonExports": true,
+    "target": "ES2022",
+    "noEmit": true,
+    "incremental": true,
+    "plugins": [{ "name": "next" }],
     "baseUrl": ".",
     "paths": {
       "@/*": ["./src/*"]
     }
   },
-  "include": ["src", "next.config.mjs", "revealui.config.ts"],
+  "include": ["src", "next-env.d.ts", "next.config.mjs", "revealui.config.ts"],
   "exclude": ["node_modules"]
 }

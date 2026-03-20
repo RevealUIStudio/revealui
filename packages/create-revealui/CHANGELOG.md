@@ -1,5 +1,13 @@
 # create-revealui
 
+## 0.3.3
+
+### Patch Changes
+
+- Fix templates: remove unpublished @revealui/dev dependency, inline tsconfig, use "latest" for @revealui/\* deps
+- Updated dependencies
+  - @revealui/cli@0.3.3
+
 ## 0.3.2
 
 ### Patch Changes
