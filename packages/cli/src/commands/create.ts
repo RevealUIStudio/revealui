@@ -6,6 +6,7 @@
  */
 
 import crypto from 'node:crypto';
+import { existsSync } from 'node:fs';
 import fs from 'node:fs/promises';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
@@ -28,9 +29,12 @@ const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
 // Templates live at packages/cli/templates/
-// After tsup bundles to dist/cli.js, __dirname is dist/ — one level up reaches cli/templates/
-// In source (src/commands/create.ts), __dirname is src/commands/ — but tsup flattens this
-const TEMPLATES_DIR = path.resolve(__dirname, '../templates');
+// In source: __dirname = src/commands/ → ../../templates
+// After tsup: __dirname = dist/ → ../templates
+// Detect by checking which path actually exists
+const TEMPLATES_DIR = existsSync(path.resolve(__dirname, '../../templates'))
+  ? path.resolve(__dirname, '../../templates')
+  : path.resolve(__dirname, '../templates');
 
 export interface CreateProjectConfig {
   project: ProjectConfig;

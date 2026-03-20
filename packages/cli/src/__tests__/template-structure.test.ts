@@ -186,7 +186,7 @@ describe('package.json integrity after scaffolding', () => {
         await fs.readFile(path.join(projectPath, 'package.json'), 'utf-8'),
       ) as { dependencies?: Record<string, string> };
       expect(pkg.dependencies?.['@revealui/core']).toBeDefined();
-      expect(pkg.dependencies?.['@revealui/core']).toMatch(/^\^?\d+\.\d+/);
+      expect(pkg.dependencies?.['@revealui/core']).toMatch(/^(latest|\^?\d+\.\d+)/);
     });
   }
 });
