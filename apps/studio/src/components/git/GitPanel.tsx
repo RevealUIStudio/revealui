@@ -7,7 +7,7 @@ const REMOTE_ERROR_FEEDBACK_MS = 4_000;
 import {
   gitCommit,
   gitCreateBranch,
-  gitDiffFile,
+  gitDiffContent,
   gitDiscardFile,
   gitListBranches,
   gitLog,
@@ -18,55 +18,14 @@ import {
   gitSwitchBranch,
   gitUnstageFile,
 } from '../../lib/invoke';
-import type { GitBranch, GitCommitInfo, GitFileEntry, GitStatusResult } from '../../types';
-
-// ── Diff viewer ───────────────────────────────────────────────────────────────
-
-function PatchViewer({ patch, loading }: { patch: string; loading: boolean }) {
-  if (loading) {
-    return (
-      <div className="flex h-full items-center justify-center text-neutral-500 text-sm">
-        Loading diff…
-      </div>
-    );
-  }
-  if (!patch) {
-    return (
-      <div className="flex h-full items-center justify-center text-neutral-600 text-sm">
-        Select a file to view its diff
-      </div>
-    );
-  }
-
-  const lines = patch.split('\n');
-  return (
-    <div className="h-full overflow-auto bg-neutral-950 p-3 font-mono text-xs">
-      {lines.map((line, i) => {
-        let cls = 'text-neutral-300 whitespace-pre';
-        if (line.startsWith('+') && !line.startsWith('+++')) {
-          cls = 'text-green-400 bg-green-950/40 whitespace-pre';
-        } else if (line.startsWith('-') && !line.startsWith('---')) {
-          cls = 'text-red-400 bg-red-950/40 whitespace-pre';
-        } else if (line.startsWith('@@')) {
-          cls = 'text-cyan-400 whitespace-pre';
-        } else if (
-          line.startsWith('diff ') ||
-          line.startsWith('index ') ||
-          line.startsWith('---') ||
-          line.startsWith('+++')
-        ) {
-          cls = 'text-neutral-500 whitespace-pre';
-        }
-        return (
-          // biome-ignore lint/suspicious/noArrayIndexKey: static diff lines, no reorder
-          <div key={i} className={cls}>
-            {line || '\u00a0'}
-          </div>
-        );
-      })}
-    </div>
-  );
-}
+import type {
+  GitBranch,
+  GitCommitInfo,
+  GitDiffContent,
+  GitFileEntry,
+  GitStatusResult,
+} from '../../types';
+import DiffView from './DiffView';
 
 // ── Status badge ─────────────────────────────────────────────────────────────
 
@@ -432,7 +391,7 @@ export default function GitPanel({ onOpenEditor }: GitPanelProps) {
   const [statusError, setStatusError] = useState<string | null>(null);
 
   const [selected, setSelected] = useState<DiffSelection | null>(null);
-  const [diff, setDiff] = useState('');
+  const [diffContent, setDiffContent] = useState<GitDiffContent | null>(null);
   const [diffLoading, setDiffLoading] = useState(false);
 
   // Branch state
@@ -514,12 +473,17 @@ export default function GitPanel({ onOpenEditor }: GitPanelProps) {
   const selectFile = useCallback(
     async (filePath: string, staged: boolean) => {
       setSelected({ filePath, staged });
+      setDiffContent(null);
       setDiffLoading(true);
       try {
-        const d = await gitDiffFile(repoPath, filePath, staged);
-        setDiff(d);
+        const content = await gitDiffContent(repoPath, filePath, staged);
+        setDiffContent(content);
       } catch (e) {
-        setDiff(`Error: ${e instanceof Error ? e.message : String(e)}`);
+        // Show the error as the modified side so the viewer has something to display
+        setDiffContent({
+          original: '',
+          modified: `Error: ${e instanceof Error ? e.message : String(e)}`,
+        });
       } finally {
         setDiffLoading(false);
       }
@@ -549,7 +513,7 @@ export default function GitPanel({ onOpenEditor }: GitPanelProps) {
       await refresh();
       if (selected?.filePath === filePath) {
         setSelected(null);
-        setDiff('');
+        setDiffContent(null);
       }
     },
     [repoPath, refresh, selected],
@@ -559,7 +523,7 @@ export default function GitPanel({ onOpenEditor }: GitPanelProps) {
     async (message: string) => {
       await gitCommit(repoPath, message);
       setSelected(null);
-      setDiff('');
+      setDiffContent(null);
       await refresh();
       if (rightTab === 'log') {
         setLogLoading(true);
@@ -975,7 +939,22 @@ export default function GitPanel({ onOpenEditor }: GitPanelProps) {
         </div>
 
         <div className="flex-1 overflow-hidden">
-          {rightTab === 'diff' && <PatchViewer patch={diff} loading={diffLoading} />}
+          {rightTab === 'diff' &&
+            (diffLoading ? (
+              <div className="flex h-full items-center justify-center text-sm text-neutral-500">
+                Loading diff…
+              </div>
+            ) : diffContent ? (
+              <DiffView
+                original={diffContent.original}
+                modified={diffContent.modified}
+                filePath={selected?.filePath ?? ''}
+              />
+            ) : (
+              <div className="flex h-full items-center justify-center text-sm text-neutral-600">
+                Select a file to view its diff
+              </div>
+            ))}
           {rightTab === 'log' && <CommitLog entries={log} loading={logLoading} />}
         </div>
       </div>

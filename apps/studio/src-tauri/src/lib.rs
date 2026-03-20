@@ -101,6 +101,7 @@ pub fn run() {
             git_cmds::git_log,
             git_cmds::git_read_file,
             git_cmds::git_write_file,
+            git_cmds::git_diff_content,
             agent_cmds::agent_read_workboard,
         ])
         .run(tauri::generate_context!())

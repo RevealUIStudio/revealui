@@ -181,6 +181,12 @@ export interface GitPullResult {
   message: string;
 }
 
+/** Mirrors Rust GitDiffContent struct — both file versions for a side-by-side diff viewer */
+export interface GitDiffContent {
+  original: string;
+  modified: string;
+}
+
 /** Mirrors Rust GitCommitInfo struct */
 export interface GitCommitInfo {
   sha: string;
