@@ -17,11 +17,14 @@ const VALID_TEMPLATES = ['basic-blog', 'e-commerce', 'portfolio'] as const;
 export async function promptProjectConfig(
   defaultName?: string,
   templateArg?: string,
+  nonInteractive = false,
 ): Promise<ProjectConfig> {
   // Resolve project name — use CLI arg or prompt
   let projectName: string;
   if (defaultName) {
     projectName = defaultName;
+  } else if (nonInteractive) {
+    projectName = 'my-revealui-project';
   } else {
     const answers = await inquirer.prompt([
       {
@@ -48,6 +51,8 @@ export async function promptProjectConfig(
   let template: ProjectConfig['template'];
   if (templateArg && VALID_TEMPLATES.includes(templateArg as ProjectConfig['template'])) {
     template = templateArg as ProjectConfig['template'];
+  } else if (nonInteractive) {
+    template = 'basic-blog';
   } else {
     const answers = await inquirer.prompt([
       {

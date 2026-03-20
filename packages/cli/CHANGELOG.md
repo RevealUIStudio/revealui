@@ -1,5 +1,11 @@
 # @revealui/cli
 
+## 0.3.1
+
+### Patch Changes
+
+- Fix -y/--yes flag not skipping template and project name prompts
+
 ## 0.3.0
 
 ### Minor Changes
