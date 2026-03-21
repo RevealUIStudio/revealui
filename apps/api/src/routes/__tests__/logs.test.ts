@@ -267,3 +267,79 @@ describe('POST / — input sanitization', () => {
     expect(res.status).toBe(400);
   });
 });
+
+describe('POST / — field length boundaries', () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+    mockInsertValues.mockResolvedValue({ rowCount: 1 });
+    mockDb.insert.mockReturnValue({ values: mockInsertValues });
+    process.env.REVEALUI_SECRET = 'test-secret';
+  });
+
+  it('accepts app name at exactly 50 characters', async () => {
+    const res = await logsApp.request(post({ level: 'warn', message: 'hi', app: 'a'.repeat(50) }));
+    expect(res.status).toBe(202);
+  });
+
+  it('accepts requestId at exactly 255 characters', async () => {
+    const res = await logsApp.request(
+      post({ level: 'warn', message: 'hi', app: 'cms', requestId: 'r'.repeat(255) }),
+    );
+    expect(res.status).toBe(202);
+  });
+
+  it('returns 400 when requestId exceeds 255 characters', async () => {
+    const res = await logsApp.request(
+      post({ level: 'warn', message: 'hi', app: 'cms', requestId: 'r'.repeat(256) }),
+    );
+    expect(res.status).toBe(400);
+  });
+
+  it('accepts environment at exactly 50 characters', async () => {
+    const res = await logsApp.request(
+      post({ level: 'warn', message: 'hi', app: 'cms', environment: 'e'.repeat(50) }),
+    );
+    expect(res.status).toBe(202);
+  });
+
+  it('returns 400 when environment exceeds 50 characters', async () => {
+    const res = await logsApp.request(
+      post({ level: 'warn', message: 'hi', app: 'cms', environment: 'e'.repeat(51) }),
+    );
+    expect(res.status).toBe(400);
+  });
+
+  it('strips standalone \\r from message', async () => {
+    await logsApp.request(post({ level: 'warn', message: 'line1\rline2', app: 'cms' }));
+    await new Promise((r) => setTimeout(r, 0));
+    const insertArgs = mockInsertValues.mock.calls[0]?.[0] as Record<string, unknown>;
+    expect(insertArgs.message).toBe('line1 line2');
+  });
+
+  it('preserves complex nested data object', async () => {
+    const data = { nested: { key: 'value' }, arr: [1, 2, 3], flag: true };
+    await logsApp.request(post({ level: 'error', message: 'test', app: 'api', data }));
+    await new Promise((r) => setTimeout(r, 0));
+    const insertArgs = mockInsertValues.mock.calls[0]?.[0] as Record<string, unknown>;
+    expect(insertArgs.data).toEqual(data);
+  });
+});
+
+describe('POST / — environment fallback', () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+    mockInsertValues.mockResolvedValue({ rowCount: 1 });
+    mockDb.insert.mockReturnValue({ values: mockInsertValues });
+    process.env.REVEALUI_SECRET = 'test-secret';
+  });
+
+  it('defaults environment to "production" when neither payload nor NODE_ENV is set', async () => {
+    const savedNodeEnv = process.env.NODE_ENV;
+    delete process.env.NODE_ENV;
+    await logsApp.request(post({ level: 'warn', message: 'no env', app: 'cms' }));
+    await new Promise((r) => setTimeout(r, 0));
+    const insertArgs = mockInsertValues.mock.calls[0]?.[0] as Record<string, unknown>;
+    expect(insertArgs.environment).toBe('production');
+    process.env.NODE_ENV = savedNodeEnv;
+  });
+});

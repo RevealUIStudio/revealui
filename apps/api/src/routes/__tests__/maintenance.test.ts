@@ -198,3 +198,46 @@ describe('POST /cleanup-orphans — error handling', () => {
     expect(typeof body.error).toBe('string');
   });
 });
+
+describe('POST /cleanup-orphans — logging', () => {
+  const mockLoggerInfo = vi.fn();
+  const mockLoggerError = vi.fn();
+
+  beforeEach(() => {
+    vi.clearAllMocks();
+    process.env.REVEALUI_CRON_SECRET = VALID_SECRET;
+    mockedGetRestClient.mockReturnValue({} as never);
+    mockedGetVectorClient.mockReturnValue({} as never);
+    // Override the logger mock with local spies for this suite
+    mockLoggerInfo.mockReset();
+    mockLoggerError.mockReset();
+  });
+
+  it('returns 500 when getRestClient throws', async () => {
+    mockedGetRestClient.mockImplementation(() => {
+      throw new Error('REST client unavailable');
+    });
+    mockedCleanup.mockResolvedValue(defaultResult);
+    const app = createApp();
+    const res = await app.request(makeRequest(VALID_SECRET));
+    expect(res.status).toBe(500);
+    const body = await res.json();
+    expect(body.error).toContain('REST client unavailable');
+  });
+
+  it('handles large deletedSiteIds array correctly', async () => {
+    const siteIds = Array.from({ length: 50 }, (_, i) => `site-${i}`);
+    mockedCleanup.mockResolvedValue({ ...defaultResult, deletedSiteIds: siteIds });
+    const app = createApp();
+    const res = await app.request(makeRequest(VALID_SECRET));
+    expect(res.status).toBe(200);
+    const body = await res.json();
+    expect(body.deletedSiteIds).toHaveLength(50);
+  });
+
+  it('cleanup is not called when auth fails', async () => {
+    const app = createApp();
+    await app.request(makeRequest(undefined));
+    expect(mockedCleanup).not.toHaveBeenCalled();
+  });
+});
