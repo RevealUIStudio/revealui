@@ -282,8 +282,8 @@ describe('pages queries', () => {
     const result = await createPage(mock.db, data as never);
 
     expect(result).toEqual(data);
-    // incrementPageCount must be called after successful insert
-    expect(mock.db.update).toHaveBeenCalled();
+    // pageCount is maintained by DB trigger — no app-level update expected
+    expect(mock.db.update).not.toHaveBeenCalled();
   });
 
   it('updatePage updates and returns the page', async () => {
@@ -305,16 +305,15 @@ describe('pages queries', () => {
     expect(result).toBeNull();
   });
 
-  it('deletePage soft-deletes and decrements page count', async () => {
+  it('deletePage soft-deletes a page', async () => {
     const { deletePage } = await import('../pages.js');
-    // getPageById needs a page with siteId so decrementPageCount can run
     mock.setSelectResult([{ id: 'pg1', siteId: 's1' }]);
 
     await deletePage(mock.db, 'pg1');
 
     expect(mock.db.select).toHaveBeenCalled();
-    // soft-delete + decrementPageCount both call update
-    expect(mock.db.update).toHaveBeenCalled();
+    // only the soft-delete update; pageCount handled by DB trigger
+    expect(mock.db.update).toHaveBeenCalledTimes(1);
   });
 });
 

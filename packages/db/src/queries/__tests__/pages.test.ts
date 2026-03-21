@@ -159,15 +159,13 @@ describe('page queries', () => {
       const data = { id: 'p1', siteId: 's1', title: 'New Page', path: '/new' };
       const chain = createInsertChain([data]);
       db.insert.mockReturnValue(chain);
-      // incrementPageCount does db.update(sites).set(...).where(...)
-      db.update.mockReturnValue(createUpdateChain());
 
       const result = await createPage(db as never, data as never);
 
       expect(result).toEqual(data);
       expect(chain.values).toHaveBeenCalledWith(data);
-      // incrementPageCount must be called after successful insert
-      expect(db.update).toHaveBeenCalled();
+      // pageCount is maintained by DB trigger — no app-level update expected
+      expect(db.update).not.toHaveBeenCalled();
     });
 
     it('returns null when insert returns empty', async () => {
@@ -211,16 +209,16 @@ describe('page queries', () => {
       // getPageById needs a select chain that resolves to the page
       const selectChain = createSelectChain([{ id: 'p1', siteId: 's1' }]);
       db.select.mockReturnValue(selectChain);
-      // Both soft-delete and decrementPageCount use db.update().set().where()
+      // pageCount is maintained by DB trigger — only the soft-delete update
       const softDeleteChain = createSoftDeleteChain();
       db.update.mockReturnValue(softDeleteChain);
 
       await deletePage(db as never, 'p1');
 
-      // getPageById must be called to look up the page's siteId
+      // getPageById must be called to look up the page
       expect(db.select).toHaveBeenCalled();
-      // soft-delete and decrementPageCount each call db.update
-      expect(db.update).toHaveBeenCalledTimes(2);
+      // only one db.update: the soft-delete (pageCount handled by trigger)
+      expect(db.update).toHaveBeenCalledTimes(1);
       expect(softDeleteChain.set).toHaveBeenCalledWith(
         expect.objectContaining({ deletedAt: expect.any(Date) }),
       );

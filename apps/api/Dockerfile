@@ -15,11 +15,14 @@ COPY .npmrc* ./
 
 # Copy workspace package.json files needed by api
 COPY packages/auth/package.json ./packages/auth/
+COPY packages/cache/package.json ./packages/cache/
 COPY packages/config/package.json ./packages/config/
 COPY packages/contracts/package.json ./packages/contracts/
 COPY packages/core/package.json ./packages/core/
 COPY packages/db/package.json ./packages/db/
-COPY packages/services/package.json ./packages/services/
+COPY packages/openapi/package.json ./packages/openapi/
+COPY packages/resilience/package.json ./packages/resilience/
+COPY packages/security/package.json ./packages/security/
 COPY packages/utils/package.json ./packages/utils/
 COPY apps/api/package.json ./apps/api/
 
@@ -45,6 +48,10 @@ ENV SKIP_ENV_VALIDATION=true
 
 RUN pnpm --filter api run build
 
+# Create a self-contained deploy directory with only production deps
+# pnpm deploy resolves hoisted packages into a flat node_modules
+RUN pnpm --filter api deploy /app/api-deploy --prod --legacy
+
 # Runner stage — minimal image with only the built bundle
 FROM node:24-alpine AS runner
 ENV NODE_ENV=production
@@ -54,12 +61,12 @@ WORKDIR /app
 RUN addgroup --system --gid 1001 nodejs && \
     adduser --system --uid 1001 hono
 
-# Copy built application (tsup bundles everything into dist/)
+# Copy built application (tsup bundles workspace deps into dist/)
 COPY --from=builder /app/apps/api/dist ./dist
-COPY --from=builder /app/apps/api/package.json ./
+COPY --from=builder /app/api-deploy/package.json ./
 
-# Copy node_modules for external deps (pg, stripe, etc.)
-COPY --from=builder /app/apps/api/node_modules ./node_modules
+# Copy production node_modules (pnpm deploy flattens hoisted deps)
+COPY --from=builder /app/api-deploy/node_modules ./node_modules
 
 # Set ownership
 RUN chown -R hono:nodejs /app
