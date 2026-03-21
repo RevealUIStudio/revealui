@@ -360,11 +360,8 @@ export async function provisionGitHubAccess(githubUsername: string, db?: Databas
       },
     );
   } catch (err) {
-    const message = err instanceof Error ? err.message : String(err);
-    logger.error('GitHub team provisioning failed after all retries', {
-      githubUsername,
-      error: message,
-    });
+    const errObj = err instanceof Error ? err : new Error(String(err));
+    logger.error('GitHub team provisioning failed after all retries', errObj, { githubUsername });
     if (db) {
       // Explicit app_logs write so the failure is queryable even if the
       // logger transport is not configured (e.g. local dev, staging).
@@ -372,7 +369,7 @@ export async function provisionGitHubAccess(githubUsername: string, db?: Databas
         level: 'error',
         message: 'GitHub team provisioning failed after all retries',
         app: 'api',
-        data: { githubUsername, error: message },
+        data: { githubUsername, error: errObj.message },
       });
     }
     throw err;
