@@ -2,7 +2,6 @@
   "framework": null,
   "installCommand": "cd ../.. && pnpm install --frozen-lockfile",
   "buildCommand": "cd ../.. && pnpm turbo build --filter=api",
-  "ignoreCommand": "npx turbo-ignore",
   "rewrites": [{ "source": "/(.*)", "destination": "/api" }],
   "headers": [
     {

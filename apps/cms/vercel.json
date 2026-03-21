@@ -1,9 +1,9 @@
 {
   "buildCommand": "cd ../.. && pnpm turbo build --filter=cms",
   "installCommand": "cd ../.. && pnpm install --frozen-lockfile",
-  "ignoreCommand": "npx turbo-ignore",
   "framework": "nextjs",
   "github": { "silent": true },
+  "relatedProjects": ["prj_zk6EQijYXwd9L7BccuBssi436ktM"],
   "crons": [
     {
       "path": "/api/cron/cleanup-all",

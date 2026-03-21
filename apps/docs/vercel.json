@@ -1,7 +1,6 @@
 {
   "buildCommand": "cd ../.. && pnpm turbo build --filter=docs",
   "installCommand": "cd ../.. && pnpm install --frozen-lockfile",
-  "ignoreCommand": "npx turbo-ignore",
   "framework": "vite",
   "outputDirectory": "dist",
   "headers": [
