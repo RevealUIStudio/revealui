@@ -1,7 +1,7 @@
 {
   "buildCommand": "cd ../.. && pnpm turbo build --filter=docs",
   "installCommand": "cd ../.. && pnpm install --frozen-lockfile",
-  "ignoreCommand": "git diff --quiet HEAD~1 HEAD -- . ../../packages ../../pnpm-lock.yaml ../../package.json ../../turbo.json 2>/dev/null || exit 1",
+  "ignoreCommand": "npx turbo-ignore",
   "framework": "vite",
   "outputDirectory": "dist",
   "headers": [
