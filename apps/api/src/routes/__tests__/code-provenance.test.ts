@@ -127,6 +127,16 @@ describe('GET / — list provenance', () => {
     expect(body.data).toHaveLength(1);
   });
 
+  it('returns empty data array when no entries exist', async () => {
+    mq.getAllProvenance.mockResolvedValue([]);
+    const app = createApp();
+    const res = await app.request('/');
+    expect(res.status).toBe(200);
+    const body = await parseBody(res);
+    expect(body.success).toBe(true);
+    expect(body.data).toEqual([]);
+  });
+
   it('passes query filters to getAllProvenance', async () => {
     mq.getAllProvenance.mockResolvedValue([]);
     const app = createApp();
@@ -222,6 +232,12 @@ describe('POST / — create entry', () => {
     );
     expect(res.status).toBe(500);
   });
+
+  it('returns 400 when authorType is missing', async () => {
+    const app = createApp();
+    const res = await app.request('/', json({ filePath: 'src/foo.ts' }));
+    expect(res.status).toBe(400);
+  });
 });
 
 describe('PATCH /:id — update entry', () => {
@@ -239,6 +255,12 @@ describe('PATCH /:id — update entry', () => {
     const app = createApp();
     const res = await app.request('/missing', patch({ reviewStatus: 'human_reviewed' }));
     expect(res.status).toBe(404);
+  });
+
+  it('returns 400 when reviewStatus is not a valid enum value', async () => {
+    const app = createApp();
+    const res = await app.request('/prov-1', patch({ reviewStatus: 'robot_reviewed' }));
+    expect(res.status).toBe(400);
   });
 });
 
@@ -288,6 +310,18 @@ describe('POST /:id/review', () => {
     );
     expect(res.status).toBe(400);
   });
+
+  it('returns 500 when createReview returns null', async () => {
+    mq.getProvenanceById.mockResolvedValue(makeEntry() as never);
+    mq.createReview.mockResolvedValue(null as never);
+    mq.updateReviewStatus.mockResolvedValue(undefined as never);
+    const app = createApp();
+    const res = await app.request(
+      '/prov-1/review',
+      json({ reviewType: 'human_review', status: 'approved' }),
+    );
+    expect(res.status).toBe(500);
+  });
 });
 
 describe('GET /:id/reviews', () => {
@@ -299,5 +333,14 @@ describe('GET /:id/reviews', () => {
     const body = await parseBody(res);
     expect(Array.isArray(body.data)).toBe(true);
     expect(body.data[0].provenanceId).toBe('prov-1');
+  });
+
+  it('returns empty data array when entry has no reviews', async () => {
+    mq.getReviewsForProvenance.mockResolvedValue([]);
+    const app = createApp();
+    const res = await app.request('/prov-1/reviews');
+    expect(res.status).toBe(200);
+    const body = await parseBody(res);
+    expect(body.data).toEqual([]);
   });
 });
