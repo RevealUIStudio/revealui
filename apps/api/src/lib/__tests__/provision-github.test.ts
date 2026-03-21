@@ -151,7 +151,7 @@ describe('provisionGitHubAccess', () => {
 
     const [url, init] = mockFetchWithRetry.mock.calls[0] as [string, RequestInit];
     expect(url).toContain('/memberships/frank');
-    expect((init.headers as Record<string, string>)['Authorization']).toBe(
+    expect((init.headers as Record<string, string>).Authorization).toBe(
       'Bearer ghp_test_token_123',
     );
     expect(JSON.parse(init.body as string)).toEqual({ role: 'member' });
