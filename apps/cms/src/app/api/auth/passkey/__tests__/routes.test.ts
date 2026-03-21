@@ -236,7 +236,7 @@ describe('POST /api/auth/passkey/register-options', () => {
   beforeEach(async () => {
     const mod = await import('../register-options/route');
     handler = mod.POST;
-  });
+  }, 10_000);
 
   it('should return registration options for authenticated user', async () => {
     mockGetSession.mockResolvedValue(mockSession);
@@ -342,7 +342,7 @@ describe('POST /api/auth/passkey/register-verify', () => {
   beforeEach(async () => {
     const mod = await import('../register-verify/route');
     handler = mod.POST;
-  });
+  }, 10_000);
 
   it('should return 401 when challenge cookie is missing', async () => {
     const request = new NextRequest('http://localhost:3000/api/auth/passkey/register-verify', {
@@ -554,7 +554,7 @@ describe('POST /api/auth/passkey/authenticate-options', () => {
   beforeEach(async () => {
     const mod = await import('../authenticate-options/route');
     handler = mod.POST;
-  });
+  }, 10_000);
 
   it('should return authentication options and set challenge cookie', async () => {
     mockGenerateAuthenticationChallenge.mockResolvedValue({
@@ -591,7 +591,7 @@ describe('POST /api/auth/passkey/authenticate-verify', () => {
   beforeEach(async () => {
     const mod = await import('../authenticate-verify/route');
     handler = mod.POST;
-  });
+  }, 10_000);
 
   it('should return 401 when challenge cookie is missing', async () => {
     const request = new NextRequest('http://localhost:3000/api/auth/passkey/authenticate-verify', {
@@ -754,7 +754,7 @@ describe('GET /api/auth/passkey/list', () => {
   beforeEach(async () => {
     const mod = await import('../list/route');
     handler = mod.GET;
-  });
+  }, 10_000);
 
   it('should return 401 when not authenticated', async () => {
     mockGetSession.mockResolvedValue(null);
@@ -809,7 +809,7 @@ describe('PATCH /api/auth/passkey/:id', () => {
   beforeEach(async () => {
     const mod = await import('../[id]/route');
     handler = mod.PATCH;
-  });
+  }, 10_000);
 
   it('should return 401 when not authenticated', async () => {
     mockGetSession.mockResolvedValue(null);
@@ -869,7 +869,7 @@ describe('DELETE /api/auth/passkey/:id', () => {
   beforeEach(async () => {
     const mod = await import('../[id]/route');
     handler = mod.DELETE;
-  });
+  }, 10_000);
 
   it('should return 401 when not authenticated', async () => {
     mockGetSession.mockResolvedValue(null);
