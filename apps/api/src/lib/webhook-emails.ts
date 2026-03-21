@@ -6,6 +6,8 @@
  */
 
 import { logger } from '@revealui/core/observability/logger';
+import type { Database } from '@revealui/db/client';
+import { appLogs } from '@revealui/db/schema';
 import { sendEmail } from './email.js';
 
 // =============================================================================
@@ -302,7 +304,21 @@ ${context.customerId ? `<p><strong>Customer ID:</strong> <code>${escapeHtml(cont
 // GitHub team provisioning — side-effect triggered by webhook events
 // =============================================================================
 
-export async function provisionGitHubAccess(githubUsername: string): Promise<void> {
+interface GitHubMembershipResponse {
+  state: string;
+  role: string;
+  url: string;
+}
+
+/**
+ * Add a GitHub user to the revealui-pro-customers team.
+ *
+ * - Retries up to 3 times with exponential backoff (1 s / 2 s / 4 s)
+ * - Confirms the response state is 'active' or 'pending'
+ * - On permanent failure, writes an error row to app_logs (if db provided)
+ *   and re-throws so the caller can capture the event
+ */
+export async function provisionGitHubAccess(githubUsername: string, db?: Database): Promise<void> {
   const token = process.env.REVEALUI_GITHUB_TOKEN;
   if (!token) {
     logger.warn('REVEALUI_GITHUB_TOKEN not configured — skipping GitHub team provisioning', {
@@ -315,32 +331,59 @@ export async function provisionGitHubAccess(githubUsername: string): Promise<voi
 
   const url = `https://api.github.com/orgs/RevealUIStudio/teams/revealui-pro-customers/memberships/${githubUsername}`;
 
-  await fetchWithRetry(
-    url,
-    {
-      method: 'PUT',
-      headers: {
-        // biome-ignore lint/style/useNamingConvention: HTTP header convention
-        Authorization: `Bearer ${token}`,
-        // biome-ignore lint/style/useNamingConvention: HTTP header convention
-        Accept: 'application/vnd.github.v3+json',
-        'Content-Type': 'application/json',
-        'User-Agent': 'RevealUI-License-Server/1.0',
+  let response: Response;
+  try {
+    response = await fetchWithRetry(
+      url,
+      {
+        method: 'PUT',
+        headers: {
+          // biome-ignore lint/style/useNamingConvention: HTTP header convention
+          Authorization: `Bearer ${token}`,
+          // biome-ignore lint/style/useNamingConvention: HTTP header convention
+          Accept: 'application/vnd.github.v3+json',
+          'Content-Type': 'application/json',
+          'User-Agent': 'RevealUI-License-Server/1.0',
+        },
+        body: JSON.stringify({ role: 'member' }),
       },
-      body: JSON.stringify({ role: 'member' }),
-    },
-    {
-      maxRetries: 3,
-      baseDelay: 1000,
-      onRetry: (error, attempt) => {
-        logger.warn('Retrying GitHub team provisioning', {
-          githubUsername,
-          attempt,
-          error: error.message,
-        });
+      {
+        maxRetries: 3,
+        baseDelay: 1000,
+        onRetry: (error, attempt) => {
+          logger.warn('Retrying GitHub team provisioning', {
+            githubUsername,
+            attempt,
+            error: error.message,
+          });
+        },
       },
-    },
-  );
+    );
+  } catch (err) {
+    const errObj = err instanceof Error ? err : new Error(String(err));
+    logger.error('GitHub team provisioning failed after all retries', errObj, { githubUsername });
+    if (db) {
+      // Explicit app_logs write so the failure is queryable even if the
+      // logger transport is not configured (e.g. local dev, staging).
+      await db.insert(appLogs).values({
+        level: 'error',
+        message: 'GitHub team provisioning failed after all retries',
+        app: 'api',
+        data: { githubUsername, error: errObj.message },
+      });
+    }
+    throw err;
+  }
 
-  logger.info('GitHub team access provisioned', { githubUsername });
+  // Confirm the membership state returned by GitHub.
+  // Both 'active' (existing member) and 'pending' (invitation sent) are success states.
+  const body = (await response.json()) as GitHubMembershipResponse;
+  if (body.state !== 'active' && body.state !== 'pending') {
+    logger.warn('GitHub team provisioning returned unexpected membership state', {
+      githubUsername,
+      state: body.state,
+    });
+  } else {
+    logger.info('GitHub team access provisioned', { githubUsername, state: body.state });
+  }
 }

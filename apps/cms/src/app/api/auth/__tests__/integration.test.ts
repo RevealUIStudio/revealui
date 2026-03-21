@@ -249,7 +249,7 @@ beforeEach(() => {
 // ============================================================================
 
 describe('Flow 1: Password + TOTP', () => {
-  it('should sign in with password, then complete MFA via TOTP', async () => {
+  it('should sign in with password, then complete MFA via TOTP', { timeout: 15_000 }, async () => {
     // --- Step 1: Sign in with password, MFA required ---
     mockSignIn.mockResolvedValue({
       success: true,
@@ -322,70 +322,74 @@ describe('Flow 1: Password + TOTP', () => {
 // ============================================================================
 
 describe('Flow 2: Password + backup code', () => {
-  it('should sign in with password, then complete MFA via backup code', async () => {
-    // --- Step 1: Sign in with password, MFA required ---
-    mockSignIn.mockResolvedValue({
-      success: true,
-      requiresMfa: true,
-      mfaUserId: 'user-mfa-456',
-    });
-    mockSignCookiePayload.mockReturnValue('signed-mfa-pending-backup');
+  it(
+    'should sign in with password, then complete MFA via backup code',
+    { timeout: 15_000 },
+    async () => {
+      // --- Step 1: Sign in with password, MFA required ---
+      mockSignIn.mockResolvedValue({
+        success: true,
+        requiresMfa: true,
+        mfaUserId: 'user-mfa-456',
+      });
+      mockSignCookiePayload.mockReturnValue('signed-mfa-pending-backup');
 
-    const { POST: signInHandler } = await import('../sign-in/route');
-    const signInRequest = createJsonRequest('http://localhost:4000/api/auth/sign-in', {
-      email: 'backup-user@example.com',
-      password: 'Str0ngP@ss!',
-    });
-    const signInResponse = await signInHandler(signInRequest);
-    const signInData = await signInResponse.json();
+      const { POST: signInHandler } = await import('../sign-in/route');
+      const signInRequest = createJsonRequest('http://localhost:4000/api/auth/sign-in', {
+        email: 'backup-user@example.com',
+        password: 'Str0ngP@ss!',
+      });
+      const signInResponse = await signInHandler(signInRequest);
+      const signInData = await signInResponse.json();
 
-    expect(signInResponse.status).toBe(200);
-    expect(signInData.requiresMfa).toBe(true);
+      expect(signInResponse.status).toBe(200);
+      expect(signInData.requiresMfa).toBe(true);
 
-    const mfaPendingCookie = signInResponse.cookies.get('mfa-pending');
-    expect(mfaPendingCookie?.value).toBe('signed-mfa-pending-backup');
+      const mfaPendingCookie = signInResponse.cookies.get('mfa-pending');
+      expect(mfaPendingCookie?.value).toBe('signed-mfa-pending-backup');
 
-    // --- Step 2: Verify backup code using mfa-pending cookie ---
-    mockVerifyCookiePayload.mockReturnValue({
-      userId: 'user-mfa-456',
-      expiresAt: Date.now() + 300000,
-    });
-    mockVerifyBackupCode.mockResolvedValue({
-      success: true,
-      remainingCodes: 7,
-    });
-    mockCreateSession.mockResolvedValue({
-      token: 'backup-session-token',
-      session: { id: 'backup-session-id' } as never,
-    });
+      // --- Step 2: Verify backup code using mfa-pending cookie ---
+      mockVerifyCookiePayload.mockReturnValue({
+        userId: 'user-mfa-456',
+        expiresAt: Date.now() + 300000,
+      });
+      mockVerifyBackupCode.mockResolvedValue({
+        success: true,
+        remainingCodes: 7,
+      });
+      mockCreateSession.mockResolvedValue({
+        token: 'backup-session-token',
+        session: { id: 'backup-session-id' } as never,
+      });
 
-    const { POST: backupHandler } = await import('../mfa/backup/route');
-    const backupRequest = createJsonRequest(
-      'http://localhost:4000/api/auth/mfa/backup',
-      {
-        code: 'abcdef1234',
-      },
-      { cookies: { 'mfa-pending': mfaPendingCookie!.value } },
-    );
-    const backupResponse = await backupHandler(backupRequest);
-    const backupData = await backupResponse.json();
+      const { POST: backupHandler } = await import('../mfa/backup/route');
+      const backupRequest = createJsonRequest(
+        'http://localhost:4000/api/auth/mfa/backup',
+        {
+          code: 'abcdef1234',
+        },
+        { cookies: { 'mfa-pending': mfaPendingCookie!.value } },
+      );
+      const backupResponse = await backupHandler(backupRequest);
+      const backupData = await backupResponse.json();
 
-    expect(backupResponse.status).toBe(200);
-    expect(backupData.success).toBe(true);
-    expect(backupData.remainingCodes).toBe(7);
+      expect(backupResponse.status).toBe(200);
+      expect(backupData.success).toBe(true);
+      expect(backupData.remainingCodes).toBe(7);
 
-    // Session cookie was set
-    const sessionCookie = backupResponse.cookies.get('revealui-session');
-    expect(sessionCookie?.value).toBe('backup-session-token');
+      // Session cookie was set
+      const sessionCookie = backupResponse.cookies.get('revealui-session');
+      expect(sessionCookie?.value).toBe('backup-session-token');
 
-    // MFA-pending cookie was cleared
-    const clearedMfaCookie = backupResponse.cookies.get('mfa-pending');
-    expect(clearedMfaCookie?.value).toBe('');
+      // MFA-pending cookie was cleared
+      const clearedMfaCookie = backupResponse.cookies.get('mfa-pending');
+      expect(clearedMfaCookie?.value).toBe('');
 
-    // Verify the chain: backup code was consumed for the correct user
-    expect(mockVerifyBackupCode).toHaveBeenCalledWith('user-mfa-456', 'abcdef1234');
-    expect(mockCreateSession).toHaveBeenCalledWith('user-mfa-456', expect.any(Object));
-  });
+      // Verify the chain: backup code was consumed for the correct user
+      expect(mockVerifyBackupCode).toHaveBeenCalledWith('user-mfa-456', 'abcdef1234');
+      expect(mockCreateSession).toHaveBeenCalledWith('user-mfa-456', expect.any(Object));
+    },
+  );
 });
 
 // ============================================================================

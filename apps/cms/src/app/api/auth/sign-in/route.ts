@@ -6,7 +6,7 @@
  * Authenticates a user with email and password.
  */
 
-import { signIn } from '@revealui/auth/server';
+import { signCookiePayload, signIn } from '@revealui/auth/server';
 import { SignInRequestContract } from '@revealui/contracts';
 import { logger } from '@revealui/core/utils/logger';
 import { type NextRequest, NextResponse } from 'next/server';
@@ -80,7 +80,6 @@ async function signInHandler(request: NextRequest): Promise<NextResponse> {
     }
 
     if (result.requiresMfa) {
-      const { signCookiePayload } = await import('@revealui/auth/server');
       const signed = signCookiePayload(
         { userId: result.mfaUserId, expiresAt: Date.now() + 5 * 60 * 1000 },
         process.env.REVEALUI_SECRET ?? '',
