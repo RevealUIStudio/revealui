@@ -39,6 +39,7 @@ const { mockPostQueries, mockMediaQueries, mockSiteQueries, mockPageQueries } = 
   },
   mockPageQueries: {
     getAllPages: vi.fn(),
+    getPagesBySite: vi.fn(),
     createPage: vi.fn(),
     getPageById: vi.fn(),
     updatePage: vi.fn(),
@@ -122,6 +123,27 @@ function makeMedia(overrides: Partial<Record<string, unknown>> = {}) {
   };
 }
 
+function makePage(overrides: Partial<Record<string, unknown>> = {}) {
+  return {
+    id: 'page-1',
+    siteId: 'site-1',
+    parentId: null,
+    templateId: null,
+    title: 'Home',
+    slug: 'home',
+    path: '/home',
+    status: 'draft',
+    blocks: null,
+    seo: null,
+    blockCount: null,
+    wordCount: null,
+    createdAt: new Date('2025-06-01T00:00:00Z'),
+    updatedAt: new Date('2025-06-01T00:00:00Z'),
+    publishedAt: null,
+    ...overrides,
+  };
+}
+
 function makeSite(overrides: Partial<Record<string, unknown>> = {}) {
   return {
     id: 'site-1',
@@ -134,8 +156,8 @@ function makeSite(overrides: Partial<Record<string, unknown>> = {}) {
     settings: null,
     pageCount: 0,
     favicon: null,
-    createdAt: new Date().toISOString(),
-    updatedAt: new Date().toISOString(),
+    createdAt: new Date('2025-06-01T00:00:00Z'),
+    updatedAt: new Date('2025-06-01T00:00:00Z'),
     publishedAt: null,
     ...overrides,
   };
@@ -638,5 +660,446 @@ describe('POST /sites — create site', () => {
       body: JSON.stringify({ slug: 'no-name' }),
     });
     expect(res.status).toBeGreaterThanOrEqual(400);
+  });
+});
+
+describe('GET /sites/:id (IDOR)', () => {
+  beforeEach(() => vi.clearAllMocks());
+
+  it('returns 401 without authentication', async () => {
+    const app = createApp(null);
+    const res = await app.request('/sites/site-1');
+    expect(res.status).toBe(401);
+  });
+
+  it('returns 404 for non-existent site', async () => {
+    mockSiteQueries.getSiteById.mockResolvedValue(null);
+    const app = createApp(USER_A);
+    const res = await app.request('/sites/nonexistent');
+    expect(res.status).toBe(404);
+  });
+
+  it('returns site to its owner', async () => {
+    mockSiteQueries.getSiteById.mockResolvedValue(makeSite({ ownerId: USER_A.id }));
+    const app = createApp(USER_A);
+    const res = await app.request('/sites/site-1');
+    expect(res.status).toBe(200);
+    const body = await res.json();
+    expect(body.data.id).toBe('site-1');
+  });
+
+  it("returns 403 when non-admin accesses another user's site (IDOR)", async () => {
+    mockSiteQueries.getSiteById.mockResolvedValue(makeSite({ ownerId: USER_B.id }));
+    const app = createApp(USER_A);
+    const res = await app.request('/sites/site-1');
+    expect(res.status).toBe(403);
+  });
+
+  it("admin can read any user's site", async () => {
+    mockSiteQueries.getSiteById.mockResolvedValue(makeSite({ ownerId: USER_B.id }));
+    const app = createApp(ADMIN);
+    const res = await app.request('/sites/site-1');
+    expect(res.status).toBe(200);
+  });
+});
+
+describe('PATCH /sites/:id (IDOR)', () => {
+  beforeEach(() => vi.clearAllMocks());
+
+  it('returns 401 without authentication', async () => {
+    const app = createApp(null);
+    const res = await app.request('/sites/site-1', {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ name: 'Updated' }),
+    });
+    expect(res.status).toBe(401);
+  });
+
+  it('returns 404 for non-existent site', async () => {
+    mockSiteQueries.getSiteById.mockResolvedValue(null);
+    const app = createApp(USER_A);
+    const res = await app.request('/sites/nonexistent', {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ name: 'Updated' }),
+    });
+    expect(res.status).toBe(404);
+  });
+
+  it("returns 403 when non-admin updates another user's site (IDOR)", async () => {
+    mockSiteQueries.getSiteById.mockResolvedValue(makeSite({ ownerId: USER_B.id }));
+    const app = createApp(USER_A);
+    const res = await app.request('/sites/site-1', {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ name: 'Hijacked' }),
+    });
+    expect(res.status).toBe(403);
+    expect(mockSiteQueries.updateSite).not.toHaveBeenCalled();
+  });
+
+  it('allows owner to update their site', async () => {
+    const site = makeSite({ ownerId: USER_A.id });
+    mockSiteQueries.getSiteById.mockResolvedValue(site);
+    mockSiteQueries.updateSite.mockResolvedValue({ ...site, name: 'Updated' });
+    const app = createApp(USER_A);
+    const res = await app.request('/sites/site-1', {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ name: 'Updated' }),
+    });
+    expect(res.status).toBe(200);
+    const body = await res.json();
+    expect(body.data.name).toBe('Updated');
+  });
+
+  it('admin can update any site', async () => {
+    const site = makeSite({ ownerId: USER_B.id });
+    mockSiteQueries.getSiteById.mockResolvedValue(site);
+    mockSiteQueries.updateSite.mockResolvedValue({ ...site, name: 'Admin Updated' });
+    const app = createApp(ADMIN);
+    const res = await app.request('/sites/site-1', {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ name: 'Admin Updated' }),
+    });
+    expect(res.status).toBe(200);
+  });
+});
+
+describe('DELETE /sites/:id (IDOR)', () => {
+  beforeEach(() => vi.clearAllMocks());
+
+  it('returns 401 without authentication', async () => {
+    const app = createApp(null);
+    const res = await app.request('/sites/site-1', { method: 'DELETE' });
+    expect(res.status).toBe(401);
+  });
+
+  it('returns 404 for non-existent site', async () => {
+    mockSiteQueries.getSiteById.mockResolvedValue(null);
+    const app = createApp(USER_A);
+    const res = await app.request('/sites/nonexistent', { method: 'DELETE' });
+    expect(res.status).toBe(404);
+  });
+
+  it("returns 403 when non-admin deletes another user's site (IDOR)", async () => {
+    mockSiteQueries.getSiteById.mockResolvedValue(makeSite({ ownerId: USER_B.id }));
+    const app = createApp(USER_A);
+    const res = await app.request('/sites/site-1', { method: 'DELETE' });
+    expect(res.status).toBe(403);
+    expect(mockSiteQueries.deleteSite).not.toHaveBeenCalled();
+  });
+
+  it('allows owner to delete their site', async () => {
+    mockSiteQueries.getSiteById.mockResolvedValue(makeSite({ ownerId: USER_A.id }));
+    mockSiteQueries.deleteSite.mockResolvedValue(undefined);
+    const app = createApp(USER_A);
+    const res = await app.request('/sites/site-1', { method: 'DELETE' });
+    expect(res.status).toBe(200);
+    expect(mockSiteQueries.deleteSite).toHaveBeenCalledWith(expect.anything(), 'site-1');
+  });
+
+  it('admin can delete any site', async () => {
+    mockSiteQueries.getSiteById.mockResolvedValue(makeSite({ ownerId: USER_B.id }));
+    mockSiteQueries.deleteSite.mockResolvedValue(undefined);
+    const app = createApp(ADMIN);
+    const res = await app.request('/sites/site-1', { method: 'DELETE' });
+    expect(res.status).toBe(200);
+  });
+});
+
+// ─── Page Tests ──────────────────────────────────────────────────────────────
+
+describe('GET /sites/:siteId/pages — list pages', () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+    mockPageQueries.getPagesBySite.mockResolvedValue([]);
+  });
+
+  it('returns published pages for unauthenticated requests (public read)', async () => {
+    mockSiteQueries.getSiteById.mockResolvedValue(makeSite({ status: 'published' }));
+    const app = createApp(null);
+    const res = await app.request('/sites/site-1/pages');
+    expect(res.status).toBe(200);
+    expect(mockPageQueries.getPagesBySite).toHaveBeenCalledWith(
+      expect.anything(),
+      'site-1',
+      expect.objectContaining({ status: 'published' }),
+    );
+  });
+
+  it('returns 404 for non-published site when unauthenticated', async () => {
+    mockSiteQueries.getSiteById.mockResolvedValue(makeSite({ status: 'draft' }));
+    const app = createApp(null);
+    const res = await app.request('/sites/site-1/pages');
+    expect(res.status).toBe(404);
+  });
+
+  it('returns 404 for non-existent site', async () => {
+    mockSiteQueries.getSiteById.mockResolvedValue(null);
+    const app = createApp(USER_A);
+    const res = await app.request('/sites/nonexistent/pages');
+    expect(res.status).toBe(404);
+  });
+
+  it("returns 403 when non-admin lists another user's site pages", async () => {
+    mockSiteQueries.getSiteById.mockResolvedValue(makeSite({ ownerId: USER_B.id }));
+    const app = createApp(USER_A);
+    const res = await app.request('/sites/site-1/pages');
+    expect(res.status).toBe(403);
+  });
+
+  it('owner can list all pages (no status filter)', async () => {
+    mockSiteQueries.getSiteById.mockResolvedValue(makeSite({ ownerId: USER_A.id }));
+    mockPageQueries.getPagesBySite.mockResolvedValue([makePage()]);
+    const app = createApp(USER_A);
+    const res = await app.request('/sites/site-1/pages');
+    expect(res.status).toBe(200);
+    const body = await res.json();
+    expect(body.data).toHaveLength(1);
+    expect(body.data[0].id).toBe('page-1');
+  });
+
+  it('admin can list pages for any site', async () => {
+    mockSiteQueries.getSiteById.mockResolvedValue(makeSite({ ownerId: USER_B.id }));
+    const app = createApp(ADMIN);
+    const res = await app.request('/sites/site-1/pages');
+    expect(res.status).toBe(200);
+  });
+
+  it('respects status filter query param', async () => {
+    mockSiteQueries.getSiteById.mockResolvedValue(makeSite({ ownerId: USER_A.id }));
+    const app = createApp(USER_A);
+    await app.request('/sites/site-1/pages?status=published');
+    expect(mockPageQueries.getPagesBySite).toHaveBeenCalledWith(
+      expect.anything(),
+      'site-1',
+      expect.objectContaining({ status: 'published' }),
+    );
+  });
+});
+
+describe('POST /sites/:siteId/pages — create page', () => {
+  beforeEach(() => vi.clearAllMocks());
+
+  it('returns 401 without authentication', async () => {
+    const app = createApp(null);
+    const res = await app.request('/sites/site-1/pages', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ title: 'New', slug: 'new', path: '/new' }),
+    });
+    expect(res.status).toBe(401);
+  });
+
+  it('returns 404 for non-existent site', async () => {
+    mockSiteQueries.getSiteById.mockResolvedValue(null);
+    const app = createApp(USER_A);
+    const res = await app.request('/sites/nonexistent/pages', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ title: 'New', slug: 'new', path: '/new' }),
+    });
+    expect(res.status).toBe(404);
+  });
+
+  it("returns 403 when non-admin creates page in another user's site", async () => {
+    mockSiteQueries.getSiteById.mockResolvedValue(makeSite({ ownerId: USER_B.id }));
+    const app = createApp(USER_A);
+    const res = await app.request('/sites/site-1/pages', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ title: 'Hijacked', slug: 'hijacked', path: '/hijacked' }),
+    });
+    expect(res.status).toBe(403);
+    expect(mockPageQueries.createPage).not.toHaveBeenCalled();
+  });
+
+  it('creates a page and returns 201', async () => {
+    mockSiteQueries.getSiteById.mockResolvedValue(makeSite({ ownerId: USER_A.id }));
+    mockPageQueries.createPage.mockResolvedValue(makePage({ title: 'New Page' }));
+    const app = createApp(USER_A);
+    const res = await app.request('/sites/site-1/pages', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ title: 'New Page', slug: 'new-page', path: '/new-page' }),
+    });
+    expect(res.status).toBe(201);
+    const body = await res.json();
+    expect(body.success).toBe(true);
+    expect(body.data.title).toBe('New Page');
+  });
+
+  it('rejects missing title (validation)', async () => {
+    const app = createApp(USER_A);
+    const res = await app.request('/sites/site-1/pages', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ slug: 'no-title', path: '/no-title' }),
+    });
+    expect(res.status).toBeGreaterThanOrEqual(400);
+  });
+});
+
+describe('GET /pages/:id (IDOR)', () => {
+  beforeEach(() => vi.clearAllMocks());
+
+  it('returns 404 for non-published page without authentication (public read)', async () => {
+    mockPageQueries.getPageById.mockResolvedValue(makePage({ status: 'draft' }));
+    const app = createApp(null);
+    const res = await app.request('/pages/page-1');
+    expect(res.status).toBe(404);
+  });
+
+  it('returns 200 for published page without authentication', async () => {
+    mockPageQueries.getPageById.mockResolvedValue(makePage({ status: 'published' }));
+    const app = createApp(null);
+    const res = await app.request('/pages/page-1');
+    expect(res.status).toBe(200);
+    const body = await res.json();
+    expect(body.success).toBe(true);
+  });
+
+  it('returns 404 for non-existent page', async () => {
+    mockPageQueries.getPageById.mockResolvedValue(null);
+    const app = createApp(USER_A);
+    const res = await app.request('/pages/nonexistent');
+    expect(res.status).toBe(404);
+  });
+
+  it('returns page to its site owner', async () => {
+    mockPageQueries.getPageById.mockResolvedValue(makePage({ siteId: 'site-1' }));
+    mockSiteQueries.getSiteById.mockResolvedValue(makeSite({ ownerId: USER_A.id }));
+    const app = createApp(USER_A);
+    const res = await app.request('/pages/page-1');
+    expect(res.status).toBe(200);
+  });
+
+  it("returns 403 when non-admin accesses page from another user's site (IDOR)", async () => {
+    mockPageQueries.getPageById.mockResolvedValue(makePage({ siteId: 'site-1' }));
+    mockSiteQueries.getSiteById.mockResolvedValue(makeSite({ ownerId: USER_B.id }));
+    const app = createApp(USER_A);
+    const res = await app.request('/pages/page-1');
+    expect(res.status).toBe(403);
+  });
+
+  it('admin can read any page', async () => {
+    mockPageQueries.getPageById.mockResolvedValue(makePage({ siteId: 'site-1' }));
+    const app = createApp(ADMIN);
+    const res = await app.request('/pages/page-1');
+    expect(res.status).toBe(200);
+  });
+});
+
+describe('PATCH /pages/:id (IDOR)', () => {
+  beforeEach(() => vi.clearAllMocks());
+
+  it('returns 401 without authentication', async () => {
+    const app = createApp(null);
+    const res = await app.request('/pages/page-1', {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ title: 'Updated' }),
+    });
+    expect(res.status).toBe(401);
+  });
+
+  it('returns 404 for non-existent page', async () => {
+    mockPageQueries.getPageById.mockResolvedValue(null);
+    const app = createApp(USER_A);
+    const res = await app.request('/pages/nonexistent', {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ title: 'Updated' }),
+    });
+    expect(res.status).toBe(404);
+  });
+
+  it("returns 403 when non-admin updates page from another user's site (IDOR)", async () => {
+    mockPageQueries.getPageById.mockResolvedValue(makePage({ siteId: 'site-1' }));
+    mockSiteQueries.getSiteById.mockResolvedValue(makeSite({ ownerId: USER_B.id }));
+    const app = createApp(USER_A);
+    const res = await app.request('/pages/page-1', {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ title: 'Hijacked' }),
+    });
+    expect(res.status).toBe(403);
+    expect(mockPageQueries.updatePage).not.toHaveBeenCalled();
+  });
+
+  it('allows site owner to update page', async () => {
+    const page = makePage({ siteId: 'site-1' });
+    mockPageQueries.getPageById.mockResolvedValue(page);
+    mockSiteQueries.getSiteById.mockResolvedValue(makeSite({ ownerId: USER_A.id }));
+    mockPageQueries.updatePage.mockResolvedValue({ ...page, title: 'Updated' });
+    const app = createApp(USER_A);
+    const res = await app.request('/pages/page-1', {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ title: 'Updated' }),
+    });
+    expect(res.status).toBe(200);
+    const body = await res.json();
+    expect(body.data.title).toBe('Updated');
+  });
+
+  it('admin can update any page', async () => {
+    const page = makePage({ siteId: 'site-1' });
+    mockPageQueries.getPageById.mockResolvedValue(page);
+    mockPageQueries.updatePage.mockResolvedValue({ ...page, title: 'Admin Updated' });
+    const app = createApp(ADMIN);
+    const res = await app.request('/pages/page-1', {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ title: 'Admin Updated' }),
+    });
+    expect(res.status).toBe(200);
+  });
+});
+
+describe('DELETE /pages/:id (IDOR)', () => {
+  beforeEach(() => vi.clearAllMocks());
+
+  it('returns 401 without authentication', async () => {
+    const app = createApp(null);
+    const res = await app.request('/pages/page-1', { method: 'DELETE' });
+    expect(res.status).toBe(401);
+  });
+
+  it('returns 404 for non-existent page', async () => {
+    mockPageQueries.getPageById.mockResolvedValue(null);
+    const app = createApp(USER_A);
+    const res = await app.request('/pages/nonexistent', { method: 'DELETE' });
+    expect(res.status).toBe(404);
+  });
+
+  it("returns 403 when non-admin deletes page from another user's site (IDOR)", async () => {
+    mockPageQueries.getPageById.mockResolvedValue(makePage({ siteId: 'site-1' }));
+    mockSiteQueries.getSiteById.mockResolvedValue(makeSite({ ownerId: USER_B.id }));
+    const app = createApp(USER_A);
+    const res = await app.request('/pages/page-1', { method: 'DELETE' });
+    expect(res.status).toBe(403);
+    expect(mockPageQueries.deletePage).not.toHaveBeenCalled();
+  });
+
+  it('allows site owner to delete page', async () => {
+    mockPageQueries.getPageById.mockResolvedValue(makePage({ siteId: 'site-1' }));
+    mockSiteQueries.getSiteById.mockResolvedValue(makeSite({ ownerId: USER_A.id }));
+    mockPageQueries.deletePage.mockResolvedValue(undefined);
+    const app = createApp(USER_A);
+    const res = await app.request('/pages/page-1', { method: 'DELETE' });
+    expect(res.status).toBe(200);
+    expect(mockPageQueries.deletePage).toHaveBeenCalledWith(expect.anything(), 'page-1');
+  });
+
+  it('admin can delete any page', async () => {
+    mockPageQueries.getPageById.mockResolvedValue(makePage({ siteId: 'site-1' }));
+    mockPageQueries.deletePage.mockResolvedValue(undefined);
+    const app = createApp(ADMIN);
+    const res = await app.request('/pages/page-1', { method: 'DELETE' });
+    expect(res.status).toBe(200);
   });
 });
