@@ -14,7 +14,7 @@
  */
 
 import { eq, inArray } from 'drizzle-orm';
-import type { DatabaseClient } from '../client/types.js';
+import type { Database } from '../client/index.js';
 import { sites } from '../schema/sites.js';
 import { users } from '../schema/users.js';
 
@@ -33,7 +33,7 @@ export class CrossDbReferenceError extends Error {
  * Validates that a site exists in the REST database (NeonDB).
  * Call this before inserting into Supabase tables that reference sites.id.
  */
-export async function validateSiteExists(restDb: DatabaseClient, siteId: string): Promise<boolean> {
+export async function validateSiteExists(restDb: Database, siteId: string): Promise<boolean> {
   const result = await restDb
     .select({ id: sites.id })
     .from(sites)
@@ -46,7 +46,7 @@ export async function validateSiteExists(restDb: DatabaseClient, siteId: string)
  * Validates that a user exists in the REST database (NeonDB).
  * Call this before inserting into Supabase tables that reference users.id.
  */
-export async function validateUserExists(restDb: DatabaseClient, userId: string): Promise<boolean> {
+export async function validateUserExists(restDb: Database, userId: string): Promise<boolean> {
   const result = await restDb
     .select({ id: users.id })
     .from(users)
@@ -60,7 +60,7 @@ export async function validateUserExists(restDb: DatabaseClient, userId: string)
  * Use before inserting agent memories, RAG documents, etc. into Supabase.
  */
 export async function assertCrossDbRefs(
-  restDb: DatabaseClient,
+  restDb: Database,
   refs: {
     siteId?: string;
     userId?: string;
@@ -99,7 +99,7 @@ export async function assertCrossDbRefs(
  * on failure after re-validating references.
  */
 export async function safeVectorInsert<T>(
-  restDb: DatabaseClient,
+  restDb: Database,
   insert: () => Promise<T>,
   refs: { siteId?: string; userId?: string },
 ): Promise<T> {
@@ -129,8 +129,8 @@ export async function safeVectorInsert<T>(
  * Requires both REST and Vector database clients.
  */
 export async function findOrphanedMemories(
-  restDb: DatabaseClient,
-  vectorDb: DatabaseClient,
+  restDb: Database,
+  vectorDb: Database,
 ): Promise<{
   orphanedBySite: string[];
   orphanedByUser: string[];
