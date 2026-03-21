@@ -238,3 +238,79 @@ describe('POST /publish-scheduled — error handling', () => {
     expect(typeof body.error).toBe('string');
   });
 });
+
+describe('POST /publish-scheduled — update field verification', () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+    process.env.REVEALUI_CRON_SECRET = VALID_SECRET;
+  });
+
+  it('returns 500 when getClient throws', async () => {
+    mockedGetClient.mockImplementation(() => {
+      throw new Error('Client init failed');
+    });
+    const app = createApp();
+    const res = await app.request(makeRequest(VALID_SECRET));
+    expect(res.status).toBe(500);
+    const body = await res.json();
+    expect(body.error).toContain('Client init failed');
+  });
+
+  it('returns 500 when db.update throws mid-loop', async () => {
+    const db = makeDb([
+      { id: 'page-1', title: 'Page 1' },
+      { id: 'page-2', title: 'Page 2' },
+    ]);
+    db._updateChain.where.mockRejectedValueOnce(new Error('Update failed'));
+    mockedGetClient.mockReturnValue(db as never);
+
+    const app = createApp();
+    const res = await app.request(makeRequest(VALID_SECRET));
+    expect(res.status).toBe(500);
+  });
+
+  it('sets status to published, publishedAt, and updatedAt on update', async () => {
+    const db = makeDb([{ id: 'page-x', title: 'Page X' }]);
+    mockedGetClient.mockReturnValue(db as never);
+
+    const app = createApp();
+    await app.request(makeRequest(VALID_SECRET));
+
+    expect(db._updateChain.set).toHaveBeenCalledOnce();
+    const setArgs = db._updateChain.set.mock.calls[0]?.[0] as Record<string, unknown>;
+    expect(setArgs.status).toBe('published');
+    expect(setArgs.publishedAt).toBeInstanceOf(Date);
+    expect(setArgs.updatedAt).toBeInstanceOf(Date);
+  });
+
+  it('handles a large batch of due pages correctly', async () => {
+    const scheduled = Array.from({ length: 20 }, (_, i) => ({
+      id: `page-${i}`,
+      title: `Page ${i}`,
+    }));
+    const db = makeDb(scheduled);
+    mockedGetClient.mockReturnValue(db as never);
+
+    const app = createApp();
+    const res = await app.request(makeRequest(VALID_SECRET));
+    expect(res.status).toBe(200);
+    const body = await res.json();
+    expect(body.published).toBe(20);
+    expect(body.ids).toHaveLength(20);
+    expect(db.update).toHaveBeenCalledTimes(20);
+  });
+
+  it('returns ids in the order pages were processed', async () => {
+    const db = makeDb([
+      { id: 'page-alpha', title: 'Alpha' },
+      { id: 'page-beta', title: 'Beta' },
+      { id: 'page-gamma', title: 'Gamma' },
+    ]);
+    mockedGetClient.mockReturnValue(db as never);
+
+    const app = createApp();
+    const res = await app.request(makeRequest(VALID_SECRET));
+    const body = await res.json();
+    expect(body.ids).toEqual(['page-alpha', 'page-beta', 'page-gamma']);
+  });
+});
