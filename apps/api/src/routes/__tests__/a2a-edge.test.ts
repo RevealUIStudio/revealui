@@ -1,0 +1,492 @@
+/**
+ * A2A edge-case tests (pass 14)
+ *
+ * Covers untested branches in a2a.ts not reached by a2a.test.ts:
+ *   GET  /.well-known/marketplace.json   — happy path + DB-unavailable fallback
+ *   GET  /.well-known/payment-methods.json — enabled (200) and disabled (404)
+ *   GET  /a2a/agents/:id/tasks           — 401, 400, rows from DB, empty on DB error
+ *   GET  /a2a/stream/:taskId             — task not found (SSE error), terminal task (SSE close)
+ *   POST /a2a (JSON-RPC)                 — quota exceeded returns quota Response,
+ *                                          BYOK headers inject LLMClient as 3rd dispatcher arg
+ */
+
+import { Hono } from 'hono';
+import { beforeEach, describe, expect, it, vi } from 'vitest';
+
+// ─── Hoisted mock factories ───────────────────────────────────────────────────
+
+const {
+  mockGetCard,
+  mockListCards,
+  mockHas,
+  mockGetDef,
+  mockRegister,
+  mockUnregister,
+  mockUpdate,
+  mockHandleA2AJsonRpc,
+  mockGetTask,
+  mockIsFeatureEnabled,
+  mockAgentDefinitionSafeParse,
+  mockA2AJsonRpcSafeParse,
+  mockGetClient,
+  mockBuildPaymentMethods,
+  mockRequireTaskQuota,
+} = vi.hoisted(() => ({
+  mockGetCard: vi.fn(),
+  mockListCards: vi.fn(),
+  mockHas: vi.fn(),
+  mockGetDef: vi.fn(),
+  mockRegister: vi.fn(),
+  mockUnregister: vi.fn(),
+  mockUpdate: vi.fn(),
+  mockHandleA2AJsonRpc: vi.fn(),
+  mockGetTask: vi.fn(),
+  mockIsFeatureEnabled: vi.fn(() => true),
+  mockAgentDefinitionSafeParse: vi.fn((data: unknown) => ({ success: true, data })),
+  mockA2AJsonRpcSafeParse: vi.fn((data: unknown) => ({ success: true, data })),
+  mockGetClient: vi.fn(),
+  mockBuildPaymentMethods: vi.fn(),
+  mockRequireTaskQuota: vi.fn(),
+}));
+
+vi.mock('@revealui/ai/llm/server', () => ({
+  createLLMClientForUser: vi.fn(),
+  LLMClient: class MockLLMClient {
+    provider: string;
+    apiKey: string;
+    constructor(opts: { provider: string; apiKey: string }) {
+      this.provider = opts.provider;
+      this.apiKey = opts.apiKey;
+    }
+  },
+}));
+
+vi.mock('@revealui/ai', () => ({
+  agentCardRegistry: {
+    getCard: mockGetCard,
+    listCards: mockListCards,
+    has: mockHas,
+    getDef: mockGetDef,
+    register: mockRegister,
+    unregister: mockUnregister,
+    update: mockUpdate,
+  },
+  handleA2AJsonRpc: mockHandleA2AJsonRpc,
+  getTask: mockGetTask,
+  RPC_PARSE_ERROR: -32700,
+  RPC_INVALID_REQUEST: -32600,
+}));
+
+vi.mock('@revealui/core/features', () => ({
+  isFeatureEnabled: mockIsFeatureEnabled,
+}));
+
+vi.mock('@revealui/core/observability/logger', () => ({
+  logger: { info: vi.fn(), error: vi.fn(), warn: vi.fn(), debug: vi.fn() },
+}));
+
+vi.mock('@revealui/core/license', () => ({
+  initializeLicense: vi.fn(),
+}));
+
+vi.mock('../../middleware/auth.js', () => ({
+  authMiddleware: vi.fn(
+    (_options?: unknown) => async (_c: unknown, next: () => Promise<void>) => next(),
+  ),
+  requireRole: vi.fn(
+    (..._roles: string[]) =>
+      async (_c: unknown, next: () => Promise<void>) =>
+        next(),
+  ),
+}));
+
+vi.mock('../../middleware/license.js', () => ({
+  requireFeature: vi.fn(
+    (_feature: string) => async (_c: unknown, next: () => Promise<void>) => next(),
+  ),
+  checkLicenseStatus: vi.fn(() => async (_c: unknown, next: () => Promise<void>) => next()),
+}));
+
+vi.mock('../../middleware/x402.js', () => ({
+  buildPaymentMethods: mockBuildPaymentMethods,
+}));
+
+vi.mock('../../middleware/task-quota.js', () => ({
+  requireTaskQuota: mockRequireTaskQuota,
+}));
+
+vi.mock('@revealui/contracts', async (importOriginal) => {
+  const actual = await importOriginal<typeof import('@revealui/contracts')>();
+  return {
+    ...actual,
+    AgentDefinitionSchema: { safeParse: mockAgentDefinitionSafeParse },
+    A2AJsonRpcRequestSchema: { safeParse: mockA2AJsonRpcSafeParse },
+  };
+});
+
+vi.mock('@revealui/db/schema', () => ({
+  registeredAgents: { id: 'id', definition: 'definition' },
+  marketplaceServers: {
+    id: 'id',
+    name: 'name',
+    description: 'description',
+    category: 'category',
+    pricePerCallUsdc: 'pricePerCallUsdc',
+    status: 'status',
+  },
+  agentActions: {
+    id: 'id',
+    agentId: 'agentId',
+    tool: 'tool',
+    params: 'params',
+    result: 'result',
+    status: 'status',
+    startedAt: 'startedAt',
+    completedAt: 'completedAt',
+    durationMs: 'durationMs',
+  },
+}));
+
+vi.mock('@revealui/db', () => ({ getClient: mockGetClient }));
+
+vi.mock('drizzle-orm', () => ({
+  eq: vi.fn(() => 'eq'),
+  desc: vi.fn(() => 'desc'),
+}));
+
+// ─── Import under test ────────────────────────────────────────────────────────
+
+import { a2aRoutes, wellKnownRoutes } from '../a2a.js';
+
+// ─── Helpers ──────────────────────────────────────────────────────────────────
+
+function makeWellKnownApp() {
+  const app = new Hono();
+  app.route('/', wellKnownRoutes);
+  return app;
+}
+
+function makeA2AApp(user?: { id: string }) {
+  // biome-ignore lint/suspicious/noExplicitAny: test helper
+  const app = new Hono<{ Variables: { user?: any } }>();
+  if (user) {
+    app.use('*', async (c, next) => {
+      c.set('user', user);
+      await next();
+    });
+  }
+  app.route('/', a2aRoutes);
+  return app;
+}
+
+function get(path: string) {
+  return new Request(`http://localhost${path}`, { method: 'GET' });
+}
+
+function post(path: string, body: unknown, headers?: Record<string, string>) {
+  return new Request(`http://localhost${path}`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', ...headers },
+    body: JSON.stringify(body),
+  });
+}
+
+/** Build a fluent Drizzle-like select chain that resolves to `rows` via `.limit()`. */
+// biome-ignore lint/suspicious/noExplicitAny: test helper — Drizzle chain typing
+function makeSelectChain(rows: unknown[], opts?: { throws?: boolean }): any {
+  // biome-ignore lint/suspicious/noExplicitAny: test helper
+  const chain: any = {};
+  chain.from = vi.fn().mockReturnValue(chain);
+  chain.where = vi.fn().mockReturnValue(chain);
+  chain.orderBy = vi.fn().mockReturnValue(chain);
+  if (opts?.throws) {
+    chain.limit = vi.fn().mockRejectedValue(new Error('DB unavailable'));
+  } else {
+    chain.limit = vi.fn().mockResolvedValue(rows);
+  }
+  // Note: bare `await db.select().from(table)` (used by ensureRegistryHydrated) will
+  // receive the chain object rather than an array. The hydration try/catch swallows the
+  // resulting TypeError, so not providing a .then here is intentional.
+  return chain;
+}
+
+const MOCK_CARD = {
+  id: 'test-agent',
+  name: 'Test Agent',
+  url: 'http://localhost/a2a',
+  version: '1.0',
+  capabilities: {},
+  skills: [],
+};
+
+function resetMocks() {
+  vi.clearAllMocks();
+
+  mockGetCard.mockReturnValue(MOCK_CARD);
+  mockListCards.mockReturnValue([MOCK_CARD]);
+  mockHas.mockReturnValue(false);
+  mockGetDef.mockReturnValue(null);
+  mockRegister.mockImplementation(() => undefined);
+  mockUnregister.mockReturnValue(true);
+  mockUpdate.mockImplementation(() => undefined);
+  mockIsFeatureEnabled.mockReturnValue(true);
+  mockHandleA2AJsonRpc.mockResolvedValue({ jsonrpc: '2.0', id: 1, result: { status: 'ok' } });
+  mockBuildPaymentMethods.mockReturnValue(null);
+  mockRequireTaskQuota.mockResolvedValue(undefined);
+
+  // Default DB: hydration query (registeredAgents) returns []
+  const defaultSelectChain = makeSelectChain([]);
+  mockGetClient.mockReturnValue({
+    select: vi.fn().mockReturnValue(defaultSelectChain),
+    insert: vi.fn().mockReturnValue({ values: vi.fn().mockResolvedValue(undefined) }),
+    update: vi.fn().mockReturnValue({
+      set: vi.fn().mockReturnValue({ where: vi.fn().mockResolvedValue(undefined) }),
+    }),
+    delete: vi.fn().mockReturnValue({ where: vi.fn().mockResolvedValue(undefined) }),
+    // biome-ignore lint/suspicious/noExplicitAny: test mock
+  } as any);
+}
+
+// ─── Tests ────────────────────────────────────────────────────────────────────
+
+describe('GET /.well-known/marketplace.json', () => {
+  beforeEach(resetMocks);
+
+  it('returns marketplace metadata with active servers from DB', async () => {
+    const serverRows = [
+      {
+        id: 'srv-1',
+        name: 'GitHub MCP',
+        description: 'GitHub integration',
+        category: 'devtools',
+        pricePerCallUsdc: '0.001',
+      },
+      {
+        id: 'srv-2',
+        name: 'Stripe MCP',
+        description: 'Stripe integration',
+        category: 'payments',
+        pricePerCallUsdc: '0.002',
+      },
+    ];
+
+    const selectChain = makeSelectChain(serverRows);
+    mockGetClient.mockReturnValue({
+      select: vi.fn().mockReturnValue(selectChain),
+      // biome-ignore lint/suspicious/noExplicitAny: test mock
+    } as any);
+
+    const app = makeWellKnownApp();
+    const res = await app.request(get('/marketplace.json'));
+
+    expect(res.status).toBe(200);
+    const body = (await res.json()) as {
+      servers: Array<{ id: string; invokeUrl: string }>;
+      version: string;
+      revenueShare: { platform: number; developer: number };
+    };
+    expect(body.version).toBe('1.0');
+    expect(body.revenueShare).toEqual({ platform: 0.2, developer: 0.8 });
+    expect(body.servers).toHaveLength(2);
+    expect(body.servers[0]?.id).toBe('srv-1');
+    // invokeUrl is constructed from baseUrl + server id
+    expect(body.servers[0]?.invokeUrl).toContain('srv-1/invoke');
+  });
+
+  it('returns empty servers array when DB is unavailable', async () => {
+    const selectChain = makeSelectChain([], { throws: true });
+    mockGetClient.mockReturnValue({
+      select: vi.fn().mockReturnValue(selectChain),
+      // biome-ignore lint/suspicious/noExplicitAny: test mock
+    } as any);
+
+    const app = makeWellKnownApp();
+    const res = await app.request(get('/marketplace.json'));
+
+    // Still 200 — DB failure is caught and swallowed
+    expect(res.status).toBe(200);
+    const body = (await res.json()) as { servers: unknown[] };
+    expect(body.servers).toHaveLength(0);
+  });
+});
+
+describe('GET /.well-known/payment-methods.json', () => {
+  beforeEach(resetMocks);
+
+  it('returns 404 when x402 payments are disabled (default)', async () => {
+    mockBuildPaymentMethods.mockReturnValue(null);
+
+    const app = makeWellKnownApp();
+    const res = await app.request(get('/payment-methods.json'));
+
+    expect(res.status).toBe(404);
+    const body = (await res.json()) as { error: string };
+    expect(body.error).toContain('not enabled');
+  });
+
+  it('returns payment methods when x402 is enabled', async () => {
+    const methods = {
+      x402version: 1,
+      accepts: [{ scheme: 'exact', network: 'base-sepolia', maxAmountRequired: '1000' }],
+    };
+    mockBuildPaymentMethods.mockReturnValue(methods);
+
+    const app = makeWellKnownApp();
+    const res = await app.request(get('/payment-methods.json'));
+
+    expect(res.status).toBe(200);
+    const body = await res.json();
+    expect(body).toMatchObject({ x402version: 1 });
+    expect(res.headers.get('Cache-Control')).toBe('public, max-age=300');
+  });
+});
+
+describe('GET /a2a/agents/:id/tasks', () => {
+  beforeEach(resetMocks);
+
+  it('returns 401 when caller is not authenticated', async () => {
+    // makeA2AApp() without user → c.get("user") is undefined
+    const app = makeA2AApp();
+    const res = await app.request(get('/agents/test-agent/tasks'));
+
+    expect(res.status).toBe(401);
+    const body = (await res.json()) as { error: string };
+    expect(body.error).toContain('Authentication');
+  });
+
+  it('returns 400 for invalid agent ID format', async () => {
+    const app = makeA2AApp({ id: 'user-1' });
+    // Spaces in ID fail /^[\w-]{1,256}$/ check
+    const res = await app.request(get('/agents/invalid%20id/tasks'));
+
+    expect(res.status).toBe(400);
+    const body = (await res.json()) as { error: string };
+    expect(body.error).toContain('Invalid agent ID format');
+  });
+
+  it('returns task history rows from DB', async () => {
+    const taskRows = [
+      { id: 'action-1', agentId: 'test-agent', tool: 'tasks/send', status: 'completed' },
+      { id: 'action-2', agentId: 'test-agent', tool: 'tasks/send', status: 'failed' },
+    ];
+
+    const taskChain = makeSelectChain(taskRows);
+    mockGetClient.mockReturnValue({
+      select: vi.fn().mockReturnValue(taskChain),
+      // biome-ignore lint/suspicious/noExplicitAny: test mock
+    } as any);
+
+    const app = makeA2AApp({ id: 'user-1' });
+    const res = await app.request(get('/agents/test-agent/tasks'));
+
+    expect(res.status).toBe(200);
+    const body = (await res.json()) as { tasks: unknown[] };
+    expect(body.tasks).toHaveLength(2);
+  });
+
+  it('returns empty tasks array when DB query fails', async () => {
+    const taskChain = makeSelectChain([], { throws: true });
+    mockGetClient.mockReturnValue({
+      select: vi.fn().mockReturnValue(taskChain),
+      // biome-ignore lint/suspicious/noExplicitAny: test mock
+    } as any);
+
+    const app = makeA2AApp({ id: 'user-1' });
+    const res = await app.request(get('/agents/test-agent/tasks'));
+
+    // DB failure is caught — returns empty array instead of 500
+    expect(res.status).toBe(200);
+    const body = (await res.json()) as { tasks: unknown[] };
+    expect(body.tasks).toHaveLength(0);
+  });
+});
+
+describe('GET /a2a/stream/:taskId — SSE stream', () => {
+  beforeEach(resetMocks);
+
+  it('sends error event and closes when task is not found', async () => {
+    mockGetTask.mockReturnValue(undefined);
+
+    const app = makeA2AApp({ id: 'user-1' });
+    const res = await app.request(get('/stream/task-missing'));
+
+    expect(res.status).toBe(200);
+    expect(res.headers.get('Content-Type')).toContain('text/event-stream');
+
+    const text = await res.text();
+    const events = text
+      .split('\n')
+      .filter((l) => l.startsWith('data: '))
+      .map((l) => JSON.parse(l.slice(6)) as Record<string, unknown>);
+
+    expect(events).toHaveLength(1);
+    expect(events[0]?.error).toContain('task-missing');
+  });
+
+  it('sends task data and closes when task is in a terminal state', async () => {
+    const completedTask = {
+      id: 'task-done',
+      status: { state: 'completed' },
+      output: 'done',
+    };
+    mockGetTask.mockReturnValue(completedTask);
+
+    const app = makeA2AApp({ id: 'user-1' });
+    const res = await app.request(get('/stream/task-done'));
+
+    expect(res.status).toBe(200);
+    const text = await res.text();
+    const events = text
+      .split('\n')
+      .filter((l) => l.startsWith('data: '))
+      .map((l) => JSON.parse(l.slice(6)) as Record<string, unknown>);
+
+    expect(events).toHaveLength(1);
+    expect(events[0]?.status).toMatchObject({ state: 'completed' });
+  });
+});
+
+describe('POST /a2a — quota and BYOK', () => {
+  beforeEach(resetMocks);
+
+  it('returns quota Response directly when task quota is exceeded', async () => {
+    // Simulate quota middleware returning a 429 Response
+    const quotaExceeded = new Response(
+      JSON.stringify({ error: 'Task quota exceeded', code: 'QUOTA_EXCEEDED' }),
+      { status: 429, headers: { 'Content-Type': 'application/json' } },
+    );
+    mockRequireTaskQuota.mockResolvedValue(quotaExceeded);
+
+    const app = makeA2AApp({ id: 'user-1' });
+    const res = await app.request(
+      post('/', {
+        jsonrpc: '2.0',
+        id: 1,
+        method: 'tasks/send',
+        params: { id: 'test-agent', message: { role: 'user', parts: [{ text: 'hi' }] } },
+      }),
+    );
+
+    expect(res.status).toBe(429);
+    // Dispatcher must NOT have been called — quota response short-circuits execution
+    expect(mockHandleA2AJsonRpc).not.toHaveBeenCalled();
+  });
+
+  it('injects LLMClient into dispatcher when BYOK headers are provided', async () => {
+    const app = makeA2AApp({ id: 'user-1' });
+    const res = await app.request(
+      post(
+        '/',
+        { jsonrpc: '2.0', id: 1, method: 'tasks/get', params: { id: 'task-1' } },
+        { 'X-AI-Provider': 'anthropic', 'X-AI-Api-Key': 'sk-test-key-1234' },
+      ),
+    );
+
+    expect(res.status).toBe(200);
+    expect(mockHandleA2AJsonRpc).toHaveBeenCalledTimes(1);
+    // Third argument must be a constructed LLMClient, not undefined
+    const thirdArg = mockHandleA2AJsonRpc.mock.calls[0]?.[2];
+    expect(thirdArg).toBeDefined();
+    expect(thirdArg).toMatchObject({ provider: 'anthropic', apiKey: 'sk-test-key-1234' });
+  });
+});
