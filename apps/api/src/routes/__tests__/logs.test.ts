@@ -28,13 +28,14 @@ import logsApp from '../logs.js';
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 
-function post(body: unknown) {
+function post(body: unknown, token?: string | null) {
+  const headers: Record<string, string> = { 'Content-Type': 'application/json' };
+  // Pass undefined to omit the header entirely; null also omits it
+  const tok = token === undefined ? (process.env.REVEALUI_SECRET ?? 'test-secret') : token;
+  if (tok !== null) headers['X-Internal-Token'] = tok;
   return new Request('http://localhost/', {
     method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-      'X-Internal-Token': process.env.REVEALUI_SECRET ?? 'test-secret',
-    },
+    headers,
     body: JSON.stringify(body),
   });
 }
@@ -187,5 +188,82 @@ describe('POST / — fire-and-forget DB write', () => {
 
     const insertArgs = mockInsertValues.mock.calls[0]?.[0] as Record<string, unknown>;
     expect(insertArgs.data).toBeNull();
+  });
+});
+
+describe('POST / — authentication', () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+    mockInsertValues.mockResolvedValue({ rowCount: 1 });
+    mockDb.insert.mockReturnValue({ values: mockInsertValues });
+    process.env.REVEALUI_SECRET = 'test-secret';
+  });
+
+  it('returns 403 when X-Internal-Token header is absent', async () => {
+    // Pass null to omit the header
+    const res = await logsApp.request(post({ level: 'warn', message: 'hi', app: 'cms' }, null));
+    expect(res.status).toBe(403);
+  });
+
+  it('returns 403 when token is wrong', async () => {
+    const res = await logsApp.request(
+      post({ level: 'warn', message: 'hi', app: 'cms' }, 'wrong-secret'),
+    );
+    expect(res.status).toBe(403);
+  });
+
+  it('returns 403 when token has a different length (timing-safe branch)', async () => {
+    const res = await logsApp.request(post({ level: 'warn', message: 'hi', app: 'cms' }, 'short'));
+    expect(res.status).toBe(403);
+  });
+
+  it('returns 403 when REVEALUI_SECRET env var is unset', async () => {
+    delete process.env.REVEALUI_SECRET;
+    const res = await logsApp.request(post({ level: 'warn', message: 'hi', app: 'cms' }));
+    expect(res.status).toBe(403);
+  });
+
+  it('does not call DB insert on auth failure', async () => {
+    const res = await logsApp.request(
+      post({ level: 'error', message: 'attempt', app: 'api' }, 'bad-token'),
+    );
+    expect(res.status).toBe(403);
+    expect(mockDb.insert).not.toHaveBeenCalled();
+  });
+});
+
+describe('POST / — input sanitization', () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+    mockInsertValues.mockResolvedValue({ rowCount: 1 });
+    mockDb.insert.mockReturnValue({ values: mockInsertValues });
+    process.env.REVEALUI_SECRET = 'test-secret';
+  });
+
+  it('strips newlines from message', async () => {
+    await logsApp.request(post({ level: 'warn', message: 'line1\nline2\r\nline3', app: 'cms' }));
+    await new Promise((r) => setTimeout(r, 0));
+
+    const insertArgs = mockInsertValues.mock.calls[0]?.[0] as Record<string, unknown>;
+    expect(insertArgs.message).toBe('line1 line2  line3');
+  });
+
+  it('returns 400 when message exceeds 2000 characters', async () => {
+    const res = await logsApp.request(
+      post({ level: 'error', message: 'x'.repeat(2001), app: 'cms' }),
+    );
+    expect(res.status).toBe(400);
+  });
+
+  it('accepts message at exactly 2000 characters', async () => {
+    const res = await logsApp.request(
+      post({ level: 'error', message: 'x'.repeat(2000), app: 'cms' }),
+    );
+    expect(res.status).toBe(202);
+  });
+
+  it('returns 400 when app name exceeds 50 characters', async () => {
+    const res = await logsApp.request(post({ level: 'warn', message: 'hi', app: 'a'.repeat(51) }));
+    expect(res.status).toBe(400);
   });
 });

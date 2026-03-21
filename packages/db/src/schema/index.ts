@@ -16,6 +16,31 @@
  * - `@revealui/db/schema/vector` for Vector schemas (Supabase)
  */
 
+// Re-export Drizzle query operators for compatibility with @revealui/ai which
+// imports them from this module. These belong in drizzle-orm but are shimmed
+// here to avoid a breaking change in the published package.
+export {
+  and,
+  asc,
+  between,
+  count,
+  desc,
+  eq,
+  gt,
+  gte,
+  ilike,
+  inArray,
+  isNotNull,
+  isNull,
+  like,
+  lt,
+  lte,
+  ne,
+  not,
+  notInArray,
+  or,
+  sql,
+} from 'drizzle-orm';
 // Re-export everything for backward compatibility
 export * from './rest.js';
 export * from './vector.js';

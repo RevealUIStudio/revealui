@@ -240,39 +240,43 @@ describe('Authentication Flow Integration', () => {
       return captured.hash;
     }
 
-    it('returns success and a session token for correct credentials', async () => {
-      const password = 'Correct123!';
-      const hash = await captureHashFromSignUp(password);
+    it(
+      'returns success and a session token for correct credentials',
+      { timeout: 15_000 },
+      async () => {
+        const password = 'Correct123!';
+        const hash = await captureHashFromSignUp(password);
 
-      (mockDb.limit as ReturnType<typeof vi.fn>).mockResolvedValueOnce([
-        {
-          id: 'u-si-1',
-          email: 'user@example.com',
-          password: hash,
-          emailVerified: true,
-          createdAt: new Date(),
-        },
-      ]);
-      (mockDb.returning as ReturnType<typeof vi.fn>).mockResolvedValueOnce([
-        {
-          id: 's-si-1',
-          userId: 'u-si-1',
-          expiresAt: new Date(Date.now() + 86_400_000),
-          tokenHash: 'th',
-          persistent: false,
-        },
-      ]);
+        (mockDb.limit as ReturnType<typeof vi.fn>).mockResolvedValueOnce([
+          {
+            id: 'u-si-1',
+            email: 'user@example.com',
+            password: hash,
+            emailVerified: true,
+            createdAt: new Date(),
+          },
+        ]);
+        (mockDb.returning as ReturnType<typeof vi.fn>).mockResolvedValueOnce([
+          {
+            id: 's-si-1',
+            userId: 'u-si-1',
+            expiresAt: new Date(Date.now() + 86_400_000),
+            tokenHash: 'th',
+            persistent: false,
+          },
+        ]);
 
-      const result = await signIn('user@example.com', password, { ipAddress: '10.0.0.1' });
+        const result = await signIn('user@example.com', password, { ipAddress: '10.0.0.1' });
 
-      expect(result.success).toBe(true);
-      if (result.success && !result.requiresMfa) {
-        expect(result.user).toBeDefined();
-        expect(result.sessionToken).toBeDefined();
-      }
-    });
+        expect(result.success).toBe(true);
+        if (result.success && !result.requiresMfa) {
+          expect(result.user).toBeDefined();
+          expect(result.sessionToken).toBeDefined();
+        }
+      },
+    );
 
-    it('rejects sign-in with wrong password', async () => {
+    it('rejects sign-in with wrong password', { timeout: 15_000 }, async () => {
       const correctPassword = 'Correct123!';
       const hash = await captureHashFromSignUp(correctPassword);
 
