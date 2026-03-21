@@ -17,6 +17,8 @@ export interface RateLimitOptions {
   windowMs: number;
   /** Key prefix for namespacing rate limit counters */
   keyPrefix?: string;
+  /** If true, allow requests through when rate-limit storage is unreachable (default: false) */
+  failOpen?: boolean;
 }
 
 export interface TieredRateLimitOptions {
@@ -52,19 +54,29 @@ export const rateLimitMiddleware = (options: RateLimitOptions): MiddlewareHandle
     const ip = extractTrustedIp(c);
     const key = `${options.keyPrefix || 'api'}:${ip}`;
 
-    const result = await checkRateLimit(key, {
-      maxAttempts: options.maxRequests,
-      windowMs: options.windowMs,
-    });
+    try {
+      const result = await checkRateLimit(key, {
+        maxAttempts: options.maxRequests,
+        windowMs: options.windowMs,
+      });
 
-    c.header('X-RateLimit-Limit', String(options.maxRequests));
-    c.header('X-RateLimit-Remaining', String(result.remaining));
-    c.header('X-RateLimit-Reset', String(result.resetAt));
+      c.header('X-RateLimit-Limit', String(options.maxRequests));
+      c.header('X-RateLimit-Remaining', String(result.remaining));
+      c.header('X-RateLimit-Reset', String(result.resetAt));
 
-    if (!result.allowed) {
-      const retryAfter = Math.ceil((result.resetAt - Date.now()) / 1000);
-      c.header('Retry-After', String(retryAfter));
-      throw new HTTPException(429, { message: 'Too many requests. Please try again later.' });
+      if (!result.allowed) {
+        const retryAfter = Math.ceil((result.resetAt - Date.now()) / 1000);
+        c.header('Retry-After', String(retryAfter));
+        throw new HTTPException(429, { message: 'Too many requests. Please try again later.' });
+      }
+    } catch (error) {
+      if (error instanceof HTTPException) throw error;
+      if (options.failOpen) {
+        // Storage unreachable — allow request through without rate limit headers
+        await next();
+        return;
+      }
+      throw error;
     }
 
     await next();

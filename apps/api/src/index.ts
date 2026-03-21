@@ -208,6 +208,7 @@ const DEFAULT_RATE_LIMITS: RateLimitsConfig = {
     'marketplace-publish': { maxRequests: 10, windowMs: ONE_HOUR },
     'marketplace-invoke': { maxRequests: 30, windowMs: ONE_MINUTE },
     pricing: { maxRequests: 10, windowMs: ONE_MINUTE },
+    'terminal-auth': { maxRequests: 5, windowMs: ONE_MINUTE },
     maintenance: { maxRequests: 1, windowMs: ONE_MINUTE },
     webhook: { maxRequests: 100, windowMs: ONE_MINUTE },
   },
@@ -223,9 +224,9 @@ export function configureRateLimits(overrides: Partial<RateLimitsConfig>): void 
   };
 }
 
-function routeLimit(key: string) {
+function routeLimit(key: string, opts?: { failOpen?: boolean }) {
   const cfg = rateLimitsConfig.routes[key] ?? DEFAULT_RATE_LIMITS.routes[key];
-  return rateLimitMiddleware({ ...cfg, keyPrefix: key });
+  return rateLimitMiddleware({ ...cfg, keyPrefix: key, ...opts });
 }
 
 // Rate limiting — tiered global + per-route overrides
@@ -240,10 +241,11 @@ app.use('/api/v1/*', tieredRateLimit);
 app.use('/api/license/generate', routeLimit('license-gen'));
 app.use('/api/v1/license/generate', routeLimit('license-gen'));
 
-// A2A discovery endpoints are public per the A2A spec
-app.use('/.well-known/*', routeLimit('a2a-discovery'));
-app.use('/a2a/agents', routeLimit('a2a-discovery'));
-app.use('/a2a/agents/*', routeLimit('a2a-discovery'));
+// A2A discovery endpoints are public per the A2A spec — fail-open so discovery
+// works even when the rate-limit DB is temporarily unreachable.
+app.use('/.well-known/*', routeLimit('a2a-discovery', { failOpen: true }));
+app.use('/a2a/agents', routeLimit('a2a-discovery', { failOpen: true }));
+app.use('/a2a/agents/*', routeLimit('a2a-discovery', { failOpen: true }));
 
 app.use('/api/agent-tasks/*', routeLimit('agent'));
 app.use('/api/v1/agent-tasks/*', routeLimit('agent'));
@@ -280,9 +282,10 @@ app.use('/api/v1/marketplace/servers', routeLimit('marketplace-publish'));
 app.use('/api/marketplace/servers/*/invoke', routeLimit('marketplace-invoke'));
 app.use('/api/v1/marketplace/servers/*/invoke', routeLimit('marketplace-invoke'));
 
-// Pricing endpoint — public, heavily cached (ISR clients need at most 1 req/hour)
-app.use('/api/pricing', routeLimit('pricing'));
-app.use('/api/v1/pricing', routeLimit('pricing'));
+// Pricing endpoint — public, heavily cached (ISR clients need at most 1 req/hour).
+// Fail-open: pricing fetches from Stripe with server-side fallback, no DB needed.
+app.use('/api/pricing', routeLimit('pricing', { failOpen: true }));
+app.use('/api/v1/pricing', routeLimit('pricing', { failOpen: true }));
 
 // Maintenance cron — 1 req/min (cron-secret protected, limit prevents accidental hammering)
 app.use('/api/maintenance/*', routeLimit('maintenance'));
@@ -486,6 +489,8 @@ app.route('/api/cron', cronPublishRoute);
 app.route('/api/maintenance', maintenanceRoute);
 app.route('/api/marketplace', marketplaceRoute);
 app.route('/api/pricing', pricingRoute);
+app.use('/api/terminal-auth/*', routeLimit('terminal-auth'));
+app.use('/api/v1/terminal-auth/*', routeLimit('terminal-auth'));
 app.route('/api/terminal-auth', terminalAuthRoute);
 app.route('', createCollabRoute());
 app.route('', createAgentCollabRoute());

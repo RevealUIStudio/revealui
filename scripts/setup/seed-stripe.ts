@@ -213,6 +213,7 @@ const WEBHOOK_EVENTS: Stripe.WebhookEndpointCreateParams.EnabledEvent[] = [
   'customer.subscription.created',
   'customer.subscription.updated',
   'customer.subscription.deleted',
+  'customer.deleted',
   'invoice.payment_failed',
   'invoice.payment_succeeded',
   'payment_intent.payment_failed',
