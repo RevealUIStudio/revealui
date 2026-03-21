@@ -615,4 +615,115 @@ describe('POST /a2a (JSON-RPC dispatcher)', () => {
     const [rpcArg] = mockHandleA2AJsonRpc.mock.calls[0] ?? [];
     expect(rpcArg).toMatchObject({ jsonrpc: '2.0', id: 99, method: 'tasks/cancel' });
   });
+
+  it('gates tasks/sendSubscribe behind the ai feature flag', async () => {
+    mockIsFeatureEnabled.mockReturnValue(false);
+
+    const app = makeA2AApp();
+    const res = await app.request(
+      post('/', {
+        jsonrpc: '2.0',
+        id: 1,
+        method: 'tasks/sendSubscribe',
+        params: { id: 'test-agent', message: { role: 'user', parts: [{ text: 'stream' }] } },
+      }),
+    );
+
+    expect(res.status).toBe(403);
+    const body = (await res.json()) as { error: { message: string } };
+    expect(body.error.message).toContain('Pro or Enterprise');
+  });
+
+  it('allows tasks/cancel without ai feature', async () => {
+    mockIsFeatureEnabled.mockReturnValue(false);
+
+    const app = makeA2AApp();
+    const res = await app.request(
+      post('/', { jsonrpc: '2.0', id: 1, method: 'tasks/cancel', params: { id: 'task-1' } }),
+    );
+
+    expect(mockHandleA2AJsonRpc).toHaveBeenCalled();
+    expect(res.status).toBe(200);
+  });
+
+  it('forwards X-Agent-ID header to dispatcher', async () => {
+    const app = makeA2AApp();
+    const req = new Request('http://localhost/', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'X-Agent-ID': 'custom-agent-42',
+      },
+      body: JSON.stringify({
+        jsonrpc: '2.0',
+        id: 1,
+        method: 'tasks/get',
+        params: { id: 'task-1' },
+      }),
+    });
+    const res = await app.request(req);
+    expect(res.status).toBe(200);
+    expect(mockHandleA2AJsonRpc).toHaveBeenCalledTimes(1);
+    const [, agentIdArg] = mockHandleA2AJsonRpc.mock.calls[0] ?? [];
+    expect(agentIdArg).toBe('custom-agent-42');
+  });
+});
+
+// ─── Agent ID format validation ──────────────────────────────────────────────
+
+describe('Agent ID format validation', () => {
+  beforeEach(resetMocks);
+
+  it('GET /agents/:id returns 400 for invalid ID format', async () => {
+    const app = makeA2AApp();
+    // IDs must match /^[\w-]{1,256}$/
+    const res = await app.request(get('/agents/invalid id with spaces'));
+    // The route handler checks the pattern and returns 400
+    expect(res.status).toBe(400);
+    const body = (await res.json()) as { error: string };
+    expect(body.error).toContain('Invalid agent ID format');
+  });
+
+  it('PUT /agents/:id returns 400 for invalid ID format', async () => {
+    mockHas.mockReturnValue(false);
+    const app = makeA2AApp();
+    // Spaces in agent ID fail the /^[\w-]{1,256}$/ validation
+    const res = await app.request(put('/agents/bad agent id!', { name: 'exploit' }));
+    expect(res.status).toBe(400);
+  });
+
+  it('DELETE /agents/:id returns 400 for invalid ID format', async () => {
+    const app = makeA2AApp();
+    const res = await app.request(del('/agents/bad id!@#'));
+    expect(res.status).toBe(400);
+  });
+});
+
+// ─── POST /agents — DB persistence ──────────────────────────────────────────
+
+describe('POST /agents — DB persistence', () => {
+  beforeEach(resetMocks);
+
+  it('persists new agent to DB after registration', async () => {
+    mockHas.mockReturnValue(false);
+    mockGetCard.mockReturnValue(MOCK_CARD);
+
+    const app = makeA2AApp();
+    const res = await app.request(post('/agents', MOCK_DEF));
+    expect(res.status).toBe(201);
+    expect(mockDbChain.insert).toHaveBeenCalled();
+  });
+
+  it('succeeds even when DB persist fails (best-effort)', async () => {
+    mockHas.mockReturnValue(false);
+    mockGetCard.mockReturnValue(MOCK_CARD);
+    insertChain.values.mockRejectedValueOnce(new Error('DB write failed'));
+
+    const app = makeA2AApp();
+    const res = await app.request(post('/agents', MOCK_DEF));
+    // Registration still succeeds in-memory even if DB fails
+    expect(res.status).toBe(201);
+    const body = (await res.json()) as { card: typeof MOCK_CARD };
+    expect(body.card.id).toBe(MOCK_CARD.id);
+  });
 });

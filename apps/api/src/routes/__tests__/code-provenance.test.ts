@@ -274,6 +274,20 @@ describe('DELETE /:id', () => {
     expect(body.success).toBe(true);
     expect(typeof body.message).toBe('string');
   });
+
+  it('returns 403 when a non-admin user tries to delete', async () => {
+    const app = createApp({ id: 'user-1', role: 'user' });
+    const res = await app.request('/prov-1', { method: 'DELETE' });
+    expect(res.status).toBe(403);
+    const body = await parseBody(res);
+    expect(body.error).toContain('Admin role required');
+  });
+
+  it('returns 403 when no user context is set', async () => {
+    const app = createApp(); // no user
+    const res = await app.request('/prov-1', { method: 'DELETE' });
+    expect(res.status).toBe(403);
+  });
 });
 
 describe('POST /:id/review', () => {
@@ -321,6 +335,106 @@ describe('POST /:id/review', () => {
       json({ reviewType: 'human_review', status: 'approved' }),
     );
     expect(res.status).toBe(500);
+  });
+
+  it('returns 400 for invalid review status', async () => {
+    const app = createApp();
+    const res = await app.request(
+      '/prov-1/review',
+      json({ reviewType: 'human_review', status: 'invalid_status' }),
+    );
+    expect(res.status).toBe(400);
+  });
+
+  it('transitions unreviewed → human_reviewed on human_review', async () => {
+    mq.getProvenanceById.mockResolvedValue(makeEntry({ reviewStatus: 'unreviewed' }) as never);
+    mq.createReview.mockResolvedValue(makeReview() as never);
+    mq.updateReviewStatus.mockResolvedValue(undefined as never);
+    const app = createApp();
+    await app.request('/prov-1/review', json({ reviewType: 'human_review', status: 'approved' }));
+    expect(mq.updateReviewStatus).toHaveBeenCalledWith(
+      expect.anything(),
+      'prov-1',
+      'human_reviewed',
+      undefined,
+    );
+  });
+
+  it('transitions unreviewed → ai_reviewed on ai_review', async () => {
+    mq.getProvenanceById.mockResolvedValue(makeEntry({ reviewStatus: 'unreviewed' }) as never);
+    mq.createReview.mockResolvedValue(makeReview({ reviewType: 'ai_review' }) as never);
+    mq.updateReviewStatus.mockResolvedValue(undefined as never);
+    const app = createApp();
+    await app.request('/prov-1/review', json({ reviewType: 'ai_review', status: 'approved' }));
+    expect(mq.updateReviewStatus).toHaveBeenCalledWith(
+      expect.anything(),
+      'prov-1',
+      'ai_reviewed',
+      undefined,
+    );
+  });
+
+  it('transitions ai_reviewed → human_and_ai_reviewed on human_review', async () => {
+    mq.getProvenanceById.mockResolvedValue(makeEntry({ reviewStatus: 'ai_reviewed' }) as never);
+    mq.createReview.mockResolvedValue(makeReview() as never);
+    mq.updateReviewStatus.mockResolvedValue(undefined as never);
+    const app = createApp();
+    await app.request('/prov-1/review', json({ reviewType: 'human_review', status: 'approved' }));
+    expect(mq.updateReviewStatus).toHaveBeenCalledWith(
+      expect.anything(),
+      'prov-1',
+      'human_and_ai_reviewed',
+      undefined,
+    );
+  });
+
+  it('transitions human_reviewed → human_and_ai_reviewed on ai_review', async () => {
+    mq.getProvenanceById.mockResolvedValue(makeEntry({ reviewStatus: 'human_reviewed' }) as never);
+    mq.createReview.mockResolvedValue(makeReview({ reviewType: 'ai_review' }) as never);
+    mq.updateReviewStatus.mockResolvedValue(undefined as never);
+    const app = createApp();
+    await app.request('/prov-1/review', json({ reviewType: 'ai_review', status: 'approved' }));
+    expect(mq.updateReviewStatus).toHaveBeenCalledWith(
+      expect.anything(),
+      'prov-1',
+      'human_and_ai_reviewed',
+      undefined,
+    );
+  });
+
+  it('human_approval counts as human review for transitions', async () => {
+    mq.getProvenanceById.mockResolvedValue(makeEntry({ reviewStatus: 'ai_reviewed' }) as never);
+    mq.createReview.mockResolvedValue(makeReview({ reviewType: 'human_approval' }) as never);
+    mq.updateReviewStatus.mockResolvedValue(undefined as never);
+    const app = createApp();
+    await app.request('/prov-1/review', json({ reviewType: 'human_approval', status: 'approved' }));
+    expect(mq.updateReviewStatus).toHaveBeenCalledWith(
+      expect.anything(),
+      'prov-1',
+      'human_and_ai_reviewed',
+      undefined,
+    );
+  });
+
+  it('passes reviewerId to updateReviewStatus', async () => {
+    mq.getProvenanceById.mockResolvedValue(makeEntry() as never);
+    mq.createReview.mockResolvedValue(makeReview() as never);
+    mq.updateReviewStatus.mockResolvedValue(undefined as never);
+    const app = createApp();
+    await app.request(
+      '/prov-1/review',
+      json({
+        reviewType: 'human_review',
+        status: 'approved',
+        reviewerId: 'reviewer-42',
+      }),
+    );
+    expect(mq.updateReviewStatus).toHaveBeenCalledWith(
+      expect.anything(),
+      'prov-1',
+      'human_reviewed',
+      'reviewer-42',
+    );
   });
 });
 
