@@ -1,6 +1,8 @@
-# Why We Built RevealUI
+# Why I Built RevealUI (and Open-Sourced It)
 
-*The User Interface (UI) for the future has yet to Reveal itself.*
+*By Joshua Vaughn — RevealUI Studio*
+
+---
 
 I've started three software companies. Each time, I spent the first three to six months building the same thing: user authentication, a content management system, billing integration, an admin dashboard, role-based access control. The actual product — the thing that made the company worth existing — didn't get serious development time until month four at the earliest.
 
@@ -219,10 +221,10 @@ This is the part that's genuinely hard to replicate by stitching services togeth
 
 Some numbers on what's actually shipped:
 
-- **18 packages** across the monorepo (6 apps, 12+ libraries)
-- **68 database tables** via Drizzle ORM
+- **24 packages** across the monorepo (6 apps, 19 OSS libraries, and 3 Pro packages)
+- **70 database tables** via Drizzle ORM
 - **50+ UI components** in the presentation layer (zero external UI dependencies — just Tailwind v4, clsx, and CVA)
-- **5,500+ tests** across all packages
+- **5,600+ tests** across all packages
 - **Full OpenAPI spec** with Swagger UI at `/docs`
 - **Session auth** with bcrypt, rate limiting, brute force protection, and OAuth
 
@@ -240,13 +242,11 @@ I want to be honest about where RevealUI is and isn't the right choice.
 
 ## What's next
 
-This week is the soft launch. The repository goes public on GitHub. The docs site goes live. The `create-revealui` CLI hits npm. You can stand up a full BOSS instance today.
+The repository is public on GitHub. The docs site is live at [docs.revealui.com](https://docs.revealui.com). The `create-revealui` CLI is on npm. You can stand up a full BOSS instance today.
 
-Next week is the hard launch. MCP server listings on the registry. A2A agent discovery so RevealUI instances can find and communicate with each other. The first batch of project templates beyond the starter.
+The Studio desktop companion (Tauri + React) and a terminal client (Go + Bubble Tea) are already in the monorepo — giving you both a visual DevPod manager and a TUI for API access, QR checkout, and SSH fingerprint lookup.
 
-The week after, the community launches on Discourse. That's when the ecosystem flywheel starts: templates, plugins, integrations, and patterns contributed by people building real products on RevealUI.
-
-Longer term, the roadmap includes a desktop companion app (Studio, built with Tauri), a terminal client (built in Go with Bubble Tea), and the template marketplace where developers can publish and sell project starters.
+The near-term roadmap includes MCP server registry listings, A2A agent discovery for RevealUI-to-RevealUI communication, a broader template library, and the template marketplace where developers can publish and sell project starters. The community forum is at [community.revealui.com](https://community.revealui.com) — join early and help shape what gets built next.
 
 But the core thesis won't change: **every software company needs users, content, products, payments, and intelligence. You shouldn't have to build them from scratch.**
 
