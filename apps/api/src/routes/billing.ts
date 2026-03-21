@@ -19,9 +19,10 @@ import {
   users,
 } from '@revealui/db/schema';
 import { createRoute, OpenAPIHono, z } from '@revealui/openapi';
-import { and, desc, eq, gt, gte, lte } from 'drizzle-orm';
+import { and, desc, eq, gt, gte, lt, lte } from 'drizzle-orm';
 import { HTTPException } from 'hono/http-exception';
 import Stripe from 'stripe';
+import { resetDbStatusCache } from '../middleware/license.js';
 
 interface UserContext {
   id: string;
@@ -772,6 +773,17 @@ app.openapi(downgradeRoute, async (c) => {
     ? new Date(cancelAt * 1000).toISOString()
     : new Date().toISOString();
 
+  // Stamp the license expiry so the sweep cron and on-demand checks know when to
+  // transition the status — without this, the DB record stays 'active' indefinitely
+  // until the subscription.deleted webhook fires at period end.
+  if (cancelAt) {
+    const db = getClient();
+    await db
+      .update(licenses)
+      .set({ expiresAt: new Date(cancelAt * 1000), updatedAt: new Date() })
+      .where(and(eq(licenses.subscriptionId, subscription.id), eq(licenses.status, 'active')));
+  }
+
   return c.json({ success: true, effectiveAt: effectiveDate }, 200);
 });
 
@@ -1104,6 +1116,87 @@ app.openapi(reportOverageRoute, async (c) => {
   }
 
   return c.json({ reported, skipped }, 200);
+});
+
+// POST /api/billing/sweep-expired-licenses — Internal cron: mark expired licenses as 'expired'
+// Finds non-perpetual licenses where expiresAt < now() and status = 'active', updates them to
+// status = 'expired', and clears the DB status cache so revocation takes effect immediately.
+// Protected by X-Cron-Secret. Run daily (or hourly for tighter enforcement).
+const SweepExpiredLicensesResponseSchema = z.object({
+  expired: z.number().openapi({ description: 'Number of licenses transitioned to expired' }),
+});
+
+const sweepExpiredLicensesRoute = createRoute({
+  method: 'post',
+  path: '/sweep-expired-licenses',
+  tags: ['billing'],
+  summary: 'Sweep expired licenses (internal cron)',
+  description:
+    'Marks non-perpetual licenses whose expiresAt is in the past as expired, then clears the DB status cache. Protected by X-Cron-Secret.',
+  responses: {
+    200: {
+      content: { 'application/json': { schema: SweepExpiredLicensesResponseSchema } },
+      description: 'Sweep complete',
+    },
+    403: {
+      content: { 'application/json': { schema: ErrorSchema } },
+      description: 'Invalid cron secret',
+    },
+  },
+});
+
+app.openapi(sweepExpiredLicensesRoute, async (c) => {
+  const { timingSafeEqual } = await import('node:crypto');
+  const cronSecret = process.env.REVEALUI_CRON_SECRET;
+  const provided = c.req.header('X-Cron-Secret');
+
+  if (!(cronSecret && provided)) {
+    throw new HTTPException(403, { message: 'Forbidden' });
+  }
+  const a = Buffer.from(provided);
+  const b = Buffer.from(cronSecret);
+  if (a.length !== b.length || !timingSafeEqual(a, b)) {
+    throw new HTTPException(403, { message: 'Forbidden' });
+  }
+
+  const db = getClient();
+  const now = new Date();
+
+  // Fetch matching IDs before updating — Neon HTTP driver does not support
+  // columnar .returning() on UPDATE, so we count from a SELECT instead.
+  const expiring = await db
+    .select({ id: licenses.id })
+    .from(licenses)
+    .where(
+      and(
+        eq(licenses.status, 'active'),
+        eq(licenses.perpetual, false),
+        lt(licenses.expiresAt, now),
+      ),
+    );
+
+  const expiredCount = expiring.length;
+
+  if (expiredCount > 0) {
+    await db
+      .update(licenses)
+      .set({ status: 'expired', updatedAt: now })
+      .where(
+        and(
+          eq(licenses.status, 'active'),
+          eq(licenses.perpetual, false),
+          lt(licenses.expiresAt, now),
+        ),
+      );
+
+    // Invalidate the per-customer DB status cache so revocation takes effect on the
+    // next request rather than waiting for the 5-minute cache window to expire.
+    resetDbStatusCache();
+  }
+
+  logger.info('License expiry sweep complete', { expired: expiredCount });
+
+  return c.json({ expired: expiredCount }, 200);
 });
 
 // POST /api/billing/refund — Issue a refund (admin-only)

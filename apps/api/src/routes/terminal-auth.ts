@@ -29,6 +29,8 @@ export interface TerminalAuthConfig {
   otpTtlMs: number;
   /** OTP length in digits (default: 6) */
   otpLength: number;
+  /** Max verification attempts per OTP before invalidation (default: 5) */
+  maxOtpAttempts: number;
   /** Custom storage backend (default: auto-detected via getStorage()) */
   storage?: Storage;
 }
@@ -36,6 +38,7 @@ export interface TerminalAuthConfig {
 const DEFAULT_CONFIG: TerminalAuthConfig = {
   otpTtlMs: 5 * 60 * 1000,
   otpLength: 6,
+  maxOtpAttempts: 5,
 };
 
 let config: TerminalAuthConfig = { ...DEFAULT_CONFIG };
@@ -56,6 +59,7 @@ interface PendingOtp {
   code: string;
   fingerprint: string;
   email: string;
+  attempts: number;
 }
 
 const OTP_KEY_PREFIX = 'terminal-otp:';
@@ -138,7 +142,7 @@ terminalAuth.post('/link', zValidator('json', linkSchema), async (c) => {
       return c.json(
         {
           success: false,
-          error: `This SSH key is already linked to ${existing.email}`,
+          error: 'This SSH key is already linked to an account',
         },
         409,
       );
@@ -147,7 +151,7 @@ terminalAuth.post('/link', zValidator('json', linkSchema), async (c) => {
 
   // Generate and store OTP (TTL handled by storage layer)
   const code = generateOtp();
-  await storeOtp(email, { code, fingerprint, email });
+  await storeOtp(email, { code, fingerprint, email, attempts: 0 });
 
   // Send verification email
   try {
@@ -191,10 +195,22 @@ terminalAuth.post('/verify', zValidator('json', verifySchema), async (c) => {
     return c.json({ success: false, error: 'No pending verification or code has expired' }, 400);
   }
 
+  // Enforce attempt limit — invalidate OTP after too many failed attempts
+  if (pending.attempts >= config.maxOtpAttempts) {
+    await deleteOtp(email);
+    return c.json(
+      { success: false, error: 'Too many verification attempts. Please request a new code.' },
+      429,
+    );
+  }
+
   const codeMatch =
     pending.code.length === code.length &&
     timingSafeEqual(Buffer.from(pending.code), Buffer.from(code));
   if (!codeMatch) {
+    // Increment attempt counter and re-store with remaining TTL
+    pending.attempts += 1;
+    await storeOtp(email, pending);
     return c.json({ success: false, error: 'Invalid verification code' }, 400);
   }
 

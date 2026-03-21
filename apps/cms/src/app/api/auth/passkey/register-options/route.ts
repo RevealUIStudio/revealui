@@ -27,6 +27,7 @@ import {
   createErrorResponse,
   createValidationErrorResponse,
 } from '@/lib/utils/error-response';
+import { rejectRecoverySession } from '@/lib/utils/recovery-guard';
 
 export const dynamic = 'force-dynamic';
 export const runtime = 'nodejs';
@@ -41,6 +42,10 @@ async function registerOptionsHandler(request: NextRequest): Promise<NextRespons
     let signUpData: { email: string; name: string } | null = null;
 
     if (session) {
+      // Block recovery sessions from registering passkeys
+      const recoveryBlocked = rejectRecoverySession(session);
+      if (recoveryBlocked) return recoveryBlocked;
+
       // Authenticated flow: adding passkey to existing account
       if (!session.user.email) {
         return createApplicationErrorResponse(

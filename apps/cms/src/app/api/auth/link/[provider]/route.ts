@@ -7,7 +7,7 @@
  * `intent=link` in the state so the callback knows to link rather than sign in.
  */
 
-import { generateOAuthState, getSession } from '@revealui/auth/server';
+import { generateOAuthState, getSession, isRecoverySession } from '@revealui/auth/server';
 import { type NextRequest, NextResponse } from 'next/server';
 
 export const dynamic = 'force-dynamic';
@@ -34,6 +34,11 @@ export async function GET(
   const sessionData = await getSession(request.headers);
   if (!sessionData) {
     return NextResponse.redirect(new URL('/login?error=session_required', baseUrl));
+  }
+
+  // Block recovery sessions from linking OAuth providers
+  if (isRecoverySession(sessionData)) {
+    return NextResponse.redirect(new URL('/login?error=recovery_session_restricted', baseUrl));
   }
 
   // Use the same OAuth initiation flow but with a link-specific redirect

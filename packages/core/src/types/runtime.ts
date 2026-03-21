@@ -58,6 +58,7 @@ export interface RevealFindOptions {
 export interface RevealCreateOptions {
   data: RevealDataObject;
   req?: RevealRequest;
+  overrideAccess?: boolean;
 }
 
 export interface RevealUpdateOptions {

@@ -147,7 +147,7 @@ describe('GET /ready — readiness probe', () => {
     expect(body.uptime).toBeGreaterThanOrEqual(0);
   });
 
-  it('includes pools field when getPoolMetrics returns entries', async () => {
+  it('omits pools field from readiness probe (internal metrics only)', async () => {
     const mockDb = { execute: vi.fn().mockResolvedValue([]) };
     mockedGetClient.mockReturnValue(mockDb as never);
     mockedGetPoolMetrics.mockReturnValueOnce([{ name: 'primary', size: 5 }] as never);
@@ -155,9 +155,8 @@ describe('GET /ready — readiness probe', () => {
     const app = createApp();
     const res = await app.request('/ready');
     const body = await parseBody(res);
-    expect(body.pools).toBeDefined();
-    expect(Array.isArray(body.pools)).toBe(true);
-    expect(body.pools).toHaveLength(1);
+    // Pool metrics are internal — only exposed via authenticated /metrics endpoints
+    expect(body.pools).toBeUndefined();
   });
 
   it('omits pools field when getPoolMetrics returns empty array', async () => {
@@ -205,42 +204,94 @@ describe('GET /live — liveness alias', () => {
 });
 
 describe('GET /metrics — Prometheus text format', () => {
-  it('returns 200', async () => {
+  const metricsSecret = 'test-metrics-secret-for-health-tests';
+
+  beforeAll(() => {
+    process.env.METRICS_SECRET = metricsSecret;
+  });
+
+  afterAll(() => {
+    delete process.env.METRICS_SECRET;
+  });
+
+  it('returns 401 without auth', async () => {
     const app = createApp();
     const res = await app.request('/metrics');
+    expect(res.status).toBe(401);
+  });
+
+  it('returns 200 with valid secret', async () => {
+    const app = createApp();
+    const res = await app.request('/metrics', {
+      headers: { 'X-Metrics-Secret': metricsSecret },
+    });
     expect(res.status).toBe(200);
   });
 
   it('returns text/plain content type', async () => {
     const app = createApp();
-    const res = await app.request('/metrics');
+    const res = await app.request('/metrics', {
+      headers: { 'X-Metrics-Secret': metricsSecret },
+    });
     expect(res.headers.get('Content-Type')).toContain('text/plain');
   });
 
   it('sets Cache-Control: no-cache', async () => {
     const app = createApp();
-    const res = await app.request('/metrics');
+    const res = await app.request('/metrics', {
+      headers: { 'X-Metrics-Secret': metricsSecret },
+    });
     expect(res.headers.get('Cache-Control')).toContain('no-cache');
   });
 
   it('returns a string body', async () => {
     const app = createApp();
-    const res = await app.request('/metrics');
+    const res = await app.request('/metrics', {
+      headers: { 'X-Metrics-Secret': metricsSecret },
+    });
     const text = await res.text();
     expect(typeof text).toBe('string');
+  });
+
+  it('accepts Bearer token auth', async () => {
+    const app = createApp();
+    const res = await app.request('/metrics', {
+      headers: { Authorization: `Bearer ${metricsSecret}` },
+    });
+    expect(res.status).toBe(200);
   });
 });
 
 describe('GET /metrics/json — JSON metrics', () => {
-  it('returns 200', async () => {
+  const metricsSecret = 'test-metrics-secret-for-health-tests';
+
+  beforeAll(() => {
+    process.env.METRICS_SECRET = metricsSecret;
+  });
+
+  afterAll(() => {
+    delete process.env.METRICS_SECRET;
+  });
+
+  it('returns 401 without auth', async () => {
     const app = createApp();
     const res = await app.request('/metrics/json');
+    expect(res.status).toBe(401);
+  });
+
+  it('returns 200 with valid secret', async () => {
+    const app = createApp();
+    const res = await app.request('/metrics/json', {
+      headers: { 'X-Metrics-Secret': metricsSecret },
+    });
     expect(res.status).toBe(200);
   });
 
   it('returns a non-null object', async () => {
     const app = createApp();
-    const res = await app.request('/metrics/json');
+    const res = await app.request('/metrics/json', {
+      headers: { 'X-Metrics-Secret': metricsSecret },
+    });
     const body = await res.json();
     expect(typeof body).toBe('object');
     expect(body).not.toBeNull();

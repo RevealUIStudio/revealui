@@ -1,7 +1,8 @@
 /**
  * Create Operation
  *
- * Creates a new document with validation, password hashing, and JSON field handling.
+ * Creates a new document with access control, validation, password hashing,
+ * and JSON field handling.
  */
 
 import bcrypt from 'bcryptjs';
@@ -10,6 +11,7 @@ import type {
   RevealCollectionConfig,
   RevealCreateOptions,
   RevealDocument,
+  RevealRequest,
   RevealUIField,
 } from '../../types/index.js';
 import { collectJsonFields, serializeValueForDatabase } from '../../utils/json-parsing.js';
@@ -18,12 +20,51 @@ import { runBeforeFieldHooks } from './fieldHooks.js';
 import { findByID } from './findById.js';
 import { insertDocumentQuery } from './sqlAdapter.js';
 
+/**
+ * Evaluate a collection's access.create function.
+ * Returns true (allow) or false (deny).
+ */
+async function evaluateCreateAccess(
+  config: RevealCollectionConfig,
+  options: RevealCreateOptions,
+): Promise<boolean> {
+  if (options.overrideAccess) return true;
+
+  const accessConfig = (
+    config as {
+      access?: {
+        create?: (args: { req: RevealRequest; data?: Record<string, unknown> }) => unknown;
+      };
+    }
+  ).access;
+  const createAccess = accessConfig?.create;
+
+  // No access rule defined = allow all (backward compatible)
+  if (!createAccess) return true;
+
+  const req = options.req;
+  if (!req) return false; // No request context = deny (safe default)
+
+  const result = await createAccess({ req, data: options.data });
+
+  if (result === false) return false;
+
+  // Any truthy result (true, WhereClause) = allowed
+  return !!result;
+}
+
 export async function create(
   config: RevealCollectionConfig,
   db: QueryableDatabaseAdapter | null,
   options: RevealCreateOptions,
 ): Promise<RevealDocument> {
   const { data } = options;
+
+  // --- Access control enforcement ---
+  const allowed = await evaluateCreateAccess(config, options);
+  if (!allowed) {
+    throw new Error('Access denied: insufficient permissions to create this document');
+  }
 
   // Run beforeValidate field hooks first so they can generate values (e.g. slug from title)
   // before the required-field check below throws for missing values.

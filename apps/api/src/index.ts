@@ -344,6 +344,10 @@ const licenseStatusCheck = checkLicenseStatus(async (customerId) => {
 });
 app.use('/api/*', licenseStatusCheck);
 app.use('/api/v1/*', licenseStatusCheck);
+// A2A routes live outside /api/* so they need their own license status check.
+// Without this, a revoked license retains A2A task execution access until the
+// 5-minute in-memory feature-flag cache expires.
+app.use('/a2a/*', licenseStatusCheck);
 
 // License enforcement — gate premium routes by feature
 app.use('/api/agent-tasks/*', requireFeature('ai', { mode: 'entitlements' }));

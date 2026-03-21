@@ -5,17 +5,32 @@
  *
  * Disables MFA on the authenticated user's account.
  * Requires re-authentication via password or passkey.
+ *
+ * For passkey proof: the client must first call POST /api/auth/passkey/authenticate-options
+ * to obtain a WebAuthn challenge (stored in a signed cookie), then include the
+ * authenticationResponse in this request. The route verifies the WebAuthn assertion
+ * server-side before trusting the proof.
  */
 
-import { disableMFA, getSession } from '@revealui/auth/server';
+import {
+  disableMFA,
+  getSession,
+  verifyAuthentication,
+  verifyCookiePayload,
+} from '@revealui/auth/server';
 import { MFADisableRequestContract } from '@revealui/contracts';
 import { logger } from '@revealui/core/utils/logger';
+import { getClient } from '@revealui/db';
+import { passkeys } from '@revealui/db/schema';
+import type { AuthenticationResponseJSON, WebAuthnCredential } from '@simplewebauthn/server';
+import { eq } from 'drizzle-orm';
 import { type NextRequest, NextResponse } from 'next/server';
 import {
   createApplicationErrorResponse,
   createErrorResponse,
   createValidationErrorResponse,
 } from '@/lib/utils/error-response';
+import { rejectRecoverySession } from '@/lib/utils/recovery-guard';
 
 export const dynamic = 'force-dynamic';
 export const runtime = 'nodejs';
@@ -27,6 +42,9 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
     if (!session) {
       return createApplicationErrorResponse('Unauthorized', 'UNAUTHORIZED', 401);
     }
+
+    const recoveryBlocked = rejectRecoverySession(session);
+    if (recoveryBlocked) return recoveryBlocked;
 
     let body: unknown;
     try {
@@ -56,11 +74,82 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
 
     const data = validationResult.data;
 
-    // Map contract schema to MFADisableProof type
-    const proof =
-      data.method === 'password'
-        ? { method: 'password' as const, password: data.password }
-        : { method: 'passkey' as const, verified: true as const };
+    let proof: Parameters<typeof disableMFA>[1];
+
+    if (data.method === 'password') {
+      proof = { method: 'password' as const, password: data.password };
+    } else {
+      // Passkey proof — verify the WebAuthn assertion server-side.
+      // The client must have called /api/auth/passkey/authenticate-options first
+      // to obtain a challenge stored in a signed httpOnly cookie.
+      const challengeCookie = request.cookies.get('passkey-challenge')?.value;
+      if (!challengeCookie) {
+        return createApplicationErrorResponse(
+          'Passkey challenge expired or missing. Call /api/auth/passkey/authenticate-options first.',
+          'PASSKEY_CHALLENGE_MISSING',
+          401,
+        );
+      }
+
+      const challengePayload = verifyCookiePayload<{ challenge: string; expiresAt: number }>(
+        challengeCookie,
+        process.env.REVEALUI_SECRET ?? '',
+      );
+
+      if (!challengePayload) {
+        return createApplicationErrorResponse(
+          'Passkey challenge expired or invalid',
+          'PASSKEY_CHALLENGE_INVALID',
+          401,
+        );
+      }
+
+      const authResponse = data.authenticationResponse as unknown as AuthenticationResponseJSON;
+
+      // Look up the passkey credential
+      const db = getClient();
+      const [storedPasskey] = await db
+        .select()
+        .from(passkeys)
+        .where(eq(passkeys.credentialId, authResponse.id))
+        .limit(1);
+
+      if (!storedPasskey) {
+        return createApplicationErrorResponse('Passkey not recognized', 'PASSKEY_NOT_FOUND', 401);
+      }
+
+      // Ensure the passkey belongs to the authenticated user
+      if (storedPasskey.userId !== session.user.id) {
+        return createApplicationErrorResponse(
+          'Passkey does not belong to this account',
+          'PASSKEY_OWNER_MISMATCH',
+          403,
+        );
+      }
+
+      const credential: WebAuthnCredential = {
+        id: storedPasskey.credentialId,
+        publicKey: new Uint8Array(storedPasskey.publicKey),
+        counter: storedPasskey.counter,
+        transports: storedPasskey.transports as WebAuthnCredential['transports'],
+      };
+
+      const verification = await verifyAuthentication(
+        authResponse,
+        credential,
+        challengePayload.challenge,
+      );
+
+      if (!verification.verified) {
+        return createApplicationErrorResponse(
+          'Passkey verification failed',
+          'PASSKEY_VERIFY_FAILED',
+          401,
+        );
+      }
+
+      proof = { method: 'passkey' as const, verified: true as const };
+    }
 
     const result = await disableMFA(session.user.id, proof);
 
@@ -72,7 +161,20 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
       );
     }
 
-    return NextResponse.json({ success: true });
+    const response = NextResponse.json({ success: true });
+
+    // Clear the challenge cookie if it was used
+    if (data.method === 'passkey') {
+      response.cookies.set('passkey-challenge', '', {
+        httpOnly: true,
+        secure: process.env.NODE_ENV === 'production',
+        sameSite: 'strict',
+        path: '/api/auth/passkey',
+        maxAge: 0,
+      });
+    }
+
+    return response;
   } catch (error) {
     logger.error('Error disabling MFA', { error });
     return createErrorResponse(error, {

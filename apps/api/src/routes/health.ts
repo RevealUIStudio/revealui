@@ -1,3 +1,4 @@
+import { timingSafeEqual } from 'node:crypto';
 import {
   createDatabaseHealthCheck,
   createMemoryHealthCheck,
@@ -5,12 +6,35 @@ import {
   metrics,
   trackHTTPRequest,
 } from '@revealui/core/observability';
-import { getClient, getPoolMetrics } from '@revealui/db';
+import { getClient } from '@revealui/db';
 import { createRoute, OpenAPIHono, z } from '@revealui/openapi';
 import { sql } from 'drizzle-orm';
 import { corsConfigMissing } from '../lib/startup-state.js';
 
 const app = new OpenAPIHono();
+
+/**
+ * Verify metrics access via Bearer token or X-Metrics-Secret header.
+ * Uses METRICS_SECRET or CRON_SECRET env var. Returns 401 if missing or invalid.
+ */
+function verifyMetricsAccess(c: {
+  req: { header: (name: string) => string | undefined };
+}): boolean {
+  const secret = process.env.METRICS_SECRET ?? process.env.CRON_SECRET;
+  if (!secret) return false;
+
+  const authHeader = c.req.header('authorization');
+  const metricsHeader = c.req.header('x-metrics-secret');
+  const token = authHeader?.startsWith('Bearer ') ? authHeader.slice(7) : metricsHeader;
+
+  if (!token) return false;
+
+  const tokenBuf = Buffer.from(token);
+  const secretBuf = Buffer.from(secret);
+  if (tokenBuf.length !== secretBuf.length) return false;
+
+  return timingSafeEqual(tokenBuf, secretBuf);
+}
 
 // ---------------------------------------------------------------------------
 // Register health checks with the core HealthCheckSystem
@@ -113,7 +137,6 @@ const readyRoute = createRoute({
             timestamp: z.string(),
             uptime: z.number(),
             checks: z.unknown(),
-            pools: z.unknown().optional(),
           }),
         },
       },
@@ -127,7 +150,6 @@ const readyRoute = createRoute({
             timestamp: z.string(),
             uptime: z.number(),
             checks: z.unknown(),
-            pools: z.unknown().optional(),
           }),
         },
       },
@@ -140,21 +162,19 @@ app.openapi(readyRoute, async (c) => {
   const startTime = Date.now();
   const health = await healthCheck.checkHealth();
 
-  // Supplement with pool metrics from @revealui/db
-  const pools = getPoolMetrics();
-
   const ready = health.status !== 'unhealthy' && !corsConfigMissing;
 
   const duration = Date.now() - startTime;
   trackHTTPRequest('GET', '/health/ready', ready ? 200 : 503, duration);
 
+  // Pool metrics are internal — only expose to authenticated metrics endpoints.
+  // The readiness probe returns status + checks only.
   return c.json(
     {
       status: health.status,
       timestamp: health.timestamp,
       uptime: health.uptime,
       checks: health.checks,
-      ...(pools.length > 0 && { pools }),
       ...(corsConfigMissing && { corsConfigMissing: true }),
     },
     ready ? 200 : 503,
@@ -167,15 +187,21 @@ const metricsRoute = createRoute({
   tags: ['health'],
   summary: 'Prometheus metrics',
   description:
-    'Exposes all application metrics collected by the core MetricsCollector in Prometheus text format.',
+    'Exposes all application metrics collected by the core MetricsCollector in Prometheus text format. Requires METRICS_SECRET or CRON_SECRET authentication.',
   responses: {
     200: {
       description: 'Prometheus-compatible metrics in text/plain format',
+    },
+    401: {
+      description: 'Unauthorized — missing or invalid metrics secret',
     },
   },
 });
 
 app.openapi(metricsRoute, (c) => {
+  if (!verifyMetricsAccess(c)) {
+    return c.json({ error: 'Unauthorized' }, 401);
+  }
   return c.text(metrics.exportPrometheus(), 200, {
     'Content-Type': 'text/plain; version=0.0.4; charset=utf-8',
     'Cache-Control': 'no-cache, no-store, must-revalidate',
@@ -187,8 +213,12 @@ const metricsJsonRoute = createRoute({
   path: '/metrics/json',
   tags: ['health'],
   summary: 'Metrics (JSON)',
-  description: 'Metrics in JSON format — useful for internal dashboards and debugging.',
+  description:
+    'Metrics in JSON format — useful for internal dashboards and debugging. Requires METRICS_SECRET or CRON_SECRET authentication.',
   responses: {
+    401: {
+      description: 'Unauthorized — missing or invalid metrics secret',
+    },
     200: {
       content: {
         'application/json': {
@@ -201,6 +231,9 @@ const metricsJsonRoute = createRoute({
 });
 
 app.openapi(metricsJsonRoute, (c) => {
+  if (!verifyMetricsAccess(c)) {
+    return c.json({ error: 'Unauthorized' }, 401);
+  }
   return c.json(metrics.exportJSON());
 });
 

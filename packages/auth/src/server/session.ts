@@ -98,6 +98,23 @@ export interface SessionData {
 }
 
 /**
+ * Check if a session is a recovery session (created via magic link recovery).
+ *
+ * Recovery sessions are restricted — they should only be used for:
+ * - Changing the password (`/api/auth/change-password`)
+ * - Signing out (`/api/auth/sign-out`)
+ * - Viewing current session (`/api/auth/me`, `/api/auth/session`)
+ *
+ * All other operations (MFA management, passkey management, OAuth linking,
+ * admin actions) should reject recovery sessions.
+ */
+export function isRecoverySession(sessionData: SessionData | null): boolean {
+  if (!sessionData) return false;
+  const metadata = sessionData.session.metadata as Record<string, unknown> | null;
+  return metadata?.recovery === true;
+}
+
+/**
  * Get session from request headers (cookie)
  *
  * @param headers - Request headers containing cookies

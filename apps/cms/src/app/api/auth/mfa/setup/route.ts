@@ -11,6 +11,7 @@ import { getSession, initiateMFASetup } from '@revealui/auth/server';
 import { logger } from '@revealui/core/utils/logger';
 import { type NextRequest, NextResponse } from 'next/server';
 import { createApplicationErrorResponse, createErrorResponse } from '@/lib/utils/error-response';
+import { rejectRecoverySession } from '@/lib/utils/recovery-guard';
 
 export const dynamic = 'force-dynamic';
 export const runtime = 'nodejs';
@@ -22,6 +23,9 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
     if (!session) {
       return createApplicationErrorResponse('Unauthorized', 'UNAUTHORIZED', 401);
     }
+
+    const recoveryBlocked = rejectRecoverySession(session);
+    if (recoveryBlocked) return recoveryBlocked;
 
     if (!session.user.email) {
       return createApplicationErrorResponse(

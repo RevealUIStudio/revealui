@@ -16,6 +16,7 @@ import {
   createErrorResponse,
   createValidationErrorResponse,
 } from '@/lib/utils/error-response';
+import { rejectRecoverySession } from '@/lib/utils/recovery-guard';
 
 export const dynamic = 'force-dynamic';
 export const runtime = 'nodejs';
@@ -27,6 +28,9 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
     if (!session) {
       return createApplicationErrorResponse('Unauthorized', 'UNAUTHORIZED', 401);
     }
+
+    const recoveryBlocked = rejectRecoverySession(session);
+    if (recoveryBlocked) return recoveryBlocked;
 
     let body: unknown;
     try {

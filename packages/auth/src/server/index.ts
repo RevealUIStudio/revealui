@@ -100,6 +100,7 @@ export {
   deleteAllUserSessions,
   deleteSession,
   getSession,
+  isRecoverySession,
   resetSessionBindingConfig,
   rotateSession,
   validateSessionBinding,
