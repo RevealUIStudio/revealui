@@ -138,6 +138,51 @@ describe('agent-collab route', () => {
       expect(json.success).toBe(false);
       expect(json.error).toBeDefined();
     });
+
+    it('should return 400 for missing agentModel', async () => {
+      const app = createApp();
+
+      const res = await app.request(
+        '/api/collab/agent/connect',
+        jsonRequest('/api/collab/agent/connect', {
+          documentId: 'doc-123',
+          agentName: 'Claude',
+        }),
+      );
+
+      expect(res.status).toBe(400);
+    });
+
+    it('should return 400 for invalid color format', async () => {
+      const app = createApp();
+
+      const res = await app.request(
+        '/api/collab/agent/connect',
+        jsonRequest('/api/collab/agent/connect', {
+          documentId: 'doc-123',
+          agentName: 'Claude',
+          agentModel: 'claude-opus-4-6',
+          color: 'red', // not #RRGGBB
+        }),
+      );
+
+      expect(res.status).toBe(400);
+    });
+
+    it('should return 400 when agentName exceeds 100 characters', async () => {
+      const app = createApp();
+
+      const res = await app.request(
+        '/api/collab/agent/connect',
+        jsonRequest('/api/collab/agent/connect', {
+          documentId: 'doc-123',
+          agentName: 'A'.repeat(101),
+          agentModel: 'claude-opus-4-6',
+        }),
+      );
+
+      expect(res.status).toBe(400);
+    });
   });
 
   describe('POST /api/collab/agent/edit', () => {
@@ -257,6 +302,44 @@ describe('agent-collab route', () => {
       expect(json.success).toBe(false);
       expect(json.error).toBeDefined();
     });
+
+    it('should apply delete edit and return success', async () => {
+      const mockDoc = new Y.Doc();
+      mockDoc.getText('content').insert(0, 'Hello World');
+
+      const mockManager = createMockRoomManager({
+        applyServerEdit: vi.fn().mockResolvedValue(undefined),
+        getOrLoadDocument: vi.fn().mockResolvedValue(mockDoc),
+      });
+      mockedGetSharedRoomManager.mockReturnValue(mockManager);
+
+      const app = createApp();
+
+      const res = await app.request(
+        '/api/collab/agent/edit',
+        jsonRequest('/api/collab/agent/edit', {
+          documentId: 'doc-123',
+          edit: {
+            type: 'delete',
+            index: 5,
+            length: 6,
+          },
+        }),
+      );
+
+      expect(res.status).toBe(200);
+
+      const json = (await res.json()) as Record<string, unknown>;
+      expect(json.success).toBe(true);
+      expect(json.documentId).toBe('doc-123');
+      expect(mockManager.applyServerEdit).toHaveBeenCalledWith('doc-123', {
+        type: 'delete',
+        index: 5,
+        length: 6,
+      });
+
+      mockDoc.destroy();
+    });
   });
 
   describe('GET /api/collab/agent/snapshot/:documentId', () => {
@@ -309,6 +392,48 @@ describe('agent-collab route', () => {
       expect(res.status).toBe(404);
       const text = await res.text();
       expect(text).toContain('Document not found');
+    });
+
+    it('should return 413 when snapshot exceeds 10 MB', async () => {
+      // Allocate a minimal array but override byteLength to exceed the 10 MB cap
+      const oversizedSnapshot = new Uint8Array(1);
+      Object.defineProperty(oversizedSnapshot, 'byteLength', {
+        value: 10 * 1024 * 1024 + 1,
+        writable: false,
+      });
+
+      const mockManager = createMockRoomManager({
+        getDocumentSnapshot: vi.fn().mockResolvedValue(oversizedSnapshot),
+      });
+      mockedGetSharedRoomManager.mockReturnValue(mockManager);
+
+      const app = createApp();
+
+      const res = await app.request('/api/collab/agent/snapshot/large-doc');
+
+      expect(res.status).toBe(413);
+      const text = await res.text();
+      expect(text).toContain('too large');
+    });
+
+    it('should return empty connectedClients when no clients are connected', async () => {
+      const snapshotDoc = new Y.Doc();
+      const snapshot = Y.encodeStateAsUpdate(snapshotDoc);
+      snapshotDoc.destroy();
+
+      const mockManager = createMockRoomManager({
+        getDocumentSnapshot: vi.fn().mockResolvedValue(snapshot),
+        getConnectedClients: vi.fn().mockReturnValue([]),
+      });
+      mockedGetSharedRoomManager.mockReturnValue(mockManager);
+
+      const app = createApp();
+
+      const res = await app.request('/api/collab/agent/snapshot/empty-doc');
+
+      expect(res.status).toBe(200);
+      const json = (await res.json()) as Record<string, unknown>;
+      expect(json.connectedClients).toEqual([]);
     });
   });
 });
