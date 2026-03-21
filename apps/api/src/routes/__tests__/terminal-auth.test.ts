@@ -367,6 +367,165 @@ describe('terminal-auth routes', () => {
     });
   });
 
+  describe('POST /terminal-auth/verify — happy path', () => {
+    it('links fingerprint to user when code is correct', async () => {
+      const mockUpdateSet = vi.fn().mockReturnValue({
+        where: vi.fn().mockResolvedValue(undefined),
+      });
+      // First select (link: fingerprint check) → not linked.
+      // Second select (verify: find user by email) → user found.
+      const mockLimit = vi
+        .fn()
+        .mockResolvedValueOnce([])
+        .mockResolvedValueOnce([{ id: 'user-1', role: 'user' }]);
+      const mockDb = {
+        select: vi.fn().mockReturnValue({
+          from: vi.fn().mockReturnValue({
+            where: vi.fn().mockReturnValue({
+              limit: mockLimit,
+            }),
+          }),
+        }),
+        update: vi.fn().mockReturnValue({ set: mockUpdateSet }),
+      };
+
+      vi.doMock('@revealui/db/schema/users', () => ({
+        users: {
+          id: 'id',
+          email: 'email',
+          role: 'role',
+          sshKeyFingerprint: 'sshKeyFingerprint',
+          updatedAt: 'updatedAt',
+        },
+      }));
+
+      // Step 1: link (stores OTP)
+      const app = createApp(mockDb);
+      await jsonPost(app, '/terminal-auth/link', {
+        fingerprint: 'SHA256:happy-path',
+        email: 'happy@example.com',
+      });
+
+      // Extract OTP from email mock
+      const emailCall = mockSendEmail.mock.calls[0]![0];
+      const codeMatch = emailCall.text.match(/code: (\d{6})/);
+      const code = codeMatch?.[1];
+      expect(code).toBeDefined();
+
+      // Step 2: verify with correct code
+      const res = await jsonPost(app, '/terminal-auth/verify', {
+        email: 'happy@example.com',
+        code,
+      });
+
+      expect(res.status).toBe(200);
+      const body = await parseBody(res);
+      expect(body.success).toBe(true);
+      expect(body.userId).toBe('user-1');
+      expect(body.message).toContain('linked successfully');
+    });
+
+    it('consumes OTP after successful verify (single-use)', async () => {
+      // First select (link: fingerprint check) → not linked.
+      // Second select (verify: find user by email) → user found.
+      const mockLimit = vi
+        .fn()
+        .mockResolvedValueOnce([])
+        .mockResolvedValueOnce([{ id: 'user-1', role: 'user' }]);
+      const mockDb = {
+        select: vi.fn().mockReturnValue({
+          from: vi.fn().mockReturnValue({
+            where: vi.fn().mockReturnValue({
+              limit: mockLimit,
+            }),
+          }),
+        }),
+        update: vi.fn().mockReturnValue({
+          set: vi.fn().mockReturnValue({
+            where: vi.fn().mockResolvedValue(undefined),
+          }),
+        }),
+      };
+
+      vi.doMock('@revealui/db/schema/users', () => ({
+        users: {
+          id: 'id',
+          email: 'email',
+          role: 'role',
+          sshKeyFingerprint: 'sshKeyFingerprint',
+          updatedAt: 'updatedAt',
+        },
+      }));
+
+      const app = createApp(mockDb);
+
+      // Link
+      await jsonPost(app, '/terminal-auth/link', {
+        fingerprint: 'SHA256:single-use',
+        email: 'single@example.com',
+      });
+
+      const emailCall = mockSendEmail.mock.calls[0]![0];
+      const code = emailCall.text.match(/code: (\d{6})/)?.[1];
+
+      // First verify succeeds
+      const res1 = await jsonPost(app, '/terminal-auth/verify', {
+        email: 'single@example.com',
+        code,
+      });
+      expect(res1.status).toBe(200);
+
+      // Second verify with same code fails (OTP consumed)
+      const res2 = await jsonPost(app, '/terminal-auth/verify', {
+        email: 'single@example.com',
+        code,
+      });
+      expect(res2.status).toBe(400);
+      const body = await parseBody(res2);
+      expect(body.error).toContain('No pending verification');
+    });
+
+    it('returns 404 when email has no account', async () => {
+      const mockDb = {
+        select: vi.fn().mockReturnValue({
+          from: vi.fn().mockReturnValue({
+            where: vi.fn().mockReturnValue({
+              limit: vi.fn().mockResolvedValue([]),
+            }),
+          }),
+        }),
+      };
+
+      vi.doMock('@revealui/db/schema/users', () => ({
+        users: {
+          id: 'id',
+          email: 'email',
+          role: 'role',
+          sshKeyFingerprint: 'sshKeyFingerprint',
+        },
+      }));
+
+      const app = createApp(mockDb);
+
+      await jsonPost(app, '/terminal-auth/link', {
+        fingerprint: 'SHA256:no-account',
+        email: 'ghost@example.com',
+      });
+
+      const emailCall = mockSendEmail.mock.calls[0]![0];
+      const code = emailCall.text.match(/code: (\d{6})/)?.[1];
+
+      const res = await jsonPost(app, '/terminal-auth/verify', {
+        email: 'ghost@example.com',
+        code,
+      });
+
+      expect(res.status).toBe(404);
+      const body = await parseBody(res);
+      expect(body.error).toContain('No account found');
+    });
+  });
+
   describe('configureTerminalAuth', () => {
     it('generates OTP with configured length', async () => {
       configureTerminalAuth({ otpLength: 8 });

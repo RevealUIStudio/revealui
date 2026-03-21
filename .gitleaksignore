@@ -26,3 +26,12 @@ packages/test/src/integration/api/api-error-handler.integration.test.ts:stripe-a
 packages/config/src/__tests__/schema.test.ts:generic-api-key:231
 packages/config/src/__tests__/schema.test.ts:private-key:207
 packages/test/src/units/auth/jwt-validation.test.ts:jwt:49
+apps/api/src/routes/__tests__/api-keys.test.ts:generic-api-key:145
+apps/api/src/routes/__tests__/api-keys.test.ts:generic-api-key:156
+apps/api/src/routes/__tests__/api-keys.test.ts:generic-api-key:402
+apps/api/src/routes/__tests__/api-keys.test.ts:generic-api-key:414
+apps/api/src/routes/__tests__/api-keys.test.ts:generic-api-key:427
+apps/api/src/routes/__tests__/api-keys.test.ts:generic-api-key:444
+apps/api/src/routes/__tests__/api-keys.test.ts:generic-api-key:467
+apps/api/src/routes/__tests__/api-keys.test.ts:generic-api-key:482
+apps/api/src/routes/__tests__/api-keys.test.ts:generic-api-key:522

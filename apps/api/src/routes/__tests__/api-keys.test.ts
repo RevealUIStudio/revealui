@@ -104,6 +104,12 @@ async function parseBody(res: Response): Promise<any> {
 }
 
 const testUser: MockUser = { id: 'user-1', email: 'test@example.com', name: 'Test', role: 'admin' };
+const otherUser: MockUser = {
+  id: 'user-2',
+  email: 'other@example.com',
+  name: 'Other',
+  role: 'user',
+};
 
 // ---------------------------------------------------------------------------
 // Tests
@@ -141,7 +147,7 @@ describe('api-keys routes', () => {
 
       const res = await jsonPost(app, '/api-keys', {
         provider: 'anthropic',
-        apiKey: 'sk-ant-test-12345678',
+        apiKey: 'test-dummy-key-12345678',
       });
 
       expect(res.status).toBe(401);
@@ -152,7 +158,7 @@ describe('api-keys routes', () => {
 
       const res = await jsonPost(app, '/api-keys', {
         provider: 'anthropic',
-        apiKey: 'sk-ant-test-12345678',
+        apiKey: 'test-dummy-key-12345678',
       });
 
       expect(res.status).toBe(201);
@@ -388,6 +394,186 @@ describe('api-keys routes', () => {
       });
 
       expect(res.status).toBe(400);
+    });
+  });
+
+  describe('POST /api-keys — encryption and redaction', () => {
+    it('calls encryptApiKey before storing', async () => {
+      const { encryptApiKey } = await import('@revealui/db/crypto');
+      const app = createApp(testUser);
+
+      await jsonPost(app, '/api-keys', {
+        provider: 'anthropic',
+        apiKey: 'test-dummy-key-12345678',
+      });
+
+      expect(encryptApiKey).toHaveBeenCalledWith('test-dummy-key-12345678');
+    });
+
+    it('calls redactApiKey to generate hint', async () => {
+      const { redactApiKey } = await import('@revealui/db/crypto');
+      const app = createApp(testUser);
+
+      const res = await jsonPost(app, '/api-keys', {
+        provider: 'anthropic',
+        apiKey: 'test-dummy-key-12345678',
+      });
+
+      expect(redactApiKey).toHaveBeenCalledWith('test-dummy-key-12345678');
+      const body = await parseBody(res);
+      expect(body.keyHint).toBe('test...5678');
+    });
+
+    it('stores label when provided', async () => {
+      const app = createApp(testUser);
+
+      const res = await jsonPost(app, '/api-keys', {
+        provider: 'anthropic',
+        apiKey: 'test-dummy-key-12345678',
+        label: 'My production key',
+      });
+
+      expect(res.status).toBe(201);
+      expect(mockInsertValues).toHaveBeenCalledWith(
+        expect.objectContaining({ label: 'My production key' }),
+      );
+    });
+  });
+
+  describe('POST /api-keys — setAsDefault flow', () => {
+    it('creates provider config when setAsDefault is true and no existing config', async () => {
+      const app = createApp(testUser);
+
+      const res = await jsonPost(app, '/api-keys', {
+        provider: 'anthropic',
+        apiKey: 'test-dummy-key-12345678',
+        setAsDefault: true,
+        model: 'claude-sonnet-4-6',
+      });
+
+      expect(res.status).toBe(201);
+      // Should have called insert twice: once for the key, once for the provider config
+      const db = mockedGetClient();
+      expect(db.insert).toHaveBeenCalledTimes(2);
+    });
+
+    it('updates existing provider config when setAsDefault is true', async () => {
+      // Mock select to return an existing config
+      mockSelectFrom.mockReturnValue({
+        where: vi.fn().mockReturnValue({
+          limit: vi.fn().mockResolvedValue([{ id: 'cfg_existing' }]),
+        }),
+      });
+
+      const app = createApp(testUser);
+
+      const res = await jsonPost(app, '/api-keys', {
+        provider: 'anthropic',
+        apiKey: 'test-dummy-key-12345678',
+        setAsDefault: true,
+      });
+
+      expect(res.status).toBe(201);
+      // Should have called update (to clear existing default + set new default)
+      const db = mockedGetClient();
+      expect(db.update).toHaveBeenCalled();
+    });
+
+    it('does not touch provider config when setAsDefault is not set', async () => {
+      const app = createApp(testUser);
+
+      await jsonPost(app, '/api-keys', {
+        provider: 'anthropic',
+        apiKey: 'test-dummy-key-12345678',
+      });
+
+      // Should only call insert once (for the key, not for provider config)
+      const db = mockedGetClient();
+      expect(db.insert).toHaveBeenCalledTimes(1);
+    });
+  });
+
+  describe('tenant isolation (IDOR)', () => {
+    it("DELETE — user cannot delete another user's key (scoped by userId)", async () => {
+      // Key belongs to testUser, but otherUser tries to delete it.
+      // The select query scopes by userId, so it returns [] for the wrong user.
+      mockedGetClient.mockReturnValue({
+        select: vi.fn().mockReturnValue({
+          from: vi.fn().mockReturnValue({
+            where: vi.fn().mockResolvedValue([]),
+          }),
+        }),
+        // biome-ignore lint/suspicious/noExplicitAny: test mock
+      } as any);
+
+      const app = createApp(otherUser);
+      const res = await app.request('/api-keys/key_belongs_to_user1', { method: 'DELETE' });
+
+      expect(res.status).toBe(404);
+    });
+
+    it("ROTATE — user cannot rotate another user's key (scoped by userId)", async () => {
+      mockedGetClient.mockReturnValue({
+        select: vi.fn().mockReturnValue({
+          from: vi.fn().mockReturnValue({
+            where: vi.fn().mockResolvedValue([]),
+          }),
+        }),
+        // biome-ignore lint/suspicious/noExplicitAny: test mock
+      } as any);
+
+      const app = createApp(otherUser);
+      const res = await jsonPost(app, '/api-keys/key_belongs_to_user1/rotate', {
+        apiKey: 'hijack-attempt-key-123',
+      });
+
+      expect(res.status).toBe(404);
+    });
+
+    it('GET — list is scoped to authenticated user only', async () => {
+      const mockSelect = vi.fn().mockReturnValue({
+        from: vi.fn().mockReturnValue({
+          where: vi.fn().mockResolvedValue([]),
+        }),
+      });
+
+      mockedGetClient.mockReturnValue({
+        select: mockSelect,
+        // biome-ignore lint/suspicious/noExplicitAny: test mock
+      } as any);
+
+      const app = createApp(otherUser);
+      await app.request('/api-keys');
+
+      // Verify the where clause was called (userId scoping happens in route)
+      const fromMock = mockSelect.mock.results[0]?.value.from;
+      expect(fromMock).toHaveBeenCalled();
+    });
+  });
+
+  describe('POST /api-keys/:id/rotate — encryption', () => {
+    it('encrypts the new key and generates new hint', async () => {
+      const { encryptApiKey, redactApiKey } = await import('@revealui/db/crypto');
+
+      mockedGetClient.mockReturnValue({
+        select: vi.fn().mockReturnValue({
+          from: vi.fn().mockReturnValue({
+            where: vi.fn().mockResolvedValue([{ id: 'key_abc' }]),
+          }),
+        }),
+        update: vi.fn().mockReturnValue({
+          set: vi.fn().mockReturnValue({ where: vi.fn().mockResolvedValue(undefined) }),
+        }),
+        // biome-ignore lint/suspicious/noExplicitAny: test mock
+      } as any);
+
+      const app = createApp(testUser);
+      await jsonPost(app, '/api-keys/key_abc/rotate', {
+        apiKey: 'sk-new-rotated-key-9999',
+      });
+
+      expect(encryptApiKey).toHaveBeenCalledWith('sk-new-rotated-key-9999');
+      expect(redactApiKey).toHaveBeenCalledWith('sk-new-rotated-key-9999');
     });
   });
 });

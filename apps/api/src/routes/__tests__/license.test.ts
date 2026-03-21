@@ -144,6 +144,65 @@ describe('POST /verify', () => {
     const body = await parseBody(res);
     expect(body.expiresAt).toBeNull();
   });
+
+  it('returns expiresAt as ISO string when exp is present', async () => {
+    process.env.REVEALUI_LICENSE_PUBLIC_KEY = 'pub-key';
+    const futureExp = Math.floor(Date.now() / 1000) + 86400;
+    mockedValidate.mockResolvedValue({
+      tier: 'pro',
+      customerId: 'cus_123',
+      exp: futureExp,
+    } as never);
+
+    const app = createApp();
+    const res = await app.request('/verify', post('/verify', { licenseKey: 'tok' }));
+    const body = await parseBody(res);
+    expect(typeof body.expiresAt).toBe('string');
+    expect(() => new Date(body.expiresAt)).not.toThrow();
+    expect(new Date(body.expiresAt).getFullYear()).toBeGreaterThan(2020);
+  });
+
+  it('returns reason:misconfigured when public key is not configured', async () => {
+    delete process.env.REVEALUI_LICENSE_PUBLIC_KEY;
+
+    const app = createApp();
+    const res = await app.request('/verify', post('/verify', { licenseKey: 'any.key' }));
+    const body = await parseBody(res);
+    expect(body.valid).toBe(false);
+    expect(body.reason).toBe('misconfigured');
+
+    process.env.REVEALUI_LICENSE_PUBLIC_KEY = 'pub-key';
+  });
+
+  it('returns default maxSites:5 and maxUsers:25 for pro tier', async () => {
+    process.env.REVEALUI_LICENSE_PUBLIC_KEY = 'pub-key';
+    mockedValidate.mockResolvedValue({
+      tier: 'pro',
+      customerId: 'cus_123',
+      exp: Math.floor(Date.now() / 1000) + 86400,
+    } as never);
+
+    const app = createApp();
+    const res = await app.request('/verify', post('/verify', { licenseKey: 'tok' }));
+    const body = await parseBody(res);
+    expect(body.maxSites).toBe(5);
+    expect(body.maxUsers).toBe(25);
+  });
+
+  it('returns maxSites:null and maxUsers:null for enterprise tier', async () => {
+    process.env.REVEALUI_LICENSE_PUBLIC_KEY = 'pub-key';
+    mockedValidate.mockResolvedValue({
+      tier: 'enterprise',
+      customerId: 'cus_ent',
+      exp: Math.floor(Date.now() / 1000) + 86400,
+    } as never);
+
+    const app = createApp();
+    const res = await app.request('/verify', post('/verify', { licenseKey: 'tok' }));
+    const body = await parseBody(res);
+    expect(body.maxSites).toBeNull();
+    expect(body.maxUsers).toBeNull();
+  });
 });
 
 describe('POST /generate', () => {
@@ -194,6 +253,41 @@ describe('POST /generate', () => {
     expect(res.status).toBe(500);
 
     process.env.REVEALUI_LICENSE_PRIVATE_KEY = 'priv-key';
+  });
+
+  it('returns 401 when admin key has different length (timing-safe branch)', async () => {
+    process.env.REVEALUI_ADMIN_API_KEY = ADMIN_KEY;
+    const app = createApp();
+    const res = await app.request(
+      '/generate',
+      post('/generate', { tier: 'pro', customerId: 'c' }, { 'X-Admin-API-Key': 'short' }),
+    );
+    expect(res.status).toBe(401);
+  });
+
+  it('generates a max tier license', async () => {
+    process.env.REVEALUI_ADMIN_API_KEY = ADMIN_KEY;
+    process.env.REVEALUI_LICENSE_PRIVATE_KEY = 'priv-key';
+    mockedGenerate.mockResolvedValue('max.license.token');
+
+    const app = createApp();
+    const res = await app.request(
+      '/generate',
+      post('/generate', { tier: 'max', customerId: 'cus_max' }, { 'X-Admin-API-Key': ADMIN_KEY }),
+    );
+    expect(res.status).toBe(201);
+    const body = await parseBody(res);
+    expect(body.tier).toBe('max');
+  });
+
+  it('returns 400 when customerId is missing', async () => {
+    process.env.REVEALUI_ADMIN_API_KEY = ADMIN_KEY;
+    const app = createApp();
+    const res = await app.request(
+      '/generate',
+      post('/generate', { tier: 'pro' }, { 'X-Admin-API-Key': ADMIN_KEY }),
+    );
+    expect(res.status).toBe(400);
   });
 });
 
@@ -315,5 +409,15 @@ describe('GET /features', () => {
     expect(typeof body.free).toBe('object');
     expect(typeof body.pro).toBe('object');
     expect(typeof body.enterprise).toBe('object');
+  });
+
+  it('free tier has ai:false, pro tier has ai:true, enterprise has analytics:true', async () => {
+    const app = createApp();
+    const res = await app.request('/features');
+    const body = await parseBody(res);
+    // Validated against the getFeaturesForTier mock: ai=tier!=='free', analytics=tier==='enterprise'
+    expect(body.free.ai).toBe(false);
+    expect(body.pro.ai).toBe(true);
+    expect(body.enterprise.analytics).toBe(true);
   });
 });
