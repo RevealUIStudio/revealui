@@ -2,7 +2,7 @@
  * Auto-generated Contract wrappers
  *
  * DO NOT EDIT - Regenerate with: pnpm generate:all
- * Generated: 2026-03-21T02:27:01.221Z
+ * Generated: 2026-03-21T21:32:26.555Z
  *
  * This file provides Contract wrappers for all database tables.
  * Contracts combine TypeScript types, Zod schemas, and runtime validation
@@ -377,6 +377,32 @@ export const BoardsInsertContract = createContract({
   version: '1',
   description: 'Database insert contract for boards table',
   schema: Schemas.BoardsInsertSchema,
+})
+
+// =============================================================================
+// CircuitBreakerState Contracts
+// =============================================================================
+
+/**
+ * Contract for circuitBreakerState row (Select)
+ * Database table: circuit_breaker_state
+ */
+export const CircuitBreakerStateRowContract = createContract({
+  name: 'CircuitBreakerStateRow',
+  version: '1',
+  description: 'Database row contract for circuit_breaker_state table',
+  schema: Schemas.CircuitBreakerStateSelectSchema,
+})
+
+/**
+ * Contract for circuitBreakerState insert
+ * Database table: circuit_breaker_state
+ */
+export const CircuitBreakerStateInsertContract = createContract({
+  name: 'CircuitBreakerStateInsert',
+  version: '1',
+  description: 'Database insert contract for circuit_breaker_state table',
+  schema: Schemas.CircuitBreakerStateInsertSchema,
 })
 
 // =============================================================================

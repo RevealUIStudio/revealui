@@ -2,7 +2,7 @@
  * Auto-generated Zod schemas from Drizzle
  *
  * DO NOT EDIT - Regenerate with: pnpm generate:all
- * Generated: 2026-03-21T02:26:59.690Z
+ * Generated: 2026-03-21T21:32:25.199Z
  *
  * This file provides Zod schemas for all database tables, generated
  * directly from Drizzle table definitions using drizzle-zod.
@@ -377,6 +377,32 @@ export type BoardsRow = z.infer<typeof BoardsSelectSchema>
  * TypeScript type for boards insert
  */
 export type BoardsInsert = z.infer<typeof BoardsInsertSchema>
+
+// =============================================================================
+// CircuitBreakerState Schemas
+// =============================================================================
+
+/**
+ * Zod schema for selecting circuitBreakerState rows from database
+ * Generated from Drizzle table definition: tables.circuitBreakerState
+ */
+export const CircuitBreakerStateSelectSchema = createSelectSchema(tables.circuitBreakerState)
+
+/**
+ * Zod schema for inserting circuitBreakerState rows to database
+ * Generated from Drizzle table definition: tables.circuitBreakerState
+ */
+export const CircuitBreakerStateInsertSchema = createInsertSchema(tables.circuitBreakerState)
+
+/**
+ * TypeScript type for circuitBreakerState row (Select)
+ */
+export type CircuitBreakerStateRow = z.infer<typeof CircuitBreakerStateSelectSchema>
+
+/**
+ * TypeScript type for circuitBreakerState insert
+ */
+export type CircuitBreakerStateInsert = z.infer<typeof CircuitBreakerStateInsertSchema>
 
 // =============================================================================
 // CodeProvenance Schemas

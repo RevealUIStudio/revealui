@@ -440,3 +440,25 @@ CREATE TRIGGER audit_log_immutable
   BEFORE UPDATE OR DELETE ON "audit_log"
   FOR EACH ROW EXECUTE FUNCTION prevent_audit_log_modification();
 COMMENT ON TABLE "marketplace_transactions" IS 'Per-call payment ledger for marketplace server invocations';
+
+-- =============================================================================
+-- Circuit Breaker State: Shared cross-instance state
+-- =============================================================================
+-- Stores circuit breaker state so all API instances share the same view.
+-- Write path: only on state transitions (closed→open, open→half-open, etc.)
+-- Read path: local 5-second cache; DB only on cache miss.
+
+CREATE TABLE IF NOT EXISTS "circuit_breaker_state" (
+  "service_name" text PRIMARY KEY NOT NULL,
+  "state" text NOT NULL DEFAULT 'closed',
+  "failure_count" integer NOT NULL DEFAULT 0,
+  "success_count" integer NOT NULL DEFAULT 0,
+  "last_failure_at" timestamp with time zone,
+  "state_changed_at" timestamp with time zone DEFAULT now() NOT NULL,
+  "updated_at" timestamp with time zone DEFAULT now() NOT NULL
+);
+
+CREATE INDEX IF NOT EXISTS "circuit_breaker_state_at_idx"
+  ON "circuit_breaker_state"("state_changed_at");
+
+COMMENT ON TABLE "circuit_breaker_state" IS 'Shared circuit breaker state across API instances — prevents cascading failures to external services like Stripe';

@@ -38,6 +38,7 @@ export {
 export * from './api-keys.js';
 export * from './app-logs.js';
 export * from './audit-log.js';
+export * from './circuit-breaker.js';
 // Export all REST schemas
 export * from './cms.js';
 export * from './code-provenance.js';
