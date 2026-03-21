@@ -18,7 +18,7 @@ CREATE TABLE IF NOT EXISTS agent_memories (
   content TEXT NOT NULL,
   type TEXT NOT NULL,
   source JSONB NOT NULL,
-  embedding vector(1536),
+  embedding vector(768),
   embedding_metadata JSONB,
   metadata JSONB DEFAULT '{}',
   access_count INTEGER DEFAULT 0,
@@ -51,5 +51,5 @@ CREATE INDEX IF NOT EXISTS agent_memories_site_agent_idx ON agent_memories(site_
 
 -- Add comments for documentation
 COMMENT ON TABLE agent_memories IS 'Long-term agent memories with vector embeddings for semantic search. Stored in Supabase for optimized vector operations.';
-COMMENT ON COLUMN agent_memories.embedding IS 'Vector embedding (1536 dimensions) for semantic similarity search using pgvector';
+COMMENT ON COLUMN agent_memories.embedding IS 'Vector embedding (768 dimensions, nomic-embed-text) for semantic similarity search using pgvector';
 COMMENT ON INDEX agent_memories_embedding_idx IS 'HNSW index for fast vector similarity search using cosine distance';

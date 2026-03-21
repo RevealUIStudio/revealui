@@ -29,7 +29,7 @@ CREATE TABLE IF NOT EXISTS "users" (
 	"name" text NOT NULL,
 	"email" text,
 	"avatar_url" text,
-	"password_hash" text,
+	"password" text,
 	"role" text DEFAULT 'viewer' NOT NULL,
 	"status" text DEFAULT 'active' NOT NULL,
 	"agent_model" text,
@@ -132,7 +132,7 @@ CREATE TABLE IF NOT EXISTS "agent_contexts" (
 	"agent_id" text NOT NULL,
 	"context" jsonb DEFAULT '{}'::jsonb,
 	"priority" real DEFAULT 0.5,
-	"embedding" vector(1536),
+	"embedding" vector(768),
 	"created_at" timestamp with time zone DEFAULT now() NOT NULL,
 	"updated_at" timestamp with time zone DEFAULT now() NOT NULL
 );
