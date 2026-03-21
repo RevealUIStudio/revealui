@@ -118,7 +118,8 @@ describe('provisionGitHubAccess', () => {
 
     expect(logger.error).toHaveBeenCalledWith(
       'GitHub team provisioning failed after all retries',
-      expect.objectContaining({ githubUsername: 'dave', error: 'HTTP 503: Service Unavailable' }),
+      expect.objectContaining({ message: 'HTTP 503: Service Unavailable' }),
+      expect.objectContaining({ githubUsername: 'dave' }),
     );
     expect(insert).toHaveBeenCalledWith('appLogs_sentinel');
     expect(values).toHaveBeenCalledWith(
