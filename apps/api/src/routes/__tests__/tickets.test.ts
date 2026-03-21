@@ -240,6 +240,64 @@ describe('Boards', () => {
     const body = await parseBody(res);
     expect(body.success).toBe(true);
   });
+
+  it('GET /boards/:id — 403 for non-owner non-admin', async () => {
+    mb.getBoardById.mockResolvedValue(makeBoard({ ownerId: 'owner-1' }) as never);
+    const app = createApp({ id: 'not-owner', role: 'member' });
+    const res = await app.request('/boards/board-1');
+    expect(res.status).toBe(403);
+  });
+
+  it('GET /boards/:id — admin bypasses ownership check', async () => {
+    mb.getBoardById.mockResolvedValue(makeBoard({ ownerId: 'owner-1' }) as never);
+    const app = createApp({ id: 'admin-1', role: 'admin' });
+    const res = await app.request('/boards/board-1');
+    expect(res.status).toBe(200);
+  });
+
+  it('PATCH /boards/:id — 403 for non-owner non-admin', async () => {
+    mb.getBoardById.mockResolvedValue(makeBoard({ ownerId: 'owner-1' }) as never);
+    const app = createApp({ id: 'not-owner', role: 'member' });
+    const res = await app.request('/boards/board-1', patch({ name: 'Hack' }));
+    expect(res.status).toBe(403);
+  });
+
+  it('PATCH /boards/:id — 404 when update returns null', async () => {
+    mb.getBoardById.mockResolvedValue(makeBoard() as never);
+    mb.updateBoard.mockResolvedValue(null as never);
+    const app = createApp();
+    const res = await app.request('/boards/board-1', patch({ name: 'x' }));
+    expect(res.status).toBe(404);
+  });
+
+  it('DELETE /boards/:id — 403 for non-owner non-admin', async () => {
+    mb.getBoardById.mockResolvedValue(makeBoard({ ownerId: 'owner-1' }) as never);
+    const app = createApp({ id: 'not-owner', role: 'member' });
+    const res = await app.request('/boards/board-1', { method: 'DELETE' });
+    expect(res.status).toBe(403);
+  });
+
+  it('DELETE /boards/:id — 404 for missing board', async () => {
+    mb.getBoardById.mockResolvedValue(null as never);
+    const app = createApp();
+    const res = await app.request('/boards/no-board', { method: 'DELETE' });
+    expect(res.status).toBe(404);
+  });
+
+  it('GET /boards/:id — 403 for wrong tenant', async () => {
+    mb.getBoardById.mockResolvedValue(makeBoard({ tenantId: 'tenant-a' }) as never);
+    // biome-ignore lint/suspicious/noExplicitAny: test helper — Variables shape varies per endpoint
+    const app = new (await import('hono')).Hono<{ Variables: any }>();
+    app.use('*', async (c, next) => {
+      c.set('db', {} as import('@revealui/db/client').DatabaseClient);
+      c.set('tenant', { id: 'tenant-b' });
+      await next();
+    });
+    const { default: ticketsApp } = await import('../tickets/index.js');
+    app.route('/', ticketsApp);
+    const res = await app.request('/boards/board-1');
+    expect(res.status).toBe(403);
+  });
 });
 
 // ---------------------------------------------------------------------------
@@ -514,6 +572,67 @@ describe('Comments', () => {
     const res = await app.request('/comments/comment-1', { method: 'DELETE' });
     expect(res.status).toBe(200);
   });
+
+  it('PATCH /comments/:id — 403 for non-author non-admin', async () => {
+    mc.getCommentById.mockResolvedValue(makeComment({ authorId: 'author-1' }) as never);
+    mt.getTicketById.mockResolvedValue(makeTicket() as never);
+    mb.getBoardById.mockResolvedValue(makeBoard() as never);
+    const app = createApp({ id: 'not-author', role: 'member' });
+    const res = await app.request('/comments/comment-1', patch({ body: { type: 'doc' } }));
+    expect(res.status).toBe(403);
+  });
+
+  it('PATCH /comments/:id — admin bypasses author check', async () => {
+    mc.getCommentById.mockResolvedValue(makeComment({ authorId: 'author-1' }) as never);
+    mt.getTicketById.mockResolvedValue(makeTicket() as never);
+    mb.getBoardById.mockResolvedValue(makeBoard() as never);
+    mc.updateComment.mockResolvedValue(makeComment() as never);
+    const app = createApp({ id: 'admin-1', role: 'admin' });
+    const res = await app.request('/comments/comment-1', patch({ body: { type: 'doc' } }));
+    expect(res.status).toBe(200);
+  });
+
+  it('DELETE /comments/:id — 403 for non-author non-admin', async () => {
+    mc.getCommentById.mockResolvedValue(makeComment({ authorId: 'author-1' }) as never);
+    mt.getTicketById.mockResolvedValue(makeTicket() as never);
+    mb.getBoardById.mockResolvedValue(makeBoard() as never);
+    const app = createApp({ id: 'not-author', role: 'member' });
+    const res = await app.request('/comments/comment-1', { method: 'DELETE' });
+    expect(res.status).toBe(403);
+  });
+
+  it('DELETE /comments/:id — 404 for missing comment', async () => {
+    mc.getCommentById.mockResolvedValue(null as never);
+    const app = createApp();
+    const res = await app.request('/comments/no-comment', { method: 'DELETE' });
+    expect(res.status).toBe(404);
+  });
+
+  it('POST /tickets/:id/comments — forces authorId to session user', async () => {
+    mt.getTicketById.mockResolvedValue(makeTicket() as never);
+    mb.getBoardById.mockResolvedValue(makeBoard() as never);
+    mc.createComment.mockResolvedValue(makeComment({ authorId: 'session-user' }) as never);
+    const app = createApp({ id: 'session-user', role: 'member' });
+    const res = await app.request(
+      '/tickets/ticket-1/comments',
+      post({ body: { type: 'doc' }, authorId: 'attacker-id' }),
+    );
+    expect(res.status).toBe(201);
+    expect(mc.createComment).toHaveBeenCalledWith(
+      expect.anything(),
+      expect.objectContaining({ authorId: 'session-user' }),
+    );
+  });
+
+  it('PATCH /comments/:id — 404 when update returns null', async () => {
+    mc.getCommentById.mockResolvedValue(makeComment() as never);
+    mt.getTicketById.mockResolvedValue(makeTicket() as never);
+    mb.getBoardById.mockResolvedValue(makeBoard() as never);
+    mc.updateComment.mockResolvedValue(null as never);
+    const app = createApp();
+    const res = await app.request('/comments/comment-1', patch({ body: { type: 'doc' } }));
+    expect(res.status).toBe(404);
+  });
 });
 
 // ---------------------------------------------------------------------------
@@ -558,6 +677,51 @@ describe('Labels', () => {
     const app = createApp();
     const res = await app.request('/labels/label-1', { method: 'DELETE' });
     expect(res.status).toBe(200);
+  });
+
+  it('DELETE /labels/:id — 404 for missing label', async () => {
+    ml.getLabelById.mockResolvedValue(null as never);
+    const app = createApp();
+    const res = await app.request('/labels/no-label', { method: 'DELETE' });
+    expect(res.status).toBe(404);
+  });
+
+  it('PATCH /labels/:id — 403 for wrong tenant', async () => {
+    ml.getLabelById.mockResolvedValue(makeLabel({ tenantId: 'tenant-a' }) as never);
+    // biome-ignore lint/suspicious/noExplicitAny: test helper — Variables shape varies per endpoint
+    const app = new (await import('hono')).Hono<{ Variables: any }>();
+    app.use('*', async (c, next) => {
+      c.set('db', {} as import('@revealui/db/client').DatabaseClient);
+      c.set('tenant', { id: 'tenant-b' });
+      await next();
+    });
+    const { default: ticketsApp } = await import('../tickets/index.js');
+    app.route('/', ticketsApp);
+    const res = await app.request('/labels/label-1', patch({ name: 'exploit' }));
+    expect(res.status).toBe(403);
+  });
+
+  it('DELETE /labels/:id — 403 for wrong tenant', async () => {
+    ml.getLabelById.mockResolvedValue(makeLabel({ tenantId: 'tenant-a' }) as never);
+    // biome-ignore lint/suspicious/noExplicitAny: test helper — Variables shape varies per endpoint
+    const app = new (await import('hono')).Hono<{ Variables: any }>();
+    app.use('*', async (c, next) => {
+      c.set('db', {} as import('@revealui/db/client').DatabaseClient);
+      c.set('tenant', { id: 'tenant-b' });
+      await next();
+    });
+    const { default: ticketsApp } = await import('../tickets/index.js');
+    app.route('/', ticketsApp);
+    const res = await app.request('/labels/label-1', { method: 'DELETE' });
+    expect(res.status).toBe(403);
+  });
+
+  it('PATCH /labels/:id — 404 when update returns null', async () => {
+    ml.getLabelById.mockResolvedValue(makeLabel() as never);
+    ml.updateLabel.mockResolvedValue(null as never);
+    const app = createApp();
+    const res = await app.request('/labels/label-1', patch({ name: 'x' }));
+    expect(res.status).toBe(404);
   });
 
   it('POST /tickets/:id/labels — assigns label to ticket', async () => {
