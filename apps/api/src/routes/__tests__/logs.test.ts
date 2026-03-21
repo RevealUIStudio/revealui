@@ -343,3 +343,146 @@ describe('POST / — environment fallback', () => {
     process.env.NODE_ENV = savedNodeEnv;
   });
 });
+
+// ---------------------------------------------------------------------------
+// notFound handler
+// ---------------------------------------------------------------------------
+
+describe('notFound handler', () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+    process.env.REVEALUI_SECRET = 'test-secret';
+  });
+
+  it('returns 404 for GET /', async () => {
+    const res = await logsApp.request(new Request('http://localhost/', { method: 'GET' }));
+    expect(res.status).toBe(404);
+  });
+
+  it('returns 404 for POST to unknown sub-path', async () => {
+    const res = await logsApp.request(
+      new Request('http://localhost/other', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'X-Internal-Token': 'test-secret',
+        },
+        body: JSON.stringify({ level: 'warn', message: 'hi', app: 'cms' }),
+      }),
+    );
+    expect(res.status).toBe(404);
+  });
+});
+
+// ---------------------------------------------------------------------------
+// stderr on DB failure (logTransportError)
+// ---------------------------------------------------------------------------
+
+describe('POST / — stderr on DB failure', () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+    mockInsertValues.mockResolvedValue({ rowCount: 1 });
+    mockDb.insert.mockReturnValue({ values: mockInsertValues });
+    process.env.REVEALUI_SECRET = 'test-secret';
+  });
+
+  it('writes to stderr when DB insert fails', async () => {
+    const stderrSpy = vi.spyOn(process.stderr, 'write').mockImplementation(() => true);
+    mockInsertValues.mockRejectedValueOnce(new Error('connection reset'));
+
+    await logsApp.request(post({ level: 'error', message: 'will fail', app: 'cms' }));
+    await flushAsync();
+
+    expect(stderrSpy).toHaveBeenCalledOnce();
+    const output = stderrSpy.mock.calls[0]?.[0] as string;
+    expect(output).toContain('[log-ingest]');
+    expect(output).toContain('connection reset');
+    stderrSpy.mockRestore();
+  });
+
+  it('handles non-Error thrown values in stderr output', async () => {
+    const stderrSpy = vi.spyOn(process.stderr, 'write').mockImplementation(() => true);
+    mockInsertValues.mockRejectedValueOnce('timeout string');
+
+    await logsApp.request(post({ level: 'error', message: 'will fail', app: 'cms' }));
+    await flushAsync();
+
+    expect(stderrSpy).toHaveBeenCalledOnce();
+    const output = stderrSpy.mock.calls[0]?.[0] as string;
+    expect(output).toContain('timeout string');
+    stderrSpy.mockRestore();
+  });
+});
+
+// ---------------------------------------------------------------------------
+// Additional validation edge cases
+// ---------------------------------------------------------------------------
+
+describe('POST / — additional validation edge cases', () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+    mockInsertValues.mockResolvedValue({ rowCount: 1 });
+    mockDb.insert.mockReturnValue({ values: mockInsertValues });
+    process.env.REVEALUI_SECRET = 'test-secret';
+  });
+
+  it('returns 400 on empty JSON object (missing required fields)', async () => {
+    const res = await logsApp.request(post({}));
+    expect(res.status).toBe(400);
+  });
+
+  it('returns 400 for unrecognized level string', async () => {
+    const res = await logsApp.request(post({ level: 'critical', message: 'hi', app: 'cms' }));
+    expect(res.status).toBe(400);
+  });
+
+  it('ignores extra unknown fields and returns 202', async () => {
+    const res = await logsApp.request(
+      post({
+        level: 'warn',
+        message: 'test',
+        app: 'cms',
+        extraField: 'should be ignored',
+        anotherExtra: 123,
+      }),
+    );
+    expect(res.status).toBe(202);
+  });
+
+  it('accepts data with null values in the record', async () => {
+    const res = await logsApp.request(
+      post({
+        level: 'error',
+        message: 'test',
+        app: 'api',
+        data: { key: null, nested: { a: 1 } },
+      }),
+    );
+    expect(res.status).toBe(202);
+  });
+
+  it('rejects invalid JSON body', async () => {
+    const res = await logsApp.request(
+      new Request('http://localhost/', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'X-Internal-Token': 'test-secret',
+        },
+        body: 'not-json{{{',
+      }),
+    );
+    expect(res.status).toBeGreaterThanOrEqual(400);
+    expect(res.status).toBeLessThan(500);
+  });
+
+  it('returns 400 when level is a number', async () => {
+    const res = await logsApp.request(post({ level: 42, message: 'hi', app: 'cms' }));
+    expect(res.status).toBe(400);
+  });
+
+  it('accepts minimal valid payload (only required fields)', async () => {
+    const res = await logsApp.request(post({ level: 'fatal', message: 'x', app: 'a' }));
+    expect(res.status).toBe(202);
+  });
+});

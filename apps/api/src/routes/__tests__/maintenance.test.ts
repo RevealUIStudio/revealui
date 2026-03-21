@@ -241,3 +241,148 @@ describe('POST /cleanup-orphans — logging', () => {
     expect(mockedCleanup).not.toHaveBeenCalled();
   });
 });
+
+// ---------------------------------------------------------------------------
+// Vector client failure
+// ---------------------------------------------------------------------------
+
+describe('POST /cleanup-orphans — vector client failure', () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+    process.env.REVEALUI_CRON_SECRET = VALID_SECRET;
+    mockedGetRestClient.mockReturnValue({} as never);
+  });
+
+  it('returns 500 when getVectorClient throws', async () => {
+    mockedGetVectorClient.mockImplementation(() => {
+      throw new Error('Vector client unavailable');
+    });
+    mockedCleanup.mockResolvedValue(defaultResult);
+
+    const app = createApp();
+    const res = await app.request(makeRequest(VALID_SECRET));
+    expect(res.status).toBe(500);
+    const body = await res.json();
+    expect(body.error).toContain('Vector client unavailable');
+  });
+
+  it('returns 500 when both DB clients throw', async () => {
+    mockedGetRestClient.mockImplementation(() => {
+      throw new Error('REST unavailable');
+    });
+    mockedGetVectorClient.mockImplementation(() => {
+      throw new Error('Vector unavailable');
+    });
+
+    const app = createApp();
+    const res = await app.request(makeRequest(VALID_SECRET));
+    expect(res.status).toBe(500);
+    // First error thrown (REST) is the one caught
+    const body = await res.json();
+    expect(body.error).toContain('REST unavailable');
+  });
+});
+
+// ---------------------------------------------------------------------------
+// Logger verification
+// ---------------------------------------------------------------------------
+
+describe('POST /cleanup-orphans — logger verification', () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+    process.env.REVEALUI_CRON_SECRET = VALID_SECRET;
+    mockedGetRestClient.mockReturnValue({} as never);
+    mockedGetVectorClient.mockReturnValue({} as never);
+  });
+
+  it('logs success info after cleanup completes', async () => {
+    mockedCleanup.mockResolvedValue(defaultResult);
+    const { logger } = await import('@revealui/core/observability/logger');
+
+    const app = createApp();
+    await app.request(makeRequest(VALID_SECRET));
+
+    expect(logger.info).toHaveBeenCalledWith(
+      'Cross-DB orphan cleanup completed',
+      expect.objectContaining({
+        agentMemoriesDeleted: 3,
+        ragDocumentsDeleted: 1,
+        ragChunksDeleted: 12,
+        deletedSiteIds: 2,
+        dryRun: false,
+      }),
+    );
+  });
+
+  it('logs error when cleanup throws', async () => {
+    const error = new Error('Supabase timeout');
+    mockedCleanup.mockRejectedValue(error);
+    const { logger } = await import('@revealui/core/observability/logger');
+
+    const app = createApp();
+    await app.request(makeRequest(VALID_SECRET));
+
+    expect(logger.error).toHaveBeenCalledWith('Cross-DB orphan cleanup failed', error);
+  });
+
+  it('logs deletedSiteIds count (not the full array) on success', async () => {
+    const siteIds = Array.from({ length: 100 }, (_, i) => `site-${i}`);
+    mockedCleanup.mockResolvedValue({ ...defaultResult, deletedSiteIds: siteIds });
+    const { logger } = await import('@revealui/core/observability/logger');
+
+    const app = createApp();
+    await app.request(makeRequest(VALID_SECRET));
+
+    expect(logger.info).toHaveBeenCalledWith(
+      'Cross-DB orphan cleanup completed',
+      expect.objectContaining({ deletedSiteIds: 100 }),
+    );
+  });
+});
+
+// ---------------------------------------------------------------------------
+// Method and path edge cases
+// ---------------------------------------------------------------------------
+
+describe('POST /cleanup-orphans — method and path edge cases', () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+    process.env.REVEALUI_CRON_SECRET = VALID_SECRET;
+    mockedGetRestClient.mockReturnValue({} as never);
+    mockedGetVectorClient.mockReturnValue({} as never);
+    mockedCleanup.mockResolvedValue(defaultResult);
+  });
+
+  it('rejects GET /cleanup-orphans', async () => {
+    const app = createApp();
+    const res = await app.request(
+      new Request('http://localhost/cleanup-orphans', { method: 'GET' }),
+    );
+    expect(res.status).toBeGreaterThanOrEqual(400);
+  });
+
+  it('returns 404 for POST /unknown-path', async () => {
+    const app = createApp();
+    const res = await app.request(
+      new Request('http://localhost/unknown-path', {
+        method: 'POST',
+        headers: { 'X-Cron-Secret': VALID_SECRET },
+      }),
+    );
+    expect(res.status).toBe(404);
+  });
+
+  it('returns application/json Content-Type on success', async () => {
+    const app = createApp();
+    const res = await app.request(makeRequest(VALID_SECRET));
+    expect(res.status).toBe(200);
+    expect(res.headers.get('Content-Type')).toContain('application/json');
+  });
+
+  it('returns 403 when REVEALUI_CRON_SECRET is empty string', async () => {
+    process.env.REVEALUI_CRON_SECRET = '';
+    const app = createApp();
+    const res = await app.request(makeRequest(''));
+    expect(res.status).toBe(403);
+  });
+});
