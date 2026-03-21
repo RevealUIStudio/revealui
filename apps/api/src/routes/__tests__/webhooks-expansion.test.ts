@@ -557,4 +557,205 @@ describe('POST /stripe webhook — expansion events', () => {
       expect(mockDb.update).not.toHaveBeenCalled();
     });
   });
+
+  // ─── Signature validation ─────────────────────────────────────────────
+
+  describe('signature validation', () => {
+    it('returns 400 when Stripe-Signature header is missing', async () => {
+      const app = createApp();
+      const res = await app.request(
+        new Request('http://localhost/stripe', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ type: 'some.event' }),
+        }),
+      );
+      expect(res.status).toBe(400);
+      const body = await res.json();
+      expect(body.error).toMatch(/missing stripe-signature/i);
+    });
+
+    it('returns 400 when signature verification fails', async () => {
+      mockConstructEvent.mockImplementationOnce(() => {
+        throw new Error('No signatures found matching the expected signature for payload');
+      });
+      const app = createApp();
+      const res = await app.request(postStripe({ type: 'checkout.session.completed' }, 'bad-sig'));
+      expect(res.status).toBe(400);
+      const body = await res.json();
+      expect(body.error).toMatch(/invalid webhook signature/i);
+    });
+  });
+
+  // ─── Idempotency ──────────────────────────────────────────────────────
+
+  describe('idempotency', () => {
+    it('returns duplicate: true and skips processing on duplicate event', async () => {
+      const event = {
+        id: 'evt_idempotency_1',
+        type: 'customer.subscription.trial_will_end',
+        data: {
+          object: {
+            id: 'sub_idempotent',
+            customer: 'cus_idempotent',
+            trial_end: Math.floor(Date.now() / 1000) + 86400,
+          },
+        },
+      };
+      mockConstructEvent.mockReturnValueOnce(event);
+      mockDbInsertChain.values.mockRejectedValueOnce(
+        Object.assign(new Error('duplicate key value violates unique constraint'), {
+          code: '23505',
+        }),
+      );
+
+      const app = createApp();
+      const res = await app.request(postStripe(event));
+
+      expect(res.status).toBe(200);
+      const body = await res.json();
+      expect(body.received).toBe(true);
+      expect(body.duplicate).toBe(true);
+      expect(mockDb.update).not.toHaveBeenCalled();
+    });
+  });
+
+  // ─── invoice.payment_failed — suspension threshold ────────────────────
+
+  describe('invoice.payment_failed — suspension on high attempt count', () => {
+    it('sets suspended status and expires license after 3+ failed attempts', async () => {
+      const event = {
+        id: 'evt_susp_1',
+        type: 'invoice.payment_failed',
+        data: {
+          object: {
+            id: 'inv_susp',
+            customer: 'cus_susp',
+            customer_email: 'susp@test.com',
+            attempt_count: 3,
+          },
+        },
+      };
+      mockConstructEvent.mockReturnValueOnce(event);
+
+      const app = createApp();
+      const res = await app.request(postStripe(event));
+
+      expect(res.status).toBe(200);
+      expect(mockDb.update).toHaveBeenCalledTimes(2);
+      expect(mockDbUpdateChain.set).toHaveBeenNthCalledWith(
+        1,
+        expect.objectContaining({ status: 'suspended' }),
+      );
+      expect(mockDbUpdateChain.set).toHaveBeenNthCalledWith(
+        2,
+        expect.objectContaining({ status: 'expired' }),
+      );
+    });
+
+    it('logs error when suspending after 3+ attempts', async () => {
+      const event = {
+        id: 'evt_susp_log_1',
+        type: 'invoice.payment_failed',
+        data: {
+          object: {
+            id: 'inv_susp_log',
+            customer: 'cus_susp_log',
+            customer_email: null,
+            attempt_count: 4,
+          },
+        },
+      };
+      mockConstructEvent.mockReturnValueOnce(event);
+
+      const app = createApp();
+      await app.request(postStripe(event));
+
+      expect(vi.mocked(loggerModule.logger).error).toHaveBeenCalledWith(
+        'Payment failed 3+ times — suspending subscription',
+        undefined,
+        expect.objectContaining({ customerId: 'cus_susp_log', attemptCount: 4 }),
+      );
+    });
+
+    it('skips update when customer ID is null', async () => {
+      const event = {
+        id: 'evt_pay_null_cust_1',
+        type: 'invoice.payment_failed',
+        data: {
+          object: {
+            id: 'inv_null_cust',
+            customer: null,
+            customer_email: null,
+            attempt_count: 1,
+          },
+        },
+      };
+      mockConstructEvent.mockReturnValueOnce(event);
+
+      const app = createApp();
+      const res = await app.request(postStripe(event));
+
+      expect(res.status).toBe(200);
+      expect(mockDb.update).not.toHaveBeenCalled();
+    });
+  });
+
+  // ─── charge.dispute.closed — null customer on lost dispute ───────────
+
+  describe('charge.dispute.closed — null customer', () => {
+    it('logs warning and skips revocation when charge has no customer', async () => {
+      mockChargesRetrieve.mockResolvedValueOnce({
+        id: 'ch_no_cust',
+        customer: null,
+      });
+
+      const event = {
+        id: 'evt_disp_no_cust_1',
+        type: 'charge.dispute.closed',
+        data: {
+          object: {
+            id: 'dp_no_cust',
+            status: 'lost',
+            charge: 'ch_no_cust',
+            amount: 4900,
+          },
+        },
+      };
+      mockConstructEvent.mockReturnValueOnce(event);
+
+      const app = createApp();
+      const res = await app.request(postStripe(event));
+
+      expect(res.status).toBe(200);
+      expect(mockDb.update).not.toHaveBeenCalled();
+      expect(vi.mocked(loggerModule.logger).warn).toHaveBeenCalledWith(
+        'Dispute charge has no customer — cannot revoke license',
+        expect.objectContaining({ chargeId: 'ch_no_cust' }),
+      );
+    });
+  });
+
+  // ─── Irrelevant event types ───────────────────────────────────────────
+
+  describe('irrelevant event types', () => {
+    it('returns 200 without processing for unknown event types', async () => {
+      const event = {
+        id: 'evt_unknown_1',
+        type: 'account.updated',
+        data: { object: {} },
+      };
+      mockConstructEvent.mockReturnValueOnce(event);
+
+      const app = createApp();
+      const res = await app.request(postStripe(event));
+
+      expect(res.status).toBe(200);
+      const body = await res.json();
+      expect(body.received).toBe(true);
+      expect(body.duplicate).toBeUndefined();
+      expect(mockDb.update).not.toHaveBeenCalled();
+      expect(mockDb.insert).not.toHaveBeenCalled();
+    });
+  });
 });

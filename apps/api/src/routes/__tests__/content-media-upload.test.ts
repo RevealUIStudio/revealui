@@ -301,3 +301,184 @@ describe('DELETE /media/:id — blob cleanup', () => {
     expect(mockMediaQueries.deleteMedia).toHaveBeenCalledWith(expect.anything(), 'media-1');
   });
 });
+
+// ─── GET /media — auth ────────────────────────────────────────────────────────
+
+describe('GET /media — auth', () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+    mockMediaQueries.getAllMedia.mockResolvedValue([]);
+  });
+
+  it('returns 401 without authentication', async () => {
+    const app = createApp(null);
+    const res = await app.request('/media');
+    expect(res.status).toBe(401);
+  });
+});
+
+// ─── GET /media/:id — Single item retrieval ──────────────────────────────────
+
+describe('GET /media/:id — single item', () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+  });
+
+  it('returns 401 without authentication', async () => {
+    const app = createApp(null);
+    const res = await app.request('/media/media-1');
+    expect(res.status).toBe(401);
+  });
+
+  it('returns 200 with media data for own item', async () => {
+    mockMediaQueries.getMediaById.mockResolvedValue(makeMediaRecord({ uploadedBy: USER_A.id }));
+    const app = createApp(USER_A);
+    const res = await app.request('/media/media-1');
+    expect(res.status).toBe(200);
+    const body = await res.json();
+    expect(body.success).toBe(true);
+    expect(body.data.id).toBe('media-1');
+  });
+
+  it('returns 404 when media not found', async () => {
+    mockMediaQueries.getMediaById.mockResolvedValue(null);
+    const app = createApp(USER_A);
+    const res = await app.request('/media/nonexistent');
+    expect(res.status).toBe(404);
+    const body = await res.json();
+    expect(body.error).toMatch(/not found/i);
+  });
+
+  it("returns 403 when non-admin accesses another user's media", async () => {
+    mockMediaQueries.getMediaById.mockResolvedValue(
+      makeMediaRecord({ uploadedBy: 'other-user-id' }),
+    );
+    const app = createApp(USER_A);
+    const res = await app.request('/media/media-1');
+    expect(res.status).toBe(403);
+  });
+
+  it("admin can read any user's media", async () => {
+    mockMediaQueries.getMediaById.mockResolvedValue(makeMediaRecord({ uploadedBy: USER_A.id }));
+    const app = createApp(ADMIN);
+    const res = await app.request('/media/media-1');
+    expect(res.status).toBe(200);
+  });
+});
+
+// ─── PATCH /media/:id — Metadata update ──────────────────────────────────────
+
+describe('PATCH /media/:id — metadata update', () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+    mockMediaQueries.getMediaById.mockResolvedValue(makeMediaRecord({ uploadedBy: USER_A.id }));
+    mockMediaQueries.updateMedia.mockResolvedValue(makeMediaRecord({ alt: 'Updated alt' }));
+  });
+
+  it('returns 401 without authentication', async () => {
+    const app = createApp(null);
+    const res = await app.request('/media/media-1', {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ alt: 'New alt' }),
+    });
+    expect(res.status).toBe(401);
+  });
+
+  it('updates alt text and returns 200', async () => {
+    const app = createApp(USER_A);
+    const res = await app.request('/media/media-1', {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ alt: 'Updated alt' }),
+    });
+    expect(res.status).toBe(200);
+    expect(mockMediaQueries.updateMedia).toHaveBeenCalledWith(
+      expect.anything(),
+      'media-1',
+      expect.objectContaining({ alt: 'Updated alt' }),
+    );
+  });
+
+  it('updates focal point', async () => {
+    mockMediaQueries.updateMedia.mockResolvedValue(
+      makeMediaRecord({ focalPoint: { x: 0.5, y: 0.3 } }),
+    );
+    const app = createApp(USER_A);
+    const res = await app.request('/media/media-1', {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ focalPoint: { x: 0.5, y: 0.3 } }),
+    });
+    expect(res.status).toBe(200);
+    expect(mockMediaQueries.updateMedia).toHaveBeenCalledWith(
+      expect.anything(),
+      'media-1',
+      expect.objectContaining({ focalPoint: { x: 0.5, y: 0.3 } }),
+    );
+  });
+
+  it('returns 404 when media not found', async () => {
+    mockMediaQueries.getMediaById.mockResolvedValue(null);
+    const app = createApp(USER_A);
+    const res = await app.request('/media/nonexistent', {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ alt: 'test' }),
+    });
+    expect(res.status).toBe(404);
+  });
+
+  it("returns 403 when non-admin updates another user's media", async () => {
+    mockMediaQueries.getMediaById.mockResolvedValue(
+      makeMediaRecord({ uploadedBy: 'other-user-id' }),
+    );
+    const app = createApp(USER_A);
+    const res = await app.request('/media/media-1', {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ alt: 'test' }),
+    });
+    expect(res.status).toBe(403);
+  });
+});
+
+// ─── DELETE /media/:id — auth and access control ─────────────────────────────
+
+describe('DELETE /media/:id — auth and access control', () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+    mockMediaQueries.deleteMedia.mockResolvedValue(undefined);
+    mockBlobDel.mockResolvedValue(undefined);
+  });
+
+  it('returns 401 without authentication', async () => {
+    const app = createApp(null);
+    const res = await app.request('/media/media-1', { method: 'DELETE' });
+    expect(res.status).toBe(401);
+  });
+
+  it('returns 404 when media not found', async () => {
+    mockMediaQueries.getMediaById.mockResolvedValue(null);
+    const app = createApp(USER_A);
+    const res = await app.request('/media/nonexistent', { method: 'DELETE' });
+    expect(res.status).toBe(404);
+  });
+
+  it("returns 403 when non-admin deletes another user's media", async () => {
+    mockMediaQueries.getMediaById.mockResolvedValue(
+      makeMediaRecord({ uploadedBy: 'other-user-id' }),
+    );
+    const app = createApp(USER_A);
+    const res = await app.request('/media/media-1', { method: 'DELETE' });
+    expect(res.status).toBe(403);
+  });
+
+  it("admin can delete any user's media", async () => {
+    mockMediaQueries.getMediaById.mockResolvedValue(makeMediaRecord({ uploadedBy: USER_A.id }));
+    const app = createApp(ADMIN);
+    const res = await app.request('/media/media-1', { method: 'DELETE' });
+    expect(res.status).toBe(200);
+    expect(mockMediaQueries.deleteMedia).toHaveBeenCalledWith(expect.anything(), 'media-1');
+  });
+});
