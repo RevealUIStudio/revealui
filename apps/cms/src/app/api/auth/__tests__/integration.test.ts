@@ -961,7 +961,7 @@ describe('Flow 7: MFA disable with passkey proof', () => {
         transports: null,
       },
     ]);
-    mockVerifyAuthentication.mockResolvedValue({ verified: true });
+    mockVerifyAuthentication.mockResolvedValue({ verified: true, newCounter: 1 });
     mockDisableMFA.mockResolvedValue({ success: true });
 
     const { POST: disableHandler } = await import('../mfa/disable/route');

@@ -604,7 +604,7 @@ describe('POST /api/auth/mfa/disable', () => {
         transports: null,
       },
     ]);
-    mockVerifyAuthentication.mockResolvedValue({ verified: true });
+    mockVerifyAuthentication.mockResolvedValue({ verified: true, newCounter: 1 });
     mockDisableMFA.mockResolvedValue({ success: true });
 
     const request = createJsonRequestWithPasskeyChallenge(
