@@ -104,17 +104,29 @@ const client = createLLMClientFromEnv();
 
 ## Step 5 — Embeddings
 
-BitNet is a generative model only — it does not support `/v1/embeddings`. For vector search and AI memory, you need a separate embedding model.
+BitNet is a generative model only — it does not support `/v1/embeddings`. For vector search and AI memory, `@revealui/ai` auto-wires Ollama as the embed backend when both `BITNET_BASE_URL` and `OLLAMA_BASE_URL` are set.
 
-**Option A: Ollama (simplest)**
+**Option A: Ollama (recommended — auto-wired)**
+
+Install Ollama, then pull the embed model:
 ```bash
 ollama serve &
 ollama pull nomic-embed-text
-
-export OLLAMA_EMBED_URL=http://localhost:11434
 ```
 
-**Option B: `@xenova/transformers` (in-process, no server)**
+Add to `.envrc`:
+```bash
+export OLLAMA_BASE_URL=http://localhost:11434
+# Optional: use a different embed model
+# export OLLAMA_EMBED_MODEL=nomic-embed-text
+```
+
+When both `BITNET_BASE_URL` and `OLLAMA_BASE_URL` are set, `createLLMClientFromEnv()` automatically uses BitNet for chat and Ollama for embeddings — no additional configuration needed.
+
+**Option B: `@xenova/transformers` (fully offline, no server)**
+
+If you can't run an Ollama server, use `@xenova/transformers` directly:
+
 ```bash
 pnpm add @xenova/transformers
 ```
@@ -127,7 +139,7 @@ const output = await embedder('Hello world', { pooling: 'mean', normalize: true 
 // output.data is a Float32Array of 384 dimensions
 ```
 
-Option B requires no additional server and works fully offline. The model (~90 MB) is downloaded once and cached.
+The model (~90 MB) is downloaded once and cached. Plug it into `@revealui/ai` via the `embedProvider` option on `LLMClient`.
 
 ## Step 6 — RevVault setup
 
