@@ -48,11 +48,13 @@ See the [Quick Start guide](/docs/QUICK_START) for the full walkthrough, or brow
 
 ### Pro (AI, MCP, BYOK)
 - [Pro documentation](/docs/PRO) — MCP servers, BYOK, editor integrations
+- [Local-First Setup](/docs/LOCAL_FIRST) — BitNet + RevVault + Nix: run the full stack on your own hardware
 
 ### Blog
 - [Why We Built RevealUI](/docs/blog/01-why-we-built-revealui) — The problem we're solving
 - [HTTP 402 Payments](/docs/blog/02-http-402-payments) — Native payment-required protocol
 - [Multi-Agent Coordination](/docs/blog/03-multi-agent-coordination) — AI agents working together
+- [The Air-Gap Capable Stack](/docs/blog/04-local-first-ai-stack) — Local AI, encrypted secrets, reproducible environments
 
 ---
 

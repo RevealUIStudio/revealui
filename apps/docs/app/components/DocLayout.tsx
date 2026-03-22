@@ -64,6 +64,7 @@ const sections: NavSection[] = [
     items: [
       { label: 'Pro (AI, MCP, BYOK)', path: '/docs/PRO' },
       { label: 'Forge (Enterprise)', path: '/docs/FORGE' },
+      { label: 'Local-First Setup', path: '/docs/LOCAL_FIRST' },
     ],
   },
   {
@@ -72,6 +73,7 @@ const sections: NavSection[] = [
       { label: 'Why We Built RevealUI', path: '/docs/blog/01-why-we-built-revealui' },
       { label: 'HTTP 402 Payments', path: '/docs/blog/02-http-402-payments' },
       { label: 'Multi-Agent Coordination', path: '/docs/blog/03-multi-agent-coordination' },
+      { label: 'The Air-Gap Capable Stack', path: '/docs/blog/04-local-first-ai-stack' },
     ],
   },
   {
