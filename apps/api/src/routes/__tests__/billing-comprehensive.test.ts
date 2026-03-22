@@ -24,6 +24,8 @@ const mockBillingPortalSessionsCreate = vi.fn();
 const mockSubscriptionsList = vi.fn();
 const mockSubscriptionsUpdate = vi.fn();
 const mockMeterEventsCreate = vi.fn();
+const mockRefundsCreate = vi.fn();
+const mockResetDbStatusCache = vi.fn();
 const mockLogger = vi.hoisted(() => ({
   info: vi.fn(),
   error: vi.fn(),
@@ -39,6 +41,7 @@ vi.mock('stripe', () => ({
       billingPortal = { sessions: { create: mockBillingPortalSessionsCreate } };
       subscriptions = { list: mockSubscriptionsList, update: mockSubscriptionsUpdate };
       billing = { meterEvents: { create: mockMeterEventsCreate } };
+      refunds = { create: mockRefundsCreate };
     } as unknown as (...args: unknown[]) => unknown,
   ),
 }));
@@ -97,10 +100,18 @@ vi.mock('drizzle-orm', () => ({
   gt: vi.fn((_col, _val) => `gt(${String(_col)},${String(_val)})`),
   gte: vi.fn((_col, _val) => `gte(${String(_col)},${String(_val)})`),
   lte: vi.fn((_col, _val) => `lte(${String(_col)},${String(_val)})`),
+  lt: vi.fn((_col, _val) => `lt(${String(_col)},${String(_val)})`),
 }));
 
 vi.mock('@revealui/core/license', () => ({
   getMaxAgentTasks: vi.fn(() => 10_000),
+}));
+
+vi.mock('../../middleware/license.js', () => ({
+  resetDbStatusCache: (...args: unknown[]) => mockResetDbStatusCache(...args),
+  requireLicense: vi.fn(() => async (_c: unknown, next: () => Promise<void>) => next()),
+  requireFeature: vi.fn(() => async (_c: unknown, next: () => Promise<void>) => next()),
+  checkLicenseStatus: vi.fn(() => async (_c: unknown, next: () => Promise<void>) => next()),
 }));
 
 vi.mock('@revealui/core/error-handling', async () => {
@@ -1081,5 +1092,172 @@ describe('Billing Route Tests — Comprehensive Coverage', { timeout: 60_000 }, 
 
       expect(res.status).toBe(200);
     });
+  });
+});
+
+// ─── POST /sweep-expired-licenses ────────────────────────────────────────────
+
+describe('POST /sweep-expired-licenses', () => {
+  beforeEach(() => {
+    resetChains();
+    vi.stubEnv('REVEALUI_CRON_SECRET', CRON_SECRET);
+  });
+
+  afterEach(() => {
+    vi.unstubAllEnvs();
+    mockResetDbStatusCache.mockReset();
+  });
+
+  it('returns 403 when X-Cron-Secret header is missing', async () => {
+    const app = createApp();
+    const res = await app.request(
+      new Request('http://localhost/sweep-expired-licenses', { method: 'POST' }),
+    );
+    expect(res.status).toBe(403);
+  });
+
+  it('returns 403 when cron secret env var is not set', async () => {
+    vi.unstubAllEnvs();
+    vi.stubEnv('REVEALUI_CRON_SECRET', '');
+    const app = createApp();
+    const res = await app.request(cronPost('/sweep-expired-licenses'));
+    expect(res.status).toBe(403);
+  });
+
+  it('returns 403 when X-Cron-Secret does not match', async () => {
+    const app = createApp();
+    const res = await app.request(
+      new Request('http://localhost/sweep-expired-licenses', {
+        method: 'POST',
+        headers: { 'X-Cron-Secret': 'wrong-secret' },
+      }),
+    );
+    expect(res.status).toBe(403);
+  });
+
+  it('returns { expired: 0 } and does not update DB when no licenses are expiring', async () => {
+    // select returns empty (no expiring licenses)
+    _selectResult = [];
+    mockDb.select.mockReturnValue(mockDbSelectChain);
+
+    const app = createApp();
+    const res = await app.request(cronPost('/sweep-expired-licenses'));
+
+    expect(res.status).toBe(200);
+    const body = (await res.json()) as { expired: number };
+    expect(body.expired).toBe(0);
+    expect(mockDb.update).not.toHaveBeenCalled();
+    expect(mockResetDbStatusCache).not.toHaveBeenCalled();
+  });
+
+  it('marks expired licenses and calls resetDbStatusCache when licenses found', async () => {
+    // select returns two expiring license IDs
+    _selectResult = [{ id: 'lic-1' }, { id: 'lic-2' }];
+    mockDb.select.mockReturnValue(mockDbSelectChain);
+    mockDb.update.mockReturnValue(mockDbUpdateChain);
+
+    const app = createApp();
+    const res = await app.request(cronPost('/sweep-expired-licenses'));
+
+    expect(res.status).toBe(200);
+    const body = (await res.json()) as { expired: number };
+    expect(body.expired).toBe(2);
+    expect(mockDb.update).toHaveBeenCalledOnce();
+    expect(mockResetDbStatusCache).toHaveBeenCalledOnce();
+  });
+});
+
+// ─── POST /refund ─────────────────────────────────────────────────────────────
+
+describe('POST /refund', () => {
+  beforeEach(() => {
+    resetChains();
+    mockRefundsCreate.mockReset();
+  });
+
+  const ADMIN_USER = { id: 'admin-1', email: 'admin@test.com', name: 'Admin', role: 'admin' };
+  const OWNER_USER = { id: 'owner-1', email: 'owner@test.com', name: 'Owner', role: 'owner' };
+  const MEMBER_USER = { id: 'user-1', email: 'user@test.com', name: 'User', role: 'member' };
+
+  it('returns 401 when not authenticated', async () => {
+    const app = new Hono<{ Variables: { user: undefined; entitlements?: undefined } }>();
+    app.use('*', async (c, next) => {
+      c.set('user', undefined);
+      await next();
+    });
+    app.route('/', billingApp);
+    app.onError((err, c) => {
+      if (err instanceof HTTPException) return c.json({ error: err.message }, err.status);
+      return c.json({ error: 'Internal server error' }, 500);
+    });
+    const res = await app.request(post('/refund', { paymentIntentId: 'pi_abc123' }));
+    expect(res.status).toBe(401);
+  });
+
+  it('returns 403 for a non-admin non-owner user', async () => {
+    const app = createApp(MEMBER_USER);
+    const res = await app.request(post('/refund', { paymentIntentId: 'pi_abc123' }));
+    expect(res.status).toBe(403);
+  });
+
+  it('returns 400 when neither paymentIntentId nor chargeId is provided', async () => {
+    const app = createApp(ADMIN_USER);
+    const res = await app.request(post('/refund', {}));
+    expect(res.status).toBe(400);
+  });
+
+  it('returns 200 with refund details when paymentIntentId is provided', async () => {
+    mockRefundsCreate.mockResolvedValue({
+      id: 're_abc123',
+      status: 'succeeded',
+      amount: 4900,
+      currency: 'usd',
+    });
+
+    const app = createApp(ADMIN_USER);
+    const res = await app.request(post('/refund', { paymentIntentId: 'pi_abc123', amount: 4900 }));
+
+    expect(res.status).toBe(200);
+    const body = (await res.json()) as Record<string, unknown>;
+    expect(body.refundId).toBe('re_abc123');
+    expect(body.status).toBe('succeeded');
+    expect(body.amount).toBe(4900);
+    expect(body.currency).toBe('usd');
+    expect(mockRefundsCreate).toHaveBeenCalledWith(
+      expect.objectContaining({ payment_intent: 'pi_abc123', amount: 4900 }),
+      expect.objectContaining({ idempotencyKey: expect.any(String) }),
+    );
+  });
+
+  it('returns 200 for an owner-role user (not admin)', async () => {
+    mockRefundsCreate.mockResolvedValue({
+      id: 're_owner123',
+      status: 'succeeded',
+      amount: 2000,
+      currency: 'usd',
+    });
+
+    const app = createApp(OWNER_USER);
+    const res = await app.request(post('/refund', { chargeId: 'ch_abc123' }));
+
+    expect(res.status).toBe(200);
+    const body = (await res.json()) as Record<string, unknown>;
+    expect(body.refundId).toBe('re_owner123');
+  });
+
+  it('falls back to "pending" when Stripe returns null status', async () => {
+    mockRefundsCreate.mockResolvedValue({
+      id: 're_null_status',
+      status: null,
+      amount: 1000,
+      currency: 'usd',
+    });
+
+    const app = createApp(ADMIN_USER);
+    const res = await app.request(post('/refund', { chargeId: 'ch_null_status' }));
+
+    expect(res.status).toBe(200);
+    const body = (await res.json()) as Record<string, unknown>;
+    expect(body.status).toBe('pending');
   });
 });
