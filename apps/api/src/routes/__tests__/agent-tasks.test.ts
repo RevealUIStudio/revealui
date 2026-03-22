@@ -489,10 +489,7 @@ describe('dispatchWithTimeout — timeout sentinel vs general error', () => {
 describe('POST / — instruction length and priority', () => {
   it('returns 400 when instruction exceeds 2000 characters', async () => {
     const app = createApp();
-    const res = await app.request(
-      '/',
-      post({ instruction: 'a'.repeat(2001), boardId: 'board-1' }),
-    );
+    const res = await app.request('/', post({ instruction: 'a'.repeat(2001), boardId: 'board-1' }));
     expect(res.status).toBe(400);
   });
 
@@ -501,10 +498,7 @@ describe('POST / — instruction length and priority', () => {
     mt.createTicket.mockResolvedValue(makeTicket() as never);
     mt.getTicketById.mockResolvedValue(makeTicket({ status: 'done' }) as never);
     const app = createApp();
-    const res = await app.request(
-      '/',
-      post({ instruction: 'a'.repeat(2000), boardId: 'board-1' }),
-    );
+    const res = await app.request('/', post({ instruction: 'a'.repeat(2000), boardId: 'board-1' }));
     expect(res.status).toBe(200);
   });
 
@@ -528,10 +522,7 @@ describe('POST / — instruction length and priority', () => {
     mt.createTicket.mockResolvedValue(makeTicket() as never);
     mt.getTicketById.mockResolvedValue(makeTicket({ status: 'done' }) as never);
     const app = createApp();
-    await app.request(
-      '/',
-      post({ instruction: 'Update homepage', boardId: 'board-1' }),
-    );
+    await app.request('/', post({ instruction: 'Update homepage', boardId: 'board-1' }));
     expect(mt.createTicket).toHaveBeenCalledWith(
       expect.anything(),
       expect.objectContaining({ priority: 'medium' }),
