@@ -418,6 +418,7 @@ export async function provisionNpmAccess(npmUsername: string, db?: Database): Pr
           // biome-ignore lint/style/useNamingConvention: HTTP header convention
           Authorization: `Bearer ${token}`,
           'Content-Type': 'application/json',
+          // biome-ignore lint/style/useNamingConvention: HTTP header convention
           Accept: 'application/json',
         },
         body: JSON.stringify({ user: npmUsername }),
