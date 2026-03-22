@@ -130,7 +130,7 @@ describe('provisionNpmAccess', () => {
     await provisionNpmAccess('eve');
 
     const [url, init] = mockFetchWithRetry.mock.calls[0] as [string, RequestInit];
-    expect(url).toBe('https://registry.npmjs.org/-/org/revealui/team/revealui-pro-customers/user');
+    expect(url).toBe('https://registry.npmjs.org/-/team/revealui/revealui-pro-customers/user');
     expect((init.headers as Record<string, string>).Authorization).toBe(
       'Bearer npm_test_token_abc123',
     );

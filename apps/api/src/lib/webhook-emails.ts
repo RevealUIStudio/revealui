@@ -406,7 +406,7 @@ export async function provisionNpmAccess(npmUsername: string, db?: Database): Pr
 
   const { fetchWithRetry } = await import('@revealui/core/error-handling');
 
-  const url = `https://registry.npmjs.org/-/org/revealui/team/revealui-pro-customers/user`;
+  const url = `https://registry.npmjs.org/-/team/revealui/revealui-pro-customers/user`;
 
   let response: Response;
   try {
