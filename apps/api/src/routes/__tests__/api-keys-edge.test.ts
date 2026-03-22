@@ -253,4 +253,68 @@ describe('api-keys edge cases', () => {
       expect(res.status).toBe(400);
     });
   });
+
+  describe('POST /api-keys — missing required fields', () => {
+    it('returns 400 when provider is missing', async () => {
+      const app = createApp(testUser);
+      const res = await jsonPost(app, '/api-keys', {
+        apiKey: 'sk-test-12345678',
+      });
+      expect(res.status).toBe(400);
+    });
+
+    it('returns 400 when apiKey is missing', async () => {
+      const app = createApp(testUser);
+      const res = await jsonPost(app, '/api-keys', {
+        provider: 'anthropic',
+      });
+      expect(res.status).toBe(400);
+    });
+
+    it('returns 400 when body is empty object', async () => {
+      const app = createApp(testUser);
+      const res = await jsonPost(app, '/api-keys', {});
+      expect(res.status).toBe(400);
+    });
+  });
+
+  describe('POST /api-keys/:id/rotate — edge cases', () => {
+    it('returns 400 when apiKey is missing from rotate body', async () => {
+      const app = createApp(testUser);
+      const res = await jsonPost(app, '/api-keys/key_abc/rotate', {});
+      expect(res.status).toBe(400);
+    });
+
+    it('returns 400 when apiKey is exactly 7 characters (boundary below min)', async () => {
+      const app = createApp(testUser);
+      const res = await jsonPost(app, '/api-keys/key_abc/rotate', {
+        apiKey: '1234567',
+      });
+      expect(res.status).toBe(400);
+    });
+  });
+
+  describe('POST /api-keys — apiKey at exactly 8 characters (boundary at min)', () => {
+    it('accepts apiKey of exactly 8 characters', async () => {
+      const app = createApp(testUser);
+      const res = await jsonPost(app, '/api-keys', {
+        provider: 'anthropic',
+        apiKey: '12345678',
+      });
+      expect(res.status).toBe(201);
+    });
+  });
+
+  describe('POST /api-keys — label as empty string', () => {
+    it('accepts empty string label (optional field)', async () => {
+      const app = createApp(testUser);
+      const res = await jsonPost(app, '/api-keys', {
+        provider: 'anthropic',
+        apiKey: 'sk-test-12345678',
+        label: '',
+      });
+      // Empty string is a valid label (max(80) allows it)
+      expect(res.status).toBe(201);
+    });
+  });
 });

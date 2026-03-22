@@ -283,4 +283,54 @@ describe('POST / — input size limits', () => {
     const res = await errorsApp.request(post({ message: 'Error', app: 'a'.repeat(51) }));
     expect(res.status).toBe(400);
   });
+
+  it('accepts stack at exactly 10000 characters', async () => {
+    const res = await errorsApp.request(
+      post({ message: 'Error', app: 'cms', stack: 'x'.repeat(10_000) }),
+    );
+    expect(res.status).toBe(202);
+  });
+
+  it('returns 400 when context exceeds 50 characters', async () => {
+    const res = await errorsApp.request(
+      post({ message: 'Error', app: 'cms', context: 'c'.repeat(51) }),
+    );
+    expect(res.status).toBe(400);
+  });
+
+  it('returns 400 when url exceeds 2000 characters', async () => {
+    const res = await errorsApp.request(
+      post({ message: 'Error', app: 'cms', url: `https://example.com/${'x'.repeat(2000)}` }),
+    );
+    expect(res.status).toBe(400);
+  });
+
+  it('returns 400 when requestId exceeds 255 characters', async () => {
+    const res = await errorsApp.request(
+      post({ message: 'Error', app: 'cms', requestId: 'r'.repeat(256) }),
+    );
+    expect(res.status).toBe(400);
+  });
+
+  it('returns 400 when environment exceeds 50 characters', async () => {
+    const res = await errorsApp.request(
+      post({ message: 'Error', app: 'cms', environment: 'e'.repeat(51) }),
+    );
+    expect(res.status).toBe(400);
+  });
+});
+
+describe('POST / — non-Error thrown from DB', () => {
+  it('wraps non-Error DB failure into an Error for logging', async () => {
+    mockInsertValues.mockRejectedValueOnce('string-error-value');
+
+    await errorsApp.request(post({ message: 'Client error', app: 'cms' }));
+    await flushAsync();
+
+    expect(mockLoggerError).toHaveBeenCalledOnce();
+    const loggedError = mockLoggerError.mock.calls[0]?.[1] as Error;
+    // Source wraps non-Error in new Error(String(err))
+    expect(loggedError).toBeInstanceOf(Error);
+    expect(loggedError.message).toBe('string-error-value');
+  });
 });

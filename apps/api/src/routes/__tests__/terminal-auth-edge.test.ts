@@ -256,4 +256,71 @@ describe('terminal-auth edge cases', () => {
       expect(body.error).toContain('No pending verification or code has expired');
     });
   });
+
+  describe('POST /terminal-auth/link — validation edge cases', () => {
+    it('returns 400 when fingerprint is empty string', async () => {
+      const app = createApp();
+      const res = await jsonPost(app, '/terminal-auth/link', {
+        fingerprint: '',
+        email: 'edge@example.com',
+      });
+      expect(res.status).toBe(400);
+      expect(mockSendEmail).not.toHaveBeenCalled();
+    });
+
+    it('returns 400 when body is missing all fields', async () => {
+      const app = createApp();
+      const res = await jsonPost(app, '/terminal-auth/link', {});
+      expect(res.status).toBe(400);
+      expect(mockSendEmail).not.toHaveBeenCalled();
+    });
+
+    it('returns 400 when email is empty string', async () => {
+      const app = createApp();
+      const res = await jsonPost(app, '/terminal-auth/link', {
+        fingerprint: 'SHA256:test-key',
+        email: '',
+      });
+      expect(res.status).toBe(400);
+      expect(mockSendEmail).not.toHaveBeenCalled();
+    });
+  });
+
+  describe('POST /terminal-auth/verify — validation edge cases', () => {
+    it('returns 400 when code is too long (7 digits)', async () => {
+      const app = createApp();
+      const res = await jsonPost(app, '/terminal-auth/verify', {
+        email: 'test@example.com',
+        code: '1234567',
+      });
+      expect(res.status).toBe(400);
+    });
+
+    it('returns 400 when email is missing from verify body', async () => {
+      const app = createApp();
+      const res = await jsonPost(app, '/terminal-auth/verify', {
+        code: '123456',
+      });
+      expect(res.status).toBe(400);
+    });
+
+    it('returns 400 when code is missing from verify body', async () => {
+      const app = createApp();
+      const res = await jsonPost(app, '/terminal-auth/verify', {
+        email: 'test@example.com',
+      });
+      expect(res.status).toBe(400);
+    });
+  });
+
+  describe('GET /terminal-auth/lookup — edge cases', () => {
+    it('returns 400 when fingerprint is empty string query param', async () => {
+      const app = createApp(undefined, { id: 'caller-1' });
+      const res = await app.request('/terminal-auth/lookup?fingerprint=');
+      // Empty string is falsy — route should return 400
+      expect(res.status).toBe(400);
+      const body = await parseBody(res);
+      expect(body.error).toContain('fingerprint');
+    });
+  });
 });
