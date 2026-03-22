@@ -139,6 +139,7 @@
     "test:e2e:report": "playwright show-report",
     "test:e2e:visual:update": "playwright test --update-snapshots e2e/visual-snapshots.e2e.ts",
     "test:integration": "tsx scripts/dev-tools/run-integration-tests.ts",
+    "docs:generate:api": "tsx scripts/docs/generate-api.ts",
     "gate": "tsx scripts/gates/ci-gate.ts",
     "gate:quick": "tsx scripts/gates/ci-gate.ts --phase=1",
     "gate:types": "tsx scripts/gates/types-gate.ts",

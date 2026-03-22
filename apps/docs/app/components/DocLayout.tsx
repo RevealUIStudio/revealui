@@ -30,6 +30,16 @@ const sections: NavSection[] = [
     ],
   },
   {
+    title: 'Tutorials',
+    items: [
+      { label: 'Quick Start', path: '/guides/quick-start' },
+      { label: 'Authentication', path: '/guides/authentication' },
+      { label: 'Collections', path: '/guides/collections' },
+      { label: 'Billing', path: '/guides/billing' },
+      { label: 'Deployment', path: '/guides/deployment' },
+    ],
+  },
+  {
     title: 'Core Guides',
     items: [
       { label: 'CMS Guide', path: '/docs/CMS_GUIDE' },
@@ -54,6 +64,7 @@ const sections: NavSection[] = [
     title: 'Reference',
     items: [
       { label: 'Package Reference', path: '/docs/REFERENCE' },
+      { label: 'REST API', path: '/api/rest-api' },
       { label: 'Component Catalog', path: '/docs/COMPONENT_CATALOG' },
       { label: 'AI', path: '/docs/AI' },
       { label: 'Marketplace', path: '/docs/MARKETPLACE' },
