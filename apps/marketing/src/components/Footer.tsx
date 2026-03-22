@@ -1,3 +1,4 @@
+import { BuiltWithRevealUI } from '@revealui/presentation';
 import Link from 'next/link';
 
 export function Footer() {
@@ -139,7 +140,13 @@ export function Footer() {
           </div>
         </div>
         <div className="mt-12 pt-8 border-t border-gray-800 flex flex-col sm:flex-row items-center justify-between gap-4 text-gray-500 text-sm">
-          <p>&copy; {currentYear} RevealUI Studio. All rights reserved.</p>
+          <div className="flex items-center gap-4">
+            <p>&copy; {currentYear} RevealUI Studio. All rights reserved.</p>
+            <BuiltWithRevealUI
+              size="sm"
+              className="border-gray-700 bg-gray-800/80 text-gray-400 opacity-70"
+            />
+          </div>
           <div className="flex gap-6">
             <Link href="/privacy" className="hover:text-white transition-colors">
               Privacy Policy
