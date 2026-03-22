@@ -22,6 +22,7 @@
     "node_modules",
     "dist",
     "src/mocks/**/*.ts",
+    "src/integration/**/*.ts",
     "src/integration-pro/**/*.ts",
     "src/patterns/**/*.test.*"
   ]

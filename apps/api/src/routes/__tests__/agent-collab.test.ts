@@ -1,5 +1,5 @@
 import { Hono } from 'hono';
-import { describe, expect, it, vi } from 'vitest';
+import { afterEach, describe, expect, it, vi } from 'vitest';
 import * as Y from 'yjs';
 import type { RoomManager } from '../../collab/room-manager.js';
 import { createAgentCollabRoute } from '../agent-collab.js';
@@ -434,6 +434,120 @@ describe('agent-collab route', () => {
       expect(res.status).toBe(200);
       const json = (await res.json()) as Record<string, unknown>;
       expect(json.connectedClients).toEqual([]);
+    });
+
+    it('propagates as 500 when getDocumentSnapshot throws (no try/catch in handler)', async () => {
+      const mockManager = createMockRoomManager({
+        getDocumentSnapshot: vi.fn().mockRejectedValue(new Error('DB connection lost')),
+      });
+      mockedGetSharedRoomManager.mockReturnValue(mockManager);
+
+      const app = createApp();
+      const res = await app.request('/api/collab/agent/snapshot/error-doc');
+
+      expect(res.status).toBe(500);
+    });
+
+    it('returns 200 when snapshot is exactly at the 10 MB limit (boundary is exclusive)', async () => {
+      // Cap is > 10MB — exactly 10MB should pass
+      const MaxSnapshotBytes = 10 * 1024 * 1024;
+      const exactlyAtLimit = new Uint8Array(1);
+      Object.defineProperty(exactlyAtLimit, 'byteLength', {
+        value: MaxSnapshotBytes,
+        writable: false,
+      });
+
+      // Since we override byteLength, Y.applyUpdate will see a 1-byte array —
+      // it will silently ignore invalid data without throwing, so we get a 200.
+      const mockManager = createMockRoomManager({
+        getDocumentSnapshot: vi.fn().mockResolvedValue(exactlyAtLimit),
+        getConnectedClients: vi.fn().mockReturnValue([]),
+      });
+      mockedGetSharedRoomManager.mockReturnValue(mockManager);
+
+      const app = createApp();
+      const res = await app.request('/api/collab/agent/snapshot/boundary-doc');
+
+      expect(res.status).toBe(200);
+    });
+  });
+
+  describe('POST /api/collab/agent/edit — additional edge cases', () => {
+    it('returns 500 with "Unknown error" when applyServerEdit rejects with a non-Error', async () => {
+      const mockDoc = new Y.Doc();
+
+      const mockManager = createMockRoomManager({
+        applyServerEdit: vi.fn().mockRejectedValue('plain string rejection'),
+        getOrLoadDocument: vi.fn().mockResolvedValue(mockDoc),
+      });
+      mockedGetSharedRoomManager.mockReturnValue(mockManager);
+
+      const app = createApp();
+      const res = await app.request(
+        '/api/collab/agent/edit',
+        jsonRequest('/api/collab/agent/edit', {
+          documentId: 'doc-123',
+          edit: { type: 'insert', index: 0, content: 'test' },
+        }),
+      );
+
+      expect(res.status).toBe(500);
+      const text = await res.text();
+      expect(text).toContain('Unknown error');
+
+      mockDoc.destroy();
+    });
+
+    it('reads textLength from the named text field when textName is specified', async () => {
+      const mockDoc = new Y.Doc();
+      mockDoc.getText('body').insert(0, 'Section text here');
+
+      const mockManager = createMockRoomManager({
+        applyServerEdit: vi.fn().mockResolvedValue(undefined),
+        getOrLoadDocument: vi.fn().mockResolvedValue(mockDoc),
+      });
+      mockedGetSharedRoomManager.mockReturnValue(mockManager);
+
+      const app = createApp();
+      const res = await app.request(
+        '/api/collab/agent/edit',
+        jsonRequest('/api/collab/agent/edit', {
+          documentId: 'doc-123',
+          edit: { type: 'replace-all', textName: 'body', content: 'Section text here' },
+        }),
+      );
+
+      expect(res.status).toBe(200);
+      const json = (await res.json()) as Record<string, unknown>;
+      // textLength comes from getText('body'), not getText('content')
+      expect(json.textLength).toBe(17);
+
+      mockDoc.destroy();
+    });
+  });
+
+  describe('POST /api/collab/agent/connect — WS_BASE_URL env override', () => {
+    afterEach(() => {
+      vi.unstubAllEnvs();
+    });
+
+    it('uses WS_BASE_URL env var in the returned wsUrl', async () => {
+      vi.stubEnv('WS_BASE_URL', 'wss://collab.example.com');
+      // Must create app AFTER stubbing env — wsBaseUrl is read at construction time
+      const app = createApp();
+
+      const res = await app.request(
+        '/api/collab/agent/connect',
+        jsonRequest('/api/collab/agent/connect', {
+          documentId: 'doc-env',
+          agentName: 'Claude',
+          agentModel: 'claude-sonnet-4-6',
+        }),
+      );
+
+      expect(res.status).toBe(200);
+      const json = (await res.json()) as Record<string, unknown>;
+      expect(json.wsUrl as string).toMatch(/^wss:\/\/collab\.example\.com/);
     });
   });
 });

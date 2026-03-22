@@ -282,6 +282,12 @@ describe('GET /gdpr/consent', () => {
 });
 
 describe('GET /gdpr/consent/check/:type', () => {
+  it('returns 401 without auth', async () => {
+    const app = createApp();
+    const res = await app.request('/gdpr/consent/check/analytics');
+    expect(res.status).toBe(401);
+  });
+
   it('rejects invalid type', async () => {
     const app = createApp(testUser);
     const res = await app.request('/gdpr/consent/check/invalid');

@@ -191,4 +191,69 @@ describe('terminal-auth edge cases', () => {
       expect(body.user.role).toBe('editor');
     });
   });
+
+  describe('POST /terminal-auth/verify — max attempt lockout', () => {
+    beforeEach(() => {
+      // Reduce limit to 1 for lockout tests — 1 failed attempt triggers the gate
+      configureTerminalAuth({ otpTtlMs: 5 * 60 * 1000, otpLength: 6, maxOtpAttempts: 1 });
+    });
+
+    it('returns 429 after maxOtpAttempts failed attempts', async () => {
+      // No db — link skips fingerprint check, OTP is still sent
+      const app = createApp();
+
+      await jsonPost(app, '/terminal-auth/link', {
+        fingerprint: 'SHA256:lockout-key',
+        email: 'lockout@example.com',
+      });
+
+      // First bad attempt — attempts goes 0 → 1 (< maxOtpAttempts=1 at check time, so 400)
+      await jsonPost(app, '/terminal-auth/verify', {
+        email: 'lockout@example.com',
+        code: '000000', // never valid — OTP range is 100000-999999
+      });
+
+      // Second attempt — attempts=1 >= maxOtpAttempts=1 → 429
+      const res = await jsonPost(app, '/terminal-auth/verify', {
+        email: 'lockout@example.com',
+        code: '000000',
+      });
+
+      expect(res.status).toBe(429);
+      const body = await parseBody(res);
+      expect(body.success).toBe(false);
+      expect(body.error).toContain('Too many verification attempts');
+    });
+
+    it('deletes OTP on lockout so the next request returns no-pending-verification', async () => {
+      const app = createApp();
+
+      await jsonPost(app, '/terminal-auth/link', {
+        fingerprint: 'SHA256:consumed-key',
+        email: 'consumed@example.com',
+      });
+
+      // Burn the first attempt
+      await jsonPost(app, '/terminal-auth/verify', {
+        email: 'consumed@example.com',
+        code: '000000',
+      });
+
+      // Trigger lockout (OTP deleted internally)
+      await jsonPost(app, '/terminal-auth/verify', {
+        email: 'consumed@example.com',
+        code: '000000',
+      });
+
+      // OTP is gone — any further attempt should get 400 "no pending"
+      const res = await jsonPost(app, '/terminal-auth/verify', {
+        email: 'consumed@example.com',
+        code: '000000',
+      });
+
+      expect(res.status).toBe(400);
+      const body = await parseBody(res);
+      expect(body.error).toContain('No pending verification or code has expired');
+    });
+  });
 });

@@ -150,7 +150,7 @@ export async function createRelationshipFixtures(
 
   return {
     parent: { id: String(parent.id) },
-    children: children.map((child) => ({ id: String(child.id) })),
+    children: children.map((child: { id: unknown }) => ({ id: String(child.id) })),
   };
 }
 

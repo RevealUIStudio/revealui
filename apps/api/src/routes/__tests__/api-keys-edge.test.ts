@@ -215,4 +215,42 @@ describe('api-keys edge cases', () => {
       expect(mockUpdateSet.mock.calls[1]![0]).toMatchObject({ isDefault: true, model: 'gpt-4o' });
     });
   });
+
+  describe('POST /api-keys — validateProviderKey network failure', () => {
+    it('returns 500 when validateProviderKey throws (best-effort validation gap)', async () => {
+      // Current behavior: the catch in the dynamic import only handles module-not-found,
+      // not runtime throws from validateProviderKey itself. A network error bubbles as 500.
+      vi.mocked(validateProviderKey).mockRejectedValueOnce(new Error('Network timeout'));
+
+      const app = createApp(testUser);
+      const res = await jsonPost(app, '/api-keys', {
+        provider: 'anthropic',
+        apiKey: 'sk-test-12345678',
+      });
+
+      expect(res.status).toBe(500);
+    });
+  });
+
+  describe('POST /api-keys — label length boundary', () => {
+    it('accepts label of exactly 80 characters', async () => {
+      const app = createApp(testUser);
+      const res = await jsonPost(app, '/api-keys', {
+        provider: 'anthropic',
+        apiKey: 'sk-test-12345678',
+        label: 'a'.repeat(80),
+      });
+      expect(res.status).toBe(201);
+    });
+
+    it('rejects label exceeding 80 characters', async () => {
+      const app = createApp(testUser);
+      const res = await jsonPost(app, '/api-keys', {
+        provider: 'anthropic',
+        apiKey: 'sk-test-12345678',
+        label: 'a'.repeat(81),
+      });
+      expect(res.status).toBe(400);
+    });
+  });
 });

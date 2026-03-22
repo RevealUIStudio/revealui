@@ -35,3 +35,6 @@ apps/api/src/routes/__tests__/api-keys.test.ts:generic-api-key:444
 apps/api/src/routes/__tests__/api-keys.test.ts:generic-api-key:467
 apps/api/src/routes/__tests__/api-keys.test.ts:generic-api-key:482
 apps/api/src/routes/__tests__/api-keys.test.ts:generic-api-key:522
+apps/api/src/routes/__tests__/api-keys-edge.test.ts:generic-api-key:228
+apps/api/src/routes/__tests__/api-keys-edge.test.ts:generic-api-key:240
+apps/api/src/routes/__tests__/api-keys-edge.test.ts:generic-api-key:250

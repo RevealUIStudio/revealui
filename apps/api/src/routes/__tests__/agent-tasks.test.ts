@@ -438,3 +438,103 @@ describe('POST /:ticketId/dispatch — dispatch existing ticket', () => {
     expect(body.success).toBe(true);
   });
 });
+
+// ---------------------------------------------------------------------------
+// dispatchWithTimeout — timeout sentinel vs general error distinction
+// ---------------------------------------------------------------------------
+
+describe('dispatchWithTimeout — timeout sentinel vs general error', () => {
+  it('returns timeout-specific message when dispatch rejects with timeout sentinel', async () => {
+    // Simulate the timeout promise firing first by rejecting with the sentinel message
+    mockDispatch.mockRejectedValueOnce(new Error('Agent dispatch timed out'));
+    mt.getTicketById.mockResolvedValueOnce(makeTicket() as never);
+    mt.updateTicket.mockResolvedValue(makeTicket({ status: 'blocked' }) as never);
+    const app = createApp();
+    const res = await app.fetch(dispatchRequest('ticket-1'));
+    expect(res.status).toBe(403);
+    const body = await parseBody(res);
+    expect(body.success).toBe(false);
+    expect(body.error).toBe('Agent timed out after 2 minutes');
+  });
+
+  it('returns generic error when dispatch rejects with a non-Error value', async () => {
+    // Reject with a plain string — dispatchErr instanceof Error is false → isTimeout is false
+    mockDispatch.mockRejectedValueOnce('network connection refused');
+    mt.getTicketById.mockResolvedValueOnce(makeTicket() as never);
+    mt.updateTicket.mockResolvedValue(makeTicket({ status: 'blocked' }) as never);
+    const app = createApp();
+    const res = await app.fetch(dispatchRequest('ticket-1'));
+    expect(res.status).toBe(403);
+    const body = await parseBody(res);
+    expect(body.success).toBe(false);
+    expect(body.error).toBe('Agent dispatch failed');
+  });
+
+  it('marks ticket blocked when dispatch times out', async () => {
+    mockDispatch.mockRejectedValueOnce(new Error('Agent dispatch timed out'));
+    mt.getTicketById.mockResolvedValueOnce(makeTicket() as never);
+    mt.updateTicket.mockResolvedValue(makeTicket({ status: 'blocked' }) as never);
+    const app = createApp();
+    await app.fetch(dispatchRequest('ticket-1'));
+    expect(mt.updateTicket).toHaveBeenCalledWith(expect.anything(), 'ticket-1', {
+      status: 'blocked',
+    });
+  });
+});
+
+// ---------------------------------------------------------------------------
+// POST / — instruction length boundary + priority propagation
+// ---------------------------------------------------------------------------
+
+describe('POST / — instruction length and priority', () => {
+  it('returns 400 when instruction exceeds 2000 characters', async () => {
+    const app = createApp();
+    const res = await app.request(
+      '/',
+      post({ instruction: 'a'.repeat(2001), boardId: 'board-1' }),
+    );
+    expect(res.status).toBe(400);
+  });
+
+  it('accepts instruction of exactly 2000 characters', async () => {
+    mb.getBoardById.mockResolvedValue(makeBoard() as never);
+    mt.createTicket.mockResolvedValue(makeTicket() as never);
+    mt.getTicketById.mockResolvedValue(makeTicket({ status: 'done' }) as never);
+    const app = createApp();
+    const res = await app.request(
+      '/',
+      post({ instruction: 'a'.repeat(2000), boardId: 'board-1' }),
+    );
+    expect(res.status).toBe(200);
+  });
+
+  it('passes the requested priority to createTicket', async () => {
+    mb.getBoardById.mockResolvedValue(makeBoard() as never);
+    mt.createTicket.mockResolvedValue(makeTicket({ priority: 'critical' }) as never);
+    mt.getTicketById.mockResolvedValue(makeTicket({ status: 'done' }) as never);
+    const app = createApp();
+    await app.request(
+      '/',
+      post({ instruction: 'Fix the critical outage', boardId: 'board-1', priority: 'critical' }),
+    );
+    expect(mt.createTicket).toHaveBeenCalledWith(
+      expect.anything(),
+      expect.objectContaining({ priority: 'critical' }),
+    );
+  });
+
+  it('defaults priority to medium when not specified', async () => {
+    mb.getBoardById.mockResolvedValue(makeBoard() as never);
+    mt.createTicket.mockResolvedValue(makeTicket() as never);
+    mt.getTicketById.mockResolvedValue(makeTicket({ status: 'done' }) as never);
+    const app = createApp();
+    await app.request(
+      '/',
+      post({ instruction: 'Update homepage', boardId: 'board-1' }),
+    );
+    expect(mt.createTicket).toHaveBeenCalledWith(
+      expect.anything(),
+      expect.objectContaining({ priority: 'medium' }),
+    );
+  });
+});

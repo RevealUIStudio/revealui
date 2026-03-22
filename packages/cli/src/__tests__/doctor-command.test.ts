@@ -28,12 +28,10 @@ import { gatherDoctorReport } from '../runtime/doctor.js';
 const mockGatherDoctorReport = vi.mocked(gatherDoctorReport);
 
 describe('runDoctorCommand', () => {
-  const originalCI = process.env.CI;
-
   beforeEach(() => {
     vi.clearAllMocks();
     process.exitCode = undefined;
-    delete process.env.CI;
+    vi.stubEnv('CI', '');
     mockGatherDoctorReport.mockResolvedValue({
       workspaceRoot: '/repo',
       dbTarget: 'missing',
@@ -42,11 +40,7 @@ describe('runDoctorCommand', () => {
   });
 
   afterEach(() => {
-    if (originalCI !== undefined) {
-      process.env.CI = originalCI;
-    } else {
-      delete process.env.CI;
-    }
+    vi.unstubAllEnvs();
   });
 
   it('does not exit nonzero by default in interactive mode', async () => {

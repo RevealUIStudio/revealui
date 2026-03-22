@@ -166,6 +166,11 @@ jobs:
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
 
+      - name: Build packages (required — integration tests import real dist/)
+        run: pnpm --filter './packages/*' build
+        env:
+          SKIP_ENV_VALIDATION: "true"
+
       - name: Run integration tests (hard fail)
         run: pnpm test:integration
         env:

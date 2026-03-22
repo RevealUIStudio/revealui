@@ -434,6 +434,19 @@ describe('PATCH /posts/:id — update post (IDOR)', () => {
     });
     expect(res.status).toBe(200);
   });
+
+  it('returns 404 when updatePost returns null (post deleted between check and update)', async () => {
+    const post = makePost({ authorId: USER_A.id });
+    mockPostQueries.getPostById.mockResolvedValue(post);
+    mockPostQueries.updatePost.mockResolvedValue(null);
+    const app = createApp(USER_A);
+    const res = await app.request('/posts/post-1', {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ title: 'Updated' }),
+    });
+    expect(res.status).toBe(404);
+  });
 });
 
 describe('DELETE /posts/:id (IDOR)', () => {
@@ -559,6 +572,19 @@ describe('PATCH /media/:id — update media metadata (IDOR)', () => {
       body: JSON.stringify({ alt: 'New alt' }),
     });
     expect(res.status).toBe(200);
+  });
+
+  it('returns 404 when updateMedia returns null (media deleted between check and update)', async () => {
+    const item = makeMedia({ uploadedBy: USER_A.id });
+    mockMediaQueries.getMediaById.mockResolvedValue(item);
+    mockMediaQueries.updateMedia.mockResolvedValue(null);
+    const app = createApp(USER_A);
+    const res = await app.request('/media/media-1', {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ alt: 'New alt' }),
+    });
+    expect(res.status).toBe(404);
   });
 });
 
@@ -765,6 +791,19 @@ describe('PATCH /sites/:id (IDOR)', () => {
       body: JSON.stringify({ name: 'Admin Updated' }),
     });
     expect(res.status).toBe(200);
+  });
+
+  it('returns 404 when updateSite returns null (site deleted between check and update)', async () => {
+    const site = makeSite({ ownerId: USER_A.id });
+    mockSiteQueries.getSiteById.mockResolvedValue(site);
+    mockSiteQueries.updateSite.mockResolvedValue(null);
+    const app = createApp(USER_A);
+    const res = await app.request('/sites/site-1', {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ name: 'Updated' }),
+    });
+    expect(res.status).toBe(404);
   });
 });
 
@@ -1057,6 +1096,20 @@ describe('PATCH /pages/:id (IDOR)', () => {
       body: JSON.stringify({ title: 'Admin Updated' }),
     });
     expect(res.status).toBe(200);
+  });
+
+  it('returns 404 when updatePage returns null (page deleted between check and update)', async () => {
+    const page = makePage({ siteId: 'site-1' });
+    mockPageQueries.getPageById.mockResolvedValue(page);
+    mockSiteQueries.getSiteById.mockResolvedValue(makeSite({ ownerId: USER_A.id }));
+    mockPageQueries.updatePage.mockResolvedValue(null);
+    const app = createApp(USER_A);
+    const res = await app.request('/pages/page-1', {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ title: 'Updated' }),
+    });
+    expect(res.status).toBe(404);
   });
 });
 

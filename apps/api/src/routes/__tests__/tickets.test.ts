@@ -389,6 +389,23 @@ describe('Columns', () => {
     const res = await app.request('/columns/col-1', patch({ name: 'x' }));
     expect(res.status).toBe(403);
   });
+
+  it('DELETE /columns/:id — 403 for non-owner non-admin', async () => {
+    mb.getColumnById.mockResolvedValue(makeColumn() as never);
+    mb.getBoardById.mockResolvedValue(makeBoard({ ownerId: 'owner-1' }) as never);
+    const app = createApp({ id: 'not-owner', role: 'member' });
+    const res = await app.request('/columns/col-1', { method: 'DELETE' });
+    expect(res.status).toBe(403);
+  });
+
+  it('PATCH /columns/:id — 404 when updateColumn returns null', async () => {
+    mb.getColumnById.mockResolvedValue(makeColumn() as never);
+    mb.getBoardById.mockResolvedValue(makeBoard() as never);
+    mb.updateColumn.mockResolvedValue(null as never);
+    const app = createApp();
+    const res = await app.request('/columns/col-1', patch({ name: 'x' }));
+    expect(res.status).toBe(404);
+  });
 });
 
 // ---------------------------------------------------------------------------
@@ -518,6 +535,48 @@ describe('Tickets', () => {
     expect(res.status).toBe(200);
     const body = await parseBody(res);
     expect(body.data[0].parentTicketId).toBe('ticket-1');
+  });
+
+  it('GET /boards/:boardId/tickets — 404 when board not found', async () => {
+    mb.getBoardById.mockResolvedValue(null as never);
+    const app = createApp();
+    const res = await app.request('/boards/missing-board/tickets');
+    expect(res.status).toBe(404);
+  });
+
+  it('GET /boards/:boardId/tickets — 403 for non-owner non-admin', async () => {
+    mb.getBoardById.mockResolvedValue(makeBoard({ ownerId: 'owner-1' }) as never);
+    mt.getTicketsByBoard.mockResolvedValue([] as never);
+    const app = createApp({ id: 'other-user', role: 'member' });
+    const res = await app.request('/boards/board-1/tickets');
+    expect(res.status).toBe(403);
+  });
+
+  it('POST /tickets/:id/move — 404 when moveTicket returns null (ticket vanished after access check)', async () => {
+    mt.getTicketById.mockResolvedValue(makeTicket() as never);
+    mb.getBoardById.mockResolvedValue(makeBoard() as never);
+    mt.moveTicket.mockResolvedValue(null as never);
+    const app = createApp();
+    const res = await app.request(
+      '/tickets/ticket-1/move',
+      post({ columnId: 'col-2', sortOrder: 0 }),
+    );
+    expect(res.status).toBe(404);
+    const body = await parseBody(res);
+    expect(body.error).toContain('Ticket not found');
+  });
+
+  it('PATCH /tickets/:id — dueDate: null clears the field', async () => {
+    mt.getTicketById.mockResolvedValue(makeTicket() as never);
+    mb.getBoardById.mockResolvedValue(makeBoard() as never);
+    mt.updateTicket.mockResolvedValue(makeTicket({ dueDate: null }) as never);
+    const app = createApp();
+    await app.request('/tickets/ticket-1', patch({ dueDate: null }));
+    expect(mt.updateTicket).toHaveBeenCalledWith(
+      expect.anything(),
+      'ticket-1',
+      expect.objectContaining({ dueDate: null }),
+    );
   });
 });
 
@@ -758,5 +817,14 @@ describe('Labels', () => {
     const app = createApp();
     const res = await app.request('/tickets/ticket-1/labels/label-1', { method: 'DELETE' });
     expect(res.status).toBe(200);
+  });
+
+  it('POST /tickets/:id/labels — 500 when assignLabel returns null (plain Error, not HTTPException)', async () => {
+    mt.getTicketById.mockResolvedValue(makeTicket() as never);
+    mb.getBoardById.mockResolvedValue(makeBoard() as never);
+    ml.assignLabel.mockResolvedValue(null as never);
+    const app = createApp();
+    const res = await app.request('/tickets/ticket-1/labels', post({ labelId: 'label-1' }));
+    expect(res.status).toBe(500);
   });
 });
