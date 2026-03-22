@@ -20,5 +20,14 @@
     "types": ["node"]
   },
   "include": ["src/**/*"],
-  "exclude": ["node_modules", "dist", "**/*.spec.ts", "**/*.test.ts", "../studio", "../docs", "../cms", "../marketing"]
+  "exclude": [
+    "node_modules",
+    "dist",
+    "**/*.spec.ts",
+    "**/*.test.ts",
+    "../studio",
+    "../docs",
+    "../cms",
+    "../marketing"
+  ]
 }

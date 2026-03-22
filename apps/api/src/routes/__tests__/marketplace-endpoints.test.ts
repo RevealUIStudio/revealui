@@ -206,7 +206,6 @@ interface UserContext {
 }
 
 function createApp(user?: UserContext) {
-  // biome-ignore lint/style/useNamingConvention: Hono requires PascalCase Variables
   const app = new Hono<{ Variables: { user: UserContext | undefined } }>();
   app.use('*', async (c, next) => {
     c.set('user', user ?? undefined);
