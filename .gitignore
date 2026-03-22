@@ -172,6 +172,9 @@ apps/docs/dist/docs/
 # PostgreSQL local development data
 .pgdata/
 .pgdata.*
+
+# BitNet local inference (repo clone + compiled binaries + model)
+.bitnet/
 :memory:/
 
 # Nix build results (if building packages)

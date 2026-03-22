@@ -177,6 +177,8 @@
     "audit:console": "tsx scripts/analyze/audit-console.ts",
     "preflight": "tsx scripts/validate/pre-launch.ts",
     "secrets:scan": "tsx scripts/secrets/scan.ts",
+    "bitnet:install": "bash scripts/bitnet/install.sh",
+    "bitnet:serve": "bash scripts/bitnet/serve.sh",
     "revealui": "node packages/cli/bin/revealui.js",
     "scripts": "tsx scripts/cli/scripts.ts"
   },
