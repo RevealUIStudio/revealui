@@ -387,3 +387,73 @@ export async function provisionGitHubAccess(githubUsername: string, db?: Databas
     logger.info('GitHub team access provisioned', { githubUsername, state: body.state });
   }
 }
+
+/**
+ * Add an npm user to the revealui-pro-customers team.
+ *
+ * - Retries up to 3 times with exponential backoff (1 s / 2 s / 4 s)
+ * - On permanent failure, writes an error row to app_logs (if db provided)
+ *   and re-throws so the caller can capture the event
+ */
+export async function provisionNpmAccess(npmUsername: string, db?: Database): Promise<void> {
+  const token = process.env.REVEALUI_NPM_TOKEN;
+  if (!token) {
+    logger.warn('REVEALUI_NPM_TOKEN not configured — skipping npm team provisioning', {
+      npmUsername,
+    });
+    return;
+  }
+
+  const { fetchWithRetry } = await import('@revealui/core/error-handling');
+
+  const url = `https://registry.npmjs.org/-/org/revealui/team/revealui-pro-customers/user`;
+
+  let response: Response;
+  try {
+    response = await fetchWithRetry(
+      url,
+      {
+        method: 'PUT',
+        headers: {
+          // biome-ignore lint/style/useNamingConvention: HTTP header convention
+          Authorization: `Bearer ${token}`,
+          'Content-Type': 'application/json',
+          Accept: 'application/json',
+        },
+        body: JSON.stringify({ user: npmUsername }),
+      },
+      {
+        maxRetries: 3,
+        baseDelay: 1000,
+        onRetry: (error, attempt) => {
+          logger.warn('Retrying npm team provisioning', {
+            npmUsername,
+            attempt,
+            error: error.message,
+          });
+        },
+      },
+    );
+  } catch (err) {
+    const errObj = err instanceof Error ? err : new Error(String(err));
+    logger.error('npm team provisioning failed after all retries', errObj, { npmUsername });
+    if (db) {
+      await db.insert(appLogs).values({
+        level: 'error',
+        message: 'npm team provisioning failed after all retries',
+        app: 'api',
+        data: { npmUsername, error: errObj.message },
+      });
+    }
+    throw err;
+  }
+
+  if (!response.ok) {
+    logger.warn('npm team provisioning returned non-OK status', {
+      npmUsername,
+      status: response.status,
+    });
+  } else {
+    logger.info('npm team access provisioned', { npmUsername });
+  }
+}

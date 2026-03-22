@@ -801,6 +801,10 @@ const PerpetualCheckoutRequestSchema = z.object({
     description: 'GitHub username for revealui-pro team access provisioning',
     example: 'octocat',
   }),
+  npmUsername: z.string().optional().openapi({
+    description: 'npm username for @revealui org team access provisioning',
+    example: 'octocat',
+  }),
 });
 
 const perpetualCheckoutRoute = createRoute({
@@ -835,7 +839,7 @@ app.openapi(perpetualCheckoutRoute, async (c) => {
     throw new HTTPException(401, { message: 'Authentication required' });
   }
 
-  const { priceId, tier, githubUsername } = c.req.valid('json');
+  const { priceId, tier, githubUsername, npmUsername } = c.req.valid('json');
   const resolvedPriceId = await resolveCatalogPriceId(tier, 'perpetual', priceId);
   const customerId = await ensureStripeCustomer(user.id, user.email ?? '');
 
@@ -857,6 +861,7 @@ app.openapi(perpetualCheckoutRoute, async (c) => {
           perpetual: 'true',
           revealui_user_id: user.id,
           ...(githubUsername && { github_username: githubUsername }),
+          ...(npmUsername && { npm_username: npmUsername }),
         },
       },
       metadata: {
@@ -864,6 +869,7 @@ app.openapi(perpetualCheckoutRoute, async (c) => {
         perpetual: 'true',
         revealui_user_id: user.id,
         ...(githubUsername && { github_username: githubUsername }),
+        ...(npmUsername && { npm_username: npmUsername }),
       },
       success_url: `${cmsUrl}/account/billing?perpetual=true`,
       cancel_url: `${cmsUrl}/account/billing`,
