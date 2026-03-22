@@ -1,4 +1,4 @@
-import { beforeEach, describe, expect, it, vi } from 'vitest';
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
 vi.mock('@revealui/setup/utils', () => ({
   createLogger: () => ({
@@ -28,14 +28,25 @@ import { gatherDoctorReport } from '../runtime/doctor.js';
 const mockGatherDoctorReport = vi.mocked(gatherDoctorReport);
 
 describe('runDoctorCommand', () => {
+  const originalCI = process.env.CI;
+
   beforeEach(() => {
     vi.clearAllMocks();
     process.exitCode = undefined;
+    delete process.env.CI;
     mockGatherDoctorReport.mockResolvedValue({
       workspaceRoot: '/repo',
       dbTarget: 'missing',
       checks: [{ id: 'db-target', ok: false, detail: 'missing database url' }],
     });
+  });
+
+  afterEach(() => {
+    if (originalCI !== undefined) {
+      process.env.CI = originalCI;
+    } else {
+      delete process.env.CI;
+    }
   });
 
   it('does not exit nonzero by default in interactive mode', async () => {

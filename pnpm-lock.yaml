@@ -1475,6 +1475,9 @@ importers:
       '@neondatabase/serverless':
         specifier: ^1.0.2
         version: 1.0.2
+      '@revealui/auth':
+        specifier: workspace:*
+        version: link:../auth
       '@revealui/contracts':
         specifier: workspace:*
         version: link:../contracts

@@ -4,6 +4,7 @@
   "private": true,
   "dependencies": {
     "@neondatabase/serverless": "^1.0.2",
+    "@revealui/auth": "workspace:*",
     "@revealui/contracts": "workspace:*",
     "@revealui/core": "workspace:*",
     "@revealui/db": "workspace:*",

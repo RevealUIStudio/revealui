@@ -12,8 +12,10 @@ import {
 
 describe('resolveDevUpOptions', () => {
   let tempRoot: string;
+  let originalCwd: string;
 
   beforeEach(() => {
+    originalCwd = process.cwd();
     tempRoot = fs.mkdtempSync(path.join(os.tmpdir(), 'revealui-dev-test-'));
     fs.writeFileSync(
       path.join(tempRoot, 'package.json'),
@@ -23,7 +25,7 @@ describe('resolveDevUpOptions', () => {
   });
 
   afterEach(() => {
-    process.chdir('/home/joshua-v-dev/projects/RevealUI/packages/cli');
+    process.chdir(originalCwd);
     fs.rmSync(tempRoot, { recursive: true, force: true });
   });
 
