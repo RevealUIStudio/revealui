@@ -97,7 +97,7 @@ function makeDbChain(rows: unknown[] = []) {
   };
   // make every method return `chain` for fluent chaining
   for (const key of Object.keys(chain)) {
-    if (key !== 'returning') chain[key].mockReturnValue(chain);
+    if (key !== 'returning') chain[key]!.mockReturnValue(chain);
   }
   return chain;
 }
