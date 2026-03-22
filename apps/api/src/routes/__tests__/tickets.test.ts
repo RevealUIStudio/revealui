@@ -262,6 +262,13 @@ describe('Boards', () => {
     expect(res.status).toBe(403);
   });
 
+  it('PATCH /boards/:id — 404 when board does not exist', async () => {
+    mb.getBoardById.mockResolvedValue(null as never);
+    const app = createApp();
+    const res = await app.request('/boards/no-board', patch({ name: 'x' }));
+    expect(res.status).toBe(404);
+  });
+
   it('PATCH /boards/:id — 404 when update returns null', async () => {
     mb.getBoardById.mockResolvedValue(makeBoard() as never);
     mb.updateBoard.mockResolvedValue(null as never);

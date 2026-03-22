@@ -92,5 +92,5 @@
     "typecheck": "tsc --noEmit",
     "vercel-build": "env -u NODE_ENV cross-env NODE_OPTIONS=--no-deprecation TURBOPACK=0 next build"
   },
-  "type": "module"
+  "type": "commonjs"
 }
