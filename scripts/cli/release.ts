@@ -293,11 +293,14 @@ class ReleaseCLI extends ExecutingCLI {
   }
 
   /**
-   * Publish Pro packages to GitHub Packages — replaces release-pro.yml.
+   * Publish Pro packages to npmjs.org (public, open-core model).
+   *
+   * Pro packages are source-available and publicly installable.
+   * A license key is required for production use — enforced at runtime.
    *
    * Prerequisites:
    *   1. Remove "private": true from the 5 Pro package.json files
-   *   2. Set NODE_AUTH_TOKEN to a PAT with write:packages scope
+   *   2. Be logged in to npm (`npm whoami`) or set NPM_TOKEN env var
    *
    * Use --dry-run to preview without publishing.
    */
@@ -309,14 +312,6 @@ class ReleaseCLI extends ExecutingCLI {
 
     if (isDryRun) {
       console.log('\n[dry-run] Pro release — publish commands will include --dry-run\n');
-    }
-
-    // Check NODE_AUTH_TOKEN
-    if (!(isDryRun || process.env.NODE_AUTH_TOKEN)) {
-      return fail(
-        'NODE_AUTH_TOKEN is required for Pro package publishing.\nSet it to a GitHub PAT with write:packages scope.',
-        ErrorCode.CONFIG_ERROR,
-      );
     }
 
     // Prerequisite check: verify "private": true has been removed
@@ -356,19 +351,20 @@ class ReleaseCLI extends ExecutingCLI {
       }
     }
 
-    // Publish each Pro package to GitHub Packages
-    console.log('\nPublishing Pro packages to GitHub Packages...');
+    // Publish each Pro package to npmjs.org
+    // publishConfig.access=public in each package.json handles open-core visibility.
+    // Runtime license enforcement (requireFeature) gates actual usage.
+    console.log('\nPublishing Pro packages to npm...');
     const publishArgs = isDryRun ? ['--no-git-checks', '--dry-run'] : ['--no-git-checks'];
 
     for (const pkg of ProPackages) {
       console.log(`  ${isDryRun ? '[dry-run] ' : ''}Publishing @revealui/${pkg}...`);
+      const env: Record<string, string> = { SKIP_ENV_VALIDATION: 'true' };
+      if (process.env.NPM_TOKEN) env.NPM_TOKEN = process.env.NPM_TOKEN;
       const publishResult = await execCommand(
         'pnpm',
         ['--filter', `@revealui/${pkg}`, 'publish', ...publishArgs],
-        {
-          cwd: this.projectRoot,
-          env: { NODE_AUTH_TOKEN: process.env.NODE_AUTH_TOKEN ?? '' },
-        },
+        { cwd: this.projectRoot, env },
       );
       if (!(publishResult.success || isDryRun)) {
         return fail(`Publish failed for @revealui/${pkg}`, ErrorCode.EXECUTION_ERROR);
@@ -378,7 +374,7 @@ class ReleaseCLI extends ExecutingCLI {
     return ok({
       message: isDryRun
         ? 'Pro dry-run complete — no packages published'
-        : `Pro packages published to GitHub Packages`,
+        : 'Pro packages published to npm (open-core, runtime-licensed)',
       packages: ProPackages.map((p) => `@revealui/${p}`),
       dryRun: isDryRun,
     });
