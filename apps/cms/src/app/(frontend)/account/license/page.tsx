@@ -51,6 +51,8 @@ export default function LicensePage() {
   const [error, setError] = useState<string | null>(null);
   const [perpetualLoading, setPerpetualLoading] = useState<string | null>(null);
   const [pricing, setPricing] = useState<PricingResponse | null>(null);
+  const [githubUsername, setGithubUsername] = useState('');
+  const [npmUsername, setNpmUsername] = useState('');
 
   const fetchData = useCallback(async () => {
     try {
@@ -108,7 +110,12 @@ export default function LicensePage() {
         method: 'POST',
         credentials: 'include',
         headers: { 'content-type': 'application/json' },
-        body: JSON.stringify({ priceId: plan.priceIdEnv, tier: plan.tier }),
+        body: JSON.stringify({
+          priceId: plan.priceIdEnv,
+          tier: plan.tier,
+          ...(githubUsername.trim() && { githubUsername: githubUsername.trim() }),
+          ...(npmUsername.trim() && { npmUsername: npmUsername.trim() }),
+        }),
       });
       if (!res.ok) throw new Error('Checkout failed');
       const { url } = (await res.json()) as { url: string };
@@ -207,7 +214,40 @@ export default function LicensePage() {
               of support with optional annual renewals.
             </CardDescription>
           </CardHeader>
-          <CardContent className="space-y-3">
+          <CardContent className="space-y-4">
+            <div className="space-y-3 rounded-lg border p-3 dark:border-zinc-800">
+              <p className="text-xs font-medium text-zinc-500 uppercase tracking-wide">
+                Optional — for package access
+              </p>
+              <div className="space-y-2">
+                <label className="flex flex-col gap-1">
+                  <span className="text-sm font-medium">GitHub username</span>
+                  <input
+                    type="text"
+                    placeholder="your-github-handle"
+                    value={githubUsername}
+                    onChange={(e) => setGithubUsername(e.target.value)}
+                    className="rounded-md border px-3 py-1.5 text-sm dark:border-zinc-700 dark:bg-zinc-900"
+                  />
+                  <span className="text-xs text-zinc-500">
+                    Added to the revealui-pro GitHub team for private package access.
+                  </span>
+                </label>
+                <label className="flex flex-col gap-1">
+                  <span className="text-sm font-medium">npm username</span>
+                  <input
+                    type="text"
+                    placeholder="your-npm-handle"
+                    value={npmUsername}
+                    onChange={(e) => setNpmUsername(e.target.value)}
+                    className="rounded-md border px-3 py-1.5 text-sm dark:border-zinc-700 dark:bg-zinc-900"
+                  />
+                  <span className="text-xs text-zinc-500">
+                    Added to the @revealui npm org team for Pro package installs.
+                  </span>
+                </label>
+              </div>
+            </div>
             {PERPETUAL_PLANS.filter((p) => p.priceIdEnv).map((plan) => (
               <div
                 key={plan.tier}
