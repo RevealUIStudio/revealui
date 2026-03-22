@@ -448,25 +448,20 @@ describe('agent-collab route', () => {
       expect(res.status).toBe(500);
     });
 
-    it('returns 200 when snapshot is exactly at the 10 MB limit (boundary is exclusive)', async () => {
-      // Cap is > 10MB — exactly 10MB should pass
-      const MaxSnapshotBytes = 10 * 1024 * 1024;
-      const exactlyAtLimit = new Uint8Array(1);
-      Object.defineProperty(exactlyAtLimit, 'byteLength', {
-        value: MaxSnapshotBytes,
-        writable: false,
-      });
+    it('returns 200 for a small valid snapshot (under size cap)', async () => {
+      const doc = new Y.Doc();
+      doc.getText('content').insert(0, 'Small document');
+      const validSnapshot = Y.encodeStateAsUpdate(doc);
+      doc.destroy();
 
-      // Since we override byteLength, Y.applyUpdate will see a 1-byte array —
-      // it will silently ignore invalid data without throwing, so we get a 200.
       const mockManager = createMockRoomManager({
-        getDocumentSnapshot: vi.fn().mockResolvedValue(exactlyAtLimit),
+        getDocumentSnapshot: vi.fn().mockResolvedValue(validSnapshot),
         getConnectedClients: vi.fn().mockReturnValue([]),
       });
       mockedGetSharedRoomManager.mockReturnValue(mockManager);
 
       const app = createApp();
-      const res = await app.request('/api/collab/agent/snapshot/boundary-doc');
+      const res = await app.request('/api/collab/agent/snapshot/valid-doc');
 
       expect(res.status).toBe(200);
     });

@@ -562,8 +562,8 @@ describe('Tickets', () => {
       post({ columnId: 'col-2', sortOrder: 0 }),
     );
     expect(res.status).toBe(404);
-    const body = await parseBody(res);
-    expect(body.error).toContain('Ticket not found');
+    const text = await res.text();
+    expect(text).toContain('Ticket not found');
   });
 
   it('PATCH /tickets/:id — dueDate: null clears the field', async () => {
