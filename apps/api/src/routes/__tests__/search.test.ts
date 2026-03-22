@@ -339,4 +339,73 @@ describe('GET /search — response shape', () => {
     const body = await parseBody(res);
     expect(body.results[0].createdAt).toBe('2025-01-01T00:00:00.000Z');
   });
+
+  it('serializes null title and slug as null in result items', async () => {
+    setupChain(makeRows(1, { title: null, slug: null }));
+    const res = await createApp().request('/search?q=hello&type=posts');
+    const body = await parseBody(res);
+    expect(body.results[0].title).toBeNull();
+    expect(body.results[0].slug).toBeNull();
+  });
+
+  it('serializes null createdAt as null in result items', async () => {
+    setupChain(makeRows(1, { createdAt: null }));
+    const res = await createApp().request('/search?q=hello&type=posts');
+    const body = await parseBody(res);
+    expect(body.results[0].createdAt).toBeNull();
+  });
+});
+
+// ── Boundary values ───────────────────────────────────────────────────────────
+
+describe('GET /search — boundary values', () => {
+  it('accepts q at exactly 2 characters (min boundary)', async () => {
+    setupChain([]);
+    const res = await createApp().request('/search?q=ab&type=posts');
+    expect(res.status).toBe(200);
+    const body = await parseBody(res);
+    expect(body.query).toBe('ab');
+  });
+
+  it('accepts limit=1 (min boundary)', async () => {
+    setupChain([]);
+    const res = await createApp().request('/search?q=hello&type=posts&limit=1');
+    expect(res.status).toBe(200);
+    expect(mockSelectChain.limit).toHaveBeenCalledWith(1);
+  });
+
+  it('accepts limit=100 (max boundary)', async () => {
+    setupChain([]);
+    const res = await createApp().request('/search?q=hello&type=posts&limit=100');
+    expect(res.status).toBe(200);
+    expect(mockSelectChain.limit).toHaveBeenCalledWith(100);
+  });
+});
+
+// ── Error handling ────────────────────────────────────────────────────────────
+
+describe('GET /search — DB error propagation', () => {
+  it('propagates as 500 when the posts query rejects', async () => {
+    mockSelectChain.from.mockReturnValue(mockSelectChain);
+    mockSelectChain.where.mockReturnValue(mockSelectChain);
+    mockSelectChain.orderBy.mockReturnValue(mockSelectChain);
+    mockSelectChain.limit.mockReturnValue(mockSelectChain);
+    mockSelectChain.offset.mockRejectedValue(new Error('connection timeout'));
+    mockDb.select.mockReturnValue(mockSelectChain);
+
+    const res = await createApp().request('/search?q=hello&type=posts');
+    expect(res.status).toBe(500);
+  });
+
+  it('propagates as 500 when the pages query rejects', async () => {
+    mockSelectChain.from.mockReturnValue(mockSelectChain);
+    mockSelectChain.where.mockReturnValue(mockSelectChain);
+    mockSelectChain.orderBy.mockReturnValue(mockSelectChain);
+    mockSelectChain.limit.mockReturnValue(mockSelectChain);
+    mockSelectChain.offset.mockRejectedValue(new Error('connection timeout'));
+    mockDb.select.mockReturnValue(mockSelectChain);
+
+    const res = await createApp().request('/search?q=hello&type=pages');
+    expect(res.status).toBe(500);
+  });
 });

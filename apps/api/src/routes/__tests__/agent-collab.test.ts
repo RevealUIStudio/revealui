@@ -521,6 +521,104 @@ describe('agent-collab route', () => {
     });
   });
 
+  describe('POST /api/collab/agent/connect — boundary values', () => {
+    it('returns 400 when documentId is an empty string', async () => {
+      const app = createApp();
+
+      const res = await app.request(
+        '/api/collab/agent/connect',
+        jsonRequest('/api/collab/agent/connect', {
+          documentId: '',
+          agentName: 'Claude',
+          agentModel: 'claude-opus-4-6',
+        }),
+      );
+
+      expect(res.status).toBe(400);
+    });
+
+    it('returns 400 when agentModel is an empty string', async () => {
+      const app = createApp();
+
+      const res = await app.request(
+        '/api/collab/agent/connect',
+        jsonRequest('/api/collab/agent/connect', {
+          documentId: 'doc-123',
+          agentName: 'Claude',
+          agentModel: '',
+        }),
+      );
+
+      expect(res.status).toBe(400);
+    });
+
+    it('accepts agentName at exactly 1 character (min boundary)', async () => {
+      const app = createApp();
+
+      const res = await app.request(
+        '/api/collab/agent/connect',
+        jsonRequest('/api/collab/agent/connect', {
+          documentId: 'doc-123',
+          agentName: 'X',
+          agentModel: 'claude-opus-4-6',
+        }),
+      );
+
+      expect(res.status).toBe(200);
+    });
+
+    it('accepts agentName at exactly 100 characters (max boundary)', async () => {
+      const app = createApp();
+
+      const res = await app.request(
+        '/api/collab/agent/connect',
+        jsonRequest('/api/collab/agent/connect', {
+          documentId: 'doc-123',
+          agentName: 'A'.repeat(100),
+          agentModel: 'claude-opus-4-6',
+        }),
+      );
+
+      expect(res.status).toBe(200);
+      const json = (await res.json()) as Record<string, unknown>;
+      expect(json.success).toBe(true);
+    });
+
+    it('accepts lowercase hex color (e.g., #ff5733)', async () => {
+      const app = createApp();
+
+      const res = await app.request(
+        '/api/collab/agent/connect',
+        jsonRequest('/api/collab/agent/connect', {
+          documentId: 'doc-123',
+          agentName: 'Claude',
+          agentModel: 'claude-opus-4-6',
+          color: '#ff5733',
+        }),
+      );
+
+      expect(res.status).toBe(200);
+      const json = (await res.json()) as Record<string, unknown>;
+      expect((json.identity as Record<string, unknown>).color).toBe('#ff5733');
+    });
+  });
+
+  describe('POST /api/collab/agent/edit — documentId validation', () => {
+    it('returns 400 when documentId is an empty string', async () => {
+      const app = createApp();
+
+      const res = await app.request(
+        '/api/collab/agent/edit',
+        jsonRequest('/api/collab/agent/edit', {
+          documentId: '',
+          edit: { type: 'insert', index: 0, content: 'test' },
+        }),
+      );
+
+      expect(res.status).toBe(400);
+    });
+  });
+
   describe('POST /api/collab/agent/connect — WS_BASE_URL env override', () => {
     afterEach(() => {
       vi.unstubAllEnvs();
