@@ -322,4 +322,220 @@ describe('collab routes', () => {
       expect(mockLoadDocument).toHaveBeenCalledWith(targetDocId, expect.any(Object));
     });
   });
+
+  // ---------------------------------------------------------------------------
+  // Pass 15 — edge case expansion
+  // ---------------------------------------------------------------------------
+
+  describe('POST /api/collab/update — edge cases', () => {
+    it('returns 400 for empty string documentId', async () => {
+      const app = createApp(testUser, {});
+
+      const res = await jsonPost(app, '/api/collab/update', {
+        documentId: '',
+        update: Buffer.from('test').toString('base64'),
+      });
+
+      // Zod .min(1) rejects empty string
+      expect(res.status).toBe(400);
+    });
+
+    it('returns 400 for empty string update', async () => {
+      const app = createApp(testUser, {});
+
+      const res = await jsonPost(app, '/api/collab/update', {
+        documentId: 'doc-1',
+        update: '',
+      });
+
+      // Zod .min(1) rejects empty string
+      expect(res.status).toBe(400);
+    });
+
+    it('handles update with Yjs Text type data', async () => {
+      const Y = await import('yjs');
+      const doc = new Y.Doc();
+      doc.getText('content').insert(0, 'Hello World');
+      const validUpdate = Y.encodeStateAsUpdate(doc);
+      doc.destroy();
+
+      const app = createApp(testUser, {});
+
+      const res = await jsonPost(app, '/api/collab/update', {
+        documentId: 'doc-text',
+        update: Buffer.from(validUpdate).toString('base64'),
+      });
+
+      expect(res.status).toBe(200);
+      const body = await parseBody(res);
+      expect(body.success).toBe(true);
+    });
+
+    it('handles update with Yjs Map type data', async () => {
+      const Y = await import('yjs');
+      const doc = new Y.Doc();
+      doc.getMap('meta').set('title', 'My Document');
+      doc.getMap('meta').set('version', 42);
+      const validUpdate = Y.encodeStateAsUpdate(doc);
+      doc.destroy();
+
+      const app = createApp(testUser, {});
+
+      const res = await jsonPost(app, '/api/collab/update', {
+        documentId: 'doc-map',
+        update: Buffer.from(validUpdate).toString('base64'),
+      });
+
+      expect(res.status).toBe(200);
+      const body = await parseBody(res);
+      expect(body.success).toBe(true);
+    });
+
+    it('applies multiple sequential updates to the same document', async () => {
+      const Y = await import('yjs');
+
+      // First update
+      const doc1 = new Y.Doc();
+      doc1.getArray('items').insert(0, ['first']);
+      const update1 = Y.encodeStateAsUpdate(doc1);
+      doc1.destroy();
+
+      // Second update
+      const doc2 = new Y.Doc();
+      doc2.getArray('items').insert(0, ['second']);
+      const update2 = Y.encodeStateAsUpdate(doc2);
+      doc2.destroy();
+
+      const app = createApp(testUser, {});
+
+      const res1 = await jsonPost(app, '/api/collab/update', {
+        documentId: 'doc-sequential',
+        update: Buffer.from(update1).toString('base64'),
+      });
+      expect(res1.status).toBe(200);
+
+      const res2 = await jsonPost(app, '/api/collab/update', {
+        documentId: 'doc-sequential',
+        update: Buffer.from(update2).toString('base64'),
+      });
+      expect(res2.status).toBe(200);
+
+      // Both calls should have persisted
+      expect(mockLoadDocument).toHaveBeenCalledTimes(2);
+      expect(mockSaveDocument).toHaveBeenCalledTimes(2);
+    });
+
+    it('logs error details when update fails with non-Error thrown value', async () => {
+      const { logger } = await import('@revealui/core/observability/logger');
+
+      // Make loadDocument throw a string (non-Error) to hit the String(err) path
+      mockLoadDocument.mockRejectedValue('string-error-value');
+
+      const Y = await import('yjs');
+      const doc = new Y.Doc();
+      doc.getArray('test').insert(0, ['hello']);
+      const validUpdate = Y.encodeStateAsUpdate(doc);
+      doc.destroy();
+
+      const app = createApp(testUser, {});
+
+      const res = await jsonPost(app, '/api/collab/update', {
+        documentId: 'doc-nonerror',
+        update: Buffer.from(validUpdate).toString('base64'),
+      });
+
+      expect(res.status).toBe(500);
+      // logger.error should have been called with a constructed Error from String(err)
+      expect(logger.error).toHaveBeenCalledWith(
+        'Failed to apply collab update',
+        expect.any(Error),
+        { documentId: 'doc-nonerror' },
+      );
+    });
+
+    it('returns 400 for non-object request body', async () => {
+      const app = createApp(testUser, {});
+
+      const res = await jsonPost(app, '/api/collab/update', 'not-an-object');
+
+      expect(res.status).toBe(400);
+    });
+
+    it('returns 400 when documentId is not a string', async () => {
+      const app = createApp(testUser, {});
+
+      const res = await jsonPost(app, '/api/collab/update', {
+        documentId: 123,
+        update: Buffer.from('test').toString('base64'),
+      });
+
+      expect(res.status).toBe(400);
+    });
+  });
+
+  describe('GET /api/collab/snapshot — edge cases', () => {
+    it('returns decodable Yjs state that can reconstruct the original document', async () => {
+      const Y = await import('yjs');
+
+      mockLoadDocument.mockImplementation(async (_id: string, doc: InstanceType<typeof Y.Doc>) => {
+        doc.getText('content').insert(0, 'reconstruct-me');
+      });
+
+      const app = createApp(testUser, {});
+      const res = await app.request('/api/collab/snapshot/doc-roundtrip');
+
+      expect(res.status).toBe(200);
+      const body = await parseBody(res);
+
+      // Decode the base64 state and verify it produces valid Yjs content
+      const stateBytes = new Uint8Array(Buffer.from(body.state, 'base64'));
+      const reconstructed = new Y.Doc();
+      Y.applyUpdate(reconstructed, stateBytes);
+      expect(reconstructed.getText('content').toString()).toBe('reconstruct-me');
+      reconstructed.destroy();
+    });
+
+    it('logs error details when snapshot fails with non-Error thrown value', async () => {
+      const { logger } = await import('@revealui/core/observability/logger');
+
+      // Throw a non-Error value to hit the String(err) branch in the catch
+      mockLoadDocument.mockRejectedValue(42);
+
+      const app = createApp(testUser, {});
+      const res = await app.request('/api/collab/snapshot/doc-nonerror');
+
+      expect(res.status).toBe(500);
+      expect(logger.error).toHaveBeenCalledWith(
+        'Failed to get collab snapshot',
+        expect.any(Error),
+        { documentId: 'doc-nonerror' },
+      );
+    });
+
+    it('returns different state for documents with different content', async () => {
+      const Y = await import('yjs');
+
+      // First document
+      mockLoadDocument.mockImplementation(async (_id: string, doc: InstanceType<typeof Y.Doc>) => {
+        doc.getText('content').insert(0, 'document-A');
+      });
+
+      const app = createApp(testUser, {});
+      const res1 = await app.request('/api/collab/snapshot/doc-a');
+      expect(res1.status).toBe(200);
+      const body1 = await parseBody(res1);
+
+      // Second document with different content
+      mockLoadDocument.mockImplementation(async (_id: string, doc: InstanceType<typeof Y.Doc>) => {
+        doc.getText('content').insert(0, 'document-B-different');
+      });
+
+      const res2 = await app.request('/api/collab/snapshot/doc-b');
+      expect(res2.status).toBe(200);
+      const body2 = await parseBody(res2);
+
+      // States should be different
+      expect(body1.state).not.toBe(body2.state);
+    });
+  });
 });

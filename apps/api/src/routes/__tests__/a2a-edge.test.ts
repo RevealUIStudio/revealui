@@ -490,3 +490,244 @@ describe('POST /a2a — quota and BYOK', () => {
     expect(thirdArg).toMatchObject({ provider: 'anthropic', apiKey: 'sk-test-key-1234' });
   });
 });
+
+// ─── Pass 15 — edge case expansion ──────────────────────────────────────────
+
+describe('POST /a2a — JSON-RPC validation edge cases', () => {
+  beforeEach(() => {
+    resetMocks();
+    // resetMocks clears all mocks; restore safeParse passthroughs
+    mockA2AJsonRpcSafeParse.mockImplementation((data: unknown) => ({ success: true, data }));
+    mockAgentDefinitionSafeParse.mockImplementation((data: unknown) => ({ success: true, data }));
+  });
+
+  it('returns 400 with RPC_INVALID_REQUEST when safeParse fails', async () => {
+    // Make safeParse return failure to hit the invalid request branch
+    mockA2AJsonRpcSafeParse.mockReturnValue({
+      success: false,
+      error: { issues: [{ message: 'missing method' }] },
+    });
+
+    const app = makeA2AApp({ id: 'user-1' });
+    const res = await app.request(post('/', { jsonrpc: '2.0', id: 99 }));
+
+    expect(res.status).toBe(400);
+    const body = (await res.json()) as {
+      jsonrpc: string;
+      id: number;
+      error: { code: number; message: string };
+    };
+    expect(body.jsonrpc).toBe('2.0');
+    expect(body.id).toBe(99);
+    expect(body.error.code).toBe(-32600);
+    expect(body.error.message).toBe('Invalid Request');
+    expect(mockHandleA2AJsonRpc).not.toHaveBeenCalled();
+  });
+
+  it('uses null as id when body has no id field and safeParse fails', async () => {
+    mockA2AJsonRpcSafeParse.mockReturnValue({
+      success: false,
+      error: { issues: [{ message: 'bad request' }] },
+    });
+
+    const app = makeA2AApp({ id: 'user-1' });
+    const res = await app.request(post('/', { jsonrpc: '2.0' }));
+
+    expect(res.status).toBe(400);
+    const body = (await res.json()) as { id: unknown };
+    expect(body.id).toBeNull();
+  });
+
+  it('returns 403 for tasks/send when ai feature is disabled', async () => {
+    mockIsFeatureEnabled.mockReturnValue(false);
+
+    const app = makeA2AApp({ id: 'user-1' });
+    const res = await app.request(
+      post('/', {
+        jsonrpc: '2.0',
+        id: 1,
+        method: 'tasks/send',
+        params: { id: 'test-agent', message: { role: 'user', parts: [{ text: 'hi' }] } },
+      }),
+    );
+
+    expect(res.status).toBe(403);
+    const body = (await res.json()) as {
+      jsonrpc: string;
+      error: { code: number; message: string };
+    };
+    expect(body.error.code).toBe(-32003);
+    expect(body.error.message).toContain('Pro or Enterprise license');
+    expect(mockHandleA2AJsonRpc).not.toHaveBeenCalled();
+  });
+
+  it('returns 403 for tasks/sendSubscribe when ai feature is disabled', async () => {
+    mockIsFeatureEnabled.mockReturnValue(false);
+
+    const app = makeA2AApp({ id: 'user-1' });
+    const res = await app.request(
+      post('/', {
+        jsonrpc: '2.0',
+        id: 2,
+        method: 'tasks/sendSubscribe',
+        params: { id: 'test-agent', message: { role: 'user', parts: [{ text: 'stream' }] } },
+      }),
+    );
+
+    expect(res.status).toBe(403);
+    expect(mockHandleA2AJsonRpc).not.toHaveBeenCalled();
+  });
+
+  it('allows tasks/get without ai feature gate (read-only method)', async () => {
+    // ai feature disabled but tasks/get should bypass the gate
+    mockIsFeatureEnabled.mockReturnValue(false);
+
+    const app = makeA2AApp({ id: 'user-1' });
+    const res = await app.request(
+      post('/', {
+        jsonrpc: '2.0',
+        id: 3,
+        method: 'tasks/get',
+        params: { id: 'task-1' },
+      }),
+    );
+
+    expect(res.status).toBe(200);
+    // Dispatcher should be called for read-only methods even when ai is disabled
+    expect(mockHandleA2AJsonRpc).toHaveBeenCalledTimes(1);
+  });
+
+  it('passes undefined as LLMClient when no BYOK headers are present', async () => {
+    const app = makeA2AApp({ id: 'user-1' });
+    const res = await app.request(
+      post('/', {
+        jsonrpc: '2.0',
+        id: 4,
+        method: 'tasks/get',
+        params: { id: 'task-1' },
+      }),
+    );
+
+    expect(res.status).toBe(200);
+    expect(mockHandleA2AJsonRpc).toHaveBeenCalledTimes(1);
+    // Without BYOK headers or stored keys, third arg should be undefined
+    const thirdArg = mockHandleA2AJsonRpc.mock.calls[0]?.[2];
+    expect(thirdArg).toBeUndefined();
+  });
+
+  it('ignores BYOK headers with invalid provider name', async () => {
+    const app = makeA2AApp({ id: 'user-1' });
+    const res = await app.request(
+      post(
+        '/',
+        { jsonrpc: '2.0', id: 5, method: 'tasks/get', params: { id: 'task-1' } },
+        { 'X-AI-Provider': 'invalid-provider-xyz', 'X-AI-Api-Key': 'sk-key-123' },
+      ),
+    );
+
+    expect(res.status).toBe(200);
+    // Invalid provider is not in VALID_PROVIDERS Set, so LLMClient should be undefined
+    const thirdArg = mockHandleA2AJsonRpc.mock.calls[0]?.[2];
+    expect(thirdArg).toBeUndefined();
+  });
+
+  it('forwards X-Agent-ID header as agentId to dispatcher', async () => {
+    const app = makeA2AApp({ id: 'user-1' });
+    const res = await app.request(
+      post(
+        '/',
+        { jsonrpc: '2.0', id: 6, method: 'tasks/get', params: { id: 'task-1' } },
+        { 'X-Agent-ID': 'custom-agent-42' },
+      ),
+    );
+
+    expect(res.status).toBe(200);
+    expect(mockHandleA2AJsonRpc).toHaveBeenCalledTimes(1);
+    // Second argument is the agentId from the X-Agent-ID header
+    const secondArg = mockHandleA2AJsonRpc.mock.calls[0]?.[1];
+    expect(secondArg).toBe('custom-agent-42');
+  });
+});
+
+describe('POST /a2a/agents — registration edge cases', () => {
+  beforeEach(() => {
+    resetMocks();
+    mockA2AJsonRpcSafeParse.mockImplementation((data: unknown) => ({ success: true, data }));
+    mockAgentDefinitionSafeParse.mockImplementation((data: unknown) => ({ success: true, data }));
+  });
+
+  it('returns 400 when agent definition fails validation', async () => {
+    mockAgentDefinitionSafeParse.mockReturnValue({
+      success: false,
+      error: { issues: [{ message: 'id is required', path: ['id'] }] },
+    });
+
+    const app = makeA2AApp({ id: 'user-1' });
+    const res = await app.request(post('/agents', { name: 'Missing ID Agent' }));
+
+    expect(res.status).toBe(400);
+    const body = (await res.json()) as { error: string; issues: unknown[] };
+    expect(body.error).toContain('Invalid agent definition');
+    expect(body.issues).toBeDefined();
+  });
+
+  it('returns 409 when registering a duplicate agent', async () => {
+    mockHas.mockReturnValue(true);
+
+    const app = makeA2AApp({ id: 'user-1' });
+    const res = await app.request(
+      post('/agents', {
+        id: 'duplicate-agent',
+        name: 'Duplicate',
+        description: 'Already exists',
+      }),
+    );
+
+    expect(res.status).toBe(409);
+    const body = (await res.json()) as { error: string };
+    expect(body.error).toContain('already registered');
+  });
+});
+
+describe('DELETE /a2a/agents/:id — edge cases', () => {
+  beforeEach(() => {
+    resetMocks();
+    mockA2AJsonRpcSafeParse.mockImplementation((data: unknown) => ({ success: true, data }));
+    mockAgentDefinitionSafeParse.mockImplementation((data: unknown) => ({ success: true, data }));
+  });
+
+  it('returns 403 when attempting to retire built-in agent revealui-creator', async () => {
+    const app = makeA2AApp({ id: 'user-1' });
+    const res = await app.request(
+      new Request('http://localhost/agents/revealui-creator', { method: 'DELETE' }),
+    );
+
+    expect(res.status).toBe(403);
+    const body = (await res.json()) as { error: string };
+    expect(body.error).toContain('Built-in platform agents cannot be retired');
+  });
+
+  it('returns 403 when attempting to retire built-in agent revealui-ticket-agent', async () => {
+    const app = makeA2AApp({ id: 'user-1' });
+    const res = await app.request(
+      new Request('http://localhost/agents/revealui-ticket-agent', { method: 'DELETE' }),
+    );
+
+    expect(res.status).toBe(403);
+    const body = (await res.json()) as { error: string };
+    expect(body.error).toContain('Built-in platform agents');
+  });
+
+  it('returns 404 when unregister returns false (agent not found)', async () => {
+    mockUnregister.mockReturnValue(false);
+
+    const app = makeA2AApp({ id: 'user-1' });
+    const res = await app.request(
+      new Request('http://localhost/agents/nonexistent-agent', { method: 'DELETE' }),
+    );
+
+    expect(res.status).toBe(404);
+    const body = (await res.json()) as { error: string };
+    expect(body.error).toContain('not found');
+  });
+});
