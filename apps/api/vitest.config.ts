@@ -5,6 +5,9 @@ export default defineConfig({
   resolve: {
     alias: {
       '@': path.resolve(__dirname, './src'),
+      // Resolve workspace packages from source to avoid Vite SSR export* re-export breakage.
+      // Classes lose constructor identity when passed through export * chains in SSR mode.
+      '@revealui/security': path.resolve(__dirname, '../../packages/security/src/index.ts'),
     },
   },
   test: {
