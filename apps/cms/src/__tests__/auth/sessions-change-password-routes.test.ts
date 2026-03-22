@@ -132,11 +132,8 @@ const mockUserSession = {
   },
 };
 
-function makeRequest(
-  url = 'http://localhost/api/auth/sessions',
-  opts: RequestInit = {},
-): NextRequest {
-  return new NextRequest(url, opts);
+function makeRequest(url = 'http://localhost/api/auth/sessions'): NextRequest {
+  return new NextRequest(url);
 }
 
 // ---------------------------------------------------------------------------
