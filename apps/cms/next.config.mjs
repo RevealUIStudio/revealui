@@ -5,7 +5,7 @@ import sentryModule from '@sentry/nextjs'
 
 // RevealUI Next.js integration
 import { withRevealUI } from '@revealui/core/nextjs'
-import ContentSecurityPolicy from './csp.js'
+import ContentSecurityPolicy from './csp.mjs'
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url))
 
