@@ -31,7 +31,7 @@ async function checkProLicense(): Promise<boolean> {
 
   if (!key) return false;
 
-  const publicKeyPem = process.env.REVEALUI_LICENSE_PUBLIC_KEY;
+  const publicKeyPem = process.env.REVEALUI_LICENSE_PUBLIC_KEY?.replace(/\\n/g, '\n');
   if (publicKeyPem) {
     try {
       const publicKey = await importSPKI(publicKeyPem, 'RS256');

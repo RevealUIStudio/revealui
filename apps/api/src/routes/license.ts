@@ -142,7 +142,7 @@ const verifyRoute = createRoute({
 
 app.openapi(verifyRoute, async (c) => {
   const { licenseKey } = c.req.valid('json');
-  const publicKey = process.env.REVEALUI_LICENSE_PUBLIC_KEY;
+  const publicKey = process.env.REVEALUI_LICENSE_PUBLIC_KEY?.replace(/\\n/g, '\n') ?? undefined;
 
   if (!publicKey) {
     logger.error('REVEALUI_LICENSE_PUBLIC_KEY not configured');

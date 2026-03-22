@@ -81,7 +81,9 @@ let cachedState: LicenseState = {
  * For local development, it reads from REVEALUI_LICENSE_PUBLIC_KEY env var.
  */
 function getPublicKey(): string | null {
-  return process.env.REVEALUI_LICENSE_PUBLIC_KEY ?? null;
+  const raw = process.env.REVEALUI_LICENSE_PUBLIC_KEY ?? null;
+  // Docker/env files store PEM as single-line with literal \n — restore real newlines
+  return raw ? raw.replace(/\\n/g, '\n') : null;
 }
 
 /**
