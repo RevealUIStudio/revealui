@@ -4,7 +4,9 @@ export const LLM_PROVIDERS = [
   'anthropic',
   'groq',
   'ollama',
+  'bitnet',
   'huggingface',
   'vultr',
+  'inference-snaps',
 ] as const;
 export type LLMProvider = (typeof LLM_PROVIDERS)[number];
