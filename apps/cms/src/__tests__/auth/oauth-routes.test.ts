@@ -22,6 +22,7 @@ const mockFetchProviderUser = vi.fn();
 const mockLinkOAuthAccount = vi.fn();
 const mockUnlinkOAuthAccount = vi.fn();
 const mockGetLinkedProviders = vi.fn();
+const mockIsRecoverySession = vi.fn().mockReturnValue(false);
 
 vi.mock('@revealui/auth/server', () => ({
   getSession: (...args: unknown[]) => mockGetSession(...args),
@@ -33,6 +34,7 @@ vi.mock('@revealui/auth/server', () => ({
   linkOAuthAccount: (...args: unknown[]) => mockLinkOAuthAccount(...args),
   unlinkOAuthAccount: (...args: unknown[]) => mockUnlinkOAuthAccount(...args),
   getLinkedProviders: (...args: unknown[]) => mockGetLinkedProviders(...args),
+  isRecoverySession: (...args: unknown[]) => mockIsRecoverySession(...args),
 }));
 
 vi.mock('@revealui/core/utils/logger', () => ({

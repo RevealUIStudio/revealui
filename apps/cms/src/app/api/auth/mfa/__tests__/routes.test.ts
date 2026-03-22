@@ -27,7 +27,45 @@ vi.mock('@revealui/auth/server', () => ({
   isMFAEnabled: vi.fn(),
   createSession: vi.fn(),
   verifyCookiePayload: vi.fn(),
+  verifyAuthentication: vi.fn(),
   checkRateLimit: vi.fn(),
+  isRecoverySession: vi.fn().mockReturnValue(false),
+}));
+
+// Mock drizzle-orm operators (needed for passkey DB lookup in mfa/disable)
+vi.mock('drizzle-orm', () => ({
+  eq: vi.fn((_col: unknown, _val: unknown) => ({ type: 'eq' })),
+  and: vi.fn((..._args: unknown[]) => ({ type: 'and' })),
+}));
+
+// biome-ignore lint/suspicious/noExplicitAny: test mock needs flexible return types
+type MockFn = ReturnType<typeof vi.fn<(...args: any[]) => any>>;
+interface MockDatabase {
+  select: MockFn;
+  from: MockFn;
+  where: MockFn;
+  limit: MockFn;
+}
+
+const mockDb: MockDatabase = {
+  select: vi.fn(() => mockDb),
+  from: vi.fn(() => mockDb),
+  where: vi.fn(() => mockDb),
+  limit: vi.fn(() => Promise.resolve([])),
+};
+
+vi.mock('@revealui/db', () => ({
+  getClient: vi.fn(() => mockDb),
+}));
+
+vi.mock('@revealui/db/schema', () => ({
+  passkeys: {
+    credentialId: 'credential_id',
+    userId: 'user_id',
+    publicKey: 'public_key',
+    counter: 'counter',
+    transports: 'transports',
+  },
 }));
 
 // Mock the logger
@@ -93,6 +131,7 @@ const mockDisableMFA = vi.mocked(authServer.disableMFA);
 const mockRegenerateBackupCodes = vi.mocked(authServer.regenerateBackupCodes);
 const mockIsMFAEnabled = vi.mocked(authServer.isMFAEnabled);
 const mockCreateSession = vi.mocked(authServer.createSession);
+const mockVerifyAuthentication = vi.mocked(authServer.verifyAuthentication);
 // verifyCookiePayload is generic — use vi.fn() cast to avoid excess property errors
 const mockVerifyCookiePayload = authServer.verifyCookiePayload as unknown as ReturnType<
   typeof vi.fn
@@ -104,6 +143,17 @@ function createJsonRequest(url: string, body: unknown, method = 'POST'): NextReq
     headers: {
       'content-type': 'application/json',
       cookie: 'revealui-session=test-token',
+    },
+    body: JSON.stringify(body),
+  });
+}
+
+function createJsonRequestWithPasskeyChallenge(url: string, body: unknown): NextRequest {
+  return new NextRequest(url, {
+    method: 'POST',
+    headers: {
+      'content-type': 'application/json',
+      cookie: 'revealui-session=test-token; passkey-challenge=signed-challenge-cookie',
     },
     body: JSON.stringify(body),
   });
@@ -541,12 +591,26 @@ describe('POST /api/auth/mfa/disable', () => {
 
   it('should disable MFA with passkey proof', async () => {
     mockGetSession.mockResolvedValue(mockSession);
+    mockVerifyCookiePayload.mockReturnValue({
+      challenge: 'test-challenge',
+      expiresAt: Date.now() + 60_000,
+    });
+    mockDb.limit.mockResolvedValue([
+      {
+        credentialId: 'cred-id',
+        userId: mockSession.user.id,
+        publicKey: Buffer.from([1, 2, 3]),
+        counter: 0,
+        transports: null,
+      },
+    ]);
+    mockVerifyAuthentication.mockResolvedValue({ verified: true });
     mockDisableMFA.mockResolvedValue({ success: true });
 
-    const request = createJsonRequest('http://localhost:3000/api/auth/mfa/disable', {
-      method: 'passkey',
-      authenticationResponse: { id: 'cred-id', response: {} },
-    });
+    const request = createJsonRequestWithPasskeyChallenge(
+      'http://localhost:3000/api/auth/mfa/disable',
+      { method: 'passkey', authenticationResponse: { id: 'cred-id', response: {} } },
+    );
     const response = await handler(request);
     const data = await response.json();
 

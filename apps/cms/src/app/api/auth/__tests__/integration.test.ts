@@ -45,6 +45,7 @@ vi.mock('@revealui/auth/server', () => ({
   createMagicLink: vi.fn(),
   verifyMagicLink: vi.fn(),
   checkRateLimit: vi.fn(),
+  isRecoverySession: vi.fn().mockReturnValue(false),
 }));
 
 vi.mock('@revealui/core/utils/logger', () => ({
@@ -947,16 +948,27 @@ describe('Flow 6: Magic link recovery', () => {
 describe('Flow 7: MFA disable with passkey proof', () => {
   it('should disable MFA when authenticated with passkey proof', async () => {
     mockGetSession.mockResolvedValue(mockSession);
+    mockVerifyCookiePayload.mockReturnValue({
+      challenge: 'test-challenge',
+      expiresAt: Date.now() + 60_000,
+    });
+    mockDb.limit.mockResolvedValue([
+      {
+        credentialId: 'cred-id',
+        userId: mockSession.user.id,
+        publicKey: Buffer.from([1, 2, 3]),
+        counter: 0,
+        transports: null,
+      },
+    ]);
+    mockVerifyAuthentication.mockResolvedValue({ verified: true });
     mockDisableMFA.mockResolvedValue({ success: true });
 
     const { POST: disableHandler } = await import('../mfa/disable/route');
     const disableRequest = createJsonRequest(
       'http://localhost:4000/api/auth/mfa/disable',
-      {
-        method: 'passkey',
-        authenticationResponse: { id: 'cred-id', response: {} },
-      },
-      { cookies: { 'revealui-session': 'test-token' } },
+      { method: 'passkey', authenticationResponse: { id: 'cred-id', response: {} } },
+      { cookies: { 'revealui-session': 'test-token', 'passkey-challenge': 'signed-challenge' } },
     );
     const disableResponse = await disableHandler(disableRequest);
     const disableData = await disableResponse.json();
