@@ -63,8 +63,14 @@ export async function signIn(
     let db: ReturnType<typeof getClient>;
     try {
       db = getClient();
-    } catch {
-      logger.error('Error getting database client');
+    } catch (clientError) {
+      logger.error(
+        'Error getting database client',
+        clientError instanceof Error ? clientError : undefined,
+        {
+          message: clientError instanceof Error ? clientError.message : String(clientError),
+        },
+      );
       return {
         success: false,
         reason: 'database_error',
@@ -81,8 +87,12 @@ export async function signIn(
         .where(and(eq(users.email, email), isNull(users.deletedAt)))
         .limit(1);
       user = result[0] as User | undefined;
-    } catch {
-      logger.error('Error querying user');
+    } catch (dbError) {
+      logger.error('Error querying user', dbError instanceof Error ? dbError : undefined, {
+        message: dbError instanceof Error ? dbError.message : String(dbError),
+        name: dbError instanceof Error ? dbError.name : 'unknown',
+        stack: dbError instanceof Error ? dbError.stack : undefined,
+      });
       return {
         success: false,
         reason: 'database_error',
