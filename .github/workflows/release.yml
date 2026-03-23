@@ -37,18 +37,18 @@ jobs:
 
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
         with:
           fetch-depth: 0
           token: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Setup pnpm
-        uses: pnpm/action-setup@v4
+        uses: pnpm/action-setup@v5
         with:
           version: ${{ env.PNPM_VERSION }}
 
       - name: Setup Node.js
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@v6
         with:
           node-version: ${{ env.NODE_VERSION }}
           cache: pnpm
@@ -71,7 +71,7 @@ jobs:
 
       - name: Upload SBOM artifact
         if: success() || failure()
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: sbom
           path: sbom.json
@@ -124,7 +124,7 @@ jobs:
 
       - name: Create GitHub releases
         if: ${{ !inputs.dry-run }}
-        uses: actions/github-script@v7
+        uses: actions/github-script@v8
         with:
           script: |
             const { execSync } = require('child_process')
