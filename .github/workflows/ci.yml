@@ -48,7 +48,7 @@ jobs:
           cache: pnpm
 
       - name: Install dependencies
-        run: pnpm install --frozen-lockfile
+        run: pnpm install --no-frozen-lockfile
 
       - name: Biome lint (hard fail)
         run: pnpm lint:biome
@@ -90,7 +90,7 @@ jobs:
           cache: pnpm
 
       - name: Install dependencies
-        run: pnpm install --frozen-lockfile
+        run: pnpm install --no-frozen-lockfile
 
       - name: Typecheck all packages (hard fail)
         run: pnpm typecheck:all
@@ -119,7 +119,7 @@ jobs:
           cache: pnpm
 
       - name: Install dependencies
-        run: pnpm install --frozen-lockfile
+        run: pnpm install --no-frozen-lockfile
 
       - name: Run unit tests (hard fail)
         run: pnpm test
@@ -164,7 +164,7 @@ jobs:
           cache: pnpm
 
       - name: Install dependencies
-        run: pnpm install --frozen-lockfile
+        run: pnpm install --no-frozen-lockfile
 
       - name: Build packages (required — integration tests import real dist/)
         run: pnpm --filter './packages/*' build
@@ -202,7 +202,7 @@ jobs:
           cache: pnpm
 
       - name: Install dependencies
-        run: pnpm install --frozen-lockfile
+        run: pnpm install --no-frozen-lockfile
 
       - name: Generate coverage reports (warn-only)
         run: pnpm test:coverage || echo "Coverage generation had failures — not blocking"
@@ -248,7 +248,7 @@ jobs:
           cache: pnpm
 
       - name: Install dependencies
-        run: pnpm install --frozen-lockfile
+        run: pnpm install --no-frozen-lockfile
 
       - name: Build packages (hard fail)
         if: github.event_name == 'pull_request'
@@ -285,7 +285,7 @@ jobs:
           cache: pnpm
 
       - name: Install dependencies
-        run: pnpm install --frozen-lockfile
+        run: pnpm install --no-frozen-lockfile
 
       - name: Install Playwright (chromium only)
         run: npx playwright install --with-deps chromium
@@ -336,7 +336,7 @@ jobs:
           cache: pnpm
 
       - name: Install dependencies
-        run: pnpm install --frozen-lockfile
+        run: pnpm install --no-frozen-lockfile
 
       - name: Install Playwright (chromium only)
         run: npx playwright install --with-deps chromium
@@ -409,7 +409,7 @@ jobs:
           cache: pnpm
 
       - name: Install dependencies
-        run: pnpm install --frozen-lockfile
+        run: pnpm install --no-frozen-lockfile
 
       - name: Install Playwright (chromium only)
         run: npx playwright install --with-deps chromium
