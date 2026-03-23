@@ -33,6 +33,11 @@ vi.mock('@/lib/middleware/rate-limit', () => ({
   withRateLimit: vi.fn((handler: (request: NextRequest) => Promise<Response>) => handler),
 }));
 
+// Mock the email module
+vi.mock('@/lib/email', () => ({
+  sendRecoveryEmail: vi.fn().mockResolvedValue({ success: true }),
+}));
+
 // Mock the database
 const mockLimit = vi.fn().mockResolvedValue([]);
 const mockWhere = vi.fn().mockReturnValue({ limit: mockLimit });

@@ -61,6 +61,11 @@ vi.mock('@/lib/middleware/rate-limit', () => ({
   withRateLimit: vi.fn((handler: (request: NextRequest) => Promise<Response>) => handler),
 }));
 
+// Mock the email module — avoids real email provider initialization in tests
+vi.mock('@/lib/email', () => ({
+  sendRecoveryEmail: vi.fn().mockResolvedValue({ success: true }),
+}));
+
 // Mock license module — tests run without a license server, so report no limit
 vi.mock('@revealui/core/license', () => ({
   initializeLicense: vi.fn(() => Promise.resolve()),
