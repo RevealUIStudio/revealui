@@ -72,6 +72,7 @@ export class RevealUIGlobal {
               const relTableName = Array.isArray(rel.relationTo)
                 ? rel.relationTo[0]
                 : rel.relationTo;
+              if (!relTableName) continue;
               const fkColumn = rel.fkColumnName || `${rel.fieldName}_id`;
 
               // Validate relationship identifiers to prevent SQL injection via config
