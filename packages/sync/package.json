@@ -21,13 +21,13 @@
     "@types/ws": "^8.5.14",
     "@testing-library/react": "^16.3.0",
     "@testing-library/react-hooks": "^8.0.1",
-    "@vitest/coverage-v8": "^4.0.18",
+    "@vitest/coverage-v8": "^4.1.0",
     "dev": "workspace:*",
     "jsdom": "^27.4.0",
     "react": "^19.2.3",
     "react-dom": "^19.2.3",
     "typescript": "^5.9.3",
-    "vitest": "^4.0.18"
+    "vitest": "^4.1.0"
   },
   "engines": {
     "node": ">=24.13.0"

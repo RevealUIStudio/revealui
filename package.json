@@ -5,7 +5,7 @@
   "description": "Business Operating System Software (B.O.S.S.). Build your business, not your boilerplate. Users, content, products, payments, and AI — pre-wired, open source, and ready to deploy.",
   "devDependencies": {
     "@axe-core/playwright": "^4.11.1",
-    "@biomejs/biome": "^2.4.4",
+    "@biomejs/biome": "^2.4.8",
     "@changesets/cli": "^2.29.8",
     "@electric-sql/pglite": "^0.3.15",
     "@lhci/cli": "^0.15.1",
@@ -15,12 +15,12 @@
     "@size-limit/file": "^12.0.0",
     "@size-limit/webpack": "^12.0.0",
     "@stripe/mcp": "^0.3.1",
-    "@types/node": "^25.3.0",
+    "@types/node": "^25.5.0",
     "@types/pg": "^8.16.0",
     "@types/react": "^19.2.14",
     "@types/react-dom": "^19.2.3",
-    "@vitest/coverage-v8": "^4.0.18",
-    "@vitest/ui": "^4.0.18",
+    "@vitest/coverage-v8": "^4.1.0",
+    "@vitest/ui": "^4.1.0",
     "autocannon": "^7.15.0",
     "chokidar": "^5.0.0",
     "concurrently": "^9.2.1",
@@ -44,7 +44,7 @@
     "typescript": "^5.9.3",
     "vercel": "^50.19.1",
     "vercel-mcp": "^0.0.7",
-    "vitest": "^4.0.18",
+    "vitest": "^4.1.0",
     "zod": "catalog:"
   },
   "engines": {
