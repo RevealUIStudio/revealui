@@ -326,8 +326,8 @@ describe('Query Builder Utilities', () => {
 
       const clause = buildWhereClause(where, params);
 
-      expect(clause).toBe('"title" LIKE $1');
-      expect(params).toEqual(['test%']);
+      expect(clause).toBe(`"title" LIKE $1 ESCAPE '\\'`);
+      expect(params).toEqual(['test\\%']);
     });
 
     it('should skip null and undefined values', () => {
