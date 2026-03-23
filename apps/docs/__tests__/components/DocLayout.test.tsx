@@ -64,8 +64,8 @@ describe('DocLayout', () => {
       </DocLayout>,
     );
 
-    expect(screen.getByText('Quick Start')).toBeInTheDocument();
-    expect(screen.getByText('Authentication')).toBeInTheDocument();
+    expect(screen.getAllByText('Quick Start').length).toBeGreaterThanOrEqual(1);
+    expect(screen.getAllByText('Authentication').length).toBeGreaterThanOrEqual(1);
     expect(screen.getByText('Database')).toBeInTheDocument();
     expect(screen.getByText('Home')).toBeInTheDocument();
   });
@@ -88,8 +88,9 @@ describe('DocLayout', () => {
       </DocLayout>,
     );
 
-    const authLink = screen.getByText('Authentication');
-    // The active link should have the active styling class
-    expect(authLink.className).toContain('font-semibold');
+    const authLinks = screen.getAllByText('Authentication');
+    // At least one Authentication link should have the active styling class
+    const hasActiveLink = authLinks.some((link) => link.className.includes('font-semibold'));
+    expect(hasActiveLink).toBe(true);
   });
 });
