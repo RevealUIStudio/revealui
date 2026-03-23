@@ -121,7 +121,7 @@ export async function createMagicLink(userId: string): Promise<{ token: string; 
 export async function verifyMagicLink(token: string): Promise<{ userId: string } | null> {
   const db = getClient();
 
-  // Select unexpired, unused magic links only — expired tokens can never match
+  // Select all unexpired, unused magic links
   const rows = await db
     .select()
     .from(magicLinks)

@@ -1,6 +1,6 @@
 {
   "name": "@revealui/contracts",
-  "version": "1.2.0",
+  "version": "1.1.0",
   "description": "Unified contracts package for RevealUI - schemas, validation, and type safety across the stack",
   "keywords": [
     "contracts",
@@ -12,8 +12,6 @@
   ],
   "license": "MIT",
   "dependencies": {
-    "@revealui/db": "workspace:*",
-    "drizzle-zod": "^0.8.3",
     "zod": "catalog:"
   },
   "devDependencies": {
@@ -105,7 +103,17 @@
     "registry": "https://registry.npmjs.org"
   },
   "peerDependencies": {
+    "@revealui/db": "workspace:*",
+    "drizzle-zod": "^0.8.3",
     "typescript": ">=5.0.0"
+  },
+  "peerDependenciesMeta": {
+    "@revealui/db": {
+      "optional": true
+    },
+    "drizzle-zod": {
+      "optional": true
+    }
   },
   "scripts": {
     "build": "tsc",

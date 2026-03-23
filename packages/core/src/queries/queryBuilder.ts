@@ -231,11 +231,12 @@ export function buildWhereClause(
         conditions.push(`${quotedField} < ${placeholder}`);
       }
 
-      // like
+      // like (escape wildcards to prevent blind LIKE probing)
       if ('like' in condition && typeof condition.like === 'string') {
         const placeholder = getPlaceholder();
-        params.push(condition.like);
-        conditions.push(`${quotedField} LIKE ${placeholder}`);
+        const escaped = condition.like.replace(/[%_\\]/g, '\\$&');
+        params.push(escaped);
+        conditions.push(`${quotedField} LIKE ${placeholder} ESCAPE '\\'`);
       }
 
       // exists (check if field is not null)

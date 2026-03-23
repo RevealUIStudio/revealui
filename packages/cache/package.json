@@ -1,6 +1,6 @@
 {
   "name": "@revealui/cache",
-  "version": "0.2.0",
+  "version": "0.1.0",
   "description": "Caching infrastructure for RevealUI - CDN config, edge cache, ISR presets, revalidation",
   "license": "MIT",
   "dependencies": {},
@@ -12,7 +12,7 @@
     "vitest": "^4.0.18"
   },
   "peerDependencies": {
-    "next": "^14.0.0 || ^15.0.0 || ^16.0.0"
+    "next": "^14.0.0 || ^15.0.0 || ^16.1.7"
   },
   "peerDependenciesMeta": {
     "next": {

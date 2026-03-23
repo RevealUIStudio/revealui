@@ -10,7 +10,8 @@
  */
 
 import { getMaxSites, getMaxUsers } from '@revealui/core/license';
-import { accountMemberships } from '@revealui/db/schema';
+import type { DatabaseClient } from '@revealui/db';
+import { accountMemberships, type sites, type users } from '@revealui/db/schema';
 import { count, eq, inArray } from 'drizzle-orm';
 import type { MiddlewareHandler } from 'hono';
 import { HTTPException } from 'hono/http-exception';
@@ -19,8 +20,7 @@ import { HTTPException } from 'hono/http-exception';
  * Get all user IDs that belong to the same account as the given user.
  * If the user has no account membership, returns just their own ID.
  */
-// biome-ignore lint/suspicious/noExplicitAny: db is a Drizzle client (NeonHttp or NodePg) — union type is unwieldy for internal helper
-async function getAccountMemberIds(db: any, userId: string): Promise<string[]> {
+async function getAccountMemberIds(db: DatabaseClient, userId: string): Promise<string[]> {
   // Find the user's account
   const membership = await db
     .select({ accountId: accountMemberships.accountId })
@@ -50,12 +50,10 @@ async function getAccountMemberIds(db: any, userId: string): Promise<string[]> {
  *
  * @param getSitesTable - Returns the sites table reference (avoids top-level import of DB schema)
  */
-export const enforceSiteLimit = (
-  getSitesTable: () => { ownerId: { name: string } },
-): MiddlewareHandler => {
+export const enforceSiteLimit = (getSitesTable: () => typeof sites): MiddlewareHandler => {
   return async (c, next) => {
-    const db = c.get('db');
-    const user = c.get('user');
+    const db = c.get('db') as DatabaseClient | undefined;
+    const user = c.get('user') as { id: string } | undefined;
 
     if (!(db && user)) {
       throw new HTTPException(401, { message: 'Authentication required' });
@@ -72,12 +70,10 @@ export const enforceSiteLimit = (
     // R5-C3: Account-aware site counting
     const memberIds = await getAccountMemberIds(db, user.id);
 
-    // biome-ignore lint/suspicious/noExplicitAny: DB typing is dynamic across middleware boundary
-    const result = await (db as any)
+    const result = await db
       .select({ count: count() })
       .from(sitesTable)
-      // biome-ignore lint/suspicious/noExplicitAny: DB typing is dynamic across middleware boundary
-      .where(inArray((sitesTable as any).ownerId, memberIds));
+      .where(inArray(sitesTable.ownerId, memberIds));
 
     const currentCount = result[0]?.count ?? 0;
 
@@ -97,11 +93,9 @@ export const enforceSiteLimit = (
  *
  * @param getUsersTable - Returns the users table reference
  */
-export const enforceUserLimit = (
-  getUsersTable: () => { status: { name: string } },
-): MiddlewareHandler => {
+export const enforceUserLimit = (getUsersTable: () => typeof users): MiddlewareHandler => {
   return async (c, next) => {
-    const db = c.get('db');
+    const db = c.get('db') as DatabaseClient | undefined;
 
     if (!db) {
       throw new HTTPException(500, { message: 'Database not available' });
@@ -115,12 +109,10 @@ export const enforceUserLimit = (
       return;
     }
 
-    // biome-ignore lint/suspicious/noExplicitAny: DB typing is dynamic across middleware boundary
-    const result = await (db as any)
+    const result = await db
       .select({ count: count() })
       .from(usersTable)
-      // biome-ignore lint/suspicious/noExplicitAny: DB typing is dynamic across middleware boundary
-      .where(eq((usersTable as any).status, 'active'));
+      .where(eq(usersTable.status, 'active'));
 
     const currentCount = result[0]?.count ?? 0;
 

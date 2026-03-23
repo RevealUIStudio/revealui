@@ -6,7 +6,7 @@ import {
   OpenApiGeneratorV3,
   OpenApiGeneratorV31,
 } from '@asteasolutions/zod-to-openapi';
-import type { Env, Handler, Input, MiddlewareHandler, Schema, ToSchema } from 'hono';
+import type { Context, Env, Handler, Input, MiddlewareHandler, Schema, ToSchema } from 'hono';
 import { Hono } from 'hono';
 import type { MergePath } from 'hono/types';
 import { mergePath } from 'hono/utils/url';
@@ -36,6 +36,42 @@ import type {
   RouteMiddlewareParams,
 } from './types.js';
 import { zValidator } from './zod-validator.js';
+
+// ---------------------------------------------------------------------------
+// Internal helpers to reduce scattered `as any` casts
+// ---------------------------------------------------------------------------
+
+/**
+ * Access Hono's internal `_basePath` which is not part of the public API.
+ * Hono declares it as `private _basePath: string` (not a JS #private field),
+ * so it is accessible at runtime. This helper confines the cast to one place.
+ */
+function getBasePath(app: Hono<Env, Schema, string>): string {
+  // biome-ignore lint/style/useNamingConvention: _basePath is Hono's internal property name
+  return (app as unknown as { _basePath?: string })._basePath ?? '';
+}
+
+/**
+ * Discriminated union for `OpenAPIRegistry.definitions` entries.
+ * The library exports `OpenAPIDefinitions` but its member types are not
+ * individually exported, so we mirror the shapes here for safe narrowing.
+ */
+type RegistryComponentDef = {
+  type: 'component';
+  componentType: string;
+  name: string;
+  component: unknown;
+};
+type RegistryRouteDef = { type: 'route'; route: { path: string; [k: string]: unknown } };
+type RegistryWebhookDef = { type: 'webhook'; webhook: { path: string; [k: string]: unknown } };
+type RegistrySchemaDef = { type: 'schema'; schema: z.ZodType };
+type RegistryParameterDef = { type: 'parameter'; schema: z.ZodType };
+type RegistryDef =
+  | RegistryComponentDef
+  | RegistryRouteDef
+  | RegistryWebhookDef
+  | RegistrySchemaDef
+  | RegistryParameterDef;
 
 // Extend Zod with OpenAPI metadata methods (.openapi())
 extendZodWithOpenApi(z);
@@ -217,11 +253,8 @@ export class OpenAPIHono<
       this.openAPIRegistry.definitions,
       generatorConfig,
     ).generateDocument(objectConfig);
-    // biome-ignore lint/suspicious/noExplicitAny: accessing internal _basePath property
-    return (this as any)._basePath
-      ? // biome-ignore lint/suspicious/noExplicitAny: accessing internal _basePath property
-        addBasePathToDocument(document, (this as any)._basePath)
-      : document;
+    const basePath = getBasePath(this);
+    return basePath ? addBasePathToDocument(document, basePath) : document;
   };
 
   /**
@@ -235,12 +268,11 @@ export class OpenAPIHono<
       this.openAPIRegistry.definitions,
       generatorConfig,
     ).generateDocument(objectConfig);
-    // biome-ignore lint/suspicious/noExplicitAny: accessing internal _basePath property
-    return (this as any)._basePath
+    const basePath = getBasePath(this);
+    return basePath
       ? (addBasePathToDocument(
           document as unknown as OpenAPIObject,
-          // biome-ignore lint/suspicious/noExplicitAny: accessing internal _basePath property
-          (this as any)._basePath,
+          basePath,
         ) as unknown as OpenAPIObject31)
       : document;
   };
@@ -253,8 +285,7 @@ export class OpenAPIHono<
     configureObject: OpenAPIObjectConfigure<E, P>,
     configureGenerator?: OpenAPIGeneratorConfigure<E, P>,
   ) => {
-    // biome-ignore lint/suspicious/noExplicitAny: Hono context type flexibility for dynamic route handler
-    return this.get(path, (c: any) => {
+    return this.get(path, (c: Context<E, P>) => {
       const objectConfig =
         typeof configureObject === 'function' ? configureObject(c) : configureObject;
       const generatorConfig =
@@ -276,8 +307,7 @@ export class OpenAPIHono<
     configureObject: OpenAPIObjectConfigure<E, P>,
     configureGenerator?: OpenAPIGeneratorConfigure<E, P>,
   ) => {
-    // biome-ignore lint/suspicious/noExplicitAny: Hono context type flexibility for dynamic route handler
-    return this.get(path, (c: any) => {
+    return this.get(path, (c: Context<E, P>) => {
       const objectConfig =
         typeof configureObject === 'function' ? configureObject(c) : configureObject;
       const generatorConfig =
@@ -303,60 +333,46 @@ export class OpenAPIHono<
 
     if (!(app instanceof OpenAPIHono)) return this;
 
-    for (const def of app.openAPIRegistry.definitions) {
+    const appBasePath = getBasePath(app).replaceAll(/:([^/]+)/g, '{$1}');
+
+    for (const rawDef of app.openAPIRegistry.definitions) {
+      // Cast once per iteration: the library's OpenAPIDefinitions type does not
+      // expose individual member shapes, so we narrow via our local union.
+      const def = rawDef as RegistryDef;
       switch (def.type) {
         case 'component':
           this.openAPIRegistry.registerComponent(
-            // biome-ignore lint/suspicious/noExplicitAny: registry definition type is loosely typed
-            (def as any).componentType,
-            // biome-ignore lint/suspicious/noExplicitAny: registry definition type is loosely typed
-            (def as any).name,
-            // biome-ignore lint/suspicious/noExplicitAny: registry definition type is loosely typed
-            (def as any).component,
+            // biome-ignore lint/suspicious/noExplicitAny: registerComponent's first param is a generic keyof ComponentsObject — our string type is correct at runtime but the generic signature requires the exact literal
+            def.componentType as any,
+            def.name,
+            // biome-ignore lint/suspicious/noExplicitAny: registerComponent's third param is a mapped generic — our unknown is correct at runtime
+            def.component as any,
           );
           break;
         case 'route':
           this.openAPIRegistry.registerPath({
-            // biome-ignore lint/suspicious/noExplicitAny: registry definition type is loosely typed
-            ...(def as any).route,
-            path: mergePath(
-              pathForOpenAPI,
-              // biome-ignore lint/suspicious/noExplicitAny: accessing internal _basePath property
-              ((app as any)._basePath || '').replaceAll(/:([^/]+)/g, '{$1}'),
-              // biome-ignore lint/suspicious/noExplicitAny: registry definition type is loosely typed
-              (def as any).route.path,
-            ),
+            // biome-ignore lint/suspicious/noExplicitAny: registerPath expects RouteConfig which has a complex shape; spread preserves all fields
+            ...(def.route as any),
+            path: mergePath(pathForOpenAPI, appBasePath, def.route.path),
           });
           break;
         case 'webhook':
           this.openAPIRegistry.registerWebhook({
-            // biome-ignore lint/suspicious/noExplicitAny: registry definition type is loosely typed
-            ...(def as any).webhook,
-            path: mergePath(
-              pathForOpenAPI,
-              // biome-ignore lint/suspicious/noExplicitAny: accessing internal _basePath property
-              ((app as any)._basePath || '').replaceAll(/:([^/]+)/g, '{$1}'),
-              // biome-ignore lint/suspicious/noExplicitAny: registry definition type is loosely typed
-              (def as any).webhook.path,
-            ),
+            // biome-ignore lint/suspicious/noExplicitAny: registerWebhook expects RouteConfig; spread preserves all fields
+            ...(def.webhook as any),
+            path: mergePath(pathForOpenAPI, appBasePath, def.webhook.path),
           });
           break;
         case 'schema': {
-          // biome-ignore lint/suspicious/noExplicitAny: OpenAPI metadata internal types
-          const meta = getOpenApiMetadata((def as any).schema);
-          // biome-ignore lint/suspicious/noExplicitAny: OpenAPI metadata internal types
-          this.openAPIRegistry.register((meta as any)?._internal?.refId, (def as any).schema);
+          // biome-ignore lint/style/useNamingConvention: _internal is the library's property name (not ours)
+          const meta = getOpenApiMetadata(def.schema) as { _internal?: { refId?: string } };
+          this.openAPIRegistry.register(meta?._internal?.refId, def.schema);
           break;
         }
         case 'parameter': {
-          // biome-ignore lint/suspicious/noExplicitAny: OpenAPI metadata internal types
-          const meta = getOpenApiMetadata((def as any).schema);
-          this.openAPIRegistry.registerParameter(
-            // biome-ignore lint/suspicious/noExplicitAny: OpenAPI metadata internal types
-            (meta as any)?._internal?.refId,
-            // biome-ignore lint/suspicious/noExplicitAny: registry definition type is loosely typed
-            (def as any).schema,
-          );
+          // biome-ignore lint/style/useNamingConvention: _internal is the library's property name (not ours)
+          const meta = getOpenApiMetadata(def.schema) as { _internal?: { refId?: string } };
+          this.openAPIRegistry.registerParameter(meta?._internal?.refId, def.schema);
           break;
         }
         default: {
@@ -373,11 +389,13 @@ export class OpenAPIHono<
    * Override basePath to return an OpenAPIHono with preserved registry state.
    */
   basePath<SubPath extends string>(path: SubPath) {
+    // super.basePath() returns a new Hono instance with internal state (_basePath, router, etc.).
+    // We spread it into a new OpenAPIHono to preserve registry + defaultHook. The spread requires
+    // treating the result as a plain object since Hono's return type is generic and non-spreadable.
     return new OpenAPIHono({
-      // biome-ignore lint/suspicious/noExplicitAny: spreading Hono's basePath result which has complex internal types
-      ...(super.basePath(path) as any),
+      ...(super.basePath(path) as unknown as Record<string, unknown>),
       defaultHook: this.defaultHook,
-      // biome-ignore lint/suspicious/noExplicitAny: return type must match Hono's basePath signature
+      // biome-ignore lint/suspicious/noExplicitAny: return type must match Hono's basePath() generic signature: Hono<E, S, MergePath<BasePath, SubPath>>
     }) as any;
   }
 }

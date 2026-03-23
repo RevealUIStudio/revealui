@@ -11,6 +11,11 @@ import type {
   RouterOptions,
 } from './types';
 
+declare global {
+  // biome-ignore lint: global augmentation requires var
+  var __revealui_router_initialized: boolean | undefined;
+}
+
 // ---------------------------------------------------------------------------
 // Hand-rolled path matcher — replaces `path-to-regexp`.
 // Supports: exact paths, named params (:id), wildcards (*path),
@@ -390,10 +395,8 @@ export class Router {
       return;
     }
 
-    // biome-ignore lint/suspicious/noExplicitAny: global HMR guard
-    const g = globalThis as any;
-    if (g.__revealui_router_initialized) return;
-    g.__revealui_router_initialized = true;
+    if (globalThis.__revealui_router_initialized) return;
+    globalThis.__revealui_router_initialized = true;
 
     // Handle browser back/forward buttons
     this.popstateHandler = () => {
@@ -446,9 +449,7 @@ export class Router {
 
     this.listeners.clear();
 
-    // biome-ignore lint/suspicious/noExplicitAny: global HMR guard cleanup
-    const g = globalThis as any;
-    g.__revealui_router_initialized = false;
+    globalThis.__revealui_router_initialized = false;
   }
 }
 

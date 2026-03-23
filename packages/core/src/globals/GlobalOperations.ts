@@ -1,3 +1,4 @@
+import { validateColumnName, validateSlug } from '../collections/operations/sqlAdapter.js';
 import { afterRead } from '../fields/hooks/afterRead/index.js';
 import { getRelationshipFields } from '../relationships/analyzer.js';
 import type {
@@ -72,6 +73,11 @@ export class RevealUIGlobal {
                 ? rel.relationTo[0]
                 : rel.relationTo;
               const fkColumn = rel.fkColumnName || `${rel.fieldName}_id`;
+
+              // Validate relationship identifiers to prevent SQL injection via config
+              validateSlug(relTableName);
+              validateColumnName(fkColumn);
+
               const alias = `rel_${rel.fieldName}`;
 
               joins.push(
@@ -150,8 +156,9 @@ export class RevealUIGlobal {
 
       if (existing) {
         // Update (PostgreSQL uses $1, $2 style)
-        // Serialize complex values (objects, arrays) to JSON strings for SQLite
+        // Validate column names against allowlist (prevent arbitrary column writes)
         const keys = Object.keys(data);
+        for (const key of keys) validateColumnName(key);
         const setClause = keys
           .map((key, i) => `"${key.replace(/"/g, '""')}" = $${i + 1}`)
           .join(', ');
@@ -171,8 +178,9 @@ export class RevealUIGlobal {
         await this.db.query(query, [...values, id]);
       } else {
         // Insert (PostgreSQL uses $1, $2 style)
-        // Serialize complex values (objects, arrays) to JSON strings for SQLite
+        // Validate column names against allowlist (prevent arbitrary column writes)
         const columns = Object.keys(data);
+        for (const col of columns) validateColumnName(col);
         const placeholders = columns.map((_, i) => `$${i + 2}`).join(', ');
         const values = columns.map((key) => {
           const value = data[key];
