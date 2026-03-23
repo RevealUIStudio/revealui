@@ -12,7 +12,14 @@ export default defineConfig({
   },
   test: {
     include: ['__tests__/**/*.test.ts', '**/*.test.ts'],
-    exclude: ['**/node_modules/**', '**/dist/**'],
+    exclude: [
+      '**/node_modules/**',
+      '**/dist/**',
+      '**/.direnv/**',
+      '**/.claude/**',
+      '.direnv/**',
+      '.claude/**',
+    ],
     environment: 'node',
     globals: true,
     pool: 'forks',

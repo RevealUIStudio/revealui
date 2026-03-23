@@ -22,6 +22,7 @@ export default defineConfig({
   ],
   test: {
     hookTimeout: 10000,
+    exclude: ['**/.direnv/**', '**/.claude/**', '**/node_modules/**', '**/dist/**'],
     coverage: {
       provider: 'v8',
       reporter: ['text', 'lcov', 'html', 'json-summary'],

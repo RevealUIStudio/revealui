@@ -8,6 +8,8 @@ export default defineConfig({
     pool: 'forks',
     exclude: [
       'node_modules/**',
+      '.direnv/**',
+      '.claude/**',
       // Integration tests requiring PayloadCMS + database — run via pnpm test:integration
       'src/__tests__/auth/access-control.test.ts',
       'src/__tests__/auth/authentication.test.ts',
