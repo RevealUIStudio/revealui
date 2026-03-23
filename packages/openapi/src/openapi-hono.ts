@@ -46,7 +46,7 @@ import { zValidator } from './zod-validator.js';
  * Hono declares it as `private _basePath: string` (not a JS #private field),
  * so it is accessible at runtime. This helper confines the cast to one place.
  */
-function getBasePath(app: Hono<Env, Schema, string>): string {
+function getBasePath(app: Hono): string {
   // biome-ignore lint/style/useNamingConvention: _basePath is Hono's internal property name
   return (app as unknown as { _basePath?: string })._basePath ?? '';
 }
@@ -253,7 +253,7 @@ export class OpenAPIHono<
       this.openAPIRegistry.definitions,
       generatorConfig,
     ).generateDocument(objectConfig);
-    const basePath = getBasePath(this);
+    const basePath = getBasePath(this as unknown as Hono);
     return basePath ? addBasePathToDocument(document, basePath) : document;
   };
 
@@ -268,7 +268,7 @@ export class OpenAPIHono<
       this.openAPIRegistry.definitions,
       generatorConfig,
     ).generateDocument(objectConfig);
-    const basePath = getBasePath(this);
+    const basePath = getBasePath(this as unknown as Hono);
     return basePath
       ? (addBasePathToDocument(
           document as unknown as OpenAPIObject,
@@ -366,13 +366,15 @@ export class OpenAPIHono<
         case 'schema': {
           // biome-ignore lint/style/useNamingConvention: _internal is the library's property name (not ours)
           const meta = getOpenApiMetadata(def.schema) as { _internal?: { refId?: string } };
-          this.openAPIRegistry.register(meta?._internal?.refId, def.schema);
+          const refId = meta?._internal?.refId ?? '';
+          this.openAPIRegistry.register(refId, def.schema);
           break;
         }
         case 'parameter': {
           // biome-ignore lint/style/useNamingConvention: _internal is the library's property name (not ours)
           const meta = getOpenApiMetadata(def.schema) as { _internal?: { refId?: string } };
-          this.openAPIRegistry.registerParameter(meta?._internal?.refId, def.schema);
+          const paramRefId = meta?._internal?.refId ?? '';
+          this.openAPIRegistry.registerParameter(paramRefId, def.schema);
           break;
         }
         default: {
