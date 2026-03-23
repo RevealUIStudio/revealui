@@ -102,7 +102,10 @@ function LoginContent() {
           <CardTitle>Sign in to your account</CardTitle>
           <CardDescription>
             Don&apos;t have an account?{' '}
-            <Link href="/signup" className="text-blue-600 hover:underline dark:text-blue-400">
+            <Link
+              href="/signup"
+              className="text-blue-600 underline hover:text-blue-800 dark:text-blue-400 dark:hover:text-blue-300"
+            >
               Sign up
             </Link>
           </CardDescription>

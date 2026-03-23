@@ -22,6 +22,10 @@ export function vercelBlobStorage(config: VercelBlobStorageConfig): Plugin {
   const prefix = config.prefix || 'uploads';
 
   return (incomingConfig) => {
+    if (config.enabled === false) {
+      return incomingConfig;
+    }
+
     // Add storage functionality to collections
     if (incomingConfig.collections) {
       for (const collection of incomingConfig.collections) {

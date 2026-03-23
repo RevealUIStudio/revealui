@@ -1,7 +1,20 @@
 {
   "$schema": "https://turbo.build/schema.json",
   "globalEnv": [],
-  "globalPassThroughEnv": [],
+  "globalPassThroughEnv": [
+    "GOOGLE_CLIENT_ID",
+    "GOOGLE_CLIENT_SECRET",
+    "GITHUB_CLIENT_ID",
+    "GITHUB_CLIENT_SECRET",
+    "VERCEL_CLIENT_ID",
+    "VERCEL_CLIENT_SECRET",
+    "STRIPE_*",
+    "RESEND_*",
+    "EMAIL_FROM",
+    "FORGE_LICENSED_DOMAIN",
+    "VERCEL",
+    "VERCEL_ENV"
+  ],
   "tasks": {
     "build": {
       "cache": true,
@@ -19,7 +32,10 @@
         "X402_*",
         "LOGGER_PORT",
         "DOCS_PORT",
-        "YOUTUBE_BASE_URL"
+        "YOUTUBE_BASE_URL",
+        "POSTGRES_URL",
+        "DATABASE_URL",
+        "BLOB_READ_WRITE_TOKEN"
       ],
       "inputs": [
         "src/**",

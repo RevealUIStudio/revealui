@@ -166,7 +166,10 @@ function SignupContent() {
             ) : (
               <>
                 Already have an account?{' '}
-                <Link href="/login" className="text-blue-600 hover:underline dark:text-blue-400">
+                <Link
+                  href="/login"
+                  className="text-blue-600 underline hover:text-blue-800 dark:text-blue-400 dark:hover:text-blue-300"
+                >
                   Sign in
                 </Link>
               </>

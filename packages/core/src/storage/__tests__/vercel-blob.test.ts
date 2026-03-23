@@ -61,6 +61,20 @@ describe('vercelBlobStorage', () => {
       expect(posts.upload).toBeUndefined();
     });
 
+    it('returns config unchanged when enabled is false', () => {
+      const plugin = vercelBlobStorage({
+        enabled: false,
+        collections: { media: true },
+        token: 'test-token',
+      });
+      const config = createBaseConfig([createCollection('media')]);
+
+      const result = plugin(config);
+
+      const media = result.collections.find((c: { slug: string }) => c.slug === 'media');
+      expect(media.upload).toBeUndefined();
+    });
+
     it('skips disabled collections', () => {
       const plugin = vercelBlobStorage({
         collections: { media: false },

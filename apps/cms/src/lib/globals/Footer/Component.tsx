@@ -49,7 +49,7 @@ export async function Footer() {
           })}
         </nav>
       </div>
-      <div className="container py-4 border-t border-white/10 flex flex-col sm:flex-row items-center justify-between gap-2 text-white/40 text-xs">
+      <div className="container py-4 border-t border-white/10 flex flex-col sm:flex-row items-center justify-between gap-2 text-white/60 text-xs">
         <p>&copy; {currentYear} RevealUI Studio. All rights reserved.</p>
         <div className="flex gap-4">
           <a href="https://revealui.com/privacy" className="hover:text-white/70 transition-colors">

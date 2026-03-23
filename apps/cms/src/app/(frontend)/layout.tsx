@@ -85,7 +85,9 @@ export default async function RootLayout({ children }: { children: React.ReactNo
       <html lang="en">
         <body>
           <div style={{ padding: '20px', fontFamily: 'system-ui, sans-serif' }}>
-            <p style={{ color: '#666' }}>CMS is initializing. Some features may be unavailable.</p>
+            <p style={{ color: '#525252' }}>
+              CMS is initializing. Some features may be unavailable.
+            </p>
           </div>
           {children}
         </body>
@@ -95,6 +97,10 @@ export default async function RootLayout({ children }: { children: React.ReactNo
 }
 
 export const metadata: Metadata = {
+  title: {
+    default: 'RevealUI CMS',
+    template: '%s | RevealUI CMS',
+  },
   metadataBase: new URL((process.env.NEXT_PUBLIC_SERVER_URL || 'https://revealui.com').trim()),
   openGraph: mergeOpenGraph(),
   twitter: {

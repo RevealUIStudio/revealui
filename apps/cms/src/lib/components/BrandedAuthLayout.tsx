@@ -17,11 +17,11 @@ export function BrandedAuthLayout({ children }: { children: React.ReactNode }) {
         </div>
       }
       footer={
-        <p className="text-center text-xs text-gray-400 dark:text-gray-500">
+        <p className="text-center text-xs text-gray-500 dark:text-gray-400">
           Learn more at{' '}
           <a
             href="https://revealui.com"
-            className="underline hover:text-gray-600 dark:hover:text-gray-300"
+            className="underline hover:text-gray-700 dark:hover:text-gray-300"
             target="_blank"
             rel="noopener noreferrer"
           >
