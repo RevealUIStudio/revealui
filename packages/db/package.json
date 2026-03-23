@@ -9,16 +9,25 @@
     "@neondatabase/serverless": "^1.0.2",
     "@revealui/config": "workspace:*",
     "@revealui/utils": "workspace:*",
-    "drizzle-orm": "^0.45.1",
-    "drizzle-zod": "^0.8.3",
     "pg": "^8.18.0",
     "zod": "catalog:"
   },
   "devDependencies": {
     "dev": "workspace:*",
     "drizzle-kit": "^0.31.8",
+    "drizzle-orm": "^0.45.1",
+    "drizzle-zod": "^0.8.3",
     "tsx": "^4.21.0",
     "typescript": "^5.9.3"
+  },
+  "peerDependencies": {
+    "drizzle-orm": "^0.45.1",
+    "drizzle-zod": "^0.8.3"
+  },
+  "peerDependenciesMeta": {
+    "drizzle-zod": {
+      "optional": true
+    }
   },
   "engines": {
     "node": ">=24.13.0"
