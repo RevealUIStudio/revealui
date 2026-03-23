@@ -337,5 +337,4 @@ export async function warmupPool(): Promise<void> {
 // EXPORTS
 // ===========================================================================
 
-export { getPool };
 export default pool;
