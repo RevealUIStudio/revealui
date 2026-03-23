@@ -50,7 +50,7 @@ describe('RevealUIGlobal', () => {
     });
 
     it('queries the correct table name', async () => {
-      const db = createMockDb([{ id: '1', siteName: 'Test' }]);
+      const db = createMockDb([{ id: '1', site_name: 'Test' }]);
       const global = new RevealUIGlobal(createConfig('settings'), db);
 
       await global.find();
@@ -59,12 +59,12 @@ describe('RevealUIGlobal', () => {
     });
 
     it('returns the first row', async () => {
-      const db = createMockDb([{ id: '1', siteName: 'Test' }]);
+      const db = createMockDb([{ id: '1', site_name: 'Test' }]);
       const global = new RevealUIGlobal(createConfig('settings'), db);
 
       const result = await global.find();
 
-      expect(result).toEqual({ id: '1', siteName: 'Test' });
+      expect(result).toEqual({ id: '1', site_name: 'Test' });
     });
 
     it('returns null when no rows found', async () => {
@@ -131,9 +131,9 @@ describe('RevealUIGlobal', () => {
     it('returns data with generated id when db is null', async () => {
       const global = new RevealUIGlobal(createConfig('settings'), null);
 
-      const result = await global.update({ data: { siteName: 'Test' } });
+      const result = await global.update({ data: { site_name: 'Test' } });
 
-      expect(result).toEqual({ siteName: 'Test', id: 'global_settings' });
+      expect(result).toEqual({ site_name: 'Test', id: 'global_settings' });
     });
 
     it('inserts when no existing document', async () => {
@@ -142,13 +142,13 @@ describe('RevealUIGlobal', () => {
       db.query
         .mockResolvedValueOnce({ rows: [] }) // find() during update check
         .mockResolvedValueOnce({ rows: [] }) // INSERT
-        .mockResolvedValueOnce({ rows: [{ id: 'global_settings', siteName: 'New' }] }); // find() after update
+        .mockResolvedValueOnce({ rows: [{ id: 'global_settings', site_name: 'New' }] }); // find() after update
 
       const global = new RevealUIGlobal(createConfig('settings'), db);
 
-      const result = await global.update({ data: { siteName: 'New' } });
+      const result = await global.update({ data: { site_name: 'New' } });
 
-      expect(result).toEqual({ id: 'global_settings', siteName: 'New' });
+      expect(result).toEqual({ id: 'global_settings', site_name: 'New' });
       const insertQuery = db.query.mock.calls[1]![0] as string;
       expect(insertQuery).toContain('INSERT INTO');
     });
@@ -156,15 +156,15 @@ describe('RevealUIGlobal', () => {
     it('updates when existing document found', async () => {
       const db = createMockDb();
       db.query
-        .mockResolvedValueOnce({ rows: [{ id: 'global_settings', siteName: 'Old' }] }) // find()
+        .mockResolvedValueOnce({ rows: [{ id: 'global_settings', site_name: 'Old' }] }) // find()
         .mockResolvedValueOnce({ rows: [] }) // UPDATE
-        .mockResolvedValueOnce({ rows: [{ id: 'global_settings', siteName: 'New' }] }); // find() after
+        .mockResolvedValueOnce({ rows: [{ id: 'global_settings', site_name: 'New' }] }); // find() after
 
       const global = new RevealUIGlobal(createConfig('settings'), db);
 
-      const result = await global.update({ data: { siteName: 'New' } });
+      const result = await global.update({ data: { site_name: 'New' } });
 
-      expect(result).toEqual({ id: 'global_settings', siteName: 'New' });
+      expect(result).toEqual({ id: 'global_settings', site_name: 'New' });
       const updateQuery = db.query.mock.calls[1]![0] as string;
       expect(updateQuery).toContain('UPDATE');
     });
@@ -225,7 +225,7 @@ describe('RevealUIGlobal', () => {
 
       const global = new RevealUIGlobal(createConfig('settings'), db);
 
-      await expect(global.update({ data: { siteName: 'Test' } })).rejects.toThrow(
+      await expect(global.update({ data: { site_name: 'Test' } })).rejects.toThrow(
         'not found after update',
       );
     });

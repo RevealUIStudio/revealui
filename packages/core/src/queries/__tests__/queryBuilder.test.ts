@@ -123,8 +123,8 @@ describe('buildWhereClause', () => {
       const params: unknown[] = [];
       const clause = buildWhereClause({ title: { like: '%test%' } }, params);
 
-      expect(clause).toBe('"title" LIKE $1');
-      expect(params).toEqual(['%test%']);
+      expect(clause).toBe(`"title" LIKE $1 ESCAPE '\\'`);
+      expect(params).toEqual(['\\%test\\%']);
     });
 
     it('builds exists: true as IS NOT NULL', () => {
