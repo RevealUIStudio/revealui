@@ -288,7 +288,10 @@ describe('database connection failures', () => {
     });
 
     it('emits pool error event on unexpected connection termination', async () => {
-      await import('../../pool.js');
+      const { pool: lazyPool } = await import('../../pool.js');
+
+      // Pool creation is lazy — force initialization by accessing a property
+      void lazyPool.totalCount;
 
       const errorHandlers = mockPoolState.eventHandlers.get('error') ?? [];
       expect(errorHandlers.length).toBeGreaterThan(0);
@@ -587,7 +590,10 @@ describe('database connection failures', () => {
 
   describe('error event handling on idle clients', () => {
     it('registers an error event handler on pool creation', async () => {
-      await import('../../pool.js');
+      const { pool: lazyPool } = await import('../../pool.js');
+
+      // Pool creation is lazy — force initialization by accessing a property
+      void lazyPool.totalCount;
 
       const errorHandlers = mockPoolState.eventHandlers.get('error');
       expect(errorHandlers).toBeDefined();
@@ -595,7 +601,10 @@ describe('database connection failures', () => {
     });
 
     it('error handler does not crash on non-Error objects', async () => {
-      await import('../../pool.js');
+      const { pool: lazyPool } = await import('../../pool.js');
+
+      // Pool creation is lazy — force initialization by accessing a property
+      void lazyPool.totalCount;
 
       const errorHandlers = mockPoolState.eventHandlers.get('error') ?? [];
 
