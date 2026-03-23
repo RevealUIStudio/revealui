@@ -9,12 +9,12 @@
     "@neondatabase/serverless": "^1.0.2",
     "@revealui/config": "workspace:*",
     "@revealui/utils": "workspace:*",
-    "pg": "^8.18.0",
+    "pg": "^8.20.0",
     "zod": "catalog:"
   },
   "devDependencies": {
     "dev": "workspace:*",
-    "drizzle-kit": "^0.31.8",
+    "drizzle-kit": "^0.31.10",
     "drizzle-orm": "^0.45.1",
     "drizzle-zod": "^0.8.3",
     "tsx": "^4.21.0",
