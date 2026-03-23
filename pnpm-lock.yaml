@@ -834,22 +834,22 @@ importers:
 
   packages/contracts:
     dependencies:
-      '@revealui/db':
-        specifier: workspace:*
-        version: link:../db
-      drizzle-zod:
-        specifier: ^0.8.3
-        version: 0.8.3(drizzle-orm@0.45.1(@cloudflare/workers-types@4.20260131.0)(@electric-sql/pglite@0.3.15)(@neondatabase/serverless@1.0.2)(@opentelemetry/api@1.9.0)(@types/pg@8.16.0)(pg@8.18.0))(zod@4.3.6)
       zod:
         specifier: 'catalog:'
         version: 4.3.6
     devDependencies:
+      '@revealui/db':
+        specifier: workspace:*
+        version: link:../db
       '@types/node':
         specifier: ^25.3.0
         version: 25.3.0
       dev:
         specifier: workspace:*
         version: link:../dev
+      drizzle-zod:
+        specifier: ^0.8.3
+        version: 0.8.3(drizzle-orm@0.45.1(@cloudflare/workers-types@4.20260131.0)(@electric-sql/pglite@0.3.15)(@neondatabase/serverless@1.0.2)(@opentelemetry/api@1.9.0)(@types/pg@8.16.0)(pg@8.18.0))(zod@4.3.6)
       typescript:
         specifier: ^5.9.3
         version: 5.9.3
