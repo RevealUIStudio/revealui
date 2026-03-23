@@ -294,13 +294,13 @@ async function gate(): Promise<void> {
     logger.success('Phase 2 passed\n');
   }
 
-  // --- Phase 3: Test + Build (parallel) ---
+  // --- Phase 3: Test + Build (serial: tests first) ---
   if (phase === null || phase === 3) {
-    logger.info('Phase 3 \u2014 Test + Build (parallel)');
+    logger.info('Phase 3 \u2014 Test + Build (serial: tests first)');
 
     const testArgs = changed
-      ? ['turbo', 'run', 'test', '--filter=...[HEAD~1]', '--concurrency=8']
-      : ['turbo', 'run', 'test', '--concurrency=8'];
+      ? ['turbo', 'run', 'test', '--filter=...[HEAD~1]', '--concurrency=4']
+      : ['turbo', 'run', 'test', '--concurrency=4'];
 
     // In changed-only mode with --no-build: still build changed packages (fast scoped build)
     const buildCheck: CheckDef[] =
@@ -322,7 +322,7 @@ async function gate(): Promise<void> {
       ...buildCheck,
     ];
 
-    const results = await runPhaseParallel(phase3Checks);
+    const results = await runPhaseSerial(phase3Checks);
     allResults.push(...results);
 
     if (results.some((r) => r.status === 'fail')) {

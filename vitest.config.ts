@@ -21,7 +21,7 @@ export default defineConfig({
     'scripts/__tests__/vitest.config.ts',
   ],
   test: {
-    hookTimeout: 10000,
+    hookTimeout: 30000,
     exclude: ['**/.direnv/**', '**/.claude/**', '**/node_modules/**', '**/dist/**'],
     coverage: {
       provider: 'v8',

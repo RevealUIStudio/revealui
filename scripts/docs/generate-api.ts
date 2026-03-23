@@ -104,7 +104,7 @@ function generateMarkdown(spec: OpenAPISpec): string {
       if (!op) continue;
       const tag = op.tags?.[0] ?? 'Other';
       if (!byTag.has(tag)) byTag.set(tag, []);
-      byTag.get(tag)!.push({ method, path, op });
+      byTag.get(tag)?.push({ method, path, op });
     }
   }
 
