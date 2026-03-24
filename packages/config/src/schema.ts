@@ -81,7 +81,8 @@ const optionalSchema = z.object({
   REVEALUI_WHITELISTORIGINS: z.string().optional(), // Deprecated — use CORS_ORIGIN
 
   // Database
-  DATABASE_URL: postgresUrlSchema.optional(), // Accepts DATABASE_URL as alternative to POSTGRES_URL
+  DATABASE_URL: postgresUrlSchema.optional(), // Fallback for POSTGRES_URL (REST) or SUPABASE_DATABASE_URL (vector)
+  SUPABASE_DATABASE_URL: postgresUrlSchema.optional(), // Preferred: Supabase vector database connection
 
   // Supabase
   NEXT_PUBLIC_SUPABASE_URL: urlSchema.optional(),

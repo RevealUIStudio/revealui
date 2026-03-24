@@ -279,11 +279,11 @@ export function getClient(typeOrConnectionString?: DatabaseType | string): Datab
 function getClientByType(type: DatabaseType): Database {
   if (type === 'vector') {
     if (!vectorClient) {
-      const url = process.env.DATABASE_URL;
+      const url = process.env.SUPABASE_DATABASE_URL || process.env.DATABASE_URL;
       if (!url || typeof url !== 'string') {
         throw new Error(
-          'DATABASE_URL environment variable is required for vector database. ' +
-            'Set DATABASE_URL to your Supabase connection string.',
+          'SUPABASE_DATABASE_URL environment variable is required for vector database. ' +
+            'Set SUPABASE_DATABASE_URL to your Supabase connection string.',
         );
       }
       vectorClient = createClient({ connectionString: url }, vectorSchema);

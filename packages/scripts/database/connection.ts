@@ -97,7 +97,11 @@ export function getRestConnectionString(): string | undefined {
  * Gets the Vector database connection string from environment.
  */
 export function getVectorConnectionString(): string | undefined {
-  return process.env.DATABASE_URL || process.env.SUPABASE_DATABASE_URI;
+  return (
+    process.env.SUPABASE_DATABASE_URL ||
+    process.env.DATABASE_URL ||
+    process.env.SUPABASE_DATABASE_URI
+  );
 }
 
 /**

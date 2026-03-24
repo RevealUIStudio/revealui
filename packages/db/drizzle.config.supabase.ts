@@ -7,14 +7,14 @@ import { defineConfig } from 'drizzle-kit';
  * It uses the vector.ts schema which only includes agent_memories table.
  *
  * Usage:
- *   DATABASE_URL=<supabase-connection-string> pnpm drizzle-kit --config=drizzle.config.supabase.ts <command>
+ *   SUPABASE_DATABASE_URL=<supabase-connection-string> pnpm drizzle-kit --config=drizzle.config.supabase.ts <command>
  */
 
-// Use DATABASE_URL for Supabase (vector database)
-const dbUrl = process.env.DATABASE_URL ?? '';
+// Use SUPABASE_DATABASE_URL for Supabase (vector database), with DATABASE_URL fallback
+const dbUrl = process.env.SUPABASE_DATABASE_URL ?? process.env.DATABASE_URL ?? '';
 
 if (!dbUrl) {
-  throw new Error('DATABASE_URL must be set for Supabase vector database');
+  throw new Error('SUPABASE_DATABASE_URL must be set for Supabase vector database');
 }
 
 export default defineConfig({
