@@ -1,7 +1,7 @@
 'use client';
 
 import { logger } from '@revealui/core/utils/logger';
-import { useEffect, useReducer } from 'react';
+import { useCallback, useEffect, useReducer, useState } from 'react';
 import type {
   RevealCollectionConfig,
   RevealConfig,
@@ -126,6 +126,7 @@ function AdminHeader({ title, onBack }: { title: string; onBack: () => void }) {
             </button>
             <h1 className="text-2xl font-bold text-gray-900 capitalize">{title}</h1>
           </div>
+          <SignOutButton />
         </div>
       </div>
     </header>
@@ -166,6 +167,34 @@ function LoadingSpinner() {
   );
 }
 
+function SignOutButton() {
+  const [loading, setLoading] = useState(false);
+
+  const handleSignOut = useCallback(async () => {
+    setLoading(true);
+    try {
+      await fetch('/api/auth/sign-out', {
+        method: 'POST',
+        credentials: 'include',
+      });
+    } catch {
+      // Sign out even if the API call fails — clear client state regardless
+    }
+    window.location.href = '/login';
+  }, []);
+
+  return (
+    <button
+      type="button"
+      onClick={() => void handleSignOut()}
+      disabled={loading}
+      className="text-sm text-gray-500 hover:text-gray-700 px-3 py-1.5 rounded-md hover:bg-gray-100 transition-colors"
+    >
+      {loading ? 'Signing out...' : 'Sign Out'}
+    </button>
+  );
+}
+
 // =============================================================================
 // Dashboard home view
 // =============================================================================
@@ -191,6 +220,7 @@ function DashboardHome({
             </div>
             <div className="flex items-center space-x-4">
               <span className="text-sm text-gray-500">v0.1.0</span>
+              <SignOutButton />
             </div>
           </div>
         </div>
