@@ -115,7 +115,7 @@ function RequestResetForm() {
   );
 }
 
-function ResetWithTokenForm({ token }: { token: string }) {
+function ResetWithTokenForm({ tokenId, token }: { tokenId: string; token: string }) {
   const [password, setPassword] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -130,7 +130,7 @@ function ResetWithTokenForm({ token }: { token: string }) {
       const response = await fetch('/api/auth/password-reset', {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ token, password }),
+        body: JSON.stringify({ tokenId, token, password }),
       });
 
       if (!response.ok) {
@@ -234,10 +234,11 @@ export default function ResetPasswordPage() {
 
 function ResetPasswordContent() {
   const searchParams = useSearchParams();
+  const tokenId = searchParams.get('id');
   const token = searchParams.get('token');
 
-  if (token) {
-    return <ResetWithTokenForm token={token} />;
+  if (tokenId && token) {
+    return <ResetWithTokenForm tokenId={tokenId} token={token} />;
   }
 
   return <RequestResetForm />;
