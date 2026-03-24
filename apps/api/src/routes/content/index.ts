@@ -16,6 +16,9 @@
  *
  * Pages:  GET|POST /api/content/sites/:siteId/pages
  *         GET|PATCH|DELETE /api/content/pages/:id
+ *
+ * Users:  GET /api/content/users (admin-only, paginated)
+ *         GET|PATCH|DELETE /api/content/users/:id
  */
 
 import type { DatabaseClient } from '@revealui/db/client';
@@ -25,6 +28,7 @@ import pagesRoutes from './pages.js';
 import postsRoutes from './posts.js';
 import searchRoutes from './search.js';
 import sitesRoutes from './sites.js';
+import usersRoutes from './users.js';
 
 export type ContentVariables = {
   db: DatabaseClient;
@@ -39,5 +43,6 @@ app.route('/', mediaRoutes);
 app.route('/', sitesRoutes);
 app.route('/', pagesRoutes);
 app.route('/', searchRoutes);
+app.route('/', usersRoutes);
 
 export default app;
