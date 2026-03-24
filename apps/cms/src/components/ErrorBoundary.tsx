@@ -7,7 +7,6 @@
  * Integrates with Sentry for error reporting in production.
  */
 
-import { logger } from '@revealui/core/observability/logger';
 import * as Sentry from '@sentry/nextjs';
 import React, { Component, type ErrorInfo, type ReactNode } from 'react';
 
@@ -41,14 +40,7 @@ export class ErrorBoundary extends Component<ErrorBoundaryProps, ErrorBoundarySt
   }
 
   componentDidCatch(error: Error, errorInfo: ErrorInfo): void {
-    // Log error in development
-    if (process.env.NODE_ENV !== 'production') {
-      logger.error('ErrorBoundary caught an error', error, {
-        componentStack: errorInfo.componentStack,
-      });
-    }
-
-    // Send to Sentry
+    // Send to Sentry (React surfaces errors in dev automatically)
     Sentry.captureException(error, {
       contexts: {
         react: {
