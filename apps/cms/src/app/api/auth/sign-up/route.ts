@@ -77,18 +77,32 @@ async function signUpHandler(request: NextRequest): Promise<NextResponse> {
       const maxUsers = getMaxUsers();
       const db = getClient();
       if (maxUsers !== Infinity) {
-        // Use an advisory lock inside a transaction to serialize concurrent sign-up
-        // limit checks. Without this, two simultaneous requests can both pass the
-        // count check before either creates a user (TOCTOU). The lock is held for
-        // the transaction duration — concurrent requests queue behind it and will
-        // read the updated count after the first completes.
-        // Note: signUp() runs after this transaction; for full atomicity it would
-        // need to be inside the same transaction (requires auth package changes).
+        // Check user limit. Prefer advisory lock inside a transaction to serialize
+        // concurrent sign-up limit checks (prevents TOCTOU race). Falls back to a
+        // non-atomic count when the driver doesn't support transactions (e.g. Neon HTTP).
         let limitExceeded = false;
         let limitMsg = '';
-        await db.transaction(async (tx) => {
-          await tx.execute(sql`SELECT pg_advisory_xact_lock(42000001)`);
-          const [row] = await tx
+        try {
+          await db.transaction(async (tx) => {
+            await tx.execute(sql`SELECT pg_advisory_xact_lock(42000001)`);
+            const [row] = await tx
+              .select({ total: count() })
+              .from(users)
+              .where(eq(users.status, 'active'));
+            const activeCount = row?.total ?? 0;
+            isFirstUser = activeCount === 0;
+            if (activeCount >= maxUsers) {
+              limitExceeded = true;
+              limitMsg = `User limit reached (${activeCount}/${maxUsers}). Upgrade your license to add more users.`;
+            }
+          });
+        } catch (txError) {
+          // Neon HTTP driver doesn't support transactions — fall back to simple count.
+          // Safe for single-instance CMS; concurrent sign-ups have a small TOCTOU window.
+          logger.warn('Transaction not supported, falling back to non-atomic user count', {
+            error: txError instanceof Error ? txError.message : String(txError),
+          });
+          const [row] = await db
             .select({ total: count() })
             .from(users)
             .where(eq(users.status, 'active'));
@@ -98,7 +112,7 @@ async function signUpHandler(request: NextRequest): Promise<NextResponse> {
             limitExceeded = true;
             limitMsg = `User limit reached (${activeCount}/${maxUsers}). Upgrade your license to add more users.`;
           }
-        });
+        }
         if (limitExceeded) {
           return createApplicationErrorResponse(limitMsg, 'USER_LIMIT_REACHED', 403);
         }
