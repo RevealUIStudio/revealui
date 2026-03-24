@@ -11,13 +11,13 @@ import { tenantProxy } from './tenantProxy';
 
 export {
   createTenant,
-  ensureFirstUserIsSuperAdmin,
-  tenantProxy,
-  loginAfterCreate,
-  recordLastLoggedInTenant,
   deepMerge,
-  revalidate,
-  revalidatePage,
+  ensureFirstUserIsSuperAdmin,
+  loginAfterCreate,
   populateArchiveBlock,
   populatePublishedAt,
+  recordLastLoggedInTenant,
+  revalidate,
+  revalidatePage,
+  tenantProxy,
 };

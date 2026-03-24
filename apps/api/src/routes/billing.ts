@@ -384,9 +384,9 @@ function getEarlyAdopterDiscount(
   return { discounts: [{ coupon: couponId }] };
 }
 
+export type { EarlyAdopterConfig };
 // Exported for testing
 export { getEarlyAdopterConfig, getEarlyAdopterDiscount };
-export type { EarlyAdopterConfig };
 
 // ─── Routes ──────────────────────────────────────────────────────────────────
 

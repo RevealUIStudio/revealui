@@ -161,5 +161,5 @@ function createCollection<ItemElement extends HTMLElement, ItemData = Record<str
   ] as const;
 }
 
-export { createCollection };
 export type { CollectionProps };
+export { createCollection };

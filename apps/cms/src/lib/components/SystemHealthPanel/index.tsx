@@ -109,7 +109,6 @@ export function SystemHealthPanel({
 
   if (loading) {
     return (
-      // biome-ignore lint/a11y/useSemanticElements: loading indicator with ref forwarding
       <div
         ref={ref}
         className={`bg-white dark:bg-gray-800 rounded-lg shadow p-6 ${className}`}
@@ -172,7 +171,6 @@ export function SystemHealthPanel({
         <div className="flex items-center justify-between mb-2">
           <h2 className="text-lg font-semibold text-gray-900 dark:text-white">System Health</h2>
           <div className="flex items-center gap-2">
-            {/* biome-ignore lint/a11y/useSemanticElements: inline status indicator within flex layout */}
             <span
               className={`text-sm font-medium ${getStatusTextColor(data.status || 'healthy')}`}
               role="status"

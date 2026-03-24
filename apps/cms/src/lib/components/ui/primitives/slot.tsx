@@ -14,5 +14,5 @@ function Slot({ children, ref, ...slotProps }: SlotProps) {
   );
 }
 
-export { Slot };
 export type { SlotProps };
+export { Slot };

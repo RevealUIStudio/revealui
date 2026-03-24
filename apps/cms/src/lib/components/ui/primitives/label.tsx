@@ -21,5 +21,5 @@ function Label({ ref, ...props }: LabelProps & { ref?: React.Ref<LabelElement> }
   );
 }
 
-export { Label };
 export type { LabelProps };
+export { Label };

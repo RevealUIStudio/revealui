@@ -374,14 +374,13 @@ class AlertManager {
 export const alertManager = new AlertManager();
 
 /**
- * Export AlertManager class for testing
- */
-export { AlertManager };
-
-/**
  * Export types for testing
  */
 export type { AlertChannel, SentryClient };
+/**
+ * Export AlertManager class for testing
+ */
+export { AlertManager };
 
 /**
  * Convenience functions

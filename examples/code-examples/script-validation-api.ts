@@ -275,4 +275,4 @@ if (require.main === module) {
 }
 
 // Export for programmatic use
-export { validateWorkspace, validatePackage, type ValidationResult, type ValidationSummary };
+export { type ValidationResult, type ValidationSummary, validatePackage, validateWorkspace };

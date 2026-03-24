@@ -61,10 +61,10 @@ afterEach(async () => {
 });
 
 export {
-  setupTestDatabase,
-  teardownTestDatabase,
-  createTestAPI,
   cleanupTestAPI,
   cleanupTestData,
+  createTestAPI,
   resetTestState,
+  setupTestDatabase,
+  teardownTestDatabase,
 };

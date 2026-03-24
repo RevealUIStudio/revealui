@@ -5,4 +5,4 @@ import CustomerSelect from './CustomerSelect/index';
 import Icon from './Icon/index';
 import Logo from './Logo/index';
 
-export { Logo, Icon, Background, BeforeDashboard, BeforeLogin, CustomerSelect };
+export { Background, BeforeDashboard, BeforeLogin, CustomerSelect, Icon, Logo };

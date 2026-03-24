@@ -539,7 +539,6 @@ export async function withTransaction<T>(
 // Re-exports
 // =============================================================================
 
-export { schema };
 // Re-export individual table types
 export type {
   AgentAction,
@@ -587,3 +586,4 @@ export type {
   TableRelationships,
   Transaction,
 } from './types.js';
+export { schema };

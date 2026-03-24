@@ -404,4 +404,4 @@ if (require.main === module) {
 }
 
 // Export for programmatic use
-export { runWorkflow, runStep, type WorkflowStep, type WorkflowResult };
+export { runStep, runWorkflow, type WorkflowResult, type WorkflowStep };

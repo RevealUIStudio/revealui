@@ -104,11 +104,11 @@ function dispatchDiscreteCustomEvent<E extends CustomEvent>(target: E['target'],
 
 const Root = Primitive;
 
+export type { PrimitivePropsWithRef };
 export {
+  //
+  dispatchDiscreteCustomEvent,
   Primitive,
   //
   Root,
-  //
-  dispatchDiscreteCustomEvent,
 };
-export type { PrimitivePropsWithRef };

@@ -367,11 +367,11 @@ function handleAndDispatchCustomEvent<E extends CustomEvent, OriginalEvent exten
 const Root = DismissableLayer;
 const Branch = DismissableLayerBranch;
 
+export type { DismissableLayerProps };
 export {
+  Branch,
   DismissableLayer,
   DismissableLayerBranch,
   //
   Root,
-  Branch,
 };
-export type { DismissableLayerProps };

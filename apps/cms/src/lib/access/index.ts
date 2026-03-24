@@ -10,14 +10,14 @@ import { lastLoggedInTenant } from './tenants/lastLoggedInTenant';
 import { isUserLoggedIn } from './users/isUserLoggedIn';
 
 export {
+  anyone,
+  authenticated,
   isAdmin,
   isAdminAndUser,
   isAdminOrLoggedIn,
   isAdminOrPublished,
-  anyone,
-  authenticated,
-  isUserLoggedIn,
   isSuperAdmin,
+  isUserLoggedIn,
   isUserOrTenant,
   lastLoggedInTenant,
 };

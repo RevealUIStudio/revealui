@@ -187,9 +187,9 @@ export function SystemHealthMonitor({
                 </span>
               </h3>
               <div className="space-y-2">
-                {metrics.alerts.map((alert, index) => (
+                {metrics.alerts.map((alert) => (
                   <div
-                    key={`alert-${alert.timestamp}-${index}`}
+                    key={`alert-${alert.timestamp}-${alert.level}-${alert.message}`}
                     className={`p-3 rounded ${
                       alert.level === 'critical'
                         ? 'bg-red-900/20 border border-red-800'

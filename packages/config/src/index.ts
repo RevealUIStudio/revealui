@@ -304,9 +304,9 @@ const configProxy = new Proxy({} as Config, {
 
 export default configProxy;
 
-// Export validation functions
-export { validateEnvVars, formatValidationErrors };
-
+export type { Environment } from './loader.js';
+// Export loader utilities (for advanced usage)
+export { detectEnvironment, loadEnvironment } from './loader.js';
 // Export shared RevealUI configuration functions
 export {
   getSharedCMSConfig,
@@ -315,21 +315,18 @@ export {
   getSharedWebConfig,
   sharedConfig,
 } from './revealui.config.js';
-
 // Export types (Config is already exported as interface above)
 export type {
   BrandingConfig,
   DatabaseConfig,
-  StripeConfig,
-  StorageConfig,
-  RevealConfig,
-  OptionalConfig,
-  SupabaseConfig,
-  SentryConfig,
   DevToolsConfig,
   EnvConfig,
+  OptionalConfig,
+  RevealConfig,
+  SentryConfig,
+  StorageConfig,
+  StripeConfig,
+  SupabaseConfig,
 };
-
-export type { Environment } from './loader.js';
-// Export loader utilities (for advanced usage)
-export { detectEnvironment, loadEnvironment } from './loader.js';
+// Export validation functions
+export { formatValidationErrors, validateEnvVars };
