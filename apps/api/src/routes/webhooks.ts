@@ -96,7 +96,7 @@ async function checkAndMarkProcessed(
     // Stripe will retry the event, which is safe because our INSERT is idempotent.
     logger.error('Idempotency check failed — returning 500 to force Stripe retry', undefined, {
       eventId,
-      error: err instanceof Error ? err.message : 'unknown',
+      detail: err instanceof Error ? err.message : 'unknown',
     });
     throw err;
   }
@@ -125,7 +125,7 @@ async function unmarkProcessed(db: Database, eventId: string): Promise<boolean> 
           undefined,
           {
             eventId,
-            error: err instanceof Error ? err.message : 'unknown',
+            detail: err instanceof Error ? err.message : 'unknown',
             retries: maxRetries,
           },
         );
@@ -158,8 +158,8 @@ function resolveTier(
   const alertEmail = process.env.REVEALUI_ALERT_EMAIL || 'founder@revealui.com';
   sendTierFallbackAlert(alertEmail, { tier: tier ?? null, metadata: metadata ?? null }).catch(
     (err) => {
-      logger.warn('Failed to send tier fallback alert', {
-        error: err instanceof Error ? err.message : 'unknown',
+      logger.error('Failed to send tier fallback alert', undefined, {
+        detail: err instanceof Error ? err.message : 'unknown',
       });
     },
   );
@@ -447,7 +447,7 @@ function auditLicenseEvent(
     .catch((err: unknown) => {
       logger.warn('Failed to write license audit entry', {
         eventType,
-        error: err instanceof Error ? err.message : 'unknown',
+        detail: err instanceof Error ? err.message : 'unknown',
       });
     });
 }
@@ -705,7 +705,7 @@ app.openapi(stripeWebhookRoute, async (c) => {
             provisionGitHubAccess(githubUsername, db).catch((err) => {
               logger.warn('Failed to provision GitHub team access', {
                 githubUsername,
-                error: err instanceof Error ? err.message : 'unknown',
+                detail: err instanceof Error ? err.message : 'unknown',
               });
             });
           }
@@ -715,7 +715,7 @@ app.openapi(stripeWebhookRoute, async (c) => {
             provisionNpmAccess(npmUsername, db).catch((err) => {
               logger.warn('Failed to provision npm team access', {
                 npmUsername,
-                error: err instanceof Error ? err.message : 'unknown',
+                detail: err instanceof Error ? err.message : 'unknown',
               });
             });
           }
@@ -726,8 +726,8 @@ app.openapi(stripeWebhookRoute, async (c) => {
           if (perpetualEmail) {
             sendPerpetualLicenseActivatedEmail(perpetualEmail, tier, supportExpiresAt).catch(
               (err) => {
-                logger.warn('Failed to send perpetual license activation email', {
-                  error: err instanceof Error ? err.message : 'unknown',
+                logger.error('Failed to send perpetual license activation email', undefined, {
+                  detail: err instanceof Error ? err.message : 'unknown',
                 });
               },
             );
@@ -798,7 +798,7 @@ app.openapi(stripeWebhookRoute, async (c) => {
         } catch (err) {
           logger.warn('Failed to retrieve subscription status at checkout — defaulting to active', {
             subscriptionId,
-            error: err instanceof Error ? err.message : 'unknown',
+            detail: err instanceof Error ? err.message : 'unknown',
           });
         }
 
@@ -910,8 +910,8 @@ app.openapi(stripeWebhookRoute, async (c) => {
           session.customer_email ?? (await findUserEmailByCustomerId(db, customerId));
         if (userEmail) {
           sendLicenseActivatedEmail(userEmail, tier).catch((err) => {
-            logger.warn('Failed to send license activation email', {
-              error: err instanceof Error ? err.message : 'unknown',
+            logger.error('Failed to send license activation email', undefined, {
+              detail: err instanceof Error ? err.message : 'unknown',
             });
           });
         }
@@ -1014,8 +1014,8 @@ app.openapi(stripeWebhookRoute, async (c) => {
           const email = await findUserEmailByCustomerId(db, customerId);
           if (email) {
             sendPaymentFailedEmail(email).catch((err) => {
-              logger.warn('Failed to send payment failed email', {
-                error: err instanceof Error ? err.message : 'unknown',
+              logger.error('Failed to send payment failed email', undefined, {
+                detail: err instanceof Error ? err.message : 'unknown',
               });
             });
           }
@@ -1169,8 +1169,8 @@ app.openapi(stripeWebhookRoute, async (c) => {
               periodEnd,
               invoiceUrl: invoice.hosted_invoice_url ?? null,
             }).catch((err) => {
-              logger.warn('Failed to send payment receipt email', {
-                error: err instanceof Error ? err.message : 'unknown',
+              logger.error('Failed to send payment receipt email', undefined, {
+                detail: err instanceof Error ? err.message : 'unknown',
               });
             });
           }
@@ -1192,7 +1192,7 @@ app.openapi(stripeWebhookRoute, async (c) => {
         } catch (err) {
           logger.warn('Failed to list subscriptions for invoice.payment_succeeded', {
             customerId,
-            error: err instanceof Error ? err.message : 'unknown',
+            detail: err instanceof Error ? err.message : 'unknown',
           });
           break;
         }
@@ -1280,8 +1280,8 @@ app.openapi(stripeWebhookRoute, async (c) => {
           invoice.customer_email ?? (await findUserEmailByCustomerId(db, customerId));
         if (recoveryEmail) {
           sendPaymentRecoveredEmail(recoveryEmail).catch((err) => {
-            logger.warn('Failed to send payment recovered email', {
-              error: err instanceof Error ? err.message : 'unknown',
+            logger.error('Failed to send payment recovered email', undefined, {
+              detail: err instanceof Error ? err.message : 'unknown',
             });
           });
         }
@@ -1327,8 +1327,8 @@ app.openapi(stripeWebhookRoute, async (c) => {
         const email = invoice.customer_email ?? (await findUserEmailByCustomerId(db, customerId));
         if (email) {
           sendPaymentFailedEmail(email).catch((err) => {
-            logger.warn('Failed to send payment failed email', {
-              error: err instanceof Error ? err.message : 'unknown',
+            logger.error('Failed to send payment failed email', undefined, {
+              detail: err instanceof Error ? err.message : 'unknown',
             });
           });
         }
@@ -1350,8 +1350,8 @@ app.openapi(stripeWebhookRoute, async (c) => {
         const email = await findUserEmailByCustomerId(db, customerId);
         if (email) {
           sendTrialEndingEmail(email, subscription.trial_end).catch((err) => {
-            logger.warn('Failed to send trial ending email', {
-              error: err instanceof Error ? err.message : 'unknown',
+            logger.error('Failed to send trial ending email', undefined, {
+              detail: err instanceof Error ? err.message : 'unknown',
             });
           });
         }
@@ -1378,7 +1378,7 @@ app.openapi(stripeWebhookRoute, async (c) => {
           logger.error('Failed to retrieve charge for lost dispute', undefined, {
             chargeId,
             disputeId: dispute.id,
-            error: err instanceof Error ? err.message : 'unknown',
+            detail: err instanceof Error ? err.message : 'unknown',
           });
           break;
         }
@@ -1422,8 +1422,8 @@ app.openapi(stripeWebhookRoute, async (c) => {
         const disputeEmail = await findUserEmailByCustomerId(db, disputeCustomerId);
         if (disputeEmail) {
           sendDisputeLostEmail(disputeEmail).catch((err) => {
-            logger.warn('Failed to send dispute lost email', {
-              error: err instanceof Error ? err.message : 'unknown',
+            logger.error('Failed to send dispute lost email', undefined, {
+              detail: err instanceof Error ? err.message : 'unknown',
             });
           });
         }
@@ -1536,7 +1536,7 @@ app.openapi(stripeWebhookRoute, async (c) => {
         return undefined;
       })(),
     }).catch((alertErr) => {
-      logger.warn('Failed to send webhook failure alert', {
+      logger.error('Failed to send webhook failure alert', undefined, {
         error: alertErr instanceof Error ? alertErr.message : 'unknown',
       });
     });

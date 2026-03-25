@@ -154,7 +154,7 @@ async function signInHandler(request: NextRequest): Promise<NextResponse> {
 
 // Export rate-limited handler
 export const POST = withRateLimit(signInHandler, {
-  maxAttempts: 5,
+  maxAttempts: 10,
   windowMs: 15 * 60 * 1000, // 15 minutes
   keyPrefix: 'signin',
   failClosed: true,
