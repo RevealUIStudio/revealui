@@ -44,7 +44,7 @@ const tiers = [
     benefits: [
       'All Gold Sponsor benefits',
       'Logo with link on landing page',
-      'Dedicated Slack channel',
+      'Dedicated Discourse channel',
       'Direct input on architecture decisions',
       'Custom feature development priority',
     ],

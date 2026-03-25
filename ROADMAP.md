@@ -47,6 +47,7 @@ This roadmap reflects our current priorities and planned direction. It is update
 | E2E test stability | Done | Playwright CI browser config, navigation race fixes |
 | Stripe live mode | Pending | Switch from test to live keys after full UX verification |
 | Skipped test audit | In progress | Review and fix 130+ skipped tests across packages |
+| Claim verification | Done | Audit all marketing and docs text against codebase reality |
 | Public roadmap | Done | This document |
 
 ---
@@ -101,8 +102,8 @@ A no-code visual builder for creating RevealUI sites. Drag-and-drop page buildin
 #### SOC2 Type II Compliance
 Enterprise security certification for teams that require it.
 
-#### x402 Agent Payments
-Native cryptocurrency micropayments (USDC on Base) for agent-to-agent transactions. Agents discover, authenticate, and pay without human intervention.
+#### RevealCoin + x402 Agent Payments
+Native cryptocurrency micropayments powered by RevealCoin on the Solana blockchain. Agents discover, authenticate, and pay per task via the HTTP 402 payment protocol — no accounts, no subscriptions.
 
 ---
 

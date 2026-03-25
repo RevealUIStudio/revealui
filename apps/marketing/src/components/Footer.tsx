@@ -86,6 +86,11 @@ export function Footer() {
                   Blog
                 </Link>
               </li>
+              <li>
+                <Link href="/coming-soon" className="hover:text-white transition-colors">
+                  Coming Soon
+                </Link>
+              </li>
             </ul>
           </div>
           <div>

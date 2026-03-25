@@ -264,7 +264,7 @@ export const PERPETUAL_TIERS: PerpetualTier[] = [
     ],
     cta: 'Buy License',
     ctaHref: 'mailto:support@revealui.com?subject=Pro%20Perpetual%20License',
-    comingSoon: false,
+    comingSoon: true,
   },
   {
     name: 'Agency Perpetual',
@@ -279,7 +279,7 @@ export const PERPETUAL_TIERS: PerpetualTier[] = [
     ],
     cta: 'Buy License',
     ctaHref: 'mailto:support@revealui.com?subject=Agency%20Perpetual%20License',
-    comingSoon: false,
+    comingSoon: true,
   },
   {
     name: 'Forge Perpetual',
@@ -294,7 +294,7 @@ export const PERPETUAL_TIERS: PerpetualTier[] = [
     ],
     cta: 'Contact Sales',
     ctaHref: 'mailto:support@revealui.com?subject=Forge%20Perpetual%20License%20Inquiry',
-    comingSoon: false,
+    comingSoon: true,
   },
 ];
 

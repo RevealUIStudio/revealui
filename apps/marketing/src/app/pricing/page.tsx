@@ -221,6 +221,9 @@ export default async function PricingPage() {
             <h2 className="mt-2 text-3xl font-bold tracking-tight text-gray-900 sm:text-4xl">
               Agent Credits
             </h2>
+            <span className="mt-2 inline-block text-xs font-semibold text-amber-700 bg-amber-100 px-3 py-1 rounded-full">
+              Coming soon
+            </span>
             <p className="mt-4 text-lg text-gray-600">
               Pay per agent task. Buy once, never expires. Stacks with your monthly allowance.
             </p>
@@ -281,6 +284,9 @@ export default async function PricingPage() {
             <h2 className="mt-2 text-3xl font-bold tracking-tight text-gray-900 sm:text-4xl">
               Perpetual Licenses
             </h2>
+            <span className="mt-2 inline-block text-xs font-semibold text-amber-700 bg-amber-100 px-3 py-1 rounded-full">
+              Coming soon
+            </span>
             <p className="mt-4 text-lg text-gray-600">
               Pay once, use forever. No subscription required. Support renewals are optional.
             </p>
@@ -350,6 +356,9 @@ export default async function PricingPage() {
               <p className="mt-4 text-lg text-gray-400">
                 Agents discover, authenticate, and pay without human intervention.
               </p>
+              <span className="mt-3 inline-block text-xs font-semibold text-amber-300 bg-amber-400/10 px-3 py-1 rounded-full ring-1 ring-amber-400/20">
+                Coming soon
+              </span>
             </div>
 
             <div className="grid grid-cols-1 gap-6 sm:grid-cols-3">
@@ -406,11 +415,11 @@ export default async function PricingPage() {
                 </div>
                 <h3 className="text-base font-semibold text-white">x402 Per-Call Payments</h3>
                 <p className="mt-2 text-sm text-gray-400">
-                  Agents pay per task with USDC on Base via the HTTP 402 payment protocol. No
-                  accounts, no subscriptions — pay exactly for what you use.
+                  Agents pay per task with RevealCoin on Solana via the HTTP 402 payment protocol.
+                  No accounts, no subscriptions — pay exactly for what you use.
                 </p>
                 <p className="mt-3 text-xs text-gray-400">
-                  $0.001 per agent task · First 1,000/month free
+                  $0.001 per agent task · First 1,000/month free · Powered by RevealCoin
                 </p>
               </div>
 
@@ -434,8 +443,8 @@ export default async function PricingPage() {
                 </div>
                 <h3 className="text-base font-semibold text-white">MCP Servers</h3>
                 <p className="mt-2 text-sm text-gray-400">
-                  5 production MCP servers: Stripe, Neon, Supabase, Vercel, Playwright. Discoverable
-                  on Smithery, mcpt, and the RevealUI marketplace.
+                  6 production MCP servers: Stripe, Neon, Supabase, Vercel, Playwright, and Next.js
+                  DevTools. Marketplace discovery coming soon.
                 </p>
                 <a
                   href="https://docs.revealui.com/mcp"

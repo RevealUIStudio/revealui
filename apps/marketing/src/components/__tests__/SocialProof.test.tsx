@@ -24,14 +24,14 @@ describe('SocialProof', () => {
   it('contains all four stats', () => {
     const result = SocialProof();
     const html = JSON.stringify(result);
-    expect(html).toContain('24');
+    expect(html).toContain('28');
     expect(html).toContain('workspaces');
-    expect(html).toContain('125K+');
+    expect(html).toContain('200K+');
     expect(html).toContain('lines of TypeScript');
-    expect(html).toContain('6,800+');
+    expect(html).toContain('10,000+');
     expect(html).toContain('tests');
     expect(html).toContain('6');
-    expect(html).toContain('apps deployed');
+    expect(html).toContain('apps');
   });
 
   it('contains the tech stack badges', () => {

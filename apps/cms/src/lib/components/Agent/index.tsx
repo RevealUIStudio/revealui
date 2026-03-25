@@ -597,7 +597,7 @@ export default function AgentChat({ conversationId, onConversationCreated }: Age
       persistMessage('user', content);
 
       // Use streaming endpoint (now has CMS tools wired)
-      stream.start(content, `${API_URL}/api/agent-stream`);
+      stream.start(content, API_URL);
     },
     [input, stream, isConfirming, ensureConversation, persistMessage],
   );

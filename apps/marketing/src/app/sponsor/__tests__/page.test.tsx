@@ -76,7 +76,7 @@ describe('SponsorPage', () => {
 
     expect(html).toContain('Sponsor badge on GitHub profile');
     expect(html).toContain('Logo on README and docs site');
-    expect(html).toContain('Dedicated Slack channel');
+    expect(html).toContain('Dedicated Discourse channel');
     expect(html).toContain('Custom feature development priority');
   });
 

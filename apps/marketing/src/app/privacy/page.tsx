@@ -36,7 +36,8 @@ export default function PrivacyPolicyPage() {
         <h3>Usage Data</h3>
         <p>
           We collect server logs (IP address, request path, user agent) for security monitoring and
-          debugging. These logs are retained for 30 days.
+          debugging. Logs are retained only as long as necessary for security and operational
+          purposes.
         </p>
         <h3>Content Data</h3>
         <p>
@@ -80,8 +81,9 @@ export default function PrivacyPolicyPage() {
         <h2>4. Data Retention</h2>
         <p>
           Account data is retained while your account is active. After account deletion, we
-          permanently remove your personal data within 30 days. Server logs are retained for 30
-          days. Billing records are retained as required by tax law (typically 7 years).
+          permanently remove your personal data within 30 days. Server logs are retained only as
+          long as necessary for security and operational purposes. Billing records are retained as
+          required by tax law (typically 7 years).
         </p>
 
         <h2>5. Your Rights (GDPR / CCPA)</h2>
