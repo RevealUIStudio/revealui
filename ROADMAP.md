@@ -1,0 +1,130 @@
+# RevealUI Roadmap
+
+> Business OS Software (BOSS). Build your business, not your boilerplate.
+
+This roadmap reflects our current priorities and planned direction. It is updated regularly and may shift based on community feedback and business needs.
+
+**Last updated:** 2026-03-25
+
+---
+
+## Completed
+
+### Core Platform (v0.2 — v0.3)
+
+- **Auth system** — Session-based auth with bcrypt, RBAC/ABAC, rate limiting, brute-force protection, TOTP 2FA, WebAuthn passkeys, magic link recovery, OAuth (GitHub, Google, Vercel)
+- **Content engine** — Schema-first collections, Lexical rich text, media handling, draft/live lifecycle, REST API with OpenAPI spec
+- **Billing stack** — Stripe checkout, subscriptions, webhooks, license keys, billing portal, tier enforcement (free/pro/max/forge)
+- **UI components** — 50+ native React 19 components (Tailwind v4, zero external UI deps)
+- **Real-time sync** — ElectricSQL integration for instant editor/client/agent sync
+- **Database** — 70+ tables via Drizzle ORM, dual-DB architecture (NeonDB + Supabase)
+- **CLI** — `npx create-revealui my-app` scaffolds a full project from npm
+- **AI agents** — A2A protocol, CRDT memory, BYOK LLM providers, streaming, tool execution
+- **MCP servers** — 5 production servers (Stripe, Neon, Supabase, Vercel, Playwright)
+- **Desktop app** — Tauri 2 + React 19 companion (vault, tunnel, infrastructure, sync)
+- **Security** — CSP, CORS, HSTS, AES-256-GCM encryption, timing-safe TOTP, GDPR framework, 187 security tests
+- **CI/CD** — 3-phase gate (lint + typecheck + test + build), CodeQL, Gitleaks, OIDC npm publishing
+- **Accessibility** — WCAG 2.1 AA compliance on marketing site and CMS login/admin pages
+
+### Launch (v0.3.3 — current)
+
+- **Public repo** on GitHub with MIT license (OSS packages)
+- **16 packages** published to npm
+- **4 template repos** (basic-blog, e-commerce, portfolio, starter)
+- **Production deploys** — CMS, API, Marketing, Docs on Vercel
+- **Stripe test mode** verified end-to-end (checkout, webhooks, license generation)
+
+---
+
+## In Progress
+
+### Post-Launch Polish (v0.4)
+
+| Task | Status | Description |
+|------|--------|-------------|
+| CORS hardening | Done | Manual CORS middleware replacing Hono's `cors()` for Vercel compatibility |
+| Accessibility audit | Done | WCAG 2.1 AA color contrast fixes across marketing site |
+| E2E test stability | Done | Playwright CI browser config, navigation race fixes |
+| Stripe live mode | Pending | Switch from test to live keys after full UX verification |
+| Skipped test audit | In progress | Review and fix 130+ skipped tests across packages |
+| Public roadmap | Done | This document |
+
+---
+
+## Planned
+
+### Near-Term (Q2 2026)
+
+#### CMS Dashboard Agent Chat
+Give users the ability to interact with an AI agent directly from the CMS dashboard. Ask it to create content, query data, manage collections, and automate workflows — all through natural language.
+
+- Streaming responses with markdown rendering
+- CMS-aware tools (create/update/delete posts, query collections, manage users)
+- Conversation history and persistence
+- Confirmation prompts for destructive actions
+
+#### Documentation Improvements
+- Deploy docs site to `docs.revealui.com`
+- Expand quick-start guide with video walkthroughs
+- API reference for all packages
+- Collection cookbook with common patterns
+
+#### Developer Experience
+- `create-revealui` template improvements (more starters, better defaults)
+- Hot module reload improvements for CMS development
+- Better error messages and debugging output
+- Plugin system documentation
+
+### Mid-Term (Q3 2026)
+
+#### Agent Marketplace
+A registry where developers can publish and discover MCP servers and AI agent capabilities. Revenue share model (80% developer / 20% platform).
+
+#### Multi-User Collaboration
+Real-time multi-user editing powered by ElectricSQL. Conflict resolution, presence indicators, and collaborative workflows.
+
+#### Enterprise Features
+- SSO/SAML authentication
+- Advanced audit logging
+- Custom RBAC policy editor
+- Multi-region deployment support
+- SLA guarantees
+
+#### Self-Hosted (Forge Edition)
+Docker images for fully self-hosted deployment. Domain-locked licensing, no cloud dependency.
+
+### Long-Term (Q4 2026+)
+
+#### Visual Builder (Foundry)
+A no-code visual builder for creating RevealUI sites. Drag-and-drop page building, component customization, and one-click deployment.
+
+#### SOC2 Type II Compliance
+Enterprise security certification for teams that require it.
+
+#### x402 Agent Payments
+Native cryptocurrency micropayments (USDC on Base) for agent-to-agent transactions. Agents discover, authenticate, and pay without human intervention.
+
+---
+
+## Pricing Tracks
+
+RevealUI offers three ways to pay:
+
+| Track | Model | Description |
+|-------|-------|-------------|
+| **A — Subscriptions** | Monthly | Free / Pro $49/mo / Max $149/mo / Forge $299/mo |
+| **B — Agent Credits** | Pay-per-use | $0.001/task, first 1,000/month free |
+| **C — Perpetual** | One-time | $299 / $799 / $1,999 (1 year support included) |
+
+See [revealui.com/pricing](https://revealui.com/pricing) for details.
+
+---
+
+## How to Influence This Roadmap
+
+- **GitHub Issues** — [Request features or report bugs](https://github.com/RevealUIStudio/revealui/issues)
+- **Discussions** — [Join the conversation](https://github.com/RevealUIStudio/revealui/discussions)
+- **Community** — [community.revealui.com](https://community.revealui.com)
+- **Email** — support@revealui.com
+
+We prioritize based on: customer impact, charge readiness, and community demand.
