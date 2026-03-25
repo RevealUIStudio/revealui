@@ -5,6 +5,7 @@
 import { and, desc, eq, isNull } from 'drizzle-orm';
 import type { DatabaseClient } from '../client/types.js';
 import { posts } from '../schema/cms.js';
+import { users } from '../schema/users.js';
 
 export async function getAllPosts(
   db: DatabaseClient,
@@ -19,6 +20,30 @@ export async function getAllPosts(
   return db
     .select()
     .from(posts)
+    .where(and(...conditions))
+    .orderBy(desc(posts.createdAt))
+    .limit(limit)
+    .offset(offset);
+}
+
+/** List posts with author data joined (prevents N+1 when listing posts) */
+export async function getPostsWithAuthor(
+  db: DatabaseClient,
+  options: { status?: string; limit?: number; offset?: number } = {},
+) {
+  const { status, limit = 20, offset = 0 } = options;
+  const conditions = [isNull(posts.deletedAt), ...(status ? [eq(posts.status, status)] : [])];
+  return db
+    .select({
+      post: posts,
+      author: {
+        id: users.id,
+        name: users.name,
+        email: users.email,
+      },
+    })
+    .from(posts)
+    .leftJoin(users, eq(posts.authorId, users.id))
     .where(and(...conditions))
     .orderBy(desc(posts.createdAt))
     .limit(limit)

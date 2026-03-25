@@ -2,9 +2,10 @@
  * Ticket comment database queries
  */
 
-import { eq, sql } from 'drizzle-orm';
+import { eq, inArray, sql } from 'drizzle-orm';
 import type { DatabaseClient } from '../client/types.js';
 import { ticketComments, tickets } from '../schema/tickets.js';
+import { users } from '../schema/users.js';
 
 export async function getCommentById(db: DatabaseClient, id: string) {
   const result = await db.select().from(ticketComments).where(eq(ticketComments.id, id)).limit(1);
@@ -16,6 +17,33 @@ export async function getCommentsByTicket(db: DatabaseClient, ticketId: string) 
     .select()
     .from(ticketComments)
     .where(eq(ticketComments.ticketId, ticketId))
+    .orderBy(ticketComments.createdAt);
+}
+
+/** Get comments with author data joined (prevents N+1 when displaying threads) */
+export async function getCommentsWithAuthors(db: DatabaseClient, ticketId: string) {
+  return db
+    .select({
+      comment: ticketComments,
+      author: {
+        id: users.id,
+        name: users.name,
+        email: users.email,
+      },
+    })
+    .from(ticketComments)
+    .leftJoin(users, eq(ticketComments.authorId, users.id))
+    .where(eq(ticketComments.ticketId, ticketId))
+    .orderBy(ticketComments.createdAt);
+}
+
+/** Batch-load comments for multiple tickets (prevents N+1 on board views) */
+export async function getCommentsByTicketIds(db: DatabaseClient, ticketIds: string[]) {
+  if (ticketIds.length === 0) return [];
+  return db
+    .select()
+    .from(ticketComments)
+    .where(inArray(ticketComments.ticketId, ticketIds))
     .orderBy(ticketComments.createdAt);
 }
 

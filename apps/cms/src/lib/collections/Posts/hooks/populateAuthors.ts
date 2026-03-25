@@ -21,38 +21,43 @@ export const populateAuthors: RevealAfterReadHook = async ({ doc, req }) => {
   const revealui = req.revealui as RevealUIInstance;
 
   if (authors && Array.isArray(authors)) {
-    const authorDocs: User[] = [];
-
+    // Extract all author IDs first, then batch-load in a single query
+    const authorIds: (string | number)[] = [];
     for (const author of authors) {
       const authorId =
         typeof author === 'object' && author !== null
           ? (author as { id?: string | number }).id
           : author;
-      if (!authorId || typeof authorId === 'boolean') {
-        continue;
-      }
-
-      try {
-        const authorDoc = await revealui.findByID({
-          id: authorId as string | number,
-          collection: 'users',
-          depth: 0,
-          // RevealUI CMS API type compatibility - req types don't exactly match but are runtime-compatible
-          req: req as unknown as Parameters<typeof revealui.findByID>[0]['req'],
-        });
-
-        if (authorDoc) {
-          authorDocs.push(asDocument<User>(authorDoc));
-        }
-      } catch {
-        // Skip authors that can't be found
+      if (authorId && typeof authorId !== 'boolean') {
+        authorIds.push(authorId);
       }
     }
 
-    postDoc.populatedAuthors = authorDocs.map((authorDoc) => ({
-      id: authorDoc.id,
-      name: authorDoc.firstName,
-    }));
+    if (authorIds.length > 0) {
+      // Single batch query instead of N individual findByID calls
+      const authorDocs: User[] = [];
+      try {
+        const results = await revealui.find({
+          collection: 'users',
+          where: { id: { in: authorIds.map(String) } },
+          depth: 0,
+          limit: authorIds.length,
+          req: req as unknown as Parameters<typeof revealui.find>[0]['req'],
+        });
+        if (results?.docs) {
+          for (const doc of results.docs) {
+            authorDocs.push(asDocument<User>(doc));
+          }
+        }
+      } catch {
+        // Skip if batch lookup fails
+      }
+
+      postDoc.populatedAuthors = authorDocs.map((authorDoc) => ({
+        id: authorDoc.id,
+        name: authorDoc.firstName,
+      }));
+    }
   }
 
   return postDoc as RevealDocument;

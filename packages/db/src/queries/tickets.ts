@@ -5,6 +5,7 @@
 import { and, desc, eq, sql } from 'drizzle-orm';
 import type { DatabaseClient } from '../client/types.js';
 import { tickets } from '../schema/tickets.js';
+import { users } from '../schema/users.js';
 
 export async function getTicketsByBoard(
   db: DatabaseClient,
@@ -28,6 +29,36 @@ export async function getTicketsByBoard(
   return db
     .select()
     .from(tickets)
+    .where(and(...conditions))
+    .orderBy(tickets.sortOrder);
+}
+
+/** List tickets with assignee data joined (prevents N+1 on board views) */
+export async function getTicketsWithAssignees(
+  db: DatabaseClient,
+  boardId: string,
+  filters?: {
+    status?: string;
+    priority?: string;
+    columnId?: string;
+  },
+) {
+  const conditions = [eq(tickets.boardId, boardId)];
+  if (filters?.status) conditions.push(eq(tickets.status, filters.status));
+  if (filters?.priority) conditions.push(eq(tickets.priority, filters.priority));
+  if (filters?.columnId) conditions.push(eq(tickets.columnId, filters.columnId));
+
+  return db
+    .select({
+      ticket: tickets,
+      assignee: {
+        id: users.id,
+        name: users.name,
+        email: users.email,
+      },
+    })
+    .from(tickets)
+    .leftJoin(users, eq(tickets.assigneeId, users.id))
     .where(and(...conditions))
     .orderBy(tickets.sortOrder);
 }

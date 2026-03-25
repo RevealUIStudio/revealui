@@ -2,7 +2,7 @@
  * User database queries with soft-delete support
  */
 
-import { and, count, desc, eq, ilike, isNull } from 'drizzle-orm';
+import { and, count, desc, eq, ilike, inArray, isNull } from 'drizzle-orm';
 import type { DatabaseClient } from '../client/types.js';
 import { users } from '../schema/users.js';
 
@@ -63,6 +63,15 @@ export async function updateUser(
     .where(and(eq(users.id, id), notDeleted))
     .returning();
   return result[0] ?? null;
+}
+
+/** Batch-load multiple users by ID in a single query (prevents N+1) */
+export async function getUsersByIds(db: DatabaseClient, ids: string[]) {
+  if (ids.length === 0) return [];
+  return db
+    .select()
+    .from(users)
+    .where(and(inArray(users.id, ids), notDeleted));
 }
 
 export async function getUserById(db: DatabaseClient, id: string) {
