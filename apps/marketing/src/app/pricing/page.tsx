@@ -250,7 +250,7 @@ export default async function PricingPage() {
                   <span className="text-sm text-gray-500">{bundle.priceNote ?? ''}</span>
                 </p>
                 <p className="mt-1 text-xl font-semibold text-purple-600">{bundle.tasks} tasks</p>
-                <p className="mt-1 text-xs text-gray-400">{bundle.costPer ?? ''}</p>
+                <p className="mt-1 text-xs text-gray-500">{bundle.costPer ?? ''}</p>
                 <a
                   href="mailto:support@revealui.com?subject=Agent%20Credits%20Inquiry"
                   className={`mt-8 block w-full rounded-md px-4 py-2.5 text-center text-sm font-semibold transition-colors ${
@@ -275,7 +275,7 @@ export default async function PricingPage() {
       <section id="track-c" className="py-24 sm:py-32">
         <div className="mx-auto max-w-7xl px-6 lg:px-8">
           <div className="text-center mb-12">
-            <span className="text-sm font-semibold tracking-wide text-emerald-600 uppercase">
+            <span className="text-sm font-semibold tracking-wide text-emerald-700 uppercase">
               Track C
             </span>
             <h2 className="mt-2 text-3xl font-bold tracking-tight text-gray-900 sm:text-4xl">
@@ -304,7 +304,7 @@ export default async function PricingPage() {
                   <span className="text-4xl font-bold text-gray-900">{tier.price ?? '—'}</span>
                   <span className="text-sm text-gray-500">{tier.priceNote ?? ''}</span>
                 </p>
-                <p className="mt-1 text-xs text-gray-400">{tier.renewal ?? '—'}</p>
+                <p className="mt-1 text-xs text-gray-500">{tier.renewal ?? '—'}</p>
                 <ul className="mt-6 mb-8 space-y-3">
                   {tier.features.map((feature) => (
                     <li key={feature} className="flex items-start gap-x-3">
@@ -378,7 +378,7 @@ export default async function PricingPage() {
                     href="https://api.revealui.com/.well-known/agent.json"
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="text-emerald-400 hover:text-emerald-300 break-all"
+                    className="text-emerald-400 hover:text-emerald-300 underline break-all"
                   >
                     /.well-known/agent.json
                   </a>
@@ -409,7 +409,7 @@ export default async function PricingPage() {
                   Agents pay per task with USDC on Base via the HTTP 402 payment protocol. No
                   accounts, no subscriptions — pay exactly for what you use.
                 </p>
-                <p className="mt-3 text-xs text-gray-500">
+                <p className="mt-3 text-xs text-gray-400">
                   $0.001 per agent task · First 1,000/month free
                 </p>
               </div>
@@ -471,7 +471,7 @@ export default async function PricingPage() {
               </a>
               <a
                 href="https://docs.revealui.com/api"
-                className="ml-4 inline-flex items-center gap-2 rounded-lg bg-emerald-500 px-4 py-2 text-sm font-semibold text-white hover:bg-emerald-400 transition-colors"
+                className="ml-4 inline-flex items-center gap-2 rounded-lg bg-emerald-700 px-4 py-2 text-sm font-semibold text-white hover:bg-emerald-600 transition-colors"
               >
                 API docs
               </a>

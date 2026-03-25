@@ -47,7 +47,7 @@ export function HeroSection() {
             <span className="h-1.5 w-1.5 rounded-full bg-emerald-500 animate-pulse" />
             Open Source &middot; MIT Licensed
           </Badge>
-          <p className="text-sm font-medium uppercase tracking-widest text-gray-400 mb-4 hero-stagger">
+          <p className="text-sm font-medium uppercase tracking-widest text-gray-500 mb-4 hero-stagger">
             The User Interface for the future has yet to Reveal itself
           </p>
           <h1 className="text-4xl font-bold tracking-tight text-gray-950 sm:text-6xl lg:text-7xl hero-stagger">
@@ -68,7 +68,7 @@ export function HeroSection() {
             {primitives.map((p) => (
               <Badge key={p.label} color="zinc" className="gap-2 rounded-lg px-4 py-2.5">
                 <svg
-                  className="h-4 w-4 text-gray-400"
+                  className="h-4 w-4 text-gray-500"
                   fill="none"
                   viewBox="0 0 24 24"
                   strokeWidth={1.5}
@@ -109,13 +109,13 @@ export function HeroSection() {
 
           {/* CLI quick-start */}
           <div className="mt-10 inline-flex items-center gap-3 rounded-xl bg-gray-950 px-5 py-3 font-mono text-sm shadow-lg ring-1 ring-white/10">
-            <span className="select-none text-gray-500">$</span>
+            <span className="select-none text-gray-400">$</span>
             <span className="text-emerald-400">npx</span>
             <span className="text-white">create-revealui@latest</span>
             <span className="text-blue-300">my-app</span>
           </div>
 
-          <div className="mt-8 flex flex-wrap items-center justify-center gap-x-8 gap-y-3 text-sm text-gray-400">
+          <div className="mt-8 flex flex-wrap items-center justify-center gap-x-8 gap-y-3 text-sm text-gray-500">
             {['MIT Licensed', 'Full Source Code', 'No Vendor Lock-in', 'TypeScript End-to-End'].map(
               (item) => (
                 <div key={item} className="flex items-center gap-2">

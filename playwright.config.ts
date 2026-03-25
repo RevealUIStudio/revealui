@@ -51,38 +51,21 @@ export default defineConfig({
   },
 
   // Configure projects for major browsers
-  projects: [
-    {
-      name: 'chromium',
-      use: { ...devices['Desktop Chrome'] },
-    },
-
-    {
-      name: 'firefox',
-      use: { ...devices['Desktop Firefox'] },
-    },
-
-    {
-      name: 'webkit',
-      use: { ...devices['Desktop Safari'] },
-    },
-
-    // Mobile viewports
-    {
-      name: 'mobile-chrome',
-      use: { ...devices['Pixel 5'] },
-    },
-    {
-      name: 'mobile-safari',
-      use: { ...devices['iPhone 12'] },
-    },
-
-    // Tablet viewports
-    {
-      name: 'tablet',
-      use: { ...devices['iPad Pro'] },
-    },
-  ],
+  // CI only installs Chromium — limit to chromium-based projects there
+  projects: process.env.CI
+    ? [
+        { name: 'chromium', use: { ...devices['Desktop Chrome'] } },
+        { name: 'mobile-chrome', use: { ...devices['Pixel 5'] } },
+        { name: 'tablet', use: { ...devices['iPad Pro'] } },
+      ]
+    : [
+        { name: 'chromium', use: { ...devices['Desktop Chrome'] } },
+        { name: 'firefox', use: { ...devices['Desktop Firefox'] } },
+        { name: 'webkit', use: { ...devices['Desktop Safari'] } },
+        { name: 'mobile-chrome', use: { ...devices['Pixel 5'] } },
+        { name: 'mobile-safari', use: { ...devices['iPhone 12'] } },
+        { name: 'tablet', use: { ...devices['iPad Pro'] } },
+      ],
 
   // Run your local dev server before starting the tests
   webServer: process.env.CI

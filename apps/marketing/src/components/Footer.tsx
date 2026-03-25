@@ -16,7 +16,7 @@ export function Footer() {
             <div className="mt-6 flex gap-4">
               <a
                 href="https://github.com/RevealUIStudio/revealui"
-                className="text-gray-500 hover:text-white transition-colors"
+                className="text-gray-400 hover:text-white transition-colors"
                 aria-label="GitHub"
               >
                 <svg className="h-5 w-5" fill="currentColor" viewBox="0 0 24 24">
@@ -30,7 +30,7 @@ export function Footer() {
               </a>
               <a
                 href="https://x.com/revealui"
-                className="text-gray-500 hover:text-white transition-colors"
+                className="text-gray-400 hover:text-white transition-colors"
                 aria-label="RevealUI on X"
               >
                 <svg className="h-5 w-5" fill="currentColor" viewBox="0 0 24 24">
@@ -40,7 +40,7 @@ export function Footer() {
               </a>
               <a
                 href="https://www.linkedin.com/company/revealui"
-                className="text-gray-500 hover:text-white transition-colors"
+                className="text-gray-400 hover:text-white transition-colors"
                 aria-label="RevealUI on LinkedIn"
               >
                 <svg className="h-5 w-5" fill="currentColor" viewBox="0 0 24 24">
@@ -54,7 +54,7 @@ export function Footer() {
             <h3 className="text-sm font-semibold uppercase tracking-wider text-gray-400 mb-4">
               Product
             </h3>
-            <ul className="space-y-3 text-sm text-gray-500">
+            <ul className="space-y-3 text-sm text-gray-400">
               <li>
                 <Link href="/" className="hover:text-white transition-colors">
                   Features
@@ -92,7 +92,7 @@ export function Footer() {
             <h3 className="text-sm font-semibold uppercase tracking-wider text-gray-400 mb-4">
               Community
             </h3>
-            <ul className="space-y-3 text-sm text-gray-500">
+            <ul className="space-y-3 text-sm text-gray-400">
               <li>
                 <a
                   href="https://github.com/RevealUIStudio/revealui"
@@ -139,13 +139,10 @@ export function Footer() {
             </ul>
           </div>
         </div>
-        <div className="mt-12 pt-8 border-t border-gray-800 flex flex-col sm:flex-row items-center justify-between gap-4 text-gray-500 text-sm">
+        <div className="mt-12 pt-8 border-t border-gray-800 flex flex-col sm:flex-row items-center justify-between gap-4 text-gray-400 text-sm">
           <div className="flex items-center gap-4">
             <p>&copy; {currentYear} RevealUI Studio. All rights reserved.</p>
-            <BuiltWithRevealUI
-              size="sm"
-              className="border-gray-700 bg-gray-800/80 text-gray-400 opacity-70"
-            />
+            <BuiltWithRevealUI size="sm" className="border-gray-700 bg-gray-800/80 text-gray-400" />
           </div>
           <div className="flex gap-6">
             <Link href="/privacy" className="hover:text-white transition-colors">

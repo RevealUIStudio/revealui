@@ -5,7 +5,7 @@ export function Audiences() {
     <section className="py-24 bg-white sm:py-32">
       <div className="mx-auto max-w-7xl px-6 lg:px-8">
         <div className="mx-auto max-w-2xl text-center">
-          <p className="text-sm font-semibold uppercase tracking-widest text-gray-400">
+          <p className="text-sm font-semibold uppercase tracking-widest text-gray-500">
             Who it&apos;s for
           </p>
           <p className="mt-3 text-3xl font-bold tracking-tight text-gray-950 sm:text-4xl">
@@ -67,7 +67,7 @@ export function Audiences() {
                 </li>
               ))}
             </ul>
-            <p className="mt-6 text-sm text-gray-400">
+            <p className="mt-6 text-sm text-gray-500">
               Pick the packages you need.{' '}
               <Button plain href="https://docs.revealui.com" className="text-sm font-medium">
                 See the full package list &rarr;
@@ -107,12 +107,12 @@ export function Audiences() {
 
             <div className="mt-6 rounded-xl bg-gray-950 px-5 py-4 font-mono text-sm">
               <div className="flex items-center gap-2">
-                <span className="select-none text-gray-500">$</span>
+                <span className="select-none text-gray-400">$</span>
                 <span className="text-emerald-400">npx</span>
                 <span className="text-white">create-revealui</span>
                 <span className="text-blue-300">my-saas</span>
               </div>
-              <div className="mt-2 text-gray-500 text-xs leading-5">
+              <div className="mt-2 text-gray-400 text-xs leading-5">
                 <div>&#x2713; Auth + sessions + RBAC</div>
                 <div>&#x2713; Stripe billing + webhooks</div>
                 <div>&#x2713; Content collections + REST API</div>

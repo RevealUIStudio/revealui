@@ -118,6 +118,8 @@ test.describe('Accessibility', () => {
   test.describe('Cross-cutting', () => {
     test('no critical violations across CMS root', async ({ page }) => {
       await page.goto(CmsBase, { waitUntil: 'domcontentloaded' });
+      // CMS root may redirect to /login — wait for navigation to settle
+      await page.waitForLoadState('networkidle');
       const allViolations = await checkAccessibilityCritical(page);
 
       // Report total minor/moderate violations for visibility (does not fail)
@@ -134,6 +136,7 @@ test.describe('Accessibility', () => {
 
     test('images have alt text', async ({ page }) => {
       await page.goto(CmsBase, { waitUntil: 'domcontentloaded' });
+      await page.waitForLoadState('networkidle');
       const violations = await getAccessibilityViolations(page);
       const imageViolations = violations.filter((v) => v.id === 'image-alt');
       expect(imageViolations, formatImageViolations(imageViolations)).toHaveLength(0);
@@ -141,6 +144,7 @@ test.describe('Accessibility', () => {
 
     test('page has proper heading hierarchy', async ({ page }) => {
       await page.goto(CmsBase, { waitUntil: 'domcontentloaded' });
+      await page.waitForLoadState('networkidle');
       const violations = await getAccessibilityViolations(page);
       const headingViolations = violations.filter(
         (v) => v.id === 'heading-order' || v.id === 'page-has-heading-one',
@@ -153,6 +157,7 @@ test.describe('Accessibility', () => {
 
     test('color contrast meets AA minimum', async ({ page }) => {
       await page.goto(CmsBase, { waitUntil: 'domcontentloaded' });
+      await page.waitForLoadState('networkidle');
       const violations = await getAccessibilityViolations(page);
       const contrastViolations = violations.filter((v) => v.id === 'color-contrast');
       expect(contrastViolations, formatContrastViolations(contrastViolations)).toHaveLength(0);

@@ -32,7 +32,7 @@ export function ValueProposition() {
     <section className="py-24 bg-white sm:py-32">
       <div className="mx-auto max-w-7xl px-6 lg:px-8">
         <div className="mx-auto max-w-2xl text-center">
-          <p className="text-sm font-semibold uppercase tracking-widest text-gray-400">
+          <p className="text-sm font-semibold uppercase tracking-widest text-gray-500">
             Why RevealUI
           </p>
           <p className="mt-3 text-3xl font-bold tracking-tight text-gray-950 sm:text-4xl">
@@ -45,7 +45,7 @@ export function ValueProposition() {
         </div>
         <div className="mx-auto mt-10 max-w-xs border-t border-gray-200" />
         <div className="mx-auto mt-16 max-w-2xl sm:mt-20 lg:mt-24 lg:max-w-none">
-          <dl className="grid max-w-xl grid-cols-1 gap-x-8 gap-y-16 lg:max-w-none lg:grid-cols-3">
+          <div className="grid max-w-xl grid-cols-1 gap-x-8 gap-y-16 lg:max-w-none lg:grid-cols-3">
             {features.map((feature) => (
               <div key={feature.title} className="group flex flex-col items-start">
                 <div
@@ -69,7 +69,7 @@ export function ValueProposition() {
                 </Button>
               </div>
             ))}
-          </dl>
+          </div>
         </div>
       </div>
     </section>

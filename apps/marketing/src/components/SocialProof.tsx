@@ -83,7 +83,7 @@ export function SocialProof() {
 
         {/* Tech stack */}
         <div className="mx-auto mt-10 max-w-4xl">
-          <p className="text-center text-xs font-semibold uppercase tracking-widest text-gray-500 mb-4">
+          <p className="text-center text-xs font-semibold uppercase tracking-widest text-gray-400 mb-4">
             Built on
           </p>
           <div className="flex flex-wrap justify-center gap-2">
@@ -101,7 +101,7 @@ export function SocialProof() {
 
         {/* Feature cards */}
         <div className="mx-auto max-w-2xl text-center mt-20">
-          <p className="text-sm font-semibold uppercase tracking-widest text-gray-500">
+          <p className="text-sm font-semibold uppercase tracking-widest text-gray-400">
             What&apos;s Included
           </p>
           <p className="mt-3 text-3xl font-bold tracking-tight text-white sm:text-4xl">

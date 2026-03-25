@@ -13,7 +13,7 @@ export function GetStarted() {
             building your business in minutes.
           </p>
           <div className="mt-10 flex flex-col sm:flex-row items-center justify-center gap-4">
-            <ButtonCVA asChild size="lg">
+            <ButtonCVA asChild size="lg" className="bg-white text-gray-950 hover:bg-gray-100">
               <a href="https://cms.revealui.com/signup">Get Started Free</a>
             </ButtonCVA>
             <ButtonCVA
