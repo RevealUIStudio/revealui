@@ -289,6 +289,85 @@ export const checkLicenseStatus = (
 };
 
 /**
+ * Require AI access — local inference (BitNet) on free tier, cloud providers on Pro+.
+ *
+ * When BITNET_BASE_URL is set, free-tier users can use local inference.
+ * Cloud providers (GROQ, Anthropic, OpenAI, BYOK) still require a Pro+ license.
+ * The route handler is responsible for enforcing BitNet-only when the caller
+ * is on the free tier (see agent-stream.ts).
+ */
+export const requireAIAccess = (options: FeatureGateOptions = {}): MiddlewareHandler => {
+  return async (c, next) => {
+    const mode = options.mode ?? 'hybrid';
+    const requestEntitlements = getRequestEntitlements(c);
+    const currentTier =
+      requestEntitlements?.tier ?? (mode === 'entitlements' ? 'free' : getCurrentTier());
+
+    // Pro+ users always have full AI access
+    const aiEnabled =
+      mode === 'entitlements'
+        ? (requestEntitlements?.features?.ai ?? false)
+        : (requestEntitlements?.features?.ai ?? isFeatureEnabled('ai'));
+
+    if (aiEnabled) {
+      await next();
+      return;
+    }
+
+    // Free tier: allow if local inference is configured (BITNET_BASE_URL)
+    const hasLocalInference = !!process.env.BITNET_BASE_URL;
+    if (hasLocalInference) {
+      // Tag the request so downstream handlers know this is local-only access
+      c.set('aiAccessMode', 'local');
+      await next();
+      return;
+    }
+
+    // No local inference, no Pro license — block
+    const requiredTier = getRequiredTier('ai');
+    const x402 = getX402Config();
+
+    if (x402.enabled) {
+      const paymentHeader = c.req.header('x-payment-payload');
+      if (paymentHeader) {
+        const resource = new URL(c.req.url).pathname;
+        const result = await verifyPayment(paymentHeader, resource);
+        if (result.valid) {
+          await next();
+          return;
+        }
+      }
+
+      const resource = new URL(c.req.url).pathname;
+      const paymentRequired = buildPaymentRequired(resource);
+
+      return c.json(
+        {
+          success: false as const,
+          error: `AI requires a ${requiredTier} license or local BitNet inference (BITNET_BASE_URL). Current tier: ${currentTier}.`,
+          code: 'HTTP_402',
+          upgrade_url: 'https://revealui.com/pricing',
+        },
+        402,
+        {
+          'X-PAYMENT-REQUIRED': encodePaymentRequired(paymentRequired),
+          'X-REVEALUI-FEATURE': 'ai',
+        },
+      );
+    }
+
+    return c.json(
+      {
+        success: false as const,
+        error: `AI requires a ${requiredTier} license or local BitNet inference (set BITNET_BASE_URL). Current tier: ${currentTier}. Upgrade at https://revealui.com/pricing`,
+        code: 'HTTP_403',
+      },
+      403,
+    );
+  };
+};
+
+/**
  * Reset the DB status cache. Primarily for testing.
  */
 export function resetDbStatusCache(): void {

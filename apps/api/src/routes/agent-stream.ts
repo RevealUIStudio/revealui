@@ -37,6 +37,8 @@ const DEFAULT_MODELS: Record<string, string> = {
 type Variables = {
   tenant?: { id: string };
   user?: { id: string; role: string };
+  /** Set by requireAIAccess middleware — 'local' means free tier with BitNet only */
+  aiAccessMode?: 'local';
 };
 
 // biome-ignore lint/style/useNamingConvention: Hono requires PascalCase `Variables` in its generic type parameter
@@ -122,9 +124,25 @@ app.openapi(agentStreamRoute, async (c) => {
     );
   }
 
+  // Free tier with local BitNet: reject BYOK and force local provider
+  const isLocalOnly = c.get('aiAccessMode') === 'local';
+
   // BYOK: accept API key via Authorization header (never in request body)
   const authHeader = c.req.header('Authorization');
   const byokKey = authHeader?.startsWith('Bearer ') ? authHeader.slice(7) : undefined;
+
+  if (isLocalOnly && byokKey) {
+    return c.json(
+      {
+        success: false,
+        error:
+          'BYOK (Bring Your Own Key) requires a Pro or Enterprise license. ' +
+          'Free tier uses local BitNet inference. Upgrade at https://revealui.com/pricing',
+        code: 'HTTP_403',
+      },
+      403,
+    );
+  }
 
   let llmClient: unknown;
   try {
@@ -147,6 +165,15 @@ app.openapi(agentStreamRoute, async (c) => {
         provider: provider as LLMConfig['provider'],
         apiKey: byokKey,
         model,
+      });
+    } else if (isLocalOnly) {
+      // Free tier: force BitNet provider regardless of other env vars
+      type LLMConfig = ConstructorParameters<typeof llmClientMod.LLMClient>[0];
+      llmClient = new llmClientMod.LLMClient({
+        provider: 'bitnet' as LLMConfig['provider'],
+        apiKey: 'bitnet',
+        baseURL: process.env.BITNET_BASE_URL,
+        model: process.env.LLM_MODEL ?? 'bitnet-b1.58-2B-4T',
       });
     } else {
       llmClient = aiMod.createLLMClientFromEnv();

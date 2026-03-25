@@ -19,6 +19,7 @@ export type LicenseTierId = 'free' | 'pro' | 'max' | 'enterprise';
 // =============================================================================
 
 export type FeatureFlagKey =
+  | 'aiLocal'
   | 'ai'
   | 'aiMemory'
   | 'mcp'
@@ -57,6 +58,7 @@ export const TIER_COLORS: Record<LicenseTierId, string> = {
 // =============================================================================
 
 export const FEATURE_LABELS: Record<FeatureFlagKey, string> = {
+  aiLocal: 'Local AI (BitNet)',
   ai: 'AI Agents',
   aiMemory: 'AI Memory',
   mcp: 'MCP Server Integration',

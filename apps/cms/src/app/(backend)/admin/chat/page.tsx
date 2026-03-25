@@ -63,7 +63,7 @@ export default function ChatPage() {
   );
 
   return (
-    <LicenseGate feature="ai">
+    <LicenseGate feature="aiLocal">
       <div className="flex h-[calc(100vh-4rem)]">
         {/* Sidebar */}
         <div

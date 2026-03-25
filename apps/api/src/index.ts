@@ -19,7 +19,7 @@ import { dbMiddleware } from './middleware/db.js';
 import { domainLockMiddleware, validateForgeConfig } from './middleware/domain-lock.js';
 import { entitlementMiddleware } from './middleware/entitlements.js';
 import { errorHandler } from './middleware/error.js';
-import { checkLicenseStatus, requireFeature } from './middleware/license.js';
+import { checkLicenseStatus, requireAIAccess, requireFeature } from './middleware/license.js';
 import { rateLimitMiddleware, tieredRateLimitMiddleware } from './middleware/rate-limit.js';
 import { requestIdMiddleware } from './middleware/request-id.js';
 import { enforceSiteLimit } from './middleware/resource-limits.js';
@@ -392,10 +392,12 @@ app.use('/api/v1/*', licenseStatusCheck);
 app.use('/a2a/*', licenseStatusCheck);
 
 // License enforcement — gate premium routes by feature
-app.use('/api/agent-tasks/*', requireFeature('ai', { mode: 'entitlements' }));
-app.use('/api/v1/agent-tasks/*', requireFeature('ai', { mode: 'entitlements' }));
-app.use('/api/agent-stream', requireFeature('ai', { mode: 'entitlements' }));
-app.use('/api/v1/agent-stream', requireFeature('ai', { mode: 'entitlements' }));
+// Agent stream + tasks: free tier allowed with local BitNet, Pro+ for cloud providers
+app.use('/api/agent-tasks/*', requireAIAccess({ mode: 'entitlements' }));
+app.use('/api/v1/agent-tasks/*', requireAIAccess({ mode: 'entitlements' }));
+app.use('/api/agent-stream', requireAIAccess({ mode: 'entitlements' }));
+app.use('/api/v1/agent-stream', requireAIAccess({ mode: 'entitlements' }));
+// RAG and collab/agent remain Pro+ only (cloud infrastructure required)
 app.use('/api/rag/*', requireFeature('ai', { mode: 'entitlements' }));
 app.use('/api/v1/rag/*', requireFeature('ai', { mode: 'entitlements' }));
 app.use('/api/collab/agent/*', requireFeature('ai', { mode: 'entitlements' }));

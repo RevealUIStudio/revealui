@@ -13,7 +13,9 @@ import { isLicensed, type LicenseTier } from './license.js';
 
 /** All gated features in RevealUI */
 export interface FeatureFlags {
-  /** AI agent system (Pro: 1 provider, Enterprise: all providers) */
+  /** Local AI inference via BitNet — available at all tiers (no API key needed) */
+  aiLocal: boolean;
+  /** Cloud AI agent system (Pro: 1 provider, Enterprise: all providers) */
   ai: boolean;
   /** AI memory system — working + episodic + vector (Max: basic, Enterprise: full) */
   aiMemory: boolean;
@@ -45,6 +47,7 @@ export interface FeatureFlags {
 
 /** Feature-to-tier mapping: minimum tier required for each feature */
 const featureTierMap: Record<keyof FeatureFlags, LicenseTier> = {
+  aiLocal: 'free',
   ai: 'pro',
   mcp: 'pro',
   payments: 'pro',

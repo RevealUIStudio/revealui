@@ -36,6 +36,7 @@ import {
 
 /** All feature keys defined in FeatureFlags */
 const ALL_FEATURES: (keyof FeatureFlags)[] = [
+  'aiLocal',
   'ai',
   'aiMemory',
   'mcp',
@@ -51,6 +52,9 @@ const ALL_FEATURES: (keyof FeatureFlags)[] = [
   'customDomain',
   'analytics',
 ];
+
+/** Features available at free tier (no license required) */
+const FREE_FEATURES: (keyof FeatureFlags)[] = ['aiLocal'];
 
 /** Features that require at least Pro tier */
 const PRO_FEATURES: (keyof FeatureFlags)[] = [
@@ -110,11 +114,14 @@ afterEach(() => {
 // =============================================================================
 
 describe('getFeatures', () => {
-  it('returns all features as false for free tier', () => {
+  it('returns only aiLocal as true for free tier', () => {
     simulateTier('free');
     const features = getFeatures();
 
-    for (const feature of ALL_FEATURES) {
+    for (const feature of FREE_FEATURES) {
+      expect(features[feature]).toBe(true);
+    }
+    for (const feature of PRO_FEATURES) {
       expect(features[feature]).toBe(false);
     }
   });
@@ -170,10 +177,10 @@ describe('getFeatures', () => {
     }
   });
 
-  it('returns a FeatureFlags object with exactly 14 keys', () => {
+  it('returns a FeatureFlags object with exactly 15 keys', () => {
     simulateTier('free');
     const features = getFeatures();
-    expect(Object.keys(features)).toHaveLength(14);
+    expect(Object.keys(features)).toHaveLength(15);
   });
 
   it('calls isLicensed for each feature', () => {
@@ -190,10 +197,18 @@ describe('getFeatures', () => {
 // =============================================================================
 
 describe('isFeatureEnabled', () => {
-  describe('free tier — all gated features blocked', () => {
+  describe('free tier — only aiLocal enabled', () => {
     beforeEach(() => simulateTier('free'));
 
-    it.each(ALL_FEATURES)('returns false for %s', (feature) => {
+    it.each(FREE_FEATURES)('returns true for %s (free-tier feature)', (feature) => {
+      expect(isFeatureEnabled(feature)).toBe(true);
+    });
+
+    it.each([
+      ...PRO_FEATURES,
+      ...MAX_FEATURES,
+      ...ENTERPRISE_FEATURES,
+    ])('returns false for %s', (feature) => {
       expect(isFeatureEnabled(feature)).toBe(false);
     });
   });
@@ -251,10 +266,13 @@ describe('isFeatureEnabled', () => {
 // =============================================================================
 
 describe('getFeaturesForTier', () => {
-  it('returns all false for free tier', () => {
+  it('returns only aiLocal as true for free tier', () => {
     const features = getFeaturesForTier('free');
 
-    for (const feature of ALL_FEATURES) {
+    for (const feature of FREE_FEATURES) {
+      expect(features[feature]).toBe(true);
+    }
+    for (const feature of PRO_FEATURES) {
       expect(features[feature]).toBe(false);
     }
   });
@@ -316,6 +334,10 @@ describe('getFeaturesForTier', () => {
 // =============================================================================
 
 describe('getRequiredTier', () => {
+  it('returns free for aiLocal feature (BitNet)', () => {
+    expect(getRequiredTier('aiLocal')).toBe('free');
+  });
+
   it('returns pro for AI feature', () => {
     expect(getRequiredTier('ai')).toBe('pro');
   });
@@ -380,10 +402,10 @@ describe('getRequiredTier', () => {
 describe('tier progression', () => {
   const tiers: LicenseTier[] = ['free', 'pro', 'max', 'enterprise'];
   const expectedEnabledCounts: Record<LicenseTier, number> = {
-    free: 0,
-    pro: 7, // 7 pro features
-    max: 11, // 7 pro + 4 max features
-    enterprise: 14, // all 14 features
+    free: 1, // aiLocal only
+    pro: 8, // 1 free + 7 pro features
+    max: 12, // 1 free + 7 pro + 4 max features
+    enterprise: 15, // all 15 features
   };
 
   it.each(tiers)('%s tier enables exactly %i features', (tier) => {
@@ -419,7 +441,11 @@ describe('tier progression', () => {
 describe('feature blocking — free tier restrictions', () => {
   beforeEach(() => simulateTier('free'));
 
-  it('blocks AI agent system', () => {
+  it('allows local AI inference (BitNet)', () => {
+    expect(isFeatureEnabled('aiLocal')).toBe(true);
+  });
+
+  it('blocks cloud AI agent system', () => {
     expect(isFeatureEnabled('ai')).toBe(false);
   });
 
@@ -481,12 +507,14 @@ describe('feature blocking — free tier restrictions', () => {
 // =============================================================================
 
 describe('edge cases', () => {
-  it('returns false when isLicensed always returns false (no license initialized)', () => {
+  it('returns false for gated features when isLicensed always returns false', () => {
     // Simulate a state where no license has been initialized (default = free)
     mockIsLicensed.mockReturnValue(false);
     mockGetCurrentTier.mockReturnValue('free');
 
-    for (const feature of ALL_FEATURES) {
+    // aiLocal calls isLicensed('free') which returns false in this mock scenario,
+    // but in reality isLicensed('free') always returns true. Test the gated features.
+    for (const feature of [...PRO_FEATURES, ...MAX_FEATURES, ...ENTERPRISE_FEATURES]) {
       expect(isFeatureEnabled(feature)).toBe(false);
     }
   });
@@ -535,13 +563,17 @@ describe('edge cases', () => {
     // getRequiredTier should not throw for any known feature
     for (const feature of ALL_FEATURES) {
       const tier = getRequiredTier(feature);
-      expect(['pro', 'max', 'enterprise']).toContain(tier);
+      expect(['free', 'pro', 'max', 'enterprise']).toContain(tier);
     }
   });
 
-  it('no feature requires free tier (all are gated)', () => {
+  it('only aiLocal requires free tier — all others are gated', () => {
     for (const feature of ALL_FEATURES) {
-      expect(getRequiredTier(feature)).not.toBe('free');
+      if (feature === 'aiLocal') {
+        expect(getRequiredTier(feature)).toBe('free');
+      } else {
+        expect(getRequiredTier(feature)).not.toBe('free');
+      }
     }
   });
 });
