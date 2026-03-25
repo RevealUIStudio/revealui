@@ -11,6 +11,7 @@
  */
 
 import { createRoute, OpenAPIHono, z } from '@revealui/openapi';
+import { HTTPException } from 'hono/http-exception';
 import { streamSSE } from 'hono/streaming';
 
 /** Detect LLM provider from API key prefix or explicit parameter */
@@ -35,6 +36,7 @@ const DEFAULT_MODELS: Record<string, string> = {
 
 type Variables = {
   tenant?: { id: string };
+  user?: { id: string; role: string };
 };
 
 // biome-ignore lint/style/useNamingConvention: Hono requires PascalCase `Variables` in its generic type parameter
@@ -94,6 +96,11 @@ const agentStreamRoute = createRoute({
 });
 
 app.openapi(agentStreamRoute, async (c) => {
+  const user = c.get('user');
+  if (!user) {
+    throw new HTTPException(401, { message: 'Authentication required' });
+  }
+
   const body = c.req.valid('json');
 
   // Dynamically load @revealui/ai modules

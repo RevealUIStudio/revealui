@@ -120,6 +120,27 @@ async function initializeCMSTools(deps: NonNullable<Awaited<ReturnType<typeof lo
   return registry;
 }
 
+// Tools that require user confirmation before execution
+const DESTRUCTIVE_TOOLS = new Set(['delete_document', 'delete_media', 'delete_user']);
+
+/** Build a human-readable description of what a destructive tool will do */
+function describeDestructiveAction(toolName: string, args: unknown): string {
+  const parsed = typeof args === 'object' && args !== null ? args : {};
+  const collection = (parsed as Record<string, unknown>).collection ?? 'item';
+  const id = (parsed as Record<string, unknown>).id ?? 'unknown';
+
+  switch (toolName) {
+    case 'delete_document':
+      return `Delete document "${id}" from ${collection}`;
+    case 'delete_media':
+      return `Delete media file "${id}"`;
+    case 'delete_user':
+      return `Delete user account "${id}"`;
+    default:
+      return `Execute destructive action: ${toolName}`;
+  }
+}
+
 export async function POST(request: NextRequest) {
   // Dynamic import — @revealui/ai is an optional Pro dependency
   const aiDeps = await loadChatAIDeps();
@@ -173,6 +194,12 @@ export async function POST(request: NextRequest) {
         parseError: jsonError instanceof Error ? jsonError.message : 'Malformed JSON',
       });
     }
+
+    // Extract confirmation data before Zod validation strips unknown keys
+    const rawBody = body as Record<string, unknown>;
+    const confirmedToolCalls = Array.isArray(rawBody.confirmedToolCalls)
+      ? new Set(rawBody.confirmedToolCalls as string[])
+      : new Set<string>();
 
     const validationResult = ChatRequestContract.validate(body);
 
@@ -350,6 +377,27 @@ export async function POST(request: NextRequest) {
             tool: toolName,
             arguments: parsedArgs,
           });
+
+          // Destructive action gate: require explicit user confirmation
+          if (DESTRUCTIVE_TOOLS.has(toolName) && !confirmedToolCalls.has(toolCall.id)) {
+            logger.info('Destructive tool blocked — awaiting confirmation', {
+              tool: toolName,
+              toolCallId: toolCall.id,
+            });
+
+            return new Response(
+              JSON.stringify({
+                type: 'confirmation_required',
+                toolCallId: toolCall.id,
+                toolName,
+                arguments: parsedArgs,
+                description: describeDestructiveAction(toolName, parsedArgs),
+                // Include conversation state so the client can resume
+                pendingMessages: conversationMessages.slice(1), // exclude system prompt
+              }),
+              { headers: { 'Content-Type': 'application/json' } },
+            );
+          }
 
           // Execute the tool
           const toolResult = await registry.execute(toolName, parsedArgs);

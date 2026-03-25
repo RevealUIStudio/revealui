@@ -15,6 +15,22 @@ type Variables = {
   user?: { id: string; role: string };
 };
 
+const WRITE_ROLES = new Set(['admin', 'owner', 'editor']);
+
+function requireAuth(c: { get: (key: string) => unknown }): { id: string; role: string } {
+  const user = c.get('user') as { id: string; role: string } | undefined;
+  if (!user) throw new HTTPException(401, { message: 'Authentication required' });
+  return user;
+}
+
+function requireWriteRole(c: { get: (key: string) => unknown }): { id: string; role: string } {
+  const user = requireAuth(c);
+  if (!WRITE_ROLES.has(user.role)) {
+    throw new HTTPException(403, { message: 'Editor role or higher required' });
+  }
+  return user;
+}
+
 // biome-ignore lint/style/useNamingConvention: Hono requires Variables key
 const app = new OpenAPIHono<{ Variables: Variables }>();
 
@@ -110,6 +126,7 @@ app.openapi(
     },
   }),
   async (c) => {
+    requireAuth(c);
     const db = c.get('db');
     const { limit, offset, ...filters } = c.req.valid('query');
     const entries = await provenanceQueries.getAllProvenance(db, { ...filters, limit, offset });
@@ -153,6 +170,7 @@ app.openapi(
     },
   }),
   async (c) => {
+    requireAuth(c);
     const db = c.get('db');
     const stats = await provenanceQueries.getProvenanceStats(db);
     return c.json({ success: true as const, data: stats });
@@ -179,6 +197,7 @@ app.openapi(
     },
   }),
   async (c) => {
+    requireAuth(c);
     const db = c.get('db');
     const { filePath } = c.req.valid('param');
     const entries = await provenanceQueries.getProvenanceByFile(db, filePath);
@@ -207,6 +226,7 @@ app.openapi(
     },
   }),
   async (c) => {
+    requireAuth(c);
     const db = c.get('db');
     const { id } = c.req.valid('param');
     const entry = await provenanceQueries.getProvenanceById(db, id);
@@ -260,6 +280,7 @@ app.openapi(
     },
   }),
   async (c) => {
+    requireWriteRole(c);
     const db = c.get('db');
     const body = c.req.valid('json');
     const entry = await provenanceQueries.createProvenance(db, {
@@ -319,6 +340,7 @@ app.openapi(
     },
   }),
   async (c) => {
+    requireWriteRole(c);
     const db = c.get('db');
     const { id } = c.req.valid('param');
     const body = c.req.valid('json');
@@ -404,6 +426,7 @@ app.openapi(
     },
   }),
   async (c) => {
+    requireWriteRole(c);
     const db = c.get('db');
     const { id: provenanceId } = c.req.valid('param');
     const body = c.req.valid('json');
@@ -464,6 +487,7 @@ app.openapi(
     },
   }),
   async (c) => {
+    requireAuth(c);
     const db = c.get('db');
     const { id } = c.req.valid('param');
     const reviews = await provenanceQueries.getReviewsForProvenance(db, id);

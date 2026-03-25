@@ -73,13 +73,17 @@ function makeReview(overrides = {}) {
 // App factory
 // ---------------------------------------------------------------------------
 
-function createApp(user?: { id: string; role: string }) {
+const DEFAULT_USER = { id: 'test-user', role: 'admin' };
+
+function createApp(user?: { id: string; role: string } | null) {
   const app = new Hono<{
     Variables: { db: DatabaseClient; user?: { id: string; role: string } };
   }>();
+  // Pass `null` to explicitly omit user context; omitting the argument uses DEFAULT_USER.
+  const effectiveUser = user === null ? undefined : (user ?? DEFAULT_USER);
   app.use('*', async (c, next) => {
     c.set('db', {} as DatabaseClient);
-    if (user) c.set('user', user);
+    if (effectiveUser) c.set('user', effectiveUser);
     await next();
   });
   app.route('/', provenanceApp);
@@ -284,7 +288,7 @@ describe('DELETE /:id', () => {
   });
 
   it('returns 403 when no user context is set', async () => {
-    const app = createApp(); // no user
+    const app = createApp(null); // no user
     const res = await app.request('/prov-1', { method: 'DELETE' });
     expect(res.status).toBe(403);
   });

@@ -49,7 +49,10 @@ function createMockRoomManager(overrides?: Partial<RoomManager>): RoomManager {
   };
 }
 
-type TestVariables = { db: Parameters<typeof getSharedRoomManager>[0] };
+type TestVariables = {
+  db: Parameters<typeof getSharedRoomManager>[0];
+  user: { id: string; role: string };
+};
 
 function createApp(): Hono<{ Variables: TestVariables }> {
   const app = new Hono<{ Variables: TestVariables }>();
@@ -57,6 +60,7 @@ function createApp(): Hono<{ Variables: TestVariables }> {
 
   app.use('*', async (c, next) => {
     c.set('db', mockDb);
+    c.set('user', { id: 'test-user', role: 'admin' });
     await next();
   });
 

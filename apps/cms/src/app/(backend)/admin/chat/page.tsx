@@ -8,11 +8,7 @@ export const dynamic = 'force-dynamic';
 export default function ChatPage() {
   return (
     <LicenseGate feature="ai">
-      <div className="mx-auto max-w-4xl p-6">
-        <h1 className="mb-4 text-2xl font-bold">AI Chat</h1>
-        <p className="mb-6 text-gray-600 dark:text-gray-400">
-          Chat with the RevealUI AI assistant about your content, configuration, and tasks.
-        </p>
+      <div className="flex h-[calc(100vh-4rem)] flex-col">
         <AgentChat />
       </div>
     </LicenseGate>

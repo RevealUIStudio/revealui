@@ -10,6 +10,8 @@ type Variables = {
   user?: { id: string; role: string };
 };
 
+const COLLAB_ROLES = new Set(['admin', 'owner', 'editor']);
+
 // ---------------------------------------------------------------------------
 // Schemas
 // ---------------------------------------------------------------------------
@@ -90,8 +92,12 @@ export function createCollabRoute(): OpenAPIHono<{ Variables: Variables }> {
   const app = new OpenAPIHono<{ Variables: Variables }>();
 
   app.openapi(updateRoute, async (c) => {
-    if (!c.get('user')) {
+    const user = c.get('user');
+    if (!user) {
       throw new HTTPException(401, { message: 'Authentication required' });
+    }
+    if (!COLLAB_ROLES.has(user.role)) {
+      throw new HTTPException(403, { message: 'Editor role or higher required for collaboration' });
     }
 
     const { documentId, update } = c.req.valid('json');
@@ -124,8 +130,12 @@ export function createCollabRoute(): OpenAPIHono<{ Variables: Variables }> {
   });
 
   app.openapi(snapshotRoute, async (c) => {
-    if (!c.get('user')) {
+    const user = c.get('user');
+    if (!user) {
       throw new HTTPException(401, { message: 'Authentication required' });
+    }
+    if (!COLLAB_ROLES.has(user.role)) {
+      throw new HTTPException(403, { message: 'Editor role or higher required for collaboration' });
     }
     const { documentId } = c.req.valid('param');
     const db = c.get('db');

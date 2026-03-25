@@ -84,14 +84,21 @@ import agentStream from '../agent-stream.js';
 // ---------------------------------------------------------------------------
 
 function createApp() {
-  const app = new Hono();
+  const app = new Hono<{ Variables: { user?: { id: string; role: string } } }>();
+  app.use('*', async (c, next) => {
+    c.set('user', { id: 'test-user', role: 'admin' });
+    await next();
+  });
   app.route('/agent-stream', agentStream);
   return app;
 }
 
 function createAppWithTenant(tenantId: string) {
-  const app = new Hono<{ Variables: { tenant?: { id: string } } }>();
+  const app = new Hono<{
+    Variables: { tenant?: { id: string }; user?: { id: string; role: string } };
+  }>();
   app.use('*', async (c, next) => {
+    c.set('user', { id: 'test-user', role: 'admin' });
     c.set('tenant', { id: tenantId });
     await next();
   });

@@ -157,6 +157,10 @@
       "types": "./dist/queries/users.d.ts",
       "import": "./dist/queries/users.js"
     },
+    "./queries/conversations": {
+      "types": "./dist/queries/conversations.d.ts",
+      "import": "./dist/queries/conversations.js"
+    },
     "./schema/yjs-documents": {
       "types": "./dist/schema/yjs-documents.d.ts",
       "import": "./dist/schema/yjs-documents.js"

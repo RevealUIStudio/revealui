@@ -14,11 +14,28 @@ import { getVectorClient } from '@revealui/db/client';
 import { ragDocuments } from '@revealui/db/schema/rag';
 import { createRoute, OpenAPIHono, z } from '@revealui/openapi';
 import { and, count, eq, isNotNull, max } from 'drizzle-orm';
+import { HTTPException } from 'hono/http-exception';
 
 type Variables = {
   db: DatabaseClient;
   tenant?: { id: string };
+  user?: { id: string; role: string };
 };
+
+/** Verify the user is authenticated and the workspaceId matches the tenant context. */
+function assertWorkspaceAccess(
+  user: { id: string; role: string } | undefined,
+  workspaceId: string,
+  tenant: { id: string } | undefined,
+): void {
+  if (!user) {
+    throw new HTTPException(401, { message: 'Authentication required' });
+  }
+  // In multi-tenant mode, workspaceId must match the tenant context (admin bypass)
+  if (tenant && workspaceId !== tenant.id && user.role !== 'admin') {
+    throw new HTTPException(403, { message: 'Access denied for this workspace' });
+  }
+}
 
 // biome-ignore lint/style/useNamingConvention: Hono requires PascalCase `Variables` in its generic type parameter
 const app = new OpenAPIHono<{ Variables: Variables }>();
@@ -73,6 +90,7 @@ app.openapi(
   }),
   async (c) => {
     const { workspaceId, collection } = c.req.valid('param');
+    assertWorkspaceAccess(c.get('user'), workspaceId, c.get('tenant'));
 
     if (!/^[a-zA-Z0-9_-]+$/.test(collection)) {
       return c.json({ success: false, error: 'Invalid collection name' }, 400);
@@ -214,6 +232,8 @@ app.openapi(
   }),
   async (c) => {
     const { workspaceId } = c.req.valid('param');
+    assertWorkspaceAccess(c.get('user'), workspaceId, c.get('tenant'));
+
     const vectorDb = getVectorClient();
 
     const docs = await vectorDb
@@ -332,6 +352,8 @@ app.openapi(
   }),
   async (c) => {
     const { workspaceId } = c.req.valid('param');
+    assertWorkspaceAccess(c.get('user'), workspaceId, c.get('tenant'));
+
     const vectorDb = getVectorClient();
 
     const [totalRow] = await vectorDb

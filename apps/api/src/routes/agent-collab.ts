@@ -5,7 +5,10 @@ import { getSharedRoomManager } from '../collab/shared-room-manager.js';
 
 type Variables = {
   db: Parameters<typeof getSharedRoomManager>[0];
+  user?: { id: string; role: string };
 };
+
+const AGENT_COLLAB_ROLES = new Set(['admin', 'owner', 'editor', 'agent']);
 
 const DEFAULT_AGENT_COLOR = '#8B5CF6';
 
@@ -154,6 +157,14 @@ export function createAgentCollabRoute(): OpenAPIHono<{ Variables: Variables }> 
   const wsBaseUrl = process.env.WS_BASE_URL ?? 'ws://localhost:3004';
 
   app.openapi(connectRoute, async (c) => {
+    const user = c.get('user');
+    if (!user) {
+      throw new HTTPException(401, { message: 'Authentication required' });
+    }
+    if (!AGENT_COLLAB_ROLES.has(user.role)) {
+      throw new HTTPException(403, { message: 'Agent or editor role required' });
+    }
+
     const { documentId, agentName, agentModel, color } = c.req.valid('json');
     const agentColor = color ?? DEFAULT_AGENT_COLOR;
 
@@ -182,6 +193,14 @@ export function createAgentCollabRoute(): OpenAPIHono<{ Variables: Variables }> 
   });
 
   app.openapi(editRoute, async (c) => {
+    const user = c.get('user');
+    if (!user) {
+      throw new HTTPException(401, { message: 'Authentication required' });
+    }
+    if (!AGENT_COLLAB_ROLES.has(user.role)) {
+      throw new HTTPException(403, { message: 'Agent or editor role required' });
+    }
+
     const { documentId, edit } = c.req.valid('json');
     const db = c.get('db');
     const manager = getSharedRoomManager(db);
@@ -206,6 +225,14 @@ export function createAgentCollabRoute(): OpenAPIHono<{ Variables: Variables }> 
   });
 
   app.openapi(agentSnapshotRoute, async (c) => {
+    const user = c.get('user');
+    if (!user) {
+      throw new HTTPException(401, { message: 'Authentication required' });
+    }
+    if (!AGENT_COLLAB_ROLES.has(user.role)) {
+      throw new HTTPException(403, { message: 'Agent or editor role required' });
+    }
+
     const { documentId } = c.req.valid('param');
     const db = c.get('db');
     const manager = getSharedRoomManager(db);

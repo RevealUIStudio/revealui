@@ -35,13 +35,12 @@ const mockedGetVectorClient = vi.mocked(getVectorClient);
 // biome-ignore lint/suspicious/noExplicitAny: test helper
 function createApp(dbMock?: any) {
   // biome-ignore lint/suspicious/noExplicitAny: test helper
-  const app = new Hono<{ Variables: { db: any; tenant: any } }>();
-  if (dbMock) {
-    app.use('*', async (c, next) => {
-      c.set('db', dbMock);
-      await next();
-    });
-  }
+  const app = new Hono<{ Variables: { db: any; tenant: any; user: any } }>();
+  app.use('*', async (c, next) => {
+    c.set('user', { id: 'test-user', role: 'admin' });
+    if (dbMock) c.set('db', dbMock);
+    await next();
+  });
   app.route('/rag', ragApp);
   return app;
 }
@@ -484,13 +483,12 @@ describe('rag-index routes — AI available', () => {
   // biome-ignore lint/suspicious/noExplicitAny: test helper
   function createFreshApp(dbMock?: any) {
     // biome-ignore lint/suspicious/noExplicitAny: test helper
-    const app = new Hono<{ Variables: { db: any; tenant: any } }>();
-    if (dbMock) {
-      app.use('*', async (c, next) => {
-        c.set('db', dbMock);
-        await next();
-      });
-    }
+    const app = new Hono<{ Variables: { db: any; tenant: any; user: any } }>();
+    app.use('*', async (c, next) => {
+      c.set('user', { id: 'test-user', role: 'admin' });
+      if (dbMock) c.set('db', dbMock);
+      await next();
+    });
     app.route('/rag', freshRagApp);
     return app;
   }

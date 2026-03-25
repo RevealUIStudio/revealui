@@ -16,6 +16,10 @@ import agentStream, { detectProvider } from '../agent-stream.js';
 
 function createApp() {
   const app = new Hono();
+  app.use('*', async (c, next) => {
+    c.set('user', { id: 'test-user', role: 'admin' });
+    await next();
+  });
   app.route('/agent-stream', agentStream);
   return app;
 }
