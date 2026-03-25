@@ -4,11 +4,11 @@ import { populateAuthors } from '@/lib/collections/Posts/hooks/populateAuthors';
 type HookArgs = Parameters<typeof populateAuthors>[0];
 
 describe('populateAuthors', () => {
-  const mockFindByID = vi.fn();
+  const mockFind = vi.fn();
 
   const createReq = () => ({
     revealui: {
-      findByID: mockFindByID,
+      find: mockFind,
     },
   });
 
@@ -24,8 +24,12 @@ describe('populateAuthors', () => {
   });
 
   it('populates authors with id and name from user docs', async () => {
-    mockFindByID.mockResolvedValueOnce({ id: 'author-1', firstName: 'Alice' });
-    mockFindByID.mockResolvedValueOnce({ id: 'author-2', firstName: 'Bob' });
+    mockFind.mockResolvedValueOnce({
+      docs: [
+        { id: 'author-1', firstName: 'Alice' },
+        { id: 'author-2', firstName: 'Bob' },
+      ],
+    });
 
     const doc = {
       id: 'post-1',
@@ -44,7 +48,9 @@ describe('populateAuthors', () => {
   });
 
   it('handles authors as objects with id property', async () => {
-    mockFindByID.mockResolvedValueOnce({ id: 'author-1', firstName: 'Alice' });
+    mockFind.mockResolvedValueOnce({
+      docs: [{ id: 'author-1', firstName: 'Alice' }],
+    });
 
     const doc = {
       id: 'post-1',
@@ -57,10 +63,10 @@ describe('populateAuthors', () => {
       populatedAuthors: Array<{ id: string; name: string }>;
     };
     expect(populated.populatedAuthors).toEqual([{ id: 'author-1', name: 'Alice' }]);
-    expect(mockFindByID).toHaveBeenCalledWith(
+    expect(mockFind).toHaveBeenCalledWith(
       expect.objectContaining({
-        id: 'author-1',
         collection: 'users',
+        where: { id: { in: ['author-1'] } },
         depth: 0,
       }),
     );
@@ -75,7 +81,7 @@ describe('populateAuthors', () => {
     const result = await callHook(doc, {});
 
     expect(result).toEqual(doc);
-    expect(mockFindByID).not.toHaveBeenCalled();
+    expect(mockFind).not.toHaveBeenCalled();
   });
 
   it('returns doc unchanged when authors is not present', async () => {
@@ -83,7 +89,7 @@ describe('populateAuthors', () => {
 
     const result = await callHook(doc);
 
-    expect(mockFindByID).not.toHaveBeenCalled();
+    expect(mockFind).not.toHaveBeenCalled();
     expect(result).toEqual(doc);
   });
 
@@ -92,13 +98,14 @@ describe('populateAuthors', () => {
 
     const result = await callHook(doc);
 
-    expect(mockFindByID).not.toHaveBeenCalled();
+    expect(mockFind).not.toHaveBeenCalled();
     expect(result).toEqual(doc);
   });
 
   it('skips authors that cannot be found', async () => {
-    mockFindByID.mockResolvedValueOnce({ id: 'author-1', firstName: 'Alice' });
-    mockFindByID.mockRejectedValueOnce(new Error('Not found'));
+    mockFind.mockResolvedValueOnce({
+      docs: [{ id: 'author-1', firstName: 'Alice' }],
+    });
 
     const doc = {
       id: 'post-1',
@@ -110,12 +117,15 @@ describe('populateAuthors', () => {
     const populated = result as typeof doc & {
       populatedAuthors: Array<{ id: string; name: string }>;
     };
+    // Only author-1 is returned by find — author-missing is not in results
     expect(populated.populatedAuthors).toHaveLength(1);
     expect(populated.populatedAuthors[0]?.id).toBe('author-1');
   });
 
   it('skips null/undefined authors in the array', async () => {
-    mockFindByID.mockResolvedValueOnce({ id: 'author-1', firstName: 'Alice' });
+    mockFind.mockResolvedValueOnce({
+      docs: [{ id: 'author-1', firstName: 'Alice' }],
+    });
 
     const doc = {
       id: 'post-1',
@@ -141,12 +151,12 @@ describe('populateAuthors', () => {
     const populated = result as typeof doc & {
       populatedAuthors: Array<{ id: string; name: string }>;
     };
-    expect(populated.populatedAuthors).toEqual([]);
-    expect(mockFindByID).not.toHaveBeenCalled();
+    expect(populated.populatedAuthors).toBeUndefined();
+    expect(mockFind).not.toHaveBeenCalled();
   });
 
-  it('handles author docs where findByID returns null', async () => {
-    mockFindByID.mockResolvedValueOnce(null);
+  it('handles batch find returning empty results', async () => {
+    mockFind.mockResolvedValueOnce({ docs: [] });
 
     const doc = {
       id: 'post-1',
@@ -158,6 +168,23 @@ describe('populateAuthors', () => {
     const populated = result as typeof doc & {
       populatedAuthors: Array<{ id: string; name: string }>;
     };
+    expect(populated.populatedAuthors).toEqual([]);
+  });
+
+  it('handles batch find throwing an error', async () => {
+    mockFind.mockRejectedValueOnce(new Error('DB error'));
+
+    const doc = {
+      id: 'post-1',
+      authors: ['author-1'],
+    };
+
+    const result = await callHook(doc);
+
+    const populated = result as typeof doc & {
+      populatedAuthors: Array<{ id: string; name: string }>;
+    };
+    // When find throws, authorDocs stays empty — populatedAuthors is set to []
     expect(populated.populatedAuthors).toEqual([]);
   });
 });
