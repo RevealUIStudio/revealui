@@ -165,13 +165,42 @@ app.openapi(agentStreamRoute, async (c) => {
 
   const workspaceId = body.workspaceId ?? c.get('tenant')?.id ?? 'default';
 
+  // Load CMS tools so the agent can manage content, media, users, globals
+  let cmsTools: unknown[] = [];
+  try {
+    const cmsToolsMod = await import('@revealui/ai/tools/cms').catch(() => null);
+    if (cmsToolsMod) {
+      // Build internal API base URL from the request
+      const requestUrl = new URL(c.req.url);
+      const apiBase = `${requestUrl.protocol}//${requestUrl.host}`;
+
+      // Extract session cookie for auth passthrough
+      const cookieHeader = c.req.header('Cookie') ?? '';
+      const sessionMatch = cookieHeader.match(/revealui-session=([^;]+)/);
+      const sessionToken = sessionMatch?.[1] ?? '';
+
+      const { createInternalCMSClient } = await import('../lib/internal-cms-client.js');
+      const apiClient = createInternalCMSClient(apiBase, sessionToken);
+
+      cmsTools = cmsToolsMod.createCMSTools({ apiClient });
+    }
+  } catch {
+    // CMS tools unavailable — agent will work without them
+  }
+
   const agent = {
-    id: 'stream-agent',
-    name: 'Stream Agent',
-    instructions: `You are a helpful AI assistant for RevealUI workspace ${workspaceId}. Complete the user's request accurately and concisely.`,
-    tools: [],
+    id: 'cms-stream-agent',
+    name: 'CMS Stream Agent',
+    instructions: `You are an AI-powered CMS management assistant for RevealUI. You can help users manage their content, media, users, and settings through natural conversation.
+
+When asked to modify the CMS, use the available tools. Be conversational and explain what you're doing. For destructive operations (delete), confirm the user's intent first.
+
+Workspace: ${workspaceId}`,
+    tools: cmsTools as Parameters<
+      typeof streamingRuntimeMod.StreamingAgentRuntime.prototype.streamTask
+    >[0]['tools'],
     memory: undefined,
-    getContext: () => ({ agentId: 'stream-agent' }),
+    getContext: () => ({ agentId: 'cms-stream-agent' }),
   };
 
   const task = {

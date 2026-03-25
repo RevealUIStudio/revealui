@@ -126,11 +126,17 @@ const mockDbInsert = vi.fn().mockReturnValue({
   values: vi.fn().mockResolvedValue(undefined),
 });
 
-function createApp(tenant?: { id: string }) {
-  const app = new Hono<{ Variables: { db: DatabaseClient; tenant?: { id: string } } }>();
+function createApp(
+  tenant?: { id: string },
+  user: { id: string; role: string } | null = { id: 'test-user', role: 'admin' },
+) {
+  const app = new Hono<{
+    Variables: { db: DatabaseClient; tenant?: { id: string }; user?: { id: string; role: string } };
+  }>();
   app.use('*', async (c, next) => {
     c.set('db', { insert: mockDbInsert } as unknown as DatabaseClient);
     if (tenant) c.set('tenant', tenant);
+    if (user) c.set('user', user);
     await next();
   });
   app.route('/', agentTasksApp);

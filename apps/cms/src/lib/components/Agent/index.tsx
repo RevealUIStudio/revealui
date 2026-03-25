@@ -40,6 +40,13 @@ interface ToolCallEntry {
 
 // ─── Constants ──────────────────────────────────────────────────────────────
 
+const API_URL =
+  (typeof window !== 'undefined'
+    ? (document.querySelector('meta[name="api-url"]') as HTMLMetaElement)?.content
+    : undefined) ||
+  process.env.NEXT_PUBLIC_API_URL ||
+  'https://api.revealui.com';
+
 const SUGGESTED_PROMPTS = [
   'Show me all published posts',
   'Create a new blog post about our latest update',
@@ -288,7 +295,7 @@ function MessageBubble({ message }: { message: ChatMessage }) {
           <p className="whitespace-pre-wrap">{message.content}</p>
         ) : (
           <div className="prose prose-sm max-w-none dark:prose-invert">
-            {message.toolCalls?.map((tc, i) => (
+            {message.toolCalls?.map((tc) => (
               <ToolCallBadge key={`${tc.name}-${tc.arguments.slice(0, 20)}`} entry={tc} />
             ))}
             <ChatMarkdown content={message.content} />
@@ -364,15 +371,98 @@ function formatJson(raw: string): string {
   }
 }
 
-export default function AgentChat() {
+interface AgentChatProps {
+  conversationId?: string | null;
+  onConversationCreated?: (id: string, title: string) => void;
+}
+
+export default function AgentChat({ conversationId, onConversationCreated }: AgentChatProps = {}) {
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [input, setInput] = useState('');
   const [pendingConfirmation, setPendingConfirmation] = useState<PendingConfirmation | null>(null);
   const [isConfirming, setIsConfirming] = useState(false);
+  const [activeConversationId, setActiveConversationId] = useState<string | null>(
+    conversationId ?? null,
+  );
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
 
   const stream = useAgentStream();
+
+  // Load conversation messages when conversationId changes
+  // biome-ignore lint/correctness/useExhaustiveDependencies: stream.reset is stable, only re-run on conversationId change
+  useEffect(() => {
+    if (conversationId === undefined) return;
+    setActiveConversationId(conversationId);
+    setPendingConfirmation(null);
+    stream.reset();
+    activeToolCalls.current = [];
+
+    if (!conversationId) {
+      setMessages([]);
+      return;
+    }
+
+    (async () => {
+      try {
+        const res = await fetch(`/api/conversations/${conversationId}/messages`);
+        if (!res.ok) return;
+        const data = (await res.json()) as {
+          messages: Array<{ id: string; role: string; content: string }>;
+        };
+        setMessages(
+          data.messages.map((m) => ({
+            id: m.id,
+            role: m.role as 'user' | 'assistant',
+            content: m.content,
+          })),
+        );
+      } catch {
+        setMessages([]);
+      }
+    })();
+  }, [conversationId]);
+
+  /** Persist a message to the active conversation */
+  const persistMessage = useCallback(
+    async (role: string, content: string) => {
+      if (!activeConversationId) return;
+      try {
+        await fetch(`/api/conversations/${activeConversationId}/messages`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ role, content }),
+        });
+      } catch {
+        // Fire-and-forget — don't block the UI
+      }
+    },
+    [activeConversationId],
+  );
+
+  /** Create a new conversation on first message */
+  const ensureConversation = useCallback(
+    async (firstMessage: string): Promise<string | null> => {
+      if (activeConversationId) return activeConversationId;
+      try {
+        const title = firstMessage.slice(0, 60) + (firstMessage.length > 60 ? '...' : '');
+        const res = await fetch('/api/conversations', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ title }),
+        });
+        if (!res.ok) return null;
+        const data = (await res.json()) as { conversation: { id: string } };
+        const newId = data.conversation.id;
+        setActiveConversationId(newId);
+        onConversationCreated?.(newId, title);
+        return newId;
+      } catch {
+        return null;
+      }
+    },
+    [activeConversationId, onConversationCreated],
+  );
 
   // Auto-scroll on new content — deps are intentionally broad to trigger on any update
   // biome-ignore lint/correctness/useExhaustiveDependencies: scroll must fire on every message/chunk change
@@ -418,7 +508,7 @@ export default function AgentChat() {
     }
   }, [stream.chunks]);
 
-  // When stream finishes, commit the assistant message
+  // When stream finishes, commit the assistant message + persist
   useEffect(() => {
     if (!stream.isStreaming && stream.text) {
       setMessages((prev) => [
@@ -430,10 +520,11 @@ export default function AgentChat() {
           toolCalls: activeToolCalls.current.length > 0 ? [...activeToolCalls.current] : undefined,
         },
       ]);
+      persistMessage('assistant', stream.text);
       activeToolCalls.current = [];
       stream.reset();
     }
-  }, [stream.isStreaming, stream.text, stream.reset]);
+  }, [stream.isStreaming, stream.text, stream.reset, persistMessage]);
 
   /** Send message via /api/chat (CMS tools, confirmation support) */
   const sendChatMessage = useCallback(
@@ -496,19 +587,19 @@ export default function AgentChat() {
       const content = input.trim();
       if (!content || stream.isStreaming || isConfirming) return;
 
-      const userMsg: ChatMessage = { id: nextId(), role: 'user', content };
-      const next = [...messages, userMsg];
-      setMessages(next);
+      setMessages((prev) => [...prev, { id: nextId(), role: 'user', content }]);
       setInput('');
       setPendingConfirmation(null);
       activeToolCalls.current = [];
 
-      // Use /api/chat for CMS tool-aware interactions
-      stream.reset();
-      // Show loading state via streaming hook
-      await sendChatMessage(next);
+      // Ensure conversation exists (creates on first message)
+      await ensureConversation(content);
+      persistMessage('user', content);
+
+      // Use streaming endpoint (now has CMS tools wired)
+      stream.start(content, `${API_URL}/api/agent-stream`);
     },
-    [input, stream, isConfirming, messages, sendChatMessage],
+    [input, stream, isConfirming, ensureConversation, persistMessage],
   );
 
   const handleConfirmApprove = useCallback(async () => {
@@ -595,7 +686,7 @@ export default function AgentChat() {
             </div>
             <div className="max-w-[85%] rounded-2xl bg-zinc-100 px-4 py-3 text-zinc-900 dark:bg-zinc-800 dark:text-zinc-100">
               <div className="prose prose-sm max-w-none dark:prose-invert">
-                {activeToolCalls.current.map((tc, i) => (
+                {activeToolCalls.current.map((tc) => (
                   <ToolCallBadge key={`${tc.name}-${tc.arguments.slice(0, 20)}`} entry={tc} />
                 ))}
                 {stream.text ? (

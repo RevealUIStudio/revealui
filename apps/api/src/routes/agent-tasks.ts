@@ -19,11 +19,26 @@ import * as ticketQueries from '@revealui/db/queries/tickets';
 import { agentMemories } from '@revealui/db/schema/agents';
 import { safeVectorInsert } from '@revealui/db/validation/cross-db';
 import { createRoute, OpenAPIHono, z } from '@revealui/openapi';
+import { HTTPException } from 'hono/http-exception';
 
 type Variables = {
   db: DatabaseClient;
   tenant?: { id: string };
+  user?: { id: string; role: string };
 };
+
+const AGENT_TASK_ROLES = new Set(['admin', 'owner', 'editor', 'agent']);
+
+function requireAgentTaskRole(c: { get: (key: string) => unknown }): { id: string; role: string } {
+  const user = c.get('user') as { id: string; role: string } | undefined;
+  if (!user) throw new HTTPException(401, { message: 'Authentication required' });
+  if (!AGENT_TASK_ROLES.has(user.role)) {
+    throw new HTTPException(403, {
+      message: 'Editor role or higher required to dispatch agent tasks',
+    });
+  }
+  return user;
+}
 
 // biome-ignore lint/style/useNamingConvention: Hono requires Variables key
 const app = new OpenAPIHono<{ Variables: Variables }>();
@@ -80,6 +95,7 @@ app.openapi(
     },
   }),
   async (c) => {
+    requireAgentTaskRole(c);
     const db = c.get('db');
     const tenant = c.get('tenant');
     const { instruction, boardId, priority } = c.req.valid('json');
@@ -185,6 +201,7 @@ app.openapi(
     },
   }),
   async (c) => {
+    requireAgentTaskRole(c);
     const db = c.get('db');
     const tenant = c.get('tenant');
     const { ticketId } = c.req.valid('param');
