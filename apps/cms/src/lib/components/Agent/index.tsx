@@ -38,6 +38,34 @@ interface ToolCallEntry {
   result?: string;
 }
 
+// ─── Model Options ──────────────────────────────────────────────────────────
+
+interface ModelOption {
+  id: string;
+  label: string;
+  provider: string;
+  model: string;
+}
+
+const MODEL_OPTIONS: ModelOption[] = [
+  { id: 'auto', label: 'Auto', provider: '', model: '' },
+  {
+    id: 'claude-sonnet',
+    label: 'Claude Sonnet',
+    provider: 'anthropic',
+    model: 'claude-sonnet-4-20250514',
+  },
+  {
+    id: 'claude-opus',
+    label: 'Claude Opus',
+    provider: 'anthropic',
+    model: 'claude-opus-4-20250514',
+  },
+  { id: 'gpt-4o', label: 'GPT-4o', provider: 'openai', model: 'gpt-4o' },
+  { id: 'llama-70b', label: 'Llama 3.3 70B', provider: 'groq', model: 'llama-3.3-70b-versatile' },
+  { id: 'local', label: 'Local (Ollama)', provider: 'ollama', model: '' },
+];
+
 // ─── Constants ──────────────────────────────────────────────────────────────
 
 const API_URL =
@@ -99,74 +127,85 @@ function useAgentStream() {
     setError(null);
   }, []);
 
-  const start = useCallback(async (instruction: string, apiBase: string) => {
-    controllerRef.current?.abort();
-    const controller = new AbortController();
-    controllerRef.current = controller;
+  const start = useCallback(
+    async (
+      instruction: string,
+      apiBase: string,
+      options?: { provider?: string; model?: string },
+    ) => {
+      controllerRef.current?.abort();
+      const controller = new AbortController();
+      controllerRef.current = controller;
 
-    setText('');
-    setChunks([]);
-    setIsStreaming(true);
-    setError(null);
+      setText('');
+      setChunks([]);
+      setIsStreaming(true);
+      setError(null);
 
-    try {
-      const response = await fetch(`${apiBase}/api/agent-stream`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ instruction }),
-        signal: controller.signal,
-        credentials: 'include',
-      });
+      try {
+        const response = await fetch(`${apiBase}/api/agent-stream`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            instruction,
+            ...(options?.provider ? { provider: options.provider } : {}),
+            ...(options?.model ? { model: options.model } : {}),
+          }),
+          signal: controller.signal,
+          credentials: 'include',
+        });
 
-      if (!response.ok) {
-        const errText = await response.text();
-        setIsStreaming(false);
-        setError(`HTTP ${response.status}: ${errText}`);
-        return;
-      }
+        if (!response.ok) {
+          const errText = await response.text();
+          setIsStreaming(false);
+          setError(`HTTP ${response.status}: ${errText}`);
+          return;
+        }
 
-      if (!response.body) {
-        setIsStreaming(false);
-        setError('No response body');
-        return;
-      }
+        if (!response.body) {
+          setIsStreaming(false);
+          setError('No response body');
+          return;
+        }
 
-      const reader = response.body.getReader();
-      const decoder = new TextDecoder();
-      let buffer = '';
+        const reader = response.body.getReader();
+        const decoder = new TextDecoder();
+        let buffer = '';
 
-      while (true) {
-        const { value, done } = await reader.read();
-        if (done) break;
+        while (true) {
+          const { value, done } = await reader.read();
+          if (done) break;
 
-        buffer += decoder.decode(value, { stream: true });
-        const events = buffer.split('\n\n');
-        buffer = events.pop() ?? '';
+          buffer += decoder.decode(value, { stream: true });
+          const events = buffer.split('\n\n');
+          buffer = events.pop() ?? '';
 
-        for (const event of events) {
-          const dataLine = event.split('\n').find((l) => l.startsWith('data: '));
-          if (!dataLine) continue;
+          for (const event of events) {
+            const dataLine = event.split('\n').find((l) => l.startsWith('data: '));
+            if (!dataLine) continue;
 
-          try {
-            const chunk = JSON.parse(dataLine.slice(6)) as AgentStreamChunk;
-            setChunks((prev) => [...prev, chunk]);
-            if (chunk.type === 'text') setText((prev) => prev + (chunk.content ?? ''));
-            if (chunk.type === 'error') setError(chunk.error ?? 'Unknown error');
-            if (chunk.type === 'done' || chunk.type === 'error') setIsStreaming(false);
-          } catch {
-            // Malformed SSE data — skip
+            try {
+              const chunk = JSON.parse(dataLine.slice(6)) as AgentStreamChunk;
+              setChunks((prev) => [...prev, chunk]);
+              if (chunk.type === 'text') setText((prev) => prev + (chunk.content ?? ''));
+              if (chunk.type === 'error') setError(chunk.error ?? 'Unknown error');
+              if (chunk.type === 'done' || chunk.type === 'error') setIsStreaming(false);
+            } catch {
+              // Malformed SSE data — skip
+            }
           }
         }
-      }
-    } catch (err) {
-      if (err instanceof Error && err.name === 'AbortError') {
+      } catch (err) {
+        if (err instanceof Error && err.name === 'AbortError') {
+          setIsStreaming(false);
+          return;
+        }
         setIsStreaming(false);
-        return;
+        setError(err instanceof Error ? err.message : String(err));
       }
-      setIsStreaming(false);
-      setError(err instanceof Error ? err.message : String(err));
-    }
-  }, []);
+    },
+    [],
+  );
 
   return { text, chunks, isStreaming, error, start, abort, reset };
 }
@@ -381,6 +420,7 @@ export default function AgentChat({ conversationId, onConversationCreated }: Age
   const [input, setInput] = useState('');
   const [pendingConfirmation, setPendingConfirmation] = useState<PendingConfirmation | null>(null);
   const [isConfirming, setIsConfirming] = useState(false);
+  const [selectedModel, setSelectedModel] = useState<string>('auto');
   const [activeConversationId, setActiveConversationId] = useState<string | null>(
     conversationId ?? null,
   );
@@ -596,10 +636,15 @@ export default function AgentChat({ conversationId, onConversationCreated }: Age
       await ensureConversation(content);
       persistMessage('user', content);
 
-      // Use streaming endpoint (now has CMS tools wired)
-      stream.start(content, API_URL);
+      // Use streaming endpoint with selected model
+      const opt = MODEL_OPTIONS.find((m) => m.id === selectedModel);
+      stream.start(
+        content,
+        API_URL,
+        opt?.provider ? { provider: opt.provider, model: opt.model } : undefined,
+      );
     },
-    [input, stream, isConfirming, ensureConversation, persistMessage],
+    [input, stream, isConfirming, ensureConversation, persistMessage, selectedModel],
   );
 
   const handleConfirmApprove = useCallback(async () => {
@@ -727,6 +772,29 @@ export default function AgentChat({ conversationId, onConversationCreated }: Age
 
       {/* Input area */}
       <div className="border-t border-zinc-200 bg-white px-4 py-3 dark:border-zinc-700 dark:bg-zinc-900">
+        <div className="mx-auto mb-2 flex max-w-3xl items-center gap-2">
+          <label htmlFor="model-select" className="text-xs text-zinc-400">
+            Model
+          </label>
+          <select
+            id="model-select"
+            value={selectedModel}
+            onChange={(e) => setSelectedModel(e.target.value)}
+            disabled={stream.isStreaming}
+            className="rounded-md border border-zinc-200 bg-zinc-50 px-2 py-1 text-xs text-zinc-600 outline-none focus:border-blue-400 dark:border-zinc-700 dark:bg-zinc-800 dark:text-zinc-300"
+          >
+            {MODEL_OPTIONS.map((opt) => (
+              <option key={opt.id} value={opt.id}>
+                {opt.label}
+              </option>
+            ))}
+          </select>
+          {selectedModel !== 'auto' && (
+            <span className="text-xs text-zinc-400">
+              {MODEL_OPTIONS.find((m) => m.id === selectedModel)?.model || 'default'}
+            </span>
+          )}
+        </div>
         <form onSubmit={handleSubmit} className="mx-auto flex max-w-3xl items-end gap-3">
           <textarea
             ref={textareaRef}
