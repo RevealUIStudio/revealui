@@ -519,6 +519,23 @@ app.get('/', swaggerUI({ url: '/openapi.json' }));
 app.route('/.well-known', wellKnownRoutes);
 app.route('/a2a', a2aRoutes);
 app.route('/health', healthRoute);
+
+// Temporary CORS debug endpoint — remove after fixing CORS
+app.get('/debug/cors', (c) => {
+  const origin = c.req.header('origin') || c.req.header('Origin') || '(none)';
+  c.header('Access-Control-Allow-Origin', 'https://cms.revealui.com');
+  c.header('X-Debug-Origin', origin);
+  c.header('X-Debug-Origins-Count', String(corsOrigins.length));
+  c.header('X-Debug-Origins', corsOrigins.join(','));
+  return c.json({
+    requestOrigin: origin,
+    corsOrigins,
+    corsOriginsCount: corsOrigins.length,
+    nodeEnv: process.env.NODE_ENV,
+    corsOriginEnv: process.env.CORS_ORIGIN ? '(set)' : '(unset)',
+  });
+});
+
 app.route('/api/errors', errorsRoute);
 app.route('/api/gdpr', gdprRoute);
 app.route('/api/logs', logsRoute);
