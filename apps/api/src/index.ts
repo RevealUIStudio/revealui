@@ -122,6 +122,7 @@ export function getCorsOrigins(): string[] {
 
 const app = new OpenAPIHono();
 const corsOrigins = getCorsOrigins();
+logger.info('CORS origins loaded', { origins: corsOrigins, count: corsOrigins.length });
 
 // Security headers (environment-appropriate preset)
 const securityPreset =
@@ -143,7 +144,21 @@ app.use('*', honoLogger());
 app.use(
   '*',
   cors({
-    origin: corsOrigins,
+    origin: (requestOrigin) => {
+      // Use function form for reliable origin matching — array form was not
+      // producing Access-Control-Allow-Origin headers in Vercel production.
+      if (corsOrigins.includes(requestOrigin)) {
+        return requestOrigin;
+      }
+      // Log first mismatch per cold start to help debug CORS issues
+      if (requestOrigin && requestOrigin !== '') {
+        logger.warn('CORS origin rejected', {
+          requestOrigin,
+          allowedOrigins: corsOrigins,
+        });
+      }
+      return null;
+    },
     credentials: true,
   }),
 );
