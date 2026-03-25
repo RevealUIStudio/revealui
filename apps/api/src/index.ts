@@ -94,30 +94,43 @@ validateForgeConfig();
  */
 import { setCorsConfigMissing } from './lib/startup-state.js';
 
+/** Known production origins — hardcoded fallback if CORS_ORIGIN env var is missing or unreadable */
+const PRODUCTION_ORIGINS = [
+  'https://cms.revealui.com',
+  'https://revealui.com',
+  'https://www.revealui.com',
+  'https://marketing.revealui.com',
+];
+
 export function getCorsOrigins(): string[] {
   const isProduction = process.env.NODE_ENV === 'production';
 
-  const corsOrigins = isProduction
-    ? process.env.CORS_ORIGIN?.split(',')
-        .map((origin) => origin.trim())
-        .filter((origin) => origin.length > 0) || []
-    : ['http://localhost:3000', 'http://localhost:3001', 'http://localhost:5173'];
-
-  // CORS_ORIGIN is required in production — without it, all CMS/marketing cross-origin
-  // requests fail silently. We log at error level AND set a flag that makes the readiness
-  // health check return 503, so deployment platforms detect the misconfiguration.
-  if (isProduction && corsOrigins.length === 0) {
-    logger.error(
-      'CORS_ORIGIN not set in production — all cross-origin requests will be blocked. ' +
-        'Set CORS_ORIGIN to a comma-separated list of allowed origins. ' +
-        'The /health/ready endpoint will report NOT READY until this is fixed.',
-      undefined,
-      { nodeEnv: process.env.NODE_ENV },
-    );
-    setCorsConfigMissing(true);
+  if (!isProduction) {
+    return [
+      'http://localhost:3000',
+      'http://localhost:3001',
+      'http://localhost:4000',
+      'http://localhost:5173',
+    ];
   }
 
-  return corsOrigins;
+  const envOrigins = process.env.CORS_ORIGIN?.split(',')
+    .map((origin) => origin.trim())
+    .filter((origin) => origin.length > 0);
+
+  if (envOrigins && envOrigins.length > 0) {
+    return envOrigins;
+  }
+
+  // Fallback: use hardcoded production origins so CORS works even if
+  // CORS_ORIGIN env var is missing, empty, or has invisible characters.
+  logger.warn(
+    'CORS_ORIGIN env var missing or empty in production — using hardcoded fallback origins. ' +
+      'Set CORS_ORIGIN to a comma-separated list of allowed origins.',
+    { nodeEnv: process.env.NODE_ENV, rawValue: process.env.CORS_ORIGIN ?? '(undefined)' },
+  );
+  setCorsConfigMissing(true);
+  return PRODUCTION_ORIGINS;
 }
 
 const app = new OpenAPIHono();
@@ -150,7 +163,15 @@ app.use(
       if (corsOrigins.includes(requestOrigin)) {
         return requestOrigin;
       }
-      // Log first mismatch per cold start to help debug CORS issues
+      // Allow Vercel preview deployments — each gets a unique *.vercel.app URL
+      // that can't be in the static CORS_ORIGIN list.
+      if (
+        process.env.VERCEL_ENV === 'preview' &&
+        /^https:\/\/[\w-]+\.vercel\.app$/.test(requestOrigin)
+      ) {
+        return requestOrigin;
+      }
+      // Log mismatch to help debug CORS issues
       if (requestOrigin && requestOrigin !== '') {
         logger.warn('CORS origin rejected', {
           requestOrigin,
