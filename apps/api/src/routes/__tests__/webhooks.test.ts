@@ -608,9 +608,10 @@ describe('POST /stripe webhook', () => {
       // Allow the fire-and-forget .catch() to settle
       await vi.waitFor(
         () => {
-          expect(vi.mocked(loggerModule.logger).warn).toHaveBeenCalledWith(
+          expect(vi.mocked(loggerModule.logger).error).toHaveBeenCalledWith(
             'Failed to send tier fallback alert',
-            expect.objectContaining({ error: 'SMTP down' }),
+            undefined,
+            expect.objectContaining({ detail: 'SMTP down' }),
           );
         },
         { timeout: 1000 },

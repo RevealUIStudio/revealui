@@ -1131,9 +1131,10 @@ describe('Webhook Safety — money-critical paths', () => {
 
         await vi.waitFor(
           () => {
-            expect(vi.mocked(loggerModule.logger).warn).toHaveBeenCalledWith(
+            expect(vi.mocked(loggerModule.logger).error).toHaveBeenCalledWith(
               'Failed to send license activation email',
-              expect.objectContaining({ error: 'SMTP down' }),
+              undefined,
+              expect.objectContaining({ detail: 'SMTP down' }),
             );
           },
           { timeout: 1000 },

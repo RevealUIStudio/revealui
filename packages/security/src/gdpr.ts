@@ -5,7 +5,7 @@
  */
 
 import { createHash, createHmac } from 'node:crypto';
-import { type BreachStorage, type GDPRStorage, InMemoryBreachStorage } from './gdpr-storage.js';
+import type { BreachStorage, GDPRStorage } from './gdpr-storage.js';
 import { getSecurityLogger } from './logger.js';
 
 export type ConsentType =
@@ -645,16 +645,8 @@ export interface DataBreach {
 export class DataBreachManager {
   private readonly storage: BreachStorage;
 
-  constructor(storage?: BreachStorage) {
-    if (storage) {
-      this.storage = storage;
-    } else {
-      getSecurityLogger().warn(
-        'DataBreachManager: using in-memory storage — breach records will be lost on restart. ' +
-          'For production GDPR compliance, pass a database-backed BreachStorage.',
-      );
-      this.storage = new InMemoryBreachStorage();
-    }
+  constructor(storage: BreachStorage) {
+    this.storage = storage;
   }
 
   /**
@@ -759,8 +751,6 @@ export function createDataDeletionSystem(storage: GDPRStorage): DataDeletionSyst
 export const dataExportSystem = new DataExportSystem();
 export const privacyPolicyManager = new PrivacyPolicyManager();
 export const cookieConsentManager = new CookieConsentManager();
-export function createDataBreachManager(storage?: BreachStorage): DataBreachManager {
+export function createDataBreachManager(storage: BreachStorage): DataBreachManager {
   return new DataBreachManager(storage);
 }
-
-export const dataBreachManager = new DataBreachManager();

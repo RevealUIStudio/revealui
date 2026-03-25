@@ -1025,8 +1025,8 @@ app.openapi(supportRenewalRoute, async (c) => {
       text: `Your RevealUI annual support contract expires on ${expiryDate}. Renew at https://revealui.com/pricing. Your perpetual license itself never expires.`,
       html: `<p>Your RevealUI support contract expires on <strong>${expiryDate}</strong>. <a href="https://revealui.com/pricing">Renew here</a>. Your perpetual license never expires.</p>`,
     }).catch((err: unknown) => {
-      logger.warn('Support renewal email failed (best-effort)', {
-        error: err instanceof Error ? err.message : String(err),
+      logger.error('Failed to send support renewal email', err instanceof Error ? err : undefined, {
+        email: row.email,
       });
     });
 

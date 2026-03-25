@@ -92,7 +92,6 @@ export {
   DataBreachManager,
   DataDeletionSystem,
   DataExportSystem,
-  dataBreachManager,
   dataExportSystem,
   PrivacyPolicyManager,
   privacyPolicyManager,
