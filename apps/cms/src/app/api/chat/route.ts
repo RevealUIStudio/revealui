@@ -177,11 +177,11 @@ export async function POST(request: NextRequest) {
       headers: { 'Content-Type': 'application/json' },
     });
   }
-  if (!isFeatureEnabled('ai')) {
-    return new Response(JSON.stringify({ error: 'Forbidden', reason: 'Pro license required' }), {
-      status: 403,
-      headers: { 'Content-Type': 'application/json' },
-    });
+  if (!isFeatureEnabled('aiLocal')) {
+    return new Response(
+      JSON.stringify({ error: 'Forbidden', reason: 'AI features not available' }),
+      { status: 403, headers: { 'Content-Type': 'application/json' } },
+    );
   }
 
   try {

@@ -26,8 +26,8 @@ interface RouteParams {
 export async function GET(request: NextRequest, { params }: RouteParams) {
   const session = await getSession(request.headers);
   if (!session) return Response.json({ error: 'Unauthorized' }, { status: 401 });
-  if (!isFeatureEnabled('ai'))
-    return Response.json({ error: 'Pro license required' }, { status: 403 });
+  if (!isFeatureEnabled('aiLocal'))
+    return Response.json({ error: 'AI features not available' }, { status: 403 });
 
   const { id } = await params;
   const db = getClient();
@@ -40,8 +40,8 @@ export async function GET(request: NextRequest, { params }: RouteParams) {
 export async function PATCH(request: NextRequest, { params }: RouteParams) {
   const session = await getSession(request.headers);
   if (!session) return Response.json({ error: 'Unauthorized' }, { status: 401 });
-  if (!isFeatureEnabled('ai'))
-    return Response.json({ error: 'Pro license required' }, { status: 403 });
+  if (!isFeatureEnabled('aiLocal'))
+    return Response.json({ error: 'AI features not available' }, { status: 403 });
 
   const { id } = await params;
   const body = (await request.json()) as { title?: string };
@@ -57,8 +57,8 @@ export async function PATCH(request: NextRequest, { params }: RouteParams) {
 export async function DELETE(request: NextRequest, { params }: RouteParams) {
   const session = await getSession(request.headers);
   if (!session) return Response.json({ error: 'Unauthorized' }, { status: 401 });
-  if (!isFeatureEnabled('ai'))
-    return Response.json({ error: 'Pro license required' }, { status: 403 });
+  if (!isFeatureEnabled('aiLocal'))
+    return Response.json({ error: 'AI features not available' }, { status: 403 });
 
   const { id } = await params;
   const db = getClient();

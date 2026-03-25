@@ -50,6 +50,14 @@ interface ModelOption {
 const MODEL_OPTIONS: ModelOption[] = [
   { id: 'auto', label: 'Auto', provider: '', model: '' },
   {
+    id: 'bitnet',
+    label: 'BitNet (Local)',
+    provider: 'bitnet',
+    model: 'bitnet-b1.58-2B-4T',
+  },
+  { id: 'local', label: 'Ollama (Local)', provider: 'ollama', model: '' },
+  { id: 'llama-70b', label: 'Llama 3.3 70B', provider: 'groq', model: 'llama-3.3-70b-versatile' },
+  {
     id: 'claude-sonnet',
     label: 'Claude Sonnet',
     provider: 'anthropic',
@@ -61,9 +69,6 @@ const MODEL_OPTIONS: ModelOption[] = [
     provider: 'anthropic',
     model: 'claude-opus-4-20250514',
   },
-  { id: 'gpt-4o', label: 'GPT-4o', provider: 'openai', model: 'gpt-4o' },
-  { id: 'llama-70b', label: 'Llama 3.3 70B', provider: 'groq', model: 'llama-3.3-70b-versatile' },
-  { id: 'local', label: 'Local (Ollama)', provider: 'ollama', model: '' },
 ];
 
 // ─── Constants ──────────────────────────────────────────────────────────────
