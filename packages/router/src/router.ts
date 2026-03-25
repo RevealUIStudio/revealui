@@ -12,7 +12,6 @@ import type {
 } from './types';
 
 declare global {
-  // biome-ignore lint: global augmentation requires var
   var __revealui_router_initialized: boolean | undefined;
 }
 

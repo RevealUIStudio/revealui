@@ -192,8 +192,7 @@ function analyzeSourceFile(sourceFile: ts.SourceFile, repoRoot: string): AuthSec
 
       if (
         initializer &&
-        variableName &&
-        variableName.toLowerCase().includes('jwt') &&
+        variableName?.toLowerCase().includes('jwt') &&
         variableName.toLowerCase().includes('secret') &&
         (ts.isStringLiteral(initializer) || ts.isNoSubstitutionTemplateLiteral(initializer))
       ) {
