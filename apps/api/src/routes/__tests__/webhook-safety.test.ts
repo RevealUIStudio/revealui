@@ -639,14 +639,14 @@ describe('Webhook Safety — money-critical paths', () => {
   // ═══════════════════════════════════════════════════════════════════════════
 
   describe('Missing webhook secret', () => {
-    it('returns 500 when STRIPE_WEBHOOK_SECRET is not configured', async () => {
+    it('returns 503 when STRIPE_WEBHOOK_SECRET is not configured', async () => {
       delete process.env.STRIPE_WEBHOOK_SECRET;
       delete process.env.STRIPE_WEBHOOK_SECRET_LIVE;
 
       const app = createApp();
       const res = await app.request(postStripe({}, 't=123,v1=test'));
 
-      expect(res.status).toBe(500);
+      expect(res.status).toBe(503);
     });
 
     it('does not attempt signature verification when secret is missing', async () => {

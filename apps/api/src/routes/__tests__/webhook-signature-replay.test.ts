@@ -700,14 +700,14 @@ describe('POST /stripe webhook — signature timing & replay protection', () => 
   // ═══════════════════════════════════════════════════════════════════════════
 
   describe('Missing environment configuration', () => {
-    it('returns 500 when STRIPE_WEBHOOK_SECRET is not set', async () => {
+    it('returns 503 when STRIPE_WEBHOOK_SECRET is not set', async () => {
       delete process.env.STRIPE_WEBHOOK_SECRET;
       delete process.env.STRIPE_WEBHOOK_SECRET_LIVE;
 
       const app = createApp();
       const res = await app.request(postStripe('{}', 't=123,v1=nosecret'));
 
-      expect(res.status).toBe(500);
+      expect(res.status).toBe(503);
     });
 
     it('uses cached Stripe client even when STRIPE_SECRET_KEY is removed (module-level cache)', async () => {

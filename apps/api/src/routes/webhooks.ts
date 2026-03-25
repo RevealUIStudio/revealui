@@ -553,12 +553,36 @@ const stripeWebhookRoute = createRoute({
       },
       description: 'Webhook processing failed',
     },
+    503: {
+      content: {
+        'application/json': {
+          schema: z.object({
+            error: z.string(),
+          }),
+        },
+      },
+      description: 'Webhook service unavailable (Stripe env vars misconfigured)',
+    },
   },
 });
 
 app.openapi(stripeWebhookRoute, async (c) => {
-  const webhookSecret = getWebhookSecret();
-  const stripe = getStripeClient();
+  let webhookSecret: string;
+  let stripe: Stripe;
+  try {
+    webhookSecret = getWebhookSecret();
+    stripe = getStripeClient();
+  } catch (initErr) {
+    const msg = initErr instanceof Error ? initErr.message : 'Unknown init error';
+    logger.error('Webhook handler init failed — Stripe env vars may be misconfigured', undefined, {
+      detail: msg,
+      hasSecretKey: !!process.env.STRIPE_SECRET_KEY,
+      hasWebhookSecret: !!(
+        process.env.STRIPE_WEBHOOK_SECRET_LIVE || process.env.STRIPE_WEBHOOK_SECRET
+      ),
+    });
+    return c.json({ error: 'Webhook service unavailable' }, 503);
+  }
 
   const body = await c.req.text();
   const sig = c.req.header('Stripe-Signature');
