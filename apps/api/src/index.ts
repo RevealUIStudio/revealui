@@ -8,7 +8,7 @@ import { createDbLogHandler } from '@revealui/db/log-transport';
 import { sites } from '@revealui/db/schema';
 import { OpenAPIHono } from '@revealui/openapi';
 import { bodyLimit } from 'hono/body-limit';
-import { cors } from 'hono/cors';
+
 import { logger as honoLogger } from 'hono/logger';
 import { queryBillingStatusByCustomerId } from './lib/billing-status.js';
 import { auditMiddleware } from './middleware/audit.js';
@@ -154,35 +154,39 @@ app.use(
   }),
 );
 app.use('*', honoLogger());
-app.use(
-  '*',
-  cors({
-    origin: (requestOrigin) => {
-      // Use function form for reliable origin matching — array form was not
-      // producing Access-Control-Allow-Origin headers in Vercel production.
-      if (corsOrigins.includes(requestOrigin)) {
-        return requestOrigin;
-      }
-      // Allow Vercel preview deployments — each gets a unique *.vercel.app URL
-      // that can't be in the static CORS_ORIGIN list.
-      if (
-        process.env.VERCEL_ENV === 'preview' &&
-        /^https:\/\/[\w-]+\.vercel\.app$/.test(requestOrigin)
-      ) {
-        return requestOrigin;
-      }
-      // Log mismatch to help debug CORS issues
-      if (requestOrigin && requestOrigin !== '') {
-        logger.warn('CORS origin rejected', {
-          requestOrigin,
-          allowedOrigins: corsOrigins,
-        });
-      }
-      return null;
-    },
-    credentials: true,
-  }),
-);
+// Manual CORS middleware — Hono's cors() middleware was not reliably setting
+// Access-Control-Allow-Origin headers in the Vercel serverless runtime.
+app.use('*', async (c, next) => {
+  const origin = c.req.header('origin') || c.req.header('Origin') || '';
+
+  const isAllowed =
+    corsOrigins.includes(origin) ||
+    (process.env.VERCEL_ENV === 'preview' && /^https:\/\/[\w-]+\.vercel\.app$/.test(origin));
+
+  if (isAllowed) {
+    c.header('Access-Control-Allow-Origin', origin);
+    c.header('Access-Control-Allow-Credentials', 'true');
+    c.header('Vary', 'Origin');
+  } else if (origin) {
+    // Still set Vary so CDN doesn't serve wrong cache
+    c.header('Vary', 'Origin');
+  }
+
+  // Handle preflight
+  if (c.req.method === 'OPTIONS') {
+    if (isAllowed) {
+      c.header('Access-Control-Allow-Methods', 'GET,HEAD,PUT,POST,DELETE,PATCH');
+      c.header(
+        'Access-Control-Allow-Headers',
+        c.req.header('Access-Control-Request-Headers') || 'Content-Type,Authorization',
+      );
+      c.header('Access-Control-Max-Age', '86400');
+    }
+    return c.body(null, 204);
+  }
+
+  await next();
+});
 // Apply security headers (CSP, HSTS, X-Frame-Options, etc.) to all responses
 app.use('*', async (c, next) => {
   await next();
