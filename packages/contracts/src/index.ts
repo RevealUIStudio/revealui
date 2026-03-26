@@ -525,6 +525,26 @@ export {
 } from './pricing.js';
 
 // =============================================================================
+// RevealCoin (RVC)
+// =============================================================================
+
+export {
+  formatRvcAmount,
+  getRvcMintAddress,
+  parseRvcAmount,
+  RVC_ALLOCATIONS,
+  RVC_DISCOUNT_RATES,
+  RVC_MINT_ADDRESSES,
+  RVC_MINT_AUTHORITY,
+  RVC_TOKEN_CONFIG,
+  RVC_TOKEN_PROGRAM,
+  type RvcAllocation,
+  type RvcDiscountRate,
+  type RvcTokenConfig,
+  type SolanaNetwork,
+} from './revealcoin.js';
+
+// =============================================================================
 // Actions
 // =============================================================================
 

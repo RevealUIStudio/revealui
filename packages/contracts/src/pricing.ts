@@ -107,6 +107,8 @@ export interface SubscriptionTier {
   cta: string;
   ctaHref: string;
   highlighted: boolean;
+  /** Discount percentage when paying with RevealCoin (RVC). */
+  rvcDiscount?: number;
 }
 
 export const SUBSCRIPTION_TIERS: SubscriptionTier[] = [
@@ -148,6 +150,7 @@ export const SUBSCRIPTION_TIERS: SubscriptionTier[] = [
     cta: 'Start Free Trial',
     ctaHref: '/signup?plan=pro',
     highlighted: true,
+    rvcDiscount: 15,
   },
   {
     id: 'max',
@@ -168,6 +171,7 @@ export const SUBSCRIPTION_TIERS: SubscriptionTier[] = [
     cta: 'Start Free Trial',
     ctaHref: '/signup?plan=max',
     highlighted: false,
+    rvcDiscount: 15,
   },
   {
     id: 'enterprise',

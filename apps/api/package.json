@@ -8,6 +8,7 @@
     "@hono/swagger-ui": "^0.5.3",
     "@vercel/blob": "^2.2.0",
     "@revealui/auth": "workspace:*",
+    "@revealui/services": "workspace:*",
     "@revealui/config": "workspace:*",
     "@revealui/contracts": "workspace:*",
     "@revealui/core": "workspace:*",

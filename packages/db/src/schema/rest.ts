@@ -57,6 +57,7 @@ export * from './pages.js';
 export * from './passkeys.js';
 export * from './password-reset-tokens.js';
 export * from './rate-limits.js';
+export * from './revealcoin.js';
 export * from './sites.js';
 export * from './tenants.js';
 export * from './tickets.js';

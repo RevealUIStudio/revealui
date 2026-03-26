@@ -2,6 +2,7 @@ import { useStatusContext } from '../../hooks/use-status';
 import Button from '../ui/Button';
 import ErrorAlert from '../ui/ErrorAlert';
 import PanelHeader from '../ui/PanelHeader';
+import RvcBalanceCard from './RvcBalanceCard';
 import ServiceCard from './ServiceCard';
 import TierBadge from './TierBadge';
 import WelcomeBanner from './WelcomeBanner';
@@ -63,6 +64,7 @@ export default function Dashboard() {
           }
           detail={system?.systemd_status ?? 'Unknown'}
         />
+        <RvcBalanceCard />
       </div>
     </div>
   );

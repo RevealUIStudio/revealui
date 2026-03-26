@@ -6,12 +6,18 @@ export interface StudioSettings {
   theme: Theme;
   apiUrl: string;
   pollingIntervalMs: number;
+  /** Solana wallet public key for RVC balance display. */
+  solanaWalletAddress: string;
+  /** Solana network for RVC queries. */
+  solanaNetwork: 'devnet' | 'mainnet-beta';
 }
 
 const DEFAULT_SETTINGS: StudioSettings = {
   theme: 'system',
   apiUrl: 'http://localhost:3004',
   pollingIntervalMs: 30_000,
+  solanaWalletAddress: '',
+  solanaNetwork: 'devnet',
 };
 
 const STORAGE_KEY = 'revealui-studio-settings';
@@ -36,6 +42,14 @@ function loadSettings(): StudioSettings {
         typeof obj.pollingIntervalMs === 'number' && obj.pollingIntervalMs >= 1_000
           ? obj.pollingIntervalMs
           : DEFAULT_SETTINGS.pollingIntervalMs,
+      solanaWalletAddress:
+        typeof obj.solanaWalletAddress === 'string'
+          ? obj.solanaWalletAddress
+          : DEFAULT_SETTINGS.solanaWalletAddress,
+      solanaNetwork:
+        obj.solanaNetwork === 'devnet' || obj.solanaNetwork === 'mainnet-beta'
+          ? obj.solanaNetwork
+          : DEFAULT_SETTINGS.solanaNetwork,
     };
   } catch {
     return { ...DEFAULT_SETTINGS };

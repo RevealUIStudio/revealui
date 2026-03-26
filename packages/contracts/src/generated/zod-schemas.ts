@@ -2,7 +2,7 @@
  * Auto-generated Zod schemas from Drizzle
  *
  * DO NOT EDIT - Regenerate with: pnpm generate:all
- * Generated: 2026-03-23T06:00:28.370Z
+ * Generated: 2026-03-26T00:58:36.044Z
  *
  * This file provides Zod schemas for all database tables, generated
  * directly from Drizzle table definitions using drizzle-zod.
@@ -1443,6 +1443,58 @@ export type RegisteredAgentsRow = z.infer<typeof RegisteredAgentsSelectSchema>
  * TypeScript type for registeredAgents insert
  */
 export type RegisteredAgentsInsert = z.infer<typeof RegisteredAgentsInsertSchema>
+
+// =============================================================================
+// RevealcoinPayments Schemas
+// =============================================================================
+
+/**
+ * Zod schema for selecting revealcoinPayments rows from database
+ * Generated from Drizzle table definition: tables.revealcoinPayments
+ */
+export const RevealcoinPaymentsSelectSchema = createSelectSchema(tables.revealcoinPayments)
+
+/**
+ * Zod schema for inserting revealcoinPayments rows to database
+ * Generated from Drizzle table definition: tables.revealcoinPayments
+ */
+export const RevealcoinPaymentsInsertSchema = createInsertSchema(tables.revealcoinPayments)
+
+/**
+ * TypeScript type for revealcoinPayments row (Select)
+ */
+export type RevealcoinPaymentsRow = z.infer<typeof RevealcoinPaymentsSelectSchema>
+
+/**
+ * TypeScript type for revealcoinPayments insert
+ */
+export type RevealcoinPaymentsInsert = z.infer<typeof RevealcoinPaymentsInsertSchema>
+
+// =============================================================================
+// RevealcoinPriceSnapshots Schemas
+// =============================================================================
+
+/**
+ * Zod schema for selecting revealcoinPriceSnapshots rows from database
+ * Generated from Drizzle table definition: tables.revealcoinPriceSnapshots
+ */
+export const RevealcoinPriceSnapshotsSelectSchema = createSelectSchema(tables.revealcoinPriceSnapshots)
+
+/**
+ * Zod schema for inserting revealcoinPriceSnapshots rows to database
+ * Generated from Drizzle table definition: tables.revealcoinPriceSnapshots
+ */
+export const RevealcoinPriceSnapshotsInsertSchema = createInsertSchema(tables.revealcoinPriceSnapshots)
+
+/**
+ * TypeScript type for revealcoinPriceSnapshots row (Select)
+ */
+export type RevealcoinPriceSnapshotsRow = z.infer<typeof RevealcoinPriceSnapshotsSelectSchema>
+
+/**
+ * TypeScript type for revealcoinPriceSnapshots insert
+ */
+export type RevealcoinPriceSnapshotsInsert = z.infer<typeof RevealcoinPriceSnapshotsInsertSchema>
 
 // =============================================================================
 // Sessions Schemas

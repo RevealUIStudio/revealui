@@ -1,0 +1,131 @@
+/**
+ * React hook for querying RVC token balance from Solana RPC.
+ *
+ * Reads the wallet address + network from StudioSettings (localStorage).
+ * Queries the Token-2022 Associated Token Account for the RVC mint.
+ * Polls every 60 seconds. Returns zero gracefully if ATA doesn't exist.
+ */
+
+import { RVC_MINT_ADDRESSES, RVC_TOKEN_CONFIG } from '@revealui/contracts';
+import {
+  getAccount,
+  getAssociatedTokenAddressSync,
+  TOKEN_2022_PROGRAM_ID,
+} from '@solana/spl-token';
+import { Connection, PublicKey } from '@solana/web3.js';
+import { useCallback, useEffect, useRef, useState } from 'react';
+import { useSettingsContext } from './use-settings';
+
+const POLL_INTERVAL_MS = 60_000;
+
+const CLUSTER_URLS: Record<string, string> = {
+  devnet: 'https://api.devnet.solana.com',
+  'mainnet-beta': 'https://api.mainnet-beta.solana.com',
+};
+
+export interface RvcBalanceState {
+  /** Human-readable balance (e.g., "1,234.56 RVC"). Null if not configured. */
+  balance: string | null;
+  /** Raw numeric balance for calculations. */
+  uiAmount: number;
+  /** Whether a query is in flight. */
+  loading: boolean;
+  /** Error message if the last query failed. */
+  error: string | null;
+  /** Whether a wallet address is configured. */
+  configured: boolean;
+  /** Trigger an immediate refresh. */
+  refresh: () => void;
+}
+
+export function useRvcBalance(): RvcBalanceState {
+  const { settings } = useSettingsContext();
+  const [balance, setBalance] = useState<string | null>(null);
+  const [uiAmount, setUiAmount] = useState(0);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
+
+  const walletAddress = settings.solanaWalletAddress;
+  const network = settings.solanaNetwork;
+  const configured = walletAddress.length > 0;
+
+  const fetchBalance = useCallback(async () => {
+    if (!walletAddress) return;
+
+    const mintAddress = RVC_MINT_ADDRESSES[network];
+    if (!mintAddress) {
+      setError(`RVC not deployed on ${network}`);
+      return;
+    }
+
+    setLoading(true);
+    setError(null);
+
+    try {
+      const rpcUrl = CLUSTER_URLS[network] ?? CLUSTER_URLS.devnet;
+      const connection = new Connection(rpcUrl, 'confirmed');
+      const wallet = new PublicKey(walletAddress);
+      const mint = new PublicKey(mintAddress);
+      const ata = getAssociatedTokenAddressSync(mint, wallet, false, TOKEN_2022_PROGRAM_ID);
+
+      try {
+        const account = await getAccount(connection, ata, 'confirmed', TOKEN_2022_PROGRAM_ID);
+        const raw = account.amount;
+        const divisor = 10 ** RVC_TOKEN_CONFIG.decimals;
+        const amount = Number(raw) / divisor;
+
+        setUiAmount(amount);
+        setBalance(
+          amount.toLocaleString(undefined, {
+            minimumFractionDigits: 0,
+            maximumFractionDigits: 2,
+          }),
+        );
+      } catch (err) {
+        // ATA doesn't exist — wallet has never held RVC
+        if (
+          err instanceof Error &&
+          (err.message.includes('could not find account') ||
+            err.message.includes('TokenAccountNotFoundError'))
+        ) {
+          setBalance('0');
+          setUiAmount(0);
+        } else {
+          throw err;
+        }
+      }
+    } catch (err) {
+      const msg = err instanceof Error ? err.message : 'Failed to fetch RVC balance';
+      setError(msg);
+    } finally {
+      setLoading(false);
+    }
+  }, [walletAddress, network]);
+
+  // Initial fetch + polling
+  useEffect(() => {
+    if (!configured) {
+      setBalance(null);
+      setUiAmount(0);
+      setError(null);
+      return;
+    }
+
+    void fetchBalance();
+
+    intervalRef.current = setInterval(() => {
+      void fetchBalance();
+    }, POLL_INTERVAL_MS);
+
+    return () => {
+      if (intervalRef.current) clearInterval(intervalRef.current);
+    };
+  }, [configured, fetchBalance]);
+
+  const refresh = useCallback(() => {
+    void fetchBalance();
+  }, [fetchBalance]);
+
+  return { balance, uiAmount, loading, error, configured, refresh };
+}
