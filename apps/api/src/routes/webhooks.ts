@@ -1005,8 +1005,13 @@ app.openapi(stripeWebhookRoute, async (c) => {
         const customerId = resolveCustomerId(subscription.customer);
         if (!customerId) break;
 
-        // If subscription went past_due or unpaid, mark license as expired
+        // If subscription went past_due or unpaid, degrade access.
+        // past_due = grace period (customer retains access until period end).
+        // unpaid = immediate block (Stripe exhausted retries).
         if (subscription.status === 'past_due' || subscription.status === 'unpaid') {
+          const isPastDue = subscription.status === 'past_due';
+          const entitlementStatus = isPastDue ? 'past_due' : 'expired';
+
           await db
             .update(licenses)
             .set({ status: 'expired', updatedAt: new Date() })
@@ -1016,19 +1021,26 @@ app.openapi(stripeWebhookRoute, async (c) => {
             customerId,
             subscriptionId: subscription.id,
             tier: resolveOptionalTier(subscription.metadata as Record<string, string>),
-            status: 'expired',
+            status: entitlementStatus,
             currentPeriodStart: getSubscriptionPeriodDate(subscription, 'current_period_start'),
             currentPeriodEnd: getSubscriptionPeriodDate(subscription, 'current_period_end'),
             cancelAtPeriodEnd: subscription.cancel_at_period_end ?? false,
-            graceUntil: getSubscriptionPeriodDate(subscription, 'current_period_end'),
+            graceUntil: isPastDue
+              ? getSubscriptionPeriodDate(subscription, 'current_period_end')
+              : null,
           });
 
-          logger.info('License expired due to payment failure', {
-            customerId,
-            subscriptionStatus: subscription.status,
-          });
+          logger.info(
+            isPastDue
+              ? 'License degraded to past_due with grace period'
+              : 'License expired — subscription unpaid',
+            {
+              customerId,
+              subscriptionStatus: subscription.status,
+            },
+          );
           resetLicenseState();
-          auditLicenseEvent(db, 'license.expired', 'warn', {
+          auditLicenseEvent(db, isPastDue ? 'license.grace_period' : 'license.expired', 'warn', {
             customerId,
             subscriptionId: subscription.id,
             subscriptionStatus: subscription.status,
@@ -1323,29 +1335,62 @@ app.openapi(stripeWebhookRoute, async (c) => {
           attemptCount: invoice.attempt_count,
         });
 
-        // Update subscription status based on attempt count
-        const failedStatus =
-          invoice.attempt_count && invoice.attempt_count >= 3 ? 'suspended' : 'past_due';
+        // Determine severity: past_due (1-2 failures) vs suspended (3+ failures).
+        // past_due gets a grace period; suspended is immediate block.
+        const isSuspended = invoice.attempt_count != null && invoice.attempt_count >= 3;
+        const entitlementStatus = isSuspended ? 'expired' : 'past_due';
 
-        if (failedStatus === 'suspended') {
+        if (isSuspended) {
           logger.error('Payment failed 3+ times — suspending subscription', undefined, {
             customerId,
             attemptCount: invoice.attempt_count,
           });
-        }
 
-        await db
-          .update(accountSubscriptions)
-          .set({ status: failedStatus, updatedAt: new Date() })
-          .where(eq(accountSubscriptions.stripeCustomerId, customerId));
-
-        // Mirror license status — matches customer.subscription.updated behavior
-        if (failedStatus === 'suspended') {
           await db
             .update(licenses)
             .set({ status: 'expired', updatedAt: new Date() })
             .where(eq(licenses.customerId, customerId));
         }
+
+        // Resolve subscription ID from the invoice.
+        // Stripe SDK v20 moved subscription from invoice.subscription to
+        // invoice.parent.subscription_details.subscription.
+        const invoiceSubscription = invoice.parent?.subscription_details?.subscription ?? null;
+        const subscriptionId =
+          typeof invoiceSubscription === 'string'
+            ? invoiceSubscription
+            : typeof invoiceSubscription === 'object' && invoiceSubscription !== null
+              ? invoiceSubscription.id
+              : null;
+
+        // Grace period: customer retains access until the end of their billing period.
+        // Only granted for initial failures (past_due). Suspended = immediate block.
+        const graceUntil =
+          !isSuspended && invoice.period_end ? new Date(invoice.period_end * 1000) : null;
+
+        await syncHostedSubscriptionState(db, {
+          customerId,
+          subscriptionId,
+          status: entitlementStatus,
+          graceUntil,
+        });
+
+        if (isSuspended) {
+          resetLicenseState();
+        }
+
+        auditLicenseEvent(
+          db,
+          isSuspended ? 'license.suspended.payment_failed' : 'license.grace_period.payment_failed',
+          isSuspended ? 'critical' : 'warn',
+          {
+            customerId,
+            invoiceId: invoice.id,
+            attemptCount: invoice.attempt_count,
+            subscriptionId,
+            graceUntil: graceUntil?.toISOString() ?? null,
+          },
+        );
 
         // Send payment failed email
         const email = invoice.customer_email ?? (await findUserEmailByCustomerId(db, customerId));
