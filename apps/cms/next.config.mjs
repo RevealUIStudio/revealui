@@ -91,6 +91,15 @@ const nextConfig = {
         .filter(Boolean),
     ],
   },
+  async redirects() {
+    return [
+      {
+        source: '/posts',
+        destination: 'https://revealui.com/blog',
+        permanent: true,
+      },
+    ]
+  },
   async headers() {
     return [
       {

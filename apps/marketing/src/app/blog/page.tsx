@@ -95,7 +95,9 @@ export default async function BlogPage() {
                       {post.title}
                     </Link>
                   </h3>
-                  <p className="mt-4 text-sm leading-6 text-gray-600">{getExcerpt(post.content)}</p>
+                  <p className="mt-4 text-sm leading-6 text-gray-600">
+                    {post.excerpt || getExcerpt(post.content)}
+                  </p>
                   <Link
                     href={`/blog/${post.slug}`}
                     className="mt-4 inline-block text-sm font-semibold text-blue-600 hover:text-blue-500 transition-colors"
