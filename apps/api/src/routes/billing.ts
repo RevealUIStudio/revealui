@@ -942,7 +942,7 @@ app.openapi(usageRoute, async (c) => {
   return c.json(
     {
       used: row?.count ?? 0,
-      quota: quota === Infinity ? -1 : quota,
+      quota: quota === Infinity || quota >= Number.MAX_SAFE_INTEGER ? -1 : quota,
       overage: row?.overage ?? 0,
       cycleStart: cycle.toISOString(),
       resetAt: resetAt.toISOString(),
