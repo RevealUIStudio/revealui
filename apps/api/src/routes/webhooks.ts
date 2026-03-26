@@ -39,6 +39,7 @@ import {
   sendTrialEndingEmail,
   sendWebhookFailureAlert,
 } from '../lib/webhook-emails.js';
+import { resetDbStatusCache } from '../middleware/license.js';
 
 const app = new OpenAPIHono();
 
@@ -715,6 +716,7 @@ app.openapi(stripeWebhookRoute, async (c) => {
           });
 
           resetLicenseState();
+          resetDbStatusCache();
 
           logger.info('Perpetual license generated and stored', { tier, customerId, licenseId });
           auditLicenseEvent(db, 'license.perpetual.created', 'info', {
@@ -891,6 +893,7 @@ app.openapi(stripeWebhookRoute, async (c) => {
 
         // Invalidate in-process license cache so subsequent requests see the new tier
         resetLicenseState();
+        resetDbStatusCache();
 
         // Best-effort: also store in Stripe subscription metadata for easy retrieval.
         // Non-critical — license is already persisted in NeonDB above.
@@ -968,6 +971,7 @@ app.openapi(stripeWebhookRoute, async (c) => {
         });
 
         resetLicenseState();
+        resetDbStatusCache();
 
         logger.info('License revoked on subscription deletion', {
           customerId,
@@ -998,6 +1002,7 @@ app.openapi(stripeWebhookRoute, async (c) => {
         });
 
         resetLicenseState();
+        resetDbStatusCache();
 
         logger.warn('License revoked: Stripe customer deleted', { customerId });
         auditLicenseEvent(db, 'license.revoked.customer_deleted', 'warn', { customerId });
@@ -1050,6 +1055,7 @@ app.openapi(stripeWebhookRoute, async (c) => {
             },
           );
           resetLicenseState();
+          resetDbStatusCache();
           auditLicenseEvent(db, isPastDue ? 'license.grace_period' : 'license.expired', 'warn', {
             customerId,
             subscriptionId: subscription.id,
@@ -1087,6 +1093,7 @@ app.openapi(stripeWebhookRoute, async (c) => {
             );
 
           resetLicenseState();
+          resetDbStatusCache();
           logger.info('License expiry set for scheduled downgrade', {
             customerId,
             subscriptionId: subscription.id,
@@ -1151,13 +1158,66 @@ app.openapi(stripeWebhookRoute, async (c) => {
                 : null,
           });
 
+          // Clear pending_change flag so the next upgrade/downgrade is unblocked
+          if (subscription.metadata?.pending_change) {
+            stripe.subscriptions
+              .update(subscription.id, { metadata: { pending_change: '' } })
+              .catch((err) => {
+                logger.warn('Failed to clear pending_change metadata', {
+                  subscriptionId: subscription.id,
+                  detail: err instanceof Error ? err.message : 'unknown',
+                });
+              });
+          }
+
           resetLicenseState();
+          resetDbStatusCache();
           auditLicenseEvent(db, 'license.reactivated', 'info', {
             customerId,
             subscriptionId: subscription.id,
             tier: newTier,
           });
         }
+
+        // Handle terminal subscription states that aren't covered above
+        if (subscription.status === 'canceled' || subscription.status === 'incomplete_expired') {
+          await db
+            .update(licenses)
+            .set({ status: 'revoked', updatedAt: new Date() })
+            .where(
+              and(
+                eq(licenses.customerId, customerId),
+                eq(licenses.subscriptionId, subscription.id),
+              ),
+            );
+
+          await syncHostedSubscriptionState(db, {
+            customerId,
+            subscriptionId: subscription.id,
+            tier: resolveOptionalTier(subscription.metadata as Record<string, string>),
+            status: 'revoked',
+            currentPeriodStart: getSubscriptionPeriodDate(subscription, 'current_period_start'),
+            currentPeriodEnd: getSubscriptionPeriodDate(subscription, 'current_period_end'),
+            cancelAtPeriodEnd: false,
+            graceUntil: null,
+          });
+
+          resetLicenseState();
+          resetDbStatusCache();
+          auditLicenseEvent(db, `license.revoked.subscription_${subscription.status}`, 'warn', {
+            customerId,
+            subscriptionId: subscription.id,
+            stripeStatus: subscription.status,
+          });
+        }
+
+        if (subscription.status === 'incomplete') {
+          logger.warn('Subscription in incomplete state — awaiting payment confirmation', {
+            customerId,
+            subscriptionId: subscription.id,
+          });
+        }
+
         break;
       }
 
@@ -1327,6 +1387,7 @@ app.openapi(stripeWebhookRoute, async (c) => {
         });
 
         resetLicenseState();
+        resetDbStatusCache();
 
         logger.info('License re-activated after payment recovery', {
           customerId,
@@ -1408,6 +1469,7 @@ app.openapi(stripeWebhookRoute, async (c) => {
 
         if (isSuspended) {
           resetLicenseState();
+          resetDbStatusCache();
         }
 
         auditLicenseEvent(
@@ -1504,6 +1566,7 @@ app.openapi(stripeWebhookRoute, async (c) => {
         });
 
         resetLicenseState();
+        resetDbStatusCache();
 
         logger.warn('License revoked: chargeback dispute lost', {
           customerId: disputeCustomerId,
@@ -1588,6 +1651,7 @@ app.openapi(stripeWebhookRoute, async (c) => {
           });
 
           resetLicenseState();
+          resetDbStatusCache();
 
           logger.warn('License revoked: full refund issued', {
             customerId,

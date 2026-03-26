@@ -691,7 +691,7 @@ app.openapi(upgradeRoute, async (c) => {
   await withStripe((stripe) =>
     stripe.subscriptions.update(subscription.id, {
       items: [{ id: item.id, price: resolvedPriceId }],
-      metadata: { tier: targetTier, revealui_user_id: user.id, pending_change: '' },
+      metadata: { tier: targetTier, revealui_user_id: user.id, pending_change: 'true' },
       proration_behavior: 'create_prorations',
     }),
   );
