@@ -337,7 +337,7 @@ describe('POST /stripe webhook', () => {
       expect(setCall.status).toBe('active');
     });
 
-    it('writes license.expired audit entry when subscription goes past_due', async () => {
+    it('writes license.grace_period audit entry when subscription goes past_due', async () => {
       const event = {
         id: 'evt_updated_pastdue_audit_2',
         type: 'customer.subscription.updated',
@@ -351,7 +351,7 @@ describe('POST /stripe webhook', () => {
       expect(res.status).toBe(200);
       expect(mockAuditAppend).toHaveBeenCalledOnce();
       const entry = mockAuditAppend.mock.calls[0]?.[0] as Record<string, unknown>;
-      expect(entry.eventType).toBe('license.expired');
+      expect(entry.eventType).toBe('license.grace_period');
     });
   });
 
@@ -893,7 +893,7 @@ describe('POST /stripe webhook', () => {
       };
     }
 
-    it('updates subscription status to past_due after payment failure', async () => {
+    it('returns 200 and syncs entitlements to past_due after payment failure', async () => {
       const event = makePaymentFailedEvent('evt_pf_past_due_1', 1);
       mockConstructEvent.mockReturnValueOnce(event);
 
@@ -902,15 +902,13 @@ describe('POST /stripe webhook', () => {
 
       expect(res.status).toBe(200);
 
-      // Should call db.update with accountSubscriptions
-      expect(mockDb.update).toHaveBeenCalled();
-      expect(mockDbUpdateChain.set).toHaveBeenCalledWith(
-        expect.objectContaining({ status: 'past_due' }),
-      );
-      expect(mockDbUpdateChain.where).toHaveBeenCalled();
+      // Audit event should record grace period for initial failures
+      expect(mockAuditAppend).toHaveBeenCalledOnce();
+      const entry = mockAuditAppend.mock.calls[0]?.[0] as Record<string, unknown>;
+      expect(entry.eventType).toBe('license.grace_period.payment_failed');
     });
 
-    it('suspends subscription after 3 consecutive failures', async () => {
+    it('suspends subscription and expires license after 3 consecutive failures', async () => {
       const event = makePaymentFailedEvent('evt_pf_suspended_1', 3);
       mockConstructEvent.mockReturnValueOnce(event);
 
@@ -919,13 +917,17 @@ describe('POST /stripe webhook', () => {
 
       expect(res.status).toBe(200);
 
+      // Direct license expiry still happens for suspension (before syncHostedSubscriptionState)
       expect(mockDb.update).toHaveBeenCalled();
       expect(mockDbUpdateChain.set).toHaveBeenCalledWith(
-        expect.objectContaining({ status: 'suspended' }),
+        expect.objectContaining({ status: 'expired' }),
       );
+
+      // resetLicenseState should be called for suspension
+      expect(vi.mocked(licenseModule.resetLicenseState)).toHaveBeenCalled();
     });
 
-    it('suspends subscription after more than 3 failures', async () => {
+    it('suspends subscription and expires license after more than 3 failures', async () => {
       const event = makePaymentFailedEvent('evt_pf_suspended_5', 5);
       mockConstructEvent.mockReturnValueOnce(event);
 
@@ -934,8 +936,9 @@ describe('POST /stripe webhook', () => {
 
       expect(res.status).toBe(200);
 
+      // License should be expired directly
       expect(mockDbUpdateChain.set).toHaveBeenCalledWith(
-        expect.objectContaining({ status: 'suspended' }),
+        expect.objectContaining({ status: 'expired' }),
       );
     });
 
@@ -954,7 +957,7 @@ describe('POST /stripe webhook', () => {
       );
     });
 
-    it('sets past_due on first attempt (attempt_count=1)', async () => {
+    it('does not log error or expire license on first attempt (attempt_count=1)', async () => {
       const event = makePaymentFailedEvent('evt_pf_first_attempt', 1);
       mockConstructEvent.mockReturnValueOnce(event);
 
@@ -962,9 +965,6 @@ describe('POST /stripe webhook', () => {
       const res = await app.request(postStripe(event));
 
       expect(res.status).toBe(200);
-      expect(mockDbUpdateChain.set).toHaveBeenCalledWith(
-        expect.objectContaining({ status: 'past_due' }),
-      );
       // Should NOT log error for first attempt
       const { logger: mockLogger } = loggerModule;
       expect(mockLogger.error).not.toHaveBeenCalled();

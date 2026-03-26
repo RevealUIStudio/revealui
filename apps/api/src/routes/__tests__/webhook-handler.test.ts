@@ -701,9 +701,9 @@ describe('POST /stripe webhook — handler tests', () => {
       >;
       const entitlementUpdate = mockDbUpdateChain.set.mock.calls[2]?.[0] as Record<string, unknown>;
       expect(accountSubscriptionUpdate.planId).toBe('enterprise');
-      expect(accountSubscriptionUpdate.status).toBe('expired');
+      expect(accountSubscriptionUpdate.status).toBe('past_due');
       expect(entitlementUpdate.tier).toBe('enterprise');
-      expect(entitlementUpdate.status).toBe('expired');
+      expect(entitlementUpdate.status).toBe('past_due');
     });
 
     it('called after customer deletion', async () => {

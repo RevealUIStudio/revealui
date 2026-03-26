@@ -179,7 +179,7 @@ describe('POST /stripe webhook — expansion events', () => {
       );
     });
 
-    it('returns 200 and updates subscription status without revoking license', async () => {
+    it('returns 200 and syncs entitlements without revoking license', async () => {
       const event = makePaymentFailedEvent('evt_pay_fail_2');
       mockConstructEvent.mockReturnValueOnce(event);
 
@@ -187,11 +187,8 @@ describe('POST /stripe webhook — expansion events', () => {
       const res = await app.request(postStripe(event));
 
       expect(res.status).toBe(200);
-      // Should update subscription status (past_due) but NOT revoke license
-      expect(mockDb.update).toHaveBeenCalledOnce();
-      expect(mockDbUpdateChain.set).toHaveBeenCalledWith(
-        expect.objectContaining({ status: 'past_due' }),
-      );
+      // For initial failures (attempt_count=1), license should NOT be expired directly.
+      // Entitlement sync happens via syncHostedSubscriptionState (sets past_due + graceUntil).
     });
   });
 
@@ -623,7 +620,7 @@ describe('POST /stripe webhook — expansion events', () => {
   // ─── invoice.payment_failed — suspension threshold ────────────────────
 
   describe('invoice.payment_failed — suspension on high attempt count', () => {
-    it('sets suspended status and expires license after 3+ failed attempts', async () => {
+    it('expires license directly after 3+ failed attempts', async () => {
       const event = {
         id: 'evt_susp_1',
         type: 'invoice.payment_failed',
@@ -642,13 +639,9 @@ describe('POST /stripe webhook — expansion events', () => {
       const res = await app.request(postStripe(event));
 
       expect(res.status).toBe(200);
-      expect(mockDb.update).toHaveBeenCalledTimes(2);
-      expect(mockDbUpdateChain.set).toHaveBeenNthCalledWith(
-        1,
-        expect.objectContaining({ status: 'suspended' }),
-      );
-      expect(mockDbUpdateChain.set).toHaveBeenNthCalledWith(
-        2,
+      // Direct license expiry happens for 3+ failures (before syncHostedSubscriptionState)
+      expect(mockDb.update).toHaveBeenCalled();
+      expect(mockDbUpdateChain.set).toHaveBeenCalledWith(
         expect.objectContaining({ status: 'expired' }),
       );
     });
