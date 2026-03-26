@@ -29,6 +29,13 @@
       "when": 1774487816593,
       "tag": "0003_dry_wolfsbane",
       "breakpoints": true
+    },
+    {
+      "idx": 4,
+      "version": "7",
+      "when": 1774555926510,
+      "tag": "0004_white_stick",
+      "breakpoints": true
     }
   ]
 }
