@@ -24,7 +24,6 @@
 
 import { RVC_MINT_ADDRESSES, RVC_TOKEN_CONFIG, type SolanaNetwork } from '@revealui/contracts';
 import { logger } from '@revealui/core/observability/logger';
-import { verifyRvcPayment } from '@revealui/services/revealcoin';
 
 // =============================================================================
 // Minimal x402 protocol types (subset of @x402/core types we need)
@@ -282,6 +281,8 @@ async function verifySolanaPayment(
     return { valid: false, error: 'Missing amount in payment payload' };
   }
 
+  // Dynamic import: @revealui/services is a Pro package — only load when RVC payments are active
+  const { verifyRvcPayment } = await import('@revealui/services/revealcoin');
   return verifyRvcPayment(txSignature, BigInt(expectedAmount), config.rvcReceivingAddress);
 }
 
