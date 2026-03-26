@@ -13,6 +13,17 @@ async function proxyResponse(response: Response): Promise<NextResponse> {
     return NextResponse.json({ error: text || 'API request failed' }, { status: response.status });
   }
   const data = await response.json();
+
+  // Normalize API response shape for the admin dashboard.
+  // The Hono API returns { success, data: T[] } but APIClient.find() reads { docs, totalDocs }.
+  // Users route already returns { docs, ... } — only transform the { data } envelope.
+  if (data && Array.isArray(data.data) && !data.docs) {
+    return NextResponse.json(
+      { docs: data.data, totalDocs: data.data.length, totalPages: 1, page: 1 },
+      { status: response.status },
+    );
+  }
+
   return NextResponse.json(data, { status: response.status });
 }
 
