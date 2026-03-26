@@ -64,9 +64,21 @@ process.on('unhandledRejection', (reason: unknown) => {
   logger.error('Unhandled promise rejection', error);
 });
 
-// Graceful shutdown — close database connection pools before exit
+// Graceful shutdown — close database connection pools and stop background tasks
 async function gracefulShutdown(signal: string): Promise<void> {
-  logger.info(`${signal} received — closing database pools`);
+  logger.info(`${signal} received — shutting down`);
+
+  // Stop RVC price oracle polling
+  try {
+    const mod = (await import('@revealui/services/revealcoin')) as Record<string, unknown>;
+    if (typeof mod.stopPriceOracle === 'function') {
+      (mod.stopPriceOracle as () => void)();
+    }
+  } catch {
+    // @revealui/services not available — ignore
+  }
+
+  // Close database pools
   try {
     await closeAllPools();
     logger.info('Database pools closed');
