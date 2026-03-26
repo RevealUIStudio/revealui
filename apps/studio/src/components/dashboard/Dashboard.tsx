@@ -4,8 +4,10 @@ import RvuiUpgradePanel from '../subscription/RvuiUpgradePanel';
 import Button from '../ui/Button';
 import ErrorAlert from '../ui/ErrorAlert';
 import PanelHeader from '../ui/PanelHeader';
+import HealthCard from './HealthCard';
 import RvuiBalanceCard from './RvuiBalanceCard';
 import ServiceCard from './ServiceCard';
+import SubscriptionCard from './SubscriptionCard';
 import TierBadge from './TierBadge';
 import WelcomeBanner from './WelcomeBanner';
 
@@ -32,14 +34,14 @@ export default function Dashboard() {
 
       <ErrorAlert message={error} />
 
-      {system && (
+      {system ? (
         <div className="flex items-center gap-3">
           <TierBadge tier={system.tier} />
           <span className="text-sm text-neutral-400">
             {system.distribution} &mdash; systemd: {system.systemd_status}
           </span>
         </div>
-      )}
+      ) : null}
 
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
         <ServiceCard
@@ -68,6 +70,8 @@ export default function Dashboard() {
           detail={system?.systemd_status ?? 'Unknown'}
         />
         <RvuiBalanceCard />
+        <HealthCard />
+        <SubscriptionCard />
       </div>
 
       <RvuiUpgradePanel currentTier={system?.tier} apiUrl={settings.apiUrl} />

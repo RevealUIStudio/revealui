@@ -1,4 +1,4 @@
-import { createContext, use, useCallback, useEffect, useState } from 'react';
+import { createContext, use, useEffect, useState } from 'react';
 
 export type Theme = 'dark' | 'light' | 'system';
 
@@ -86,18 +86,18 @@ export function useSettings(): SettingsContextValue {
     setSettings(loadSettings());
   }, []);
 
-  const updateSettings = useCallback((patch: Partial<StudioSettings>) => {
+  function updateSettings(patch: Partial<StudioSettings>) {
     setSettings((prev) => {
       const next = { ...prev, ...patch };
       persistSettings(next);
       return next;
     });
-  }, []);
+  }
 
-  const resetSettings = useCallback(() => {
+  function resetSettings() {
     persistSettings(DEFAULT_SETTINGS);
     setSettings({ ...DEFAULT_SETTINGS });
-  }, []);
+  }
 
   return { settings, updateSettings, resetSettings };
 }

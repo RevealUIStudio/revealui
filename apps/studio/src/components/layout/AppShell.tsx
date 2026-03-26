@@ -1,5 +1,4 @@
 import type { ReactNode } from 'react';
-import { SettingsContext, useSettings } from '../../hooks/use-settings';
 import { StatusContext, useStatus } from '../../hooks/use-status';
 import type { Page } from '../../types';
 import Sidebar from './Sidebar';
@@ -15,21 +14,18 @@ interface AppShellProps {
 
 export default function AppShell({ currentPage, onNavigate, children, padless }: AppShellProps) {
   const status = useStatus();
-  const settingsValue = useSettings();
 
   return (
-    <SettingsContext.Provider value={settingsValue}>
-      <StatusContext.Provider value={status}>
-        <div className="flex h-screen w-screen overflow-hidden">
-          <Sidebar currentPage={currentPage} onNavigate={onNavigate} />
-          <div className="flex flex-1 flex-col overflow-hidden">
-            <main className={`flex-1 ${padless ? 'overflow-hidden' : 'overflow-y-auto p-6'}`}>
-              {children}
-            </main>
-            <StatusBar />
-          </div>
+    <StatusContext.Provider value={status}>
+      <div className="flex h-screen w-screen overflow-hidden">
+        <Sidebar currentPage={currentPage} onNavigate={onNavigate} />
+        <div className="flex flex-1 flex-col overflow-hidden">
+          <main className={`flex-1 ${padless ? 'overflow-hidden' : 'overflow-y-auto p-6'}`}>
+            {children}
+          </main>
+          <StatusBar />
         </div>
-      </StatusContext.Provider>
-    </SettingsContext.Provider>
+      </div>
+    </StatusContext.Provider>
   );
 }

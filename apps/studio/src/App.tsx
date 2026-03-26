@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import AgentPanel from './components/agent/AgentPanel';
+import LoginScreen from './components/auth/LoginScreen';
 import Dashboard from './components/dashboard/Dashboard';
 import DeployDashboard from './components/dashboard/DeployDashboard';
 import DeployWizard from './components/deploy/DeployWizard';
@@ -15,7 +16,9 @@ import SyncPanel from './components/sync/SyncPanel';
 import TerminalPanel from './components/terminal/TerminalPanel';
 import TunnelPanel from './components/tunnel/TunnelPanel';
 import VaultPanel from './components/vault/VaultPanel';
+import { AuthContext, useAuth } from './hooks/use-auth';
 import { useConfig } from './hooks/use-config';
+import { SettingsContext, useSettings } from './hooks/use-settings';
 import type { Page } from './types';
 
 interface EditorTarget {
@@ -24,6 +27,35 @@ interface EditorTarget {
 }
 
 export default function App() {
+  const settingsValue = useSettings();
+
+  return (
+    <SettingsContext.Provider value={settingsValue}>
+      <AuthGatedApp />
+    </SettingsContext.Provider>
+  );
+}
+
+function AuthGatedApp() {
+  const { settings } = useSettings();
+  const auth = useAuth(settings.apiUrl);
+
+  return (
+    <AuthContext.Provider value={auth}>
+      {auth.loading && auth.step === 'idle' ? (
+        <div className="flex h-screen items-center justify-center bg-neutral-950">
+          <div className="text-neutral-400">Loading...</div>
+        </div>
+      ) : auth.step !== 'authenticated' ? (
+        <LoginScreen />
+      ) : (
+        <MainApp />
+      )}
+    </AuthContext.Provider>
+  );
+}
+
+function MainApp() {
   const [page, setPage] = useState<Page>('dashboard');
   const [editorTarget, setEditorTarget] = useState<EditorTarget | null>(null);
   const { config, loading, setIntent, updateConfig } = useConfig();
@@ -69,28 +101,28 @@ export default function App() {
           onNavigate={setPage}
           padless={page === 'git' || page === 'editor'}
         >
-          {page === 'dashboard' && <Dashboard />}
-          {page === 'vault' && <VaultPanel />}
-          {page === 'infrastructure' && <InfrastructurePanel />}
-          {page === 'sync' && <SyncPanel />}
-          {page === 'tunnel' && <TunnelPanel />}
-          {page === 'terminal' && <TerminalPanel />}
-          {page === 'git' && <GitPanel onOpenEditor={openInEditor} />}
-          {page === 'editor' && editorTarget && (
+          {page === 'dashboard' ? <Dashboard /> : null}
+          {page === 'vault' ? <VaultPanel /> : null}
+          {page === 'infrastructure' ? <InfrastructurePanel /> : null}
+          {page === 'sync' ? <SyncPanel /> : null}
+          {page === 'tunnel' ? <TunnelPanel /> : null}
+          {page === 'terminal' ? <TerminalPanel /> : null}
+          {page === 'git' ? <GitPanel onOpenEditor={openInEditor} /> : null}
+          {page === 'editor' && editorTarget ? (
             <CodeEditor
               repoPath={editorTarget.repoPath}
               filePath={editorTarget.filePath}
               onClose={() => setPage('git')}
             />
-          )}
-          {page === 'editor' && !editorTarget && (
+          ) : null}
+          {page === 'editor' && !editorTarget ? (
             <div className="flex h-full items-center justify-center text-sm text-neutral-500">
               No file selected — open a file from the Git panel
             </div>
-          )}
-          {page === 'agent' && <AgentPanel />}
-          {page === 'setup' && <SetupPage />}
-          {page === 'settings' && <SettingsPanel />}
+          ) : null}
+          {page === 'agent' ? <AgentPanel /> : null}
+          {page === 'setup' ? <SetupPage /> : null}
+          {page === 'settings' ? <SettingsPanel /> : null}
         </AppShell>
         <SetupWizard
           onClose={() => {
@@ -105,9 +137,9 @@ export default function App() {
   if (config.intent === 'deploy') {
     return (
       <AppShell currentPage={page} onNavigate={setPage}>
-        {page === 'dashboard' && <DeployDashboard />}
-        {page === 'setup' && <SetupPage />}
-        {page === 'settings' && <SettingsPanel />}
+        {page === 'dashboard' ? <DeployDashboard /> : null}
+        {page === 'setup' ? <SetupPage /> : null}
+        {page === 'settings' ? <SettingsPanel /> : null}
       </AppShell>
     );
   }
@@ -115,28 +147,28 @@ export default function App() {
   // Setup complete — develop intent shows full companion
   return (
     <AppShell currentPage={page} onNavigate={setPage} padless={page === 'git' || page === 'editor'}>
-      {page === 'dashboard' && <Dashboard />}
-      {page === 'vault' && <VaultPanel />}
-      {page === 'infrastructure' && <InfrastructurePanel />}
-      {page === 'sync' && <SyncPanel />}
-      {page === 'tunnel' && <TunnelPanel />}
-      {page === 'terminal' && <TerminalPanel />}
-      {page === 'git' && <GitPanel onOpenEditor={openInEditor} />}
-      {page === 'editor' && editorTarget && (
+      {page === 'dashboard' ? <Dashboard /> : null}
+      {page === 'vault' ? <VaultPanel /> : null}
+      {page === 'infrastructure' ? <InfrastructurePanel /> : null}
+      {page === 'sync' ? <SyncPanel /> : null}
+      {page === 'tunnel' ? <TunnelPanel /> : null}
+      {page === 'terminal' ? <TerminalPanel /> : null}
+      {page === 'git' ? <GitPanel onOpenEditor={openInEditor} /> : null}
+      {page === 'editor' && editorTarget ? (
         <CodeEditor
           repoPath={editorTarget.repoPath}
           filePath={editorTarget.filePath}
           onClose={() => setPage('git')}
         />
-      )}
-      {page === 'editor' && !editorTarget && (
+      ) : null}
+      {page === 'editor' && !editorTarget ? (
         <div className="flex h-full items-center justify-center text-sm text-neutral-500">
           No file selected — open a file from the Git panel
         </div>
-      )}
-      {page === 'agent' && <AgentPanel />}
-      {page === 'setup' && <SetupPage />}
-      {page === 'settings' && <SettingsPanel />}
+      ) : null}
+      {page === 'agent' ? <AgentPanel /> : null}
+      {page === 'setup' ? <SetupPage /> : null}
+      {page === 'settings' ? <SettingsPanel /> : null}
     </AppShell>
   );
 }

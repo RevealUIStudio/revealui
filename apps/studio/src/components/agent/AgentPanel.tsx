@@ -5,10 +5,13 @@
  * Right pane: pending git changes with per-file stage / discard and bulk actions
  */
 
-import { useCallback, useEffect, useRef, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 
 const AGENT_POLL_INTERVAL_MS = 30_000;
 
+import { useSettingsContext } from '../../hooks/use-settings';
+import type { AgentCard } from '../../lib/a2a-api';
+import { fetchAgentCards } from '../../lib/a2a-api';
 import {
   agentReadWorkboard,
   gitDiscardFile,
@@ -117,15 +120,15 @@ function ChangeRow({ entry, staged, onStage, onUnstage, onDiscard }: ChangeRowPr
       <StatusBadge status={entry.status} />
       <div className="min-w-0 flex-1">
         <span className="block truncate text-xs font-medium text-neutral-300">{name}</span>
-        {dir && <span className="block truncate text-[10px] text-neutral-500">{dir}</span>}
+        {dir ? <span className="block truncate text-[10px] text-neutral-500">{dir}</span> : null}
       </div>
-      {staged && (
+      {staged ? (
         <span className="shrink-0 rounded bg-green-900/30 px-1.5 py-0.5 text-[10px] font-medium text-green-500">
           staged
         </span>
-      )}
+      ) : null}
       <div className="hidden shrink-0 items-center gap-1 group-hover:flex">
-        {onStage && (
+        {onStage ? (
           <button
             type="button"
             title="Stage"
@@ -134,8 +137,8 @@ function ChangeRow({ entry, staged, onStage, onUnstage, onDiscard }: ChangeRowPr
           >
             <PlusIcon />
           </button>
-        )}
-        {onUnstage && (
+        ) : null}
+        {onUnstage ? (
           <button
             type="button"
             title="Unstage"
@@ -144,8 +147,8 @@ function ChangeRow({ entry, staged, onStage, onUnstage, onDiscard }: ChangeRowPr
           >
             <MinusIcon />
           </button>
-        )}
-        {onDiscard && (
+        ) : null}
+        {onDiscard ? (
           <button
             type="button"
             title="Discard"
@@ -154,7 +157,7 @@ function ChangeRow({ entry, staged, onStage, onUnstage, onDiscard }: ChangeRowPr
           >
             <UndoIcon />
           </button>
-        )}
+        ) : null}
       </div>
     </div>
   );
@@ -186,11 +189,11 @@ function SessionCard({ session }: { session: AgentSession }) {
       ) : (
         <p className="mt-1.5 text-[11px] leading-snug text-neutral-400">{session.task}</p>
       )}
-      {hasFiles && (
+      {hasFiles ? (
         <p className="mt-1 truncate text-[10px] text-neutral-600" title={session.files}>
           {session.files}
         </p>
-      )}
+      ) : null}
       <p className="mt-1 text-[10px] text-neutral-600">updated {relativeTime(session.updated)}</p>
     </div>
   );
@@ -253,7 +256,11 @@ export default function AgentPanel() {
   const [stagingAll, setStagingAll] = useState(false);
   const [discardingAll, setDiscardingAll] = useState(false);
 
-  const loadWorkboard = useCallback(async () => {
+  // Remote agents state
+  const { settings } = useSettingsContext();
+  const [remoteAgents, setRemoteAgents] = useState<AgentCard[]>([]);
+
+  async function loadWorkboard() {
     try {
       const md = await agentReadWorkboard(workboardPath);
       setSessions(parseWorkboard(md));
@@ -262,9 +269,9 @@ export default function AgentPanel() {
       setWorkboardError(e instanceof Error ? e.message : String(e));
       setSessions([]);
     }
-  }, [workboardPath]);
+  }
 
-  const loadChanges = useCallback(async () => {
+  async function loadChanges() {
     setLoading(true);
     setGitError(null);
     try {
@@ -276,22 +283,28 @@ export default function AgentPanel() {
     } finally {
       setLoading(false);
     }
-  }, [repoPath]);
+  }
 
-  const refresh = useCallback(async () => {
-    await Promise.all([loadWorkboard(), loadChanges()]);
-  }, [loadWorkboard, loadChanges]);
+  async function loadRemoteAgents() {
+    const cards = await fetchAgentCards(settings.apiUrl);
+    setRemoteAgents(cards);
+  }
+
+  async function refresh() {
+    await Promise.all([loadWorkboard(), loadChanges(), loadRemoteAgents()]);
+  }
 
   // biome-ignore lint/correctness/useExhaustiveDependencies: refresh on mount + path changes
   useEffect(() => {
     void refresh();
-  }, [workboardPath, repoPath]);
+  }, [workboardPath, repoPath, settings.apiUrl]);
 
   // Auto-refresh every 30 s
+  // biome-ignore lint/correctness/useExhaustiveDependencies: stable interval
   useEffect(() => {
     const id = setInterval(() => void refresh(), AGENT_POLL_INTERVAL_MS);
     return () => clearInterval(id);
-  }, [refresh]);
+  }, [workboardPath, repoPath, settings.apiUrl]);
 
   useEffect(() => {
     if (editingWorkboard) workboardInputRef.current?.focus();
@@ -397,19 +410,36 @@ export default function AgentPanel() {
         </div>
 
         <div className="flex-1 overflow-y-auto px-2 py-2">
-          {workboardError && (
+          {workboardError ? (
             <div className="rounded border border-red-800/50 bg-red-950/30 px-2.5 py-2 text-[10px] text-red-400">
               {workboardError}
             </div>
-          )}
-          {!workboardError && sessions.length === 0 && (
+          ) : null}
+          {!workboardError && sessions.length === 0 ? (
             <p className="px-2 py-8 text-center text-xs text-neutral-600">No active sessions</p>
-          )}
+          ) : null}
           <div className="flex flex-col gap-2">
             {sessions.map((s) => (
               <SessionCard key={s.id} session={s} />
             ))}
           </div>
+
+          {/* Remote agents */}
+          {remoteAgents.length > 0 ? (
+            <div className="mt-4">
+              <div className="mb-1.5 flex items-center gap-1.5 text-[10px] font-semibold uppercase tracking-wider text-violet-400">
+                <span>Cloud Agents</span>
+                <span className="rounded bg-neutral-800 px-1.5 py-0.5 text-neutral-400">
+                  {remoteAgents.length}
+                </span>
+              </div>
+              <div className="flex flex-col gap-2">
+                {remoteAgents.map((agent) => (
+                  <RemoteAgentCard key={agent.name} agent={agent} />
+                ))}
+              </div>
+            </div>
+          ) : null}
         </div>
       </div>
 
@@ -449,17 +479,17 @@ export default function AgentPanel() {
                 {repoPath}
               </button>
             )}
-            {gitState && (
+            {gitState ? (
               <p className="mt-0.5 text-[10px] text-neutral-600">
                 {totalChanges === 0
                   ? `working tree clean · ${gitState.branch}`
                   : `${totalChanges} file${totalChanges !== 1 ? 's' : ''} changed · ${gitState.branch}`}
               </p>
-            )}
+            ) : null}
           </div>
 
           {/* Bulk actions */}
-          {(gitState?.unstaged.length ?? 0) + (gitState?.untracked.length ?? 0) > 0 && (
+          {(gitState?.unstaged.length ?? 0) + (gitState?.untracked.length ?? 0) > 0 ? (
             <button
               type="button"
               onClick={() => void stageAll()}
@@ -468,8 +498,8 @@ export default function AgentPanel() {
             >
               {stagingAll ? 'Staging…' : 'Stage All'}
             </button>
-          )}
-          {(gitState?.unstaged.length ?? 0) > 0 && (
+          ) : null}
+          {(gitState?.unstaged.length ?? 0) > 0 ? (
             <button
               type="button"
               onClick={() => void discardAll()}
@@ -478,7 +508,7 @@ export default function AgentPanel() {
             >
               {discardingAll ? 'Discarding…' : 'Discard All'}
             </button>
-          )}
+          ) : null}
 
           <button
             type="button"
@@ -493,24 +523,24 @@ export default function AgentPanel() {
 
         {/* File list */}
         <div className="flex-1 overflow-y-auto px-3 py-2">
-          {gitError && (
+          {gitError ? (
             <div className="rounded border border-red-800/50 bg-red-950/30 px-2.5 py-2 text-[10px] text-red-400">
               {gitError}
             </div>
-          )}
-          {!(gitError || gitState || loading) && (
+          ) : null}
+          {!(gitError || gitState || loading) ? (
             <p className="py-8 text-center text-xs text-neutral-600">No repository loaded</p>
-          )}
-          {loading && !gitState && (
+          ) : null}
+          {loading && !gitState ? (
             <p className="py-8 text-center text-xs text-neutral-600">Loading…</p>
-          )}
-          {gitState && totalChanges === 0 && (
+          ) : null}
+          {gitState && totalChanges === 0 ? (
             <p className="py-8 text-center text-xs text-neutral-600">
               Nothing to review — working tree clean
             </p>
-          )}
+          ) : null}
 
-          {gitState && (
+          {gitState ? (
             <>
               <ChangeSection title="Staged" count={gitState.staged.length} accent="text-green-500">
                 {gitState.staged.map((entry) => (
@@ -552,8 +582,38 @@ export default function AgentPanel() {
                 ))}
               </ChangeSection>
             </>
-          )}
+          ) : null}
         </div>
+      </div>
+    </div>
+  );
+}
+
+// ── Remote agent card ─────────────────────────────────────────────────────────
+
+function RemoteAgentCard({ agent }: { agent: AgentCard }) {
+  const skillCount = agent.skills?.length ?? 0;
+  return (
+    <div className="rounded-lg border border-neutral-800 bg-neutral-900/60 p-2.5">
+      <div className="flex items-center gap-2">
+        <span className="size-2 shrink-0 rounded-full bg-violet-500" />
+        <span className="min-w-0 flex-1 truncate text-xs font-semibold text-neutral-200">
+          {agent.name}
+        </span>
+        {agent.version ? (
+          <span className="shrink-0 rounded bg-neutral-800 px-1.5 py-0.5 text-[10px] text-neutral-500">
+            v{agent.version}
+          </span>
+        ) : null}
+      </div>
+      <p className="mt-1.5 text-[11px] leading-snug text-neutral-400">{agent.description}</p>
+      <div className="mt-1 flex items-center gap-2 text-[10px] text-neutral-600">
+        {skillCount > 0 ? (
+          <span>
+            {skillCount} skill{skillCount !== 1 ? 's' : ''}
+          </span>
+        ) : null}
+        {agent.capabilities?.streaming ? <span>streaming</span> : null}
       </div>
     </div>
   );
