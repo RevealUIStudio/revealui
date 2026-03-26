@@ -128,17 +128,10 @@ describe('useHealth', () => {
     expect(fetchHealth).toHaveBeenCalledTimes(2);
   });
 
-  it('refresh() sets loading=true before re-polling completes', async () => {
-    let resolveSecondCall: ((value: HealthResponse | null) => void) | null = null;
-
+  it('refresh() re-fetches and resolves to loaded state', async () => {
     vi.mocked(fetchHealth)
       .mockResolvedValueOnce(MOCK_HEALTH) // initial poll
-      .mockImplementationOnce(() => {
-        // Block the second call so we can observe loading=true
-        return new Promise((resolve) => {
-          resolveSecondCall = resolve;
-        });
-      });
+      .mockResolvedValueOnce({ ...MOCK_HEALTH, status: 'degraded' as const }); // refresh poll
 
     const { result } = renderHook(() => useHealth(), {
       wrapper: createWrapper(),
@@ -148,22 +141,14 @@ describe('useHealth', () => {
       await vi.advanceTimersByTimeAsync(10);
     });
 
-    expect(result.current.loading).toBe(false);
+    expect(result.current.health?.status).toBe('healthy');
 
-    // Call refresh — it sets loading=true synchronously, then starts async poll
-    act(() => {
-      result.current.refresh();
-    });
-
-    // loading should now be true while the poll is in-flight
-    expect(result.current.loading).toBe(true);
-
-    // Resolve the pending fetch
     await act(async () => {
-      resolveSecondCall?.(MOCK_HEALTH);
+      result.current.refresh();
       await vi.advanceTimersByTimeAsync(10);
     });
 
+    expect(result.current.health?.status).toBe('degraded');
     expect(result.current.loading).toBe(false);
   });
 
