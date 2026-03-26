@@ -45,6 +45,7 @@ import maintenanceRoute from './routes/maintenance.js';
 import marketplaceRoute from './routes/marketplace.js';
 import pricingRoute from './routes/pricing.js';
 import ragIndexRoute from './routes/rag-index.js';
+import studioAuthRoute from './routes/studio-auth.js';
 import terminalAuthRoute from './routes/terminal-auth.js';
 import ticketsRoute from './routes/tickets/index.js';
 import webhooksRoute from './routes/webhooks.js';
@@ -263,6 +264,7 @@ const DEFAULT_RATE_LIMITS: RateLimitsConfig = {
     'marketplace-publish': { maxRequests: 10, windowMs: ONE_HOUR },
     'marketplace-invoke': { maxRequests: 30, windowMs: ONE_MINUTE },
     pricing: { maxRequests: 10, windowMs: ONE_MINUTE },
+    'studio-auth': { maxRequests: 5, windowMs: ONE_MINUTE },
     'terminal-auth': { maxRequests: 5, windowMs: ONE_MINUTE },
     maintenance: { maxRequests: 1, windowMs: ONE_MINUTE },
     webhook: { maxRequests: 100, windowMs: ONE_MINUTE },
@@ -557,6 +559,9 @@ app.route('/api/cron', cronSweepGraceRoute);
 app.route('/api/maintenance', maintenanceRoute);
 app.route('/api/marketplace', marketplaceRoute);
 app.route('/api/pricing', pricingRoute);
+app.use('/api/studio-auth/*', routeLimit('studio-auth'));
+app.use('/api/v1/studio-auth/*', routeLimit('studio-auth'));
+app.route('/api/studio-auth', studioAuthRoute);
 app.use('/api/terminal-auth/*', routeLimit('terminal-auth'));
 app.use('/api/v1/terminal-auth/*', routeLimit('terminal-auth'));
 app.route('/api/terminal-auth', terminalAuthRoute);
@@ -584,6 +589,7 @@ app.route('/api/v1/cron', cronSweepGraceRoute);
 app.route('/api/v1/maintenance', maintenanceRoute);
 app.route('/api/v1/marketplace', marketplaceRoute);
 app.route('/api/v1/pricing', pricingRoute);
+app.route('/api/v1/studio-auth', studioAuthRoute);
 
 // Error handling
 app.onError(errorHandler);

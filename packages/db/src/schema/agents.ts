@@ -209,8 +209,13 @@ export const userDevices = pgTable('user_devices', {
 
   // Device information
   deviceName: text('device_name'),
-  deviceType: text('device_type'), // 'desktop', 'mobile', 'tablet'
+  deviceType: text('device_type'), // 'desktop', 'mobile', 'tablet', 'cli'
   userAgent: text('user_agent'),
+
+  // Device auth (Studio/CLI → API bearer token)
+  tokenHash: text('token_hash'),
+  tokenExpiresAt: timestamp('token_expires_at', { withTimezone: true }),
+  tokenIssuedAt: timestamp('token_issued_at', { withTimezone: true }),
 
   // Sync status
   lastSeen: timestamp('last_seen', { withTimezone: true }).defaultNow(),

@@ -94,8 +94,10 @@ vi.mock('@revealui/db/schema', () => ({
   licenses: {
     id: 'licenses.id',
     customerId: 'licenses.customerId',
+    subscriptionId: 'licenses.subscriptionId',
     status: 'licenses.status',
     updatedAt: 'licenses.updatedAt',
+    tier: 'licenses.tier',
   },
   processedWebhookEvents: {
     id: 'processedWebhookEvents.id',
@@ -156,9 +158,17 @@ describe('POST /stripe webhook', () => {
   beforeEach(() => {
     vi.clearAllMocks();
 
-    // Defaults for all tests (re-applied after clearAllMocks clears call history
-    // but preserves implementations — however, tests that call mockReturnValue
-    // inside the test body may change these, so we reset them explicitly here)
+    // Reset mockResolvedValueOnce queues on the DB chain mocks.
+    // vi.clearAllMocks() clears call history but NOT unconsumed once-values.
+    // Tests that throw before consuming their DB mocks (e.g. resolveTier rejection)
+    // would otherwise leak values into subsequent tests.
+    mockDbSelectChain.limit.mockReset();
+    mockDbInsertChain.values.mockReset();
+    mockDbUpdateChain.set.mockReset();
+    mockDbUpdateChain.where.mockReset();
+    mockDbDeleteChain.where.mockReset();
+
+    // Defaults for all tests (re-applied after clearAllMocks + targeted resets)
     vi.mocked(licenseModule.generateLicenseKey).mockResolvedValue('rv-license-key-test-123');
     mockSubscriptionsUpdate.mockResolvedValue({});
     mockSubscriptionsRetrieve.mockResolvedValue({ status: 'active', trial_end: null });
@@ -324,7 +334,14 @@ describe('POST /stripe webhook', () => {
       const event = {
         id: 'evt_updated_active_2',
         type: 'customer.subscription.updated',
-        data: { object: { id: 'sub_test', customer: 'cus_test', status: 'active' } },
+        data: {
+          object: {
+            id: 'sub_test',
+            customer: 'cus_test',
+            status: 'active',
+            metadata: { tier: 'pro' },
+          },
+        },
       };
       mockConstructEvent.mockReturnValueOnce(event);
 
@@ -494,7 +511,7 @@ describe('POST /stripe webhook', () => {
       expect(insertValues.userId).toBe('user_abc');
     });
 
-    it('defaults to pro and sends alert email when tier metadata is missing', async () => {
+    it('rejects webhook when tier metadata is missing', async () => {
       // Transaction's inner user-existence check must find a matching user
       mockDbSelectChain.limit.mockResolvedValueOnce([{ id: 'user_missing_tier' }]);
 
@@ -516,10 +533,8 @@ describe('POST /stripe webhook', () => {
       const app = createApp();
       const res = await app.request(postStripe(event));
 
-      expect(res.status).toBe(200);
-      // License created with 'pro' as fallback
-      const insertValues = mockDbInsertChain.values.mock.calls[1]?.[0] as Record<string, unknown>;
-      expect(insertValues.tier).toBe('pro');
+      // Missing tier now rejects so Stripe retries — no license created
+      expect(res.status).toBe(500);
       // CRITICAL logger.error was called
       expect(vi.mocked(loggerModule.logger).error).toHaveBeenCalledWith(
         expect.stringContaining('CRITICAL'),
@@ -540,7 +555,7 @@ describe('POST /stripe webhook', () => {
       );
     });
 
-    it('defaults to pro and sends alert email when tier metadata is unrecognized', async () => {
+    it('rejects webhook when tier metadata is unrecognized', async () => {
       // Transaction's inner user-existence check must find a matching user
       mockDbSelectChain.limit.mockResolvedValueOnce([{ id: 'user_bad_tier' }]);
 
@@ -561,9 +576,8 @@ describe('POST /stripe webhook', () => {
       const app = createApp();
       const res = await app.request(postStripe(event));
 
-      expect(res.status).toBe(200);
-      const insertValues = mockDbInsertChain.values.mock.calls[1]?.[0] as Record<string, unknown>;
-      expect(insertValues.tier).toBe('pro');
+      // Unrecognized tier now rejects so Stripe retries — no license created
+      expect(res.status).toBe(500);
       expect(vi.mocked(loggerModule.logger).error).toHaveBeenCalledWith(
         expect.stringContaining('CRITICAL'),
         undefined,
@@ -582,7 +596,7 @@ describe('POST /stripe webhook', () => {
       );
     });
 
-    it('logs warning when tier fallback alert email fails to send', async () => {
+    it('rejects webhook and logs alert failure when tier metadata is missing and alert email fails', async () => {
       mockSendEmail.mockRejectedValueOnce(new Error('SMTP down'));
       // Transaction's inner user-existence check must find a matching user
       mockDbSelectChain.limit.mockResolvedValueOnce([{ id: 'user_email_fail' }]);
@@ -604,7 +618,8 @@ describe('POST /stripe webhook', () => {
       const app = createApp();
       const res = await app.request(postStripe(event));
 
-      expect(res.status).toBe(200);
+      // Missing tier metadata now rejects the webhook so Stripe retries
+      expect(res.status).toBe(500);
       // Allow the fire-and-forget .catch() to settle
       await vi.waitFor(
         () => {

@@ -144,10 +144,9 @@ function resolveTier(
   if (tier === 'max') return 'max';
   if (tier === 'enterprise') return 'enterprise';
   // ALERT: missing or unknown tier metadata — this indicates a Stripe product misconfiguration.
-  // Defaulting to 'pro' (lowest paid tier) to avoid blocking the customer, but this MUST be
-  // investigated. A missing tier means the checkout or upgrade flow set incorrect metadata.
+  // Reject the event so Stripe retries. Do NOT default to 'pro' — that gives away a paid tier.
   logger.error(
-    'CRITICAL: resolveTier received unknown or missing tier in Stripe metadata — defaulting to pro. Investigate Stripe product/price metadata immediately.',
+    'CRITICAL: resolveTier received unknown or missing tier in Stripe metadata. Webhook will fail and Stripe will retry. Investigate Stripe product/price metadata immediately.',
     undefined,
     {
       tier: tier ?? null,
@@ -163,7 +162,9 @@ function resolveTier(
       });
     },
   );
-  return 'pro';
+  throw new Error(
+    `Stripe metadata missing or invalid tier: ${tier ?? 'null'}. Fix product/price metadata in Stripe dashboard.`,
+  );
 }
 
 function resolveOptionalTier(
@@ -947,11 +948,14 @@ app.openapi(stripeWebhookRoute, async (c) => {
         const customerId = resolveCustomerId(subscription.customer);
         if (!customerId) break;
 
-        // Revoke all licenses for this customer
+        // Revoke license tied to this specific subscription — not all licenses for the customer.
+        // Perpetual licenses (subscriptionId=null) and other subscriptions are left intact.
         await db
           .update(licenses)
           .set({ status: 'revoked', updatedAt: new Date() })
-          .where(eq(licenses.customerId, customerId));
+          .where(
+            and(eq(licenses.customerId, customerId), eq(licenses.subscriptionId, subscription.id)),
+          );
 
         await syncHostedSubscriptionState(db, {
           customerId,
@@ -1012,10 +1016,16 @@ app.openapi(stripeWebhookRoute, async (c) => {
           const isPastDue = subscription.status === 'past_due';
           const entitlementStatus = isPastDue ? 'past_due' : 'expired';
 
+          // Scope to this subscription — don't expire perpetual licenses or other subscriptions
           await db
             .update(licenses)
             .set({ status: 'expired', updatedAt: new Date() })
-            .where(eq(licenses.customerId, customerId));
+            .where(
+              and(
+                eq(licenses.customerId, customerId),
+                eq(licenses.subscriptionId, subscription.id),
+              ),
+            );
 
           await syncHostedSubscriptionState(db, {
             customerId,
@@ -1069,7 +1079,12 @@ app.openapi(stripeWebhookRoute, async (c) => {
           await db
             .update(licenses)
             .set({ expiresAt: cancelAt, updatedAt: new Date() })
-            .where(eq(licenses.customerId, customerId));
+            .where(
+              and(
+                eq(licenses.customerId, customerId),
+                eq(licenses.subscriptionId, subscription.id),
+              ),
+            );
 
           resetLicenseState();
           logger.info('License expiry set for scheduled downgrade', {
@@ -1115,7 +1130,12 @@ app.openapi(stripeWebhookRoute, async (c) => {
           await db
             .update(licenses)
             .set({ status: 'active', tier: newTier, licenseKey, updatedAt: new Date() })
-            .where(eq(licenses.customerId, customerId));
+            .where(
+              and(
+                eq(licenses.customerId, customerId),
+                eq(licenses.subscriptionId, subscription.id),
+              ),
+            );
 
           await syncHostedSubscriptionState(db, {
             customerId,
@@ -1266,10 +1286,17 @@ app.openapi(stripeWebhookRoute, async (c) => {
             { tier: recoveredTier, customerId },
             normalizedKey,
           );
+          // Scope to the recovered subscription — don't modify perpetual licenses
+          const recoveryFilter = recoveredSubscription.id
+            ? and(
+                eq(licenses.customerId, customerId),
+                eq(licenses.subscriptionId, recoveredSubscription.id),
+              )
+            : eq(licenses.customerId, customerId);
           await db
             .update(licenses)
             .set({ status: 'active', tier: recoveredTier, licenseKey, updatedAt: new Date() })
-            .where(eq(licenses.customerId, customerId));
+            .where(recoveryFilter);
         } else if (existingLicense && !shouldReactivateHosted && !shouldHealHostedState) {
           break;
         }
@@ -1335,6 +1362,17 @@ app.openapi(stripeWebhookRoute, async (c) => {
           attemptCount: invoice.attempt_count,
         });
 
+        // Resolve subscription ID from the invoice first — needed for scoped license updates.
+        // Stripe SDK v20 moved subscription from invoice.subscription to
+        // invoice.parent.subscription_details.subscription.
+        const invoiceSubscription = invoice.parent?.subscription_details?.subscription ?? null;
+        const subscriptionId =
+          typeof invoiceSubscription === 'string'
+            ? invoiceSubscription
+            : typeof invoiceSubscription === 'object' && invoiceSubscription !== null
+              ? invoiceSubscription.id
+              : null;
+
         // Determine severity: past_due (1-2 failures) vs suspended (3+ failures).
         // past_due gets a grace period; suspended is immediate block.
         const isSuspended = invoice.attempt_count != null && invoice.attempt_count >= 3;
@@ -1346,22 +1384,15 @@ app.openapi(stripeWebhookRoute, async (c) => {
             attemptCount: invoice.attempt_count,
           });
 
+          // Scope to this subscription if known — don't expire perpetual licenses
+          const licenseFilter = subscriptionId
+            ? and(eq(licenses.customerId, customerId), eq(licenses.subscriptionId, subscriptionId))
+            : eq(licenses.customerId, customerId);
           await db
             .update(licenses)
             .set({ status: 'expired', updatedAt: new Date() })
-            .where(eq(licenses.customerId, customerId));
+            .where(licenseFilter);
         }
-
-        // Resolve subscription ID from the invoice.
-        // Stripe SDK v20 moved subscription from invoice.subscription to
-        // invoice.parent.subscription_details.subscription.
-        const invoiceSubscription = invoice.parent?.subscription_details?.subscription ?? null;
-        const subscriptionId =
-          typeof invoiceSubscription === 'string'
-            ? invoiceSubscription
-            : typeof invoiceSubscription === 'object' && invoiceSubscription !== null
-              ? invoiceSubscription.id
-              : null;
 
         // Grace period: customer retains access until the end of their billing period.
         // Only granted for initial failures (past_due). Suspended = immediate block.

@@ -1,16 +1,31 @@
 import { render, screen } from '@testing-library/react';
 import { describe, expect, it, vi } from 'vitest';
 import Dashboard from '../../components/dashboard/Dashboard';
+import { SettingsContext } from '../../hooks/use-settings';
 import type { StatusContextValue } from '../../hooks/use-status';
 import { StatusContext } from '../../hooks/use-status';
 
 const mockRefresh = vi.fn().mockResolvedValue(undefined);
 
+const defaultSettings = {
+  settings: {
+    theme: 'system' as const,
+    apiUrl: 'http://localhost:3004',
+    pollingIntervalMs: 30_000,
+    solanaWalletAddress: '',
+    solanaNetwork: 'devnet' as const,
+  },
+  updateSettings: vi.fn(),
+  resetSettings: vi.fn(),
+};
+
 function renderWithStatusContext(value: StatusContextValue) {
   return render(
-    <StatusContext.Provider value={value}>
-      <Dashboard />
-    </StatusContext.Provider>,
+    <SettingsContext.Provider value={defaultSettings}>
+      <StatusContext.Provider value={value}>
+        <Dashboard />
+      </StatusContext.Provider>
+    </SettingsContext.Provider>,
   );
 }
 

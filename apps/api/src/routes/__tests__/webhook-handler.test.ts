@@ -517,13 +517,12 @@ describe('POST /stripe webhook — handler tests', () => {
       expect(set.tier).toBe('enterprise');
     });
 
-    it('defaults to pro and logs error for unknown tier', async () => {
+    it('rejects webhook with 500 for unknown tier', async () => {
       const event = makeUpdatedEvent('evt_tier_bad', { tier: 'gold' });
       mockConstructEvent.mockReturnValueOnce(event);
       const app = createApp();
-      await app.request(postStripe(event));
-      const set = mockDbUpdateChain.set.mock.calls[0]?.[0] as Record<string, unknown>;
-      expect(set.tier).toBe('pro');
+      const res = await app.request(postStripe(event));
+      expect(res.status).toBe(500);
       expect(vi.mocked(loggerModule.logger).error).toHaveBeenCalledWith(
         expect.stringContaining('unknown or missing tier'),
         undefined,
@@ -531,13 +530,12 @@ describe('POST /stripe webhook — handler tests', () => {
       );
     });
 
-    it('defaults to pro and logs error when tier metadata is absent', async () => {
+    it('rejects webhook with 500 when tier metadata is absent', async () => {
       const event = makeUpdatedEvent('evt_tier_none', {});
       mockConstructEvent.mockReturnValueOnce(event);
       const app = createApp();
-      await app.request(postStripe(event));
-      const set = mockDbUpdateChain.set.mock.calls[0]?.[0] as Record<string, unknown>;
-      expect(set.tier).toBe('pro');
+      const res = await app.request(postStripe(event));
+      expect(res.status).toBe(500);
     });
   });
 

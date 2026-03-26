@@ -2,7 +2,7 @@
  * Webhook Safety Tests — Money-critical paths
  *
  * Focused on the safety-critical paths that handle money:
- * 1. resolveTier() — known tiers return correctly, unknown/missing defaults to 'pro' with CRITICAL log
+ * 1. resolveTier() — known tiers return correctly, unknown/missing rejects webhook (500) with CRITICAL log
  * 2. Perpetual license failure — when userRow is null inside the transaction, handler throws (not returns silently)
  * 3. Idempotency — same event ID processed twice, second returns { duplicate: true }
  * 4. Missing webhook secret — returns 500
@@ -296,7 +296,7 @@ describe('Webhook Safety — money-critical paths', () => {
       );
     });
 
-    it('defaults to "pro" and logs CRITICAL when tier is unknown', async () => {
+    it('rejects webhook with 500 and logs CRITICAL when tier is unknown', async () => {
       const event = {
         id: 'evt_safety_tier_unknown',
         type: 'customer.subscription.updated',
@@ -314,9 +314,8 @@ describe('Webhook Safety — money-critical paths', () => {
       const app = createApp();
       const res = await app.request(postStripe(event));
 
-      expect(res.status).toBe(200);
-      const set = mockDbUpdateChain.set.mock.calls[0]?.[0] as Record<string, unknown>;
-      expect(set.tier).toBe('pro');
+      // Webhook should fail so Stripe retries — do NOT default to 'pro'
+      expect(res.status).toBe(500);
       expect(vi.mocked(loggerModule.logger).error).toHaveBeenCalledWith(
         expect.stringContaining('CRITICAL'),
         undefined,
@@ -324,7 +323,7 @@ describe('Webhook Safety — money-critical paths', () => {
       );
     });
 
-    it('defaults to "pro" and logs CRITICAL when tier metadata is missing entirely', async () => {
+    it('rejects webhook with 500 and logs CRITICAL when tier metadata is missing entirely', async () => {
       const event = {
         id: 'evt_safety_tier_missing',
         type: 'customer.subscription.updated',
@@ -342,9 +341,8 @@ describe('Webhook Safety — money-critical paths', () => {
       const app = createApp();
       const res = await app.request(postStripe(event));
 
-      expect(res.status).toBe(200);
-      const set = mockDbUpdateChain.set.mock.calls[0]?.[0] as Record<string, unknown>;
-      expect(set.tier).toBe('pro');
+      // Webhook should fail so Stripe retries — do NOT default to 'pro'
+      expect(res.status).toBe(500);
       expect(vi.mocked(loggerModule.logger).error).toHaveBeenCalledWith(
         expect.stringContaining('CRITICAL'),
         undefined,
