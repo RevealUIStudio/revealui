@@ -1,9 +1,28 @@
 import { render, screen } from '@testing-library/react';
 import { describe, expect, it, vi } from 'vitest';
 import Dashboard from '../../components/dashboard/Dashboard';
+import type { AuthContextValue } from '../../hooks/use-auth';
+import { AuthContext } from '../../hooks/use-auth';
 import { SettingsContext } from '../../hooks/use-settings';
 import type { StatusContextValue } from '../../hooks/use-status';
 import { StatusContext } from '../../hooks/use-status';
+
+// Mock billing API to prevent fetch calls from useSubscription
+vi.mock('../../lib/billing-api', () => ({
+  fetchSubscription: vi.fn().mockResolvedValue({
+    tier: 'pro',
+    status: 'active',
+    expiresAt: null,
+    licenseKey: null,
+  }),
+  fetchUsage: vi.fn().mockResolvedValue({
+    used: 10,
+    quota: 100,
+    overage: 0,
+    cycleStart: '2026-03-01',
+    resetAt: '2026-04-01',
+  }),
+}));
 
 const mockRefresh = vi.fn().mockResolvedValue(undefined);
 
@@ -19,13 +38,28 @@ const defaultSettings = {
   resetSettings: vi.fn(),
 };
 
+const defaultAuth: AuthContextValue = {
+  step: 'authenticated',
+  user: { id: '1', email: 'test@example.com', name: 'Test', role: 'admin' },
+  tokenExpiresAt: null,
+  loading: false,
+  error: null,
+  sendOtp: vi.fn().mockResolvedValue(true),
+  submitOtp: vi.fn().mockResolvedValue(true),
+  signOut: vi.fn().mockResolvedValue(undefined),
+  recheck: vi.fn().mockResolvedValue(undefined),
+  getToken: vi.fn().mockReturnValue('mock-token'),
+};
+
 function renderWithStatusContext(value: StatusContextValue) {
   return render(
-    <SettingsContext.Provider value={defaultSettings}>
-      <StatusContext.Provider value={value}>
-        <Dashboard />
-      </StatusContext.Provider>
-    </SettingsContext.Provider>,
+    <AuthContext.Provider value={defaultAuth}>
+      <SettingsContext.Provider value={defaultSettings}>
+        <StatusContext.Provider value={value}>
+          <Dashboard />
+        </StatusContext.Provider>
+      </SettingsContext.Provider>
+    </AuthContext.Provider>,
   );
 }
 
