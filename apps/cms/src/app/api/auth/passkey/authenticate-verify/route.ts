@@ -169,7 +169,9 @@ async function authenticateVerifyHandler(request: NextRequest): Promise<NextResp
 
     // Set role hint cookie
     const userRole = user.role ?? 'user';
-    const isAdminRole = ['admin', 'super-admin'].includes(userRole);
+    const isAdminRole = ['admin', 'super-admin', 'user-admin', 'user-super-admin'].includes(
+      userRole,
+    );
     response.cookies.set('revealui-role', isAdminRole ? 'admin' : 'user', {
       httpOnly: false,
       secure: process.env.NODE_ENV === 'production',

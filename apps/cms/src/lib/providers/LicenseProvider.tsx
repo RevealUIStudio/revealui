@@ -36,18 +36,27 @@ export function LicenseProvider({ children }: { children: React.ReactNode }) {
     try {
       setIsLoading(true);
 
-      // Fetch subscription status
-      const subRes = await fetch(`${apiUrl}/api/billing/subscription`, { credentials: 'include' });
-      if (subRes.ok) {
-        const data = (await subRes.json()) as { tier: LicenseTierId };
-        setTier(data.tier);
-
-        // Fetch feature flags using the freshly-resolved tier (not stale state)
-        const featRes = await fetch(`${apiUrl}/api/license/features`);
-        if (featRes.ok) {
-          const featData = (await featRes.json()) as Record<string, FeatureFlags>;
-          setFeatures(featData[data.tier] ?? null);
+      // Resolve the current tier from subscription (defaults to 'free' on failure)
+      let resolvedTier: LicenseTierId = 'free';
+      try {
+        const subRes = await fetch(`${apiUrl}/api/billing/subscription`, {
+          credentials: 'include',
+        });
+        if (subRes.ok) {
+          const data = (await subRes.json()) as { tier: LicenseTierId };
+          resolvedTier = data.tier;
         }
+      } catch {
+        // Subscription check failed (CORS, network, 401) — stay on free tier
+      }
+
+      setTier(resolvedTier);
+
+      // Always fetch feature flags so the gate can evaluate correctly
+      const featRes = await fetch(`${apiUrl}/api/license/features`);
+      if (featRes.ok) {
+        const featData = (await featRes.json()) as Record<string, FeatureFlags>;
+        setFeatures(featData[resolvedTier] ?? null);
       }
     } catch {
       // Silently fall back to free tier

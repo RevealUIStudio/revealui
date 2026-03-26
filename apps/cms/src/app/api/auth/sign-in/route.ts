@@ -109,7 +109,9 @@ async function signInHandler(request: NextRequest): Promise<NextResponse> {
     // Set role hint cookie for proxy.ts admin gate (defense-in-depth, not the security boundary).
     // The real enforcement is at the API level via collection access.read checks.
     const userRole = result.user.role ?? 'user';
-    const isAdminRole = ['admin', 'super-admin'].includes(userRole);
+    const isAdminRole = ['admin', 'super-admin', 'user-admin', 'user-super-admin'].includes(
+      userRole,
+    );
     response.cookies.set('revealui-role', isAdminRole ? 'admin' : 'user', {
       httpOnly: false, // Must be readable by Edge Runtime proxy
       secure: process.env.NODE_ENV === 'production',
