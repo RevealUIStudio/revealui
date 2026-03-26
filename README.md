@@ -127,11 +127,9 @@ RevealUI is a modular monorepo. The OSS core is on npm:
 
 ### Pro Packages
 
-Pro packages (`@revealui/ai`, `@revealui/mcp`, `@revealui/editors`, `@revealui/services`, `@revealui/harnesses`) are **not included in this repository**. They are distributed separately via GitHub Packages and require a Pro or higher license key.
+Pro packages (`@revealui/ai`, `@revealui/mcp`, `@revealui/editors`, `@revealui/services`, `@revealui/harnesses`) are **source-available on npm** under a [commercial license](LICENSE.commercial). Install them with `pnpm add @revealui/ai` — no special registry config needed.
 
-To install Pro packages, [purchase a license](https://revealui.com/pro) and follow the [Pro setup guide](https://docs.revealui.com/pro/setup).
-
-The sibling internal development repo is not required for OSS use of this repository. Public-repo workflows are intended to work without local private package source trees.
+Pro features are gated at runtime via license key validation. To unlock them, [purchase a license](https://revealui.com/pro) and follow the [Pro setup guide](https://docs.revealui.com/pro/setup).
 
 ## Tech stack
 
