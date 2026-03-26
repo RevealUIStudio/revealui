@@ -14,6 +14,7 @@ import Link from 'next/link';
 import { useSearchParams } from 'next/navigation';
 import { type FormEvent, Suspense, useState } from 'react';
 import { BrandedAuthLayout } from '@/lib/components/BrandedAuthLayout';
+import { PasswordInput } from '@/lib/components/PasswordInput';
 
 function RequestResetForm() {
   const [email, setEmail] = useState('');
@@ -117,6 +118,7 @@ function RequestResetForm() {
 
 function ResetWithTokenForm({ tokenId, token }: { tokenId: string; token: string }) {
   const [password, setPassword] = useState('');
+  const [showPassword, setShowPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState(false);
@@ -184,16 +186,19 @@ function ResetWithTokenForm({ tokenId, token }: { tokenId: string; token: string
               <FormLabel htmlFor="password" required>
                 New Password
               </FormLabel>
-              <Input
-                id="password"
-                type="password"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                disabled={isLoading}
-                autoComplete="new-password"
-                minLength={8}
-                required
-              />
+              <PasswordInput visible={showPassword} onToggle={() => setShowPassword((v) => !v)}>
+                <Input
+                  id="password"
+                  type={showPassword ? 'text' : 'password'}
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  disabled={isLoading}
+                  autoComplete="new-password"
+                  className="pr-10"
+                  minLength={8}
+                  required
+                />
+              </PasswordInput>
               <p className="text-xs text-zinc-500">Minimum 8 characters</p>
             </div>
 

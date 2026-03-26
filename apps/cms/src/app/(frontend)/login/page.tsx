@@ -15,6 +15,7 @@ import Link from 'next/link';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { type FormEvent, Suspense, useState } from 'react';
 import { BrandedAuthLayout } from '@/lib/components/BrandedAuthLayout';
+import { PasswordInput } from '@/lib/components/PasswordInput';
 
 const OAUTH_ERROR_MESSAGES: Record<string, string> = {
   access_denied: 'You cancelled the sign-in. Please try again.',
@@ -65,6 +66,7 @@ function LoginContent() {
   } = usePasskeySignIn();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [showPassword, setShowPassword] = useState(false);
   const oauthError = searchParams.get('error');
   const [error, setError] = useState<string | null>(
     oauthError ? (OAUTH_ERROR_MESSAGES[oauthError] ?? 'Sign-in failed. Please try again.') : null,
@@ -137,15 +139,18 @@ function LoginContent() {
               <FormLabel htmlFor="password" required>
                 Password
               </FormLabel>
-              <Input
-                id="password"
-                type="password"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                disabled={anyLoading}
-                autoComplete="current-password"
-                required
-              />
+              <PasswordInput visible={showPassword} onToggle={() => setShowPassword((v) => !v)}>
+                <Input
+                  id="password"
+                  type={showPassword ? 'text' : 'password'}
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  disabled={anyLoading}
+                  autoComplete="current-password"
+                  className="pr-10"
+                  required
+                />
+              </PasswordInput>
             </div>
 
             <Button type="submit" disabled={anyLoading} className="w-full">

@@ -15,6 +15,7 @@ import Link from 'next/link';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { type FormEvent, Suspense, useState } from 'react';
 import { BrandedAuthLayout } from '@/lib/components/BrandedAuthLayout';
+import { PasswordInput } from '@/lib/components/PasswordInput';
 
 export default function SignupPage() {
   return (
@@ -57,6 +58,7 @@ function SignupContent() {
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [showPassword, setShowPassword] = useState(false);
   const [tosAccepted, setTosAccepted] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [backupCodes, setBackupCodes] = useState<string[] | null>(null);
@@ -218,16 +220,19 @@ function SignupContent() {
               <FormLabel htmlFor="password" required>
                 Password
               </FormLabel>
-              <Input
-                id="password"
-                type="password"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                disabled={anyLoading}
-                autoComplete="new-password"
-                minLength={8}
-                required
-              />
+              <PasswordInput visible={showPassword} onToggle={() => setShowPassword((v) => !v)}>
+                <Input
+                  id="password"
+                  type={showPassword ? 'text' : 'password'}
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  disabled={anyLoading}
+                  autoComplete="new-password"
+                  className="pr-10"
+                  minLength={8}
+                  required
+                />
+              </PasswordInput>
               <p className="text-xs text-zinc-500">
                 Min 8 characters, uppercase, lowercase, and a number
               </p>
