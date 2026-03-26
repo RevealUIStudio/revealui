@@ -22,6 +22,13 @@
       "when": 1773918889589,
       "tag": "0002_strong_adam_destine",
       "breakpoints": true
+    },
+    {
+      "idx": 3,
+      "version": "7",
+      "when": 1774487816593,
+      "tag": "0003_dry_wolfsbane",
+      "breakpoints": true
     }
   ]
 }
