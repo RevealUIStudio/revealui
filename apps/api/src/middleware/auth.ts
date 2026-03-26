@@ -13,7 +13,7 @@ import { createHash } from 'node:crypto';
 import { getSession } from '@revealui/auth/server';
 import { getClient } from '@revealui/db';
 import { userDevices, users } from '@revealui/db/schema';
-import { and, eq, gt } from 'drizzle-orm';
+import { and, eq } from 'drizzle-orm';
 import type { MiddlewareHandler } from 'hono';
 import { HTTPException } from 'hono/http-exception';
 
@@ -64,7 +64,9 @@ async function resolveDeviceToken(
   db.update(userDevices)
     .set({ lastSeen: now })
     .where(eq(userDevices.deviceId, device.deviceId))
-    .catch(() => {});
+    .catch(() => {
+      /* best-effort lastSeen update */
+    });
 
   return user;
 }
