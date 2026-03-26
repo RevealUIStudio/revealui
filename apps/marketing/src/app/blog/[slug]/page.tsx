@@ -2,6 +2,7 @@ import { RichTextContent, type SerializedEditorState } from '@revealui/core/rich
 import type { Metadata } from 'next';
 import Link from 'next/link';
 import { notFound } from 'next/navigation';
+import Markdown from 'react-markdown';
 import { Footer } from '@/components/Footer';
 import { getPostBySlug } from '@/lib/blog';
 
@@ -84,7 +85,7 @@ export default async function BlogPostPage({ params }: BlogPostPageProps) {
             {isLexicalState(post.content) ? (
               <RichTextContent data={post.content} />
             ) : typeof post.content === 'string' ? (
-              <p>{post.content}</p>
+              <Markdown>{post.content}</Markdown>
             ) : (
               <p className="text-gray-500 italic">Content rendering coming soon.</p>
             )}

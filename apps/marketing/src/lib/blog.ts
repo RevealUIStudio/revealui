@@ -4,11 +4,10 @@ export interface BlogPost {
   id: string;
   title: string;
   slug: string;
+  excerpt: string | null;
   content: unknown;
   publishedAt: string | null;
   createdAt: string;
-  // biome-ignore lint/style/useNamingConvention: CMS API returns _json field with raw Lexical content
-  _json?: Record<string, unknown>;
 }
 
 interface PaginatedResult {
@@ -20,15 +19,24 @@ interface PaginatedResult {
 
 export async function getPosts(page = 1, limit = 12): Promise<PaginatedResult> {
   try {
-    const res = await fetch(`${API_URL}/api/posts?page=${page}&limit=${limit}`, {
-      next: { revalidate: 300 },
-    });
+    const offset = (page - 1) * limit;
+    const res = await fetch(
+      `${API_URL}/api/content/posts?limit=${limit}&offset=${offset}&status=published`,
+      { next: { revalidate: 300 } },
+    );
 
     if (!res.ok) {
       return { docs: [], totalDocs: 0, totalPages: 0, page: 1 };
     }
 
-    return res.json();
+    const json: { success: boolean; data: BlogPost[] } = await res.json();
+    const docs = json.data ?? [];
+    return {
+      docs,
+      totalDocs: docs.length,
+      totalPages: 1,
+      page,
+    };
   } catch {
     return { docs: [], totalDocs: 0, totalPages: 0, page: 1 };
   }
@@ -36,13 +44,14 @@ export async function getPosts(page = 1, limit = 12): Promise<PaginatedResult> {
 
 export async function getPostBySlug(slug: string): Promise<BlogPost | null> {
   try {
-    const res = await fetch(`${API_URL}/api/posts/slug/${encodeURIComponent(slug)}`, {
+    const res = await fetch(`${API_URL}/api/content/posts/slug/${encodeURIComponent(slug)}`, {
       next: { revalidate: 300 },
     });
 
     if (!res.ok) return null;
 
-    return res.json();
+    const json: { success: boolean; data: BlogPost } = await res.json();
+    return json.data ?? null;
   } catch {
     return null;
   }
