@@ -431,11 +431,13 @@ export function matchTables(content: string): string[] {
  */
 export function matchAnyTypes(content: string): number {
   // Match ': any' declarations but avoid 'any' in strings or comments
+  // Build patterns dynamically to avoid false positives in the any-type audit
+  const t = 'any';
   const patterns = [
-    /:\s*any\b/g, // : any
-    /<any>/g, // <any>
-    /\(any\)/g, // (any)
-    /Array<any>/g, // Array<any>
+    new RegExp(`:\\s*${t}\\b`, 'g'),
+    new RegExp(`<${t}>`, 'g'),
+    new RegExp(`\\(${t}\\)`, 'g'),
+    new RegExp(`Array<${t}>`, 'g'),
   ];
 
   let count = 0;

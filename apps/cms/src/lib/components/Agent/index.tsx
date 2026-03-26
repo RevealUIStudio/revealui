@@ -314,11 +314,44 @@ function ChatMarkdown({ content }: { content: string }) {
   );
 }
 
+function CopyButton({ text }: { text: string }) {
+  const [copied, setCopied] = useState(false);
+
+  const handleCopy = useCallback(async () => {
+    await navigator.clipboard.writeText(text);
+    setCopied(true);
+    setTimeout(() => setCopied(false), 2000);
+  }, [text]);
+
+  return (
+    <button
+      type="button"
+      onClick={handleCopy}
+      className="mt-1 self-start rounded px-1.5 py-0.5 text-xs text-zinc-400 opacity-0 transition-opacity hover:bg-zinc-200 hover:text-zinc-600 group-hover:opacity-100 dark:hover:bg-zinc-700 dark:hover:text-zinc-300"
+      aria-label="Copy message"
+    >
+      {copied ? 'Copied' : 'Copy'}
+    </button>
+  );
+}
+
+function MessageSkeleton() {
+  return (
+    <div className="flex animate-pulse gap-3">
+      <div className="h-8 w-8 shrink-0 rounded-full bg-zinc-200 dark:bg-zinc-700" />
+      <div className="flex-1 space-y-2 py-1">
+        <div className="h-3 w-3/4 rounded bg-zinc-200 dark:bg-zinc-700" />
+        <div className="h-3 w-1/2 rounded bg-zinc-200 dark:bg-zinc-700" />
+      </div>
+    </div>
+  );
+}
+
 function MessageBubble({ message }: { message: ChatMessage }) {
   const isUser = message.role === 'user';
 
   return (
-    <div className={`flex gap-3 ${isUser ? 'flex-row-reverse' : 'flex-row'}`}>
+    <div className={`group flex gap-3 ${isUser ? 'flex-row-reverse' : 'flex-row'}`}>
       <div
         className={`flex h-8 w-8 shrink-0 items-center justify-center rounded-full text-sm font-medium ${
           isUser
@@ -328,23 +361,26 @@ function MessageBubble({ message }: { message: ChatMessage }) {
       >
         {isUser ? 'U' : 'AI'}
       </div>
-      <div
-        className={`max-w-[85%] rounded-2xl px-4 py-3 ${
-          isUser
-            ? 'bg-blue-600 text-white'
-            : 'bg-zinc-100 text-zinc-900 dark:bg-zinc-800 dark:text-zinc-100'
-        }`}
-      >
-        {isUser ? (
-          <p className="whitespace-pre-wrap">{message.content}</p>
-        ) : (
-          <div className="prose prose-sm max-w-none dark:prose-invert">
-            {message.toolCalls?.map((tc) => (
-              <ToolCallBadge key={`${tc.name}-${tc.arguments.slice(0, 20)}`} entry={tc} />
-            ))}
-            <ChatMarkdown content={message.content} />
-          </div>
-        )}
+      <div className={`flex max-w-[85%] flex-col ${isUser ? 'items-end' : 'items-start'}`}>
+        <div
+          className={`rounded-2xl px-4 py-3 ${
+            isUser
+              ? 'bg-blue-600 text-white'
+              : 'bg-zinc-100 text-zinc-900 dark:bg-zinc-800 dark:text-zinc-100'
+          }`}
+        >
+          {isUser ? (
+            <p className="whitespace-pre-wrap">{message.content}</p>
+          ) : (
+            <div className="prose prose-sm max-w-none dark:prose-invert">
+              {message.toolCalls?.map((tc) => (
+                <ToolCallBadge key={`${tc.name}-${tc.arguments.slice(0, 20)}`} entry={tc} />
+              ))}
+              <ChatMarkdown content={message.content} />
+            </div>
+          )}
+        </div>
+        {!isUser && <CopyButton text={message.content} />}
       </div>
     </div>
   );
@@ -426,11 +462,13 @@ export default function AgentChat({ conversationId, onConversationCreated }: Age
   const [pendingConfirmation, setPendingConfirmation] = useState<PendingConfirmation | null>(null);
   const [isConfirming, setIsConfirming] = useState(false);
   const [selectedModel, setSelectedModel] = useState<string>('auto');
+  const [isLoadingHistory, setIsLoadingHistory] = useState(false);
   const [activeConversationId, setActiveConversationId] = useState<string | null>(
     conversationId ?? null,
   );
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
+  const lastFailedInput = useRef<string | null>(null);
 
   const stream = useAgentStream();
 
@@ -448,6 +486,7 @@ export default function AgentChat({ conversationId, onConversationCreated }: Age
       return;
     }
 
+    setIsLoadingHistory(true);
     (async () => {
       try {
         const res = await fetch(`/api/conversations/${conversationId}/messages`);
@@ -464,6 +503,8 @@ export default function AgentChat({ conversationId, onConversationCreated }: Age
         );
       } catch {
         setMessages([]);
+      } finally {
+        setIsLoadingHistory(false);
       }
     })();
   }, [conversationId]);
@@ -633,7 +674,10 @@ export default function AgentChat({ conversationId, onConversationCreated }: Age
       if (!content || stream.isStreaming || isConfirming) return;
 
       setMessages((prev) => [...prev, { id: nextId(), role: 'user', content }]);
+      lastFailedInput.current = content;
       setInput('');
+      // Reset textarea height
+      if (textareaRef.current) textareaRef.current.style.height = 'auto';
       setPendingConfirmation(null);
       activeToolCalls.current = [];
 
@@ -683,9 +727,28 @@ export default function AgentChat({ conversationId, onConversationCreated }: Age
         e.preventDefault();
         handleSubmit();
       }
+      if (e.key === 'Escape' && stream.isStreaming) {
+        e.preventDefault();
+        stream.abort();
+      }
     },
-    [handleSubmit],
+    [handleSubmit, stream],
   );
+
+  // Auto-resize textarea
+  const handleTextareaChange = useCallback((e: React.ChangeEvent<HTMLTextAreaElement>) => {
+    setInput(e.target.value);
+    const el = e.target;
+    el.style.height = 'auto';
+    el.style.height = `${Math.min(el.scrollHeight, 160)}px`;
+  }, []);
+
+  const handleRetry = useCallback(() => {
+    if (!lastFailedInput.current) return;
+    setInput(lastFailedInput.current);
+    lastFailedInput.current = null;
+    textareaRef.current?.focus();
+  }, []);
 
   const handleSuggestedPrompt = useCallback((prompt: string) => {
     setInput(prompt);
@@ -697,7 +760,15 @@ export default function AgentChat({ conversationId, onConversationCreated }: Age
     <div className="flex h-full flex-col">
       {/* Messages area */}
       <div className="flex-1 space-y-4 overflow-y-auto px-4 py-6">
-        {messages.length === 0 && !stream.isStreaming && (
+        {isLoadingHistory && (
+          <div className="space-y-4">
+            <MessageSkeleton />
+            <MessageSkeleton />
+            <MessageSkeleton />
+          </div>
+        )}
+
+        {messages.length === 0 && !stream.isStreaming && !isLoadingHistory && (
           <div className="flex h-full flex-col items-center justify-center gap-6">
             <div className="text-center">
               <div className="mb-2 text-4xl">&#x1F916;</div>
@@ -766,9 +837,18 @@ export default function AgentChat({ conversationId, onConversationCreated }: Age
           <div className="mx-auto max-w-md rounded-lg border border-red-200 bg-red-50 p-4 text-sm text-red-700 dark:border-red-800 dark:bg-red-900/20 dark:text-red-400">
             <p className="font-medium">Something went wrong</p>
             <p className="mt-1 text-xs">{stream.error}</p>
-            <p className="mt-2 text-xs text-red-500">
-              Contact support@revealui.com if this persists.
-            </p>
+            <div className="mt-3 flex items-center gap-3">
+              {lastFailedInput.current && (
+                <button
+                  type="button"
+                  onClick={handleRetry}
+                  className="rounded-md bg-red-100 px-3 py-1.5 text-xs font-medium text-red-700 transition-colors hover:bg-red-200 dark:bg-red-900/40 dark:text-red-300 dark:hover:bg-red-900/60"
+                >
+                  Retry
+                </button>
+              )}
+              <p className="text-xs text-red-500">Contact support@revealui.com if this persists.</p>
+            </div>
           </div>
         )}
 
@@ -776,7 +856,7 @@ export default function AgentChat({ conversationId, onConversationCreated }: Age
       </div>
 
       {/* Input area */}
-      <div className="border-t border-zinc-200 bg-white px-4 py-3 dark:border-zinc-700 dark:bg-zinc-900">
+      <div className="border-t border-zinc-200 bg-white px-3 py-3 sm:px-4 dark:border-zinc-700 dark:bg-zinc-900">
         <div className="mx-auto mb-2 flex max-w-3xl items-center gap-2">
           <label htmlFor="model-select" className="text-xs text-zinc-400">
             Model
@@ -795,17 +875,17 @@ export default function AgentChat({ conversationId, onConversationCreated }: Age
             ))}
           </select>
           {selectedModel !== 'auto' && (
-            <span className="text-xs text-zinc-400">
+            <span className="hidden text-xs text-zinc-400 sm:inline">
               {MODEL_OPTIONS.find((m) => m.id === selectedModel)?.model || 'default'}
             </span>
           )}
         </div>
-        <form onSubmit={handleSubmit} className="mx-auto flex max-w-3xl items-end gap-3">
+        <form onSubmit={handleSubmit} className="mx-auto flex max-w-3xl items-end gap-2 sm:gap-3">
           <textarea
             ref={textareaRef}
-            className="flex-1 resize-none rounded-xl border border-zinc-300 bg-zinc-50 px-4 py-3 text-sm outline-none transition-colors placeholder:text-zinc-400 focus:border-blue-400 focus:ring-2 focus:ring-blue-400/20 dark:border-zinc-600 dark:bg-zinc-800 dark:text-zinc-100 dark:placeholder:text-zinc-500"
+            className="flex-1 resize-none rounded-xl border border-zinc-300 bg-zinc-50 px-3 py-2.5 text-sm outline-none transition-colors placeholder:text-zinc-400 focus:border-blue-400 focus:ring-2 focus:ring-blue-400/20 sm:px-4 sm:py-3 dark:border-zinc-600 dark:bg-zinc-800 dark:text-zinc-100 dark:placeholder:text-zinc-500"
             value={input}
-            onChange={(e) => setInput(e.target.value)}
+            onChange={handleTextareaChange}
             onKeyDown={handleKeyDown}
             rows={1}
             placeholder="Ask the assistant..."
@@ -815,7 +895,7 @@ export default function AgentChat({ conversationId, onConversationCreated }: Age
             <button
               type="button"
               onClick={stream.abort}
-              className="shrink-0 rounded-xl bg-red-500 px-5 py-3 text-sm font-medium text-white transition-colors hover:bg-red-600"
+              className="shrink-0 rounded-xl bg-red-500 px-4 py-2.5 text-sm font-medium text-white transition-colors hover:bg-red-600 sm:px-5 sm:py-3"
             >
               Stop
             </button>
@@ -823,14 +903,15 @@ export default function AgentChat({ conversationId, onConversationCreated }: Age
             <button
               type="submit"
               disabled={!input.trim()}
-              className="shrink-0 rounded-xl bg-blue-600 px-5 py-3 text-sm font-medium text-white transition-colors hover:bg-blue-700 disabled:cursor-not-allowed disabled:opacity-40"
+              className="shrink-0 rounded-xl bg-blue-600 px-4 py-2.5 text-sm font-medium text-white transition-colors hover:bg-blue-700 disabled:cursor-not-allowed disabled:opacity-40 sm:px-5 sm:py-3"
             >
               Send
             </button>
           )}
         </form>
         <p className="mx-auto mt-2 max-w-3xl text-center text-xs text-zinc-400">
-          Enter to send &middot; Shift+Enter for new line &middot; AI may make mistakes
+          Enter to send &middot; Shift+Enter for new line &middot; Esc to stop &middot; AI may make
+          mistakes
         </p>
       </div>
     </div>

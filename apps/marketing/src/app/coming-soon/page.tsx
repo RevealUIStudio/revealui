@@ -103,7 +103,7 @@ export default function ComingSoonPage() {
           <p className="mx-auto mt-6 max-w-2xl text-lg leading-8 text-gray-600 sm:text-xl">
             Features and capabilities currently in development. See our{' '}
             <a
-              href="https://github.com/RevealUIStudio/revealui/blob/main/ROADMAP.md"
+              href="https://github.com/RevealUIStudio/revealui/blob/main/docs/ROADMAP.md"
               target="_blank"
               rel="noopener noreferrer"
               className="text-amber-700 underline hover:text-amber-600"
