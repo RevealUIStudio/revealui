@@ -7,12 +7,7 @@
  */
 
 import { RVC_MINT_ADDRESSES, RVC_TOKEN_CONFIG } from '@revealui/contracts';
-import {
-  getAccount,
-  getAssociatedTokenAddressSync,
-  TOKEN_2022_PROGRAM_ID,
-} from '@solana/spl-token';
-import { Connection, PublicKey } from '@solana/web3.js';
+import { address, createSolanaRpc } from '@solana/kit';
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { useSettingsContext } from './use-settings';
 
@@ -64,14 +59,26 @@ export function useRvcBalance(): RvcBalanceState {
 
     try {
       const rpcUrl = CLUSTER_URLS[network] ?? CLUSTER_URLS.devnet;
-      const connection = new Connection(rpcUrl, 'confirmed');
-      const wallet = new PublicKey(walletAddress);
-      const mint = new PublicKey(mintAddress);
-      const ata = getAssociatedTokenAddressSync(mint, wallet, false, TOKEN_2022_PROGRAM_ID);
+      const rpc = createSolanaRpc(rpcUrl);
+      const wallet = address(walletAddress);
+      const mint = address(mintAddress);
 
-      try {
-        const account = await getAccount(connection, ata, 'confirmed', TOKEN_2022_PROGRAM_ID);
-        const raw = account.amount;
+      const response = await rpc
+        .getTokenAccountsByOwner(
+          wallet,
+          { mint },
+          { encoding: 'jsonParsed', commitment: 'confirmed' },
+        )
+        .send();
+
+      if (response.value.length === 0) {
+        setBalance('0');
+        setUiAmount(0);
+      } else {
+        const accountData = response.value[0].account.data as {
+          parsed: { info: { tokenAmount: { amount: string } } };
+        };
+        const raw = BigInt(accountData.parsed.info.tokenAmount.amount);
         const divisor = 10 ** RVC_TOKEN_CONFIG.decimals;
         const amount = Number(raw) / divisor;
 
@@ -82,18 +89,6 @@ export function useRvcBalance(): RvcBalanceState {
             maximumFractionDigits: 2,
           }),
         );
-      } catch (err) {
-        // ATA doesn't exist — wallet has never held RVC
-        if (
-          err instanceof Error &&
-          (err.message.includes('could not find account') ||
-            err.message.includes('TokenAccountNotFoundError'))
-        ) {
-          setBalance('0');
-          setUiAmount(0);
-        } else {
-          throw err;
-        }
       }
     } catch (err) {
       const msg = err instanceof Error ? err.message : 'Failed to fetch RVC balance';
