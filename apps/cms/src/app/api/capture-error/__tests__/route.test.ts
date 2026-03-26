@@ -49,7 +49,7 @@ describe('POST /api/capture-error', () => {
     const res = await POST(req);
 
     expect((res as { status: number }).status).toBe(202);
-    expect((res as { body: { success: boolean } }).body.success).toBe(true);
+    expect((res as unknown as { body: { success: boolean } }).body.success).toBe(true);
   });
 
   it('returns 400 when request body is unreadable', async () => {
@@ -94,7 +94,7 @@ describe('POST /api/capture-error', () => {
 
     // Should silently accept — never break the error UI
     expect((res as { status: number }).status).toBe(202);
-    expect((res as { body: { success: boolean } }).body.success).toBe(true);
+    expect((res as unknown as { body: { success: boolean } }).body.success).toBe(true);
   });
 
   it('forwards upstream status code on error responses', async () => {

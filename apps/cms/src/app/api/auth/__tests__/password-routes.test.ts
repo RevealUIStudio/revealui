@@ -236,7 +236,9 @@ describe('POST /api/auth/password-reset', () => {
     const res = await POST(makeRequest({ email: 'test@example.com' }));
 
     expect((res as { status: number }).status).toBe(200);
-    expect((res as { body: { message: string } }).body.message).toContain('If an account exists');
+    expect((res as unknown as { body: { message: string } }).body.message).toContain(
+      'If an account exists',
+    );
     expect(mockSendPasswordResetEmail).toHaveBeenCalledWith(
       'test@example.com',
       'token-id',

@@ -85,10 +85,12 @@ describe('rateLimit', () => {
     const result = await limiter(makeRequest({ 'x-forwarded-for': '1.2.3.4' }) as never);
     expect(result).not.toBeNull();
     expect((result as { status: number }).status).toBe(429);
-    expect((result as { headers: Map<string, string> }).headers.get('X-RateLimit-Limit')).toBe('5');
-    expect((result as { headers: Map<string, string> }).headers.get('X-RateLimit-Remaining')).toBe(
-      '0',
-    );
+    expect(
+      (result as unknown as { headers: Map<string, string> }).headers.get('X-RateLimit-Limit'),
+    ).toBe('5');
+    expect(
+      (result as unknown as { headers: Map<string, string> }).headers.get('X-RateLimit-Remaining'),
+    ).toBe('0');
   });
 
   it('extracts rightmost IP from X-Forwarded-For', async () => {
@@ -183,9 +185,9 @@ describe('withRateLimit', () => {
     const response = await wrapped(makeRequest({ 'x-forwarded-for': '1.2.3.4' }) as never);
 
     expect(handler).toHaveBeenCalledTimes(1);
-    expect((response as { headers: Map<string, string> }).headers.get('X-RateLimit-Limit')).toBe(
-      '10',
-    );
+    expect(
+      (response as unknown as { headers: Map<string, string> }).headers.get('X-RateLimit-Limit'),
+    ).toBe('10');
   });
 
   it('returns 429 without calling handler when over the limit', async () => {
@@ -262,7 +264,7 @@ describe('withRateLimit', () => {
     const response = await wrapped(makeRequest({ 'x-forwarded-for': '1.2.3.4' }) as never);
 
     expect((response as { status: number }).status).toBe(500);
-    expect((response as { body: { message: string } }).body).toEqual(
+    expect((response as unknown as { body: { message: string } }).body).toEqual(
       expect.objectContaining({ error: 'INTERNAL_ERROR' }),
     );
   });

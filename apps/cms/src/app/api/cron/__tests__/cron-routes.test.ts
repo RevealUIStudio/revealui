@@ -4,7 +4,7 @@
  * - GET /api/cron/cleanup-sessions (hourly session cleanup)
  */
 
-import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
+import { beforeEach, describe, expect, it, vi } from 'vitest';
 
 const mockCleanupStaleTokens = vi.fn();
 const mockGetClient = vi.fn();
@@ -87,7 +87,7 @@ describe('GET /api/cron/cleanup-all', () => {
     const res = await GET(makeRequest());
 
     expect((res as { status: number }).status).toBe(200);
-    expect((res as { body: unknown }).body).toEqual({
+    expect((res as unknown as { body: unknown }).body).toEqual({
       success: true,
       cleaned: {
         sessions: 5,
@@ -107,7 +107,7 @@ describe('GET /api/cron/cleanup-all', () => {
     const res = await GET(makeRequest());
 
     expect((res as { status: number }).status).toBe(500);
-    expect((res as { body: { error: string } }).body.error).toBe('DB connection lost');
+    expect((res as unknown as { body: { error: string } }).body.error).toBe('DB connection lost');
   });
 });
 
@@ -141,7 +141,7 @@ describe('GET /api/cron/cleanup-sessions', () => {
     const res = await GET(makeRequest());
 
     expect((res as { status: number }).status).toBe(200);
-    expect((res as { body: { deleted: number } }).body.deleted).toBe(3);
+    expect((res as unknown as { body: { deleted: number } }).body.deleted).toBe(3);
   });
 
   it('returns 500 when DB query throws', async () => {

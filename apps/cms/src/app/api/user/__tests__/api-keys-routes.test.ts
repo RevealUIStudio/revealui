@@ -101,7 +101,7 @@ describe('GET /api/user/api-keys', () => {
     const res = await GET(makeRequest());
 
     expect((res as { status: number }).status).toBe(200);
-    expect((res as { body: { provider: string; keyHint: string } }).body).toEqual({
+    expect((res as unknown as { body: { provider: string; keyHint: string } }).body).toEqual({
       provider: 'openai',
       keyHint: 'sk-...abc',
     });
@@ -122,7 +122,7 @@ describe('GET /api/user/api-keys', () => {
     const res = await GET(makeRequest());
 
     expect((res as { status: number }).status).toBe(200);
-    expect((res as { body: unknown }).body).toBeNull();
+    expect((res as unknown as { body: unknown }).body).toBeNull();
   });
 });
 
@@ -175,7 +175,7 @@ describe('POST /api/user/api-keys', () => {
     const res = await POST(makeRequest({ provider: 'anthropic', key: 'sk-ant-test-key' }));
 
     expect((res as { status: number }).status).toBe(200);
-    expect((res as { body: { provider: string; keyHint: string } }).body).toEqual({
+    expect((res as unknown as { body: { provider: string; keyHint: string } }).body).toEqual({
       provider: 'anthropic',
       keyHint: 'sk-...xyz',
     });
@@ -211,7 +211,7 @@ describe('DELETE /api/user/api-keys', () => {
     const res = await DEL(makeRequest());
 
     expect((res as { status: number }).status).toBe(200);
-    expect((res as { body: { deleted: boolean } }).body.deleted).toBe(true);
+    expect((res as unknown as { body: { deleted: boolean } }).body.deleted).toBe(true);
   });
 });
 
@@ -275,7 +275,7 @@ describe('GET /api/user/api-keys/value', () => {
     const res = await GET(makeRequest());
 
     expect((res as { status: number }).status).toBe(200);
-    expect((res as { body: { provider: string; key: string } }).body).toEqual({
+    expect((res as unknown as { body: { provider: string; key: string } }).body).toEqual({
       provider: 'openai',
       key: 'sk-real-key-decrypted',
     });

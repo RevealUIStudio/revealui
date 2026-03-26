@@ -78,7 +78,7 @@ describe('POST /api/revalidate', () => {
     const POST = await loadRoute();
     const res = await POST(makeRequest({ tag: 'pages' }, 'test-revalidate-secret'));
     expect((res as { status: number }).status).toBe(200);
-    expect((res as { body: unknown }).body).toEqual(
+    expect((res as unknown as { body: unknown }).body).toEqual(
       expect.objectContaining({ revalidated: true, tag: 'pages' }),
     );
     expect(mockRevalidateTag).toHaveBeenCalledWith('pages', 'page');
@@ -117,7 +117,7 @@ describe('POST /api/revalidate', () => {
     } as never;
     const res = await POST(req);
     expect((res as { status: number }).status).toBe(400);
-    expect((res as { body: { error: string } }).body).toEqual(
+    expect((res as unknown as { body: { error: string } }).body).toEqual(
       expect.objectContaining({ error: 'Invalid JSON body' }),
     );
   });
@@ -127,7 +127,9 @@ describe('POST /api/revalidate', () => {
     const res = await POST(
       makeRequest({ tag: 'my-tag', path: '/some/path' }, 'test-revalidate-secret'),
     );
-    expect((res as { body: unknown }).body).toEqual(expect.objectContaining({ tag: 'my-tag' }));
+    expect((res as unknown as { body: unknown }).body).toEqual(
+      expect.objectContaining({ tag: 'my-tag' }),
+    );
     expect(mockRevalidateTag).toHaveBeenCalled();
     expect(mockRevalidatePath).not.toHaveBeenCalled();
   });

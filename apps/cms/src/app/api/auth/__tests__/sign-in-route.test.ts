@@ -151,10 +151,10 @@ describe('POST /api/auth/sign-in', () => {
     const res = await POST(makeRequest({ email: 'test@example.com', password: 'ValidPass1' }));
 
     expect((res as { status: number }).status).toBe(200);
-    expect((res as { body: { user: { id: string } } }).body.user.id).toBe('user-1');
+    expect((res as unknown as { body: { user: { id: string } } }).body.user.id).toBe('user-1');
 
     // Session cookie should be set
-    const cookies = (res as { cookies: CookieStore }).cookies;
+    const cookies = (res as unknown as { cookies: CookieStore }).cookies;
     expect(cookies.has('revealui-session')).toBe(true);
     expect(cookies.get('revealui-session')?.value).toBe('session-token-abc');
     // Role cookie should be set to 'user'
@@ -181,7 +181,7 @@ describe('POST /api/auth/sign-in', () => {
     const POST = await loadRoute();
     const res = await POST(makeRequest({ email: 'admin@example.com', password: 'AdminPass1' }));
 
-    const cookies = (res as { cookies: CookieStore }).cookies;
+    const cookies = (res as unknown as { cookies: CookieStore }).cookies;
     expect(cookies.get('revealui-role')?.value).toBe('admin');
   });
 
@@ -201,9 +201,9 @@ describe('POST /api/auth/sign-in', () => {
     const res = await POST(makeRequest({ email: 'mfa@example.com', password: 'ValidPass1' }));
 
     expect((res as { status: number }).status).toBe(200);
-    expect((res as { body: { requiresMfa: boolean } }).body.requiresMfa).toBe(true);
+    expect((res as unknown as { body: { requiresMfa: boolean } }).body.requiresMfa).toBe(true);
 
-    const cookies = (res as { cookies: CookieStore }).cookies;
+    const cookies = (res as unknown as { cookies: CookieStore }).cookies;
     expect(cookies.has('mfa-pending')).toBe(true);
     expect(cookies.get('mfa-pending')?.value).toBe('signed-payload');
     expect(cookies.get('mfa-pending')?.options.path).toBe('/api/auth/mfa');

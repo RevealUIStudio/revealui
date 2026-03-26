@@ -116,7 +116,7 @@ describe('revalidateRedirects', () => {
       operation: 'update',
     };
 
-    hook({ doc, context });
+    hook({ doc, context } as never);
 
     expect(mockLogger.info).toHaveBeenCalledWith('Revalidating redirects after update operation');
   });
@@ -134,6 +134,6 @@ describe('revalidateRedirects', () => {
       },
     };
 
-    expect(() => hook({ doc, context })).not.toThrow();
+    expect(() => hook({ doc, context } as never)).not.toThrow();
   });
 });

@@ -56,7 +56,7 @@ describe('checkAIFeatureGate', () => {
     const result = checkAIFeatureGate();
     expect(result).not.toBeNull();
     expect((result as { status: number }).status).toBe(403);
-    expect((result as { body: { error: string } }).body).toEqual({
+    expect((result as unknown as { body: { error: string } }).body).toEqual({
       error: 'AI features require a Pro license',
     });
   });

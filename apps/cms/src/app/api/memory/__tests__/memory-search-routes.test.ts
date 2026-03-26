@@ -118,7 +118,9 @@ describe('POST /api/memory/search', () => {
     const POST = await loadRoute();
     const res = await POST(makeRequest({ queryEmbedding: [] }));
     expect((res as { status: number }).status).toBe(429);
-    expect((res as { headers: Map<string, string> }).headers.get('Retry-After')).toBeTruthy();
+    expect(
+      (res as unknown as { headers: Map<string, string> }).headers.get('Retry-After'),
+    ).toBeTruthy();
   });
 
   it('returns 400 when queryEmbedding is missing', async () => {

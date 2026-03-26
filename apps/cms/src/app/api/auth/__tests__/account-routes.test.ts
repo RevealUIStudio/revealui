@@ -130,7 +130,7 @@ describe('POST /api/auth/unlink', () => {
     const POST = await loadRoute();
     const res = await POST(makeRequest({ provider: 'facebook' }));
     expect((res as { status: number }).status).toBe(400);
-    expect((res as { body: { error: string } }).body.error).toBe('Invalid provider');
+    expect((res as unknown as { body: { error: string } }).body.error).toBe('Invalid provider');
   });
 
   it('successfully unlinks a valid provider', async () => {
@@ -141,7 +141,7 @@ describe('POST /api/auth/unlink', () => {
     const res = await POST(makeRequest({ provider: 'github' }));
 
     expect((res as { status: number }).status).toBe(200);
-    expect((res as { body: { success: boolean; unlinked: string } }).body).toEqual({
+    expect((res as unknown as { body: { success: boolean; unlinked: string } }).body).toEqual({
       success: true,
       unlinked: 'github',
     });
@@ -156,7 +156,7 @@ describe('POST /api/auth/unlink', () => {
     const res = await POST(makeRequest({ provider: 'google' }));
 
     expect((res as { status: number }).status).toBe(400);
-    expect((res as { body: { error: string } }).body.error).toBe(
+    expect((res as unknown as { body: { error: string } }).body.error).toBe(
       'Cannot unlink last authentication method',
     );
   });
@@ -221,14 +221,14 @@ describe('GET /api/auth/sessions', () => {
 
     expect((res as { status: number }).status).toBe(200);
     const body = (
-      res as {
+      res as unknown as {
         body: { currentSessionId: string; sessions: Array<{ id: string; isCurrent: boolean }> };
       }
     ).body;
     expect(body.currentSessionId).toBe('sess-1');
     expect(body.sessions).toHaveLength(2);
-    expect(body.sessions[0].isCurrent).toBe(true);
-    expect(body.sessions[1].isCurrent).toBe(false);
+    expect(body.sessions[0]!.isCurrent).toBe(true);
+    expect(body.sessions[1]!.isCurrent).toBe(false);
   });
 });
 
@@ -289,7 +289,7 @@ describe('POST /api/auth/resend-verification', () => {
     const res = await POST(makeRequest());
 
     expect((res as { status: number }).status).toBe(200);
-    expect((res as { body: { success: boolean } }).body.success).toBe(true);
+    expect((res as unknown as { body: { success: boolean } }).body.success).toBe(true);
     expect(mockSendVerificationEmail).toHaveBeenCalledWith(
       'test@example.com',
       expect.any(String), // raw token (UUID)

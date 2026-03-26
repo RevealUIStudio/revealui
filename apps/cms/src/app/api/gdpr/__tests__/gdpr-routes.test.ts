@@ -100,7 +100,7 @@ describe('POST /api/gdpr/delete', () => {
     const res = await POST(makeRequest());
 
     expect((res as { status: number }).status).toBe(200);
-    expect((res as { body: { success: boolean } }).body.success).toBe(true);
+    expect((res as unknown as { body: { success: boolean } }).body.success).toBe(true);
 
     // Should delete user record after cascade
     expect(mockDelete).toHaveBeenCalledWith(
@@ -159,7 +159,7 @@ describe('POST /api/gdpr/delete', () => {
     const res = await POST(makeRequest());
 
     expect((res as { status: number }).status).toBe(500);
-    expect((res as { body: { success: boolean } }).body.success).toBe(false);
+    expect((res as unknown as { body: { success: boolean } }).body.success).toBe(false);
     // User record should NOT be deleted when cascade fails
     expect(mockDelete).not.toHaveBeenCalledWith(expect.objectContaining({ collection: 'users' }));
     // Audit entry should record the abort
@@ -210,7 +210,7 @@ describe('POST /api/gdpr/export', () => {
     const res = await POST(makeRequest());
 
     expect((res as { status: number }).status).toBe(200);
-    const body = (res as { body: Record<string, unknown> }).body;
+    const body = (res as unknown as { body: Record<string, unknown> }).body;
     expect(body).toEqual(
       expect.objectContaining({
         data: expect.objectContaining({
@@ -224,9 +224,9 @@ describe('POST /api/gdpr/export', () => {
     );
 
     // Should set Content-Disposition header for download
-    expect((res as { headers: Map<string, string> }).headers.get('Content-Disposition')).toContain(
-      'user-data-user-1.json',
-    );
+    expect(
+      (res as unknown as { headers: Map<string, string> }).headers.get('Content-Disposition'),
+    ).toContain('user-data-user-1.json');
 
     // Should write audit entry
     expect(mockWriteGDPRAuditEntry).toHaveBeenCalledWith(
@@ -258,7 +258,7 @@ describe('POST /api/gdpr/export', () => {
     const res = await POST(makeRequest());
 
     expect((res as { status: number }).status).toBe(200);
-    const body = (res as { body: Record<string, unknown> }).body;
+    const body = (res as unknown as { body: Record<string, unknown> }).body;
     const data = (body as { data: { conversations: unknown[]; orders: unknown[] } }).data;
     expect(data.conversations).toHaveLength(1);
     expect(data.orders).toEqual([]); // Graceful fallback

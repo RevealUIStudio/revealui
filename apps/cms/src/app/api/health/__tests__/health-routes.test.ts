@@ -60,10 +60,12 @@ describe('GET /api/health', () => {
     const res = await GET({ headers: { get: () => null } } as never);
 
     expect((res as { status: number }).status).toBe(200);
-    expect((res as { body: { status: string } }).body.status).toBe('healthy');
+    expect((res as unknown as { body: { status: string } }).body.status).toBe('healthy');
     // Should NOT contain detailed checks or metrics
-    expect((res as { body: Record<string, unknown> }).body).not.toHaveProperty('checks');
-    expect((res as { body: Record<string, unknown> }).body).not.toHaveProperty('metrics');
+    expect((res as unknown as { body: Record<string, unknown> }).body).not.toHaveProperty('checks');
+    expect((res as unknown as { body: Record<string, unknown> }).body).not.toHaveProperty(
+      'metrics',
+    );
   });
 
   it('returns minimal status for non-admin authenticated users', async () => {
@@ -72,7 +74,7 @@ describe('GET /api/health', () => {
     const res = await GET({ headers: { get: () => null } } as never);
 
     expect((res as { status: number }).status).toBe(200);
-    expect((res as { body: Record<string, unknown> }).body).not.toHaveProperty('checks');
+    expect((res as unknown as { body: Record<string, unknown> }).body).not.toHaveProperty('checks');
   });
 
   it('returns full health details for admin users', async () => {
@@ -84,7 +86,7 @@ describe('GET /api/health', () => {
     const res = await GET({ headers: { get: () => null } } as never);
 
     expect((res as { status: number }).status).toBe(200);
-    const body = (res as { body: Record<string, unknown> }).body;
+    const body = (res as unknown as { body: Record<string, unknown> }).body;
     expect(body).toHaveProperty('checks');
     expect(body).toHaveProperty('metrics');
     expect(body.service).toBe('RevealUI CMS');
@@ -99,7 +101,9 @@ describe('GET /api/health', () => {
 
     expect((res as { status: number }).status).toBe(503);
     const body = (
-      res as { body: { status: string; checks: Array<{ name: string; status: string }> } }
+      res as unknown as {
+        body: { status: string; checks: Array<{ name: string; status: string }> };
+      }
     ).body;
     expect(body.status).toBe('unhealthy');
     expect(body.checks.find((c) => c.name === 'database')?.status).toBe('unhealthy');
@@ -120,8 +124,8 @@ describe('GET /api/health/live', () => {
     const res = await mod.GET();
 
     expect((res as { status: number }).status).toBe(200);
-    expect((res as { body: { status: string } }).body.status).toBe('alive');
-    expect((res as { body: { timestamp: string } }).body.timestamp).toBeTruthy();
+    expect((res as unknown as { body: { status: string } }).body.status).toBe('alive');
+    expect((res as unknown as { body: { timestamp: string } }).body.timestamp).toBeTruthy();
   });
 });
 
@@ -146,7 +150,7 @@ describe('GET /api/health/ready', () => {
     const res = await GET();
 
     expect((res as { status: number }).status).toBe(200);
-    expect((res as { body: { status: string } }).body.status).toBe('ready');
+    expect((res as unknown as { body: { status: string } }).body.status).toBe('ready');
   });
 
   it('returns 503 when database is unreachable', async () => {
@@ -156,8 +160,8 @@ describe('GET /api/health/ready', () => {
     const res = await GET();
 
     expect((res as { status: number }).status).toBe(503);
-    expect((res as { body: { status: string } }).body.status).toBe('not-ready');
-    expect((res as { body: { error: string } }).body.error).toBe('Connection timeout');
+    expect((res as unknown as { body: { status: string } }).body.status).toBe('not-ready');
+    expect((res as unknown as { body: { error: string } }).body.error).toBe('Connection timeout');
   });
 });
 

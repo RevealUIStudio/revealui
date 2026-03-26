@@ -117,7 +117,7 @@ describe('GET /api/auth/me', () => {
 
     const GET = await loadRoute();
     const res = await GET(makeRequest());
-    const body = (res as { body: Record<string, unknown> }).body;
+    const body = (res as unknown as { body: Record<string, unknown> }).body;
 
     expect((res as { status: number }).status).toBe(200);
     expect(body).toEqual(
@@ -146,7 +146,7 @@ describe('GET /api/auth/me', () => {
 
     const GET = await loadRoute();
     const res = await GET(makeRequest());
-    const body = (res as { body: Record<string, unknown> }).body;
+    const body = (res as unknown as { body: Record<string, unknown> }).body;
 
     expect((res as { status: number }).status).toBe(200);
     expect((body as { user: { linkedProviders: unknown[] } }).user.linkedProviders).toEqual([]);
@@ -187,7 +187,7 @@ describe('GET /api/auth/session', () => {
 
     const GET = await loadRoute();
     const res = await GET(makeRequest());
-    const body = (res as { body: Record<string, unknown> }).body;
+    const body = (res as unknown as { body: Record<string, unknown> }).body;
 
     expect((res as { status: number }).status).toBe(200);
     expect(body).toEqual(
@@ -220,11 +220,13 @@ describe('POST /api/auth/sign-out', () => {
     const res = await POST(makeRequest());
 
     expect((res as { status: number }).status).toBe(200);
-    expect((res as { body: { success: boolean } }).body.success).toBe(true);
+    expect((res as unknown as { body: { success: boolean } }).body.success).toBe(true);
     expect(mockDeleteSession).toHaveBeenCalled();
 
     // Verify cookies are deleted
-    const cookies = (res as { cookies: { getDeleted: () => string[] } }).cookies.getDeleted();
+    const cookies = (
+      res as unknown as { cookies: { getDeleted: () => string[] } }
+    ).cookies.getDeleted();
     expect(cookies).toContain('revealui-session');
     expect(cookies).toContain('revealui-role');
   });
