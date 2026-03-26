@@ -26,7 +26,7 @@ export default async function Page({ params: _params, searchParams: _searchParam
     <div className="relative">
       <Link
         href="/admin/settings"
-        className="absolute right-6 top-5 z-10 rounded-lg p-2 text-gray-400 transition-colors hover:bg-gray-100 hover:text-gray-600"
+        className="absolute right-28 top-5 z-10 rounded-lg p-2 text-gray-400 transition-colors hover:bg-gray-100 hover:text-gray-600"
         title="Settings"
       >
         <svg
