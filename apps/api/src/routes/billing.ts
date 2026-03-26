@@ -27,6 +27,31 @@ import { resetDbStatusCache } from '../middleware/license.js';
 /** Default trial period for new subscriptions (overridable via env) */
 const TRIAL_PERIOD_DAYS = Number.parseInt(process.env.REVEALUI_TRIAL_DAYS ?? '7', 10);
 
+/** How far ahead to look for expiring support contracts (overridable via env, default 30 days) */
+const SUPPORT_RENEWAL_WINDOW_MS =
+  Number.parseInt(process.env.REVEALUI_SUPPORT_RENEWAL_DAYS ?? '30', 10) * 24 * 60 * 60 * 1000;
+
+/**
+ * Computes a Stripe meter event timestamp for the last second of a billing cycle.
+ *
+ * Stripe Billing Meters require event timestamps to fall within the billing period
+ * they are associated with. Since we report overage for the *previous* calendar month,
+ * the timestamp must be within that month — not in the current month when the cron runs.
+ *
+ * We take the cycle start (1st of the previous month at 00:00 UTC), add ~30 days
+ * (one calendar-month approximation), then subtract 1 second to land on the last
+ * second of that cycle. This ensures the meter event is attributed to the correct
+ * billing period even if months vary between 28-31 days, because Stripe only checks
+ * that the timestamp falls within the subscription's billing interval.
+ *
+ * @param cycleStart - The first day of the billing cycle (UTC midnight)
+ * @returns Unix timestamp (seconds) for the last second of the approximate cycle
+ */
+function getMeterEventTimestamp(cycleStart: Date): number {
+  const SecondsIn30Days = 30 * 24 * 60 * 60;
+  return Math.floor(cycleStart.getTime() / 1000 + SecondsIn30Days - 1);
+}
+
 interface UserContext {
   id: string;
   email: string | null;
@@ -993,7 +1018,7 @@ app.openapi(supportRenewalRoute, async (c) => {
 
   const db = getClient();
   const now = new Date();
-  const in30Days = new Date(now.getTime() + 30 * 24 * 60 * 60 * 1000);
+  const in30Days = new Date(now.getTime() + SUPPORT_RENEWAL_WINDOW_MS);
 
   // Find active perpetual licenses with support expiring within the next 30 days.
   // Single query with JOIN eliminates N+1 user lookups.
@@ -1121,7 +1146,7 @@ app.openapi(reportOverageRoute, async (c) => {
           stripe_customer_id: row.stripeCustomerId,
           value: String(row.overage),
         },
-        timestamp: Math.floor(prevCycle.getTime() / 1000 + 30 * 24 * 60 * 60 - 1),
+        timestamp: getMeterEventTimestamp(prevCycle),
       });
       reported++;
     } catch {

@@ -140,11 +140,26 @@ function createApp() {
   return app;
 }
 
+/** Minimal Stripe event envelope fields required by the OpenAPI request body schema. */
+const STRIPE_EVENT_DEFAULTS = {
+  id: 'evt_default',
+  type: 'test.event',
+  data: { object: {} },
+  created: 1700000000,
+  livemode: false,
+};
+
 function postStripe(eventJson: unknown, sig = 'valid-sig') {
+  // Merge defaults so test payloads pass the Stripe event envelope schema validation.
+  // The handler ignores the parsed body — it uses stripe.webhooks.constructEvent() instead.
+  const body =
+    eventJson && typeof eventJson === 'object'
+      ? { ...STRIPE_EVENT_DEFAULTS, ...eventJson }
+      : eventJson;
   return new Request('http://localhost/stripe', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json', 'Stripe-Signature': sig },
-    body: JSON.stringify(eventJson),
+    body: JSON.stringify(body),
   });
 }
 
@@ -206,7 +221,11 @@ describe('POST /stripe webhook', () => {
     it('returns 400 when Stripe-Signature header is missing', async () => {
       const app = createApp();
       const res = await app.request(
-        new Request('http://localhost/stripe', { method: 'POST', body: '{}' }),
+        new Request('http://localhost/stripe', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(STRIPE_EVENT_DEFAULTS),
+        }),
       );
       expect(res.status).toBe(400);
       const body = (await res.json()) as Record<string, unknown>;

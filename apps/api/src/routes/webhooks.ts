@@ -9,7 +9,7 @@
  * duplicate processing across Vercel multi-region deployments.
  */
 
-import { getFeaturesForTier } from '@revealui/core/features';
+import { type FeatureFlags, getFeaturesForTier } from '@revealui/core/features';
 import { generateLicenseKey, type LicenseTier, resetLicenseState } from '@revealui/core/license';
 import { logger } from '@revealui/core/observability/logger';
 import { DrizzleAuditStore, getClient } from '@revealui/db';
@@ -196,18 +196,66 @@ function coerceHostedTier(value: string | null | undefined): HostedTier | undefi
   return undefined;
 }
 
+/** Known feature keys from {@link FeatureFlags}. Used to warn on unexpected keys. */
+const KNOWN_FEATURE_KEYS = new Set<string>([
+  'aiLocal',
+  'ai',
+  'aiMemory',
+  'mcp',
+  'payments',
+  'multiTenant',
+  'whiteLabel',
+  'sso',
+  'byokServerSide',
+  'aiMultiProvider',
+  'auditLog',
+  'advancedSync',
+  'dashboard',
+  'customDomain',
+  'analytics',
+] satisfies (keyof FeatureFlags)[]);
+
 function toFeatureRecord(features: object | null | undefined): Record<string, boolean> {
   if (!features) {
     return {};
   }
 
-  return Object.fromEntries(
-    Object.entries(features).filter(
-      (entry): entry is [string, boolean] => typeof entry[1] === 'boolean',
-    ),
+  const entries = Object.entries(features).filter(
+    (entry): entry is [string, boolean] => typeof entry[1] === 'boolean',
   );
+
+  for (const [key] of entries) {
+    if (!KNOWN_FEATURE_KEYS.has(key)) {
+      logger.warn('Unknown feature key encountered in toFeatureRecord', { key });
+    }
+  }
+
+  return Object.fromEntries(entries);
 }
 
+/**
+ * Extracts a period date from the first subscription item.
+ *
+ * **Stripe field guarantees (SDK v20+):**
+ * - `subscription.items.data[0]` is guaranteed for active/trialing/past_due subscriptions
+ *   but may be absent on incomplete or expired subscriptions without items.
+ * - `current_period_start` and `current_period_end` are Unix timestamps (seconds)
+ *   guaranteed to be present on each `SubscriptionItem` for active billing cycles.
+ *   They may be absent on items that have not yet entered a billing period.
+ *
+ * **Returns `null` when:**
+ * - The subscription has no items (e.g., incomplete setup or expanded object missing items).
+ * - The requested field is not a number (unexpected API shape or future SDK change).
+ *
+ * **Null-safe usage:**
+ * ```ts
+ * const start = getSubscriptionPeriodDate(sub, 'current_period_start');
+ * const end = getSubscriptionPeriodDate(sub, 'current_period_end');
+ * // Always provide a fallback when persisting:
+ * currentPeriodStart: start ?? new Date(),
+ * currentPeriodEnd: end ?? new Date(Date.now() + 30 * 24 * 60 * 60 * 1000),
+ * ```
+ */
 function getSubscriptionPeriodDate(
   subscription: Stripe.Subscription,
   field: 'current_period_start' | 'current_period_end',
@@ -520,7 +568,15 @@ const stripeWebhookRoute = createRoute({
     body: {
       content: {
         'application/json': {
-          schema: z.unknown(),
+          schema: z
+            .object({
+              id: z.string(),
+              type: z.string(),
+              data: z.object({ object: z.unknown() }),
+              created: z.number(),
+              livemode: z.boolean(),
+            })
+            .passthrough(),
         },
       },
     },
