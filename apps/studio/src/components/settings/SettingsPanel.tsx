@@ -147,7 +147,7 @@ export default function SettingsPanel() {
                 className="rounded-md border border-neutral-700 bg-neutral-800 px-3 py-2 text-sm font-mono text-neutral-300 placeholder:text-neutral-600 focus:border-neutral-500 focus:outline-none"
               />
               <span className="text-xs text-neutral-500">
-                Your Solana public key for displaying RVC balance on the dashboard.
+                Your Solana public key for displaying RVUI balance on the dashboard.
               </span>
             </div>
             <div className="flex flex-col gap-1">

@@ -1,12 +1,12 @@
 /**
- * React hook for querying RVC token balance from Solana RPC.
+ * React hook for querying RVUI token balance from Solana RPC.
  *
  * Reads the wallet address + network from StudioSettings (localStorage).
- * Queries the Token-2022 Associated Token Account for the RVC mint.
+ * Queries the Token-2022 Associated Token Account for the RVUI mint.
  * Polls every 60 seconds. Returns zero gracefully if ATA doesn't exist.
  */
 
-import { RVC_MINT_ADDRESSES, RVC_TOKEN_CONFIG } from '@revealui/contracts';
+import { RVUI_MINT_ADDRESSES, RVUI_TOKEN_CONFIG } from '@revealui/contracts';
 import { address, createSolanaRpc } from '@solana/kit';
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { useSettingsContext } from './use-settings';
@@ -18,8 +18,8 @@ const CLUSTER_URLS: Record<string, string> = {
   'mainnet-beta': 'https://api.mainnet-beta.solana.com',
 };
 
-export interface RvcBalanceState {
-  /** Human-readable balance (e.g., "1,234.56 RVC"). Null if not configured. */
+export interface RvuiBalanceState {
+  /** Human-readable balance (e.g., "1,234.56 RVUI"). Null if not configured. */
   balance: string | null;
   /** Raw numeric balance for calculations. */
   uiAmount: number;
@@ -33,7 +33,7 @@ export interface RvcBalanceState {
   refresh: () => void;
 }
 
-export function useRvcBalance(): RvcBalanceState {
+export function useRvuiBalance(): RvuiBalanceState {
   const { settings } = useSettingsContext();
   const [balance, setBalance] = useState<string | null>(null);
   const [uiAmount, setUiAmount] = useState(0);
@@ -48,9 +48,9 @@ export function useRvcBalance(): RvcBalanceState {
   const fetchBalance = useCallback(async () => {
     if (!walletAddress) return;
 
-    const mintAddress = RVC_MINT_ADDRESSES[network];
+    const mintAddress = RVUI_MINT_ADDRESSES[network];
     if (!mintAddress) {
-      setError(`RVC not deployed on ${network}`);
+      setError(`RVUI not deployed on ${network}`);
       return;
     }
 
@@ -79,7 +79,7 @@ export function useRvcBalance(): RvcBalanceState {
           parsed: { info: { tokenAmount: { amount: string } } };
         };
         const raw = BigInt(accountData.parsed.info.tokenAmount.amount);
-        const divisor = 10 ** RVC_TOKEN_CONFIG.decimals;
+        const divisor = 10 ** RVUI_TOKEN_CONFIG.decimals;
         const amount = Number(raw) / divisor;
 
         setUiAmount(amount);
@@ -91,7 +91,7 @@ export function useRvcBalance(): RvcBalanceState {
         );
       }
     } catch (err) {
-      const msg = err instanceof Error ? err.message : 'Failed to fetch RVC balance';
+      const msg = err instanceof Error ? err.message : 'Failed to fetch RVUI balance';
       setError(msg);
     } finally {
       setLoading(false);

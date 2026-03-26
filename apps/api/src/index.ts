@@ -35,6 +35,7 @@ import provenanceRoute from './routes/code-provenance.js';
 import { createCollabRoute } from './routes/collab.js';
 import contentRoute from './routes/content/index.js';
 import cronPublishRoute from './routes/cron/publish-scheduled.js';
+import cronSweepGraceRoute from './routes/cron/sweep-grace-periods.js';
 import errorsRoute from './routes/errors.js';
 import gdprRoute from './routes/gdpr.js';
 import healthRoute from './routes/health.js';
@@ -68,7 +69,7 @@ process.on('unhandledRejection', (reason: unknown) => {
 async function gracefulShutdown(signal: string): Promise<void> {
   logger.info(`${signal} received — shutting down`);
 
-  // Stop RVC price oracle polling
+  // Stop RVUI price oracle polling
   try {
     const mod = (await import('@revealui/services/revealcoin')) as Record<string, unknown>;
     if (typeof mod.stopPriceOracle === 'function') {
@@ -552,6 +553,7 @@ app.route('/api/content', contentRoute);
 app.route('/api/rag', ragIndexRoute);
 app.route('/api/api-keys', apiKeysRoute);
 app.route('/api/cron', cronPublishRoute);
+app.route('/api/cron', cronSweepGraceRoute);
 app.route('/api/maintenance', maintenanceRoute);
 app.route('/api/marketplace', marketplaceRoute);
 app.route('/api/pricing', pricingRoute);
@@ -578,6 +580,7 @@ app.route('/api/v1/content', contentRoute);
 app.route('/api/v1/rag', ragIndexRoute);
 app.route('/api/v1/api-keys', apiKeysRoute);
 app.route('/api/v1/cron', cronPublishRoute);
+app.route('/api/v1/cron', cronSweepGraceRoute);
 app.route('/api/v1/maintenance', maintenanceRoute);
 app.route('/api/v1/marketplace', marketplaceRoute);
 app.route('/api/v1/pricing', pricingRoute);
@@ -622,7 +625,7 @@ function validateStartup(): void {
   }
 }
 
-// RVC price oracle — start polling when Jupiter API key is configured.
+// RVUI price oracle — start polling when Jupiter API key is configured.
 // Runs in both dev and prod. Safe no-op if JUPITER_API_KEY is unset.
 // Uses dynamic import to avoid hard dependency on @revealui/services build.
 function initPriceOracle(): void {
@@ -633,7 +636,7 @@ function initPriceOracle(): void {
       }
     })
     .catch((err: unknown) => {
-      logger.warn('RVC price oracle not available', {
+      logger.warn('RVUI price oracle not available', {
         error: err instanceof Error ? err.message : String(err),
       });
     });

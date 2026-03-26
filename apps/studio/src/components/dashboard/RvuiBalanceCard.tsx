@@ -1,12 +1,12 @@
-import { useRvcBalance } from '../../hooks/use-rvc-balance';
+import { useRvuiBalance } from '../../hooks/use-rvui-balance';
 import StatusDot from '../ui/StatusDot';
 
-interface RvcBalanceCardProps {
+interface RvuiBalanceCardProps {
   onNavigateToSettings?: () => void;
 }
 
-export default function RvcBalanceCard({ onNavigateToSettings }: RvcBalanceCardProps) {
-  const { balance, loading, error, configured, refresh } = useRvcBalance();
+export default function RvuiBalanceCard({ onNavigateToSettings }: RvuiBalanceCardProps) {
+  const { balance, loading, error, configured, refresh } = useRvuiBalance();
 
   if (!configured) {
     return (
@@ -49,7 +49,7 @@ export default function RvcBalanceCard({ onNavigateToSettings }: RvcBalanceCardP
         <p className="mt-2 text-xs text-amber-400">{error}</p>
       ) : (
         <p className="mt-2 text-lg font-semibold tabular-nums text-neutral-100">
-          {balance ?? '...'} <span className="text-sm font-normal text-neutral-500">RVC</span>
+          {balance ?? '...'} <span className="text-sm font-normal text-neutral-500">RVUI</span>
         </p>
       )}
       <p className="mt-1 text-xs capitalize text-neutral-500">{error ? 'error' : 'connected'}</p>

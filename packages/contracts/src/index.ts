@@ -525,22 +525,22 @@ export {
 } from './pricing.js';
 
 // =============================================================================
-// RevealCoin (RVC)
+// RevealCoin (RVUI)
 // =============================================================================
 
 export {
-  formatRvcAmount,
-  getRvcMintAddress,
-  parseRvcAmount,
-  RVC_ALLOCATIONS,
-  RVC_DISCOUNT_RATES,
-  RVC_MINT_ADDRESSES,
-  RVC_MINT_AUTHORITY,
-  RVC_TOKEN_CONFIG,
-  RVC_TOKEN_PROGRAM,
-  type RvcAllocation,
-  type RvcDiscountRate,
-  type RvcTokenConfig,
+  formatRvuiAmount,
+  getRvuiMintAddress,
+  parseRvuiAmount,
+  RVUI_ALLOCATIONS,
+  RVUI_DISCOUNT_RATES,
+  RVUI_MINT_ADDRESSES,
+  RVUI_MINT_AUTHORITY,
+  RVUI_TOKEN_CONFIG,
+  RVUI_TOKEN_PROGRAM,
+  type RvuiAllocation,
+  type RvuiDiscountRate,
+  type RvuiTokenConfig,
   type SolanaNetwork,
 } from './revealcoin.js';
 

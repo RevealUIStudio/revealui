@@ -1292,17 +1292,17 @@ app.openapi(refundRoute, async (c) => {
 });
 
 // =============================================================================
-// RVC Payment — RevealCoin subscription payment with on-chain verification
+// RVUI Payment — RevealCoin subscription payment with on-chain verification
 // =============================================================================
 
-const rvcPaymentRoute = createRoute({
+const rvuiPaymentRoute = createRoute({
   method: 'post',
-  path: '/rvc-payment',
+  path: '/rvui-payment',
   tags: ['billing'],
   summary: 'Pay for subscription with RevealCoin',
   description:
-    'Verifies an on-chain RVC payment transaction and activates the subscription tier. ' +
-    'Applies the 15% RVC discount. Requires wallet address and transaction signature.',
+    'Verifies an on-chain RVUI payment transaction and activates the subscription tier. ' +
+    'Applies the 15% RVUI discount. Requires wallet address and transaction signature.',
   request: {
     body: {
       content: {
@@ -1336,7 +1336,7 @@ const rvcPaymentRoute = createRoute({
   },
 });
 
-app.openapi(rvcPaymentRoute, async (c) => {
+app.openapi(rvuiPaymentRoute, async (c) => {
   const user = c.get('user');
   if (!user) throw new HTTPException(401, { message: 'Authentication required' });
 
@@ -1347,7 +1347,7 @@ app.openapi(rvcPaymentRoute, async (c) => {
   try {
     services = (await import('@revealui/services/revealcoin')) as Record<string, unknown>;
   } catch {
-    throw new HTTPException(503, { message: 'RVC payment service unavailable' });
+    throw new HTTPException(503, { message: 'RVUI payment service unavailable' });
   }
 
   const validatePayment = services.validatePayment as (params: {
@@ -1357,7 +1357,7 @@ app.openapi(rvcPaymentRoute, async (c) => {
     amountUsd: number;
   }) => Promise<{ allowed: boolean; reason?: string }>;
 
-  const verifyRvcPayment = services.verifyRvcPayment as (
+  const verifyRvuiPayment = services.verifyRvuiPayment as (
     txSignature: string,
     expectedAmountRaw: bigint,
     expectedRecipient: string,
@@ -1367,19 +1367,19 @@ app.openapi(rvcPaymentRoute, async (c) => {
     txSignature: string;
     walletAddress: string;
     userId: string;
-    amountRvc: string;
+    amountRvui: string;
     amountUsd: number;
     discountUsd: number;
     purpose: string;
   }) => Promise<void>;
 
-  const rvcToUsd = services.rvcToUsd as (rvcAmount: number) => Promise<number | null>;
+  const rvuiToUsd = services.rvuiToUsd as (rvcAmount: number) => Promise<number | null>;
 
   // Estimate USD value (used for safeguard checks — actual amount verified on-chain)
-  const estimatedUsd = await rvcToUsd(1);
+  const estimatedUsd = await rvuiToUsd(1);
   if (estimatedUsd === null) {
     throw new HTTPException(503, {
-      message: 'RVC price oracle unavailable. Try again later or use fiat payment.',
+      message: 'RVUI price oracle unavailable. Try again later or use fiat payment.',
     });
   }
 
@@ -1388,7 +1388,7 @@ app.openapi(rvcPaymentRoute, async (c) => {
     walletAddress,
     userId: user.id,
     txSignature,
-    amountUsd: estimatedUsd * 1000, // Conservative: assume up to 1000 RVC
+    amountUsd: estimatedUsd * 1000, // Conservative: assume up to 1000 RVUI
   });
 
   if (!safeguardResult.allowed) {
@@ -1402,13 +1402,13 @@ app.openapi(rvcPaymentRoute, async (c) => {
   const getRevealCoinConfig = services.getRevealCoinConfig as () => { receivingWallet: string };
   const config = getRevealCoinConfig();
   if (!config.receivingWallet) {
-    throw new HTTPException(503, { message: 'RVC receiving wallet not configured' });
+    throw new HTTPException(503, { message: 'RVUI receiving wallet not configured' });
   }
 
   // Verify the on-chain transaction
   // Note: expectedAmountRaw would be calculated from tier price * (1 - discount) / TWAP price
   // For now we verify the tx is valid and the recipient is correct with a minimum threshold
-  const verifyResult = await verifyRvcPayment(txSignature, 1n, config.receivingWallet);
+  const verifyResult = await verifyRvuiPayment(txSignature, 1n, config.receivingWallet);
 
   if (!verifyResult.valid) {
     return c.json(
@@ -1428,13 +1428,13 @@ app.openapi(rvcPaymentRoute, async (c) => {
     txSignature,
     walletAddress,
     userId: user.id,
-    amountRvc: '0', // On-chain amount parsed from tx
+    amountRvui: '0', // On-chain amount parsed from tx
     amountUsd: finalPrice,
     discountUsd: discountAmount,
     purpose: `${tier} subscription`,
   });
 
-  logger.info('RVC subscription payment verified', {
+  logger.info('RVUI subscription payment verified', {
     userId: user.id,
     tier,
     walletAddress: `${walletAddress.slice(0, 8)}...`,
@@ -1445,7 +1445,7 @@ app.openapi(rvcPaymentRoute, async (c) => {
   return c.json({
     success: true,
     tier,
-    message: `${tier} subscription activated with ${discountPercent}% RVC discount`,
+    message: `${tier} subscription activated with ${discountPercent}% RVUI discount`,
   });
 });
 

@@ -1,17 +1,17 @@
 /**
- * RVC payment option for Pro/Max subscription upgrades.
+ * RVUI payment option for Pro/Max subscription upgrades.
  *
  * Shows the 15% discount when paying with RevealCoin,
  * collects a transaction signature, and submits for verification.
  */
 
-import { RVC_DISCOUNT_RATES } from '@revealui/contracts';
+import { RVUI_DISCOUNT_RATES } from '@revealui/contracts';
 import { useCallback, useState } from 'react';
-import { useRvcBalance } from '../../hooks/use-rvc-balance';
+import { useRvuiBalance } from '../../hooks/use-rvui-balance';
 import { useSettingsContext } from '../../hooks/use-settings';
 import Button from '../ui/Button';
 
-interface RvcUpgradePanelProps {
+interface RvuiUpgradePanelProps {
   /** Current user tier for display context. */
   currentTier?: string;
   /** API URL for payment verification. */
@@ -20,10 +20,10 @@ interface RvcUpgradePanelProps {
 
 type PaymentState = 'idle' | 'submitting' | 'success' | 'error';
 
-const discountPercent = RVC_DISCOUNT_RATES.subscription?.discountPercent ?? 15;
+const discountPercent = RVUI_DISCOUNT_RATES.subscription?.discountPercent ?? 15;
 
-export default function RvcUpgradePanel({ currentTier, apiUrl }: RvcUpgradePanelProps) {
-  const { balance, configured } = useRvcBalance();
+export default function RvuiUpgradePanel({ currentTier, apiUrl }: RvuiUpgradePanelProps) {
+  const { balance, configured } = useRvuiBalance();
   const { settings } = useSettingsContext();
   const [selectedTier, setSelectedTier] = useState<'Pro' | 'Max'>('Pro');
   const [txSignature, setTxSignature] = useState('');
@@ -37,7 +37,7 @@ export default function RvcUpgradePanel({ currentTier, apiUrl }: RvcUpgradePanel
     setErrorMessage('');
 
     try {
-      const response = await fetch(`${apiUrl}/api/billing/rvc-payment`, {
+      const response = await fetch(`${apiUrl}/api/billing/rvui-payment`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -66,7 +66,7 @@ export default function RvcUpgradePanel({ currentTier, apiUrl }: RvcUpgradePanel
       <div className="rounded-lg border border-neutral-800 bg-neutral-900 p-5">
         <h3 className="text-sm font-medium text-neutral-200">Pay with RevealCoin</h3>
         <p className="mt-2 text-xs text-neutral-500">
-          Configure your Solana wallet address in Settings to pay with RVC and save{' '}
+          Configure your Solana wallet address in Settings to pay with RVUI and save{' '}
           {discountPercent}%.
         </p>
       </div>
@@ -109,7 +109,7 @@ export default function RvcUpgradePanel({ currentTier, apiUrl }: RvcUpgradePanel
       {/* Discount info */}
       <div className="mt-4 rounded-md bg-green-900/10 border border-green-900/20 px-3 py-2">
         <p className="text-xs text-green-400">
-          Pay with RVC for {selectedTier} and save {discountPercent}% on your monthly subscription.
+          Pay with RVUI for {selectedTier} and save {discountPercent}% on your monthly subscription.
           The equivalent USD amount is calculated using the current TWAP price.
         </p>
       </div>
@@ -117,19 +117,19 @@ export default function RvcUpgradePanel({ currentTier, apiUrl }: RvcUpgradePanel
       {/* Balance display */}
       <p className="mt-3 text-xs text-neutral-500">
         Wallet balance:{' '}
-        <span className="text-neutral-300 tabular-nums">{balance ?? '...'} RVC</span>
+        <span className="text-neutral-300 tabular-nums">{balance ?? '...'} RVUI</span>
       </p>
 
       {/* Transaction signature input */}
       <div className="mt-4">
-        <label htmlFor="rvc-tx-sig" className="block text-xs font-medium text-neutral-400">
+        <label htmlFor="rvui-tx-sig" className="block text-xs font-medium text-neutral-400">
           Transaction signature
         </label>
         <p className="mt-0.5 text-xs text-neutral-600">
-          Send the equivalent RVC to the platform wallet, then paste the tx signature here.
+          Send the equivalent RVUI to the platform wallet, then paste the tx signature here.
         </p>
         <input
-          id="rvc-tx-sig"
+          id="rvui-tx-sig"
           type="text"
           value={txSignature}
           onChange={(e) => setTxSignature(e.target.value)}

@@ -6,23 +6,23 @@
  *
  * Supports two payment methods:
  *   1. USDC on Base (EVM) — verified via Coinbase facilitator
- *   2. RVC on Solana — verified on-chain via Token-2022 transfer inspection
+ *   2. RVUI on Solana — verified on-chain via Token-2022 transfer inspection
  *
  * Payment flow:
  *   1. Agent request arrives → quota exhausted
  *   2. Server: HTTP 402 + X-PAYMENT-REQUIRED: <base64 PaymentRequired>
- *   3. Agent: pays USDC on Base OR RVC on Solana, signs proof
+ *   3. Agent: pays USDC on Base OR RVUI on Solana, signs proof
  *   4. Agent: retries with X-PAYMENT-PAYLOAD: <base64 PaymentPayload>
  *   5. Server: verifies proof → allows request
  *
  * Gated behind X402_ENABLED env var (defaults to false). Ship the code,
  * activate when a USDC receiving wallet is configured.
  *
- * RVC payments are additionally gated behind RVC_PAYMENTS_ENABLED and subject
+ * RVUI payments are additionally gated behind RVUI_PAYMENTS_ENABLED and subject
  * to anti-manipulation safeguards (TWAP pricing, rate limits, circuit breaker).
  */
 
-import { RVC_MINT_ADDRESSES, RVC_TOKEN_CONFIG, type SolanaNetwork } from '@revealui/contracts';
+import { RVUI_MINT_ADDRESSES, RVUI_TOKEN_CONFIG, type SolanaNetwork } from '@revealui/contracts';
 import { logger } from '@revealui/core/observability/logger';
 
 // =============================================================================
@@ -76,10 +76,10 @@ const USDC_ADDRESSES: Record<string, string> = {
   'evm:base-sepolia': '0x036CbD53842c5426634e7929541eC2318f3dCF7e',
 };
 
-// RVC mint addresses (Token-2022 on Solana)
-const RVC_ADDRESSES: Record<string, string> = {
-  'solana:devnet': RVC_MINT_ADDRESSES.devnet,
-  'solana:mainnet-beta': RVC_MINT_ADDRESSES['mainnet-beta'],
+// RVUI mint addresses (Token-2022 on Solana)
+const RVUI_ADDRESSES: Record<string, string> = {
+  'solana:devnet': RVUI_MINT_ADDRESSES.devnet,
+  'solana:mainnet-beta': RVUI_MINT_ADDRESSES['mainnet-beta'],
 };
 
 // Default Coinbase-hosted facilitator (no API key required for public verify)
@@ -100,21 +100,21 @@ export interface X402Config {
   usdcAsset: string;
   facilitatorUrl: string;
   maxTimeoutSeconds: number;
-  /** Whether RVC payments on Solana are accepted. */
-  rvcEnabled: boolean;
-  /** Solana wallet address to receive RVC payments. */
-  rvcReceivingAddress: string;
-  /** Solana network for RVC verification. */
-  rvcNetwork: string; // e.g. 'solana:devnet'
-  /** RVC mint address for the active network. */
-  rvcAsset: string;
+  /** Whether RVUI payments on Solana are accepted. */
+  rvuiEnabled: boolean;
+  /** Solana wallet address to receive RVUI payments. */
+  rvuiReceivingAddress: string;
+  /** Solana network for RVUI verification. */
+  rvuiNetwork: string; // e.g. 'solana:devnet'
+  /** RVUI mint address for the active network. */
+  rvuiAsset: string;
 }
 
 /** Read x402 configuration from environment variables (lazy — never throws on missing). */
 export function getX402Config(): X402Config {
   const network = process.env.X402_NETWORK ?? 'evm:base';
   const solanaNetwork = (process.env.SOLANA_NETWORK as SolanaNetwork) ?? 'devnet';
-  const rvcNetworkKey = `solana:${solanaNetwork}`;
+  const rvuiNetworkKey = `solana:${solanaNetwork}`;
   return {
     enabled: process.env.X402_ENABLED === 'true',
     receivingAddress: process.env.X402_RECEIVING_ADDRESS ?? '',
@@ -123,10 +123,10 @@ export function getX402Config(): X402Config {
     usdcAsset: USDC_ADDRESSES[network] ?? USDC_ADDRESSES['evm:base'],
     facilitatorUrl: process.env.X402_FACILITATOR_URL ?? DEFAULT_FACILITATOR_URL,
     maxTimeoutSeconds: 300,
-    rvcEnabled: process.env.RVC_PAYMENTS_ENABLED === 'true',
-    rvcReceivingAddress: process.env.RVC_RECEIVING_WALLET ?? '',
-    rvcNetwork: rvcNetworkKey,
-    rvcAsset: RVC_ADDRESSES[rvcNetworkKey] ?? '',
+    rvuiEnabled: process.env.RVUI_PAYMENTS_ENABLED === 'true',
+    rvuiReceivingAddress: process.env.RVUI_RECEIVING_WALLET ?? '',
+    rvuiNetwork: rvuiNetworkKey,
+    rvuiAsset: RVUI_ADDRESSES[rvuiNetworkKey] ?? '',
   };
 }
 
@@ -164,19 +164,19 @@ function toAtomicUnits(humanAmount: string): string {
 }
 
 /**
- * Convert a human-readable RVC amount to atomic units (6 decimals, same as USDC).
+ * Convert a human-readable RVUI amount to atomic units (6 decimals, same as USDC).
  */
-function toRvcAtomicUnits(humanAmount: string): string {
+function toRvuiAtomicUnits(humanAmount: string): string {
   const amount = Number.parseFloat(humanAmount);
   if (!Number.isFinite(amount) || amount <= 0) return '1000';
-  return String(Math.round(amount * 10 ** RVC_TOKEN_CONFIG.decimals));
+  return String(Math.round(amount * 10 ** RVUI_TOKEN_CONFIG.decimals));
 }
 
 /**
  * Build a PaymentRequired object for a single agent task or marketplace call.
  *
- * Includes USDC on Base as the primary method. If RVC payments are enabled,
- * includes RVC on Solana as a second accepted method (with discount applied).
+ * Includes USDC on Base as the primary method. If RVUI payments are enabled,
+ * includes RVUI on Solana as a second accepted method (with discount applied).
  *
  * @param resource    - Canonical URL of the endpoint being accessed
  * @param customPrice - Optional override for the USDC price (e.g. marketplace per-server pricing).
@@ -203,22 +203,22 @@ export function buildPaymentRequired(resource: string, customPrice?: string): Pa
     },
   ];
 
-  // Secondary: RVC on Solana (with 20% discount for agent tasks per white paper Section 6.3)
-  if (config.rvcEnabled && config.rvcReceivingAddress && config.rvcAsset) {
-    const rvcDiscountRate = 0.2; // 20% discount for AI credits / agent tasks
-    const discountedPrice = String(Number.parseFloat(price) * (1 - rvcDiscountRate));
+  // Secondary: RVUI on Solana (with 20% discount for agent tasks per white paper Section 6.3)
+  if (config.rvuiEnabled && config.rvuiReceivingAddress && config.rvuiAsset) {
+    const rvuiDiscountRate = 0.2; // 20% discount for AI credits / agent tasks
+    const discountedPrice = String(Number.parseFloat(price) * (1 - rvuiDiscountRate));
     accepts.push({
       scheme: 'solana-spl',
-      network: config.rvcNetwork,
-      maxAmountRequired: toRvcAtomicUnits(discountedPrice),
+      network: config.rvuiNetwork,
+      maxAmountRequired: toRvuiAtomicUnits(discountedPrice),
       resource,
-      description: `RevealUI agent task — ${discountedPrice} USD in RVC (20% discount)`,
+      description: `RevealUI agent task — ${discountedPrice} USD in RVUI (20% discount)`,
       mimeType: 'application/json',
       outputSchema: {},
-      payTo: config.rvcReceivingAddress,
+      payTo: config.rvuiReceivingAddress,
       maxTimeoutSeconds: config.maxTimeoutSeconds,
-      asset: config.rvcAsset,
-      extra: { name: 'RVC', version: '1', discount: '20%' },
+      asset: config.rvuiAsset,
+      extra: { name: 'RVUI', version: '1', discount: '20%' },
     });
   }
 
@@ -234,7 +234,7 @@ export function buildPaymentRequired(resource: string, customPrice?: string): Pa
  *
  * Dispatches to the appropriate verifier based on the payment scheme:
  * - `exact` (EVM/USDC) → Coinbase facilitator
- * - `solana-spl` (Solana/RVC) → on-chain Token-2022 transfer verification
+ * - `solana-spl` (Solana/RVUI) → on-chain Token-2022 transfer verification
  *
  * @param payloadHeader - Raw base64 value from X-PAYMENT-PAYLOAD header
  * @param resource      - Canonical resource URL (must match what was sent in 402)
@@ -261,14 +261,14 @@ export async function verifyPayment(
 }
 
 /**
- * Verify an RVC payment on Solana by inspecting the on-chain transaction.
+ * Verify an RVUI payment on Solana by inspecting the on-chain transaction.
  */
 async function verifySolanaPayment(
   paymentPayload: PaymentPayloadV1,
   config: X402Config,
 ): Promise<{ valid: true } | { valid: false; error: string }> {
-  if (!config.rvcEnabled) {
-    return { valid: false, error: 'RVC payments are not enabled on this server' };
+  if (!config.rvuiEnabled) {
+    return { valid: false, error: 'RVUI payments are not enabled on this server' };
   }
 
   const txSignature = paymentPayload.payload.txSignature;
@@ -281,9 +281,9 @@ async function verifySolanaPayment(
     return { valid: false, error: 'Missing amount in payment payload' };
   }
 
-  // Dynamic import: @revealui/services is a Pro package — only load when RVC payments are active
-  const { verifyRvcPayment } = await import('@revealui/services/revealcoin');
-  return verifyRvcPayment(txSignature, BigInt(expectedAmount), config.rvcReceivingAddress);
+  // Dynamic import: @revealui/services is a Pro package — only load when RVUI payments are active
+  const { verifyRvuiPayment } = await import('@revealui/services/revealcoin');
+  return verifyRvuiPayment(txSignature, BigInt(expectedAmount), config.rvuiReceivingAddress);
 }
 
 /**
@@ -364,20 +364,20 @@ export function buildPaymentMethods(baseUrl: string): Record<string, unknown> | 
     },
   ];
 
-  if (config.rvcEnabled && config.rvcReceivingAddress && config.rvcAsset) {
-    const rvcDiscountRate = 0.2;
-    const discountedPrice = String(Number.parseFloat(config.pricePerTask) * (1 - rvcDiscountRate));
+  if (config.rvuiEnabled && config.rvuiReceivingAddress && config.rvuiAsset) {
+    const rvuiDiscountRate = 0.2;
+    const discountedPrice = String(Number.parseFloat(config.pricePerTask) * (1 - rvuiDiscountRate));
     accepts.push({
       scheme: 'solana-spl',
-      network: config.rvcNetwork,
-      maxAmountRequired: toRvcAtomicUnits(discountedPrice),
+      network: config.rvuiNetwork,
+      maxAmountRequired: toRvuiAtomicUnits(discountedPrice),
       resource: `${baseUrl}/api/agent-stream`,
-      description: `RevealUI agent task — ${discountedPrice} USD in RVC (20% discount)`,
+      description: `RevealUI agent task — ${discountedPrice} USD in RVUI (20% discount)`,
       mimeType: 'application/json',
-      payTo: config.rvcReceivingAddress,
+      payTo: config.rvuiReceivingAddress,
       maxTimeoutSeconds: config.maxTimeoutSeconds,
-      asset: config.rvcAsset,
-      extra: { name: 'RVC', version: '1', discount: '20%' },
+      asset: config.rvuiAsset,
+      extra: { name: 'RVUI', version: '1', discount: '20%' },
     });
   }
 

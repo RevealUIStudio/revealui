@@ -1,7 +1,7 @@
 /**
  * RevealCoin Payment Tables
  *
- * Tracks verified RVC payments and price snapshots for anti-manipulation
+ * Tracks verified RVUI payments and price snapshots for anti-manipulation
  * safeguards (TWAP pricing, rate limiting, duplicate tx rejection, discount caps).
  */
 
@@ -29,8 +29,8 @@ export const revealcoinPayments = pgTable(
       .notNull()
       .references(() => users.id, { onDelete: 'cascade' }),
 
-    /** RVC amount transferred (raw token units as string for precision). */
-    amountRvc: text('amount_rvc').notNull(),
+    /** RVUI amount transferred (raw token units as string for precision). */
+    amountRvui: text('amount_rvc').notNull(),
 
     /** USD equivalent at time of payment (TWAP-based). */
     amountUsd: numeric('amount_usd', { precision: 12, scale: 4 }).notNull(),
@@ -71,7 +71,7 @@ export const revealcoinPriceSnapshots = pgTable(
     /** Unique snapshot ID (UUID). */
     id: text('id').primaryKey(),
 
-    /** RVC price in USD at this point in time. */
+    /** RVUI price in USD at this point in time. */
     priceUsd: numeric('price_usd', { precision: 18, scale: 8 }).notNull(),
 
     /** Price data source (e.g., 'jupiter', 'raydium', 'manual'). */

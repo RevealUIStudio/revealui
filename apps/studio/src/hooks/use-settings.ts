@@ -6,9 +6,9 @@ export interface StudioSettings {
   theme: Theme;
   apiUrl: string;
   pollingIntervalMs: number;
-  /** Solana wallet public key for RVC balance display. */
+  /** Solana wallet public key for RVUI balance display. */
   solanaWalletAddress: string;
-  /** Solana network for RVC queries. */
+  /** Solana network for RVUI queries. */
   solanaNetwork: 'devnet' | 'mainnet-beta';
 }
 

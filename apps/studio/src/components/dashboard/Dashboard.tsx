@@ -1,10 +1,10 @@
 import { useSettingsContext } from '../../hooks/use-settings';
 import { useStatusContext } from '../../hooks/use-status';
-import RvcUpgradePanel from '../subscription/RvcUpgradePanel';
+import RvuiUpgradePanel from '../subscription/RvuiUpgradePanel';
 import Button from '../ui/Button';
 import ErrorAlert from '../ui/ErrorAlert';
 import PanelHeader from '../ui/PanelHeader';
-import RvcBalanceCard from './RvcBalanceCard';
+import RvuiBalanceCard from './RvuiBalanceCard';
 import ServiceCard from './ServiceCard';
 import TierBadge from './TierBadge';
 import WelcomeBanner from './WelcomeBanner';
@@ -67,10 +67,10 @@ export default function Dashboard() {
           }
           detail={system?.systemd_status ?? 'Unknown'}
         />
-        <RvcBalanceCard />
+        <RvuiBalanceCard />
       </div>
 
-      <RvcUpgradePanel currentTier={system?.tier} apiUrl={settings.apiUrl} />
+      <RvuiUpgradePanel currentTier={system?.tier} apiUrl={settings.apiUrl} />
     </div>
   );
 }
