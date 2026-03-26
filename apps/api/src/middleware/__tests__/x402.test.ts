@@ -7,6 +7,16 @@ vi.mock('@revealui/core/observability/logger', () => ({
   logger: { info: vi.fn(), error: vi.fn(), warn: vi.fn(), debug: vi.fn() },
 }));
 
+// ---------------------------------------------------------------------------
+// Mock RVC payment verification
+// ---------------------------------------------------------------------------
+const { mockVerifyRvcPayment } = vi.hoisted(() => ({
+  mockVerifyRvcPayment: vi.fn(),
+}));
+vi.mock('@revealui/services/revealcoin', () => ({
+  verifyRvcPayment: mockVerifyRvcPayment,
+}));
+
 import {
   buildPaymentMethods,
   buildPaymentRequired,
@@ -33,7 +43,9 @@ function setEnv(overrides: Record<string, string | undefined>): void {
 beforeEach(() => {
   // Reset env to clean state
   for (const key of Object.keys(process.env)) {
-    if (key.startsWith('X402_')) delete process.env[key];
+    if (key.startsWith('X402_') || key.startsWith('RVC_') || key === 'SOLANA_NETWORK') {
+      delete process.env[key];
+    }
   }
 });
 
@@ -348,5 +360,193 @@ describe('verifyPayment', () => {
     // the resource field in the requirement must be exactly what was passed.
     const rebuilt = buildPaymentRequired(resource).accepts[0];
     expect(rebuilt.resource).toBe(requirement.resource);
+  });
+});
+
+// ---------------------------------------------------------------------------
+// RVC payment discovery (buildPaymentRequired with RVC enabled)
+// ---------------------------------------------------------------------------
+describe('RVC payment discovery', () => {
+  beforeEach(() => {
+    setEnv({
+      X402_RECEIVING_ADDRESS: '0xTestWallet',
+      X402_PRICE_PER_TASK: '0.001',
+      X402_NETWORK: 'evm:base',
+      RVC_PAYMENTS_ENABLED: 'true',
+      RVC_RECEIVING_WALLET: 'SolanaTestWallet123',
+      SOLANA_NETWORK: 'devnet',
+    });
+  });
+
+  it('includes RVC as second payment method when enabled', () => {
+    const result = buildPaymentRequired('https://api.example.com/api/agent-stream');
+    expect(result.accepts).toHaveLength(2);
+
+    const rvcMethod = result.accepts[1];
+    expect(rvcMethod.scheme).toBe('solana-spl');
+    expect(rvcMethod.network).toBe('solana:devnet');
+    expect(rvcMethod.payTo).toBe('SolanaTestWallet123');
+    expect(rvcMethod.extra).toEqual({ name: 'RVC', version: '1', discount: '20%' });
+  });
+
+  it('applies 20% discount to RVC price', () => {
+    setEnv({ X402_PRICE_PER_TASK: '0.001' });
+    const result = buildPaymentRequired('https://api.example.com/test');
+
+    const usdcAmount = result.accepts[0].maxAmountRequired;
+    const rvcAmount = result.accepts[1].maxAmountRequired;
+
+    // USDC: $0.001 = 1000 atomic units
+    expect(usdcAmount).toBe('1000');
+    // RVC: $0.001 * 0.8 = $0.0008 = 800 atomic units
+    expect(rvcAmount).toBe('800');
+  });
+
+  it('excludes RVC when RVC_PAYMENTS_ENABLED is false', () => {
+    setEnv({ RVC_PAYMENTS_ENABLED: 'false' });
+    const result = buildPaymentRequired('https://api.example.com/test');
+    expect(result.accepts).toHaveLength(1);
+    expect(result.accepts[0].scheme).toBe('exact');
+  });
+
+  it('excludes RVC when no receiving wallet is set', () => {
+    setEnv({ RVC_RECEIVING_WALLET: undefined });
+    const result = buildPaymentRequired('https://api.example.com/test');
+    expect(result.accepts).toHaveLength(1);
+  });
+
+  it('includes RVC in well-known payment methods', () => {
+    setEnv({ X402_ENABLED: 'true' });
+    const result = buildPaymentMethods('https://api.example.com');
+    expect(result).not.toBeNull();
+
+    const accepts = result!.accepts as Array<Record<string, unknown>>;
+    expect(accepts).toHaveLength(2);
+    expect(accepts[1].scheme).toBe('solana-spl');
+    expect(accepts[1].network).toBe('solana:devnet');
+  });
+});
+
+// ---------------------------------------------------------------------------
+// RVC payment verification (solana-spl scheme)
+// ---------------------------------------------------------------------------
+describe('RVC payment verification', () => {
+  beforeEach(() => {
+    setEnv({
+      X402_ENABLED: 'true',
+      X402_RECEIVING_ADDRESS: '0xTestWallet',
+      RVC_PAYMENTS_ENABLED: 'true',
+      RVC_RECEIVING_WALLET: 'SolanaTestWallet123',
+      SOLANA_NETWORK: 'devnet',
+    });
+    mockVerifyRvcPayment.mockReset();
+  });
+
+  it('dispatches solana-spl scheme to RVC verifier', async () => {
+    mockVerifyRvcPayment.mockResolvedValue({ valid: true });
+
+    const payload = {
+      x402Version: 1,
+      scheme: 'solana-spl',
+      network: 'solana:devnet',
+      payload: { txSignature: 'abc123sig', amount: '800' },
+    };
+    const encoded = Buffer.from(JSON.stringify(payload), 'utf-8').toString('base64');
+
+    const result = await verifyPayment(encoded, 'https://example.com/test');
+    expect(result.valid).toBe(true);
+    expect(mockVerifyRvcPayment).toHaveBeenCalledWith('abc123sig', 800n, 'SolanaTestWallet123');
+  });
+
+  it('returns invalid when RVC verification fails', async () => {
+    mockVerifyRvcPayment.mockResolvedValue({
+      valid: false,
+      error: 'Insufficient payment: expected 1000, received 500',
+    });
+
+    const payload = {
+      x402Version: 1,
+      scheme: 'solana-spl',
+      network: 'solana:devnet',
+      payload: { txSignature: 'sig456', amount: '1000' },
+    };
+    const encoded = Buffer.from(JSON.stringify(payload), 'utf-8').toString('base64');
+
+    const result = await verifyPayment(encoded, 'https://example.com/test');
+    expect(result.valid).toBe(false);
+    if (!result.valid) {
+      expect(result.error).toContain('Insufficient payment');
+    }
+  });
+
+  it('rejects when RVC payments are disabled', async () => {
+    setEnv({ RVC_PAYMENTS_ENABLED: 'false' });
+
+    const payload = {
+      x402Version: 1,
+      scheme: 'solana-spl',
+      network: 'solana:devnet',
+      payload: { txSignature: 'sig789', amount: '1000' },
+    };
+    const encoded = Buffer.from(JSON.stringify(payload), 'utf-8').toString('base64');
+
+    const result = await verifyPayment(encoded, 'https://example.com/test');
+    expect(result.valid).toBe(false);
+    if (!result.valid) {
+      expect(result.error).toContain('not enabled');
+    }
+  });
+
+  it('rejects when txSignature is missing', async () => {
+    const payload = {
+      x402Version: 1,
+      scheme: 'solana-spl',
+      network: 'solana:devnet',
+      payload: { amount: '1000' },
+    };
+    const encoded = Buffer.from(JSON.stringify(payload), 'utf-8').toString('base64');
+
+    const result = await verifyPayment(encoded, 'https://example.com/test');
+    expect(result.valid).toBe(false);
+    if (!result.valid) {
+      expect(result.error).toContain('txSignature');
+    }
+  });
+
+  it('rejects when amount is missing', async () => {
+    const payload = {
+      x402Version: 1,
+      scheme: 'solana-spl',
+      network: 'solana:devnet',
+      payload: { txSignature: 'sig123' },
+    };
+    const encoded = Buffer.from(JSON.stringify(payload), 'utf-8').toString('base64');
+
+    const result = await verifyPayment(encoded, 'https://example.com/test');
+    expect(result.valid).toBe(false);
+    if (!result.valid) {
+      expect(result.error).toContain('amount');
+    }
+  });
+
+  it('still routes EVM payments to facilitator when both enabled', async () => {
+    const mockFetch = vi.fn().mockResolvedValue({
+      ok: true,
+      json: () => Promise.resolve({ isValid: true }),
+    });
+    vi.stubGlobal('fetch', mockFetch);
+
+    const payload = {
+      x402Version: 1,
+      scheme: 'exact',
+      network: 'evm:base',
+      payload: { txHash: '0xabc' },
+    };
+    const encoded = Buffer.from(JSON.stringify(payload), 'utf-8').toString('base64');
+
+    const result = await verifyPayment(encoded, 'https://example.com/test');
+    expect(result.valid).toBe(true);
+    expect(mockFetch).toHaveBeenCalledTimes(1);
+    expect(mockVerifyRvcPayment).not.toHaveBeenCalled();
   });
 });
