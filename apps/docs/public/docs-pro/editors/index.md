@@ -1,105 +1,68 @@
 # @revealui/editors
 
-Editor daemon and adapter integrations for Zed, VS Code, and Neovim. Brings RevealUI AI capabilities directly into your editor workflow.
+Editor configuration generators for VS Code, Zed, Cursor, and Antigravity. Keeps your editor setup consistent across the team and aligned with RevealUI project conventions.
 
 ## Overview
 
-`@revealui/editors` runs a local daemon that connects your editor to the RevealUI agent system:
+`@revealui/editors` generates and syncs editor configuration files:
 
-- **Zed** — ACP (Agent Control Protocol) integration
-- **VS Code** — Language server extension
-- **Neovim** — Lua plugin via JSON-RPC
+- **VS Code** — `.vscode/settings.json` + `.vscode/extensions.json` (recommended extensions)
+- **Zed** — `.zed/settings.json` (theme, keybindings, extensions)
+- **Cursor** — `.cursorrules` (project-specific AI rules)
+- **Antigravity** — `.agents/rules/revealui.md` (agent rules)
 
 ## Installation
 
 Requires a RevealUI Pro license.
 
 ```bash
-pnpm add -g @revealui/editors
+pnpm add @revealui/editors
 ```
 
-## Starting the daemon
+## Usage
 
-```bash
-revealui-editor-daemon --port 3030
-```
-
-Or add to your shell profile for automatic startup:
-
-```bash
-# ~/.bashrc or ~/.zshrc
-revealui-editor-daemon --port 3030 &
-```
-
-## Zed integration
-
-The Zed adapter connects via ACP (Agent Control Protocol).
-
-```json
-// ~/.config/zed/settings.json
-{
-  "assistant": {
-    "version": "2",
-    "provider": {
-      "name": "revealui",
-      "endpoint": "http://localhost:3030"
-    }
-  }
-}
-```
-
-## VS Code integration
-
-Install the RevealUI extension from the marketplace, or manually:
-
-```bash
-code --install-extension revealui.revealui-vscode
-```
-
-Configure in VS Code settings:
-
-```json
-{
-  "revealui.daemon.endpoint": "http://localhost:3030",
-  "revealui.agent.model": "groq/llama-3.3-70b-versatile"
-}
-```
-
-## Neovim integration
-
-```lua
--- init.lua
-require('revealui').setup({
-  endpoint = 'http://localhost:3030',
-  keymaps = {
-    chat = '<leader>ai',
-    complete = '<C-space>',
-  },
-})
-```
-
-## Daemon configuration
+### Sync all editor configs
 
 ```typescript
-// revealui.config.ts
-import { defineEditorConfig } from '@revealui/editors'
+import { syncEditorConfigs } from '@revealui/editors'
 
-export default defineEditorConfig({
-  daemon: {
-    port: 3030,
-    logLevel: 'info',
-  },
-  agent: {
-    provider: 'groq',
-    model: 'llama-3.3-70b-versatile',
-    systemPrompt: 'You are a helpful coding assistant working in this codebase.',
-  },
-  workboard: {
-    path: '.claude/workboard.md',
-  },
+const result = await syncEditorConfigs({
+  rootDir: process.cwd(),
+  // Optional: only sync specific editors (default: all)
+  editors: ['vscode', 'zed', 'cursor', 'antigravity'],
 })
+
+console.log('Written:', result.written)
+console.log('Skipped (unchanged):', result.skipped)
+console.log('Errors:', result.errors)
 ```
 
-## Workboard coordination
+### Generate individual configs
 
-The editor daemon reads and writes the agent workboard, allowing multiple editor instances to coordinate on shared work. See [coordination rules](/pro) for details.
+```typescript
+import {
+  generateVSCodeSettings,
+  generateVSCodeExtensions,
+  generateZedSettings,
+  generateCursorRules,
+  generateAntigravityRules,
+} from '@revealui/editors'
+
+// Each returns a JSON-serializable object or string
+const vscodeSettings = generateVSCodeSettings()
+const vscodeExtensions = generateVSCodeExtensions()
+const zedSettings = generateZedSettings()
+const cursorRules = generateCursorRules()
+const antigravityRules = generateAntigravityRules()
+```
+
+## What it does
+
+- Writes config files only when content has changed (skip-if-identical)
+- Creates directories as needed
+- Returns a `SyncResult` with `written`, `skipped`, and `errors` arrays
+- VS Code configs are shared across VS Code, Cursor, and Antigravity (written once)
+
+## Roadmap
+
+Editor daemon integration (real-time sync, agent coordination from within your editor) is planned for a future release. See the [harnesses package](/pro/harnesses) for current multi-agent coordination capabilities.
