@@ -324,6 +324,123 @@ The marketplace does not modify request or response bodies. It passes through th
 
 ---
 
+## Testing your server
+
+Before publishing, verify your server works with the marketplace proxy:
+
+### Local testing
+
+```bash
+# Start the API server locally
+pnpm dev:api
+
+# Publish a test server pointing to your local MCP server
+curl -X POST http://localhost:3004/api/marketplace/servers \
+  -H "Content-Type: application/json" \
+  -H "Cookie: revealui-session=<your-session>" \
+  -d '{
+    "name": "Test Server",
+    "url": "http://localhost:8080/rpc",
+    "category": "coding",
+    "pricePerCallUsdc": "0.001"
+  }'
+
+# Invoke it (payment is skipped in development mode)
+curl -X POST http://localhost:3004/api/marketplace/servers/<id>/invoke \
+  -H "Content-Type: application/json" \
+  -d '{"jsonrpc": "2.0", "id": 1, "method": "your_method", "params": {}}'
+```
+
+### Health checks
+
+The marketplace proxy checks your server's availability before listing it. If your server is unreachable for 3 consecutive health checks (every 5 minutes), it is automatically suspended. Restore it by fixing the endpoint and calling:
+
+```http
+POST /api/marketplace/servers/<id>/restore
+Authorization: Bearer <your-session-token>
+```
+
+---
+
+## Disputes and refunds
+
+### Caller disputes
+
+If a caller believes a server returned an incorrect or incomplete response, they can file a dispute:
+
+```http
+POST /api/marketplace/disputes
+Authorization: Bearer <your-session-token>
+Content-Type: application/json
+
+{
+  "transactionId": "txn_abc123",
+  "reason": "Server returned an error instead of the expected analysis"
+}
+```
+
+Disputes are reviewed manually. If upheld, the caller is credited and the amount is deducted from the developer's balance.
+
+### Automatic refunds
+
+The marketplace automatically refunds callers when:
+
+- The server returns an HTTP 5xx error
+- The server times out (>30 seconds)
+- The proxy fails to reach the server
+
+These refunds are immediate and do not count against the developer.
+
+---
+
+## Tax and compliance
+
+### For developers
+
+- You are responsible for reporting marketplace income to your local tax authority
+- RevealUI does not withhold taxes on marketplace payouts
+- If you exceed $600 USD in annual payouts (US), Stripe Connect will collect a W-9 and issue a 1099-K
+- International developers receive payouts per Stripe's cross-border transfer policies
+
+### For callers
+
+- Marketplace payments are in USDC (a stablecoin) via the x402 protocol
+- x402 payments are on-chain transactions on Base (Ethereum L2)
+- Consult your tax advisor regarding cryptocurrency transaction reporting in your jurisdiction
+
+### Platform obligations
+
+- All transactions are recorded in `marketplace_transactions` with full audit trail
+- RevealUI reports platform revenue per standard SaaS accounting practices
+- GDPR: developer and caller data is handled per the [RevealUI Privacy Policy](https://revealui.com/privacy)
+
+---
+
+## Server analytics
+
+Track your server's performance via the developer dashboard or API:
+
+```http
+GET /api/marketplace/servers/<id>/analytics?period=30d
+Authorization: Bearer <your-session-token>
+```
+
+```json
+{
+  "calls": 1234,
+  "revenue": "6.17",
+  "avgResponseTimeMs": 420,
+  "errorRate": 0.02,
+  "uniqueCallers": 89,
+  "topMethods": [
+    { "method": "check_types", "calls": 890 },
+    { "method": "lint_file", "calls": 344 }
+  ]
+}
+```
+
+---
+
 ## Related
 
 - [Pro overview](./PRO.md)

@@ -266,6 +266,143 @@ The CMS requires `NEXT_PUBLIC_API_URL` to point to your API. Verify it is set co
 
 ---
 
+## Backup and restore
+
+### Database backup
+
+```bash
+# Backup the Forge database
+docker compose -f docker-compose.forge.yml exec db \
+  pg_dump -U revealui -Fc revealui > backup-$(date +%Y%m%d).dump
+
+# Schedule daily backups via cron
+0 2 * * * cd /opt/revealui && docker compose -f docker-compose.forge.yml exec -T db pg_dump -U revealui -Fc revealui > /backups/revealui-$(date +\%Y\%m\%d).dump
+```
+
+### Restore from backup
+
+```bash
+# Stop the stack
+docker compose -f docker-compose.forge.yml down
+
+# Restore the database
+docker compose -f docker-compose.forge.yml up -d db
+docker compose -f docker-compose.forge.yml exec -T db \
+  pg_restore -U revealui -d revealui --clean --if-exists < backup-20260325.dump
+
+# Restart all services
+docker compose -f docker-compose.forge.yml up -d
+```
+
+### Media files
+
+If using local file storage for media, back up the `uploads` volume:
+
+```bash
+docker run --rm -v forge-uploads:/data -v $(pwd):/backup alpine \
+  tar czf /backup/uploads-$(date +%Y%m%d).tar.gz -C /data .
+```
+
+For production, use S3-compatible storage (`STORAGE_ADAPTER=s3`) so media is backed up by your object store.
+
+---
+
+## Monitoring
+
+### Health endpoints
+
+| Endpoint | Description |
+|----------|-------------|
+| `GET /health` | Basic health check (API + DB connectivity) |
+| `GET /api/health/ready` | Readiness probe (all services operational) |
+
+### Docker health checks
+
+Both API and CMS containers have built-in health checks. Monitor with:
+
+```bash
+docker compose -f docker-compose.forge.yml ps
+# Shows: healthy / unhealthy / starting for each service
+```
+
+### Logging
+
+All services log to stdout. Use Docker's logging driver for aggregation:
+
+```yaml
+# docker-compose.forge.yml override
+services:
+  api:
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "50m"
+        max-file: "5"
+```
+
+For production, pipe to your logging stack (Datadog, Loki, CloudWatch):
+
+```yaml
+services:
+  api:
+    logging:
+      driver: "awslogs"
+      options:
+        awslogs-group: "revealui-forge"
+        awslogs-region: "us-east-1"
+```
+
+### Metrics
+
+The API exposes Prometheus-compatible metrics at `GET /metrics` when `ENABLE_METRICS=true` is set. Scrape with Prometheus, Grafana Agent, or Datadog.
+
+---
+
+## High availability
+
+For single-node deployments, the Docker Compose stack is sufficient. For high availability:
+
+### Database
+
+Use a managed PostgreSQL service (NeonDB, AWS RDS, Supabase) instead of the bundled `postgres:16-alpine`:
+
+```bash
+# In .env.forge, point to your managed database
+POSTGRES_URL=postgresql://user:pass@your-managed-db.neon.tech/revealui?sslmode=require
+```
+
+Remove the `db` service from `docker-compose.forge.yml` when using an external database.
+
+### API
+
+Run multiple API replicas behind a load balancer:
+
+```bash
+docker compose -f docker-compose.forge.yml up -d --scale api=3
+```
+
+The API is stateless — all state lives in PostgreSQL. Session cookies are signed with `REVEALUI_SECRET`, so all replicas must share the same secret.
+
+### CMS
+
+The CMS (Next.js standalone) can also run multiple replicas. ISR revalidation is coordinated via the API's `/api/revalidate` endpoint.
+
+---
+
+## Upgrading from hosted
+
+If you're migrating from hosted RevealUI to a self-hosted Forge deployment:
+
+1. **Export your data** — use the CMS admin panel (Settings → Export) or the API: `GET /api/export?collections=pages,posts,products,users`
+2. **Set up Forge** — follow the quick start above
+3. **Import your data** — `POST /api/import` with the exported JSON
+4. **Update DNS** — point your domain to the Forge instance
+5. **Transfer Stripe** — update your Stripe webhook endpoint URL to your new domain
+
+Contact support for assistance with large migrations or custom data transformations.
+
+---
+
 ## Related
 
 - [Environment Variables Guide](./ENVIRONMENT_VARIABLES_GUIDE.md)

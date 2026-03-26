@@ -87,32 +87,22 @@ This will create markdown files in \`docs/api/\` that are automatically copied t
 function ApiIndex() {
   const content = `# API Reference
 
-Complete API documentation for RevealUI Framework packages.
+Complete API documentation for RevealUI.
 
-## Packages
+## REST API
 
-- [@revealui/core](./revealui-core) - Core CMS framework
-- [@revealui/contracts](./revealui-contracts) - Contract definitions and schemas
-- [@revealui/db](./revealui-db) - Database package
+- [REST API Reference](./rest-api) — all endpoints, request/response schemas, authentication
 
-## Generation
+Start the API server (\`pnpm dev:api\`) and open [http://localhost:3004](http://localhost:3004) for the interactive Swagger UI with a request builder.
 
-API documentation is automatically generated from TypeScript source files using JSDoc comments.
+## Regenerating
 
-To regenerate:
+The REST API reference is generated from the live OpenAPI spec:
 
 \`\`\`bash
+curl http://localhost:3004/openapi.json > examples/api/openapi.json
 pnpm docs:generate:api
 \`\`\`
-
-## Note
-
-**Files in this directory are auto-generated. Do not edit them manually.**
-
-Changes should be made to:
-1. Source code JSDoc comments
-2. TypeScript type definitions
-3. The documentation generator scripts
 `;
 
   return (
