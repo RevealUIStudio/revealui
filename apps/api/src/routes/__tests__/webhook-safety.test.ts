@@ -225,6 +225,8 @@ describe('Webhook Safety — money-critical paths', () => {
       const event = {
         id: 'evt_safety_tier_pro',
         type: 'customer.subscription.updated',
+        created: 1700000000,
+        livemode: false,
         data: {
           object: { id: 'sub_t', customer: 'cus_t', status: 'active', metadata: { tier: 'pro' } },
         },
@@ -249,6 +251,8 @@ describe('Webhook Safety — money-critical paths', () => {
       const event = {
         id: 'evt_safety_tier_max',
         type: 'customer.subscription.updated',
+        created: 1700000000,
+        livemode: false,
         data: {
           object: { id: 'sub_t', customer: 'cus_t', status: 'active', metadata: { tier: 'max' } },
         },
@@ -272,6 +276,8 @@ describe('Webhook Safety — money-critical paths', () => {
       const event = {
         id: 'evt_safety_tier_ent',
         type: 'customer.subscription.updated',
+        created: 1700000000,
+        livemode: false,
         data: {
           object: {
             id: 'sub_t',
@@ -300,6 +306,8 @@ describe('Webhook Safety — money-critical paths', () => {
       const event = {
         id: 'evt_safety_tier_unknown',
         type: 'customer.subscription.updated',
+        created: 1700000000,
+        livemode: false,
         data: {
           object: {
             id: 'sub_t',
@@ -327,6 +335,8 @@ describe('Webhook Safety — money-critical paths', () => {
       const event = {
         id: 'evt_safety_tier_missing',
         type: 'customer.subscription.updated',
+        created: 1700000000,
+        livemode: false,
         data: {
           object: {
             id: 'sub_t',
@@ -354,6 +364,8 @@ describe('Webhook Safety — money-critical paths', () => {
       const event = {
         id: 'evt_safety_tier_alert_email',
         type: 'customer.subscription.updated',
+        created: 1700000000,
+        livemode: false,
         data: {
           object: {
             id: 'sub_t',
@@ -388,6 +400,8 @@ describe('Webhook Safety — money-critical paths', () => {
       const event = {
         id: 'evt_safety_tier_alert_custom',
         type: 'customer.subscription.updated',
+        created: 1700000000,
+        livemode: false,
         data: {
           object: {
             id: 'sub_t',
@@ -424,6 +438,8 @@ describe('Webhook Safety — money-critical paths', () => {
       return {
         id,
         type: 'checkout.session.completed',
+        created: 1700000000,
+        livemode: false,
         data: {
           object: {
             mode: 'payment',
@@ -527,6 +543,8 @@ describe('Webhook Safety — money-critical paths', () => {
       const event = {
         id: 'evt_safety_idem_dup',
         type: 'customer.subscription.deleted',
+        created: 1700000000,
+        livemode: false,
         data: { object: { id: 'sub_idem', customer: 'cus_idem' } },
       };
       mockConstructEvent.mockReturnValue(event);
@@ -555,6 +573,8 @@ describe('Webhook Safety — money-critical paths', () => {
       const event = {
         id: 'evt_safety_idem_pg',
         type: 'customer.subscription.deleted',
+        created: 1700000000,
+        livemode: false,
         data: { object: { id: 'sub_pg', customer: 'cus_pg' } },
       };
       mockConstructEvent.mockReturnValueOnce(event);
@@ -575,6 +595,8 @@ describe('Webhook Safety — money-critical paths', () => {
       const event = {
         id: 'evt_safety_idem_no_biz',
         type: 'customer.subscription.deleted',
+        created: 1700000000,
+        livemode: false,
         data: { object: { id: 'sub_dup', customer: 'cus_dup' } },
       };
       mockConstructEvent.mockReturnValueOnce(event);
@@ -597,6 +619,8 @@ describe('Webhook Safety — money-critical paths', () => {
       const event = {
         id: 'evt_safety_idem_err',
         type: 'customer.subscription.deleted',
+        created: 1700000000,
+        livemode: false,
         data: { object: { id: 'sub_err', customer: 'cus_err' } },
       };
       mockConstructEvent.mockReturnValueOnce(event);
@@ -615,6 +639,8 @@ describe('Webhook Safety — money-critical paths', () => {
       const event = {
         id: 'evt_safety_idem_log',
         type: 'customer.subscription.deleted',
+        created: 1700000000,
+        livemode: false,
         data: { object: { id: 'sub_logfail', customer: 'cus_logfail' } },
       };
       mockConstructEvent.mockReturnValueOnce(event);
@@ -642,7 +668,14 @@ describe('Webhook Safety — money-critical paths', () => {
       delete process.env.STRIPE_WEBHOOK_SECRET_LIVE;
 
       const app = createApp();
-      const res = await app.request(postStripe({}, 't=123,v1=test'));
+      const validBody = {
+        id: 'evt_no_secret',
+        type: 'test.event',
+        data: { object: {} },
+        created: 1700000000,
+        livemode: false,
+      };
+      const res = await app.request(postStripe(validBody, 't=123,v1=test'));
 
       expect(res.status).toBe(503);
     });
@@ -652,7 +685,14 @@ describe('Webhook Safety — money-critical paths', () => {
       delete process.env.STRIPE_WEBHOOK_SECRET_LIVE;
 
       const app = createApp();
-      await app.request(postStripe({}, 't=123,v1=test'));
+      const validBody = {
+        id: 'evt_no_secret2',
+        type: 'test.event',
+        data: { object: {} },
+        created: 1700000000,
+        livemode: false,
+      };
+      await app.request(postStripe(validBody, 't=123,v1=test'));
 
       // constructEvent should not be called — the error happens before that
       expect(mockConstructEvent).not.toHaveBeenCalled();
@@ -669,7 +709,14 @@ describe('Webhook Safety — money-critical paths', () => {
       });
 
       const app = createApp();
-      const res = await app.request(postStripe({}, 'valid-sig'));
+      const validBody = {
+        id: 'evt_live_only',
+        type: 'payment_intent.created',
+        data: { object: {} },
+        created: 1700000000,
+        livemode: false,
+      };
+      const res = await app.request(postStripe(validBody, 'valid-sig'));
 
       expect(res.status).toBe(200);
       expect(mockConstructEvent).toHaveBeenCalledWith(
@@ -691,7 +738,14 @@ describe('Webhook Safety — money-critical paths', () => {
       });
 
       const app = createApp();
-      const res = await app.request(postStripe({}, 'bad-sig'));
+      const validBody = {
+        id: 'evt_bad_sig',
+        type: 'test.event',
+        data: { object: {} },
+        created: 1700000000,
+        livemode: false,
+      };
+      const res = await app.request(postStripe(validBody, 'bad-sig'));
 
       expect(res.status).toBe(400);
       const body = (await res.json()) as Record<string, unknown>;
@@ -703,7 +757,13 @@ describe('Webhook Safety — money-critical paths', () => {
       const req = new Request('http://localhost/stripe', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: '{}',
+        body: JSON.stringify({
+          id: 'evt_no_sig_header',
+          type: 'test.event',
+          data: { object: {} },
+          created: 1700000000,
+          livemode: false,
+        }),
       });
       const res = await app.request(req);
 
@@ -718,7 +778,14 @@ describe('Webhook Safety — money-critical paths', () => {
       });
 
       const app = createApp();
-      await app.request(postStripe({}, 'forged-sig'));
+      const validBody = {
+        id: 'evt_forged',
+        type: 'test.event',
+        data: { object: {} },
+        created: 1700000000,
+        livemode: false,
+      };
+      await app.request(postStripe(validBody, 'forged-sig'));
 
       expect(vi.mocked(loggerModule.logger).error).toHaveBeenCalledWith(
         'Webhook signature verification failed',
@@ -733,7 +800,14 @@ describe('Webhook Safety — money-critical paths', () => {
       });
 
       const app = createApp();
-      await app.request(postStripe({}, 'bad'));
+      const validBody = {
+        id: 'evt_bad',
+        type: 'test.event',
+        data: { object: {} },
+        created: 1700000000,
+        livemode: false,
+      };
+      await app.request(postStripe(validBody, 'bad'));
 
       expect(mockDb.insert).not.toHaveBeenCalled();
       expect(mockDb.select).not.toHaveBeenCalled();
@@ -753,6 +827,8 @@ describe('Webhook Safety — money-critical paths', () => {
         const event = {
           id: 'evt_safety_email_license',
           type: 'checkout.session.completed',
+          created: 1700000000,
+          livemode: false,
           data: {
             object: {
               mode: 'subscription',
@@ -803,6 +879,8 @@ describe('Webhook Safety — money-critical paths', () => {
         const event = {
           id: 'evt_safety_email_fallback',
           type: 'checkout.session.completed',
+          created: 1700000000,
+          livemode: false,
           data: {
             object: {
               mode: 'subscription',
@@ -839,6 +917,8 @@ describe('Webhook Safety — money-critical paths', () => {
         const event = {
           id: 'evt_safety_email_perp',
           type: 'checkout.session.completed',
+          created: 1700000000,
+          livemode: false,
           data: {
             object: {
               mode: 'payment',
@@ -887,6 +967,8 @@ describe('Webhook Safety — money-critical paths', () => {
         const event = {
           id: 'evt_safety_email_pastdue',
           type: 'customer.subscription.updated',
+          created: 1700000000,
+          livemode: false,
           data: {
             object: {
               id: 'sub_pd',
@@ -922,6 +1004,8 @@ describe('Webhook Safety — money-critical paths', () => {
         const event = {
           id: 'evt_safety_email_invfail',
           type: 'invoice.payment_failed',
+          created: 1700000000,
+          livemode: false,
           data: {
             object: {
               id: 'inv_fail',
@@ -960,6 +1044,8 @@ describe('Webhook Safety — money-critical paths', () => {
         const event = {
           id: 'evt_safety_email_trial',
           type: 'customer.subscription.trial_will_end',
+          created: 1700000000,
+          livemode: false,
           data: {
             object: {
               id: 'sub_trial',
@@ -999,6 +1085,8 @@ describe('Webhook Safety — money-critical paths', () => {
         const event = {
           id: 'evt_safety_email_recovered',
           type: 'invoice.payment_succeeded',
+          created: 1700000000,
+          livemode: false,
           data: {
             object: {
               id: 'inv_recovered',
@@ -1046,6 +1134,8 @@ describe('Webhook Safety — money-critical paths', () => {
         const event = {
           id: 'evt_safety_email_dispute',
           type: 'charge.dispute.closed',
+          created: 1700000000,
+          livemode: false,
           data: {
             object: {
               id: 'dp_lost',
@@ -1084,6 +1174,8 @@ describe('Webhook Safety — money-critical paths', () => {
         const event = {
           id: 'evt_safety_email_fail_resilient',
           type: 'checkout.session.completed',
+          created: 1700000000,
+          livemode: false,
           data: {
             object: {
               mode: 'subscription',
@@ -1112,6 +1204,8 @@ describe('Webhook Safety — money-critical paths', () => {
         const event = {
           id: 'evt_safety_email_warn_log',
           type: 'checkout.session.completed',
+          created: 1700000000,
+          livemode: false,
           data: {
             object: {
               mode: 'subscription',

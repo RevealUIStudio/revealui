@@ -143,6 +143,15 @@ function resetDbChains(): void {
   );
 }
 
+/** Minimal body that satisfies the Stripe event envelope Zod schema */
+const VALID_BODY = JSON.stringify({
+  id: 'evt_test',
+  type: 'test.event',
+  data: { object: {} },
+  created: 1700000000,
+  livemode: false,
+});
+
 // ─── Tests ───────────────────────────────────────────────────────────────────
 
 describe('POST /stripe webhook — signature timing & replay protection', () => {
@@ -186,7 +195,13 @@ describe('POST /stripe webhook — signature timing & replay protection', () => 
 
   describe('Valid signature', () => {
     it('accepts a correctly signed webhook and returns 200', async () => {
-      const payload = { id: 'evt_valid_sig', type: 'checkout.session.completed' };
+      const payload = {
+        id: 'evt_valid_sig',
+        type: 'checkout.session.completed',
+        data: { object: {} },
+        created: 1700000000,
+        livemode: false,
+      };
       mockConstructEvent.mockReturnValueOnce({
         id: 'evt_valid_sig',
         type: 'checkout.session.completed',
@@ -210,7 +225,14 @@ describe('POST /stripe webhook — signature timing & replay protection', () => 
     });
 
     it('passes raw body, signature header, and webhook secret to constructEvent', async () => {
-      const payload = { test: 'verify-args' };
+      const payload = {
+        id: 'evt_verify_args',
+        type: 'test.event',
+        data: { object: {} },
+        created: 1700000000,
+        livemode: false,
+        test: 'verify-args',
+      };
       const sig = 't=1234567890,v1=abc123';
       mockConstructEvent.mockReturnValueOnce({
         id: 'evt_args_check',
@@ -240,7 +262,12 @@ describe('POST /stripe webhook — signature timing & replay protection', () => 
       });
 
       const app = createApp();
-      const res = await app.request(postStripe('{"tampered":true}', 't=123,v1=tampered_sig'));
+      const res = await app.request(
+        postStripe(
+          '{"id":"evt_tampered","type":"test.event","data":{"object":{}},"created":1700000000,"livemode":false,"tampered":true}',
+          't=123,v1=tampered_sig',
+        ),
+      );
 
       expect(res.status).toBe(400);
       const body = (await res.json()) as Record<string, unknown>;
@@ -254,7 +281,7 @@ describe('POST /stripe webhook — signature timing & replay protection', () => 
       });
 
       const app = createApp();
-      await app.request(postStripe('{}', 't=123,v1=bad'));
+      await app.request(postStripe(VALID_BODY, 't=123,v1=bad'));
 
       expect(vi.mocked(loggerModule.logger).error).toHaveBeenCalledWith(
         'Webhook signature verification failed',
@@ -269,7 +296,7 @@ describe('POST /stripe webhook — signature timing & replay protection', () => 
       });
 
       const app = createApp();
-      const res = await app.request(postStripe('{}', 'not-a-valid-sig-format'));
+      const res = await app.request(postStripe(VALID_BODY, 'not-a-valid-sig-format'));
 
       expect(res.status).toBe(400);
       const body = (await res.json()) as Record<string, unknown>;
@@ -294,7 +321,18 @@ describe('POST /stripe webhook — signature timing & replay protection', () => 
       const staleTimestamp = Math.floor(Date.now() / 1000) - 600; // 10 minutes ago
       const sig = makeStripeSignature(staleTimestamp, 'stale_hash');
       const app = createApp();
-      const res = await app.request(postStripe('{"id":"evt_stale"}', sig));
+      const res = await app.request(
+        postStripe(
+          JSON.stringify({
+            id: 'evt_stale',
+            type: 'test.event',
+            data: { object: {} },
+            created: 1700000000,
+            livemode: false,
+          }),
+          sig,
+        ),
+      );
 
       expect(res.status).toBe(400);
       const body = (await res.json()) as Record<string, unknown>;
@@ -307,7 +345,7 @@ describe('POST /stripe webhook — signature timing & replay protection', () => 
       });
 
       const app = createApp();
-      await app.request(postStripe('{}', 't=1000000,v1=old'));
+      await app.request(postStripe(VALID_BODY, 't=1000000,v1=old'));
 
       expect(vi.mocked(loggerModule.logger).error).toHaveBeenCalledWith(
         'Webhook signature verification failed',
@@ -334,7 +372,18 @@ describe('POST /stripe webhook — signature timing & replay protection', () => 
       const futureTimestamp = Math.floor(Date.now() / 1000) + 600; // 10 minutes in future
       const sig = makeStripeSignature(futureTimestamp, 'future_hash');
       const app = createApp();
-      const res = await app.request(postStripe('{"id":"evt_future"}', sig));
+      const res = await app.request(
+        postStripe(
+          JSON.stringify({
+            id: 'evt_future',
+            type: 'test.event',
+            data: { object: {} },
+            created: 1700000000,
+            livemode: false,
+          }),
+          sig,
+        ),
+      );
 
       expect(res.status).toBe(400);
       const body = (await res.json()) as Record<string, unknown>;
@@ -347,7 +396,7 @@ describe('POST /stripe webhook — signature timing & replay protection', () => 
       });
 
       const app = createApp();
-      await app.request(postStripe('{}', 't=9999999999,v1=future'));
+      await app.request(postStripe(VALID_BODY, 't=9999999999,v1=future'));
 
       expect(vi.mocked(loggerModule.logger).error).toHaveBeenCalledWith(
         'Webhook signature verification failed',
@@ -364,7 +413,17 @@ describe('POST /stripe webhook — signature timing & replay protection', () => 
   describe('Missing signature header', () => {
     it('returns 400 when Stripe-Signature header is absent', async () => {
       const app = createApp();
-      const res = await app.request(postStripe('{"id":"evt_no_sig"}'));
+      const res = await app.request(
+        postStripe(
+          JSON.stringify({
+            id: 'evt_no_sig',
+            type: 'test.event',
+            data: { object: {} },
+            created: 1700000000,
+            livemode: false,
+          }),
+        ),
+      );
 
       expect(res.status).toBe(400);
       const body = (await res.json()) as Record<string, unknown>;
@@ -373,14 +432,14 @@ describe('POST /stripe webhook — signature timing & replay protection', () => 
 
     it('does not invoke constructEvent when header is missing', async () => {
       const app = createApp();
-      await app.request(postStripe('{}'));
+      await app.request(postStripe(VALID_BODY));
 
       expect(mockConstructEvent).not.toHaveBeenCalled();
     });
 
     it('returns 400 when Stripe-Signature header is empty string', async () => {
       const app = createApp();
-      const res = await app.request(postStripe('{}', ''));
+      const res = await app.request(postStripe(VALID_BODY, ''));
 
       // Empty string is falsy, so the handler treats it as missing
       expect(res.status).toBe(400);
@@ -425,6 +484,8 @@ describe('POST /stripe webhook — signature timing & replay protection', () => 
       const event = {
         id: 'evt_dup_test_001',
         type: 'customer.subscription.deleted',
+        created: 1700000000,
+        livemode: false,
         data: { object: { id: 'sub_dup', customer: 'cus_dup' } },
       };
       mockConstructEvent.mockReturnValue(event);
@@ -452,6 +513,8 @@ describe('POST /stripe webhook — signature timing & replay protection', () => 
       const event = {
         id: 'evt_dup_skip_logic',
         type: 'customer.subscription.deleted',
+        created: 1700000000,
+        livemode: false,
         data: { object: { id: 'sub_dup2', customer: 'cus_dup2' } },
       };
       mockConstructEvent.mockReturnValueOnce(event);
@@ -473,6 +536,8 @@ describe('POST /stripe webhook — signature timing & replay protection', () => 
       const event = {
         id: 'evt_dup_pg_code',
         type: 'customer.subscription.deleted',
+        created: 1700000000,
+        livemode: false,
         data: { object: { id: 'sub_pg', customer: 'cus_pg' } },
       };
       mockConstructEvent.mockReturnValueOnce(event);
@@ -493,6 +558,8 @@ describe('POST /stripe webhook — signature timing & replay protection', () => 
       const event = {
         id: 'evt_db_error',
         type: 'customer.subscription.deleted',
+        created: 1700000000,
+        livemode: false,
         data: { object: { id: 'sub_err', customer: 'cus_err' } },
       };
       mockConstructEvent.mockReturnValueOnce(event);
@@ -515,6 +582,8 @@ describe('POST /stripe webhook — signature timing & replay protection', () => 
       const updatedEvent = {
         id: 'evt_updated_first',
         type: 'customer.subscription.updated',
+        created: 1700000000,
+        livemode: false,
         data: {
           object: {
             id: 'sub_ooo',
@@ -540,6 +609,8 @@ describe('POST /stripe webhook — signature timing & replay protection', () => 
       const deletedEvent = {
         id: 'evt_deleted_no_created',
         type: 'customer.subscription.deleted',
+        created: 1700000000,
+        livemode: false,
         data: { object: { id: 'sub_orphan', customer: 'cus_orphan' } },
       };
       mockConstructEvent.mockReturnValueOnce(deletedEvent);
@@ -560,6 +631,8 @@ describe('POST /stripe webhook — signature timing & replay protection', () => 
       const paymentEvent = {
         id: 'evt_payment_before_checkout',
         type: 'invoice.payment_succeeded',
+        created: 1700000000,
+        livemode: false,
         data: {
           object: {
             id: 'inv_early',
@@ -596,7 +669,7 @@ describe('POST /stripe webhook — signature timing & replay protection', () => 
       });
 
       const app = createApp();
-      const res = await app.request(postStripe('{}', 't=123,v1=unknown'));
+      const res = await app.request(postStripe(VALID_BODY, 't=123,v1=unknown'));
 
       expect(res.status).toBe(200);
       const body = (await res.json()) as Record<string, unknown>;
@@ -613,7 +686,7 @@ describe('POST /stripe webhook — signature timing & replay protection', () => 
       });
 
       const app = createApp();
-      await app.request(postStripe('{}', 't=123,v1=irrelevant'));
+      await app.request(postStripe(VALID_BODY, 't=123,v1=irrelevant'));
 
       // No DB operations should occur for non-relevant event types
       expect(mockDb.insert).not.toHaveBeenCalled();
@@ -628,7 +701,7 @@ describe('POST /stripe webhook — signature timing & replay protection', () => 
       });
 
       const app = createApp();
-      await app.request(postStripe('{}', 't=123,v1=grace'));
+      await app.request(postStripe(VALID_BODY, 't=123,v1=grace'));
 
       expect(vi.mocked(loggerModule.logger).warn).not.toHaveBeenCalled();
       expect(vi.mocked(loggerModule.logger).error).not.toHaveBeenCalled();
@@ -650,7 +723,18 @@ describe('POST /stripe webhook — signature timing & replay protection', () => 
 
       const app = createApp();
       const sig = makeStripeSignature(Math.floor(Date.now() / 1000), 'signed_with_wrong_whsec');
-      const res = await app.request(postStripe('{"id":"evt_wrong_secret"}', sig));
+      const res = await app.request(
+        postStripe(
+          JSON.stringify({
+            id: 'evt_wrong_secret',
+            type: 'test.event',
+            data: { object: {} },
+            created: 1700000000,
+            livemode: false,
+          }),
+          sig,
+        ),
+      );
 
       expect(res.status).toBe(400);
       const body = (await res.json()) as Record<string, unknown>;
@@ -665,10 +749,10 @@ describe('POST /stripe webhook — signature timing & replay protection', () => 
       });
 
       const app = createApp();
-      await app.request(postStripe('{}', 't=123,v1=wrong'));
+      await app.request(postStripe(VALID_BODY, 't=123,v1=wrong'));
 
       expect(mockConstructEvent).toHaveBeenCalledWith(
-        '{}',
+        VALID_BODY,
         't=123,v1=wrong',
         'whsec_correct_secret',
       );
@@ -685,10 +769,10 @@ describe('POST /stripe webhook — signature timing & replay protection', () => 
       });
 
       const app = createApp();
-      await app.request(postStripe('{}', 't=123,v1=live'));
+      await app.request(postStripe(VALID_BODY, 't=123,v1=live'));
 
       expect(mockConstructEvent).toHaveBeenCalledWith(
-        '{}',
+        VALID_BODY,
         't=123,v1=live',
         'whsec_live_production',
       );
@@ -705,7 +789,7 @@ describe('POST /stripe webhook — signature timing & replay protection', () => 
       delete process.env.STRIPE_WEBHOOK_SECRET_LIVE;
 
       const app = createApp();
-      const res = await app.request(postStripe('{}', 't=123,v1=nosecret'));
+      const res = await app.request(postStripe(VALID_BODY, 't=123,v1=nosecret'));
 
       expect(res.status).toBe(503);
     });
@@ -723,7 +807,7 @@ describe('POST /stripe webhook — signature timing & replay protection', () => 
       });
 
       const app = createApp();
-      const res = await app.request(postStripe('{}', 't=123,v1=nokey'));
+      const res = await app.request(postStripe(VALID_BODY, 't=123,v1=nokey'));
 
       // Returns 200 because the cached Stripe client is reused
       expect(res.status).toBe(200);
@@ -747,7 +831,18 @@ describe('POST /stripe webhook — signature timing & replay protection', () => 
         Math.floor(Date.now() / 1000),
         'replayed_original_hmac',
       );
-      const res = await app.request(postStripe('{"id":"evt_replay_attack"}', replayedSig));
+      const res = await app.request(
+        postStripe(
+          JSON.stringify({
+            id: 'evt_replay_attack',
+            type: 'test.event',
+            data: { object: {} },
+            created: 1700000000,
+            livemode: false,
+          }),
+          replayedSig,
+        ),
+      );
 
       expect(res.status).toBe(400);
     });
@@ -758,6 +853,8 @@ describe('POST /stripe webhook — signature timing & replay protection', () => 
       const event = {
         id: 'evt_already_processed',
         type: 'customer.subscription.deleted',
+        created: 1700000000,
+        livemode: false,
         data: { object: { id: 'sub_replay', customer: 'cus_replay' } },
       };
       mockConstructEvent.mockReturnValueOnce(event);
@@ -795,7 +892,7 @@ describe('POST /stripe webhook — signature timing & replay protection', () => 
           throw new Error(msg);
         });
 
-        const res = await app.request(postStripe('{}', `t=123,v1=test_${msg.length}`));
+        const res = await app.request(postStripe(VALID_BODY, `t=123,v1=test_${msg.length}`));
         expect(res.status).toBe(400);
       }
     });

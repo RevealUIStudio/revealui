@@ -150,6 +150,8 @@ describe('POST /stripe webhook — expansion events', () => {
       return {
         id,
         type: 'invoice.payment_failed',
+        created: 1700000000,
+        livemode: false,
         data: {
           object: {
             id: 'inv_fail',
@@ -199,6 +201,8 @@ describe('POST /stripe webhook — expansion events', () => {
       return {
         id,
         type: 'customer.subscription.trial_will_end',
+        created: 1700000000,
+        livemode: false,
         data: {
           object: {
             id: 'sub_trial',
@@ -244,6 +248,8 @@ describe('POST /stripe webhook — expansion events', () => {
       return {
         id,
         type: 'customer.deleted',
+        created: 1700000000,
+        livemode: false,
         data: { object: { id: customerId } },
       };
     }
@@ -269,6 +275,8 @@ describe('POST /stripe webhook — expansion events', () => {
       return {
         id,
         type: 'charge.dispute.created',
+        created: 1700000000,
+        livemode: false,
         data: {
           object: {
             id: 'dp_created',
@@ -318,6 +326,8 @@ describe('POST /stripe webhook — expansion events', () => {
       return {
         id,
         type: 'charge.dispute.closed',
+        created: 1700000000,
+        livemode: false,
         data: {
           object: {
             id: 'dp_closed',
@@ -419,6 +429,8 @@ describe('POST /stripe webhook — expansion events', () => {
       return {
         id,
         type: 'charge.refunded',
+        created: 1700000000,
+        livemode: false,
         data: {
           object: {
             id: 'ch_refund',
@@ -509,6 +521,8 @@ describe('POST /stripe webhook — expansion events', () => {
       const event = {
         id: 'evt_pi_fail_1',
         type: 'payment_intent.payment_failed',
+        created: 1700000000,
+        livemode: false,
         data: {
           object: {
             id: 'pi_test',
@@ -537,6 +551,8 @@ describe('POST /stripe webhook — expansion events', () => {
       const event = {
         id: 'evt_pi_fail_2',
         type: 'payment_intent.payment_failed',
+        created: 1700000000,
+        livemode: false,
         data: {
           object: {
             id: 'pi_test_2',
@@ -564,7 +580,13 @@ describe('POST /stripe webhook — expansion events', () => {
         new Request('http://localhost/stripe', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ type: 'some.event' }),
+          body: JSON.stringify({
+            id: 'evt_no_sig',
+            type: 'some.event',
+            data: { object: {} },
+            created: 1700000000,
+            livemode: false,
+          }),
         }),
       );
       expect(res.status).toBe(400);
@@ -577,7 +599,18 @@ describe('POST /stripe webhook — expansion events', () => {
         throw new Error('No signatures found matching the expected signature for payload');
       });
       const app = createApp();
-      const res = await app.request(postStripe({ type: 'checkout.session.completed' }, 'bad-sig'));
+      const res = await app.request(
+        postStripe(
+          {
+            id: 'evt_bad_sig',
+            type: 'checkout.session.completed',
+            data: { object: {} },
+            created: 1700000000,
+            livemode: false,
+          },
+          'bad-sig',
+        ),
+      );
       expect(res.status).toBe(400);
       const body = await res.json();
       expect(body.error).toMatch(/invalid webhook signature/i);
@@ -591,6 +624,8 @@ describe('POST /stripe webhook — expansion events', () => {
       const event = {
         id: 'evt_idempotency_1',
         type: 'customer.subscription.trial_will_end',
+        created: 1700000000,
+        livemode: false,
         data: {
           object: {
             id: 'sub_idempotent',
@@ -624,6 +659,8 @@ describe('POST /stripe webhook — expansion events', () => {
       const event = {
         id: 'evt_susp_1',
         type: 'invoice.payment_failed',
+        created: 1700000000,
+        livemode: false,
         data: {
           object: {
             id: 'inv_susp',
@@ -650,6 +687,8 @@ describe('POST /stripe webhook — expansion events', () => {
       const event = {
         id: 'evt_susp_log_1',
         type: 'invoice.payment_failed',
+        created: 1700000000,
+        livemode: false,
         data: {
           object: {
             id: 'inv_susp_log',
@@ -675,6 +714,8 @@ describe('POST /stripe webhook — expansion events', () => {
       const event = {
         id: 'evt_pay_null_cust_1',
         type: 'invoice.payment_failed',
+        created: 1700000000,
+        livemode: false,
         data: {
           object: {
             id: 'inv_null_cust',
@@ -706,6 +747,8 @@ describe('POST /stripe webhook — expansion events', () => {
       const event = {
         id: 'evt_disp_no_cust_1',
         type: 'charge.dispute.closed',
+        created: 1700000000,
+        livemode: false,
         data: {
           object: {
             id: 'dp_no_cust',
@@ -736,6 +779,8 @@ describe('POST /stripe webhook — expansion events', () => {
       const event = {
         id: 'evt_unknown_1',
         type: 'account.updated',
+        created: 1700000000,
+        livemode: false,
         data: { object: {} },
       };
       mockConstructEvent.mockReturnValueOnce(event);

@@ -179,7 +179,13 @@ describe('POST /stripe webhook — handler tests', () => {
 
   describe('Signature verification', () => {
     it('passes raw body and signature to constructEvent', async () => {
-      const payload = { test: 'data' };
+      const payload = {
+        id: 'evt_sig',
+        type: 'test.event',
+        data: { object: {} },
+        created: 1700000000,
+        livemode: false,
+      };
       mockConstructEvent.mockReturnValueOnce({
         id: 'evt_sig',
         type: 'unknown.event',
@@ -206,7 +212,15 @@ describe('POST /stripe webhook — handler tests', () => {
       });
 
       const app = createApp();
-      await app.request(postStripe({}));
+      await app.request(
+        postStripe({
+          id: 'evt_live',
+          type: 'payment_intent.created',
+          data: { object: {} },
+          created: 1700000000,
+          livemode: false,
+        }),
+      );
 
       expect(mockConstructEvent).toHaveBeenCalledWith(
         expect.any(String),
@@ -221,7 +235,18 @@ describe('POST /stripe webhook — handler tests', () => {
       });
 
       const app = createApp();
-      const res = await app.request(postStripe({}, 'stale'));
+      const res = await app.request(
+        postStripe(
+          {
+            id: 'evt_stale',
+            type: 'test.event',
+            data: { object: {} },
+            created: 1700000000,
+            livemode: false,
+          },
+          'stale',
+        ),
+      );
 
       expect(res.status).toBe(400);
       expect(vi.mocked(loggerModule.logger).error).toHaveBeenCalledWith(
@@ -241,6 +266,8 @@ describe('POST /stripe webhook — handler tests', () => {
       const event = {
         id: 'evt_dedup_pg',
         type: 'customer.subscription.deleted',
+        created: 1700000000,
+        livemode: false,
         data: { object: { id: 'sub_test', customer: 'cus_test' } },
       };
       mockConstructEvent.mockReturnValueOnce(event);
@@ -262,6 +289,8 @@ describe('POST /stripe webhook — handler tests', () => {
       const event = {
         id: 'evt_dedup_err',
         type: 'customer.subscription.deleted',
+        created: 1700000000,
+        livemode: false,
         data: { object: { id: 'sub_test', customer: 'cus_test' } },
       };
       mockConstructEvent.mockReturnValueOnce(event);
@@ -284,6 +313,8 @@ describe('POST /stripe webhook — handler tests', () => {
       return {
         id,
         type: 'checkout.session.completed',
+        created: 1700000000,
+        livemode: false,
         data: {
           object: {
             mode: 'payment',
@@ -418,6 +449,8 @@ describe('POST /stripe webhook — handler tests', () => {
       const event = {
         id: 'evt_sched_cancel',
         type: 'customer.subscription.updated',
+        created: 1700000000,
+        livemode: false,
         data: {
           object: {
             id: 'sub_sc',
@@ -445,6 +478,8 @@ describe('POST /stripe webhook — handler tests', () => {
       const event = {
         id: 'evt_sched_no_cancel_at',
         type: 'customer.subscription.updated',
+        created: 1700000000,
+        livemode: false,
         data: {
           object: {
             id: 'sub_sc2',
@@ -475,10 +510,15 @@ describe('POST /stripe webhook — handler tests', () => {
   // ═══════════════════════════════════════════════════════════════════════════
 
   describe('Tier resolution edge cases', () => {
-    function makeUpdatedEvent(id: string, metadata: Record<string, string>) {
+    function makeUpdatedEvent(
+      id: string,
+      metadata: Record<string, string>,
+    ): Record<string, unknown> {
       return {
         id,
         type: 'customer.subscription.updated',
+        created: 1700000000,
+        livemode: false,
         data: {
           object: {
             id: 'sub_tier',
@@ -550,6 +590,8 @@ describe('POST /stripe webhook — handler tests', () => {
       const event = {
         id: 'evt_nokey_active',
         type: 'customer.subscription.updated',
+        created: 1700000000,
+        livemode: false,
         data: {
           object: {
             id: 'sub_nokey',
@@ -577,6 +619,8 @@ describe('POST /stripe webhook — handler tests', () => {
       const event = {
         id: 'evt_expanded_cust',
         type: 'customer.subscription.deleted',
+        created: 1700000000,
+        livemode: false,
         data: {
           object: {
             id: 'sub_exp',
@@ -597,6 +641,8 @@ describe('POST /stripe webhook — handler tests', () => {
       const event = {
         id: 'evt_null_cust',
         type: 'customer.subscription.deleted',
+        created: 1700000000,
+        livemode: false,
         data: { object: { id: 'sub_nc', customer: null } },
       };
       mockConstructEvent.mockReturnValueOnce(event);
@@ -618,6 +664,8 @@ describe('POST /stripe webhook — handler tests', () => {
       const event = {
         id: 'evt_reset_del',
         type: 'customer.subscription.deleted',
+        created: 1700000000,
+        livemode: false,
         data: { object: { id: 'sub_r', customer: 'cus_r' } },
       };
       mockConstructEvent.mockReturnValueOnce(event);
@@ -630,6 +678,8 @@ describe('POST /stripe webhook — handler tests', () => {
       const event = {
         id: 'evt_reset_pd',
         type: 'customer.subscription.updated',
+        created: 1700000000,
+        livemode: false,
         data: { object: { id: 'sub_pd', customer: 'cus_pd', status: 'past_due' } },
       };
       mockConstructEvent.mockReturnValueOnce(event);
@@ -647,6 +697,8 @@ describe('POST /stripe webhook — handler tests', () => {
       const event = {
         id: 'evt_deleted_preserve_tier_missing_metadata',
         type: 'customer.subscription.deleted',
+        created: 1700000000,
+        livemode: false,
         data: {
           object: {
             id: 'sub_missing_meta',
@@ -679,6 +731,8 @@ describe('POST /stripe webhook — handler tests', () => {
       const event = {
         id: 'evt_past_due_preserve_tier_missing_metadata',
         type: 'customer.subscription.updated',
+        created: 1700000000,
+        livemode: false,
         data: {
           object: {
             id: 'sub_past_due',
@@ -708,6 +762,8 @@ describe('POST /stripe webhook — handler tests', () => {
       const event = {
         id: 'evt_reset_custdel',
         type: 'customer.deleted',
+        created: 1700000000,
+        livemode: false,
         data: { object: { id: 'cus_cdel' } },
       };
       mockConstructEvent.mockReturnValueOnce(event);
@@ -725,6 +781,8 @@ describe('POST /stripe webhook — handler tests', () => {
       const event = {
         id: 'evt_reset_custdel_preserve_tier',
         type: 'customer.deleted',
+        created: 1700000000,
+        livemode: false,
         data: { object: { id: 'cus_enterprise' } },
       };
       mockConstructEvent.mockReturnValueOnce(event);
@@ -746,6 +804,8 @@ describe('POST /stripe webhook — handler tests', () => {
       const event = {
         id: 'evt_reset_refund',
         type: 'charge.refunded',
+        created: 1700000000,
+        livemode: false,
         data: {
           object: {
             id: 'ch_ref',
@@ -770,6 +830,8 @@ describe('POST /stripe webhook — handler tests', () => {
       const event = {
         id: 'evt_reset_refund_preserve_tier',
         type: 'charge.refunded',
+        created: 1700000000,
+        livemode: false,
         data: {
           object: {
             id: 'ch_ref_ent',
@@ -798,6 +860,8 @@ describe('POST /stripe webhook — handler tests', () => {
       const event = {
         id: 'evt_noreset_partial',
         type: 'charge.refunded',
+        created: 1700000000,
+        livemode: false,
         data: {
           object: {
             id: 'ch_part',
@@ -829,7 +893,15 @@ describe('POST /stripe webhook — handler tests', () => {
       });
 
       const app = createApp();
-      await app.request(postStripe({}));
+      await app.request(
+        postStripe({
+          id: 'evt_trim',
+          type: 'payment_intent.created',
+          data: { object: {} },
+          created: 1700000000,
+          livemode: false,
+        }),
+      );
 
       expect(mockConstructEvent).toHaveBeenCalledWith(
         expect.any(String),
@@ -845,6 +917,8 @@ describe('POST /stripe webhook — handler tests', () => {
       const event = {
         id: 'evt_newline',
         type: 'checkout.session.completed',
+        created: 1700000000,
+        livemode: false,
         data: {
           object: {
             mode: 'subscription',
@@ -877,6 +951,8 @@ describe('POST /stripe webhook — handler tests', () => {
       const event = {
         id: 'evt_catch',
         type: 'customer.subscription.deleted',
+        created: 1700000000,
+        livemode: false,
         data: { object: { id: 'sub_err', customer: 'cus_err' } },
       };
       mockConstructEvent.mockReturnValueOnce(event);
@@ -898,6 +974,8 @@ describe('POST /stripe webhook — handler tests', () => {
       const event = {
         id: 'evt_perf',
         type: 'customer.subscription.deleted',
+        created: 1700000000,
+        livemode: false,
         data: { object: { id: 'sub_f', customer: 'cus_f' } },
       };
       mockConstructEvent.mockReturnValueOnce(event);
