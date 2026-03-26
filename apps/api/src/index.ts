@@ -610,6 +610,23 @@ function validateStartup(): void {
   }
 }
 
+// RVC price oracle — start polling when Jupiter API key is configured.
+// Runs in both dev and prod. Safe no-op if JUPITER_API_KEY is unset.
+// Uses dynamic import to avoid hard dependency on @revealui/services build.
+function initPriceOracle(): void {
+  import('@revealui/services/revealcoin')
+    .then((mod: Record<string, unknown>) => {
+      if (typeof mod.startPriceOracle === 'function') {
+        (mod.startPriceOracle as () => void)();
+      }
+    })
+    .catch((err: unknown) => {
+      logger.warn('RVC price oracle not available', {
+        error: err instanceof Error ? err.message : String(err),
+      });
+    });
+}
+
 // For local development (but not in test environment)
 if (process.env.NODE_ENV !== 'production' && process.env.NODE_ENV !== 'test') {
   validateStartup();
@@ -623,6 +640,7 @@ if (process.env.NODE_ENV !== 'production' && process.env.NODE_ENV !== 'test') {
         err instanceof Error ? err : new Error(String(err)),
       );
     });
+  initPriceOracle();
   const port = Number(process.env.API_PORT || process.env.PORT) || 3004;
   serve({ fetch: app.fetch, port });
   logger.info(`🚀 API server running on http://localhost:${port}`);
@@ -643,4 +661,5 @@ if (process.env.NODE_ENV === 'production') {
         err instanceof Error ? err : new Error(String(err)),
       );
     });
+  initPriceOracle();
 }
