@@ -56,6 +56,9 @@ export const licenses = pgTable(
 
     /** GitHub username for revealui-pro team provisioning (perpetual only) */
     githubUsername: text('github_username'),
+
+    /** npm username for @revealui Pro package access provisioning */
+    npmUsername: text('npm_username'),
   },
   (table) => [
     index('licenses_customer_id_idx').on(table.customerId),

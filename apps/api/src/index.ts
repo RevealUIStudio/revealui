@@ -453,6 +453,12 @@ app.post('/api/v1/marketplace/servers', requirePermission('marketplace', 'admin'
 app.delete('/api/marketplace/servers/*', requirePermission('marketplace', 'admin'));
 app.delete('/api/v1/marketplace/servers/*', requirePermission('marketplace', 'admin'));
 
+// Collab sync routes require Pro+ (advancedSync feature)
+app.use('/api/collab/snapshot/*', requireFeature('advancedSync', { mode: 'entitlements' }));
+app.use('/api/v1/collab/snapshot/*', requireFeature('advancedSync', { mode: 'entitlements' }));
+app.use('/api/collab/update', requireFeature('advancedSync', { mode: 'entitlements' }));
+app.use('/api/v1/collab/update', requireFeature('advancedSync', { mode: 'entitlements' }));
+
 // Write-protect mutation endpoints — these require authentication
 const writeProtected = authMiddleware({ required: true });
 app.get('/api/collab/snapshot/*', writeProtected);

@@ -768,7 +768,7 @@ describe('POST /upgrade', () => {
 
     expect(mockSubscriptionsUpdate).toHaveBeenCalledWith('sub_pro', {
       items: [{ id: 'si_pro', price: 'price_enterprise_server' }],
-      metadata: { tier: 'enterprise', revealui_user_id: MOCK_USER.id, pending_change: '' },
+      metadata: { tier: 'enterprise', revealui_user_id: MOCK_USER.id, pending_change: 'true' },
       proration_behavior: 'create_prorations',
     });
   });

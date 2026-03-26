@@ -122,6 +122,10 @@ vi.mock('../../lib/email.js', () => ({
   sendEmail: (...args: unknown[]) => mockSendEmail(...args),
 }));
 
+vi.mock('../../middleware/license.js', () => ({
+  resetDbStatusCache: vi.fn(),
+}));
+
 // ─── Import under test (after mocks) ─────────────────────────────────────────
 
 import * as licenseModule from '@revealui/core/license';
@@ -451,7 +455,7 @@ describe('POST /stripe webhook', () => {
       expect(insertValues.expiresAt).toBeInstanceOf(Date);
     });
 
-    it('creates active license when subscription retrieve fails (graceful fallback)', async () => {
+    it('returns 500 when subscription retrieve fails so Stripe retries', async () => {
       mockSubscriptionsRetrieve.mockRejectedValueOnce(new Error('Stripe timeout'));
       // Transaction's inner user-existence check must find a matching user
       mockDbSelectChain.limit.mockResolvedValueOnce([{ id: 'user_abc' }]);
@@ -473,11 +477,9 @@ describe('POST /stripe webhook', () => {
       const app = createApp();
       const res = await app.request(postStripe(event));
 
-      expect(res.status).toBe(200);
-      expect(mockDb.insert).toHaveBeenCalledTimes(2);
-      const insertValues = mockDbInsertChain.values.mock.calls[1]?.[0] as Record<string, unknown>;
-      // Falls back to active when retrieve fails
-      expect(insertValues.status).toBe('active');
+      // Should return 500 so Stripe retries — we cannot determine trialing vs active
+      // without the subscription object
+      expect(res.status).toBe(500);
     });
 
     it('creates license when userId is provided in metadata', async () => {

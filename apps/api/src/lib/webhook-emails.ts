@@ -236,6 +236,46 @@ ${supportFooter('If you have questions about this charge, contact')}`,
   });
 }
 
+export async function sendCancellationConfirmationEmail(to: string): Promise<void> {
+  const portal = billingUrl();
+  await sendEmail({
+    to,
+    subject: 'Your RevealUI subscription has been cancelled',
+    html: emailShell(
+      'Subscription Cancelled',
+      `<h1 style="color: #333;">Subscription Cancelled</h1>
+<p>Your RevealUI Pro subscription has been cancelled and your license has been revoked.</p>
+<p>You can continue using RevealUI's free-tier features. If you'd like to resubscribe at any time, visit your billing page:</p>
+${ctaButton(portal, 'Resubscribe')}
+${supportFooter('If you believe this is an error, contact')}`,
+    ),
+    text: `Your RevealUI Pro subscription has been cancelled. You can resubscribe at any time at ${portal}.`,
+  });
+}
+
+export async function sendGracePeriodStartedEmail(to: string, graceUntil: Date): Promise<void> {
+  const portal = billingUrl();
+  const deadline = graceUntil.toLocaleDateString('en-US', {
+    month: 'long',
+    day: 'numeric',
+    year: 'numeric',
+  });
+  await sendEmail({
+    to,
+    subject: `Action required: update your payment by ${deadline}`,
+    html: emailShell(
+      'Grace Period Started',
+      `<h1 style="color: #d97706;">Payment Issue — Grace Period Active</h1>
+<p>We were unable to process your RevealUI subscription payment. Your Pro features remain active during a grace period until <strong>${deadline}</strong>.</p>
+<p>Please update your payment method before the deadline to avoid losing access:</p>
+${ctaButton(portal, 'Update Payment Method', '#d97706')}
+<p style="color: #666; font-size: 14px;">After ${deadline}, your access will be downgraded to the free tier until payment is resolved.</p>
+${supportFooter('If you believe this is an error, contact')}`,
+    ),
+    text: `Your RevealUI subscription payment failed. Your Pro features remain active until ${deadline}. Update your payment method at ${portal} to avoid losing access.`,
+  });
+}
+
 export async function sendDisputeLostEmail(to: string): Promise<void> {
   const portal = billingUrl();
   const support = supportEmail();

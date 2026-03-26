@@ -29,7 +29,9 @@ import Stripe from 'stripe';
 import {
   provisionGitHubAccess,
   provisionNpmAccess,
+  sendCancellationConfirmationEmail,
   sendDisputeLostEmail,
+  sendGracePeriodStartedEmail,
   sendLicenseActivatedEmail,
   sendPaymentFailedEmail,
   sendPaymentReceiptEmail,
@@ -819,20 +821,27 @@ app.openapi(stripeWebhookRoute, async (c) => {
 
         // Retrieve subscription to detect trialing state and trial_end date.
         // All new checkouts start as trialing (7-day trial configured in billing.ts).
-        let checkoutSubscription: Stripe.Subscription | null = null;
+        let checkoutSubscription: Stripe.Subscription;
         try {
           checkoutSubscription = await stripe.subscriptions.retrieve(subscriptionId);
         } catch (err) {
-          logger.warn('Failed to retrieve subscription status at checkout — defaulting to active', {
-            subscriptionId,
-            detail: err instanceof Error ? err.message : 'unknown',
-          });
+          // Throw so Stripe retries the webhook — a payment was captured but we
+          // cannot determine trialing vs active without the subscription object.
+          logger.error(
+            'Failed to retrieve subscription at checkout — returning 500 for retry',
+            undefined,
+            {
+              subscriptionId,
+              detail: err instanceof Error ? err.message : 'unknown',
+            },
+          );
+          throw new Error(`Failed to retrieve subscription ${subscriptionId} at checkout`);
         }
 
-        const isTrialing = checkoutSubscription?.status === 'trialing';
+        const isTrialing = checkoutSubscription.status === 'trialing';
         const licenseStatus = isTrialing ? 'trialing' : 'active';
         const licenseExpiresAt =
-          isTrialing && checkoutSubscription?.trial_end
+          isTrialing && checkoutSubscription.trial_end
             ? new Date(checkoutSubscription.trial_end * 1000)
             : null;
 
@@ -981,6 +990,16 @@ app.openapi(stripeWebhookRoute, async (c) => {
           customerId,
           subscriptionId: subscription.id,
         });
+
+        // Send cancellation confirmation email
+        const cancelEmail = await findUserEmailByCustomerId(db, customerId);
+        if (cancelEmail) {
+          sendCancellationConfirmationEmail(cancelEmail).catch((err) => {
+            logger.error('Failed to send cancellation confirmation email', undefined, {
+              detail: err instanceof Error ? err.message : 'unknown',
+            });
+          });
+        }
         break;
       }
 
@@ -1062,11 +1081,17 @@ app.openapi(stripeWebhookRoute, async (c) => {
             subscriptionStatus: subscription.status,
           });
 
-          // Send payment failed email
+          // Send grace period or payment failed email
           const email = await findUserEmailByCustomerId(db, customerId);
           if (email) {
-            sendPaymentFailedEmail(email).catch((err) => {
-              logger.error('Failed to send payment failed email', undefined, {
+            const graceEnd = isPastDue
+              ? getSubscriptionPeriodDate(subscription, 'current_period_end')
+              : null;
+            const emailPromise = graceEnd
+              ? sendGracePeriodStartedEmail(email, graceEnd)
+              : sendPaymentFailedEmail(email);
+            emailPromise.catch((err) => {
+              logger.error('Failed to send payment/grace period email', undefined, {
                 detail: err instanceof Error ? err.message : 'unknown',
               });
             });
@@ -1222,14 +1247,15 @@ app.openapi(stripeWebhookRoute, async (c) => {
       }
 
       case 'customer.subscription.created': {
-        // Logged for observability; license generation happens on checkout.session.completed
+        // Logged for observability; license generation happens on checkout.session.completed.
+        // Use resolveOptionalTier — metadata may not be populated yet at creation time.
         const subscription = event.data.object as Stripe.Subscription;
         const customerId = resolveCustomerId(subscription.customer);
         if (customerId) {
           await syncHostedSubscriptionState(db, {
             customerId,
             subscriptionId: subscription.id,
-            tier: resolveTier(subscription.metadata as Record<string, string>),
+            tier: resolveOptionalTier(subscription.metadata as Record<string, string>),
             status: subscription.status,
             currentPeriodStart: getSubscriptionPeriodDate(subscription, 'current_period_start'),
             currentPeriodEnd: getSubscriptionPeriodDate(subscription, 'current_period_end'),
