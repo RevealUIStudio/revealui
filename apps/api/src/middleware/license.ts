@@ -21,6 +21,10 @@ import {
   verifyPayment,
 } from './x402.js';
 
+/** Configurable URLs and contact info for license error messages */
+const PRICING_URL = process.env.REVEALUI_PRICING_URL ?? 'https://revealui.com/pricing';
+const SUPPORT_EMAIL = process.env.REVEALUI_SUPPORT_EMAIL ?? 'support@revealui.com';
+
 /** Cache for DB-side license status checks, keyed by billing owner/customer */
 const dbStatusCache = new Map<string, { status: string; checkedAt: number }>();
 const DB_STATUS_CHECK_INTERVAL = 5 * 60 * 1000; // 5 minutes
@@ -87,7 +91,7 @@ export const requireLicense = (minimumTier: LicenseTier): MiddlewareHandler => {
             success: false as const,
             error: `This endpoint requires a ${minimumTier} license. Current tier: ${currentTier}.`,
             code: 'HTTP_402',
-            upgrade_url: 'https://revealui.com/pricing',
+            upgrade_url: PRICING_URL,
           },
           402,
           {
@@ -100,7 +104,7 @@ export const requireLicense = (minimumTier: LicenseTier): MiddlewareHandler => {
       return c.json(
         {
           success: false as const,
-          error: `This endpoint requires a ${minimumTier} license. Current tier: ${currentTier}. Upgrade at https://revealui.com/pricing`,
+          error: `This endpoint requires a ${minimumTier} license. Current tier: ${currentTier}. Upgrade at ${PRICING_URL}`,
           code: 'HTTP_403',
         },
         403,
@@ -155,7 +159,7 @@ export const requireFeature = (
             success: false as const,
             error: `Feature '${feature}' requires a ${requiredTier} license. Current tier: ${currentTier}.`,
             code: 'HTTP_402',
-            upgrade_url: 'https://revealui.com/pricing',
+            upgrade_url: PRICING_URL,
           },
           402,
           {
@@ -168,7 +172,7 @@ export const requireFeature = (
       return c.json(
         {
           success: false as const,
-          error: `Feature '${feature}' requires a ${requiredTier} license. Current tier: ${currentTier}. Upgrade at https://revealui.com/pricing`,
+          error: `Feature '${feature}' requires a ${requiredTier} license. Current tier: ${currentTier}. Upgrade at ${PRICING_URL}`,
           code: 'HTTP_403',
         },
         403,
@@ -239,13 +243,13 @@ export const checkLicenseStatus = (
     if (requestEntitlements?.accountId) {
       if (requestEntitlements.subscriptionStatus === 'revoked') {
         throw new HTTPException(403, {
-          message: 'Your subscription has been revoked. Contact support@revealui.com',
+          message: `Your subscription has been revoked. Contact ${SUPPORT_EMAIL}`,
         });
       }
 
       if (requestEntitlements.subscriptionStatus === 'expired') {
         throw new HTTPException(403, {
-          message: 'Your subscription has expired. Renew at https://revealui.com/pricing',
+          message: `Your subscription has expired. Renew at ${PRICING_URL}`,
         });
       }
 
@@ -274,13 +278,13 @@ export const checkLicenseStatus = (
     const effective = dbStatusCache.get(payload.customerId);
     if (effective?.status === 'revoked') {
       throw new HTTPException(403, {
-        message: 'Your license has been revoked. Contact support@revealui.com',
+        message: `Your license has been revoked. Contact ${SUPPORT_EMAIL}`,
       });
     }
 
     if (effective?.status === 'expired') {
       throw new HTTPException(403, {
-        message: 'Your license has expired. Renew at https://revealui.com/pricing',
+        message: `Your license has expired. Renew at ${PRICING_URL}`,
       });
     }
 
@@ -346,7 +350,7 @@ export const requireAIAccess = (options: FeatureGateOptions = {}): MiddlewareHan
           success: false as const,
           error: `AI requires a ${requiredTier} license or local BitNet inference (BITNET_BASE_URL). Current tier: ${currentTier}.`,
           code: 'HTTP_402',
-          upgrade_url: 'https://revealui.com/pricing',
+          upgrade_url: PRICING_URL,
         },
         402,
         {
@@ -359,7 +363,7 @@ export const requireAIAccess = (options: FeatureGateOptions = {}): MiddlewareHan
     return c.json(
       {
         success: false as const,
-        error: `AI requires a ${requiredTier} license or local BitNet inference (set BITNET_BASE_URL). Current tier: ${currentTier}. Upgrade at https://revealui.com/pricing`,
+        error: `AI requires a ${requiredTier} license or local BitNet inference (set BITNET_BASE_URL). Current tier: ${currentTier}. Upgrade at ${PRICING_URL}`,
         code: 'HTTP_403',
       },
       403,

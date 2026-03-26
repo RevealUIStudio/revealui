@@ -24,6 +24,9 @@ import { HTTPException } from 'hono/http-exception';
 import Stripe from 'stripe';
 import { resetDbStatusCache } from '../middleware/license.js';
 
+/** Default trial period for new subscriptions (overridable via env) */
+const TRIAL_PERIOD_DAYS = Number.parseInt(process.env.REVEALUI_TRIAL_DAYS ?? '7', 10);
+
 interface UserContext {
   id: string;
   email: string | null;
@@ -448,7 +451,7 @@ app.openapi(checkoutRoute, async (c) => {
       ...discountConfig,
       line_items: [{ price: resolvedPriceId, quantity: 1 }],
       subscription_data: {
-        trial_period_days: Number.parseInt(process.env.REVEALUI_TRIAL_DAYS ?? '7', 10),
+        trial_period_days: TRIAL_PERIOD_DAYS,
         metadata: { tier: resolvedTier, revealui_user_id: user.id },
       },
       success_url: `${cmsUrl}/account/billing?success=true`,
