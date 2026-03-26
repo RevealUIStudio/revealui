@@ -1,6 +1,7 @@
-import { ElCopyable } from '@tailwindplus/elements/react';
+'use client';
+
 import { clsx } from 'clsx/lite';
-import type { ComponentProps, ReactNode } from 'react';
+import { type ComponentProps, type ReactNode, useCallback, useRef, useState } from 'react';
 import { CheckmarkIcon } from '@/components/revealui/icons/checkmark-icon';
 import { Squares2StackedIcon } from '@/components/revealui/icons/squares-2-stacked-icon';
 
@@ -13,6 +14,18 @@ export function InstallCommand({
   snippet: ReactNode;
   variant?: 'normal' | 'overlay';
 } & ComponentProps<'div'>) {
+  const [copied, setCopied] = useState(false);
+  const contentRef = useRef<HTMLSpanElement>(null);
+
+  const handleCopy = useCallback(() => {
+    const text = contentRef.current?.textContent;
+    if (!text) return;
+    navigator.clipboard.writeText(text).then(() => {
+      setCopied(true);
+      setTimeout(() => setCopied(false), 2000);
+    });
+  }, []);
+
   return (
     <div
       className={clsx(
@@ -25,16 +38,14 @@ export function InstallCommand({
     >
       <div className="flex items-center gap-2 pl-3">
         <div className="text-current/60 select-none">$</div>
-        <ElCopyable id="snippet">{snippet}</ElCopyable>
+        <span ref={contentRef}>{snippet}</span>
       </div>
       <button
-        command="--copy"
-        commandfor="snippet"
         type="button"
+        onClick={handleCopy}
         className="group relative flex size-9 items-center justify-center rounded-full after:absolute after:-inset-1 hover:bg-mist-950/10 dark:hover:bg-white/10 after:pointer-fine:hidden"
       >
-        <Squares2StackedIcon className="group-data-copied:hidden" />
-        <CheckmarkIcon className="not-group-data-copied:hidden" />
+        {copied ? <CheckmarkIcon /> : <Squares2StackedIcon />}
       </button>
     </div>
   );

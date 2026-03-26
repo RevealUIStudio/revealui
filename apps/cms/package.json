@@ -19,7 +19,6 @@
     "@simplewebauthn/browser": "^13.3.0",
     "@stripe/stripe-js": "^8.6.1",
     "@supabase/supabase-js": "^2.95.3",
-    "@tailwindplus/elements": "^1.0.22",
     "@types/nodemailer": "^7.0.5",
     "@vercel/blob": "^2.2.0",
     "@vercel/speed-insights": "^1.3.1",

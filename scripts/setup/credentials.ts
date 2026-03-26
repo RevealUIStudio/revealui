@@ -12,7 +12,7 @@
  *
  * What it writes:
  *   ~/.npmrc  — NPM_TOKEN  (npm.org publish auth)
- *   ~/.npmrc  — GITHUB_TOKEN (GitHub Packages read auth, for Pro packages)
+ *   ~/.npmrc  — NPM_TOKEN  (npm.org publish auth for Pro packages)
  *
  * Sources tried in order:
  *   1. Revvault: revealui/env/reveal-saas-dev-secrets
@@ -160,12 +160,6 @@ async function writeNpmToken(token: string): Promise<void> {
   await writeFile(USER_NPMRC, npmrc, { mode: 0o600 });
 }
 
-async function writeGitHubToken(token: string): Promise<void> {
-  let npmrc = await readNpmrc();
-  npmrc = setNpmrcEntry(npmrc, '//npm.pkg.github.com/:_authToken', token);
-  await writeFile(USER_NPMRC, npmrc, { mode: 0o600 });
-}
-
 // ---------------------------------------------------------------------------
 // Main
 // ---------------------------------------------------------------------------
@@ -210,16 +204,8 @@ async function main(): Promise<void> {
     missing++;
   }
 
-  // GitHub Packages token (for installing Pro packages)
-  const githubToken = secrets.GITHUB_TOKEN;
-  if (githubToken && githubToken.length > 10) {
-    await writeGitHubToken(githubToken);
-    log.success(`GITHUB_TOKEN → ~/.npmrc (//npm.pkg.github.com/:_authToken)`);
-    wrote++;
-  } else {
-    log.warn('GITHUB_TOKEN not found — skipping GitHub Packages auth');
-    missing++;
-  }
+  // Note: Pro packages are now on public npm (source-available open-core).
+  // No GitHub Packages token needed — all @revealui packages install from registry.npmjs.org.
 
   log.divider();
 

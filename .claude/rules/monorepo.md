@@ -45,7 +45,7 @@
 
 ## Publishing
 - OSS packages: `publishConfig.access: "public"`, MIT license
-- Pro packages: `"private": true` (not published to npm)
+- Pro packages: `publishConfig.access: "public"`, commercial license (source-available on npm)
 - Use changesets for versioning: `pnpm changeset` → `pnpm changeset:version` → `pnpm changeset:publish`
 
 ## Import Conventions

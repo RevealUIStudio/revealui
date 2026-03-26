@@ -10,7 +10,7 @@
  * Commands:
  *   status            Show changeset status (pending versions)
  *   oss               Full OSS release: version → build → publish → GitHub releases
- *   pro               Publish Pro packages to GitHub Packages
+ *   pro               Publish Pro packages to npm
  *   version           Bump version (major|minor|patch)
  *   preview           Preview release changes
  *   changelog         Generate changelog
@@ -22,7 +22,7 @@
  *   pnpm release status
  *   pnpm release oss                     # full OSS release
  *   pnpm release oss --dry-run           # preview only
- *   pnpm release pro                     # publish Pro packages to GitHub Packages
+ *   pnpm release pro                     # publish Pro packages to npm
  *   pnpm release pro --dry-run           # dry-run Pro publish
  *   pnpm release version minor
  *   pnpm release preview
@@ -101,8 +101,8 @@ class ReleaseCLI extends ExecutingCLI {
       },
       {
         name: 'pro',
-        description: 'Publish Pro packages to GitHub Packages registry',
-        confirmPrompt: 'This will publish Pro packages to GitHub Packages. Continue?',
+        description: 'Publish Pro packages to npm (source-available)',
+        confirmPrompt: 'This will publish Pro packages to npm. Continue?',
         handler: async (args) => this.releasePro(args),
       },
       {

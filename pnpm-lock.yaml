@@ -330,9 +330,6 @@ importers:
       '@supabase/supabase-js':
         specifier: ^2.95.3
         version: 2.95.3(bufferutil@4.1.0)(utf-8-validate@6.0.6)
-      '@tailwindplus/elements':
-        specifier: ^1.0.22
-        version: 1.0.22
       '@types/nodemailer':
         specifier: ^7.0.5
         version: 7.0.9
@@ -5138,9 +5135,6 @@ packages:
     resolution: {integrity: sha512-TBf2sJjYeb28jD2U/OhwdW0bbOsxkWPwQ7SrqGf9sVcoYwZj7rkXljroBO9wKBut9XnmQLXanuDUeqQK0lGg/w==}
     peerDependencies:
       vite: ^5.2.0 || ^6 || ^7
-
-  '@tailwindplus/elements@1.0.22':
-    resolution: {integrity: sha512-rpUVblTefHInmbanTreDqxkjGYV+S44EOIJS1UtyvY1+tn5PbdOkUkWar8cjkEZpCDPAXbswtF0tuxEkX3jk0g==}
 
   '@tauri-apps/api@2.10.1':
     resolution: {integrity: sha512-hKL/jWf293UDSUN09rR69hrToyIXBb8CjGaWC7gfinvnQrBVvnLr08FeFi38gxtugAVyVcTa5/FD/Xnkb1siBw==}
@@ -14912,8 +14906,6 @@ snapshots:
       '@tailwindcss/oxide': 4.2.1
       tailwindcss: 4.2.1
       vite: 7.3.1(@types/node@25.5.0)(jiti@2.6.1)(lightningcss@1.31.1)(sass@1.97.3)(terser@5.46.0)(tsx@4.21.0)(yaml@2.8.2)
-
-  '@tailwindplus/elements@1.0.22': {}
 
   '@tauri-apps/api@2.10.1': {}
 

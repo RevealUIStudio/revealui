@@ -1,7 +1,9 @@
-import { ElDialog, ElDialogPanel } from '@tailwindplus/elements/react';
+'use client';
+
+import { useEscapeKey, useFocusTrap, useScrollLock } from '@revealui/presentation';
 import { clsx } from 'clsx/lite';
 import Link from 'next/link';
-import type { ComponentProps, ReactNode } from 'react';
+import { type ComponentProps, type ReactNode, useCallback, useRef, useState } from 'react';
 
 export function NavbarLink({
   children,
@@ -57,6 +59,15 @@ export function NavbarWithLinksActionsAndCenteredLogo({
   logo: ReactNode;
   actions: ReactNode;
 } & ComponentProps<'header'>) {
+  const [menuOpen, setMenuOpen] = useState(false);
+  const panelRef = useRef<HTMLDivElement>(null);
+
+  const closeMenu = useCallback(() => setMenuOpen(false), []);
+
+  useEscapeKey(closeMenu, menuOpen);
+  useScrollLock(menuOpen);
+  useFocusTrap(panelRef, menuOpen);
+
   return (
     <header
       className={clsx('sticky top-0 z-10 bg-mist-100 dark:bg-mist-950', className)}
@@ -72,9 +83,8 @@ export function NavbarWithLinksActionsAndCenteredLogo({
 
             <button
               type="button"
-              command="show-modal"
-              commandfor="mobile-menu"
-              aria-label="Toggle menu"
+              onClick={() => setMenuOpen(true)}
+              aria-label="Open menu"
               className="inline-flex rounded-full p-1.5 text-mist-950 hover:bg-mist-950/10 lg:hidden dark:text-white dark:hover:bg-white/10"
             >
               <svg viewBox="0 0 24 24" fill="currentColor" className="size-6">
@@ -89,35 +99,38 @@ export function NavbarWithLinksActionsAndCenteredLogo({
           </div>
         </div>
 
-        <ElDialog>
-          <dialog id="mobile-menu" className="backdrop:bg-transparent">
-            <ElDialogPanel className="fixed inset-0 bg-mist-100 px-6 py-6 lg:px-10 dark:bg-mist-950">
-              <div className="flex justify-end">
-                <button
-                  type="button"
-                  command="close"
-                  commandfor="mobile-menu"
-                  aria-label="Toggle menu"
-                  className="inline-flex rounded-full p-1.5 text-mist-950 hover:bg-mist-950/10 dark:text-white dark:hover:bg-white/10"
+        {menuOpen && (
+          <div
+            ref={panelRef}
+            role="dialog"
+            aria-modal="true"
+            aria-label="Mobile menu"
+            className="fixed inset-0 z-50 bg-mist-100 px-6 py-6 lg:px-10 dark:bg-mist-950"
+          >
+            <div className="flex justify-end">
+              <button
+                type="button"
+                onClick={closeMenu}
+                aria-label="Close menu"
+                className="inline-flex rounded-full p-1.5 text-mist-950 hover:bg-mist-950/10 dark:text-white dark:hover:bg-white/10"
+              >
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                  strokeWidth={1.5}
+                  stroke="currentColor"
+                  className="size-6"
                 >
-                  <svg
-                    xmlns="http://www.w3.org/2000/svg"
-                    fill="none"
-                    viewBox="0 0 24 24"
-                    strokeWidth={1.5}
-                    stroke="currentColor"
-                    className="size-6"
-                  >
-                    <title>Close menu</title>
-                    <path strokeLinecap="round" strokeLinejoin="round" d="M6 18 18 6M6 6l12 12" />
-                  </svg>
-                </button>
-              </div>
-              <div className="mt-6 flex flex-col gap-6">{links}</div>
-              <div className="mt-8 flex flex-col gap-4">{actions}</div>
-            </ElDialogPanel>
-          </dialog>
-        </ElDialog>
+                  <title>Close menu</title>
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M6 18 18 6M6 6l12 12" />
+                </svg>
+              </button>
+            </div>
+            <div className="mt-6 flex flex-col gap-6">{links}</div>
+            <div className="mt-8 flex flex-col gap-4">{actions}</div>
+          </div>
+        )}
       </nav>
     </header>
   );
