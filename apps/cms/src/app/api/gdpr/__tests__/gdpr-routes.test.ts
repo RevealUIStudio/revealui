@@ -32,7 +32,7 @@ vi.mock('@/lib/utils/error-response', () => {
 });
 
 vi.mock('@/lib/middleware/rate-limit', () => ({
-  withRateLimit: (handler: Function, _opts?: unknown) => handler,
+  withRateLimit: (handler: (...args: unknown[]) => unknown, _opts?: unknown) => handler,
 }));
 
 vi.mock('@/lib/utilities/revealui-singleton', () => ({

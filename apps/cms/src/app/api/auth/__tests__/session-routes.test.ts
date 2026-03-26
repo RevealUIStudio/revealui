@@ -37,7 +37,7 @@ vi.mock('@/lib/utils/error-response', () => {
 });
 
 vi.mock('@/lib/middleware/rate-limit', () => ({
-  withRateLimit: (handler: Function, _opts?: unknown) => handler,
+  withRateLimit: (handler: (...args: unknown[]) => unknown, _opts?: unknown) => handler,
   rateLimit: () => () => Promise.resolve(null),
   rateLimitConfigs: {
     auth: { maxRequests: 5, windowMs: 900000 },

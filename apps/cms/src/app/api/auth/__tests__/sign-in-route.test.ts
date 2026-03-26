@@ -27,7 +27,7 @@ vi.mock('@revealui/core/utils/logger', () => ({
 }));
 
 vi.mock('@/lib/middleware/rate-limit', () => ({
-  withRateLimit: (handler: Function, _opts?: unknown) => handler,
+  withRateLimit: (handler: (...args: unknown[]) => unknown, _opts?: unknown) => handler,
 }));
 
 vi.mock('@/lib/utils/error-response', () => {
