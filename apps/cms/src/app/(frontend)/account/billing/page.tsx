@@ -22,6 +22,7 @@ interface SubscriptionData {
   tier: LicenseTierId;
   status: string;
   expiresAt: string | null;
+  graceUntil?: string | null;
 }
 
 interface UsageData {
@@ -63,6 +64,7 @@ function BillingContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const success = searchParams.get('success');
+  const perpetual = searchParams.get('perpetual');
   const upgrade = searchParams.get('upgrade');
   const { data: session, isLoading: sessionLoading } = useSession();
   const [subscription, setSubscription] = useState<SubscriptionData | null>(null);
@@ -272,7 +274,73 @@ function BillingContent() {
         </div>
       )}
 
-      {success && (
+      {subscription?.status === 'expired' && (
+        <div className="rounded-md border border-red-200 bg-red-50 p-4 text-sm text-red-800 dark:border-red-800 dark:bg-red-900/20 dark:text-red-300">
+          Your subscription has expired. Pro features are no longer available.
+          <button
+            type="button"
+            onClick={handleCheckout}
+            disabled={actionLoading}
+            className="ml-2 font-medium underline hover:text-red-900 dark:hover:text-red-200"
+          >
+            Resubscribe
+          </button>
+        </div>
+      )}
+
+      {subscription?.status === 'revoked' && (
+        <div className="rounded-md border border-red-200 bg-red-50 p-4 text-sm text-red-800 dark:border-red-800 dark:bg-red-900/20 dark:text-red-300">
+          Your subscription has been revoked due to a billing issue. Please contact{' '}
+          <a
+            href="mailto:support@revealui.com"
+            className="font-medium underline hover:text-red-900 dark:hover:text-red-200"
+          >
+            support@revealui.com
+          </a>{' '}
+          or{' '}
+          <button
+            type="button"
+            onClick={handleManageBilling}
+            disabled={actionLoading}
+            className="font-medium underline hover:text-red-900 dark:hover:text-red-200"
+          >
+            update your payment method
+          </button>
+          .
+        </div>
+      )}
+
+      {subscription?.graceUntil &&
+        (subscription.status === 'past_due' || subscription.status === 'grace_period') && (
+          <div className="rounded-md border border-amber-200 bg-amber-50 p-4 text-sm text-amber-800 dark:border-amber-800 dark:bg-amber-900/20 dark:text-amber-300">
+            Your payment is past due. You have access until{' '}
+            <strong>
+              {new Date(subscription.graceUntil).toLocaleDateString('en-US', {
+                month: 'long',
+                day: 'numeric',
+                year: 'numeric',
+              })}
+            </strong>
+            . Please update your payment method to avoid losing access.
+            <button
+              type="button"
+              onClick={handleManageBilling}
+              disabled={actionLoading}
+              className="ml-2 font-medium underline hover:text-amber-900 dark:hover:text-amber-200"
+            >
+              Update payment
+            </button>
+          </div>
+        )}
+
+      {perpetual && (
+        <div className="rounded-md bg-green-50 p-4 text-sm text-green-700 dark:bg-green-900/20 dark:text-green-400">
+          Perpetual license activated! Your Pro features are permanently unlocked. Your license
+          includes 1 year of support and updates.
+        </div>
+      )}
+
+      {success && !perpetual && (
         <div className="rounded-md bg-green-50 p-4 text-sm text-green-700 dark:bg-green-900/20 dark:text-green-400">
           Subscription activated! Your Pro features are now available.
         </div>
@@ -305,8 +373,22 @@ function BillingContent() {
 
           <div className="flex items-center justify-between">
             <span className="text-sm text-zinc-500">Status</span>
-            <span className="text-sm font-medium capitalize">
-              {subscription?.status || 'active'}
+            <span
+              className={`text-sm font-medium capitalize ${
+                subscription?.status === 'active' || subscription?.status === 'trialing'
+                  ? 'text-green-600 dark:text-green-400'
+                  : subscription?.status === 'past_due' || subscription?.status === 'grace_period'
+                    ? 'text-amber-600 dark:text-amber-400'
+                    : subscription?.status === 'expired' || subscription?.status === 'revoked'
+                      ? 'text-red-600 dark:text-red-400'
+                      : ''
+              }`}
+            >
+              {subscription?.status === 'past_due'
+                ? 'Past Due'
+                : subscription?.status === 'grace_period'
+                  ? 'Grace Period'
+                  : subscription?.status || 'active'}
             </span>
           </div>
 

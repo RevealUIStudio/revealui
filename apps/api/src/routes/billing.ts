@@ -110,6 +110,11 @@ const SubscriptionResponseSchema = z.object({
   status: z.string().openapi({ description: 'License status', example: 'active' }),
   expiresAt: z.string().nullable().openapi({ description: 'Expiration date (ISO 8601)' }),
   licenseKey: z.string().nullable().openapi({ description: 'JWT license key' }),
+  graceUntil: z
+    .string()
+    .nullable()
+    .optional()
+    .openapi({ description: 'Grace period end date (ISO 8601), present during past_due' }),
 });
 
 const ErrorSchema = z.object({
