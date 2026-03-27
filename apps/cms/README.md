@@ -48,7 +48,7 @@ pnpm test
 | `/admin/monitoring`        | System monitoring (Pro)                     |
 | `/admin/errors`            | Error tracking (Pro)                        |
 | `/admin/logs`              | Structured log viewer (Pro)                 |
-| `/admin/agents`            | AI agent cards + MCP servers (Pro)          |
+| `/admin/agents`            | AI agent cards + MCP tools (Pro)            |
 | `/admin/agents/new`        | Agent scaffolding wizard (Pro)              |
 | `/admin/settings/api-keys` | BYOK API key management (Pro)               |
 | `/account/billing`         | Account subscription and billing management |

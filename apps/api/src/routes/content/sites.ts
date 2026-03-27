@@ -6,6 +6,7 @@
  */
 
 import { SITE_STATUSES } from '@revealui/contracts/entities';
+import { cleanupVectorDataForSite } from '@revealui/db/cleanup';
 import * as siteQueries from '@revealui/db/queries/sites';
 import { createRoute, OpenAPIHono, z } from '@revealui/openapi';
 import { HTTPException } from 'hono/http-exception';
@@ -259,6 +260,20 @@ app.openapi(
       throw new HTTPException(403, { message: 'Forbidden' });
     }
     await siteQueries.deleteSite(db, id);
+
+    // Fire-and-forget: clean up orphaned vector data in Supabase.
+    // Cross-DB FK cascades don't span separate database instances.
+    try {
+      const { getVectorClient } = await import('@revealui/db');
+      const vectorDb = getVectorClient();
+      cleanupVectorDataForSite(vectorDb, id).catch(() => {
+        // Swallowed — vector cleanup is best-effort.
+        // The batch cleanup cron handles missed deletions.
+      });
+    } catch {
+      // Vector DB not configured — skip cleanup
+    }
+
     return c.json({ success: true as const, message: 'Site deleted' }, 200);
   },
 );

@@ -14,7 +14,7 @@
  * configurable batch sizes via `configureCleanup()`.
  */
 
-import { inArray, isNotNull } from 'drizzle-orm';
+import { eq, inArray, isNotNull } from 'drizzle-orm';
 import type { NeonHttpDatabase } from 'drizzle-orm/neon-http';
 import type { NodePgDatabase } from 'drizzle-orm/node-postgres';
 import { agentMemories } from '../schema/agents.js';
@@ -215,4 +215,55 @@ async function deleteChunksById(vectorDb: DrizzleClient, ids: string[]): Promise
     const batch = ids.slice(i, i + config.batchSize);
     await vectorDb.delete(ragChunks).where(inArray(ragChunks.id, batch));
   }
+}
+
+// =============================================================================
+// Targeted single-site cleanup (fire-and-forget from deletion hooks)
+// =============================================================================
+
+/**
+ * Removes all vector data (agent memories + RAG) for a single site from
+ * the Supabase vector database. Designed to be called fire-and-forget
+ * after a site is soft-deleted in NeonDB.
+ *
+ * Deletion order respects FK constraints:
+ * 1. ragChunks     (references ragDocuments.id)
+ * 2. ragDocuments  (references sites.id via workspaceId)
+ * 3. agentMemories (references sites.id via siteId)
+ *
+ * @param vectorDb - Drizzle client connected to Supabase (vector database)
+ * @param siteId   - The site ID whose vector data should be removed
+ * @returns Summary of what was cleaned up
+ */
+export async function cleanupVectorDataForSite(
+  vectorDb: DrizzleClient,
+  siteId: string,
+): Promise<{
+  agentMemoriesDeleted: number;
+  ragChunksDeleted: number;
+  ragDocumentsDeleted: number;
+}> {
+  // 1. RAG chunks (child of ragDocuments)
+  const deletedChunks = await vectorDb
+    .delete(ragChunks)
+    .where(eq(ragChunks.workspaceId, siteId))
+    .returning();
+
+  // 2. RAG documents
+  const deletedDocs = await vectorDb
+    .delete(ragDocuments)
+    .where(eq(ragDocuments.workspaceId, siteId))
+    .returning();
+
+  // 3. Agent memories
+  const deletedMemories = await vectorDb
+    .delete(agentMemories)
+    .where(eq(agentMemories.siteId, siteId))
+    .returning();
+
+  return {
+    agentMemoriesDeleted: deletedMemories.length,
+    ragChunksDeleted: deletedChunks.length,
+    ragDocumentsDeleted: deletedDocs.length,
+  };
 }

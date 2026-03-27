@@ -61,7 +61,7 @@ export const FEATURE_LABELS: Record<FeatureFlagKey, string> = {
   aiLocal: 'Local AI (BitNet)',
   ai: 'AI Agents',
   aiMemory: 'AI Memory',
-  mcp: 'MCP Server Integration',
+  mcp: 'MCP Framework',
   payments: 'Built-in Payments',
   advancedSync: 'Advanced Real-time Sync',
   dashboard: 'Monitoring Dashboard',

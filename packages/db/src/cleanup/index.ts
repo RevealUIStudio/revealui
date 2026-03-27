@@ -10,6 +10,7 @@ export {
   type CleanupConfig,
   type CleanupResult,
   cleanupOrphanedVectorData,
+  cleanupVectorDataForSite,
   configureCleanup,
 } from './cross-db-cleanup.js';
 export { cleanupRagDataForSite } from './rag-site-cleanup.js';
