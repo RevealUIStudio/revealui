@@ -482,12 +482,12 @@ async function syncHostedSubscriptionState(
  * failure never blocks the webhook response.
  */
 function auditLicenseEvent(
-  db: Database,
+  db: Database | Parameters<Parameters<Database['transaction']>[0]>[0],
   eventType: string,
   severity: 'info' | 'warn' | 'critical',
   payload: Record<string, unknown>,
 ): void {
-  new DrizzleAuditStore(db)
+  new DrizzleAuditStore(db as Database)
     .append({
       id: crypto.randomUUID(),
       timestamp: new Date(),
@@ -1316,7 +1316,8 @@ app.openapi(stripeWebhookRoute, async (c) => {
         }); // end transaction
 
         // Send deferred emails outside the transaction
-        if (emailToSend) emailToSend();
+        // biome-ignore lint/style/noNonNullAssertion: TS can't track mutation inside async transaction callback
+        if (emailToSend) (emailToSend as () => void)();
 
         break;
       }
