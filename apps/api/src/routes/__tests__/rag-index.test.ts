@@ -25,7 +25,7 @@ vi.mock('@revealui/ai/ingestion', () => {
   throw new Error('not available');
 });
 
-import { getRestClient, getVectorClient } from '@revealui/db/client';
+import { getVectorClient } from '@revealui/db/client';
 import ragApp from '../rag-index.js';
 
 const mockedGetVectorClient = vi.mocked(getVectorClient);
