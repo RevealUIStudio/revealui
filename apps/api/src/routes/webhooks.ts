@@ -1316,7 +1316,6 @@ app.openapi(stripeWebhookRoute, async (c) => {
         }); // end transaction
 
         // Send deferred emails outside the transaction
-        // biome-ignore lint/style/noNonNullAssertion: TS can't track mutation inside async transaction callback
         if (emailToSend) (emailToSend as () => void)();
 
         break;
