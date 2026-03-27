@@ -107,6 +107,22 @@ async function withStripe<T>(operation: (stripe: Stripe) => Promise<T>): Promise
         message: 'Payment service temporarily unavailable. Please try again shortly.',
       });
     }
+    // Map Stripe-specific errors to actionable HTTP status codes
+    if (error instanceof Stripe.errors.StripeCardError) {
+      throw new HTTPException(402, {
+        message: 'Your card was declined. Please try a different payment method.',
+      });
+    }
+    if (error instanceof Stripe.errors.StripeRateLimitError) {
+      throw new HTTPException(429, {
+        message: 'Too many requests to payment service. Please try again shortly.',
+      });
+    }
+    if (error instanceof Stripe.errors.StripeInvalidRequestError) {
+      throw new HTTPException(400, {
+        message: 'Invalid billing request. Please contact support if this persists.',
+      });
+    }
     throw error;
   }
 }

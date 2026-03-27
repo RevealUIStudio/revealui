@@ -20,6 +20,7 @@ import {
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useCallback, useEffect, useState } from 'react';
+import { safeStripeRedirect } from '~/lib/utils/safe-stripe-redirect';
 
 interface SubscriptionData {
   tier: LicenseTierId;
@@ -119,7 +120,7 @@ export default function LicensePage() {
       });
       if (!res.ok) throw new Error('Checkout failed');
       const { url } = (await res.json()) as { url: string };
-      router.push(url);
+      safeStripeRedirect(url);
     } catch {
       setError('Failed to start checkout. Please try again.');
     } finally {

@@ -537,11 +537,22 @@ export async function provisionNpmAccess(npmUsername: string, db?: Database): Pr
   }
 
   if (!response.ok) {
-    logger.warn('npm team provisioning returned non-OK status', {
+    const detail = await response.text().catch(() => '');
+    const errMsg = `npm team provisioning returned ${response.status}: ${detail}`;
+    logger.error('npm team provisioning failed', undefined, {
       npmUsername,
       status: response.status,
+      detail,
     });
-  } else {
-    logger.info('npm team access provisioned', { npmUsername });
+    if (db) {
+      await db.insert(appLogs).values({
+        level: 'error',
+        message: 'npm team provisioning returned non-OK status',
+        app: 'api',
+        data: { npmUsername, status: response.status, detail },
+      });
+    }
+    throw new Error(errMsg);
   }
+  logger.info('npm team access provisioned', { npmUsername });
 }
