@@ -2,20 +2,14 @@
  * Email Service
  *
  * Sends emails using configured email provider.
+ * Supports Resend or SMTP (via nodemailer).
  *
- * Provider priority:
- *   1. Gmail REST API  (GOOGLE_SERVICE_ACCOUNT_EMAIL + GOOGLE_PRIVATE_KEY)
- *   2. Resend API      (RESEND_API_KEY)
- *   3. SMTP            (SMTP_HOST + SMTP_USER + SMTP_PASS, requires nodemailer)
- *   4. Mock / throw    (development logs, production throws)
- *
- * Gmail uses a Google Workspace service account with domain-wide delegation
- * to send as EMAIL_FROM (e.g. noreply@revealui.com) via the Gmail REST API.
- * No Node.js-only dependencies — fully edge-compatible (fetch + jose).
+ * Installation:
+ * - For Resend: Set RESEND_API_KEY
+ * - For SMTP: Set SMTP_* variables and install: pnpm add nodemailer @types/nodemailer
  */
 
 import { logger } from '@revealui/core/observability/logger';
-import { importPKCS8, SignJWT } from 'jose';
 
 interface EmailOptions {
   to: string;
@@ -28,138 +22,9 @@ interface EmailProvider {
   send(options: EmailOptions): Promise<{ success: boolean; error?: string }>;
 }
 
-function sanitizeEmailHeader(value: string): string {
-  return value.replace(/[\r\n]/g, '');
-}
-
-// ---------------------------------------------------------------------------
-// Gmail REST API provider (edge-compatible)
-// ---------------------------------------------------------------------------
-
-class GmailProvider implements EmailProvider {
-  private serviceAccountEmail: string;
-  private privateKey: string;
-  private delegateEmail: string;
-
-  constructor() {
-    this.serviceAccountEmail = process.env.GOOGLE_SERVICE_ACCOUNT_EMAIL || '';
-    this.privateKey = process.env.GOOGLE_PRIVATE_KEY || '';
-    this.delegateEmail =
-      process.env.EMAIL_FROM ?? process.env.RESEND_FROM_EMAIL ?? 'noreply@revealui.com';
-  }
-
-  private async getAccessToken(): Promise<string> {
-    const key = await importPKCS8(this.privateKey.replace(/\\n/g, '\n'), 'RS256');
-
-    const now = Math.floor(Date.now() / 1000);
-    const jwt = await new SignJWT({
-      scope: 'https://www.googleapis.com/auth/gmail.send',
-      sub: this.delegateEmail,
-    })
-      .setProtectedHeader({ alg: 'RS256', typ: 'JWT' })
-      .setIssuer(this.serviceAccountEmail)
-      .setAudience('https://oauth2.googleapis.com/token')
-      .setIssuedAt(now)
-      .setExpirationTime(now + 3600)
-      .sign(key);
-
-    const tokenRes = await fetch('https://oauth2.googleapis.com/token', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-      body: new URLSearchParams({
-        grant_type: 'urn:ietf:params:oauth:grant-type:jwt-bearer',
-        assertion: jwt,
-      }),
-    });
-
-    if (!tokenRes.ok) {
-      const body = await tokenRes.text();
-      throw new Error(`Google OAuth2 token exchange failed (${tokenRes.status}): ${body}`);
-    }
-
-    const { access_token } = (await tokenRes.json()) as { access_token: string };
-    return access_token;
-  }
-
-  private buildRawMessage(to: string, subject: string, html: string, text?: string): string {
-    const boundary = `boundary_${Date.now().toString(36)}`;
-
-    const lines = [
-      `From: ${this.delegateEmail}`,
-      `To: ${to}`,
-      `Subject: ${subject}`,
-      'MIME-Version: 1.0',
-      `Content-Type: multipart/alternative; boundary="${boundary}"`,
-      '',
-    ];
-
-    if (text) {
-      lines.push(`--${boundary}`, 'Content-Type: text/plain; charset="UTF-8"', '', text, '');
-    }
-
-    lines.push(`--${boundary}`, 'Content-Type: text/html; charset="UTF-8"', '', html, '');
-    lines.push(`--${boundary}--`);
-
-    const raw = lines.join('\r\n');
-    const bytes = new TextEncoder().encode(raw);
-    let b64 = '';
-    for (let i = 0; i < bytes.length; i += 4096) {
-      b64 += String.fromCharCode(...bytes.subarray(i, i + 4096));
-    }
-    return btoa(b64).replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '');
-  }
-
-  async send(options: EmailOptions): Promise<{ success: boolean; error?: string }> {
-    if (!(this.serviceAccountEmail && this.privateKey)) {
-      return { success: false, error: 'Gmail service account credentials not configured' };
-    }
-
-    try {
-      const accessToken = await this.getAccessToken();
-
-      const raw = this.buildRawMessage(
-        sanitizeEmailHeader(options.to),
-        sanitizeEmailHeader(options.subject),
-        options.html,
-        options.text,
-      );
-
-      const res = await fetch('https://gmail.googleapis.com/gmail/v1/users/me/messages/send', {
-        method: 'POST',
-        headers: {
-          // biome-ignore lint/style/useNamingConvention: Authorization is a standard HTTP header name
-          Authorization: `Bearer ${accessToken}`,
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ raw }),
-      });
-
-      if (!res.ok) {
-        const body = await res.text();
-        const message = `Gmail API error (${res.status}): ${body}`;
-        if (process.env.NODE_ENV === 'production') {
-          logger.error('Gmail email delivery failed', new Error(message), { to: options.to });
-          throw new Error(`Gmail email delivery failed: ${message}`);
-        }
-        return { success: false, error: message };
-      }
-
-      return { success: true };
-    } catch (error) {
-      const message = error instanceof Error ? error.message : 'Unknown Gmail error';
-      if (process.env.NODE_ENV === 'production') {
-        logger.error('Gmail email delivery failed', new Error(message), { to: options.to });
-        throw new Error(`Gmail email delivery failed: ${message}`);
-      }
-      return { success: false, error: message };
-    }
-  }
-}
-
-// ---------------------------------------------------------------------------
-// Resend API provider
-// ---------------------------------------------------------------------------
-
+/**
+ * Resend Email Provider
+ */
 class ResendProvider implements EmailProvider {
   private apiKey: string;
   private fromEmail: string;
@@ -219,10 +84,12 @@ class ResendProvider implements EmailProvider {
   }
 }
 
-// ---------------------------------------------------------------------------
-// SMTP provider (requires nodemailer)
-// ---------------------------------------------------------------------------
-
+/**
+ * SMTP Email Provider
+ *
+ * Uses nodemailer for SMTP email sending.
+ * Install nodemailer: pnpm add nodemailer @types/nodemailer
+ */
 class SMTPProvider implements EmailProvider {
   private config: {
     host: string;
@@ -249,6 +116,7 @@ class SMTPProvider implements EmailProvider {
   }
 
   async send(options: EmailOptions): Promise<{ success: boolean; error?: string }> {
+    // Import nodemailer
     let createTransport: typeof import('nodemailer').createTransport;
     try {
       const nodemailerModule = await import('nodemailer');
@@ -262,6 +130,7 @@ class SMTPProvider implements EmailProvider {
       return { success: false, error: message };
     }
 
+    // Validate configuration
     if (!(this.config.auth.user && this.config.auth.pass)) {
       const message = 'SMTP_USER and SMTP_PASS must be configured';
       if (process.env.NODE_ENV === 'production') {
@@ -272,6 +141,7 @@ class SMTPProvider implements EmailProvider {
     }
 
     try {
+      // Create transporter
       const transporter = createTransport({
         host: this.config.host,
         port: this.config.port,
@@ -282,6 +152,7 @@ class SMTPProvider implements EmailProvider {
         },
       });
 
+      // Send email
       await transporter.sendMail({
         from: this.fromEmail,
         to: options.to,
@@ -302,13 +173,14 @@ class SMTPProvider implements EmailProvider {
   }
 }
 
-// ---------------------------------------------------------------------------
-// Mock provider (development)
-// ---------------------------------------------------------------------------
-
+/**
+ * Mock Email Provider (for testing/development)
+ */
 class MockEmailProvider implements EmailProvider {
   async send(options: EmailOptions): Promise<{ success: boolean; error?: string }> {
+    // Only log in development mode
     if (process.env.NODE_ENV === 'development') {
+      // Use dynamic import to avoid circular dependencies
       import('@revealui/core/utils/logger')
         .then(({ logger }) => {
           logger.debug('Mock email sent', {
@@ -318,49 +190,49 @@ class MockEmailProvider implements EmailProvider {
         })
         .catch(() => {
           // Logger not available, skip logging
+          // (Previously fell back to console, but we've removed all console.* usage)
         });
     }
     return { success: true };
   }
 }
 
-// ---------------------------------------------------------------------------
-// Provider selection
-// ---------------------------------------------------------------------------
-
+/**
+ * Get configured email provider
+ */
 function getEmailProvider(): EmailProvider {
-  // 1. Gmail REST API (preferred — edge-compatible, free with Workspace)
-  if (process.env.GOOGLE_SERVICE_ACCOUNT_EMAIL && process.env.GOOGLE_PRIVATE_KEY) {
-    return new GmailProvider();
-  }
-
-  // 2. Resend API
+  // Prefer Resend if configured
   if (process.env.RESEND_API_KEY) {
     return new ResendProvider();
   }
 
-  // 3. SMTP (requires nodemailer)
+  // Fall back to SMTP if configured
   if (process.env.SMTP_HOST && process.env.SMTP_USER && process.env.SMTP_PASS) {
     return new SMTPProvider();
   }
 
-  // 4. Mock in development, throw in production
+  // Use mock in development, fail in production
   if (process.env.NODE_ENV === 'development') {
+    // Lazy import to avoid circular dependencies
     import('@revealui/core/utils/logger').then(({ logger }) => {
       logger.warn('No email provider configured. Using mock provider.');
     });
     return new MockEmailProvider();
   }
 
+  // In production, throw error if not configured
   throw new Error(
-    'Email provider not configured. Set GOOGLE_SERVICE_ACCOUNT_EMAIL + GOOGLE_PRIVATE_KEY, RESEND_API_KEY, or SMTP_* environment variables.',
+    'Email provider not configured. Set RESEND_API_KEY or SMTP_* environment variables.',
   );
 }
 
-// ---------------------------------------------------------------------------
-// Public API
-// ---------------------------------------------------------------------------
-
+/**
+ * Send an email with automatic retry for transient failures.
+ *
+ * Retries up to `maxRetries` times with exponential backoff (200ms, 400ms, 800ms).
+ * Only retries on errors that look transient (network, 5xx). Validation / auth
+ * errors fail immediately.
+ */
 export async function sendEmail(
   options: EmailOptions,
   { maxRetries = 2 }: { maxRetries?: number } = {},
@@ -373,10 +245,12 @@ export async function sendEmail(
 
       if (result.success) return result;
 
+      // Don't retry auth/config errors
       if (result.error && /not configured|not installed|unauthorized/i.test(result.error)) {
         return result;
       }
 
+      // Last attempt — throw in production, return in dev/test
       if (attempt === maxRetries) {
         if (process.env.NODE_ENV === 'production') {
           const errorMsg = `Email delivery failed after ${maxRetries + 1} attempts: ${result.error}`;
@@ -389,6 +263,7 @@ export async function sendEmail(
         return result;
       }
 
+      // Exponential backoff before retrying
       await new Promise((resolve) => setTimeout(resolve, 200 * 2 ** attempt));
     } catch (error) {
       if (attempt === maxRetries) {
@@ -416,6 +291,13 @@ export async function sendEmail(
   return { success: false, error: 'Max retries exceeded' };
 }
 
+/**
+ * Send account recovery email (magic link)
+ *
+ * @param email - User email
+ * @param token - Magic link token
+ * @param recoveryUrl - Full recovery URL (optional, will construct if not provided)
+ */
 export async function sendRecoveryEmail(
   email: string,
   token: string,
@@ -477,6 +359,14 @@ This link will expire in 15 minutes. If you didn't request account recovery, you
   });
 }
 
+/**
+ * Send password reset email
+ *
+ * @param email - User email
+ * @param tokenId - Token row ID (included in the reset URL for O(1) lookup)
+ * @param resetToken - Password reset token
+ * @param resetUrl - Full reset URL (optional, will construct if not provided)
+ */
 export async function sendPasswordResetEmail(
   email: string,
   tokenId: string,
