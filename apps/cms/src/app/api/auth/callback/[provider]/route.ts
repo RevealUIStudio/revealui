@@ -3,6 +3,10 @@
  *
  * Handles the redirect from the OAuth provider. Verifies state, exchanges
  * the code for an access token, upserts the user, and creates a session.
+ *
+ * Account linking consent: When an existing user with the same email is found,
+ * the user is redirected to a consent page. When they confirm, the OAuth flow
+ * is re-initiated with linkConsent=true in the state, which allows linking.
  */
 
 import {
@@ -105,7 +109,12 @@ export async function GET(
       });
     }
 
-    const user = await upsertOAuthUser(provider, providerUser);
+    // Pass linkConsent from the signed state — when true, the user has
+    // explicitly consented to link their OAuth account to the existing
+    // local account with the same email.
+    const user = await upsertOAuthUser(provider, providerUser, {
+      linkConsent: verified.linkConsent,
+    });
 
     const userAgent = request.headers.get('user-agent') ?? undefined;
     const xff = request.headers.get('x-forwarded-for');
@@ -171,7 +180,15 @@ export async function GET(
     return response;
   } catch (err) {
     if (err instanceof OAuthAccountConflictError) {
-      return loginUrl('account_exists');
+      // Redirect to login with consent prompt params.
+      // The login page will show: "An account with this email exists. Link your {provider} account?"
+      // When the user confirms, it re-initiates OAuth with linkConsent=true.
+      const consentParams = new URLSearchParams({
+        error: 'account_exists',
+        link_provider: provider,
+        link_email: err.email,
+      });
+      return NextResponse.redirect(new URL(`/login?${consentParams.toString()}`, baseUrl));
     }
     logger.error('OAuth callback error', { provider, error: err });
     return loginUrl('oauth_error');

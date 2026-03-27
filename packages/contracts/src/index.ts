@@ -545,6 +545,19 @@ export {
 } from './revealcoin.js';
 
 // =============================================================================
+// Content Validation
+// =============================================================================
+
+export {
+  type ContentValidationConfig,
+  type ContentValidationResult,
+  configureContentValidation,
+  resetContentValidationConfig,
+  validateBlocks,
+  validateContent,
+} from './content-validation.js';
+
+// =============================================================================
 // Actions
 // =============================================================================
 

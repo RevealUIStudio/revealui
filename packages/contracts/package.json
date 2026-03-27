@@ -93,6 +93,10 @@
     "./generated/contracts": {
       "types": "./dist/generated/contracts.d.ts",
       "import": "./dist/generated/contracts.js"
+    },
+    "./content-validation": {
+      "types": "./dist/content-validation.d.ts",
+      "import": "./dist/content-validation.js"
     }
   },
   "files": [

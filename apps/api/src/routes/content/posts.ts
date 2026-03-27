@@ -6,12 +6,19 @@
  * GET /posts/slug/:slug
  */
 
+import { validateContent } from '@revealui/contracts/content-validation';
 import { POST_STATUSES } from '@revealui/contracts/entities';
 import * as postQueries from '@revealui/db/queries/posts';
 import { createRoute, OpenAPIHono, z } from '@revealui/openapi';
 import { HTTPException } from 'hono/http-exception';
 import { asNonEmptyTuple } from '../../lib/type-guards.js';
-import { ErrorSchema, IdParam, SlugField, SlugParam } from '../_helpers/content-schemas.js';
+import {
+  ErrorSchema,
+  IdParam,
+  SlugField,
+  SlugParam,
+  ValidationErrorSchema,
+} from '../_helpers/content-schemas.js';
 import { PaginationQuery } from '../_helpers/pagination.js';
 import { dateToString, nullableDateToString } from '../_helpers/serialize.js';
 import type { ContentVariables } from './index.js';
@@ -149,6 +156,10 @@ app.openapi(
         },
         description: 'Post created',
       },
+      400: {
+        content: { 'application/json': { schema: ValidationErrorSchema } },
+        description: 'Content validation failed',
+      },
     },
   }),
   async (c) => {
@@ -156,6 +167,13 @@ app.openapi(
     const user = c.get('user');
     if (!user) throw new HTTPException(401, { message: 'Authentication required' });
     const body = c.req.valid('json');
+    // Validate content for dangerous URLs, excessive nesting, and payload size
+    if (body.content !== undefined) {
+      const validation = validateContent(body.content);
+      if (!validation.valid) {
+        return c.json({ success: false as const, errors: validation.errors }, 400);
+      }
+    }
     // Force authorId to session user — never trust client-supplied authorId
     const post = await postQueries.createPost(db, {
       id: crypto.randomUUID(),
@@ -278,6 +296,10 @@ app.openapi(
         },
         description: 'Post updated',
       },
+      400: {
+        content: { 'application/json': { schema: ValidationErrorSchema } },
+        description: 'Content validation failed',
+      },
       404: { content: { 'application/json': { schema: ErrorSchema } }, description: 'Not found' },
     },
   }),
@@ -292,6 +314,13 @@ app.openapi(
       throw new HTTPException(403, { message: 'Forbidden' });
     }
     const body = c.req.valid('json');
+    // Validate content for dangerous URLs, excessive nesting, and payload size
+    if (body.content !== undefined) {
+      const validation = validateContent(body.content);
+      if (!validation.valid) {
+        return c.json({ success: false as const, errors: validation.errors }, 400);
+      }
+    }
     const post = await postQueries.updatePost(db, id, {
       ...body,
       publishedAt:

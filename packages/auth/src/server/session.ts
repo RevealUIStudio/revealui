@@ -8,7 +8,7 @@
 import { logger } from '@revealui/core/observability/logger';
 import { getClient } from '@revealui/db/client';
 import { sessions, users } from '@revealui/db/schema';
-import { and, eq, gt, isNull } from 'drizzle-orm';
+import { and, eq, gt, isNull, ne } from 'drizzle-orm';
 import type { Session, User } from '../types.js';
 import { hashToken } from '../utils/token.js';
 import { DatabaseError, TokenError } from './errors.js';
@@ -409,6 +409,40 @@ export async function deleteSession(headers: Headers): Promise<boolean> {
  *
  * @param userId - User ID
  */
+/**
+ * Delete all sessions for a user EXCEPT the specified session.
+ * Used for "sign out all other devices" functionality.
+ */
+export async function deleteOtherUserSessions(
+  userId: string,
+  exceptSessionId: string,
+): Promise<void> {
+  try {
+    let db: ReturnType<typeof getClient>;
+    try {
+      db = getClient();
+    } catch (error: unknown) {
+      logger.error('Error getting database client');
+      throw new DatabaseError('Database connection failed', error);
+    }
+
+    try {
+      await db
+        .delete(sessions)
+        .where(and(eq(sessions.userId, userId), ne(sessions.id, exceptSessionId)));
+    } catch (error: unknown) {
+      logger.error('Error deleting other user sessions');
+      throw new DatabaseError('Failed to delete other user sessions', error);
+    }
+  } catch (err: unknown) {
+    if (err instanceof DatabaseError) {
+      throw err;
+    }
+    logger.error('Unexpected error in deleteOtherUserSessions');
+    throw new DatabaseError('Unexpected error deleting other user sessions', err);
+  }
+}
+
 export async function deleteAllUserSessions(userId: string): Promise<void> {
   try {
     let db: ReturnType<typeof getClient>;

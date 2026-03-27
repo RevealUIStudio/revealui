@@ -67,7 +67,9 @@ const UserSchema = z
   .openapi('User');
 
 const PaginatedUsersSchema = z.object({
-  docs: z.array(UserSchema),
+  success: z.literal(true),
+  data: z.array(UserSchema),
+  docs: z.array(UserSchema).openapi({ description: 'Alias for data (CMS admin compat)' }),
   totalDocs: z.number(),
   totalPages: z.number(),
   page: z.number(),
@@ -150,9 +152,13 @@ app.openapi(
 
     const totalPages = Math.ceil(totalDocs / limit);
 
+    const serialized = docs.map(serializeUser);
+
     return c.json(
       {
-        docs: docs.map(serializeUser),
+        success: true as const,
+        data: serialized,
+        docs: serialized,
         totalDocs,
         totalPages,
         page,

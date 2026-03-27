@@ -161,6 +161,18 @@
       "types": "./dist/queries/conversations.d.ts",
       "import": "./dist/queries/conversations.js"
     },
+    "./queries/products": {
+      "types": "./dist/queries/products.d.ts",
+      "import": "./dist/queries/products.js"
+    },
+    "./queries/orders": {
+      "types": "./dist/queries/orders.d.ts",
+      "import": "./dist/queries/orders.js"
+    },
+    "./schema/products": {
+      "types": "./dist/schema/products.d.ts",
+      "import": "./dist/schema/products.js"
+    },
     "./schema/yjs-documents": {
       "types": "./dist/schema/yjs-documents.d.ts",
       "import": "./dist/schema/yjs-documents.js"

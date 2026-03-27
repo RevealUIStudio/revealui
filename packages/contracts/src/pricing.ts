@@ -71,8 +71,8 @@ export const FEATURE_LABELS: Record<FeatureFlagKey, string> = {
   aiMultiProvider: 'Multi-provider AI',
   auditLog: 'Audit Logging',
   multiTenant: 'Multi-tenant Management',
-  whiteLabel: 'White-label Branding',
-  sso: 'SSO/SAML Authentication',
+  whiteLabel: 'White-label Branding (Coming Soon)',
+  sso: 'SSO/SAML Authentication (Coming Soon)',
 };
 
 // =============================================================================
@@ -181,10 +181,10 @@ export const SUBSCRIPTION_TIERS: SubscriptionTier[] = [
       'Everything in Max',
       'Unlimited sites',
       'Unlimited users/editors',
-      'Session-based auth + OAuth + SSO/SAML',
+      'Session-based auth + OAuth (SSO/SAML coming soon)',
       'All AI providers (unlimited)',
       'Multi-tenant architecture',
-      'White-label branding',
+      'White-label branding (coming soon)',
       'Unlimited agent tasks',
       'Slack support (4h SLA)',
       'Annual pricing available',

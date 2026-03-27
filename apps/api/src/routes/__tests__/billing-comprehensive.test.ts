@@ -101,6 +101,16 @@ vi.mock('drizzle-orm', () => ({
   gte: vi.fn((_col, _val) => `gte(${String(_col)},${String(_val)})`),
   lte: vi.fn((_col, _val) => `lte(${String(_col)},${String(_val)})`),
   lt: vi.fn((_col, _val) => `lt(${String(_col)},${String(_val)})`),
+  isNull: vi.fn((_col) => `isNull(${String(_col)})`),
+  ne: vi.fn((_col, _val) => `ne(${String(_col)},${String(_val)})`),
+  count: vi.fn(() => 'count()'),
+  countDistinct: vi.fn((_col) => `countDistinct(${String(_col)})`),
+  sql: Object.assign(
+    vi.fn((...args: unknown[]) => `sql(${args.join(',')})`),
+    {
+      join: vi.fn((...args: unknown[]) => `sql.join(${args.join(',')})`),
+    },
+  ),
 }));
 
 vi.mock('@revealui/core/license', () => ({
@@ -948,39 +958,24 @@ describe('Billing Route Tests — Comprehensive Coverage', { timeout: 60_000 }, 
     });
 
     it('handles race condition where another request creates the customer first', async () => {
-      queueSelectResults([{ stripePriceId: 'price_pro_server' }]);
-      mockCustomersCreate.mockResolvedValue({ id: 'cus_loser' });
-
-      mockDb.transaction.mockImplementation(async (cb: (tx: typeof mockDb) => Promise<unknown>) => {
-        const txMock = {
-          ...mockDb,
-          select: vi.fn().mockReturnValue({
-            ...mockDbSelectChain,
-            // biome-ignore lint/suspicious/noThenProperty: intentional thenable for test
-            then(onFulfilled?: (v: unknown[]) => unknown, onRejected?: (r: unknown) => unknown) {
-              return Promise.resolve([{ stripeCustomerId: 'cus_winner' }]).then(
-                onFulfilled,
-                onRejected,
-              );
-            },
-          }),
-        };
-        return cb(txMock as unknown as typeof mockDb);
-      });
-
+      // Simulate race: customer check returns null, but by the time we re-read,
+      // another request already set the customer ID (conditional UPDATE was a no-op).
+      // Selects: 1) price lookup, 2) customer check (null), 3) re-read (winner's ID)
       let selectCount = 0;
       mockDb.select.mockImplementation(() => {
         selectCount++;
         if (selectCount === 1) {
           _selectResult = [{ stripePriceId: 'price_pro_server' }];
-        } else if (selectCount <= 2) {
+        } else if (selectCount === 2) {
           _selectResult = [{ stripeCustomerId: null }];
         } else {
+          // Re-read returns the winner's customer ID, not ours
           _selectResult = [{ stripeCustomerId: 'cus_winner' }];
         }
         return mockDbSelectChain;
       });
 
+      mockCustomersCreate.mockResolvedValue({ id: 'cus_loser' });
       mockCheckoutSessionsCreate.mockResolvedValue({
         url: 'https://checkout.stripe.com/pay/sess_race',
       });
@@ -989,7 +984,10 @@ describe('Billing Route Tests — Comprehensive Coverage', { timeout: 60_000 }, 
       const res = await app.request(post('/checkout', { priceId: 'price_pro_server' }));
 
       expect(res.status).toBe(200);
+      // The checkout session should use the winner's customer ID
       expect(mockCheckoutSessionsCreate).toHaveBeenCalledOnce();
+      const sessionArgs = mockCheckoutSessionsCreate.mock.calls[0]?.[0] as Record<string, unknown>;
+      expect(sessionArgs.customer).toBe('cus_winner');
     });
   });
 

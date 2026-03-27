@@ -20,3 +20,8 @@ export const SlugField = z
   .regex(SLUG_PATTERN, 'Slug must be lowercase alphanumeric with hyphens only');
 
 export const ErrorSchema = z.object({ success: z.literal(false), error: z.string() });
+
+export const ValidationErrorSchema = z.object({
+  success: z.literal(false),
+  errors: z.array(z.string()).optional(),
+});

@@ -77,6 +77,7 @@ import { oauthAccounts } from './oauth-accounts.js';
 import { pageRevisions, pages } from './pages.js';
 import { passkeys } from './passkeys.js';
 import { passwordResetTokens } from './password-reset-tokens.js';
+import { orders, products } from './products.js';
 import { siteCollaborators, sites } from './sites.js';
 import { tenants } from './tenants.js';
 import {
@@ -312,6 +313,24 @@ export const postsRelations = relations(posts, ({ one }) => ({
 export const mediaRelations = relations(media, ({ one }) => ({
   uploadedByUser: one(users, {
     fields: [media.uploadedBy],
+    references: [users.id],
+  }),
+}));
+
+// =============================================================================
+// Product & Order Relations
+// =============================================================================
+
+export const productsRelations = relations(products, ({ one }) => ({
+  owner: one(users, {
+    fields: [products.ownerId],
+    references: [users.id],
+  }),
+}));
+
+export const ordersRelations = relations(orders, ({ one }) => ({
+  customer: one(users, {
+    fields: [orders.customerId],
     references: [users.id],
   }),
 }));

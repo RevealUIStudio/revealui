@@ -16,10 +16,11 @@ import {
   agentTaskUsage,
   billingCatalog,
   licenses,
+  processedWebhookEvents,
   users,
 } from '@revealui/db/schema';
 import { createRoute, OpenAPIHono, z } from '@revealui/openapi';
-import { and, desc, eq, gt, gte, lt, lte } from 'drizzle-orm';
+import { and, count, countDistinct, desc, eq, gt, gte, isNull, lt, lte, sql } from 'drizzle-orm';
 import { HTTPException } from 'hono/http-exception';
 import Stripe from 'stripe';
 import { resetDbStatusCache } from '../middleware/license.js';
@@ -205,8 +206,10 @@ async function ensureStripeCustomer(userId: string, email: string): Promise<stri
     return user.stripeCustomerId;
   }
 
-  // Create Stripe customer, then persist the ID in a transaction so we don't
-  // end up with a dangling Stripe customer if the DB write fails.
+  // Create Stripe customer with idempotency key (safe to retry).
+  // NeonDB HTTP driver is stateless — db.transaction() is not supported.
+  // Instead we use a conditional UPDATE (WHERE stripe_customer_id IS NULL)
+  // so concurrent requests can't overwrite the winner.
   const stripe = getStripeClient();
   const customer = await stripe.customers.create(
     {
@@ -218,24 +221,14 @@ async function ensureStripeCustomer(userId: string, email: string): Promise<stri
     },
   );
 
-  await db.transaction(async (tx) => {
-    // Re-check inside the transaction to handle concurrent requests
-    const [existing] = await tx
-      .select({ stripeCustomerId: users.stripeCustomerId })
-      .from(users)
-      .where(eq(users.id, userId));
+  // Conditional update: only writes if no customer ID is set yet.
+  // If another request already wrote one, this is a no-op.
+  await db
+    .update(users)
+    .set({ stripeCustomerId: customer.id, updatedAt: new Date() })
+    .where(and(eq(users.id, userId), isNull(users.stripeCustomerId)));
 
-    if (existing?.stripeCustomerId) {
-      return;
-    }
-
-    await tx
-      .update(users)
-      .set({ stripeCustomerId: customer.id, updatedAt: new Date() })
-      .where(eq(users.id, userId));
-  });
-
-  // Re-read to handle race: if another request won, return their customer ID
+  // Re-read to return whichever customer ID won the race
   const [updated] = await db
     .select({ stripeCustomerId: users.stripeCustomerId })
     .from(users)
@@ -1480,6 +1473,178 @@ app.openapi(rvuiPaymentRoute, async (c) => {
     tier,
     message: `${tier} subscription activated with ${discountPercent}% RVUI discount`,
   });
+});
+
+// ─── Admin Revenue Metrics ────────────────────────────────────────────────────
+
+/** Fallback monthly prices (cents) for MRR estimation when catalog has no Stripe price */
+const FALLBACK_TIER_PRICE_CENTS: Record<string, number> = {
+  pro: 49_00,
+  max: 149_00,
+  enterprise: 299_00,
+};
+
+const MetricsTierBreakdownSchema = z.object({
+  pro: z.number().openapi({ description: 'Active pro subscriptions' }),
+  max: z.number().openapi({ description: 'Active max subscriptions' }),
+  enterprise: z.number().openapi({ description: 'Active enterprise subscriptions' }),
+});
+
+const MetricsRecentEventSchema = z.object({
+  type: z.string().openapi({ description: 'Billing event type' }),
+  tier: z.string().openapi({ description: 'Associated tier (if determinable)' }),
+  createdAt: z.string().openapi({ description: 'When the event was processed (ISO 8601)' }),
+});
+
+const MetricsResponseSchema = z.object({
+  activeSubscriptions: z.number().openapi({ description: 'Count of active subscriptions' }),
+  totalCustomers: z.number().openapi({ description: 'Count of unique Stripe customers' }),
+  mrr: z.number().openapi({ description: 'Estimated monthly recurring revenue in cents' }),
+  tierBreakdown: MetricsTierBreakdownSchema,
+  recentEvents: z.array(MetricsRecentEventSchema),
+});
+
+const metricsRoute = createRoute({
+  method: 'get',
+  path: '/metrics',
+  tags: ['billing'],
+  summary: 'Revenue metrics (admin)',
+  description:
+    'Returns aggregate revenue metrics for the admin dashboard. Requires admin or owner role.',
+  responses: {
+    200: {
+      content: { 'application/json': { schema: MetricsResponseSchema } },
+      description: 'Revenue metrics snapshot',
+    },
+    401: {
+      content: { 'application/json': { schema: ErrorSchema } },
+      description: 'Not authenticated',
+    },
+    403: {
+      content: { 'application/json': { schema: ErrorSchema } },
+      description: 'Admin access required',
+    },
+  },
+});
+
+app.openapi(metricsRoute, async (c) => {
+  const user = c.get('user');
+  if (!user) {
+    throw new HTTPException(401, { message: 'Authentication required' });
+  }
+  if (user.role !== 'admin' && user.role !== 'owner') {
+    throw new HTTPException(403, { message: 'Admin access required to view revenue metrics' });
+  }
+
+  const db = getClient();
+
+  // 1. Count active subscriptions and unique customers
+  const [subStats] = await db
+    .select({
+      activeCount: count(),
+      uniqueCustomers: countDistinct(accountSubscriptions.stripeCustomerId),
+    })
+    .from(accountSubscriptions)
+    .where(eq(accountSubscriptions.status, 'active'));
+
+  const activeSubscriptions = subStats?.activeCount ?? 0;
+  const totalCustomers = subStats?.uniqueCustomers ?? 0;
+
+  // 2. Tier breakdown from entitlements (active subscriptions only)
+  const tierRows = await db
+    .select({
+      tier: accountEntitlements.tier,
+      tierCount: count(),
+    })
+    .from(accountEntitlements)
+    .where(eq(accountEntitlements.status, 'active'))
+    .groupBy(accountEntitlements.tier);
+
+  const tierBreakdown = { pro: 0, max: 0, enterprise: 0 };
+  for (const row of tierRows) {
+    if (row.tier === 'pro' || row.tier === 'max' || row.tier === 'enterprise') {
+      tierBreakdown[row.tier] = row.tierCount;
+    }
+  }
+
+  // 3. Estimate MRR from catalog prices or fallback constants
+  const catalogRows = await db
+    .select({
+      tier: billingCatalog.tier,
+      metadata: billingCatalog.metadata,
+    })
+    .from(billingCatalog)
+    .where(and(eq(billingCatalog.billingModel, 'subscription'), eq(billingCatalog.active, true)));
+
+  const catalogPriceCents: Record<string, number> = {};
+  for (const entry of catalogRows) {
+    const amount =
+      typeof entry.metadata === 'object' &&
+      entry.metadata !== null &&
+      'unitAmountCents' in entry.metadata
+        ? Number(entry.metadata.unitAmountCents)
+        : undefined;
+    if (typeof amount === 'number' && amount > 0) {
+      catalogPriceCents[entry.tier] = amount;
+    }
+  }
+
+  let mrr = 0;
+  for (const tier of ['pro', 'max', 'enterprise'] as const) {
+    const priceCents = catalogPriceCents[tier] ?? FALLBACK_TIER_PRICE_CENTS[tier] ?? 0;
+    mrr += tierBreakdown[tier] * priceCents;
+  }
+
+  // 4. Recent billing events from the processed webhook events table
+  const billingEventTypes = [
+    'checkout.session.completed',
+    'customer.subscription.created',
+    'customer.subscription.deleted',
+    'customer.subscription.updated',
+    'invoice.payment_succeeded',
+    'invoice.payment_failed',
+  ];
+
+  const recentRows = await db
+    .select({
+      eventType: processedWebhookEvents.eventType,
+      processedAt: processedWebhookEvents.processedAt,
+    })
+    .from(processedWebhookEvents)
+    .where(
+      sql`${processedWebhookEvents.eventType} IN (${sql.join(
+        billingEventTypes.map((t) => sql`${t}`),
+        sql`, `,
+      )})`,
+    )
+    .orderBy(desc(processedWebhookEvents.processedAt))
+    .limit(10);
+
+  const eventTypeMap: Record<string, string> = {
+    'checkout.session.completed': 'subscription_created',
+    'customer.subscription.created': 'subscription_created',
+    'customer.subscription.deleted': 'subscription_cancelled',
+    'customer.subscription.updated': 'subscription_updated',
+    'invoice.payment_succeeded': 'payment_succeeded',
+    'invoice.payment_failed': 'payment_failed',
+  };
+
+  const recentEvents = recentRows.map((row) => ({
+    type: eventTypeMap[row.eventType] ?? row.eventType,
+    tier: 'unknown',
+    createdAt: row.processedAt.toISOString(),
+  }));
+
+  return c.json(
+    {
+      activeSubscriptions,
+      totalCustomers,
+      mrr,
+      tierBreakdown,
+      recentEvents,
+    },
+    200,
+  );
 });
 
 export default app;

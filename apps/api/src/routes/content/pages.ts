@@ -5,13 +5,20 @@
  * GET|PATCH|DELETE /pages/:id
  */
 
+import { validateBlocks } from '@revealui/contracts/content-validation';
 import { PAGE_STATUSES } from '@revealui/contracts/entities';
 import * as pageQueries from '@revealui/db/queries/pages';
 import * as siteQueries from '@revealui/db/queries/sites';
 import { createRoute, OpenAPIHono, z } from '@revealui/openapi';
 import { HTTPException } from 'hono/http-exception';
 import { asNonEmptyTuple } from '../../lib/type-guards.js';
-import { ErrorSchema, IdParam, SiteIdParam, SlugField } from '../_helpers/content-schemas.js';
+import {
+  ErrorSchema,
+  IdParam,
+  SiteIdParam,
+  SlugField,
+  ValidationErrorSchema,
+} from '../_helpers/content-schemas.js';
 import { dateToString, nullableDateToString } from '../_helpers/serialize.js';
 import type { ContentVariables } from './index.js';
 
@@ -154,6 +161,10 @@ app.openapi(
         },
         description: 'Page created',
       },
+      400: {
+        content: { 'application/json': { schema: ValidationErrorSchema } },
+        description: 'Content validation failed',
+      },
       404: {
         content: { 'application/json': { schema: ErrorSchema } },
         description: 'Site not found',
@@ -166,6 +177,13 @@ app.openapi(
     if (!user) throw new HTTPException(401, { message: 'Authentication required' });
     const { siteId } = c.req.valid('param');
     const body = c.req.valid('json');
+    // Validate blocks for dangerous URLs, excessive nesting, and payload size
+    if (body.blocks !== undefined) {
+      const validation = validateBlocks(body.blocks);
+      if (!validation.valid) {
+        return c.json({ success: false as const, errors: validation.errors }, 400);
+      }
+    }
     const existingSite = await siteQueries.getSiteById(db, siteId);
     if (!existingSite) throw new HTTPException(404, { message: 'Site not found' });
     if (user.role !== 'admin' && existingSite.ownerId !== user.id) {
@@ -256,6 +274,10 @@ app.openapi(
         },
         description: 'Page updated',
       },
+      400: {
+        content: { 'application/json': { schema: ValidationErrorSchema } },
+        description: 'Content validation failed',
+      },
       404: { content: { 'application/json': { schema: ErrorSchema } }, description: 'Not found' },
     },
   }),
@@ -273,6 +295,13 @@ app.openapi(
       }
     }
     const body = c.req.valid('json');
+    // Validate blocks for dangerous URLs, excessive nesting, and payload size
+    if (body.blocks !== undefined) {
+      const validation = validateBlocks(body.blocks);
+      if (!validation.valid) {
+        return c.json({ success: false as const, errors: validation.errors }, 400);
+      }
+    }
     const page = await pageQueries.updatePage(db, id, {
       ...body,
       publishedAt:

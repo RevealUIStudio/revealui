@@ -2,7 +2,7 @@
  * Auto-generated Zod schemas from Drizzle
  *
  * DO NOT EDIT - Regenerate with: pnpm generate:all
- * Generated: 2026-03-26T19:29:25.070Z
+ * Generated: 2026-03-27T02:04:06.754Z
  *
  * This file provides Zod schemas for all database tables, generated
  * directly from Drizzle table definitions using drizzle-zod.
@@ -1159,6 +1159,32 @@ export type OauthAccountsRow = z.infer<typeof OauthAccountsSelectSchema>
 export type OauthAccountsInsert = z.infer<typeof OauthAccountsInsertSchema>
 
 // =============================================================================
+// Orders Schemas
+// =============================================================================
+
+/**
+ * Zod schema for selecting orders rows from database
+ * Generated from Drizzle table definition: tables.orders
+ */
+export const OrdersSelectSchema = createSelectSchema(tables.orders)
+
+/**
+ * Zod schema for inserting orders rows to database
+ * Generated from Drizzle table definition: tables.orders
+ */
+export const OrdersInsertSchema = createInsertSchema(tables.orders)
+
+/**
+ * TypeScript type for orders row (Select)
+ */
+export type OrdersRow = z.infer<typeof OrdersSelectSchema>
+
+/**
+ * TypeScript type for orders insert
+ */
+export type OrdersInsert = z.infer<typeof OrdersInsertSchema>
+
+// =============================================================================
 // PageRevisions Schemas
 // =============================================================================
 
@@ -1313,6 +1339,32 @@ export type ProcessedWebhookEventsRow = z.infer<typeof ProcessedWebhookEventsSel
  * TypeScript type for processedWebhookEvents insert
  */
 export type ProcessedWebhookEventsInsert = z.infer<typeof ProcessedWebhookEventsInsertSchema>
+
+// =============================================================================
+// Products Schemas
+// =============================================================================
+
+/**
+ * Zod schema for selecting products rows from database
+ * Generated from Drizzle table definition: tables.products
+ */
+export const ProductsSelectSchema = createSelectSchema(tables.products)
+
+/**
+ * Zod schema for inserting products rows to database
+ * Generated from Drizzle table definition: tables.products
+ */
+export const ProductsInsertSchema = createInsertSchema(tables.products)
+
+/**
+ * TypeScript type for products row (Select)
+ */
+export type ProductsRow = z.infer<typeof ProductsSelectSchema>
+
+/**
+ * TypeScript type for products insert
+ */
+export type ProductsInsert = z.infer<typeof ProductsInsertSchema>
 
 // =============================================================================
 // RagChunks Schemas

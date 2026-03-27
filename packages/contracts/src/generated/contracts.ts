@@ -2,7 +2,7 @@
  * Auto-generated Contract wrappers
  *
  * DO NOT EDIT - Regenerate with: pnpm generate:all
- * Generated: 2026-03-26T19:29:26.573Z
+ * Generated: 2026-03-27T02:04:08.475Z
  *
  * This file provides Contract wrappers for all database tables.
  * Contracts combine TypeScript types, Zod schemas, and runtime validation
@@ -1160,6 +1160,32 @@ export const OauthAccountsInsertContract = createContract({
 })
 
 // =============================================================================
+// Orders Contracts
+// =============================================================================
+
+/**
+ * Contract for orders row (Select)
+ * Database table: orders
+ */
+export const OrdersRowContract = createContract({
+  name: 'OrdersRow',
+  version: '1',
+  description: 'Database row contract for orders table',
+  schema: Schemas.OrdersSelectSchema,
+})
+
+/**
+ * Contract for orders insert
+ * Database table: orders
+ */
+export const OrdersInsertContract = createContract({
+  name: 'OrdersInsert',
+  version: '1',
+  description: 'Database insert contract for orders table',
+  schema: Schemas.OrdersInsertSchema,
+})
+
+// =============================================================================
 // PageRevisions Contracts
 // =============================================================================
 
@@ -1313,6 +1339,32 @@ export const ProcessedWebhookEventsInsertContract = createContract({
   version: '1',
   description: 'Database insert contract for processed_webhook_events table',
   schema: Schemas.ProcessedWebhookEventsInsertSchema,
+})
+
+// =============================================================================
+// Products Contracts
+// =============================================================================
+
+/**
+ * Contract for products row (Select)
+ * Database table: products
+ */
+export const ProductsRowContract = createContract({
+  name: 'ProductsRow',
+  version: '1',
+  description: 'Database row contract for products table',
+  schema: Schemas.ProductsSelectSchema,
+})
+
+/**
+ * Contract for products insert
+ * Database table: products
+ */
+export const ProductsInsertContract = createContract({
+  name: 'ProductsInsert',
+  version: '1',
+  description: 'Database insert contract for products table',
+  schema: Schemas.ProductsInsertSchema,
 })
 
 // =============================================================================

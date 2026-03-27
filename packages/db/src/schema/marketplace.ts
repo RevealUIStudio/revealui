@@ -11,7 +11,7 @@
  * which exceeds typical per-call amounts.
  */
 
-import { integer, jsonb, pgTable, text, timestamp } from 'drizzle-orm/pg-core';
+import { index, integer, jsonb, pgTable, text, timestamp } from 'drizzle-orm/pg-core';
 import { users } from './users.js';
 
 // =============================================================================
@@ -89,51 +89,59 @@ export const marketplaceServers = pgTable('marketplace_servers', {
  * One row per successful marketplace invocation.
  * Used for developer earnings dashboards, payout calculations, and auditing.
  */
-export const marketplaceTransactions = pgTable('marketplace_transactions', {
-  id: text('id').primaryKey(),
+export const marketplaceTransactions = pgTable(
+  'marketplace_transactions',
+  {
+    id: text('id').primaryKey(),
 
-  /** Server that was called */
-  serverId: text('server_id')
-    .notNull()
-    .references(() => marketplaceServers.id, { onDelete: 'cascade' }),
+    /** Server that was called */
+    serverId: text('server_id')
+      .notNull()
+      .references(() => marketplaceServers.id, { onDelete: 'cascade' }),
 
-  /**
-   * User who made the call, if authenticated.
-   * Nullable — x402 payments can come from anonymous agents.
-   */
-  callerId: text('caller_id'),
+    /**
+     * User who made the call, if authenticated.
+     * Nullable — x402 payments can come from anonymous agents.
+     */
+    callerId: text('caller_id'),
 
-  /** Total amount paid by caller in human-readable USDC */
-  amountUsdc: text('amount_usdc').notNull(),
+    /** Total amount paid by caller in human-readable USDC */
+    amountUsdc: text('amount_usdc').notNull(),
 
-  /** Platform fee (20%) in human-readable USDC */
-  platformFeeUsdc: text('platform_fee_usdc').notNull(),
+    /** Platform fee (20%) in human-readable USDC */
+    platformFeeUsdc: text('platform_fee_usdc').notNull(),
 
-  /** Developer earnings (80%) in human-readable USDC */
-  developerAmountUsdc: text('developer_amount_usdc').notNull(),
+    /** Developer earnings (80%) in human-readable USDC */
+    developerAmountUsdc: text('developer_amount_usdc').notNull(),
 
-  /**
-   * Stripe transfer ID (tr_...) once a payout has been initiated.
-   * Null until batch payout runs.
-   */
-  stripeTransferId: text('stripe_transfer_id'),
+    /**
+     * Stripe transfer ID (tr_...) once a payout has been initiated.
+     * Null until batch payout runs.
+     */
+    stripeTransferId: text('stripe_transfer_id'),
 
-  /** Payment method used: 'x402' */
-  paymentMethod: text('payment_method').notNull().default('x402'),
+    /** Payment method used: 'x402' */
+    paymentMethod: text('payment_method').notNull().default('x402'),
 
-  /**
-   * Transaction status:
-   * - pending:   payment verified, server call in-flight
-   * - completed: server responded successfully
-   * - failed:    server call failed (payment still taken — refund flow TBD)
-   */
-  status: text('status').notNull().default('pending'),
+    /**
+     * Transaction status:
+     * - pending:   payment verified, server call in-flight
+     * - completed: server responded successfully
+     * - failed:    server call failed (payment still taken — refund flow TBD)
+     */
+    status: text('status').notNull().default('pending'),
 
-  /** Additional context (request hash, network, etc.) */
-  metadata: jsonb('metadata').$type<Record<string, unknown>>().default({}),
+    /** Additional context (request hash, network, etc.) */
+    metadata: jsonb('metadata').$type<Record<string, unknown>>().default({}),
 
-  createdAt: timestamp('created_at', { withTimezone: true }).defaultNow().notNull(),
-});
+    createdAt: timestamp('created_at', { withTimezone: true }).defaultNow().notNull(),
+  },
+  (table) => [
+    index('marketplace_transactions_server_id_idx').on(table.serverId),
+    index('marketplace_transactions_status_idx').on(table.status),
+    index('marketplace_transactions_created_at_idx').on(table.createdAt),
+  ],
+);
 
 // =============================================================================
 // Type exports

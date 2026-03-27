@@ -150,7 +150,9 @@ describe('GET /api/auth/[provider]', () => {
     const req = createRequest('/api/auth/github');
     await handler(req, { params: Promise.resolve({ provider: 'github' }) });
 
-    expect(mockGenerateOAuthState).toHaveBeenCalledWith('github', '/admin');
+    expect(mockGenerateOAuthState).toHaveBeenCalledWith('github', '/admin', {
+      linkConsent: undefined,
+    });
   });
 
   it('should pass custom redirectTo from query param', async () => {
@@ -163,7 +165,9 @@ describe('GET /api/auth/[provider]', () => {
     const req = createRequest('/api/auth/github?redirectTo=/dashboard/settings');
     await handler(req, { params: Promise.resolve({ provider: 'github' }) });
 
-    expect(mockGenerateOAuthState).toHaveBeenCalledWith('github', '/dashboard/settings');
+    expect(mockGenerateOAuthState).toHaveBeenCalledWith('github', '/dashboard/settings', {
+      linkConsent: undefined,
+    });
   });
 
   it('should construct correct redirectUri for buildAuthUrl', async () => {
@@ -398,12 +402,16 @@ describe('GET /api/auth/callback/[provider]', () => {
       `${BASE_URL}/api/auth/callback/github`,
     );
     expect(mockFetchProviderUser).toHaveBeenCalledWith('github', 'access-token-123');
-    expect(mockUpsertOAuthUser).toHaveBeenCalledWith('github', {
-      id: 'gh-user-1',
-      email: 'alice@github.com',
-      name: 'Alice',
-      avatarUrl: 'https://avatars.github.com/alice',
-    });
+    expect(mockUpsertOAuthUser).toHaveBeenCalledWith(
+      'github',
+      {
+        id: 'gh-user-1',
+        email: 'alice@github.com',
+        name: 'Alice',
+        avatarUrl: 'https://avatars.github.com/alice',
+      },
+      { linkConsent: undefined },
+    );
     expect(mockCreateSession).toHaveBeenCalledWith('user-456', {
       userAgent: undefined,
       ipAddress: undefined,

@@ -38,9 +38,15 @@ export interface ProviderUser {
 export function generateOAuthState(
   provider: string,
   redirectTo: string,
+  options?: { linkConsent?: boolean },
 ): { state: string; cookieValue: string } {
   const nonce = crypto.randomBytes(16).toString('hex');
-  const payload = JSON.stringify({ provider, redirectTo, nonce });
+  const payload = JSON.stringify({
+    provider,
+    redirectTo,
+    nonce,
+    ...(options?.linkConsent ? { linkConsent: true } : {}),
+  });
   const state = Buffer.from(payload).toString('base64url');
   const secret = process.env.REVEALUI_SECRET;
   if (!secret) {
@@ -61,7 +67,7 @@ export function generateOAuthState(
 export function verifyOAuthState(
   state: string | null | undefined,
   cookieValue: string | null | undefined,
-): { provider: string; redirectTo: string } | null {
+): { provider: string; redirectTo: string; linkConsent?: boolean } | null {
   if (!(state && cookieValue)) return null;
 
   const dotIdx = cookieValue.lastIndexOf('.');
@@ -104,8 +110,13 @@ export function verifyOAuthState(
       provider: string;
       redirectTo: string;
       nonce: string;
+      linkConsent?: boolean;
     };
-    return { provider: parsed.provider, redirectTo: parsed.redirectTo };
+    return {
+      provider: parsed.provider,
+      redirectTo: parsed.redirectTo,
+      ...(parsed.linkConsent ? { linkConsent: true } : {}),
+    };
   } catch {
     return null;
   }
@@ -175,17 +186,30 @@ export async function fetchProviderUser(
 // User Upsert
 // =============================================================================
 
+export interface UpsertOAuthOptions {
+  /**
+   * When true, the user has explicitly consented to link their OAuth
+   * provider to an existing local account with the same email.
+   * Without consent, an email-match throws OAuthAccountConflictError.
+   */
+  linkConsent?: boolean;
+}
+
 /**
  * Find or create a local user for the given OAuth identity.
  *
  * Flow:
  * 1. Look up oauth_accounts by (provider, providerUserId) → get userId
  * 2. If found: refresh metadata + return user
- * 3. If not found: check users by email → link if match
- * 4. If no match: create new user (role: 'admin', no password)
+ * 3. If not found: check users by email → link if match (with consent) or throw
+ * 4. If no match: create new user (role: 'user', no password)
  * 5. Insert oauth_accounts row
  */
-export async function upsertOAuthUser(provider: string, providerUser: ProviderUser): Promise<User> {
+export async function upsertOAuthUser(
+  provider: string,
+  providerUser: ProviderUser,
+  options?: UpsertOAuthOptions,
+): Promise<User> {
   const db = getClient();
 
   // 1. Check for existing linked account
@@ -224,12 +248,11 @@ export async function upsertOAuthUser(provider: string, providerUser: ProviderUs
     return user as User;
   }
 
-  // 2. Check for existing user by email — BLOCK auto-linking
+  // 2. Check for existing user by email
   // If an account with this email already exists but was not linked via OAuth,
-  // reject the login. Auto-linking is an account takeover vector: an attacker
-  // who controls a provider email instantly owns the existing account.
-  // Users must link providers explicitly from an authenticated session
-  // via linkOAuthAccount().
+  // either link it (when the user has given explicit consent) or reject the
+  // login. Auto-linking without consent is an account takeover vector: an
+  // attacker who controls a provider email instantly owns the existing account.
   let userId: string;
   let isNewUser = false;
 
@@ -241,11 +264,18 @@ export async function upsertOAuthUser(provider: string, providerUser: ProviderUs
       .limit(1);
 
     if (existingUser) {
-      throw new OAuthAccountConflictError(providerUser.email);
+      if (options?.linkConsent) {
+        // User explicitly consented to link — use the existing account
+        userId = existingUser.id;
+        isNewUser = false;
+        logger.info(`Linking ${provider} account to existing user ${userId} (consent-based)`);
+      } else {
+        throw new OAuthAccountConflictError(providerUser.email);
+      }
+    } else {
+      isNewUser = true;
+      userId = crypto.randomUUID();
     }
-
-    isNewUser = true;
-    userId = crypto.randomUUID();
   } else {
     isNewUser = true;
     userId = crypto.randomUUID();

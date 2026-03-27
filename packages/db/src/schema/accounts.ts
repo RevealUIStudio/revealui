@@ -33,6 +33,7 @@ export const accounts = pgTable(
   (table) => [
     uniqueIndex('accounts_slug_idx').on(table.slug),
     index('accounts_status_idx').on(table.status),
+    index('accounts_status_created_at_idx').on(table.status, table.createdAt),
   ],
 );
 
@@ -154,6 +155,7 @@ export const usageMeters = pgTable(
     index('usage_meters_account_id_idx').on(table.accountId),
     index('usage_meters_meter_name_idx').on(table.meterName),
     index('usage_meters_period_start_idx').on(table.periodStart),
+    index('usage_meters_account_period_idx').on(table.accountId, table.periodStart),
   ],
 );
 

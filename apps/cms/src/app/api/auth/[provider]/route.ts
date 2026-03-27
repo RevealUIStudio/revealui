@@ -3,6 +3,11 @@
  *
  * Redirects the user to the provider's authorization page.
  * Sets a signed state cookie for CSRF protection.
+ *
+ * Query params:
+ * - redirectTo: URL to redirect to after auth (default: /admin)
+ * - linkConsent: "true" if the user has consented to link their OAuth
+ *   account to an existing local account with the same email.
  */
 
 import { buildAuthUrl, generateOAuthState } from '@revealui/auth/server';
@@ -30,8 +35,11 @@ export async function GET(
 
   const redirectUri = `${baseUrl}/api/auth/callback/${provider}`;
   const redirectTo = request.nextUrl.searchParams.get('redirectTo') ?? '/admin';
+  const linkConsent = request.nextUrl.searchParams.get('linkConsent') === 'true';
 
-  const { state, cookieValue } = generateOAuthState(provider, redirectTo);
+  const { state, cookieValue } = generateOAuthState(provider, redirectTo, {
+    linkConsent: linkConsent || undefined,
+  });
 
   let authUrl: string;
   try {

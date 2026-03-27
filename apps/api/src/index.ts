@@ -261,6 +261,12 @@ const DEFAULT_RATE_LIMITS: RateLimitsConfig = {
     'billing-checkout': { maxRequests: 10, windowMs: FIFTEEN_MINUTES },
     'billing-upgrade': { maxRequests: 5, windowMs: FIFTEEN_MINUTES },
     'billing-downgrade': { maxRequests: 5, windowMs: FIFTEEN_MINUTES },
+    'billing-pause': { maxRequests: 5, windowMs: FIFTEEN_MINUTES },
+    'billing-resume': { maxRequests: 5, windowMs: FIFTEEN_MINUTES },
+    'billing-cancel': { maxRequests: 5, windowMs: FIFTEEN_MINUTES },
+    'billing-metrics': { maxRequests: 10, windowMs: ONE_MINUTE },
+    'content-batch': { maxRequests: 10, windowMs: ONE_MINUTE },
+    'content-export': { maxRequests: 5, windowMs: FIFTEEN_MINUTES },
     'marketplace-publish': { maxRequests: 10, windowMs: ONE_HOUR },
     'marketplace-invoke': { maxRequests: 30, windowMs: ONE_MINUTE },
     pricing: { maxRequests: 10, windowMs: ONE_MINUTE },
@@ -330,6 +336,20 @@ app.use('/api/billing/upgrade', routeLimit('billing-upgrade'));
 app.use('/api/v1/billing/upgrade', routeLimit('billing-upgrade'));
 app.use('/api/billing/downgrade', routeLimit('billing-downgrade'));
 app.use('/api/v1/billing/downgrade', routeLimit('billing-downgrade'));
+app.use('/api/billing/pause', routeLimit('billing-pause'));
+app.use('/api/v1/billing/pause', routeLimit('billing-pause'));
+app.use('/api/billing/resume', routeLimit('billing-resume'));
+app.use('/api/v1/billing/resume', routeLimit('billing-resume'));
+app.use('/api/billing/cancel', routeLimit('billing-cancel'));
+app.use('/api/v1/billing/cancel', routeLimit('billing-cancel'));
+app.use('/api/billing/metrics', routeLimit('billing-metrics'));
+app.use('/api/v1/billing/metrics', routeLimit('billing-metrics'));
+
+// Content batch/export — limit heavy operations
+app.use('/api/content/batch/*', routeLimit('content-batch'));
+app.use('/api/v1/content/batch/*', routeLimit('content-batch'));
+app.use('/api/content/export/*', routeLimit('content-export'));
+app.use('/api/v1/content/export/*', routeLimit('content-export'));
 
 // Marketplace publish — prevent server spam
 app.use('/api/marketplace/servers', routeLimit('marketplace-publish'));
@@ -496,6 +516,8 @@ app.patch('/api/provenance/*', writeProtected);
 app.patch('/api/v1/provenance/*', writeProtected);
 app.delete('/api/provenance/*', writeProtected);
 app.delete('/api/v1/provenance/*', writeProtected);
+app.get('/api/billing/metrics', writeProtected);
+app.get('/api/v1/billing/metrics', writeProtected);
 app.post('/api/billing/*', writeProtected);
 app.post('/api/v1/billing/*', writeProtected);
 app.get('/api/gdpr/*', writeProtected);

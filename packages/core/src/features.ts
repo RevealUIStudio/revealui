@@ -25,9 +25,9 @@ export interface FeatureFlags {
   payments: boolean;
   /** Multi-tenant site management */
   multiTenant: boolean;
-  /** White-label admin dashboard */
+  /** White-label admin dashboard (planned — not yet implemented) */
   whiteLabel: boolean;
-  /** SSO/SAML authentication */
+  /** SSO/SAML authentication (planned — not yet implemented) */
   sso: boolean;
   /** BYOK server-side key storage (Max+) */
   byokServerSide: boolean;

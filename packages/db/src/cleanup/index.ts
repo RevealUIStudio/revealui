@@ -12,7 +12,7 @@ export {
   cleanupOrphanedVectorData,
   configureCleanup,
 } from './cross-db-cleanup.js';
-
+export { cleanupRagDataForSite } from './rag-site-cleanup.js';
 export {
   type CleanupTable,
   cleanupStaleTokens,
