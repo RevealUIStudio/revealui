@@ -19,6 +19,7 @@ export default defineConfig({
       '**/.claude/**',
       '.direnv/**',
       '.claude/**',
+      '**/*-integration.test.ts',
     ],
     environment: 'node',
     globals: true,
