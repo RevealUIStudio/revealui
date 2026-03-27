@@ -322,7 +322,7 @@ importers:
         specifier: workspace:*
         version: link:../../packages/presentation
       '@revealui/services':
-        specifier: 0.2.0
+        specifier: ^0.2.0
         version: 0.2.0(@cloudflare/workers-types@4.20260131.0)(@electric-sql/pglite@0.3.15)(@neondatabase/serverless@1.0.2)(@opentelemetry/api@1.9.0)(@types/node@25.5.0)(@types/pg@8.16.0)(bufferutil@4.1.0)(next@16.2.0(@opentelemetry/api@1.9.0)(@playwright/test@1.58.2)(react-dom@19.2.4(react@19.2.4))(react@19.2.4)(sass@1.97.3))(pg@8.18.0)(react-dom@19.2.4(react@19.2.4))(react@19.2.4)(rollup@4.59.0)(typescript@5.9.3)(utf-8-validate@6.0.6)
       '@revealui/sync':
         specifier: workspace:*
