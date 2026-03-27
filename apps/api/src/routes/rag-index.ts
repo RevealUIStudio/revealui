@@ -10,7 +10,7 @@
  */
 
 import type { DatabaseClient } from '@revealui/db/client';
-import { getVectorClient } from '@revealui/db/client';
+import { getRestClient, getVectorClient } from '@revealui/db/client';
 import { ragDocuments } from '@revealui/db/schema/rag';
 import { createRoute, OpenAPIHono, z } from '@revealui/openapi';
 import { and, count, eq, isNotNull, max } from 'drizzle-orm';
@@ -144,6 +144,7 @@ app.openapi(
     }
 
     const vectorDb = getVectorClient();
+    const restDb = getRestClient();
     const embeddingFn = async (text: string): Promise<number[]> => {
       const emb = await embeddingsMod.generateEmbedding(text);
       return emb.vector;
@@ -154,6 +155,7 @@ app.openapi(
     type PipelineDb = ConstructorParameters<typeof ingestionMod.IngestionPipeline>[0];
     const pipeline = new ingestionMod.IngestionPipeline(
       vectorDb as unknown as PipelineDb,
+      restDb as unknown as PipelineDb,
       embeddingFn,
     );
 
@@ -300,6 +302,7 @@ app.openapi(
     }
 
     const vectorDb = getVectorClient();
+    const restDb = getRestClient();
 
     const embeddingFn = async (text: string): Promise<number[]> => {
       const emb = await embeddingsMod.generateEmbedding(text);
@@ -309,6 +312,7 @@ app.openapi(
     type PipelineDb = ConstructorParameters<typeof ingestionMod.IngestionPipeline>[0];
     const pipeline = new ingestionMod.IngestionPipeline(
       vectorDb as unknown as PipelineDb,
+      restDb as unknown as PipelineDb,
       embeddingFn,
     );
     await pipeline.deleteDocument(documentId);
