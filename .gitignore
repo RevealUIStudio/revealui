@@ -207,15 +207,25 @@ docs/SECRETS-MANAGEMENT.md
 # Pro packages — source in private upstream, distributed as npm packages
 # Both with and without trailing slash so `git check-ignore` matches either form
 packages/ai
+packages/ai/
 packages/mcp
+packages/mcp/
 packages/editors
+packages/editors/
 packages/services
+packages/services/
 packages/harnesses
+packages/harnesses/
 ee/packages/ai
+ee/packages/ai/
 ee/packages/mcp
+ee/packages/mcp/
 ee/packages/editors
+ee/packages/editors/
 ee/packages/services
+ee/packages/services/
 ee/packages/harnesses
+ee/packages/harnesses/
 
 # opensrc — fetched package source code
 opensrc/
