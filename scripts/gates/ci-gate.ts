@@ -302,20 +302,18 @@ async function gate(): Promise<void> {
       ? ['turbo', 'run', 'test', '--filter=...[HEAD~1]', '--concurrency=4']
       : ['turbo', 'run', 'test', '--concurrency=4'];
 
-    // In changed-only mode with --no-build: still build changed packages (fast scoped build)
-    const buildCheck: CheckDef[] =
-      noBuild && !changed
-        ? []
-        : noBuild && changed
-          ? [
-              {
-                name: 'Build (changed)',
-                command: 'pnpm',
-                args: ['turbo', 'run', 'build', '--filter=...[HEAD~1]'],
-                timeout: 600000,
-              },
-            ]
-          : [{ name: 'Build', command: 'pnpm', args: ['build'], timeout: 900000 }];
+    const buildCheck: CheckDef[] = noBuild
+      ? []
+      : changed
+        ? [
+            {
+              name: 'Build (changed)',
+              command: 'pnpm',
+              args: ['turbo', 'run', 'build', '--filter=...[HEAD~1]'],
+              timeout: 600000,
+            },
+          ]
+        : [{ name: 'Build', command: 'pnpm', args: ['build'], timeout: 900000 }];
 
     const phase3Checks: CheckDef[] = [
       { name: 'Tests', command: 'pnpm', args: testArgs, timeout: 300000 },

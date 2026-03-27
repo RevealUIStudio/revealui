@@ -33,7 +33,25 @@ if [ -n "$RANGE" ]; then
   fi
 fi
 
-echo ""
-echo "Running pre-push CI gate (changed-only mode)..."
-echo ""
-pnpm gate --no-build --changed
+# Branch-aware gate strictness
+BRANCH=$(git rev-parse --abbrev-ref HEAD)
+case "$BRANCH" in
+  main|test)
+    echo ""
+    echo "Running full CI gate for protected branch '$BRANCH'..."
+    echo ""
+    pnpm gate
+    ;;
+  develop)
+    echo ""
+    echo "Running pre-push CI gate (changed-only mode)..."
+    echo ""
+    pnpm gate --no-build --changed
+    ;;
+  *)
+    echo ""
+    echo "Running quality checks for feature branch '$BRANCH'..."
+    echo ""
+    pnpm gate --phase=1 --changed
+    ;;
+esac
