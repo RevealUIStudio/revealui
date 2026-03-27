@@ -14,7 +14,7 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  metadataBase: new URL('https://revealcoin.com'),
+  metadataBase: new URL('https://revealcoin.revealui.com'),
   title: 'RevealCoin (RVC) — Utility, Governance & Reward Token',
   description:
     'The native token of the RevealUI ecosystem. 58.9B fixed supply on Solana Token-2022. Utility payments, governance voting, and ecosystem rewards.',

@@ -11,6 +11,7 @@ const links = {
     { label: 'RevealUI', href: 'https://revealui.com' },
     { label: 'Documentation', href: 'https://docs.revealui.com' },
     { label: 'GitHub', href: 'https://github.com/RevealUIStudio' },
+    { label: 'Explorer', href: '/explorer' },
   ],
 };
 
@@ -62,8 +63,9 @@ export function Footer() {
                   <a
                     href={link.href}
                     className="text-sm transition-colors hover:text-white"
-                    target="_blank"
-                    rel="noopener noreferrer"
+                    {...(link.href.startsWith('http')
+                      ? { target: '_blank', rel: 'noopener noreferrer' }
+                      : {})}
                   >
                     {link.label}
                   </a>
