@@ -61,7 +61,7 @@
     "node": ">=24.13.0"
   },
   "peerDependencies": {
-    "@revealui/ai": "^0.1.3",
+    "@revealui/ai": "^0.2.0",
     "@revealui/services": "^0.2.2"
   },
   "peerDependenciesMeta": {
