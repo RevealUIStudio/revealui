@@ -178,7 +178,9 @@ app.use('*', async (c, next) => {
 
   const isAllowed =
     corsOrigins.includes(origin) ||
-    (process.env.VERCEL_ENV === 'preview' && /^https:\/\/[\w-]+\.vercel\.app$/.test(origin));
+    (process.env.VERCEL_ENV === 'preview' &&
+      (/^https:\/\/[\w-]+\.vercel\.app$/.test(origin) ||
+        /^https:\/\/(dev|test)\.(cms\.|api\.|docs\.)?revealui\.com$/.test(origin)));
 
   if (isAllowed) {
     c.header('Access-Control-Allow-Origin', origin);

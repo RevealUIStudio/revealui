@@ -14,6 +14,25 @@ Business Operating System Software (B.O.S.S.). Build your business, not your boi
 ## Git Identity
 RevealUI Studio <founder@revealui.com>
 
+## Branch Pipeline
+```
+feature/* ──PR──▶ develop ──PR──▶ test ──PR (1+ review)──▶ main
+                    │               │                        │
+                development       test                  production
+```
+
+| Branch | Environment | Domain Pattern | Database |
+|--------|------------|----------------|----------|
+| `main` | production | `*.revealui.com` | NeonDB main |
+| `test` | test/QA | `test.*.revealui.com` | NeonDB `test` branch |
+| `develop` | development (default) | `dev.*.revealui.com` | NeonDB `dev` branch |
+| `feature/*` | preview | `*.vercel.app` (auto) | NeonDB `dev` branch |
+
+- **Default branch:** `develop` (PRs target it by default)
+- **Deploys:** GitHub Actions only (Vercel auto-deploy disabled)
+- **Pre-push gate:** `main`/`test` = full gate, `develop` = changed-only, `feature/*` = quality-only
+- **CI:** Integration tests + E2E run on `main` and `test` only
+
 ## Package Map
 
 ### Apps (6)

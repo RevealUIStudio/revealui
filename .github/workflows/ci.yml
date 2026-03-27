@@ -2,19 +2,18 @@ name: CI
 
 # Mirrors local `pnpm gate` — same hard-fail policy:
 #   Hard fail: Biome lint, boundary, typecheck, unit tests, build
-#   Hard fail (main only): integration tests (requires DB)
+#   Hard fail (main/test): integration tests (requires DB)
 #   Warn-only: audits, structure
 #
-# PRs: quality + typecheck + package build + unit tests + E2E smoke (~10 min).
-# main: full build including apps + integration tests + E2E smoke (~15 min).
+# Pipeline: feature/* → develop → test → main
+#   develop/feature PRs: quality + typecheck + package build + unit tests (~10 min)
+#   test/main: full build + integration tests + E2E smoke + accessibility (~15 min)
 
 on:
   push:
-    branches:
-      - main
+    branches: [main, develop, test]
   pull_request:
-    branches:
-      - main
+    branches: [main, develop, test]
 
 concurrency:
   group: ci-${{ github.ref }}
@@ -127,14 +126,14 @@ jobs:
           SKIP_ENV_VALIDATION: "true"
 
   # ---------------------------------------------------------------------------
-  # Phase 3a.1: Integration tests (hard fail, requires DB — main only)
+  # Phase 3a.1: Integration tests (hard fail, requires DB — main/test only)
   # ---------------------------------------------------------------------------
   test-integration:
     name: Integration Tests
     runs-on: ubuntu-latest
     timeout-minutes: 15
     needs: quality
-    if: github.ref == 'refs/heads/main'
+    if: github.ref == 'refs/heads/main' || github.ref == 'refs/heads/test'
 
     services:
       postgres:
@@ -257,7 +256,7 @@ jobs:
           SKIP_ENV_VALIDATION: "true"
 
       - name: Build all (hard fail)
-        if: github.ref == 'refs/heads/main'
+        if: github.ref == 'refs/heads/main' || github.ref == 'refs/heads/test'
         run: pnpm build
         env:
           SKIP_ENV_VALIDATION: "true"
