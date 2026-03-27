@@ -80,13 +80,18 @@ describe('provisionNpmAccess', () => {
     expect(logger.error).not.toHaveBeenCalled();
   });
 
-  it('warns but does not throw on non-OK HTTP response', async () => {
-    mockFetchWithRetry.mockResolvedValueOnce({ ok: false, status: 404 });
+  it('throws on non-OK HTTP response', async () => {
+    mockFetchWithRetry.mockResolvedValueOnce({
+      ok: false,
+      status: 404,
+      text: async () => 'Not Found',
+    });
 
-    await expect(provisionNpmAccess('bob')).resolves.toBeUndefined();
+    await expect(provisionNpmAccess('bob')).rejects.toThrow('npm team provisioning returned 404');
 
-    expect(logger.warn).toHaveBeenCalledWith(
-      expect.stringContaining('non-OK status'),
+    expect(logger.error).toHaveBeenCalledWith(
+      'npm team provisioning failed',
+      undefined,
       expect.objectContaining({ npmUsername: 'bob', status: 404 }),
     );
     expect(logger.info).not.toHaveBeenCalled();

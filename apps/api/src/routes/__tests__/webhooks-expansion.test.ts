@@ -398,7 +398,7 @@ describe('POST /stripe webhook — expansion events', () => {
       expect(entry.severity).toBe('critical');
     });
 
-    it('handles charge retrieval failure gracefully', async () => {
+    it('throws on charge retrieval failure so Stripe retries', async () => {
       mockChargesRetrieve.mockRejectedValueOnce(new Error('Stripe timeout'));
 
       const event = makeDisputeClosedEvent('evt_disp_charge_fail_1', 'lost');
@@ -407,13 +407,9 @@ describe('POST /stripe webhook — expansion events', () => {
       const app = createApp();
       const res = await app.request(postStripe(event));
 
-      expect(res.status).toBe(200);
+      // Now throws (500) so Stripe retries — lost-dispute revocation must not be silently skipped
+      expect(res.status).toBe(500);
       expect(mockDb.update).not.toHaveBeenCalled();
-      expect(vi.mocked(loggerModule.logger).error).toHaveBeenCalledWith(
-        'Failed to retrieve charge for lost dispute',
-        undefined,
-        expect.objectContaining({ chargeId: 'ch_disputed' }),
-      );
     });
   });
 

@@ -603,7 +603,10 @@ describe('Billing lifecycle integration', () => {
       // Cancellation email is sent (fire-and-forget)
       await vi.waitFor(
         () => {
-          expect(mockSendCancellationConfirmationEmail).toHaveBeenCalledWith('cancel@test.com');
+          expect(mockSendCancellationConfirmationEmail).toHaveBeenCalledWith(
+            'cancel@test.com',
+            'pro',
+          );
         },
         { timeout: 1000 },
       );
