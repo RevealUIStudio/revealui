@@ -84,10 +84,10 @@ const Products = defineCollection({
 The [Pro tier](https://revealui.com/pro) adds AI agents and automation that work on your behalf:
 
 - **AI agent system** — build and deploy purpose-built agents for your workflows
-- **MCP servers** — connect your agents to Stripe, Supabase, Vercel, Neon, and more
+- **MCP framework** — hypervisor, adapter framework, and tool discovery for connecting agents to external services
 - **BYOK** — bring your own API keys (Anthropic, Groq, Gemini) — your keys, your costs
 - **Task history** — every agent action logged, auditable, and visible in the dashboard
-- **Editor integrations** — Zed, VS Code, and Neovim adapters for your development workflow
+- **Editor config sync** — generate and sync settings for Zed, VS Code, Cursor, and Antigravity
 
 Pro packages are source-available on npm under a [commercial license](LICENSE.commercial). Install with `pnpm add @revealui/ai` — no special registry needed.
 
@@ -96,7 +96,7 @@ Pro packages are source-available on npm under a [commercial license](LICENSE.co
 | Tier           | Price     | What you get                                                       |
 | -------------- | --------- | ------------------------------------------------------------------ |
 | **Free**       | $0        | Full OSS core — users, content, products, payments, admin          |
-| **Pro**        | $49/mo    | AI agents, MCP servers, BYOK, editor integrations, advanced sync   |
+| **Pro**        | $49/mo    | AI agents, MCP framework, BYOK, editor config sync, advanced sync  |
 | **Max**        | $149/mo   | Multi-provider AI, audit log, priority support, higher limits      |
 | **Enterprise** | $299/mo   | White-label, multi-tenant, SSO, domain-locked, dedicated support   |
 
@@ -141,8 +141,8 @@ Pro packages are source-available on npm under a [commercial license](LICENSE.co
 | Package                                                 | Purpose                                           |
 | ------------------------------------------------------- | ------------------------------------------------- |
 | [`@revealui/ai`](packages/ai)                           | AI agents, CRDT memory, LLM providers             |
-| [`@revealui/mcp`](packages/mcp)                         | MCP servers (Stripe, Supabase, Neon, Vercel)      |
-| [`@revealui/editors`](packages/editors)                 | Editor daemon (Zed, VS Code, Neovim adapters)     |
+| [`@revealui/mcp`](packages/mcp)                         | MCP hypervisor, adapter framework, tool discovery  |
+| [`@revealui/editors`](packages/editors)                 | Editor config sync (Zed, VS Code, Cursor)          |
 | [`@revealui/services`](packages/services)               | Stripe + Supabase integrations                    |
 | [`@revealui/harnesses`](packages/harnesses)             | AI harness adapters and workboard coordination    |
 

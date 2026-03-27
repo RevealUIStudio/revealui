@@ -70,10 +70,10 @@ feature/* ──PR──▶ develop ──PR──▶ test ──PR (1+ review)�
 | Package | Purpose |
 |---------|---------|
 | @revealui/ai | AI agents, CRDT memory, LLM providers, orchestration |
-| @revealui/mcp | MCP servers (Stripe, Supabase, Neon, Vercel, Playwright) |
-| @revealui/editors | Editor daemon (Zed, VS Code, Neovim adapters) |
+| @revealui/mcp | MCP hypervisor, adapter framework, tool discovery |
+| @revealui/editors | Editor config sync (Zed, VS Code, Cursor) |
 | @revealui/services | Stripe + Supabase integrations |
-| @revealui/harnesses | AI harness adapters, daemon, workboard coordination, JSON-RPC |
+| @revealui/harnesses | AI harness adapters, workboard coordination, JSON-RPC |
 
 ## Common Commands
 

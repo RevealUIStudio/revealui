@@ -209,7 +209,7 @@ RevealUI's business primitives — auth, content, collections, the REST API, the
 
 The business model is straightforward: the Pro tier (AI agents, memory system, BYOK provider management) funds ongoing development. The things that make RevealUI useful for 90% of use cases are free forever. The things that make it powerful for teams that need AI capabilities are commercially licensed but source-available — you can read every line of the Pro code too.
 
-I also open-sourced the MCP servers (Stripe, Supabase, Neon, Vercel, Playwright integrations). They were originally Pro-only, but the ecosystem benefits more from them being open. AI tooling should be open infrastructure, not a profit center.
+I also open-sourced the MCP framework (hypervisor, adapter base classes, and database adapter). It was originally Pro-only, but the ecosystem benefits more from it being open. AI tooling should be open infrastructure, not a profit center.
 
 ## What makes BOSS different
 

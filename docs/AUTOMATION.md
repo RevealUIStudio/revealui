@@ -80,8 +80,8 @@ packages/
 ├── dev/            # Shared configs (Biome, TS, Tailwind)
 ├── test/           # E2E specs, fixtures, mocks
 ├── ai/             # AI agents, CRDT memory (Pro)
-├── mcp/            # MCP servers (Pro)
-├── editors/        # Editor daemon (Pro)
+├── mcp/            # MCP hypervisor + adapter framework (Pro)
+├── editors/        # Editor config sync (Pro)
 ├── services/       # Stripe + Supabase (Pro)
 └── harnesses/      # AI harness adapters (Pro)
 ```
