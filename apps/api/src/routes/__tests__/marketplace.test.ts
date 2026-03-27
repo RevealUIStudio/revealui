@@ -1,340 +1,1017 @@
 /**
  * MCP Marketplace route tests (Phase 5.5)
  *
- * Tests cover:
- * - GET /api/marketplace/servers (list)
- * - GET /api/marketplace/servers/:id (single)
- * - POST /api/marketplace/servers (publish)
- * - DELETE /api/marketplace/servers/:id (unpublish)
- * - POST /api/marketplace/servers/:id/invoke (x402 payment gate)
- * - POST /api/marketplace/connect/onboard (Stripe Connect)
- * - GET /.well-known/marketplace.json (discovery)
- * - SSRF guard (assertUrlSafe)
+ * Comprehensive Hono endpoint tests covering:
+ *   GET  /servers              — list active servers (public, no auth)
+ *   GET  /servers/:id          — single server detail (public)
+ *   POST /servers              — publish a new server (auth required)
+ *   DELETE /servers/:id        — unpublish own server (auth required)
+ *   POST /servers/:id/invoke   — x402 payment gate + proxy
+ *   POST /connect/onboard      — Stripe Connect onboarding (auth required)
+ *   GET  /connect/return       — Stripe Connect return callback
+ *
+ * All external dependencies are fully mocked. Tests exercise the actual
+ * Hono route handlers via app.request().
  */
 
-import { describe, expect, it, vi } from 'vitest';
+import { Hono } from 'hono';
+import { HTTPException } from 'hono/http-exception';
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
-// ─── Mock external dependencies ──────────────────────────────────────────────
+// ─── Hoisted mock factories ─────────────────────────────────────────────────
 
-vi.mock('@revealui/db', () => ({
-  getClient: vi.fn(),
-}));
+const {
+  mockDbSelect,
+  mockDbInsert,
+  mockDbUpdate,
+  mockDbDelete,
+  mockGetClient,
+  mockStripeAccountsCreate,
+  mockStripeAccountLinksCreate,
+  mockStripeTransfersCreate,
+  mockStripeConstructor,
+  mockBuildPaymentRequired,
+  mockEncodePaymentRequired,
+  mockVerifyPayment,
+  mockLoggerInfo,
+  mockLoggerWarn,
+  mockLoggerError,
+} = vi.hoisted(() => {
+  const _accountsCreate = vi.fn();
+  const _accountLinksCreate = vi.fn();
+  const _transfersCreate = vi.fn();
+  return {
+    mockDbSelect: vi.fn(),
+    mockDbInsert: vi.fn(),
+    mockDbUpdate: vi.fn(),
+    mockDbDelete: vi.fn(),
+    mockGetClient: vi.fn(),
+    mockStripeAccountsCreate: _accountsCreate,
+    mockStripeAccountLinksCreate: _accountLinksCreate,
+    mockStripeTransfersCreate: _transfersCreate,
+    // Must use function() — arrow functions cannot be called with `new`
+    mockStripeConstructor: vi.fn().mockImplementation(function (this: unknown) {
+      return {
+        accounts: { create: _accountsCreate },
+        accountLinks: { create: _accountLinksCreate },
+        transfers: { create: _transfersCreate },
+      };
+    }),
+    mockBuildPaymentRequired: vi.fn(),
+    mockEncodePaymentRequired: vi.fn(),
+    mockVerifyPayment: vi.fn(),
+    mockLoggerInfo: vi.fn(),
+    mockLoggerWarn: vi.fn(),
+    mockLoggerError: vi.fn(),
+  };
+});
+
+// ─── Module mocks ──────────────────────────────────────────────────────────
 
 vi.mock('@revealui/core/observability/logger', () => ({
-  logger: { info: vi.fn(), warn: vi.fn(), error: vi.fn() },
+  logger: { info: mockLoggerInfo, warn: mockLoggerWarn, error: mockLoggerError },
 }));
 
-vi.mock('stripe', () => {
-  const MockStripe = vi.fn().mockImplementation(() => ({
-    accounts: {
-      create: vi.fn().mockResolvedValue({ id: 'acct_test123' }),
+vi.mock('../../middleware/auth.js', () => ({
+  authMiddleware: vi.fn(
+    (_opts?: unknown) => async (_c: unknown, next: () => Promise<void>) => next(),
+  ),
+}));
+
+vi.mock('../../middleware/x402.js', () => ({
+  buildPaymentRequired: mockBuildPaymentRequired,
+  encodePaymentRequired: mockEncodePaymentRequired,
+  verifyPayment: mockVerifyPayment,
+}));
+
+vi.mock('stripe', () => ({
+  default: mockStripeConstructor,
+}));
+
+// ─── Drizzle mock with per-query result queue ───────────────────────────────
+
+let selectResults: unknown[][] = [];
+let insertResults: unknown[][] = [];
+
+function makeSelectChain() {
+  const result = selectResults.shift() ?? [];
+  const chain = {
+    from: vi.fn(),
+    where: vi.fn(),
+    orderBy: vi.fn(),
+    limit: vi.fn(),
+    offset: vi.fn(),
+    // biome-ignore lint/suspicious/noThenProperty: intentional thenable — mirrors Drizzle's awaitable query builder
+    then(
+      onFulfilled?: (value: unknown[]) => unknown,
+      onRejected?: (reason: unknown) => unknown,
+    ): Promise<unknown> {
+      return Promise.resolve(result).then(onFulfilled, onRejected);
     },
-    accountLinks: {
-      create: vi.fn().mockResolvedValue({ url: 'https://connect.stripe.com/setup/test' }),
+  };
+  chain.from.mockReturnValue(chain);
+  chain.where.mockReturnValue(chain);
+  chain.orderBy.mockReturnValue(chain);
+  chain.limit.mockReturnValue(chain);
+  chain.offset.mockReturnValue(chain);
+  return chain;
+}
+
+function makeInsertChain() {
+  const result = insertResults.shift() ?? [];
+  const chain = {
+    values: vi.fn(),
+    returning: vi.fn().mockResolvedValue(result),
+    // biome-ignore lint/suspicious/noThenProperty: intentional thenable — mirrors Drizzle's awaitable query builder
+    then(
+      onFulfilled?: (value: unknown) => unknown,
+      onRejected?: (reason: unknown) => unknown,
+    ): Promise<unknown> {
+      return Promise.resolve(undefined).then(onFulfilled, onRejected);
     },
-    transfers: {
-      create: vi.fn().mockResolvedValue({ id: 'tr_test123' }),
-    },
-  }));
-  return { default: MockStripe };
+  };
+  chain.values.mockReturnValue(chain);
+  return chain;
+}
+
+function makeUpdateChain() {
+  const chain = {
+    set: vi.fn(),
+    where: vi.fn().mockResolvedValue(undefined),
+  };
+  chain.set.mockReturnValue(chain);
+  return chain;
+}
+
+mockDbSelect.mockImplementation(() => makeSelectChain());
+mockDbInsert.mockImplementation(() => makeInsertChain());
+mockDbUpdate.mockImplementation(() => makeUpdateChain());
+mockDbDelete.mockReturnValue({ where: vi.fn().mockResolvedValue(undefined) });
+
+mockGetClient.mockReturnValue({
+  select: mockDbSelect,
+  insert: mockDbInsert,
+  update: mockDbUpdate,
+  delete: mockDbDelete,
 });
 
-// ─── Unit tests ────────────────────────────────────────────────────────────────
+vi.mock('@revealui/db', () => ({
+  getClient: mockGetClient,
+}));
 
-describe('Marketplace: SSRF guard (assertUrlSafe)', () => {
-  // We test the guard indirectly via the publish route, but we can also test
-  // the URL validation logic with isolated cases.
+vi.mock('@revealui/db/schema', () => ({
+  marketplaceServers: {
+    id: 'id',
+    name: 'name',
+    description: 'description',
+    category: 'category',
+    tags: 'tags',
+    pricePerCallUsdc: 'price_per_call_usdc',
+    callCount: 'call_count',
+    createdAt: 'created_at',
+    status: 'status',
+    metadata: 'metadata',
+    developerId: 'developer_id',
+    stripeAccountId: 'stripe_account_id',
+    url: 'url',
+    updatedAt: 'updated_at',
+  },
+  marketplaceTransactions: {
+    id: 'id',
+    serverId: 'server_id',
+    callerId: 'caller_id',
+    amountUsdc: 'amount_usdc',
+    platformFeeUsdc: 'platform_fee_usdc',
+    developerAmountUsdc: 'developer_amount_usdc',
+    paymentMethod: 'payment_method',
+    status: 'status',
+    metadata: 'metadata',
+    createdAt: 'created_at',
+    stripeTransferId: 'stripe_transfer_id',
+  },
+}));
 
-  const blockedUrls = [
-    'http://localhost/rpc',
-    'http://127.0.0.1/rpc',
-    'http://0.0.0.0/rpc',
-    'http://169.254.169.254/latest/meta-data', // AWS metadata
-    'http://10.0.0.1/rpc',
-    'http://172.16.0.1/rpc',
-    'http://192.168.1.1/rpc',
-    'ftp://example.com/rpc',
-    'file:///etc/passwd',
-  ];
+vi.mock('drizzle-orm', () => ({
+  eq: vi.fn((_col, _val) => `eq(${String(_col)},${String(_val)})`),
+  and: vi.fn((...args: unknown[]) => args),
+  asc: vi.fn((col) => `asc(${String(col)})`),
+  sql: { __esModule: true },
+}));
 
-  it.each(blockedUrls)('blocks unsafe URL: %s', async (url) => {
-    // We verify the shape of the error by checking that assertUrlSafe would
-    // reject — this is validated indirectly via the publish route in integration
-    // tests. Here we confirm the regex/protocol patterns match expectations.
-    const isPrivate =
-      url.startsWith('ftp:') ||
-      url.startsWith('file:') ||
-      /localhost|127\.|0\.0\.0\.0|169\.254\.|10\.|172\.1[6-9]\.|172\.2[0-9]\.|172\.3[01]\.|192\.168\./.test(
-        url,
-      );
-    expect(isPrivate).toBe(true);
+// ─── Import under test (after mocks) ────────────────────────────────────────
+
+import marketplaceApp from '../marketplace.js';
+
+// ─── Helpers ─────────────────────────────────────────────────────────────────
+
+interface UserContext {
+  id: string;
+  email: string | null;
+  name: string;
+  role: string;
+}
+
+/**
+ * Build a Hono test app that wraps the marketplace routes, optionally
+ * injecting a user into the context (simulating auth middleware).
+ */
+function createApp(user?: UserContext) {
+  const app = new Hono<{ Variables: { user: UserContext | undefined } }>();
+  app.use('*', async (c, next) => {
+    c.set('user', user ?? undefined);
+    await next();
   });
-});
-
-describe('Marketplace: revenue split (computeSplit)', () => {
-  // computeSplit is not exported; we verify the output via the transaction
-  // metadata captured in the invoke handler. Here we replicate the logic to
-  // ensure our 20/80 expectation holds at various price points.
-
-  function computeSplit(price: string) {
-    const p = Number.parseFloat(price);
-    const fee = Math.round(p * 0.2 * 1_000_000) / 1_000_000;
-    const developer = Math.round((p - fee) * 1_000_000) / 1_000_000;
-    return { fee, developer };
-  }
-
-  it('splits 0.005 USDC correctly', () => {
-    const { fee, developer } = computeSplit('0.005');
-    expect(fee).toBeCloseTo(0.001, 6);
-    expect(developer).toBeCloseTo(0.004, 6);
-  });
-
-  it('splits 0.001 USDC correctly', () => {
-    const { fee, developer } = computeSplit('0.001');
-    expect(fee).toBeCloseTo(0.0002, 6);
-    expect(developer).toBeCloseTo(0.0008, 6);
-  });
-
-  it('splits sum to total', () => {
-    for (const price of ['0.001', '0.01', '0.1', '1.0']) {
-      const { fee, developer } = computeSplit(price);
-      expect(fee + developer).toBeCloseTo(Number.parseFloat(price), 5);
+  app.route('/', marketplaceApp);
+  app.onError((err, c) => {
+    if (err instanceof HTTPException) {
+      return c.json({ error: err.message }, err.status);
     }
+    return c.json({ error: 'Internal error' }, 500);
   });
+  return app;
+}
 
-  it('platform share is always 20%', () => {
-    for (const price of ['0.005', '0.05', '0.5']) {
-      const { fee } = computeSplit(price);
-      const ratio = fee / Number.parseFloat(price);
-      expect(ratio).toBeCloseTo(0.2, 5);
-    }
-  });
-});
+const MOCK_USER: UserContext = {
+  id: 'user-1',
+  email: 'dev@example.com',
+  name: 'Test Dev',
+  role: 'user',
+};
 
-describe('Marketplace: server ID format', () => {
-  it('generates IDs with correct prefix and length', () => {
-    // Replicate the generator pattern
-    const chars = 'abcdefghijklmnopqrstuvwxyz0123456789';
-    const bytes = crypto.getRandomValues(new Uint8Array(12));
-    let suffix = '';
-    for (const byte of bytes) {
-      suffix += chars[byte % chars.length];
-    }
-    const id = `mcp_${suffix}`;
+const ADMIN_USER: UserContext = {
+  id: 'admin-1',
+  email: 'admin@example.com',
+  name: 'Admin',
+  role: 'admin',
+};
 
-    expect(id).toMatch(/^mcp_[a-z0-9]{12}$/);
-    expect(id.length).toBe(16);
-  });
+const OTHER_USER: UserContext = {
+  id: 'user-2',
+  email: 'other@example.com',
+  name: 'Other Dev',
+  role: 'user',
+};
 
-  it('generated IDs pass the route validation regex', () => {
-    const validIds = ['mcp_abcdef123456', 'mcp_000000000000', 'mcp_zzzzzzzzzzz1'];
-    for (const id of validIds) {
-      expect(/^mcp_[\w]{12}$/.test(id)).toBe(true);
-    }
-  });
+const MOCK_SERVER = {
+  id: 'mcp_abcdef123456',
+  name: 'Test MCP Server',
+  description: 'A test server for marketplace testing',
+  url: 'https://example.com/rpc',
+  category: 'coding',
+  tags: ['test'],
+  pricePerCallUsdc: '0.005',
+  callCount: 10,
+  status: 'active',
+  metadata: {},
+  developerId: 'user-1',
+  stripeAccountId: 'acct_test123',
+  createdAt: new Date(),
+  updatedAt: new Date(),
+};
 
-  it('rejects malformed IDs', () => {
-    const invalid = ['abc123', 'mcp_short', 'mcp_toolong123456', '../etc/passwd', ''];
-    for (const id of invalid) {
-      expect(/^mcp_[\w]{12}$/.test(id)).toBe(false);
-    }
-  });
-});
+function resetMocks() {
+  vi.clearAllMocks();
+  selectResults = [];
+  insertResults = [];
 
-describe('Marketplace: publish validation (PublishServerSchema)', () => {
-  // Replicate the schema to test constraints without spinning up Hono
-  const { z } = require('zod');
+  process.env.STRIPE_SECRET_KEY = 'sk_test_mock_key';
 
-  const VALID_CATEGORIES = ['coding', 'data', 'productivity', 'analysis', 'writing', 'other'];
-
-  const PublishServerSchema = z.object({
-    name: z.string().min(3).max(80),
-    description: z.string().min(10).max(500),
-    url: z.string().url(),
-    category: z
-      .enum(VALID_CATEGORIES as [string, ...string[]])
-      .optional()
-      .default('other'),
-    tags: z.array(z.string().max(30)).max(10).optional().default([]),
-    pricePerCallUsdc: z
-      .string()
-      .regex(/^\d+(\.\d{1,6})?$/)
-      .optional()
-      .default('0.001'),
-    metadata: z.record(z.string(), z.unknown()).optional().default({}),
-  });
-
-  it('accepts valid publish payload', () => {
-    const result = PublishServerSchema.safeParse({
-      name: 'My MCP Server',
-      description: 'Does something useful with TypeScript code',
-      url: 'https://my-mcp-server.com/rpc',
-      category: 'coding',
-      tags: ['typescript'],
-      pricePerCallUsdc: '0.005',
-    });
-    expect(result.success).toBe(true);
-  });
-
-  it('rejects name too short', () => {
-    const result = PublishServerSchema.safeParse({
-      name: 'ab',
-      description: 'Valid description here',
-      url: 'https://example.com/rpc',
-    });
-    expect(result.success).toBe(false);
-  });
-
-  it('rejects description too short', () => {
-    const result = PublishServerSchema.safeParse({
-      name: 'Valid Name',
-      description: 'Too short',
-      url: 'https://example.com/rpc',
-    });
-    expect(result.success).toBe(false);
-  });
-
-  it('rejects invalid price format', () => {
-    const invalids = ['abc', '-0.001', '0.1234567', ''];
-    for (const price of invalids) {
-      const result = PublishServerSchema.safeParse({
-        name: 'Valid Name',
-        description: 'Valid description here that is long enough',
-        url: 'https://example.com/rpc',
-        pricePerCallUsdc: price,
-      });
-      expect(result.success).toBe(false);
-    }
-  });
-
-  it('accepts valid price formats', () => {
-    const valids = ['0', '1', '0.001', '0.000001', '100'];
-    for (const price of valids) {
-      const result = PublishServerSchema.safeParse({
-        name: 'Valid Name',
-        description: 'Valid description here that is long enough',
-        url: 'https://example.com/rpc',
-        pricePerCallUsdc: price,
-      });
-      expect(result.success).toBe(true);
-    }
-  });
-
-  it('defaults category to other', () => {
-    const result = PublishServerSchema.safeParse({
-      name: 'Valid Name',
-      description: 'Valid description here that is long enough',
-      url: 'https://example.com/rpc',
-    });
-    expect(result.success).toBe(true);
-    if (result.success) {
-      expect(result.data.category).toBe('other');
-      expect(result.data.pricePerCallUsdc).toBe('0.001');
-      expect(result.data.tags).toEqual([]);
-    }
-  });
-
-  it('rejects more than 10 tags', () => {
-    const result = PublishServerSchema.safeParse({
-      name: 'Valid Name',
-      description: 'Valid description here that is long enough',
-      url: 'https://example.com/rpc',
-      tags: Array.from({ length: 11 }, (_, i) => `tag${i}`),
-    });
-    expect(result.success).toBe(false);
-  });
-
-  it('rejects invalid category', () => {
-    const result = PublishServerSchema.safeParse({
-      name: 'Valid Name',
-      description: 'Valid description here that is long enough',
-      url: 'https://example.com/rpc',
-      category: 'invalid-category',
-    });
-    expect(result.success).toBe(false);
-  });
-});
-
-describe('Marketplace: well-known discovery response shape', () => {
-  it('marketplace.json shape has required fields', () => {
-    // Validate the shape we return from /.well-known/marketplace.json
-    const mockResponse = {
-      version: '1.0',
-      platform: 'revealui',
-      registryUrl: 'https://api.revealui.com/api/marketplace/servers',
-      publishUrl: 'https://api.revealui.com/api/marketplace/servers',
-      revenueShare: { platform: 0.2, developer: 0.8 },
-      paymentMethods: ['x402-usdc'],
-      servers: [],
+  // Re-wire Stripe constructor after clearAllMocks
+  mockStripeConstructor.mockImplementation(function (this: unknown) {
+    return {
+      accounts: { create: mockStripeAccountsCreate },
+      accountLinks: { create: mockStripeAccountLinksCreate },
+      transfers: { create: mockStripeTransfersCreate },
     };
-
-    expect(mockResponse.version).toBe('1.0');
-    expect(mockResponse.platform).toBe('revealui');
-    expect(mockResponse.revenueShare.platform + mockResponse.revenueShare.developer).toBe(1);
-    expect(mockResponse.paymentMethods).toContain('x402-usdc');
-    expect(Array.isArray(mockResponse.servers)).toBe(true);
   });
 
-  it('revenue shares sum to 100%', () => {
-    const platform = 0.2;
-    const developer = 0.8;
-    expect(platform + developer).toBe(1);
-    expect(platform).toBe(0.2);
-    expect(developer).toBe(0.8);
+  mockDbSelect.mockImplementation(() => makeSelectChain());
+  mockDbInsert.mockImplementation(() => makeInsertChain());
+  mockDbUpdate.mockImplementation(() => makeUpdateChain());
+  mockDbDelete.mockReturnValue({ where: vi.fn().mockResolvedValue(undefined) });
+
+  mockGetClient.mockReturnValue({
+    select: mockDbSelect,
+    insert: mockDbInsert,
+    update: mockDbUpdate,
+    delete: mockDbDelete,
+  });
+
+  mockStripeAccountsCreate.mockResolvedValue({ id: 'acct_new123' });
+  mockStripeAccountLinksCreate.mockResolvedValue({
+    url: 'https://connect.stripe.com/setup/test',
+  });
+  mockStripeTransfersCreate.mockResolvedValue({ id: 'tr_test123' });
+
+  mockBuildPaymentRequired.mockReturnValue({
+    x402Version: 1,
+    accepts: [{ maxAmountRequired: '5000' }],
+  });
+  mockEncodePaymentRequired.mockReturnValue('base64encoded');
+  mockVerifyPayment.mockResolvedValue({ valid: true });
+}
+
+// biome-ignore lint/suspicious/noExplicitAny: test helper — response shapes vary per endpoint
+async function parseBody(res: Response): Promise<any> {
+  return res.json();
+}
+
+// ─── Tests ───────────────────────────────────────────────────────────────────
+
+describe('GET /servers -- list active servers', () => {
+  beforeEach(resetMocks);
+
+  it('returns 200 with servers array', async () => {
+    selectResults.push([MOCK_SERVER]);
+
+    const app = createApp();
+    const res = await app.request('/servers');
+    expect(res.status).toBe(200);
+    const body = await parseBody(res);
+    expect(body.servers).toHaveLength(1);
+    expect(body.servers[0].id).toBe(MOCK_SERVER.id);
+  });
+
+  it('returns empty array when no active servers exist', async () => {
+    selectResults.push([]);
+
+    const app = createApp();
+    const res = await app.request('/servers');
+    expect(res.status).toBe(200);
+    const body = await parseBody(res);
+    expect(body.servers).toEqual([]);
+  });
+
+  it('returns default limit=50 and offset=0', async () => {
+    selectResults.push([]);
+
+    const app = createApp();
+    const res = await app.request('/servers');
+    expect(res.status).toBe(200);
+    const body = await parseBody(res);
+    expect(body.limit).toBe(50);
+    expect(body.offset).toBe(0);
+  });
+
+  it('filters by category query parameter', async () => {
+    selectResults.push([]);
+
+    const app = createApp();
+    const res = await app.request('/servers?category=data');
+    expect(res.status).toBe(200);
+  });
+
+  it('caps limit at 100', async () => {
+    selectResults.push([]);
+
+    const app = createApp();
+    const res = await app.request('/servers?limit=999');
+    expect(res.status).toBe(200);
+    const body = await parseBody(res);
+    expect(body.limit).toBe(100);
+  });
+
+  it('uses custom limit and offset', async () => {
+    selectResults.push([]);
+
+    const app = createApp();
+    const res = await app.request('/servers?limit=10&offset=20');
+    expect(res.status).toBe(200);
+    const body = await parseBody(res);
+    expect(body.limit).toBe(10);
+    expect(body.offset).toBe(20);
+  });
+
+  it('defaults offset to 0 for non-numeric values', async () => {
+    selectResults.push([]);
+
+    const app = createApp();
+    const res = await app.request('/servers?offset=abc');
+    expect(res.status).toBe(200);
+    const body = await parseBody(res);
+    expect(body.offset).toBe(0);
+  });
+
+  it('defaults limit to 50 for non-positive values', async () => {
+    selectResults.push([]);
+
+    const app = createApp();
+    const res = await app.request('/servers?limit=-5');
+    expect(res.status).toBe(200);
+    const body = await parseBody(res);
+    expect(body.limit).toBe(50);
+  });
+
+  it('does not require authentication', async () => {
+    selectResults.push([]);
+
+    const app = createApp(); // no user
+    const res = await app.request('/servers');
+    expect(res.status).toBe(200);
   });
 });
 
-describe('Marketplace: server status lifecycle', () => {
-  it('valid status values are well-defined', () => {
-    const validStatuses = ['pending', 'active', 'suspended'];
-    // Servers start active on publish
-    expect(validStatuses).toContain('active');
-    // Unpublish sets status to suspended
-    expect(validStatuses).toContain('suspended');
+describe('GET /servers/:id -- single server detail', () => {
+  beforeEach(resetMocks);
+
+  it('returns 200 with server detail for an active server', async () => {
+    selectResults.push([MOCK_SERVER]);
+
+    const app = createApp();
+    const res = await app.request('/servers/mcp_abcdef123456');
+    expect(res.status).toBe(200);
+    const body = await parseBody(res);
+    expect(body.server.id).toBe('mcp_abcdef123456');
+    expect(body.server.name).toBe(MOCK_SERVER.name);
   });
 
-  it('only active servers appear in list and invoke', () => {
-    // Verify our filter logic
-    const servers = [
-      { id: 'mcp_aaa', status: 'active' },
-      { id: 'mcp_bbb', status: 'suspended' },
-      { id: 'mcp_ccc', status: 'pending' },
-    ];
-    const active = servers.filter((s) => s.status === 'active');
-    expect(active).toHaveLength(1);
-    expect(active[0].id).toBe('mcp_aaa');
+  it('returns 404 when server does not exist', async () => {
+    selectResults.push([]);
+
+    const app = createApp();
+    const res = await app.request('/servers/mcp_notfound1234');
+    expect(res.status).toBe(404);
+    const body = await parseBody(res);
+    expect(body.error).toContain('not found');
+  });
+
+  it('returns 404 for a suspended (non-active) server', async () => {
+    selectResults.push([{ ...MOCK_SERVER, status: 'suspended' }]);
+
+    const app = createApp();
+    const res = await app.request('/servers/mcp_abcdef123456');
+    expect(res.status).toBe(404);
+    const body = await parseBody(res);
+    expect(body.error).toContain('not available');
+  });
+
+  it('returns 404 for a pending server', async () => {
+    selectResults.push([{ ...MOCK_SERVER, status: 'pending' }]);
+
+    const app = createApp();
+    const res = await app.request('/servers/mcp_abcdef123456');
+    expect(res.status).toBe(404);
+  });
+
+  it('rejects malformed server ID (OpenAPI param validation)', async () => {
+    const app = createApp();
+    const res = await app.request('/servers/bad-id');
+    expect(res.status).toBe(400);
+  });
+
+  it('does not require authentication', async () => {
+    selectResults.push([MOCK_SERVER]);
+
+    const app = createApp(); // no user
+    const res = await app.request('/servers/mcp_abcdef123456');
+    expect(res.status).toBe(200);
   });
 });
 
-describe('Marketplace: category filtering', () => {
-  const VALID_CATEGORIES = ['coding', 'data', 'productivity', 'analysis', 'writing', 'other'];
+describe('POST /servers -- publish a new server (auth required)', () => {
+  beforeEach(resetMocks);
 
-  it('accepts all valid categories', () => {
-    for (const cat of VALID_CATEGORIES) {
-      expect(VALID_CATEGORIES.includes(cat)).toBe(true);
+  const validPayload = {
+    name: 'My MCP Server',
+    description: 'A great MCP server for testing marketplace flows',
+    url: 'https://example.com/rpc',
+    category: 'coding',
+    tags: ['typescript'],
+    pricePerCallUsdc: '0.005',
+  };
+
+  it('returns 201 on successful publish with valid data', async () => {
+    insertResults.push([MOCK_SERVER]);
+
+    const app = createApp(MOCK_USER);
+    const res = await app.request('/servers', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(validPayload),
+    });
+    expect(res.status).toBe(201);
+    const body = await parseBody(res);
+    expect(body.server).toBeDefined();
+    expect(body.server.id).toBe(MOCK_SERVER.id);
+    expect(body.server.name).toBe(MOCK_SERVER.name);
+  });
+
+  it('returns 401 when unauthenticated (no user)', async () => {
+    const app = createApp(); // no user
+    const res = await app.request('/servers', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(validPayload),
+    });
+    expect(res.status).toBe(401);
+  });
+
+  it('returns 422 for SSRF-unsafe URL (localhost)', async () => {
+    const app = createApp(MOCK_USER);
+    const res = await app.request('/servers', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        ...validPayload,
+        url: 'http://localhost:8080/rpc',
+      }),
+    });
+    expect(res.status).toBe(422);
+  });
+
+  it('returns 422 for SSRF-unsafe URL (127.x.x.x loopback)', async () => {
+    const app = createApp(MOCK_USER);
+    const res = await app.request('/servers', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        ...validPayload,
+        url: 'http://127.0.0.1/rpc',
+      }),
+    });
+    expect(res.status).toBe(422);
+  });
+
+  it('returns 422 for SSRF-unsafe URL (10.x.x.x private range)', async () => {
+    const app = createApp(MOCK_USER);
+    const res = await app.request('/servers', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        ...validPayload,
+        url: 'http://10.0.0.1/rpc',
+      }),
+    });
+    expect(res.status).toBe(422);
+  });
+
+  it('returns 422 for SSRF-unsafe URL (192.168.x.x private range)', async () => {
+    const app = createApp(MOCK_USER);
+    const res = await app.request('/servers', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        ...validPayload,
+        url: 'http://192.168.1.1/rpc',
+      }),
+    });
+    expect(res.status).toBe(422);
+  });
+
+  it('returns 422 for SSRF-unsafe URL (172.16.x.x private range)', async () => {
+    const app = createApp(MOCK_USER);
+    const res = await app.request('/servers', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        ...validPayload,
+        url: 'http://172.16.0.1/rpc',
+      }),
+    });
+    expect(res.status).toBe(422);
+  });
+
+  it('returns 422 for SSRF-unsafe URL (AWS metadata 169.254.x.x)', async () => {
+    const app = createApp(MOCK_USER);
+    const res = await app.request('/servers', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        ...validPayload,
+        url: 'http://169.254.169.254/latest/meta-data',
+      }),
+    });
+    expect(res.status).toBe(422);
+  });
+
+  it('returns 422 for non-HTTP scheme (ftp)', async () => {
+    const app = createApp(MOCK_USER);
+    const res = await app.request('/servers', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        ...validPayload,
+        url: 'ftp://example.com/rpc',
+      }),
+    });
+    expect(res.status).toBe(422);
+  });
+
+  it('returns 422 for SSRF-unsafe URL (0.0.0.0)', async () => {
+    const app = createApp(MOCK_USER);
+    const res = await app.request('/servers', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        ...validPayload,
+        url: 'http://0.0.0.0/rpc',
+      }),
+    });
+    expect(res.status).toBe(422);
+  });
+
+  it('returns 400 for invalid body (name too short)', async () => {
+    const app = createApp(MOCK_USER);
+    const res = await app.request('/servers', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        ...validPayload,
+        name: 'ab',
+      }),
+    });
+    expect(res.status).toBe(400);
+  });
+
+  it('returns 400 for invalid body (description too short)', async () => {
+    const app = createApp(MOCK_USER);
+    const res = await app.request('/servers', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        ...validPayload,
+        description: 'Too short',
+      }),
+    });
+    expect(res.status).toBe(400);
+  });
+
+  it('applies default category and price when omitted', async () => {
+    const created = {
+      ...MOCK_SERVER,
+      category: 'other',
+      pricePerCallUsdc: '0.001',
+    };
+    insertResults.push([created]);
+
+    const app = createApp(MOCK_USER);
+    const res = await app.request('/servers', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        name: 'Default Server',
+        description: 'A server with default category and price settings',
+        url: 'https://example.com/rpc',
+      }),
+    });
+    expect(res.status).toBe(201);
+    const body = await parseBody(res);
+    expect(body.server.category).toBe('other');
+    expect(body.server.pricePerCallUsdc).toBe('0.001');
+  });
+
+  it('logs server publication on success', async () => {
+    insertResults.push([MOCK_SERVER]);
+
+    const app = createApp(MOCK_USER);
+    await app.request('/servers', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(validPayload),
+    });
+    expect(mockLoggerInfo).toHaveBeenCalledWith(
+      'Marketplace server published',
+      expect.objectContaining({ developerId: 'user-1' }),
+    );
+  });
+});
+
+describe('DELETE /servers/:id -- unpublish server (auth required)', () => {
+  beforeEach(resetMocks);
+
+  it('returns 200 when owner unpublishes their own server', async () => {
+    selectResults.push([{ developerId: 'user-1' }]);
+
+    const app = createApp(MOCK_USER);
+    const res = await app.request('/servers/mcp_abcdef123456', {
+      method: 'DELETE',
+    });
+    expect(res.status).toBe(200);
+    const body = await parseBody(res);
+    expect(body.success).toBe(true);
+  });
+
+  it('returns 200 when admin unpublishes any server (IDOR bypass for admin)', async () => {
+    selectResults.push([{ developerId: 'other-user' }]);
+
+    const app = createApp(ADMIN_USER);
+    const res = await app.request('/servers/mcp_abcdef123456', {
+      method: 'DELETE',
+    });
+    expect(res.status).toBe(200);
+    const body = await parseBody(res);
+    expect(body.success).toBe(true);
+  });
+
+  it('returns 403 when non-owner non-admin tries to unpublish (IDOR protection)', async () => {
+    selectResults.push([{ developerId: 'user-1' }]);
+
+    const app = createApp(OTHER_USER);
+    const res = await app.request('/servers/mcp_abcdef123456', {
+      method: 'DELETE',
+    });
+    expect(res.status).toBe(403);
+    const body = await parseBody(res);
+    expect(body.error).toContain('Forbidden');
+  });
+
+  it('returns 401 when unauthenticated', async () => {
+    const app = createApp(); // no user
+    const res = await app.request('/servers/mcp_abcdef123456', {
+      method: 'DELETE',
+    });
+    expect(res.status).toBe(401);
+  });
+
+  it('returns 404 when server does not exist', async () => {
+    selectResults.push([]);
+
+    const app = createApp(MOCK_USER);
+    const res = await app.request('/servers/mcp_zzzzzzzzzzzz', {
+      method: 'DELETE',
+    });
+    expect(res.status).toBe(404);
+  });
+
+  it('sets server status to suspended on unpublish', async () => {
+    selectResults.push([{ developerId: 'user-1' }]);
+
+    const app = createApp(MOCK_USER);
+    await app.request('/servers/mcp_abcdef123456', {
+      method: 'DELETE',
+    });
+    // Verify the update chain was called (db.update().set().where())
+    expect(mockDbUpdate).toHaveBeenCalled();
+  });
+
+  it('logs unpublish action', async () => {
+    selectResults.push([{ developerId: 'user-1' }]);
+
+    const app = createApp(MOCK_USER);
+    await app.request('/servers/mcp_abcdef123456', {
+      method: 'DELETE',
+    });
+    expect(mockLoggerInfo).toHaveBeenCalledWith(
+      'Marketplace server unpublished',
+      expect.objectContaining({ serverId: 'mcp_abcdef123456', by: 'user-1' }),
+    );
+  });
+});
+
+describe('POST /servers/:id/invoke -- x402 payment flow', () => {
+  beforeEach(resetMocks);
+
+  const jsonRpcBody = { jsonrpc: '2.0', method: 'tools/list' };
+
+  it('returns 402 with payment requirements when no X-PAYMENT-PAYLOAD header', async () => {
+    selectResults.push([MOCK_SERVER]);
+
+    const app = createApp();
+    const res = await app.request('/servers/mcp_abcdef123456/invoke', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(jsonRpcBody),
+    });
+    expect(res.status).toBe(402);
+    const body = await parseBody(res);
+    expect(body.error).toBe('Payment required');
+    expect(body.x402Version).toBe(1);
+    expect(body.accepts).toBeDefined();
+    expect(res.headers.get('X-PAYMENT-REQUIRED')).toBe('base64encoded');
+  });
+
+  it('calls buildPaymentRequired with server price', async () => {
+    selectResults.push([MOCK_SERVER]);
+
+    const app = createApp();
+    await app.request('/servers/mcp_abcdef123456/invoke', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(jsonRpcBody),
+    });
+    expect(mockBuildPaymentRequired).toHaveBeenCalledWith(
+      expect.stringContaining('/servers/mcp_abcdef123456/invoke'),
+      MOCK_SERVER.pricePerCallUsdc,
+    );
+  });
+
+  it('returns 404 for inactive or missing server', async () => {
+    selectResults.push([]);
+
+    const app = createApp();
+    const res = await app.request('/servers/mcp_abcdef123456/invoke', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(jsonRpcBody),
+    });
+    expect(res.status).toBe(404);
+    const body = await parseBody(res);
+    expect(body.error).toContain('not found');
+  });
+
+  it('returns 402 when payment verification fails', async () => {
+    selectResults.push([MOCK_SERVER]);
+    mockVerifyPayment.mockResolvedValueOnce({
+      valid: false,
+      error: 'Payment rejected by facilitator',
+    });
+
+    const app = createApp();
+    const res = await app.request('/servers/mcp_abcdef123456/invoke', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'X-PAYMENT-PAYLOAD': 'invalid-proof',
+      },
+      body: JSON.stringify(jsonRpcBody),
+    });
+    expect(res.status).toBe(402);
+    const body = await parseBody(res);
+    expect(body.error).toContain('Payment rejected by facilitator');
+  });
+
+  it('proxies request and returns 200 on valid payment + successful proxy', async () => {
+    selectResults.push([MOCK_SERVER]);
+    mockVerifyPayment.mockResolvedValueOnce({ valid: true });
+
+    const originalFetch = globalThis.fetch;
+    globalThis.fetch = vi.fn().mockResolvedValueOnce(
+      new Response(JSON.stringify({ result: 'proxied-ok' }), {
+        status: 200,
+        headers: { 'Content-Type': 'application/json' },
+      }),
+    );
+
+    try {
+      const app = createApp();
+      const res = await app.request('/servers/mcp_abcdef123456/invoke', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'X-PAYMENT-PAYLOAD': 'valid-payment-proof',
+        },
+        body: JSON.stringify(jsonRpcBody),
+      });
+      expect(res.status).toBe(200);
+      const body = await parseBody(res);
+      expect(body.result).toBe('proxied-ok');
+    } finally {
+      globalThis.fetch = originalFetch;
     }
   });
 
-  it('rejects unknown categories', () => {
-    expect(VALID_CATEGORIES.includes('unknown')).toBe(false);
-    expect(VALID_CATEGORIES.includes('')).toBe(false);
-    expect(VALID_CATEGORIES.includes('sql-injection; DROP TABLE')).toBe(false);
+  it('returns 502 when upstream server is unreachable', async () => {
+    selectResults.push([MOCK_SERVER]);
+    mockVerifyPayment.mockResolvedValueOnce({ valid: true });
+
+    const originalFetch = globalThis.fetch;
+    globalThis.fetch = vi.fn().mockRejectedValueOnce(new Error('Connection refused'));
+
+    try {
+      const app = createApp();
+      const res = await app.request('/servers/mcp_abcdef123456/invoke', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'X-PAYMENT-PAYLOAD': 'valid-payment-proof',
+        },
+        body: JSON.stringify(jsonRpcBody),
+      });
+      expect(res.status).toBe(502);
+      const body = await parseBody(res);
+      expect(body.error).toContain('Upstream server unavailable');
+    } finally {
+      globalThis.fetch = originalFetch;
+    }
+  });
+
+  it('records transaction in database on successful proxy', async () => {
+    selectResults.push([MOCK_SERVER]);
+    mockVerifyPayment.mockResolvedValueOnce({ valid: true });
+
+    const originalFetch = globalThis.fetch;
+    globalThis.fetch = vi.fn().mockResolvedValueOnce(
+      new Response(JSON.stringify({ result: 'ok' }), {
+        status: 200,
+        headers: { 'Content-Type': 'application/json' },
+      }),
+    );
+
+    try {
+      const app = createApp();
+      await app.request('/servers/mcp_abcdef123456/invoke', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'X-PAYMENT-PAYLOAD': 'valid-proof',
+        },
+        body: JSON.stringify(jsonRpcBody),
+      });
+      // insert for transaction record + update for status + update for call count
+      expect(mockDbInsert).toHaveBeenCalled();
+      expect(mockDbUpdate).toHaveBeenCalled();
+    } finally {
+      globalThis.fetch = originalFetch;
+    }
+  });
+
+  it('verifies payment header is forwarded to verifyPayment', async () => {
+    selectResults.push([MOCK_SERVER]);
+    mockVerifyPayment.mockResolvedValueOnce({ valid: false, error: 'invalid' });
+
+    const app = createApp();
+    await app.request('/servers/mcp_abcdef123456/invoke', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'X-PAYMENT-PAYLOAD': 'my-payment-payload-value',
+      },
+      body: JSON.stringify(jsonRpcBody),
+    });
+    expect(mockVerifyPayment).toHaveBeenCalledWith(
+      'my-payment-payload-value',
+      expect.stringContaining('/servers/mcp_abcdef123456/invoke'),
+    );
   });
 });
 
-describe('Marketplace: pagination defaults', () => {
-  it('limit is capped at 100', () => {
-    const requestedLimit = 9999;
-    const capped = Math.min(requestedLimit, 100);
-    expect(capped).toBe(100);
+describe('POST /connect/onboard -- Stripe Connect onboarding', () => {
+  beforeEach(resetMocks);
+
+  it('returns 401 when unauthenticated', async () => {
+    const app = createApp(); // no user
+    const res = await app.request('/connect/onboard', { method: 'POST' });
+    expect(res.status).toBe(401);
   });
 
-  it('defaults to limit=50, offset=0', () => {
-    const rawLimit: string | undefined = undefined;
-    const rawOffset: string | undefined = undefined;
-    const limit = Math.min(Number(rawLimit ?? 50), 100);
-    const offset = Number(rawOffset ?? 0);
-    expect(limit).toBe(50);
-    expect(offset).toBe(0);
+  it('creates new Stripe Connect account when developer has none', async () => {
+    selectResults.push([]); // No existing Connect account
+
+    const app = createApp(MOCK_USER);
+    const res = await app.request('/connect/onboard', { method: 'POST' });
+    expect(res.status).toBe(200);
+    const body = await parseBody(res);
+    expect(body.url).toBe('https://connect.stripe.com/setup/test');
+    expect(body.stripeAccountId).toBe('acct_new123');
+    expect(mockStripeAccountsCreate).toHaveBeenCalledWith(
+      expect.objectContaining({
+        type: 'express',
+        email: 'dev@example.com',
+      }),
+    );
+  });
+
+  it('reuses existing Stripe Connect account when developer already has one', async () => {
+    selectResults.push([{ stripeAccountId: 'acct_existing' }]);
+
+    const app = createApp(MOCK_USER);
+    const res = await app.request('/connect/onboard', { method: 'POST' });
+    expect(res.status).toBe(200);
+    const body = await parseBody(res);
+    expect(body.stripeAccountId).toBe('acct_existing');
+    expect(mockStripeAccountsCreate).not.toHaveBeenCalled();
+  });
+
+  it('creates account link for onboarding', async () => {
+    selectResults.push([]);
+
+    const app = createApp(MOCK_USER);
+    await app.request('/connect/onboard', { method: 'POST' });
+    expect(mockStripeAccountLinksCreate).toHaveBeenCalledWith(
+      expect.objectContaining({
+        account: 'acct_new123',
+        type: 'account_onboarding',
+      }),
+    );
+  });
+
+  it('logs Connect onboarding link creation', async () => {
+    selectResults.push([]);
+
+    const app = createApp(MOCK_USER);
+    await app.request('/connect/onboard', { method: 'POST' });
+    expect(mockLoggerInfo).toHaveBeenCalledWith(
+      'Stripe Connect onboarding link created',
+      expect.objectContaining({ developerId: 'user-1' }),
+    );
+  });
+});
+
+describe('GET /connect/return -- Stripe Connect callback', () => {
+  beforeEach(resetMocks);
+
+  it('returns success message', async () => {
+    const app = createApp(MOCK_USER);
+    const res = await app.request('/connect/return');
+    expect(res.status).toBe(200);
+    const body = await parseBody(res);
+    expect(body.success).toBe(true);
+    expect(body.message).toContain('Stripe Connect onboarding complete');
+  });
+
+  it('returns 200 regardless of auth (handled by middleware passthrough)', async () => {
+    const app = createApp(MOCK_USER);
+    const res = await app.request('/connect/return');
+    expect(res.status).toBe(200);
   });
 });
