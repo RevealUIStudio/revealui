@@ -4,11 +4,11 @@
   "private": true,
   "dependencies": {
     "@revealui/core": "workspace:*",
+    "@revealui/router": "workspace:*",
     "flexsearch": "^0.7.43",
     "react": "^19.2.3",
     "react-dom": "^19.2.3",
     "react-markdown": "^10.1.0",
-    "@revealui/router": "workspace:*",
     "remark-gfm": "^4.0.1"
   },
   "devDependencies": {

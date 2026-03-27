@@ -2,15 +2,6 @@
   "name": "revealcoin",
   "version": "0.1.0",
   "private": true,
-  "type": "module",
-  "scripts": {
-    "build": "env -u NODE_ENV next build",
-    "dev": "next dev --port 3005",
-    "lint": "biome check .",
-    "start": "next start",
-    "test": "vitest run --passWithNoTests",
-    "typecheck": "tsc --noEmit"
-  },
   "dependencies": {
     "@revealui/contracts": "workspace:*",
     "@revealui/presentation": "workspace:*",
@@ -31,5 +22,14 @@
   },
   "engines": {
     "node": ">=24.13.0"
-  }
+  },
+  "scripts": {
+    "build": "env -u NODE_ENV next build",
+    "dev": "next dev --port 3005",
+    "lint": "biome check .",
+    "start": "next start",
+    "test": "vitest run --passWithNoTests",
+    "typecheck": "tsc --noEmit"
+  },
+  "type": "module"
 }

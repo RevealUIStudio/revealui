@@ -11,14 +11,6 @@
     "typescript": "^5.9.3",
     "vitest": "^4.1.0"
   },
-  "peerDependencies": {
-    "next": "^14.0.0 || ^15.0.0 || ^16.1.7"
-  },
-  "peerDependenciesMeta": {
-    "next": {
-      "optional": true
-    }
-  },
   "engines": {
     "node": ">=24.13.0"
   },
@@ -32,6 +24,14 @@
     "dist"
   ],
   "main": "./dist/index.js",
+  "peerDependencies": {
+    "next": "^14.0.0 || ^15.0.0 || ^16.1.7"
+  },
+  "peerDependenciesMeta": {
+    "next": {
+      "optional": true
+    }
+  },
   "publishConfig": {
     "access": "public",
     "registry": "https://registry.npmjs.org"

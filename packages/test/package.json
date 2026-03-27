@@ -2,6 +2,7 @@
   "name": "test",
   "version": "0.0.1",
   "private": true,
+  "license": "MIT",
   "dependencies": {
     "@neondatabase/serverless": "^1.0.2",
     "@revealui/auth": "workspace:*",
@@ -59,9 +60,9 @@
     "test:db:setup": "cd ../.. && pnpm exec tsx packages/test/scripts/setup-dual-database.ts",
     "test:e2e": "playwright test",
     "test:integration": "vitest run --config vitest.integration.config.ts src/integration",
-    "test:integration:watch": "vitest watch --config vitest.integration.config.ts src/integration",
     "test:integration:pro": "vitest run --config vitest.integration-pro.config.ts",
     "test:integration:pro:watch": "vitest watch --config vitest.integration-pro.config.ts",
+    "test:integration:watch": "vitest watch --config vitest.integration.config.ts src/integration",
     "test:memory:all": "pnpm test:integration:pro",
     "test:memory:dual": "vitest run --config vitest.integration.config.ts src/integration/memory/dual-database.integration.test.ts",
     "test:memory:episodic": "vitest run --config vitest.integration-pro.config.ts src/integration-pro/memory/episodic-memory.integration.test.ts",
@@ -80,6 +81,5 @@
     "typecheck": "tsc --noEmit"
   },
   "type": "module",
-  "types": "./dist/index.d.ts",
-  "license": "MIT"
+  "types": "./dist/index.d.ts"
 }

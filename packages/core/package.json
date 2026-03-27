@@ -2,9 +2,6 @@
   "name": "@revealui/core",
   "version": "0.3.0",
   "license": "MIT",
-  "files": [
-    "dist"
-  ],
   "dependencies": {
     "@electric-sql/pglite": "^0.3.15",
     "@lexical/clipboard": "^0.40.0",
@@ -272,6 +269,9 @@
       "import": "./dist/client/admin/i18n/en.js"
     }
   },
+  "files": [
+    "dist"
+  ],
   "main": "./dist/index.js",
   "peerDependencies": {
     "next": "^14.0.0 || ^15.0.0 || ^16.0.0",

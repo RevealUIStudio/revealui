@@ -16,7 +16,6 @@
     "clsx": "^2.1.1"
   },
   "devDependencies": {
-    "cross-env": "^10.1.0",
     "@testing-library/jest-dom": "^6.9.1",
     "@testing-library/react": "^16.3.2",
     "@testing-library/user-event": "^14.6.1",
@@ -25,6 +24,7 @@
     "@types/react-dom": "^19.2.3",
     "@vitejs/plugin-react-swc": "^4.2.2",
     "@vitest/coverage-v8": "^4.1.0",
+    "cross-env": "^10.1.0",
     "dev": "workspace:*",
     "jsdom": "^27.4.0",
     "typescript": "^5.9.3",

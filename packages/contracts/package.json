@@ -104,10 +104,6 @@
   ],
   "main": "./dist/index.js",
   "module": "./dist/index.js",
-  "publishConfig": {
-    "access": "public",
-    "registry": "https://registry.npmjs.org"
-  },
   "peerDependencies": {
     "@revealui/db": "workspace:*",
     "drizzle-zod": "^0.8.3",
@@ -120,6 +116,10 @@
     "drizzle-zod": {
       "optional": true
     }
+  },
+  "publishConfig": {
+    "access": "public",
+    "registry": "https://registry.npmjs.org"
   },
   "scripts": {
     "build": "tsc",

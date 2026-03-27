@@ -2,9 +2,6 @@
   "name": "@revealui/db",
   "version": "0.3.0",
   "license": "MIT",
-  "files": [
-    "dist"
-  ],
   "dependencies": {
     "@neondatabase/serverless": "^1.0.2",
     "@revealui/config": "workspace:*",
@@ -19,15 +16,6 @@
     "drizzle-zod": "^0.8.3",
     "tsx": "^4.21.0",
     "typescript": "^5.9.3"
-  },
-  "peerDependencies": {
-    "drizzle-orm": "^0.45.1",
-    "drizzle-zod": "^0.8.3"
-  },
-  "peerDependenciesMeta": {
-    "drizzle-zod": {
-      "optional": true
-    }
   },
   "engines": {
     "node": ">=24.13.0"
@@ -194,7 +182,19 @@
       "import": "./dist/validation/cross-db.js"
     }
   },
+  "files": [
+    "dist"
+  ],
   "main": "./dist/index.js",
+  "peerDependencies": {
+    "drizzle-orm": "^0.45.1",
+    "drizzle-zod": "^0.8.3"
+  },
+  "peerDependenciesMeta": {
+    "drizzle-zod": {
+      "optional": true
+    }
+  },
   "publishConfig": {
     "access": "public",
     "registry": "https://registry.npmjs.org"

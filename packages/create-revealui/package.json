@@ -2,38 +2,38 @@
   "name": "create-revealui",
   "version": "0.3.3",
   "description": "Create a new RevealUI project",
-  "engines": {
-    "node": ">=24.13.0"
-  },
-  "type": "module",
-  "bin": {
-    "create-revealui": "./bin/create-revealui.js"
-  },
-  "files": [
-    "bin"
+  "keywords": [
+    "cli",
+    "create-revealui",
+    "revealui",
+    "scaffolding"
   ],
-  "dependencies": {
-    "@revealui/cli": "workspace:*"
-  },
-  "license": "MIT",
-  "publishConfig": {
-    "access": "public",
-    "registry": "https://registry.npmjs.org"
-  },
   "repository": {
     "type": "git",
     "url": "https://github.com/RevealUIStudio/revealui.git",
     "directory": "packages/create-revealui"
   },
-  "keywords": [
-    "revealui",
-    "create-revealui",
-    "scaffolding",
-    "cli"
+  "license": "MIT",
+  "bin": {
+    "create-revealui": "./bin/create-revealui.js"
+  },
+  "dependencies": {
+    "@revealui/cli": "workspace:*"
+  },
+  "engines": {
+    "node": ">=24.13.0"
+  },
+  "files": [
+    "bin"
   ],
+  "publishConfig": {
+    "access": "public",
+    "registry": "https://registry.npmjs.org"
+  },
   "scripts": {
     "lint": "biome check .",
     "test": "echo 'No tests — thin wrapper for @revealui/cli'",
     "typecheck": "echo 'No source — bin wrapper only'"
-  }
+  },
+  "type": "module"
 }

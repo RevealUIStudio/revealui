@@ -1,20 +1,7 @@
 {
   "name": "@revealui/studio",
-  "private": true,
   "version": "0.1.0",
-  "type": "module",
-  "scripts": {
-    "dev": "vite",
-    "build": "tsc -b && vite build",
-    "preview": "vite preview",
-    "tauri:dev": "cargo tauri dev",
-    "tauri:build": "cargo tauri build",
-    "build:windows": "powershell -ExecutionPolicy Bypass -File build-windows.ps1",
-    "typecheck": "tsc -b --noEmit",
-    "test": "vitest",
-    "test:coverage": "vitest run --coverage --coverage.reporter=json-summary --coverage.reporter=html --coverage.reporter=text",
-    "lint": "biome check ."
-  },
+  "private": true,
   "dependencies": {
     "@codemirror/lang-css": "^6.0.0",
     "@codemirror/lang-html": "^6.0.0",
@@ -53,5 +40,18 @@
   },
   "engines": {
     "node": ">=24.13.0"
-  }
+  },
+  "scripts": {
+    "build": "tsc -b && vite build",
+    "build:windows": "powershell -ExecutionPolicy Bypass -File build-windows.ps1",
+    "dev": "vite",
+    "lint": "biome check .",
+    "preview": "vite preview",
+    "tauri:build": "cargo tauri build",
+    "tauri:dev": "cargo tauri dev",
+    "test": "vitest",
+    "test:coverage": "vitest run --coverage --coverage.reporter=json-summary --coverage.reporter=html --coverage.reporter=text",
+    "typecheck": "tsc -b --noEmit"
+  },
+  "type": "module"
 }

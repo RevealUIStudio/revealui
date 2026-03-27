@@ -2,6 +2,7 @@
   "name": "dev",
   "version": "0.0.1",
   "private": true,
+  "license": "MIT",
   "dependencies": {
     "minimatch": "^10.1.2"
   },
@@ -52,6 +53,5 @@
     "typecheck": "tsc --noEmit",
     "verify:imports": "tsx ../../scripts/validation/verify-dev-package-imports.ts"
   },
-  "type": "module",
-  "license": "MIT"
+  "type": "module"
 }

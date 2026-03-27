@@ -2,8 +2,13 @@
   "name": "@revealui/scripts",
   "version": "0.1.2",
   "private": true,
-  "type": "module",
   "description": "Shared utilities for RevealUI scripts",
+  "dependencies": {
+    "@revealui/core": "workspace:*"
+  },
+  "devDependencies": {
+    "@electric-sql/pglite": "^0.3.15"
+  },
   "exports": {
     ".": "./index.ts",
     "./errors": "./errors.ts",
@@ -18,12 +23,6 @@
     "./validation/env": "./validation/env.ts",
     "./validation/database": "./validation/database.ts"
   },
-  "dependencies": {
-    "@revealui/core": "workspace:*"
-  },
-  "devDependencies": {
-    "@electric-sql/pglite": "^0.3.15"
-  },
   "peerDependencies": {
     "typescript": "^5.0.0"
   },
@@ -31,7 +30,8 @@
     "build": "echo 'Source-only package — consumed via tsconfig paths, no build needed'",
     "dev": "echo 'Source-only package — no watch mode needed'",
     "lint": "biome check .",
-    "typecheck": "tsc --noEmit",
-    "test": "vitest run"
-  }
+    "test": "vitest run",
+    "typecheck": "tsc --noEmit"
+  },
+  "type": "module"
 }
