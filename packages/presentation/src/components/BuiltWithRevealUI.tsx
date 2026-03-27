@@ -15,10 +15,15 @@ const badgeStyles = cva(
         'bottom-center': 'fixed bottom-4 left-1/2 -translate-x-1/2 z-40',
         inline: '',
       },
+      colorScheme: {
+        light: 'border-gray-200 bg-white/90 text-gray-500 opacity-75 backdrop-blur-sm',
+        dark: 'border-gray-700 bg-gray-800/80 text-gray-300 opacity-90',
+      },
     },
     defaultVariants: {
       size: 'sm',
       position: 'inline',
+      colorScheme: 'light',
     },
   },
 );
@@ -31,6 +36,7 @@ interface BuiltWithRevealUIProps extends VariantProps<typeof badgeStyles> {
 export function BuiltWithRevealUI({
   size,
   position,
+  colorScheme,
   variant = 'full',
   className,
 }: BuiltWithRevealUIProps) {
@@ -40,9 +46,7 @@ export function BuiltWithRevealUI({
       target="_blank"
       rel="noopener noreferrer"
       className={cn(
-        badgeStyles({ size, position }),
-        'border-gray-200 bg-white/90 text-gray-500 opacity-75 backdrop-blur-sm',
-        'dark:border-gray-700 dark:bg-gray-900/90 dark:text-gray-400',
+        badgeStyles({ size, position, colorScheme }),
         'no-underline hover:no-underline',
         className,
       )}

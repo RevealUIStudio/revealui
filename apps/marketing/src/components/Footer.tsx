@@ -147,7 +147,7 @@ export function Footer() {
         <div className="mt-12 pt-8 border-t border-gray-800 flex flex-col sm:flex-row items-center justify-between gap-4 text-gray-400 text-sm">
           <div className="flex items-center gap-4">
             <p>&copy; {currentYear} RevealUI Studio. All rights reserved.</p>
-            <BuiltWithRevealUI size="sm" className="border-gray-700 bg-gray-800/80 text-gray-400" />
+            <BuiltWithRevealUI size="sm" colorScheme="dark" />
           </div>
           <div className="flex gap-6">
             <Link href="/privacy" className="hover:text-white transition-colors">
