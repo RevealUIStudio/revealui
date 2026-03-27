@@ -6,6 +6,7 @@ import { afterAll, afterEach, beforeAll, beforeEach, describe, expect, it, vi } 
 // ---------------------------------------------------------------------------
 vi.mock('@revealui/db/client', () => ({
   getVectorClient: vi.fn(),
+  getRestClient: vi.fn(),
 }));
 
 vi.mock('@revealui/db/schema/rag', () => ({
@@ -435,6 +436,7 @@ describe('rag-index routes — AI available', () => {
   // biome-ignore lint/suspicious/noExplicitAny: module loaded after vi.resetModules — type unavailable at declaration site
   let freshRagApp: any;
   let freshGetVectorClient: ReturnType<typeof vi.fn>;
+  let freshGetRestClient: ReturnType<typeof vi.fn>;
   let mockIngest: ReturnType<typeof vi.fn>;
   let mockDeleteDocument: ReturnType<typeof vi.fn>;
 
@@ -444,9 +446,11 @@ describe('rag-index routes — AI available', () => {
     mockIngest = vi.fn();
     mockDeleteDocument = vi.fn();
     freshGetVectorClient = vi.fn();
+    freshGetRestClient = vi.fn();
 
     vi.doMock('@revealui/db/client', () => ({
       getVectorClient: freshGetVectorClient,
+      getRestClient: freshGetRestClient,
     }));
 
     vi.doMock('@revealui/db/schema/rag', () => ({
