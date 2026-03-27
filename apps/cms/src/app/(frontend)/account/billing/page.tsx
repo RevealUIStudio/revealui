@@ -17,6 +17,7 @@ import {
 } from '@revealui/presentation';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { Suspense, useCallback, useEffect, useRef, useState } from 'react';
+import { safeStripeRedirect } from '~/lib/utils/safe-stripe-redirect';
 
 interface SubscriptionData {
   tier: LicenseTierId;
@@ -31,19 +32,6 @@ interface UsageData {
   overage: number;
   cycleStart: string;
   resetAt: string;
-}
-
-function safeStripeRedirect(url: string): void {
-  const allowed = ['checkout.stripe.com', 'billing.stripe.com'];
-  try {
-    const { hostname, protocol } = new URL(url);
-    if (protocol !== 'https:' || !allowed.includes(hostname)) {
-      return;
-    }
-  } catch {
-    return;
-  }
-  window.location.href = url;
 }
 
 export default function BillingPage() {
@@ -273,6 +261,30 @@ function BillingContent() {
           . After that, you&apos;ll be charged {getPrice('pro')}. Cancel anytime before then.
         </div>
       )}
+
+      {subscription?.status === 'active' &&
+        subscription.expiresAt &&
+        new Date(subscription.expiresAt) > new Date() && (
+          <div className="rounded-md border border-amber-200 bg-amber-50 p-4 text-sm text-amber-800 dark:border-amber-800 dark:bg-amber-900/20 dark:text-amber-300">
+            Your subscription will end on{' '}
+            <strong>
+              {new Date(subscription.expiresAt).toLocaleDateString('en-US', {
+                month: 'long',
+                day: 'numeric',
+                year: 'numeric',
+              })}
+            </strong>
+            . You&apos;ll retain access to {TIER_LABELS[tier]} features until then.
+            <button
+              type="button"
+              onClick={handleManageBilling}
+              disabled={actionLoading}
+              className="ml-2 font-medium underline hover:text-amber-900 disabled:cursor-not-allowed dark:hover:text-amber-200"
+            >
+              Resubscribe
+            </button>
+          </div>
+        )}
 
       {subscription?.status === 'expired' && (
         <div className="rounded-md border border-red-200 bg-red-50 p-4 text-sm text-red-800 dark:border-red-800 dark:bg-red-900/20 dark:text-red-300">

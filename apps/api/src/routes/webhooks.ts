@@ -1091,217 +1091,232 @@ app.openapi(stripeWebhookRoute, async (c) => {
         const customerId = resolveCustomerId(subscription.customer);
         if (!customerId) break;
 
-        // If subscription went past_due or unpaid, degrade access.
-        // past_due = grace period (customer retains access until period end).
-        // unpaid = immediate block (Stripe exhausted retries).
-        if (subscription.status === 'past_due' || subscription.status === 'unpaid') {
-          const isPastDue = subscription.status === 'past_due';
-          const entitlementStatus = isPastDue ? 'past_due' : 'expired';
+        // Wrap all DB mutations in a transaction to prevent races between concurrent
+        // subscription.updated events (e.g., active → past_due → unpaid arriving simultaneously).
+        // Emails are sent outside the transaction (fire-and-forget).
+        let emailToSend: (() => void) | null = null;
 
-          // Scope to this subscription — don't expire perpetual licenses or other subscriptions
-          await db
-            .update(licenses)
-            .set({ status: 'expired', updatedAt: new Date() })
-            .where(
-              and(
-                eq(licenses.customerId, customerId),
-                eq(licenses.subscriptionId, subscription.id),
-              ),
-            );
+        await db.transaction(async (tx) => {
+          // If subscription went past_due or unpaid, degrade access.
+          // past_due = grace period (customer retains access until period end).
+          // unpaid = immediate block (Stripe exhausted retries).
+          if (subscription.status === 'past_due' || subscription.status === 'unpaid') {
+            const isPastDue = subscription.status === 'past_due';
+            const entitlementStatus = isPastDue ? 'past_due' : 'expired';
 
-          await syncHostedSubscriptionState(db, {
-            customerId,
-            subscriptionId: subscription.id,
-            tier: resolveOptionalTier(subscription.metadata as Record<string, string>),
-            status: entitlementStatus,
-            currentPeriodStart: getSubscriptionPeriodDate(subscription, 'current_period_start'),
-            currentPeriodEnd: getSubscriptionPeriodDate(subscription, 'current_period_end'),
-            cancelAtPeriodEnd: subscription.cancel_at_period_end ?? false,
-            graceUntil: isPastDue
-              ? getSubscriptionPeriodDate(subscription, 'current_period_end')
-              : null,
-          });
+            // Scope to this subscription — don't expire perpetual licenses or other subscriptions
+            await tx
+              .update(licenses)
+              .set({ status: 'expired', updatedAt: new Date() })
+              .where(
+                and(
+                  eq(licenses.customerId, customerId),
+                  eq(licenses.subscriptionId, subscription.id),
+                ),
+              );
 
-          logger.info(
-            isPastDue
-              ? 'License degraded to past_due with grace period'
-              : 'License expired — subscription unpaid',
-            {
+            await syncHostedSubscriptionState(tx, {
               customerId,
-              subscriptionStatus: subscription.status,
-            },
-          );
-          resetLicenseState();
-          resetDbStatusCache();
-          auditLicenseEvent(db, isPastDue ? 'license.grace_period' : 'license.expired', 'warn', {
-            customerId,
-            subscriptionId: subscription.id,
-            subscriptionStatus: subscription.status,
-          });
+              subscriptionId: subscription.id,
+              tier: resolveOptionalTier(subscription.metadata as Record<string, string>),
+              status: entitlementStatus,
+              currentPeriodStart: getSubscriptionPeriodDate(subscription, 'current_period_start'),
+              currentPeriodEnd: getSubscriptionPeriodDate(subscription, 'current_period_end'),
+              cancelAtPeriodEnd: subscription.cancel_at_period_end ?? false,
+              graceUntil: isPastDue
+                ? getSubscriptionPeriodDate(subscription, 'current_period_end')
+                : null,
+            });
 
-          // Send grace period or payment failed email
-          const email = await findUserEmailByCustomerId(db, customerId);
-          if (email) {
-            const graceEnd = isPastDue
-              ? getSubscriptionPeriodDate(subscription, 'current_period_end')
-              : null;
-            const updatedTier =
-              resolveOptionalTier(subscription.metadata as Record<string, string>) ?? 'pro';
-            const emailPromise = graceEnd
-              ? sendGracePeriodStartedEmail(email, graceEnd)
-              : sendPaymentFailedEmail(email, updatedTier);
-            emailPromise.catch((err) => {
-              logger.error('Failed to send payment/grace period email', undefined, {
-                detail: err instanceof Error ? err.message : 'unknown',
-              });
+            logger.info(
+              isPastDue
+                ? 'License degraded to past_due with grace period'
+                : 'License expired — subscription unpaid',
+              {
+                customerId,
+                subscriptionStatus: subscription.status,
+              },
+            );
+            resetLicenseState();
+            resetDbStatusCache();
+            auditLicenseEvent(tx, isPastDue ? 'license.grace_period' : 'license.expired', 'warn', {
+              customerId,
+              subscriptionId: subscription.id,
+              subscriptionStatus: subscription.status,
+            });
+
+            // Defer email send until after transaction commits
+            emailToSend = async () => {
+              const email = await findUserEmailByCustomerId(db, customerId);
+              if (email) {
+                const graceEnd = isPastDue
+                  ? getSubscriptionPeriodDate(subscription, 'current_period_end')
+                  : null;
+                const updatedTier =
+                  resolveOptionalTier(subscription.metadata as Record<string, string>) ?? 'pro';
+                const emailPromise = graceEnd
+                  ? sendGracePeriodStartedEmail(email, graceEnd)
+                  : sendPaymentFailedEmail(email, updatedTier);
+                emailPromise.catch((err) => {
+                  logger.error('Failed to send payment/grace period email', undefined, {
+                    detail: err instanceof Error ? err.message : 'unknown',
+                  });
+                });
+              }
+            };
+          }
+
+          // If subscription is scheduled for cancellation at period end, stamp the license
+          // expiry so it lapses correctly even if the subscription.deleted webhook is delayed
+          // or missed. This is belt-and-suspenders alongside the subscription.deleted handler.
+          if (
+            subscription.status === 'active' &&
+            subscription.cancel_at_period_end &&
+            subscription.cancel_at
+          ) {
+            const cancelAt = new Date(subscription.cancel_at * 1000);
+            await tx
+              .update(licenses)
+              .set({ expiresAt: cancelAt, updatedAt: new Date() })
+              .where(
+                and(
+                  eq(licenses.customerId, customerId),
+                  eq(licenses.subscriptionId, subscription.id),
+                ),
+              );
+
+            resetLicenseState();
+            resetDbStatusCache();
+            logger.info('License expiry set for scheduled downgrade', {
+              customerId,
+              subscriptionId: subscription.id,
+              expiresAt: cancelAt.toISOString(),
+            });
+            auditLicenseEvent(tx, 'license.expiry_scheduled', 'info', {
+              customerId,
+              subscriptionId: subscription.id,
+              expiresAt: cancelAt.toISOString(),
+            });
+
+            await syncHostedSubscriptionState(tx, {
+              customerId,
+              subscriptionId: subscription.id,
+              tier: resolveOptionalTier(subscription.metadata as Record<string, string>),
+              status: 'active',
+              currentPeriodStart: getSubscriptionPeriodDate(subscription, 'current_period_start'),
+              currentPeriodEnd:
+                getSubscriptionPeriodDate(subscription, 'current_period_end') ?? cancelAt,
+              cancelAtPeriodEnd: true,
+              graceUntil: cancelAt,
             });
           }
-        }
 
-        // If subscription is scheduled for cancellation at period end, stamp the license
-        // expiry so it lapses correctly even if the subscription.deleted webhook is delayed
-        // or missed. This is belt-and-suspenders alongside the subscription.deleted handler.
-        if (
-          subscription.status === 'active' &&
-          subscription.cancel_at_period_end &&
-          subscription.cancel_at
-        ) {
-          const cancelAt = new Date(subscription.cancel_at * 1000);
-          await db
-            .update(licenses)
-            .set({ expiresAt: cancelAt, updatedAt: new Date() })
-            .where(
-              and(
-                eq(licenses.customerId, customerId),
-                eq(licenses.subscriptionId, subscription.id),
-              ),
+          // If subscription is active (and not scheduled for cancellation), sync tier + status.
+          if (subscription.status === 'active' && !subscription.cancel_at_period_end) {
+            const newTier = resolveTier(subscription.metadata as Record<string, string>);
+            const privateKey = process.env.REVEALUI_LICENSE_PRIVATE_KEY;
+
+            if (!privateKey) {
+              logger.error(
+                'CRITICAL: REVEALUI_LICENSE_PRIVATE_KEY not configured — license sync failed',
+                undefined,
+                { customerId, subscriptionId: subscription.id, tier: newTier },
+              );
+              throw new Error('REVEALUI_LICENSE_PRIVATE_KEY not configured');
+            }
+
+            const normalizedKey = privateKey.replace(/\\n/g, '\n');
+            const licenseKey = await generateLicenseKey(
+              { tier: newTier, customerId },
+              normalizedKey,
             );
+            await tx
+              .update(licenses)
+              .set({ status: 'active', tier: newTier, licenseKey, updatedAt: new Date() })
+              .where(
+                and(
+                  eq(licenses.customerId, customerId),
+                  eq(licenses.subscriptionId, subscription.id),
+                ),
+              );
 
-          resetLicenseState();
-          resetDbStatusCache();
-          logger.info('License expiry set for scheduled downgrade', {
-            customerId,
-            subscriptionId: subscription.id,
-            expiresAt: cancelAt.toISOString(),
-          });
-          auditLicenseEvent(db, 'license.expiry_scheduled', 'info', {
-            customerId,
-            subscriptionId: subscription.id,
-            expiresAt: cancelAt.toISOString(),
-          });
+            await syncHostedSubscriptionState(tx, {
+              customerId,
+              subscriptionId: subscription.id,
+              tier: newTier,
+              status: 'active',
+              currentPeriodStart: getSubscriptionPeriodDate(subscription, 'current_period_start'),
+              currentPeriodEnd: getSubscriptionPeriodDate(subscription, 'current_period_end'),
+              cancelAtPeriodEnd: subscription.cancel_at_period_end ?? false,
+              graceUntil:
+                subscription.cancel_at_period_end && subscription.cancel_at
+                  ? new Date(subscription.cancel_at * 1000)
+                  : null,
+            });
 
-          await syncHostedSubscriptionState(db, {
-            customerId,
-            subscriptionId: subscription.id,
-            tier: resolveOptionalTier(subscription.metadata as Record<string, string>),
-            status: 'active',
-            currentPeriodStart: getSubscriptionPeriodDate(subscription, 'current_period_start'),
-            currentPeriodEnd:
-              getSubscriptionPeriodDate(subscription, 'current_period_end') ?? cancelAt,
-            cancelAtPeriodEnd: true,
-            graceUntil: cancelAt,
-          });
-        }
-
-        // If subscription is active, sync tier + status (covers reactivations and tier upgrades).
-        if (subscription.status === 'active') {
-          const newTier = resolveTier(subscription.metadata as Record<string, string>);
-          const privateKey = process.env.REVEALUI_LICENSE_PRIVATE_KEY;
-
-          if (!privateKey) {
-            logger.error(
-              'CRITICAL: REVEALUI_LICENSE_PRIVATE_KEY not configured — license sync failed',
-              undefined,
-              { customerId, subscriptionId: subscription.id, tier: newTier },
-            );
-            throw new Error('REVEALUI_LICENSE_PRIVATE_KEY not configured');
-          }
-
-          const normalizedKey = privateKey.replace(/\\n/g, '\n');
-          const licenseKey = await generateLicenseKey({ tier: newTier, customerId }, normalizedKey);
-          await db
-            .update(licenses)
-            .set({ status: 'active', tier: newTier, licenseKey, updatedAt: new Date() })
-            .where(
-              and(
-                eq(licenses.customerId, customerId),
-                eq(licenses.subscriptionId, subscription.id),
-              ),
-            );
-
-          await syncHostedSubscriptionState(db, {
-            customerId,
-            subscriptionId: subscription.id,
-            tier: newTier,
-            status: 'active',
-            currentPeriodStart: getSubscriptionPeriodDate(subscription, 'current_period_start'),
-            currentPeriodEnd: getSubscriptionPeriodDate(subscription, 'current_period_end'),
-            cancelAtPeriodEnd: subscription.cancel_at_period_end ?? false,
-            graceUntil:
-              subscription.cancel_at_period_end && subscription.cancel_at
-                ? new Date(subscription.cancel_at * 1000)
-                : null,
-          });
-
-          // Clear pending_change flag so the next upgrade/downgrade is unblocked
-          if (subscription.metadata?.pending_change) {
-            stripe.subscriptions
-              .update(subscription.id, { metadata: { pending_change: '' } })
-              .catch((err) => {
-                logger.warn('Failed to clear pending_change metadata', {
-                  subscriptionId: subscription.id,
-                  detail: err instanceof Error ? err.message : 'unknown',
+            // Clear pending_change flag so the next upgrade/downgrade is unblocked
+            if (subscription.metadata?.pending_change) {
+              stripe.subscriptions
+                .update(subscription.id, { metadata: { pending_change: '' } })
+                .catch((err) => {
+                  logger.warn('Failed to clear pending_change metadata', {
+                    subscriptionId: subscription.id,
+                    detail: err instanceof Error ? err.message : 'unknown',
+                  });
                 });
-              });
+            }
+
+            resetLicenseState();
+            resetDbStatusCache();
+            auditLicenseEvent(tx, 'license.reactivated', 'info', {
+              customerId,
+              subscriptionId: subscription.id,
+              tier: newTier,
+            });
           }
 
-          resetLicenseState();
-          resetDbStatusCache();
-          auditLicenseEvent(db, 'license.reactivated', 'info', {
-            customerId,
-            subscriptionId: subscription.id,
-            tier: newTier,
-          });
-        }
+          // Handle terminal subscription states that aren't covered above
+          if (subscription.status === 'canceled' || subscription.status === 'incomplete_expired') {
+            await tx
+              .update(licenses)
+              .set({ status: 'revoked', updatedAt: new Date() })
+              .where(
+                and(
+                  eq(licenses.customerId, customerId),
+                  eq(licenses.subscriptionId, subscription.id),
+                ),
+              );
 
-        // Handle terminal subscription states that aren't covered above
-        if (subscription.status === 'canceled' || subscription.status === 'incomplete_expired') {
-          await db
-            .update(licenses)
-            .set({ status: 'revoked', updatedAt: new Date() })
-            .where(
-              and(
-                eq(licenses.customerId, customerId),
-                eq(licenses.subscriptionId, subscription.id),
-              ),
-            );
+            await syncHostedSubscriptionState(tx, {
+              customerId,
+              subscriptionId: subscription.id,
+              tier: resolveOptionalTier(subscription.metadata as Record<string, string>),
+              status: 'revoked',
+              currentPeriodStart: getSubscriptionPeriodDate(subscription, 'current_period_start'),
+              currentPeriodEnd: getSubscriptionPeriodDate(subscription, 'current_period_end'),
+              cancelAtPeriodEnd: false,
+              graceUntil: null,
+            });
 
-          await syncHostedSubscriptionState(db, {
-            customerId,
-            subscriptionId: subscription.id,
-            tier: resolveOptionalTier(subscription.metadata as Record<string, string>),
-            status: 'revoked',
-            currentPeriodStart: getSubscriptionPeriodDate(subscription, 'current_period_start'),
-            currentPeriodEnd: getSubscriptionPeriodDate(subscription, 'current_period_end'),
-            cancelAtPeriodEnd: false,
-            graceUntil: null,
-          });
+            resetLicenseState();
+            resetDbStatusCache();
+            auditLicenseEvent(tx, `license.revoked.subscription_${subscription.status}`, 'warn', {
+              customerId,
+              subscriptionId: subscription.id,
+              stripeStatus: subscription.status,
+            });
+          }
 
-          resetLicenseState();
-          resetDbStatusCache();
-          auditLicenseEvent(db, `license.revoked.subscription_${subscription.status}`, 'warn', {
-            customerId,
-            subscriptionId: subscription.id,
-            stripeStatus: subscription.status,
-          });
-        }
+          if (subscription.status === 'incomplete') {
+            logger.warn('Subscription in incomplete state — awaiting payment confirmation', {
+              customerId,
+              subscriptionId: subscription.id,
+            });
+          }
+        }); // end transaction
 
-        if (subscription.status === 'incomplete') {
-          logger.warn('Subscription in incomplete state — awaiting payment confirmation', {
-            customerId,
-            subscriptionId: subscription.id,
-          });
-        }
+        // Send deferred emails outside the transaction
+        if (emailToSend) emailToSend();
 
         break;
       }
@@ -1409,7 +1424,10 @@ app.openapi(stripeWebhookRoute, async (c) => {
           .limit(1);
         const hostedStatus = await findHostedStatusByCustomerId(db, customerId);
 
-        const recoveredTier = resolveTier(recoveredSubscription.metadata as Record<string, string>);
+        // Use resolveOptionalTier with fallback — resolveTier would create an infinite retry loop
+        // if the recovered subscription lacks tier metadata (e.g., pre-metadata subscription)
+        const recoveredTier =
+          resolveOptionalTier(recoveredSubscription.metadata as Record<string, string>) ?? 'pro';
         const shouldReactivateLegacyLicense =
           existingLicense?.status === 'expired' || existingLicense?.status === 'revoked';
         const shouldReactivateHosted = hostedStatus === 'expired' || hostedStatus === 'revoked';
