@@ -53,7 +53,6 @@ export default function LicensePage() {
   const [perpetualLoading, setPerpetualLoading] = useState<string | null>(null);
   const [pricing, setPricing] = useState<PricingResponse | null>(null);
   const [githubUsername, setGithubUsername] = useState('');
-  const [npmUsername, setNpmUsername] = useState('');
 
   const fetchData = useCallback(async () => {
     try {
@@ -115,7 +114,6 @@ export default function LicensePage() {
           priceId: plan.priceIdEnv,
           tier: plan.tier,
           ...(githubUsername.trim() && { githubUsername: githubUsername.trim() }),
-          ...(npmUsername.trim() && { npmUsername: npmUsername.trim() }),
         }),
       });
       if (!res.ok) throw new Error('Checkout failed');
@@ -232,19 +230,6 @@ export default function LicensePage() {
                   />
                   <span className="text-xs text-zinc-500">
                     Added to the revealui-pro GitHub team for private package access.
-                  </span>
-                </label>
-                <label className="flex flex-col gap-1">
-                  <span className="text-sm font-medium">npm username</span>
-                  <input
-                    type="text"
-                    placeholder="your-npm-handle"
-                    value={npmUsername}
-                    onChange={(e) => setNpmUsername(e.target.value)}
-                    className="rounded-md border px-3 py-1.5 text-sm dark:border-zinc-700 dark:bg-zinc-900"
-                  />
-                  <span className="text-xs text-zinc-500">
-                    Added to the @revealui npm org team for Pro package installs.
                   </span>
                 </label>
               </div>

@@ -28,7 +28,6 @@ import { and, desc, eq } from 'drizzle-orm';
 import Stripe from 'stripe';
 import {
   provisionGitHubAccess,
-  provisionNpmAccess,
   sendCancellationConfirmationEmail,
   sendDisputeLostEmail,
   sendDisputeReceivedEmail,
@@ -705,7 +704,6 @@ app.openapi(stripeWebhookRoute, async (c) => {
 
           const tier = resolveTier(session.metadata);
           const githubUsername = session.metadata?.github_username ?? null;
-          const npmUsername = session.metadata?.npm_username ?? null;
 
           let resolvedUserId = session.metadata?.revealui_user_id ?? null;
           if (!resolvedUserId) {
@@ -801,16 +799,6 @@ app.openapi(stripeWebhookRoute, async (c) => {
             provisionGitHubAccess(githubUsername, db).catch((err) => {
               logger.warn('Failed to provision GitHub team access', {
                 githubUsername,
-                detail: err instanceof Error ? err.message : 'unknown',
-              });
-            });
-          }
-
-          // Best-effort: provision npm @revealui org team access
-          if (npmUsername) {
-            provisionNpmAccess(npmUsername, db).catch((err) => {
-              logger.warn('Failed to provision npm team access', {
-                npmUsername,
                 detail: err instanceof Error ? err.message : 'unknown',
               });
             });

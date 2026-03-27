@@ -199,7 +199,6 @@ vi.mock('../../lib/email.js', () => ({
   sendTrialEndingEmail: vi.fn().mockResolvedValue(undefined),
   sendWebhookFailureAlert: vi.fn().mockResolvedValue(undefined),
   provisionGitHubAccess: vi.fn().mockResolvedValue(undefined),
-  provisionNpmAccess: vi.fn().mockResolvedValue(undefined),
 }));
 
 vi.mock('../../middleware/license.js', () => ({
