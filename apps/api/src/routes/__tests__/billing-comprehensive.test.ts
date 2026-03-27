@@ -365,6 +365,7 @@ describe('Billing Route Tests — Comprehensive Coverage', { timeout: 60_000 }, 
 
       expect(mockSubscriptionsUpdate).toHaveBeenCalledWith('sub_pro', {
         cancel_at_period_end: true,
+        metadata: { pending_change: 'true' },
       });
     });
 

@@ -31,6 +31,7 @@ import {
   provisionNpmAccess,
   sendCancellationConfirmationEmail,
   sendDisputeLostEmail,
+  sendDisputeReceivedEmail,
   sendGracePeriodStartedEmail,
   sendLicenseActivatedEmail,
   sendPaymentFailedEmail,
@@ -1313,6 +1314,45 @@ app.openapi(stripeWebhookRoute, async (c) => {
               subscriptionId: subscription.id,
             });
           }
+
+          // Handle trialing subscriptions — no license changes needed,
+          // but sync state so the CMS dashboard shows trial status.
+          if (subscription.status === 'trialing') {
+            await syncHostedSubscriptionState(tx, {
+              customerId,
+              subscriptionId: subscription.id,
+              tier: resolveOptionalTier(subscription.metadata as Record<string, string>),
+              status: 'trialing',
+              currentPeriodStart: getSubscriptionPeriodDate(subscription, 'current_period_start'),
+              currentPeriodEnd: getSubscriptionPeriodDate(subscription, 'current_period_end'),
+              cancelAtPeriodEnd: subscription.cancel_at_period_end ?? false,
+              graceUntil: subscription.trial_end ? new Date(subscription.trial_end * 1000) : null,
+            });
+            logger.info('Subscription in trialing state — synced hosted state', {
+              customerId,
+              subscriptionId: subscription.id,
+              trialEnd: subscription.trial_end,
+            });
+          }
+
+          // Stripe paused subscriptions (payment collection paused by merchant).
+          // Log for observability — license stays active during pause.
+          if (subscription.status === 'paused') {
+            logger.warn('Subscription paused — payment collection suspended', {
+              customerId,
+              subscriptionId: subscription.id,
+            });
+            await syncHostedSubscriptionState(tx, {
+              customerId,
+              subscriptionId: subscription.id,
+              tier: resolveOptionalTier(subscription.metadata as Record<string, string>),
+              status: 'paused',
+              currentPeriodStart: getSubscriptionPeriodDate(subscription, 'current_period_start'),
+              currentPeriodEnd: getSubscriptionPeriodDate(subscription, 'current_period_end'),
+              cancelAtPeriodEnd: subscription.cancel_at_period_end ?? false,
+              graceUntil: null,
+            });
+          }
         }); // end transaction
 
         // Send deferred emails outside the transaction
@@ -1571,10 +1611,10 @@ app.openapi(stripeWebhookRoute, async (c) => {
           graceUntil,
         });
 
-        if (isSuspended) {
-          resetLicenseState();
-          resetDbStatusCache();
-        }
+        // Reset caches for any payment failure — both grace period (past_due)
+        // and suspension (expired) change the effective entitlement state.
+        resetLicenseState();
+        resetDbStatusCache();
 
         auditLicenseEvent(
           db,
@@ -1628,9 +1668,60 @@ app.openapi(stripeWebhookRoute, async (c) => {
       }
 
       case 'charge.dispute.closed': {
-        // A dispute has been resolved. Only revoke the license if the dispute
-        // was lost — won/warning_closed disputes leave the payment intact.
+        // A dispute has been resolved. Handle both outcomes:
+        // - lost: revoke the customer's license (chargeback returned to cardholder)
+        // - won/warning_closed: restore any previously-revoked license
         const dispute = event.data.object as Stripe.Dispute;
+
+        if (dispute.status === 'won' || dispute.status === 'warning_closed') {
+          // Dispute resolved in our favor — restore the customer's license if it
+          // was previously revoked due to a charge.dispute.created event.
+          const wonChargeId =
+            typeof dispute.charge === 'string' ? dispute.charge : dispute.charge.id;
+          let wonCustomerId: string | null = null;
+          try {
+            const charge = await stripe.charges.retrieve(wonChargeId);
+            wonCustomerId = resolveCustomerId(charge.customer);
+          } catch (err) {
+            logger.error('Failed to retrieve charge for won dispute', undefined, {
+              chargeId: wonChargeId,
+              disputeId: dispute.id,
+              detail: err instanceof Error ? err.message : 'unknown',
+            });
+            break;
+          }
+
+          if (wonCustomerId) {
+            // Restore revoked licenses for this customer
+            await db
+              .update(licenses)
+              .set({ status: 'active', updatedAt: new Date() })
+              .where(and(eq(licenses.customerId, wonCustomerId), eq(licenses.status, 'revoked')));
+
+            await syncHostedSubscriptionState(db, {
+              customerId: wonCustomerId,
+              subscriptionId: null,
+              status: 'active',
+            });
+
+            resetLicenseState();
+            resetDbStatusCache();
+
+            logger.info('License restored: dispute won', {
+              customerId: wonCustomerId,
+              chargeId: wonChargeId,
+              disputeId: dispute.id,
+              disputeStatus: dispute.status,
+            });
+            auditLicenseEvent(db, 'license.restored.dispute_won', 'info', {
+              customerId: wonCustomerId,
+              chargeId: wonChargeId,
+              disputeId: dispute.id,
+            });
+          }
+          break;
+        }
+
         if (dispute.status !== 'lost') break;
 
         // A chargeback was decided against us. Revoke the customer's license
@@ -1734,6 +1825,25 @@ app.openapi(stripeWebhookRoute, async (c) => {
           chargeId,
           amount: dispute.amount,
         });
+
+        // Notify the customer that a dispute has been opened on their account
+        let disputeCreatedCustomerId: string | null = null;
+        try {
+          const charge = await stripe.charges.retrieve(chargeId);
+          disputeCreatedCustomerId = resolveCustomerId(charge.customer);
+        } catch {
+          // Best-effort — don't fail the webhook if we can't resolve the customer
+        }
+        if (disputeCreatedCustomerId) {
+          const disputeEmail = await findUserEmailByCustomerId(db, disputeCreatedCustomerId);
+          if (disputeEmail) {
+            sendDisputeReceivedEmail(disputeEmail).catch((err) => {
+              logger.error('Failed to send dispute received email', undefined, {
+                detail: err instanceof Error ? err.message : 'unknown',
+              });
+            });
+          }
+        }
         break;
       }
 

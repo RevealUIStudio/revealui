@@ -23,6 +23,10 @@ import { createRoute, OpenAPIHono, z } from '@revealui/openapi';
 import { and, count, countDistinct, desc, eq, gt, gte, isNull, lt, lte, sql } from 'drizzle-orm';
 import { HTTPException } from 'hono/http-exception';
 import Stripe from 'stripe';
+import {
+  sendDowngradeConfirmationEmail,
+  sendUpgradeConfirmationEmail,
+} from '../lib/webhook-emails.js';
 import { resetDbStatusCache } from '../middleware/license.js';
 
 /** Default trial period for new subscriptions (overridable via env) */
@@ -747,6 +751,18 @@ app.openapi(upgradeRoute, async (c) => {
     }),
   );
 
+  // Send upgrade confirmation email (fire-and-forget)
+  if (user.email) {
+    sendUpgradeConfirmationEmail(user.email, {
+      fromTier: currentTier,
+      toTier: targetTier,
+    }).catch((err) => {
+      logger.error('Failed to send upgrade confirmation email', undefined, {
+        detail: err instanceof Error ? err.message : 'unknown',
+      });
+    });
+  }
+
   return c.json({ success: true, subscriptionId: subscription.id }, 200);
 });
 
@@ -816,10 +832,12 @@ app.openapi(downgradeRoute, async (c) => {
     });
   }
 
-  // Cancel at period end so the customer retains access until their billing cycle ends
+  // Cancel at period end so the customer retains access until their billing cycle ends.
+  // Set pending_change to block concurrent modifications (cleared by webhook handler).
   const updated = await withStripe((stripe) =>
     stripe.subscriptions.update(subscription.id, {
       cancel_at_period_end: true,
+      metadata: { pending_change: 'true' },
     }),
   );
 
@@ -838,6 +856,27 @@ app.openapi(downgradeRoute, async (c) => {
       .update(licenses)
       .set({ expiresAt: new Date(cancelAt * 1000), updatedAt: new Date() })
       .where(and(eq(licenses.subscriptionId, subscription.id), eq(licenses.status, 'active')));
+  }
+
+  // Send downgrade confirmation email (fire-and-forget)
+  if (user.email) {
+    const currentTier = (requestEntitlements?.tier as string) ?? 'pro';
+    const readableDate = cancelAt
+      ? new Date(cancelAt * 1000).toLocaleDateString('en-US', {
+          month: 'long',
+          day: 'numeric',
+          year: 'numeric',
+        })
+      : 'soon';
+    sendDowngradeConfirmationEmail(user.email, {
+      fromTier: currentTier,
+      toTier: 'free',
+      effectiveDate: readableDate,
+    }).catch((err) => {
+      logger.error('Failed to send downgrade confirmation email', undefined, {
+        detail: err instanceof Error ? err.message : 'unknown',
+      });
+    });
   }
 
   return c.json({ success: true, effectiveAt: effectiveDate }, 200);

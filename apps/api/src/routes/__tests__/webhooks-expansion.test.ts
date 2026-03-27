@@ -357,7 +357,12 @@ describe('POST /stripe webhook — expansion events', () => {
       expect(setCall.status).toBe('revoked');
     });
 
-    it('does not revoke license when dispute is won', async () => {
+    it('restores revoked license when dispute is won', async () => {
+      mockChargesRetrieve.mockResolvedValueOnce({
+        id: 'ch_disputed',
+        customer: 'cus_dispute',
+      });
+
       const event = makeDisputeClosedEvent('evt_disp_won_1', 'won');
       mockConstructEvent.mockReturnValueOnce(event);
 
@@ -365,10 +370,18 @@ describe('POST /stripe webhook — expansion events', () => {
       const res = await app.request(postStripe(event));
 
       expect(res.status).toBe(200);
-      expect(mockDb.update).not.toHaveBeenCalled();
+      // License is restored to active on won disputes
+      expect(mockDb.update).toHaveBeenCalled();
+      const setCall = mockDbUpdateChain.set.mock.calls[0]?.[0] as Record<string, unknown>;
+      expect(setCall.status).toBe('active');
     });
 
-    it('does not revoke when dispute status is warning_closed', async () => {
+    it('restores revoked license when dispute status is warning_closed', async () => {
+      mockChargesRetrieve.mockResolvedValueOnce({
+        id: 'ch_disputed',
+        customer: 'cus_dispute',
+      });
+
       const event = makeDisputeClosedEvent('evt_disp_warn_1', 'warning_closed');
       mockConstructEvent.mockReturnValueOnce(event);
 
@@ -376,7 +389,9 @@ describe('POST /stripe webhook — expansion events', () => {
       const res = await app.request(postStripe(event));
 
       expect(res.status).toBe(200);
-      expect(mockDb.update).not.toHaveBeenCalled();
+      expect(mockDb.update).toHaveBeenCalled();
+      const setCall = mockDbUpdateChain.set.mock.calls[0]?.[0] as Record<string, unknown>;
+      expect(setCall.status).toBe('active');
     });
 
     it('writes critical audit entry on lost dispute', async () => {

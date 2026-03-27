@@ -341,6 +341,86 @@ ${supportFooter()}`,
   }
 }
 
+export async function sendTrialExpiredEmail(to: string, tier = 'pro'): Promise<void> {
+  const portal = billingUrl();
+  const label = tierLabel(tier);
+  await sendEmail({
+    to,
+    subject: `Your RevealUI ${label} trial has ended`,
+    html: emailShell(
+      'Trial Expired',
+      `<h1 style="color: #333;">Your Trial Has Ended</h1>
+<p>Your RevealUI <strong>${escapeHtml(label)}</strong> free trial has expired. Your subscription is now active and billing will begin.</p>
+<p>You'll continue to have full access to all ${escapeHtml(label)} features. Manage your subscription from your billing page:</p>
+${ctaButton(portal, 'Manage Subscription')}
+${supportFooter('If you have questions, contact')}`,
+    ),
+    text: `Your RevealUI ${label} trial has ended and your subscription is now active. Manage your subscription at ${portal}.`,
+  });
+}
+
+export async function sendUpgradeConfirmationEmail(
+  to: string,
+  opts: { fromTier: string; toTier: string },
+): Promise<void> {
+  const portal = billingUrl();
+  const fromLabel = tierLabel(opts.fromTier);
+  const toLabel = tierLabel(opts.toTier);
+  await sendEmail({
+    to,
+    subject: `Your RevealUI plan has been upgraded to ${toLabel}`,
+    html: emailShell(
+      'Plan Upgraded',
+      `<h1 style="color: #16a34a;">Plan Upgraded</h1>
+<p>Your RevealUI plan has been upgraded from <strong>${escapeHtml(fromLabel)}</strong> to <strong>${escapeHtml(toLabel)}</strong>.</p>
+<p>Your new features are available immediately. The prorated charge will appear on your next invoice.</p>
+${ctaButton(`${cmsUrl()}/admin`, 'Explore New Features')}
+${supportFooter('If you have questions about your upgrade, contact')}`,
+    ),
+    text: `Your RevealUI plan has been upgraded from ${fromLabel} to ${toLabel}. Your new features are available immediately. Manage your subscription at ${portal}.`,
+  });
+}
+
+export async function sendDowngradeConfirmationEmail(
+  to: string,
+  opts: { fromTier: string; toTier: string; effectiveDate: string },
+): Promise<void> {
+  const portal = billingUrl();
+  const fromLabel = tierLabel(opts.fromTier);
+  const toLabel = opts.toTier === 'free' ? 'Free' : tierLabel(opts.toTier);
+  await sendEmail({
+    to,
+    subject: `Your RevealUI plan will change to ${toLabel}`,
+    html: emailShell(
+      'Plan Downgrade Scheduled',
+      `<h1 style="color: #333;">Plan Change Scheduled</h1>
+<p>Your RevealUI plan will change from <strong>${escapeHtml(fromLabel)}</strong> to <strong>${escapeHtml(toLabel)}</strong> on <strong>${escapeHtml(opts.effectiveDate)}</strong>.</p>
+<p>You'll retain full ${escapeHtml(fromLabel)} access until then. After the change, ${escapeHtml(toLabel)}-tier features will apply.</p>
+<p>Changed your mind? You can cancel the downgrade from your billing page:</p>
+${ctaButton(portal, 'Manage Subscription')}
+${supportFooter('If you have questions, contact')}`,
+    ),
+    text: `Your RevealUI plan will change from ${fromLabel} to ${toLabel} on ${opts.effectiveDate}. You'll retain full ${fromLabel} access until then. Cancel the change at ${portal}.`,
+  });
+}
+
+export async function sendDisputeReceivedEmail(to: string): Promise<void> {
+  const support = supportEmail();
+  await sendEmail({
+    to,
+    subject: 'RevealUI: A payment dispute has been opened on your account',
+    html: emailShell(
+      'Payment Dispute Opened',
+      `<h1 style="color: #d97706;">Payment Dispute Opened</h1>
+<p>A payment dispute (chargeback) has been opened for a charge on your RevealUI account.</p>
+<p>While the dispute is being reviewed, your access remains active. If the dispute is resolved in your favor, no action is needed.</p>
+<p>If you did not initiate this dispute, please contact us immediately at <a href="mailto:${support}">${support}</a> so we can help resolve it.</p>
+${supportFooter('For urgent questions, contact')}`,
+    ),
+    text: `A payment dispute has been opened on your RevealUI account. Your access remains active during review. If you did not initiate this, contact ${support} immediately.`,
+  });
+}
+
 export async function sendTierFallbackAlert(
   email: string,
   context: { tier: string | null; metadata: Record<string, string> | null },
