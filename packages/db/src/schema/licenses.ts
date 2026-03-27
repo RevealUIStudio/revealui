@@ -6,7 +6,7 @@
  * retrieval, auditing, and revocation.
  */
 
-import { boolean, index, pgTable, text, timestamp } from 'drizzle-orm/pg-core';
+import { boolean, index, pgTable, text, timestamp, uniqueIndex } from 'drizzle-orm/pg-core';
 import { users } from './users.js';
 
 // =============================================================================
@@ -65,6 +65,7 @@ export const licenses = pgTable(
     index('licenses_user_id_idx').on(table.userId),
     index('licenses_status_idx').on(table.status),
     index('licenses_subscription_id_idx').on(table.subscriptionId),
+    uniqueIndex('licenses_customer_subscription_unique').on(table.customerId, table.subscriptionId),
   ],
 );
 

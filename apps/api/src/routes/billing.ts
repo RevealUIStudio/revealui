@@ -746,7 +746,11 @@ app.openapi(upgradeRoute, async (c) => {
   await withStripe((stripe) =>
     stripe.subscriptions.update(subscription.id, {
       items: [{ id: item.id, price: resolvedPriceId }],
-      metadata: { tier: targetTier, revealui_user_id: user.id, pending_change: 'true' },
+      metadata: {
+        tier: targetTier,
+        revealui_user_id: user.id,
+        pending_change: `upgrade:${targetTier}`,
+      },
       proration_behavior: 'create_prorations',
     }),
   );
@@ -837,7 +841,7 @@ app.openapi(downgradeRoute, async (c) => {
   const updated = await withStripe((stripe) =>
     stripe.subscriptions.update(subscription.id, {
       cancel_at_period_end: true,
-      metadata: { pending_change: 'true' },
+      metadata: { pending_change: 'downgrade:free' },
     }),
   );
 
@@ -1593,6 +1597,15 @@ const MetricsResponseSchema = z.object({
   recentEvents: z.array(MetricsRecentEventSchema),
 });
 
+const MetricsQuerySchema = z.object({
+  from: z.string().datetime().optional().openapi({
+    description: 'Start of date range for recent events (ISO 8601). Defaults to 30 days ago.',
+  }),
+  to: z.string().datetime().optional().openapi({
+    description: 'End of date range for recent events (ISO 8601). Defaults to now.',
+  }),
+});
+
 const metricsRoute = createRoute({
   method: 'get',
   path: '/metrics',
@@ -1600,6 +1613,7 @@ const metricsRoute = createRoute({
   summary: 'Revenue metrics (admin)',
   description:
     'Returns aggregate revenue metrics for the admin dashboard. Requires admin or owner role.',
+  request: { query: MetricsQuerySchema },
   responses: {
     200: {
       content: { 'application/json': { schema: MetricsResponseSchema } },
@@ -1623,6 +1637,31 @@ app.openapi(metricsRoute, async (c) => {
   }
   if (user.role !== 'admin' && user.role !== 'owner') {
     throw new HTTPException(403, { message: 'Admin access required to view revenue metrics' });
+  }
+
+  // Parse and validate date range for recent events
+  const { from: fromParam, to: toParam } = c.req.valid('query');
+  const now = new Date();
+  const thirtyDaysAgo = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000);
+  const maxRangeMs = 365 * 24 * 60 * 60 * 1000;
+
+  const fromDate = fromParam ? new Date(fromParam) : thirtyDaysAgo;
+  const toDate = toParam ? new Date(toParam) : now;
+
+  if (Number.isNaN(fromDate.getTime())) {
+    throw new HTTPException(400, { message: 'Invalid "from" date format.' });
+  }
+  if (Number.isNaN(toDate.getTime())) {
+    throw new HTTPException(400, { message: 'Invalid "to" date format.' });
+  }
+  if (fromDate >= toDate) {
+    throw new HTTPException(400, { message: '"from" must be before "to".' });
+  }
+  if (fromDate > now || toDate > now) {
+    throw new HTTPException(400, { message: 'Date range must not extend into the future.' });
+  }
+  if (toDate.getTime() - fromDate.getTime() > maxRangeMs) {
+    throw new HTTPException(400, { message: 'Date range must not exceed 365 days.' });
   }
 
   const db = getClient();
@@ -1701,13 +1740,17 @@ app.openapi(metricsRoute, async (c) => {
     })
     .from(processedWebhookEvents)
     .where(
-      sql`${processedWebhookEvents.eventType} IN (${sql.join(
-        billingEventTypes.map((t) => sql`${t}`),
-        sql`, `,
-      )})`,
+      and(
+        sql`${processedWebhookEvents.eventType} IN (${sql.join(
+          billingEventTypes.map((t) => sql`${t}`),
+          sql`, `,
+        )})`,
+        gte(processedWebhookEvents.processedAt, fromDate),
+        lte(processedWebhookEvents.processedAt, toDate),
+      ),
     )
     .orderBy(desc(processedWebhookEvents.processedAt))
-    .limit(10);
+    .limit(50);
 
   const eventTypeMap: Record<string, string> = {
     'checkout.session.completed': 'subscription_created',
