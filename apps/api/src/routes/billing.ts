@@ -452,7 +452,21 @@ app.openapi(checkoutRoute, async (c) => {
   const { priceId, tier } = c.req.valid('json');
   const resolvedTier = tier ?? 'pro';
   const resolvedPriceId = await resolveCatalogPriceId(resolvedTier, 'subscription', priceId);
-  const customerId = await ensureStripeCustomer(user.id, user.email ?? '');
+
+  if (!user.email) {
+    throw new HTTPException(400, { message: 'An email address is required for billing' });
+  }
+  const customerId = await ensureStripeCustomer(user.id, user.email);
+
+  // Prevent duplicate subscriptions — a user with an active subscription must use upgrade instead
+  const existingSubs = await withStripe((stripe) =>
+    stripe.subscriptions.list({ customer: customerId, status: 'active', limit: 1 }),
+  );
+  if (existingSubs.data.length > 0) {
+    throw new HTTPException(409, {
+      message: 'You already have an active subscription. Use the upgrade route to change tiers.',
+    });
+  }
 
   const cmsUrl = process.env.CMS_URL || process.env.NEXT_PUBLIC_SERVER_URL;
   if (!cmsUrl) throw new HTTPException(500, { message: 'CMS_URL is not configured' });

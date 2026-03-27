@@ -37,6 +37,7 @@ import {
   sendPaymentReceiptEmail,
   sendPaymentRecoveredEmail,
   sendPerpetualLicenseActivatedEmail,
+  sendRefundProcessedEmail,
   sendTierFallbackAlert,
   sendTrialEndingEmail,
   sendWebhookFailureAlert,
@@ -1048,9 +1049,10 @@ app.openapi(stripeWebhookRoute, async (c) => {
         });
 
         // Send cancellation confirmation email
+        const cancelTier = resolveOptionalTier(subscription.metadata as Record<string, string>);
         const cancelEmail = await findUserEmailByCustomerId(db, customerId);
         if (cancelEmail) {
-          sendCancellationConfirmationEmail(cancelEmail).catch((err) => {
+          sendCancellationConfirmationEmail(cancelEmail, cancelTier ?? 'pro').catch((err) => {
             logger.error('Failed to send cancellation confirmation email', undefined, {
               detail: err instanceof Error ? err.message : 'unknown',
             });
@@ -1624,7 +1626,8 @@ app.openapi(stripeWebhookRoute, async (c) => {
             disputeId: dispute.id,
             detail: err instanceof Error ? err.message : 'unknown',
           });
-          break;
+          // Throw so Stripe retries — lost-dispute revocation must not be silently skipped
+          throw new Error(`Failed to retrieve charge ${chargeId} for dispute ${dispute.id}`);
         }
 
         if (!disputeCustomerId) {
@@ -1753,6 +1756,21 @@ app.openapi(stripeWebhookRoute, async (c) => {
             chargeId: charge.id,
             amountRefunded: charge.amount_refunded,
             amount: charge.amount,
+          });
+        }
+
+        // Notify customer about the refund (both full and partial)
+        const refundEmail = charge.billing_details?.email ?? charge.receipt_email;
+        if (refundEmail) {
+          sendRefundProcessedEmail(refundEmail, {
+            isFullRefund,
+            amountRefunded: charge.amount_refunded,
+            currency: charge.currency,
+          }).catch((err) => {
+            logger.warn('Failed to send refund notification email', {
+              customerId,
+              detail: err instanceof Error ? err.message : 'unknown',
+            });
           });
         }
         break;

@@ -91,24 +91,29 @@ ${supportFooter('If you have questions, reply to this email or contact')}`,
   });
 }
 
-export async function sendPaymentFailedEmail(to: string): Promise<void> {
+export async function sendPaymentFailedEmail(to: string, tier = 'pro'): Promise<void> {
   const portal = billingUrl();
+  const label = tierLabel(tier);
   await sendEmail({
     to,
-    subject: 'Action required: RevealUI payment failed',
+    subject: `Action required: RevealUI payment failed`,
     html: emailShell(
       'Payment Failed',
       `<h1 style="color: #dc2626;">Payment Failed</h1>
-<p>We were unable to process your RevealUI subscription payment. Your Pro features may be restricted until payment is resolved.</p>
-<p>Please update your payment method to continue using Pro features:</p>
+<p>We were unable to process your RevealUI subscription payment. Your ${escapeHtml(label)} features may be restricted until payment is resolved.</p>
+<p>Please update your payment method to continue using ${escapeHtml(label)} features:</p>
 ${ctaButton(portal, 'Update Payment Method')}
 ${supportFooter('If you believe this is an error, contact')}`,
     ),
-    text: `Your RevealUI subscription payment failed. Please update your payment method at ${portal} to continue using Pro features.`,
+    text: `Your RevealUI subscription payment failed. Please update your payment method at ${portal} to continue using ${label} features.`,
   });
 }
 
-export async function sendTrialEndingEmail(to: string, trialEnd: number | null): Promise<void> {
+export async function sendTrialEndingEmail(
+  to: string,
+  trialEnd: number | null,
+  tier = 'pro',
+): Promise<void> {
   const endDate = trialEnd
     ? new Date(trialEnd * 1000).toLocaleDateString('en-US', {
         month: 'long',
@@ -117,19 +122,20 @@ export async function sendTrialEndingEmail(to: string, trialEnd: number | null):
       })
     : 'soon';
   const portal = billingUrl();
+  const label = tierLabel(tier);
   await sendEmail({
     to,
-    subject: 'Your RevealUI Pro trial ends soon',
+    subject: `Your RevealUI ${label} trial ends soon`,
     html: emailShell(
       'Trial Ending',
       `<h1 style="color: #2563eb;">Your Trial Ends ${endDate}</h1>
-<p>Your RevealUI Pro free trial is ending ${endDate}. After the trial, your subscription will automatically continue at $49/month.</p>
-<p>If you'd like to continue with Pro features, no action is needed — your subscription will start automatically.</p>
+<p>Your RevealUI ${escapeHtml(label)} free trial is ending ${endDate}. After the trial, your subscription will automatically continue.</p>
+<p>If you'd like to continue with ${escapeHtml(label)} features, no action is needed — your subscription will start automatically.</p>
 <p>If you'd like to cancel or change your plan, you can do so from your billing page:</p>
 ${ctaButton(portal, 'Manage Subscription')}
 ${supportFooter('Questions? Contact')}`,
     ),
-    text: `Your RevealUI Pro trial ends ${endDate}. Your subscription will automatically continue at $49/month. Manage your subscription at ${portal}.`,
+    text: `Your RevealUI ${label} trial ends ${endDate}. Your subscription will continue automatically. Manage your subscription at ${portal}.`,
   });
 }
 
@@ -236,20 +242,21 @@ ${supportFooter('If you have questions about this charge, contact')}`,
   });
 }
 
-export async function sendCancellationConfirmationEmail(to: string): Promise<void> {
+export async function sendCancellationConfirmationEmail(to: string, tier = 'pro'): Promise<void> {
   const portal = billingUrl();
+  const label = tierLabel(tier);
   await sendEmail({
     to,
     subject: 'Your RevealUI subscription has been cancelled',
     html: emailShell(
       'Subscription Cancelled',
       `<h1 style="color: #333;">Subscription Cancelled</h1>
-<p>Your RevealUI Pro subscription has been cancelled and your license has been revoked.</p>
+<p>Your RevealUI ${escapeHtml(label)} subscription has been cancelled and your license has been revoked.</p>
 <p>You can continue using RevealUI's free-tier features. If you'd like to resubscribe at any time, visit your billing page:</p>
 ${ctaButton(portal, 'Resubscribe')}
 ${supportFooter('If you believe this is an error, contact')}`,
     ),
-    text: `Your RevealUI Pro subscription has been cancelled. You can resubscribe at any time at ${portal}.`,
+    text: `Your RevealUI ${label} subscription has been cancelled. You can resubscribe at any time at ${portal}.`,
   });
 }
 
@@ -292,6 +299,46 @@ ${ctaButton(portal, 'Manage Billing')}
     ),
     text: `Your RevealUI Pro/Enterprise license has been suspended following a chargeback decision. Contact ${support} to resolve this. Manage your billing at ${portal}.`,
   });
+}
+
+export async function sendRefundProcessedEmail(
+  to: string,
+  opts: { isFullRefund: boolean; amountRefunded: number; currency: string },
+): Promise<void> {
+  const portal = billingUrl();
+  const amountStr = (opts.amountRefunded / 100).toFixed(2);
+  const currencyUpper = opts.currency.toUpperCase();
+
+  if (opts.isFullRefund) {
+    await sendEmail({
+      to,
+      subject: 'Your RevealUI subscription has been refunded',
+      html: emailShell(
+        'Refund Processed',
+        `<h1 style="color: #333;">Refund Processed</h1>
+<p>A full refund of <strong>${amountStr} ${escapeHtml(currencyUpper)}</strong> has been issued to your payment method.</p>
+<p>Your RevealUI license has been deactivated. You can continue using the free tier, and your data will be preserved.</p>
+<p>If you'd like to resubscribe in the future, you can do so from your billing page:</p>
+${ctaButton(portal, 'View Billing')}
+${supportFooter('If you did not request this refund, contact')}`,
+      ),
+      text: `A full refund of ${amountStr} ${currencyUpper} has been issued. Your RevealUI license has been deactivated. Resubscribe at ${portal}. Contact ${supportEmail()} if you have questions.`,
+    });
+  } else {
+    await sendEmail({
+      to,
+      subject: 'RevealUI: Partial refund processed',
+      html: emailShell(
+        'Partial Refund',
+        `<h1 style="color: #333;">Partial Refund Processed</h1>
+<p>A partial refund of <strong>${amountStr} ${escapeHtml(currencyUpper)}</strong> has been issued to your payment method.</p>
+<p>Your subscription and access remain active — no action is needed on your part.</p>
+${ctaButton(portal, 'View Billing')}
+${supportFooter()}`,
+      ),
+      text: `A partial refund of ${amountStr} ${currencyUpper} has been issued. Your subscription remains active. View billing at ${portal}.`,
+    });
+  }
 }
 
 export async function sendTierFallbackAlert(

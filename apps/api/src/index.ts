@@ -8,6 +8,7 @@ import { createDbLogHandler } from '@revealui/db/log-transport';
 import { sites } from '@revealui/db/schema';
 import { OpenAPIHono } from '@revealui/openapi';
 import { bodyLimit } from 'hono/body-limit';
+import { createMiddleware } from 'hono/factory';
 
 import { logger as honoLogger } from 'hono/logger';
 import { queryBillingStatusByCustomerId } from './lib/billing-status.js';
@@ -518,8 +519,18 @@ app.delete('/api/provenance/*', writeProtected);
 app.delete('/api/v1/provenance/*', writeProtected);
 app.get('/api/billing/metrics', writeProtected);
 app.get('/api/v1/billing/metrics', writeProtected);
-app.post('/api/billing/*', writeProtected);
-app.post('/api/v1/billing/*', writeProtected);
+// Billing POST auth — skip cron routes (they use X-Cron-Secret, not session auth)
+const BILLING_CRON_SUFFIXES = [
+  '/support-renewal-check',
+  '/report-agent-overage',
+  '/sweep-expired-licenses',
+];
+const billingWriteGuard = createMiddleware(async (c, next) => {
+  if (BILLING_CRON_SUFFIXES.some((s) => c.req.path.endsWith(s))) return next();
+  return writeProtected(c, next);
+});
+app.post('/api/billing/*', billingWriteGuard);
+app.post('/api/v1/billing/*', billingWriteGuard);
 app.get('/api/gdpr/*', writeProtected);
 app.get('/api/v1/gdpr/*', writeProtected);
 app.post('/api/gdpr/*', writeProtected);
