@@ -93,6 +93,7 @@
       "underscore": ">=1.13.8",
       "express-rate-limit": ">=8.2.2",
       "@revealui/config": "workspace:*",
+      "@revealui/contracts": "workspace:*",
       "@revealui/db": "workspace:*"
     },
     "onlyBuiltDependencies": [
