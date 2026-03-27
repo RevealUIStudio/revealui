@@ -1,6 +1,6 @@
 import type { Database } from '@revealui/db/client';
 import { accountEntitlements, accountSubscriptions, licenses } from '@revealui/db/schema';
-import { desc, eq } from 'drizzle-orm';
+import { desc, eq, sql } from 'drizzle-orm';
 
 /**
  * Query billing status with grace period enforcement.
@@ -16,7 +16,12 @@ export async function queryBillingStatusByCustomerId(
     .select({ status: licenses.status, expiresAt: licenses.expiresAt })
     .from(licenses)
     .where(eq(licenses.customerId, customerId))
-    .orderBy(desc(licenses.createdAt))
+    // Prefer active licenses over expired/revoked — a customer may have both a
+    // perpetual (active) and a subscription (revoked) license concurrently.
+    .orderBy(
+      sql`CASE WHEN ${licenses.status} = 'active' THEN 0 ELSE 1 END`,
+      desc(licenses.createdAt),
+    )
     .limit(1);
 
   if (license?.status) {

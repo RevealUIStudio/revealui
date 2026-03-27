@@ -474,6 +474,7 @@ describe('Billing Route Tests — Comprehensive Coverage', { timeout: 60_000 }, 
 
     it('creates a payment-mode checkout session (not subscription)', async () => {
       queueSelectResults(
+        [], // duplicate perpetual license check
         [{ stripePriceId: 'price_pro_perpetual_server' }],
         [{ stripeCustomerId: 'cus_existing' }],
       );
@@ -508,6 +509,7 @@ describe('Billing Route Tests — Comprehensive Coverage', { timeout: 60_000 }, 
 
     it('prefers the DB billing catalog price for perpetual checkout when available', async () => {
       queueSelectResults(
+        [], // duplicate perpetual license check
         [{ stripePriceId: 'price_pro_perpetual_db' }],
         [{ stripeCustomerId: 'cus_existing' }],
       );
@@ -529,6 +531,7 @@ describe('Billing Route Tests — Comprehensive Coverage', { timeout: 60_000 }, 
 
     it('includes perpetual and tier metadata in payment_intent_data', async () => {
       queueSelectResults(
+        [], // duplicate perpetual license check
         [{ stripePriceId: 'price_max_perpetual_server' }],
         [{ stripeCustomerId: 'cus_existing' }],
       );
@@ -551,6 +554,7 @@ describe('Billing Route Tests — Comprehensive Coverage', { timeout: 60_000 }, 
 
     it('includes github_username in metadata when provided', async () => {
       queueSelectResults(
+        [], // duplicate perpetual license check
         [{ stripePriceId: 'price_pro_perpetual_server' }],
         [{ stripeCustomerId: 'cus_existing' }],
       );
@@ -575,6 +579,7 @@ describe('Billing Route Tests — Comprehensive Coverage', { timeout: 60_000 }, 
 
     it('omits github_username from metadata when not provided', async () => {
       queueSelectResults(
+        [], // duplicate perpetual license check
         [{ stripePriceId: 'price_pro_perpetual_server' }],
         [{ stripeCustomerId: 'cus_existing' }],
       );
@@ -595,6 +600,7 @@ describe('Billing Route Tests — Comprehensive Coverage', { timeout: 60_000 }, 
 
     it('uses perpetual success_url with perpetual=true query param', async () => {
       queueSelectResults(
+        [], // duplicate perpetual license check
         [{ stripePriceId: 'price_pro_perpetual_server' }],
         [{ stripeCustomerId: 'cus_existing' }],
       );
@@ -616,6 +622,7 @@ describe('Billing Route Tests — Comprehensive Coverage', { timeout: 60_000 }, 
 
     it('returns 500 when checkout session URL is null', async () => {
       queueSelectResults(
+        [], // duplicate perpetual license check
         [{ stripePriceId: 'price_pro_perpetual_server' }],
         [{ stripeCustomerId: 'cus_existing' }],
       );
@@ -633,6 +640,7 @@ describe('Billing Route Tests — Comprehensive Coverage', { timeout: 60_000 }, 
       delete process.env.CMS_URL;
       delete process.env.NEXT_PUBLIC_SERVER_URL;
       queueSelectResults(
+        [], // duplicate perpetual license check
         [{ stripePriceId: 'price_pro_perpetual_server' }],
         [{ stripeCustomerId: 'cus_existing' }],
       );
