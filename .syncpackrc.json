@@ -83,7 +83,6 @@
   "source": [
     "package.json",
     "apps/*/package.json",
-    "packages/*/package.json",
-    "ee/packages/*/package.json"
+    "packages/*/package.json"
   ]
 }

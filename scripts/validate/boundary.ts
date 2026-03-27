@@ -28,7 +28,6 @@ import { fileURLToPath } from 'node:url';
 const REPO_ROOT = join(fileURLToPath(import.meta.url), '..', '..', '..');
 
 const PACKAGES_DIR = join(REPO_ROOT, 'packages');
-const EE_PACKAGES_DIR = join(REPO_ROOT, 'ee', 'packages');
 const APPS_DIR = join(REPO_ROOT, 'apps');
 const SCRIPTS_DIR = join(REPO_ROOT, 'scripts');
 
@@ -115,7 +114,7 @@ const PRO_SOURCE_ALIAS_PATTERNS: Array<{ pattern: RegExp; reason: string }> = [
   {
     pattern:
       /(?:^|['"\s])(?:\.\.\/)+(?:(?:ee\/)?packages\/)?(?:ai|mcp|editors|services|harnesses)\/src(?:\/|['"]|$)/,
-    reason: 'relative path into ee/packages/<pro>/src',
+    reason: 'relative path into packages/<pro>/src',
   },
   {
     pattern:
@@ -361,11 +360,6 @@ function checkPublicRepoProDependencies(): string[] {
     ...readdirSync(PACKAGES_DIR, { withFileTypes: true })
       .filter((entry) => entry.isDirectory())
       .map((entry) => join(PACKAGES_DIR, entry.name, 'package.json')),
-    ...(existsSync(EE_PACKAGES_DIR)
-      ? readdirSync(EE_PACKAGES_DIR, { withFileTypes: true })
-          .filter((entry) => entry.isDirectory())
-          .map((entry) => join(EE_PACKAGES_DIR, entry.name, 'package.json'))
-      : []),
   ].filter((pkgPath) => existsSync(pkgPath));
 
   for (const pkgPath of manifestPaths) {

@@ -1,7 +1,7 @@
 packages:
   - apps/*
   - packages/*
-  - ee/packages/*
+
 
 catalog:
   '@biomejs/biome': ^2.4.8

@@ -137,7 +137,7 @@ async function checkPackages(projectRoot: string): Promise<boolean> {
 
   const memoryDir = join(projectRoot, 'packages/memory');
   const dbDir = join(projectRoot, 'packages/db');
-  const aiDir = join(projectRoot, 'ee/packages/ai');
+  const aiDir = join(projectRoot, 'packages/ai');
 
   if (!(await fileExists(dbDir))) {
     recordError('packages/db directory not found');

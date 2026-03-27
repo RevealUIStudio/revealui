@@ -43,7 +43,7 @@ const violations: Violation[] = [];
 function collectPackageJsonPaths(): string[] {
   const paths: string[] = [join(ROOT, 'package.json')];
 
-  for (const dir of ['apps', 'packages', join('ee', 'packages')]) {
+  for (const dir of ['apps', 'packages']) {
     const base = join(ROOT, dir);
     if (!statSync(base, { throwIfNoEntry: false })?.isDirectory()) continue;
     for (const entry of readdirSync(base)) {
