@@ -11,7 +11,7 @@
  *   pnpm gate --phase=1        — quick quality checks only
  *   pnpm gate --skip=security  — skip security audit
  *   pnpm gate --no-build       — skip build in phase 3
- *   pnpm gate --changed        — scope lint/typecheck to packages changed since HEAD~1 (pre-push fast path)
+ *   pnpm gate --changed        — scope to packages changed vs origin/<branch> (pre-push fast path)
  *   pnpm gate --types          — include full type-system validation (gate:types) in phase 2
  *
  * Phases:
@@ -45,6 +45,24 @@ interface CheckDef {
   warnOnly?: boolean;
   skip?: boolean;
   timeout?: number;
+}
+
+/**
+ * Resolve the git comparison base for --changed mode.
+ * Prefers origin/<branch> (compares unpushed work only), falls back to HEAD~1.
+ */
+async function resolveChangeBase(): Promise<string> {
+  const branch = await execCommand('git', ['rev-parse', '--abbrev-ref', 'HEAD'], {
+    capture: true,
+  });
+  if (branch.success && branch.stdout?.trim()) {
+    const upstream = `origin/${branch.stdout.trim()}`;
+    const check = await execCommand('git', ['rev-parse', '--verify', upstream], {
+      capture: true,
+    });
+    if (check.success) return upstream;
+  }
+  return 'HEAD~1';
 }
 
 interface CheckResult {
@@ -183,8 +201,10 @@ async function gate(): Promise<void> {
   if (noBuild) {
     logger.info('Build step disabled');
   }
+  // Resolve the comparison base once for all phases
+  const changeBase = changed ? await resolveChangeBase() : 'HEAD~1';
   if (changed) {
-    logger.info('Changed-only mode: scoping lint/typecheck to packages changed since HEAD~1');
+    logger.info(`Changed-only mode: scoping to packages changed since ${changeBase}`);
   }
   if (types) {
     logger.info('Types mode: full type-system validation included in phase 2');
@@ -198,14 +218,14 @@ async function gate(): Promise<void> {
   if (phase === null || phase === 1) {
     logger.info('Phase 1 \u2014 Quality checks (parallel)');
 
-    // In changed-only mode: lint only files changed since HEAD~1
+    // In changed-only mode: lint only files changed since the comparison base
     const biomeCheck: CheckDef = changed
       ? {
           name: 'Biome lint (changed)',
           command: 'bash',
           args: [
             '-c',
-            'FILES=$(git diff --name-only --diff-filter=ACMR HEAD~1 -- "*.ts" "*.tsx" "*.js" "*.jsx" 2>/dev/null); [ -z "$FILES" ] && exit 0; echo "$FILES" | xargs node_modules/.bin/biome check',
+            `FILES=$(git diff --name-only --diff-filter=ACMR ${changeBase} -- "*.ts" "*.tsx" "*.js" "*.jsx" 2>/dev/null); [ -z "$FILES" ] && exit 0; echo "$FILES" | xargs node_modules/.bin/biome check`,
           ],
           timeout: 600000,
         }
@@ -264,9 +284,9 @@ async function gate(): Promise<void> {
   if (phase === null || phase === 2) {
     logger.info('Phase 2 \u2014 Type checking (serial)');
 
-    // In changed-only mode: only typecheck packages changed since HEAD~1 (and their dependents)
+    // In changed-only mode: only typecheck packages changed since comparison base (and their dependents)
     const typecheckArgs = changed
-      ? ['turbo', 'run', 'typecheck', '--filter=...[HEAD~1]']
+      ? ['turbo', 'run', 'typecheck', `--filter=...[${changeBase}]`]
       : ['typecheck:all'];
 
     const phase2Checks: CheckDef[] = [
@@ -299,7 +319,7 @@ async function gate(): Promise<void> {
     logger.info('Phase 3 \u2014 Test + Build (serial: tests first)');
 
     const testArgs = changed
-      ? ['turbo', 'run', 'test', '--filter=...[HEAD~1]', '--concurrency=4']
+      ? ['turbo', 'run', 'test', `--filter=...[${changeBase}]`, '--concurrency=4']
       : ['turbo', 'run', 'test', '--concurrency=4'];
 
     const buildCheck: CheckDef[] = noBuild
@@ -309,7 +329,7 @@ async function gate(): Promise<void> {
             {
               name: 'Build (changed)',
               command: 'pnpm',
-              args: ['turbo', 'run', 'build', '--filter=...[HEAD~1]'],
+              args: ['turbo', 'run', 'build', `--filter=...[${changeBase}]`],
               timeout: 600000,
             },
           ]
