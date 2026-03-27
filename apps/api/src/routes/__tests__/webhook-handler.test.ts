@@ -497,11 +497,9 @@ describe('POST /stripe webhook — handler tests', () => {
       const res = await app.request(postStripe(event));
 
       expect(res.status).toBe(200);
-      // Only the active-sync update
-      expect(mockDb.update).toHaveBeenCalledOnce();
-      const setCall = mockDbUpdateChain.set.mock.calls[0]?.[0] as Record<string, unknown>;
-      expect(setCall.status).toBe('active');
-      expect(setCall.expiresAt).toBeUndefined();
+      // cancel_at_period_end=true + cancel_at=null: no license update needed
+      // (the cancel_at branch requires cancel_at, the active-sync branch requires !cancel_at_period_end)
+      expect(mockDb.update).not.toHaveBeenCalled();
     });
   });
 
