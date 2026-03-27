@@ -326,7 +326,6 @@ function resetChains() {
   mockDbSelectChain.innerJoin.mockReturnValue(mockDbSelectChain);
   mockDbSelectChain.where.mockReturnValue(mockDbSelectChain);
   mockDbSelectChain.orderBy.mockReturnValue(mockDbSelectChain);
-  // biome-ignore lint/suspicious/noThenProperty: intentional thenable — mirrors Drizzle's awaitable query builder
   Object.defineProperty(mockDbSelectChain, 'then', {
     value(
       onFulfilled?: (value: unknown[]) => unknown,
