@@ -45,7 +45,7 @@ export function ValueProposition() {
         </div>
         <div className="mx-auto mt-10 max-w-xs border-t border-gray-200" />
         <div className="mx-auto mt-16 max-w-2xl sm:mt-20 lg:mt-24 lg:max-w-none">
-          <div className="grid max-w-xl grid-cols-1 gap-x-8 gap-y-16 lg:max-w-none lg:grid-cols-3">
+          <dl className="grid max-w-xl grid-cols-1 gap-x-8 gap-y-16 lg:max-w-none lg:grid-cols-3">
             {features.map((feature) => (
               <div key={feature.title} className="group flex flex-col items-start">
                 <div
@@ -64,12 +64,14 @@ export function ValueProposition() {
                 </div>
                 <dt className="text-lg font-semibold leading-7 text-gray-950">{feature.title}</dt>
                 <dd className="mt-2 text-base leading-7 text-gray-500">{feature.description}</dd>
-                <Button plain href={feature.href} className="mt-4 text-sm font-medium">
-                  Learn more &rarr;
-                </Button>
+                <dd className="mt-4">
+                  <Button plain href={feature.href} className="text-sm font-medium">
+                    Learn more &rarr;
+                  </Button>
+                </dd>
               </div>
             ))}
-          </div>
+          </dl>
         </div>
       </div>
     </section>
