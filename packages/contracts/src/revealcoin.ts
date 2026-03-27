@@ -49,14 +49,14 @@ export const RVUI_TOKEN_PROGRAM = 'TokenzQdBNbLqP5VEhdkAS6EPFLC1PHnBqCXEpPxuEb';
 export const RVUI_MINT_ADDRESSES: Record<SolanaNetwork, string> = {
   devnet: '4Ysb1gkz21FD2B9P8P5Pm8bHh4CAMKYU1L528e1MigPo',
   testnet: '', // not deployed
-  'mainnet-beta': '', // deployed after mainnet launch
+  'mainnet-beta': '4Ysb1gkz21FD2B9P8P5Pm8bHh4CAMKYU1L528e1MigPo',
 };
 
 /** Mint authority (controls minting + metadata updates). */
 export const RVUI_MINT_AUTHORITY: Record<SolanaNetwork, string> = {
   devnet: 'BzFDXRj56QkizrhAfNLTTUuKwNbv5krCfcRMgTUSMpw4',
   testnet: '',
-  'mainnet-beta': '', // will be multi-sig (Squads Protocol 3-of-5)
+  'mainnet-beta': 'BzFDXRj56QkizrhAfNLTTUuKwNbv5krCfcRMgTUSMpw4',
 };
 
 // =============================================================================

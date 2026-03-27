@@ -6,6 +6,18 @@ settings:
 
 catalogs:
   default:
+    '@tailwindcss/postcss':
+      specifier: ^4.1.18
+      version: 4.1.18
+    '@types/node':
+      specifier: ^25.5.0
+      version: 25.5.0
+    '@types/react':
+      specifier: ^19.2.14
+      version: 19.2.14
+    '@types/react-dom':
+      specifier: ^19.2.3
+      version: 19.2.3
     jsdom:
       specifier: ^27.4.0
       version: 27.4.0
@@ -231,8 +243,8 @@ importers:
         specifier: workspace:*
         version: link:../../packages/openapi
       '@revealui/services':
-        specifier: ^0.1.0
-        version: 0.1.0(@cloudflare/workers-types@4.20260131.0)(@electric-sql/pglite@0.3.15)(@neondatabase/serverless@1.0.2)(@opentelemetry/api@1.9.0)(@types/node@25.5.0)(@types/pg@8.16.0)(bufferutil@4.1.0)(next@16.2.1(@opentelemetry/api@1.9.0)(@playwright/test@1.58.2)(react-dom@19.2.4(react@19.2.4))(react@19.2.4)(sass@1.97.3))(pg@8.18.0)(react-dom@19.2.4(react@19.2.4))(react@19.2.4)(rollup@4.59.0)(typescript@5.9.3)(utf-8-validate@6.0.6)
+        specifier: ^0.2.0
+        version: 0.2.0(@cloudflare/workers-types@4.20260131.0)(@electric-sql/pglite@0.3.15)(@neondatabase/serverless@1.0.2)(@opentelemetry/api@1.9.0)(@types/node@25.5.0)(@types/pg@8.16.0)(bufferutil@4.1.0)(fastestsmallesttextencoderdecoder@1.0.22)(next@16.2.1(@opentelemetry/api@1.9.0)(@playwright/test@1.58.2)(react-dom@19.2.4(react@19.2.4))(react@19.2.4)(sass@1.97.3))(pg@8.18.0)(react-dom@19.2.4(react@19.2.4))(react@19.2.4)(rollup@4.59.0)(typescript@5.9.3)(utf-8-validate@6.0.6)
       '@vercel/blob':
         specifier: ^2.2.0
         version: 2.2.0
@@ -310,8 +322,8 @@ importers:
         specifier: workspace:*
         version: link:../../packages/presentation
       '@revealui/services':
-        specifier: 0.1.0
-        version: 0.1.0(@cloudflare/workers-types@4.20260131.0)(@electric-sql/pglite@0.3.15)(@neondatabase/serverless@1.0.2)(@opentelemetry/api@1.9.0)(@types/node@25.5.0)(@types/pg@8.16.0)(bufferutil@4.1.0)(next@16.2.0(@opentelemetry/api@1.9.0)(@playwright/test@1.58.2)(react-dom@19.2.4(react@19.2.4))(react@19.2.4)(sass@1.97.3))(pg@8.18.0)(react-dom@19.2.4(react@19.2.4))(react@19.2.4)(rollup@4.59.0)(typescript@5.9.3)(utf-8-validate@6.0.6)
+        specifier: 0.2.0
+        version: 0.2.0(@cloudflare/workers-types@4.20260131.0)(@electric-sql/pglite@0.3.15)(@neondatabase/serverless@1.0.2)(@opentelemetry/api@1.9.0)(@types/node@25.5.0)(@types/pg@8.16.0)(bufferutil@4.1.0)(next@16.2.0(@opentelemetry/api@1.9.0)(@playwright/test@1.58.2)(react-dom@19.2.4(react@19.2.4))(react@19.2.4)(sass@1.97.3))(pg@8.18.0)(react-dom@19.2.4(react@19.2.4))(react@19.2.4)(rollup@4.59.0)(typescript@5.9.3)(utf-8-validate@6.0.6)
       '@revealui/sync':
         specifier: workspace:*
         version: link:../../packages/sync
@@ -557,6 +569,52 @@ importers:
         version: 4.2.1
       typescript:
         specifier: ^5.9.3
+        version: 5.9.3
+
+  apps/revealcoin:
+    dependencies:
+      '@revealui/contracts':
+        specifier: workspace:*
+        version: link:../../packages/contracts
+      '@revealui/presentation':
+        specifier: workspace:*
+        version: link:../../packages/presentation
+      next:
+        specifier: '>=15.5.10'
+        version: 16.2.1(@opentelemetry/api@1.9.0)(@playwright/test@1.58.2)(react-dom@19.2.4(react@19.2.4))(react@19.2.4)(sass@1.97.3)
+      react:
+        specifier: '>=19.2.4'
+        version: 19.2.4
+      react-dom:
+        specifier: '>=19.2.4'
+        version: 19.2.4(react@19.2.4)
+      react-markdown:
+        specifier: ^10.1.0
+        version: 10.1.0(@types/react@19.2.14)(react@19.2.4)
+      zod:
+        specifier: 'catalog:'
+        version: 4.3.6
+    devDependencies:
+      '@tailwindcss/postcss':
+        specifier: 'catalog:'
+        version: 4.1.18
+      '@types/node':
+        specifier: 'catalog:'
+        version: 25.5.0
+      '@types/react':
+        specifier: 'catalog:'
+        version: 19.2.14
+      '@types/react-dom':
+        specifier: 'catalog:'
+        version: 19.2.3(@types/react@19.2.14)
+      dev:
+        specifier: workspace:*
+        version: link:../../packages/dev
+      tailwindcss:
+        specifier: 'catalog:'
+        version: 4.2.1
+      typescript:
+        specifier: 'catalog:'
         version: 5.9.3
 
   apps/studio:
@@ -3740,8 +3798,8 @@ packages:
     resolution: {integrity: sha512-/XddwzhqQXSal87fFMG7RRV9nFGJKmGy5Vp3OYqwM5/DUtQcQbmgwvYujDHgtGI34G9uKjjPo0kIMHdnEv5Wyw==}
     engines: {node: '>=24.13.0'}
 
-  '@revealui/services@0.1.0':
-    resolution: {integrity: sha512-bpTz+lgOK6xy/ne2hUGVvowk3CWwGqgzEA+L1S1iCSax3FjZpHdEu7QCgQBkhxI7o6ArHru+kkJsLoomN7m/8Q==}
+  '@revealui/services@0.2.0':
+    resolution: {integrity: sha512-7xW2VUN2ik3qCxqH+kBtlyeDSWWfkJ7VbS8CvitNy8PwD5TGLRDGlQEegOg8OtQ0krq4fcvlYtX2ARmr17dCqw==}
     peerDependencies:
       react: '>=19.2.4'
       react-dom: '>=19.2.4'
@@ -12536,7 +12594,7 @@ snapshots:
       keyv: 5.3.2
       lucide-react: 0.515.0(react@19.2.4)
       morgan: 1.10.0
-      next: 16.2.0(@opentelemetry/api@1.9.0)(@playwright/test@1.58.2)(react-dom@19.2.4(react@19.2.4))(react@19.2.4)(sass@1.97.3)
+      next: 16.2.1(@opentelemetry/api@1.9.0)(@playwright/test@1.58.2)(react-dom@19.2.4(react@19.2.4))(react@19.2.4)(sass@1.97.3)
       node-fetch: 2.7.0
       oauth2-server: 3.1.1
       openid-client: 6.3.4
@@ -13734,11 +13792,13 @@ snapshots:
       - drizzle-orm
       - typescript
 
-  '@revealui/services@0.1.0(@cloudflare/workers-types@4.20260131.0)(@electric-sql/pglite@0.3.15)(@neondatabase/serverless@1.0.2)(@opentelemetry/api@1.9.0)(@types/node@25.5.0)(@types/pg@8.16.0)(bufferutil@4.1.0)(next@16.2.0(@opentelemetry/api@1.9.0)(@playwright/test@1.58.2)(react-dom@19.2.4(react@19.2.4))(react@19.2.4)(sass@1.97.3))(pg@8.18.0)(react-dom@19.2.4(react@19.2.4))(react@19.2.4)(rollup@4.59.0)(typescript@5.9.3)(utf-8-validate@6.0.6)':
+  '@revealui/services@0.2.0(@cloudflare/workers-types@4.20260131.0)(@electric-sql/pglite@0.3.15)(@neondatabase/serverless@1.0.2)(@opentelemetry/api@1.9.0)(@types/node@25.5.0)(@types/pg@8.16.0)(bufferutil@4.1.0)(fastestsmallesttextencoderdecoder@1.0.22)(next@16.2.1(@opentelemetry/api@1.9.0)(@playwright/test@1.58.2)(react-dom@19.2.4(react@19.2.4))(react@19.2.4)(sass@1.97.3))(pg@8.18.0)(react-dom@19.2.4(react@19.2.4))(react@19.2.4)(rollup@4.59.0)(typescript@5.9.3)(utf-8-validate@6.0.6)':
     dependencies:
       '@revealui/config': link:packages/config
-      '@revealui/core': 0.3.0(drizzle-orm@0.45.1(@cloudflare/workers-types@4.20260131.0)(@electric-sql/pglite@0.3.15)(@neondatabase/serverless@1.0.2)(@opentelemetry/api@1.9.0)(@types/pg@8.16.0)(pg@8.18.0))(next@16.2.0(@opentelemetry/api@1.9.0)(@playwright/test@1.58.2)(react-dom@19.2.4(react@19.2.4))(react@19.2.4)(sass@1.97.3))(react-dom@19.2.4(react@19.2.4))(react@19.2.4)(typescript@5.9.3)
+      '@revealui/contracts': 1.1.0(@revealui/db@packages+db)(drizzle-orm@0.45.1(@cloudflare/workers-types@4.20260131.0)(@electric-sql/pglite@0.3.15)(@neondatabase/serverless@1.0.2)(@opentelemetry/api@1.9.0)(@types/pg@8.16.0)(pg@8.18.0))(typescript@5.9.3)
+      '@revealui/core': 0.3.0(drizzle-orm@0.45.1(@cloudflare/workers-types@4.20260131.0)(@electric-sql/pglite@0.3.15)(@neondatabase/serverless@1.0.2)(@opentelemetry/api@1.9.0)(@types/pg@8.16.0)(pg@8.18.0))(next@16.2.1(@opentelemetry/api@1.9.0)(@playwright/test@1.58.2)(react-dom@19.2.4(react@19.2.4))(react@19.2.4)(sass@1.97.3))(react-dom@19.2.4(react@19.2.4))(react@19.2.4)(typescript@5.9.3)
       '@revealui/db': link:packages/db
+      '@solana/kit': 6.5.0(bufferutil@4.1.0)(fastestsmallesttextencoderdecoder@1.0.22)(typescript@5.9.3)(utf-8-validate@6.0.6)
       '@supabase/ssr': 0.8.0(@supabase/supabase-js@2.95.3(bufferutil@4.1.0)(utf-8-validate@6.0.6))
       '@supabase/supabase-js': 2.95.3(bufferutil@4.1.0)(utf-8-validate@6.0.6)
       '@vercel/node': 5.6.5(rollup@4.59.0)
@@ -13771,6 +13831,7 @@ snapshots:
       - bun-types
       - encoding
       - expo-sqlite
+      - fastestsmallesttextencoderdecoder
       - gel
       - knex
       - kysely
@@ -13787,11 +13848,13 @@ snapshots:
       - typescript
       - utf-8-validate
 
-  '@revealui/services@0.1.0(@cloudflare/workers-types@4.20260131.0)(@electric-sql/pglite@0.3.15)(@neondatabase/serverless@1.0.2)(@opentelemetry/api@1.9.0)(@types/node@25.5.0)(@types/pg@8.16.0)(bufferutil@4.1.0)(next@16.2.1(@opentelemetry/api@1.9.0)(@playwright/test@1.58.2)(react-dom@19.2.4(react@19.2.4))(react@19.2.4)(sass@1.97.3))(pg@8.18.0)(react-dom@19.2.4(react@19.2.4))(react@19.2.4)(rollup@4.59.0)(typescript@5.9.3)(utf-8-validate@6.0.6)':
+  '@revealui/services@0.2.0(@cloudflare/workers-types@4.20260131.0)(@electric-sql/pglite@0.3.15)(@neondatabase/serverless@1.0.2)(@opentelemetry/api@1.9.0)(@types/node@25.5.0)(@types/pg@8.16.0)(bufferutil@4.1.0)(next@16.2.0(@opentelemetry/api@1.9.0)(@playwright/test@1.58.2)(react-dom@19.2.4(react@19.2.4))(react@19.2.4)(sass@1.97.3))(pg@8.18.0)(react-dom@19.2.4(react@19.2.4))(react@19.2.4)(rollup@4.59.0)(typescript@5.9.3)(utf-8-validate@6.0.6)':
     dependencies:
       '@revealui/config': link:packages/config
-      '@revealui/core': 0.3.0(drizzle-orm@0.45.1(@cloudflare/workers-types@4.20260131.0)(@electric-sql/pglite@0.3.15)(@neondatabase/serverless@1.0.2)(@opentelemetry/api@1.9.0)(@types/pg@8.16.0)(pg@8.18.0))(next@16.2.1(@opentelemetry/api@1.9.0)(@playwright/test@1.58.2)(react-dom@19.2.4(react@19.2.4))(react@19.2.4)(sass@1.97.3))(react-dom@19.2.4(react@19.2.4))(react@19.2.4)(typescript@5.9.3)
+      '@revealui/contracts': 1.1.0(@revealui/db@packages+db)(drizzle-orm@0.45.1(@cloudflare/workers-types@4.20260131.0)(@electric-sql/pglite@0.3.15)(@neondatabase/serverless@1.0.2)(@opentelemetry/api@1.9.0)(@types/pg@8.16.0)(pg@8.18.0))(typescript@5.9.3)
+      '@revealui/core': 0.3.0(drizzle-orm@0.45.1(@cloudflare/workers-types@4.20260131.0)(@electric-sql/pglite@0.3.15)(@neondatabase/serverless@1.0.2)(@opentelemetry/api@1.9.0)(@types/pg@8.16.0)(pg@8.18.0))(next@16.2.0(@opentelemetry/api@1.9.0)(@playwright/test@1.58.2)(react-dom@19.2.4(react@19.2.4))(react@19.2.4)(sass@1.97.3))(react-dom@19.2.4(react@19.2.4))(react@19.2.4)(typescript@5.9.3)
       '@revealui/db': link:packages/db
+      '@solana/kit': 6.5.0(bufferutil@4.1.0)(fastestsmallesttextencoderdecoder@1.0.22)(typescript@5.9.3)(utf-8-validate@6.0.6)
       '@supabase/ssr': 0.8.0(@supabase/supabase-js@2.95.3(bufferutil@4.1.0)(utf-8-validate@6.0.6))
       '@supabase/supabase-js': 2.95.3(bufferutil@4.1.0)(utf-8-validate@6.0.6)
       '@vercel/node': 5.6.5(rollup@4.59.0)
@@ -13824,6 +13887,7 @@ snapshots:
       - bun-types
       - encoding
       - expo-sqlite
+      - fastestsmallesttextencoderdecoder
       - gel
       - knex
       - kysely
@@ -16841,8 +16905,8 @@ snapshots:
 
   browserslist@4.28.1:
     dependencies:
-      baseline-browser-mapping: 2.10.8
-      caniuse-lite: 1.0.30001780
+      baseline-browser-mapping: 2.10.10
+      caniuse-lite: 1.0.30001781
       electron-to-chromium: 1.5.286
       node-releases: 2.0.27
       update-browserslist-db: 1.2.3(browserslist@4.28.1)
