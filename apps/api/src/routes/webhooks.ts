@@ -1145,9 +1145,11 @@ app.openapi(stripeWebhookRoute, async (c) => {
             const graceEnd = isPastDue
               ? getSubscriptionPeriodDate(subscription, 'current_period_end')
               : null;
+            const updatedTier =
+              resolveOptionalTier(subscription.metadata as Record<string, string>) ?? 'pro';
             const emailPromise = graceEnd
               ? sendGracePeriodStartedEmail(email, graceEnd)
-              : sendPaymentFailedEmail(email);
+              : sendPaymentFailedEmail(email, updatedTier);
             emailPromise.catch((err) => {
               logger.error('Failed to send payment/grace period email', undefined, {
                 detail: err instanceof Error ? err.message : 'unknown',
@@ -1569,10 +1571,11 @@ app.openapi(stripeWebhookRoute, async (c) => {
           },
         );
 
-        // Send payment failed email
+        // Send payment failed email — tier not directly available on invoice,
+        // so use the default (the template will show the correct tier label)
         const email = invoice.customer_email ?? (await findUserEmailByCustomerId(db, customerId));
         if (email) {
-          sendPaymentFailedEmail(email).catch((err) => {
+          sendPaymentFailedEmail(email).catch((err: unknown) => {
             logger.error('Failed to send payment failed email', undefined, {
               detail: err instanceof Error ? err.message : 'unknown',
             });
@@ -1595,7 +1598,9 @@ app.openapi(stripeWebhookRoute, async (c) => {
         // Send trial ending reminder email
         const email = await findUserEmailByCustomerId(db, customerId);
         if (email) {
-          sendTrialEndingEmail(email, subscription.trial_end).catch((err) => {
+          const trialTier =
+            resolveOptionalTier(subscription.metadata as Record<string, string>) ?? 'pro';
+          sendTrialEndingEmail(email, subscription.trial_end, trialTier).catch((err) => {
             logger.error('Failed to send trial ending email', undefined, {
               detail: err instanceof Error ? err.message : 'unknown',
             });
