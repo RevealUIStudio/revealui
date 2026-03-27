@@ -66,8 +66,14 @@ const optionalSchema = z.object({
   REVEALUI_LICENSE_PRIVATE_KEY: z.string().optional(),
   REVEALUI_LICENSE_PUBLIC_KEY: z.string().optional(),
 
-  // Email provider — Resend
+  // Email provider — Gmail REST API (preferred, edge-compatible)
+  GOOGLE_SERVICE_ACCOUNT_EMAIL: z.string().email().optional(),
+  GOOGLE_PRIVATE_KEY: z.string().optional(),
+  EMAIL_FROM: z.string().email().optional(),
+
+  // Email provider — Resend (fallback)
   RESEND_API_KEY: z.string().optional(),
+  RESEND_FROM_EMAIL: z.string().email().optional(),
 
   // Email provider — SMTP
   SMTP_HOST: z.string().optional(),
