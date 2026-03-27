@@ -11,7 +11,7 @@
  * when the package is not installed.
  */
 
-import { getRestClient } from '@revealui/db/client';
+import { getClient, getRestClient } from '@revealui/db/client';
 
 let indexerInstance: {
   onDocumentChanged: (event: {
@@ -33,13 +33,14 @@ async function getIndexer(): Promise<typeof indexerInstance> {
 
   if (!(embeddingsMod && ingestionMod)) return null;
 
-  const db = getRestClient();
+  const db = getClient();
+  const restDb = getRestClient();
   const embeddingFn = async (text: string): Promise<number[]> => {
     const result = await embeddingsMod.generateEmbedding(text);
     return result.vector;
   };
 
-  const pipeline = new ingestionMod.IngestionPipeline(db, embeddingFn);
+  const pipeline = new ingestionMod.IngestionPipeline(db, restDb, embeddingFn);
 
   indexerInstance = new ingestionMod.CmsIndexer({
     ingestionPipeline: pipeline,
