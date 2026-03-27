@@ -88,27 +88,22 @@ jobs:
         include:
           - app: api
             project-id: prj_zk6EQijYXwd9L7BccuBssi436ktM
-            working-dir: apps/api
             test-domain: test.api.revealui.com
             dev-domain: dev.api.revealui.com
           - app: cms
             project-id: prj_7sEFDg4MH6C26nJPjrukK86QdwfG
-            working-dir: apps/cms
             test-domain: test.cms.revealui.com
             dev-domain: dev.cms.revealui.com
           - app: marketing
             project-id: prj_frTIYlnONVPLNIjKnQpINiGb5lm0
-            working-dir: apps/marketing
             test-domain: test.revealui.com
             dev-domain: dev.revealui.com
           - app: docs
             project-id: prj_OPwr0FrgcK17AOBCyoj4JIilJ9S1
-            working-dir: apps/docs
             test-domain: test.docs.revealui.com
             dev-domain: dev.docs.revealui.com
           - app: revealcoin
             project-id: prj_XDiPXngciRytGA8j0vNIDz7hENRM
-            working-dir: apps/revealcoin
             test-domain: test.revealcoin.revealui.com
             dev-domain: dev.revealcoin.revealui.com
 
@@ -132,13 +127,11 @@ jobs:
 
       - name: Pull Vercel environment
         run: vercel pull --yes --environment=${{ needs.resolve.outputs.is-production == 'true' && 'production' || 'preview' }} --token=${{ secrets.VERCEL_TOKEN }}
-        working-directory: ${{ matrix.working-dir }}
         env:
           VERCEL_PROJECT_ID: ${{ matrix.project-id }}
 
       - name: Build
         run: vercel build ${{ needs.resolve.outputs.prod-flag }} --token=${{ secrets.VERCEL_TOKEN }}
-        working-directory: ${{ matrix.working-dir }}
         env:
           VERCEL_PROJECT_ID: ${{ matrix.project-id }}
           SKIP_ENV_VALIDATION: "true"
@@ -149,7 +142,6 @@ jobs:
           URL=$(vercel deploy --prebuilt ${{ needs.resolve.outputs.prod-flag }} --token=${{ secrets.VERCEL_TOKEN }})
           echo "url=$URL" >> "$GITHUB_OUTPUT"
           echo "::notice::${{ matrix.app }} deployed to $URL"
-        working-directory: ${{ matrix.working-dir }}
         env:
           VERCEL_PROJECT_ID: ${{ matrix.project-id }}
 
