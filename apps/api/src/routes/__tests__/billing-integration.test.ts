@@ -81,7 +81,7 @@ describeIf('Stripe Integration Tests (OV-3)', () => {
   });
 
   describe('OV-3.2: Webhook Signature Verification', () => {
-    it('generates and verifies a valid webhook signature', () => {
+    it('generates and verifies a valid webhook signature', async () => {
       const payload = JSON.stringify({
         id: 'evt_test_ov3',
         type: 'checkout.session.completed',
@@ -101,14 +101,14 @@ describeIf('Stripe Integration Tests (OV-3)', () => {
 
       const header = `t=${timestamp},v1=${signature}`;
 
-      // Verify with Stripe's library
-      const event = stripe.webhooks.constructEventAsync(payload, header, webhookSecret);
+      // Verify with Stripe's async library method
+      const event = await stripe.webhooks.constructEventAsync(payload, header, webhookSecret);
 
       expect(event.id).toBe('evt_test_ov3');
       expect(event.type).toBe('checkout.session.completed');
     });
 
-    it('rejects tampered payloads', () => {
+    it('rejects tampered payloads', async () => {
       const payload = JSON.stringify({ id: 'evt_test_ov3', type: 'test' });
       const webhookSecret = 'whsec_test_secret_ov3_tamper'; // gitleaks:allow
       const timestamp = Math.floor(Date.now() / 1000);
@@ -124,12 +124,12 @@ describeIf('Stripe Integration Tests (OV-3)', () => {
       // Tamper with the payload
       const tamperedPayload = JSON.stringify({ id: 'evt_HACKED', type: 'test' });
 
-      expect(() => {
-        stripe.webhooks.constructEventAsync(tamperedPayload, header, webhookSecret);
-      }).toThrow();
+      await expect(
+        stripe.webhooks.constructEventAsync(tamperedPayload, header, webhookSecret),
+      ).rejects.toThrow();
     });
 
-    it('rejects expired timestamps', () => {
+    it('rejects expired timestamps', async () => {
       const payload = JSON.stringify({ id: 'evt_test_ov3', type: 'test' });
       const webhookSecret = 'whsec_test_secret_ov3_expiry'; // gitleaks:allow
       // 10 minutes ago — Stripe's default tolerance is 5 minutes
@@ -143,9 +143,9 @@ describeIf('Stripe Integration Tests (OV-3)', () => {
 
       const header = `t=${oldTimestamp},v1=${signature}`;
 
-      expect(() => {
-        stripe.webhooks.constructEventAsync(payload, header, webhookSecret);
-      }).toThrow(/timestamp/i);
+      await expect(
+        stripe.webhooks.constructEventAsync(payload, header, webhookSecret),
+      ).rejects.toThrow(/timestamp/i);
     });
   });
 
