@@ -15,6 +15,7 @@ vi.mock('@revealui/db/schema', () => ({
   accountEntitlements: {
     accountId: 'accountEntitlements.accountId',
     status: 'accountEntitlements.status',
+    graceUntil: 'accountEntitlements.graceUntil',
   },
   accountSubscriptions: {
     accountId: 'accountSubscriptions.accountId',
@@ -23,6 +24,7 @@ vi.mock('@revealui/db/schema', () => ({
   licenses: {
     customerId: 'licenses.customerId',
     status: 'licenses.status',
+    expiresAt: 'licenses.expiresAt',
     createdAt: 'licenses.createdAt',
   },
 }));
@@ -30,6 +32,9 @@ vi.mock('@revealui/db/schema', () => ({
 vi.mock('drizzle-orm', () => ({
   eq: vi.fn((_col, _val) => `eq(${String(_col)},${String(_val)})`),
   desc: vi.fn((_col) => `desc(${String(_col)})`),
+  sql: Object.assign((_strings: TemplateStringsArray, ..._values: unknown[]) => 'sql-expression', {
+    raw: (_s: string) => 'sql-raw',
+  }),
 }));
 
 import { queryBillingStatusByCustomerId } from '../billing-status.js';
@@ -43,7 +48,7 @@ describe('queryBillingStatusByCustomerId', () => {
   });
 
   it('returns the latest legacy license status when present', async () => {
-    mockDbSelectChain.limit.mockResolvedValueOnce([{ status: 'revoked' }]);
+    mockDbSelectChain.limit.mockResolvedValueOnce([{ status: 'revoked', expiresAt: null }]);
     mockDb.select.mockReturnValue(mockDbSelectChain);
 
     const status = await queryBillingStatusByCustomerId(mockDb as never, 'cus_legacy');
@@ -56,7 +61,7 @@ describe('queryBillingStatusByCustomerId', () => {
     mockDbSelectChain.limit
       .mockResolvedValueOnce([])
       .mockResolvedValueOnce([{ accountId: 'acct_hosted' }])
-      .mockResolvedValueOnce([{ status: 'expired' }]);
+      .mockResolvedValueOnce([{ status: 'expired', graceUntil: null }]);
     mockDb.select.mockReturnValue(mockDbSelectChain);
 
     const status = await queryBillingStatusByCustomerId(mockDb as never, 'cus_hosted');
