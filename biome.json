@@ -32,6 +32,7 @@
       "!**/.revealui",
       "!**/.claude/skills",
       "!**/.claude/worktrees",
+      "!**/.claude/settings.local.json",
       "!apps/cms/csp.js",
       "!apps/cms/cssVariables.js",
       "!**/importMap.js",
