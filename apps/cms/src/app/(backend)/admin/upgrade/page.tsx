@@ -9,7 +9,7 @@ import {
 import type { FeatureFlags } from '@revealui/core/features';
 import { PricingTable } from '@revealui/presentation/client';
 import { useLicense } from '@/lib/providers/LicenseProvider';
-import { safeStripeRedirect } from '~/lib/utils/safe-stripe-redirect';
+import { safeStripeRedirect } from '@/lib/utils/safe-stripe-redirect';
 
 export default function UpgradePage() {
   const { tier: currentTier } = useLicense();

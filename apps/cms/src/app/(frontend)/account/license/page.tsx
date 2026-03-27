@@ -20,7 +20,7 @@ import {
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useCallback, useEffect, useState } from 'react';
-import { safeStripeRedirect } from '~/lib/utils/safe-stripe-redirect';
+import { safeStripeRedirect } from '@/lib/utils/safe-stripe-redirect';
 
 interface SubscriptionData {
   tier: LicenseTierId;

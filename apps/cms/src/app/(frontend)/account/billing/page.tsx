@@ -17,7 +17,7 @@ import {
 } from '@revealui/presentation';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { Suspense, useCallback, useEffect, useRef, useState } from 'react';
-import { safeStripeRedirect } from '~/lib/utils/safe-stripe-redirect';
+import { safeStripeRedirect } from '@/lib/utils/safe-stripe-redirect';
 
 interface SubscriptionData {
   tier: LicenseTierId;

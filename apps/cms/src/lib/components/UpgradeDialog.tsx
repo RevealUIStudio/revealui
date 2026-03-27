@@ -12,7 +12,7 @@ import { PricingTable } from '@revealui/presentation/server';
 import Link from 'next/link';
 import { useCallback, useEffect, useState } from 'react';
 import { useLicense } from '@/lib/providers/LicenseProvider';
-import { safeStripeRedirect } from '~/lib/utils/safe-stripe-redirect';
+import { safeStripeRedirect } from '@/lib/utils/safe-stripe-redirect';
 
 /**
  * Global upgrade dialog that listens for `revealui:upgrade-required` custom events.
