@@ -41,7 +41,7 @@ mcp-servers:
     launcher: "pnpm dlx @stripe/mcp"
     adapter: "StripeAdapter extends MCPAdapter"
   neon:
-    launcher: "pnpm dlx @neondatabase/mcp-server-neon"
+    remote: "https://mcp.neon.tech"
     adapter: "NeonAdapter extends MCPAdapter"
   supabase:
     launcher: "pnpm dlx supabase-mcp"
@@ -73,9 +73,6 @@ limitations:
   - id: dist-only
     surface: api
     summary: "@revealui/mcp is dist-only in public repo — source in private revealui-jv"
-  - id: neon-mcp-vuln
-    surface: api
-    summary: "@neondatabase/mcp-server-neon pulls vulnerable oauth2-server (accepted risk, dev-only)"
   - id: license-required
     surface: api
     summary: "Requires Pro/Enterprise tier — current checks are license-centric and should converge on account-level entitlements"

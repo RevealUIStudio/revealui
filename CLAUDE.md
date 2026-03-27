@@ -160,10 +160,7 @@ Schemas are in `packages/db/src/schema/`. Use Drizzle ORM for queries. Dual-data
 ### Known npm Vulnerabilities (Accepted Risk)
 | Severity | Module | Via | Issue | Fixable? |
 |----------|--------|-----|-------|----------|
-| high | oauth2-server | @neondatabase/mcp-server-neon | Open Redirect + Code Injection | No (patched: `<0.0.0`, transitive, unused at runtime) |
 | low | @tootallnate/once | vercel CLI | Incorrect Control Flow Scoping | Upgrade to >=3.0.1 when vercel updates |
-
-**oauth2-server**: Only pulled in by `@neondatabase/mcp-server-neon` (dev/MCP tool). Not used in any production API path. No patch exists (`<0.0.0` means the maintainer has not fixed it). Acceptable risk for v1.
 
 ## CI Gate Architecture
 The `pnpm gate` script runs 3 phases:

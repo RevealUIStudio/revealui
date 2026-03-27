@@ -69,16 +69,7 @@ interface KnownUpstreamAdvisory {
   description: string;
 }
 
-const KnownUpstreamAdvisories: KnownUpstreamAdvisory[] = [
-  {
-    key: 'neon-mcp-oauth2-server',
-    moduleName: 'oauth2-server',
-    patchedVersions: '<0.0.0',
-    pathIncludes: '@neondatabase/mcp-server-neon>oauth2-server',
-    description:
-      'oauth2-server via @neondatabase/mcp-server-neon has no patched npm release available yet',
-  },
-];
+const KnownUpstreamAdvisories: KnownUpstreamAdvisory[] = [];
 
 function classifyAuditAdvisories(advisories: AuditAdvisory[]): {
   actionable: AuditAdvisory[];

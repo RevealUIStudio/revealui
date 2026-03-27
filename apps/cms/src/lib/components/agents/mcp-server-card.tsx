@@ -7,7 +7,8 @@ export interface McpServerInfo {
   name: string;
   description: string;
   status: 'configured' | 'active' | 'unavailable';
-  packageName: string;
+  packageName?: string;
+  remoteUrl?: string;
   envRequired: string[];
   tools: McpToolInfo[];
 }
@@ -40,7 +41,9 @@ export function McpServerCard({ server }: McpServerCardProps) {
       <div className="flex items-start justify-between gap-3">
         <div className="min-w-0">
           <h3 className="font-semibold text-white">{server.name}</h3>
-          <p className="mt-0.5 font-mono text-xs text-zinc-500">{server.packageName}</p>
+          <p className="mt-0.5 font-mono text-xs text-zinc-500">
+            {server.packageName ?? server.remoteUrl ?? server.id}
+          </p>
         </div>
         <span
           className={`shrink-0 rounded-full px-2 py-0.5 text-xs font-medium ${statusColors[server.status]}`}

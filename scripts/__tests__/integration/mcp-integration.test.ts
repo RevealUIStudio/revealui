@@ -228,8 +228,7 @@ describe('MCP Integration', () => {
         await hypervisor.spawnServer({
           id: 'neon',
           name: 'Neon',
-          command: 'npx',
-          args: ['@neondatabase/mcp-server-neon'],
+          remoteUrl: 'https://mcp.neon.tech',
         });
 
         // Execute on different adapters
@@ -360,7 +359,7 @@ describe('MCP Integration', () => {
       processRegistry.clear();
 
       processRegistry.register(1001, 'npx', ['@stripe/mcp'], 'mcp');
-      processRegistry.register(1002, 'npx', ['@neondatabase/mcp-server-neon'], 'mcp');
+      processRegistry.register(1002, 'mcp-remote', ['https://mcp.neon.tech'], 'mcp');
       processRegistry.register(1003, 'npx', ['supabase-mcp'], 'mcp');
 
       const mcpProcesses = processRegistry.getBySource('mcp');

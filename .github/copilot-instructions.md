@@ -45,7 +45,7 @@ Concrete examples (MCP & quick commands):
 - Run the local Neon MCP adapter (must set `NEON_API_KEY`):
 
   - Command: `pnpm run mcp:neon`
-  - File: `packages/mcp/src/servers/neon.ts` — script validates `NEON_API_KEY` and spawns `mcp-server-neon`.
+  - File: `packages/mcp/src/servers/neon.ts` — script validates `NEON_API_KEY` and connects to remote `mcp.neon.tech`.
 
 - Run all MCP adapters concurrently for development:
 

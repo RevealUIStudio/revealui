@@ -164,7 +164,7 @@ The supported local workflow is to validate credentials with `pnpm setup:mcp` an
 
 ---
 
-### NeonDB MCP (`@neondatabase/mcp-server-neon@0.6.5`)
+### NeonDB MCP (remote: `mcp.neon.tech`)
 
 **Capabilities:**
 
@@ -845,7 +845,7 @@ All MCP servers are **completely free**:
 | ---------------- | -------------------- | ------------------------------------------------- | ----------------------------------- |
 | Vercel           | ✅ Working           | `vercel-mcp@0.0.7`                                | `VERCEL_API_KEY`                    |
 | Stripe           | ✅ Working           | `@stripe/mcp@0.1.4`                               | `STRIPE_SECRET_KEY`                 |
-| NeonDB           | ⚠️ Needs API Key     | `@neondatabase/mcp-server-neon@0.6.5`             | `NEON_API_KEY`                      |
+| NeonDB           | ⚠️ Needs API Key     | Remote: `mcp.neon.tech`                            | `NEON_API_KEY`                      |
 | Supabase         | ⚠️ Needs Credentials | `supabase-mcp@1.5.0`                              | `SUPABASE_URL`, `SUPABASE_ANON_KEY` |
 | Playwright       | ✅ Working           | `@executeautomation/playwright-mcp-server@1.0.12` | None                                |
 | Next.js DevTools | ✅ Working           | `next-devtools-mcp@0.3.9`                         | None (requires Next.js 16+)         |

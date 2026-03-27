@@ -86,7 +86,7 @@ const MCP_SERVERS: McpServerInfo[] = [
     name: 'NeonDB',
     description: 'Query NeonDB PostgreSQL databases, manage branches, and run migrations.',
     status: 'configured',
-    packageName: '@neondatabase/mcp-server-neon',
+    remoteUrl: 'https://mcp.neon.tech',
     envRequired: ['NEON_API_KEY'],
     tools: [
       {

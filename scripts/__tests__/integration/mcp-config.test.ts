@@ -201,8 +201,7 @@ describe('Server Definition Validation', () => {
       const errors = validateServerDefinition({
         id: 'neon',
         name: 'Neon Database MCP',
-        command: 'npx',
-        args: ['@neondatabase/mcp-server-neon'],
+        remoteUrl: 'https://mcp.neon.tech',
         env: { NEON_API_KEY: 'neon_xxx' },
       });
       expect(errors).toEqual([]);
