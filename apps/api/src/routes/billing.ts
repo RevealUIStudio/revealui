@@ -934,9 +934,35 @@ app.openapi(perpetualCheckoutRoute, async (c) => {
     throw new HTTPException(401, { message: 'Authentication required' });
   }
 
+  if (!user.email) {
+    throw new HTTPException(400, { message: 'An email address is required for billing' });
+  }
+
   const { priceId, tier, githubUsername, npmUsername } = c.req.valid('json');
+
+  const db = getClient();
+
+  // Prevent duplicate perpetual purchases for the same tier
+  const [existingPerpetual] = await db
+    .select({ id: licenses.id })
+    .from(licenses)
+    .where(
+      and(
+        eq(licenses.userId, user.id),
+        eq(licenses.perpetual, true),
+        eq(licenses.tier, tier),
+        eq(licenses.status, 'active'),
+      ),
+    )
+    .limit(1);
+  if (existingPerpetual) {
+    throw new HTTPException(409, {
+      message: `You already have an active perpetual ${tier} license`,
+    });
+  }
+
   const resolvedPriceId = await resolveCatalogPriceId(tier, 'perpetual', priceId);
-  const customerId = await ensureStripeCustomer(user.id, user.email ?? '');
+  const customerId = await ensureStripeCustomer(user.id, user.email);
 
   const cmsUrl = process.env.CMS_URL || process.env.NEXT_PUBLIC_SERVER_URL;
   if (!cmsUrl) throw new HTTPException(500, { message: 'CMS_URL is not configured' });

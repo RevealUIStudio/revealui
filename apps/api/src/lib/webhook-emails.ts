@@ -10,6 +10,34 @@ import type { Database } from '@revealui/db/client';
 import { appLogs } from '@revealui/db/schema';
 import { sendEmail } from './email.js';
 
+const ZERO_DECIMAL_CURRENCIES = new Set([
+  'bif',
+  'clp',
+  'djf',
+  'gnf',
+  'jpy',
+  'kmf',
+  'krw',
+  'mga',
+  'pyg',
+  'rwf',
+  'ugx',
+  'vnd',
+  'vuv',
+  'xaf',
+  'xof',
+  'xpf',
+]);
+
+function formatStripeAmount(amountInSmallest: number, currency: string): string {
+  const cur = currency.toLowerCase();
+  const value = ZERO_DECIMAL_CURRENCIES.has(cur) ? amountInSmallest : amountInSmallest / 100;
+  return new Intl.NumberFormat('en-US', {
+    style: 'currency',
+    currency: cur.toUpperCase(),
+  }).format(value);
+}
+
 // =============================================================================
 // Shared helpers
 // =============================================================================
@@ -139,15 +167,16 @@ ${supportFooter('Questions? Contact')}`,
   });
 }
 
-export async function sendPaymentRecoveredEmail(to: string): Promise<void> {
+export async function sendPaymentRecoveredEmail(to: string, tier = 'pro'): Promise<void> {
   const portal = billingUrl();
+  const label = tierLabel(tier);
   await sendEmail({
     to,
     subject: 'Your RevealUI access has been restored',
     html: emailShell(
       'Access Restored',
       `<h1 style="color: #16a34a;">Payment Received — Access Restored</h1>
-<p>Your RevealUI subscription payment was successfully processed. Your Pro access has been fully restored.</p>
+<p>Your RevealUI subscription payment was successfully processed. Your ${escapeHtml(label)} access has been fully restored.</p>
 ${ctaButton(portal, 'Go to Billing')}
 ${supportFooter()}`,
     ),
@@ -194,7 +223,7 @@ export async function sendPaymentReceiptEmail(
   },
 ): Promise<void> {
   const label = tierLabel(params.tier);
-  const amount = (params.amountPaid / 100).toFixed(2);
+  const amount = formatStripeAmount(params.amountPaid, params.currency);
   const currency = params.currency.toUpperCase();
   const invoiceNum = params.invoiceNumber ?? 'N/A';
   const nextBilling = params.periodEnd
@@ -260,8 +289,13 @@ ${supportFooter('If you believe this is an error, contact')}`,
   });
 }
 
-export async function sendGracePeriodStartedEmail(to: string, graceUntil: Date): Promise<void> {
+export async function sendGracePeriodStartedEmail(
+  to: string,
+  graceUntil: Date,
+  tier = 'pro',
+): Promise<void> {
   const portal = billingUrl();
+  const label = tierLabel(tier);
   const deadline = graceUntil.toLocaleDateString('en-US', {
     month: 'long',
     day: 'numeric',
@@ -273,13 +307,13 @@ export async function sendGracePeriodStartedEmail(to: string, graceUntil: Date):
     html: emailShell(
       'Grace Period Started',
       `<h1 style="color: #d97706;">Payment Issue — Grace Period Active</h1>
-<p>We were unable to process your RevealUI subscription payment. Your Pro features remain active during a grace period until <strong>${deadline}</strong>.</p>
+<p>We were unable to process your RevealUI subscription payment. Your ${escapeHtml(label)} features remain active during a grace period until <strong>${deadline}</strong>.</p>
 <p>Please update your payment method before the deadline to avoid losing access:</p>
 ${ctaButton(portal, 'Update Payment Method', '#d97706')}
 <p style="color: #666; font-size: 14px;">After ${deadline}, your access will be downgraded to the free tier until payment is resolved.</p>
 ${supportFooter('If you believe this is an error, contact')}`,
     ),
-    text: `Your RevealUI subscription payment failed. Your Pro features remain active until ${deadline}. Update your payment method at ${portal} to avoid losing access.`,
+    text: `Your RevealUI subscription payment failed. Your ${label} features remain active until ${deadline}. Update your payment method at ${portal} to avoid losing access.`,
   });
 }
 
@@ -306,7 +340,7 @@ export async function sendRefundProcessedEmail(
   opts: { isFullRefund: boolean; amountRefunded: number; currency: string },
 ): Promise<void> {
   const portal = billingUrl();
-  const amountStr = (opts.amountRefunded / 100).toFixed(2);
+  const amountStr = formatStripeAmount(opts.amountRefunded, opts.currency);
   const currencyUpper = opts.currency.toUpperCase();
 
   if (opts.isFullRefund) {

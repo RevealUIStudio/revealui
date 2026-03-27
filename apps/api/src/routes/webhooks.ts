@@ -692,7 +692,16 @@ app.openapi(stripeWebhookRoute, async (c) => {
           if (!session.metadata?.tier) break;
 
           const customerId = resolveCustomerId(session.customer);
-          if (!customerId) break;
+          if (!customerId) {
+            logger.error(
+              'CRITICAL: Perpetual checkout completed but customerId is null — payment captured without license',
+              undefined,
+              { sessionId: session.id },
+            );
+            throw new Error(
+              `Perpetual checkout completed but customerId is null (sessionId=${session.id})`,
+            );
+          }
 
           const tier = resolveTier(session.metadata);
           const githubUsername = session.metadata?.github_username ?? null;
@@ -828,7 +837,16 @@ app.openapi(stripeWebhookRoute, async (c) => {
 
         const customerId = resolveCustomerId(session.customer);
         const subscriptionId = resolveSubscriptionId(session.subscription);
-        if (!(customerId && subscriptionId)) break;
+        if (!(customerId && subscriptionId)) {
+          logger.error(
+            'CRITICAL: Subscription checkout completed but customerId/subscriptionId is null — payment captured without license',
+            undefined,
+            { sessionId: session.id },
+          );
+          throw new Error(
+            `Subscription checkout completed but customerId/subscriptionId is null (sessionId=${session.id})`,
+          );
+        }
 
         const tier = resolveTier(session.metadata);
         const userId = session.metadata?.revealui_user_id ?? null;
@@ -1020,21 +1038,26 @@ app.openapi(stripeWebhookRoute, async (c) => {
 
         // Revoke license tied to this specific subscription — not all licenses for the customer.
         // Perpetual licenses (subscriptionId=null) and other subscriptions are left intact.
-        await db
-          .update(licenses)
-          .set({ status: 'revoked', updatedAt: new Date() })
-          .where(
-            and(eq(licenses.customerId, customerId), eq(licenses.subscriptionId, subscription.id)),
-          );
+        await db.transaction(async (tx) => {
+          await tx
+            .update(licenses)
+            .set({ status: 'revoked', updatedAt: new Date() })
+            .where(
+              and(
+                eq(licenses.customerId, customerId),
+                eq(licenses.subscriptionId, subscription.id),
+              ),
+            );
 
-        await syncHostedSubscriptionState(db, {
-          customerId,
-          subscriptionId: subscription.id,
-          tier: resolveOptionalTier(subscription.metadata as Record<string, string>),
-          status: 'revoked',
-          currentPeriodStart: getSubscriptionPeriodDate(subscription, 'current_period_start'),
-          currentPeriodEnd: getSubscriptionPeriodDate(subscription, 'current_period_end'),
-          cancelAtPeriodEnd: subscription.cancel_at_period_end ?? false,
+          await syncHostedSubscriptionState(tx, {
+            customerId,
+            subscriptionId: subscription.id,
+            tier: resolveOptionalTier(subscription.metadata as Record<string, string>),
+            status: 'revoked',
+            currentPeriodStart: getSubscriptionPeriodDate(subscription, 'current_period_start'),
+            currentPeriodEnd: getSubscriptionPeriodDate(subscription, 'current_period_end'),
+            cancelAtPeriodEnd: subscription.cancel_at_period_end ?? false,
+          });
         });
 
         resetLicenseState();
@@ -1068,15 +1091,17 @@ app.openapi(stripeWebhookRoute, async (c) => {
         const customer = event.data.object as Stripe.Customer;
         const customerId = customer.id;
 
-        await db
-          .update(licenses)
-          .set({ status: 'revoked', updatedAt: new Date() })
-          .where(eq(licenses.customerId, customerId));
+        await db.transaction(async (tx) => {
+          await tx
+            .update(licenses)
+            .set({ status: 'revoked', updatedAt: new Date() })
+            .where(eq(licenses.customerId, customerId));
 
-        await syncHostedSubscriptionState(db, {
-          customerId,
-          subscriptionId: null,
-          status: 'revoked',
+          await syncHostedSubscriptionState(tx, {
+            customerId,
+            subscriptionId: null,
+            status: 'revoked',
+          });
         });
 
         resetLicenseState();

@@ -262,9 +262,10 @@ const DEFAULT_RATE_LIMITS: RateLimitsConfig = {
     'billing-checkout': { maxRequests: 10, windowMs: FIFTEEN_MINUTES },
     'billing-upgrade': { maxRequests: 5, windowMs: FIFTEEN_MINUTES },
     'billing-downgrade': { maxRequests: 5, windowMs: FIFTEEN_MINUTES },
-    'billing-pause': { maxRequests: 5, windowMs: FIFTEEN_MINUTES },
-    'billing-resume': { maxRequests: 5, windowMs: FIFTEEN_MINUTES },
-    'billing-cancel': { maxRequests: 5, windowMs: FIFTEEN_MINUTES },
+    'billing-checkout-perpetual': { maxRequests: 5, windowMs: ONE_MINUTE },
+    'billing-portal': { maxRequests: 10, windowMs: ONE_MINUTE },
+    'billing-refund': { maxRequests: 3, windowMs: ONE_MINUTE },
+    'billing-rvui-payment': { maxRequests: 5, windowMs: ONE_MINUTE },
     'billing-metrics': { maxRequests: 10, windowMs: ONE_MINUTE },
     'content-batch': { maxRequests: 10, windowMs: ONE_MINUTE },
     'content-export': { maxRequests: 5, windowMs: FIFTEEN_MINUTES },
@@ -337,12 +338,14 @@ app.use('/api/billing/upgrade', routeLimit('billing-upgrade'));
 app.use('/api/v1/billing/upgrade', routeLimit('billing-upgrade'));
 app.use('/api/billing/downgrade', routeLimit('billing-downgrade'));
 app.use('/api/v1/billing/downgrade', routeLimit('billing-downgrade'));
-app.use('/api/billing/pause', routeLimit('billing-pause'));
-app.use('/api/v1/billing/pause', routeLimit('billing-pause'));
-app.use('/api/billing/resume', routeLimit('billing-resume'));
-app.use('/api/v1/billing/resume', routeLimit('billing-resume'));
-app.use('/api/billing/cancel', routeLimit('billing-cancel'));
-app.use('/api/v1/billing/cancel', routeLimit('billing-cancel'));
+app.use('/api/billing/checkout-perpetual', routeLimit('billing-checkout-perpetual'));
+app.use('/api/v1/billing/checkout-perpetual', routeLimit('billing-checkout-perpetual'));
+app.use('/api/billing/portal', routeLimit('billing-portal'));
+app.use('/api/v1/billing/portal', routeLimit('billing-portal'));
+app.use('/api/billing/refund', routeLimit('billing-refund'));
+app.use('/api/v1/billing/refund', routeLimit('billing-refund'));
+app.use('/api/billing/rvui-payment', routeLimit('billing-rvui-payment'));
+app.use('/api/v1/billing/rvui-payment', routeLimit('billing-rvui-payment'));
 app.use('/api/billing/metrics', routeLimit('billing-metrics'));
 app.use('/api/v1/billing/metrics', routeLimit('billing-metrics'));
 
@@ -422,9 +425,10 @@ const licenseStatusCheck = checkLicenseStatus(async (customerId) => {
 });
 app.use('/api/*', licenseStatusCheck);
 app.use('/api/v1/*', licenseStatusCheck);
-// A2A routes live outside /api/* so they need their own license status check.
+// A2A routes live outside /api/* so they need their own entitlement + license status check.
 // Without this, a revoked license retains A2A task execution access until the
 // 5-minute in-memory feature-flag cache expires.
+app.use('/a2a/*', entitlementMiddleware());
 app.use('/a2a/*', licenseStatusCheck);
 
 // License enforcement — gate premium routes by feature
