@@ -1,9 +1,9 @@
 import type { Metadata } from 'next';
 import { AllocationTable } from '@/components/AllocationTable';
+import { DiscountCalculator } from '@/components/DiscountCalculator';
 import { Footer } from '@/components/Footer';
 import { TokenomicsChart } from '@/components/TokenomicsChart';
 import { VestingTracker } from '@/components/VestingTracker';
-import { RVUI_DISCOUNT_RATES } from '@/lib/constants';
 
 export const metadata: Metadata = {
   title: 'Tokenomics — RevealCoin',
@@ -47,33 +47,10 @@ export default function TokenomicsPage() {
             <VestingTracker />
           </div>
 
-          {/* Discounts */}
+          {/* Discount Calculator */}
           <div className="mx-auto mt-16 max-w-4xl">
-            <h2 className="text-xl font-bold text-gray-950 mb-6">RVC Payment Discounts</h2>
-            <div className="rounded-2xl ring-1 ring-gray-950/5 overflow-hidden">
-              <table className="min-w-full divide-y divide-gray-200">
-                <thead>
-                  <tr>
-                    <th className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider text-gray-500">
-                      Service
-                    </th>
-                    <th className="px-4 py-3 text-right text-xs font-semibold uppercase tracking-wider text-gray-500">
-                      Discount
-                    </th>
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-gray-100">
-                  {Object.values(RVUI_DISCOUNT_RATES).map((rate) => (
-                    <tr key={rate.service} className="hover:bg-gray-50">
-                      <td className="px-4 py-3 text-sm text-gray-950">{rate.service}</td>
-                      <td className="px-4 py-3 text-right text-sm font-semibold text-emerald-600">
-                        {rate.discountPercent}% off
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
+            <h2 className="text-xl font-bold text-gray-950 mb-6">RVC Discount Calculator</h2>
+            <DiscountCalculator />
           </div>
         </div>
       </section>
