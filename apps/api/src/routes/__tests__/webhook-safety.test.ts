@@ -25,7 +25,7 @@ const mockChargesRetrieve = vi.fn();
 vi.mock('stripe', () => ({
   default: vi.fn().mockImplementation(
     class {
-      webhooks = { constructEvent: mockConstructEvent };
+      webhooks = { constructEventAsync: mockConstructEvent };
       subscriptions = {
         update: mockSubscriptionsUpdate,
         retrieve: mockSubscriptionsRetrieve,

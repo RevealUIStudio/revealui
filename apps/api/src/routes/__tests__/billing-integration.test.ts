@@ -102,7 +102,7 @@ describeIf('Stripe Integration Tests (OV-3)', () => {
       const header = `t=${timestamp},v1=${signature}`;
 
       // Verify with Stripe's library
-      const event = stripe.webhooks.constructEvent(payload, header, webhookSecret);
+      const event = stripe.webhooks.constructEventAsync(payload, header, webhookSecret);
 
       expect(event.id).toBe('evt_test_ov3');
       expect(event.type).toBe('checkout.session.completed');
@@ -125,7 +125,7 @@ describeIf('Stripe Integration Tests (OV-3)', () => {
       const tamperedPayload = JSON.stringify({ id: 'evt_HACKED', type: 'test' });
 
       expect(() => {
-        stripe.webhooks.constructEvent(tamperedPayload, header, webhookSecret);
+        stripe.webhooks.constructEventAsync(tamperedPayload, header, webhookSecret);
       }).toThrow();
     });
 
@@ -144,7 +144,7 @@ describeIf('Stripe Integration Tests (OV-3)', () => {
       const header = `t=${oldTimestamp},v1=${signature}`;
 
       expect(() => {
-        stripe.webhooks.constructEvent(payload, header, webhookSecret);
+        stripe.webhooks.constructEventAsync(payload, header, webhookSecret);
       }).toThrow(/timestamp/i);
     });
   });

@@ -30,7 +30,7 @@ const mockChargesRetrieve = vi.fn();
 vi.mock('stripe', () => ({
   default: vi.fn().mockImplementation(
     class {
-      webhooks = { constructEvent: mockConstructEvent };
+      webhooks = { constructEventAsync: mockConstructEvent };
       subscriptions = {
         update: mockSubscriptionsUpdate,
         retrieve: mockSubscriptionsRetrieve,
@@ -178,7 +178,7 @@ describe('POST /stripe webhook — handler tests', () => {
   // ═══════════════════════════════════════════════════════════════════════════
 
   describe('Signature verification', () => {
-    it('passes raw body and signature to constructEvent', async () => {
+    it('passes raw body and signature to constructEventAsync', async () => {
       const payload = {
         id: 'evt_sig',
         type: 'test.event',

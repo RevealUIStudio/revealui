@@ -654,7 +654,7 @@ app.openapi(stripeWebhookRoute, async (c) => {
 
   let event: Stripe.Event;
   try {
-    event = stripe.webhooks.constructEvent(body, sig, webhookSecret);
+    event = await stripe.webhooks.constructEventAsync(body, sig, webhookSecret);
   } catch (err) {
     const msg = err instanceof Error ? err.message : 'Unknown error';
     logger.error('Webhook signature verification failed', undefined, { detail: msg });
@@ -670,7 +670,7 @@ app.openapi(stripeWebhookRoute, async (c) => {
   // table, INSERT ON CONFLICT) below. A timestamp window would incorrectly reject
   // Stripe's legitimate 72-hour retry delivery attempts, which carry the original
   // event timestamp. Stripe's own signature verification already enforces a 300s
-  // tolerance during constructEvent above.
+  // tolerance during constructEventAsync above.
 
   const db = getClient();
 

@@ -27,7 +27,7 @@ const mockSubscriptionsList = vi.fn();
 vi.mock('stripe', () => ({
   default: vi.fn().mockImplementation(
     class {
-      webhooks = { constructEvent: mockConstructEvent };
+      webhooks = { constructEventAsync: mockConstructEvent };
       subscriptions = {
         update: mockSubscriptionsUpdate,
         retrieve: mockSubscriptionsRetrieve,
@@ -224,7 +224,7 @@ describe('POST /stripe webhook — signature timing & replay protection', () => 
       expect(body.received).toBe(true);
     });
 
-    it('passes raw body, signature header, and webhook secret to constructEvent', async () => {
+    it('passes raw body, signature header, and webhook secret to constructEventAsync', async () => {
       const payload = {
         id: 'evt_verify_args',
         type: 'test.event',
@@ -430,7 +430,7 @@ describe('POST /stripe webhook — signature timing & replay protection', () => 
       expect(body.error).toContain('Missing Stripe-Signature');
     });
 
-    it('does not invoke constructEvent when header is missing', async () => {
+    it('does not invoke constructEventAsync when header is missing', async () => {
       const app = createApp();
       await app.request(postStripe(VALID_BODY));
 
@@ -460,7 +460,7 @@ describe('POST /stripe webhook — signature timing & replay protection', () => 
       expect(res.status).toBe(400);
     });
 
-    it('does not invoke constructEvent for empty body (framework rejects first)', async () => {
+    it('does not invoke constructEventAsync for empty body (framework rejects first)', async () => {
       // The OpenAPI framework rejects the malformed JSON body before the handler
       // has a chance to call constructEvent
       mockConstructEvent.mockImplementationOnce(() => {

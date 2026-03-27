@@ -26,7 +26,7 @@ vi.mock('stripe', () => ({
   default: vi.fn().mockImplementation(
     // Must use a class — webhooks.ts calls `new Stripe(key)`
     class {
-      webhooks = { constructEvent: mockConstructEvent };
+      webhooks = { constructEventAsync: mockConstructEvent };
       subscriptions = {
         update: mockSubscriptionsUpdate,
         retrieve: mockSubscriptionsRetrieve,

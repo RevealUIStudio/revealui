@@ -19,7 +19,7 @@ vi.mock('stripe', () => ({
   default: vi.fn().mockImplementation(
     // Must use a class — webhooks.ts calls `new Stripe(key)`
     class {
-      webhooks = { constructEvent: mockConstructEvent };
+      webhooks = { constructEventAsync: mockConstructEvent };
       subscriptions = {
         update: mockSubscriptionsUpdate,
         retrieve: mockSubscriptionsRetrieve,
@@ -151,7 +151,7 @@ const STRIPE_EVENT_DEFAULTS = {
 
 function postStripe(eventJson: unknown, sig = 'valid-sig') {
   // Merge defaults so test payloads pass the Stripe event envelope schema validation.
-  // The handler ignores the parsed body — it uses stripe.webhooks.constructEvent() instead.
+  // The handler ignores the parsed body — it uses stripe.webhooks.constructEventAsync() instead.
   const body =
     eventJson && typeof eventJson === 'object'
       ? { ...STRIPE_EVENT_DEFAULTS, ...eventJson }
