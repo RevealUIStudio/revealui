@@ -1,5 +1,5 @@
 {
-  "$schema": "https://unpkg.com/syncpack@13.0.4/dist/schema.json",
+  "$schema": "./node_modules/syncpack/schema.json",
   "versionGroups": [
     {
       "label": "Pro packages are published externally — pin peer deps to exact versions, not workspace:*",
@@ -16,22 +16,23 @@
     {
       "label": "Use workspace protocol for internal (OSS) packages",
       "packages": ["**"],
-      "dependencies": ["@revealui/**"],
+      "dependencies": ["@revealui/**", "dev"],
       "dependencyTypes": ["prod", "dev"],
       "pinVersion": "workspace:*"
     },
     {
-      "label": "Ignore pnpm catalog: references (syncpack does not understand catalog protocol)",
+      "label": "Ignore pnpm catalog: references",
       "packages": ["**"],
       "dependencies": ["**"],
       "dependencyTypes": ["prod", "dev"],
-      "specifierTypes": ["unsupported"],
+      "specifierTypes": ["catalog"],
       "isIgnored": true
     },
     {
       "label": "Pin exact versions for critical dependencies",
       "packages": ["**"],
       "dependencies": ["next", "react", "react-dom", "typescript", "drizzle-orm"],
+      "dependencyTypes": ["prod", "dev"],
       "policy": "sameRange"
     },
     {
@@ -43,21 +44,20 @@
   ],
   "semverGroups": [
     {
+      "label": "Workspace packages use workspace:* protocol",
+      "packages": ["**"],
+      "dependencies": ["@revealui/**", "dev"],
+      "dependencyTypes": ["prod", "dev"],
+      "range": "*"
+    },
+    {
       "label": "Use caret ranges by default",
       "packages": ["**"],
       "dependencies": ["**"],
       "dependencyTypes": ["prod", "dev"],
       "range": "^"
-    },
-    {
-      "label": "Pin workspace packages",
-      "packages": ["**"],
-      "dependencies": ["@revealui/**"],
-      "dependencyTypes": ["prod", "dev", "peer"],
-      "range": ""
     }
   ],
-  "semverRange": "^",
   "sortAz": [
     "contributors",
     "dependencies",
@@ -80,5 +80,12 @@
     "author",
     "contributors"
   ],
-  "source": ["package.json", "apps/*/package.json", "packages/*/package.json"]
+  "source": [
+    "package.json",
+    "apps/*/package.json",
+    "packages/*/package.json",
+    "!packages/cli/templates/*/package.json",
+    "!**/node_modules/**",
+    "!**/.next/**"
+  ]
 }
