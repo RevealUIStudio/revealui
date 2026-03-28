@@ -5,7 +5,7 @@
   "dependencies": {
     "@revealui/core": "workspace:*",
     "@revealui/router": "workspace:*",
-    "flexsearch": "^0.7.43",
+    "flexsearch": "^0.8.212",
     "react": "^19.2.3",
     "react-dom": "^19.2.3",
     "react-markdown": "^10.1.0",
@@ -19,12 +19,12 @@
     "@types/node": "^25.5.0",
     "@types/react": "^19.2.14",
     "@types/react-dom": "^19.2.3",
-    "@vitejs/plugin-react": "^5.1.2",
+    "@vitejs/plugin-react": "^6.0.1",
     "dev": "workspace:*",
-    "jsdom": "^27.4.0",
+    "jsdom": "^29.0.1",
     "tailwindcss": "catalog:",
     "typescript": "^6.0.2",
-    "vite": "^7.3.1",
+    "vite": "^8.0.3",
     "vitest": "^4.1.0"
   },
   "engines": {

@@ -26,7 +26,7 @@ export default defineConfig({
       },
       formats: ['es'],
     },
-    rollupOptions: {
+    rolldownOptions: {
       external: ['react', 'react-dom', 'react/jsx-runtime', 'react/jsx-dev-runtime'],
       output: {
         globals: {

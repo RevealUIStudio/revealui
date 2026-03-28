@@ -19,7 +19,7 @@
     "@types/ws": "^8.5.14",
     "@vitest/coverage-v8": "^4.1.0",
     "dev": "workspace:*",
-    "jsdom": "^27.4.0",
+    "jsdom": "^29.0.1",
     "react": "^19.2.3",
     "react-dom": "^19.2.3",
     "typescript": "^6.0.2",

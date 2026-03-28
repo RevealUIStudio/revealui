@@ -25,9 +25,9 @@
     "@vitest/ui": "^4.1.0",
     "bcryptjs": "^3.0.3",
     "dev": "workspace:*",
-    "jsdom": "^27.4.0",
+    "jsdom": "^29.0.1",
     "typescript": "^6.0.2",
-    "vite": "^7.3.0",
+    "vite": "^8.0.3",
     "vitest": "^4.1.0"
   },
   "engines": {

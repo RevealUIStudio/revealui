@@ -16,6 +16,7 @@
     "globals": "^17.4.0",
     "tailwindcss": "^4.1.18",
     "typescript": "^6.0.2",
+    "vite": "catalog:",
     "vitest": "^4.1.0"
   },
   "engines": {
