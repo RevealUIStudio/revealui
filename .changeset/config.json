@@ -7,5 +7,5 @@
   "access": "public",
   "baseBranch": "main",
   "updateInternalDependencies": "patch",
-  "ignore": ["api", "cms", "docs", "marketing", "@revealui/studio", "test"]
+  "ignore": ["api", "cms", "docs", "marketing", "@revealui/studio", "test", "revealcoin", "@revealui/scripts"]
 }

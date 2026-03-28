@@ -1,5 +1,12 @@
 # @revealui/contracts
 
+## 1.3.1
+
+### Patch Changes
+
+- Updated dependencies [f89b9ff]
+  - @revealui/db@0.3.1
+
 ## 1.2.0
 
 ### Minor Changes
