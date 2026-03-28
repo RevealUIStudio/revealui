@@ -137,15 +137,27 @@ export function getCorsOrigins(): string[] {
     return envOrigins;
   }
 
-  // Fallback: use hardcoded production origins so CORS works even if
-  // CORS_ORIGIN env var is missing, empty, or has invisible characters.
-  logger.warn(
-    'CORS_ORIGIN env var missing or empty in production — using hardcoded fallback origins. ' +
-      'Set CORS_ORIGIN to a comma-separated list of allowed origins.',
-    { nodeEnv: process.env.NODE_ENV, rawValue: process.env.CORS_ORIGIN ?? '(undefined)' },
-  );
+  // Hard-fail in production: CORS_ORIGIN must be explicitly configured.
+  // Falling back to hardcoded origins risks accepting unintended cross-origin
+  // requests if the env var is misconfigured. Fail loudly instead.
+  const message =
+    'CORS_ORIGIN env var missing or empty in production — refusing to start with implicit origins. ' +
+    'Set CORS_ORIGIN to a comma-separated list of allowed origins.';
+  logger.error(message, undefined, {
+    nodeEnv: process.env.NODE_ENV,
+    rawValue: process.env.CORS_ORIGIN ?? '(undefined)',
+  });
   setCorsConfigMissing(true);
-  return PRODUCTION_ORIGINS;
+
+  // In serverless environments (Vercel), process.exit is unreliable —
+  // log the error and fall back to the known production origins so the
+  // deployment isn't bricked, but surface the misconfiguration loudly.
+  if (process.env.VERCEL) {
+    return PRODUCTION_ORIGINS;
+  }
+
+  // In long-running server mode, exit hard.
+  throw new Error(message);
 }
 
 const app = new OpenAPIHono();
@@ -178,7 +190,9 @@ app.use('*', async (c, next) => {
 
   const isAllowed =
     corsOrigins.includes(origin) ||
-    (process.env.VERCEL_ENV === 'preview' && /^https:\/\/[\w-]+\.vercel\.app$/.test(origin));
+    (process.env.VERCEL_ENV === 'preview' &&
+      (/^https:\/\/[\w-]+\.vercel\.app$/.test(origin) ||
+        /^https:\/\/(dev|test)\.(cms\.|api\.|docs\.)?revealui\.com$/.test(origin)));
 
   if (isAllowed) {
     c.header('Access-Control-Allow-Origin', origin);

@@ -985,116 +985,59 @@ User keys take precedence over tenant keys; tenant keys take precedence over ser
 
 # @revealui/editors
 
-Editor daemon and adapter integrations for Zed, VS Code, and Neovim. Brings RevealUI AI capabilities directly into your editor workflow.
+Editor config generation and sync for VS Code, Zed, Cursor, and Antigravity. Ensures consistent settings and recommended extensions across your team.
 
 ## Overview
 
-`@revealui/editors` runs a local daemon that connects your editor to the RevealUI agent system:
+`@revealui/editors` generates and synchronizes editor configuration files:
 
-- **Zed** — ACP (Agent Control Protocol) integration
-- **VS Code** — Language server extension
-- **Neovim** — Lua plugin via JSON-RPC
+- **VS Code** — recommended extensions list and workspace settings
+- **Zed** — editor settings generation
+- **Cursor** — AI rules and settings
+- **Antigravity** — agent configuration
 
 ## Installation
 
 Requires a RevealUI Pro license.
 
 ```bash
-pnpm add -g @revealui/editors
+pnpm add @revealui/editors
 ```
 
-## Starting the daemon
-
-```bash
-revealui-editor-daemon --port 3030
-```
-
-Or add to your shell profile for automatic startup:
-
-```bash
-# ~/.bashrc or ~/.zshrc
-revealui-editor-daemon --port 3030 &
-```
-
-## Zed integration
-
-The Zed adapter connects via ACP (Agent Control Protocol).
-
-```json
-// ~/.config/zed/settings.json
-{
-  "assistant": {
-    "version": "2",
-    "provider": {
-      "name": "revealui",
-      "endpoint": "http://localhost:3030"
-    }
-  }
-}
-```
-
-## VS Code integration
-
-Install the RevealUI extension from the marketplace, or manually:
-
-```bash
-code --install-extension revealui.revealui-vscode
-```
-
-Configure in VS Code settings:
-
-```json
-{
-  "revealui.daemon.endpoint": "http://localhost:3030",
-  "revealui.agent.model": "groq/llama-3.3-70b-versatile"
-}
-```
-
-## Neovim integration
-
-```lua
--- init.lua
-require('revealui').setup({
-  endpoint = 'http://localhost:3030',
-  keymaps = {
-    chat = '<leader>ai',
-    complete = '<C-space>',
-  },
-})
-```
-
-## Daemon configuration
+## Usage
 
 ```typescript
-// revealui.config.ts
-import { defineEditorConfig } from "@revealui/editors";
+import {
+  generateVSCodeExtensions,
+  generateVSCodeSettings,
+  generateZedSettings,
+  generateCursorRules,
+  generateAntigravityRules,
+  syncEditorConfigs,
+} from "@revealui/editors";
 
-export default defineEditorConfig({
-  daemon: {
-    port: 3030,
-    logLevel: "info",
-  },
-  agent: {
-    provider: "groq",
-    model: "llama-3.3-70b-versatile",
-    systemPrompt:
-      "You are a helpful coding assistant working in this codebase.",
-  },
-  workboard: {
-    path: ".claude/workboard.md",
-  },
+// Generate VS Code config
+const extensions = generateVSCodeExtensions();
+const settings = generateVSCodeSettings();
+
+// Generate Zed settings
+const zedSettings = generateZedSettings();
+
+// Sync all editor configs at once
+const results = await syncEditorConfigs({
+  projectRoot: "/path/to/your/project",
 });
 ```
 
-## Workboard coordination
+## What this does NOT do (yet)
 
-The editor daemon reads and writes the agent workboard, allowing multiple editor instances to coordinate on shared work. See [coordination rules](/pro) for details.
+Editor daemon integration (real-time sync, agent coordination from within your editor) is planned for a future release. See the [harnesses package](/pro/harnesses) for current multi-agent coordination capabilities.
 
 ---
 
 # @revealui/harnesses
 
-AI harness adapters, workboard coordination, and JSON-RPC server. Integrates Claude Code, Cursor, and Copilot into the RevealUI development workflow.
+AI harness adapters, workboard coordination, and JSON-RPC server. Integrates Claude Code and Cursor into the RevealUI development workflow.
 
 ## Overview
 
@@ -1161,15 +1104,6 @@ await adapter.execute({
 
 // Get Claude Code status
 await adapter.execute({ type: "get-status" });
-```
-
-### CopilotAdapter
-
-Adapter for GitHub Copilot. Capability detection only — Copilot does not expose a programmatic API for code generation.
-
-```typescript
-import { CopilotAdapter } from "@revealui/harnesses";
-const adapter = new CopilotAdapter();
 ```
 
 ## Workboard

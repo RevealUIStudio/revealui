@@ -1,0 +1,229 @@
+name: Deploy
+
+# Unified deployment workflow for all environments.
+# Replaces Vercel Git Integration auto-deploy with full GitHub Actions control.
+#
+# Branch → Environment mapping:
+#   main    → production  (*.revealui.com)
+#   test    → test        (test.*.revealui.com)
+#   develop → development (dev.*.revealui.com)
+#
+# All 5 apps deploy in parallel via matrix strategy.
+# Non-production deploys are aliased to stable custom domains.
+
+on:
+  push:
+    branches: [main, test, develop]
+  workflow_dispatch:
+    inputs:
+      environment:
+        description: "Target environment (auto-detected from branch if omitted)"
+        required: false
+        type: choice
+        options:
+          - auto
+          - production
+          - test
+          - development
+        default: auto
+
+concurrency:
+  group: deploy-${{ github.ref }}
+  cancel-in-progress: false # Don't cancel in-progress deploys
+
+env:
+  NODE_VERSION: "24"
+  PNPM_VERSION: "10.28.2"
+  VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
+
+jobs:
+  # ---------------------------------------------------------------------------
+  # Resolve environment from branch name
+  # ---------------------------------------------------------------------------
+  resolve:
+    name: Resolve Environment
+    runs-on: ubuntu-latest
+    outputs:
+      environment: ${{ steps.env.outputs.environment }}
+      is-production: ${{ steps.env.outputs.is-production }}
+      prod-flag: ${{ steps.env.outputs.prod-flag }}
+
+    steps:
+      - name: Determine environment
+        id: env
+        run: |
+          BRANCH="${GITHUB_REF#refs/heads/}"
+          INPUT_ENV="${{ inputs.environment }}"
+
+          if [ "$INPUT_ENV" != "" ] && [ "$INPUT_ENV" != "auto" ]; then
+            ENV="$INPUT_ENV"
+          elif [ "$BRANCH" = "main" ]; then
+            ENV="production"
+          elif [ "$BRANCH" = "test" ]; then
+            ENV="test"
+          else
+            ENV="development"
+          fi
+
+          echo "environment=$ENV" >> "$GITHUB_OUTPUT"
+          echo "is-production=$( [ "$ENV" = "production" ] && echo true || echo false )" >> "$GITHUB_OUTPUT"
+          echo "prod-flag=$( [ "$ENV" = "production" ] && echo '--prod' || echo '' )" >> "$GITHUB_OUTPUT"
+          echo "::notice::Deploying to $ENV environment (branch: $BRANCH)"
+
+  # ---------------------------------------------------------------------------
+  # Deploy all apps in parallel
+  # ---------------------------------------------------------------------------
+  deploy:
+    name: Deploy ${{ matrix.app }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    needs: resolve
+    environment:
+      name: ${{ needs.resolve.outputs.environment }}
+      url: ${{ steps.deploy.outputs.url }}
+
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - app: api
+            project-id: prj_zk6EQijYXwd9L7BccuBssi436ktM
+            test-domain: test.api.revealui.com
+            dev-domain: dev.api.revealui.com
+          - app: cms
+            project-id: prj_7sEFDg4MH6C26nJPjrukK86QdwfG
+            test-domain: test.cms.revealui.com
+            dev-domain: dev.cms.revealui.com
+          - app: marketing
+            project-id: prj_frTIYlnONVPLNIjKnQpINiGb5lm0
+            test-domain: test.revealui.com
+            dev-domain: dev.revealui.com
+          - app: docs
+            project-id: prj_OPwr0FrgcK17AOBCyoj4JIilJ9S1
+            test-domain: test.docs.revealui.com
+            dev-domain: dev.docs.revealui.com
+          - app: revealcoin
+            project-id: prj_XDiPXngciRytGA8j0vNIDz7hENRM
+            test-domain: test.revealcoin.revealui.com
+            dev-domain: dev.revealcoin.revealui.com
+
+    steps:
+      - uses: actions/checkout@v6
+
+      - uses: pnpm/action-setup@v5
+        with:
+          version: ${{ env.PNPM_VERSION }}
+
+      - uses: actions/setup-node@v6
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: pnpm
+
+      - name: Install Vercel CLI
+        run: pnpm add -g vercel@latest
+
+      - name: Install dependencies
+        run: pnpm install --no-frozen-lockfile
+
+      - name: Pull Vercel environment
+        run: vercel pull --yes --environment=${{ needs.resolve.outputs.is-production == 'true' && 'production' || 'preview' }} --token=${{ secrets.VERCEL_TOKEN }}
+        env:
+          VERCEL_PROJECT_ID: ${{ matrix.project-id }}
+
+      - name: Build
+        run: vercel build ${{ needs.resolve.outputs.prod-flag }} --token=${{ secrets.VERCEL_TOKEN }}
+        env:
+          VERCEL_PROJECT_ID: ${{ matrix.project-id }}
+          SKIP_ENV_VALIDATION: "true"
+
+      - name: Deploy
+        id: deploy
+        run: |
+          URL=$(vercel deploy --prebuilt ${{ needs.resolve.outputs.prod-flag }} --token=${{ secrets.VERCEL_TOKEN }})
+          echo "url=$URL" >> "$GITHUB_OUTPUT"
+          echo "::notice::${{ matrix.app }} deployed to $URL"
+        env:
+          VERCEL_PROJECT_ID: ${{ matrix.project-id }}
+
+      - name: Alias to stable domain (test)
+        if: needs.resolve.outputs.environment == 'test'
+        run: vercel alias ${{ steps.deploy.outputs.url }} ${{ matrix.test-domain }} --token=${{ secrets.VERCEL_TOKEN }} --scope=${{ secrets.VERCEL_ORG_ID }}
+        env:
+          VERCEL_PROJECT_ID: ${{ matrix.project-id }}
+
+      - name: Alias to stable domain (development)
+        if: needs.resolve.outputs.environment == 'development'
+        run: vercel alias ${{ steps.deploy.outputs.url }} ${{ matrix.dev-domain }} --token=${{ secrets.VERCEL_TOKEN }} --scope=${{ secrets.VERCEL_ORG_ID }}
+        env:
+          VERCEL_PROJECT_ID: ${{ matrix.project-id }}
+
+  # ---------------------------------------------------------------------------
+  # Post-deploy smoke test (production and test only)
+  # ---------------------------------------------------------------------------
+  smoke-test:
+    name: Smoke Test
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    needs: [resolve, deploy]
+    if: needs.resolve.outputs.environment == 'production' || needs.resolve.outputs.environment == 'test'
+
+    steps:
+      - name: Health check — API
+        run: |
+          if [ "${{ needs.resolve.outputs.environment }}" = "production" ]; then
+            URL="https://api.revealui.com"
+          else
+            URL="https://test.api.revealui.com"
+          fi
+          echo "Checking $URL/api/health..."
+          for i in $(seq 1 12); do
+            if curl -sf "$URL/api/health" > /dev/null 2>&1; then
+              echo "API healthy"
+              exit 0
+            fi
+            echo "Attempt $i/12 — waiting 10s..."
+            sleep 10
+          done
+          echo "API health check failed"
+          exit 1
+
+      - name: Health check — CMS
+        run: |
+          if [ "${{ needs.resolve.outputs.environment }}" = "production" ]; then
+            URL="https://cms.revealui.com"
+          else
+            URL="https://test.cms.revealui.com"
+          fi
+          echo "Checking $URL..."
+          for i in $(seq 1 12); do
+            if curl -sf "$URL" -o /dev/null 2>&1; then
+              echo "CMS healthy"
+              exit 0
+            fi
+            echo "Attempt $i/12 — waiting 10s..."
+            sleep 10
+          done
+          echo "CMS health check failed"
+          exit 1
+
+  # ---------------------------------------------------------------------------
+  # Summary — structured output for agent consumption
+  # ---------------------------------------------------------------------------
+  summary:
+    name: Deploy Summary
+    runs-on: ubuntu-latest
+    needs: [resolve, deploy]
+    if: always()
+
+    steps:
+      - name: Output deployment summary
+        run: |
+          cat <<EOF
+          {
+            "environment": "${{ needs.resolve.outputs.environment }}",
+            "branch": "${GITHUB_REF#refs/heads/}",
+            "sha": "${GITHUB_SHA:0:8}",
+            "status": "${{ needs.deploy.result }}",
+            "timestamp": "$(date -u +%Y-%m-%dT%H:%M:%SZ)"
+          }
+          EOF

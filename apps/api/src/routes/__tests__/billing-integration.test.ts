@@ -13,9 +13,10 @@ import { afterAll, beforeAll, describe, expect, it } from 'vitest';
 
 const STRIPE_KEY = process.env.STRIPE_SECRET_KEY ?? '';
 const isTestKey = STRIPE_KEY.startsWith('sk_test_');
+const integrationEnabled = process.env.RUN_INTEGRATION_TESTS === 'true';
 
-// Skip entire suite if no test Stripe key available
-const describeIf = isTestKey ? describe : describe.skip;
+// Skip unless explicitly opted in AND a test-mode key is present
+const describeIf = isTestKey && integrationEnabled ? describe : describe.skip;
 
 let stripe: Stripe;
 let testCustomerId: string;

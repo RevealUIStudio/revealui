@@ -3,9 +3,9 @@
  *
  * Verifies that CORS configuration is properly validated:
  * 1. Uses CORS_ORIGIN env var when set
- * 2. Falls back to hardcoded production origins when CORS_ORIGIN is missing
- * 3. Falls back to localhost origins in development
- * 4. Logs warnings when falling back to hardcoded origins
+ * 2. Throws in non-Vercel production when CORS_ORIGIN is missing
+ * 3. Falls back to hardcoded origins on Vercel when CORS_ORIGIN is missing
+ * 4. Falls back to localhost origins in development
  *
  * @see docs/PRODUCTION_BLOCKERS.md - Critical Fix #2
  */
@@ -48,26 +48,37 @@ describe('Critical Fix #2: CORS Validation', () => {
       process.env.NODE_ENV = 'production';
     });
 
-    it('falls back to hardcoded origins when CORS_ORIGIN is not set', () => {
+    it('throws when CORS_ORIGIN is not set (non-Vercel)', () => {
       delete process.env.CORS_ORIGIN;
+      delete process.env.VERCEL;
 
-      expect(getCorsOrigins()).toEqual(HARDCODED_PRODUCTION_ORIGINS);
+      expect(() => getCorsOrigins()).toThrow('CORS_ORIGIN');
     });
 
-    it('falls back to hardcoded origins when CORS_ORIGIN is empty string', () => {
+    it('throws when CORS_ORIGIN is empty string (non-Vercel)', () => {
       process.env.CORS_ORIGIN = '';
+      delete process.env.VERCEL;
 
-      expect(getCorsOrigins()).toEqual(HARDCODED_PRODUCTION_ORIGINS);
+      expect(() => getCorsOrigins()).toThrow('CORS_ORIGIN');
     });
 
-    it('falls back to hardcoded origins when CORS_ORIGIN contains only whitespace', () => {
+    it('throws when CORS_ORIGIN contains only whitespace (non-Vercel)', () => {
       process.env.CORS_ORIGIN = '   ,  ,   ';
+      delete process.env.VERCEL;
 
-      expect(getCorsOrigins()).toEqual(HARDCODED_PRODUCTION_ORIGINS);
+      expect(() => getCorsOrigins()).toThrow('CORS_ORIGIN');
     });
 
-    it('falls back to hardcoded origins when CORS_ORIGIN has only commas', () => {
+    it('throws when CORS_ORIGIN has only commas (non-Vercel)', () => {
       process.env.CORS_ORIGIN = ',,,';
+      delete process.env.VERCEL;
+
+      expect(() => getCorsOrigins()).toThrow('CORS_ORIGIN');
+    });
+
+    it('falls back to hardcoded origins on Vercel when CORS_ORIGIN is not set', () => {
+      delete process.env.CORS_ORIGIN;
+      process.env.VERCEL = '1';
 
       expect(getCorsOrigins()).toEqual(HARDCODED_PRODUCTION_ORIGINS);
     });
@@ -151,30 +162,31 @@ describe('Critical Fix #2: CORS Validation', () => {
     });
   });
 
-  describe('Warn Behavior (no throw)', () => {
+  describe('Error Behavior', () => {
     beforeEach(() => {
       process.env.NODE_ENV = 'production';
       delete process.env.CORS_ORIGIN;
     });
 
-    it('does not throw — returns fallback origins to allow cold-start health checks', () => {
-      vi.spyOn(logger, 'warn').mockImplementation(() => {});
+    it('throws in non-Vercel production when CORS_ORIGIN is missing', () => {
+      delete process.env.VERCEL;
+      vi.spyOn(logger, 'error').mockImplementation(() => {});
+      expect(() => getCorsOrigins()).toThrow('CORS_ORIGIN');
+    });
+
+    it('does not throw on Vercel — returns fallback origins for serverless cold-starts', () => {
+      process.env.VERCEL = '1';
+      vi.spyOn(logger, 'error').mockImplementation(() => {});
       expect(() => getCorsOrigins()).not.toThrow();
       expect(getCorsOrigins()).toEqual(HARDCODED_PRODUCTION_ORIGINS);
     });
 
-    it('warn message explains that CORS_ORIGIN env var is missing', () => {
-      const warnSpy = vi.spyOn(logger, 'warn').mockImplementation(() => {});
+    it('error message explains that CORS_ORIGIN env var is missing', () => {
+      process.env.VERCEL = '1';
+      const errorSpy = vi.spyOn(logger, 'error').mockImplementation(() => {});
       getCorsOrigins();
-      const message = warnSpy.mock.calls[0]?.[0] as string;
+      const message = errorSpy.mock.calls[0]?.[0] as string;
       expect(message).toContain('CORS_ORIGIN');
-    });
-
-    it('warn message references hardcoded fallback', () => {
-      const warnSpy = vi.spyOn(logger, 'warn').mockImplementation(() => {});
-      getCorsOrigins();
-      const message = warnSpy.mock.calls[0]?.[0] as string;
-      expect(message).toContain('hardcoded fallback');
     });
   });
 });
@@ -186,8 +198,8 @@ describe('Critical Fix #2: CORS Validation', () => {
  *
  * What This Verifies:
  * 1. Production with CORS_ORIGIN: uses env var values
- * 2. Production without CORS_ORIGIN: falls back to hardcoded origins (never empty)
- * 3. Development: Works without CORS_ORIGIN (uses localhost)
- * 4. Edge cases: Empty strings, whitespace, commas trigger fallback
- * 5. Function never throws — allows health checks to respond on misconfigured deploys
+ * 2. Production without CORS_ORIGIN (non-Vercel): throws hard to prevent startup
+ * 3. Production without CORS_ORIGIN (Vercel): falls back to hardcoded origins
+ * 4. Development: Works without CORS_ORIGIN (uses localhost)
+ * 5. Edge cases: Empty strings, whitespace, commas trigger error
  */
