@@ -35,70 +35,42 @@ Run the development server:
 pnpm dev
 \`\`\`
 
-Open [http://localhost:4000](http://localhost:4000) with your browser to access the CMS.
+Open [http://localhost:4000](http://localhost:4000) with your browser.
 
-The web application runs on [http://localhost:3000](http://localhost:3000).
+## Requirements
 
-## Development Environments
-
-### Standard Setup
-
-Requirements:
 - Node.js 24.13.0 or higher
-- pnpm 10.28.2 or higher
-- PostgreSQL 16
-
-### Dev Containers
-
-Open in VS Code and select "Reopen in Container", or use GitHub Codespaces.
-
-### Devbox
-
-Install Devbox:
-
-\`\`\`bash
-curl -fsSL https://get.jetpack.io/devbox | bash
-\`\`\`
-
-Then start the Devbox shell:
-
-\`\`\`bash
-devbox shell
-pnpm dev
-\`\`\`
+- pnpm 10 or higher
+- PostgreSQL 16 (or use a hosted provider like [Neon](https://neon.tech))
 
 ## Project Structure
 
 \`\`\`
 ${projectConfig.projectName}/
-├── apps/
-│   ├── cms/              # CMS application
-│   └── web/              # Frontend application
-├── packages/
-│   ├── auth/             # Authentication
-│   ├── db/               # Database
-│   └── ...               # Other shared packages
-├── .devcontainer/        # Dev Container configuration
-├── devbox.json           # Devbox configuration
-└── .env.development.local # Environment variables
+├── src/
+│   ├── app/              # Next.js App Router pages
+│   ├── collections/      # RevealUI collection definitions
+│   └── seed.ts           # Database seed script
+├── revealui.config.ts    # RevealUI configuration
+├── next.config.mjs       # Next.js configuration
+└── .env.local            # Environment variables (git-ignored)
 \`\`\`
 
 ## Available Scripts
 
-- \`pnpm dev\` - Start development servers
+- \`pnpm dev\` - Start the development server
 - \`pnpm build\` - Build for production
 - \`pnpm test\` - Run tests
-- \`pnpm lint\` - Run linters
+- \`pnpm lint\` - Lint with Biome
 - \`pnpm typecheck\` - Type check
-- \`pnpm db:init\` - Initialize database
+- \`pnpm db:init\` - Initialize the database
 - \`pnpm db:migrate\` - Run migrations
-- \`pnpm db:seed\` - Seed database
+- \`pnpm db:seed\` - Seed sample content
 
 ## Learn More
 
-- [RevealUI Documentation](https://github.com/your-org/RevealUI)
+- [RevealUI Documentation](https://docs.revealui.com)
 - [Next.js Documentation](https://nextjs.org/docs)
-- [Hono Documentation](https://hono.dev)
 
 ## Template
 
