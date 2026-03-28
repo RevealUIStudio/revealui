@@ -28,7 +28,7 @@
     "dev": "workspace:*",
     "happy-dom": "^20.8.4",
     "react": "^19.2.3",
-    "typescript": "^5.9.3",
+    "typescript": "^6.0.2",
     "vitest": "^4.1.0"
   },
   "engines": {

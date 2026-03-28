@@ -12,6 +12,7 @@
     "resolveJsonModule": true,
     "isolatedModules": true,
     "verbatimModuleSyntax": true,
+    "types": ["node"],
     "paths": {
       "@revealui/core/*": ["../core/src/*.ts", "../core/src/*/index.ts"]
     }

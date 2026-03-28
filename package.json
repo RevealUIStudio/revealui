@@ -40,7 +40,7 @@
     "ts-node": "^10.9.2",
     "tsx": "^4.21.0",
     "turbo": "^2.8.10",
-    "typescript": "^5.9.3",
+    "typescript": "^6.0.2",
     "vercel": "^50.19.1",
     "vercel-mcp": "^0.0.7",
     "vitest": "^4.1.0",

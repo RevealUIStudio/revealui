@@ -1,7 +1,6 @@
 {
   "extends": "../../packages/dev/src/ts/nextjs.json",
   "compilerOptions": {
-    "baseUrl": ".",
     "lib": ["dom", "dom.iterable", "esnext"],
     "allowJs": true,
     "skipLibCheck": true,
@@ -24,7 +23,8 @@
     "paths": {
       "@/*": ["./src/*"],
       "@/types": ["./src/types/index.ts"],
-      "@reveal-config": ["./revealui.config.ts"]
+      "@reveal-config": ["./revealui.config.ts"],
+      "cssVariables": ["./cssVariables.js"]
     },
     "target": "ES2022"
   },

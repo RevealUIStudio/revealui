@@ -15,7 +15,7 @@
     "@vitest/ui": "^4.1.0",
     "globals": "^15.11.0",
     "tailwindcss": "^4.1.18",
-    "typescript": "^5.9.3",
+    "typescript": "^6.0.2",
     "vitest": "^4.1.0"
   },
   "engines": {
