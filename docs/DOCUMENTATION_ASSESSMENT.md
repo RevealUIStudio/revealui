@@ -168,3 +168,66 @@ Overall Pro tier: **~80% complete** (not 50% as a surface scan might suggest).
 10. **Clarify ElectricSQL status**: "Basic" sync should be explicitly noted
 11. **Clarify Forge timeline**: Infrastructure exists but isn't deployable yet
 12. **Auto-generate CHANGELOG**: Current one is manually maintained and stale
+
+---
+
+## Phase 3 Exit Criteria Assessment
+
+_Updated: 2026-03-28 | Commit: e1858051_
+
+### Technical Exit Criteria
+
+| Criterion | Status | Evidence |
+|-----------|--------|----------|
+| GitHub repo public | ✅ MET | `isPrivate: false` confirmed |
+| npm packages published | ✅ MET | `@revealui/core@0.3.0`, `create-revealui@0.3.3` live on npm |
+| `npx create-revealui` works | ✅ MET | Validated 2026-03-28 |
+| Pro tier purchasable | ✅ MET | Stripe flow verified (test mode) |
+| All 5 apps deployed | ✅ MET | revealui.com, cms, api, docs all return 200 |
+| CI gate passes | ✅ MET | `pnpm gate:quick` PASS |
+| 10,700+ tests | ✅ MET | 10,784+ tests across all packages |
+| Zero avoidable `any` types | ✅ MET | `pnpm audit:any` = 0 avoidable |
+| Zero production console stmts | ✅ MET | `pnpm audit:console` = 0 |
+| Security audit complete | ✅ MET | Session 133 (2026-03-28) |
+| Changeset versions applied | ✅ MET | core 0.3.0, 14 packages patched |
+| Vercel build scoping correct | ✅ MET | DW-0 audit: all apps use `turbo build --filter` |
+
+### Customer-Measurable Exit Criteria
+
+| Criterion | Status | Notes |
+|-----------|--------|-------|
+| 1+ paying Pro customer | ❌ NOT MET | Stripe in test mode (#87 — key rotation needed) |
+| 10+ waitlist members tried quick-start | ❌ NOT MET | #88 — needs external testers |
+| Discourse forum live | ❌ NOT MET | community.revealui.com not yet set up |
+| Fresh-browser billing flow works | ⚠️ PARTIAL | Flow works in test mode; live mode blocked on #87 |
+
+### Open Issues Blocking Phase 3 Exit
+
+| Issue | Priority | Type | Blocker? |
+|-------|----------|------|----------|
+| #87 Rotate expired Stripe test key | P0 | Owner action | **Yes** — blocks billing verification |
+| #88 External quick-start validation | P1 | Owner action | **Yes** — exit criterion |
+| #86 Turbo remote cache secrets | P1 | Owner action | No — CI works without it |
+| #89 Publish launch blog post | P2 | Content | No — marketing blog links to docs |
+| #90 Agency outreach | P2 | Business | No — post-launch activity |
+| #92 Stripe Billing Meter | P1 | Code + owner | No — overage billing is enhancement |
+
+### Deferred (Not Phase 3)
+
+| Issue | Label |
+|-------|-------|
+| #91 npm Pro org setup | infra, P2 |
+| #93 Enable x402 payments | billing, deferred |
+| #94 Docker images to GHCR | infra, deferred |
+| #95 ESM-only goal | infra, deferred |
+
+### Verdict
+
+**Phase 3 technical criteria: ALL MET.** The codebase, CI, npm packages, and deployments are production-ready.
+
+**Phase 3 customer criteria: NOT MET.** Three owner-action items block the exit:
+1. Stripe test key rotation (#87) — unblocks billing verification
+2. External quick-start validation (#88) — needs 3 developers to test
+3. Discourse forum setup — needs hosting provisioning
+
+**Recommendation:** Complete #87 (Stripe key rotation) first — it unblocks both billing verification and the external validation flow. Then recruit 3 testers for #88. Discourse can be set up in parallel.
