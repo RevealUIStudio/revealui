@@ -168,7 +168,10 @@ function collectTextFiles(dir: string, files: string[] = []): string[] {
 // Helpers
 // =============================================================================
 
-function isPrivatePackage(pkgName: string): boolean {
+const COMMERCIAL_PACKAGE_DIRS = COMMERCIAL_PACKAGES.map((p) => p.replace('@revealui/', ''));
+
+function isPrivateOrCommercialPackage(pkgName: string): boolean {
+  if (COMMERCIAL_PACKAGE_DIRS.includes(pkgName)) return true;
   const pkgJsonPath = join(PACKAGES_DIR, pkgName, 'package.json');
   if (!existsSync(pkgJsonPath)) return false;
   const pkg = JSON.parse(readFileSync(pkgJsonPath, 'utf8')) as { private?: boolean };
@@ -184,7 +187,7 @@ function checkOssImportBoundary(): string[] {
 
   for (const pkgName of OSS_PACKAGE_NAMES) {
     // Private packages are dev-only and not published — skip them
-    if (isPrivatePackage(pkgName)) continue;
+    if (isPrivateOrCommercialPackage(pkgName)) continue;
 
     const srcDir = join(PACKAGES_DIR, pkgName, 'src');
     const files = collectSourceFiles(srcDir);
@@ -220,7 +223,7 @@ function checkInternalReferences(): string[] {
 
   for (const pkgName of allPackageNames) {
     // Private packages are dev-only and not published — skip them
-    if (isPrivatePackage(pkgName)) continue;
+    if (isPrivateOrCommercialPackage(pkgName)) continue;
 
     const srcDir = join(PACKAGES_DIR, pkgName, 'src');
     const files = collectSourceFiles(srcDir);
