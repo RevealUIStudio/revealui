@@ -67,7 +67,8 @@
             "conventions": [
               {
                 "selector": { "kind": "objectLiteralProperty" },
-                "formats": ["camelCase", "snake_case", "CONSTANT_CASE"]
+                "formats": ["camelCase", "snake_case", "CONSTANT_CASE", "PascalCase"],
+                "match": "(?:_.*|.*)"
               },
               {
                 "selector": { "kind": "typeProperty" },

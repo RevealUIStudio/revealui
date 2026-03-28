@@ -11,7 +11,6 @@ const urlField: TextField = {
 export const EmbedFeature = createServerFeature({
   feature: {
     // ClientFeature: EmbedFeatureClient,
-    // biome-ignore lint/style/useNamingConvention: Rich text feature API uses ClientFeature.
     ClientFeature: './feature.client',
     nodes: [
       {

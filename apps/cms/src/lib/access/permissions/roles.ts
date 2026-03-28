@@ -26,17 +26,11 @@ export interface RolePermission extends Permission {
 }
 
 const Permissions = {
-  // biome-ignore lint/style/useNamingConvention: Permission keys use PascalCase for readability.
   ManageUsers: { name: 'manage-users', level: 8, permission: true },
-  // biome-ignore lint/style/useNamingConvention: Permission keys use PascalCase for readability.
   ManageBilling: { name: 'manage-billing', level: 9, permission: true },
-  // biome-ignore lint/style/useNamingConvention: Permission keys use PascalCase for readability.
   ViewReports: { name: 'view-reports', level: 5, permission: true },
-  // biome-ignore lint/style/useNamingConvention: Permission keys use PascalCase for readability.
   ManageContent: { name: 'manage-content', level: 7, permission: true },
-  // biome-ignore lint/style/useNamingConvention: Permission keys use PascalCase for readability.
   ApprovePosts: { name: 'approve-posts', level: 6, permission: true },
-  // biome-ignore lint/style/useNamingConvention: Permission keys use PascalCase for readability.
   AccessAPI: { name: 'access-api', level: 4, permission: true },
 };
 

@@ -5,7 +5,6 @@ export const InitTheme = () => {
     <Script
       // biome-ignore lint/security/noDangerouslySetInnerHtml: inline theme init required before render
       dangerouslySetInnerHTML={{
-        // biome-ignore lint/style/useNamingConvention: __html is the required React dangerouslySetInnerHTML property name
         __html: `
   (function () {
     var dark = window.matchMedia('(prefers-color-scheme: dark)').matches;

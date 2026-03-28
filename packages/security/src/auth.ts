@@ -141,7 +141,6 @@ export class OAuthClient {
     if (!this.config.userInfoUrl) throw new Error('userInfoUrl is required for OAuth');
     const response = await fetch(this.config.userInfoUrl, {
       headers: {
-        // biome-ignore lint/style/useNamingConvention: HTTP header convention
         Authorization: `Bearer ${accessToken}`,
       },
     });

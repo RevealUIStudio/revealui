@@ -127,7 +127,6 @@ async function sendViaGmail(config: GmailConfig, options: EmailOptions): Promise
   const res = await fetch('https://gmail.googleapis.com/gmail/v1/users/me/messages/send', {
     method: 'POST',
     headers: {
-      // biome-ignore lint/style/useNamingConvention: Authorization is a standard HTTP header name
       Authorization: `Bearer ${accessToken}`,
       'Content-Type': 'application/json',
     },
@@ -156,7 +155,6 @@ async function sendViaResend(options: EmailOptions): Promise<void> {
   const response = await fetch('https://api.resend.com/emails', {
     method: 'POST',
     headers: {
-      // biome-ignore lint/style/useNamingConvention: Authorization is a standard HTTP header name
       Authorization: `Bearer ${apiKey}`,
       'Content-Type': 'application/json',
     },

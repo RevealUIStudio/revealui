@@ -14,7 +14,6 @@ import { EmbedPlugin } from './plugins/EmbedPlugin';
 export const EmbedFeatureClient = createClientFeature({
   plugins: [
     {
-      // biome-ignore lint/style/useNamingConvention: Rich text plugin API uses Component.
       Component: EmbedPlugin as ComponentType<unknown>,
       position: 'normal',
     },
@@ -25,7 +24,6 @@ export const EmbedFeatureClient = createClientFeature({
       toolbarAddDropdownGroupWithItems([
         {
           key: 'embed',
-          // biome-ignore lint/style/useNamingConvention: Rich text toolbar API uses ChildComponent.
           ChildComponent: EmbedIcon,
           label: 'Embed',
           onSelect: ({ editor }: { editor: LexicalEditor }) => {
@@ -45,7 +43,6 @@ export const EmbedFeatureClient = createClientFeature({
             editor.dispatchCommand(OPEN_EMBED_DRAWER_COMMAND, {});
           },
           keywords: ['embed'],
-          // biome-ignore lint/style/useNamingConvention: Rich text slash menu API uses Icon.
           Icon: EmbedIcon,
         },
       ]),

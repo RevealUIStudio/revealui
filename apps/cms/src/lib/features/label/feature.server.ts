@@ -13,7 +13,6 @@ const urlField: TextField = {
 export const LabelFeature = async () => {
   return createServerFeature({
     feature: {
-      // biome-ignore lint/style/useNamingConvention: ClientFeature is an API key that requires PascalCase
       ClientFeature: './feature.client',
       nodes: [
         {

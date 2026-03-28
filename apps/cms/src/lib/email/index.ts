@@ -127,7 +127,6 @@ class GmailProvider implements EmailProvider {
       const res = await fetch('https://gmail.googleapis.com/gmail/v1/users/me/messages/send', {
         method: 'POST',
         headers: {
-          // biome-ignore lint/style/useNamingConvention: Authorization is a standard HTTP header name
           Authorization: `Bearer ${accessToken}`,
           'Content-Type': 'application/json',
         },
@@ -184,7 +183,6 @@ class ResendProvider implements EmailProvider {
       const response = await fetch('https://api.resend.com/emails', {
         method: 'POST',
         headers: {
-          // biome-ignore lint/style/useNamingConvention: Authorization is a standard HTTP header name (PascalCase)
           Authorization: `Bearer ${this.apiKey}`,
           'Content-Type': 'application/json',
         },

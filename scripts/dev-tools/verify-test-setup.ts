@@ -373,7 +373,6 @@ async function verifyOpenAIConnection() {
   try {
     const response = await fetch('https://api.openai.com/v1/models', {
       headers: {
-        // biome-ignore lint/style/useNamingConvention: standard HTTP header name
         Authorization: `Bearer ${apiKey}`,
       },
     });

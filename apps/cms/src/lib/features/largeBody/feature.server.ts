@@ -10,7 +10,6 @@ const urlField: TextField = {
 
 export const LabelFeature = createServerFeature({
   feature: {
-    // biome-ignore lint/style/useNamingConvention: Rich text feature API uses ClientFeature.
     ClientFeature: './feature.client',
     nodes: [
       {

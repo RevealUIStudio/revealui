@@ -38,7 +38,6 @@ export async function writeGDPRAuditEntry(
     // Collection may not exist yet — fall back to structured log so the audit
     // trail is never silently lost.
     process.stdout.write(
-      // biome-ignore lint/style/useNamingConvention: _source is an internal audit log field that must use this exact name for log parsing
       `${JSON.stringify({ level: 'audit', ...entry, _source: 'gdpr-audit-fallback' })}\n`,
     );
   }

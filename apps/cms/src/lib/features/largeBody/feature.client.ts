@@ -17,7 +17,6 @@ export const OPEN_LARGE_BODY_DRAWER_COMMAND = createCommand();
 export const LargeBodyFeatureClient = createClientFeature({
   plugins: [
     {
-      // biome-ignore lint/style/useNamingConvention: Rich text plugin API uses Component.
       Component: LargeBodyPlugin as ComponentType<unknown>,
       position: 'normal',
     },
@@ -28,7 +27,6 @@ export const LargeBodyFeatureClient = createClientFeature({
       toolbarAddDropdownGroupWithItems([
         {
           key: 'label',
-          // biome-ignore lint/style/useNamingConvention: Rich text toolbar API uses ChildComponent.
           ChildComponent: LargeBodyIcon,
           label: 'Label',
           onSelect: ({ editor }: { editor: LexicalEditor }) => {
@@ -48,7 +46,6 @@ export const LargeBodyFeatureClient = createClientFeature({
             editor.dispatchCommand(OPEN_LARGE_BODY_DRAWER_COMMAND, {});
           },
           keywords: ['largeBody'],
-          // biome-ignore lint/style/useNamingConvention: Rich text slash menu API uses Icon.
           Icon: LargeBodyIcon,
         },
       ]),

@@ -17,7 +17,6 @@ async function proxyRequest(
   const { collection, id } = await params;
 
   const headers: Record<string, string> = {
-    // biome-ignore lint/style/useNamingConvention: HTTP header name
     Cookie: request.headers.get('Cookie') ?? '',
   };
 
