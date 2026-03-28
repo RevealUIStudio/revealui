@@ -31,7 +31,6 @@ async function authedGet<T>(apiUrl: string, path: string, token: string): Promis
   const res = await fetch(`${apiUrl}/api/billing${path}`, {
     method: 'GET',
     headers: {
-      // biome-ignore lint/style/useNamingConvention: Authorization is the correct HTTP header name
       Authorization: `Bearer ${token}`,
       'Content-Type': 'application/json',
     },

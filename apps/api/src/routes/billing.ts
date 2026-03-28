@@ -74,7 +74,6 @@ interface RequestEntitlements {
 }
 
 interface BillingEnv {
-  // biome-ignore lint/style/useNamingConvention: Hono requires PascalCase `Variables` in its generic type parameter
   Variables: {
     user: UserContext | undefined;
     entitlements?: RequestEntitlements | undefined;

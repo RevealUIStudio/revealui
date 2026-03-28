@@ -6,7 +6,6 @@ import commentsRoute from './comments.js';
 import labelsRoute from './labels.js';
 import ticketsRoute from './tickets.js';
 
-// biome-ignore lint/style/useNamingConvention: Hono requires Variables key
 const app = new OpenAPIHono<{ Variables: Variables }>();
 
 app.route('/', boardsRoute);

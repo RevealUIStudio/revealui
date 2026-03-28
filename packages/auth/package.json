@@ -16,7 +16,7 @@
     "@revealui/db": "workspace:*",
     "@simplewebauthn/server": "^13.3.0",
     "bcryptjs": "^3.0.3",
-    "drizzle-orm": "^0.45.1",
+    "drizzle-orm": "^0.45.2",
     "zod": "catalog:"
   },
   "devDependencies": {
@@ -28,7 +28,7 @@
     "dev": "workspace:*",
     "happy-dom": "^20.8.4",
     "react": "^19.2.3",
-    "typescript": "^5.9.3",
+    "typescript": "^6.0.2",
     "vitest": "^4.1.0"
   },
   "engines": {

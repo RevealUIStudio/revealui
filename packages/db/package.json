@@ -12,10 +12,10 @@
   "devDependencies": {
     "dev": "workspace:*",
     "drizzle-kit": "^0.31.8",
-    "drizzle-orm": "^0.45.1",
+    "drizzle-orm": "^0.45.2",
     "drizzle-zod": "^0.8.3",
     "tsx": "^4.21.0",
-    "typescript": "^5.9.3"
+    "typescript": "^6.0.2"
   },
   "engines": {
     "node": ">=24.13.0"
@@ -187,7 +187,7 @@
   ],
   "main": "./dist/index.js",
   "peerDependencies": {
-    "drizzle-orm": "^0.45.1",
+    "drizzle-orm": "^0.45.2",
     "drizzle-zod": "^0.8.3"
   },
   "peerDependenciesMeta": {

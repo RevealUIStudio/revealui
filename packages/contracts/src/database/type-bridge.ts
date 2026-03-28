@@ -23,30 +23,22 @@ import type { Contract, ContractValidationResult } from '../foundation/contract.
 export type Database<
   T extends {
     public: {
-      // biome-ignore lint/style/useNamingConvention: Supabase schema shape.
       Tables: Record<
         string,
         {
-          // biome-ignore lint/style/useNamingConvention: Supabase schema shape.
           Row: unknown;
-          // biome-ignore lint/style/useNamingConvention: Supabase schema shape.
           Insert: unknown;
-          // biome-ignore lint/style/useNamingConvention: Supabase schema shape.
           Update: unknown;
         }
       >;
     };
   } = {
     public: {
-      // biome-ignore lint/style/useNamingConvention: Supabase schema shape.
       Tables: Record<
         string,
         {
-          // biome-ignore lint/style/useNamingConvention: Supabase schema shape.
           Row: unknown;
-          // biome-ignore lint/style/useNamingConvention: Supabase schema shape.
           Insert: unknown;
-          // biome-ignore lint/style/useNamingConvention: Supabase schema shape.
           Update: unknown;
         }
       >;
@@ -196,7 +188,6 @@ export function isDbRowAndContract<TContract, TDbRow>(
  */
 export type TableContractMap<T extends Database> = {
   [K in keyof T['public']['Tables']]?: T['public']['Tables'][K] extends {
-    // biome-ignore lint/style/useNamingConvention: Supabase schema shape.
     Row: infer R;
   }
     ? Contract<R>
@@ -228,10 +219,8 @@ export function createTableContractRegistry<T extends Database>(map: TableContra
      */
     validate<K extends keyof T['public']['Tables']>(
       tableName: K,
-      // biome-ignore lint/style/useNamingConvention: Supabase schema shape.
       row: T['public']['Tables'][K] extends { Row: infer R } ? R : never,
     ): T['public']['Tables'][K] extends {
-      // biome-ignore lint/style/useNamingConvention: Supabase schema shape.
       Row: infer R;
     }
       ? ContractValidationResult<R> | null
@@ -239,7 +228,6 @@ export function createTableContractRegistry<T extends Database>(map: TableContra
       const contract = map[tableName];
       if (!contract) {
         return null as T['public']['Tables'][K] extends {
-          // biome-ignore lint/style/useNamingConvention: Supabase schema shape.
           Row: infer R;
         }
           ? ContractValidationResult<R> | null
@@ -247,7 +235,6 @@ export function createTableContractRegistry<T extends Database>(map: TableContra
       }
       type TableType = T['public']['Tables'][K];
       type RowType = TableType extends {
-        // biome-ignore lint/style/useNamingConvention: Supabase schema shape.
         Row: infer R;
       }
         ? R
@@ -256,7 +243,6 @@ export function createTableContractRegistry<T extends Database>(map: TableContra
       return (contract as ContractType).validate(
         row as RowType,
       ) as T['public']['Tables'][K] extends {
-        // biome-ignore lint/style/useNamingConvention: Supabase schema shape.
         Row: infer R;
       }
         ? ContractValidationResult<R>
@@ -269,13 +255,11 @@ export function createTableContractRegistry<T extends Database>(map: TableContra
     getContract<K extends keyof T['public']['Tables']>(
       tableName: K,
     ): T['public']['Tables'][K] extends {
-      // biome-ignore lint/style/useNamingConvention: Supabase schema shape.
       Row: infer R;
     }
       ? Contract<R> | undefined
       : undefined {
       return map[tableName] as T['public']['Tables'][K] extends {
-        // biome-ignore lint/style/useNamingConvention: Supabase schema shape.
         Row: infer R;
       }
         ? Contract<R> | undefined

@@ -24,30 +24,22 @@ import type { Contract } from '../foundation/contract.js';
 export type Database<
   T extends {
     public: {
-      // biome-ignore lint/style/useNamingConvention: Supabase schema shape.
       Tables: Record<
         string,
         {
-          // biome-ignore lint/style/useNamingConvention: Supabase schema shape.
           Row: unknown;
-          // biome-ignore lint/style/useNamingConvention: Supabase schema shape.
           Insert: unknown;
-          // biome-ignore lint/style/useNamingConvention: Supabase schema shape.
           Update: unknown;
         }
       >;
     };
   } = {
     public: {
-      // biome-ignore lint/style/useNamingConvention: Supabase schema shape.
       Tables: Record<
         string,
         {
-          // biome-ignore lint/style/useNamingConvention: Supabase schema shape.
           Row: unknown;
-          // biome-ignore lint/style/useNamingConvention: Supabase schema shape.
           Insert: unknown;
-          // biome-ignore lint/style/useNamingConvention: Supabase schema shape.
           Update: unknown;
         }
       >;
@@ -136,7 +128,6 @@ export type TableRowType<
   T extends Database,
   N extends TableName<T>,
 > = T['public']['Tables'][N] extends {
-  // biome-ignore lint/style/useNamingConvention: Supabase schema shape.
   Row: infer R;
 }
   ? R
@@ -152,7 +143,6 @@ export type TableInsertType<
   T extends Database,
   N extends TableName<T>,
 > = T['public']['Tables'][N] extends {
-  // biome-ignore lint/style/useNamingConvention: Supabase schema shape.
   Insert: infer I;
 }
   ? I
@@ -168,7 +158,6 @@ export type TableUpdateType<
   T extends Database,
   N extends TableName<T>,
 > = T['public']['Tables'][N] extends {
-  // biome-ignore lint/style/useNamingConvention: Supabase schema shape.
   Update: infer U;
 }
   ? U

@@ -1,7 +1,6 @@
 {
   "extends": "../../packages/dev/src/ts/nextjs.json",
   "compilerOptions": {
-    "baseUrl": ".",
     "lib": ["dom", "dom.iterable", "esnext"],
     "allowJs": true,
     "skipLibCheck": true,

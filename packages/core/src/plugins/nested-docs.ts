@@ -103,7 +103,6 @@ export function nestedDocsPlugin(config: NestedDocsPluginConfig = {}): Plugin {
             admin: {
               readOnly: true,
               components: {
-                // biome-ignore lint/style/useNamingConvention: Payload component key.
                 RowLabel: () => null,
               },
             },

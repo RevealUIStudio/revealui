@@ -18,7 +18,6 @@ import { PaginationQuery } from '../_helpers/pagination.js';
 import { dateToString, nullableDateToString } from '../_helpers/serialize.js';
 import type { ContentVariables } from './index.js';
 
-// biome-ignore lint/style/useNamingConvention: Hono requires Variables key
 const app = new OpenAPIHono<{ Variables: ContentVariables }>();
 
 // =============================================================================

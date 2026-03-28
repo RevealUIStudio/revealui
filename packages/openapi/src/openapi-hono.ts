@@ -47,7 +47,6 @@ import { zValidator } from './zod-validator.js';
  * so it is accessible at runtime. This helper confines the cast to one place.
  */
 function getBasePath(app: Hono): string {
-  // biome-ignore lint/style/useNamingConvention: _basePath is Hono's internal property name
   return (app as unknown as { _basePath?: string })._basePath ?? '';
 }
 
@@ -364,14 +363,12 @@ export class OpenAPIHono<
           });
           break;
         case 'schema': {
-          // biome-ignore lint/style/useNamingConvention: _internal is the library's property name (not ours)
           const meta = getOpenApiMetadata(def.schema) as { _internal?: { refId?: string } };
           const refId = meta?._internal?.refId ?? '';
           this.openAPIRegistry.register(refId, def.schema);
           break;
         }
         case 'parameter': {
-          // biome-ignore lint/style/useNamingConvention: _internal is the library's property name (not ours)
           const meta = getOpenApiMetadata(def.schema) as { _internal?: { refId?: string } };
           const paramRefId = meta?._internal?.refId ?? '';
           this.openAPIRegistry.registerParameter(paramRefId, def.schema);

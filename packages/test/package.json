@@ -10,9 +10,9 @@
     "@revealui/core": "workspace:*",
     "@revealui/db": "workspace:*",
     "@revealui/utils": "workspace:*",
-    "drizzle-orm": "^0.45.1",
+    "drizzle-orm": "^0.45.2",
     "hono": "^4.12.7",
-    "stripe": "^20.3.1",
+    "stripe": "^21.0.1",
     "zod": "catalog:"
   },
   "devDependencies": {
@@ -26,6 +26,7 @@
     "bcryptjs": "^3.0.3",
     "dev": "workspace:*",
     "jsdom": "^27.4.0",
+    "typescript": "^6.0.2",
     "vite": "^7.3.0",
     "vitest": "^4.1.0"
   },

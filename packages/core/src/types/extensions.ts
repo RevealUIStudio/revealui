@@ -25,7 +25,6 @@ export type CustomComponent<P = Record<string, unknown>> = ComponentType<P>;
  * RevealUI component interface (for component registration)
  */
 export interface RevealUIComponentConfig<P = Record<string, unknown>> {
-  // biome-ignore lint/style/useNamingConvention: Matches component registration API.
   Component: ComponentType<P>;
   props?: P;
 }

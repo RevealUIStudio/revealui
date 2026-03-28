@@ -24,7 +24,6 @@ export async function exchangeCode(code: string, redirectUri: string): Promise<s
     method: 'POST',
     headers: {
       'Content-Type': 'application/x-www-form-urlencoded',
-      // biome-ignore lint/style/useNamingConvention: HTTP header names are case-sensitive per RFC 7230
       Accept: 'application/json',
     },
     body: new URLSearchParams({
@@ -60,9 +59,7 @@ export async function exchangeCode(code: string, redirectUri: string): Promise<s
 
 export async function fetchUser(accessToken: string): Promise<ProviderUser> {
   const headers = {
-    // biome-ignore lint/style/useNamingConvention: HTTP header names are case-sensitive per RFC 7230
     Authorization: `Bearer ${accessToken}`,
-    // biome-ignore lint/style/useNamingConvention: HTTP header names are case-sensitive per RFC 7230
     Accept: 'application/vnd.github+json',
   };
 

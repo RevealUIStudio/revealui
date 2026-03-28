@@ -36,9 +36,7 @@ async function loadEpisodicDeps() {
   ]);
   if (!(persistMod && storesMod)) return null;
   return {
-    // biome-ignore lint/style/useNamingConvention: class constructor reference
     CRDTPersistence: persistMod.CRDTPersistence,
-    // biome-ignore lint/style/useNamingConvention: class constructor reference
     EpisodicMemory: storesMod.EpisodicMemory,
   };
 }

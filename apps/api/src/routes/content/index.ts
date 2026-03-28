@@ -49,7 +49,6 @@ export type ContentVariables = {
   user?: { id: string; role: string };
 };
 
-// biome-ignore lint/style/useNamingConvention: Hono requires Variables key
 const app = new OpenAPIHono<{ Variables: ContentVariables }>();
 
 app.route('/', postsRoutes);

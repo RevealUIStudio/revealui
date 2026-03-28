@@ -149,11 +149,8 @@ function createCollection<ItemElement extends HTMLElement, ItemData = Record<str
 
   return [
     {
-      // biome-ignore lint/style/useNamingConvention: React component names require PascalCase
       Provider: CollectionProvider,
-      // biome-ignore lint/style/useNamingConvention: React component names require PascalCase
       Slot: CollectionSlot,
-      // biome-ignore lint/style/useNamingConvention: React component names require PascalCase
       ItemSlot: CollectionItemSlot,
     },
     useCollection,

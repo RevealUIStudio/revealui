@@ -40,7 +40,6 @@ function requireAgentTaskRole(c: { get: (key: string) => unknown }): { id: strin
   return user;
 }
 
-// biome-ignore lint/style/useNamingConvention: Hono requires Variables key
 const app = new OpenAPIHono<{ Variables: Variables }>();
 
 const ErrorSchema = z.object({ success: z.literal(false), error: z.string() });
@@ -432,7 +431,6 @@ function buildCMSClient(baseUrl: string | undefined) {
 
   const headers = () => ({
     'Content-Type': 'application/json',
-    // biome-ignore lint/style/useNamingConvention: Authorization is the correct HTTP header name
     ...(process.env.CMS_API_KEY ? { Authorization: `Bearer ${process.env.CMS_API_KEY}` } : {}),
   });
 

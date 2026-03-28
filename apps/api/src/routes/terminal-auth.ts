@@ -106,7 +106,6 @@ type Variables = {
   user?: { id: string };
 };
 
-// biome-ignore lint/style/useNamingConvention: Hono requires PascalCase `Variables` in its generic type parameter
 const terminalAuth = new Hono<{ Variables: Variables }>();
 
 const linkSchema = z.object({

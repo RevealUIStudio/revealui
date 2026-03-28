@@ -41,7 +41,6 @@ type Variables = {
   aiAccessMode?: 'local';
 };
 
-// biome-ignore lint/style/useNamingConvention: Hono requires PascalCase `Variables` in its generic type parameter
 const app = new OpenAPIHono<{ Variables: Variables }>();
 
 const agentStreamRoute = createRoute({

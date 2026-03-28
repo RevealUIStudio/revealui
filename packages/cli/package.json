@@ -23,11 +23,11 @@
   "dependencies": {
     "@revealui/config": "workspace:*",
     "@revealui/setup": "workspace:*",
-    "commander": "^13.0.0",
+    "commander": "^14.0.3",
     "execa": "^9.0.0",
-    "inquirer": "^12.0.0",
+    "inquirer": "^13.3.2",
     "jose": "^6.1.3",
-    "ora": "^8.0.1"
+    "ora": "^9.3.0"
   },
   "devDependencies": {
     "@types/inquirer": "^9.0.7",

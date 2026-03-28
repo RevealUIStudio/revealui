@@ -143,6 +143,9 @@ apps/docs/dist/docs/
 .cursor/ralph-prompt.md
 .cursor/ralph-complete.marker
 
+# Editor configs (tracked externally: github.com/RevealUIStudio/editor-configs)
+.zed
+
 # Cursor IDE temporary files
 .cursor/backups/
 .cursor/debug.log

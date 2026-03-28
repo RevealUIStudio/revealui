@@ -6,7 +6,6 @@ export const authenticatedOrPublished: AccessFunction = ({ req }: AccessArgs) =>
   }
 
   return {
-    // biome-ignore lint/style/useNamingConvention: _status is a RevealUI CMS query field required by the framework
     _status: {
       equals: 'published',
     },

@@ -23,14 +23,12 @@ const vpc = new aws.ec2.Vpc('opencode-vpc', {
   cidrBlock: '10.0.0.0/16',
   enableDnsHostnames: true,
   enableDnsSupport: true,
-  // biome-ignore lint/style/useNamingConvention: Name is the AWS-required tag key for resource naming in the console
   tags: { Name: 'opencode-vpc' },
 });
 
 // Internet Gateway
 const igw = new aws.ec2.InternetGateway('opencode-igw', {
   vpcId: vpc.id,
-  // biome-ignore lint/style/useNamingConvention: Name is the AWS-required tag key for resource naming in the console
   tags: { Name: 'opencode-igw' },
 });
 
@@ -40,7 +38,6 @@ const subnet = new aws.ec2.Subnet('opencode-subnet', {
   cidrBlock: '10.0.1.0/24',
   availabilityZone: pulumi.interpolate`${awsRegion}a`,
   mapPublicIpOnLaunch: true,
-  // biome-ignore lint/style/useNamingConvention: Name is the AWS-required tag key for resource naming in the console
   tags: { Name: 'opencode-subnet' },
 });
 
@@ -48,7 +45,6 @@ const subnet = new aws.ec2.Subnet('opencode-subnet', {
 const routeTable = new aws.ec2.RouteTable('opencode-rt', {
   vpcId: vpc.id,
   routes: [{ cidrBlock: '0.0.0.0/0', gatewayId: igw.id }],
-  // biome-ignore lint/style/useNamingConvention: Name is the AWS-required tag key for resource naming in the console
   tags: { Name: 'opencode-rt' },
 });
 
@@ -68,7 +64,6 @@ const sg = new aws.ec2.SecurityGroup('opencode-sg', {
     { protocol: 'tcp', fromPort: 3000, toPort: 3000, cidrBlocks: ['0.0.0.0/0'] },
   ],
   egress: [{ protocol: '-1', fromPort: 0, toPort: 0, cidrBlocks: ['0.0.0.0/0'] }],
-  // biome-ignore lint/style/useNamingConvention: Name is the AWS-required tag key for resource naming in the console
   tags: { Name: 'opencode-sg' },
 });
 
@@ -124,7 +119,6 @@ const instance = new aws.ec2.Instance('opencode-server', {
     volumeSize: 50,
     volumeType: 'gp3',
   },
-  // biome-ignore lint/style/useNamingConvention: Name is the AWS-required tag key for resource naming in the console
   tags: { Name: 'opencode-server' },
 });
 
@@ -132,7 +126,6 @@ const instance = new aws.ec2.Instance('opencode-server', {
 const eip = new aws.ec2.Eip('opencode-eip', {
   domain: 'vpc',
   instance: instance.id,
-  // biome-ignore lint/style/useNamingConvention: Name is the AWS-required tag key for resource naming in the console
   tags: { Name: 'opencode-eip' },
 });
 

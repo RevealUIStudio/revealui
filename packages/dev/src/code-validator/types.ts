@@ -24,7 +24,6 @@ export interface AutoFixRule {
 }
 
 export interface CodeStandards {
-  // biome-ignore lint/style/useNamingConvention: JSON Schema specification field
   $schema?: string;
   title: string;
   description: string;

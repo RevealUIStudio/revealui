@@ -53,16 +53,11 @@ const richText = (overrides: Partial<{ admin: Admin }> = {}): TextField => {
       },
     },
     components: {
-      // biome-ignore lint/style/useNamingConvention: RevealUI admin component keys are PascalCase.
       Error: undefined, // You can provide your custom error component here if needed
-      // biome-ignore lint/style/useNamingConvention: RevealUI admin component keys are PascalCase.
       Label: undefined, // Same for label
-      // biome-ignore lint/style/useNamingConvention: RevealUI admin component keys are PascalCase.
       Cell: undefined,
       // Description removed to avoid type conflicts with RevealUI CMS v3
-      // biome-ignore lint/style/useNamingConvention: RevealUI admin component keys are PascalCase.
       Field: undefined,
-      // biome-ignore lint/style/useNamingConvention: RevealUI admin component keys are PascalCase.
       Filter: undefined,
     },
   };

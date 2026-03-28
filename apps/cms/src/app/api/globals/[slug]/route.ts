@@ -34,7 +34,6 @@ export async function GET(
 
   const apiResponse = await fetch(`${API_URL}/api/globals/${slug}?${searchParams.toString()}`, {
     headers: {
-      // biome-ignore lint/style/useNamingConvention: HTTP header name
       Cookie: request.headers.get('Cookie') ?? '',
     },
   });
@@ -61,7 +60,6 @@ export async function POST(
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
-      // biome-ignore lint/style/useNamingConvention: HTTP header name
       Cookie: request.headers.get('Cookie') ?? '',
     },
     body: JSON.stringify(body),

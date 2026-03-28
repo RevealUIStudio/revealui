@@ -69,13 +69,8 @@ export interface APIResponse<T = RevealDocument> {
 // REST METHOD TYPES
 // =============================================================================
 
-// biome-ignore lint/style/useNamingConvention: Matches HTTP verb casing.
 export type REST_DELETE = () => Promise<Response>;
-// biome-ignore lint/style/useNamingConvention: Matches HTTP verb casing.
 export type REST_GET = () => Promise<Response>;
-// biome-ignore lint/style/useNamingConvention: Matches HTTP verb casing.
 export type REST_OPTIONS = () => Promise<Response>;
-// biome-ignore lint/style/useNamingConvention: Matches HTTP verb casing.
 export type REST_PATCH = () => Promise<Response>;
-// biome-ignore lint/style/useNamingConvention: Matches HTTP verb casing.
 export type REST_POST = () => Promise<Response>;

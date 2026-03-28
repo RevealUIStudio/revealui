@@ -115,7 +115,6 @@ export async function verifyDevice(
 export async function refreshToken(apiUrl: string, token: string): Promise<RefreshResponse> {
   return request<RefreshResponse>(apiUrl, '/refresh', {
     method: 'POST',
-    // biome-ignore lint/style/useNamingConvention: Authorization is the correct HTTP header name
     headers: { Authorization: `Bearer ${token}` },
   });
 }
@@ -126,7 +125,6 @@ export async function refreshToken(apiUrl: string, token: string): Promise<Refre
 export async function revokeToken(apiUrl: string, token: string): Promise<void> {
   await request(apiUrl, '/revoke', {
     method: 'DELETE',
-    // biome-ignore lint/style/useNamingConvention: Authorization is the correct HTTP header name
     headers: { Authorization: `Bearer ${token}` },
   });
 }
@@ -137,7 +135,6 @@ export async function revokeToken(apiUrl: string, token: string): Promise<void> 
 export async function checkStatus(apiUrl: string, token: string): Promise<StatusResponse> {
   return request<StatusResponse>(apiUrl, '/status', {
     method: 'GET',
-    // biome-ignore lint/style/useNamingConvention: Authorization is the correct HTTP header name
     headers: { Authorization: `Bearer ${token}` },
   });
 }

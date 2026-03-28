@@ -6,7 +6,7 @@ Business Operating System Software (B.O.S.S.). Build your business, not your boi
 **Phase 3 — Launch Preparation** (docs, OSS prep, marketing, Pro distribution).
 
 ## Stack
-- React 19, Next.js 16, Node 24, TypeScript 5.9
+- React 19, Next.js 16, Node 24, TypeScript 6
 - pnpm 10, Turborepo, Biome 2, Vitest 4
 - Drizzle ORM (NeonDB + Supabase), Hono, Tailwind CSS v4
 - Lexical (rich text), ElectricSQL (sync), Stripe (payments)

@@ -57,7 +57,6 @@ interface RequestEntitlements {
 }
 
 interface TaskQuotaEnv {
-  // biome-ignore lint/style/useNamingConvention: Hono generic parameter convention
   Variables: {
     user: UserContext | undefined;
     entitlements?: RequestEntitlements | undefined;

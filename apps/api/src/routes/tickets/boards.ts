@@ -30,7 +30,6 @@ const BoardSchema = z
   })
   .openapi('Board');
 
-// biome-ignore lint/style/useNamingConvention: Hono requires Variables key
 const app = new OpenAPIHono<{ Variables: Variables }>();
 
 // GET /boards

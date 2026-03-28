@@ -58,14 +58,12 @@ export function dbRowToContract<TContract, TDbRow>(
  */
 type DatabaseLike = {
   public: {
-    // biome-ignore lint/style/useNamingConvention: mirrors Supabase generated Database type shape
     Tables: Record<string, { Row: unknown; Insert: unknown; Update: unknown }>;
   };
 };
 
 export type TableContractMapping<T extends DatabaseLike> = {
   [K in keyof T['public']['Tables']]?: T['public']['Tables'][K] extends {
-    // biome-ignore lint/style/useNamingConvention: Supabase schema shape.
     Row: infer R;
   }
     ? Contract<R>
@@ -93,7 +91,6 @@ export type TableContractMapping<T extends DatabaseLike> = {
  */
 export function createTableAdapter<T extends DatabaseLike, N extends keyof T['public']['Tables']>(
   contract?: T['public']['Tables'][N] extends {
-    // biome-ignore lint/style/useNamingConvention: Supabase schema shape.
     Row: infer R;
   }
     ? Contract<R>
@@ -101,19 +98,16 @@ export function createTableAdapter<T extends DatabaseLike, N extends keyof T['pu
 ) {
   type TableType = T['public']['Tables'][N];
   type RowType = TableType extends {
-    // biome-ignore lint/style/useNamingConvention: Supabase schema shape.
     Row: infer R;
   }
     ? R
     : never;
   type InsertType = TableType extends {
-    // biome-ignore lint/style/useNamingConvention: Supabase schema shape.
     Insert: infer I;
   }
     ? I
     : never;
   type UpdateType = TableType extends {
-    // biome-ignore lint/style/useNamingConvention: Supabase schema shape.
     Update: infer U;
   }
     ? U

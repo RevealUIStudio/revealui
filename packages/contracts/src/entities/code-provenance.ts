@@ -355,7 +355,6 @@ export function summarizeByPackage(entries: Provenance[]): Map<string, PackageSu
 // =============================================================================
 
 export interface ProvenanceWithComputed extends Provenance {
-  // biome-ignore lint/style/useNamingConvention: _computed is a conventional computed-field marker
   _computed: {
     isAiGenerated: boolean;
     isHumanWritten: boolean;
@@ -378,7 +377,6 @@ export interface ProvenanceWithComputed extends Provenance {
 export function provenanceToHuman(entry: Provenance): ProvenanceWithComputed {
   return {
     ...entry,
-    // biome-ignore lint/style/useNamingConvention: _computed is a conventional computed-field marker
     _computed: {
       isAiGenerated: isAiGenerated(entry),
       isHumanWritten: isHumanWritten(entry),

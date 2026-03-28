@@ -93,9 +93,9 @@ export interface RevealCollectionHooks<T = unknown> {
 
 /** RevealUI's main configuration */
 export interface RevealConfig {
-  // biome-ignore lint/suspicious/noExplicitAny: Config can contain collections of any document type
+  // biome-ignore lint/suspicious/noExplicitAny: heterogeneous collection array requires type variance escape
   collections?: RevealCollectionConfig<any>[];
-  // biome-ignore lint/suspicious/noExplicitAny: Config can contain globals of any document type
+  // biome-ignore lint/suspicious/noExplicitAny: heterogeneous global array requires type variance escape
   globals?: RevealGlobalConfig<any>[];
   serverURL?: string;
   secret?: string;
@@ -107,9 +107,7 @@ export interface RevealConfig {
       beforeDashboard?: string[];
       beforeLogin?: string[];
       graphics?: {
-        // biome-ignore lint/style/useNamingConvention: Matches admin config shape.
         Icon?: string;
-        // biome-ignore lint/style/useNamingConvention: Matches admin config shape.
         Logo?: string;
       };
     };

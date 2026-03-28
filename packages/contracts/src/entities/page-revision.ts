@@ -442,7 +442,6 @@ export function createRevisionFromSnapshot(
  * Page revision with computed fields for UI display
  */
 export interface PageRevisionWithComputed extends PageRevision {
-  // biome-ignore lint/style/useNamingConvention: _computed is a conventional computed-field marker
   _computed: {
     isFirstRevision: boolean;
     blockCount: number;
@@ -463,7 +462,6 @@ export interface PageRevisionWithComputed extends PageRevision {
 export function pageRevisionToHuman(revision: PageRevision): PageRevisionWithComputed {
   return {
     ...revision,
-    // biome-ignore lint/style/useNamingConvention: _computed is a conventional computed-field marker
     _computed: {
       isFirstRevision: isFirstRevision(revision),
       blockCount: getBlockCount(revision),
@@ -517,7 +515,6 @@ export function pageRevisionToAgent(revision: PageRevision): PageRevisionAgent {
  */
 export const PageRevisionWithComputedSchema = PageRevisionSchema.and(
   z.object({
-    // biome-ignore lint/style/useNamingConvention: _computed is a conventional computed-field marker
     _computed: z.object({
       isFirstRevision: z.boolean(),
       blockCount: z.number().int(),

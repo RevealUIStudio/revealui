@@ -19,7 +19,7 @@
     "@types/node": "^25.5.0",
     "dev": "workspace:*",
     "drizzle-zod": "^0.8.3",
-    "typescript": "^5.9.3",
+    "typescript": "^6.0.2",
     "vitest": "^4.1.0"
   },
   "engines": {
@@ -107,7 +107,7 @@
   "peerDependencies": {
     "@revealui/db": "workspace:*",
     "drizzle-zod": "^0.8.3",
-    "typescript": ">=5.0.0"
+    "typescript": ">=6.0.0"
   },
   "peerDependenciesMeta": {
     "@revealui/db": {

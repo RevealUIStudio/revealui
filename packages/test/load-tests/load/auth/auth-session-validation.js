@@ -72,7 +72,6 @@ export default function (data) {
   // Using a simple endpoint that requires authentication
   const params = {
     headers: {
-      // biome-ignore lint/style/useNamingConvention: standard HTTP header name
       Cookie: `revealui-session=${sessionToken}`,
     },
     tags: {

@@ -427,7 +427,6 @@ export function updateAgentContext(updates: {
  * Agent context with computed fields for UI display
  */
 export interface AgentContextWithComputed extends AgentContext {
-  // biome-ignore lint/style/useNamingConvention: _computed is a conventional computed-field marker
   _computed: {
     hasEmbedding: boolean;
     embeddingValid: boolean;
@@ -448,7 +447,6 @@ export function agentContextToHuman(context: AgentContext): AgentContextWithComp
 
   return {
     ...context,
-    // biome-ignore lint/style/useNamingConvention: _computed is a conventional computed-field marker
     _computed: {
       hasEmbedding: context.embedding !== null && context.embedding !== undefined,
       embeddingValid: hasValidEmbedding(context),
@@ -496,7 +494,6 @@ export function agentContextToAgent(context: AgentContext): AgentContextAgent {
  */
 export const AgentContextWithComputedSchema = AgentContextSchema.and(
   z.object({
-    // biome-ignore lint/style/useNamingConvention: _computed is a conventional computed-field marker
     _computed: z.object({
       hasEmbedding: z.boolean(),
       embeddingValid: z.boolean(),

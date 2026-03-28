@@ -10,7 +10,6 @@
  * This is the base config that web apps extend.
  */
 export interface Config {
-  // biome-ignore lint/style/useNamingConvention: Matches Next.js layout registration.
   Layout?: React.ComponentType<unknown>;
   [key: string]: unknown;
 }

@@ -10,7 +10,6 @@ interface RequestWithRevealUI extends RevealRequest {
 }
 
 interface DocWithStatus extends RevealDocument {
-  // biome-ignore lint/style/useNamingConvention: _status is a RevealUI CMS internal field name required by the framework
   _status?: string;
   slug?: string;
 }

@@ -61,7 +61,6 @@ export default function () {
   const res = http.post(`${BASE_URL}/api/payments/create-intent`, paymentPayload, {
     headers: {
       'Content-Type': 'application/json',
-      // biome-ignore lint/style/useNamingConvention: standard HTTP header name
       Authorization: `JWT ${token}`,
     },
   });

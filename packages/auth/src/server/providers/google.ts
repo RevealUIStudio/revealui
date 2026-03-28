@@ -53,7 +53,6 @@ export async function exchangeCode(code: string, redirectUri: string): Promise<s
 
 export async function fetchUser(accessToken: string): Promise<ProviderUser> {
   const response = await fetch('https://openidconnect.googleapis.com/v1/userinfo', {
-    // biome-ignore lint/style/useNamingConvention: HTTP header names are case-sensitive per RFC 7230
     headers: { Authorization: `Bearer ${accessToken}` },
   });
 

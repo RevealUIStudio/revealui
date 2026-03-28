@@ -168,7 +168,6 @@ const PriceObjectSchema = DualEntitySchema.extend({
   createdAt: z.string().datetime(),
 
   /** CMS status */
-  // biome-ignore lint/style/useNamingConvention: _status is a conventional CMS status marker
   _status: PriceStatusSchema.nullable().optional(),
 });
 
@@ -214,7 +213,6 @@ export const CreatePriceInputSchema = z.object({
   enablePaywall: z.boolean().optional(),
   categories: z.array(z.number().int().positive()).optional(),
   relatedPrices: z.array(z.number().int().positive()).optional(),
-  // biome-ignore lint/style/useNamingConvention: _status is a conventional CMS status marker
   _status: PriceStatusSchema.optional(),
 });
 

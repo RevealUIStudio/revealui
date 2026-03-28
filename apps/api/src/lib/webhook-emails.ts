@@ -539,9 +539,7 @@ export async function provisionGitHubAccess(githubUsername: string, db?: Databas
       {
         method: 'PUT',
         headers: {
-          // biome-ignore lint/style/useNamingConvention: HTTP header convention
           Authorization: `Bearer ${token}`,
-          // biome-ignore lint/style/useNamingConvention: HTTP header convention
           Accept: 'application/vnd.github.v3+json',
           'Content-Type': 'application/json',
           'User-Agent': 'RevealUI-License-Server/1.0',

@@ -427,7 +427,6 @@ export interface SanitizedConfig extends Config {
  */
 export interface TypedCollectionConfig<T> extends CollectionConfig {
   // This is a marker interface for typed configs
-  // biome-ignore lint/style/useNamingConvention: double-underscore is the convention for phantom/marker fields
   __docType?: T;
 }
 
@@ -437,7 +436,6 @@ export interface TypedCollectionConfig<T> extends CollectionConfig {
  */
 export interface TypedGlobalConfig<T> extends GlobalConfig {
   // This is a marker interface for typed configs
-  // biome-ignore lint/style/useNamingConvention: double-underscore is the convention for phantom/marker fields
   __docType?: T;
 }
 

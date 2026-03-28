@@ -150,9 +150,7 @@ const agentSnapshotRoute = createRoute({
 // Handlers
 // ---------------------------------------------------------------------------
 
-// biome-ignore lint/style/useNamingConvention: Hono requires PascalCase `Variables` key in generic context
 export function createAgentCollabRoute(): OpenAPIHono<{ Variables: Variables }> {
-  // biome-ignore lint/style/useNamingConvention: Hono requires PascalCase `Variables` key in generic context
   const app = new OpenAPIHono<{ Variables: Variables }>();
   const wsBaseUrl = process.env.WS_BASE_URL ?? 'ws://localhost:3004';
 

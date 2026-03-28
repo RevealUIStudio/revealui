@@ -324,7 +324,6 @@ app.openapi(
 // A2A task API — /a2a/*
 // =============================================================================
 
-// biome-ignore lint/style/useNamingConvention: Hono requires PascalCase `Variables`
 const a2a = new OpenAPIHono<{ Variables: { user: UserContext | undefined } }>();
 
 // Soft auth — populates user context when a session cookie is present.
@@ -945,7 +944,6 @@ a2a.openapi(
       {
         'Content-Type': 'text/event-stream',
         'Cache-Control': 'no-cache',
-        // biome-ignore lint/style/useNamingConvention: standard HTTP header name
         Connection: 'keep-alive',
       },
     );

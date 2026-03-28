@@ -5,6 +5,7 @@
     "module": "ESNext",
     "moduleResolution": "bundler",
     "outDir": "./dist",
+    "rootDir": "./src",
     "types": ["@playwright/test", "node"],
     "skipLibCheck": true,
     "noImplicitAny": true,
@@ -12,10 +13,7 @@
     "strictNullChecks": true,
     "noUncheckedIndexedAccess": false,
     "jsx": "react-jsx",
-    "paths": {
-      "@cms/*": ["../../apps/cms/src/*"],
-      "@api/*": ["../../apps/api/src/*"]
-    }
+    "paths": {}
   },
   "include": ["./src/**/*", "src/.scripts"],
   "exclude": [
@@ -24,6 +22,8 @@
     "src/mocks/**/*.ts",
     "src/integration/**/*.ts",
     "src/integration-pro/**/*.ts",
+    "src/units/**/*.ts",
+    "src/e2e/**/*.ts",
     "src/patterns/**/*.test.*"
   ]
 }

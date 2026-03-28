@@ -47,7 +47,6 @@ export interface InternalCMSClient {
 export function createInternalCMSClient(baseUrl: string, sessionCookie: string): InternalCMSClient {
   const headers: Record<string, string> = {
     'Content-Type': 'application/json',
-    // biome-ignore lint/style/useNamingConvention: HTTP header name
     Cookie: `revealui-session=${sessionCookie}`,
   };
 

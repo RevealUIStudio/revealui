@@ -43,7 +43,6 @@ export const slugField: Slug = (fieldToUse = 'title', overrides = {}) => {
       autoComplete: 'on',
       ...(slugOverrides?.admin || {}),
       components: {
-        // biome-ignore lint/style/useNamingConvention: RevealUI admin component key.
         Field: {
           path: '@/lib/fields/slug/SlugComponent#SlugComponent',
           clientProps: {

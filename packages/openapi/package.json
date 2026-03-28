@@ -12,7 +12,7 @@
     "dev": "workspace:*",
     "hono": "^4.12.7",
     "tsup": "^8.5.1",
-    "typescript": "^5.9.3",
+    "typescript": "^6.0.2",
     "vitest": "^4.1.0",
     "zod": "catalog:"
   },

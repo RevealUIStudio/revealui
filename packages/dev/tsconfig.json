@@ -3,7 +3,6 @@
   "extends": "./src/ts/base.json",
   "compilerOptions": {
     "rootDir": "./src",
-    "baseUrl": ".",
     "module": "ESNext",
     "moduleResolution": "bundler",
     "allowImportingTsExtensions": true,

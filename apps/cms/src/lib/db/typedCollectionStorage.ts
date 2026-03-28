@@ -49,7 +49,6 @@ function isRecord(value: unknown): value is Record<string, unknown> {
 }
 
 interface JsonBackedRow {
-  // biome-ignore lint/style/useNamingConvention: Drizzle JSON column is named `_json`
   _json?: unknown;
 }
 

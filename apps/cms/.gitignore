@@ -1,2 +1,7 @@
 .vercel
 .env*.local
+
+# Prevent tsc emit in source directories
+src/**/*.js
+src/**/*.d.ts
+src/**/*.d.ts.map

@@ -80,7 +80,6 @@ export const users = pgTable(
     // GDPR anonymization: null = not anonymized, timestamp = when PII was wiped
     anonymizedAt: timestamp('anonymized_at', { withTimezone: true }),
 
-    // biome-ignore lint/style/useNamingConvention: RevealUI document metadata field
     _json: jsonb('_json').default('{}'),
   },
   (table) => [

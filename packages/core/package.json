@@ -3,7 +3,7 @@
   "version": "0.3.0",
   "license": "MIT",
   "dependencies": {
-    "@electric-sql/pglite": "^0.3.15",
+    "@electric-sql/pglite": "^0.4.2",
     "@lexical/clipboard": "^0.42.0",
     "@lexical/code": "^0.42.0",
     "@lexical/html": "^0.42.0",
@@ -20,7 +20,7 @@
     "@revealui/resilience": "workspace:*",
     "@revealui/security": "workspace:*",
     "@revealui/utils": "workspace:*",
-    "@vercel/blob": "^2.2.0",
+    "@vercel/blob": "^2.3.2",
     "bcryptjs": "^3.0.3",
     "dataloader": "^2.2.3",
     "jose": "^6.1.3",

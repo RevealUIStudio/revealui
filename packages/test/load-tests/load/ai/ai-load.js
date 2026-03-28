@@ -44,7 +44,6 @@ export default function () {
     `${BASE_URL}/api/agent-contexts?agentId=test-agent&sessionId=test-session`,
     {
       headers: {
-        // biome-ignore lint/style/useNamingConvention: standard HTTP header name
         Authorization: AUTH_TOKEN ? `Bearer ${AUTH_TOKEN}` : '',
       },
     },
@@ -72,7 +71,6 @@ export default function () {
       {
         headers: {
           'Content-Type': 'application/json',
-          // biome-ignore lint/style/useNamingConvention: standard HTTP header name
           Authorization: `Bearer ${AUTH_TOKEN}`,
         },
       },

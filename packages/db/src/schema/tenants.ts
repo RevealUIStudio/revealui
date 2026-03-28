@@ -10,7 +10,6 @@ export const tenants = pgTable(
     password: text('password'),
     roles: jsonb('roles').$type<string[]>().default([]).notNull(),
     domains: jsonb('domains').$type<Array<{ domain: string }>>().default([]).notNull(),
-    // biome-ignore lint/style/useNamingConvention: RevealUI document metadata field
     _json: jsonb('_json').default({}).notNull(),
     createdAt: timestamp('created_at', { withTimezone: true }).defaultNow().notNull(),
     updatedAt: timestamp('updated_at', { withTimezone: true }).defaultNow().notNull(),
