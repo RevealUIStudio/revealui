@@ -1,5 +1,6 @@
 import { BuiltWithRevealUI } from '@revealui/presentation';
 import Link from 'next/link';
+import { NewsletterSignup } from './NewsletterSignup';
 
 export function Footer() {
   const currentYear = new Date().getFullYear();
@@ -13,6 +14,15 @@ export function Footer() {
               Business Operating System Software (B.O.S.S.). Users, content, products, payments, and
               AI — pre-wired, open source, and ready to deploy.
             </p>
+            <div className="mt-6">
+              <p className="text-xs font-semibold uppercase tracking-wider text-gray-400 mb-3">
+                Stay in the loop
+              </p>
+              <NewsletterSignup />
+              <p className="mt-2 text-xs text-gray-500">
+                Product updates and engineering insights. No spam.
+              </p>
+            </div>
             <div className="mt-6 flex gap-4">
               <a
                 href="https://github.com/RevealUIStudio/revealui"
@@ -134,10 +144,7 @@ export function Footer() {
                 </Link>
               </li>
               <li>
-                <Link
-                  href="mailto:support@revealui.com"
-                  className="hover:text-white transition-colors"
-                >
+                <Link href="/contact" className="hover:text-white transition-colors">
                   Contact
                 </Link>
               </li>

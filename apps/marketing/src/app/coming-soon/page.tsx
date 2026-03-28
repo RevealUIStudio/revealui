@@ -45,7 +45,7 @@ const features = [
     name: 'CMS Dashboard Agent Chat',
     description:
       'Interact with an AI agent directly from the CMS dashboard. Create content, query data, manage collections, and automate workflows through natural language — with streaming responses, tool visibility, and conversation history.',
-    status: 'In development',
+    status: 'Shipped',
     category: 'AI',
   },
   {
@@ -56,10 +56,10 @@ const features = [
     category: 'Infrastructure',
   },
   {
-    name: 'Documentation Site Deploy',
+    name: 'Documentation Site',
     description:
-      'Full documentation site at docs.revealui.com with expanded quick-start guides, video walkthroughs, API reference for all packages, and a collection cookbook.',
-    status: 'In development',
+      'Documentation site live at docs.revealui.com with quick-start guides, API reference, architecture docs, and package reference. Video walkthroughs and collection cookbook coming soon.',
+    status: 'Shipped',
     category: 'Docs',
   },
   {
@@ -130,8 +130,14 @@ export default function ComingSoonPage() {
                   >
                     {feature.category}
                   </span>
-                  <span className="text-xs font-medium text-amber-700 bg-amber-50 px-2.5 py-0.5 rounded-full ring-1 ring-amber-200">
-                    {feature.status}
+                  <span
+                    className={`text-xs font-medium px-2.5 py-0.5 rounded-full ring-1 ${
+                      feature.status === 'Shipped'
+                        ? 'text-emerald-700 bg-emerald-50 ring-emerald-200'
+                        : 'text-amber-700 bg-amber-50 ring-amber-200'
+                    }`}
+                  >
+                    {feature.status === 'Shipped' ? 'Shipped' : feature.status}
                   </span>
                 </div>
                 <h3 className="text-lg font-bold tracking-tight text-gray-900">{feature.name}</h3>

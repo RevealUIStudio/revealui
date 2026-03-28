@@ -1,6 +1,7 @@
 import type { Metadata } from 'next';
 import Link from 'next/link';
 import { Footer } from '@/components/Footer';
+import { NewsletterSignup } from '@/components/NewsletterSignup';
 import { getPosts } from '@/lib/blog';
 
 export const revalidate = 300;
@@ -66,14 +67,70 @@ export default async function BlogPage() {
       <section className="py-24 sm:py-32">
         <div className="mx-auto max-w-7xl px-6 lg:px-8">
           {posts.length === 0 ? (
-            <div className="mx-auto max-w-2xl text-center">
-              <p className="text-lg text-gray-600">No posts yet — check back soon.</p>
-              <Link
-                href="/"
-                className="mt-6 inline-block rounded-md bg-blue-600 px-6 py-3 text-sm font-semibold text-white hover:bg-blue-500 transition-colors"
-              >
-                Back to Home
-              </Link>
+            <div className="mx-auto max-w-2xl">
+              <div className="text-center mb-12">
+                <p className="text-lg text-gray-600">
+                  CMS-powered posts are coming soon. In the meantime, read our engineering blog on
+                  the docs site.
+                </p>
+              </div>
+
+              {/* Engineering blog links */}
+              <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 mb-16">
+                {[
+                  {
+                    title: 'Why We Built RevealUI',
+                    description:
+                      'The origin story — why another business platform, and what makes B.O.S.S. different.',
+                    href: 'https://docs.revealui.com/docs/blog/01-why-we-built-revealui',
+                  },
+                  {
+                    title: 'HTTP 402 and the Future of Payments',
+                    description:
+                      'How the x402 protocol enables agent-native micropayments without accounts or subscriptions.',
+                    href: 'https://docs.revealui.com/docs/blog/02-http-402-payments',
+                  },
+                  {
+                    title: 'Multi-Agent Coordination',
+                    description:
+                      'How we coordinate multiple AI agents working on the same codebase without conflicts.',
+                    href: 'https://docs.revealui.com/docs/blog/03-multi-agent-coordination',
+                  },
+                  {
+                    title: 'The Local-First AI Stack',
+                    description:
+                      'Building AI features that work offline with ElectricSQL sync and local model inference.',
+                    href: 'https://docs.revealui.com/docs/blog/04-local-first-ai-stack',
+                  },
+                ].map((post) => (
+                  <a
+                    key={post.title}
+                    href={post.href}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="rounded-2xl bg-white p-6 shadow-lg ring-1 ring-gray-200 hover:ring-blue-300 transition-all group"
+                  >
+                    <h3 className="text-lg font-bold tracking-tight text-gray-900 group-hover:text-blue-600 transition-colors">
+                      {post.title}
+                    </h3>
+                    <p className="mt-2 text-sm leading-6 text-gray-600">{post.description}</p>
+                    <span className="mt-4 inline-block text-sm font-semibold text-blue-600 group-hover:text-blue-500 transition-colors">
+                      Read on docs site &rarr;
+                    </span>
+                  </a>
+                ))}
+              </div>
+
+              {/* Newsletter capture */}
+              <div className="rounded-2xl bg-gray-50 p-8 text-center ring-1 ring-gray-200">
+                <h3 className="text-lg font-semibold text-gray-900">
+                  Get notified when we publish
+                </h3>
+                <p className="mt-2 text-sm text-gray-600 mb-6">
+                  Engineering insights, product updates, and launch announcements. No spam.
+                </p>
+                <NewsletterSignup variant="stacked" />
+              </div>
             </div>
           ) : (
             <div className="grid grid-cols-1 gap-8 md:grid-cols-2">

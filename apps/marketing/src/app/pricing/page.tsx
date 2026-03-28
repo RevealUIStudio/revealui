@@ -6,6 +6,7 @@ import {
 } from '@revealui/contracts/pricing';
 import type { Metadata } from 'next';
 import { Footer } from '@/components/Footer';
+import { NewsletterSignup } from '@/components/NewsletterSignup';
 
 export const metadata: Metadata = {
   title: 'Pricing — RevealUI',
@@ -443,8 +444,9 @@ export default async function PricingPage() {
                 </div>
                 <h3 className="text-base font-semibold text-white">MCP Servers</h3>
                 <p className="mt-2 text-sm text-gray-400">
-                  6 production MCP servers: Stripe, Neon, Supabase, Vercel, Playwright, and Next.js
-                  DevTools. Marketplace discovery coming soon.
+                  12 production MCP servers including Stripe, Neon, Supabase, Vercel, Playwright,
+                  Next.js DevTools, content management, and email. Marketplace discovery coming
+                  soon.
                 </p>
                 <a
                   href="https://docs.revealui.com/mcp"
@@ -504,6 +506,38 @@ export default async function PricingPage() {
                 </div>
               ))}
             </dl>
+          </div>
+        </div>
+      </section>
+
+      {/* Final CTA */}
+      <section className="bg-gray-950 py-24 sm:py-32">
+        <div className="mx-auto max-w-2xl px-6 lg:px-8 text-center">
+          <h2 className="text-3xl font-bold tracking-tight text-white sm:text-4xl">
+            Ready to get started?
+          </h2>
+          <p className="mt-6 text-lg leading-8 text-gray-400">
+            Start free with full source code access. Upgrade when your business needs it.
+          </p>
+          <div className="mt-10 flex flex-col sm:flex-row items-center justify-center gap-4">
+            <a
+              href={`${cmsUrl}/signup`}
+              className="rounded-md bg-white px-8 py-4 text-base font-semibold text-gray-950 shadow-sm hover:bg-gray-100 transition-colors"
+            >
+              Get Started Free
+            </a>
+            <a
+              href="/contact"
+              className="rounded-md border border-gray-700 px-8 py-4 text-base font-semibold text-gray-300 hover:text-white hover:border-gray-500 transition-colors"
+            >
+              Contact Sales
+            </a>
+          </div>
+          <div className="mt-16 pt-10 border-t border-gray-800">
+            <p className="text-sm font-medium text-gray-400 mb-4">
+              Not ready yet? Stay in the loop.
+            </p>
+            <NewsletterSignup variant="stacked" />
           </div>
         </div>
       </section>

@@ -8,7 +8,7 @@ const navLinks = [
   { label: 'Docs', href: 'https://docs.revealui.com' },
   { label: 'Blog', href: '/blog' },
   { label: 'Pricing', href: '/pricing' },
-  { label: 'Sponsor', href: '/sponsor' },
+  { label: 'Contact', href: '/contact' },
 ];
 
 export function NavBar() {
