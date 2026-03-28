@@ -8,7 +8,7 @@ Users. Content. Products. Payments. AI. Everything a software company needs — 
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](https://opensource.org/licenses/MIT)
 [![React 19](https://img.shields.io/badge/React-19-61dafb.svg)](https://react.dev)
-[![TypeScript](https://img.shields.io/badge/TypeScript-5.9-blue.svg)](https://www.typescriptlang.org/)
+[![TypeScript](https://img.shields.io/badge/TypeScript-6-blue.svg)](https://www.typescriptlang.org/)
 [![Node.js 24](https://img.shields.io/badge/Node.js-24-339933.svg)](https://nodejs.org/)
 
 [Documentation](https://docs.revealui.com) | [Quick Start](#quick-start) | [Pro](#pro-ai-for-your-business) | [Contributing](CONTRIBUTING.md)
@@ -110,6 +110,7 @@ Pro packages are source-available on npm under a [commercial license](LICENSE.co
 | `marketing`  | Next.js          | Marketing site + waitlist                    |
 | `studio`     | Tauri 2 + React  | Desktop companion (app launcher, system tray)|
 | `terminal`   | Go (Bubble Tea)  | TUI client (API integration, QR checkout)    |
+| `revealcoin` | Next.js          | RevealCoin token explorer (experimental)     |
 
 ## Packages
 
@@ -119,7 +120,7 @@ Pro packages are source-available on npm under a [commercial license](LICENSE.co
 | ------------------------------------------------------- | ------------------------------------------------- |
 | [`@revealui/core`](packages/core)                       | CMS engine, REST API, auth, rich text, plugins    |
 | [`@revealui/contracts`](packages/contracts)             | Zod schemas + TypeScript types (single source)    |
-| [`@revealui/db`](packages/db)                           | Drizzle ORM schema (68 tables), dual-DB client    |
+| [`@revealui/db`](packages/db)                           | Drizzle ORM schema (75 tables), dual-DB client    |
 | [`@revealui/auth`](packages/auth)                       | Session auth, password reset, rate limiting       |
 | [`@revealui/presentation`](packages/presentation)       | 50+ UI components (Tailwind v4, zero ext deps)    |
 | [`@revealui/openapi`](packages/openapi)                 | OpenAPI route helpers and Swagger generation       |
@@ -160,7 +161,7 @@ Pro packages are source-available on npm under a [commercial license](LICENSE.co
 | Desktop   | Tauri 2                                     |
 | TUI       | Go, Bubble Tea                              |
 | Testing   | Vitest, Playwright                          |
-| Tooling   | pnpm, Turborepo, Biome, TypeScript 5.9     |
+| Tooling   | pnpm, Turborepo, Biome, TypeScript 6       |
 | Dev env   | Nix flakes + direnv                         |
 
 ## Prerequisites
@@ -196,6 +197,7 @@ revealui/
 │   ├── cms/        # Admin dashboard + headless CMS (port 4000)
 │   ├── docs/       # Documentation site (port 3002)
 │   ├── marketing/  # Marketing site (port 3000)
+│   ├── revealcoin/ # RevealCoin token explorer (experimental)
 │   ├── studio/     # Desktop companion app (Tauri 2)
 │   └── terminal/   # TUI client (Go)
 ├── packages/       # 18 OSS + 5 Pro packages

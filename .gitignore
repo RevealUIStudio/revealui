@@ -80,6 +80,11 @@ vite.config.ts.timestamp-*.mjs
 
 # Generated quality reports
 CODE-QUALITY-REPORT.json
+DEPENDENCY_DIAGRAM.txt
+TYPE-USAGE-REPORT.json
+
+# Claude Code
+skills-lock.json
 
 # TypeScript
 *.tsbuildinfo

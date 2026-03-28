@@ -6,7 +6,7 @@ last-verified: 2026-03-11
 
 api-surface:
   schema:
-    endpoint: "packages/db/src/schema/ (30+ schema files, 68 tables)"
+    endpoint: "packages/db/src/schema/ (30+ schema files, 75 tables)"
     openapi: false
     tested: true
   dual-db:

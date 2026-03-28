@@ -13,8 +13,6 @@ Before contributing, please review these mandatory policies:
 ### Type System Rules
 **ALL types MUST come from `@revealui/contracts`. Inline types are prohibited.**
 
-Read: [TYPE-SYSTEM-RULES.md](docs/TYPE-SYSTEM-RULES.md)
-
 ```typescript
 // ❌ NEVER do this
 const user: { id: string; email: string } = {...}
@@ -23,8 +21,6 @@ const user: { id: string; email: string } = {...}
 import type { User } from '@revealui/contracts'
 const user: User = {...}
 ```
-
-**For AI Agents**: See [AI-AGENT-RULES.md](docs/AI-AGENT-RULES.md) for specific enforcement boundaries.
 
 ### Error Code Standardization
 **NEVER use hardcoded `process.exit()` codes. Use the `ErrorCode` enum.**
@@ -83,7 +79,7 @@ Enhancement suggestions are tracked as GitHub issues. When creating an enhanceme
 7. Run type checking (`pnpm typecheck:all`)
 8. Issue that pull request!
 
-**For first-time contributors:** See our [Migration Guide](docs/MIGRATION_GUIDE.md) to learn about recent improvements to script management.
+**For first-time contributors:** See the [Development Setup](#development-setup) section below to get started.
 
 ## Development Setup
 
@@ -121,7 +117,7 @@ revealui/
 │   ├── config/         # Type-safe env config (Zod)
 │   ├── contracts/      # Zod schemas + TypeScript types
 │   ├── core/           # CMS engine, REST API, plugins
-│   ├── db/             # Drizzle ORM schema (50 tables, dual-DB)
+│   ├── db/             # Drizzle ORM schema (75 tables, dual-DB)
 │   ├── dev/            # Shared configs (Biome, TS, Tailwind)
 │   ├── presentation/   # 50+ UI components (Tailwind v4)
 │   ├── router/         # File-based router with SSR
@@ -156,7 +152,7 @@ revealui/
 - Add comments for complex logic only
 - Keep functions small and focused
 - Follow the existing code structure
-- See [Linting Rules](docs/LINTING_RULES.md) for detailed linting and formatting setup
+- Run `pnpm lint` to check for issues, `pnpm lint:fix` to auto-fix
 
 ### Commits
 

@@ -64,7 +64,7 @@ From 2026 onward, automation features should align with:
 packages/
 ├── core/           # CMS framework (includes types/ and generated/)
 ├── contracts/      # Zod schemas & TypeScript types
-├── db/             # Database (Drizzle ORM, 68 tables)
+├── db/             # Database (Drizzle ORM, 75 tables)
 ├── auth/           # Authentication system
 ├── presentation/   # 50+ UI components (Tailwind v4)
 ├── router/         # File-based router with SSR
