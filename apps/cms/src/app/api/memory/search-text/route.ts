@@ -100,13 +100,16 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
     const embedding = await embeddingsMod.generateEmbedding(query);
 
     // Perform vector search — enforce userId so non-admins can only search their own memories
+    // Strip siteId from options for non-admins to prevent cross-tenant data access
     const service = new vectorMod.VectorMemoryService();
-    const results = await service.searchSimilar(embedding.vector, {
+    const isAdmin = authSession.user.role === 'admin';
+    const safeOptions = {
       ...options,
       limit: options.limit ?? 10,
       threshold: options.threshold ?? 0.5,
-      ...(authSession.user.role !== 'admin' ? { userId: authSession.user.id } : {}),
-    });
+      ...(!isAdmin ? { userId: authSession.user.id, siteId: undefined } : {}),
+    };
+    const results = await service.searchSimilar(embedding.vector, safeOptions);
 
     return NextResponse.json({
       success: true,

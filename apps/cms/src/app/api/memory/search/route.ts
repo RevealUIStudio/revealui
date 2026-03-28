@@ -123,10 +123,12 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
         { status: 503 },
       );
     }
+    // Strip siteId from options for non-admins to prevent cross-tenant data access
     const service = new mod.VectorMemoryService();
+    const isAdmin = authSession.user.role === 'admin';
     const safeOptions = {
       ...((options as Record<string, unknown>) ?? {}),
-      ...(authSession.user.role !== 'admin' ? { userId: authSession.user.id } : {}),
+      ...(!isAdmin ? { userId: authSession.user.id, siteId: undefined } : {}),
     };
     const results = await service.searchSimilar(queryEmbedding, safeOptions);
 
