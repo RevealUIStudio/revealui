@@ -84,7 +84,7 @@ const INTERNAL_SOURCE_PATTERNS: Array<{ pattern: RegExp; reason: string }> = [
     reason: 'founder email address (internal identity)',
   },
   {
-    pattern: /RevealUIStudio\//,
+    pattern: /(?<!github\.com\/)RevealUIStudio\//,
     reason: 'GitHub org path reference (internal)',
   },
 ];

@@ -178,7 +178,39 @@ export function SearchBar() {
 
       {isOpen && query && results.length === 0 && (
         <div className="absolute top-full right-0 left-0 mt-1 rounded-lg border border-border bg-surface p-4 text-center text-sm text-text-muted">
-          {indexReady ? 'No results found' : 'Loading search index...'}
+          {indexReady ? (
+            <div>
+              <p className="font-medium text-text-secondary">No results found</p>
+              <p className="mt-1 text-xs">
+                Try different keywords or browse the sidebar navigation
+              </p>
+            </div>
+          ) : (
+            <div className="flex items-center justify-center gap-2">
+              <svg
+                className="size-4 animate-spin text-accent"
+                viewBox="0 0 24 24"
+                fill="none"
+                aria-hidden="true"
+              >
+                <circle
+                  cx="12"
+                  cy="12"
+                  r="10"
+                  stroke="currentColor"
+                  strokeWidth="2"
+                  opacity="0.25"
+                />
+                <path
+                  d="M4 12a8 8 0 018-8"
+                  stroke="currentColor"
+                  strokeWidth="2"
+                  strokeLinecap="round"
+                />
+              </svg>
+              <span>Building search index...</span>
+            </div>
+          )}
         </div>
       )}
     </div>

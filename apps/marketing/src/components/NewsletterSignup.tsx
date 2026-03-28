@@ -35,7 +35,23 @@ export function NewsletterSignup({ variant = 'inline' }: { variant?: 'inline' | 
 
   if (status === 'success') {
     return (
-      <div className={variant === 'stacked' ? 'text-center' : ''}>
+      <div
+        className={`animate-[fade-in_300ms_ease-out] ${variant === 'stacked' ? 'text-center' : ''}`}
+      >
+        <svg
+          className="mx-auto mb-2 size-6 animate-[scale-in_300ms_ease-out] text-emerald-400"
+          fill="none"
+          viewBox="0 0 24 24"
+          strokeWidth={2}
+          stroke="currentColor"
+          aria-hidden="true"
+        >
+          <path
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            d="M9 12.75 11.25 15 15 9.75M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z"
+          />
+        </svg>
         <p className="text-sm font-medium text-emerald-400">{message}</p>
       </div>
     );

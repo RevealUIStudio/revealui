@@ -4,6 +4,7 @@
 
 import { logger } from '@revealui/core/observability/logger';
 import type React from 'react';
+import { useRef, useState } from 'react';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 
@@ -282,10 +283,42 @@ function CodeRenderer({
   );
 }
 
+function CopyablePreBlock({ children, ...props }: React.ComponentProps<'pre'>): React.ReactElement {
+  const [copied, setCopied] = useState(false);
+  const preRef = useRef<HTMLPreElement>(null);
+
+  const handleCopy = () => {
+    const text = preRef.current?.textContent ?? '';
+    void navigator.clipboard.writeText(text).then(() => {
+      setCopied(true);
+      setTimeout(() => setCopied(false), 2000);
+    });
+  };
+
+  return (
+    <div className="group/code relative">
+      <pre ref={preRef} {...props}>
+        {children}
+      </pre>
+      <button
+        type="button"
+        onClick={handleCopy}
+        className="absolute top-2 right-2 rounded-md border border-white/10 bg-white/5 px-2 py-1 text-xs text-zinc-400 opacity-0 transition-opacity hover:bg-white/10 hover:text-white group-hover/code:opacity-100"
+        aria-label="Copy code"
+      >
+        {copied ? 'Copied!' : 'Copy'}
+      </button>
+    </div>
+  );
+}
+
 export function renderMarkdown(content: string): React.ReactElement {
   return (
     <div className="markdown-content">
-      <ReactMarkdown remarkPlugins={[remarkGfm]} components={{ code: CodeRenderer }}>
+      <ReactMarkdown
+        remarkPlugins={[remarkGfm]}
+        components={{ code: CodeRenderer, pre: CopyablePreBlock }}
+      >
         {content}
       </ReactMarkdown>
     </div>

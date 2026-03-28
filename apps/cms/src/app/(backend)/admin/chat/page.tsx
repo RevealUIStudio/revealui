@@ -1,6 +1,6 @@
 'use client';
 
-import { useCallback, useEffect, useState } from 'react';
+import { useEffect, useState } from 'react';
 import AgentChat from '@/lib/components/Agent';
 import { LicenseGate } from '@/lib/components/LicenseGate';
 
@@ -16,51 +16,52 @@ export default function ChatPage() {
   const [conversations, setConversations] = useState<Conversation[]>([]);
   const [activeId, setActiveId] = useState<string | null>(null);
   const [sidebarOpen, setSidebarOpen] = useState(true);
+  const [sidebarLoading, setSidebarLoading] = useState(true);
+  const [sidebarError, setSidebarError] = useState<string | null>(null);
 
   // Fetch conversation list
-  const loadConversations = useCallback(async () => {
+  const loadConversations = async () => {
+    setSidebarLoading(true);
+    setSidebarError(null);
     try {
       const res = await fetch('/api/conversations');
-      if (!res.ok) return;
+      if (!res.ok) throw new Error('Failed to load conversations');
       const data = (await res.json()) as { conversations: Conversation[] };
       setConversations(data.conversations);
-    } catch {
-      // Silently fail — sidebar will be empty
+    } catch (e: unknown) {
+      setSidebarError(e instanceof Error ? e.message : 'Unable to load conversations');
+    } finally {
+      setSidebarLoading(false);
     }
-  }, []);
+  };
 
+  // biome-ignore lint/correctness/useExhaustiveDependencies: intentional mount-only fetch — loadConversations is a plain function that would cause infinite re-fetches if listed
   useEffect(() => {
     loadConversations();
-  }, [loadConversations]);
+  }, []);
 
-  const handleNewChat = useCallback(() => {
+  const handleNewChat = () => {
     setActiveId(null);
-  }, []);
+  };
 
-  const handleSelectConversation = useCallback((id: string) => {
+  const handleSelectConversation = (id: string) => {
     setActiveId(id);
-  }, []);
+  };
 
-  const handleDeleteConversation = useCallback(
-    async (id: string) => {
-      try {
-        await fetch(`/api/conversations/${id}`, { method: 'DELETE' });
-        setConversations((prev) => prev.filter((c) => c.id !== id));
-        if (activeId === id) setActiveId(null);
-      } catch {
-        // Silently fail
-      }
-    },
-    [activeId],
-  );
+  const handleDeleteConversation = async (id: string) => {
+    try {
+      await fetch(`/api/conversations/${id}`, { method: 'DELETE' });
+      setConversations((prev) => prev.filter((c) => c.id !== id));
+      if (activeId === id) setActiveId(null);
+    } catch {
+      // Silently fail
+    }
+  };
 
-  const handleConversationCreated = useCallback(
-    (id: string, _title: string) => {
-      setActiveId(id);
-      loadConversations();
-    },
-    [loadConversations],
-  );
+  const handleConversationCreated = (id: string, _title: string) => {
+    setActiveId(id);
+    loadConversations();
+  };
 
   return (
     <LicenseGate feature="aiLocal">
@@ -84,36 +85,80 @@ export default function ChatPage() {
             </button>
           </div>
           <div className="flex-1 overflow-y-auto">
-            {conversations.length === 0 && (
-              <p className="p-3 text-center text-xs text-zinc-400">No conversations yet</p>
-            )}
-            {conversations.map((conv) => (
-              <div
-                key={conv.id}
-                className={`group flex cursor-pointer items-center justify-between border-b border-zinc-100 px-3 py-2.5 text-sm transition-colors hover:bg-zinc-100 dark:border-zinc-800 dark:hover:bg-zinc-800 ${
-                  activeId === conv.id ? 'bg-blue-50 dark:bg-blue-900/20' : ''
-                }`}
-              >
+            {sidebarLoading ? (
+              <div className="space-y-1 p-2">
+                {Array.from({ length: 5 }).map((_, i) => (
+                  <div
+                    // biome-ignore lint/suspicious/noArrayIndexKey: skeleton placeholders
+                    key={i}
+                    className="animate-pulse rounded-md px-3 py-2.5"
+                  >
+                    <div
+                      className="h-4 rounded bg-zinc-200 dark:bg-zinc-700"
+                      style={{ width: `${60 + (i % 3) * 15}%` }}
+                    />
+                  </div>
+                ))}
+              </div>
+            ) : sidebarError ? (
+              <div className="p-3">
+                <p className="text-center text-xs text-red-400">{sidebarError}</p>
                 <button
                   type="button"
-                  onClick={() => handleSelectConversation(conv.id)}
-                  className="flex-1 truncate text-left text-zinc-700 dark:text-zinc-300"
+                  onClick={() => loadConversations()}
+                  className="mt-2 w-full rounded-md bg-zinc-800 px-2 py-1 text-xs text-zinc-300 hover:bg-zinc-700"
                 >
-                  {conv.title ?? 'Untitled'}
-                </button>
-                <button
-                  type="button"
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    handleDeleteConversation(conv.id);
-                  }}
-                  className="ml-2 hidden shrink-0 text-xs text-zinc-400 hover:text-red-500 group-hover:block"
-                  aria-label="Delete conversation"
-                >
-                  &#x2715;
+                  Retry
                 </button>
               </div>
-            ))}
+            ) : conversations.length === 0 ? (
+              <div className="flex flex-col items-center px-3 py-8">
+                <svg
+                  className="mb-2 size-6 text-zinc-400"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                  stroke="currentColor"
+                  aria-hidden="true"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={1.5}
+                    d="M20.25 8.511c.884.284 1.5 1.128 1.5 2.097v4.286c0 1.136-.847 2.1-1.98 2.193-.34.027-.68.052-1.02.072v3.091l-3-3c-1.354 0-2.694-.055-4.02-.163a2.115 2.115 0 01-.825-.242m9.345-8.334a2.126 2.126 0 00-.476-.095 48.64 48.64 0 00-8.048 0c-1.131.094-1.976 1.057-1.976 2.192v4.286c0 .837.46 1.58 1.155 1.951m9.345-8.334V6.637c0-1.621-1.152-3.026-2.76-3.235A48.455 48.455 0 0011.25 3c-2.115 0-4.198.137-6.24.402-1.608.209-2.76 1.614-2.76 3.235v6.226c0 1.621 1.152 3.026 2.76 3.235.577.075 1.157.14 1.74.194V21l4.155-4.155"
+                  />
+                </svg>
+                <p className="text-center text-xs text-zinc-400">No conversations yet</p>
+                <p className="mt-1 text-center text-xs text-zinc-500">Start a new chat to begin</p>
+              </div>
+            ) : null}
+            {!(sidebarLoading || sidebarError) &&
+              conversations.map((conv) => (
+                <div
+                  key={conv.id}
+                  className={`group flex cursor-pointer items-center justify-between border-b border-zinc-100 px-3 py-2.5 text-sm transition-colors hover:bg-zinc-100 dark:border-zinc-800 dark:hover:bg-zinc-800 ${
+                    activeId === conv.id ? 'bg-blue-50 dark:bg-blue-900/20' : ''
+                  }`}
+                >
+                  <button
+                    type="button"
+                    onClick={() => handleSelectConversation(conv.id)}
+                    className="flex-1 truncate text-left text-zinc-700 dark:text-zinc-300"
+                  >
+                    {conv.title ?? 'Untitled'}
+                  </button>
+                  <button
+                    type="button"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      handleDeleteConversation(conv.id);
+                    }}
+                    className="ml-2 hidden shrink-0 text-xs text-zinc-400 hover:text-red-500 group-hover:block"
+                    aria-label="Delete conversation"
+                  >
+                    &#x2715;
+                  </button>
+                </div>
+              ))}
           </div>
         </div>
 

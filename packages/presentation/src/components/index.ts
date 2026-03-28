@@ -61,6 +61,7 @@ export {
 export { EmptyState } from './empty-state.js';
 export { FormLabel, type FormLabelProps } from './FormLabel.js';
 export { Field, FieldGroup, Fieldset, Legend } from './fieldset.js';
+export { FormField, type FormFieldProps } from './form-field.js';
 export { Input as InputCVA, type InputProps } from './Input.js';
 export { Input, InputGroup } from './input-headless.js';
 export { Kbd, KbdShortcut } from './kbd.js';

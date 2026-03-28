@@ -14,7 +14,7 @@ export {
   type ButtonProps,
   buttonVariants,
 } from './components/Button.js';
-
+export { Breadcrumb, type BreadcrumbItem } from './components/breadcrumb.js';
 export {
   Card,
   CardContent,
@@ -23,13 +23,11 @@ export {
   CardHeader,
   CardTitle,
 } from './components/Card.js';
-
+export { EmptyState } from './components/empty-state.js';
 export { FormLabel, type FormLabelProps } from './components/FormLabel.js';
-
+export { FormField, type FormFieldProps } from './components/form-field.js';
 export { Input as InputCVA, type InputProps } from './components/Input.js';
-
 export { Label, type LabelProps } from './components/Label.js';
-
 export {
   Pagination,
   PaginationContent,
@@ -44,13 +42,13 @@ export {
   type PaginationPreviousProps,
   type PaginationProps,
 } from './components/Pagination.js';
-
 export {
   PricingTable,
   type PricingTableProps,
   type PricingTier,
 } from './components/pricing-table.js';
 
+export { Skeleton, SkeletonCard, SkeletonText } from './components/skeleton.js';
 export { Textarea as TextareaCVA, type TextareaProps } from './components/Textarea.js';
 
 // Note: Checkbox and Select CVA versions use state and are in client.ts

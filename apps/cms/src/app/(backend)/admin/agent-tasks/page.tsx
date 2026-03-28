@@ -233,16 +233,21 @@ function AgentTasksDashboard() {
       {/* Content */}
       <div className="p-6">
         {loading ? (
-          <div
-            aria-live="polite"
-            aria-atomic="true"
-            className="flex h-32 items-center justify-center"
-          >
-            <span className="sr-only">Loading</span>
-            <div
-              className="h-5 w-5 animate-spin rounded-full border-2 border-zinc-600 border-t-zinc-200"
-              aria-hidden="true"
-            />
+          <div className="flex flex-col gap-2" role="status" aria-label="Loading tasks">
+            {Array.from({ length: 5 }).map((_, i) => (
+              <div
+                // biome-ignore lint/suspicious/noArrayIndexKey: skeleton placeholders
+                key={i}
+                className="animate-pulse rounded-lg border border-zinc-800 bg-zinc-800/40 px-4 py-3"
+              >
+                <div className="flex items-center gap-3">
+                  <div className="h-5 w-16 rounded-full bg-zinc-700" />
+                  <div className="h-4 flex-1 rounded bg-zinc-700/60" />
+                  <div className="hidden h-3 w-20 rounded bg-zinc-700/40 sm:block" />
+                  <div className="h-3 w-32 rounded bg-zinc-700/40" />
+                </div>
+              </div>
+            ))}
           </div>
         ) : error ? (
           <div

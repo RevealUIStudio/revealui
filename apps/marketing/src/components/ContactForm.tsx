@@ -9,6 +9,28 @@ const topics = [
   { value: 'general', label: 'General Question' },
 ];
 
+interface FieldErrors {
+  name?: string;
+  email?: string;
+  message?: string;
+}
+
+function validateField(field: keyof FieldErrors, value: string): string | undefined {
+  switch (field) {
+    case 'name':
+      if (!value.trim()) return 'Name is required';
+      return undefined;
+    case 'email':
+      if (!value.trim()) return 'Email is required';
+      if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value)) return 'Enter a valid email address';
+      return undefined;
+    case 'message':
+      if (!value.trim()) return 'Message is required';
+      if (value.trim().length < 10) return 'Message must be at least 10 characters';
+      return undefined;
+  }
+}
+
 export function ContactForm() {
   const [formData, setFormData] = useState({
     name: '',
@@ -18,10 +40,25 @@ export function ContactForm() {
   });
   const [status, setStatus] = useState<'idle' | 'loading' | 'success' | 'error'>('idle');
   const [errorMessage, setErrorMessage] = useState('');
+  const [fieldErrors, setFieldErrors] = useState<FieldErrors>({});
+
+  function handleBlur(field: keyof FieldErrors) {
+    const error = validateField(field, formData[field]);
+    setFieldErrors((prev) => ({ ...prev, [field]: error }));
+  }
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     if (status === 'loading') return;
+
+    // Validate all fields before submit
+    const errors: FieldErrors = {
+      name: validateField('name', formData.name),
+      email: validateField('email', formData.email),
+      message: validateField('message', formData.message),
+    };
+    setFieldErrors(errors);
+    if (Object.values(errors).some(Boolean)) return;
 
     setStatus('loading');
     try {
@@ -81,9 +118,21 @@ export function ContactForm() {
             required
             value={formData.name}
             onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-            className="mt-2 block w-full rounded-lg border-0 px-4 py-2.5 text-gray-900 shadow-sm ring-1 ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-blue-600 sm:text-sm"
+            onBlur={() => handleBlur('name')}
+            aria-invalid={fieldErrors.name ? true : undefined}
+            aria-describedby={fieldErrors.name ? 'contact-name-error' : undefined}
+            className={`mt-2 block w-full rounded-lg border-0 px-4 py-2.5 text-gray-900 shadow-sm ring-1 placeholder:text-gray-400 focus:ring-2 sm:text-sm ${
+              fieldErrors.name
+                ? 'ring-red-300 focus:ring-red-600'
+                : 'ring-gray-300 focus:ring-blue-600'
+            }`}
             placeholder="Your name"
           />
+          {fieldErrors.name && (
+            <p id="contact-name-error" className="mt-1 text-xs text-red-600">
+              {fieldErrors.name}
+            </p>
+          )}
         </div>
         <div>
           <label htmlFor="contact-email" className="block text-sm font-medium text-gray-900">
@@ -95,9 +144,21 @@ export function ContactForm() {
             required
             value={formData.email}
             onChange={(e) => setFormData({ ...formData, email: e.target.value })}
-            className="mt-2 block w-full rounded-lg border-0 px-4 py-2.5 text-gray-900 shadow-sm ring-1 ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-blue-600 sm:text-sm"
+            onBlur={() => handleBlur('email')}
+            aria-invalid={fieldErrors.email ? true : undefined}
+            aria-describedby={fieldErrors.email ? 'contact-email-error' : undefined}
+            className={`mt-2 block w-full rounded-lg border-0 px-4 py-2.5 text-gray-900 shadow-sm ring-1 placeholder:text-gray-400 focus:ring-2 sm:text-sm ${
+              fieldErrors.email
+                ? 'ring-red-300 focus:ring-red-600'
+                : 'ring-gray-300 focus:ring-blue-600'
+            }`}
             placeholder="you@company.com"
           />
+          {fieldErrors.email && (
+            <p id="contact-email-error" className="mt-1 text-xs text-red-600">
+              {fieldErrors.email}
+            </p>
+          )}
         </div>
       </div>
       <div>
@@ -127,9 +188,21 @@ export function ContactForm() {
           rows={5}
           value={formData.message}
           onChange={(e) => setFormData({ ...formData, message: e.target.value })}
-          className="mt-2 block w-full rounded-lg border-0 px-4 py-2.5 text-gray-900 shadow-sm ring-1 ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-blue-600 sm:text-sm"
+          onBlur={() => handleBlur('message')}
+          aria-invalid={fieldErrors.message ? true : undefined}
+          aria-describedby={fieldErrors.message ? 'contact-message-error' : undefined}
+          className={`mt-2 block w-full rounded-lg border-0 px-4 py-2.5 text-gray-900 shadow-sm ring-1 placeholder:text-gray-400 focus:ring-2 sm:text-sm ${
+            fieldErrors.message
+              ? 'ring-red-300 focus:ring-red-600'
+              : 'ring-gray-300 focus:ring-blue-600'
+          }`}
           placeholder="Tell us about your project or question..."
         />
+        {fieldErrors.message && (
+          <p id="contact-message-error" className="mt-1 text-xs text-red-600">
+            {fieldErrors.message}
+          </p>
+        )}
       </div>
       {status === 'error' && <p className="text-sm text-red-600">{errorMessage}</p>}
       <button
