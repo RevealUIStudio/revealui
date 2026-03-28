@@ -98,7 +98,7 @@ Pro packages are source-available on npm under a [commercial license](LICENSE.co
 | **Free**       | $0        | Full OSS core — users, content, products, payments, admin          |
 | **Pro**        | $49/mo    | AI agents, MCP framework, BYOK, editor config sync, advanced sync  |
 | **Max**        | $149/mo   | Multi-provider AI, audit log, priority support, higher limits      |
-| **Enterprise** | $299/mo   | White-label, multi-tenant, SSO, domain-locked, dedicated support   |
+| **Enterprise** | $299/mo   | White-label, multi-tenant, SSO, domain-locked _(infrastructure preview)_ |
 
 ## Apps
 
@@ -129,7 +129,7 @@ Pro packages are source-available on npm under a [commercial license](LICENSE.co
 | [`@revealui/utils`](packages/utils)                     | Logger, DB helpers, validation                    |
 | [`@revealui/cli`](packages/cli)                         | `create-revealui` scaffolding tool                |
 | [`@revealui/setup`](packages/setup)                     | Environment setup utilities                       |
-| [`@revealui/sync`](packages/sync)                       | ElectricSQL real-time sync                        |
+| [`@revealui/sync`](packages/sync)                       | ElectricSQL real-time sync _(experimental)_       |
 | [`@revealui/cache`](packages/cache)                     | CDN config, edge cache, ISR presets               |
 | [`@revealui/resilience`](packages/resilience)           | Circuit breaker, retry, bulkhead patterns         |
 | [`@revealui/security`](packages/security)               | Headers, CORS, RBAC/ABAC, encryption, audit       |
@@ -156,7 +156,7 @@ Pro packages are source-available on npm under a [commercial license](LICENSE.co
 | Database  | NeonDB (Postgres) + Supabase, Drizzle ORM  |
 | Auth      | Session-based, bcrypt, RBAC + ABAC          |
 | Rich Text | Lexical editor                              |
-| Sync      | ElectricSQL (real-time collaboration)       |
+| Sync      | ElectricSQL _(experimental)_                |
 | Billing   | Stripe (checkout, subscriptions, webhooks)  |
 | Desktop   | Tauri 2                                     |
 | TUI       | Go, Bubble Tea                              |

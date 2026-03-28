@@ -16,7 +16,7 @@ This roadmap reflects our current priorities and planned direction. It is update
 - **Content engine** — Schema-first collections, Lexical rich text, media handling, draft/live lifecycle, REST API with OpenAPI spec
 - **Billing stack** — Stripe checkout, subscriptions, webhooks, license keys, billing portal, tier enforcement (free/pro/max/forge)
 - **UI components** — 50+ native React 19 components (Tailwind v4, zero external UI deps)
-- **Real-time sync** — ElectricSQL integration for instant editor/client/agent sync
+- **Real-time sync** — ElectricSQL integration for editor/client/agent sync _(experimental — basic shape subscriptions, no offline-first)_
 - **Database** — 70+ tables via Drizzle ORM, dual-DB architecture (NeonDB + Supabase)
 - **CLI** — `npx create-revealui my-app` scaffolds a full project from npm
 - **AI agents** — A2A protocol, CRDT memory, BYOK LLM providers, streaming, tool execution
@@ -82,7 +82,7 @@ Give users the ability to interact with an AI agent directly from the CMS dashbo
 A registry where developers can publish and discover MCP servers and AI agent capabilities. Revenue share model (80% developer / 20% platform).
 
 #### Multi-User Collaboration
-Real-time multi-user editing powered by ElectricSQL. Conflict resolution, presence indicators, and collaborative workflows.
+Real-time multi-user editing powered by ElectricSQL. Currently basic shape subscriptions and Yjs CRDT foundation exist (experimental). Full conflict resolution, presence indicators, and collaborative workflows are planned.
 
 #### Enterprise Features
 - SSO/SAML authentication
@@ -92,7 +92,7 @@ Real-time multi-user editing powered by ElectricSQL. Conflict resolution, presen
 - SLA guarantees
 
 #### Self-Hosted (Forge Edition)
-Docker images for fully self-hosted deployment. Domain-locked licensing, no cloud dependency.
+Docker images for fully self-hosted deployment. Domain-locked licensing, no cloud dependency. _Currently: Docker Compose stack and K8s manifests exist as infrastructure skeletons. SSO, white-label theming, and deployment guide are not yet implemented._
 
 ### Long-Term (Q4 2026+)
 

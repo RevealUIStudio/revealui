@@ -165,8 +165,8 @@ Overall Pro tier: **~80% complete** (not 50% as a surface scan might suggest).
 ### Nice to Have
 
 9. ~~**Document `apps/revealcoin`**~~: ✅ Listed in README Apps table as experimental
-10. **Clarify ElectricSQL status**: "Basic" sync should be explicitly noted
-11. **Clarify Forge timeline**: Infrastructure exists but isn't deployable yet
+10. ~~**Clarify ElectricSQL status**~~: ✅ Marked as "experimental" in README and ROADMAP
+11. ~~**Clarify Forge timeline**~~: ✅ Infrastructure preview noted in README tiers, ROADMAP updated
 12. **Auto-generate CHANGELOG**: Current one is manually maintained and stale
 
 ---
