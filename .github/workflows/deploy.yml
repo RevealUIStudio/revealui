@@ -35,6 +35,8 @@ env:
   NODE_VERSION: "24"
   PNPM_VERSION: "10.28.2"
   VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
+  TURBO_TOKEN: ${{ secrets.TURBO_TOKEN }}
+  TURBO_TEAM: ${{ vars.TURBO_TEAM }}
 
 jobs:
   # ---------------------------------------------------------------------------
@@ -123,7 +125,7 @@ jobs:
         run: pnpm add -g vercel@latest
 
       - name: Install dependencies
-        run: pnpm install --no-frozen-lockfile
+        run: pnpm install --frozen-lockfile
 
       - name: Pull Vercel environment
         run: vercel pull --yes --environment=${{ needs.resolve.outputs.is-production == 'true' && 'production' || 'preview' }} --token=${{ secrets.VERCEL_TOKEN }}

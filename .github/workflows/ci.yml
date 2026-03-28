@@ -8,6 +8,12 @@ name: CI
 # Pipeline: feature/* → develop → test → main
 #   develop/feature PRs: quality + typecheck + package build + unit tests (~10 min)
 #   test/main: full build + integration tests + E2E smoke + accessibility (~15 min)
+#
+# Optimizations:
+#   - Turbo remote cache: build artifacts shared across jobs (TURBO_TOKEN + TURBO_TEAM)
+#   - PR jobs use --affected: only build/typecheck changed packages
+#   - Build runs in parallel with typecheck (turbo cache provides build artifacts)
+#   - E2E jobs wait for build (cache hit → near-instant rebuild)
 
 on:
   push:
@@ -22,6 +28,8 @@ concurrency:
 env:
   NODE_VERSION: "24"
   PNPM_VERSION: "10.28.2"
+  TURBO_TOKEN: ${{ secrets.TURBO_TOKEN }}
+  TURBO_TEAM: ${{ vars.TURBO_TEAM }}
 
 jobs:
   # ---------------------------------------------------------------------------
@@ -47,7 +55,7 @@ jobs:
           cache: pnpm
 
       - name: Install dependencies
-        run: pnpm install --no-frozen-lockfile
+        run: pnpm install --frozen-lockfile
 
       - name: Biome lint (hard fail)
         run: pnpm lint:biome
@@ -62,6 +70,10 @@ jobs:
 
       - name: Structure validation (warn-only)
         run: pnpm validate:structure || echo "structure warnings — not blocking"
+        continue-on-error: true
+
+      - name: Version policy validation (warn-only)
+        run: pnpm validate:versions || echo "version policy warnings — not blocking"
         continue-on-error: true
 
       - name: Boundary validation (hard fail)
@@ -89,9 +101,16 @@ jobs:
           cache: pnpm
 
       - name: Install dependencies
-        run: pnpm install --no-frozen-lockfile
+        run: pnpm install --frozen-lockfile
 
-      - name: Typecheck all packages (hard fail)
+      - name: Typecheck affected packages (PRs — hard fail)
+        if: github.event_name == 'pull_request'
+        run: pnpm turbo typecheck --affected
+        env:
+          SKIP_ENV_VALIDATION: "true"
+
+      - name: Typecheck all packages (push — hard fail)
+        if: github.event_name == 'push'
         run: pnpm typecheck:all
         env:
           SKIP_ENV_VALIDATION: "true"
@@ -118,7 +137,7 @@ jobs:
           cache: pnpm
 
       - name: Install dependencies
-        run: pnpm install --no-frozen-lockfile
+        run: pnpm install --frozen-lockfile
 
       - name: Run unit tests (hard fail)
         run: pnpm test
@@ -163,7 +182,7 @@ jobs:
           cache: pnpm
 
       - name: Install dependencies
-        run: pnpm install --no-frozen-lockfile
+        run: pnpm install --frozen-lockfile
 
       - name: Build packages (required — integration tests import real dist/)
         run: pnpm --filter './packages/*' build
@@ -201,7 +220,7 @@ jobs:
           cache: pnpm
 
       - name: Install dependencies
-        run: pnpm install --no-frozen-lockfile
+        run: pnpm install --frozen-lockfile
 
       - name: Generate coverage reports (warn-only)
         run: pnpm test:coverage || echo "Coverage generation had failures — not blocking"
@@ -227,12 +246,13 @@ jobs:
   # Phase 3b: Build
   #   - PRs: packages only (hard fail, ~5 min) — catches import/export breaks
   #   - main: full build including apps (hard fail, ~15 min)
+  # Runs in parallel with typecheck (turbo remote cache shares build artifacts)
   # ---------------------------------------------------------------------------
   build:
     name: Build
     runs-on: ubuntu-latest
     timeout-minutes: 30
-    needs: [quality, typecheck]
+    needs: quality
 
     steps:
       - uses: actions/checkout@v6
@@ -247,16 +267,16 @@ jobs:
           cache: pnpm
 
       - name: Install dependencies
-        run: pnpm install --no-frozen-lockfile
+        run: pnpm install --frozen-lockfile
 
-      - name: Build packages (hard fail)
+      - name: Build affected packages (PRs — hard fail)
         if: github.event_name == 'pull_request'
-        run: pnpm --filter './packages/*' build
+        run: pnpm turbo build --affected
         env:
           SKIP_ENV_VALIDATION: "true"
 
-      - name: Build all (hard fail)
-        if: github.ref == 'refs/heads/main' || github.ref == 'refs/heads/test'
+      - name: Build all (push to protected branches — hard fail)
+        if: github.event_name == 'push'
         run: pnpm build
         env:
           SKIP_ENV_VALIDATION: "true"
@@ -268,7 +288,7 @@ jobs:
     name: E2E Smoke
     runs-on: ubuntu-latest
     timeout-minutes: 5
-    needs: [quality, typecheck]
+    needs: [quality, build]
     continue-on-error: true
 
     steps:
@@ -284,7 +304,7 @@ jobs:
           cache: pnpm
 
       - name: Install dependencies
-        run: pnpm install --no-frozen-lockfile
+        run: pnpm install --frozen-lockfile
 
       - name: Install Playwright (chromium only)
         run: npx playwright install --with-deps chromium
@@ -320,7 +340,7 @@ jobs:
     name: Accessibility (E2E)
     runs-on: ubuntu-latest
     timeout-minutes: 20
-    needs: [quality, typecheck]
+    needs: [quality, build]
 
     steps:
       - uses: actions/checkout@v6
@@ -335,7 +355,7 @@ jobs:
           cache: pnpm
 
       - name: Install dependencies
-        run: pnpm install --no-frozen-lockfile
+        run: pnpm install --frozen-lockfile
 
       - name: Install Playwright (chromium only)
         run: npx playwright install --with-deps chromium
@@ -392,7 +412,7 @@ jobs:
     name: Visual Regression (E2E)
     runs-on: ubuntu-latest
     timeout-minutes: 20
-    needs: [quality, typecheck]
+    needs: [quality, build]
     continue-on-error: true
 
     steps:
@@ -408,7 +428,7 @@ jobs:
           cache: pnpm
 
       - name: Install dependencies
-        run: pnpm install --no-frozen-lockfile
+        run: pnpm install --frozen-lockfile
 
       - name: Install Playwright (chromium only)
         run: npx playwright install --with-deps chromium
