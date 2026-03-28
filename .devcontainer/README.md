@@ -64,12 +64,10 @@ This directory contains the Dev Container configuration for RevealUI, enabling d
 - **PostgreSQL 16 with pgvector** - Database with vector search
 - **Electric SQL** - Real-time sync service
 - **Git** - Version control
-- **direnv** - Environment variable management
 
 ### VS Code Extensions
 - **Biome** - Formatter and linter (sole linter)
 - **Tailwind CSS IntelliSense** - Tailwind autocomplete
-- **Prisma** - Database schema management
 - **Docker** - Container management
 - **Code Spell Checker** - Catch typos
 - **GitLens** - Git supercharged
@@ -82,18 +80,20 @@ The Dev Container runs these services automatically:
 |---------|------|-------------|
 | **PostgreSQL** | 5432 | Main database with pgvector extension |
 | **Electric** | 5133 | Real-time sync service |
-| **CMS** | 4000 | RevealUI CMS (after running `pnpm dev`) |
-| **Web** | 3000 | Frontend app (after running `pnpm dev`) |
+| **Marketing** | 3000 | Marketing site (after running `pnpm dev`) |
+| **Docs** | 3002 | Documentation site (after running `pnpm dev`) |
+| **API** | 3004 | REST API — Hono (after running `pnpm dev`) |
+| **CMS** | 4000 | Headless CMS + admin (after running `pnpm dev`) |
 
 ## Environment Variables
 
-Create a `.env.development.local` file in the project root with your configuration:
+Create a `.env.local` file in the project root with your configuration:
 
 ```bash
-# Copy from template
-cp .env.template .env.development.local
+# Copy from example
+cp .env.example .env.local
 # Edit with your values
-code .env.development.local
+code .env.local
 ```
 
 For **GitHub Codespaces**, set secrets in:
@@ -147,7 +147,6 @@ pnpm format
 pnpm db:init      # Initialize database
 pnpm db:migrate   # Run migrations
 pnpm db:seed      # Seed database
-pnpm db:studio    # Open Prisma Studio
 ```
 
 ## Troubleshooting
@@ -158,8 +157,8 @@ pnpm db:studio    # Open Prisma Studio
 
 ### Database connection errors
 - Verify PostgreSQL is running: `docker ps | grep postgres`
-- Check `.env.development.local` has correct `POSTGRES_URL`
-- Try: `POSTGRES_URL=postgresql://postgres:postgres@localhost:5432/revealui`
+- Check `.env.local` has correct `DATABASE_URL`
+- Try: `DATABASE_URL=postgresql://postgres:postgres@localhost:5432/revealui`
 
 ### Port already in use
 - Stop conflicting services on ports 3000, 4000, 5432, 5133

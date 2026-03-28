@@ -13,10 +13,18 @@
       "version": "24.13.0"
     }
   },
-  "forwardPorts": [3000, 4000, 5432, 5133],
+  "forwardPorts": [3000, 3002, 3004, 4000, 5432, 5133],
   "portsAttributes": {
     "3000": {
-      "label": "Web App",
+      "label": "Marketing",
+      "onAutoForward": "notify"
+    },
+    "3002": {
+      "label": "Docs",
+      "onAutoForward": "notify"
+    },
+    "3004": {
+      "label": "API (Hono)",
       "onAutoForward": "notify"
     },
     "4000": {
