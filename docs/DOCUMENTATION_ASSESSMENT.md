@@ -20,7 +20,7 @@ RevealUI's core framework is **real and production-grade** — auth, billing, CM
 |-------|-------|--------|-----|
 | TypeScript 5.9 | README badge | **6.0.2** | Update badge |
 | 68 database tables | README, CLAUDE.md, QUICK_START | **75 pgTable declarations** | Update all references |
-| 6 apps | README | **7** (revealcoin app undocumented) | Add revealcoin or note it as experimental |
+| ~~6 apps~~ | ~~README~~ | ~~**7** (revealcoin app undocumented)~~ | ✅ Fixed — revealcoin listed as experimental |
 | Node.js 24.0 | README/badges | **24.13.0** (.node-version) | Minor — acceptable |
 
 ### Broken Internal References (CONTRIBUTING.md)
@@ -150,10 +150,10 @@ Overall Pro tier: **~80% complete** (not 50% as a surface scan might suggest).
 
 ### Must Fix (misrepresents current state)
 
-1. **TypeScript version badge**: 5.9 -> 6 in README
-2. **Table count**: 68 -> 75 everywhere
-3. **Broken CONTRIBUTING.md links**: 4 references to non-existent docs
-4. **Examples directory**: Either populate the 3 empty examples or remove them
+1. ~~**TypeScript version badge**~~: ✅ README badge now shows TypeScript 6
+2. ~~**Table count**~~: ✅ Updated to 75 everywhere (README, CLAUDE.md, QUICK_START)
+3. ~~**Broken CONTRIBUTING.md links**~~: ✅ All 4 referenced docs now exist
+4. ~~**Examples directory**~~: ✅ 3 empty stubs removed
 
 ### Should Fix (confusing but not misleading)
 
@@ -164,7 +164,7 @@ Overall Pro tier: **~80% complete** (not 50% as a surface scan might suggest).
 
 ### Nice to Have
 
-9. **Document `apps/revealcoin`**: 7th app exists but isn't mentioned
+9. ~~**Document `apps/revealcoin`**~~: ✅ Listed in README Apps table as experimental
 10. **Clarify ElectricSQL status**: "Basic" sync should be explicitly noted
 11. **Clarify Forge timeline**: Infrastructure exists but isn't deployable yet
 12. **Auto-generate CHANGELOG**: Current one is manually maintained and stale

@@ -3,7 +3,7 @@
 /**
  * Deploy All — Multi-App Vercel Deployment for RevealUI
  *
- * Orchestrates Vercel deployment for all 6 apps, replacing the
+ * Orchestrates Vercel deployment for all 7 apps, replacing the
  * deploy.yml GitHub Actions workflow. Runs concurrent deployments
  * with optional smoke testing.
  *
