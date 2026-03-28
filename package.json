@@ -7,7 +7,7 @@
     "@axe-core/playwright": "^4.11.1",
     "@biomejs/biome": "^2.4.8",
     "@changesets/cli": "^2.29.8",
-    "@electric-sql/pglite": "^0.3.15",
+    "@electric-sql/pglite": "^0.4.2",
     "@lhci/cli": "^0.15.1",
     "@modelcontextprotocol/sdk": "^1.26.0",
     "@playwright/test": "^1.58.2",
