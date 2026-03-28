@@ -16,9 +16,9 @@ catalog:
   bcryptjs: ^3.0.3
   concurrently: ^9.2.1
   dotenv: ^17.2.4
-  drizzle-orm: ^0.45.1
+  drizzle-orm: ^0.45.2
   drizzle-zod: ^0.8.0
-  globals: ^15.11.0
+  globals: ^17.4.0
   jsdom: ^27.4.0
   next: ^16.2.0
   pg: ^8.18.0

@@ -7,7 +7,7 @@
     "@revealui/core": "workspace:*",
     "@revealui/db": "workspace:*",
     "@revealui/presentation": "workspace:*",
-    "drizzle-orm": "^0.45.1",
+    "drizzle-orm": "^0.45.2",
     "next": "catalog:",
     "react": "^19.2.4",
     "react-dom": "^19.2.4",

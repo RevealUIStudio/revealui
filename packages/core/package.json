@@ -20,7 +20,7 @@
     "@revealui/resilience": "workspace:*",
     "@revealui/security": "workspace:*",
     "@revealui/utils": "workspace:*",
-    "@vercel/blob": "^2.2.0",
+    "@vercel/blob": "^2.3.2",
     "bcryptjs": "^3.0.3",
     "dataloader": "^2.2.3",
     "jose": "^6.1.3",
