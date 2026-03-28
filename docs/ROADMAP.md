@@ -125,7 +125,7 @@ See [revealui.com/pricing](https://revealui.com/pricing) for details.
 
 - **GitHub Issues** — [Request features or report bugs](https://github.com/RevealUIStudio/revealui/issues)
 - **Discussions** — [Join the conversation](https://github.com/RevealUIStudio/revealui/discussions)
-- **Community** — [community.revealui.com](https://community.revealui.com)
+- **Community** — [revnation.discourse.group](https://revnation.discourse.group)
 - **Email** — support@revealui.com
 
 We prioritize based on: customer impact, charge readiness, and community demand.

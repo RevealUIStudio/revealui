@@ -246,7 +246,7 @@ The repository is public on GitHub. The docs site is live at [docs.revealui.com]
 
 The Studio desktop companion (Tauri + React) and a terminal client (Go + Bubble Tea) are already in the monorepo — giving you both a visual DevPod manager and a TUI for API access, QR checkout, and SSH fingerprint lookup.
 
-The near-term roadmap includes MCP server registry listings, A2A agent discovery for RevealUI-to-RevealUI communication, a broader template library, and the template marketplace where developers can publish and sell project starters. The community forum is at [community.revealui.com](https://community.revealui.com) — join early and help shape what gets built next.
+The near-term roadmap includes MCP server registry listings, A2A agent discovery for RevealUI-to-RevealUI communication, a broader template library, and the template marketplace where developers can publish and sell project starters. The community forum is at [revnation.discourse.group](https://revnation.discourse.group) — join early and help shape what gets built next.
 
 But the core thesis won't change: **every software company needs users, content, products, payments, and intelligence. You shouldn't have to build them from scratch.**
 

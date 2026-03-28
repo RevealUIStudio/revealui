@@ -130,7 +130,7 @@ export function Footer() {
               </li>
               <li>
                 <a
-                  href="https://community.revealui.com"
+                  href="https://revnation.discourse.group"
                   target="_blank"
                   rel="noopener noreferrer"
                   className="hover:text-white transition-colors"

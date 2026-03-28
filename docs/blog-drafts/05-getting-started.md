@@ -610,7 +610,7 @@ The pattern scales. Add products, orders, tickets, knowledge bases — each coll
 
 - [Documentation](https://docs.revealui.com) — full reference for every package and API
 - [GitHub](https://github.com/RevealUIStudio/revealui) — star the repo, report issues, contribute
-- [Community Forum](https://community.revealui.com) — ask questions, share what you are building
+- [Community Forum](https://revnation.discourse.group) — ask questions, share what you are building
 
 ---
 

@@ -232,7 +232,7 @@ pnpm gate       # full CI gate (runs before push)
 ## Community
 
 - [GitHub Discussions](https://github.com/RevealUIStudio/revealui/discussions)
-- [Discourse Community](https://community.revealui.com)
+- [Discourse Community](https://revnation.discourse.group)
 - [GitHub Issues](https://github.com/RevealUIStudio/revealui/issues)
 
 ## Sponsors

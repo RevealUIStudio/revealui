@@ -190,7 +190,7 @@ export default function SettingsPanel() {
             </div>
             <div className="flex items-center justify-between">
               <span className="text-sm text-neutral-400">Community</span>
-              <span className="text-sm text-neutral-500">community.revealui.com</span>
+              <span className="text-sm text-neutral-500">revnation.discourse.group</span>
             </div>
             <div className="pt-2 border-t border-neutral-800">
               <button

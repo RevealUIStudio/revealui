@@ -198,7 +198,7 @@ _Updated: 2026-03-28 | Commit: e1858051_
 |-----------|--------|-------|
 | 1+ paying Pro customer | ❌ NOT MET | Stripe in test mode (#87 — key rotation needed) |
 | 10+ waitlist members tried quick-start | ❌ NOT MET | #88 — needs external testers |
-| Discourse forum live | ❌ NOT MET | community.revealui.com not yet set up |
+| Discourse forum live | ✅ MET | revnation.discourse.group (redirects from community.revealui.com) |
 | Fresh-browser billing flow works | ⚠️ PARTIAL | Flow works in test mode; live mode blocked on #87 |
 
 ### Open Issues Blocking Phase 3 Exit
@@ -225,9 +225,8 @@ _Updated: 2026-03-28 | Commit: e1858051_
 
 **Phase 3 technical criteria: ALL MET.** The codebase, CI, npm packages, and deployments are production-ready.
 
-**Phase 3 customer criteria: NOT MET.** Three owner-action items block the exit:
+**Phase 3 customer criteria: NOT MET.** Two owner-action items block the exit:
 1. Stripe test key rotation (#87) — unblocks billing verification
 2. External quick-start validation (#88) — needs 3 developers to test
-3. Discourse forum setup — needs hosting provisioning
 
-**Recommendation:** Complete #87 (Stripe key rotation) first — it unblocks both billing verification and the external validation flow. Then recruit 3 testers for #88. Discourse can be set up in parallel.
+**Recommendation:** Complete #87 (Stripe key rotation) first — it unblocks both billing verification and the external validation flow. Then recruit 3 testers for #88. Discourse forum is live at revnation.discourse.group with redirects from community.revealui.com.

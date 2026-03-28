@@ -41,6 +41,11 @@ const nextConfig = {
         destination: '/pricing',
         permanent: false,
       },
+      {
+        source: '/community',
+        destination: 'https://revnation.discourse.group',
+        permanent: false,
+      },
     ]
   },
   async headers() {
