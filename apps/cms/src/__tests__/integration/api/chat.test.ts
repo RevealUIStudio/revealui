@@ -46,8 +46,8 @@ vi.mock('@revealui/auth/server', () => ({
   }),
 }));
 
-vi.mock('@revealui/core/features', () => ({
-  isFeatureEnabled: vi.fn().mockReturnValue(true),
+vi.mock('@/lib/middleware/ai-feature-gate', () => ({
+  checkAIFeatureGate: vi.fn().mockReturnValue(null),
 }));
 
 vi.mock('@revealui/db', () => ({

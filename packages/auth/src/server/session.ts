@@ -160,7 +160,13 @@ export async function getSession(
       const result = await db
         .select()
         .from(sessions)
-        .where(and(eq(sessions.tokenHash, tokenHash), gt(sessions.expiresAt, new Date())))
+        .where(
+          and(
+            eq(sessions.tokenHash, tokenHash),
+            gt(sessions.expiresAt, new Date()),
+            isNull(sessions.deletedAt),
+          ),
+        )
         .limit(1);
       session = result[0] as Session | undefined;
     } catch (error: unknown) {

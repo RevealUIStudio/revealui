@@ -7,7 +7,6 @@
  */
 
 import { getSession } from '@revealui/auth/server';
-import { isFeatureEnabled } from '@revealui/core/features';
 import { getClient } from '@revealui/db';
 import {
   deleteConversation,
@@ -15,6 +14,7 @@ import {
   updateConversationTitle,
 } from '@revealui/db/queries/conversations';
 import type { NextRequest } from 'next/server';
+import { checkAIFeatureGate } from '@/lib/middleware/ai-feature-gate';
 
 export const dynamic = 'force-dynamic';
 export const runtime = 'nodejs';
@@ -26,8 +26,8 @@ interface RouteParams {
 export async function GET(request: NextRequest, { params }: RouteParams) {
   const session = await getSession(request.headers);
   if (!session) return Response.json({ error: 'Unauthorized' }, { status: 401 });
-  if (!isFeatureEnabled('aiLocal'))
-    return Response.json({ error: 'AI features not available' }, { status: 403 });
+  const aiGate = checkAIFeatureGate();
+  if (aiGate) return aiGate;
 
   const { id } = await params;
   const db = getClient();
@@ -40,8 +40,8 @@ export async function GET(request: NextRequest, { params }: RouteParams) {
 export async function PATCH(request: NextRequest, { params }: RouteParams) {
   const session = await getSession(request.headers);
   if (!session) return Response.json({ error: 'Unauthorized' }, { status: 401 });
-  if (!isFeatureEnabled('aiLocal'))
-    return Response.json({ error: 'AI features not available' }, { status: 403 });
+  const aiGate = checkAIFeatureGate();
+  if (aiGate) return aiGate;
 
   const { id } = await params;
   const body = (await request.json()) as { title?: string };
@@ -57,8 +57,8 @@ export async function PATCH(request: NextRequest, { params }: RouteParams) {
 export async function DELETE(request: NextRequest, { params }: RouteParams) {
   const session = await getSession(request.headers);
   if (!session) return Response.json({ error: 'Unauthorized' }, { status: 401 });
-  if (!isFeatureEnabled('aiLocal'))
-    return Response.json({ error: 'AI features not available' }, { status: 403 });
+  const aiGate = checkAIFeatureGate();
+  if (aiGate) return aiGate;
 
   const { id } = await params;
   const db = getClient();

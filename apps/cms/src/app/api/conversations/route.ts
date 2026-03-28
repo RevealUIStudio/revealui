@@ -6,10 +6,10 @@
  */
 
 import { getSession } from '@revealui/auth/server';
-import { isFeatureEnabled } from '@revealui/core/features';
 import { getClient } from '@revealui/db';
 import { createConversation, getConversations } from '@revealui/db/queries/conversations';
 import type { NextRequest } from 'next/server';
+import { checkAIFeatureGate } from '@/lib/middleware/ai-feature-gate';
 
 export const dynamic = 'force-dynamic';
 export const runtime = 'nodejs';
@@ -19,9 +19,8 @@ export async function GET(request: NextRequest) {
   if (!session) {
     return Response.json({ error: 'Unauthorized' }, { status: 401 });
   }
-  if (!isFeatureEnabled('aiLocal')) {
-    return Response.json({ error: 'AI features not available' }, { status: 403 });
-  }
+  const aiGate = checkAIFeatureGate();
+  if (aiGate) return aiGate;
 
   const db = getClient();
   const limit = Number(request.nextUrl.searchParams.get('limit') ?? '50');
@@ -40,9 +39,8 @@ export async function POST(request: NextRequest) {
   if (!session) {
     return Response.json({ error: 'Unauthorized' }, { status: 401 });
   }
-  if (!isFeatureEnabled('aiLocal')) {
-    return Response.json({ error: 'AI features not available' }, { status: 403 });
-  }
+  const aiGate = checkAIFeatureGate();
+  if (aiGate) return aiGate;
 
   const body = (await request.json()) as { title?: string };
   const db = getClient();

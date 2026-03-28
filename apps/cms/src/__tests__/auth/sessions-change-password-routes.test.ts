@@ -16,7 +16,7 @@ import { beforeEach, describe, expect, it, vi } from 'vitest';
 vi.mock('@revealui/auth/server', () => ({
   getSession: vi.fn(),
   changePassword: vi.fn(),
-  deleteAllUserSessions: vi.fn(),
+  deleteOtherUserSessions: vi.fn(),
   meetsMinimumPasswordRequirements: vi.fn(),
 }));
 
@@ -94,7 +94,7 @@ vi.mock('@revealui/db', () => ({
 
 import {
   changePassword,
-  deleteAllUserSessions,
+  deleteOtherUserSessions,
   getSession,
   meetsMinimumPasswordRequirements,
 } from '@revealui/auth/server';
@@ -352,7 +352,7 @@ describe('POST /api/auth/change-password', () => {
     vi.mocked(getSession).mockResolvedValue(mockUserSession as never);
     vi.mocked(meetsMinimumPasswordRequirements).mockReturnValue(true);
     vi.mocked(changePassword).mockResolvedValue({ success: true });
-    vi.mocked(deleteAllUserSessions).mockResolvedValue(undefined);
+    vi.mocked(deleteOtherUserSessions).mockResolvedValue(undefined);
   });
 
   it('returns 401 when unauthenticated', async () => {
@@ -451,12 +451,12 @@ describe('POST /api/auth/change-password', () => {
     expect(body.message).toMatch(/password updated/i);
   });
 
-  it('does not revoke other sessions by default', async () => {
+  it('revokes other sessions by default', async () => {
     const { POST } = await import('../../app/api/auth/change-password/route');
     await POST(
       makeChangePasswordRequest({ currentPassword: 'OldPass1!', newPassword: 'NewPass1!' }),
     );
-    expect(deleteAllUserSessions).not.toHaveBeenCalled();
+    expect(deleteOtherUserSessions).toHaveBeenCalledWith('user-abc', 'session-current');
   });
 
   it('revokes other sessions when revokeOtherSessions is true', async () => {
@@ -468,7 +468,7 @@ describe('POST /api/auth/change-password', () => {
         revokeOtherSessions: true,
       }),
     );
-    expect(deleteAllUserSessions).toHaveBeenCalledWith('user-abc');
+    expect(deleteOtherUserSessions).toHaveBeenCalledWith('user-abc', 'session-current');
   });
 
   it('does not revoke sessions when revokeOtherSessions is false', async () => {
@@ -480,7 +480,7 @@ describe('POST /api/auth/change-password', () => {
         revokeOtherSessions: false,
       }),
     );
-    expect(deleteAllUserSessions).not.toHaveBeenCalled();
+    expect(deleteOtherUserSessions).not.toHaveBeenCalled();
   });
 
   it('returns 500 when changePassword throws unexpectedly', async () => {

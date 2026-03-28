@@ -9,7 +9,7 @@ import { beforeEach, describe, expect, it, vi } from 'vitest';
 
 const mockGetSession = vi.fn();
 const mockChangePassword = vi.fn();
-const mockDeleteAllUserSessions = vi.fn();
+const mockDeleteOtherUserSessions = vi.fn();
 const mockMeetsMinimumPasswordRequirements = vi.fn();
 const mockGeneratePasswordResetToken = vi.fn();
 const mockResetPasswordWithToken = vi.fn();
@@ -20,7 +20,7 @@ const mockSendPasswordResetEmail = vi.fn();
 vi.mock('@revealui/auth/server', () => ({
   getSession: (...args: unknown[]) => mockGetSession(...args),
   changePassword: (...args: unknown[]) => mockChangePassword(...args),
-  deleteAllUserSessions: (...args: unknown[]) => mockDeleteAllUserSessions(...args),
+  deleteOtherUserSessions: (...args: unknown[]) => mockDeleteOtherUserSessions(...args),
   meetsMinimumPasswordRequirements: (...args: unknown[]) =>
     mockMeetsMinimumPasswordRequirements(...args),
   generatePasswordResetToken: (...args: unknown[]) => mockGeneratePasswordResetToken(...args),
@@ -142,7 +142,7 @@ describe('POST /api/auth/change-password', () => {
   });
 
   it('changes password and returns success', async () => {
-    mockGetSession.mockResolvedValue({ user: { id: 'u1' } });
+    mockGetSession.mockResolvedValue({ session: { id: 'sess-1' }, user: { id: 'u1' } });
     mockMeetsMinimumPasswordRequirements.mockReturnValue(true);
     mockChangePassword.mockResolvedValue({ success: true });
 
@@ -154,7 +154,7 @@ describe('POST /api/auth/change-password', () => {
   });
 
   it('revokes other sessions when requested', async () => {
-    mockGetSession.mockResolvedValue({ user: { id: 'u1' } });
+    mockGetSession.mockResolvedValue({ session: { id: 'sess-1' }, user: { id: 'u1' } });
     mockMeetsMinimumPasswordRequirements.mockReturnValue(true);
     mockChangePassword.mockResolvedValue({ success: true });
 
@@ -167,7 +167,7 @@ describe('POST /api/auth/change-password', () => {
       }),
     );
 
-    expect(mockDeleteAllUserSessions).toHaveBeenCalledWith('u1');
+    expect(mockDeleteOtherUserSessions).toHaveBeenCalledWith('u1', 'sess-1');
   });
 
   it('returns 400 when current password is incorrect', async () => {

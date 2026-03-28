@@ -9,7 +9,7 @@
 
 import {
   changePassword,
-  deleteAllUserSessions,
+  deleteOtherUserSessions,
   getSession,
   meetsMinimumPasswordRequirements,
 } from '@revealui/auth/server';
@@ -32,7 +32,7 @@ const ChangePasswordSchema = z.object({
     .string()
     .min(8, 'Password must be at least 8 characters')
     .max(128, 'Password must be at most 128 characters'),
-  revokeOtherSessions: z.boolean().optional().default(false),
+  revokeOtherSessions: z.boolean().optional().default(true),
 });
 
 async function handler(request: NextRequest): Promise<NextResponse> {
@@ -96,7 +96,7 @@ async function handler(request: NextRequest): Promise<NextResponse> {
     }
 
     if (revokeOtherSessions) {
-      await deleteAllUserSessions(sessionData.user.id);
+      await deleteOtherUserSessions(sessionData.user.id, sessionData.session.id);
     }
 
     logger.info('Password changed', {

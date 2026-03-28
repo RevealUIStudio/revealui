@@ -1,10 +1,10 @@
 import { getSession } from '@revealui/auth/server';
 import { ChatRequestContract } from '@revealui/contracts';
 import { apiClient } from '@revealui/core/admin/utils/apiClient';
-import { isFeatureEnabled } from '@revealui/core/features';
 import { logger } from '@revealui/core/utils/logger/server';
 import { getClient } from '@revealui/db';
 import type { NextRequest } from 'next/server';
+import { checkAIFeatureGate } from '@/lib/middleware/ai-feature-gate';
 import { rateLimit } from '@/lib/middleware/rate-limit';
 import {
   createApplicationErrorResponse,
@@ -177,12 +177,8 @@ export async function POST(request: NextRequest) {
       headers: { 'Content-Type': 'application/json' },
     });
   }
-  if (!isFeatureEnabled('aiLocal')) {
-    return new Response(
-      JSON.stringify({ error: 'Forbidden', reason: 'AI features not available' }),
-      { status: 403, headers: { 'Content-Type': 'application/json' } },
-    );
-  }
+  const aiGate = checkAIFeatureGate();
+  if (aiGate) return aiGate;
 
   try {
     // Parse and validate request body
