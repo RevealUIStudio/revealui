@@ -29,7 +29,6 @@ interface UserContext {
   role: string;
 }
 
-// biome-ignore lint/style/useNamingConvention: Hono requires PascalCase `Variables`
 const app = new OpenAPIHono<{ Variables: { user: UserContext | undefined } }>();
 
 // ─── Helpers ─────────────────────────────────────────────────────────────────

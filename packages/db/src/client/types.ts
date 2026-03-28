@@ -33,7 +33,6 @@ export type QueryResult<
   T extends Database,
   N extends keyof T['public']['Tables'],
 > = T['public']['Tables'][N] extends {
-  // biome-ignore lint/style/useNamingConvention: Supabase schema shape.
   Row: infer R;
 }
   ? R
@@ -47,7 +46,6 @@ export type QueryResult<
  */
 export type QueryResults<T extends Database, N extends Array<keyof T['public']['Tables']>> = {
   [K in N[number]]: T['public']['Tables'][K] extends {
-    // biome-ignore lint/style/useNamingConvention: Supabase schema shape.
     Row: infer R;
   }
     ? R
@@ -113,7 +111,6 @@ export type TableRelationships<
   T extends Database,
   N extends keyof T['public']['Tables'],
 > = T['public']['Tables'][N] extends {
-  // biome-ignore lint/style/useNamingConvention: Supabase schema shape.
   Relationships: infer R;
 }
   ? R
@@ -129,7 +126,6 @@ export type RelatedTables<
   T extends Database,
   N extends keyof T['public']['Tables'],
 > = T['public']['Tables'][N] extends {
-  // biome-ignore lint/style/useNamingConvention: Supabase schema shape.
   Relationships: infer R;
 }
   ? R extends ReadonlyArray<{ referencedRelation: infer Rel }>

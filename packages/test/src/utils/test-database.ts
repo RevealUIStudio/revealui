@@ -9,7 +9,6 @@ import { universalPostgresAdapter } from '@revealui/core';
 import type { DatabaseAdapter } from '@revealui/core/types';
 
 type TestDatabaseAdapter = DatabaseAdapter & {
-  // biome-ignore lint/style/useNamingConvention: dunder prefix convention for internal test property
   __testDbPath?: string;
   transaction: (callback: (syncQuery?: unknown) => void | Promise<void>) => Promise<void>;
 };

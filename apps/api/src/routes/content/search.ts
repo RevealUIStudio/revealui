@@ -13,7 +13,6 @@ import { createRoute, OpenAPIHono, z } from '@revealui/openapi';
 import { and, desc, eq, sql } from 'drizzle-orm';
 import type { ContentVariables } from './index.js';
 
-// biome-ignore lint/style/useNamingConvention: Hono requires Variables key
 const app = new OpenAPIHono<{ Variables: ContentVariables }>();
 
 // =============================================================================

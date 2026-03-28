@@ -31,7 +31,6 @@ function requireWriteRole(c: { get: (key: string) => unknown }): { id: string; r
   return user;
 }
 
-// biome-ignore lint/style/useNamingConvention: Hono requires Variables key
 const app = new OpenAPIHono<{ Variables: Variables }>();
 
 // =============================================================================

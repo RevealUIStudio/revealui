@@ -22,7 +22,6 @@ interface RequestWithRevealUI extends RevealRequest {
 }
 
 interface DocWithPublishedAt extends RevealDocument {
-  // biome-ignore lint/style/useNamingConvention: matches stored field name
   PublishedAt?: RevealValue;
 }
 

@@ -86,9 +86,7 @@ const snapshotRoute = createRoute({
 // Handlers
 // ---------------------------------------------------------------------------
 
-// biome-ignore lint/style/useNamingConvention: Hono requires PascalCase Variables key
 export function createCollabRoute(): OpenAPIHono<{ Variables: Variables }> {
-  // biome-ignore lint/style/useNamingConvention: Hono requires PascalCase Variables key
   const app = new OpenAPIHono<{ Variables: Variables }>();
 
   app.openapi(updateRoute, async (c) => {

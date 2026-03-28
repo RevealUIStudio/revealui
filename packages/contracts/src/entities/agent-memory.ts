@@ -578,7 +578,6 @@ export function updateAgentMemory(updates: {
  * Agent memory with computed fields for UI display
  */
 export interface AgentMemoryWithComputed extends AgentMemory {
-  // biome-ignore lint/style/useNamingConvention: _computed is a conventional computed-field marker
   _computed: {
     isExpired: boolean;
     isPermanent: boolean;
@@ -604,7 +603,6 @@ export interface AgentMemoryWithComputed extends AgentMemory {
 export function agentMemoryToHuman(memory: AgentMemory): AgentMemoryWithComputed {
   return {
     ...memory,
-    // biome-ignore lint/style/useNamingConvention: _computed is a conventional computed-field marker
     _computed: {
       isExpired: isExpired(memory),
       isPermanent: isPermanent(memory),
@@ -672,7 +670,6 @@ export function agentMemoryToAgent(memory: AgentMemory): AgentMemoryAgent {
  */
 export const AgentMemoryWithComputedSchema = AgentMemorySchema.and(
   z.object({
-    // biome-ignore lint/style/useNamingConvention: _computed is a conventional computed-field marker
     _computed: z.object({
       isExpired: z.boolean(),
       isPermanent: z.boolean(),

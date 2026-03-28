@@ -71,7 +71,6 @@ type NodeIdServiceConstructor = new (
 };
 
 type NodeIdServiceModule = {
-  // biome-ignore lint/style/useNamingConvention: external module exports a class named NodeIdService
   NodeIdService: NodeIdServiceConstructor;
 };
 

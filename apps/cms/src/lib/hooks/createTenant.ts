@@ -12,7 +12,6 @@ interface CreateTenantContext extends RevealHookContext {
 }
 
 interface UserWithTenantID extends User {
-  // biome-ignore lint/style/useNamingConvention: PascalCase matches database schema
   TenantID?: string | number;
 }
 
@@ -52,7 +51,6 @@ export const createTenant: CollectionAfterChangeHook<UserWithTenantID> = async (
       // find() returns unknown for the id field; cast to satisfy UserWithTenantID.
       return {
         ...doc,
-        // biome-ignore lint/style/useNamingConvention: PascalCase matches database schema
         TenantID: existingTenant.docs[0].id as string | number,
       } as UserWithTenantID;
     }
@@ -72,7 +70,6 @@ export const createTenant: CollectionAfterChangeHook<UserWithTenantID> = async (
     // create() returns unknown for the id field; cast to satisfy UserWithTenantID.
     return {
       ...doc,
-      // biome-ignore lint/style/useNamingConvention: PascalCase matches database schema
       TenantID: newTenant.id as string | number,
     } as UserWithTenantID;
   } catch (error: unknown) {

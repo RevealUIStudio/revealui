@@ -89,7 +89,6 @@ export const toolbarAddDropdownGroupWithItems = (items: unknown[]) => ({
 // Feature creation utilities
 export interface ClientFeatureConfig {
   plugins?: Array<{
-    // biome-ignore lint/style/useNamingConvention: React component key.
     Component: React.ComponentType<unknown>;
     position?: 'normal' | 'bottom' | 'top';
   }>;

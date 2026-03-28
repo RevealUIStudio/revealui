@@ -55,7 +55,6 @@ const Products: RevealCollectionConfig<Product> = {
       },
       hooks: {
         beforeChange: [
-          // biome-ignore lint/style/useNamingConvention: _status is a RevealUI CMS internal field name required by the framework
           ({ siblingData, value }: { siblingData?: { _status?: string }; value: unknown }) => {
             if (siblingData?._status === 'published' && !value) {
               return new Date();

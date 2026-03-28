@@ -17,7 +17,6 @@ import { createRoute, OpenAPIHono, z } from '@revealui/openapi';
 import { HTTPException } from 'hono/http-exception';
 import type { ContentVariables } from './index.js';
 
-// biome-ignore lint/style/useNamingConvention: Hono requires Variables key
 const app = new OpenAPIHono<{ Variables: ContentVariables }>();
 
 // =============================================================================

@@ -23,7 +23,6 @@ import { HTTPException } from 'hono/http-exception';
 import { ErrorSchema } from '../_helpers/content-schemas.js';
 import type { ContentVariables } from './index.js';
 
-// biome-ignore lint/style/useNamingConvention: Hono requires Variables key
 const app = new OpenAPIHono<{ Variables: ContentVariables }>();
 
 // =============================================================================

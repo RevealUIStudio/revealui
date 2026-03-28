@@ -27,7 +27,6 @@ const CommentSchema = z
   })
   .openapi('TicketComment');
 
-// biome-ignore lint/style/useNamingConvention: Hono requires Variables key
 const app = new OpenAPIHono<{ Variables: Variables }>();
 
 // GET /tickets/:id/comments

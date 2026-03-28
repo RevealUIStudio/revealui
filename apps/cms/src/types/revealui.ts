@@ -232,7 +232,6 @@ export interface Page {
   slugLock?: boolean | null;
   updatedAt: string;
   createdAt: string;
-  // biome-ignore lint/style/useNamingConvention: _status is a CMS schema field — generated type, external convention
   _status?: ('draft' | 'published') | null;
 }
 /**
@@ -456,7 +455,6 @@ export interface Post {
   slugLock?: boolean | null;
   updatedAt: string;
   createdAt: string;
-  // biome-ignore lint/style/useNamingConvention: _status is a CMS schema field — generated type, external convention
   _status?: ('draft' | 'published') | null;
 }
 /**
@@ -795,7 +793,6 @@ export interface Product {
   skipSync?: boolean | null;
   updatedAt: string;
   createdAt: string;
-  // biome-ignore lint/style/useNamingConvention: _status is a CMS schema field — generated type, external convention
   _status?: ('draft' | 'published') | null;
 }
 /**
@@ -816,7 +813,6 @@ export interface Price {
   skipSync?: boolean | null;
   updatedAt: string;
   createdAt: string;
-  // biome-ignore lint/style/useNamingConvention: _status is a CMS schema field — generated type, external convention
   _status?: ('draft' | 'published') | null;
 }
 /**
@@ -1241,7 +1237,6 @@ export interface PagesSelect<T extends boolean = true> {
   slugLock?: T;
   updatedAt?: T;
   createdAt?: T;
-  // biome-ignore lint/style/useNamingConvention: CMS schema uses `_status` for draft/publish state — external convention
   _status?: T;
 }
 /**
@@ -1501,7 +1496,6 @@ export interface ProductsSelect<T extends boolean = true> {
   skipSync?: T;
   updatedAt?: T;
   createdAt?: T;
-  // biome-ignore lint/style/useNamingConvention: CMS schema uses `_status` for draft/publish state — external convention
   _status?: T;
 }
 /**
@@ -1611,7 +1605,6 @@ export interface PricesSelect<T extends boolean = true> {
   skipSync?: T;
   updatedAt?: T;
   createdAt?: T;
-  // biome-ignore lint/style/useNamingConvention: _status is a CMS schema field — generated type, external convention
   _status?: T;
 }
 /**
@@ -1661,7 +1654,6 @@ export interface PostsSelect<T extends boolean = true> {
   slugLock?: T;
   updatedAt?: T;
   createdAt?: T;
-  // biome-ignore lint/style/useNamingConvention: _status is a CMS schema field — generated type, external convention
   _status?: T;
 }
 /**

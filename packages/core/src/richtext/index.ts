@@ -429,7 +429,6 @@ export type DefaultNodeTypes =
 // Server feature creation utilities
 export interface ServerFeatureConfig {
   feature: {
-    // biome-ignore lint/style/useNamingConvention: Aligns with upstream client feature naming.
     ClientFeature?: string | React.ComponentType<unknown>;
     nodes?: Array<{
       node: unknown;

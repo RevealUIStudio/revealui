@@ -75,7 +75,6 @@ const Prices: RevealCollectionConfig<Price> = {
       },
       hooks: {
         beforeChange: [
-          // biome-ignore lint/style/useNamingConvention: _status is a RevealUI CMS internal field name required by the framework
           ({ siblingData, value }: { siblingData?: { _status?: string }; value: unknown }) => {
             if (siblingData?._status === 'published' && !value) {
               return new Date();
@@ -107,7 +106,6 @@ const Prices: RevealCollectionConfig<Price> = {
               type: 'text',
               admin: {
                 components: {
-                  // biome-ignore lint/style/useNamingConvention: admin component keys use Field in RevealUI CMS.
                   Field: '@/lib/collections/Prices/ui/PricesSelect',
                 },
               },

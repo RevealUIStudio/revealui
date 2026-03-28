@@ -578,7 +578,6 @@ export function updatePost(updates: {
  * Post with computed fields for UI display
  */
 export interface PostWithComputed extends Post {
-  // biome-ignore lint/style/useNamingConvention: _computed is a conventional computed-field marker
   _computed: {
     isDraft: boolean;
     isPublished: boolean;
@@ -607,7 +606,6 @@ export interface PostWithComputed extends Post {
 export function postToHuman(post: Post): PostWithComputed {
   return {
     ...post,
-    // biome-ignore lint/style/useNamingConvention: _computed is a conventional computed-field marker
     _computed: {
       isDraft: isDraft(post),
       isPublished: isPublished(post),
@@ -673,7 +671,6 @@ export function postToAgent(post: Post): PostAgent {
  */
 export const PostWithComputedSchema = PostSchema.and(
   z.object({
-    // biome-ignore lint/style/useNamingConvention: _computed is a conventional computed-field marker
     _computed: z.object({
       isDraft: z.boolean(),
       isPublished: z.boolean(),

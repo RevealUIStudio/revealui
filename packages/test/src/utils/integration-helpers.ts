@@ -15,9 +15,7 @@ import type { DatabaseAdapter, RevealDataObject } from '@revealui/core/types';
 
 type SqlitePragmaRow = { name?: string; file?: string };
 type TestDatabaseAdapter = DatabaseAdapter & {
-  // biome-ignore lint/style/useNamingConvention: internal test property convention
   __testDbPath?: string;
-  // biome-ignore lint/style/useNamingConvention: internal test property convention
   __db?: {
     pragma?: (command: string) => SqlitePragmaRow[];
   };

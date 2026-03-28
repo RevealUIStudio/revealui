@@ -646,7 +646,6 @@ export function updateMedia(updates: {
  * Media with computed fields for UI display
  */
 export interface MediaWithComputed extends Media {
-  // biome-ignore lint/style/useNamingConvention: _computed is a conventional computed-field marker
   _computed: {
     mediaType: MediaType;
     isImage: boolean;
@@ -675,7 +674,6 @@ export interface MediaWithComputed extends Media {
 export function mediaToHuman(media: Media): MediaWithComputed {
   return {
     ...media,
-    // biome-ignore lint/style/useNamingConvention: _computed is a conventional computed-field marker
     _computed: {
       mediaType: getMediaType(media.mimeType),
       isImage: isImage(media),
@@ -748,7 +746,6 @@ export function mediaToAgent(media: Media): MediaAgent {
  */
 export const MediaWithComputedSchema = MediaSchema.and(
   z.object({
-    // biome-ignore lint/style/useNamingConvention: _computed is a conventional computed-field marker
     _computed: z.object({
       mediaType: z.enum(MEDIA_TYPES),
       isImage: z.boolean(),
