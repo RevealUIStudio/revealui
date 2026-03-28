@@ -10,7 +10,7 @@ Business Operating System Software (B.O.S.S.). Users, content, products, payment
 \`\`\`bash
 npx create-revealui@latest my-app
 cd my-app
-cp .env.example .env
+cp .env.template .env
 pnpm db:migrate
 pnpm dev
 \`\`\`

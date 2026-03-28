@@ -814,12 +814,6 @@ Environment variables are loaded in the following order (later files override ea
 - **Status**: ✅ Committed to git
 - **Usage**: Copy to `.env.development.local` for local development
 
-### `.env.example` (Alternative to .env.template)
-
-- **Purpose**: Same as `.env.template` - industry standard naming
-- **Status**: ✅ Committed to git
-- **Note**: We use `.env.template` to match the config loader's expectations
-
 ### `.env.development.local` (Ignored)
 
 - **Purpose**: Local developer-specific overrides and secrets
@@ -1032,7 +1026,6 @@ pnpm validate:env
 | File                     | Committed?        | Contains Secrets? | Purpose                      |
 | ------------------------ | ----------------- | ----------------- | ---------------------------- |
 | `.env.template`          | ✅ Yes            | ❌ No             | Template/documentation       |
-| `.env.example`           | ✅ Yes            | ❌ No             | Alternative template name    |
 | `.env.development.local` | ❌ No             | ✅ Yes            | Local dev secrets            |
 | `.env.local`             | ❌ No             | ✅ Yes            | Local overrides (fallback)   |
 | `.env`                   | ❌ No             | ⚠️ Currently yes  | Should be cleaned or removed |

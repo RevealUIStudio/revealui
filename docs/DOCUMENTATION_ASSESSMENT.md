@@ -104,12 +104,12 @@ Note: `npx create-revealui` scaffolds a working basic-blog from npm templates �
 
 | Directory | Issue | Recommendation |
 |-----------|-------|---------------|
-| `cmd/` (Go CLI) | Superseded by `apps/terminal/` + `@revealui/cli` | Delete |
-| `bin/revealui` | Shell wrapper for dead Go CLI | Delete |
-| `infrastructure/opencode-server/` | Pre-RevealUI project, not referenced anywhere | Delete |
-| `examples/basic-blog/`, `e-commerce/`, `portfolio/` | README-only stubs | Populate or delete |
-| `.env.template` (20KB) + `.env.example` (8KB) | Two overlapping env example files | Merge |
-| `e2e/` (root) vs `packages/test/src/e2e/` | E2E tests in two locations | Consolidate |
+| `cmd/` (Go CLI) | Superseded by `apps/terminal/` + `@revealui/cli` | ✅ Deleted |
+| `bin/revealui` | Shell wrapper for dead Go CLI | ✅ Deleted |
+| `infrastructure/opencode-server/` | Pre-RevealUI project, not referenced anywhere | ✅ Deleted |
+| `examples/basic-blog/`, `e-commerce/`, `portfolio/` | README-only stubs | ✅ Deleted |
+| `.env.template` + `.env.example` | Two overlapping env example files | ✅ Merged into `.env.template` |
+| `e2e/` (root) vs `packages/test/src/e2e/` | E2E tests in two locations | ✅ Kept — different purposes (production vs package reference) |
 
 ### Config files to evaluate
 
@@ -157,10 +157,10 @@ Overall Pro tier: **~80% complete** (not 50% as a surface scan might suggest).
 
 ### Should Fix (confusing but not misleading)
 
-5. **Merge `.env.template` + `.env.example`**: Two overlapping files
-6. **Delete dead code**: `cmd/`, `bin/revealui`, `infrastructure/opencode-server/`
-7. **Consolidate E2E tests**: Root `e2e/` vs `packages/test/src/e2e/`
-8. **Remove stale generated files**: `DEPENDENCY_DIAGRAM.txt`, `TYPE-USAGE-REPORT.json`
+5. ~~**Merge `.env.template` + `.env.example`**~~: ✅ Merged into single `.env.template`
+6. ~~**Delete dead code**~~: ✅ `cmd/`, `bin/revealui`, `infrastructure/opencode-server/` deleted
+7. ~~**Consolidate E2E tests**~~: ✅ Kept separate — root `e2e/` (production full-stack) vs `packages/test/src/e2e/` (package reference tests) serve different purposes
+8. ~~**Remove stale generated files**~~: ✅ Removed
 
 ### Nice to Have
 

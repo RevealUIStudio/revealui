@@ -32,7 +32,7 @@ Detect documentation drift — places where code has changed but docs haven't be
 
 ### 5. Environment Variables
 - Compare env vars used in code (`process.env.*`, `config.*`) against:
-  - `.env.example` files
+  - `.env.template` file
   - Setup documentation
   - Deployment docs
 

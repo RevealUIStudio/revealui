@@ -48,7 +48,7 @@ playwright install --with-deps
 
 ```bash
 # Copy environment template
-cp .env.example .env
+cp .env.template .env
 
 # Configure test database
 export TEST_DATABASE_URL="postgresql://user:pass@localhost:5432/revealui_test"

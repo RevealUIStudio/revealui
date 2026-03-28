@@ -91,7 +91,7 @@ Create a `.env.local` file in the project root with your configuration:
 
 ```bash
 # Copy from example
-cp .env.example .env.local
+cp .env.template .env.local
 # Edit with your values
 code .env.local
 ```

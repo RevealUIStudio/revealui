@@ -253,3 +253,7 @@ apps/terminal/.ssh/
 AGENTS.md
 .claude/rules/agent-dispatch.md
 .claude/rules/skills-usage.md
+
+# editor-configs (symlinked)
+.cursor/
+.zed/
