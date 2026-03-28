@@ -24,13 +24,13 @@ describe('SocialProof', () => {
   it('contains all four stats', () => {
     const result = SocialProof();
     const html = JSON.stringify(result);
-    expect(html).toContain('28');
+    expect(html).toContain('30');
     expect(html).toContain('workspaces');
     expect(html).toContain('200K+');
     expect(html).toContain('lines of TypeScript');
-    expect(html).toContain('10,000+');
+    expect(html).toContain('10,700+');
     expect(html).toContain('tests');
-    expect(html).toContain('6');
+    expect(html).toContain('7');
     expect(html).toContain('apps');
   });
 
@@ -68,7 +68,7 @@ describe('SocialProof', () => {
     const html = JSON.stringify(result);
     expect(html).toContain('Schema-first collections');
     expect(html).toContain('Tailwind v4, zero external UI dependencies');
-    expect(html).toContain('ElectricSQL keeps editors');
+    expect(html).toContain('ElectricSQL-powered sync foundation');
     expect(html).toContain('A2A protocol agent system');
     expect(html).toContain('Checkout, subscriptions, webhook handling');
     expect(html).toContain('One deployment, many clients');
