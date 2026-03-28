@@ -50,6 +50,10 @@ vi.mock('@revealui/core/features', () => ({
   isFeatureEnabled: vi.fn().mockReturnValue(true),
 }));
 
+vi.mock('@revealui/db', () => ({
+  getClient: vi.fn().mockReturnValue({}),
+}));
+
 vi.mock('@revealui/ai/embeddings', () => ({
   generateEmbedding: vi.fn().mockResolvedValue({
     vector: new Array(1536).fill(0),
@@ -65,6 +69,7 @@ vi.mock('@revealui/ai/llm/server', () => ({
     getResponseCacheStats: vi.fn().mockReturnValue(undefined),
     getSemanticCacheStats: vi.fn().mockReturnValue(undefined),
   })),
+  createLLMClientForUser: vi.fn().mockResolvedValue(null),
 }));
 
 vi.mock('@revealui/ai/memory/vector', () => ({
