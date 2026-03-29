@@ -16,7 +16,9 @@ import { createRoute, OpenAPIHono, z } from '@revealui/openapi';
 import { and, count, eq, gt, gte, ne } from 'drizzle-orm';
 import { HTTPException } from 'hono/http-exception';
 
-const app = new OpenAPIHono();
+const app = new OpenAPIHono<{
+  Variables: { user: { id: string; role: string } | undefined };
+}>();
 
 const ErrorSchema = z.object({ error: z.string() });
 
@@ -57,7 +59,7 @@ const billingHealthRoute = createRoute({
 });
 
 app.openapi(billingHealthRoute, async (c) => {
-  const user = c.get('user') as { id: string; role: string } | undefined;
+  const user = c.get('user');
   if (!user) {
     throw new HTTPException(401, { message: 'Authentication required' });
   }
