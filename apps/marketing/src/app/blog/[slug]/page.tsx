@@ -5,11 +5,16 @@ import { notFound } from 'next/navigation';
 import Markdown from 'react-markdown';
 import { Footer } from '@/components/Footer';
 import { getPostBySlug } from '@/lib/blog';
+import { staticBlogPosts } from '@/lib/blog-posts';
 
 export const revalidate = 300;
 
 interface BlogPostPageProps {
   params: Promise<{ slug: string }>;
+}
+
+export function generateStaticParams(): Array<{ slug: string }> {
+  return staticBlogPosts.map((post) => ({ slug: post.slug }));
 }
 
 export async function generateMetadata({ params }: BlogPostPageProps): Promise<Metadata> {
@@ -20,12 +25,14 @@ export async function generateMetadata({ params }: BlogPostPageProps): Promise<M
     return { title: 'Post Not Found — RevealUI' };
   }
 
+  const description = post.excerpt ?? `Read "${post.title}" on the RevealUI blog.`;
+
   return {
     title: `${post.title} — RevealUI Blog`,
-    description: `Read "${post.title}" on the RevealUI blog.`,
+    description,
     openGraph: {
       title: `${post.title} — RevealUI Blog`,
-      description: `Read "${post.title}" on the RevealUI blog.`,
+      description,
       type: 'article',
       publishedTime: post.publishedAt ?? post.createdAt,
     },
@@ -72,9 +79,12 @@ export default async function BlogPostPage({ params }: BlogPostPageProps) {
 
           {/* Header */}
           <header className="mb-12">
-            <time dateTime={post.publishedAt ?? post.createdAt} className="text-sm text-gray-500">
-              {formatDate(post.publishedAt ?? post.createdAt)}
-            </time>
+            <div className="flex items-center gap-x-4 text-sm text-gray-500">
+              <time dateTime={post.publishedAt ?? post.createdAt}>
+                {formatDate(post.publishedAt ?? post.createdAt)}
+              </time>
+              {post.author && <span>{post.author}</span>}
+            </div>
             <h1 className="mt-2 text-4xl font-bold tracking-tight text-gray-900 sm:text-5xl">
               {post.title}
             </h1>

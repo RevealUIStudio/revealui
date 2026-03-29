@@ -1,7 +1,15 @@
 import type { MetadataRoute } from 'next';
+import { staticBlogPosts } from '@/lib/blog-posts';
 
 export default function sitemap(): MetadataRoute.Sitemap {
   const baseUrl = 'https://revealui.com';
+
+  const blogPostEntries: MetadataRoute.Sitemap = staticBlogPosts.map((post) => ({
+    url: `${baseUrl}/blog/${post.slug}`,
+    lastModified: new Date(post.publishedAt),
+    changeFrequency: 'monthly' as const,
+    priority: 0.6,
+  }));
 
   return [
     {
@@ -40,6 +48,7 @@ export default function sitemap(): MetadataRoute.Sitemap {
       changeFrequency: 'weekly',
       priority: 0.7,
     },
+    ...blogPostEntries,
     {
       url: `${baseUrl}/contact`,
       lastModified: new Date(),
