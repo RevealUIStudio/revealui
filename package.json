@@ -184,6 +184,7 @@
     "test:integration": "tsx scripts/dev-tools/run-integration-tests.ts",
     "typecheck:all": "turbo run typecheck",
     "validate:boundary": "tsx scripts/validate/boundary.ts",
+    "validate:gitignore": "tsx scripts/validate/gitignore-pro.ts",
     "validate:structure": "tsx scripts/validate/structure.ts",
     "validate:versions": "tsx scripts/validate/version-policy.ts"
   },

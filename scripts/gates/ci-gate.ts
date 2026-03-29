@@ -252,6 +252,11 @@ async function gate(): Promise<void> {
         args: ['validate:versions'],
       },
       {
+        name: 'Gitignore Pro entries',
+        command: 'pnpm',
+        args: ['validate:gitignore'],
+      },
+      {
         name: 'Security audit',
         command: 'pnpm',
         args: ['gate:security'],
