@@ -218,20 +218,20 @@ packages/ai
 packages/ai/
 packages/mcp
 packages/mcp/
-packages/editors
-packages/editors/
 packages/services
 packages/services/
+packages/editors
+packages/editors/
 packages/harnesses
 packages/harnesses/
 ee/packages/ai
 ee/packages/ai/
 ee/packages/mcp
 ee/packages/mcp/
-ee/packages/editors
-ee/packages/editors/
 ee/packages/services
 ee/packages/services/
+ee/packages/editors
+ee/packages/editors/
 ee/packages/harnesses
 ee/packages/harnesses/
 

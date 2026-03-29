@@ -48,21 +48,24 @@ export function ValueProposition() {
           <dl className="grid max-w-xl grid-cols-1 gap-x-8 gap-y-16 lg:max-w-none lg:grid-cols-3">
             {features.map((feature) => (
               <div key={feature.title} className="group flex flex-col items-start">
-                <div
-                  className={`mb-6 flex h-12 w-12 items-center justify-center rounded-xl ${feature.accent} shadow-sm group-hover:scale-105 transition-transform`}
-                >
-                  <svg
-                    className="h-6 w-6 text-white"
-                    fill="none"
-                    viewBox="0 0 24 24"
-                    strokeWidth={1.5}
-                    stroke="currentColor"
+                <dt className="text-lg font-semibold leading-7 text-gray-950">
+                  <span
+                    className={`mb-6 flex h-12 w-12 items-center justify-center rounded-xl ${feature.accent} shadow-sm group-hover:scale-105 transition-transform`}
+                    aria-hidden="true"
                   >
-                    <title>{feature.title}</title>
-                    <path strokeLinecap="round" strokeLinejoin="round" d={feature.icon} />
-                  </svg>
-                </div>
-                <dt className="text-lg font-semibold leading-7 text-gray-950">{feature.title}</dt>
+                    <svg
+                      className="h-6 w-6 text-white"
+                      fill="none"
+                      viewBox="0 0 24 24"
+                      strokeWidth={1.5}
+                      stroke="currentColor"
+                    >
+                      <title>{feature.title}</title>
+                      <path strokeLinecap="round" strokeLinejoin="round" d={feature.icon} />
+                    </svg>
+                  </span>
+                  {feature.title}
+                </dt>
                 <dd className="mt-2 text-base leading-7 text-gray-500">{feature.description}</dd>
                 <dd className="mt-4">
                   <Button plain href={feature.href} className="text-sm font-medium">
