@@ -20,6 +20,7 @@ function generateCode(story: ShowcaseStory, values: Record<string, unknown>): st
     } else if (control.type === 'number' || control.type === 'range') {
       attrs.push(`${key}={${val}}`);
     } else if (key === 'children') {
+      // children handled separately below
     } else {
       attrs.push(`${key}="${val}"`);
     }

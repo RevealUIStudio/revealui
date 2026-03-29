@@ -18,7 +18,7 @@ export function VariantGrid({ story, values }: VariantGridProps) {
 
   // Single axis — flat grid
   if (axes.length === 1) {
-    const [propName, propValues] = axes[0]!;
+    const [propName, propValues] = axes[0] as [string, string[]];
     return (
       <div className="overflow-hidden rounded-xl border border-border">
         <div className="border-b border-border bg-surface px-4 py-2">
@@ -44,8 +44,8 @@ export function VariantGrid({ story, values }: VariantGridProps) {
   }
 
   // Two axes — table grid (rows x columns)
-  const [rowProp, rowValues] = axes[0]!;
-  const [colProp, colValues] = axes[1]!;
+  const [rowProp, rowValues] = axes[0] as [string, string[]];
+  const [colProp, colValues] = axes[1] as [string, string[]];
 
   return (
     <div className="overflow-x-auto rounded-xl border border-border">
