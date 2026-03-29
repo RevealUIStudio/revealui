@@ -157,13 +157,10 @@ apps/docs/dist/docs/
 .cursor/audit-log.jsonl
 .cursor/audit-summary.json
 
-# Claude Code session files (local only)
-.claude/SESSION_*.md
-.claude/workboard.md
-.claude/agent-state.md
-.claude/events.jsonl
-.claude/workboard.lock
-.claude/settings.local.json
+# Claude Code — generated content + session files
+# Canonical definitions live in @revealui/harnesses content layer.
+# Regenerate after cloning: npx revealui-harnesses content pull
+.claude/
 
 # RevealUI cache files (PGlite database)
 .revealui/cache/
@@ -195,14 +192,8 @@ result-*
 .type-coverage-report.json
 .vercel
 
-# Claude Code worktrees (parallel agent isolation)
-.claude/worktrees/
+# Non-.claude/ worktrees (parallel agent isolation)
 .worktrees/
-
-# Tailwind v4 docs snapshot (source-available, not open-source — sync locally)
-.claude/skills/tailwind-4-docs/references/docs/
-.claude/skills/tailwind-4-docs/references/docs-index.tsx
-.claude/skills/tailwind-4-docs/references/docs-source.txt
 
 # Internal business documents (not published)
 business/
@@ -245,8 +236,6 @@ screenshots/
 apps/terminal/terminal
 apps/terminal/.ssh/
 AGENTS.md
-.claude/rules/agent-dispatch.md
-.claude/rules/skills-usage.md
 
 # editor-configs (symlinked)
 .cursor/
