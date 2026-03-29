@@ -42,6 +42,7 @@ env:
   VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
   TURBO_TOKEN: ${{ secrets.TURBO_TOKEN }}
   TURBO_TEAM: ${{ vars.TURBO_TEAM }}
+  PNPM_INSTALL_FLAGS: ${{ (github.ref == 'refs/heads/main' || github.ref == 'refs/heads/test') && '--frozen-lockfile' || '--prefer-frozen-lockfile' }}
 
 jobs:
   # ---------------------------------------------------------------------------
@@ -130,7 +131,7 @@ jobs:
         run: pnpm add -g vercel@latest
 
       - name: Install dependencies
-        run: pnpm install --frozen-lockfile
+        run: pnpm install ${{ env.PNPM_INSTALL_FLAGS }}
 
       - name: Pull Vercel environment
         run: vercel pull --yes --environment=${{ needs.resolve.outputs.is-production == 'true' && 'production' || 'preview' }} --token=${{ secrets.VERCEL_TOKEN }}

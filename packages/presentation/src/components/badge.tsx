@@ -49,6 +49,11 @@ export function Badge({
         'inline-flex items-center gap-x-1.5 rounded-md px-1.5 py-0.5 text-sm/5 font-medium sm:text-xs/5 forced-colors:outline',
         colors[color],
       )}
+      style={{
+        borderRadius: 'var(--rvui-radius-full, 9999px)',
+        transition:
+          'background-color var(--rvui-duration-fast, 120ms) var(--rvui-ease, cubic-bezier(0.22, 1, 0.36, 1))',
+      }}
     />
   );
 }

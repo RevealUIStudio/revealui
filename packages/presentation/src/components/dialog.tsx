@@ -60,7 +60,11 @@ export function Dialog({
             ref={backdrop.nodeRef as React.RefObject<HTMLButtonElement>}
             {...backdrop.transitionProps}
             onClick={onClose}
-            className="fixed inset-0 flex w-screen justify-center overflow-y-auto bg-zinc-950/25 px-2 py-2 transition duration-100 focus:outline-0 data-closed:opacity-0 data-enter:ease-out data-leave:ease-in sm:px-6 sm:py-8 lg:px-8 lg:py-16 dark:bg-zinc-950/50"
+            className="fixed inset-0 flex w-screen justify-center overflow-y-auto px-2 py-2 transition duration-100 focus:outline-0 data-closed:opacity-0 data-enter:ease-out data-leave:ease-in sm:px-6 sm:py-8 lg:px-8 lg:py-16"
+            style={{
+              backgroundColor: 'oklch(0.13 0.004 228 / 0.6)',
+              backdropFilter: 'blur(4px)',
+            }}
           />
         )}
 
@@ -78,9 +82,19 @@ export function Dialog({
                 className={clsx(
                   className,
                   sizes[size],
-                  'row-start-2 w-full min-w-0 rounded-t-3xl bg-white p-(--gutter) shadow-lg ring-1 ring-zinc-950/10 [--gutter:--spacing(8)] sm:mb-auto sm:rounded-2xl dark:bg-zinc-900 dark:ring-white/10 forced-colors:outline',
-                  'transition duration-100 will-change-transform data-closed:translate-y-12 data-closed:opacity-0 data-enter:ease-out data-leave:ease-in sm:data-closed:translate-y-0 sm:data-closed:data-enter:scale-95',
+                  'row-start-2 w-full min-w-0 rounded-t-3xl p-(--gutter) shadow-lg ring-1 [--gutter:--spacing(8)] sm:mb-auto sm:rounded-2xl forced-colors:outline',
+                  'transition will-change-transform data-closed:translate-y-12 data-closed:opacity-0 data-enter:ease-out data-leave:ease-in sm:data-closed:translate-y-0 sm:data-closed:data-enter:scale-95',
                 )}
+                style={
+                  {
+                    backgroundColor: 'var(--rvui-surface-1, oklch(0.18 0.006 225))',
+                    boxShadow: 'var(--rvui-shadow-lg, 0 12px 40px oklch(0 0 0 / 0.35))',
+                    '--tw-ring-color': 'var(--rvui-border-subtle, oklch(0.28 0.006 222 / 0.4))',
+                    transitionDuration: 'var(--rvui-duration-normal, 200ms)',
+                    transitionTimingFunction:
+                      'var(--rvui-ease-spring, cubic-bezier(0.34, 1.56, 0.64, 1))',
+                  } as React.CSSProperties
+                }
               >
                 {children}
               </div>
@@ -102,10 +116,8 @@ export function DialogTitle({
     <h2
       id={titleId}
       {...props}
-      className={clsx(
-        className,
-        'text-lg/6 font-semibold text-balance text-zinc-950 sm:text-base/6 dark:text-white',
-      )}
+      className={clsx(className, 'text-lg/6 font-semibold text-balance sm:text-base/6')}
+      style={{ color: 'var(--rvui-text-0, oklch(0.95 0.002 210))' }}
     />
   );
 }
