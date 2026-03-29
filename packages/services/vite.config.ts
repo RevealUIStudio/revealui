@@ -17,11 +17,8 @@ const viteConfig = defineConfig({
     sourcemap: true,
   },
   build: {
-    sourcemap: true, // Enable sourcemaps for production builds
+    sourcemap: true,
     rolldownOptions: {
-      // Note: This package is a library, not an app
-      // If building a library, configure lib mode instead
-      // input: "./index.html", // Removed - this was for demo app
       external: [
         'fs',
         'react/jsx-runtime',
