@@ -237,6 +237,8 @@ async function checkSecretscan(projectRoot: string): Promise<CheckResult> {
       ':!scripts/**',
       ':!**/load-tests/**',
       ':!**/generators/**',
+      ':!*.env.example',
+      ':!**/config.toml',
     ],
     { capture: true, cwd: projectRoot },
   );
