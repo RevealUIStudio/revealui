@@ -40,6 +40,7 @@ env:
   NODE_VERSION: "24"
   PNPM_VERSION: "10.28.2"
   VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
+  VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
   TURBO_TOKEN: ${{ secrets.TURBO_TOKEN }}
   TURBO_TEAM: ${{ vars.TURBO_TEAM }}
   PNPM_INSTALL_FLAGS: ${{ (github.ref == 'refs/heads/main' || github.ref == 'refs/heads/test') && '--frozen-lockfile' || '--prefer-frozen-lockfile' }}
@@ -134,12 +135,12 @@ jobs:
         run: pnpm install ${{ env.PNPM_INSTALL_FLAGS }}
 
       - name: Pull Vercel environment
-        run: vercel pull --yes --environment=${{ needs.resolve.outputs.is-production == 'true' && 'production' || 'preview' }} --token=${{ secrets.VERCEL_TOKEN }}
+        run: vercel pull --yes --environment=${{ needs.resolve.outputs.is-production == 'true' && 'production' || 'preview' }}
         env:
           VERCEL_PROJECT_ID: ${{ matrix.project-id }}
 
       - name: Build
-        run: vercel build ${{ needs.resolve.outputs.prod-flag }} --token=${{ secrets.VERCEL_TOKEN }}
+        run: vercel build ${{ needs.resolve.outputs.prod-flag }}
         env:
           VERCEL_PROJECT_ID: ${{ matrix.project-id }}
           SKIP_ENV_VALIDATION: "true"
@@ -147,7 +148,7 @@ jobs:
       - name: Deploy
         id: deploy
         run: |
-          URL=$(vercel deploy --prebuilt ${{ needs.resolve.outputs.prod-flag }} --token=${{ secrets.VERCEL_TOKEN }})
+          URL=$(vercel deploy --prebuilt ${{ needs.resolve.outputs.prod-flag }})
           echo "url=$URL" >> "$GITHUB_OUTPUT"
           echo "::notice::${{ matrix.app }} deployed to $URL"
         env:
@@ -155,13 +156,13 @@ jobs:
 
       - name: Alias to stable domain (test)
         if: needs.resolve.outputs.environment == 'test'
-        run: vercel alias ${{ steps.deploy.outputs.url }} ${{ matrix.test-domain }} --token=${{ secrets.VERCEL_TOKEN }} --scope=${{ secrets.VERCEL_ORG_ID }}
+        run: vercel alias ${{ steps.deploy.outputs.url }} ${{ matrix.test-domain }} --scope=${{ env.VERCEL_ORG_ID }}
         env:
           VERCEL_PROJECT_ID: ${{ matrix.project-id }}
 
       - name: Alias to stable domain (development)
         if: needs.resolve.outputs.environment == 'development'
-        run: vercel alias ${{ steps.deploy.outputs.url }} ${{ matrix.dev-domain }} --token=${{ secrets.VERCEL_TOKEN }} --scope=${{ secrets.VERCEL_ORG_ID }}
+        run: vercel alias ${{ steps.deploy.outputs.url }} ${{ matrix.dev-domain }} --scope=${{ env.VERCEL_ORG_ID }}
         env:
           VERCEL_PROJECT_ID: ${{ matrix.project-id }}
 
