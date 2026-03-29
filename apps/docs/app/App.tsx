@@ -86,6 +86,7 @@ export function App() {
       { path: '/api/*path', component: ApiRoute },
       { path: '/guides/*path', component: GuidesRoute },
       { path: '/pro/*path', component: ProRoute },
+      { path: '/showcase', component: ShowcaseRoute },
       { path: '/showcase/*path', component: ShowcaseRoute },
     ]);
     registered.current = true;
