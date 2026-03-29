@@ -1,0 +1,11 @@
+# Studio cargo audit configuration
+# Suppress advisories that cannot be fixed without upstream changes.
+
+[advisories]
+ignore = [
+    # RUSTSEC-2024-0429: glib VariantStrIter unsoundness (glib < 0.20)
+    # Tauri 2.x pulls glib 0.18 via gtk3-rs (archived upstream).
+    # Fix requires Tauri 3.0 (GTK4 migration) — no release date yet.
+    # Tauri does not exercise the vulnerable VariantStrIter code path.
+    "RUSTSEC-2024-0429",
+]
