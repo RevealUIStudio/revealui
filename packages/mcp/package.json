@@ -1,0 +1,71 @@
+{
+  "name": "@revealui/mcp",
+  "version": "0.1.2",
+  "description": "Model Context Protocol integrations for RevealUI — adapter framework, hypervisor, and MCP contracts",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/RevealUIStudio/revealui.git",
+    "directory": "packages/mcp"
+  },
+  "license": "MIT",
+  "dependencies": {
+    "@modelcontextprotocol/sdk": "^1.26.0",
+    "@revealui/config": "workspace:*",
+    "@revealui/contracts": "workspace:*",
+    "@revealui/core": "workspace:*",
+    "dotenv": "^17.2.4"
+  },
+  "devDependencies": {
+    "@electric-sql/pglite": "^0.4.2",
+    "pg": "^8.18.0",
+    "typescript": "^6.0.2",
+    "vitest": "^4.0.18"
+  },
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js"
+    },
+    "./adapter": {
+      "types": "./dist/servers/adapter.d.ts",
+      "import": "./dist/servers/adapter.js"
+    },
+    "./contracts": {
+      "types": "./dist/contracts.d.ts",
+      "import": "./dist/contracts.js"
+    },
+    "./hypervisor": {
+      "types": "./dist/hypervisor.d.ts",
+      "import": "./dist/hypervisor.js"
+    },
+    "./db": {
+      "types": "./dist/adapters/db.d.ts",
+      "import": "./dist/adapters/db.js"
+    },
+    "./config": {
+      "types": "./dist/config/index.d.ts",
+      "import": "./dist/config/index.js"
+    }
+  },
+  "files": [
+    "dist"
+  ],
+  "funding": {
+    "type": "commercial",
+    "url": "https://revealui.com/pro"
+  },
+  "main": "./dist/index.js",
+  "publishConfig": {
+    "access": "public"
+  },
+  "scripts": {
+    "build": "tsc",
+    "clean": "rm -rf dist",
+    "dev": "tsc --watch",
+    "lint": "biome check .",
+    "test": "vitest run --passWithNoTests",
+    "typecheck": "tsc --noEmit"
+  },
+  "type": "module",
+  "types": "./dist/index.d.ts"
+}

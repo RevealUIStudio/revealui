@@ -65,14 +65,14 @@ feature/* ──PR──▶ develop ──PR──▶ test ──PR (1+ review)�
 | create-revealui | `npm create revealui` initializer |
 | @revealui/dev | Shared configs (Biome, TS, Tailwind) |
 | @revealui/test | E2E specs (Playwright), integration tests, fixtures, mocks, test utilities |
+| @revealui/editors | Editor config sync (Zed, VS Code, Cursor) |
+| @revealui/mcp | MCP hypervisor, adapter framework, tool discovery |
+| @revealui/services | Stripe + Supabase integrations |
 
 ### Pro Packages (Commercial — source-available, commercially licensed)
 | Package | Purpose |
 |---------|---------|
 | @revealui/ai | AI agents, CRDT memory, LLM providers, orchestration |
-| @revealui/mcp | MCP hypervisor, adapter framework, tool discovery |
-| @revealui/editors | Editor config sync (Zed, VS Code, Cursor) |
-| @revealui/services | Stripe + Supabase integrations |
 | @revealui/harnesses | AI harness adapters, workboard coordination, JSON-RPC |
 
 ## Common Commands

@@ -1,0 +1,46 @@
+version: '3.8'
+services:
+  postgres:
+    image: postgres:15
+    environment:
+      POSTGRES_USER: dev
+      POSTGRES_PASSWORD: dev
+      POSTGRES_DB: revealui_mcp
+    volumes:
+      - ./migrations:/docker-entrypoint-initdb.d
+      - pgdata:/var/lib/postgresql/data
+    ports:
+      - '5432:5432'
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U dev"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    deploy:
+      resources:
+        limits:
+          cpus: '1'
+          memory: 1G
+        reservations:
+          cpus: '0.25'
+          memory: 256M
+    labels:
+      - "com.revealui.service=postgres"
+      - "com.revealui.environment=development"
+
+  # Optional: Electric dev service (pglite/electric) — replace image/name with actual Electric dev image if used
+  # electric:
+  #   image: electricsql/electric:latest
+  #   environment:
+  #     ELECTRIC_API_KEY: ${ELECTRIC_API_KEY}
+  #   ports:
+  #     - '8080:8080'
+
+  # Optional: Loki for logs collection (used by logs-first metrics flow)
+  # loki:
+  #   image: grafana/loki:2.8.2
+  #   ports:
+  #     - '3100:3100'
+
+volumes:
+  pgdata:

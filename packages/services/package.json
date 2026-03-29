@@ -1,0 +1,100 @@
+{
+  "name": "@revealui/services",
+  "version": "0.2.3",
+  "description": "External service integrations for RevealUI — Stripe, Supabase, and Vercel",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/RevealUIStudio/revealui.git",
+    "directory": "packages/services"
+  },
+  "license": "MIT",
+  "dependencies": {
+    "@revealui/config": "workspace:*",
+    "@revealui/contracts": "workspace:*",
+    "@revealui/core": "workspace:*",
+    "@revealui/db": "workspace:*",
+    "@solana/kit": "^6.5.0",
+    "@supabase/ssr": "^0.8.0",
+    "@supabase/supabase-js": "^2.95.3",
+    "@vercel/node": "^5.6.3",
+    "drizzle-orm": "catalog:",
+    "stripe": "^21.0.1"
+  },
+  "devDependencies": {
+    "@tailwindcss/postcss": "^4.1.18",
+    "@types/node": "^25.3.0",
+    "@vitejs/plugin-react-swc": "^4.2.2",
+    "@vitest/coverage-v8": "^4.0.18",
+    "dev": "workspace:*",
+    "dotenv": "^17.2.4",
+    "postcss": "^8.5.6",
+    "react": "^19.2.3",
+    "react-dom": "^19.2.3",
+    "tailwindcss": "^4.1.18",
+    "typescript": "^6.0.2",
+    "vite": "catalog:",
+    "vitest": "^4.0.18"
+  },
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js"
+    },
+    "./server": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js"
+    },
+    "./client": {
+      "types": "./dist/client/index.d.ts",
+      "import": "./dist/client/index.js"
+    },
+    "./api/handlers/payment-intent": {
+      "types": "./dist/api/handlers/payment-intent.d.ts",
+      "import": "./dist/api/handlers/payment-intent.js"
+    },
+    "./revealcoin": {
+      "types": "./dist/revealcoin/index.d.ts",
+      "import": "./dist/revealcoin/index.js"
+    },
+    "./stripe/stripeClient": {
+      "types": "./dist/stripe/stripeClient.d.ts",
+      "import": "./dist/stripe/stripeClient.js"
+    }
+  },
+  "files": [
+    "dist"
+  ],
+  "funding": {
+    "type": "commercial",
+    "url": "https://revealui.com/pro"
+  },
+  "main": "./dist/index.js",
+  "peerDependencies": {
+    "react": "^19.0.0",
+    "react-dom": "^19.0.0"
+  },
+  "peerDependenciesMeta": {
+    "react": {
+      "optional": true
+    },
+    "react-dom": {
+      "optional": true
+    }
+  },
+  "publishConfig": {
+    "access": "public"
+  },
+  "scripts": {
+    "build": "tsc",
+    "clean": "rm -rf dist",
+    "dev": "tsc --watch",
+    "format": "biome format --write .",
+    "lint": "biome check .",
+    "test": "vitest run",
+    "test:coverage": "vitest run --coverage",
+    "test:watch": "vitest",
+    "typecheck": "tsc --noEmit"
+  },
+  "type": "module",
+  "types": "./dist/index.d.ts"
+}

@@ -216,12 +216,6 @@ docs/SECRETS-MANAGEMENT.md
 # Both with and without trailing slash so `git check-ignore` matches either form
 packages/ai
 packages/ai/
-packages/mcp
-packages/mcp/
-packages/services
-packages/services/
-packages/editors
-packages/editors/
 packages/harnesses
 packages/harnesses/
 ee/packages/ai

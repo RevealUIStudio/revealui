@@ -1,0 +1,54 @@
+{
+  "$schema": "https://modelcontextprotocol.io/schema/mcp-config.json",
+  "mcpServers": {
+    "revealui-code-validator": {
+      "command": "tsx",
+      "args": ["<REPO_PATH>/packages/mcp/src/servers/code-validator.ts"],
+      "cwd": "<REPO_PATH>",
+      "description": "Code validation - prevents AI-generated technical debt",
+      "enabled": true
+    },
+    "revealui-vercel": {
+      "command": "pnpm",
+      "args": ["mcp:vercel"],
+      "cwd": "<REPO_PATH>",
+      "description": "Vercel deployment and storage management",
+      "enabled": false
+    },
+    "revealui-stripe": {
+      "command": "pnpm",
+      "args": ["mcp:stripe"],
+      "cwd": "<REPO_PATH>",
+      "description": "Stripe payment processing",
+      "enabled": false
+    },
+    "revealui-neon": {
+      "command": "pnpm",
+      "args": ["mcp:neon"],
+      "cwd": "<REPO_PATH>",
+      "description": "NeonDB database operations",
+      "enabled": false
+    },
+    "revealui-supabase": {
+      "command": "pnpm",
+      "args": ["mcp:supabase"],
+      "cwd": "<REPO_PATH>",
+      "description": "Supabase project management",
+      "enabled": false
+    },
+    "revealui-playwright": {
+      "command": "pnpm",
+      "args": ["mcp:playwright"],
+      "cwd": "<REPO_PATH>",
+      "description": "Browser automation",
+      "enabled": false
+    },
+    "revealui-next-devtools": {
+      "command": "pnpm",
+      "args": ["mcp:next-devtools"],
+      "cwd": "<REPO_PATH>",
+      "description": "Next.js debugging",
+      "enabled": false
+    }
+  }
+}
