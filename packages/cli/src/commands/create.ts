@@ -170,7 +170,7 @@ function resolveTemplateName(template: ProjectConfig['template']): string {
 async function pullContentRules(projectPath: string): Promise<void> {
   const baseUrl =
     process.env.REVEALUI_RULES_URL ??
-    'https://raw.githubusercontent.com/RevealUIStudio/revealui-rules/main';
+    'https://raw.githubusercontent.com/RevealUIStudio/editor-configs/main/harnesses';
 
   const spinner = ora('Pulling AI coding rules...').start();
   try {
