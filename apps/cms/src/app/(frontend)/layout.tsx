@@ -13,6 +13,7 @@ import { Header } from '@/lib/globals/Header/Component';
 import { Providers } from '@/lib/providers';
 import { InitTheme } from '@/lib/providers/Theme/InitTheme';
 import { mergeOpenGraph } from '@/lib/utilities/mergeOpenGraph';
+import '@revealui/presentation/tokens.css';
 import './styles.css';
 
 // Force dynamic rendering to prevent global-error prerendering issues

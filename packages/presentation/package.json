@@ -59,7 +59,8 @@
     "./hooks": {
       "types": "./dist/hooks/index.d.ts",
       "import": "./dist/hooks/index.js"
-    }
+    },
+    "./tokens.css": "./dist/tokens.css"
   },
   "files": [
     "dist"
@@ -75,7 +76,7 @@
     "registry": "https://registry.npmjs.org"
   },
   "scripts": {
-    "build": "cross-env NODE_ENV=production vite build",
+    "build": "cross-env NODE_ENV=production vite build && cp src/tokens.css dist/tokens.css",
     "clean": "rm -rf dist",
     "dev": "vite build --watch --mode development",
     "lint": "biome check .",

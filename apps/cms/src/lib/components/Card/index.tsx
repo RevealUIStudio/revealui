@@ -1,6 +1,7 @@
 'use client';
 
 import type { Media as CmsMedia, Post } from '@revealui/core/types/cms';
+import { CardContent, Card as PresentationCard } from '@revealui/presentation/server';
 import Link from 'next/link';
 import { Fragment } from 'react';
 import useClickableCard from '@/lib/hooks/useClickableCard';
@@ -33,7 +34,7 @@ export const Card = (props: {
   showCategories?: boolean;
   title?: string;
 }) => {
-  const { card, link } = useClickableCard({});
+  const { card, link } = useClickableCard<HTMLDivElement>({});
   const { className, doc, relationTo, showCategories, title: titleFromProps } = props;
 
   const { slug, categories, meta, title } = doc || {};
@@ -45,18 +46,15 @@ export const Card = (props: {
   const href = `/${relationTo}/${slug}`;
 
   return (
-    <article
-      className={cn(
-        'border border-border rounded-lg overflow-hidden bg-card hover:cursor-pointer',
-        className,
-      )}
+    <PresentationCard
+      className={cn('overflow-hidden hover:cursor-pointer', className)}
       ref={card.ref}
     >
-      <div className="relative w-full ">
+      <div className="relative w-full">
         {!metaImage && <div className="">No image</div>}
         {isCmsMedia(metaImage) ? <Media resource={metaImage} size="360px" /> : null}
       </div>
-      <div className="p-4">
+      <CardContent className="pt-4">
         {showCategories && hasCategories && (
           <div className="uppercase text-sm mb-4">
             {showCategories && hasCategories && (
@@ -95,7 +93,7 @@ export const Card = (props: {
           </div>
         )}
         {description && <div className="mt-2">{description && <p>{sanitizedDescription}</p>}</div>}
-      </div>
-    </article>
+      </CardContent>
+    </PresentationCard>
   );
 };
