@@ -1,3 +1,5 @@
+import { getStaticPost, type StaticBlogPost, staticBlogPosts } from './blog-posts';
+
 const API_URL = process.env.NEXT_PUBLIC_API_URL || 'https://api.revealui.com';
 
 export interface BlogPost {
@@ -8,6 +10,10 @@ export interface BlogPost {
   content: unknown;
   publishedAt: string | null;
   createdAt: string;
+  /** Author display name (static posts only). */
+  author?: string;
+  /** Whether this post comes from the static registry vs the CMS. */
+  isStatic?: boolean;
 }
 
 interface PaginatedResult {
@@ -17,7 +23,29 @@ interface PaginatedResult {
   page: number;
 }
 
+/** Convert a static blog post into the shared BlogPost shape. */
+function toShared(post: StaticBlogPost): BlogPost {
+  return {
+    id: `static-${post.slug}`,
+    title: post.title,
+    slug: post.slug,
+    excerpt: post.excerpt,
+    content: post.content,
+    publishedAt: post.publishedAt,
+    createdAt: post.publishedAt,
+    author: post.author,
+    isStatic: true,
+  };
+}
+
+/**
+ * Fetch published posts from the CMS API, falling back to an empty list on
+ * error. Static blog posts are always appended and de-duped by slug (CMS
+ * posts with a matching slug take priority).
+ */
 export async function getPosts(page = 1, limit = 12): Promise<PaginatedResult> {
+  let cmsPosts: BlogPost[] = [];
+
   try {
     const offset = (page - 1) * limit;
     const res = await fetch(
@@ -25,34 +53,50 @@ export async function getPosts(page = 1, limit = 12): Promise<PaginatedResult> {
       { next: { revalidate: 300 } },
     );
 
-    if (!res.ok) {
-      return { docs: [], totalDocs: 0, totalPages: 0, page: 1 };
+    if (res.ok) {
+      const json: { success: boolean; data: BlogPost[] } = await res.json();
+      cmsPosts = json.data ?? [];
     }
-
-    const json: { success: boolean; data: BlogPost[] } = await res.json();
-    const docs = json.data ?? [];
-    return {
-      docs,
-      totalDocs: docs.length,
-      totalPages: 1,
-      page,
-    };
   } catch {
-    return { docs: [], totalDocs: 0, totalPages: 0, page: 1 };
+    // CMS unreachable — static posts still render.
   }
+
+  // Merge: CMS posts take priority when slugs overlap.
+  const cmsSlugs = new Set(cmsPosts.map((p) => p.slug));
+  const staticPosts = staticBlogPosts.filter((p) => !cmsSlugs.has(p.slug)).map(toShared);
+
+  const merged = [...cmsPosts, ...staticPosts].sort((a, b) => {
+    const dateA = a.publishedAt ?? a.createdAt;
+    const dateB = b.publishedAt ?? b.createdAt;
+    return new Date(dateB).getTime() - new Date(dateA).getTime();
+  });
+
+  return {
+    docs: merged,
+    totalDocs: merged.length,
+    totalPages: 1,
+    page,
+  };
 }
 
+/**
+ * Fetch a single post by slug. Checks the CMS first, then falls back to the
+ * static registry.
+ */
 export async function getPostBySlug(slug: string): Promise<BlogPost | null> {
   try {
     const res = await fetch(`${API_URL}/api/content/posts/slug/${encodeURIComponent(slug)}`, {
       next: { revalidate: 300 },
     });
 
-    if (!res.ok) return null;
-
-    const json: { success: boolean; data: BlogPost } = await res.json();
-    return json.data ?? null;
+    if (res.ok) {
+      const json: { success: boolean; data: BlogPost } = await res.json();
+      if (json.data) return json.data;
+    }
   } catch {
-    return null;
+    // CMS unreachable — fall through to static lookup.
   }
+
+  const staticPost = getStaticPost(slug);
+  return staticPost ? toShared(staticPost) : null;
 }
