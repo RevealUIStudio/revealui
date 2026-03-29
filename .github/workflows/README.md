@@ -4,7 +4,7 @@
 
 ### `ci.yml` — Continuous Integration
 
-**Triggers:** Push to `main`/`develop`/`test`, pull requests targeting those branches
+**Triggers:** Push to `main`/`test`, pull requests targeting those branches. `develop` is local-only (no CI).
 
 Mirrors the local `pnpm gate` — same hard-fail/warn policy:
 
@@ -57,12 +57,11 @@ will fail (Pro package source is not present).
 
 ### `deploy.yml` — Unified Deploy
 
-**Triggers:** Push to `main`/`test`/`develop`, manual `workflow_dispatch`
+**Triggers:** Push to `main`/`test`, manual `workflow_dispatch`
 
 Deploys all 5 apps in parallel via matrix strategy. Branch→environment mapping:
 - `main` → production (`*.revealui.com`)
 - `test` → test (`test.*.revealui.com`)
-- `develop` → development (`dev.*.revealui.com`)
 
 Each app: `vercel pull` → `vercel build` → `vercel deploy --prebuilt` → alias to stable domain.
 Smoke tests (health checks) run on production and test deploys.

@@ -5,8 +5,8 @@ name: CI
 #   Hard fail (main/test): integration tests (requires DB)
 #   Warn-only: audits, structure
 #
-# Pipeline: feature/* → develop → test → main
-#   develop/feature PRs: quality + typecheck + package build + unit tests (~10 min)
+# Pipeline: feature/* → develop (local) → test → main
+#   develop is local-only (no CI). PRs to test/main trigger CI.
 #   test/main: full build + integration tests + E2E smoke + accessibility (~15 min)
 #
 # Optimizations:
@@ -22,9 +22,9 @@ name: CI
 
 on:
   push:
-    branches: [main, develop, test]
+    branches: [main, test]
   pull_request:
-    branches: [main, develop, test]
+    branches: [main, test]
 
 concurrency:
   group: ci-${{ github.ref }}
@@ -35,10 +35,9 @@ env:
   PNPM_VERSION: "10.28.2"
   TURBO_TOKEN: ${{ secrets.TURBO_TOKEN }}
   TURBO_TEAM: ${{ vars.TURBO_TEAM }}
-  # Lockfile policy: strict on production branches, relaxed on develop/feature
+  # Lockfile policy: strict on all CI branches (test/main)
   # --frozen-lockfile: fail if lockfile is out of sync (supply chain protection)
-  # --prefer-frozen-lockfile: warn but allow resolution (pre-1.0 velocity)
-  PNPM_INSTALL_FLAGS: ${{ (github.ref == 'refs/heads/main' || github.ref == 'refs/heads/test' || github.base_ref == 'main' || github.base_ref == 'test') && '--frozen-lockfile' || '--prefer-frozen-lockfile' }}
+  PNPM_INSTALL_FLAGS: "--frozen-lockfile"
 
 jobs:
   # ---------------------------------------------------------------------------

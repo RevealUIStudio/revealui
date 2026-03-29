@@ -34,6 +34,8 @@ if [ -n "$RANGE" ]; then
 fi
 
 # Branch-aware gate strictness
+#   main/test: full gate (these trigger CI + deploy)
+#   develop/feature/*: quality-only (local dev, no CI)
 BRANCH=$(git rev-parse --abbrev-ref HEAD)
 case "$BRANCH" in
   main|test)
@@ -42,15 +44,9 @@ case "$BRANCH" in
     echo ""
     pnpm gate
     ;;
-  develop)
-    echo ""
-    echo "Running pre-push CI gate (changed-only mode)..."
-    echo ""
-    pnpm gate --no-build --changed
-    ;;
   *)
     echo ""
-    echo "Running quality checks for feature branch '$BRANCH'..."
+    echo "Running quality checks for '$BRANCH'..."
     echo ""
     pnpm gate --phase=1 --changed
     ;;

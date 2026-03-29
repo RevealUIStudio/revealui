@@ -1,19 +1,16 @@
 name: Deploy
 
-# Unified deployment workflow for all environments.
-# Replaces Vercel Git Integration auto-deploy with full GitHub Actions control.
+# Unified deployment workflow for production and test environments.
+# Vercel Git Integration is DISABLED — all deploys go through this workflow.
 #
 # Branch → Environment mapping:
-#   main    → production  (*.revealui.com)
-#   test    → test        (test.*.revealui.com)
-#   develop → development (dev.*.revealui.com)
+#   main → production  (*.revealui.com)
+#   test → test        (test.*.revealui.com)
 #
-# Deploy strategy (Hobby plan budget):
-#   main/test: auto-deploy on push (production + QA only)
-#   develop:   manual only via workflow_dispatch (saves build minutes)
+# develop is local-only — no CI, no deploy.
 #
 # All 5 apps deploy in parallel via matrix strategy.
-# Non-production deploys are aliased to stable custom domains.
+# Test deploys are aliased to stable custom domains.
 #
 # Turbo remote caching (opportunistic — deploys work without these):
 #   1. Enable Vercel Remote Caching: https://vercel.com/docs/monorepos/remote-caching
@@ -33,7 +30,6 @@ on:
           - auto
           - production
           - test
-          - development
         default: auto
 
 concurrency:
@@ -46,7 +42,7 @@ env:
   VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
   TURBO_TOKEN: ${{ secrets.TURBO_TOKEN }}
   TURBO_TEAM: ${{ vars.TURBO_TEAM }}
-  PNPM_INSTALL_FLAGS: ${{ (github.ref == 'refs/heads/main' || github.ref == 'refs/heads/test') && '--frozen-lockfile' || '--prefer-frozen-lockfile' }}
+  PNPM_INSTALL_FLAGS: "--frozen-lockfile"
 
 jobs:
   # ---------------------------------------------------------------------------
@@ -71,10 +67,8 @@ jobs:
             ENV="$INPUT_ENV"
           elif [ "$BRANCH" = "main" ]; then
             ENV="production"
-          elif [ "$BRANCH" = "test" ]; then
-            ENV="test"
           else
-            ENV="development"
+            ENV="test"
           fi
 
           echo "environment=$ENV" >> "$GITHUB_OUTPUT"
@@ -101,23 +95,18 @@ jobs:
           - app: api
             project-id: prj_zk6EQijYXwd9L7BccuBssi436ktM
             test-domain: test.api.revealui.com
-            dev-domain: dev.api.revealui.com
           - app: cms
             project-id: prj_7sEFDg4MH6C26nJPjrukK86QdwfG
             test-domain: test.cms.revealui.com
-            dev-domain: dev.cms.revealui.com
           - app: marketing
             project-id: prj_frTIYlnONVPLNIjKnQpINiGb5lm0
             test-domain: test.revealui.com
-            dev-domain: dev.revealui.com
           - app: docs
             project-id: prj_OPwr0FrgcK17AOBCyoj4JIilJ9S1
             test-domain: test.docs.revealui.com
-            dev-domain: dev.docs.revealui.com
           - app: revealcoin
             project-id: prj_XDiPXngciRytGA8j0vNIDz7hENRM
             test-domain: test.revealcoin.revealui.com
-            dev-domain: dev.revealcoin.revealui.com
 
     steps:
       - uses: actions/checkout@v6
@@ -160,12 +149,6 @@ jobs:
       - name: Alias to stable domain (test)
         if: needs.resolve.outputs.environment == 'test'
         run: vercel alias ${{ steps.deploy.outputs.url }} ${{ matrix.test-domain }} --token="${{ secrets.VERCEL_TOKEN }}" --scope=${{ env.VERCEL_ORG_ID }}
-        env:
-          VERCEL_PROJECT_ID: ${{ matrix.project-id }}
-
-      - name: Alias to stable domain (development)
-        if: needs.resolve.outputs.environment == 'development'
-        run: vercel alias ${{ steps.deploy.outputs.url }} ${{ matrix.dev-domain }} --token="${{ secrets.VERCEL_TOKEN }}" --scope=${{ env.VERCEL_ORG_ID }}
         env:
           VERCEL_PROJECT_ID: ${{ matrix.project-id }}
 
