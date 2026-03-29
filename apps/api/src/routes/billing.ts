@@ -20,7 +20,6 @@ import {
   users,
 } from '@revealui/db/schema';
 import { createRoute, OpenAPIHono, z } from '@revealui/openapi';
-import { reportMeterEventBatch } from '@revealui/services/stripe/billing';
 import { and, count, countDistinct, desc, eq, gt, gte, isNull, lt, lte, sql } from 'drizzle-orm';
 import { HTTPException } from 'hono/http-exception';
 import Stripe from 'stripe';
@@ -1194,10 +1193,24 @@ app.openapi(reportOverageRoute, async (c) => {
     .innerJoin(users, eq(agentTaskUsage.userId, users.id))
     .where(and(eq(agentTaskUsage.cycleStart, prevCycle), gt(agentTaskUsage.overage, 0)));
 
-  // Delegate meter event reporting to the shared @revealui/services billing module.
-  // Configuration (meter event name) is read from STRIPE_AGENT_METER_EVENT_NAME env var
-  // by the services module. See packages/services/src/stripe/billing.ts for details.
-  const { reported, skipped } = await reportMeterEventBatch(stripe, overageRows, prevCycle);
+  // Dynamic import — @revealui/services is a Pro package (optional peer dep)
+  let billingServices: Record<string, unknown>;
+  try {
+    billingServices = (await import('@revealui/services/stripe/billing')) as Record<
+      string,
+      unknown
+    >;
+  } catch {
+    throw new HTTPException(503, { message: 'Billing meter service unavailable' });
+  }
+
+  const reportBatch = billingServices.reportMeterEventBatch as (
+    stripeClient: Pick<Stripe, 'billing'>,
+    rows: ReadonlyArray<{ stripeCustomerId: string | null; overage: number }>,
+    cycle: Date,
+  ) => Promise<{ reported: number; skipped: number }>;
+
+  const { reported, skipped } = await reportBatch(stripe, overageRows, prevCycle);
 
   return c.json({ reported, skipped }, 200);
 });

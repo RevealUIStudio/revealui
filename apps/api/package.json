@@ -12,7 +12,6 @@
     "@revealui/core": "workspace:*",
     "@revealui/db": "workspace:*",
     "@revealui/openapi": "workspace:*",
-    "@revealui/services": "workspace:*",
     "@vercel/blob": "^2.3.2",
     "drizzle-orm": "^0.45.2",
     "hono": "^4.12.7",
@@ -35,10 +34,14 @@
     "node": ">=24.13.0"
   },
   "peerDependencies": {
-    "@revealui/ai": "^0.2.0"
+    "@revealui/ai": "^0.2.2",
+    "@revealui/services": "^0.2.4"
   },
   "peerDependenciesMeta": {
     "@revealui/ai": {
+      "optional": true
+    },
+    "@revealui/services": {
       "optional": true
     }
   },
