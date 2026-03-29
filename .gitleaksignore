@@ -16,6 +16,7 @@ apps/api/src/routes/__tests__/billing-comprehensive.test.ts:stripe-access-token:
 apps/api/src/routes/__tests__/webhook-handler.test.ts:stripe-access-token:151
 apps/api/src/routes/__tests__/webhooks-expansion.test.ts:stripe-access-token:143
 apps/api/src/routes/__tests__/webhook-signature-replay.test.ts:stripe-access-token:151
+apps/api/src/routes/__tests__/webhook-lifecycle-complete.test.ts:stripe-access-token:290
 apps/api/src/routes/__tests__/webhooks.test.ts:stripe-access-token:133
 apps/cms/src/__tests__/api/revalidate.test.ts:generic-api-key:31
 packages/cli/src/commands/create.ts:stripe-access-token:79
