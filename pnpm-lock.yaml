@@ -222,8 +222,8 @@ importers:
         specifier: ^0.6.1
         version: 0.6.1(hono@4.12.9)
       '@revealui/ai':
-        specifier: ^0.2.0
-        version: 0.2.0(drizzle-orm@0.45.2(@electric-sql/pglite@0.4.2)(@neondatabase/serverless@1.0.2)(@opentelemetry/api@1.9.1)(@types/pg@8.20.0)(pg@8.20.0))(next@16.2.1(@babel/core@7.29.0)(@opentelemetry/api@1.9.1)(@playwright/test@1.58.2)(react-dom@19.2.4(react@19.2.4))(react@19.2.4))(react-dom@19.2.4(react@19.2.4))(react@19.2.4)
+        specifier: ^0.2.2
+        version: 0.2.2(drizzle-orm@0.45.2(@electric-sql/pglite@0.4.2)(@neondatabase/serverless@1.0.2)(@opentelemetry/api@1.9.1)(@types/pg@8.20.0)(pg@8.20.0))(next@16.2.1(@opentelemetry/api@1.9.1)(@playwright/test@1.58.2)(react-dom@19.2.4(react@19.2.4))(react@19.2.4))(react-dom@19.2.4(react@19.2.4))(react@19.2.4)
       '@revealui/auth':
         specifier: workspace:*
         version: link:../../packages/auth
@@ -243,8 +243,8 @@ importers:
         specifier: workspace:*
         version: link:../../packages/openapi
       '@revealui/services':
-        specifier: workspace:*
-        version: link:../../packages/services
+        specifier: ^0.2.4
+        version: 0.2.4(@electric-sql/pglite@0.4.2)(@neondatabase/serverless@1.0.2)(@opentelemetry/api@1.9.1)(@types/node@25.5.0)(@types/pg@8.20.0)(bufferutil@4.1.0)(next@16.2.1(@opentelemetry/api@1.9.1)(@playwright/test@1.58.2)(react-dom@19.2.4(react@19.2.4))(react@19.2.4))(pg@8.20.0)(react-dom@19.2.4(react@19.2.4))(react@19.2.4)(typescript@6.0.2)(utf-8-validate@6.0.6)
       '@vercel/blob':
         specifier: ^2.3.2
         version: 2.3.2
@@ -302,7 +302,7 @@ importers:
         version: 1.0.42(react@19.2.4)
       '@revealui/ai':
         specifier: ^0.2.0
-        version: 0.2.0(drizzle-orm@0.45.2(@electric-sql/pglite@0.4.2)(@neondatabase/serverless@1.0.2)(@opentelemetry/api@1.9.1)(@types/pg@8.20.0)(pg@8.20.0))(next@16.2.1(@babel/core@7.29.0)(@opentelemetry/api@1.9.1)(@playwright/test@1.58.2)(react-dom@19.2.4(react@19.2.4))(react@19.2.4))(react-dom@19.2.4(react@19.2.4))(react@19.2.4)
+        version: 0.2.0(drizzle-orm@0.45.2(@electric-sql/pglite@0.4.2)(@neondatabase/serverless@1.0.2)(@opentelemetry/api@1.9.1)(@types/pg@8.20.0)(pg@8.20.0))(next@16.2.1(@opentelemetry/api@1.9.1)(@playwright/test@1.58.2)(react-dom@19.2.4(react@19.2.4))(react@19.2.4))(react-dom@19.2.4(react@19.2.4))(react@19.2.4)
       '@revealui/auth':
         specifier: workspace:*
         version: link:../../packages/auth
@@ -850,7 +850,7 @@ importers:
     dependencies:
       '@revealui/ai':
         specifier: ^0.2.0
-        version: 0.2.0(drizzle-orm@0.45.2(@electric-sql/pglite@0.4.2)(@neondatabase/serverless@1.0.2)(@opentelemetry/api@1.9.1)(@types/pg@8.20.0)(pg@8.20.0))(next@16.2.1(@babel/core@7.29.0)(@opentelemetry/api@1.9.1)(@playwright/test@1.58.2)(react-dom@19.2.4(react@19.2.4))(react@19.2.4))(react-dom@19.2.4(react@19.2.4))(react@19.2.4)
+        version: 0.2.0(drizzle-orm@0.45.2(@electric-sql/pglite@0.4.2)(@neondatabase/serverless@1.0.2)(@opentelemetry/api@1.9.1)(@types/pg@8.20.0)(pg@8.20.0))(next@16.2.1(@opentelemetry/api@1.9.1)(@playwright/test@1.58.2)(react-dom@19.2.4(react@19.2.4))(react@19.2.4))(react-dom@19.2.4(react@19.2.4))(react@19.2.4)
       '@revealui/config':
         specifier: workspace:*
         version: link:../config
@@ -3342,6 +3342,21 @@ packages:
       drizzle-orm: ^0.45.2
       react: '>=19.2.4'
 
+  '@revealui/ai@0.2.2':
+    resolution: {integrity: sha512-kOUNj2R0sAI9dtcx/E+EtIB9TNifoSTRD67hLpyRW6VPXvn4KS82bD7EHp7/Br5/X8jQrfi/ZRbAT2dN13NO9Q==}
+    peerDependencies:
+      drizzle-orm: ^0.45.2
+      react: '>=19.2.4'
+
+  '@revealui/cache@0.1.0':
+    resolution: {integrity: sha512-zUhlMcU5PA9n7XjFC6Ce2hBGDbxz1Xlje+u3mmokkK73Ur9Kt7JD5NZRETFqiJQXHG+gFyplLIwU+iSI4XtGLA==}
+    engines: {node: '>=24.13.0'}
+    peerDependencies:
+      next: '>=15.5.10'
+    peerDependenciesMeta:
+      next:
+        optional: true
+
   '@revealui/cache@0.2.0':
     resolution: {integrity: sha512-z+Ez6joaP/bKXSdVX1y6kphWho+CV0NH/srdco28mFu1mCArAYhfa7GrltHN3MRh7vbCEaMWPbIXZ4ehfMcTTg==}
     engines: {node: '>=24.13.0'}
@@ -3359,6 +3374,14 @@ packages:
       react: '>=19.2.4'
       react-dom: '>=19.2.4'
 
+  '@revealui/core@0.5.0':
+    resolution: {integrity: sha512-bgcUyFhfx5R4THdQRphlDsWcrW7miUlT7KizDO5Hwz0SH6k70Qb/6cw9JgATOY+DwWl76nxelRG7NbNCswVf6g==}
+    engines: {node: '>=24.13.0'}
+    peerDependencies:
+      next: '>=15.5.10'
+      react: '>=19.2.4'
+      react-dom: '>=19.2.4'
+
   '@revealui/resilience@0.2.0':
     resolution: {integrity: sha512-gLqbFKDL4dHVd1N7rvaOaq0PhArMOwvHfLjVMQNJ/yTwsXHKFiyj6le3hfn3VWl74c0kd1Wk8nrW9I6+K7wmpQ==}
     engines: {node: '>=24.13.0'}
@@ -3367,8 +3390,23 @@ packages:
     resolution: {integrity: sha512-/XddwzhqQXSal87fFMG7RRV9nFGJKmGy5Vp3OYqwM5/DUtQcQbmgwvYujDHgtGI34G9uKjjPo0kIMHdnEv5Wyw==}
     engines: {node: '>=24.13.0'}
 
+  '@revealui/security@0.2.1':
+    resolution: {integrity: sha512-Mkch7C0m/iSbFTZBsv/rPoT2YkCT8VT0L3KVGLR+j3H4204pMp2qsgIs8HveTeTGbvri4qb5jvij9EEE3siKPA==}
+    engines: {node: '>=24.13.0'}
+
   '@revealui/services@0.2.2':
     resolution: {integrity: sha512-rYuDQhF28GHiOY2veRIiITOSFbyntr9cE+eyhHga1zzFBR+F5iVuy8oBAYshqQQQNHmE5a4Kj5U+6Bpzzqm9pg==}
+    peerDependencies:
+      react: '>=19.2.4'
+      react-dom: '>=19.2.4'
+    peerDependenciesMeta:
+      react:
+        optional: true
+      react-dom:
+        optional: true
+
+  '@revealui/services@0.2.4':
+    resolution: {integrity: sha512-2WRX6RDKEBCGlAbirWr9yBC37/oWc4neSWpd9h+EQLYJjlenghU63+saUXZ/ST/JeewRyFZy05uZgKrD4Cm34A==}
     peerDependencies:
       react: '>=19.2.4'
       react-dom: '>=19.2.4'
@@ -11872,10 +11910,10 @@ snapshots:
 
   '@renovatebot/pep440@4.2.1': {}
 
-  '@revealui/ai@0.2.0(drizzle-orm@0.45.2(@electric-sql/pglite@0.4.2)(@neondatabase/serverless@1.0.2)(@opentelemetry/api@1.9.1)(@types/pg@8.20.0)(pg@8.20.0))(next@16.2.1(@babel/core@7.29.0)(@opentelemetry/api@1.9.1)(@playwright/test@1.58.2)(react-dom@19.2.4(react@19.2.4))(react@19.2.4))(react-dom@19.2.4(react@19.2.4))(react@19.2.4)':
+  '@revealui/ai@0.2.0(drizzle-orm@0.45.2(@electric-sql/pglite@0.4.2)(@neondatabase/serverless@1.0.2)(@opentelemetry/api@1.9.1)(@types/pg@8.20.0)(pg@8.20.0))(next@16.2.1(@opentelemetry/api@1.9.1)(@playwright/test@1.58.2)(react-dom@19.2.4(react@19.2.4))(react@19.2.4))(react-dom@19.2.4(react@19.2.4))(react@19.2.4)':
     dependencies:
       '@revealui/contracts': link:packages/contracts
-      '@revealui/core': 0.3.0(next@16.2.1(@babel/core@7.29.0)(@opentelemetry/api@1.9.1)(@playwright/test@1.58.2)(react-dom@19.2.4(react@19.2.4))(react@19.2.4))(react-dom@19.2.4(react@19.2.4))(react@19.2.4)
+      '@revealui/core': 0.3.0(next@16.2.1(@opentelemetry/api@1.9.1)(@playwright/test@1.58.2)(react-dom@19.2.4(react@19.2.4))(react@19.2.4))(react-dom@19.2.4(react@19.2.4))(react@19.2.4)
       '@revealui/db': link:packages/db
       drizzle-orm: 0.45.2(@electric-sql/pglite@0.4.2)(@neondatabase/serverless@1.0.2)(@opentelemetry/api@1.9.1)(@types/pg@8.20.0)(pg@8.20.0)
       lru-cache: 11.2.7
@@ -11886,11 +11924,29 @@ snapshots:
       - pg-native
       - react-dom
 
-  '@revealui/cache@0.2.0(next@16.2.1(@babel/core@7.29.0)(@opentelemetry/api@1.9.1)(@playwright/test@1.58.2)(react-dom@19.2.4(react@19.2.4))(react@19.2.4))':
+  '@revealui/ai@0.2.2(drizzle-orm@0.45.2(@electric-sql/pglite@0.4.2)(@neondatabase/serverless@1.0.2)(@opentelemetry/api@1.9.1)(@types/pg@8.20.0)(pg@8.20.0))(next@16.2.1(@opentelemetry/api@1.9.1)(@playwright/test@1.58.2)(react-dom@19.2.4(react@19.2.4))(react@19.2.4))(react-dom@19.2.4(react@19.2.4))(react@19.2.4)':
+    dependencies:
+      '@revealui/contracts': link:packages/contracts
+      '@revealui/core': 0.5.0(next@16.2.1(@opentelemetry/api@1.9.1)(@playwright/test@1.58.2)(react-dom@19.2.4(react@19.2.4))(react@19.2.4))(react-dom@19.2.4(react@19.2.4))(react@19.2.4)
+      '@revealui/db': link:packages/db
+      drizzle-orm: 0.45.2(@electric-sql/pglite@0.4.2)(@neondatabase/serverless@1.0.2)(@opentelemetry/api@1.9.1)(@types/pg@8.20.0)(pg@8.20.0)
+      lru-cache: 11.2.7
+      react: 19.2.4
+      zod: 4.3.6
+    transitivePeerDependencies:
+      - next
+      - pg-native
+      - react-dom
+
+  '@revealui/cache@0.1.0(next@16.2.1(@opentelemetry/api@1.9.1)(@playwright/test@1.58.2)(react-dom@19.2.4(react@19.2.4))(react@19.2.4))':
     optionalDependencies:
       next: 16.2.1(@babel/core@7.29.0)(@opentelemetry/api@1.9.1)(@playwright/test@1.58.2)(react-dom@19.2.4(react@19.2.4))(react@19.2.4)
 
-  '@revealui/core@0.3.0(next@16.2.1(@babel/core@7.29.0)(@opentelemetry/api@1.9.1)(@playwright/test@1.58.2)(react-dom@19.2.4(react@19.2.4))(react@19.2.4))(react-dom@19.2.4(react@19.2.4))(react@19.2.4)':
+  '@revealui/cache@0.2.0(next@16.2.1(@opentelemetry/api@1.9.1)(@playwright/test@1.58.2)(react-dom@19.2.4(react@19.2.4))(react@19.2.4))':
+    optionalDependencies:
+      next: 16.2.1(@babel/core@7.29.0)(@opentelemetry/api@1.9.1)(@playwright/test@1.58.2)(react-dom@19.2.4(react@19.2.4))(react@19.2.4)
+
+  '@revealui/core@0.3.0(next@16.2.1(@opentelemetry/api@1.9.1)(@playwright/test@1.58.2)(react-dom@19.2.4(react@19.2.4))(react@19.2.4))(react-dom@19.2.4(react@19.2.4))(react@19.2.4)':
     dependencies:
       '@electric-sql/pglite': 0.3.16
       '@lexical/clipboard': 0.40.0
@@ -11904,7 +11960,7 @@ snapshots:
       '@lexical/table': 0.40.0
       '@lexical/utils': 0.40.0
       '@lexical/yjs': 0.40.0(yjs@13.6.30)
-      '@revealui/cache': 0.2.0(next@16.2.1(@babel/core@7.29.0)(@opentelemetry/api@1.9.1)(@playwright/test@1.58.2)(react-dom@19.2.4(react@19.2.4))(react@19.2.4))
+      '@revealui/cache': 0.2.0(next@16.2.1(@opentelemetry/api@1.9.1)(@playwright/test@1.58.2)(react-dom@19.2.4(react@19.2.4))(react@19.2.4))
       '@revealui/contracts': link:packages/contracts
       '@revealui/resilience': 0.2.0
       '@revealui/security': 0.2.0
@@ -11923,9 +11979,47 @@ snapshots:
     transitivePeerDependencies:
       - pg-native
 
+  '@revealui/core@0.5.0(next@16.2.1(@opentelemetry/api@1.9.1)(@playwright/test@1.58.2)(react-dom@19.2.4(react@19.2.4))(react@19.2.4))(react-dom@19.2.4(react@19.2.4))(react@19.2.4)':
+    dependencies:
+      '@electric-sql/pglite': 0.4.2
+      '@lexical/clipboard': 0.42.0
+      '@lexical/code': 0.42.0
+      '@lexical/html': 0.42.0
+      '@lexical/link': 0.42.0
+      '@lexical/list': 0.42.0
+      '@lexical/react': 0.42.0(react-dom@19.2.4(react@19.2.4))(react@19.2.4)(yjs@13.6.30)
+      '@lexical/rich-text': 0.42.0
+      '@lexical/selection': 0.42.0
+      '@lexical/table': 0.42.0
+      '@lexical/utils': 0.42.0
+      '@lexical/yjs': 0.42.0(yjs@13.6.30)
+      '@revealui/cache': 0.1.0(next@16.2.1(@opentelemetry/api@1.9.1)(@playwright/test@1.58.2)(react-dom@19.2.4(react@19.2.4))(react@19.2.4))
+      '@revealui/contracts': link:packages/contracts
+      '@revealui/resilience': 0.2.0
+      '@revealui/security': 0.2.1
+      '@revealui/utils': 0.3.0
+      '@vercel/blob': 2.3.2
+      bcryptjs: 3.0.3
+      dataloader: 2.2.3
+      jose: 6.2.2
+      lexical: 0.42.0
+      next: 16.2.1(@babel/core@7.29.0)(@opentelemetry/api@1.9.1)(@playwright/test@1.58.2)(react-dom@19.2.4(react@19.2.4))(react@19.2.4)
+      pg: 8.20.0
+      react: 19.2.4
+      react-dom: 19.2.4(react@19.2.4)
+      yjs: 13.6.30
+      zod: 4.3.6
+    transitivePeerDependencies:
+      - pg-native
+
   '@revealui/resilience@0.2.0': {}
 
   '@revealui/security@0.2.0':
+    dependencies:
+      '@revealui/contracts': link:packages/contracts
+      '@revealui/utils': 0.3.0
+
+  '@revealui/security@0.2.1':
     dependencies:
       '@revealui/contracts': link:packages/contracts
       '@revealui/utils': 0.3.0
@@ -11934,7 +12028,7 @@ snapshots:
     dependencies:
       '@revealui/config': link:packages/config
       '@revealui/contracts': link:packages/contracts
-      '@revealui/core': 0.3.0(next@16.2.1(@babel/core@7.29.0)(@opentelemetry/api@1.9.1)(@playwright/test@1.58.2)(react-dom@19.2.4(react@19.2.4))(react@19.2.4))(react-dom@19.2.4(react@19.2.4))(react@19.2.4)
+      '@revealui/core': 0.3.0(next@16.2.1(@opentelemetry/api@1.9.1)(@playwright/test@1.58.2)(react-dom@19.2.4(react@19.2.4))(react@19.2.4))(react-dom@19.2.4(react@19.2.4))(react@19.2.4)
       '@revealui/db': link:packages/db
       '@solana/kit': 6.5.0(bufferutil@4.1.0)(typescript@6.0.2)(utf-8-validate@6.0.6)
       '@supabase/ssr': 0.8.0(@supabase/supabase-js@2.100.1(bufferutil@4.1.0)(utf-8-validate@6.0.6))
@@ -11942,6 +12036,62 @@ snapshots:
       '@vercel/node': 5.6.22(rollup@4.60.0)
       drizzle-orm: 0.45.2(@electric-sql/pglite@0.4.2)(@neondatabase/serverless@1.0.2)(@opentelemetry/api@1.9.1)(@types/pg@8.20.0)(pg@8.20.0)
       stripe: 20.4.1(@types/node@25.5.0)
+    optionalDependencies:
+      react: 19.2.4
+      react-dom: 19.2.4(react@19.2.4)
+    transitivePeerDependencies:
+      - '@aws-sdk/client-rds-data'
+      - '@cloudflare/workers-types'
+      - '@electric-sql/pglite'
+      - '@libsql/client'
+      - '@libsql/client-wasm'
+      - '@neondatabase/serverless'
+      - '@op-engineering/op-sqlite'
+      - '@opentelemetry/api'
+      - '@planetscale/database'
+      - '@prisma/client'
+      - '@tidbcloud/serverless'
+      - '@types/better-sqlite3'
+      - '@types/node'
+      - '@types/pg'
+      - '@types/sql.js'
+      - '@upstash/redis'
+      - '@vercel/postgres'
+      - '@xata.io/client'
+      - better-sqlite3
+      - bufferutil
+      - bun-types
+      - encoding
+      - expo-sqlite
+      - fastestsmallesttextencoderdecoder
+      - gel
+      - knex
+      - kysely
+      - mysql2
+      - next
+      - pg
+      - pg-native
+      - postgres
+      - prisma
+      - rollup
+      - sql.js
+      - sqlite3
+      - supports-color
+      - typescript
+      - utf-8-validate
+
+  '@revealui/services@0.2.4(@electric-sql/pglite@0.4.2)(@neondatabase/serverless@1.0.2)(@opentelemetry/api@1.9.1)(@types/node@25.5.0)(@types/pg@8.20.0)(bufferutil@4.1.0)(next@16.2.1(@opentelemetry/api@1.9.1)(@playwright/test@1.58.2)(react-dom@19.2.4(react@19.2.4))(react@19.2.4))(pg@8.20.0)(react-dom@19.2.4(react@19.2.4))(react@19.2.4)(typescript@6.0.2)(utf-8-validate@6.0.6)':
+    dependencies:
+      '@revealui/config': link:packages/config
+      '@revealui/contracts': link:packages/contracts
+      '@revealui/core': 0.5.0(next@16.2.1(@opentelemetry/api@1.9.1)(@playwright/test@1.58.2)(react-dom@19.2.4(react@19.2.4))(react@19.2.4))(react-dom@19.2.4(react@19.2.4))(react@19.2.4)
+      '@revealui/db': link:packages/db
+      '@solana/kit': 6.5.0(bufferutil@4.1.0)(typescript@6.0.2)(utf-8-validate@6.0.6)
+      '@supabase/ssr': 0.8.0(@supabase/supabase-js@2.100.1(bufferutil@4.1.0)(utf-8-validate@6.0.6))
+      '@supabase/supabase-js': 2.100.1(bufferutil@4.1.0)(utf-8-validate@6.0.6)
+      '@vercel/node': 5.6.22(rollup@4.60.0)
+      drizzle-orm: 0.45.2(@electric-sql/pglite@0.4.2)(@neondatabase/serverless@1.0.2)(@opentelemetry/api@1.9.1)(@types/pg@8.20.0)(pg@8.20.0)
+      stripe: 21.0.1(@types/node@25.5.0)
     optionalDependencies:
       react: 19.2.4
       react-dom: 19.2.4(react@19.2.4)
