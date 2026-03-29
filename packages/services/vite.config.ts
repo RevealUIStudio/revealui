@@ -1,13 +1,9 @@
 import path from 'node:path';
-import { fileURLToPath } from 'node:url';
-import react from '@vitejs/plugin-react-swc';
+import react from '@vitejs/plugin-react';
 import sharedViteConfig from 'dev/vite';
 import { defineConfig, loadEnv } from 'vite';
 
-const filename = fileURLToPath(import.meta.url);
-const dirname = path.dirname(filename);
-
-const { VITE_API_URL, VITE_REVALIDATION_KEY } = loadEnv('', dirname);
+const { VITE_API_URL, VITE_REVALIDATION_KEY } = loadEnv('', import.meta.dirname);
 const API_URL = VITE_API_URL || process.env.API_URL;
 const REVALIDATION_KEY = VITE_REVALIDATION_KEY || process.env.REVALIDATION_KEY;
 
@@ -56,8 +52,8 @@ const viteConfig = defineConfig({
   },
   resolve: {
     alias: {
-      '@': path.resolve(dirname, 'src'),
-      '@reveal-config': path.resolve(dirname, '../../apps/cms/revealui.config.ts'),
+      '@': path.resolve(import.meta.dirname, 'src'),
+      '@reveal-config': path.resolve(import.meta.dirname, '../../apps/cms/revealui.config.ts'),
     },
   },
   define: {
