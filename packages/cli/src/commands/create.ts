@@ -164,6 +164,66 @@ function resolveTemplateName(template: ProjectConfig['template']): string {
 }
 
 /**
+ * Pull OSS AI rules from the revealui-rules repo.
+ * Best-effort — if the network is unavailable or the repo doesn't exist yet, skip silently.
+ */
+async function pullContentRules(projectPath: string): Promise<void> {
+  const baseUrl =
+    process.env.REVEALUI_RULES_URL ??
+    'https://raw.githubusercontent.com/RevealUIStudio/revealui-rules/main';
+
+  const spinner = ora('Pulling AI coding rules...').start();
+  try {
+    const manifestRes = await fetch(`${baseUrl}/manifest.json`, {
+      signal: AbortSignal.timeout(10_000),
+    });
+    if (!manifestRes.ok) {
+      spinner.info('AI rules not available — skipping');
+      return;
+    }
+
+    const manifest = (await manifestRes.json()) as {
+      definitions: Array<{
+        tier: string;
+        generatorPaths: Record<string, string[]>;
+      }>;
+    };
+
+    // Only pull OSS definitions, rendered for Claude Code
+    const generatorId = 'claude-code';
+    const ossDefs = manifest.definitions.filter((d) => d.tier === 'oss');
+    let written = 0;
+
+    for (const def of ossDefs) {
+      const paths = def.generatorPaths[generatorId] ?? [];
+      for (const relPath of paths) {
+        try {
+          const fileRes = await fetch(`${baseUrl}/generators/${generatorId}/${relPath}`, {
+            signal: AbortSignal.timeout(5_000),
+          });
+          if (!fileRes.ok) continue;
+          const content = await fileRes.text();
+          const absolutePath = path.join(projectPath, relPath);
+          await fs.mkdir(path.dirname(absolutePath), { recursive: true });
+          await fs.writeFile(absolutePath, content, 'utf-8');
+          written++;
+        } catch {
+          // Individual file failures are non-fatal
+        }
+      }
+    }
+
+    if (written > 0) {
+      spinner.succeed(`Pulled ${written} AI coding rules`);
+    } else {
+      spinner.info('No AI rules pulled');
+    }
+  } catch {
+    spinner.info('AI rules not available — skipping');
+  }
+}
+
+/**
  * Main project creation function — wires everything together.
  */
 export async function createProject(cfg: CreateProjectConfig): Promise<void> {
@@ -212,6 +272,9 @@ export async function createProject(cfg: CreateProjectConfig): Promise<void> {
     await generateDevbox(projectPath);
     logger.success('devbox.json generated');
   }
+
+  // 4c. Pull OSS AI rules from the rules repo (best-effort)
+  await pullContentRules(projectPath);
 
   // 5. Install dependencies
   if (!skipInstall) {
