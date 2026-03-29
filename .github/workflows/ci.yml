@@ -30,6 +30,10 @@ env:
   PNPM_VERSION: "10.28.2"
   TURBO_TOKEN: ${{ secrets.TURBO_TOKEN }}
   TURBO_TEAM: ${{ vars.TURBO_TEAM }}
+  # Lockfile policy: strict on production branches, relaxed on develop/feature
+  # --frozen-lockfile: fail if lockfile is out of sync (supply chain protection)
+  # --prefer-frozen-lockfile: warn but allow resolution (pre-1.0 velocity)
+  PNPM_INSTALL_FLAGS: ${{ (github.ref == 'refs/heads/main' || github.ref == 'refs/heads/test' || github.base_ref == 'main' || github.base_ref == 'test') && '--frozen-lockfile' || '--prefer-frozen-lockfile' }}
 
 jobs:
   # ---------------------------------------------------------------------------
@@ -55,7 +59,7 @@ jobs:
           cache: pnpm
 
       - name: Install dependencies
-        run: pnpm install --frozen-lockfile
+        run: pnpm install ${{ env.PNPM_INSTALL_FLAGS }}
 
       - name: Biome lint (hard fail)
         run: pnpm lint:biome
@@ -101,7 +105,7 @@ jobs:
           cache: pnpm
 
       - name: Install dependencies
-        run: pnpm install --frozen-lockfile
+        run: pnpm install ${{ env.PNPM_INSTALL_FLAGS }}
 
       - name: Typecheck affected packages (PRs — hard fail)
         if: github.event_name == 'pull_request'
@@ -137,7 +141,7 @@ jobs:
           cache: pnpm
 
       - name: Install dependencies
-        run: pnpm install --frozen-lockfile
+        run: pnpm install ${{ env.PNPM_INSTALL_FLAGS }}
 
       - name: Run unit tests (hard fail)
         run: pnpm test
@@ -182,7 +186,7 @@ jobs:
           cache: pnpm
 
       - name: Install dependencies
-        run: pnpm install --frozen-lockfile
+        run: pnpm install ${{ env.PNPM_INSTALL_FLAGS }}
 
       - name: Build packages (required — integration tests import real dist/)
         run: pnpm --filter './packages/*' build
@@ -220,7 +224,7 @@ jobs:
           cache: pnpm
 
       - name: Install dependencies
-        run: pnpm install --frozen-lockfile
+        run: pnpm install ${{ env.PNPM_INSTALL_FLAGS }}
 
       - name: Generate coverage reports (warn-only)
         run: pnpm test:coverage || echo "Coverage generation had failures — not blocking"
@@ -267,7 +271,7 @@ jobs:
           cache: pnpm
 
       - name: Install dependencies
-        run: pnpm install --frozen-lockfile
+        run: pnpm install ${{ env.PNPM_INSTALL_FLAGS }}
 
       - name: Build affected packages (PRs — hard fail)
         if: github.event_name == 'pull_request'
@@ -304,7 +308,7 @@ jobs:
           cache: pnpm
 
       - name: Install dependencies
-        run: pnpm install --frozen-lockfile
+        run: pnpm install ${{ env.PNPM_INSTALL_FLAGS }}
 
       - name: Install Playwright (chromium only)
         run: npx playwright install --with-deps chromium
@@ -355,7 +359,7 @@ jobs:
           cache: pnpm
 
       - name: Install dependencies
-        run: pnpm install --frozen-lockfile
+        run: pnpm install ${{ env.PNPM_INSTALL_FLAGS }}
 
       - name: Install Playwright (chromium only)
         run: npx playwright install --with-deps chromium
@@ -428,7 +432,7 @@ jobs:
           cache: pnpm
 
       - name: Install dependencies
-        run: pnpm install --frozen-lockfile
+        run: pnpm install ${{ env.PNPM_INSTALL_FLAGS }}
 
       - name: Install Playwright (chromium only)
         run: npx playwright install --with-deps chromium
