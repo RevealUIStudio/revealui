@@ -29,6 +29,20 @@ vi.mock('@revealui/core/utils/logger', () => ({
   logger: mockLogger,
 }));
 
+// Mock heavy sub-modules re-exported from src/index.ts to avoid CI timeout
+// (@solana/kit import graph is large and exceeds the 5s default timeout in CI)
+vi.mock('@solana/kit', () => ({
+  address: vi.fn((v: unknown) => v),
+  createSolanaRpc: vi.fn(),
+  signature: vi.fn((v: unknown) => v),
+}));
+
+vi.mock('@revealui/contracts', () => ({
+  RVUI_MINT_ADDRESSES: { mainnet: 'mock', devnet: 'mock' },
+  RVUI_TOKEN_CONFIG: { decimals: 9, symbol: 'RVUI' },
+  RVUI_TOKEN_PROGRAM: 'TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA',
+}));
+
 // ============================================================================
 // 1. checkServicesLicense()
 // ============================================================================
