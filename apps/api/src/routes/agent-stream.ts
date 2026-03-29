@@ -61,6 +61,7 @@ const agentStreamRoute = createRoute({
             priority: z.string().optional(),
             provider: z.string().optional(),
             model: z.string().optional(),
+            mode: z.enum(['cms', 'coding']).default('cms').optional(),
           }),
         },
       },
@@ -190,6 +191,7 @@ app.openapi(agentStreamRoute, async (c) => {
   }
 
   const workspaceId = body.workspaceId ?? c.get('tenant')?.id ?? 'default';
+  const mode = body.mode ?? 'cms';
 
   // Load CMS tools so the agent can manage content, media, users, globals
   let cmsTools: unknown[] = [];
@@ -214,15 +216,56 @@ app.openapi(agentStreamRoute, async (c) => {
     // CMS tools unavailable — agent will work without them
   }
 
-  const agent = {
-    id: 'cms-stream-agent',
-    name: 'CMS Stream Agent',
-    instructions: `You are an AI-powered CMS management assistant for RevealUI. You can help users manage their content, media, users, and settings through natural conversation.
+  // Load coding tools when mode is 'coding'
+  let codingTools: unknown[] = [];
+  if (mode === 'coding') {
+    try {
+      // Store path in variable to prevent TypeScript from resolving the module
+      const codingToolsPath = '@revealui/ai/tools/coding';
+      const codingToolsMod = (await import(codingToolsPath).catch(() => null)) as Record<
+        string,
+        unknown
+      > | null;
+      if (codingToolsMod) {
+        const projectRoot = process.env.PROJECT_ROOT ?? process.cwd();
+        const createCodingTools = codingToolsMod.createCodingTools as (config: {
+          projectRoot: string;
+          allowedPaths?: string[];
+        }) => unknown[];
+        codingTools = createCodingTools({
+          projectRoot,
+          allowedPaths: process.env.CODING_ALLOWED_PATHS?.split(','),
+        });
+      }
+    } catch {
+      // Coding tools unavailable — agent will work with CMS tools only
+    }
+  }
 
-When asked to modify the CMS, use the available tools. Be conversational and explain what you're doing. For destructive operations (delete), confirm the user's intent first.
+  const allTools = [...cmsTools, ...codingTools];
+
+  const codingInstructions =
+    mode === 'coding'
+      ? `\n\nYou also have access to coding tools for reading, writing, editing, and searching files in the project. You can run shell commands and git operations. Use these to help with development tasks like:
+- Reading and understanding code
+- Making code changes (file_edit for targeted edits, file_write for new files)
+- Searching the codebase (file_grep for content, file_glob for files)
+- Running commands (shell_exec for build/test/lint)
+- Git operations (git_ops for status, diff, log, blame)
+- Querying project context (project_context for rules and conventions)
+
+Always confirm before making destructive changes. Explain what you're doing as you work.`
+      : '';
+
+  const agent = {
+    id: mode === 'coding' ? 'coding-stream-agent' : 'cms-stream-agent',
+    name: mode === 'coding' ? 'Coding Agent' : 'CMS Stream Agent',
+    instructions: `You are an AI-powered ${mode === 'coding' ? 'coding and CMS' : 'CMS management'} assistant for RevealUI. You can help users manage their content, media, users, and settings through natural conversation.
+
+When asked to modify the CMS, use the available tools. Be conversational and explain what you're doing. For destructive operations (delete), confirm the user's intent first.${codingInstructions}
 
 Workspace: ${workspaceId}`,
-    tools: cmsTools as Parameters<
+    tools: allTools as Parameters<
       typeof streamingRuntimeMod.StreamingAgentRuntime.prototype.streamTask
     >[0]['tools'],
     memory: undefined,

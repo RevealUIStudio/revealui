@@ -88,7 +88,10 @@ const SUGGESTED_PROMPTS = [
   'How many media files do we have?',
 ];
 
+type AgentMode = 'cms' | 'coding';
+
 const TOOL_LABELS: Record<string, string> = {
+  // CMS tools
   find_documents: 'Searching documents',
   get_document: 'Reading document',
   create_document: 'Creating document',
@@ -108,7 +111,24 @@ const TOOL_LABELS: Record<string, string> = {
   create_user: 'Creating user',
   update_user: 'Updating user',
   delete_user: 'Deleting user',
+  // Coding tools
+  file_read: 'Reading file',
+  file_write: 'Writing file',
+  file_edit: 'Editing file',
+  file_glob: 'Finding files',
+  file_grep: 'Searching code',
+  shell_exec: 'Running command',
+  git_ops: 'Git operation',
+  project_context: 'Querying project',
 };
+
+const SUGGESTED_PROMPTS_CODING = [
+  'Show me the project structure',
+  'Find all TODO comments in the codebase',
+  'Read the main configuration file',
+  'Run the test suite',
+  'Show recent git changes',
+];
 
 // ─── Streaming Hook (inline — avoids Pro package import boundary) ───────────
 
@@ -136,7 +156,7 @@ function useAgentStream() {
     async (
       instruction: string,
       apiBase: string,
-      options?: { provider?: string; model?: string },
+      options?: { provider?: string; model?: string; mode?: AgentMode },
     ) => {
       controllerRef.current?.abort();
       const controller = new AbortController();
@@ -155,6 +175,7 @@ function useAgentStream() {
             instruction,
             ...(options?.provider ? { provider: options.provider } : {}),
             ...(options?.model ? { model: options.model } : {}),
+            ...(options?.mode ? { mode: options.mode } : {}),
           }),
           signal: controller.signal,
           credentials: 'include',
@@ -462,6 +483,7 @@ export default function AgentChat({ conversationId, onConversationCreated }: Age
   const [pendingConfirmation, setPendingConfirmation] = useState<PendingConfirmation | null>(null);
   const [isConfirming, setIsConfirming] = useState(false);
   const [selectedModel, setSelectedModel] = useState<string>('auto');
+  const [agentMode, setAgentMode] = useState<AgentMode>('cms');
   const [isLoadingHistory, setIsLoadingHistory] = useState(false);
   const [activeConversationId, setActiveConversationId] = useState<string | null>(
     conversationId ?? null,
@@ -685,15 +707,14 @@ export default function AgentChat({ conversationId, onConversationCreated }: Age
       await ensureConversation(content);
       persistMessage('user', content);
 
-      // Use streaming endpoint with selected model
+      // Use streaming endpoint with selected model and mode
       const opt = MODEL_OPTIONS.find((m) => m.id === selectedModel);
-      stream.start(
-        content,
-        API_URL,
-        opt?.provider ? { provider: opt.provider, model: opt.model } : undefined,
-      );
+      stream.start(content, API_URL, {
+        ...(opt?.provider ? { provider: opt.provider, model: opt.model } : {}),
+        mode: agentMode,
+      });
     },
-    [input, stream, isConfirming, ensureConversation, persistMessage, selectedModel],
+    [input, stream, isConfirming, ensureConversation, persistMessage, selectedModel, agentMode],
   );
 
   const handleConfirmApprove = useCallback(async () => {
@@ -776,21 +797,24 @@ export default function AgentChat({ conversationId, onConversationCreated }: Age
                 CMS Assistant
               </h2>
               <p className="mt-1 max-w-md text-sm text-zinc-500">
-                I can help you manage content, users, media, and settings. Ask me anything or try
-                one of the suggestions below.
+                {agentMode === 'coding'
+                  ? 'I can help you read, write, and search code, run commands, and manage your project. Try a suggestion below.'
+                  : 'I can help you manage content, users, media, and settings. Ask me anything or try one of the suggestions below.'}
               </p>
             </div>
             <div className="flex flex-wrap justify-center gap-2">
-              {SUGGESTED_PROMPTS.map((prompt) => (
-                <button
-                  key={prompt}
-                  type="button"
-                  onClick={() => handleSuggestedPrompt(prompt)}
-                  className="rounded-full border border-zinc-200 bg-white px-4 py-2 text-sm text-zinc-700 transition-colors hover:border-blue-300 hover:bg-blue-50 dark:border-zinc-700 dark:bg-zinc-800 dark:text-zinc-300 dark:hover:border-blue-600 dark:hover:bg-zinc-700"
-                >
-                  {prompt}
-                </button>
-              ))}
+              {(agentMode === 'coding' ? SUGGESTED_PROMPTS_CODING : SUGGESTED_PROMPTS).map(
+                (prompt) => (
+                  <button
+                    key={prompt}
+                    type="button"
+                    onClick={() => handleSuggestedPrompt(prompt)}
+                    className="rounded-full border border-zinc-200 bg-white px-4 py-2 text-sm text-zinc-700 transition-colors hover:border-blue-300 hover:bg-blue-50 dark:border-zinc-700 dark:bg-zinc-800 dark:text-zinc-300 dark:hover:border-blue-600 dark:hover:bg-zinc-700"
+                  >
+                    {prompt}
+                  </button>
+                ),
+              )}
             </div>
           </div>
         )}
@@ -858,6 +882,32 @@ export default function AgentChat({ conversationId, onConversationCreated }: Age
       {/* Input area */}
       <div className="border-t border-zinc-200 bg-white px-3 py-3 sm:px-4 dark:border-zinc-700 dark:bg-zinc-900">
         <div className="mx-auto mb-2 flex max-w-3xl items-center gap-2">
+          <div className="flex items-center rounded-md border border-zinc-200 dark:border-zinc-700">
+            <button
+              type="button"
+              onClick={() => setAgentMode('cms')}
+              disabled={stream.isStreaming}
+              className={`rounded-l-md px-2.5 py-1 text-xs font-medium transition-colors ${
+                agentMode === 'cms'
+                  ? 'bg-blue-600 text-white'
+                  : 'bg-zinc-50 text-zinc-500 hover:bg-zinc-100 dark:bg-zinc-800 dark:text-zinc-400 dark:hover:bg-zinc-700'
+              }`}
+            >
+              CMS
+            </button>
+            <button
+              type="button"
+              onClick={() => setAgentMode('coding')}
+              disabled={stream.isStreaming}
+              className={`rounded-r-md px-2.5 py-1 text-xs font-medium transition-colors ${
+                agentMode === 'coding'
+                  ? 'bg-blue-600 text-white'
+                  : 'bg-zinc-50 text-zinc-500 hover:bg-zinc-100 dark:bg-zinc-800 dark:text-zinc-400 dark:hover:bg-zinc-700'
+              }`}
+            >
+              Coding
+            </button>
+          </div>
           <label htmlFor="model-select" className="text-xs text-zinc-400">
             Model
           </label>
@@ -888,7 +938,11 @@ export default function AgentChat({ conversationId, onConversationCreated }: Age
             onChange={handleTextareaChange}
             onKeyDown={handleKeyDown}
             rows={1}
-            placeholder="Ask the assistant..."
+            placeholder={
+              agentMode === 'coding'
+                ? 'Ask about code, run commands, make changes...'
+                : 'Ask the assistant...'
+            }
             disabled={stream.isStreaming || !!pendingConfirmation}
           />
           {stream.isStreaming ? (

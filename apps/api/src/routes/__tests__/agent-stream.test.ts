@@ -315,3 +315,76 @@ describe('agent-stream route — BYOK and auth-header paths', () => {
     expect(body.error).toContain('Cannot detect LLM provider');
   });
 });
+
+// ---------------------------------------------------------------------------
+// Mode parameter validation
+// ---------------------------------------------------------------------------
+describe('agent-stream route — mode parameter', () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+  });
+
+  it('accepts mode: "cms" without error', async () => {
+    const app = createApp();
+
+    const res = await jsonPost(app, '/agent-stream', {
+      instruction: 'List collections',
+      mode: 'cms',
+    });
+
+    // AI modules not available → 403 (schema validation passed)
+    expect(res.status).toBe(403);
+  });
+
+  it('accepts mode: "coding" without error', async () => {
+    const app = createApp();
+
+    const res = await jsonPost(app, '/agent-stream', {
+      instruction: 'Show project files',
+      mode: 'coding',
+    });
+
+    // AI modules not available → 403 (schema validation passed)
+    expect(res.status).toBe(403);
+  });
+
+  it('defaults to cms mode when mode is omitted', async () => {
+    const app = createApp();
+
+    const res = await jsonPost(app, '/agent-stream', {
+      instruction: 'Hello',
+    });
+
+    // Schema defaults mode to 'cms'; AI not available → 403
+    expect(res.status).toBe(403);
+  });
+
+  it('rejects invalid mode values', async () => {
+    const app = createApp();
+
+    const res = await jsonPost(app, '/agent-stream', {
+      instruction: 'Hello',
+      mode: 'invalid',
+    });
+
+    // OpenAPI zod validation rejects invalid enum value
+    expect(res.status).toBe(400);
+  });
+
+  it('accepts mode alongside all other optional fields', async () => {
+    const app = createApp();
+
+    const res = await jsonPost(app, '/agent-stream', {
+      instruction: 'Run tests',
+      boardId: 'board-42',
+      workspaceId: 'ws-99',
+      priority: 'high',
+      provider: 'ollama',
+      model: 'llama3.2',
+      mode: 'coding',
+    });
+
+    // Schema accepts all fields; AI not available → 403
+    expect(res.status).toBe(403);
+  });
+});
