@@ -7,11 +7,6 @@
       "**/*.js",
       "**/*.jsx",
       "**/*.json",
-      "!packages/ai",
-      "!packages/mcp",
-      "!packages/editors",
-      "!packages/services",
-      "!packages/harnesses",
       "!**/node_modules",
       "!**/.next",
       "!**/dist",
@@ -238,7 +233,8 @@
         "rules": {
           "suspicious": {
             "noExplicitAny": "error",
-            "noEmptyBlockStatements": "off"
+            "noEmptyBlockStatements": "off",
+            "noThenProperty": "off"
           },
           "correctness": {
             "noUnusedVariables": "error"
