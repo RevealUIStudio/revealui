@@ -19,7 +19,7 @@ export function Footer() {
                 Stay in the loop
               </p>
               <NewsletterSignup />
-              <p className="mt-2 text-xs text-gray-500">
+              <p className="mt-2 text-xs text-gray-400">
                 Product updates and engineering insights. No spam.
               </p>
             </div>

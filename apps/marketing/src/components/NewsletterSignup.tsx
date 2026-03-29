@@ -75,12 +75,12 @@ export function NewsletterSignup({ variant = 'inline' }: { variant?: 'inline' | 
         <button
           type="submit"
           disabled={status === 'loading'}
-          className="rounded-lg bg-emerald-600 px-4 py-2.5 text-sm font-semibold text-white hover:bg-emerald-500 transition-colors disabled:opacity-50"
+          className="rounded-lg bg-emerald-700 px-4 py-2.5 text-sm font-semibold text-white hover:bg-emerald-600 transition-colors disabled:opacity-50"
         >
           {status === 'loading' ? 'Subscribing...' : 'Subscribe'}
         </button>
         {status === 'error' && <p className="text-xs text-red-400">{message}</p>}
-        <p className="text-xs text-gray-500">Product updates and engineering insights. No spam.</p>
+        <p className="text-xs text-gray-400">Product updates and engineering insights. No spam.</p>
       </form>
     );
   }
@@ -102,7 +102,7 @@ export function NewsletterSignup({ variant = 'inline' }: { variant?: 'inline' | 
       <button
         type="submit"
         disabled={status === 'loading'}
-        className="shrink-0 rounded-lg bg-emerald-600 px-4 py-2 text-sm font-semibold text-white hover:bg-emerald-500 transition-colors disabled:opacity-50"
+        className="shrink-0 rounded-lg bg-emerald-700 px-4 py-2 text-sm font-semibold text-white hover:bg-emerald-600 transition-colors disabled:opacity-50"
       >
         {status === 'loading' ? '...' : 'Subscribe'}
       </button>
