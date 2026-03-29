@@ -41,7 +41,7 @@ const PERPETUAL_PLANS = [
     priceIdEnv: process.env.NEXT_PUBLIC_STRIPE_PERPETUAL_MAX_PRICE_ID,
     description: 'Max features forever. Includes 1 year of support.',
   },
-];
+] as const;
 
 export default function LicensePage() {
   const router = useRouter();
@@ -102,8 +102,8 @@ export default function LicensePage() {
   }
 
   const handlePerpetualCheckout = async (plan: (typeof PERPETUAL_PLANS)[number]) => {
-    if (!plan.priceIdEnv) return;
     setPerpetualLoading(plan.tier);
+    setError(null);
     try {
       const apiUrl = (process.env.NEXT_PUBLIC_API_URL || 'https://api.revealui.com').trim();
       const res = await fetch(`${apiUrl}/api/billing/checkout-perpetual`, {
@@ -111,14 +111,17 @@ export default function LicensePage() {
         credentials: 'include',
         headers: { 'content-type': 'application/json' },
         body: JSON.stringify({
-          priceId: plan.priceIdEnv,
+          ...(plan.priceIdEnv && { priceId: plan.priceIdEnv }),
           tier: plan.tier,
           ...(githubUsername.trim() && { githubUsername: githubUsername.trim() }),
         }),
       });
-      if (!res.ok) throw new Error('Checkout failed');
-      const { url } = (await res.json()) as { url: string };
-      safeStripeRedirect(url);
+      const data = (await res.json()) as { url?: string; error?: string };
+      if (data.url) {
+        safeStripeRedirect(data.url);
+      } else {
+        setError(data.error || 'Failed to start checkout. Please try again.');
+      }
     } catch {
       setError('Failed to start checkout. Please try again.');
     } finally {
@@ -204,7 +207,7 @@ export default function LicensePage() {
       </Card>
 
       {/* Perpetual license */}
-      {canUpgrade && PERPETUAL_PLANS.some((p) => p.priceIdEnv) && (
+      {canUpgrade && (
         <Card>
           <CardHeader>
             <CardTitle>Perpetual License</CardTitle>
@@ -234,7 +237,7 @@ export default function LicensePage() {
                 </label>
               </div>
             </div>
-            {PERPETUAL_PLANS.filter((p) => p.priceIdEnv).map((plan) => (
+            {PERPETUAL_PLANS.map((plan) => (
               <div
                 key={plan.tier}
                 className="flex items-center justify-between rounded-lg border p-3 dark:border-zinc-800"

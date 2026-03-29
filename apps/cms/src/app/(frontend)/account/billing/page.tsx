@@ -114,7 +114,9 @@ function BillingContent() {
         headers: { 'Content-Type': 'application/json' },
         credentials: 'include',
         body: JSON.stringify({
-          priceId: process.env.NEXT_PUBLIC_STRIPE_PRO_PRICE_ID || '',
+          ...(process.env.NEXT_PUBLIC_STRIPE_PRO_PRICE_ID && {
+            priceId: process.env.NEXT_PUBLIC_STRIPE_PRO_PRICE_ID,
+          }),
           tier: 'pro',
         }),
       });
@@ -168,7 +170,9 @@ function BillingContent() {
         headers: { 'Content-Type': 'application/json' },
         credentials: 'include',
         body: JSON.stringify({
-          priceId: process.env.NEXT_PUBLIC_STRIPE_MAX_PRICE_ID || '',
+          ...(process.env.NEXT_PUBLIC_STRIPE_MAX_PRICE_ID && {
+            priceId: process.env.NEXT_PUBLIC_STRIPE_MAX_PRICE_ID,
+          }),
           targetTier: 'max',
         }),
       });
@@ -195,7 +199,9 @@ function BillingContent() {
         headers: { 'Content-Type': 'application/json' },
         credentials: 'include',
         body: JSON.stringify({
-          priceId: process.env.NEXT_PUBLIC_STRIPE_ENTERPRISE_PRICE_ID || '',
+          ...(process.env.NEXT_PUBLIC_STRIPE_ENTERPRISE_PRICE_ID && {
+            priceId: process.env.NEXT_PUBLIC_STRIPE_ENTERPRISE_PRICE_ID,
+          }),
           targetTier: 'enterprise',
         }),
       });

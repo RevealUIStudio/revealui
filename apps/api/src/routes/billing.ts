@@ -287,7 +287,7 @@ async function resolveCatalogPriceId(
     });
   }
 
-  if (requestedPriceId && requestedPriceId !== resolvedPriceId) {
+  if (requestedPriceId?.trim() && requestedPriceId.trim() !== resolvedPriceId) {
     throw new HTTPException(400, {
       message: 'Requested price does not match the server billing catalog.',
     });
