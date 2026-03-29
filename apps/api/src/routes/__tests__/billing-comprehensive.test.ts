@@ -179,6 +179,7 @@ vi.mock('@revealui/db', () => ({
 
 vi.mock('@revealui/core/observability/logger', () => ({
   logger: mockLogger,
+  createLogger: () => mockLogger,
 }));
 
 // ─── Import under test (after mocks) ─────────────────────────────────────────

@@ -20,6 +20,7 @@ import {
   users,
 } from '@revealui/db/schema';
 import { createRoute, OpenAPIHono, z } from '@revealui/openapi';
+import { reportMeterEventBatch } from '@revealui/services/stripe/billing';
 import { and, count, countDistinct, desc, eq, gt, gte, isNull, lt, lte, sql } from 'drizzle-orm';
 import { HTTPException } from 'hono/http-exception';
 import Stripe from 'stripe';
@@ -35,27 +36,6 @@ const TRIAL_PERIOD_DAYS = Number.parseInt(process.env.REVEALUI_TRIAL_DAYS ?? '7'
 /** How far ahead to look for expiring support contracts (overridable via env, default 30 days) */
 const SUPPORT_RENEWAL_WINDOW_MS =
   Number.parseInt(process.env.REVEALUI_SUPPORT_RENEWAL_DAYS ?? '30', 10) * 24 * 60 * 60 * 1000;
-
-/**
- * Computes a Stripe meter event timestamp for the last second of a billing cycle.
- *
- * Stripe Billing Meters require event timestamps to fall within the billing period
- * they are associated with. Since we report overage for the *previous* calendar month,
- * the timestamp must be within that month — not in the current month when the cron runs.
- *
- * We take the cycle start (1st of the previous month at 00:00 UTC), add ~30 days
- * (one calendar-month approximation), then subtract 1 second to land on the last
- * second of that cycle. This ensures the meter event is attributed to the correct
- * billing period even if months vary between 28-31 days, because Stripe only checks
- * that the timestamp falls within the subscription's billing interval.
- *
- * @param cycleStart - The first day of the billing cycle (UTC midnight)
- * @returns Unix timestamp (seconds) for the last second of the approximate cycle
- */
-function getMeterEventTimestamp(cycleStart: Date): number {
-  const SecondsIn30Days = 30 * 24 * 60 * 60;
-  return Math.floor(cycleStart.getTime() / 1000 + SecondsIn30Days - 1);
-}
 
 interface UserContext {
   id: string;
@@ -1191,8 +1171,7 @@ app.openapi(reportOverageRoute, async (c) => {
     throw new HTTPException(401, { message: 'Unauthorized' });
   }
 
-  const meterEventName = process.env.STRIPE_AGENT_METER_EVENT_NAME;
-  if (!meterEventName) {
+  if (!process.env.STRIPE_AGENT_METER_EVENT_NAME) {
     // Not configured yet — skip silently (owner action required to create Stripe Billing Meter)
     return c.json({ reported: 0, skipped: 0 }, 200);
   }
@@ -1215,29 +1194,10 @@ app.openapi(reportOverageRoute, async (c) => {
     .innerJoin(users, eq(agentTaskUsage.userId, users.id))
     .where(and(eq(agentTaskUsage.cycleStart, prevCycle), gt(agentTaskUsage.overage, 0)));
 
-  let reported = 0;
-  let skipped = 0;
-
-  for (const row of overageRows) {
-    if (!row.stripeCustomerId) {
-      skipped++;
-      continue;
-    }
-
-    try {
-      await stripe.billing.meterEvents.create({
-        event_name: meterEventName,
-        payload: {
-          stripe_customer_id: row.stripeCustomerId,
-          value: String(row.overage),
-        },
-        timestamp: getMeterEventTimestamp(prevCycle),
-      });
-      reported++;
-    } catch {
-      skipped++;
-    }
-  }
+  // Delegate meter event reporting to the shared @revealui/services billing module.
+  // Configuration (meter event name) is read from STRIPE_AGENT_METER_EVENT_NAME env var
+  // by the services module. See packages/services/src/stripe/billing.ts for details.
+  const { reported, skipped } = await reportMeterEventBatch(stripe, overageRows, prevCycle);
 
   return c.json({ reported, skipped }, 200);
 });

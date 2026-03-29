@@ -335,6 +335,18 @@ function createProtectedStripe(stripeInstance?: Stripe) {
           'subscriptions.cancel',
         ),
     },
+    billing: {
+      meterEvents: {
+        create: (
+          params: Stripe.Billing.MeterEventCreateParams,
+          options?: Stripe.RequestOptions,
+        ): Promise<Stripe.Response<Stripe.Billing.MeterEvent>> =>
+          callWithResilience(
+            () => getStripeInstance().billing.meterEvents.create(params, options),
+            'billing.meterEvents.create',
+          ),
+      },
+    },
     get webhooks(): Stripe['webhooks'] {
       return getStripeInstance().webhooks;
     },

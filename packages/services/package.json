@@ -59,6 +59,10 @@
     "./stripe/stripeClient": {
       "types": "./dist/stripe/stripeClient.d.ts",
       "import": "./dist/stripe/stripeClient.js"
+    },
+    "./stripe/billing": {
+      "types": "./dist/stripe/billing.d.ts",
+      "import": "./dist/stripe/billing.js"
     }
   },
   "files": [

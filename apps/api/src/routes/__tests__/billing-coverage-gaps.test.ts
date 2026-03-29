@@ -63,9 +63,10 @@ vi.mock('@revealui/core/license', () => ({
   getMaxAgentTasks: vi.fn(() => 10_000),
 }));
 
-vi.mock('@revealui/core/observability/logger', () => ({
-  logger: { error: vi.fn(), warn: vi.fn(), info: vi.fn(), debug: vi.fn() },
-}));
+vi.mock('@revealui/core/observability/logger', () => {
+  const l = { error: vi.fn(), warn: vi.fn(), info: vi.fn(), debug: vi.fn() };
+  return { logger: l, createLogger: () => l };
+});
 
 // ─── DB Mock — fluent chain for select / insert / update / delete ─────────────
 

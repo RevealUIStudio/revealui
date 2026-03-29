@@ -231,9 +231,10 @@ vi.mock('@revealui/core/features', () => ({
   getRequiredTier: vi.fn(() => 'pro'),
 }));
 
-vi.mock('@revealui/core/observability/logger', () => ({
-  logger: { info: vi.fn(), error: vi.fn(), warn: vi.fn(), debug: vi.fn() },
-}));
+vi.mock('@revealui/core/observability/logger', () => {
+  const l = { info: vi.fn(), error: vi.fn(), warn: vi.fn(), debug: vi.fn() };
+  return { logger: l, createLogger: () => l };
+});
 
 // Mock the database middleware
 vi.mock('../src/middleware/db.js', () => ({
