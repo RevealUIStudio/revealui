@@ -1,11 +1,7 @@
 import path from 'node:path';
-import { fileURLToPath } from 'node:url';
 import react from '@vitejs/plugin-react-swc';
 import { defineConfig } from 'vite';
 import dts from 'vite-plugin-dts';
-
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = path.dirname(__filename);
 
 export default defineConfig({
   plugins: [
@@ -20,9 +16,9 @@ export default defineConfig({
   build: {
     lib: {
       entry: {
-        index: path.resolve(__dirname, 'src/index.ts'),
-        server: path.resolve(__dirname, 'src/server.ts'),
-        client: path.resolve(__dirname, 'src/client.ts'),
+        index: path.resolve(import.meta.dirname, 'src/index.ts'),
+        server: path.resolve(import.meta.dirname, 'src/server.ts'),
+        client: path.resolve(import.meta.dirname, 'src/client.ts'),
       },
       formats: ['es'],
     },
@@ -50,7 +46,7 @@ export default defineConfig({
   },
   resolve: {
     alias: {
-      '@': path.resolve(__dirname, 'src'),
+      '@': path.resolve(import.meta.dirname, 'src'),
     },
   },
   // Optimize dependencies
