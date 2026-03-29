@@ -5,9 +5,8 @@ use std::sync::Arc;
 
 use base64::Engine;
 use base64::engine::general_purpose::{STANDARD as BASE64, STANDARD_NO_PAD};
-use russh::keys::key;
+use russh::keys::{PublicKey, PublicKeyBase64};
 use russh::{ChannelId, ChannelMsg, client};
-use russh_keys::PublicKeyBase64;
 use serde::{Deserialize, Serialize};
 use sha2::{Digest, Sha256};
 use tauri::Emitter;
@@ -84,7 +83,7 @@ enum KnownHostStatus {
 }
 
 /// Compute SSH fingerprint: SHA256:<base64-no-pad hash of wire-format key>.
-fn compute_fingerprint(key: &key::PublicKey) -> String {
+fn compute_fingerprint(key: &PublicKey) -> String {
     let bytes = key.public_key_bytes();
     let hash = Sha256::digest(&bytes);
     format!("SHA256:{}", STANDARD_NO_PAD.encode(hash))
@@ -100,7 +99,7 @@ fn host_pattern(host: &str, port: u16) -> String {
 }
 
 /// Check if a host key is in ~/.ssh/known_hosts.
-fn check_known_hosts_file(host: &str, port: u16, key: &key::PublicKey) -> KnownHostStatus {
+fn check_known_hosts_file(host: &str, port: u16, key: &PublicKey) -> KnownHostStatus {
     let known_hosts_path = match dirs::home_dir() {
         Some(home) => home.join(".ssh").join("known_hosts"),
         None => return KnownHostStatus::Unknown,
@@ -112,7 +111,8 @@ fn check_known_hosts_file(host: &str, port: u16, key: &key::PublicKey) -> KnownH
     };
 
     let pattern = host_pattern(host, port);
-    let key_algo = key.name();
+    let algorithm = key.algorithm();
+    let key_algo = algorithm.as_str();
     let key_b64 = key.public_key_base64();
 
     for line in contents.lines() {
@@ -147,7 +147,7 @@ fn check_known_hosts_file(host: &str, port: u16, key: &key::PublicKey) -> KnownH
 }
 
 /// Append a host key entry to ~/.ssh/known_hosts (TOFU).
-fn learn_known_host(host: &str, port: u16, key: &key::PublicKey) -> Result<(), String> {
+fn learn_known_host(host: &str, port: u16, key: &PublicKey) -> Result<(), String> {
     let known_hosts_path = dirs::home_dir()
         .ok_or("Cannot determine home directory")?
         .join(".ssh")
@@ -159,7 +159,7 @@ fn learn_known_host(host: &str, port: u16, key: &key::PublicKey) -> Result<(), S
     }
 
     let pattern = host_pattern(host, port);
-    let line = format!("{} {} {}\n", pattern, key.name(), key.public_key_base64());
+    let line = format!("{} {} {}\n", pattern, key.algorithm().as_str(), key.public_key_base64());
 
     let mut file = std::fs::OpenOptions::new()
         .create(true)
@@ -183,16 +183,15 @@ pub struct SshClientHandler {
     pub port: u16,
 }
 
-#[async_trait::async_trait]
 impl client::Handler for SshClientHandler {
     type Error = russh::Error;
 
     async fn check_server_key(
         &mut self,
-        server_public_key: &key::PublicKey,
+        server_public_key: &PublicKey,
     ) -> Result<bool, Self::Error> {
         let fingerprint = compute_fingerprint(server_public_key);
-        let key_type = server_public_key.name().to_string();
+        let key_type = server_public_key.algorithm().as_str().to_string();
 
         match check_known_hosts_file(&self.host, self.port, server_public_key) {
             KnownHostStatus::Match => {
@@ -285,11 +284,11 @@ pub async fn connect(
 
     match &auth {
         SshAuth::Password { password } => {
-            let auth_ok = handle
+            let auth_result = handle
                 .authenticate_password(&username, password)
                 .await
                 .map_err(|e| format!("SSH auth error: {e}"))?;
-            if !auth_ok {
+            if !auth_result.success() {
                 return Err("Authentication failed: invalid credentials".to_string());
             }
         }
@@ -301,13 +300,17 @@ pub async fn connect(
             if !path.exists() {
                 return Err(format!("Key file not found: {key_path}"));
             }
-            let key_pair = russh_keys::load_secret_key(path, passphrase.as_deref())
+            let key_pair = russh::keys::load_secret_key(path, passphrase.as_deref())
                 .map_err(|e| format!("Failed to load key: {e}"))?;
-            let auth_ok = handle
-                .authenticate_publickey(&username, Arc::new(key_pair))
+            let key_with_alg = russh::keys::PrivateKeyWithHashAlg::new(
+                Arc::new(key_pair),
+                None,
+            );
+            let auth_result = handle
+                .authenticate_publickey(&username, key_with_alg)
                 .await
                 .map_err(|e| format!("SSH key auth error: {e}"))?;
-            if !auth_ok {
+            if !auth_result.success() {
                 return Err("Authentication failed: key rejected by server".to_string());
             }
         }
