@@ -33,21 +33,42 @@ if [ -n "$RANGE" ]; then
   fi
 fi
 
+# Auto-stash other agents' uncommitted work before gate
+# This prevents lint/build failures from other agents' in-progress edits
+DIRTY_FILES=$(git status --porcelain 2>/dev/null)
+STASHED=0
+if [ -n "$DIRTY_FILES" ]; then
+  echo ""
+  echo "Stashing uncommitted changes from other agents before gate..."
+  git stash push --include-untracked -m "pre-push-auto-stash-$(date +%s)" -q 2>/dev/null
+  STASHED=1
+fi
+
 # Branch-aware gate strictness
 #   main/test: full gate (these trigger CI + deploy)
 #   develop/feature/*: quality-only (local dev, no CI)
 BRANCH=$(git rev-parse --abbrev-ref HEAD)
+GATE_EXIT=0
 case "$BRANCH" in
   main|test)
     echo ""
     echo "Running full CI gate for protected branch '$BRANCH'..."
     echo ""
-    pnpm gate
+    pnpm gate || GATE_EXIT=$?
     ;;
   *)
     echo ""
     echo "Running quality checks for '$BRANCH'..."
     echo ""
-    pnpm gate --phase=1 --changed
+    pnpm gate --phase=1 --changed || GATE_EXIT=$?
     ;;
 esac
+
+# Restore stashed changes regardless of gate result
+if [ "$STASHED" -eq 1 ]; then
+  echo ""
+  echo "Restoring stashed changes..."
+  git stash pop -q 2>/dev/null || echo "Warning: stash pop failed — run 'git stash pop' manually"
+fi
+
+exit $GATE_EXIT
