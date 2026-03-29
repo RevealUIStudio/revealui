@@ -71,6 +71,19 @@ const sections: NavSection[] = [
     ],
   },
   {
+    title: 'Showcase',
+    items: [
+      { label: 'Overview', path: '/showcase' },
+      { label: 'Design Tokens', path: '/showcase/tokens' },
+      { label: 'Button', path: '/showcase/button' },
+      { label: 'Badge', path: '/showcase/badge' },
+      { label: 'Card', path: '/showcase/card' },
+      { label: 'Input', path: '/showcase/input' },
+      { label: 'Stat', path: '/showcase/stat' },
+      { label: 'Dialog', path: '/showcase/dialog' },
+    ],
+  },
+  {
     title: 'Pro & Enterprise',
     items: [
       { label: 'Pro (AI, MCP, BYOK)', path: '/docs/PRO' },
