@@ -2,10 +2,10 @@ import { Badge } from '@revealui/presentation';
 
 export function SocialProof() {
   const stats = [
-    { value: '30', label: 'workspaces' },
-    { value: '200K+', label: 'lines of TypeScript' },
-    { value: '10,700+', label: 'tests' },
-    { value: '7', label: 'apps' },
+    { value: '3 min', label: 'to first deploy' },
+    { value: '5', label: 'business primitives' },
+    { value: '50+', label: 'UI components' },
+    { value: 'MIT', label: 'licensed' },
   ];
 
   const techStack = [
@@ -51,7 +51,7 @@ export function SocialProof() {
     {
       title: 'Stripe Billing Built In',
       description:
-        'Checkout, subscriptions, webhook handling, license keys, and billing portal — pre-wired end-to-end and tested. Live mode activation in progress.',
+        'Checkout, subscriptions, webhook handling, license keys, and billing portal — pre-wired end-to-end and production-ready.',
       icon: 'M2.25 8.25h19.5M2.25 9h19.5m-16.5 5.25h6m-6 2.25h3m-3.75 3h15a2.25 2.25 0 0 0 2.25-2.25V6.75A2.25 2.25 0 0 0 19.5 4.5h-15a2.25 2.25 0 0 0-2.25 2.25v10.5A2.25 2.25 0 0 0 4.5 19.5Z',
       iconColor: 'text-amber-400',
     },

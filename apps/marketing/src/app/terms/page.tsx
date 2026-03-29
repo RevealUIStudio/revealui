@@ -72,10 +72,9 @@ export default function TermsOfServicePage() {
 
         <h2>5. Commercial License</h2>
         <p>
-          Pro, Max, and Forge packages (@revealui/ai, @revealui/mcp, @revealui/editors,
-          @revealui/services, @revealui/harnesses) are commercially licensed. The license is granted
-          per-subscription and is non-transferable. See LICENSE.commercial in the repository for
-          full terms.
+          Pro packages (@revealui/ai and @revealui/harnesses) are commercially licensed. The license
+          is granted per-subscription and is non-transferable. See LICENSE.commercial in the
+          repository for full terms.
         </p>
 
         <h2>6. Acceptable Use</h2>
