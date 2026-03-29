@@ -1,15 +1,15 @@
-import clsx from 'clsx';
 import type React from 'react';
 import { useDataInteractive } from '../hooks/use-data-interactive.js';
 import { FieldProvider } from '../hooks/use-field-context.js';
 import { useToggle } from '../hooks/use-toggle.js';
+import { cn } from '../utils/cn.js';
 
 export function SwitchGroup({ className, ...props }: React.ComponentPropsWithoutRef<'div'>) {
   return (
     <div
       data-slot="control"
       {...props}
-      className={clsx(
+      className={cn(
         className,
         // Basic groups
         'space-y-3 **:data-[slot=label]:font-normal',
@@ -34,7 +34,7 @@ export function SwitchField({
         data-slot="field"
         data-disabled={disabled ? '' : undefined}
         {...props}
-        className={clsx(
+        className={cn(
           className,
           // Base layout
           'grid grid-cols-[1fr_auto] gap-x-8 gap-y-1 sm:grid-cols-[1fr_auto]',
@@ -186,7 +186,7 @@ export function Switch({
       onKeyDown={toggleProps.onKeyDown}
       {...interactiveProps}
       {...props}
-      className={clsx(
+      className={cn(
         className,
         // Base styles
         'group relative isolate inline-flex h-6 w-10 cursor-default rounded-full p-[3px] sm:h-5 sm:w-8',
@@ -213,7 +213,7 @@ export function Switch({
       {name && <input type="hidden" name={name} value={checked ? (value ?? 'on') : ''} />}
       <span
         aria-hidden="true"
-        className={clsx(
+        className={cn(
           // Basic layout
           'pointer-events-none relative inline-block size-4.5 rounded-full sm:size-3.5',
           // Transition

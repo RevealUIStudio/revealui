@@ -1,5 +1,5 @@
-import clsx from 'clsx';
 import type React from 'react';
+import { cn } from '../utils/cn.js';
 
 export type BreadcrumbItem = {
   label: React.ReactNode;
@@ -29,7 +29,7 @@ export function Breadcrumb({
 
   return (
     <nav aria-label="Breadcrumb">
-      <ol className={clsx('flex flex-wrap items-center gap-1.5 text-sm', className)}>
+      <ol className={cn('flex flex-wrap items-center gap-1.5 text-sm', className)}>
         {items.map((item, index) => {
           const isLast = index === items.length - 1;
           return (
@@ -38,7 +38,7 @@ export function Breadcrumb({
               {isLast || !item.href ? (
                 <span
                   aria-current={isLast ? 'page' : undefined}
-                  className={clsx(
+                  className={cn(
                     isLast
                       ? 'font-medium text-zinc-950 dark:text-white'
                       : 'text-zinc-500 dark:text-zinc-400',

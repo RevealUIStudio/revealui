@@ -1,8 +1,8 @@
 'use client';
 
-import clsx from 'clsx';
 import type React from 'react';
 import { useId, useState } from 'react';
+import { cn } from '../utils/cn.js';
 
 export function Accordion({
   className,
@@ -12,9 +12,7 @@ export function Accordion({
   children: React.ReactNode;
 }) {
   return (
-    <div className={clsx('divide-y divide-zinc-200 dark:divide-zinc-700', className)}>
-      {children}
-    </div>
+    <div className={cn('divide-y divide-zinc-200 dark:divide-zinc-700', className)}>{children}</div>
   );
 }
 
@@ -47,7 +45,7 @@ export function AccordionItem({
           aria-hidden="true"
           viewBox="0 0 16 16"
           fill="none"
-          className={clsx(
+          className={cn(
             'size-4 shrink-0 text-zinc-400 transition-transform duration-200',
             open && 'rotate-180',
           )}

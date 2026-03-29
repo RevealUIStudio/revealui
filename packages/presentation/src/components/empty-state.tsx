@@ -1,5 +1,5 @@
-import clsx from 'clsx';
 import type React from 'react';
+import { cn } from '../utils/cn.js';
 
 export function EmptyState({
   icon,
@@ -16,7 +16,7 @@ export function EmptyState({
 }) {
   return (
     <div
-      className={clsx(
+      className={cn(
         'flex flex-col items-center justify-center rounded-xl border border-dashed border-zinc-300 px-6 py-16 text-center dark:border-zinc-700',
         className,
       )}

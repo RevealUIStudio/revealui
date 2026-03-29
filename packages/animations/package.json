@@ -1,0 +1,61 @@
+{
+  "name": "@revealui/animations",
+  "version": "0.1.0",
+  "description": "Zero-dependency animation library for RevealUI. Spring physics, gestures, variants, and presence animations.",
+  "keywords": [
+    "animation",
+    "spring",
+    "gesture",
+    "motion",
+    "react",
+    "revealui",
+    "typescript"
+  ],
+  "license": "MIT",
+  "dependencies": {},
+  "devDependencies": {
+    "@types/react": "^19.2.14",
+    "@types/react-dom": "^19.2.3",
+    "@vitejs/plugin-react": "^6.0.1",
+    "cross-env": "^10.1.0",
+    "dev": "workspace:*",
+    "typescript": "^6.0.2",
+    "vite": "^8.0.3",
+    "vite-plugin-dts": "^4.5.4",
+    "@testing-library/react": "^16.3.0",
+    "jsdom": "^29.0.1",
+    "vitest": "^4.1.0"
+  },
+  "engines": {
+    "node": ">=24.13.0"
+  },
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js"
+    }
+  },
+  "files": [
+    "dist"
+  ],
+  "main": "./dist/index.js",
+  "module": "./dist/index.js",
+  "peerDependencies": {
+    "react": "^18.0.0 || ^19.0.0",
+    "react-dom": "^18.0.0 || ^19.0.0"
+  },
+  "publishConfig": {
+    "access": "public",
+    "registry": "https://registry.npmjs.org"
+  },
+  "scripts": {
+    "build": "cross-env NODE_ENV=production vite build",
+    "clean": "rm -rf dist",
+    "dev": "vite build --watch --mode development",
+    "lint": "biome check .",
+    "test": "vitest run --passWithNoTests",
+    "typecheck": "tsc --noEmit"
+  },
+  "type": "module",
+  "types": "./dist/index.d.ts"
+}

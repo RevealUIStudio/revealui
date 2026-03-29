@@ -1,7 +1,7 @@
 'use client';
 
-import clsx from 'clsx';
 import { useCallback, useState } from 'react';
+import { cn } from '../utils/cn.js';
 
 export function CodeBlock({
   code,
@@ -25,7 +25,7 @@ export function CodeBlock({
   }, [code]);
 
   return (
-    <div className={clsx('overflow-hidden rounded-xl bg-zinc-950 ring-1 ring-zinc-800', className)}>
+    <div className={cn('overflow-hidden rounded-xl bg-zinc-950 ring-1 ring-zinc-800', className)}>
       {(filename || language || showCopy) && (
         <div className="flex items-center justify-between border-b border-zinc-800 px-4 py-2.5">
           <div className="flex items-center gap-2">

@@ -1,5 +1,5 @@
-import clsx from 'clsx';
 import type React from 'react';
+import { cn } from '../utils/cn.js';
 
 type TrendDirection = 'up' | 'down' | 'neutral';
 
@@ -30,7 +30,7 @@ export function Stat({
 }) {
   return (
     <div
-      className={clsx('rounded-xl p-6 ring-1', className)}
+      className={cn('rounded-xl p-6 ring-1', className)}
       style={
         {
           backgroundColor: 'var(--rvui-surface-1, oklch(0.18 0.006 225))',
@@ -92,7 +92,7 @@ export function StatGroup({
   children: React.ReactNode;
 }) {
   return (
-    <div className={clsx('grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4', className)}>
+    <div className={cn('grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4', className)}>
       {children}
     </div>
   );

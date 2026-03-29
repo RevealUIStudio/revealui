@@ -1,4 +1,4 @@
-import clsx from 'clsx';
+import { cn } from '../utils/cn.js';
 import { Avatar } from './avatar.js';
 
 type AvatarGroupItem = {
@@ -25,13 +25,13 @@ export function AvatarGroup({
   const overflow = items.length - max;
 
   return (
-    <div className={clsx('flex items-center', className)}>
+    <div className={cn('flex items-center', className)}>
       {visible.map((item, i) => {
         return (
           <div
             // biome-ignore lint/suspicious/noArrayIndexKey: avatar items are positionally ordered with no stable ID
             key={i}
-            className={clsx(
+            className={cn(
               'ring-2 ring-white dark:ring-zinc-900',
               sizeClasses[size],
               i > 0 && overlapClass[size],
@@ -49,7 +49,7 @@ export function AvatarGroup({
       })}
       {overflow > 0 && (
         <div
-          className={clsx(
+          className={cn(
             overlapClass[size],
             sizeClasses[size],
             'flex items-center justify-center rounded-full bg-zinc-200 text-xs font-medium text-zinc-600 ring-2 ring-white dark:bg-zinc-700 dark:text-zinc-300 dark:ring-zinc-900',

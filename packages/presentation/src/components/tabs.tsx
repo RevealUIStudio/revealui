@@ -1,8 +1,8 @@
 'use client';
 
-import clsx from 'clsx';
 import type React from 'react';
 import { createContext, use, useId, useRef, useState } from 'react';
+import { cn } from '../utils/cn.js';
 
 type TabsContextValue = {
   activeTab: string;
@@ -80,7 +80,7 @@ export function TabList({
       ref={listRef}
       role="tablist"
       onKeyDown={handleKeyDown}
-      className={clsx('flex border-b border-zinc-200 dark:border-zinc-700', className)}
+      className={cn('flex border-b border-zinc-200 dark:border-zinc-700', className)}
     >
       {children}
     </div>
@@ -108,7 +108,7 @@ export function Tab({
       aria-selected={isActive}
       tabIndex={isActive ? 0 : -1}
       onClick={() => setActiveTab(id)}
-      className={clsx(
+      className={cn(
         className,
         'relative -mb-px border-b-2 px-4 py-2.5 text-sm font-medium transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-500',
         isActive
@@ -140,7 +140,7 @@ export function TabPanel({
       aria-labelledby={`${baseId}-tab-${id}`}
       // biome-ignore lint/a11y/noNoninteractiveTabindex: role="tabpanel" requires tabIndex=0 for keyboard nav per WAI-ARIA 1.2
       tabIndex={0}
-      className={clsx('focus-visible:outline-none', className)}
+      className={cn('focus-visible:outline-none', className)}
     >
       {children}
     </div>

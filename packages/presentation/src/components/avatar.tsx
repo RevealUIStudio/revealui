@@ -1,6 +1,6 @@
-import clsx from 'clsx';
 import type React from 'react';
 import { useDataInteractive } from '../hooks/use-data-interactive.js';
+import { cn } from '../utils/cn.js';
 import { TouchTarget } from './button-headless.js';
 import { Link } from './link.js';
 
@@ -26,7 +26,7 @@ export function Avatar({
     <span
       data-slot="avatar"
       {...props}
-      className={clsx(
+      className={cn(
         className,
         // Basic layout
         'inline-grid shrink-0 align-middle [--avatar-radius:20%] *:col-start-1 *:row-start-1',
@@ -80,7 +80,7 @@ export function AvatarButton({
   const disabled = 'disabled' in props ? props.disabled : false;
   const interactiveProps = useDataInteractive({ disabled: disabled ?? false });
 
-  const classes = clsx(
+  const classes = cn(
     className,
     square ? 'rounded-[20%]' : 'rounded-full',
     'relative inline-grid focus:not-data-focus:outline-hidden data-focus:outline-2 data-focus:outline-offset-2 data-focus:outline-blue-500',

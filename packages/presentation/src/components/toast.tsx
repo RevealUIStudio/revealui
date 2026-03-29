@@ -1,9 +1,9 @@
 'use client';
 
-import clsx from 'clsx';
 import type React from 'react';
 import { createContext, use, useCallback, useEffect, useReducer, useState } from 'react';
 import { createPortal } from 'react-dom';
+import { cn } from '../utils/cn.js';
 
 type ToastVariant = 'default' | 'success' | 'error' | 'warning' | 'info';
 
@@ -123,7 +123,7 @@ function ToastItem({ toast, onRemove }: { toast: Toast; onRemove: (id: string) =
   return (
     <div
       role="alert"
-      className={clsx(
+      className={cn(
         'pointer-events-auto flex w-full max-w-sm items-start gap-3 rounded-xl p-4 shadow-lg ring-1 transition-all duration-200',
         variantClasses[variant],
         isExiting
@@ -132,7 +132,7 @@ function ToastItem({ toast, onRemove }: { toast: Toast; onRemove: (id: string) =
       )}
     >
       {variant !== 'default' && (
-        <span className={clsx('mt-0.5 text-sm font-bold', variantIconClasses[variant])}>
+        <span className={cn('mt-0.5 text-sm font-bold', variantIconClasses[variant])}>
           {variantIcons[variant]}
         </span>
       )}

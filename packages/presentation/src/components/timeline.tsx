@@ -1,5 +1,5 @@
-import clsx from 'clsx';
 import type React from 'react';
+import { cn } from '../utils/cn.js';
 
 export function Timeline({
   className,
@@ -8,7 +8,7 @@ export function Timeline({
   className?: string;
   children: React.ReactNode;
 }) {
-  return <ol className={clsx('relative', className)}>{children}</ol>;
+  return <ol className={cn('relative', className)}>{children}</ol>;
 }
 
 export function TimelineItem({
@@ -27,7 +27,7 @@ export function TimelineItem({
   className?: string;
 }) {
   return (
-    <li className={clsx('relative flex gap-4', !isLast && 'pb-8', className)}>
+    <li className={cn('relative flex gap-4', !isLast && 'pb-8', className)}>
       {/* Connector line */}
       {!isLast && (
         <div

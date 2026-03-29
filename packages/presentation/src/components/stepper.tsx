@@ -1,4 +1,4 @@
-import clsx from 'clsx';
+import { cn } from '../utils/cn.js';
 
 type StepStatus = 'complete' | 'current' | 'upcoming';
 
@@ -57,7 +57,7 @@ function StepIcon({ status }: { status: StepStatus }) {
 function StepperHorizontal({ steps, className }: { steps: StepperStep[]; className?: string }) {
   return (
     <nav aria-label="Progress">
-      <ol className={clsx('flex items-center', className)}>
+      <ol className={cn('flex items-center', className)}>
         {steps.map((step, index) => {
           const isLast = index === steps.length - 1;
           return (
@@ -65,12 +65,12 @@ function StepperHorizontal({ steps, className }: { steps: StepperStep[]; classNa
               // biome-ignore lint/suspicious/noArrayIndexKey: stepper steps are positionally ordered with no stable ID
               key={index}
               aria-current={step.status === 'current' ? 'step' : undefined}
-              className={clsx('flex items-center', !isLast && 'flex-1')}
+              className={cn('flex items-center', !isLast && 'flex-1')}
             >
               <div className="flex flex-col items-center gap-1.5">
                 <StepIcon status={step.status} />
                 <span
-                  className={clsx(
+                  className={cn(
                     'text-xs font-medium',
                     step.status === 'current'
                       ? 'text-blue-600'
@@ -85,7 +85,7 @@ function StepperHorizontal({ steps, className }: { steps: StepperStep[]; classNa
               {!isLast && (
                 <div
                   aria-hidden="true"
-                  className={clsx(
+                  className={cn(
                     'mx-3 h-px flex-1',
                     step.status === 'complete' ? 'bg-blue-600' : 'bg-zinc-200 dark:bg-zinc-700',
                   )}
@@ -102,7 +102,7 @@ function StepperHorizontal({ steps, className }: { steps: StepperStep[]; classNa
 function StepperVertical({ steps, className }: { steps: StepperStep[]; className?: string }) {
   return (
     <nav aria-label="Progress">
-      <ol className={clsx('space-y-0', className)}>
+      <ol className={cn('space-y-0', className)}>
         {steps.map((step, index) => {
           const isLast = index === steps.length - 1;
           return (
@@ -117,16 +117,16 @@ function StepperVertical({ steps, className }: { steps: StepperStep[]; className
                 {!isLast && (
                   <div
                     aria-hidden="true"
-                    className={clsx(
+                    className={cn(
                       'w-px flex-1',
                       step.status === 'complete' ? 'bg-blue-600' : 'bg-zinc-200 dark:bg-zinc-700',
                     )}
                   />
                 )}
               </div>
-              <div className={clsx('pb-6 pt-1', isLast && 'pb-0')}>
+              <div className={cn('pb-6 pt-1', isLast && 'pb-0')}>
                 <p
-                  className={clsx(
+                  className={cn(
                     'text-sm font-medium',
                     step.status === 'current'
                       ? 'text-blue-600'

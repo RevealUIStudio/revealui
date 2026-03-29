@@ -1,6 +1,5 @@
 'use client';
 
-import clsx from 'clsx';
 import type React from 'react';
 import { useId, useRef } from 'react';
 import { createPortal } from 'react-dom';
@@ -8,6 +7,7 @@ import { useEscapeKey } from '../hooks/use-escape-key.js';
 import { useFocusTrap } from '../hooks/use-focus-trap.js';
 import { useScrollLock } from '../hooks/use-scroll-lock.js';
 import { useTransition } from '../hooks/use-transition.js';
+import { cn } from '../utils/cn.js';
 import { Text } from './text.js';
 
 const sizes = {
@@ -71,7 +71,7 @@ export function Alert({
                 (panel.nodeRef as React.MutableRefObject<HTMLElement | null>).current = node;
               }}
               {...panel.transitionProps}
-              className={clsx(
+              className={cn(
                 className,
                 sizes[size],
                 'row-start-2 w-full rounded-2xl bg-white p-8 shadow-lg ring-1 ring-zinc-950/10 sm:rounded-2xl sm:p-6 dark:bg-zinc-900 dark:ring-white/10 forced-colors:outline',
@@ -95,7 +95,7 @@ export function AlertTitle({
   return (
     <h2
       {...props}
-      className={clsx(
+      className={cn(
         className,
         'text-center text-base/6 font-semibold text-balance text-zinc-950 sm:text-left sm:text-sm/6 sm:text-wrap dark:text-white',
       )}
@@ -107,20 +107,18 @@ export function AlertDescription({
   className,
   ...props
 }: { className?: string } & React.ComponentPropsWithoutRef<typeof Text>) {
-  return (
-    <Text {...props} className={clsx(className, 'mt-2 text-center text-pretty sm:text-left')} />
-  );
+  return <Text {...props} className={cn(className, 'mt-2 text-center text-pretty sm:text-left')} />;
 }
 
 export function AlertBody({ className, ...props }: React.ComponentPropsWithoutRef<'div'>) {
-  return <div {...props} className={clsx(className, 'mt-4')} />;
+  return <div {...props} className={cn(className, 'mt-4')} />;
 }
 
 export function AlertActions({ className, ...props }: React.ComponentPropsWithoutRef<'div'>) {
   return (
     <div
       {...props}
-      className={clsx(
+      className={cn(
         className,
         'mt-6 flex flex-col-reverse items-center justify-end gap-3 *:w-full sm:mt-4 sm:flex-row sm:*:w-auto',
       )}

@@ -1,4 +1,3 @@
-import clsx from 'clsx';
 import type React from 'react';
 import {
   FieldProvider,
@@ -6,6 +5,7 @@ import {
   useFieldErrorProps,
   useFieldLabelProps,
 } from '../hooks/use-field-context.js';
+import { cn } from '../utils/cn.js';
 
 export function Fieldset({
   className,
@@ -19,7 +19,7 @@ export function Fieldset({
     <fieldset
       disabled={disabled}
       {...props}
-      className={clsx(className, '*:data-[slot=text]:mt-1 [&>*+[data-slot=control]]:mt-6')}
+      className={cn(className, '*:data-[slot=text]:mt-1 [&>*+[data-slot=control]]:mt-6')}
     />
   );
 }
@@ -32,7 +32,7 @@ export function Legend({
     <legend
       data-slot="legend"
       {...props}
-      className={clsx(
+      className={cn(
         className,
         'text-base/6 font-semibold text-zinc-950 data-disabled:opacity-50 sm:text-sm/6 dark:text-white',
       )}
@@ -41,7 +41,7 @@ export function Legend({
 }
 
 export function FieldGroup({ className, ...props }: React.ComponentPropsWithoutRef<'div'>) {
-  return <div data-slot="control" {...props} className={clsx(className, 'space-y-8')} />;
+  return <div data-slot="control" {...props} className={cn(className, 'space-y-8')} />;
 }
 
 export function Field({
@@ -57,7 +57,7 @@ export function Field({
       <div
         {...props}
         data-disabled={disabled ? '' : undefined}
-        className={clsx(
+        className={cn(
           className,
           '[&>[data-slot=label]+[data-slot=control]]:mt-3',
           '[&>[data-slot=label]+[data-slot=description]]:mt-1',
@@ -83,7 +83,7 @@ export function Label({
       data-slot="label"
       {...fieldLabelProps}
       {...props}
-      className={clsx(
+      className={cn(
         className,
         'text-base/6 text-zinc-950 select-none data-disabled:opacity-50 sm:text-sm/6 dark:text-white',
       )}
@@ -102,7 +102,7 @@ export function Description({
       data-slot="description"
       {...fieldDescriptionProps}
       {...props}
-      className={clsx(
+      className={cn(
         className,
         'text-base/6 text-zinc-500 data-disabled:opacity-50 sm:text-sm/6 dark:text-zinc-400',
       )}
@@ -121,7 +121,7 @@ export function ErrorMessage({
       data-slot="error"
       {...fieldErrorProps}
       {...props}
-      className={clsx(
+      className={cn(
         className,
         'text-base/6 text-red-600 data-disabled:opacity-50 sm:text-sm/6 dark:text-red-500',
       )}

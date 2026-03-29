@@ -1,7 +1,7 @@
 'use client';
 
-import clsx from 'clsx';
 import { type ReactNode, useCallback, useEffect, useId, useRef, useState } from 'react';
+import { cn } from '../utils/cn.js';
 
 type TooltipSide = 'top' | 'bottom' | 'left' | 'right';
 
@@ -66,7 +66,7 @@ export function Tooltip({ content, side = 'top', className, delay = 200, childre
         <span
           id={id}
           role="tooltip"
-          className={clsx(
+          className={cn(
             'pointer-events-none absolute z-50 w-max max-w-xs rounded-lg bg-zinc-950 px-2.5 py-1.5 text-xs text-white shadow-lg dark:bg-zinc-700',
             sideClasses[side],
             className,

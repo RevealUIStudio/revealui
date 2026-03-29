@@ -1,6 +1,5 @@
 'use client';
 
-import clsx from 'clsx';
 import type React from 'react';
 import { createContext, use, useId, useRef } from 'react';
 import { createPortal } from 'react-dom';
@@ -8,6 +7,7 @@ import { useEscapeKey } from '../hooks/use-escape-key.js';
 import { useFocusTrap } from '../hooks/use-focus-trap.js';
 import { useScrollLock } from '../hooks/use-scroll-lock.js';
 import { useTransition } from '../hooks/use-transition.js';
+import { cn } from '../utils/cn.js';
 import { Text } from './text.js';
 
 const DialogContext = createContext<string | undefined>(undefined);
@@ -79,7 +79,7 @@ export function Dialog({
                   (panel.nodeRef as React.MutableRefObject<HTMLElement | null>).current = node;
                 }}
                 {...panel.transitionProps}
-                className={clsx(
+                className={cn(
                   className,
                   sizes[size],
                   'row-start-2 w-full min-w-0 rounded-t-3xl p-(--gutter) shadow-lg ring-1 [--gutter:--spacing(8)] sm:mb-auto sm:rounded-2xl forced-colors:outline',
@@ -116,7 +116,7 @@ export function DialogTitle({
     <h2
       id={titleId}
       {...props}
-      className={clsx(className, 'text-lg/6 font-semibold text-balance sm:text-base/6')}
+      className={cn(className, 'text-lg/6 font-semibold text-balance sm:text-base/6')}
       style={{ color: 'var(--rvui-text-0, oklch(0.95 0.002 210))' }}
     />
   );
@@ -126,18 +126,18 @@ export function DialogDescription({
   className,
   ...props
 }: { className?: string } & React.ComponentPropsWithoutRef<typeof Text>) {
-  return <Text {...props} className={clsx(className, 'mt-2 text-pretty')} />;
+  return <Text {...props} className={cn(className, 'mt-2 text-pretty')} />;
 }
 
 export function DialogBody({ className, ...props }: React.ComponentPropsWithoutRef<'div'>) {
-  return <div {...props} className={clsx(className, 'mt-6')} />;
+  return <div {...props} className={cn(className, 'mt-6')} />;
 }
 
 export function DialogActions({ className, ...props }: React.ComponentPropsWithoutRef<'div'>) {
   return (
     <div
       {...props}
-      className={clsx(
+      className={cn(
         className,
         'mt-8 flex flex-col-reverse items-center justify-end gap-3 *:w-full sm:flex-row sm:*:w-auto',
       )}

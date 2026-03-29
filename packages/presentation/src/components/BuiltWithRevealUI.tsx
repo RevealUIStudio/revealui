@@ -1,5 +1,4 @@
-import { cva, type VariantProps } from 'class-variance-authority';
-import { cn } from '../utils/cn.js';
+import { cn, cva, type VariantProps } from '../utils/cn.js';
 
 const badgeStyles = cva(
   'inline-flex items-center gap-1.5 rounded-md border text-xs font-medium transition-opacity hover:opacity-100',
