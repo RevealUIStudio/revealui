@@ -119,7 +119,6 @@ const mockDbSelectChain = {
   orderBy: vi.fn(),
   limit: vi.fn(),
   // Thenable — direct `await` on chain resolves to _selectResult
-  // biome-ignore lint/suspicious/noThenProperty: intentional thenable — mirrors Drizzle's awaitable query builder
   then(
     onFulfilled?: (value: unknown[]) => unknown,
     onRejected?: (reason: unknown) => unknown,

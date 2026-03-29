@@ -95,7 +95,6 @@ function makeSelectChain() {
     orderBy: vi.fn(),
     limit: vi.fn(),
     offset: vi.fn(),
-    // biome-ignore lint/suspicious/noThenProperty: intentional thenable — mirrors Drizzle's awaitable query builder
     then(
       onFulfilled?: (value: unknown[]) => unknown,
       onRejected?: (reason: unknown) => unknown,
@@ -116,7 +115,6 @@ function makeInsertChain() {
   const chain = {
     values: vi.fn(),
     returning: vi.fn().mockResolvedValue(result),
-    // biome-ignore lint/suspicious/noThenProperty: intentional thenable — mirrors Drizzle's awaitable query builder
     then(
       onFulfilled?: (value: unknown) => unknown,
       onRejected?: (reason: unknown) => unknown,

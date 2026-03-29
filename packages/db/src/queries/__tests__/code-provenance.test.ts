@@ -45,7 +45,6 @@ function createChainMock(resolvedValue: unknown = []) {
   for (const method of methods) {
     chain[method] = vi.fn(() => chain);
   }
-  // biome-ignore lint/suspicious/noThenProperty: Drizzle queries are awaitable via .then()
   chain.then = vi.fn((resolve?: (v: unknown) => unknown) => {
     return Promise.resolve(resolve ? resolve(resolvedValue) : resolvedValue);
   });

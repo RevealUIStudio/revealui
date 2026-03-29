@@ -23,7 +23,6 @@ function createSelectChain(result: unknown[] = []) {
     limit: vi.fn(),
     offset: vi.fn().mockResolvedValue(result),
   };
-  // biome-ignore lint/suspicious/noThenProperty: Drizzle chains are awaitable; mocks must be thenable
   chain.then = (resolve: (v: unknown) => void) => resolve(result);
   for (const key of ['from', 'where', 'orderBy', 'limit']) {
     chain[key]!.mockReturnValue(chain);

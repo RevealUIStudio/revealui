@@ -287,11 +287,7 @@
       }
     },
     {
-      "includes": [
-        "**/logger*.ts",
-        "**/logger/**",
-        "**/instance/logger.ts"
-      ],
+      "includes": ["**/logger*.ts", "**/logger/**", "**/instance/logger.ts"],
       "linter": {
         "rules": {
           "suspicious": {

@@ -39,7 +39,6 @@ function createChainMock(resolvedValue: unknown = []) {
   // The chain is also a thenable that resolves to the value (Drizzle queries
   // are awaitable). We simulate this by making the chain itself return the
   // resolvedValue when awaited via `.then()`.
-  // biome-ignore lint/suspicious/noThenProperty: Drizzle queries are awaitable via .then()
   chain.then = vi.fn((resolve?: (v: unknown) => unknown) => {
     return Promise.resolve(resolve ? resolve(resolvedValue) : resolvedValue);
   });
