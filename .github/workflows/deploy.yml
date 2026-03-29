@@ -8,6 +8,10 @@ name: Deploy
 #   test    → test        (test.*.revealui.com)
 #   develop → development (dev.*.revealui.com)
 #
+# Deploy strategy (Hobby plan budget):
+#   main/test: auto-deploy on push (production + QA only)
+#   develop:   manual only via workflow_dispatch (saves build minutes)
+#
 # All 5 apps deploy in parallel via matrix strategy.
 # Non-production deploys are aliased to stable custom domains.
 #
@@ -18,7 +22,7 @@ name: Deploy
 
 on:
   push:
-    branches: [main, test, develop]
+    branches: [main, test]
   workflow_dispatch:
     inputs:
       environment:
