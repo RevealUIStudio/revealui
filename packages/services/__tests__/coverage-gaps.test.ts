@@ -217,16 +217,42 @@ const mockDb = {
   onConflictDoNothing: vi.fn(() => Promise.resolve()),
 };
 
+vi.mock('@revealui/db', () => ({
+  getClient: () => mockDb,
+}));
+
 vi.mock('@revealui/db/client', () => ({
   getClient: () => mockDb,
 }));
 
 vi.mock('@revealui/db/schema', () => ({
   processedWebhookEvents: { id: 'id', eventType: 'eventType' },
+  revealcoinPayments: {
+    id: 'id',
+    walletAddress: 'walletAddress',
+    createdAt: 'createdAt',
+    userId: 'userId',
+    discountUsd: 'discountUsd',
+    txSignature: 'txSignature',
+    amountRvui: 'amountRvui',
+    amountUsd: 'amountUsd',
+    purpose: 'purpose',
+    status: 'status',
+  },
+  revealcoinPriceSnapshots: {
+    id: 'id',
+    priceUsd: 'priceUsd',
+    source: 'source',
+    recordedAt: 'recordedAt',
+  },
 }));
 
 vi.mock('drizzle-orm', () => ({
+  and: vi.fn((...args: unknown[]) => args),
+  desc: vi.fn((col: unknown) => ({ col, direction: 'desc' })),
   eq: vi.fn((_col: unknown, val: unknown) => ({ _col, val })),
+  gte: vi.fn((_col: unknown, val: unknown) => ({ _col, val })),
+  sql: vi.fn(),
 }));
 
 const mockCreateServerClientFromRequest = vi.fn();

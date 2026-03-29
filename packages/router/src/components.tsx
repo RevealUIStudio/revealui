@@ -71,6 +71,15 @@ export function Routes() {
   );
 }
 
+interface LinkProps extends Record<string, unknown> {
+  to: string;
+  replace?: boolean;
+  children: React.ReactNode;
+  className?: string;
+  style?: React.CSSProperties;
+  onClick?: (e: React.MouseEvent<HTMLAnchorElement>) => void;
+}
+
 /**
  * Link - Client-side navigation link
  */
@@ -82,15 +91,7 @@ export function Link({
   style,
   onClick,
   ...props
-}: {
-  to: string;
-  replace?: boolean;
-  children: React.ReactNode;
-  className?: string;
-  style?: React.CSSProperties;
-  onClick?: (e: React.MouseEvent<HTMLAnchorElement>) => void;
-  [key: string]: unknown;
-}) {
+}: LinkProps) {
   const router = useRouter();
 
   const handleClick = (e: React.MouseEvent<HTMLAnchorElement>) => {
