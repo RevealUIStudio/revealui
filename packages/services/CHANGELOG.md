@@ -1,5 +1,13 @@
 # @revealui/services
 
+## 0.2.4
+
+### Patch Changes
+
+- Migrate to MIT license (open-core model)
+- Updated dependencies
+  - @revealui/core@0.5.0
+
 ## 0.2.3
 
 ### Patch Changes

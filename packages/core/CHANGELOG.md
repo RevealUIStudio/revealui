@@ -1,5 +1,11 @@
 # @revealui/core
 
+## 0.5.0
+
+### Minor Changes
+
+- Add AI sampling for free-tier users (50 tasks/month)
+
 ## 0.4.0
 
 ### Minor Changes

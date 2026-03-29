@@ -1,5 +1,15 @@
 # @revealui/cli
 
+## 0.4.0
+
+### Minor Changes
+
+- Add `revealui agent` command and OSS AI rules pull during project scaffolding
+
+### Patch Changes
+
+- @revealui/ai@0.2.2
+
 ## 0.3.4
 
 ### Patch Changes

@@ -1,5 +1,11 @@
 # @revealui/presentation
 
+## 0.3.2
+
+### Patch Changes
+
+- Frontend polish across presentation components
+
 ## 0.3.1
 
 ### Patch Changes
