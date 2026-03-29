@@ -106,7 +106,8 @@
         "noPrototypeBuiltins": "error",
         "noRedeclare": "error",
         "noShadowRestrictedNames": "error",
-        "useGetterReturn": "error"
+        "useGetterReturn": "error",
+        "noConsole": "error"
       },
       "correctness": {
         "noConstAssign": "error",
@@ -219,7 +220,8 @@
       "linter": {
         "rules": {
           "suspicious": {
-            "noExplicitAny": "warn"
+            "noExplicitAny": "warn",
+            "noConsole": "off"
           },
           "style": {
             "useNamingConvention": "off"
@@ -234,7 +236,8 @@
           "suspicious": {
             "noExplicitAny": "error",
             "noEmptyBlockStatements": "off",
-            "noThenProperty": "off"
+            "noThenProperty": "off",
+            "noConsole": "off"
           },
           "correctness": {
             "noUnusedVariables": "error"
@@ -255,6 +258,44 @@
         "rules": {
           "correctness": {
             "noUndeclaredVariables": "off"
+          }
+        }
+      }
+    },
+    {
+      "includes": [
+        "scripts/**",
+        "packages/scripts/**",
+        "packages/db/src/scripts/**",
+        "packages/*/examples/**",
+        "e2e/**",
+        "examples/**",
+        "apps/cms/scripts/**",
+        "packages/test/src/e2e/**",
+        "packages/test/src/integration/**",
+        "packages/test/src/integration-pro/**",
+        "packages/test/load-tests/**",
+        "**/observability/examples.ts",
+        "packages/*/test-*.ts"
+      ],
+      "linter": {
+        "rules": {
+          "suspicious": {
+            "noConsole": "off"
+          }
+        }
+      }
+    },
+    {
+      "includes": [
+        "**/logger*.ts",
+        "**/logger/**",
+        "**/instance/logger.ts"
+      ],
+      "linter": {
+        "rules": {
+          "suspicious": {
+            "noConsole": "off"
           }
         }
       }
