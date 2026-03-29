@@ -1,17 +1,31 @@
 import React from 'react';
-import { composeRefs } from './composeRefs';
 
 type PossibleRef<T> = React.Ref<T> | undefined;
 
+function setRef<T>(ref: PossibleRef<T>, value: T) {
+  if (typeof ref === 'function') {
+    ref(value);
+  } else if (ref && 'current' in ref) {
+    (ref as React.MutableRefObject<T>).current = value;
+  }
+}
+
+function composeRefs<T>(...refs: PossibleRef<T>[]) {
+  return (node: T) => {
+    for (const ref of refs) {
+      setRef(ref, node);
+    }
+  };
+}
+
 function useComposedRefs<T>(...refs: PossibleRef<T>[]) {
-  // Create a stable callback that doesn't change on every render
-  const composedRef = React.useRef(composeRefs(...refs)); // Store the composed ref in a useRef
+  const composedRef = React.useRef(composeRefs(...refs));
 
   React.useEffect(() => {
-    composedRef.current = composeRefs(...refs); // Update the current ref whenever refs change
-  }, [refs, refs.length]); // Dependency on the length of refs array to ensure it updates correctly
+    composedRef.current = composeRefs(...refs);
+  }, [refs, refs.length]);
 
-  return composedRef.current; // Return the current composed ref
+  return composedRef.current;
 }
 
 export { useComposedRefs };
