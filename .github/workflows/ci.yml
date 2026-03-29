@@ -14,6 +14,11 @@ name: CI
 #   - PR jobs use --affected: only build/typecheck changed packages
 #   - Build runs in parallel with typecheck (turbo cache provides build artifacts)
 #   - E2E jobs wait for build (cache hit → near-instant rebuild)
+#
+# Prerequisites (owner action — remote caching is opportunistic, CI works without these):
+#   1. Enable Vercel Remote Caching: https://vercel.com/docs/monorepos/remote-caching
+#   2. Add repository secret  TURBO_TOKEN  — Vercel access token with remote cache scope
+#   3. Add repository variable TURBO_TEAM   — Vercel team slug (e.g. "revealuistudio")
 
 on:
   push:
