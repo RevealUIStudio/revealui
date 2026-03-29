@@ -45,7 +45,7 @@ for (const envFile of [
 // ---------------------------------------------------------------------------
 
 type PaidTier = 'pro' | 'max' | 'enterprise';
-type BillingModel = 'subscription' | 'perpetual';
+type BillingModel = 'subscription' | 'perpetual' | 'credits';
 
 interface CatalogPlan {
   planId: string;
@@ -103,6 +103,28 @@ const CATALOG_PLANS: CatalogPlan[] = [
     billingModel: 'perpetual',
     stripeProductIdEnv: 'STRIPE_PERPETUAL_ENTERPRISE_PRODUCT_ID',
     stripePriceIdEnv: 'STRIPE_PERPETUAL_ENTERPRISE_PRICE_ID',
+  },
+  // Credit bundles (Track B)
+  {
+    planId: 'credits:starter',
+    tier: 'pro',
+    billingModel: 'credits',
+    stripeProductIdEnv: 'STRIPE_CREDITS_STARTER_PRODUCT_ID',
+    stripePriceIdEnv: 'STRIPE_CREDITS_STARTER_PRICE_ID',
+  },
+  {
+    planId: 'credits:standard',
+    tier: 'pro',
+    billingModel: 'credits',
+    stripeProductIdEnv: 'STRIPE_CREDITS_STANDARD_PRODUCT_ID',
+    stripePriceIdEnv: 'STRIPE_CREDITS_STANDARD_PRICE_ID',
+  },
+  {
+    planId: 'credits:scale',
+    tier: 'pro',
+    billingModel: 'credits',
+    stripeProductIdEnv: 'STRIPE_CREDITS_SCALE_PRODUCT_ID',
+    stripePriceIdEnv: 'STRIPE_CREDITS_SCALE_PRICE_ID',
   },
 ];
 

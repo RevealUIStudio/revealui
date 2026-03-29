@@ -6,7 +6,7 @@ import { getClient } from '@revealui/db';
 import { billingCatalog } from '@revealui/db/schema';
 import { config } from 'dotenv';
 
-type CatalogKind = 'subscription' | 'perpetual';
+type CatalogKind = 'subscription' | 'perpetual' | 'credits';
 type PaidTier = 'pro' | 'max' | 'enterprise';
 
 interface CatalogSeed {
@@ -136,6 +136,28 @@ function resolveCatalogSeeds(localCache: {
         'STRIPE_PERPETUAL_ENTERPRISE_PRICE_ID',
         'NEXT_PUBLIC_STRIPE_ENTERPRISE_PERPETUAL_PRICE_ID',
       ),
+    },
+    // Credit bundles (Track B)
+    {
+      planId: 'credits:starter',
+      tier: 'pro',
+      billingModel: 'credits',
+      stripeProductId: resolveProductId('credits:starter'),
+      ...resolvePriceId('STRIPE_CREDITS_STARTER_PRICE_ID'),
+    },
+    {
+      planId: 'credits:standard',
+      tier: 'pro',
+      billingModel: 'credits',
+      stripeProductId: resolveProductId('credits:standard'),
+      ...resolvePriceId('STRIPE_CREDITS_STANDARD_PRICE_ID'),
+    },
+    {
+      planId: 'credits:scale',
+      tier: 'pro',
+      billingModel: 'credits',
+      stripeProductId: resolveProductId('credits:scale'),
+      ...resolvePriceId('STRIPE_CREDITS_SCALE_PRICE_ID'),
     },
   ];
 }

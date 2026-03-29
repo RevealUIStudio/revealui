@@ -26,6 +26,7 @@ import { createLogger } from '@revealui/scripts/index.js';
 
 const PAID_TIERS: LicenseTierId[] = ['pro', 'max', 'enterprise'];
 const BILLING_MODELS = ['subscription', 'perpetual'] as const;
+const CREDIT_BUNDLES = ['starter', 'standard', 'scale'] as const;
 
 /**
  * Expected env var names for each plan's Stripe price ID.
@@ -44,12 +45,17 @@ const EXPECTED_PRICE_ENV_VARS: Record<string, string[]> = {
     'STRIPE_PERPETUAL_ENTERPRISE_PRICE_ID',
     'NEXT_PUBLIC_STRIPE_ENTERPRISE_PERPETUAL_PRICE_ID',
   ],
+  // Credit bundles (Track B)
+  'credits:starter': ['STRIPE_CREDITS_STARTER_PRICE_ID'],
+  'credits:standard': ['STRIPE_CREDITS_STANDARD_PRICE_ID'],
+  'credits:scale': ['STRIPE_CREDITS_SCALE_PRICE_ID'],
 };
 
 /** Every plan that should exist in the billing_catalog table */
-const EXPECTED_PLAN_IDS = PAID_TIERS.flatMap((tier) =>
-  BILLING_MODELS.map((model) => `${model}:${tier}`),
-);
+const EXPECTED_PLAN_IDS = [
+  ...PAID_TIERS.flatMap((tier) => BILLING_MODELS.map((model) => `${model}:${tier}`)),
+  ...CREDIT_BUNDLES.map((bundle) => `credits:${bundle}`),
+];
 
 // ---------------------------------------------------------------------------
 // Types
@@ -264,8 +270,9 @@ async function validateDatabase() {
     if (row) {
       pass('db-plan-exists', `${planId} exists in billing_catalog`);
 
-      // Validate the row's tier matches the planId
-      const expectedTier = planId.split(':')[1];
+      // Validate the row's tier matches the planId (credit bundles use 'pro' tier)
+      const [model, suffix] = planId.split(':');
+      const expectedTier = model === 'credits' ? 'pro' : suffix;
       if (row.tier !== expectedTier) {
         fail('db-tier-mismatch', `${planId}: tier="${row.tier}" but expected "${expectedTier}"`);
       }
