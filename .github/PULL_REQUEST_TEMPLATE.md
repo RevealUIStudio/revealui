@@ -1,34 +1,24 @@
-## Description
+## Closes <!-- #issue-number (REQUIRED if fixing a GitHub issue) -->
 
-<!-- Briefly describe the changes in this PR. -->
+## Summary
+
+<!-- 1-3 bullet points describing what this PR does and why. -->
 
 ## Type of Change
 
-- [ ] Bug fix (non-breaking change that fixes an issue)
-- [ ] New feature (non-breaking change that adds functionality)
-- [ ] Breaking change (fix or feature that would cause existing functionality to not work as expected)
-- [ ] Refactor (code change that neither fixes a bug nor adds a feature)
-- [ ] Documentation update
-- [ ] CI/CD or tooling change
-
-## Related Issues
-
-<!-- Link related issues: Fixes #123, Closes #456 -->
+- [ ] Bug fix
+- [ ] New feature
+- [ ] Breaking change
+- [ ] Refactor
+- [ ] Documentation
+- [ ] CI/CD or tooling
 
 ## Checklist
 
-- [ ] My code follows the project's coding guidelines
-- [ ] I have run `pnpm lint` and `pnpm typecheck` with no errors
-- [ ] I have added/updated tests that prove my fix or feature works
-- [ ] All new and existing tests pass (`pnpm test`)
-- [ ] I have updated documentation as needed
-- [ ] I have validated package scripts (`pnpm scripts:validate`) if I modified a package
-- [ ] All types come from `@revealui/contracts` (no inline type definitions)
+- [ ] `pnpm gate:quick` passes (lint + typecheck)
+- [ ] Tests added/updated and passing
+- [ ] No `any` types or `console.*` in production code
 
 ## Screenshots / Recordings
 
 <!-- If applicable, add screenshots or recordings to demonstrate the change. -->
-
-## Additional Notes
-
-<!-- Any other context about the PR. -->
