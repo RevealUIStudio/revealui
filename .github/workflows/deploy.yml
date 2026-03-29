@@ -44,7 +44,6 @@ env:
   NODE_VERSION: "24"
   PNPM_VERSION: "10.28.2"
   VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
-  VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
   TURBO_TOKEN: ${{ secrets.TURBO_TOKEN }}
   TURBO_TEAM: ${{ vars.TURBO_TEAM }}
   PNPM_INSTALL_FLAGS: ${{ (github.ref == 'refs/heads/main' || github.ref == 'refs/heads/test') && '--frozen-lockfile' || '--prefer-frozen-lockfile' }}
@@ -134,6 +133,14 @@ jobs:
 
       - name: Install Vercel CLI
         run: pnpm add -g vercel@latest
+
+      - name: Debug — verify token
+        run: |
+          echo "Token length: ${#VERCEL_TOKEN}"
+          echo "Token prefix: ${VERCEL_TOKEN:0:4}..."
+          vercel whoami --token="$VERCEL_TOKEN"
+        env:
+          VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
 
       - name: Install dependencies
         run: pnpm install ${{ env.PNPM_INSTALL_FLAGS }}
