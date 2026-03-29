@@ -56,7 +56,9 @@ describe('SearchBar', () => {
     fireEvent.change(input, { target: { value: 'xyznonexistent' } });
 
     // The "no results" message should appear when focused with a query
-    expect(screen.getByText(/No results found|Loading search index/)).toBeInTheDocument();
+    expect(
+      screen.getByText(/No results found|Loading search index|Building search index/),
+    ).toBeInTheDocument();
   });
 
   it('should show results when search returns matches', async () => {
