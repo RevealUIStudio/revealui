@@ -808,13 +808,16 @@ app.openapi(stripeWebhookRoute, async (c) => {
           const perpetualEmail =
             session.customer_email ?? (await findUserEmailByCustomerId(db, customerId));
           if (perpetualEmail) {
-            sendPerpetualLicenseActivatedEmail(perpetualEmail, tier, supportExpiresAt).catch(
-              (err) => {
-                logger.error('Failed to send perpetual license activation email', undefined, {
-                  detail: err instanceof Error ? err.message : 'unknown',
-                });
-              },
-            );
+            sendPerpetualLicenseActivatedEmail(
+              perpetualEmail,
+              tier,
+              supportExpiresAt,
+              licenseKey,
+            ).catch((err) => {
+              logger.error('Failed to send perpetual license activation email', undefined, {
+                detail: err instanceof Error ? err.message : 'unknown',
+              });
+            });
           }
 
           break;

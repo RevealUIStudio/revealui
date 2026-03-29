@@ -15,6 +15,7 @@ import {
   CardHeader,
   CardTitle,
 } from '@revealui/presentation';
+import Link from 'next/link';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { Suspense, useCallback, useEffect, useRef, useState } from 'react';
 import { safeStripeRedirect } from '@/lib/utils/safe-stripe-redirect';
@@ -354,7 +355,10 @@ function BillingContent() {
       {perpetual && (
         <div className="rounded-md bg-green-50 p-4 text-sm text-green-700 dark:bg-green-900/20 dark:text-green-400">
           Perpetual license activated! Your Pro features are permanently unlocked. Your license
-          includes 1 year of support and updates.
+          includes 1 year of support and updates.{' '}
+          <Link href="/account/license" className="font-medium underline hover:no-underline">
+            View your license key &rarr;
+          </Link>
         </div>
       )}
 

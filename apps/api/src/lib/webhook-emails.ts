@@ -188,6 +188,7 @@ export async function sendPerpetualLicenseActivatedEmail(
   to: string,
   tier: string,
   supportExpiresAt: Date,
+  licenseKey?: string,
 ): Promise<void> {
   const label = tierLabel(tier);
   const supportExpiry = supportExpiresAt.toLocaleDateString('en-US', {
@@ -195,7 +196,14 @@ export async function sendPerpetualLicenseActivatedEmail(
     day: 'numeric',
     year: 'numeric',
   });
-  const portal = billingUrl();
+  const licenseUrl = `${cmsUrl()}/account/license`;
+  const keyBlock = licenseKey
+    ? `<div style="margin: 20px 0; padding: 16px; background: #f4f4f5; border-radius: 8px;">
+  <p style="margin: 0 0 8px 0; font-size: 12px; color: #71717a; text-transform: uppercase; letter-spacing: 0.05em;">Your License Key</p>
+  <code style="word-break: break-all; font-size: 13px; color: #18181b;">${escapeHtml(licenseKey)}</code>
+</div>
+<p style="font-size: 14px; color: #666;">Add this to your project's <code>.env</code> file as <code>REVEALUI_LICENSE_KEY=your-key</code>, or pass it via <code>initializeLicense(key)</code> at startup.</p>`
+    : '';
   await sendEmail({
     to,
     subject: `Your RevealUI ${label} Perpetual License is ready`,
@@ -203,11 +211,12 @@ export async function sendPerpetualLicenseActivatedEmail(
       'Perpetual License Activated',
       `<h1 style="color: #2563eb;">Your Perpetual License is Active</h1>
 <p>Thank you for purchasing RevealUI <strong>${label} Perpetual</strong>. Your license never expires.</p>
+${keyBlock}
 <p>Your purchase includes <strong>1 year of support</strong> (until ${supportExpiry}). You'll receive a reminder 30 days before it lapses.</p>
-${ctaButton(portal, 'View Your License')}
+${ctaButton(licenseUrl, 'View Your License')}
 ${supportFooter('Questions? Reply to this email or contact')}`,
     ),
-    text: `Your RevealUI ${label} Perpetual License is now active. The license never expires. Your 1-year support contract runs until ${supportExpiry}. View your license at ${portal}.`,
+    text: `Your RevealUI ${label} Perpetual License is now active.${licenseKey ? ` License key: ${licenseKey}` : ''} The license never expires. Your 1-year support contract runs until ${supportExpiry}. View your license at ${licenseUrl}.`,
   });
 }
 

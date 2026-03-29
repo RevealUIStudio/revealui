@@ -26,6 +26,7 @@ interface SubscriptionData {
   tier: LicenseTierId;
   status: string;
   expiresAt: string | null;
+  licenseKey: string | null;
 }
 
 const PERPETUAL_PLANS = [
@@ -53,6 +54,7 @@ export default function LicensePage() {
   const [perpetualLoading, setPerpetualLoading] = useState<string | null>(null);
   const [pricing, setPricing] = useState<PricingResponse | null>(null);
   const [githubUsername, setGithubUsername] = useState('');
+  const [copied, setCopied] = useState(false);
 
   const fetchData = useCallback(async () => {
     try {
@@ -183,6 +185,60 @@ export default function LicensePage() {
           )}
         </CardContent>
       </Card>
+
+      {/* License key */}
+      {subscription?.licenseKey && (
+        <Card>
+          <CardHeader>
+            <CardTitle>License Key</CardTitle>
+            <CardDescription>
+              Use this key to activate RevealUI Pro features in your self-hosted deployments.
+            </CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <div className="relative">
+              <pre className="overflow-x-auto rounded-lg bg-zinc-100 p-3 text-xs font-mono text-zinc-800 dark:bg-zinc-900 dark:text-zinc-300">
+                {subscription.licenseKey}
+              </pre>
+              <button
+                type="button"
+                onClick={() => {
+                  void navigator.clipboard.writeText(subscription.licenseKey!);
+                  setCopied(true);
+                  setTimeout(() => setCopied(false), 2000);
+                }}
+                className="absolute right-2 top-2 rounded-md bg-white px-2 py-1 text-xs font-medium text-zinc-600 shadow-sm hover:bg-zinc-50 dark:bg-zinc-800 dark:text-zinc-400 dark:hover:bg-zinc-700"
+              >
+                {copied ? 'Copied!' : 'Copy'}
+              </button>
+            </div>
+            <div className="rounded-lg border p-3 dark:border-zinc-800">
+              <p className="text-xs font-medium text-zinc-500 uppercase tracking-wide mb-2">
+                Activation
+              </p>
+              <div className="space-y-1.5 text-sm text-zinc-600 dark:text-zinc-400">
+                <p>
+                  Add to your project&apos;s{' '}
+                  <code className="rounded bg-zinc-100 px-1 py-0.5 text-xs dark:bg-zinc-900">
+                    .env
+                  </code>{' '}
+                  file:
+                </p>
+                <pre className="overflow-x-auto rounded-lg bg-zinc-100 p-2 text-xs font-mono dark:bg-zinc-900">
+                  REVEALUI_LICENSE_KEY=your-key-here
+                </pre>
+                <p className="text-xs text-zinc-400 mt-2">
+                  Or pass it programmatically via{' '}
+                  <code className="rounded bg-zinc-100 px-1 py-0.5 dark:bg-zinc-900">
+                    initializeLicense(key)
+                  </code>{' '}
+                  at startup.
+                </p>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+      )}
 
       {/* Resource limits */}
       <Card>
