@@ -1,5 +1,6 @@
 use rand::Rng;
 use rsa::pkcs8::{EncodePrivateKey, EncodePublicKey, LineEnding};
+use rsa::rand_core::OsRng;
 use rsa::RsaPrivateKey;
 
 use super::super::error::StudioError;
@@ -8,10 +9,10 @@ use super::super::error::StudioError;
 #[tauri::command]
 pub fn generate_secret(length: usize) -> Result<String, StudioError> {
     let charset = b"abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
-    let mut rng = rand::thread_rng();
+    let mut rng = rand::rng();
     let secret: String = (0..length)
         .map(|_| {
-            let idx = rng.gen_range(0..charset.len());
+            let idx = rng.random_range(0..charset.len());
             charset[idx] as char
         })
         .collect();
@@ -22,16 +23,15 @@ pub fn generate_secret(length: usize) -> Result<String, StudioError> {
 #[tauri::command]
 pub fn generate_kek() -> Result<String, StudioError> {
     let mut bytes = [0u8; 32];
-    rand::thread_rng().fill(&mut bytes);
+    rand::rng().fill(&mut bytes);
     Ok(hex::encode(bytes))
 }
 
 /// Generate an RSA-2048 key pair. Returns (private_pem, public_pem).
 #[tauri::command]
 pub fn generate_rsa_keypair() -> Result<(String, String), StudioError> {
-    let mut rng = rand::thread_rng();
     let private_key =
-        RsaPrivateKey::new(&mut rng, 2048).map_err(|e| StudioError::Crypto(e.to_string()))?;
+        RsaPrivateKey::new(&mut OsRng, 2048).map_err(|e| StudioError::Crypto(e.to_string()))?;
     let public_key = private_key.to_public_key();
 
     let private_pem = private_key
