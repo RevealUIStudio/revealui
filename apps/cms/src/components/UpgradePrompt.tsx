@@ -23,15 +23,33 @@ import { useLicense } from '@/lib/providers/LicenseProvider';
 interface UpgradePromptProps {
   feature: keyof FeatureFlags;
   description?: string;
+  /** 'sampling' renders a softer banner for free-tier AI quota exhaustion */
+  variant?: 'default' | 'sampling';
 }
 
-export function UpgradePrompt({ feature, description }: UpgradePromptProps) {
+export function UpgradePrompt({ feature, description, variant = 'default' }: UpgradePromptProps) {
   const { tier: currentTier } = useLicense();
   const label = FEATURE_LABELS[feature];
   const requiredTier = getRequiredTier(feature);
   const tierLabel = requiredTier === 'free' ? 'Pro' : TIER_LABELS[requiredTier as LicenseTierId];
   const upgradeHref = `/account/billing?upgrade=${requiredTier === 'free' ? 'pro' : requiredTier}`;
   const upgradeTiers = getTiersFromCurrent(currentTier);
+
+  if (variant === 'sampling') {
+    return (
+      <div className="flex items-center gap-3 rounded-lg border border-blue-200 bg-blue-50 px-4 py-3 dark:border-blue-800 dark:bg-blue-950/30">
+        <div className="flex-1 text-sm text-blue-700 dark:text-blue-300">
+          {description ||
+            'Free AI sampling quota reached. Upgrade to Pro for 10,000 tasks/month with full coding tools.'}
+        </div>
+        <Link href={upgradeHref}>
+          <Button variant="outline" size="sm" className="shrink-0">
+            Upgrade to Pro
+          </Button>
+        </Link>
+      </div>
+    );
+  }
 
   return (
     <Card className="border-dashed">

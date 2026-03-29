@@ -35,6 +35,8 @@ export interface FeatureFlags {
   aiMultiProvider: boolean;
   /** Audit logging and compliance trail */
   auditLog: boolean;
+  /** AI sampling for free users — limited cloud tasks via platform key */
+  aiSampling: boolean;
   /** Full real-time sync with conflict resolution */
   advancedSync: boolean;
   /** Monitoring dashboard */
@@ -49,6 +51,7 @@ export interface FeatureFlags {
 const featureTierMap: Record<keyof FeatureFlags, LicenseTier> = {
   aiLocal: 'free',
   ai: 'pro',
+  aiSampling: 'free',
   mcp: 'pro',
   payments: 'pro',
   advancedSync: 'pro',

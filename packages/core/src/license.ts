@@ -271,6 +271,17 @@ export function getMaxAgentTasks(): number {
 }
 
 /**
+ * Returns the maximum free-tier AI sampling tasks per billing cycle.
+ * Free users get 50 cloud AI tasks/month via platform Groq key.
+ * Paid users return 0 (they use full quota via getMaxAgentTasks instead).
+ */
+export function getMaxFreemiumTasks(): number {
+  evictStaleCache();
+  if (cachedState.tier === 'free') return 50;
+  return 0;
+}
+
+/**
  * Generates a signed license key JWT.
  * This is a server-only function — requires the private key.
  *

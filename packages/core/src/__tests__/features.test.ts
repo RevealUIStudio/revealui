@@ -38,6 +38,7 @@ import {
 const ALL_FEATURES: (keyof FeatureFlags)[] = [
   'aiLocal',
   'ai',
+  'aiSampling',
   'aiMemory',
   'mcp',
   'payments',
@@ -54,7 +55,7 @@ const ALL_FEATURES: (keyof FeatureFlags)[] = [
 ];
 
 /** Features available at free tier (no license required) */
-const FREE_FEATURES: (keyof FeatureFlags)[] = ['aiLocal'];
+const FREE_FEATURES: (keyof FeatureFlags)[] = ['aiLocal', 'aiSampling'];
 
 /** Features that require at least Pro tier */
 const PRO_FEATURES: (keyof FeatureFlags)[] = [
@@ -177,10 +178,10 @@ describe('getFeatures', () => {
     }
   });
 
-  it('returns a FeatureFlags object with exactly 15 keys', () => {
+  it('returns a FeatureFlags object with exactly 16 keys', () => {
     simulateTier('free');
     const features = getFeatures();
-    expect(Object.keys(features)).toHaveLength(15);
+    expect(Object.keys(features)).toHaveLength(16);
   });
 
   it('calls isLicensed for each feature', () => {
@@ -402,10 +403,10 @@ describe('getRequiredTier', () => {
 describe('tier progression', () => {
   const tiers: LicenseTier[] = ['free', 'pro', 'max', 'enterprise'];
   const expectedEnabledCounts: Record<LicenseTier, number> = {
-    free: 1, // aiLocal only
-    pro: 8, // 1 free + 7 pro features
-    max: 12, // 1 free + 7 pro + 4 max features
-    enterprise: 15, // all 15 features
+    free: 2, // aiLocal + aiSampling
+    pro: 9, // 2 free + 7 pro features
+    max: 13, // 2 free + 7 pro + 4 max features
+    enterprise: 16, // all 16 features
   };
 
   it.each(tiers)('%s tier enables exactly %i features', (tier) => {
@@ -567,9 +568,10 @@ describe('edge cases', () => {
     }
   });
 
-  it('only aiLocal requires free tier — all others are gated', () => {
+  it('only aiLocal and aiSampling require free tier — all others are gated', () => {
+    const freeTierFeatures: (keyof FeatureFlags)[] = ['aiLocal', 'aiSampling'];
     for (const feature of ALL_FEATURES) {
-      if (feature === 'aiLocal') {
+      if (freeTierFeatures.includes(feature)) {
         expect(getRequiredTier(feature)).toBe('free');
       } else {
         expect(getRequiredTier(feature)).not.toBe('free');

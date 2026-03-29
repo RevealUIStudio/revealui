@@ -16,7 +16,7 @@
  *   - Invalid X-PAYMENT-PAYLOAD header → HTTP 402 with error detail
  */
 
-import { getMaxAgentTasks } from '@revealui/core/license';
+import { getMaxAgentTasks, getMaxFreemiumTasks } from '@revealui/core/license';
 import { logger } from '@revealui/core/observability/logger';
 import { getClient } from '@revealui/db';
 import { agentTaskUsage } from '@revealui/db/schema';
@@ -60,6 +60,7 @@ interface TaskQuotaEnv {
   Variables: {
     user: UserContext | undefined;
     entitlements?: RequestEntitlements | undefined;
+    aiAccessMode?: 'local' | 'sampling' | undefined;
   };
 }
 
@@ -81,7 +82,10 @@ export async function requireTaskQuota(
   }
 
   const requestEntitlements = c.get('entitlements') as RequestEntitlements | undefined;
-  const quota = requestEntitlements?.limits?.maxAgentTasks ?? getMaxAgentTasks();
+  const isSampling = c.get('aiAccessMode') === 'sampling';
+  const quota = isSampling
+    ? getMaxFreemiumTasks()
+    : (requestEntitlements?.limits?.maxAgentTasks ?? getMaxAgentTasks());
   const db = getClient();
   const cycle = cycleStart();
 
@@ -174,10 +178,17 @@ export async function requireTaskQuota(
     // x402 disabled → existing 429 behavior (no behavioral change for subscribers)
     return c.json(
       {
-        error: 'Agent task quota exceeded for this billing cycle.',
+        error: isSampling
+          ? 'Free AI sampling quota exhausted for this billing cycle.'
+          : 'Agent task quota exceeded for this billing cycle.',
         used: current,
         quota,
         resetAt,
+        ...(isSampling && {
+          freemiumExhausted: true,
+          upgrade_url: 'https://revealui.com/pricing',
+          upgrade_message: 'Upgrade to Pro for 10,000 cloud AI tasks/month with full coding tools.',
+        }),
       },
       429,
     );
