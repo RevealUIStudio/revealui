@@ -10,6 +10,11 @@ name: Deploy
 #
 # All 5 apps deploy in parallel via matrix strategy.
 # Non-production deploys are aliased to stable custom domains.
+#
+# Turbo remote caching (opportunistic — deploys work without these):
+#   1. Enable Vercel Remote Caching: https://vercel.com/docs/monorepos/remote-caching
+#   2. Add repository secret  TURBO_TOKEN  — Vercel access token with remote cache scope
+#   3. Add repository variable TURBO_TEAM   — Vercel team slug (e.g. "revealuistudio")
 
 on:
   push:
