@@ -19,8 +19,8 @@
 import { getMaxAgentTasks, getMaxFreemiumTasks } from '@revealui/core/license';
 import { logger } from '@revealui/core/observability/logger';
 import { getClient } from '@revealui/db';
-import { agentTaskUsage } from '@revealui/db/schema';
-import { and, eq, sql } from 'drizzle-orm';
+import { agentCreditBalance, agentTaskUsage } from '@revealui/db/schema';
+import { and, eq, gt, sql } from 'drizzle-orm';
 import type { Context, Next } from 'hono';
 import {
   buildPaymentRequired,
@@ -112,6 +112,47 @@ export async function requireTaskQuota(
   const current = row?.count ?? 0;
 
   if (current >= quota) {
+    // Check prepaid credit balance before blocking (Track B)
+    if (!isSampling) {
+      try {
+        const [creditRow] = await db
+          .select({ balance: agentCreditBalance.balance })
+          .from(agentCreditBalance)
+          .where(and(eq(agentCreditBalance.userId, user.id), gt(agentCreditBalance.balance, 0)))
+          .limit(1);
+
+        if (creditRow && creditRow.balance > 0) {
+          // Decrement one credit and allow through
+          void db
+            .update(agentCreditBalance)
+            .set({
+              balance: sql`${agentCreditBalance.balance} - 1`,
+              updatedAt: new Date(),
+            })
+            .where(eq(agentCreditBalance.userId, user.id))
+            .catch(onQuotaWriteError);
+
+          // Still increment usage count for metering
+          void db
+            .insert(agentTaskUsage)
+            .values({ userId: user.id, cycleStart: cycle, count: current + 1, overage: 1 })
+            .onConflictDoUpdate({
+              target: [agentTaskUsage.userId, agentTaskUsage.cycleStart],
+              set: {
+                count: sql`${agentTaskUsage.count} + 1`,
+                overage: sql`${agentTaskUsage.overage} + 1`,
+                updatedAt: new Date(),
+              },
+            })
+            .catch(onQuotaWriteError);
+
+          return next();
+        }
+      } catch {
+        // Credit check failed — fall through to normal quota enforcement
+      }
+    }
+
     // Track overage for billing reports (fire-and-forget)
     void db
       .insert(agentTaskUsage)

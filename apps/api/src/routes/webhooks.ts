@@ -19,12 +19,13 @@ import {
   accountMemberships,
   accountSubscriptions,
   accounts,
+  agentCreditBalance,
   licenses,
   processedWebhookEvents,
   users,
 } from '@revealui/db/schema';
 import { createRoute, OpenAPIHono, z } from '@revealui/openapi';
-import { and, desc, eq } from 'drizzle-orm';
+import { and, desc, eq, sql } from 'drizzle-orm';
 import Stripe from 'stripe';
 import {
   provisionGitHubAccess,
@@ -684,8 +685,66 @@ app.openapi(stripeWebhookRoute, async (c) => {
       case 'checkout.session.completed': {
         const session = event.data.object as Stripe.Checkout.Session;
 
-        // ── Perpetual (one-time payment) ──────────────────────────────────
+        // ── One-time payments (perpetual licenses + credit bundles) ──────
         if (session.mode === 'payment') {
+          // ── Credit bundle purchase ──────────────────────────────────────
+          if (session.metadata?.credits_bundle) {
+            const bundle = session.metadata.credits_bundle;
+            const tasks = Number.parseInt(session.metadata.credits_tasks ?? '0', 10);
+            const creditUserId = session.metadata.revealui_user_id ?? null;
+            const creditCustomerId =
+              typeof session.customer === 'string' ? session.customer : session.customer?.id;
+
+            let resolvedCreditUserId = creditUserId;
+            if (!resolvedCreditUserId && creditCustomerId) {
+              const [u] = await db
+                .select({ id: users.id })
+                .from(users)
+                .where(eq(users.stripeCustomerId, creditCustomerId))
+                .limit(1);
+              resolvedCreditUserId = u?.id ?? null;
+            }
+
+            if (!resolvedCreditUserId || tasks <= 0) {
+              logger.error('Cannot process credit purchase — missing user or tasks', undefined, {
+                bundle,
+                tasks,
+                sessionId: session.id,
+              });
+              break;
+            }
+
+            await db
+              .insert(agentCreditBalance)
+              .values({
+                userId: resolvedCreditUserId,
+                balance: tasks,
+                totalPurchased: tasks,
+              })
+              .onConflictDoUpdate({
+                target: agentCreditBalance.userId,
+                set: {
+                  balance: sql`${agentCreditBalance.balance} + ${tasks}`,
+                  totalPurchased: sql`${agentCreditBalance.totalPurchased} + ${tasks}`,
+                  updatedAt: new Date(),
+                },
+              });
+
+            logger.info('Credit bundle purchased and credited', {
+              bundle,
+              tasks,
+              userId: resolvedCreditUserId,
+            });
+            auditLicenseEvent(db, 'credits.purchased', 'info', {
+              bundle,
+              tasks,
+              userId: resolvedCreditUserId,
+            });
+
+            break;
+          }
+
+          // ── Perpetual license ───────────────────────────────────────────
           // Only process as perpetual license if RevealUI tier metadata is present.
           // Other payment-mode checkouts (non-RevealUI products) are silently skipped.
           if (!session.metadata?.tier) break;

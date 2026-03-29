@@ -363,6 +363,32 @@ export const agentTaskUsage = pgTable(
 export type AgentTaskUsage = typeof agentTaskUsage.$inferSelect;
 export type NewAgentTaskUsage = typeof agentTaskUsage.$inferInsert;
 
+// =============================================================================
+// Agent Credit Balance (Track B — prepaid credit bundles)
+// =============================================================================
+
+/**
+ * Tracks prepaid agent task credits purchased via credit bundles.
+ * Credits never expire and stack with the monthly tier allowance.
+ * One row per user — balance is decremented after tier quota is exhausted.
+ */
+export const agentCreditBalance = pgTable('agent_credit_balance', {
+  userId: text('user_id')
+    .primaryKey()
+    .references(() => users.id, { onDelete: 'cascade' }),
+
+  /** Total credits remaining (decremented on use after tier quota exhausted). */
+  balance: integer('balance').notNull().default(0),
+
+  /** Lifetime total credits ever purchased (for analytics). */
+  totalPurchased: integer('total_purchased').notNull().default(0),
+
+  updatedAt: timestamp('updated_at', { withTimezone: true }).defaultNow().notNull(),
+});
+
+export type AgentCreditBalance = typeof agentCreditBalance.$inferSelect;
+export type NewAgentCreditBalance = typeof agentCreditBalance.$inferInsert;
+
 export type AgentContext = typeof agentContexts.$inferSelect;
 export type NewAgentContext = typeof agentContexts.$inferInsert;
 export type AgentMemory = typeof agentMemories.$inferSelect;

@@ -54,6 +54,7 @@ function BillingContent() {
   const searchParams = useSearchParams();
   const success = searchParams.get('success');
   const perpetual = searchParams.get('perpetual');
+  const credits = searchParams.get('credits');
   const upgrade = searchParams.get('upgrade');
   const { data: session, isLoading: sessionLoading } = useSession();
   const [subscription, setSubscription] = useState<SubscriptionData | null>(null);
@@ -362,7 +363,13 @@ function BillingContent() {
         </div>
       )}
 
-      {success && !perpetual && (
+      {credits && (
+        <div className="rounded-md bg-green-50 p-4 text-sm text-green-700 dark:bg-green-900/20 dark:text-green-400">
+          Credit bundle purchased! Your agent task credits have been added to your balance.
+        </div>
+      )}
+
+      {success && !perpetual && !credits && (
         <div className="rounded-md bg-green-50 p-4 text-sm text-green-700 dark:bg-green-900/20 dark:text-green-400">
           Subscription activated! Your Pro features are now available.
         </div>

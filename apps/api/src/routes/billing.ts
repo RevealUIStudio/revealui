@@ -13,6 +13,7 @@ import {
   accountEntitlements,
   accountMemberships,
   accountSubscriptions,
+  agentCreditBalance,
   agentTaskUsage,
   billingCatalog,
   licenses,
@@ -257,7 +258,7 @@ async function ensureStripeCustomer(userId: string, email: string): Promise<stri
 }
 
 type PaidTier = 'pro' | 'max' | 'enterprise';
-type BillingCatalogKind = 'subscription' | 'perpetual';
+type BillingCatalogKind = 'subscription' | 'perpetual' | 'credits';
 
 async function resolveCatalogPriceId(
   tier: PaidTier,
@@ -999,6 +1000,173 @@ app.openapi(perpetualCheckoutRoute, async (c) => {
   }
 
   return c.json({ url: session.url }, 200);
+});
+
+// POST /api/billing/checkout-credits — One-time credit bundle purchase
+const CreditCheckoutRequestSchema = z.object({
+  priceId: z.string().min(1).optional().openapi({
+    description: 'Stripe price ID for the credit bundle product',
+    example: 'price_credits_standard',
+  }),
+  bundle: z.enum(['starter', 'standard', 'scale']).openapi({
+    description: 'Credit bundle name',
+    example: 'standard',
+  }),
+});
+
+const BUNDLE_TASKS: Record<string, number> = {
+  starter: 10_000,
+  standard: 60_000,
+  scale: 350_000,
+};
+
+const creditCheckoutRoute = createRoute({
+  method: 'post',
+  path: '/checkout-credits',
+  tags: ['billing'],
+  summary: 'Create a credit bundle checkout session',
+  description:
+    'Creates a one-time Stripe payment session for an agent task credit bundle. Credits never expire and stack with the monthly tier allowance. Requires authentication.',
+  request: {
+    body: {
+      content: {
+        'application/json': { schema: CreditCheckoutRequestSchema },
+      },
+    },
+  },
+  responses: {
+    200: {
+      content: { 'application/json': { schema: CheckoutResponseSchema } },
+      description: 'Checkout session created',
+    },
+    401: {
+      content: { 'application/json': { schema: ErrorSchema } },
+      description: 'Not authenticated',
+    },
+  },
+});
+
+app.openapi(creditCheckoutRoute, async (c) => {
+  const user = c.get('user');
+  if (!user) {
+    throw new HTTPException(401, { message: 'Authentication required' });
+  }
+
+  if (!user.email) {
+    throw new HTTPException(400, { message: 'An email address is required for billing' });
+  }
+
+  const { priceId, bundle } = c.req.valid('json');
+  const tasks = BUNDLE_TASKS[bundle];
+  if (!tasks) {
+    throw new HTTPException(400, { message: `Unknown credit bundle: ${bundle}` });
+  }
+
+  // Resolve price from catalog (planId = "credits:starter", etc.)
+  const db = getClient();
+  const planId = `credits:${bundle}`;
+  const [catalogEntry] = await db
+    .select({ stripePriceId: billingCatalog.stripePriceId })
+    .from(billingCatalog)
+    .where(
+      and(
+        eq(billingCatalog.planId, planId),
+        eq(billingCatalog.billingModel, 'credits'),
+        eq(billingCatalog.active, true),
+      ),
+    )
+    .limit(1);
+
+  const resolvedPriceId = catalogEntry?.stripePriceId;
+  if (!resolvedPriceId) {
+    throw new HTTPException(500, {
+      message: `Billing catalog is not configured for credits ${bundle}`,
+    });
+  }
+
+  if (priceId?.trim() && priceId.trim() !== resolvedPriceId) {
+    throw new HTTPException(400, {
+      message: 'Requested price does not match the server billing catalog.',
+    });
+  }
+
+  const customerId = await ensureStripeCustomer(user.id, user.email);
+
+  const cmsUrl = process.env.CMS_URL || process.env.NEXT_PUBLIC_SERVER_URL;
+  if (!cmsUrl) throw new HTTPException(500, { message: 'CMS_URL is not configured' });
+
+  const session = await withStripe((stripe) =>
+    stripe.checkout.sessions.create({
+      customer: customerId,
+      mode: 'payment',
+      payment_method_types: ['card'],
+      allow_promotion_codes: true,
+      line_items: [{ price: resolvedPriceId, quantity: 1 }],
+      payment_intent_data: {
+        metadata: {
+          credits_bundle: bundle,
+          credits_tasks: String(tasks),
+          revealui_user_id: user.id,
+        },
+      },
+      metadata: {
+        credits_bundle: bundle,
+        credits_tasks: String(tasks),
+        revealui_user_id: user.id,
+      },
+      success_url: `${cmsUrl}/account/billing?credits=${bundle}`,
+      cancel_url: `${cmsUrl}/account/billing`,
+    }),
+  );
+
+  if (!session.url) {
+    throw new HTTPException(500, { message: 'Failed to create checkout session' });
+  }
+
+  return c.json({ url: session.url }, 200);
+});
+
+// GET /api/billing/credits — Current credit balance
+const CreditBalanceResponseSchema = z.object({
+  balance: z.number().openapi({ description: 'Remaining prepaid credits' }),
+  totalPurchased: z.number().openapi({ description: 'Lifetime credits purchased' }),
+});
+
+const creditBalanceRoute = createRoute({
+  method: 'get',
+  path: '/credits',
+  tags: ['billing'],
+  summary: 'Get current credit balance',
+  description: "Returns the authenticated user's prepaid agent task credit balance.",
+  responses: {
+    200: {
+      content: { 'application/json': { schema: CreditBalanceResponseSchema } },
+      description: 'Credit balance',
+    },
+    401: {
+      content: { 'application/json': { schema: ErrorSchema } },
+      description: 'Not authenticated',
+    },
+  },
+});
+
+app.openapi(creditBalanceRoute, async (c) => {
+  const user = c.get('user');
+  if (!user) {
+    throw new HTTPException(401, { message: 'Authentication required' });
+  }
+
+  const db = getClient();
+  const [row] = await db
+    .select({
+      balance: agentCreditBalance.balance,
+      totalPurchased: agentCreditBalance.totalPurchased,
+    })
+    .from(agentCreditBalance)
+    .where(eq(agentCreditBalance.userId, user.id))
+    .limit(1);
+
+  return c.json({ balance: row?.balance ?? 0, totalPurchased: row?.totalPurchased ?? 0 }, 200);
 });
 
 // GET /api/billing/usage — Agent task usage for the current billing cycle

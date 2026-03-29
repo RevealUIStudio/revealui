@@ -24,14 +24,14 @@ const features = [
     name: 'Agent Credits (Track B)',
     description:
       'Pay-per-task billing for AI agent execution. Buy credit bundles that never expire and stack with your monthly subscription allowance. First 1,000 tasks/month free on every plan.',
-    status: 'In development',
+    status: 'Available',
     category: 'Billing',
   },
   {
     name: 'Perpetual Licenses (Track C)',
     description:
       'One-time purchase for lifetime access to Pro, Agency, or Forge tier features. No subscription required. Includes 1 year of priority support and updates.',
-    status: 'In development',
+    status: 'Available',
     category: 'Billing',
   },
   {

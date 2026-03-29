@@ -222,9 +222,6 @@ export default async function PricingPage() {
             <h2 className="mt-2 text-3xl font-bold tracking-tight text-gray-900 sm:text-4xl">
               Agent Credits
             </h2>
-            <span className="mt-2 inline-block text-xs font-semibold text-amber-700 bg-amber-100 px-3 py-1 rounded-full">
-              Coming soon
-            </span>
             <p className="mt-4 text-lg text-gray-600">
               Pay per agent task. Buy once, never expires. Stacks with your monthly allowance.
             </p>
@@ -256,7 +253,7 @@ export default async function PricingPage() {
                 <p className="mt-1 text-xl font-semibold text-purple-600">{bundle.tasks} tasks</p>
                 <p className="mt-1 text-xs text-gray-500">{bundle.costPer ?? ''}</p>
                 <a
-                  href="mailto:support@revealui.com?subject=Agent%20Credits%20Inquiry"
+                  href="https://cms.revealui.com/account/billing"
                   className={`mt-8 block w-full rounded-md px-4 py-2.5 text-center text-sm font-semibold transition-colors ${
                     bundle.highlighted
                       ? 'bg-purple-600 text-white hover:bg-purple-500'
