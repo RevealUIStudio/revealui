@@ -85,6 +85,10 @@ const sections: NavSection[] = [
       { label: 'HTTP 402 Payments', path: '/docs/blog/02-http-402-payments' },
       { label: 'Multi-Agent Coordination', path: '/docs/blog/03-multi-agent-coordination' },
       { label: 'The Air-Gap Capable Stack', path: '/docs/blog/04-local-first-ai-stack' },
+      { label: 'The Five Primitives', path: '/docs/blog/05-five-primitives' },
+      { label: 'Open Source & Pro', path: '/docs/blog/06-open-source-and-pro' },
+      { label: 'Agent-First Future', path: '/docs/blog/07-agent-first-future' },
+      { label: 'Getting Started in 10 Minutes', path: '/docs/blog/08-getting-started' },
     ],
   },
   {

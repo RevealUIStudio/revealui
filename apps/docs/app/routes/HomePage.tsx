@@ -43,11 +43,14 @@ See the [Quick Start guide](/docs/QUICK_START) for the full walkthrough, or brow
 
 ### Reference
 - [Package Reference](/docs/REFERENCE) — All packages: core, auth, db, contracts, presentation, router, CLI
+- [REST API](/api/rest-api) — OpenAPI reference for all endpoints
 - [Component Catalog](/docs/COMPONENT_CATALOG) — 50+ production-ready UI components
 - [AI](/docs/AI) — AI agents, prompt/response/semantic caching
+- [Marketplace](/docs/MARKETPLACE) — Extensibility and integrations
 
-### Pro (AI, MCP, BYOK)
+### Pro & Enterprise
 - [Pro documentation](/docs/PRO) — MCP servers, BYOK, editor integrations
+- [Forge (Enterprise)](/docs/FORGE) — Unlimited sites, users, and AI tasks
 - [Local-First Setup](/docs/LOCAL_FIRST) — BitNet + RevVault + Nix: run the full stack on your own hardware
 
 ### Blog
@@ -55,6 +58,10 @@ See the [Quick Start guide](/docs/QUICK_START) for the full walkthrough, or brow
 - [HTTP 402 Payments](/docs/blog/02-http-402-payments) — Native payment-required protocol
 - [Multi-Agent Coordination](/docs/blog/03-multi-agent-coordination) — AI agents working together
 - [The Air-Gap Capable Stack](/docs/blog/04-local-first-ai-stack) — Local AI, encrypted secrets, reproducible environments
+- [The Five Primitives](/docs/blog/05-five-primitives) — Users, content, products, payments, AI
+- [Open Source & Pro](/docs/blog/06-open-source-and-pro) — Our monetization philosophy
+- [Agent-First Future](/docs/blog/07-agent-first-future) — Building for the agent economy
+- [Getting Started in 10 Minutes](/docs/blog/08-getting-started) — From zero to deployed
 
 ---
 
