@@ -1,6 +1,6 @@
-import { clsx } from 'clsx/lite';
 import type { ComponentProps, ReactNode } from 'react';
 import { ChevronIcon } from '@/components/revealui/icons/chevron-icon';
+import { cn } from '@/lib/utils/cn';
 
 export function AnnouncementBadge({
   text,
@@ -20,7 +20,7 @@ export function AnnouncementBadge({
       href={href}
       {...props}
       data-variant={variant}
-      className={clsx(
+      className={cn(
         'group relative inline-flex max-w-full gap-x-3 overflow-hidden rounded-md px-3.5 py-2 text-sm/6 max-sm:flex-col sm:items-center sm:rounded-full sm:px-3 sm:py-0.5',
         variant === 'normal' &&
           'bg-mist-950/5 text-mist-950 hover:bg-mist-950/10 dark:bg-white/5 dark:text-white dark:inset-ring-1 dark:inset-ring-white/5 dark:hover:bg-white/10',
@@ -31,14 +31,14 @@ export function AnnouncementBadge({
     >
       <span className="text-pretty sm:truncate">{text}</span>
       <span
-        className={clsx(
+        className={cn(
           'h-3 w-px max-sm:hidden',
           variant === 'normal' && 'bg-mist-950/20 dark:bg-white/10',
           variant === 'overlay' && 'bg-white/20',
         )}
       />
       <span
-        className={clsx(
+        className={cn(
           'inline-flex shrink-0 items-center gap-2 font-semibold',
           variant === 'normal' && 'text-mist-950 dark:text-white',
         )}

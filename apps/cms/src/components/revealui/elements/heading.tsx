@@ -1,5 +1,5 @@
-import { clsx } from 'clsx/lite';
 import type { ComponentProps } from 'react';
+import { cn } from '@/lib/utils/cn';
 
 export function Heading({
   children,
@@ -9,7 +9,7 @@ export function Heading({
 }: { color?: 'dark/light' | 'light' } & ComponentProps<'h1'>) {
   return (
     <h1
-      className={clsx(
+      className={cn(
         'font-display text-5xl/12 font-medium tracking-tight text-balance sm:text-[3.5rem]/14',
         color === 'dark/light' && 'text-mist-950 dark:text-white',
         color === 'light' && 'text-white',

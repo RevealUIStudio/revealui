@@ -1,5 +1,5 @@
-import { clsx } from 'clsx/lite';
 import type { ComponentProps } from 'react';
+import { cn } from '@/lib/utils/cn';
 import { Wallpaper } from './wallpaper';
 
 export function Screenshot({
@@ -16,7 +16,7 @@ export function Screenshot({
     <Wallpaper
       color={wallpaper}
       data-placement={placement}
-      className={clsx('group', className)}
+      className={cn('group', className)}
       {...props}
     >
       <div className="relative [--padding:min(10%,--spacing(16))] group-data-[placement=bottom]:px-(--padding) group-data-[placement=bottom]:pt-(--padding) group-data-[placement=bottom-left]:pt-(--padding) group-data-[placement=bottom-left]:pr-(--padding) group-data-[placement=bottom-right]:pt-(--padding) group-data-[placement=bottom-right]:pl-(--padding) group-data-[placement=top]:px-(--padding) group-data-[placement=top]:pb-(--padding) group-data-[placement=top-left]:pr-(--padding) group-data-[placement=top-left]:pb-(--padding) group-data-[placement=top-right]:pb-(--padding) group-data-[placement=top-right]:pl-(--padding)">

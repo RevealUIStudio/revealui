@@ -1,5 +1,5 @@
-import { clsx } from 'clsx/lite';
 import type { ComponentProps } from 'react';
+import { cn } from '@/lib/utils/cn';
 
 const html = String.raw;
 
@@ -29,7 +29,7 @@ export function Wallpaper({
   return (
     <div
       data-color={color}
-      className={clsx(
+      className={cn(
         'relative overflow-hidden bg-linear-to-b data-[color=blue]:from-[#637c86] data-[color=blue]:to-[#778599] data-[color=brown]:from-[#8d7359] data-[color=brown]:to-[#765959] data-[color=green]:from-[#9ca88f] data-[color=green]:to-[#596352] data-[color=purple]:from-[#7b627d] data-[color=purple]:to-[#8f6976] dark:data-[color=blue]:from-[#243a42] dark:data-[color=blue]:to-[#232f40] dark:data-[color=brown]:from-[#382d23] dark:data-[color=brown]:to-[#3d2323] dark:data-[color=green]:from-[#333a2b] dark:data-[color=green]:to-[#26361b] dark:data-[color=purple]:from-[#412c42] dark:data-[color=purple]:to-[#3c1a26]',
         className,
       )}

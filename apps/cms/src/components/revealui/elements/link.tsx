@@ -1,6 +1,6 @@
-import { clsx } from 'clsx/lite';
 import Link from 'next/link';
 import type { ComponentProps } from 'react';
+import { cn } from '@/lib/utils/cn';
 
 export function RevealUILink({
   href,
@@ -12,7 +12,7 @@ export function RevealUILink({
   return (
     <Link
       href={href}
-      className={clsx(
+      className={cn(
         'inline-flex items-center gap-2 text-sm/7 font-medium text-mist-950 dark:text-white',
         className,
       )}

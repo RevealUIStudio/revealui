@@ -1,9 +1,9 @@
 'use client';
 
-import { clsx } from 'clsx/lite';
 import { type ComponentProps, type ReactNode, useCallback, useRef, useState } from 'react';
 import { CheckmarkIcon } from '@/components/revealui/icons/checkmark-icon';
 import { Squares2StackedIcon } from '@/components/revealui/icons/squares-2-stacked-icon';
+import { cn } from '@/lib/utils/cn';
 
 export function InstallCommand({
   snippet,
@@ -28,7 +28,7 @@ export function InstallCommand({
 
   return (
     <div
-      className={clsx(
+      className={cn(
         'flex items-center justify-between gap-6 rounded-full p-1 font-mono text-sm/7 inset-ring-1 dark:bg-white/10 dark:inset-ring-white/10',
         variant === 'normal' && 'bg-white text-mist-600 inset-ring-black/10 dark:text-white',
         variant === 'overlay' && 'bg-white/15 text-white inset-ring-white/10',
