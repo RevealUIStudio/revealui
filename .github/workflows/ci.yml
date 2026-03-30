@@ -298,7 +298,7 @@ jobs:
   e2e-smoke:
     name: E2E Smoke
     runs-on: ubuntu-latest
-    timeout-minutes: 5
+    timeout-minutes: 15
     needs: [quality, build]
 
     steps:
@@ -324,11 +324,40 @@ jobs:
         env:
           SKIP_ENV_VALIDATION: "true"
 
+      - name: Start API server
+        run: pnpm --filter api start &
+        env:
+          SKIP_ENV_VALIDATION: "true"
+
+      - name: Start CMS server
+        run: pnpm --filter cms start &
+        env:
+          SKIP_ENV_VALIDATION: "true"
+
+      - name: Start marketing server
+        run: pnpm --filter marketing start &
+        env:
+          SKIP_ENV_VALIDATION: "true"
+          PORT: "3002"
+
+      - name: Wait for servers
+        run: |
+          for i in $(seq 1 40); do
+            curl -sf http://localhost:3004/health/live > /dev/null 2>&1 && \
+            curl -sf http://localhost:4000 > /dev/null 2>&1 && \
+            curl -sf http://localhost:3002 > /dev/null 2>&1 && \
+            echo "All three servers ready" && break || \
+            echo "Waiting for servers... ($i/40)" && sleep 3
+          done
+
       - name: Run E2E smoke tests
         run: pnpm test:e2e -- --project=chromium e2e/smoke.e2e.ts
         env:
           CI: "true"
           SKIP_ENV_VALIDATION: "true"
+          API_BASE_URL: "http://localhost:3004"
+          PLAYWRIGHT_BASE_URL: "http://localhost:4000"
+          MARKETING_BASE_URL: "http://localhost:3002"
 
       - name: Upload test results
         uses: actions/upload-artifact@bbbca2ddaa5d8feaa63e36b76fdaad77386f024f # v7
