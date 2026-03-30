@@ -28,20 +28,6 @@ import { logger } from '@revealui/core/observability/logger';
 import { checkMcpLicense } from '../index.js';
 
 // ---------------------------------------------------------------------------
-// Credential overrides (set by Hypervisor before tool invocations)
-// ---------------------------------------------------------------------------
-
-let _credentialOverrides: Record<string, string> = {};
-
-/**
- * Set credential overrides for this server.
- * Called by the Hypervisor with resolved tenant credentials.
- */
-export function setCredentials(creds: Record<string, string>): void {
-  _credentialOverrides = creds;
-}
-
-// ---------------------------------------------------------------------------
 // Resend REST helpers
 // ---------------------------------------------------------------------------
 
@@ -152,10 +138,7 @@ const TOOLS: Tool[] = [
 server.setRequestHandler(ListToolsRequestSchema, async () => ({ tools: TOOLS }));
 
 server.setRequestHandler(CallToolRequestSchema, async (request: CallToolRequest) => {
-  const startTime = Date.now();
-  const toolName = request.params.name;
-
-  const apiKey = _credentialOverrides.RESEND_API_KEY ?? process.env.RESEND_API_KEY;
+  const apiKey = process.env.RESEND_API_KEY;
   if (!apiKey) {
     return {
       content: [{ type: 'text', text: 'Error: RESEND_API_KEY is not set' }],
@@ -163,13 +146,10 @@ server.setRequestHandler(CallToolRequestSchema, async (request: CallToolRequest)
     };
   }
 
-  const fromAddress =
-    _credentialOverrides.REVEALUI_FROM_EMAIL ?? process.env.REVEALUI_FROM_EMAIL ?? DEFAULT_FROM;
+  const fromAddress = process.env.REVEALUI_FROM_EMAIL ?? DEFAULT_FROM;
 
   try {
-    let data: unknown;
-
-    switch (toolName) {
+    switch (request.params.name) {
       case 'email_send': {
         const {
           to,
@@ -201,8 +181,8 @@ server.setRequestHandler(CallToolRequestSchema, async (request: CallToolRequest)
         // Tag all RevealUI MCP emails for filtering in Resend dashboard
         payload.tags = [{ name: 'source', value: 'revealui-mcp' }];
 
-        data = await resendPost(apiKey, '/emails', payload);
-        break;
+        const result = await resendPost(apiKey, '/emails', payload);
+        return { content: [{ type: 'text', text: JSON.stringify(result, null, 2) }] };
       }
 
       case 'email_send_batch': {
@@ -235,37 +215,16 @@ server.setRequestHandler(CallToolRequestSchema, async (request: CallToolRequest)
           return payload;
         });
 
-        data = await resendPost(apiKey, '/emails/batch', batch);
-        break;
+        const result = await resendPost(apiKey, '/emails/batch', batch);
+        return { content: [{ type: 'text', text: JSON.stringify(result, null, 2) }] };
       }
 
       default:
         return {
-          content: [{ type: 'text', text: `Error: Unknown tool: ${toolName}` }],
+          content: [{ type: 'text', text: `Error: Unknown tool: ${request.params.name}` }],
           isError: true,
         };
     }
-
-    return {
-      content: [
-        {
-          type: 'text',
-          text: JSON.stringify(
-            {
-              data,
-              _meta: {
-                durationMs: Date.now() - startTime,
-                server: 'revealui-email',
-                tool: toolName,
-                timestamp: new Date().toISOString(),
-              },
-            },
-            null,
-            2,
-          ),
-        },
-      ],
-    };
   } catch (err) {
     return {
       content: [

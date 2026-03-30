@@ -47,13 +47,6 @@ export {
   type McpDbClient,
   type QueryResult,
 } from './adapters/db.js';
-// Auth bridge (JWT claims validation + tool authorization)
-export {
-  authorizeToolCall,
-  type McpAuthClaims,
-  McpAuthClaimsSchema,
-  validateMcpClaims,
-} from './auth.js';
 // Configuration
 export {
   getMcpConfig,
@@ -76,9 +69,6 @@ export {
   MCPResponseMetadataSchema,
   MCPResponseSchema,
   mcpToolToContractsToolDefinition,
-  type ToolOutputSchemaName,
-  ToolOutputSchemas,
-  validateToolOutput,
 } from './contracts.js';
 // Hypervisor: process management + dynamic tool discovery
 export {
@@ -89,46 +79,15 @@ export {
   type MCPTool,
   type NamespacedTool,
 } from './hypervisor.js';
-// Tool pipeline (composition / chaining)
-export {
-  executePipeline,
-  type PipelineResult,
-  type PipelineStep,
-  type PipelineStepResult,
-} from './pipeline.js';
-// Rate limiting (per-tier)
-export {
-  DEFAULT_TIER_LIMITS,
-  McpRateLimiter,
-  type RateLimitConfig,
-  type RateLimitResult,
-} from './rate-limiter.js';
 // Adapter framework
 export {
   createMCPAdapter,
   disposeAllAdapters,
   generateIdempotencyKey,
   generateUniqueIdempotencyKey,
-  type IdempotencyStore,
   MCPAdapter,
   type MCPConfig,
   NeonAdapter,
   StripeAdapter,
   VercelAdapter,
 } from './servers/adapter.js';
-// Server launchers
-export { launchNeonMcp } from './servers/neon.js';
-export { launchNextDevtoolsMcp } from './servers/next-devtools.js';
-export { launchPlaywrightMcp } from './servers/playwright.js';
-export { launchStripeMcp } from './servers/stripe.js';
-export { launchSupabaseMcp } from './servers/supabase.js';
-export { launchVercelMcp } from './servers/vercel.js';
-// Persistent idempotency stores
-export { createPostgresIdempotencyStore } from './stores/postgres-idempotency.js';
-// Telemetry (structured observability events)
-export {
-  type McpEvent,
-  type McpEventHandler,
-  type McpEventType,
-  McpTelemetry,
-} from './telemetry.js';

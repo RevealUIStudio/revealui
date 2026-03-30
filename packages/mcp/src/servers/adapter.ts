@@ -117,91 +117,48 @@ interface CachedResponse {
 }
 
 /**
- * Persistent backend for idempotency cache.
- * Implementations handle their own TTL expiration for stored entries.
- */
-export interface IdempotencyStore {
-  get(key: string): Promise<{ response: MCPResponse; expiresAt: number } | null>;
-  set(key: string, response: MCPResponse, ttlMs: number): Promise<void>;
-  delete(key: string): Promise<void>;
-}
-
-/**
  * In-memory idempotency cache for preventing duplicate operations.
- * Each adapter instance has its own cache. Optionally backed by a
- * persistent {@link IdempotencyStore} for cross-process durability.
+ * Each adapter instance has its own cache.
  */
 class IdempotencyCache {
   private cache = new Map<string, CachedResponse>();
-  private store: IdempotencyStore | null;
   private cleanupInterval: ReturnType<typeof setInterval> | null = null;
   // biome-ignore lint/style/useNamingConvention: Constant should be uppercase
   private readonly DEFAULT_TTL = 5 * 60 * 1000; // 5 minutes
 
-  constructor(store?: IdempotencyStore) {
-    this.store = store ?? null;
-    // Cleanup expired entries every minute (memory only — store manages its own TTL)
+  constructor() {
+    // Cleanup expired entries every minute
     this.cleanupInterval = setInterval(() => this.cleanup(), 60 * 1000);
   }
 
   /**
-   * Get a cached response by idempotency key.
-   * Checks memory first, then falls through to the persistent store.
+   * Get a cached response by idempotency key
    */
-  async get(key: string): Promise<MCPResponse | null> {
-    // Check memory first
+  get(key: string): MCPResponse | null {
     const cached = this.cache.get(key);
-    if (cached) {
-      if (Date.now() > cached.expiresAt) {
-        this.cache.delete(key);
-      } else {
-        return {
-          ...cached.response,
-          metadata: {
-            ...cached.response.metadata,
-            cached: true,
-            idempotencyKey: key,
-          },
-        } as MCPResponse;
-      }
+    if (!cached) return null;
+
+    if (Date.now() > cached.expiresAt) {
+      this.cache.delete(key);
+      return null;
     }
 
-    // Fall through to persistent store if available
-    if (this.store) {
-      const stored = await this.store.get(key);
-      if (!stored) return null;
-
-      // Populate memory cache on store hit
-      this.cache.set(key, { response: stored.response, expiresAt: stored.expiresAt });
-
-      return {
-        ...stored.response,
-        metadata: {
-          ...stored.response.metadata,
-          cached: true,
-          idempotencyKey: key,
-        },
-      } as MCPResponse;
-    }
-
-    return null;
+    return {
+      ...cached.response,
+      metadata: {
+        ...cached.response.metadata,
+        cached: true,
+        idempotencyKey: key,
+      },
+    } as MCPResponse;
   }
 
   /**
-   * Store a response with idempotency key.
-   * Writes to both memory and the persistent store (if configured).
+   * Store a response with idempotency key
    */
   set(key: string, response: MCPResponse, ttl?: number): void {
-    const ttlMs = ttl || this.DEFAULT_TTL;
-    const expiresAt = Date.now() + ttlMs;
+    const expiresAt = Date.now() + (ttl || this.DEFAULT_TTL);
     this.cache.set(key, { response, expiresAt });
-
-    // Fire-and-forget write to persistent store
-    if (this.store) {
-      this.store.set(key, response, ttlMs).catch(() => {
-        // Persistent store write failures are non-fatal — memory cache still works
-      });
-    }
   }
 
   /**
@@ -220,7 +177,7 @@ class IdempotencyCache {
   }
 
   /**
-   * Remove expired entries (memory only — store manages its own TTL)
+   * Remove expired entries
    */
   private cleanup(): void {
     const now = Date.now();
@@ -327,7 +284,7 @@ export abstract class MCPAdapter {
 
       // Check idempotency cache first
       if (idempotencyKey) {
-        const cached = await this.idempotencyCache.get(idempotencyKey);
+        const cached = this.idempotencyCache.get(idempotencyKey);
         if (cached) {
           this.logger.info(
             `[${this.serviceName}] Returning cached response for idempotency key: ${idempotencyKey}`,

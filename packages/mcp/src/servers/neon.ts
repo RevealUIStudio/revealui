@@ -86,22 +86,14 @@ async function startNeonMCP() {
 }
 
 /**
- * Launch the Neon MCP server.
- * Exported for programmatic use by the Hypervisor.
- */
-export async function launchNeonMcp(): Promise<void> {
-  if (!(await checkMcpLicense())) {
-    throw new Error('MCP license check failed');
-  }
-  await startNeonMCP();
-}
-
-/**
- * Main function (CLI entrypoint)
+ * Main function
  */
 async function main() {
   try {
-    await launchNeonMcp();
+    if (!(await checkMcpLicense())) {
+      process.exit(ErrorCode.CONFIG_ERROR);
+    }
+    await startNeonMCP();
   } catch (error) {
     logger.error(`Script failed: ${error instanceof Error ? error.message : String(error)}`);
     process.exit(ErrorCode.EXECUTION_ERROR);

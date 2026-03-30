@@ -29,20 +29,6 @@ import { logger } from '@revealui/core/observability/logger';
 import { checkMcpLicense } from '../index.js';
 
 // ---------------------------------------------------------------------------
-// Credential overrides (set by Hypervisor before tool invocations)
-// ---------------------------------------------------------------------------
-
-let _credentialOverrides: Record<string, string> = {};
-
-/**
- * Set credential overrides for this server.
- * Called by the Hypervisor with resolved tenant credentials.
- */
-export function setCredentials(creds: Record<string, string>): void {
-  _credentialOverrides = creds;
-}
-
-// ---------------------------------------------------------------------------
 // Stripe REST helpers
 // ---------------------------------------------------------------------------
 
@@ -171,10 +157,7 @@ const TOOLS: Tool[] = [
 server.setRequestHandler(ListToolsRequestSchema, async () => ({ tools: TOOLS }));
 
 server.setRequestHandler(CallToolRequestSchema, async (request: CallToolRequest) => {
-  const startTime = Date.now();
-  const toolName = request.params.name;
-
-  const secretKey = _credentialOverrides.STRIPE_SECRET_KEY ?? process.env.STRIPE_SECRET_KEY;
+  const secretKey = process.env.STRIPE_SECRET_KEY;
   if (!secretKey) {
     return {
       content: [{ type: 'text', text: 'Error: STRIPE_SECRET_KEY is not set' }],
@@ -183,9 +166,7 @@ server.setRequestHandler(CallToolRequestSchema, async (request: CallToolRequest)
   }
 
   try {
-    let data: unknown;
-
-    switch (toolName) {
+    switch (request.params.name) {
       case 'stripe_create_payment_intent': {
         const {
           amount,
@@ -198,15 +179,17 @@ server.setRequestHandler(CallToolRequestSchema, async (request: CallToolRequest)
           customer_id?: string;
           description?: string;
         };
-        const body: Record<string, string> = {
+        const data: Record<string, string> = {
           amount: String(Math.round(amount)),
           currency,
         };
-        if (customer_id) body.customer = customer_id;
-        if (description) body.description = description;
+        if (customer_id) data.customer = customer_id;
+        if (description) data.description = description;
 
-        data = await stripePost('/payment_intents', secretKey, body);
-        break;
+        const intent = await stripePost('/payment_intents', secretKey, data);
+        return {
+          content: [{ type: 'text', text: JSON.stringify(intent, null, 2) }],
+        };
       }
 
       case 'stripe_list_customers': {
@@ -217,8 +200,10 @@ server.setRequestHandler(CallToolRequestSchema, async (request: CallToolRequest)
         const params: Record<string, string> = { limit: String(Math.min(limit, 100)) };
         if (email) params.email = email;
 
-        data = await stripeGet('/customers', secretKey, params);
-        break;
+        const result = await stripeGet('/customers', secretKey, params);
+        return {
+          content: [{ type: 'text', text: JSON.stringify(result, null, 2) }],
+        };
       }
 
       case 'stripe_get_customer': {
@@ -232,8 +217,14 @@ server.setRequestHandler(CallToolRequestSchema, async (request: CallToolRequest)
             'expand[]': 'data.items.data.price.product',
           }),
         ]);
-        data = { customer, subscriptions };
-        break;
+        return {
+          content: [
+            {
+              type: 'text',
+              text: JSON.stringify({ customer, subscriptions }, null, 2),
+            },
+          ],
+        };
       }
 
       case 'stripe_list_subscriptions': {
@@ -252,37 +243,18 @@ server.setRequestHandler(CallToolRequestSchema, async (request: CallToolRequest)
         };
         if (customer_id) params.customer = customer_id;
 
-        data = await stripeGet('/subscriptions', secretKey, params);
-        break;
+        const result = await stripeGet('/subscriptions', secretKey, params);
+        return {
+          content: [{ type: 'text', text: JSON.stringify(result, null, 2) }],
+        };
       }
 
       default:
         return {
-          content: [{ type: 'text', text: `Error: Unknown tool: ${toolName}` }],
+          content: [{ type: 'text', text: `Error: Unknown tool: ${request.params.name}` }],
           isError: true,
         };
     }
-
-    return {
-      content: [
-        {
-          type: 'text',
-          text: JSON.stringify(
-            {
-              data,
-              _meta: {
-                durationMs: Date.now() - startTime,
-                server: 'revealui-stripe',
-                tool: toolName,
-                timestamp: new Date().toISOString(),
-              },
-            },
-            null,
-            2,
-          ),
-        },
-      ],
-    };
   } catch (err) {
     return {
       content: [

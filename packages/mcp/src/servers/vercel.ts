@@ -83,22 +83,14 @@ async function startVercelMCP() {
 }
 
 /**
- * Launch the Vercel MCP server.
- * Exported for programmatic use by the Hypervisor.
- */
-export async function launchVercelMcp(): Promise<void> {
-  if (!(await checkMcpLicense())) {
-    throw new Error('MCP license check failed');
-  }
-  await startVercelMCP();
-}
-
-/**
- * Main function (CLI entrypoint)
+ * Main function
  */
 async function main() {
   try {
-    await launchVercelMcp();
+    if (!(await checkMcpLicense())) {
+      process.exit(ErrorCode.CONFIG_ERROR);
+    }
+    await startVercelMCP();
   } catch (error) {
     logger.error(`Script failed: ${error instanceof Error ? error.message : String(error)}`);
     process.exit(ErrorCode.EXECUTION_ERROR);

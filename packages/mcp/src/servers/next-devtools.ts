@@ -213,22 +213,14 @@ async function startNextDevToolsMCP() {
 }
 
 /**
- * Launch the Next.js DevTools MCP server.
- * Exported for programmatic use by the Hypervisor.
- */
-export async function launchNextDevtoolsMcp(): Promise<void> {
-  if (!(await checkMcpLicense())) {
-    throw new Error('MCP license check failed');
-  }
-  await startNextDevToolsMCP();
-}
-
-/**
- * Main function (CLI entrypoint)
+ * Main function
  */
 async function main() {
   try {
-    await launchNextDevtoolsMcp();
+    if (!(await checkMcpLicense())) {
+      process.exit(ErrorCode.CONFIG_ERROR);
+    }
+    await startNextDevToolsMCP();
   } catch (error) {
     logger.error(`Script failed: ${error instanceof Error ? error.message : String(error)}`);
     process.exit(ErrorCode.EXECUTION_ERROR);

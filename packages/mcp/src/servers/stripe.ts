@@ -82,22 +82,14 @@ async function startStripeMCP() {
 }
 
 /**
- * Launch the Stripe MCP server.
- * Exported for programmatic use by the Hypervisor.
- */
-export async function launchStripeMcp(): Promise<void> {
-  if (!(await checkMcpLicense())) {
-    throw new Error('MCP license check failed');
-  }
-  await startStripeMCP();
-}
-
-/**
- * Main function (CLI entrypoint)
+ * Main function
  */
 async function main() {
   try {
-    await launchStripeMcp();
+    if (!(await checkMcpLicense())) {
+      process.exit(ErrorCode.CONFIG_ERROR);
+    }
+    await startStripeMCP();
   } catch (error) {
     logger.error(`Script failed: ${error instanceof Error ? error.message : String(error)}`);
     process.exit(ErrorCode.EXECUTION_ERROR);
