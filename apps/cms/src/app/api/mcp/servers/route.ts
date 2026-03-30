@@ -11,6 +11,7 @@
 import { getSession } from '@revealui/auth/server';
 import { type NextRequest, NextResponse } from 'next/server';
 import type { McpServerInfo } from '@/lib/components/agents/mcp-server-card';
+import { extractRequestContext } from '@/lib/utils/request-context';
 
 const MCP_SERVERS: McpServerInfo[] = [
   {
@@ -183,7 +184,7 @@ function resolveStatus(server: McpServerInfo): McpServerInfo['status'] {
 }
 
 export async function GET(request: NextRequest) {
-  const authSession = await getSession(request.headers);
+  const authSession = await getSession(request.headers, extractRequestContext(request));
   if (!authSession) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
   }

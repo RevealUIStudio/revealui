@@ -11,6 +11,7 @@ import {
   createErrorResponse,
   createValidationErrorResponse,
 } from '@/lib/utils/error-response';
+import { extractRequestContext } from '@/lib/utils/request-context';
 import config from '../../../../revealui.config';
 
 export const dynamic = 'force-dynamic';
@@ -170,7 +171,7 @@ export async function POST(request: NextRequest) {
   }
 
   // Require authenticated session with a Pro (or higher) license
-  const authSession = await getSession(request.headers);
+  const authSession = await getSession(request.headers, extractRequestContext(request));
   if (!authSession) {
     return new Response(JSON.stringify({ error: 'Unauthorized' }), {
       status: 401,

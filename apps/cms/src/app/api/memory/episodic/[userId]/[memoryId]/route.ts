@@ -18,6 +18,7 @@ import {
   createErrorResponse,
   createValidationErrorResponse,
 } from '@/lib/utils/error-response';
+import { extractRequestContext } from '@/lib/utils/request-context';
 
 // Infer Database type from getClient return type
 type Database = ReturnType<typeof getClient>;
@@ -53,7 +54,7 @@ export async function PUT(
   let memoryId: string | undefined;
 
   try {
-    const authSession = await getSession(request.headers);
+    const authSession = await getSession(request.headers, extractRequestContext(request));
     if (!authSession) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
@@ -208,7 +209,7 @@ export async function DELETE(
   let memoryId: string | undefined;
 
   try {
-    const authSession = await getSession(request.headers);
+    const authSession = await getSession(request.headers, extractRequestContext(request));
     if (!authSession) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }

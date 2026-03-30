@@ -10,12 +10,13 @@ import { getClient } from '@revealui/db';
 import { createConversation, getConversations } from '@revealui/db/queries/conversations';
 import type { NextRequest } from 'next/server';
 import { checkAIFeatureGate } from '@/lib/middleware/ai-feature-gate';
+import { extractRequestContext } from '@/lib/utils/request-context';
 
 export const dynamic = 'force-dynamic';
 export const runtime = 'nodejs';
 
 export async function GET(request: NextRequest) {
-  const session = await getSession(request.headers);
+  const session = await getSession(request.headers, extractRequestContext(request));
   if (!session) {
     return Response.json({ error: 'Unauthorized' }, { status: 401 });
   }
@@ -35,7 +36,7 @@ export async function GET(request: NextRequest) {
 }
 
 export async function POST(request: NextRequest) {
-  const session = await getSession(request.headers);
+  const session = await getSession(request.headers, extractRequestContext(request));
   if (!session) {
     return Response.json({ error: 'Unauthorized' }, { status: 401 });
   }

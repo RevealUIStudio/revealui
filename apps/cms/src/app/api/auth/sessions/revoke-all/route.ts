@@ -11,13 +11,14 @@ import { deleteOtherUserSessions, getSession } from '@revealui/auth/server';
 import { type NextRequest, NextResponse } from 'next/server';
 import { withRateLimit } from '@/lib/middleware/rate-limit';
 import { createApplicationErrorResponse, createErrorResponse } from '@/lib/utils/error-response';
+import { extractRequestContext } from '@/lib/utils/request-context';
 
 export const dynamic = 'force-dynamic';
 export const runtime = 'nodejs';
 
 async function revokeAllHandler(request: NextRequest): Promise<NextResponse> {
   try {
-    const sessionData = await getSession(request.headers);
+    const sessionData = await getSession(request.headers, extractRequestContext(request));
     if (!sessionData) {
       return createApplicationErrorResponse('Unauthorized', 'UNAUTHORIZED', 401);
     }

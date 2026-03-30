@@ -10,6 +10,7 @@
 import { getSession, unlinkOAuthAccount } from '@revealui/auth/server';
 import { logger } from '@revealui/core/utils/logger';
 import { type NextRequest, NextResponse } from 'next/server';
+import { extractRequestContext } from '@/lib/utils/request-context';
 
 export const dynamic = 'force-dynamic';
 export const runtime = 'nodejs';
@@ -18,7 +19,7 @@ const ALLOWED_PROVIDERS = ['google', 'github', 'vercel'] as const;
 
 export async function POST(request: NextRequest): Promise<NextResponse> {
   // Require authentication
-  const sessionData = await getSession(request.headers);
+  const sessionData = await getSession(request.headers, extractRequestContext(request));
   if (!sessionData) {
     return NextResponse.json({ error: 'Authentication required' }, { status: 401 });
   }

@@ -13,6 +13,7 @@ import { sessions } from '@revealui/db/schema';
 import { and, eq, isNull } from 'drizzle-orm';
 import { type NextRequest, NextResponse } from 'next/server';
 import { createApplicationErrorResponse, createErrorResponse } from '@/lib/utils/error-response';
+import { extractRequestContext } from '@/lib/utils/request-context';
 
 export const dynamic = 'force-dynamic';
 export const runtime = 'nodejs';
@@ -22,7 +23,7 @@ export async function DELETE(
   { params }: { params: Promise<{ sessionId: string }> },
 ): Promise<NextResponse> {
   try {
-    const sessionData = await getSession(request.headers);
+    const sessionData = await getSession(request.headers, extractRequestContext(request));
     if (!sessionData) {
       return createApplicationErrorResponse('Unauthorized', 'UNAUTHORIZED', 401);
     }

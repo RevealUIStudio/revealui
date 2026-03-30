@@ -12,6 +12,7 @@ import { logger } from '@revealui/core/observability/logger';
 import { type NextRequest, NextResponse } from 'next/server';
 import { checkAIMemoryFeatureGate } from '@/lib/middleware/ai-feature-gate';
 import { createErrorResponse, createValidationErrorResponse } from '@/lib/utils/error-response';
+import { extractRequestContext } from '@/lib/utils/request-context';
 
 export const dynamic = 'force-dynamic';
 export const runtime = 'nodejs';
@@ -48,7 +49,7 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
   if (aiGate) return aiGate;
 
   try {
-    const authSession = await getSession(request.headers);
+    const authSession = await getSession(request.headers, extractRequestContext(request));
     if (!authSession) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
