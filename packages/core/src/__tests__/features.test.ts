@@ -52,6 +52,9 @@ const ALL_FEATURES: (keyof FeatureFlags)[] = [
   'dashboard',
   'customDomain',
   'analytics',
+  'vaultDesktop',
+  'vaultRotation',
+  'devkitProfiles',
 ];
 
 /** Features available at free tier (no license required) */
@@ -66,6 +69,8 @@ const PRO_FEATURES: (keyof FeatureFlags)[] = [
   'dashboard',
   'customDomain',
   'analytics',
+  'vaultDesktop',
+  'vaultRotation',
 ];
 
 /** Features that require at least Max tier */
@@ -74,6 +79,7 @@ const MAX_FEATURES: (keyof FeatureFlags)[] = [
   'byokServerSide',
   'aiMultiProvider',
   'auditLog',
+  'devkitProfiles',
 ];
 
 /** Features that require Enterprise tier */
@@ -192,10 +198,10 @@ describe('getFeatures', () => {
     }
   });
 
-  it('returns a FeatureFlags object with exactly 16 keys', () => {
+  it('returns a FeatureFlags object with exactly 19 keys', () => {
     simulateTier('free');
     const features = getFeatures();
-    expect(Object.keys(features)).toHaveLength(16);
+    expect(Object.keys(features)).toHaveLength(19);
   });
 
   it('calls isLicensed for each feature', () => {
@@ -423,6 +429,18 @@ describe('getRequiredTier', () => {
   it('returns enterprise for sso feature', () => {
     expect(getRequiredTier('sso')).toBe('enterprise');
   });
+
+  it('returns pro for vaultDesktop feature', () => {
+    expect(getRequiredTier('vaultDesktop')).toBe('pro');
+  });
+
+  it('returns pro for vaultRotation feature', () => {
+    expect(getRequiredTier('vaultRotation')).toBe('pro');
+  });
+
+  it('returns max for devkitProfiles feature', () => {
+    expect(getRequiredTier('devkitProfiles')).toBe('max');
+  });
 });
 
 // =============================================================================
@@ -433,9 +451,9 @@ describe('tier progression', () => {
   const tiers: LicenseTier[] = ['free', 'pro', 'max', 'enterprise'];
   const expectedEnabledCounts: Record<LicenseTier, number> = {
     free: 2, // aiLocal + aiSampling
-    pro: 9, // 2 free + 7 pro features
-    max: 13, // 2 free + 7 pro + 4 max features
-    enterprise: 14, // 16 total minus 2 hardcoded-off (whiteLabel, sso)
+    pro: 11, // 2 free + 9 pro features (incl. vaultDesktop, vaultRotation)
+    max: 16, // 2 free + 9 pro + 5 max features (incl. devkitProfiles)
+    enterprise: 17, // 19 total minus 2 hardcoded-off (whiteLabel, sso)
   };
 
   it.each(tiers)('%s tier enables exactly %i features', (tier) => {
@@ -529,6 +547,18 @@ describe('feature blocking — free tier restrictions', () => {
 
   it('blocks analytics', () => {
     expect(isFeatureEnabled('analytics')).toBe(false);
+  });
+
+  it('blocks vault desktop', () => {
+    expect(isFeatureEnabled('vaultDesktop')).toBe(false);
+  });
+
+  it('blocks vault rotation', () => {
+    expect(isFeatureEnabled('vaultRotation')).toBe(false);
+  });
+
+  it('blocks devkit profiles', () => {
+    expect(isFeatureEnabled('devkitProfiles')).toBe(false);
   });
 });
 

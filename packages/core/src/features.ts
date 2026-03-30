@@ -45,6 +45,12 @@ export interface FeatureFlags {
   customDomain: boolean;
   /** Analytics and conversion tracking */
   analytics: boolean;
+  /** RevVault desktop app — Tauri companion for encrypted secret management (Pro+) */
+  vaultDesktop: boolean;
+  /** RevVault rotation engine — automated credential lifecycle (Pro+) */
+  vaultRotation: boolean;
+  /** RevKit environment provisioning — tiered dev profiles (Max+) */
+  devkitProfiles: boolean;
 }
 
 /** Feature-to-tier mapping: minimum tier required for each feature */
@@ -68,6 +74,9 @@ const featureTierMap: Record<keyof FeatureFlags, LicenseTier> = {
   // to avoid advertising features that don't exist. Re-enable when implemented.
   whiteLabel: 'enterprise',
   sso: 'enterprise',
+  vaultDesktop: 'pro',
+  vaultRotation: 'pro',
+  devkitProfiles: 'max',
 };
 
 /**
