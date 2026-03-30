@@ -2,9 +2,9 @@
 
 # RevealUI
 
-**Build your business, not your boilerplate.**
+**The agentic business runtime.**
 
-Users. Content. Products. Payments. AI. Everything a software company needs — pre-wired, open source, and ready to deploy.
+Users. Content. Products. Payments. Intelligence. Five primitives, one deployment — build your business, not your boilerplate.
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](https://opensource.org/licenses/MIT)
 [![React 19](https://img.shields.io/badge/React-19-61dafb.svg)](https://react.dev)
@@ -17,7 +17,7 @@ Users. Content. Products. Payments. AI. Everything a software company needs — 
 
 ---
 
-Most developers spend weeks assembling the same infrastructure before they can build their actual product: user accounts, content management, billing, an admin dashboard. RevealUI ships all of it, pre-wired and production-tested, so you start on day one with a running business — not a blank slate.
+RevealUI is an open-source runtime that ships the business logic layer every software product needs — auth, content, products, billing, and AI agents — pre-wired and production-tested. Instead of assembling a dozen services, you start on day one with a running business and agents that natively operate on your data.
 
 ## What you get on day one
 
@@ -35,7 +35,7 @@ You have:
 - **Content management** — define collections in TypeScript, get a full REST API and admin UI instantly
 - **Billing** — Stripe checkout, subscriptions, trials, webhooks, grace periods, and a billing portal
 - **Admin dashboard** — manage users, content, billing, and settings out of the box
-- **50+ UI components** — built with Tailwind CSS v4, zero external UI dependencies
+- **56 UI components** — built with Tailwind CSS v4, zero external UI dependencies
 - **Type-safe throughout** — Zod schemas shared between client, server, and database
 
 No assembly required. No consulting 12 different documentation sites. No decisions about which auth library to use.
@@ -49,6 +49,19 @@ No assembly required. No consulting 12 different documentation sites. No decisio
 | **Products**     | Product catalog, pricing tiers, metered services, usage tracking                   |
 | **Payments**     | Stripe checkout, subscriptions, trials, webhooks, grace periods, usage meters      |
 | **Intelligence** | AI agents, MCP servers, BYOK multi-provider, task history _(Pro)_                  |
+
+## Ecosystem
+
+RevealUI is the runtime at the center of a four-project ecosystem:
+
+| Project        | Purpose                                          | License           |
+| -------------- | ------------------------------------------------ | ----------------- |
+| **RevealUI**   | Agentic business runtime (this repo)             | MIT + Commercial  |
+| **RevVault**   | Age-encrypted secret vault (Rust CLI + desktop)  | MIT + Pro         |
+| **RevKit**     | Portable dev environment toolkit (WSL, Docker)   | MIT + Max         |
+| **RevealCoin** | Solana token for x402 agent micropayments        | Forge             |
+
+Each project stands alone. Together, they cover the full lifecycle of building, securing, coordinating, and monetizing agentic software.
 
 ## Define your business data
 
@@ -96,19 +109,19 @@ Pro packages are source-available on npm under a [commercial license](LICENSE.co
 | Tier           | Price     | What you get                                                       |
 | -------------- | --------- | ------------------------------------------------------------------ |
 | **Free**       | $0        | Full OSS core — users, content, products, payments, admin          |
-| **Pro**        | $49/mo    | AI agents, MCP framework, BYOK, editor config sync, advanced sync  |
-| **Max**        | $149/mo   | Multi-provider AI, audit log, priority support, higher limits      |
-| **Enterprise** | $299/mo   | White-label, multi-tenant, SSO, domain-locked _(infrastructure preview)_ |
+| **Pro**        | $49/mo    | AI agents, MCP framework, BYOK, advanced sync, RevVault desktop + rotation engine |
+| **Max**        | $149/mo   | Multi-provider AI, audit log, higher limits, RevKit environment provisioning      |
+| **Forge**      | $299/mo   | Multi-tenant, SSO (planned), domain-locked, RevealCoin x402 agent payments       |
 
 ## Apps
 
 | App          | Framework        | Purpose                                      |
 | ------------ | ---------------- | -------------------------------------------- |
 | `api`        | Hono             | REST API with OpenAPI + Swagger              |
-| `cms`        | Next.js 16       | Headless CMS with admin dashboard            |
+| `cms`        | Next.js 16       | Admin dashboard + content management         |
 | `docs`       | Vite + React     | Documentation site                           |
 | `marketing`  | Next.js          | Marketing site + waitlist                    |
-| `studio`     | Tauri 2 + React  | Desktop companion (app launcher, system tray)|
+| `studio`     | Tauri 2 + React  | Desktop companion (vault, agent coordination, system tray) |
 | `terminal`   | Go (Bubble Tea)  | TUI client (API integration, QR checkout)    |
 | `revealcoin` | Next.js          | RevealCoin token explorer (experimental)     |
 
@@ -118,11 +131,11 @@ Pro packages are source-available on npm under a [commercial license](LICENSE.co
 
 | Package                                                 | Purpose                                           |
 | ------------------------------------------------------- | ------------------------------------------------- |
-| [`@revealui/core`](packages/core)                       | CMS engine, REST API, auth, rich text, plugins    |
+| [`@revealui/core`](packages/core)                       | Runtime engine, REST API, auth, rich text, plugins |
 | [`@revealui/contracts`](packages/contracts)             | Zod schemas + TypeScript types (single source)    |
-| [`@revealui/db`](packages/db)                           | Drizzle ORM schema (75 tables), dual-DB client    |
+| [`@revealui/db`](packages/db)                           | Drizzle ORM schema (76 tables), dual-DB client    |
 | [`@revealui/auth`](packages/auth)                       | Session auth, password reset, rate limiting       |
-| [`@revealui/presentation`](packages/presentation)       | 50+ UI components (Tailwind v4, zero ext deps)    |
+| [`@revealui/presentation`](packages/presentation)       | 56 UI components (Tailwind v4, zero ext deps)     |
 | [`@revealui/openapi`](packages/openapi)                 | OpenAPI route helpers and Swagger generation       |
 | [`@revealui/router`](packages/router)                   | Lightweight file-based router with SSR            |
 | [`@revealui/config`](packages/config)                   | Type-safe environment configuration               |

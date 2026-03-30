@@ -68,6 +68,23 @@ RevealUI Pro currently groups commercial capabilities such as:
 - Stripe and Supabase service integrations
 - x402 micropayments and paid API support
 - marketplace and self-hosted commercial deployment options
+- RevVault desktop app (Tauri) for age-encrypted secret management
+- RevVault rotation engine for automated credential lifecycle
+
+## Ecosystem Features by Tier
+
+RevealUI is part of a four-project ecosystem. Each project has features distributed across tiers:
+
+| Feature | Free | Pro | Max | Forge |
+|---------|------|-----|-----|-------|
+| RevVault CLI + core crate | Yes | Yes | Yes | Yes |
+| RevVault desktop app | | Yes | Yes | Yes |
+| RevVault rotation engine | | Yes | Yes | Yes |
+| RevKit agent coordination protocol | Yes | Yes | Yes | Yes |
+| RevKit environment provisioning | | | Yes | Yes |
+| RevealCoin x402 agent payments | | | | Yes |
+
+The MIT-licensed components (RevVault CLI, RevKit agent coordination) are free forever. Commercial features (desktop app, rotation engine, provisioning, x402 payments) require the corresponding tier.
 
 ## MCP Setup
 
