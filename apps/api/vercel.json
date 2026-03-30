@@ -1,6 +1,6 @@
 {
   "framework": null,
-  "installCommand": "cd ../.. && pnpm install --no-frozen-lockfile",
+  "installCommand": "cd ../.. && pnpm install --frozen-lockfile",
   "buildCommand": "cd ../.. && pnpm --filter api run vercel-build",
   "functions": {
     "api/**": {

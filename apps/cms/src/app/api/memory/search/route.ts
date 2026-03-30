@@ -9,7 +9,7 @@
 import { checkRateLimit, getSession } from '@revealui/auth/server';
 import { logger } from '@revealui/core/observability/logger';
 import { type NextRequest, NextResponse } from 'next/server';
-import { checkAIFeatureGate } from '@/lib/middleware/ai-feature-gate';
+import { checkAIMemoryFeatureGate } from '@/lib/middleware/ai-feature-gate';
 import { createErrorResponse, createValidationErrorResponse } from '@/lib/utils/error-response';
 
 /** Rate limit: 30 requests per minute per user */
@@ -39,7 +39,7 @@ export const runtime = 'nodejs';
  * }
  */
 export async function POST(request: NextRequest): Promise<NextResponse> {
-  const aiGate = checkAIFeatureGate();
+  const aiGate = checkAIMemoryFeatureGate();
   if (aiGate) return aiGate;
 
   try {

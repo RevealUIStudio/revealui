@@ -11,7 +11,7 @@ import { getClient } from '@revealui/db/client';
 import { aiMemorySessions } from '@revealui/db/schema';
 import { eq } from 'drizzle-orm';
 import { type NextRequest, NextResponse } from 'next/server';
-import { checkAIFeatureGate } from '@/lib/middleware/ai-feature-gate';
+import { checkAIMemoryFeatureGate } from '@/lib/middleware/ai-feature-gate';
 import { getNodeIdFromSession } from '@/lib/utilities/nodeId';
 import { createErrorResponse, createValidationErrorResponse } from '@/lib/utils/error-response';
 
@@ -42,7 +42,7 @@ export async function GET(
   request: NextRequest,
   { params }: { params: Promise<{ sessionId: string }> },
 ): Promise<NextResponse> {
-  const aiGate = checkAIFeatureGate();
+  const aiGate = checkAIMemoryFeatureGate();
   if (aiGate) return aiGate;
 
   let sessionId: string | undefined;
@@ -120,7 +120,7 @@ export async function POST(
   request: NextRequest,
   { params }: { params: Promise<{ sessionId: string }> },
 ): Promise<NextResponse> {
-  const aiGate = checkAIFeatureGate();
+  const aiGate = checkAIMemoryFeatureGate();
   if (aiGate) return aiGate;
 
   let sessionId: string | undefined;

@@ -1,6 +1,6 @@
 {
   "buildCommand": "cd ../.. && pnpm --filter cms run vercel-build",
-  "installCommand": "cd ../.. && pnpm install --no-frozen-lockfile",
+  "installCommand": "cd ../.. && pnpm install --frozen-lockfile",
   "framework": "nextjs",
   "github": { "silent": true },
   "relatedProjects": ["prj_zk6EQijYXwd9L7BccuBssi436ktM"],
