@@ -5,47 +5,30 @@
 # Usage:  pnpm push            (pushes current branch to origin)
 #         pnpm push main       (pushes to specific branch)
 #
+# Strategy: run the gate in a temporary git worktree so other
+# agents' in-progress files never interfere. The main worktree
+# is untouched — no stash, no restore, no lost files.
+#
 # What it does:
 #   1. Acquires an exclusive lock (only one push at a time)
-#   2. Clears turbo cache (prevents stale test/build results)
-#   3. Copies dirty files to /tmp, then cleans the worktree
-#   4. Runs git push (pre-push hook runs the gate on clean tree)
-#   5. Copies files back from /tmp and releases the lock
-#
-# Why not git stash?
-#   git stash pop conflicts when the index changed during the
-#   gate, or when other agents wrote new files in the interim.
-#   Plain file copies never conflict — they just overwrite.
-#
-# The pre-push hook detects REVEALUI_PUSH_COORDINATED=1 and
-# skips its own stash/restore cycle (this script handles it).
+#   2. Creates a clean worktree from HEAD
+#   3. Runs `pnpm gate` in the worktree (isolated from agents)
+#   4. If gate passes, pushes from the main worktree
+#   5. Removes the worktree and releases the lock
 # ─────────────────────────────────────────────────────────────
 set -euo pipefail
 
 LOCK_FILE="/tmp/revealui-push.lock"
 LOCK_TIMEOUT=600  # 10 minutes max hold
-STASH_DIR=""
-FILE_COUNT=0
+WORKTREE_DIR=""
 
 # ── Cleanup on exit (always runs) ────────────────────────────
 cleanup() {
   local exit_code=$?
 
-  # Restore saved files
-  if [ -n "$STASH_DIR" ] && [ -d "$STASH_DIR/files" ]; then
-    echo ""
-    echo "Restoring $FILE_COUNT file(s) from other agents..."
-
-    # Restore each file to its original path
-    while IFS= read -r relpath; do
-      local dir
-      dir=$(dirname "$relpath")
-      mkdir -p "$dir"
-      cp -f "$STASH_DIR/files/$relpath" "$relpath"
-    done < "$STASH_DIR/manifest"
-
-    echo "  Done — all files restored"
-    rm -rf "$STASH_DIR"
+  # Remove worktree
+  if [ -n "$WORKTREE_DIR" ] && [ -d "$WORKTREE_DIR" ]; then
+    git worktree remove --force "$WORKTREE_DIR" 2>/dev/null || rm -rf "$WORKTREE_DIR"
   fi
 
   # Release lock
@@ -103,81 +86,6 @@ acquire_lock() {
   exit 1
 }
 
-# ── Save dirty files to /tmp, then clean worktree ────────────
-save_dirty_files() {
-  # Collect dirty file list into a temp file (avoids subshell pipe)
-  local status_file
-  status_file=$(mktemp)
-  git status --porcelain > "$status_file" 2>/dev/null || true
-
-  if [ ! -s "$status_file" ]; then
-    rm -f "$status_file"
-    return 0
-  fi
-
-  STASH_DIR="/tmp/revealui-push-stash-$$"
-  mkdir -p "$STASH_DIR/files"
-  : > "$STASH_DIR/manifest"
-
-  # Read from file, not pipe — no subshell variable scoping issues
-  while IFS= read -r line; do
-    local status="${line:0:2}"
-    local filepath="${line:3}"
-
-    # Skip deleted files
-    [[ "$status" == " D" || "$status" == "D " ]] && continue
-
-    # Handle renames (take new path)
-    [[ "$filepath" == *" -> "* ]] && filepath="${filepath##* -> }"
-
-    # Strip quotes
-    filepath="${filepath%\"}"
-    filepath="${filepath#\"}"
-
-    if [ -f "$filepath" ]; then
-      local dir
-      dir=$(dirname "$filepath")
-      mkdir -p "$STASH_DIR/files/$dir"
-      cp -f "$filepath" "$STASH_DIR/files/$filepath"
-      echo "$filepath" >> "$STASH_DIR/manifest"
-      FILE_COUNT=$((FILE_COUNT + 1))
-    fi
-  done < "$status_file"
-  rm -f "$status_file"
-
-  if [ "$FILE_COUNT" -eq 0 ]; then
-    rm -rf "$STASH_DIR"
-    STASH_DIR=""
-    return 0
-  fi
-
-  echo "  Saved $FILE_COUNT file(s) to $STASH_DIR"
-
-  # Clean the worktree: revert tracked, remove untracked
-  git checkout -- . 2>/dev/null || true
-
-  # Remove untracked files that we saved
-  while IFS= read -r relpath; do
-    if ! git ls-files --error-unmatch "$relpath" >/dev/null 2>&1; then
-      rm -f "$relpath" 2>/dev/null || true
-      # Clean up empty parent dirs
-      local parent
-      parent=$(dirname "$relpath")
-      while [ "$parent" != "." ] && [ -d "$parent" ] && [ -z "$(ls -A "$parent" 2>/dev/null)" ]; do
-        rmdir "$parent" 2>/dev/null || break
-        parent=$(dirname "$parent")
-      done
-    fi
-  done < "$STASH_DIR/manifest"
-
-  # Verify clean
-  local remaining
-  remaining=$(git status --porcelain 2>/dev/null | wc -l)
-  if [ "$remaining" -gt 0 ]; then
-    echo "  Warning: $remaining file(s) still dirty after cleanup"
-  fi
-}
-
 # ── Main ─────────────────────────────────────────────────────
 BRANCH=$(git rev-parse --abbrev-ref HEAD)
 TARGET="${1:-$BRANCH}"
@@ -190,24 +98,40 @@ echo "════════════════════════�
 echo ""
 
 # Step 1: Acquire exclusive lock
-echo "[1/4] Acquiring push lock..."
+echo "[1/5] Acquiring push lock..."
 acquire_lock
 echo "  Lock acquired (PID $$)"
 
-# Step 2: Clear turbo cache
-echo "[2/4] Clearing turbo cache..."
-rm -rf .turbo node_modules/.cache/turbo 2>/dev/null || true
+# Step 2: Create isolated worktree
+WORKTREE_DIR="/tmp/revealui-gate-worktree-$$"
+echo "[2/5] Creating clean worktree at $WORKTREE_DIR..."
+git worktree add --detach "$WORKTREE_DIR" HEAD -q
 echo "  Done"
 
-# Step 3: Save dirty files to /tmp (no git stash — just file copies)
-echo "[3/4] Checking for uncommitted files..."
-save_dirty_files
+# Step 3: Install deps in worktree (shares node_modules via hoisting)
+echo "[3/5] Installing dependencies in worktree..."
+(cd "$WORKTREE_DIR" && pnpm install --frozen-lockfile --prefer-offline -s 2>/dev/null) || true
+echo "  Done"
 
-# Step 4: Push (pre-push hook will run the gate)
-echo "[4/4] Pushing to $REMOTE/$TARGET..."
+# Step 4: Run gate in worktree (isolated — other agents can't interfere)
+echo "[4/5] Running gate in isolated worktree..."
 echo ""
+GATE_EXIT=0
+(cd "$WORKTREE_DIR" && pnpm gate) || GATE_EXIT=$?
+
+if [ "$GATE_EXIT" -ne 0 ]; then
+  echo ""
+  echo "═══════════════════════════════════════════════════"
+  echo "  Gate FAILED — push aborted"
+  echo "═══════════════════════════════════════════════════"
+  exit "$GATE_EXIT"
+fi
+
+# Step 5: Gate passed — push (skip pre-push hook since we already ran gate)
+echo ""
+echo "[5/5] Gate passed — pushing to $REMOTE/$TARGET..."
 export REVEALUI_PUSH_COORDINATED=1
-git push "$REMOTE" "$TARGET"
+git push --no-verify "$REMOTE" "$TARGET"
 
 echo ""
 echo "═══════════════════════════════════════════════════"

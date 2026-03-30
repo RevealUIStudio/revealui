@@ -37,7 +37,7 @@ fi
 # Skip if the coordinated push script already handled this
 SAVE_DIR=""
 if [ "${REVEALUI_PUSH_COORDINATED:-0}" != "1" ]; then
-  DIRTY=$(git status --porcelain 2>/dev/null || true)
+  DIRTY=$(git status --porcelain -u 2>/dev/null || true)
   if [ -n "$DIRTY" ]; then
     SAVE_DIR="/tmp/revealui-prepush-save-$$"
     mkdir -p "$SAVE_DIR/files"
@@ -48,7 +48,7 @@ if [ "${REVEALUI_PUSH_COORDINATED:-0}" != "1" ]; then
 
     # Write status to temp file to avoid subshell
     STATUS_FILE=$(mktemp)
-    echo "$DIRTY" > "$STATUS_FILE"
+    git status --porcelain -u > "$STATUS_FILE" 2>/dev/null || true
 
     while IFS= read -r line; do
       status="${line:0:2}"
