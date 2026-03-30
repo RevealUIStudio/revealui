@@ -161,6 +161,7 @@
     "preflight": "tsx scripts/validate/pre-launch.ts",
     "preinstall": "npx only-allow pnpm",
     "prepare": "husky",
+    "cleanup": "bash scripts/git-hooks/cleanup.sh",
     "push": "bash scripts/git-hooks/push.sh",
     "release": "tsx scripts/cli/release.ts",
     "release:dry-run": "tsx scripts/cli/release.ts dry-run",

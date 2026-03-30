@@ -229,7 +229,15 @@ async function gate(): Promise<void> {
           ],
           timeout: 600000,
         }
-      : { name: 'Biome lint', command: 'pnpm', args: ['lint:biome'], timeout: 600000 };
+      : {
+          name: 'Biome lint',
+          command: 'bash',
+          args: [
+            '-c',
+            'git ls-files --cached -- "*.ts" "*.tsx" "*.js" "*.jsx" "*.json" | xargs node_modules/.bin/biome check',
+          ],
+          timeout: 600000,
+        };
 
     const phase1Checks: CheckDef[] = [
       biomeCheck,
