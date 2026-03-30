@@ -175,7 +175,7 @@
     "stripe:seed": "tsx scripts/setup/seed-stripe.ts",
     "studio:build": "cd apps/studio/src-tauri && cargo tauri build",
     "studio:dev": "cd apps/studio/src-tauri && cargo tauri dev",
-    "test": "turbo run test --concurrency=15",
+    "test": "turbo run test --concurrency=4",
     "test:coverage": "turbo run test:coverage --filter=!@revealui/harnesses -- --coverage.thresholds.lines=0 --coverage.thresholds.functions=0 --coverage.thresholds.statements=0 --coverage.thresholds.branches=0",
     "test:e2e": "playwright test",
     "test:e2e:headed": "playwright test --headed",
