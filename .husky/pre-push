@@ -33,15 +33,53 @@ if [ -n "$RANGE" ]; then
   fi
 fi
 
-# Auto-stash other agents' uncommitted work before gate
-# This prevents lint/build failures from other agents' in-progress edits
-DIRTY_FILES=$(git status --porcelain 2>/dev/null)
-STASHED=0
-if [ -n "$DIRTY_FILES" ]; then
+# ── Save dirty files to /tmp (never use git stash — it loses data on pop) ──
+# Skip if the coordinated push script already handled this
+SAVE_DIR=""
+if [ "${REVEALUI_PUSH_COORDINATED:-0}" != "1" ]; then
+  DIRTY=$(git status --porcelain 2>/dev/null || true)
+  if [ -n "$DIRTY" ]; then
+    SAVE_DIR="/tmp/revealui-prepush-save-$$"
+    mkdir -p "$SAVE_DIR/files"
+    : > "$SAVE_DIR/manifest"
+
+    echo ""
+    echo "Saving uncommitted files before gate..."
+
+    # Write status to temp file to avoid subshell
+    STATUS_FILE=$(mktemp)
+    echo "$DIRTY" > "$STATUS_FILE"
+
+    while IFS= read -r line; do
+      status="${line:0:2}"
+      filepath="${line:3}"
+      [[ "$status" == " D" || "$status" == "D " ]] && continue
+      [[ "$filepath" == *" -> "* ]] && filepath="${filepath##* -> }"
+      filepath="${filepath%\"}"
+      filepath="${filepath#\"}"
+      if [ -f "$filepath" ]; then
+        dir=$(dirname "$filepath")
+        mkdir -p "$SAVE_DIR/files/$dir"
+        cp -f "$filepath" "$SAVE_DIR/files/$filepath"
+        echo "$filepath" >> "$SAVE_DIR/manifest"
+      fi
+    done < "$STATUS_FILE"
+    rm -f "$STATUS_FILE"
+
+    FILE_COUNT=$(wc -l < "$SAVE_DIR/manifest")
+    echo "  Saved $FILE_COUNT file(s) to $SAVE_DIR"
+
+    # Clean worktree
+    git checkout -- . 2>/dev/null || true
+    while IFS= read -r relpath; do
+      if ! git ls-files --error-unmatch "$relpath" >/dev/null 2>&1; then
+        rm -f "$relpath" 2>/dev/null || true
+      fi
+    done < "$SAVE_DIR/manifest"
+  fi
+else
   echo ""
-  echo "Stashing uncommitted changes from other agents before gate..."
-  git stash push --include-untracked -m "pre-push-auto-stash-$(date +%s)" -q 2>/dev/null
-  STASHED=1
+  echo "(Dirty file handling by coordinated push script)"
 fi
 
 # Branch-aware gate strictness
@@ -64,11 +102,17 @@ case "$BRANCH" in
     ;;
 esac
 
-# Restore stashed changes regardless of gate result
-if [ "$STASHED" -eq 1 ]; then
+# Restore saved files (plain copy — never conflicts)
+if [ -n "$SAVE_DIR" ] && [ -f "$SAVE_DIR/manifest" ]; then
   echo ""
-  echo "Restoring stashed changes..."
-  git stash pop -q 2>/dev/null || echo "Warning: stash pop failed — run 'git stash pop' manually"
+  echo "Restoring saved files..."
+  while IFS= read -r relpath; do
+    dir=$(dirname "$relpath")
+    mkdir -p "$dir"
+    cp -f "$SAVE_DIR/files/$relpath" "$relpath"
+  done < "$SAVE_DIR/manifest"
+  echo "  Restored $(wc -l < "$SAVE_DIR/manifest") file(s)"
+  rm -rf "$SAVE_DIR"
 fi
 
 exit $GATE_EXIT
