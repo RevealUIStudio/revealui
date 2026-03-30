@@ -15,44 +15,46 @@ const geistMono = Geist_Mono({
 
 export const metadata: Metadata = {
   metadataBase: new URL('https://revealui.com'),
-  title: 'RevealUI — Business Operating System Software (B.O.S.S.)',
+  title: 'RevealUI — The Agentic Business Runtime',
   description:
-    'Business Operating System Software (B.O.S.S.). Users, content, products, payments, and AI — pre-wired, open source, and ready to deploy.',
+    'The agentic business runtime. Users, content, products, payments, and AI — pre-wired, open source, and part of a four-project ecosystem for building, securing, and monetizing agentic software.',
   keywords: [
     'open source',
-    'business OS',
-    'BOSS',
+    'agentic business runtime',
     'SaaS',
     'auth',
     'billing',
     'AI agents',
     'Stripe',
     'TypeScript',
+    'RevVault',
+    'RevKit',
+    'RevealCoin',
+    'ecosystem',
+    'secret vault',
   ],
   authors: [{ name: 'RevealUI Studio' }],
   openGraph: {
-    title:
-      'RevealUI — Business Operating System Software (B.O.S.S.). Build your business, not your boilerplate.',
+    title: 'RevealUI — The Agentic Business Runtime. Build your business, not your boilerplate.',
     description:
-      'The UI for the future has yet to Reveal itself. Users, content, products, payments, and AI — pre-wired, open source, and ready to deploy.',
+      'The agentic business runtime. Users, content, products, payments, and AI — pre-wired, open source, and ready to deploy.',
     type: 'website',
     images: [
       {
-        url: '/api/og?title=RevealUI&description=Business OS. Build your business, not your boilerplate.',
+        url: '/api/og?title=RevealUI&description=The agentic business runtime. Build your business, not your boilerplate.',
         width: 1200,
         height: 630,
-        alt: 'RevealUI — Business Operating System Software (B.O.S.S.)',
+        alt: 'RevealUI — The Agentic Business Runtime',
       },
     ],
   },
   twitter: {
     card: 'summary_large_image',
-    title:
-      'RevealUI — Business Operating System Software (B.O.S.S.). Build your business, not your boilerplate.',
+    title: 'RevealUI — The Agentic Business Runtime. Build your business, not your boilerplate.',
     description:
-      'The UI for the future has yet to Reveal itself. Users, content, products, payments, and AI — pre-wired, open source, and ready to deploy.',
+      'The agentic business runtime. Users, content, products, payments, and AI — pre-wired, open source, and ready to deploy.',
     images: [
-      '/api/og?title=RevealUI&description=Business OS. Build your business, not your boilerplate.',
+      '/api/og?title=RevealUI&description=The agentic business runtime. Build your business, not your boilerplate.',
     ],
   },
 };
