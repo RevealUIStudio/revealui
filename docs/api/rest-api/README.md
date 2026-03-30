@@ -57,7 +57,7 @@ RevealUI uses **session-based authentication** (no JWTs). Sign in via `POST /aut
 **Responses**
 
 - `200` — Agent card
-- `403` — AI feature requires Pro or Enterprise license
+- `403` — AI feature requires Pro or Forge license
 - `404` — Agent not found
 
 ---
@@ -76,7 +76,7 @@ RevealUI uses **session-based authentication** (no JWTs). Sign in via `POST /aut
 
 - `200` — Agent card
 - `400` — Invalid agent ID format
-- `403` — AI feature requires Pro or Enterprise license
+- `403` — AI feature requires Pro or Forge license
 - `404` — Agent not found
 
 ---
@@ -109,7 +109,7 @@ RevealUI uses **session-based authentication** (no JWTs). Sign in via `POST /aut
 **Responses**
 
 - `200` — Agent card list
-- `403` — AI feature requires Pro or Enterprise license
+- `403` — AI feature requires Pro or Forge license
 
 ---
 
@@ -125,7 +125,7 @@ See API schema for request body shape.
 
 - `201` — Agent registered
 - `400` — Invalid request
-- `403` — AI feature requires Pro or Enterprise license
+- `403` — AI feature requires Pro or Forge license
 - `409` — Agent already registered
 
 ---
@@ -144,7 +144,7 @@ See API schema for request body shape.
 
 - `200` — Agent card
 - `400` — Invalid agent ID format
-- `403` — AI feature requires Pro or Enterprise license
+- `403` — AI feature requires Pro or Forge license
 - `404` — Agent not found
 
 ---
@@ -175,7 +175,7 @@ See API schema for request body shape.
 
 - `200` — Updated agent card
 - `400` — Invalid request
-- `403` — AI feature requires Pro or Enterprise license
+- `403` — AI feature requires Pro or Forge license
 - `404` — Agent not found
 
 ---
@@ -194,7 +194,7 @@ See API schema for request body shape.
 
 - `200` — Agent retired
 - `400` — Invalid agent ID format
-- `403` — Built-in agents cannot be retired or AI feature requires Pro or Enterprise license
+- `403` — Built-in agents cannot be retired or AI feature requires Pro or Forge license
 - `404` — Agent not found
 
 ---
@@ -213,7 +213,7 @@ See API schema for request body shape.
 
 - `200` — Agent definition
 - `400` — Invalid agent ID format
-- `403` — AI feature requires Pro or Enterprise license
+- `403` — AI feature requires Pro or Forge license
 - `404` — Agent not found
 
 ---
@@ -249,7 +249,7 @@ See API schema for request body shape.
 **Responses**
 
 - `200` — SSE event stream
-- `403` — AI feature requires Pro or Enterprise license
+- `403` — AI feature requires Pro or Forge license
 
 ---
 
@@ -265,7 +265,7 @@ See API schema for request body shape.
 
 - `200` — JSON-RPC response
 - `400` — Parse error or invalid request
-- `403` — AI feature requires Pro or Enterprise license
+- `403` — AI feature requires Pro or Forge license
 
 ---
 
@@ -730,8 +730,8 @@ Creates a signed JWT license key for a customer. Requires REVEALUI_LICENSE_PRIVA
 | `tier` | `string` | ✓ | License tier to generate |
 | `customerId` | `string` | ✓ | Stripe customer ID or internal customer identifier |
 | `domains` | `array` | — | Licensed domains (optional) |
-| `maxSites` | `integer` | — | Maximum sites (defaults: Pro=5, Enterprise=unlimited) |
-| `maxUsers` | `integer` | — | Maximum users (defaults: Pro=25, Enterprise=unlimited) |
+| `maxSites` | `integer` | — | Maximum sites (defaults: Pro=5, Forge=unlimited) |
+| `maxUsers` | `integer` | — | Maximum users (defaults: Pro=25, Forge=unlimited) |
 | `expiresInDays` | `integer` | — | License duration in days (default: 365, max: 10 years) |
 
 **Responses**
@@ -786,8 +786,8 @@ Creates a signed JWT license key for a customer. Requires REVEALUI_LICENSE_PRIVA
 | `tier` | `string` | ✓ | License tier to generate |
 | `customerId` | `string` | ✓ | Stripe customer ID or internal customer identifier |
 | `domains` | `array` | — | Licensed domains (optional) |
-| `maxSites` | `integer` | — | Maximum sites (defaults: Pro=5, Enterprise=unlimited) |
-| `maxUsers` | `integer` | — | Maximum users (defaults: Pro=25, Enterprise=unlimited) |
+| `maxSites` | `integer` | — | Maximum sites (defaults: Pro=5, Forge=unlimited) |
+| `maxUsers` | `integer` | — | Maximum users (defaults: Pro=25, Forge=unlimited) |
 | `expiresInDays` | `integer` | — | License duration in days (default: 365, max: 10 years) |
 
 **Responses**
@@ -883,7 +883,7 @@ Upgrades an active subscription to a new price/tier mid-cycle. Prorations are cr
 
 **Downgrade to free tier**
 
-Cancels the active subscription at the end of the current billing period. The user retains Pro/Enterprise access until then.
+Cancels the active subscription at the end of the current billing period. The user retains Pro/Forge access until then.
 
 **Responses**
 
@@ -1106,7 +1106,7 @@ Upgrades an active subscription to a new price/tier mid-cycle. Prorations are cr
 
 **Downgrade to free tier**
 
-Cancels the active subscription at the end of the current billing period. The user retains Pro/Enterprise access until then.
+Cancels the active subscription at the end of the current billing period. The user retains Pro/Forge access until then.
 
 **Responses**
 
@@ -2792,7 +2792,7 @@ Creates a ticket from the instruction, dispatches an AI agent with CMS tools to 
 
 - `200` — Agent task completed
 - `400` — Bad request
-- `403` — AI feature requires Pro or Enterprise license
+- `403` — AI feature requires Pro or Forge license
 
 ---
 
@@ -2809,7 +2809,7 @@ Creates a ticket from the instruction, dispatches an AI agent with CMS tools to 
 **Responses**
 
 - `200` — Agent dispatch completed
-- `403` — AI feature requires Pro or Enterprise license
+- `403` — AI feature requires Pro or Forge license
 - `404` — Ticket not found
 
 ---
@@ -2832,7 +2832,7 @@ Creates a ticket from the instruction, dispatches an AI agent with CMS tools to 
 
 - `200` — Agent task completed
 - `400` — Bad request
-- `403` — AI feature requires Pro or Enterprise license
+- `403` — AI feature requires Pro or Forge license
 
 ---
 
@@ -2849,7 +2849,7 @@ Creates a ticket from the instruction, dispatches an AI agent with CMS tools to 
 **Responses**
 
 - `200` — Agent dispatch completed
-- `403` — AI feature requires Pro or Enterprise license
+- `403` — AI feature requires Pro or Forge license
 - `404` — Ticket not found
 
 ---
@@ -2877,7 +2877,7 @@ Streams agent execution events in real-time using Server-Sent Events. Client-sid
 
 - `200` — SSE stream of agent execution events (text/event-stream)
 - `400` — Missing instruction or invalid provider
-- `403` — AI feature requires Pro or Enterprise license
+- `403` — AI feature requires Pro or Forge license
 
 ---
 
@@ -2902,7 +2902,7 @@ Streams agent execution events in real-time using Server-Sent Events. Client-sid
 
 - `200` — SSE stream of agent execution events (text/event-stream)
 - `400` — Missing instruction or invalid provider
-- `403` — AI feature requires Pro or Enterprise license
+- `403` — AI feature requires Pro or Forge license
 
 ---
 
@@ -4541,7 +4541,7 @@ Admin-only bulk export endpoint. Supported collections: posts, pages, users, sit
 
 - `200` — Indexing completed
 - `400` — Invalid collection name
-- `403` — AI feature requires Pro or Enterprise license
+- `403` — AI feature requires Pro or Forge license
 - `502` — CMS fetch error
 
 ---
@@ -4576,7 +4576,7 @@ Admin-only bulk export endpoint. Supported collections: posts, pages, users, sit
 **Responses**
 
 - `200` — Document deleted
-- `403` — AI feature requires Pro or Enterprise license
+- `403` — AI feature requires Pro or Forge license
 
 ---
 
@@ -4611,7 +4611,7 @@ Admin-only bulk export endpoint. Supported collections: posts, pages, users, sit
 
 - `200` — Indexing completed
 - `400` — Invalid collection name
-- `403` — AI feature requires Pro or Enterprise license
+- `403` — AI feature requires Pro or Forge license
 - `502` — CMS fetch error
 
 ---
@@ -4646,7 +4646,7 @@ Admin-only bulk export endpoint. Supported collections: posts, pages, users, sit
 **Responses**
 
 - `200` — Document deleted
-- `403` — AI feature requires Pro or Enterprise license
+- `403` — AI feature requires Pro or Forge license
 
 ---
 

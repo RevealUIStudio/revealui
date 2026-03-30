@@ -8,7 +8,7 @@ Brutally honest audit of what RevealUI documentation claims versus what the code
 
 ## Executive Summary
 
-RevealUI's core framework is **real and production-grade** — auth, billing, CMS engine, 50+ UI components, 75-table database, 10,784+ tests. The documentation is mostly accurate but has version drift, stale counts, broken internal links, and a few areas where aspirational language outpaces implementation. The biggest gaps are in examples (3 of 6 are README-only), ElectricSQL sync (basic), and Forge self-hosting (infrastructure skeletons only).
+RevealUI's core framework is **real and production-grade** — auth, billing, CMS engine, 56 UI components, 76-table database, 13,700+ tests. The documentation is mostly accurate but has version drift, stale counts, broken internal links, and a few areas where aspirational language outpaces implementation. The biggest gaps are in examples (3 of 6 are README-only), ElectricSQL sync (basic), and Forge self-hosting (infrastructure skeletons only).
 
 ---
 
@@ -19,7 +19,7 @@ RevealUI's core framework is **real and production-grade** — auth, billing, CM
 | Claim | Where | Actual | Fix |
 |-------|-------|--------|-----|
 | TypeScript 5.9 | README badge | **6.0.2** | Update badge |
-| 68 database tables | README, CLAUDE.md, QUICK_START | **75 pgTable declarations** | Update all references |
+| 68 database tables | README, CLAUDE.md, QUICK_START | **76 pgTable declarations** | Update all references |
 | ~~6 apps~~ | ~~README~~ | ~~**7** (revealcoin app undocumented)~~ | ✅ Fixed — revealcoin listed as experimental |
 | Node.js 24.0 | README/badges | **24.13.0** (.node-version) | Minor — acceptable |
 
@@ -47,7 +47,7 @@ RevealUI's core framework is **real and production-grade** — auth, billing, CM
 | Stripe checkout/subscriptions/webhooks | 1,100-line webhook handler, 12 event types |
 | Drizzle ORM dual-DB (NeonDB + Supabase) | Schema + queries + boundary enforcement |
 | Biome 2 linting | Pre-commit hooks, CI hard-fail |
-| 10,784+ tests | Vitest + Playwright, passing in CI |
+| 13,700+ tests | Vitest + Playwright, passing in CI |
 | MCP servers | 12 server files in packages/mcp/src/servers/ |
 | Content layer | 29 canonical definitions, byte-identical generation |
 
@@ -55,7 +55,7 @@ RevealUI's core framework is **real and production-grade** — auth, billing, CM
 
 | Feature | Docs say | Reality |
 |---------|----------|---------|
-| Database tables | 68 | **75** |
+| Database tables | 68 | **76** |
 | UI components | 50+ | **56** |
 | Doc guides | 25 | **25 root + 7 subdirectories** with additional files |
 | x402 payments | PRO.md describes protocol | **385-line middleware** with USDC + RVUI verification, gated behind env var |
@@ -142,7 +142,7 @@ Overall Pro tier: **~80% complete** (not 50% as a surface scan might suggest).
 | Free (MIT) | $0 | Full core, 1 site, 3 users | Complete |
 | Pro | $49/mo | AI agents, BYOK, MCP, 5 sites | ~80% |
 | Max | $149/mo | Multi-provider AI, audit, 15 sites | ~70% |
-| Enterprise/Forge | $299/mo | White-label, SSO, self-hosted | ~30% |
+| Enterprise/Forge | $299/mo | White-label (planned), SSO (planned), self-hosted | ~30% |
 
 ---
 
@@ -151,7 +151,7 @@ Overall Pro tier: **~80% complete** (not 50% as a surface scan might suggest).
 ### Must Fix (misrepresents current state)
 
 1. ~~**TypeScript version badge**~~: ✅ README badge now shows TypeScript 6
-2. ~~**Table count**~~: ✅ Updated to 75 everywhere (README, CLAUDE.md, QUICK_START)
+2. ~~**Table count**~~: ✅ Updated to 76 everywhere (README, CLAUDE.md, QUICK_START)
 3. ~~**Broken CONTRIBUTING.md links**~~: ✅ All 4 referenced docs now exist
 4. ~~**Examples directory**~~: ✅ 3 empty stubs removed
 
@@ -185,7 +185,7 @@ _Updated: 2026-03-28 | Commit: e1858051_
 | Pro tier purchasable | ✅ MET | Stripe flow verified (test mode) |
 | All 5 apps deployed | ✅ MET | revealui.com, cms, api, docs all return 200 |
 | CI gate passes | ✅ MET | `pnpm gate:quick` PASS |
-| 10,700+ tests | ✅ MET | 10,784+ tests across all packages |
+| 13,700+ tests | ✅ MET | 13,700+ tests across 811 test files |
 | Zero avoidable `any` types | ✅ MET | `pnpm audit:any` = 0 avoidable |
 | Zero production console stmts | ✅ MET | `pnpm audit:console` = 0 |
 | Security audit complete | ✅ MET | Session 133 (2026-03-28) |

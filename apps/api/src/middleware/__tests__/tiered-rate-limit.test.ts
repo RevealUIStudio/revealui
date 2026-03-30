@@ -20,7 +20,7 @@ const mockedCheckRateLimit = vi.mocked(checkRateLimit);
 const mockedGetCurrentTier = vi.mocked(getCurrentTier);
 
 const TIERS = {
-  free: { maxRequests: 60, windowMs: 60_000 },
+  free: { maxRequests: 200, windowMs: 60_000 },
   pro: { maxRequests: 300, windowMs: 60_000 },
   max: { maxRequests: 600, windowMs: 60_000 },
   enterprise: { maxRequests: 1000, windowMs: 60_000 },

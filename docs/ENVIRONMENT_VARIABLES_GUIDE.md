@@ -25,7 +25,7 @@ These variables **must** be set for the application to function:
 
 | Variable                             | Purpose                      | Security Level        |
 | ------------------------------------ | ---------------------------- | --------------------- |
-| `REVEALUI_SECRET`                    | JWT token encryption         | 🔴 HIGH (Server-only) |
+| `REVEALUI_SECRET`                    | Application secret (session signing, CSRF, HMAC operations) | 🔴 HIGH (Server-only) |
 | `REVEALUI_PUBLIC_SERVER_URL`         | RevealUI CMS server URL      | 🟢 LOW (Client-safe)  |
 | `NEXT_PUBLIC_SERVER_URL`             | Next.js server URL           | 🟢 LOW (Client-safe)  |
 | `POSTGRES_URL`                       | PostgreSQL connection string | 🔴 HIGH (Server-only) |

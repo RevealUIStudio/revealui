@@ -9,7 +9,7 @@ Rules for managing Pro/OSS tier boundaries in the RevealUI monorepo.
 | Free | `'free'` | MIT, open source |
 | Pro | `'pro'` | Source-available, commercially licensed |
 | Max | `'max'` | Extended Pro features |
-| Enterprise (Forge) | `'enterprise'` | White-label, multi-tenant, self-hosted |
+| Enterprise (Forge) | `'enterprise'` | White-label (planned), multi-tenant, self-hosted |
 
 ## Runtime Checks
 

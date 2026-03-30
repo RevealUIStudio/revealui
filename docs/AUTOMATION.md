@@ -46,7 +46,7 @@ Comprehensive guide to AI agent capabilities, configurations, and workflows in t
 
 - **Framework**: RevealUI — Full-stack React 19 + Next.js 16 CMS Framework
 - **Package Count**: 22 packages (17 OSS + 5 Pro)
-- **Test Status**: 307+ test files, all packages build and typecheck ✅
+- **Test Status**: 811 test files, all packages build and typecheck ✅
 - **Build Status**: All 24 workspaces build successfully ✅
 
 ### Commercial Direction
@@ -64,9 +64,9 @@ From 2026 onward, automation features should align with:
 packages/
 ├── core/           # CMS framework (includes types/ and generated/)
 ├── contracts/      # Zod schemas & TypeScript types
-├── db/             # Database (Drizzle ORM, 75 tables)
+├── db/             # Database (Drizzle ORM, 76 tables)
 ├── auth/           # Authentication system
-├── presentation/   # 50+ UI components (Tailwind v4)
+├── presentation/   # 56 UI components (Tailwind v4)
 ├── router/         # File-based router with SSR
 ├── config/         # Type-safe env config (Zod)
 ├── utils/          # Logger, DB helpers, validation

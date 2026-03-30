@@ -1776,7 +1776,7 @@ Core RevealUI server settings.
 
 ```ts
 interface RevealConfig {
-  secret: string; // REVEALUI_SECRET — JWT signing key
+  secret: string; // REVEALUI_SECRET — application secret (session signing, CSRF, HMAC operations)
   serverURL: string; // NEXT_PUBLIC_SERVER_URL — public-facing URL
   publicServerURL: string; // REVEALUI_PUBLIC_SERVER_URL
   adminEmail?: string; // REVEALUI_ADMIN_EMAIL
@@ -1816,7 +1816,7 @@ interface StorageConfig {
 
 ### `config.branding`
 
-White-label branding (Forge tier).
+White-label branding (Forge tier, planned).
 
 ```ts
 interface BrandingConfig {
@@ -1948,7 +1948,7 @@ Minimum required variables for a working RevealUI deployment:
 
 ```bash
 # Core
-REVEALUI_SECRET=your-jwt-signing-secret
+REVEALUI_SECRET=your-application-secret
 NEXT_PUBLIC_SERVER_URL=https://your-cms.com
 
 # Database (one of:)
@@ -1983,7 +1983,7 @@ See `.env.template` in the repo root for the full list with descriptions.
 
 # @revealui/presentation
 
-50+ native UI components for building RevealUI apps. Zero external UI dependencies — only `clsx` and `cva`.
+56 native UI components for building RevealUI apps. Zero external UI dependencies — only `clsx` and `cva`.
 
 ```bash
 npm install @revealui/presentation
@@ -2704,7 +2704,7 @@ Behaviour-only versions of form controls — bring your own styles.
 ## Related
 
 - [`@revealui/core`](/reference/core) — Uses `presentation` for admin UI components
-- [Component catalog](/docs/COMPONENT_CATALOG) — Visual index of all 50+ components
+- [Component catalog](/docs/COMPONENT_CATALOG) — Visual index of all 56 components
 
 ---
 
