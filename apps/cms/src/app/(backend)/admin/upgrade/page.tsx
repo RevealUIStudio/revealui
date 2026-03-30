@@ -236,6 +236,9 @@ function isFeatureInTier(feature: keyof FeatureFlags, tier: LicenseTierId): bool
     multiTenant: 'enterprise',
     whiteLabel: 'enterprise',
     sso: 'enterprise',
+    vaultDesktop: 'pro',
+    vaultRotation: 'pro',
+    devkitProfiles: 'max',
   };
   return tierRank[tier] >= tierRank[featureMinTier[feature]];
 }

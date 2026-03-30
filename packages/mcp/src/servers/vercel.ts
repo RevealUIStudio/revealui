@@ -10,12 +10,11 @@
  */
 
 import { spawn } from 'node:child_process';
-import { createLogger, getProjectRoot } from '@revealui/scripts';
-import { ErrorCode } from '@revealui/scripts/errors';
 import { config } from 'dotenv';
 import { checkMcpLicense } from '../index.js';
+import { createLauncherLogger, ExitCode } from './_launcher-utils.js';
 
-const logger = createLogger();
+const logger = createLauncherLogger();
 
 // Load environment variables
 config();
@@ -33,7 +32,7 @@ async function spawnVercel(vercelApiKey: string): Promise<number | null> {
 
     child.on('error', (error) => {
       logger.error(`Failed to start Vercel MCP server: ${error.message}`);
-      resolve(ErrorCode.CONFIG_ERROR);
+      resolve(ExitCode.CONFIG_ERROR);
     });
 
     child.on('exit', (code) => resolve(code ?? 0));
@@ -48,52 +47,54 @@ async function spawnVercel(vercelApiKey: string): Promise<number | null> {
 }
 
 async function startVercelMCP() {
-  try {
-    await getProjectRoot(import.meta.url);
-    const vercelApiKey = process.env.VERCEL_API_KEY ?? process.env.VERCEL_TOKEN;
+  const vercelApiKey = process.env.VERCEL_API_KEY ?? process.env.VERCEL_TOKEN;
 
-    if (!vercelApiKey) {
-      logger.error('VERCEL_API_KEY environment variable is required');
-      logger.info('   Get your token from: https://vercel.com/account/tokens');
-      process.exit(ErrorCode.CONFIG_ERROR);
+  if (!vercelApiKey) {
+    logger.error('VERCEL_API_KEY environment variable is required');
+    logger.info('   Get your token from: https://vercel.com/account/tokens');
+    process.exit(ExitCode.CONFIG_ERROR);
+  }
+
+  const withRestart = process.argv.includes('--restart');
+  logger.header('Starting Vercel MCP Server');
+  logger.info(`   API Key: ${vercelApiKey.substring(0, 8)}...`);
+  if (withRestart) logger.info('   Restart mode: enabled (up to 3 attempts)');
+
+  let attempt = 0;
+  while (true) {
+    const code = await spawnVercel(vercelApiKey);
+    if (!withRestart || attempt >= MAX_RESTARTS) {
+      process.exit(code ?? 0);
     }
-
-    const withRestart = process.argv.includes('--restart');
-    logger.header('Starting Vercel MCP Server');
-    logger.info(`   API Key: ${vercelApiKey.substring(0, 8)}...`);
-    if (withRestart) logger.info('   Restart mode: enabled (up to 3 attempts)');
-
-    let attempt = 0;
-    while (true) {
-      const code = await spawnVercel(vercelApiKey);
-      if (!withRestart || attempt >= MAX_RESTARTS) {
-        process.exit(code ?? 0);
-      }
-      const delay = RESTART_DELAYS_MS[attempt] ?? 8000;
-      attempt++;
-      logger.warning(
-        `   Server exited (code ${code}). Restarting in ${delay / 1000}s (attempt ${attempt}/${MAX_RESTARTS})...`,
-      );
-      await new Promise((resolve) => setTimeout(resolve, delay));
-    }
-  } catch (error) {
-    logger.error(`Script failed: ${error instanceof Error ? error.message : String(error)}`);
-    process.exit(ErrorCode.EXECUTION_ERROR);
+    const delay = RESTART_DELAYS_MS[attempt] ?? 8000;
+    attempt++;
+    logger.warning(
+      `   Server exited (code ${code}). Restarting in ${delay / 1000}s (attempt ${attempt}/${MAX_RESTARTS})...`,
+    );
+    await new Promise((resolve) => setTimeout(resolve, delay));
   }
 }
 
 /**
- * Main function
+ * Launch the Vercel MCP server.
+ * Exported for programmatic use by the Hypervisor.
+ */
+export async function launchVercelMcp(): Promise<void> {
+  if (!(await checkMcpLicense())) {
+    throw new Error('MCP license check failed');
+  }
+  await startVercelMCP();
+}
+
+/**
+ * Main function (CLI entrypoint)
  */
 async function main() {
   try {
-    if (!(await checkMcpLicense())) {
-      process.exit(ErrorCode.CONFIG_ERROR);
-    }
-    await startVercelMCP();
+    await launchVercelMcp();
   } catch (error) {
     logger.error(`Script failed: ${error instanceof Error ? error.message : String(error)}`);
-    process.exit(ErrorCode.EXECUTION_ERROR);
+    process.exit(ExitCode.EXECUTION_ERROR);
   }
 }
 
