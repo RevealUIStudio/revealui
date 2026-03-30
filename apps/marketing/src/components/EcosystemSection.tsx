@@ -77,7 +77,7 @@ export function EcosystemSection() {
                   </div>
                   <div>
                     <h3 className="text-base font-semibold text-white">{project.name}</h3>
-                    <p className="text-xs text-gray-500">{project.license}</p>
+                    <p className="text-xs text-gray-400">{project.license}</p>
                   </div>
                 </div>
                 <p className="text-sm font-medium text-emerald-400 mb-2">{project.tagline}</p>
