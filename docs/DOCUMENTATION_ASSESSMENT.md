@@ -1,6 +1,6 @@
 # Documentation vs Reality Assessment
 
-_Generated: 2026-03-28 | Branch: develop | Commit: ce5f1ea8_
+_Generated: 2026-03-28 | Branch: test | Commit: ce5f1ea8_
 
 Brutally honest audit of what RevealUI documentation claims versus what the codebase actually delivers.
 

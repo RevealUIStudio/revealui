@@ -16,21 +16,20 @@ RevealUI Studio <founder@revealui.com>
 
 ## Branch Pipeline
 ```
-feature/* ──PR──▶ develop (local only) ──PR──▶ test ──PR──▶ main
-                    │                           │              │
-                  no deploy                   test        production
+feature/* ──PR──▶ test ──PR──▶ main
+                    │              │
+                  test        production
 ```
 
 | Branch | Environment | Domain Pattern | Database | CI |
 |--------|------------|----------------|----------|----|
 | `main` | production | `*.revealui.com` | NeonDB main | Full gate + integration + E2E |
 | `test` | test/QA | `test.*.revealui.com` | NeonDB `test` branch | Full gate + integration + E2E |
-| `develop` | local only | — | NeonDB `dev` branch | None (pre-push quality check only) |
-| `feature/*` | local only | — | NeonDB `dev` branch | None (pre-push quality check only) |
+| `feature/*` | local only | — | NeonDB `dev` branch | Quality-only pre-push gate |
 
-- **Default branch:** `develop` (PRs target it by default)
+- **Default branch:** `test` (PRs target it by default)
 - **Deploys:** GitHub Actions on `test`/`main` only (Vercel Git Integration disabled)
-- **Pre-push gate:** `main`/`test` = full gate, `develop`/`feature/*` = quality-only (phase 1)
+- **Pre-push gate:** `main`/`test` = full gate, `feature/*` = quality-only (phase 1)
 - **CI:** Only triggers on push/PR to `test` or `main`
 
 ## Package Map

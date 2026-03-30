@@ -1830,7 +1830,7 @@ packages/security/ @security-team
 
 #### Branch Protection for Other Branches
 
-Consider protecting `develop` branch with similar rules:
+Consider protecting `test` branch with similar rules:
 
 - Fewer required reviews (1 instead of 2)
 - Same status checks

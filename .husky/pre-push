@@ -46,7 +46,7 @@ fi
 
 # Branch-aware gate strictness
 #   main/test: full gate (these trigger CI + deploy)
-#   develop/feature/*: quality-only (local dev, no CI)
+#   feature/*: quality-only (local dev, no CI)
 BRANCH=$(git rev-parse --abbrev-ref HEAD)
 GATE_EXIT=0
 case "$BRANCH" in

@@ -5,8 +5,8 @@ name: CI
 #   Hard fail (main/test): integration tests (requires DB)
 #   Warn-only: audits, structure
 #
-# Pipeline: feature/* → develop (local) → test → main
-#   develop is local-only (no CI). PRs to test/main trigger CI.
+# Pipeline: feature/* → test → main
+#   PRs to test/main trigger CI.
 #   test/main: full build + integration tests + E2E smoke + accessibility (~15 min)
 #
 # Optimizations:

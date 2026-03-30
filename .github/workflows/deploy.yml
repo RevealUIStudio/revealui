@@ -7,7 +7,7 @@ name: Deploy
 #   main → production  (*.revealui.com)
 #   test → test        (test.*.revealui.com)
 #
-# develop is local-only — no CI, no deploy.
+# feature/* branches are local-only — no CI, no deploy.
 #
 # All 5 apps deploy in parallel via matrix strategy.
 # Test deploys are aliased to stable custom domains.

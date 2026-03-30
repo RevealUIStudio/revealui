@@ -4,7 +4,7 @@
 
 ### `ci.yml` — Continuous Integration
 
-**Triggers:** Push to `main`/`test`, pull requests targeting those branches. `develop` is local-only (no CI).
+**Triggers:** Push to `main`/`test`, pull requests targeting those branches. `feature/*` branches are local-only (no CI).
 
 Mirrors the local `pnpm gate` — same hard-fail/warn policy:
 
