@@ -7,11 +7,7 @@
  * Optionally revokes all other active sessions for security.
  */
 
-import {
-  changePassword,
-  getSession,
-  meetsMinimumPasswordRequirements,
-} from '@revealui/auth/server';
+import { changePassword, getSession, validatePasswordStrength } from '@revealui/auth/server';
 import { logger } from '@revealui/core/observability/logger';
 import { type NextRequest, NextResponse } from 'next/server';
 import { z } from 'zod';
@@ -21,6 +17,7 @@ import {
   createErrorResponse,
   createValidationErrorResponse,
 } from '@/lib/utils/error-response';
+import { extractRequestContext } from '@/lib/utils/request-context';
 
 export const dynamic = 'force-dynamic';
 export const runtime = 'nodejs';
@@ -36,7 +33,7 @@ const ChangePasswordSchema = z.object({
 
 async function handler(request: NextRequest): Promise<NextResponse> {
   try {
-    const sessionData = await getSession(request.headers);
+    const sessionData = await getSession(request.headers, extractRequestContext(request));
     if (!sessionData) {
       return createApplicationErrorResponse('Unauthorized', 'UNAUTHORIZED', 401);
     }
@@ -67,12 +64,13 @@ async function handler(request: NextRequest): Promise<NextResponse> {
     const { currentPassword, newPassword, revokeOtherSessions } = parsed.data;
 
     // Validate new password strength before hitting the DB
-    if (!meetsMinimumPasswordRequirements(newPassword)) {
+    const strength = validatePasswordStrength(newPassword);
+    if (!strength.valid) {
       return createValidationErrorResponse(
-        'Password must be at least 8 characters and include uppercase, lowercase, and a number.',
+        strength.errors[0] ?? 'Password does not meet strength requirements.',
         'newPassword',
         null,
-        {},
+        { issues: strength.errors.map((msg) => ({ path: 'newPassword', message: msg })) },
       );
     }
 

@@ -14,7 +14,7 @@ describe('useTheme', () => {
       'matchMedia',
       (query: string) =>
         ({
-          matches: query === '(prefers-color-scheme: light)' ? false : true,
+          matches: query !== '(prefers-color-scheme: light)',
           media: query,
           onchange: null,
           addListener: vi.fn(),

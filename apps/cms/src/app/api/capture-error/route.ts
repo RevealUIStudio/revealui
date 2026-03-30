@@ -7,10 +7,11 @@
  */
 
 import { NextResponse } from 'next/server';
+import { withRateLimit } from '@/lib/middleware/rate-limit';
 
 export const dynamic = 'force-dynamic';
 
-export async function POST(request: Request): Promise<NextResponse> {
+async function captureErrorHandler(request: Request): Promise<NextResponse> {
   const secret = process.env.REVEALUI_SECRET;
   const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'https://api.revealui.com';
 
@@ -43,3 +44,9 @@ export async function POST(request: Request): Promise<NextResponse> {
     return NextResponse.json({ success: true }, { status: 202 });
   }
 }
+
+export const POST = withRateLimit(captureErrorHandler, {
+  maxAttempts: 50,
+  windowMs: 60 * 1000,
+  keyPrefix: 'capture-error',
+});

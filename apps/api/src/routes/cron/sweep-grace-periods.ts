@@ -59,31 +59,30 @@ app.post('/sweep-grace-periods', async (c) => {
 
     const expiredAccountIds: string[] = [];
     for (const entitlement of expiredGrace) {
-      // Transition entitlement to 'expired' (billing-status will block access)
-      await db
-        .update(accountEntitlements)
-        .set({ status: 'expired', graceUntil: null, updatedAt: now })
-        .where(eq(accountEntitlements.accountId, entitlement.accountId));
+      await db.transaction(async (tx) => {
+        await tx
+          .update(accountEntitlements)
+          .set({ status: 'expired', graceUntil: null, updatedAt: now })
+          .where(eq(accountEntitlements.accountId, entitlement.accountId));
 
-      // Also expire the matching subscription row
-      await db
-        .update(accountSubscriptions)
-        .set({ status: 'expired', updatedAt: now })
-        .where(eq(accountSubscriptions.accountId, entitlement.accountId));
-
-      // Find and expire the corresponding legacy license (by customer ID from subscription)
-      const [sub] = await db
-        .select({ stripeCustomerId: accountSubscriptions.stripeCustomerId })
-        .from(accountSubscriptions)
-        .where(eq(accountSubscriptions.accountId, entitlement.accountId))
-        .limit(1);
-
-      if (sub?.stripeCustomerId) {
-        await db
-          .update(licenses)
+        await tx
+          .update(accountSubscriptions)
           .set({ status: 'expired', updatedAt: now })
-          .where(eq(licenses.customerId, sub.stripeCustomerId));
-      }
+          .where(eq(accountSubscriptions.accountId, entitlement.accountId));
+
+        const [sub] = await tx
+          .select({ stripeCustomerId: accountSubscriptions.stripeCustomerId })
+          .from(accountSubscriptions)
+          .where(eq(accountSubscriptions.accountId, entitlement.accountId))
+          .limit(1);
+
+        if (sub?.stripeCustomerId) {
+          await tx
+            .update(licenses)
+            .set({ status: 'expired', updatedAt: now })
+            .where(eq(licenses.customerId, sub.stripeCustomerId));
+        }
+      });
 
       expiredAccountIds.push(entitlement.accountId);
     }
@@ -100,7 +99,7 @@ app.post('/sweep-grace-periods', async (c) => {
   } catch (err) {
     const message = err instanceof Error ? err.message : String(err);
     logger.error('Grace period sweep failed', undefined, { error: message });
-    return c.json({ error: message }, 500);
+    return c.json({ error: 'Internal error during grace period sweep' }, 500);
   }
 });
 

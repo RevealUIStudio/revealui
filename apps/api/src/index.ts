@@ -175,6 +175,23 @@ const securityHeaders = new SecurityHeaders(securityPreset);
 // Global middleware
 app.use('*', domainLockMiddleware()); // Forge: reject requests from unlicensed domains
 app.use('*', requestIdMiddleware());
+// Media upload routes need a higher body limit
+app.use(
+  '/api/content/media/*',
+  bodyLimit({
+    maxSize: 100 * 1024 * 1024,
+    onError: (c) =>
+      c.json({ success: false, error: 'File too large. Maximum size is 100MB.' }, 413),
+  }),
+);
+app.use(
+  '/api/v1/content/media/*',
+  bodyLimit({
+    maxSize: 100 * 1024 * 1024,
+    onError: (c) =>
+      c.json({ success: false, error: 'File too large. Maximum size is 100MB.' }, 413),
+  }),
+);
 app.use(
   '*',
   bodyLimit({

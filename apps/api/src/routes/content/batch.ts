@@ -9,6 +9,7 @@
  * Max 100 items per batch request.
  */
 
+import { logger } from '@revealui/core/observability/logger';
 import * as mediaQueries from '@revealui/db/queries/media';
 import * as pageQueries from '@revealui/db/queries/pages';
 import * as postQueries from '@revealui/db/queries/posts';
@@ -134,10 +135,15 @@ async function batchCreate(
       }
       results.push({ id, status: 'created' });
     } catch (err) {
+      logger.error('Batch create failed for item', undefined, {
+        id,
+        collection,
+        error: err instanceof Error ? err.message : String(err),
+      });
       results.push({
         id,
         status: 'error',
-        error: err instanceof Error ? err.message : String(err),
+        error: 'Operation failed',
       });
     }
   }
@@ -184,10 +190,15 @@ async function batchUpdate(
         results.push({ id, status: 'updated' });
       }
     } catch (err) {
+      logger.error('Batch update failed for item', undefined, {
+        id,
+        collection,
+        error: err instanceof Error ? err.message : String(err),
+      });
       results.push({
         id,
         status: 'error',
-        error: err instanceof Error ? err.message : String(err),
+        error: 'Operation failed',
       });
     }
   }
@@ -225,10 +236,15 @@ async function batchDelete(
       }
       results.push({ id, status: 'deleted' });
     } catch (err) {
+      logger.error('Batch delete failed for item', undefined, {
+        id,
+        collection,
+        error: err instanceof Error ? err.message : String(err),
+      });
       results.push({
         id,
         status: 'error',
-        error: err instanceof Error ? err.message : String(err),
+        error: 'Operation failed',
       });
     }
   }

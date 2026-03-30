@@ -34,6 +34,22 @@ const PATTERNS: Array<{ name: string; regex: RegExp }> = [
   { name: 'age-private-key', regex: /AGE-SECRET-KEY-[A-Z0-9]{59}/ },
   // PEM private key blocks
   { name: 'pem-private-key', regex: /-----BEGIN (?:RSA |EC |OPENSSH )?PRIVATE KEY-----/ },
+  // OpenAI API keys
+  { name: 'openai-api-key', regex: /sk-proj-[A-Za-z0-9_-]{20,}/ },
+  // Anthropic API keys
+  { name: 'anthropic-api-key', regex: /sk-ant-[A-Za-z0-9_-]{20,}/ },
+  // Supabase service role keys
+  { name: 'supabase-service-key', regex: /sbp_[A-Za-z0-9]{20,}/ },
+  // Google API keys
+  { name: 'google-api-key', regex: /AIza[A-Za-z0-9_-]{35}/ },
+  // Neon API keys
+  { name: 'neon-api-key', regex: /napi_[A-Za-z0-9]{20,}/ },
+  // GitHub personal access tokens
+  { name: 'github-pat', regex: /ghp_[A-Za-z0-9]{36,}/ },
+  // GitHub fine-grained tokens
+  { name: 'github-fine-grained', regex: /github_pat_[A-Za-z0-9_]{20,}/ },
+  // AWS access key IDs
+  { name: 'aws-access-key', regex: /AKIA[A-Z0-9]{16}/ },
 ];
 
 // Files and directories to always skip (not secrets even if they match)

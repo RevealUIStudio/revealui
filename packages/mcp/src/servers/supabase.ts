@@ -144,14 +144,22 @@ async function startSupabaseMCP() {
 }
 
 /**
- * Main function
+ * Launch the Supabase MCP server.
+ * Exported for programmatic use by the Hypervisor.
+ */
+export async function launchSupabaseMcp(): Promise<void> {
+  if (!(await checkMcpLicense())) {
+    throw new Error('MCP license check failed');
+  }
+  await startSupabaseMCP();
+}
+
+/**
+ * Main function (CLI entrypoint)
  */
 async function main() {
   try {
-    if (!(await checkMcpLicense())) {
-      process.exit(ErrorCode.CONFIG_ERROR);
-    }
-    await startSupabaseMCP();
+    await launchSupabaseMcp();
   } catch (error) {
     logger.error(`Script failed: ${error instanceof Error ? error.message : String(error)}`);
     process.exit(ErrorCode.EXECUTION_ERROR);

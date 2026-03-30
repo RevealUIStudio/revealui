@@ -45,6 +45,18 @@
     "./config": {
       "types": "./dist/config/index.d.ts",
       "import": "./dist/config/index.js"
+    },
+    "./pipeline": {
+      "types": "./dist/pipeline.d.ts",
+      "import": "./dist/pipeline.js"
+    },
+    "./rate-limiter": {
+      "types": "./dist/rate-limiter.d.ts",
+      "import": "./dist/rate-limiter.js"
+    },
+    "./telemetry": {
+      "types": "./dist/telemetry.d.ts",
+      "import": "./dist/telemetry.js"
     }
   },
   "files": [
