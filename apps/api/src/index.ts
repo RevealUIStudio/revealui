@@ -460,6 +460,16 @@ app.use('/api/collab/agent/*', requireFeature('ai', { mode: 'entitlements' }));
 app.use('/api/v1/collab/agent/*', requireFeature('ai', { mode: 'entitlements' }));
 app.use('/api/provenance/*', requireFeature('dashboard', { mode: 'entitlements' }));
 app.use('/api/v1/provenance/*', requireFeature('dashboard', { mode: 'entitlements' }));
+// Billing mutation endpoints require Pro+ (payments feature)
+// Read-only metrics and webhook routes are excluded — they serve all tiers
+app.post('/api/billing/checkout', requireFeature('payments', { mode: 'entitlements' }));
+app.post('/api/v1/billing/checkout', requireFeature('payments', { mode: 'entitlements' }));
+app.post('/api/billing/upgrade', requireFeature('payments', { mode: 'entitlements' }));
+app.post('/api/v1/billing/upgrade', requireFeature('payments', { mode: 'entitlements' }));
+app.post('/api/billing/downgrade', requireFeature('payments', { mode: 'entitlements' }));
+app.post('/api/v1/billing/downgrade', requireFeature('payments', { mode: 'entitlements' }));
+app.post('/api/billing/portal', requireFeature('payments', { mode: 'entitlements' }));
+app.post('/api/v1/billing/portal', requireFeature('payments', { mode: 'entitlements' }));
 
 // ---------------------------------------------------------------------------
 // Role-based access control (RBAC) — uses core AuthorizationSystem with CommonRoles.

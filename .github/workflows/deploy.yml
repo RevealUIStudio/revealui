@@ -18,7 +18,10 @@ name: Deploy
 #   3. Add repository variable TURBO_TEAM   — Vercel team slug (e.g. "revealuistudio")
 
 on:
-  push:
+  # H-06: Deploy only after CI succeeds (was: push to main/test)
+  workflow_run:
+    workflows: ["CI"]
+    types: [completed]
     branches: [main, test]
   workflow_dispatch:
     inputs:
@@ -32,8 +35,12 @@ on:
           - test
         default: auto
 
+permissions:
+  contents: read
+  deployments: write
+
 concurrency:
-  group: deploy-${{ github.ref }}
+  group: deploy-${{ github.event.workflow_run.head_branch || github.ref }}
   cancel-in-progress: false # Don't cancel in-progress deploys
 
 env:
@@ -51,16 +58,26 @@ jobs:
   resolve:
     name: Resolve Environment
     runs-on: ubuntu-latest
+    # Skip deploy if CI failed (workflow_run fires on both success and failure)
+    if: >-
+      github.event_name == 'workflow_dispatch' ||
+      github.event.workflow_run.conclusion == 'success'
     outputs:
       environment: ${{ steps.env.outputs.environment }}
       is-production: ${{ steps.env.outputs.is-production }}
       prod-flag: ${{ steps.env.outputs.prod-flag }}
+      sha: ${{ steps.env.outputs.sha }}
 
     steps:
       - name: Determine environment
         id: env
         run: |
-          BRANCH="${GITHUB_REF#refs/heads/}"
+          # workflow_run uses head_branch; workflow_dispatch uses GITHUB_REF
+          if [ "${{ github.event_name }}" = "workflow_run" ]; then
+            BRANCH="${{ github.event.workflow_run.head_branch }}"
+          else
+            BRANCH="${GITHUB_REF#refs/heads/}"
+          fi
           INPUT_ENV="${{ inputs.environment }}"
 
           if [ "$INPUT_ENV" != "" ] && [ "$INPUT_ENV" != "auto" ]; then
@@ -74,7 +91,14 @@ jobs:
           echo "environment=$ENV" >> "$GITHUB_OUTPUT"
           echo "is-production=$( [ "$ENV" = "production" ] && echo true || echo false )" >> "$GITHUB_OUTPUT"
           echo "prod-flag=$( [ "$ENV" = "production" ] && echo '--prod' || echo '' )" >> "$GITHUB_OUTPUT"
-          echo "::notice::Deploying to $ENV environment (branch: $BRANCH)"
+          # Resolve the correct commit SHA for checkout
+          if [ "${{ github.event_name }}" = "workflow_run" ]; then
+            SHA="${{ github.event.workflow_run.head_sha }}"
+          else
+            SHA="${GITHUB_SHA}"
+          fi
+          echo "sha=$SHA" >> "$GITHUB_OUTPUT"
+          echo "::notice::Deploying to $ENV environment (branch: $BRANCH, sha: ${SHA:0:8})"
 
   # ---------------------------------------------------------------------------
   # Deploy all apps in parallel
@@ -109,13 +133,15 @@ jobs:
             test-domain: test.revealcoin.revealui.com
 
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6
+        with:
+          ref: ${{ needs.resolve.outputs.sha }}
 
-      - uses: pnpm/action-setup@v5
+      - uses: pnpm/action-setup@fc06bc1257f339d1d5d8b3a19a8cae5388b55320 # v5
         with:
           version: ${{ env.PNPM_VERSION }}
 
-      - uses: actions/setup-node@v6
+      - uses: actions/setup-node@53b83947a5a98c8d113130e565377fae1a50d02f # v6
         with:
           node-version: ${{ env.NODE_VERSION }}
           cache: pnpm
@@ -217,7 +243,7 @@ jobs:
           {
             "environment": "${{ needs.resolve.outputs.environment }}",
             "branch": "${GITHUB_REF#refs/heads/}",
-            "sha": "${GITHUB_SHA:0:8}",
+            "sha": "${{ needs.resolve.outputs.sha }}",
             "status": "${{ needs.deploy.result }}",
             "timestamp": "$(date -u +%Y-%m-%dT%H:%M:%SZ)"
           }

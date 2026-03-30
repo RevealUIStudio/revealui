@@ -127,55 +127,57 @@ app.openapi(postRoute, async (c) => {
   const encrypted = encryptApiKey(apiKey);
   const keyHint = redactApiKey(apiKey);
 
-  await db.insert(userApiKeys).values({
-    id,
-    userId: user.id,
-    provider,
-    encryptedKey: encrypted,
-    keyHint,
-    label: label ?? null,
-  });
+  await db.transaction(async (tx) => {
+    await tx.insert(userApiKeys).values({
+      id,
+      userId: user.id,
+      provider,
+      encryptedKey: encrypted,
+      keyHint,
+      label: label ?? null,
+    });
 
-  // Optionally set/update the default provider config for this user
-  if (setAsDefault) {
-    // Clear existing default for this provider
-    await db
-      .update(tenantProviderConfigs)
-      .set({ isDefault: false })
-      .where(
-        and(
-          eq(tenantProviderConfigs.userId, user.id),
-          eq(tenantProviderConfigs.provider, provider),
-        ),
-      );
-
-    // Upsert via insert + on-conflict (simple delete+insert approach for portability)
-    const existingConfig = await db
-      .select({ id: tenantProviderConfigs.id })
-      .from(tenantProviderConfigs)
-      .where(
-        and(
-          eq(tenantProviderConfigs.userId, user.id),
-          eq(tenantProviderConfigs.provider, provider),
-        ),
-      )
-      .limit(1);
-
-    if (existingConfig.length > 0 && existingConfig[0]) {
-      await db
+    // Optionally set/update the default provider config for this user
+    if (setAsDefault) {
+      // Clear existing default for this provider
+      await tx
         .update(tenantProviderConfigs)
-        .set({ isDefault: true, model: model ?? null })
-        .where(eq(tenantProviderConfigs.id, existingConfig[0].id));
-    } else {
-      await db.insert(tenantProviderConfigs).values({
-        id: `cfg_${crypto.randomUUID()}`,
-        userId: user.id,
-        provider,
-        isDefault: true,
-        model: model ?? null,
-      });
+        .set({ isDefault: false })
+        .where(
+          and(
+            eq(tenantProviderConfigs.userId, user.id),
+            eq(tenantProviderConfigs.provider, provider),
+          ),
+        );
+
+      // Upsert via insert + on-conflict (simple delete+insert approach for portability)
+      const existingConfig = await tx
+        .select({ id: tenantProviderConfigs.id })
+        .from(tenantProviderConfigs)
+        .where(
+          and(
+            eq(tenantProviderConfigs.userId, user.id),
+            eq(tenantProviderConfigs.provider, provider),
+          ),
+        )
+        .limit(1);
+
+      if (existingConfig.length > 0 && existingConfig[0]) {
+        await tx
+          .update(tenantProviderConfigs)
+          .set({ isDefault: true, model: model ?? null })
+          .where(eq(tenantProviderConfigs.id, existingConfig[0].id));
+      } else {
+        await tx.insert(tenantProviderConfigs).values({
+          id: `cfg_${crypto.randomUUID()}`,
+          userId: user.id,
+          provider,
+          isDefault: true,
+          model: model ?? null,
+        });
+      }
     }
-  }
+  });
 
   return c.json({ id, keyHint }, 201);
 });

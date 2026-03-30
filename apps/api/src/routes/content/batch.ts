@@ -287,7 +287,9 @@ app.openapi(
       });
     }
 
-    const results = await batchCreate(db, collection, items, user.id);
+    const results = await db.transaction(async (tx) => {
+      return batchCreate(tx as unknown as DatabaseClient, collection, items, user.id);
+    });
     return c.json({ success: true as const, results }, 200);
   },
 );
@@ -339,7 +341,9 @@ app.openapi(
       });
     }
 
-    const results = await batchUpdate(db, collection, items);
+    const results = await db.transaction(async (tx) => {
+      return batchUpdate(tx as unknown as DatabaseClient, collection, items);
+    });
     return c.json({ success: true as const, results }, 200);
   },
 );
@@ -391,7 +395,9 @@ app.openapi(
       });
     }
 
-    const results = await batchDelete(db, collection, items);
+    const results = await db.transaction(async (tx) => {
+      return batchDelete(tx as unknown as DatabaseClient, collection, items);
+    });
     return c.json({ success: true as const, results }, 200);
   },
 );
