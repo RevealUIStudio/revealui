@@ -132,13 +132,15 @@ describe('api-keys routes', () => {
       }),
     });
 
-    mockedGetClient.mockReturnValue({
+    const mockDb = {
       insert: vi.fn().mockReturnValue({ values: mockInsertValues }),
       select: vi.fn().mockReturnValue({ from: mockSelectFrom }),
       delete: vi.fn().mockReturnValue({ where: mockDeleteWhere }),
       update: vi.fn().mockReturnValue({ set: mockUpdateSet }),
       // biome-ignore lint/suspicious/noExplicitAny: test mock
-    } as any);
+    } as any;
+    mockDb.transaction = vi.fn(async (cb: (tx: typeof mockDb) => Promise<unknown>) => cb(mockDb));
+    mockedGetClient.mockReturnValue(mockDb);
   });
 
   describe('POST /api-keys (create key)', () => {
@@ -194,7 +196,7 @@ describe('api-keys routes', () => {
 
       for (const provider of providers) {
         vi.clearAllMocks();
-        mockedGetClient.mockReturnValue({
+        const inlineDb = {
           insert: vi.fn().mockReturnValue({ values: vi.fn().mockResolvedValue(undefined) }),
           select: vi.fn().mockReturnValue({
             from: vi.fn().mockReturnValue({
@@ -207,7 +209,11 @@ describe('api-keys routes', () => {
             set: vi.fn().mockReturnValue({ where: vi.fn().mockResolvedValue(undefined) }),
           }),
           // biome-ignore lint/suspicious/noExplicitAny: test mock
-        } as any);
+        } as any;
+        inlineDb.transaction = vi.fn(async (cb: (tx: typeof inlineDb) => Promise<unknown>) =>
+          cb(inlineDb),
+        );
+        mockedGetClient.mockReturnValue(inlineDb);
 
         const app = createApp(testUser);
         const res = await jsonPost(app, `/api-keys`, {

@@ -124,13 +124,15 @@ describe('api-keys edge cases', () => {
       }),
     });
 
-    mockedGetClient.mockReturnValue({
+    const mockDb = {
       insert: vi.fn().mockReturnValue({ values: mockInsertValues }),
       select: vi.fn().mockReturnValue({ from: mockSelectFrom }),
       delete: vi.fn().mockReturnValue({ where: vi.fn().mockResolvedValue(undefined) }),
       update: vi.fn().mockReturnValue({ set: mockUpdateSet }),
       // biome-ignore lint/suspicious/noExplicitAny: test mock
-    } as any);
+    } as any;
+    mockDb.transaction = vi.fn(async (cb: (tx: typeof mockDb) => Promise<unknown>) => cb(mockDb));
+    mockedGetClient.mockReturnValue(mockDb);
   });
 
   describe('POST /api-keys — key validation', () => {

@@ -41,7 +41,7 @@ describe('tieredRateLimitMiddleware', () => {
     mockedGetCurrentTier.mockReturnValue('free');
     mockedCheckRateLimit.mockResolvedValue({
       allowed: true,
-      remaining: 59,
+      remaining: 199,
       resetAt: Date.now() + 60_000,
     });
 
@@ -49,10 +49,10 @@ describe('tieredRateLimitMiddleware', () => {
     const res = await app.request('/resource');
 
     expect(res.status).toBe(200);
-    expect(res.headers.get('X-RateLimit-Limit')).toBe('60');
+    expect(res.headers.get('X-RateLimit-Limit')).toBe('200');
     expect(mockedCheckRateLimit).toHaveBeenCalledWith(
       expect.stringContaining('test:free:'),
-      expect.objectContaining({ maxAttempts: 60 }),
+      expect.objectContaining({ maxAttempts: 200 }),
     );
   });
 

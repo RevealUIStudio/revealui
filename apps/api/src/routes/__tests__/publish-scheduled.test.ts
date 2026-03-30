@@ -218,7 +218,7 @@ describe('POST /publish-scheduled — error handling', () => {
     const res = await app.request(makeRequest(VALID_SECRET));
     const body = await res.json();
     expect(typeof body.error).toBe('string');
-    expect(body.error).toContain('DB unavailable');
+    expect(body.error).toContain('Internal error during scheduled publish');
   });
 
   it('handles non-Error thrown values in body', async () => {
@@ -253,7 +253,7 @@ describe('POST /publish-scheduled — update field verification', () => {
     const res = await app.request(makeRequest(VALID_SECRET));
     expect(res.status).toBe(500);
     const body = await res.json();
-    expect(body.error).toContain('Client init failed');
+    expect(body.error).toContain('Internal error during scheduled publish');
   });
 
   it('returns 500 when db.update throws mid-loop', async () => {
