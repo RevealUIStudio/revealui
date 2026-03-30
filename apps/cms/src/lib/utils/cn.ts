@@ -14,7 +14,10 @@ type ClassValue =
 export function cn(...inputs: ClassValue[]): string {
   const classes: string[] = [];
 
-  for (const input of inputs.flat(Infinity) as Exclude<ClassValue, ClassValue[]>[]) {
+  for (const input of (inputs as readonly unknown[]).flat(Infinity) as Exclude<
+    ClassValue,
+    ClassValue[]
+  >[]) {
     if (!input) continue;
 
     if (typeof input === 'string' || typeof input === 'number') {
