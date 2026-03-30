@@ -111,7 +111,7 @@ describe('AuthorizationSystem', () => {
     });
   });
 
-  describe('glob matching — resource patterns', () => {
+  describe('glob matching - resource patterns', () => {
     it('matches content.* to content.posts', () => {
       auth.registerRole({
         id: 'r',
@@ -136,7 +136,7 @@ describe('AuthorizationSystem', () => {
     });
   });
 
-  describe('glob matching — action patterns', () => {
+  describe('glob matching - action patterns', () => {
     it('matches read:* action', () => {
       auth.registerRole({
         id: 'r',
@@ -217,7 +217,7 @@ describe('AuthorizationSystem', () => {
     });
   });
 
-  describe('checkAccess — ABAC', () => {
+  describe('checkAccess - ABAC', () => {
     it('allows if RBAC grants (skips policies)', () => {
       auth.registerRole({
         id: 'admin',
