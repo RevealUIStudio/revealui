@@ -66,6 +66,8 @@ export interface MCPTool {
     properties?: Record<string, unknown>;
     required?: string[];
   };
+  /** Minimum tier required to invoke this tool (default: 'free') */
+  requiredTier?: 'free' | 'pro' | 'max' | 'enterprise';
 }
 
 export interface NamespacedTool {
@@ -73,6 +75,8 @@ export interface NamespacedTool {
   namespacedName: string;
   serverName: string;
   tool: MCPTool;
+  /** Minimum tier required to invoke this tool (inherited from tool or server) */
+  requiredTier?: 'free' | 'pro' | 'max' | 'enterprise';
 }
 
 interface ServerEntry {
@@ -410,12 +414,15 @@ export class MCPHypervisor {
 
     for (const [serverName, entry] of this.servers) {
       if (!entry.healthy) continue;
+      const serverTier = entry.config.requiredTier ?? 'free';
 
       for (const tool of entry.tools) {
+        const effectiveTier = this.higherTier(serverTier, tool.requiredTier ?? 'free');
         tools.push({
           namespacedName: `${MCP_TOOL_PREFIX}_${serverName}_${tool.name}`,
           serverName,
           tool,
+          requiredTier: effectiveTier === 'free' ? undefined : effectiveTier,
         });
       }
     }
@@ -431,10 +438,40 @@ export class MCPHypervisor {
    * @param args - Arguments to pass to the tool
    */
   async callTool(serverName: string, toolName: string, args: unknown): Promise<unknown> {
-    return this.sendRequest(serverName, 'tools/call', {
-      name: toolName,
-      arguments: args,
+    const startTime = Date.now();
+
+    logger.info('[MCPHypervisor] Tool invoke', {
+      event: 'mcp.tool.invoke',
+      server: serverName,
+      tool: toolName,
+      timestamp: startTime,
     });
+
+    try {
+      const result = await this.sendRequest(serverName, 'tools/call', {
+        name: toolName,
+        arguments: args,
+      });
+
+      logger.info('[MCPHypervisor] Tool complete', {
+        event: 'mcp.tool.complete',
+        server: serverName,
+        tool: toolName,
+        success: true,
+        durationMs: Date.now() - startTime,
+      });
+
+      return result;
+    } catch (error) {
+      logger.info('[MCPHypervisor] Tool failed', {
+        event: 'mcp.tool.complete',
+        server: serverName,
+        tool: toolName,
+        success: false,
+        durationMs: Date.now() - startTime,
+      });
+      throw error;
+    }
   }
 
   /**
@@ -602,11 +639,20 @@ export class MCPHypervisor {
     toolName: string,
     args: unknown,
   ): Promise<unknown> {
+    const startTime = Date.now();
     const tenantKey = `${tenantId}:${serverName}`;
     const entry = this.tenantServers.get(tenantKey);
     if (!entry?.process || entry.process.exitCode !== null) {
       throw new Error(`[MCPHypervisor] No running server for tenant "${tenantKey}"`);
     }
+
+    logger.info('[MCPHypervisor] Tenant tool invoke', {
+      event: 'mcp.tool.invoke',
+      server: serverName,
+      tool: toolName,
+      tenant: tenantId,
+      timestamp: startTime,
+    });
 
     const id = ++this.requestCounter;
     const request: JsonRpcRequest = {
@@ -616,19 +662,44 @@ export class MCPHypervisor {
       params: { name: toolName, arguments: args },
     };
 
-    return new Promise((resolve, reject) => {
-      const timer = setTimeout(() => {
-        this.pendingRequests.delete(id);
-        reject(new Error(`Request timed out after ${REQUEST_TIMEOUT_MS}ms`));
-      }, REQUEST_TIMEOUT_MS);
+    try {
+      const result = await new Promise((resolve, reject) => {
+        const timer = setTimeout(() => {
+          this.pendingRequests.delete(id);
+          reject(new Error(`Request timed out after ${REQUEST_TIMEOUT_MS}ms`));
+        }, REQUEST_TIMEOUT_MS);
 
-      this.pendingRequests.set(id, { resolve, reject, timer });
-      entry.process?.stdin?.write(`${JSON.stringify(request)}\n`);
-    });
+        this.pendingRequests.set(id, { resolve, reject, timer });
+        entry.process?.stdin?.write(`${JSON.stringify(request)}\n`);
+      });
+
+      logger.info('[MCPHypervisor] Tenant tool complete', {
+        event: 'mcp.tool.complete',
+        server: serverName,
+        tool: toolName,
+        tenant: tenantId,
+        success: true,
+        durationMs: Date.now() - startTime,
+      });
+
+      return result;
+    } catch (error) {
+      logger.info('[MCPHypervisor] Tenant tool failed', {
+        event: 'mcp.tool.complete',
+        server: serverName,
+        tool: toolName,
+        tenant: tenantId,
+        success: false,
+        durationMs: Date.now() - startTime,
+      });
+      throw error;
+    }
   }
 
   /**
    * Get all tools available to a tenant, filtered by tier.
+   * Checks both server-level and tool-level requiredTier — the effective
+   * requirement is the higher of the two.
    */
   getToolsForTenant(ctx: MCPTenantContext): NamespacedTool[] {
     const tools: NamespacedTool[] = [];
@@ -636,14 +707,19 @@ export class MCPHypervisor {
     // Shared (non-tenant) servers filtered by tier
     for (const [serverName, entry] of this.servers) {
       if (!entry.healthy) continue;
-      const requiredTier = entry.config.requiredTier ?? 'free';
-      if (!this.tierSatisfied(ctx.tier, requiredTier)) continue;
+      const serverTier = entry.config.requiredTier ?? 'free';
+      if (!this.tierSatisfied(ctx.tier, serverTier)) continue;
 
       for (const tool of entry.tools) {
+        const toolTier = tool.requiredTier ?? 'free';
+        const effectiveTier = this.higherTier(serverTier, toolTier);
+        if (!this.tierSatisfied(ctx.tier, effectiveTier)) continue;
+
         tools.push({
           namespacedName: `${MCP_TOOL_PREFIX}_${serverName}_${tool.name}`,
           serverName,
           tool,
+          requiredTier: effectiveTier === 'free' ? undefined : effectiveTier,
         });
       }
     }
@@ -655,10 +731,14 @@ export class MCPHypervisor {
       const serverName = tenantKey.split(':')[1] ?? tenantKey;
 
       for (const tool of entry.tools) {
+        const toolTier = tool.requiredTier ?? 'free';
+        if (!this.tierSatisfied(ctx.tier, toolTier)) continue;
+
         tools.push({
           namespacedName: `${MCP_TOOL_PREFIX}_${serverName}_${tool.name}`,
           serverName,
           tool,
+          requiredTier: toolTier === 'free' ? undefined : toolTier,
         });
       }
     }
@@ -688,6 +768,14 @@ export class MCPHypervisor {
   ): boolean {
     const order = { free: 0, pro: 1, max: 2, enterprise: 3 };
     return order[actual] >= order[required];
+  }
+
+  private higherTier(
+    a: 'free' | 'pro' | 'max' | 'enterprise',
+    b: 'free' | 'pro' | 'max' | 'enterprise',
+  ): 'free' | 'pro' | 'max' | 'enterprise' {
+    const order = { free: 0, pro: 1, max: 2, enterprise: 3 };
+    return order[a] >= order[b] ? a : b;
   }
 
   // ---------------------------------------------------------------------------

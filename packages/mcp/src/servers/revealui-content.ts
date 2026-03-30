@@ -31,6 +31,20 @@ import { logger } from '@revealui/core/observability/logger';
 import { checkMcpLicense } from '../index.js';
 
 // ---------------------------------------------------------------------------
+// Credential overrides (set by Hypervisor before tool invocations)
+// ---------------------------------------------------------------------------
+
+let _credentialOverrides: Record<string, string> = {};
+
+/**
+ * Set credential overrides for this server.
+ * Called by the Hypervisor with resolved tenant credentials.
+ */
+export function setCredentials(creds: Record<string, string>): void {
+  _credentialOverrides = creds;
+}
+
+// ---------------------------------------------------------------------------
 // API helpers
 // ---------------------------------------------------------------------------
 
@@ -153,8 +167,14 @@ const TOOLS: Tool[] = [
 server.setRequestHandler(ListToolsRequestSchema, async () => ({ tools: TOOLS }));
 
 server.setRequestHandler(CallToolRequestSchema, async (request: CallToolRequest) => {
-  const apiUrl = process.env.REVEALUI_API_URL?.replace(/\/$/, '');
-  const apiKey = process.env.REVEALUI_API_KEY;
+  const startTime = Date.now();
+  const toolName = request.params.name;
+
+  const apiUrl = (_credentialOverrides.REVEALUI_API_URL ?? process.env.REVEALUI_API_URL)?.replace(
+    /\/$/,
+    '',
+  );
+  const apiKey = _credentialOverrides.REVEALUI_API_KEY ?? process.env.REVEALUI_API_KEY;
 
   if (!(apiUrl && apiKey)) {
     return {
@@ -164,17 +184,19 @@ server.setRequestHandler(CallToolRequestSchema, async (request: CallToolRequest)
   }
 
   try {
-    switch (request.params.name) {
+    let data: unknown;
+
+    switch (toolName) {
       case 'revealui_list_sites': {
         const { limit = 20, page = 1 } = request.params.arguments as {
           limit?: number;
           page?: number;
         };
-        const result = await apiGet(apiUrl, apiKey, '/api/sites', {
+        data = await apiGet(apiUrl, apiKey, '/api/sites', {
           limit: String(limit),
           page: String(page),
         });
-        return { content: [{ type: 'text', text: JSON.stringify(result, null, 2) }] };
+        break;
       }
 
       case 'revealui_list_content': {
@@ -198,8 +220,8 @@ server.setRequestHandler(CallToolRequestSchema, async (request: CallToolRequest)
         if (site_id) params.siteId = site_id;
         if (status) params.status = status;
 
-        const result = await apiGet(apiUrl, apiKey, `/api/${collection}`, params);
-        return { content: [{ type: 'text', text: JSON.stringify(result, null, 2) }] };
+        data = await apiGet(apiUrl, apiKey, `/api/${collection}`, params);
+        break;
       }
 
       case 'revealui_get_content': {
@@ -207,8 +229,8 @@ server.setRequestHandler(CallToolRequestSchema, async (request: CallToolRequest)
           collection: string;
           id: string;
         };
-        const result = await apiGet(apiUrl, apiKey, `/api/${collection}/${id}`);
-        return { content: [{ type: 'text', text: JSON.stringify(result, null, 2) }] };
+        data = await apiGet(apiUrl, apiKey, `/api/${collection}/${id}`);
+        break;
       }
 
       case 'revealui_list_users': {
@@ -227,8 +249,8 @@ server.setRequestHandler(CallToolRequestSchema, async (request: CallToolRequest)
         };
         if (site_id) params.siteId = site_id;
 
-        const result = await apiGet(apiUrl, apiKey, '/api/users', params);
-        return { content: [{ type: 'text', text: JSON.stringify(result, null, 2) }] };
+        data = await apiGet(apiUrl, apiKey, '/api/users', params);
+        break;
       }
 
       case 'revealui_site_stats': {
@@ -236,16 +258,37 @@ server.setRequestHandler(CallToolRequestSchema, async (request: CallToolRequest)
         const params: Record<string, string> = {};
         if (site_id) params.siteId = site_id;
 
-        const result = await apiGet(apiUrl, apiKey, '/api/health', params);
-        return { content: [{ type: 'text', text: JSON.stringify(result, null, 2) }] };
+        data = await apiGet(apiUrl, apiKey, '/api/health', params);
+        break;
       }
 
       default:
         return {
-          content: [{ type: 'text', text: `Error: Unknown tool: ${request.params.name}` }],
+          content: [{ type: 'text', text: `Error: Unknown tool: ${toolName}` }],
           isError: true,
         };
     }
+
+    return {
+      content: [
+        {
+          type: 'text',
+          text: JSON.stringify(
+            {
+              data,
+              _meta: {
+                durationMs: Date.now() - startTime,
+                server: 'revealui-content',
+                tool: toolName,
+                timestamp: new Date().toISOString(),
+              },
+            },
+            null,
+            2,
+          ),
+        },
+      ],
+    };
   } catch (err) {
     return {
       content: [

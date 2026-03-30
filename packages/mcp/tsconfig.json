@@ -6,7 +6,9 @@
     "noEmit": false,
     "allowJs": false
   },
-  "include": ["src/**/*"],
+  "include": [
+    "src/**/*"
+  ],
   "exclude": [
     "node_modules",
     "dist",
@@ -14,12 +16,6 @@
     "**/*.test.ts",
     "**/*.spec.ts",
     "src/servers/code-validator.ts",
-    "src/servers/vultr-test.ts",
-    "src/servers/neon.ts",
-    "src/servers/playwright.ts",
-    "src/servers/stripe.ts",
-    "src/servers/supabase.ts",
-    "src/servers/vercel.ts",
-    "src/servers/next-devtools.ts"
+    "src/servers/vultr-test.ts"
   ]
 }

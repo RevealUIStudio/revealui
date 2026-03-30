@@ -11,12 +11,11 @@
 
 import { spawn } from 'node:child_process';
 import { createServer } from 'node:net';
-import { createLogger, getProjectRoot } from '@revealui/scripts';
-import { ErrorCode } from '@revealui/scripts/errors';
 import { config } from 'dotenv';
 import { checkMcpLicense } from '../index.js';
+import { createLauncherLogger, ExitCode } from './_launcher-utils.js';
 
-const logger = createLogger();
+const logger = createLauncherLogger();
 
 // Load environment variables
 config();
@@ -34,8 +33,6 @@ async function checkPort(port: number): Promise<boolean> {
 
 async function startNextDevToolsMCP() {
   try {
-    await getProjectRoot(import.meta.url);
-
     // Check if we're being invoked by an MCP client (non-TTY stdin)
     // MCP servers need clean stdio pipes for JSON-RPC protocol
     const isMCPSession = !process.stdin.isTTY;
@@ -185,7 +182,7 @@ async function startNextDevToolsMCP() {
       if (!isMCPSession) {
         logger.error(`Failed to start Next.js DevTools MCP server: ${error.message}`);
       }
-      process.exit(ErrorCode.CONFIG_ERROR);
+      process.exit(ExitCode.CONFIG_ERROR);
     });
 
     child.on('exit', (code) => {
@@ -208,22 +205,30 @@ async function startNextDevToolsMCP() {
     });
   } catch (error) {
     logger.error(`Script failed: ${error instanceof Error ? error.message : String(error)}`);
-    process.exit(ErrorCode.EXECUTION_ERROR);
+    process.exit(ExitCode.EXECUTION_ERROR);
   }
 }
 
 /**
- * Main function
+ * Launch the Next.js DevTools MCP server.
+ * Exported for programmatic use by the Hypervisor.
+ */
+export async function launchNextDevtoolsMcp(): Promise<void> {
+  if (!(await checkMcpLicense())) {
+    throw new Error('MCP license check failed');
+  }
+  await startNextDevToolsMCP();
+}
+
+/**
+ * Main function (CLI entrypoint)
  */
 async function main() {
   try {
-    if (!(await checkMcpLicense())) {
-      process.exit(ErrorCode.CONFIG_ERROR);
-    }
-    await startNextDevToolsMCP();
+    await launchNextDevtoolsMcp();
   } catch (error) {
     logger.error(`Script failed: ${error instanceof Error ? error.message : String(error)}`);
-    process.exit(ErrorCode.EXECUTION_ERROR);
+    process.exit(ExitCode.EXECUTION_ERROR);
   }
 }
 

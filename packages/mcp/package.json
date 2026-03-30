@@ -1,7 +1,7 @@
 {
   "name": "@revealui/mcp",
   "version": "0.1.3",
-  "description": "Model Context Protocol integrations for RevealUI — adapter framework, hypervisor, and MCP contracts",
+  "description": "Model Context Protocol integrations for RevealUI \u2014 adapter framework, hypervisor, and MCP contracts",
   "repository": {
     "type": "git",
     "url": "https://github.com/RevealUIStudio/revealui.git",
@@ -45,6 +45,26 @@
     "./config": {
       "types": "./dist/config/index.d.ts",
       "import": "./dist/config/index.js"
+    },
+    "./pipeline": {
+      "types": "./dist/pipeline.d.ts",
+      "import": "./dist/pipeline.js"
+    },
+    "./rate-limiter": {
+      "types": "./dist/rate-limiter.d.ts",
+      "import": "./dist/rate-limiter.js"
+    },
+    "./telemetry": {
+      "types": "./dist/telemetry.d.ts",
+      "import": "./dist/telemetry.js"
+    },
+    "./auth": {
+      "types": "./dist/auth.d.ts",
+      "import": "./dist/auth.js"
+    },
+    "./stores/postgres": {
+      "types": "./dist/stores/postgres-idempotency.d.ts",
+      "import": "./dist/stores/postgres-idempotency.js"
     }
   },
   "files": [
