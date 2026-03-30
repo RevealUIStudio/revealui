@@ -17,7 +17,9 @@ const mockPasswordResetRequestValidate = vi.fn();
 const mockPasswordResetTokenValidate = vi.fn();
 const mockSendPasswordResetEmail = vi.fn();
 
-const mockValidatePasswordStrength = vi.fn(() => ({ valid: true, errors: [] }));
+const mockValidatePasswordStrength = vi.fn(
+  (_pw?: unknown): { valid: boolean; errors: string[] } => ({ valid: true, errors: [] }),
+);
 
 vi.mock('@revealui/auth/server', () => ({
   getSession: (...args: unknown[]) => mockGetSession(...args),
