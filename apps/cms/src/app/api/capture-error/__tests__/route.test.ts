@@ -7,6 +7,10 @@
 
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
+vi.mock('@/lib/middleware/rate-limit', () => ({
+  withRateLimit: (handler: (...args: unknown[]) => unknown) => handler,
+}));
+
 vi.mock('next/server', () => {
   class MockNextResponse {
     body: unknown;

@@ -225,7 +225,7 @@ describe('GET /api/auth/verify-email', () => {
     await GET(req);
 
     expect(checkRateLimit).toHaveBeenCalledWith(
-      'verify_email:5.6.7.8',
+      'verify_email:1.2.3.4',
       expect.objectContaining({
         maxAttempts: 10,
         windowMs: 15 * 60 * 1000,

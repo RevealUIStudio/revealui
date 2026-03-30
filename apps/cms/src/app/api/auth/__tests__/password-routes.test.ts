@@ -17,12 +17,15 @@ const mockPasswordResetRequestValidate = vi.fn();
 const mockPasswordResetTokenValidate = vi.fn();
 const mockSendPasswordResetEmail = vi.fn();
 
+const mockValidatePasswordStrength = vi.fn(() => ({ valid: true, errors: [] }));
+
 vi.mock('@revealui/auth/server', () => ({
   getSession: (...args: unknown[]) => mockGetSession(...args),
   changePassword: (...args: unknown[]) => mockChangePassword(...args),
   deleteOtherUserSessions: (...args: unknown[]) => mockDeleteOtherUserSessions(...args),
   meetsMinimumPasswordRequirements: (...args: unknown[]) =>
     mockMeetsMinimumPasswordRequirements(...args),
+  validatePasswordStrength: (...args: unknown[]) => mockValidatePasswordStrength(...args),
   generatePasswordResetToken: (...args: unknown[]) => mockGeneratePasswordResetToken(...args),
   resetPasswordWithToken: (...args: unknown[]) => mockResetPasswordWithToken(...args),
 }));
@@ -50,6 +53,10 @@ vi.mock('@/lib/email', () => ({
 
 vi.mock('@/lib/middleware/rate-limit', () => ({
   withRateLimit: (handler: (...args: unknown[]) => unknown, _opts?: unknown) => handler,
+}));
+
+vi.mock('@/lib/utils/request-context', () => ({
+  extractRequestContext: vi.fn(() => ({ userAgent: 'test', ipAddress: '127.0.0.1' })),
 }));
 
 vi.mock('@/lib/utils/error-response', () => {
@@ -134,7 +141,10 @@ describe('POST /api/auth/change-password', () => {
 
   it('returns 400 when new password does not meet requirements', async () => {
     mockGetSession.mockResolvedValue({ user: { id: 'u1' } });
-    mockMeetsMinimumPasswordRequirements.mockReturnValue(false);
+    mockValidatePasswordStrength.mockReturnValue({
+      valid: false,
+      errors: ['Password does not meet strength requirements.'],
+    });
 
     const POST = await loadRoute();
     const res = await POST(makeRequest({ currentPassword: 'OldPass1!', newPassword: 'WeakPass1' }));
@@ -143,19 +153,19 @@ describe('POST /api/auth/change-password', () => {
 
   it('changes password and returns success', async () => {
     mockGetSession.mockResolvedValue({ session: { id: 'sess-1' }, user: { id: 'u1' } });
-    mockMeetsMinimumPasswordRequirements.mockReturnValue(true);
+    mockValidatePasswordStrength.mockReturnValue({ valid: true, errors: [] });
     mockChangePassword.mockResolvedValue({ success: true });
 
     const POST = await loadRoute();
     const res = await POST(makeRequest({ currentPassword: 'OldPass1!', newPassword: 'NewPass1!' }));
 
     expect((res as { status: number }).status).toBe(200);
-    expect(mockChangePassword).toHaveBeenCalledWith('u1', 'OldPass1!', 'NewPass1!');
+    expect(mockChangePassword).toHaveBeenCalledWith('u1', 'OldPass1!', 'NewPass1!', 'sess-1');
   });
 
-  it('revokes other sessions when requested', async () => {
+  it('passes session ID to changePassword for revocation', async () => {
     mockGetSession.mockResolvedValue({ session: { id: 'sess-1' }, user: { id: 'u1' } });
-    mockMeetsMinimumPasswordRequirements.mockReturnValue(true);
+    mockValidatePasswordStrength.mockReturnValue({ valid: true, errors: [] });
     mockChangePassword.mockResolvedValue({ success: true });
 
     const POST = await loadRoute();
@@ -167,12 +177,12 @@ describe('POST /api/auth/change-password', () => {
       }),
     );
 
-    expect(mockDeleteOtherUserSessions).toHaveBeenCalledWith('u1', 'sess-1');
+    expect(mockChangePassword).toHaveBeenCalledWith('u1', 'OldPass1!', 'NewPass1!', 'sess-1');
   });
 
   it('returns 400 when current password is incorrect', async () => {
-    mockGetSession.mockResolvedValue({ user: { id: 'u1' } });
-    mockMeetsMinimumPasswordRequirements.mockReturnValue(true);
+    mockGetSession.mockResolvedValue({ session: { id: 'sess-1' }, user: { id: 'u1' } });
+    mockValidatePasswordStrength.mockReturnValue({ valid: true, errors: [] });
     mockChangePassword.mockResolvedValue({
       success: false,
       error: 'Current password is incorrect.',
@@ -184,8 +194,8 @@ describe('POST /api/auth/change-password', () => {
   });
 
   it('returns 404 when user not found', async () => {
-    mockGetSession.mockResolvedValue({ user: { id: 'u1' } });
-    mockMeetsMinimumPasswordRequirements.mockReturnValue(true);
+    mockGetSession.mockResolvedValue({ session: { id: 'sess-1' }, user: { id: 'u1' } });
+    mockValidatePasswordStrength.mockReturnValue({ valid: true, errors: [] });
     mockChangePassword.mockResolvedValue({
       success: false,
       error: 'User not found.',
