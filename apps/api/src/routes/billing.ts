@@ -753,17 +753,22 @@ app.openapi(upgradeRoute, async (c) => {
     });
   }
 
-  // Swap the price and set tier metadata so the webhook can detect the upgrade
+  // Swap the price and set tier metadata so the webhook can detect the upgrade.
+  // Idempotency key prevents duplicate mutations from concurrent requests (M-13).
   await withStripe((stripe) =>
-    stripe.subscriptions.update(subscription.id, {
-      items: [{ id: item.id, price: resolvedPriceId }],
-      metadata: {
-        tier: targetTier,
-        revealui_user_id: user.id,
-        pending_change: `upgrade:${targetTier}`,
+    stripe.subscriptions.update(
+      subscription.id,
+      {
+        items: [{ id: item.id, price: resolvedPriceId }],
+        metadata: {
+          tier: targetTier,
+          revealui_user_id: user.id,
+          pending_change: `upgrade:${targetTier}`,
+        },
+        proration_behavior: 'create_prorations',
       },
-      proration_behavior: 'create_prorations',
-    }),
+      { idempotencyKey: `upgrade-${subscription.id}-${targetTier}-${user.id}` },
+    ),
   );
 
   // Send upgrade confirmation email (fire-and-forget)
@@ -849,11 +854,16 @@ app.openapi(downgradeRoute, async (c) => {
 
   // Cancel at period end so the customer retains access until their billing cycle ends.
   // Set pending_change to block concurrent modifications (cleared by webhook handler).
+  // Idempotency key prevents duplicate mutations from concurrent requests (M-13).
   const updated = await withStripe((stripe) =>
-    stripe.subscriptions.update(subscription.id, {
-      cancel_at_period_end: true,
-      metadata: { pending_change: 'downgrade:free' },
-    }),
+    stripe.subscriptions.update(
+      subscription.id,
+      {
+        cancel_at_period_end: true,
+        metadata: { pending_change: 'downgrade:free' },
+      },
+      { idempotencyKey: `downgrade-${subscription.id}-free-${user.id}` },
+    ),
   );
 
   // cancel_at is populated by Stripe when cancel_at_period_end is set
