@@ -136,7 +136,7 @@ export function ProductMockup() {
         <div className="relative bg-gray-100" style={{ minHeight: '380px' }}>
           <Image
             src={SCREENSHOTS[activeTab]?.src ?? ''}
-            alt={`RevealUI CMS — ${SCREENSHOTS[activeTab]?.label ?? ''}`}
+            alt={`RevealUI Admin — ${SCREENSHOTS[activeTab]?.label ?? ''}`}
             fill
             className="object-cover object-top"
             sizes="(max-width: 1024px) 100vw, 60vw"

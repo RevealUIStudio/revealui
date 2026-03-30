@@ -22,9 +22,9 @@ export default function TermsOfServicePage() {
 
         <h2>1. Service Description</h2>
         <p>
-          RevealUI is open-source business infrastructure for software companies. It includes a CMS
-          engine, authentication, billing integration, AI agents, and UI components. The Service is
-          available in four tiers: Free (OSS), Pro, Max, and Forge.
+          RevealUI is an open-source agentic business runtime for software companies. It includes a
+          content engine, authentication, billing integration, AI agents, and UI components. The
+          Service is available in four tiers: Free (OSS), Pro, Max, and Forge.
         </p>
 
         <h2>2. Accounts</h2>

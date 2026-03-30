@@ -31,7 +31,7 @@ const features = [
     name: 'Perpetual Licenses (Track C)',
     description:
       'One-time purchase for lifetime access to Pro, Agency, or Forge tier features. No subscription required. Includes 1 year of priority support and updates.',
-    status: 'Available',
+    status: 'Coming soon',
     category: 'Billing',
   },
   {
@@ -155,7 +155,7 @@ export default function ComingSoonPage() {
             Want to influence what ships next?
           </h2>
           <p className="mt-4 text-lg text-gray-600">
-            We prioritize based on customer impact, charge readiness, and community demand.
+            We prioritize based on customer impact, product readiness, and community demand.
           </p>
           <div className="mt-8 flex flex-col sm:flex-row items-center justify-center gap-4">
             <a
