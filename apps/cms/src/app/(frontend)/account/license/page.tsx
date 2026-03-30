@@ -203,7 +203,7 @@ export default function LicensePage() {
               <button
                 type="button"
                 onClick={() => {
-                  void navigator.clipboard.writeText(subscription.licenseKey!);
+                  void navigator.clipboard.writeText(subscription.licenseKey ?? '');
                   setCopied(true);
                   setTimeout(() => setCopied(false), 2000);
                 }}
