@@ -1,7 +1,7 @@
 # syntax=docker/dockerfile:1
 
 # Base stage with Node.js and pnpm
-FROM node:24-alpine AS base
+FROM node:25-alpine AS base
 ENV PNPM_HOME="/pnpm"
 ENV PATH="$PNPM_HOME:$PATH"
 RUN corepack enable && corepack prepare pnpm@10.28.2 --activate
