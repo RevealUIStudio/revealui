@@ -5,7 +5,7 @@
  * Backup codes are bcrypt-hashed for storage (one-time use, consumed on verify).
  */
 
-import { randomBytes } from 'node:crypto';
+import { randomBytes, timingSafeEqual } from 'node:crypto';
 import { TwoFactorAuth } from '@revealui/core/security';
 import { getClient } from '@revealui/db/client';
 import { users } from '@revealui/db/schema';
@@ -39,6 +39,38 @@ export function configureMFA(overrides: Partial<MFAConfig>): void {
 
 export function resetMFAConfig(): void {
   config = { ...DEFAULT_MFA_CONFIG };
+}
+
+// =============================================================================
+// TOTP Replay Prevention (B-03)
+// =============================================================================
+
+/**
+ * Compute the TOTP time counter for a given timestamp.
+ * Counter = floor(unixMs / 30000). Each counter value represents one 30-second window.
+ */
+function totpCounter(timestampMs: number = Date.now()): number {
+  return Math.floor(timestampMs / 30000);
+}
+
+/**
+ * Verify a TOTP code and return the matched time counter, or null if invalid.
+ * This replicates the window logic from TwoFactorAuth.verifyCode so we know
+ * which counter matched (needed for replay prevention).
+ */
+function verifyCodeWithCounter(secret: string, code: string, window: number = 1): number | null {
+  const now = Date.now();
+  for (let i = -window; i <= window; i++) {
+    const testTime = now + i * 30000;
+    const testCode = TwoFactorAuth.generateCode(secret, testTime);
+    if (
+      testCode.length === code.length &&
+      timingSafeEqual(Buffer.from(testCode), Buffer.from(code))
+    ) {
+      return totpCounter(testTime);
+    }
+  }
+  return null;
 }
 
 // =============================================================================
@@ -188,6 +220,9 @@ export async function verifyMFASetup(
 
 /**
  * Verify a TOTP code during login (step 2 of MFA login flow).
+ * Includes replay prevention (B-03): rejects codes whose time counter
+ * has already been used, preventing an attacker who intercepts a code
+ * from replaying it within the same 30-second window.
  */
 export async function verifyMFACode(
   userId: string,
@@ -196,7 +231,11 @@ export async function verifyMFACode(
   const db = getClient();
 
   const [user] = await db
-    .select({ mfaSecret: users.mfaSecret, mfaEnabled: users.mfaEnabled })
+    .select({
+      mfaSecret: users.mfaSecret,
+      mfaEnabled: users.mfaEnabled,
+      mfaLastUsedCounter: users.mfaLastUsedCounter,
+    })
     .from(users)
     .where(eq(users.id, userId))
     .limit(1);
@@ -205,10 +244,18 @@ export async function verifyMFACode(
     return { success: false, error: 'MFA not enabled' };
   }
 
-  const valid = TwoFactorAuth.verifyCode(user.mfaSecret, code);
-  if (!valid) {
+  const matchedCounter = verifyCodeWithCounter(user.mfaSecret, code);
+  if (matchedCounter === null) {
     return { success: false, error: 'Invalid code' };
   }
+
+  // Replay prevention: reject if this counter was already used
+  if (user.mfaLastUsedCounter !== null && matchedCounter <= user.mfaLastUsedCounter) {
+    return { success: false, error: 'Invalid code' };
+  }
+
+  // Record the counter to prevent replay
+  await db.update(users).set({ mfaLastUsedCounter: matchedCounter }).where(eq(users.id, userId));
 
   return { success: true };
 }
@@ -348,6 +395,7 @@ export async function disableMFA(
       mfaSecret: null,
       mfaBackupCodes: null,
       mfaVerifiedAt: null,
+      mfaLastUsedCounter: null,
       updatedAt: new Date(),
     })
     .where(eq(users.id, userId));
