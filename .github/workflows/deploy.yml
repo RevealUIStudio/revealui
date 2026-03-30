@@ -170,9 +170,9 @@ jobs:
           else
             URL="https://test.api.revealui.com"
           fi
-          echo "Checking $URL/api/health..."
+          echo "Checking $URL/health..."
           for i in $(seq 1 12); do
-            if curl -sf "$URL/api/health" > /dev/null 2>&1; then
+            if curl -sf "$URL/health" > /dev/null 2>&1; then
               echo "API healthy"
               exit 0
             fi
