@@ -293,14 +293,13 @@ jobs:
           SKIP_ENV_VALIDATION: "true"
 
   # ---------------------------------------------------------------------------
-  # Phase 4: E2E smoke tests (warn-only — Playwright chromium only)
+  # Phase 4: E2E smoke tests (hard fail — Playwright chromium only)
   # ---------------------------------------------------------------------------
   e2e-smoke:
     name: E2E Smoke
     runs-on: ubuntu-latest
     timeout-minutes: 5
     needs: [quality, build]
-    continue-on-error: true
 
     steps:
       - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6
@@ -327,7 +326,6 @@ jobs:
 
       - name: Run E2E smoke tests
         run: pnpm test:e2e -- --project=chromium e2e/smoke.e2e.ts
-        continue-on-error: true
         env:
           CI: "true"
           SKIP_ENV_VALIDATION: "true"
