@@ -151,7 +151,7 @@ tsx scripts/seed-products.ts
 
 ## 4. Add a pricing page
 
-RevealUI ships 50+ UI components. Use them to build a pricing page in your frontend app.
+RevealUI ships 56 UI components. Use them to build a pricing page in your frontend app.
 
 In `apps/mainframe/src/pages/pricing.tsx`:
 
@@ -359,7 +359,7 @@ This is the foundation. The five primitives — Users, Content, Products, Paymen
 ## Next steps
 
 - **Add more collections** — orders, reviews, blog posts, anything your business needs
-- **Customize the UI** — `packages/presentation` has 50+ components to build with
+- **Customize the UI** — `packages/presentation` has 56 components to build with
 - **Add AI** — Pro tier adds AI agents; see the [AI guide](./AI.md)
 - **Invite your team** — role-based access control is already wired in
 

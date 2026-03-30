@@ -14,7 +14,7 @@ RevealUI Pro adds AI, MCP servers, and editor integrations on top of the open-so
 
 ## License
 
-Pro packages are commercially licensed. An active Pro or Enterprise subscription is required.
+Pro packages are commercially licensed. An active Pro or Forge subscription is required.
 
 - [View pricing](https://revealui.com/pricing)
 - [Manage your license](https://cms.revealui.com)

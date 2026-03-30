@@ -2,7 +2,7 @@
 
 Every software company ships the same five things: a way to manage users, a way to manage content, a way to sell products, a way to collect payments, and increasingly, a way to run AI. These are not features. They are primitives. And yet every engineering team builds them from scratch, bolting together auth libraries, CMS frameworks, payment wrappers, and AI SDKs, spending months on plumbing before writing a single line of differentiated code.
 
-RevealUI is Business Operating System Software (B.O.S.S.). Its thesis is simple: these five primitives should be pre-wired, open source, and ready to deploy. You bring your business logic. We bring the infrastructure.
+RevealUI is the agentic business runtime. Its thesis is simple: these five primitives should be pre-wired, open source, and ready to deploy. You bring your business logic. We bring the infrastructure.
 
 This post is a deep technical walkthrough of all five. Not marketing copy. Real code, real architecture decisions, real trade-offs.
 
@@ -249,7 +249,7 @@ This is used as middleware in the API. AI routes check `requireFeature('ai')`. M
 RevealUI supports three billing models simultaneously:
 
 1. **Subscriptions** -- Monthly recurring charges via Stripe. Standard for SaaS.
-2. **Agent credits** -- Usage-based metering for AI tasks. Pro tier gets 10,000 tasks/month, Max gets 50,000, Enterprise is unlimited. Overage is reported to Stripe Billing Meters.
+2. **Agent credits** -- Usage-based metering for AI tasks. Pro tier gets 10,000 tasks/month, Max gets 50,000, Forge is unlimited. Overage is reported to Stripe Billing Meters.
 3. **Perpetual licenses** -- One-time purchase, own forever, with an optional annual support renewal. The license JWT has no expiration, and the system tracks `supportExpiresAt` separately from the license validity.
 
 ### License verification API
@@ -472,7 +472,7 @@ AI is not free. RevealUI tracks task usage per billing cycle:
 | Free | 1,000 tasks |
 | Pro | 10,000 tasks |
 | Max | 50,000 tasks |
-| Enterprise | Unlimited |
+| Forge      | Unlimited |
 
 Overage beyond the quota is tracked in the `agent_task_usage` table and reported to Stripe Billing Meters at the end of each cycle via a cron job. This enables usage-based pricing without blocking execution in real-time.
 
@@ -506,4 +506,4 @@ Build your business, not your boilerplate.
 
 ---
 
-*RevealUI is Business Operating System Software (B.O.S.S.). The core framework -- Users, Content, Products, and Payments -- is MIT licensed and free forever. Intelligence (AI agents, memory, MCP servers) is available with a Pro license. Learn more at [revealui.com](https://revealui.com).*
+*RevealUI is the agentic business runtime. The core framework -- Users, Content, Products, and Payments -- is MIT licensed and free forever. Intelligence (AI agents, memory, MCP servers) is available with a Pro license. Learn more at [revealui.com](https://revealui.com).*

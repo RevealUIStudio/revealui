@@ -134,7 +134,7 @@ apps/cms
 - **React 19** - UI library with Server Components
 - **Next.js 16** - App Router framework
 - **Tailwind CSS v4** - Styling (10-100x faster builds)
-- **TypeScript 5.9** - Type safety
+- **TypeScript 6** - Type safety
 
 ### Backend
 - **RevealUI CMS** - Native headless CMS

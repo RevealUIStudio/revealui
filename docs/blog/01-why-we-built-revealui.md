@@ -8,7 +8,7 @@ I've started three software companies. Each time, I spent the first three to six
 
 That's not a skills problem. That's an infrastructure problem. And after the third time, I decided to solve it.
 
-RevealUI is Business Operating System Software. Users, content, products, payments, and AI — pre-wired, open source, and ready to deploy. One codebase. One deployment. Zero months wasted on plumbing.
+RevealUI is the agentic business runtime. Users, content, products, payments, and AI — pre-wired, open source, and ready to deploy. One codebase. One deployment. Zero months wasted on plumbing.
 
 ## The problem nobody talks about
 
@@ -140,7 +140,7 @@ const featureTierMap: Record<keyof FeatureFlags, LicenseTier> = {
 };
 ```
 
-Free tier gets the full CMS framework, auth, and REST API. Pro unlocks payments, AI, sync, and monitoring. Max adds AI memory, multi-provider support, and compliance tooling. Enterprise (we call it Forge) adds multi-tenant architecture, white-labeling, and SSO.
+Free tier gets the full CMS framework, auth, and REST API. Pro unlocks payments, AI, sync, and monitoring. Max adds AI memory, multi-provider support, and compliance tooling. Forge adds multi-tenant architecture, white-labeling (planned), and SSO (planned).
 
 ### Pricing served from Stripe, not hardcoded
 
@@ -211,7 +211,7 @@ The business model is straightforward: the Pro tier (AI agents, memory system, B
 
 I also open-sourced the MCP framework (hypervisor, adapter base classes, and database adapter). It was originally Pro-only, but the ecosystem benefits more from it being open. AI tooling should be open infrastructure, not a profit center.
 
-## What makes BOSS different
+## What makes RevealUI different
 
 RevealUI is not a CMS with plugins bolted on. It's not a boilerplate you clone and hack. It's a cohesive system designed from the ground up so that every primitive knows about every other primitive.
 
@@ -223,8 +223,8 @@ Some numbers on what's actually shipped:
 
 - **28 packages** across the monorepo (7 apps, 16 OSS libraries, and 5 Pro packages)
 - **71 database tables** via Drizzle ORM
-- **50+ UI components** in the presentation layer (zero external UI dependencies — just Tailwind v4, clsx, and CVA)
-- **6,800+ tests** across all packages
+- **56 UI components** in the presentation layer (zero external UI dependencies — just Tailwind v4, clsx, and CVA)
+- **13,700+ tests** across all packages
 - **Full OpenAPI spec** with Swagger UI at `/docs`
 - **Session auth** with bcrypt, rate limiting, brute force protection, and OAuth
 
@@ -242,7 +242,7 @@ I want to be honest about where RevealUI is and isn't the right choice.
 
 ## What's next
 
-The repository is public on GitHub. The docs site is live at [docs.revealui.com](https://docs.revealui.com). The `create-revealui` CLI is on npm. You can stand up a full BOSS instance today.
+The repository is public on GitHub. The docs site is live at [docs.revealui.com](https://docs.revealui.com). The `create-revealui` CLI is on npm. You can stand up a full RevealUI instance today.
 
 The Studio desktop companion (Tauri + React) and a terminal client (Go + Bubble Tea) are already in the monorepo — giving you both a visual DevPod manager and a TUI for API access, QR checkout, and SSH fingerprint lookup.
 

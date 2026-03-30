@@ -61,7 +61,7 @@ STRIPE_WEBHOOK_SECRET=whsec_...
 Create products and prices in the Stripe dashboard that match your tier structure:
 
 1. Go to **Products** in the Stripe dashboard
-2. Create a product for each tier (Pro, Max, Enterprise)
+2. Create a product for each tier (Pro, Max, Forge)
 3. Add a recurring price to each product
 4. Note the price IDs -- these are returned by the pricing API
 

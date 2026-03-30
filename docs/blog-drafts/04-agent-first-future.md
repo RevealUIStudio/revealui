@@ -4,7 +4,7 @@
 
 ---
 
-I have been building RevealUI for the past year as a Business Operating System Software (B.O.S.S.) platform -- the kind of thing where you get users, content, products, payments, and AI pre-wired, open source, and ready to deploy. The whole point is that you should not have to re-implement billing or auth or a CMS every time you start a new software business.
+I have been building RevealUI for the past year as an agentic business runtime -- the kind of thing where you get users, content, products, payments, and AI pre-wired, open source, and ready to deploy. The whole point is that you should not have to re-implement billing or auth or a CMS every time you start a new software business.
 
 But somewhere around the third month of building, I realized something that changed the architecture fundamentally: **the next wave of customers for software platforms are not human.**
 
@@ -124,7 +124,7 @@ RevealUI implements the full A2A 1.0 task lifecycle. An external agent can:
 4. **Check status** via `tasks/get`
 5. **Cancel** a running task via `tasks/cancel`
 
-Task execution is gated behind the `ai` feature flag -- you need a Pro or Enterprise license for agents to actually run tasks. But discovery is always public. Any agent on the internet can find your RevealUI instance and understand what it offers.
+Task execution is gated behind the `ai` feature flag -- you need a Pro or Forge license for agents to actually run tasks. But discovery is always public. Any agent on the internet can find your RevealUI instance and understand what it offers.
 
 ```bash
 # An agent discovers your RevealUI instance
@@ -295,6 +295,6 @@ The user interface for the future has yet to reveal itself. But we know one thin
 
 ---
 
-*RevealUI is open-source Business Operating System Software (B.O.S.S.). Users, content, products, payments, and AI -- pre-wired and ready to deploy. Learn more at [revealui.com](https://revealui.com).*
+*RevealUI is the open-source agentic business runtime. Users, content, products, payments, and AI -- pre-wired and ready to deploy. Learn more at [revealui.com](https://revealui.com).*
 
 *Follow the project on [GitHub](https://github.com/RevealUIStudio/revealui).*

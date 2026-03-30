@@ -1,6 +1,6 @@
 # RevealUI Monorepo
 
-Business Operating System Software (B.O.S.S.). Build your business, not your boilerplate. Users, content, products, payments, and AI — pre-wired, open source, and ready to deploy.
+The agentic business runtime. Users, content, products, payments, and AI — pre-wired, open source, and ready to deploy.
 
 ## Current Phase
 **Phase 3 — Launch Preparation** (docs, OSS prep, marketing, Pro distribution).
@@ -38,7 +38,7 @@ feature/* ──PR──▶ test ──PR──▶ main
 | App | Port | Framework | Purpose |
 |-----|------|-----------|---------|
 | api | 3004 | Hono | REST API (OpenAPI + Swagger) |
-| cms | 4000 | Next.js 16 | Headless CMS with admin dashboard + system monitoring |
+| cms | 4000 | Next.js 16 | Admin dashboard, content management + system monitoring |
 | docs | 3002 | Vite/React | Documentation site |
 | marketing | 3000 | Next.js | Marketing + waitlist |
 | studio | — | Tauri 2 + React 19 | Desktop companion: DevPod manager, app launcher, first-run wizard, system tray |
@@ -49,9 +49,9 @@ feature/* ──PR──▶ test ──PR──▶ main
 |---------|---------|
 | @revealui/core | CMS engine, REST API, auth, rich text, admin UI, plugins |
 | @revealui/contracts | Zod schemas + TypeScript types (single source of truth) |
-| @revealui/db | Drizzle ORM schema (75 tables), dual-DB (Neon + Supabase) |
+| @revealui/db | Drizzle ORM schema (76 tables), dual-DB (Neon + Supabase) |
 | @revealui/auth | Session auth, password reset, rate limiting |
-| @revealui/presentation | 50+ native UI components (Tailwind v4, zero external UI deps — only clsx + CVA) |
+| @revealui/presentation | 56 native UI components (Tailwind v4, zero external UI deps — only clsx + CVA) |
 | @revealui/router | Lightweight file-based router with SSR |
 | @revealui/config | Type-safe env config (Zod + lazy Proxy) |
 | @revealui/utils | Logger, DB helpers, validation |
@@ -170,7 +170,7 @@ Schemas are in `packages/db/src/schema/`. Use Drizzle ORM for queries. Dual-data
 
 ## Build & Security Status
 - 24 workspaces build and typecheck clean
-- 10,784 tests (2,563 core + 1,734 API + 1,256 CMS + 911 DB + 187 security + 4,133 other)
+- 13,700+ tests across 811 test files
 - 36 pnpm overrides enforce minimum safe versions for transitive deps
 - React 19.2.4 (CVE-2025-55182 React2Shell patched)
 - Run `pnpm audit:any` and `pnpm audit:console` for current any/console counts (warn-only)

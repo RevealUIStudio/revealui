@@ -16,7 +16,7 @@ This wasn't a naive decision. I'm aware of the arguments for more restrictive li
 
 I understand that risk. I accept it. Here's why.
 
-RevealUI is Business Operating System Software. The four business primitives that make it useful -- Users, Content, Products, Payments -- are MIT licensed and will stay MIT forever. These are table stakes. Every business needs auth, a content system, a product catalog, and payment processing. Making these proprietary would limit adoption without meaningfully protecting revenue. The value isn't in the code; it's in the integration, the maintenance, and the roadmap.
+RevealUI is an agentic business runtime. The four business primitives that make it useful -- Users, Content, Products, Payments -- are MIT licensed and will stay MIT forever. These are table stakes. Every business needs auth, a content system, a product catalog, and payment processing. Making these proprietary would limit adoption without meaningfully protecting revenue. The value isn't in the code; it's in the integration, the maintenance, and the roadmap.
 
 Our MCP servers are MIT too. We open-sourced them intentionally. MCP servers are distribution infrastructure -- the more people who use them, build on them, and extend them, the more valuable the ecosystem becomes. Restricting MCP servers to paying customers would be optimizing for short-term revenue at the cost of long-term reach.
 
@@ -42,7 +42,7 @@ These features are commercially licensed. The source code is available (you can 
 
 Why AI specifically? Three reasons.
 
-**It's the highest-value part of the stack.** AI agents that can manage your content, process payments, handle support tickets, and coordinate across services are genuinely transformative. This is where RevealUI stops being "another framework" and starts being a business operating system.
+**It's the highest-value part of the stack.** AI agents that can manage your content, process payments, handle support tickets, and coordinate across services are genuinely transformative. This is where RevealUI stops being "another framework" and starts being an agentic business runtime.
 
 **It's the most expensive to maintain.** LLM providers ship breaking changes constantly. Prompt formats evolve. Token pricing shifts. Context windows expand. Maintaining reliable integrations across multiple providers -- with memory systems, CRDT synchronization, and multi-agent coordination -- is a full-time job. Pro revenue funds this work directly.
 
@@ -61,7 +61,7 @@ Pro packages are published to npm as compiled distributions. You can install the
 | **Users/editors** | 3 | 25 | 100 | Unlimited |
 | **Agent tasks/mo** | 1,000 | 10,000 | 50,000 | Unlimited |
 | **API rate limit** | 200 req/min | 300 req/min | 600 req/min | 1,000 req/min |
-| **Auth** | Session-based | Session-based | Session-based | Session + OAuth + SSO/SAML |
+| **Auth** | Session-based | Session-based | Session-based | Session + OAuth + SSO/SAML (planned) |
 | **CMS collections** | Unlimited | Unlimited | Unlimited | Unlimited |
 | **Real-time sync** | Basic | Full | Full | Full |
 | **AI agents (BYOK)** | -- | Yes | Yes | Yes |
@@ -72,7 +72,7 @@ Pro packages are published to npm as compiled distributions. You can install the
 | **Custom domains** | -- | Yes | Yes | Yes |
 | **Audit logging** | -- | -- | Yes | Yes |
 | **Multi-tenant** | -- | -- | -- | Yes |
-| **White-label** | -- | -- | -- | Yes |
+| **White-label** | -- | -- | -- | Yes (planned) |
 | **Support** | Community | Email (48h) | Email (24h) | Slack (4h SLA) |
 | **Source code** | Full | Full | Full | Full |
 
@@ -82,7 +82,7 @@ A few things worth noting about this table.
 
 **All four business primitives work on free.** Users, Content, Products, Payments -- the MIT core -- are fully functional at every tier. Free doesn't cripple the business stack to pressure upgrades. The tier boundaries are about scale (more sites, more users, higher rate limits) and AI capabilities.
 
-**Pro has a 7-day trial with no credit card required.** The signup flow doesn't ask for payment information. You try it, you decide, you pay if it's worth it. If the product can't convince you in seven days, a payment wall on day one wasn't going to help.
+**Pro will have a 7-day trial with no credit card required (coming soon).** The signup flow won't ask for payment information. You try it, you decide, you pay if it's worth it. If the product can't convince you in seven days, a payment wall on day one wasn't going to help.
 
 ### Three Pricing Tracks
 
@@ -112,7 +112,7 @@ The bet is this: **most companies don't want to self-host and maintain productio
 
 What companies actually want is someone who maintains the software full-time, ships security patches promptly, provides a roadmap they can plan around, and answers the phone when something breaks. That's worth paying for, and that's what Pro provides.
 
-The BOSS model works like this:
+The model works like this:
 
 1. **Free primitives build adoption.** MIT-licensed business tools attract developers who need auth, content management, and payment processing. No friction, no signup, no sales call.
 
@@ -168,10 +168,10 @@ What I do know is that the alternative -- restrictive licensing, crippled free t
 
 RevealUI is the business stack I wanted when I started building software companies. Users, content, products, payments, and AI -- pre-wired, open source, and ready to deploy. If it's useful to you at $0, that's a win. If it's useful enough to pay for, even better.
 
-The code is on [GitHub](https://github.com/RevealUIStudio/revealui). The license is MIT. The Pro features have a free trial. Everything I've described in this post is verifiable.
+The code is on [GitHub](https://github.com/RevealUIStudio/revealui). The license is MIT. The Pro features will have a free trial (coming soon). Everything I've described in this post is verifiable.
 
 Build something.
 
 ---
 
-*RevealUI is Business Operating System Software (B.O.S.S.). Learn more at [revealui.com](https://revealui.com) or read the [docs](https://docs.revealui.com).*
+*RevealUI is the agentic business runtime. Learn more at [revealui.com](https://revealui.com) or read the [docs](https://docs.revealui.com).*

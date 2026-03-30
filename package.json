@@ -2,7 +2,7 @@
   "name": "revealui",
   "version": "0.1.0",
   "private": true,
-  "description": "Business Operating System Software (B.O.S.S.). Build your business, not your boilerplate. Users, content, products, payments, and AI — pre-wired, open source, and ready to deploy.",
+  "description": "The agentic business runtime. Users, content, products, payments, and AI — pre-wired, open source, and ready to deploy.",
   "devDependencies": {
     "@axe-core/playwright": "^4.11.1",
     "@biomejs/biome": "^2.4.8",

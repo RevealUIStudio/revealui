@@ -25,7 +25,7 @@ export interface StaticBlogPost {
 const WHY_WE_BUILT_REVEALUI: StaticBlogPost = {
   slug: 'why-we-built-revealui',
   title: 'Why We Built RevealUI',
-  excerpt: 'The origin story — why another business platform, and what makes B.O.S.S. different.',
+  excerpt: 'The origin story — why another business runtime, and what makes RevealUI different.',
   publishedAt: '2026-03-20T12:00:00.000Z',
   author: 'RevealUI Studio',
   content: `Every engineering team I have worked with builds the same things. Authentication. A content management layer. Product catalogs. Payment integrations. Maybe an AI feature if the roadmap is ambitious enough. These are not differentiating features. They are prerequisites. And yet they consume months of engineering time before a single line of business logic gets written.
@@ -44,9 +44,9 @@ RevealUI is that integration layer.
 
 ---
 
-## What B.O.S.S. Means
+## What RevealUI Is
 
-B.O.S.S. stands for Business Operating System Software. It is not a CMS. It is not a framework. It is the infrastructure layer that every software business needs, pre-assembled and ready to deploy.
+RevealUI is an agentic business runtime. It is not a CMS. It is not a framework. It is the infrastructure layer that every software business needs, pre-assembled and ready to deploy.
 
 Five primitives:
 
@@ -132,7 +132,7 @@ Build your business, not your boilerplate.
 
 ---
 
-*RevealUI is Business Operating System Software (B.O.S.S.). The core framework is MIT licensed and free forever. Pro features (AI agents, memory, MCP orchestration) are available with a Pro license. Learn more at [revealui.com](https://revealui.com).*`,
+*RevealUI is the agentic business runtime. The core framework is MIT licensed and free forever. Pro features (AI agents, memory, MCP orchestration) are available with a Pro license. Learn more at [revealui.com](https://revealui.com).*`,
 };
 
 /* ------------------------------------------------------------------ */

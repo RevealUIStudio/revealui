@@ -16,9 +16,9 @@ RevealUI is that integration layer.
 
 ---
 
-## What B.O.S.S. Means
+## What RevealUI Is
 
-B.O.S.S. stands for Business Operating System Software. It is not a CMS. It is not a framework. It is the infrastructure layer that every software business needs, pre-assembled and ready to deploy.
+RevealUI is an agentic business runtime. It is not a CMS. It is not a framework. It is the infrastructure layer that every software business needs, pre-assembled and ready to deploy.
 
 Five primitives:
 
@@ -60,7 +60,7 @@ Every framework is a set of opinions. Here are ours:
 
 **Lexical over ProseMirror.** Lexical's data model is JSON, not a custom AST. Server-side rendering works without a browser. XSS prevention is structural: every URL is validated before rendering.
 
-**Tailwind over CSS-in-JS.** No runtime cost. No hydration mismatch. The entire component library (50+ components) uses only Tailwind utilities, clsx, and CVA. Zero external UI dependencies.
+**Tailwind over CSS-in-JS.** No runtime cost. No hydration mismatch. The entire component library (56 components) uses only Tailwind utilities, clsx, and CVA. Zero external UI dependencies.
 
 **Biome over ESLint + Prettier.** One tool instead of two. Faster. No plugin ecosystem to manage. The formatter and linter share a single AST parse.
 
@@ -71,10 +71,10 @@ Every framework is a set of opinions. Here are ours:
 RevealUI launched with:
 
 - **18 npm packages** published to the public registry
-- **70+ database tables** via Drizzle ORM (NeonDB + Supabase)
-- **50+ UI components** with zero external dependencies
+- **76 database tables** via Drizzle ORM (NeonDB + Supabase)
+- **56 UI components** with zero external dependencies
 - **6 MCP servers** for AI tool access (all MIT)
-- **10,000+ tests** across all packages
+- **13,700+ tests** across all packages
 - **4 GitHub template repos** for different starting points
 
 You can start right now:
@@ -104,4 +104,4 @@ Build your business, not your boilerplate.
 
 ---
 
-*RevealUI is Business Operating System Software (B.O.S.S.). The core framework is MIT licensed and free forever. Pro features (AI agents, memory, MCP orchestration) are available with a Pro license. Learn more at [revealui.com](https://revealui.com).*
+*RevealUI is the agentic business runtime. The core framework is MIT licensed and free forever. Pro features (AI agents, memory, MCP orchestration) are available with a Pro license. Learn more at [revealui.com](https://revealui.com).*

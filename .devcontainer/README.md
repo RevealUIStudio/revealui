@@ -83,7 +83,7 @@ The Dev Container runs these services automatically:
 | **Marketing** | 3000 | Marketing site (after running `pnpm dev`) |
 | **Docs** | 3002 | Documentation site (after running `pnpm dev`) |
 | **API** | 3004 | REST API — Hono (after running `pnpm dev`) |
-| **CMS** | 4000 | Headless CMS + admin (after running `pnpm dev`) |
+| **CMS** | 4000 | Admin dashboard + content management (after running `pnpm dev`) |
 
 ## Environment Variables
 

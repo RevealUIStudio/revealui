@@ -2,7 +2,7 @@
   "name": "cms",
   "version": "0.0.1",
   "private": true,
-  "description": "Headless CMS powered by RevealUI",
+  "description": "RevealUI admin dashboard and content management",
   "license": "MIT",
   "dependencies": {
     "@electric-sql/client": "^1.0.27",

@@ -40,7 +40,7 @@ DATABASE_URL=            # NeonDB connection string (waitlist storage)
 ## Routes
 
 - `/` — Landing page
-- `/pricing` — Pro/Enterprise pricing and commercial packaging
+- `/pricing` — Pro/Forge pricing and commercial packaging
 - `/sponsor` — Sponsorship tiers
 - `/privacy` — Privacy policy
 - `/terms` — Terms of service

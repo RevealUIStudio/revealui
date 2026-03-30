@@ -117,9 +117,9 @@ revealui/
 │   ├── config/         # Type-safe env config (Zod)
 │   ├── contracts/      # Zod schemas + TypeScript types
 │   ├── core/           # CMS engine, REST API, plugins
-│   ├── db/             # Drizzle ORM schema (75 tables, dual-DB)
+│   ├── db/             # Drizzle ORM schema (76 tables, dual-DB)
 │   ├── dev/            # Shared configs (Biome, TS, Tailwind)
-│   ├── presentation/   # 50+ UI components (Tailwind v4)
+│   ├── presentation/   # 56 UI components (Tailwind v4)
 │   ├── router/         # File-based router with SSR
 │   ├── setup/          # Environment setup utilities
 │   ├── sync/           # ElectricSQL real-time sync
