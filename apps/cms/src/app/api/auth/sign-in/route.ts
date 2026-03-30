@@ -55,10 +55,9 @@ async function signInHandler(request: NextRequest): Promise<NextResponse> {
 
     // Get user agent and IP address for session tracking
     const userAgent = request.headers.get('user-agent') || undefined;
-    const xff = request.headers.get('x-forwarded-for');
     const ipAddress =
-      (xff ? xff.split(',').pop()?.trim() : undefined) ||
       request.headers.get('x-real-ip') ||
+      request.headers.get('x-forwarded-for')?.split(',')[0]?.trim() ||
       undefined;
 
     const result = await signIn(sanitizedEmail, password, {

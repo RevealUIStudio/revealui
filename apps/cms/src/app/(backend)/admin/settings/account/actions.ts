@@ -65,7 +65,13 @@ export async function changePasswordAction(
   }
 
   const { currentPassword, newPassword } = parsed.data;
-  const result = await changePassword(session.user.id, currentPassword, newPassword);
+  // Pass current session ID so changePassword can invalidate all other sessions
+  const result = await changePassword(
+    session.user.id,
+    currentPassword,
+    newPassword,
+    session.session.id,
+  );
 
   if (!result.success) {
     return {

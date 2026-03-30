@@ -9,7 +9,6 @@
 
 import {
   changePassword,
-  deleteOtherUserSessions,
   getSession,
   meetsMinimumPasswordRequirements,
 } from '@revealui/auth/server';
@@ -77,7 +76,13 @@ async function handler(request: NextRequest): Promise<NextResponse> {
       );
     }
 
-    const result = await changePassword(sessionData.user.id, currentPassword, newPassword);
+    // Pass current session ID so changePassword can invalidate all other sessions
+    const result = await changePassword(
+      sessionData.user.id,
+      currentPassword,
+      newPassword,
+      sessionData.session.id,
+    );
 
     if (!result.success) {
       const error = result.error ?? 'Failed to change password';
@@ -95,9 +100,9 @@ async function handler(request: NextRequest): Promise<NextResponse> {
       return createApplicationErrorResponse(error, 'INTERNAL_ERROR', 500);
     }
 
-    if (revokeOtherSessions) {
-      await deleteOtherUserSessions(sessionData.user.id, sessionData.session.id);
-    }
+    // Session invalidation is now handled inside changePassword itself.
+    // The revokeOtherSessions option is kept for backward compatibility but
+    // is effectively always true — password changes always revoke other sessions.
 
     logger.info('Password changed', {
       userId: sessionData.user.id,

@@ -80,6 +80,16 @@ const MAX_FEATURES: (keyof FeatureFlags)[] = [
 const ENTERPRISE_FEATURES: (keyof FeatureFlags)[] = ['multiTenant', 'whiteLabel', 'sso'];
 
 /**
+ * Features hardcoded to false (B-02: unimplemented, unsafe to expose).
+ * whiteLabel and sso exist in the tier map but getFeatures/isFeatureEnabled/
+ * getFeaturesForTier force them off until the implementations ship.
+ */
+const DISABLED_FEATURES: (keyof FeatureFlags)[] = ['whiteLabel', 'sso'];
+
+/** All features that can actually be enabled (excludes hardcoded-off) */
+const ENABLEABLE_FEATURES = ALL_FEATURES.filter((f) => !DISABLED_FEATURES.includes(f));
+
+/**
  * Configures the mock to simulate a specific license tier.
  * isLicensed(requiredTier) returns true when the simulated tier rank >= required tier rank.
  */
@@ -169,12 +179,16 @@ describe('getFeatures', () => {
     }
   });
 
-  it('returns all features as true for enterprise tier', () => {
+  it('returns all enableable features as true for enterprise tier', () => {
     simulateTier('enterprise');
     const features = getFeatures();
 
-    for (const feature of ALL_FEATURES) {
+    for (const feature of ENABLEABLE_FEATURES) {
       expect(features[feature]).toBe(true);
+    }
+    // B-02: whiteLabel and sso are hardcoded off (unimplemented)
+    for (const feature of DISABLED_FEATURES) {
+      expect(features[feature]).toBe(false);
     }
   });
 
@@ -238,11 +252,16 @@ describe('isFeatureEnabled', () => {
     });
   });
 
-  describe('enterprise tier — all features enabled', () => {
+  describe('enterprise tier — all enableable features enabled', () => {
     beforeEach(() => simulateTier('enterprise'));
 
-    it.each(ALL_FEATURES)('returns true for %s', (feature) => {
+    it.each(ENABLEABLE_FEATURES)('returns true for %s', (feature) => {
       expect(isFeatureEnabled(feature)).toBe(true);
+    });
+
+    // B-02: whiteLabel and sso are hardcoded off
+    it.each(DISABLED_FEATURES)('returns false for %s (hardcoded off)', (feature) => {
+      expect(isFeatureEnabled(feature)).toBe(false);
     });
   });
 
@@ -256,8 +275,10 @@ describe('isFeatureEnabled', () => {
     isFeatureEnabled('aiMemory');
     expect(mockIsLicensed).toHaveBeenCalledWith('max');
 
+    // B-02: sso is hardcoded off, so isFeatureEnabled short-circuits before
+    // calling isLicensed. Use multiTenant to verify enterprise tier delegation.
     mockIsLicensed.mockClear();
-    isFeatureEnabled('sso');
+    isFeatureEnabled('multiTenant');
     expect(mockIsLicensed).toHaveBeenCalledWith('enterprise');
   });
 });
@@ -306,11 +327,15 @@ describe('getFeaturesForTier', () => {
     }
   });
 
-  it('returns all features enabled for enterprise tier', () => {
+  it('returns all enableable features for enterprise tier', () => {
     const features = getFeaturesForTier('enterprise');
 
-    for (const feature of ALL_FEATURES) {
+    for (const feature of ENABLEABLE_FEATURES) {
       expect(features[feature]).toBe(true);
+    }
+    // B-02: whiteLabel and sso are hardcoded off
+    for (const feature of DISABLED_FEATURES) {
+      expect(features[feature]).toBe(false);
     }
   });
 
@@ -320,12 +345,16 @@ describe('getFeaturesForTier', () => {
   });
 
   it('returns consistent results regardless of current license state', () => {
-    // Even when license is free, getFeaturesForTier('enterprise') should show all enabled
+    // Even when license is free, getFeaturesForTier('enterprise') shows all enableable
     simulateTier('free');
     const enterpriseFeatures = getFeaturesForTier('enterprise');
 
-    for (const feature of ALL_FEATURES) {
+    for (const feature of ENABLEABLE_FEATURES) {
       expect(enterpriseFeatures[feature]).toBe(true);
+    }
+    // B-02: whiteLabel and sso remain off regardless of tier
+    for (const feature of DISABLED_FEATURES) {
+      expect(enterpriseFeatures[feature]).toBe(false);
     }
   });
 });
@@ -406,7 +435,7 @@ describe('tier progression', () => {
     free: 2, // aiLocal + aiSampling
     pro: 9, // 2 free + 7 pro features
     max: 13, // 2 free + 7 pro + 4 max features
-    enterprise: 16, // all 16 features
+    enterprise: 14, // 16 total minus 2 hardcoded-off (whiteLabel, sso)
   };
 
   it.each(tiers)('%s tier enables exactly %i features', (tier) => {

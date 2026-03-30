@@ -63,6 +63,9 @@ const featureTierMap: Record<keyof FeatureFlags, LicenseTier> = {
   aiMultiProvider: 'max',
   auditLog: 'max',
   multiTenant: 'enterprise',
+  // NOTE: whiteLabel and sso are planned but not yet implemented.
+  // Forced to false below in getFeatures/getFeaturesForTier/isFeatureEnabled
+  // to avoid advertising features that don't exist. Re-enable when implemented.
   whiteLabel: 'enterprise',
   sso: 'enterprise',
 };
@@ -87,6 +90,10 @@ export function getFeatures(): FeatureFlags {
     flags[feature as keyof FeatureFlags] = isLicensed(requiredTier);
   }
 
+  // Planned but not yet implemented — force false to avoid false advertising
+  flags.whiteLabel = false;
+  flags.sso = false;
+
   return flags;
 }
 
@@ -103,6 +110,9 @@ export function getFeatures(): FeatureFlags {
  * ```
  */
 export function isFeatureEnabled(feature: keyof FeatureFlags): boolean {
+  // Planned but not yet implemented — always return false
+  if (feature === 'whiteLabel' || feature === 'sso') return false;
+
   const requiredTier = featureTierMap[feature];
   return isLicensed(requiredTier);
 }
@@ -123,6 +133,10 @@ export function getFeaturesForTier(tier: LicenseTier): FeatureFlags {
   for (const [feature, requiredTier] of Object.entries(featureTierMap)) {
     flags[feature as keyof FeatureFlags] = tierRank[tier] >= tierRank[requiredTier];
   }
+
+  // Planned but not yet implemented — force false to avoid false advertising
+  flags.whiteLabel = false;
+  flags.sso = false;
 
   return flags;
 }

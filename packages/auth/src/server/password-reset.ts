@@ -10,7 +10,7 @@ import { logger } from '@revealui/core/observability/logger';
 import { getClient } from '@revealui/db/client';
 import { passwordResetTokens, sessions, users } from '@revealui/db/schema';
 import bcrypt from 'bcryptjs';
-import { and, eq, gt, isNull } from 'drizzle-orm';
+import { and, eq, gt, isNull, ne } from 'drizzle-orm';
 
 export interface PasswordResetToken {
   token: string;
@@ -277,17 +277,20 @@ export interface ChangePasswordResult {
 /**
  * Change password for an authenticated user.
  *
- * Verifies the current password before updating. Does not touch sessions —
- * the caller is responsible for revoking other sessions if desired.
+ * Verifies the current password before updating. After a successful change,
+ * invalidates all other sessions for the user (keeping the current session
+ * active) to ensure any compromised sessions cannot persist.
  *
  * @param userId - Authenticated user ID
  * @param currentPassword - Plain-text current password to verify
  * @param newPassword - Plain-text new password to hash and store
+ * @param currentSessionId - Session ID to preserve (all others will be deleted)
  */
 export async function changePassword(
   userId: string,
   currentPassword: string,
   newPassword: string,
+  currentSessionId?: string,
 ): Promise<ChangePasswordResult> {
   try {
     const db = getClient();
@@ -316,6 +319,18 @@ export async function changePassword(
 
     const newHash = await bcrypt.hash(newPassword, 12);
     await db.update(users).set({ password: newHash }).where(eq(users.id, userId));
+
+    // Invalidate all other sessions so stolen/compromised sessions cannot persist.
+    // This mirrors resetPasswordWithToken which deletes ALL sessions. Here we keep
+    // the current session so the user stays logged in after changing their password.
+    if (currentSessionId) {
+      await db
+        .delete(sessions)
+        .where(and(eq(sessions.userId, userId), ne(sessions.id, currentSessionId)));
+    } else {
+      // No current session ID provided — delete all sessions as a safe default
+      await db.delete(sessions).where(eq(sessions.userId, userId));
+    }
 
     return { success: true };
   } catch (error) {

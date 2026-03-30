@@ -208,10 +208,9 @@ async function registerVerifyHandler(request: NextRequest): Promise<NextResponse
 
       // Create session
       const userAgent = request.headers.get('user-agent') ?? undefined;
-      const xff = request.headers.get('x-forwarded-for');
       const ipAddress =
-        (xff ? xff.split(',').pop()?.trim() : undefined) ??
-        request.headers.get('x-real-ip') ??
+        request.headers.get('x-real-ip') ||
+        request.headers.get('x-forwarded-for')?.split(',')[0]?.trim() ||
         undefined;
 
       const { token: sessionToken } = await createSession(newUser.id, {

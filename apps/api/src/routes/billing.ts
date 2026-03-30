@@ -38,6 +38,17 @@ const SUPPORT_RENEWAL_WINDOW_MS =
   Number.parseInt(process.env.REVEALUI_SUPPORT_RENEWAL_DAYS ?? '30', 10) * 24 * 60 * 60 * 1000;
 
 /**
+ * Canonical monthly tier prices in USD (whole dollars).
+ * Single source of truth — used for RVUI payment recording and MRR fallbacks.
+ * Must match the marketing site and Stripe product catalog.
+ */
+const CANONICAL_TIER_PRICES: Record<string, number> = {
+  pro: 49,
+  max: 149,
+  enterprise: 299,
+};
+
+/**
  * Computes a Stripe meter event timestamp for the last second of a billing cycle.
  *
  * Stripe Billing Meters require event timestamps to fall within the billing period
@@ -1623,126 +1634,27 @@ const rvuiPaymentRoute = createRoute({
 });
 
 app.openapi(rvuiPaymentRoute, async (c) => {
-  const user = c.get('user');
-  if (!user) throw new HTTPException(401, { message: 'Authentication required' });
-
-  const { txSignature, tier, walletAddress } = c.req.valid('json');
-
-  // Dynamic import — @revealui/services is a Pro package
-  let services: Record<string, unknown>;
-  try {
-    services = (await import('@revealui/services/revealcoin')) as Record<string, unknown>;
-  } catch {
-    throw new HTTPException(503, { message: 'RVUI payment service unavailable' });
-  }
-
-  const validatePayment = services.validatePayment as (params: {
-    walletAddress: string;
-    userId: string;
-    txSignature: string;
-    amountUsd: number;
-  }) => Promise<{ allowed: boolean; reason?: string }>;
-
-  const verifyRvuiPayment = services.verifyRvuiPayment as (
-    txSignature: string,
-    expectedAmountRaw: bigint,
-    expectedRecipient: string,
-  ) => Promise<{ valid: true } | { valid: false; error: string }>;
-
-  const recordPayment = services.recordPayment as (params: {
-    txSignature: string;
-    walletAddress: string;
-    userId: string;
-    amountRvui: string;
-    amountUsd: number;
-    discountUsd: number;
-    purpose: string;
-  }) => Promise<void>;
-
-  const rvuiToUsd = services.rvuiToUsd as (rvcAmount: number) => Promise<number | null>;
-
-  // Estimate USD value (used for safeguard checks — actual amount verified on-chain)
-  const estimatedUsd = await rvuiToUsd(1);
-  if (estimatedUsd === null) {
-    throw new HTTPException(503, {
-      message: 'RVUI price oracle unavailable. Try again later or use fiat payment.',
-    });
-  }
-
-  // Run safeguard checks with a conservative USD estimate
-  const safeguardResult = await validatePayment({
-    walletAddress,
-    userId: user.id,
-    txSignature,
-    amountUsd: estimatedUsd * 1000, // Conservative: assume up to 1000 RVUI
-  });
-
-  if (!safeguardResult.allowed) {
-    return c.json(
-      { success: false, tier, message: safeguardResult.reason ?? 'Payment rejected' },
-      403,
-    );
-  }
-
-  // Get receiving wallet from config
-  const getRevealCoinConfig = services.getRevealCoinConfig as () => { receivingWallet: string };
-  const config = getRevealCoinConfig();
-  if (!config.receivingWallet) {
-    throw new HTTPException(503, { message: 'RVUI receiving wallet not configured' });
-  }
-
-  // Verify the on-chain transaction
-  // Note: expectedAmountRaw would be calculated from tier price * (1 - discount) / TWAP price
-  // For now we verify the tx is valid and the recipient is correct with a minimum threshold
-  const verifyResult = await verifyRvuiPayment(txSignature, 1n, config.receivingWallet);
-
-  if (!verifyResult.valid) {
-    return c.json(
-      { success: false, tier, message: (verifyResult as { error: string }).error },
-      400,
-    );
-  }
-
-  // Record the payment
-  const discountPercent = 15;
-  const tierPrices: Record<string, number> = { pro: 29, max: 99 };
-  const basePrice = tierPrices[tier.toLowerCase()] ?? 29;
-  const discountAmount = basePrice * (discountPercent / 100);
-  const finalPrice = basePrice - discountAmount;
-
-  await recordPayment({
-    txSignature,
-    walletAddress,
-    userId: user.id,
-    amountRvui: '0', // On-chain amount parsed from tx
-    amountUsd: finalPrice,
-    discountUsd: discountAmount,
-    purpose: `${tier} subscription`,
-  });
-
-  logger.info('RVUI subscription payment verified', {
-    userId: user.id,
-    tier,
-    walletAddress: `${walletAddress.slice(0, 8)}...`,
-    txSignature: `${txSignature.slice(0, 12)}...`,
-    discountUsd: discountAmount,
-  });
-
-  return c.json({
-    success: true,
-    tier,
-    message: `${tier} subscription activated with ${discountPercent}% RVUI discount`,
-  });
+  // DISABLED (B-01): RVUI/RevealCoin payment is disabled until real pricing is
+  // implemented. The on-chain verification used a hardcoded minimum of 1 token
+  // (1n), which would allow any 1-token payment to activate Pro/Max for free.
+  // Re-enable once TWAP-based pricing and proper amount calculation are in place.
+  // See: GAP-100, git history for the full handler implementation.
+  return c.json(
+    {
+      success: false,
+      tier: 'none',
+      message: 'RVUI payment is not yet available. Please use Stripe for subscription payments.',
+    },
+    501,
+  );
 });
 
 // ─── Admin Revenue Metrics ────────────────────────────────────────────────────
 
 /** Fallback monthly prices (cents) for MRR estimation when catalog has no Stripe price */
-const FALLBACK_TIER_PRICE_CENTS: Record<string, number> = {
-  pro: 49_00,
-  max: 149_00,
-  enterprise: 299_00,
-};
+const FALLBACK_TIER_PRICE_CENTS: Record<string, number> = Object.fromEntries(
+  Object.entries(CANONICAL_TIER_PRICES).map(([tier, usd]) => [tier, usd * 100]),
+);
 
 const MetricsTierBreakdownSchema = z.object({
   pro: z.number().openapi({ description: 'Active pro subscriptions' }),

@@ -29,10 +29,9 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
   }
 
   // Rate limit by IP — 10 attempts per 15 minutes
-  const xff = request.headers.get('x-forwarded-for');
   const ip =
-    (xff ? xff.split(',').pop()?.trim() : undefined) ||
     request.headers.get('x-real-ip') ||
+    request.headers.get('x-forwarded-for')?.split(',')[0]?.trim() ||
     'unknown';
 
   try {

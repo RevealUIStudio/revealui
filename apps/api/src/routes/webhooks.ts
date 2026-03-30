@@ -1757,13 +1757,33 @@ app.openapi(stripeWebhookRoute, async (c) => {
           try {
             const charge = await stripe.charges.retrieve(wonChargeId);
             wonCustomerId = resolveCustomerId(charge.customer);
-          } catch (err) {
-            logger.error('Failed to retrieve charge for won dispute', undefined, {
+          } catch (firstErr) {
+            logger.warn('Charge retrieve failed for won dispute, retrying once', {
               chargeId: wonChargeId,
               disputeId: dispute.id,
-              detail: err instanceof Error ? err.message : 'unknown',
+              detail: firstErr instanceof Error ? firstErr.message : 'unknown',
             });
-            break;
+            // Retry once before giving up — a transient Stripe outage must not
+            // silently drop license restoration for a customer who won their dispute.
+            try {
+              const charge = await stripe.charges.retrieve(wonChargeId);
+              wonCustomerId = resolveCustomerId(charge.customer);
+            } catch (retryErr) {
+              logger.error('Charge retrieve failed after retry for won dispute', undefined, {
+                chargeId: wonChargeId,
+                disputeId: dispute.id,
+                detail: retryErr instanceof Error ? retryErr.message : 'unknown',
+              });
+              // Record an audit trail so the operations team can manually restore this license.
+              // Do NOT break silently — the audit entry ensures the failure is visible.
+              auditLicenseEvent(db, 'license.restoration_failed.dispute_won', 'critical', {
+                disputeId: dispute.id,
+                chargeId: wonChargeId,
+                reason: 'stripe_charge_retrieve_failed_after_retry',
+                detail: retryErr instanceof Error ? retryErr.message : 'unknown',
+              });
+              break;
+            }
           }
 
           if (wonCustomerId) {
