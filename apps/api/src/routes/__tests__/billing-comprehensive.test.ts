@@ -362,10 +362,14 @@ describe('Billing Route Tests — Comprehensive Coverage', { timeout: 60_000 }, 
       const app = createApp();
       await app.request(post('/downgrade', {}));
 
-      expect(mockSubscriptionsUpdate).toHaveBeenCalledWith('sub_pro', {
-        cancel_at_period_end: true,
-        metadata: { pending_change: 'downgrade:free' },
-      });
+      expect(mockSubscriptionsUpdate).toHaveBeenCalledWith(
+        'sub_pro',
+        {
+          cancel_at_period_end: true,
+          metadata: { pending_change: 'downgrade:free' },
+        },
+        { idempotencyKey: 'downgrade-sub_pro-free-user-123' },
+      );
     });
 
     it('uses current time as effectiveAt when Stripe returns no cancel_at', async () => {
