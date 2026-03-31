@@ -20,7 +20,6 @@
  *   pnpm setup:mcp
  */
 
-import { join } from 'node:path';
 import { ErrorCode } from '@revealui/scripts/errors.js';
 import { createLogger } from '@revealui/scripts/logger.js';
 import { getProjectRoot } from '@revealui/scripts/paths.js';
