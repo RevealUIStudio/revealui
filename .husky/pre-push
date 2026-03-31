@@ -1,4 +1,8 @@
 #!/bin/bash
+# Re-exec under bash if invoked via sh (Husky runs hooks with `sh -e`)
+if [ -z "$BASH_VERSION" ]; then
+  exec bash -e "$0" "$@"
+fi
 
 # Guard: Pro packages must remain gitignored — prevents accidental leak to public repo
 for pkg in packages/ai packages/harnesses; do
