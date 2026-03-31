@@ -48,8 +48,8 @@ env:
   NODE_VERSION: "24"
   PNPM_VERSION: "10.28.2"
   VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
-  TURBO_TOKEN: ${{ secrets.TURBO_TOKEN }}
-  TURBO_TEAM: ${{ vars.TURBO_TEAM }}
+  TURBO_TOKEN: ${{ secrets.TURBO_TOKEN || secrets.VERCEL_TOKEN }}
+  TURBO_TEAM: ${{ vars.TURBO_TEAM || 'revealuistudio' }}
   PNPM_INSTALL_FLAGS: "--frozen-lockfile"
 
 jobs:
