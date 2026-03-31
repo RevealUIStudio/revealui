@@ -1,6 +1,7 @@
 {
   "name": "test",
   "version": "0.0.1",
+  "description": "E2E specs, integration tests, fixtures, mocks, and test utilities for RevealUI",
   "private": true,
   "license": "MIT",
   "dependencies": {

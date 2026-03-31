@@ -1,6 +1,7 @@
 {
   "name": "docs",
   "version": "0.0.1",
+  "description": "Documentation site for RevealUI",
   "private": true,
   "dependencies": {
     "@revealui/animations": "workspace:*",

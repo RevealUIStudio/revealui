@@ -1,6 +1,7 @@
 {
   "name": "api",
   "version": "0.1.0",
+  "description": "REST API server with OpenAPI spec and Swagger UI for RevealUI",
   "private": true,
   "dependencies": {
     "@coinbase/x402": "^2.1.0",

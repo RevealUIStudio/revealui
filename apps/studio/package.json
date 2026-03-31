@@ -1,6 +1,7 @@
 {
   "name": "@revealui/studio",
   "version": "0.1.0",
+  "description": "Desktop companion app for RevealUI (Tauri 2 + React 19)",
   "private": true,
   "dependencies": {
     "@codemirror/lang-css": "^6.0.0",

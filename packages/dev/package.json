@@ -1,6 +1,7 @@
 {
   "name": "dev",
   "version": "0.0.1",
+  "description": "Shared development configs (Biome, TypeScript, Tailwind) for RevealUI",
   "private": true,
   "license": "MIT",
   "dependencies": {
