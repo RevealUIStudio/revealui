@@ -58,7 +58,7 @@
 
 ## Executive Summary
 
-RevealUI implements a hybrid multi-database architecture with comprehensive type safety, integrating multiple specialized systems for optimal performance and scalability:
+RevealUI implements a hybrid multi-database architecture with comprehensive type safety, integrating multiple specialized systems for optimal performance and scalability. Every architectural decision is guided by the **[JOSHUA Stack](./JOSHUA.md)** principles — Justifiable, Orthogonal, Sovereign, Hermetic, Unified, Adaptive.
 
 ### Core Systems
 

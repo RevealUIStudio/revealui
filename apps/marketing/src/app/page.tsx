@@ -3,6 +3,7 @@ import { EcosystemSection } from '@/components/EcosystemSection';
 import { Footer } from '@/components/Footer';
 import { GetStarted } from '@/components/GetStarted';
 import { HeroSection } from '@/components/HeroSection';
+import { JoshuaStack } from '@/components/JoshuaStack';
 import { SocialProof } from '@/components/SocialProof';
 import { ValueProposition } from '@/components/ValueProposition';
 
@@ -11,6 +12,7 @@ export default function Home() {
     <div className="min-h-screen bg-white">
       <HeroSection />
       <ValueProposition />
+      <JoshuaStack />
       <SocialProof />
       <EcosystemSection />
       <Audiences />
