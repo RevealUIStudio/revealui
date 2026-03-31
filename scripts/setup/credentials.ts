@@ -148,8 +148,12 @@ async function readNpmrc(): Promise<string> {
   }
 }
 
+function escapeRegExp(str: string): string {
+  return str.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+}
+
 function setNpmrcEntry(content: string, key: string, value: string): string {
-  const pattern = new RegExp(`^${key.replace(/\//g, '\\/').replace(/\./g, '\\.')}=.*$`, 'm');
+  const pattern = new RegExp(`^${escapeRegExp(key)}=.*$`, 'm');
   const line = `${key}=${value}`;
   return pattern.test(content) ? content.replace(pattern, line) : `${content.trimEnd()}\n${line}\n`;
 }

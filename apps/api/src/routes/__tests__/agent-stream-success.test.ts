@@ -20,7 +20,9 @@
 // ---------------------------------------------------------------------------
 
 /** Capture SSE events written by the route handler during each test. */
-const capturedEvents: Array<{ event: string; data: string }> = [];
+const { capturedEvents } = vi.hoisted(() => ({
+  capturedEvents: [] as Array<{ event: string; data: string }>,
+}));
 
 vi.mock('hono/streaming', () => ({
   /**

@@ -31,14 +31,9 @@ const logger = createLogger();
 
 config();
 
-// Check for .env file
-const envPath = join(process.cwd(), '.env');
+// Check for .env.local
 const envLocalPath = join(process.cwd(), '.env.local');
-
-let _envFile = envPath;
-if (existsSync(envLocalPath)) {
-  _envFile = envLocalPath;
-}
+const _envLocalExists = existsSync(envLocalPath);
 
 async function setupMCP() {
   try {

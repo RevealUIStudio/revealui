@@ -22,7 +22,7 @@
  *   pnpm setup:env --generate  # Non-interactive: only generate secrets + apply defaults
  */
 
-import { randomBytes } from 'node:crypto';
+import { randomBytes, randomInt } from 'node:crypto';
 import { copyFile, readFile, writeFile } from 'node:fs/promises';
 import { join } from 'node:path';
 import { ErrorCode } from '@revealui/scripts/errors.js';
@@ -132,9 +132,8 @@ function generateSecret(length = 32): string {
 function generatePassword(length = 16): string {
   const chars = 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789!@#$%^&*';
   let password = '';
-  const randomValues = randomBytes(length);
   for (let i = 0; i < length; i++) {
-    password += chars[randomValues[i] % chars.length];
+    password += chars[randomInt(chars.length)];
   }
   return password;
 }

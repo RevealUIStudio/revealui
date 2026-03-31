@@ -46,7 +46,12 @@ export async function POST(request: Request) {
   if (!name || typeof name !== 'string' || name.length < 1) {
     return NextResponse.json({ message: 'Name is required.' }, { status: 400 });
   }
-  if (!email || typeof email !== 'string' || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+  if (
+    !email ||
+    typeof email !== 'string' ||
+    email.length > 254 ||
+    !/^[^\s@]+@[^\s@.]+(?:\.[^\s@.]+)+$/.test(email)
+  ) {
     return NextResponse.json({ message: 'Valid email is required.' }, { status: 400 });
   }
   if (!message || typeof message !== 'string' || message.length < 10) {

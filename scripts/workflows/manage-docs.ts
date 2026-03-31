@@ -165,11 +165,13 @@ async function organizeDocs(): Promise<void> {
   // Create .gitkeep files in empty directories
   for (const folder of Object.keys(folders)) {
     const gitkeep = join(folder, '.gitkeep');
-    if (!existsSync(gitkeep)) {
-      const files = readdirSync(folder);
-      if (files.length === 0) {
-        writeFileSync(gitkeep, '# This file keeps the directory in git\n');
+    const files = readdirSync(folder);
+    if (files.length === 0) {
+      try {
+        writeFileSync(gitkeep, '# This file keeps the directory in git\n', { flag: 'wx' });
         logger.info(`Created .gitkeep in ${folder}`);
+      } catch {
+        // Already exists — ignore
       }
     }
   }
@@ -395,10 +397,10 @@ External references if any.
 **Next Step**: Fill out this document, then proceed to Implementation phase
 `;
 
-  if (!existsSync(draftFile)) {
-    writeFileSync(draftFile, docTemplate);
+  try {
+    writeFileSync(draftFile, docTemplate, { flag: 'wx' });
     logger.success(`Draft created: ${draftFile}`);
-  } else {
+  } catch {
     logger.info(`Draft already exists: ${draftFile}`);
   }
 

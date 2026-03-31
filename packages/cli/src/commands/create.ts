@@ -203,7 +203,9 @@ async function pullContentRules(projectPath: string): Promise<void> {
           });
           if (!fileRes.ok) continue;
           const content = await fileRes.text();
-          const absolutePath = path.join(projectPath, relPath);
+          const absolutePath = path.resolve(projectPath, relPath);
+          // Verify resolved path stays within project (prevent path traversal)
+          if (!absolutePath.startsWith(path.resolve(projectPath))) continue;
           await fs.mkdir(path.dirname(absolutePath), { recursive: true });
           await fs.writeFile(absolutePath, content, 'utf-8');
           written++;

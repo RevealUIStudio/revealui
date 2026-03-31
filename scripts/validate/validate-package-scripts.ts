@@ -179,14 +179,14 @@ function checkCodeFile(filePath: string) {
           }
 
           // Generate suggestion
-          let suggestion = line;
+          let suggestion: string;
           // Handle spawn('npx', ['args']) -> spawn('pnpm', ['dlx', ...args])
           if (line.includes("spawn('npx',")) {
             // Replace 'npx' with 'pnpm' and insert 'dlx' as first array element
             suggestion = line.replace("spawn('npx',", "spawn('pnpm', ['dlx',");
           } else if (line.includes('spawn("npx",')) {
             suggestion = line.replace('spawn("npx",', 'spawn("pnpm", ["dlx",');
-          } else if (line.includes('spawn(`npx`,') || line.includes('spawn(`npx`,')) {
+          } else if (line.includes('spawn(`npx`,')) {
             suggestion = line.replace(/spawn\(`npx`,?/, 'spawn(`pnpm`, [`dlx`,');
           }
           // Handle exec('npx ...') -> exec('pnpm dlx ...')

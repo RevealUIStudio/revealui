@@ -92,7 +92,11 @@ export const Card = (props: {
             </h3>
           </div>
         )}
-        {description && <div className="mt-2">{description && <p>{sanitizedDescription}</p>}</div>}
+        {description && (
+          <div className="mt-2">
+            <p>{sanitizedDescription}</p>
+          </div>
+        )}
       </CardContent>
     </PresentationCard>
   );

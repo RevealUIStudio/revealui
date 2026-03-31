@@ -90,19 +90,22 @@ function countSourceLines(srcDir: string): number {
   let total = 0;
 
   function walk(dir: string): void {
-    for (const entry of readdirSync(dir)) {
-      const full = join(dir, entry);
-      const stat = statSync(full);
-      if (stat.isDirectory()) {
-        if (IGNORED_DIRECTORIES.has(entry) || entry === '__tests__') continue;
+    for (const entry of readdirSync(dir, { withFileTypes: true })) {
+      const full = join(dir, entry.name);
+      if (entry.isDirectory()) {
+        if (IGNORED_DIRECTORIES.has(entry.name) || entry.name === '__tests__') continue;
         walk(full);
-      } else if (entry.endsWith('.ts') || entry.endsWith('.tsx')) {
-        const content = readFileSync(full, 'utf-8');
-        for (const line of content.split('\n')) {
-          const trimmed = line.trim();
-          if (trimmed && !trimmed.startsWith('//') && !trimmed.startsWith('*')) {
-            total++;
+      } else if (entry.name.endsWith('.ts') || entry.name.endsWith('.tsx')) {
+        try {
+          const content = readFileSync(full, 'utf-8');
+          for (const line of content.split('\n')) {
+            const trimmed = line.trim();
+            if (trimmed && !trimmed.startsWith('//') && !trimmed.startsWith('*')) {
+              total++;
+            }
           }
+        } catch {
+          // File removed between readdir and read — skip
         }
       }
     }

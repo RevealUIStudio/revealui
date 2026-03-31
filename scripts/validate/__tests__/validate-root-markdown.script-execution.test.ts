@@ -48,14 +48,12 @@ describe('Validate Root Markdown - Script Execution Tests', () => {
       await writeFile(join(testProjectRoot, 'TEST_GUIDE.md'), '# Test Guide');
 
       // Execute script in non-fix mode - should throw error due to process.exit(1)
-      let _errorThrown = false;
       try {
         await validateRootMarkdown({ fix: false }, testProjectRoot);
-      } catch (_error) {
+      } catch {
         // validateRootMarkdown calls process.exit(1) when violations found
         // In tests, this doesn't actually exit, but the function completes
         // The real test is that files weren't moved
-        _errorThrown = true;
       }
 
       // Note: process.exit(1) in non-fix mode with violations

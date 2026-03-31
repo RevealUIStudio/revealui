@@ -73,19 +73,14 @@ function measureTime(fn: () => void): number {
  */
 function getFileMetrics(filePath: string): { path: string; size: number; lines: number } {
   const fullPath = join(rootDir, filePath);
-  if (!existsSync(fullPath)) {
+  try {
+    const stats = statSync(fullPath);
+    const content = readFileSync(fullPath, 'utf-8');
+    const lines = content.split('\n').length;
+    return { path: filePath, size: stats.size, lines };
+  } catch {
     return { path: filePath, size: 0, lines: 0 };
   }
-
-  const stats = statSync(fullPath);
-  const content = readFileSync(fullPath, 'utf-8');
-  const lines = content.split('\n').length;
-
-  return {
-    path: filePath,
-    size: stats.size,
-    lines,
-  };
 }
 
 /**
@@ -345,10 +340,8 @@ if (command === 'run' || command === 'measure') {
   const history = loadHistory();
   console.log(JSON.stringify(history, null, 2));
 } else if (command === 'clear') {
-  if (existsSync(metricsFile)) {
-    writeFileSync(metricsFile, JSON.stringify({ runs: [], summary: {} }, null, 2));
-    console.log('✅ Metrics history cleared');
-  }
+  writeFileSync(metricsFile, JSON.stringify({ runs: [], summary: {} }, null, 2));
+  console.log('✅ Metrics history cleared');
 } else {
   console.log('Type Generation Performance Monitor\n');
   console.log('Usage:');

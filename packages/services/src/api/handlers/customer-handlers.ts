@@ -59,8 +59,8 @@ export const copyBillingDetailsToCustomer = async (
   if (!(name && phone && address)) return;
 
   const updateParams: Stripe.CustomerUpdateParams = {
-    ...(name ? { name } : {}),
-    ...(phone ? { phone } : {}),
+    name,
+    phone,
     ...(address
       ? {
           address: {
